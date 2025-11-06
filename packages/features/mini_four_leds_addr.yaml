@@ -1,7 +1,7 @@
 substitutions:
   status_light_brightness: "50%"
 
-i2c:
+i2c: !extend
   - id: led_i2c
     sda: GPIO25
     scl: GPIO26
