@@ -1,0 +1,14 @@
+debug:
+  update_interval: 30s
+
+sensor:
+  - platform: internal_temperature
+    name: "${friendly_name} MCU Temperature"
+  - platform: duty_time
+    name: "${friendly_name} CPU Duty"
+
+binary_sensor:
+  - platform: gpio
+    pin: GPIO0
+    name: "${friendly_name} User Button"
+    internal: true

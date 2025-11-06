@@ -1,0 +1,24 @@
+sensor:
+  - platform: uptime
+    name: "${friendly_name} Uptime"
+    id: device_uptime
+    update_interval: 30s
+  - platform: wifi_signal
+    name: "${friendly_name} RSSI"
+    update_interval: 30s
+
+text_sensor:
+  - platform: version
+    name: "${friendly_name} ESPHome"
+  - platform: wifi_info
+    ip_address:
+      name: "${friendly_name} IP"
+    ssid:
+      name: "${friendly_name} SSID"
+    bssid:
+      name: "${friendly_name} BSSID"
+
+switch:
+  - platform: restart
+    name: "${friendly_name} Restart"
+    icon: "mdi:restart"

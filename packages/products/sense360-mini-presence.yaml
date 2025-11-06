@@ -1,0 +1,17 @@
+packages:
+  base: !include ../base/complete.yaml
+  hardware: !include ../hardware/sense360_core_mini.yaml
+  presence_sensor: !include ../hardware/presence_ld2450.yaml
+  profile: !include ../features/presence_advanced_profile.yaml
+  leds: !include ../features/mini_four_leds_addr.yaml
+
+substitutions:
+  friendly_name: Sense360 Mini Presence
+  device_name: sense360-mini-presence
+  timezone: "UTC"
+
+light:
+  - platform: status_led
+    id: presence_status_led
+    pin: ${status_led_pin}
+    restore_mode: ALWAYS_ON

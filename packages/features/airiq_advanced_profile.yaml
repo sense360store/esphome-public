@@ -1,0 +1,55 @@
+packages:
+  airiq_basic: !include airiq_basic_profile.yaml
+  diagnostics: !include diagnostics.yaml
+
+interval:
+  - interval: 5min
+    then:
+      - logger.log:
+          level: INFO
+          format: "IAQ classification: %s"
+          args: [ 'id(air_quality_state).state.c_str()' ]
+      - script.execute: auto_fan_control
+
+output:
+  - platform: gpio
+    id: fan_output
+    pin: GPIO15
+
+switch:
+  - platform: output
+    id: fan_switch
+    output: fan_output
+    name: "${friendly_name} Air Exchange"
+    icon: "mdi:fan"
+    restore_mode: RESTORE_DEFAULT_OFF
+
+script:
+  - id: auto_fan_control
+    mode: restart
+    then:
+      - if:
+          condition:
+            text_sensor.state:
+              id: air_quality_state
+              state: "heavily polluted"
+          then:
+            - switch.turn_on: fan_switch
+          else:
+            - switch.turn_off: fan_switch
+
+text_sensor:
+  - platform: template
+    id: air_quality_change_monitor
+    internal: true
+    lambda: |-
+      return id(air_quality_state).state;
+    update_interval: 30s
+    on_value:
+      then:
+        - script.execute: auto_fan_control
+
+on_boot:
+  priority: 600
+  then:
+    - script.execute: auto_fan_control

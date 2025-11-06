@@ -1,0 +1,10 @@
+substitutions:
+  friendly_name: Sense360 Mini AirIQ Advanced
+  device_name: sense360-mini-airiq-advanced
+  timezone: "UTC"
+
+packages:
+  product: github://sense360/esphome-public/packages/products/sense360-mini-airiq.yaml
+
+esphome:
+  name: ${device_name}

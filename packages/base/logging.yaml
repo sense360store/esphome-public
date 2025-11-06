@@ -1,0 +1,12 @@
+logger:
+  level: ${log_level|INFO}
+  logs:
+    sensor: INFO
+    component: INFO
+    api.service: WARN
+
+web_server:
+  port: 80
+  auth:
+    username: !secret web_username
+    password: !secret web_password

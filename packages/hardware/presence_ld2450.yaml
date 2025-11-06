@@ -1,0 +1,22 @@
+substitutions:
+  presence_timeout: 30s
+
+sensor:
+  - platform: ld2450
+    uart_id: uart_bus
+    timeout: ${presence_timeout}
+    update_interval: 500ms
+    targets:
+      - id: ld2450_target_1
+      - id: ld2450_target_2
+      - id: ld2450_target_3
+    on_state_change:
+      then:
+        - component.update: occupancy_status
+
+binary_sensor:
+  - platform: template
+    id: occupancy_status
+    name: "${friendly_name} Occupancy"
+    lambda: |-
+      return id(ld2450_target_1).has_target() || id(ld2450_target_2).has_target() || id(ld2450_target_3).has_target();

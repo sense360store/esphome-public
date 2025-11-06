@@ -1,0 +1,26 @@
+packages:
+  health: !include device_health.yaml
+
+global:
+  - id: presence_confidence
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+
+binary_sensor:
+  - platform: template
+    id: presence_binary
+    name: "${friendly_name} Presence"
+    device_class: occupancy
+    lambda: |-
+      return id(presence_confidence) > 0.3f;
+
+sensor:
+  - platform: template
+    id: presence_score
+    name: "${friendly_name} Presence Score"
+    update_interval: 1s
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    lambda: |-
+      return id(presence_confidence) * 100.0f;
