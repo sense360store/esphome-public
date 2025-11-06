@@ -1,0 +1,4 @@
+# esphome/packages/base/logging.yaml
+logger:
+  level: ${log_level}
+  # Keep UART0 for logs; LD2450 is on a hardware UART (defaults UART2)

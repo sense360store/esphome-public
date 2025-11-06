@@ -1,0 +1,56 @@
+# ============================================================================
+# SENSE360 CEILING + PRESENCE - PRODUCT CONFIGURATION
+# ============================================================================
+# This configuration is for ceiling-mounted Sense360 with presence detection.
+#
+# Customer usage:
+# packages:
+#   sense360_firmware:
+#     url: https://github.com/sense360store/esphome-public
+#     ref: v1.0.0
+#     files: 
+#       - products/sense360-ceiling-presence.yaml
+# ============================================================================
+
+substitutions:
+  # === Hardware Configuration ===
+  board_variant: esp32-s3-devkitc-1
+  log_level: INFO
+  
+  # === I2C Bus Pins (Ceiling Core Board) ===
+  i2c_sda_pin: GPIO48
+  i2c_scl_pin: GPIO45
+  
+  # === LD2450 Presence Sensor UART ===
+  ld2450_uart_id: uart_ld2450
+  ld2450_tx_pin: GPIO12
+  ld2450_rx_pin: GPIO13
+  ld2450_baud: "256000"
+  
+  # === WiFi Behavior ===
+  wifi_fast_connect: "true"
+  
+  # === Security (users MUST define these) ===
+  api_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+
+# ----------------------------------------------------------------------------
+# PACKAGE INCLUDES
+# ----------------------------------------------------------------------------
+
+packages:
+  # === Base System ===
+  base_wifi:       !include ../base/wifi.yaml
+  base_logging:    !include ../base/logging.yaml
+  base_api:        !include ../base/api_encrypted.yaml
+  base_ota:        !include ../base/ota.yaml
+  base_time:       !include ../base/time.yaml
+  base_bluetooth:  !include ../base/bluetooth_proxy.yaml
+  
+  # === Hardware (Ceiling variant) ===
+  core_hardware:   !include ../hardware/sense360_core_ceiling.yaml
+  presence_hardware: !include ../hardware/presence_ld2450.yaml
+  
+  # === Features (Pro presence profile for ceiling) ===
+  presence_detection: !include ../features/presence_pro_profile.yaml
+  device_diagnostics: !include ../features/device_health.yaml

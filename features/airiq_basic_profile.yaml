@@ -1,0 +1,488 @@
+# /config/esphome/packages/features/airiq_basic_profile.yaml
+# AirIQ (SEN55 + SCD4x + ALS) — Basic profile
+# Expects an I2C bus already defined in core hardware with id: ${i2c_bus_id}
+# Also expects a script named update_air_quality_led (from air_quality_leds.yaml)
+
+globals:
+  # PM1.0
+  - id: g_pm1_good
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm1_good_limit}
+  - id: g_pm1_moderate
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm1_moderate_limit}
+  - id: g_pm1_unhealthy
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm1_unhealthy_limit}
+
+  # PM2.5
+  - id: g_pm25_good
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm2_5_good_limit}
+  - id: g_pm25_moderate
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm2_5_moderate_limit}
+  - id: g_pm25_unhealthy
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm2_5_unhealthy_limit}
+
+  # PM4.0
+  - id: g_pm40_good
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm4_0_good_limit}
+  - id: g_pm40_moderate
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm4_0_moderate_limit}
+  - id: g_pm40_unhealthy
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm4_0_unhealthy_limit}
+
+  # PM10
+  - id: g_pm10_good
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm10_good_limit}
+  - id: g_pm10_moderate
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm10_moderate_limit}
+  - id: g_pm10_unhealthy
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm10_unhealthy_limit}
+
+  # VOC / NOx
+  - id: g_voc_good
+    type: float
+    restore_value: true
+    initial_value: ${sen55_voc_good_limit}
+  - id: g_voc_moderate
+    type: float
+    restore_value: true
+    initial_value: ${sen55_voc_moderate_limit}
+  - id: g_voc_unhealthy
+    type: float
+    restore_value: true
+    initial_value: ${sen55_voc_unhealthy_limit}
+
+  - id: g_nox_good
+    type: float
+    restore_value: true
+    initial_value: ${sen55_nox_good_limit}
+  - id: g_nox_moderate
+    type: float
+    restore_value: true
+    initial_value: ${sen55_nox_moderate_limit}
+  - id: g_nox_unhealthy
+    type: float
+    restore_value: true
+    initial_value: ${sen55_nox_unhealthy_limit}
+
+  # CO₂
+  - id: g_co2_good
+    type: float
+    restore_value: true
+    initial_value: ${co2_good_limit}
+  - id: g_co2_moderate
+    type: float
+    restore_value: true
+    initial_value: ${co2_moderate_limit}
+  - id: g_co2_unhealthy
+    type: float
+    restore_value: true
+    initial_value: ${co2_unhealthy_limit}
+
+sensor:
+  # ---- SEN55 ----
+  - platform: sen5x
+    id: AQS
+    i2c_id: i2c0
+
+    pm_1_0:
+      id: pm_1_0
+      name: "${friendly_name} PM <1.0µm"
+      accuracy_decimals: 1
+      on_value:
+        then:
+          - script.execute: update_air_quality_led
+
+    pm_2_5:
+      id: pm_2_5
+      name: "${friendly_name} PM <2.5µm"
+      accuracy_decimals: 1
+      on_value:
+        then:
+          - script.execute: update_air_quality_led
+
+    pm_4_0:
+      id: pm_4_0
+      name: "${friendly_name} PM <4.0µm"
+      accuracy_decimals: 1
+      on_value:
+        then:
+          - script.execute: update_air_quality_led
+
+    pm_10_0:
+      id: pm_10_0
+      name: "${friendly_name} PM <10µm"
+      accuracy_decimals: 1
+      on_value:
+        then:
+          - script.execute: update_air_quality_led
+
+    temperature:
+      id: temp
+      name: "${friendly_name} Temperature"
+      accuracy_decimals: 1
+
+    humidity:
+      id: humidity
+      name: "${friendly_name} Humidity"
+      accuracy_decimals: 0
+
+    voc:
+      id: voc_index
+      name: "${friendly_name} VOC Index"
+      on_value:
+        then:
+          - script.execute: update_air_quality_led
+
+    nox:
+      id: nox_index
+      name: "${friendly_name} NOx Index"
+      on_value:
+        then:
+          - script.execute: update_air_quality_led
+
+    update_interval: 10s
+
+  # ---- SCD4x (CO₂) ----
+  - platform: scd4x
+    id: scd4x_sensor
+    i2c_id: i2c0
+    measurement_mode: periodic
+    automatic_self_calibration: true
+    co2:
+      id: scd40_co2
+      internal: true
+      on_value:
+        then:
+          - script.execute: update_air_quality_led
+
+  # ---- Lite-On ALS ----
+  - platform: ltr_als_ps
+    i2c_id: i2c0
+    ambient_light:
+      id: ambient_lux
+      name: "${friendly_name} Illuminance"
+
+  # ---- CO₂ Display (never 'Unknown') ----
+  - platform: template
+    id: co2_display
+    name: "${friendly_name} CO₂"
+    unit_of_measurement: "ppm"
+    device_class: carbon_dioxide
+    state_class: measurement
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: |-
+      static float last_valid = NAN;
+      float v = id(scd40_co2).state;
+      if (!std::isnan(v)) last_valid = v;
+      if (std::isnan(last_valid)) {
+        return id(co2_display).state;
+      }
+      return last_valid;
+
+text_sensor:
+  - platform: template
+    id: co2_status
+    name: "${friendly_name} CO₂ Status"
+    update_interval: 5s
+    icon: mdi:molecule-co2
+    lambda: |-
+      if (std::isnan(id(scd40_co2).state)) {
+        return std::string("Heating up");
+      }
+      const float co2 = id(scd40_co2).state;
+      if (co2 < id(g_co2_good))           return std::string("Good");
+      else if (co2 < id(g_co2_moderate))  return std::string("Moderate");
+      else if (co2 < id(g_co2_unhealthy)) return std::string("Unhealthy");
+      else                                return std::string("High");
+
+# ---- Hidden UI numbers that drive LED thresholds ----
+number:
+  # PM1.0
+  - platform: template
+    id: sen55_pm_1_0_good_limit
+    internal: true
+    min_value: 0
+    max_value: 200
+    step: 0.5
+    restore_value: true
+    initial_value: ${sen55_pm1_good_limit}
+    set_action:
+      - lambda: |-
+          id(g_pm1_good) = x;
+          id(update_air_quality_led).execute();
+  - platform: template
+    id: sen55_pm_1_0_moderate_limit
+    internal: true
+    min_value: 0
+    max_value: 200
+    step: 0.5
+    restore_value: true
+    initial_value: ${sen55_pm1_moderate_limit}
+    set_action:
+      - lambda: |-
+          id(g_pm1_moderate) = x;
+          id(update_air_quality_led).execute();
+  - platform: template
+    id: sen55_pm_1_0_unhealthy_limit
+    internal: true
+    min_value: 0
+    max_value: 200
+    step: 0.5
+    restore_value: true
+    initial_value: ${sen55_pm1_unhealthy_limit}
+    set_action:
+      - lambda: |-
+          id(g_pm1_unhealthy) = x;
+          id(update_air_quality_led).execute();
+
+  # PM2.5
+  - platform: template
+    id: sen55_pm2_5_good_limit
+    internal: true
+    min_value: 0
+    max_value: 200
+    step: 0.5
+    restore_value: true
+    initial_value: ${sen55_pm2_5_good_limit}
+    set_action:
+      - lambda: |-
+          id(g_pm25_good) = x;
+          id(update_air_quality_led).execute();
+  - platform: template
+    id: sen55_pm2_5_moderate_limit
+    internal: true
+    min_value: 0
+    max_value: 200
+    step: 0.5
+    restore_value: true
+    initial_value: ${sen55_pm2_5_moderate_limit}
+    set_action:
+      - lambda: |-
+          id(g_pm25_moderate) = x;
+          id(update_air_quality_led).execute();
+  - platform: template
+    id: sen55_pm2_5_unhealthy_limit
+    internal: true
+    min_value: 0
+    max_value: 200
+    step: 0.5
+    restore_value: true
+    initial_value: ${sen55_pm2_5_unhealthy_limit}
+    set_action:
+      - lambda: |-
+          id(g_pm25_unhealthy) = x;
+          id(update_air_quality_led).execute();
+
+  # PM4.0
+  - platform: template
+    id: sen55_pm4_0_good_limit
+    internal: true
+    min_value: 0
+    max_value: 200
+    step: 0.5
+    restore_value: true
+    initial_value: ${sen55_pm4_0_good_limit}
+    set_action:
+      - lambda: |-
+          id(g_pm40_good) = x;
+          id(update_air_quality_led).execute();
+  - platform: template
+    id: sen55_pm4_0_moderate_limit
+    internal: true
+    min_value: 0
+    max_value: 200
+    step: 0.5
+    restore_value: true
+    initial_value: ${sen55_pm4_0_moderate_limit}
+    set_action:
+      - lambda: |-
+          id(g_pm40_moderate) = x;
+          id(update_air_quality_led).execute();
+  - platform: template
+    id: sen55_pm4_0_unhealthy_limit
+    internal: true
+    min_value: 0
+    max_value: 200
+    step: 0.5
+    restore_value: true
+    initial_value: ${sen55_pm4_0_unhealthy_limit}
+    set_action:
+      - lambda: |-
+          id(g_pm40_unhealthy) = x;
+          id(update_air_quality_led).execute();
+
+  # PM10
+  - platform: template
+    id: sen55_pm10_good_limit
+    internal: true
+    min_value: 0
+    max_value: 200
+    step: 0.5
+    restore_value: true
+    initial_value: ${sen55_pm10_good_limit}
+    set_action:
+      - lambda: |-
+          id(g_pm10_good) = x;
+          id(update_air_quality_led).execute();
+  - platform: template
+    id: sen55_pm10_moderate_limit
+    internal: true
+    min_value: 0
+    max_value: 200
+    step: 0.5
+    restore_value: true
+    initial_value: ${sen55_pm10_moderate_limit}
+    set_action:
+      - lambda: |-
+          id(g_pm10_moderate) = x;
+          id(update_air_quality_led).execute();
+  - platform: template
+    id: sen55_pm10_unhealthy_limit
+    internal: true
+    min_value: 0
+    max_value: 200
+    step: 0.5
+    restore_value: true
+    initial_value: ${sen55_pm10_unhealthy_limit}
+    set_action:
+      - lambda: |-
+          id(g_pm10_unhealthy) = x;
+          id(update_air_quality_led).execute();
+
+  # VOC
+  - platform: template
+    id: sen55_voc_good_limit
+    internal: true
+    min_value: 0
+    max_value: 500
+    step: 1
+    restore_value: true
+    initial_value: ${sen55_voc_good_limit}
+    set_action:
+      - lambda: |-
+          id(g_voc_good) = x;
+          id(update_air_quality_led).execute();
+  - platform: template
+    id: sen55_voc_moderate_limit
+    internal: true
+    min_value: 0
+    max_value: 500
+    step: 1
+    restore_value: true
+    initial_value: ${sen55_voc_moderate_limit}
+    set_action:
+      - lambda: |-
+          id(g_voc_moderate) = x;
+          id(update_air_quality_led).execute();
+  - platform: template
+    id: sen55_voc_unhealthy_limit
+    internal: true
+    min_value: 0
+    max_value: 500
+    step: 1
+    restore_value: true
+    initial_value: ${sen55_voc_unhealthy_limit}
+    set_action:
+      - lambda: |-
+          id(g_voc_unhealthy) = x;
+          id(update_air_quality_led).execute();
+
+  # NOx
+  - platform: template
+    id: sen55_nox_good_limit
+    internal: true
+    min_value: 0
+    max_value: 500
+    step: 1
+    restore_value: true
+    initial_value: ${sen55_nox_good_limit}
+    set_action:
+      - lambda: |-
+          id(g_nox_good) = x;
+          id(update_air_quality_led).execute();
+  - platform: template
+    id: sen55_nox_moderate_limit
+    internal: true
+    min_value: 0
+    max_value: 500
+    step: 1
+    restore_value: true
+    initial_value: ${sen55_nox_moderate_limit}
+    set_action:
+      - lambda: |-
+          id(g_nox_moderate) = x;
+          id(update_air_quality_led).execute();
+  - platform: template
+    id: sen55_nox_unhealthy_limit
+    internal: true
+    min_value: 0
+    max_value: 500
+    step: 1
+    restore_value: true
+    initial_value: ${sen55_nox_unhealthy_limit}
+    set_action:
+      - lambda: |-
+          id(g_nox_unhealthy) = x;
+          id(update_air_quality_led).execute();
+
+  # CO₂
+  - platform: template
+    id: co2_good_limit_num
+    internal: true
+    min_value: 400
+    max_value: 3000
+    step: 50
+    restore_value: true
+    initial_value: ${co2_good_limit}
+    set_action:
+      - lambda: |-
+          id(g_co2_good) = x;
+          id(update_air_quality_led).execute();
+  - platform: template
+    id: co2_moderate_limit_num
+    internal: true
+    min_value: 400
+    max_value: 3000
+    step: 50
+    restore_value: true
+    initial_value: ${co2_moderate_limit}
+    set_action:
+      - lambda: |-
+          id(g_co2_moderate) = x;
+          id(update_air_quality_led).execute();
+  - platform: template
+    id: co2_unhealthy_limit_num
+    internal: true
+    min_value: 400
+    max_value: 3000
+    step: 50
+    restore_value: true
+    initial_value: ${co2_unhealthy_limit}
+    set_action:
+      - lambda: |-
+          id(g_co2_unhealthy) = x;
+          id(update_air_quality_led).execute();

@@ -1,0 +1,136 @@
+# ============================================================================
+# SENSE360 CUSTOMER CONFIGURATION EXAMPLE
+# ============================================================================
+# This is a ready-to-use template for Sense360 devices.
+# Copy this to your ESPHome dashboard and customize.
+#
+# Filename suggestion: sense360-<room-name>.yaml
+# Example: sense360-living-room.yaml, sense360-bedroom.yaml
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# DEVICE IDENTIFICATION
+# ----------------------------------------------------------------------------
+substitutions:
+  # === CUSTOMIZE THESE FOR YOUR DEVICE ===
+  device_name: sense360-living-room    # REQUIRED: Unique name (lowercase, no spaces)
+  friendly_name: "Living Room Sense360" # REQUIRED: Display name in Home Assistant
+  
+  # === OPTIONAL: Override Default Thresholds ===
+  # Uncomment and adjust any values you want to change:
+  
+  # CO2 thresholds (ppm)
+  # co2_good_limit: "800"           # Default: 750
+  # co2_moderate_limit: "1000"      # Default: 950
+  # co2_unhealthy_limit: "1500"     # Default: 1400
+  
+  # PM2.5 thresholds (µg/m³)
+  # sen55_pm2_5_good_limit: "12"    # Default: 10
+  # sen55_pm2_5_moderate_limit: "30" # Default: 25
+  # sen55_pm2_5_unhealthy_limit: "60" # Default: 55
+  
+  # VOC thresholds (0-500 index)
+  # sen55_voc_good_limit: "100"     # Default: 80
+  # sen55_voc_moderate_limit: "150" # Default: 120
+
+# ----------------------------------------------------------------------------
+# ESPHOME CONFIGURATION
+# ----------------------------------------------------------------------------
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  min_version: 2025.10.0  # Minimum ESPHome version required
+
+# ----------------------------------------------------------------------------
+# LOAD FIRMWARE FROM GITHUB
+# ----------------------------------------------------------------------------
+packages:
+  sense360_firmware:
+    url: https://github.com/sense360store/esphome-public
+    ref: v1.0.0  # Change this to update firmware version
+    files: 
+      # Choose ONE product configuration:
+      
+      # Full AirIQ + Presence (recommended for most users)
+      - products/sense360-mini-airiq.yaml
+      
+      # Presence only (no air quality sensors)
+      # - products/sense360-mini-presence.yaml
+      
+      # Ceiling mounted with presence
+      # - products/sense360-ceiling-presence.yaml
+    
+    refresh: 1d  # Check for updates daily
+
+# ----------------------------------------------------------------------------
+# WIFI CONFIGURATION
+# ----------------------------------------------------------------------------
+# Add these values to your secrets.yaml file:
+# wifi_ssid: "YourNetworkName"
+# wifi_password: "YourWiFiPassword"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  
+  # Fallback access point (if WiFi fails)
+  ap:
+    ssid: "${device_name} Fallback"
+    password: "sense360config"  # Change this if desired
+
+# ----------------------------------------------------------------------------
+# HOME ASSISTANT API
+# ----------------------------------------------------------------------------
+# Add this to your secrets.yaml:
+# api_encryption_key: "GENERATE_WITH_ESPHOME_WIZARD"
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+# ----------------------------------------------------------------------------
+# OVER-THE-AIR UPDATES
+# ----------------------------------------------------------------------------
+# Add this to your secrets.yaml:
+# ota_password: "your-secure-password"
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+# ----------------------------------------------------------------------------
+# OPTIONAL: CUSTOM AUTOMATIONS
+# ----------------------------------------------------------------------------
+# Add your custom sensors, automations, or overrides below this line.
+# Examples:
+
+# Custom binary sensor for high CO2 alert
+# binary_sensor:
+#   - platform: template
+#     name: "${friendly_name} High CO2 Alert"
+#     lambda: |-
+#       return id(scd4x_co2).state > 1200;
+
+# Custom button to reset all sensors
+# button:
+#   - platform: template
+#     name: "${friendly_name} Reset Sensors"
+#     on_press:
+#       - logger.log: "Resetting all sensors..."
+
+# Custom notification when room becomes occupied
+# automation:
+#   - platform: template
+#     name: "${friendly_name} Occupancy Changed"
+#     condition:
+#       lambda: 'return id(ld2450_zone1_target_count).state > 0;'
+#     then:
+#       - logger.log: "Room is now occupied"
+
+# ============================================================================
+# DOCUMENTATION
+# ============================================================================
+# Installation Guide: https://github.com/sense360store/esphome-public/blob/main/docs/installation.md
+# Configuration: https://github.com/sense360store/esphome-public/blob/main/docs/configuration.md
+# Troubleshooting: https://github.com/sense360store/esphome-public/blob/main/docs/troubleshooting.md
+# Support: https://github.com/sense360store/esphome-public/issues

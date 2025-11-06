@@ -1,0 +1,12 @@
+# Enables BLE scanning and proxying HA Bluetooth traffic via ESPHome.
+# Works with esp-idf (your current framework) on ESP32-S3.
+
+esp32_ble_tracker:
+  scan_parameters:
+    active: true          # better range/latency; increases power/CPU
+    interval: 320ms       # optional tuning
+    window: 30ms          # optional tuning
+    # filter_duplicates: true  # uncomment if you need to reduce traffic
+
+bluetooth_proxy:
+  active: true            # exposes the node as a Bluetooth Proxy to HA

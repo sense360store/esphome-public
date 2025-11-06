@@ -1,130 +1,222 @@
-# Sense360 ESPHome Packages Repository
+# Sense360 ESPHome Firmware
 
-## Overview
-This repository contains the Sense360-maintained catalog of reusable [ESPHome](https://esphome.io/) packages. Each YAML file captures a repeatable configuration pattern that we apply across our in-store sensors, displays, and control devices. Instead of copying boilerplate between projects, reference the packages directly from this repository and allow ESPHome to merge the fragments at build time.
+Official ESPHome firmware repository for [Sense360](https://mysense360.com) environmental monitoring devices.
 
-The repository is structured around the Sense360 naming conventions:
+[![ESPHome](https://img.shields.io/badge/ESPHome-2025.10%2B-blue)](https://esphome.io/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![GitHub Release](https://img.shields.io/github/v/release/sense360store/esphome-public)](https://github.com/sense360store/esphome-public/releases)
 
-- `base/` – Global defaults such as logging, safe mode, and common substitutions.
-- `features/` – Optional capabilities (lighting scenes, energy monitoring, occupancy detection, etc.) that can be layered onto any build.
-- `hardware/` – Pin mappings and component definitions for the microcontroller variants we deploy.
-- `products/` – Complete device bundles that combine base, hardware, and feature packages into a ready-to-flash configuration.
-- `docs/` and `examples/` – Supplemental documentation and reference implementations for Sense360 roll-outs.
+## 🌟 Features
 
-Use the sections below to get started quickly, manage secrets safely, and tap into advanced customization patterns for Wi-Fi, API, OTA, and release workflows.
+- **Comprehensive Air Quality Monitoring**: CO2, VOC, NOx, PM1.0, PM2.5, PM4.0, PM10
+- **Advanced Presence Detection**: mmWave radar (LD2450) for precise occupancy sensing
+- **Environmental Sensing**: Temperature, humidity, and ambient light monitoring
+- **Gas Detection**: NO2, CO, H2, NH3, Ethanol, and CH4 detection (MiCS sensors)
+- **Visual Feedback**: Addressable RGB LED status indicators
+- **Smart Home Integration**: Native Home Assistant support via ESPHome
+- **Wireless Updates**: OTA firmware updates for hassle-free maintenance
+- **Bluetooth Proxy**: Built-in BLE proxy for extended Home Assistant coverage
 
-## Quick start (Sense360 devices)
-1. Ensure your ESPHome project repository is initialized and has a `secrets.yaml` file for credentials.
-2. In the device YAML file, add the Sense360 packages block using the Git-based package syntax:
+## 📦 Repository Structure
 
-   ```yaml
-   packages:
-     sense360_base:
-       url: https://github.com/sense360store/esphome-public
-       ref: main
-       files:
-         - base/defaults.yaml
-     sense360_hardware:
-       url: https://github.com/sense360store/esphome-public
-       ref: main
-       files:
-         - hardware/esp32-s3.yaml
-     sense360_features:
-       url: https://github.com/sense360store/esphome-public
-       ref: main
-       files:
-         - features/lighting/ambient-sensor.yaml
-     sense360_product:
-       url: https://github.com/sense360store/esphome-public
-       ref: main
-       files:
-         - products/storefront-lighting.yaml
-   ```
-
-3. Override substitutions or add-on components directly inside your project file as needed.
-4. Run `esphome run <device>.yaml` to compile and upload the configuration.
-
-ESPHome will fetch the specified files from the Sense360 GitHub repository, merge them in the order listed, and apply your local overrides last.
-
-## Managing secrets
-Store credentials (Wi-Fi SSIDs, passwords, API keys) inside your project-level `secrets.yaml`. Reference them from the Sense360 packages or your own YAML using the standard `!secret` syntax:
-
-```yaml
-wifi:
-  ssid: !secret sense360_wifi_ssid
-  password: !secret sense360_wifi_password
+```
+esphome-public/
+├── base/          - Core functionality (WiFi, API, OTA, logging)
+├── hardware/      - Hardware definitions (Mini, Ceiling boards)
+├── features/      - Feature modules (AirIQ, Presence, LEDs, Health)
+├── products/      - Complete device configurations
+├── examples/      - Customer configuration templates
+└── docs/          - Installation and configuration guides
 ```
 
-If a Sense360 package expects a secret, the README inside that package directory will document the key name. Keep `secrets.yaml` out of version control by listing it in `.gitignore`.
+## 🚀 Quick Start
 
-## Advanced usage
-### Customizing Wi-Fi
-Add overrides after the imported packages to change Wi-Fi behavior per device:
+### 1. Choose Your Product
+
+| Product | Description | Config File |
+|---------|-------------|-------------|
+| **Sense360 Mini + AirIQ** | Full air quality + presence (recommended) | `products/sense360-mini-airiq.yaml` |
+| **Sense360 Mini + Presence** | Presence detection only | `products/sense360-mini-presence.yaml` |
+| **Sense360 Ceiling + Presence** | Ceiling-mounted presence | `products/sense360-ceiling-presence.yaml` |
+
+### 2. Create Your Configuration
+
+In your ESPHome dashboard, create a new file (e.g., `sense360-living-room.yaml`):
 
 ```yaml
+# Device identification
+substitutions:
+  device_name: sense360-living-room  # Change this
+  friendly_name: "Living Room Sense360"  # Change this
+
+# ESPHome configuration
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  min_version: 2025.10.0
+
+# Load firmware from GitHub
+packages:
+  sense360_firmware:
+    url: https://github.com/sense360store/esphome-public
+    ref: v1.0.0  # Latest stable version
+    files: 
+      - products/sense360-mini-airiq.yaml
+    refresh: 1d
+
+# WiFi credentials (stored in secrets.yaml)
 wifi:
-  fast_connect: true
-  ap:
-    ssid: "Sense360 Fallback"
-    password: !secret sense360_fallback_password
-```
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
 
-### Tuning native API access
-Sense360 devices use the ESPHome native API for monitoring. Override the API block to adjust encryption or HA discovery options:
-
-```yaml
+# Home Assistant API
 api:
   encryption:
-    key: !secret sense360_api_key
-  reboot_timeout: 15min
-```
+    key: !secret api_encryption_key
 
-### OTA firmware updates
-Configure OTA parameters to align with the Sense360 deployment process:
-
-```yaml
+# Over-the-air updates
 ota:
-  password: !secret sense360_ota_password
-  safe_mode: true
-  reboot_timeout: 10min
+  - platform: esphome
+    password: !secret ota_password
 ```
 
-### Layering additional packages
-Combine multiple feature packages by appending them to the same repository reference:
+### 3. Configure Secrets
+
+Add to your `secrets.yaml`:
+
+```yaml
+wifi_ssid: "YourNetworkName"
+wifi_password: "YourWiFiPassword"
+api_encryption_key: "GENERATE_WITH_ESPHOME_WIZARD"
+ota_password: "your-secure-password"
+```
+
+### 4. Flash Your Device
+
+1. **Initial flash**: Connect via USB-C, click "Install" → "Plug into this computer"
+2. **Future updates**: All updates are wireless! Just click "Install" → "Wirelessly"
+
+## 🔄 Updating Firmware
+
+Check [Releases](https://github.com/sense360store/esphome-public/releases) for the latest version.
+
+To update:
+1. Edit your configuration file
+2. Change `ref: v1.0.0` to the new version (e.g., `v1.1.0`)
+3. Save and install wirelessly
+
+**That's it!** Your device will automatically fetch and apply the updated firmware.
+
+## 📖 Documentation
+
+- [Installation Guide](docs/installation.md) - Detailed setup instructions
+- [Configuration Reference](docs/configuration.md) - Customization options
+- [Troubleshooting](docs/troubleshooting.md) - Common issues and solutions
+- [API Reference](docs/api-reference.md) - Sensor and component documentation
+- [Changelog](CHANGELOG.md) - Version history
+
+## 🎯 Customization
+
+### Override Air Quality Thresholds
+
+```yaml
+substitutions:
+  device_name: my-sense360
+  friendly_name: "My Sense360"
+  
+  # Custom thresholds
+  co2_good_limit: "800"           # Default: 750 ppm
+  sen55_pm2_5_good_limit: "12"    # Default: 10 µg/m³
+  sen55_voc_good_limit: "100"     # Default: 80 index
+```
+
+### Add Custom Automations
+
+```yaml
+# High CO2 alert
+binary_sensor:
+  - platform: template
+    name: "High CO2 Alert"
+    lambda: |-
+      return id(scd4x_co2).state > 1200;
+```
+
+### Mix and Match Components (Advanced)
+
+For custom builds, load specific components:
 
 ```yaml
 packages:
-  sense360_features:
+  sense360_base:
     url: https://github.com/sense360store/esphome-public
-    ref: main
-    files:
-      - features/lighting/ambient-sensor.yaml
-      - features/energy/power-monitor.yaml
-      - features/alerts/storefront-chime.yaml
+    ref: v1.0.0
+    files: 
+      - base/wifi.yaml
+      - base/api_encrypted.yaml
+      - hardware/sense360_core_mini.yaml
+      - features/presence_basic_profile.yaml
+    refresh: 1d
 ```
 
-### Pinning releases or tags
-For stable deployments, pin Sense360 packages to a release tag rather than `main`:
+## 🛒 Hardware
 
-```yaml
-packages:
-  sense360_product:
-    url: https://github.com/sense360store/esphome-public
-    ref: v1.4.0
-    files:
-      - products/storefront-lighting.yaml
-```
+Purchase Sense360 devices at [mysense360.com](https://mysense360.com)
 
-Create new tags in the Sense360 repository after validating a release candidate:
+## 💬 Support & Community
 
-1. Update the package files in a branch and merge to `main` once reviewed.
-2. Tag the commit: `git tag -a v1.4.0 -m "Sense360 storefront lighting release"`.
-3. Push the tag: `git push origin v1.4.0`.
-4. Update device projects to reference the new tag in their `packages` blocks.
+- **Documentation**: [Installation Guide](docs/installation.md)
+- **Issues**: [Report a bug](https://github.com/sense360store/esphome-public/issues)
+- **Discussions**: [Community forum](https://github.com/sense360store/esphome-public/discussions)
+- **Email**: support@mysense360.com
 
-## Documentation and examples
-- Sense360 device examples live in [`examples/`](examples/README.md) and illustrate how to compose product builds.
-- Deployment notes, onboarding checklists, and troubleshooting guidance are in [`docs/`](docs/README.md) and the nested Sense360-specific files.
-- Hardware reference diagrams reside in [`docs/hardware`](docs/hardware) alongside pinout callouts for each `hardware/` package.
+## 🤝 Contributing
 
-Review these resources when onboarding new stores, customizing features, or creating new Sense360 products.
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) first.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [ESPHome](https://esphome.io/) - Amazing ESP32 framework
+- Inspired by the Home Assistant community
+- Thanks to all contributors and testers
+
+## 🔧 Technical Specifications
+
+### Supported Hardware
+
+- **Board**: ESP32-S3 (DevKitC-1)
+- **Sensors**:
+  - **Air Quality**: SEN55 (PM, VOC, NOx), SCD4x (CO2), SHT30 (T/H), LTR303 (Light)
+  - **Gas Detection**: MiCS-6814 (NO2, CO, H2, NH3, Ethanol, CH4)
+  - **Presence**: HLK-LD2450 (mmWave radar)
+- **Indicators**: WS2812 addressable LEDs (4 pixels)
+- **Connectivity**: WiFi 2.4GHz, Bluetooth LE
+
+### Requirements
+
+- **ESPHome**: 2025.10.0 or newer
+- **Home Assistant**: 2024.1.0 or newer (recommended)
+- **Power**: USB-C, PoE, or AC adapter (depending on model)
+
+## 📊 Example Use Cases
+
+- **Home Office**: Monitor CO2 and air quality for optimal productivity
+- **Bedroom**: Track sleep environment and automate ventilation
+- **Living Room**: Occupancy-based lighting and climate control
+- **Kitchen**: Gas detection and air quality monitoring while cooking
+- **Bathroom**: Humidity-based ventilation control
+- **Workshop**: VOC and particulate monitoring during projects
+
+## 🔗 Links
+
+- [Purchase Devices](https://mysense360.com)
+- [ESPHome Documentation](https://esphome.io)
+- [Home Assistant](https://www.home-assistant.io)
+- [GitHub Releases](https://github.com/sense360store/esphome-public/releases)
+
+---
+
+**Made with ❤️ for the smart home community**

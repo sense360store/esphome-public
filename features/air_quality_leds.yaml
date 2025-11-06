@@ -1,0 +1,58 @@
+# /config/esphome/packages/features/air_quality_leds.yaml
+# Provides a single script `update_air_quality_led`.
+# It computes a simple "worst air quality level" from available sensors and logs it.
+# Kept LED-agnostic so it won't fail if no light/output exists. You can wire a light later.
+
+script:
+  - id: update_air_quality_led
+    mode: queued
+    then:
+      - lambda: |-
+          // Levels: 0=Unknown/OK, 1=Good+, 2=Moderate+, 3=Unhealthy+
+          int level = 0;
+
+          auto bump = [&](float v, float good, float moderate, float unhealthy) {
+            if (std::isnan(v)) return;
+            if (v >= unhealthy) { if (level < 3) level = 3; return; }
+            if (v >= moderate)  { if (level < 2) level = 2; return; }
+            if (v >= good)      { if (level < 1) level = 1; return; }
+          };
+
+          // ---- Particulate (SEN55)
+          // Guard each with has_state() so the script works even if some sensors aren't present.
+          #ifdef USE_SENSOR
+          if (id(pm_1_0).has_state())   bump(id(pm_1_0).state,   id(g_pm1_good),  id(g_pm1_moderate),  id(g_pm1_unhealthy));
+          if (id(pm_2_5).has_state())   bump(id(pm_2_5).state,   id(sen55_pm2_5_good_limit), id(sen55_pm2_5_moderate_limit), id(sen55_pm2_5_unhealthy_limit));
+          if (id(pm_4_0).has_state())   bump(id(pm_4_0).state,   id(sen55_pm4_0_good_limit), id(sen55_pm4_0_moderate_limit), id(sen55_pm4_0_unhealthy_limit));
+          if (id(pm_10_0).has_state())  bump(id(pm_10_0).state,  id(sen55_pm10_good_limit), id(sen55_pm10_moderate_limit), id(sen55_pm10_unhealthy_limit));
+          #endif
+
+          // ---- VOC/NOx (SEN55)
+          #ifdef USE_SENSOR
+          if (id(voc_index).has_state()) bump(id(voc_index).state, id(sen55_voc_good_limit), id(sen55_voc_moderate_limit), id(sen55_voc_unhealthy_limit));
+          if (id(nox_index).has_state()) bump(id(nox_index).state, id(sen55_nox_good_limit), id(sen55_nox_moderate_limit), id(sen55_nox_unhealthy_limit));
+          #endif
+
+          // ---- CO2 (SCD4x)
+          #ifdef USE_SENSOR
+          if (id(scd40_co2).has_state()) bump(id(scd40_co2).state, id(co2_good_limit_num).state, id(co2_moderate_limit_num).state, id(co2_unhealthy_limit_num).state);
+          #endif
+
+          // Log outcome (safe on all builds)
+          if (level == 0) {
+            ESP_LOGD("air_led", "Air status: OK/Unknown");
+          } else if (level == 1) {
+            ESP_LOGD("air_led", "Air status: Good+");
+          } else if (level == 2) {
+            ESP_LOGD("air_led", "Air status: Moderate+");
+          } else {
+            ESP_LOGD("air_led", "Air status: Unhealthy+");
+          }
+
+          // NOTE: If/when you add a light, set its color/brightness here based on `level`.
+          // Example (requires a defined light with id: status_light):
+          // if (id(status_light).state) {
+          //   if (level <= 1) id(status_light).turn_on().set_brightness(0.3f);
+          //   else if (level == 2) id(status_light).turn_on().set_brightness(0.6f);
+          //   else id(status_light).turn_on().set_brightness(1.0f);
+          // }

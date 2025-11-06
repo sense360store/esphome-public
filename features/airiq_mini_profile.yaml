@@ -1,0 +1,355 @@
+# /config/esphome/packages/features/airiq_mini_profile.yaml
+# Mini AirIQ: SEN55 + SCD4x + SHT30 + LTR303 + MiCS via ADC.
+# Requires: i2c bus id i2c0 (from core hardware) and script id mini_update_4leds (from LED package).
+# Also requires MiCS substitutions (vref, R0, A/B, resistor values) defined in substitutions.
+
+# --- Globals (must exist before esphome:on_boot uses them) ---
+globals:
+  # One-time SCD4x forced-calibration flag (persisted across reboots)
+  - id: scd4x_cal_done
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+  # CO₂ thresholds
+  - id: g_co2_good
+    type: float
+    restore_value: true
+    initial_value: ${co2_good_limit}
+  - id: g_co2_moderate
+    type: float
+    restore_value: true
+    initial_value: ${co2_moderate_limit}
+  - id: g_co2_unhealthy
+    type: float
+    restore_value: true
+    initial_value: ${co2_unhealthy_limit}
+
+  # PM2.5 thresholds (for the PM LED)
+  - id: g_pm25_good
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm2_5_good_limit}
+  - id: g_pm25_moderate
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm2_5_moderate_limit}
+  - id: g_pm25_unhealthy
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm2_5_unhealthy_limit}
+
+  # VOC thresholds
+  - id: g_voc_good
+    type: float
+    restore_value: true
+    initial_value: ${sen55_voc_good_limit}
+  - id: g_voc_moderate
+    type: float
+    restore_value: true
+    initial_value: ${sen55_voc_moderate_limit}
+  - id: g_voc_unhealthy
+    type: float
+    restore_value: true
+    initial_value: ${sen55_voc_unhealthy_limit}
+
+  # NOx thresholds
+  - id: g_nox_good
+    type: float
+    restore_value: true
+    initial_value: ${sen55_nox_good_limit}
+  - id: g_nox_moderate
+    type: float
+    restore_value: true
+    initial_value: ${sen55_nox_moderate_limit}
+  - id: g_nox_unhealthy
+    type: float
+    restore_value: true
+    initial_value: ${sen55_nox_unhealthy_limit}
+
+# --- One-time SCD4x forced calibration at boot (426 ppm) ---
+esphome:
+  on_boot:
+    priority: -100
+    then:
+      - if:
+          condition:
+            lambda: 'return !id(scd4x_cal_done);'
+          then:
+            - delay: 30s
+            - scd4x.perform_forced_calibration:
+                id: scd4x_sensor
+                value: 426
+            - lambda: |-
+                id(scd4x_cal_done) = true;
+
+sensor:
+  # -------- SEN55 (PM + VOC/NOx + T/H) ----------
+  - platform: sen5x
+    id: sen55
+    i2c_id: i2c0
+
+    pm_1_0:
+      id: pm_1_0
+      name: "${friendly_name} PM <1.0µm"
+      accuracy_decimals: 1
+      on_value:
+        - script.execute: mini_update_4leds
+
+    pm_2_5:
+      id: pm_2_5
+      name: "${friendly_name} PM <2.5µm"
+      accuracy_decimals: 1
+      on_value:
+        - script.execute: mini_update_4leds
+
+    pm_4_0:
+      id: pm_4_0
+      name: "${friendly_name} PM <4.0µm"
+      accuracy_decimals: 1
+      on_value:
+        - script.execute: mini_update_4leds
+
+    pm_10_0:
+      id: pm_10_0
+      name: "${friendly_name} PM <10µm"
+      accuracy_decimals: 1
+      on_value:
+        - script.execute: mini_update_4leds
+
+    temperature:
+      id: aqi_temp
+      name: "${friendly_name} Temperature"
+      accuracy_decimals: 1
+
+    humidity:
+      id: aqi_humidity
+      name: "${friendly_name} Humidity"
+      accuracy_decimals: 0
+
+    voc:
+      id: voc_index
+      name: "${friendly_name} VOC Index"
+      on_value:
+        - script.execute: mini_update_4leds
+
+    nox:
+      id: nox_index
+      name: "${friendly_name} NOx Index"
+      on_value:
+        - script.execute: mini_update_4leds
+
+    update_interval: 10s
+
+  # -------- SCD4x (CO₂) ----------
+  - platform: scd4x
+    id: scd4x_sensor
+    i2c_id: i2c0
+    measurement_mode: periodic
+    automatic_self_calibration: true
+    co2:
+      id: scd40_co2
+      internal: true
+      on_value:
+        - script.execute: mini_update_4leds
+
+  # CO₂ display (never Unknown)
+  - platform: template
+    id: co2_display
+    name: "${friendly_name} CO₂"
+    unit_of_measurement: "ppm"
+    device_class: carbon_dioxide
+    state_class: measurement
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: |-
+      static float last_valid = NAN;
+      float v = id(scd40_co2).state;
+      if (!std::isnan(v)) last_valid = v;
+      if (std::isnan(last_valid)) return id(co2_display).state;
+      return last_valid;
+
+  # -------- SHT30 (optional) ----------
+  - platform: sht3xd
+    i2c_id: i2c0
+    address: 0x44
+    update_interval: 30s
+    temperature:
+      id: sht30_temp
+      name: "${friendly_name} SHT30 Temperature"
+    humidity:
+      id: sht30_rh
+      name: "${friendly_name} SHT30 Humidity"
+
+  # -------- LTR303 (ALS) ----------
+  - platform: ltr_als_ps
+    i2c_id: i2c0
+    ambient_light:
+      id: ambient_lux
+      name: "${friendly_name} Illuminance"
+
+  # -------- MiCS (ADC-based) ----------
+  - platform: adc
+    id: mics_oxidizing_raw
+    pin: ${mics_ox_adc_pin}
+    name: "${friendly_name} MiCS Oxidizing RAW"
+    attenuation: 12db
+    update_interval: 2s
+    filters:
+      - multiply: 2.0
+      - exponential_moving_average:
+          alpha: 0.2
+          send_every: 1
+
+  - platform: adc
+    id: mics_reducing_raw
+    pin: ${mics_red_adc_pin}
+    name: "${friendly_name} MiCS Reducing RAW"
+    attenuation: 12db
+    update_interval: 2s
+    filters:
+      - multiply: 2.0
+      - exponential_moving_average:
+          alpha: 0.2
+          send_every: 1
+
+  # Rs with series+load correction (Oxidizing → NO2)
+  - platform: template
+    id: mics_no2_rs
+    name: "${friendly_name} NO₂ Rs"
+    unit_of_measurement: "Ω"
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: |-
+      if (!id(mics_oxidizing_raw).has_state()) return NAN;
+      const float Vnode   = id(mics_oxidizing_raw).state;  // volts (post ×2)
+      const float Vref    = ${mics_vref};
+      const float Rseries = ${mics_rseries_ox_ohms};
+      const float RL      = ${mics_rl_ox_ohms};
+      if (Vnode <= 0.01f || Vnode >= (Vref - 0.01f)) return NAN;
+      return (Vref * RL / Vnode) - (Rseries + RL);
+
+  # Rs with series+load correction (Reducing → CO/H2/NH3/Ethanol)
+  - platform: template
+    id: mics_co_rs
+    name: "${friendly_name} Reducing Rs"
+    unit_of_measurement: "Ω"
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: |-
+      if (!id(mics_reducing_raw).has_state()) return NAN;
+      const float Vnode   = id(mics_reducing_raw).state;
+      const float Vref    = ${mics_vref};
+      const float Rseries = ${mics_rseries_red_ohms};
+      const float RL      = ${mics_rl_red_ohms};
+      if (Vnode <= 0.01f || Vnode >= (Vref - 0.01f)) return NAN;
+      return (Vref * RL / Vnode) - (Rseries + RL);
+
+  # --- NO2 ppm from oxidizing Rs ---
+  - platform: template
+    id: mics_no2_ppm
+    name: "${friendly_name} NO₂"
+    unit_of_measurement: "ppm"
+    accuracy_decimals: 2
+    update_interval: 5s
+    lambda: |-
+      if (!id(mics_no2_rs).has_state()) return NAN;
+      const float Rs = id(mics_no2_rs).state;
+      const float R0 = ${mics_r0_no2_ohms};
+      if (Rs <= 0 || R0 <= 0) return NAN;
+      const float ratio = Rs / R0;
+      const float A = ${mics_no2_A};
+      const float B = ${mics_no2_B};
+      float ppm = powf(10.0f, A * log10f(ratio) + B);
+      if (ppm < 0.0f) ppm = 0.0f;
+      return ppm;
+
+  # --- CO ppm from reducing Rs ---
+  - platform: template
+    id: mics_co_ppm
+    name: "${friendly_name} CO"
+    unit_of_measurement: "ppm"
+    accuracy_decimals: 1
+    update_interval: 5s
+    lambda: |-
+      if (!id(mics_co_rs).has_state()) return NAN;
+      const float Rs = id(mics_co_rs).state;
+      const float R0 = ${mics_r0_co_ohms};
+      if (Rs <= 0 || R0 <= 0) return NAN;
+      const float ratio = Rs / R0;
+      const float A = ${mics_co_A};
+      const float B = ${mics_co_B};
+      float ppm = powf(10.0f, A * log10f(ratio) + B);
+      if (ppm < 0.0f) ppm = 0.0f;
+      return ppm;
+
+  # --- H2 ppm from reducing Rs ---
+  - platform: template
+    id: mics_h2_ppm
+    name: "${friendly_name} H₂"
+    unit_of_measurement: "ppm"
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: |-
+      if (!id(mics_co_rs).has_state()) return NAN;
+      const float Rs = id(mics_co_rs).state;
+      const float R0 = ${mics_r0_h2_ohms};
+      if (Rs <= 0 || R0 <= 0) return NAN;
+      const float ratio = Rs / R0;
+      const float A = ${mics_h2_A};
+      const float B = ${mics_h2_B};
+      float ppm = powf(10.0f, A * log10f(ratio) + B);
+      if (ppm < 0.0f) ppm = 0.0f;
+      return ppm;
+
+  # --- NH3 ppm from reducing Rs ---
+  - platform: template
+    id: mics_nh3_ppm
+    name: "${friendly_name} NH₃"
+    unit_of_measurement: "ppm"
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: |-
+      if (!id(mics_co_rs).has_state()) return NAN;
+      const float Rs = id(mics_co_rs).state;
+      const float R0 = ${mics_r0_nh3_ohms};
+      if (Rs <= 0 || R0 <= 0) return NAN;
+      const float ratio = Rs / R0;
+      const float A = ${mics_nh3_A};
+      const float B = ${mics_nh3_B};
+      float ppm = powf(10.0f, A * log10f(ratio) + B);
+      if (ppm < 0.0f) ppm = 0.0f;
+      return ppm;
+
+  # --- Ethanol ppm from reducing Rs ---
+  - platform: template
+    id: mics_ethanol_ppm
+    name: "${friendly_name} Ethanol"
+    unit_of_measurement: "ppm"
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: |-
+      if (!id(mics_co_rs).has_state()) return NAN;
+      const float Rs = id(mics_co_rs).state;
+      const float R0 = ${mics_r0_ethanol_ohms};
+      if (Rs <= 0 || R0 <= 0) return NAN;
+      const float ratio = Rs / R0;
+      const float A = ${mics_ethanol_A};
+      const float B = ${mics_ethanol_B};
+      float ppm = powf(10.0f, A * log10f(ratio) + B);
+      if (ppm < 0.0f) ppm = 0.0f;
+      return ppm;
+
+text_sensor:
+  - platform: template
+    id: co2_status
+    name: "${friendly_name} CO₂ Status"
+    update_interval: 5s
+    icon: mdi:molecule-co2
+    lambda: |-
+      if (std::isnan(id(scd40_co2).state)) return std::string("Heating up");
+      const float co2 = id(scd40_co2).state;
+      if (co2 < id(g_co2_good))           return std::string("Good");
+      else if (co2 < id(g_co2_moderate))  return std::string("Moderate");
+      else if (co2 < id(g_co2_unhealthy)) return std::string("Unhealthy");
+      else                                return std::string("High");

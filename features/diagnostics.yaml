@@ -1,0 +1,15 @@
+# esphome/packages/features/diagnostics.yaml
+# Shared diagnostics; included by Pro profile.
+text_sensor:
+  - platform: version
+    name: "${friendly_name} ESPHome Version"
+    hide_timestamp: true
+
+sensor:
+  - platform: uptime
+    name: "${friendly_name} Uptime"
+    update_interval: 60s
+
+  - platform: wifi_signal
+    name: "${friendly_name} WiFi RSSI"
+    update_interval: 30s

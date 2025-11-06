@@ -1,0 +1,187 @@
+# ============================================================================
+# SENSE360 MINI + AIRIQ - COMPLETE PRODUCT CONFIGURATION
+# ============================================================================
+# This is the main configuration file for Sense360 Mini with full AirIQ
+# sensor suite and LD2450 presence detection.
+#
+# Customer usage in their ESPHome config:
+# packages:
+#   sense360_firmware:
+#     url: https://github.com/sense360store/esphome-public
+#     ref: v1.0.0
+#     files: 
+#       - products/sense360-mini-airiq.yaml
+#     refresh: 1d
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# DEFAULT SUBSTITUTIONS
+# Users can override any of these in their main config file
+# ----------------------------------------------------------------------------
+
+substitutions:
+  # === Hardware Configuration ===
+  board_variant: esp32-s3-devkitc-1
+  log_level: INFO
+  
+  # === I2C Bus Pins (Mini Core Board) ===
+  i2c_sda_pin: GPIO48
+  i2c_scl_pin: GPIO45
+  
+  # === LD2450 Presence Sensor UART ===
+  ld2450_uart_id: uart_ld2450
+  ld2450_tx_pin: GPIO12
+  ld2450_rx_pin: GPIO13
+  ld2450_baud: "256000"
+  
+  # === Addressable LED Configuration (4 pixels, one pin) ===
+  led_data_pin: GPIO11
+  led_count: "4"
+  led_chipset: WS2812
+  led_rgb_order: GRB
+  
+  # === MiCS Gas Sensor Analog Pins ===
+  mics_ox_adc_pin: GPIO15      # Oxidizing channel (NO2)
+  mics_red_adc_pin: GPIO7      # Reducing channel (CO, H2, etc.)
+  mics_heater_pin: GPIO16      # Heater control pin
+  mics_vref: "5.0"             # Reference voltage
+  
+  # === MiCS Resistor Values (from PCB design) ===
+  mics_rseries_ox_ohms: "11000"    # R13: 11kΩ series resistor
+  mics_rl_ox_ohms: "11000"         # R15: 11kΩ load resistor
+  mics_rseries_red_ohms: "22000"   # R8: 22kΩ series resistor
+  mics_rl_red_ohms: "22000"        # R10: 22kΩ load resistor
+  
+  # === MiCS Baseline Resistance (calibrate in clean air after burn-in) ===
+  mics_r0_no2_ohms: "300000"       # Baseline Rs for NO2
+  mics_r0_co_ohms: "30000"         # Baseline Rs for CO
+  mics_r0_h2_ohms: "30000"         # Baseline Rs for H2
+  mics_r0_nh3_ohms: "60000"        # Baseline Rs for NH3
+  mics_r0_ethanol_ohms: "40000"    # Baseline Rs for Ethanol
+  
+  # === MiCS PPM Curve Coefficients ===
+  # Formula: ppm = 10^(A * log10(Rs/R0) + B)
+  mics_no2_A: "-1.10"
+  mics_no2_B: "2.00"
+  mics_co_A: "-1.55"
+  mics_co_B: "2.30"
+  mics_h2_A: "-1.45"
+  mics_h2_B: "2.10"
+  mics_nh3_A: "-1.30"
+  mics_nh3_B: "2.20"
+  mics_ethanol_A: "-1.25"
+  mics_ethanol_B: "2.10"
+  
+  # === Methane Detection Threshold ===
+  mics_ch4_ratio_thresh: "0.30"    # Rs/R0 ratio threshold for CH4 presence
+  
+  # === WiFi Behavior ===
+  wifi_fast_connect: "true"        # Skip SSID scan for faster connection
+  
+  # === CO2 Air Quality Thresholds (ppm) ===
+  co2_good_limit: "750"            # Good: < 750 ppm
+  co2_moderate_limit: "950"        # Moderate: 750-950 ppm
+  co2_unhealthy_limit: "1400"      # Unhealthy: 950-1400 ppm (Poor: > 1400)
+  
+  # === PM1.0 Thresholds (µg/m³) ===
+  sen55_pm1_good_limit: "5"
+  sen55_pm1_moderate_limit: "12"
+  sen55_pm1_unhealthy_limit: "35"
+  
+  # === PM2.5 Thresholds (µg/m³) ===
+  sen55_pm2_5_good_limit: "10"     # WHO guideline: 10 µg/m³
+  sen55_pm2_5_moderate_limit: "25"
+  sen55_pm2_5_unhealthy_limit: "55"
+  
+  # === PM4.0 Thresholds (µg/m³) ===
+  sen55_pm4_0_good_limit: "15"
+  sen55_pm4_0_moderate_limit: "30"
+  sen55_pm4_0_unhealthy_limit: "60"
+  
+  # === PM10 Thresholds (µg/m³) ===
+  sen55_pm10_good_limit: "20"
+  sen55_pm10_moderate_limit: "50"
+  sen55_pm10_unhealthy_limit: "100"
+  
+  # === VOC Index Thresholds (0-500 scale) ===
+  sen55_voc_good_limit: "80"
+  sen55_voc_moderate_limit: "120"
+  sen55_voc_unhealthy_limit: "180"
+  
+  # === NOx Index Thresholds (0-500 scale) ===
+  sen55_nox_good_limit: "80"
+  sen55_nox_moderate_limit: "120"
+  sen55_nox_unhealthy_limit: "180"
+  
+  # === Security (users MUST define these in their config) ===
+  # These are placeholders - actual values come from user's config via !secret
+  api_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+
+# ----------------------------------------------------------------------------
+# PACKAGE INCLUDES
+# Load all firmware components from the repository
+# ----------------------------------------------------------------------------
+
+packages:
+  # === Base System Configuration ===
+  base_wifi:       !include ../base/wifi.yaml
+  base_logging:    !include ../base/logging.yaml
+  base_api:        !include ../base/api_encrypted.yaml
+  base_ota:        !include ../base/ota.yaml
+  base_time:       !include ../base/time.yaml
+  base_bluetooth:  !include ../base/bluetooth_proxy.yaml
+  
+  # === Hardware Drivers ===
+  core_hardware:   !include ../hardware/sense360_core_mini.yaml
+  presence_hardware: !include ../hardware/presence_ld2450.yaml
+  
+  # === Feature Profiles ===
+  airiq_sensors:   !include ../features/airiq_mini_profile.yaml
+  presence_detection: !include ../features/presence_basic_profile.yaml
+  status_leds:     !include ../features/mini_four_leds_addr.yaml
+  device_diagnostics: !include ../features/device_health.yaml
+
+# ----------------------------------------------------------------------------
+# USAGE NOTES FOR CUSTOMERS
+# ----------------------------------------------------------------------------
+
+# To use this configuration in your device:
+#
+# 1. Create your device config file (e.g., sense360-living-room.yaml)
+# 2. Add this package reference:
+#
+#    packages:
+#      sense360_firmware:
+#        url: https://github.com/sense360store/esphome-public
+#        ref: v1.0.0
+#        files: 
+#          - products/sense360-mini-airiq.yaml
+#        refresh: 1d
+#
+# 3. Define your device name and secrets:
+#
+#    substitutions:
+#      device_name: sense360-living-room
+#      friendly_name: "Living Room Sense360"
+#
+#    wifi:
+#      ssid: !secret wifi_ssid
+#      password: !secret wifi_password
+#
+#    api:
+#      encryption:
+#        key: !secret api_encryption_key
+#
+#    ota:
+#      - platform: esphome
+#        password: !secret ota_password
+#
+# 4. Optionally override any thresholds:
+#
+#    substitutions:
+#      co2_good_limit: "800"  # Custom CO2 threshold
+#      sen55_pm2_5_good_limit: "12"  # Custom PM2.5 threshold
+#
+# For full documentation, visit:
+# https://github.com/sense360store/esphome-public/blob/main/docs/installation.md

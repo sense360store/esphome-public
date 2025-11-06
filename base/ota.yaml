@@ -1,0 +1,4 @@
+# esphome/packages/base/ota.yaml
+ota:
+  - platform: esphome
+    password: ${ota_password}
