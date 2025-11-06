@@ -3,6 +3,7 @@ packages:
   hardware: !include ../hardware/sense360_core_ceiling.yaml
   presence_sensor: !include ../hardware/presence_ld2450.yaml
   profile: !include ../features/presence_advanced_profile.yaml
+  leds: !include ../features/ceiling_halo_leds.yaml
 
 substitutions:
   friendly_name: Sense360 Ceiling Presence

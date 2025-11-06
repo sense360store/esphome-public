@@ -1,0 +1,48 @@
+substitutions:
+  halo_segment_transition: 250ms
+
+pca9685:
+  - id: halo_led_driver
+    i2c_id: halo_i2c
+    frequency: 1000
+    address: 0x40
+
+output:
+  - platform: pca9685
+    pca9685_id: halo_led_driver
+    channel: 0
+    id: halo_led_output_1
+  - platform: pca9685
+    pca9685_id: halo_led_driver
+    channel: 1
+    id: halo_led_output_2
+  - platform: pca9685
+    pca9685_id: halo_led_driver
+    channel: 2
+    id: halo_led_output_3
+  - platform: pca9685
+    pca9685_id: halo_led_driver
+    channel: 3
+    id: halo_led_output_4
+
+light:
+  - platform: monochromatic
+    id: led_one
+    name: "${friendly_name} Halo Segment 1"
+    output: halo_led_output_1
+    default_transition_length: ${halo_segment_transition}
+  - platform: monochromatic
+    id: led_two
+    name: "${friendly_name} Halo Segment 2"
+    output: halo_led_output_2
+    default_transition_length: ${halo_segment_transition}
+  - platform: monochromatic
+    id: led_three
+    name: "${friendly_name} Halo Segment 3"
+    output: halo_led_output_3
+    default_transition_length: ${halo_segment_transition}
+  - platform: monochromatic
+    id: led_four
+    name: "${friendly_name} Halo Segment 4"
+    output: halo_led_output_4
+    default_transition_length: ${halo_segment_transition}

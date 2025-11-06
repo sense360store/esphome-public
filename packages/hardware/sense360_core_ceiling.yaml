@@ -20,6 +20,7 @@ esp32:
       CONFIG_COMPILER_OPTIMIZATION_SIZE: y
 
 i2c:
+  id: halo_i2c
   sda: GPIO39
   scl: GPIO40
   scan: true
