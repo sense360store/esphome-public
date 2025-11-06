@@ -1,0 +1,7 @@
+packages:
+  wifi: !include wifi.yaml
+  api: !include api_encrypted.yaml
+  ota: !include ota.yaml
+  time: !include time.yaml
+  logging: !include logging.yaml
+  bluetooth_proxy: !include bluetooth_proxy.yaml

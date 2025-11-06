@@ -1,0 +1,10 @@
+substitutions:
+  friendly_name: Sense360 Ceiling Presence
+  device_name: sense360-ceiling-presence-basic
+  timezone: "UTC"
+
+packages:
+  base: !include ../../packages/base/complete.yaml
+  hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
+  presence_sensor: !include ../../packages/hardware/presence_ld2450.yaml
+  profile: !include ../../packages/features/presence_basic_profile.yaml

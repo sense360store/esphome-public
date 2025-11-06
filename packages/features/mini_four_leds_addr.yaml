@@ -1,0 +1,51 @@
+substitutions:
+  status_light_brightness: "50%"
+
+i2c:
+  - id: led_i2c
+    sda: GPIO25
+    scl: GPIO26
+    frequency: 400kHz
+
+pca9685:
+  - id: led_driver
+    i2c_id: led_i2c
+    frequency: 1000
+    address: 0x40
+
+output:
+  - platform: pca9685
+    pca9685_id: led_driver
+    channel: 0
+    id: led_output_1
+  - platform: pca9685
+    pca9685_id: led_driver
+    channel: 1
+    id: led_output_2
+  - platform: pca9685
+    pca9685_id: led_driver
+    channel: 2
+    id: led_output_3
+  - platform: pca9685
+    pca9685_id: led_driver
+    channel: 3
+    id: led_output_4
+
+light:
+  - platform: monochromatic
+    name: "${friendly_name} LED 1"
+    output: led_output_1
+    default_transition_length: 250ms
+    id: led_one
+  - platform: monochromatic
+    name: "${friendly_name} LED 2"
+    output: led_output_2
+    default_transition_length: 250ms
+  - platform: monochromatic
+    name: "${friendly_name} LED 3"
+    output: led_output_3
+    default_transition_length: 250ms
+  - platform: monochromatic
+    name: "${friendly_name} LED 4"
+    output: led_output_4
+    default_transition_length: 250ms

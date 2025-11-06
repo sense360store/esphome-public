@@ -1,0 +1,25 @@
+packages:
+  base_profile: !include presence_basic_profile.yaml
+  diagnostics: !include diagnostics.yaml
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          id(presence_confidence) = id(occupancy_status).state ? 0.9f : 0.1f;
+
+select:
+  - platform: template
+    id: presence_mode
+    name: "${friendly_name} Sensitivity"
+    optimistic: true
+    options:
+      - Quiet Room
+      - Normal
+      - High Traffic
+    initial_option: Normal
+    set_action:
+      - logger.log:
+          format: "Presence mode changed to %s"
+          args:
+            - 'x.c_str()'

@@ -1,0 +1,57 @@
+substitutions:
+  device_name: sense360-ceiling
+  friendly_name: Sense360 Ceiling Core
+  timezone: "America/New_York"
+  status_led_pin: GPIO48
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  project:
+    name: sense360.ceiling
+    version: 1.0.0
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_COMPILER_OPTIMIZATION_SIZE: y
+
+i2c:
+  sda: GPIO39
+  scl: GPIO40
+  scan: true
+
+uart:
+  id: uart_bus
+  tx_pin: GPIO1
+  rx_pin: GPIO2
+  baud_rate: 256000
+
+status_led:
+  pin:
+    number: ${status_led_pin}
+    inverted: true
+
+switch:
+  - platform: gpio
+    name: "${friendly_name} Relay"
+    id: main_relay
+    pin: GPIO3
+
+button:
+  - platform: restart
+    id: reset_button
+    name: "${friendly_name} Restart"
+  - platform: safe_mode
+    name: "${friendly_name} Safe Mode"
+
+sensor:
+  - platform: wifi_signal
+    name: "${friendly_name} WiFi Signal"
+    update_interval: 60s
+  - platform: uptime
+    name: "${friendly_name} Uptime"
+    update_interval: 60s

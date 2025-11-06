@@ -1,0 +1,19 @@
+packages:
+  base: !include ../base/complete.yaml
+  hardware: !include ../hardware/sense360_core_mini.yaml
+  profile: !include ../features/airiq_advanced_profile.yaml
+  leds: !include ../features/mini_four_leds_addr.yaml
+
+substitutions:
+  friendly_name: Sense360 Mini AirIQ
+  device_name: sense360-mini-airiq
+  timezone: "UTC"
+
+mqtt:
+  discovery: true
+
+binary_sensor:
+  - platform: gpio
+    pin: GPIO4
+    name: "${friendly_name} Particulate Alarm"
+    device_class: problem

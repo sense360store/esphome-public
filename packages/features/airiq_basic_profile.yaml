@@ -1,0 +1,53 @@
+substitutions:
+  air_quality_topic: ${device_name}/air_quality
+
+packages:
+  device_health: !include device_health.yaml
+
+sensor:
+  - platform: bme680_bsec
+    temperature:
+      name: "${friendly_name} Temperature"
+      accuracy_decimals: 1
+    pressure:
+      name: "${friendly_name} Pressure"
+      accuracy_decimals: 1
+    humidity:
+      name: "${friendly_name} Humidity"
+      accuracy_decimals: 1
+    iaq:
+      name: "${friendly_name} IAQ"
+      id: ${device_name}_iaq
+    co2_equivalent:
+      name: "${friendly_name} eCO₂"
+    breath_voc_equivalent:
+      name: "${friendly_name} bVOC"
+
+text_sensor:
+  - platform: template
+    id: air_quality_state
+    name: "${friendly_name} Air Quality State"
+    lambda: |-
+      if (!id(${device_name}_iaq).has_state()) {
+        return {"unknown"};
+      }
+      const float iaq = id(${device_name}_iaq).state;
+      if (iaq < 50) {
+        return {"excellent"};
+      } else if (iaq < 100) {
+        return {"good"};
+      } else if (iaq < 150) {
+        return {"lightly polluted"};
+      } else if (iaq < 200) {
+        return {"moderately polluted"};
+      } else {
+        return {"heavily polluted"};
+      }
+    update_interval: 60s
+
+mqtt:
+  broker: ${airiq_mqtt_broker|192.168.1.10}
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+  discovery: false
+  topic_prefix: ${air_quality_topic}

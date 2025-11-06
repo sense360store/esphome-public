@@ -1,0 +1,53 @@
+substitutions:
+  device_name: sense360-mini
+  friendly_name: Sense360 Mini Core
+  timezone: "America/Los_Angeles"
+  status_led_pin: GPIO2
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  project:
+    name: sense360.mini
+    version: 1.0.0
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+    version: recommended
+
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  scan: true
+
+uart:
+  id: uart_bus
+  tx_pin: GPIO17
+  rx_pin: GPIO16
+  baud_rate: 115200
+
+status_led:
+  pin:
+    number: ${status_led_pin}
+    inverted: true
+
+binary_sensor:
+  - platform: status
+    name: "${friendly_name} Status"
+
+button:
+  - platform: restart
+    id: reset_button
+    name: "${friendly_name} Restart"
+  - platform: safe_mode
+    name: "${friendly_name} Safe Mode"
+
+sensor:
+  - platform: wifi_signal
+    name: "${friendly_name} WiFi Signal"
+    update_interval: 60s
+  - platform: uptime
+    name: "${friendly_name} Uptime"
+    update_interval: 60s
