@@ -1,0 +1,87 @@
+# Secrets and Sensitive Data
+secrets.yaml
+*.secret
+*.key
+*.pem
+*.crt
+
+# ESPHome Build Artifacts
+.esphome/
+*.bin
+*.elf
+*.map
+.pioenvs
+.piolibdeps
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+logs/
+
+# Temporary Files
+*.tmp
+*.bak
+*.old
+*.orig
+.*.kate-swp
+.swp.*
+
+# Node modules (if any web tools are used)
+node_modules/
+npm-debug.log
+
+# Backup files
+*~
+*.backup
+
+# Test files (don't commit local tests)
+test-*.yaml
+local-*.yaml
+scratch-*.yaml
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Documentation build outputs
+docs/_build/
+site/
+
+# Private overlays or factory configs
+overlays_factory_private/
+private/
+
+# Local environment files
+.env
+.env.local
