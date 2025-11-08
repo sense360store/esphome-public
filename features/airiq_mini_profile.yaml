@@ -51,7 +51,7 @@ globals:
   - id: g_voc_unhealthy
     type: float
     restore_value: true
-    initial_value: ${sen55_voc_unhealthy_limit}
+    initial_value: ${sen55_nox_unhealthy_limit}
 
   # NOx thresholds
   - id: g_nox_good
@@ -66,6 +66,35 @@ globals:
     type: float
     restore_value: true
     initial_value: ${sen55_nox_unhealthy_limit}
+
+# --- Home Assistant–tunable SHT30 calibration controls ---
+number:
+  - platform: template
+    id: sht30_t_offset
+    name: "${friendly_name} SHT30 Temp Offset (°C)"
+    min_value: -5
+    max_value: 5
+    step: 0.01
+    restore_value: true
+    optimistic: true
+
+  - platform: template
+    id: sht30_rh_scale
+    name: "${friendly_name} SHT30 RH Scale (a)"
+    min_value: 0.90
+    max_value: 1.10
+    step: 0.001
+    restore_value: true
+    optimistic: true
+
+  - platform: template
+    id: sht30_rh_offset
+    name: "${friendly_name} SHT30 RH Offset (b)"
+    min_value: -10
+    max_value: 10
+    step: 0.01
+    restore_value: true
+    optimistic: true
 
 # --- One-time SCD4x forced calibration at boot (426 ppm) ---
 esphome:
@@ -169,17 +198,58 @@ sensor:
       if (std::isnan(last_valid)) return id(co2_display).state;
       return last_valid;
 
-  # -------- SHT30 (optional) ----------
+  # -------- SHT30 (with calibration) ----------
   - platform: sht3xd
     i2c_id: i2c0
     address: 0x44
     update_interval: 30s
     temperature:
-      id: sht30_temp
-      name: "${friendly_name} SHT30 Temperature"
+      id: sht30_temp_raw
+      name: "${friendly_name} SHT30 Temperature (raw)"
+      accuracy_decimals: 2
     humidity:
-      id: sht30_rh
-      name: "${friendly_name} SHT30 Humidity"
+      id: sht30_rh_raw
+      name: "${friendly_name} SHT30 Humidity (raw)"
+      accuracy_decimals: 1
+    heater: false
+    repeatability: high
+
+  # Calibrated SHT30 Temperature = raw + offset (ΔT)
+  - platform: copy
+    source_id: sht30_temp_raw
+    name: "${friendly_name} SHT30 Temperature"
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+    accuracy_decimals: 2
+    filters:
+      - median:
+          window_size: 7
+          send_every: 4
+          send_first_at: 1
+      - lambda: |-
+          return x + id(sht30_t_offset).state;
+
+  # Calibrated SHT30 Humidity = a*x + b, clamped to 0–100 %
+  - platform: copy
+    source_id: sht30_rh_raw
+    name: "${friendly_name} SHT30 Humidity"
+    device_class: humidity
+    state_class: measurement
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    filters:
+      - median:
+          window_size: 7
+          send_every: 4
+          send_first_at: 1
+      - lambda: |-
+          const float a = id(sht30_rh_scale).state;   // default 1.0
+          const float b = id(sht30_rh_offset).state;  // default 0.0
+          float y = a * x + b;
+          if (y < 0.0f)   y = 0.0f;
+          if (y > 100.0f) y = 100.0f;
+          return y;
 
   # -------- LTR303 (ALS) ----------
   - platform: ltr_als_ps
@@ -222,7 +292,7 @@ sensor:
     update_interval: 5s
     lambda: |-
       if (!id(mics_oxidizing_raw).has_state()) return NAN;
-      const float Vnode   = id(mics_oxidizing_raw).state;  // volts (post ×2)
+      const float Vnode   = id(mics_oxidizing_raw).state;  # volts (post ×2)
       const float Vref    = ${mics_vref};
       const float Rseries = ${mics_rseries_ox_ohms};
       const float RL      = ${mics_rl_ox_ohms};
