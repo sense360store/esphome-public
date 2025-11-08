@@ -291,10 +291,12 @@ sensor:
     temperature:
       id: sht30_temp_raw
       name: "${friendly_name} SHT30 Temperature (raw)"
+      internal: true
       accuracy_decimals: 2
     humidity:
       id: sht30_rh_raw
       name: "${friendly_name} SHT30 Humidity (raw)"
+      internal: true
       accuracy_decimals: 1
 
   # Calibrated SHT30 Temperature = raw + offset (ΔT)
