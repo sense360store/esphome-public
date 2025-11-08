@@ -51,7 +51,7 @@ globals:
   - id: g_voc_unhealthy
     type: float
     restore_value: true
-    initial_value: ${sen55_nox_unhealthy_limit}
+    initial_value: ${sen55_voc_unhealthy_limit}   # fixed
 
   # NOx thresholds
   - id: g_nox_good
@@ -203,6 +203,7 @@ sensor:
     i2c_id: i2c0
     address: 0x44
     update_interval: 30s
+    heater_enabled: false         # <- correct key
     temperature:
       id: sht30_temp_raw
       name: "${friendly_name} SHT30 Temperature (raw)"
@@ -211,8 +212,6 @@ sensor:
       id: sht30_rh_raw
       name: "${friendly_name} SHT30 Humidity (raw)"
       accuracy_decimals: 1
-    heater: false
-    repeatability: high
 
   # Calibrated SHT30 Temperature = raw + offset (ΔT)
   - platform: copy
@@ -292,7 +291,7 @@ sensor:
     update_interval: 5s
     lambda: |-
       if (!id(mics_oxidizing_raw).has_state()) return NAN;
-      const float Vnode   = id(mics_oxidizing_raw).state;  # volts (post ×2)
+      const float Vnode   = id(mics_oxidizing_raw).state;  // volts (post ×2)
       const float Vref    = ${mics_vref};
       const float Rseries = ${mics_rseries_ox_ohms};
       const float RL      = ${mics_rl_ox_ohms};
