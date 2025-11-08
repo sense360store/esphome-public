@@ -51,7 +51,7 @@ globals:
   - id: g_voc_unhealthy
     type: float
     restore_value: true
-    initial_value: ${sen55_voc_unhealthy_limit}   # fixed
+    initial_value: ${sen55_voc_unhealthy_limit}
 
   # NOx thresholds
   - id: g_nox_good
@@ -67,47 +67,19 @@ globals:
     restore_value: true
     initial_value: ${sen55_nox_unhealthy_limit}
 
-# --- Home Assistant–tunable SHT30 calibration controls ---
+  # --- Committed (persistent) SHT30 calibration baselines ---
+  - id: sht30_dt_committed       # °C
+    type: float
+    restore_value: true
+    initial_value: '0.0'
+  - id: sht30_rh_b_committed     # %RH
+    type: float
+    restore_value: true
+    initial_value: '0.0'
+
+# --- SHT30 calibration UI (minimal) ---
 number:
-  # Calibration results (used by filters)
-  - platform: template
-    id: sht30_t_offset
-    name: "${friendly_name} SHT30 Temp Offset (°C)"
-    unit_of_measurement: "°C"
-    internal: true
-    min_value: -30
-    max_value: 30
-    step: 0.01
-    mode: box
-    restore_value: true
-    initial_value: 0
-    optimistic: true
-
-  - platform: template
-    id: sht30_rh_scale
-    name: "${friendly_name} SHT30 RH Scale (a)"
-    min_value: 0.80
-    max_value: 1.20
-    step: 0.001
-    mode: box
-    restore_value: true
-    initial_value: 1.000
-    optimistic: true
-
-  - platform: template
-    id: sht30_rh_offset
-    internal: true
-    name: "${friendly_name} SHT30 RH Offset (b)"
-    unit_of_measurement: "%"
-    min_value: -50
-    max_value: 50
-    step: 0.1
-    mode: box
-    restore_value: true
-    initial_value: 0
-    optimistic: true
-
-  # Reference inputs (user-typed values in HA)
+  # Visible reference inputs (user types these in HA)
   - platform: template
     id: sht30_ref_t
     name: "${friendly_name} Cal Reference Temp (°C)"
@@ -132,7 +104,7 @@ number:
     initial_value: 73.0
     optimistic: true
 
-# --- One-click SHT30 calibration trigger ---
+# --- One-click SHT30 calibration + reset ---
 button:
   - platform: template
     id: sht30_calibrate_now
@@ -140,7 +112,20 @@ button:
     on_press:
       - script.execute: sht30_apply_single_point_cal
 
-# --- Single-point calibration script (uses current raw reading vs typed reference) ---
+  - platform: template
+    id: sht30_reset_cal
+    name: "${friendly_name} Reset SHT30 Calibration"
+    on_press:
+      - lambda: |-
+          id(sht30_dt_committed)   = 0.0f;
+          id(sht30_rh_b_committed) = 0.0f;
+          ESP_LOGI("sht30_cal", "Calibration reset: ΔT=0.00, b=0.00");
+      - lambda: |-
+          // Force immediate recompute of calibrated copies
+          if (id(sht30_temp_raw).has_state()) id(sht30_temp_raw).publish_state(id(sht30_temp_raw).state);
+          if (id(sht30_rh_raw).has_state())   id(sht30_rh_raw).publish_state(id(sht30_rh_raw).state);
+
+# --- Single-point calibration script (offset-only; commits to flash) ---
 script:
   - id: sht30_apply_single_point_cal
     then:
@@ -149,36 +134,32 @@ script:
             ESP_LOGW("sht30_cal", "Raw SHT30 readings not ready yet.");
             return;
           }
-          const float t_ref = id(sht30_ref_t).state;
+          const float t_ref  = id(sht30_ref_t).state;
           const float rh_ref = id(sht30_ref_rh).state;
-          const float t_raw = id(sht30_temp_raw).state;
+          const float t_raw  = id(sht30_temp_raw).state;
           const float rh_raw = id(sht30_rh_raw).state;
 
-          // Compute raw corrections
-          const float dt_raw = t_ref - t_raw;
-          const float a_raw  = 1.0f;
-          const float b_raw  = rh_ref - rh_raw;
+          // Compute offsets
+          float dt = t_ref - t_raw;     // °C
+          float b  = rh_ref - rh_raw;   // %RH
 
-          // Clamp to configured ranges
-          float dt = dt_raw;
+          // Clamp to safe ranges
           if (dt < -30.0f) dt = -30.0f;
           if (dt >  30.0f) dt =  30.0f;
+          if (b  < -50.0f) b  = -50.0f;
+          if (b  >  50.0f) b  =  50.0f;
 
-          float a = a_raw;
-          if (a < 0.80f) a = 0.80f;
-          if (a > 1.20f) a = 1.20f;
-
-          float b = b_raw;
-          if (b < -50.0f) b = -50.0f;
-          if (b >  50.0f) b =  50.0f;
-
-          id(sht30_t_offset).publish_state(dt);
-          id(sht30_rh_scale).publish_state(a);
-          id(sht30_rh_offset).publish_state(b);
+          // Commit to flash-backed globals
+          id(sht30_dt_committed)   = dt;
+          id(sht30_rh_b_committed) = b;
 
           ESP_LOGI("sht30_cal",
-                   "Applied single-point cal (raw: ΔT=%.2f°C, a=%.3f, b=%.2f) -> (clamped: ΔT=%.2f°C, a=%.3f, b=%.2f). Raw T=%.2f°C RH=%.1f%%; Ref T=%.2f°C RH=%.1f%%",
-                   dt_raw, a_raw, b_raw, dt, a, b, t_raw, rh_raw, t_ref, rh_ref);
+                   "Committed SHT30 calibration: ΔT=%.2f °C, b=%.2f %% (raw T=%.2f °C RH=%.1f %%; ref T=%.2f °C RH=%.1f %%)",
+                   dt, b, t_raw, rh_raw, t_ref, rh_ref);
+
+          // Force immediate recompute of calibrated copies
+          id(sht30_temp_raw).publish_state(id(sht30_temp_raw).state);
+          id(sht30_rh_raw).publish_state(id(sht30_rh_raw).state);
 
 # --- One-time SCD4x forced calibration at boot (426 ppm) ---
 esphome:
@@ -206,29 +187,25 @@ sensor:
       id: pm_1_0
       name: "${friendly_name} PM <1.0µm"
       accuracy_decimals: 1
-      on_value:
-        - script.execute: mini_update_4leds
+      on_value: { then: [ script.execute: mini_update_4leds ] }
 
     pm_2_5:
       id: pm_2_5
       name: "${friendly_name} PM <2.5µm"
       accuracy_decimals: 1
-      on_value:
-        - script.execute: mini_update_4leds
+      on_value: { then: [ script.execute: mini_update_4leds ] }
 
     pm_4_0:
       id: pm_4_0
       name: "${friendly_name} PM <4.0µm"
       accuracy_decimals: 1
-      on_value:
-        - script.execute: mini_update_4leds
+      on_value: { then: [ script.execute: mini_update_4leds ] }
 
     pm_10_0:
       id: pm_10_0
       name: "${friendly_name} PM <10µm"
       accuracy_decimals: 1
-      on_value:
-        - script.execute: mini_update_4leds
+      on_value: { then: [ script.execute: mini_update_4leds ] }
 
     temperature:
       id: aqi_temp
@@ -243,14 +220,12 @@ sensor:
     voc:
       id: voc_index
       name: "${friendly_name} VOC Index"
-      on_value:
-        - script.execute: mini_update_4leds
+      on_value: { then: [ script.execute: mini_update_4leds ] }
 
     nox:
       id: nox_index
       name: "${friendly_name} NOx Index"
-      on_value:
-        - script.execute: mini_update_4leds
+      on_value: { then: [ script.execute: mini_update_4leds ] }
 
     update_interval: 10s
 
@@ -263,8 +238,7 @@ sensor:
     co2:
       id: scd40_co2
       internal: true
-      on_value:
-        - script.execute: mini_update_4leds
+      on_value: { then: [ script.execute: mini_update_4leds ] }
 
   # CO₂ display (never Unknown)
   - platform: template
@@ -282,24 +256,22 @@ sensor:
       if (std::isnan(last_valid)) return id(co2_display).state;
       return last_valid;
 
-  # -------- SHT30 (with calibration) ----------
+  # -------- SHT30 (raw hidden) ----------
   - platform: sht3xd
     i2c_id: i2c0
     address: 0x44
     update_interval: 30s
-    heater_enabled: false         # keep off in normal operation
+    heater_enabled: false
     temperature:
       id: sht30_temp_raw
-      name: "${friendly_name} SHT30 Temperature (raw)"
       internal: true
       accuracy_decimals: 2
     humidity:
       id: sht30_rh_raw
-      name: "${friendly_name} SHT30 Humidity (raw)"
       internal: true
       accuracy_decimals: 1
 
-  # Calibrated SHT30 Temperature = raw + offset (ΔT)
+  # Calibrated SHT30 Temperature = raw + committed ΔT
   - platform: copy
     source_id: sht30_temp_raw
     name: "${friendly_name} SHT30 Temperature"
@@ -308,14 +280,11 @@ sensor:
     unit_of_measurement: "°C"
     accuracy_decimals: 2
     filters:
-      - median:
-          window_size: 7
-          send_every: 4
-          send_first_at: 1
+      - median: { window_size: 7, send_every: 1, send_first_at: 1 }
       - lambda: |-
-          return x + id(sht30_t_offset).state;
+          return x + id(sht30_dt_committed);
 
-  # Calibrated SHT30 Humidity = a*x + b, clamped to 0–100 %
+  # Calibrated SHT30 Humidity = raw + committed b, clamped 0–100%
   - platform: copy
     source_id: sht30_rh_raw
     name: "${friendly_name} SHT30 Humidity"
@@ -324,14 +293,9 @@ sensor:
     unit_of_measurement: "%"
     accuracy_decimals: 1
     filters:
-      - median:
-          window_size: 7
-          send_every: 4
-          send_first_at: 1
+      - median: { window_size: 7, send_every: 1, send_first_at: 1 }
       - lambda: |-
-          const float a = id(sht30_rh_scale).state;   // default 1.0
-          const float b = id(sht30_rh_offset).state;  // default 0.0
-          float y = a * x + b;
+          float y = x + id(sht30_rh_b_committed);
           if (y < 0.0f)   y = 0.0f;
           if (y > 100.0f) y = 100.0f;
           return y;
@@ -352,9 +316,7 @@ sensor:
     update_interval: 2s
     filters:
       - multiply: 2.0
-      - exponential_moving_average:
-          alpha: 0.2
-          send_every: 1
+      - exponential_moving_average: { alpha: 0.2, send_every: 1 }
 
   - platform: adc
     id: mics_reducing_raw
@@ -364,9 +326,7 @@ sensor:
     update_interval: 2s
     filters:
       - multiply: 2.0
-      - exponential_moving_average:
-          alpha: 0.2
-          send_every: 1
+      - exponential_moving_average: { alpha: 0.2, send_every: 1 }
 
   # Rs with series+load correction (Oxidizing → NO2)
   - platform: template
@@ -411,10 +371,10 @@ sensor:
       if (!id(mics_no2_rs).has_state()) return NAN;
       const float Rs = id(mics_no2_rs).state;
       const float R0 = ${mics_r0_no2_ohms};
-      if (Rs <= 0 || R0 <= 0) return NAN;
-      const float ratio = Rs / R0;
       const float A = ${mics_no2_A};
       const float B = ${mics_no2_B};
+      if (Rs <= 0 || R0 <= 0) return NAN;
+      const float ratio = Rs / R0;
       float ppm = powf(10.0f, A * log10f(ratio) + B);
       if (ppm < 0.0f) ppm = 0.0f;
       return ppm;
