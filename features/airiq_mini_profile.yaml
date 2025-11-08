@@ -69,6 +69,7 @@ globals:
 
 # --- Home Assistant–tunable SHT30 calibration controls ---
 number:
+  # Calibration result controls (used by the filters)
   - platform: template
     id: sht30_t_offset
     name: "${friendly_name} SHT30 Temp Offset (°C)"
@@ -95,6 +96,64 @@ number:
     step: 0.01
     restore_value: true
     optimistic: true
+
+  # Reference inputs (user-typed values in HA)
+  - platform: template
+    id: sht30_ref_t
+    name: "${friendly_name} Cal Reference Temp (°C)"
+    min_value: -20
+    max_value: 80
+    step: 0.01
+    restore_value: true
+    initial_value: 17.5
+    optimistic: true
+
+  - platform: template
+    id: sht30_ref_rh
+    name: "${friendly_name} Cal Reference RH (%)"
+    min_value: 0
+    max_value: 100
+    step: 0.1
+    restore_value: true
+    initial_value: 73.0
+    optimistic: true
+
+# --- One-click SHT30 calibration trigger ---
+button:
+  - platform: template
+    id: sht30_calibrate_now
+    name: "${friendly_name} Calibrate SHT30 Now"
+    on_press:
+      - script.execute: sht30_apply_single_point_cal
+
+# --- Single-point calibration script (uses current raw reading vs typed reference) ---
+script:
+  - id: sht30_apply_single_point_cal
+    then:
+      - lambda: |-
+          if (!id(sht30_temp_raw).has_state() || !id(sht30_rh_raw).has_state()) {
+            ESP_LOGW("sht30_cal", "Raw SHT30 readings not ready yet.");
+            return;
+          }
+          const float t_ref = id(sht30_ref_t).state;
+          const float rh_ref = id(sht30_ref_rh).state;
+          const float t_raw = id(sht30_temp_raw).state;
+          const float rh_raw = id(sht30_rh_raw).state;
+
+          // Temperature: ΔT = T_ref - T_raw
+          const float dt = t_ref - t_raw;
+
+          // Humidity single-point: scale a=1.0, offset b = RH_ref - RH_raw
+          const float a = 1.0f;
+          const float b = rh_ref - rh_raw;
+
+          id(sht30_t_offset).publish_state(dt);
+          id(sht30_rh_scale).publish_state(a);
+          id(sht30_rh_offset).publish_state(b);
+
+          ESP_LOGI("sht30_cal",
+                   "Applied single-point cal: ΔT=%.2f °C, a=%.3f, b=%.2f (raw T=%.2f, raw RH=%.1f, ref T=%.2f, ref RH=%.1f)",
+                   dt, a, b, t_raw, rh_raw, t_ref, rh_ref);
 
 # --- One-time SCD4x forced calibration at boot (426 ppm) ---
 esphome:
@@ -203,7 +262,7 @@ sensor:
     i2c_id: i2c0
     address: 0x44
     update_interval: 30s
-    heater_enabled: false         # <- correct key
+    heater_enabled: false         # keep off in normal operation
     temperature:
       id: sht30_temp_raw
       name: "${friendly_name} SHT30 Temperature (raw)"
