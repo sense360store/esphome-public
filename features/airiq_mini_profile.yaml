@@ -1,7 +1,7 @@
 # /config/esphome/packages/features/airiq_mini_profile.yaml
 # Mini AirIQ: SEN55 + SCD4x + SHT30 + LTR303 + MiCS via ADC.
 # Requires: i2c bus id i2c0 (from core hardware) and script id mini_update_4leds (from LED package).
-# Also requires MiCS substitutions (vref, R0, A/B, resistor values) defined in substitutions.
+# Also requires MiCS substitutions (vref, R0, A/B, resistor values) defined in substitutions. NEW
 
 # --- Globals (must exist before esphome:on_boot uses them) ---
 globals:
