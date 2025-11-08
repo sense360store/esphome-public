@@ -69,41 +69,53 @@ globals:
 
 # --- Home Assistant–tunable SHT30 calibration controls ---
 number:
-  # Calibration result controls (used by the filters)
+  # Calibration results (used by filters)
   - platform: template
     id: sht30_t_offset
     name: "${friendly_name} SHT30 Temp Offset (°C)"
-    min_value: -5
-    max_value: 5
+    unit_of_measurement: "°C"
+    internal: true
+    min_value: -30
+    max_value: 30
     step: 0.01
+    mode: box
     restore_value: true
+    initial_value: 0
     optimistic: true
 
   - platform: template
     id: sht30_rh_scale
     name: "${friendly_name} SHT30 RH Scale (a)"
-    min_value: 0.90
-    max_value: 1.10
+    min_value: 0.80
+    max_value: 1.20
     step: 0.001
+    mode: box
     restore_value: true
+    initial_value: 1.000
     optimistic: true
 
   - platform: template
     id: sht30_rh_offset
+    internal: true
     name: "${friendly_name} SHT30 RH Offset (b)"
-    min_value: -10
-    max_value: 10
-    step: 0.01
+    unit_of_measurement: "%"
+    min_value: -50
+    max_value: 50
+    step: 0.1
+    mode: box
     restore_value: true
+    initial_value: 0
     optimistic: true
 
   # Reference inputs (user-typed values in HA)
   - platform: template
     id: sht30_ref_t
     name: "${friendly_name} Cal Reference Temp (°C)"
+    unit_of_measurement: "°C"
     min_value: -20
     max_value: 80
     step: 0.01
+    mode: box
     restore_value: true
     initial_value: 17.5
     optimistic: true
@@ -111,9 +123,11 @@ number:
   - platform: template
     id: sht30_ref_rh
     name: "${friendly_name} Cal Reference RH (%)"
+    unit_of_measurement: "%"
     min_value: 0
     max_value: 100
     step: 0.1
+    mode: box
     restore_value: true
     initial_value: 73.0
     optimistic: true
@@ -140,20 +154,31 @@ script:
           const float t_raw = id(sht30_temp_raw).state;
           const float rh_raw = id(sht30_rh_raw).state;
 
-          // Temperature: ΔT = T_ref - T_raw
-          const float dt = t_ref - t_raw;
+          // Compute raw corrections
+          const float dt_raw = t_ref - t_raw;
+          const float a_raw  = 1.0f;
+          const float b_raw  = rh_ref - rh_raw;
 
-          // Humidity single-point: scale a=1.0, offset b = RH_ref - RH_raw
-          const float a = 1.0f;
-          const float b = rh_ref - rh_raw;
+          // Clamp to configured ranges
+          float dt = dt_raw;
+          if (dt < -30.0f) dt = -30.0f;
+          if (dt >  30.0f) dt =  30.0f;
+
+          float a = a_raw;
+          if (a < 0.80f) a = 0.80f;
+          if (a > 1.20f) a = 1.20f;
+
+          float b = b_raw;
+          if (b < -50.0f) b = -50.0f;
+          if (b >  50.0f) b =  50.0f;
 
           id(sht30_t_offset).publish_state(dt);
           id(sht30_rh_scale).publish_state(a);
           id(sht30_rh_offset).publish_state(b);
 
           ESP_LOGI("sht30_cal",
-                   "Applied single-point cal: ΔT=%.2f °C, a=%.3f, b=%.2f (raw T=%.2f, raw RH=%.1f, ref T=%.2f, ref RH=%.1f)",
-                   dt, a, b, t_raw, rh_raw, t_ref, rh_ref);
+                   "Applied single-point cal (raw: ΔT=%.2f°C, a=%.3f, b=%.2f) -> (clamped: ΔT=%.2f°C, a=%.3f, b=%.2f). Raw T=%.2f°C RH=%.1f%%; Ref T=%.2f°C RH=%.1f%%",
+                   dt_raw, a_raw, b_raw, dt, a, b, t_raw, rh_raw, t_ref, rh_ref);
 
 # --- One-time SCD4x forced calibration at boot (426 ppm) ---
 esphome:
