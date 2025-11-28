@@ -58,7 +58,7 @@ esphome:
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v1.1.7  # Latest stable version
+    ref: v2.0.0  # Latest stable version
     files: 
       - products/sense360-mini-airiq.yaml
     refresh: 1d
@@ -101,7 +101,7 @@ Check [Releases](https://github.com/sense360store/esphome-public/releases) for t
 
 To update:
 1. Edit your configuration file
-2. Change `ref: v1.1.7` to the new version when updates are released
+2. Change `ref: v2.0.0` to the new version when updates are released
 3. Save and install wirelessly
 
 **That's it!** Your device will automatically fetch and apply the updated firmware.
@@ -148,7 +148,7 @@ For custom builds, load specific components:
 packages:
   sense360_base:
     url: https://github.com/sense360store/esphome-public
-    ref: v1.1.7
+    ref: v2.0.0
     files: 
       - base/wifi.yaml
       - base/api_encrypted.yaml

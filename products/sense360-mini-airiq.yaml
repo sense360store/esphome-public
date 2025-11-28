@@ -8,7 +8,7 @@
 # packages:
 #   sense360_firmware:
 #     url: https://github.com/sense360store/esphome-public
-#     ref: v1.1.7
+#     ref: v2.0.0
 #     files:
 #       - products/sense360-mini-airiq.yaml
 #     refresh: 1d
@@ -119,7 +119,7 @@ packages:
 #    packages:
 #      sense360_firmware:
 #        url: https://github.com/sense360store/esphome-public
-#        ref: v1.1.7
+#        ref: v2.0.0
 #        files:
 #          - products/sense360-mini-airiq.yaml
 #        refresh: 1d
