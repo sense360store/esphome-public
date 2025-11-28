@@ -95,8 +95,9 @@ number:
     initial_value: 17.5
     optimistic: true
     on_value:
+      # Debounced auto-apply so HA text entry does not spam flash writes
       - lambda: 'id(sht30_cal_pending) = true;'
-      - script.execute: sht30_apply_single_point_cal
+      - script.execute: sht30_debounced_apply_single_point_cal
 
   - platform: template
     id: sht30_ref_rh
@@ -110,8 +111,9 @@ number:
     initial_value: 73.0
     optimistic: true
     on_value:
+      # Debounced auto-apply so HA text entry does not spam flash writes
       - lambda: 'id(sht30_cal_pending) = true;'
-      - script.execute: sht30_apply_single_point_cal
+      - script.execute: sht30_debounced_apply_single_point_cal
 
 # --- One-click SHT30 calibration + reset ---
 button:
@@ -136,6 +138,13 @@ button:
 
 # --- Single-point calibration script (offset-only; commits to flash) ---
 script:
+  # Debounced wrapper to avoid repeated commits while typing reference values
+  - id: sht30_debounced_apply_single_point_cal
+    mode: restart
+    then:
+      - delay: 750ms
+      - script.execute: sht30_apply_single_point_cal
+
   - id: sht30_apply_single_point_cal
     then:
       - lambda: |-
@@ -305,6 +314,7 @@ sensor:
     filters:
       - median: { window_size: 7, send_every: 1, send_first_at: 1 }
       - lambda: |-
+          // Calibrated copy stays bound to the committed ΔT offset
           return x + id(sht30_dt_committed);
 
   # Calibrated SHT30 Humidity = raw + committed b, clamped 0–100%
@@ -318,6 +328,7 @@ sensor:
     filters:
       - median: { window_size: 7, send_every: 1, send_first_at: 1 }
       - lambda: |-
+          // Calibrated copy stays bound to the committed humidity offset
           float y = x + id(sht30_rh_b_committed);
           if (y < 0.0f)   y = 0.0f;
           if (y > 100.0f) y = 100.0f;
