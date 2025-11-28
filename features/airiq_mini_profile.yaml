@@ -205,46 +205,46 @@ sensor:
 
     pm_1_0:
       id: pm_1_0
-      name: "${friendly_name} PM <1.0µm"
+      name: "PM1.0"
       accuracy_decimals: 1
       on_value: { then: [ script.execute: mini_update_4leds ] }
 
     pm_2_5:
       id: pm_2_5
-      name: "${friendly_name} PM <2.5µm"
+      name: "PM2.5"
       accuracy_decimals: 1
       on_value: { then: [ script.execute: mini_update_4leds ] }
 
     pm_4_0:
       id: pm_4_0
-      name: "${friendly_name} PM <4.0µm"
+      name: "PM4.0"
       accuracy_decimals: 1
       on_value: { then: [ script.execute: mini_update_4leds ] }
 
     pm_10_0:
       id: pm_10_0
-      name: "${friendly_name} PM <10µm"
+      name: "PM10"
       accuracy_decimals: 1
       on_value: { then: [ script.execute: mini_update_4leds ] }
 
     temperature:
       id: aqi_temp
-      name: "${friendly_name} Temperature"
+      name: "Temperature"
       accuracy_decimals: 1
 
     humidity:
       id: aqi_humidity
-      name: "${friendly_name} Humidity"
+      name: "Humidity"
       accuracy_decimals: 0
 
     voc:
       id: voc_index
-      name: "${friendly_name} VOC Index"
+      name: "VOC Index"
       on_value: { then: [ script.execute: mini_update_4leds ] }
 
     nox:
       id: nox_index
-      name: "${friendly_name} NOx Index"
+      name: "NOx Index"
       on_value: { then: [ script.execute: mini_update_4leds ] }
 
     update_interval: 10s
@@ -263,7 +263,7 @@ sensor:
   # CO₂ display (never Unknown)
   - platform: template
     id: co2_display
-    name: "${friendly_name} CO₂"
+    name: "CO₂"
     unit_of_measurement: "ppm"
     device_class: carbon_dioxide
     state_class: measurement
@@ -306,7 +306,7 @@ sensor:
   # Calibrated SHT30 Temperature = raw + committed ΔT
   - platform: copy
     source_id: sht30_temp_raw
-    name: "${friendly_name} SHT30 Temperature"
+    name: "SHT30 Temperature"
     device_class: temperature
     state_class: measurement
     unit_of_measurement: "°C"
@@ -320,7 +320,7 @@ sensor:
   # Calibrated SHT30 Humidity = raw + committed b, clamped 0–100%
   - platform: copy
     source_id: sht30_rh_raw
-    name: "${friendly_name} SHT30 Humidity"
+    name: "SHT30 Humidity"
     device_class: humidity
     state_class: measurement
     unit_of_measurement: "%"
@@ -339,12 +339,12 @@ sensor:
     i2c_id: i2c0
     ambient_light:
       id: ambient_lux
-      name: "${friendly_name} Illuminance"
+      name: "Illuminance"
 
 text_sensor:
   - platform: template
     id: co2_status
-    name: "${friendly_name} CO₂ Status"
+    name: "CO₂ Status"
     update_interval: 5s
     icon: mdi:molecule-co2
     lambda: |-
