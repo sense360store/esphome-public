@@ -1,4 +1,4 @@
-# Core "mini" hardware: ESP-IDF, board, I2C bus, optional rails, MiCS heater.
+# Core "mini" hardware: ESP-IDF, board, I2C bus.
 
 esp32:
   board: ${board_variant}
@@ -12,8 +12,3 @@ i2c:
   scl: ${i2c_scl_pin}
   scan: true
 
-# MiCS heater output (on/off; simple heater drive)
-output:
-  - platform: gpio
-    id: mics_heater_out
-    pin: ${mics_heater_pin}
