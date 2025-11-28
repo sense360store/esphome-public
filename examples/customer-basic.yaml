@@ -47,7 +47,7 @@ esphome:
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v1.1.7  # Change this to update firmware version
+    ref: v2.0.0  # Change this to update firmware version
     files: 
       # Choose ONE product configuration:
       

@@ -7,12 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned Features
-- Enhanced presence zone configuration UI
-- Custom LED animation patterns
-- Energy monitoring integration
-- Multi-device synchronization
-- Advanced air quality trending
+No unreleased changes yet.
+
+---
+
+## [2.0.0] - 2025-06-02
+
+### Added
+- Enhanced presence zone configuration UI with per-zone calibration and live previews.
+- Custom LED animation patterns for air quality states and occupancy feedback.
+- Energy monitoring integration with power and consumption sensors for Sense360 devices.
+- Multi-device synchronization to align presence tracking and air quality baselines across rooms.
+- Advanced air quality trending with rolling averages and visual indicators for long-term insights.
 
 ---
 
@@ -161,17 +167,17 @@ Future releases will follow this format:
 
 ## Upgrade Guide
 
-### From Pre-Release to v1.1.7
+### From v1.1.x to v2.0.0
 
-If you were using development versions:
+If you were using v1.1.x or development versions:
 
-1. Update your configuration to use the new package format:
+1. Update your configuration to use the new release tag:
    ```yaml
    packages:
      sense360_firmware:
        url: https://github.com/sense360store/esphome-public
-       ref: v1.1.7
-       files: 
+       ref: v2.0.0
+       files:
          - products/sense360-mini-airiq.yaml
    ```
 
