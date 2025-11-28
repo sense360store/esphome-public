@@ -219,6 +219,14 @@ text_sensor:
       else if (co2 < id(g_co2_unhealthy)) return std::string("Unhealthy");
       else                                return std::string("High");
 
+button:
+  # Manual SEN55 fan cleaning trigger
+  - platform: template
+    name: "${friendly_name} Clean SEN55 Fan"
+    entity_category: diagnostic
+    on_press:
+      - sen5x.start_fan_autoclean: AQS
+
 # ---- Hidden UI numbers that drive LED thresholds ----
 number:
   # PM1.0
