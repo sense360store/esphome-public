@@ -75,6 +75,10 @@ globals:
     type: float
     restore_value: true
     initial_value: '0.0'
+  - id: sht30_cal_pending        # triggers calibration once raw readings are ready
+    type: bool
+    restore_value: true
+    initial_value: 'false'
 
 # --- SHT30 calibration UI (minimal) ---
 number:
@@ -90,6 +94,9 @@ number:
     restore_value: true
     initial_value: 17.5
     optimistic: true
+    on_value:
+      - lambda: 'id(sht30_cal_pending) = true;'
+      - script.execute: sht30_apply_single_point_cal
 
   - platform: template
     id: sht30_ref_rh
@@ -102,6 +109,9 @@ number:
     restore_value: true
     initial_value: 73.0
     optimistic: true
+    on_value:
+      - lambda: 'id(sht30_cal_pending) = true;'
+      - script.execute: sht30_apply_single_point_cal
 
 # --- One-click SHT30 calibration + reset ---
 button:
@@ -131,6 +141,7 @@ script:
       - lambda: |-
           if (!id(sht30_temp_raw).has_state() || !id(sht30_rh_raw).has_state()) {
             ESP_LOGW("sht30_cal", "Raw SHT30 readings not ready yet.");
+            id(sht30_cal_pending) = true;
             return;
           }
           const float t_ref  = id(sht30_ref_t).state;
@@ -151,6 +162,7 @@ script:
           // Commit to flash-backed globals
           id(sht30_dt_committed)   = dt;
           id(sht30_rh_b_committed) = b;
+          id(sht30_cal_pending)    = false;
 
           ESP_LOGI("sht30_cal",
                    "Committed SHT30 calibration: ΔT=%.2f °C, b=%.2f %% (raw T=%.2f °C RH=%.1f %%; ref T=%.2f °C RH=%.1f %%)",
@@ -265,10 +277,22 @@ sensor:
       id: sht30_temp_raw
       internal: true
       accuracy_decimals: 2
+      on_value:
+        - if:
+            condition:
+              lambda: 'return id(sht30_cal_pending);'
+            then:
+              - script.execute: sht30_apply_single_point_cal
     humidity:
       id: sht30_rh_raw
       internal: true
       accuracy_decimals: 1
+      on_value:
+        - if:
+            condition:
+              lambda: 'return id(sht30_cal_pending);'
+            then:
+              - script.execute: sht30_apply_single_point_cal
 
   # Calibrated SHT30 Temperature = raw + committed ΔT
   - platform: copy
