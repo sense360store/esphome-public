@@ -349,6 +349,20 @@ sensor:
 
 **Note**: Faster updates = more power consumption and wear on sensors.
 
+### WiFi Static IP Configuration
+
+If your network needs static addressing (for example, to avoid repeated reconnect errors), add a `manual_ip` block to the WiFi section of your main config. This overrides the DHCP assignment used in `base/wifi.yaml`.
+
+```yaml
+wifi:
+  # ... existing config ...
+  manual_ip:
+    static_ip: 192.168.10.27
+    gateway: 192.168.10.1
+    subnet: 255.255.255.0
+    dns1: 192.168.10.1  # Optional but recommended
+```
+
 ### WiFi Fallback Configuration
 
 Customize the fallback access point:
