@@ -341,6 +341,14 @@ sensor:
       id: ambient_lux
       name: "Illuminance"
 
+button:
+  # Manual SEN55 fan cleaning trigger
+  - platform: template
+    name: "${friendly_name} Clean SEN55 Fan"
+    entity_category: diagnostic
+    on_press:
+      - sen5x.start_fan_autoclean: sen55
+
 text_sensor:
   - platform: template
     id: co2_status
