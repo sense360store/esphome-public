@@ -47,10 +47,6 @@ substitutions:
   led_chipset: WS2812
   led_rgb_order: GRB
   
-  # MiCS Gas Sensor
-  mics_ox_adc_pin: GPIO15
-  mics_red_adc_pin: GPIO7
-  mics_heater_pin: GPIO16
 ```
 
 ---
@@ -138,7 +134,7 @@ Choose which product configuration to use:
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v1.0.0
+    ref: v1.1.7
     files: 
       - products/sense360-mini-airiq.yaml
 ```
@@ -146,7 +142,6 @@ packages:
 **Includes:**
 - ✅ All air quality sensors
 - ✅ Presence detection
-- ✅ Gas sensors
 - ✅ LED indicators
 - ✅ Device health monitoring
 
@@ -297,7 +292,7 @@ For advanced users who want specific components only:
 packages:
   sense360_custom:
     url: https://github.com/sense360store/esphome-public
-    ref: v1.0.0
+    ref: v1.1.7
     files:
       # Base (required)
       - base/wifi.yaml
@@ -353,21 +348,6 @@ sensor:
 ```
 
 **Note**: Faster updates = more power consumption and wear on sensors.
-
-### Custom MiCS Calibration
-
-If you've calibrated your MiCS sensors:
-
-```yaml
-substitutions:
-  # Your calibrated R0 values
-  mics_r0_no2_ohms: "285000"
-  mics_r0_co_ohms: "28500"
-  
-  # Your calibrated curve coefficients
-  mics_no2_A: "-1.15"
-  mics_no2_B: "2.05"
-```
 
 ### WiFi Fallback Configuration
 
@@ -427,7 +407,7 @@ api:
 ```yaml
 packages:
   sense360_firmware:
-    ref: v1.0.0  # Specific stable version
+    ref: v1.1.7  # Specific stable version
 ```
 
 ### Testing Latest Features
@@ -438,7 +418,7 @@ packages:
     ref: main  # ⚠️ Latest development version (may be unstable)
 ```
 
-**Recommendation**: Use version tags (v1.0.0) for production devices.
+**Recommendation**: Use version tags (v1.1.7) for production devices.
 
 ---
 

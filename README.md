@@ -11,7 +11,6 @@ Official ESPHome firmware repository for [Sense360](https://mysense360.com) envi
 - **Comprehensive Air Quality Monitoring**: CO2, VOC, NOx, PM1.0, PM2.5, PM4.0, PM10
 - **Advanced Presence Detection**: mmWave radar (LD2450) for precise occupancy sensing
 - **Environmental Sensing**: Temperature, humidity, and ambient light monitoring
-- **Gas Detection**: NO2, CO, H2, NH3, Ethanol, and CH4 detection (MiCS sensors)
 - **Visual Feedback**: Addressable RGB LED status indicators
 - **Smart Home Integration**: Native Home Assistant support via ESPHome
 - **Wireless Updates**: OTA firmware updates for hassle-free maintenance
@@ -59,7 +58,7 @@ esphome:
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v1.0.0  # Latest stable version
+    ref: v1.1.7  # Latest stable version
     files: 
       - products/sense360-mini-airiq.yaml
     refresh: 1d
@@ -102,7 +101,7 @@ Check [Releases](https://github.com/sense360store/esphome-public/releases) for t
 
 To update:
 1. Edit your configuration file
-2. Change `ref: v1.0.0` to the new version (e.g., `v1.1.0`)
+2. Change `ref: v1.1.7` to the new version when updates are released
 3. Save and install wirelessly
 
 **That's it!** Your device will automatically fetch and apply the updated firmware.
@@ -149,7 +148,7 @@ For custom builds, load specific components:
 packages:
   sense360_base:
     url: https://github.com/sense360store/esphome-public
-    ref: v1.0.0
+    ref: v1.1.7
     files: 
       - base/wifi.yaml
       - base/api_encrypted.yaml
@@ -190,7 +189,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Board**: ESP32-S3 (DevKitC-1)
 - **Sensors**:
   - **Air Quality**: SEN55 (PM, VOC, NOx), SCD4x (CO2), SHT30 (T/H), LTR303 (Light)
-  - **Gas Detection**: MiCS-6814 (NO2, CO, H2, NH3, Ethanol, CH4)
   - **Presence**: HLK-LD2450 (mmWave radar)
 - **Indicators**: WS2812 addressable LEDs (4 pixels)
 - **Connectivity**: WiFi 2.4GHz, Bluetooth LE
@@ -206,7 +204,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Home Office**: Monitor CO2 and air quality for optimal productivity
 - **Bedroom**: Track sleep environment and automate ventilation
 - **Living Room**: Occupancy-based lighting and climate control
-- **Kitchen**: Gas detection and air quality monitoring while cooking
+- **Kitchen**: Air quality monitoring while cooking
 - **Bathroom**: Humidity-based ventilation control
 - **Workshop**: VOC and particulate monitoring during projects
 

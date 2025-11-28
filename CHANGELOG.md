@@ -16,6 +16,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.7] - 2025-11-28
+
+### Changed
+- Updated all product and documentation references to the v1.1.7 release tag.
+
+### Removed
+- Removed MiCS gas sensor configuration and related documentation from the firmware packages.
+
+---
+
 ## [1.0.0] - 2025-11-06
 
 ### Initial Public Release
@@ -144,7 +154,7 @@ Future releases will follow this format:
 
 ## Upgrade Guide
 
-### From Pre-Release to v1.0.0
+### From Pre-Release to v1.1.7
 
 If you were using development versions:
 
@@ -153,7 +163,7 @@ If you were using development versions:
    packages:
      sense360_firmware:
        url: https://github.com/sense360store/esphome-public
-       ref: v1.0.0
+       ref: v1.1.7
        files: 
          - products/sense360-mini-airiq.yaml
    ```
