@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.8] - 2025-12-10
+
+### Fixed
+- Ensured SHT30 calibration reruns automatically when reference temperature or humidity values change, even if raw readings arrive later, so reference inputs always adjust live measurements.
+
+---
+
 ## [1.1.7] - 2025-11-28
 
 ### Changed
