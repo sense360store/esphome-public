@@ -347,7 +347,8 @@ button:
     name: "${friendly_name} Clean SEN55 Fan"
     entity_category: diagnostic
     on_press:
-      - sen5x.start_fan_autoclean: sen55
+      - sen5x.start_fan_autoclean:
+          id: sen55
 
 text_sensor:
   - platform: template

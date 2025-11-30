@@ -225,7 +225,8 @@ button:
     name: "${friendly_name} Clean SEN55 Fan"
     entity_category: diagnostic
     on_press:
-      - sen5x.start_fan_autoclean: AQS
+      - sen5x.start_fan_autoclean:
+          id: AQS
 
 # ---- Hidden UI numbers that drive LED thresholds ----
 number:
