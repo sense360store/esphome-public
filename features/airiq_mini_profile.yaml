@@ -350,6 +350,15 @@ button:
       - sen5x.start_fan_autoclean:
           id: sen55
 
+  # Alternative SEN55 fan cleaning button
+  - platform: template
+    name: "${friendly_name} Clean SEN55"
+    icon: mdi:fan-auto
+    entity_category: diagnostic
+    on_press:
+      - sen5x.start_fan_autoclean:
+          id: sen55
+
 text_sensor:
   - platform: template
     id: co2_status
