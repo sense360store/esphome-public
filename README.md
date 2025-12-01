@@ -152,11 +152,13 @@ packages:
   sense360_base:
     url: https://github.com/sense360store/esphome-public
     ref: v2.0.0
-    files: 
+    files:
       - base/wifi.yaml
       - base/api_encrypted.yaml
       - hardware/sense360_core_mini.yaml
-      - features/presence_basic_profile.yaml
+      # Presence (choose one)
+      - features/presence_basic_profile.yaml           # HLK-LD2450
+      # - features/presence_basic_profile_ld2412.yaml  # HLK-LD2412
     refresh: 1d
 ```
 

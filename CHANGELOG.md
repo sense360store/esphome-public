@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-No unreleased changes yet.
+### Changed
+- Clarified LD2450 basic presence profile tagging and documented selection between LD2450 and LD2412 profile options.
 
 ---
 
