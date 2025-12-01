@@ -1,7 +1,8 @@
 # Mini: 4 addressable LEDs on one pin (WS2812/NeoPixel etc.)
 # LED 0 = PM (SEN55 PM2.5), LED 1 = VOC (SEN55 VOC index),
 # LED 2 = NOx (SEN55 NOx index), LED 3 = CO₂ (SCD4x via co2_display)
-# Colors per sensor state: Green = Good, Orange = Moderate, Red = Unhealthy
+# Colors per sensor state:
+#   Good = Green, Moderate = Orange, Unhealthy = Red, Poor = Purple
 
 # Requires substitutions in your main YAML:
 #   led_data_pin: <GPIO>
@@ -30,47 +31,54 @@ light:
           name: "AirIQ 4-LED Status"
           update_interval: 1s
           lambda: |-
-            // Map 0=Good, 1=Moderate, 2=Unhealthy -> Green/Orange/Red
+            // Map 0=Good, 1=Moderate, 2=Unhealthy, 3=Poor -> Green/Orange/Red/Purple
             auto color_for = [&](int level) -> Color {
-              if (level >= 2) return Color(255, 0, 0);       // Red
-              if (level == 1) return Color(255, 128, 0);     // Orange
-              return Color(0, 255, 0);                       // Green
+              switch (level) {
+                case 0:  return Color(0, 255, 0);             // Green
+                case 1:  return Color(255, 128, 0);           // Orange
+                case 2:  return Color(255, 0, 0);             // Red
+                default: return Color(128, 0, 255);           // Purple
+              }
             };
 
             // --- PM (use PM2.5)
             int lvl_pm = 0;
             if (id(pm_2_5).has_state()) {
               const float v = id(pm_2_5).state;
-              if (v >= id(g_pm25_unhealthy))      lvl_pm = 2;
-              else if (v >= id(g_pm25_moderate))  lvl_pm = 1;
-              else                                 lvl_pm = 0;
+              if (v < id(g_pm25_good))            lvl_pm = 0;
+              else if (v < id(g_pm25_moderate))   lvl_pm = 1;
+              else if (v < id(g_pm25_unhealthy))  lvl_pm = 2;
+              else                                 lvl_pm = 3;
             }
 
             // --- VOC index
             int lvl_voc = 0;
             if (id(voc_index).has_state()) {
               const float v = id(voc_index).state;
-              if (v >= id(g_voc_unhealthy))      lvl_voc = 2;
-              else if (v >= id(g_voc_moderate))  lvl_voc = 1;
-              else                                lvl_voc = 0;
+              if (v < id(g_voc_good))            lvl_voc = 0;
+              else if (v < id(g_voc_moderate))   lvl_voc = 1;
+              else if (v < id(g_voc_unhealthy))  lvl_voc = 2;
+              else                                lvl_voc = 3;
             }
 
             // --- NOx index
             int lvl_nox = 0;
             if (id(nox_index).has_state()) {
               const float v = id(nox_index).state;
-              if (v >= id(g_nox_unhealthy))      lvl_nox = 2;
-              else if (v >= id(g_nox_moderate))  lvl_nox = 1;
-              else                                lvl_nox = 0;
+              if (v < id(g_nox_good))            lvl_nox = 0;
+              else if (v < id(g_nox_moderate))   lvl_nox = 1;
+              else if (v < id(g_nox_unhealthy))  lvl_nox = 2;
+              else                                lvl_nox = 3;
             }
 
             // --- CO2 (ppm) via co2_display (never "Unknown")
             int lvl_co2 = 0;
             if (id(co2_display).has_state()) {
               const float v = id(co2_display).state;
-              if (v >= id(g_co2_unhealthy))      lvl_co2 = 2;
-              else if (v >= id(g_co2_moderate))  lvl_co2 = 1;
-              else                                lvl_co2 = 0;
+              if (v < id(g_co2_good))            lvl_co2 = 0;
+              else if (v < id(g_co2_moderate))   lvl_co2 = 1;
+              else if (v < id(g_co2_unhealthy))  lvl_co2 = 2;
+              else                                lvl_co2 = 3;
             }
 
             if (it.size() < 4) return;  // need 4 pixels
