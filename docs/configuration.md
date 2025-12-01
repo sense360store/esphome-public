@@ -342,9 +342,11 @@ packages:
       
       # Choose hardware
       - hardware/sense360_core_mini.yaml
-      
+
       # Pick features
-      - features/presence_basic_profile.yaml
+      # Presence (choose one)
+      - features/presence_basic_profile.yaml           # HLK-LD2450
+      # - features/presence_basic_profile_ld2412.yaml  # HLK-LD2412
       - features/device_health.yaml
       # Omit features/airiq_mini_profile.yaml for no air quality
     refresh: 1d
