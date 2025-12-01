@@ -16,10 +16,3 @@ binary_sensor:
       entity_category: diagnostic
       disabled_by_default: true
 
-sensor:
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    target_count:
-      name: "${friendly_name} Target Count"
-      entity_category: diagnostic
-      disabled_by_default: true
