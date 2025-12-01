@@ -135,6 +135,23 @@ button:
           // Force immediate recompute of calibrated copies
           if (id(sht30_temp_raw).has_state()) id(sht30_temp_raw).publish_state(id(sht30_temp_raw).state);
           if (id(sht30_rh_raw).has_state())   id(sht30_rh_raw).publish_state(id(sht30_rh_raw).state);
+
+  # Manual SEN55 fan cleaning trigger
+  - platform: template
+    name: "${friendly_name} Clean SEN55 Fan"
+    entity_category: diagnostic
+    on_press:
+      - sen5x.start_fan_autoclean:
+          id: sen55
+
+  # Alternative SEN55 fan cleaning button
+  - platform: template
+    name: "${friendly_name} Clean SEN55"
+    icon: mdi:fan-auto
+    entity_category: diagnostic
+    on_press:
+      - sen5x.start_fan_autoclean:
+          id: sen55
 # --- Single-point calibration script (offset-only; commits to flash) ---
 script:
   # Debounced wrapper to avoid repeated commits while typing reference values
@@ -333,30 +350,12 @@ sensor:
           if (y > 100.0f) y = 100.0f;
           return y;
 
-  # -------- LTR303 (ALS) ----------
+# -------- LTR303 (ALS) ----------
   - platform: ltr_als_ps
     i2c_id: i2c0
     ambient_light:
       id: ambient_lux
       name: "Illuminance"
-
-button:
-  # Manual SEN55 fan cleaning trigger
-  - platform: template
-    name: "${friendly_name} Clean SEN55 Fan"
-    entity_category: diagnostic
-    on_press:
-      - sen5x.start_fan_autoclean:
-          id: sen55
-
-  # Alternative SEN55 fan cleaning button
-  - platform: template
-    name: "${friendly_name} Clean SEN55"
-    icon: mdi:fan-auto
-    entity_category: diagnostic
-    on_press:
-      - sen5x.start_fan_autoclean:
-          id: sen55
 
 text_sensor:
   - platform: template
