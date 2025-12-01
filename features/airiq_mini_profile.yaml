@@ -115,8 +115,9 @@ number:
       - lambda: 'id(sht30_cal_pending) = true;'
       - script.execute: sht30_debounced_apply_single_point_cal
 
-# --- One-click SHT30 calibration + reset ---
+# --- One-click SHT30 calibration + SEN55 fan cleaning ---
 button:
+  # SHT30 calibration buttons
   - platform: template
     id: sht30_calibrate_now
     name: "${friendly_name} Calibrate SHT30 Now"
@@ -136,22 +137,16 @@ button:
           if (id(sht30_temp_raw).has_state()) id(sht30_temp_raw).publish_state(id(sht30_temp_raw).state);
           if (id(sht30_rh_raw).has_state())   id(sht30_rh_raw).publish_state(id(sht30_rh_raw).state);
 
-  # Manual SEN55 fan cleaning trigger
+  # Single SEN55 fan cleaning button (manual trigger)
   - platform: template
+    id: sen55_clean_fan
     name: "${friendly_name} Clean SEN55 Fan"
-    entity_category: diagnostic
-    on_press:
-      - sen5x.start_fan_autoclean:
-          id: sen55
-
-  # Alternative SEN55 fan cleaning button
-  - platform: template
-    name: "${friendly_name} Clean SEN55"
     icon: mdi:fan-auto
     entity_category: diagnostic
     on_press:
       - sen5x.start_fan_autoclean:
           id: sen55
+
 # --- Single-point calibration script (offset-only; commits to flash) ---
 script:
   # Debounced wrapper to avoid repeated commits while typing reference values
