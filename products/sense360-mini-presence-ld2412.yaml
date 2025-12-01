@@ -1,0 +1,56 @@
+# =============================================================================
+# SENSE360 MINI + PRESENCE ONLY (LD2412) - PRODUCT CONFIGURATION
+# =============================================================================
+# This configuration uses the LD2412 radar with the basic presence profile.
+#
+# Customer usage:
+# packages:
+#   sense360_firmware:
+#     url: https://github.com/sense360store/esphome-public
+#     ref: v2.0.0
+#     files:
+#       - products/sense360-mini-presence-ld2412.yaml
+# =============================================================================
+
+substitutions:
+  # === Hardware Configuration ===
+  board_variant: esp32-s3-devkitc-1
+  log_level: INFO
+
+  # === I2C Bus Pins (Mini Core Board) ===
+  i2c_sda_pin: GPIO48
+  i2c_scl_pin: GPIO45
+
+  # === LD2412 Presence Sensor UART ===
+  ld2412_uart_id: uart_ld2412
+  ld2412_tx_pin: GPIO12
+  ld2412_rx_pin: GPIO13
+  ld2412_baud: "115200"
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "true"
+
+  # === Security (users MUST define these) ===
+  api_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+
+# ----------------------------------------------------------------------------
+# PACKAGE INCLUDES
+# ----------------------------------------------------------------------------
+
+packages:
+  # === Base System ===
+  base_wifi:       !include ../base/wifi.yaml
+  base_logging:    !include ../base/logging.yaml
+  base_api:        !include ../base/api_encrypted.yaml
+  base_ota:        !include ../base/ota.yaml
+  base_time:       !include ../base/time.yaml
+  base_bluetooth:  !include ../base/bluetooth_proxy.yaml
+
+  # === Hardware ===
+  core_hardware:     !include ../hardware/sense360_core_mini.yaml
+  presence_hardware: !include ../hardware/presence_ld2412.yaml
+
+  # === Features ===
+  presence_detection: !include ../features/presence_basic_profile_ld2412.yaml
+  device_diagnostics: !include ../features/device_health.yaml

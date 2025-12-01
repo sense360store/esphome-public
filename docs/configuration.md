@@ -35,18 +35,28 @@ substitutions:
   # I2C Bus
   i2c_sda_pin: GPIO48
   i2c_scl_pin: GPIO45
-  
-  # LD2450 UART
+
+  # LD2450 UART (default presence sensor)
   ld2450_tx_pin: GPIO12
   ld2450_rx_pin: GPIO13
   ld2450_baud: "256000"
-  
+
   # LEDs
   led_data_pin: GPIO11
   led_count: "4"
   led_chipset: WS2812
   led_rgb_order: GRB
-  
+
+```
+
+If you are using the LD2412 radar, apply these substitutions instead:
+
+```yaml
+substitutions:
+  # LD2412 UART
+  ld2412_tx_pin: GPIO12
+  ld2412_rx_pin: GPIO13
+  ld2412_baud: "115200"
 ```
 
 ---
@@ -160,6 +170,21 @@ packages:
 - ✅ Device health monitoring
 - Ideal for: Occupancy sensing, lighting automation
 
+### Sense360 Mini + Presence (LD2412)
+
+```yaml
+packages:
+  sense360_firmware:
+    files:
+      - products/sense360-mini-presence-ld2412.yaml
+```
+
+**Includes:**
+- ✅ Presence detection (LD2412 basic profile)
+- ✅ LD2412 UART defaults documented in substitutions
+- ✅ Device health monitoring
+- Ideal for: Occupancy sensing, lighting automation
+
 ### Sense360 Ceiling + Presence
 
 ```yaml
@@ -174,6 +199,21 @@ packages:
 - ✅ Ceiling-specific hardware config
 - ✅ Device health monitoring
 - Ideal for: Ceiling-mounted installations
+
+### Sense360 Ceiling + Presence (LD2412)
+
+```yaml
+packages:
+  sense360_firmware:
+    files:
+      - products/sense360-ceiling-presence-ld2412.yaml
+```
+
+**Includes:**
+- ✅ Presence detection (LD2412 basic profile)
+- ✅ Ceiling-specific hardware config
+- ✅ Device health monitoring
+- Ideal for: Ceiling-mounted installations with LD2412
 
 ---
 

@@ -1,0 +1,25 @@
+# esphome/packages/features/presence_basic_profile_ld2412.yaml
+# Basic Presence (LD2412): minimal, stable entities only
+binary_sensor:
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    has_target:
+      name: "${friendly_name} Presence"
+      device_class: occupancy
+    # Hide advanced states in Basic
+    has_moving_target:
+      name: "${friendly_name} Moving"
+      entity_category: diagnostic
+      disabled_by_default: true
+    has_still_target:
+      name: "${friendly_name} Still"
+      entity_category: diagnostic
+      disabled_by_default: true
+
+sensor:
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    target_count:
+      name: "${friendly_name} Target Count"
+      entity_category: diagnostic
+      disabled_by_default: true
