@@ -24,9 +24,12 @@ esphome-public/
 ├── hardware/      - Hardware definitions (Mini, Ceiling boards)
 ├── features/      - Feature modules (AirIQ, Presence, LEDs, Health)
 ├── products/      - Complete device configurations
+├── packages/      - Modular building blocks for custom composition
 ├── examples/      - Customer configuration templates
 └── docs/          - Installation and configuration guides
 ```
+
+`base/`, `features/`, `hardware/`, and `products/` are the release-tested, customer-facing entry points that are tagged for ESPHome package consumption. The `packages/` directory keeps composable building blocks and internal profiles that may change between releases; use these only if you are assembling custom stacks or contributing new product recipes. For production or customer installs, reference the files under `products/`.
 
 ## 🚀 Quick Start
 

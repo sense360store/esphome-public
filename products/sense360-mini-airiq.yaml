@@ -3,6 +3,9 @@
 # ============================================================================
 # This is the main configuration file for Sense360 Mini with full AirIQ
 # sensor suite and LD2450 presence detection.
+# Audience: **Customers and production builds.** This file is tagged in
+# releases and should be the package target for installs.
+# For internal or modular composition, see packages/products/sense360-mini-airiq.yaml.
 #
 # Customer usage in their ESPHome config:
 # packages:
