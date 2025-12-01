@@ -135,13 +135,6 @@ button:
           // Force immediate recompute of calibrated copies
           if (id(sht30_temp_raw).has_state()) id(sht30_temp_raw).publish_state(id(sht30_temp_raw).state);
           if (id(sht30_rh_raw).has_state())   id(sht30_rh_raw).publish_state(id(sht30_rh_raw).state);
-  # Manual SEN55 fan cleaning trigger
-    - platform: template
-      name: "${friendly_name} Clean SEN55 Fan"
-      entity_category: diagnostic
-      on_press:
-        - sen5x.start_fan_autoclean:
-            id: AQS
 # --- Single-point calibration script (offset-only; commits to flash) ---
 script:
   # Debounced wrapper to avoid repeated commits while typing reference values
