@@ -63,22 +63,27 @@ substitutions:
 
 ## Air Quality Thresholds
 
-Customize when sensors trigger "Good", "Moderate", "Unhealthy", or "Poor" states.
+Customize when sensors trigger the four air quality levels, shown as bar indicators:
+
+- ▮▯▯▯ (poor)
+- ▮▮▯▯ (moderate)
+- ▮▮▮▯ (unhealthy)
+- ▮▮▮▮ (best)
 
 ### CO2 (Carbon Dioxide) - ppm
 
 ```yaml
 substitutions:
-  co2_good_limit: "750"        # Below this = Good
-  co2_moderate_limit: "950"    # 750-950 = Moderate
-  co2_unhealthy_limit: "1400"  # 950-1400 = Unhealthy, >1400 = Poor
+  co2_good_limit: "750"        # Below this = ▮▮▮▮
+  co2_moderate_limit: "950"    # 750-950 = ▮▮▯▯
+  co2_unhealthy_limit: "1400"  # 950-1400 = ▮▮▮▯, >1400 = ▮▯▯▯
 ```
 
 **Recommendations:**
-- **Good**: <800 ppm (excellent indoor air)
-- **Moderate**: 800-1000 ppm (acceptable)
-- **Unhealthy**: 1000-1400 ppm (ventilation recommended)
-- **Poor**: >1400 ppm (immediate action needed)
+- ▮▮▮▮: <800 ppm (excellent indoor air)
+- ▮▮▯▯: 800-1000 ppm (acceptable)
+- ▮▮▮▯: 1000-1400 ppm (ventilation recommended)
+- ▮▯▯▯: >1400 ppm (immediate action needed)
 
 ### PM2.5 (Particulate Matter) - µg/m³
 
@@ -90,10 +95,10 @@ substitutions:
 ```
 
 **WHO Guidelines:**
-- **Good**: <10 µg/m³ (safe)
-- **Moderate**: 10-25 µg/m³ (acceptable short-term)
-- **Unhealthy**: 25-55 µg/m³ (sensitive groups affected)
-- **Poor**: >55 µg/m³ (everyone affected)
+- ▮▮▮▮: <10 µg/m³ (safe)
+- ▮▮▯▯: 10-25 µg/m³ (acceptable short-term)
+- ▮▮▮▯: 25-55 µg/m³ (sensitive groups affected)
+- ▮▯▯▯: >55 µg/m³ (everyone affected)
 
 ### PM1.0, PM4.0, PM10
 
@@ -254,7 +259,7 @@ binary_sensor:
 
 ### Example: Air Quality Category
 
-Text sensor showing overall air quality:
+Text sensor showing overall air quality using the bar indicators:
 
 ```yaml
 text_sensor:
@@ -263,11 +268,11 @@ text_sensor:
     lambda: |-
       float co2 = id(scd4x_co2).state;
       float pm25 = id(sen55_pm_2_5).state;
-      
-      if (co2 > 1400 || pm25 > 55) return {"Poor"};
-      if (co2 > 950 || pm25 > 25) return {"Unhealthy"};
-      if (co2 > 750 || pm25 > 10) return {"Moderate"};
-      return {"Good"};
+
+      if (co2 > 1400 || pm25 > 55) return {"▮▯▯▯"};
+      if (co2 > 950 || pm25 > 25) return {"▮▮▮▯"};
+      if (co2 > 750 || pm25 > 10) return {"▮▮▯▯"};
+      return {"▮▮▮▮"};
     update_interval: 60s
 ```
 
