@@ -365,3 +365,81 @@ text_sensor:
       else if (co2 < id(g_co2_moderate))  return std::string("Moderate");
       else if (co2 < id(g_co2_unhealthy)) return std::string("Unhealthy");
       else                                return std::string("High");
+
+  - platform: template
+    id: pm1_status
+    name: "PM1.0 Status"
+    update_interval: 10s
+    icon: mdi:blur
+    lambda: |-
+      if (!id(pm_1_0).has_state()) return std::string("No data");
+      const float pm = id(pm_1_0).state;
+      if (pm < ${sen55_pm1_good_limit})            return std::string("Fresh");
+      else if (pm < ${sen55_pm1_moderate_limit})   return std::string("Good");
+      else if (pm < ${sen55_pm1_unhealthy_limit})  return std::string("Moderate");
+      else                                         return std::string("High");
+
+  - platform: template
+    id: pm25_status
+    name: "PM2.5 Status"
+    update_interval: 10s
+    icon: mdi:blur
+    lambda: |-
+      if (!id(pm_2_5).has_state()) return std::string("No data");
+      const float pm = id(pm_2_5).state;
+      if (pm < ${sen55_pm2_5_good_limit})            return std::string("Fresh");
+      else if (pm < ${sen55_pm2_5_moderate_limit})   return std::string("Good");
+      else if (pm < ${sen55_pm2_5_unhealthy_limit})  return std::string("Moderate");
+      else                                           return std::string("High");
+
+  - platform: template
+    id: pm4_status
+    name: "PM4.0 Status"
+    update_interval: 10s
+    icon: mdi:blur
+    lambda: |-
+      if (!id(pm_4_0).has_state()) return std::string("No data");
+      const float pm = id(pm_4_0).state;
+      if (pm < ${sen55_pm4_0_good_limit})            return std::string("Fresh");
+      else if (pm < ${sen55_pm4_0_moderate_limit})   return std::string("Good");
+      else if (pm < ${sen55_pm4_0_unhealthy_limit})  return std::string("Moderate");
+      else                                           return std::string("High");
+
+  - platform: template
+    id: pm10_status
+    name: "PM10 Status"
+    update_interval: 10s
+    icon: mdi:blur
+    lambda: |-
+      if (!id(pm_10_0).has_state()) return std::string("No data");
+      const float pm = id(pm_10_0).state;
+      if (pm < ${sen55_pm10_good_limit})            return std::string("Fresh");
+      else if (pm < ${sen55_pm10_moderate_limit})   return std::string("Good");
+      else if (pm < ${sen55_pm10_unhealthy_limit})  return std::string("Moderate");
+      else                                          return std::string("High");
+
+  - platform: template
+    id: voc_status
+    name: "VOC Status"
+    update_interval: 10s
+    icon: mdi:chemical-weapon
+    lambda: |-
+      if (!id(voc_index).has_state()) return std::string("No data");
+      const float voc = id(voc_index).state;
+      if (voc < ${sen55_voc_good_limit})            return std::string("Fresh");
+      else if (voc < ${sen55_voc_moderate_limit})   return std::string("Good");
+      else if (voc < ${sen55_voc_unhealthy_limit})  return std::string("Moderate");
+      else                                          return std::string("High");
+
+  - platform: template
+    id: nox_status
+    name: "NOx Status"
+    update_interval: 10s
+    icon: mdi:molecule
+    lambda: |-
+      if (!id(nox_index).has_state()) return std::string("No data");
+      const float nox = id(nox_index).state;
+      if (nox < ${sen55_nox_good_limit})            return std::string("Fresh");
+      else if (nox < ${sen55_nox_moderate_limit})   return std::string("Good");
+      else if (nox < ${sen55_nox_unhealthy_limit})  return std::string("Moderate");
+      else                                          return std::string("High");
