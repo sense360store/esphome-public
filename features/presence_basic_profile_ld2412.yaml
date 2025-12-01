@@ -1,8 +1,9 @@
 # esphome/packages/features/presence_basic_profile_ld2412.yaml
 # Basic Presence (LD2412): minimal, stable entities only
-# NOTE: The LD2412 component does not expose a target count sensor. Keep this
-# file limited to the supported binary sensors to avoid invalid configuration
-# options when including this package.
+# NOTE: The LD2412 component does not expose a target count sensor. That
+# option lives only in `features/presence_basic_profile.yaml` (the LD2450
+# package). Keep this file limited to the supported binary sensors to avoid
+# invalid configuration options when including this package.
 binary_sensor:
   - platform: ld2412
     ld2412_id: ld2412_radar

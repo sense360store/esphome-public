@@ -356,6 +356,11 @@ packages:
     refresh: 1d
 ```
 
+> **Tip:** Target-count sensors are defined only in the LD2450 profile
+> (`features/presence_basic_profile.yaml`). Using the LD2450 profile with
+> an LD2412 radar will raise an error like `target_count is an invalid option`
+> because that hardware does not expose target-count data.
+
 ### Override Sensor Names
 
 Change sensor entity names in Home Assistant:
