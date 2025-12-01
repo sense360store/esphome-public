@@ -11,6 +11,13 @@ No unreleased changes yet.
 
 ---
 
+## [2.0.1] - 2025-12-01
+
+### Added
+- Fan cleaning control for SEN55 sensors to trigger maintenance cycles.
+
+---
+
 ## [2.0.0] - 2025-06-02
 
 ### Added
