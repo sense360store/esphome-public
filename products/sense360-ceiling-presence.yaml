@@ -51,6 +51,6 @@ packages:
   core_hardware:   !include ../hardware/sense360_core_ceiling.yaml
   presence_hardware: !include ../hardware/presence_ld2450.yaml
   
-  # === Features (Pro presence profile for ceiling) ===
-  presence_detection: !include ../features/presence_pro_profile.yaml
+  # === Features (Basic presence profile for ceiling) ===
+  presence_detection: !include ../features/presence_basic_profile.yaml
   device_diagnostics: !include ../features/device_health.yaml
