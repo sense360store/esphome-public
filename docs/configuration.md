@@ -185,6 +185,10 @@ packages:
 - ✅ Device health monitoring
 - Ideal for: Occupancy sensing, lighting automation
 
+Note: The LD2412 component does not expose a target count sensor. This basic
+profile only adds the supported presence-related binary sensors (the same
+applies to the ceiling variant below).
+
 ### Sense360 Ceiling + Presence
 
 ```yaml
