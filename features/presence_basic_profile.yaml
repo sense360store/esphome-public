@@ -6,6 +6,7 @@ binary_sensor:
     has_target:
       name: "${friendly_name} Presence"
       device_class: occupancy
+      id: presence_occupied
     # Hide advanced states in Basic
     has_moving_target:
       name: "${friendly_name} Moving"
