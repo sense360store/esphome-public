@@ -221,7 +221,6 @@ number:
     id: mini_night_brightness_number
     name: "${friendly_name} Night Brightness"
     entity_category: config
-    restore_value: true
     min_value: 0.0
     max_value: 1.0
     step: 0.01
