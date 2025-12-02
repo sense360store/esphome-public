@@ -47,6 +47,11 @@ globals:
     restore_value: true
     initial_value: '0'  # 0=auto, 1=force day, 2=force night
 
+  - id: mini_night_brightness
+    type: float
+    restore_value: true
+    initial_value: ${night_brightness}
+
   - id: mini_is_night_mode_now
     type: bool
     restore_value: false
@@ -211,6 +216,24 @@ select:
           id(mini_night_mode_override) = override;
       - script.execute: mini_refresh_night_mode
 
+number:
+  - platform: template
+    id: mini_night_brightness_number
+    name: "${friendly_name} Night Brightness"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    min_value: 0.0
+    max_value: 1.0
+    step: 0.01
+    initial_value: ${night_brightness}
+    lambda: |-
+      return id(mini_night_brightness);
+    set_action:
+      - lambda: |-
+          id(mini_night_brightness) = x;
+      - script.execute: mini_apply_led_state
+
 interval:
   - interval: 1s
     then:
@@ -334,7 +357,7 @@ script:
           if (!id(mini_night_light_enabled)) return;
           if (!id(mini_is_night_mode_now)) return;
 
-          const float night_brightness = ${night_brightness};
+          const float night_brightness = id(mini_night_brightness);
           if (night_brightness <= 0.0001f) {
             id(mini_led_strip).turn_off();
           } else {
