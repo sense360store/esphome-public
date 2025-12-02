@@ -216,25 +216,25 @@ sensor:
 
     pm_1_0:
       id: pm_1_0
-      name: "PM1.0"
+      name: "Fine particles <1µm (PM1.0)"
       accuracy_decimals: 1
       on_value: { then: [ script.execute: mini_update_4leds ] }
 
     pm_2_5:
       id: pm_2_5
-      name: "PM2.5"
+      name: "Fine particles <2.5µm (PM2.5)"
       accuracy_decimals: 1
       on_value: { then: [ script.execute: mini_update_4leds ] }
 
     pm_4_0:
       id: pm_4_0
-      name: "PM4.0"
+      name: "Coarse particles <4µm (PM4.0)"
       accuracy_decimals: 1
       on_value: { then: [ script.execute: mini_update_4leds ] }
 
     pm_10_0:
       id: pm_10_0
-      name: "PM10"
+      name: "Coarse particles <10µm (PM10)"
       accuracy_decimals: 1
       on_value: { then: [ script.execute: mini_update_4leds ] }
 
@@ -368,7 +368,7 @@ text_sensor:
 
   - platform: template
     id: pm1_status
-    name: "PM1.0 Status"
+    name: "PM1.0 Air Quality"
     update_interval: 10s
     icon: mdi:blur
     lambda: |-
@@ -381,7 +381,7 @@ text_sensor:
 
   - platform: template
     id: pm25_status
-    name: "PM2.5 Status"
+    name: "PM2.5 Air Quality"
     update_interval: 10s
     icon: mdi:blur
     lambda: |-
@@ -394,7 +394,7 @@ text_sensor:
 
   - platform: template
     id: pm4_status
-    name: "PM4.0 Status"
+    name: "PM4.0 Air Quality"
     update_interval: 10s
     icon: mdi:blur
     lambda: |-
@@ -407,7 +407,7 @@ text_sensor:
 
   - platform: template
     id: pm10_status
-    name: "PM10 Status"
+    name: "PM10 Air Quality"
     update_interval: 10s
     icon: mdi:blur
     lambda: |-
