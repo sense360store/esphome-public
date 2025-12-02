@@ -297,7 +297,7 @@ script:
                   - lambda: |-
                       id(mini_last_presence_state) = -1;
 
-                      const float night_brightness = ${night_brightness};
+                      const float night_brightness = id(mini_night_brightness);
                       if (night_brightness <= 0.0001f) {
                         id(mini_led_strip).turn_off();
                         return;
