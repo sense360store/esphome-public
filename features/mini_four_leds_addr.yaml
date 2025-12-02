@@ -17,8 +17,11 @@
 #   night_mode_end_minute: "0"
 #
 # Requires the following IDs to exist (from airiq_mini_profile.yaml):
-#   pm_2_5, voc_index, nox_index, co2_display
+#   pm_1_0, pm_2_5, pm_4_0, pm_10_0, voc_index, nox_index, co2_display
+#   g_pm1_good/g_pm1_moderate/g_pm1_unhealthy
 #   g_pm25_good/g_pm25_moderate/g_pm25_unhealthy
+#   g_pm40_good/g_pm40_moderate/g_pm40_unhealthy
+#   g_pm10_good/g_pm10_moderate/g_pm10_unhealthy
 #   g_voc_good/g_voc_moderate/g_voc_unhealthy
 #   g_nox_good/g_nox_moderate/g_nox_unhealthy
 #   g_co2_good/g_co2_moderate/g_co2_unhealthy
@@ -100,7 +103,7 @@ light:
 
             const int lvl_pm_1_0  = pm_level_for(id(pm_1_0),  id(g_pm1_good),  id(g_pm1_moderate),  id(g_pm1_unhealthy));
             const int lvl_pm_2_5  = pm_level_for(id(pm_2_5),  id(g_pm25_good), id(g_pm25_moderate), id(g_pm25_unhealthy));
-            const int lvl_pm_4_0  = pm_level_for(id(pm_4_0),  id(g_pm4_good),  id(g_pm4_moderate),  id(g_pm4_unhealthy));
+            const int lvl_pm_4_0  = pm_level_for(id(pm_4_0),  id(g_pm40_good), id(g_pm40_moderate), id(g_pm40_unhealthy));
             const int lvl_pm_10_0 = pm_level_for(id(pm_10_0), id(g_pm10_good), id(g_pm10_moderate), id(g_pm10_unhealthy));
 
             const int lvl_pm = std::max(std::max(lvl_pm_1_0, lvl_pm_2_5), std::max(lvl_pm_4_0, lvl_pm_10_0));
