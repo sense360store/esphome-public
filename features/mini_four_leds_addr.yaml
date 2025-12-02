@@ -15,6 +15,7 @@
 #   night_mode_start_minute: "0"
 #   night_mode_end_hour: "7"
 #   night_mode_end_minute: "0"
+#   night_light_enabled: "true"     # Enable presence-activated night light
 #
 # Requires the following IDs to exist (from airiq_mini_profile.yaml):
 #   pm_1_0, pm_2_5, pm_4_0, pm_10_0, voc_index, nox_index, co2_display
@@ -33,6 +34,7 @@ substitutions:
   night_mode_start_minute: "0"
   night_mode_end_hour: "7"
   night_mode_end_minute: "0"
+  night_light_enabled: "true"
 
 globals:
   - id: mini_night_mode_enabled
@@ -49,6 +51,11 @@ globals:
     type: bool
     restore_value: false
     initial_value: 'false'
+
+  - id: mini_night_light_enabled
+    type: bool
+    restore_value: true
+    initial_value: ${night_light_enabled}
 
   - id: mini_last_presence_state
     type: int
@@ -168,6 +175,22 @@ switch:
           id(mini_night_mode_enabled) = false;
       - script.execute: mini_refresh_night_mode
 
+  - platform: template
+    id: mini_night_light_switch
+    name: "${friendly_name} Night Light"
+    entity_category: config
+    restore_mode: RESTORE_DEFAULT_OFF
+    lambda: |-
+      return id(mini_night_light_enabled);
+    turn_on_action:
+      - lambda: |-
+          id(mini_night_light_enabled) = true;
+      - script.execute: mini_apply_led_state
+    turn_off_action:
+      - lambda: |-
+          id(mini_night_light_enabled) = false;
+      - script.execute: mini_apply_led_state
+
 select:
   - platform: template
     id: mini_night_mode_override_select
@@ -192,6 +215,11 @@ interval:
   - interval: 1s
     then:
       - lambda: |-
+          if (!id(mini_night_light_enabled)) {
+            id(mini_last_presence_state) = -1;
+            return;
+          }
+
           if (!id(mini_is_night_mode_now)) {
             id(mini_last_presence_state) = -1;
             return;
@@ -226,20 +254,39 @@ script:
             lambda: |-
               return id(mini_is_night_mode_now);
           then:
-            - lambda: |-
-                if (id(presence_occupied).has_state()) {
-                  id(mini_last_presence_state) = id(presence_occupied).state ? 1 : 0;
-                } else {
-                  id(mini_last_presence_state) = -1;
-                }
             - if:
                 condition:
                   lambda: |-
-                    return id(presence_occupied).has_state() && id(presence_occupied).state;
+                    return id(mini_night_light_enabled);
                 then:
-                  - script.execute: mini_handle_night_presence_on
+                  - lambda: |-
+                      if (id(presence_occupied).has_state()) {
+                        id(mini_last_presence_state) = id(presence_occupied).state ? 1 : 0;
+                      } else {
+                        id(mini_last_presence_state) = -1;
+                      }
+                  - if:
+                      condition:
+                        lambda: |-
+                          return id(presence_occupied).has_state() && id(presence_occupied).state;
+                      then:
+                        - script.execute: mini_handle_night_presence_on
+                      else:
+                        - script.execute: mini_handle_night_presence_off
                 else:
-                  - script.execute: mini_handle_night_presence_off
+                  - lambda: |-
+                      id(mini_last_presence_state) = -1;
+
+                      const float night_brightness = ${night_brightness};
+                      if (night_brightness <= 0.0001f) {
+                        id(mini_led_strip).turn_off();
+                        return;
+                      }
+
+                      auto call = id(mini_led_strip).turn_on();
+                      call.set_effect("AirIQ 4-LED Status");
+                      call.set_brightness(night_brightness);
+                      call.perform();
           else:
             - lambda: |-
                 id(mini_last_presence_state) = -1;
@@ -284,6 +331,7 @@ script:
     mode: restart
     then:
       - lambda: |-
+          if (!id(mini_night_light_enabled)) return;
           if (!id(mini_is_night_mode_now)) return;
 
           const float night_brightness = ${night_brightness};
@@ -302,6 +350,8 @@ script:
   - id: mini_handle_night_presence_off
     mode: restart
     then:
+      - lambda: |-
+          if (!id(mini_night_light_enabled)) return;
       - script.execute: mini_night_inactivity_timer
 
   - id: mini_night_inactivity_timer
