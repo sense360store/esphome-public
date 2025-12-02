@@ -91,10 +91,10 @@ light:
             };
 
             // --- PM (use worst tier across available PM1/2.5/4/10)
-            auto pm_level_for = [&](auto &sensor, float good, float moderate, float unhealthy) -> int {
-              if (!sensor.has_state()) return LEVEL_UNKNOWN;
+            auto pm_level_for = [&](Sensor *sensor, float good, float moderate, float unhealthy) -> int {
+              if (sensor == nullptr || !sensor->has_state()) return LEVEL_UNKNOWN;
 
-              const float v = sensor.state;
+              const float v = sensor->state;
               if (v < good)           return 0;
               else if (v < moderate)  return 1;
               else if (v < unhealthy) return 2;
