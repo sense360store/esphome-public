@@ -304,6 +304,7 @@ script:
                       } else {
                         id(mini_last_presence_state) = -1;
                       }
+                      id(mini_led_mode).publish_state("Night (Presence night-light)");
                   - if:
                       condition:
                         lambda: |-
@@ -319,6 +320,7 @@ script:
                       const float night_brightness = id(mini_night_brightness);
                       if (night_brightness <= 0.0001f) {
                         id(mini_led_strip).turn_off();
+                        id(mini_led_mode).publish_state("Night (Steady dim)");
                         return;
                       }
 
@@ -326,6 +328,7 @@ script:
                       call.set_effect("AirIQ 4-LED Status");
                       call.set_brightness(night_brightness);
                       call.perform();
+                      id(mini_led_mode).publish_state("Night (Steady dim)");
           else:
             - lambda: |-
                 id(mini_last_presence_state) = -1;
@@ -333,6 +336,7 @@ script:
                 call.set_brightness(1.0f);
                 call.set_effect("AirIQ 4-LED Status");
                 call.perform();
+                id(mini_led_mode).publish_state("Day (AirIQ)");
 
   - id: mini_refresh_night_mode
     mode: restart
@@ -373,6 +377,7 @@ script:
       - lambda: |-
           if (!id(mini_night_light_enabled)) return;
           if (!id(mini_is_night_mode_now)) return;
+          id(mini_led_mode).publish_state("Night (Presence night-light)");
 
           const float night_brightness = id(mini_night_brightness);
           if (night_brightness <= 0.0001f) {
@@ -392,6 +397,7 @@ script:
     then:
       - lambda: |-
           if (!id(mini_night_light_enabled)) return;
+          id(mini_led_mode).publish_state("Night (Presence night-light)");
       - script.execute: mini_night_inactivity_timer
 
   - id: mini_night_inactivity_timer
@@ -411,6 +417,14 @@ script:
           call.perform();
 
 text_sensor:
+  - platform: template
+    id: mini_led_mode
+    name: "${friendly_name} LED Mode"
+    icon: mdi:led-strip-variant
+    update_interval: never
+    lambda: |-
+      return {};
+
   # Highest severity pollutant (mini MVP)
   - platform: template
     id: mini_mvp_pollutant
