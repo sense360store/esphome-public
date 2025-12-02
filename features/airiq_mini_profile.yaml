@@ -10,6 +10,20 @@ globals:
     restore_value: true
     initial_value: 'false'
 
+  # PM1.0 thresholds
+  - id: g_pm1_good
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm1_good_limit}
+  - id: g_pm1_moderate
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm1_moderate_limit}
+  - id: g_pm1_unhealthy
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm1_unhealthy_limit}
+
   # CO₂ thresholds
   - id: g_co2_good
     type: float
@@ -37,6 +51,34 @@ globals:
     type: float
     restore_value: true
     initial_value: ${sen55_pm2_5_unhealthy_limit}
+
+  # PM4.0 thresholds
+  - id: g_pm40_good
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm4_0_good_limit}
+  - id: g_pm40_moderate
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm4_0_moderate_limit}
+  - id: g_pm40_unhealthy
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm4_0_unhealthy_limit}
+
+  # PM10 thresholds
+  - id: g_pm10_good
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm10_good_limit}
+  - id: g_pm10_moderate
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm10_moderate_limit}
+  - id: g_pm10_unhealthy
+    type: float
+    restore_value: true
+    initial_value: ${sen55_pm10_unhealthy_limit}
 
   # VOC thresholds
   - id: g_voc_good
