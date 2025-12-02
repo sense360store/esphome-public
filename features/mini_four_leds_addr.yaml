@@ -47,6 +47,11 @@ globals:
     restore_value: false
     initial_value: 'false'
 
+  - id: mini_last_presence_state
+    type: int
+    restore_value: false
+    initial_value: '-1'  # -1=unknown, 0=absent, 1=present
+
 light:
   - platform: esp32_rmt_led_strip
     id: mini_led_strip
@@ -181,6 +186,29 @@ select:
       - script.execute: mini_refresh_night_mode
 
 interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          if (!id(mini_is_night_mode_now)) {
+            id(mini_last_presence_state) = -1;
+            return;
+          }
+
+          if (!id(presence_occupied).has_state()) {
+            return;
+          }
+
+          const int current_presence = id(presence_occupied).state ? 1 : 0;
+          if (current_presence != id(mini_last_presence_state)) {
+            id(mini_last_presence_state) = current_presence;
+
+            if (current_presence == 1) {
+              id(mini_handle_night_presence_on).execute();
+            } else {
+              id(mini_handle_night_presence_off).execute();
+            }
+          }
+
   - interval: 1min
     then:
       - script.execute: mini_refresh_night_mode
@@ -190,24 +218,31 @@ script:
   - id: mini_apply_led_state
     mode: restart
     then:
-      - lambda: |-
-          const float night_brightness = ${night_brightness};
-          if (id(mini_is_night_mode_now)) {
-            if (night_brightness <= 0.0001f) {
-              id(mini_led_strip).turn_off();
-            } else {
-              auto call = id(mini_led_strip).turn_on();
-              call.set_transition_length(500);
-              call.set_effect("None");
-              call.set_brightness(night_brightness);
-              call.set_rgb(1.0f, 1.0f, 1.0f);
-              call.perform();
-            }
-          } else {
-            auto call = id(mini_led_strip).turn_on();
-            call.set_effect("AirIQ 4-LED Status");
-            call.perform();
-          }
+      - if:
+          condition:
+            lambda: |-
+              return id(mini_is_night_mode_now);
+          then:
+            - lambda: |-
+                if (id(presence_occupied).has_state()) {
+                  id(mini_last_presence_state) = id(presence_occupied).state ? 1 : 0;
+                } else {
+                  id(mini_last_presence_state) = -1;
+                }
+            - if:
+                condition:
+                  lambda: |-
+                    return id(presence_occupied).has_state() && id(presence_occupied).state;
+                then:
+                  - script.execute: mini_handle_night_presence_on
+                else:
+                  - script.execute: mini_handle_night_presence_off
+          else:
+            - lambda: |-
+                id(mini_last_presence_state) = -1;
+                auto call = id(mini_led_strip).turn_on();
+                call.set_effect("AirIQ 4-LED Status");
+                call.perform();
 
   - id: mini_refresh_night_mode
     mode: restart
@@ -241,6 +276,45 @@ script:
     mode: restart
     then:
       - script.execute: mini_refresh_night_mode
+
+  - id: mini_handle_night_presence_on
+    mode: restart
+    then:
+      - lambda: |-
+          if (!id(mini_is_night_mode_now)) return;
+
+          const float night_brightness = ${night_brightness};
+          if (night_brightness <= 0.0001f) {
+            id(mini_led_strip).turn_off();
+          } else {
+            auto call = id(mini_led_strip).turn_on();
+            call.set_transition_length(500);
+            call.set_effect("None");
+            call.set_brightness(night_brightness);
+            call.set_rgb(1.0f, 1.0f, 1.0f);
+            call.perform();
+          }
+      - script.execute: mini_night_inactivity_timer
+
+  - id: mini_handle_night_presence_off
+    mode: restart
+    then:
+      - script.execute: mini_night_inactivity_timer
+
+  - id: mini_night_inactivity_timer
+    mode: restart
+    then:
+      - delay: 30s
+      - lambda: |-
+          if (!id(mini_is_night_mode_now)) return;
+
+          if (id(presence_occupied).has_state() && id(presence_occupied).state) {
+            return;
+          }
+
+          auto call = id(mini_led_strip).turn_off();
+          call.set_transition_length(500);
+          call.perform();
 
 text_sensor:
   # Highest severity pollutant (mini MVP)
