@@ -31,18 +31,23 @@ light:
           name: "AirIQ 4-LED Status"
           update_interval: 1s
           lambda: |-
-            // Map 0=Good, 1=Moderate, 2=Unhealthy, 3=Poor -> Green/Orange/Red/Purple
+            const int LEVEL_UNKNOWN = -1;
+
+            // Map 0=Good, 1=Moderate, 2=Unhealthy, 3=Poor, -1=Unknown
+            // Unknown -> dim blue/gray, Good -> Green, Moderate -> Orange,
+            // Unhealthy -> Red, Poor -> Purple
             auto color_for = [&](int level) -> Color {
               switch (level) {
-                case 0:  return Color(0, 255, 0);             // Green
-                case 1:  return Color(255, 128, 0);           // Orange
-                case 2:  return Color(255, 0, 0);             // Red
-                default: return Color(128, 0, 255);           // Purple
+                case LEVEL_UNKNOWN: return Color(24, 32, 64);   // Unknown (off/gray/blue)
+                case 0:              return Color(0, 255, 0);   // Green
+                case 1:              return Color(255, 128, 0); // Orange
+                case 2:              return Color(255, 0, 0);   // Red
+                default:             return Color(128, 0, 255); // Purple
               }
             };
 
             // --- PM (use PM2.5)
-            int lvl_pm = 0;
+            int lvl_pm = LEVEL_UNKNOWN;
             if (id(pm_2_5).has_state()) {
               const float v = id(pm_2_5).state;
               if (v < id(g_pm25_good))            lvl_pm = 0;
@@ -52,7 +57,7 @@ light:
             }
 
             // --- VOC index
-            int lvl_voc = 0;
+            int lvl_voc = LEVEL_UNKNOWN;
             if (id(voc_index).has_state()) {
               const float v = id(voc_index).state;
               if (v < id(g_voc_good))            lvl_voc = 0;
@@ -62,7 +67,7 @@ light:
             }
 
             // --- NOx index
-            int lvl_nox = 0;
+            int lvl_nox = LEVEL_UNKNOWN;
             if (id(nox_index).has_state()) {
               const float v = id(nox_index).state;
               if (v < id(g_nox_good))            lvl_nox = 0;
@@ -72,7 +77,7 @@ light:
             }
 
             // --- CO2 (ppm) via co2_display (never "Unknown")
-            int lvl_co2 = 0;
+            int lvl_co2 = LEVEL_UNKNOWN;
             if (id(co2_display).has_state()) {
               const float v = id(co2_display).state;
               if (v < id(g_co2_good))            lvl_co2 = 0;
@@ -81,7 +86,11 @@ light:
               else                                lvl_co2 = 3;
             }
 
-            if (it.size() < 4) return;  // need 4 pixels
+            const Color unknown_color = color_for(LEVEL_UNKNOWN);
+            if (it.size() < 4) {
+              it.fill(unknown_color);  // need 4 pixels
+              return;
+            }
             it[0] = color_for(lvl_pm);   // PM
             it[1] = color_for(lvl_voc);  // VOC
             it[2] = color_for(lvl_nox);  // NOx
