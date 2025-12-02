@@ -42,6 +42,11 @@ globals:
     restore_value: true
     initial_value: ${night_mode_enabled}
 
+  - id: mini_night_inactivity_seconds
+    type: int
+    restore_value: true
+    initial_value: '30'
+
   - id: mini_night_mode_override
     type: int
     restore_value: true
@@ -231,6 +236,20 @@ number:
           id(mini_night_brightness) = x;
       - script.execute: mini_apply_led_state
 
+  - platform: template
+    id: mini_night_inactivity_timeout
+    name: "${friendly_name} Night Inactivity Timeout"
+    entity_category: config
+    unit_of_measurement: s
+    min_value: 5
+    max_value: 300
+    step: 5
+    lambda: |-
+      return id(mini_night_inactivity_seconds);
+    set_action:
+      - lambda: |-
+          id(mini_night_inactivity_seconds) = (int) x;
+
 interval:
   - interval: 1s
     then:
@@ -378,7 +397,8 @@ script:
   - id: mini_night_inactivity_timer
     mode: restart
     then:
-      - delay: 30s
+      - delay: !lambda |-
+          return (uint32_t) (id(mini_night_inactivity_seconds) * 1000);
       - lambda: |-
           if (!id(mini_is_night_mode_now)) return;
 
