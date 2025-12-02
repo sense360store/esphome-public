@@ -140,7 +140,7 @@ switch:
     id: mini_night_mode_switch
     name: "${friendly_name} Night Mode"
     entity_category: config
-    restore_state: true
+    restore_mode: RESTORE_DEFAULT_OFF
     lambda: |-
       return id(mini_night_mode_enabled);
     turn_on_action:
