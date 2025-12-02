@@ -225,7 +225,6 @@ number:
     min_value: 0.0
     max_value: 1.0
     step: 0.01
-    initial_value: ${night_brightness}
     lambda: |-
       return id(mini_night_brightness);
     set_action:
