@@ -7,8 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- MVP Pollutant, MVP Severity, and LED Mode text sensors for clearer status reporting.
+- Human-readable particulate names across UI outputs to improve clarity.
+- Global persistence for unified night brightness so Mini LED strip settings survive restarts.
+
 ### Changed
+- Night-mode revamp for the Mini LED strip with unified `mini_night_brightness` control for consistent behavior.
+- Daytime full-bright behavior when AirIQ 4-LED Status is enabled to keep indicators legible.
+- Unified night brightness via the `mini_night_brightness` number entity with a persisted global fallback for night-mode consistency.
+- Optional night-light behavior triggered by presence with an inactivity timeout for graceful fade-out.
+- LD2412-driven presence handling with delayed off timing to prevent premature darkening.
+- Robust LED state handling when states are unknown or unavailable to avoid glitches.
+- PM LED now uses the worst tier across PM1.0/PM2.5/PM4.0/PM10 so alerts reflect the most severe reading.
+- Safer PM tier computation with null/unknown handling and corrected PM4.0 globals for accurate air quality signaling.
 - Clarified LD2450 basic presence profile tagging and documented selection between LD2450 and LD2412 profile options.
+
+### Breaking Changes
+- Migrate any existing `night_brightness` references to `mini_night_brightness` to align with the new unified night-mode behavior.
+
+### Upgrade
+- Update package references from `ref: v2.0.1` to `ref: v2.0.2`, optionally exposing `mini_night_brightness_number` and `mini_night_light_switch` to Home Assistant.
 
 ---
 
