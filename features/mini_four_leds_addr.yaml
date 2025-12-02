@@ -4,11 +4,17 @@
 # Colors per sensor state:
 #   Good = Green, Moderate = Orange, Unhealthy = Red, Poor = Purple
 
-# Requires substitutions in your main YAML:
+# Requires substitutions in your main YAML (defaults provided):
 #   led_data_pin: <GPIO>
 #   led_count: "4"
 #   led_chipset: ws2812
 #   led_rgb_order: GRB
+#   night_mode_enabled: "true"       # Enable time-based dimming/off
+#   night_brightness: "0.05"         # 0.0-1.0 brightness for night mode
+#   night_mode_start_hour: "22"
+#   night_mode_start_minute: "0"
+#   night_mode_end_hour: "7"
+#   night_mode_end_minute: "0"
 #
 # Requires the following IDs to exist (from airiq_mini_profile.yaml):
 #   pm_2_5, voc_index, nox_index, co2_display
@@ -16,6 +22,30 @@
 #   g_voc_good/g_voc_moderate/g_voc_unhealthy
 #   g_nox_good/g_nox_moderate/g_nox_unhealthy
 #   g_co2_good/g_co2_moderate/g_co2_unhealthy
+
+substitutions:
+  night_mode_enabled: "true"
+  night_brightness: "0.05"
+  night_mode_start_hour: "22"
+  night_mode_start_minute: "0"
+  night_mode_end_hour: "7"
+  night_mode_end_minute: "0"
+
+globals:
+  - id: mini_night_mode_enabled
+    type: bool
+    restore_value: true
+    initial_value: ${night_mode_enabled}
+
+  - id: mini_night_mode_override
+    type: int
+    restore_value: true
+    initial_value: '0'  # 0=auto, 1=force day, 2=force night
+
+  - id: mini_is_night_mode_now
+    type: bool
+    restore_value: false
+    initial_value: 'false'
 
 light:
   - platform: esp32_rmt_led_strip
@@ -105,14 +135,104 @@ light:
             it[2] = scale_color(color_for(lvl_nox), brightness_scale);  // NOx
             it[3] = scale_color(color_for(lvl_co2), brightness_scale);  // CO₂
 
-# Call this from sensors on_value to ensure the strip is on with the correct effect.
+switch:
+  - platform: template
+    id: mini_night_mode_switch
+    name: "${friendly_name} Night Mode"
+    entity_category: config
+    restore_state: true
+    lambda: |-
+      return id(mini_night_mode_enabled);
+    turn_on_action:
+      - lambda: |-
+          id(mini_night_mode_enabled) = true;
+      - script.execute: mini_refresh_night_mode
+    turn_off_action:
+      - lambda: |-
+          id(mini_night_mode_enabled) = false;
+      - script.execute: mini_refresh_night_mode
+
+select:
+  - platform: template
+    id: mini_night_mode_override_select
+    name: "${friendly_name} Night Mode Override"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_option: "Auto"
+    options:
+      - "Auto"
+      - "Force Off"
+      - "Force On"
+    set_action:
+      - lambda: |-
+          int override = 0;
+          if (x == "Force Off")      override = 1;
+          else if (x == "Force On") override = 2;
+          id(mini_night_mode_override) = override;
+      - script.execute: mini_refresh_night_mode
+
+interval:
+  - interval: 1min
+    then:
+      - script.execute: mini_refresh_night_mode
+
+# Call this from sensors on_value to ensure the strip follows the correct mode/effect.
 script:
+  - id: mini_apply_led_state
+    mode: restart
+    then:
+      - lambda: |-
+          const float night_brightness = ${night_brightness};
+          if (id(mini_is_night_mode_now)) {
+            if (night_brightness <= 0.0001f) {
+              id(mini_led_strip).turn_off();
+            } else {
+              auto call = id(mini_led_strip).turn_on();
+              call.set_transition_length(500);
+              call.set_effect("None");
+              call.set_brightness(night_brightness);
+              call.set_rgb(1.0f, 1.0f, 1.0f);
+              call.perform();
+            }
+          } else {
+            auto call = id(mini_led_strip).turn_on();
+            call.set_effect("AirIQ 4-LED Status");
+            call.perform();
+          }
+
+  - id: mini_refresh_night_mode
+    mode: restart
+    then:
+      - lambda: |-
+          bool should_be_night = false;
+          const int override = id(mini_night_mode_override);
+          if (override == 2) {
+            should_be_night = true;
+          } else if (override == 1) {
+            should_be_night = false;
+          } else if (id(mini_night_mode_enabled)) {
+            auto now = id(homeassistant_time).now();
+            if (now.is_valid()) {
+              const int start_minutes = ${night_mode_start_hour} * 60 + ${night_mode_start_minute};
+              const int end_minutes   = ${night_mode_end_hour} * 60 + ${night_mode_end_minute};
+              const int cur_minutes   = now.hour * 60 + now.minute;
+
+              if (start_minutes <= end_minutes) {
+                should_be_night = (cur_minutes >= start_minutes && cur_minutes < end_minutes);
+              } else {
+                should_be_night = (cur_minutes >= start_minutes || cur_minutes < end_minutes);
+              }
+            }
+          }
+
+          id(mini_is_night_mode_now) = should_be_night;
+      - script.execute: mini_apply_led_state
+
   - id: mini_update_4leds
     mode: restart
     then:
-      - light.turn_on:
-          id: mini_led_strip
-          effect: "AirIQ 4-LED Status"
+      - script.execute: mini_refresh_night_mode
 
 text_sensor:
   # Highest severity pollutant (mini MVP)
@@ -196,7 +316,4 @@ esphome:
   on_boot:
     priority: -10
     then:
-      - light.turn_on:
-          id: mini_led_strip
-          effect: "AirIQ 4-LED Status"
-          brightness: 50%
+      - script.execute: mini_refresh_night_mode
