@@ -11,7 +11,7 @@
 # packages:
 #   sense360_firmware:
 #     url: https://github.com/sense360store/esphome-public
-#     ref: v2.0.1
+#     ref: v2.0.2
 #     files:
 #       - products/sense360-mini-airiq-ld2412.yaml
 #     refresh: 1d
@@ -122,7 +122,7 @@ packages:
 #    packages:
 #      sense360_firmware:
 #        url: https://github.com/sense360store/esphome-public
-#        ref: v2.0.1
+#        ref: v2.0.2
 #        files:
 #          - products/sense360-mini-airiq-ld2412.yaml
 #        refresh: 1d
