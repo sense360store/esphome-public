@@ -311,6 +311,7 @@ script:
             - lambda: |-
                 id(mini_last_presence_state) = -1;
                 auto call = id(mini_led_strip).turn_on();
+                call.set_brightness(1.0f);
                 call.set_effect("AirIQ 4-LED Status");
                 call.perform();
 
