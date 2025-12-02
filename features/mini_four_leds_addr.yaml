@@ -41,6 +41,12 @@ light:
               }
             };
 
+            auto scale_color = [&](Color c, float scale) -> Color {
+              return Color(uint8_t(c.red * scale),
+                           uint8_t(c.green * scale),
+                           uint8_t(c.blue * scale));
+            };
+
             // --- PM (use PM2.5)
             int lvl_pm = 0;
             if (id(pm_2_5).has_state()) {
@@ -81,11 +87,18 @@ light:
               else                                lvl_co2 = 3;
             }
 
+            const int max_lvl = std::max(std::max(lvl_pm, lvl_voc), std::max(lvl_nox, lvl_co2));
+            const float brightness_scale =
+              (max_lvl == 0) ? 0.40f :
+              (max_lvl == 1) ? 0.60f :
+              (max_lvl == 2) ? 0.80f :
+                                 1.00f;
+
             if (it.size() < 4) return;  // need 4 pixels
-            it[0] = color_for(lvl_pm);   // PM
-            it[1] = color_for(lvl_voc);  // VOC
-            it[2] = color_for(lvl_nox);  // NOx
-            it[3] = color_for(lvl_co2);  // CO₂
+            it[0] = scale_color(color_for(lvl_pm), brightness_scale);   // PM
+            it[1] = scale_color(color_for(lvl_voc), brightness_scale);  // VOC
+            it[2] = scale_color(color_for(lvl_nox), brightness_scale);  // NOx
+            it[3] = scale_color(color_for(lvl_co2), brightness_scale);  // CO₂
 
 # Call this from sensors on_value to ensure the strip is on with the correct effect.
 script:
@@ -95,6 +108,82 @@ script:
       - light.turn_on:
           id: mini_led_strip
           effect: "AirIQ 4-LED Status"
+
+text_sensor:
+  # Highest severity pollutant (mini MVP)
+  - platform: template
+    id: mini_mvp_pollutant
+    name: "${friendly_name} MVP Pollutant"
+    icon: mdi:alert-circle-outline
+    update_interval: 10s
+    lambda: |-
+      auto severity_for = [](float value, float good, float moderate, float unhealthy) -> int {
+        if (value < good)          return 0;
+        else if (value < moderate) return 1;
+        else if (value < unhealthy) return 2;
+        else                        return 3;
+      };
+
+      int worst_level = -1;
+      const char *worst_name = "Unknown";
+
+      if (id(pm_2_5).has_state()) {
+        const int lvl = severity_for(id(pm_2_5).state, id(g_pm25_good), id(g_pm25_moderate), id(g_pm25_unhealthy));
+        if (lvl > worst_level) { worst_level = lvl; worst_name = "PM2.5"; }
+      }
+
+      if (id(voc_index).has_state()) {
+        const int lvl = severity_for(id(voc_index).state, id(g_voc_good), id(g_voc_moderate), id(g_voc_unhealthy));
+        if (lvl > worst_level) { worst_level = lvl; worst_name = "VOC"; }
+      }
+
+      if (id(nox_index).has_state()) {
+        const int lvl = severity_for(id(nox_index).state, id(g_nox_good), id(g_nox_moderate), id(g_nox_unhealthy));
+        if (lvl > worst_level) { worst_level = lvl; worst_name = "NOx"; }
+      }
+
+      if (id(co2_display).has_state()) {
+        const int lvl = severity_for(id(co2_display).state, id(g_co2_good), id(g_co2_moderate), id(g_co2_unhealthy));
+        if (lvl > worst_level) { worst_level = lvl; worst_name = "CO₂"; }
+      }
+
+      return std::string(worst_name);
+
+  - platform: template
+    id: mini_mvp_severity
+    name: "${friendly_name} MVP Severity"
+    icon: mdi:alpha-s-circle-outline
+    update_interval: 10s
+    lambda: |-
+      auto severity_for = [](float value, float good, float moderate, float unhealthy) -> int {
+        if (value < good)          return 0;
+        else if (value < moderate) return 1;
+        else if (value < unhealthy) return 2;
+        else                        return 3;
+      };
+
+      int worst_level = -1;
+
+      if (id(pm_2_5).has_state()) {
+        worst_level = std::max(worst_level, severity_for(id(pm_2_5).state, id(g_pm25_good), id(g_pm25_moderate), id(g_pm25_unhealthy)));
+      }
+      if (id(voc_index).has_state()) {
+        worst_level = std::max(worst_level, severity_for(id(voc_index).state, id(g_voc_good), id(g_voc_moderate), id(g_voc_unhealthy)));
+      }
+      if (id(nox_index).has_state()) {
+        worst_level = std::max(worst_level, severity_for(id(nox_index).state, id(g_nox_good), id(g_nox_moderate), id(g_nox_unhealthy)));
+      }
+      if (id(co2_display).has_state()) {
+        worst_level = std::max(worst_level, severity_for(id(co2_display).state, id(g_co2_good), id(g_co2_moderate), id(g_co2_unhealthy)));
+      }
+
+      switch (worst_level) {
+        case 0: return std::string("Good");
+        case 1: return std::string("Moderate");
+        case 2: return std::string("Unhealthy");
+        case 3: return std::string("Poor");
+        default: return std::string("Unknown");
+      }
 
 # Optional: turn on the effect at boot so LEDs reflect status immediately.
 # comment out if you don't want LEDs on by default.
