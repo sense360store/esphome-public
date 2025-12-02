@@ -149,8 +149,8 @@ Choose which product configuration to use:
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.0.0
-    files: 
+    ref: v2.0.2
+    files:
       - products/sense360-mini-airiq.yaml
 ```
 
@@ -223,6 +223,29 @@ packages:
 - ✅ Ceiling-specific hardware config
 - ✅ Device health monitoring
 - Ideal for: Ceiling-mounted installations with LD2412
+
+---
+
+## Mini LED + Night Controls
+
+### Mini night brightness (persisted slider)
+- The mini LED package now stores `mini_night_brightness` as a persisted global and exposes it through the `${friendly_name} Night Brightness` template number, so brightness survives reboots and can be adjusted from Home Assistant.
+- If you previously hard-coded `night_brightness` in substitutions, keep it only as a default; the number entity (and its backing global) is now the source of truth for runtime changes.
+
+### Optional presence-activated night light
+- Toggle the `${friendly_name} Night Light` switch to enable a dim white night-light that comes on when presence is detected and shuts off after the `${friendly_name} Night Inactivity Timeout` number (seconds) elapses with no motion.
+- The existing `${friendly_name} Night Mode` switch and override select still gate when the LEDs dim; the night-light piggybacks on night mode so daytime LED behavior is unchanged.
+
+### LD2412 presence behavior
+- When you use the LD2412 packages, the presence-driven LED behaviors (night-light activation and inactivity shutoff) follow the LD2412 `presence_occupied` state, matching the LD2450 experience but without target counts.
+
+### PM LED logic and new text sensors
+- The PM LED now uses the worst severity across PM1.0/PM2.5/PM4.0/PM10, so coarse particles can still raise the PM indicator even if fine dust looks clean.
+- New text sensors surface the LED mode, the most valuable pollutant (name + severity), and human-friendly particulate status strings (`PM1.0/PM2.5/PM4.0/PM10 Air Quality`) alongside the existing VOC/NOx/CO₂ statuses.
+
+### Home Assistant tips
+- Add the Night Mode, Night Light, and Night Brightness entities to an Entities card for quick control; the night inactivity timeout number is also exposed for fine-tuning.
+- Because the numbers/switches are entity_category `config`, enable **Show hidden/advanced settings** in Home Assistant if they do not appear automatically.
 
 ---
 
@@ -341,7 +364,7 @@ For advanced users who want specific components only:
 packages:
   sense360_custom:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.0.0
+    ref: v2.0.2
     files:
       # Base (required)
       - base/wifi.yaml
@@ -477,7 +500,7 @@ api:
 ```yaml
 packages:
   sense360_firmware:
-    ref: v2.0.0  # Specific stable version
+    ref: v2.0.2  # Specific stable version
 ```
 
 ### Testing Latest Features
@@ -488,7 +511,7 @@ packages:
     ref: main  # ⚠️ Latest development version (may be unstable)
 ```
 
-**Recommendation**: Use version tags (v2.0.0) for production devices.
+**Recommendation**: Use version tags (v2.0.2) for production devices.
 
 ---
 

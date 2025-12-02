@@ -57,8 +57,8 @@ esphome:
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.0.0
-    files: 
+    ref: v2.0.2
+    files:
       - products/sense360-mini-airiq.yaml
     refresh: 1d
 
@@ -238,9 +238,9 @@ After initial USB flash, ALL future updates are wireless! 🎉
 
 2. **Update your config**:
    ```yaml
-   packages:
-     sense360_firmware:
-       ref: v2.0.0  # Change from v1.0.0 to new version
+  packages:
+    sense360_firmware:
+      ref: v2.0.2  # Change from v1.0.0 to new version
    ```
 
 3. **Flash wirelessly**:
