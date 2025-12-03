@@ -169,14 +169,7 @@ light:
 # ----------------------------------------------------------------------------
 # BASIC CONTROLS
 # ----------------------------------------------------------------------------
-button:
-  - platform: restart
-    name: "${friendly_name} Restart"
-    icon: "mdi:restart"
-
-  - platform: safe_mode
-    name: "${friendly_name} Safe Mode"
-    icon: "mdi:safety-goggles"
+# Note: Restart and Safe Mode buttons are provided by hardware config
 
 # ----------------------------------------------------------------------------
 # NOTES FOR USERS

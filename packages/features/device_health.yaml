@@ -1,11 +1,6 @@
-sensor:
-  - platform: uptime
-    name: "${friendly_name} Uptime"
-    id: device_uptime
-    update_interval: 30s
-  - platform: wifi_signal
-    name: "${friendly_name} RSSI"
-    update_interval: 30s
+# Device health monitoring and information
+# Note: Uptime, WiFi Signal, Restart button, and Safe Mode button are provided by hardware configs
+# This file provides additional diagnostic information
 
 text_sensor:
   - platform: version
@@ -17,8 +12,3 @@ text_sensor:
       name: "${friendly_name} SSID"
     bssid:
       name: "${friendly_name} BSSID"
-
-switch:
-  - platform: restart
-    name: "${friendly_name} Restart"
-    icon: "mdi:restart"
