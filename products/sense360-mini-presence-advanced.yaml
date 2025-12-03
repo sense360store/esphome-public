@@ -1,0 +1,350 @@
+# ============================================================================
+# SENSE360 MINI - PRESENCE DETECTION (ADVANCED)
+# ============================================================================
+# Advanced presence detection with full technical controls and customization.
+# Perfect for: Power users, smart home enthusiasts, commercial applications
+#
+# Features:
+# - Multi-zone tracking (3 zones)
+# - Individual target tracking (up to 3 simultaneous targets)
+# - Customizable sensitivity modes
+# - Adjustable detection thresholds
+# - Zone configuration
+# - Distance measurements
+# - Timeout controls
+# - Full diagnostic sensors
+#
+# For technical users who want complete control over presence detection.
+# ============================================================================
+
+substitutions:
+  # Hardware pins (ESP32-S3 DevKit)
+  board_variant: esp32-s3-devkitc-1
+
+  # LD2450 Presence Sensor UART
+  ld2450_uart_id: uart_presence
+  ld2450_tx_pin: GPIO13
+  ld2450_rx_pin: GPIO12
+  ld2450_baud: "256000"
+
+  # Status LED
+  status_led_pin: GPIO2
+
+  # WiFi & Logging
+  wifi_fast_connect: "true"
+  log_level: DEBUG  # More verbose for advanced users
+
+  # Detection Parameters (customizable)
+  presence_timeout: "30"  # seconds
+  detection_threshold: "30"  # percentage (0-100)
+
+# ----------------------------------------------------------------------------
+# ESPHOME CORE
+# ----------------------------------------------------------------------------
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  min_version: 2024.11.0
+  project:
+    name: sense360.mini-presence-advanced
+    version: "3.0.0"
+
+# ----------------------------------------------------------------------------
+# ESP32 CONFIGURATION
+# ----------------------------------------------------------------------------
+esp32:
+  board: ${board_variant}
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_ESPTOOLPY_FLASHSIZE_16MB: y
+      CONFIG_ESPTOOLPY_FLASHFREQ_80M: y
+      CONFIG_ESPTOOLPY_FLASHMODE_QIO: y
+
+# ----------------------------------------------------------------------------
+# BASE PACKAGES - Core system components
+# ----------------------------------------------------------------------------
+packages:
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_bluetooth: !include ../packages/base/bluetooth_proxy.yaml
+
+# ----------------------------------------------------------------------------
+# HARDWARE - LD2450 Presence Sensor with full configuration
+# ----------------------------------------------------------------------------
+uart:
+  - id: ${ld2450_uart_id}
+    tx_pin: ${ld2450_tx_pin}
+    rx_pin: ${ld2450_rx_pin}
+    baud_rate: ${ld2450_baud}
+    parity: NONE
+    stop_bits: 1
+    debug:
+      direction: BOTH
+      dummy_receiver: false
+
+ld2450:
+  id: ld2450_radar
+  uart_id: ${ld2450_uart_id}
+  throttle: 250ms  # Faster updates for advanced users
+  bluetooth_password: "HiLink"
+  # Advanced users can modify zones via LD2450 Bluetooth app
+
+# ----------------------------------------------------------------------------
+# PRESENCE DETECTION - Advanced Profile
+# ----------------------------------------------------------------------------
+packages:
+  presence_features: !include ../packages/features/presence_advanced.yaml
+
+# ----------------------------------------------------------------------------
+# FULL TARGET TRACKING - All sensors exposed
+# ----------------------------------------------------------------------------
+sensor:
+  # Overall statistics
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    target_count:
+      id: ld2450_target_count
+      name: "${friendly_name} Total Targets"
+    still_target_count:
+      id: ld2450_still_count
+      name: "${friendly_name} Still Targets"
+    moving_target_count:
+      id: ld2450_moving_count
+      name: "${friendly_name} Moving Targets"
+
+    # Zone tracking
+    zone_1_target_count:
+      name: "${friendly_name} Zone 1 Targets"
+    zone_2_target_count:
+      name: "${friendly_name} Zone 2 Targets"
+    zone_3_target_count:
+      name: "${friendly_name} Zone 3 Targets"
+
+    # Target 1 - Full details
+    target_1:
+      x:
+        id: ld2450_t1_x
+        name: "${friendly_name} Target 1 X"
+      y:
+        id: ld2450_t1_y
+        name: "${friendly_name} Target 1 Y"
+      speed:
+        name: "${friendly_name} Target 1 Speed"
+      angle:
+        name: "${friendly_name} Target 1 Angle"
+      distance:
+        id: ld2450_t1_distance
+        name: "${friendly_name} Target 1 Distance"
+      resolution:
+        name: "${friendly_name} Target 1 Resolution"
+
+    # Target 2 - Full details
+    target_2:
+      x:
+        id: ld2450_t2_x
+        name: "${friendly_name} Target 2 X"
+      y:
+        id: ld2450_t2_y
+        name: "${friendly_name} Target 2 Y"
+      speed:
+        name: "${friendly_name} Target 2 Speed"
+      angle:
+        name: "${friendly_name} Target 2 Angle"
+      distance:
+        id: ld2450_t2_distance
+        name: "${friendly_name} Target 2 Distance"
+      resolution:
+        name: "${friendly_name} Target 2 Resolution"
+
+    # Target 3 - Full details
+    target_3:
+      x:
+        id: ld2450_t3_x
+        name: "${friendly_name} Target 3 X"
+      y:
+        id: ld2450_t3_y
+        name: "${friendly_name} Target 3 Y"
+      speed:
+        name: "${friendly_name} Target 3 Speed"
+      angle:
+        name: "${friendly_name} Target 3 Angle"
+      distance:
+        id: ld2450_t3_distance
+        name: "${friendly_name} Target 3 Distance"
+      resolution:
+        name: "${friendly_name} Target 3 Resolution"
+
+# Binary sensors for individual targets
+binary_sensor:
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    has_target:
+      name: "${friendly_name} Presence"
+      device_class: occupancy
+    has_moving_target:
+      name: "${friendly_name} Moving Presence"
+      device_class: motion
+    has_still_target:
+      name: "${friendly_name} Still Presence"
+      device_class: occupancy
+
+# Update presence confidence with advanced logic
+interval:
+  - interval: 500ms  # Faster updates
+    then:
+      - lambda: |-
+          // Advanced presence detection logic with zones and sensitivity
+          int total_targets = id(ld2450_target_count).state;
+          int moving_targets = id(ld2450_moving_count).state;
+          int still_targets = id(ld2450_still_count).state;
+
+          // Get sensitivity setting
+          std::string sensitivity = id(presence_sensitivity).state;
+
+          float base_confidence = 0.0f;
+
+          if (total_targets > 0) {
+            // Calculate confidence based on target type
+            float moving_factor = moving_targets * 0.4f;
+            float still_factor = still_targets * 0.2f;
+            base_confidence = moving_factor + still_factor;
+
+            // Cap at 1.0
+            if (base_confidence > 1.0f) base_confidence = 1.0f;
+
+            // Adjust based on sensitivity mode
+            if (sensitivity == "Quiet Room") {
+              base_confidence *= 1.2f;  // Increase sensitivity
+            } else if (sensitivity == "High Traffic") {
+              base_confidence *= 0.8f;  // Decrease sensitivity
+            }
+
+            // Ensure we stay in bounds
+            if (base_confidence > 1.0f) base_confidence = 1.0f;
+            if (base_confidence < 0.3f) base_confidence = 0.3f;
+
+          } else {
+            base_confidence = 0.0f;
+          }
+
+          id(presence_confidence) = base_confidence;
+
+          // Update zone occupancy
+          // (Zone sensor data would be used here if available)
+
+          // Update target count for advanced profile
+          id(target_count).publish_state(total_targets);
+
+          // Calculate average distance
+          float avg_distance = 0.0f;
+          int distance_count = 0;
+          if (id(ld2450_t1_distance).has_state() && id(ld2450_t1_distance).state > 0) {
+            avg_distance += id(ld2450_t1_distance).state;
+            distance_count++;
+          }
+          if (id(ld2450_t2_distance).has_state() && id(ld2450_t2_distance).state > 0) {
+            avg_distance += id(ld2450_t2_distance).state;
+            distance_count++;
+          }
+          if (id(ld2450_t3_distance).has_state() && id(ld2450_t3_distance).state > 0) {
+            avg_distance += id(ld2450_t3_distance).state;
+            distance_count++;
+          }
+
+          if (distance_count > 0) {
+            avg_distance /= distance_count;
+            id(average_target_distance).publish_state(avg_distance);
+          }
+
+# ----------------------------------------------------------------------------
+# DEVICE HEALTH & DIAGNOSTICS
+# ----------------------------------------------------------------------------
+packages:
+  device_health: !include ../packages/features/device_health.yaml
+  diagnostics: !include ../packages/features/diagnostics.yaml
+
+# ----------------------------------------------------------------------------
+# STATUS LED
+# ----------------------------------------------------------------------------
+light:
+  - platform: status_led
+    id: device_status_led
+    name: "${friendly_name} Status LED"
+    pin: ${status_led_pin}
+    restore_mode: ALWAYS_ON
+
+# ----------------------------------------------------------------------------
+# ADVANCED CONTROLS
+# ----------------------------------------------------------------------------
+button:
+  - platform: restart
+    name: "${friendly_name} Restart"
+    icon: "mdi:restart"
+
+  - platform: safe_mode
+    name: "${friendly_name} Safe Mode"
+    icon: "mdi:safety-goggles"
+
+  - platform: template
+    name: "${friendly_name} Restart LD2450"
+    icon: "mdi:restart"
+    on_press:
+      - uart.write:
+          id: ${ld2450_uart_id}
+          data: [0xFD, 0xFC, 0xFB, 0xFA, 0x02, 0x00, 0xA3, 0x00, 0x04, 0x03, 0x02, 0x01]
+
+switch:
+  # Bluetooth configuration mode
+  - platform: template
+    name: "${friendly_name} LD2450 Bluetooth"
+    icon: "mdi:bluetooth"
+    optimistic: true
+    restore_value: false
+    turn_on_action:
+      - uart.write:
+          id: ${ld2450_uart_id}
+          data: [0xFD, 0xFC, 0xFB, 0xFA, 0x04, 0x00, 0xFF, 0x00, 0x01, 0x00, 0x04, 0x03, 0x02, 0x01]
+    turn_off_action:
+      - uart.write:
+          id: ${ld2450_uart_id}
+          data: [0xFD, 0xFC, 0xFB, 0xFA, 0x04, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x04, 0x03, 0x02, 0x01]
+
+# ----------------------------------------------------------------------------
+# NOTES FOR ADVANCED USERS
+# ----------------------------------------------------------------------------
+# To use this configuration:
+#
+# 1. Create your device config (e.g., sense360-office.yaml)
+# 2. Add this package:
+#
+#    packages:
+#      sense360_firmware:
+#        url: https://github.com/sense360store/esphome-public
+#        ref: v3.0.0
+#        files:
+#          - products/sense360-mini-presence-advanced.yaml
+#        refresh: 1d
+#
+# 3. Define your device with custom parameters:
+#
+#    substitutions:
+#      device_name: sense360-office
+#      friendly_name: "Office Sensor"
+#      presence_timeout: "60"  # Custom timeout
+#      detection_threshold: "25"  # Lower threshold
+#
+# 4. Configure zones using the HLK-LD2450 Bluetooth app
+# 5. Tune sensitivity and thresholds via Home Assistant
+#
+# Advanced features:
+# - Multi-target tracking with full coordinates
+# - Zone-based presence detection
+# - Adjustable sensitivity modes
+# - Custom timeout settings
+# - Full diagnostic sensors
+# ============================================================================

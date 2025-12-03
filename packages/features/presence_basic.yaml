@@ -1,0 +1,63 @@
+# ============================================================================
+# PRESENCE DETECTION - BASIC PROFILE
+# ============================================================================
+# Simple, user-friendly presence detection for most users.
+# Shows: Room Occupied (Yes/No) and Activity Level (Still/Moving)
+# No technical jargon - perfect for non-technical users.
+# ============================================================================
+
+# Global variable to track presence confidence
+global:
+  - id: presence_confidence
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+
+# ----------------------------------------------------------------------------
+# ROOM OCCUPANCY - Simple Yes/No
+# ----------------------------------------------------------------------------
+binary_sensor:
+  - platform: template
+    id: room_occupied
+    name: "${friendly_name} Room Occupied"
+    device_class: occupancy
+    icon: "mdi:home-account"
+    lambda: |-
+      // Room is occupied if confidence is above 30%
+      return id(presence_confidence) > 0.3f;
+
+# ----------------------------------------------------------------------------
+# ACTIVITY LEVEL - Still or Moving
+# ----------------------------------------------------------------------------
+text_sensor:
+  - platform: template
+    id: activity_level
+    name: "${friendly_name} Activity Level"
+    icon: "mdi:motion-sensor"
+    update_interval: 2s
+    lambda: |-
+      // Simple activity classification
+      float confidence = id(presence_confidence);
+
+      if (confidence < 0.3f) {
+        return {"None"};
+      } else if (confidence < 0.6f) {
+        return {"Still"};
+      } else {
+        return {"Moving"};
+      }
+
+# ----------------------------------------------------------------------------
+# OCCUPANCY SCORE - Optional, shows 0-100%
+# ----------------------------------------------------------------------------
+sensor:
+  - platform: template
+    id: occupancy_score
+    name: "${friendly_name} Occupancy Score"
+    icon: "mdi:percent"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    state_class: measurement
+    update_interval: 1s
+    lambda: |-
+      return id(presence_confidence) * 100.0f;
