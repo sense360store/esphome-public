@@ -5,4 +5,4 @@ time:
     id: sntp_time
     timezone: ${timezone}
     servers:
-      - ${ntp_server|pool.ntp.org}
+      - pool.ntp.org
