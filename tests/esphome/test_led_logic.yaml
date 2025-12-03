@@ -1,0 +1,111 @@
+# ESPHome test configuration for LED logic
+# This demonstrates how to use the extracted header files in YAML configs
+
+substitutions:
+  device_name: test-led-logic
+  friendly_name: "Test LED Logic"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  includes:
+    - ../../tests/include/led_logic.h
+    - ../../tests/include/thresholds.h
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+
+logger:
+  level: DEBUG
+
+# Test script that uses extracted functions
+script:
+  - id: test_color_mapping
+    then:
+      - lambda: |-
+          using namespace sense360::led;
+          using namespace sense360::thresholds;
+
+          ESP_LOGI("test", "Testing color_for_severity...");
+
+          // Test color mapping
+          Color good_color = color_for_severity(LEVEL_GOOD);
+          ESP_LOGI("test", "Good color: R=%d G=%d B=%d", good_color.red, good_color.green, good_color.blue);
+
+          Color moderate_color = color_for_severity(LEVEL_MODERATE);
+          ESP_LOGI("test", "Moderate color: R=%d G=%d B=%d", moderate_color.red, moderate_color.green, moderate_color.blue);
+
+          // Test scaling
+          Color scaled = scale_color(good_color, 0.5f);
+          ESP_LOGI("test", "Scaled color (50%%): R=%d G=%d B=%d", scaled.red, scaled.green, scaled.blue);
+
+          // Test threshold classification
+          float pm25_value = 15.0f;
+          AirQualityStatus status = classify_value(pm25_value, PM25_GOOD, PM25_MODERATE, PM25_UNHEALTHY);
+          ESP_LOGI("test", "PM2.5 %.1f classified as: %s", pm25_value, status_to_string(status));
+
+          ESP_LOGI("test", "✓ All color mapping tests passed!");
+
+  - id: test_threshold_classification
+    then:
+      - lambda: |-
+          using namespace sense360::thresholds;
+
+          ESP_LOGI("test", "Testing threshold classification...");
+
+          // Test various PM2.5 values
+          float test_values[] = {5.0f, 10.0f, 15.0f, 25.0f, 40.0f, 60.0f};
+          for (float val : test_values) {
+            AirQualityStatus status = classify_value(val, PM25_GOOD, PM25_MODERATE, PM25_UNHEALTHY);
+            ESP_LOGI("test", "PM2.5 %.1f → %s", val, status_to_string(status));
+          }
+
+          ESP_LOGI("test", "✓ All threshold tests passed!");
+
+  - id: test_aggregation
+    then:
+      - lambda: |-
+          using namespace sense360::led;
+
+          ESP_LOGI("test", "Testing PM aggregation...");
+
+          // Simulate different PM sensor readings
+          int pm1_level = compute_level(8.0f, 10.0f, 20.0f, 35.0f);    // Good
+          int pm25_level = compute_level(15.0f, 10.0f, 25.0f, 50.0f);  // Moderate
+          int pm40_level = compute_level(5.0f, 20.0f, 40.0f, 75.0f);   // Good
+          int pm10_level = compute_level(12.0f, 20.0f, 50.0f, 100.0f); // Good
+
+          int worst_pm = aggregate_pm_levels(pm1_level, pm25_level, pm40_level, pm10_level);
+
+          ESP_LOGI("test", "PM levels: 1.0=%d, 2.5=%d, 4.0=%d, 10=%d → Worst=%d",
+                   pm1_level, pm25_level, pm40_level, pm10_level, worst_pm);
+
+          ESP_LOGI("test", "✓ Aggregation test passed!");
+
+# Button to trigger tests
+button:
+  - platform: template
+    name: "Run Color Mapping Tests"
+    on_press:
+      - script.execute: test_color_mapping
+
+  - platform: template
+    name: "Run Threshold Tests"
+    on_press:
+      - script.execute: test_threshold_classification
+
+  - platform: template
+    name: "Run Aggregation Tests"
+    on_press:
+      - script.execute: test_aggregation
+
+  - platform: template
+    name: "Run All Tests"
+    on_press:
+      - script.execute: test_color_mapping
+      - delay: 1s
+      - script.execute: test_threshold_classification
+      - delay: 1s
+      - script.execute: test_aggregation
