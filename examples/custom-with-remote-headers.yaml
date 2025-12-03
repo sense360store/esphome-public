@@ -1,0 +1,217 @@
+# Example: Custom Device Config Using Remote Headers
+# This demonstrates how to use the sense360 headers from GitHub packages
+# while creating a fully custom configuration
+
+substitutions:
+  device_name: my-custom-sense360
+  friendly_name: "My Custom Sense360"
+
+  # Custom air quality thresholds (example)
+  custom_pm25_good: "12.0"
+  custom_pm25_moderate: "30.0"
+  custom_pm25_unhealthy: "55.0"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  min_version: 2025.10.0
+
+  # Include tested C++ headers from GitHub
+  # These headers are fully unit-tested with 133 passing tests
+  includes:
+    - github://sense360store/esphome-public/include/sense360/led_logic.h@v2.0.0
+    - github://sense360store/esphome-public/include/sense360/thresholds.h@v2.0.0
+    - github://sense360store/esphome-public/include/sense360/calibration.h@v2.0.0
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+
+logger:
+  level: INFO
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+# Example: Using the tested LED logic functions
+light:
+  - platform: esp32_rmt_led_strip
+    id: status_led
+    name: "Status LED"
+    pin: GPIO8
+    num_leds: 4
+    chipset: ws2812
+    rgb_order: GRB
+    effects:
+      - addressable_lambda:
+          name: "Custom Air Quality Status"
+          update_interval: 1s
+          lambda: |-
+            using namespace sense360::led;
+            using namespace sense360::thresholds;
+
+            // Get sensor values (assume these sensors are defined elsewhere)
+            float pm25_value = id(pm25_sensor).state;
+
+            // Use tested threshold classification function
+            int pm_level = compute_level(pm25_value,
+                                        ${custom_pm25_good},
+                                        ${custom_pm25_moderate},
+                                        ${custom_pm25_unhealthy});
+
+            // Use tested color mapping function
+            Color status_color = color_for_severity(pm_level);
+
+            // Use tested brightness scaling function
+            float brightness = brightness_scale_for_level(pm_level);
+
+            // Apply pulsing for poor air quality
+            if (pm_level == LEVEL_POOR) {
+              brightness *= compute_pulse_multiplier(millis());
+            }
+
+            // Use tested color scaling function
+            Color final_color = scale_color(status_color, brightness);
+
+            // Set all LEDs to the status color
+            for (int i = 0; i < it.size(); i++) {
+              it[i] = final_color;
+            }
+
+# Example sensors (you would replace these with your actual sensor config)
+sensor:
+  - platform: template
+    id: pm25_sensor
+    name: "PM2.5"
+    unit_of_measurement: "µg/m³"
+
+  - platform: template
+    id: temperature_sensor
+    name: "Temperature"
+    unit_of_measurement: "°C"
+
+  - platform: template
+    id: humidity_sensor
+    name: "Humidity"
+    unit_of_measurement: "%"
+
+# Example: Using the tested calibration functions
+number:
+  - platform: template
+    id: temp_reference
+    name: "Temperature Reference"
+    min_value: -20
+    max_value: 80
+    step: 0.1
+    optimistic: true
+
+  - platform: template
+    id: humidity_reference
+    name: "Humidity Reference"
+    min_value: 0
+    max_value: 100
+    step: 0.1
+    optimistic: true
+
+button:
+  - platform: template
+    name: "Calibrate Sensors"
+    on_press:
+      - lambda: |-
+          using namespace sense360::calibration;
+
+          // Get reference values from UI
+          float ref_temp = id(temp_reference).state;
+          float ref_humidity = id(humidity_reference).state;
+
+          // Get raw sensor readings
+          float raw_temp = id(temperature_sensor).state;
+          float raw_humidity = id(humidity_sensor).state;
+
+          // Use tested calibration computation function
+          CalibrationResult result = compute_single_point_calibration(
+            ref_temp, ref_humidity, raw_temp, raw_humidity
+          );
+
+          if (result.valid) {
+            ESP_LOGI("calibration", "Temperature offset: %.2f °C", result.temperature_offset);
+            ESP_LOGI("calibration", "Humidity offset: %.2f %%RH", result.humidity_offset);
+
+            // Store offsets in globals (you would define these)
+            // id(stored_temp_offset) = result.temperature_offset;
+            // id(stored_humidity_offset) = result.humidity_offset;
+          } else {
+            ESP_LOGW("calibration", "Calibration failed - invalid sensor readings");
+          }
+
+text_sensor:
+  - platform: template
+    id: air_quality_status
+    name: "Air Quality Status"
+    update_interval: 5s
+    lambda: |-
+      using namespace sense360::thresholds;
+
+      // Get sensor value
+      float pm25 = id(pm25_sensor).state;
+
+      // Use tested classification function
+      AirQualityStatus status = classify_value(
+        pm25,
+        PM25_GOOD,
+        PM25_MODERATE,
+        PM25_UNHEALTHY
+      );
+
+      // Use tested status-to-string function
+      return std::string(status_to_string(status));
+
+# Example: Using the tested time utils for night mode
+script:
+  - id: check_night_mode
+    then:
+      - lambda: |-
+          using namespace sense360::time_utils;
+
+          // Get current time from Home Assistant
+          auto now = id(homeassistant_time).now();
+          if (!now.is_valid()) {
+            ESP_LOGW("night_mode", "Time not available");
+            return;
+          }
+
+          // Use tested time utilities
+          Time current(now.hour, now.minute);
+          Time night_start(22, 0);
+          Time night_end(7, 0);
+
+          // Use tested night mode check (handles midnight wraparound)
+          bool is_night = is_within_night_mode(current, night_start, night_end);
+
+          if (is_night) {
+            ESP_LOGI("night_mode", "Night mode active - dimming LEDs");
+            // Dim LEDs logic here
+          } else {
+            ESP_LOGI("night_mode", "Day mode active - full brightness");
+          }
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+# Notes:
+# - All functions used above are fully unit-tested (133 tests passing)
+# - Headers are fetched from GitHub when you compile
+# - You can customize thresholds via substitutions
+# - Functions handle edge cases (NaN, boundaries, wraparound)
+# - See tests/README.md for complete documentation

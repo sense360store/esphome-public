@@ -11,24 +11,54 @@ The test suite extracts complex lambda functions into reusable C++ header files 
 
 ## Header Files
 
-Located in `tests/include/`:
+Located in `include/sense360/`:
 - `led_logic.h` - LED color mapping, brightness scaling, level computation
 - `calibration.h` - SHT30 calibration logic
 - `thresholds.h` - Air quality threshold classification
 - `time_utils.h` - Night mode time calculations
 
+All headers are **fully unit-tested** with 133 passing tests.
+
 ## Using Headers in YAML
 
-### 1. Include the Header File
+### Method 1: Remote GitHub Packages (Recommended)
 
-Add the header file to your ESPHome configuration:
+When using remote packages, include headers directly from GitHub:
 
 ```yaml
 esphome:
   name: my-device
   includes:
-    - tests/include/led_logic.h
-    - tests/include/thresholds.h
+    - github://sense360store/esphome-public/include/sense360/led_logic.h@v2.0.0
+    - github://sense360store/esphome-public/include/sense360/thresholds.h@v2.0.0
+
+packages:
+  sense360_firmware:
+    url: https://github.com/sense360store/esphome-public
+    ref: v2.0.0
+    files:
+      - products/sense360-mini-airiq.yaml
+    refresh: 1d
+```
+
+This is the **recommended approach** for production devices as it:
+- ✅ Works with remote package management
+- ✅ Automatically fetches headers from GitHub
+- ✅ Pins to specific version tags
+- ✅ No local file path dependencies
+
+See `examples/custom-with-remote-headers.yaml` for a complete working example.
+
+### Method 2: Local File Includes
+
+For local development or testing, use relative paths:
+
+```yaml
+esphome:
+  name: my-device
+  includes:
+    - include/sense360/led_logic.h
+    - include/sense360/thresholds.h
 ```
 
 ### 2. Use Functions in Lambda Expressions

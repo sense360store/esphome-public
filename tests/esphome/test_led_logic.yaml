@@ -9,8 +9,8 @@ esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
   includes:
-    - ../../tests/include/led_logic.h
-    - ../../tests/include/thresholds.h
+    - ../../include/sense360/led_logic.h
+    - ../../include/sense360/thresholds.h
 
 esp32:
   board: esp32-s3-devkitc-1
