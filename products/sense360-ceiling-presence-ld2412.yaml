@@ -8,7 +8,7 @@
 # packages:
 #   sense360_firmware:
 #     url: https://github.com/sense360store/esphome-public
-#     ref: v2.0.2
+#     ref: v2.1.0
 #     files:
 #       - products/sense360-ceiling-presence-ld2412.yaml
 # =============================================================================

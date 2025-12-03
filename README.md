@@ -6,6 +6,13 @@ Official ESPHome firmware repository for [Sense360](https://mysense360.com) envi
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![GitHub Release](https://img.shields.io/github/v/release/sense360store/esphome-public)](https://github.com/sense360store/esphome-public/releases)
 
+## 🆕 What's New (v2.1.0)
+
+- Overall air quality LED color entity that mirrors consolidated status cues across the device and dashboards.
+- New `air_quality_status` text sensor and `air_quality_warning` binary sensor for streamlined Home Assistant automations.
+- Additional status text sensors (MVP Pollutant, MVP Severity, LED Mode) and human-friendly particulate naming for UI clarity.
+- Unified and persisted night brightness controls, improved AirIQ LED handling (full-bright daytime, safe unknown states), and PM LED severity based on the worst particulate tier.
+
 ## 🌟 Features
 
 - **Comprehensive Air Quality Monitoring**: CO2, VOC, NOx, PM1.0, PM2.5, PM4.0, PM10
