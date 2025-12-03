@@ -5,6 +5,7 @@ Official ESPHome firmware repository for [Sense360](https://mysense360.com) envi
 [![ESPHome](https://img.shields.io/badge/ESPHome-2025.10%2B-blue)](https://esphome.io/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![GitHub Release](https://img.shields.io/github/v/release/sense360store/esphome-public)](https://github.com/sense360store/esphome-public/releases)
+[![CI](https://github.com/sense360store/esphome-public/workflows/Test%20ESPHome%20Configs/badge.svg)](https://github.com/sense360store/esphome-public/actions)
 
 ## What's New in Version 2.1.0
 
@@ -136,6 +137,7 @@ The device will automatically download and apply the updated firmware.
 
 - [Installation Guide](docs/installation.md) - Step-by-step setup instructions
 - [Configuration Reference](docs/configuration.md) - Customization options and settings
+- [Development Guide](docs/development.md) - Contributing and testing
 - [Changelog](CHANGELOG.md) - Version history and release notes
 
 ---
@@ -244,7 +246,13 @@ Common applications for Sense360 devices:
 
 ## Contributing
 
-Contributions are welcome. Please review our contribution guidelines before submitting pull requests.
+Contributions are welcome! Please see the [Development Guide](docs/development.md) for:
+- Setting up your development environment
+- Running tests and validation
+- Pre-commit hooks and CI/CD pipeline
+- Code quality guidelines
+
+All pull requests must pass automated testing before merging.
 
 ---
 

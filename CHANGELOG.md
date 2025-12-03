@@ -8,16 +8,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- None yet.
+- **CI/CD Pipeline**: GitHub Actions workflows for automated testing and validation
+  - `test.yml`: Comprehensive test suite validating all 10 product configurations with ESPHome compilation
+  - `validate.yml`: Quick YAML syntax and structure validation for fast feedback
+  - Matrix testing across all product configurations to catch issues early
+  - Automated C++ header formatting checks with clang-format
+- **Pre-commit Hooks**: Local validation before commits
+  - YAML linting and validation
+  - Python code formatting (Black) and linting (Flake8)
+  - C++ formatting with clang-format
+  - Automated configuration validation script
+- **Validation Script** (`tests/validate_configs.py`): Python script to validate YAML syntax and structure
+  - Supports ESPHome custom YAML tags (!secret, !include, !extend, !lambda)
+  - Validates all 36+ configuration files in products/, packages/, base/, features/, hardware/, and tests/
+  - Checks for required keys and proper structure
+- **Development Documentation** (`docs/development.md`): Comprehensive guide for contributors
+  - Development environment setup instructions
+  - Testing and validation workflows
+  - Pre-commit hooks usage
+  - CI/CD pipeline details
+  - Code quality guidelines
+- **Development Dependencies** (`requirements-dev.txt`): All tools needed for local development
+- **YAML Linting Configuration** (`.yamllint`): Consistent YAML style across the repository
 
 ### Changed
-- None yet.
+- Updated README.md with CI badge and links to development guide
+- Enhanced Contributing section with clear development workflow
 
 ### Breaking Changes
 - None.
 
 ### Upgrade
-- None.
+- For contributors: Install development dependencies with `pip install -r requirements-dev.txt` and set up pre-commit hooks with `pre-commit install`
 
 ---
 

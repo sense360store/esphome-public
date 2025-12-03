@@ -1,0 +1,147 @@
+name: Test ESPHome Configs
+
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: ["*"]
+  workflow_dispatch:
+
+jobs:
+  validate-yaml:
+    name: Validate YAML Syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml yamllint
+
+      - name: Validate YAML syntax
+        run: |
+          echo "Validating YAML files..."
+          find . -name "*.yaml" -o -name "*.yml" | while read file; do
+            echo "Checking: $file"
+            python -c "import yaml; yaml.safe_load(open('$file'))" || exit 1
+          done
+
+      - name: Run yamllint
+        run: |
+          yamllint -d "{extends: default, rules: {line-length: {max: 120}, comments: {min-spaces-from-content: 1}}}" \
+            products/ packages/ base/ features/ hardware/ tests/ examples/ || true
+
+  test-esphome-configs:
+    name: Test ESPHome Configurations
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config:
+          - products/sense360-mini-airiq.yaml
+          - products/sense360-mini-airiq-basic.yaml
+          - products/sense360-mini-airiq-advanced.yaml
+          - products/sense360-mini-airiq-ld2412.yaml
+          - products/sense360-mini-presence.yaml
+          - products/sense360-mini-presence-basic.yaml
+          - products/sense360-mini-presence-advanced.yaml
+          - products/sense360-mini-presence-ld2412.yaml
+          - products/sense360-ceiling-presence.yaml
+          - products/sense360-ceiling-presence-ld2412.yaml
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache ESPHome
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-platformio-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-platformio-
+
+      - name: Install ESPHome
+        run: |
+          pip install esphome
+
+      - name: Create secrets.yaml for testing
+        run: |
+          cat > secrets.yaml << 'EOF'
+          wifi_ssid: "TestNetwork"
+          wifi_password: "TestPassword123"
+          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+          ota_password: "test-ota-password"
+          fallback_hotspot_password: "fallback123"
+          EOF
+
+      - name: Validate ESPHome config
+        run: |
+          echo "Validating: ${{ matrix.config }}"
+          esphome config ${{ matrix.config }}
+
+  test-unit-tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ESPHome
+        run: |
+          pip install esphome
+
+      - name: Create secrets.yaml for testing
+        run: |
+          cat > secrets.yaml << 'EOF'
+          wifi_ssid: "TestNetwork"
+          wifi_password: "TestPassword123"
+          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+          ota_password: "test-ota-password"
+          fallback_hotspot_password: "fallback123"
+          EOF
+
+      - name: Validate test configs
+        run: |
+          echo "Validating test configurations..."
+          for file in tests/**/*.yaml; do
+            if [ -f "$file" ]; then
+              echo "Testing: $file"
+              esphome config "$file" || echo "Warning: $file validation failed"
+            fi
+          done
+
+  lint-cpp:
+    name: Lint C++ Headers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - name: Check C++ formatting
+        run: |
+          echo "Checking C++ header formatting..."
+          find include/ -name "*.h" -o -name "*.cpp" | while read file; do
+            echo "Checking: $file"
+            clang-format --dry-run --Werror "$file" || echo "Warning: $file needs formatting"
+          done

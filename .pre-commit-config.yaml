@@ -1,0 +1,65 @@
+# Pre-commit hooks for Sense360 ESPHome repository
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^(.*\.md)$
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: ['--unsafe']  # Allow custom YAML tags from ESPHome
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: mixed-line-ending
+
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args:
+          - --format=parsable
+          - --config-data={extends: default, rules: {line-length: {max: 120}, comments: {min-spaces-from-content: 1}, document-start: disable, truthy: {check-keys: false}}}
+        files: \.(yaml|yml)$
+
+  # Python code formatting
+  - repo: https://github.com/psf/black
+    rev: 24.2.0
+    hooks:
+      - id: black
+        language_version: python3.11
+        files: \.py$
+
+  # Python code linting
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args: ['--max-line-length=120', '--extend-ignore=E203,W503']
+        files: \.py$
+
+  # C++ formatting
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v18.1.1
+    hooks:
+      - id: clang-format
+        files: \.(h|cpp)$
+        args: ['-i']
+
+  # Local validation script
+  - repo: local
+    hooks:
+      - id: validate-esphome-configs
+        name: Validate ESPHome Product Configs
+        entry: python tests/validate_configs.py
+        language: python
+        pass_filenames: false
+        files: ^(products|packages|base|features|hardware)/.*\.yaml$
+        additional_dependencies:
+          - pyyaml>=6.0
