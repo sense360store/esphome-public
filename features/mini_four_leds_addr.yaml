@@ -156,17 +156,24 @@ light:
             }
 
             const int max_lvl = std::max(std::max(lvl_pm, lvl_voc), std::max(lvl_nox, lvl_co2));
-            const float brightness_scale =
+            const int overall = max_lvl;
+            float brightness_scale =
               (max_lvl == 0) ? 0.40f :
               (max_lvl == 1) ? 0.60f :
               (max_lvl == 2) ? 0.80f :
                                  1.00f;
 
+            if (overall == 3) {
+              const float phase = (float) (millis() % 5000) / 5000.0f;
+              const float pulse = 0.90f + 0.10f * (0.5f + 0.5f * sinf(phase * 2.0f * 3.14159265f));
+              brightness_scale = std::min(1.0f, brightness_scale * pulse);
+            }
+
             if (it.size() < 4) return;  // need 4 pixels
-            it[0] = scale_color(color_for(lvl_pm), brightness_scale);   // PM
-            it[1] = scale_color(color_for(lvl_voc), brightness_scale);  // VOC
-            it[2] = scale_color(color_for(lvl_nox), brightness_scale);  // NOx
-            it[3] = scale_color(color_for(lvl_co2), brightness_scale);  // CO₂
+            auto overall_color = scale_color(color_for(overall), brightness_scale);
+            for (uint32_t i = 0; i < 4; i++) {
+              it[i] = overall_color;
+            }
 
 switch:
   - platform: template
