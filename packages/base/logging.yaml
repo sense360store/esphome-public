@@ -1,5 +1,5 @@
 logger:
-  level: ${log_level|INFO}
+  level: ${log_level}
   logs:
     sensor: INFO
     component: INFO

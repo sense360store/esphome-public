@@ -1,7 +1,7 @@
 packages:
   health: !include device_health.yaml
 
-global:
+globals:
   - id: presence_confidence
     type: float
     restore_value: no
