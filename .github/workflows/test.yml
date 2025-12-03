@@ -24,13 +24,9 @@ jobs:
         run: |
           pip install pyyaml yamllint
 
-      - name: Validate YAML syntax
+      - name: Validate YAML syntax with validation script
         run: |
-          echo "Validating YAML files..."
-          find . -name "*.yaml" -o -name "*.yml" | while read file; do
-            echo "Checking: $file"
-            python -c "import yaml; yaml.safe_load(open('$file'))" || exit 1
-          done
+          python3 tests/validate_configs.py
 
       - name: Run yamllint
         run: |

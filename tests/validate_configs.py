@@ -157,7 +157,7 @@ class ConfigValidator:
 
     def validate_all_configs(self) -> Tuple[int, int]:
         """Validate all configuration files in the repository."""
-        config_dirs = ["products", "packages", "base", "features", "hardware", "tests"]
+        config_dirs = ["products", "packages", "base", "features", "hardware", "tests", "examples"]
         total_files = 0
         failed_files = 0
 
