@@ -78,7 +78,7 @@ jobs:
           wifi_password: "TestPassword123"
           api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
           ota_password: "test-ota-password"
-          fallback_hotspot_password: "fallback123"
+          fallback_ap_password: "fallback123"
           EOF
           # Copy secrets to products directory (ESPHome looks for secrets relative to config)
           cp secrets.yaml products/secrets.yaml
@@ -111,7 +111,7 @@ jobs:
           wifi_password: "TestPassword123"
           api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
           ota_password: "test-ota-password"
-          fallback_hotspot_password: "fallback123"
+          fallback_ap_password: "fallback123"
           EOF
           # Copy secrets to all directories that might need them
           cp secrets.yaml products/secrets.yaml
