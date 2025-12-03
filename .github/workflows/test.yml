@@ -74,11 +74,22 @@ jobs:
       - name: Create secrets.yaml for testing
         run: |
           cat > secrets.yaml << 'EOF'
+          # WiFi credentials
           wifi_ssid: "TestNetwork"
           wifi_password: "TestPassword123"
+          fallback_ap_password: "fallback123"
+
+          # API and OTA
           api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
           ota_password: "test-ota-password"
-          fallback_hotspot_password: "fallback123"
+
+          # Web server (if used)
+          web_username: "admin"
+          web_password: "admin123"
+
+          # MQTT (if used)
+          mqtt_username: "mqtt_user"
+          mqtt_password: "mqtt_pass"
           EOF
           # Copy secrets to products directory (ESPHome looks for secrets relative to config)
           cp secrets.yaml products/secrets.yaml
@@ -107,11 +118,22 @@ jobs:
       - name: Create secrets.yaml for testing
         run: |
           cat > secrets.yaml << 'EOF'
+          # WiFi credentials
           wifi_ssid: "TestNetwork"
           wifi_password: "TestPassword123"
+          fallback_ap_password: "fallback123"
+
+          # API and OTA
           api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
           ota_password: "test-ota-password"
-          fallback_hotspot_password: "fallback123"
+
+          # Web server (if used)
+          web_username: "admin"
+          web_password: "admin123"
+
+          # MQTT (if used)
+          mqtt_username: "mqtt_user"
+          mqtt_password: "mqtt_pass"
           EOF
           # Copy secrets to all directories that might need them
           cp secrets.yaml products/secrets.yaml
