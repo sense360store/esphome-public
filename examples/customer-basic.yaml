@@ -1,8 +1,8 @@
 # ============================================================================
 # SENSE360 CUSTOMER CONFIGURATION EXAMPLE
 # ============================================================================
-# This is a ready-to-use template for Sense360 devices.
-# Copy this to your ESPHome dashboard and customize.
+# Ready-to-use template for Sense360 devices with clear basic/advanced options.
+# Copy this to your ESPHome dashboard and customize for your room.
 #
 # Filename suggestion: sense360-<room-name>.yaml
 # Example: sense360-living-room.yaml, sense360-bedroom.yaml
@@ -12,26 +12,9 @@
 # DEVICE IDENTIFICATION
 # ----------------------------------------------------------------------------
 substitutions:
-  # === CUSTOMIZE THESE FOR YOUR DEVICE ===
-  device_name: sense360-living-room    # REQUIRED: Unique name (lowercase, no spaces)
-  friendly_name: "Living Room Sense360" # REQUIRED: Display name in Home Assistant
-  
-  # === OPTIONAL: Override Default Thresholds ===
-  # Uncomment and adjust any values you want to change:
-  
-  # CO2 thresholds (ppm)
-  # co2_good_limit: "800"           # Default: 750
-  # co2_moderate_limit: "1000"      # Default: 950
-  # co2_unhealthy_limit: "1500"     # Default: 1400
-  
-  # PM2.5 thresholds (µg/m³)
-  # sen55_pm2_5_good_limit: "12"    # Default: 10
-  # sen55_pm2_5_moderate_limit: "30" # Default: 25
-  # sen55_pm2_5_unhealthy_limit: "60" # Default: 55
-  
-  # VOC thresholds (0-500 index)
-  # sen55_voc_good_limit: "100"     # Default: 80
-  # sen55_voc_moderate_limit: "150" # Default: 120
+  # === REQUIRED: Customize these for your device ===
+  device_name: sense360-living-room      # Unique name (lowercase, no spaces)
+  friendly_name: "Living Room Sense360"  # Display name in Home Assistant
 
 # ----------------------------------------------------------------------------
 # ESPHOME CONFIGURATION
@@ -39,27 +22,69 @@ substitutions:
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
-  min_version: 2025.10.0  # Minimum ESPHome version required
+  min_version: 2024.11.0  # Minimum ESPHome version required
 
 # ----------------------------------------------------------------------------
-# LOAD FIRMWARE FROM GITHUB
+# CHOOSE YOUR FIRMWARE VERSION
 # ----------------------------------------------------------------------------
+# Select ONE of the following based on your needs:
+#
+# BASIC VERSIONS (Recommended for most users):
+# ✓ Simple, user-friendly interface
+# ✓ No technical jargon
+# ✓ Easy to understand readings
+#
+# ADVANCED VERSIONS (For power users):
+# ✓ All technical sensors and data
+# ✓ Customizable thresholds
+# ✓ Calibration controls
+# ✓ Detailed diagnostics
+# ----------------------------------------------------------------------------
+
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.0.0  # Change this to update firmware version
-    files: 
-      # Choose ONE product configuration:
-      
-      # Full AirIQ + Presence (recommended for most users)
-      - products/sense360-mini-airiq.yaml
-      
-      # Presence only (no air quality sensors)
-      # - products/sense360-mini-presence.yaml
-      
-      # Ceiling mounted with presence
-      # - products/sense360-ceiling-presence.yaml
-    
+    ref: v3.0.0  # Change this to update firmware version
+    files:
+      # ═══════════════════════════════════════════════════════════════
+      # OPTION 1: BASIC - Air Quality Only (Simplest)
+      # ═══════════════════════════════════════════════════════════════
+      # Shows: Air Quality (Excellent/Good/Fair/Poor)
+      #        Temperature & Humidity
+      #        Simple recommendations
+      # Perfect for: Bedrooms, living rooms, general home monitoring
+      # ───────────────────────────────────────────────────────────────
+      - products/sense360-mini-airiq-basic.yaml
+
+      # ═══════════════════════════════════════════════════════════════
+      # OPTION 2: BASIC - Presence Detection Only
+      # ═══════════════════════════════════════════════════════════════
+      # Shows: Room Occupied (Yes/No)
+      #        Activity Level (Still/Moving)
+      # Perfect for: Smart lighting, occupancy automation
+      # ───────────────────────────────────────────────────────────────
+      # - products/sense360-mini-presence-basic.yaml
+
+      # ═══════════════════════════════════════════════════════════════
+      # OPTION 3: ADVANCED - Air Quality (Full Technical Suite)
+      # ═══════════════════════════════════════════════════════════════
+      # Shows: CO₂ (ppm), PM1.0, PM2.5, PM4.0, PM10 (µg/m³)
+      #        VOC & NOx Index, Temperature, Humidity, Pressure
+      #        Light Level, Customizable thresholds, Calibration
+      # Perfect for: HVAC control, research, commercial applications
+      # ───────────────────────────────────────────────────────────────
+      # - products/sense360-mini-airiq-advanced.yaml
+
+      # ═══════════════════════════════════════════════════════════════
+      # OPTION 4: ADVANCED - Presence Detection (Full Controls)
+      # ═══════════════════════════════════════════════════════════════
+      # Shows: Multi-zone tracking, Individual targets (up to 3)
+      #        Distance measurements, Sensitivity controls
+      #        Zone configuration, Full diagnostics
+      # Perfect for: Complex automations, commercial spaces
+      # ───────────────────────────────────────────────────────────────
+      # - products/sense360-mini-presence-advanced.yaml
+
     refresh: 1d  # Check for updates daily
 
 # ----------------------------------------------------------------------------
@@ -99,38 +124,98 @@ ota:
     password: !secret ota_password
 
 # ----------------------------------------------------------------------------
+# OPTIONAL: ADVANCED THRESHOLD CUSTOMIZATION
+# ----------------------------------------------------------------------------
+# Only needed if you're using an ADVANCED version and want custom thresholds.
+# Uncomment and adjust any values you want to change:
+
+# substitutions:
+#   # Air Quality Thresholds (Advanced version only)
+#   co2_good_limit: "800"            # Default: 750 ppm
+#   co2_moderate_limit: "1000"       # Default: 950 ppm
+#   co2_unhealthy_limit: "1500"      # Default: 1400 ppm
+#
+#   pm2_5_good_limit: "12"           # Default: 10 µg/m³
+#   pm2_5_moderate_limit: "30"       # Default: 25 µg/m³
+#   pm2_5_unhealthy_limit: "60"      # Default: 55 µg/m³
+#
+#   voc_good_limit: "100"            # Default: 80 (index)
+#   voc_moderate_limit: "150"        # Default: 120 (index)
+#
+#   # Presence Detection Settings (Advanced version only)
+#   presence_timeout: "60"           # Default: 30 seconds
+#   detection_threshold: "25"        # Default: 30 percent
+
+# ----------------------------------------------------------------------------
 # OPTIONAL: CUSTOM AUTOMATIONS
 # ----------------------------------------------------------------------------
 # Add your custom sensors, automations, or overrides below this line.
-# Examples:
 
-# Custom binary sensor for high CO2 alert
+# Example: High CO2 Alert (Advanced version only)
 # binary_sensor:
 #   - platform: template
 #     name: "${friendly_name} High CO2 Alert"
 #     lambda: |-
-#       return id(scd4x_co2).state > 1200;
+#       return id(co2_ppm).state > 1200;
 
-# Custom button to reset all sensors
-# button:
-#   - platform: template
-#     name: "${friendly_name} Reset Sensors"
-#     on_press:
-#       - logger.log: "Resetting all sensors..."
+# Example: Automatic Ventilation Control (Advanced version only)
+# switch:
+#   - platform: gpio
+#     name: "${friendly_name} Exhaust Fan"
+#     pin: GPIO25
+#     on_turn_on:
+#       - delay: 600s  # Run for 10 minutes
+#       - switch.turn_off: exhaust_fan
 
-# Custom notification when room becomes occupied
-# automation:
-#   - platform: template
-#     name: "${friendly_name} Occupancy Changed"
-#     condition:
-#       lambda: 'return id(ld2450_zone1_target_count).state > 0;'
-#     then:
-#       - logger.log: "Room is now occupied"
+# Example: Occupancy-Based Lighting (Basic version works)
+# light:
+#   - platform: binary
+#     name: "${friendly_name} Auto Light"
+#     output: light_output
+#     on_turn_on:
+#       - if:
+#           condition:
+#             binary_sensor.is_on: room_occupied
+#           then:
+#             - light.turn_on: auto_light
 
 # ============================================================================
-# DOCUMENTATION
+# QUICK START GUIDE
 # ============================================================================
-# Installation Guide: https://github.com/sense360store/esphome-public/blob/main/docs/installation.md
-# Configuration: https://github.com/sense360store/esphome-public/blob/main/docs/configuration.md
-# Troubleshooting: https://github.com/sense360store/esphome-public/blob/main/docs/troubleshooting.md
-# Support: https://github.com/sense360store/esphome-public/issues
+#
+# STEP 1: Choose your version
+# ────────────────────────────
+# Uncomment ONE of the product files above based on your needs:
+# - Basic Air Quality: Simple air quality monitoring
+# - Basic Presence: Simple room occupancy detection
+# - Advanced Air Quality: Full technical air quality suite
+# - Advanced Presence: Advanced presence detection with zones
+#
+# STEP 2: Update device name
+# ────────────────────────────
+# Change 'device_name' and 'friendly_name' to match your room
+#
+# STEP 3: Add secrets
+# ────────────────────────────
+# Add to your secrets.yaml:
+#   wifi_ssid: "YourNetwork"
+#   wifi_password: "YourPassword"
+#   api_encryption_key: "GENERATE_THIS_WITH_ESPHOME"
+#   ota_password: "your-password"
+#
+# STEP 4: Upload to device
+# ────────────────────────────
+# Connect via USB and upload using ESPHome dashboard
+#
+# ============================================================================
+# SUPPORT & DOCUMENTATION
+# ============================================================================
+# Installation Guide:
+#   https://github.com/sense360store/esphome-public/blob/main/docs/installation.md
+# Configuration:
+#   https://github.com/sense360store/esphome-public/blob/main/docs/configuration.md
+# Troubleshooting:
+#   https://github.com/sense360store/esphome-public/blob/main/docs/troubleshooting.md
+# Support:
+#   https://github.com/sense360store/esphome-public/issues
+# ============================================================================

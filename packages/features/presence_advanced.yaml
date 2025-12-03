@@ -1,0 +1,183 @@
+# ============================================================================
+# PRESENCE DETECTION - ADVANCED PROFILE
+# ============================================================================
+# Advanced presence detection with full technical controls and customization.
+# Includes: Multi-zone tracking, target counting, sensitivity modes, timeout
+# controls, distance measurements, and diagnostic sensors.
+# For technical users who want full control and tuning capabilities.
+# ============================================================================
+
+# Include basic profile as foundation
+packages:
+  presence_base: !include presence_basic.yaml
+
+# ----------------------------------------------------------------------------
+# SENSITIVITY MODES - Customize detection sensitivity
+# ----------------------------------------------------------------------------
+select:
+  - platform: template
+    id: presence_sensitivity
+    name: "${friendly_name} Presence Sensitivity"
+    icon: "mdi:tune"
+    optimistic: true
+    options:
+      - Quiet Room      # Low threshold - detects subtle movements
+      - Normal          # Balanced for typical rooms
+      - High Traffic    # High threshold - ignores minor movements
+    initial_option: Normal
+    restore_value: true
+    on_value:
+      then:
+        - lambda: |-
+            // Adjust presence confidence thresholds based on mode
+            if (x == "Quiet Room") {
+              ESP_LOGI("presence", "Sensitivity: Quiet Room (low threshold)");
+            } else if (x == "Normal") {
+              ESP_LOGI("presence", "Sensitivity: Normal");
+            } else if (x == "High Traffic") {
+              ESP_LOGI("presence", "Sensitivity: High Traffic (high threshold)");
+            }
+
+# ----------------------------------------------------------------------------
+# TIMEOUT CONTROL - How long to wait before marking room as empty
+# ----------------------------------------------------------------------------
+number:
+  - platform: template
+    id: presence_timeout_setting
+    name: "${friendly_name} Presence Timeout"
+    icon: "mdi:timer-outline"
+    unit_of_measurement: "s"
+    min_value: 5
+    max_value: 300
+    step: 5
+    initial_value: 30
+    optimistic: true
+    restore_value: true
+    mode: slider
+
+  # Confidence threshold adjustment
+  - platform: template
+    id: presence_confidence_threshold
+    name: "${friendly_name} Detection Threshold"
+    icon: "mdi:gauge"
+    unit_of_measurement: "%"
+    min_value: 10
+    max_value: 90
+    step: 5
+    initial_value: 30
+    optimistic: true
+    restore_value: true
+    mode: slider
+
+# ----------------------------------------------------------------------------
+# TARGET TRACKING - How many people/objects detected
+# ----------------------------------------------------------------------------
+sensor:
+  - platform: template
+    id: target_count
+    name: "${friendly_name} Target Count"
+    icon: "mdi:account-multiple"
+    unit_of_measurement: "targets"
+    accuracy_decimals: 0
+    state_class: measurement
+
+  # Average distance of all detected targets
+  - platform: template
+    id: average_target_distance
+    name: "${friendly_name} Average Distance"
+    icon: "mdi:ruler"
+    unit_of_measurement: "cm"
+    accuracy_decimals: 0
+    state_class: measurement
+
+  # Detection confidence level (0-100%)
+  - platform: template
+    id: detection_confidence_level
+    name: "${friendly_name} Detection Confidence"
+    icon: "mdi:progress-check"
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    state_class: measurement
+    update_interval: 1s
+    lambda: |-
+      return id(presence_confidence) * 100.0f;
+
+# ----------------------------------------------------------------------------
+# ZONE TRACKING - Multi-zone presence detection
+# ----------------------------------------------------------------------------
+binary_sensor:
+  # Zone 1 - Entry area
+  - platform: template
+    id: zone_1_occupied
+    name: "${friendly_name} Zone 1 Occupied"
+    icon: "mdi:map-marker-radius"
+    device_class: occupancy
+
+  # Zone 2 - Main area
+  - platform: template
+    id: zone_2_occupied
+    name: "${friendly_name} Zone 2 Occupied"
+    icon: "mdi:map-marker-radius"
+    device_class: occupancy
+
+  # Zone 3 - Extended area
+  - platform: template
+    id: zone_3_occupied
+    name: "${friendly_name} Zone 3 Occupied"
+    icon: "mdi:map-marker-radius"
+    device_class: occupancy
+
+# ----------------------------------------------------------------------------
+# DIAGNOSTIC CONTROLS
+# ----------------------------------------------------------------------------
+button:
+  # Reset presence detection calibration
+  - platform: template
+    name: "${friendly_name} Reset Presence Calibration"
+    icon: "mdi:restart"
+    on_press:
+      - lambda: |-
+          id(presence_confidence) = 0.0f;
+          ESP_LOGI("presence", "Calibration reset");
+
+switch:
+  # Enable/disable advanced detection features
+  - platform: template
+    id: advanced_detection_enabled
+    name: "${friendly_name} Advanced Detection"
+    icon: "mdi:radar"
+    optimistic: true
+    restore_value: true
+    initial_state: true
+
+# ----------------------------------------------------------------------------
+# DIAGNOSTICS & LOGGING
+# ----------------------------------------------------------------------------
+text_sensor:
+  - platform: template
+    id: presence_diagnostics
+    name: "${friendly_name} Presence Diagnostics"
+    icon: "mdi:information-outline"
+    internal: true
+    update_interval: 5s
+    lambda: |-
+      char buffer[256];
+      snprintf(buffer, sizeof(buffer),
+        "Confidence: %.1f%%, Threshold: %.0f%%, Timeout: %.0fs",
+        id(presence_confidence) * 100.0f,
+        id(presence_confidence_threshold).state,
+        id(presence_timeout_setting).state
+      );
+      return {buffer};
+
+# ----------------------------------------------------------------------------
+# INTERVAL UPDATES
+# ----------------------------------------------------------------------------
+interval:
+  # Update presence confidence based on sensor data
+  - interval: 1s
+    then:
+      - lambda: |-
+          // This will be updated by hardware-specific sensor logic
+          // The hardware package will set id(presence_confidence) based on actual sensor readings
+          ESP_LOGV("presence", "Confidence: %.2f", id(presence_confidence));

@@ -1,0 +1,138 @@
+# ============================================================================
+# AIR QUALITY MONITORING - BASIC PROFILE
+# ============================================================================
+# Simple, user-friendly air quality monitoring for most users.
+# Shows: Overall Air Quality (Excellent/Good/Fair/Poor)
+#        Temperature, Humidity
+#        Simple recommendations (Open Window / Air is Good)
+# No technical terms like PPM, PM2.5, VOC - just easy-to-understand ratings.
+# ============================================================================
+
+substitutions:
+  # Internal thresholds (users don't need to see these)
+  _co2_fair_level: "1000"
+  _co2_poor_level: "1500"
+  _particle_fair_level: "25"
+  _particle_poor_level: "55"
+
+# Global variables to track air quality state
+global:
+  - id: overall_air_quality_index
+    type: int
+    restore_value: no
+    initial_value: '100'  # 0-100, higher is better
+
+# ----------------------------------------------------------------------------
+# BASIC COMFORT SENSORS - Temperature & Humidity
+# ----------------------------------------------------------------------------
+sensor:
+  # Temperature - everyone understands this
+  - platform: template
+    id: room_temperature
+    name: "${friendly_name} Temperature"
+    icon: "mdi:thermometer"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    state_class: measurement
+    device_class: temperature
+
+  # Humidity - simple percentage
+  - platform: template
+    id: room_humidity
+    name: "${friendly_name} Humidity"
+    icon: "mdi:water-percent"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    state_class: measurement
+    device_class: humidity
+
+  # Optional: Perceived comfort level (0-100%)
+  - platform: template
+    id: comfort_level
+    name: "${friendly_name} Comfort Level"
+    icon: "mdi:emoticon-happy-outline"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    state_class: measurement
+    update_interval: 30s
+    lambda: |-
+      return id(overall_air_quality_index);
+
+# ----------------------------------------------------------------------------
+# OVERALL AIR QUALITY - Simple Rating
+# ----------------------------------------------------------------------------
+text_sensor:
+  - platform: template
+    id: air_quality_rating
+    name: "${friendly_name} Air Quality"
+    icon: "mdi:air-filter"
+    update_interval: 30s
+    lambda: |-
+      int aqi = id(overall_air_quality_index);
+
+      if (aqi >= 80) {
+        return {"Excellent"};
+      } else if (aqi >= 60) {
+        return {"Good"};
+      } else if (aqi >= 40) {
+        return {"Fair"};
+      } else {
+        return {"Poor"};
+      }
+
+  # Simple recommendation for users
+  - platform: template
+    id: air_quality_recommendation
+    name: "${friendly_name} Recommendation"
+    icon: "mdi:lightbulb-outline"
+    update_interval: 60s
+    lambda: |-
+      int aqi = id(overall_air_quality_index);
+
+      if (aqi >= 80) {
+        return {"Air quality is excellent"};
+      } else if (aqi >= 60) {
+        return {"Air quality is good"};
+      } else if (aqi >= 40) {
+        return {"Consider opening a window"};
+      } else {
+        return {"Open windows or turn on ventilation"};
+      }
+
+# ----------------------------------------------------------------------------
+# ALERT - When air quality becomes poor
+# ----------------------------------------------------------------------------
+binary_sensor:
+  - platform: template
+    id: air_quality_alert
+    name: "${friendly_name} Air Quality Alert"
+    device_class: problem
+    icon: "mdi:alert-circle-outline"
+    lambda: |-
+      // Alert when air quality drops below "Fair"
+      return id(overall_air_quality_index) < 40;
+
+# ----------------------------------------------------------------------------
+# SIMPLE CONTROLS
+# ----------------------------------------------------------------------------
+switch:
+  # Auto-ventilation recommendation (doesn't control fan, just suggests)
+  - platform: template
+    id: auto_recommendations_enabled
+    name: "${friendly_name} Show Recommendations"
+    icon: "mdi:comment-alert-outline"
+    optimistic: true
+    restore_value: true
+    initial_state: true
+
+# ----------------------------------------------------------------------------
+# UPDATE INTERVAL - Calculate overall air quality
+# ----------------------------------------------------------------------------
+interval:
+  - interval: 30s
+    then:
+      - lambda: |-
+          // This will be updated by actual sensor readings
+          // The hardware package will read sensors and update the index
+          // For now, maintain the current value
+          ESP_LOGD("airiq", "Air Quality Index: %d", id(overall_air_quality_index));

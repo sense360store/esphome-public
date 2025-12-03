@@ -1,5 +1,0 @@
-# esphome/packages/base/api_encrypted.yaml
-api:
-  encryption:
-    key: ${api_key}
-  reboot_timeout: 0s  # Avoid unintended restarts during tuning

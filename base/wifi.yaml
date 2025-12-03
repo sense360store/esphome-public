@@ -1,9 +1,0 @@
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-  ap:
-    ssid: "${device_name} Fallback"
-  reboot_timeout: 10min
-
-# Simple wired serial onboarding; remove if you don't use it.
-improv_serial:

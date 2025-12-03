@@ -1,0 +1,268 @@
+# ============================================================================
+# SENSE360 MINI - AIR QUALITY (BASIC)
+# ============================================================================
+# Simple air quality monitoring for everyday users.
+# Perfect for: Home health monitoring, nurseries, bedrooms, living spaces
+#
+# Features:
+# - Overall Air Quality (Excellent/Good/Fair/Poor)
+# - Temperature & Humidity
+# - Simple recommendations ("Open Window" vs "Air is Good")
+# - No technical jargon - just easy-to-understand information
+#
+# For customers who want to know "is my air quality good?" without details.
+# ============================================================================
+
+substitutions:
+  # Hardware pins (ESP32-S3 DevKit)
+  board_variant: esp32-s3-devkitc-1
+
+  # I2C Bus for sensors
+  i2c_sda_pin: GPIO21
+  i2c_scl_pin: GPIO22
+  i2c_frequency: 100kHz
+
+  # Status LED
+  status_led_pin: GPIO2
+
+  # WiFi & Logging
+  wifi_fast_connect: "true"
+  log_level: INFO
+
+  # Simple internal thresholds (hidden from users)
+  _co2_fair: "1000"
+  _co2_poor: "1500"
+  _particles_fair: "25"
+  _particles_poor: "55"
+
+# ----------------------------------------------------------------------------
+# ESPHOME CORE
+# ----------------------------------------------------------------------------
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  min_version: 2024.11.0
+  project:
+    name: sense360.mini-airiq-basic
+    version: "3.0.0"
+
+# ----------------------------------------------------------------------------
+# ESP32 CONFIGURATION
+# ----------------------------------------------------------------------------
+esp32:
+  board: ${board_variant}
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_ESPTOOLPY_FLASHSIZE_16MB: y
+      CONFIG_ESPTOOLPY_FLASHFREQ_80M: y
+      CONFIG_ESPTOOLPY_FLASHMODE_QIO: y
+
+# ----------------------------------------------------------------------------
+# BASE PACKAGES - Core system components
+# ----------------------------------------------------------------------------
+packages:
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_bluetooth: !include ../packages/base/bluetooth_proxy.yaml
+
+# ----------------------------------------------------------------------------
+# I2C BUS - For air quality sensors
+# ----------------------------------------------------------------------------
+i2c:
+  - id: i2c0
+    sda: ${i2c_sda_pin}
+    scl: ${i2c_scl_pin}
+    scan: true
+    frequency: ${i2c_frequency}
+
+# ----------------------------------------------------------------------------
+# AIR QUALITY FEATURES - Basic Profile
+# ----------------------------------------------------------------------------
+packages:
+  airiq_features: !include ../packages/features/airiq_basic.yaml
+
+# ----------------------------------------------------------------------------
+# HARDWARE SENSORS - SEN55 (Particulates) + SCD4x (CO2)
+# ----------------------------------------------------------------------------
+sensor:
+  # SEN55 - Particulate Matter, VOC, Temperature, Humidity
+  - platform: sen5x
+    id: sen55
+    i2c_id: i2c0
+    address: 0x69
+    update_interval: 60s
+
+    # Internal sensors (used for calculations)
+    pm_2_5:
+      id: sen55_pm25_internal
+      internal: true
+      on_value:
+        then:
+          - script.execute: update_air_quality_index
+
+    temperature:
+      id: sen55_temp_internal
+      internal: true
+      on_value:
+        then:
+          - lambda: |-
+              id(room_temperature).publish_state(x);
+
+    humidity:
+      id: sen55_humidity_internal
+      internal: true
+      on_value:
+        then:
+          - lambda: |-
+              id(room_humidity).publish_state(x);
+
+    voc:
+      id: sen55_voc_internal
+      internal: true
+      on_value:
+        then:
+          - script.execute: update_air_quality_index
+
+  # SCD4x - CO2 Sensor
+  - platform: scd4x
+    id: scd4x_sensor
+    i2c_id: i2c0
+    address: 0x62
+    update_interval: 60s
+    automatic_self_calibration: true
+
+    co2:
+      id: scd4x_co2_internal
+      internal: true
+      on_value:
+        then:
+          - script.execute: update_air_quality_index
+
+# ----------------------------------------------------------------------------
+# AIR QUALITY INDEX CALCULATION
+# ----------------------------------------------------------------------------
+script:
+  - id: update_air_quality_index
+    mode: restart
+    then:
+      - lambda: |-
+          // Calculate simple air quality index (0-100, higher is better)
+          float co2_score = 100.0f;
+          float particle_score = 100.0f;
+          float voc_score = 100.0f;
+
+          // CO2 scoring
+          if (id(scd4x_co2_internal).has_state()) {
+            float co2 = id(scd4x_co2_internal).state;
+            if (co2 < ${_co2_fair}) {
+              co2_score = 100.0f;
+            } else if (co2 < ${_co2_poor}) {
+              co2_score = 60.0f;
+            } else {
+              co2_score = 30.0f;
+            }
+          }
+
+          // Particle scoring (PM2.5)
+          if (id(sen55_pm25_internal).has_state()) {
+            float pm = id(sen55_pm25_internal).state;
+            if (pm < ${_particles_fair}) {
+              particle_score = 100.0f;
+            } else if (pm < ${_particles_poor}) {
+              particle_score = 60.0f;
+            } else {
+              particle_score = 30.0f;
+            }
+          }
+
+          // VOC scoring
+          if (id(sen55_voc_internal).has_state()) {
+            float voc = id(sen55_voc_internal).state;
+            if (voc < 120.0f) {
+              voc_score = 100.0f;
+            } else if (voc < 180.0f) {
+              voc_score = 60.0f;
+            } else {
+              voc_score = 30.0f;
+            }
+          }
+
+          // Calculate weighted average
+          float overall = (co2_score * 0.4f) + (particle_score * 0.4f) + (voc_score * 0.2f);
+          id(overall_air_quality_index) = (int)overall;
+
+          ESP_LOGI("airiq", "Air Quality: %d%% (CO2:%.0f PM:%.0f VOC:%.0f)",
+            id(overall_air_quality_index), co2_score, particle_score, voc_score);
+
+# ----------------------------------------------------------------------------
+# DEVICE HEALTH
+# ----------------------------------------------------------------------------
+packages:
+  device_health: !include ../packages/features/device_health.yaml
+
+# ----------------------------------------------------------------------------
+# STATUS LED
+# ----------------------------------------------------------------------------
+light:
+  - platform: status_led
+    id: device_status_led
+    name: "${friendly_name} Status LED"
+    pin: ${status_led_pin}
+    restore_mode: ALWAYS_ON
+
+# ----------------------------------------------------------------------------
+# BASIC CONTROLS
+# ----------------------------------------------------------------------------
+button:
+  - platform: restart
+    name: "${friendly_name} Restart"
+    icon: "mdi:restart"
+
+  - platform: safe_mode
+    name: "${friendly_name} Safe Mode"
+    icon: "mdi:safety-goggles"
+
+  # Simple sensor clean button (user-friendly name)
+  - platform: template
+    name: "${friendly_name} Clean Sensor"
+    icon: "mdi:broom"
+    on_press:
+      - sen5x.start_fan_autoclean:
+          id: sen55
+      - logger.log: "Starting sensor cleaning cycle (10 seconds)"
+
+# ----------------------------------------------------------------------------
+# NOTES FOR USERS
+# ----------------------------------------------------------------------------
+# To use this configuration:
+#
+# 1. Create your device config (e.g., sense360-living-room.yaml)
+# 2. Add this package:
+#
+#    packages:
+#      sense360_firmware:
+#        url: https://github.com/sense360store/esphome-public
+#        ref: v3.0.0
+#        files:
+#          - products/sense360-mini-airiq-basic.yaml
+#        refresh: 1d
+#
+# 3. Define your device:
+#
+#    substitutions:
+#      device_name: sense360-living-room
+#      friendly_name: "Living Room Sensor"
+#
+# 4. Add your WiFi credentials and API key in secrets.yaml
+#
+# You'll get:
+# - Overall air quality rating (Excellent/Good/Fair/Poor)
+# - Temperature and humidity
+# - Simple recommendations when air quality drops
+# - No confusing technical measurements!
+# ============================================================================

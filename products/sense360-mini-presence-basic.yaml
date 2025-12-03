@@ -1,0 +1,206 @@
+# ============================================================================
+# SENSE360 MINI - PRESENCE DETECTION (BASIC)
+# ============================================================================
+# Simple presence detection for everyday users.
+# Perfect for: Home automation, smart lighting, occupancy monitoring
+#
+# Features:
+# - Room Occupied (Yes/No)
+# - Activity Level (Still/Moving)
+# - Easy to understand, no technical jargon
+#
+# For customers who want simple "is someone in the room?" detection.
+# ============================================================================
+
+substitutions:
+  # Hardware pins (ESP32-S3 DevKit)
+  board_variant: esp32-s3-devkitc-1
+
+  # LD2450 Presence Sensor UART
+  ld2450_uart_id: uart_presence
+  ld2450_tx_pin: GPIO13
+  ld2450_rx_pin: GPIO12
+  ld2450_baud: "256000"
+
+  # Status LED
+  status_led_pin: GPIO2
+
+  # WiFi & Logging
+  wifi_fast_connect: "true"
+  log_level: INFO
+
+# ----------------------------------------------------------------------------
+# ESPHOME CORE
+# ----------------------------------------------------------------------------
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  min_version: 2024.11.0
+  project:
+    name: sense360.mini-presence-basic
+    version: "3.0.0"
+
+# ----------------------------------------------------------------------------
+# ESP32 CONFIGURATION
+# ----------------------------------------------------------------------------
+esp32:
+  board: ${board_variant}
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_ESPTOOLPY_FLASHSIZE_16MB: y
+      CONFIG_ESPTOOLPY_FLASHFREQ_80M: y
+      CONFIG_ESPTOOLPY_FLASHMODE_QIO: y
+
+# ----------------------------------------------------------------------------
+# BASE PACKAGES - Core system components
+# ----------------------------------------------------------------------------
+packages:
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_bluetooth: !include ../packages/base/bluetooth_proxy.yaml
+
+# ----------------------------------------------------------------------------
+# HARDWARE - LD2450 Presence Sensor
+# ----------------------------------------------------------------------------
+uart:
+  - id: ${ld2450_uart_id}
+    tx_pin: ${ld2450_tx_pin}
+    rx_pin: ${ld2450_rx_pin}
+    baud_rate: ${ld2450_baud}
+    parity: NONE
+    stop_bits: 1
+
+ld2450:
+  id: ld2450_radar
+  uart_id: ${ld2450_uart_id}
+  throttle: 500ms
+  bluetooth_password: "HiLink"
+
+# ----------------------------------------------------------------------------
+# PRESENCE DETECTION - Basic Profile
+# ----------------------------------------------------------------------------
+packages:
+  presence_features: !include ../packages/features/presence_basic.yaml
+
+# ----------------------------------------------------------------------------
+# PRESENCE LOGIC - Connect hardware to features
+# ----------------------------------------------------------------------------
+sensor:
+  # Target tracking (used internally)
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    target_count:
+      id: ld2450_target_count
+      name: "${friendly_name} People Count"
+    still_target_count:
+      id: ld2450_still_count
+      internal: true
+    moving_target_count:
+      id: ld2450_moving_count
+      internal: true
+
+    # Individual targets
+    target_1:
+      x:
+        id: ld2450_t1_x
+        internal: true
+      y:
+        id: ld2450_t1_y
+        internal: true
+    target_2:
+      x:
+        id: ld2450_t2_x
+        internal: true
+      y:
+        id: ld2450_t2_y
+        internal: true
+    target_3:
+      x:
+        id: ld2450_t3_x
+        internal: true
+      y:
+        id: ld2450_t3_y
+        internal: true
+
+# Update presence confidence based on sensor data
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          // Simple presence detection logic
+          int targets = id(ld2450_target_count).state;
+          int moving = id(ld2450_moving_count).state;
+
+          if (targets > 0) {
+            // Someone is present
+            if (moving > 0) {
+              // Movement detected - high confidence
+              id(presence_confidence) = 0.9f;
+            } else {
+              // Still presence - medium confidence
+              id(presence_confidence) = 0.6f;
+            }
+          } else {
+            // No one detected
+            id(presence_confidence) = 0.1f;
+          }
+
+# ----------------------------------------------------------------------------
+# DEVICE HEALTH
+# ----------------------------------------------------------------------------
+packages:
+  device_health: !include ../packages/features/device_health.yaml
+
+# ----------------------------------------------------------------------------
+# STATUS LED
+# ----------------------------------------------------------------------------
+light:
+  - platform: status_led
+    id: device_status_led
+    name: "${friendly_name} Status LED"
+    pin: ${status_led_pin}
+    restore_mode: ALWAYS_ON
+
+# ----------------------------------------------------------------------------
+# BASIC CONTROLS
+# ----------------------------------------------------------------------------
+button:
+  - platform: restart
+    name: "${friendly_name} Restart"
+    icon: "mdi:restart"
+
+  - platform: safe_mode
+    name: "${friendly_name} Safe Mode"
+    icon: "mdi:safety-goggles"
+
+# ----------------------------------------------------------------------------
+# NOTES FOR USERS
+# ----------------------------------------------------------------------------
+# To use this configuration:
+#
+# 1. Create your device config (e.g., sense360-bedroom.yaml)
+# 2. Add this package:
+#
+#    packages:
+#      sense360_firmware:
+#        url: https://github.com/sense360store/esphome-public
+#        ref: v3.0.0
+#        files:
+#          - products/sense360-mini-presence-basic.yaml
+#        refresh: 1d
+#
+# 3. Define your device:
+#
+#    substitutions:
+#      device_name: sense360-bedroom
+#      friendly_name: "Bedroom Sensor"
+#
+# 4. Add your WiFi credentials and API key in secrets.yaml
+#
+# That's it! No technical configuration needed.
+# ============================================================================
