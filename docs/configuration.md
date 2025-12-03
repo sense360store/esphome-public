@@ -149,7 +149,7 @@ Choose which product configuration to use:
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.0.2
+    ref: v2.1.0
     files:
       - products/sense360-mini-airiq.yaml
 ```
@@ -364,7 +364,7 @@ For advanced users who want specific components only:
 packages:
   sense360_custom:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.0.2
+    ref: v2.1.0
     files:
       # Base (required)
       - base/wifi.yaml
@@ -500,7 +500,7 @@ api:
 ```yaml
 packages:
   sense360_firmware:
-    ref: v2.0.2  # Specific stable version
+    ref: v2.1.0  # Specific stable version
 ```
 
 ### Testing Latest Features
@@ -511,7 +511,7 @@ packages:
     ref: main  # ⚠️ Latest development version (may be unstable)
 ```
 
-**Recommendation**: Use version tags (v2.0.2) for production devices.
+**Recommendation**: Use version tags (v2.1.0) for production devices.
 
 ---
 

@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- None yet.
+
+### Changed
+- None yet.
+
+### Breaking Changes
+- None.
+
+### Upgrade
+- None.
+
+---
+
+## [2.1.0] - 2025-12-03
+
+### Added
+- Overall air quality LED color entity to mirror consolidated device status across dashboards and automations.
+- New `air_quality_status` text sensor and `air_quality_warning` binary sensor for clear HA-friendly status and alerting.
 - MVP Pollutant, MVP Severity, and LED Mode text sensors for clearer status reporting.
 - Human-readable particulate names across UI outputs to improve clarity.
 - Global persistence for unified night brightness so Mini LED strip settings survive restarts.
@@ -24,10 +42,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified LD2450 basic presence profile tagging and documented selection between LD2450 and LD2412 profile options.
 
 ### Breaking Changes
-- Migrate any existing `night_brightness` references to `mini_night_brightness` to align with the new unified night-mode behavior.
+- None.
 
 ### Upgrade
-- Update package references from `ref: v2.0.1` to `ref: v2.0.2`, optionally exposing `mini_night_brightness_number` and `mini_night_light_switch` to Home Assistant.
+- Update package references from `ref: v2.0.2` to `ref: v2.1.0`, and use the new `air_quality_status` and `air_quality_warning` entities in dashboards and automations.
 
 ---
 
