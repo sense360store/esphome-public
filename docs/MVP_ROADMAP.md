@@ -103,29 +103,7 @@ These items ensure code quality and prevent regressions. **Must complete before 
 
 Features that directly improve user experience and product capabilities.
 
-### 2.1 Energy Monitoring Integration
-**Effort**: 1-2 weeks
-**Status**: Mentioned in v2.0.0, needs implementation verification
-
-**Deliverables:**
-- [ ] Power consumption sensor (ESP32 measurement)
-- [ ] Energy usage tracking (kWh accumulator)
-- [ ] Daily/weekly/monthly energy statistics
-- [ ] Home Assistant energy dashboard integration
-- [ ] Power-saving mode implementation
-- [ ] Wake-on-presence feature
-
-**Files to Create/Modify:**
-- `features/energy_monitoring.yaml`
-- `packages/energy_sensors.yaml`
-
-**Success Criteria:**
-- Energy data visible in Home Assistant Energy dashboard
-- Accurate power measurement (±5%)
-
----
-
-### 2.2 Multi-Device Synchronization
+### 2.1 Multi-Device Synchronization
 **Effort**: 2-3 weeks
 **Status**: Mentioned in v2.0.0, needs implementation verification
 
@@ -147,7 +125,7 @@ Features that directly improve user experience and product capabilities.
 
 ---
 
-### 2.3 Advanced Air Quality Trending
+### 2.2 Advanced Air Quality Trending
 **Effort**: 1-2 weeks
 **Status**: Mentioned in v2.0.0, needs implementation verification
 
@@ -169,7 +147,7 @@ Features that directly improve user experience and product capabilities.
 
 ---
 
-### 2.4 BSEC2 Calibration System
+### 2.3 BSEC2 Calibration System
 **Effort**: 1-2 weeks
 **Status**: BME680 removed, evaluate if needed
 
@@ -337,15 +315,14 @@ Continuous improvement and maintenance tasks.
 ## Implementation Order (Recommended)
 
 ```
-Week 1-2:   P1.2 - CI/CD Enhancement (foundation for all other work)
+Week 1-2:   P1.2 - CI/CD Enhancement ✅ COMPLETE
 Week 3-6:   P1.1 - Integration Testing (parallel with feature work)
-Week 4-5:   P2.1 - Energy Monitoring
-Week 6-7:   P2.3 - Air Quality Trending
-Week 8-10:  P2.2 - Multi-Device Synchronization
-Week 8-9:   P3.1 - Basic/Advanced Profile Expansion
-Week 10-11: P3.2 - LD2412 Full Support
-Week 11-12: P3.3 - LED Animation Enhancement
-Week 12+:   P1.3 - Hardware-in-Loop Testing Setup
+Week 4-5:   P2.2 - Air Quality Trending
+Week 6-8:   P2.1 - Multi-Device Synchronization
+Week 6-7:   P3.1 - Basic/Advanced Profile Expansion
+Week 8-9:   P3.2 - LD2412 Full Support
+Week 9-10:  P3.3 - LED Animation Enhancement
+Week 10+:   P1.3 - Hardware-in-Loop Testing Setup
 Ongoing:    P4.x - Infrastructure improvements
 ```
 
@@ -354,18 +331,17 @@ Ongoing:    P4.x - Infrastructure improvements
 ## Version Planning
 
 ### v2.2.0 (Target: +4 weeks)
-- P1.2 CI/CD Enhancement
-- P2.1 Energy Monitoring
+- P1.2 CI/CD Enhancement ✅ COMPLETE
+- P2.2 Air Quality Trending
 - P3.1 Basic/Advanced Profile Expansion
 
 ### v2.3.0 (Target: +8 weeks)
 - P1.1 Integration Testing (partial)
-- P2.3 Air Quality Trending
+- P2.1 Multi-Device Synchronization
 - P3.2 LD2412 Full Support
 
 ### v3.0.0 (Target: +12 weeks)
 - P1.1 Integration Testing (complete)
-- P2.2 Multi-Device Synchronization
 - P3.3 LED Animation Enhancement
 - P3.4 Voice Assistant Integration (experimental)
 
@@ -405,8 +381,26 @@ Ongoing:    P4.x - Infrastructure improvements
 | Date | Decision | Rationale |
 |------|----------|-----------|
 | 2025-12-04 | Prioritize testing before features | Prevent regressions, ensure quality |
-| 2025-12-04 | Energy monitoring as first P2 feature | High user demand, clear value |
+| 2025-12-04 | Remove Energy Monitoring from MVP | No hardware support (ESP32-S3 lacks power measurement) |
+| 2025-12-04 | P1.2 CI/CD Enhancement complete | All deliverables implemented |
 | TBD | BSEC2 re-evaluation needed | Was removed, assess if needed |
+
+---
+
+## Out of Scope (Removed from MVP)
+
+### Energy Monitoring Integration
+**Reason**: Removed from MVP - no hardware support
+
+The Sense360 hardware (ESP32-S3) does not include power measurement capabilities. Implementing accurate energy monitoring would require additional hardware:
+- INA219/INA226 I2C power monitor
+- ACS712 Hall effect current sensor
+- Or similar power measurement IC
+
+**Future Options**:
+- Add as optional hardware addon in future revision
+- Implement software-based power estimation (less accurate)
+- Document power profiles for manual calculation
 
 ---
 
