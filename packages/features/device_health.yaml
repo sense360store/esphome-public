@@ -1,15 +1,8 @@
 ---
 # Device health monitoring and information
-# Note: Uptime, WiFi Signal, Restart button, and Safe Mode button are provided by hardware configs
-# This file provides additional diagnostic information
+# Note: Uptime, WiFi Signal, WiFi Info text sensors, Restart button, and Safe Mode button are
+# provided by hardware configs. This file provides additional diagnostic information.
 
 text_sensor:
   - platform: version
     name: "${friendly_name} ESPHome"
-  - platform: wifi_info
-    ip_address:
-      name: "${friendly_name} IP"
-    ssid:
-      name: "${friendly_name} SSID"
-    bssid:
-      name: "${friendly_name} BSSID"
