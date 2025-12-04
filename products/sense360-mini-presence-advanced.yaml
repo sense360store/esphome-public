@@ -131,14 +131,6 @@ sensor:
       id: ld2450_moving_count
       name: "${friendly_name} Moving Targets"
 
-    # Zone tracking
-    zone_1_target_count:
-      name: "${friendly_name} Zone 1 Targets"
-    zone_2_target_count:
-      name: "${friendly_name} Zone 2 Targets"
-    zone_3_target_count:
-      name: "${friendly_name} Zone 3 Targets"
-
     # Target 1 - Full details
     target_1:
       x:
