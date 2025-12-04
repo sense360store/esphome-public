@@ -79,6 +79,11 @@ packages:
   base_time: !include ../packages/base/time.yaml
   base_logging: !include ../packages/base/logging.yaml
   base_bluetooth: !include ../packages/base/bluetooth_proxy.yaml
+  # AIR QUALITY FEATURES - Advanced Profile
+  airiq_features: !include ../packages/features/airiq_advanced.yaml
+  # Device Health & Diagnostics
+  device_health: !include ../packages/features/device_health.yaml
+  diagnostics: !include ../packages/features/diagnostics.yaml
 
 # ----------------------------------------------------------------------------
 # I2C BUS - For air quality sensors
@@ -89,12 +94,6 @@ i2c:
     scl: ${i2c_scl_pin}
     scan: true
     frequency: ${i2c_frequency}
-
-# ----------------------------------------------------------------------------
-# AIR QUALITY FEATURES - Advanced Profile
-# ----------------------------------------------------------------------------
-packages:
-  airiq_features: !include ../packages/features/airiq_advanced.yaml
 
 # ----------------------------------------------------------------------------
 # FULL SENSOR SUITE
@@ -246,6 +245,41 @@ sensor:
         then:
           - lambda: 'id(illuminance).publish_state(x);'
 
+  # ===== STATISTICS & TRENDS (24-hour moving averages) =====
+  - platform: template
+    name: "${friendly_name} CO₂ 24h Average"
+    icon: "mdi:chart-line"
+    unit_of_measurement: "ppm"
+    accuracy_decimals: 0
+    state_class: measurement
+    update_interval: 300s
+    lambda: |-
+      if (id(scd4x_co2).has_state()) {
+        return id(scd4x_co2).state;
+      }
+      return {};
+    filters:
+      - sliding_window_moving_average:
+          window_size: 288  # 24 hours at 5-minute intervals
+          send_every: 1
+
+  - platform: template
+    name: "${friendly_name} PM2.5 24h Average"
+    icon: "mdi:chart-line"
+    unit_of_measurement: "µg/m³"
+    accuracy_decimals: 1
+    state_class: measurement
+    update_interval: 300s
+    lambda: |-
+      if (id(sen55_pm25).has_state()) {
+        return id(sen55_pm25).state;
+      }
+      return {};
+    filters:
+      - sliding_window_moving_average:
+          window_size: 288
+          send_every: 1
+
 # ----------------------------------------------------------------------------
 # ADVANCED AQI CALCULATION
 # ----------------------------------------------------------------------------
@@ -349,13 +383,6 @@ number:
     initial_value: 0
 
 # ----------------------------------------------------------------------------
-# DEVICE HEALTH & DIAGNOSTICS
-# ----------------------------------------------------------------------------
-packages:
-  device_health: !include ../packages/features/device_health.yaml
-  diagnostics: !include ../packages/features/diagnostics.yaml
-
-# ----------------------------------------------------------------------------
 # STATUS LED
 # ----------------------------------------------------------------------------
 light:
@@ -396,44 +423,6 @@ switch:
       - logger.log:
           level: INFO
           format: "Extended logging disabled"
-
-# ----------------------------------------------------------------------------
-# STATISTICS & TRENDS (24-hour moving averages)
-# ----------------------------------------------------------------------------
-sensor:
-  - platform: template
-    name: "${friendly_name} CO₂ 24h Average"
-    icon: "mdi:chart-line"
-    unit_of_measurement: "ppm"
-    accuracy_decimals: 0
-    state_class: measurement
-    update_interval: 300s
-    lambda: |-
-      if (id(scd4x_co2).has_state()) {
-        return id(scd4x_co2).state;
-      }
-      return {};
-    filters:
-      - sliding_window_moving_average:
-          window_size: 288  # 24 hours at 5-minute intervals
-          send_every: 1
-
-  - platform: template
-    name: "${friendly_name} PM2.5 24h Average"
-    icon: "mdi:chart-line"
-    unit_of_measurement: "µg/m³"
-    accuracy_decimals: 1
-    state_class: measurement
-    update_interval: 300s
-    lambda: |-
-      if (id(sen55_pm25).has_state()) {
-        return id(sen55_pm25).state;
-      }
-      return {};
-    filters:
-      - sliding_window_moving_average:
-          window_size: 288
-          send_every: 1
 
 # ----------------------------------------------------------------------------
 # HVAC INTEGRATION HELPERS

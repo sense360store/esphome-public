@@ -63,6 +63,10 @@ packages:
   base_time: !include ../packages/base/time.yaml
   base_logging: !include ../packages/base/logging.yaml
   base_bluetooth: !include ../packages/base/bluetooth_proxy.yaml
+  # PRESENCE DETECTION - Basic Profile
+  presence_features: !include ../packages/features/presence_basic.yaml
+  # Device Health
+  device_health: !include ../packages/features/device_health.yaml
 
 # ----------------------------------------------------------------------------
 # HARDWARE - LD2450 Presence Sensor
@@ -80,12 +84,6 @@ ld2450:
   uart_id: ${ld2450_uart_id}
   throttle: 500ms
   bluetooth_password: "HiLink"
-
-# ----------------------------------------------------------------------------
-# PRESENCE DETECTION - Basic Profile
-# ----------------------------------------------------------------------------
-packages:
-  presence_features: !include ../packages/features/presence_basic.yaml
 
 # ----------------------------------------------------------------------------
 # PRESENCE LOGIC - Connect hardware to features
@@ -149,12 +147,6 @@ interval:
             // No one detected
             id(presence_confidence) = 0.1f;
           }
-
-# ----------------------------------------------------------------------------
-# DEVICE HEALTH
-# ----------------------------------------------------------------------------
-packages:
-  device_health: !include ../packages/features/device_health.yaml
 
 # ----------------------------------------------------------------------------
 # STATUS LED

@@ -40,15 +40,15 @@ substitutions:
 
 packages:
   # === Base System ===
-  base_wifi:       !include ../base/wifi.yaml
-  base_logging:    !include ../base/logging.yaml
-  base_api:        !include ../base/api_encrypted.yaml
-  base_ota:        !include ../base/ota.yaml
-  base_time:       !include ../base/time.yaml
-  base_bluetooth:  !include ../base/bluetooth_proxy.yaml
+  base_wifi: !include ../base/wifi.yaml
+  base_logging: !include ../base/logging.yaml
+  base_api: !include ../base/api_encrypted.yaml
+  base_ota: !include ../base/ota.yaml
+  base_time: !include ../base/time.yaml
+  base_bluetooth: !include ../base/bluetooth_proxy.yaml
 
   # === Hardware ===
-  core_hardware:     !include ../hardware/sense360_core_mini.yaml
+  core_hardware: !include ../hardware/sense360_core_mini.yaml
   presence_hardware: !include ../hardware/presence_ld2412.yaml
 
   # === Features ===

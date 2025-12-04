@@ -35,7 +35,8 @@ script:
           ESP_LOGI("test", "Good color: R=%d G=%d B=%d", good_color.red, good_color.green, good_color.blue);
 
           Color moderate_color = color_for_severity(LEVEL_MODERATE);
-          ESP_LOGI("test", "Moderate color: R=%d G=%d B=%d", moderate_color.red, moderate_color.green, moderate_color.blue);
+          ESP_LOGI("test", "Moderate: R=%d G=%d B=%d",
+                   moderate_color.red, moderate_color.green, moderate_color.blue);
 
           // Test scaling
           Color scaled = scale_color(good_color, 0.5f);

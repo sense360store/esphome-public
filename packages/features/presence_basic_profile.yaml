@@ -4,7 +4,7 @@ packages:
 globals:
   - id: presence_confidence
     type: float
-    restore_value: no
+    restore_value: false
     initial_value: '0.0'
 
 binary_sensor:

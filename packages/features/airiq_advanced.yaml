@@ -93,9 +93,10 @@ globals:
     initial_value: ${voc_unhealthy_limit}
 
 # ----------------------------------------------------------------------------
-# CO2 SENSOR - Carbon Dioxide (SCD4x)
+# ALL SENSORS - CO2, PM, VOC, NOx, Environmental
 # ----------------------------------------------------------------------------
 sensor:
+  # CO2 SENSOR - Carbon Dioxide (SCD4x)
   - platform: template
     id: co2_ppm
     name: "${friendly_name} CO₂"
@@ -105,31 +106,7 @@ sensor:
     state_class: measurement
     device_class: carbon_dioxide
 
-# CO2 Level Classification
-text_sensor:
-  - platform: template
-    id: co2_level
-    name: "${friendly_name} CO₂ Level"
-    icon: "mdi:gauge"
-    update_interval: 30s
-    lambda: |-
-      if (!id(co2_ppm).has_state()) return {"unknown"};
-      float co2 = id(co2_ppm).state;
-
-      if (co2 < id(g_co2_good)) {
-        return {"Good"};
-      } else if (co2 < id(g_co2_moderate)) {
-        return {"Moderate"};
-      } else if (co2 < id(g_co2_unhealthy)) {
-        return {"Unhealthy"};
-      } else {
-        return {"Poor"};
-      }
-
-# ----------------------------------------------------------------------------
-# PARTICULATE MATTER SENSORS (SEN55)
-# ----------------------------------------------------------------------------
-sensor:
+  # PARTICULATE MATTER SENSORS (SEN55)
   # PM1.0 - Finest particles
   - platform: template
     id: pm1_0
@@ -169,31 +146,7 @@ sensor:
     state_class: measurement
     device_class: pm10
 
-# PM2.5 Level Classification (most important)
-text_sensor:
-  - platform: template
-    id: pm25_level
-    name: "${friendly_name} PM2.5 Level"
-    icon: "mdi:gauge"
-    update_interval: 30s
-    lambda: |-
-      if (!id(pm2_5).has_state()) return {"unknown"};
-      float pm = id(pm2_5).state;
-
-      if (pm < id(g_pm25_good)) {
-        return {"Good"};
-      } else if (pm < id(g_pm25_moderate)) {
-        return {"Moderate"};
-      } else if (pm < id(g_pm25_unhealthy)) {
-        return {"Unhealthy"};
-      } else {
-        return {"Poor"};
-      }
-
-# ----------------------------------------------------------------------------
-# VOC & NOx SENSORS (SEN55)
-# ----------------------------------------------------------------------------
-sensor:
+  # VOC & NOx SENSORS (SEN55)
   # VOC Index (0-500)
   - platform: template
     id: voc_index
@@ -214,31 +167,7 @@ sensor:
     state_class: measurement
     device_class: nitrogen_oxide
 
-# VOC Level Classification
-text_sensor:
-  - platform: template
-    id: voc_level
-    name: "${friendly_name} VOC Level"
-    icon: "mdi:gauge"
-    update_interval: 30s
-    lambda: |-
-      if (!id(voc_index).has_state()) return {"unknown"};
-      float voc = id(voc_index).state;
-
-      if (voc < id(g_voc_good)) {
-        return {"Good"};
-      } else if (voc < id(g_voc_moderate)) {
-        return {"Moderate"};
-      } else if (voc < id(g_voc_unhealthy)) {
-        return {"Unhealthy"};
-      } else {
-        return {"Poor"};
-      }
-
-# ----------------------------------------------------------------------------
-# ADDITIONAL ENVIRONMENTAL SENSORS
-# ----------------------------------------------------------------------------
-sensor:
+  # ADDITIONAL ENVIRONMENTAL SENSORS
   # Atmospheric Pressure
   - platform: template
     id: atmospheric_pressure
@@ -258,6 +187,104 @@ sensor:
     accuracy_decimals: 0
     state_class: measurement
     device_class: illuminance
+
+  # DIAGNOSTIC SENSORS
+  # Air Quality Index (AQI) calculated from all sensors
+  - platform: template
+    id: calculated_aqi
+    name: "${friendly_name} Air Quality Index"
+    icon: "mdi:air-filter"
+    unit_of_measurement: "AQI"
+    accuracy_decimals: 0
+    state_class: measurement
+    update_interval: 60s
+    lambda: |-
+      // Calculate composite AQI from multiple sensors
+      // This is a simplified calculation
+      return id(overall_air_quality_index);
+
+# ----------------------------------------------------------------------------
+# ALL TEXT SENSORS - Level Classifications and Diagnostics
+# ----------------------------------------------------------------------------
+text_sensor:
+  # CO2 Level Classification
+  - platform: template
+    id: co2_level
+    name: "${friendly_name} CO₂ Level"
+    icon: "mdi:gauge"
+    update_interval: 30s
+    lambda: |-
+      if (!id(co2_ppm).has_state()) return {"unknown"};
+      float co2 = id(co2_ppm).state;
+
+      if (co2 < id(g_co2_good)) {
+        return {"Good"};
+      } else if (co2 < id(g_co2_moderate)) {
+        return {"Moderate"};
+      } else if (co2 < id(g_co2_unhealthy)) {
+        return {"Unhealthy"};
+      } else {
+        return {"Poor"};
+      }
+
+  # PM2.5 Level Classification (most important)
+  - platform: template
+    id: pm25_level
+    name: "${friendly_name} PM2.5 Level"
+    icon: "mdi:gauge"
+    update_interval: 30s
+    lambda: |-
+      if (!id(pm2_5).has_state()) return {"unknown"};
+      float pm = id(pm2_5).state;
+
+      if (pm < id(g_pm25_good)) {
+        return {"Good"};
+      } else if (pm < id(g_pm25_moderate)) {
+        return {"Moderate"};
+      } else if (pm < id(g_pm25_unhealthy)) {
+        return {"Unhealthy"};
+      } else {
+        return {"Poor"};
+      }
+
+  # VOC Level Classification
+  - platform: template
+    id: voc_level
+    name: "${friendly_name} VOC Level"
+    icon: "mdi:gauge"
+    update_interval: 30s
+    lambda: |-
+      if (!id(voc_index).has_state()) return {"unknown"};
+      float voc = id(voc_index).state;
+
+      if (voc < id(g_voc_good)) {
+        return {"Good"};
+      } else if (voc < id(g_voc_moderate)) {
+        return {"Moderate"};
+      } else if (voc < id(g_voc_unhealthy)) {
+        return {"Unhealthy"};
+      } else {
+        return {"Poor"};
+      }
+
+  # Detailed diagnostics
+  - platform: template
+    id: sensor_diagnostics
+    name: "${friendly_name} Sensor Diagnostics"
+    icon: "mdi:information-outline"
+    internal: true
+    update_interval: 60s
+    lambda: |-
+      char buffer[512];
+      snprintf(buffer, sizeof(buffer),
+        "CO2: %.0f ppm | PM2.5: %.1f µg/m³ | VOC: %.0f | Temp: %.1f°C | RH: %.0f%%",
+        id(co2_ppm).state,
+        id(pm2_5).state,
+        id(voc_index).state,
+        id(room_temperature).state,
+        id(room_humidity).state
+      );
+      return {buffer};
 
 # ----------------------------------------------------------------------------
 # CUSTOMIZABLE THRESHOLD CONTROLS
@@ -371,44 +398,6 @@ button:
           id(g_voc_good) = ${voc_good_limit};
           id(g_voc_moderate) = ${voc_moderate_limit};
           ESP_LOGI("airiq", "Thresholds reset to defaults");
-
-# ----------------------------------------------------------------------------
-# DIAGNOSTIC SENSORS
-# ----------------------------------------------------------------------------
-sensor:
-  # Air Quality Index (AQI) calculated from all sensors
-  - platform: template
-    id: calculated_aqi
-    name: "${friendly_name} Air Quality Index"
-    icon: "mdi:air-filter"
-    unit_of_measurement: "AQI"
-    accuracy_decimals: 0
-    state_class: measurement
-    update_interval: 60s
-    lambda: |-
-      // Calculate composite AQI from multiple sensors
-      // This is a simplified calculation
-      return id(overall_air_quality_index);
-
-text_sensor:
-  # Detailed diagnostics
-  - platform: template
-    id: sensor_diagnostics
-    name: "${friendly_name} Sensor Diagnostics"
-    icon: "mdi:information-outline"
-    internal: true
-    update_interval: 60s
-    lambda: |-
-      char buffer[512];
-      snprintf(buffer, sizeof(buffer),
-        "CO2: %.0f ppm | PM2.5: %.1f µg/m³ | VOC: %.0f | Temp: %.1f°C | RH: %.0f%%",
-        id(co2_ppm).state,
-        id(pm2_5).state,
-        id(voc_index).state,
-        id(room_temperature).state,
-        id(room_humidity).state
-      );
-      return {buffer};
 
 # ----------------------------------------------------------------------------
 # AUTO-VENTILATION LOGIC (Advanced)
