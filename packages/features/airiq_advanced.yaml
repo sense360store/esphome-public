@@ -166,7 +166,7 @@ sensor:
     unit_of_measurement: "index"
     accuracy_decimals: 0
     state_class: measurement
-    device_class: nitrogen_oxide
+    device_class: nitrogen_dioxide
 
   # ADDITIONAL ENVIRONMENTAL SENSORS
   # Atmospheric Pressure
