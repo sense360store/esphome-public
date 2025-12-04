@@ -8,7 +8,7 @@
 # ============================================================================
 
 # Global variable to track presence confidence
-global:
+globals:
   - id: presence_confidence
     type: float
     restore_value: false
