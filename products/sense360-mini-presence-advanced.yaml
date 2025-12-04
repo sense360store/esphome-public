@@ -320,8 +320,11 @@ light:
 # ----------------------------------------------------------------------------
 # ADVANCED CONTROLS
 # ----------------------------------------------------------------------------
-# Note: Restart and Safe Mode buttons are provided by hardware config
 button:
+  - platform: restart
+    id: reset_button
+    name: "${friendly_name} Restart"
+
   - platform: template
     name: "${friendly_name} Restart LD2450"
     icon: "mdi:restart"
