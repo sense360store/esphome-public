@@ -1,3 +1,4 @@
+---
 packages:
   airiq_basic: !include airiq_basic_profile.yaml
   diagnostics: !include diagnostics.yaml

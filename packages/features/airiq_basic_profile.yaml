@@ -1,3 +1,4 @@
+---
 substitutions:
   air_quality_topic: ${device_name}/air_quality
 

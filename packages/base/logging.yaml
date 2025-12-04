@@ -1,3 +1,4 @@
+---
 logger:
   level: ${log_level}
   logs:

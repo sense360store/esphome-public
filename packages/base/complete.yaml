@@ -1,3 +1,4 @@
+---
 packages:
   wifi: !include wifi.yaml
   api: !include api_encrypted.yaml

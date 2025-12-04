@@ -1,3 +1,4 @@
+---
 packages:
   base: !include ../base/complete.yaml
   hardware: !include ../hardware/sense360_core_mini.yaml

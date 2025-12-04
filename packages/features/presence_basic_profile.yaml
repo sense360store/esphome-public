@@ -1,3 +1,4 @@
+---
 packages:
   health: !include device_health.yaml
 
