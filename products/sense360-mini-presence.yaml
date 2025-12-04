@@ -55,4 +55,3 @@ packages:
 
   # === Features ===
   presence_detection: !include ../features/presence_basic_profile.yaml
-  device_diagnostics: !include ../features/device_health.yaml
