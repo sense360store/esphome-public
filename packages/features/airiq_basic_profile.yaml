@@ -5,6 +5,10 @@ substitutions:
   # broker does not require authentication.
   airiq_mqtt_username: ""
   airiq_mqtt_password: ""
+  # Optional Git credentials for the BSEC2 component if access requires
+  # authentication (leave blank for public access).
+  airiq_bsec2_git_username: ""
+  airiq_bsec2_git_password: ""
 
 packages:
   device_health: !include device_health.yaml
@@ -17,6 +21,9 @@ external_components:
   - source:
       type: git
       url: https://github.com/boschsensortec/BSEC2-ESPHome
+      ref: v1.0.0
+      username: ${airiq_bsec2_git_username}
+      password: ${airiq_bsec2_git_password}
     components: [bme680_bsec]
 
 sensor:
