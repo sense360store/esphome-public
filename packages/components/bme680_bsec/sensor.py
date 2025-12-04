@@ -6,15 +6,11 @@ import esphome.config_validation as cv
 from esphome.components import sensor
 from esphome.const import (
     CONF_HUMIDITY,
-    CONF_IAQ,
     CONF_PRESSURE,
     CONF_TEMPERATURE,
     DEVICE_CLASS_HUMIDITY,
     DEVICE_CLASS_PRESSURE,
     DEVICE_CLASS_TEMPERATURE,
-    DEVICE_CLASS_AQI,
-    DEVICE_CLASS_CARBON_DIOXIDE,
-    DEVICE_CLASS_VOLATILE_ORGANIC_COMPOUNDS,
     STATE_CLASS_MEASUREMENT,
     UNIT_CELSIUS,
     UNIT_HECTOPASCAL,
@@ -25,6 +21,8 @@ from . import BME680BSECComponent, CONF_BME680_BSEC_ID
 
 DEPENDENCIES = ["bme680_bsec"]
 
+# Constants not in esphome.const - define locally
+CONF_IAQ = "iaq"
 CONF_CO2_EQUIVALENT = "co2_equivalent"
 CONF_BREATH_VOC_EQUIVALENT = "breath_voc_equivalent"
 UNIT_IAQ = "IAQ"
@@ -53,19 +51,16 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_IAQ): sensor.sensor_schema(
             unit_of_measurement=UNIT_IAQ,
             accuracy_decimals=0,
-            device_class=DEVICE_CLASS_AQI,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_CO2_EQUIVALENT): sensor.sensor_schema(
             unit_of_measurement=UNIT_PARTS_PER_MILLION,
             accuracy_decimals=0,
-            device_class=DEVICE_CLASS_CARBON_DIOXIDE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_BREATH_VOC_EQUIVALENT): sensor.sensor_schema(
             unit_of_measurement=UNIT_PARTS_PER_MILLION,
             accuracy_decimals=2,
-            device_class=DEVICE_CLASS_VOLATILE_ORGANIC_COMPOUNDS,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
     }
