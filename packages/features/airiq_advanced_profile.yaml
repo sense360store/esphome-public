@@ -10,7 +10,7 @@ esphome:
   on_boot:
     - priority: 600
       then:
-        - script.execute: auto_fan_control
+        - script.execute: auto_fan_control_startup
 
 interval:
   - interval: 5min
@@ -35,6 +35,10 @@ switch:
     restore_mode: RESTORE_DEFAULT_OFF
 
 script:
+  - id: auto_fan_control_startup
+    mode: queued
+    then:
+      - script.execute: auto_fan_control
   - id: auto_fan_control
     mode: restart
     then:
