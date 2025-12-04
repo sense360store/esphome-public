@@ -1,0 +1,164 @@
+---
+# Sense360 Core - PoE (Power over Ethernet) Configuration
+#
+# This package configures the Sense360 Core board for IEEE 802.3af PoE power.
+#
+# Hardware:
+# - PoE module (e.g., Ag9712M, Silvertel Ag9700, or similar)
+# - Standard: IEEE 802.3af (PoE) or 802.3at (PoE+)
+# - Class: Class 0 (0.44-12.95W) or Class 1 (0.44-3.84W)
+# - Input: 36-57V DC (from PoE switch/injector)
+# - Output: 5V DC, 2A (10W) or 3.3V DC
+# - Protection: Overcurrent, overvoltage, short-circuit
+#
+# Benefits:
+# - Most stable power source
+# - Galvanic isolation from mains
+# - Single cable for network + power
+# - Ideal for permanent installations
+#
+# Recommended for:
+# - Professional installations
+# - Ceiling-mounted devices
+# - Wall-mounted devices
+# - Locations with existing network infrastructure
+# - Where maximum reliability is required
+#
+# Note: Requires PoE-capable network switch or PoE injector
+
+substitutions:
+  power_source: "poe"
+  poe_class: "0"  # PoE class (0, 1, 2, 3, 4)
+  poe_standard: "802.3af"  # or "802.3at" for PoE+
+
+# Global variable for power source identification
+globals:
+  - id: power_source_type
+    type: std::string
+    restore_value: no
+    initial_value: '"PoE"'
+
+# PoE power monitoring
+sensor:
+  # Supply voltage from PoE module
+  - platform: template
+    name: "${friendly_name} Supply Voltage"
+    id: supply_voltage
+    icon: mdi:lightning-bolt
+    unit_of_measurement: "V"
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    lambda: |-
+      return 5.0;  // Fixed 5V output from PoE module
+    update_interval: 60s
+
+  # Optional: PoE input voltage monitoring (if hardware supports it)
+  # This would require additional circuitry (voltage divider + ADC)
+  # - platform: adc
+  #   name: "${friendly_name} PoE Input Voltage"
+  #   id: poe_input_voltage
+  #   pin: GPIO3  # ADC pin for voltage divider
+  #   attenuation: 11dB
+  #   update_interval: 10s
+  #   filters:
+  #     # Voltage divider to scale 48V to 3.3V range
+  #     # Example: 47kΩ + 3.3kΩ divider = 15.15:1 ratio
+  #     - multiply: 15.15
+  #     - sliding_window_moving_average:
+  #         window_size: 5
+  #         send_every: 1
+  #   unit_of_measurement: "V"
+  #   device_class: voltage
+  #   state_class: measurement
+  #   accuracy_decimals: 1
+  #   icon: mdi:flash
+
+  # WiFi signal strength (important for PoE devices)
+  # Ensure network connectivity is good
+  - platform: wifi_signal
+    name: "${friendly_name} WiFi Signal"
+    id: wifi_rssi
+    update_interval: 30s
+    filters:
+      - sliding_window_moving_average:
+          window_size: 10
+          send_every: 5
+
+# Power source indicator
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Power Source"
+    id: power_source_indicator
+    icon: mdi:ethernet
+    lambda: |-
+      return {"PoE (IEEE ${poe_standard})"};
+    update_interval: 60s
+
+  - platform: template
+    name: "${friendly_name} Power Configuration"
+    id: power_config_info
+    icon: mdi:information
+    lambda: |-
+      return {"Power over Ethernet (PoE) Class ${poe_class}, ${poe_standard} standard"};
+    update_interval: never
+    entity_category: diagnostic
+
+# Binary sensor for PoE power status
+binary_sensor:
+  - platform: template
+    name: "${friendly_name} PoE Power Connected"
+    id: poe_power_connected
+    icon: mdi:ethernet
+    device_class: power
+    lambda: |-
+      // Assume always connected for PoE configuration
+      // PoE detection could be implemented with additional circuitry
+      return true;
+
+  # Network connectivity status (critical for PoE devices)
+  - platform: status
+    name: "${friendly_name} Network Status"
+    id: network_status
+
+# Alert if WiFi signal is poor (important for PoE devices)
+# PoE provides power but device still needs good WiFi
+binary_sensor:
+  - platform: template
+    name: "${friendly_name} Poor WiFi Signal"
+    id: poor_wifi_signal
+    icon: mdi:wifi-alert
+    device_class: problem
+    lambda: |-
+      // Alert if WiFi signal is below -75 dBm
+      if (id(wifi_rssi).has_state()) {
+        return id(wifi_rssi).state < -75.0;
+      }
+      return false;
+    filters:
+      - delayed_on: 30s  # Avoid false alerts
+
+# Debug logging for PoE configuration
+logger:
+  logs:
+    wifi: INFO
+    ethernet: DEBUG
+
+# Automation: Log PoE status on boot
+esphome:
+  on_boot:
+    - priority: -100
+      then:
+        - logger.log:
+            format: "Power source: PoE (IEEE %s, Class %s)"
+            args: ["${poe_standard}", "${poe_class}"]
+        - delay: 2s
+        - if:
+            condition:
+              wifi.connected:
+            then:
+              - logger.log: "PoE device connected to network successfully"
+            else:
+              - logger.log:
+                  level: WARN
+                  message: "PoE device has power but no network connectivity"

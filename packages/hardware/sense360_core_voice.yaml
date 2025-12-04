@@ -1,0 +1,252 @@
+---
+# Sense360 Core Voice Board
+#
+# Voice-enabled variant of the Sense360 Core board.
+# Includes all features of the standard core plus voice assistant capabilities.
+#
+# Additional Hardware Features:
+# - I2S MEMS Microphone (INMP441 or compatible)
+# - I2S DAC/Amplifier (MAX98357A, 3W output)
+# - Local wake word detection
+# - ESPHome voice assistant integration
+#
+# Additional Pin Assignments:
+# - Microphone I2S:
+#   - SCK (Serial Clock):    GPIO11
+#   - WS (Word Select):      GPIO12
+#   - SD (Serial Data):      GPIO13
+# - Speaker I2S:
+#   - BCLK (Bit Clock):      GPIO14
+#   - LRC (Left/Right Clock):GPIO15
+#   - DIN (Data In):         GPIO16
+#
+# Power Requirements:
+# - Recommend PoE or 240V AC due to higher power consumption
+# - USB-C may not provide sufficient power for continuous audio operation
+#
+# Base Configuration:
+# This package includes the standard sense360_core.yaml and adds voice features.
+
+# Include the base core board configuration
+packages:
+  core_base: !include sense360_core.yaml
+
+substitutions:
+  # Override device identifiers
+  device_name: sense360-core-voice
+  friendly_name: Sense360 Core Voice
+
+  # Microphone I2S pins
+  mic_i2s_sck_pin: GPIO11
+  mic_i2s_ws_pin: GPIO12
+  mic_i2s_sd_pin: GPIO13
+
+  # Speaker/Amplifier I2S pins
+  speaker_i2s_bclk_pin: GPIO14
+  speaker_i2s_lrc_pin: GPIO15
+  speaker_i2s_din_pin: GPIO16
+
+  # Voice assistant settings
+  wake_word: "hey_sense"  # Options: okay_nabu, hey_jarvis, alexa, etc.
+  voice_timeout: "10s"
+
+esphome:
+  # Override project name for voice variant
+  project:
+    name: sense360.core_voice
+    version: 1.0.0
+  on_boot:
+    - priority: -100
+      then:
+        - logger.log: "Sense360 Core Voice board ready - voice assistant enabled"
+        - if:
+            condition:
+              voice_assistant.is_running:
+            then:
+              - logger.log: "Voice assistant is running"
+
+# Microphone configuration (I2S MEMS)
+microphone:
+  - platform: i2s_audio
+    id: core_microphone
+    adc_type: external
+    i2s_din_pin: ${mic_i2s_sd_pin}
+    i2s_bclk_pin: ${mic_i2s_sck_pin}
+    i2s_lrclk_pin: ${mic_i2s_ws_pin}
+    pdm: false
+    # Sample rate and bits
+    # Common settings for INMP441:
+    # - sample_rate: 16000 (good for voice)
+    # - bits_per_sample: 32
+    # Note: Adjust based on your specific microphone module
+
+# Speaker configuration (I2S DAC/Amplifier)
+speaker:
+  - platform: i2s_audio
+    id: core_speaker
+    dac_type: external
+    i2s_dout_pin: ${speaker_i2s_din_pin}
+    i2s_bclk_pin: ${speaker_i2s_bclk_pin}
+    i2s_lrclk_pin: ${speaker_i2s_lrc_pin}
+    mode: mono
+    # Sample rate should match microphone
+    # Common settings for MAX98357A:
+    # - sample_rate: 16000
+    # - bits_per_sample: 16
+
+# Voice Assistant integration
+voice_assistant:
+  id: core_voice_assistant
+  microphone: core_microphone
+  speaker: core_speaker
+
+  # Noise suppression (requires ESP-IDF framework)
+  noise_suppression_level: 2  # 0-4, higher = more suppression
+  auto_gain: 31dBFS  # Automatic gain control
+  volume_multiplier: 2.0  # Increase if audio is too quiet
+
+  # Wake word (local processing)
+  # Note: Wake word models need to be configured in Home Assistant
+  # This enables the voice pipeline
+  use_wake_word: true
+
+  # Callbacks for different states
+  on_listening:
+    - light.turn_on:
+        id: simple_status_led
+        effect: "Listening Pulse"
+    - logger.log: "Voice assistant listening..."
+
+  on_stt_vad_end:
+    - light.turn_off:
+        id: simple_status_led
+    - logger.log: "Voice command received, processing..."
+
+  on_tts_start:
+    - logger.log: "Speaking response..."
+
+  on_tts_end:
+    - logger.log: "Response complete"
+
+  on_end:
+    - light.turn_off:
+        id: simple_status_led
+    - logger.log: "Voice assistant session ended"
+
+  on_error:
+    - light.turn_on:
+        id: simple_status_led
+        effect: "Error Blink"
+    - logger.log:
+        format: "Voice assistant error: %s"
+        args: ["x.c_str()"]
+    - delay: 2s
+    - light.turn_off:
+        id: simple_status_led
+
+# Enhanced status LED with voice assistant effects
+light:
+  # Override the simple status LED to add effects
+  - platform: status_led
+    id: voice_status_led
+    pin:
+      number: ${status_led_pin}
+      inverted: true
+    effects:
+      # Pulse effect when listening
+      - pulse:
+          name: "Listening Pulse"
+          transition_length: 0.5s
+          update_interval: 0.5s
+      # Fast blink on error
+      - strobe:
+          name: "Error Blink"
+          colors:
+            - state: true
+              duration: 250ms
+            - state: false
+              duration: 250ms
+
+# Voice assistant controls
+switch:
+  - platform: template
+    name: "${friendly_name} Voice Assistant"
+    id: voice_assistant_switch
+    icon: mdi:microphone
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_on:
+      - voice_assistant.start_continuous:
+      - logger.log: "Voice assistant enabled"
+    on_turn_off:
+      - voice_assistant.stop:
+      - logger.log: "Voice assistant disabled"
+
+  - platform: template
+    name: "${friendly_name} Mute Microphone"
+    id: mute_microphone
+    icon: mdi:microphone-off
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      - voice_assistant.stop:
+      - logger.log: "Microphone muted"
+    on_turn_off:
+      - if:
+          condition:
+            switch.is_on: voice_assistant_switch
+          then:
+            - voice_assistant.start_continuous:
+            - logger.log: "Microphone unmuted"
+
+# Volume control for speaker
+number:
+  - platform: template
+    name: "${friendly_name} Speaker Volume"
+    id: speaker_volume
+    icon: mdi:volume-high
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 70
+    optimistic: true
+    restore_value: true
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - lambda: |-
+            // Adjust volume multiplier (0.0 to 3.0)
+            float volume = x / 100.0 * 3.0;
+            id(core_voice_assistant).set_volume_multiplier(volume);
+            ESP_LOGD("voice", "Volume set to %.1f (multiplier: %.2f)", x, volume);
+
+# Voice assistant binary sensors
+binary_sensor:
+  - platform: template
+    name: "${friendly_name} Voice Assistant Running"
+    id: voice_assistant_running
+    icon: mdi:microphone-message
+    lambda: |-
+      return id(core_voice_assistant).is_running();
+    # Update every second
+    filters:
+      - delayed_on: 100ms
+
+# Voice assistant sensors
+sensor:
+  # Track voice command count
+  - platform: template
+    name: "${friendly_name} Voice Commands Today"
+    id: voice_commands_count
+    icon: mdi:counter
+    accuracy_decimals: 0
+    state_class: total_increasing
+    # This would need to be incremented in automation
+
+# Text sensor for last voice command (debugging)
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Last Voice Command"
+    id: last_voice_command
+    icon: mdi:message-text
+    # This would be updated by voice assistant pipeline in Home Assistant

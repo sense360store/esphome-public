@@ -1,0 +1,215 @@
+---
+# Sense360 Core Board - Standard Edition
+#
+# This is the main core board for the Sense360 modular system.
+# It provides the foundation for all expansion modules.
+#
+# Hardware Features:
+# - ESP32-S3-WROOM-1 (8MB Flash, 2MB PSRAM)
+# - WiFi 2.4GHz, Bluetooth 5.0 LE
+# - Power: 240V AC / PoE / USB-C (configurable via power packages)
+# - Dual I2C buses for expansion modules
+# - UART for presence/radar sensors
+# - 4x GPIO expansion pins
+# - Built-in relay (10A)
+# - RGB status LED + status LED
+#
+# Pin Assignments:
+# - I2C0 (Primary):   SDA=GPIO39, SCL=GPIO40
+# - I2C1 (Secondary): SDA=GPIO21, SCL=GPIO18
+# - UART:             TX=GPIO1, RX=GPIO2
+# - GPIO Expansion:   GPIO4, GPIO5, GPIO6, GPIO7
+# - Relay:            GPIO10
+# - Status LED:       GPIO48 (RGB WS2812B)
+# - Status LED:       GPIO2 (simple LED)
+# - User Button:      GPIO9
+# - Boot Button:      GPIO0
+#
+# Expansion Bus Pinout (10-pin connector):
+# 1. GND
+# 2. 3.3V
+# 3. 5V
+# 4. I2C0 SDA (GPIO39)
+# 5. I2C0 SCL (GPIO40)
+# 6. UART TX (GPIO1)
+# 7. UART RX (GPIO2)
+# 8. GPIO4
+# 9. GPIO5
+# 10. IRQ/GPIO6 (optional)
+
+substitutions:
+  device_name: sense360-core
+  friendly_name: Sense360 Core
+  timezone: "America/Los_Angeles"
+
+  # Pin definitions (can be overridden in product configs)
+  # I2C buses
+  i2c0_sda_pin: GPIO39
+  i2c0_scl_pin: GPIO40
+  i2c1_sda_pin: GPIO21
+  i2c1_scl_pin: GPIO18
+
+  # UART
+  uart_tx_pin: GPIO1
+  uart_rx_pin: GPIO2
+  uart_baud: "115200"
+
+  # GPIO expansion pins
+  expansion_gpio1: GPIO4
+  expansion_gpio2: GPIO5
+  expansion_gpio3: GPIO6
+  expansion_gpio4: GPIO7
+
+  # Relay
+  relay_pin: GPIO10
+
+  # Status indicators
+  status_led_rgb_pin: GPIO48
+  status_led_pin: GPIO2
+
+  # Buttons
+  user_button_pin: GPIO9
+  boot_button_pin: GPIO0
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  project:
+    name: sense360.core
+    version: 1.0.0
+  # Platform-specific initialization
+  on_boot:
+    - priority: 600
+      then:
+        - logger.log: "Sense360 Core board initializing..."
+    - priority: -100
+      then:
+        - logger.log: "Sense360 Core board ready"
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_COMPILER_OPTIMIZATION_SIZE: y
+      # Enable PSRAM
+      CONFIG_ESP32S3_SPIRAM_SUPPORT: y
+      CONFIG_SPIRAM_MODE_OCT: y
+
+# Primary I2C bus for expansion modules
+i2c:
+  - id: i2c0
+    sda: ${i2c0_sda_pin}
+    scl: ${i2c0_scl_pin}
+    scan: true
+    frequency: 400kHz
+
+  # Secondary I2C bus (optional, for additional modules)
+  - id: i2c1
+    sda: ${i2c1_sda_pin}
+    scl: ${i2c1_scl_pin}
+    scan: true
+    frequency: 400kHz
+
+# UART for expansion modules (presence sensors, etc.)
+uart:
+  - id: uart_bus
+    tx_pin: ${uart_tx_pin}
+    rx_pin: ${uart_rx_pin}
+    baud_rate: ${uart_baud}
+
+# RGB Status LED (WS2812B or similar)
+light:
+  - platform: status_led
+    id: simple_status_led
+    pin:
+      number: ${status_led_pin}
+      inverted: true
+    internal: true
+
+# Main relay output
+switch:
+  - platform: gpio
+    name: "${friendly_name} Relay"
+    id: main_relay
+    pin: ${relay_pin}
+    restore_mode: RESTORE_DEFAULT_OFF
+    icon: mdi:electric-switch
+
+# User button
+binary_sensor:
+  - platform: status
+    name: "${friendly_name} Status"
+    id: system_status
+
+  - platform: gpio
+    name: "${friendly_name} User Button"
+    id: user_button
+    pin:
+      number: ${user_button_pin}
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "User button pressed"
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+
+# System controls
+button:
+  - platform: restart
+    id: restart_button
+    name: "${friendly_name} Restart"
+    icon: mdi:restart
+
+  - platform: safe_mode
+    name: "${friendly_name} Safe Mode"
+    icon: mdi:safety-goggles
+
+  - platform: factory_reset
+    name: "${friendly_name} Factory Reset"
+    id: factory_reset_btn
+    icon: mdi:delete-forever
+    disabled_by_default: true
+
+# System sensors
+sensor:
+  - platform: wifi_signal
+    name: "${friendly_name} WiFi Signal"
+    id: wifi_signal_sensor
+    update_interval: 60s
+    icon: mdi:wifi
+
+  - platform: uptime
+    name: "${friendly_name} Uptime"
+    id: uptime_sensor
+    update_interval: 60s
+    icon: mdi:clock-outline
+
+  # Internal temperature sensor (ESP32-S3)
+  - platform: internal_temperature
+    name: "${friendly_name} Internal Temperature"
+    id: internal_temp
+    update_interval: 60s
+    icon: mdi:thermometer
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "${friendly_name} IP Address"
+      icon: mdi:ip-network
+    ssid:
+      name: "${friendly_name} SSID"
+      icon: mdi:wifi
+    mac_address:
+      name: "${friendly_name} MAC Address"
+      icon: mdi:network-outline
+
+  - platform: version
+    name: "${friendly_name} ESPHome Version"
+    hide_timestamp: true
+    icon: mdi:information-outline
