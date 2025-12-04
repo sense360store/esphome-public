@@ -17,7 +17,7 @@ substitutions:
   _particle_poor_level: "55"
 
 # Global variables to track air quality state
-global:
+globals:
   - id: overall_air_quality_index
     type: int
     restore_value: false
