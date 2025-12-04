@@ -87,6 +87,13 @@ packages:
   diagnostics: !include ../packages/features/diagnostics.yaml
 
 # ----------------------------------------------------------------------------
+# WIFI CUSTOMIZATION - Shorter fallback SSID to stay under 32 characters
+# ----------------------------------------------------------------------------
+wifi:
+  ap:
+    ssid: "Sense360 Mini Adv Fallback"
+
+# ----------------------------------------------------------------------------
 # HARDWARE - LD2450 Presence Sensor with full configuration
 # ----------------------------------------------------------------------------
 uart:
