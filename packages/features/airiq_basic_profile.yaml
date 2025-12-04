@@ -9,6 +9,16 @@ substitutions:
 packages:
   device_health: !include device_health.yaml
 
+bme680_bsec:
+  address: 0x77
+  i2c_id: i2c0
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/boschsensortec/BSEC2-ESPHome
+    components: [bme680_bsec]
+
 sensor:
   - platform: bme680_bsec
     i2c_id: i2c0
