@@ -2,12 +2,11 @@
 substitutions:
   status_light_brightness: "50%"
 
-i2c:
-  - !extend
-    id: led_i2c
-    sda: GPIO25
-    scl: GPIO26
-    frequency: 400kHz
+i2c: !extend
+  id: led_i2c
+  sda: GPIO25
+  scl: GPIO26
+  frequency: 400kHz
 
 pca9685:
   - id: led_driver
