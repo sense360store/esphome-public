@@ -17,6 +17,11 @@
 # ============================================================================
 
 substitutions:
+  # Device identity (override these for your install)
+  device_name: sense360-mini-airiq-adv  # Lowercase letters, numbers, hyphens, or underscores
+  friendly_name: Sense360 Mini AirIQ  # Customize the display name shown in dashboards
+  timezone: UTC  # Set to your local timezone, e.g., America/New_York
+
   # Hardware pins (ESP32-S3 DevKit)
   board_variant: esp32-s3-devkitc-1
 
