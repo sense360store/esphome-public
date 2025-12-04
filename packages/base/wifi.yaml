@@ -9,4 +9,3 @@ wifi:
     password: !secret fallback_ap_password
 
 captive_portal:
-

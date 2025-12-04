@@ -8,7 +8,7 @@ interval:
       - logger.log:
           level: INFO
           format: "IAQ classification: %s"
-          args: [ 'id(air_quality_state).state.c_str()' ]
+          args: ['id(air_quality_state).state.c_str()']
       - script.execute: auto_fan_control
 
 output:

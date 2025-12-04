@@ -44,12 +44,12 @@ substitutions:
   led_rgb_order: GRB
 
   # === WiFi Behavior ===
-  wifi_fast_connect: "true"        # Skip SSID scan for faster connection
+  wifi_fast_connect: "true"  # Skip SSID scan for faster connection
 
   # === CO2 Air Quality Thresholds (ppm) ===
-  co2_good_limit: "750"            # Good: < 750 ppm
-  co2_moderate_limit: "950"        # Moderate: 750-950 ppm
-  co2_unhealthy_limit: "1400"      # Unhealthy: 950-1400 ppm (Poor: > 1400)
+  co2_good_limit: "750"  # Good: < 750 ppm
+  co2_moderate_limit: "950"  # Moderate: 750-950 ppm
+  co2_unhealthy_limit: "1400"  # Unhealthy: 950-1400 ppm (Poor: > 1400)
 
   # === PM1.0 Thresholds (µg/m³) ===
   sen55_pm1_good_limit: "5"
@@ -57,7 +57,7 @@ substitutions:
   sen55_pm1_unhealthy_limit: "35"
 
   # === PM2.5 Thresholds (µg/m³) ===
-  sen55_pm2_5_good_limit: "10"     # WHO guideline: 10 µg/m³
+  sen55_pm2_5_good_limit: "10"  # WHO guideline: 10 µg/m³
   sen55_pm2_5_moderate_limit: "25"
   sen55_pm2_5_unhealthy_limit: "55"
 
@@ -93,21 +93,21 @@ substitutions:
 
 packages:
   # === Base System Configuration ===
-  base_wifi:       !include ../base/wifi.yaml
-  base_logging:    !include ../base/logging.yaml
-  base_api:        !include ../base/api_encrypted.yaml
-  base_ota:        !include ../base/ota.yaml
-  base_time:       !include ../base/time.yaml
-  base_bluetooth:  !include ../base/bluetooth_proxy.yaml
+  base_wifi: !include ../base/wifi.yaml
+  base_logging: !include ../base/logging.yaml
+  base_api: !include ../base/api_encrypted.yaml
+  base_ota: !include ../base/ota.yaml
+  base_time: !include ../base/time.yaml
+  base_bluetooth: !include ../base/bluetooth_proxy.yaml
 
   # === Hardware Drivers ===
-  core_hardware:     !include ../hardware/sense360_core_mini.yaml
+  core_hardware: !include ../hardware/sense360_core_mini.yaml
   presence_hardware: !include ../hardware/presence_ld2412.yaml
 
   # === Feature Profiles ===
-  airiq_sensors:      !include ../features/airiq_mini_profile.yaml
+  airiq_sensors: !include ../features/airiq_mini_profile.yaml
   presence_detection: !include ../features/presence_basic_profile_ld2412.yaml
-  status_leds:        !include ../features/mini_four_leds_addr.yaml
+  status_leds: !include ../features/mini_four_leds_addr.yaml
   device_diagnostics: !include ../features/device_health.yaml
 
 # ----------------------------------------------------------------------------

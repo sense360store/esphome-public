@@ -72,6 +72,11 @@ packages:
   base_time: !include ../packages/base/time.yaml
   base_logging: !include ../packages/base/logging.yaml
   base_bluetooth: !include ../packages/base/bluetooth_proxy.yaml
+  # Presence detection - Advanced Profile
+  presence_features: !include ../packages/features/presence_advanced.yaml
+  # Device Health & Diagnostics
+  device_health: !include ../packages/features/device_health.yaml
+  diagnostics: !include ../packages/features/diagnostics.yaml
 
 # ----------------------------------------------------------------------------
 # HARDWARE - LD2450 Presence Sensor with full configuration
@@ -93,12 +98,6 @@ ld2450:
   throttle: 250ms  # Faster updates for advanced users
   bluetooth_password: "HiLink"
   # Advanced users can modify zones via LD2450 Bluetooth app
-
-# ----------------------------------------------------------------------------
-# PRESENCE DETECTION - Advanced Profile
-# ----------------------------------------------------------------------------
-packages:
-  presence_features: !include ../packages/features/presence_advanced.yaml
 
 # ----------------------------------------------------------------------------
 # FULL TARGET TRACKING - All sensors exposed
@@ -260,13 +259,6 @@ interval:
             avg_distance /= distance_count;
             id(average_target_distance).publish_state(avg_distance);
           }
-
-# ----------------------------------------------------------------------------
-# DEVICE HEALTH & DIAGNOSTICS
-# ----------------------------------------------------------------------------
-packages:
-  device_health: !include ../packages/features/device_health.yaml
-  diagnostics: !include ../packages/features/diagnostics.yaml
 
 # ----------------------------------------------------------------------------
 # STATUS LED

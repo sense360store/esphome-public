@@ -69,6 +69,10 @@ packages:
   base_time: !include ../packages/base/time.yaml
   base_logging: !include ../packages/base/logging.yaml
   base_bluetooth: !include ../packages/base/bluetooth_proxy.yaml
+  # AIR QUALITY FEATURES - Basic Profile
+  airiq_features: !include ../packages/features/airiq_basic.yaml
+  # Device Health
+  device_health: !include ../packages/features/device_health.yaml
 
 # ----------------------------------------------------------------------------
 # I2C BUS - For air quality sensors
@@ -79,12 +83,6 @@ i2c:
     scl: ${i2c_scl_pin}
     scan: true
     frequency: ${i2c_frequency}
-
-# ----------------------------------------------------------------------------
-# AIR QUALITY FEATURES - Basic Profile
-# ----------------------------------------------------------------------------
-packages:
-  airiq_features: !include ../packages/features/airiq_basic.yaml
 
 # ----------------------------------------------------------------------------
 # HARDWARE SENSORS - SEN55 (Particulates) + SCD4x (CO2)
@@ -198,12 +196,6 @@ script:
 
           ESP_LOGI("airiq", "Air Quality: %d%% (CO2:%.0f PM:%.0f VOC:%.0f)",
             id(overall_air_quality_index), co2_score, particle_score, voc_score);
-
-# ----------------------------------------------------------------------------
-# DEVICE HEALTH
-# ----------------------------------------------------------------------------
-packages:
-  device_health: !include ../packages/features/device_health.yaml
 
 # ----------------------------------------------------------------------------
 # STATUS LED
