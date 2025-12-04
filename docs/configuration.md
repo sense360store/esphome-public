@@ -61,6 +61,7 @@ packages:
 - Presence detection
 - LED indicators
 - Device health monitoring
+- MQTT publishing for AirIQ (requires `mqtt_username` and `mqtt_password` in your `secrets.yaml`)
 
 #### Sense360 Mini + Presence Only
 

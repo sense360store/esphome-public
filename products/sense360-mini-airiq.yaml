@@ -142,6 +142,11 @@ packages:
 #      encryption:
 #        key: !secret api_encryption_key
 #
+#    # AirIQ MQTT publishing (required for air quality topics)
+#    mqtt:
+#      username: !secret mqtt_username
+#      password: !secret mqtt_password
+#
 #    ota:
 #      - platform: esphome
 #        password: !secret ota_password
