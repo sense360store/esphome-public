@@ -5,10 +5,12 @@ substitutions:
   # broker does not require authentication.
   airiq_mqtt_username: ""
   airiq_mqtt_password: ""
-  # Optional Git credentials for the BSEC2 component if access requires
-  # authentication. Provide `username:token@` to insert credentials ahead of
-  # the repository path; leave blank for public access.
-  airiq_bsec2_git_credentials: ""
+  # BSEC2 external component source. Defaults to a local stub for validation in
+  # network-restricted environments. For production with real sensor data, set to:
+  #   github://boschsensortec/BSEC2-ESPHome@v1.4.2500
+  # Or with credentials:
+  #   github://username:token@boschsensortec/BSEC2-ESPHome@v1.4.2500
+  airiq_bsec2_source: "../components"
 
 packages:
   device_health: !include device_health.yaml
@@ -18,11 +20,10 @@ bme680_bsec:
   i2c_id: i2c0
 
 external_components:
-  # Provide `airiq_bsec2_git_credentials` as a substitution (or secret) when
-  # access to the Bosch repository requires authentication. Set the value to
-  # `username:token@` to prepend credentials; leave it blank to use the public
-  # URL. This avoids templated lambdas, keeping the source a plain string.
-  - source: "github://${airiq_bsec2_git_credentials}boschsensortec/BSEC2-ESPHome@v1.4.2500"
+  # By default uses local stub component for validation. For production with real
+  # BME680 sensor data, override airiq_bsec2_source with the GitHub URL:
+  #   github://boschsensortec/BSEC2-ESPHome@v1.4.2500
+  - source: ${airiq_bsec2_source}
     components: [bme680_bsec]
 
 sensor:
