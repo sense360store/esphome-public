@@ -115,7 +115,7 @@ sensor:
     # PM1.0 - Finest particles
     pm_1_0:
       id: sen55_pm1
-      name: "${friendly_name} PM1.0"
+      internal: true
       accuracy_decimals: 1
       filters:
         - sliding_window_moving_average:
@@ -129,7 +129,7 @@ sensor:
     # PM2.5 - Most health-relevant
     pm_2_5:
       id: sen55_pm25
-      name: "${friendly_name} PM2.5"
+      internal: true
       accuracy_decimals: 1
       filters:
         - sliding_window_moving_average:
@@ -143,7 +143,7 @@ sensor:
     # PM4.0 - Respirable particles
     pm_4_0:
       id: sen55_pm4
-      name: "${friendly_name} PM4.0"
+      internal: true
       accuracy_decimals: 1
       on_value:
         then:
@@ -152,7 +152,7 @@ sensor:
     # PM10 - Inhalable particles
     pm_10_0:
       id: sen55_pm10
-      name: "${friendly_name} PM10"
+      internal: true
       accuracy_decimals: 1
       on_value:
         then:
@@ -179,7 +179,7 @@ sensor:
     # VOC Index (0-500)
     voc:
       id: sen55_voc
-      name: "${friendly_name} VOC Index"
+      internal: true
       on_value:
         then:
           - lambda: 'id(voc_index).publish_state(x);'
@@ -188,7 +188,7 @@ sensor:
     # NOx Index (0-500)
     nox:
       id: sen55_nox
-      name: "${friendly_name} NOx Index"
+      internal: true
       on_value:
         then:
           - lambda: 'id(nox_index).publish_state(x);'
@@ -205,7 +205,7 @@ sensor:
 
     co2:
       id: scd4x_co2
-      name: "${friendly_name} CO₂"
+      internal: true
       on_value:
         then:
           - lambda: 'id(co2_ppm).publish_state(x);'
@@ -234,7 +234,7 @@ sensor:
 
     pressure:
       id: pressure_sensor
-      name: "${friendly_name} Pressure"
+      internal: true
       accuracy_decimals: 1
       on_value:
         then:
@@ -246,7 +246,7 @@ sensor:
     address: 0x53
     ambient_light:
       id: light_sensor
-      name: "${friendly_name} Ambient Light"
+      internal: true
       on_value:
         then:
           - lambda: 'id(illuminance).publish_state(x);'
