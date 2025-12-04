@@ -5,67 +5,17 @@ substitutions:
   # broker does not require authentication.
   airiq_mqtt_username: ""
   airiq_mqtt_password: ""
-  # BSEC2 external component source. Defaults to a local stub for validation in
-  # network-restricted environments. For production with real sensor data, set to:
-  #   github://boschsensortec/BSEC2-ESPHome@v1.4.2500
-  # Or with credentials:
-  #   github://username:token@boschsensortec/BSEC2-ESPHome@v1.4.2500
-  airiq_bsec2_source: "../components"
 
 packages:
   device_health: !include device_health.yaml
-
-bme680_bsec:
-  address: 0x77
-  i2c_id: i2c0
-
-external_components:
-  # By default uses local stub component for validation. For production with real
-  # BME680 sensor data, override airiq_bsec2_source with the GitHub URL:
-  #   github://boschsensortec/BSEC2-ESPHome@v1.4.2500
-  - source: ${airiq_bsec2_source}
-    components: [bme680_bsec]
-
-sensor:
-  - platform: bme680_bsec
-    i2c_id: i2c0
-    temperature:
-      name: "${friendly_name} Temperature"
-      accuracy_decimals: 1
-    pressure:
-      name: "${friendly_name} Pressure"
-      accuracy_decimals: 1
-    humidity:
-      name: "${friendly_name} Humidity"
-      accuracy_decimals: 1
-    iaq:
-      name: "${friendly_name} IAQ"
-      id: ${device_name}_iaq
-    co2_equivalent:
-      name: "${friendly_name} eCO₂"
-    breath_voc_equivalent:
-      name: "${friendly_name} bVOC"
 
 text_sensor:
   - platform: template
     id: air_quality_state
     name: "${friendly_name} Air Quality State"
     lambda: |-
-      if (!id(${device_name}_iaq).has_state()) {
-        return {"unknown"};
-      }
-      const float iaq = id(${device_name}_iaq).state;
-      if (iaq < 50) {
-        return {"excellent"};
-      } else if (iaq < 100) {
-        return {"good"};
-      } else if (iaq < 150) {
-        return {"lightly polluted"};
-      } else if (iaq < 200) {
-        return {"moderately polluted"};
-      } else {
-        return {"heavily polluted"};
-      }
+      // Placeholder - no IAQ sensor configured
+      return {"unknown"};
     update_interval: 60s
 
 # To disable MQTT publishing when importing this profile, override `mqtt: null`
