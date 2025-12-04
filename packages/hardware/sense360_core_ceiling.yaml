@@ -162,7 +162,7 @@ binary_sensor:
 # System controls
 button:
   - platform: restart
-    id: restart_button
+    id: reset_button
     name: "${friendly_name} Restart"
     icon: mdi:restart
 
