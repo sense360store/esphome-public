@@ -1,6 +1,10 @@
 ---
 substitutions:
   air_quality_topic: ${device_name}/air_quality
+  # Provide MQTT credentials through substitutions or secrets; leave blank if your
+  # broker does not require authentication.
+  airiq_mqtt_username: ""
+  airiq_mqtt_password: ""
 
 packages:
   device_health: !include device_health.yaml
@@ -46,9 +50,12 @@ text_sensor:
       }
     update_interval: 60s
 
+# To disable MQTT publishing when importing this profile, override `mqtt: null`
+# in your product configuration. Provide credentials via substitutions or
+# standard ESPHome secrets.
 mqtt:
   broker: ${airiq_mqtt_broker|192.168.1.10}
-  username: !secret mqtt_username
-  password: !secret mqtt_password
+  username: ${airiq_mqtt_username}
+  password: ${airiq_mqtt_password}
   discovery: false
   topic_prefix: ${air_quality_topic}
