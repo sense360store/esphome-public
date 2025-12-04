@@ -19,6 +19,10 @@
 # ============================================================================
 
 substitutions:
+  # Device identity (override in your device config)
+  device_name: sense360-mini-presence-advanced
+  friendly_name: "Sense360 Mini Presence Advanced"
+
   # Hardware pins (ESP32-S3 DevKit)
   board_variant: esp32-s3-devkitc-1
 
@@ -34,6 +38,9 @@ substitutions:
   # WiFi & Logging
   wifi_fast_connect: "true"
   log_level: DEBUG  # More verbose for advanced users
+
+  # Timezone (override to your local timezone)
+  timezone: "UTC"
 
   # Detection Parameters (customizable)
   presence_timeout: "30"  # seconds
