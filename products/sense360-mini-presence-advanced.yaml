@@ -110,7 +110,6 @@ uart:
 ld2450:
   id: ld2450_radar
   uart_id: ${ld2450_uart_id}
-  throttle: 250ms  # Faster updates for advanced users
   bluetooth_password: "HiLink"
   # Advanced users can modify zones via LD2450 Bluetooth app
 
@@ -124,66 +123,108 @@ sensor:
     target_count:
       id: ld2450_target_count
       name: "${friendly_name} Total Targets"
+      filters:
+        - throttle: 250ms
     still_target_count:
       id: ld2450_still_count
       name: "${friendly_name} Still Targets"
+      filters:
+        - throttle: 250ms
     moving_target_count:
       id: ld2450_moving_count
       name: "${friendly_name} Moving Targets"
+      filters:
+        - throttle: 250ms
 
     # Target 1 - Full details
     target_1:
       x:
         id: ld2450_t1_x
         name: "${friendly_name} Target 1 X"
+        filters:
+          - throttle: 250ms
       y:
         id: ld2450_t1_y
         name: "${friendly_name} Target 1 Y"
+        filters:
+          - throttle: 250ms
       speed:
         name: "${friendly_name} Target 1 Speed"
+        filters:
+          - throttle: 250ms
       angle:
         name: "${friendly_name} Target 1 Angle"
+        filters:
+          - throttle: 250ms
       distance:
         id: ld2450_t1_distance
         name: "${friendly_name} Target 1 Distance"
+        filters:
+          - throttle: 250ms
       resolution:
         name: "${friendly_name} Target 1 Resolution"
+        filters:
+          - throttle: 250ms
 
     # Target 2 - Full details
     target_2:
       x:
         id: ld2450_t2_x
         name: "${friendly_name} Target 2 X"
+        filters:
+          - throttle: 250ms
       y:
         id: ld2450_t2_y
         name: "${friendly_name} Target 2 Y"
+        filters:
+          - throttle: 250ms
       speed:
         name: "${friendly_name} Target 2 Speed"
+        filters:
+          - throttle: 250ms
       angle:
         name: "${friendly_name} Target 2 Angle"
+        filters:
+          - throttle: 250ms
       distance:
         id: ld2450_t2_distance
         name: "${friendly_name} Target 2 Distance"
+        filters:
+          - throttle: 250ms
       resolution:
         name: "${friendly_name} Target 2 Resolution"
+        filters:
+          - throttle: 250ms
 
     # Target 3 - Full details
     target_3:
       x:
         id: ld2450_t3_x
         name: "${friendly_name} Target 3 X"
+        filters:
+          - throttle: 250ms
       y:
         id: ld2450_t3_y
         name: "${friendly_name} Target 3 Y"
+        filters:
+          - throttle: 250ms
       speed:
         name: "${friendly_name} Target 3 Speed"
+        filters:
+          - throttle: 250ms
       angle:
         name: "${friendly_name} Target 3 Angle"
+        filters:
+          - throttle: 250ms
       distance:
         id: ld2450_t3_distance
         name: "${friendly_name} Target 3 Distance"
+        filters:
+          - throttle: 250ms
       resolution:
         name: "${friendly_name} Target 3 Resolution"
+        filters:
+          - throttle: 250ms
 
 # Binary sensors for individual targets
 binary_sensor:
@@ -296,7 +337,7 @@ switch:
     name: "${friendly_name} LD2450 Bluetooth"
     icon: "mdi:bluetooth"
     optimistic: true
-    restore_value: false
+    restore_mode: DISABLED
     turn_on_action:
       - uart.write:
           id: ${ld2450_uart_id}
