@@ -1,0 +1,11 @@
+# ============================================================================
+# PRESENCE DETECTION - BASIC PROFILE (LD2412)
+# ============================================================================
+# Basic presence profile for LD2412 mmWave sensor.
+# Uses the shared presence_basic.yaml for user-facing entities.
+# LD2412 provides superior still presence detection up to 9 meters.
+# ============================================================================
+
+packages:
+  presence_base: !include presence_basic.yaml
+  health: !include device_health.yaml

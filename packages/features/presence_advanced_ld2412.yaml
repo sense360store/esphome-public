@@ -1,0 +1,331 @@
+# ============================================================================
+# PRESENCE DETECTION - ADVANCED PROFILE (LD2412)
+# ============================================================================
+# Advanced presence detection for LD2412 mmWave sensor.
+# Includes gate-based threshold configuration, engineering mode,
+# calibration controls, and detailed energy/distance sensors.
+#
+# LD2412-specific features:
+# - 14 detection gates (0-13) at configurable resolution
+# - Distance resolution: 0.75m, 0.5m, or 0.2m
+# - Engineering mode for detailed diagnostics
+# - Dynamic background correction for auto-calibration
+# - Superior still presence detection up to 9 meters
+# ============================================================================
+
+# Include basic profile as foundation
+packages:
+  presence_base: !include presence_basic.yaml
+
+# ----------------------------------------------------------------------------
+# DISTANCE CONTROLS
+# ----------------------------------------------------------------------------
+number:
+  # Timeout before marking room as empty
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    timeout:
+      id: ld2412_timeout
+      name: "${friendly_name} Presence Timeout"
+      icon: "mdi:timer-outline"
+
+  # Minimum detection gate (sets minimum detection distance)
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    min_distance_gate:
+      id: ld2412_min_gate
+      name: "${friendly_name} Min Distance Gate"
+      icon: "mdi:arrow-collapse-right"
+
+  # Maximum detection gate (sets maximum detection distance)
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    max_distance_gate:
+      id: ld2412_max_gate
+      name: "${friendly_name} Max Distance Gate"
+      icon: "mdi:arrow-expand-right"
+
+  # Gate thresholds - Moving (adjust sensitivity per distance zone)
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    gate_0:
+      move_threshold:
+        name: "${friendly_name} Gate 0 Move Threshold"
+        internal: true
+    gate_1:
+      move_threshold:
+        name: "${friendly_name} Gate 1 Move Threshold"
+        internal: true
+    gate_2:
+      move_threshold:
+        name: "${friendly_name} Gate 2 Move Threshold"
+        internal: true
+    gate_3:
+      move_threshold:
+        name: "${friendly_name} Gate 3 Move Threshold"
+        internal: true
+    gate_4:
+      move_threshold:
+        name: "${friendly_name} Gate 4 Move Threshold"
+        internal: true
+    gate_5:
+      move_threshold:
+        name: "${friendly_name} Gate 5 Move Threshold"
+        internal: true
+    gate_6:
+      move_threshold:
+        name: "${friendly_name} Gate 6 Move Threshold"
+        internal: true
+
+  # Gate thresholds - Still (adjust sensitivity per distance zone)
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    gate_0:
+      still_threshold:
+        name: "${friendly_name} Gate 0 Still Threshold"
+        internal: true
+    gate_1:
+      still_threshold:
+        name: "${friendly_name} Gate 1 Still Threshold"
+        internal: true
+    gate_2:
+      still_threshold:
+        name: "${friendly_name} Gate 2 Still Threshold"
+        internal: true
+    gate_3:
+      still_threshold:
+        name: "${friendly_name} Gate 3 Still Threshold"
+        internal: true
+    gate_4:
+      still_threshold:
+        name: "${friendly_name} Gate 4 Still Threshold"
+        internal: true
+    gate_5:
+      still_threshold:
+        name: "${friendly_name} Gate 5 Still Threshold"
+        internal: true
+    gate_6:
+      still_threshold:
+        name: "${friendly_name} Gate 6 Still Threshold"
+        internal: true
+
+# ----------------------------------------------------------------------------
+# DISTANCE & ENERGY SENSORS (User-facing)
+# ----------------------------------------------------------------------------
+sensor:
+  # Detection distance (exposed to user via template reading from hardware)
+  - platform: template
+    id: ld2412_distance_exposed
+    name: "${friendly_name} Detection Distance"
+    icon: "mdi:ruler"
+    unit_of_measurement: "cm"
+    accuracy_decimals: 0
+    state_class: measurement
+    update_interval: 1s
+    lambda: |-
+      return id(ld2412_detection_distance).state;
+
+  # Moving energy (exposed to user)
+  - platform: template
+    id: ld2412_moving_energy_exposed
+    name: "${friendly_name} Moving Energy"
+    icon: "mdi:signal-variant"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    state_class: measurement
+    update_interval: 1s
+    lambda: |-
+      return id(ld2412_moving_energy).state;
+
+  # Still energy (exposed to user)
+  - platform: template
+    id: ld2412_still_energy_exposed
+    name: "${friendly_name} Still Energy"
+    icon: "mdi:signal"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    state_class: measurement
+    update_interval: 1s
+    lambda: |-
+      return id(ld2412_still_energy).state;
+
+  # Detection confidence level (0-100%)
+  - platform: template
+    id: detection_confidence_level
+    name: "${friendly_name} Detection Confidence"
+    icon: "mdi:progress-check"
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    state_class: measurement
+    update_interval: 1s
+    lambda: |-
+      return id(presence_confidence) * 100.0f;
+
+# ----------------------------------------------------------------------------
+# CONFIGURATION SELECTORS
+# ----------------------------------------------------------------------------
+select:
+  # Distance resolution (affects gate size)
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    distance_resolution:
+      id: ld2412_resolution
+      name: "${friendly_name} Distance Resolution"
+      icon: "mdi:resize"
+
+  # Baud rate (for advanced users)
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    baud_rate:
+      id: ld2412_baud_rate
+      name: "${friendly_name} Baud Rate"
+      icon: "mdi:speedometer"
+      internal: true
+
+# ----------------------------------------------------------------------------
+# CONTROL SWITCHES
+# ----------------------------------------------------------------------------
+switch:
+  # Engineering mode - enables detailed gate energy readings
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    engineering_mode:
+      id: ld2412_engineering_mode
+      name: "${friendly_name} Engineering Mode"
+      icon: "mdi:wrench-cog"
+
+  # Bluetooth control
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    bluetooth:
+      id: ld2412_bluetooth
+      name: "${friendly_name} Radar Bluetooth"
+      icon: "mdi:bluetooth"
+
+# ----------------------------------------------------------------------------
+# CALIBRATION & CONTROL BUTTONS
+# ----------------------------------------------------------------------------
+button:
+  # Factory reset - restore sensor defaults
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    factory_reset:
+      name: "${friendly_name} Factory Reset Radar"
+      icon: "mdi:restore"
+
+  # Restart radar module
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    restart:
+      name: "${friendly_name} Restart Radar"
+      icon: "mdi:restart"
+
+  # Query current parameters
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    query_params:
+      name: "${friendly_name} Query Radar Parameters"
+      icon: "mdi:refresh"
+      internal: true
+
+  # Dynamic background correction - auto-calibration
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    start_dynamic_background_correction:
+      name: "${friendly_name} Start Auto Calibration"
+      icon: "mdi:auto-fix"
+
+  # Reset presence confidence
+  - platform: template
+    name: "${friendly_name} Reset Presence Calibration"
+    icon: "mdi:restart"
+    on_press:
+      - lambda: |-
+          id(presence_confidence) = 0.0f;
+          ESP_LOGI("presence", "Presence calibration reset");
+
+# ----------------------------------------------------------------------------
+# SENSOR INFO
+# ----------------------------------------------------------------------------
+text_sensor:
+  # Firmware version
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    version:
+      name: "${friendly_name} Radar Firmware"
+      icon: "mdi:chip"
+
+  # MAC address
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    mac_address:
+      name: "${friendly_name} Radar MAC"
+      icon: "mdi:identifier"
+      internal: true
+
+  # Diagnostics
+  - platform: template
+    id: presence_diagnostics
+    name: "${friendly_name} Presence Diagnostics"
+    icon: "mdi:information-outline"
+    internal: true
+    update_interval: 5s
+    lambda: |-
+      char buffer[256];
+      snprintf(buffer, sizeof(buffer),
+        "Confidence: %.1f%%, Distance: %.0f cm, Moving: %s, Still: %s",
+        id(presence_confidence) * 100.0f,
+        id(ld2412_detection_distance).state,
+        id(ld2412_has_moving).state ? "Yes" : "No",
+        id(ld2412_has_still).state ? "Yes" : "No"
+      );
+      return {buffer};
+
+# ----------------------------------------------------------------------------
+# BINARY SENSORS (User-facing via template)
+# ----------------------------------------------------------------------------
+binary_sensor:
+  # Expose moving target detection (reads from hardware sensor)
+  - platform: template
+    id: ld2412_moving_detected
+    name: "${friendly_name} Moving Detected"
+    icon: "mdi:run"
+    device_class: motion
+    lambda: |-
+      return id(ld2412_has_moving).state;
+
+  # Expose still target detection (reads from hardware sensor)
+  - platform: template
+    id: ld2412_still_detected
+    name: "${friendly_name} Still Detected"
+    icon: "mdi:human-handsdown"
+    device_class: occupancy
+    lambda: |-
+      return id(ld2412_has_still).state;
+
+# ----------------------------------------------------------------------------
+# SENSITIVITY MODES
+# ----------------------------------------------------------------------------
+select:
+  - platform: template
+    id: presence_sensitivity
+    name: "${friendly_name} Presence Sensitivity"
+    icon: "mdi:tune"
+    optimistic: true
+    options:
+      - Quiet Room      # Low threshold - detects subtle movements
+      - Normal          # Balanced for typical rooms
+      - High Traffic    # High threshold - ignores minor movements
+    initial_option: Normal
+    restore_value: true
+    on_value:
+      then:
+        - lambda: |-
+            // Log sensitivity change
+            if (x == "Quiet Room") {
+              ESP_LOGI("presence", "Sensitivity: Quiet Room (high sensitivity)");
+            } else if (x == "Normal") {
+              ESP_LOGI("presence", "Sensitivity: Normal");
+            } else if (x == "High Traffic") {
+              ESP_LOGI("presence", "Sensitivity: High Traffic (low sensitivity)");
+            }
