@@ -6,9 +6,6 @@ substitutions:
   airiq_mqtt_username: ""
   airiq_mqtt_password: ""
 
-packages:
-  device_health: !include device_health.yaml
-
 text_sensor:
   - platform: template
     id: air_quality_state
