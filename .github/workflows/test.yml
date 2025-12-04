@@ -47,8 +47,10 @@ jobs:
           - products/sense360-mini-presence-basic.yaml
           - products/sense360-mini-presence-advanced.yaml
           - products/sense360-mini-presence-ld2412.yaml
+          - products/sense360-core-basic-test.yaml
           - products/sense360-ceiling-presence.yaml
           - products/sense360-ceiling-presence-ld2412.yaml
+          - products/sense360-mini-presence-advanced-ld2412.yaml
       fail-fast: false
     steps:
       - name: Checkout repository
