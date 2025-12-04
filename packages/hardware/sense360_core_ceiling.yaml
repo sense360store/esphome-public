@@ -40,7 +40,7 @@ switch:
   - platform: gpio
     name: "${friendly_name} Relay"
     id: main_relay
-    pin: GPIO3
+    pin: GPIO4
 
 button:
   - platform: restart
