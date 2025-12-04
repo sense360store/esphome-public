@@ -54,7 +54,7 @@ text_sensor:
 # in your product configuration. Provide credentials via substitutions or
 # standard ESPHome secrets.
 mqtt:
-  broker: ${airiq_mqtt_broker|192.168.1.10}
+  broker: ${airiq_mqtt_broker}
   username: ${airiq_mqtt_username}
   password: ${airiq_mqtt_password}
   discovery: false

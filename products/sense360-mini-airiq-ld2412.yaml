@@ -46,6 +46,7 @@ substitutions:
 
   # === WiFi Behavior ===
   wifi_fast_connect: "true"  # Skip SSID scan for faster connection
+  airiq_mqtt_broker: "192.168.1.10"
 
   # === CO2 Air Quality Thresholds (ppm) ===
   co2_good_limit: "750"  # Good: < 750 ppm
