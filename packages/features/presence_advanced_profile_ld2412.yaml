@@ -1,0 +1,10 @@
+# ============================================================================
+# PRESENCE DETECTION - ADVANCED PROFILE (LD2412) - PROFILE WRAPPER
+# ============================================================================
+# Profile wrapper for advanced LD2412 presence detection.
+# Includes the full advanced feature set plus diagnostics.
+# ============================================================================
+
+packages:
+  advanced_features: !include presence_advanced_ld2412.yaml
+  diagnostics: !include diagnostics.yaml

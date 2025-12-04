@@ -1,0 +1,132 @@
+# ============================================================================
+# SENSE360 MINI - PRESENCE DETECTION (ADVANCED) - LD2412
+# ============================================================================
+# Advanced presence detection with full technical controls using LD2412 sensor.
+# Perfect for: Power users, smart home enthusiasts, commercial applications
+#
+# LD2412 Advantages:
+# - Superior still presence detection up to 9 meters
+# - Gate-based threshold configuration (14 gates)
+# - Dynamic background correction for auto-calibration
+# - Engineering mode for detailed diagnostics
+#
+# Features:
+# - Customizable gate thresholds (0-13)
+# - Distance resolution control (0.75m, 0.5m, 0.2m)
+# - Moving and still energy readings
+# - Engineering mode diagnostics
+# - Auto-calibration button
+# - Timeout controls
+#
+# For technical users who want complete control over presence detection.
+# ============================================================================
+
+substitutions:
+  # Hardware pins (ESP32-S3 DevKit)
+  board_variant: esp32-s3-devkitc-1
+
+  # LD2412 Presence Sensor UART
+  ld2412_uart_id: uart_presence
+  ld2412_tx_pin: GPIO12
+  ld2412_rx_pin: GPIO13
+  ld2412_baud: "115200"
+
+  # Status LED
+  status_led_pin: GPIO2
+
+  # WiFi & Logging
+  wifi_fast_connect: "true"
+  log_level: DEBUG  # More verbose for advanced users
+
+  # Security (users MUST define these)
+  api_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+
+# ----------------------------------------------------------------------------
+# ESPHOME CORE
+# ----------------------------------------------------------------------------
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  min_version: 2024.11.0
+  project:
+    name: sense360.mini-presence-advanced-ld2412
+    version: "3.0.0"
+
+# ----------------------------------------------------------------------------
+# ESP32 CONFIGURATION
+# ----------------------------------------------------------------------------
+esp32:
+  board: ${board_variant}
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_ESPTOOLPY_FLASHSIZE_16MB: y
+      CONFIG_ESPTOOLPY_FLASHFREQ_80M: y
+      CONFIG_ESPTOOLPY_FLASHMODE_QIO: y
+
+# ----------------------------------------------------------------------------
+# BASE PACKAGES - Core system components
+# ----------------------------------------------------------------------------
+packages:
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_bluetooth: !include ../packages/base/bluetooth_proxy.yaml
+
+  # Hardware
+  presence_hardware: !include ../packages/hardware/presence_ld2412.yaml
+
+  # Features - Advanced LD2412 profile
+  presence_features: !include ../packages/features/presence_advanced_ld2412.yaml
+
+  # Device Health
+  device_health: !include ../packages/features/device_health.yaml
+  diagnostics: !include ../packages/features/diagnostics.yaml
+
+# ----------------------------------------------------------------------------
+# STATUS LED
+# ----------------------------------------------------------------------------
+light:
+  - platform: status_led
+    id: device_status_led
+    name: "${friendly_name} Status LED"
+    pin: ${status_led_pin}
+    restore_mode: ALWAYS_ON
+
+# ----------------------------------------------------------------------------
+# NOTES FOR ADVANCED USERS
+# ----------------------------------------------------------------------------
+# To use this configuration:
+#
+# 1. Create your device config (e.g., sense360-office.yaml)
+# 2. Add this package:
+#
+#    packages:
+#      sense360_firmware:
+#        url: https://github.com/sense360store/esphome-public
+#        ref: v3.0.0
+#        files:
+#          - products/sense360-mini-presence-advanced-ld2412.yaml
+#        refresh: 1d
+#
+# 3. Define your device:
+#
+#    substitutions:
+#      device_name: sense360-office
+#      friendly_name: "Office Sensor"
+#
+# 4. Calibration tips:
+#    - Enable Engineering Mode to see gate energy readings
+#    - Use "Start Auto Calibration" with room empty
+#    - Adjust gate thresholds for your room size
+#    - Set Distance Resolution for accuracy vs range tradeoff
+#
+# LD2412 is ideal for:
+# - Detecting seated/sleeping occupants (superior still detection)
+# - Large rooms up to 9 meters
+# - Environments requiring fine-grained distance control
+# ============================================================================
