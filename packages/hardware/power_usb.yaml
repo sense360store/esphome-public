@@ -1,0 +1,180 @@
+---
+# Sense360 Core - USB-C Power Configuration
+#
+# This package configures the Sense360 Core board for USB-C power.
+#
+# Hardware:
+# - USB-C connector with power delivery (optional PD negotiation)
+# - Input: 5V DC (standard USB) or 9V/12V/20V (USB-PD)
+# - Current: 0.5A (USB 2.0), 0.9A (USB 3.0), or up to 3A (USB-C)
+# - Recommended: 5V/2A minimum for stable operation
+#
+# Power Delivery (PD) Options:
+# - Standard USB: 5V/0.5-3A (2.5-15W)
+# - USB-PD: 5V/9V/12V/15V/20V (up to 100W)
+#
+# Limitations:
+# - May not provide sufficient power for all expansion modules
+# - Not recommended for voice variant (high power consumption)
+# - Best for development, testing, or low-power configurations
+#
+# Recommended for:
+# - Development and testing
+# - Portable/temporary installations
+# - Low-power configurations (limited expansion modules)
+# - Desktop/workbench use
+#
+# Not recommended for:
+# - Voice assistant variant (use PoE or 240V AC)
+# - Multiple power-hungry expansion modules
+# - Production deployments requiring maximum reliability
+
+substitutions:
+  power_source: "usb"
+  usb_type: "usb_c"  # usb_c or usb_micro
+  usb_pd_enabled: "false"  # Set to "true" if USB-PD negotiation is supported
+
+# Global variable for power source identification
+globals:
+  - id: power_source_type
+    type: std::string
+    restore_value: no
+    initial_value: '"USB-C"'
+
+# USB power monitoring
+sensor:
+  # Supply voltage
+  - platform: template
+    name: "${friendly_name} Supply Voltage"
+    id: supply_voltage
+    icon: mdi:lightning-bolt
+    unit_of_measurement: "V"
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    lambda: |-
+      // Standard USB is 5V
+      // If USB-PD is enabled, this could be 9V, 12V, etc.
+      return 5.0;
+    update_interval: 60s
+
+  # Optional: USB voltage monitoring (if hardware supports it)
+  # This would require voltage divider circuit for higher PD voltages
+  # - platform: adc
+  #   name: "${friendly_name} USB Voltage"
+  #   id: usb_voltage
+  #   pin: GPIO3  # ADC pin for voltage monitoring
+  #   attenuation: 11dB
+  #   update_interval: 5s
+  #   filters:
+  #     # For 5V USB, direct connection with divider (e.g., 10kΩ + 10kΩ)
+  #     # For USB-PD (up to 20V), use appropriate voltage divider
+  #     - multiply: 2.0  # Adjust based on your voltage divider
+  #     - sliding_window_moving_average:
+  #         window_size: 10
+  #         send_every: 5
+  #   unit_of_measurement: "V"
+  #   device_class: voltage
+  #   state_class: measurement
+  #   accuracy_decimals: 2
+  #   icon: mdi:usb
+
+# Power source indicator
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Power Source"
+    id: power_source_indicator
+    icon: mdi:usb-port
+    lambda: |-
+      if (strcmp("${usb_pd_enabled}", "true") == 0) {
+        return {"USB-C with Power Delivery"};
+      } else {
+        return {"USB-C (5V)"};
+      }
+    update_interval: 60s
+
+  - platform: template
+    name: "${friendly_name} Power Configuration"
+    id: power_config_info
+    icon: mdi:information
+    lambda: |-
+      return {"USB Type-C power input (5V/2A recommended, USB-PD optional)"};
+    update_interval: never
+    entity_category: diagnostic
+
+# Binary sensor for USB power status
+binary_sensor:
+  - platform: template
+    name: "${friendly_name} USB Power Connected"
+    id: usb_power_connected
+    icon: mdi:usb-port
+    device_class: power
+    lambda: |-
+      // Assume always connected for USB configuration
+      // Could implement detection with voltage monitoring
+      return true;
+
+# Power limitation warning
+# This warns users if they're using USB power with high-power modules
+binary_sensor:
+  - platform: template
+    name: "${friendly_name} Power Limitation Warning"
+    id: power_limitation_warning
+    icon: mdi:alert
+    device_class: problem
+    lambda: |-
+      // This could be enhanced to detect actual power draw
+      // For now, it's a static warning for USB configurations
+      // Users can disable this if they know their setup is OK
+      return false;  // Set to true to enable warning
+    filters:
+      - delayed_on: 10s
+
+# Switch to enable/disable power limitation warnings
+switch:
+  - platform: template
+    name: "${friendly_name} Show Power Warnings"
+    id: show_power_warnings
+    icon: mdi:alert-circle
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    entity_category: config
+
+# Debug logging for USB power configuration
+logger:
+  logs:
+    sensor: INFO
+    power: DEBUG
+
+# Automation: Log USB power status and warnings on boot
+esphome:
+  on_boot:
+    - priority: -100
+      then:
+        - logger.log:
+            format: "Power source: USB-C (5V)"
+            level: INFO
+        - if:
+            condition:
+              lambda: 'return strcmp("${usb_pd_enabled}", "true") == 0;'
+            then:
+              - logger.log: "USB Power Delivery support enabled"
+            else:
+              - logger.log: "Standard USB power (5V) - ensure 2A capable adapter"
+        - delay: 1s
+        # Warning for insufficient power
+        - logger.log:
+            level: WARN
+            message: "USB power may be insufficient for voice assistant or multiple expansion modules. Consider PoE or 240V AC for production use."
+
+# Configuration notes for users
+# These appear as diagnostic entities
+text_sensor:
+  - platform: template
+    name: "${friendly_name} USB Power Notes"
+    id: usb_power_notes
+    icon: mdi:note-text
+    entity_category: diagnostic
+    lambda: |-
+      return {"USB-C power is suitable for development and testing. For production use with multiple modules or voice features, use PoE or 240V AC power instead."};
+    update_interval: never
