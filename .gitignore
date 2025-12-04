@@ -73,6 +73,13 @@ htmlcov/
 .coverage.*
 coverage.xml
 *.cover
+tests/coverage/
+*.gcda
+*.gcno
+
+# C++ test build artifacts
+tests/bin/
+tests/build/
 
 # Documentation build outputs
 docs/_build/

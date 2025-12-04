@@ -131,11 +131,17 @@ Quick validation that runs first:
 
 #### Workflow: `test.yml` (Comprehensive)
 
-Full test suite:
-- **validate-yaml**: YAML syntax and linting
-- **test-esphome-configs**: Compiles all 10 product configs
-- **test-unit-tests**: Runs ESPHome test configurations
-- **lint-cpp**: Checks C++ header formatting
+Full test suite with 7 jobs:
+
+| Job | Description | Duration |
+|-----|-------------|----------|
+| **validate-yaml** | YAML syntax and linting | ~30s |
+| **test-esphome-configs** | Compile all 10 product configs (matrix) | ~2-5min |
+| **unit-tests** | Run C++ unit tests | ~30s |
+| **unit-tests-coverage** | Generate code coverage report | ~1min |
+| **lint-cpp** | Check C++ header formatting | ~30s |
+| **performance-benchmarks** | Compile time and codebase metrics | ~2min |
+| **ci-status** | Aggregate status summary | ~10s |
 
 Matrix testing across all product configurations:
 - `sense360-mini-airiq.yaml`
@@ -149,12 +155,76 @@ Matrix testing across all product configurations:
 - `sense360-ceiling-presence.yaml`
 - `sense360-ceiling-presence-ld2412.yaml`
 
+#### Workflow: `release.yml` (Release Automation)
+
+Automated release workflow triggered by:
+- Pushing a tag (e.g., `v2.2.0`)
+- Manual workflow dispatch with version input
+
+Features:
+- Validates all configurations before release
+- Runs unit tests
+- Auto-generates release notes from CHANGELOG.md
+- Creates GitHub release with documentation links
+- Supports dry-run mode for testing
+
+To create a release:
+```bash
+# Option 1: Push a tag
+git tag v2.2.0
+git push origin v2.2.0
+
+# Option 2: Use GitHub Actions UI
+# Go to Actions > Release > Run workflow
+```
+
+#### Workflow: `notify.yml` (Notifications)
+
+Sends notifications on CI events:
+- **Discord**: Failure notifications with workflow details
+- **Slack**: Failure notifications with action buttons
+- **Success**: Notifications for release branches only
+
+To enable notifications:
+1. Go to repository Settings > Secrets and variables > Actions
+2. Add repository variables:
+   - `DISCORD_WEBHOOK_URL`: Your Discord webhook URL
+   - `SLACK_WEBHOOK_URL`: Your Slack webhook URL
+
+### Code Coverage
+
+Coverage reports are generated automatically in CI and uploaded as artifacts.
+
+#### View Coverage in CI
+
+1. Go to Actions > Select workflow run
+2. Download the `coverage-report` artifact
+3. Open `coverage.html` in a browser
+
+#### Generate Coverage Locally
+
+```bash
+cd tests
+
+# Generate HTML coverage report
+make coverage-report
+
+# View report
+open coverage/index.html  # macOS
+xdg-open coverage/index.html  # Linux
+```
+
+Requirements:
+- `gcovr`: `pip install gcovr`
+- `g++`: C++ compiler with gcov support
+
 ### Viewing Test Results
 
 1. Navigate to the **Actions** tab on GitHub
 2. Select a workflow run
-3. Click on individual jobs to see detailed logs
-4. Failed checks will show specific error messages
+3. Click on **Summary** for a quick overview with pass/fail tables
+4. Click on individual jobs to see detailed logs
+5. Download artifacts for coverage reports
 
 ### Local CI Simulation
 
@@ -164,6 +234,12 @@ Run the same checks locally before pushing:
 # Quick validation
 python3 tests/validate_configs.py
 
+# Run C++ unit tests
+cd tests && make test && cd ..
+
+# Generate coverage report
+cd tests && make coverage-report && cd ..
+
 # Full ESPHome validation
 for file in products/*.yaml; do
   esphome config "$file"
@@ -171,6 +247,13 @@ done
 
 # Pre-commit checks
 pre-commit run --all-files
+```
+
+### CI Status Badge
+
+Add this badge to your README:
+```markdown
+[![CI](https://github.com/sense360store/esphome-public/workflows/Test%20ESPHome%20Configs/badge.svg)](https://github.com/sense360store/esphome-public/actions)
 ```
 
 ## Code Quality

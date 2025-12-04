@@ -1,0 +1,210 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v2.2.0)'
+        required: true
+        type: string
+      dry_run:
+        description: 'Dry run (do not create release)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  validate:
+    name: Validate Before Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml esphome
+
+      - name: Validate all configurations
+        run: |
+          python3 tests/validate_configs.py
+
+      - name: Create secrets for ESPHome validation
+        run: |
+          cat > secrets.yaml << 'EOF'
+          wifi_ssid: "TestNetwork"
+          wifi_password: "TestPassword123"
+          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+          ota_password: "test-ota-password"
+          fallback_ap_password: "fallback123"
+          web_username: "admin"
+          web_password: "test_web_password"
+          EOF
+          cp secrets.yaml products/secrets.yaml
+
+      - name: Validate ESPHome configs
+        run: |
+          for config in products/*.yaml; do
+            if [ -f "$config" ] && [ "$(basename $config)" != "secrets.yaml" ]; then
+              echo "Validating: $config"
+              esphome config "$config"
+            fi
+          done
+
+  unit-tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ make
+
+      - name: Run tests
+        working-directory: tests
+        run: |
+          make test
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [validate, unit-tests]
+    if: ${{ !inputs.dry_run }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
+
+      - name: Extract changelog for version
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          # Remove 'v' prefix if present
+          VERSION_NUM="${VERSION#v}"
+
+          # Extract changelog section for this version
+          CHANGELOG=$(awk "/## \[$VERSION_NUM\]/{flag=1; next} /## \[/{flag=0} flag" CHANGELOG.md)
+
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="Release $VERSION"
+          fi
+
+          # Save to file for multiline handling
+          echo "$CHANGELOG" > release_notes.md
+          echo "Found changelog for version $VERSION_NUM"
+
+      - name: Generate release notes
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          cat > full_release_notes.md << 'HEADER'
+          ## What's New
+
+          HEADER
+
+          cat release_notes.md >> full_release_notes.md
+
+          cat >> full_release_notes.md << 'FOOTER'
+
+          ---
+
+          ## Installation
+
+          Update your configuration to use this release:
+
+          ```yaml
+          packages:
+            sense360_firmware:
+              url: https://github.com/sense360store/esphome-public
+          FOOTER
+
+          echo "      ref: $VERSION" >> full_release_notes.md
+
+          cat >> full_release_notes.md << 'FOOTER2'
+              files:
+                - products/sense360-mini-airiq.yaml  # or your product config
+          ```
+
+          ## Product Configurations
+
+          | Product | Config File |
+          |---------|-------------|
+          | Mini + AirIQ | `products/sense360-mini-airiq.yaml` |
+          | Mini + AirIQ Basic | `products/sense360-mini-airiq-basic.yaml` |
+          | Mini + AirIQ Advanced | `products/sense360-mini-airiq-advanced.yaml` |
+          | Mini + Presence | `products/sense360-mini-presence.yaml` |
+          | Mini + Presence Basic | `products/sense360-mini-presence-basic.yaml` |
+          | Mini + Presence Advanced | `products/sense360-mini-presence-advanced.yaml` |
+          | Ceiling + Presence | `products/sense360-ceiling-presence.yaml` |
+
+          ## Documentation
+
+          - [Installation Guide](docs/installation.md)
+          - [Configuration Reference](docs/configuration.md)
+          - [Changelog](CHANGELOG.md)
+
+          FOOTER2
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          body_path: full_release_notes.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+          generate_release_notes: false
+
+      - name: Release summary
+        run: |
+          echo "## Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+
+  dry-run-summary:
+    name: Dry Run Summary
+    runs-on: ubuntu-latest
+    needs: [validate, unit-tests]
+    if: ${{ inputs.dry_run }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Summary
+        run: |
+          echo "## Dry Run Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: ${{ inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All validations passed. Ready to create release." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "To create the actual release:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Run this workflow again with dry_run unchecked, OR" >> $GITHUB_STEP_SUMMARY
+          echo "2. Create and push a tag: \`git tag ${{ inputs.version }} && git push origin ${{ inputs.version }}\`" >> $GITHUB_STEP_SUMMARY

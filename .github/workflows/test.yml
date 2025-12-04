@@ -7,6 +7,9 @@ on:
     branches: ["*"]
   workflow_dispatch:
 
+env:
+  ESPHOME_VERSION: "2025.10.0"
+
 jobs:
   validate-yaml:
     name: Validate YAML Syntax
@@ -50,6 +53,8 @@ jobs:
           - products/sense360-ceiling-presence.yaml
           - products/sense360-ceiling-presence-ld2412.yaml
       fail-fast: false
+    outputs:
+      config-count: ${{ strategy.job-total }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -90,46 +95,107 @@ jobs:
           echo "Validating: ${{ matrix.config }}"
           esphome config ${{ matrix.config }}
 
-  test-unit-tests:
-    name: Run Unit Tests
+  unit-tests:
+    name: Run C++ Unit Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install ESPHome
+      - name: Install build dependencies
         run: |
-          pip install esphome
+          sudo apt-get update
+          sudo apt-get install -y g++ make
 
-      - name: Create secrets.yaml for testing
+      - name: Compile unit tests
+        working-directory: tests
         run: |
-          cat > secrets.yaml << 'EOF'
-          wifi_ssid: "TestNetwork"
-          wifi_password: "TestPassword123"
-          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
-          ota_password: "test-ota-password"
-          fallback_ap_password: "fallback123"
-          web_username: "admin"
-          web_password: "test_web_password"
-          EOF
-          # Copy secrets to all directories that might need them
-          cp secrets.yaml products/secrets.yaml
-          cp secrets.yaml tests/secrets.yaml
+          make all
 
-      - name: Validate test configs
+      - name: Run unit tests
+        working-directory: tests
         run: |
-          echo "Validating test configurations..."
-          for file in tests/**/*.yaml; do
-            if [ -f "$file" ]; then
-              echo "Testing: $file"
-              esphome config "$file" || echo "Warning: $file validation failed"
+          make test
+
+      - name: Generate test summary
+        if: always()
+        working-directory: tests
+        run: |
+          echo "## Unit Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          for test in bin/test_*; do
+            if [ -x "$test" ]; then
+              name=$(basename $test)
+              if ./$test > /dev/null 2>&1; then
+                echo "| $name | ✅ Pass |" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "| $name | ❌ Fail |" >> $GITHUB_STEP_SUMMARY
+              fi
             fi
           done
+
+  unit-tests-coverage:
+    name: Unit Tests with Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ make gcovr
+
+      - name: Compile with coverage flags
+        working-directory: tests
+        run: |
+          mkdir -p bin
+          for src in unit/test_*.cpp; do
+            name=$(basename $src .cpp)
+            g++ -std=c++11 -Wall -Wextra -I../include -O0 --coverage \
+              -fprofile-arcs -ftest-coverage \
+              $src -o bin/$name -lm
+          done
+
+      - name: Run tests for coverage
+        working-directory: tests
+        run: |
+          for test in bin/test_*; do
+            if [ -x "$test" ]; then
+              echo "Running $test..."
+              ./$test || true
+            fi
+          done
+
+      - name: Generate coverage report
+        working-directory: tests
+        run: |
+          gcovr --root ../include \
+            --exclude-unreachable-branches \
+            --exclude-throw-branches \
+            -s \
+            --html coverage.html \
+            --html-details \
+            --xml coverage.xml \
+            . || true
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            tests/coverage.html
+            tests/coverage.xml
+            tests/coverage.*.html
+
+      - name: Coverage summary
+        working-directory: tests
+        run: |
+          echo "## Code Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          gcovr --root ../include -s . 2>/dev/null | head -20 >> $GITHUB_STEP_SUMMARY || echo "Coverage data not available" >> $GITHUB_STEP_SUMMARY
 
   lint-cpp:
     name: Lint C++ Headers
@@ -146,7 +212,115 @@ jobs:
       - name: Check C++ formatting
         run: |
           echo "Checking C++ header formatting..."
-          find include/ -name "*.h" -o -name "*.cpp" | while read file; do
+          EXIT_CODE=0
+          for file in $(find include/ -name "*.h" -o -name "*.cpp"); do
             echo "Checking: $file"
-            clang-format --dry-run --Werror "$file" || echo "Warning: $file needs formatting"
+            if ! clang-format --dry-run --Werror "$file" 2>/dev/null; then
+              echo "⚠️ $file needs formatting"
+              EXIT_CODE=1
+            fi
           done
+          exit $EXIT_CODE
+
+  performance-benchmarks:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    needs: [validate-yaml]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache ESPHome
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-platformio-benchmark-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-platformio-
+
+      - name: Install ESPHome
+        run: |
+          pip install esphome
+
+      - name: Create secrets.yaml
+        run: |
+          cat > secrets.yaml << 'EOF'
+          wifi_ssid: "TestNetwork"
+          wifi_password: "TestPassword123"
+          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+          ota_password: "test-ota-password"
+          fallback_ap_password: "fallback123"
+          web_username: "admin"
+          web_password: "test_web_password"
+          EOF
+          cp secrets.yaml products/secrets.yaml
+
+      - name: Benchmark compile time
+        run: |
+          echo "## Performance Benchmarks" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Compile Time (config validation)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Configuration | Time (seconds) |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------------|----------------|" >> $GITHUB_STEP_SUMMARY
+
+          for config in products/sense360-mini-airiq.yaml products/sense360-mini-presence.yaml products/sense360-ceiling-presence.yaml; do
+            if [ -f "$config" ]; then
+              START=$(date +%s.%N)
+              esphome config $config > /dev/null 2>&1
+              END=$(date +%s.%N)
+              DURATION=$(echo "$END - $START" | bc)
+              echo "| $(basename $config) | ${DURATION}s |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+      - name: Count lines of code
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Codebase Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Category | Files | Lines |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|-------|" >> $GITHUB_STEP_SUMMARY
+
+          YAML_FILES=$(find . -name "*.yaml" -not -path "./.git/*" | wc -l)
+          YAML_LINES=$(find . -name "*.yaml" -not -path "./.git/*" -exec cat {} \; | wc -l)
+          echo "| YAML Configs | $YAML_FILES | $YAML_LINES |" >> $GITHUB_STEP_SUMMARY
+
+          CPP_FILES=$(find include/ -name "*.h" 2>/dev/null | wc -l)
+          CPP_LINES=$(find include/ -name "*.h" 2>/dev/null -exec cat {} \; | wc -l)
+          echo "| C++ Headers | $CPP_FILES | $CPP_LINES |" >> $GITHUB_STEP_SUMMARY
+
+          TEST_FILES=$(find tests/unit -name "*.cpp" 2>/dev/null | wc -l)
+          TEST_LINES=$(find tests/unit -name "*.cpp" 2>/dev/null -exec cat {} \; | wc -l)
+          echo "| Unit Tests | $TEST_FILES | $TEST_LINES |" >> $GITHUB_STEP_SUMMARY
+
+  ci-status:
+    name: CI Status
+    runs-on: ubuntu-latest
+    needs: [validate-yaml, test-esphome-configs, unit-tests, lint-cpp]
+    if: always()
+    steps:
+      - name: Check all job statuses
+        run: |
+          echo "## CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| YAML Validation | ${{ needs.validate-yaml.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ESPHome Configs | ${{ needs.test-esphome-configs.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit Tests | ${{ needs.unit-tests.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| C++ Lint | ${{ needs.lint-cpp.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if any required job failed
+        if: |
+          needs.validate-yaml.result != 'success' ||
+          needs.test-esphome-configs.result != 'success' ||
+          needs.unit-tests.result != 'success'
+        run: |
+          echo "One or more required jobs failed"
+          exit 1

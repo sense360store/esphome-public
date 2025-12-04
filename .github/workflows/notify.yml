@@ -1,0 +1,131 @@
+name: CI Notifications
+
+on:
+  workflow_run:
+    workflows: ["Test ESPHome Configs"]
+    types:
+      - completed
+
+jobs:
+  notify-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Get workflow details
+        id: details
+        run: |
+          echo "workflow_name=${{ github.event.workflow_run.name }}" >> $GITHUB_OUTPUT
+          echo "branch=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
+          echo "commit=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+          echo "run_url=${{ github.event.workflow_run.html_url }}" >> $GITHUB_OUTPUT
+          echo "actor=${{ github.event.workflow_run.actor.login }}" >> $GITHUB_OUTPUT
+
+      - name: Send Discord notification
+        if: ${{ vars.DISCORD_WEBHOOK_URL != '' }}
+        env:
+          DISCORD_WEBHOOK: ${{ vars.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "❌ CI Pipeline Failed",
+                "description": "The test workflow has failed.",
+                "color": 15158332,
+                "fields": [
+                  {"name": "Branch", "value": "${{ steps.details.outputs.branch }}", "inline": true},
+                  {"name": "Triggered by", "value": "${{ steps.details.outputs.actor }}", "inline": true},
+                  {"name": "Commit", "value": "`${{ steps.details.outputs.commit }}`", "inline": false}
+                ],
+                "url": "${{ steps.details.outputs.run_url }}",
+                "footer": {"text": "Sense360 ESPHome CI"}
+              }]
+            }' \
+            "$DISCORD_WEBHOOK" || echo "Discord notification failed (webhook may not be configured)"
+
+      - name: Send Slack notification
+        if: ${{ vars.SLACK_WEBHOOK_URL != '' }}
+        env:
+          SLACK_WEBHOOK: ${{ vars.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {"type": "plain_text", "text": "❌ CI Pipeline Failed", "emoji": true}
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {"type": "mrkdwn", "text": "*Branch:*\n${{ steps.details.outputs.branch }}"},
+                    {"type": "mrkdwn", "text": "*Triggered by:*\n${{ steps.details.outputs.actor }}"}
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {"type": "mrkdwn", "text": "*Commit:* `${{ steps.details.outputs.commit }}`"}
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {"type": "plain_text", "text": "View Workflow Run"},
+                      "url": "${{ steps.details.outputs.run_url }}"
+                    }
+                  ]
+                }
+              ]
+            }' \
+            "$SLACK_WEBHOOK" || echo "Slack notification failed (webhook may not be configured)"
+
+      - name: Log failure
+        run: |
+          echo "## CI Failure Notification Sent" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Workflow | ${{ steps.details.outputs.workflow_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | ${{ steps.details.outputs.branch }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ steps.details.outputs.commit }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Actor | ${{ steps.details.outputs.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[View Failed Run](${{ steps.details.outputs.run_url }})" >> $GITHUB_STEP_SUMMARY
+
+  notify-success:
+    name: Notify on Success (Release branches only)
+    runs-on: ubuntu-latest
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      (startsWith(github.event.workflow_run.head_branch, 'release/') ||
+       github.event.workflow_run.head_branch == 'main')
+    steps:
+      - name: Get workflow details
+        id: details
+        run: |
+          echo "branch=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
+          echo "run_url=${{ github.event.workflow_run.html_url }}" >> $GITHUB_OUTPUT
+
+      - name: Send Discord notification
+        if: ${{ vars.DISCORD_WEBHOOK_URL != '' }}
+        env:
+          DISCORD_WEBHOOK: ${{ vars.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "✅ CI Pipeline Passed",
+                "description": "All tests passed on ${{ steps.details.outputs.branch }}",
+                "color": 3066993,
+                "url": "${{ steps.details.outputs.run_url }}",
+                "footer": {"text": "Sense360 ESPHome CI"}
+              }]
+            }' \
+            "$DISCORD_WEBHOOK" || echo "Discord notification failed"
+
+      - name: Log success
+        run: |
+          echo "## CI Success Notification" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All tests passed on branch: ${{ steps.details.outputs.branch }}" >> $GITHUB_STEP_SUMMARY

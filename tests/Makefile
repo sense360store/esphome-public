@@ -94,12 +94,12 @@ help:
 		echo "  - $$basename"; \
 	done
 
-# Show test coverage summary
+# Show test coverage summary (basic)
 coverage:
 	@echo "$(BOLD)Test Coverage Summary$(NC)"
 	@echo "========================================"
 	@echo "Header files:"
-	@ls -1 include/*.h | wc -l | xargs echo "  Total headers:"
+	@ls -1 ../include/sense360/*.h | wc -l | xargs echo "  Total headers:"
 	@echo ""
 	@echo "Test files:"
 	@ls -1 $(SRC_DIR)/test_*.cpp | wc -l | xargs echo "  Total test files:"
@@ -107,3 +107,38 @@ coverage:
 	@echo "Test executables:"
 	@echo "  $(words $(TEST_BINARIES)) tests"
 	@echo "========================================"
+
+# Generate detailed coverage report with gcov
+coverage-report: clean
+	@echo "$(BOLD)Generating coverage report...$(NC)"
+	@mkdir -p $(BIN_DIR) coverage
+	@for src in $(SRC_DIR)/test_*.cpp; do \
+		name=$$(basename $$src .cpp); \
+		echo "Compiling $$name with coverage..."; \
+		$(CXX) -std=c++11 -Wall -Wextra -I../include -O0 --coverage \
+			-fprofile-arcs -ftest-coverage \
+			$$src -o $(BIN_DIR)/$$name -lm; \
+	done
+	@echo ""
+	@echo "$(BOLD)Running tests for coverage...$(NC)"
+	@for test in $(BIN_DIR)/test_*; do \
+		if [ -x "$$test" ]; then \
+			./$$test || true; \
+		fi; \
+	done
+	@echo ""
+	@echo "$(BOLD)Generating HTML report...$(NC)"
+	@gcovr --root ../include \
+		--exclude-unreachable-branches \
+		--exclude-throw-branches \
+		-s \
+		--html coverage/index.html \
+		--html-details \
+		--xml coverage/coverage.xml \
+		. 2>/dev/null || echo "$(RED)gcovr not installed. Run: pip install gcovr$(NC)"
+	@echo ""
+	@echo "$(GREEN)Coverage report generated in coverage/index.html$(NC)"
+
+# Clean coverage artifacts
+clean-coverage:
+	@rm -rf coverage *.gcda *.gcno $(BIN_DIR)/*.gcda $(BIN_DIR)/*.gcno
