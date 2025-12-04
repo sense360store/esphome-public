@@ -1,0 +1,517 @@
+---
+# ============================================================================
+# SENSE360 GPIO/PWM EXPANDER MODULE - SX1509
+# ============================================================================
+# I2C GPIO/PWM Expander for extended I/O capabilities:
+# - 16 GPIO pins (configurable as input/output)
+# - PWM on any output pin (8-bit resolution)
+# - LED driver with breathing effects
+# - Keypad matrix scanning support
+# - Interrupt generation on pin change
+#
+# This module enables:
+# - Multi-channel fan PWM control (up to 4 fans)
+# - Additional digital I/O for sensors and controls
+# - LED indicators and status outputs
+# - Button/switch matrix inputs
+#
+# Hardware: Semtech SX1509 16-channel I2C GPIO/PWM Expander
+# I2C Address: 0x3E (default) or 0x3F, 0x70, 0x71 (configurable via pins)
+#
+# Expansion Bus Connection:
+#   Pin 4 (SDA) → GPIO21 (I2C Secondary)
+#   Pin 5 (SCL) → GPIO18 (I2C Secondary)
+#   Pin 10 (INT) → GPIO3 (Interrupt)
+#   Pin 2 (3.3V) → Power
+#   Pin 1 (GND) → Ground
+#
+# Power Requirements: 3.3V / 50mA (excluding loads on GPIO pins)
+# ============================================================================
+
+substitutions:
+  # I2C Configuration (uses secondary I2C bus)
+  sx1509_i2c_sda: GPIO21
+  sx1509_i2c_scl: GPIO18
+  sx1509_i2c_id: i2c_expander
+  sx1509_address: "0x3E"  # Default address
+
+  # Interrupt pin (directly connected to ESP32)
+  sx1509_interrupt_pin: GPIO3
+
+  # PWM Frequency for fan control (15.26kHz max on SX1509)
+  sx1509_pwm_frequency: "15000"
+
+# I2C Bus Configuration (may be already defined in core)
+i2c:
+  - id: ${sx1509_i2c_id}
+    sda: ${sx1509_i2c_sda}
+    scl: ${sx1509_i2c_scl}
+    scan: true
+    frequency: 400kHz
+
+# ============================================================================
+# SX1509 GPIO EXPANDER COMPONENT
+# ============================================================================
+sx1509:
+  - id: sx1509_expander
+    i2c_id: ${sx1509_i2c_id}
+    address: ${sx1509_address}
+
+# ============================================================================
+# PWM OUTPUTS (for fan control and LED dimming)
+# ============================================================================
+# SX1509 Pin Mapping:
+#   IO0-IO3: Fan PWM outputs (4 channels)
+#   IO4-IO7: Fan tachometer inputs (optional)
+#   IO8-IO11: General purpose outputs (relays, LEDs)
+#   IO12-IO15: General purpose inputs (switches, sensors)
+# ============================================================================
+
+output:
+  # Fan PWM Channel 0 (IO0)
+  - platform: sx1509
+    sx1509_id: sx1509_expander
+    id: sx1509_pwm_fan_0
+    pin: 0
+
+  # Fan PWM Channel 1 (IO1)
+  - platform: sx1509
+    sx1509_id: sx1509_expander
+    id: sx1509_pwm_fan_1
+    pin: 1
+
+  # Fan PWM Channel 2 (IO2)
+  - platform: sx1509
+    sx1509_id: sx1509_expander
+    id: sx1509_pwm_fan_2
+    pin: 2
+
+  # Fan PWM Channel 3 (IO3)
+  - platform: sx1509
+    sx1509_id: sx1509_expander
+    id: sx1509_pwm_fan_3
+    pin: 3
+
+  # General purpose PWM outputs (IO8-IO11)
+  - platform: sx1509
+    sx1509_id: sx1509_expander
+    id: sx1509_pwm_aux_0
+    pin: 8
+
+  - platform: sx1509
+    sx1509_id: sx1509_expander
+    id: sx1509_pwm_aux_1
+    pin: 9
+
+  - platform: sx1509
+    sx1509_id: sx1509_expander
+    id: sx1509_pwm_aux_2
+    pin: 10
+
+  - platform: sx1509
+    sx1509_id: sx1509_expander
+    id: sx1509_pwm_aux_3
+    pin: 11
+
+# ============================================================================
+# FAN COMPONENTS (using SX1509 PWM outputs)
+# ============================================================================
+fan:
+  # Fan Controller 0 (PWM on IO0)
+  - platform: speed
+    id: sx1509_fan_0
+    name: "${friendly_name} Expander Fan 1"
+    output: sx1509_pwm_fan_0
+    speed_count: 100
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  # Fan Controller 1 (PWM on IO1)
+  - platform: speed
+    id: sx1509_fan_1
+    name: "${friendly_name} Expander Fan 2"
+    output: sx1509_pwm_fan_1
+    speed_count: 100
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  # Fan Controller 2 (PWM on IO2)
+  - platform: speed
+    id: sx1509_fan_2
+    name: "${friendly_name} Expander Fan 3"
+    output: sx1509_pwm_fan_2
+    speed_count: 100
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  # Fan Controller 3 (PWM on IO3)
+  - platform: speed
+    id: sx1509_fan_3
+    name: "${friendly_name} Expander Fan 4"
+    output: sx1509_pwm_fan_3
+    speed_count: 100
+    restore_mode: RESTORE_DEFAULT_OFF
+
+# ============================================================================
+# DIGITAL INPUTS (Tachometers and switches on IO4-IO7, IO12-IO15)
+# ============================================================================
+binary_sensor:
+  # Tachometer inputs (active low pulses from fan)
+  - platform: gpio
+    name: "${friendly_name} Fan 1 Tach Signal"
+    id: sx1509_tach_0
+    internal: true
+    pin:
+      sx1509: sx1509_expander
+      number: 4
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+  - platform: gpio
+    name: "${friendly_name} Fan 2 Tach Signal"
+    id: sx1509_tach_1
+    internal: true
+    pin:
+      sx1509: sx1509_expander
+      number: 5
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+  - platform: gpio
+    name: "${friendly_name} Fan 3 Tach Signal"
+    id: sx1509_tach_2
+    internal: true
+    pin:
+      sx1509: sx1509_expander
+      number: 6
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+  - platform: gpio
+    name: "${friendly_name} Fan 4 Tach Signal"
+    id: sx1509_tach_3
+    internal: true
+    pin:
+      sx1509: sx1509_expander
+      number: 7
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+  # General purpose inputs (IO12-IO15)
+  - platform: gpio
+    name: "${friendly_name} Expander Input 1"
+    id: sx1509_input_0
+    internal: true
+    pin:
+      sx1509: sx1509_expander
+      number: 12
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+  - platform: gpio
+    name: "${friendly_name} Expander Input 2"
+    id: sx1509_input_1
+    internal: true
+    pin:
+      sx1509: sx1509_expander
+      number: 13
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+  - platform: gpio
+    name: "${friendly_name} Expander Input 3"
+    id: sx1509_input_2
+    internal: true
+    pin:
+      sx1509: sx1509_expander
+      number: 14
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+  - platform: gpio
+    name: "${friendly_name} Expander Input 4"
+    id: sx1509_input_3
+    internal: true
+    pin:
+      sx1509: sx1509_expander
+      number: 15
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+# ============================================================================
+# LIGHT COMPONENTS (using auxiliary PWM outputs)
+# ============================================================================
+light:
+  # Indicator LED 1 (IO8)
+  - platform: monochromatic
+    id: sx1509_led_0
+    name: "${friendly_name} Expander LED 1"
+    output: sx1509_pwm_aux_0
+    internal: true
+    default_transition_length: 200ms
+
+  # Indicator LED 2 (IO9)
+  - platform: monochromatic
+    id: sx1509_led_1
+    name: "${friendly_name} Expander LED 2"
+    output: sx1509_pwm_aux_1
+    internal: true
+    default_transition_length: 200ms
+
+  # Indicator LED 3 (IO10)
+  - platform: monochromatic
+    id: sx1509_led_2
+    name: "${friendly_name} Expander LED 3"
+    output: sx1509_pwm_aux_2
+    internal: true
+    default_transition_length: 200ms
+
+  # Indicator LED 4 (IO11)
+  - platform: monochromatic
+    id: sx1509_led_3
+    name: "${friendly_name} Expander LED 4"
+    output: sx1509_pwm_aux_3
+    internal: true
+    default_transition_length: 200ms
+
+# ============================================================================
+# SENSORS
+# ============================================================================
+sensor:
+  # Fan speed percentages (for UI display)
+  - platform: template
+    id: sx1509_fan_0_speed
+    name: "${friendly_name} Expander Fan 1 Speed"
+    internal: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 2s
+    lambda: |-
+      if (id(sx1509_fan_0).state) {
+        return id(sx1509_fan_0).speed;
+      }
+      return 0.0f;
+
+  - platform: template
+    id: sx1509_fan_1_speed
+    name: "${friendly_name} Expander Fan 2 Speed"
+    internal: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 2s
+    lambda: |-
+      if (id(sx1509_fan_1).state) {
+        return id(sx1509_fan_1).speed;
+      }
+      return 0.0f;
+
+  - platform: template
+    id: sx1509_fan_2_speed
+    name: "${friendly_name} Expander Fan 3 Speed"
+    internal: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 2s
+    lambda: |-
+      if (id(sx1509_fan_2).state) {
+        return id(sx1509_fan_2).speed;
+      }
+      return 0.0f;
+
+  - platform: template
+    id: sx1509_fan_3_speed
+    name: "${friendly_name} Expander Fan 4 Speed"
+    internal: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 2s
+    lambda: |-
+      if (id(sx1509_fan_3).state) {
+        return id(sx1509_fan_3).speed;
+      }
+      return 0.0f;
+
+# ============================================================================
+# GLOBALS FOR EXPANDER STATE
+# ============================================================================
+globals:
+  # Expander online status
+  - id: sx1509_online
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+  # Fan target speeds (0-100)
+  - id: sx1509_fan_0_target
+    type: int
+    restore_value: true
+    initial_value: '0'
+
+  - id: sx1509_fan_1_target
+    type: int
+    restore_value: true
+    initial_value: '0'
+
+  - id: sx1509_fan_2_target
+    type: int
+    restore_value: true
+    initial_value: '0'
+
+  - id: sx1509_fan_3_target
+    type: int
+    restore_value: true
+    initial_value: '0'
+
+  # All fans linked mode (same speed)
+  - id: sx1509_fans_linked
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+  # Auto mode (speed based on temperature)
+  - id: sx1509_fan_auto_mode
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+# ============================================================================
+# SCRIPTS FOR FAN CONTROL
+# ============================================================================
+script:
+  # Set individual fan speed
+  - id: sx1509_set_fan_speed
+    mode: single
+    parameters:
+      fan_num: int
+      speed: int
+    then:
+      - lambda: |-
+          int target = speed;
+          if (target < 0) target = 0;
+          if (target > 100) target = 100;
+
+          esphome::fan::Fan *fan = nullptr;
+          int *target_var = nullptr;
+
+          switch (fan_num) {
+            case 0:
+              fan = id(sx1509_fan_0);
+              target_var = &id(sx1509_fan_0_target);
+              break;
+            case 1:
+              fan = id(sx1509_fan_1);
+              target_var = &id(sx1509_fan_1_target);
+              break;
+            case 2:
+              fan = id(sx1509_fan_2);
+              target_var = &id(sx1509_fan_2_target);
+              break;
+            case 3:
+              fan = id(sx1509_fan_3);
+              target_var = &id(sx1509_fan_3_target);
+              break;
+            default:
+              ESP_LOGW("sx1509", "Invalid fan number: %d", fan_num);
+              return;
+          }
+
+          *target_var = target;
+
+          if (target == 0) {
+            auto call = fan->turn_off();
+            call.perform();
+          } else {
+            auto call = fan->turn_on();
+            call.set_speed(target);
+            call.perform();
+          }
+
+  # Set all fans to same speed
+  - id: sx1509_set_all_fans
+    mode: single
+    parameters:
+      speed: int
+    then:
+      - script.execute:
+          id: sx1509_set_fan_speed
+          fan_num: 0
+          speed: !lambda 'return speed;'
+      - script.execute:
+          id: sx1509_set_fan_speed
+          fan_num: 1
+          speed: !lambda 'return speed;'
+      - script.execute:
+          id: sx1509_set_fan_speed
+          fan_num: 2
+          speed: !lambda 'return speed;'
+      - script.execute:
+          id: sx1509_set_fan_speed
+          fan_num: 3
+          speed: !lambda 'return speed;'
+
+  # Emergency stop all fans
+  - id: sx1509_emergency_stop
+    mode: single
+    then:
+      - fan.turn_off: sx1509_fan_0
+      - fan.turn_off: sx1509_fan_1
+      - fan.turn_off: sx1509_fan_2
+      - fan.turn_off: sx1509_fan_3
+      - lambda: |-
+          id(sx1509_fan_0_target) = 0;
+          id(sx1509_fan_1_target) = 0;
+          id(sx1509_fan_2_target) = 0;
+          id(sx1509_fan_3_target) = 0;
+          ESP_LOGW("sx1509", "Emergency stop - all fans stopped");
+
+# ============================================================================
+# INTERVAL FOR LINKED MODE AND AUTO MODE
+# ============================================================================
+interval:
+  - interval: 5s
+    then:
+      - lambda: |-
+          // If linked mode is enabled, sync all fans to fan 0 speed
+          if (id(sx1509_fans_linked)) {
+            int master_speed = id(sx1509_fan_0_target);
+            if (id(sx1509_fan_1_target) != master_speed ||
+                id(sx1509_fan_2_target) != master_speed ||
+                id(sx1509_fan_3_target) != master_speed) {
+              // Sync all fans
+              id(sx1509_fan_1_target) = master_speed;
+              id(sx1509_fan_2_target) = master_speed;
+              id(sx1509_fan_3_target) = master_speed;
+
+              if (master_speed == 0) {
+                auto call1 = id(sx1509_fan_1).turn_off();
+                call1.perform();
+                auto call2 = id(sx1509_fan_2).turn_off();
+                call2.perform();
+                auto call3 = id(sx1509_fan_3).turn_off();
+                call3.perform();
+              } else {
+                auto call1 = id(sx1509_fan_1).turn_on();
+                call1.set_speed(master_speed);
+                call1.perform();
+                auto call2 = id(sx1509_fan_2).turn_on();
+                call2.set_speed(master_speed);
+                call2.perform();
+                auto call3 = id(sx1509_fan_3).turn_on();
+                call3.set_speed(master_speed);
+                call3.perform();
+              }
+            }
+          }

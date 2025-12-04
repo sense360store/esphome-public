@@ -1,0 +1,501 @@
+---
+# ============================================================================
+# SENSE360 AIR QUALITY MONITORING PROFILE
+# ============================================================================
+# Comprehensive air quality monitoring combining:
+# - Presence detection (LD2450 radar)
+# - Full air quality suite (AirIQ module)
+# - Basic fan control (GP8403 DAC)
+#
+# This profile is designed for:
+# - Air quality monitoring stations
+# - Smart home IAQ systems
+# - Office/commercial ventilation monitoring
+# - Health-conscious environments
+#
+# Hardware Requirements:
+# - Sense360 Core board
+# - LD2450 or LD2412 presence module
+# - AirIQ expansion (SEN55 + SCD41)
+# - GP8403 DAC for ventilation control (optional)
+#
+# Sensors provided:
+# - PM1.0, PM2.5, PM4.0, PM10 (particulate matter)
+# - VOC Index (volatile organic compounds)
+# - NOx Index (nitrogen oxides)
+# - CO2 (carbon dioxide)
+# - Temperature and Humidity
+# - Calculated AQI (Air Quality Index)
+#
+# Power Budget:
+# - 3.3V Rail: ~300mA (MCU + AirIQ sensors)
+# - 5V Rail:   ~100mA (presence radar)
+# ============================================================================
+
+substitutions:
+  device_name: sense360-airq
+  friendly_name: Sense360 Air Quality
+  device_version: "1.0.0"
+
+  # AQI thresholds for alerts
+  aqi_good_max: "50"
+  aqi_moderate_max: "100"
+  aqi_sensitive_max: "150"
+  aqi_unhealthy_max: "200"
+
+  # CO2 thresholds (ppm)
+  co2_good_max: "800"
+  co2_moderate_max: "1000"
+  co2_poor_max: "1500"
+
+# ============================================================================
+# INCLUDE CORE AND MODULES
+# ============================================================================
+packages:
+  # Core hardware mapping
+  core: !include ../hardware/sense360_core_mapping.yaml
+
+  # Power management
+  power: !include ../hardware/power_management.yaml
+
+  # Expansion modules
+  presence: !include ../expansions/presence_ld2450.yaml
+  airiq: !include ../expansions/airiq.yaml
+  fan_dac: !include ../expansions/fan_gp8403.yaml
+
+# ============================================================================
+# PROFILE-SPECIFIC CONFIGURATION
+# ============================================================================
+
+esphome:
+  on_boot:
+    - priority: 500
+      then:
+        - lambda: |-
+            // Register power consumption
+            id(power_presence_module_ma) = 80.0f;
+            id(power_5v_consumption) = 80.0f;
+
+            id(power_airiq_module_ma) = 150.0f;
+            id(power_fan_dac_module_ma) = 20.0f;
+            id(power_3v3_consumption) = 150.0f + 150.0f + 20.0f;  // ~320mA
+
+            ESP_LOGI("airq", "Air Quality profile initialized");
+
+# ============================================================================
+# AIR QUALITY MONITORING GLOBALS
+# ============================================================================
+globals:
+  # Air quality level: 0=good, 1=moderate, 2=sensitive, 3=unhealthy, 4=very unhealthy, 5=hazardous
+  - id: air_quality_level
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+  # CO2 level: 0=excellent, 1=good, 2=moderate, 3=poor, 4=very poor
+  - id: co2_level
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+  # Ventilation recommendation: 0=none, 1=low, 2=medium, 3=high, 4=maximum
+  - id: ventilation_recommendation
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+  # Auto ventilation enabled
+  - id: auto_ventilation_enabled
+    type: bool
+    restore_value: true
+    initial_value: 'true'
+
+# ============================================================================
+# EXPOSED AIR QUALITY SENSORS
+# ============================================================================
+sensor:
+  # PM1.0 (Particulate Matter < 1.0 μm)
+  - platform: template
+    id: aq_pm1_0
+    name: "${friendly_name} PM1.0"
+    unit_of_measurement: "µg/m³"
+    device_class: pm1
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: 30s
+    lambda: |-
+      return id(airiq_pm1_0).state;
+
+  # PM2.5 (Particulate Matter < 2.5 μm) - Primary AQI indicator
+  - platform: template
+    id: aq_pm2_5
+    name: "${friendly_name} PM2.5"
+    unit_of_measurement: "µg/m³"
+    device_class: pm25
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: 30s
+    lambda: |-
+      return id(airiq_pm2_5).state;
+
+  # PM4.0 (Particulate Matter < 4.0 μm)
+  - platform: template
+    id: aq_pm4_0
+    name: "${friendly_name} PM4.0"
+    unit_of_measurement: "µg/m³"
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: 30s
+    lambda: |-
+      return id(airiq_pm4_0).state;
+
+  # PM10 (Particulate Matter < 10 μm)
+  - platform: template
+    id: aq_pm10
+    name: "${friendly_name} PM10"
+    unit_of_measurement: "µg/m³"
+    device_class: pm10
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: 30s
+    lambda: |-
+      return id(airiq_pm10_0).state;
+
+  # VOC Index (1-500 scale)
+  - platform: template
+    id: aq_voc_index
+    name: "${friendly_name} VOC Index"
+    unit_of_measurement: ""
+    accuracy_decimals: 0
+    update_interval: 30s
+    lambda: |-
+      return id(airiq_voc_index).state;
+    icon: mdi:air-filter
+
+  # NOx Index (1-500 scale)
+  - platform: template
+    id: aq_nox_index
+    name: "${friendly_name} NOx Index"
+    unit_of_measurement: ""
+    accuracy_decimals: 0
+    update_interval: 30s
+    lambda: |-
+      return id(airiq_nox_index).state;
+    icon: mdi:molecule
+
+  # CO2 (ppm)
+  - platform: template
+    id: aq_co2
+    name: "${friendly_name} CO2"
+    unit_of_measurement: "ppm"
+    device_class: carbon_dioxide
+    state_class: measurement
+    accuracy_decimals: 0
+    update_interval: 30s
+    lambda: |-
+      return id(airiq_co2).state;
+
+  # Temperature (averaged from sensors)
+  - platform: template
+    id: aq_temperature
+    name: "${friendly_name} Temperature"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: 30s
+    lambda: |-
+      return id(airiq_temperature_value);
+
+  # Humidity (averaged from sensors)
+  - platform: template
+    id: aq_humidity
+    name: "${friendly_name} Humidity"
+    unit_of_measurement: "%"
+    device_class: humidity
+    state_class: measurement
+    accuracy_decimals: 0
+    update_interval: 30s
+    lambda: |-
+      return id(airiq_humidity_value);
+
+  # Air Quality Index (US EPA standard)
+  - platform: template
+    id: aq_aqi
+    name: "${friendly_name} AQI"
+    unit_of_measurement: "AQI"
+    accuracy_decimals: 0
+    update_interval: 30s
+    lambda: |-
+      return (float)id(airiq_aqi_value);
+    icon: mdi:air-filter
+
+  # Ventilation fan speed (0-100%)
+  - platform: template
+    id: aq_ventilation_speed
+    name: "${friendly_name} Ventilation Speed"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: |-
+      if (id(fan_controller_0).state) {
+        return id(fan_controller_0).speed;
+      }
+      return 0.0f;
+
+# ============================================================================
+# AIR QUALITY BINARY SENSORS
+# ============================================================================
+binary_sensor:
+  # Air quality alert (AQI > 100)
+  - platform: template
+    id: aq_alert
+    name: "${friendly_name} Air Quality Alert"
+    device_class: problem
+    lambda: |-
+      return id(airiq_aqi_value) > ${aqi_moderate_max};
+
+  # CO2 alert (> 1000 ppm)
+  - platform: template
+    id: aq_co2_alert
+    name: "${friendly_name} CO2 Alert"
+    device_class: problem
+    lambda: |-
+      return id(airiq_co2).state > ${co2_moderate_max};
+
+  # VOC alert (> 200)
+  - platform: template
+    id: aq_voc_alert
+    name: "${friendly_name} VOC Alert"
+    device_class: problem
+    lambda: |-
+      return id(airiq_voc_index).state > 200.0f;
+
+  # Room occupied
+  - platform: template
+    id: aq_room_occupied
+    name: "${friendly_name} Occupied"
+    device_class: occupancy
+    lambda: |-
+      return id(presence_people_count) > 0;
+
+  # Ventilation running
+  - platform: template
+    id: aq_ventilation_running
+    name: "${friendly_name} Ventilation Running"
+    lambda: |-
+      return id(fan_controller_0).state;
+
+# ============================================================================
+# AIR QUALITY TEXT SENSORS
+# ============================================================================
+text_sensor:
+  # AQI Category (US EPA)
+  - platform: template
+    id: aq_aqi_category
+    name: "${friendly_name} AQI Category"
+    icon: mdi:air-filter
+    update_interval: 30s
+    lambda: |-
+      int aqi = id(airiq_aqi_value);
+      if (aqi <= ${aqi_good_max}) {
+        id(air_quality_level) = 0;
+        return {"Good"};
+      } else if (aqi <= ${aqi_moderate_max}) {
+        id(air_quality_level) = 1;
+        return {"Moderate"};
+      } else if (aqi <= ${aqi_sensitive_max}) {
+        id(air_quality_level) = 2;
+        return {"Unhealthy for Sensitive Groups"};
+      } else if (aqi <= ${aqi_unhealthy_max}) {
+        id(air_quality_level) = 3;
+        return {"Unhealthy"};
+      } else if (aqi <= 300) {
+        id(air_quality_level) = 4;
+        return {"Very Unhealthy"};
+      } else {
+        id(air_quality_level) = 5;
+        return {"Hazardous"};
+      }
+
+  # CO2 Level Category
+  - platform: template
+    id: aq_co2_category
+    name: "${friendly_name} CO2 Level"
+    icon: mdi:molecule-co2
+    update_interval: 30s
+    lambda: |-
+      float co2 = id(airiq_co2).state;
+      if (co2 < 400) {
+        id(co2_level) = 0;
+        return {"Excellent (outdoor level)"};
+      } else if (co2 <= ${co2_good_max}) {
+        id(co2_level) = 1;
+        return {"Good"};
+      } else if (co2 <= ${co2_moderate_max}) {
+        id(co2_level) = 2;
+        return {"Moderate"};
+      } else if (co2 <= ${co2_poor_max}) {
+        id(co2_level) = 3;
+        return {"Poor - increase ventilation"};
+      } else {
+        id(co2_level) = 4;
+        return {"Very Poor - ventilate immediately"};
+      }
+
+  # Ventilation recommendation
+  - platform: template
+    id: aq_ventilation_recommendation
+    name: "${friendly_name} Ventilation Recommendation"
+    icon: mdi:fan
+    update_interval: 30s
+    lambda: |-
+      int level = 0;
+
+      // Factor in AQI
+      if (id(air_quality_level) >= 3) level = std::max(level, 4);  // Unhealthy
+      else if (id(air_quality_level) >= 2) level = std::max(level, 3);  // Sensitive
+      else if (id(air_quality_level) >= 1) level = std::max(level, 2);  // Moderate
+
+      // Factor in CO2
+      if (id(co2_level) >= 4) level = std::max(level, 4);  // Very poor
+      else if (id(co2_level) >= 3) level = std::max(level, 3);  // Poor
+      else if (id(co2_level) >= 2) level = std::max(level, 2);  // Moderate
+
+      // Factor in VOC
+      float voc = id(airiq_voc_index).state;
+      if (voc > 300) level = std::max(level, 4);
+      else if (voc > 200) level = std::max(level, 3);
+      else if (voc > 150) level = std::max(level, 2);
+
+      // Factor in occupancy (increase ventilation when occupied)
+      if (id(presence_people_count) > 0 && level < 1) {
+        level = 1;
+      }
+
+      id(ventilation_recommendation) = level;
+
+      switch (level) {
+        case 0: return {"None needed"};
+        case 1: return {"Low (energy saving)"};
+        case 2: return {"Medium (standard)"};
+        case 3: return {"High (improved IAQ)"};
+        case 4: return {"Maximum (critical)"};
+        default: return {"Unknown"};
+      }
+
+  # Health advisory
+  - platform: template
+    id: aq_health_advisory
+    name: "${friendly_name} Health Advisory"
+    icon: mdi:account-heart
+    update_interval: 60s
+    lambda: |-
+      int aqi_level = id(air_quality_level);
+      int co2_lvl = id(co2_level);
+      float voc = id(airiq_voc_index).state;
+
+      if (aqi_level >= 3 || co2_lvl >= 4 || voc > 300) {
+        return {"Limit exposure. Open windows or leave area."};
+      } else if (aqi_level >= 2 || co2_lvl >= 3 || voc > 200) {
+        return {"Sensitive individuals should limit exposure."};
+      } else if (aqi_level >= 1 || co2_lvl >= 2 || voc > 150) {
+        return {"Acceptable. Consider improving ventilation."};
+      } else {
+        return {"Air quality is good."};
+      }
+
+# ============================================================================
+# CONTROLS
+# ============================================================================
+switch:
+  # Auto ventilation control
+  - platform: template
+    id: aq_auto_ventilation
+    name: "${friendly_name} Auto Ventilation"
+    icon: mdi:fan-auto
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    turn_on_action:
+      - lambda: 'id(auto_ventilation_enabled) = true;'
+    turn_off_action:
+      - lambda: 'id(auto_ventilation_enabled) = false;'
+
+number:
+  # Manual ventilation speed override
+  - platform: template
+    id: aq_manual_ventilation
+    name: "${friendly_name} Manual Ventilation"
+    unit_of_measurement: "%"
+    min_value: 0
+    max_value: 100
+    step: 10
+    optimistic: true
+    set_action:
+      - lambda: |-
+          if (x > 0) {
+            auto call = id(fan_controller_0).turn_on();
+            call.set_speed((int)x);
+            call.perform();
+          } else {
+            auto call = id(fan_controller_0).turn_off();
+            call.perform();
+          }
+
+# ============================================================================
+# AUTO VENTILATION CONTROL
+# ============================================================================
+script:
+  - id: aq_update_ventilation
+    mode: single
+    then:
+      - lambda: |-
+          if (!id(auto_ventilation_enabled)) return;
+
+          int level = id(ventilation_recommendation);
+          int speed = 0;
+
+          switch (level) {
+            case 0: speed = 0; break;
+            case 1: speed = 30; break;
+            case 2: speed = 50; break;
+            case 3: speed = 75; break;
+            case 4: speed = 100; break;
+            default: speed = 50;
+          }
+
+          if (speed == 0) {
+            auto call = id(fan_controller_0).turn_off();
+            call.perform();
+          } else {
+            auto call = id(fan_controller_0).turn_on();
+            call.set_speed(speed);
+            call.perform();
+          }
+
+          ESP_LOGD("airq", "Auto ventilation: level=%d, speed=%d%%", level, speed);
+
+# ============================================================================
+# MONITORING INTERVALS
+# ============================================================================
+interval:
+  - interval: 30s
+    then:
+      - script.execute: aq_update_ventilation
+
+  - interval: 60s
+    then:
+      - lambda: |-
+          // Log air quality summary
+          ESP_LOGI("airq", "AQI: %d (%s), CO2: %.0f ppm (%s), VOC: %.0f, NOx: %.0f",
+            id(airiq_aqi_value),
+            id(air_quality_level) <= 1 ? "Good" : "Alert",
+            id(airiq_co2).state,
+            id(co2_level) <= 2 ? "OK" : "High",
+            id(airiq_voc_index).state,
+            id(airiq_nox_index).state);
+
+          ESP_LOGI("airq", "PM: 1.0=%.1f, 2.5=%.1f, 10=%.1f µg/m³",
+            id(airiq_pm1_0).state,
+            id(airiq_pm2_5).state,
+            id(airiq_pm10_0).state);
