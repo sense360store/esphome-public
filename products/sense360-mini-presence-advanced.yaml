@@ -296,7 +296,7 @@ switch:
     name: "${friendly_name} LD2450 Bluetooth"
     icon: "mdi:bluetooth"
     optimistic: true
-    restore_value: false
+    restore_mode: DISABLED
     turn_on_action:
       - uart.write:
           id: ${ld2450_uart_id}
