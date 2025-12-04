@@ -63,6 +63,8 @@ packages:
 - Device health monitoring
 - MQTT publishing for AirIQ (requires `mqtt_username` and `mqtt_password` in your `secrets.yaml`)
 
+> AirIQ uses the Bosch BSEC2 external component, pinned to the public `v1.4.2500` archive of `BSEC2-ESPHome`. ESPHome will download that archive during the first build and prompt you to accept the Bosch BSEC license before compilation continues.
+
 #### Sense360 Mini + Presence Only
 
 Presence detection without air quality sensors. Ideal for occupancy sensing and lighting automation.

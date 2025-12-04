@@ -32,6 +32,7 @@ Starting with v3.0.0, all features are available in two versions:
 - Shows: Temperature & Humidity
 - Shows: Simple recommendations ("Open Window" / "Air is Good")
 - No PPM, µg/m³, or other technical units
+- Uses the Bosch BSEC2 external component pinned to the public `v1.4.2500` release archive (license acceptance is prompted on first build)
 
 ### Advanced Profiles (For Power Users)
 - **All technical sensors and measurements**

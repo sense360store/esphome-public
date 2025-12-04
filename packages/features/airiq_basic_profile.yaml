@@ -15,8 +15,9 @@ bme680_bsec:
 
 external_components:
   - source:
-      type: git
-      url: https://github.com/boschsensortec/BSEC2-ESPHome
+      type: tar
+      url: https://github.com/boschsensortec/BSEC2-ESPHome/archive/refs/tags/v1.4.2500.tar.gz
+      path: BSEC2-ESPHome-1.4.2500/components
     components: [bme680_bsec]
 
 sensor:
