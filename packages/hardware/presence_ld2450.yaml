@@ -15,7 +15,6 @@ uart:
 ld2450:
   id: ld2450_radar
   uart_id: ${ld2450_uart_id}
-  throttle: 1000ms
 
 sensor:
   # Target tracking (used internally)
@@ -24,35 +23,53 @@ sensor:
     target_count:
       id: ld2450_target_count
       internal: true
+      filters:
+        - throttle: 1000ms
     still_target_count:
       id: ld2450_still_count
       internal: true
+      filters:
+        - throttle: 1000ms
     moving_target_count:
       id: ld2450_moving_count
       internal: true
+      filters:
+        - throttle: 1000ms
 
     # Individual targets (for advanced logic if needed)
     target_1:
       x:
         id: ld2450_t1_x
         internal: true
+        filters:
+          - throttle: 1000ms
       y:
         id: ld2450_t1_y
         internal: true
+        filters:
+          - throttle: 1000ms
     target_2:
       x:
         id: ld2450_t2_x
         internal: true
+        filters:
+          - throttle: 1000ms
       y:
         id: ld2450_t2_y
         internal: true
+        filters:
+          - throttle: 1000ms
     target_3:
       x:
         id: ld2450_t3_x
         internal: true
+        filters:
+          - throttle: 1000ms
       y:
         id: ld2450_t3_y
         internal: true
+        filters:
+          - throttle: 1000ms
 
 # Update presence confidence based on sensor data
 interval:
