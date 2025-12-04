@@ -15,6 +15,9 @@
 # ============================================================================
 
 substitutions:
+  # Device identity
+  device_name: sense360-mini-airiq-basic
+  friendly_name: "SENSE360 Mini AirIQ"
   # Hardware pins (ESP32-S3 DevKit)
   board_variant: esp32-s3-devkitc-1
 
