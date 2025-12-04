@@ -88,7 +88,6 @@ uart:
 ld2450:
   id: ld2450_radar
   uart_id: ${ld2450_uart_id}
-  throttle: 500ms
   bluetooth_password: "HiLink"
 
 # ----------------------------------------------------------------------------
@@ -101,35 +100,53 @@ sensor:
     target_count:
       id: ld2450_target_count
       name: "${friendly_name} People Count"
+      filters:
+        - throttle: 500ms
     still_target_count:
       id: ld2450_still_count
       internal: true
+      filters:
+        - throttle: 500ms
     moving_target_count:
       id: ld2450_moving_count
       internal: true
+      filters:
+        - throttle: 500ms
 
     # Individual targets
     target_1:
       x:
         id: ld2450_t1_x
         internal: true
+        filters:
+          - throttle: 500ms
       y:
         id: ld2450_t1_y
         internal: true
+        filters:
+          - throttle: 500ms
     target_2:
       x:
         id: ld2450_t2_x
         internal: true
+        filters:
+          - throttle: 500ms
       y:
         id: ld2450_t2_y
         internal: true
+        filters:
+          - throttle: 500ms
     target_3:
       x:
         id: ld2450_t3_x
         internal: true
+        filters:
+          - throttle: 500ms
       y:
         id: ld2450_t3_y
         internal: true
+        filters:
+          - throttle: 500ms
 
 # Update presence confidence based on sensor data
 interval:
