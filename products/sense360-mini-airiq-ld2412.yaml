@@ -105,7 +105,7 @@ packages:
   presence_hardware: !include ../hardware/presence_ld2412.yaml
 
   # === Feature Profiles ===
-  airiq_sensors: !include ../features/airiq_mini_profile.yaml
+  airiq_sensors: !include ../features/airiq_advanced_profile.yaml
   presence_detection: !include ../features/presence_basic_profile_ld2412.yaml
   status_leds: !include ../features/mini_four_leds_addr.yaml
   device_diagnostics: !include ../features/device_health.yaml
