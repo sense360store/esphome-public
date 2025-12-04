@@ -1,28 +1,77 @@
 substitutions:
   presence_timeout: 30s
 
+# UART for LD2450 Radar Sensor
+uart:
+  - id: ${ld2450_uart_id}
+    tx_pin: ${ld2450_tx_pin}
+    rx_pin: ${ld2450_rx_pin}
+    baud_rate: ${ld2450_baud}
+    parity: NONE
+    stop_bits: 1
+
 # LD2450 Base Component
 ld2450:
   id: ld2450_radar
-  uart_id: uart_bus
+  uart_id: ${ld2450_uart_id}
   throttle: 1000ms
 
 sensor:
+  # Target tracking (used internally)
   - platform: ld2450
-    uart_id: uart_bus
-    timeout: ${presence_timeout}
-    update_interval: 500ms
-    targets:
-      - id: ld2450_target_1
-      - id: ld2450_target_2
-      - id: ld2450_target_3
-    on_state_change:
-      then:
-        - component.update: occupancy_status
+    ld2450_id: ld2450_radar
+    target_count:
+      id: ld2450_target_count
+      internal: true
+    still_target_count:
+      id: ld2450_still_count
+      internal: true
+    moving_target_count:
+      id: ld2450_moving_count
+      internal: true
 
-binary_sensor:
-  - platform: template
-    id: occupancy_status
-    name: "${friendly_name} Occupancy"
-    lambda: |-
-      return id(ld2450_target_1).has_target() || id(ld2450_target_2).has_target() || id(ld2450_target_3).has_target();
+    # Individual targets (for advanced logic if needed)
+    target_1:
+      x:
+        id: ld2450_t1_x
+        internal: true
+      y:
+        id: ld2450_t1_y
+        internal: true
+    target_2:
+      x:
+        id: ld2450_t2_x
+        internal: true
+      y:
+        id: ld2450_t2_y
+        internal: true
+    target_3:
+      x:
+        id: ld2450_t3_x
+        internal: true
+      y:
+        id: ld2450_t3_y
+        internal: true
+
+# Update presence confidence based on sensor data
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          // Simple presence detection logic
+          int targets = id(ld2450_target_count).state;
+          int moving = id(ld2450_moving_count).state;
+
+          if (targets > 0) {
+            // Someone is present
+            if (moving > 0) {
+              // Movement detected - high confidence
+              id(presence_confidence) = 0.9f;
+            } else {
+              // Still presence - medium confidence
+              id(presence_confidence) = 0.6f;
+            }
+          } else {
+            // No one detected
+            id(presence_confidence) = 0.1f;
+          }
