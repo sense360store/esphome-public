@@ -1,0 +1,173 @@
+---
+# ============================================================================
+# SENSE360 COMFORT MODULE - BASIC FEATURE PROFILE
+# ============================================================================
+# User-friendly environmental comfort monitoring entities.
+# Provides simplified, actionable information for end users.
+#
+# Prerequisites:
+#   - packages/expansions/comfort.yaml (hardware driver)
+#
+# Exposed Entities:
+#   - Temperature (with feels-like)
+#   - Humidity
+#   - Comfort Level (simple text status)
+#   - Light Level (simple text status)
+# ============================================================================
+
+packages:
+  health: !include device_health.yaml
+
+# ============================================================================
+# User-Facing Sensors
+# ============================================================================
+sensor:
+  # Temperature (primary, from SHT40)
+  - platform: template
+    id: comfort_temperature_display
+    name: "${friendly_name} Temperature"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+    update_interval: 30s
+    lambda: |-
+      return id(comfort_temperature).state;
+
+  # Humidity (primary, from SHT40)
+  - platform: template
+    id: comfort_humidity_display
+    name: "${friendly_name} Humidity"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: humidity
+    state_class: measurement
+    update_interval: 30s
+    lambda: |-
+      return id(comfort_humidity).state;
+
+  # Feels-like temperature (heat index)
+  - platform: template
+    id: comfort_feels_like
+    name: "${friendly_name} Feels Like"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    update_interval: 30s
+    lambda: |-
+      return id(comfort_heat_index_value);
+
+  # Light level in lux
+  - platform: template
+    id: comfort_light_display
+    name: "${friendly_name} Light Level"
+    unit_of_measurement: "lx"
+    accuracy_decimals: 0
+    device_class: illuminance
+    state_class: measurement
+    update_interval: 10s
+    lambda: |-
+      return id(comfort_light_sensor).state;
+
+  # Comfort score (0-100)
+  - platform: template
+    id: comfort_score_display
+    name: "${friendly_name} Comfort Score"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: "mdi:emoticon-happy-outline"
+    update_interval: 30s
+    lambda: |-
+      return id(comfort_index_value);
+
+# ============================================================================
+# User-Facing Text Sensors
+# ============================================================================
+text_sensor:
+  # Comfort level status
+  - platform: template
+    id: comfort_status
+    name: "${friendly_name} Comfort Status"
+    icon: "mdi:home-thermometer"
+    update_interval: 30s
+    lambda: |-
+      float score = id(comfort_index_value);
+
+      if (score >= 90) {
+        return {"Excellent"};
+      } else if (score >= 75) {
+        return {"Good"};
+      } else if (score >= 50) {
+        return {"Fair"};
+      } else if (score >= 25) {
+        return {"Poor"};
+      } else {
+        return {"Uncomfortable"};
+      }
+
+  # Light level description
+  - platform: template
+    id: comfort_light_status
+    name: "${friendly_name} Light Status"
+    icon: "mdi:brightness-6"
+    update_interval: 10s
+    lambda: |-
+      int level = id(comfort_light_level);
+
+      switch (level) {
+        case 0: return {"Dark"};
+        case 1: return {"Dim"};
+        case 2: return {"Normal"};
+        case 3: return {"Bright"};
+        default: return {"Unknown"};
+      }
+
+  # Simple temperature advice
+  - platform: template
+    id: comfort_temp_advice
+    name: "${friendly_name} Temperature Advice"
+    icon: "mdi:thermometer-lines"
+    update_interval: 60s
+    lambda: |-
+      float temp = id(comfort_temperature).state;
+
+      if (std::isnan(temp)) {
+        return {"Sensor unavailable"};
+      }
+
+      if (temp < 18.0f) {
+        return {"Too cold - consider heating"};
+      } else if (temp < 20.0f) {
+        return {"Slightly cool"};
+      } else if (temp <= 24.0f) {
+        return {"Ideal temperature"};
+      } else if (temp <= 26.0f) {
+        return {"Slightly warm"};
+      } else {
+        return {"Too warm - consider cooling"};
+      }
+
+  # Simple humidity advice
+  - platform: template
+    id: comfort_humidity_advice
+    name: "${friendly_name} Humidity Advice"
+    icon: "mdi:water-percent"
+    update_interval: 60s
+    lambda: |-
+      float humidity = id(comfort_humidity).state;
+
+      if (std::isnan(humidity)) {
+        return {"Sensor unavailable"};
+      }
+
+      if (humidity < 30.0f) {
+        return {"Too dry - consider humidifier"};
+      } else if (humidity < 40.0f) {
+        return {"Slightly dry"};
+      } else if (humidity <= 60.0f) {
+        return {"Ideal humidity"};
+      } else if (humidity <= 70.0f) {
+        return {"Slightly humid"};
+      } else {
+        return {"Too humid - consider dehumidifier"};
+      }

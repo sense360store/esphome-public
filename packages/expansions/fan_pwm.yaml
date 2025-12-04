@@ -1,0 +1,208 @@
+---
+# ============================================================================
+# SENSE360 FAN EXPANSION MODULE - PWM VERSION
+# ============================================================================
+# Variable-speed fan control module with feedback:
+# - PWM Output: GPIO4, 25kHz frequency, 0-100% duty cycle
+# - Tachometer Input: GPIO5 for RPM monitoring
+#
+# This file provides the base hardware setup. User-facing entities are defined
+# in the feature profile files.
+#
+# Expansion Bus Connection:
+#   Pin 8 (GPIO1) → GPIO4 (PWM Output)
+#   Pin 9 (GPIO2) → GPIO5 (Tachometer Input)
+#   Pin 3 (5V) → Power (for external fan)
+#   Pin 1 (GND) → Ground
+#
+# Power Requirements: 5V / 1A max (for external fan)
+# Note: Fan power typically supplied externally, not from expansion bus
+# ============================================================================
+
+substitutions:
+  # GPIO Configuration
+  fan_pwm_pin: GPIO4
+  fan_tach_pin: GPIO5
+
+  # PWM Configuration
+  fan_pwm_frequency: "25000"  # 25kHz (standard PC fan PWM)
+
+  # Fan settings
+  fan_min_speed: "10"    # Minimum speed percentage (for quiet mode)
+  fan_max_speed: "100"   # Maximum speed percentage
+  fan_default_speed: "50"
+
+# ============================================================================
+# PWM Output Configuration
+# ============================================================================
+output:
+  - platform: ledc
+    id: fan_pwm_output
+    pin: ${fan_pwm_pin}
+    frequency: ${fan_pwm_frequency}Hz
+
+# ============================================================================
+# Fan Component
+# ============================================================================
+fan:
+  - platform: speed
+    id: fan_controller
+    name: "${friendly_name} Fan"
+    output: fan_pwm_output
+    speed_count: 100
+    restore_mode: RESTORE_DEFAULT_OFF
+
+# ============================================================================
+# Tachometer Input (RPM Monitoring)
+# ============================================================================
+sensor:
+  # RPM calculation via pulse counter
+  - platform: pulse_counter
+    id: fan_tach_sensor
+    pin:
+      number: ${fan_tach_pin}
+      mode:
+        input: true
+        pullup: true
+    name: "${friendly_name} Fan RPM"
+    internal: true
+    unit_of_measurement: "RPM"
+    accuracy_decimals: 0
+    update_interval: 2s
+    filters:
+      # Standard fans output 2 pulses per revolution
+      - multiply: 0.5
+      # Convert from pulses/min to RPM (pulse_counter gives pulses/min)
+      - lambda: return x * 60.0f;
+
+  # Fan speed percentage (for UI)
+  - platform: template
+    id: fan_speed_percent
+    name: "${friendly_name} Fan Speed"
+    internal: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 1s
+    lambda: |-
+      if (id(fan_controller).state) {
+        return id(fan_controller).speed;
+      }
+      return 0.0f;
+
+# ============================================================================
+# Globals for Fan Control
+# ============================================================================
+globals:
+  # Target speed (0-100)
+  - id: fan_target_speed
+    type: int
+    restore_value: true
+    initial_value: '${fan_default_speed}'
+
+  # Stall detection flag
+  - id: fan_stall_detected
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+  # Quiet mode enabled
+  - id: fan_quiet_mode
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+  # Auto mode enabled (based on temperature/humidity)
+  - id: fan_auto_mode
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+# ============================================================================
+# Binary Sensor for Stall Detection
+# ============================================================================
+binary_sensor:
+  - platform: template
+    id: fan_stall_alarm
+    name: "${friendly_name} Fan Stall"
+    internal: true
+    device_class: problem
+    lambda: |-
+      return id(fan_stall_detected);
+
+# ============================================================================
+# Interval for Fan Monitoring
+# ============================================================================
+interval:
+  - interval: 5s
+    then:
+      - lambda: |-
+          // Stall detection logic
+          // If fan is running at >20% but RPM is 0, it might be stalled
+          if (id(fan_controller).state && id(fan_controller).speed > 20) {
+            float rpm = id(fan_tach_sensor).state;
+            if (!std::isnan(rpm) && rpm < 100.0f) {
+              // Fan should be spinning but isn't
+              id(fan_stall_detected) = true;
+              ESP_LOGW("fan", "Fan stall detected! Speed set to %.0f%% but RPM is %.0f",
+                       id(fan_controller).speed, rpm);
+            } else {
+              id(fan_stall_detected) = false;
+            }
+          } else {
+            id(fan_stall_detected) = false;
+          }
+
+          // Apply quiet mode (cap maximum speed)
+          if (id(fan_quiet_mode) && id(fan_controller).state) {
+            if (id(fan_controller).speed > 50) {
+              // In quiet mode, limit to 50%
+              auto call = id(fan_controller).turn_on();
+              call.set_speed(50);
+              call.perform();
+            }
+          }
+
+# ============================================================================
+# Scripts for Fan Control
+# ============================================================================
+script:
+  # Set fan to specific speed
+  - id: fan_set_speed
+    mode: single
+    parameters:
+      speed: int
+    then:
+      - lambda: |-
+          int target = speed;
+          if (target < 0) target = 0;
+          if (target > 100) target = 100;
+
+          // Apply minimum speed when on
+          if (target > 0 && target < ${fan_min_speed}) {
+            target = ${fan_min_speed};
+          }
+
+          // Apply quiet mode limit
+          if (id(fan_quiet_mode) && target > 50) {
+            target = 50;
+          }
+
+          id(fan_target_speed) = target;
+
+          if (target == 0) {
+            auto call = id(fan_controller).turn_off();
+            call.perform();
+          } else {
+            auto call = id(fan_controller).turn_on();
+            call.set_speed(target);
+            call.perform();
+          }
+
+  # Emergency stop
+  - id: fan_emergency_stop
+    mode: single
+    then:
+      - fan.turn_off: fan_controller
+      - lambda: |-
+          id(fan_target_speed) = 0;
+          ESP_LOGW("fan", "Emergency stop activated");

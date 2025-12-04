@@ -1,0 +1,151 @@
+---
+# ============================================================================
+# SENSE360 PRESENCE EXPANSION MODULE - LD2412 (Single-Zone)
+# ============================================================================
+# HLK-LD2412 24GHz mmWave Radar Sensor for presence detection
+# - Superior still presence detection up to 9 meters
+# - Gate-based detection (14 gates at configurable resolution)
+# - Single target tracking with high accuracy
+# - UART interface at 115200 baud (default)
+#
+# This file provides the base hardware setup. User-facing entities are defined
+# in the feature profile files (basic or advanced).
+#
+# Expansion Bus Connection:
+#   Pin 6 (UART TX) → GPIO1 (ESP RX)
+#   Pin 7 (UART RX) → GPIO2 (ESP TX)
+#   Pin 3 (5V) → Power
+#   Pin 1 (GND) → Ground
+#
+# Power Requirements: 5V / 150mA max
+# ============================================================================
+
+substitutions:
+  # UART Configuration
+  ld2412_uart_id: uart_presence
+  ld2412_tx_pin: GPIO1
+  ld2412_rx_pin: GPIO2
+  ld2412_baud: "115200"
+
+  # Presence detection settings
+  presence_timeout: 30s
+
+# UART for LD2412 Radar Sensor
+uart:
+  - id: ${ld2412_uart_id}
+    tx_pin: ${ld2412_tx_pin}
+    rx_pin: ${ld2412_rx_pin}
+    baud_rate: ${ld2412_baud}
+    parity: NONE
+    stop_bits: 1
+
+# LD2412 Base Component
+ld2412:
+  id: ld2412_radar
+  uart_id: ${ld2412_uart_id}
+
+# Binary Sensors - Presence Detection (internal, used by feature profiles)
+binary_sensor:
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    has_target:
+      id: ld2412_has_target
+      name: "${friendly_name} Has Target"
+      internal: true
+    has_moving_target:
+      id: ld2412_has_moving
+      name: "${friendly_name} Has Moving Target"
+      internal: true
+    has_still_target:
+      id: ld2412_has_still
+      name: "${friendly_name} Has Still Target"
+      internal: true
+
+# Sensors - Distance and Energy measurements (internal, used by feature profiles)
+sensor:
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    detection_distance:
+      id: ld2412_detection_distance
+      name: "${friendly_name} Detection Distance"
+      internal: true
+    moving_distance:
+      id: ld2412_moving_distance
+      name: "${friendly_name} Moving Distance"
+      internal: true
+    still_distance:
+      id: ld2412_still_distance
+      name: "${friendly_name} Still Distance"
+      internal: true
+    moving_energy:
+      id: ld2412_moving_energy
+      name: "${friendly_name} Moving Energy"
+      internal: true
+    still_energy:
+      id: ld2412_still_energy
+      name: "${friendly_name} Still Energy"
+      internal: true
+    light:
+      id: ld2412_light
+      name: "${friendly_name} Light Level"
+      internal: true
+
+# ============================================================================
+# Globals for Presence Detection
+# ============================================================================
+globals:
+  - id: presence_confidence
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
+  # Detection distance (for zone-based logic)
+  - id: presence_closest_distance
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
+  # Presence type (0=none, 1=still, 2=moving)
+  - id: presence_type
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+# Update presence confidence based on sensor data
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          // LD2412 presence detection logic
+          bool has_target = id(ld2412_has_target).state;
+          bool has_moving = id(ld2412_has_moving).state;
+          bool has_still = id(ld2412_has_still).state;
+
+          if (has_target) {
+            // Update detection distance
+            float dist = id(ld2412_detection_distance).state;
+            if (!std::isnan(dist)) {
+              id(presence_closest_distance) = dist;
+            }
+
+            // Someone is present
+            if (has_moving) {
+              // Movement detected - high confidence
+              id(presence_confidence) = 0.95f;
+              id(presence_type) = 2;
+            } else if (has_still) {
+              // Still presence - LD2412 excels at this
+              // Higher confidence than LD2450 for still detection
+              id(presence_confidence) = 0.8f;
+              id(presence_type) = 1;
+            } else {
+              // Target detected but neither moving nor still classified
+              id(presence_confidence) = 0.5f;
+              id(presence_type) = 0;
+            }
+          } else {
+            // No one detected
+            id(presence_confidence) = 0.1f;
+            id(presence_closest_distance) = 0.0f;
+            id(presence_type) = 0;
+          }

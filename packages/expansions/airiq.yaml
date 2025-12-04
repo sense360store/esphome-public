@@ -1,0 +1,288 @@
+---
+# ============================================================================
+# SENSE360 AIRIQ EXPANSION MODULE - HARDWARE DRIVER
+# ============================================================================
+# Comprehensive air quality monitoring module with multiple sensors:
+# - SEN55 (I2C 0x69): PM1.0, PM2.5, PM4.0, PM10, VOC, NOx, Temperature, Humidity
+# - SCD41 (I2C 0x62): CO2, Temperature, Humidity
+# - SHT30 (I2C 0x44, optional): Backup temperature/humidity sensor
+#
+# This file provides the base hardware setup. User-facing entities are defined
+# in the feature profile files (basic or advanced).
+#
+# Expansion Bus Connection:
+#   Pin 4 (SDA) → GPIO39
+#   Pin 5 (SCL) → GPIO40
+#   Pin 2 (3.3V) → Power
+#   Pin 1 (GND) → Ground
+#
+# Power Requirements: 3.3V / 500mA max
+# ============================================================================
+
+substitutions:
+  # I2C Configuration (can be overridden in product config)
+  airiq_i2c_sda: GPIO39
+  airiq_i2c_scl: GPIO40
+  airiq_i2c_id: i2c_airiq
+
+  # Sensor update intervals
+  airiq_sen55_update: 30s
+  airiq_scd41_update: 30s
+  airiq_sht30_update: 60s
+
+  # CO2 calibration settings
+  co2_auto_calibration: "true"
+
+# I2C Bus Configuration
+i2c:
+  - id: ${airiq_i2c_id}
+    sda: ${airiq_i2c_sda}
+    scl: ${airiq_i2c_scl}
+    scan: true
+    frequency: 100kHz
+
+# ============================================================================
+# SEN55 - All-in-One Environmental Sensor (Sensirion)
+# I2C Address: 0x69
+# ============================================================================
+sensor:
+  # SEN55 Particulate Matter Sensors
+  - platform: sen5x
+    id: sen55_sensor
+    i2c_id: ${airiq_i2c_id}
+    address: 0x69
+
+    # Particulate Matter
+    pm_1_0:
+      id: airiq_pm1_0
+      name: "${friendly_name} PM1.0"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    pm_2_5:
+      id: airiq_pm2_5
+      name: "${friendly_name} PM2.5"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    pm_4_0:
+      id: airiq_pm4_0
+      name: "${friendly_name} PM4.0"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    pm_10_0:
+      id: airiq_pm10_0
+      name: "${friendly_name} PM10"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    # Environmental Conditions (from SEN55)
+    temperature:
+      id: airiq_sen55_temperature
+      name: "${friendly_name} SEN55 Temperature"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    humidity:
+      id: airiq_sen55_humidity
+      name: "${friendly_name} SEN55 Humidity"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    # Air Quality Indices
+    voc:
+      id: airiq_voc_index
+      name: "${friendly_name} VOC Index"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    nox:
+      id: airiq_nox_index
+      name: "${friendly_name} NOx Index"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    # Temperature offset compensation
+    temperature_compensation:
+      offset: 0
+      normalized_offset_slope: 0
+      time_constant: 0
+
+    # Acceleration mode for faster startup
+    acceleration_mode: low
+
+    # Store baseline for faster startup
+    store_baseline: true
+
+    # Auto cleaning (fan cleaning interval)
+    auto_cleaning_interval: 604800s  # 7 days
+
+  # ============================================================================
+  # SCD41 - CO2 Sensor (Sensirion)
+  # I2C Address: 0x62
+  # ============================================================================
+  - platform: scd4x
+    id: scd41_sensor
+    i2c_id: ${airiq_i2c_id}
+    address: 0x62
+
+    co2:
+      id: airiq_co2
+      name: "${friendly_name} CO2"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_scd41_update}
+
+    temperature:
+      id: airiq_scd41_temperature
+      name: "${friendly_name} SCD41 Temperature"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_scd41_update}
+
+    humidity:
+      id: airiq_scd41_humidity
+      name: "${friendly_name} SCD41 Humidity"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_scd41_update}
+
+    # Automatic self-calibration
+    automatic_self_calibration: ${co2_auto_calibration}
+
+    # Measurement mode
+    measurement_mode: periodic
+    update_interval: ${airiq_scd41_update}
+
+  # ============================================================================
+  # SHT30 - Backup Temperature/Humidity Sensor (Optional, Sensirion)
+  # I2C Address: 0x44
+  # ============================================================================
+  # Note: May conflict with SHT40 on Comfort module (same address)
+  # Enable only if needed and Comfort module not present
+  # - platform: sht3xd
+  #   id: sht30_sensor
+  #   i2c_id: ${airiq_i2c_id}
+  #   address: 0x44
+  #   temperature:
+  #     id: airiq_sht30_temperature
+  #     name: "${friendly_name} SHT30 Temperature"
+  #     internal: true
+  #     filters:
+  #       - throttle: ${airiq_sht30_update}
+  #   humidity:
+  #     id: airiq_sht30_humidity
+  #     name: "${friendly_name} SHT30 Humidity"
+  #     internal: true
+  #     filters:
+  #       - throttle: ${airiq_sht30_update}
+  #   update_interval: ${airiq_sht30_update}
+
+# ============================================================================
+# Globals for Air Quality Calculations
+# ============================================================================
+globals:
+  # Air Quality Index (0-500 scale, US EPA standard)
+  - id: airiq_aqi_value
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+  # Primary temperature source (averaged from sensors)
+  - id: airiq_temperature_value
+    type: float
+    restore_value: false
+    initial_value: '20.0'
+
+  # Primary humidity source (averaged from sensors)
+  - id: airiq_humidity_value
+    type: float
+    restore_value: false
+    initial_value: '50.0'
+
+# ============================================================================
+# Interval for Sensor Data Processing
+# ============================================================================
+interval:
+  - interval: 30s
+    then:
+      - lambda: |-
+          // Average temperature from SEN55 and SCD41
+          float temp_sen55 = id(airiq_sen55_temperature).state;
+          float temp_scd41 = id(airiq_scd41_temperature).state;
+          int temp_count = 0;
+          float temp_sum = 0.0f;
+
+          if (!std::isnan(temp_sen55)) {
+            temp_sum += temp_sen55;
+            temp_count++;
+          }
+          if (!std::isnan(temp_scd41)) {
+            temp_sum += temp_scd41;
+            temp_count++;
+          }
+
+          if (temp_count > 0) {
+            id(airiq_temperature_value) = temp_sum / temp_count;
+          }
+
+          // Average humidity from SEN55 and SCD41
+          float hum_sen55 = id(airiq_sen55_humidity).state;
+          float hum_scd41 = id(airiq_scd41_humidity).state;
+          int hum_count = 0;
+          float hum_sum = 0.0f;
+
+          if (!std::isnan(hum_sen55)) {
+            hum_sum += hum_sen55;
+            hum_count++;
+          }
+          if (!std::isnan(hum_scd41)) {
+            hum_sum += hum_scd41;
+            hum_count++;
+          }
+
+          if (hum_count > 0) {
+            id(airiq_humidity_value) = hum_sum / hum_count;
+          }
+
+          // Calculate AQI based on PM2.5 (simplified US EPA breakpoints)
+          float pm25 = id(airiq_pm2_5).state;
+          int aqi = 0;
+
+          if (!std::isnan(pm25)) {
+            if (pm25 <= 12.0f) {
+              aqi = (int)((50.0f / 12.0f) * pm25);
+            } else if (pm25 <= 35.4f) {
+              aqi = (int)(((100.0f - 51.0f) / (35.4f - 12.1f)) * (pm25 - 12.1f) + 51.0f);
+            } else if (pm25 <= 55.4f) {
+              aqi = (int)(((150.0f - 101.0f) / (55.4f - 35.5f)) * (pm25 - 35.5f) + 101.0f);
+            } else if (pm25 <= 150.4f) {
+              aqi = (int)(((200.0f - 151.0f) / (150.4f - 55.5f)) * (pm25 - 55.5f) + 151.0f);
+            } else if (pm25 <= 250.4f) {
+              aqi = (int)(((300.0f - 201.0f) / (250.4f - 150.5f)) * (pm25 - 150.5f) + 201.0f);
+            } else {
+              aqi = (int)(((500.0f - 301.0f) / (500.4f - 250.5f)) * (pm25 - 250.5f) + 301.0f);
+            }
+          }
+
+          id(airiq_aqi_value) = aqi;

@@ -1,0 +1,234 @@
+---
+# ============================================================================
+# SENSE360 COMFORT EXPANSION MODULE - HARDWARE DRIVER
+# ============================================================================
+# Environmental comfort monitoring module with multiple sensors:
+# - SHT40 (I2C 0x44): High-accuracy temperature and humidity
+# - BH1750 (I2C 0x23): Ambient light sensor (lux)
+# - BME680 (I2C 0x76, optional): Pressure, gas resistance for IAQ
+#
+# This file provides the base hardware setup. User-facing entities are defined
+# in the feature profile files (basic or advanced).
+#
+# Expansion Bus Connection:
+#   Pin 4 (SDA) → GPIO39
+#   Pin 5 (SCL) → GPIO40
+#   Pin 2 (3.3V) → Power
+#   Pin 1 (GND) → Ground
+#
+# Power Requirements: 3.3V / 200mA max
+# ============================================================================
+
+substitutions:
+  # I2C Configuration (can be overridden in product config)
+  comfort_i2c_sda: GPIO39
+  comfort_i2c_scl: GPIO40
+  comfort_i2c_id: i2c_comfort
+
+  # Sensor update intervals
+  comfort_sht40_update: 30s
+  comfort_bh1750_update: 10s
+  comfort_bme680_update: 60s
+
+# I2C Bus Configuration
+i2c:
+  - id: ${comfort_i2c_id}
+    sda: ${comfort_i2c_sda}
+    scl: ${comfort_i2c_scl}
+    scan: true
+    frequency: 100kHz
+
+# ============================================================================
+# SENSORS
+# ============================================================================
+sensor:
+  # ============================================================================
+  # SHT40 - High-Accuracy Temperature/Humidity Sensor (Sensirion)
+  # I2C Address: 0x44
+  # ============================================================================
+  - platform: sht4x
+    id: comfort_sht40_sensor
+    i2c_id: ${comfort_i2c_id}
+    address: 0x44
+
+    temperature:
+      id: comfort_temperature
+      name: "${friendly_name} Temperature"
+      internal: true
+      accuracy_decimals: 2
+      filters:
+        - throttle: ${comfort_sht40_update}
+
+    humidity:
+      id: comfort_humidity
+      name: "${friendly_name} Humidity"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${comfort_sht40_update}
+
+    # High precision mode for best accuracy
+    precision: High
+    heater_power: Off
+
+    update_interval: ${comfort_sht40_update}
+
+  # ============================================================================
+  # BH1750 - Ambient Light Sensor (ROHM)
+  # I2C Address: 0x23
+  # ============================================================================
+  - platform: bh1750
+    id: comfort_light_sensor
+    i2c_id: ${comfort_i2c_id}
+    address: 0x23
+
+    name: "${friendly_name} Illuminance"
+    internal: true
+    accuracy_decimals: 1
+    update_interval: ${comfort_bh1750_update}
+    filters:
+      - throttle: ${comfort_bh1750_update}
+
+  # ============================================================================
+  # BME680 - Environmental Sensor (Optional, Bosch)
+  # I2C Address: 0x76
+  # Provides: Pressure, Gas Resistance (for IAQ calculation)
+  # Note: Temperature/Humidity from SHT40 is more accurate
+  # ============================================================================
+  - platform: bme680
+    id: comfort_bme680_sensor
+    i2c_id: ${comfort_i2c_id}
+    address: 0x76
+
+    temperature:
+      id: comfort_bme680_temperature
+      name: "${friendly_name} BME680 Temperature"
+      internal: true
+      oversampling: 2x
+      filters:
+        - throttle: ${comfort_bme680_update}
+
+    humidity:
+      id: comfort_bme680_humidity
+      name: "${friendly_name} BME680 Humidity"
+      internal: true
+      oversampling: 2x
+      filters:
+        - throttle: ${comfort_bme680_update}
+
+    pressure:
+      id: comfort_pressure
+      name: "${friendly_name} Pressure"
+      internal: true
+      oversampling: 2x
+      filters:
+        - throttle: ${comfort_bme680_update}
+
+    gas_resistance:
+      id: comfort_gas_resistance
+      name: "${friendly_name} Gas Resistance"
+      internal: true
+      filters:
+        - throttle: ${comfort_bme680_update}
+
+    update_interval: ${comfort_bme680_update}
+
+# ============================================================================
+# Globals for Comfort Calculations
+# ============================================================================
+globals:
+  # Comfort index (0-100 scale)
+  - id: comfort_index_value
+    type: float
+    restore_value: false
+    initial_value: '50.0'
+
+  # Dew point temperature
+  - id: comfort_dew_point_value
+    type: float
+    restore_value: false
+    initial_value: '10.0'
+
+  # Heat index / feels-like temperature
+  - id: comfort_heat_index_value
+    type: float
+    restore_value: false
+    initial_value: '20.0'
+
+  # Light level category (0=dark, 1=dim, 2=normal, 3=bright)
+  - id: comfort_light_level
+    type: int
+    restore_value: false
+    initial_value: '2'
+
+# ============================================================================
+# Interval for Comfort Calculations
+# ============================================================================
+interval:
+  - interval: 30s
+    then:
+      - lambda: |-
+          float temp = id(comfort_temperature).state;
+          float humidity = id(comfort_humidity).state;
+          float lux = id(comfort_light_sensor).state;
+
+          if (std::isnan(temp) || std::isnan(humidity)) {
+            return;
+          }
+
+          // Calculate dew point (Magnus formula approximation)
+          float alpha = ((17.27f * temp) / (237.7f + temp)) + log(humidity / 100.0f);
+          float dew_point = (237.7f * alpha) / (17.27f - alpha);
+          id(comfort_dew_point_value) = dew_point;
+
+          // Calculate heat index (simplified Rothfusz regression)
+          // Only valid when temp > 26.7C and humidity > 40%
+          float heat_index = temp;
+          if (temp >= 26.7f && humidity >= 40.0f) {
+            float t = temp;
+            float h = humidity;
+            heat_index = -8.784695f + 1.61139411f * t + 2.338549f * h
+                         - 0.14611605f * t * h - 0.012308094f * t * t
+                         - 0.016424828f * h * h + 0.002211732f * t * t * h
+                         + 0.00072546f * t * h * h - 0.000003582f * t * t * h * h;
+          }
+          id(comfort_heat_index_value) = heat_index;
+
+          // Calculate comfort index (0-100)
+          // Based on temperature (ideal 20-24C), humidity (ideal 40-60%), and light
+          float temp_score = 100.0f;
+          if (temp < 18.0f) {
+            temp_score = 100.0f - (18.0f - temp) * 10.0f;
+          } else if (temp > 26.0f) {
+            temp_score = 100.0f - (temp - 26.0f) * 10.0f;
+          } else if (temp < 20.0f || temp > 24.0f) {
+            temp_score = 90.0f;  // Slightly outside ideal
+          }
+          if (temp_score < 0.0f) temp_score = 0.0f;
+
+          float hum_score = 100.0f;
+          if (humidity < 30.0f) {
+            hum_score = 100.0f - (30.0f - humidity) * 2.0f;
+          } else if (humidity > 70.0f) {
+            hum_score = 100.0f - (humidity - 70.0f) * 2.0f;
+          } else if (humidity < 40.0f || humidity > 60.0f) {
+            hum_score = 90.0f;  // Slightly outside ideal
+          }
+          if (hum_score < 0.0f) hum_score = 0.0f;
+
+          // Combined comfort index (weighted average)
+          float comfort = (temp_score * 0.5f) + (hum_score * 0.5f);
+          id(comfort_index_value) = comfort;
+
+          // Light level categorization
+          if (!std::isnan(lux)) {
+            if (lux < 10.0f) {
+              id(comfort_light_level) = 0;  // Dark
+            } else if (lux < 100.0f) {
+              id(comfort_light_level) = 1;  // Dim
+            } else if (lux < 500.0f) {
+              id(comfort_light_level) = 2;  // Normal
+            } else {
+              id(comfort_light_level) = 3;  // Bright
+            }
+          }

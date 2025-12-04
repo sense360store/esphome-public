@@ -1,0 +1,371 @@
+---
+# ============================================================================
+# SENSE360 BATHROOM MODULE - FEATURE PROFILE
+# ============================================================================
+# Bathroom-specific monitoring and automation entities.
+# Provides shower detection, mold risk warnings, and ventilation control.
+#
+# Prerequisites:
+#   - packages/expansions/bathroom.yaml (hardware driver)
+#   - Optional: packages/expansions/fan_pwm.yaml or fan_gp8403.yaml for auto ventilation
+#
+# Exposed Entities:
+#   - Temperature and Humidity
+#   - Shower Detection
+#   - Mold Risk Level
+#   - Odor Detection
+#   - Ventilation Recommendations
+#   - Post-Shower Timer
+# ============================================================================
+
+packages:
+  health: !include device_health.yaml
+  diagnostics: !include diagnostics.yaml
+
+# ============================================================================
+# User-Facing Sensors
+# ============================================================================
+sensor:
+  # Temperature
+  - platform: template
+    id: bathroom_temp_display
+    name: "${friendly_name} Temperature"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+    update_interval: 10s
+    lambda: |-
+      return id(bathroom_temperature).state;
+
+  # Humidity
+  - platform: template
+    id: bathroom_humidity_display
+    name: "${friendly_name} Humidity"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: humidity
+    state_class: measurement
+    update_interval: 10s
+    lambda: |-
+      return id(bathroom_humidity).state;
+
+  # CO2
+  - platform: template
+    id: bathroom_co2_display
+    name: "${friendly_name} CO2"
+    unit_of_measurement: "ppm"
+    accuracy_decimals: 0
+    device_class: carbon_dioxide
+    state_class: measurement
+    update_interval: 30s
+    lambda: |-
+      return id(bathroom_co2).state;
+
+  # VOC Index
+  - platform: template
+    id: bathroom_voc_display
+    name: "${friendly_name} Air Quality Index"
+    accuracy_decimals: 0
+    icon: "mdi:air-filter"
+    update_interval: 10s
+    lambda: |-
+      return id(bathroom_voc_index).state;
+
+  # Light Level
+  - platform: template
+    id: bathroom_light_display
+    name: "${friendly_name} Light Level"
+    unit_of_measurement: "lx"
+    accuracy_decimals: 0
+    device_class: illuminance
+    update_interval: 5s
+    lambda: |-
+      return id(bathroom_light_sensor).state;
+
+  # Humidity Rate of Change
+  - platform: template
+    id: bathroom_humidity_rate_display
+    name: "${friendly_name} Humidity Rate"
+    unit_of_measurement: "%/min"
+    accuracy_decimals: 1
+    icon: "mdi:trending-up"
+    update_interval: 10s
+    lambda: |-
+      return id(bathroom_humidity_rate).state;
+
+  # Post-shower timer remaining
+  - platform: template
+    id: bathroom_post_shower_timer_display
+    name: "${friendly_name} Post-Shower Timer"
+    unit_of_measurement: "min"
+    accuracy_decimals: 0
+    icon: "mdi:timer"
+    update_interval: 60s
+    lambda: |-
+      return id(bathroom_post_shower_timer);
+
+  # Recommended fan speed
+  - platform: template
+    id: bathroom_fan_recommendation_display
+    name: "${friendly_name} Recommended Fan Speed"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: "mdi:fan"
+    update_interval: 10s
+    lambda: |-
+      return id(bathroom_fan_recommendation);
+
+  # Mold risk level (0-3)
+  - platform: template
+    id: bathroom_mold_risk_display
+    name: "${friendly_name} Mold Risk Level"
+    accuracy_decimals: 0
+    icon: "mdi:mushroom"
+    update_interval: 60s
+    lambda: |-
+      return id(bathroom_mold_risk);
+
+# ============================================================================
+# User-Facing Binary Sensors
+# ============================================================================
+binary_sensor:
+  # Shower active
+  - platform: template
+    id: bathroom_shower_display
+    name: "${friendly_name} Shower Active"
+    device_class: moisture
+    icon: "mdi:shower-head"
+    lambda: |-
+      return id(bathroom_shower_active);
+
+  # Mold risk warning
+  - platform: template
+    id: bathroom_mold_warning_display
+    name: "${friendly_name} Mold Risk Warning"
+    device_class: problem
+    lambda: |-
+      return id(bathroom_mold_risk) >= 2;
+
+  # Odor detected
+  - platform: template
+    id: bathroom_odor_display
+    name: "${friendly_name} Odor Detected"
+    device_class: gas
+    icon: "mdi:scent"
+    lambda: |-
+      return id(bathroom_odor_detected);
+
+  # Ventilation needed
+  - platform: template
+    id: bathroom_ventilation_needed
+    name: "${friendly_name} Ventilation Needed"
+    device_class: opening
+    icon: "mdi:fan-alert"
+    lambda: |-
+      return id(bathroom_fan_recommendation) > 0;
+
+# ============================================================================
+# User-Facing Text Sensors
+# ============================================================================
+text_sensor:
+  # Overall bathroom status
+  - platform: template
+    id: bathroom_status
+    name: "${friendly_name} Bathroom Status"
+    icon: "mdi:shower"
+    update_interval: 10s
+    lambda: |-
+      if (id(bathroom_shower_active)) {
+        return {"Shower in progress"};
+      }
+
+      if (id(bathroom_post_shower_timer) > 0) {
+        return {"Post-shower ventilation"};
+      }
+
+      if (id(bathroom_odor_detected)) {
+        return {"Odor detected"};
+      }
+
+      if (id(bathroom_mold_risk) >= 2) {
+        return {"Mold risk - ventilate!"};
+      }
+
+      float humidity = id(bathroom_humidity).state;
+      if (!std::isnan(humidity) && humidity > 60.0f) {
+        return {"Elevated humidity"};
+      }
+
+      return {"Normal"};
+
+  # Mold risk description
+  - platform: template
+    id: bathroom_mold_risk_status
+    name: "${friendly_name} Mold Risk Status"
+    icon: "mdi:mushroom"
+    update_interval: 60s
+    lambda: |-
+      int risk = id(bathroom_mold_risk);
+
+      switch (risk) {
+        case 0: return {"No risk"};
+        case 1: return {"Low risk"};
+        case 2: return {"Medium risk - ventilate"};
+        case 3: return {"High risk - action needed"};
+        default: return {"Unknown"};
+      }
+
+  # Ventilation advice
+  - platform: template
+    id: bathroom_ventilation_advice
+    name: "${friendly_name} Ventilation Advice"
+    icon: "mdi:fan"
+    update_interval: 10s
+    lambda: |-
+      int fan_speed = id(bathroom_fan_recommendation);
+
+      if (fan_speed == 0) {
+        return {"No ventilation needed"};
+      } else if (fan_speed <= 30) {
+        return {"Light ventilation recommended"};
+      } else if (fan_speed <= 50) {
+        return {"Moderate ventilation recommended"};
+      } else if (fan_speed <= 70) {
+        return {"Good ventilation needed"};
+      } else {
+        return {"Maximum ventilation needed"};
+      }
+
+# ============================================================================
+# Automation Switches
+# ============================================================================
+switch:
+  # Auto ventilation control
+  - platform: template
+    id: bathroom_auto_ventilation
+    name: "${friendly_name} Auto Ventilation"
+    icon: "mdi:fan-auto"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    turn_on_action:
+      - logger.log: "Bathroom auto ventilation enabled"
+    turn_off_action:
+      - logger.log: "Bathroom auto ventilation disabled"
+
+  # Shower detection enable
+  - platform: template
+    id: bathroom_shower_detection_enabled
+    name: "${friendly_name} Shower Detection"
+    icon: "mdi:shower-head"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+# ============================================================================
+# Threshold Settings
+# ============================================================================
+number:
+  # Shower humidity threshold
+  - platform: template
+    id: bathroom_shower_threshold
+    name: "${friendly_name} Shower Detection Threshold"
+    icon: "mdi:water-percent"
+    unit_of_measurement: "%"
+    min_value: 60
+    max_value: 90
+    step: 5
+    optimistic: true
+    restore_value: true
+    initial_value: 75
+
+  # Post-shower ventilation duration
+  - platform: template
+    id: bathroom_post_shower_duration
+    name: "${friendly_name} Post-Shower Ventilation Duration"
+    icon: "mdi:timer"
+    unit_of_measurement: "min"
+    min_value: 5
+    max_value: 60
+    step: 5
+    optimistic: true
+    restore_value: true
+    initial_value: 15
+
+  # Mold risk humidity threshold
+  - platform: template
+    id: bathroom_mold_threshold
+    name: "${friendly_name} Mold Risk Threshold"
+    icon: "mdi:mushroom"
+    unit_of_measurement: "%"
+    min_value: 50
+    max_value: 80
+    step: 5
+    optimistic: true
+    restore_value: true
+    initial_value: 65
+
+# ============================================================================
+# Automation for Fan Control
+# ============================================================================
+interval:
+  - interval: 10s
+    then:
+      - lambda: |-
+          // Only run if auto ventilation is enabled
+          if (!id(bathroom_auto_ventilation).state) return;
+
+          int recommended_speed = id(bathroom_fan_recommendation);
+
+          // If a fan controller exists, control it
+          #ifdef fan_controller
+            if (recommended_speed == 0) {
+              if (id(fan_controller).state) {
+                auto call = id(fan_controller).turn_off();
+                call.perform();
+              }
+            } else {
+              auto call = id(fan_controller).turn_on();
+              call.set_speed(recommended_speed);
+              call.perform();
+            }
+          #endif
+
+# ============================================================================
+# Buttons for Manual Control
+# ============================================================================
+button:
+  # Force ventilation for 15 minutes
+  - platform: template
+    id: bathroom_force_ventilation
+    name: "${friendly_name} Force Ventilation"
+    icon: "mdi:fan-plus"
+    on_press:
+      - lambda: |-
+          id(bathroom_fan_recommendation) = 100;
+          id(bathroom_post_shower_timer) = 15;
+          ESP_LOGI("bathroom", "Forced ventilation started (15 min)");
+
+  # Reset shower detection
+  - platform: template
+    id: bathroom_reset_shower
+    name: "${friendly_name} Reset Shower Detection"
+    icon: "mdi:refresh"
+    entity_category: config
+    on_press:
+      - lambda: |-
+          id(bathroom_shower_active) = false;
+          id(bathroom_post_shower_timer) = 0;
+          id(bathroom_fan_recommendation) = 0;
+          ESP_LOGI("bathroom", "Shower detection reset");
+
+  # Reset mold risk counter
+  - platform: template
+    id: bathroom_reset_mold
+    name: "${friendly_name} Reset Mold Risk"
+    icon: "mdi:mushroom-off"
+    entity_category: config
+    on_press:
+      - lambda: |-
+          id(bathroom_mold_risk) = 0;
+          id(bathroom_high_humidity_minutes) = 0;
+          ESP_LOGI("bathroom", "Mold risk counter reset");
