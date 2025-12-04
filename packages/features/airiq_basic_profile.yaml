@@ -18,7 +18,7 @@ bme680_bsec:
   i2c_id: i2c0
 
 external_components:
-  - source: https://github.com/boschsensortec/BSEC2-ESPHome/archive/refs/tags/v1.4.2500.tar.gz
+  - source: github://boschsensortec/BSEC2-ESPHome@v1.4.2500
     components: [bme680_bsec]
 
 sensor:
