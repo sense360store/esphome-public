@@ -1,0 +1,411 @@
+---
+# ============================================================================
+# SENSE360 CORE - UNIFIED POWER MANAGEMENT
+# ============================================================================
+# Comprehensive power budget tracking and management for all power sources
+# and expansion modules.
+#
+# This module provides:
+# - Power budget tracking for each rail (3.3V, 5V, 12V)
+# - Module power consumption estimates
+# - Overload warnings and protection
+# - Power source compatibility checks
+#
+# ============================================================================
+# POWER RAIL SPECIFICATIONS
+# ============================================================================
+# Rail    | Typical Source              | Max Current | Max Power
+# --------|-----------------------------|--------------------|----------
+# 3.3V    | Buck converter (HT7833)     | 500mA       | 1.65W
+# 5V      | USB-C/PoE/AC-DC converter   | 2A-3A       | 10-15W
+# 12V     | External supply (optional)  | 4A          | 48W
+#
+# ============================================================================
+# MODULE POWER REQUIREMENTS
+# ============================================================================
+# Module           | Rail | Typical | Max    | Notes
+# -----------------|------|---------|--------|-------------------------------
+# ESP32-S3 MCU     | 3.3V | 150mA   | 500mA  | WiFi active, PSRAM enabled
+# Presence LD2450  | 5V   | 80mA    | 150mA  | mmWave radar
+# Presence LD2412  | 5V   | 60mA    | 100mA  | mmWave radar
+# AirIQ (SEN55+SCD41)| 3.3V | 150mA | 500mA  | Air quality sensors
+# Comfort (SHT40+BH1750)| 3.3V | 50mA | 200mA | Temp/humidity/light
+# Fan GP8403 DAC   | 3.3V | 20mA    | 50mA   | I2C DAC
+# SX1509 Expander  | 3.3V | 30mA    | 50mA   | GPIO expander
+# 12V Fan (each)   | 12V  | 200mA   | 500mA  | 4-wire PWM fan
+# Status LED RGB   | 3.3V | 20mA    | 60mA   | WS2812B
+# Relay (10A)      | 5V   | 80mA    | 150mA  | Coil drive
+# ============================================================================
+
+substitutions:
+  # Power budget limits (mA)
+  power_budget_3v3_max: "500"
+  power_budget_5v_max: "2000"
+  power_budget_12v_max: "4000"
+
+  # Warning thresholds (percentage)
+  power_warning_threshold: "80"
+  power_critical_threshold: "95"
+
+# ============================================================================
+# GLOBALS FOR POWER TRACKING
+# ============================================================================
+globals:
+  # Power source type (set by power_*.yaml files)
+  - id: power_source_name
+    type: std::string
+    restore_value: false
+    initial_value: '"Unknown"'
+
+  # 3.3V Rail consumption (mA)
+  - id: power_3v3_consumption
+    type: float
+    restore_value: false
+    initial_value: '150.0'  # Base ESP32-S3 consumption
+
+  # 5V Rail consumption (mA)
+  - id: power_5v_consumption
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
+  # 12V Rail consumption (mA)
+  - id: power_12v_consumption
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
+  # Module power tracking
+  - id: power_presence_module_ma
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
+  - id: power_airiq_module_ma
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
+  - id: power_comfort_module_ma
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
+  - id: power_fan_dac_module_ma
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
+  - id: power_expander_module_ma
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
+  - id: power_12v_fans_ma
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
+  # Power status flags
+  - id: power_3v3_overload
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+  - id: power_5v_overload
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+  - id: power_12v_overload
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+# ============================================================================
+# POWER MONITORING SENSORS
+# ============================================================================
+sensor:
+  # 3.3V Rail utilization
+  - platform: template
+    id: power_3v3_utilization
+    name: "${friendly_name} 3.3V Rail Load"
+    internal: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: mdi:gauge
+    update_interval: 5s
+    lambda: |-
+      return (id(power_3v3_consumption) / ${power_budget_3v3_max}) * 100.0f;
+
+  # 3.3V Rail current draw
+  - platform: template
+    id: power_3v3_current
+    name: "${friendly_name} 3.3V Rail Current"
+    internal: true
+    unit_of_measurement: "mA"
+    accuracy_decimals: 0
+    icon: mdi:current-dc
+    update_interval: 5s
+    lambda: |-
+      return id(power_3v3_consumption);
+
+  # 5V Rail utilization
+  - platform: template
+    id: power_5v_utilization
+    name: "${friendly_name} 5V Rail Load"
+    internal: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: mdi:gauge
+    update_interval: 5s
+    lambda: |-
+      return (id(power_5v_consumption) / ${power_budget_5v_max}) * 100.0f;
+
+  # 5V Rail current draw
+  - platform: template
+    id: power_5v_current
+    name: "${friendly_name} 5V Rail Current"
+    internal: true
+    unit_of_measurement: "mA"
+    accuracy_decimals: 0
+    icon: mdi:current-dc
+    update_interval: 5s
+    lambda: |-
+      return id(power_5v_consumption);
+
+  # 12V Rail utilization
+  - platform: template
+    id: power_12v_utilization
+    name: "${friendly_name} 12V Rail Load"
+    internal: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: mdi:gauge
+    update_interval: 5s
+    lambda: |-
+      if (${power_budget_12v_max} > 0) {
+        return (id(power_12v_consumption) / ${power_budget_12v_max}) * 100.0f;
+      }
+      return 0.0f;
+
+  # Total power consumption (watts)
+  - platform: template
+    id: power_total_watts
+    name: "${friendly_name} Total Power Consumption"
+    internal: true
+    unit_of_measurement: "W"
+    accuracy_decimals: 2
+    icon: mdi:flash
+    update_interval: 5s
+    lambda: |-
+      float power_3v3 = (id(power_3v3_consumption) / 1000.0f) * 3.3f;
+      float power_5v = (id(power_5v_consumption) / 1000.0f) * 5.0f;
+      float power_12v = (id(power_12v_consumption) / 1000.0f) * 12.0f;
+      return power_3v3 + power_5v + power_12v;
+
+# ============================================================================
+# POWER STATUS INDICATORS
+# ============================================================================
+binary_sensor:
+  # 3.3V Rail warning
+  - platform: template
+    id: power_3v3_warning
+    name: "${friendly_name} 3.3V Rail Warning"
+    internal: true
+    device_class: problem
+    lambda: |-
+      float util = (id(power_3v3_consumption) / ${power_budget_3v3_max}) * 100.0f;
+      return util >= ${power_warning_threshold};
+
+  # 5V Rail warning
+  - platform: template
+    id: power_5v_warning
+    name: "${friendly_name} 5V Rail Warning"
+    internal: true
+    device_class: problem
+    lambda: |-
+      float util = (id(power_5v_consumption) / ${power_budget_5v_max}) * 100.0f;
+      return util >= ${power_warning_threshold};
+
+  # Any overload condition
+  - platform: template
+    id: power_any_overload
+    name: "${friendly_name} Power Overload"
+    internal: true
+    device_class: problem
+    lambda: |-
+      return id(power_3v3_overload) || id(power_5v_overload) || id(power_12v_overload);
+
+# ============================================================================
+# POWER BUDGET TEXT STATUS
+# ============================================================================
+text_sensor:
+  - platform: template
+    id: power_budget_status
+    name: "${friendly_name} Power Budget Status"
+    internal: true
+    icon: mdi:battery-charging
+    update_interval: 10s
+    lambda: |-
+      float util_3v3 = (id(power_3v3_consumption) / ${power_budget_3v3_max}) * 100.0f;
+      float util_5v = (id(power_5v_consumption) / ${power_budget_5v_max}) * 100.0f;
+
+      if (util_3v3 >= ${power_critical_threshold} || util_5v >= ${power_critical_threshold}) {
+        return {"CRITICAL - Reduce load"};
+      } else if (util_3v3 >= ${power_warning_threshold} || util_5v >= ${power_warning_threshold}) {
+        return {"WARNING - Near capacity"};
+      } else {
+        return {"OK - Normal operation"};
+      }
+
+  - platform: template
+    id: power_modules_active
+    name: "${friendly_name} Active Modules"
+    internal: true
+    icon: mdi:chip
+    update_interval: 10s
+    lambda: |-
+      std::string modules = "";
+      if (id(power_presence_module_ma) > 0) modules += "Presence,";
+      if (id(power_airiq_module_ma) > 0) modules += "AirIQ,";
+      if (id(power_comfort_module_ma) > 0) modules += "Comfort,";
+      if (id(power_fan_dac_module_ma) > 0) modules += "FanDAC,";
+      if (id(power_expander_module_ma) > 0) modules += "Expander,";
+      if (id(power_12v_fans_ma) > 0) modules += "12VFans,";
+
+      if (modules.empty()) {
+        return {"None"};
+      }
+      // Remove trailing comma
+      modules.pop_back();
+      return modules;
+
+# ============================================================================
+# SCRIPTS FOR POWER MANAGEMENT
+# ============================================================================
+script:
+  # Register module power consumption
+  - id: power_register_module
+    mode: single
+    parameters:
+      module_name: string
+      rail_3v3_ma: float
+      rail_5v_ma: float
+      rail_12v_ma: float
+    then:
+      - lambda: |-
+          // Update module-specific tracking
+          if (module_name == "presence") {
+            id(power_presence_module_ma) = rail_5v_ma;
+          } else if (module_name == "airiq") {
+            id(power_airiq_module_ma) = rail_3v3_ma;
+          } else if (module_name == "comfort") {
+            id(power_comfort_module_ma) = rail_3v3_ma;
+          } else if (module_name == "fan_dac") {
+            id(power_fan_dac_module_ma) = rail_3v3_ma;
+          } else if (module_name == "expander") {
+            id(power_expander_module_ma) = rail_3v3_ma;
+          } else if (module_name == "12v_fans") {
+            id(power_12v_fans_ma) = rail_12v_ma;
+          }
+
+          // Recalculate totals
+          id(power_3v3_consumption) = 150.0f +  // Base ESP32 consumption
+            id(power_airiq_module_ma) +
+            id(power_comfort_module_ma) +
+            id(power_fan_dac_module_ma) +
+            id(power_expander_module_ma);
+
+          id(power_5v_consumption) =
+            id(power_presence_module_ma);
+
+          id(power_12v_consumption) =
+            id(power_12v_fans_ma);
+
+          // Check for overload
+          id(power_3v3_overload) = id(power_3v3_consumption) > ${power_budget_3v3_max};
+          id(power_5v_overload) = id(power_5v_consumption) > ${power_budget_5v_max};
+          id(power_12v_overload) = id(power_12v_consumption) > ${power_budget_12v_max};
+
+          if (id(power_3v3_overload) || id(power_5v_overload) || id(power_12v_overload)) {
+            ESP_LOGW("power", "Power budget exceeded! 3.3V: %.0fmA/%.0fmA, 5V: %.0fmA/%.0fmA",
+              id(power_3v3_consumption), (float)${power_budget_3v3_max},
+              id(power_5v_consumption), (float)${power_budget_5v_max});
+          }
+
+  # Unregister module (when disabled)
+  - id: power_unregister_module
+    mode: single
+    parameters:
+      module_name: string
+    then:
+      - script.execute:
+          id: power_register_module
+          module_name: !lambda 'return module_name;'
+          rail_3v3_ma: 0.0
+          rail_5v_ma: 0.0
+          rail_12v_ma: 0.0
+
+  # Check if adding a module would exceed budget
+  - id: power_check_budget
+    mode: single
+    parameters:
+      rail_3v3_ma: float
+      rail_5v_ma: float
+      rail_12v_ma: float
+    then:
+      - lambda: |-
+          float new_3v3 = id(power_3v3_consumption) + rail_3v3_ma;
+          float new_5v = id(power_5v_consumption) + rail_5v_ma;
+          float new_12v = id(power_12v_consumption) + rail_12v_ma;
+
+          bool ok = true;
+          if (new_3v3 > ${power_budget_3v3_max}) {
+            ESP_LOGW("power", "Adding module would exceed 3.3V budget (%.0f + %.0f > %.0f)",
+              id(power_3v3_consumption), rail_3v3_ma, (float)${power_budget_3v3_max});
+            ok = false;
+          }
+          if (new_5v > ${power_budget_5v_max}) {
+            ESP_LOGW("power", "Adding module would exceed 5V budget (%.0f + %.0f > %.0f)",
+              id(power_5v_consumption), rail_5v_ma, (float)${power_budget_5v_max});
+            ok = false;
+          }
+          if (new_12v > ${power_budget_12v_max}) {
+            ESP_LOGW("power", "Adding module would exceed 12V budget (%.0f + %.0f > %.0f)",
+              id(power_12v_consumption), rail_12v_ma, (float)${power_budget_12v_max});
+            ok = false;
+          }
+
+          if (ok) {
+            ESP_LOGI("power", "Power budget check passed");
+          }
+
+# ============================================================================
+# INTERVAL FOR POWER MONITORING
+# ============================================================================
+interval:
+  - interval: 30s
+    then:
+      - lambda: |-
+          // Log power status periodically
+          ESP_LOGD("power", "Power Status - 3.3V: %.0fmA (%.0f%%), 5V: %.0fmA (%.0f%%), Total: %.2fW",
+            id(power_3v3_consumption),
+            (id(power_3v3_consumption) / ${power_budget_3v3_max}) * 100.0f,
+            id(power_5v_consumption),
+            (id(power_5v_consumption) / ${power_budget_5v_max}) * 100.0f,
+            id(power_total_watts).state);
+
+# ============================================================================
+# ON BOOT: Initialize power tracking
+# ============================================================================
+esphome:
+  on_boot:
+    - priority: 700
+      then:
+        - lambda: |-
+            // Initialize base power consumption (ESP32-S3 + peripherals)
+            id(power_3v3_consumption) = 150.0f;  // Base MCU consumption
+            id(power_5v_consumption) = 0.0f;
+            id(power_12v_consumption) = 0.0f;
+            ESP_LOGI("power", "Power management initialized");
