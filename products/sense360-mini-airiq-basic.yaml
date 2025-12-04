@@ -215,8 +215,11 @@ light:
 # ----------------------------------------------------------------------------
 # BASIC CONTROLS
 # ----------------------------------------------------------------------------
-# Note: Restart and Safe Mode buttons are provided by hardware config
 button:
+  - platform: restart
+    id: reset_button
+    name: "${friendly_name} Restart"
+
   # Simple sensor clean button (user-friendly name)
   - platform: template
     name: "${friendly_name} Clean Sensor"

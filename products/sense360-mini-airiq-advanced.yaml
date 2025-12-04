@@ -222,7 +222,7 @@ sensor:
       accuracy_decimals: 1
 
   # ===== BMP280 - Atmospheric Pressure =====
-  - platform: bmp280
+  - platform: bmp280_i2c
     i2c_id: i2c0
     address: 0x76
     update_interval: 60s
