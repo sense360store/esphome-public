@@ -328,4 +328,3 @@ binary_sensor:
     device_class: occupancy
     lambda: |-
       return id(ld2412_has_still).state;
-
