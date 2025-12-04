@@ -89,7 +89,6 @@ ld2450:
   id: ld2450_radar
   uart_id: ${ld2450_uart_id}
   throttle: 500ms
-  bluetooth_password: "HiLink"
 
 # ----------------------------------------------------------------------------
 # PRESENCE LOGIC - Connect hardware to features
