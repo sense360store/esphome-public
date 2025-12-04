@@ -148,8 +148,7 @@ switch:
     name: "${friendly_name} Advanced Detection"
     icon: "mdi:radar"
     optimistic: true
-    restore_value: true
-    initial_state: true
+    restore_mode: RESTORE_DEFAULT_ON
 
 # ----------------------------------------------------------------------------
 # DIAGNOSTICS & LOGGING
