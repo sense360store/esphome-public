@@ -23,7 +23,7 @@ substitutions:
 
   # I2C Bus for sensors
   i2c_sda_pin: GPIO21
-  i2c_scl_pin: GPIO22
+  i2c_scl_pin: GPIO17
   i2c_frequency: 100kHz
 
   # Status LED
