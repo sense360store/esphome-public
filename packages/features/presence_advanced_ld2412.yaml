@@ -183,6 +183,31 @@ select:
       icon: "mdi:speedometer"
       internal: true
 
+  # Sensitivity modes (template-controlled)
+  - platform: template
+    id: presence_sensitivity
+    name: "${friendly_name} Presence Sensitivity"
+    icon: "mdi:tune"
+    optimistic: true
+    options:
+      - Quiet Room      # Low threshold - detects subtle movements
+      - Normal          # Balanced for typical rooms
+      - High Traffic    # High threshold - ignores minor movements
+    initial_option: Normal
+    restore_value: true
+    on_value:
+      then:
+        - lambda: |-
+            // Log sensitivity change
+            if (x == "Quiet Room") {
+              ESP_LOGI("presence", "Sensitivity: Quiet Room (high sensitivity)");
+            } else if (x == "Normal") {
+              ESP_LOGI("presence", "Sensitivity: Normal");
+            } else if (x == "High Traffic") {
+              ESP_LOGI("presence", "Sensitivity: High Traffic (low sensitivity)");
+            }
+
+
 # ----------------------------------------------------------------------------
 # CONTROL SWITCHES
 # ----------------------------------------------------------------------------
@@ -304,29 +329,3 @@ binary_sensor:
     lambda: |-
       return id(ld2412_has_still).state;
 
-# ----------------------------------------------------------------------------
-# SENSITIVITY MODES
-# ----------------------------------------------------------------------------
-select:
-  - platform: template
-    id: presence_sensitivity
-    name: "${friendly_name} Presence Sensitivity"
-    icon: "mdi:tune"
-    optimistic: true
-    options:
-      - Quiet Room      # Low threshold - detects subtle movements
-      - Normal          # Balanced for typical rooms
-      - High Traffic    # High threshold - ignores minor movements
-    initial_option: Normal
-    restore_value: true
-    on_value:
-      then:
-        - lambda: |-
-            // Log sensitivity change
-            if (x == "Quiet Room") {
-              ESP_LOGI("presence", "Sensitivity: Quiet Room (high sensitivity)");
-            } else if (x == "Normal") {
-              ESP_LOGI("presence", "Sensitivity: Normal");
-            } else if (x == "High Traffic") {
-              ESP_LOGI("presence", "Sensitivity: High Traffic (low sensitivity)");
-            }
