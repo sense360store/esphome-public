@@ -11,6 +11,7 @@ packages:
 
 sensor:
   - platform: bme680_bsec
+    i2c_id: i2c0
     temperature:
       name: "${friendly_name} Temperature"
       accuracy_decimals: 1

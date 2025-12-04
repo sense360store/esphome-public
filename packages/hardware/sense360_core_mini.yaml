@@ -19,9 +19,10 @@ esp32:
     version: recommended
 
 i2c:
-  sda: GPIO21
-  scl: GPIO22
-  scan: true
+  - id: i2c0
+    sda: GPIO21
+    scl: GPIO22
+    scan: true
 
 uart:
   id: uart_bus
