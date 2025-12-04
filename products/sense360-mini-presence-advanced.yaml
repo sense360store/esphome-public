@@ -111,7 +111,6 @@ ld2450:
   id: ld2450_radar
   uart_id: ${ld2450_uart_id}
   throttle: 250ms  # Faster updates for advanced users
-  bluetooth_password: "HiLink"
   # Advanced users can modify zones via LD2450 Bluetooth app
 
 # ----------------------------------------------------------------------------
