@@ -87,9 +87,8 @@ substitutions:
   sen55_nox_unhealthy_limit: "180"
 
   # === Security (users MUST define these in their config) ===
-  # These are placeholders - actual values come from user's config via !secret
-  api_key: !secret api_encryption_key
-  ota_password: !secret ota_password
+  # Users should define fallback_ap_password in their main config
+  fallback_ap_password: "Sense360Fallback"  # Default fallback AP password
 
 # ----------------------------------------------------------------------------
 # PACKAGE INCLUDES
