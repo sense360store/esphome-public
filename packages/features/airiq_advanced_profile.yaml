@@ -6,6 +6,12 @@ packages:
   airiq_basic: !include airiq_basic_profile.yaml
   diagnostics: !include diagnostics.yaml
 
+esphome:
+  on_boot:
+    - priority: 600
+      then:
+        - script.execute: auto_fan_control
+
 interval:
   - interval: 5min
     then:
@@ -52,8 +58,3 @@ text_sensor:
     on_value:
       then:
         - script.execute: auto_fan_control
-
-on_boot:
-  priority: 600
-  then:
-    - script.execute: auto_fan_control
