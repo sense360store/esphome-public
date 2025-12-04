@@ -55,4 +55,3 @@ packages:
 
   # === Features (Basic presence profile for ceiling) ===
   presence_detection: !include ../features/presence_basic_profile.yaml
-  device_diagnostics: !include ../features/device_health.yaml
