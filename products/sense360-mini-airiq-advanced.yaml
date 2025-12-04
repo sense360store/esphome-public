@@ -410,8 +410,7 @@ switch:
     icon: "mdi:auto-mode"
     entity_category: config
     optimistic: true
-    restore_value: true
-    initial_state: true
+    restore_mode: RESTORE_DEFAULT_ON
 
   # Data logging (for research/analysis)
   - platform: template
@@ -419,8 +418,7 @@ switch:
     icon: "mdi:math-log"
     entity_category: diagnostic
     optimistic: true
-    restore_value: true
-    initial_state: false
+    restore_mode: RESTORE_DEFAULT_OFF
     on_turn_on:
       - logger.log:
           level: INFO
