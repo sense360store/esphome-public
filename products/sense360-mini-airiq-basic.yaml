@@ -29,6 +29,7 @@ substitutions:
   # WiFi & Logging
   wifi_fast_connect: "true"
   log_level: INFO
+  timezone: "UTC"
 
   # Simple internal thresholds (hidden from users)
   _co2_fair: "1000"
