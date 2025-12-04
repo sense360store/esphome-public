@@ -1,0 +1,322 @@
+---
+# Sense360 Core Wall - Wall-Mounted Smart Home Hub
+#
+# This is the wall-mounted variant of the Sense360 Core board.
+# Designed for standard electrical boxes and wall plates.
+#
+# Hardware Features:
+# - ESP32-S3-WROOM-1 (8MB Flash, 2MB PSRAM)
+# - WiFi 2.4GHz, Bluetooth 5.0 LE
+# - Power: 240V AC / PoE / USB-C (via separate power packages)
+# - Dual I2C buses for expansion modules
+# - UART for presence/radar sensors
+# - Built-in relay for load switching
+# - GPIO expansion pins
+# - RGB LED ring and status LED
+# - Physical buttons for manual control
+#
+# Pin Assignments (ESP32-S3):
+# - I2C0 (Primary):   SDA=GPIO39, SCL=GPIO40
+# - I2C1 (Aux):       SDA=GPIO21, SCL=GPIO18
+# - UART:             TX=GPIO1, RX=GPIO2
+# - Relay:            GPIO4 (10A AC/DC)
+# - GPIO Expansion:   GPIO5, GPIO6, GPIO7, GPIO8
+# - Status LED RGB:   GPIO48 (WS2812B ring)
+# - Status LED:       GPIO47 (simple LED)
+# - User Button 1:    GPIO9 (multi-function)
+# - User Button 2:    GPIO10 (multi-function)
+# - Boot Button:      GPIO0
+#
+# Form Factor:
+# - Standard wall plate compatible (US/EU)
+# - Flush mount in electrical box
+# - Front-facing sensors and indicators
+# - Side/bottom expansion connectors
+#
+# Expansion Bus Pinout (10-pin connector):
+# 1. GND
+# 2. 3.3V (500mA max)
+# 3. 5V (1A max from relay-switched output)
+# 4. I2C0 SDA (GPIO39)
+# 5. I2C0 SCL (GPIO40)
+# 6. UART TX (GPIO1)
+# 7. UART RX (GPIO2)
+# 8. GPIO5 (expansion)
+# 9. GPIO6 (expansion)
+# 10. IRQ/GPIO7 (optional interrupt)
+
+substitutions:
+  device_name: sense360-wall
+  friendly_name: Sense360 Wall
+  timezone: "America/Los_Angeles"
+
+  # Pin definitions (can be overridden in product configs)
+  # I2C buses
+  i2c0_sda_pin: GPIO39
+  i2c0_scl_pin: GPIO40
+  i2c1_sda_pin: GPIO21
+  i2c1_scl_pin: GPIO18
+
+  # UART for expansion modules
+  uart_tx_pin: GPIO1
+  uart_rx_pin: GPIO2
+  uart_baud: "115200"
+
+  # Relay (load switching)
+  relay_pin: GPIO4
+  relay_max_current: "10A"
+
+  # GPIO expansion pins
+  expansion_gpio1: GPIO5
+  expansion_gpio2: GPIO6
+  expansion_gpio3: GPIO7
+  expansion_gpio4: GPIO8
+
+  # Status indicators
+  status_led_rgb_pin: GPIO48  # WS2812B LED ring
+  status_led_pin: GPIO47      # Simple indicator LED
+
+  # User buttons (physical switches on wall plate)
+  user_button1_pin: GPIO9
+  user_button2_pin: GPIO10
+  boot_button_pin: GPIO0
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  project:
+    name: sense360.wall
+    version: 1.0.0
+  on_boot:
+    - priority: 600
+      then:
+        - logger.log: "Sense360 Wall board initializing..."
+    - priority: -100
+      then:
+        - logger.log: "Sense360 Wall board ready"
+        # Restore relay state
+        - switch.turn_on: restore_relay_state
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_COMPILER_OPTIMIZATION_SIZE: y
+      # Enable PSRAM
+      CONFIG_ESP32S3_SPIRAM_SUPPORT: y
+      CONFIG_SPIRAM_MODE_OCT: y
+
+# Primary I2C bus for expansion modules
+i2c:
+  - id: i2c0
+    sda: ${i2c0_sda_pin}
+    scl: ${i2c0_scl_pin}
+    scan: true
+    frequency: 400kHz
+
+  # Auxiliary I2C bus (for additional modules if needed)
+  - id: i2c1
+    sda: ${i2c1_sda_pin}
+    scl: ${i2c1_scl_pin}
+    scan: true
+    frequency: 400kHz
+
+# UART for expansion modules (presence sensors, etc.)
+uart:
+  - id: uart_bus
+    tx_pin: ${uart_tx_pin}
+    rx_pin: ${uart_rx_pin}
+    baud_rate: ${uart_baud}
+
+# Simple status LED
+status_led:
+  pin:
+    number: ${status_led_pin}
+    inverted: true
+
+# Main relay for load switching (lights, fans, etc.)
+switch:
+  - platform: gpio
+    name: "${friendly_name} Relay"
+    id: main_relay
+    pin: ${relay_pin}
+    restore_mode: RESTORE_DEFAULT_OFF
+    icon: mdi:electric-switch
+    on_turn_on:
+      - logger.log: "Relay turned ON"
+    on_turn_off:
+      - logger.log: "Relay turned OFF"
+
+  # Virtual switch to trigger relay state restoration
+  - platform: template
+    id: restore_relay_state
+    optimistic: true
+    internal: true
+
+# Physical buttons on wall plate
+binary_sensor:
+  - platform: status
+    name: "${friendly_name} Status"
+    id: system_status
+
+  # User Button 1 (left button on wall plate)
+  - platform: gpio
+    name: "${friendly_name} Button 1"
+    id: user_button1
+    pin:
+      number: ${user_button1_pin}
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Button 1 pressed"
+        # Toggle relay on single press
+        - switch.toggle: main_relay
+    on_click:
+      # Double-click action (customize as needed)
+      min_length: 50ms
+      max_length: 500ms
+      then:
+        - logger.log: "Button 1 clicked"
+    on_double_click:
+      min_length: 50ms
+      max_length: 500ms
+      then:
+        - logger.log: "Button 1 double-clicked"
+        # Could trigger a scene or automation
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+
+  # User Button 2 (right button on wall plate)
+  - platform: gpio
+    name: "${friendly_name} Button 2"
+    id: user_button2
+    pin:
+      number: ${user_button2_pin}
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "Button 2 pressed"
+        # Can be customized for different actions
+    on_click:
+      min_length: 50ms
+      max_length: 500ms
+      then:
+        - logger.log: "Button 2 clicked"
+    on_double_click:
+      min_length: 50ms
+      max_length: 500ms
+      then:
+        - logger.log: "Button 2 double-clicked"
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+
+# System controls
+button:
+  - platform: restart
+    id: restart_button
+    name: "${friendly_name} Restart"
+    icon: mdi:restart
+
+  - platform: safe_mode
+    name: "${friendly_name} Safe Mode"
+    icon: mdi:safety-goggles
+
+  - platform: factory_reset
+    name: "${friendly_name} Factory Reset"
+    id: factory_reset_btn
+    icon: mdi:delete-forever
+    disabled_by_default: true
+
+# System sensors
+sensor:
+  - platform: wifi_signal
+    name: "${friendly_name} WiFi Signal"
+    id: wifi_signal_sensor
+    update_interval: 60s
+    icon: mdi:wifi
+
+  - platform: uptime
+    name: "${friendly_name} Uptime"
+    id: uptime_sensor
+    update_interval: 60s
+    icon: mdi:clock-outline
+
+  # Internal temperature sensor (ESP32-S3)
+  - platform: internal_temperature
+    name: "${friendly_name} Internal Temperature"
+    id: internal_temp
+    update_interval: 60s
+    icon: mdi:thermometer
+
+  # Relay state tracking (for energy monitoring if available)
+  - platform: template
+    name: "${friendly_name} Relay State Time"
+    id: relay_state_time
+    icon: mdi:timer
+    unit_of_measurement: "min"
+    accuracy_decimals: 1
+    lambda: |-
+      static float on_time = 0;
+      if (id(main_relay).state) {
+        on_time += 1.0/60.0;  // Increment by 1 second / 60
+      }
+      return on_time;
+    update_interval: 1s
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "${friendly_name} IP Address"
+      icon: mdi:ip-network
+    ssid:
+      name: "${friendly_name} SSID"
+      icon: mdi:wifi
+    mac_address:
+      name: "${friendly_name} MAC Address"
+      icon: mdi:network-outline
+
+  - platform: version
+    name: "${friendly_name} ESPHome Version"
+    hide_timestamp: true
+    icon: mdi:information-outline
+
+# Configuration for wall plate specific features
+# Allows customization of button actions via Home Assistant
+select:
+  - platform: template
+    name: "${friendly_name} Button 1 Action"
+    id: button1_action
+    icon: mdi:gesture-tap-button
+    options:
+      - "Toggle Relay"
+      - "Turn On Relay"
+      - "Turn Off Relay"
+      - "Trigger Scene"
+      - "Disabled"
+    initial_option: "Toggle Relay"
+    optimistic: true
+    restore_value: true
+
+  - platform: template
+    name: "${friendly_name} Button 2 Action"
+    id: button2_action
+    icon: mdi:gesture-tap-button
+    options:
+      - "Toggle Relay"
+      - "Turn On Relay"
+      - "Turn Off Relay"
+      - "Trigger Scene"
+      - "Disabled"
+    initial_option: "Disabled"
+    optimistic: true
+    restore_value: true
