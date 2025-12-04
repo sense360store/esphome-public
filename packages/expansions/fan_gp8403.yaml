@@ -1,0 +1,271 @@
+---
+# ============================================================================
+# SENSE360 FAN EXPANSION MODULE - GP8403 DAC VERSION
+# ============================================================================
+# Professional HVAC fan control via analog voltage output:
+# - GP8403 DAC (I2C 0x58/0x59): Dual-channel 12-bit DAC
+# - Output voltage: 0-10V or 0-5V (jumper selectable on hardware)
+# - Resolution: 0.01V (12-bit)
+#
+# Use Case: Control commercial HVAC fans, EC motors, VFDs
+#
+# This file provides the base hardware setup. User-facing entities are defined
+# in the feature profile files.
+#
+# Expansion Bus Connection:
+#   Pin 4 (SDA) → GPIO39
+#   Pin 5 (SCL) → GPIO40
+#   Pin 2 (3.3V) → Power
+#   Pin 1 (GND) → Ground
+#
+# Power Requirements: 3.3V / 50mA max
+# ============================================================================
+
+substitutions:
+  # I2C Configuration
+  fan_dac_i2c_sda: GPIO39
+  fan_dac_i2c_scl: GPIO40
+  fan_dac_i2c_id: i2c_fan_dac
+  fan_dac_address: "0x58"  # Can be 0x59 if address jumper changed
+
+  # Voltage mode (5V or 10V depending on hardware jumper)
+  fan_dac_voltage_mode: "10V"  # or "5V"
+
+  # Fan settings
+  fan_min_voltage_percent: "10"  # Minimum output (% of max voltage)
+  fan_max_voltage_percent: "100"
+  fan_default_percent: "50"
+
+# I2C Bus Configuration
+i2c:
+  - id: ${fan_dac_i2c_id}
+    sda: ${fan_dac_i2c_sda}
+    scl: ${fan_dac_i2c_scl}
+    scan: true
+    frequency: 100kHz
+
+# ============================================================================
+# GP8403 DAC Output Configuration
+# ============================================================================
+gp8403:
+  id: fan_dac
+  i2c_id: ${fan_dac_i2c_id}
+  address: ${fan_dac_address}
+  voltage: ${fan_dac_voltage_mode}
+
+output:
+  # Channel 0 - Primary fan output
+  - platform: gp8403
+    id: fan_dac_output_0
+    gp8403_id: fan_dac
+    channel: 0
+
+  # Channel 1 - Secondary fan output (optional)
+  - platform: gp8403
+    id: fan_dac_output_1
+    gp8403_id: fan_dac
+    channel: 1
+
+# ============================================================================
+# Fan Components (using DAC outputs)
+# ============================================================================
+fan:
+  # Primary fan (Channel 0)
+  - platform: speed
+    id: fan_controller_0
+    name: "${friendly_name} Fan 1"
+    output: fan_dac_output_0
+    speed_count: 100
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  # Secondary fan (Channel 1)
+  - platform: speed
+    id: fan_controller_1
+    name: "${friendly_name} Fan 2"
+    output: fan_dac_output_1
+    speed_count: 100
+    restore_mode: RESTORE_DEFAULT_OFF
+
+# ============================================================================
+# Sensors for Monitoring
+# ============================================================================
+sensor:
+  # Fan 1 speed percentage (for UI and automation)
+  - platform: template
+    id: fan_0_speed_percent
+    name: "${friendly_name} Fan 1 Speed"
+    internal: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 1s
+    lambda: |-
+      if (id(fan_controller_0).state) {
+        return id(fan_controller_0).speed;
+      }
+      return 0.0f;
+
+  # Fan 2 speed percentage (for UI and automation)
+  - platform: template
+    id: fan_1_speed_percent
+    name: "${friendly_name} Fan 2 Speed"
+    internal: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 1s
+    lambda: |-
+      if (id(fan_controller_1).state) {
+        return id(fan_controller_1).speed;
+      }
+      return 0.0f;
+
+  # Calculated output voltage (Channel 0)
+  - platform: template
+    id: fan_0_voltage
+    name: "${friendly_name} Fan 1 Voltage"
+    internal: true
+    unit_of_measurement: "V"
+    accuracy_decimals: 2
+    update_interval: 2s
+    lambda: |-
+      float max_voltage = 10.0f;  // Adjust if using 5V mode
+      if (id(fan_controller_0).state) {
+        return (id(fan_controller_0).speed / 100.0f) * max_voltage;
+      }
+      return 0.0f;
+
+  # Calculated output voltage (Channel 1)
+  - platform: template
+    id: fan_1_voltage
+    name: "${friendly_name} Fan 2 Voltage"
+    internal: true
+    unit_of_measurement: "V"
+    accuracy_decimals: 2
+    update_interval: 2s
+    lambda: |-
+      float max_voltage = 10.0f;  // Adjust if using 5V mode
+      if (id(fan_controller_1).state) {
+        return (id(fan_controller_1).speed / 100.0f) * max_voltage;
+      }
+      return 0.0f;
+
+# ============================================================================
+# Globals for Fan Control
+# ============================================================================
+globals:
+  # Target speeds for both channels (0-100)
+  - id: fan_0_target_speed
+    type: int
+    restore_value: true
+    initial_value: '${fan_default_percent}'
+
+  - id: fan_1_target_speed
+    type: int
+    restore_value: true
+    initial_value: '${fan_default_percent}'
+
+  # Auto mode enabled (based on temperature/humidity)
+  - id: fan_auto_mode
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+  # Link both fans (same speed)
+  - id: fan_link_mode
+    type: bool
+    restore_value: true
+    initial_value: 'true'
+
+# ============================================================================
+# Scripts for Fan Control
+# ============================================================================
+script:
+  # Set fan 1 to specific speed
+  - id: fan_0_set_speed
+    mode: single
+    parameters:
+      speed: int
+    then:
+      - lambda: |-
+          int target = speed;
+          if (target < 0) target = 0;
+          if (target > 100) target = 100;
+
+          // Apply minimum speed when on
+          if (target > 0 && target < ${fan_min_voltage_percent}) {
+            target = ${fan_min_voltage_percent};
+          }
+
+          id(fan_0_target_speed) = target;
+
+          if (target == 0) {
+            auto call = id(fan_controller_0).turn_off();
+            call.perform();
+          } else {
+            auto call = id(fan_controller_0).turn_on();
+            call.set_speed(target);
+            call.perform();
+          }
+
+          // If link mode, apply to fan 2 as well
+          if (id(fan_link_mode)) {
+            id(fan_1_target_speed) = target;
+            if (target == 0) {
+              auto call2 = id(fan_controller_1).turn_off();
+              call2.perform();
+            } else {
+              auto call2 = id(fan_controller_1).turn_on();
+              call2.set_speed(target);
+              call2.perform();
+            }
+          }
+
+  # Set fan 2 to specific speed
+  - id: fan_1_set_speed
+    mode: single
+    parameters:
+      speed: int
+    then:
+      - lambda: |-
+          int target = speed;
+          if (target < 0) target = 0;
+          if (target > 100) target = 100;
+
+          // Apply minimum speed when on
+          if (target > 0 && target < ${fan_min_voltage_percent}) {
+            target = ${fan_min_voltage_percent};
+          }
+
+          id(fan_1_target_speed) = target;
+
+          if (target == 0) {
+            auto call = id(fan_controller_1).turn_off();
+            call.perform();
+          } else {
+            auto call = id(fan_controller_1).turn_on();
+            call.set_speed(target);
+            call.perform();
+          }
+
+  # Set both fans to same speed
+  - id: fan_set_both_speed
+    mode: single
+    parameters:
+      speed: int
+    then:
+      - script.execute:
+          id: fan_0_set_speed
+          speed: !lambda 'return speed;'
+      - script.execute:
+          id: fan_1_set_speed
+          speed: !lambda 'return speed;'
+
+  # Emergency stop both fans
+  - id: fan_emergency_stop
+    mode: single
+    then:
+      - fan.turn_off: fan_controller_0
+      - fan.turn_off: fan_controller_1
+      - lambda: |-
+          id(fan_0_target_speed) = 0;
+          id(fan_1_target_speed) = 0;
+          ESP_LOGW("fan", "Emergency stop activated - both fans stopped");

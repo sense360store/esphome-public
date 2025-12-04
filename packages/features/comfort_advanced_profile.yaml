@@ -1,0 +1,292 @@
+---
+# ============================================================================
+# SENSE360 COMFORT MODULE - ADVANCED FEATURE PROFILE
+# ============================================================================
+# Technical environmental monitoring entities for advanced users.
+# Includes all basic profile entities plus detailed sensor data,
+# calculated values, and diagnostic information.
+#
+# Prerequisites:
+#   - packages/expansions/comfort.yaml (hardware driver)
+#
+# Additional Entities (beyond basic profile):
+#   - Dew Point
+#   - Atmospheric Pressure
+#   - Gas Resistance (IAQ indicator)
+#   - All individual sensor readings
+#   - Diagnostic information
+# ============================================================================
+
+packages:
+  comfort_basic: !include comfort_basic_profile.yaml
+  diagnostics: !include diagnostics.yaml
+
+# ============================================================================
+# Advanced Sensors
+# ============================================================================
+sensor:
+  # Dew Point Temperature
+  - platform: template
+    id: comfort_dew_point_display
+    name: "${friendly_name} Dew Point"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    icon: "mdi:water-thermometer"
+    update_interval: 30s
+    lambda: |-
+      return id(comfort_dew_point_value);
+
+  # Atmospheric Pressure (from BME680)
+  - platform: template
+    id: comfort_pressure_display
+    name: "${friendly_name} Pressure"
+    unit_of_measurement: "hPa"
+    accuracy_decimals: 1
+    device_class: atmospheric_pressure
+    state_class: measurement
+    update_interval: 60s
+    lambda: |-
+      return id(comfort_pressure).state;
+
+  # Gas Resistance (raw IAQ indicator from BME680)
+  - platform: template
+    id: comfort_gas_display
+    name: "${friendly_name} Gas Resistance"
+    unit_of_measurement: "Ω"
+    accuracy_decimals: 0
+    icon: "mdi:air-filter"
+    update_interval: 60s
+    lambda: |-
+      return id(comfort_gas_resistance).state;
+
+  # BME680 Temperature (secondary)
+  - platform: template
+    id: comfort_bme680_temp_display
+    name: "${friendly_name} BME680 Temperature"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    entity_category: diagnostic
+    update_interval: 60s
+    lambda: |-
+      return id(comfort_bme680_temperature).state;
+
+  # BME680 Humidity (secondary)
+  - platform: template
+    id: comfort_bme680_hum_display
+    name: "${friendly_name} BME680 Humidity"
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    device_class: humidity
+    entity_category: diagnostic
+    update_interval: 60s
+    lambda: |-
+      return id(comfort_bme680_humidity).state;
+
+  # Temperature differential (between sensors)
+  - platform: template
+    id: comfort_temp_differential
+    name: "${friendly_name} Sensor Temperature Differential"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 2
+    icon: "mdi:swap-vertical"
+    entity_category: diagnostic
+    update_interval: 60s
+    lambda: |-
+      float sht40 = id(comfort_temperature).state;
+      float bme680 = id(comfort_bme680_temperature).state;
+
+      if (std::isnan(sht40) || std::isnan(bme680)) {
+        return NAN;
+      }
+
+      return abs(sht40 - bme680);
+
+# ============================================================================
+# Advanced Text Sensors
+# ============================================================================
+text_sensor:
+  # Detailed comfort analysis
+  - platform: template
+    id: comfort_analysis
+    name: "${friendly_name} Comfort Analysis"
+    icon: "mdi:clipboard-text"
+    update_interval: 60s
+    lambda: |-
+      float temp = id(comfort_temperature).state;
+      float humidity = id(comfort_humidity).state;
+      float dew_point = id(comfort_dew_point_value);
+      float score = id(comfort_index_value);
+
+      if (std::isnan(temp) || std::isnan(humidity)) {
+        return {"Waiting for sensor data..."};
+      }
+
+      std::string analysis = "";
+
+      // Temperature analysis
+      if (temp < 18.0f) {
+        analysis += "Cold environment. ";
+      } else if (temp > 26.0f) {
+        analysis += "Warm environment. ";
+      }
+
+      // Humidity analysis
+      if (humidity < 30.0f) {
+        analysis += "Very dry air - may cause skin/respiratory irritation. ";
+      } else if (humidity > 70.0f) {
+        analysis += "High humidity - condensation risk. ";
+      }
+
+      // Dew point analysis
+      if (!std::isnan(dew_point)) {
+        float margin = temp - dew_point;
+        if (margin < 3.0f) {
+          analysis += "Near dew point - condensation likely. ";
+        }
+      }
+
+      if (analysis.empty()) {
+        return {"Environment is comfortable."};
+      }
+
+      return {analysis};
+
+  # Pressure trend
+  - platform: template
+    id: comfort_pressure_trend
+    name: "${friendly_name} Pressure Trend"
+    icon: "mdi:chart-line"
+    update_interval: 5min
+    lambda: |-
+      static float last_pressure = 0.0f;
+      static int stable_count = 0;
+
+      float current = id(comfort_pressure).state;
+
+      if (std::isnan(current)) {
+        return {"Unknown"};
+      }
+
+      if (last_pressure == 0.0f) {
+        last_pressure = current;
+        return {"Stable"};
+      }
+
+      float diff = current - last_pressure;
+      last_pressure = current;
+
+      if (diff > 1.0f) {
+        stable_count = 0;
+        return {"Rising"};
+      } else if (diff < -1.0f) {
+        stable_count = 0;
+        return {"Falling"};
+      } else {
+        stable_count++;
+        if (stable_count >= 3) {
+          return {"Stable"};
+        }
+        return {"Stable"};
+      }
+
+# ============================================================================
+# Automation Switches
+# ============================================================================
+switch:
+  # Enable/disable comfort-based notifications
+  - platform: template
+    id: comfort_notifications
+    name: "${friendly_name} Comfort Alerts"
+    icon: "mdi:bell"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+# ============================================================================
+# Automation Numbers (Thresholds)
+# ============================================================================
+number:
+  # Temperature low threshold
+  - platform: template
+    id: comfort_temp_low_threshold
+    name: "${friendly_name} Low Temperature Alert"
+    icon: "mdi:thermometer-low"
+    unit_of_measurement: "°C"
+    min_value: 10
+    max_value: 25
+    step: 0.5
+    optimistic: true
+    restore_value: true
+    initial_value: 18
+
+  # Temperature high threshold
+  - platform: template
+    id: comfort_temp_high_threshold
+    name: "${friendly_name} High Temperature Alert"
+    icon: "mdi:thermometer-high"
+    unit_of_measurement: "°C"
+    min_value: 20
+    max_value: 35
+    step: 0.5
+    optimistic: true
+    restore_value: true
+    initial_value: 26
+
+  # Humidity low threshold
+  - platform: template
+    id: comfort_humidity_low_threshold
+    name: "${friendly_name} Low Humidity Alert"
+    icon: "mdi:water-minus"
+    unit_of_measurement: "%"
+    min_value: 10
+    max_value: 50
+    step: 5
+    optimistic: true
+    restore_value: true
+    initial_value: 30
+
+  # Humidity high threshold
+  - platform: template
+    id: comfort_humidity_high_threshold
+    name: "${friendly_name} High Humidity Alert"
+    icon: "mdi:water-plus"
+    unit_of_measurement: "%"
+    min_value: 50
+    max_value: 90
+    step: 5
+    optimistic: true
+    restore_value: true
+    initial_value: 70
+
+# ============================================================================
+# Binary Sensors for Alerts
+# ============================================================================
+binary_sensor:
+  # Temperature out of range
+  - platform: template
+    id: comfort_temp_alert
+    name: "${friendly_name} Temperature Alert"
+    device_class: problem
+    lambda: |-
+      if (!id(comfort_notifications).state) return false;
+
+      float temp = id(comfort_temperature).state;
+      if (std::isnan(temp)) return false;
+
+      return (temp < id(comfort_temp_low_threshold).state ||
+              temp > id(comfort_temp_high_threshold).state);
+
+  # Humidity out of range
+  - platform: template
+    id: comfort_humidity_alert
+    name: "${friendly_name} Humidity Alert"
+    device_class: problem
+    lambda: |-
+      if (!id(comfort_notifications).state) return false;
+
+      float humidity = id(comfort_humidity).state;
+      if (std::isnan(humidity)) return false;
+
+      return (humidity < id(comfort_humidity_low_threshold).state ||
+              humidity > id(comfort_humidity_high_threshold).state);

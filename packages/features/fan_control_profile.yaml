@@ -1,0 +1,226 @@
+---
+# ============================================================================
+# SENSE360 FAN MODULE - BASIC CONTROL PROFILE
+# ============================================================================
+# User-friendly fan control entities for PWM fan module.
+# Provides simplified controls for end users.
+#
+# Prerequisites:
+#   - packages/expansions/fan_pwm.yaml (PWM hardware driver)
+#   OR
+#   - packages/expansions/fan_gp8403.yaml (DAC hardware driver)
+#
+# Exposed Entities:
+#   - Fan on/off and speed control
+#   - Current speed percentage
+#   - Quiet mode toggle
+#   - Auto mode toggle (requires temperature/humidity sensor)
+# ============================================================================
+
+packages:
+  health: !include device_health.yaml
+
+# ============================================================================
+# User-Facing Sensors
+# ============================================================================
+sensor:
+  # Fan speed display
+  - platform: template
+    id: fan_speed_display
+    name: "${friendly_name} Fan Speed"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: "mdi:fan"
+    update_interval: 2s
+    lambda: |-
+      // Try PWM fan first (single fan)
+      if (id(fan_controller).state) {
+        return id(fan_controller).speed;
+      }
+      return 0.0f;
+
+# ============================================================================
+# User-Facing Switches
+# ============================================================================
+switch:
+  # Quiet mode toggle
+  - platform: template
+    id: fan_quiet_mode_switch
+    name: "${friendly_name} Fan Quiet Mode"
+    icon: "mdi:volume-low"
+    optimistic: false
+    restore_mode: RESTORE_DEFAULT_OFF
+    lambda: |-
+      return id(fan_quiet_mode);
+    turn_on_action:
+      - lambda: |-
+          id(fan_quiet_mode) = true;
+          // If fan is running above quiet limit, reduce speed
+          if (id(fan_controller).state && id(fan_controller).speed > 50) {
+            auto call = id(fan_controller).turn_on();
+            call.set_speed(50);
+            call.perform();
+          }
+    turn_off_action:
+      - lambda: |-
+          id(fan_quiet_mode) = false;
+
+  # Auto mode toggle
+  - platform: template
+    id: fan_auto_mode_switch
+    name: "${friendly_name} Fan Auto Mode"
+    icon: "mdi:fan-auto"
+    optimistic: false
+    restore_mode: RESTORE_DEFAULT_OFF
+    lambda: |-
+      return id(fan_auto_mode);
+    turn_on_action:
+      - lambda: |-
+          id(fan_auto_mode) = true;
+          ESP_LOGI("fan", "Auto mode enabled");
+    turn_off_action:
+      - lambda: |-
+          id(fan_auto_mode) = false;
+          ESP_LOGI("fan", "Auto mode disabled");
+
+# ============================================================================
+# User-Facing Text Sensors
+# ============================================================================
+text_sensor:
+  # Fan status description
+  - platform: template
+    id: fan_status
+    name: "${friendly_name} Fan Status"
+    icon: "mdi:fan"
+    update_interval: 2s
+    lambda: |-
+      if (!id(fan_controller).state) {
+        return {"Off"};
+      }
+
+      float speed = id(fan_controller).speed;
+
+      if (id(fan_quiet_mode)) {
+        if (speed <= 30) return {"Quiet - Low"};
+        return {"Quiet - Medium"};
+      }
+
+      if (speed <= 30) {
+        return {"Low"};
+      } else if (speed <= 60) {
+        return {"Medium"};
+      } else if (speed <= 85) {
+        return {"High"};
+      } else {
+        return {"Maximum"};
+      }
+
+# ============================================================================
+# Speed Presets
+# ============================================================================
+button:
+  # Low speed preset
+  - platform: template
+    id: fan_preset_low
+    name: "${friendly_name} Fan Low"
+    icon: "mdi:fan-speed-1"
+    on_press:
+      - script.execute:
+          id: fan_set_speed
+          speed: 30
+
+  # Medium speed preset
+  - platform: template
+    id: fan_preset_medium
+    name: "${friendly_name} Fan Medium"
+    icon: "mdi:fan-speed-2"
+    on_press:
+      - script.execute:
+          id: fan_set_speed
+          speed: 60
+
+  # High speed preset
+  - platform: template
+    id: fan_preset_high
+    name: "${friendly_name} Fan High"
+    icon: "mdi:fan-speed-3"
+    on_press:
+      - script.execute:
+          id: fan_set_speed
+          speed: 100
+
+# ============================================================================
+# Speed Control Number
+# ============================================================================
+number:
+  # Manual speed control
+  - platform: template
+    id: fan_speed_control
+    name: "${friendly_name} Fan Speed Control"
+    icon: "mdi:fan"
+    unit_of_measurement: "%"
+    min_value: 0
+    max_value: 100
+    step: 5
+    optimistic: true
+    restore_value: true
+    initial_value: 50
+    set_action:
+      - script.execute:
+          id: fan_set_speed
+          speed: !lambda 'return (int)x;'
+
+# ============================================================================
+# Auto Mode Control (Temperature-Based)
+# ============================================================================
+interval:
+  - interval: 30s
+    then:
+      - lambda: |-
+          if (!id(fan_auto_mode)) return;
+
+          // Auto mode requires a temperature sensor
+          // Check if comfort_temperature or airiq_temperature_value exists
+          float temp = 20.0f;  // Default if no sensor
+
+          // Try to get temperature from various sources
+          #ifdef comfort_temperature
+            temp = id(comfort_temperature).state;
+          #endif
+
+          if (std::isnan(temp)) {
+            temp = 20.0f;
+          }
+
+          // Temperature-based speed curve
+          int target_speed = 0;
+
+          if (temp < 22.0f) {
+            target_speed = 0;  // Off when cool
+          } else if (temp < 24.0f) {
+            target_speed = 30;  // Low speed
+          } else if (temp < 26.0f) {
+            target_speed = 50;  // Medium speed
+          } else if (temp < 28.0f) {
+            target_speed = 70;  // High speed
+          } else {
+            target_speed = 100;  // Maximum
+          }
+
+          // Apply quiet mode limit
+          if (id(fan_quiet_mode) && target_speed > 50) {
+            target_speed = 50;
+          }
+
+          // Only change if different from current
+          if (id(fan_controller).state) {
+            if ((int)id(fan_controller).speed != target_speed) {
+              auto call = id(fan_controller).turn_on();
+              call.set_speed(target_speed);
+              call.perform();
+            }
+          } else if (target_speed > 0) {
+            auto call = id(fan_controller).turn_on();
+            call.set_speed(target_speed);
+            call.perform();
+          }

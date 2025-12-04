@@ -458,18 +458,24 @@ substitutions:
 
 ---
 
-### Phase 2: Expansion Module Drivers (Week 3-4)
+### Phase 2: Expansion Module Drivers (Week 3-4) ✅ COMPLETE
 **Deliverables:**
-- [ ] Migrate existing hardware drivers to expansions:
-  - [ ] Move `packages/hardware/presence_ld2450.yaml` → `packages/expansions/presence_ld2450.yaml`
-  - [ ] Move `packages/hardware/presence_ld2412.yaml` → `packages/expansions/presence_ld2412.yaml`
-- [ ] Create new expansion drivers:
-  - [ ] `packages/expansions/airiq.yaml` (SEN55 + SCD41)
-  - [ ] `packages/expansions/comfort.yaml` (SHT40 + BH1750)
-  - [ ] `packages/expansions/fan_pwm.yaml` (PWM control)
-  - [ ] `packages/expansions/fan_gp8403.yaml` (DAC control)
-  - [ ] `packages/expansions/bathroom.yaml` (Bathroom sensors)
-- [ ] Ensure all drivers use `internal: true` for raw sensors
+- [x] Migrate existing hardware drivers to expansions:
+  - [x] Move `packages/hardware/presence_ld2450.yaml` → `packages/expansions/presence_ld2450.yaml`
+  - [x] Move `packages/hardware/presence_ld2412.yaml` → `packages/expansions/presence_ld2412.yaml`
+- [x] Create new expansion drivers:
+  - [x] `packages/expansions/airiq.yaml` (SEN55 + SCD41)
+  - [x] `packages/expansions/comfort.yaml` (SHT40 + BH1750 + BME680)
+  - [x] `packages/expansions/fan_pwm.yaml` (PWM control with tachometer)
+  - [x] `packages/expansions/fan_gp8403.yaml` (Dual-channel DAC control)
+  - [x] `packages/expansions/bathroom.yaml` (SHT40 + SCD41 + SGP40 + BH1750)
+- [x] Ensure all drivers use `internal: true` for raw sensors
+- [x] Create feature profiles (accelerated from Phase 3):
+  - [x] `packages/features/comfort_basic_profile.yaml`
+  - [x] `packages/features/comfort_advanced_profile.yaml`
+  - [x] `packages/features/fan_control_profile.yaml`
+  - [x] `packages/features/fan_control_advanced_profile.yaml`
+  - [x] `packages/features/bathroom_profile.yaml`
 - [ ] Test each expansion module independently
 
 **Success Criteria:**
@@ -477,21 +483,23 @@ substitutions:
 - Raw sensor data readable
 - No conflicts between modules
 
+**Completed**: 2025-12-04
+
 ---
 
-### Phase 3: Feature Profiles (Week 5-6)
+### Phase 3: Feature Profiles (Week 5-6) - PARTIALLY COMPLETE
 **Deliverables:**
-- [ ] Create/update feature profiles:
-  - [ ] `packages/features/airiq_basic_profile.yaml` (user-friendly)
-  - [ ] `packages/features/airiq_advanced_profile.yaml` (technical)
-  - [ ] `packages/features/comfort_basic_profile.yaml`
-  - [ ] `packages/features/comfort_advanced_profile.yaml`
-  - [ ] `packages/features/fan_control_profile.yaml`
-  - [ ] `packages/features/fan_control_advanced_profile.yaml`
-  - [ ] `packages/features/bathroom_profile.yaml`
-- [ ] Update existing presence profiles (already exist)
-- [ ] Implement template sensors for abstracted entities
-- [ ] Add automation logic (fan control based on humidity, etc.)
+- [x] Create/update feature profiles:
+  - [x] `packages/features/airiq_basic_profile.yaml` (user-friendly) - existed
+  - [x] `packages/features/airiq_advanced_profile.yaml` (technical) - existed
+  - [x] `packages/features/comfort_basic_profile.yaml` - created in Phase 2
+  - [x] `packages/features/comfort_advanced_profile.yaml` - created in Phase 2
+  - [x] `packages/features/fan_control_profile.yaml` - created in Phase 2
+  - [x] `packages/features/fan_control_advanced_profile.yaml` - created in Phase 2
+  - [x] `packages/features/bathroom_profile.yaml` - created in Phase 2
+- [x] Update existing presence profiles (already exist)
+- [x] Implement template sensors for abstracted entities
+- [x] Add automation logic (fan control based on humidity, etc.)
 
 **Success Criteria:**
 - User-facing entities are intuitive and well-named

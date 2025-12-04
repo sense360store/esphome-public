@@ -1,0 +1,264 @@
+---
+# ============================================================================
+# SENSE360 FAN MODULE - ADVANCED CONTROL PROFILE
+# ============================================================================
+# Advanced fan control entities for GP8403 DAC or PWM fan modules.
+# Includes dual-channel control, voltage monitoring, and advanced automation.
+#
+# Prerequisites:
+#   - packages/expansions/fan_gp8403.yaml (DAC hardware driver)
+#   OR
+#   - packages/expansions/fan_pwm.yaml (PWM hardware driver)
+#
+# Additional Entities (beyond basic profile):
+#   - Dual fan control (for GP8403)
+#   - Output voltage display
+#   - RPM monitoring (for PWM with tachometer)
+#   - Link mode toggle
+#   - Stall detection
+#   - Custom speed curves
+# ============================================================================
+
+packages:
+  fan_basic: !include fan_control_profile.yaml
+  diagnostics: !include diagnostics.yaml
+
+# ============================================================================
+# Advanced Sensors
+# ============================================================================
+sensor:
+  # Fan 1 voltage output (GP8403 only)
+  - platform: template
+    id: fan_0_voltage_display
+    name: "${friendly_name} Fan 1 Voltage"
+    unit_of_measurement: "V"
+    accuracy_decimals: 2
+    icon: "mdi:flash"
+    entity_category: diagnostic
+    update_interval: 2s
+    lambda: |-
+      // This template works for both PWM (simulated) and GP8403
+      // For PWM: voltage is simulated based on duty cycle
+      // For GP8403: actual voltage output
+      if (id(fan_controller).state) {
+        // Assume 10V max for 0-10V control
+        return (id(fan_controller).speed / 100.0f) * 10.0f;
+      }
+      return 0.0f;
+
+  # Fan 2 speed display (GP8403 dual channel)
+  - platform: template
+    id: fan_1_speed_display
+    name: "${friendly_name} Fan 2 Speed"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: "mdi:fan"
+    entity_category: config
+    update_interval: 2s
+    lambda: |-
+      // For GP8403 dual channel mode
+      // Returns 0 if fan_controller_1 doesn't exist
+      return id(fan_1_target_speed);
+
+  # Fan RPM (PWM with tachometer only)
+  - platform: template
+    id: fan_rpm_display
+    name: "${friendly_name} Fan RPM"
+    unit_of_measurement: "RPM"
+    accuracy_decimals: 0
+    icon: "mdi:speedometer"
+    update_interval: 5s
+    lambda: |-
+      // Read from tachometer sensor if available
+      return id(fan_tach_sensor).state;
+
+# ============================================================================
+# Advanced Switches
+# ============================================================================
+switch:
+  # Link mode (both fans same speed - GP8403 only)
+  - platform: template
+    id: fan_link_mode_switch
+    name: "${friendly_name} Fan Link Mode"
+    icon: "mdi:link"
+    optimistic: false
+    restore_mode: RESTORE_DEFAULT_ON
+    lambda: |-
+      return id(fan_link_mode);
+    turn_on_action:
+      - lambda: |-
+          id(fan_link_mode) = true;
+          // Sync fan 2 to fan 1 speed
+          int speed = id(fan_0_target_speed);
+          id(fan_1_target_speed) = speed;
+          if (speed == 0) {
+            auto call = id(fan_controller_1).turn_off();
+            call.perform();
+          } else {
+            auto call = id(fan_controller_1).turn_on();
+            call.set_speed(speed);
+            call.perform();
+          }
+    turn_off_action:
+      - lambda: |-
+          id(fan_link_mode) = false;
+
+# ============================================================================
+# Advanced Text Sensors
+# ============================================================================
+text_sensor:
+  # Fan diagnostic status
+  - platform: template
+    id: fan_diagnostic_status
+    name: "${friendly_name} Fan Diagnostic"
+    icon: "mdi:stethoscope"
+    entity_category: diagnostic
+    update_interval: 10s
+    lambda: |-
+      std::string status = "";
+
+      // Check stall condition
+      if (id(fan_stall_detected)) {
+        status += "STALL DETECTED! ";
+      }
+
+      // Check for abnormal RPM
+      float rpm = id(fan_tach_sensor).state;
+      if (!std::isnan(rpm)) {
+        if (id(fan_controller).state && id(fan_controller).speed > 30) {
+          if (rpm < 500) {
+            status += "Low RPM. ";
+          }
+        }
+      }
+
+      // Check quiet mode active
+      if (id(fan_quiet_mode)) {
+        status += "Quiet mode active. ";
+      }
+
+      // Check auto mode active
+      if (id(fan_auto_mode)) {
+        status += "Auto mode active. ";
+      }
+
+      if (status.empty()) {
+        return {"Normal operation"};
+      }
+
+      return {status};
+
+# ============================================================================
+# Advanced Number Controls
+# ============================================================================
+number:
+  # Fan 2 independent speed control (GP8403)
+  - platform: template
+    id: fan_1_speed_control
+    name: "${friendly_name} Fan 2 Speed Control"
+    icon: "mdi:fan"
+    unit_of_measurement: "%"
+    min_value: 0
+    max_value: 100
+    step: 5
+    optimistic: true
+    restore_value: true
+    initial_value: 50
+    set_action:
+      - lambda: |-
+          if (!id(fan_link_mode)) {
+            // Only allow independent control if link mode is off
+            int speed = (int)x;
+            id(fan_1_target_speed) = speed;
+
+            if (speed == 0) {
+              auto call = id(fan_controller_1).turn_off();
+              call.perform();
+            } else {
+              auto call = id(fan_controller_1).turn_on();
+              call.set_speed(speed);
+              call.perform();
+            }
+          }
+
+  # Minimum speed threshold
+  - platform: template
+    id: fan_min_speed_setting
+    name: "${friendly_name} Fan Minimum Speed"
+    icon: "mdi:speedometer-slow"
+    unit_of_measurement: "%"
+    min_value: 0
+    max_value: 50
+    step: 5
+    optimistic: true
+    restore_value: true
+    initial_value: 10
+
+  # Maximum speed threshold
+  - platform: template
+    id: fan_max_speed_setting
+    name: "${friendly_name} Fan Maximum Speed"
+    icon: "mdi:speedometer"
+    unit_of_measurement: "%"
+    min_value: 50
+    max_value: 100
+    step: 5
+    optimistic: true
+    restore_value: true
+    initial_value: 100
+
+# ============================================================================
+# Binary Sensors for Alerts
+# ============================================================================
+binary_sensor:
+  # Stall warning
+  - platform: template
+    id: fan_stall_warning
+    name: "${friendly_name} Fan Stall Warning"
+    device_class: problem
+    lambda: |-
+      return id(fan_stall_detected);
+
+  # Fan running indicator
+  - platform: template
+    id: fan_running
+    name: "${friendly_name} Fan Running"
+    device_class: running
+    lambda: |-
+      return id(fan_controller).state;
+
+# ============================================================================
+# Speed Curve Select
+# ============================================================================
+select:
+  - platform: template
+    id: fan_speed_curve
+    name: "${friendly_name} Fan Speed Curve"
+    icon: "mdi:chart-bell-curve"
+    optimistic: true
+    restore_value: true
+    options:
+      - Linear
+      - Aggressive
+      - Gentle
+      - Custom
+    initial_option: Linear
+    set_action:
+      - logger.log:
+          format: "Fan speed curve changed to %s"
+          args:
+            - 'x.c_str()'
+
+# ============================================================================
+# Emergency Stop Button
+# ============================================================================
+button:
+  - platform: template
+    id: fan_emergency_stop_button
+    name: "${friendly_name} Fan Emergency Stop"
+    icon: "mdi:stop-circle"
+    on_press:
+      - script.execute: fan_emergency_stop
+      - logger.log:
+          level: WARN
+          format: "Fan emergency stop activated"
