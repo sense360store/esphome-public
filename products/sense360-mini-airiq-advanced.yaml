@@ -299,6 +299,12 @@ script:
 # SENSOR CALIBRATION CONTROLS
 # ----------------------------------------------------------------------------
 button:
+  - platform: restart
+    id: reset_button
+    name: "${friendly_name} Restart"
+    icon: "mdi:restart"
+    entity_category: diagnostic
+
   # CO2 Sensor Calibration
   - platform: template
     name: "${friendly_name} Calibrate CO₂ (400ppm)"
