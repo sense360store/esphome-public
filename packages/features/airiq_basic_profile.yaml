@@ -18,7 +18,21 @@ bme680_bsec:
   i2c_id: i2c0
 
 external_components:
-  - source: github://boschsensortec/BSEC2-ESPHome@v1.4.2500
+  # Provide `airiq_bsec2_git_username` and `airiq_bsec2_git_password` as
+  # substitutions (or secrets) when access to the Bosch repository requires
+  # authentication. When both are left blank, the public URL is used. Credentials
+  # are interpolated only when a username is set to avoid malformed URLs.
+  #
+  # Test configuration loading with credentials by setting the substitutions,
+  # e.g. via `--substitution airiq_bsec2_git_username=<user> --substitution
+  # airiq_bsec2_git_password=<token>`, and without credentials by leaving them
+  # blank to confirm the public source still loads.
+  - source: !lambda |-
+      if (!std::string("${airiq_bsec2_git_username}").empty()) {
+        return "github://${airiq_bsec2_git_username}:${airiq_bsec2_git_password}@"
+               "boschsensortec/BSEC2-ESPHome@v1.4.2500";
+      }
+      return "github://boschsensortec/BSEC2-ESPHome@v1.4.2500";
     components: [bme680_bsec]
 
 sensor:
