@@ -104,8 +104,9 @@ text_sensor:
     update_interval: never
     entity_category: diagnostic
 
-# Binary sensor for PoE power status
+# Binary sensors
 binary_sensor:
+  # PoE power status
   - platform: template
     name: "${friendly_name} PoE Power Connected"
     id: poe_power_connected
@@ -121,9 +122,8 @@ binary_sensor:
     name: "${friendly_name} Network Status"
     id: network_status
 
-# Alert if WiFi signal is poor (important for PoE devices)
-# PoE provides power but device still needs good WiFi
-binary_sensor:
+  # Alert if WiFi signal is poor (important for PoE devices)
+  # PoE provides power but device still needs good WiFi
   - platform: template
     name: "${friendly_name} Poor WiFi Signal"
     id: poor_wifi_signal
