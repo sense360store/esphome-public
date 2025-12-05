@@ -46,66 +46,55 @@ number:
       name: "${friendly_name} Max Distance Gate"
       icon: "mdi:arrow-expand-right"
 
-  # Gate thresholds - Moving (adjust sensitivity per distance zone)
+  # Gate thresholds - Moving and still (adjust sensitivity per distance zone)
   - platform: ld2412
     ld2412_id: ld2412_radar
     gate_0:
       move_threshold:
         name: "${friendly_name} Gate 0 Move Threshold"
         internal: true
+      still_threshold:
+        name: "${friendly_name} Gate 0 Still Threshold"
+        internal: true
     gate_1:
       move_threshold:
         name: "${friendly_name} Gate 1 Move Threshold"
+        internal: true
+      still_threshold:
+        name: "${friendly_name} Gate 1 Still Threshold"
         internal: true
     gate_2:
       move_threshold:
         name: "${friendly_name} Gate 2 Move Threshold"
         internal: true
+      still_threshold:
+        name: "${friendly_name} Gate 2 Still Threshold"
+        internal: true
     gate_3:
       move_threshold:
         name: "${friendly_name} Gate 3 Move Threshold"
+        internal: true
+      still_threshold:
+        name: "${friendly_name} Gate 3 Still Threshold"
         internal: true
     gate_4:
       move_threshold:
         name: "${friendly_name} Gate 4 Move Threshold"
         internal: true
+      still_threshold:
+        name: "${friendly_name} Gate 4 Still Threshold"
+        internal: true
     gate_5:
       move_threshold:
         name: "${friendly_name} Gate 5 Move Threshold"
+        internal: true
+      still_threshold:
+        name: "${friendly_name} Gate 5 Still Threshold"
         internal: true
     gate_6:
       move_threshold:
         name: "${friendly_name} Gate 6 Move Threshold"
         internal: true
-
-  # Gate thresholds - Still (adjust sensitivity per distance zone)
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    gate_0:
-      still_threshold:
-        name: "${friendly_name} Gate 0 Still Threshold"
-        internal: true
-    gate_1:
-      still_threshold:
-        name: "${friendly_name} Gate 1 Still Threshold"
-        internal: true
-    gate_2:
-      still_threshold:
-        name: "${friendly_name} Gate 2 Still Threshold"
-        internal: true
-    gate_3:
-      still_threshold:
-        name: "${friendly_name} Gate 3 Still Threshold"
-        internal: true
-    gate_4:
-      still_threshold:
-        name: "${friendly_name} Gate 4 Still Threshold"
-        internal: true
-    gate_5:
-      still_threshold:
-        name: "${friendly_name} Gate 5 Still Threshold"
-        internal: true
-    gate_6:
       still_threshold:
         name: "${friendly_name} Gate 6 Still Threshold"
         internal: true
