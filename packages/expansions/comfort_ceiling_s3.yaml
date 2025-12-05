@@ -118,7 +118,7 @@ sensor:
 
     # High precision mode
     precision: High
-    heater_power: "Off"
+    heater_power: "Low"
 
   # ============================================================================
   # DERIVED SENSORS
