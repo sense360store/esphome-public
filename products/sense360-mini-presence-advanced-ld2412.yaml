@@ -43,7 +43,7 @@ substitutions:
   wifi_fast_connect: "true"
   log_level: DEBUG  # More verbose for advanced users
 
-  # Timezone (override to your local timezone, e.g., America/New_York)
+  # Timezone for SNTP (override to your local timezone, e.g., America/New_York)
   timezone: "Etc/UTC"
 
   # Security (users MUST define these)
