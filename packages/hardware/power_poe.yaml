@@ -74,17 +74,6 @@ sensor:
   #   accuracy_decimals: 1
   #   icon: mdi:flash
 
-  # WiFi signal strength (important for PoE devices)
-  # Ensure network connectivity is good
-  - platform: wifi_signal
-    name: "${friendly_name} WiFi Signal"
-    id: wifi_rssi
-    update_interval: 30s
-    filters:
-      - sliding_window_moving_average:
-          window_size: 10
-          send_every: 5
-
 # Power source indicator
 text_sensor:
   - platform: template
@@ -122,26 +111,9 @@ binary_sensor:
     name: "${friendly_name} Network Status"
     id: network_status
 
-  # Alert if WiFi signal is poor (important for PoE devices)
-  # PoE provides power but device still needs good WiFi
-  - platform: template
-    name: "${friendly_name} Poor WiFi Signal"
-    id: poor_wifi_signal
-    icon: mdi:wifi-alert
-    device_class: problem
-    lambda: |-
-      // Alert if WiFi signal is below -75 dBm
-      if (id(wifi_rssi).has_state()) {
-        return id(wifi_rssi).state < -75.0;
-      }
-      return false;
-    filters:
-      - delayed_on: 30s  # Avoid false alerts
-
 # Debug logging for PoE configuration
 logger:
   logs:
-    wifi: INFO
     ethernet: INFO
 
 # Automation: Log PoE status on boot
@@ -155,7 +127,7 @@ esphome:
         - delay: 2s
         - if:
             condition:
-              wifi.connected:
+              lambda: 'return id(ethernet_ip).has_state();'
             then:
               - logger.log: "PoE device connected to network successfully"
             else:
