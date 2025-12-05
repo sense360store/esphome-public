@@ -223,12 +223,13 @@ uart:
 # ============================================================================
 light:
   # LED ring for visual feedback (air quality, presence, etc.)
-  - platform: neopixelbus
+  - platform: esp32_rmt_led_strip
     id: led_ring
-    type: GRB
-    variant: WS2812
+    chipset: ws2812
+    rgb_order: GRB
     pin: ${led_data_pin}
     num_leds: ${led_count}
+    rmt_channel: 0
     name: "${friendly_name} LED Ring"
     default_transition_length: 300ms
     effects:
