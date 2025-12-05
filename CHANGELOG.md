@@ -8,8 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Sense360 Core Board Support**: New board variants and power configurations
+  - Sense360 Core Wall and Ceiling board profiles
+  - Comprehensive GPIO mapping and power management
+  - PoE and USB-C power configurations
+- **Expansion Module System**: Modular sensor expansion support
+  - AirLQ expansion module with comprehensive sensor mapping
+  - Comfort Ceiling expansion module mapping
+  - Presence Module Ceiling with DFRobot C4001 support
+  - Phase 2 expansion module drivers and feature profiles
+- **LD2412 mmWave Sensor**: Multi-sensor presence detection support
+  - Gate threshold configuration
+  - Advanced and basic presence profiles
+- **Ceiling LED Ring**: Air quality visualization for ceiling-mounted devices
 - **CI/CD Pipeline**: GitHub Actions workflows for automated testing and validation
-  - `test.yml`: Comprehensive test suite validating all 10 product configurations with ESPHome compilation
+  - `test.yml`: Comprehensive test suite validating all product configurations with ESPHome compilation
   - `validate.yml`: Quick YAML syntax and structure validation for fast feedback
   - Matrix testing across all product configurations to catch issues early
   - Automated C++ header formatting checks with clang-format
@@ -20,20 +33,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automated configuration validation script
 - **Validation Script** (`tests/validate_configs.py`): Python script to validate YAML syntax and structure
   - Supports ESPHome custom YAML tags (!secret, !include, !extend, !lambda)
-  - Validates all 36+ configuration files in products/, packages/, base/, features/, hardware/, and tests/
+  - Validates all configuration files in products/, packages/, base/, features/, hardware/, and tests/
   - Checks for required keys and proper structure
 - **Development Documentation** (`docs/development.md`): Comprehensive guide for contributors
-  - Development environment setup instructions
-  - Testing and validation workflows
-  - Pre-commit hooks usage
-  - CI/CD pipeline details
-  - Code quality guidelines
 - **Development Dependencies** (`requirements-dev.txt`): All tools needed for local development
 - **YAML Linting Configuration** (`.yamllint`): Consistent YAML style across the repository
+- **Comprehensive Unit Test Suite**: Phase 1 testing infrastructure
+- **MVP Feature Roadmap**: Comprehensive planning documentation
+- **Reset and Restart Buttons**: Added to product configurations for device management
 
 ### Changed
+- Restructured headers for ESPHome remote package compatibility
+- Refactored YAML structure with Basic/Advanced profile separation
+- Hardware sensor outputs now internal for AirIQ advanced profile
+- Consolidated LD2412 gate threshold configuration
+- Shortened fallback SSID defaults and hostnames for better compatibility
+- Adjusted Ethernet log level to match defaults
+- Used non-strapping GPIO for diagnostics button
+- Consolidated PoE binary sensors
+- Improved documentation clarity and user-friendliness
 - Updated README.md with CI badge and links to development guide
 - Enhanced Contributing section with clear development workflow
+
+### Fixed
+- CI/CD pipeline validation for ESPHome YAML tags
+- Duplicate entity name conflicts across ESPHome configs
+- LD2450 configuration and GPIO3 strapping pin warning
+- YAML structure issues and yamllint errors
+- I2C extend mappings for mini four LEDs
+- Various restore settings for switches and templates
+- Removed unsupported LD2450 bluetooth password and zone sensors
 
 ### Breaking Changes
 - None.
@@ -89,7 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.1.8] - 2025-12-10
+## [1.1.8] - 2025-11-30
 
 ### Fixed
 - Ensured SHT30 calibration reruns automatically when reference temperature or humidity values change, even if raw readings arrive later, so reference inputs always adjust live measurements.
