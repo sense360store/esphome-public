@@ -1,0 +1,393 @@
+---
+# ============================================================================
+# Sense360 Core Voice Wall - Voice-Enabled Wall/Desk Smart Home Hub
+# ============================================================================
+# SKU: S360-CORE-V-W
+#
+# This is the voice-enabled wall-mounted/desk variant of the Sense360 Core.
+# Includes voice assistant capabilities with I2S microphone and speaker.
+#
+# Hardware Features:
+# - ESP32-S3-WROOM-1-N16R8 (16MB Flash, 8MB PSRAM)
+# - WiFi 2.4GHz, Bluetooth 5.0 LE
+# - Power: 240V AC / PoE / USB-C (via separate power packages)
+# - I2S MEMS Microphone array (via LED+MIC ring)
+# - I2S DAC/Amplifier output
+# - Dual I2C buses for expansion modules
+# - UART for presence/radar sensors
+# - Built-in relay for load switching
+# - Physical user buttons
+#
+# LED Ring Pairing:
+# - This core MUST be paired with LED+MIC ring (S360-LED-V-C)
+#
+# Pin Assignments (ESP32-S3):
+# - I2C0 (Primary):     SDA=GPIO39, SCL=GPIO40
+# - I2C1 (Aux):         SDA=GPIO21, SCL=GPIO18
+# - UART:               TX=GPIO1, RX=GPIO2
+# - Relay:              GPIO4 (10A AC/DC)
+# - GPIO Expansion:     GPIO5, GPIO6, GPIO7, GPIO8
+# - Status LED RGB:     GPIO48 (WS2812B ring)
+# - Status LED:         GPIO47 (simple LED)
+# - User Button 1:      GPIO9
+# - User Button 2:      GPIO10
+# - Boot Button:        GPIO0
+# - Microphone I2S:     SCK=GPIO11, WS=GPIO12, SD=GPIO13
+# - Speaker I2S:        BCLK=GPIO14, LRC=GPIO15, DIN=GPIO16
+# ============================================================================
+
+substitutions:
+  device_name: sense360-wall-voice
+  friendly_name: Sense360 Wall Voice
+  device_sku: S360-CORE-V-W
+  timezone: "America/Los_Angeles"
+
+  # Pin definitions
+  # I2C buses
+  i2c0_sda_pin: GPIO39
+  i2c0_scl_pin: GPIO40
+  i2c1_sda_pin: GPIO21
+  i2c1_scl_pin: GPIO18
+
+  # UART for expansion modules
+  uart_tx_pin: GPIO1
+  uart_rx_pin: GPIO2
+  uart_baud: "115200"
+
+  # Relay (load switching)
+  relay_pin: GPIO4
+
+  # GPIO expansion pins
+  expansion_gpio1: GPIO5
+  expansion_gpio2: GPIO6
+  expansion_gpio3: GPIO7
+  expansion_gpio4: GPIO8
+
+  # Status indicators
+  status_led_rgb_pin: GPIO48
+  status_led_pin: GPIO47
+
+  # User buttons
+  user_button1_pin: GPIO9
+  user_button2_pin: GPIO10
+  boot_button_pin: GPIO0
+
+  # Microphone I2S pins (for LED+MIC ring)
+  mic_i2s_sck_pin: GPIO11
+  mic_i2s_ws_pin: GPIO12
+  mic_i2s_sd_pin: GPIO13
+
+  # Speaker/Amplifier I2S pins
+  speaker_i2s_bclk_pin: GPIO14
+  speaker_i2s_lrc_pin: GPIO15
+  speaker_i2s_din_pin: GPIO16
+
+  # Voice assistant settings
+  voice_timeout: "10s"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  project:
+    name: sense360.wall_voice
+    version: 1.0.0
+  on_boot:
+    - priority: 600
+      then:
+        - logger.log: "Sense360 Wall Voice (${device_sku}) initializing..."
+    - priority: -100
+      then:
+        - logger.log: "Sense360 Wall Voice ready - voice assistant enabled"
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_COMPILER_OPTIMIZATION_SIZE: y
+      CONFIG_ESP32S3_SPIRAM_SUPPORT: y
+      CONFIG_SPIRAM_MODE_OCT: y
+      CONFIG_SPIRAM_SPEED_80M: y
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: y
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+# Primary I2C bus for expansion modules
+i2c:
+  - id: i2c0
+    sda: ${i2c0_sda_pin}
+    scl: ${i2c0_scl_pin}
+    scan: true
+    frequency: 400kHz
+
+  - id: i2c1
+    sda: ${i2c1_sda_pin}
+    scl: ${i2c1_scl_pin}
+    scan: true
+    frequency: 400kHz
+
+# UART for expansion modules (presence sensors, etc.)
+uart:
+  - id: uart_bus
+    tx_pin: ${uart_tx_pin}
+    rx_pin: ${uart_rx_pin}
+    baud_rate: ${uart_baud}
+
+# Simple status LED
+status_led:
+  pin:
+    number: ${status_led_pin}
+    inverted: true
+
+# Main relay for load switching
+switch:
+  - platform: gpio
+    name: "${friendly_name} Relay"
+    id: main_relay
+    pin: ${relay_pin}
+    restore_mode: RESTORE_DEFAULT_OFF
+    icon: mdi:electric-switch
+
+  # Voice assistant controls
+  - platform: template
+    name: "${friendly_name} Voice Assistant"
+    id: voice_assistant_switch
+    icon: mdi:microphone
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_on:
+      - voice_assistant.start_continuous:
+      - logger.log: "Voice assistant enabled"
+    on_turn_off:
+      - voice_assistant.stop:
+      - logger.log: "Voice assistant disabled"
+
+  - platform: template
+    name: "${friendly_name} Mute Microphone"
+    id: mute_microphone
+    icon: mdi:microphone-off
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      - voice_assistant.stop:
+      - logger.log: "Microphone muted"
+    on_turn_off:
+      - if:
+          condition:
+            switch.is_on: voice_assistant_switch
+          then:
+            - voice_assistant.start_continuous:
+            - logger.log: "Microphone unmuted"
+
+# Physical buttons on wall plate
+binary_sensor:
+  - platform: status
+    name: "${friendly_name} Status"
+    id: system_status
+
+  # User Button 1 (left button on wall plate)
+  - platform: gpio
+    name: "${friendly_name} Button 1"
+    id: user_button1
+    pin:
+      number: ${user_button1_pin}
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    on_press:
+      then:
+        - switch.toggle: main_relay
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+
+  # User Button 2 (right button - mute/unmute)
+  - platform: gpio
+    name: "${friendly_name} Button 2"
+    id: user_button2
+    pin:
+      number: ${user_button2_pin}
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    on_press:
+      then:
+        - switch.toggle: mute_microphone
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+
+  - platform: template
+    name: "${friendly_name} Voice Assistant Running"
+    id: voice_assistant_running
+    icon: mdi:microphone-message
+    lambda: |-
+      return id(core_voice_assistant).is_running();
+    filters:
+      - delayed_on: 100ms
+
+# Microphone configuration (I2S MEMS from LED+MIC ring)
+microphone:
+  - platform: i2s_audio
+    id: core_microphone
+    adc_type: external
+    i2s_din_pin: ${mic_i2s_sd_pin}
+    i2s_bclk_pin: ${mic_i2s_sck_pin}
+    i2s_lrclk_pin: ${mic_i2s_ws_pin}
+    pdm: false
+
+# Speaker configuration (I2S DAC/Amplifier)
+speaker:
+  - platform: i2s_audio
+    id: core_speaker
+    dac_type: external
+    i2s_dout_pin: ${speaker_i2s_din_pin}
+    i2s_bclk_pin: ${speaker_i2s_bclk_pin}
+    i2s_lrclk_pin: ${speaker_i2s_lrc_pin}
+    mode: mono
+
+# Voice Assistant integration
+voice_assistant:
+  id: core_voice_assistant
+  microphone: core_microphone
+  speaker: core_speaker
+  noise_suppression_level: 2
+  auto_gain: 31dBFS
+  volume_multiplier: 2.0
+  use_wake_word: true
+
+  on_listening:
+    - logger.log: "Voice assistant listening..."
+
+  on_stt_vad_end:
+    - logger.log: "Voice command received, processing..."
+
+  on_tts_start:
+    - logger.log: "Speaking response..."
+
+  on_tts_end:
+    - logger.log: "Response complete"
+
+  on_end:
+    - logger.log: "Voice assistant session ended"
+
+  on_error:
+    - logger.log:
+        format: "Voice assistant error: %s"
+        args: ["x.c_str()"]
+
+# Volume control for speaker
+number:
+  - platform: template
+    name: "${friendly_name} Speaker Volume"
+    id: speaker_volume
+    icon: mdi:volume-high
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 70
+    optimistic: true
+    restore_value: true
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - lambda: |-
+            float volume = x / 100.0 * 3.0;
+            id(core_voice_assistant).set_volume_multiplier(volume);
+
+# System controls
+button:
+  - platform: restart
+    id: restart_button
+    name: "${friendly_name} Restart"
+    icon: mdi:restart
+
+  - platform: safe_mode
+    name: "${friendly_name} Safe Mode"
+    icon: mdi:safety-goggles
+
+  - platform: factory_reset
+    name: "${friendly_name} Factory Reset"
+    id: factory_reset_btn
+    icon: mdi:delete-forever
+    disabled_by_default: true
+
+# System sensors
+sensor:
+  - platform: wifi_signal
+    name: "${friendly_name} WiFi Signal"
+    id: wifi_signal_sensor
+    update_interval: 60s
+    icon: mdi:wifi
+
+  - platform: uptime
+    name: "${friendly_name} Uptime"
+    id: uptime_sensor
+    update_interval: 60s
+    icon: mdi:clock-outline
+
+  - platform: internal_temperature
+    name: "${friendly_name} Internal Temperature"
+    id: internal_temp
+    update_interval: 60s
+    icon: mdi:thermometer
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "${friendly_name} IP Address"
+      icon: mdi:ip-network
+    ssid:
+      name: "${friendly_name} SSID"
+      icon: mdi:wifi
+    mac_address:
+      name: "${friendly_name} MAC Address"
+      icon: mdi:network-outline
+
+  - platform: version
+    name: "${friendly_name} ESPHome Version"
+    hide_timestamp: true
+    icon: mdi:information-outline
+
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+# Button action configuration
+select:
+  - platform: template
+    name: "${friendly_name} Button 1 Action"
+    id: button1_action
+    icon: mdi:gesture-tap-button
+    options:
+      - "Toggle Relay"
+      - "Turn On Relay"
+      - "Turn Off Relay"
+      - "Trigger Scene"
+      - "Disabled"
+    initial_option: "Toggle Relay"
+    optimistic: true
+    restore_value: true
+
+  - platform: template
+    name: "${friendly_name} Button 2 Action"
+    id: button2_action
+    icon: mdi:gesture-tap-button
+    options:
+      - "Toggle Mute"
+      - "Push to Talk"
+      - "Toggle Relay"
+      - "Disabled"
+    initial_option: "Toggle Mute"
+    optimistic: true
+    restore_value: true
