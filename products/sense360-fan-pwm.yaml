@@ -60,8 +60,9 @@ substitutions:
 
   # Reassign conflicting pins when combining the voice core with the fan PWM
   # expansion. These keep the fan controller on its dedicated connector
-  # (GPIO7-16) while moving voice I2S signals and the status LED to free pins.
-  status_led_pin: GPIO47
+  # (GPIO7-16) while moving voice I2S signals and the voice status LED to free pins.
+  status_led_pin: GPIO2
+  voice_status_led_pin: GPIO47
   mic_i2s_sck_pin: GPIO33
   mic_i2s_ws_pin: GPIO34
   mic_i2s_sd_pin: GPIO35
