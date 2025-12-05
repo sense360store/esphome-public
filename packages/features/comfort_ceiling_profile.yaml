@@ -1,0 +1,211 @@
+---
+# ============================================================================
+# SENSE360 COMFORT CEILING MODULE - FEATURE PROFILE
+# ============================================================================
+# User-friendly environmental comfort monitoring entities for ceiling-mount module.
+# Provides simplified, actionable information for end users.
+#
+# Prerequisites:
+#   - packages/expansions/comfort_ceiling.yaml (hardware driver)
+#
+# Exposed Entities:
+#   - Temperature (with feels-like)
+#   - Humidity
+#   - Dew Point
+#   - Comfort Level (simple text status)
+#   - Light Level (lux and status)
+# ============================================================================
+
+# ============================================================================
+# User-Facing Sensors
+# ============================================================================
+sensor:
+  # Temperature (primary, from SHT4x)
+  - platform: template
+    id: comfort_ceiling_temp_display
+    name: "${friendly_name} Temperature"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+    icon: mdi:thermometer
+    update_interval: 30s
+    lambda: |-
+      return id(comfort_ceiling_temperature).state;
+
+  # Humidity (primary, from SHT4x)
+  - platform: template
+    id: comfort_ceiling_humidity_display
+    name: "${friendly_name} Humidity"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: humidity
+    state_class: measurement
+    icon: mdi:water-percent
+    update_interval: 30s
+    lambda: |-
+      return id(comfort_ceiling_humidity).state;
+
+  # Feels-like temperature (heat index)
+  - platform: template
+    id: comfort_ceiling_feels_like
+    name: "${friendly_name} Feels Like"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    icon: mdi:thermometer-lines
+    update_interval: 30s
+    lambda: |-
+      return id(comfort_ceiling_heat_index);
+
+  # Dew point temperature
+  - platform: template
+    id: comfort_ceiling_dew_point_display
+    name: "${friendly_name} Dew Point"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    icon: mdi:water-thermometer
+    update_interval: 30s
+    lambda: |-
+      return id(comfort_ceiling_dew_point);
+
+  # Light level in lux (VEML7700)
+  - platform: template
+    id: comfort_ceiling_light_display
+    name: "${friendly_name} Light Level"
+    unit_of_measurement: "lx"
+    accuracy_decimals: 0
+    device_class: illuminance
+    state_class: measurement
+    icon: mdi:brightness-5
+    update_interval: 10s
+    lambda: |-
+      return id(comfort_ceiling_illuminance).state;
+
+  # Comfort score (0-100)
+  - platform: template
+    id: comfort_ceiling_score_display
+    name: "${friendly_name} Comfort Score"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: mdi:emoticon-happy-outline
+    update_interval: 30s
+    lambda: |-
+      return id(comfort_ceiling_index_value);
+
+# ============================================================================
+# User-Facing Text Sensors
+# ============================================================================
+text_sensor:
+  # Comfort level status
+  - platform: template
+    id: comfort_ceiling_status
+    name: "${friendly_name} Comfort Status"
+    icon: mdi:home-thermometer
+    update_interval: 30s
+    lambda: |-
+      float score = id(comfort_ceiling_index_value);
+
+      if (score >= 90) {
+        return {"Excellent"};
+      } else if (score >= 75) {
+        return {"Good"};
+      } else if (score >= 50) {
+        return {"Fair"};
+      } else if (score >= 25) {
+        return {"Poor"};
+      } else {
+        return {"Uncomfortable"};
+      }
+
+  # Light level description
+  - platform: template
+    id: comfort_ceiling_light_status
+    name: "${friendly_name} Light Status"
+    icon: mdi:brightness-6
+    update_interval: 10s
+    lambda: |-
+      int level = id(comfort_ceiling_light_level);
+
+      switch (level) {
+        case 0: return {"Dark"};
+        case 1: return {"Dim"};
+        case 2: return {"Normal"};
+        case 3: return {"Bright"};
+        default: return {"Unknown"};
+      }
+
+  # Temperature advice
+  - platform: template
+    id: comfort_ceiling_temp_advice
+    name: "${friendly_name} Temperature Advice"
+    icon: mdi:thermometer-lines
+    update_interval: 60s
+    lambda: |-
+      float temp = id(comfort_ceiling_temperature).state;
+
+      if (std::isnan(temp)) {
+        return {"Sensor unavailable"};
+      }
+
+      if (temp < 18.0f) {
+        return {"Too cold - consider heating"};
+      } else if (temp < 20.0f) {
+        return {"Slightly cool"};
+      } else if (temp <= 24.0f) {
+        return {"Ideal temperature"};
+      } else if (temp <= 26.0f) {
+        return {"Slightly warm"};
+      } else {
+        return {"Too warm - consider cooling"};
+      }
+
+  # Humidity advice
+  - platform: template
+    id: comfort_ceiling_humidity_advice
+    name: "${friendly_name} Humidity Advice"
+    icon: mdi:water-percent
+    update_interval: 60s
+    lambda: |-
+      float humidity = id(comfort_ceiling_humidity).state;
+
+      if (std::isnan(humidity)) {
+        return {"Sensor unavailable"};
+      }
+
+      if (humidity < 30.0f) {
+        return {"Too dry - consider humidifier"};
+      } else if (humidity < 40.0f) {
+        return {"Slightly dry"};
+      } else if (humidity <= 60.0f) {
+        return {"Ideal humidity"};
+      } else if (humidity <= 70.0f) {
+        return {"Slightly humid"};
+      } else {
+        return {"Too humid - consider dehumidifier"};
+      }
+
+  # Condensation risk warning
+  - platform: template
+    id: comfort_ceiling_condensation_risk
+    name: "${friendly_name} Condensation Risk"
+    icon: mdi:water-alert
+    update_interval: 60s
+    lambda: |-
+      float temp = id(comfort_ceiling_temperature).state;
+      float dew = id(comfort_ceiling_dew_point);
+
+      if (std::isnan(temp) || std::isnan(dew)) {
+        return {"Unknown"};
+      }
+
+      float margin = temp - dew;
+
+      if (margin < 2.0f) {
+        return {"High - condensation likely"};
+      } else if (margin < 5.0f) {
+        return {"Moderate - monitor conditions"};
+      } else {
+        return {"Low"};
+      }

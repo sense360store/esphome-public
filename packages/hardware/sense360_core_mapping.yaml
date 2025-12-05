@@ -473,19 +473,25 @@ globals:
     restore_value: false
     initial_value: 'false'
 
+  - id: module_comfort_ceiling_present
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
 # ============================================================================
 # I2C ADDRESS MAP (Reference)
 # ============================================================================
-# Address | Device           | Module        | Notes
-# --------|------------------|---------------|-------------------------------
-# 0x23    | BH1750           | Comfort       | Light sensor
-# 0x44    | SHT40/SHT30      | Comfort/AirIQ | Temp/Humidity (conflict!)
-# 0x58    | GP8403           | Fan DAC       | Channel 0x58 or 0x59
-# 0x59    | GP8403 alt/SGP40 | Fan DAC/Bath  | Address conflict possible
-# 0x62    | SCD41            | AirIQ         | CO2 sensor
-# 0x69    | SEN55            | AirIQ         | PM/VOC/NOx sensor
-# 0x3E    | SX1509           | GPIO Expander | Default address
-# 0x3F    | SX1509 alt       | GPIO Expander | Alternate address
-# 0x70    | TCA9548A         | I2C Mux       | For multi-module support
-# 0x76    | BME680           | Comfort       | Pressure/Gas sensor
+# Address | Device           | Module          | Notes
+# --------|------------------|-----------------|-----------------------------
+# 0x10    | VEML7700         | Comfort Ceiling | Ambient light sensor (lux)
+# 0x23    | BH1750           | Comfort         | Light sensor
+# 0x44    | SHT40/SHT30      | Comfort/AirIQ   | Temp/Humidity (conflict!)
+# 0x58    | GP8403           | Fan DAC         | Channel 0x58 or 0x59
+# 0x59    | GP8403 alt/SGP40 | Fan DAC/Bath    | Address conflict possible
+# 0x62    | SCD41            | AirIQ           | CO2 sensor
+# 0x69    | SEN55            | AirIQ           | PM/VOC/NOx sensor
+# 0x3E    | SX1509           | GPIO Expander   | Default address
+# 0x3F    | SX1509 alt       | GPIO Expander   | Alternate address
+# 0x70    | TCA9548A         | I2C Mux         | For multi-module support
+# 0x76    | BME680           | Comfort         | Pressure/Gas sensor
 # ============================================================================
