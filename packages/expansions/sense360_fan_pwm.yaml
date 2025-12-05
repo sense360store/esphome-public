@@ -1,0 +1,567 @@
+---
+# ============================================================================
+# SENSE360 FAN PWM EXPANSION MODULE - 4-CHANNEL VERSION
+# ============================================================================
+# Variable-speed fan control module with 4 independent channels and feedback:
+# - 4x PWM Outputs: 25kHz frequency, 0-100% duty cycle
+# - 4x Tachometer Inputs: For RPM monitoring
+# - Optional Nextion Display: For local control interface
+#
+# This file provides the base hardware setup for the 4-channel fan controller.
+#
+# Expansion Bus Connection:
+#   From Core Connector (13-pin):
+#     Pin 2:  TachIO (GPIO6) - Shared tach signal
+#     Pin 3:  TachPMW1 (GPIO7) - Fan 1 PWM control
+#     Pin 4:  Pul_Con1 (GPIO8) - Fan 1 tachometer input
+#     Pin 5:  TachPMW2 (GPIO11) - Fan 2 PWM control
+#     Pin 6:  Pul_Con2 (GPIO12) - Fan 2 tachometer input
+#     Pin 7:  TachPMW3 (GPIO13) - Fan 3 PWM control
+#     Pin 8:  Pul_Con3 (GPIO14) - Fan 3 tachometer input
+#     Pin 9:  TachPMW4 (GPIO15) - Fan 4 PWM control
+#     Pin 10: Pul_Con4 (GPIO16) - Fan 4 tachometer input
+#     Pin 11: UART_RX (GPIO44) - Nextion display RX
+#     Pin 12: UART_TX (GPIO43) - Nextion display TX
+#     Pin 13: +5V - Power supply
+#
+# Hardware Features:
+# - 9x 4-pin PWM fans (controlled via MOSFET drivers)
+# - Voltage boost circuit (5V to 12V for fans)
+# - Per-channel tachometer feedback for RPM monitoring
+# - Nextion HMI display for local control (optional)
+#
+# Power Requirements: 12V / 10A max (supplied via boost converter)
+# ============================================================================
+
+substitutions:
+  # PWM Configuration (25kHz is standard for PC fans)
+  fan_pwm_frequency: "25000"
+
+  # Fan PWM Output Pins
+  fan1_pwm_pin: GPIO7
+  fan2_pwm_pin: GPIO11
+  fan3_pwm_pin: GPIO13
+  fan4_pwm_pin: GPIO15
+
+  # Fan Tachometer Input Pins
+  fan1_tach_pin: GPIO8
+  fan2_tach_pin: GPIO12
+  fan3_tach_pin: GPIO14
+  fan4_tach_pin: GPIO16
+
+  # Shared tachometer/control pin
+  tach_io_pin: GPIO6
+
+  # Nextion Display UART Pins
+  nextion_tx_pin: GPIO43
+  nextion_rx_pin: GPIO44
+  nextion_baud: "115200"
+
+  # Fan Settings
+  fan_min_speed: "10"    # Minimum speed percentage
+  fan_max_speed: "100"   # Maximum speed percentage
+  fan_default_speed: "50"
+  fan_stall_rpm_threshold: "100"  # RPM below which fan is considered stalled
+
+# ============================================================================
+# UART Configuration for Nextion Display
+# ============================================================================
+uart:
+  - id: nextion_uart
+    tx_pin: ${nextion_tx_pin}
+    rx_pin: ${nextion_rx_pin}
+    baud_rate: ${nextion_baud}
+
+# Optional: Uncomment to enable Nextion display
+# display:
+#   - platform: nextion
+#     id: nextion_display
+#     uart_id: nextion_uart
+#     update_interval: 1s
+#     tft_url: "http://your-server/nextion.tft"  # For OTA updates
+
+# ============================================================================
+# PWM Output Configuration - 4 Channels
+# ============================================================================
+output:
+  - platform: ledc
+    id: fan1_pwm_output
+    pin: ${fan1_pwm_pin}
+    frequency: ${fan_pwm_frequency}Hz
+
+  - platform: ledc
+    id: fan2_pwm_output
+    pin: ${fan2_pwm_pin}
+    frequency: ${fan_pwm_frequency}Hz
+
+  - platform: ledc
+    id: fan3_pwm_output
+    pin: ${fan3_pwm_pin}
+    frequency: ${fan_pwm_frequency}Hz
+
+  - platform: ledc
+    id: fan4_pwm_output
+    pin: ${fan4_pwm_pin}
+    frequency: ${fan_pwm_frequency}Hz
+
+# ============================================================================
+# Fan Components - 4 Channels
+# ============================================================================
+fan:
+  - platform: speed
+    id: fan1_controller
+    name: "${friendly_name} Fan 1"
+    output: fan1_pwm_output
+    speed_count: 100
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: speed
+    id: fan2_controller
+    name: "${friendly_name} Fan 2"
+    output: fan2_pwm_output
+    speed_count: 100
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: speed
+    id: fan3_controller
+    name: "${friendly_name} Fan 3"
+    output: fan3_pwm_output
+    speed_count: 100
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: speed
+    id: fan4_controller
+    name: "${friendly_name} Fan 4"
+    output: fan4_pwm_output
+    speed_count: 100
+    restore_mode: RESTORE_DEFAULT_OFF
+
+# ============================================================================
+# Tachometer Inputs (RPM Monitoring) - 4 Channels
+# ============================================================================
+sensor:
+  # Fan 1 RPM
+  - platform: pulse_counter
+    id: fan1_tach_sensor
+    pin:
+      number: ${fan1_tach_pin}
+      mode:
+        input: true
+        pullup: true
+    name: "${friendly_name} Fan 1 RPM"
+    unit_of_measurement: "RPM"
+    accuracy_decimals: 0
+    update_interval: 2s
+    filters:
+      # Standard fans output 2 pulses per revolution
+      - multiply: 0.5
+      # Convert from pulses per update interval to RPM
+      - lambda: return x * 30.0f;  # (60s / 2s update interval)
+    internal: false
+
+  # Fan 2 RPM
+  - platform: pulse_counter
+    id: fan2_tach_sensor
+    pin:
+      number: ${fan2_tach_pin}
+      mode:
+        input: true
+        pullup: true
+    name: "${friendly_name} Fan 2 RPM"
+    unit_of_measurement: "RPM"
+    accuracy_decimals: 0
+    update_interval: 2s
+    filters:
+      - multiply: 0.5
+      - lambda: return x * 30.0f;
+    internal: false
+
+  # Fan 3 RPM
+  - platform: pulse_counter
+    id: fan3_tach_sensor
+    pin:
+      number: ${fan3_tach_pin}
+      mode:
+        input: true
+        pullup: true
+    name: "${friendly_name} Fan 3 RPM"
+    unit_of_measurement: "RPM"
+    accuracy_decimals: 0
+    update_interval: 2s
+    filters:
+      - multiply: 0.5
+      - lambda: return x * 30.0f;
+    internal: false
+
+  # Fan 4 RPM
+  - platform: pulse_counter
+    id: fan4_tach_sensor
+    pin:
+      number: ${fan4_tach_pin}
+      mode:
+        input: true
+        pullup: true
+    name: "${friendly_name} Fan 4 RPM"
+    unit_of_measurement: "RPM"
+    accuracy_decimals: 0
+    update_interval: 2s
+    filters:
+      - multiply: 0.5
+      - lambda: return x * 30.0f;
+    internal: false
+
+  # Fan speed percentage sensors (for UI display)
+  - platform: template
+    id: fan1_speed_percent
+    name: "${friendly_name} Fan 1 Speed"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 1s
+    lambda: |-
+      if (id(fan1_controller).state) {
+        return id(fan1_controller).speed;
+      }
+      return 0.0f;
+
+  - platform: template
+    id: fan2_speed_percent
+    name: "${friendly_name} Fan 2 Speed"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 1s
+    lambda: |-
+      if (id(fan2_controller).state) {
+        return id(fan2_controller).speed;
+      }
+      return 0.0f;
+
+  - platform: template
+    id: fan3_speed_percent
+    name: "${friendly_name} Fan 3 Speed"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 1s
+    lambda: |-
+      if (id(fan3_controller).state) {
+        return id(fan3_controller).speed;
+      }
+      return 0.0f;
+
+  - platform: template
+    id: fan4_speed_percent
+    name: "${friendly_name} Fan 4 Speed"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 1s
+    lambda: |-
+      if (id(fan4_controller).state) {
+        return id(fan4_controller).speed;
+      }
+      return 0.0f;
+
+  # Total power consumption estimate (assuming 6W per fan at full speed)
+  - platform: template
+    id: total_fan_power
+    name: "${friendly_name} Total Fan Power"
+    unit_of_measurement: "W"
+    accuracy_decimals: 1
+    update_interval: 5s
+    lambda: |-
+      float total = 0.0f;
+      if (id(fan1_controller).state) total += (id(fan1_controller).speed / 100.0f) * 6.0f;
+      if (id(fan2_controller).state) total += (id(fan2_controller).speed / 100.0f) * 6.0f;
+      if (id(fan3_controller).state) total += (id(fan3_controller).speed / 100.0f) * 6.0f;
+      if (id(fan4_controller).state) total += (id(fan4_controller).speed / 100.0f) * 6.0f;
+      return total;
+
+# ============================================================================
+# Globals for Fan Control
+# ============================================================================
+globals:
+  # Target speeds (0-100)
+  - id: fan1_target_speed
+    type: int
+    restore_value: true
+    initial_value: '${fan_default_speed}'
+
+  - id: fan2_target_speed
+    type: int
+    restore_value: true
+    initial_value: '${fan_default_speed}'
+
+  - id: fan3_target_speed
+    type: int
+    restore_value: true
+    initial_value: '${fan_default_speed}'
+
+  - id: fan4_target_speed
+    type: int
+    restore_value: true
+    initial_value: '${fan_default_speed}'
+
+  # Stall detection flags
+  - id: fan1_stall_detected
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+  - id: fan2_stall_detected
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+  - id: fan3_stall_detected
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+  - id: fan4_stall_detected
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+  # Operating modes
+  - id: fan_quiet_mode
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+  - id: fan_auto_mode
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+  - id: fan_sync_mode
+    type: bool
+    restore_value: true
+    initial_value: 'true'  # All fans run at same speed by default
+
+# ============================================================================
+# Binary Sensors for Stall Detection
+# ============================================================================
+binary_sensor:
+  - platform: template
+    id: fan1_stall_alarm
+    name: "${friendly_name} Fan 1 Stall"
+    device_class: problem
+    lambda: |-
+      return id(fan1_stall_detected);
+
+  - platform: template
+    id: fan2_stall_alarm
+    name: "${friendly_name} Fan 2 Stall"
+    device_class: problem
+    lambda: |-
+      return id(fan2_stall_detected);
+
+  - platform: template
+    id: fan3_stall_alarm
+    name: "${friendly_name} Fan 3 Stall"
+    device_class: problem
+    lambda: |-
+      return id(fan3_stall_detected);
+
+  - platform: template
+    id: fan4_stall_alarm
+    name: "${friendly_name} Fan 4 Stall"
+    device_class: problem
+    lambda: |-
+      return id(fan4_stall_detected);
+
+  - platform: template
+    id: any_fan_stall_alarm
+    name: "${friendly_name} Any Fan Stall"
+    device_class: problem
+    lambda: |-
+      return id(fan1_stall_detected) || id(fan2_stall_detected) ||
+             id(fan3_stall_detected) || id(fan4_stall_detected);
+
+# ============================================================================
+# Switches for Operating Modes
+# ============================================================================
+switch:
+  - platform: template
+    name: "${friendly_name} Quiet Mode"
+    id: quiet_mode_switch
+    icon: mdi:volume-low
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    turn_on_action:
+      - lambda: 'id(fan_quiet_mode) = true;'
+      - logger.log: "Quiet mode enabled - limiting fan speeds to 50%"
+    turn_off_action:
+      - lambda: 'id(fan_quiet_mode) = false;'
+      - logger.log: "Quiet mode disabled"
+
+  - platform: template
+    name: "${friendly_name} Auto Mode"
+    id: auto_mode_switch
+    icon: mdi:fan-auto
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    turn_on_action:
+      - lambda: 'id(fan_auto_mode) = true;'
+      - logger.log: "Auto mode enabled - fan speeds controlled by temperature"
+    turn_off_action:
+      - lambda: 'id(fan_auto_mode) = false;'
+      - logger.log: "Auto mode disabled"
+
+  - platform: template
+    name: "${friendly_name} Sync Mode"
+    id: sync_mode_switch
+    icon: mdi:sync
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    turn_on_action:
+      - lambda: 'id(fan_sync_mode) = true;'
+      - logger.log: "Sync mode enabled - all fans run at same speed"
+    turn_off_action:
+      - lambda: 'id(fan_sync_mode) = false;'
+      - logger.log: "Sync mode disabled - independent fan control"
+
+# ============================================================================
+# Interval for Fan Monitoring and Stall Detection
+# ============================================================================
+interval:
+  - interval: 5s
+    then:
+      - lambda: |-
+          // Stall detection logic for all fans
+          struct FanInfo {
+            esphome::fan::Fan* controller;
+            esphome::sensor::Sensor* tach;
+            bool* stall_flag;
+            const char* name;
+          };
+
+          FanInfo fans[] = {
+            {id(fan1_controller), id(fan1_tach_sensor), &id(fan1_stall_detected), "Fan 1"},
+            {id(fan2_controller), id(fan2_tach_sensor), &id(fan2_stall_detected), "Fan 2"},
+            {id(fan3_controller), id(fan3_tach_sensor), &id(fan3_stall_detected), "Fan 3"},
+            {id(fan4_controller), id(fan4_tach_sensor), &id(fan4_stall_detected), "Fan 4"}
+          };
+
+          for (auto& fan : fans) {
+            // If fan is running at >20% but RPM is below threshold, it might be stalled
+            if (fan.controller->state && fan.controller->speed > 20) {
+              float rpm = fan.tach->state;
+              if (!std::isnan(rpm) && rpm < ${fan_stall_rpm_threshold}) {
+                *fan.stall_flag = true;
+                ESP_LOGW("fan", "%s stall detected! Speed set to %.0f%% but RPM is %.0f",
+                         fan.name, fan.controller->speed, rpm);
+              } else {
+                *fan.stall_flag = false;
+              }
+            } else {
+              *fan.stall_flag = false;
+            }
+          }
+
+          // Apply quiet mode (cap maximum speed at 50%)
+          if (id(fan_quiet_mode)) {
+            for (auto& fan : fans) {
+              if (fan.controller->state && fan.controller->speed > 50) {
+                auto call = fan.controller->turn_on();
+                call.set_speed(50);
+                call.perform();
+              }
+            }
+          }
+
+# ============================================================================
+# Scripts for Fan Control
+# ============================================================================
+script:
+  # Set all fans to specific speed (when in sync mode)
+  - id: set_all_fans_speed
+    mode: single
+    parameters:
+      speed: int
+    then:
+      - lambda: |-
+          int target = speed;
+          if (target < 0) target = 0;
+          if (target > 100) target = 100;
+
+          // Apply minimum speed when on
+          if (target > 0 && target < ${fan_min_speed}) {
+            target = ${fan_min_speed};
+          }
+
+          // Apply quiet mode limit
+          if (id(fan_quiet_mode) && target > 50) {
+            target = 50;
+          }
+
+          esphome::fan::Fan* fans[] = {
+            id(fan1_controller), id(fan2_controller),
+            id(fan3_controller), id(fan4_controller)
+          };
+
+          for (auto* fan : fans) {
+            if (target == 0) {
+              fan->turn_off().perform();
+            } else {
+              auto call = fan->turn_on();
+              call.set_speed(target);
+              call.perform();
+            }
+          }
+
+          ESP_LOGI("fan", "Set all fans to %d%%", target);
+
+  # Set individual fan speed
+  - id: set_fan_speed
+    mode: single
+    parameters:
+      fan_number: int
+      speed: int
+    then:
+      - lambda: |-
+          int target = speed;
+          if (target < 0) target = 0;
+          if (target > 100) target = 100;
+
+          // Apply minimum speed when on
+          if (target > 0 && target < ${fan_min_speed}) {
+            target = ${fan_min_speed};
+          }
+
+          // Apply quiet mode limit
+          if (id(fan_quiet_mode) && target > 50) {
+            target = 50;
+          }
+
+          esphome::fan::Fan* fan = nullptr;
+          const char* fan_name = "";
+
+          switch(fan_number) {
+            case 1: fan = id(fan1_controller); fan_name = "Fan 1"; break;
+            case 2: fan = id(fan2_controller); fan_name = "Fan 2"; break;
+            case 3: fan = id(fan3_controller); fan_name = "Fan 3"; break;
+            case 4: fan = id(fan4_controller); fan_name = "Fan 4"; break;
+            default:
+              ESP_LOGE("fan", "Invalid fan number: %d", fan_number);
+              return;
+          }
+
+          if (target == 0) {
+            fan->turn_off().perform();
+          } else {
+            auto call = fan->turn_on();
+            call.set_speed(target);
+            call.perform();
+          }
+
+          ESP_LOGI("fan", "Set %s to %d%%", fan_name, target);
+
+  # Emergency stop - turn off all fans
+  - id: emergency_stop_all_fans
+    mode: single
+    then:
+      - fan.turn_off: fan1_controller
+      - fan.turn_off: fan2_controller
+      - fan.turn_off: fan3_controller
+      - fan.turn_off: fan4_controller
+      - lambda: |-
+          ESP_LOGW("fan", "Emergency stop activated - all fans stopped");
