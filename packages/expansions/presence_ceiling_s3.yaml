@@ -4,46 +4,25 @@
 # ============================================================================
 # Ceiling-mounted presence detection for Sense360 Ceiling S3 board.
 #
-# Supported Sensors (choose one):
-# 1. Hi-Link LD2450 (24GHz mmWave)
-#    - UART: TX=GPIO38, RX=GPIO39, Baud=256000
-#    - Multi-target tracking (up to 3 targets)
-#    - Range: 0.2m - 6m
-#
-# 2. DFRobot SEN0609/C4001 (24GHz mmWave FMCW)
-#    - UART: TX=GPIO4, RX=GPIO5, Baud=115200
-#    - Long-range presence (up to 25m motion, 16m presence)
-#    - Distance: 1.2m - 25m
-#    - Speed: 0.1 - 10 m/s
+# Sensor: Hi-Link LD2450 (24GHz mmWave)
+#   - UART: TX=GPIO38, RX=GPIO39, Baud=256000
+#   - Multi-target tracking (up to 3 targets)
+#   - Range: 0.2m - 6m
 #
 # GPIO Signals:
 #   - GPIO5: out1@ms11 digital presence output (from sensor module)
 #   - GPIO6: notEgpio0 auxiliary signal (from sensor module)
 #
-# NOTE: Only one sensor type should be installed at a time!
-#
 # ============================================================================
 
 substitutions:
   # ============================================================================
-  # SENSOR SELECTION - Set to "hilink" or "sen0609"
+  # UART CONFIGURATION - Hi-Link LD2450
   # ============================================================================
-  presence_sensor_type: "hilink"  # Change to "sen0609" for DFRobot sensor
-
-  # ============================================================================
-  # UART CONFIGURATIONS (DO NOT EDIT - Set presence_sensor_type above)
-  # ============================================================================
-  # Hi-Link LD2450 UART
-  uart_hilink_id: uart_presence
-  uart_hilink_tx_pin: GPIO38
-  uart_hilink_rx_pin: GPIO39
-  uart_hilink_baud: "256000"
-
-  # DFRobot SEN0609/C4001 UART
-  uart_sen0609_id: uart_presence
-  uart_sen0609_tx_pin: GPIO4
-  uart_sen0609_rx_pin: GPIO5
-  uart_sen0609_baud: "115200"
+  uart_presence_id: uart_presence
+  uart_presence_tx_pin: GPIO38
+  uart_presence_rx_pin: GPIO39
+  uart_presence_baud: "256000"
 
   # ============================================================================
   # GPIO PINS
@@ -60,8 +39,8 @@ substitutions:
 # ============================================================================
 # UART CONFIGURATION
 # ============================================================================
-# Note: The UART is already configured in sense360_core_ceiling_s3.yaml
-# based on the presence_sensor_type. This file uses that existing UART.
+# Note: The UART is already configured in sense360_core_ceiling_s3.yaml.
+# This file uses that existing UART for the Hi-Link LD2450 sensor.
 
 # ============================================================================
 # GPIO PRESENCE OUTPUT
@@ -145,7 +124,7 @@ binary_sensor:
     name: "${friendly_name} Presence"
     device_class: occupancy
     lambda: |-
-      // Combine GPIO and UART-based detection
+      // Combine GPIO and UART-based detection (Hi-Link LD2450)
       bool gpio_presence = id(presence_gpio_sensor).state;
       float confidence = id(presence_confidence);
 
@@ -236,14 +215,7 @@ text_sensor:
     name: "${friendly_name} Presence Sensor"
     icon: mdi:radar
     lambda: |-
-      std::string type = "${presence_sensor_type}";
-      if (type == "hilink") {
-        return std::string("Hi-Link LD2450");
-      } else if (type == "sen0609") {
-        return std::string("DFRobot C4001");
-      } else {
-        return std::string("Unknown");
-      }
+      return std::string("Hi-Link LD2450");
     update_interval: 60s
 
 # ============================================================================
@@ -255,18 +227,9 @@ esphome:
       then:
         - lambda: |-
             id(module_presence_present) = true;
-            std::string sensor_type = "${presence_sensor_type}";
-
-            if (sensor_type == "hilink") {
-              ESP_LOGI("presence_ceiling_s3", "Presence module initialized - Hi-Link LD2450");
-              ESP_LOGI("presence_ceiling_s3", "  - UART: TX=GPIO%s, RX=GPIO%s @ %s baud",
-                       "${uart_hilink_tx_pin}", "${uart_hilink_rx_pin}", "${uart_hilink_baud}");
-            } else if (sensor_type == "sen0609") {
-              ESP_LOGI("presence_ceiling_s3", "Presence module initialized - DFRobot C4001");
-              ESP_LOGI("presence_ceiling_s3", "  - UART: TX=GPIO%s, RX=GPIO%s @ %s baud",
-                       "${uart_sen0609_tx_pin}", "${uart_sen0609_rx_pin}", "${uart_sen0609_baud}");
-            }
-
+            ESP_LOGI("presence_ceiling_s3", "Presence module initialized - Hi-Link LD2450");
+            ESP_LOGI("presence_ceiling_s3", "  - UART: TX=GPIO%s, RX=GPIO%s @ %s baud",
+                     "${uart_presence_tx_pin}", "${uart_presence_rx_pin}", "${uart_presence_baud}");
             ESP_LOGI("presence_ceiling_s3", "  - GPIO Output: GPIO%s", "${presence_gpio_output}");
             ESP_LOGI("presence_ceiling_s3", "  - GPIO Aux: GPIO%s", "${presence_gpio_alt}");
 
@@ -281,17 +244,11 @@ logger:
 # ============================================================================
 # INTEGRATION NOTES
 # ============================================================================
-# To complete the presence detection setup, you MUST include one of the
-# following sensor-specific packages based on which sensor is installed:
+# To complete the presence detection setup, include the LD2450 sensor package:
 #
-# For Hi-Link LD2450:
 #   packages:
 #     presence_sensor: !include ../hardware/presence_ld2450.yaml
 #
-# For DFRobot C4001:
-#   packages:
-#     presence_sensor: !include ../hardware/presence_dfrobot_c4001.yaml
-#
-# These packages configure the UART sensor component and map data to the
+# This package configures the UART sensor component and maps data to the
 # global variables defined here (presence_confidence, presence_distance, etc.)
 # ============================================================================

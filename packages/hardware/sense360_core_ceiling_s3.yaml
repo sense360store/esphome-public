@@ -8,7 +8,7 @@
 # Form Factor: Ceiling recessed mount with expansion module support
 #
 # This is the ceiling-mounted variant with support for:
-# - Presence Module (Hi-Link LD2450 or DFRobot SEN0609/C4001)
+# - Presence Module (Hi-Link LD2450)
 # - AirIQ Module (SEN55, SCD41 air quality sensors)
 # - Comfort Module (VEML7700, SHT4x climate sensors)
 # - WS2812B LED ring for visual feedback
@@ -40,16 +40,10 @@
 #   - RX: GPIO39 (Hi-Link_TX) → ESP32 receives from Hi-Link TX
 #   - Baud: 256000 (LD2450 default)
 #
-# UART Presence Alt (DFRobot SEN0609/C4001):
-#   - TX: GPIO4 (SEN0609_RX) → ESP32 transmits to SEN0609 RX
-#   - RX: GPIO5 (SEN0609_TX) → ESP32 receives from SEN0609 TX
-#   - Baud: 115200 (C4001 default)
-#   - Note: Use this OR Hi-Link, not both simultaneously
-#
 # PRESENCE MODULE GPIOS:
 # ----------------------
-#   - GPIO6 (notEgpio0): SEN0609_RX alternate line / digital output
-#   - GPIO5: SEN0609_TX / out1@ms11 presence detection output
+#   - GPIO5: out1@ms11 presence detection output
+#   - GPIO6 (notEgpio0): auxiliary digital output
 #
 # AIRIQ MODULE:
 # -------------
@@ -79,13 +73,10 @@
 # 1. GPIO8 CONFLICT: GPIO8 is used for both I2C_SCL AND AirQ_Led indicator.
 #    The LED must be disabled when I2C is active, or use a different GPIO.
 #
-# 2. PRESENCE SENSOR SELECTION: Choose either Hi-Link (GPIO38/39) OR
-#    SEN0609 (GPIO4/5) based on which sensor is physically installed.
-#
-# 3. LEVEL SHIFTER: WS2812B LEDs use 5V logic, ESP32-S3 outputs 3.3V.
+# 2. LEVEL SHIFTER: WS2812B LEDs use 5V logic, ESP32-S3 outputs 3.3V.
 #    The schematic includes a level shifter (U2) for LED_DATA signal.
 #
-# 4. I2C PULLUPS: External 4.7kΩ pullup resistors should be present on
+# 3. I2C PULLUPS: External 4.7kΩ pullup resistors should be present on
 #    SDA and SCL lines (verify on schematic).
 #
 # ============================================================================
@@ -104,33 +95,18 @@ substitutions:
   i2c_primary_frequency: "100000"  # 100 kHz for SEN55 compatibility
 
   # ============================================================================
-  # UART CONFIGURATIONS
+  # UART CONFIGURATION - Hi-Link LD2450
   # ============================================================================
-  # Hi-Link LD2450 (primary presence sensor option)
-  uart_hilink_tx_pin: GPIO38  # ESP TX → Hi-Link RX
-  uart_hilink_rx_pin: GPIO39  # ESP RX ← Hi-Link TX
-  uart_hilink_baud: "256000"
-
-  # DFRobot SEN0609/C4001 (alternative presence sensor option)
-  uart_sen0609_tx_pin: GPIO4   # ESP TX → SEN0609 RX
-  uart_sen0609_rx_pin: GPIO5   # ESP RX ← SEN0609 TX
-  uart_sen0609_baud: "115200"
-
-  # Active UART selection (change based on installed sensor)
-  # Options: "hilink" or "sen0609"
-  presence_sensor_type: "hilink"
-
-  # Mapped pins (will be set based on presence_sensor_type)
-  uart_presence_tx_pin: GPIO38  # Default to Hi-Link
-  uart_presence_rx_pin: GPIO39  # Default to Hi-Link
-  uart_presence_baud: "256000"  # Default to Hi-Link
+  uart_presence_tx_pin: GPIO38  # ESP TX → Hi-Link RX
+  uart_presence_rx_pin: GPIO39  # ESP RX ← Hi-Link TX
+  uart_presence_baud: "256000"
 
   # ============================================================================
   # MODULE GPIO PINS
   # ============================================================================
   # Presence Module
   presence_gpio_output: GPIO5      # out1@ms11 digital presence output
-  presence_gpio_alt: GPIO6         # notEgpio0 - SEN0609 alternate / aux
+  presence_gpio_alt: GPIO6         # notEgpio0 - auxiliary output
 
   # AirIQ Module
   airiq_status_led_pin: GPIO7      # AirQ_Status_Led
@@ -170,9 +146,7 @@ esphome:
         - logger.log: "Sense360 Ceiling S3 initializing..."
     - priority: -100
       then:
-        - logger.log:
-            format: "Sense360 Ceiling S3 ready - Presence sensor: %s"
-            args: ['${presence_sensor_type}']
+        - logger.log: "Sense360 Ceiling S3 ready - Presence sensor: Hi-Link LD2450"
 
 # ============================================================================
 # ESP32-S3 CONFIGURATION
@@ -431,10 +405,6 @@ logger:
 #   packages:
 #     presence: !include ../hardware/presence_ld2450.yaml
 #
-# For DFRobot SEN0609/C4001 Presence:
-#   packages:
-#     presence: !include ../hardware/presence_dfrobot_c4001.yaml
-#
 # For AirIQ Module:
 #   packages:
 #     airiq: !include ../expansions/airiq.yaml
@@ -453,7 +423,4 @@ logger:
 #
 # 2. I2C FREQUENCY: Set to 100kHz for SEN55 compatibility. If only using
 #    SCD41 and VEML7700, 400kHz can be used for faster communication.
-#
-# 3. PRESENCE SENSOR SELECTION: Update presence_sensor_type substitution
-#    and corresponding uart_presence_* pins based on installed hardware.
 # ============================================================================

@@ -3,7 +3,7 @@
 # SENSE360 CEILING S3 - FULL CONFIGURATION
 # ============================================================================
 # Complete ceiling-mounted smart sensor platform with:
-# - Presence detection (Hi-Link LD2450 or DFRobot C4001)
+# - Presence detection (Hi-Link LD2450)
 # - Air quality monitoring (SEN55 PM + VOC/NOx, SCD41 CO2)
 # - Environmental comfort (VEML7700 light, SHT4x temp/humidity)
 # - WS2812B LED ring for visual feedback
@@ -41,10 +41,6 @@ substitutions:
   friendly_name: Sense360 Ceiling S3
   timezone: "America/New_York"
 
-  # === Presence Sensor Selection ===
-  # Options: "hilink" for LD2450, "sen0609" for DFRobot C4001
-  presence_sensor_type: "hilink"
-
   # === Logging ===
   log_level: INFO
 
@@ -80,13 +76,8 @@ packages:
   comfort_module: !include ../packages/expansions/comfort_ceiling_s3.yaml
 
   # === Optional: Add specific presence sensor driver ===
-  # Uncomment ONE of these based on installed sensor:
-  #
-  # For Hi-Link LD2450:
+  # Uncomment to include the LD2450 sensor driver:
   # presence_sensor: !include ../packages/hardware/presence_ld2450.yaml
-  #
-  # For DFRobot C4001:
-  # presence_sensor: !include ../packages/hardware/presence_dfrobot_c4001.yaml
 
 # ============================================================================
 # LED EFFECTS FOR AIR QUALITY VISUALIZATION
@@ -211,7 +202,7 @@ sensor:
       float power = 0.5f;  // Base ESP32-S3 consumption
 
       // Add module power estimates
-      if (id(module_presence_present)) power += 0.15f;  // LD2450/C4001
+      if (id(module_presence_present)) power += 0.15f;  // LD2450
       if (id(module_airiq_present)) power += 1.2f;      // SEN55 + SCD41
       if (id(module_comfort_present)) power += 0.05f;   // VEML7700 + SHT4x
 
@@ -233,8 +224,7 @@ sensor:
 # GPIO USAGE SUMMARY (from schematic):
 # - GPIO0:  Boot button
 # - GPIO3:  ALS_INT (Comfort module VEML7700 interrupt)
-# - GPIO4:  UART TX for SEN0609 (alternative presence sensor)
-# - GPIO5:  UART RX for SEN0609 / presence GPIO output
+# - GPIO5:  Presence GPIO output
 # - GPIO6:  notEgpio0 (presence module auxiliary)
 # - GPIO7:  AirQ_Status_Led
 # - GPIO8:  I2C_SCL (WARNING: Conflicts with AirQ_Led in schematic!)
@@ -248,9 +238,5 @@ sensor:
 # 1. GPIO8 Conflict: Schematic shows GPIO8 used for both I2C_SCL and
 #    AirQ_Led. The LED cannot be used when I2C is active. This is a
 #    hardware design error that should be corrected in the next revision.
-#
-# 2. Presence Sensor Selection: Choose EITHER Hi-Link (GPIO38/39) OR
-#    SEN0609 (GPIO4/5) by setting presence_sensor_type substitution.
-#    Only one sensor should be physically installed.
 #
 # ============================================================================
