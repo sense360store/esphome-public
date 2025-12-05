@@ -16,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fan control output on GPIO23 with SI2302 MOSFET
   - Module-specific configurations: `airiq_ceiling_s3.yaml`, `comfort_ceiling_s3.yaml`, `presence_ceiling_s3.yaml`
   - Complete product configuration: `sense360-ceiling-s3-full.yaml`
-  - Comprehensive documentation: `CEILING_S3_CONFIGURATION.md` with pinout, usage, and troubleshooting
 - **Sense360 Core Board Support**: New board variants and power configurations
   - Sense360 Core Wall and Ceiling board profiles
   - Comprehensive GPIO mapping and power management
@@ -24,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Expansion Module System**: Modular sensor expansion support
   - AirLQ expansion module with comprehensive sensor mapping
   - Comfort Ceiling expansion module mapping
-  - Presence Module Ceiling with DFRobot C4001 support
+  - Presence Module Ceiling with Hi-Link LD2450 and DFRobot SEN0609/C4001 support
   - Phase 2 expansion module drivers and feature profiles
 - **LD2412 mmWave Sensor**: Multi-sensor presence detection support
   - Gate threshold configuration
@@ -48,7 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Development Dependencies** (`requirements-dev.txt`): All tools needed for local development
 - **YAML Linting Configuration** (`.yamllint`): Consistent YAML style across the repository
 - **Comprehensive Unit Test Suite**: Phase 1 testing infrastructure
-- **MVP Feature Roadmap**: Comprehensive planning documentation
 - **Reset and Restart Buttons**: Added to product configurations for device management
 
 ### Changed

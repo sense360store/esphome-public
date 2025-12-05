@@ -240,7 +240,7 @@ text_sensor:
       if (type == "hilink") {
         return std::string("Hi-Link LD2450");
       } else if (type == "sen0609") {
-        return std::string("DFRobot C4001");
+        return std::string("DFRobot SEN0609");
       } else {
         return std::string("Unknown");
       }
@@ -262,7 +262,7 @@ esphome:
               ESP_LOGI("presence_ceiling_s3", "  - UART: TX=GPIO%s, RX=GPIO%s @ %s baud",
                        "${uart_hilink_tx_pin}", "${uart_hilink_rx_pin}", "${uart_hilink_baud}");
             } else if (sensor_type == "sen0609") {
-              ESP_LOGI("presence_ceiling_s3", "Presence module initialized - DFRobot C4001");
+              ESP_LOGI("presence_ceiling_s3", "Presence module initialized - DFRobot SEN0609");
               ESP_LOGI("presence_ceiling_s3", "  - UART: TX=GPIO%s, RX=GPIO%s @ %s baud",
                        "${uart_sen0609_tx_pin}", "${uart_sen0609_rx_pin}", "${uart_sen0609_baud}");
             }
@@ -288,7 +288,7 @@ logger:
 #   packages:
 #     presence_sensor: !include ../hardware/presence_ld2450.yaml
 #
-# For DFRobot C4001:
+# For DFRobot SEN0609/C4001:
 #   packages:
 #     presence_sensor: !include ../hardware/presence_dfrobot_c4001.yaml
 #

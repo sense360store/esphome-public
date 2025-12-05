@@ -239,7 +239,7 @@ text_sensor:
       if (type == 1) {
         return std::string("Hi-Link LD2450");
       } else if (type == 2) {
-        return std::string("DFRobot C4001");
+        return std::string("DFRobot SEN0609");
       } else {
         return std::string("GPIO Only");
       }
@@ -287,7 +287,7 @@ logger:
 #     presence_module: !include ../expansions/presence_module_ceiling.yaml
 #     presence_sensor: !include ../hardware/presence_ld2450.yaml
 #
-# For DFRobot C4001:
+# For DFRobot SEN0609/C4001:
 #   packages:
 #     presence_module: !include ../expansions/presence_module_ceiling.yaml
 #     presence_sensor: !include ../hardware/presence_dfrobot_c4001.yaml

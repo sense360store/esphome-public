@@ -39,6 +39,7 @@ jobs:
     strategy:
       matrix:
         config:
+          # Sense360 Mini products
           - products/sense360-mini-airiq.yaml
           - products/sense360-mini-airiq-basic.yaml
           - products/sense360-mini-airiq-advanced.yaml
@@ -47,10 +48,12 @@ jobs:
           - products/sense360-mini-presence-basic.yaml
           - products/sense360-mini-presence-advanced.yaml
           - products/sense360-mini-presence-ld2412.yaml
-          - products/sense360-core-basic-test.yaml
-          - products/sense360-ceiling-presence.yaml
-          - products/sense360-ceiling-presence-ld2412.yaml
           - products/sense360-mini-presence-advanced-ld2412.yaml
+          # Sense360 Ceiling S3 products
+          - products/sense360-ceiling-s3-full.yaml
+          # Sense360 Power and Fan products
+          - products/sense360-poe.yaml
+          - products/sense360-fan-pwm.yaml
       fail-fast: false
     steps:
       - name: Checkout repository

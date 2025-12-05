@@ -3,7 +3,7 @@
 # SENSE360 CEILING S3 - FULL CONFIGURATION
 # ============================================================================
 # Complete ceiling-mounted smart sensor platform with:
-# - Presence detection (Hi-Link LD2450 or DFRobot C4001)
+# - Presence detection (Hi-Link LD2450 or DFRobot SEN0609/C4001)
 # - Air quality monitoring (SEN55 PM + VOC/NOx, SCD41 CO2)
 # - Environmental comfort (VEML7700 light, SHT4x temp/humidity)
 # - WS2812B LED ring for visual feedback
@@ -85,7 +85,7 @@ packages:
   # For Hi-Link LD2450:
   # presence_sensor: !include ../packages/hardware/presence_ld2450.yaml
   #
-  # For DFRobot C4001:
+  # For DFRobot SEN0609/C4001:
   # presence_sensor: !include ../packages/hardware/presence_dfrobot_c4001.yaml
 
 # ============================================================================
