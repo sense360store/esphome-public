@@ -282,28 +282,11 @@ switch:
     icon: mdi:fan
     restore_mode: RESTORE_DEFAULT_OFF
 
-# ============================================================================
-# PRESENCE MODULE GPIO (Digital Output)
-# ============================================================================
 binary_sensor:
   # System status
   - platform: status
     name: "${friendly_name} Status"
     id: system_status
-
-  # Presence detection GPIO (from sensor module)
-  - platform: gpio
-    id: presence_gpio_sensor
-    name: "${friendly_name} Presence GPIO"
-    pin:
-      number: ${presence_gpio_output}
-      mode:
-        input: true
-        pulldown: true
-    device_class: occupancy
-    filters:
-      - delayed_on: 100ms
-      - delayed_off: 30s
 
   # Boot button
   - platform: gpio
@@ -318,27 +301,11 @@ binary_sensor:
     internal: true
 
 # ============================================================================
-# COMFORT MODULE ALS INTERRUPT
-# ============================================================================
-  - platform: gpio
-    id: als_interrupt
-    name: "${friendly_name} ALS Interrupt"
-    internal: true
-    pin:
-      number: ${comfort_als_int_pin}
-      mode:
-        input: true
-        pullup: true
-      inverted: true  # VEML7700 interrupt is active-low
-    filters:
-      - delayed_on: 10ms
-
-# ============================================================================
 # SYSTEM CONTROLS
 # ============================================================================
 button:
   - platform: restart
-    id: restart_button
+    id: reset_button
     name: "${friendly_name} Restart"
     icon: mdi:restart
 

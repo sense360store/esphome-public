@@ -135,11 +135,6 @@ binary_sensor:
 # PRESENCE GLOBALS
 # ============================================================================
 globals:
-  - id: module_presence_present
-    type: bool
-    restore_value: false
-    initial_value: 'true'
-
   # Presence confidence (0.0 - 1.0)
   - id: presence_confidence
     type: float

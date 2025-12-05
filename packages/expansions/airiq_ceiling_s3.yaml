@@ -238,12 +238,6 @@ text_sensor:
 # ============================================================================
 # MODULE INITIALIZATION
 # ============================================================================
-globals:
-  - id: module_airiq_present
-    type: bool
-    restore_value: false
-    initial_value: 'true'
-
 esphome:
   on_boot:
     - priority: 500
