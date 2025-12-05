@@ -227,6 +227,13 @@ button:
     name: "${friendly_name} Restart"
     icon: mdi:restart
 
+  # Internal alias used by shared API actions expecting a reset_button ID
+  - platform: template
+    id: reset_button
+    internal: true
+    on_press:
+      - button.press: restart_button
+
   - platform: safe_mode
     name: "${friendly_name} Safe Mode"
     icon: mdi:safety-goggles
