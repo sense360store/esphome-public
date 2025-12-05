@@ -10,6 +10,6 @@ sensor:
 
 binary_sensor:
   - platform: gpio
-    pin: GPIO0
+    pin: GPIO9
     name: "${friendly_name} User Button"
     internal: true
