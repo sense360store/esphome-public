@@ -178,10 +178,6 @@ number:
 # Additional Buttons for Quick Control
 # ============================================================================
 button:
-  - platform: restart
-    name: "${friendly_name} Restart"
-    id: reset_button
-
   - platform: template
     name: "${friendly_name} Emergency Stop"
     id: emergency_stop_button
