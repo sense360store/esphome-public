@@ -120,10 +120,8 @@ spi:
 # W5500 Ethernet controller
 ethernet:
   type: W5500
-  clk_pin: ${spi_clk_pin}
+  spi_id: spi_bus
   cs_pin: ${w5500_cs_pin}
-  mosi_pin: ${spi_mosi_pin}
-  miso_pin: ${spi_miso_pin}
   interrupt_pin: ${w5500_int_pin}
   reset_pin: ${w5500_rst_pin}
   clock_speed: 26.666MHz
