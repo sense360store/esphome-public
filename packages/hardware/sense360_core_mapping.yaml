@@ -1,148 +1,77 @@
 ---
-# ============================================================================
-# SENSE360 CORE - COMPREHENSIVE GPIO AND PORT MAPPING
-# ============================================================================
-# This file defines the complete hardware mapping for the Sense360 Core board
-# based on the ESP32-S3-WROOM-1-N16R8 microcontroller.
+# Sense360 Core - Hardware Pin Mapping
+# ESP32-S3-WROOM-1-N16R8 (16MB Flash, 8MB PSRAM)
 #
-# Hardware Platform: Modular ESP32-S3 Sensor Platform Rev 1.0
-# MCU: ESP32-S3-WROOM-1-N16R8 (16MB Flash, 8MB PSRAM)
-#
-# ============================================================================
-# POWER ARCHITECTURE
-# ============================================================================
-# - USB-C Input: 5V DC (supports USB-PD negotiation for higher power)
-# - DC-DC Buck Converter: 5V to 3.3V for MCU (HT7833 or equivalent)
-# - Power Rails:
-#   * 3.3V: MCU, I2C sensors, low-power peripherals (max 500mA)
-#   * 5V: Presence radar, USB peripherals, expansion bus (max 2A)
-#   * 12V: External fan power (via separate supply or boost)
-#
-# ============================================================================
-# PIN MAPPING OVERVIEW
-# ============================================================================
-# Category         | Function              | GPIO   | Notes
-# -----------------|----------------------|--------|---------------------------
-# I2C Primary      | SDA                  | GPIO39 | Sensors, modules
-# I2C Primary      | SCL                  | GPIO40 | Sensors, modules
-# I2C Secondary    | SDA                  | GPIO21 | GPIO Expander
-# I2C Secondary    | SCL                  | GPIO18 | GPIO Expander
-# UART Presence    | TX (to sensor RX)    | GPIO1  | HLK-LD2450/LD2412
-# UART Presence    | RX (from sensor TX)  | GPIO2  | HLK-LD2450/LD2412
-# UART Auxiliary   | TX                   | GPIO43 | Hi-Link / Serial debug
-# UART Auxiliary   | RX                   | GPIO44 | Hi-Link / Serial debug
-# PWM Fan          | Output               | GPIO4  | 25kHz PWM
-# PWM Fan Tach     | Input                | GPIO5  | Pulse counter
-# Relay            | Output               | GPIO10 | Main 10A relay
-# Status LED       | RGB WS2812B          | GPIO48 | Addressable LED
-# Status LED       | Simple               | GPIO47 | Basic status
-# User Button      | Input                | GPIO9  | Multi-function
-# Boot Button      | Input                | GPIO0  | Boot mode
-# GPIO Expansion   | Aux GPIO 1           | GPIO6  | General purpose
-# GPIO Expansion   | Aux GPIO 2           | GPIO7  | General purpose
-# GPIO Expansion   | Aux GPIO 3           | GPIO8  | General purpose
-# Expander Int     | Interrupt            | GPIO3  | SX1509 interrupt
-# ============================================================================
+# Pin Map:
+#   I2C Primary:   SDA=GPIO39, SCL=GPIO40 (sensors)
+#   I2C Secondary: SDA=GPIO21, SCL=GPIO18 (expander)
+#   UART Presence: TX=GPIO1, RX=GPIO2
+#   UART Aux:      TX=GPIO43, RX=GPIO44
+#   Fan PWM:       GPIO4 (output), GPIO5 (tach)
+#   Relay:         GPIO10
+#   Status LED:    GPIO48 (RGB), GPIO47 (simple)
+#   User Button:   GPIO9
+#   Expander INT:  GPIO3
 
 substitutions:
-  # Device identification
   device_name: sense360-core
   friendly_name: Sense360 Core
   device_version: "1.0.0"
   timezone: "America/Los_Angeles"
 
-  # ============================================================================
-  # PRIMARY I2C BUS (Expansion Modules)
-  # ============================================================================
-  # Used for: AirIQ, Comfort, GP8403 DAC, environmental sensors
-  # Speed: 100kHz (conservative for sensor compatibility)
-  # Max devices: 8+ (with unique addresses)
+  # I2C Primary (sensors)
   i2c0_sda_pin: GPIO39
   i2c0_scl_pin: GPIO40
-  i2c0_frequency: "100000"  # 100kHz
+  i2c0_frequency: "100000"
 
-  # ============================================================================
-  # SECONDARY I2C BUS (GPIO Expander)
-  # ============================================================================
-  # Used for: SX1509 GPIO/PWM expander, auxiliary devices
-  # Speed: 400kHz (expander supports fast mode)
+  # I2C Secondary (expander)
   i2c1_sda_pin: GPIO21
   i2c1_scl_pin: GPIO18
-  i2c1_frequency: "400000"  # 400kHz
+  i2c1_frequency: "400000"
 
-  # ============================================================================
-  # UART - PRESENCE SENSOR (Primary)
-  # ============================================================================
-  # Used for: HLK-LD2450 (256000 baud) or HLK-LD2412 (115200 baud)
+  # UART Presence (LD2450: 256000, LD2412: 115200)
   uart_presence_tx_pin: GPIO1
   uart_presence_rx_pin: GPIO2
-  uart_presence_baud: "256000"  # LD2450 default, override for LD2412
+  uart_presence_baud: "256000"
 
-  # ============================================================================
-  # UART - AUXILIARY (Debug/Hi-Link)
-  # ============================================================================
-  # Used for: Serial debug, Hi-Link communication
+  # UART Auxiliary
   uart_aux_tx_pin: GPIO43
   uart_aux_rx_pin: GPIO44
   uart_aux_baud: "115200"
 
-  # ============================================================================
-  # PWM FAN CONTROL (Direct GPIO)
-  # ============================================================================
-  # Used for: 12V PWM fan control via MOSFET
+  # Fan control
   fan_pwm_pin: GPIO4
   fan_tach_pin: GPIO5
-  fan_pwm_frequency: "25000"  # 25kHz (Intel 4-wire fan spec)
+  fan_pwm_frequency: "25000"
 
-  # ============================================================================
-  # RELAY OUTPUT
-  # ============================================================================
-  # 10A relay for AC/DC switching
+  # Outputs
   relay_pin: GPIO10
+  status_led_rgb_pin: GPIO48
+  status_led_simple_pin: GPIO47
 
-  # ============================================================================
-  # STATUS INDICATORS
-  # ============================================================================
-  status_led_rgb_pin: GPIO48  # WS2812B addressable LED
-  status_led_simple_pin: GPIO47  # Basic status LED
+  # Inputs
+  user_button_pin: GPIO9
+  boot_button_pin: GPIO0
+  expander_int_pin: GPIO3
 
-  # ============================================================================
-  # USER INPUT
-  # ============================================================================
-  user_button_pin: GPIO9  # Multi-function user button
-  boot_button_pin: GPIO0  # Boot mode (internal use)
-
-  # ============================================================================
-  # GPIO EXPANSION PINS (Direct ESP32-S3)
-  # ============================================================================
+  # Expansion GPIOs
   expansion_gpio1: GPIO6
   expansion_gpio2: GPIO7
   expansion_gpio3: GPIO8
-  expander_int_pin: GPIO3  # SX1509 interrupt output
 
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
-  comment: "Sense360 Core - Modular ESP32-S3 Sensor Platform"
   project:
     name: sense360.core
     version: ${device_version}
   on_boot:
     - priority: 800
       then:
-        - logger.log:
-            level: INFO
-            format: "Sense360 Core v${device_version} initializing..."
-    - priority: 600
-      then:
-        - lambda: |-
-            // Initialize hardware state tracking
-            ESP_LOGI("sense360", "Hardware initialization starting");
+        - logger.log: "Sense360 Core initializing..."
     - priority: -100
       then:
-        - logger.log:
-            level: INFO
-            format: "Sense360 Core ready - all buses initialized"
+        - logger.log: "Sense360 Core ready"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -152,42 +81,30 @@ esp32:
     type: esp-idf
     version: recommended
     sdkconfig_options:
-      # Memory optimization
       CONFIG_COMPILER_OPTIMIZATION_SIZE: y
-      # Enable PSRAM (8MB Octal)
       CONFIG_ESP32S3_SPIRAM_SUPPORT: y
       CONFIG_SPIRAM_MODE_OCT: y
       CONFIG_SPIRAM_SPEED_80M: y
-      # USB configuration
       CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: y
 
 psram:
   mode: octal
   speed: 80MHz
 
-# ============================================================================
-# I2C BUS DEFINITIONS
-# ============================================================================
 i2c:
-  # Primary I2C bus for expansion modules
   - id: i2c_primary
     sda: ${i2c0_sda_pin}
     scl: ${i2c0_scl_pin}
     scan: true
     frequency: ${i2c0_frequency}Hz
 
-  # Secondary I2C bus for GPIO expander
   - id: i2c_expander
     sda: ${i2c1_sda_pin}
     scl: ${i2c1_scl_pin}
     scan: true
     frequency: ${i2c1_frequency}Hz
 
-# ============================================================================
-# UART DEFINITIONS
-# ============================================================================
 uart:
-  # Primary UART for presence sensor
   - id: uart_presence
     tx_pin: ${uart_presence_tx_pin}
     rx_pin: ${uart_presence_rx_pin}
@@ -195,7 +112,6 @@ uart:
     parity: NONE
     stop_bits: 1
 
-  # Auxiliary UART for debug/Hi-Link
   - id: uart_auxiliary
     tx_pin: ${uart_aux_tx_pin}
     rx_pin: ${uart_aux_rx_pin}
@@ -203,53 +119,38 @@ uart:
     parity: NONE
     stop_bits: 1
 
-# ============================================================================
-# PWM OUTPUT FOR FAN
-# ============================================================================
 output:
   - platform: ledc
     id: fan_pwm_output
     pin: ${fan_pwm_pin}
     frequency: ${fan_pwm_frequency}Hz
 
-# ============================================================================
-# MAIN RELAY
-# ============================================================================
 switch:
   - platform: gpio
     name: "${friendly_name} Relay"
     id: main_relay
     pin: ${relay_pin}
     restore_mode: RESTORE_DEFAULT_OFF
-    icon: mdi:electric-switch
 
-  # Expansion GPIO outputs (directly controlled)
   - platform: gpio
-    name: "${friendly_name} Expansion GPIO 1"
     id: expansion_out_1
     pin: ${expansion_gpio1}
     restore_mode: RESTORE_DEFAULT_OFF
     internal: true
 
   - platform: gpio
-    name: "${friendly_name} Expansion GPIO 2"
     id: expansion_out_2
     pin: ${expansion_gpio2}
     restore_mode: RESTORE_DEFAULT_OFF
     internal: true
 
   - platform: gpio
-    name: "${friendly_name} Expansion GPIO 3"
     id: expansion_out_3
     pin: ${expansion_gpio3}
     restore_mode: RESTORE_DEFAULT_OFF
     internal: true
 
-# ============================================================================
-# STATUS LEDs
-# ============================================================================
 light:
-  # RGB Status LED (WS2812B)
   - platform: neopixelbus
     id: status_led_rgb
     type: GRB
@@ -259,24 +160,7 @@ light:
     name: "${friendly_name} Status LED"
     internal: true
     default_transition_length: 100ms
-    effects:
-      - pulse:
-          name: "Pulse"
-          transition_length: 500ms
-          update_interval: 500ms
-      - strobe:
-          name: "Error"
-          colors:
-            - state: true
-              brightness: 100%
-              red: 100%
-              green: 0%
-              blue: 0%
-              duration: 200ms
-            - state: false
-              duration: 200ms
 
-  # Simple status LED
   - platform: status_led
     id: simple_status_led
     pin:
@@ -284,9 +168,6 @@ light:
       inverted: true
     internal: true
 
-# ============================================================================
-# USER INPUT
-# ============================================================================
 binary_sensor:
   - platform: status
     name: "${friendly_name} Status"
@@ -304,17 +185,12 @@ binary_sensor:
     filters:
       - delayed_on: 10ms
       - delayed_off: 10ms
-    on_press:
-      then:
-        - logger.log: "User button pressed"
     on_multi_click:
-      # Single click - toggle relay
       - timing:
           - ON for at most 500ms
           - OFF for at least 300ms
         then:
           - switch.toggle: main_relay
-      # Double click - restart
       - timing:
           - ON for at most 500ms
           - OFF for at most 300ms
@@ -322,18 +198,8 @@ binary_sensor:
           - OFF for at least 300ms
         then:
           - button.press: restart_button
-      # Long press (3s) - factory reset
-      - timing:
-          - ON for at least 3s
-        then:
-          - logger.log:
-              level: WARN
-              format: "Factory reset requested via button"
-          # Factory reset would be triggered here if enabled
 
-  # Expander interrupt (active low from SX1509)
   - platform: gpio
-    name: "${friendly_name} Expander Interrupt"
     id: expander_interrupt
     pin:
       number: ${expander_int_pin}
@@ -342,54 +208,36 @@ binary_sensor:
         pullup: true
       inverted: true
     internal: true
-    on_press:
-      then:
-        - logger.log:
-            level: DEBUG
-            format: "GPIO Expander interrupt triggered"
 
-# ============================================================================
-# SYSTEM BUTTONS
-# ============================================================================
 button:
   - platform: restart
     id: restart_button
     name: "${friendly_name} Restart"
-    icon: mdi:restart
 
   - platform: safe_mode
     name: "${friendly_name} Safe Mode"
-    icon: mdi:safety-goggles
 
   - platform: factory_reset
     name: "${friendly_name} Factory Reset"
     id: factory_reset_btn
-    icon: mdi:delete-forever
     disabled_by_default: true
 
-# ============================================================================
-# SYSTEM SENSORS
-# ============================================================================
 sensor:
   - platform: wifi_signal
     name: "${friendly_name} WiFi Signal"
     id: wifi_signal_sensor
     update_interval: 60s
-    icon: mdi:wifi
 
   - platform: uptime
     name: "${friendly_name} Uptime"
     id: uptime_sensor
     update_interval: 60s
-    icon: mdi:clock-outline
 
   - platform: internal_temperature
     name: "${friendly_name} MCU Temperature"
     id: mcu_temperature
     update_interval: 60s
-    icon: mdi:thermometer
 
-  # Fan tachometer (pulse counter for RPM)
   - platform: pulse_counter
     id: fan_tach_sensor
     pin:
@@ -403,34 +251,22 @@ sensor:
     accuracy_decimals: 0
     update_interval: 2s
     filters:
-      # 2 pulses per revolution, convert to RPM
-      - multiply: 30.0  # (60s / 2 pulses)
+      - multiply: 30.0
 
-# ============================================================================
-# TEXT SENSORS
-# ============================================================================
 text_sensor:
   - platform: wifi_info
     ip_address:
       name: "${friendly_name} IP Address"
-      icon: mdi:ip-network
     ssid:
       name: "${friendly_name} SSID"
-      icon: mdi:wifi
     mac_address:
       name: "${friendly_name} MAC Address"
-      icon: mdi:network-outline
 
   - platform: version
     name: "${friendly_name} ESPHome Version"
     hide_timestamp: true
-    icon: mdi:information-outline
 
-# ============================================================================
-# GLOBALS FOR PORT STATE TRACKING
-# ============================================================================
 globals:
-  # I2C bus status
   - id: i2c_primary_healthy
     type: bool
     restore_value: false
@@ -441,13 +277,11 @@ globals:
     restore_value: false
     initial_value: 'true'
 
-  # UART status
   - id: uart_presence_connected
     type: bool
     restore_value: false
     initial_value: 'false'
 
-  # Module detection flags
   - id: module_airiq_present
     type: bool
     restore_value: false
