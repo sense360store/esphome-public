@@ -150,7 +150,7 @@ sensor:
 
     # High precision mode for best accuracy
     precision: High
-    heater_power: Off
+    heater_power: "Off"
 
 # ============================================================================
 # AMBIENT LIGHT INTERRUPT (Optional - for threshold-based triggers)

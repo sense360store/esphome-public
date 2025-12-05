@@ -77,7 +77,7 @@ sensor:
         - throttle: ${bathroom_sht40_update}
 
     precision: High
-    heater_power: Off
+    heater_power: "Off"
     update_interval: ${bathroom_sht40_update}
 
   # ============================================================================
