@@ -473,19 +473,31 @@ globals:
     restore_value: false
     initial_value: 'false'
 
+  - id: module_airlq_present
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
 # ============================================================================
 # I2C ADDRESS MAP (Reference)
 # ============================================================================
-# Address | Device           | Module        | Notes
-# --------|------------------|---------------|-------------------------------
-# 0x23    | BH1750           | Comfort       | Light sensor
-# 0x44    | SHT40/SHT30      | Comfort/AirIQ | Temp/Humidity (conflict!)
-# 0x58    | GP8403           | Fan DAC       | Channel 0x58 or 0x59
-# 0x59    | GP8403 alt/SGP40 | Fan DAC/Bath  | Address conflict possible
-# 0x62    | SCD41            | AirIQ         | CO2 sensor
-# 0x69    | SEN55            | AirIQ         | PM/VOC/NOx sensor
-# 0x3E    | SX1509           | GPIO Expander | Default address
-# 0x3F    | SX1509 alt       | GPIO Expander | Alternate address
-# 0x70    | TCA9548A         | I2C Mux       | For multi-module support
-# 0x76    | BME680           | Comfort       | Pressure/Gas sensor
+# Address | Device           | Module          | Notes
+# --------|------------------|-----------------|-----------------------------
+# 0x23    | BH1750           | Comfort         | Light sensor
+# 0x3E    | SX1509           | GPIO Expander   | Default address
+# 0x3F    | SX1509 alt       | GPIO Expander   | Alternate address
+# 0x44    | SHT40/SHT30      | Comfort/AirIQ   | Temp/Humidity (conflict!)
+# 0x58    | GP8403           | Fan DAC         | Channel 0x58 or 0x59
+# 0x59    | GP8403 alt/SGP4x | Fan DAC/AirLQ   | SGP4x VOC sensor
+# 0x5D    | SFA30            | AirLQ           | Formaldehyde sensor
+# 0x62    | SCD4x            | AirIQ/AirLQ     | CO2 sensor
+# 0x69    | SEN55/SPS30      | AirIQ/AirLQ     | PM sensor (conflict!)
+# 0x70    | TCA9548A         | I2C Mux         | For multi-module support
+# 0x76    | BME680           | Comfort         | Pressure/Gas sensor
+# 0x77    | BMP390           | AirLQ           | Pressure sensor
+# ============================================================================
+#
+# AirLQ Module GPIO Mapping:
+#   AirLQ_Status_Led → GPIO6 (Expansion GPIO 1)
+#   AirLQ_Led → GPIO7 (Expansion GPIO 2)
 # ============================================================================
