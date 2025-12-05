@@ -161,4 +161,4 @@ esphome:
             else:
               - logger.log:
                   level: WARN
-                  message: "PoE device has power but no network connectivity"
+                  format: "PoE device has power but no network connectivity"
