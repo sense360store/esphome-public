@@ -249,6 +249,17 @@ light:
           name: "Scan"
           move_interval: 100ms
 
+  # ============================================================================
+  # AIRIQ STATUS INDICATORS
+  # ============================================================================
+  # Note: GPIO8 conflict - AirQ_Led cannot be used as it shares I2C_SCL
+  # Only GPIO7 AirQ_Status_Led is usable
+  - platform: binary
+    id: airiq_status_led
+    name: "${friendly_name} AirIQ Status"
+    output: airiq_status_led_output
+    internal: true
+
 # ============================================================================
 # FAN CONTROL
 # ============================================================================
@@ -303,18 +314,6 @@ binary_sensor:
         input: true
         pullup: true
       inverted: true
-    internal: true
-
-# ============================================================================
-# AIRIQ STATUS INDICATORS
-# ============================================================================
-# Note: GPIO8 conflict - AirQ_Led cannot be used as it shares I2C_SCL
-# Only GPIO7 AirQ_Status_Led is usable
-light:
-  - platform: binary
-    id: airiq_status_led
-    name: "${friendly_name} AirIQ Status"
-    output: airiq_status_led_output
     internal: true
 
 # ============================================================================
