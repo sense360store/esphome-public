@@ -113,13 +113,13 @@ voice_assistant:
   # Callbacks for different states
   on_listening:
     - light.turn_on:
-        id: simple_status_led
+        id: voice_status_led
         effect: "Listening Pulse"
     - logger.log: "Voice assistant listening..."
 
   on_stt_vad_end:
     - light.turn_off:
-        id: simple_status_led
+        id: voice_status_led
     - logger.log: "Voice command received, processing..."
 
   on_tts_start:
@@ -130,28 +130,32 @@ voice_assistant:
 
   on_end:
     - light.turn_off:
-        id: simple_status_led
+        id: voice_status_led
     - logger.log: "Voice assistant session ended"
 
   on_error:
     - light.turn_on:
-        id: simple_status_led
+        id: voice_status_led
         effect: "Error Blink"
     - logger.log:
         format: "Voice assistant error: %s"
         args: ["x.c_str()"]
     - delay: 2s
     - light.turn_off:
-        id: simple_status_led
+        id: voice_status_led
 
 # Enhanced status LED with voice assistant effects
+output:
+  - platform: ledc
+    id: voice_status_led_output
+    pin: ${status_led_pin}
+    inverted: true
+
 light:
   # Override the simple status LED to add effects
-  - platform: status_led
+  - platform: monochromatic
     id: voice_status_led
-    pin:
-      number: ${status_led_pin}
-      inverted: true
+    output: voice_status_led_output
     effects:
       # Pulse effect when listening
       - pulse:
