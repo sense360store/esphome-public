@@ -277,5 +277,5 @@ button:
 text_sensor:
   - platform: wifi_info
     ip_address:
-      name: "${friendly_name} IP Address"
+      name: "${friendly_name} WiFi IP Address"
       id: ethernet_ip
