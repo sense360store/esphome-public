@@ -41,6 +41,7 @@ substitutions:
 
   # WiFi & Logging
   wifi_fast_connect: "true"
+  fallback_ssid: "S360 Mini Adv LD2412 FB"
   log_level: DEBUG  # More verbose for advanced users
 
   # Timezone for SNTP (override to your local timezone, e.g., America/New_York)

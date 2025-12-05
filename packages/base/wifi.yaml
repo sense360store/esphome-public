@@ -1,4 +1,7 @@
 ---
+substitutions:
+  fallback_ssid: "${device_name} FB"
+
 wifi:
   networks:
     - ssid: !secret wifi_ssid
@@ -6,7 +9,7 @@ wifi:
   fast_connect: true
   power_save_mode: none
   ap:
-    ssid: "${friendly_name} Fallback"
+    ssid: "${fallback_ssid}"
     password: "${fallback_ap_password}"
 
 captive_portal:
