@@ -36,6 +36,9 @@ substitutions:
   device_name: sense360-core-voice
   friendly_name: Sense360 Core Voice
 
+  # Allow voice status LED to use a dedicated pin when needed
+  voice_status_led_pin: "${status_led_pin}"
+
   # Microphone I2S pins
   mic_i2s_sck_pin: GPIO11
   mic_i2s_ws_pin: GPIO12
@@ -156,7 +159,7 @@ voice_assistant:
 output:
   - platform: ledc
     id: voice_status_led_output
-    pin: ${status_led_pin}
+    pin: ${voice_status_led_pin}
     inverted: true
 
 light:
