@@ -27,6 +27,9 @@ substitutions:
   device_name: sense360-core-test
   friendly_name: "Sense360 Core Test"
 
+  # Logging configuration
+  log_level: INFO
+
   # Override timezone if needed
   timezone: "America/Los_Angeles"
 
