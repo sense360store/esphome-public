@@ -65,6 +65,11 @@ esphome:
             then:
               - logger.log: "Voice assistant is running"
 
+# I2S audio bus for microphone and speaker
+i2s_audio:
+  - id: i2s0
+    i2s_num: 0
+
 # Microphone configuration (I2S MEMS)
 microphone:
   - platform: i2s_audio
