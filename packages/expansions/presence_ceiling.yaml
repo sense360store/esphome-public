@@ -1,0 +1,237 @@
+---
+# ============================================================================
+# SENSE360 PRESENCE MODULE - CEILING VARIANT
+# ============================================================================
+# SKU: S360-PRES-C
+#
+# mmWave radar-based presence detection for ceiling-mounted installations.
+#
+# Sensor:
+# - HLK-LD2450 (UART): 24GHz mmWave radar, multi-target tracking
+#
+# Features:
+# - Up to 3 simultaneous targets
+# - Still and moving target differentiation
+# - Zone-based detection
+# - Distance and angle measurement
+#
+# Expansion Bus Connection (Ceiling):
+#   Pin 6 (UART TX) → GPIO1 (ESP RX)
+#   Pin 7 (UART RX) → GPIO2 (ESP TX)
+#   Pin 3 (5V) → Power
+#   Pin 1 (GND) → Ground
+#
+# Power Requirements: 5V / 150mA max
+# ============================================================================
+
+substitutions:
+  module_sku: S360-PRES-C
+  module_variant: ceiling
+
+  # UART Configuration (Ceiling uses dedicated presence UART)
+  ld2450_uart_id: uart_presence
+  ld2450_tx_pin: GPIO1
+  ld2450_rx_pin: GPIO2
+  ld2450_baud: "256000"
+
+  # Presence detection settings
+  presence_timeout: 30s
+
+# UART for LD2450 Radar Sensor
+uart:
+  - id: ${ld2450_uart_id}
+    tx_pin: ${ld2450_tx_pin}
+    rx_pin: ${ld2450_rx_pin}
+    baud_rate: ${ld2450_baud}
+    parity: NONE
+    stop_bits: 1
+
+# LD2450 Base Component
+ld2450:
+  id: ld2450_radar
+  uart_id: ${ld2450_uart_id}
+
+sensor:
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+
+    target_count:
+      id: ld2450_target_count
+      name: "${friendly_name} Target Count"
+      internal: true
+      filters:
+        - throttle: 1000ms
+
+    still_target_count:
+      id: ld2450_still_count
+      name: "${friendly_name} Still Target Count"
+      internal: true
+      filters:
+        - throttle: 1000ms
+
+    moving_target_count:
+      id: ld2450_moving_count
+      name: "${friendly_name} Moving Target Count"
+      internal: true
+      filters:
+        - throttle: 1000ms
+
+    target_1:
+      x:
+        id: ld2450_t1_x
+        name: "${friendly_name} Target 1 X"
+        internal: true
+        filters:
+          - throttle: 1000ms
+      y:
+        id: ld2450_t1_y
+        name: "${friendly_name} Target 1 Y"
+        internal: true
+        filters:
+          - throttle: 1000ms
+      speed:
+        id: ld2450_t1_speed
+        name: "${friendly_name} Target 1 Speed"
+        internal: true
+        filters:
+          - throttle: 1000ms
+      distance:
+        id: ld2450_t1_distance
+        name: "${friendly_name} Target 1 Distance"
+        internal: true
+        filters:
+          - throttle: 1000ms
+      angle:
+        id: ld2450_t1_angle
+        name: "${friendly_name} Target 1 Angle"
+        internal: true
+        filters:
+          - throttle: 1000ms
+
+    target_2:
+      x:
+        id: ld2450_t2_x
+        name: "${friendly_name} Target 2 X"
+        internal: true
+        filters:
+          - throttle: 1000ms
+      y:
+        id: ld2450_t2_y
+        name: "${friendly_name} Target 2 Y"
+        internal: true
+        filters:
+          - throttle: 1000ms
+      speed:
+        id: ld2450_t2_speed
+        name: "${friendly_name} Target 2 Speed"
+        internal: true
+        filters:
+          - throttle: 1000ms
+      distance:
+        id: ld2450_t2_distance
+        name: "${friendly_name} Target 2 Distance"
+        internal: true
+        filters:
+          - throttle: 1000ms
+      angle:
+        id: ld2450_t2_angle
+        name: "${friendly_name} Target 2 Angle"
+        internal: true
+        filters:
+          - throttle: 1000ms
+
+    target_3:
+      x:
+        id: ld2450_t3_x
+        name: "${friendly_name} Target 3 X"
+        internal: true
+        filters:
+          - throttle: 1000ms
+      y:
+        id: ld2450_t3_y
+        name: "${friendly_name} Target 3 Y"
+        internal: true
+        filters:
+          - throttle: 1000ms
+      speed:
+        id: ld2450_t3_speed
+        name: "${friendly_name} Target 3 Speed"
+        internal: true
+        filters:
+          - throttle: 1000ms
+      distance:
+        id: ld2450_t3_distance
+        name: "${friendly_name} Target 3 Distance"
+        internal: true
+        filters:
+          - throttle: 1000ms
+      angle:
+        id: ld2450_t3_angle
+        name: "${friendly_name} Target 3 Angle"
+        internal: true
+        filters:
+          - throttle: 1000ms
+
+# ============================================================================
+# Globals for Presence Detection
+# ============================================================================
+globals:
+  - id: presence_confidence
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
+  - id: presence_closest_distance
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
+  - id: presence_people_count
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+# Update presence data
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          int targets = id(ld2450_target_count).state;
+          int moving = id(ld2450_moving_count).state;
+          int still = id(ld2450_still_count).state;
+
+          id(presence_people_count) = targets;
+
+          if (targets > 0) {
+            if (moving > 0) {
+              id(presence_confidence) = 0.95f;
+            } else if (still > 0) {
+              id(presence_confidence) = 0.7f;
+            } else {
+              id(presence_confidence) = 0.6f;
+            }
+
+            float min_dist = 9999.0f;
+            float d1 = id(ld2450_t1_distance).state;
+            float d2 = id(ld2450_t2_distance).state;
+            float d3 = id(ld2450_t3_distance).state;
+
+            if (!std::isnan(d1) && d1 > 0 && d1 < min_dist) min_dist = d1;
+            if (!std::isnan(d2) && d2 > 0 && d2 < min_dist) min_dist = d2;
+            if (!std::isnan(d3) && d3 > 0 && d3 < min_dist) min_dist = d3;
+
+            if (min_dist < 9999.0f) {
+              id(presence_closest_distance) = min_dist;
+            }
+          } else {
+            id(presence_confidence) = 0.1f;
+            id(presence_closest_distance) = 0.0f;
+          }
+
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Presence Module SKU"
+    lambda: |-
+      return {"${module_sku}"};
+    update_interval: never
+    entity_category: diagnostic

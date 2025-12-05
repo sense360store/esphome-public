@@ -1,0 +1,196 @@
+---
+# ============================================================================
+# Sense360 LED+MIC Ring - Wall/Desk Voice
+# ============================================================================
+# SKU: S360-LED-V-C
+#
+# LED ring with integrated microphone array for wall-mounted/desk Sense360
+# Voice Core. Provides visual feedback and audio input for voice assistant.
+#
+# Hardware:
+# - WS2812B addressable RGB LEDs (8 LEDs - compact form factor)
+# - I2S MEMS Microphone array (2-4 microphones)
+# - 3.3V level shifter for LED data signal
+#
+# Pairing:
+# - Use with: Sense360_Core_Voice_Desk (S360-CORE-V-W)
+# - Do NOT use with non-voice cores
+#
+# Pin Assignments:
+# - LED Data: GPIO48 (WS2812B ring)
+# - Microphone I2S defined in core voice package
+# ============================================================================
+
+substitutions:
+  led_ring_sku: S360-LED-V-C
+  led_data_pin: GPIO48
+  led_count: "8"
+  led_chipset: WS2812
+  led_rgb_order: GRB
+
+light:
+  - platform: neopixelbus
+    id: led_ring
+    type: ${led_rgb_order}
+    variant: ${led_chipset}
+    pin: ${led_data_pin}
+    num_leds: ${led_count}
+    name: "${friendly_name} LED Ring"
+    default_transition_length: 300ms
+    effects:
+      # Voice assistant effects
+      - pulse:
+          name: "Listening"
+          transition_length: 0.5s
+          update_interval: 0.5s
+      - strobe:
+          name: "Processing"
+          colors:
+            - state: true
+              brightness: 100%
+              red: 0%
+              green: 50%
+              blue: 100%
+              duration: 200ms
+            - state: true
+              brightness: 50%
+              red: 0%
+              green: 50%
+              blue: 100%
+              duration: 200ms
+      - addressable_scan:
+          name: "Thinking"
+          move_interval: 50ms
+          scan_width: 2
+      # Status effects
+      - strobe:
+          name: "Alert"
+          colors:
+            - state: true
+              brightness: 100%
+              red: 100%
+              green: 0%
+              blue: 0%
+              duration: 500ms
+            - state: false
+              duration: 500ms
+      - strobe:
+          name: "Error"
+          colors:
+            - state: true
+              brightness: 100%
+              red: 100%
+              green: 0%
+              blue: 0%
+              duration: 250ms
+            - state: false
+              duration: 250ms
+      # Ambient effects
+      - random:
+          name: "Random"
+          transition_length: 2s
+          update_interval: 3s
+      - addressable_rainbow:
+          name: "Rainbow"
+          speed: 10
+          width: 50
+      # Air quality indicator
+      - addressable_color_wipe:
+          name: "Color Wipe"
+          colors:
+            - red: 0%
+              green: 100%
+              blue: 0%
+              num_leds: 3
+            - red: 100%
+              green: 100%
+              blue: 0%
+              num_leds: 2
+            - red: 100%
+              green: 0%
+              blue: 0%
+              num_leds: 3
+          add_led_interval: 100ms
+          reverse: false
+
+# Globals for LED control
+globals:
+  - id: led_ring_brightness
+    type: float
+    restore_value: true
+    initial_value: '0.5'
+
+  - id: led_ring_night_mode
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+  - id: led_voice_feedback_enabled
+    type: bool
+    restore_value: true
+    initial_value: 'true'
+
+# LED controls
+number:
+  - platform: template
+    name: "${friendly_name} LED Brightness"
+    id: led_brightness_control
+    icon: mdi:brightness-6
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 50
+    optimistic: true
+    restore_value: true
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - lambda: |-
+            id(led_ring_brightness) = x / 100.0;
+
+switch:
+  - platform: template
+    name: "${friendly_name} Night Mode"
+    id: led_night_mode_switch
+    icon: mdi:weather-night
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      - lambda: |-
+          id(led_ring_night_mode) = true;
+      - light.turn_on:
+          id: led_ring
+          brightness: 10%
+    on_turn_off:
+      - lambda: |-
+          id(led_ring_night_mode) = false;
+      - light.turn_on:
+          id: led_ring
+          brightness: !lambda 'return id(led_ring_brightness);'
+
+  - platform: template
+    name: "${friendly_name} Voice LED Feedback"
+    id: voice_led_feedback_switch
+    icon: mdi:microphone-message
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_on:
+      - lambda: |-
+          id(led_voice_feedback_enabled) = true;
+    on_turn_off:
+      - lambda: |-
+          id(led_voice_feedback_enabled) = false;
+
+text_sensor:
+  - platform: template
+    name: "${friendly_name} LED Ring SKU"
+    lambda: |-
+      return {"${led_ring_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+# Note: Microphone I2S configuration is defined in the core voice package.
+# The LED+MIC ring connects the microphone array to the core's I2S pins:
+# - SCK: GPIO11
+# - WS: GPIO12
+# - SD: GPIO13

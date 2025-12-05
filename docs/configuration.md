@@ -2,6 +2,8 @@
 
 Complete guide to customizing your Sense360 device.
 
+> **New to Sense360?** See the [Product Matrix](product-matrix.md) for a complete overview of all hardware components, SKUs, and how they connect together.
+
 ## Table of Contents
 
 - [Basic Configuration](#basic-configuration)

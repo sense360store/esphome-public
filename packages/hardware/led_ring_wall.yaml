@@ -1,0 +1,143 @@
+---
+# ============================================================================
+# Sense360 LED Ring - Wall/Desk Standard
+# ============================================================================
+# SKU: S360-LED-C
+#
+# Standard LED ring for wall-mounted/desk Sense360 Core (non-voice).
+# Provides visual feedback for air quality, presence, and system status.
+#
+# Hardware:
+# - WS2812B addressable RGB LEDs
+# - 8 LEDs in ring configuration (smaller form factor for wall mount)
+# - 3.3V level shifter for data signal
+#
+# Pairing:
+# - Use with: Sense360_Core_Desk (S360-CORE-W)
+# - Do NOT use with voice cores (use LED+MIC ring instead)
+#
+# Pin Assignment:
+# - LED Data: GPIO48 (WS2812B ring)
+# ============================================================================
+
+substitutions:
+  led_ring_sku: S360-LED-C
+  led_data_pin: GPIO48
+  led_count: "8"
+  led_chipset: WS2812
+  led_rgb_order: GRB
+
+light:
+  - platform: neopixelbus
+    id: led_ring
+    type: ${led_rgb_order}
+    variant: ${led_chipset}
+    pin: ${led_data_pin}
+    num_leds: ${led_count}
+    name: "${friendly_name} LED Ring"
+    default_transition_length: 300ms
+    effects:
+      # Status effects
+      - pulse:
+          name: "Pulse"
+          transition_length: 1s
+          update_interval: 1s
+      - strobe:
+          name: "Alert"
+          colors:
+            - state: true
+              brightness: 100%
+              red: 100%
+              green: 0%
+              blue: 0%
+              duration: 500ms
+            - state: false
+              duration: 500ms
+      # Ambient effects
+      - random:
+          name: "Random"
+          transition_length: 2s
+          update_interval: 3s
+      - addressable_rainbow:
+          name: "Rainbow"
+          speed: 10
+          width: 50
+      - addressable_scan:
+          name: "Scan"
+          move_interval: 100ms
+      # Air quality indicator
+      - addressable_color_wipe:
+          name: "Color Wipe"
+          colors:
+            - red: 0%
+              green: 100%
+              blue: 0%
+              num_leds: 3
+            - red: 100%
+              green: 100%
+              blue: 0%
+              num_leds: 2
+            - red: 100%
+              green: 0%
+              blue: 0%
+              num_leds: 3
+          add_led_interval: 100ms
+          reverse: false
+
+# Globals for LED control
+globals:
+  - id: led_ring_brightness
+    type: float
+    restore_value: true
+    initial_value: '0.5'
+
+  - id: led_ring_night_mode
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+# LED controls
+number:
+  - platform: template
+    name: "${friendly_name} LED Brightness"
+    id: led_brightness_control
+    icon: mdi:brightness-6
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 50
+    optimistic: true
+    restore_value: true
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - lambda: |-
+            id(led_ring_brightness) = x / 100.0;
+
+switch:
+  - platform: template
+    name: "${friendly_name} Night Mode"
+    id: led_night_mode_switch
+    icon: mdi:weather-night
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      - lambda: |-
+          id(led_ring_night_mode) = true;
+      - light.turn_on:
+          id: led_ring
+          brightness: 10%
+    on_turn_off:
+      - lambda: |-
+          id(led_ring_night_mode) = false;
+      - light.turn_on:
+          id: led_ring
+          brightness: !lambda 'return id(led_ring_brightness);'
+
+text_sensor:
+  - platform: template
+    name: "${friendly_name} LED Ring SKU"
+    lambda: |-
+      return {"${led_ring_sku}"};
+    update_interval: never
+    entity_category: diagnostic
