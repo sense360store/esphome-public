@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Sense360 Ceiling S3 Board**: Complete configuration for ESP32-S3-WROOM-1-N16R8 based ceiling board
   - New hardware profile: `sense360_core_ceiling_s3.yaml` with correct GPIO mappings from schematic
   - I2C primary bus on GPIO26/GPIO8 @ 100kHz for sensor modules
-  - UART support for Hi-Link LD2450 presence sensor (GPIO38/39)
+  - Dual UART support for presence sensors: Hi-Link LD2450 (GPIO38/39) and SEN0609/C4001 (GPIO4/5)
   - WS2812B LED ring control on GPIO14 with level shifter support
   - Fan control output on GPIO23 with SI2302 MOSFET
   - Module-specific configurations: `airiq_ceiling_s3.yaml`, `comfort_ceiling_s3.yaml`, `presence_ceiling_s3.yaml`
@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Expansion Module System**: Modular sensor expansion support
   - AirLQ expansion module with comprehensive sensor mapping
   - Comfort Ceiling expansion module mapping
-  - Presence Module Ceiling with Hi-Link LD2450 support
+  - Presence Module Ceiling with Hi-Link LD2450 and DFRobot SEN0609/C4001 support
   - Phase 2 expansion module drivers and feature profiles
 - **LD2412 mmWave Sensor**: Multi-sensor presence detection support
   - Gate threshold configuration

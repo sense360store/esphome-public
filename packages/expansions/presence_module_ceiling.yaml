@@ -2,20 +2,33 @@
 # ============================================================================
 # PRESENCE MODULE CEILING - EXPANSION MODULE MAPPING
 # ============================================================================
-# Ceiling-mounted presence detection expansion module using Hi-Link LD2450
-# radar sensor for human presence and motion detection.
+# Ceiling-mounted presence detection expansion module supporting dual radar
+# sensor options for human presence and motion detection.
 #
 # Module: Presence_Module_ceiling
 # Form Factor: Ceiling-mount, integrates with Sense360 Core Ceiling
 #
 # ============================================================================
-# SENSOR: Hi-Link LD2450 (24GHz mmWave)
+# SUPPORTED SENSORS
 # ============================================================================
+# This module supports two radar sensor options (choose one per installation):
+#
+# Option 1: Hi-Link LD2450 (24GHz mmWave)
 #   - Multi-target tracking (up to 3 simultaneous targets)
 #   - Detection range: 0.2m - 6m (configurable)
 #   - Zone configuration support
 #   - UART interface at 256000 baud
 #   - Power: 5V / 150mA max
+#
+# Option 2: DFRobot SEN0609/C4001 (24GHz mmWave FMCW)
+#   - Long-range presence detection up to 25m (motion)
+#   - Presence detection range: 16m
+#   - Distance measurement: 1.2m - 25m
+#   - Speed measurement: 0.1 - 10 m/s
+#   - 100 degree horizontal detection angle
+#   - UART interface at 115200 baud (also supports I2C)
+#   - Digital output pin for simple presence detection
+#   - Power: 5V / 200mA max
 #
 # ============================================================================
 # SCHEMATIC PINOUT (Presence_Module_ceiling.sch)
@@ -24,9 +37,14 @@
 # ----------------------|-----------------|-----------------|------------------
 # Hi-Link_TX            | UART TX (to ESP)| GPIO2 (ESP RX)  | LD2450 data out
 # Hi-Link_RX            | UART RX (to ESP)| GPIO1 (ESP TX)  | LD2450 data in
+# SEN0609_TX            | UART TX (to ESP)| GPIO2 (ESP RX)  | C4001 data out
+# SEN0609_RX            | UART RX (to ESP)| GPIO1 (ESP TX)  | C4001 data in
 # out1@ms11             | Digital Output  | GPIO5           | Presence GPIO
 # VCC                   | 5V Power        | 5V              | Radar power
 # GND                   | Ground          | GND             | Common ground
+#
+# Note: Hi-Link and DFRobot sensors share the UART bus - only one sensor
+# should be installed at a time. The schematic shows both options.
 #
 # ============================================================================
 # EXPANSION BUS CONNECTION (10-pin connector on Core Ceiling)
@@ -36,10 +54,10 @@
 # 1   | GND        | -      | Module ground
 # 2   | 3.3V       | -      | Low-power peripherals (not used)
 # 3   | 5V         | -      | Radar sensor power (VCC)
-# 4   | I2C1 SDA   | GPIO21 | Reserved
-# 5   | I2C1 SCL   | GPIO18 | Reserved
-# 6   | UART TX    | GPIO1  | Hi-Link_RX
-# 7   | UART RX    | GPIO2  | Hi-Link_TX
+# 4   | I2C1 SDA   | GPIO21 | C4001 I2C mode (optional)
+# 5   | I2C1 SCL   | GPIO18 | C4001 I2C mode (optional)
+# 6   | UART TX    | GPIO1  | Hi-Link_RX / SEN0609_RX
+# 7   | UART RX    | GPIO2  | Hi-Link_TX / SEN0609_TX
 # 8   | GPIO5      | GPIO5  | out1@ms11 (presence digital out)
 # 9   | GPIO6      | GPIO6  | Reserved (future use)
 # 10  | GPIO7      | GPIO7  | Reserved (IRQ / aux)
@@ -49,24 +67,34 @@
 # ============================================================================
 # Total Module Power: 5V DC
 # - Hi-Link LD2450: 150mA typical, 200mA peak
+# - DFRobot C4001:  180mA typical, 250mA peak
 # - Module overhead: 20mA
-# Maximum current draw: 250mA @ 5V
+# Maximum current draw: 300mA @ 5V
 #
 # ============================================================================
 
 substitutions:
   # ============================================================================
-  # UART CONFIGURATION - Hi-Link LD2450
+  # UART CONFIGURATION (shared between sensors)
   # ============================================================================
+  # Note: Baud rate depends on which sensor is installed
+  # - LD2450: 256000 baud
+  # - C4001:  115200 baud
   presence_uart_id: uart_presence
   presence_uart_tx_pin: GPIO1  # ESP TX -> Sensor RX
   presence_uart_rx_pin: GPIO2  # ESP RX <- Sensor TX
-  presence_uart_baud: "256000"
 
   # ============================================================================
   # GPIO PINS
   # ============================================================================
   presence_gpio_output: GPIO5  # out1@ms11 - digital presence output
+
+  # ============================================================================
+  # I2C CONFIGURATION (C4001 I2C mode - optional)
+  # ============================================================================
+  presence_i2c_sda: GPIO21
+  presence_i2c_scl: GPIO18
+  presence_i2c_addr: "0x32"  # C4001 default I2C address
 
   # ============================================================================
   # DETECTION SETTINGS
@@ -84,11 +112,11 @@ globals:
     restore_value: false
     initial_value: 'true'
 
-  # Active sensor type (0=none, 1=LD2450)
+  # Active sensor type (0=none, 1=LD2450, 2=C4001)
   - id: presence_sensor_type
     type: int
     restore_value: false
-    initial_value: '1'
+    initial_value: '0'
 
   # Unified presence confidence (0.0 - 1.0)
   - id: presence_confidence
@@ -207,7 +235,14 @@ text_sensor:
     name: "${friendly_name} Presence Sensor Type"
     icon: mdi:radar
     lambda: |-
-      return std::string("Hi-Link LD2450");
+      int type = id(presence_sensor_type);
+      if (type == 1) {
+        return std::string("Hi-Link LD2450");
+      } else if (type == 2) {
+        return std::string("DFRobot SEN0609");
+      } else {
+        return std::string("GPIO Only");
+      }
     update_interval: 60s
 
 # ============================================================================
@@ -245,11 +280,17 @@ logger:
 # ============================================================================
 # NOTES FOR INTEGRATION
 # ============================================================================
-# To use this expansion module, include the following sensor package:
+# To use this expansion module, include one of the following sensor packages:
 #
+# For Hi-Link LD2450:
 #   packages:
 #     presence_module: !include ../expansions/presence_module_ceiling.yaml
 #     presence_sensor: !include ../hardware/presence_ld2450.yaml
+#
+# For DFRobot SEN0609/C4001:
+#   packages:
+#     presence_module: !include ../expansions/presence_module_ceiling.yaml
+#     presence_sensor: !include ../hardware/presence_dfrobot_c4001.yaml
 #
 # The sensor package will configure the UART and sensor-specific components,
 # while this module package provides the unified presence interface.
