@@ -319,7 +319,6 @@ binary_sensor:
 # ============================================================================
 # COMFORT MODULE ALS INTERRUPT
 # ============================================================================
-binary_sensor:
   - platform: gpio
     id: als_interrupt
     name: "${friendly_name} ALS Interrupt"
