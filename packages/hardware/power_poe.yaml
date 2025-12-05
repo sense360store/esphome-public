@@ -142,7 +142,7 @@ binary_sensor:
 logger:
   logs:
     wifi: INFO
-    ethernet: DEBUG
+    ethernet: INFO
 
 # Automation: Log PoE status on boot
 esphome:
