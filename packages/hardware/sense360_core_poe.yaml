@@ -1,0 +1,263 @@
+---
+# Sense360 Core PoE Board
+#
+# Ethernet-enabled variant of the Sense360 Core board with PoE power.
+# Uses W5500 Ethernet controller for wired network connectivity.
+#
+# Hardware Features:
+# - ESP32-S3-WROOM-1 (8MB Flash, 2MB PSRAM)
+# - W5500 Ethernet Controller (SPI interface)
+# - IEEE 802.3af PoE Power Supply
+# - Dual I2C buses for expansion modules
+# - UART for presence/radar sensors
+# - 4x GPIO expansion pins
+# - Built-in relay (10A)
+# - Status LED
+#
+# Pin Assignments:
+# - SPI (W5500):
+#   - MOSI:             GPIO35
+#   - MISO:             GPIO37
+#   - SCK:              GPIO36
+#   - CS:               GPIO34
+#   - INT:              GPIO33
+#   - RST:              GPIO38
+# - I2C0 (Primary):     SDA=GPIO39, SCL=GPIO40
+# - I2C1 (Secondary):   SDA=GPIO21, SCL=GPIO18
+# - UART:               TX=GPIO1, RX=GPIO2
+# - GPIO Expansion:     GPIO4, GPIO5, GPIO6, GPIO7
+# - Relay:              GPIO10
+# - Status LED:         GPIO8
+# - User Button:        GPIO9
+# - Boot Button:        GPIO0
+#
+# Expansion Bus Pinout (10-pin connector):
+# 1. GND
+# 2. 3.3V
+# 3. 5V
+# 4. I2C0 SDA (GPIO39)
+# 5. I2C0 SCL (GPIO40)
+# 6. UART TX (GPIO1)
+# 7. UART RX (GPIO2)
+# 8. GPIO4
+# 9. GPIO5
+# 10. IRQ/GPIO6 (optional)
+
+substitutions:
+  device_name: sense360-poe
+  friendly_name: Sense360 PoE
+  timezone: "America/Los_Angeles"
+
+  # W5500 SPI pins
+  spi_mosi_pin: GPIO35
+  spi_miso_pin: GPIO37
+  spi_clk_pin: GPIO36
+  w5500_cs_pin: GPIO34
+  w5500_int_pin: GPIO33
+  w5500_rst_pin: GPIO38
+
+  # I2C buses
+  i2c0_sda_pin: GPIO39
+  i2c0_scl_pin: GPIO40
+  i2c1_sda_pin: GPIO21
+  i2c1_scl_pin: GPIO18
+
+  # UART
+  uart_tx_pin: GPIO1
+  uart_rx_pin: GPIO2
+  uart_baud: "115200"
+
+  # GPIO expansion pins
+  expansion_gpio1: GPIO4
+  expansion_gpio2: GPIO5
+  expansion_gpio3: GPIO6
+  expansion_gpio4: GPIO7
+
+  # Relay
+  relay_pin: GPIO10
+
+  # Status indicators
+  status_led_pin: GPIO8
+
+  # Buttons
+  user_button_pin: GPIO9
+  boot_button_pin: GPIO0
+
+  # Network configuration
+  # These can be overridden in the product configuration
+  # For DHCP, leave ip_address empty
+  ip_address: ""
+  gateway: ""
+  subnet: ""
+  dns1: ""
+  dns2: ""
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  project:
+    name: sense360.poe
+    version: 1.0.0
+  on_boot:
+    - priority: 600
+      then:
+        - logger.log: "Sense360 PoE board initializing..."
+    - priority: -100
+      then:
+        - logger.log: "Sense360 PoE board ready - Ethernet connected"
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_COMPILER_OPTIMIZATION_SIZE: y
+      # Enable PSRAM
+      CONFIG_ESP32S3_SPIRAM_SUPPORT: y
+      CONFIG_SPIRAM_MODE_OCT: y
+
+# SPI bus for W5500 Ethernet controller
+spi:
+  id: spi_bus
+  clk_pin: ${spi_clk_pin}
+  mosi_pin: ${spi_mosi_pin}
+  miso_pin: ${spi_miso_pin}
+
+# W5500 Ethernet controller
+ethernet:
+  type: W5500
+  clk_pin: ${spi_clk_pin}
+  mosi_pin: ${spi_mosi_pin}
+  miso_pin: ${spi_miso_pin}
+  cs_pin: ${w5500_cs_pin}
+  interrupt_pin: ${w5500_int_pin}
+  reset_pin: ${w5500_rst_pin}
+  clock_speed: 26.666MHz
+
+  # Manual IP configuration (optional, uses DHCP if not specified)
+  manual_ip:
+    static_ip: ${ip_address}
+    gateway: ${gateway}
+    subnet: ${subnet}
+    dns1: ${dns1}
+    dns2: ${dns2}
+
+  # Enable IPv6 support (optional)
+  # enable_ipv6: false
+
+# Primary I2C bus for expansion modules
+i2c:
+  - id: i2c0
+    sda: ${i2c0_sda_pin}
+    scl: ${i2c0_scl_pin}
+    scan: true
+    frequency: 400kHz
+
+  # Secondary I2C bus (optional, for additional modules)
+  - id: i2c1
+    sda: ${i2c1_sda_pin}
+    scl: ${i2c1_scl_pin}
+    scan: true
+    frequency: 400kHz
+
+# UART for expansion modules (presence sensors, etc.)
+uart:
+  - id: uart_bus
+    tx_pin: ${uart_tx_pin}
+    rx_pin: ${uart_rx_pin}
+    baud_rate: ${uart_baud}
+
+# Status LED
+light:
+  - platform: status_led
+    id: simple_status_led
+    pin:
+      number: ${status_led_pin}
+      inverted: false
+    internal: true
+
+# Main relay output
+switch:
+  - platform: gpio
+    name: "${friendly_name} Relay"
+    id: main_relay
+    pin: ${relay_pin}
+    restore_mode: RESTORE_DEFAULT_OFF
+    icon: mdi:electric-switch
+
+# User button
+binary_sensor:
+  - platform: status
+    name: "${friendly_name} Status"
+    id: system_status
+
+  - platform: gpio
+    name: "${friendly_name} User Button"
+    id: user_button
+    pin:
+      number: ${user_button_pin}
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    on_press:
+      then:
+        - logger.log: "User button pressed"
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+
+  # Ethernet link status
+  - platform: template
+    name: "${friendly_name} Ethernet Link"
+    id: ethernet_link
+    icon: mdi:ethernet-cable
+    device_class: connectivity
+    lambda: |-
+      return id(system_status).state;
+
+# System controls
+button:
+  - platform: restart
+    id: restart_button
+    name: "${friendly_name} Restart"
+    icon: mdi:restart
+
+  - platform: safe_mode
+    name: "${friendly_name} Safe Mode"
+    icon: mdi:safety-goggles
+
+  - platform: factory_reset
+    name: "${friendly_name} Factory Reset"
+    id: factory_reset_btn
+    icon: mdi:delete-forever
+    disabled_by_default: true
+
+# System sensors
+sensor:
+  - platform: uptime
+    name: "${friendly_name} Uptime"
+    id: uptime_sensor
+    update_interval: 60s
+    icon: mdi:clock-outline
+
+  # Internal temperature sensor (ESP32-S3)
+  - platform: internal_temperature
+    name: "${friendly_name} Internal Temperature"
+    id: internal_temp
+    update_interval: 60s
+    icon: mdi:thermometer
+
+# Network information
+text_sensor:
+  - platform: ethernet_info
+    ip_address:
+      name: "${friendly_name} IP Address"
+      icon: mdi:ip-network
+      id: ethernet_ip
+
+  - platform: version
+    name: "${friendly_name} ESPHome Version"
+    hide_timestamp: true
+    icon: mdi:information-outline
