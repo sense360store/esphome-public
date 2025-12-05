@@ -1,0 +1,294 @@
+---
+# ============================================================================
+# COMFORT CEILING EXPANSION MODULE - FOR CEILING S3 BOARD
+# ============================================================================
+# Environmental comfort monitoring module for Sense360 Ceiling S3 board.
+# This variant uses the ceiling S3's I2C primary bus on GPIO26/GPIO8.
+#
+# Sensors:
+# - VEML7700 (I2C 0x10): High-resolution ambient light sensor
+# - SHT4x (I2C 0x44): High-accuracy temperature and humidity
+#
+# I2C Connection (Ceiling S3):
+#   - SDA: GPIO26
+#   - SCL: GPIO8
+#   - Frequency: 100kHz (shared with AirIQ)
+#
+# Interrupt:
+#   - ALS_INT: GPIO3 (VEML7700 interrupt, active low)
+#
+# ============================================================================
+
+substitutions:
+  # I2C Configuration (uses ceiling S3 primary bus)
+  comfort_i2c_id: i2c_primary
+  comfort_i2c_sda: GPIO26
+  comfort_i2c_scl: GPIO8
+
+  # Interrupt pin
+  comfort_als_int_pin: GPIO3
+
+  # Sensor update intervals
+  comfort_veml7700_update: 10s
+  comfort_sht4x_update: 30s
+
+  # Light level thresholds (lux)
+  comfort_lux_dark: "10"
+  comfort_lux_dim: "100"
+  comfort_lux_bright: "500"
+
+# ============================================================================
+# VEML7700 - High-Resolution Ambient Light Sensor
+# ============================================================================
+sensor:
+  - platform: veml7700
+    id: comfort_veml7700
+    i2c_id: ${comfort_i2c_id}
+    address: 0x10
+    update_interval: ${comfort_veml7700_update}
+
+    # Auto-adjusting lux measurement
+    ambient_light:
+      id: comfort_illuminance
+      name: "${friendly_name} Illuminance"
+      accuracy_decimals: 1
+      unit_of_measurement: "lx"
+      device_class: illuminance
+      state_class: measurement
+      icon: mdi:brightness-5
+      filters:
+        - throttle: ${comfort_veml7700_update}
+
+    # Raw ambient light counts (for debugging)
+    ambient_light_counts:
+      id: comfort_als_counts
+      name: "${friendly_name} ALS Counts"
+      internal: true
+      accuracy_decimals: 0
+
+    # Full spectrum measurement
+    full_spectrum:
+      id: comfort_full_spectrum
+      name: "${friendly_name} Full Spectrum"
+      internal: true
+      accuracy_decimals: 1
+      unit_of_measurement: "lx"
+
+    full_spectrum_counts:
+      id: comfort_fs_counts
+      name: "${friendly_name} FS Counts"
+      internal: true
+      accuracy_decimals: 0
+
+    # Sensor configuration
+    auto_mode: true
+    gain: 1X
+    integration_time: 100ms
+
+# ============================================================================
+# SHT4x - High-Accuracy Temperature/Humidity Sensor
+# ============================================================================
+  - platform: sht4x
+    id: comfort_sht4x
+    i2c_id: ${comfort_i2c_id}
+    address: 0x44
+    update_interval: ${comfort_sht4x_update}
+
+    temperature:
+      id: comfort_temperature
+      name: "${friendly_name} Temperature (Comfort)"
+      accuracy_decimals: 2
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      icon: mdi:thermometer
+      filters:
+        - throttle: ${comfort_sht4x_update}
+
+    humidity:
+      id: comfort_humidity
+      name: "${friendly_name} Humidity (Comfort)"
+      accuracy_decimals: 1
+      unit_of_measurement: "%"
+      device_class: humidity
+      state_class: measurement
+      icon: mdi:water-percent
+      filters:
+        - throttle: ${comfort_sht4x_update}
+
+    # High precision mode
+    precision: High
+    heater_power: Off
+
+  # ============================================================================
+  # DERIVED SENSORS
+  # ============================================================================
+  # Dew Point
+  - platform: template
+    id: comfort_dew_point
+    name: "${friendly_name} Dew Point"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:water-thermometer
+    lambda: |-
+      float temp = id(comfort_temperature).state;
+      float humidity = id(comfort_humidity).state;
+      if (std::isnan(temp) || std::isnan(humidity)) return NAN;
+
+      // Magnus formula
+      float alpha = ((17.27f * temp) / (237.7f + temp)) + log(humidity / 100.0f);
+      float dew_point = (237.7f * alpha) / (17.27f - alpha);
+      return dew_point;
+    update_interval: 60s
+
+  # Heat Index (feels-like temperature)
+  - platform: template
+    id: comfort_heat_index
+    name: "${friendly_name} Heat Index"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:thermometer-alert
+    lambda: |-
+      float temp = id(comfort_temperature).state;
+      float humidity = id(comfort_humidity).state;
+      if (std::isnan(temp) || std::isnan(humidity)) return NAN;
+
+      // Only calculate if temp > 26.7C and humidity > 40%
+      if (temp < 26.7f || humidity < 40.0f) return temp;
+
+      // Rothfusz regression (simplified)
+      float t = temp;
+      float h = humidity;
+      float hi = -8.784695f + 1.61139411f * t + 2.338549f * h
+                 - 0.14611605f * t * h - 0.012308094f * t * t
+                 - 0.016424828f * h * h + 0.002211732f * t * t * h
+                 + 0.00072546f * t * h * h - 0.000003582f * t * t * h * h;
+      return hi;
+    update_interval: 60s
+
+  # Comfort Index (0-100%)
+  - platform: template
+    id: comfort_index
+    name: "${friendly_name} Comfort Index"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: mdi:home-thermometer
+    lambda: |-
+      float temp = id(comfort_temperature).state;
+      float humidity = id(comfort_humidity).state;
+      if (std::isnan(temp) || std::isnan(humidity)) return NAN;
+
+      // Temperature score (ideal 20-24C)
+      float temp_score = 100.0f;
+      if (temp < 18.0f) {
+        temp_score = 100.0f - (18.0f - temp) * 10.0f;
+      } else if (temp > 26.0f) {
+        temp_score = 100.0f - (temp - 26.0f) * 10.0f;
+      } else if (temp < 20.0f || temp > 24.0f) {
+        temp_score = 90.0f;
+      }
+      if (temp_score < 0.0f) temp_score = 0.0f;
+
+      // Humidity score (ideal 40-60%)
+      float hum_score = 100.0f;
+      if (humidity < 30.0f) {
+        hum_score = 100.0f - (30.0f - humidity) * 2.0f;
+      } else if (humidity > 70.0f) {
+        hum_score = 100.0f - (humidity - 70.0f) * 2.0f;
+      } else if (humidity < 40.0f || humidity > 60.0f) {
+        hum_score = 90.0f;
+      }
+      if (hum_score < 0.0f) hum_score = 0.0f;
+
+      // Combined comfort (weighted average)
+      return (temp_score * 0.5f) + (hum_score * 0.5f);
+    update_interval: 60s
+
+# ============================================================================
+# AMBIENT LIGHT INTERRUPT
+# ============================================================================
+binary_sensor:
+  - platform: gpio
+    id: als_interrupt
+    name: "${friendly_name} ALS Interrupt"
+    internal: true
+    pin:
+      number: ${comfort_als_int_pin}
+      mode:
+        input: true
+        pullup: true
+      inverted: true  # VEML7700 interrupt is active-low
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+    on_press:
+      then:
+        - logger.log:
+            level: DEBUG
+            format: "VEML7700 interrupt - light threshold crossed"
+
+# ============================================================================
+# LIGHT LEVEL CATEGORY
+# ============================================================================
+text_sensor:
+  - platform: template
+    id: comfort_light_level
+    name: "${friendly_name} Light Level"
+    icon: mdi:brightness-6
+    lambda: |-
+      float lux = id(comfort_illuminance).state;
+      if (std::isnan(lux)) return std::string("Unknown");
+
+      if (lux < ${comfort_lux_dark}) return std::string("Dark");
+      if (lux < ${comfort_lux_dim}) return std::string("Dim");
+      if (lux < ${comfort_lux_bright}) return std::string("Normal");
+      return std::string("Bright");
+    update_interval: 30s
+
+  - platform: template
+    id: comfort_status
+    name: "${friendly_name} Comfort Status"
+    icon: mdi:emoticon
+    lambda: |-
+      float comfort = id(comfort_index).state;
+      if (std::isnan(comfort)) return std::string("Unknown");
+
+      if (comfort >= 80.0f) return std::string("Excellent");
+      if (comfort >= 60.0f) return std::string("Good");
+      if (comfort >= 40.0f) return std::string("Fair");
+      return std::string("Poor");
+    update_interval: 60s
+
+# ============================================================================
+# MODULE INITIALIZATION
+# ============================================================================
+globals:
+  - id: module_comfort_present
+    type: bool
+    restore_value: false
+    initial_value: 'true'
+
+esphome:
+  on_boot:
+    - priority: 500
+      then:
+        - lambda: |-
+            id(module_comfort_present) = true;
+            ESP_LOGI("comfort_ceiling_s3", "Comfort Ceiling module initialized on I2C %s/%s",
+                     "${comfort_i2c_sda}", "${comfort_i2c_scl}");
+            ESP_LOGI("comfort_ceiling_s3", "  - VEML7700 at 0x10");
+            ESP_LOGI("comfort_ceiling_s3", "  - SHT4x at 0x44");
+            ESP_LOGI("comfort_ceiling_s3", "  - ALS_INT on GPIO%s", "${comfort_als_int_pin}");
+
+# ============================================================================
+# LOGGING
+# ============================================================================
+logger:
+  logs:
+    veml7700: INFO
+    sht4x: INFO
+    component: ERROR

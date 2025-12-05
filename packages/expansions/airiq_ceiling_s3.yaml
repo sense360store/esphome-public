@@ -1,0 +1,265 @@
+---
+# ============================================================================
+# AIRIQ EXPANSION MODULE - FOR CEILING S3 BOARD
+# ============================================================================
+# Air quality monitoring module configured for Sense360 Ceiling S3 board.
+# This variant uses the ceiling S3's I2C primary bus on GPIO26/GPIO8.
+#
+# Sensors:
+# - SEN55 (I2C 0x69): PM1.0, PM2.5, PM4.0, PM10, VOC, NOx, Temp, Humidity
+# - SCD41 (I2C 0x62): CO2, Temperature, Humidity
+#
+# I2C Connection (Ceiling S3):
+#   - SDA: GPIO26
+#   - SCL: GPIO8
+#   - Frequency: 100kHz (SEN55 requirement)
+#
+# Status Indicators:
+#   - AirQ_Status_Led: GPIO7 (available)
+#   - AirQ_Led: GPIO8 (CONFLICT - shares I2C_SCL, cannot be used!)
+#
+# ============================================================================
+
+substitutions:
+  # I2C Configuration (uses ceiling S3 primary bus)
+  airiq_i2c_id: i2c_primary
+  airiq_i2c_sda: GPIO26
+  airiq_i2c_scl: GPIO8
+
+  # Sensor update intervals
+  airiq_sen55_update: 30s
+  airiq_scd41_update: 30s
+
+  # CO2 calibration
+  co2_auto_calibration: "true"
+
+  # Status LED (only GPIO7 available, GPIO8 conflicts with I2C)
+  airiq_status_led_pin: GPIO7
+
+# ============================================================================
+# SEN55 - All-in-One Environmental Sensor
+# ============================================================================
+sensor:
+  - platform: sen5x
+    id: sen55_sensor
+    i2c_id: ${airiq_i2c_id}
+    address: 0x69
+    update_interval: ${airiq_sen55_update}
+
+    # Particulate Matter
+    pm_1_0:
+      id: airiq_pm1_0
+      name: "${friendly_name} PM1.0"
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    pm_2_5:
+      id: airiq_pm2_5
+      name: "${friendly_name} PM2.5"
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    pm_4_0:
+      id: airiq_pm4_0
+      name: "${friendly_name} PM4.0"
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    pm_10_0:
+      id: airiq_pm10_0
+      name: "${friendly_name} PM10"
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    # Environmental from SEN55
+    temperature:
+      id: airiq_sen55_temperature
+      name: "${friendly_name} Temperature (SEN55)"
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    humidity:
+      id: airiq_sen55_humidity
+      name: "${friendly_name} Humidity (SEN55)"
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    # Air Quality Indices
+    voc:
+      id: airiq_voc_index
+      name: "${friendly_name} VOC Index"
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    nox:
+      id: airiq_nox_index
+      name: "${friendly_name} NOx Index"
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sen55_update}
+
+    # Configuration
+    temperature_compensation:
+      offset: 0
+      normalized_offset_slope: 0
+      time_constant: 0
+    acceleration_mode: low
+    store_baseline: true
+    auto_cleaning_interval: 604800s  # 7 days
+
+# ============================================================================
+# SCD41 - CO2 Sensor
+# ============================================================================
+  - platform: scd4x
+    id: scd41_sensor
+    i2c_id: ${airiq_i2c_id}
+    address: 0x62
+    update_interval: ${airiq_scd41_update}
+
+    co2:
+      id: airiq_co2
+      name: "${friendly_name} CO2"
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_scd41_update}
+
+    temperature:
+      id: airiq_scd41_temperature
+      name: "${friendly_name} Temperature (SCD41)"
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_scd41_update}
+
+    humidity:
+      id: airiq_scd41_humidity
+      name: "${friendly_name} Humidity (SCD41)"
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_scd41_update}
+
+    automatic_self_calibration: ${co2_auto_calibration}
+    measurement_mode: periodic
+
+  # ============================================================================
+  # COMPOSITE SENSORS (Averaged from multiple sources)
+  # ============================================================================
+  - platform: template
+    id: airiq_temperature
+    name: "${friendly_name} Temperature"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:thermometer
+    lambda: |-
+      float temp_sen55 = id(airiq_sen55_temperature).state;
+      float temp_scd41 = id(airiq_scd41_temperature).state;
+      int count = 0;
+      float sum = 0.0f;
+      if (!std::isnan(temp_sen55)) { sum += temp_sen55; count++; }
+      if (!std::isnan(temp_scd41)) { sum += temp_scd41; count++; }
+      if (count > 0) return sum / count;
+      return NAN;
+    update_interval: 30s
+
+  - platform: template
+    id: airiq_humidity
+    name: "${friendly_name} Humidity"
+    unit_of_measurement: "%"
+    device_class: humidity
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:water-percent
+    lambda: |-
+      float hum_sen55 = id(airiq_sen55_humidity).state;
+      float hum_scd41 = id(airiq_scd41_humidity).state;
+      int count = 0;
+      float sum = 0.0f;
+      if (!std::isnan(hum_sen55)) { sum += hum_sen55; count++; }
+      if (!std::isnan(hum_scd41)) { sum += hum_scd41; count++; }
+      if (count > 0) return sum / count;
+      return NAN;
+    update_interval: 30s
+
+  # AQI based on PM2.5 (US EPA standard)
+  - platform: template
+    id: airiq_aqi
+    name: "${friendly_name} AQI"
+    unit_of_measurement: "AQI"
+    accuracy_decimals: 0
+    icon: mdi:air-filter
+    lambda: |-
+      float pm25 = id(airiq_pm2_5).state;
+      if (std::isnan(pm25)) return NAN;
+
+      int aqi = 0;
+      if (pm25 <= 12.0f) {
+        aqi = (int)((50.0f / 12.0f) * pm25);
+      } else if (pm25 <= 35.4f) {
+        aqi = (int)(((100.0f - 51.0f) / (35.4f - 12.1f)) * (pm25 - 12.1f) + 51.0f);
+      } else if (pm25 <= 55.4f) {
+        aqi = (int)(((150.0f - 101.0f) / (55.4f - 35.5f)) * (pm25 - 35.5f) + 101.0f);
+      } else if (pm25 <= 150.4f) {
+        aqi = (int)(((200.0f - 151.0f) / (150.4f - 55.5f)) * (pm25 - 55.5f) + 151.0f);
+      } else if (pm25 <= 250.4f) {
+        aqi = (int)(((300.0f - 201.0f) / (250.4f - 150.5f)) * (pm25 - 150.5f) + 201.0f);
+      } else {
+        aqi = (int)(((500.0f - 301.0f) / (500.4f - 250.5f)) * (pm25 - 250.5f) + 301.0f);
+      }
+      return (float)aqi;
+    update_interval: 30s
+
+# ============================================================================
+# AIR QUALITY STATUS TEXT
+# ============================================================================
+text_sensor:
+  - platform: template
+    id: airiq_aqi_category
+    name: "${friendly_name} Air Quality"
+    icon: mdi:air-filter
+    lambda: |-
+      float aqi = id(airiq_aqi).state;
+      if (std::isnan(aqi)) return std::string("Unknown");
+      if (aqi <= 50) return std::string("Good");
+      if (aqi <= 100) return std::string("Moderate");
+      if (aqi <= 150) return std::string("Unhealthy (Sensitive)");
+      if (aqi <= 200) return std::string("Unhealthy");
+      if (aqi <= 300) return std::string("Very Unhealthy");
+      return std::string("Hazardous");
+    update_interval: 30s
+
+# ============================================================================
+# MODULE INITIALIZATION
+# ============================================================================
+globals:
+  - id: module_airiq_present
+    type: bool
+    restore_value: false
+    initial_value: 'true'
+
+esphome:
+  on_boot:
+    - priority: 500
+      then:
+        - lambda: |-
+            id(module_airiq_present) = true;
+            ESP_LOGI("airiq_ceiling_s3", "AirIQ module initialized on I2C %s/%s",
+                     "${airiq_i2c_sda}", "${airiq_i2c_scl}");
+            ESP_LOGI("airiq_ceiling_s3", "  - SEN55 at 0x69");
+            ESP_LOGI("airiq_ceiling_s3", "  - SCD41 at 0x62");
+
+# ============================================================================
+# LOGGING
+# ============================================================================
+logger:
+  logs:
+    sen5x: INFO
+    scd4x: INFO
+    component: ERROR

@@ -1,0 +1,459 @@
+---
+# ============================================================================
+# Sense360 Core Ceiling S3 - Modular ESP32-S3 Sensor Platform
+# ============================================================================
+#
+# Hardware: ESP32-S3-WROOM-1-N16R8 (16MB Flash, 8MB PSRAM)
+# Schematic: Modular_ESP32-S3_Sensor_Platform.kicad_sch
+# Form Factor: Ceiling recessed mount with expansion module support
+#
+# This is the ceiling-mounted variant with support for:
+# - Presence Module (Hi-Link LD2450 or DFRobot SEN0609/C4001)
+# - AirIQ Module (SEN55, SCD41 air quality sensors)
+# - Comfort Module (VEML7700, SHT4x climate sensors)
+# - WS2812B LED ring for visual feedback
+# - Fan control output
+#
+# ============================================================================
+# POWER SYSTEM
+# ============================================================================
+# - USB-C receptacle (VBUS power input)
+# - PoE option via SQ2310CEDD MOSFET
+# - RT6050GJ5 buck converter (5V to 3.3V @ 3A for MCU)
+# - Separate 5V rail for sensor modules
+#
+# ============================================================================
+# PIN ASSIGNMENTS (ESP32-S3-WROOM-1-N16R8)
+# ============================================================================
+#
+# I2C BUSES:
+# ----------
+# I2C Primary (Sensors):
+#   - SDA: GPIO26 (I2C_SDA) → AirIQ Module, Comfort Module
+#   - SCL: GPIO8 (I2C_SCL) → AirIQ Module, Comfort Module
+#   - Frequency: 100 kHz (for SEN55 compatibility)
+#
+# UART PORTS:
+# -----------
+# UART Presence (Hi-Link LD2450):
+#   - TX: GPIO38 (Hi-Link_RX) → ESP32 transmits to Hi-Link RX
+#   - RX: GPIO39 (Hi-Link_TX) → ESP32 receives from Hi-Link TX
+#   - Baud: 256000 (LD2450 default)
+#
+# UART Presence Alt (DFRobot SEN0609/C4001):
+#   - TX: GPIO4 (SEN0609_RX) → ESP32 transmits to SEN0609 RX
+#   - RX: GPIO5 (SEN0609_TX) → ESP32 receives from SEN0609 TX
+#   - Baud: 115200 (C4001 default)
+#   - Note: Use this OR Hi-Link, not both simultaneously
+#
+# PRESENCE MODULE GPIOS:
+# ----------------------
+#   - GPIO6 (notEgpio0): SEN0609_RX alternate line / digital output
+#   - GPIO5: SEN0609_TX / out1@ms11 presence detection output
+#
+# AIRIQ MODULE:
+# -------------
+#   - GPIO7: AirQ_Status_Led (status indicator)
+#   - GPIO8: AirQ_Led / I2C_SCL (LED indicator - NOTE: shared with I2C!)
+#
+# COMFORT MODULE:
+# ---------------
+#   - GPIO3: ALS_INT (VEML7700 ambient light sensor interrupt, active low)
+#
+# LED CONTROL:
+# ------------
+#   - GPIO14: LED_DATA_3V3 (WS2812B LED ring via level shifter)
+#
+# FAN CONTROL:
+# ------------
+#   - GPIO23: FAN (SI2302 MOSFET gate, active high)
+#
+# SYSTEM:
+# -------
+#   - GPIO0: Boot button (strapping pin)
+#   - GPIO46: Chip enable (strapping pin, typically pulled up)
+#
+# ============================================================================
+# IMPORTANT NOTES:
+# ============================================================================
+# 1. GPIO8 CONFLICT: GPIO8 is used for both I2C_SCL AND AirQ_Led indicator.
+#    The LED must be disabled when I2C is active, or use a different GPIO.
+#
+# 2. PRESENCE SENSOR SELECTION: Choose either Hi-Link (GPIO38/39) OR
+#    SEN0609 (GPIO4/5) based on which sensor is physically installed.
+#
+# 3. LEVEL SHIFTER: WS2812B LEDs use 5V logic, ESP32-S3 outputs 3.3V.
+#    The schematic includes a level shifter (U2) for LED_DATA signal.
+#
+# 4. I2C PULLUPS: External 4.7kΩ pullup resistors should be present on
+#    SDA and SCL lines (verify on schematic).
+#
+# ============================================================================
+
+substitutions:
+  device_name: sense360-ceiling-s3
+  friendly_name: Sense360 Ceiling S3
+  timezone: "America/New_York"
+
+  # ============================================================================
+  # I2C CONFIGURATION
+  # ============================================================================
+  # Primary I2C bus for all sensor modules (AirIQ, Comfort)
+  i2c_primary_sda_pin: GPIO26
+  i2c_primary_scl_pin: GPIO8
+  i2c_primary_frequency: "100000"  # 100 kHz for SEN55 compatibility
+
+  # ============================================================================
+  # UART CONFIGURATIONS
+  # ============================================================================
+  # Hi-Link LD2450 (primary presence sensor option)
+  uart_hilink_tx_pin: GPIO38  # ESP TX → Hi-Link RX
+  uart_hilink_rx_pin: GPIO39  # ESP RX ← Hi-Link TX
+  uart_hilink_baud: "256000"
+
+  # DFRobot SEN0609/C4001 (alternative presence sensor option)
+  uart_sen0609_tx_pin: GPIO4   # ESP TX → SEN0609 RX
+  uart_sen0609_rx_pin: GPIO5   # ESP RX ← SEN0609 TX
+  uart_sen0609_baud: "115200"
+
+  # Active UART selection (change based on installed sensor)
+  # Options: "hilink" or "sen0609"
+  presence_sensor_type: "hilink"
+
+  # Mapped pins (will be set based on presence_sensor_type)
+  uart_presence_tx_pin: GPIO38  # Default to Hi-Link
+  uart_presence_rx_pin: GPIO39  # Default to Hi-Link
+  uart_presence_baud: "256000"  # Default to Hi-Link
+
+  # ============================================================================
+  # MODULE GPIO PINS
+  # ============================================================================
+  # Presence Module
+  presence_gpio_output: GPIO5      # out1@ms11 digital presence output
+  presence_gpio_alt: GPIO6         # notEgpio0 - SEN0609 alternate / aux
+
+  # AirIQ Module
+  airiq_status_led_pin: GPIO7      # AirQ_Status_Led
+  # airiq_led_pin: GPIO8           # AirQ_Led (CONFLICTS with I2C_SCL!)
+
+  # Comfort Module
+  comfort_als_int_pin: GPIO3       # VEML7700 interrupt (active low)
+
+  # ============================================================================
+  # LED CONTROL
+  # ============================================================================
+  led_data_pin: GPIO14             # WS2812B LED ring (via level shifter)
+  led_count: "12"                  # Number of LEDs in halo ring
+
+  # ============================================================================
+  # FAN CONTROL
+  # ============================================================================
+  fan_control_pin: GPIO23          # SI2302 MOSFET gate
+
+  # ============================================================================
+  # SYSTEM PINS
+  # ============================================================================
+  boot_button_pin: GPIO0           # Boot button (strapping pin)
+
+# ============================================================================
+# ESPHOME CONFIGURATION
+# ============================================================================
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  project:
+    name: sense360.ceiling-s3
+    version: 1.0.0
+  on_boot:
+    - priority: 800
+      then:
+        - logger.log: "Sense360 Ceiling S3 initializing..."
+    - priority: -100
+      then:
+        - logger.log:
+            format: "Sense360 Ceiling S3 ready - Presence sensor: %s"
+            args: ['${presence_sensor_type}']
+
+# ============================================================================
+# ESP32-S3 CONFIGURATION
+# ============================================================================
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_COMPILER_OPTIMIZATION_SIZE: y
+      # PSRAM Configuration (8MB)
+      CONFIG_ESP32S3_SPIRAM_SUPPORT: y
+      CONFIG_SPIRAM_MODE_OCT: y
+      CONFIG_SPIRAM_SPEED_80M: y
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: y
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+# ============================================================================
+# I2C BUS (Shared by AirIQ and Comfort modules)
+# ============================================================================
+i2c:
+  - id: i2c_primary
+    sda: ${i2c_primary_sda_pin}
+    scl: ${i2c_primary_scl_pin}
+    scan: true
+    frequency: ${i2c_primary_frequency}Hz
+
+# ============================================================================
+# UART BUS (Presence Module)
+# ============================================================================
+uart:
+  - id: uart_presence
+    tx_pin: ${uart_presence_tx_pin}
+    rx_pin: ${uart_presence_rx_pin}
+    baud_rate: ${uart_presence_baud}
+    parity: NONE
+    stop_bits: 1
+
+# ============================================================================
+# WS2812B LED RING (Halo Effect)
+# ============================================================================
+light:
+  # LED ring for visual feedback (air quality, presence, etc.)
+  - platform: neopixelbus
+    id: led_ring
+    type: GRB
+    variant: WS2812
+    pin: ${led_data_pin}
+    num_leds: ${led_count}
+    name: "${friendly_name} LED Ring"
+    default_transition_length: 300ms
+    effects:
+      - pulse:
+          name: "Pulse"
+          transition_length: 1s
+          update_interval: 1s
+      - random:
+          name: "Random"
+          transition_length: 2s
+          update_interval: 3s
+      - strobe:
+          name: "Strobe"
+      - addressable_rainbow:
+          name: "Rainbow"
+          speed: 10
+          width: 50
+      - addressable_scan:
+          name: "Scan"
+          move_interval: 100ms
+
+# ============================================================================
+# FAN CONTROL
+# ============================================================================
+output:
+  - platform: gpio
+    id: fan_output
+    pin: ${fan_control_pin}
+
+switch:
+  - platform: output
+    name: "${friendly_name} Fan"
+    id: fan_switch
+    output: fan_output
+    icon: mdi:fan
+    restore_mode: RESTORE_DEFAULT_OFF
+
+# ============================================================================
+# PRESENCE MODULE GPIO (Digital Output)
+# ============================================================================
+binary_sensor:
+  # System status
+  - platform: status
+    name: "${friendly_name} Status"
+    id: system_status
+
+  # Presence detection GPIO (from sensor module)
+  - platform: gpio
+    id: presence_gpio_sensor
+    name: "${friendly_name} Presence GPIO"
+    pin:
+      number: ${presence_gpio_output}
+      mode:
+        input: true
+        pulldown: true
+    device_class: occupancy
+    filters:
+      - delayed_on: 100ms
+      - delayed_off: 30s
+
+  # Boot button
+  - platform: gpio
+    name: "${friendly_name} Boot Button"
+    id: boot_button
+    pin:
+      number: ${boot_button_pin}
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    internal: true
+
+# ============================================================================
+# AIRIQ STATUS INDICATORS
+# ============================================================================
+# Note: GPIO8 conflict - AirQ_Led cannot be used as it shares I2C_SCL
+# Only GPIO7 AirQ_Status_Led is usable
+output:
+  - platform: gpio
+    id: airiq_status_led_output
+    pin: ${airiq_status_led_pin}
+
+light:
+  - platform: binary
+    id: airiq_status_led
+    name: "${friendly_name} AirIQ Status"
+    output: airiq_status_led_output
+    internal: true
+
+# ============================================================================
+# COMFORT MODULE ALS INTERRUPT
+# ============================================================================
+binary_sensor:
+  - platform: gpio
+    id: als_interrupt
+    name: "${friendly_name} ALS Interrupt"
+    internal: true
+    pin:
+      number: ${comfort_als_int_pin}
+      mode:
+        input: true
+        pullup: true
+      inverted: true  # VEML7700 interrupt is active-low
+    filters:
+      - delayed_on: 10ms
+
+# ============================================================================
+# SYSTEM CONTROLS
+# ============================================================================
+button:
+  - platform: restart
+    id: restart_button
+    name: "${friendly_name} Restart"
+    icon: mdi:restart
+
+  - platform: safe_mode
+    name: "${friendly_name} Safe Mode"
+    icon: mdi:safety-goggles
+
+  - platform: factory_reset
+    name: "${friendly_name} Factory Reset"
+    id: factory_reset_btn
+    icon: mdi:delete-forever
+    disabled_by_default: true
+
+# ============================================================================
+# SYSTEM SENSORS
+# ============================================================================
+sensor:
+  - platform: wifi_signal
+    name: "${friendly_name} WiFi Signal"
+    id: wifi_signal_sensor
+    update_interval: 60s
+    icon: mdi:wifi
+
+  - platform: uptime
+    name: "${friendly_name} Uptime"
+    id: uptime_sensor
+    update_interval: 60s
+    icon: mdi:clock-outline
+
+  - platform: internal_temperature
+    name: "${friendly_name} MCU Temperature"
+    id: mcu_temperature
+    update_interval: 60s
+    icon: mdi:thermometer
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "${friendly_name} IP Address"
+      icon: mdi:ip-network
+    ssid:
+      name: "${friendly_name} SSID"
+      icon: mdi:wifi
+    mac_address:
+      name: "${friendly_name} MAC Address"
+      icon: mdi:network-outline
+
+  - platform: version
+    name: "${friendly_name} ESPHome Version"
+    hide_timestamp: true
+    icon: mdi:information-outline
+
+# ============================================================================
+# MODULE PRESENCE FLAGS
+# ============================================================================
+globals:
+  - id: module_presence_present
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+  - id: module_airiq_present
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+  - id: module_comfort_present
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+# ============================================================================
+# LOGGING
+# ============================================================================
+logger:
+  level: INFO
+  logs:
+    component: ERROR
+    i2c: INFO
+    uart: INFO
+
+# ============================================================================
+# INTEGRATION NOTES
+# ============================================================================
+# To use this core board with expansion modules, include the appropriate
+# module packages:
+#
+# For Hi-Link LD2450 Presence:
+#   packages:
+#     presence: !include ../hardware/presence_ld2450.yaml
+#
+# For DFRobot SEN0609/C4001 Presence:
+#   packages:
+#     presence: !include ../hardware/presence_dfrobot_c4001.yaml
+#
+# For AirIQ Module:
+#   packages:
+#     airiq: !include ../expansions/airiq.yaml
+#     airiq_profile: !include ../features/airiq_basic.yaml
+#
+# For Comfort Ceiling Module:
+#   packages:
+#     comfort: !include ../expansions/comfort_ceiling.yaml
+#
+# ============================================================================
+# KNOWN ISSUES / WARNINGS
+# ============================================================================
+# 1. GPIO8 CONFLICT: GPIO8 is used for both I2C_SCL and AirQ_Led in the
+#    schematic. This is a design error. AirQ_Led cannot be used when I2C
+#    is active. Consider using a different GPIO for the LED or removing it.
+#
+# 2. I2C FREQUENCY: Set to 100kHz for SEN55 compatibility. If only using
+#    SCD41 and VEML7700, 400kHz can be used for faster communication.
+#
+# 3. PRESENCE SENSOR SELECTION: Update presence_sensor_type substitution
+#    and corresponding uart_presence_* pins based on installed hardware.
+# ============================================================================

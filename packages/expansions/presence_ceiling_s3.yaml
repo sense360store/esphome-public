@@ -1,0 +1,297 @@
+---
+# ============================================================================
+# PRESENCE MODULE CEILING S3 - EXPANSION MODULE
+# ============================================================================
+# Ceiling-mounted presence detection for Sense360 Ceiling S3 board.
+#
+# Supported Sensors (choose one):
+# 1. Hi-Link LD2450 (24GHz mmWave)
+#    - UART: TX=GPIO38, RX=GPIO39, Baud=256000
+#    - Multi-target tracking (up to 3 targets)
+#    - Range: 0.2m - 6m
+#
+# 2. DFRobot SEN0609/C4001 (24GHz mmWave FMCW)
+#    - UART: TX=GPIO4, RX=GPIO5, Baud=115200
+#    - Long-range presence (up to 25m motion, 16m presence)
+#    - Distance: 1.2m - 25m
+#    - Speed: 0.1 - 10 m/s
+#
+# GPIO Signals:
+#   - GPIO5: out1@ms11 digital presence output (from sensor module)
+#   - GPIO6: notEgpio0 auxiliary signal (from sensor module)
+#
+# NOTE: Only one sensor type should be installed at a time!
+#
+# ============================================================================
+
+substitutions:
+  # ============================================================================
+  # SENSOR SELECTION - Set to "hilink" or "sen0609"
+  # ============================================================================
+  presence_sensor_type: "hilink"  # Change to "sen0609" for DFRobot sensor
+
+  # ============================================================================
+  # UART CONFIGURATIONS (DO NOT EDIT - Set presence_sensor_type above)
+  # ============================================================================
+  # Hi-Link LD2450 UART
+  uart_hilink_id: uart_presence
+  uart_hilink_tx_pin: GPIO38
+  uart_hilink_rx_pin: GPIO39
+  uart_hilink_baud: "256000"
+
+  # DFRobot SEN0609/C4001 UART
+  uart_sen0609_id: uart_presence
+  uart_sen0609_tx_pin: GPIO4
+  uart_sen0609_rx_pin: GPIO5
+  uart_sen0609_baud: "115200"
+
+  # ============================================================================
+  # GPIO PINS
+  # ============================================================================
+  presence_gpio_output: GPIO5     # out1@ms11 - digital presence output
+  presence_gpio_alt: GPIO6        # notEgpio0 - auxiliary signal
+
+  # ============================================================================
+  # DETECTION SETTINGS
+  # ============================================================================
+  presence_timeout: 30s
+  presence_update_interval: 1s
+
+# ============================================================================
+# UART CONFIGURATION
+# ============================================================================
+# Note: The UART is already configured in sense360_core_ceiling_s3.yaml
+# based on the presence_sensor_type. This file uses that existing UART.
+
+# ============================================================================
+# GPIO PRESENCE OUTPUT
+# ============================================================================
+# Digital presence detection signal from the sensor module.
+# This provides a simple binary occupancy state independent of UART data.
+binary_sensor:
+  - platform: gpio
+    id: presence_gpio_sensor
+    name: "${friendly_name} Presence GPIO"
+    pin:
+      number: ${presence_gpio_output}
+      mode:
+        input: true
+        pulldown: true
+    device_class: occupancy
+    internal: true
+    filters:
+      - delayed_on: 100ms
+      - delayed_off: ${presence_timeout}
+    on_press:
+      then:
+        - lambda: |-
+            ESP_LOGD("presence", "GPIO presence detected");
+    on_release:
+      then:
+        - lambda: |-
+            ESP_LOGD("presence", "GPIO presence cleared");
+
+  # Auxiliary GPIO (notEgpio0) - can be used for additional sensor output
+  - platform: gpio
+    id: presence_gpio_aux
+    name: "${friendly_name} Presence Aux"
+    pin:
+      number: ${presence_gpio_alt}
+      mode:
+        input: true
+        pulldown: true
+    internal: true
+    disabled_by_default: true
+
+# ============================================================================
+# PRESENCE GLOBALS
+# ============================================================================
+globals:
+  - id: module_presence_present
+    type: bool
+    restore_value: false
+    initial_value: 'true'
+
+  # Presence confidence (0.0 - 1.0)
+  - id: presence_confidence
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
+  # Detection distance (meters)
+  - id: presence_distance
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
+  # People count (for multi-target sensors like LD2450)
+  - id: presence_people_count
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+  # Last detection timestamp
+  - id: presence_last_detection_ms
+    type: unsigned long
+    restore_value: false
+    initial_value: '0'
+
+# ============================================================================
+# UNIFIED PRESENCE SENSOR
+# ============================================================================
+binary_sensor:
+  - platform: template
+    id: presence_detected
+    name: "${friendly_name} Presence"
+    device_class: occupancy
+    lambda: |-
+      // Combine GPIO and UART-based detection
+      bool gpio_presence = id(presence_gpio_sensor).state;
+      float confidence = id(presence_confidence);
+
+      // Return true if either GPIO is active or confidence is high
+      return gpio_presence || (confidence >= 0.4f);
+    on_press:
+      then:
+        - light.turn_on:
+            id: led_ring
+            effect: "Pulse"
+            brightness: 50%
+            red: 0%
+            green: 100%
+            blue: 0%
+    on_release:
+      then:
+        - light.turn_off:
+            id: led_ring
+
+# ============================================================================
+# PRESENCE SENSORS (Template sensors for unified access)
+# ============================================================================
+sensor:
+  # Presence confidence (0-100%)
+  - platform: template
+    id: presence_confidence_sensor
+    name: "${friendly_name} Presence Confidence"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: mdi:percent
+    lambda: |-
+      return id(presence_confidence) * 100.0f;
+    update_interval: ${presence_update_interval}
+
+  # Detection distance
+  - platform: template
+    id: presence_distance_sensor
+    name: "${friendly_name} Detection Distance"
+    unit_of_measurement: "m"
+    accuracy_decimals: 2
+    icon: mdi:ruler
+    lambda: |-
+      return id(presence_distance);
+    update_interval: ${presence_update_interval}
+
+  # People count (for multi-target sensors)
+  - platform: template
+    id: presence_count_sensor
+    name: "${friendly_name} People Count"
+    unit_of_measurement: "people"
+    accuracy_decimals: 0
+    icon: mdi:account-group
+    lambda: |-
+      return (float)id(presence_people_count);
+    update_interval: ${presence_update_interval}
+
+# ============================================================================
+# PRESENCE TIMEOUT LOGIC
+# ============================================================================
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          // Decay confidence over time if no recent detection
+          unsigned long now = millis();
+          unsigned long last = id(presence_last_detection_ms);
+          unsigned long timeout_ms = 30000;  // 30 second timeout
+
+          if (last > 0 && (now - last) > timeout_ms) {
+            float current = id(presence_confidence);
+            if (current > 0.1f) {
+              id(presence_confidence) = current - 0.05f;  // Decay by 5% per second
+              if (id(presence_confidence) < 0.1f) {
+                id(presence_confidence) = 0.0f;
+                id(presence_people_count) = 0;
+                id(presence_distance) = 0.0f;
+              }
+            }
+          }
+
+# ============================================================================
+# TEXT SENSORS
+# ============================================================================
+text_sensor:
+  # Active sensor type indicator
+  - platform: template
+    id: presence_sensor_type_text
+    name: "${friendly_name} Presence Sensor"
+    icon: mdi:radar
+    lambda: |-
+      std::string type = "${presence_sensor_type}";
+      if (type == "hilink") {
+        return std::string("Hi-Link LD2450");
+      } else if (type == "sen0609") {
+        return std::string("DFRobot C4001");
+      } else {
+        return std::string("Unknown");
+      }
+    update_interval: 60s
+
+# ============================================================================
+# MODULE INITIALIZATION
+# ============================================================================
+esphome:
+  on_boot:
+    - priority: 500
+      then:
+        - lambda: |-
+            id(module_presence_present) = true;
+            std::string sensor_type = "${presence_sensor_type}";
+
+            if (sensor_type == "hilink") {
+              ESP_LOGI("presence_ceiling_s3", "Presence module initialized - Hi-Link LD2450");
+              ESP_LOGI("presence_ceiling_s3", "  - UART: TX=GPIO%s, RX=GPIO%s @ %s baud",
+                       "${uart_hilink_tx_pin}", "${uart_hilink_rx_pin}", "${uart_hilink_baud}");
+            } else if (sensor_type == "sen0609") {
+              ESP_LOGI("presence_ceiling_s3", "Presence module initialized - DFRobot C4001");
+              ESP_LOGI("presence_ceiling_s3", "  - UART: TX=GPIO%s, RX=GPIO%s @ %s baud",
+                       "${uart_sen0609_tx_pin}", "${uart_sen0609_rx_pin}", "${uart_sen0609_baud}");
+            }
+
+            ESP_LOGI("presence_ceiling_s3", "  - GPIO Output: GPIO%s", "${presence_gpio_output}");
+            ESP_LOGI("presence_ceiling_s3", "  - GPIO Aux: GPIO%s", "${presence_gpio_alt}");
+
+# ============================================================================
+# LOGGING
+# ============================================================================
+logger:
+  logs:
+    presence: INFO
+    component: ERROR
+
+# ============================================================================
+# INTEGRATION NOTES
+# ============================================================================
+# To complete the presence detection setup, you MUST include one of the
+# following sensor-specific packages based on which sensor is installed:
+#
+# For Hi-Link LD2450:
+#   packages:
+#     presence_sensor: !include ../hardware/presence_ld2450.yaml
+#
+# For DFRobot C4001:
+#   packages:
+#     presence_sensor: !include ../hardware/presence_dfrobot_c4001.yaml
+#
+# These packages configure the UART sensor component and map data to the
+# global variables defined here (presence_confidence, presence_distance, etc.)
+# ============================================================================
