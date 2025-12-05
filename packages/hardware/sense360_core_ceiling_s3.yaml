@@ -257,6 +257,11 @@ output:
     id: fan_output
     pin: ${fan_control_pin}
 
+  # AirIQ status LED output (GPIO7)
+  - platform: gpio
+    id: airiq_status_led_output
+    pin: ${airiq_status_led_pin}
+
 switch:
   - platform: output
     name: "${friendly_name} Fan"
@@ -305,11 +310,6 @@ binary_sensor:
 # ============================================================================
 # Note: GPIO8 conflict - AirQ_Led cannot be used as it shares I2C_SCL
 # Only GPIO7 AirQ_Status_Led is usable
-output:
-  - platform: gpio
-    id: airiq_status_led_output
-    pin: ${airiq_status_led_pin}
-
 light:
   - platform: binary
     id: airiq_status_led
