@@ -103,6 +103,34 @@ binary_sensor:
     internal: true
     disabled_by_default: true
 
+  # ============================================================================
+  # UNIFIED PRESENCE SENSOR
+  # ============================================================================
+  - platform: template
+    id: presence_detected
+    name: "${friendly_name} Presence"
+    device_class: occupancy
+    lambda: |-
+      // Combine GPIO and UART-based detection
+      bool gpio_presence = id(presence_gpio_sensor).state;
+      float confidence = id(presence_confidence);
+
+      // Return true if either GPIO is active or confidence is high
+      return gpio_presence || (confidence >= 0.4f);
+    on_press:
+      then:
+        - light.turn_on:
+            id: led_ring
+            effect: "Pulse"
+            brightness: 50%
+            red: 0%
+            green: 100%
+            blue: 0%
+    on_release:
+      then:
+        - light.turn_off:
+            id: led_ring
+
 # ============================================================================
 # PRESENCE GLOBALS
 # ============================================================================
@@ -135,35 +163,6 @@ globals:
     type: unsigned long
     restore_value: false
     initial_value: '0'
-
-# ============================================================================
-# UNIFIED PRESENCE SENSOR
-# ============================================================================
-binary_sensor:
-  - platform: template
-    id: presence_detected
-    name: "${friendly_name} Presence"
-    device_class: occupancy
-    lambda: |-
-      // Combine GPIO and UART-based detection
-      bool gpio_presence = id(presence_gpio_sensor).state;
-      float confidence = id(presence_confidence);
-
-      // Return true if either GPIO is active or confidence is high
-      return gpio_presence || (confidence >= 0.4f);
-    on_press:
-      then:
-        - light.turn_on:
-            id: led_ring
-            effect: "Pulse"
-            brightness: 50%
-            red: 0%
-            green: 100%
-            blue: 0%
-    on_release:
-      then:
-        - light.turn_off:
-            id: led_ring
 
 # ============================================================================
 # PRESENCE SENSORS (Template sensors for unified access)
