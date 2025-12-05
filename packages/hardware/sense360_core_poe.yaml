@@ -111,6 +111,8 @@ esp32:
 # SPI bus for W5500 Ethernet controller
 spi:
   id: spi_bus
+  # W5500 requires SPI3_HOST when using ESP-IDF
+  interface: SPI3_HOST
   clk_pin: ${spi_clk_pin}
   mosi_pin: ${spi_mosi_pin}
   miso_pin: ${spi_miso_pin}
