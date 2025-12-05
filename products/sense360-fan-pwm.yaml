@@ -1,0 +1,272 @@
+---
+# ============================================================================
+# SENSE360 FAN PWM - 4-CHANNEL PWM FAN CONTROLLER
+# ============================================================================
+# Complete configuration for the Sense360 Fan PWM expansion module
+#
+# This configuration combines:
+# - Sense360 Core Voice board (for voice control capabilities)
+# - 4-channel PWM fan controller with tachometer feedback
+# - Optional Nextion display for local control
+#
+# Hardware Features:
+# - 4x independent PWM fan channels (25kHz PWM)
+# - 4x tachometer inputs for RPM monitoring
+# - 9x 4-pin fan connectors (multiple fans per channel via splitters)
+# - Voltage boost circuit (5V to 12V)
+# - Nextion HMI display for local control
+# - Voice assistant integration via Core Voice
+#
+# Use Cases:
+# - Home ventilation systems
+# - Computer room cooling
+# - Industrial air circulation
+# - Temperature-controlled exhaust
+# - Smart HVAC integration
+#
+# Power: PoE or 240V AC recommended (high power consumption with multiple fans)
+# ============================================================================
+
+packages:
+  # Base system packages (WiFi, API, OTA, Time, Logging, Bluetooth)
+  base: !include ../packages/base/complete.yaml
+
+  # Core Voice board hardware (ESP32-S3 with voice assistant)
+  core: !include ../packages/hardware/sense360_core_voice.yaml
+
+  # 4-channel PWM fan controller expansion
+  fan_pwm: !include ../packages/expansions/sense360_fan_pwm.yaml
+
+  # Power configuration (choose one below)
+  power: !include ../packages/hardware/power_poe.yaml
+  # Alternative power options:
+  # power: !include ../packages/hardware/power_240v.yaml
+
+substitutions:
+  # Device identification
+  device_name: sense360-fan-pwm
+  friendly_name: "Sense360 Fan PWM"
+
+  # Logging configuration
+  log_level: INFO
+
+  # Timezone (adjust to your location)
+  timezone: "America/Los_Angeles"
+
+  # Override fan settings if needed
+  # fan_min_speed: "10"
+  # fan_max_speed: "100"
+  # fan_default_speed: "50"
+
+# ============================================================================
+# ESPHome Configuration Override
+# ============================================================================
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  project:
+    name: sense360.fan_pwm
+    version: 1.0.0
+  on_boot:
+    - priority: -100
+      then:
+        - logger.log: "Sense360 Fan PWM controller ready"
+        - logger.log: "4-channel PWM fan control with voice assistant"
+
+# ============================================================================
+# Additional Number Controls for Direct Speed Setting
+# ============================================================================
+number:
+  # Master speed control (affects all fans in sync mode)
+  - platform: template
+    name: "${friendly_name} Master Speed"
+    id: master_fan_speed
+    icon: mdi:fan
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 50
+    optimistic: true
+    restore_value: true
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(fan_sync_mode);'
+            then:
+              - script.execute:
+                  id: set_all_fans_speed
+                  speed: !lambda 'return (int)x;'
+            else:
+              - logger.log: "Sync mode disabled - use individual fan controls"
+
+  # Individual fan speed controls
+  - platform: template
+    name: "${friendly_name} Fan 1 Speed Control"
+    id: fan1_speed_control
+    icon: mdi:fan
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 50
+    optimistic: true
+    restore_value: true
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - script.execute:
+            id: set_fan_speed
+            fan_number: 1
+            speed: !lambda 'return (int)x;'
+
+  - platform: template
+    name: "${friendly_name} Fan 2 Speed Control"
+    id: fan2_speed_control
+    icon: mdi:fan
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 50
+    optimistic: true
+    restore_value: true
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - script.execute:
+            id: set_fan_speed
+            fan_number: 2
+            speed: !lambda 'return (int)x;'
+
+  - platform: template
+    name: "${friendly_name} Fan 3 Speed Control"
+    id: fan3_speed_control
+    icon: mdi:fan
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 50
+    optimistic: true
+    restore_value: true
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - script.execute:
+            id: set_fan_speed
+            fan_number: 3
+            speed: !lambda 'return (int)x;'
+
+  - platform: template
+    name: "${friendly_name} Fan 4 Speed Control"
+    id: fan4_speed_control
+    icon: mdi:fan
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 50
+    optimistic: true
+    restore_value: true
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - script.execute:
+            id: set_fan_speed
+            fan_number: 4
+            speed: !lambda 'return (int)x;'
+
+# ============================================================================
+# Additional Buttons for Quick Control
+# ============================================================================
+button:
+  - platform: template
+    name: "${friendly_name} Emergency Stop"
+    id: emergency_stop_button
+    icon: mdi:stop-circle
+    on_press:
+      - script.execute: emergency_stop_all_fans
+
+  - platform: template
+    name: "${friendly_name} Set All Fans to 50%"
+    id: set_fans_50_button
+    icon: mdi:fan-speed-2
+    on_press:
+      - script.execute:
+          id: set_all_fans_speed
+          speed: 50
+
+  - platform: template
+    name: "${friendly_name} Set All Fans to 100%"
+    id: set_fans_100_button
+    icon: mdi:fan-speed-3
+    on_press:
+      - script.execute:
+          id: set_all_fans_speed
+          speed: 100
+
+# ============================================================================
+# Voice Assistant Integration
+# ============================================================================
+# The Core Voice board provides voice assistant capabilities.
+# You can control fans using voice commands through Home Assistant.
+#
+# Example voice commands (when integrated with Home Assistant):
+# - "Turn on Fan 1"
+# - "Set Fan 2 to 75 percent"
+# - "Turn off all fans"
+# - "Set fans to quiet mode"
+#
+# Note: Voice command configuration is handled in Home Assistant's
+# voice assistant pipeline configuration.
+# ============================================================================
+
+# ============================================================================
+# Optional: Temperature-Based Auto Control
+# ============================================================================
+# Uncomment and configure this section to enable automatic fan speed control
+# based on temperature readings. Requires a temperature sensor to be added.
+#
+# Example using internal temperature sensor:
+# interval:
+#   - interval: 30s
+#     then:
+#       - if:
+#           condition:
+#             lambda: 'return id(fan_auto_mode);'
+#           then:
+#             - lambda: |-
+#                 float temp = id(mcu_temperature).state;
+#                 int speed = 0;
+#
+#                 // Calculate fan speed based on temperature
+#                 if (temp < 30) {
+#                   speed = 20;  // Low speed
+#                 } else if (temp < 40) {
+#                   speed = 50;  // Medium speed
+#                 } else if (temp < 50) {
+#                   speed = 75;  // High speed
+#                 } else {
+#                   speed = 100; // Maximum speed
+#                 }
+#
+#                 // Apply the calculated speed
+#                 auto call_script = new esphome::script::SingleScript<int>(id(set_all_fans_speed));
+#                 call_script->execute(speed);
+
+# ============================================================================
+# WiFi Configuration
+# ============================================================================
+# WiFi credentials can be configured in several ways:
+# 1. Using secrets.yaml (recommended):
+#    wifi:
+#      ssid: !secret wifi_ssid
+#      password: !secret wifi_password
+#
+# 2. Using fallback hotspot for initial setup:
+#    wifi:
+#      ap:
+#        ssid: "${friendly_name} Fallback"
+#        password: "fallbackpassword"
+#
+# The base packages already include WiFi configuration.
+# Additional WiFi settings can be added here if needed.
+# ============================================================================
