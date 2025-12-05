@@ -24,7 +24,7 @@
 
 substitutions:
   # Device identity
-  device_name: sense360-mini-presence-advanced-ld2412  # Default device name; override per install
+  device_name: sense360-mini-adv-ld2412  # Default device name; override per install
   friendly_name: "SENSE360 Mini Presence Advanced"     # Default friendly name; override per install
 
   # Hardware pins (ESP32-S3 DevKit)
@@ -59,7 +59,7 @@ esphome:
   friendly_name: ${friendly_name}
   min_version: 2024.11.0
   project:
-    name: sense360.mini-presence-advanced-ld2412
+    name: sense360.mini-adv-ld2412
     version: "3.0.0"
 
 # ----------------------------------------------------------------------------
