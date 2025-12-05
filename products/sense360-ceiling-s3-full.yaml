@@ -237,10 +237,11 @@ sensor:
 # - GPIO5:  UART RX for SEN0609 / presence GPIO output
 # - GPIO6:  notEgpio0 (presence module auxiliary)
 # - GPIO7:  AirQ_Status_Led
-# - GPIO8:  I2C_SCL (WARNING: Conflicts with AirQ_Led in schematic!)
+# - GPIO8:  Reserved for AirQ_Led in schematic (unused here to avoid conflicts)
 # - GPIO14: LED_DATA (WS2812B LED ring)
-# - GPIO23: FAN (fan control MOSFET)
-# - GPIO26: I2C_SDA
+# - GPIO15: FAN (fan control MOSFET)
+# - GPIO18: I2C_SCL
+# - GPIO21: I2C_SDA
 # - GPIO38: UART TX for Hi-Link LD2450
 # - GPIO39: UART RX for Hi-Link LD2450
 #

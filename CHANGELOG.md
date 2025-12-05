@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - I2C primary bus on GPIO26/GPIO8 @ 100kHz for sensor modules
   - Dual UART support for presence sensors: Hi-Link LD2450 (GPIO38/39) and SEN0609/C4001 (GPIO4/5)
   - WS2812B LED ring control on GPIO14 with level shifter support
-  - Fan control output on GPIO23 with SI2302 MOSFET
+  - Fan control output on GPIO15 with SI2302 MOSFET
   - Module-specific configurations: `airiq_ceiling_s3.yaml`, `comfort_ceiling_s3.yaml`, `presence_ceiling_s3.yaml`
   - Complete product configuration: `sense360-ceiling-s3-full.yaml`
 - **Sense360 Core Board Support**: New board variants and power configurations

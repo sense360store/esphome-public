@@ -66,7 +66,7 @@
 #
 # FAN CONTROL:
 # ------------
-#   - GPIO23: FAN (SI2302 MOSFET gate, active high)
+#   - GPIO15: FAN (SI2302 MOSFET gate, active high)
 #
 # SYSTEM:
 # -------
@@ -149,7 +149,7 @@ substitutions:
   # ============================================================================
   # FAN CONTROL
   # ============================================================================
-  fan_control_pin: GPIO23          # SI2302 MOSFET gate
+  fan_control_pin: GPIO15          # SI2302 MOSFET gate
 
   # ============================================================================
   # SYSTEM PINS
