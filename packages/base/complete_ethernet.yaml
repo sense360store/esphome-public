@@ -1,0 +1,12 @@
+---
+# Base packages for Ethernet-enabled devices
+# This is like complete.yaml but without WiFi, for wired Ethernet devices
+
+packages:
+  # Note: No WiFi package for Ethernet devices
+  api: !include api_encrypted.yaml
+  ota: !include ota.yaml
+  time: !include time.yaml
+  logging: !include logging.yaml
+  # Bluetooth proxy can still work over Ethernet
+  bluetooth_proxy: !include bluetooth_proxy.yaml

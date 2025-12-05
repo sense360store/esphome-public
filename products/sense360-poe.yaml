@@ -1,0 +1,97 @@
+---
+# Sense360 PoE - Network Controller
+#
+# Ethernet-enabled Sense360 device with PoE power.
+# Designed to serve as a network bridge and controller for other Sense360 devices.
+#
+# Features:
+# - W5500 Ethernet controller for reliable wired connectivity
+# - IEEE 802.3af PoE power supply
+# - Dual I2C buses for expansion modules
+# - UART for presence/radar sensors
+# - Built-in relay for controlling devices
+# - Compatible with Home Assistant
+#
+# Use Cases:
+# - Central controller for Sense360 ecosystem
+# - Bridge between Ethernet and Sense360 devices
+# - Reliable network node in professional installations
+# - PoE-powered automation controller
+#
+# Network Configuration:
+# By default, this device uses DHCP to obtain an IP address.
+# For static IP configuration, uncomment and set the substitutions below.
+#
+# Connection to Sense360 Core/Voice:
+# This device connects to Home Assistant via Ethernet and can:
+# - Monitor and control other Sense360 devices through HA
+# - Act as a Bluetooth proxy for wireless Sense360 devices
+# - Provide a stable network connection for automation rules
+# - Interface with expansion modules (sensors, actuators)
+
+packages:
+  # Base system packages (no WiFi, uses Ethernet)
+  base: !include ../packages/base/complete_ethernet.yaml
+
+  # PoE board hardware with W5500 Ethernet
+  hardware: !include ../packages/hardware/sense360_core_poe.yaml
+
+  # PoE power configuration
+  power: !include ../packages/hardware/power_poe.yaml
+
+substitutions:
+  device_name: sense360-poe
+  friendly_name: "Sense360 PoE Controller"
+
+  # Logging configuration
+  log_level: INFO
+
+  # Timezone
+  timezone: "America/Los_Angeles"
+
+  # Fallback AP password (for emergency access if needed)
+  fallback_ap_password: "sense360poe"
+
+  # PoE configuration
+  poe_class: "0"  # PoE class (0 = 0.44-12.95W)
+  poe_standard: "802.3af"
+
+  # Network configuration (optional - uses DHCP by default)
+  # Uncomment and set these for static IP:
+  # ip_address: "192.168.1.100"
+  # gateway: "192.168.1.1"
+  # subnet: "255.255.255.0"
+  # dns1: "192.168.1.1"
+  # dns2: "8.8.8.8"
+
+# Optional: Override default logging for Ethernet
+# logger:
+#   logs:
+#     ethernet: DEBUG
+#     ethernet.w5500: DEBUG
+
+# Optional: Add custom automations
+# Example: Flash LED when Ethernet connects
+# esphome:
+#   on_boot:
+#     - priority: -200
+#       then:
+#         - if:
+#             condition:
+#               lambda: 'return id(ethernet_ip).has_state();'
+#             then:
+#               - logger.log: "Ethernet connected successfully"
+#               - light.turn_on:
+#                   id: simple_status_led
+#               - delay: 1s
+#               - light.turn_off:
+#                   id: simple_status_led
+
+# Optional: Add sensors for monitoring Sense360 Core/Voice devices
+# You can add Home Assistant API calls here to monitor connected devices
+# Example:
+# sensor:
+#   - platform: homeassistant
+#     name: "Core Temperature"
+#     entity_id: sensor.sense360_core_temperature
+#     id: core_temp
