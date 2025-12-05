@@ -1,0 +1,256 @@
+---
+# ============================================================================
+# SENSE360 CEILING S3 - FULL CONFIGURATION
+# ============================================================================
+# Complete ceiling-mounted smart sensor platform with:
+# - Presence detection (Hi-Link LD2450 or DFRobot C4001)
+# - Air quality monitoring (SEN55 PM + VOC/NOx, SCD41 CO2)
+# - Environmental comfort (VEML7700 light, SHT4x temp/humidity)
+# - WS2812B LED ring for visual feedback
+# - Fan control output
+#
+# Hardware: ESP32-S3-WROOM-1-N16R8 (16MB Flash, 8MB PSRAM)
+# Schematic: Modular_ESP32-S3_Sensor_Platform.kicad_sch
+#
+# ============================================================================
+# CUSTOMER USAGE
+# ============================================================================
+# packages:
+#   sense360_firmware:
+#     url: https://github.com/sense360store/esphome-public
+#     ref: main
+#     files:
+#       - products/sense360-ceiling-s3-full.yaml
+#
+# wifi:
+#   ssid: !secret wifi_ssid
+#   password: !secret wifi_password
+#
+# api:
+#   encryption:
+#     key: !secret api_encryption_key
+#
+# ota:
+#   - platform: esphome
+#     password: !secret ota_password
+# ============================================================================
+
+substitutions:
+  # === Device Configuration ===
+  device_name: sense360-ceiling-s3
+  friendly_name: Sense360 Ceiling S3
+  timezone: "America/New_York"
+
+  # === Presence Sensor Selection ===
+  # Options: "hilink" for LD2450, "sen0609" for DFRobot C4001
+  presence_sensor_type: "hilink"
+
+  # === Logging ===
+  log_level: INFO
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "false"
+
+  # === Security (Define these in your secrets.yaml) ===
+  api_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === Base System Components ===
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+
+  # === Core Hardware (Ceiling S3 Board) ===
+  core_hardware: !include ../packages/hardware/sense360_core_ceiling_s3.yaml
+
+  # === Expansion Modules ===
+  # Presence Module (choose sensor type in substitutions above)
+  presence_module: !include ../packages/expansions/presence_ceiling_s3.yaml
+
+  # AirIQ Module (air quality sensors)
+  airiq_module: !include ../packages/expansions/airiq_ceiling_s3.yaml
+
+  # Comfort Module (climate and light sensors)
+  comfort_module: !include ../packages/expansions/comfort_ceiling_s3.yaml
+
+  # === Optional: Add specific presence sensor driver ===
+  # Uncomment ONE of these based on installed sensor:
+  #
+  # For Hi-Link LD2450:
+  # presence_sensor: !include ../packages/hardware/presence_ld2450.yaml
+  #
+  # For DFRobot C4001:
+  # presence_sensor: !include ../packages/hardware/presence_dfrobot_c4001.yaml
+
+# ============================================================================
+# LED EFFECTS FOR AIR QUALITY VISUALIZATION
+# ============================================================================
+# Use the LED ring to visualize air quality and presence status
+interval:
+  - interval: 5s
+    then:
+      - lambda: |-
+          // LED ring visualization based on air quality
+          if (!id(module_airiq_present)) return;
+
+          float aqi = id(airiq_aqi).state;
+          if (std::isnan(aqi)) return;
+
+          auto call = id(led_ring).turn_on();
+
+          // Set color based on AQI level
+          if (aqi <= 50.0f) {
+            // Good - Green
+            call.set_rgb(0.0f, 1.0f, 0.0f);
+            call.set_brightness(0.3f);
+          } else if (aqi <= 100.0f) {
+            // Moderate - Yellow
+            call.set_rgb(1.0f, 1.0f, 0.0f);
+            call.set_brightness(0.4f);
+          } else if (aqi <= 150.0f) {
+            // Unhealthy for Sensitive - Orange
+            call.set_rgb(1.0f, 0.5f, 0.0f);
+            call.set_brightness(0.5f);
+          } else if (aqi <= 200.0f) {
+            // Unhealthy - Red
+            call.set_rgb(1.0f, 0.0f, 0.0f);
+            call.set_brightness(0.6f);
+          } else if (aqi <= 300.0f) {
+            // Very Unhealthy - Purple
+            call.set_rgb(0.5f, 0.0f, 0.5f);
+            call.set_brightness(0.7f);
+          } else {
+            // Hazardous - Maroon
+            call.set_rgb(0.5f, 0.0f, 0.0f);
+            call.set_brightness(0.8f);
+            call.set_effect("Strobe");
+          }
+
+          call.perform();
+
+# ============================================================================
+# SMART AUTOMATIONS
+# ============================================================================
+# Example: Turn on fan when CO2 is high
+binary_sensor:
+  - platform: template
+    id: high_co2_alert
+    name: "${friendly_name} High CO2 Alert"
+    device_class: problem
+    lambda: |-
+      if (!id(module_airiq_present)) return false;
+      float co2 = id(airiq_co2).state;
+      return !std::isnan(co2) && co2 > 1000.0f;  // Alert at 1000 ppm
+    on_press:
+      then:
+        - logger.log:
+            level: WARN
+            format: "High CO2 detected: %.0f ppm"
+            args: ['id(airiq_co2).state']
+        # Optionally turn on fan
+        # - switch.turn_on: fan_switch
+
+# Example: Presence-activated lighting control
+# (LED ring already responds to presence in presence_ceiling_s3.yaml)
+
+# ============================================================================
+# DASHBOARD SUMMARY SENSORS
+# ============================================================================
+text_sensor:
+  # Overall system status
+  - platform: template
+    id: system_summary
+    name: "${friendly_name} System Status"
+    icon: mdi:information
+    lambda: |-
+      std::string status = "OK";
+
+      // Check each module
+      if (id(module_presence_present)) status += " | Presence: OK";
+      if (id(module_airiq_present)) {
+        float aqi = id(airiq_aqi).state;
+        if (!std::isnan(aqi)) {
+          char aqi_str[32];
+          snprintf(aqi_str, sizeof(aqi_str), " | AQI: %.0f", aqi);
+          status += aqi_str;
+        }
+      }
+      if (id(module_comfort_present)) {
+        float temp = id(comfort_temperature).state;
+        float hum = id(comfort_humidity).state;
+        if (!std::isnan(temp) && !std::isnan(hum)) {
+          char climate_str[64];
+          snprintf(climate_str, sizeof(climate_str), " | %.1f°C %.0f%%", temp, hum);
+          status += climate_str;
+        }
+      }
+
+      return status;
+    update_interval: 60s
+
+# ============================================================================
+# POWER MONITORING
+# ============================================================================
+sensor:
+  # Estimated power consumption
+  - platform: template
+    id: estimated_power
+    name: "${friendly_name} Power Draw"
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:flash
+    lambda: |-
+      float power = 0.5f;  // Base ESP32-S3 consumption
+
+      // Add module power estimates
+      if (id(module_presence_present)) power += 0.15f;  // LD2450/C4001
+      if (id(module_airiq_present)) power += 1.2f;      // SEN55 + SCD41
+      if (id(module_comfort_present)) power += 0.05f;   // VEML7700 + SHT4x
+
+      // LED ring (12 LEDs at 50% brightness)
+      if (id(led_ring).current_values.is_on()) {
+        power += 0.6f * id(led_ring).current_values.get_brightness();
+      }
+
+      // Fan (if on)
+      if (id(fan_switch).state) power += 2.0f;
+
+      return power;
+    update_interval: 10s
+
+# ============================================================================
+# CONFIGURATION NOTES
+# ============================================================================
+#
+# GPIO USAGE SUMMARY (from schematic):
+# - GPIO0:  Boot button
+# - GPIO3:  ALS_INT (Comfort module VEML7700 interrupt)
+# - GPIO4:  UART TX for SEN0609 (alternative presence sensor)
+# - GPIO5:  UART RX for SEN0609 / presence GPIO output
+# - GPIO6:  notEgpio0 (presence module auxiliary)
+# - GPIO7:  AirQ_Status_Led
+# - GPIO8:  I2C_SCL (WARNING: Conflicts with AirQ_Led in schematic!)
+# - GPIO14: LED_DATA (WS2812B LED ring)
+# - GPIO23: FAN (fan control MOSFET)
+# - GPIO26: I2C_SDA
+# - GPIO38: UART TX for Hi-Link LD2450
+# - GPIO39: UART RX for Hi-Link LD2450
+#
+# KNOWN ISSUES:
+# 1. GPIO8 Conflict: Schematic shows GPIO8 used for both I2C_SCL and
+#    AirQ_Led. The LED cannot be used when I2C is active. This is a
+#    hardware design error that should be corrected in the next revision.
+#
+# 2. Presence Sensor Selection: Choose EITHER Hi-Link (GPIO38/39) OR
+#    SEN0609 (GPIO4/5) by setting presence_sensor_type substitution.
+#    Only one sensor should be physically installed.
+#
+# ============================================================================

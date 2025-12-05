@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Sense360 Ceiling S3 Board**: Complete configuration for ESP32-S3-WROOM-1-N16R8 based ceiling board
+  - New hardware profile: `sense360_core_ceiling_s3.yaml` with correct GPIO mappings from schematic
+  - I2C primary bus on GPIO26/GPIO8 @ 100kHz for sensor modules
+  - Dual UART support for presence sensors: Hi-Link LD2450 (GPIO38/39) and SEN0609/C4001 (GPIO4/5)
+  - WS2812B LED ring control on GPIO14 with level shifter support
+  - Fan control output on GPIO23 with SI2302 MOSFET
+  - Module-specific configurations: `airiq_ceiling_s3.yaml`, `comfort_ceiling_s3.yaml`, `presence_ceiling_s3.yaml`
+  - Complete product configuration: `sense360-ceiling-s3-full.yaml`
+  - Comprehensive documentation: `CEILING_S3_CONFIGURATION.md` with pinout, usage, and troubleshooting
 - **Sense360 Core Board Support**: New board variants and power configurations
   - Sense360 Core Wall and Ceiling board profiles
   - Comprehensive GPIO mapping and power management
@@ -63,6 +72,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - I2C extend mappings for mini four LEDs
 - Various restore settings for switches and templates
 - Removed unsupported LD2450 bluetooth password and zone sensors
+
+### Known Issues
+- **Ceiling S3 GPIO8 Conflict**: GPIO8 is used for both I2C_SCL and AirQ_Led in schematic
+  - Impact: AirQ_Led cannot be used when I2C is active
+  - Workaround: Use GPIO7 (AirQ_Status_Led) or LED ring (GPIO14) for visual feedback
+  - Hardware fix needed: Move AirQ_Led to unused GPIO in next PCB revision
 
 ### Breaking Changes
 - None.
