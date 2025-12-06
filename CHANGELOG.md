@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- No new changes yet
+
+### Changed
+- No changes yet
+
+### Fixed
+- No fixes yet
+
+---
+
+## [2.2.0] - 2025-12-06
+
+### Added
 - **Sense360 Ceiling S3 Board**: Complete configuration for ESP32-S3-WROOM-1-N16R8 based ceiling board
   - New hardware profile: `sense360_core_ceiling_s3.yaml` with correct GPIO mappings from schematic
   - I2C primary bus on GPIO26/GPIO8 @ 100kHz for sensor modules
@@ -81,7 +94,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - None.
 
 ### Upgrade
+- Update package references from `ref: v2.1.0` to `ref: v2.2.0`
 - For contributors: Install development dependencies with `pip install -r requirements-dev.txt` and set up pre-commit hooks with `pre-commit install`
+- New product configurations available: `sense360-ceiling-s3-full.yaml`, `sense360-poe.yaml`, `sense360-fan-pwm.yaml`
 
 ---
 
