@@ -1,0 +1,374 @@
+---
+# ============================================================================
+# SENSE360 AIRIQ BATHROOM BASE MODULE - HARDWARE DRIVER
+# ============================================================================
+# SKU: S360-BATH-B
+#
+# Bathroom-specific air quality and environmental monitoring:
+# - SHT4x (I2C 0x44): High-accuracy Temperature & Humidity
+# - BMP390 (I2C 0x77): Barometric Pressure
+# - SGP41 (I2C 0x59): VOC and NOx Index
+#
+# Designed for bathroom environments with focus on humidity tracking,
+# ventilation optimization, and mold prevention.
+#
+# Expansion Bus Connection:
+#   Pin 4 (SDA) → GPIO39
+#   Pin 5 (SCL) → GPIO40
+#   Pin 2 (3.3V) → Power
+#   Pin 1 (GND) → Ground
+#
+# Power Requirements: 3.3V / 200mA max
+# ============================================================================
+
+substitutions:
+  module_sku: S360-BATH-B
+  module_variant: bathroom_base
+
+  # I2C Configuration
+  bathroom_i2c_sda: GPIO39
+  bathroom_i2c_scl: GPIO40
+  bathroom_i2c_id: i2c_bathroom
+
+  # Sensor update intervals
+  bathroom_sht4x_update: 10s   # Fast updates for shower detection
+  bathroom_bmp390_update: 60s
+  bathroom_sgp41_update: 10s
+
+  # Humidity thresholds
+  shower_humidity_threshold: "75"      # Humidity % to detect shower
+  shower_humidity_rate: "5"            # Rate of change to detect shower start
+  mold_risk_humidity: "65"             # Sustained humidity for mold risk
+  mold_risk_duration_minutes: "30"     # Duration for mold risk warning
+
+# I2C Bus Configuration
+i2c:
+  - id: ${bathroom_i2c_id}
+    sda: ${bathroom_i2c_sda}
+    scl: ${bathroom_i2c_scl}
+    scan: true
+    frequency: 100kHz
+
+# ============================================================================
+# SENSORS
+# ============================================================================
+sensor:
+  # ============================================================================
+  # SHT4x - High-Accuracy Temperature/Humidity Sensor (Sensirion)
+  # I2C Address: 0x44
+  # Primary sensor for humidity spike detection
+  # ============================================================================
+  - platform: sht4x
+    id: bathroom_sht4x_sensor
+    i2c_id: ${bathroom_i2c_id}
+    address: 0x44
+
+    temperature:
+      id: bathroom_temperature
+      name: "${friendly_name} Temperature"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${bathroom_sht4x_update}
+
+    humidity:
+      id: bathroom_humidity
+      name: "${friendly_name} Humidity"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${bathroom_sht4x_update}
+
+    precision: High
+    heater_power: "Low"
+    update_interval: ${bathroom_sht4x_update}
+
+  # ============================================================================
+  # BMP390 - Barometric Pressure Sensor (Bosch)
+  # I2C Address: 0x77
+  # ============================================================================
+  - platform: bmp3xx
+    id: bathroom_bmp390_sensor
+    i2c_id: ${bathroom_i2c_id}
+    address: 0x77
+
+    temperature:
+      id: bathroom_bmp390_temperature
+      name: "${friendly_name} BMP390 Temperature"
+      internal: true
+      oversampling: 2x
+
+    pressure:
+      id: bathroom_pressure
+      name: "${friendly_name} Pressure"
+      internal: true
+      oversampling: 2x
+
+    update_interval: ${bathroom_bmp390_update}
+
+  # ============================================================================
+  # SGP41 - VOC/NOx Sensor (Sensirion)
+  # I2C Address: 0x59
+  # Detects odors and bathroom-specific VOCs
+  # ============================================================================
+  - platform: sgp4x
+    id: bathroom_sgp41_sensor
+    i2c_id: ${bathroom_i2c_id}
+    address: 0x59
+
+    voc:
+      id: bathroom_voc_index
+      name: "${friendly_name} VOC Index"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${bathroom_sgp41_update}
+
+    nox:
+      id: bathroom_nox_index
+      name: "${friendly_name} NOx Index"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${bathroom_sgp41_update}
+
+    # Compensation from SHT4x for better accuracy
+    compensation:
+      temperature_source: bathroom_temperature
+      humidity_source: bathroom_humidity
+
+    store_baseline: true
+    update_interval: ${bathroom_sgp41_update}
+
+  # ============================================================================
+  # Calculated Sensors
+  # ============================================================================
+  # Humidity rate of change (for shower detection)
+  - platform: template
+    id: bathroom_humidity_rate
+    name: "${friendly_name} Humidity Rate"
+    internal: true
+    unit_of_measurement: "%/min"
+    accuracy_decimals: 1
+    update_interval: 10s
+    lambda: |-
+      static float last_humidity = 0.0f;
+      static unsigned long last_time = 0;
+
+      float current_humidity = id(bathroom_humidity).state;
+      unsigned long current_time = millis();
+
+      if (std::isnan(current_humidity)) {
+        return 0.0f;
+      }
+
+      if (last_time == 0) {
+        last_humidity = current_humidity;
+        last_time = current_time;
+        return 0.0f;
+      }
+
+      float time_diff_min = (current_time - last_time) / 60000.0f;
+      float humidity_diff = current_humidity - last_humidity;
+
+      last_humidity = current_humidity;
+      last_time = current_time;
+
+      if (time_diff_min > 0) {
+        return humidity_diff / time_diff_min;
+      }
+      return 0.0f;
+
+  # Dew point calculation
+  - platform: template
+    id: bathroom_dew_point
+    name: "${friendly_name} Dew Point"
+    internal: true
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    update_interval: 30s
+    lambda: |-
+      float temp = id(bathroom_temperature).state;
+      float humidity = id(bathroom_humidity).state;
+
+      if (std::isnan(temp) || std::isnan(humidity)) {
+        return NAN;
+      }
+
+      // Magnus formula for dew point
+      float a = 17.27f;
+      float b = 237.7f;
+      float alpha = ((a * temp) / (b + temp)) + log(humidity / 100.0f);
+      return (b * alpha) / (a - alpha);
+
+# ============================================================================
+# Globals for Bathroom Logic
+# ============================================================================
+globals:
+  # Shower detected flag
+  - id: bathroom_shower_active
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+  # Mold risk level (0=none, 1=low, 2=medium, 3=high)
+  - id: bathroom_mold_risk
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+  # High humidity duration counter (minutes)
+  - id: bathroom_high_humidity_minutes
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+  # Odor detected flag
+  - id: bathroom_odor_detected
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+  # Post-shower ventilation timer (minutes remaining)
+  - id: bathroom_post_shower_timer
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+  # Recommended fan speed (0-100)
+  - id: bathroom_fan_recommendation
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+# ============================================================================
+# Binary Sensors
+# ============================================================================
+binary_sensor:
+  # Shower detection
+  - platform: template
+    id: bathroom_shower_sensor
+    name: "${friendly_name} Shower Active"
+    internal: true
+    device_class: moisture
+    lambda: |-
+      return id(bathroom_shower_active);
+
+  # Mold risk warning
+  - platform: template
+    id: bathroom_mold_warning
+    name: "${friendly_name} Mold Risk"
+    internal: true
+    device_class: problem
+    lambda: |-
+      return id(bathroom_mold_risk) >= 2;
+
+  # Odor detection
+  - platform: template
+    id: bathroom_odor_sensor
+    name: "${friendly_name} Odor Detected"
+    internal: true
+    device_class: gas
+    lambda: |-
+      return id(bathroom_odor_detected);
+
+# ============================================================================
+# Interval for Bathroom Logic
+# ============================================================================
+interval:
+  # Fast interval for shower detection
+  - interval: 10s
+    then:
+      - lambda: |-
+          float humidity = id(bathroom_humidity).state;
+          float humidity_rate = id(bathroom_humidity_rate).state;
+          float voc = id(bathroom_voc_index).state;
+
+          if (std::isnan(humidity)) return;
+
+          // Shower detection logic
+          bool was_shower_active = id(bathroom_shower_active);
+
+          // Start shower detection: rapid humidity increase OR high humidity
+          if (!was_shower_active) {
+            if (humidity_rate > ${shower_humidity_rate} || humidity > ${shower_humidity_threshold}) {
+              id(bathroom_shower_active) = true;
+              ESP_LOGI("bathroom", "Shower started - humidity: %.1f%%, rate: %.1f%%/min",
+                       humidity, humidity_rate);
+            }
+          } else {
+            // End shower detection: humidity dropping below threshold
+            if (humidity < (${shower_humidity_threshold} - 10) && humidity_rate < 0) {
+              id(bathroom_shower_active) = false;
+              // Start post-shower timer (15 minutes default)
+              id(bathroom_post_shower_timer) = 15;
+              ESP_LOGI("bathroom", "Shower ended - starting post-shower ventilation");
+            }
+          }
+
+          // Odor detection (VOC index > 150 indicates odor)
+          if (!std::isnan(voc)) {
+            id(bathroom_odor_detected) = (voc > 150);
+          }
+
+          // Calculate fan recommendation
+          int fan_speed = 0;
+
+          if (id(bathroom_shower_active)) {
+            // During shower: high speed
+            fan_speed = 100;
+          } else if (id(bathroom_post_shower_timer) > 0) {
+            // Post-shower: medium-high speed
+            fan_speed = 70;
+          } else if (id(bathroom_odor_detected)) {
+            // Odor detected: medium speed
+            fan_speed = 50;
+          } else if (humidity > 60.0f) {
+            // Elevated humidity: low speed
+            fan_speed = 30;
+          }
+
+          id(bathroom_fan_recommendation) = fan_speed;
+
+  # Slow interval for mold risk calculation
+  - interval: 1min
+    then:
+      - lambda: |-
+          float humidity = id(bathroom_humidity).state;
+
+          if (std::isnan(humidity)) return;
+
+          // Track duration of high humidity
+          if (humidity > ${mold_risk_humidity}) {
+            id(bathroom_high_humidity_minutes)++;
+          } else {
+            // Reset counter when humidity drops
+            if (id(bathroom_high_humidity_minutes) > 0) {
+              id(bathroom_high_humidity_minutes) = 0;
+            }
+          }
+
+          // Calculate mold risk level
+          int minutes = id(bathroom_high_humidity_minutes);
+          if (minutes >= ${mold_risk_duration_minutes} * 2) {
+            id(bathroom_mold_risk) = 3;  // High risk
+          } else if (minutes >= ${mold_risk_duration_minutes}) {
+            id(bathroom_mold_risk) = 2;  // Medium risk
+          } else if (minutes >= ${mold_risk_duration_minutes} / 2) {
+            id(bathroom_mold_risk) = 1;  // Low risk
+          } else {
+            id(bathroom_mold_risk) = 0;  // No risk
+          }
+
+          // Decrement post-shower timer
+          if (id(bathroom_post_shower_timer) > 0) {
+            id(bathroom_post_shower_timer)--;
+          }
+
+text_sensor:
+  - platform: template
+    name: "${friendly_name} AirIQ Module SKU"
+    lambda: |-
+      return {"${module_sku}"};
+    update_interval: never
+    entity_category: diagnostic

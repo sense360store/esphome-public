@@ -6,16 +6,21 @@
 # Provides shower detection, mold risk warnings, and ventilation control.
 #
 # Prerequisites:
-#   - packages/expansions/bathroom.yaml (hardware driver)
+#   - packages/expansions/airiq_bathroom_base.yaml OR
+#   - packages/expansions/airiq_bathroom_pro.yaml (hardware driver)
 #   - Optional: packages/expansions/fan_pwm.yaml or fan_gp8403.yaml for auto ventilation
 #
 # Exposed Entities:
 #   - Temperature and Humidity
+#   - Pressure
 #   - Shower Detection
 #   - Mold Risk Level
-#   - Odor Detection
+#   - Odor Detection (VOC/NOx)
 #   - Ventilation Recommendations
 #   - Post-Shower Timer
+#   - Condensation Risk (Pro only)
+#   - Particulate Matter (Pro only)
+#   - Surface Temperature (Pro only)
 # ============================================================================
 
 packages:
@@ -50,38 +55,49 @@ sensor:
     lambda: |-
       return id(bathroom_humidity).state;
 
-  # CO2
+  # Pressure
   - platform: template
-    id: bathroom_co2_display
-    name: "${friendly_name} CO2"
-    unit_of_measurement: "ppm"
-    accuracy_decimals: 0
-    device_class: carbon_dioxide
+    id: bathroom_pressure_display
+    name: "${friendly_name} Pressure"
+    unit_of_measurement: "hPa"
+    accuracy_decimals: 1
+    device_class: atmospheric_pressure
     state_class: measurement
-    update_interval: 30s
+    update_interval: 60s
     lambda: |-
-      return id(bathroom_co2).state;
+      return id(bathroom_pressure).state;
 
   # VOC Index
   - platform: template
     id: bathroom_voc_display
-    name: "${friendly_name} Air Quality Index"
+    name: "${friendly_name} VOC Index"
     accuracy_decimals: 0
     icon: "mdi:air-filter"
     update_interval: 10s
     lambda: |-
       return id(bathroom_voc_index).state;
 
-  # Light Level
+  # NOx Index
   - platform: template
-    id: bathroom_light_display
-    name: "${friendly_name} Light Level"
-    unit_of_measurement: "lx"
+    id: bathroom_nox_display
+    name: "${friendly_name} NOx Index"
     accuracy_decimals: 0
-    device_class: illuminance
-    update_interval: 5s
+    icon: "mdi:smog"
+    update_interval: 10s
     lambda: |-
-      return id(bathroom_light_sensor).state;
+      return id(bathroom_nox_index).state;
+
+  # Dew Point
+  - platform: template
+    id: bathroom_dew_point_display
+    name: "${friendly_name} Dew Point"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    icon: "mdi:water-thermometer"
+    update_interval: 30s
+    lambda: |-
+      return id(bathroom_dew_point).state;
 
   # Humidity Rate of Change
   - platform: template
@@ -235,6 +251,37 @@ text_sensor:
         return {"Good ventilation needed"};
       } else {
         return {"Maximum ventilation needed"};
+      }
+
+  # Air quality description
+  - platform: template
+    id: bathroom_air_quality_status
+    name: "${friendly_name} Air Quality"
+    icon: "mdi:air-filter"
+    update_interval: 30s
+    lambda: |-
+      float voc = id(bathroom_voc_index).state;
+      float nox = id(bathroom_nox_index).state;
+
+      if (std::isnan(voc) && std::isnan(nox)) {
+        return {"Waiting for sensor..."};
+      }
+
+      // Use the higher of VOC or NOx for rating
+      float worst = 0;
+      if (!std::isnan(voc)) worst = voc;
+      if (!std::isnan(nox) && nox > worst) worst = nox;
+
+      if (worst < 80) {
+        return {"Excellent"};
+      } else if (worst < 120) {
+        return {"Good"};
+      } else if (worst < 180) {
+        return {"Fair"};
+      } else if (worst < 250) {
+        return {"Poor"};
+      } else {
+        return {"Very Poor"};
       }
 
 # ============================================================================
