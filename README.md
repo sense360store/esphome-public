@@ -7,15 +7,16 @@ Official ESPHome firmware repository for [Sense360](https://mysense360.com) envi
 [![GitHub Release](https://img.shields.io/github/v/release/sense360store/esphome-public)](https://github.com/sense360store/esphome-public/releases)
 [![CI](https://github.com/sense360store/esphome-public/workflows/Test%20ESPHome%20Configs/badge.svg)](https://github.com/sense360store/esphome-public/actions)
 
-## What's New in Version 2.1.0
+## What's New in Version 2.2.0
 
-- Overall air quality LED color entity that mirrors consolidated status across the device and dashboards
-- New air quality status text sensor and air quality warning binary sensor for Home Assistant automations
-- Additional status text sensors (Most Valuable Pollutant, MVP Severity, LED Mode) for clearer UI information
-- Human-friendly particulate naming to improve clarity
-- Unified and persisted night brightness controls
-- Improved AirIQ LED handling with full-bright daytime mode and safe handling of unknown states
-- PM LED severity based on the worst particulate tier across all measurements
+- **Sense360 Ceiling S3 Board**: Complete ESP32-S3 based ceiling board with comprehensive GPIO mappings
+- **Sense360 PoE**: Power over Ethernet support with W5500 Ethernet controller
+- **Sense360 Fan PWM**: 4-channel PWM fan controller for HVAC integration
+- **Expansion Module System**: Modular sensor expansions (AirLQ, Comfort, Presence, Bathroom)
+- **LD2412 mmWave Sensor**: Additional presence sensor support with gate thresholds
+- **Ceiling LED Ring**: Air quality visualization for ceiling-mounted devices
+- **CI/CD Pipeline**: Automated testing and validation for all product configurations
+- **Development Tools**: Pre-commit hooks, validation scripts, and comprehensive development documentation
 
 ## Key Features
 
@@ -60,6 +61,9 @@ Select the configuration that matches your hardware:
 | Sense360 Mini + AirIQ | Complete air quality monitoring with presence detection | `products/sense360-mini-airiq.yaml` |
 | Sense360 Mini + Presence | Presence detection only | `products/sense360-mini-presence.yaml` |
 | Sense360 Ceiling + Presence | Ceiling-mounted presence detection | `products/sense360-ceiling-presence.yaml` |
+| Sense360 Ceiling S3 | Full-featured ceiling board with ESP32-S3 | `products/sense360-ceiling-s3-full.yaml` |
+| Sense360 PoE | Power over Ethernet configuration | `products/sense360-poe.yaml` |
+| Sense360 Fan PWM | 4-channel PWM fan controller | `products/sense360-fan-pwm.yaml` |
 
 ### Step 2: Create Your Configuration
 
@@ -81,7 +85,7 @@ esphome:
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.1.0  # Use the latest stable version
+    ref: v2.2.0  # Use the latest stable version
     files:
       - products/sense360-mini-airiq.yaml
     refresh: 1d
@@ -183,7 +187,7 @@ Example of loading specific components:
 packages:
   sense360_base:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.1.0
+    ref: v2.2.0
     files:
       - base/wifi.yaml
       - base/api_encrypted.yaml

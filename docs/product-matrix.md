@@ -445,6 +445,28 @@ packages:
 
 ---
 
+## Pre-Built Product Configurations
+
+The `products/` directory contains ready-to-use configurations for common setups:
+
+| Product File | Description | Hardware |
+|--------------|-------------|----------|
+| `sense360-mini-airiq.yaml` | Full air quality + presence detection | Sense360 Mini |
+| `sense360-mini-airiq-basic.yaml` | Simplified air quality UI | Sense360 Mini |
+| `sense360-mini-airiq-advanced.yaml` | Full technical controls | Sense360 Mini |
+| `sense360-mini-airiq-ld2412.yaml` | Air quality with LD2412 radar | Sense360 Mini |
+| `sense360-mini-presence.yaml` | Presence detection only | Sense360 Mini |
+| `sense360-mini-presence-basic.yaml` | Simplified presence UI | Sense360 Mini |
+| `sense360-mini-presence-advanced.yaml` | Full presence controls | Sense360 Mini |
+| `sense360-mini-presence-ld2412.yaml` | Presence with LD2412 radar | Sense360 Mini |
+| `sense360-mini-presence-advanced-ld2412.yaml` | Advanced presence + LD2412 | Sense360 Mini |
+| `sense360-ceiling-presence.yaml` | Ceiling-mounted presence | Sense360 Ceiling |
+| `sense360-ceiling-s3-full.yaml` | Full-featured ESP32-S3 ceiling board | Sense360 Ceiling S3 |
+| `sense360-poe.yaml` | Power over Ethernet configuration | Sense360 PoE |
+| `sense360-fan-pwm.yaml` | 4-channel PWM fan controller | Sense360 Fan PWM |
+
+---
+
 ## Need Help?
 
 - [Installation Guide](installation.md)
