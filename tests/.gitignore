@@ -1,2 +1,2 @@
-bin/
-build/
+# Ignore generated test configs
+generated/
