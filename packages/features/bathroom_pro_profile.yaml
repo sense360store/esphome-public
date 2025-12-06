@@ -1,0 +1,217 @@
+---
+# ============================================================================
+# SENSE360 BATHROOM PRO MODULE - FEATURE PROFILE
+# ============================================================================
+# Extended bathroom monitoring with Pro-only features.
+# Includes all base profile entities plus:
+# - Surface Temperature (IR sensor)
+# - Condensation Risk Detection
+# - Particulate Matter monitoring (PM1.0, PM2.5, PM10)
+#
+# Prerequisites:
+#   - packages/expansions/airiq_bathroom_pro.yaml (hardware driver)
+#   - Optional: packages/expansions/fan_pwm.yaml or fan_gp8403.yaml for auto ventilation
+#
+# Additional Exposed Entities (beyond base profile):
+#   - Surface Temperature
+#   - Condensation Margin
+#   - Condensation Risk Warning
+#   - PM1.0, PM2.5, PM10
+#   - Air Quality Index
+# ============================================================================
+
+packages:
+  bathroom_base: !include bathroom_profile.yaml
+
+# ============================================================================
+# Pro-Only Sensors
+# ============================================================================
+sensor:
+  # Surface Temperature (MLX90614)
+  - platform: template
+    id: bathroom_surface_temp_display
+    name: "${friendly_name} Surface Temperature"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    icon: "mdi:thermometer-probe"
+    update_interval: 10s
+    lambda: |-
+      return id(bathroom_surface_temperature).state;
+
+  # IR Ambient Temperature
+  - platform: template
+    id: bathroom_ir_ambient_display
+    name: "${friendly_name} IR Ambient Temperature"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    entity_category: diagnostic
+    update_interval: 10s
+    lambda: |-
+      return id(bathroom_ir_ambient).state;
+
+  # Condensation Margin (surface temp - dew point)
+  - platform: template
+    id: bathroom_condensation_margin_display
+    name: "${friendly_name} Condensation Margin"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    icon: "mdi:water-thermometer-outline"
+    update_interval: 10s
+    lambda: |-
+      return id(bathroom_condensation_margin).state;
+
+  # PM1.0
+  - platform: template
+    id: bathroom_pm1_display
+    name: "${friendly_name} PM1.0"
+    unit_of_measurement: "µg/m³"
+    accuracy_decimals: 1
+    device_class: pm1
+    state_class: measurement
+    update_interval: 30s
+    lambda: |-
+      return id(bathroom_pm1_0).state;
+
+  # PM2.5
+  - platform: template
+    id: bathroom_pm25_display
+    name: "${friendly_name} PM2.5"
+    unit_of_measurement: "µg/m³"
+    accuracy_decimals: 1
+    device_class: pm25
+    state_class: measurement
+    update_interval: 30s
+    lambda: |-
+      return id(bathroom_pm2_5).state;
+
+  # PM10
+  - platform: template
+    id: bathroom_pm10_display
+    name: "${friendly_name} PM10"
+    unit_of_measurement: "µg/m³"
+    accuracy_decimals: 1
+    device_class: pm10
+    state_class: measurement
+    update_interval: 30s
+    lambda: |-
+      return id(bathroom_pm10_0).state;
+
+  # Air Quality Index (based on PM2.5)
+  - platform: template
+    id: bathroom_aqi_display
+    name: "${friendly_name} Air Quality Index"
+    unit_of_measurement: "AQI"
+    accuracy_decimals: 0
+    icon: "mdi:air-filter"
+    update_interval: 30s
+    lambda: |-
+      float pm25 = id(bathroom_pm2_5).state;
+      int aqi = 0;
+
+      if (std::isnan(pm25)) {
+        return NAN;
+      }
+
+      // US EPA AQI calculation for PM2.5
+      if (pm25 <= 12.0f) {
+        aqi = (int)((50.0f / 12.0f) * pm25);
+      } else if (pm25 <= 35.4f) {
+        aqi = (int)(((100.0f - 51.0f) / (35.4f - 12.1f)) * (pm25 - 12.1f) + 51.0f);
+      } else if (pm25 <= 55.4f) {
+        aqi = (int)(((150.0f - 101.0f) / (55.4f - 35.5f)) * (pm25 - 35.5f) + 101.0f);
+      } else if (pm25 <= 150.4f) {
+        aqi = (int)(((200.0f - 151.0f) / (150.4f - 55.5f)) * (pm25 - 55.5f) + 151.0f);
+      } else if (pm25 <= 250.4f) {
+        aqi = (int)(((300.0f - 201.0f) / (250.4f - 150.5f)) * (pm25 - 150.5f) + 201.0f);
+      } else {
+        aqi = (int)(((500.0f - 301.0f) / (500.4f - 250.5f)) * (pm25 - 250.5f) + 301.0f);
+      }
+
+      return aqi;
+
+# ============================================================================
+# Pro-Only Binary Sensors
+# ============================================================================
+binary_sensor:
+  # Condensation risk warning
+  - platform: template
+    id: bathroom_condensation_warning
+    name: "${friendly_name} Condensation Risk"
+    device_class: problem
+    icon: "mdi:water-alert"
+    lambda: |-
+      return id(bathroom_condensation_risk);
+
+# ============================================================================
+# Pro-Only Text Sensors
+# ============================================================================
+text_sensor:
+  # Condensation status
+  - platform: template
+    id: bathroom_condensation_status
+    name: "${friendly_name} Condensation Status"
+    icon: "mdi:water-thermometer"
+    update_interval: 10s
+    lambda: |-
+      float margin = id(bathroom_condensation_margin).state;
+
+      if (std::isnan(margin)) {
+        return {"Waiting for sensor..."};
+      }
+
+      if (margin < 0) {
+        return {"Active condensation!"};
+      } else if (margin < 2.0f) {
+        return {"High risk - condensation imminent"};
+      } else if (margin < 5.0f) {
+        return {"Moderate risk"};
+      } else if (margin < 10.0f) {
+        return {"Low risk"};
+      } else {
+        return {"No risk"};
+      }
+
+  # PM2.5 Level Classification
+  - platform: template
+    id: bathroom_pm25_level
+    name: "${friendly_name} PM2.5 Level"
+    icon: "mdi:blur"
+    update_interval: 30s
+    lambda: |-
+      float pm = id(bathroom_pm2_5).state;
+
+      if (std::isnan(pm)) {
+        return {"Unknown"};
+      }
+
+      if (pm < 12.0f) {
+        return {"Good"};
+      } else if (pm < 35.4f) {
+        return {"Moderate"};
+      } else if (pm < 55.4f) {
+        return {"Unhealthy for Sensitive"};
+      } else if (pm < 150.4f) {
+        return {"Unhealthy"};
+      } else if (pm < 250.4f) {
+        return {"Very Unhealthy"};
+      } else {
+        return {"Hazardous"};
+      }
+
+# ============================================================================
+# Pro-Only Buttons
+# ============================================================================
+button:
+  # Manual SPS30 fan cleaning
+  - platform: template
+    id: bathroom_clean_pm_sensor
+    name: "${friendly_name} Clean PM Sensor"
+    icon: "mdi:fan"
+    entity_category: config
+    on_press:
+      - sps30.start_fan_autoclean: bathroom_sps30_sensor
+      - logger.log:
+          level: INFO
+          format: "Bathroom: SPS30 fan cleaning started"
