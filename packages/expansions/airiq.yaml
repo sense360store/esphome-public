@@ -3,9 +3,12 @@
 # SENSE360 AIRIQ EXPANSION MODULE - HARDWARE DRIVER
 # ============================================================================
 # Comprehensive air quality monitoring module with multiple sensors:
-# - SEN55 (I2C 0x69): PM1.0, PM2.5, PM4.0, PM10, VOC, NOx, Temperature, Humidity
+# - SPS30 (I2C 0x69): PM1.0, PM2.5, PM4.0, PM10, Particle Count
 # - SCD41 (I2C 0x62): CO2, Temperature, Humidity
+# - SGP41 (I2C 0x59): VOC Index, NOx Index
 # - SHT30 (I2C 0x44, optional): Backup temperature/humidity sensor
+#
+# Note: The Mini ESP uses the SEN55 all-in-one sensor instead.
 #
 # This file provides the base hardware setup. User-facing entities are defined
 # in the feature profile files (basic or advanced).
@@ -16,7 +19,7 @@
 #   Pin 2 (3.3V) → Power
 #   Pin 1 (GND) → Ground
 #
-# Power Requirements: 3.3V / 500mA max
+# Power Requirements: 3.3V / 600mA max (SPS30 fan draws most current)
 # ============================================================================
 
 substitutions:
@@ -26,9 +29,13 @@ substitutions:
   airiq_i2c_id: i2c_airiq
 
   # Sensor update intervals
-  airiq_sen55_update: 30s
+  airiq_sps30_update: 30s
   airiq_scd41_update: 30s
+  airiq_sgp41_update: 30s
   airiq_sht30_update: 60s
+
+  # SPS30 auto-cleaning interval (7 days default)
+  airiq_sps30_cleaning_interval: "604800s"
 
   # CO2 calibration settings
   co2_auto_calibration: "true"
@@ -42,24 +49,22 @@ i2c:
     frequency: 100kHz
 
 # ============================================================================
-# SEN55 - All-in-One Environmental Sensor (Sensirion)
+# SPS30 - Particulate Matter Sensor (Sensirion)
 # I2C Address: 0x69
 # ============================================================================
 sensor:
-  # SEN55 Particulate Matter Sensors
-  - platform: sen5x
-    id: sen55_sensor
+  - platform: sps30
+    id: sps30_sensor
     i2c_id: ${airiq_i2c_id}
     address: 0x69
 
-    # Particulate Matter
     pm_1_0:
       id: airiq_pm1_0
       name: "${friendly_name} PM1.0"
       internal: true
       accuracy_decimals: 1
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sps30_update}
 
     pm_2_5:
       id: airiq_pm2_5
@@ -67,7 +72,7 @@ sensor:
       internal: true
       accuracy_decimals: 1
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sps30_update}
 
     pm_4_0:
       id: airiq_pm4_0
@@ -75,7 +80,7 @@ sensor:
       internal: true
       accuracy_decimals: 1
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sps30_update}
 
     pm_10_0:
       id: airiq_pm10_0
@@ -83,33 +88,79 @@ sensor:
       internal: true
       accuracy_decimals: 1
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sps30_update}
 
-    # Environmental Conditions (from SEN55)
-    temperature:
-      id: airiq_sen55_temperature
-      name: "${friendly_name} SEN55 Temperature"
+    # Particle counts (number concentration)
+    pmc_0_5:
+      id: airiq_pmc0_5
+      name: "${friendly_name} PMC 0.5"
       internal: true
-      accuracy_decimals: 1
+      accuracy_decimals: 0
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sps30_update}
 
-    humidity:
-      id: airiq_sen55_humidity
-      name: "${friendly_name} SEN55 Humidity"
+    pmc_1_0:
+      id: airiq_pmc1_0
+      name: "${friendly_name} PMC 1.0"
       internal: true
-      accuracy_decimals: 1
+      accuracy_decimals: 0
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sps30_update}
 
-    # Air Quality Indices
+    pmc_2_5:
+      id: airiq_pmc2_5
+      name: "${friendly_name} PMC 2.5"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pmc_4_0:
+      id: airiq_pmc4_0
+      name: "${friendly_name} PMC 4.0"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pmc_10_0:
+      id: airiq_pmc10_0
+      name: "${friendly_name} PMC 10"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    # Typical particle size
+    pm_size:
+      id: airiq_pm_size
+      name: "${friendly_name} Typical Particle Size"
+      internal: true
+      accuracy_decimals: 2
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    # Auto cleaning interval (fan self-cleaning)
+    auto_cleaning_interval: ${airiq_sps30_cleaning_interval}
+
+    update_interval: ${airiq_sps30_update}
+
+  # ============================================================================
+  # SGP41 - VOC/NOx Sensor (Sensirion)
+  # I2C Address: 0x59
+  # ============================================================================
+  - platform: sgp4x
+    id: sgp41_sensor
+    i2c_id: ${airiq_i2c_id}
+    address: 0x59
+
     voc:
       id: airiq_voc_index
       name: "${friendly_name} VOC Index"
       internal: true
       accuracy_decimals: 0
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sgp41_update}
 
     nox:
       id: airiq_nox_index
@@ -117,22 +168,17 @@ sensor:
       internal: true
       accuracy_decimals: 0
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sgp41_update}
 
-    # Temperature offset compensation
-    temperature_compensation:
-      offset: 0
-      normalized_offset_slope: 0
-      time_constant: 0
-
-    # Acceleration mode for faster startup
-    acceleration_mode: low
+    # Compensation from SCD41 for improved accuracy
+    compensation:
+      temperature_source: airiq_scd41_temperature
+      humidity_source: airiq_scd41_humidity
 
     # Store baseline for faster startup
     store_baseline: true
 
-    # Auto cleaning (fan cleaning interval)
-    auto_cleaning_interval: 604800s  # 7 days
+    update_interval: ${airiq_sgp41_update}
 
   # ============================================================================
   # SCD41 - CO2 Sensor (Sensirion)
@@ -227,42 +273,16 @@ interval:
   - interval: 30s
     then:
       - lambda: |-
-          // Average temperature from SEN55 and SCD41
-          float temp_sen55 = id(airiq_sen55_temperature).state;
+          // Temperature from SCD41 (SPS30 doesn't provide temperature)
           float temp_scd41 = id(airiq_scd41_temperature).state;
-          int temp_count = 0;
-          float temp_sum = 0.0f;
-
-          if (!std::isnan(temp_sen55)) {
-            temp_sum += temp_sen55;
-            temp_count++;
-          }
           if (!std::isnan(temp_scd41)) {
-            temp_sum += temp_scd41;
-            temp_count++;
+            id(airiq_temperature_value) = temp_scd41;
           }
 
-          if (temp_count > 0) {
-            id(airiq_temperature_value) = temp_sum / temp_count;
-          }
-
-          // Average humidity from SEN55 and SCD41
-          float hum_sen55 = id(airiq_sen55_humidity).state;
+          // Humidity from SCD41 (SPS30 doesn't provide humidity)
           float hum_scd41 = id(airiq_scd41_humidity).state;
-          int hum_count = 0;
-          float hum_sum = 0.0f;
-
-          if (!std::isnan(hum_sen55)) {
-            hum_sum += hum_sen55;
-            hum_count++;
-          }
           if (!std::isnan(hum_scd41)) {
-            hum_sum += hum_scd41;
-            hum_count++;
-          }
-
-          if (hum_count > 0) {
-            id(airiq_humidity_value) = hum_sum / hum_count;
+            id(airiq_humidity_value) = hum_scd41;
           }
 
           // Calculate AQI based on PM2.5 (simplified US EPA breakpoints)
@@ -286,3 +306,19 @@ interval:
           }
 
           id(airiq_aqi_value) = aqi;
+
+# ============================================================================
+# Button for Manual SPS30 Fan Cleaning
+# ============================================================================
+button:
+  - platform: template
+    name: "${friendly_name} SPS30 Clean Fan"
+    id: airiq_sps30_clean_button
+    icon: mdi:fan
+    internal: true
+    on_press:
+      then:
+        - sps30.start_fan_autoclean: sps30_sensor
+        - logger.log:
+            level: INFO
+            format: "AirIQ: SPS30 fan cleaning started"

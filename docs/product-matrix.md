@@ -183,17 +183,19 @@ Comprehensive air quality monitoring with multiple sensors.
 
 | Project Name | Product Name | Variant | SKU | Sensors |
 |-------------|--------------|---------|-----|---------|
-| `Sense360_Module_AirIQ_Ceiling` | Sense 360 AirIQ | Ceiling | S360-AIR-C | SGP41, SCD41, BMP390, MiCS4514, Formaldehyde, Ozone, Particulate |
-| `Sense360_Module_AirIQ_Wall` | Sense 360 AirIQ | Wall/Desk | S360-AIR-W | SGP41, SCD41, BMP390, MiCS4514, Formaldehyde, Ozone, Particulate |
+| `Sense360_Module_AirIQ_Ceiling` | Sense 360 AirIQ | Ceiling | S360-AIR-C | SPS30, SGP41, SCD41, BMP390, MiCS4514, Formaldehyde, Ozone |
+| `Sense360_Module_AirIQ_Wall` | Sense 360 AirIQ | Wall/Desk | S360-AIR-W | SPS30, SGP41, SCD41, BMP390, MiCS4514, Formaldehyde, Ozone |
 
 **Measured Parameters:**
 - CO2 (SCD41)
 - VOC/NOx Index (SGP41)
-- PM1.0, PM2.5, PM4.0, PM10 (SEN55)
-- Temperature & Humidity
+- PM1.0, PM2.5, PM4.0, PM10, Particle Count (SPS30)
+- Temperature & Humidity (SCD41)
 - Barometric Pressure (BMP390)
 - Formaldehyde
 - Ozone
+
+> **Note:** The Mini ESP products use the SEN55 all-in-one sensor instead of the SPS30+SGP41 combination.
 
 ### Comfort Module
 
