@@ -1,0 +1,66 @@
+---
+# ============================================================================
+# SENSE360 CORE CEILING - PRESENCE ONLY
+# ============================================================================
+# SKU: S360-CORE-C + S360-PRES-C
+#
+# Ceiling-mounted occupancy and presence detection.
+# Ideal for lighting automation and HVAC optimization.
+#
+# Hardware: ESP32-S3-WROOM-1 (8MB Flash, 2MB PSRAM)
+#
+# Included Modules:
+# - Presence: LD2450 mmWave Radar (multi-target tracking)
+# - LED Ring: Halo LED for visual feedback
+#
+# Customer usage in their ESPHome config:
+# packages:
+#   sense360_firmware:
+#     url: https://github.com/sense360store/esphome-public
+#     ref: v2.2.0
+#     files:
+#       - products/sense360-core-ceiling-presence.yaml
+#     refresh: 1d
+# ============================================================================
+
+substitutions:
+  # === Device Configuration ===
+  device_name: sense360-core-ceiling-presence
+  friendly_name: Sense360 Core Ceiling Presence
+  timezone: "America/New_York"
+
+  # === Logging ===
+  log_level: INFO
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "false"
+
+  # === Security (users MUST define these in their config) ===
+  api_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+  fallback_ap_password: "Sense360Fallback"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === Base System Components ===
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+
+  # === Core Hardware (Ceiling Board) ===
+  core_hardware: !include ../packages/hardware/sense360_core_ceiling.yaml
+
+  # === LED Ring ===
+  led_ring: !include ../packages/hardware/led_ring_ceiling.yaml
+  led_effects: !include ../packages/features/ceiling_halo_leds.yaml
+
+  # === Presence Module (mmWave radar) ===
+  presence_module: !include ../packages/expansions/presence_ceiling.yaml
+  presence_profile: !include ../packages/features/presence_basic_profile.yaml
+
+  # === Device Health & Diagnostics ===
+  health: !include ../packages/features/device_health.yaml

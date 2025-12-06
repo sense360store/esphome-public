@@ -1,0 +1,108 @@
+---
+# ============================================================================
+# SENSE360 CORE WALL - COMPLETE PRODUCT CONFIGURATION
+# ============================================================================
+# SKU: S360-CORE-W
+#
+# The primary wall/desk-mounted smart home sensor platform.
+# Complete environmental monitoring with AirIQ, Comfort, and Presence modules.
+#
+# Hardware: ESP32-S3-WROOM-1 (8MB Flash, 2MB PSRAM)
+#
+# Included Modules:
+# - AirIQ (Air Quality): SPS30 PM, SGP41 VOC/NOx, SCD41 CO2, BMP390 Pressure
+# - Comfort: SHT40 Temperature/Humidity, LTR-303 Light
+# - Presence: LD2450 mmWave Radar
+# - LED Ring: Wall LED for visual feedback
+# - Physical Buttons: For manual control
+#
+# NOTE: Wall configuration does NOT support Bathroom module.
+#
+# Customer usage in their ESPHome config:
+# packages:
+#   sense360_firmware:
+#     url: https://github.com/sense360store/esphome-public
+#     ref: v2.2.0
+#     files:
+#       - products/sense360-core-wall.yaml
+#     refresh: 1d
+# ============================================================================
+
+substitutions:
+  # === Device Configuration ===
+  device_name: sense360-core-wall
+  friendly_name: Sense360 Core Wall
+  timezone: "America/New_York"
+
+  # === Logging ===
+  log_level: INFO
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "false"
+
+  # === CO2 Air Quality Thresholds (ppm) ===
+  co2_good_limit: "750"
+  co2_moderate_limit: "950"
+  co2_unhealthy_limit: "1400"
+
+  # === PM2.5 Thresholds (µg/m³) ===
+  sen55_pm2_5_good_limit: "10"
+  sen55_pm2_5_moderate_limit: "25"
+  sen55_pm2_5_unhealthy_limit: "55"
+
+  # === VOC Index Thresholds (0-500 scale) ===
+  sen55_voc_good_limit: "80"
+  sen55_voc_moderate_limit: "120"
+  sen55_voc_unhealthy_limit: "180"
+
+  # === Security (users MUST define these in their config) ===
+  api_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+  fallback_ap_password: "Sense360Fallback"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === Base System Components ===
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+
+  # === Core Hardware (Wall Board) ===
+  core_hardware: !include ../packages/hardware/sense360_core_wall.yaml
+
+  # === LED Ring ===
+  led_ring: !include ../packages/hardware/led_ring_wall.yaml
+
+  # === Expansion Modules ===
+  # AirIQ Module (air quality sensors)
+  airiq_module: !include ../packages/expansions/airiq_wall.yaml
+  airiq_profile: !include ../packages/features/airiq_basic_profile.yaml
+
+  # Comfort Module (temperature, humidity, light)
+  comfort_module: !include ../packages/expansions/comfort_wall.yaml
+  comfort_profile: !include ../packages/features/comfort_basic_profile.yaml
+
+  # Presence Module (mmWave radar)
+  presence_module: !include ../packages/expansions/presence_wall.yaml
+  presence_profile: !include ../packages/features/presence_basic_profile.yaml
+
+  # === Device Health & Diagnostics ===
+  health: !include ../packages/features/device_health.yaml
+
+# ============================================================================
+# USAGE NOTES FOR CUSTOMERS
+# ============================================================================
+#
+# Wall/Desk Installation Notes:
+# - Designed for standard electrical boxes and wall plates
+# - Front-facing sensors for accurate readings
+# - Physical buttons for manual control
+# - Compatible with USB, PoE, or 240V power modules
+#
+# For full documentation, visit:
+# https://github.com/sense360store/esphome-public/blob/main/docs/product-matrix.md
+# ============================================================================

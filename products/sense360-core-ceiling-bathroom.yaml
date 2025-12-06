@@ -1,0 +1,94 @@
+---
+# ============================================================================
+# SENSE360 CORE CEILING - BATHROOM CONFIGURATION
+# ============================================================================
+# SKU: S360-CORE-C + S360-BATH-C
+#
+# Bathroom-specific ceiling-mounted environmental monitoring.
+# Shower detection, mold risk assessment, and ventilation control.
+#
+# Hardware: ESP32-S3-WROOM-1 (8MB Flash, 2MB PSRAM)
+#
+# Included Modules:
+# - Bathroom: SHT4x (Temp/Humidity), BMP390 (Pressure), SGP41 (VOC/NOx)
+# - Presence: LD2450 mmWave Radar
+# - LED Ring: Halo LED for visual feedback
+# - Optional: Fan Control (PWM or GP8403)
+#
+# NOTE: The Bathroom module REPLACES AirIQ - they cannot be used together.
+#
+# Customer usage in their ESPHome config:
+# packages:
+#   sense360_firmware:
+#     url: https://github.com/sense360store/esphome-public
+#     ref: v2.2.0
+#     files:
+#       - products/sense360-core-ceiling-bathroom.yaml
+#     refresh: 1d
+# ============================================================================
+
+substitutions:
+  # === Device Configuration ===
+  device_name: sense360-core-bathroom
+  friendly_name: Sense360 Core Bathroom
+  timezone: "America/New_York"
+
+  # === Logging ===
+  log_level: INFO
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "false"
+
+  # === Bathroom Thresholds ===
+  shower_humidity_threshold: "75"
+  shower_humidity_rate: "5"
+  mold_risk_humidity: "65"
+  mold_risk_duration_minutes: "30"
+
+  # === Security (users MUST define these in their config) ===
+  api_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+  fallback_ap_password: "Sense360Fallback"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === Base System Components ===
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+
+  # === Core Hardware (Ceiling Board) ===
+  core_hardware: !include ../packages/hardware/sense360_core_ceiling.yaml
+
+  # === LED Ring ===
+  led_ring: !include ../packages/hardware/led_ring_ceiling.yaml
+  led_effects: !include ../packages/features/ceiling_halo_leds.yaml
+
+  # === Bathroom Module (replaces AirIQ for bathroom environments) ===
+  bathroom_module: !include ../packages/expansions/airiq_bathroom_base.yaml
+  bathroom_profile: !include ../packages/features/bathroom_profile.yaml
+
+  # === Presence Module (mmWave radar) ===
+  presence_module: !include ../packages/expansions/presence_ceiling.yaml
+  presence_profile: !include ../packages/features/presence_basic_profile.yaml
+
+  # === Device Health & Diagnostics ===
+  health: !include ../packages/features/device_health.yaml
+
+# ============================================================================
+# OPTIONAL: Add Fan Control for Automatic Ventilation
+# ============================================================================
+# Uncomment ONE of the following to enable automatic fan control:
+#
+# For PWM fan control:
+#   fan_module: !include ../packages/expansions/fan_pwm.yaml
+#   fan_profile: !include ../packages/features/fan_control_profile.yaml
+#
+# For GP8403 DAC fan control (0-10V):
+#   fan_module: !include ../packages/expansions/fan_gp8403.yaml
+#   fan_profile: !include ../packages/features/fan_control_profile.yaml
+# ============================================================================
