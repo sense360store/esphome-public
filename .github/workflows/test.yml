@@ -175,7 +175,15 @@ jobs:
     strategy:
       matrix:
         config:
-          # Sense360 Mini products
+          # Sense360 Core products (primary)
+          - products/sense360-core-ceiling.yaml
+          - products/sense360-core-ceiling-presence.yaml
+          - products/sense360-core-ceiling-bathroom.yaml
+          - products/sense360-core-wall.yaml
+          - products/sense360-core-wall-presence.yaml
+          - products/sense360-core-voice-ceiling.yaml
+          - products/sense360-core-voice-wall.yaml
+          # Sense360 Mini products (legacy)
           - products/sense360-mini-airiq.yaml
           - products/sense360-mini-airiq-basic.yaml
           - products/sense360-mini-airiq-advanced.yaml
