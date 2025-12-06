@@ -6,13 +6,16 @@
 # This variant uses the ceiling S3's I2C primary bus on GPIO26/GPIO8.
 #
 # Sensors:
-# - SEN55 (I2C 0x69): PM1.0, PM2.5, PM4.0, PM10, VOC, NOx, Temp, Humidity
+# - SPS30 (I2C 0x69): PM1.0, PM2.5, PM4.0, PM10, Particle Count
+# - SGP41 (I2C 0x59): VOC and NOx Index
 # - SCD41 (I2C 0x62): CO2, Temperature, Humidity
+#
+# Note: The Mini ESP uses the SEN55 all-in-one sensor instead.
 #
 # I2C Connection (Ceiling S3):
 #   - SDA: GPIO26
 #   - SCL: GPIO8
-#   - Frequency: 100kHz (SEN55 requirement)
+#   - Frequency: 100kHz (SPS30 requirement)
 #
 # Status Indicators:
 #   - AirQ_Status_Led: GPIO7 (available)
@@ -27,8 +30,12 @@ substitutions:
   airiq_i2c_scl: GPIO8
 
   # Sensor update intervals
-  airiq_sen55_update: 30s
+  airiq_sps30_update: 30s
+  airiq_sgp41_update: 30s
   airiq_scd41_update: 30s
+
+  # SPS30 auto-cleaning interval (7 days default)
+  airiq_sps30_cleaning_interval: "604800s"
 
   # CO2 calibration
   co2_auto_calibration: "true"
@@ -37,82 +44,116 @@ substitutions:
   airiq_status_led_pin: GPIO7
 
 # ============================================================================
-# SEN55 - All-in-One Environmental Sensor
+# SPS30 - Particulate Matter Sensor
 # ============================================================================
 sensor:
-  - platform: sen5x
-    id: sen55_sensor
+  - platform: sps30
+    id: sps30_sensor
     i2c_id: ${airiq_i2c_id}
     address: 0x69
-    update_interval: ${airiq_sen55_update}
+    update_interval: ${airiq_sps30_update}
 
-    # Particulate Matter
     pm_1_0:
       id: airiq_pm1_0
       name: "${friendly_name} PM1.0"
       accuracy_decimals: 1
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sps30_update}
 
     pm_2_5:
       id: airiq_pm2_5
       name: "${friendly_name} PM2.5"
       accuracy_decimals: 1
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sps30_update}
 
     pm_4_0:
       id: airiq_pm4_0
       name: "${friendly_name} PM4.0"
       accuracy_decimals: 1
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sps30_update}
 
     pm_10_0:
       id: airiq_pm10_0
       name: "${friendly_name} PM10"
       accuracy_decimals: 1
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sps30_update}
 
-    # Environmental from SEN55
-    temperature:
-      id: airiq_sen55_temperature
-      name: "${friendly_name} Temperature (SEN55)"
-      accuracy_decimals: 1
+    # Particle counts
+    pmc_0_5:
+      id: airiq_pmc0_5
+      name: "${friendly_name} PMC 0.5"
+      accuracy_decimals: 0
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sps30_update}
 
-    humidity:
-      id: airiq_sen55_humidity
-      name: "${friendly_name} Humidity (SEN55)"
-      accuracy_decimals: 1
+    pmc_1_0:
+      id: airiq_pmc1_0
+      name: "${friendly_name} PMC 1.0"
+      accuracy_decimals: 0
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sps30_update}
 
-    # Air Quality Indices
+    pmc_2_5:
+      id: airiq_pmc2_5
+      name: "${friendly_name} PMC 2.5"
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pmc_4_0:
+      id: airiq_pmc4_0
+      name: "${friendly_name} PMC 4.0"
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pmc_10_0:
+      id: airiq_pmc10_0
+      name: "${friendly_name} PMC 10"
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pm_size:
+      id: airiq_pm_size
+      name: "${friendly_name} Typical Particle Size"
+      accuracy_decimals: 2
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    auto_cleaning_interval: ${airiq_sps30_cleaning_interval}
+
+# ============================================================================
+# SGP41 - VOC/NOx Sensor
+# ============================================================================
+  - platform: sgp4x
+    id: sgp41_sensor
+    i2c_id: ${airiq_i2c_id}
+    address: 0x59
+    update_interval: ${airiq_sgp41_update}
+
     voc:
       id: airiq_voc_index
       name: "${friendly_name} VOC Index"
       accuracy_decimals: 0
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sgp41_update}
 
     nox:
       id: airiq_nox_index
       name: "${friendly_name} NOx Index"
       accuracy_decimals: 0
       filters:
-        - throttle: ${airiq_sen55_update}
+        - throttle: ${airiq_sgp41_update}
 
-    # Configuration
-    temperature_compensation:
-      offset: 0
-      normalized_offset_slope: 0
-      time_constant: 0
-    acceleration_mode: low
+    compensation:
+      temperature_source: airiq_scd41_temperature
+      humidity_source: airiq_scd41_humidity
+
     store_baseline: true
-    auto_cleaning_interval: 604800s  # 7 days
 
 # ============================================================================
 # SCD41 - CO2 Sensor
@@ -148,7 +189,7 @@ sensor:
     measurement_mode: periodic
 
   # ============================================================================
-  # COMPOSITE SENSORS (Averaged from multiple sources)
+  # COMPOSITE SENSORS (from SCD41 - SPS30 doesn't provide temp/humidity)
   # ============================================================================
   - platform: template
     id: airiq_temperature
@@ -159,13 +200,8 @@ sensor:
     accuracy_decimals: 1
     icon: mdi:thermometer
     lambda: |-
-      float temp_sen55 = id(airiq_sen55_temperature).state;
       float temp_scd41 = id(airiq_scd41_temperature).state;
-      int count = 0;
-      float sum = 0.0f;
-      if (!std::isnan(temp_sen55)) { sum += temp_sen55; count++; }
-      if (!std::isnan(temp_scd41)) { sum += temp_scd41; count++; }
-      if (count > 0) return sum / count;
+      if (!std::isnan(temp_scd41)) return temp_scd41;
       return NAN;
     update_interval: 30s
 
@@ -178,13 +214,8 @@ sensor:
     accuracy_decimals: 1
     icon: mdi:water-percent
     lambda: |-
-      float hum_sen55 = id(airiq_sen55_humidity).state;
       float hum_scd41 = id(airiq_scd41_humidity).state;
-      int count = 0;
-      float sum = 0.0f;
-      if (!std::isnan(hum_sen55)) { sum += hum_sen55; count++; }
-      if (!std::isnan(hum_scd41)) { sum += hum_scd41; count++; }
-      if (count > 0) return sum / count;
+      if (!std::isnan(hum_scd41)) return hum_scd41;
       return NAN;
     update_interval: 30s
 
@@ -236,6 +267,21 @@ text_sensor:
     update_interval: 30s
 
 # ============================================================================
+# Button for Manual SPS30 Fan Cleaning
+# ============================================================================
+button:
+  - platform: template
+    name: "${friendly_name} SPS30 Clean Fan"
+    id: airiq_sps30_clean_button
+    icon: mdi:fan
+    on_press:
+      then:
+        - sps30.start_fan_autoclean: sps30_sensor
+        - logger.log:
+            level: INFO
+            format: "AirIQ: SPS30 fan cleaning started"
+
+# ============================================================================
 # MODULE INITIALIZATION
 # ============================================================================
 esphome:
@@ -246,7 +292,8 @@ esphome:
             id(module_airiq_present) = true;
             ESP_LOGI("airiq_ceiling_s3", "AirIQ module initialized on I2C %s/%s",
                      "${airiq_i2c_sda}", "${airiq_i2c_scl}");
-            ESP_LOGI("airiq_ceiling_s3", "  - SEN55 at 0x69");
+            ESP_LOGI("airiq_ceiling_s3", "  - SPS30 at 0x69");
+            ESP_LOGI("airiq_ceiling_s3", "  - SGP41 at 0x59");
             ESP_LOGI("airiq_ceiling_s3", "  - SCD41 at 0x62");
 
 # ============================================================================
@@ -254,6 +301,7 @@ esphome:
 # ============================================================================
 logger:
   logs:
-    sen5x: INFO
+    sps30: INFO
+    sgp4x: INFO
     scd4x: INFO
     component: ERROR
