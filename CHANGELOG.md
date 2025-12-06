@@ -8,6 +8,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Nothing yet
+
+### Changed
+- Nothing yet
+
+### Fixed
+- Nothing yet
+
+---
+
+## [3.0.0] - 2025-12-05
+
+### Added
+- **Complete Product SKU Matrix**: Comprehensive firmware release configuration system
+  - All 4 core variants: CORE-C, CORE-V-C, CORE-W, CORE-V-W
+  - All 3 power options: USB, PoE, AC (PWR)
+  - 12 base product configurations covering all core/power combinations
+  - Full product release matrix documentation (`docs/product-release-matrix.md`)
+
+- **Ceiling Core Configurations** (6 new files):
+  - `sense360-core-c-usb.yaml` - Ceiling Core with USB power
+  - `sense360-core-c-poe.yaml` - Ceiling Core with PoE power
+  - `sense360-core-c-pwr.yaml` - Ceiling Core with AC power
+  - `sense360-core-v-c-usb.yaml` - Voice Ceiling Core with USB power
+  - `sense360-core-v-c-poe.yaml` - Voice Ceiling Core with PoE power
+  - `sense360-core-v-c-pwr.yaml` - Voice Ceiling Core with AC power
+
+- **Wall Core Configurations** (6 new files):
+  - `sense360-core-w-usb.yaml` - Wall Core with USB power
+  - `sense360-core-w-poe.yaml` - Wall Core with PoE power
+  - `sense360-core-w-pwr.yaml` - Wall Core with AC power
+  - `sense360-core-v-w-usb.yaml` - Voice Wall Core with USB power
+  - `sense360-core-v-w-poe.yaml` - Voice Wall Core with PoE power
+  - `sense360-core-v-w-pwr.yaml` - Voice Wall Core with AC power
+
+- **Module Combination Documentation**:
+  - 24 valid ceiling module configurations documented
+  - 15 valid wall module configurations documented
+  - Clear constraint rules (AirIQ/Bathroom mutual exclusivity, Bathroom ceiling-only)
+  - SKU naming convention and product identification
+
 - **Sense360 Ceiling S3 Board**: Complete configuration for ESP32-S3-WROOM-1-N16R8 based ceiling board
   - New hardware profile: `sense360_core_ceiling_s3.yaml` with correct GPIO mappings from schematic
   - I2C primary bus on GPIO26/GPIO8 @ 100kHz for sensor modules
@@ -16,33 +57,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fan control output on GPIO15 with SI2302 MOSFET
   - Module-specific configurations: `airiq_ceiling_s3.yaml`, `comfort_ceiling_s3.yaml`, `presence_ceiling_s3.yaml`
   - Complete product configuration: `sense360-ceiling-s3-full.yaml`
+
 - **Sense360 Core Board Support**: New board variants and power configurations
   - Sense360 Core Wall and Ceiling board profiles
   - Comprehensive GPIO mapping and power management
   - PoE and USB-C power configurations
+
 - **Expansion Module System**: Modular sensor expansion support
-  - AirLQ expansion module with comprehensive sensor mapping
+  - AirIQ expansion module with comprehensive sensor mapping
   - Comfort Ceiling expansion module mapping
   - Presence Module Ceiling with Hi-Link LD2450 and DFRobot SEN0609/C4001 support
   - Phase 2 expansion module drivers and feature profiles
+
 - **LD2412 mmWave Sensor**: Multi-sensor presence detection support
   - Gate threshold configuration
   - Advanced and basic presence profiles
+
 - **Ceiling LED Ring**: Air quality visualization for ceiling-mounted devices
+
 - **CI/CD Pipeline**: GitHub Actions workflows for automated testing and validation
   - `test.yml`: Comprehensive test suite validating all product configurations with ESPHome compilation
   - `validate.yml`: Quick YAML syntax and structure validation for fast feedback
   - Matrix testing across all product configurations to catch issues early
   - Automated C++ header formatting checks with clang-format
+
 - **Pre-commit Hooks**: Local validation before commits
   - YAML linting and validation
   - Python code formatting (Black) and linting (Flake8)
   - C++ formatting with clang-format
   - Automated configuration validation script
+
 - **Validation Script** (`tests/validate_configs.py`): Python script to validate YAML syntax and structure
   - Supports ESPHome custom YAML tags (!secret, !include, !extend, !lambda)
   - Validates all configuration files in products/, packages/, base/, features/, hardware/, and tests/
   - Checks for required keys and proper structure
+
 - **Development Documentation** (`docs/development.md`): Comprehensive guide for contributors
 - **Development Dependencies** (`requirements-dev.txt`): All tools needed for local development
 - **YAML Linting Configuration** (`.yamllint`): Consistent YAML style across the repository
@@ -81,7 +130,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - None.
 
 ### Upgrade
-- For contributors: Install development dependencies with `pip install -r requirements-dev.txt` and set up pre-commit hooks with `pre-commit install`
+1. Update your configuration to use the new release tag:
+   ```yaml
+   packages:
+     sense360:
+       url: https://github.com/sense360store/esphome-public
+       ref: v3.0.0
+       files:
+         - products/sense360-core-c-poe.yaml  # Choose your core/power combo
+   ```
+
+2. For contributors: Install development dependencies with `pip install -r requirements-dev.txt` and set up pre-commit hooks with `pre-commit install`
 
 ---
 

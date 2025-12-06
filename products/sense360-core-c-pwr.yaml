@@ -1,0 +1,101 @@
+---
+# ============================================================================
+# SENSE360 CORE CEILING - AC POWER (240V)
+# ============================================================================
+# SKU: S360-CORE-C-PWR
+#
+# Base configuration for Sense360 Core Ceiling with AC mains power.
+# Ideal for permanent installations without PoE infrastructure.
+#
+# Hardware:
+# - Core: S360-CORE-C (Ceiling mount, non-voice)
+# - Power: 100-240V AC (5V/2A output via HLK-PM01 or similar)
+# - LED: Optional (add led_ring_ceiling.yaml if installed)
+#
+# Add expansion modules as needed:
+# - AirIQ: packages/expansions/airiq_ceiling.yaml
+# - Comfort: packages/expansions/comfort_ceiling.yaml
+# - Presence: packages/expansions/presence_ceiling.yaml
+# - Bathroom: packages/expansions/bathroom.yaml (mutually exclusive with AirIQ)
+# - Fan: packages/expansions/fan_gp8403.yaml or fan_pwm.yaml
+#
+# ============================================================================
+# CUSTOMER USAGE
+# ============================================================================
+# packages:
+#   sense360:
+#     url: https://github.com/sense360store/esphome-public
+#     ref: v3.0.0
+#     files:
+#       - products/sense360-core-c-pwr.yaml
+#       # Add modules as needed:
+#       # - packages/expansions/airiq_ceiling.yaml
+#       # - packages/expansions/presence_ceiling.yaml
+#
+# wifi:
+#   ssid: !secret wifi_ssid
+#   password: !secret wifi_password
+#
+# api:
+#   encryption:
+#     key: !secret api_encryption_key
+#
+# ota:
+#   - platform: esphome
+#     password: !secret ota_password
+# ============================================================================
+
+substitutions:
+  device_name: sense360-ceiling-ac
+  friendly_name: Sense360 Ceiling AC
+  device_sku: S360-CORE-C-PWR
+  device_version: "3.0.0"
+  timezone: "America/New_York"
+
+  # Power configuration
+  power_source: 240v_ac
+
+  # Security (Define these in your secrets.yaml)
+  api_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+
+  # Logging
+  log_level: INFO
+
+  # WiFi
+  wifi_fast_connect: "false"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === Base System Components ===
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+
+  # === Core Hardware ===
+  core_hardware: !include ../packages/hardware/sense360_core_ceiling.yaml
+
+  # === Power Configuration ===
+  power_config: !include ../packages/hardware/power_240v.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
