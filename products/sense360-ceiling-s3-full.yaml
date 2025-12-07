@@ -153,8 +153,8 @@ binary_sensor:
             level: WARN
             format: "High CO2 detected: %.0f ppm"
             args: ['id(airiq_co2).state']
-        # Optionally turn on fan
-        # - switch.turn_on: fan_switch
+          # Optionally turn on fan
+          # - switch.turn_on: fan_switch
 
 # Example: Presence-activated lighting control
 # (LED ring already responds to presence in presence_ceiling_s3.yaml)
