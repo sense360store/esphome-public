@@ -33,7 +33,7 @@
 # - User Button 2:      GPIO10
 # - Boot Button:        GPIO0
 # - Microphone I2S:     SCK=GPIO11, WS=GPIO12, SD=GPIO13
-# - Speaker I2S:        BCLK=GPIO14, LRC=GPIO15, DIN=GPIO16
+# - Speaker I2S:        BCLK=GPIO17, LRC=GPIO15, DIN=GPIO16
 # ============================================================================
 
 substitutions:
@@ -82,7 +82,7 @@ substitutions:
   mic_i2s_sd_pin: GPIO13
 
   # Speaker/Amplifier I2S pins
-  speaker_i2s_bclk_pin: GPIO14
+  speaker_i2s_bclk_pin: GPIO17
   speaker_i2s_lrc_pin: GPIO15
   speaker_i2s_din_pin: GPIO16
 

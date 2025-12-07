@@ -16,7 +16,7 @@
 #   - WS (Word Select):      GPIO12
 #   - SD (Serial Data):      GPIO13
 # - Speaker I2S:
-#   - BCLK (Bit Clock):      GPIO14
+#   - BCLK (Bit Clock):      GPIO17
 #   - LRC (Left/Right Clock):GPIO15
 #   - DIN (Data In):         GPIO16
 #
@@ -45,7 +45,7 @@ substitutions:
   mic_i2s_sd_pin: GPIO13
 
   # Speaker/Amplifier I2S pins
-  speaker_i2s_bclk_pin: GPIO14
+  speaker_i2s_bclk_pin: GPIO17
   speaker_i2s_lrc_pin: GPIO15
   speaker_i2s_din_pin: GPIO16
 
