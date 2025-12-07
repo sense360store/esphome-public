@@ -97,7 +97,7 @@ sensor:
   # BMP390 - Barometric Pressure Sensor (Bosch)
   # I2C Address: 0x77
   # ============================================================================
-  - platform: bmp3xx
+  - platform: bmp3xx_i2c
     id: bathroom_bmp390_sensor
     i2c_id: ${bathroom_i2c_id}
     address: 0x77
