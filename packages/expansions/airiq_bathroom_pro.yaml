@@ -15,8 +15,8 @@
 # ventilation optimization, mold prevention, and surface condensation detection.
 #
 # Expansion Bus Connection:
-#   Pin 4 (SDA) → GPIO39
-#   Pin 5 (SCL) → GPIO40
+#   Pin 4 (SDA) → GPIO21 (via expansion_i2c from core hardware)
+#   Pin 5 (SCL) → GPIO18 (via expansion_i2c from core hardware)
 #   Pin 2 (3.3V) → Power
 #   Pin 1 (GND) → Ground
 #
@@ -28,9 +28,8 @@ substitutions:
   module_variant: bathroom_pro
 
   # I2C Configuration
-  bathroom_i2c_sda: GPIO39
-  bathroom_i2c_scl: GPIO40
-  bathroom_i2c_id: i2c_bathroom
+  # Uses the expansion_i2c bus defined in core hardware (GPIO21/18)
+  bathroom_i2c_id: expansion_i2c
 
   # Sensor update intervals
   bathroom_sht4x_update: 10s   # Fast updates for shower detection
@@ -50,14 +49,6 @@ substitutions:
 
   # Condensation threshold (degrees above dew point)
   condensation_margin: "3.0"
-
-# I2C Bus Configuration
-i2c:
-  - id: ${bathroom_i2c_id}
-    sda: ${bathroom_i2c_sda}
-    scl: ${bathroom_i2c_scl}
-    scan: true
-    frequency: 100kHz
 
 # ============================================================================
 # SENSORS
