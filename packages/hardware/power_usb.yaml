@@ -135,7 +135,7 @@ switch:
 logger:
   logs:
     sensor: INFO
-    power: INFO
+    power: ${log_level}
 
 # Automation: Log USB power status and warnings on boot
 esphome:

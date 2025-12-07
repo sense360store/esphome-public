@@ -152,4 +152,4 @@ binary_sensor:
 logger:
   logs:
     sensor: INFO
-    power: INFO
+    power: ${log_level}
