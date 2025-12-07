@@ -21,8 +21,12 @@
 
 substitutions:
   # GPIO Configuration
-  fan_pwm_pin: GPIO4
-  fan_tach_pin: GPIO5
+  # Note: These pins should be overridden by the parent board file.
+  # Default values are for standalone use; proper deployments use:
+  # - fan_pwm_pin: ${expansion_gpio1} (GPIO5)
+  # - fan_tach_pin: ${expansion_gpio2} (GPIO6)
+  fan_pwm_pin: GPIO5
+  fan_tach_pin: GPIO6
 
   # PWM Configuration
   fan_pwm_frequency: "25000"  # 25kHz (standard PC fan PWM)
