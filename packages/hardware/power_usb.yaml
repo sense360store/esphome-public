@@ -89,9 +89,10 @@ text_sensor:
     icon: mdi:note-text
     entity_category: diagnostic
     lambda: |-
-      return {
-        "USB-C power is suitable for development and testing. For production use with multiple modules or voice features, use PoE or 240V AC power instead."
-      };
+        return {
+          "USB-C power is suitable for development and testing. For production use with multiple modules or voice "
+          "features, use PoE or 240V AC power instead."
+        };
     update_interval: never
 
 # Binary sensor for USB power status
@@ -156,4 +157,6 @@ esphome:
         # Warning for insufficient power
         - logger.log:
             level: WARN
-            message: "USB power may be insufficient for voice assistant or multiple expansion modules. Consider PoE or 240V AC for production use."
+            message: >-
+              USB power may be insufficient for voice assistant or multiple expansion modules. Consider PoE or
+              240V AC for production use.
