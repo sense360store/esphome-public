@@ -86,7 +86,7 @@ packages:
 globals:
   - id: power_source_type
     type: std::string
-    restore_value: no
+    restore_value: false
     initial_value: '"USB"'
 
 text_sensor:
