@@ -106,6 +106,16 @@ psram:
   mode: octal
   speed: 80MHz
 
+# I2S audio bus for microphone and speaker
+i2s_audio:
+  - id: mic_i2s_bus
+    i2s_lrclk_pin: ${mic_i2s_ws_pin}
+    i2s_bclk_pin: ${mic_i2s_sck_pin}
+
+  - id: speaker_i2s_bus
+    i2s_lrclk_pin: ${speaker_i2s_lrc_pin}
+    i2s_bclk_pin: ${speaker_i2s_bclk_pin}
+
 # I2C buses
 i2c:
   - id: i2c0
@@ -193,9 +203,8 @@ microphone:
   - platform: i2s_audio
     id: core_microphone
     adc_type: external
+    i2s_audio_id: mic_i2s_bus
     i2s_din_pin: ${mic_i2s_sd_pin}
-    i2s_bclk_pin: ${mic_i2s_sck_pin}
-    i2s_lrclk_pin: ${mic_i2s_ws_pin}
     pdm: false
 
 # Speaker configuration (I2S DAC/Amplifier)
@@ -203,9 +212,8 @@ speaker:
   - platform: i2s_audio
     id: core_speaker
     dac_type: external
+    i2s_audio_id: speaker_i2s_bus
     i2s_dout_pin: ${speaker_i2s_din_pin}
-    i2s_bclk_pin: ${speaker_i2s_bclk_pin}
-    i2s_lrclk_pin: ${speaker_i2s_lrc_pin}
     mode: mono
 
 # Voice Assistant integration
