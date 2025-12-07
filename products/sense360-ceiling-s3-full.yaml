@@ -4,7 +4,7 @@
 # ============================================================================
 # Complete ceiling-mounted smart sensor platform with:
 # - Presence detection (Hi-Link LD2450 or DFRobot SEN0609/C4001)
-# - Air quality monitoring (SEN55 PM + VOC/NOx, SCD41 CO2)
+# - Air quality monitoring (SPS30 PM, SGP41 VOC/NOx, SCD41 CO2)
 # - Environmental comfort (VEML7700 light, SHT4x temp/humidity)
 # - WS2812B LED ring for visual feedback
 # - Fan control output
@@ -212,7 +212,7 @@ sensor:
 
       // Add module power estimates
       if (id(module_presence_present)) power += 0.15f;  // LD2450/C4001
-      if (id(module_airiq_present)) power += 1.2f;      // SEN55 + SCD41
+      if (id(module_airiq_present)) power += 1.5f;      // SPS30 + SGP41 + SCD41
       if (id(module_comfort_present)) power += 0.05f;   // VEML7700 + SHT4x
 
       // LED ring (12 LEDs at 50% brightness)

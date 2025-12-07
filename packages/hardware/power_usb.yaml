@@ -58,28 +58,7 @@ sensor:
       return 5.0;
     update_interval: 60s
 
-  # Optional: USB voltage monitoring (if hardware supports it)
-  # This would require voltage divider circuit for higher PD voltages
-  # - platform: adc
-  #   name: "${friendly_name} USB Voltage"
-  #   id: usb_voltage
-  #   pin: GPIO3  # ADC pin for voltage monitoring
-  #   attenuation: 11dB
-  #   update_interval: 5s
-  #   filters:
-  #     # For 5V USB, direct connection with divider (e.g., 10kΩ + 10kΩ)
-  #     # For USB-PD (up to 20V), use appropriate voltage divider
-  #     - multiply: 2.0  # Adjust based on your voltage divider
-  #     - sliding_window_moving_average:
-  #         window_size: 10
-  #         send_every: 5
-  #   unit_of_measurement: "V"
-  #   device_class: voltage
-  #   state_class: measurement
-  #   accuracy_decimals: 2
-  #   icon: mdi:usb
-
-# Power source indicator
+# Power source indicator and configuration notes
 text_sensor:
   - platform: template
     name: "${friendly_name} Power Source"
@@ -102,6 +81,19 @@ text_sensor:
     update_interval: never
     entity_category: diagnostic
 
+  # Configuration notes for users
+  # These appear as diagnostic entities
+  - platform: template
+    name: "${friendly_name} USB Power Notes"
+    id: usb_power_notes
+    icon: mdi:note-text
+    entity_category: diagnostic
+    lambda: |-
+      return {
+        "USB-C power is suitable for development and testing. For production use with multiple modules or voice features, use PoE or 240V AC power instead."
+      };
+    update_interval: never
+
 # Binary sensor for USB power status
 binary_sensor:
   - platform: template
@@ -114,9 +106,8 @@ binary_sensor:
       // Could implement detection with voltage monitoring
       return true;
 
-# Power limitation warning
-# This warns users if they're using USB power with high-power modules
-binary_sensor:
+  # Power limitation warning
+  # This warns users if they're using USB power with high-power modules
   - platform: template
     name: "${friendly_name} Power Limitation Warning"
     id: power_limitation_warning
@@ -126,7 +117,7 @@ binary_sensor:
       // This could be enhanced to detect actual power draw
       // For now, it's a static warning for USB configurations
       // Users can disable this if they know their setup is OK
-      return false;  // Set to true to enable warning
+      return false;  # Set to true to enable warning
     filters:
       - delayed_on: 10s
 
@@ -166,15 +157,3 @@ esphome:
         - logger.log:
             level: WARN
             message: "USB power may be insufficient for voice assistant or multiple expansion modules. Consider PoE or 240V AC for production use."
-
-# Configuration notes for users
-# These appear as diagnostic entities
-text_sensor:
-  - platform: template
-    name: "${friendly_name} USB Power Notes"
-    id: usb_power_notes
-    icon: mdi:note-text
-    entity_category: diagnostic
-    lambda: |-
-      return {"USB-C power is suitable for development and testing. For production use with multiple modules or voice features, use PoE or 240V AC power instead."};
-    update_interval: never

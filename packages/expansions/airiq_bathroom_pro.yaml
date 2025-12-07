@@ -1,15 +1,18 @@
 ---
 # ============================================================================
-# SENSE360 BATHROOM EXPANSION MODULE - HARDWARE DRIVER
+# SENSE360 AIRIQ BATHROOM PRO MODULE - HARDWARE DRIVER
 # ============================================================================
-# Bathroom-specific air quality and ventilation monitoring:
-# - SHT40 (I2C 0x44): Humidity (focus on spike detection for showers)
-# - SCD41 (I2C 0x62): CO2 monitoring
-# - SGP40 (I2C 0x59, optional): VOC/odor detection
-# - BH1750 (I2C 0x23, optional): Light sensor for occupancy hints
+# SKU: S360-BATH-P
 #
-# This file provides the base hardware setup. User-facing entities are defined
-# in the bathroom_profile.yaml feature file.
+# Advanced bathroom-specific air quality and environmental monitoring:
+# - SHT4x (I2C 0x44): High-accuracy Temperature & Humidity
+# - BMP390 (I2C 0x77): Barometric Pressure
+# - SGP41 (I2C 0x59): VOC and NOx Index
+# - MLX90614 (I2C 0x5A): IR Surface Temperature / Condensation Risk
+# - SPS30 (I2C 0x69): PM1.0, PM2.5, PM10 Particulate Matter
+#
+# Designed for bathroom environments with focus on humidity tracking,
+# ventilation optimization, mold prevention, and surface condensation detection.
 #
 # Expansion Bus Connection:
 #   Pin 4 (SDA) → GPIO39
@@ -17,26 +20,36 @@
 #   Pin 2 (3.3V) → Power
 #   Pin 1 (GND) → Ground
 #
-# Power Requirements: 3.3V / 500mA max
+# Power Requirements: 3.3V / 600mA max (SPS30 fan draws most current)
 # ============================================================================
 
 substitutions:
+  module_sku: S360-BATH-P
+  module_variant: bathroom_pro
+
   # I2C Configuration
   bathroom_i2c_sda: GPIO39
   bathroom_i2c_scl: GPIO40
   bathroom_i2c_id: i2c_bathroom
 
   # Sensor update intervals
-  bathroom_sht40_update: 10s   # Fast updates for shower detection
-  bathroom_scd41_update: 30s
-  bathroom_sgp40_update: 10s
-  bathroom_bh1750_update: 5s
+  bathroom_sht4x_update: 10s   # Fast updates for shower detection
+  bathroom_bmp390_update: 60s
+  bathroom_sgp41_update: 10s
+  bathroom_mlx90614_update: 10s
+  bathroom_sps30_update: 30s
+
+  # SPS30 auto-cleaning interval (7 days default)
+  bathroom_sps30_cleaning_interval: "604800s"
 
   # Humidity thresholds
   shower_humidity_threshold: "75"      # Humidity % to detect shower
   shower_humidity_rate: "5"            # Rate of change to detect shower start
   mold_risk_humidity: "65"             # Sustained humidity for mold risk
   mold_risk_duration_minutes: "30"     # Duration for mold risk warning
+
+  # Condensation threshold (degrees above dew point)
+  condensation_margin: "3.0"
 
 # I2C Bus Configuration
 i2c:
@@ -51,12 +64,12 @@ i2c:
 # ============================================================================
 sensor:
   # ============================================================================
-  # SHT40 - High-Accuracy Temperature/Humidity Sensor (Sensirion)
+  # SHT4x - High-Accuracy Temperature/Humidity Sensor (Sensirion)
   # I2C Address: 0x44
   # Primary sensor for humidity spike detection
   # ============================================================================
   - platform: sht4x
-    id: bathroom_sht40_sensor
+    id: bathroom_sht4x_sensor
     i2c_id: ${bathroom_i2c_id}
     address: 0x44
 
@@ -66,7 +79,7 @@ sensor:
       internal: true
       accuracy_decimals: 1
       filters:
-        - throttle: ${bathroom_sht40_update}
+        - throttle: ${bathroom_sht4x_update}
 
     humidity:
       id: bathroom_humidity
@@ -74,57 +87,44 @@ sensor:
       internal: true
       accuracy_decimals: 1
       filters:
-        - throttle: ${bathroom_sht40_update}
+        - throttle: ${bathroom_sht4x_update}
 
     precision: High
     heater_power: "Low"
-    update_interval: ${bathroom_sht40_update}
+    update_interval: ${bathroom_sht4x_update}
 
   # ============================================================================
-  # SCD41 - CO2 Sensor (Sensirion)
-  # I2C Address: 0x62
+  # BMP390 - Barometric Pressure Sensor (Bosch)
+  # I2C Address: 0x77
   # ============================================================================
-  - platform: scd4x
-    id: bathroom_scd41_sensor
+  - platform: bmp3xx
+    id: bathroom_bmp390_sensor
     i2c_id: ${bathroom_i2c_id}
-    address: 0x62
-
-    co2:
-      id: bathroom_co2
-      name: "${friendly_name} CO2"
-      internal: true
-      accuracy_decimals: 0
-      filters:
-        - throttle: ${bathroom_scd41_update}
+    address: 0x77
 
     temperature:
-      id: bathroom_scd41_temperature
-      name: "${friendly_name} SCD41 Temperature"
+      id: bathroom_bmp390_temperature
+      name: "${friendly_name} BMP390 Temperature"
       internal: true
-      accuracy_decimals: 1
-      filters:
-        - throttle: ${bathroom_scd41_update}
+      oversampling: 2x
 
-    humidity:
-      id: bathroom_scd41_humidity
-      name: "${friendly_name} SCD41 Humidity"
+    pressure:
+      id: bathroom_pressure
+      name: "${friendly_name} Pressure"
       internal: true
-      accuracy_decimals: 1
-      filters:
-        - throttle: ${bathroom_scd41_update}
+      oversampling: 2x
 
-    automatic_self_calibration: true
-    measurement_mode: periodic
-    update_interval: ${bathroom_scd41_update}
+    update_interval: ${bathroom_bmp390_update}
 
   # ============================================================================
-  # SGP40 - VOC/Odor Sensor (Sensirion)
+  # SGP41 - VOC/NOx Sensor (Sensirion)
   # I2C Address: 0x59
   # Detects odors and bathroom-specific VOCs
   # ============================================================================
   - platform: sgp4x
-    id: bathroom_sgp40_sensor
+    id: bathroom_sgp41_sensor
     i2c_id: ${bathroom_i2c_id}
+    address: 0x59
 
     voc:
       id: bathroom_voc_index
@@ -132,29 +132,144 @@ sensor:
       internal: true
       accuracy_decimals: 0
       filters:
-        - throttle: ${bathroom_sgp40_update}
+        - throttle: ${bathroom_sgp41_update}
 
-    # Compensation from SHT40 for better accuracy
+    nox:
+      id: bathroom_nox_index
+      name: "${friendly_name} NOx Index"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${bathroom_sgp41_update}
+
+    # Compensation from SHT4x for better accuracy
     compensation:
       temperature_source: bathroom_temperature
       humidity_source: bathroom_humidity
 
-    update_interval: ${bathroom_sgp40_update}
+    store_baseline: true
+    update_interval: ${bathroom_sgp41_update}
 
   # ============================================================================
-  # BH1750 - Ambient Light Sensor (ROHM)
-  # I2C Address: 0x23
-  # Used for occupancy hints (light on = likely occupied)
+  # MLX90614 - IR Surface Temperature Sensor (Melexis)
+  # I2C Address: 0x5A
+  # Measures surface temperature for condensation detection
   # ============================================================================
-  - platform: bh1750
-    id: bathroom_light_sensor
+  - platform: mlx90614
+    id: bathroom_mlx90614_sensor
     i2c_id: ${bathroom_i2c_id}
-    address: 0x23
+    address: 0x5A
 
-    name: "${friendly_name} Illuminance"
-    internal: true
-    accuracy_decimals: 1
-    update_interval: ${bathroom_bh1750_update}
+    ambient:
+      id: bathroom_ir_ambient
+      name: "${friendly_name} IR Ambient Temperature"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${bathroom_mlx90614_update}
+
+    object:
+      id: bathroom_surface_temperature
+      name: "${friendly_name} Surface Temperature"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${bathroom_mlx90614_update}
+
+    update_interval: ${bathroom_mlx90614_update}
+
+  # ============================================================================
+  # SPS30 - Particulate Matter Sensor (Sensirion)
+  # I2C Address: 0x69
+  # ============================================================================
+  - platform: sps30
+    id: bathroom_sps30_sensor
+    i2c_id: ${bathroom_i2c_id}
+    address: 0x69
+
+    pm_1_0:
+      id: bathroom_pm1_0
+      name: "${friendly_name} PM1.0"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${bathroom_sps30_update}
+
+    pm_2_5:
+      id: bathroom_pm2_5
+      name: "${friendly_name} PM2.5"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${bathroom_sps30_update}
+
+    pm_4_0:
+      id: bathroom_pm4_0
+      name: "${friendly_name} PM4.0"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${bathroom_sps30_update}
+
+    pm_10_0:
+      id: bathroom_pm10_0
+      name: "${friendly_name} PM10"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${bathroom_sps30_update}
+
+    # Particle counts (number concentration)
+    pmc_0_5:
+      id: bathroom_pmc0_5
+      name: "${friendly_name} PMC 0.5"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${bathroom_sps30_update}
+
+    pmc_1_0:
+      id: bathroom_pmc1_0
+      name: "${friendly_name} PMC 1.0"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${bathroom_sps30_update}
+
+    pmc_2_5:
+      id: bathroom_pmc2_5
+      name: "${friendly_name} PMC 2.5"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${bathroom_sps30_update}
+
+    pmc_4_0:
+      id: bathroom_pmc4_0
+      name: "${friendly_name} PMC 4.0"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${bathroom_sps30_update}
+
+    pmc_10_0:
+      id: bathroom_pmc10_0
+      name: "${friendly_name} PMC 10"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${bathroom_sps30_update}
+
+    pm_size:
+      id: bathroom_pm_size
+      name: "${friendly_name} Typical Particle Size"
+      internal: true
+      accuracy_decimals: 2
+      filters:
+        - throttle: ${bathroom_sps30_update}
+
+    auto_cleaning_interval: ${bathroom_sps30_cleaning_interval}
+    update_interval: ${bathroom_sps30_update}
 
   # ============================================================================
   # Calculated Sensors
@@ -195,6 +310,46 @@ sensor:
       }
       return 0.0f;
 
+  # Dew point calculation
+  - platform: template
+    id: bathroom_dew_point
+    name: "${friendly_name} Dew Point"
+    internal: true
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    update_interval: 30s
+    lambda: |-
+      float temp = id(bathroom_temperature).state;
+      float humidity = id(bathroom_humidity).state;
+
+      if (std::isnan(temp) || std::isnan(humidity)) {
+        return NAN;
+      }
+
+      // Magnus formula for dew point
+      float a = 17.27f;
+      float b = 237.7f;
+      float alpha = ((a * temp) / (b + temp)) + log(humidity / 100.0f);
+      return (b * alpha) / (a - alpha);
+
+  # Condensation margin (surface temp - dew point)
+  - platform: template
+    id: bathroom_condensation_margin
+    name: "${friendly_name} Condensation Margin"
+    internal: true
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    update_interval: 10s
+    lambda: |-
+      float surface = id(bathroom_surface_temperature).state;
+      float dew = id(bathroom_dew_point).state;
+
+      if (std::isnan(surface) || std::isnan(dew)) {
+        return NAN;
+      }
+
+      return surface - dew;
+
 # ============================================================================
 # Globals for Bathroom Logic
 # ============================================================================
@@ -223,12 +378,6 @@ globals:
     restore_value: false
     initial_value: 'false'
 
-  # Light-based occupancy hint
-  - id: bathroom_light_on
-    type: bool
-    restore_value: false
-    initial_value: 'false'
-
   # Post-shower ventilation timer (minutes remaining)
   - id: bathroom_post_shower_timer
     type: int
@@ -240,6 +389,12 @@ globals:
     type: int
     restore_value: false
     initial_value: '0'
+
+  # Condensation risk flag
+  - id: bathroom_condensation_risk
+    type: bool
+    restore_value: false
+    initial_value: 'false'
 
 # ============================================================================
 # Binary Sensors
@@ -272,18 +427,27 @@ binary_sensor:
     lambda: |-
       return id(bathroom_odor_detected);
 
+  # Condensation risk detection
+  - platform: template
+    id: bathroom_condensation_sensor
+    name: "${friendly_name} Condensation Risk"
+    internal: true
+    device_class: problem
+    lambda: |-
+      return id(bathroom_condensation_risk);
+
 # ============================================================================
 # Interval for Bathroom Logic
 # ============================================================================
 interval:
-  # Fast interval for shower detection
+  # Fast interval for shower detection and condensation monitoring
   - interval: 10s
     then:
       - lambda: |-
           float humidity = id(bathroom_humidity).state;
           float humidity_rate = id(bathroom_humidity_rate).state;
           float voc = id(bathroom_voc_index).state;
-          float lux = id(bathroom_light_sensor).state;
+          float cond_margin = id(bathroom_condensation_margin).state;
 
           if (std::isnan(humidity)) return;
 
@@ -312,9 +476,13 @@ interval:
             id(bathroom_odor_detected) = (voc > 150);
           }
 
-          // Light-based occupancy hint
-          if (!std::isnan(lux)) {
-            id(bathroom_light_on) = (lux > 50.0f);
+          // Condensation risk detection (surface temp near or below dew point)
+          if (!std::isnan(cond_margin)) {
+            id(bathroom_condensation_risk) = (cond_margin < ${condensation_margin});
+            if (id(bathroom_condensation_risk)) {
+              ESP_LOGW("bathroom", "Condensation risk! Surface: %.1f°C, Margin: %.1f°C",
+                       id(bathroom_surface_temperature).state, cond_margin);
+            }
           }
 
           // Calculate fan recommendation
@@ -323,6 +491,9 @@ interval:
           if (id(bathroom_shower_active)) {
             // During shower: high speed
             fan_speed = 100;
+          } else if (id(bathroom_condensation_risk)) {
+            // Condensation risk: high speed
+            fan_speed = 80;
           } else if (id(bathroom_post_shower_timer) > 0) {
             // Post-shower: medium-high speed
             fan_speed = 70;
@@ -370,3 +541,27 @@ interval:
           if (id(bathroom_post_shower_timer) > 0) {
             id(bathroom_post_shower_timer)--;
           }
+
+# ============================================================================
+# Button for Manual SPS30 Fan Cleaning
+# ============================================================================
+button:
+  - platform: template
+    name: "${friendly_name} SPS30 Clean Fan"
+    id: bathroom_sps30_clean_button
+    icon: mdi:fan
+    internal: true
+    on_press:
+      then:
+        - sps30.start_fan_autoclean: bathroom_sps30_sensor
+        - logger.log:
+            level: INFO
+            format: "Bathroom: SPS30 fan cleaning started"
+
+text_sensor:
+  - platform: template
+    name: "${friendly_name} AirIQ Module SKU"
+    lambda: |-
+      return {"${module_sku}"};
+    update_interval: never
+    entity_category: diagnostic

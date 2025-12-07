@@ -1,0 +1,105 @@
+---
+# ============================================================================
+# SENSE360 CORE VOICE CEILING - COMPLETE PRODUCT CONFIGURATION
+# ============================================================================
+# SKU: S360-CORE-V-C
+#
+# Voice-enabled ceiling-mounted smart home sensor platform.
+# Complete environmental monitoring with voice assistant support.
+#
+# Hardware: ESP32-S3-WROOM-1 (8MB Flash, 2MB PSRAM)
+#
+# Included Modules:
+# - AirIQ (Air Quality): SPS30 PM, SGP41 VOC/NOx, SCD41 CO2, BMP390 Pressure
+# - Comfort: SHT40 Temperature/Humidity, LTR-303 Light
+# - Presence: LD2450 mmWave Radar
+# - LED+MIC Ring: Halo LED with I2S microphone array (REQUIRED)
+# - Voice Assistant: Home Assistant voice pipeline support
+#
+# IMPORTANT: Core Voice requires LED+MIC ring (S360-LED-V-C)
+#
+# Customer usage in their ESPHome config:
+# packages:
+#   sense360_firmware:
+#     url: https://github.com/sense360store/esphome-public
+#     ref: v2.2.0
+#     files:
+#       - products/sense360-core-voice-ceiling.yaml
+#     refresh: 1d
+# ============================================================================
+
+substitutions:
+  # === Device Configuration ===
+  device_name: sense360-core-voice-ceiling
+  friendly_name: Sense360 Core Voice Ceiling
+  timezone: "America/New_York"
+
+  # === Logging ===
+  log_level: INFO
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "false"
+
+  # === CO2 Air Quality Thresholds (ppm) ===
+  co2_good_limit: "750"
+  co2_moderate_limit: "950"
+  co2_unhealthy_limit: "1400"
+
+  # === PM2.5 Thresholds (µg/m³) ===
+  sen55_pm2_5_good_limit: "10"
+  sen55_pm2_5_moderate_limit: "25"
+  sen55_pm2_5_unhealthy_limit: "55"
+
+  # === VOC Index Thresholds (0-500 scale) ===
+  sen55_voc_good_limit: "80"
+  sen55_voc_moderate_limit: "120"
+  sen55_voc_unhealthy_limit: "180"
+
+  # === Security (users MUST define these in their config) ===
+  api_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+  fallback_ap_password: "Sense360Fallback"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === Base System Components ===
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+
+  # === Core Hardware (Voice Ceiling Board) ===
+  core_hardware: !include ../packages/hardware/sense360_core_voice_ceiling.yaml
+
+  # === LED+MIC Ring (REQUIRED for Voice) ===
+  led_ring: !include ../packages/hardware/led_ring_mic_ceiling.yaml
+  led_effects: !include ../packages/features/ceiling_halo_leds.yaml
+
+  # === Expansion Modules ===
+  # AirIQ Module (air quality sensors)
+  airiq_module: !include ../packages/expansions/airiq_ceiling.yaml
+  airiq_profile: !include ../packages/features/airiq_basic_profile.yaml
+
+  # Comfort Module (temperature, humidity, light)
+  comfort_module: !include ../packages/expansions/comfort_ceiling.yaml
+  comfort_profile: !include ../packages/features/comfort_basic_profile.yaml
+
+  # Presence Module (mmWave radar)
+  presence_module: !include ../packages/expansions/presence_ceiling.yaml
+  presence_profile: !include ../packages/features/presence_basic_profile.yaml
+
+  # === Device Health & Diagnostics ===
+  health: !include ../packages/features/device_health.yaml
+
+# ============================================================================
+# VOICE ASSISTANT CONFIGURATION
+# ============================================================================
+# The voice assistant is configured via Home Assistant.
+# Ensure your Home Assistant instance has the voice pipeline configured.
+#
+# For voice assistant setup, see:
+# https://www.home-assistant.io/voice_control/
+# ============================================================================
