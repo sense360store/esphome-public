@@ -211,7 +211,7 @@ sensor:
     update_interval: ${airiq_scd41_update}
 
   # BMP390 - Barometric Pressure
-  - platform: bmp3xx
+  - platform: bmp3xx_i2c
     id: bmp390_sensor
     i2c_id: ${airiq_i2c_id}
     address: 0x77
