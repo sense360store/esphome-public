@@ -148,10 +148,10 @@ number:
         name: "${friendly_name} Gate 13 Still Threshold"
         internal: true
 
-# ----------------------------------------------------------------------------
-# DISTANCE & ENERGY SENSORS (User-facing)
-# ----------------------------------------------------------------------------
 sensor:
+  # ----------------------------------------------------------------------------
+  # DISTANCE & ENERGY SENSORS (User-facing)
+  # ----------------------------------------------------------------------------
   # Detection distance (exposed to user via template reading from hardware)
   - platform: template
     id: ld2412_distance_exposed
