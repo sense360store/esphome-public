@@ -1,0 +1,16 @@
+---
+# ============================================================================
+# SENSE360 BATHROOM EXPANSION (COMPATIBILITY WRAPPER)
+# ============================================================================
+# Some generated or legacy configs reference this file directly. It wraps the
+# current bathroom hardware driver and feature profile so those configs remain
+# valid without modification.
+#
+# Included packages:
+#   - airiq_bathroom_base.yaml: hardware drivers for the bathroom module
+#   - ../features/bathroom_profile.yaml: user-facing sensors and automations
+# ============================================================================
+
+packages:
+  bathroom_hardware: !include airiq_bathroom_base.yaml
+  bathroom_profile: !include ../features/bathroom_profile.yaml
