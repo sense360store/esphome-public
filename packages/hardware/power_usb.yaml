@@ -135,7 +135,8 @@ switch:
 logger:
   logs:
     sensor: INFO
-    power: DEBUG
+    # Match global logging defaults to avoid validation errors
+    power: INFO
 
 # Automation: Log USB power status and warnings on boot
 esphome:
