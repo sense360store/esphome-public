@@ -1,0 +1,123 @@
+---
+# ============================================================================
+# SENSE360 CORE VOICE WALL - USB POWER
+# ============================================================================
+# SKU: S360-CORE-V-W-USB
+#
+# Base configuration for Sense360 Voice Core Wall with USB power.
+# Voice-enabled wall/desk installation with LED+MIC ring (required).
+#
+# Hardware:
+# - Core: S360-CORE-V-W (Wall/Desk mount, voice-enabled)
+# - Power: USB-C (5V/2A)
+# - LED: S360-LED-V-W (LED+MIC Ring - REQUIRED for voice cores)
+#
+# Add expansion modules as needed:
+# - AirIQ: packages/expansions/airiq_wall.yaml
+# - Comfort: packages/expansions/comfort_wall.yaml
+# - Presence: packages/expansions/presence_wall.yaml
+# - Fan: packages/expansions/fan_gp8403.yaml or fan_pwm.yaml
+#
+# Note: Bathroom module is NOT available for wall configurations.
+#
+# ============================================================================
+# CUSTOMER USAGE
+# ============================================================================
+# packages:
+#   sense360:
+#     url: https://github.com/sense360store/esphome-public
+#     ref: v3.0.0
+#     files:
+#       - products/sense360-core-v-w-usb.yaml
+#       # Add modules as needed:
+#       # - packages/expansions/airiq_wall.yaml
+#       # - packages/expansions/presence_wall.yaml
+#
+# wifi:
+#   ssid: !secret wifi_ssid
+#   password: !secret wifi_password
+#
+# api:
+#   encryption:
+#     key: !secret api_encryption_key
+#
+# ota:
+#   - platform: esphome
+#     password: !secret ota_password
+# ============================================================================
+
+substitutions:
+  device_name: sense360-wall-voice
+  friendly_name: Sense360 Wall Voice
+  device_sku: S360-CORE-V-W-USB
+  device_version: "3.0.0"
+  timezone: "America/New_York"
+
+  # Power configuration
+  power_source: usb
+
+  # Security (Define these in your secrets.yaml)
+  api_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+
+  # Logging
+  log_level: INFO
+
+  # WiFi
+  wifi_fast_connect: "false"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === Base System Components ===
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+
+  # === Core Hardware (Voice-Enabled) ===
+  core_hardware: !include ../packages/hardware/sense360_core_voice_wall.yaml
+
+  # === LED+MIC Ring (Required for Voice) ===
+  led_ring: !include ../packages/hardware/led_ring_mic_wall.yaml
+
+# ============================================================================
+# POWER SOURCE INDICATOR
+# ============================================================================
+globals:
+  - id: power_source_type
+    type: std::string
+    restore_value: no
+    initial_value: '"USB"'
+
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Power Source"
+    id: power_source_indicator
+    icon: mdi:usb
+    lambda: |-
+      return {"USB-C (5V)"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+sensor:
+  - platform: template
+    name: "${friendly_name} Supply Voltage"
+    id: supply_voltage
+    icon: mdi:lightning-bolt
+    unit_of_measurement: "V"
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    lambda: |-
+      return 5.0;
+    update_interval: 60s

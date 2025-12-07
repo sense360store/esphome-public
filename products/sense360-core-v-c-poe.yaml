@@ -1,0 +1,100 @@
+---
+# ============================================================================
+# SENSE360 CORE VOICE CEILING - POE POWER
+# ============================================================================
+# SKU: S360-CORE-V-C-POE
+#
+# Base configuration for Sense360 Voice Core Ceiling with PoE power.
+# Voice-enabled ceiling installation with LED+MIC ring (required).
+# Ideal for professional installations with existing network infrastructure.
+#
+# Hardware:
+# - Core: S360-CORE-V-C (Ceiling mount, voice-enabled)
+# - Power: PoE (IEEE 802.3af, 36-57V input, 5V/2A output)
+# - LED: S360-LED-V-C (LED+MIC Ring - REQUIRED for voice cores)
+#
+# Add expansion modules as needed:
+# - AirIQ: packages/expansions/airiq_ceiling.yaml
+# - Comfort: packages/expansions/comfort_ceiling.yaml
+# - Presence: packages/expansions/presence_ceiling.yaml
+# - Bathroom: packages/expansions/bathroom.yaml (mutually exclusive with AirIQ)
+# - Fan: packages/expansions/fan_gp8403.yaml or fan_pwm.yaml
+#
+# ============================================================================
+# CUSTOMER USAGE
+# ============================================================================
+# packages:
+#   sense360:
+#     url: https://github.com/sense360store/esphome-public
+#     ref: v3.0.0
+#     files:
+#       - products/sense360-core-v-c-poe.yaml
+#       # Add modules as needed:
+#       # - packages/expansions/airiq_ceiling.yaml
+#       # - packages/expansions/presence_ceiling.yaml
+#
+# wifi:
+#   ssid: !secret wifi_ssid
+#   password: !secret wifi_password
+#
+# api:
+#   encryption:
+#     key: !secret api_encryption_key
+#
+# ota:
+#   - platform: esphome
+#     password: !secret ota_password
+# ============================================================================
+
+substitutions:
+  device_name: sense360-ceiling-voice-poe
+  friendly_name: Sense360 Ceiling Voice PoE
+  device_sku: S360-CORE-V-C-POE
+  device_version: "3.0.0"
+  timezone: "America/New_York"
+
+  # Power configuration
+  power_source: poe
+  poe_class: "0"
+  poe_standard: "802.3af"
+
+  # Security (Define these in your secrets.yaml)
+  api_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+
+  # Logging
+  log_level: INFO
+
+  # WiFi
+  wifi_fast_connect: "false"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === Base System Components ===
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+
+  # === Core Hardware (Voice-Enabled) ===
+  core_hardware: !include ../packages/hardware/sense360_core_voice_ceiling.yaml
+
+  # === LED+MIC Ring (Required for Voice) ===
+  led_ring: !include ../packages/hardware/led_ring_mic_ceiling.yaml
+
+  # === Power Configuration ===
+  power_config: !include ../packages/hardware/power_poe.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
