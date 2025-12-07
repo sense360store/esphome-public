@@ -69,7 +69,7 @@ sensor:
 
     # High precision mode for best accuracy
     precision: High
-    heater_power: "Low"
+    heater_power: false
 
     update_interval: ${comfort_sht40_update}
 
