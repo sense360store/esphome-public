@@ -29,10 +29,10 @@ substitutions:
   led_rgb_order: GRB
 
 light:
-  - platform: neopixelbus
+  - platform: esp32_rmt_led_strip
     id: led_ring
-    type: ${led_rgb_order}
-    variant: ${led_chipset}
+    rgb_order: ${led_rgb_order}
+    chipset: ${led_chipset}
     pin: ${led_data_pin}
     num_leds: ${led_count}
     name: "${friendly_name} LED Ring"
