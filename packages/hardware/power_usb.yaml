@@ -108,7 +108,9 @@ text_sensor:
     icon: mdi:note-text
     entity_category: diagnostic
     lambda: |-
-      return {"USB-C power is suitable for development and testing. For production use with multiple modules or voice features, use PoE or 240V AC power instead."};
+      return {
+        "USB-C power is suitable for development and testing. For production use with multiple modules or voice features, use PoE or 240V AC power instead."
+      };
     update_interval: never
 
 # Binary sensor for USB power status
