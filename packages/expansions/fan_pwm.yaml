@@ -3,15 +3,15 @@
 # SENSE360 FAN EXPANSION MODULE - PWM VERSION
 # ============================================================================
 # Variable-speed fan control module with feedback:
-# - PWM Output: GPIO4, 25kHz frequency, 0-100% duty cycle
-# - Tachometer Input: GPIO5 for RPM monitoring
+# - PWM Output: GPIO5 (expansion_gpio1), 25kHz frequency, 0-100% duty cycle
+# - Tachometer Input: GPIO6 (expansion_gpio2) for RPM monitoring
 #
 # This file provides the base hardware setup. User-facing entities are defined
 # in the feature profile files.
 #
 # Expansion Bus Connection:
-#   Pin 8 (GPIO1) → GPIO4 (PWM Output)
-#   Pin 9 (GPIO2) → GPIO5 (Tachometer Input)
+#   Pin 8 (GPIO5) → GPIO5 (PWM Output)
+#   Pin 9 (GPIO6) → GPIO6 (Tachometer Input)
 #   Pin 3 (5V) → Power (for external fan)
 #   Pin 1 (GND) → Ground
 #
@@ -21,12 +21,13 @@
 
 substitutions:
   # GPIO Configuration
-  # Note: These pins should be overridden by the parent board file.
-  # Default values are for standalone use; proper deployments use:
-  # - fan_pwm_pin: ${expansion_gpio1} (GPIO5)
+  # IMPORTANT: fan_pwm_pin and fan_tach_pin MUST be provided by the parent board file
+  # Examples from Sense360 Core Ceiling:
+  # - fan_pwm_pin: ${expansion_gpio1}  (GPIO5)
   # - fan_tach_pin: ${expansion_gpio2} (GPIO6)
-  fan_pwm_pin: GPIO5
-  fan_tach_pin: GPIO6
+  #
+  # These pins are NOT defined here to prevent overriding parent board values.
+  # If not provided by parent board, the configuration will fail with "undefined substitution" error.
 
   # PWM Configuration
   fan_pwm_frequency: "25000"  # 25kHz (standard PC fan PWM)
