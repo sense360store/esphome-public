@@ -157,5 +157,5 @@ esphome:
         - delay: 1s
         # Warning for insufficient power
         - lambda: |-
-            ESP_LOGW("power", "USB power may be insufficient for voice assistant or multiple expansion modules.");
-            ESP_LOGW("power", "Consider PoE or 240V AC for production use.");
+            ESP_LOGW("power_usb", "USB power may be insufficient for voice assistant or multiple expansion modules.");
+            ESP_LOGW("power_usb", "Consider PoE or 240V AC for production use.");
