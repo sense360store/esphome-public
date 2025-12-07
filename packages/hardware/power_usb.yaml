@@ -58,27 +58,6 @@ sensor:
       return 5.0;
     update_interval: 60s
 
-  # Optional: USB voltage monitoring (if hardware supports it)
-  # This would require voltage divider circuit for higher PD voltages
-  # - platform: adc
-  #   name: "${friendly_name} USB Voltage"
-  #   id: usb_voltage
-  #   pin: GPIO3  # ADC pin for voltage monitoring
-  #   attenuation: 11dB
-  #   update_interval: 5s
-  #   filters:
-  #     # For 5V USB, direct connection with divider (e.g., 10kΩ + 10kΩ)
-  #     # For USB-PD (up to 20V), use appropriate voltage divider
-  #     - multiply: 2.0  # Adjust based on your voltage divider
-  #     - sliding_window_moving_average:
-  #         window_size: 10
-  #         send_every: 5
-  #   unit_of_measurement: "V"
-  #   device_class: voltage
-  #   state_class: measurement
-  #   accuracy_decimals: 2
-  #   icon: mdi:usb
-
 # Power source indicator and configuration notes
 text_sensor:
   - platform: template
@@ -134,7 +113,7 @@ binary_sensor:
       // This could be enhanced to detect actual power draw
       // For now, it's a static warning for USB configurations
       // Users can disable this if they know their setup is OK
-      return false;  // Set to true to enable warning
+      return false;  # Set to true to enable warning
     filters:
       - delayed_on: 10s
 
@@ -174,4 +153,3 @@ esphome:
         - logger.log:
             level: WARN
             message: "USB power may be insufficient for voice assistant or multiple expansion modules. Consider PoE or 240V AC for production use."
-

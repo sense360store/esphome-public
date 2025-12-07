@@ -106,7 +106,7 @@ sensor:
   #   accuracy_decimals: 3
   #   icon: mdi:lightning-bolt-circle
 
-# Power source indicator
+# Power source indicator and configuration notes
 text_sensor:
   - platform: template
     name: "${friendly_name} Power Source"
@@ -115,6 +115,15 @@ text_sensor:
     lambda: |-
       return {"240V AC"};
     update_interval: 60s
+
+  - platform: template
+    name: "${friendly_name} Power Configuration"
+    id: power_config_info
+    icon: mdi:information
+    lambda: |-
+      return {"240V AC mains power with onboard AC-DC converter (5V/2A output)"};
+    update_interval: never
+    entity_category: diagnostic
 
 # Binary sensor for AC power status
 binary_sensor:
@@ -144,15 +153,3 @@ logger:
   logs:
     sensor: INFO
     power: DEBUG
-
-# Notes about power configuration
-# This appears in the device info
-text_sensor:
-  - platform: template
-    name: "${friendly_name} Power Configuration"
-    id: power_config_info
-    icon: mdi:information
-    lambda: |-
-      return {"240V AC mains power with onboard AC-DC converter (5V/2A output)"};
-    update_interval: never
-    entity_category: diagnostic
