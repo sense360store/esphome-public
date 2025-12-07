@@ -73,9 +73,9 @@
 #   - GPIO0: Boot button (strapping pin)
 #   - GPIO46: Chip enable (strapping pin, typically pulled up)
 #
-# ============================================================================ 
+# ============================================================================
 # IMPORTANT NOTES:
-# ============================================================================ 
+# ============================================================================
 # 1. I2C PINS: I2C uses GPIO21 (SDA) and GPIO18 (SCL) to avoid ESP32-S3
 #    PSRAM/SPI pins (e.g., GPIO26). Adjust only if your hardware routes these
 #    signals differently.
