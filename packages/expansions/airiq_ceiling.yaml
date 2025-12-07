@@ -28,10 +28,12 @@ substitutions:
   module_sku: S360-AIR-C
   module_variant: ceiling
 
-  # I2C Configuration (Ceiling uses expansion I2C bus)
+  # I2C Configuration (Ceiling reuses core expansion I2C bus)
   airiq_i2c_sda: GPIO21
   airiq_i2c_scl: GPIO18
-  airiq_i2c_id: i2c_airiq
+  # Use the existing expansion bus defined by the core hardware package to avoid
+  # duplicate I2C declarations when multiple modules are enabled together.
+  airiq_i2c_id: expansion_i2c
 
   # Sensor update intervals
   airiq_sps30_update: 30s
@@ -46,12 +48,9 @@ substitutions:
   co2_auto_calibration: "true"
 
 # I2C Bus Configuration
-i2c:
-  - id: ${airiq_i2c_id}
-    sda: ${airiq_i2c_sda}
-    scl: ${airiq_i2c_scl}
-    scan: true
-    frequency: 100kHz
+# The bus itself is declared by the core hardware package; the module only
+# references it to prevent duplicate I2C definitions when combined with other
+# expansions (e.g., LED ring, comfort, presence).
 
 # ============================================================================
 # SENSORS
