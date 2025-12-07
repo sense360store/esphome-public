@@ -22,22 +22,18 @@
 
 substitutions:
   # UART Configuration
-  ld2450_uart_id: uart_presence
+  ld2450_uart_id: uart_bus
   ld2450_tx_pin: GPIO1
   ld2450_rx_pin: GPIO2
   ld2450_baud: "256000"
 
+  # Apply UART settings to the shared expansion bus
+  uart_tx_pin: ${ld2450_tx_pin}
+  uart_rx_pin: ${ld2450_rx_pin}
+  uart_baud: ${ld2450_baud}
+
   # Presence detection settings
   presence_timeout: 30s
-
-# UART for LD2450 Radar Sensor
-uart:
-  - id: ${ld2450_uart_id}
-    tx_pin: ${ld2450_tx_pin}
-    rx_pin: ${ld2450_rx_pin}
-    baud_rate: ${ld2450_baud}
-    parity: NONE
-    stop_bits: 1
 
 # LD2450 Base Component
 ld2450:
