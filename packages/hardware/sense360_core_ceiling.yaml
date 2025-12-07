@@ -68,6 +68,11 @@ substitutions:
   expansion_gpio3: GPIO7
   expansion_gpio4: GPIO8
 
+  # Optional expansion modules
+  # PWM fan module uses expansion pins to avoid conflicting with the built-in relay on GPIO4
+  fan_pwm_pin: ${expansion_gpio1}
+  fan_tach_pin: ${expansion_gpio2}
+
   # Status indicator
   status_led_pin: GPIO48
   pir_sensor_pin: GPIO47  # Optional PIR backup sensor
