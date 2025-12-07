@@ -152,4 +152,5 @@ binary_sensor:
 logger:
   logs:
     sensor: INFO
+    # Keep component-specific logging aligned with global defaults
     power: INFO
