@@ -41,7 +41,7 @@ substitutions:
 globals:
   - id: power_source_type
     type: std::string
-    restore_value: no
+    restore_value: false
     initial_value: '"240V AC"'
 
 # Power monitoring sensor (optional, if current sensor installed)
