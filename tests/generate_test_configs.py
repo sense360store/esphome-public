@@ -71,7 +71,7 @@ class LEDType(Enum):
 class ModuleType(Enum):
     # Ceiling modules
     AIRIQ_C = ("airiq_ceiling", FormFactor.CEILING, "airiq")
-    BATHROOM_C = ("bathroom", FormFactor.CEILING, "bathroom")
+    BATHROOM_C = ("airiq_bathroom_base", FormFactor.CEILING, "bathroom")
     COMFORT_C = ("comfort_ceiling", FormFactor.CEILING, "comfort")
     PRESENCE_C = ("presence_ceiling", FormFactor.CEILING, "presence")
     FAN_PWM = ("fan_pwm", None, "fan_pwm")  # Works with both form factors
