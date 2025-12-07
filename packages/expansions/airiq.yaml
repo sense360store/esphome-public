@@ -220,24 +220,24 @@ sensor:
     measurement_mode: periodic
     update_interval: ${airiq_scd41_update}
 
-  # ============================================================================
-  # SHT30 - Backup Temperature/Humidity Sensor (Optional, Sensirion)
-  # I2C Address: 0x44
-  # ============================================================================
-  # Note: May conflict with SHT40 on Comfort module (same address)
-  # Enable only if needed and Comfort module not present
-  # - platform: sht3xd
-  #   id: sht30_sensor
-  #   i2c_id: ${airiq_i2c_id}
-  #   address: 0x44
-  #   temperature:
-  #     id: airiq_sht30_temperature
-  #     name: "${friendly_name} SHT30 Temperature"
-  #     internal: true
-  #     filters:
-  #       - throttle: ${airiq_sht30_update}
-  #   humidity:
-  #     id: airiq_sht30_humidity
+    # ============================================================================
+    # SHT30 - Backup Temperature/Humidity Sensor (Optional, Sensirion)
+    # I2C Address: 0x44
+    # ============================================================================
+    # Note: May conflict with SHT40 on Comfort module (same address)
+    # Enable only if needed and Comfort module not present
+    # - platform: sht3xd
+    #   id: sht30_sensor
+    #   i2c_id: ${airiq_i2c_id}
+    #   address: 0x44
+    #   temperature:
+    #     id: airiq_sht30_temperature
+    #     name: "${friendly_name} SHT30 Temperature"
+    #     internal: true
+    #     filters:
+    #       - throttle: ${airiq_sht30_update}
+    #   humidity:
+    #     id: airiq_sht30_humidity
   #     name: "${friendly_name} SHT30 Humidity"
   #     internal: true
   #     filters:
