@@ -156,8 +156,9 @@ esphome:
               - logger.log: "Standard USB power (5V) - ensure 2A capable adapter"
         - delay: 1s
         # Warning for insufficient power
-        - logger.log:
-            level: WARN
-            format: >-
-              USB power may be insufficient for voice assistant or multiple expansion modules.
-              Consider PoE or 240V AC for production use.
+        - lambda: |-
+            ESP_LOGW(
+                "power",
+                "USB power may be insufficient for voice assistant or multiple expansion modules. "
+                "Consider PoE or 240V AC for production use."
+            );
