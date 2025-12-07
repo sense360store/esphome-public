@@ -102,6 +102,8 @@ text_sensor:
     update_interval: never
     entity_category: diagnostic
 
+  # Configuration notes for users
+  # These appear as diagnostic entities
   - platform: template
     name: "${friendly_name} USB Power Notes"
     id: usb_power_notes
