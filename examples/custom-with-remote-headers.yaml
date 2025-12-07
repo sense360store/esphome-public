@@ -89,8 +89,8 @@ light:
               it[i] = final_color;
             }
 
-# Example sensors (you would replace these with your actual sensor config)
 sensor:
+  # Example sensors (you would replace these with your actual sensor config)
   - platform: template
     id: pm25_sensor
     name: "PM2.5"
