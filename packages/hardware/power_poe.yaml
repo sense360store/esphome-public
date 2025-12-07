@@ -125,12 +125,6 @@ esphome:
             format: "Power source: PoE (IEEE %s, Class %s)"
             args: ["${poe_standard}", "${poe_class}"]
         - delay: 2s
-        - if:
-            condition:
-              lambda: 'return id(ethernet_ip).has_state();'
-            then:
-              - logger.log: "PoE device connected to network successfully"
-            else:
-              - logger.log:
-                  level: WARN
-                  format: "PoE device has power but no network connectivity"
+        - logger.log:
+            level: DEBUG
+            format: "PoE startup sequence complete"
