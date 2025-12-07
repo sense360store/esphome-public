@@ -41,8 +41,8 @@ substitutions:
   # I2C buses
   i2c0_sda_pin: GPIO39
   i2c0_scl_pin: GPIO40
-  i2c1_sda_pin: GPIO21
-  i2c1_scl_pin: GPIO18
+  expansion_i2c_sda_pin: GPIO21
+  expansion_i2c_scl_pin: GPIO18
 
   # UART for expansion modules
   uart_tx_pin: GPIO1
@@ -114,9 +114,9 @@ i2c:
     scan: true
     frequency: 400kHz
 
-  - id: i2c1
-    sda: ${i2c1_sda_pin}
-    scl: ${i2c1_scl_pin}
+  - id: expansion_i2c
+    sda: ${expansion_i2c_sda_pin}
+    scl: ${expansion_i2c_scl_pin}
     scan: true
     frequency: 400kHz
 
