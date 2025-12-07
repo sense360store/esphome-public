@@ -34,10 +34,10 @@
 # ============================================================================
 
 substitutions:
-  # I2C Configuration (uses primary bus from core mapping)
+  # I2C Configuration (defaults to Sense360 core halo bus)
   comfort_ceiling_i2c_sda: GPIO39
   comfort_ceiling_i2c_scl: GPIO40
-  comfort_ceiling_i2c_id: i2c_primary
+  comfort_ceiling_i2c_id: halo_i2c
 
   # ALS Interrupt pin (directly to core GPIO)
   comfort_ceiling_als_int_pin: GPIO3
