@@ -135,7 +135,7 @@ switch:
 logger:
   logs:
     sensor: INFO
-    power: DEBUG
+    power: INFO
 
 # Automation: Log USB power status and warnings on boot
 esphome:
