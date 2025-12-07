@@ -13,8 +13,8 @@
 # ventilation optimization, and mold prevention.
 #
 # Expansion Bus Connection:
-#   Pin 4 (SDA) → GPIO39
-#   Pin 5 (SCL) → GPIO40
+#   Pin 4 (SDA) → GPIO21 (via expansion_i2c from core hardware)
+#   Pin 5 (SCL) → GPIO18 (via expansion_i2c from core hardware)
 #   Pin 2 (3.3V) → Power
 #   Pin 1 (GND) → Ground
 #
@@ -26,9 +26,8 @@ substitutions:
   module_variant: bathroom_base
 
   # I2C Configuration
-  bathroom_i2c_sda: GPIO39
-  bathroom_i2c_scl: GPIO40
-  bathroom_i2c_id: i2c_bathroom
+  # Uses the expansion_i2c bus defined in core hardware (GPIO21/18)
+  bathroom_i2c_id: expansion_i2c
 
   # Sensor update intervals
   bathroom_sht4x_update: 10s   # Fast updates for shower detection
@@ -40,14 +39,6 @@ substitutions:
   shower_humidity_rate: "5"            # Rate of change to detect shower start
   mold_risk_humidity: "65"             # Sustained humidity for mold risk
   mold_risk_duration_minutes: "30"     # Duration for mold risk warning
-
-# I2C Bus Configuration
-i2c:
-  - id: ${bathroom_i2c_id}
-    sda: ${bathroom_i2c_sda}
-    scl: ${bathroom_i2c_scl}
-    scan: true
-    frequency: 100kHz
 
 # ============================================================================
 # SENSORS
