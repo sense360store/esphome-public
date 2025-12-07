@@ -306,7 +306,7 @@ sensor:
   # BMP390L - Digital Pressure Sensor (Bosch)
   # I2C Address: 0x77
   # ============================================================================
-  - platform: bmp3xx
+  - platform: bmp3xx_i2c
     id: bmp390_sensor
     i2c_id: ${airlq_i2c_id}
     address: 0x77
