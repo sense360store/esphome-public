@@ -17,13 +17,13 @@
 # - Do NOT use with non-voice cores
 #
 # Pin Assignments:
-# - LED Data: GPIO14 (via level shifter)
+# - LED Data: GPIO9 (via level shifter)
 # - Microphone I2S defined in core voice package
 # ============================================================================
 
 substitutions:
   led_ring_sku: S360-LED-V-C
-  led_data_pin: GPIO14
+  led_data_pin: GPIO9
   led_count: "12"
   led_chipset: WS2812
   led_rgb_order: GRB
