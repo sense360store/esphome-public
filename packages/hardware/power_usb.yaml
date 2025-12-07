@@ -116,7 +116,6 @@ binary_sensor:
 
 # Power limitation warning
 # This warns users if they're using USB power with high-power modules
-binary_sensor:
   - platform: template
     name: "${friendly_name} Power Limitation Warning"
     id: power_limitation_warning
