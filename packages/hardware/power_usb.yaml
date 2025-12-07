@@ -114,8 +114,8 @@ binary_sensor:
       // Could implement detection with voltage monitoring
       return true;
 
-# Power limitation warning
-# This warns users if they're using USB power with high-power modules
+  # Power limitation warning
+  # This warns users if they're using USB power with high-power modules
   - platform: template
     name: "${friendly_name} Power Limitation Warning"
     id: power_limitation_warning
