@@ -79,7 +79,7 @@ sensor:
   #   accuracy_decimals: 2
   #   icon: mdi:usb
 
-# Power source indicator
+# Power source indicator and configuration notes
 text_sensor:
   - platform: template
     name: "${friendly_name} Power Source"
