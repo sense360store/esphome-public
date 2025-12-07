@@ -214,7 +214,7 @@ speaker:
     dac_type: external
     i2s_audio_id: speaker_i2s_bus
     i2s_dout_pin: ${speaker_i2s_din_pin}
-    mode: mono
+    i2s_mode: mono
 
 # Voice Assistant integration
 voice_assistant:
