@@ -250,8 +250,6 @@ microphone:
     adc_type: external
     i2s_audio_id: mic_i2s_bus
     i2s_din_pin: ${mic_i2s_sd_pin}
-    i2s_bclk_pin: ${mic_i2s_sck_pin}
-    i2s_lrclk_pin: ${mic_i2s_ws_pin}
     pdm: false
 
 # Speaker configuration (I2S DAC/Amplifier)
@@ -261,9 +259,7 @@ speaker:
     dac_type: external
     i2s_audio_id: speaker_i2s_bus
     i2s_dout_pin: ${speaker_i2s_din_pin}
-    i2s_bclk_pin: ${speaker_i2s_bclk_pin}
-    i2s_lrclk_pin: ${speaker_i2s_lrc_pin}
-    mode: mono
+    i2s_mode: primary
 
 # Voice Assistant integration
 voice_assistant:
@@ -320,6 +316,13 @@ button:
     id: restart_button
     name: "${friendly_name} Restart"
     icon: mdi:restart
+
+  # Internal alias used by shared API actions expecting a reset_button ID
+  - platform: template
+    id: reset_button
+    internal: true
+    on_press:
+      - button.press: restart_button
 
   - platform: safe_mode
     name: "${friendly_name} Safe Mode"

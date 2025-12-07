@@ -23,22 +23,12 @@ substitutions:
   module_sku: S360-CMFT-W
   module_variant: wall
 
-  # I2C Configuration (Wall uses primary I2C bus)
-  comfort_i2c_sda: GPIO39
-  comfort_i2c_scl: GPIO40
-  comfort_i2c_id: i2c_comfort
+  # I2C Configuration (Wall uses primary I2C bus from core)
+  comfort_i2c_id: i2c0
 
   # Sensor update intervals
   comfort_sht40_update: 30s
   comfort_ltr303_update: 10s
-
-# I2C Bus Configuration
-i2c:
-  - id: ${comfort_i2c_id}
-    sda: ${comfort_i2c_sda}
-    scl: ${comfort_i2c_scl}
-    scan: true
-    frequency: 100kHz
 
 # ============================================================================
 # SENSORS
