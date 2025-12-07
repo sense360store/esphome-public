@@ -250,8 +250,6 @@ microphone:
     adc_type: external
     i2s_audio_id: mic_i2s_bus
     i2s_din_pin: ${mic_i2s_sd_pin}
-    i2s_bclk_pin: ${mic_i2s_sck_pin}
-    i2s_lrclk_pin: ${mic_i2s_ws_pin}
     pdm: false
 
 # Speaker configuration (I2S DAC/Amplifier)
@@ -261,8 +259,6 @@ speaker:
     dac_type: external
     i2s_audio_id: speaker_i2s_bus
     i2s_dout_pin: ${speaker_i2s_din_pin}
-    i2s_bclk_pin: ${speaker_i2s_bclk_pin}
-    i2s_lrclk_pin: ${speaker_i2s_lrc_pin}
     mode: mono
 
 # Voice Assistant integration
