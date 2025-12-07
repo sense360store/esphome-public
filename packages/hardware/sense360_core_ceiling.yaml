@@ -147,17 +147,17 @@ binary_sensor:
   # Optional: PIR motion sensor (backup for mmWave radar)
   # Uncomment if PIR sensor is installed on GPIO47
   # - platform: gpio
-  #   name: "${friendly_name} PIR Motion"
-  #   id: pir_motion
-  #   pin:
-  #     number: ${pir_sensor_pin}
-  #     mode:
-  #       input: true
-  #       pulldown: true
-  #   device_class: motion
-  #   filters:
-  #     - delayed_on: 100ms
-  #     - delayed_off: 5s
+    #   name: "${friendly_name} PIR Motion"
+    #   id: pir_motion
+    #   pin:
+      #     number: ${pir_sensor_pin}
+      #     mode:
+        #       input: true
+        #       pulldown: true
+    #   device_class: motion
+    #   filters:
+      #     - delayed_on: 100ms
+      #     - delayed_off: 5s
 
 # System controls
 button:
