@@ -117,6 +117,16 @@ psram:
   mode: octal
   speed: 80MHz
 
+# I2S audio bus for microphone and speaker
+i2s_audio:
+  - id: mic_i2s_bus
+    i2s_lrclk_pin: ${mic_i2s_ws_pin}
+    i2s_bclk_pin: ${mic_i2s_sck_pin}
+
+  - id: speaker_i2s_bus
+    i2s_lrclk_pin: ${speaker_i2s_lrc_pin}
+    i2s_bclk_pin: ${speaker_i2s_bclk_pin}
+
 # Primary I2C bus for expansion modules
 i2c:
   - id: i2c0
@@ -232,16 +242,6 @@ binary_sensor:
       return id(core_voice_assistant).is_running();
     filters:
       - delayed_on: 100ms
-
-# I2S audio bus for microphone and speaker
-i2s_audio:
-  - id: mic_i2s_bus
-    i2s_lrclk_pin: ${mic_i2s_ws_pin}
-    i2s_bclk_pin: ${mic_i2s_sck_pin}
-
-  - id: speaker_i2s_bus
-    i2s_lrclk_pin: ${speaker_i2s_lrc_pin}
-    i2s_bclk_pin: ${speaker_i2s_bclk_pin}
 
 # Microphone configuration (I2S MEMS from LED+MIC ring)
 microphone:
