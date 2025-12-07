@@ -445,9 +445,12 @@ text_sensor:
       if (id(${voc_sensor_id}).has_state()) voc = id(${voc_sensor_id}).state;
       if (id(${co2_sensor_id}).has_state()) co2 = id(${co2_sensor_id}).state;
 
-      int pm_level = compute_level(pm25, ${pm25_good_threshold}, ${pm25_moderate_threshold}, ${pm25_unhealthy_threshold});
-      int voc_level = compute_level(voc, ${voc_good_threshold}, ${voc_moderate_threshold}, ${voc_unhealthy_threshold});
-      int co2_level = compute_level(co2, ${co2_good_threshold}, ${co2_moderate_threshold}, ${co2_unhealthy_threshold});
+      int pm_level = compute_level(
+          pm25, ${pm25_good_threshold}, ${pm25_moderate_threshold}, ${pm25_unhealthy_threshold});
+      int voc_level = compute_level(
+          voc, ${voc_good_threshold}, ${voc_moderate_threshold}, ${voc_unhealthy_threshold});
+      int co2_level = compute_level(
+          co2, ${co2_good_threshold}, ${co2_moderate_threshold}, ${co2_unhealthy_threshold});
       int overall = compute_overall_severity(pm_level, voc_level, LEVEL_UNKNOWN, co2_level);
 
       switch (overall) {
