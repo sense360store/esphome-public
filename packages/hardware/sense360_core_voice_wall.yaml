@@ -82,6 +82,10 @@ substitutions:
   speaker_i2s_lrc_pin: GPIO15
   speaker_i2s_din_pin: GPIO16
 
+  # Fan control pins (for expansion modules)
+  fan_pwm_pin: ${expansion_gpio1}
+  fan_tach_pin: ${expansion_gpio2}
+
   # Voice assistant settings
   voice_timeout: "10s"
 
@@ -259,7 +263,7 @@ speaker:
     dac_type: external
     i2s_audio_id: speaker_i2s_bus
     i2s_dout_pin: ${speaker_i2s_din_pin}
-    mode: mono
+    i2s_mode: mono
 
 # Voice Assistant integration
 voice_assistant:
