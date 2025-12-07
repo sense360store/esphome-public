@@ -106,6 +106,16 @@ psram:
   mode: octal
   speed: 80MHz
 
+# I2S audio bus for microphone and speaker
+i2s_audio:
+  - id: mic_i2s_bus
+    i2s_lrclk_pin: ${mic_i2s_ws_pin}
+    i2s_bclk_pin: ${mic_i2s_sck_pin}
+
+  - id: speaker_i2s_bus
+    i2s_lrclk_pin: ${speaker_i2s_lrc_pin}
+    i2s_bclk_pin: ${speaker_i2s_bclk_pin}
+
 # I2C buses
 i2c:
   - id: i2c0
