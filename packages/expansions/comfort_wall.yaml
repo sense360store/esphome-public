@@ -67,7 +67,7 @@ sensor:
         - throttle: ${comfort_sht40_update}
 
     precision: High
-    heater_power: Off
+    heater_power: false
     update_interval: ${comfort_sht40_update}
 
   # LTR-303 - Ambient Light Sensor
