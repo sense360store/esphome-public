@@ -238,11 +238,11 @@ sensor:
     #       - throttle: ${airiq_sht30_update}
     #   humidity:
     #     id: airiq_sht30_humidity
-  #     name: "${friendly_name} SHT30 Humidity"
-  #     internal: true
-  #     filters:
-  #       - throttle: ${airiq_sht30_update}
-  #   update_interval: ${airiq_sht30_update}
+    #     name: "${friendly_name} SHT30 Humidity"
+    #     internal: true
+    #     filters:
+    #       - throttle: ${airiq_sht30_update}
+    #   update_interval: ${airiq_sht30_update}
 
 # ============================================================================
 # Globals for Air Quality Calculations
