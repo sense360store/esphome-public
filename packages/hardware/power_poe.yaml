@@ -53,27 +53,6 @@ sensor:
       return 5.0;  // Fixed 5V output from PoE module
     update_interval: 60s
 
-  # Optional: PoE input voltage monitoring (if hardware supports it)
-  # This would require additional circuitry (voltage divider + ADC)
-  #   - platform: adc
-  #     name: "${friendly_name} PoE Input Voltage"
-  #     id: poe_input_voltage
-  #     pin: GPIO3  # ADC pin for voltage divider
-  #     attenuation: 11dB
-  #     update_interval: 10s
-  #     filters:
-  #       # Voltage divider to scale 48V to 3.3V range
-  #       # Example: 47kΩ + 3.3kΩ divider = 15.15:1 ratio
-  #       - multiply: 15.15
-  #       - sliding_window_moving_average:
-  #           window_size: 5
-  #           send_every: 1
-  #     unit_of_measurement: "V"
-  #     device_class: voltage
-  #     state_class: measurement
-  #     accuracy_decimals: 1
-  #     icon: mdi:flash
-
 # Power source indicator
 text_sensor:
   - platform: template

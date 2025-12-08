@@ -66,28 +66,6 @@ uart:
     #   dummy_receiver: false
 
 # ============================================================================
-# DFROBOT SEN0395 COMPONENT (Compatible with C4001)
-# ============================================================================
-# Note: The dfrobot_sen0395 ESPHome component is compatible with the C4001
-# sensor family. If the component is not available, fall back to GPIO mode.
-#
-# Uncomment the following section if dfrobot_sen0395 component is available:
-#
-# dfrobot_sen0395:
-#   id: c4001_radar
-#   uart_id: ${c4001_uart_id}
-#   # Detection segments define the active detection zones
-#   # Format: [start_distance, end_distance]
-#   detection_segments:
-#     - [30cm, 5m]    # Primary detection zone
-#     - [5m, 10m]     # Extended zone
-#   # Output latency settings
-#   delay_after_detect: 0.5s
-#   delay_after_disappear: 10s
-#   # Sensitivity (0-9, higher = more sensitive)
-#   sensitivity: ${c4001_sensitivity}
-
-# ============================================================================
 # BINARY SENSORS
 # ============================================================================
 binary_sensor:
@@ -119,19 +97,6 @@ binary_sensor:
             // Decay confidence on release
             id(presence_confidence) = 0.2f;
             ESP_LOGD("c4001", "Presence cleared via GPIO");
-
-  # UART-based presence detection (if using dfrobot_sen0395 component)
-  # Uncomment if component is available:
-  # - platform: dfrobot_sen0395
-  #   id: c4001_presence_uart
-  #   name: "${friendly_name} C4001 UART Presence"
-  #   internal: true
-  #   on_press:
-  #     then:
-  #       - lambda: |-
-  #           id(presence_sensor_type) = 2;
-  #           id(presence_confidence) = 0.9f;
-  #           id(presence_last_detection_ms) = millis();
 
 # ============================================================================
 # UART TEXT SENSOR (Raw data parsing - alternative approach)
@@ -180,22 +145,7 @@ sensor:
 # SWITCHES (Sensor control)
 # ============================================================================
 switch:
-  # Sensor active control (if using dfrobot_sen0395 component)
-  # Uncomment if component is available:
-  # - platform: dfrobot_sen0395
-  #   id: c4001_active
-  #   name: "${friendly_name} C4001 Active"
-  #   type: sensor_active
-  #   internal: true
-
-  # LED indicator control
-  # - platform: dfrobot_sen0395
-  #   id: c4001_led
-  #   name: "${friendly_name} C4001 LED"
-  #   type: turn_on_led
-  #   internal: true
-
-  # Placeholder switch for sensor power control
+  # Sensor power control
   - platform: template
     id: c4001_power
     name: "${friendly_name} C4001 Power"

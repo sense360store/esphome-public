@@ -72,14 +72,6 @@ uart:
     rx_pin: ${nextion_rx_pin}
     baud_rate: ${nextion_baud}
 
-# Optional: Uncomment to enable Nextion display
-# display:
-#   - platform: nextion
-#     id: nextion_display
-#     uart_id: nextion_uart
-#     update_interval: 1s
-#     tft_url: "http://your-server/nextion.tft"  # For OTA updates
-
 # ============================================================================
 # PWM Output Configuration - 4 Channels
 # ============================================================================

@@ -16,7 +16,7 @@ This guide covers setting up your development environment and contributing to th
 
 - Python 3.11 or newer
 - Git
-- ESPHome 2024.11.0 or newer
+- ESPHome 2025.10.0 or newer
 
 ### Initial Setup
 
