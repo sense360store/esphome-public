@@ -40,12 +40,10 @@ CORE (1x) + POWER (1x) + LED (see rules) + MODULES (any combination*)
 
 ### Step 1: Choose Your Core
 
-| SKU | Name | Form Factor | Voice Support |
-|-----|------|-------------|---------------|
-| **CORE-C** | Core Ceiling | Ceiling mount | No |
-| **CORE-V-C** | Core Voice Ceiling | Ceiling mount | Yes |
-| **CORE-W** | Core Wall | Wall/Desk mount | No |
-| **CORE-V-W** | Core Voice Wall | Wall/Desk mount | Yes |
+| SKU | Name | Form Factor | Description |
+|-----|------|-------------|-------------|
+| **CORE-C** | Core Ceiling | Ceiling mount | Standard ceiling-mount core |
+| **CORE-W** | Core Wall | Wall/Desk mount | Standard wall/desk-mount core |
 
 ### Step 2: Choose Your Power
 
@@ -55,12 +53,12 @@ CORE (1x) + POWER (1x) + LED (see rules) + MODULES (any combination*)
 | POE | S360-POE | Power over Ethernet (professional installations) |
 | PWR | S360-PWR | 240V AC mains power (permanent installations) |
 
-### Step 3: Add LED Ring
+### Step 3: Add LED Ring (Optional)
 
-| Core Type | LED Ring | Requirement |
+| Core Type | LED Ring | Description |
 |-----------|----------|-------------|
-| Voice (CORE-V-C, CORE-V-W) | LED+MIC | **REQUIRED** |
-| Non-Voice (CORE-C, CORE-W) | Standard LED | Optional |
+| CORE-C | Standard LED (Ceiling) | Visual feedback for air quality and status |
+| CORE-W | Standard LED (Wall) | Visual feedback for air quality and status |
 
 ### Step 4: Add Modules
 
@@ -72,9 +70,8 @@ Add any combination of modules following the [Module Combination Rules](#module-
 ┌─────────────────────────────────────────────────────────────┐
 │                     CORE BOARD (Required)                    │
 │  ┌─────────────────────┐    ┌─────────────────────────────┐ │
-│  │  Ceiling Variants   │    │     Wall/Desk Variants      │ │
+│  │  Ceiling Variant    │    │     Wall/Desk Variant       │ │
 │  │  - CORE-C           │    │     - CORE-W                │ │
-│  │  - CORE-V-C (Voice) │    │     - CORE-V-W (Voice)      │ │
 │  └─────────────────────┘    └─────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -82,14 +79,14 @@ Add any combination of modules following the [Module Combination Rules](#module-
         ▼                     ▼                     ▼
 ┌───────────────┐    ┌───────────────┐    ┌───────────────┐
 │ POWER MODULE  │    │   LED RING    │    │SENSOR MODULES │
-│  (Required)   │    │  (See rules)  │    │  (Optional)   │
+│  (Required)   │    │  (Optional)   │    │  (Optional)   │
 │               │    │               │    │               │
-│  - USB        │    │  Voice cores: │    │  - AirIQ      │
-│  - POE        │    │    LED+MIC    │    │  - Comfort    │
-│  - PWR (240V) │    │    required   │    │  - Presence   │
+│  - USB        │    │  Standard LED │    │  - AirIQ      │
+│  - POE        │    │  (Ceiling or  │    │  - Comfort    │
+│  - PWR (240V) │    │   Wall)       │    │  - Presence   │
 │               │    │               │    │  - Bathroom*  │
-│               │    │  Non-voice:   │    │  - Fan GP8403 │
-│               │    │    LED opt.   │    │  - Fan PWM    │
+│               │    │               │    │  - Fan GP8403 │
+│               │    │               │    │  - Fan PWM    │
 └───────────────┘    └───────────────┘    └───────────────┘
 
 * Bathroom is Ceiling-only and replaces AirIQ
@@ -104,9 +101,9 @@ The core board contains the ESP32-S3 microcontroller and provides connections fo
 | Project Name | Product Name | Variant | SKU | Description |
 |-------------|--------------|---------|-----|-------------|
 | `Sense360_Core_Ceiling` | Sense 360 Core | Ceiling | S360-CORE-C | Base core for ceiling mount installations |
-| `Sense360_Core_Voice_Ceiling` | Sense 360 Core Voice | Ceiling | S360-CORE-V-C | Core with voice assistant/speaker support |
 | `Sense360_Core_Wall` | Sense 360 Core | Wall/Desk | S360-CORE-W | Base core for wall-mounted or desk installations |
-| `Sense360_Core_Voice_Wall` | Sense 360 Core Voice | Wall/Desk | S360-CORE-V-W | Core with voice assistant/speaker support |
+
+> **Future Product**: Sense360 Voice (CORE-V-C, CORE-V-W) - Core boards with integrated voice assistant support (coming soon)
 
 ### Core Board Specifications
 
@@ -178,23 +175,15 @@ LED rings provide visual feedback for air quality, presence, and system status.
 
 | Project Name | Product Name | Variant | SKU | Pairs With |
 |-------------|--------------|---------|-----|------------|
-| `Sense360_LED_Ceiling` | Sense 360 LEDs | Ceiling | S360-LED-C | Core Ceiling (non-voice) |
-| `Sense360_LED_MIC_Ceiling` | Sense 360 LED+Mics | Ceiling | S360-LED-V-C | Core Voice Ceiling |
-| `Sense360_LED_Wall` | Sense 360 LEDs | Wall/Desk | S360-LED-W | Core Wall (non-voice) |
-| `Sense360_LED_MIC_Wall` | Sense 360 LED+Mics | Wall/Desk | S360-LED-V-W | Core Voice Wall |
-
-### LED Ring Pairing Rules
-
-> **Important**: Match LED ring type to core board type:
-> - **Core Voice**: LED+MIC ring is **REQUIRED** (Ceiling or Wall matched)
-> - **Core (non-voice)**: LED ring is **optional**
+| `Sense360_LED_Ceiling` | Sense 360 LEDs | Ceiling | S360-LED-C | Core Ceiling |
+| `Sense360_LED_Wall` | Sense 360 LEDs | Wall/Desk | S360-LED-W | Core Wall |
 
 ### LED Ring Specifications
 
-| Ring Type | LEDs | Microphones | Use Case |
-|-----------|------|-------------|----------|
-| Standard (S360-LED-C/W) | WS2812B RGB | None | Visual feedback only |
-| LED+MIC (S360-LED-V-C/W) | WS2812B RGB | I2S MEMS array | Voice assistant support |
+| Ring Type | LEDs | Description |
+|-----------|------|-------------|
+| Standard Ceiling (S360-LED-C) | WS2812B RGB | Visual feedback for ceiling mount |
+| Standard Wall (S360-LED-W) | WS2812B RGB | Visual feedback for wall/desk mount |
 
 ### YAML Package Files
 
@@ -203,18 +192,12 @@ LED rings provide visual feedback for air quality, presence, and system status.
 packages:
   led_ring: !include packages/hardware/led_ring_ceiling.yaml
 
-# LED+MIC Ring (Ceiling Voice)
-packages:
-  led_ring: !include packages/hardware/led_ring_mic_ceiling.yaml
-
 # Standard LED Ring (Wall/Desk)
 packages:
   led_ring: !include packages/hardware/led_ring_wall.yaml
-
-# LED+MIC Ring (Wall/Desk Voice)
-packages:
-  led_ring: !include packages/hardware/led_ring_mic_wall.yaml
 ```
+
+> **Future Product**: LED+MIC rings (S360-LED-V-C, S360-LED-V-W) for Sense360 Voice (coming soon)
 
 ---
 
@@ -470,8 +453,15 @@ The `products/` directory contains ready-to-use configurations for common setups
 | `sense360-core-ceiling-bathroom.yaml` | Ceiling bathroom installation | CORE-C | Bathroom + Presence |
 | `sense360-core-wall.yaml` | Full wall with all modules | CORE-W | AirIQ + Comfort + Presence |
 | `sense360-core-wall-presence.yaml` | Wall presence only | CORE-W | Presence |
-| `sense360-core-voice-ceiling.yaml` | Voice ceiling with all modules | CORE-V-C | AirIQ + Comfort + Presence |
-| `sense360-core-voice-wall.yaml` | Voice wall with all modules | CORE-V-W | AirIQ + Comfort + Presence |
+
+### Power Variant Products
+
+Each core product is available with specific power configurations:
+
+| Base Product | USB Variant | PoE Variant | PWR Variant |
+|--------------|-------------|-------------|-------------|
+| Core Ceiling | `sense360-core-c-usb.yaml` | `sense360-core-c-poe.yaml` | `sense360-core-c-pwr.yaml` |
+| Core Wall | `sense360-core-w-usb.yaml` | `sense360-core-w-poe.yaml` | `sense360-core-w-pwr.yaml` |
 
 ### Specialty Products
 
@@ -480,14 +470,6 @@ The `products/` directory contains ready-to-use configurations for common setups
 | `sense360-ceiling-s3-full.yaml` | Full-featured ESP32-S3 ceiling board | Sense360 Ceiling S3 |
 | `sense360-poe.yaml` | Power over Ethernet configuration | Sense360 PoE |
 | `sense360-fan-pwm.yaml` | 4-channel PWM fan controller | Sense360 Fan PWM |
-
-### Legacy Mini Products
-
-| Product File | Description | Hardware |
-|--------------|-------------|----------|
-| `sense360-mini-airiq.yaml` | Full air quality + presence detection | Sense360 Mini |
-| `sense360-mini-airiq-basic.yaml` | Simplified air quality UI | Sense360 Mini |
-| `sense360-mini-presence.yaml` | Presence detection only | Sense360 Mini |
 
 ---
 
@@ -524,9 +506,9 @@ ota:
     password: !secret ota_password
 ```
 
-### Example 2: Core Voice Wall with All Sensors
+### Example 2: Core Wall with All Sensors
 
-Wall-mounted voice assistant with full environmental monitoring.
+Wall-mounted system with full environmental monitoring.
 
 ```yaml
 substitutions:
@@ -538,7 +520,7 @@ packages:
     url: https://github.com/sense360store/esphome-public
     ref: v2.2.0
     files:
-      - products/sense360-core-voice-wall.yaml
+      - products/sense360-core-wall.yaml
     refresh: 1d
 
 wifi:
@@ -603,7 +585,7 @@ packages:
   # Core Hardware
   core: !include packages/hardware/sense360_core_ceiling.yaml
 
-  # LED Ring (optional for non-voice)
+  # LED Ring (optional)
   led_ring: !include packages/hardware/led_ring_ceiling.yaml
 
   # Modules - Presence + Fan only
@@ -629,18 +611,27 @@ ota:
 
 ## Quick Reference: SKU to Package Mapping
 
+### Core Boards
 | SKU | Package File |
 |-----|--------------|
 | S360-CORE-C | `packages/hardware/sense360_core_ceiling.yaml` |
-| S360-CORE-V-C | `packages/hardware/sense360_core_voice_ceiling.yaml` |
 | S360-CORE-W | `packages/hardware/sense360_core_wall.yaml` |
-| S360-CORE-V-W | `packages/hardware/sense360_core_voice_wall.yaml` |
+
+### Power Modules
+| SKU | Package File |
+|-----|--------------|
 | S360-POE | `packages/hardware/power_poe.yaml` |
 | S360-PWR | `packages/hardware/power_240v.yaml` |
+
+### LED Rings
+| SKU | Package File |
+|-----|--------------|
 | S360-LED-C | `packages/hardware/led_ring_ceiling.yaml` |
 | S360-LED-W | `packages/hardware/led_ring_wall.yaml` |
-| S360-LED-V-C | `packages/hardware/led_ring_mic_ceiling.yaml` |
-| S360-LED-V-W | `packages/hardware/led_ring_mic_wall.yaml` |
+
+### Sensor Modules
+| SKU | Package File |
+|-----|--------------|
 | S360-AIR-C | `packages/expansions/airiq_ceiling.yaml` |
 | S360-AIR-W | `packages/expansions/airiq_wall.yaml` |
 | S360-CMFT-C | `packages/expansions/comfort_ceiling.yaml` |
