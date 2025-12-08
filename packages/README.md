@@ -9,12 +9,12 @@ packages/
 ├── base/              # Core system components
 ├── features/          # Feature profiles (basic & advanced)
 ├── hardware/          # Hardware drivers
-└── products/          # Legacy product configurations (deprecated)
+└── expansions/        # Sensor module drivers
 ```
 
 ## Feature Profiles - Basic vs Advanced
 
-Starting with v3.0.0, all features are available in two versions:
+All features are available in two versions:
 
 ### Basic Profiles (Recommended for Most Users)
 - **Simple, user-friendly interface**
@@ -22,17 +22,16 @@ Starting with v3.0.0, all features are available in two versions:
 - **Easy-to-read measurements**
 - Perfect for home users who want simple, clear information
 
-#### Presence Detection - Basic (`features/presence_basic.yaml`)
+#### Presence Detection - Basic (`features/presence_basic_profile.yaml`)
 - Shows: "Room Occupied" (Yes/No)
 - Shows: "Activity Level" (Still/Moving)
 - No complex zones or technical data
 
-#### Air Quality - Basic (`features/airiq_basic.yaml`)
+#### Air Quality - Basic (`features/airiq_basic_profile.yaml`)
 - Shows: Overall "Air Quality" (Excellent/Good/Fair/Poor)
 - Shows: Temperature & Humidity
 - Shows: Simple recommendations ("Open Window" / "Air is Good")
 - No PPM, µg/m³, or other technical units
-- Uses the Bosch BSEC2 external component pinned to the public `v1.4.2500` release archive (license acceptance is prompted on first build)
 
 ### Advanced Profiles (For Power Users)
 - **All technical sensors and measurements**
@@ -41,7 +40,7 @@ Starting with v3.0.0, all features are available in two versions:
 - **Detailed data** for analysis and automation
 - Perfect for technical users, HVAC integration, or commercial applications
 
-#### Presence Detection - Advanced (`features/presence_advanced.yaml`)
+#### Presence Detection - Advanced (`features/presence_advanced_profile.yaml`)
 - Multi-zone tracking (up to 3 zones)
 - Individual target tracking (up to 3 simultaneous targets)
 - Distance measurements in cm
@@ -49,7 +48,7 @@ Starting with v3.0.0, all features are available in two versions:
 - Customizable timeout settings
 - Full diagnostic sensors
 
-#### Air Quality - Advanced (`features/airiq_advanced.yaml`)
+#### Air Quality - Advanced (`features/airiq_advanced_profile.yaml`)
 - Individual sensors: CO₂ (ppm), PM1.0, PM2.5, PM4.0, PM10 (µg/m³)
 - VOC & NOx Index (0-500 scale)
 - Temperature, Humidity, Atmospheric Pressure, Light Level
@@ -60,28 +59,26 @@ Starting with v3.0.0, all features are available in two versions:
 
 ## Usage
 
-### Using Basic Profiles
+### Using Pre-Built Products (Recommended)
 
-For simple home automation:
+For most users, start with a pre-built product configuration from the `/products/` directory:
 
 ```yaml
 substitutions:
-  device_name: bedroom-sensor
-  friendly_name: "Bedroom Sensor"
+  device_name: living-room-sensor
+  friendly_name: "Living Room Sensor"
 
 packages:
   firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v3.0.0
+    ref: v2.2.0
     files:
-      - products/sense360-mini-presence-basic.yaml
-      # or
-      - products/sense360-mini-airiq-basic.yaml
+      - products/sense360-core-ceiling.yaml
 ```
 
-### Using Advanced Profiles
+### Custom Module Combinations
 
-For technical users wanting full control:
+For advanced users who want to build custom configurations:
 
 ```yaml
 substitutions:
@@ -95,44 +92,22 @@ substitutions:
 packages:
   firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v3.0.0
+    ref: v2.2.0
     files:
-      - products/sense360-mini-presence-advanced.yaml
-      # or
-      - products/sense360-mini-airiq-advanced.yaml
+      # Base system
+      - packages/base/wifi.yaml
+      - packages/base/api_encrypted.yaml
+      - packages/base/ota.yaml
+      - packages/base/time.yaml
+      # Core hardware
+      - packages/hardware/sense360_core_ceiling.yaml
+      - packages/hardware/led_ring_ceiling.yaml
+      # Sensor modules
+      - packages/expansions/airiq_ceiling.yaml
+      - packages/features/airiq_advanced_profile.yaml
+      - packages/expansions/presence_ceiling.yaml
+      - packages/features/presence_basic_profile.yaml
 ```
-
-## Migration from v2.x to v3.0
-
-### Breaking Changes
-- Old profile files (`presence_basic_profile.yaml`, `airiq_basic_profile.yaml`) are **deprecated**
-- Root-level directories (`/base/`, `/features/`, `/hardware/`) have been **removed**
-- All new configurations should use `/packages/` structure
-
-### Migration Steps
-
-1. **Update your product reference** in your device config:
-
-   **Old (v2.x):**
-   ```yaml
-   files:
-     - products/sense360-mini-airiq.yaml
-   ```
-
-   **New (v3.0+):**
-   ```yaml
-   files:
-     - products/sense360-mini-airiq-basic.yaml    # Simple version
-     # or
-     - products/sense360-mini-airiq-advanced.yaml # Full control
-   ```
-
-2. **Review sensors in Home Assistant** - names have changed for clarity:
-   - Old: "PM2.5" → New (Basic): "Air Quality"
-   - Old: "Occupancy" → New (Basic): "Room Occupied"
-   - Old: "Target Count" → New (Basic): Hidden (use "Room Occupied" instead)
-
-3. **Update automations** if using old sensor names
 
 ## Base Components
 
@@ -150,9 +125,37 @@ Located in `packages/base/`:
 
 Located in `packages/hardware/`:
 
-- `sense360_core_mini.yaml` - Mini board core configuration
-- `sense360_core_ceiling.yaml` - Ceiling board core configuration
-- `presence_ld2450.yaml` - HLK-LD2450 presence sensor driver
+- `sense360_core_ceiling.yaml` - Ceiling core board configuration
+- `sense360_core_wall.yaml` - Wall/desk core board configuration
+- `led_ring_ceiling.yaml` - Ceiling LED ring
+- `led_ring_wall.yaml` - Wall LED ring
+- `power_poe.yaml` - PoE power module
+- `power_240v.yaml` - 240V AC power module
+
+## Expansion Modules
+
+Located in `packages/expansions/`:
+
+### AirIQ (Air Quality)
+- `airiq_ceiling.yaml` - Ceiling mount
+- `airiq_wall.yaml` - Wall mount
+
+### Comfort (Environmental)
+- `comfort_ceiling.yaml` - Ceiling mount
+- `comfort_wall.yaml` - Wall mount
+
+### Presence (Occupancy)
+- `presence_ceiling.yaml` - Ceiling mount (LD2450)
+- `presence_wall.yaml` - Wall mount (LD2450)
+- `presence_ld2412.yaml` - LD2412 variant
+
+### Bathroom (Specialty)
+- `airiq_bathroom_base.yaml` - Base bathroom sensors
+- `airiq_bathroom_pro.yaml` - Pro bathroom with additional sensors
+
+### Fan Control
+- `fan_pwm.yaml` - PWM fan control
+- `fan_gp8403.yaml` - 0-10V DAC fan control
 
 ## Support
 

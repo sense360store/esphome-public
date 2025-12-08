@@ -7,84 +7,183 @@ Official ESPHome firmware repository for [Sense360](https://mysense360.com) envi
 [![GitHub Release](https://img.shields.io/github/v/release/sense360store/esphome-public)](https://github.com/sense360store/esphome-public/releases)
 [![CI](https://github.com/sense360store/esphome-public/workflows/Test%20ESPHome%20Configs/badge.svg)](https://github.com/sense360store/esphome-public/actions)
 
-## What's New in Version 2.2.0
+---
 
-- **Sense360 Ceiling S3 Board**: Complete ESP32-S3 based ceiling board with comprehensive GPIO mappings
-- **Sense360 PoE**: Power over Ethernet support with W5500 Ethernet controller
-- **Sense360 Fan PWM**: 4-channel PWM fan controller for HVAC integration
-- **Expansion Module System**: Modular sensor expansions (AirLQ, Comfort, Presence, Bathroom)
-- **LD2412 mmWave Sensor**: Additional presence sensor support with gate thresholds
-- **Ceiling LED Ring**: Air quality visualization for ceiling-mounted devices
-- **CI/CD Pipeline**: Automated testing and validation for all product configurations
-- **Development Tools**: Pre-commit hooks, validation scripts, and comprehensive development documentation
+## Product Overview
 
-## Key Features
+The Sense360 system is a **modular smart home sensor platform** built around an ESP32-S3 core. Mix and match sensor modules to build the perfect environmental monitoring solution for any room.
 
-- **Comprehensive Air Quality Monitoring**: Measures CO2, VOC, NOx, PM1.0, PM2.5, PM4.0, and PM10
-- **Advanced Presence Detection**: mmWave radar (LD2450) for accurate occupancy sensing
-- **Environmental Sensing**: Temperature, humidity, and ambient light monitoring
-- **Visual Feedback**: Addressable RGB LED status indicators
-- **Smart Home Integration**: Native Home Assistant support through ESPHome
-- **Wireless Updates**: Over-the-air firmware updates
-- **Bluetooth Proxy**: Built-in BLE proxy for extended Home Assistant coverage
+### How It Works
 
-## Repository Organization
-
-This repository contains firmware and configuration files organized by purpose:
-
-- **base/** - Core functionality (WiFi, API, OTA, logging)
-- **hardware/** - Hardware definitions for Core boards (Ceiling and Wall variants)
-- **features/** - Feature modules (AirIQ, Presence, LEDs, Health)
-- **products/** - Complete device configurations (recommended starting point)
-- **packages/** - Modular building blocks for custom composition
-- **examples/** - Customer configuration templates
-- **docs/** - Installation and configuration guides
-
-### For Most Users
-
-The `products/` directory contains ready-to-use configurations that are fully tested and tagged for each release. Start here unless you need custom functionality.
-
-### For Advanced Users
-
-The `packages/` directory provides modular building blocks for creating custom configurations. These components may change between releases and require more technical knowledge to use correctly.
+```
+CORE BOARD  +  POWER MODULE  +  SENSOR MODULES  =  Your Sense360
+(Ceiling/Wall)   (USB/PoE/PWR)    (AirIQ/Comfort/Presence/Fan/Bathroom)
+```
 
 ---
 
-## Quick Start Guide
+## Sensor Modules
 
-### Step 1: Choose Your Product
+### AirIQ - Air Quality Monitoring
 
-Select the configuration that matches your hardware:
+Comprehensive air quality monitoring for health-conscious environments.
 
-#### Core Products (Recommended)
+| Sensor | Measurements |
+|--------|-------------|
+| SPS30 | PM1.0, PM2.5, PM4.0, PM10 (Particulate Matter) |
+| SGP41 | VOC Index, NOx Index (Air Quality) |
+| SCD41 | CO2, Temperature, Humidity |
+| BMP390 | Barometric Pressure |
 
-| Product | Description | Config File |
-|---------|-------------|-------------|
-| Sense360 Core Ceiling | Full ceiling with AirIQ + Comfort + Presence | `products/sense360-core-ceiling.yaml` |
-| Sense360 Core Ceiling Presence | Ceiling with presence only | `products/sense360-core-ceiling-presence.yaml` |
-| Sense360 Core Ceiling Bathroom | Bathroom installation with shower detection | `products/sense360-core-ceiling-bathroom.yaml` |
-| Sense360 Core Wall | Full wall with AirIQ + Comfort + Presence | `products/sense360-core-wall.yaml` |
-| Sense360 Core Wall Presence | Wall with presence only | `products/sense360-core-wall-presence.yaml` |
-| Sense360 Core Voice Ceiling | Voice-enabled ceiling with all sensors | `products/sense360-core-voice-ceiling.yaml` |
-| Sense360 Core Voice Wall | Voice-enabled wall with all sensors | `products/sense360-core-voice-wall.yaml` |
+**Best for:** Living rooms, bedrooms, offices, workshops
+
+---
+
+### Comfort - Environmental Monitoring
+
+Basic environmental comfort sensing for everyday use.
+
+| Sensor | Measurements |
+|--------|-------------|
+| SHT40 | Temperature, Humidity |
+| LTR-303 | Ambient Light (Lux) |
+
+**Best for:** Any room needing basic climate and light monitoring
+
+---
+
+### Presence - Occupancy Detection
+
+mmWave radar-based presence detection for automation.
+
+| Sensor | Features |
+|--------|----------|
+| HLK-LD2450 | Multi-target tracking (up to 3 targets), still/moving detection, zone-based sensing |
+| HLK-LD2412 | Single-zone detection, gate thresholds (alternative option) |
+
+**Best for:** Lighting automation, HVAC control, security
+
+---
+
+### Fan - HVAC Control
+
+Fan speed control for ventilation automation.
+
+| Interface | Output | Use Case |
+|-----------|--------|----------|
+| GP8403 DAC | 0-10V analog | Commercial HVAC, EC motors, VFDs |
+| PWM | 25kHz PWM signal | Standard fans, 4-pin PC fans |
+
+**Best for:** Bathroom ventilation, whole-house fans, HVAC integration
+
+---
+
+### Bathroom - Specialty Module
+
+Optimized for bathroom environments. **Ceiling mount only. Replaces AirIQ (cannot be used together).**
+
+| Variant | Sensors | Features |
+|---------|---------|----------|
+| Base | SHT4x, BMP390, SGP41 | Shower detection, mold risk, odor detection |
+| Pro | + MLX90614, SPS30 | + IR surface temp, condensation risk, PM monitoring |
+
+**Best for:** Bathrooms, laundry rooms, high-humidity areas
+
+---
+
+## Mounting Options
+
+| Form Factor | Description | Available Modules |
+|-------------|-------------|-------------------|
+| **Ceiling** | Flush ceiling mount | AirIQ, Comfort, Presence, Fan, Bathroom |
+| **Wall** | Wall or desk mount | AirIQ, Comfort, Presence, Fan |
+
+---
+
+## Power Options
+
+| Option | Input | Description | Use Case |
+|--------|-------|-------------|----------|
+| **USB** | 5V USB-C | Built-in, no additional hardware | Development, portable setups |
+| **PoE** | 36-57V DC (IEEE 802.3af/at) | Power over Ethernet module | Professional installations, single-cable runs |
+| **PWR** | 100-240V AC | Mains power module (HLK-PM01) | Permanent installations |
+
+---
+
+## Core Boards
+
+| SKU | Name | Form Factor | Description |
+|-----|------|-------------|-------------|
+| CORE-C | Sense360 Core | Ceiling | Standard ceiling-mount core |
+| CORE-W | Sense360 Core | Wall/Desk | Standard wall/desk-mount core |
+
+### Core Board Specifications
+
+- **MCU**: ESP32-S3-WROOM-1-N16R8 (16MB Flash, 8MB PSRAM)
+- **Connectivity**: WiFi 2.4GHz, Bluetooth 5.0 LE
+- **I2C Buses**: Dual I2C for sensors and expansion
+- **Relay**: Built-in 10A relay for load switching
+- **Visual Indicators**: WS2812 addressable LED ring
+
+---
+
+## Product Configurations
+
+### Ready-to-Use Products
+
+The `products/` directory contains complete, tested configurations:
+
+#### Full Sensor Packages (AirIQ + Comfort + Presence)
+
+| Product | Mounting | Power Variants |
+|---------|----------|----------------|
+| Sense360 Core Ceiling | Ceiling | USB, PoE, PWR |
+| Sense360 Core Wall | Wall/Desk | USB, PoE, PWR |
+
+**Config files:**
+- `products/sense360-core-ceiling.yaml`
+- `products/sense360-core-wall.yaml`
+- Power variants: `sense360-core-c-usb.yaml`, `sense360-core-c-poe.yaml`, `sense360-core-c-pwr.yaml`
+- Power variants: `sense360-core-w-usb.yaml`, `sense360-core-w-poe.yaml`, `sense360-core-w-pwr.yaml`
+
+#### Presence Only
+
+| Product | Config File |
+|---------|-------------|
+| Sense360 Core Ceiling Presence | `products/sense360-core-ceiling-presence.yaml` |
+| Sense360 Core Wall Presence | `products/sense360-core-wall-presence.yaml` |
+
+#### Bathroom (Ceiling Only)
+
+| Product | Config File |
+|---------|-------------|
+| Sense360 Core Ceiling Bathroom | `products/sense360-core-ceiling-bathroom.yaml` |
 
 #### Specialty Products
 
 | Product | Description | Config File |
 |---------|-------------|-------------|
-| Sense360 Ceiling S3 | Full-featured ESP32-S3 ceiling board | `products/sense360-ceiling-s3-full.yaml` |
-| Sense360 PoE | Power over Ethernet configuration | `products/sense360-poe.yaml` |
+| Sense360 PoE | Ethernet-connected sensor hub | `products/sense360-poe.yaml` |
 | Sense360 Fan PWM | 4-channel PWM fan controller | `products/sense360-fan-pwm.yaml` |
+| Sense360 Ceiling S3 | Full ESP32-S3 ceiling board | `products/sense360-ceiling-s3-full.yaml` |
 
-### Step 2: Create Your Configuration
+---
 
-In your ESPHome dashboard, create a new file (for example, `sense360-living-room.yaml`):
+## Quick Start Guide
+
+### Step 1: Choose Your Configuration
+
+Select a product configuration that matches your hardware and use case from the table above.
+
+### Step 2: Create Your Device Configuration
+
+In your ESPHome dashboard, create a new file (e.g., `sense360-living-room.yaml`):
 
 ```yaml
 # Device identification
 substitutions:
-  device_name: sense360-living-room  # Change this to your device name
-  friendly_name: "Living Room Sense360"  # Change this to your preferred name
+  device_name: sense360-living-room
+  friendly_name: "Living Room Sense360"
 
 # ESPHome configuration
 esphome:
@@ -119,7 +218,7 @@ ota:
 
 ### Step 3: Configure Secrets
 
-Add the following to your `secrets.yaml` file:
+Add to your `secrets.yaml`:
 
 ```yaml
 wifi_ssid: "YourNetworkName"
@@ -130,69 +229,36 @@ ota_password: "your-secure-password"
 
 ### Step 4: Flash Your Device
 
-1. **Initial flash**: Connect your device via USB-C cable, then click "Install" and select "Plug into this computer"
-2. **Future updates**: All updates can be done wirelessly. Just click "Install" and select "Wirelessly"
+1. **Initial flash**: Connect via USB-C, click "Install" > "Plug into this computer"
+2. **Future updates**: Click "Install" > "Wirelessly"
 
 ---
 
-## Updating Firmware
+## Module Combination Rules
 
-Check the [Releases](https://github.com/sense360store/esphome-public/releases) page to see if a new version is available.
+You can combine modules freely with two constraints:
 
-To update your device:
-1. Open your configuration file
-2. Change the `ref` line to the new version number (for example, change `ref: v2.0.0` to `ref: v2.1.0`)
-3. Save the file and install wirelessly
+1. **AirIQ and Bathroom cannot be used together** (Bathroom replaces AirIQ)
+2. **Bathroom is ceiling-only**
 
-The device will automatically download and apply the updated firmware.
+### Valid Combinations
 
----
+**Ceiling:**
+- Any single module: AirIQ, Comfort, Presence, Fan, Bathroom
+- AirIQ + Comfort, AirIQ + Presence, AirIQ + Fan
+- Bathroom + Comfort, Bathroom + Presence, Bathroom + Fan
+- AirIQ + Comfort + Presence + Fan (full package)
+- Bathroom + Comfort + Presence + Fan
 
-## Documentation
-
-- [Installation Guide](docs/installation.md) - Step-by-step setup instructions
-- [Configuration Reference](docs/configuration.md) - Customization options and settings
-- [Development Guide](docs/development.md) - Contributing and testing
-- [Changelog](CHANGELOG.md) - Version history and release notes
-
----
-
-## Customization Examples
-
-### Adjusting Air Quality Thresholds
-
-You can customize when your device indicates good, moderate, or unhealthy air quality:
-
-```yaml
-substitutions:
-  device_name: my-sense360
-  friendly_name: "My Sense360"
-
-  # Adjust thresholds (all values shown are in ppm or µg/m³)
-  co2_good_limit: "800"           # Default: 750 ppm
-  sen55_pm2_5_good_limit: "12"    # Default: 10 µg/m³
-  sen55_voc_good_limit: "100"     # Default: 80 index
-```
-
-### Adding Custom Automations
-
-Example of creating a high CO2 alert:
-
-```yaml
-binary_sensor:
-  - platform: template
-    name: "High CO2 Alert"
-    lambda: |-
-      return id(scd4x_co2).state > 1200;
-```
+**Wall:**
+- Any single module: AirIQ, Comfort, Presence, Fan
+- Any combination of: AirIQ, Comfort, Presence, Fan
 
 ---
 
 ## Advanced Configuration
 
-For users who need to customize specific components, you can load individual modules instead of using a complete product configuration. This requires understanding of ESPHome and the firmware architecture.
-
-Example of loading specific components:
+For custom module combinations, load individual packages:
 
 ```yaml
 packages:
@@ -200,106 +266,89 @@ packages:
     url: https://github.com/sense360store/esphome-public
     ref: v2.2.0
     files:
+      # Base system
       - packages/base/wifi.yaml
       - packages/base/api_encrypted.yaml
+      - packages/base/ota.yaml
+      - packages/base/time.yaml
+      # Core hardware
       - packages/hardware/sense360_core_ceiling.yaml
+      - packages/hardware/led_ring_ceiling.yaml
+      # Modules - pick what you need
       - packages/expansions/presence_ceiling.yaml
       - packages/features/presence_basic_profile.yaml
+      - packages/expansions/fan_pwm.yaml
+      - packages/features/fan_control_profile.yaml
     refresh: 1d
 ```
 
-See the [Configuration Reference](docs/configuration.md) for complete details on advanced customization options.
+See [docs/product-matrix.md](docs/product-matrix.md) for the complete module reference.
 
 ---
 
-## Hardware Information
+## Repository Structure
 
-Purchase Sense360 devices at [mysense360.com](https://mysense360.com)
+```
+esphome-public/
+├── products/           # Ready-to-use device configurations (start here)
+├── packages/
+│   ├── base/           # Core system (WiFi, API, OTA, logging)
+│   ├── hardware/       # Core board and LED ring definitions
+│   ├── expansions/     # Sensor module drivers
+│   └── features/       # Feature profiles and behaviors
+├── examples/           # Customer configuration templates
+├── docs/               # Installation and configuration guides
+└── tests/              # Validation and testing infrastructure
+```
 
-### Core Boards
+---
 
-| SKU | Name | Form Factor | Voice Support |
-|-----|------|-------------|---------------|
-| CORE-C | Core Ceiling | Ceiling mount | No |
-| CORE-V-C | Core Voice Ceiling | Ceiling mount | Yes |
-| CORE-W | Core Wall | Wall/Desk mount | No |
-| CORE-V-W | Core Voice Wall | Wall/Desk mount | Yes |
+## Documentation
 
-### Supported Modules
+- [Product Matrix](docs/product-matrix.md) - Complete product hierarchy and module reference
+- [Installation Guide](docs/installation.md) - Step-by-step setup instructions
+- [Configuration Reference](docs/configuration.md) - Customization options
+- [Development Guide](docs/development.md) - Contributing and testing
+- [Changelog](CHANGELOG.md) - Version history
 
-- **AirIQ**: SPS30 (PM), SGP41 (VOC/NOx), SCD41 (CO2), BMP390 (Pressure)
-- **Comfort**: SHT40 (Temperature/Humidity), LTR-303 (Light)
-- **Presence**: HLK-LD2450 mmWave radar
-- **Bathroom**: SHT4x, SGP41, BMP390 (shower detection, mold risk)
-- **Fan Control**: GP8403 (0-10V DAC) or PWM
+---
 
-### Core Board Specifications
-
-- **MCU**: ESP32-S3-WROOM-1-N16R8 (16MB Flash, 8MB PSRAM)
-- **Connectivity**: WiFi 2.4GHz, Bluetooth 5.0 LE
-- **I2C Buses**: Dual I2C for sensors and expansion
-- **Relay**: Built-in 10A relay for load switching
-- **Visual Indicators**: WS2812 addressable LED ring
-
-### System Requirements
+## System Requirements
 
 - **ESPHome**: Version 2025.10.0 or newer
 - **Home Assistant**: Version 2024.1.0 or newer (recommended)
-- **Power**: USB-C, PoE, or AC adapter depending on model
 
 ---
 
 ## Use Cases
 
-Common applications for Sense360 devices:
-
-- **Home Office**: Monitor CO2 levels for optimal productivity
-- **Bedroom**: Track sleep environment and automate ventilation
-- **Living Room**: Occupancy-based lighting and climate control
-- **Kitchen**: Air quality monitoring during cooking
-- **Bathroom**: Humidity-based ventilation control
-- **Workshop**: VOC and particulate monitoring during projects
-
----
-
-## Support and Community
-
-- **Installation Help**: See the [Installation Guide](docs/installation.md)
-- **Report Issues**: [GitHub Issues](https://github.com/sense360store/esphome-public/issues)
-- **Discussions**: [Community Forum](https://github.com/sense360store/esphome-public/discussions)
-- **Email Support**: support@mysense360.com
+| Room | Recommended Modules | Why |
+|------|---------------------|-----|
+| Living Room | AirIQ + Comfort + Presence | Full environmental awareness + automation |
+| Bedroom | Comfort + Presence | Sleep environment + lighting automation |
+| Home Office | AirIQ + Presence | CO2 for productivity + occupancy |
+| Bathroom | Bathroom + Presence + Fan | Humidity control + ventilation automation |
+| Kitchen | AirIQ + Presence | Cooking air quality + occupancy |
+| Workshop | AirIQ | VOC and PM monitoring for safety |
 
 ---
 
-## Contributing
+## Support
 
-Contributions are welcome! Please see the [Development Guide](docs/development.md) for:
-- Setting up your development environment
-- Running tests and validation
-- Pre-commit hooks and CI/CD pipeline
-- Code quality guidelines
-
-All pull requests must pass automated testing before merging.
+- **Documentation**: [docs/](docs/)
+- **Issues**: [GitHub Issues](https://github.com/sense360store/esphome-public/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/sense360store/esphome-public/discussions)
+- **Email**: support@mysense360.com
+- **Purchase**: [mysense360.com](https://mysense360.com)
 
 ---
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
-## Acknowledgments
+## Future Products
 
-- Built with [ESPHome](https://esphome.io/)
-- Supported by the Home Assistant community
-- Thanks to all contributors and testers
-
----
-
-## Additional Resources
-
-- [Purchase Devices](https://mysense360.com)
-- [ESPHome Documentation](https://esphome.io)
-- [Home Assistant](https://www.home-assistant.io)
-- [GitHub Releases](https://github.com/sense360store/esphome-public/releases)
+- **Sense360 Voice**: Core boards with integrated voice assistant support (coming soon)
