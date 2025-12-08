@@ -11,8 +11,8 @@
 # - LTR-303 (I2C 0x29): Ambient Light sensor (lux)
 #
 # Expansion Bus Connection (Wall/Desk):
-#   Pin 4 (SDA) → GPIO39
-#   Pin 5 (SCL) → GPIO40
+#   Pin 4 (SDA) → GPIO21 (Secondary I2C bus)
+#   Pin 5 (SCL) → GPIO18 (Secondary I2C bus)
 #   Pin 2 (3.3V) → Power
 #   Pin 1 (GND) → Ground
 #
@@ -23,22 +23,14 @@ substitutions:
   module_sku: S360-CMFT-W
   module_variant: wall
 
-  # I2C Configuration (Wall uses primary I2C bus)
-  comfort_i2c_sda: GPIO39
-  comfort_i2c_scl: GPIO40
-  comfort_i2c_id: i2c_comfort
+  # I2C Configuration (Wall uses secondary I2C bus from core hardware)
+  comfort_i2c_sda: GPIO21
+  comfort_i2c_scl: GPIO18
+  comfort_i2c_id: i2c1
 
   # Sensor update intervals
   comfort_sht40_update: 30s
   comfort_ltr303_update: 10s
-
-# I2C Bus Configuration
-i2c:
-  - id: ${comfort_i2c_id}
-    sda: ${comfort_i2c_sda}
-    scl: ${comfort_i2c_scl}
-    scan: true
-    frequency: 100kHz
 
 # ============================================================================
 # SENSORS
