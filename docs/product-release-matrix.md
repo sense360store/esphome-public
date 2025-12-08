@@ -73,7 +73,7 @@ This document defines the complete product SKU matrix for Sense360 devices, incl
 | **S360-AIR-C** | AirIQ Ceiling | SEN55, SCD41, BMP390 | Air quality monitoring |
 | **S360-BATH-C** | Bathroom Ceiling | SHT40, SCD41, SGP40, BH1750 | Bathroom-specific monitoring |
 | **S360-CMFT-C** | Comfort Ceiling | SHT4x, VEML7700 | Temperature, humidity, light |
-| **S360-PRES-C** | Presence Ceiling | LD2450 mmWave | Multi-target presence detection |
+| **S360-PRES-C** | Presence Ceiling | HLK-LD2450, DFRobot C4001 | Multi-target presence detection |
 | **S360-FAN-GP** | Fan Control GP8403 | GP8403 DAC | 0-10V analog fan control |
 | **S360-FAN-PWM** | Fan Control PWM | PWM + Tachometer | PWM fan control with feedback |
 
@@ -83,7 +83,7 @@ This document defines the complete product SKU matrix for Sense360 devices, incl
 |-----|------|---------|----------|
 | **S360-AIR-W** | AirIQ Wall | SEN55, SCD41 | Air quality monitoring |
 | **S360-CMFT-W** | Comfort Wall | SHT4x, BH1750 | Temperature, humidity, light |
-| **S360-PRES-W** | Presence Wall | LD2450 mmWave | Multi-target presence detection |
+| **S360-PRES-W** | Presence Wall | HLK-LD2450, DFRobot C4001 | Multi-target presence detection |
 | **S360-FAN-GP** | Fan Control GP8403 | GP8403 DAC | 0-10V analog fan control |
 | **S360-FAN-PWM** | Fan Control PWM | PWM + Tachometer | PWM fan control with feedback |
 

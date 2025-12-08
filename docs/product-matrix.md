@@ -239,16 +239,24 @@ Basic environmental comfort monitoring.
 
 mmWave radar-based presence and occupancy detection.
 
-| Project Name | Product Name | Variant | SKU | Sensor |
-|-------------|--------------|---------|-----|--------|
-| `Sense360_Module_Presence_Ceiling` | Sense 360 Presence | Ceiling | S360-PRES-C | HLK-LD2450 |
-| `Sense360_Module_Presence_Wall` | Sense 360 Presence | Wall/Desk | S360-PRES-W | HLK-LD2450 |
+| Project Name | Product Name | Variant | SKU | Sensors |
+|-------------|--------------|---------|-----|---------|
+| `Sense360_Module_Presence_Ceiling` | Sense 360 Presence | Ceiling | S360-PRES-C | HLK-LD2450, DFRobot C4001 |
+| `Sense360_Module_Presence_Wall` | Sense 360 Presence | Wall/Desk | S360-PRES-W | HLK-LD2450, DFRobot C4001 |
+
+**Sensors:**
+
+| Sensor | Features | Best For |
+|--------|----------|----------|
+| HLK-LD2450 | Multi-target tracking (up to 3 targets), still/moving detection, distance/angle measurement | General presence detection with target counting |
+| DFRobot C4001 | 24GHz FMCW, 16m presence range, 25m motion range, speed measurement | Long-range detection, speed-based automation |
 
 **Features:**
-- Multi-target tracking (up to 3 targets)
+- Multi-target tracking (up to 3 targets with LD2450)
 - Still and moving target differentiation
 - Zone-based detection
 - Distance and angle measurement
+- Speed measurement (C4001)
 
 ### Bathroom Module
 

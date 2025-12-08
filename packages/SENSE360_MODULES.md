@@ -47,19 +47,41 @@ Power budgets:
 
 ### Presence Detection
 
-**LD2450** (presence_ld2450.yaml) - Multi-target radar
+**For Sense360 Core and Presence Modules:**
+
+**HLK-LD2450** (presence_ld2450.yaml) - Multi-target radar
 - UART: 256000 baud
 - Power: 5V/150mA
 - Tracks up to 3 targets with distance/angle
 
-**LD2412** (presence_ld2412.yaml) - Single-zone radar
+**DFRobot C4001** (presence_dfrobot_c4001.yaml) - Long-range FMCW radar
+- UART: 115200 baud (or I2C at 0x32)
+- Power: 5V/180-250mA
+- Presence range: 16m, Motion range: 25m
+- Speed measurement: 0.1-10 m/s
+- Detection angle: 100 degrees horizontal
+
+**For Presence Mini only:**
+
+**HLK-LD2450** (presence_ld2450.yaml) - Multi-target radar (see above)
+
+**HLK-LD2412** (presence_ld2412.yaml) - Single-zone radar
 - UART: 115200 baud
 - Power: 5V/100mA
 - Better still detection, up to 9m
 
 ```yaml
+# For Sense360 Core/Presence (LD2450 default)
 packages:
   presence: !include packages/expansions/presence_ld2450.yaml
+
+# For Sense360 Core/Presence (C4001 alternative)
+packages:
+  presence: !include packages/hardware/presence_dfrobot_c4001.yaml
+
+# For Presence Mini (LD2412 alternative)
+packages:
+  presence: !include packages/expansions/presence_ld2412.yaml
 ```
 
 ### Air Quality (airiq.yaml)

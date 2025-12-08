@@ -56,10 +56,19 @@ Basic environmental comfort sensing for everyday use.
 
 mmWave radar-based presence detection for automation.
 
+**For Sense360 Core and Presence Modules:**
+
 | Sensor | Features |
 |--------|----------|
 | HLK-LD2450 | Multi-target tracking (up to 3 targets), still/moving detection, zone-based sensing |
-| HLK-LD2412 | Single-zone detection, gate thresholds (alternative option) |
+| DFRobot C4001 | 24GHz FMCW, 16m presence range, 25m motion range, speed measurement |
+
+**For Presence Mini:**
+
+| Sensor | Features |
+|--------|----------|
+| HLK-LD2450 | Multi-target tracking (up to 3 targets), still/moving detection, zone-based sensing |
+| HLK-LD2412 | Single-zone detection, gate thresholds, better still detection (alternative option) |
 
 **Best for:** Lighting automation, HVAC control, security
 
