@@ -79,7 +79,6 @@ docs/_build/
 site/
 
 # Private overlays or factory configs
-overlays_factory_private/
 private/
 
 # Local environment files

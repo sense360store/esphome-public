@@ -28,14 +28,6 @@
 
 substitutions:
   power_source: "240v_ac"
-  power_monitor_enabled: "false"  # Set to "true" if current sensor installed
-
-  # Power monitoring pins (if enabled)
-  # Analog input for current sensor (ACS712 or similar)
-  power_monitor_pin: GPIO3  # ADC1_CH2
-
-  # AC frequency for power calculations
-  ac_frequency: "50"  # Hz, change to 60 for 60Hz regions
 
 # Global variable for power source identification
 globals:
@@ -58,53 +50,6 @@ sensor:
     lambda: |-
       return 5.0;  // Fixed 5V output
     update_interval: 60s
-
-    # Current consumption monitoring (requires external current sensor)
-    # Uncomment and configure if you have a current sensor installed
-    # - platform: adc
-    #   name: "${friendly_name} Current"
-    #   id: power_current
-    #   pin: ${power_monitor_pin}
-    #   attenuation: 11dB  # For 0-3.3V range
-    #   update_interval: 1s
-    #   filters:
-    #     # ACS712-05B: 185mV/A, centered at 2.5V
-    #     # Adjust these values based on your current sensor
-    #     - offset: -2.5
-    #     - multiply: 5.405  # (3.3V / 0.185V/A) / 3.3V
-    #     - sliding_window_moving_average:
-    #         window_size: 10
-    #         send_every: 5
-    #   unit_of_measurement: "A"
-    #   device_class: current
-    #   state_class: measurement
-    #   accuracy_decimals: 3
-    #   icon: mdi:current-ac
-
-  # Power consumption (calculated from voltage and current)
-  # - platform: template
-  #   name: "${friendly_name} Power Consumption"
-  #   id: power_consumption
-  #   icon: mdi:flash
-  #   unit_of_measurement: "W"
-  #   device_class: power
-  #   state_class: measurement
-  #   accuracy_decimals: 1
-  #   lambda: |-
-  #     return id(supply_voltage).state * id(power_current).state;
-  #   update_interval: 5s
-
-  # Energy consumption (cumulative)
-  # - platform: total_daily_energy
-  #   name: "${friendly_name} Energy Today"
-  #   power_id: power_consumption
-  #   filters:
-  #     - multiply: 0.001  # Convert Wh to kWh
-  #   unit_of_measurement: "kWh"
-  #   device_class: energy
-  #   state_class: total_increasing
-  #   accuracy_decimals: 3
-  #   icon: mdi:lightning-bolt-circle
 
 # Power source indicator and configuration notes
 text_sensor:
@@ -136,17 +81,6 @@ binary_sensor:
       // Assume always connected for 240V AC configuration
       // If you have a power detection circuit, implement it here
       return true;
-
-# Switch for power monitoring (if implemented)
-# Allows enabling/disabling power monitoring to reduce processing load
-# switch:
-#   - platform: template
-#     name: "${friendly_name} Power Monitoring"
-#     id: power_monitoring_switch
-#     icon: mdi:chart-line
-#     optimistic: true
-#     restore_mode: RESTORE_DEFAULT_ON
-#     # Enabling/disabling would control the update intervals of power sensors
 
 # Debug logging for power configuration
 logger:
