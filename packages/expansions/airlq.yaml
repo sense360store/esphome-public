@@ -35,10 +35,9 @@
 # ============================================================================
 
 substitutions:
-  # I2C Configuration (can be overridden in product config)
-  airlq_i2c_sda: GPIO39
-  airlq_i2c_scl: GPIO40
-  airlq_i2c_id: i2c_airlq
+  # I2C bus ID (uses i2c0 from core hardware by default)
+  # Override with airlq_i2c_id substitution if using different bus
+  airlq_i2c_id: i2c0
 
   # LED GPIO Configuration
   airlq_status_led_pin: GPIO6
@@ -56,14 +55,6 @@ substitutions:
 
   # SPS30 auto-cleaning interval (7 days default)
   airlq_sps30_cleaning_interval: "604800s"
-
-# I2C Bus Configuration
-i2c:
-  - id: ${airlq_i2c_id}
-    sda: ${airlq_i2c_sda}
-    scl: ${airlq_i2c_scl}
-    scan: true
-    frequency: 100kHz
 
 # ============================================================================
 # LED OUTPUTS
