@@ -23,10 +23,9 @@
 # ============================================================================
 
 substitutions:
-  # I2C Configuration (can be overridden in product config)
-  airiq_i2c_sda: GPIO39
-  airiq_i2c_scl: GPIO40
-  airiq_i2c_id: i2c_airiq
+  # I2C bus ID (uses i2c0 from core hardware by default)
+  # Override with airiq_i2c_id substitution if using different bus
+  airiq_i2c_id: i2c0
 
   # Sensor update intervals
   airiq_sps30_update: 30s
@@ -39,14 +38,6 @@ substitutions:
 
   # CO2 calibration settings
   co2_auto_calibration: "true"
-
-# I2C Bus Configuration
-i2c:
-  - id: ${airiq_i2c_id}
-    sda: ${airiq_i2c_sda}
-    scl: ${airiq_i2c_scl}
-    scan: true
-    frequency: 100kHz
 
 # ============================================================================
 # SPS30 - Particulate Matter Sensor (Sensirion)

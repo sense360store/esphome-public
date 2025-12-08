@@ -11,18 +11,11 @@
 # Connection: I2C Secondary bus (GPIO21/18), Address 0x3E
 
 substitutions:
-  sx1509_i2c_sda: GPIO21
-  sx1509_i2c_scl: GPIO18
-  sx1509_i2c_id: i2c_expander
+  # I2C bus ID (uses i2c1 from core hardware by default)
+  # Override with sx1509_i2c_id substitution if using different bus
+  sx1509_i2c_id: i2c1
   sx1509_address: "0x3E"
   sx1509_interrupt_pin: GPIO3
-
-i2c:
-  - id: ${sx1509_i2c_id}
-    sda: ${sx1509_i2c_sda}
-    scl: ${sx1509_i2c_scl}
-    scan: true
-    frequency: 400kHz
 
 sx1509:
   - id: sx1509_expander

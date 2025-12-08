@@ -22,10 +22,9 @@
 # ============================================================================
 
 substitutions:
-  # I2C Configuration
-  fan_dac_i2c_sda: GPIO39
-  fan_dac_i2c_scl: GPIO40
-  fan_dac_i2c_id: i2c_fan_dac
+  # I2C bus ID (uses i2c0 from core hardware by default)
+  # Override with fan_dac_i2c_id substitution if using different bus
+  fan_dac_i2c_id: i2c0
   fan_dac_address: "0x58"  # Can be 0x59 if address jumper changed
 
   # Voltage mode (5V or 10V depending on hardware jumper)
@@ -35,14 +34,6 @@ substitutions:
   fan_min_voltage_percent: "10"  # Minimum output (% of max voltage)
   fan_max_voltage_percent: "100"
   fan_default_percent: "50"
-
-# I2C Bus Configuration
-i2c:
-  - id: ${fan_dac_i2c_id}
-    sda: ${fan_dac_i2c_sda}
-    scl: ${fan_dac_i2c_scl}
-    scan: true
-    frequency: 100kHz
 
 # ============================================================================
 # GP8403 DAC Output Configuration
