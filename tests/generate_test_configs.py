@@ -121,6 +121,18 @@ class TestConfig:
             '  timezone: "America/New_York"',
             '  api_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="',
             '  ota_password: "test-ota-password"',
+        ]
+
+        # Add module-specific substitutions
+        # Check if fan_pwm module is present
+        has_fan_pwm = any(mod.category == "fan_pwm" for mod in self.modules)
+        if has_fan_pwm:
+            lines.extend([
+                '  fan_pwm_pin: "${expansion_gpio1}"  # GPIO5',
+                '  fan_tach_pin: "${expansion_gpio2}"  # GPIO6',
+            ])
+
+        lines.extend([
             "",
             "packages:",
             "  # Base system components",
@@ -135,7 +147,7 @@ class TestConfig:
             "",
             "  # Power module",
             f"  power_module: !include ../../packages/hardware/{self.power.value}.yaml",
-        ]
+        ])
 
         # Add LED package if present
         if self.led != LEDType.NONE:
