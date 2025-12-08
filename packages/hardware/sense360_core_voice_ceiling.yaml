@@ -120,13 +120,6 @@ i2c:
     scan: true
     frequency: 400kHz
 
-  # Expansion bus alias (same pins as i2c1, for compatibility with ceiling expansions)
-  - id: expansion_i2c
-    sda: ${i2c1_sda_pin}
-    scl: ${i2c1_scl_pin}
-    scan: true
-    frequency: 400kHz
-
 # UART for expansion modules (presence sensors, etc.)
 uart:
   - id: uart_bus
