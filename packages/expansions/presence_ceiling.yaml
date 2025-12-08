@@ -6,10 +6,13 @@
 #
 # mmWave radar-based presence detection for ceiling-mounted installations.
 #
-# Sensor:
-# - HLK-LD2450 (UART): 24GHz mmWave radar, multi-target tracking
+# Supported Sensors:
+# - HLK-LD2450 (UART): 24GHz mmWave radar, multi-target tracking (default)
+# - DFRobot C4001 (UART/I2C): 24GHz FMCW radar, 16m presence range, speed measurement
 #
-# Features:
+# This config uses HLK-LD2450. For C4001, use presence_dfrobot_c4001.yaml instead.
+#
+# Features (LD2450):
 # - Up to 3 simultaneous targets
 # - Still and moving target differentiation
 # - Zone-based detection
@@ -21,7 +24,7 @@
 #   Pin 3 (5V) → Power
 #   Pin 1 (GND) → Ground
 #
-# Power Requirements: 5V / 150mA max
+# Power Requirements: 5V / 150mA max (LD2450), 5V / 250mA max (C4001)
 # ============================================================================
 
 substitutions:

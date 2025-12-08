@@ -56,7 +56,7 @@ Basic environmental comfort sensing for everyday use.
 
 mmWave radar-based presence detection for automation.
 
-**For Sense360 Core and Presence Modules:**
+**For Presence Module (S360-PRES-C, S360-PRES-W):**
 
 | Sensor | Features |
 |--------|----------|

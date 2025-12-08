@@ -47,7 +47,7 @@ Power budgets:
 
 ### Presence Detection
 
-**For Sense360 Core and Presence Modules:**
+**For Presence Module (S360-PRES-C, S360-PRES-W):**
 
 **HLK-LD2450** (presence_ld2450.yaml) - Multi-target radar
 - UART: 256000 baud
@@ -71,11 +71,11 @@ Power budgets:
 - Better still detection, up to 9m
 
 ```yaml
-# For Sense360 Core/Presence (LD2450 default)
+# For Presence Module (LD2450 default)
 packages:
   presence: !include packages/expansions/presence_ld2450.yaml
 
-# For Sense360 Core/Presence (C4001 alternative)
+# For Presence Module (C4001 alternative)
 packages:
   presence: !include packages/hardware/presence_dfrobot_c4001.yaml
 

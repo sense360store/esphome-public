@@ -10,8 +10,12 @@
 # Hardware: ESP32-S3-WROOM-1 (8MB Flash, 2MB PSRAM)
 #
 # Included Modules:
-# - Presence: LD2450 mmWave Radar (multi-target tracking)
+# - Presence: HLK-LD2450 or DFRobot C4001 mmWave Radar
 # - LED Ring: Halo LED for visual feedback
+#
+# Supported Presence Sensors:
+# - HLK-LD2450: Multi-target tracking (up to 3 targets), distance/angle
+# - DFRobot C4001: 16m presence range, 25m motion range, speed measurement
 #
 # Customer usage in their ESPHome config:
 # packages:
