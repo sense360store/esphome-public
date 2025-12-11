@@ -95,6 +95,8 @@ globals:
 
 # ----------------------------------------------------------------------------
 # ALL SENSORS - CO2, PM, VOC, NOx, Environmental
+# Note: These template sensors receive values via publish_state() from either
+# expansion modules (airiq.yaml) or direct product sensor definitions.
 # ----------------------------------------------------------------------------
 sensor:
   # CO2 SENSOR - Carbon Dioxide (SCD4x)
@@ -107,7 +109,7 @@ sensor:
     state_class: measurement
     device_class: carbon_dioxide
 
-  # PARTICULATE MATTER SENSORS (SEN55)
+  # PARTICULATE MATTER SENSORS
   # PM1.0 - Finest particles
   - platform: template
     id: pm1_0
@@ -147,7 +149,7 @@ sensor:
     state_class: measurement
     device_class: pm10
 
-  # VOC & NOx SENSORS (SEN55)
+  # VOC & NOx SENSORS
   # VOC Index (0-500)
   - platform: template
     id: voc_index

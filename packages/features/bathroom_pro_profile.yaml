@@ -24,81 +24,69 @@ packages:
   bathroom_base: !include bathroom_profile.yaml
 
 # ============================================================================
-# Pro-Only Sensors
+# Pro-Only Sensors (Native ESPHome Copy Sensors)
 # ============================================================================
 sensor:
-  # Surface Temperature (MLX90614)
-  - platform: template
+  # Surface Temperature (MLX90614) - Native copy from expansion sensor
+  - platform: copy
     id: bathroom_surface_temp_display
+    source_id: bathroom_surface_temperature
     name: "${friendly_name} Surface Temperature"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
     icon: "mdi:thermometer-probe"
-    update_interval: 10s
-    lambda: |-
-      return id(bathroom_surface_temperature).state;
 
-  # IR Ambient Temperature
-  - platform: template
+  # IR Ambient Temperature - Native copy from expansion sensor
+  - platform: copy
     id: bathroom_ir_ambient_display
+    source_id: bathroom_ir_ambient
     name: "${friendly_name} IR Ambient Temperature"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
     entity_category: diagnostic
-    update_interval: 10s
-    lambda: |-
-      return id(bathroom_ir_ambient).state;
 
-  # Condensation Margin (surface temp - dew point)
-  - platform: template
+  # Condensation Margin (surface temp - dew point) - Native copy from expansion sensor
+  - platform: copy
     id: bathroom_condensation_margin_display
+    source_id: bathroom_condensation_margin
     name: "${friendly_name} Condensation Margin"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     icon: "mdi:water-thermometer-outline"
-    update_interval: 10s
-    lambda: |-
-      return id(bathroom_condensation_margin).state;
 
-  # PM1.0
-  - platform: template
+  # PM1.0 - Native copy from expansion sensor
+  - platform: copy
     id: bathroom_pm1_display
+    source_id: bathroom_pm1_0
     name: "${friendly_name} PM1.0"
     unit_of_measurement: "µg/m³"
     accuracy_decimals: 1
     device_class: pm1
     state_class: measurement
-    update_interval: 30s
-    lambda: |-
-      return id(bathroom_pm1_0).state;
 
-  # PM2.5
-  - platform: template
+  # PM2.5 - Native copy from expansion sensor
+  - platform: copy
     id: bathroom_pm25_display
+    source_id: bathroom_pm2_5
     name: "${friendly_name} PM2.5"
     unit_of_measurement: "µg/m³"
     accuracy_decimals: 1
     device_class: pm25
     state_class: measurement
-    update_interval: 30s
-    lambda: |-
-      return id(bathroom_pm2_5).state;
 
-  # PM10
-  - platform: template
+  # PM10 - Native copy from expansion sensor
+  - platform: copy
     id: bathroom_pm10_display
+    source_id: bathroom_pm10_0
     name: "${friendly_name} PM10"
     unit_of_measurement: "µg/m³"
     accuracy_decimals: 1
     device_class: pm10
     state_class: measurement
-    update_interval: 30s
-    lambda: |-
-      return id(bathroom_pm10_0).state;
 
-  # Air Quality Index (based on PM2.5)
+  # Air Quality Index (based on PM2.5) - Keep template for calculation
   - platform: template
     id: bathroom_aqi_display
     name: "${friendly_name} Air Quality Index"
