@@ -5,24 +5,12 @@
 # This file declares external ESPHome components required by Sense360 products.
 #
 # Components:
-#   - ld2450: HLK-LD2450 24GHz mmWave radar (multi-target tracking)
 #   - ld2412: HLK-LD2412 24GHz mmWave radar (superior still presence)
 #
-# These components are sourced from well-maintained community repositories.
+# NOTE: LD2450 now uses native ESPHome support (no external component required)
 # ============================================================================
 
 external_components:
-  # LD2450 Multi-Target Radar Component
-  # Source: ShaunPCcom's fork (fixes ESPHome 2025.11+ compatibility)
-  # Original: TillFleisch's ESPHome HLK-LD2450 component
-  # Features: Multi-target tracking, distance/angle measurement, zone detection
-  - source:
-      type: git
-      url: https://github.com/ShaunPCcom/ESPHome-HLK-LD2450
-      ref: main
-    components: [LD2450]
-    refresh: 1d
-
   # LD2412 Still Presence Radar Component
   # Source: smarthomeshop's ESPHome LD2412 component
   # Features: Superior still presence detection, gate-based sensing

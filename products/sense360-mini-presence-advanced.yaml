@@ -16,6 +16,8 @@
 # - Full diagnostic sensors
 #
 # For technical users who want complete control over presence detection.
+#
+# NOTE: Uses native ESPHome LD2450 support (no external component required)
 # ============================================================================
 
 substitutions:
@@ -71,18 +73,6 @@ esp32:
       CONFIG_ESPTOOLPY_FLASHMODE_QIO: y
 
 # ----------------------------------------------------------------------------
-# EXTERNAL COMPONENTS
-# ----------------------------------------------------------------------------
-# LD2450 radar requires external component (ShaunPCcom fork with ESPHome 2025.11+ compatibility)
-external_components:
-  - source:
-      type: git
-      url: https://github.com/ShaunPCcom/ESPHome-HLK-LD2450
-      ref: main
-    components: [LD2450]
-    refresh: 1d
-
-# ----------------------------------------------------------------------------
 # BASE PACKAGES - Core system components
 # ----------------------------------------------------------------------------
 packages:
@@ -106,7 +96,7 @@ wifi:
     ssid: "Sense360 Mini Adv Fallback"
 
 # ----------------------------------------------------------------------------
-# HARDWARE - LD2450 Presence Sensor with full configuration
+# HARDWARE - LD2450 Presence Sensor (Native ESPHome)
 # ----------------------------------------------------------------------------
 uart:
   - id: ${ld2450_uart_id}
@@ -119,73 +109,100 @@ uart:
       direction: BOTH
       dummy_receiver: false
 
-LD2450:
+ld2450:
   id: ld2450_radar
   uart_id: ${ld2450_uart_id}
   # Advanced users can modify zones via LD2450 Bluetooth app
-  # Target count sensor
-  target_count:
-    id: ld2450_target_count
-    name: "${friendly_name} Total Targets"
-  # Occupancy sensor
-  occupancy:
-    name: "${friendly_name} Presence"
-  # Three targets tracking with full details
-  targets:
-    - target:
-        id: ld2450_t1
-        name: "Target 1"
-        x_position:
-          id: ld2450_t1_x
-          name: "${friendly_name} Target 1 X"
-        y_position:
-          id: ld2450_t1_y
-          name: "${friendly_name} Target 1 Y"
-        speed:
-          id: ld2450_t1_speed
-          name: "${friendly_name} Target 1 Speed"
-        distance:
-          id: ld2450_t1_distance
-          name: "${friendly_name} Target 1 Distance"
-        angle:
-          id: ld2450_t1_angle
-          name: "${friendly_name} Target 1 Angle"
-    - target:
-        id: ld2450_t2
-        name: "Target 2"
-        x_position:
-          id: ld2450_t2_x
-          name: "${friendly_name} Target 2 X"
-        y_position:
-          id: ld2450_t2_y
-          name: "${friendly_name} Target 2 Y"
-        speed:
-          id: ld2450_t2_speed
-          name: "${friendly_name} Target 2 Speed"
-        distance:
-          id: ld2450_t2_distance
-          name: "${friendly_name} Target 2 Distance"
-        angle:
-          id: ld2450_t2_angle
-          name: "${friendly_name} Target 2 Angle"
-    - target:
-        id: ld2450_t3
-        name: "Target 3"
-        x_position:
-          id: ld2450_t3_x
-          name: "${friendly_name} Target 3 X"
-        y_position:
-          id: ld2450_t3_y
-          name: "${friendly_name} Target 3 Y"
-        speed:
-          id: ld2450_t3_speed
-          name: "${friendly_name} Target 3 Speed"
-        distance:
-          id: ld2450_t3_distance
-          name: "${friendly_name} Target 3 Distance"
-        angle:
-          id: ld2450_t3_angle
-          name: "${friendly_name} Target 3 Angle"
+
+# Binary Sensors - Presence Detection
+binary_sensor:
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    has_target:
+      name: "${friendly_name} Presence"
+    has_moving_target:
+      id: ld2450_has_moving
+      name: "${friendly_name} Moving Target"
+    has_still_target:
+      id: ld2450_has_still
+      name: "${friendly_name} Still Target"
+
+# Sensors - Target Tracking with full details
+sensor:
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    target_count:
+      id: ld2450_target_count
+      name: "${friendly_name} Total Targets"
+    still_target_count:
+      id: ld2450_still_target_count
+      name: "${friendly_name} Still Target Count"
+    moving_target_count:
+      id: ld2450_moving_target_count
+      name: "${friendly_name} Moving Target Count"
+    # Target 1
+    target_1:
+      x:
+        id: ld2450_t1_x
+        name: "${friendly_name} Target 1 X"
+      y:
+        id: ld2450_t1_y
+        name: "${friendly_name} Target 1 Y"
+      speed:
+        id: ld2450_t1_speed
+        name: "${friendly_name} Target 1 Speed"
+      distance:
+        id: ld2450_t1_distance
+        name: "${friendly_name} Target 1 Distance"
+      angle:
+        id: ld2450_t1_angle
+        name: "${friendly_name} Target 1 Angle"
+    # Target 2
+    target_2:
+      x:
+        id: ld2450_t2_x
+        name: "${friendly_name} Target 2 X"
+      y:
+        id: ld2450_t2_y
+        name: "${friendly_name} Target 2 Y"
+      speed:
+        id: ld2450_t2_speed
+        name: "${friendly_name} Target 2 Speed"
+      distance:
+        id: ld2450_t2_distance
+        name: "${friendly_name} Target 2 Distance"
+      angle:
+        id: ld2450_t2_angle
+        name: "${friendly_name} Target 2 Angle"
+    # Target 3
+    target_3:
+      x:
+        id: ld2450_t3_x
+        name: "${friendly_name} Target 3 X"
+      y:
+        id: ld2450_t3_y
+        name: "${friendly_name} Target 3 Y"
+      speed:
+        id: ld2450_t3_speed
+        name: "${friendly_name} Target 3 Speed"
+      distance:
+        id: ld2450_t3_distance
+        name: "${friendly_name} Target 3 Distance"
+      angle:
+        id: ld2450_t3_angle
+        name: "${friendly_name} Target 3 Angle"
+
+  # Additional template sensors for computed values
+  - platform: template
+    name: "${friendly_name} Still Targets"
+    id: ld2450_still_targets_sensor
+    lambda: return id(ld2450_still_count);
+    update_interval: 500ms
+  - platform: template
+    name: "${friendly_name} Moving Targets"
+    id: ld2450_moving_targets_sensor
+    lambda: return id(ld2450_moving_count);
+    update_interval: 500ms
 
 # ----------------------------------------------------------------------------
 # FULL TARGET TRACKING - Globals for moving/still detection
@@ -200,46 +217,14 @@ globals:
     restore_value: false
     initial_value: '0'
 
-# Additional sensors for moving/still counts (computed)
-sensor:
-  - platform: template
-    name: "${friendly_name} Still Targets"
-    id: ld2450_still_targets_sensor
-    lambda: return id(ld2450_still_count);
-    update_interval: 500ms
-  - platform: template
-    name: "${friendly_name} Moving Targets"
-    id: ld2450_moving_targets_sensor
-    lambda: return id(ld2450_moving_count);
-    update_interval: 500ms
-
 # Update presence confidence with advanced logic
 interval:
   - interval: 500ms  # Faster updates
     then:
       - lambda: |-
-          // Calculate moving/still from speeds
-          int moving = 0;
-          int still = 0;
-          float speed_threshold = 0.1f;
-
-          if (id(ld2450_t1_speed).has_state() && abs(id(ld2450_t1_speed).state) > speed_threshold) {
-            moving++;
-          } else if (id(ld2450_t1_distance).has_state() && id(ld2450_t1_distance).state > 0) {
-            still++;
-          }
-
-          if (id(ld2450_t2_speed).has_state() && abs(id(ld2450_t2_speed).state) > speed_threshold) {
-            moving++;
-          } else if (id(ld2450_t2_distance).has_state() && id(ld2450_t2_distance).state > 0) {
-            still++;
-          }
-
-          if (id(ld2450_t3_speed).has_state() && abs(id(ld2450_t3_speed).state) > speed_threshold) {
-            moving++;
-          } else if (id(ld2450_t3_distance).has_state() && id(ld2450_t3_distance).state > 0) {
-            still++;
-          }
+          // Get counts from native LD2450 component
+          int moving = id(ld2450_moving_target_count).state;
+          int still = id(ld2450_still_target_count).state;
 
           id(ld2450_still_count) = still;
           id(ld2450_moving_count) = moving;
@@ -325,29 +310,19 @@ button:
     id: reset_button
     name: "${friendly_name} Restart"
 
-  - platform: template
-    name: "${friendly_name} Restart LD2450"
-    icon: "mdi:restart"
-    on_press:
-      - uart.write:
-          id: ${ld2450_uart_id}
-          data: [0xFD, 0xFC, 0xFB, 0xFA, 0x02, 0x00, 0xA3, 0x00, 0x04, 0x03, 0x02, 0x01]
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    factory_reset:
+      name: "${friendly_name} LD2450 Factory Reset"
+    restart:
+      name: "${friendly_name} LD2450 Restart"
 
 switch:
-  # Bluetooth configuration mode
-  - platform: template
-    name: "${friendly_name} LD2450 Bluetooth"
-    icon: "mdi:bluetooth"
-    optimistic: true
-    restore_mode: DISABLED
-    turn_on_action:
-      - uart.write:
-          id: ${ld2450_uart_id}
-          data: [0xFD, 0xFC, 0xFB, 0xFA, 0x04, 0x00, 0xFF, 0x00, 0x01, 0x00, 0x04, 0x03, 0x02, 0x01]
-    turn_off_action:
-      - uart.write:
-          id: ${ld2450_uart_id}
-          data: [0xFD, 0xFC, 0xFB, 0xFA, 0x04, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x04, 0x03, 0x02, 0x01]
+  # Bluetooth configuration mode (native ESPHome support)
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    bluetooth:
+      name: "${friendly_name} LD2450 Bluetooth"
 
 # ----------------------------------------------------------------------------
 # NOTES FOR ADVANCED USERS
