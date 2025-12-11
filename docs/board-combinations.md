@@ -11,9 +11,9 @@ This document provides a clear overview of all possible board combinations for t
 │                         SENSE360 MODULAR SYSTEM                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   ┌─────────┐   ┌─────────┐   ┌──────────┐   ┌──────────┐   ┌─────────┐   │
-│   │  CORE   │ + │  POWER  │ + │ MOUNTING │ + │  MODULE  │ + │   LED   │   │
-│   └─────────┘   └─────────┘   └──────────┘   └──────────┘   └─────────┘   │
+│   ┌─────────┐   ┌─────────┐   ┌──────────┐   ┌──────────┐   ┌─────────┐     │
+│   │  CORE   │ + │  POWER  │ + │ MOUNTING │ + │  MODULE  │ + │   LED   │     │
+│   └─────────┘   └─────────┘   └──────────┘   └──────────┘   └─────────┘     │
 │                                                                             │
 │   Required      Required      Required       Optional       Required        │
 │                                                                             │
@@ -133,8 +133,8 @@ Visual feedback system. Choose based on core type and mounting.
 ### Module Compatibility Matrix
 
 ```
-                    ┌─────────────────────────────────────────────────────────────────┐
-                    │                    MODULES                                      │
+                    ┌────────────────────────────────────────────────────────────────┐
+                    │                    MODULES                                     │
                     ├─────────┬───────────┬─────────┬──────────┬─────────┬───────────┤
                     │ AirIQ   │ Bathroom  │ Comfort │ Presence │   Fan   │    LED    │
                     │         │  AirIQ    │         │          │         │           │
