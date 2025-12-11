@@ -15,10 +15,12 @@ This document provides a clear overview of all possible board combinations for t
 │   │  CORE   │ + │  POWER  │ + │ MOUNTING │ + │  MODULE  │ + │   LED   │     │
 │   └─────────┘   └─────────┘   └──────────┘   └──────────┘   └─────────┘     │
 │                                                                             │
-│   Required      Required      Required       Optional       Required        │
+│   Required      Required      Required       Optional       Optional*       │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+> **\*LED Note**: LED rings are optional for Core but **required for Core Voice** (microphone is integrated into the LED Voice ring).
 
 ---
 
