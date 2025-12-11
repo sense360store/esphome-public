@@ -62,13 +62,13 @@ esp32:
 # ----------------------------------------------------------------------------
 # EXTERNAL COMPONENTS
 # ----------------------------------------------------------------------------
-# LD2450 radar requires external component (TillFleisch implementation)
+# LD2450 radar requires external component (ShaunPCcom fork with ESPHome 2025.11+ compatibility)
 external_components:
   - source:
       type: git
-      url: https://github.com/TillFleisch/ESPHome-HLK-LD2450
+      url: https://github.com/ShaunPCcom/ESPHome-HLK-LD2450
       ref: main
-    components: [ld2450]
+    components: [LD2450]
     refresh: 1d
 
 # ----------------------------------------------------------------------------
@@ -97,67 +97,76 @@ uart:
     parity: NONE
     stop_bits: 1
 
-ld2450:
+LD2450:
   id: ld2450_radar
   uart_id: ${ld2450_uart_id}
+  # Target count sensor
+  target_count:
+    id: ld2450_target_count
+    name: "${friendly_name} People Count"
+  # Occupancy sensor (internal - use presence_binary from profile)
+  occupancy:
+    id: ld2450_occupancy
+    name: "${friendly_name} Radar Occupancy"
+    internal: true
+  # Three targets tracking
+  targets:
+    - target:
+        id: ld2450_t1
+        x_position:
+          id: ld2450_t1_x
+          internal: true
+        y_position:
+          id: ld2450_t1_y
+          internal: true
+        speed:
+          id: ld2450_t1_speed
+          internal: true
+        distance:
+          id: ld2450_t1_distance
+          internal: true
+    - target:
+        id: ld2450_t2
+        x_position:
+          id: ld2450_t2_x
+          internal: true
+        y_position:
+          id: ld2450_t2_y
+          internal: true
+        speed:
+          id: ld2450_t2_speed
+          internal: true
+        distance:
+          id: ld2450_t2_distance
+          internal: true
+    - target:
+        id: ld2450_t3
+        x_position:
+          id: ld2450_t3_x
+          internal: true
+        y_position:
+          id: ld2450_t3_y
+          internal: true
+        speed:
+          id: ld2450_t3_speed
+          internal: true
+        distance:
+          id: ld2450_t3_distance
+          internal: true
 
 # ----------------------------------------------------------------------------
 # PRESENCE LOGIC - Connect hardware to features
 # ----------------------------------------------------------------------------
-sensor:
-  # Target tracking (used internally)
-  - platform: ld2450
-    ld2450_id: ld2450_radar
-    target_count:
-      id: ld2450_target_count
-      name: "${friendly_name} People Count"
-      filters:
-        - throttle: 500ms
-    still_target_count:
-      id: ld2450_still_count
-      internal: true
-      filters:
-        - throttle: 500ms
-    moving_target_count:
-      id: ld2450_moving_count
-      internal: true
-      filters:
-        - throttle: 500ms
-
-    # Individual targets
-    target_1:
-      x:
-        id: ld2450_t1_x
-        internal: true
-        filters:
-          - throttle: 500ms
-      y:
-        id: ld2450_t1_y
-        internal: true
-        filters:
-          - throttle: 500ms
-    target_2:
-      x:
-        id: ld2450_t2_x
-        internal: true
-        filters:
-          - throttle: 500ms
-      y:
-        id: ld2450_t2_y
-        internal: true
-        filters:
-          - throttle: 500ms
-    target_3:
-      x:
-        id: ld2450_t3_x
-        internal: true
-        filters:
-          - throttle: 500ms
-      y:
-        id: ld2450_t3_y
-        internal: true
-        filters:
-          - throttle: 500ms
+# Globals for presence detection
+globals:
+  - id: ld2450_still_count
+    type: int
+    restore_value: false
+    initial_value: '0'
+  - id: ld2450_moving_count
+    type: int
+    restore_value: false
+    initial_value: '0'
 
 # Update presence confidence based on sensor data
 interval:
@@ -166,7 +175,33 @@ interval:
       - lambda: |-
           // Simple presence detection logic
           int targets = id(ld2450_target_count).state;
-          int moving = id(ld2450_moving_count).state;
+          int moving = 0;
+          int still = 0;
+
+          // Speed threshold: > 0.1 m/s is considered moving
+          float speed_threshold = 0.1f;
+
+          // Check each target's speed to determine if moving or still
+          if (id(ld2450_t1_speed).has_state() && abs(id(ld2450_t1_speed).state) > speed_threshold) {
+            moving++;
+          } else if (id(ld2450_t1_distance).has_state() && id(ld2450_t1_distance).state > 0) {
+            still++;
+          }
+
+          if (id(ld2450_t2_speed).has_state() && abs(id(ld2450_t2_speed).state) > speed_threshold) {
+            moving++;
+          } else if (id(ld2450_t2_distance).has_state() && id(ld2450_t2_distance).state > 0) {
+            still++;
+          }
+
+          if (id(ld2450_t3_speed).has_state() && abs(id(ld2450_t3_speed).state) > speed_threshold) {
+            moving++;
+          } else if (id(ld2450_t3_distance).has_state() && id(ld2450_t3_distance).state > 0) {
+            still++;
+          }
+
+          id(ld2450_still_count) = still;
+          id(ld2450_moving_count) = moving;
 
           if (targets > 0) {
             // Someone is present
