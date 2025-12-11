@@ -12,19 +12,14 @@
 # in the feature profile files (basic or advanced).
 #
 # Requires external component from: https://github.com/smarthomeshop/ld2412
+#
+# NOTE: The external_components for LD2412 should be included via
+# packages/base/external_components.yaml in the product config, not here.
+# This avoids duplicate declarations when both are included.
 # ============================================================================
 
 substitutions:
   presence_timeout: 30s
-
-# External component for LD2412 radar
-external_components:
-  - source:
-      type: git
-      url: https://github.com/smarthomeshop/ld2412
-      ref: main
-    components: [ld2412]
-    refresh: 1d
 
 # UART for LD2412 Radar Sensor
 uart:
