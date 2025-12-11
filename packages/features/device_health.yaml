@@ -1,8 +1,16 @@
 ---
-# Device health monitoring and information
-# Note: Uptime, WiFi Signal, WiFi Info text sensors, Restart button, and Safe Mode button are
-# provided by hardware configs. This file provides additional diagnostic information.
+# ============================================================================
+# DEVICE HEALTH PACKAGE
+# ============================================================================
+# Provides basic device health monitoring.
+#
+# NOTE: This package is intentionally minimal. Most health monitoring entities
+# (uptime, WiFi signal, WiFi info, restart button, safe mode button, ESPHome
+# version, and internal temperature) are now defined in hardware configs to
+# avoid duplicate definitions when multiple profiles include this package.
+#
+# This file exists for backwards compatibility and can be safely included
+# by multiple profile packages without causing conflicts.
+# ============================================================================
 
-text_sensor:
-  - platform: version
-    name: "${friendly_name} ESPHome"
+# No entities defined here - all health sensors are in hardware configs

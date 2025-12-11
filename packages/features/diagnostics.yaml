@@ -1,15 +1,17 @@
 ---
+# ============================================================================
+# DIAGNOSTICS PACKAGE
+# ============================================================================
+# Provides debug output and CPU duty monitoring.
+#
+# NOTE: internal_temperature sensor should be defined in hardware configs,
+# not here, to avoid duplicates. GPIO button should also be defined in
+# hardware configs as pin availability varies by board.
+# ============================================================================
+
 debug:
   update_interval: 30s
 
 sensor:
-  - platform: internal_temperature
-    name: "${friendly_name} MCU Temperature"
   - platform: duty_time
     name: "${friendly_name} CPU Duty"
-
-binary_sensor:
-  - platform: gpio
-    pin: GPIO9
-    name: "${friendly_name} User Button"
-    internal: true
