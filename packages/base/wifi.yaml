@@ -1,6 +1,8 @@
 ---
 substitutions:
   fallback_ssid: "${device_name} FB"
+  # Default fallback AP password - can be overridden in product files
+  fallback_ap_password: "Sense360Fallback"
 
 wifi:
   networks:
