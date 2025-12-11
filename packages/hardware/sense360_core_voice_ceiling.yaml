@@ -75,7 +75,7 @@ substitutions:
   speaker_i2s_lrc_pin: GPIO15
   speaker_i2s_din_pin: GPIO16
 
-# Voice assistant settings
+  # Voice assistant settings
   voice_timeout: "10s"
 
 esphome:
