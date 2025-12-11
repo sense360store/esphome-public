@@ -10,7 +10,8 @@
 # - HLK-LD2450 (UART): 24GHz mmWave radar, multi-target tracking (default)
 # - DFRobot C4001 (UART/I2C): 24GHz FMCW radar, 16m presence range, speed measurement
 #
-# This config uses HLK-LD2450. For C4001, use presence_dfrobot_c4001.yaml instead.
+# This config uses HLK-LD2450 with native ESPHome support.
+# For C4001, use presence_dfrobot_c4001.yaml instead.
 #
 # Features (LD2450):
 # - Up to 3 simultaneous targets
@@ -26,18 +27,8 @@
 #
 # Power Requirements: 5V / 150mA max (LD2450), 5V / 250mA max (C4001)
 #
-# Requires external component from: https://github.com/ShaunPCcom/ESPHome-HLK-LD2450
-# (ShaunPCcom's fork fixes ESPHome 2025.11+ compatibility)
+# NOTE: Uses native ESPHome LD2450 support (no external component required)
 # ============================================================================
-
-# External component for LD2450 radar (ShaunPCcom fork with ESPHome 2025.11+ compatibility)
-external_components:
-  - source:
-      type: git
-      url: https://github.com/ShaunPCcom/ESPHome-HLK-LD2450
-      ref: main
-    components: [LD2450]
-    refresh: 1d
 
 substitutions:
   module_sku: S360-PRES-C
@@ -50,88 +41,116 @@ substitutions:
   # Presence detection settings
   presence_timeout: 30s
 
-# LD2450 Base Component with TillFleisch API
-LD2450:
+# ============================================================================
+# LD2450 Radar Component (Native ESPHome)
+# ============================================================================
+ld2450:
   id: ld2450_radar
   uart_id: ${ld2450_uart_id}
-  # Target sensor configuration
-  target_count:
-    id: ld2450_target_count
-    name: "${friendly_name} Target Count"
-    internal: true
-  # Three targets tracking
-  targets:
-    - target:
-        id: ld2450_t1
-        x_position:
-          id: ld2450_t1_x
-          name: "${friendly_name} Target 1 X"
-          internal: true
-        y_position:
-          id: ld2450_t1_y
-          name: "${friendly_name} Target 1 Y"
-          internal: true
-        speed:
-          id: ld2450_t1_speed
-          name: "${friendly_name} Target 1 Speed"
-          internal: true
-        distance:
-          id: ld2450_t1_distance
-          name: "${friendly_name} Target 1 Distance"
-          internal: true
-        angle:
-          id: ld2450_t1_angle
-          name: "${friendly_name} Target 1 Angle"
-          internal: true
-    - target:
-        id: ld2450_t2
-        x_position:
-          id: ld2450_t2_x
-          name: "${friendly_name} Target 2 X"
-          internal: true
-        y_position:
-          id: ld2450_t2_y
-          name: "${friendly_name} Target 2 Y"
-          internal: true
-        speed:
-          id: ld2450_t2_speed
-          name: "${friendly_name} Target 2 Speed"
-          internal: true
-        distance:
-          id: ld2450_t2_distance
-          name: "${friendly_name} Target 2 Distance"
-          internal: true
-        angle:
-          id: ld2450_t2_angle
-          name: "${friendly_name} Target 2 Angle"
-          internal: true
-    - target:
-        id: ld2450_t3
-        x_position:
-          id: ld2450_t3_x
-          name: "${friendly_name} Target 3 X"
-          internal: true
-        y_position:
-          id: ld2450_t3_y
-          name: "${friendly_name} Target 3 Y"
-          internal: true
-        speed:
-          id: ld2450_t3_speed
-          name: "${friendly_name} Target 3 Speed"
-          internal: true
-        distance:
-          id: ld2450_t3_distance
-          name: "${friendly_name} Target 3 Distance"
-          internal: true
-        angle:
-          id: ld2450_t3_angle
-          name: "${friendly_name} Target 3 Angle"
-          internal: true
-  # Occupancy binary sensor
-  occupancy:
-    id: ld2450_occupancy
-    name: "${friendly_name} Presence"
-    device_class: occupancy
+
+# ============================================================================
+# Binary Sensors - Presence Detection
+# ============================================================================
+binary_sensor:
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    has_target:
+      id: ld2450_occupancy
+      name: "${friendly_name} Presence"
+      device_class: occupancy
+    has_moving_target:
+      id: ld2450_has_moving
+      name: "${friendly_name} Moving Target"
+      internal: true
+    has_still_target:
+      id: ld2450_has_still
+      name: "${friendly_name} Still Target"
+      internal: true
+
+# ============================================================================
+# Sensors - Target Tracking
+# ============================================================================
+sensor:
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    target_count:
+      id: ld2450_target_count
+      name: "${friendly_name} Target Count"
+      internal: true
+    still_target_count:
+      id: ld2450_still_target_count
+      name: "${friendly_name} Still Target Count"
+      internal: true
+    moving_target_count:
+      id: ld2450_moving_target_count
+      name: "${friendly_name} Moving Target Count"
+      internal: true
+    # Target 1
+    target_1:
+      x:
+        id: ld2450_t1_x
+        name: "${friendly_name} Target 1 X"
+        internal: true
+      y:
+        id: ld2450_t1_y
+        name: "${friendly_name} Target 1 Y"
+        internal: true
+      speed:
+        id: ld2450_t1_speed
+        name: "${friendly_name} Target 1 Speed"
+        internal: true
+      distance:
+        id: ld2450_t1_distance
+        name: "${friendly_name} Target 1 Distance"
+        internal: true
+      angle:
+        id: ld2450_t1_angle
+        name: "${friendly_name} Target 1 Angle"
+        internal: true
+    # Target 2
+    target_2:
+      x:
+        id: ld2450_t2_x
+        name: "${friendly_name} Target 2 X"
+        internal: true
+      y:
+        id: ld2450_t2_y
+        name: "${friendly_name} Target 2 Y"
+        internal: true
+      speed:
+        id: ld2450_t2_speed
+        name: "${friendly_name} Target 2 Speed"
+        internal: true
+      distance:
+        id: ld2450_t2_distance
+        name: "${friendly_name} Target 2 Distance"
+        internal: true
+      angle:
+        id: ld2450_t2_angle
+        name: "${friendly_name} Target 2 Angle"
+        internal: true
+    # Target 3
+    target_3:
+      x:
+        id: ld2450_t3_x
+        name: "${friendly_name} Target 3 X"
+        internal: true
+      y:
+        id: ld2450_t3_y
+        name: "${friendly_name} Target 3 Y"
+        internal: true
+      speed:
+        id: ld2450_t3_speed
+        name: "${friendly_name} Target 3 Speed"
+        internal: true
+      distance:
+        id: ld2450_t3_distance
+        name: "${friendly_name} Target 3 Distance"
+        internal: true
+      angle:
+        id: ld2450_t3_angle
+        name: "${friendly_name} Target 3 Angle"
+        internal: true
 
 # ============================================================================
 # Globals for Presence Detection
@@ -168,30 +187,8 @@ interval:
     then:
       - lambda: |-
           int targets = id(ld2450_target_count).state;
-          int moving = 0;
-          int still = 0;
-
-          // Speed threshold: > 0.1 m/s is considered moving
-          float speed_threshold = 0.1f;
-
-          // Check each target's speed to determine if moving or still
-          if (id(ld2450_t1_speed).has_state() && abs(id(ld2450_t1_speed).state) > speed_threshold) {
-            moving++;
-          } else if (id(ld2450_t1_distance).has_state() && id(ld2450_t1_distance).state > 0) {
-            still++;
-          }
-
-          if (id(ld2450_t2_speed).has_state() && abs(id(ld2450_t2_speed).state) > speed_threshold) {
-            moving++;
-          } else if (id(ld2450_t2_distance).has_state() && id(ld2450_t2_distance).state > 0) {
-            still++;
-          }
-
-          if (id(ld2450_t3_speed).has_state() && abs(id(ld2450_t3_speed).state) > speed_threshold) {
-            moving++;
-          } else if (id(ld2450_t3_distance).has_state() && id(ld2450_t3_distance).state > 0) {
-            still++;
-          }
+          int moving = id(ld2450_moving_target_count).state;
+          int still = id(ld2450_still_target_count).state;
 
           id(ld2450_still_count) = still;
           id(ld2450_moving_count) = moving;
