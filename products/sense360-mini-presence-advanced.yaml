@@ -73,13 +73,13 @@ esp32:
 # ----------------------------------------------------------------------------
 # EXTERNAL COMPONENTS
 # ----------------------------------------------------------------------------
-# LD2450 radar requires external component (TillFleisch implementation)
+# LD2450 radar requires external component (ShaunPCcom fork with ESPHome 2025.11+ compatibility)
 external_components:
   - source:
       type: git
-      url: https://github.com/TillFleisch/ESPHome-HLK-LD2450
+      url: https://github.com/ShaunPCcom/ESPHome-HLK-LD2450
       ref: main
-    components: [ld2450]
+    components: [LD2450]
     refresh: 1d
 
 # ----------------------------------------------------------------------------
@@ -119,147 +119,135 @@ uart:
       direction: BOTH
       dummy_receiver: false
 
-ld2450:
+LD2450:
   id: ld2450_radar
   uart_id: ${ld2450_uart_id}
   # Advanced users can modify zones via LD2450 Bluetooth app
+  # Target count sensor
+  target_count:
+    id: ld2450_target_count
+    name: "${friendly_name} Total Targets"
+  # Occupancy sensor
+  occupancy:
+    name: "${friendly_name} Presence"
+  # Three targets tracking with full details
+  targets:
+    - target:
+        id: ld2450_t1
+        name: "Target 1"
+        x_position:
+          id: ld2450_t1_x
+          name: "${friendly_name} Target 1 X"
+        y_position:
+          id: ld2450_t1_y
+          name: "${friendly_name} Target 1 Y"
+        speed:
+          id: ld2450_t1_speed
+          name: "${friendly_name} Target 1 Speed"
+        distance:
+          id: ld2450_t1_distance
+          name: "${friendly_name} Target 1 Distance"
+        angle:
+          id: ld2450_t1_angle
+          name: "${friendly_name} Target 1 Angle"
+    - target:
+        id: ld2450_t2
+        name: "Target 2"
+        x_position:
+          id: ld2450_t2_x
+          name: "${friendly_name} Target 2 X"
+        y_position:
+          id: ld2450_t2_y
+          name: "${friendly_name} Target 2 Y"
+        speed:
+          id: ld2450_t2_speed
+          name: "${friendly_name} Target 2 Speed"
+        distance:
+          id: ld2450_t2_distance
+          name: "${friendly_name} Target 2 Distance"
+        angle:
+          id: ld2450_t2_angle
+          name: "${friendly_name} Target 2 Angle"
+    - target:
+        id: ld2450_t3
+        name: "Target 3"
+        x_position:
+          id: ld2450_t3_x
+          name: "${friendly_name} Target 3 X"
+        y_position:
+          id: ld2450_t3_y
+          name: "${friendly_name} Target 3 Y"
+        speed:
+          id: ld2450_t3_speed
+          name: "${friendly_name} Target 3 Speed"
+        distance:
+          id: ld2450_t3_distance
+          name: "${friendly_name} Target 3 Distance"
+        angle:
+          id: ld2450_t3_angle
+          name: "${friendly_name} Target 3 Angle"
 
 # ----------------------------------------------------------------------------
-# FULL TARGET TRACKING - All sensors exposed
+# FULL TARGET TRACKING - Globals for moving/still detection
 # ----------------------------------------------------------------------------
+globals:
+  - id: ld2450_still_count
+    type: int
+    restore_value: false
+    initial_value: '0'
+  - id: ld2450_moving_count
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+# Additional sensors for moving/still counts (computed)
 sensor:
-  # Overall statistics
-  - platform: ld2450
-    ld2450_id: ld2450_radar
-    target_count:
-      id: ld2450_target_count
-      name: "${friendly_name} Total Targets"
-      filters:
-        - throttle: 250ms
-    still_target_count:
-      id: ld2450_still_count
-      name: "${friendly_name} Still Targets"
-      filters:
-        - throttle: 250ms
-    moving_target_count:
-      id: ld2450_moving_count
-      name: "${friendly_name} Moving Targets"
-      filters:
-        - throttle: 250ms
-
-    # Target 1 - Full details
-    target_1:
-      x:
-        id: ld2450_t1_x
-        name: "${friendly_name} Target 1 X"
-        filters:
-          - throttle: 250ms
-      y:
-        id: ld2450_t1_y
-        name: "${friendly_name} Target 1 Y"
-        filters:
-          - throttle: 250ms
-      speed:
-        name: "${friendly_name} Target 1 Speed"
-        filters:
-          - throttle: 250ms
-      angle:
-        name: "${friendly_name} Target 1 Angle"
-        filters:
-          - throttle: 250ms
-      distance:
-        id: ld2450_t1_distance
-        name: "${friendly_name} Target 1 Distance"
-        filters:
-          - throttle: 250ms
-      resolution:
-        name: "${friendly_name} Target 1 Resolution"
-        filters:
-          - throttle: 250ms
-
-    # Target 2 - Full details
-    target_2:
-      x:
-        id: ld2450_t2_x
-        name: "${friendly_name} Target 2 X"
-        filters:
-          - throttle: 250ms
-      y:
-        id: ld2450_t2_y
-        name: "${friendly_name} Target 2 Y"
-        filters:
-          - throttle: 250ms
-      speed:
-        name: "${friendly_name} Target 2 Speed"
-        filters:
-          - throttle: 250ms
-      angle:
-        name: "${friendly_name} Target 2 Angle"
-        filters:
-          - throttle: 250ms
-      distance:
-        id: ld2450_t2_distance
-        name: "${friendly_name} Target 2 Distance"
-        filters:
-          - throttle: 250ms
-      resolution:
-        name: "${friendly_name} Target 2 Resolution"
-        filters:
-          - throttle: 250ms
-
-    # Target 3 - Full details
-    target_3:
-      x:
-        id: ld2450_t3_x
-        name: "${friendly_name} Target 3 X"
-        filters:
-          - throttle: 250ms
-      y:
-        id: ld2450_t3_y
-        name: "${friendly_name} Target 3 Y"
-        filters:
-          - throttle: 250ms
-      speed:
-        name: "${friendly_name} Target 3 Speed"
-        filters:
-          - throttle: 250ms
-      angle:
-        name: "${friendly_name} Target 3 Angle"
-        filters:
-          - throttle: 250ms
-      distance:
-        id: ld2450_t3_distance
-        name: "${friendly_name} Target 3 Distance"
-        filters:
-          - throttle: 250ms
-      resolution:
-        name: "${friendly_name} Target 3 Resolution"
-        filters:
-          - throttle: 250ms
-
-# Binary sensors for individual targets
-binary_sensor:
-  - platform: ld2450
-    ld2450_id: ld2450_radar
-    has_target:
-      name: "${friendly_name} Presence"
-      device_class: occupancy
-    has_moving_target:
-      name: "${friendly_name} Moving Presence"
-      device_class: motion
-    has_still_target:
-      name: "${friendly_name} Still Presence"
-      device_class: occupancy
+  - platform: template
+    name: "${friendly_name} Still Targets"
+    id: ld2450_still_targets_sensor
+    lambda: return id(ld2450_still_count);
+    update_interval: 500ms
+  - platform: template
+    name: "${friendly_name} Moving Targets"
+    id: ld2450_moving_targets_sensor
+    lambda: return id(ld2450_moving_count);
+    update_interval: 500ms
 
 # Update presence confidence with advanced logic
 interval:
   - interval: 500ms  # Faster updates
     then:
       - lambda: |-
+          // Calculate moving/still from speeds
+          int moving = 0;
+          int still = 0;
+          float speed_threshold = 0.1f;
+
+          if (id(ld2450_t1_speed).has_state() && abs(id(ld2450_t1_speed).state) > speed_threshold) {
+            moving++;
+          } else if (id(ld2450_t1_distance).has_state() && id(ld2450_t1_distance).state > 0) {
+            still++;
+          }
+
+          if (id(ld2450_t2_speed).has_state() && abs(id(ld2450_t2_speed).state) > speed_threshold) {
+            moving++;
+          } else if (id(ld2450_t2_distance).has_state() && id(ld2450_t2_distance).state > 0) {
+            still++;
+          }
+
+          if (id(ld2450_t3_speed).has_state() && abs(id(ld2450_t3_speed).state) > speed_threshold) {
+            moving++;
+          } else if (id(ld2450_t3_distance).has_state() && id(ld2450_t3_distance).state > 0) {
+            still++;
+          }
+
+          id(ld2450_still_count) = still;
+          id(ld2450_moving_count) = moving;
+
           // Advanced presence detection logic with zones and sensitivity
           int total_targets = id(ld2450_target_count).state;
-          int moving_targets = id(ld2450_moving_count).state;
-          int still_targets = id(ld2450_still_count).state;
+          int moving_targets = moving;
+          int still_targets = still;
 
           // Get sensitivity setting
           std::string sensitivity = id(presence_sensitivity).state;

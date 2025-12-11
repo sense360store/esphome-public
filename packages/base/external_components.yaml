@@ -13,13 +13,14 @@
 
 external_components:
   # LD2450 Multi-Target Radar Component
-  # Source: TillFleisch's ESPHome HLK-LD2450 component
+  # Source: ShaunPCcom's fork (fixes ESPHome 2025.11+ compatibility)
+  # Original: TillFleisch's ESPHome HLK-LD2450 component
   # Features: Multi-target tracking, distance/angle measurement, zone detection
   - source:
       type: git
-      url: https://github.com/TillFleisch/ESPHome-HLK-LD2450
+      url: https://github.com/ShaunPCcom/ESPHome-HLK-LD2450
       ref: main
-    components: [ld2450]
+    components: [LD2450]
     refresh: 1d
 
   # LD2412 Still Presence Radar Component

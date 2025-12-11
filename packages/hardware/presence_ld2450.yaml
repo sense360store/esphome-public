@@ -1,17 +1,18 @@
 ---
 # LD2450 Radar Sensor Hardware Configuration
-# Requires external component from: https://github.com/TillFleisch/ESPHome-HLK-LD2450
+# Requires external component from: https://github.com/ShaunPCcom/ESPHome-HLK-LD2450
+# (ShaunPCcom's fork fixes ESPHome 2025.11+ compatibility)
 
 substitutions:
   presence_timeout: 30s
 
-# External component for LD2450 radar (TillFleisch implementation)
+# External component for LD2450 radar (ShaunPCcom fork with ESPHome 2025.11+ compatibility)
 external_components:
   - source:
       type: git
-      url: https://github.com/TillFleisch/ESPHome-HLK-LD2450
+      url: https://github.com/ShaunPCcom/ESPHome-HLK-LD2450
       ref: main
-    components: [ld2450]
+    components: [LD2450]
     refresh: 1d
 
 # UART for LD2450 Radar Sensor
@@ -24,7 +25,7 @@ uart:
     stop_bits: 1
 
 # LD2450 Base Component
-ld2450:
+LD2450:
   id: ld2450_radar
   uart_id: ${ld2450_uart_id}
   # Target sensor configuration
@@ -33,49 +34,53 @@ ld2450:
     internal: true
   # Three targets tracking
   targets:
-    - id: ld2450_t1
-      x_position:
-        id: ld2450_t1_x
-        internal: true
-      y_position:
-        id: ld2450_t1_y
-        internal: true
-      speed:
-        id: ld2450_t1_speed
-        internal: true
-      distance:
-        id: ld2450_t1_distance
-        internal: true
-    - id: ld2450_t2
-      x_position:
-        id: ld2450_t2_x
-        internal: true
-      y_position:
-        id: ld2450_t2_y
-        internal: true
-      speed:
-        id: ld2450_t2_speed
-        internal: true
-      distance:
-        id: ld2450_t2_distance
-        internal: true
-    - id: ld2450_t3
-      x_position:
-        id: ld2450_t3_x
-        internal: true
-      y_position:
-        id: ld2450_t3_y
-        internal: true
-      speed:
-        id: ld2450_t3_speed
-        internal: true
-      distance:
-        id: ld2450_t3_distance
-        internal: true
-  # Occupancy binary sensor
+    - target:
+        id: ld2450_t1
+        x_position:
+          id: ld2450_t1_x
+          internal: true
+        y_position:
+          id: ld2450_t1_y
+          internal: true
+        speed:
+          id: ld2450_t1_speed
+          internal: true
+        distance:
+          id: ld2450_t1_distance
+          internal: true
+    - target:
+        id: ld2450_t2
+        x_position:
+          id: ld2450_t2_x
+          internal: true
+        y_position:
+          id: ld2450_t2_y
+          internal: true
+        speed:
+          id: ld2450_t2_speed
+          internal: true
+        distance:
+          id: ld2450_t2_distance
+          internal: true
+    - target:
+        id: ld2450_t3
+        x_position:
+          id: ld2450_t3_x
+          internal: true
+        y_position:
+          id: ld2450_t3_y
+          internal: true
+        speed:
+          id: ld2450_t3_speed
+          internal: true
+        distance:
+          id: ld2450_t3_distance
+          internal: true
+  # Occupancy binary sensor (internal - use presence_binary from profile)
   occupancy:
     id: ld2450_occupancy
-    name: "${friendly_name} Presence"
+    name: "${friendly_name} Radar Presence"
+    internal: true
     device_class: occupancy
 
 # Globals for presence detection (for compatibility with existing profiles)

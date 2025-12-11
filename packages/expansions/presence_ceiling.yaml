@@ -26,16 +26,17 @@
 #
 # Power Requirements: 5V / 150mA max (LD2450), 5V / 250mA max (C4001)
 #
-# Requires external component from: https://github.com/TillFleisch/ESPHome-HLK-LD2450
+# Requires external component from: https://github.com/ShaunPCcom/ESPHome-HLK-LD2450
+# (ShaunPCcom's fork fixes ESPHome 2025.11+ compatibility)
 # ============================================================================
 
-# External component for LD2450 radar (TillFleisch implementation)
+# External component for LD2450 radar (ShaunPCcom fork with ESPHome 2025.11+ compatibility)
 external_components:
   - source:
       type: git
-      url: https://github.com/TillFleisch/ESPHome-HLK-LD2450
+      url: https://github.com/ShaunPCcom/ESPHome-HLK-LD2450
       ref: main
-    components: [ld2450]
+    components: [LD2450]
     refresh: 1d
 
 substitutions:
@@ -50,7 +51,7 @@ substitutions:
   presence_timeout: 30s
 
 # LD2450 Base Component with TillFleisch API
-ld2450:
+LD2450:
   id: ld2450_radar
   uart_id: ${ld2450_uart_id}
   # Target sensor configuration
@@ -60,69 +61,72 @@ ld2450:
     internal: true
   # Three targets tracking
   targets:
-    - id: ld2450_t1
-      x_position:
-        id: ld2450_t1_x
-        name: "${friendly_name} Target 1 X"
-        internal: true
-      y_position:
-        id: ld2450_t1_y
-        name: "${friendly_name} Target 1 Y"
-        internal: true
-      speed:
-        id: ld2450_t1_speed
-        name: "${friendly_name} Target 1 Speed"
-        internal: true
-      distance:
-        id: ld2450_t1_distance
-        name: "${friendly_name} Target 1 Distance"
-        internal: true
-      angle:
-        id: ld2450_t1_angle
-        name: "${friendly_name} Target 1 Angle"
-        internal: true
-    - id: ld2450_t2
-      x_position:
-        id: ld2450_t2_x
-        name: "${friendly_name} Target 2 X"
-        internal: true
-      y_position:
-        id: ld2450_t2_y
-        name: "${friendly_name} Target 2 Y"
-        internal: true
-      speed:
-        id: ld2450_t2_speed
-        name: "${friendly_name} Target 2 Speed"
-        internal: true
-      distance:
-        id: ld2450_t2_distance
-        name: "${friendly_name} Target 2 Distance"
-        internal: true
-      angle:
-        id: ld2450_t2_angle
-        name: "${friendly_name} Target 2 Angle"
-        internal: true
-    - id: ld2450_t3
-      x_position:
-        id: ld2450_t3_x
-        name: "${friendly_name} Target 3 X"
-        internal: true
-      y_position:
-        id: ld2450_t3_y
-        name: "${friendly_name} Target 3 Y"
-        internal: true
-      speed:
-        id: ld2450_t3_speed
-        name: "${friendly_name} Target 3 Speed"
-        internal: true
-      distance:
-        id: ld2450_t3_distance
-        name: "${friendly_name} Target 3 Distance"
-        internal: true
-      angle:
-        id: ld2450_t3_angle
-        name: "${friendly_name} Target 3 Angle"
-        internal: true
+    - target:
+        id: ld2450_t1
+        x_position:
+          id: ld2450_t1_x
+          name: "${friendly_name} Target 1 X"
+          internal: true
+        y_position:
+          id: ld2450_t1_y
+          name: "${friendly_name} Target 1 Y"
+          internal: true
+        speed:
+          id: ld2450_t1_speed
+          name: "${friendly_name} Target 1 Speed"
+          internal: true
+        distance:
+          id: ld2450_t1_distance
+          name: "${friendly_name} Target 1 Distance"
+          internal: true
+        angle:
+          id: ld2450_t1_angle
+          name: "${friendly_name} Target 1 Angle"
+          internal: true
+    - target:
+        id: ld2450_t2
+        x_position:
+          id: ld2450_t2_x
+          name: "${friendly_name} Target 2 X"
+          internal: true
+        y_position:
+          id: ld2450_t2_y
+          name: "${friendly_name} Target 2 Y"
+          internal: true
+        speed:
+          id: ld2450_t2_speed
+          name: "${friendly_name} Target 2 Speed"
+          internal: true
+        distance:
+          id: ld2450_t2_distance
+          name: "${friendly_name} Target 2 Distance"
+          internal: true
+        angle:
+          id: ld2450_t2_angle
+          name: "${friendly_name} Target 2 Angle"
+          internal: true
+    - target:
+        id: ld2450_t3
+        x_position:
+          id: ld2450_t3_x
+          name: "${friendly_name} Target 3 X"
+          internal: true
+        y_position:
+          id: ld2450_t3_y
+          name: "${friendly_name} Target 3 Y"
+          internal: true
+        speed:
+          id: ld2450_t3_speed
+          name: "${friendly_name} Target 3 Speed"
+          internal: true
+        distance:
+          id: ld2450_t3_distance
+          name: "${friendly_name} Target 3 Distance"
+          internal: true
+        angle:
+          id: ld2450_t3_angle
+          name: "${friendly_name} Target 3 Angle"
+          internal: true
   # Occupancy binary sensor
   occupancy:
     id: ld2450_occupancy
