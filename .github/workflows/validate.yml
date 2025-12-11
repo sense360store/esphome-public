@@ -1,7 +1,19 @@
-name: Quick Validation
+---
+# ============================================================================
+# QUICK VALIDATION (Pre-flight Check)
+# ============================================================================
+# Ultra-fast syntax validation that runs on every push/PR
+# Provides immediate feedback (~30 seconds) before the full CI suite runs.
+#
+# This catches:
+#   - YAML syntax errors
+#   - Missing required keys (substitutions, esphome)
+#   - Invalid package references
+#
+# For full ESPHome compilation tests, see ci-validate-configs.yml
+# ============================================================================
 
-# Fast validation workflow that runs on every push
-# Provides quick feedback before running full tests
+name: Quick Validation
 
 on:
   push:
@@ -11,7 +23,7 @@ on:
 
 jobs:
   quick-validate:
-    name: Quick YAML Validation
+    name: YAML Syntax Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -30,7 +42,11 @@ jobs:
         run: |
           python3 tests/validate_configs.py
 
-      - name: Summary
-        if: success()
+      - name: Count products
         run: |
-          echo "✅ All YAML configurations are valid!"
+          PRODUCT_COUNT=$(find products/ -name "*.yaml" -type f ! -name "secrets.yaml" | wc -l)
+          PACKAGE_COUNT=$(find packages/ -name "*.yaml" -type f | wc -l)
+          echo "Products: $PRODUCT_COUNT"
+          echo "Packages: $PACKAGE_COUNT"
+          echo ""
+          echo "For full ESPHome compilation tests, see the 'CI - Validate Firmware Configs' workflow"

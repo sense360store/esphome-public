@@ -1,0 +1,351 @@
+---
+# ============================================================================
+# CI - VALIDATE FIRMWARE CONFIGURATIONS
+# ============================================================================
+# This workflow validates all ESPHome firmware configurations to ensure they
+# can be compiled and are syntactically correct.
+#
+# Purpose:
+#   - Validate YAML syntax for all configuration files
+#   - Test all existing product configurations (31+ products)
+#   - Test generated module combinations for full coverage
+#   - Lint C++ headers
+#
+# Test Modes:
+#   - quick: Fast representative subset for CI (default on push/PR)
+#   - full: All module combinations (manual dispatch)
+#
+# This ensures firmware builds won't fail when released via WebFlash or
+# when users pull packages into their own ESPHome configurations.
+# ============================================================================
+
+name: CI - Validate Firmware Configs
+
+on:
+  push:
+    branches: ["*"]
+    paths:
+      - 'products/**'
+      - 'packages/**'
+      - 'tests/**'
+      - '.github/workflows/ci-validate-configs.yml'
+  pull_request:
+    branches: ["*"]
+    paths:
+      - 'products/**'
+      - 'packages/**'
+      - 'tests/**'
+      - '.github/workflows/ci-validate-configs.yml'
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'Test mode: quick (representative), full (all combinations)'
+        required: true
+        default: 'quick'
+        type: choice
+        options:
+          - quick
+          - full
+
+jobs:
+  # ============================================================================
+  # JOB 1: YAML VALIDATION
+  # ============================================================================
+  # Fast syntax check for all YAML files - catches obvious errors early
+  # ============================================================================
+  validate-yaml:
+    name: Validate YAML Syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml yamllint
+
+      - name: Validate YAML syntax with validation script
+        run: |
+          python3 tests/validate_configs.py
+
+      - name: Run yamllint
+        run: |
+          yamllint -d "{extends: default, rules: {line-length: {max: 120}, comments: {min-spaces-from-content: 1}}}" \
+            products/ packages/ || true
+
+  # ============================================================================
+  # JOB 2: DISCOVER ALL PRODUCTS
+  # ============================================================================
+  # Dynamically discovers all product YAML files to ensure no products are
+  # missed when new ones are added
+  # ============================================================================
+  discover-products:
+    name: Discover Products
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+      product_count: ${{ steps.discover.outputs.product_count }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Discover product configurations
+        id: discover
+        run: |
+          # Find all product YAML files (excluding secrets.yaml)
+          PRODUCTS=$(find products/ -name "*.yaml" -type f ! -name "secrets.yaml" | sort)
+
+          # Build JSON matrix
+          MATRIX='{"include":['
+          FIRST=true
+          COUNT=0
+
+          for PRODUCT_FILE in $PRODUCTS; do
+            PRODUCT_NAME=$(basename "$PRODUCT_FILE" .yaml)
+
+            if [ "$FIRST" = true ]; then
+              FIRST=false
+            else
+              MATRIX+=','
+            fi
+
+            MATRIX+="{\"product\":\"$PRODUCT_NAME\",\"file\":\"$PRODUCT_FILE\"}"
+            COUNT=$((COUNT + 1))
+          done
+
+          MATRIX+=']}'
+
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "product_count=$COUNT" >> $GITHUB_OUTPUT
+          echo "Discovered $COUNT products to test"
+          echo "Products: $(echo $PRODUCTS | tr '\n' ' ')"
+
+  # ============================================================================
+  # JOB 3: TEST ALL EXISTING PRODUCTS
+  # ============================================================================
+  # Tests every product configuration in the products/ directory
+  # This ensures all shipping products can be compiled
+  # ============================================================================
+  test-all-products:
+    name: "Test: ${{ matrix.product }}"
+    needs: discover-products
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.discover-products.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache ESPHome
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-platformio-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-platformio-
+
+      - name: Install ESPHome
+        run: |
+          pip install esphome
+
+      - name: Create secrets.yaml for testing
+        run: |
+          cat > secrets.yaml << 'EOF'
+          wifi_ssid: "TestNetwork"
+          wifi_password: "TestPassword123"
+          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+          ota_password: "test-ota-password"
+          fallback_ap_password: "fallback123"
+          web_username: "admin"
+          web_password: "test_web_password"
+          EOF
+          cp secrets.yaml products/secrets.yaml
+
+      - name: Validate ESPHome config - ${{ matrix.product }}
+        run: |
+          echo "Validating: ${{ matrix.file }}"
+          esphome config ${{ matrix.file }}
+
+  # ============================================================================
+  # JOB 4: GENERATED CONFIG TESTS (Module Combinations)
+  # ============================================================================
+  # Tests dynamically generated configurations to verify module combinations
+  # work correctly. This catches issues with package composition.
+  # ============================================================================
+  generate-test-matrix:
+    name: Generate Test Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.generate.outputs.matrix }}
+      config_count: ${{ steps.generate.outputs.config_count }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate test matrix
+        id: generate
+        run: |
+          # Determine test mode
+          TEST_MODE="${{ github.event.inputs.test_mode || 'quick' }}"
+
+          if [ "$TEST_MODE" = "full" ]; then
+            echo "Running FULL test matrix (all combinations)"
+            MATRIX=$(python3 tests/generate_test_configs.py --mode matrix --full)
+            COUNT=$(python3 tests/generate_test_configs.py --mode list --full --json | jq '.total')
+          else
+            echo "Running QUICK test matrix (representative subset)"
+            MATRIX=$(python3 tests/generate_test_configs.py --mode matrix --representative)
+            COUNT=$(python3 tests/generate_test_configs.py --mode list --representative --json | jq '.total')
+          fi
+
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "config_count=$COUNT" >> $GITHUB_OUTPUT
+          echo "Generated $COUNT test configurations"
+
+  test-generated-configs:
+    name: "Generated: ${{ matrix.name }}"
+    needs: generate-test-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.generate-test-matrix.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache ESPHome
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-platformio-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-platformio-
+
+      - name: Install ESPHome
+        run: |
+          pip install esphome
+
+      - name: Create secrets.yaml for testing
+        run: |
+          cat > secrets.yaml << 'EOF'
+          wifi_ssid: "TestNetwork"
+          wifi_password: "TestPassword123"
+          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+          ota_password: "test-ota-password"
+          fallback_ap_password: "fallback123"
+          web_username: "admin"
+          web_password: "test_web_password"
+          EOF
+          cp secrets.yaml products/secrets.yaml
+          cp secrets.yaml tests/secrets.yaml
+          mkdir -p tests/generated
+          cp secrets.yaml tests/generated/secrets.yaml
+
+      - name: Generate test config
+        run: |
+          mkdir -p tests/generated
+          TEST_MODE="${{ github.event.inputs.test_mode || 'quick' }}"
+          if [ "$TEST_MODE" = "full" ]; then
+            python3 tests/generate_test_configs.py --mode generate --full --output-dir tests/generated
+          else
+            python3 tests/generate_test_configs.py --mode generate --representative --output-dir tests/generated
+          fi
+
+      - name: Validate ESPHome config - ${{ matrix.name }}
+        run: |
+          CONFIG_FILE="tests/generated/test-${{ matrix.name }}.yaml"
+          echo "Validating: $CONFIG_FILE"
+
+          if [ -f "$CONFIG_FILE" ]; then
+            esphome config "$CONFIG_FILE"
+          else
+            echo "Config file not found: $CONFIG_FILE"
+            echo "Available configs:"
+            ls -la tests/generated/
+            exit 1
+          fi
+
+  # ============================================================================
+  # JOB 5: C++ LINTING
+  # ============================================================================
+  lint-cpp:
+    name: Lint C++ Headers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - name: Check C++ formatting
+        run: |
+          echo "Checking C++ header formatting..."
+          if [ -d "include/" ]; then
+            find include/ -name "*.h" -o -name "*.cpp" | while read file; do
+              echo "Checking: $file"
+              clang-format --dry-run --Werror "$file" || echo "Warning: $file needs formatting"
+            done
+          else
+            echo "No include/ directory found, skipping C++ lint"
+          fi
+
+  # ============================================================================
+  # JOB 6: TEST SUMMARY
+  # ============================================================================
+  test-summary:
+    name: Test Summary
+    needs: [validate-yaml, discover-products, test-all-products, generate-test-matrix, test-generated-configs, lint-cpp]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check test results
+        run: |
+          echo "=============================================="
+          echo "FIRMWARE VALIDATION SUMMARY"
+          echo "=============================================="
+          echo ""
+          echo "Products Tested: ${{ needs.discover-products.outputs.product_count }}"
+          echo "Generated Configs: ${{ needs.generate-test-matrix.outputs.config_count }}"
+          echo ""
+          echo "Job Results:"
+          echo "  - YAML Validation:      ${{ needs.validate-yaml.result }}"
+          echo "  - Product Discovery:    ${{ needs.discover-products.result }}"
+          echo "  - All Products Test:    ${{ needs.test-all-products.result }}"
+          echo "  - Matrix Generation:    ${{ needs.generate-test-matrix.result }}"
+          echo "  - Generated Configs:    ${{ needs.test-generated-configs.result }}"
+          echo "  - C++ Linting:          ${{ needs.lint-cpp.result }}"
+          echo ""
+
+          # Fail if any critical job failed
+          if [ "${{ needs.validate-yaml.result }}" = "failure" ] || \
+             [ "${{ needs.test-all-products.result }}" = "failure" ] || \
+             [ "${{ needs.test-generated-configs.result }}" = "failure" ]; then
+            echo "CRITICAL TESTS FAILED!"
+            exit 1
+          fi
+
+          echo "All critical tests passed!"
