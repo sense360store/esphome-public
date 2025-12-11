@@ -78,8 +78,12 @@ LD2450:
     internal: true
     device_class: occupancy
 
-# Globals for presence detection (for compatibility with existing profiles)
+# Globals for presence detection
 globals:
+  - id: presence_confidence
+    type: float
+    restore_value: false
+    initial_value: '0.0'
   - id: ld2450_still_count
     type: int
     restore_value: false

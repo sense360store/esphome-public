@@ -5,14 +5,11 @@
 # Simple, user-friendly presence detection for most users.
 # Shows: Room Occupied (Yes/No) and Activity Level (Still/Moving)
 # No technical jargon - perfect for non-technical users.
+#
+# NOTE: This profile does NOT define the presence_confidence global.
+# The global is defined by the hardware/expansion module (presence_ceiling.yaml,
+# presence_wall.yaml, presence_ld2450.yaml, or presence_ld2412.yaml).
 # ============================================================================
-
-# Global variable to track presence confidence
-globals:
-  - id: presence_confidence
-    type: float
-    restore_value: false
-    initial_value: '0.0'
 
 # ----------------------------------------------------------------------------
 # ROOM OCCUPANCY - Simple Yes/No
