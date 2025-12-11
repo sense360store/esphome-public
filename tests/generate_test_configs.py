@@ -170,6 +170,9 @@ class TestConfig:
 class ConfigGenerator:
     """Generates all valid test configurations."""
 
+    # GitHub Actions matrix limit
+    MAX_MATRIX_SIZE = 256
+
     # Ceiling module combinations (from user's spec)
     CEILING_MODULE_SETS: List[Set[str]] = [
         # Empty (no modules)
@@ -278,28 +281,105 @@ class ConfigGenerator:
             return self.CEILING_MODULES
         return self.WALL_MODULES
 
-    def generate_all_configs(self) -> List[TestConfig]:
-        """Generate all valid test configurations."""
-        configs = []
+    def get_default_led(self, core: CoreType) -> LEDType:
+        """Get the default (non-NONE) LED type for a core."""
+        if core.has_voice:
+            if core.form_factor == FormFactor.CEILING:
+                return LEDType.LED_MIC_CEILING
+            else:
+                return LEDType.LED_MIC_WALL
+        else:
+            if core.form_factor == FormFactor.CEILING:
+                return LEDType.LED_CEILING
+            else:
+                return LEDType.LED_WALL
 
+    def generate_all_configs(self) -> List[TestConfig]:
+        """
+        Generate comprehensive test configurations within GitHub Actions limits.
+
+        Strategy to stay under 256 config limit:
+        1. Test ALL module combinations with USB power (covers module permutations)
+        2. Test ALL power types with representative module subsets (covers power variations)
+
+        This provides comprehensive coverage without the combinatorial explosion of
+        testing every module combination with every power type.
+        """
+        configs = []
+        seen_names = set()
+
+        def add_config(config: TestConfig):
+            """Add config if not already present (dedup by name)."""
+            name = config.get_config_name()
+            if name not in seen_names:
+                seen_names.add(name)
+                configs.append(config)
+
+        # Part 1: Test ALL module combinations with USB power only
+        # This covers all module permutations for each core type
         for core in CoreType:
-            led_options = self.get_led_options(core)
-            power_options = self.get_power_options()
+            led = self.get_default_led(core)  # Always use actual LED for base tests
             module_sets = self.get_module_sets(core.form_factor)
             module_map = self.get_module_map(core.form_factor)
 
-            for led in led_options:
-                for power in power_options:
-                    for module_set in module_sets:
-                        modules = [module_map[cat] for cat in module_set]
-                        config = TestConfig(
-                            name=f"{core.name}-{power.name}-{led.name}",
+            for module_set in module_sets:
+                modules = [module_map[cat] for cat in module_set]
+                add_config(TestConfig(
+                    name=f"{core.name}-USB-{led.name}",
+                    core=core,
+                    power=PowerType.USB,
+                    led=led,
+                    modules=modules,
+                ))
+
+        # Part 2: Test ALL power types with representative module configurations
+        # This ensures power module compatibility is tested
+        representative_module_sets = [
+            set(),  # No modules
+            {"comfort", "presence"},  # Common combo
+            {"airiq", "comfort", "presence", "fan_pwm"},  # Full load
+        ]
+
+        for core in CoreType:
+            led = self.get_default_led(core)  # Always use actual LED for base tests
+            module_map = self.get_module_map(core.form_factor)
+
+            for power in PowerType:
+                for module_set in representative_module_sets:
+                    # Filter to valid modules for this form factor
+                    valid_modules = {m for m in module_set if m in module_map}
+                    modules = [module_map[cat] for cat in valid_modules]
+                    add_config(TestConfig(
+                        name=f"{core.name}-{power.name}-{led.name}",
+                        core=core,
+                        power=power,
+                        led=led,
+                        modules=modules,
+                    ))
+
+        # Part 3: Test LED variations for non-voice cores (if include_all_led)
+        if self.include_all_led:
+            for core in CoreType:
+                if not core.has_voice:  # Voice cores have fixed LED
+                    module_map = self.get_module_map(core.form_factor)
+                    # Test no-LED with a few module configs
+                    for module_set in [set(), {"presence"}]:
+                        valid_modules = {m for m in module_set if m in module_map}
+                        modules = [module_map[cat] for cat in valid_modules]
+                        add_config(TestConfig(
+                            name=f"{core.name}-USB-NONE",
                             core=core,
-                            power=power,
-                            led=led,
+                            power=PowerType.USB,
+                            led=LEDType.NONE,
                             modules=modules,
-                        )
-                        configs.append(config)
+                        ))
+
+        # Validate we're under the GitHub Actions limit
+        if len(configs) > self.MAX_MATRIX_SIZE:
+            print(f"WARNING: Generated {len(configs)} configs, exceeds limit of {self.MAX_MATRIX_SIZE}",
+                  file=sys.stderr)
+            # Truncate to stay within limits (shouldn't happen with current logic)
+            configs = configs[:self.MAX_MATRIX_SIZE]
 
         return configs
 
