@@ -10,10 +10,21 @@
 #
 # This file provides the base hardware setup. Sensor entities are defined
 # in the feature profile files (basic or advanced).
+#
+# Requires external component from: https://github.com/smarthomeshop/ld2412
 # ============================================================================
 
 substitutions:
   presence_timeout: 30s
+
+# External component for LD2412 radar
+external_components:
+  - source:
+      type: git
+      url: https://github.com/smarthomeshop/ld2412
+      ref: main
+    components: [ld2412]
+    refresh: 1d
 
 # UART for LD2412 Radar Sensor
 uart:

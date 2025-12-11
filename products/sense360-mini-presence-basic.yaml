@@ -60,6 +60,18 @@ esp32:
       CONFIG_ESPTOOLPY_FLASHMODE_QIO: y
 
 # ----------------------------------------------------------------------------
+# EXTERNAL COMPONENTS
+# ----------------------------------------------------------------------------
+# LD2450 radar requires external component (TillFleisch implementation)
+external_components:
+  - source:
+      type: git
+      url: https://github.com/TillFleisch/ESPHome-HLK-LD2450
+      ref: main
+    components: [ld2450]
+    refresh: 1d
+
+# ----------------------------------------------------------------------------
 # BASE PACKAGES - Core system components
 # ----------------------------------------------------------------------------
 packages:

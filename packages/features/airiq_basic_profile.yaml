@@ -1,6 +1,9 @@
 ---
 substitutions:
   air_quality_topic: ${device_name}/air_quality
+  # MQTT broker address - set this in your product config to enable MQTT publishing
+  # Leave as empty string to disable MQTT (must also override mqtt: null in product)
+  airiq_mqtt_broker: ""
   # Provide MQTT credentials through substitutions or secrets; leave blank if your
   # broker does not require authentication.
   airiq_mqtt_username: ""

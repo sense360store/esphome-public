@@ -41,17 +41,20 @@ substitutions:
 # ----------------------------------------------------------------------------
 
 packages:
+  # === External Components ===
+  external_components: !include ../packages/base/external_components.yaml
+
   # === Base System ===
-  base_wifi: !include ../base/wifi.yaml
-  base_logging: !include ../base/logging.yaml
-  base_api: !include ../base/api_encrypted.yaml
-  base_ota: !include ../base/ota.yaml
-  base_time: !include ../base/time.yaml
-  base_bluetooth: !include ../base/bluetooth_proxy.yaml
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+  base_bluetooth: !include ../packages/base/bluetooth_proxy.yaml
 
   # === Hardware ===
-  core_hardware: !include ../hardware/sense360_core_mini.yaml
-  presence_hardware: !include ../hardware/presence_ld2450.yaml
+  core_hardware: !include ../packages/hardware/sense360_core_mini.yaml
+  presence_hardware: !include ../packages/hardware/presence_ld2450.yaml
 
   # === Features ===
-  presence_detection: !include ../features/presence_basic_profile.yaml
+  presence_detection: !include ../packages/features/presence_basic_profile.yaml
