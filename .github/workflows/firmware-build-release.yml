@@ -1,0 +1,368 @@
+---
+# ============================================================================
+# FIRMWARE BUILD & RELEASE WORKFLOW
+# ============================================================================
+# This workflow automates the build and release of ESPHome firmware binaries
+# for all Sense360 products. It integrates with WebFlash for browser-based
+# device flashing.
+#
+# Triggers:
+#   - Release creation (published)
+#   - Manual dispatch (for testing/preview releases)
+#
+# Process:
+#   1. Generate build matrix from products directory
+#   2. Build all product configurations using ESPHome
+#   3. Rename binaries to WebFlash-compatible format
+#   4. Attach binaries to GitHub release with checksums
+#
+# Output Format:
+#   Sense360-[Product]-[Variant]-v[Version]-[Channel].bin
+#
+# ============================================================================
+
+name: Build & Release Firmware
+
+on:
+  release:
+    types: [published]
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 3.0.0)'
+        required: true
+        default: '0.0.0-dev'
+      channel:
+        description: 'Release channel'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - stable
+          - preview
+          - beta
+
+# Ensure only one release workflow runs at a time
+concurrency:
+  group: firmware-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  ESPHOME_VERSION: "2024.11.0"
+
+jobs:
+  # ============================================================================
+  # JOB 1: GENERATE BUILD MATRIX
+  # ============================================================================
+  # Scans the products directory and generates a build matrix for all
+  # product configurations.
+  # ============================================================================
+  generate-matrix:
+    name: Generate Build Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.generate.outputs.matrix }}
+      product_count: ${{ steps.generate.outputs.product_count }}
+      version: ${{ steps.version.outputs.version }}
+      channel: ${{ steps.version.outputs.channel }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine version and channel
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            # Extract version from release tag (remove 'v' prefix if present)
+            VERSION="${{ github.event.release.tag_name }}"
+            VERSION="${VERSION#v}"
+
+            # Determine channel from prerelease status
+            if [ "${{ github.event.release.prerelease }}" = "true" ]; then
+              CHANNEL="preview"
+            else
+              CHANNEL="stable"
+            fi
+          else
+            # Manual dispatch
+            VERSION="${{ github.event.inputs.version }}"
+            CHANNEL="${{ github.event.inputs.channel }}"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "channel=$CHANNEL" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION (channel: $CHANNEL)"
+
+      - name: Generate product build matrix
+        id: generate
+        run: |
+          # Find all product YAML files
+          PRODUCTS=$(find products/ -name "*.yaml" -type f | sort)
+
+          # Build JSON matrix
+          MATRIX='{"include":['
+          FIRST=true
+          COUNT=0
+
+          for PRODUCT_FILE in $PRODUCTS; do
+            # Extract product name (without path and extension)
+            PRODUCT_NAME=$(basename "$PRODUCT_FILE" .yaml)
+
+            # Skip secrets.yaml if it exists
+            if [ "$PRODUCT_NAME" = "secrets" ]; then
+              continue
+            fi
+
+            if [ "$FIRST" = true ]; then
+              FIRST=false
+            else
+              MATRIX+=','
+            fi
+
+            MATRIX+="{\"product\":\"$PRODUCT_NAME\",\"file\":\"$PRODUCT_FILE\"}"
+            COUNT=$((COUNT + 1))
+          done
+
+          MATRIX+=']}'
+
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "product_count=$COUNT" >> $GITHUB_OUTPUT
+          echo "Found $COUNT products to build"
+          echo "Matrix: $MATRIX"
+
+  # ============================================================================
+  # JOB 2: BUILD FIRMWARE
+  # ============================================================================
+  # Compiles each product configuration and renames the output binary
+  # to WebFlash-compatible format.
+  # ============================================================================
+  build:
+    name: "Build: ${{ matrix.product }}"
+    needs: generate-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: ${{ runner.os }}-pio-${{ hashFiles('**/platformio.ini') }}-${{ matrix.product }}
+          restore-keys: |
+            ${{ runner.os }}-pio-${{ hashFiles('**/platformio.ini') }}-
+            ${{ runner.os }}-pio-
+
+      - name: Install ESPHome
+        run: |
+          pip install esphome==${{ env.ESPHOME_VERSION }}
+
+      - name: Create secrets.yaml for build
+        run: |
+          cat > secrets.yaml << 'EOF'
+          wifi_ssid: "Sense360_Setup"
+          wifi_password: "sense360setup"
+          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+          ota_password: "sense360-ota-default"
+          fallback_ap_password: "sense360fallback"
+          web_username: "admin"
+          web_password: "sense360admin"
+          EOF
+          cp secrets.yaml products/secrets.yaml
+
+      - name: Compile firmware
+        run: |
+          echo "Compiling: ${{ matrix.file }}"
+          esphome compile ${{ matrix.file }}
+
+      - name: Find and rename firmware binary
+        id: rename
+        run: |
+          # ESPHome outputs to .esphome/build/<device_name>/.pioenvs/<platform>/firmware.bin
+          # Find the firmware binary
+          FIRMWARE_PATH=$(find .esphome/build -name "firmware.bin" -type f 2>/dev/null | head -1)
+
+          if [ -z "$FIRMWARE_PATH" ]; then
+            # Also check for factory.bin (some platforms)
+            FIRMWARE_PATH=$(find .esphome/build -name "firmware-factory.bin" -type f 2>/dev/null | head -1)
+          fi
+
+          if [ -z "$FIRMWARE_PATH" ]; then
+            echo "Error: Could not find compiled firmware binary"
+            find .esphome/build -type f -name "*.bin" 2>/dev/null || true
+            exit 1
+          fi
+
+          echo "Found firmware at: $FIRMWARE_PATH"
+
+          # Generate WebFlash-compatible filename
+          VERSION="${{ needs.generate-matrix.outputs.version }}"
+          CHANNEL="${{ needs.generate-matrix.outputs.channel }}"
+          WEBFLASH_NAME=$(python3 scripts/product_name_mapper.py "${{ matrix.product }}" "$VERSION" "$CHANNEL")
+
+          echo "Renaming to: $WEBFLASH_NAME"
+
+          # Create output directory and copy with new name
+          mkdir -p firmware-output
+          cp "$FIRMWARE_PATH" "firmware-output/$WEBFLASH_NAME"
+
+          echo "webflash_name=$WEBFLASH_NAME" >> $GITHUB_OUTPUT
+          echo "firmware_path=firmware-output/$WEBFLASH_NAME" >> $GITHUB_OUTPUT
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.product }}
+          path: firmware-output/*.bin
+          retention-days: 7
+          if-no-files-found: error
+
+  # ============================================================================
+  # JOB 3: RELEASE ATTACHMENT
+  # ============================================================================
+  # Downloads all compiled binaries, generates checksums, and attaches
+  # them to the GitHub release.
+  # ============================================================================
+  release:
+    name: Attach to Release
+    needs: [generate-matrix, build]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all firmware artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: firmware-*
+          path: all-firmware
+          merge-multiple: true
+
+      - name: List downloaded firmware
+        run: |
+          echo "Downloaded firmware files:"
+          ls -la all-firmware/
+          echo ""
+          echo "Total files: $(ls -1 all-firmware/*.bin 2>/dev/null | wc -l)"
+
+      - name: Generate checksums
+        run: |
+          cd all-firmware
+
+          # Generate SHA256 checksums
+          echo "# SHA256 Checksums" > checksums-sha256.txt
+          echo "# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> checksums-sha256.txt
+          echo "# Version: ${{ needs.generate-matrix.outputs.version }}" >> checksums-sha256.txt
+          echo "# Channel: ${{ needs.generate-matrix.outputs.channel }}" >> checksums-sha256.txt
+          echo "" >> checksums-sha256.txt
+          sha256sum *.bin >> checksums-sha256.txt
+
+          # Generate MD5 checksums (for compatibility)
+          echo "# MD5 Checksums" > checksums-md5.txt
+          echo "# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> checksums-md5.txt
+          echo "" >> checksums-md5.txt
+          md5sum *.bin >> checksums-md5.txt
+
+          echo "Checksums generated:"
+          cat checksums-sha256.txt
+
+      - name: Create firmware manifest
+        run: |
+          VERSION="${{ needs.generate-matrix.outputs.version }}"
+          CHANNEL="${{ needs.generate-matrix.outputs.channel }}"
+
+          cat > all-firmware/manifest.json << EOF
+          {
+            "version": "$VERSION",
+            "channel": "$CHANNEL",
+            "build_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "git_sha": "${{ github.sha }}",
+            "esphome_version": "${{ env.ESPHOME_VERSION }}",
+            "product_count": ${{ needs.generate-matrix.outputs.product_count }},
+            "files": [
+          $(ls -1 all-firmware/*.bin 2>/dev/null | while read f; do
+            BASENAME=$(basename "$f")
+            SHA256=$(sha256sum "$f" | cut -d' ' -f1)
+            SIZE=$(stat -c%s "$f")
+            echo "    {\"name\": \"$BASENAME\", \"sha256\": \"$SHA256\", \"size\": $SIZE},"
+          done | sed '$ s/,$//')
+            ]
+          }
+          EOF
+
+          echo "Manifest created:"
+          cat all-firmware/manifest.json
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            all-firmware/*.bin
+            all-firmware/checksums-sha256.txt
+            all-firmware/checksums-md5.txt
+            all-firmware/manifest.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release summary
+        run: |
+          echo "=============================================="
+          echo "FIRMWARE RELEASE COMPLETE"
+          echo "=============================================="
+          echo ""
+          echo "Version: ${{ needs.generate-matrix.outputs.version }}"
+          echo "Channel: ${{ needs.generate-matrix.outputs.channel }}"
+          echo "Products built: ${{ needs.generate-matrix.outputs.product_count }}"
+          echo "Git SHA: ${{ github.sha }}"
+          echo ""
+          echo "Firmware files attached to release:"
+          ls -1 all-firmware/*.bin
+          echo ""
+          echo "WebFlash can now sync these binaries via the"
+          echo "sync-from-releases.py script."
+
+  # ============================================================================
+  # JOB 4: BUILD SUMMARY (for manual dispatch)
+  # ============================================================================
+  # Provides a summary when manually triggered (no release attachment)
+  # ============================================================================
+  summary:
+    name: Build Summary
+    needs: [generate-matrix, build]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Download all firmware artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: firmware-*
+          path: all-firmware
+          merge-multiple: true
+
+      - name: Build summary
+        run: |
+          echo "=============================================="
+          echo "FIRMWARE BUILD COMPLETE (Preview)"
+          echo "=============================================="
+          echo ""
+          echo "Version: ${{ needs.generate-matrix.outputs.version }}"
+          echo "Channel: ${{ needs.generate-matrix.outputs.channel }}"
+          echo "Products built: ${{ needs.generate-matrix.outputs.product_count }}"
+          echo ""
+          echo "Built firmware files:"
+          ls -la all-firmware/
+          echo ""
+          echo "Note: This was a manual dispatch. To attach firmware"
+          echo "to a release, create a GitHub release instead."
