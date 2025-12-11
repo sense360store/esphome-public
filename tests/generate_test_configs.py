@@ -132,6 +132,13 @@ class TestConfig:
                 '  fan_tach_pin: "${expansion_gpio2}"  # GPIO6',
             ])
 
+        # Check if fan_gp8403 module is present - ceiling uses different I2C bus name
+        has_fan_gp8403 = any(mod.category == "fan_gp8403" for mod in self.modules)
+        if has_fan_gp8403 and self.core.form_factor == FormFactor.CEILING:
+            lines.extend([
+                '  fan_dac_i2c_id: expansion_i2c  # Ceiling uses expansion_i2c instead of i2c0',
+            ])
+
         lines.extend([
             "",
             "packages:",

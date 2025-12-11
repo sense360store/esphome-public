@@ -2,18 +2,13 @@
 # LD2450 Radar Sensor Hardware Configuration
 # Requires external component from: https://github.com/ShaunPCcom/ESPHome-HLK-LD2450
 # (ShaunPCcom's fork fixes ESPHome 2025.11+ compatibility)
+#
+# NOTE: The external_components for LD2450 should be included via
+# packages/base/external_components.yaml in the product config, not here.
+# This avoids duplicate declarations when both are included.
 
 substitutions:
   presence_timeout: 30s
-
-# External component for LD2450 radar (ShaunPCcom fork with ESPHome 2025.11+ compatibility)
-external_components:
-  - source:
-      type: git
-      url: https://github.com/ShaunPCcom/ESPHome-HLK-LD2450
-      ref: main
-    components: [LD2450]
-    refresh: 1d
 
 # UART for LD2450 Radar Sensor
 uart:
