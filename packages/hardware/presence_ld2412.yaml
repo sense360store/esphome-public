@@ -21,6 +21,13 @@
 substitutions:
   presence_timeout: 30s
 
+# Globals for presence detection
+globals:
+  - id: presence_confidence
+    type: float
+    restore_value: false
+    initial_value: '0.0'
+
 # UART for LD2412 Radar Sensor
 uart:
   - id: ${ld2412_uart_id}
