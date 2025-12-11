@@ -150,45 +150,39 @@ number:
 
 sensor:
   # ----------------------------------------------------------------------------
-  # DISTANCE & ENERGY SENSORS (User-facing)
+  # DISTANCE & ENERGY SENSORS (User-facing) - Native ESPHome Copy Sensors
   # ----------------------------------------------------------------------------
-  # Detection distance (exposed to user via template reading from hardware)
-  - platform: template
+  # Detection distance - Native copy from hardware sensor
+  - platform: copy
     id: ld2412_distance_exposed
+    source_id: ld2412_detection_distance
     name: "${friendly_name} Detection Distance"
     icon: "mdi:ruler"
     unit_of_measurement: "cm"
     accuracy_decimals: 0
     state_class: measurement
-    update_interval: 1s
-    lambda: |-
-      return id(ld2412_detection_distance).state;
 
-  # Moving energy (exposed to user)
-  - platform: template
+  # Moving energy - Native copy from hardware sensor
+  - platform: copy
     id: ld2412_moving_energy_exposed
+    source_id: ld2412_moving_energy
     name: "${friendly_name} Moving Energy"
     icon: "mdi:signal-variant"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     state_class: measurement
-    update_interval: 1s
-    lambda: |-
-      return id(ld2412_moving_energy).state;
 
-  # Still energy (exposed to user)
-  - platform: template
+  # Still energy - Native copy from hardware sensor
+  - platform: copy
     id: ld2412_still_energy_exposed
+    source_id: ld2412_still_energy
     name: "${friendly_name} Still Energy"
     icon: "mdi:signal"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     state_class: measurement
-    update_interval: 1s
-    lambda: |-
-      return id(ld2412_still_energy).state;
 
-  # Detection confidence level (0-100%)
+  # Detection confidence level (0-100%) - Keep template for calculation
   - platform: template
     id: detection_confidence_level
     name: "${friendly_name} Detection Confidence"
@@ -346,23 +340,21 @@ text_sensor:
       return {buffer};
 
 # ----------------------------------------------------------------------------
-# BINARY SENSORS (User-facing via template)
+# BINARY SENSORS (User-facing) - Native ESPHome Copy Sensors
 # ----------------------------------------------------------------------------
 binary_sensor:
-  # Expose moving target detection (reads from hardware sensor)
-  - platform: template
+  # Expose moving target detection - Native copy from hardware sensor
+  - platform: copy
     id: ld2412_moving_detected
+    source_id: ld2412_has_moving
     name: "${friendly_name} Moving Detected"
     icon: "mdi:run"
     device_class: motion
-    lambda: |-
-      return id(ld2412_has_moving).state;
 
-  # Expose still target detection (reads from hardware sensor)
-  - platform: template
+  # Expose still target detection - Native copy from hardware sensor
+  - platform: copy
     id: ld2412_still_detected
+    source_id: ld2412_has_still
     name: "${friendly_name} Still Detected"
     icon: "mdi:human-handsdown"
     device_class: occupancy
-    lambda: |-
-      return id(ld2412_has_still).state;

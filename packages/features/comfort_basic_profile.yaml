@@ -19,34 +19,30 @@ packages:
   health: !include device_health.yaml
 
 # ============================================================================
-# User-Facing Sensors
+# User-Facing Sensors (Using Native ESPHome Components)
 # ============================================================================
 sensor:
-  # Temperature (primary, from SHT40)
-  - platform: template
+  # Temperature (primary, from SHT40) - Native copy sensor
+  - platform: copy
     id: comfort_temperature_display
+    source_id: comfort_temperature
     name: "${friendly_name} Temperature"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
     state_class: measurement
-    update_interval: 30s
-    lambda: |-
-      return id(comfort_temperature).state;
 
-  # Humidity (primary, from SHT40)
-  - platform: template
+  # Humidity (primary, from SHT40) - Native copy sensor
+  - platform: copy
     id: comfort_humidity_display
+    source_id: comfort_humidity
     name: "${friendly_name} Humidity"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     device_class: humidity
     state_class: measurement
-    update_interval: 30s
-    lambda: |-
-      return id(comfort_humidity).state;
 
-  # Feels-like temperature (heat index)
+  # Feels-like temperature (heat index) - Keep template for global access
   - platform: template
     id: comfort_feels_like
     name: "${friendly_name} Feels Like"
@@ -57,19 +53,17 @@ sensor:
     lambda: |-
       return id(comfort_heat_index_value);
 
-  # Light level in lux
-  - platform: template
+  # Light level in lux - Native copy sensor
+  - platform: copy
     id: comfort_light_display
+    source_id: comfort_light_sensor
     name: "${friendly_name} Light Level"
     unit_of_measurement: "lx"
     accuracy_decimals: 0
     device_class: illuminance
     state_class: measurement
-    update_interval: 10s
-    lambda: |-
-      return id(comfort_light_sensor).state;
 
-  # Comfort score (0-100)
+  # Comfort score (0-100) - Keep template for global access
   - platform: template
     id: comfort_score_display
     name: "${friendly_name} Comfort Score"

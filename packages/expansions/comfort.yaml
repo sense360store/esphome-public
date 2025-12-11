@@ -65,6 +65,18 @@ sensor:
     update_interval: ${comfort_sht40_update}
 
   # ============================================================================
+  # Absolute Humidity - Native ESPHome Calculation
+  # Calculated from SHT40 temperature and humidity
+  # ============================================================================
+  - platform: absolute_humidity
+    id: comfort_absolute_humidity
+    name: "${friendly_name} Absolute Humidity"
+    internal: true
+    temperature: comfort_temperature
+    humidity: comfort_humidity
+    equation: Wobus  # Most accurate equation
+
+  # ============================================================================
   # BH1750 - Ambient Light Sensor (ROHM)
   # I2C Address: 0x23
   # ============================================================================

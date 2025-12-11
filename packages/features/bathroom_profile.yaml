@@ -28,89 +28,75 @@ packages:
   diagnostics: !include diagnostics.yaml
 
 # ============================================================================
-# User-Facing Sensors
+# User-Facing Sensors (Native ESPHome Copy Sensors)
 # ============================================================================
 sensor:
-  # Temperature
-  - platform: template
+  # Temperature - Native copy from expansion sensor
+  - platform: copy
     id: bathroom_temp_display
+    source_id: bathroom_temperature
     name: "${friendly_name} Temperature"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
     state_class: measurement
-    update_interval: 10s
-    lambda: |-
-      return id(bathroom_temperature).state;
 
-  # Humidity
-  - platform: template
+  # Humidity - Native copy from expansion sensor
+  - platform: copy
     id: bathroom_humidity_display
+    source_id: bathroom_humidity
     name: "${friendly_name} Humidity"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     device_class: humidity
     state_class: measurement
-    update_interval: 10s
-    lambda: |-
-      return id(bathroom_humidity).state;
 
-  # Pressure
-  - platform: template
+  # Pressure - Native copy from expansion sensor
+  - platform: copy
     id: bathroom_pressure_display
+    source_id: bathroom_pressure
     name: "${friendly_name} Pressure"
     unit_of_measurement: "hPa"
     accuracy_decimals: 1
     device_class: atmospheric_pressure
     state_class: measurement
-    update_interval: 60s
-    lambda: |-
-      return id(bathroom_pressure).state;
 
-  # VOC Index
-  - platform: template
+  # VOC Index - Native copy from expansion sensor
+  - platform: copy
     id: bathroom_voc_display
+    source_id: bathroom_voc_index
     name: "${friendly_name} VOC Index"
     accuracy_decimals: 0
     icon: "mdi:air-filter"
-    update_interval: 10s
-    lambda: |-
-      return id(bathroom_voc_index).state;
 
-  # NOx Index
-  - platform: template
+  # NOx Index - Native copy from expansion sensor
+  - platform: copy
     id: bathroom_nox_display
+    source_id: bathroom_nox_index
     name: "${friendly_name} NOx Index"
     accuracy_decimals: 0
     icon: "mdi:smog"
-    update_interval: 10s
-    lambda: |-
-      return id(bathroom_nox_index).state;
 
-  # Dew Point
-  - platform: template
+  # Dew Point - Native copy from expansion sensor
+  - platform: copy
     id: bathroom_dew_point_display
+    source_id: bathroom_dew_point
     name: "${friendly_name} Dew Point"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
     icon: "mdi:water-thermometer"
-    update_interval: 30s
-    lambda: |-
-      return id(bathroom_dew_point).state;
 
-  # Humidity Rate of Change
-  - platform: template
+  # Humidity Rate of Change - Native copy from expansion sensor
+  - platform: copy
     id: bathroom_humidity_rate_display
+    source_id: bathroom_humidity_rate
     name: "${friendly_name} Humidity Rate"
     unit_of_measurement: "%/min"
     accuracy_decimals: 1
     icon: "mdi:trending-up"
-    update_interval: 10s
-    lambda: |-
-      return id(bathroom_humidity_rate).state;
 
-  # Post-shower timer remaining
+  # Post-shower timer remaining - Keep template for global access
   - platform: template
     id: bathroom_post_shower_timer_display
     name: "${friendly_name} Post-Shower Timer"
@@ -121,7 +107,7 @@ sensor:
     lambda: |-
       return id(bathroom_post_shower_timer);
 
-  # Recommended fan speed
+  # Recommended fan speed - Keep template for global access
   - platform: template
     id: bathroom_fan_recommendation_display
     name: "${friendly_name} Recommended Fan Speed"
@@ -132,7 +118,7 @@ sensor:
     lambda: |-
       return id(bathroom_fan_recommendation);
 
-  # Mold risk level (0-3)
+  # Mold risk level (0-3) - Keep template for global access
   - platform: template
     id: bathroom_mold_risk_display
     name: "${friendly_name} Mold Risk Level"

@@ -22,10 +22,10 @@ packages:
   diagnostics: !include diagnostics.yaml
 
 # ============================================================================
-# Advanced Sensors
+# Advanced Sensors (Using Native ESPHome Components)
 # ============================================================================
 sensor:
-  # Dew Point Temperature
+  # Dew Point Temperature - Keep template for global access
   - platform: template
     id: comfort_dew_point_display
     name: "${friendly_name} Dew Point"
@@ -37,54 +37,46 @@ sensor:
     lambda: |-
       return id(comfort_dew_point_value);
 
-  # Atmospheric Pressure (from BME680)
-  - platform: template
+  # Atmospheric Pressure (from BME680) - Native copy sensor
+  - platform: copy
     id: comfort_pressure_display
+    source_id: comfort_pressure
     name: "${friendly_name} Pressure"
     unit_of_measurement: "hPa"
     accuracy_decimals: 1
     device_class: atmospheric_pressure
     state_class: measurement
-    update_interval: 60s
-    lambda: |-
-      return id(comfort_pressure).state;
 
-  # Gas Resistance (raw IAQ indicator from BME680)
-  - platform: template
+  # Gas Resistance (raw IAQ indicator from BME680) - Native copy sensor
+  - platform: copy
     id: comfort_gas_display
+    source_id: comfort_gas_resistance
     name: "${friendly_name} Gas Resistance"
     unit_of_measurement: "Ω"
     accuracy_decimals: 0
     icon: "mdi:air-filter"
-    update_interval: 60s
-    lambda: |-
-      return id(comfort_gas_resistance).state;
 
-  # BME680 Temperature (secondary)
-  - platform: template
+  # BME680 Temperature (secondary) - Native copy sensor
+  - platform: copy
     id: comfort_bme680_temp_display
+    source_id: comfort_bme680_temperature
     name: "${friendly_name} BME680 Temperature"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
     entity_category: diagnostic
-    update_interval: 60s
-    lambda: |-
-      return id(comfort_bme680_temperature).state;
 
-  # BME680 Humidity (secondary)
-  - platform: template
+  # BME680 Humidity (secondary) - Native copy sensor
+  - platform: copy
     id: comfort_bme680_hum_display
+    source_id: comfort_bme680_humidity
     name: "${friendly_name} BME680 Humidity"
     unit_of_measurement: "%"
     accuracy_decimals: 1
     device_class: humidity
     entity_category: diagnostic
-    update_interval: 60s
-    lambda: |-
-      return id(comfort_bme680_humidity).state;
 
-  # Temperature differential (between sensors)
+  # Temperature differential (between sensors) - Keep template for calculation
   - platform: template
     id: comfort_temp_differential
     name: "${friendly_name} Sensor Temperature Differential"

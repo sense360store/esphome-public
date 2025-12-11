@@ -210,6 +210,18 @@ sensor:
     measurement_mode: periodic
     update_interval: ${airiq_scd41_update}
 
+  # ============================================================================
+  # Absolute Humidity - Native ESPHome Calculation
+  # Calculated from SCD41 temperature and humidity
+  # ============================================================================
+  - platform: absolute_humidity
+    id: airiq_absolute_humidity
+    name: "${friendly_name} Absolute Humidity"
+    internal: true
+    temperature: airiq_scd41_temperature
+    humidity: airiq_scd41_humidity
+    equation: Wobus  # Most accurate equation
+
 # ============================================================================
 # Globals for Air Quality Calculations
 # ============================================================================

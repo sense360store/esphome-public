@@ -25,6 +25,8 @@ globals:
 
 # ----------------------------------------------------------------------------
 # BASIC COMFORT SENSORS - Temperature & Humidity
+# Note: These template sensors receive values via publish_state() from either
+# expansion modules or direct product sensor definitions.
 # ----------------------------------------------------------------------------
 sensor:
   # Temperature - everyone understands this
