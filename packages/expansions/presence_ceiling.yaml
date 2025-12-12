@@ -56,7 +56,8 @@ binary_sensor:
     ld2450_id: ld2450_radar
     has_target:
       id: ld2450_occupancy
-      name: "${friendly_name} Presence"
+      name: "${friendly_name} Radar Presence"
+      internal: true
       device_class: occupancy
     has_moving_target:
       id: ld2450_has_moving
