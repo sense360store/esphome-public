@@ -26,6 +26,7 @@ substitutions:
   # === Hardware Configuration ===
   board_variant: esp32-s3-devkitc-1
   log_level: INFO
+  timezone: "UTC"
 
   # === I2C Bus Pins (Mini Core Board) ===
   i2c_sda_pin: GPIO48
