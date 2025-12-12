@@ -112,7 +112,9 @@ psram:
 
 # I2C buses
 i2c:
-  - id: i2c0
+  # Primary I2C bus for halo LED ring (PCA9685) and sensors
+  # Named halo_i2c for compatibility with ceiling_halo_leds.yaml
+  - id: halo_i2c
     sda: ${i2c0_sda_pin}
     scl: ${i2c0_scl_pin}
     scan: true

@@ -1,12 +1,12 @@
 ---
 # ============================================================================
-# SENSE360 COMFORT MODULE - BASIC FEATURE PROFILE
+# SENSE360 COMFORT MODULE - BASIC FEATURE PROFILE (CEILING)
 # ============================================================================
 # User-friendly environmental comfort monitoring entities.
 # Provides simplified, actionable information for end users.
 #
 # Prerequisites:
-#   - packages/expansions/comfort.yaml (hardware driver)
+#   - packages/expansions/comfort_ceiling.yaml (hardware driver)
 #
 # Exposed Entities:
 #   - Temperature (with feels-like)
@@ -22,20 +22,20 @@ packages:
 # User-Facing Sensors (Using Native ESPHome Components)
 # ============================================================================
 sensor:
-  # Temperature (primary, from SHT40) - Native copy sensor
+  # Temperature (primary, from SHT4x) - Native copy sensor
   - platform: copy
     id: comfort_temperature_display
-    source_id: comfort_temperature
+    source_id: comfort_ceiling_temperature
     name: "${friendly_name} Temperature"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
     state_class: measurement
 
-  # Humidity (primary, from SHT40) - Native copy sensor
+  # Humidity (primary, from SHT4x) - Native copy sensor
   - platform: copy
     id: comfort_humidity_display
-    source_id: comfort_humidity
+    source_id: comfort_ceiling_humidity
     name: "${friendly_name} Humidity"
     unit_of_measurement: "%"
     accuracy_decimals: 0
@@ -51,12 +51,12 @@ sensor:
     device_class: temperature
     update_interval: 30s
     lambda: |-
-      return id(comfort_heat_index_value);
+      return id(comfort_ceiling_heat_index);
 
   # Light level in lux - Native copy sensor
   - platform: copy
     id: comfort_light_display
-    source_id: comfort_light_sensor
+    source_id: comfort_ceiling_illuminance
     name: "${friendly_name} Light Level"
     unit_of_measurement: "lx"
     accuracy_decimals: 0
@@ -72,7 +72,7 @@ sensor:
     icon: "mdi:emoticon-happy-outline"
     update_interval: 30s
     lambda: |-
-      return id(comfort_index_value);
+      return id(comfort_ceiling_index_value);
 
 # ============================================================================
 # User-Facing Text Sensors
@@ -85,7 +85,7 @@ text_sensor:
     icon: "mdi:home-thermometer"
     update_interval: 30s
     lambda: |-
-      float score = id(comfort_index_value);
+      float score = id(comfort_ceiling_index_value);
 
       if (score >= 90) {
         return {"Excellent"};
@@ -106,7 +106,7 @@ text_sensor:
     icon: "mdi:brightness-6"
     update_interval: 10s
     lambda: |-
-      int level = id(comfort_light_level);
+      int level = id(comfort_ceiling_light_level);
 
       switch (level) {
         case 0: return {"Dark"};
@@ -123,7 +123,7 @@ text_sensor:
     icon: "mdi:thermometer-lines"
     update_interval: 60s
     lambda: |-
-      float temp = id(comfort_temperature).state;
+      float temp = id(comfort_ceiling_temperature).state;
 
       if (std::isnan(temp)) {
         return {"Sensor unavailable"};
@@ -148,7 +148,7 @@ text_sensor:
     icon: "mdi:water-percent"
     update_interval: 60s
     lambda: |-
-      float humidity = id(comfort_humidity).state;
+      float humidity = id(comfort_ceiling_humidity).state;
 
       if (std::isnan(humidity)) {
         return {"Sensor unavailable"};
