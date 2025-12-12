@@ -340,28 +340,29 @@ number:
 # ============================================================================
 # Automation for Fan Control
 # ============================================================================
-interval:
-  - interval: 10s
-    then:
-      - lambda: |-
-          // Only run if auto ventilation is enabled
-          if (!id(bathroom_auto_ventilation).state) return;
-
-          int recommended_speed = id(bathroom_fan_recommendation);
-
-          // If a fan controller exists, control it
-          #ifdef fan_controller
-            if (recommended_speed == 0) {
-              if (id(fan_controller).state) {
-                auto call = id(fan_controller).turn_off();
-                call.perform();
-              }
-            } else {
-              auto call = id(fan_controller).turn_on();
-              call.set_speed(recommended_speed);
-              call.perform();
-            }
-          #endif
+# NOTE: Automatic fan control requires a fan_controller to be defined.
+# To enable automatic fan control, include a fan expansion module
+# (e.g., fan_pwm.yaml or fan_gp8403.yaml) that defines 'fan_controller',
+# then uncomment and use the automation below in your product config.
+#
+# Example product config addition:
+# interval:
+#   - interval: 10s
+#     then:
+#       - lambda: |-
+#           if (!id(bathroom_auto_ventilation).state) return;
+#           int speed = id(bathroom_fan_recommendation);
+#           if (speed == 0) {
+#             if (id(fan_controller).state) {
+#               auto call = id(fan_controller).turn_off();
+#               call.perform();
+#             }
+#           } else {
+#             auto call = id(fan_controller).turn_on();
+#             call.set_speed(speed);
+#             call.perform();
+#           }
+# ============================================================================
 
 # ============================================================================
 # Buttons for Manual Control

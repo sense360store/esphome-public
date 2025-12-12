@@ -32,6 +32,8 @@ substitutions:
   device_name: sense360-core-ceiling-presence
   friendly_name: Sense360 Core Ceiling Presence
   timezone: "America/New_York"
+  # Fallback AP SSID (must be <=32 chars)
+  fallback_ssid: "S360-Ceiling-Pres FB"
 
   # === Logging ===
   log_level: INFO
