@@ -22,6 +22,8 @@ __pycache__/
 dist/
 build/
 *.egg
+venv/
+.venv/
 
 # Operating System Files
 .DS_Store
