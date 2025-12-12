@@ -208,6 +208,10 @@ sensor:
 # FULL TARGET TRACKING - Globals for moving/still detection
 # ----------------------------------------------------------------------------
 globals:
+  - id: presence_confidence
+    type: float
+    restore_value: false
+    initial_value: '0.0'
   - id: ld2450_still_count
     type: int
     restore_value: false
