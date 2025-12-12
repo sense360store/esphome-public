@@ -109,56 +109,20 @@ select:
 # ----------------------------------------------------------------------------
 # CONTROL SWITCHES
 # ----------------------------------------------------------------------------
-switch:
-  # Engineering mode - enables detailed gate energy readings
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    engineering_mode:
-      id: ld2412_engineering_mode
-      name: "${friendly_name} Engineering Mode"
-      icon: "mdi:wrench-cog"
-
-  # Bluetooth control
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    bluetooth:
-      id: ld2412_bluetooth
-      name: "${friendly_name} Radar Bluetooth"
-      icon: "mdi:bluetooth"
+# NOTE: The ld2412 external component from smarthomeshop does not currently
+# support the switch platform for engineering_mode or bluetooth controls.
+# These features may be added in future versions of the component.
+# ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
 # CALIBRATION & CONTROL BUTTONS
 # ----------------------------------------------------------------------------
+# NOTE: The ld2412 external component from smarthomeshop does not currently
+# support the button platform for factory_reset, restart, query_params, or
+# start_dynamic_background_correction. These features may be added in future
+# versions of the component.
+# ----------------------------------------------------------------------------
 button:
-  # Factory reset - restore sensor defaults
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    factory_reset:
-      name: "${friendly_name} Factory Reset Radar"
-      icon: "mdi:restore"
-
-  # Restart radar module
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    restart:
-      name: "${friendly_name} Restart Radar"
-      icon: "mdi:restart"
-
-  # Query current parameters
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    query_params:
-      name: "${friendly_name} Query Radar Parameters"
-      icon: "mdi:refresh"
-      internal: true
-
-  # Dynamic background correction - auto-calibration
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    start_dynamic_background_correction:
-      name: "${friendly_name} Start Auto Calibration"
-      icon: "mdi:auto-fix"
-
   # Reset presence confidence
   - platform: template
     name: "${friendly_name} Reset Presence Calibration"
