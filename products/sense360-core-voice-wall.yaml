@@ -86,7 +86,7 @@ packages:
 
   # Comfort Module (temperature, humidity, light)
   comfort_module: !include ../packages/expansions/comfort_wall.yaml
-  comfort_profile: !include ../packages/features/comfort_basic_profile.yaml
+  comfort_profile: !include ../packages/features/comfort_basic_profile_wall.yaml
 
   # Presence Module (mmWave radar)
   presence_module: !include ../packages/expansions/presence_wall.yaml

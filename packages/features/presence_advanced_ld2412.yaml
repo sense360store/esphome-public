@@ -76,24 +76,11 @@ sensor:
 # ----------------------------------------------------------------------------
 # CONFIGURATION SELECTORS
 # ----------------------------------------------------------------------------
+# NOTE: The ld2412 select platform (distance_resolution, baud_rate) is not
+# currently available in the smarthomeshop/ld2412 external component.
+# These features may be added in future versions of the component.
+# ----------------------------------------------------------------------------
 select:
-  # Distance resolution (affects gate size)
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    distance_resolution:
-      id: ld2412_resolution
-      name: "${friendly_name} Distance Resolution"
-      icon: "mdi:resize"
-
-  # Baud rate (for advanced users)
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    baud_rate:
-      id: ld2412_baud_rate
-      name: "${friendly_name} Baud Rate"
-      icon: "mdi:speedometer"
-      internal: true
-
   # Sensitivity modes (template-controlled)
   - platform: template
     id: presence_sensitivity
