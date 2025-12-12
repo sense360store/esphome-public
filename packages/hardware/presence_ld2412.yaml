@@ -60,8 +60,11 @@ binary_sensor:
 sensor:
   - platform: ld2412
     ld2412_id: ld2412_radar
-    detection_distance:
-      id: ld2412_detection_distance
+    moving_distance:
+      id: ld2412_moving_distance
+      internal: true
+    still_distance:
+      id: ld2412_still_distance
       internal: true
     moving_energy:
       id: ld2412_moving_energy

@@ -38,6 +38,8 @@ substitutions:
 
   # === WiFi Behavior ===
   wifi_fast_connect: "false"
+  # Shorter fallback SSID (must be <= 32 chars)
+  fallback_ssid: "S360-Ceiling-Presence FB"
 
   # === Security (users MUST define these in their config) ===
   api_key: !secret api_encryption_key

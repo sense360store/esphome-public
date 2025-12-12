@@ -152,6 +152,31 @@ sensor:
     precision: High
     heater_power: "Low"
 
+  # ============================================================================
+  # Generic ID Aliases for comfort_basic_profile.yaml compatibility
+  # ============================================================================
+  # These template sensors provide the generic IDs expected by the profile
+  - platform: template
+    id: comfort_temperature
+    name: "${friendly_name} Temperature Generic"
+    internal: true
+    lambda: return id(comfort_ceiling_temperature).state;
+    update_interval: 30s
+
+  - platform: template
+    id: comfort_humidity
+    name: "${friendly_name} Humidity Generic"
+    internal: true
+    lambda: return id(comfort_ceiling_humidity).state;
+    update_interval: 30s
+
+  - platform: template
+    id: comfort_light_sensor
+    name: "${friendly_name} Light Generic"
+    internal: true
+    lambda: return id(comfort_ceiling_illuminance).state;
+    update_interval: 10s
+
 # ============================================================================
 # AMBIENT LIGHT INTERRUPT (Optional - for threshold-based triggers)
 # ============================================================================
@@ -191,6 +216,12 @@ globals:
     restore_value: false
     initial_value: '50.0'
 
+  # Generic alias for comfort_basic_profile.yaml compatibility
+  - id: comfort_index_value
+    type: float
+    restore_value: false
+    initial_value: '50.0'
+
   # Dew point temperature (calculated)
   - id: comfort_ceiling_dew_point
     type: float
@@ -203,8 +234,20 @@ globals:
     restore_value: false
     initial_value: '20.0'
 
+  # Generic alias for comfort_basic_profile.yaml compatibility
+  - id: comfort_heat_index_value
+    type: float
+    restore_value: false
+    initial_value: '20.0'
+
   # Light level category (0=dark, 1=dim, 2=normal, 3=bright)
   - id: comfort_ceiling_light_level
+    type: int
+    restore_value: false
+    initial_value: '2'
+
+  # Generic alias for comfort_basic_profile.yaml compatibility
+  - id: comfort_light_level
     type: int
     restore_value: false
     initial_value: '2'
@@ -269,6 +312,7 @@ interval:
                          + 0.00072546f * t * h * h - 0.000003582f * t * t * h * h;
           }
           id(comfort_ceiling_heat_index) = heat_index;
+          id(comfort_heat_index_value) = heat_index;  // Generic alias
 
           // ================================================================
           // Calculate comfort index (0-100)
@@ -297,20 +341,24 @@ interval:
           // Combined comfort index (weighted average)
           float comfort = (temp_score * 0.5f) + (hum_score * 0.5f);
           id(comfort_ceiling_index_value) = comfort;
+          id(comfort_index_value) = comfort;  // Generic alias
 
           // ================================================================
           // Light level categorization
           // ================================================================
           if (!std::isnan(lux)) {
+            int light_level;
             if (lux < ${comfort_ceiling_lux_dark}) {
-              id(comfort_ceiling_light_level) = 0;  // Dark
+              light_level = 0;  // Dark
             } else if (lux < ${comfort_ceiling_lux_dim}) {
-              id(comfort_ceiling_light_level) = 1;  // Dim
+              light_level = 1;  // Dim
             } else if (lux < ${comfort_ceiling_lux_bright}) {
-              id(comfort_ceiling_light_level) = 2;  // Normal
+              light_level = 2;  // Normal
             } else {
-              id(comfort_ceiling_light_level) = 3;  // Bright
+              light_level = 3;  // Bright
             }
+            id(comfort_ceiling_light_level) = light_level;
+            id(comfort_light_level) = light_level;  // Generic alias
           }
 
           ESP_LOGD("comfort_ceiling", "Comfort: %.1f%%, Temp: %.2f°C, Humidity: %.1f%%, Dew: %.1f°C, Lux: %.0f",

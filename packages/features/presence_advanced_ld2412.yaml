@@ -21,142 +21,30 @@ packages:
 # ----------------------------------------------------------------------------
 # DISTANCE CONTROLS
 # ----------------------------------------------------------------------------
-number:
-  # Timeout before marking room as empty
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    timeout:
-      id: ld2412_timeout
-      name: "${friendly_name} Presence Timeout"
-      icon: "mdi:timer-outline"
-
-  # Minimum detection gate (sets minimum detection distance)
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    min_distance_gate:
-      id: ld2412_min_gate
-      name: "${friendly_name} Min Distance Gate"
-      icon: "mdi:arrow-collapse-right"
-
-  # Maximum detection gate (sets maximum detection distance)
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    max_distance_gate:
-      id: ld2412_max_gate
-      name: "${friendly_name} Max Distance Gate"
-      icon: "mdi:arrow-expand-right"
-
-  # Gate thresholds - Moving and still (adjust sensitivity per distance zone)
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    gate_0:
-      move_threshold:
-        name: "${friendly_name} Gate 0 Move Threshold"
-        internal: true
-      still_threshold:
-        name: "${friendly_name} Gate 0 Still Threshold"
-        internal: true
-    gate_1:
-      move_threshold:
-        name: "${friendly_name} Gate 1 Move Threshold"
-        internal: true
-      still_threshold:
-        name: "${friendly_name} Gate 1 Still Threshold"
-        internal: true
-    gate_2:
-      move_threshold:
-        name: "${friendly_name} Gate 2 Move Threshold"
-        internal: true
-      still_threshold:
-        name: "${friendly_name} Gate 2 Still Threshold"
-        internal: true
-    gate_3:
-      move_threshold:
-        name: "${friendly_name} Gate 3 Move Threshold"
-        internal: true
-      still_threshold:
-        name: "${friendly_name} Gate 3 Still Threshold"
-        internal: true
-    gate_4:
-      move_threshold:
-        name: "${friendly_name} Gate 4 Move Threshold"
-        internal: true
-      still_threshold:
-        name: "${friendly_name} Gate 4 Still Threshold"
-        internal: true
-    gate_5:
-      move_threshold:
-        name: "${friendly_name} Gate 5 Move Threshold"
-        internal: true
-      still_threshold:
-        name: "${friendly_name} Gate 5 Still Threshold"
-        internal: true
-    gate_6:
-      move_threshold:
-        name: "${friendly_name} Gate 6 Move Threshold"
-        internal: true
-      still_threshold:
-        name: "${friendly_name} Gate 6 Still Threshold"
-        internal: true
-    gate_7:
-      move_threshold:
-        name: "${friendly_name} Gate 7 Move Threshold"
-        internal: true
-      still_threshold:
-        name: "${friendly_name} Gate 7 Still Threshold"
-        internal: true
-    gate_8:
-      move_threshold:
-        name: "${friendly_name} Gate 8 Move Threshold"
-        internal: true
-      still_threshold:
-        name: "${friendly_name} Gate 8 Still Threshold"
-        internal: true
-    gate_9:
-      move_threshold:
-        name: "${friendly_name} Gate 9 Move Threshold"
-        internal: true
-      still_threshold:
-        name: "${friendly_name} Gate 9 Still Threshold"
-        internal: true
-    gate_10:
-      move_threshold:
-        name: "${friendly_name} Gate 10 Move Threshold"
-        internal: true
-      still_threshold:
-        name: "${friendly_name} Gate 10 Still Threshold"
-        internal: true
-    gate_11:
-      move_threshold:
-        name: "${friendly_name} Gate 11 Move Threshold"
-        internal: true
-      still_threshold:
-        name: "${friendly_name} Gate 11 Still Threshold"
-        internal: true
-    gate_12:
-      move_threshold:
-        name: "${friendly_name} Gate 12 Move Threshold"
-        internal: true
-      still_threshold:
-        name: "${friendly_name} Gate 12 Still Threshold"
-        internal: true
-    gate_13:
-      move_threshold:
-        name: "${friendly_name} Gate 13 Move Threshold"
-        internal: true
-      still_threshold:
-        name: "${friendly_name} Gate 13 Still Threshold"
-        internal: true
+# NOTE: Advanced gate configuration (number.ld2412 platform) is not supported
+# by the current ld2412 external component. Gate thresholds must be configured
+# via the radar's built-in app or serial commands.
+# ----------------------------------------------------------------------------
 
 sensor:
   # ----------------------------------------------------------------------------
   # DISTANCE & ENERGY SENSORS (User-facing) - Native ESPHome Copy Sensors
   # ----------------------------------------------------------------------------
-  # Detection distance - Native copy from hardware sensor
+  # Moving distance - Native copy from hardware sensor
   - platform: copy
-    id: ld2412_distance_exposed
-    source_id: ld2412_detection_distance
-    name: "${friendly_name} Detection Distance"
+    id: ld2412_moving_distance_exposed
+    source_id: ld2412_moving_distance
+    name: "${friendly_name} Moving Distance"
+    icon: "mdi:ruler"
+    unit_of_measurement: "cm"
+    accuracy_decimals: 0
+    state_class: measurement
+
+  # Still distance - Native copy from hardware sensor
+  - platform: copy
+    id: ld2412_still_distance_exposed
+    source_id: ld2412_still_distance
+    name: "${friendly_name} Still Distance"
     icon: "mdi:ruler"
     unit_of_measurement: "cm"
     accuracy_decimals: 0
@@ -197,24 +85,10 @@ sensor:
 # ----------------------------------------------------------------------------
 # CONFIGURATION SELECTORS
 # ----------------------------------------------------------------------------
+# NOTE: ld2412 select/switch/button platforms are not supported by the current
+# external component. Use the radar's built-in app for configuration.
+# ----------------------------------------------------------------------------
 select:
-  # Distance resolution (affects gate size)
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    distance_resolution:
-      id: ld2412_resolution
-      name: "${friendly_name} Distance Resolution"
-      icon: "mdi:resize"
-
-  # Baud rate (for advanced users)
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    baud_rate:
-      id: ld2412_baud_rate
-      name: "${friendly_name} Baud Rate"
-      icon: "mdi:speedometer"
-      internal: true
-
   # Sensitivity modes (template-controlled)
   - platform: template
     id: presence_sensitivity
@@ -239,60 +113,10 @@ select:
               ESP_LOGI("presence", "Sensitivity: High Traffic (low sensitivity)");
             }
 
-
 # ----------------------------------------------------------------------------
-# CONTROL SWITCHES
-# ----------------------------------------------------------------------------
-switch:
-  # Engineering mode - enables detailed gate energy readings
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    engineering_mode:
-      id: ld2412_engineering_mode
-      name: "${friendly_name} Engineering Mode"
-      icon: "mdi:wrench-cog"
-
-  # Bluetooth control
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    bluetooth:
-      id: ld2412_bluetooth
-      name: "${friendly_name} Radar Bluetooth"
-      icon: "mdi:bluetooth"
-
-# ----------------------------------------------------------------------------
-# CALIBRATION & CONTROL BUTTONS
+# CONTROL BUTTONS
 # ----------------------------------------------------------------------------
 button:
-  # Factory reset - restore sensor defaults
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    factory_reset:
-      name: "${friendly_name} Factory Reset Radar"
-      icon: "mdi:restore"
-
-  # Restart radar module
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    restart:
-      name: "${friendly_name} Restart Radar"
-      icon: "mdi:restart"
-
-  # Query current parameters
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    query_params:
-      name: "${friendly_name} Query Radar Parameters"
-      icon: "mdi:refresh"
-      internal: true
-
-  # Dynamic background correction - auto-calibration
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    start_dynamic_background_correction:
-      name: "${friendly_name} Start Auto Calibration"
-      icon: "mdi:auto-fix"
-
   # Reset presence confidence
   - platform: template
     name: "${friendly_name} Reset Presence Calibration"
@@ -303,24 +127,9 @@ button:
           ESP_LOGI("presence", "Presence calibration reset");
 
 # ----------------------------------------------------------------------------
-# SENSOR INFO
+# DIAGNOSTICS
 # ----------------------------------------------------------------------------
 text_sensor:
-  # Firmware version
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    version:
-      name: "${friendly_name} Radar Firmware"
-      icon: "mdi:chip"
-
-  # MAC address
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    mac_address:
-      name: "${friendly_name} Radar MAC"
-      icon: "mdi:identifier"
-      internal: true
-
   # Diagnostics
   - platform: template
     id: presence_diagnostics
@@ -331,9 +140,8 @@ text_sensor:
     lambda: |-
       char buffer[256];
       snprintf(buffer, sizeof(buffer),
-        "Confidence: %.1f%%, Distance: %.0f cm, Moving: %s, Still: %s",
+        "Confidence: %.1f%%, Moving: %s, Still: %s",
         id(presence_confidence) * 100.0f,
-        id(ld2412_detection_distance).state,
         id(ld2412_has_moving).state ? "Yes" : "No",
         id(ld2412_has_still).state ? "Yes" : "No"
       );

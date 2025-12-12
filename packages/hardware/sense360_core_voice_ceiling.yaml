@@ -112,7 +112,8 @@ psram:
 
 # I2C buses
 i2c:
-  - id: i2c0
+  # Primary I2C bus - used for halo LED ring (aliased as halo_i2c for compatibility)
+  - id: halo_i2c
     sda: ${i2c0_sda_pin}
     scl: ${i2c0_scl_pin}
     scan: true
