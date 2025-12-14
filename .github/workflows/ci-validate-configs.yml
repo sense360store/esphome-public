@@ -47,6 +47,9 @@ on:
           - quick
           - full
 
+env:
+  ESPHOME_VERSION: "2025.3.0"
+
 jobs:
   # ============================================================================
   # JOB 1: YAML VALIDATION
@@ -157,7 +160,7 @@ jobs:
 
       - name: Install ESPHome
         run: |
-          pip install esphome
+          pip install esphome==${{ env.ESPHOME_VERSION }}
 
       - name: Create secrets.yaml for testing
         run: |
@@ -244,7 +247,7 @@ jobs:
 
       - name: Install ESPHome
         run: |
-          pip install esphome
+          pip install esphome==${{ env.ESPHOME_VERSION }}
 
       - name: Create secrets.yaml for testing
         run: |
