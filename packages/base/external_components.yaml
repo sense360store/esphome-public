@@ -14,9 +14,10 @@ external_components:
   # LD2412 Still Presence Radar Component
   # Source: smarthomeshop's ESPHome LD2412 component
   # Features: Superior still presence detection, gate-based sensing
+  # Pinned to specific commit for build stability
   - source:
       type: git
       url: https://github.com/smarthomeshop/ld2412
-      ref: main
+      ref: a31a03693cc8ffdc14bf60de7b5433e49752ea44
     components: [ld2412]
     refresh: 1d
