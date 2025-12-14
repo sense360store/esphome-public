@@ -85,11 +85,6 @@ binary_sensor:
       // PoE detection could be implemented with additional circuitry
       return true;
 
-  # Network connectivity status (critical for PoE devices)
-  - platform: status
-    name: "${friendly_name} Network Status"
-    id: network_status
-
 # Debug logging for PoE configuration
 logger:
   logs:
