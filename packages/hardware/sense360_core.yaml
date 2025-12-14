@@ -119,14 +119,11 @@ uart:
     rx_pin: ${uart_rx_pin}
     baud_rate: ${uart_baud}
 
-# RGB Status LED (WS2812B or similar)
-light:
-  - platform: status_led
-    id: simple_status_led
-    pin:
-      number: ${status_led_pin}
-      inverted: true
-    internal: true
+# Simple Status LED
+status_led:
+  pin:
+    number: ${status_led_pin}
+    inverted: true
 
 # Main relay output
 switch:

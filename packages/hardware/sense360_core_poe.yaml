@@ -145,13 +145,10 @@ uart:
     baud_rate: ${uart_baud}
 
 # Status LED
-light:
-  - platform: status_led
-    id: simple_status_led
-    pin:
-      number: ${status_led_pin}
-      inverted: false
-    internal: true
+status_led:
+  pin:
+    number: ${status_led_pin}
+    inverted: false
 
 # Main relay output
 switch:

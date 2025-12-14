@@ -150,6 +150,13 @@ switch:
     restore_mode: RESTORE_DEFAULT_OFF
     internal: true
 
+# Simple Status LED
+status_led:
+  pin:
+    number: ${status_led_simple_pin}
+    inverted: true
+
+# RGB Status LED
 light:
   - platform: esp32_rmt_led_strip
     id: status_led_rgb
@@ -160,13 +167,6 @@ light:
     name: "${friendly_name} Status LED"
     internal: true
     default_transition_length: 100ms
-
-  - platform: status_led
-    id: simple_status_led
-    pin:
-      number: ${status_led_simple_pin}
-      inverted: true
-    internal: true
 
 binary_sensor:
   - platform: status
