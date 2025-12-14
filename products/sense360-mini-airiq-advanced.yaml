@@ -397,11 +397,16 @@ number:
 # ----------------------------------------------------------------------------
 # STATUS LED
 # ----------------------------------------------------------------------------
+output:
+  - platform: gpio
+    id: status_led_output
+    pin: ${status_led_pin}
+
 light:
-  - platform: status_led
+  - platform: binary
     id: device_status_led
     name: "${friendly_name} Status LED"
-    pin: ${status_led_pin}
+    output: status_led_output
     restore_mode: ALWAYS_ON
 
 # ----------------------------------------------------------------------------
