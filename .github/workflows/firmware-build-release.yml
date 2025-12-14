@@ -179,32 +179,79 @@ jobs:
           web_username: "admin"
           web_password: "sense360admin"
           EOF
+          # Copy secrets to all locations where configs might look for them
           cp secrets.yaml products/secrets.yaml
+          mkdir -p tests/generated
+          cp secrets.yaml tests/secrets.yaml
+          cp secrets.yaml tests/generated/secrets.yaml
 
       - name: Compile firmware
         run: |
+          echo "=============================================="
           echo "Compiling: ${{ matrix.file }}"
-          esphome compile ${{ matrix.file }}
+          echo "ESPHome version: ${{ env.ESPHOME_VERSION }}"
+          echo "=============================================="
+          # First validate config to catch errors early
+          esphome config ${{ matrix.file }} > /dev/null
+          echo "Config validation passed, starting compilation..."
+          # Compile with verbose output on failure
+          if ! esphome compile ${{ matrix.file }}; then
+            echo "=============================================="
+            echo "COMPILATION FAILED"
+            echo "=============================================="
+            echo "Showing build directory contents:"
+            find .esphome -type f -name "*.log" 2>/dev/null | head -5 | xargs cat 2>/dev/null || true
+            exit 2
+          fi
 
       - name: Find and rename firmware binary
         id: rename
         run: |
-          # ESPHome outputs to .esphome/build/<device_name>/.pioenvs/<platform>/firmware.bin
-          # Find the firmware binary
-          FIRMWARE_PATH=$(find .esphome/build -name "firmware.bin" -type f 2>/dev/null | head -1)
+          echo "Searching for firmware binary..."
 
+          # ESPHome with ESP-IDF outputs to various locations depending on version
+          # Try multiple patterns to find the firmware
+          FIRMWARE_PATH=""
+
+          # Pattern 1: Standard firmware.bin
           if [ -z "$FIRMWARE_PATH" ]; then
-            # Also check for factory.bin (some platforms)
+            FIRMWARE_PATH=$(find .esphome/build -name "firmware.bin" -type f 2>/dev/null | head -1)
+          fi
+
+          # Pattern 2: Factory bin (ESP-IDF merged binary for initial flash)
+          if [ -z "$FIRMWARE_PATH" ]; then
             FIRMWARE_PATH=$(find .esphome/build -name "firmware-factory.bin" -type f 2>/dev/null | head -1)
           fi
 
+          # Pattern 3: ESP-IDF style merged binary
           if [ -z "$FIRMWARE_PATH" ]; then
+            FIRMWARE_PATH=$(find .esphome/build -path "*/.pioenvs/*/firmware*.bin" -type f 2>/dev/null | head -1)
+          fi
+
+          # Pattern 4: Any .bin file in idedata directory (ESP-IDF)
+          if [ -z "$FIRMWARE_PATH" ]; then
+            FIRMWARE_PATH=$(find .esphome/build -path "*/idedata/*" -name "*.bin" -type f 2>/dev/null | grep -v bootloader | head -1)
+          fi
+
+          # Pattern 5: Last resort - any firmware*.bin
+          if [ -z "$FIRMWARE_PATH" ]; then
+            FIRMWARE_PATH=$(find .esphome/build -name "firmware*.bin" -type f 2>/dev/null | head -1)
+          fi
+
+          if [ -z "$FIRMWARE_PATH" ]; then
+            echo "=============================================="
             echo "Error: Could not find compiled firmware binary"
-            find .esphome/build -type f -name "*.bin" 2>/dev/null || true
+            echo "=============================================="
+            echo "Available .bin files:"
+            find .esphome/build -type f -name "*.bin" 2>/dev/null || echo "No .bin files found"
+            echo ""
+            echo "Build directory structure:"
+            find .esphome/build -type d 2>/dev/null | head -20 || echo "No build directory"
             exit 1
           fi
 
           echo "Found firmware at: $FIRMWARE_PATH"
+          echo "File size: $(stat -c%s "$FIRMWARE_PATH") bytes"
 
           # Generate WebFlash-compatible filename
           VERSION="${{ needs.generate-matrix.outputs.version }}"

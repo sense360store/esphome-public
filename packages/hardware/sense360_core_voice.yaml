@@ -62,11 +62,6 @@ esphome:
     - priority: -100
       then:
         - logger.log: "Sense360 Core Voice board ready - voice assistant enabled"
-        - if:
-            condition:
-              voice_assistant.is_running:
-            then:
-              - logger.log: "Voice assistant is running"
 
 # I2S audio bus for microphone and speaker
 i2s_audio:
