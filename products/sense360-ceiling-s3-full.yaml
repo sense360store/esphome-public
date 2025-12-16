@@ -237,18 +237,17 @@ sensor:
 # - GPIO5:  UART RX for SEN0609 / presence GPIO output
 # - GPIO6:  notEgpio0 (presence module auxiliary)
 # - GPIO7:  AirQ_Status_Led
-# - GPIO8:  Reserved for AirQ_Led in schematic (unused here to avoid conflicts)
+# - GPIO8:  Reserved for AirQ_Led in schematic (left unused to avoid conflicts)
 # - GPIO14: LED_DATA (WS2812B LED ring)
 # - GPIO15: FAN (fan control MOSFET)
-# - GPIO18: I2C_SCL
-# - GPIO21: I2C_SDA
+# - GPIO17: I2C_SDA (PSRAM-safe)
+# - GPIO18: I2C_SCL (PSRAM-safe)
 # - GPIO38: UART TX for Hi-Link LD2450
 # - GPIO39: UART RX for Hi-Link LD2450
 #
 # KNOWN ISSUES:
-# 1. GPIO8 Conflict: Schematic shows GPIO8 used for both I2C_SCL and
-#    AirQ_Led. The LED cannot be used when I2C is active. This is a
-#    hardware design error that should be corrected in the next revision.
+# 1. I2C uses PSRAM-safe pins GPIO17/18 to avoid conflicts with PSRAM/Flash
+#    (and the schematic's GPIO8 routing). GPIO8 remains unused.
 #
 # 2. Presence Sensor Selection: Choose EITHER Hi-Link (GPIO38/39) OR
 #    SEN0609 (GPIO4/5) by setting presence_sensor_type substitution.

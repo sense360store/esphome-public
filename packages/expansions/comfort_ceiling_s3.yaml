@@ -3,15 +3,16 @@
 # COMFORT CEILING EXPANSION MODULE - FOR CEILING S3 BOARD
 # ============================================================================
 # Environmental comfort monitoring module for Sense360 Ceiling S3 board.
-# This variant uses the ceiling S3's I2C primary bus on GPIO26/GPIO8.
+# This variant uses the ceiling S3's I2C primary bus on
+# ${i2c_primary_sda_pin}/${i2c_primary_scl_pin}.
 #
 # Sensors:
 # - VEML7700 (I2C 0x10): High-resolution ambient light sensor
 # - SHT4x (I2C 0x44): High-accuracy temperature and humidity
 #
 # I2C Connection (Ceiling S3):
-#   - SDA: GPIO26
-#   - SCL: GPIO8
+#   - SDA: ${i2c_primary_sda_pin}
+#   - SCL: ${i2c_primary_scl_pin}
 #   - Frequency: 100kHz (shared with AirIQ)
 #
 # Interrupt:
@@ -22,8 +23,8 @@
 substitutions:
   # I2C Configuration (uses ceiling S3 primary bus)
   comfort_i2c_id: i2c_primary
-  comfort_i2c_sda: GPIO26
-  comfort_i2c_scl: GPIO8
+  comfort_i2c_sda: ${i2c_primary_sda_pin}
+  comfort_i2c_scl: ${i2c_primary_scl_pin}
 
   # Interrupt pin
   comfort_als_int_pin: GPIO3
