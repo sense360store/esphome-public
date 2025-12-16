@@ -78,8 +78,7 @@ jobs:
 
       - name: Run yamllint
         run: |
-          yamllint -d "{extends: default, rules: {line-length: {max: 120}, comments: {min-spaces-from-content: 1}}}" \
-            products/ packages/ || true
+          yamllint -c .yamllint products/ packages/
 
   # ============================================================================
   # JOB 2: DISCOVER ALL PRODUCTS
