@@ -185,57 +185,47 @@ The `products/` directory contains complete, tested configurations:
 
 Select a product configuration that matches your hardware and use case from the table above.
 
-### Step 2: Create Your Device Configuration
+### Step 2: Configure Required Secrets
+
+The firmware packages use secrets for WiFi, API, OTA, and web server authentication. Add these to your `secrets.yaml`:
+
+```yaml
+# WiFi credentials
+wifi_ssid: "YourNetworkName"
+wifi_password: "YourWiFiPassword"
+
+# Security credentials
+api_encryption_key: "GENERATE_WITH_ESPHOME_WIZARD"  # Generate: esphome wizard
+ota_password: "your-secure-ota-password"
+
+# Web server authentication (required)
+web_username: "admin"
+web_password: "your-secure-web-password"
+```
+
+> **Generate API Key**: Run `esphome wizard` or use: `openssl rand -base64 32`
+
+### Step 3: Create Your Device Configuration
 
 In your ESPHome dashboard, create a new file (e.g., `sense360-living-room.yaml`):
 
 ```yaml
-# Device identification
-substitutions:
-  device_name: sense360-living-room
-  friendly_name: "Living Room Sense360"
-
-# ESPHome configuration
-esphome:
-  name: ${device_name}
-  friendly_name: ${friendly_name}
-  min_version: 2025.10.0
-
-# Load firmware from GitHub
+# Load firmware from GitHub - this handles WiFi, API, OTA automatically via secrets
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.2.0  # Use the latest stable version
+    ref: v3.0.0  # Use the latest stable version
     files:
       - products/sense360-core-ceiling.yaml
     refresh: 1d
 
-# WiFi credentials (stored in secrets.yaml)
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-
-# Home Assistant API
-api:
-  encryption:
-    key: !secret api_encryption_key
-
-# Over-the-air updates
-ota:
-  - platform: esphome
-    password: !secret ota_password
+# Override device identification (optional)
+substitutions:
+  device_name: sense360-living-room
+  friendly_name: "Living Room Sense360"
 ```
 
-### Step 3: Configure Secrets
-
-Add to your `secrets.yaml`:
-
-```yaml
-wifi_ssid: "YourNetworkName"
-wifi_password: "YourWiFiPassword"
-api_encryption_key: "GENERATE_WITH_ESPHOME_WIZARD"
-ota_password: "your-secure-password"
-```
+> **Important**: Do NOT add `wifi:`, `api:`, or `ota:` sections to your config. The packages already handle these using your secrets. Adding them again will cause conflicts.
 
 ### Step 4: Flash Your Device
 
@@ -274,7 +264,7 @@ For custom module combinations, load individual packages:
 packages:
   sense360_base:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.2.0
+    ref: v3.0.0
     files:
       # Base system
       - packages/base/wifi.yaml
