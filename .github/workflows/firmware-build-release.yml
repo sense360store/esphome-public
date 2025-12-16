@@ -321,6 +321,8 @@ jobs:
     needs: [generate-matrix, build]
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -395,8 +397,8 @@ jobs:
             all-firmware/checksums-sha256.txt
             all-firmware/checksums-md5.txt
             all-firmware/manifest.json
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fail_on_unmatched_files: true
 
       - name: Release summary
         run: |
