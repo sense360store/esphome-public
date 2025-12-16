@@ -210,43 +210,48 @@ jobs:
           echo "Searching for firmware binary..."
 
           # ESPHome with ESP-IDF outputs to various locations depending on version
-          # Try multiple patterns to find the firmware
+          # and the directory that contains the YAML config. Configs under
+          # products/ build into products/.esphome/, while configs at the repo
+          # root build into .esphome/. Discover all build roots first.
           FIRMWARE_PATH=""
+          BUILD_ROOTS=$(find . -name ".esphome" -type d -prune)
 
-          # Pattern 1: Standard firmware.bin
-          if [ -z "$FIRMWARE_PATH" ]; then
-            FIRMWARE_PATH=$(find .esphome/build -name "firmware.bin" -type f 2>/dev/null | head -1)
-          fi
+          for ROOT in $BUILD_ROOTS; do
+            # Pattern 1: Standard firmware.bin
+            if [ -z "$FIRMWARE_PATH" ]; then
+              FIRMWARE_PATH=$(find "$ROOT/build" -name "firmware.bin" -type f 2>/dev/null | head -1)
+            fi
 
-          # Pattern 2: Factory bin (ESP-IDF merged binary for initial flash)
-          if [ -z "$FIRMWARE_PATH" ]; then
-            FIRMWARE_PATH=$(find .esphome/build -name "firmware-factory.bin" -type f 2>/dev/null | head -1)
-          fi
+            # Pattern 2: Factory bin (ESP-IDF merged binary for initial flash)
+            if [ -z "$FIRMWARE_PATH" ]; then
+              FIRMWARE_PATH=$(find "$ROOT/build" -name "firmware-factory.bin" -type f 2>/dev/null | head -1)
+            fi
 
-          # Pattern 3: ESP-IDF style merged binary
-          if [ -z "$FIRMWARE_PATH" ]; then
-            FIRMWARE_PATH=$(find .esphome/build -path "*/.pioenvs/*/firmware*.bin" -type f 2>/dev/null | head -1)
-          fi
+            # Pattern 3: ESP-IDF style merged binary
+            if [ -z "$FIRMWARE_PATH" ]; then
+              FIRMWARE_PATH=$(find "$ROOT/build" -path "*/.pioenvs/*/firmware*.bin" -type f 2>/dev/null | head -1)
+            fi
 
-          # Pattern 4: Any .bin file in idedata directory (ESP-IDF)
-          if [ -z "$FIRMWARE_PATH" ]; then
-            FIRMWARE_PATH=$(find .esphome/build -path "*/idedata/*" -name "*.bin" -type f 2>/dev/null | grep -v bootloader | head -1)
-          fi
+            # Pattern 4: Any .bin file in idedata directory (ESP-IDF)
+            if [ -z "$FIRMWARE_PATH" ]; then
+              FIRMWARE_PATH=$(find "$ROOT/build" -path "*/idedata/*" -name "*.bin" -type f 2>/dev/null | grep -v bootloader | head -1)
+            fi
 
-          # Pattern 5: Last resort - any firmware*.bin
-          if [ -z "$FIRMWARE_PATH" ]; then
-            FIRMWARE_PATH=$(find .esphome/build -name "firmware*.bin" -type f 2>/dev/null | head -1)
-          fi
+            # Pattern 5: Last resort - any firmware*.bin
+            if [ -z "$FIRMWARE_PATH" ]; then
+              FIRMWARE_PATH=$(find "$ROOT/build" -name "firmware*.bin" -type f 2>/dev/null | head -1)
+            fi
+          done
 
           if [ -z "$FIRMWARE_PATH" ]; then
             echo "=============================================="
             echo "Error: Could not find compiled firmware binary"
             echo "=============================================="
             echo "Available .bin files:"
-            find .esphome/build -type f -name "*.bin" 2>/dev/null || echo "No .bin files found"
+            find . -path "*/.esphome/build/*" -type f -name "*.bin" 2>/dev/null || echo "No .bin files found"
             echo ""
             echo "Build directory structure:"
-            find .esphome/build -type d 2>/dev/null | head -20 || echo "No build directory"
+            find . -path "*/.esphome/build" -type d 2>/dev/null || echo "No build directory"
             exit 1
           fi
 
