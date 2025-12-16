@@ -79,25 +79,10 @@ packages:
   # === Core Hardware ===
   core_hardware: !include ../packages/hardware/sense360_core_ceiling.yaml
 
-# ============================================================================
-# POWER SOURCE INDICATOR
-# ============================================================================
-globals:
-  - id: power_source_type
-    type: std::string
-    restore_value: false
-    initial_value: '"USB"'
+  # === Power ===
+  power_usb: !include ../packages/hardware/power_usb.yaml
 
 text_sensor:
-  - platform: template
-    name: "${friendly_name} Power Source"
-    id: power_source_indicator
-    icon: mdi:usb
-    lambda: |-
-      return {"USB-C (5V)"};
-    update_interval: never
-    entity_category: diagnostic
-
   - platform: template
     name: "${friendly_name} Product SKU"
     lambda: |-
@@ -111,16 +96,3 @@ text_sensor:
       return {"${device_version}"};
     update_interval: never
     entity_category: diagnostic
-
-sensor:
-  - platform: template
-    name: "${friendly_name} Supply Voltage"
-    id: supply_voltage
-    icon: mdi:lightning-bolt
-    unit_of_measurement: "V"
-    device_class: voltage
-    state_class: measurement
-    accuracy_decimals: 1
-    lambda: |-
-      return 5.0;
-    update_interval: 60s
