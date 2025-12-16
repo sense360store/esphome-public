@@ -39,7 +39,7 @@ substitutions:
   # === Device Configuration ===
   device_name: sense360-ceiling-s3
   friendly_name: Sense360 Ceiling S3
-  timezone: "America/New_York"
+  timezone: "Europe/London"
 
   # === Presence Sensor Selection ===
   # Options: "hilink" for LD2450, "sen0609" for DFRobot C4001
