@@ -33,12 +33,12 @@ substitutions:
 
   # === LD2450 Presence Sensor UART ===
   ld2450_uart_id: uart_ld2450
-  ld2450_tx_pin: GPIO13
-  ld2450_rx_pin: GPIO12
+  ld2450_tx_pin: GPIO43
+  ld2450_rx_pin: GPIO44
   ld2450_baud: "256000"
 
-  # === Addressable LED Configuration (4 pixels, one pin) ===
-  led_data_pin: GPIO11
+  # === Addressable LED Configuration (4x WS2812B via level shifter) ===
+  led_data_pin: GPIO8
   led_count: "4"
   led_chipset: WS2812
   led_rgb_order: GRB

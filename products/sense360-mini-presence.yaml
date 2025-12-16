@@ -24,8 +24,8 @@ substitutions:
 
   # === LD2450 Presence Sensor UART ===
   ld2450_uart_id: uart_ld2450
-  ld2450_tx_pin: GPIO12
-  ld2450_rx_pin: GPIO13
+  ld2450_tx_pin: GPIO43
+  ld2450_rx_pin: GPIO44
   ld2450_baud: "256000"
 
   # === WiFi Behavior ===
