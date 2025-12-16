@@ -29,8 +29,8 @@
 # I2C BUSES:
 # ----------
 # I2C Primary (Sensors):
-#   - SDA: GPIO21 (I2C_SDA) → AirIQ Module, Comfort Module
-#   - SCL: GPIO18 (I2C_SCL) → AirIQ Module, Comfort Module
+#   - SDA: GPIO26 (I2C_SDA) → AirIQ Module, Comfort Module
+#   - SCL: GPIO8  (I2C_SCL) → AirIQ Module, Comfort Module
 #   - Frequency: 100 kHz (for SEN55 compatibility)
 #
 # UART PORTS:
@@ -54,7 +54,7 @@
 # AIRIQ MODULE:
 # -------------
 #   - GPIO7: AirQ_Status_Led (status indicator)
-#   - GPIO8: AirQ_Led (indicator reserved/unused in this configuration)
+#   - GPIO8: AirQ_Led (shares I2C SCL, indicator reserved/unused)
 #
 # COMFORT MODULE:
 # ---------------
@@ -76,9 +76,9 @@
 # ============================================================================
 # IMPORTANT NOTES:
 # ============================================================================
-# 1. I2C PINS: I2C uses GPIO21 (SDA) and GPIO18 (SCL) to avoid ESP32-S3
-#    PSRAM/SPI pins (e.g., GPIO26). Adjust only if your hardware routes these
-#    signals differently.
+# 1. I2C PINS: I2C uses GPIO26 (SDA) and GPIO8 (SCL) as routed on the Ceiling
+#    S3 main board. Adjust only if your hardware routes these signals
+#    differently.
 #
 # 2. PRESENCE SENSOR SELECTION: Choose either Hi-Link (GPIO38/39) OR
 #    SEN0609 (GPIO4/5) based on which sensor is physically installed.
@@ -100,8 +100,8 @@ substitutions:
   # I2C CONFIGURATION
   # ============================================================================
   # Primary I2C bus for all sensor modules (AirIQ, Comfort)
-  i2c_primary_sda_pin: GPIO21
-  i2c_primary_scl_pin: GPIO18
+  i2c_primary_sda_pin: GPIO26
+  i2c_primary_scl_pin: GPIO8
   i2c_primary_frequency: "100000"  # 100 kHz for SEN55 compatibility
 
   # ============================================================================
