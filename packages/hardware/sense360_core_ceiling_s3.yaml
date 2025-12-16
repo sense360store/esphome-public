@@ -145,7 +145,7 @@ substitutions:
   # ============================================================================
   led_data_pin: GPIO14             # WS2812B LED ring (via level shifter)
   led_count: "12"                  # Number of LEDs in halo ring
-  led_rmt_channel: "0"             # RMT channel for LED ring (configurable)
+  # Note: rmt_channel removed - ESP-IDF 5+ auto-selects RMT channel
 
   # ============================================================================
   # FAN CONTROL
@@ -228,7 +228,6 @@ light:
     id: led_ring
     chipset: ws2812
     rgb_order: GRB
-    rmt_channel: ${led_rmt_channel}
     pin: ${led_data_pin}
     num_leds: ${led_count}
     name: "${friendly_name} LED Ring"
