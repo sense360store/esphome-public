@@ -159,9 +159,9 @@ jobs:
           path: |
             ~/.platformio
             ~/.cache/pip
-          key: ${{ runner.os }}-pio-${{ hashFiles('**/platformio.ini') }}-${{ matrix.product }}
+          key: ${{ runner.os }}-pio-${{ env.ESPHOME_VERSION }}-${{ hashFiles(matrix.file) }}-${{ matrix.product }}
           restore-keys: |
-            ${{ runner.os }}-pio-${{ hashFiles('**/platformio.ini') }}-
+            ${{ runner.os }}-pio-${{ env.ESPHOME_VERSION }}-
             ${{ runner.os }}-pio-
 
       - name: Install ESPHome
