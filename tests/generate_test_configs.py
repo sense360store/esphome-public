@@ -139,9 +139,23 @@ class TestConfig:
                 '  fan_dac_i2c_id: expansion_i2c  # Ceiling uses expansion_i2c instead of i2c0',
             ])
 
+        # Check if presence module is included (requires ld2450 external component)
+        has_presence = any(mod.category == "presence" for mod in self.modules)
+
         lines.extend([
             "",
             "packages:",
+        ])
+
+        # Add external_components if presence module is used (requires ld2450)
+        if has_presence:
+            lines.extend([
+                "  # External components (ld2450 radar)",
+                "  external_components: !include ../../packages/base/external_components.yaml",
+                "",
+            ])
+
+        lines.extend([
             "  # Base system components",
             "  base_wifi: !include ../../packages/base/wifi.yaml",
             "  base_logging: !include ../../packages/base/logging.yaml",
