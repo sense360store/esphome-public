@@ -5,6 +5,7 @@ Official ESPHome firmware repository for [Sense360](https://mysense360.com) envi
 [![ESPHome](https://img.shields.io/badge/ESPHome-2025.10%2B-blue)](https://esphome.io/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![GitHub Release](https://img.shields.io/github/v/release/sense360store/esphome-public)](https://github.com/sense360store/esphome-public/releases)
+[![CI - Build & Release Firmware](https://github.com/sense360store/esphome-public/actions/workflows/firmware-build-release.yml/badge.svg)](https://github.com/sense360store/esphome-public/actions/workflows/firmware-build-release.yml)
 [![CI - Validate Firmware Configs](https://github.com/sense360store/esphome-public/actions/workflows/ci-validate-configs.yml/badge.svg)](https://github.com/sense360store/esphome-public/actions/workflows/ci-validate-configs.yml)
 
 ---
