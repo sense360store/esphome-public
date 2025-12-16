@@ -17,28 +17,89 @@ This document provides an exhaustive list of all possible Sense360 product confi
 
 ---
 
+## Required vs Optional Components
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         SENSE360 BUILD FORMULA                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────┐   ┌─────────┐   ┌──────────┐   ┌──────────┐   ┌─────────┐     │
+│   │  CORE   │ + │  POWER  │ + │ MOUNTING │ + │ MODULES  │ + │   LED   │     │
+│   └─────────┘   └─────────┘   └──────────┘   └──────────┘   └─────────┘     │
+│                                                                             │
+│   REQUIRED      REQUIRED      REQUIRED       OPTIONAL       OPTIONAL*       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+* LED is REQUIRED for Core Voice (microphone integrated into LED Voice ring)
+```
+
+### REQUIRED Components
+
+| Component | Options | Notes |
+|-----------|---------|-------|
+| **Core Board** | Core, Core Voice | Pick 1 - The brain of the system |
+| **Power** | USB, PoE, PWR | Pick 1 - How it gets power |
+| **Form Factor** | Ceiling (-C), Wall (-W) | Pick 1 - Physical mounting |
+
+### OPTIONAL Components
+
+| Component | Options | Notes |
+|-----------|---------|-------|
+| **LED Ring** | Standard LED, LED+MIC | Optional for Core, **REQUIRED for Core Voice** |
+| **AirIQ** | S360-AIR | Full air quality monitoring |
+| **Bathroom Base** | S360-BATH-B | Ceiling only, replaces AirIQ |
+| **Bathroom Pro** | S360-BATH-P | Ceiling only, replaces AirIQ |
+| **Comfort** | S360-CMFT | Temp/humidity/light |
+| **Presence** | S360-PRES | mmWave radar occupancy |
+| **Fan PWM** | S360-PWM | PWM fan control |
+| **Fan GP8403** | S360-GP8403 | 0-10V DAC fan control |
+
+### Minimum Valid Configuration
+
+The simplest valid Sense360 configuration is:
+
+```
+Core + Power + Form Factor (no expansion modules)
+
+Example: Core-C + USB = Basic ceiling unit with relay control only
+```
+
+---
+
 ## System Components
 
-### Core Boards (Pick 1)
+### Core Boards (REQUIRED - Pick 1)
 | Core | SKU | Description |
 |------|-----|-------------|
 | Core | S360-CORE | Standard ESP32-S3 core |
 | Core Voice | S360-CORE-V | Voice-enabled with mic support |
 
-### Power Options (Pick 1)
+### Power Options (REQUIRED - Pick 1)
 | Power | SKU | Input | Use Case |
 |-------|-----|-------|----------|
 | USB | Built-in | 5V USB-C | Development, portable |
 | PoE | S360-POE | 36-57V PoE | Professional install |
 | PWR | S360-PWR | 100-240V AC | Permanent install |
 
-### Form Factors (Pick 1)
+### Form Factors (REQUIRED - Pick 1)
 | Mount | Suffix | Description |
 |-------|--------|-------------|
 | Ceiling | -C | Ceiling flush mount |
 | Wall | -W | Wall or desk mount |
 
-### Expansion Modules (Optional - Mix & Match)
+### LED Rings (OPTIONAL* - Pick 0 or 1)
+| LED | SKU | Description |
+|-----|-----|-------------|
+| LED Ceiling | S360-LED-C | Standard LED ring for ceiling |
+| LED Wall | S360-LED-W | Standard LED ring for wall |
+| LED+MIC Ceiling | S360-LED-V-C | LED + Microphone for Voice ceiling |
+| LED+MIC Wall | S360-LED-V-W | LED + Microphone for Voice wall |
+
+> *LED+MIC ring is **REQUIRED** for Core Voice configurations
+
+### Expansion Modules (OPTIONAL - Mix & Match)
 | Module | SKU | Ceiling | Wall | Notes |
 |--------|-----|---------|------|-------|
 | AirIQ | S360-AIR | ✓ | ✓ | Full air quality suite |
@@ -49,7 +110,7 @@ This document provides an exhaustive list of all possible Sense360 product confi
 | Fan PWM | S360-PWM | ✓ | ✓ | PWM fan control |
 | Fan GP8403 | S360-GP8403 | ✓ | ✓ | 0-10V DAC fan control |
 
-### Presence Sensor Variants
+### Presence Sensor Variants (OPTIONAL - if using Presence module)
 | Sensor | Features | Best For |
 |--------|----------|----------|
 | HLK-LD2450 | Multi-target (3), distance/angle | Default, general use |
