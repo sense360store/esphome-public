@@ -1,52 +1,57 @@
 ---
+# ============================================================================
+# Mini Four LEDs - WS2812B Addressable LED Strip
+# ============================================================================
+# Hardware: 4x WS2812B LEDs in daisy chain
+# Connection: GPIO8 via 74LVC1G07 level shifter (3.3V → 5V)
+# ============================================================================
+
 substitutions:
-  status_light_brightness: "50%"
+  # LED Configuration (can be overridden)
+  led_data_pin: GPIO8
+  led_count: "4"
+  led_chipset: WS2812
+  led_rgb_order: GRB
 
-i2c:
-  - id: led_i2c
-    sda: GPIO25
-    scl: GPIO26
-    frequency: 400kHz
-
-pca9685:
-  - id: led_driver
-    i2c_id: led_i2c
-    frequency: 1000
-    address: 0x40
-
-output:
-  - platform: pca9685
-    pca9685_id: led_driver
-    channel: 0
-    id: led_output_1
-  - platform: pca9685
-    pca9685_id: led_driver
-    channel: 1
-    id: led_output_2
-  - platform: pca9685
-    pca9685_id: led_driver
-    channel: 2
-    id: led_output_3
-  - platform: pca9685
-    pca9685_id: led_driver
-    channel: 3
-    id: led_output_4
-
+# ----------------------------------------------------------------------------
+# WS2812B LED STRIP
+# ----------------------------------------------------------------------------
 light:
-  - platform: monochromatic
-    name: "${friendly_name} LED 1"
-    output: led_output_1
+  - platform: esp32_rmt_led_strip
+    id: status_leds
+    name: "${friendly_name} Status LEDs"
+    pin: ${led_data_pin}
+    num_leds: ${led_count}
+    chipset: ${led_chipset}
+    rgb_order: ${led_rgb_order}
     default_transition_length: 250ms
-    id: led_one
-  - platform: monochromatic
-    name: "${friendly_name} LED 2"
-    output: led_output_2
-    default_transition_length: 250ms
-  - platform: monochromatic
-    name: "${friendly_name} LED 3"
-    output: led_output_3
-    default_transition_length: 250ms
-  - platform: monochromatic
-    name: "${friendly_name} LED 4"
-    output: led_output_4
-    default_transition_length: 250ms
+    effects:
+      - pulse:
+          name: "Pulse"
+          transition_length: 1s
+          update_interval: 1s
+      - addressable_rainbow:
+          name: "Rainbow"
+          speed: 10
+          width: 50
+      - addressable_color_wipe:
+          name: "Color Wipe"
+          colors:
+            - red: 100%
+              green: 0%
+              blue: 0%
+              num_leds: 1
+            - red: 0%
+              green: 100%
+              blue: 0%
+              num_leds: 1
+            - red: 0%
+              green: 0%
+              blue: 100%
+              num_leds: 1
+          add_led_interval: 100ms
+          reverse: false
+      - addressable_scan:
+          name: "Scan"
+          move_interval: 100ms
+          scan_width: 1

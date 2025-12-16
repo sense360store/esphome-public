@@ -1,40 +1,71 @@
 ---
+# ============================================================================
+# Sense360 Mini Core - ESP32-S3 Hardware Configuration
+# ============================================================================
+# Hardware: ESP32-S3-WROOM-2
+# Form Factor: Mini sensor board with AirIQ and presence detection
+#
+# Pin Assignments (from schematic):
+# - I2C SDA: GPIO48
+# - I2C SCL: GPIO45
+# - UART TX: GPIO43 (to radar RX)
+# - UART RX: GPIO44 (from radar TX)
+# - LED Data: GPIO8 (WS2812B via level shifter)
+# - Boot Button: GPIO0
+# ============================================================================
+
 substitutions:
   device_name: sense360-mini
-  friendly_name: Sense360 Mini Core
-  timezone: "America/Los_Angeles"
-  status_led_pin: GPIO2
+  friendly_name: Sense360 Mini
+  timezone: "UTC"
+
+  # I2C Bus Pins
+  i2c_sda_pin: GPIO48
+  i2c_scl_pin: GPIO45
+
+  # UART Pins (for presence sensor)
+  uart_tx_pin: GPIO43
+  uart_rx_pin: GPIO44
+
+  # LED Data Pin (WS2812B via level shifter)
+  led_data_pin: GPIO8
+
+  # Boot Button
+  boot_button_pin: GPIO0
 
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
+  min_version: 2024.11.0
   project:
     name: sense360.mini
-    version: 1.0.0
+    version: 3.0.0
 
 esp32:
-  board: esp32dev
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
   framework:
     type: esp-idf
     version: recommended
+    sdkconfig_options:
+      CONFIG_ESPTOOLPY_FLASHSIZE_16MB: y
+      CONFIG_ESPTOOLPY_FLASHFREQ_80M: y
+      CONFIG_ESPTOOLPY_FLASHMODE_QIO: y
 
+# ----------------------------------------------------------------------------
+# I2C BUS - For sensors (SEN55, SCD40, SHT30, LTR-303)
+# ----------------------------------------------------------------------------
 i2c:
   - id: i2c0
-    sda: GPIO21
-    scl: GPIO18
+    sda: ${i2c_sda_pin}
+    scl: ${i2c_scl_pin}
     scan: true
+    frequency: 100kHz
 
-uart:
-  id: uart_bus
-  tx_pin: GPIO17
-  rx_pin: GPIO16
-  baud_rate: 115200
-
-status_led:
-  pin:
-    number: ${status_led_pin}
-    inverted: true
-
+# ----------------------------------------------------------------------------
+# SYSTEM SENSORS
+# ----------------------------------------------------------------------------
 binary_sensor:
   - platform: status
     name: "${friendly_name} Status"
@@ -52,4 +83,7 @@ sensor:
     update_interval: 60s
   - platform: uptime
     name: "${friendly_name} Uptime"
+    update_interval: 60s
+  - platform: internal_temperature
+    name: "${friendly_name} MCU Temperature"
     update_interval: 60s
