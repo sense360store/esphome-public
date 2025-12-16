@@ -26,12 +26,14 @@ substitutions:
   led_count: "12"
   led_chipset: WS2812
   led_rgb_order: GRB
+  led_rmt_channel: "0"
 
 light:
   - platform: esp32_rmt_led_strip
     id: led_ring
     rgb_order: ${led_rgb_order}
     chipset: ${led_chipset}
+    rmt_channel: ${led_rmt_channel}
     pin: ${led_data_pin}
     num_leds: ${led_count}
     name: "${friendly_name} LED Ring"
