@@ -30,5 +30,6 @@ external_components:
       type: git
       url: https://github.com/esphome/esphome
       ref: 2024.12.4
+      path: esphome/components
     components: [ld2450]
     refresh: 1d
