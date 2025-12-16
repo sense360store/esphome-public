@@ -25,11 +25,10 @@ external_components:
   # Source: ESPHome upstream component pinned to a compatible release
   # Features: Native target tracking, still/moving detection, UART interface
   # Pinned to a specific tag for stability across product configs
-  # Note: ld2450 was added to ESPHome in version 2024.10.0
+  # Note: ld2450 was added to ESPHome in version 2025.3.0
   - source:
       type: git
       url: https://github.com/esphome/esphome
-      ref: 2024.12.4
-      path: esphome/components
+      ref: 2025.3.0
     components: [ld2450]
     refresh: 1d
