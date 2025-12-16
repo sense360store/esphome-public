@@ -48,6 +48,10 @@ concurrency:
   group: firmware-release-${{ github.ref }}
   cancel-in-progress: false
 
+# Required permissions for release asset uploads
+permissions:
+  contents: write
+
 env:
   ESPHOME_VERSION: "2025.3.0"
 
