@@ -64,7 +64,7 @@ substitutions:
   log_level: INFO
 
   # WiFi
-  wifi_fast_connect: false
+  wifi_fast_connect: "false"
 
 # ============================================================================
 # PACKAGE INCLUDES
