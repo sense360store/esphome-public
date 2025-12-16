@@ -119,7 +119,8 @@ binary_sensor:
       // This could be enhanced to detect actual power draw
       // For now, it's a static warning for USB configurations
       // Users can disable this if they know their setup is OK
-      return false;  # Set to true to enable warning
+      // Set to true to enable warning
+      return false;
     filters:
       - delayed_on: 10s
 
