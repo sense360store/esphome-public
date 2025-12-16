@@ -66,6 +66,9 @@ substitutions:
 # PACKAGE INCLUDES
 # ============================================================================
 packages:
+  # === External Components (required for LD2450) ===
+  external_components: !include ../packages/base/external_components.yaml
+
   # === Base System Components ===
   base_wifi: !include ../packages/base/wifi.yaml
   base_logging: !include ../packages/base/logging.yaml
