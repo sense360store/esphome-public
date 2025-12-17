@@ -335,13 +335,6 @@ button:
             id: sen55
         - logger.log: "SEN55 fan cleaning started (10 seconds)"
 
-  # LD2412 Restart
-  - platform: ld2412
-    ld2412_id: ld2412_radar
-    restart:
-      name: "${friendly_name} Restart Radar"
-      icon: "mdi:radar"
-
 # ----------------------------------------------------------------------------
 # USAGE NOTES FOR CUSTOMERS
 # ----------------------------------------------------------------------------
