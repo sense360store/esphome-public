@@ -1,11 +1,30 @@
 ---
 substitutions:
   air_quality_topic: ${device_name}/air_quality
-  # MQTT broker address - set this in your product config to enable MQTT publishing
-  # Leave as empty string to disable MQTT (must also override mqtt: null in product)
+  # =========================================================================
+  # MQTT CONFIGURATION
+  # =========================================================================
+  # Set the broker address to enable MQTT publishing.
+  # To disable MQTT entirely, set: mqtt: null in your device config.
+  #
+  # IMPORTANT: If your MQTT broker requires authentication (most do, including
+  # Home Assistant's Mosquitto add-on), you MUST configure credentials.
+  #
+  # Option 1 - Set credentials via substitutions in your device config:
+  #   substitutions:
+  #     airiq_mqtt_broker: "192.168.x.x"
+  #     airiq_mqtt_username: "your_mqtt_user"
+  #     airiq_mqtt_password: "your_mqtt_password"
+  #
+  # Option 2 - Override mqtt block to use secrets.yaml:
+  #   mqtt:
+  #     username: !secret mqtt_username
+  #     password: !secret mqtt_password
+  #
+  # Note: Empty username/password may cause authentication failures on
+  # brokers that require credentials.
+  # =========================================================================
   airiq_mqtt_broker: ""
-  # Provide MQTT credentials through substitutions or secrets; leave blank if your
-  # broker does not require authentication.
   airiq_mqtt_username: ""
   airiq_mqtt_password: ""
 

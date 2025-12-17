@@ -10,12 +10,18 @@
 # ============================================================================
 
 # ----------------------------------------------------------------------------
-# DEVICE IDENTIFICATION
+# DEVICE IDENTIFICATION & MQTT
 # ----------------------------------------------------------------------------
 substitutions:
   # === REQUIRED: Customize these for your device ===
   device_name: sense360-living-room      # Unique name (lowercase, no spaces)
   friendly_name: "Living Room Sense360"  # Display name in Home Assistant
+
+  # === MQTT Configuration (Required for AirIQ features) ===
+  # Uncomment and configure these for MQTT air quality publishing:
+  # airiq_mqtt_broker: !secret mqtt_broker
+  # airiq_mqtt_username: !secret mqtt_username
+  # airiq_mqtt_password: !secret mqtt_password
 
 # ----------------------------------------------------------------------------
 # ESPHOME CONFIGURATION
@@ -123,6 +129,21 @@ api:
 ota:
   - platform: esphome
     password: !secret ota_password
+
+# ----------------------------------------------------------------------------
+# MQTT CONFIGURATION (Required for AirIQ Air Quality Publishing)
+# ----------------------------------------------------------------------------
+# If using the AirIQ air quality features, MQTT is required to publish data.
+# For Home Assistant's Mosquitto add-on:
+# 1. Install Mosquitto broker add-on in Home Assistant
+# 2. Create a user in: Settings > Add-ons > Mosquitto broker > Configuration
+# 3. Add credentials to your secrets.yaml:
+#    mqtt_broker: "192.168.x.x"    # Your Home Assistant IP
+#    mqtt_username: "your_mqtt_user"
+#    mqtt_password: "your_mqtt_password"
+
+# To disable MQTT entirely (if not using AirIQ features), add:
+# mqtt: null
 
 # ----------------------------------------------------------------------------
 # OPTIONAL: ADVANCED THRESHOLD CUSTOMIZATION
