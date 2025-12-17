@@ -2,7 +2,7 @@
 # ============================================================================
 # SENSE360 PRESENCE EXPANSION MODULE - LD2412 (Single-Zone)
 # ============================================================================
-# HLK-LD2412 24GHz mmWave Radar Sensor for presence detection
+# HLK-LD2412 24GHz mmWave Radar Sensor (Native ESPHome Component)
 # - Superior still presence detection up to 9 meters
 # - Gate-based detection (14 gates at configurable resolution)
 # - Single target tracking with high accuracy
@@ -10,6 +10,9 @@
 #
 # This file provides the base hardware setup. User-facing entities are defined
 # in the feature profile files (basic or advanced).
+#
+# Native ESPHome component documentation:
+# https://esphome.io/components/sensor/ld2412
 #
 # Expansion Bus Connection:
 #   Pin 6 (UART TX) → GPIO1 (ESP RX)
