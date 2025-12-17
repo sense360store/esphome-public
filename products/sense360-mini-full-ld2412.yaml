@@ -1,0 +1,388 @@
+---
+# ============================================================================
+# SENSE360 MINI FULL - AIR QUALITY + LD2412 PRESENCE
+# ============================================================================
+# Complete Sense360 Mini configuration with:
+# - Full air quality monitoring (SEN55 + SCD4x)
+# - LD2412 mmWave presence detection
+# - Status LEDs and Bluetooth proxy
+#
+# Perfect for: Cinema rooms, living spaces, bedrooms, offices
+#
+# Customer usage in their ESPHome config:
+# packages:
+#   sense360_firmware:
+#     url: https://github.com/sense360store/esphome-public
+#     ref: v3.0.1
+#     files:
+#       - products/sense360-mini-full-ld2412.yaml
+#     refresh: 1d
+# ============================================================================
+
+substitutions:
+  # Device identity (override these for your install)
+  device_name: sense360-mini
+  friendly_name: Sense360 Mini
+  timezone: UTC
+
+  # Hardware pins (ESP32-S3 Mini)
+  board_variant: esp32-s3-devkitc-1
+
+  # I2C Bus for sensors
+  i2c_sda_pin: GPIO48
+  i2c_scl_pin: GPIO45
+  i2c_frequency: 100kHz
+
+  # LD2412 Presence Sensor UART
+  ld2412_uart_id: uart_ld2412
+  ld2412_tx_pin: GPIO43
+  ld2412_rx_pin: GPIO44
+  ld2412_baud: "115200"
+
+  # Addressable LED Configuration (4x WS2812B via level shifter)
+  led_data_pin: GPIO8
+  led_count: "4"
+  led_chipset: WS2812
+  led_rgb_order: GRB
+
+  # WiFi & Logging
+  wifi_fast_connect: "true"
+  log_level: INFO
+
+  # Bluetooth proxy
+  enable_bt_proxy: "true"
+
+  # Air Quality Thresholds (users can override)
+  co2_good_limit: "750"
+  co2_moderate_limit: "950"
+  co2_unhealthy_limit: "1400"
+
+  pm2_5_good_limit: "10"
+  pm2_5_moderate_limit: "25"
+  pm2_5_unhealthy_limit: "55"
+
+  voc_good_limit: "80"
+  voc_moderate_limit: "120"
+  voc_unhealthy_limit: "180"
+
+# ----------------------------------------------------------------------------
+# ESPHOME CORE
+# ----------------------------------------------------------------------------
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  min_version: 2024.11.0
+  project:
+    name: sense360.mini-full-ld2412
+    version: "3.0.1"
+
+# ----------------------------------------------------------------------------
+# ESP32 CONFIGURATION
+# ----------------------------------------------------------------------------
+esp32:
+  board: ${board_variant}
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_ESPTOOLPY_FLASHSIZE_16MB: y
+      CONFIG_ESPTOOLPY_FLASHFREQ_80M: y
+      CONFIG_ESPTOOLPY_FLASHMODE_QIO: y
+
+# ----------------------------------------------------------------------------
+# EXTERNAL COMPONENTS - LD2412 from community repository
+# ----------------------------------------------------------------------------
+external_components:
+  - source:
+      type: git
+      url: https://github.com/smarthomeshop/ld2412
+      ref: main
+    components: [ld2412]
+
+# ----------------------------------------------------------------------------
+# BASE PACKAGES - Core system components
+# ----------------------------------------------------------------------------
+packages:
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_bluetooth: !include ../packages/base/bluetooth_proxy.yaml
+  # Air Quality Features
+  airiq_features: !include ../packages/features/airiq_advanced.yaml
+  # Device Health & Diagnostics
+  device_health: !include ../packages/features/device_health.yaml
+  diagnostics: !include ../packages/features/diagnostics.yaml
+  # Status LEDs
+  status_leds: !include ../packages/features/mini_four_leds_addr.yaml
+
+# ----------------------------------------------------------------------------
+# I2C BUS - For air quality sensors
+# ----------------------------------------------------------------------------
+i2c:
+  - id: i2c0
+    sda: ${i2c_sda_pin}
+    scl: ${i2c_scl_pin}
+    scan: true
+    frequency: ${i2c_frequency}
+
+# ----------------------------------------------------------------------------
+# UART - For LD2412 Radar Sensor
+# ----------------------------------------------------------------------------
+uart:
+  - id: ${ld2412_uart_id}
+    tx_pin: ${ld2412_tx_pin}
+    rx_pin: ${ld2412_rx_pin}
+    baud_rate: ${ld2412_baud}
+    parity: NONE
+    stop_bits: 1
+
+# ----------------------------------------------------------------------------
+# LD2412 PRESENCE SENSOR
+# ----------------------------------------------------------------------------
+ld2412:
+  id: ld2412_radar
+  uart_id: ${ld2412_uart_id}
+
+# ----------------------------------------------------------------------------
+# AIR QUALITY SENSORS
+# ----------------------------------------------------------------------------
+sensor:
+  # ===== SEN55 - Complete Particulate Matter + Environmental Suite =====
+  - platform: sen5x
+    id: sen55
+    i2c_id: i2c0
+    address: 0x69
+    update_interval: 30s
+
+    # PM1.0
+    pm_1_0:
+      id: sen55_pm1
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - sliding_window_moving_average:
+            window_size: 5
+            send_every: 1
+      on_value:
+        then:
+          - lambda: 'id(pm1_0).publish_state(x);'
+          - script.execute: evaluate_air_quality
+
+    # PM2.5
+    pm_2_5:
+      id: sen55_pm25
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - sliding_window_moving_average:
+            window_size: 5
+            send_every: 1
+      on_value:
+        then:
+          - lambda: 'id(pm2_5).publish_state(x);'
+          - script.execute: evaluate_air_quality
+
+    # PM4.0
+    pm_4_0:
+      id: sen55_pm4
+      internal: true
+      accuracy_decimals: 1
+      on_value:
+        then:
+          - lambda: 'id(pm4_0).publish_state(x);'
+
+    # PM10
+    pm_10_0:
+      id: sen55_pm10
+      internal: true
+      accuracy_decimals: 1
+      on_value:
+        then:
+          - lambda: 'id(pm10).publish_state(x);'
+
+    # Temperature from SEN55
+    temperature:
+      id: sen55_temp
+      name: "${friendly_name} Temperature"
+      accuracy_decimals: 1
+      on_value:
+        then:
+          - lambda: 'id(room_temperature).publish_state(x);'
+
+    # Humidity from SEN55
+    humidity:
+      id: sen55_humidity
+      name: "${friendly_name} Humidity"
+      accuracy_decimals: 1
+      on_value:
+        then:
+          - lambda: 'id(room_humidity).publish_state(x);'
+
+    # VOC Index
+    voc:
+      id: sen55_voc
+      internal: true
+      on_value:
+        then:
+          - lambda: 'id(voc_index).publish_state(x);'
+          - script.execute: evaluate_air_quality
+
+    # NOx Index
+    nox:
+      id: sen55_nox
+      internal: true
+      on_value:
+        then:
+          - lambda: 'id(nox_index).publish_state(x);'
+
+  # ===== SCD4x - Precision CO2 Sensor =====
+  - platform: scd4x
+    id: scd4x_sensor
+    i2c_id: i2c0
+    address: 0x62
+    update_interval: 30s
+    automatic_self_calibration: true
+
+    co2:
+      id: scd4x_co2
+      internal: true
+      on_value:
+        then:
+          - lambda: 'id(co2_ppm).publish_state(x);'
+          - script.execute: evaluate_air_quality
+
+    temperature:
+      id: scd4x_temp
+      name: "${friendly_name} Temperature (SCD4x)"
+      internal: true
+      accuracy_decimals: 2
+
+    humidity:
+      id: scd4x_humidity
+      name: "${friendly_name} Humidity (SCD4x)"
+      internal: true
+      accuracy_decimals: 1
+
+  # ===== LD2412 Presence Sensors =====
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    moving_distance:
+      id: ld2412_detection_distance
+      name: "${friendly_name} Detection Distance"
+      icon: "mdi:signal-distance-variant"
+    moving_energy:
+      id: ld2412_moving_energy
+      name: "${friendly_name} Moving Energy"
+      internal: true
+    still_energy:
+      id: ld2412_still_energy
+      name: "${friendly_name} Still Energy"
+      internal: true
+
+  # System sensors
+  - platform: wifi_signal
+    name: "${friendly_name} WiFi Signal"
+    update_interval: 60s
+  - platform: uptime
+    name: "${friendly_name} Uptime"
+    update_interval: 60s
+
+# ----------------------------------------------------------------------------
+# PRESENCE DETECTION BINARY SENSORS
+# ----------------------------------------------------------------------------
+binary_sensor:
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    has_target:
+      id: ld2412_has_target
+      name: "${friendly_name} Presence"
+      device_class: occupancy
+    has_moving_target:
+      id: ld2412_has_moving
+      name: "${friendly_name} Movement"
+      device_class: motion
+    has_still_target:
+      id: ld2412_has_still
+      name: "${friendly_name} Still Presence"
+      device_class: occupancy
+
+  - platform: status
+    name: "${friendly_name} Status"
+
+# ----------------------------------------------------------------------------
+# CONTROLS
+# ----------------------------------------------------------------------------
+button:
+  - platform: restart
+    id: reset_button
+    name: "${friendly_name} Restart"
+    icon: "mdi:restart"
+
+  - platform: safe_mode
+    name: "${friendly_name} Safe Mode"
+
+  # SEN55 Fan Cleaning
+  - platform: template
+    name: "${friendly_name} Clean SEN55 Fan"
+    icon: "mdi:fan-auto"
+    on_press:
+      then:
+        - sen5x.start_fan_autoclean:
+            id: sen55
+        - logger.log: "SEN55 fan cleaning started (10 seconds)"
+
+  # LD2412 Restart
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    restart:
+      name: "${friendly_name} Restart Radar"
+      icon: "mdi:radar"
+
+# ----------------------------------------------------------------------------
+# USAGE NOTES FOR CUSTOMERS
+# ----------------------------------------------------------------------------
+# To use this configuration in your device:
+#
+# 1. Create your device config file (e.g., sense360cinema.yaml)
+# 2. Add this package reference:
+#
+#    substitutions:
+#      device_name: sense360cinema
+#      friendly_name: Cinema
+#      enable_bt_proxy: "true"
+#
+#    esphome:
+#      name: ${device_name}
+#      friendly_name: ${friendly_name}
+#      min_version: 2025.10.0
+#
+#    esp32:
+#      board: esp32-s3-devkitc-1
+#      framework: { type: esp-idf }
+#
+#    packages:
+#      sense360_firmware:
+#        url: https://github.com/sense360store/esphome-public
+#        ref: v3.0.1
+#        files:
+#          - products/sense360-mini-full-ld2412.yaml
+#        refresh: 1d
+#
+#    api:
+#      encryption:
+#        key: !secret api_encryption_key
+#
+#    ota:
+#      - platform: esphome
+#        password: !secret ota_password
+#
+# This gives you:
+# - Full air quality monitoring (CO2, PM1/2.5/4/10, VOC, NOx, Temperature, Humidity)
+# - LD2412 presence detection (still presence, movement, distance)
+# - Status LEDs
+# - Bluetooth proxy
+# ============================================================================
