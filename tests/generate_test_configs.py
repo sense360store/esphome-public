@@ -148,10 +148,25 @@ class TestConfig:
         ])
 
         # Add external_components if presence module is used (requires ld2450)
+        # NOTE: We inline external_components here instead of using !include because
+        # ESPHome resolves relative paths from the main config file's directory.
+        # Test configs are 2 levels deep (tests/generated/), so ../../components is correct.
         if has_presence:
             lines.extend([
-                "  # External components (ld2450 radar)",
-                "  external_components: !include ../../packages/base/external_components.yaml",
+                "# External components (ld2450 radar)",
+                "external_components:",
+                "  # LD2412/LD24xx from local components",
+                "  - source:",
+                "      type: local",
+                "      path: ../../components",
+                "    components: [ld2412, ld24xx]",
+                "  # LD2450 from ESPHome upstream",
+                "  - source:",
+                "      type: git",
+                "      url: https://github.com/esphome/esphome",
+                "      ref: 2025.3.0",
+                "    components: [ld2450]",
+                "    refresh: 1d",
                 "",
             ])
 
