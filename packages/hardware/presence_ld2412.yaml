@@ -2,7 +2,7 @@
 # ============================================================================
 # LD2412 PRESENCE SENSOR - HARDWARE CONFIGURATION
 # ============================================================================
-# HLK-LD2412 24GHz mmWave Radar Sensor
+# HLK-LD2412 24GHz mmWave Radar Sensor (Native ESPHome Component)
 # - Superior still presence detection up to 9 meters
 # - Gate-based detection (14 gates at configurable resolution)
 # - Single target tracking with high accuracy
@@ -11,11 +11,8 @@
 # This file provides the base hardware setup. Sensor entities are defined
 # in the feature profile files (basic or advanced).
 #
-# Requires external component from: https://github.com/smarthomeshop/ld2412
-#
-# NOTE: The external_components for LD2412 should be included via
-# packages/base/external_components.yaml in the product config, not here.
-# This avoids duplicate declarations when both are included.
+# Native ESPHome component documentation:
+# https://esphome.io/components/sensor/ld2412
 # ============================================================================
 
 substitutions:

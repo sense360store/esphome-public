@@ -78,7 +78,7 @@ esp32:
 # BASE PACKAGES - Core system components
 # ----------------------------------------------------------------------------
 packages:
-  # External components for LD2412
+  # External components (note: LD2412 is now native to ESPHome)
   external_components: !include ../packages/base/external_components.yaml
 
   base_wifi: !include ../packages/base/wifi.yaml

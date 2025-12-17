@@ -91,15 +91,8 @@ esp32:
       CONFIG_ESPTOOLPY_FLASHFREQ_80M: y
       CONFIG_ESPTOOLPY_FLASHMODE_QIO: y
 
-# ----------------------------------------------------------------------------
-# EXTERNAL COMPONENTS - LD2412 from community repository
-# ----------------------------------------------------------------------------
-external_components:
-  - source:
-      type: git
-      url: https://github.com/smarthomeshop/ld2412
-      ref: main
-    components: [ld2412]
+# NOTE: LD2412 is now a native ESPHome component - no external_components needed
+# Documentation: https://esphome.io/components/sensor/ld2412
 
 # ----------------------------------------------------------------------------
 # BASE PACKAGES - Core system components

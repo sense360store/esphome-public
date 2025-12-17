@@ -2,7 +2,7 @@
 # ============================================================================
 # PRESENCE DETECTION - ADVANCED PROFILE (LD2412)
 # ============================================================================
-# Advanced presence detection for LD2412 mmWave sensor.
+# Advanced presence detection for LD2412 mmWave sensor (Native ESPHome).
 # Includes gate-based threshold configuration, engineering mode,
 # calibration controls, and detailed energy/distance sensors.
 #
@@ -12,6 +12,9 @@
 # - Engineering mode for detailed diagnostics
 # - Dynamic background correction for auto-calibration
 # - Superior still presence detection up to 9 meters
+#
+# Native ESPHome component documentation:
+# https://esphome.io/components/sensor/ld2412
 # ============================================================================
 
 # Include basic profile as foundation
@@ -19,13 +22,36 @@ packages:
   presence_base: !include presence_basic.yaml
 
 # ----------------------------------------------------------------------------
-# DISTANCE CONTROLS
+# DISTANCE & TIMEOUT CONTROLS (Native Number Platform)
 # ----------------------------------------------------------------------------
-# NOTE: The ld2412 external component from smarthomeshop does not currently
-# support the number platform for timeout, gate thresholds, etc.
-# These features may be available in future versions of the component.
-# For now, use the button/select controls below for configuration.
-# ----------------------------------------------------------------------------
+number:
+  # Presence timeout - how long to maintain presence after last detection
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    timeout:
+      name: "${friendly_name} Presence Timeout"
+      icon: "mdi:timer"
+
+  # Minimum detection gate (1-12)
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    min_distance_gate:
+      name: "${friendly_name} Min Distance Gate"
+      icon: "mdi:arrow-collapse-right"
+
+  # Maximum detection gate (2-13)
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    max_distance_gate:
+      name: "${friendly_name} Max Distance Gate"
+      icon: "mdi:arrow-expand-right"
+
+  # Light threshold for OUT pin activation
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    light_threshold:
+      name: "${friendly_name} Light Threshold"
+      icon: "mdi:brightness-6"
 
 sensor:
   # ----------------------------------------------------------------------------
@@ -74,13 +100,30 @@ sensor:
       return id(presence_confidence) * 100.0f;
 
 # ----------------------------------------------------------------------------
-# CONFIGURATION SELECTORS
-# ----------------------------------------------------------------------------
-# NOTE: The ld2412 select platform (distance_resolution, baud_rate) is not
-# currently available in the smarthomeshop/ld2412 external component.
-# These features may be added in future versions of the component.
+# CONFIGURATION SELECTORS (Native Select Platform)
 # ----------------------------------------------------------------------------
 select:
+  # Distance resolution (0.75m, 0.5m, 0.2m)
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    distance_resolution:
+      name: "${friendly_name} Distance Resolution"
+      icon: "mdi:ruler-square"
+
+  # OUT pin behavior (high/low when triggered)
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    out_pin_level:
+      name: "${friendly_name} OUT Pin Level"
+      icon: "mdi:electric-switch"
+
+  # Light function (off, below threshold, above threshold)
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    light_function:
+      name: "${friendly_name} Light Function"
+      icon: "mdi:lightbulb-auto"
+
   # Sensitivity modes (template-controlled)
   - platform: template
     id: presence_sensitivity
@@ -107,26 +150,59 @@ select:
 
 
 # ----------------------------------------------------------------------------
-# CONTROL SWITCHES
+# CONTROL SWITCHES (Native Switch Platform)
 # ----------------------------------------------------------------------------
-# NOTE: The ld2412 external component from smarthomeshop does not currently
-# support the switch platform for engineering_mode or bluetooth controls.
-# These features may be added in future versions of the component.
-# ----------------------------------------------------------------------------
+switch:
+  # Engineering mode - enables detailed gate energy sensors
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    engineering_mode:
+      name: "${friendly_name} Engineering Mode"
+      icon: "mdi:wrench"
+
+  # Bluetooth control
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    bluetooth:
+      name: "${friendly_name} Radar Bluetooth"
+      icon: "mdi:bluetooth"
 
 # ----------------------------------------------------------------------------
-# CALIBRATION & CONTROL BUTTONS
-# ----------------------------------------------------------------------------
-# NOTE: The ld2412 external component from smarthomeshop does not currently
-# support the button platform for factory_reset, restart, query_params, or
-# start_dynamic_background_correction. These features may be added in future
-# versions of the component.
+# CALIBRATION & CONTROL BUTTONS (Native Button Platform)
 # ----------------------------------------------------------------------------
 button:
-  # Reset presence confidence
+  # Factory reset - restore LD2412 to factory defaults
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    factory_reset:
+      name: "${friendly_name} Factory Reset"
+      icon: "mdi:factory"
+
+  # Restart the radar module
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    restart:
+      name: "${friendly_name} Radar Restart"
+      icon: "mdi:restart"
+
+  # Query current parameters from radar
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    query_params:
+      name: "${friendly_name} Query Parameters"
+      icon: "mdi:refresh"
+
+  # Start dynamic background correction (auto-calibration)
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    start_dynamic_background_correction:
+      name: "${friendly_name} Start Calibration"
+      icon: "mdi:tune-vertical"
+
+  # Reset presence confidence (template button)
   - platform: template
     name: "${friendly_name} Reset Presence Calibration"
-    icon: "mdi:restart"
+    icon: "mdi:restart-alert"
     on_press:
       - lambda: |-
           id(presence_confidence) = 0.0f;
@@ -170,10 +246,17 @@ text_sensor:
       return {buffer};
 
 # ----------------------------------------------------------------------------
-# BINARY SENSORS (User-facing) - Native ESPHome Copy Sensors
+# BINARY SENSORS (User-facing)
 # ----------------------------------------------------------------------------
 binary_sensor:
-  # Expose moving target detection - Native copy from hardware sensor
+  # Dynamic background correction status (native)
+  - platform: ld2412
+    ld2412_id: ld2412_radar
+    dynamic_background_correction_status:
+      name: "${friendly_name} Calibration Active"
+      icon: "mdi:tune"
+
+  # Expose moving target detection - Copy from hardware sensor
   - platform: copy
     id: ld2412_moving_detected
     source_id: ld2412_has_moving
@@ -181,7 +264,7 @@ binary_sensor:
     icon: "mdi:run"
     device_class: motion
 
-  # Expose still target detection - Native copy from hardware sensor
+  # Expose still target detection - Copy from hardware sensor
   - platform: copy
     id: ld2412_still_detected
     source_id: ld2412_has_still
