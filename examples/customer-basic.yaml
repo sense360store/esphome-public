@@ -20,6 +20,7 @@ substitutions:
   # === MQTT Configuration (Required for AirIQ features) ===
   # Uncomment and configure these for MQTT air quality publishing:
   # airiq_mqtt_broker: !secret mqtt_broker
+  # airiq_mqtt_port: "1883"  # Standard port (use 8883 for TLS)
   # airiq_mqtt_username: !secret mqtt_username
   # airiq_mqtt_password: !secret mqtt_password
 
@@ -139,6 +140,7 @@ ota:
 # 2. Create a user in: Settings > Add-ons > Mosquitto broker > Configuration
 # 3. Add credentials to your secrets.yaml:
 #    mqtt_broker: "192.168.x.x"    # Your Home Assistant IP
+#    mqtt_port: "1883"             # Default MQTT port
 #    mqtt_username: "your_mqtt_user"
 #    mqtt_password: "your_mqtt_password"
 

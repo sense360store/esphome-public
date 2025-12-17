@@ -25,6 +25,7 @@ substitutions:
   # brokers that require credentials.
   # =========================================================================
   airiq_mqtt_broker: ""
+  airiq_mqtt_port: "1883"
   airiq_mqtt_username: ""
   airiq_mqtt_password: ""
 
@@ -42,6 +43,7 @@ text_sensor:
 # standard ESPHome secrets.
 mqtt:
   broker: ${airiq_mqtt_broker}
+  port: ${airiq_mqtt_port}
   username: ${airiq_mqtt_username}
   password: ${airiq_mqtt_password}
   discovery: false

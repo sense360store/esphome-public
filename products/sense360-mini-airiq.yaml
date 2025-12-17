@@ -51,6 +51,7 @@ substitutions:
   # Leave broker empty to disable MQTT, or set to your broker's IP address.
   # Example for Home Assistant Mosquitto add-on:
   #   airiq_mqtt_broker: "192.168.x.x"  # Your Home Assistant IP
+  #   airiq_mqtt_port: "1883"           # Standard MQTT port
   #   airiq_mqtt_username: !secret mqtt_username
   #   airiq_mqtt_password: !secret mqtt_password
   airiq_mqtt_broker: ""
