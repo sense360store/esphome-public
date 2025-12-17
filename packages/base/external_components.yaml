@@ -10,8 +10,15 @@
 # ============================================================================
 
 external_components:
-  # NOTE: LD2412 is now native to ESPHome (since 2024.x) - no external component needed
-  # The native component provides full support for sensors, controls, and calibration
+  # LD2412 24GHz mmWave Radar Component
+  # NOTE: LD2412 was added to native ESPHome in 2025.8.0
+  # Pull from newer ESPHome version for compatibility with 2025.3.0 base
+  - source:
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 2025.8.0
+    components: [ld2412]
+    refresh: 1d
 
   # LD2450 Multi-Target Radar Component
   # Source: ESPHome upstream component pinned to a compatible release
