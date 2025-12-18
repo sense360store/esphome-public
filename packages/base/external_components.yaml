@@ -15,15 +15,14 @@ external_components:
   # Using local copy modified for ESPHome 2025.3.0 compatibility
   # (removed 'filters' argument from sensor schemas - not supported in 2025.3.0)
   #
-  # Path resolution: When users include this package from GitHub, ESPHome
-  # resolves the local path relative to the downloaded package location.
-  # The path "../../components" works for both:
-  #   - Local development: packages/base/../../components -> components/
-  #   - Remote usage: <cache>/packages/base/../../components -> <cache>/components/
+  # Source: This repo's components/ directory via git for remote package compatibility
+  # Local paths don't work correctly when users load packages from GitHub
   - source:
-      type: local
-      path: ../../components
+      type: git
+      url: https://github.com/sense360store/esphome-public
+      ref: main
     components: [ld2412, ld24xx]
+    refresh: 1d
 
   # LD2450 Multi-Target Radar Component
   # Source: ESPHome upstream component pinned to a compatible release
