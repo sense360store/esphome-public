@@ -1,0 +1,513 @@
+---
+# ============================================================================
+# Mini Four LEDs - Air Quality & Night Mode Feature Package
+# ============================================================================
+# Provides a 4-LED WS2812B addressable strip for sense360 mini devices
+# with air quality status visualization and night mode support.
+#
+# Features:
+# - 4 WS2812B LEDs in strip configuration
+# - Air quality color mapping (Green/Orange/Red/Purple)
+# - Night mode with automatic brightness reduction
+# - Pulsing effect for poor air quality alerts
+# - Configurable thresholds and timing
+#
+# Required sensors (from airiq packages):
+# - pm2_5: PM2.5 sensor (µg/m³)
+# - voc_index: VOC index sensor
+# - co2_ppm: CO2 sensor (ppm)
+#
+# Color Mapping:
+# - Good:      Green (0, 255, 0)
+# - Moderate:  Orange (255, 128, 0)
+# - Unhealthy: Red (255, 0, 0)
+# - Poor:      Purple (128, 0, 255) with pulsing
+# - Unknown:   Dim blue/gray (24, 32, 64)
+#
+# Usage:
+#   packages:
+#     core_hardware: !include ../hardware/sense360_core_mini.yaml
+#     airiq_sensors: !include ../features/airiq_advanced.yaml
+#     status_leds: !include mini_four_leds_air_quality.yaml
+# ============================================================================
+
+substitutions:
+  # LED Strip Hardware Configuration
+  led_data_pin: GPIO8
+  led_count: "4"
+  led_chipset: WS2812
+  led_rgb_order: GRB
+  led_transition: 250ms
+
+  # Night Mode Time Configuration (24-hour format)
+  mini_night_mode_start_hour: "22"
+  mini_night_mode_start_minute: "0"
+  mini_night_mode_end_hour: "7"
+  mini_night_mode_end_minute: "0"
+
+  # Brightness Settings
+  mini_day_brightness: "100"      # Percentage (1-100)
+  mini_night_brightness: "15"     # Percentage (1-100)
+
+  # Air Quality Thresholds (PM2.5 in µg/m³)
+  mini_pm25_good_threshold: "10.0"
+  mini_pm25_moderate_threshold: "25.0"
+  mini_pm25_unhealthy_threshold: "50.0"
+
+  # VOC Index Thresholds (0-500 scale)
+  mini_voc_good_threshold: "80.0"
+  mini_voc_moderate_threshold: "150.0"
+  mini_voc_unhealthy_threshold: "250.0"
+
+  # CO2 Thresholds (ppm)
+  mini_co2_good_threshold: "750.0"
+  mini_co2_moderate_threshold: "1000.0"
+  mini_co2_unhealthy_threshold: "1500.0"
+
+esphome:
+  includes:
+    - include/sense360/led_logic.h
+    - include/sense360/thresholds.h
+    - include/sense360/time_utils.h
+  on_boot:
+    priority: 600
+    then:
+      - delay: 5s  # Wait for time sync
+      - script.execute: mini_update_night_mode_brightness
+      - logger.log: "Mini LED night mode initialized"
+
+# Global variables for night mode and LED state
+globals:
+  - id: mini_night_mode_enabled
+    type: bool
+    restore_value: true
+    initial_value: "true"
+
+  - id: mini_night_mode_override
+    type: int
+    restore_value: true
+    initial_value: "0"  # 0=AUTO, 1=FORCE_OFF, 2=FORCE_ON
+
+  - id: mini_led_enabled
+    type: bool
+    restore_value: true
+    initial_value: "true"
+
+  - id: mini_current_brightness_pct
+    type: int
+    restore_value: false
+    initial_value: "${mini_day_brightness}"
+
+  - id: mini_air_quality_mode_active
+    type: bool
+    restore_value: true
+    initial_value: "true"
+
+# LED Strip Light Configuration
+light:
+  - platform: esp32_rmt_led_strip
+    id: status_leds
+    name: "${friendly_name} Status LEDs"
+    pin: ${led_data_pin}
+    num_leds: ${led_count}
+    chipset: ${led_chipset}
+    rgb_order: ${led_rgb_order}
+    default_transition_length: ${led_transition}
+    restore_mode: RESTORE_DEFAULT_ON
+    effects:
+      # Basic effects for manual control
+      - pulse:
+          name: "Pulse"
+          transition_length: 1s
+          update_interval: 1s
+
+      - addressable_rainbow:
+          name: "Rainbow"
+          speed: 10
+          width: 50
+
+      - addressable_color_wipe:
+          name: "Color Wipe"
+          colors:
+            - red: 100%
+              green: 0%
+              blue: 0%
+              num_leds: 1
+            - red: 0%
+              green: 100%
+              blue: 0%
+              num_leds: 1
+            - red: 0%
+              green: 0%
+              blue: 100%
+              num_leds: 1
+          add_led_interval: 100ms
+          reverse: false
+
+      - addressable_scan:
+          name: "Scan"
+          move_interval: 100ms
+          scan_width: 1
+
+      # Air Quality Status Effect
+      - addressable_lambda:
+          name: "Air Quality Status"
+          update_interval: 1s
+          lambda: |-
+            using namespace sense360::led;
+            using namespace sense360::time_utils;
+
+            // Check if LED strip is enabled
+            if (!id(mini_led_enabled)) {
+              it.all() = Color(0, 0, 0);
+              return;
+            }
+
+            // Get air quality sensor values (with NaN handling)
+            float pm25 = NAN;
+            float voc = NAN;
+            float co2 = NAN;
+
+            // Try to get PM2.5 value if sensor exists
+            if (id(pm2_5).has_state()) {
+              pm25 = id(pm2_5).state;
+            }
+            // Try to get VOC value if sensor exists
+            if (id(voc_index).has_state()) {
+              voc = id(voc_index).state;
+            }
+            // Try to get CO2 value if sensor exists
+            if (id(co2_ppm).has_state()) {
+              co2 = id(co2_ppm).state;
+            }
+
+            // Compute severity levels for each sensor
+            int pm_level = compute_level(pm25,
+                                        ${mini_pm25_good_threshold},
+                                        ${mini_pm25_moderate_threshold},
+                                        ${mini_pm25_unhealthy_threshold});
+
+            int voc_level = compute_level(voc,
+                                         ${mini_voc_good_threshold},
+                                         ${mini_voc_moderate_threshold},
+                                         ${mini_voc_unhealthy_threshold});
+
+            int co2_level = compute_level(co2,
+                                         ${mini_co2_good_threshold},
+                                         ${mini_co2_moderate_threshold},
+                                         ${mini_co2_unhealthy_threshold});
+
+            // Get overall worst severity
+            int overall_level = compute_overall_severity(pm_level, voc_level, LEVEL_UNKNOWN, co2_level);
+
+            // Get base color for severity level
+            sense360::led::Color base_color = color_for_severity(overall_level);
+
+            // Calculate brightness based on severity
+            float base_brightness = brightness_scale_for_level(overall_level);
+
+            // Apply night mode dimming
+            float night_dim = static_cast<float>(id(mini_current_brightness_pct)) / 100.0f;
+            float final_brightness = base_brightness * night_dim;
+
+            // Apply pulsing for poor air quality
+            if (overall_level == LEVEL_POOR) {
+              final_brightness *= compute_pulse_multiplier(millis());
+            }
+
+            // Scale color by final brightness
+            sense360::led::Color final_color = scale_color(base_color, final_brightness);
+
+            // Apply to all LEDs in the strip
+            for (int i = 0; i < it.size(); i++) {
+              it[i] = ESPColor(final_color.red, final_color.green, final_color.blue);
+            }
+
+      # Night Light Effect (dim warm white)
+      - addressable_lambda:
+          name: "Night Light"
+          update_interval: 500ms
+          lambda: |-
+            if (!id(mini_led_enabled)) {
+              it.all() = Color(0, 0, 0);
+              return;
+            }
+
+            float brightness = static_cast<float>(id(mini_current_brightness_pct)) / 100.0f;
+            // Warm white with reduced intensity for night light
+            uint8_t r_val = static_cast<uint8_t>(255.0f * brightness * 0.4f);
+            uint8_t g_val = static_cast<uint8_t>(200.0f * brightness * 0.4f);
+            uint8_t b_val = static_cast<uint8_t>(150.0f * brightness * 0.4f);
+
+            for (int i = 0; i < it.size(); i++) {
+              it[i] = ESPColor(r_val, g_val, b_val);
+            }
+
+      # Presence Breathing Effect
+      - addressable_lambda:
+          name: "Presence Breathing"
+          update_interval: 50ms
+          lambda: |-
+            if (!id(mini_led_enabled)) {
+              it.all() = Color(0, 0, 0);
+              return;
+            }
+
+            float phase = static_cast<float>(millis() % 3000) / 3000.0f;
+            float breath = 0.3f + 0.7f * (0.5f + 0.5f * sin(phase * 2.0f * 3.14159265f));
+            float night_dim = static_cast<float>(id(mini_current_brightness_pct)) / 100.0f;
+
+            uint8_t val = static_cast<uint8_t>(255.0f * breath * night_dim);
+
+            for (int i = 0; i < it.size(); i++) {
+              it[i] = ESPColor(0, val, val);  // Cyan breathing
+            }
+
+      # Startup Animation
+      - addressable_lambda:
+          name: "Startup Sequence"
+          update_interval: 50ms
+          lambda: |-
+            static int startup_frame = 0;
+            const int total_frames = 80;  // 4 seconds total (4 LEDs × 20 frames each)
+
+            if (startup_frame < total_frames) {
+              int led_index = (startup_frame / 20) % it.size();
+              float fade = static_cast<float>(startup_frame % 20) / 20.0f;
+
+              it.all() = ESPColor(0, 0, 0);
+              it[led_index] = ESPColor(0, static_cast<uint8_t>(255 * fade), 0);
+
+              startup_frame++;
+            } else {
+              // Animation complete, switch to air quality mode
+              startup_frame = 0;
+              auto call = id(status_leds).turn_on();
+              call.set_effect("Air Quality Status");
+              call.perform();
+            }
+
+# Script to update night mode brightness
+script:
+  - id: mini_update_night_mode_brightness
+    then:
+      - lambda: |-
+          using namespace sense360::time_utils;
+
+          // Get current time
+          auto now = id(sntp_time).now();
+          if (!now.is_valid()) {
+            // Time not available, use day brightness
+            id(mini_current_brightness_pct) = ${mini_day_brightness};
+            return;
+          }
+
+          Time current(now.hour, now.minute);
+          Time night_start(${mini_night_mode_start_hour}, ${mini_night_mode_start_minute});
+          Time night_end(${mini_night_mode_end_hour}, ${mini_night_mode_end_minute});
+
+          // Check if we should be in night mode
+          bool is_night = should_be_night_mode(
+            current,
+            night_start,
+            night_end,
+            id(mini_night_mode_enabled),
+            static_cast<NightModeOverride>(id(mini_night_mode_override)),
+            true  // time is valid
+          );
+
+          // Set brightness accordingly using user-adjustable values
+          if (is_night) {
+            int night_val = static_cast<int>(id(mini_night_brightness_setting).state);
+            id(mini_current_brightness_pct) = night_val;
+            ESP_LOGD("mini_leds", "Night mode active - brightness: %d%%", night_val);
+          } else {
+            int day_val = static_cast<int>(id(mini_day_brightness_setting).state);
+            id(mini_current_brightness_pct) = day_val;
+            ESP_LOGD("mini_leds", "Day mode active - brightness: %d%%", day_val);
+          }
+
+# Interval to periodically check night mode
+interval:
+  - interval: 60s
+    then:
+      - script.execute: mini_update_night_mode_brightness
+
+# Note: Time source (sntp_time) is provided by packages/base/time.yaml
+# Night mode brightness is updated on boot and every 60s via interval
+
+# Switches for controlling LED features
+switch:
+  - platform: template
+    id: mini_led_power_switch
+    name: "${friendly_name} Status LEDs Power"
+    icon: mdi:led-on
+    restore_mode: RESTORE_DEFAULT_ON
+    lambda: return id(mini_led_enabled);
+    turn_on_action:
+      - globals.set:
+          id: mini_led_enabled
+          value: "true"
+      - if:
+          condition:
+            lambda: 'return id(mini_air_quality_mode_active);'
+          then:
+            - light.turn_on:
+                id: status_leds
+                effect: "Air Quality Status"
+          else:
+            - light.turn_on:
+                id: status_leds
+                effect: "none"
+    turn_off_action:
+      - globals.set:
+          id: mini_led_enabled
+          value: "false"
+      - light.turn_off: status_leds
+
+  - platform: template
+    id: mini_night_mode_switch
+    name: "${friendly_name} LED Night Mode"
+    icon: mdi:weather-night
+    restore_mode: RESTORE_DEFAULT_ON
+    lambda: return id(mini_night_mode_enabled);
+    turn_on_action:
+      - globals.set:
+          id: mini_night_mode_enabled
+          value: "true"
+      - script.execute: mini_update_night_mode_brightness
+    turn_off_action:
+      - globals.set:
+          id: mini_night_mode_enabled
+          value: "false"
+      - script.execute: mini_update_night_mode_brightness
+
+  - platform: template
+    id: mini_air_quality_mode_switch
+    name: "${friendly_name} Air Quality Display"
+    icon: mdi:air-filter
+    restore_mode: RESTORE_DEFAULT_ON
+    lambda: return id(mini_air_quality_mode_active);
+    turn_on_action:
+      - globals.set:
+          id: mini_air_quality_mode_active
+          value: "true"
+      - light.turn_on:
+          id: status_leds
+          effect: "Air Quality Status"
+    turn_off_action:
+      - globals.set:
+          id: mini_air_quality_mode_active
+          value: "false"
+      - light.turn_on:
+          id: status_leds
+          effect: "none"
+
+# Select for night mode override
+select:
+  - platform: template
+    id: mini_night_mode_override_select
+    name: "${friendly_name} LED Night Mode Override"
+    icon: mdi:cog
+    optimistic: true
+    restore_value: true
+    options:
+      - "Auto"
+      - "Force Day"
+      - "Force Night"
+    initial_option: "Auto"
+    on_value:
+      then:
+        - lambda: |-
+            if (x == "Auto") {
+              id(mini_night_mode_override) = 0;
+            } else if (x == "Force Day") {
+              id(mini_night_mode_override) = 1;
+            } else if (x == "Force Night") {
+              id(mini_night_mode_override) = 2;
+            }
+        - script.execute: mini_update_night_mode_brightness
+
+# Number inputs for adjustable brightness levels
+number:
+  - platform: template
+    id: mini_day_brightness_setting
+    name: "${friendly_name} LED Day Brightness"
+    icon: mdi:brightness-7
+    unit_of_measurement: "%"
+    min_value: 10
+    max_value: 100
+    step: 5
+    initial_value: ${mini_day_brightness}
+    optimistic: true
+    restore_value: true
+    set_action:
+      - script.execute: mini_update_night_mode_brightness
+
+  - platform: template
+    id: mini_night_brightness_setting
+    name: "${friendly_name} LED Night Brightness"
+    icon: mdi:brightness-3
+    unit_of_measurement: "%"
+    min_value: 1
+    max_value: 50
+    step: 1
+    initial_value: ${mini_night_brightness}
+    optimistic: true
+    restore_value: true
+    set_action:
+      - script.execute: mini_update_night_mode_brightness
+
+# Text sensor for current air quality status
+text_sensor:
+  - platform: template
+    id: mini_air_quality_status_text
+    name: "${friendly_name} LED Air Quality Status"
+    icon: mdi:leaf
+    update_interval: 5s
+    lambda: |-
+      using namespace sense360::led;
+
+      float pm25 = NAN;
+      float voc = NAN;
+      float co2 = NAN;
+
+      if (id(pm2_5).has_state()) pm25 = id(pm2_5).state;
+      if (id(voc_index).has_state()) voc = id(voc_index).state;
+      if (id(co2_ppm).has_state()) co2 = id(co2_ppm).state;
+
+      int pm_level = compute_level(
+          pm25,
+          ${mini_pm25_good_threshold},
+          ${mini_pm25_moderate_threshold},
+          ${mini_pm25_unhealthy_threshold});
+      int voc_level = compute_level(
+          voc,
+          ${mini_voc_good_threshold},
+          ${mini_voc_moderate_threshold},
+          ${mini_voc_unhealthy_threshold});
+      int co2_level = compute_level(
+          co2,
+          ${mini_co2_good_threshold},
+          ${mini_co2_moderate_threshold},
+          ${mini_co2_unhealthy_threshold});
+      int overall = compute_overall_severity(pm_level, voc_level, LEVEL_UNKNOWN, co2_level);
+
+      switch (overall) {
+        case LEVEL_GOOD:      return std::string("Good");
+        case LEVEL_MODERATE:  return std::string("Moderate");
+        case LEVEL_UNHEALTHY: return std::string("Unhealthy");
+        case LEVEL_POOR:      return std::string("Poor");
+        default:              return std::string("Unknown");
+      }
+
+# Sensor for current brightness
+sensor:
+  - platform: template
+    id: mini_current_brightness_sensor
+    name: "${friendly_name} LED Brightness"
+    icon: mdi:brightness-percent
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 10s
+    lambda: return static_cast<float>(id(mini_current_brightness_pct));
