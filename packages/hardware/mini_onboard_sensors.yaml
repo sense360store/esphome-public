@@ -29,18 +29,10 @@ substitutions:
   mini_scd40_update: 30s
 
 # ============================================================================
-# I2C BUS - Required for onboard sensors
-# ============================================================================
-i2c:
-  - id: i2c0
-    sda: ${i2c_sda_pin}
-    scl: ${i2c_scl_pin}
-    scan: true
-    frequency: 100kHz
-
-# ============================================================================
 # ONBOARD SENSORS
 # ============================================================================
+# Note: I2C bus is defined in sense360_core_mini.yaml (id: i2c0)
+# This file references that bus via the mini_sensors_i2c_id substitution
 sensor:
   # ==========================================================================
   # LTR-303ALS-01 - Ambient Light Sensor (U4)
