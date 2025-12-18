@@ -15,9 +15,11 @@ external_components:
   # Using local copy modified for ESPHome 2025.3.0 compatibility
   # (removed 'filters' argument from sensor schemas - not supported in 2025.3.0)
   - source:
-      type: local
-      path: ../components
+      type: git
+      url: https://github.com/sense360store/esphome-public
+      ref: main
     components: [ld2412, ld24xx]
+    refresh: 1d
 
   # LD2450 Multi-Target Radar Component
   # Source: ESPHome upstream component pinned to a compatible release
