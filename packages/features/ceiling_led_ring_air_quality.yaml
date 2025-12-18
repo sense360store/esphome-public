@@ -67,9 +67,9 @@ substitutions:
 
 esphome:
   includes:
-    - github://sense360store/esphome-public/include/sense360/led_logic.h@main
-    - github://sense360store/esphome-public/include/sense360/thresholds.h@main
-    - github://sense360store/esphome-public/include/sense360/time_utils.h@main
+    - ../../include/sense360/led_logic.h
+    - ../../include/sense360/thresholds.h
+    - ../../include/sense360/time_utils.h
 
 # Global variables for night mode and LED state
 globals:
