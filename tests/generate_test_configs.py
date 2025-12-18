@@ -139,31 +139,26 @@ class TestConfig:
                 '  fan_dac_i2c_id: expansion_i2c  # Ceiling uses expansion_i2c instead of i2c0',
             ])
 
-        # Check if presence module is included (requires ld2450 external component)
+        # Check if presence module is included (requires ld2412/ld24xx local components)
         has_presence = any(mod.category == "presence" for mod in self.modules)
 
-        # Add external_components if presence module is used (requires ld2450)
+        # Add external_components if presence module is used (requires ld2412/ld24xx)
         # NOTE: We inline external_components here instead of using !include because
         # ESPHome resolves relative paths from the main config file's directory.
         # Test configs are 2 levels deep (tests/generated/), so ../../components is correct.
         # IMPORTANT: external_components must come BEFORE packages for valid YAML
+        # NOTE: ld2450 is native to ESPHome 2025.3.0+, no external component needed
         if has_presence:
             lines.extend([
                 "",
-                "# External components (ld2450 radar)",
+                "# External components (ld2412/ld24xx radar)",
+                "# NOTE: ld2450 is native to ESPHome 2025.3.0+, no external component needed",
                 "external_components:",
                 "  # LD2412/LD24xx from local components",
                 "  - source:",
                 "      type: local",
                 "      path: ../../components",
                 "    components: [ld2412, ld24xx]",
-                "  # LD2450 from ESPHome upstream",
-                "  - source:",
-                "      type: git",
-                "      url: https://github.com/esphome/esphome",
-                "      ref: 2025.3.0",
-                "    components: [ld2450]",
-                "    refresh: 1d",
             ])
 
         lines.extend([
