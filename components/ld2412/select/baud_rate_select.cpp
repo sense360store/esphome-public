@@ -5,7 +5,7 @@ namespace ld2412 {
 
 void BaudRateSelect::control(const std::string &value) {
   this->publish_state(value);
-  this->parent_->set_baud_rate(this->current_option());
+  this->parent_->set_baud_rate(this->state);
 }
 
 }  // namespace ld2412

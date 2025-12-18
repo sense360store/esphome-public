@@ -5,7 +5,7 @@ namespace ld2412 {
 
 void DistanceResolutionSelect::control(const std::string &value) {
   this->publish_state(value);
-  this->parent_->set_distance_resolution(this->current_option());
+  this->parent_->set_distance_resolution(this->state);
 }
 
 }  // namespace ld2412
