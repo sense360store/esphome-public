@@ -117,7 +117,7 @@ packages:
   device_health: !include ../packages/features/device_health.yaml
   diagnostics: !include ../packages/features/diagnostics.yaml
   # Status LEDs
-  status_leds: !include ../packages/features/mini_four_leds_addr.yaml
+  status_leds: !include ../packages/features/mini_four_leds_air_quality.yaml
 
 # ----------------------------------------------------------------------------
 # I2C BUS - For air quality sensors
