@@ -7,11 +7,21 @@
 #
 # Pin Assignments (from schematic):
 # - I2C SDA: GPIO48
-# - I2C SCL: GPIO45
-# - UART TX: GPIO43 (to radar RX)
-# - UART RX: GPIO44 (from radar TX)
-# - LED Data: GPIO8 (WS2812B via level shifter)
+# - I2C SCL: GPIO45 (strapping pin - warning expected)
+# - UART TX: GPIO43 (to radar RX via JST3_UART)
+# - UART RX: GPIO44 (from radar TX via JST3_UART)
+# - LED Data: GPIO8 (4x WS2812B via 74LVC1G07 level shifter)
 # - Boot Button: GPIO0
+#
+# Onboard Sensors (configured in mini_onboard_sensors.yaml):
+# - U4: LTR-303ALS-01 (I2C 0x29) - Ambient Light Sensor
+# - U3: SHT30-DIS (I2C 0x44) - Temperature & Humidity
+# - U5: SCD40-D-R2 (I2C 0x62) - CO2 Sensor
+#
+# External Connectors:
+# - JST3_UART: TX/RX for LD2412 radar (115200 baud)
+# - JST4_SEN: I2C SDA/SCL for external sensors (e.g., SEN55 @ 0x69)
+# - JST4_RADAR: GPIO11/GPIO12 for TRIG/ECHO (not used with LD2412)
 # ============================================================================
 
 substitutions:

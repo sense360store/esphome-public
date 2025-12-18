@@ -1,0 +1,196 @@
+---
+# ============================================================================
+# SENSE360 MINI - ONBOARD SENSORS HARDWARE DRIVER
+# ============================================================================
+# Hardware sensors integrated on the Mini ESP32-S3 PCB:
+#
+# From schematic:
+# - U4: LTR-303ALS-01 (I2C 0x29): Ambient Light Sensor (lux)
+# - U3: SHT30-DIS (I2C 0x44): Temperature and Humidity
+# - U5: SCD40-D-R2 (I2C 0x62): CO2 Sensor
+#
+# These sensors are soldered directly on the Mini board PCB.
+# External sensors (like SEN55) connect via the JST4_SEN connector.
+#
+# Note: The SCD4x platform in ESPHome works with both SCD40 and SCD41.
+# ============================================================================
+
+substitutions:
+  # I2C bus ID (uses i2c0 from core hardware by default)
+  mini_sensors_i2c_id: i2c0
+
+  # Sensor update intervals
+  mini_ltr303_update: 10s
+  mini_sht30_update: 30s
+  mini_scd40_update: 30s
+
+# ============================================================================
+# ONBOARD SENSORS
+# ============================================================================
+sensor:
+  # ==========================================================================
+  # LTR-303ALS-01 - Ambient Light Sensor (U4)
+  # I2C Address: 0x29
+  # ==========================================================================
+  - platform: ltr_als_ps
+    id: mini_ltr303_sensor
+    i2c_id: ${mini_sensors_i2c_id}
+    address: 0x29
+
+    ambient_light:
+      id: mini_ambient_light
+      name: "${friendly_name} Ambient Light"
+      icon: "mdi:brightness-6"
+      unit_of_measurement: "lx"
+      accuracy_decimals: 1
+      device_class: illuminance
+      state_class: measurement
+      on_value:
+        then:
+          - lambda: |-
+              // Update global light level if defined
+              if (x < 10.0f) {
+                ESP_LOGD("mini_sensors", "Light level: Dark (%.1f lx)", x);
+              } else if (x < 100.0f) {
+                ESP_LOGD("mini_sensors", "Light level: Dim (%.1f lx)", x);
+              } else if (x < 500.0f) {
+                ESP_LOGD("mini_sensors", "Light level: Normal (%.1f lx)", x);
+              } else {
+                ESP_LOGD("mini_sensors", "Light level: Bright (%.1f lx)", x);
+              }
+
+    update_interval: ${mini_ltr303_update}
+
+  # ==========================================================================
+  # SHT30-DIS - Temperature and Humidity Sensor (U3)
+  # I2C Address: 0x44
+  # ==========================================================================
+  - platform: sht3xd
+    id: mini_sht30_sensor
+    i2c_id: ${mini_sensors_i2c_id}
+    address: 0x44
+
+    temperature:
+      id: mini_sht30_temperature
+      name: "${friendly_name} Temperature (Onboard)"
+      icon: "mdi:thermometer"
+      accuracy_decimals: 1
+      device_class: temperature
+      state_class: measurement
+      filters:
+        - throttle: ${mini_sht30_update}
+      on_value:
+        then:
+          - lambda: |-
+              // Publish to room_temperature if it exists (for airiq profiles)
+              // This allows onboard sensor to work alongside or instead of external sensors
+              ESP_LOGD("mini_sensors", "SHT30 Temperature: %.1f°C", x);
+
+    humidity:
+      id: mini_sht30_humidity
+      name: "${friendly_name} Humidity (Onboard)"
+      icon: "mdi:water-percent"
+      accuracy_decimals: 1
+      device_class: humidity
+      state_class: measurement
+      filters:
+        - throttle: ${mini_sht30_update}
+      on_value:
+        then:
+          - lambda: |-
+              ESP_LOGD("mini_sensors", "SHT30 Humidity: %.1f%%", x);
+
+    update_interval: ${mini_sht30_update}
+
+  # ==========================================================================
+  # SCD40-D-R2 - CO2 Sensor (U5)
+  # I2C Address: 0x62
+  # Note: scd4x platform supports both SCD40 and SCD41
+  # ==========================================================================
+  - platform: scd4x
+    id: mini_scd40_sensor
+    i2c_id: ${mini_sensors_i2c_id}
+    address: 0x62
+    automatic_self_calibration: true
+    measurement_mode: periodic
+
+    co2:
+      id: mini_scd40_co2
+      name: "${friendly_name} CO2"
+      icon: "mdi:molecule-co2"
+      accuracy_decimals: 0
+      device_class: carbon_dioxide
+      state_class: measurement
+      filters:
+        - throttle: ${mini_scd40_update}
+      on_value:
+        then:
+          - lambda: |-
+              // Log CO2 level and classification
+              if (x < 800.0f) {
+                ESP_LOGD("mini_sensors", "CO2: %.0f ppm (Excellent)", x);
+              } else if (x < 1000.0f) {
+                ESP_LOGD("mini_sensors", "CO2: %.0f ppm (Good)", x);
+              } else if (x < 1500.0f) {
+                ESP_LOGD("mini_sensors", "CO2: %.0f ppm (Fair)", x);
+              } else {
+                ESP_LOGW("mini_sensors", "CO2: %.0f ppm (Poor - ventilate!)", x);
+              }
+
+    # SCD40 also provides temperature/humidity but SHT30 is more accurate
+    # These are kept internal for compensation purposes
+    temperature:
+      id: mini_scd40_temperature
+      internal: true
+      accuracy_decimals: 1
+
+    humidity:
+      id: mini_scd40_humidity
+      internal: true
+      accuracy_decimals: 1
+
+    update_interval: ${mini_scd40_update}
+
+# ============================================================================
+# ONBOARD SENSOR STATUS
+# ============================================================================
+text_sensor:
+  - platform: template
+    id: mini_onboard_sensors_status
+    name: "${friendly_name} Onboard Sensors"
+    icon: "mdi:chip"
+    update_interval: 60s
+    lambda: |-
+      bool ltr_ok = !std::isnan(id(mini_ambient_light).state);
+      bool sht_ok = !std::isnan(id(mini_sht30_temperature).state);
+      bool scd_ok = !std::isnan(id(mini_scd40_co2).state);
+
+      if (ltr_ok && sht_ok && scd_ok) {
+        return {"All OK"};
+      } else {
+        std::string status = "";
+        if (!ltr_ok) status += "LTR303 ";
+        if (!sht_ok) status += "SHT30 ";
+        if (!scd_ok) status += "SCD40 ";
+        return {"Error: " + status};
+      }
+    entity_category: diagnostic
+
+# ============================================================================
+# CALIBRATION BUTTON
+# ============================================================================
+button:
+  # Force SCD40 recalibration (outdoor fresh air = ~420ppm)
+  - platform: template
+    id: mini_scd40_force_calibration
+    name: "${friendly_name} Calibrate CO2 (Fresh Air)"
+    icon: "mdi:refresh"
+    entity_category: config
+    on_press:
+      then:
+        - scd4x.perform_forced_calibration:
+            id: mini_scd40_sensor
+            value: 420  # Outdoor CO2 baseline
+        - logger.log:
+            level: INFO
+            format: "SCD40 forced calibration initiated (420ppm baseline)"

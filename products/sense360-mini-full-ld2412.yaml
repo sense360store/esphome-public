@@ -109,6 +109,8 @@ packages:
   base_time: !include ../packages/base/time.yaml
   base_logging: !include ../packages/base/logging.yaml
   base_bluetooth: !include ../packages/base/bluetooth_proxy.yaml
+  # ONBOARD SENSORS - LTR-303 (Lux), SHT30 (Temp/Humidity), SCD40 (CO2)
+  onboard_sensors: !include ../packages/hardware/mini_onboard_sensors.yaml
   # Air Quality Features
   airiq_features: !include ../packages/features/airiq_advanced.yaml
   # Device Health & Diagnostics
