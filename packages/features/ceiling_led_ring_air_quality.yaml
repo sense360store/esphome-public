@@ -131,7 +131,7 @@ light:
 
             // Check if LED ring is enabled
             if (!id(led_ring_enabled)) {
-              it.all() = Color(0, 0, 0);
+              it.all() = ESPColor(0, 0, 0);
               return;
             }
 
@@ -201,7 +201,7 @@ light:
           update_interval: 500ms
           lambda: |-
             if (!id(led_ring_enabled)) {
-              it.all() = Color(0, 0, 0);
+              it.all() = ESPColor(0, 0, 0);
               return;
             }
 
@@ -218,7 +218,7 @@ light:
           update_interval: 50ms
           lambda: |-
             if (!id(led_ring_enabled)) {
-              it.all() = Color(0, 0, 0);
+              it.all() = ESPColor(0, 0, 0);
               return;
             }
 
