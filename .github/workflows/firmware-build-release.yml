@@ -184,6 +184,9 @@ jobs:
           web_password: "sense360admin"
           EOF
           # Copy secrets to all locations where configs might look for them
+          # Remove symlinks first (products/secrets.yaml may be a symlink to ../secrets.yaml)
+          rm -f products/secrets.yaml
+          rm -f tests/secrets.yaml
           cp secrets.yaml products/secrets.yaml
           mkdir -p tests/generated
           cp secrets.yaml tests/secrets.yaml
