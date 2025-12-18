@@ -68,9 +68,9 @@ substitutions:
 
 esphome:
   includes:
-    - include/sense360/led_logic.h
-    - include/sense360/thresholds.h
-    - include/sense360/time_utils.h
+    - ../include/sense360/led_logic.h
+    - ../include/sense360/thresholds.h
+    - ../include/sense360/time_utils.h
 
 # Global variables for night mode and LED state
 globals:
