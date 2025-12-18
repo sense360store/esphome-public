@@ -52,7 +52,7 @@ esphome:
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v3.0.0  # Change this to update firmware version
+    ref: main  # Use 'main' for latest stable version
     files:
       # ═══════════════════════════════════════════════════════════════
       # OPTION 1: BASIC - Air Quality Only (Simplest)
