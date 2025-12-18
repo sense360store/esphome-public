@@ -122,7 +122,7 @@ packages:
   onboard_sensors: !include ../packages/hardware/mini_onboard_sensors.yaml
 
   # === Feature Profiles ===
-  airiq_sensors: !include ../packages/features/airiq_advanced_profile.yaml
+  airiq_sensors: !include ../packages/features/airiq_advanced.yaml
   presence_detection: !include ../packages/features/presence_basic_profile_ld2412.yaml
   status_leds: !include ../packages/features/mini_four_leds_air_quality.yaml
 
