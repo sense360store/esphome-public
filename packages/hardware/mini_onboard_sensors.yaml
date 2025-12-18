@@ -31,8 +31,8 @@ substitutions:
 # ============================================================================
 # ONBOARD SENSORS
 # ============================================================================
-# Note: I2C bus is defined in sense360_core_mini.yaml (id: i2c0)
-# This file references that bus via the mini_sensors_i2c_id substitution
+# Note: I2C bus (id: i2c0) must be defined in the main product config file.
+# This file references that bus via the mini_sensors_i2c_id substitution.
 sensor:
   # ==========================================================================
   # LTR-303ALS-01 - Ambient Light Sensor (U4)
