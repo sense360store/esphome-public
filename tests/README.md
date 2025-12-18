@@ -14,22 +14,24 @@ This test suite implements **Phase 1** of the testing strategy, providing:
 ## Directory Structure
 
 ```
-tests/
-├── include/              # Extracted header files
-│   ├── led_logic.h       # LED color mapping, brightness, aggregation
-│   ├── calibration.h     # SHT30 temperature/humidity calibration
-│   ├── thresholds.h      # Air quality threshold classification
-│   └── time_utils.h      # Night mode time calculations
-├── unit/                 # Unit test files
-│   ├── test_led_logic.cpp
-│   ├── test_calibration.cpp
-│   ├── test_thresholds.cpp
-│   └── test_time_utils.cpp
-├── esphome/              # ESPHome integration tests
-│   └── test_led_logic.yaml
-├── Makefile              # Test build system
-├── README.md             # This file
-└── INTEGRATION_GUIDE.md  # Guide for using headers in YAML
+esphome-public/
+├── include/                    # C++ header files
+│   └── sense360/               # Extracted header files
+│       ├── led_logic.h         # LED color mapping, brightness, aggregation
+│       ├── calibration.h       # SHT30 temperature/humidity calibration
+│       ├── thresholds.h        # Air quality threshold classification
+│       └── time_utils.h        # Night mode time calculations
+└── tests/
+    ├── unit/                   # Unit test files
+    │   ├── test_led_logic.cpp
+    │   ├── test_calibration.cpp
+    │   ├── test_thresholds.cpp
+    │   └── test_time_utils.cpp
+    ├── esphome/                # ESPHome integration tests
+    │   └── test_led_logic.yaml
+    ├── Makefile                # Test build system
+    ├── README.md               # This file
+    └── INTEGRATION_GUIDE.md    # Guide for using headers in YAML
 ```
 
 ## Quick Start
@@ -92,8 +94,8 @@ All tests passed!
 ## Test Coverage
 
 ### LED Logic (36 tests)
-**File**: `test_led_logic.cpp`
-**Header**: `include/led_logic.h`
+**File**: `unit/test_led_logic.cpp`
+**Header**: `include/sense360/led_logic.h`
 
 - ✅ Color mapping for all severity levels
 - ✅ Brightness scaling with clamping
@@ -108,8 +110,8 @@ All tests passed!
 - `aggregate_pm_levels_with_unknown` - Handles NaN sensors
 
 ### Calibration Logic (34 tests)
-**File**: `test_calibration.cpp`
-**Header**: `include/calibration.h`
+**File**: `unit/test_calibration.cpp`
+**Header**: `include/sense360/calibration.h`
 
 - ✅ Single-point offset calibration
 - ✅ Clamping to safe ranges (±30°C, ±50%RH)
@@ -124,8 +126,8 @@ All tests passed!
 - `integration_full_calibration_workflow` - End-to-end verification
 
 ### Threshold Classification (36 tests)
-**File**: `test_thresholds.cpp`
-**Header**: `include/thresholds.h`
+**File**: `unit/test_thresholds.cpp`
+**Header**: `include/sense360/thresholds.h`
 
 - ✅ Classification for all air quality levels
 - ✅ Boundary condition testing
@@ -139,8 +141,8 @@ All tests passed!
 - `get_worst_status_four_with_unknowns` - Multi-sensor robustness
 
 ### Time Utils (46 tests)
-**File**: `test_time_utils.cpp`
-**Header**: `include/time_utils.h`
+**File**: `unit/test_time_utils.cpp`
+**Header**: `include/sense360/time_utils.h`
 
 - ✅ Time conversion (hours/minutes ↔ minutes since midnight)
 - ✅ Same-day time range checking
@@ -213,14 +215,22 @@ Headers can be included directly in ESPHome configurations:
 esphome:
   name: my-device
   includes:
-    - tests/include/led_logic.h
-    - tests/include/thresholds.h
+    - include/sense360/led_logic.h
+    - include/sense360/thresholds.h
 
 # Use tested functions
 lambda: |-
   using namespace sense360::led;
   int level = compute_level(value, good, moderate, unhealthy);
   Color color = color_for_severity(level);
+```
+
+For remote packages, use GitHub URLs:
+```yaml
+esphome:
+  includes:
+    - github://sense360store/esphome-public/include/sense360/led_logic.h@main
+    - github://sense360store/esphome-public/include/sense360/thresholds.h@main
 ```
 
 See `INTEGRATION_GUIDE.md` for complete integration instructions.
@@ -270,8 +280,8 @@ jobs:
 ### Adding New Tests
 
 1. **Identify logic** in YAML files that needs testing
-2. **Extract to header** in `include/` directory
-3. **Write tests** in `unit/test_*.cpp`
+2. **Extract to header** in `include/sense360/` directory
+3. **Write tests** in `tests/unit/test_*.cpp`
 4. **Run tests** with `make test`
 5. **Update YAML** to use extracted functions (optional)
 
@@ -279,16 +289,16 @@ jobs:
 
 ```bash
 # 1. Write failing test
-vim unit/test_new_feature.cpp
+vim tests/unit/test_new_feature.cpp
 
 # 2. Implement feature
-vim include/new_feature.h
+vim include/sense360/new_feature.h
 
 # 3. Run tests until passing
-make run_test_new_feature
+cd tests && make run_test_new_feature
 
 # 4. Integrate into YAML
-vim features/my_feature.yaml
+vim packages/features/my_feature.yaml
 ```
 
 ## Troubleshooting
@@ -353,7 +363,7 @@ esphome compile your-device.yaml
 ### Test Template
 
 ```cpp
-#include "../include/my_module.h"
+#include "../../include/sense360/my_module.h"
 #include <cassert>
 
 TEST_CASE(feature_normal_case) {

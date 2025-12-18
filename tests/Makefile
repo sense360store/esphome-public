@@ -2,7 +2,7 @@
 # Compiles and runs native C++ tests for extracted logic
 
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall -Wextra -I./include -O2
+CXXFLAGS = -std=c++11 -Wall -Wextra -I../include -O2
 LDFLAGS = -lm
 
 # Directories
@@ -99,7 +99,7 @@ coverage:
 	@echo "$(BOLD)Test Coverage Summary$(NC)"
 	@echo "========================================"
 	@echo "Header files:"
-	@ls -1 include/*.h | wc -l | xargs echo "  Total headers:"
+	@ls -1 ../include/sense360/*.h | wc -l | xargs echo "  Total headers:"
 	@echo ""
 	@echo "Test files:"
 	@ls -1 $(SRC_DIR)/test_*.cpp | wc -l | xargs echo "  Total test files:"
