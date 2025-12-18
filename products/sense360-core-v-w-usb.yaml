@@ -56,8 +56,6 @@ substitutions:
   power_source: usb
 
   # Security (Define these in your secrets.yaml)
-  api_key: !secret api_encryption_key
-  ota_password: !secret ota_password
 
   # Logging
   log_level: INFO

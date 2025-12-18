@@ -54,11 +54,6 @@ substitutions:
   sen55_voc_moderate_limit: "120"
   sen55_voc_unhealthy_limit: "180"
 
-  # === Security (users MUST define these in their config) ===
-  api_key: !secret api_encryption_key
-  ota_password: !secret ota_password
-  fallback_ap_password: "Sense360Fallback"
-
 # ============================================================================
 # PACKAGE INCLUDES
 # ============================================================================

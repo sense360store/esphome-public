@@ -57,8 +57,6 @@ substitutions:
   poe_standard: "802.3af"
 
   # Security (Define these in your secrets.yaml)
-  api_key: !secret api_encryption_key
-  ota_password: !secret ota_password
 
   # Logging
   log_level: INFO
