@@ -91,13 +91,15 @@ esp32:
       CONFIG_ESPTOOLPY_FLASHFREQ_80M: y
       CONFIG_ESPTOOLPY_FLASHMODE_QIO: y
 
-# LD2412 external component - loaded from local components directory
-# No external GitHub dependencies required during build
+# LD2412 external component - loaded from GitHub repository
+# Using git source so it works for both local builds and remote package consumers
 external_components:
   - source:
-      type: local
-      path: ../components
+      type: git
+      url: https://github.com/sense360store/esphome-public
+      ref: main
     components: [ld2412, ld24xx]
+    refresh: 1d
 
 # ----------------------------------------------------------------------------
 # BASE PACKAGES - Core system components
