@@ -16,7 +16,7 @@ external_components:
   # (removed 'filters' argument from sensor schemas - not supported in 2025.3.0)
   - source:
       type: local
-      path: ../../components
+      path: ../components
     components: [ld2412, ld24xx]
 
   # LD2450 Multi-Target Radar Component
