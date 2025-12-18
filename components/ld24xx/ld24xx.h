@@ -52,7 +52,11 @@ template<typename T> class SensorWithDedup {
   }
 
   void publish_state_unknown() {
-    if (this->publish_dedup.next_unknown()) {
+    // Publish NAN when state is unknown; use has_value() to track
+    // whether we've already published an unknown state
+    if (this->publish_dedup.has_value()) {
+      // Reset deduplicator by creating a new one, so next valid value will publish
+      this->publish_dedup = Deduplicator<T>();
       this->sens->publish_state(NAN);
     }
   }

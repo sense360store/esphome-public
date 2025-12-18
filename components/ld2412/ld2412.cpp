@@ -199,6 +199,11 @@ static inline bool validate_header_footer(const uint8_t *header_footer, const ui
   return std::memcmp(header_footer, buffer, HEADER_FOOTER_SIZE) == 0;
 }
 
+// Format a 6-byte MAC address as "XX:XX:XX:XX:XX:XX"
+static std::string format_mac_address_pretty(const uint8_t *mac) {
+  return str_sprintf("%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+}
+
 void LD2412Component::dump_config() {
   std::string mac_str =
       mac_address_is_valid(this->mac_address_) ? format_mac_address_pretty(this->mac_address_) : UNKNOWN_MAC;
