@@ -16,10 +16,8 @@
 # ============================================================================
 
 substitutions:
-  # I2C bus configuration
+  # I2C bus ID - must match the bus defined in core hardware package
   mini_sensors_i2c_id: i2c0
-  mini_i2c_sda_pin: GPIO48
-  mini_i2c_scl_pin: GPIO45
 
   # Sensor update intervals
   mini_ltr303_update: 10s
@@ -27,20 +25,10 @@ substitutions:
   mini_scd40_update: 30s
 
 # ============================================================================
-# I2C BUS - Required for onboard sensors
-# ============================================================================
-# Uses GPIO48 (SDA) and GPIO45 (SCL) as per Mini board schematic
-# Note: GPIO45 is a strapping pin - warning expected during boot
-# ============================================================================
-i2c:
-  - id: ${mini_sensors_i2c_id}
-    sda: ${mini_i2c_sda_pin}
-    scl: ${mini_i2c_scl_pin}
-    scan: true
-    frequency: 100kHz
-
-# ============================================================================
 # ONBOARD SENSORS
+# ============================================================================
+# Note: I2C bus must be defined by the product config or core hardware package
+# (sense360_core_mini.yaml). This package only defines sensors that use i2c0.
 # ============================================================================
 sensor:
   # ==========================================================================
