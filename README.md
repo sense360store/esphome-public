@@ -197,7 +197,7 @@ Use a single pre-built product file. Everything is included and tested:
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v3.0.0
+    ref: main
     files:
       - products/sense360-core-ceiling.yaml
 ```
@@ -210,7 +210,7 @@ Pick and choose specific modules. See the [Package Reference](#package-reference
 packages:
   sense360_base:
     url: https://github.com/sense360store/esphome-public
-    ref: v3.0.0
+    ref: main
     files:
       - packages/base/wifi.yaml
       - packages/base/api_encrypted.yaml
@@ -226,7 +226,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/sense360store/esphome-public
-      ref: v3.0.0
+      ref: main
     components: [ld2412, ld24xx]
 ```
 
@@ -269,7 +269,7 @@ In your ESPHome dashboard, create a new file (e.g., `sense360-living-room.yaml`)
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v3.0.0  # Always use a version tag (check releases for latest)
+    ref: main  # Use 'main' for latest stable version
     files:
       - products/sense360-core-ceiling.yaml
     refresh: 1d
