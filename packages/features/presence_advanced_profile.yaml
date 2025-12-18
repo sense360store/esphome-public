@@ -1,4 +1,3 @@
----
 packages:
   base_profile: !include presence_basic_profile.yaml
   diagnostics: !include diagnostics.yaml
