@@ -31,10 +31,6 @@ substitutions:
   # === WiFi Behavior ===
   wifi_fast_connect: "true"
 
-  # === Security (users MUST define these) ===
-  api_key: !secret api_encryption_key
-  ota_password: !secret ota_password
-
 # ----------------------------------------------------------------------------
 # PACKAGE INCLUDES
 # ----------------------------------------------------------------------------

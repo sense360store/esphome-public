@@ -94,10 +94,6 @@ substitutions:
   sen55_nox_moderate_limit: "120"
   sen55_nox_unhealthy_limit: "180"
 
-  # === Security (users MUST define these in their config) ===
-  # Users should define fallback_ap_password in their main config
-  fallback_ap_password: "Sense360Fallback"  # Default fallback AP password
-
 # ----------------------------------------------------------------------------
 # PACKAGE INCLUDES
 # Load all firmware components from the repository
