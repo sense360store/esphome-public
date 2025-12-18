@@ -7,26 +7,23 @@
 # Components:
 #   - ld2412: HLK-LD2412 24GHz mmWave radar (superior still presence)
 #   - ld2450: HLK-LD2450 24GHz mmWave radar (multi-target tracking)
+#   - ld24xx: Shared base components for LD24xx radar family
 # ============================================================================
 
 external_components:
-  # LD2412/LD2450/LD24xx Radar Components - ALL LOCAL
+  # LD2412/LD2450/LD24xx Radar Components
   # ============================================================================
-  # All radar components are now bundled locally in this repo to eliminate
-  # external GitHub dependencies during builds. This ensures:
-  # - Builds work offline (no network required)
-  # - Consistent versions across all product configs
-  # - No build failures due to GitHub connectivity issues
-  #
-  # Components included:
-  #   - ld2412: HLK-LD2412 24GHz mmWave radar (still presence detection)
-  #   - ld2450: HLK-LD2450 24GHz mmWave radar (multi-target tracking)
-  #   - ld24xx: Shared base components for LD24xx radar family
+  # All radar components are bundled in this repo's components/ directory.
+  # Using git source (not local) so it works for both:
+  #   - CI builds from the repo
+  #   - Users consuming this as a remote package
   #
   # NOTE: ld2412 modified for ESPHome 2025.3.0 compatibility
   # NOTE: ld2450 sourced from ESPHome 2025.3.0 release
   # ============================================================================
   - source:
-      type: local
-      path: ../../components
+      type: git
+      url: https://github.com/sense360store/esphome-public
+      ref: main
     components: [ld2412, ld2450, ld24xx]
+    refresh: 1d
