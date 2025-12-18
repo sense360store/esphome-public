@@ -27,6 +27,7 @@ on:
     paths:
       - 'products/**'
       - 'packages/**'
+      - 'components/**'
       - 'tests/**'
       - '.github/workflows/ci-validate-configs.yml'
   pull_request:
@@ -34,6 +35,7 @@ on:
     paths:
       - 'products/**'
       - 'packages/**'
+      - 'components/**'
       - 'tests/**'
       - '.github/workflows/ci-validate-configs.yml'
   workflow_dispatch:
@@ -176,6 +178,17 @@ jobs:
           rm -f products/secrets.yaml
           cp secrets.yaml products/secrets.yaml
 
+      - name: Update external_components to use current branch
+        run: |
+          # For CI testing, we need to use the current branch's components instead of 'main'
+          # This prevents CI failures when component changes haven't been merged to main yet
+          # The checked-in file uses 'ref: main' which is correct for end-users
+          BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          echo "Updating external_components.yaml to use branch: $BRANCH_NAME"
+          sed -i "s|ref: main|ref: $BRANCH_NAME|g" packages/base/external_components.yaml
+          echo "Updated external_components.yaml:"
+          cat packages/base/external_components.yaml
+
       - name: Validate ESPHome config - ${{ matrix.product }}
         run: |
           echo "Validating: ${{ matrix.file }}"
@@ -268,6 +281,17 @@ jobs:
           cp secrets.yaml tests/secrets.yaml
           mkdir -p tests/generated
           cp secrets.yaml tests/generated/secrets.yaml
+
+      - name: Update external_components to use current branch
+        run: |
+          # For CI testing, we need to use the current branch's components instead of 'main'
+          # This prevents CI failures when component changes haven't been merged to main yet
+          # The checked-in file uses 'ref: main' which is correct for end-users
+          BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          echo "Updating external_components.yaml to use branch: $BRANCH_NAME"
+          sed -i "s|ref: main|ref: $BRANCH_NAME|g" packages/base/external_components.yaml
+          echo "Updated external_components.yaml:"
+          cat packages/base/external_components.yaml
 
       - name: Generate test config
         run: |

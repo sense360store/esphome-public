@@ -192,6 +192,21 @@ jobs:
           cp secrets.yaml tests/secrets.yaml
           cp secrets.yaml tests/generated/secrets.yaml
 
+      - name: Update external_components to use current branch
+        run: |
+          # For builds, we need to use the current branch's components instead of 'main'
+          # This ensures builds use the components from the release branch/tag
+          # The checked-in file uses 'ref: main' which is correct for end-users
+          BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          # For release tags, use the tag name
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            BRANCH_NAME="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "Updating external_components.yaml to use ref: $BRANCH_NAME"
+          sed -i "s|ref: main|ref: $BRANCH_NAME|g" packages/base/external_components.yaml
+          echo "Updated external_components.yaml:"
+          cat packages/base/external_components.yaml
+
       - name: Compile firmware
         run: |
           echo "=============================================="
