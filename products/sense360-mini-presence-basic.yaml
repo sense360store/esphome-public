@@ -79,6 +79,16 @@ packages:
   device_health: !include ../packages/features/device_health.yaml
 
 # ----------------------------------------------------------------------------
+# I2C BUS - For onboard sensors
+# ----------------------------------------------------------------------------
+i2c:
+  - id: i2c0
+    sda: GPIO48
+    scl: GPIO45
+    scan: true
+    frequency: 100kHz
+
+# ----------------------------------------------------------------------------
 # HARDWARE - LD2450 Presence Sensor (Native ESPHome)
 # ----------------------------------------------------------------------------
 uart:
