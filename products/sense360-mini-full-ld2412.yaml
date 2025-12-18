@@ -91,15 +91,13 @@ esp32:
       CONFIG_ESPTOOLPY_FLASHFREQ_80M: y
       CONFIG_ESPTOOLPY_FLASHMODE_QIO: y
 
-# LD2412 external component - required for ESPHome 2025.3.0+
-# The ld2412 component is not yet in ESPHome core, so we load it from local components
+# LD2412 external component - loaded from local components directory
+# No external GitHub dependencies required during build
 external_components:
   - source:
-      type: git
-      url: https://github.com/sense360store/esphome-public
-      ref: main
+      type: local
+      path: ../components
     components: [ld2412, ld24xx]
-    refresh: 1d
 
 # ----------------------------------------------------------------------------
 # BASE PACKAGES - Core system components
