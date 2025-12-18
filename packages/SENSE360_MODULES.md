@@ -4,6 +4,71 @@
 
 The Sense360 platform is built on ESP32-S3-WROOM-1-N16R8 and supports modular expansion through I2C, UART, and GPIO interfaces.
 
+---
+
+## Sense360 Mini Board
+
+The Mini board is a compact version of the Sense360 platform with integrated sensors directly on the PCB.
+
+### Mini Board Pin Reference
+
+| Function | GPIO | Notes |
+|----------|------|-------|
+| I2C SDA | 48 | Onboard sensors |
+| I2C SCL | 45 | 100kHz (strapping pin) |
+| UART TX | 43 | Radar (via JST3_UART) |
+| UART RX | 44 | Radar (via JST3_UART) |
+| LED Data | 8 | WS2812B (via 74LVC1G07 level shifter) |
+| Boot Button | 0 | Input |
+
+### Onboard Sensors (Integrated on Mini PCB)
+
+| Designator | Sensor | I2C Address | Measurements |
+|------------|--------|-------------|--------------|
+| U4 | LTR-303ALS-01 | 0x29 | Ambient Light (lux) |
+| U3 | SHT30-DIS | 0x44 | Temperature, Humidity |
+| U5 | SCD40-D-R2 | 0x62 | CO2 (ppm) |
+
+These sensors are **included in all Mini board configurations** via the onboard sensors package.
+
+### Mini Board External Connectors
+
+| Connector | Pins | Purpose |
+|-----------|------|---------|
+| JST3_UART | TX/RX | LD2412 radar (115200 baud) |
+| JST4_SEN | SDA/SCL | External sensors (e.g., SEN55 @ 0x69) |
+| JST4_RADAR | GPIO11/12 | TRIG/ECHO (not used with LD2412) |
+
+### Mini Board YAML Packages
+
+```yaml
+# Core Mini hardware (ESP32-S3, I2C, system sensors)
+packages:
+  core: !include packages/hardware/sense360_core_mini.yaml
+
+# Onboard sensors (LTR-303, SHT30, SCD40)
+packages:
+  onboard_sensors: !include packages/hardware/mini_onboard_sensors.yaml
+
+# LD2412 Radar (for presence detection)
+packages:
+  presence: !include packages/hardware/presence_ld2412.yaml
+```
+
+### Mini Product Configurations
+
+| Product | Description | Config File |
+|---------|-------------|-------------|
+| Mini AirIQ Basic | Air quality + presence (basic) | `products/sense360-mini-airiq-basic.yaml` |
+| Mini AirIQ Advanced | Air quality + presence (advanced) | `products/sense360-mini-airiq-advanced.yaml` |
+| Mini AirIQ + LD2412 | Air quality + LD2412 radar | `products/sense360-mini-airiq-ld2412.yaml` |
+| Mini Full LD2412 | Full sensors + LD2412 | `products/sense360-mini-full-ld2412.yaml` |
+| Mini Presence Basic | Presence only (basic) | `products/sense360-mini-presence-basic.yaml` |
+| Mini Presence Advanced | Presence only (advanced) | `products/sense360-mini-presence-advanced.yaml` |
+| Mini Presence LD2412 | Presence with LD2412 | `products/sense360-mini-presence-ld2412.yaml` |
+
+---
+
 ## Pin Reference
 
 | Function | GPIO | Notes |

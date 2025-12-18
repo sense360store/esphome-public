@@ -102,8 +102,58 @@ The core board contains the ESP32-S3 microcontroller and provides connections fo
 |-------------|--------------|---------|-----|-------------|
 | `Sense360_Core_Ceiling` | Sense 360 Core | Ceiling | S360-CORE-C | Base core for ceiling mount installations |
 | `Sense360_Core_Wall` | Sense 360 Core | Wall/Desk | S360-CORE-W | Base core for wall-mounted or desk installations |
+| `Sense360_Core_Mini` | Sense 360 Mini | Compact | S360-MINI | Compact board with integrated sensors |
 
 > **Future Product**: Sense360 Voice (CORE-V-C, CORE-V-W) - Core boards with integrated voice assistant support (coming soon)
+
+### Sense360 Mini - Integrated Sensors
+
+The Mini board has sensors integrated directly on the PCB (no expansion modules needed):
+
+| Designator | Sensor | I2C Address | Measurements |
+|------------|--------|-------------|--------------|
+| U4 | LTR-303ALS-01 | 0x29 | Ambient Light (lux) |
+| U3 | SHT30-DIS | 0x44 | Temperature, Humidity |
+| U5 | SCD40-D-R2 | 0x62 | CO2 (ppm) |
+
+**Mini External Connectors:**
+- **JST3_UART**: TX/RX for LD2412 radar (115200 baud)
+- **JST4_SEN**: I2C for external sensors (e.g., SEN55 @ 0x69)
+- **JST4_RADAR**: GPIO11/12 for TRIG/ECHO (not used with LD2412)
+
+**Mini Pin Assignments:**
+| Function | GPIO | Notes |
+|----------|------|-------|
+| I2C SDA | 48 | Onboard sensors |
+| I2C SCL | 45 | Strapping pin (warning expected) |
+| UART TX | 43 | Radar via JST3_UART |
+| UART RX | 44 | Radar via JST3_UART |
+| LED Data | 8 | WS2812B via level shifter |
+| Boot Button | 0 | Input |
+
+**Mini Package Files:**
+```yaml
+# Core Mini hardware
+packages:
+  core: !include packages/hardware/sense360_core_mini.yaml
+
+# Onboard sensors (LTR-303, SHT30, SCD40)
+packages:
+  onboard_sensors: !include packages/hardware/mini_onboard_sensors.yaml
+
+# LD2412 Radar (for presence detection)
+packages:
+  presence: !include packages/hardware/presence_ld2412.yaml
+```
+
+**Mini Product Configurations:**
+| Product | Description | Config File |
+|---------|-------------|-------------|
+| Mini AirIQ Basic | Air quality + presence | `products/sense360-mini-airiq-basic.yaml` |
+| Mini AirIQ + LD2412 | Air quality + LD2412 radar | `products/sense360-mini-airiq-ld2412.yaml` |
+| Mini Full LD2412 | Full sensors + LD2412 | `products/sense360-mini-full-ld2412.yaml` |
+| Mini Presence | Presence detection only | `products/sense360-mini-presence.yaml` |
+| Mini Presence LD2412 | Presence with LD2412 | `products/sense360-mini-presence-ld2412.yaml` |
 
 ### Core Board Specifications
 
