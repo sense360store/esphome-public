@@ -94,18 +94,9 @@ packages:
   diagnostics: !include ../packages/features/diagnostics.yaml
 
 # ----------------------------------------------------------------------------
-# I2C BUS - For air quality sensors
-# ----------------------------------------------------------------------------
-i2c:
-  - id: i2c0
-    sda: ${i2c_sda_pin}
-    scl: ${i2c_scl_pin}
-    scan: true
-    frequency: ${i2c_frequency}
-
-# ----------------------------------------------------------------------------
 # FULL SENSOR SUITE
 # ----------------------------------------------------------------------------
+# Note: i2c bus (i2c0) is defined in mini_onboard_sensors.yaml package
 sensor:
   # ===== SEN55 - Complete Particulate Matter + Environmental Suite =====
   - platform: sen5x
