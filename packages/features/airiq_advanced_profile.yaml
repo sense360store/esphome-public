@@ -1,4 +1,3 @@
----
 packages:
   # The base AirIQ profile publishes MQTT telemetry; set substitutions like
   # `airiq_mqtt_username`/`airiq_mqtt_password` or override `mqtt: null` in your
