@@ -205,19 +205,19 @@ sensor:
         then:
           - lambda: 'id(pm10).publish_state(x);'
 
-    # Temperature from SEN55
+    # Temperature from SEN55 (publishes to room_temperature template sensor)
     temperature:
       id: sen55_temp
-      name: "${friendly_name} Temperature"
+      internal: true
       accuracy_decimals: 1
       on_value:
         then:
           - lambda: 'id(room_temperature).publish_state(x);'
 
-    # Humidity from SEN55
+    # Humidity from SEN55 (publishes to room_humidity template sensor)
     humidity:
       id: sen55_humidity
-      name: "${friendly_name} Humidity"
+      internal: true
       accuracy_decimals: 1
       on_value:
         then:
