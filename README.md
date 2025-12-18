@@ -179,6 +179,61 @@ The `products/` directory contains complete, tested configurations:
 
 ---
 
+## Configuration Approaches
+
+This repository supports three configuration methods. Choose based on your needs:
+
+| Approach | Best For | Complexity |
+|----------|----------|------------|
+| **Product files** | Standard setups, most users | Simple |
+| **Individual packages** | Custom module combinations | Moderate |
+| **External components only** | From-scratch builds, experts | Advanced |
+
+### Approach 1: Product Files (Recommended)
+
+Use a single pre-built product file. Everything is included and tested:
+
+```yaml
+packages:
+  sense360_firmware:
+    url: https://github.com/sense360store/esphome-public
+    ref: main
+    files:
+      - products/sense360-core-ceiling.yaml
+```
+
+### Approach 2: Individual Packages
+
+Pick and choose specific modules. See the [Package Reference](#package-reference) below:
+
+```yaml
+packages:
+  sense360_base:
+    url: https://github.com/sense360store/esphome-public
+    ref: main
+    files:
+      - packages/base/wifi.yaml
+      - packages/base/api_encrypted.yaml
+      - packages/expansions/presence_ceiling.yaml
+```
+
+### Approach 3: External Components Only (Expert)
+
+⚠️ **Warning**: This only pulls C++ component code, NOT YAML configuration.
+
+```yaml
+external_components:
+  - source:
+      type: git
+      url: https://github.com/sense360store/esphome-public
+      ref: main
+    components: [ld2412, ld24xx]
+```
+
+With this approach, you must write ALL configuration yourself (UART, sensors, automations, etc.). Only use this if you need the radar drivers for a completely custom build.
+
+---
+
 ## Quick Start Guide
 
 ### Step 1: Choose Your Configuration
@@ -215,6 +270,7 @@ packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
     ref: v3.0.0  # Always use a version tag (check releases for latest)
+    ref: main  # Use 'main' for latest stable version
     files:
       - products/sense360-core-ceiling.yaml
     refresh: 1d
@@ -299,6 +355,25 @@ packages:
       - packages/features/presence_basic_profile.yaml
     refresh: 1d
 ```
+## Package Reference
+
+For custom builds using Approach 2, here are the available packages:
+
+| Category | Package | Purpose |
+|----------|---------|---------|
+| **Base** | `packages/base/wifi.yaml` | WiFi connectivity |
+| | `packages/base/api_encrypted.yaml` | Home Assistant API |
+| | `packages/base/ota.yaml` | Over-the-air updates |
+| | `packages/base/time.yaml` | Time synchronization |
+| **Hardware** | `packages/hardware/sense360_core_ceiling.yaml` | Ceiling core board |
+| | `packages/hardware/sense360_core_wall.yaml` | Wall core board |
+| | `packages/hardware/led_ring_ceiling.yaml` | Ceiling LED ring |
+| **Expansions** | `packages/expansions/presence_ceiling.yaml` | Presence module (ceiling) |
+| | `packages/expansions/presence_wall.yaml` | Presence module (wall) |
+| | `packages/expansions/fan_pwm.yaml` | PWM fan control |
+| | `packages/expansions/airiq.yaml` | Air quality sensors |
+| **Features** | `packages/features/presence_basic_profile.yaml` | Basic presence config |
+| | `packages/features/fan_control_profile.yaml` | Fan automation |
 
 ### Approach 3: External Components Only (Expert)
 
