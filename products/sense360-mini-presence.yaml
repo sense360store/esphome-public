@@ -54,6 +54,8 @@ packages:
   # === Hardware ===
   core_hardware: !include ../packages/hardware/sense360_core_mini.yaml
   presence_hardware: !include ../packages/hardware/presence_ld2450.yaml
+  # Onboard sensors: LTR-303 (Lux), SHT30 (Temp/Humidity), SCD40 (CO2)
+  onboard_sensors: !include ../packages/hardware/mini_onboard_sensors.yaml
 
   # === Features ===
   presence_detection: !include ../packages/features/presence_basic_profile.yaml

@@ -126,6 +126,7 @@ Optimized for bathroom environments. **Ceiling mount only. Replaces AirIQ (canno
 |-----|------|-------------|-------------|
 | CORE-C | Sense360 Core | Ceiling | Standard ceiling-mount core |
 | CORE-W | Sense360 Core | Wall/Desk | Standard wall/desk-mount core |
+| MINI | Sense360 Mini | Compact | Integrated sensors + presence |
 
 ### Core Board Specifications
 
@@ -134,6 +135,39 @@ Optimized for bathroom environments. **Ceiling mount only. Replaces AirIQ (canno
 - **I2C Buses**: Dual I2C for sensors and expansion
 - **Relay**: Built-in 10A relay for load switching
 - **Visual Indicators**: WS2812 addressable LED ring
+
+---
+
+## Sense360 Mini Board
+
+The Mini is a compact all-in-one board with integrated sensors directly on the PCB.
+
+### Mini Onboard Sensors
+
+| Sensor | Measurements | I2C Address |
+|--------|--------------|-------------|
+| **LTR-303ALS-01** | Ambient Light (lux) | 0x29 |
+| **SHT30-DIS** | Temperature, Humidity | 0x44 |
+| **SCD40** | CO2 (ppm) | 0x62 |
+
+### Mini External Connectors
+
+| Connector | Purpose |
+|-----------|---------|
+| **JST3_UART** | LD2412 radar (UART) |
+| **JST4_SEN** | External sensors like SEN55 (I2C) |
+
+### Mini Product Configurations
+
+| Product | Description |
+|---------|-------------|
+| `sense360-mini-airiq-basic.yaml` | Air quality + basic presence |
+| `sense360-mini-airiq-ld2412.yaml` | Air quality + LD2412 radar |
+| `sense360-mini-full-ld2412.yaml` | Full sensors + LD2412 |
+| `sense360-mini-presence-basic.yaml` | Presence detection only |
+| `sense360-mini-presence-ld2412.yaml` | Presence with LD2412 |
+
+**Best for:** Compact installations, cinema rooms, bedrooms, offices
 
 ---
 
