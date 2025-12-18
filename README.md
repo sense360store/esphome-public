@@ -269,6 +269,7 @@ In your ESPHome dashboard, create a new file (e.g., `sense360-living-room.yaml`)
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
+    ref: v3.0.0  # Always use a version tag (check releases for latest)
     ref: main  # Use 'main' for latest stable version
     files:
       - products/sense360-core-ceiling.yaml
@@ -280,7 +281,9 @@ substitutions:
   friendly_name: "Living Room Sense360"
 ```
 
-> **Important**: Do NOT add `wifi:`, `api:`, or `ota:` sections to your config. The packages already handle these using your secrets. Adding them again will cause conflicts.
+> **Important**:
+> - **Always use a version tag** (e.g., `ref: v3.0.0`) - never use `ref: main` in production
+> - Do NOT add `wifi:`, `api:`, or `ota:` sections to your config - packages handle these via secrets
 
 ### Step 4: Flash Your Device
 
@@ -311,6 +314,47 @@ You can combine modules freely with two constraints:
 
 ---
 
+## Configuration Approaches
+
+This repository supports three configuration methods. Choose based on your needs:
+
+| Approach | Best For | Complexity |
+|----------|----------|------------|
+| **Product files** | Standard setups, most users | Simple |
+| **Individual packages** | Custom module combinations | Moderate |
+| **External components only** | From-scratch builds, experts | Advanced |
+
+### Approach 1: Product Files (Recommended)
+
+Use a single pre-built product file. Everything is included and tested:
+
+```yaml
+packages:
+  sense360_firmware:
+    url: https://github.com/sense360store/esphome-public
+    ref: v3.0.0
+    files:
+      - products/sense360-core-ceiling.yaml  # One file, everything included
+    refresh: 1d
+```
+
+### Approach 2: Individual Packages (Custom Builds)
+
+Pick specific modules for custom hardware combinations:
+
+```yaml
+packages:
+  sense360_base:
+    url: https://github.com/sense360store/esphome-public
+    ref: v3.0.0
+    files:
+      - packages/base/wifi.yaml
+      - packages/base/api_encrypted.yaml
+      - packages/hardware/sense360_core_ceiling.yaml
+      - packages/expansions/presence_ceiling.yaml
+      - packages/features/presence_basic_profile.yaml
+    refresh: 1d
+```
 ## Package Reference
 
 For custom builds using Approach 2, here are the available packages:
@@ -329,6 +373,52 @@ For custom builds using Approach 2, here are the available packages:
 | | `packages/expansions/fan_pwm.yaml` | PWM fan control |
 | | `packages/expansions/airiq.yaml` | Air quality sensors |
 | **Features** | `packages/features/presence_basic_profile.yaml` | Basic presence config |
+| | `packages/features/fan_control_profile.yaml` | Fan automation |
+
+### Approach 3: External Components Only (Expert)
+
+> **⚠️ Not recommended unless you need full control.**
+
+This pulls in **only the C++ component drivers** (like `ld2412`). You must write all YAML configuration yourself:
+
+```yaml
+external_components:
+  - source:
+      type: git
+      url: https://github.com/sense360store/esphome-public
+      ref: v3.0.0
+    components: [ld2412, ld24xx]
+    refresh: 1d
+
+# You must then define ALL configuration manually:
+# - UART setup, sensor definitions, LED config, etc.
+```
+
+**Use this only if:** You're building completely custom firmware and want just the radar drivers without any pre-configured sensors or features.
+
+---
+
+## Package Reference
+
+When using [Approach 2](#approach-2-individual-packages-custom-builds) for custom builds, select from these packages:
+
+| Category | Package | Description |
+|----------|---------|-------------|
+| **Base (Required)** | `packages/base/wifi.yaml` | WiFi connectivity |
+| | `packages/base/api_encrypted.yaml` | Home Assistant API |
+| | `packages/base/ota.yaml` | Over-the-air updates |
+| | `packages/base/time.yaml` | Time synchronization |
+| **Hardware** | `packages/hardware/sense360_core_ceiling.yaml` | Ceiling core board |
+| | `packages/hardware/sense360_core_wall.yaml` | Wall core board |
+| | `packages/hardware/led_ring_ceiling.yaml` | Ceiling LED ring |
+| | `packages/hardware/led_ring_wall.yaml` | Wall LED ring |
+| **Expansions** | `packages/expansions/presence_ceiling.yaml` | LD2450 presence (ceiling) |
+| | `packages/expansions/airiq_ceiling.yaml` | Air quality sensors (ceiling) |
+| | `packages/expansions/comfort_ceiling.yaml` | Comfort sensors (ceiling) |
+| | `packages/expansions/fan_pwm.yaml` | PWM fan control |
+| | `packages/expansions/bathroom.yaml` | Bathroom sensors |
+| **Features** | `packages/features/presence_basic_profile.yaml` | Basic presence detection |
+| | `packages/features/airiq_basic_profile.yaml` | Basic air quality |
 | | `packages/features/fan_control_profile.yaml` | Fan automation |
 
 See [docs/product-matrix.md](docs/product-matrix.md) for the complete module reference.
