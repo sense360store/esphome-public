@@ -389,20 +389,20 @@ packages:
     ref: v2.1.0
     files:
       # Base (required)
-      - base/wifi.yaml
-      - base/api_encrypted.yaml
-      - base/ota.yaml
-      - base/time.yaml
+      - packages/base/wifi.yaml
+      - packages/base/api_encrypted.yaml
+      - packages/base/ota.yaml
+      - packages/base/time.yaml
 
       # Choose hardware
-      - hardware/sense360_core_mini.yaml
+      - packages/hardware/sense360_core_mini.yaml
 
       # Select features
       # Presence (choose one)
-      - features/presence_basic_profile.yaml           # HLK-LD2450
-      # - features/presence_basic_profile_ld2412.yaml  # HLK-LD2412
-      - features/device_health.yaml
-      # Omit features/airiq_mini_profile.yaml if air quality is not needed
+      - packages/features/presence_basic_profile.yaml           # HLK-LD2450
+      # - packages/features/presence_basic_profile_ld2412.yaml  # HLK-LD2412
+      - packages/features/device_health.yaml
+      # Omit packages/features/airiq_mini_profile.yaml if air quality is not needed
     refresh: 1d
 ```
 
