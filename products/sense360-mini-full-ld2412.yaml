@@ -95,9 +95,11 @@ esp32:
 # The ld2412 component is not yet in ESPHome core, so we load it from local components
 external_components:
   - source:
-      type: local
-      path: ../components
+      type: git
+      url: https://github.com/sense360store/esphome-public
+      ref: main
     components: [ld2412, ld24xx]
+    refresh: 1d
 
 # ----------------------------------------------------------------------------
 # BASE PACKAGES - Core system components
