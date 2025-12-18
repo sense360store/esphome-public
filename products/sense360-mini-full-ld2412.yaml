@@ -117,8 +117,7 @@ packages:
   # Device Health & Diagnostics
   device_health: !include ../packages/features/device_health.yaml
   diagnostics: !include ../packages/features/diagnostics.yaml
-  # Status LEDs
-  status_leds: !include ../packages/features/mini_four_leds_air_quality.yaml
+  # Note: Status LEDs are defined inline below (no external C++ includes needed)
 
 # ----------------------------------------------------------------------------
 # I2C BUS - For air quality sensors
@@ -205,19 +204,19 @@ sensor:
         then:
           - lambda: 'id(pm10).publish_state(x);'
 
-    # Temperature from SEN55
+    # Temperature from SEN55 (publishes to room_temperature template sensor)
     temperature:
       id: sen55_temp
-      name: "${friendly_name} Temperature"
+      internal: true
       accuracy_decimals: 1
       on_value:
         then:
           - lambda: 'id(room_temperature).publish_state(x);'
 
-    # Humidity from SEN55
+    # Humidity from SEN55 (publishes to room_humidity template sensor)
     humidity:
       id: sen55_humidity
-      name: "${friendly_name} Humidity"
+      internal: true
       accuracy_decimals: 1
       on_value:
         then:
@@ -335,6 +334,95 @@ button:
         - sen5x.start_fan_autoclean:
             id: sen55
         - logger.log: "SEN55 fan cleaning started (10 seconds)"
+
+# ----------------------------------------------------------------------------
+# STATUS LEDs - Air Quality Visualization
+# ----------------------------------------------------------------------------
+light:
+  - platform: esp32_rmt_led_strip
+    id: status_leds
+    name: "${friendly_name} Status LEDs"
+    pin: ${led_data_pin}
+    num_leds: ${led_count}
+    chipset: ${led_chipset}
+    rgb_order: ${led_rgb_order}
+    default_transition_length: 250ms
+    restore_mode: ALWAYS_OFF
+    effects:
+      - pulse:
+          name: "Pulse"
+          transition_length: 1s
+          update_interval: 1s
+
+      - addressable_rainbow:
+          name: "Rainbow"
+          speed: 10
+          width: 50
+
+      - addressable_scan:
+          name: "Scan"
+          move_interval: 100ms
+          scan_width: 1
+
+      # Air Quality Status - Color based on sensor readings
+      - addressable_lambda:
+          name: "Air Quality Status"
+          update_interval: 2s
+          lambda: |-
+            // Get air quality sensor values
+            float pm25 = 0;
+            float voc = 0;
+            float co2 = 0;
+
+            if (id(pm2_5).has_state()) pm25 = id(pm2_5).state;
+            if (id(voc_index).has_state()) voc = id(voc_index).state;
+            if (id(co2_ppm).has_state()) co2 = id(co2_ppm).state;
+
+            // Determine severity level (0=unknown, 1=good, 2=moderate, 3=unhealthy, 4=poor)
+            int level = 0;
+
+            // PM2.5 thresholds
+            int pm_level = 1;
+            if (pm25 > 55) pm_level = 4;
+            else if (pm25 > 25) pm_level = 3;
+            else if (pm25 > 10) pm_level = 2;
+
+            // VOC thresholds
+            int voc_level = 1;
+            if (voc > 180) voc_level = 4;
+            else if (voc > 120) voc_level = 3;
+            else if (voc > 80) voc_level = 2;
+
+            // CO2 thresholds
+            int co2_level = 1;
+            if (co2 > 1400) co2_level = 4;
+            else if (co2 > 950) co2_level = 3;
+            else if (co2 > 750) co2_level = 2;
+
+            // Take worst level
+            level = std::max({pm_level, voc_level, co2_level});
+
+            // Set color based on level
+            uint8_t r = 0, g = 0, b = 0;
+            switch (level) {
+              case 1: r = 0; g = 255; b = 0; break;     // Good: Green
+              case 2: r = 255; g = 128; b = 0; break;   // Moderate: Orange
+              case 3: r = 255; g = 0; b = 0; break;     // Unhealthy: Red
+              case 4: r = 128; g = 0; b = 255; break;   // Poor: Purple
+              default: r = 32; g = 32; b = 64; break;   // Unknown: Dim blue
+            }
+
+            // Apply pulsing for poor air quality
+            if (level == 4) {
+              float pulse = 0.5f + 0.5f * sin(millis() / 500.0f);
+              r = static_cast<uint8_t>(r * pulse);
+              g = static_cast<uint8_t>(g * pulse);
+              b = static_cast<uint8_t>(b * pulse);
+            }
+
+            for (int i = 0; i < it.size(); i++) {
+              it[i] = Color(r, g, b);
+            }
 
 # ----------------------------------------------------------------------------
 # USAGE NOTES FOR CUSTOMERS
