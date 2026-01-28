@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Guide - Sense360 Documentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0f1a;
+      --bg-secondary: #111827;
+      --bg-card: #1a2234;
+      --bg-card-hover: #232d42;
+      --border: #2a3548;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #3b82f6;
+      --green: #22c55e;
+      --yellow: #eab308;
+      --purple: #8b5cf6;
+      --cyan: #06b6d4;
+    }
+
+    :root.light {
+      --bg: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .logo svg rect { fill: var(--accent); }
+    .logo-text { font-weight: 700; font-size: 18px; }
+    .logo-sub { font-size: 12px; color: var(--text-muted); margin-left: 8px; }
+
+    .header-links {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .header-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .header-links a:hover { color: var(--text); }
+    .header-links a.active { color: var(--accent); }
+
+    .theme-toggle {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .page-header {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 24px 40px;
+    }
+
+    .page-header h1 {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .page-header p {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 600px;
+    }
+
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .room-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 24px;
+    }
+
+    .room-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .room-card h3 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .room-card .room-icon {
+      font-size: 24px;
+    }
+
+    .room-card .description {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .module-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .module-tag {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .module-tag.airiq { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+    .module-tag.comfort { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .module-tag.presence { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .module-tag.fan { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .module-tag.bathroom { background: rgba(6, 182, 212, 0.2); color: #22d3ee; }
+
+    .room-card .why {
+      font-size: 13px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    .room-card .why strong {
+      color: var(--text-secondary);
+    }
+
+    .module-section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+
+    .module-section h3 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .module-section .subtitle {
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .sensor-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .sensor-item h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .sensor-item p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .best-for {
+      display: inline-block;
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--green);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-top: 16px;
+    }
+
+    .combo-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+
+    .combo-table th, .combo-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .combo-table th {
+      background: var(--bg-card);
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .combo-table td {
+      font-size: 14px;
+    }
+
+    .combo-table .check {
+      color: var(--green);
+    }
+
+    .combo-table .no {
+      color: var(--text-muted);
+    }
+
+    .footer {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { font-size: 13px; color: var(--text-muted); }
+
+    @media (max-width: 768px) {
+      .page-header h1 { font-size: 28px; }
+      .room-grid { grid-template-columns: 1fr; }
+      .header-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+        <rect x="4" y="8" width="6" height="32" rx="3" />
+        <rect x="14" y="16" width="6" height="24" rx="3" opacity="0.7" />
+        <rect x="24" y="4" width="6" height="40" rx="3" />
+        <rect x="34" y="12" width="6" height="28" rx="3" opacity="0.7" />
+      </svg>
+      <span class="logo-text">Sense360</span>
+      <span class="logo-sub">Docs</span>
+    </a>
+    <div class="header-links">
+      <a href="product-guide.html" class="active">Product Guide</a>
+      <a href="technical-reference.html">Specs</a>
+      <a href="https://github.com/sense360store/esphome-public">GitHub</a>
+      <a href="https://mysense360.com">Shop</a>
+      <button class="theme-toggle" onclick="toggleTheme()">Light</button>
+    </div>
+  </div>
+</header>
+
+<div class="page-header">
+  <h1>Which Modules Do I Need?</h1>
+  <p>Room-by-room recommendations to build the perfect environmental monitoring setup for your home.</p>
+</div>
+
+<section class="section">
+  <h2 class="section-title">Room Recommendations</h2>
+  <div class="room-grid">
+    <div class="room-card">
+      <h3><span class="room-icon">🛋️</span> Living Room</h3>
+      <p class="description">Main living space with high occupancy and varied activities.</p>
+      <div class="module-list">
+        <span class="module-tag airiq">AirIQ</span>
+        <span class="module-tag comfort">Comfort</span>
+        <span class="module-tag presence">Presence</span>
+      </div>
+      <p class="why"><strong>Why:</strong> Full environmental awareness for the room you spend most time in. Track CO2 for ventilation, PM2.5 for air purifiers, and presence for lighting automation.</p>
+    </div>
+
+    <div class="room-card">
+      <h3><span class="room-icon">🛏️</span> Bedroom</h3>
+      <p class="description">Sleep environment optimization and morning automation.</p>
+      <div class="module-list">
+        <span class="module-tag comfort">Comfort</span>
+        <span class="module-tag presence">Presence</span>
+      </div>
+      <p class="why"><strong>Why:</strong> Temperature and humidity tracking for sleep quality. Presence detection for automated lighting when you wake up.</p>
+    </div>
+
+    <div class="room-card">
+      <h3><span class="room-icon">💼</span> Home Office</h3>
+      <p class="description">Productivity-focused environment monitoring.</p>
+      <div class="module-list">
+        <span class="module-tag airiq">AirIQ</span>
+        <span class="module-tag presence">Presence</span>
+      </div>
+      <p class="why"><strong>Why:</strong> CO2 directly affects cognitive function. Get alerts when ventilation is needed. Presence turns off lights/HVAC when you leave.</p>
+    </div>
+
+    <div class="room-card">
+      <h3><span class="room-icon">🚿</span> Bathroom</h3>
+      <p class="description">Humidity control and ventilation automation.</p>
+      <div class="module-list">
+        <span class="module-tag bathroom">Bathroom</span>
+        <span class="module-tag presence">Presence</span>
+        <span class="module-tag fan">Fan</span>
+      </div>
+      <p class="why"><strong>Why:</strong> Shower detection triggers exhaust fan. Mold risk monitoring. Auto-off fan when humidity normalizes. Ceiling mount only.</p>
+    </div>
+
+    <div class="room-card">
+      <h3><span class="room-icon">🍳</span> Kitchen</h3>
+      <p class="description">Cooking air quality and safety monitoring.</p>
+      <div class="module-list">
+        <span class="module-tag airiq">AirIQ</span>
+        <span class="module-tag presence">Presence</span>
+      </div>
+      <p class="why"><strong>Why:</strong> Detect cooking smoke, VOCs from gas stoves, and elevated CO2. Trigger range hood or notify when air quality degrades.</p>
+    </div>
+
+    <div class="room-card">
+      <h3><span class="room-icon">🔧</span> Workshop / Garage</h3>
+      <p class="description">Safety-focused air quality in work environments.</p>
+      <div class="module-list">
+        <span class="module-tag airiq">AirIQ</span>
+      </div>
+      <p class="why"><strong>Why:</strong> VOC monitoring for paints, solvents, adhesives. PM monitoring for sanding, cutting. Critical safety information.</p>
+    </div>
+
+    <div class="room-card">
+      <h3><span class="room-icon">🎬</span> Cinema / Media Room</h3>
+      <p class="description">Compact monitoring for dark rooms.</p>
+      <div class="module-list">
+        <span class="module-tag comfort">Comfort</span>
+        <span class="module-tag presence">Presence</span>
+      </div>
+      <p class="why"><strong>Why:</strong> Use the Sense360 Mini for a compact form factor. Presence controls lighting scenes. Temperature for HVAC.</p>
+    </div>
+
+    <div class="room-card">
+      <h3><span class="room-icon">👶</span> Nursery</h3>
+      <p class="description">Safe environment for infants.</p>
+      <div class="module-list">
+        <span class="module-tag airiq">AirIQ</span>
+        <span class="module-tag comfort">Comfort</span>
+      </div>
+      <p class="why"><strong>Why:</strong> Monitor everything that affects infant health - air quality, temperature, humidity. Strict thresholds for peace of mind.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="section-title">Module Overview</h2>
+
+  <div class="module-section">
+    <h3><span style="color: #a78bfa;">◆</span> AirIQ Module</h3>
+    <p class="subtitle">Comprehensive air quality monitoring for health-conscious environments.</p>
+    <div class="sensor-grid">
+      <div class="sensor-item">
+        <h4>SPS30</h4>
+        <p>PM1.0, PM2.5, PM4.0, PM10 particulate matter</p>
+      </div>
+      <div class="sensor-item">
+        <h4>SGP41</h4>
+        <p>VOC Index, NOx Index</p>
+      </div>
+      <div class="sensor-item">
+        <h4>SCD41</h4>
+        <p>CO2, Temperature, Humidity</p>
+      </div>
+      <div class="sensor-item">
+        <h4>BMP390</h4>
+        <p>Barometric Pressure</p>
+      </div>
+    </div>
+    <div class="best-for">Best for: Living rooms, bedrooms, offices, workshops</div>
+  </div>
+
+  <div class="module-section">
+    <h3><span style="color: #4ade80;">◆</span> Comfort Module</h3>
+    <p class="subtitle">Basic environmental comfort sensing for everyday use.</p>
+    <div class="sensor-grid">
+      <div class="sensor-item">
+        <h4>SHT40</h4>
+        <p>Temperature, Humidity</p>
+      </div>
+      <div class="sensor-item">
+        <h4>LTR-303</h4>
+        <p>Ambient Light (Lux)</p>
+      </div>
+    </div>
+    <div class="best-for">Best for: Any room needing basic climate and light monitoring</div>
+  </div>
+
+  <div class="module-section">
+    <h3><span style="color: #60a5fa;">◆</span> Presence Module</h3>
+    <p class="subtitle">mmWave radar-based presence detection for automation.</p>
+    <div class="sensor-grid">
+      <div class="sensor-item">
+        <h4>HLK-LD2450</h4>
+        <p>Multi-target tracking (up to 3), still/moving detection, zone-based sensing</p>
+      </div>
+      <div class="sensor-item">
+        <h4>DFRobot C4001</h4>
+        <p>24GHz FMCW, 16m presence range, 25m motion range, speed measurement</p>
+      </div>
+    </div>
+    <div class="best-for">Best for: Lighting automation, HVAC control, security</div>
+  </div>
+
+  <div class="module-section">
+    <h3><span style="color: #fbbf24;">◆</span> Fan Module</h3>
+    <p class="subtitle">Fan speed control for ventilation automation.</p>
+    <div class="sensor-grid">
+      <div class="sensor-item">
+        <h4>GP8403 (0-10V DAC)</h4>
+        <p>Commercial HVAC, EC motors, VFDs</p>
+      </div>
+      <div class="sensor-item">
+        <h4>PWM Output</h4>
+        <p>Standard fans, 4-pin PC fans</p>
+      </div>
+    </div>
+    <div class="best-for">Best for: Bathroom ventilation, whole-house fans, HVAC integration</div>
+  </div>
+
+  <div class="module-section">
+    <h3><span style="color: #22d3ee;">◆</span> Bathroom Module</h3>
+    <p class="subtitle">Optimized for bathroom environments. Ceiling mount only. Replaces AirIQ.</p>
+    <div class="sensor-grid">
+      <div class="sensor-item">
+        <h4>Base: SHT4x + BMP390 + SGP41</h4>
+        <p>Shower detection, mold risk, odor detection</p>
+      </div>
+      <div class="sensor-item">
+        <h4>Pro: + MLX90614 + SPS30</h4>
+        <p>IR surface temp, condensation risk, PM monitoring</p>
+      </div>
+    </div>
+    <div class="best-for">Best for: Bathrooms, laundry rooms, high-humidity areas</div>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="section-title">Module Combination Rules</h2>
+  <p style="color: var(--text-secondary); margin-bottom: 24px;">
+    Mix and match modules freely with two constraints:
+  </p>
+
+  <div class="module-section">
+    <table class="combo-table">
+      <thead>
+        <tr>
+          <th>Rule</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>AirIQ + Bathroom</strong></td>
+          <td class="no">Cannot be used together (Bathroom replaces AirIQ)</td>
+        </tr>
+        <tr>
+          <td><strong>Bathroom mount</strong></td>
+          <td>Ceiling only (no wall variant)</td>
+        </tr>
+        <tr>
+          <td><strong>Everything else</strong></td>
+          <td class="check">Free to combine: AirIQ, Comfort, Presence, Fan</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="section-title">Next Steps</h2>
+  <div class="room-grid">
+    <a href="https://mysense360.com" class="room-card" style="text-decoration: none;">
+      <h3>🛒 Purchase</h3>
+      <p class="description">Order your modules from mysense360.com</p>
+    </a>
+    <a href="installation.html" class="room-card" style="text-decoration: none;">
+      <h3>🔧 Installation</h3>
+      <p class="description">Flash firmware and add to Home Assistant</p>
+    </a>
+    <a href="technical-reference.html" class="room-card" style="text-decoration: none;">
+      <h3>📋 Technical Specs</h3>
+      <p class="description">Detailed specifications and SKUs</p>
+    </a>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a href="https://mysense360.com">Shop</a>
+    <a href="https://sense360store.github.io/WebFlash">WebFlash</a>
+    <a href="https://github.com/sense360store/esphome-public">GitHub</a>
+    <a href="mailto:support@mysense360.com">Contact</a>
+  </div>
+  <p class="footer-copy">© 2025 Sense360. MIT License.</p>
+</footer>
+
+<script>
+function toggleTheme() {
+  document.documentElement.classList.toggle('light');
+  const btn = document.querySelector('.theme-toggle');
+  btn.textContent = document.documentElement.classList.contains('light') ? 'Dark' : 'Light';
+}
+</script>
+
+</body>
+</html>

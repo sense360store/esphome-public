@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Installation Guide - Sense360 Documentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0f1a;
+      --bg-secondary: #111827;
+      --bg-card: #1a2234;
+      --bg-card-hover: #232d42;
+      --border: #2a3548;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #3b82f6;
+      --green: #22c55e;
+      --yellow: #eab308;
+      --red: #ef4444;
+    }
+
+    :root.light {
+      --bg: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .logo svg rect { fill: var(--accent); }
+    .logo-text { font-weight: 700; font-size: 18px; }
+    .logo-sub { font-size: 12px; color: var(--text-muted); margin-left: 8px; }
+
+    .header-links {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .header-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .header-links a:hover { color: var(--text); }
+
+    .theme-toggle {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .page-header {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 24px 40px;
+    }
+
+    .page-header h1 {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .page-header p {
+      font-size: 18px;
+      color: var(--text-secondary);
+    }
+
+    .content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    .prereq-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 40px;
+    }
+
+    .prereq-box h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .prereq-box ul {
+      list-style: none;
+    }
+
+    .prereq-box li {
+      padding: 8px 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .prereq-box li::before {
+      content: "✓";
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    .step-section {
+      margin-bottom: 48px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .step-header h2 {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .step-content {
+      margin-left: 56px;
+    }
+
+    .step-content p {
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      font-size: 15px;
+    }
+
+    .code-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    .code-block pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .code-block .comment {
+      color: var(--text-muted);
+    }
+
+    .code-block .key {
+      color: #60a5fa;
+    }
+
+    .code-block .value {
+      color: #4ade80;
+    }
+
+    .note-box {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    .note-box.warning {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .note-box strong {
+      color: var(--accent);
+    }
+
+    .note-box.warning strong {
+      color: var(--yellow);
+    }
+
+    .webflash-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent);
+      color: white;
+      padding: 14px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      margin: 16px 0;
+    }
+
+    .webflash-button:hover {
+      background: #2563eb;
+    }
+
+    .substep {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 16px 0;
+    }
+
+    .substep h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .substep ol {
+      margin-left: 20px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .substep li {
+      padding: 6px 0;
+    }
+
+    .troubleshoot {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+
+    .troubleshoot h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .troubleshoot-item {
+      margin-bottom: 16px;
+    }
+
+    .troubleshoot-item h5 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--yellow);
+      margin-bottom: 4px;
+    }
+
+    .troubleshoot-item p {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .footer {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { font-size: 13px; color: var(--text-muted); }
+
+    @media (max-width: 768px) {
+      .page-header h1 { font-size: 28px; }
+      .header-links { display: none; }
+      .step-content { margin-left: 0; margin-top: 16px; }
+      .step-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+        <rect x="4" y="8" width="6" height="32" rx="3" />
+        <rect x="14" y="16" width="6" height="24" rx="3" opacity="0.7" />
+        <rect x="24" y="4" width="6" height="40" rx="3" />
+        <rect x="34" y="12" width="6" height="28" rx="3" opacity="0.7" />
+      </svg>
+      <span class="logo-text">Sense360</span>
+      <span class="logo-sub">Docs</span>
+    </a>
+    <div class="header-links">
+      <a href="product-guide.html">Product Guide</a>
+      <a href="technical-reference.html">Specs</a>
+      <a href="https://github.com/sense360store/esphome-public">GitHub</a>
+      <a href="https://mysense360.com">Shop</a>
+      <button class="theme-toggle" onclick="toggleTheme()">Light</button>
+    </div>
+  </div>
+</header>
+
+<div class="page-header">
+  <h1>Installation Guide</h1>
+  <p>Get your Sense360 device set up and connected to Home Assistant.</p>
+</div>
+
+<div class="content">
+  <div class="prereq-box">
+    <h3>Before You Begin</h3>
+    <ul>
+      <li>Sense360 device from <a href="https://mysense360.com" style="color: var(--accent);">mysense360.com</a></li>
+      <li>USB-C cable that supports data transfer (not just charging)</li>
+      <li>Computer with Chrome, Edge, or Opera browser</li>
+      <li>WiFi network using 2.4GHz (5GHz not supported)</li>
+      <li>Home Assistant with ESPHome add-on (recommended)</li>
+    </ul>
+  </div>
+
+  <div class="step-section">
+    <div class="step-header">
+      <div class="step-number">1</div>
+      <h2>Flash Firmware with WebFlash</h2>
+    </div>
+    <div class="step-content">
+      <p>The easiest way to flash your Sense360 is using our web-based flasher. No software installation required.</p>
+
+      <a href="https://sense360store.github.io/WebFlash" class="webflash-button">
+        Open WebFlash →
+      </a>
+
+      <div class="substep">
+        <h4>Using WebFlash</h4>
+        <ol>
+          <li>Connect your Sense360 to your computer via USB-C</li>
+          <li>Open WebFlash in Chrome, Edge, or Opera</li>
+          <li>Select your device type from the dropdown</li>
+          <li>Enter your WiFi credentials</li>
+          <li>Click "Install" and select your device's serial port</li>
+          <li>Wait for the flash to complete (2-3 minutes)</li>
+        </ol>
+      </div>
+
+      <div class="note-box">
+        <strong>Note:</strong> WebFlash requires a browser that supports WebSerial (Chrome, Edge, or Opera). Safari and Firefox are not supported.
+      </div>
+    </div>
+  </div>
+
+  <div class="step-section">
+    <div class="step-header">
+      <div class="step-number">2</div>
+      <h2>Alternative: ESPHome Dashboard</h2>
+    </div>
+    <div class="step-content">
+      <p>If you prefer more control or want to customize the firmware, use the ESPHome Dashboard in Home Assistant.</p>
+
+      <div class="substep">
+        <h4>Create Configuration</h4>
+        <ol>
+          <li>Open ESPHome Dashboard in Home Assistant</li>
+          <li>Click "New Device" → "Skip this step"</li>
+          <li>Enter a name like <code>sense360-living-room</code></li>
+          <li>Click "Edit" and replace the content with:</li>
+        </ol>
+      </div>
+
+      <div class="code-block">
+<pre><span class="comment"># Sense360 Configuration</span>
+<span class="key">substitutions:</span>
+  <span class="key">device_name:</span> <span class="value">sense360-living-room</span>
+  <span class="key">friendly_name:</span> <span class="value">"Living Room Sense360"</span>
+
+<span class="key">esphome:</span>
+  <span class="key">name:</span> <span class="value">${device_name}</span>
+  <span class="key">friendly_name:</span> <span class="value">${friendly_name}</span>
+  <span class="key">min_version:</span> <span class="value">2025.10.0</span>
+
+<span class="key">packages:</span>
+  <span class="key">sense360_firmware:</span>
+    <span class="key">url:</span> <span class="value">https://github.com/sense360store/esphome-public</span>
+    <span class="key">ref:</span> <span class="value">main</span>
+    <span class="key">files:</span>
+      - <span class="value">products/sense360-mini-airiq-basic.yaml</span>
+    <span class="key">refresh:</span> <span class="value">1d</span>
+
+<span class="key">wifi:</span>
+  <span class="key">ssid:</span> <span class="value">!secret wifi_ssid</span>
+  <span class="key">password:</span> <span class="value">!secret wifi_password</span>
+
+<span class="key">api:</span>
+  <span class="key">encryption:</span>
+    <span class="key">key:</span> <span class="value">!secret api_encryption_key</span>
+
+<span class="key">ota:</span>
+  - <span class="key">platform:</span> <span class="value">esphome</span>
+    <span class="key">password:</span> <span class="value">!secret ota_password</span></pre>
+      </div>
+
+      <div class="note-box warning">
+        <strong>Important:</strong> Make sure your <code>secrets.yaml</code> contains <code>wifi_ssid</code>, <code>wifi_password</code>, <code>api_encryption_key</code>, and <code>ota_password</code>.
+      </div>
+    </div>
+  </div>
+
+  <div class="step-section">
+    <div class="step-header">
+      <div class="step-number">3</div>
+      <h2>Configure Secrets</h2>
+    </div>
+    <div class="step-content">
+      <p>Add your credentials to the ESPHome secrets file.</p>
+
+      <div class="code-block">
+<pre><span class="comment"># secrets.yaml</span>
+<span class="key">wifi_ssid:</span> <span class="value">"YourNetworkName"</span>
+<span class="key">wifi_password:</span> <span class="value">"YourWiFiPassword"</span>
+
+<span class="comment"># Generate with: openssl rand -base64 32</span>
+<span class="key">api_encryption_key:</span> <span class="value">"your-32-byte-base64-key-here"</span>
+
+<span class="key">ota_password:</span> <span class="value">"ChooseASecurePassword"</span>
+
+<span class="comment"># For web server (optional)</span>
+<span class="key">web_username:</span> <span class="value">"admin"</span>
+<span class="key">web_password:</span> <span class="value">"your-web-password"</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-section">
+    <div class="step-header">
+      <div class="step-number">4</div>
+      <h2>Add to Home Assistant</h2>
+    </div>
+    <div class="step-content">
+      <p>After flashing, your device will connect to WiFi and be automatically discovered by Home Assistant.</p>
+
+      <div class="substep">
+        <h4>Verify Connection</h4>
+        <ol>
+          <li>The device will reboot after flashing</li>
+          <li>In ESPHome Dashboard, the device should show "Online" with a green indicator</li>
+          <li>Home Assistant will show a notification about a new device</li>
+          <li>Click "Configure" to add the device</li>
+          <li>Find your device in Settings → Devices & Services → ESPHome</li>
+        </ol>
+      </div>
+
+      <div class="substep">
+        <h4>Verify Sensors</h4>
+        <ol>
+          <li>Open the device page in Home Assistant</li>
+          <li>You should see sensors for CO2, PM2.5, VOC, temperature, humidity, etc.</li>
+          <li>Wait 2-3 minutes for sensors to initialize</li>
+          <li>Some sensors (like CO2) may need longer to stabilize</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-section">
+    <div class="step-header">
+      <div class="step-number">5</div>
+      <h2>Future Updates</h2>
+    </div>
+    <div class="step-content">
+      <p>After the initial USB flash, all future updates can be done wirelessly (OTA).</p>
+
+      <div class="substep">
+        <h4>Wireless Update</h4>
+        <ol>
+          <li>Check <a href="https://github.com/sense360store/esphome-public/releases" style="color: var(--accent);">GitHub Releases</a> for new versions</li>
+          <li>Update the <code>ref:</code> in your configuration to the new version</li>
+          <li>Click "Install" in ESPHome Dashboard</li>
+          <li>Select "Wirelessly"</li>
+        </ol>
+      </div>
+
+      <div class="note-box">
+        <strong>Tip:</strong> Always use a version tag (e.g., <code>ref: v3.0.0</code>) instead of <code>main</code> for production devices to ensure stability.
+      </div>
+    </div>
+  </div>
+
+  <div class="troubleshoot">
+    <h4>Troubleshooting</h4>
+
+    <div class="troubleshoot-item">
+      <h5>Device not appearing in browser?</h5>
+      <p>Verify your USB cable supports data transfer. Try a different USB port. Install CP210x or CH340 drivers if needed.</p>
+    </div>
+
+    <div class="troubleshoot-item">
+      <h5>Compilation failed?</h5>
+      <p>Check your internet connection (packages are downloaded from GitHub). Verify all required secrets are defined.</p>
+    </div>
+
+    <div class="troubleshoot-item">
+      <h5>WiFi won't connect?</h5>
+      <p>Ensure you're using 2.4GHz WiFi (5GHz is not supported). Check that your SSID and password are correct.</p>
+    </div>
+
+    <div class="troubleshoot-item">
+      <h5>Device shows offline?</h5>
+      <p>Check the device is powered. Verify WiFi credentials. Try power cycling the device.</p>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a href="https://mysense360.com">Shop</a>
+    <a href="https://sense360store.github.io/WebFlash">WebFlash</a>
+    <a href="https://github.com/sense360store/esphome-public">GitHub</a>
+    <a href="mailto:support@mysense360.com">Contact</a>
+  </div>
+  <p class="footer-copy">© 2025 Sense360. MIT License.</p>
+</footer>
+
+<script>
+function toggleTheme() {
+  document.documentElement.classList.toggle('light');
+  const btn = document.querySelector('.theme-toggle');
+  btn.textContent = document.documentElement.classList.contains('light') ? 'Dark' : 'Light';
+}
+</script>
+
+</body>
+</html>

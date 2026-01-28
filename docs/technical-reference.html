@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Technical Reference - Sense360 Documentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0f1a;
+      --bg-secondary: #111827;
+      --bg-card: #1a2234;
+      --bg-card-hover: #232d42;
+      --border: #2a3548;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #3b82f6;
+    }
+
+    :root.light {
+      --bg: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .logo svg rect { fill: var(--accent); }
+    .logo-text { font-weight: 700; font-size: 18px; }
+    .logo-sub { font-size: 12px; color: var(--text-muted); margin-left: 8px; }
+
+    .header-links {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .header-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .header-links a:hover { color: var(--text); }
+    .header-links a.active { color: var(--accent); }
+
+    .theme-toggle {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .page-header {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 24px 40px;
+    }
+
+    .page-header h1 {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .page-header p {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 700px;
+    }
+
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .subsection-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 32px 0 16px;
+      color: var(--text);
+    }
+
+    .specs-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .specs-table th, .specs-table td {
+      padding: 14px 18px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .specs-table th {
+      background: var(--bg-secondary);
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .specs-table td {
+      font-size: 14px;
+    }
+
+    .specs-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .specs-table code {
+      background: var(--bg-secondary);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .specs-table .sku {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--accent);
+    }
+
+    .module-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .module-card h3 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .module-card .sku-badge {
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    .module-card .description {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .toc {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 40px;
+    }
+
+    .toc h3 {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .toc ul {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 8px;
+    }
+
+    .toc a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      padding: 6px 0;
+      display: block;
+    }
+
+    .toc a:hover {
+      color: var(--accent);
+    }
+
+    .footer {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { font-size: 13px; color: var(--text-muted); }
+
+    @media (max-width: 768px) {
+      .page-header h1 { font-size: 28px; }
+      .header-links { display: none; }
+      .specs-table { font-size: 13px; }
+      .specs-table th, .specs-table td { padding: 10px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+        <rect x="4" y="8" width="6" height="32" rx="3" />
+        <rect x="14" y="16" width="6" height="24" rx="3" opacity="0.7" />
+        <rect x="24" y="4" width="6" height="40" rx="3" />
+        <rect x="34" y="12" width="6" height="28" rx="3" opacity="0.7" />
+      </svg>
+      <span class="logo-text">Sense360</span>
+      <span class="logo-sub">Docs</span>
+    </a>
+    <div class="header-links">
+      <a href="product-guide.html">Product Guide</a>
+      <a href="technical-reference.html" class="active">Specs</a>
+      <a href="https://github.com/sense360store/esphome-public">GitHub</a>
+      <a href="https://mysense360.com">Shop</a>
+      <button class="theme-toggle" onclick="toggleTheme()">Light</button>
+    </div>
+  </div>
+</header>
+
+<div class="page-header">
+  <h1>Technical Reference</h1>
+  <p>Detailed specifications for every Sense360 module. Sensors, interfaces, SKUs, and YAML package mappings.</p>
+</div>
+
+<section class="section">
+  <div class="toc">
+    <h3>Contents</h3>
+    <ul>
+      <li><a href="#core-boards">Core Boards</a></li>
+      <li><a href="#power-modules">Power Modules</a></li>
+      <li><a href="#led-rings">LED Rings</a></li>
+      <li><a href="#airiq-module">AirIQ Module</a></li>
+      <li><a href="#comfort-module">Comfort Module</a></li>
+      <li><a href="#presence-module">Presence Module</a></li>
+      <li><a href="#bathroom-module">Bathroom Module</a></li>
+      <li><a href="#fan-module">Fan Control Module</a></li>
+      <li><a href="#sku-mapping">SKU to Package Mapping</a></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section" id="core-boards">
+  <h2 class="section-title">Core Boards</h2>
+
+  <table class="specs-table">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>SKU</th>
+        <th>Form Factor</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Sense360 Core Ceiling</td>
+        <td class="sku">S360-CORE-C</td>
+        <td>Ceiling mount</td>
+        <td>Standard ceiling-mount core</td>
+      </tr>
+      <tr>
+        <td>Sense360 Core Wall</td>
+        <td class="sku">S360-CORE-W</td>
+        <td>Wall/Desk mount</td>
+        <td>Standard wall/desk-mount core</td>
+      </tr>
+      <tr>
+        <td>Sense360 Mini</td>
+        <td class="sku">S360-MINI</td>
+        <td>Compact</td>
+        <td>Integrated sensors on PCB</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="subsection-title">Core Board Specifications</h3>
+  <table class="specs-table">
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Specification</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>MCU</td>
+        <td>ESP32-S3-WROOM-1-N16R8</td>
+      </tr>
+      <tr>
+        <td>Flash</td>
+        <td>16MB</td>
+      </tr>
+      <tr>
+        <td>PSRAM</td>
+        <td>8MB</td>
+      </tr>
+      <tr>
+        <td>WiFi</td>
+        <td>2.4GHz 802.11 b/g/n</td>
+      </tr>
+      <tr>
+        <td>Bluetooth</td>
+        <td>5.0 LE</td>
+      </tr>
+      <tr>
+        <td>I2C Buses</td>
+        <td>2x (sensors and expansion)</td>
+      </tr>
+      <tr>
+        <td>Relay</td>
+        <td>Built-in 10A</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="section" id="power-modules">
+  <h2 class="section-title">Power Modules</h2>
+
+  <table class="specs-table">
+    <thead>
+      <tr>
+        <th>Option</th>
+        <th>SKU</th>
+        <th>Input</th>
+        <th>Output</th>
+        <th>Use Case</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>USB-C</td>
+        <td class="sku">—</td>
+        <td>5V USB-C</td>
+        <td>5V/2A</td>
+        <td>Development, portable</td>
+      </tr>
+      <tr>
+        <td>PoE</td>
+        <td class="sku">S360-POE</td>
+        <td>36-57V DC (IEEE 802.3af/at)</td>
+        <td>5V/2A</td>
+        <td>Professional installations</td>
+      </tr>
+      <tr>
+        <td>PWR</td>
+        <td class="sku">S360-PWR</td>
+        <td>100-240V AC</td>
+        <td>5V/2A</td>
+        <td>Permanent installations</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="section" id="led-rings">
+  <h2 class="section-title">LED Rings</h2>
+
+  <table class="specs-table">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>SKU</th>
+        <th>Type</th>
+        <th>Compatible With</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>LED Ring Ceiling</td>
+        <td class="sku">S360-LED-C</td>
+        <td>WS2812B RGB</td>
+        <td>Core Ceiling</td>
+      </tr>
+      <tr>
+        <td>LED Ring Wall</td>
+        <td class="sku">S360-LED-W</td>
+        <td>WS2812B RGB</td>
+        <td>Core Wall</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="section" id="airiq-module">
+  <h2 class="section-title">AirIQ Module</h2>
+
+  <div class="module-card">
+    <h3>Air Quality Monitoring <span class="sku-badge">S360-AIR-C / S360-AIR-W</span></h3>
+    <p class="description">Comprehensive air quality monitoring with multiple sensors for health-conscious environments.</p>
+
+    <table class="specs-table">
+      <thead>
+        <tr>
+          <th>Sensor</th>
+          <th>Measurements</th>
+          <th>Range</th>
+          <th>I2C Address</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>SPS30</td>
+          <td>PM1.0, PM2.5, PM4.0, PM10</td>
+          <td>0-1000 µg/m³</td>
+          <td><code>0x69</code></td>
+        </tr>
+        <tr>
+          <td>SGP41</td>
+          <td>VOC Index, NOx Index</td>
+          <td>0-500 index</td>
+          <td><code>0x59</code></td>
+        </tr>
+        <tr>
+          <td>SCD41</td>
+          <td>CO2, Temperature, Humidity</td>
+          <td>400-5000 ppm</td>
+          <td><code>0x62</code></td>
+        </tr>
+        <tr>
+          <td>BMP390</td>
+          <td>Barometric Pressure</td>
+          <td>300-1250 hPa</td>
+          <td><code>0x77</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="comfort-module">
+  <h2 class="section-title">Comfort Module</h2>
+
+  <div class="module-card">
+    <h3>Environmental Comfort <span class="sku-badge">S360-CMFT-C / S360-CMFT-W</span></h3>
+    <p class="description">Basic environmental comfort sensing for temperature, humidity, and ambient light.</p>
+
+    <table class="specs-table">
+      <thead>
+        <tr>
+          <th>Sensor</th>
+          <th>Measurements</th>
+          <th>Range / Accuracy</th>
+          <th>I2C Address</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>SHT40</td>
+          <td>Temperature, Humidity</td>
+          <td>-40°C to +125°C, ±0.2°C / 0-100% RH, ±1.8%</td>
+          <td><code>0x44</code></td>
+        </tr>
+        <tr>
+          <td>LTR-303</td>
+          <td>Ambient Light</td>
+          <td>0.01-64k lux</td>
+          <td><code>0x29</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="presence-module">
+  <h2 class="section-title">Presence Module</h2>
+
+  <div class="module-card">
+    <h3>mmWave Radar Presence <span class="sku-badge">S360-PRES-C / S360-PRES-W</span></h3>
+    <p class="description">Radar-based presence and occupancy detection for automation.</p>
+
+    <table class="specs-table">
+      <thead>
+        <tr>
+          <th>Sensor</th>
+          <th>Features</th>
+          <th>Range</th>
+          <th>Interface</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>HLK-LD2450</td>
+          <td>Multi-target tracking (3), still/moving, zone-based</td>
+          <td>Up to 6m</td>
+          <td>UART 256000</td>
+        </tr>
+        <tr>
+          <td>DFRobot C4001</td>
+          <td>24GHz FMCW, speed measurement</td>
+          <td>16m presence, 25m motion</td>
+          <td>UART</td>
+        </tr>
+        <tr>
+          <td>HLK-LD2412</td>
+          <td>Single-zone, gate thresholds, better still detection</td>
+          <td>Up to 6m</td>
+          <td>UART 115200</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="bathroom-module">
+  <h2 class="section-title">Bathroom Module</h2>
+
+  <div class="module-card">
+    <h3>Bathroom Specialty <span class="sku-badge">S360-BATH-B / S360-BATH-P</span></h3>
+    <p class="description">Optimized for bathroom environments. <strong>Ceiling mount only.</strong> Replaces AirIQ (cannot be used together).</p>
+
+    <h4 style="margin: 20px 0 12px; font-size: 15px; font-weight: 600;">Base Variant (S360-BATH-B)</h4>
+    <table class="specs-table">
+      <thead>
+        <tr>
+          <th>Sensor</th>
+          <th>Measurements</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>SHT4x</td>
+          <td>Temperature, Humidity</td>
+          <td>Shower detection, humidity spikes</td>
+        </tr>
+        <tr>
+          <td>BMP390</td>
+          <td>Barometric Pressure</td>
+          <td>Environmental baseline</td>
+        </tr>
+        <tr>
+          <td>SGP41</td>
+          <td>VOC/NOx Index</td>
+          <td>Odor detection</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4 style="margin: 20px 0 12px; font-size: 15px; font-weight: 600;">Pro Variant (S360-BATH-P) — Additional Sensors</h4>
+    <table class="specs-table">
+      <thead>
+        <tr>
+          <th>Sensor</th>
+          <th>Measurements</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>MLX90614</td>
+          <td>IR Surface Temperature</td>
+          <td>Condensation risk detection</td>
+        </tr>
+        <tr>
+          <td>SPS30</td>
+          <td>PM1.0, PM2.5, PM10</td>
+          <td>Particulate monitoring</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="fan-module">
+  <h2 class="section-title">Fan Control Module</h2>
+
+  <div class="module-card">
+    <h3>HVAC Fan Control <span class="sku-badge">S360-GP8403 / S360-PWM</span></h3>
+    <p class="description">Fan speed control for ventilation automation.</p>
+
+    <table class="specs-table">
+      <thead>
+        <tr>
+          <th>Module</th>
+          <th>Output</th>
+          <th>Resolution</th>
+          <th>Use Case</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>GP8403 DAC</td>
+          <td>0-10V or 0-5V analog</td>
+          <td>12-bit (0.01V)</td>
+          <td>Commercial HVAC, EC motors, VFDs</td>
+        </tr>
+        <tr>
+          <td>PWM</td>
+          <td>25kHz PWM signal</td>
+          <td>8-bit</td>
+          <td>Standard fans, 4-pin PC fans</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="sku-mapping">
+  <h2 class="section-title">SKU to Package Mapping</h2>
+
+  <h3 class="subsection-title">Core Boards</h3>
+  <table class="specs-table">
+    <thead>
+      <tr>
+        <th>SKU</th>
+        <th>Package File</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="sku">S360-CORE-C</td>
+        <td><code>packages/hardware/sense360_core_ceiling.yaml</code></td>
+      </tr>
+      <tr>
+        <td class="sku">S360-CORE-W</td>
+        <td><code>packages/hardware/sense360_core_wall.yaml</code></td>
+      </tr>
+      <tr>
+        <td class="sku">S360-MINI</td>
+        <td><code>packages/hardware/sense360_core_mini.yaml</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="subsection-title">Power Modules</h3>
+  <table class="specs-table">
+    <thead>
+      <tr>
+        <th>SKU</th>
+        <th>Package File</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="sku">S360-POE</td>
+        <td><code>packages/hardware/power_poe.yaml</code></td>
+      </tr>
+      <tr>
+        <td class="sku">S360-PWR</td>
+        <td><code>packages/hardware/power_240v.yaml</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="subsection-title">LED Rings</h3>
+  <table class="specs-table">
+    <thead>
+      <tr>
+        <th>SKU</th>
+        <th>Package File</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="sku">S360-LED-C</td>
+        <td><code>packages/hardware/led_ring_ceiling.yaml</code></td>
+      </tr>
+      <tr>
+        <td class="sku">S360-LED-W</td>
+        <td><code>packages/hardware/led_ring_wall.yaml</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="subsection-title">Sensor Modules</h3>
+  <table class="specs-table">
+    <thead>
+      <tr>
+        <th>SKU</th>
+        <th>Package File</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="sku">S360-AIR-C</td>
+        <td><code>packages/expansions/airiq_ceiling.yaml</code></td>
+      </tr>
+      <tr>
+        <td class="sku">S360-AIR-W</td>
+        <td><code>packages/expansions/airiq_wall.yaml</code></td>
+      </tr>
+      <tr>
+        <td class="sku">S360-CMFT-C</td>
+        <td><code>packages/expansions/comfort_ceiling.yaml</code></td>
+      </tr>
+      <tr>
+        <td class="sku">S360-CMFT-W</td>
+        <td><code>packages/expansions/comfort_wall.yaml</code></td>
+      </tr>
+      <tr>
+        <td class="sku">S360-PRES-C</td>
+        <td><code>packages/expansions/presence_ceiling.yaml</code></td>
+      </tr>
+      <tr>
+        <td class="sku">S360-PRES-W</td>
+        <td><code>packages/expansions/presence_wall.yaml</code></td>
+      </tr>
+      <tr>
+        <td class="sku">S360-BATH-B</td>
+        <td><code>packages/expansions/airiq_bathroom_base.yaml</code></td>
+      </tr>
+      <tr>
+        <td class="sku">S360-BATH-P</td>
+        <td><code>packages/expansions/airiq_bathroom_pro.yaml</code></td>
+      </tr>
+      <tr>
+        <td class="sku">S360-GP8403</td>
+        <td><code>packages/expansions/fan_gp8403.yaml</code></td>
+      </tr>
+      <tr>
+        <td class="sku">S360-PWM</td>
+        <td><code>packages/expansions/fan_pwm.yaml</code></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="section">
+  <h2 class="section-title">Pre-Built Product Configurations</h2>
+
+  <table class="specs-table">
+    <thead>
+      <tr>
+        <th>Product File</th>
+        <th>Description</th>
+        <th>Modules</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>sense360-core-ceiling.yaml</code></td>
+        <td>Full ceiling with all modules</td>
+        <td>AirIQ + Comfort + Presence</td>
+      </tr>
+      <tr>
+        <td><code>sense360-core-ceiling-presence.yaml</code></td>
+        <td>Ceiling presence only</td>
+        <td>Presence</td>
+      </tr>
+      <tr>
+        <td><code>sense360-core-ceiling-bathroom.yaml</code></td>
+        <td>Ceiling bathroom</td>
+        <td>Bathroom + Presence</td>
+      </tr>
+      <tr>
+        <td><code>sense360-core-wall.yaml</code></td>
+        <td>Full wall with all modules</td>
+        <td>AirIQ + Comfort + Presence</td>
+      </tr>
+      <tr>
+        <td><code>sense360-core-wall-presence.yaml</code></td>
+        <td>Wall presence only</td>
+        <td>Presence</td>
+      </tr>
+      <tr>
+        <td><code>sense360-mini-airiq-basic.yaml</code></td>
+        <td>Mini air quality + basic presence</td>
+        <td>Onboard sensors + Presence</td>
+      </tr>
+      <tr>
+        <td><code>sense360-mini-airiq-ld2412.yaml</code></td>
+        <td>Mini air quality + LD2412</td>
+        <td>Onboard sensors + LD2412</td>
+      </tr>
+      <tr>
+        <td><code>sense360-mini-full-ld2412.yaml</code></td>
+        <td>Mini full sensors + LD2412</td>
+        <td>All sensors + LD2412</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a href="https://mysense360.com">Shop</a>
+    <a href="https://sense360store.github.io/WebFlash">WebFlash</a>
+    <a href="https://github.com/sense360store/esphome-public">GitHub</a>
+    <a href="mailto:support@mysense360.com">Contact</a>
+  </div>
+  <p class="footer-copy">© 2025 Sense360. MIT License.</p>
+</footer>
+
+<script>
+function toggleTheme() {
+  document.documentElement.classList.toggle('light');
+  const btn = document.querySelector('.theme-toggle');
+  btn.textContent = document.documentElement.classList.contains('light') ? 'Dark' : 'Light';
+}
+</script>
+
+</body>
+</html>

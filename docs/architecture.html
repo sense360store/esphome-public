@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Architecture - Sense360 Documentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0f1a;
+      --bg-secondary: #111827;
+      --bg-card: #1a2234;
+      --bg-card-hover: #232d42;
+      --border: #2a3548;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #3b82f6;
+      --green: #22c55e;
+      --yellow: #eab308;
+      --purple: #8b5cf6;
+      --cyan: #06b6d4;
+    }
+
+    :root.light {
+      --bg: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .logo svg rect { fill: var(--accent); }
+    .logo-text { font-weight: 700; font-size: 18px; }
+    .logo-sub { font-size: 12px; color: var(--text-muted); margin-left: 8px; }
+
+    .header-links {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .header-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .header-links a:hover { color: var(--text); }
+
+    .theme-toggle {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .page-header {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 24px 40px;
+    }
+
+    .page-header h1 {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .page-header p {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 700px;
+    }
+
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .formula-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .formula {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .formula-desc {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .architecture-diagram {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 40px;
+      margin-bottom: 40px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      white-space: pre;
+      line-height: 1.4;
+    }
+
+    .layer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .layer-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .layer-card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .layer-card .required {
+      font-size: 11px;
+      padding: 2px 8px;
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border-radius: 4px;
+    }
+
+    .layer-card .optional {
+      font-size: 11px;
+      padding: 2px 8px;
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+      border-radius: 4px;
+    }
+
+    .layer-card p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .layer-card ul {
+      list-style: none;
+      font-size: 14px;
+    }
+
+    .layer-card li {
+      padding: 6px 0;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .layer-card li:first-child {
+      border-top: none;
+    }
+
+    .layer-card .sku {
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .specs-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+
+    .specs-table th, .specs-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .specs-table th {
+      background: var(--bg-card);
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .specs-table td {
+      font-size: 14px;
+    }
+
+    .specs-table code {
+      background: var(--bg-secondary);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .mini-section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 40px;
+    }
+
+    .mini-section h3 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .mini-section p {
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .footer {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { font-size: 13px; color: var(--text-muted); }
+
+    @media (max-width: 768px) {
+      .page-header h1 { font-size: 28px; }
+      .header-links { display: none; }
+      .architecture-diagram { font-size: 11px; padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+        <rect x="4" y="8" width="6" height="32" rx="3" />
+        <rect x="14" y="16" width="6" height="24" rx="3" opacity="0.7" />
+        <rect x="24" y="4" width="6" height="40" rx="3" />
+        <rect x="34" y="12" width="6" height="28" rx="3" opacity="0.7" />
+      </svg>
+      <span class="logo-text">Sense360</span>
+      <span class="logo-sub">Docs</span>
+    </a>
+    <div class="header-links">
+      <a href="product-guide.html">Product Guide</a>
+      <a href="technical-reference.html">Specs</a>
+      <a href="https://github.com/sense360store/esphome-public">GitHub</a>
+      <a href="https://mysense360.com">Shop</a>
+      <button class="theme-toggle" onclick="toggleTheme()">Light</button>
+    </div>
+  </div>
+</header>
+
+<div class="page-header">
+  <h1>System Architecture</h1>
+  <p>How Sense360 works. A modular smart home sensor platform built around an ESP32-S3 core with stackable sensor modules.</p>
+</div>
+
+<section class="section">
+  <div class="formula-box">
+    <div class="formula">CORE + POWER + LED (optional) + MODULES = Your Sense360</div>
+    <p class="formula-desc">Choose a core board, pick a power source, add an LED ring, and stack any combination of sensor modules.</p>
+  </div>
+
+  <h2 class="section-title">System Diagram</h2>
+  <div class="architecture-diagram">┌─────────────────────────────────────────────────────────────────────┐
+│                        CORE BOARD (Required)                         │
+│  ┌─────────────────────────────┐   ┌─────────────────────────────┐  │
+│  │     Ceiling Variant         │   │      Wall/Desk Variant      │  │
+│  │     CORE-C (S360-CORE-C)    │   │      CORE-W (S360-CORE-W)   │  │
+│  └─────────────────────────────┘   └─────────────────────────────┘  │
+│                                                                      │
+│  • ESP32-S3-WROOM-1-N16R8 (16MB Flash, 8MB PSRAM)                   │
+│  • WiFi 2.4GHz, Bluetooth 5.0 LE                                     │
+│  • Dual I2C buses for sensors                                        │
+│  • Built-in 10A relay                                                │
+└─────────────────────────────────────────────────────────────────────┘
+                                    │
+          ┌─────────────────────────┼─────────────────────────┐
+          ▼                         ▼                         ▼
+┌───────────────────┐    ┌───────────────────┐    ┌───────────────────┐
+│   POWER MODULE    │    │     LED RING      │    │  SENSOR MODULES   │
+│    (Required)     │    │    (Optional)     │    │    (Optional)     │
+│                   │    │                   │    │                   │
+│  USB (built-in)   │    │  Standard LED     │    │  • AirIQ          │
+│  S360-POE (PoE)   │    │  (Ceiling/Wall)   │    │  • Comfort        │
+│  S360-PWR (240V)  │    │  WS2812B RGB      │    │  • Presence       │
+│                   │    │                   │    │  • Bathroom*      │
+│                   │    │                   │    │  • Fan GP8403     │
+│                   │    │                   │    │  • Fan PWM        │
+└───────────────────┘    └───────────────────┘    └───────────────────┘
+
+* Bathroom is Ceiling-only and replaces AirIQ (cannot be used together)</div>
+</section>
+
+<section class="section">
+  <h2 class="section-title">Hardware Layers</h2>
+  <div class="layer-grid">
+    <div class="layer-card">
+      <h3>Core Board <span class="required">Required</span></h3>
+      <p>The ESP32-S3 base that connects all modules and provides WiFi connectivity.</p>
+      <ul>
+        <li><span>Sense360 Core Ceiling</span> <span class="sku">S360-CORE-C</span></li>
+        <li><span>Sense360 Core Wall</span> <span class="sku">S360-CORE-W</span></li>
+        <li><span>Sense360 Mini</span> <span class="sku">S360-MINI</span></li>
+      </ul>
+    </div>
+
+    <div class="layer-card">
+      <h3>Power Module <span class="required">Required</span></h3>
+      <p>How the system is powered. Choose based on your installation needs.</p>
+      <ul>
+        <li><span>USB-C (built-in)</span> <span class="sku">—</span></li>
+        <li><span>Power over Ethernet</span> <span class="sku">S360-POE</span></li>
+        <li><span>240V AC Mains</span> <span class="sku">S360-PWR</span></li>
+      </ul>
+    </div>
+
+    <div class="layer-card">
+      <h3>LED Ring <span class="optional">Optional</span></h3>
+      <p>Visual feedback for air quality, presence, and system status.</p>
+      <ul>
+        <li><span>LED Ring Ceiling</span> <span class="sku">S360-LED-C</span></li>
+        <li><span>LED Ring Wall</span> <span class="sku">S360-LED-W</span></li>
+      </ul>
+    </div>
+
+    <div class="layer-card">
+      <h3>Sensor Modules <span class="optional">Optional</span></h3>
+      <p>Stack any combination of environmental sensors.</p>
+      <ul>
+        <li><span>AirIQ (Air Quality)</span> <span class="sku">S360-AIR-*</span></li>
+        <li><span>Comfort (Temp/Humidity)</span> <span class="sku">S360-CMFT-*</span></li>
+        <li><span>Presence (Radar)</span> <span class="sku">S360-PRES-*</span></li>
+        <li><span>Bathroom (Ceiling only)</span> <span class="sku">S360-BATH-*</span></li>
+        <li><span>Fan Control</span> <span class="sku">S360-GP8403/PWM</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="section-title">Core Board Specifications</h2>
+  <table class="specs-table">
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Specification</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>MCU</td>
+        <td>ESP32-S3-WROOM-1-N16R8</td>
+      </tr>
+      <tr>
+        <td>Flash Memory</td>
+        <td>16MB</td>
+      </tr>
+      <tr>
+        <td>PSRAM</td>
+        <td>8MB</td>
+      </tr>
+      <tr>
+        <td>WiFi</td>
+        <td>2.4GHz 802.11 b/g/n</td>
+      </tr>
+      <tr>
+        <td>Bluetooth</td>
+        <td>5.0 LE</td>
+      </tr>
+      <tr>
+        <td>I2C Buses</td>
+        <td>2x (sensors and expansion)</td>
+      </tr>
+      <tr>
+        <td>UART</td>
+        <td>For presence sensor communication</td>
+      </tr>
+      <tr>
+        <td>Relay</td>
+        <td>Built-in 10A for load switching</td>
+      </tr>
+      <tr>
+        <td>LED Output</td>
+        <td>WS2812 addressable LED support</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="section">
+  <div class="mini-section">
+    <h3>Sense360 Mini</h3>
+    <p>The Mini is a compact all-in-one board with sensors integrated directly on the PCB — no expansion modules needed for basic environmental monitoring.</p>
+
+    <h4 style="margin-bottom: 16px; font-size: 16px;">Onboard Sensors</h4>
+    <table class="specs-table">
+      <thead>
+        <tr>
+          <th>Sensor</th>
+          <th>Measurements</th>
+          <th>I2C Address</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>LTR-303ALS-01</td>
+          <td>Ambient Light (lux)</td>
+          <td><code>0x29</code></td>
+        </tr>
+        <tr>
+          <td>SHT30-DIS</td>
+          <td>Temperature, Humidity</td>
+          <td><code>0x44</code></td>
+        </tr>
+        <tr>
+          <td>SCD40</td>
+          <td>CO2 (ppm)</td>
+          <td><code>0x62</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4 style="margin: 24px 0 16px; font-size: 16px;">External Connectors</h4>
+    <table class="specs-table">
+      <thead>
+        <tr>
+          <th>Connector</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>JST3_UART</td>
+          <td>LD2412 radar (UART, 115200 baud)</td>
+        </tr>
+        <tr>
+          <td>JST4_SEN</td>
+          <td>External sensors like SEN55 (I2C)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="section-title">Communication Interfaces</h2>
+  <div class="layer-grid">
+    <div class="layer-card">
+      <h3>I2C Bus</h3>
+      <p>Used by most sensors for data communication.</p>
+      <ul>
+        <li><span>SDA Pin (Mini)</span> <span class="sku">GPIO48</span></li>
+        <li><span>SCL Pin (Mini)</span> <span class="sku">GPIO45</span></li>
+        <li><span>Speed</span> <span class="sku">400kHz</span></li>
+      </ul>
+    </div>
+
+    <div class="layer-card">
+      <h3>UART</h3>
+      <p>Used by presence radar sensors.</p>
+      <ul>
+        <li><span>TX Pin (Mini)</span> <span class="sku">GPIO43</span></li>
+        <li><span>RX Pin (Mini)</span> <span class="sku">GPIO44</span></li>
+        <li><span>LD2412 Baud</span> <span class="sku">115200</span></li>
+        <li><span>LD2450 Baud</span> <span class="sku">256000</span></li>
+      </ul>
+    </div>
+
+    <div class="layer-card">
+      <h3>LED Data</h3>
+      <p>Addressable LED control for status indicators.</p>
+      <ul>
+        <li><span>Data Pin (Mini)</span> <span class="sku">GPIO8</span></li>
+        <li><span>Protocol</span> <span class="sku">WS2812B</span></li>
+        <li><span>Color Order</span> <span class="sku">GRB</span></li>
+      </ul>
+    </div>
+
+    <div class="layer-card">
+      <h3>WiFi / API</h3>
+      <p>Home Assistant integration via ESPHome.</p>
+      <ul>
+        <li><span>Protocol</span> <span class="sku">ESPHome Native API</span></li>
+        <li><span>Encryption</span> <span class="sku">AES-256</span></li>
+        <li><span>Discovery</span> <span class="sku">mDNS</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="section-title">Firmware Architecture</h2>
+  <div class="architecture-diagram">┌─────────────────────────────────────────────────────────────────────┐
+│                         ESPHome Firmware                             │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  products/                    Ready-to-use configurations            │
+│    └── sense360-*.yaml        Complete device profiles               │
+│                                                                      │
+│  packages/                                                           │
+│    ├── base/                  Core system (WiFi, API, OTA)           │
+│    ├── hardware/              Core board and LED definitions         │
+│    ├── expansions/            Sensor module drivers                  │
+│    └── features/              Feature profiles and behaviors         │
+│                                                                      │
+│  components/                  Custom ESPHome components              │
+│    ├── ld2412/                LD2412 radar driver                    │
+│    └── ld24xx/                LD24xx radar driver                    │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘</div>
+</section>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a href="https://mysense360.com">Shop</a>
+    <a href="https://sense360store.github.io/WebFlash">WebFlash</a>
+    <a href="https://github.com/sense360store/esphome-public">GitHub</a>
+    <a href="mailto:support@mysense360.com">Contact</a>
+  </div>
+  <p class="footer-copy">© 2025 Sense360. MIT License.</p>
+</footer>
+
+<script>
+function toggleTheme() {
+  document.documentElement.classList.toggle('light');
+  const btn = document.querySelector('.theme-toggle');
+  btn.textContent = document.documentElement.classList.contains('light') ? 'Dark' : 'Light';
+}
+</script>
+
+</body>
+</html>
