@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sense360 Documentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0f1a;
+      --bg-secondary: #111827;
+      --bg-card: #1a2234;
+      --bg-card-hover: #232d42;
+      --border: #2a3548;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #3b82f6;
+    }
+
+    :root.light {
+      --bg: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .logo svg rect { fill: var(--accent); }
+    .logo-text { font-weight: 700; font-size: 18px; }
+    .logo-sub { font-size: 12px; color: var(--text-muted); margin-left: 8px; }
+
+    .header-links {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .header-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .header-links a:hover { color: var(--text); }
+
+    .theme-toggle {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .hero {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 24px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #3b82f6, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 20px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-secondary { background: var(--bg-card); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--bg-card-hover); }
+
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 24px;
+    }
+
+    .quick-start {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 40px;
+    }
+
+    .quick-start h2 { font-size: 24px; margin-bottom: 24px; }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+    }
+
+    .step { display: flex; gap: 16px; }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .step-content h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .step-content p { font-size: 13px; color: var(--text-secondary); }
+    .step-content a { color: var(--accent); text-decoration: none; }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      font-size: 24px;
+    }
+
+    .card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .card p { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+    .card-link { font-size: 14px; font-weight: 500; color: var(--accent); }
+
+    .footer {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { font-size: 13px; color: var(--text-muted); }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 32px; }
+      .hero p { font-size: 16px; }
+      .header-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+        <rect x="4" y="8" width="6" height="32" rx="3" />
+        <rect x="14" y="16" width="6" height="24" rx="3" opacity="0.7" />
+        <rect x="24" y="4" width="6" height="40" rx="3" />
+        <rect x="34" y="12" width="6" height="28" rx="3" opacity="0.7" />
+      </svg>
+      <span class="logo-text">Sense360</span>
+      <span class="logo-sub">Docs</span>
+    </a>
+    <div class="header-links">
+      <a href="product-guide.html">Product Guide</a>
+      <a href="technical-reference.html">Specs</a>
+      <a href="https://github.com/sense360store/esphome-public">GitHub</a>
+      <a href="https://mysense360.com">Shop</a>
+      <button class="theme-toggle" onclick="toggleTheme()">Light</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Sense360 Documentation</h1>
+  <p>Modular environmental sensing for Home Assistant. Stack the modules you need — air quality, presence, climate, fan control.</p>
+  <div class="hero-buttons">
+    <a href="product-guide.html" class="btn btn-primary">Which modules do I need?</a>
+    <a href="https://sense360store.github.io/WebFlash" class="btn btn-secondary">Flash Firmware</a>
+  </div>
+</section>
+
+<section class="section">
+  <div class="quick-start">
+    <h2>Quick Start</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>Choose Modules</h4>
+          <p>Use the <a href="product-guide.html">Product Guide</a> to pick what you need</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>Purchase</h4>
+          <p>Order from <a href="https://mysense360.com">mysense360.com</a></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>Flash Firmware</h4>
+          <p>Use <a href="https://sense360store.github.io/WebFlash">WebFlash</a> to configure and install</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h4>Add to Home Assistant</h4>
+          <p>Device auto-discovers via ESPHome</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title">Documentation</div>
+  <div class="card-grid">
+    <a href="product-guide.html" class="card">
+      <div class="card-icon" style="background: rgba(139, 92, 246, 0.15)">🎯</div>
+      <h3>Product Guide</h3>
+      <p>Which modules do I need? Example configurations for every room.</p>
+      <span class="card-link">View guide →</span>
+    </a>
+    <a href="architecture.html" class="card">
+      <div class="card-icon" style="background: rgba(59, 130, 246, 0.15)">🏗️</div>
+      <h3>System Architecture</h3>
+      <p>How Sense360 works. Core + Power + Modules.</p>
+      <span class="card-link">View architecture →</span>
+    </a>
+    <a href="technical-reference.html" class="card">
+      <div class="card-icon" style="background: rgba(6, 182, 212, 0.15)">📋</div>
+      <h3>Technical Reference</h3>
+      <p>Detailed specifications for every module. Sensors, interfaces, SKUs.</p>
+      <span class="card-link">View specs →</span>
+    </a>
+    <a href="installation.html" class="card">
+      <div class="card-icon" style="background: rgba(34, 197, 94, 0.15)">🔧</div>
+      <h3>Installation Guide</h3>
+      <p>Flashing, configuration, Home Assistant integration.</p>
+      <span class="card-link">View guide →</span>
+    </a>
+    <a href="configuration.html" class="card">
+      <div class="card-icon" style="background: rgba(245, 158, 11, 0.15)">⚙️</div>
+      <h3>ESPHome Configuration</h3>
+      <p>Custom firmware builds. YAML packages and advanced config.</p>
+      <span class="card-link">View config →</span>
+    </a>
+    <a href="https://github.com/sense360store/esphome-public" class="card">
+      <div class="card-icon" style="background: rgba(148, 163, 184, 0.15)">💻</div>
+      <h3>GitHub Repository</h3>
+      <p>Source code, firmware packages, issue tracking.</p>
+      <span class="card-link">View repo →</span>
+    </a>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a href="https://mysense360.com">Shop</a>
+    <a href="https://sense360store.github.io/WebFlash">WebFlash</a>
+    <a href="https://github.com/sense360store/esphome-public">GitHub</a>
+    <a href="mailto:support@mysense360.com">Contact</a>
+  </div>
+  <p class="footer-copy">© 2025 Sense360. MIT License.</p>
+</footer>
+
+<script>
+function toggleTheme() {
+  document.documentElement.classList.toggle('light');
+  const btn = document.querySelector('.theme-toggle');
+  btn.textContent = document.documentElement.classList.contains('light') ? 'Dark' : 'Light';
+}
+</script>
+
+</body>
+</html>
