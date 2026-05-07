@@ -344,6 +344,32 @@ repo never authors the sidecar directly.
 
 ---
 
+## Machine-Readable Snapshot
+
+For machine-readable consumption (validators, tooling, the WebFlash importer),
+this contract is mirrored in two JSON files at the repo root:
+
+- [`config/webflash-compatibility.json`](../config/webflash-compatibility.json) —
+  snapshot of §1–§5: filename pattern, allowed mounting/power/module tokens,
+  channels, forbidden-token replacements, mutually-exclusive pairs, conflicts,
+  and the fan-driver "max one of" rule.
+- [`config/webflash-builds.json`](../config/webflash-builds.json) —
+  the build mapping: each entry binds a WebFlash `config_string` to its
+  product YAML and the production artifact name.
+
+The Release-One entry references
+[`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml),
+a thin wrapper that `!include`s the canonical
+[`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml).
+
+[`tests/validate_webflash_builds.py`](../tests/validate_webflash_builds.py)
+loads `config/webflash-compatibility.json` as a required source of truth and
+fails fast if it is missing or malformed — there is no hardcoded fallback. If
+you change the rules in this document, update the JSON snapshot in the same
+PR and re-run the validator.
+
+---
+
 ## Compatibility Rule of Thumb
 
 If you are tempted to invent a token, rename a slot, omit a section, or skip
