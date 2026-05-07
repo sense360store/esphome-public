@@ -239,6 +239,18 @@ documented in [`release-one.md`](release-one.md)):
 When a new WebFlash `config_string` is added to a release, this table must be
 updated in the same PR.
 
+### Repo-local validator
+
+The build matrix this repo declares it will ship lives at
+[`config/webflash-builds.json`](../config/webflash-builds.json), and a local
+mirror of the contract above lives at
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json).
+[`tests/validate_webflash_builds.py`](../tests/validate_webflash_builds.py)
+checks every build entry against that snapshot — config-string grammar,
+forbidden tokens, mutual-exclusion rules, artifact-name format, channel
+membership, and the existence of each `product_yaml`. Run it locally with
+`python3 tests/validate_webflash_builds.py`; CI runs it on every push.
+
 ---
 
 ## 7. Build Output Expectations

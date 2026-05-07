@@ -42,6 +42,10 @@ jobs:
         run: |
           python3 tests/validate_configs.py
 
+      - name: Validate WebFlash build matrix
+        run: |
+          python3 tests/validate_webflash_builds.py
+
       - name: Count products
         run: |
           PRODUCT_COUNT=$(find products/ -name "*.yaml" -type f ! -name "secrets.yaml" | wc -l)
