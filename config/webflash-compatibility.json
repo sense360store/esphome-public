@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "source": "WebFlash",
+  "last_reviewed": "2026-05-07",
+  "canonical_mounting": ["Ceiling"],
+  "canonical_power": ["USB", "POE", "PWR"],
+  "canonical_modules": [
+    "AirIQ",
+    "VentIQ",
+    "RoomIQ",
+    "FanRelay",
+    "FanPWM",
+    "FanDAC",
+    "FanTRIAC",
+    "LED"
+  ],
+  "forbidden_tokens": ["Bathroom", "Comfort", "Presence", "Fan", "FanAnalog"],
+  "rules": {
+    "airiq_and_ventiq_mutually_exclusive": true,
+    "roomiq_can_pair_with_airiq": true,
+    "roomiq_can_pair_with_ventiq": true,
+    "fan_variants_are_firmware_distinct": true,
+    "generic_fan_token_forbidden": true
+  },
+  "release_one_required_configs": ["Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"],
+  "artifact_pattern": "Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin",
+  "allowed_channels": ["stable", "beta", "preview", "dev", "rescue"],
+  "production_channel": "stable",
+  "rescue_config_string": "Rescue"
+}

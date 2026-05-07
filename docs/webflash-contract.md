@@ -22,6 +22,13 @@ This document defines what "compatible with WebFlash" means in practice. If
 this contract and WebFlash's `DEVELOPER.md` ever drift, **WebFlash wins** and
 this document must be updated.
 
+This repository keeps a local compatibility snapshot in
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+so validators and CI in this repo can enforce the same naming rules without
+fetching WebFlash. WebFlash remains the upstream source of truth; when
+WebFlash product naming changes, update this snapshot, the validators, and
+the build matrix together in the same PR.
+
 ---
 
 ## 1. WebFlash Artifact Naming
@@ -353,6 +360,8 @@ file an upstream change in WebFlash first and update this contract afterward.
 ## See Also
 
 - [`README.md`](../README.md) — repo overview and Release-One quick reference.
+- [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+  — machine-readable local snapshot of this contract for validators and CI.
 - [`docs/release-one.md`](release-one.md) — Release-One configuration with full
   slot/file/binary mapping.
 - [`docs/product-matrix.md`](product-matrix.md) — full module/slot reference.
