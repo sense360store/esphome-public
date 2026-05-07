@@ -2,6 +2,43 @@
 
 Complete product hierarchy and configuration guide for the Sense360 modular sensor platform.
 
+> **WebFlash users:** see [`release-one.md`](release-one.md) for the
+> Release-One configuration (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`). This page
+> is the long-form reference for slot/module selection. Some legacy
+> terminology (`Comfort`, `Presence`, `Bathroom`, generic `Fan`) is still
+> present below for hardware-level detail — see the mapping table.
+
+## Current WebFlash Taxonomy
+
+WebFlash describes a device as `{Mount}-{Power}-{AirQuality}-{Fan}-{Room}`:
+
+| Slot | Allowed Values |
+|------|----------------|
+| Mount | `Ceiling` |
+| Power | `USB`, `POE`, `PWR` |
+| Air Quality | `AirIQ`, `VentIQ` (mutually exclusive) |
+| Fan Driver | `FanRelay`, `FanPWM`, `FanDAC`, `FanTRIAC` (firmware-distinct) |
+| Room Sense | `RoomIQ` |
+
+### Legacy term mapping
+
+| Legacy term (in this doc) | Current term | Notes |
+|---------------------------|--------------|-------|
+| Comfort | **RoomIQ** (climate + light half) | |
+| Presence | **RoomIQ** (mmWave half) | |
+| Bathroom | **VentIQ** | Same module, renamed |
+| Fan (generic) | **FanRelay / FanPWM / FanDAC / FanTRIAC** | Firmware-distinct drivers |
+
+### Compatibility rules
+
+1. `AirIQ` and `VentIQ` are mutually exclusive.
+2. `VentIQ` is the bathroom-focused air-quality module.
+3. `RoomIQ` can be combined with either `AirIQ` or `VentIQ`.
+4. Fan driver variants are firmware-distinct.
+5. `FanTRIAC` is not interchangeable with `FanRelay`/`FanPWM`/`FanDAC`.
+
+---
+
 ## Table of Contents
 
 - [Product Overview](#product-overview)
@@ -24,7 +61,7 @@ The Sense360 system is a modular smart home sensor platform built around an ESP3
 1. **Core Board** - The ESP32-S3 base that connects all modules
 2. **Power Module** - How the system is powered (USB, POE, or PWR)
 3. **LED Ring** - Visual feedback (Standard LED or LED+MIC for voice)
-4. **Sensor Modules** - Optional expansion modules (AirIQ, Comfort, Presence, Bathroom, Fan)
+4. **Sensor Modules** - Air-quality (AirIQ or VentIQ), Room sensing (RoomIQ), Fan driver (FanRelay / FanPWM / FanDAC / FanTRIAC)
 
 ---
 

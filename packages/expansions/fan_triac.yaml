@@ -1,0 +1,145 @@
+# ============================================================================
+# SENSE360 FAN EXPANSION MODULE - TRIAC (AC PHASE-CUT) VERSION
+# ============================================================================
+# AC fan dimming via TRIAC + zero-crossing detection.
+#
+# Use this driver for standard AC ceiling/extractor fans where speed is
+# controlled by phase-cut dimming. NOT interchangeable with FanRelay,
+# FanPWM, or FanDAC — the GPIO routing and driver code differ.
+#
+# Expansion Bus Connection:
+#   Pin 8 (GPIO5)  -> TRIAC gate output (expansion_gpio1)
+#   Pin 9 (GPIO6)  -> Zero-crossing input (expansion_gpio2)
+#   Pin 1 (GND)    -> Ground reference for the dimmer board
+#
+# IMPORTANT:
+#   - The fan load is mains AC. Wiring must be done by a qualified
+#     electrician and only with a TRIAC dimmer module rated for the load.
+#   - This module replaces, and is NOT compatible with, fan_pwm.yaml /
+#     fan_gp8403.yaml / fan_relay.yaml.
+# ============================================================================
+
+substitutions:
+  # GPIO Configuration
+  # IMPORTANT: fan_triac_gate_pin and fan_triac_zc_pin MUST be provided by
+  # the parent board file. The Sense360 Core Ceiling board provides them via
+  # expansion_gpio1 / expansion_gpio2 by default.
+  #
+  # Examples from Sense360 Core Ceiling:
+  #   fan_triac_gate_pin: ${expansion_gpio1}  # GPIO5
+  #   fan_triac_zc_pin:   ${expansion_gpio2}  # GPIO6
+
+  # Mains line frequency (Hz). Use "60" for 60 Hz regions.
+  fan_triac_line_frequency: "50"
+
+  # Speed limits (percentages)
+  fan_min_speed: "10"
+  fan_max_speed: "100"
+  fan_default_speed: "50"
+
+  # Minimum dimmer brightness floor (some fans stall below this)
+  fan_triac_min_power: "10"
+
+# ============================================================================
+# AC Dimmer (TRIAC + zero-cross detection)
+# ============================================================================
+output:
+  - platform: ac_dimmer
+    id: fan_triac_output
+    gate_pin: ${fan_triac_gate_pin}
+    zero_cross_pin:
+      number: ${fan_triac_zc_pin}
+      mode:
+        input: true
+      inverted: false
+    method: leading
+    min_power: ${fan_triac_min_power}%
+    init_with_half_cycle: true
+
+# ============================================================================
+# Fan Component (speed-mapped to TRIAC dimmer)
+# ============================================================================
+fan:
+  - platform: speed
+    id: fan_controller
+    name: "${friendly_name} Fan"
+    output: fan_triac_output
+    speed_count: 100
+    restore_mode: RESTORE_DEFAULT_OFF
+
+# ============================================================================
+# Globals for Fan Control (shared with feature profiles)
+# ============================================================================
+globals:
+  - id: fan_target_speed
+    type: int
+    restore_value: true
+    initial_value: '${fan_default_speed}'
+
+  - id: fan_quiet_mode
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+  - id: fan_auto_mode
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+# ============================================================================
+# Diagnostic sensor — current speed percentage
+# ============================================================================
+sensor:
+  - platform: template
+    id: fan_speed_percent
+    name: "${friendly_name} Fan Speed"
+    internal: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: 1s
+    lambda: |-
+      if (id(fan_controller).state) {
+        return id(fan_controller).speed;
+      }
+      return 0.0f;
+
+# ============================================================================
+# Scripts for Fan Control
+# ============================================================================
+script:
+  - id: fan_set_speed
+    mode: single
+    parameters:
+      speed: int
+    then:
+      - lambda: |-
+          int target = speed;
+          if (target < 0) target = 0;
+          if (target > 100) target = 100;
+
+          if (target > 0 && target < ${fan_min_speed}) {
+            target = ${fan_min_speed};
+          }
+
+          if (id(fan_quiet_mode) && target > 50) {
+            target = 50;
+          }
+
+          id(fan_target_speed) = target;
+
+          if (target == 0) {
+            auto call = id(fan_controller).turn_off();
+            call.perform();
+          } else {
+            auto call = id(fan_controller).turn_on();
+            call.set_speed(target);
+            call.perform();
+          }
+
+  - id: fan_emergency_stop
+    mode: single
+    then:
+      - fan.turn_off: fan_controller
+      - lambda: |-
+          id(fan_target_speed) = 0;
+          ESP_LOGW("fan", "TRIAC emergency stop activated");

@@ -29,6 +29,13 @@ import re
 
 PRODUCT_MAPPINGS = {
     # -------------------------------------------------------------------------
+    # Release-One — WebFlash config: Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
+    # Artifact name: Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-vX.Y.Z-{channel}.bin
+    # -------------------------------------------------------------------------
+    "sense360-ceiling-poe-ventiq-fantriac-roomiq":
+        "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
+
+    # -------------------------------------------------------------------------
     # Core Series - Ceiling Mount with Power Types
     # -------------------------------------------------------------------------
     "sense360-core-c-usb": "Sense360-Core-Ceiling-USB",
@@ -153,8 +160,16 @@ def _intelligent_convert(product_name: str) -> str:
     # Special terms that should be capitalized in specific ways
     SPECIAL_CAPS = {
         "airiq": "AirIQ",
+        "ventiq": "VentIQ",
+        "roomiq": "RoomIQ",
+        "fanrelay": "FanRelay",
+        "fanpwm": "FanPWM",
+        "fandac": "FanDAC",
+        "fantriac": "FanTRIAC",
         "ld2412": "LD2412",
         "pwm": "PWM",
+        "triac": "TRIAC",
+        "dac": "DAC",
     }
 
     # Remove sense360- prefix

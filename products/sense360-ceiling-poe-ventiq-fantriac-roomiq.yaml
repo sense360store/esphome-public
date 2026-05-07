@@ -1,0 +1,136 @@
+# ============================================================================
+# SENSE360 RELEASE-ONE PRODUCT
+# ============================================================================
+# WebFlash config string : Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
+# WebFlash artifact name  : Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-vX.Y.Z-{channel}.bin
+#
+# Release-One ship configuration:
+# - Mount       : Ceiling
+# - Power       : POE  (IEEE 802.3af)
+# - Air Quality : VentIQ (bathroom-focused — replaces AirIQ)
+# - Fan Driver  : FanTRIAC (AC phase-cut dimming)
+# - Room Sense  : RoomIQ  (comfort + presence)
+#
+# Compatibility rules (see docs/release-one.md):
+# - AirIQ and VentIQ are mutually exclusive.
+# - VentIQ is the bathroom-focused air-quality module.
+# - RoomIQ can be combined with either AirIQ or VentIQ.
+# - Fan driver variants (FanRelay/FanPWM/FanDAC/FanTRIAC) are firmware-distinct.
+# - FanTRIAC is NOT interchangeable with FanRelay/FanPWM/FanDAC.
+#
+# Hardware:
+# - Core: S360-CORE-C (ESP32-S3, ceiling mount)
+# - Power: PoE (IEEE 802.3af, 36-57V input, 5V/2A output)
+# - LED: Halo LED ring
+#
+# Customer usage in their ESPHome config (pin to a release tag):
+#
+#   packages:
+#     sense360_firmware:
+#       url: https://github.com/sense360store/esphome-public
+#       ref: v1.0.0
+#       files:
+#         - products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+#       refresh: 1d
+#
+#   substitutions:
+#     device_name: sense360-bathroom
+#     friendly_name: "Bathroom Sense360"
+# ============================================================================
+
+substitutions:
+  # === Device Configuration ===
+  device_name: sense360-ceiling-poe-ventiq-fantriac-roomiq
+  friendly_name: Sense360 Ceiling Bathroom
+  device_sku: S360-CORE-C-POE
+  device_version: "1.0.0"
+  timezone: "America/New_York"
+
+  # === Logging ===
+  log_level: INFO
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "false"
+
+  # === Power configuration (PoE) ===
+  power_source: poe
+  poe_class: "0"
+  poe_standard: "802.3af"
+
+  # === VentIQ (bathroom) thresholds ===
+  shower_humidity_threshold: "75"
+  shower_humidity_rate: "5"
+  mold_risk_humidity: "65"
+  mold_risk_duration_minutes: "30"
+
+  # === FanTRIAC pins (mapped onto Core Ceiling expansion GPIOs) ===
+  # GPIO5 -> TRIAC gate, GPIO6 -> zero-crossing input
+  fan_triac_gate_pin: GPIO5
+  fan_triac_zc_pin: GPIO6
+  fan_triac_line_frequency: "50"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === External Components (radar firmware) ===
+  external_components: !include ../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+
+  # === Core Hardware (Ceiling Board) ===
+  core_hardware: !include ../packages/hardware/sense360_core_ceiling.yaml
+
+  # === Power (POE) ===
+  power_config: !include ../packages/hardware/power_poe.yaml
+
+  # === LED Ring ===
+  led_ring: !include ../packages/hardware/led_ring_ceiling.yaml
+  led_effects: !include ../packages/features/ceiling_halo_leds.yaml
+
+  # === VentIQ (bathroom-focused air quality, replaces AirIQ) ===
+  ventiq_module: !include ../packages/expansions/airiq_bathroom_base.yaml
+  ventiq_profile: !include ../packages/features/bathroom_profile.yaml
+
+  # === RoomIQ (comfort + presence) ===
+  roomiq_comfort: !include ../packages/expansions/comfort_ceiling.yaml
+  roomiq_comfort_profile: !include ../packages/features/comfort_basic_profile.yaml
+  roomiq_presence: !include ../packages/expansions/presence_ceiling.yaml
+  roomiq_presence_profile: !include ../packages/features/presence_basic_profile.yaml
+
+  # === FanTRIAC (AC phase-cut fan driver) ===
+  fan_module: !include ../packages/expansions/fan_triac.yaml
+  fan_profile: !include ../packages/features/fan_control_profile.yaml
+
+  # === Device Health & Diagnostics ===
+  health: !include ../packages/features/device_health.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} WebFlash Config"
+    lambda: |-
+      return {"Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"};
+    update_interval: never
+    entity_category: diagnostic
