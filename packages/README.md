@@ -2,6 +2,13 @@
 
 This directory contains modular ESPHome configuration packages organized by category.
 
+> **WebFlash compatibility:** see [`docs/webflash-contract.md`](../docs/webflash-contract.md)
+> for the canonical token list (`AirIQ`, `VentIQ`, `RoomIQ`, `FanRelay`,
+> `FanPWM`, `FanDAC`, `FanTRIAC`, `LED`) used in firmware artifact names.
+> Some package filenames below are legacy (`comfort_*.yaml`,
+> `presence_*.yaml`, `airiq_bathroom_*.yaml`); the WebFlash contract is the
+> source of truth for artifact naming and supersedes filesystem labels.
+
 ## Directory Structure
 
 ```
@@ -71,7 +78,7 @@ substitutions:
 packages:
   firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.2.0
+    ref: v1.0.0  # Pin to a release tag — never use 'main' in production
     files:
       - products/sense360-core-ceiling.yaml
 ```
@@ -92,7 +99,7 @@ substitutions:
 packages:
   firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.2.0
+    ref: v1.0.0  # Pin to a release tag — never use 'main' in production
     files:
       # Base system
       - packages/base/wifi.yaml
@@ -136,26 +143,32 @@ Located in `packages/hardware/`:
 
 Located in `packages/expansions/`:
 
-### AirIQ (Air Quality)
+### AirIQ (Air Quality, WebFlash token: `AirIQ`)
 - `airiq_ceiling.yaml` - Ceiling mount
 - `airiq_wall.yaml` - Wall mount
 
-### Comfort (Environmental)
+### Comfort (legacy → WebFlash `RoomIQ`, comfort half)
 - `comfort_ceiling.yaml` - Ceiling mount
 - `comfort_wall.yaml` - Wall mount
 
-### Presence (Occupancy)
+### Presence (legacy → WebFlash `RoomIQ`, mmWave half)
 - `presence_ceiling.yaml` - Ceiling mount (LD2450)
 - `presence_wall.yaml` - Wall mount (LD2450)
 - `presence_ld2412.yaml` - LD2412 variant
 
-### Bathroom (Specialty)
-- `airiq_bathroom_base.yaml` - Base bathroom sensors
-- `airiq_bathroom_pro.yaml` - Pro bathroom with additional sensors
+### Bathroom (legacy → WebFlash `VentIQ`)
+- `airiq_bathroom_base.yaml` - VentIQ Base
+- `airiq_bathroom_pro.yaml` - VentIQ Pro
 
-### Fan Control
-- `fan_pwm.yaml` - PWM fan control
-- `fan_gp8403.yaml` - 0-10V DAC fan control
+### Fan Control (firmware-distinct WebFlash variants)
+- `fan_relay.yaml` - `FanRelay` (S360-310, on/off relay)
+- `fan_pwm.yaml` - `FanPWM` (S360-311, 25 kHz PWM)
+- `fan_gp8403.yaml` - `FanDAC` (S360-312, 0–10 V analog)
+- `fan_triac.yaml` - `FanTRIAC` (S360-320, AC phase-cut dimmer)
+
+> **Do not** publish a WebFlash artifact with a generic `Fan` token —
+> each driver variant produces a separate firmware binary. See
+> [`docs/webflash-contract.md`](../docs/webflash-contract.md) §3 and §5.
 
 ## Support
 
