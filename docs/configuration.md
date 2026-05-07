@@ -53,7 +53,7 @@ Complete air quality monitoring with presence detection (recommended for most us
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.1.0
+    ref: v1.0.0  # Pin to a release tag — never use 'main' in production
     files:
       - products/sense360-mini-airiq.yaml
 ```
@@ -386,7 +386,7 @@ For advanced users who want to load specific components only:
 packages:
   sense360_custom:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.1.0
+    ref: v1.0.0  # Pin to a release tag — never use 'main' in production
     files:
       # Base (required)
       - packages/base/wifi.yaml
@@ -541,25 +541,35 @@ api:
 
 ### Stable Versions (Recommended)
 
-Use specific version tags for production devices:
+Use specific version tags for production devices. This is the only supported
+configuration for any device a customer depends on. See
+[`webflash-contract.md`](webflash-contract.md) for the canonical artifact
+naming and [`release-one.md`](release-one.md) for the current release-one
+tag.
 
 ```yaml
 packages:
   sense360_firmware:
-    ref: v2.1.0  # Specific stable version
+    ref: v1.0.0  # Pin to a release tag — never use 'main' in production
 ```
 
 ### Development Versions
 
-Test the latest features (may be unstable):
+> **Warning:** `ref: main` is a moving target — `main` may break, change
+> behavior, or remove features without notice. **Never use `ref: main` for a
+> device a customer depends on.** Production firmware must come from
+> WebFlash or, when self-hosted, must pin a release tag.
+
+For maintainers testing un-released changes:
 
 ```yaml
 packages:
   sense360_firmware:
-    ref: main  # Latest development version - use with caution
+    ref: main  # Development only — never for production devices
 ```
 
-**Recommendation:** Always use version tags (such as v2.1.0) for devices in regular use.
+**Recommendation:** Always use version tags (such as `v1.0.0`) for devices
+in regular use.
 
 ---
 

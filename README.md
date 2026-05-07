@@ -373,6 +373,7 @@ esphome-public/
 
 ## Documentation
 
+- [WebFlash Compatibility Contract](docs/webflash-contract.md) — Artifact naming, config-string grammar, release-body format
 - [Release-One Configuration](docs/release-one.md) — Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
 - [Product Matrix](docs/product-matrix.md) — Slot/module reference
 - [Installation Guide](docs/installation.md) — Step-by-step setup

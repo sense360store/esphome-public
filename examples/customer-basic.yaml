@@ -51,7 +51,7 @@ esphome:
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: main  # Use 'main' for latest stable version
+    ref: v1.0.0  # Pin to a release tag — never use 'main' in production
     files:
       # ═══════════════════════════════════════════════════════════════
       # OPTION 1: BASIC - Air Quality Only (Simplest)

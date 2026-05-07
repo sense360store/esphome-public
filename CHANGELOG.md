@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **WebFlash compatibility contract** (`docs/webflash-contract.md`): canonical, repo-local
+  contract documenting WebFlash artifact naming (`Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin`),
+  config-string grammar, allowed tokens, release-one config
+  (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`), compatibility rules, mapping from WebFlash
+  config strings to ESPHome product YAML files, build output expectations, and the
+  required GitHub Release body format (`## Changelog`, `## Known Issues`, `## Features`,
+  `## Hardware Requirements`).
 - **Release-One product YAML**: `products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`
   matches the WebFlash config string `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` and produces the
   artifact `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-vX.Y.Z-{channel}.bin`.
@@ -23,14 +30,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **README**: rewritten around the WebFlash taxonomy (RoomIQ / AirIQ / VentIQ / FanRelay /
   FanPWM / FanDAC / FanTRIAC). Duplicate "Configuration Approaches" and "Package Reference"
   sections collapsed. All examples now pin a release tag (`ref: v1.0.0`) instead of mixing
-  `ref: v3.0.0` with `ref: main`.
+  `ref: v3.0.0` with `ref: main`. Documentation index now links to
+  `docs/webflash-contract.md`.
 - **`docs/product-matrix.md`** and **`docs/installation.md`** call out WebFlash as the
   recommended path and link to `release-one.md`. A legacy-term mapping table is included
   for the older Comfort / Presence / Bathroom / generic Fan vocabulary.
+- **`packages/README.md`**: legacy section headers (`Comfort`, `Presence`, `Bathroom`,
+  generic `Fan Control`) marked with their WebFlash equivalents (`RoomIQ` halves, `VentIQ`,
+  firmware-distinct `FanRelay`/`FanPWM`/`FanDAC`/`FanTRIAC`). Customer-facing snippets pin
+  to `ref: v1.0.0` instead of the stale `ref: v2.2.0`.
+- **`examples/customer-basic.yaml`**: replaced misleading `ref: main` recommendation with
+  `ref: v1.0.0` and aligned the inline comment with the README guidance.
+- **`docs/configuration.md`**: customer-facing snippets pin `ref: v1.0.0`; the
+  development-version section now warns explicitly against using `ref: main` for any
+  device a customer depends on.
 
 ### Fixed
 - **Contradictory `ref:` examples** in README and installation docs that simultaneously
   recommended `ref: v3.0.0` and `ref: main` in the same block.
+- **Misleading `ref: main` recommendation** in `examples/customer-basic.yaml` and the
+  "Stable Versions" / "Development Versions" guidance in `docs/configuration.md`.
 
 ---
 
