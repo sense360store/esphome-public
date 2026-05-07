@@ -8,13 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Nothing yet
+- **Release-One product YAML**: `products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`
+  matches the WebFlash config string `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` and produces the
+  artifact `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-vX.Y.Z-{channel}.bin`.
+- **FanTRIAC driver package**: `packages/expansions/fan_triac.yaml` for AC phase-cut fan
+  dimming via TRIAC + zero-crossing detection.
+- **FanRelay driver package**: `packages/expansions/fan_relay.yaml` for ON/OFF AC fan control.
+- **Release-One docs**: `docs/release-one.md` documents the slot mapping, compatibility
+  rules, and the build output contract.
+- **Product name mapper entries** for `VentIQ`, `RoomIQ`, `FanRelay`, `FanPWM`, `FanDAC`,
+  and `FanTRIAC` so unmapped products serialize to the correct WebFlash artifact name.
 
 ### Changed
-- Nothing yet
+- **README**: rewritten around the WebFlash taxonomy (RoomIQ / AirIQ / VentIQ / FanRelay /
+  FanPWM / FanDAC / FanTRIAC). Duplicate "Configuration Approaches" and "Package Reference"
+  sections collapsed. All examples now pin a release tag (`ref: v1.0.0`) instead of mixing
+  `ref: v3.0.0` with `ref: main`.
+- **`docs/product-matrix.md`** and **`docs/installation.md`** call out WebFlash as the
+  recommended path and link to `release-one.md`. A legacy-term mapping table is included
+  for the older Comfort / Presence / Bathroom / generic Fan vocabulary.
 
 ### Fixed
-- Nothing yet
+- **Contradictory `ref:` examples** in README and installation docs that simultaneously
+  recommended `ref: v3.0.0` and `ref: main` in the same block.
 
 ---
 

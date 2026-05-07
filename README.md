@@ -10,212 +10,258 @@ Official ESPHome firmware repository for [Sense360](https://mysense360.com) envi
 
 ---
 
-## Product Overview
+## Which Path Should I Use?
 
-The Sense360 system is a **modular smart home sensor platform** built around an ESP32-S3 core. Mix and match sensor modules to build the perfect environmental monitoring solution for any room.
+| Path | Who | What it gives you |
+|------|-----|-------------------|
+| **WebFlash** (recommended) | Most customers | Browser-based flashing of official **signed** firmware. No tooling, no YAML. |
+| **`esphome-public`** (this repo) | Advanced users | Inspect, fork, and customize the ESPHome YAML used by official Sense360 firmware. |
 
-### How It Works
-
-```
-CORE BOARD  +  POWER MODULE  +  SENSOR MODULES  =  Your Sense360
-(Ceiling/Wall)   (USB/PoE/PWR)    (AirIQ/Comfort/Presence/Fan/Bathroom)
-```
+> **WebFlash is the production path.** It is what you get from the buy/install link on
+> [mysense360.com](https://mysense360.com). This repo is the manual/custom firmware path
+> linked from WebFlash — use it only if you want to read or modify the YAML.
+>
+> **Production users must pin to a release tag** (e.g. `ref: v1.0.0`). Never use
+> `ref: main` for a device you depend on — `main` is a moving target.
 
 ---
 
-## Sensor Modules
+## Release-One Configuration
 
-### AirIQ - Air Quality Monitoring
+The **Release-One** shipping configuration is:
 
-Comprehensive air quality monitoring for health-conscious environments.
+```text
+Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
+```
+
+| Slot | Value | Meaning |
+|------|-------|---------|
+| Mount | `Ceiling` | Flush ceiling-mount Core board |
+| Power | `POE` | IEEE 802.3af Power-over-Ethernet |
+| Air Quality | `VentIQ` | Vent/bathroom-focused air-quality module |
+| Fan Driver | `FanTRIAC` | TRIAC-based AC fan dimming output |
+| Room Sense | `RoomIQ` | Comfort + presence sensing |
+
+The matching ESPHome product YAML is
+[`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml).
+
+The matching firmware artifact published by CI is:
+
+```text
+Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin
+```
+
+See [Build Output Contract](#build-output-contract) below.
+
+---
+
+## WebFlash Taxonomy
+
+WebFlash describes a device by chaining slot values into a config string:
+
+```text
+{Mount}-{Power}-{AirQuality}-{Fan}-{Room}
+```
+
+| Slot | Allowed Values |
+|------|----------------|
+| Mount | `Ceiling` |
+| Power | `USB`, `POE`, `PWR` |
+| Air Quality | `AirIQ`, `VentIQ` (mutually exclusive) |
+| Fan Driver | `FanRelay`, `FanPWM`, `FanDAC`, `FanTRIAC` (firmware-distinct, not interchangeable) |
+| Room Sense | `RoomIQ` |
+
+Any config string from WebFlash maps 1:1 to a product YAML in
+[`products/`](products/) and a published `.bin` asset on the matching GitHub Release.
+
+---
+
+## Sensor & Driver Modules
+
+### RoomIQ — Room Sensing (Comfort + Presence)
+
+Combines climate, light, and presence detection used to drive room-level
+automations (lighting, HVAC, occupancy).
 
 | Sensor | Measurements |
-|--------|-------------|
-| SPS30 | PM1.0, PM2.5, PM4.0, PM10 (Particulate Matter) |
-| SGP41 | VOC Index, NOx Index (Air Quality) |
+|--------|--------------|
+| SHT4x | Temperature, Humidity |
+| VEML7700 / LTR-303 | Ambient Light (lux) |
+| HLK-LD2450 | mmWave presence, multi-target tracking, zone sensing |
+
+**Best for:** Living rooms, bedrooms, offices — any room needing climate, light, and occupancy.
+
+---
+
+### AirIQ — General Air Quality
+
+Comprehensive air quality monitoring for living spaces.
+
+| Sensor | Measurements |
+|--------|--------------|
+| SPS30 | PM1.0, PM2.5, PM4.0, PM10 |
+| SGP41 | VOC Index, NOx Index |
 | SCD41 | CO2, Temperature, Humidity |
 | BMP390 | Barometric Pressure |
 
-**Best for:** Living rooms, bedrooms, offices, workshops
+**Best for:** Living rooms, bedrooms, home offices, workshops.
+
+> **AirIQ and VentIQ are mutually exclusive** — pick one per device.
 
 ---
 
-### Comfort - Environmental Monitoring
+### VentIQ — Vent / Bathroom Air Quality
 
-Basic environmental comfort sensing for everyday use.
-
-| Sensor | Measurements |
-|--------|-------------|
-| SHT40 | Temperature, Humidity |
-| LTR-303 | Ambient Light (Lux) |
-
-**Best for:** Any room needing basic climate and light monitoring
-
----
-
-### Presence - Occupancy Detection
-
-mmWave radar-based presence detection for automation.
-
-**For Presence Module (S360-PRES-C, S360-PRES-W):**
-
-| Sensor | Features |
-|--------|----------|
-| HLK-LD2450 | Multi-target tracking (up to 3 targets), still/moving detection, zone-based sensing |
-| DFRobot C4001 | 24GHz FMCW, 16m presence range, 25m motion range, speed measurement |
-
-**For Presence Mini:**
-
-| Sensor | Features |
-|--------|----------|
-| HLK-LD2450 | Multi-target tracking (up to 3 targets), still/moving detection, zone-based sensing |
-| HLK-LD2412 | Single-zone detection, gate thresholds, better still detection (alternative option) |
-
-**Best for:** Lighting automation, HVAC control, security
-
----
-
-### Fan - HVAC Control
-
-Fan speed control for ventilation automation.
-
-| Interface | Output | Use Case |
-|-----------|--------|----------|
-| GP8403 DAC | 0-10V analog | Commercial HVAC, EC motors, VFDs |
-| PWM | 25kHz PWM signal | Standard fans, 4-pin PC fans |
-
-**Best for:** Bathroom ventilation, whole-house fans, HVAC integration
-
----
-
-### Bathroom - Specialty Module
-
-Optimized for bathroom environments. **Ceiling mount only. Replaces AirIQ (cannot be used together).**
+Vent-and-humidity-focused air-quality module. Optimized for bathrooms, laundry
+rooms, and other high-humidity zones with shower/odor/mold detection.
 
 | Variant | Sensors | Features |
 |---------|---------|----------|
-| Base | SHT4x, BMP390, SGP41 | Shower detection, mold risk, odor detection |
-| Pro | + MLX90614, SPS30 | + IR surface temp, condensation risk, PM monitoring |
+| Base | SHT4x, BMP390, SGP41 | Shower detection, mold-risk tracking, odor detection |
+| Pro | + MLX90614, SPS30 | + IR surface temperature, condensation risk, PM monitoring |
 
-**Best for:** Bathrooms, laundry rooms, high-humidity areas
+**Best for:** Bathrooms, laundry rooms, shower rooms.
 
----
-
-## Mounting Options
-
-| Form Factor | Description | Available Modules |
-|-------------|-------------|-------------------|
-| **Ceiling** | Flush ceiling mount | AirIQ, Comfort, Presence, Fan, Bathroom |
-| **Wall** | Wall or desk mount | AirIQ, Comfort, Presence, Fan |
+> **VentIQ replaces AirIQ** in the bathroom-focused taxonomy. They share the I2C
+> bus and overlap in sensors — only one can be active per device.
 
 ---
 
-## Power Options
+### Fan Driver Modules
 
-| Option | Input | Description | Use Case |
-|--------|-------|-------------|----------|
-| **USB** | 5V USB-C | Built-in, no additional hardware | Development, portable setups |
-| **PoE** | 36-57V DC (IEEE 802.3af/at) | Power over Ethernet module | Professional installations, single-cable runs |
-| **PWR** | 100-240V AC | Mains power module (HLK-PM01) | Permanent installations |
+Fan output is **firmware-distinct** — the driver variants are not
+interchangeable at runtime. You pick one when you flash:
 
----
+| Module | Output | Typical Use |
+|--------|--------|-------------|
+| `FanRelay` | Mechanical/SSR relay (ON/OFF) | Single-speed extractor fans |
+| `FanPWM` | 25 kHz PWM duty cycle | 4-pin PC fans, EC motors with PWM input |
+| `FanDAC` | 0–10 V analog (GP8403) | Commercial HVAC, EC motors with 0–10 V input |
+| `FanTRIAC` | Phase-cut TRIAC (AC dimming) | Standard AC ceiling/extractor fans |
 
-## Core Boards
-
-| SKU | Name | Form Factor | Description |
-|-----|------|-------------|-------------|
-| CORE-C | Sense360 Core | Ceiling | Standard ceiling-mount core |
-| CORE-W | Sense360 Core | Wall/Desk | Standard wall/desk-mount core |
-| MINI | Sense360 Mini | Compact | Integrated sensors + presence |
-
-### Core Board Specifications
-
-- **MCU**: ESP32-S3-WROOM-1-N16R8 (16MB Flash, 8MB PSRAM)
-- **Connectivity**: WiFi 2.4GHz, Bluetooth 5.0 LE
-- **I2C Buses**: Dual I2C for sensors and expansion
-- **Relay**: Built-in 10A relay for load switching
-- **Visual Indicators**: WS2812 addressable LED ring
+> **TRIAC is not interchangeable with Relay/PWM/DAC.** Each variant produces a
+> separate firmware binary because the GPIO + driver code differ.
 
 ---
 
-## Sense360 Mini Board
+## Mount and Power
 
-The Mini is a compact all-in-one board with integrated sensors directly on the PCB.
-
-### Mini Onboard Sensors
-
-| Sensor | Measurements | I2C Address |
-|--------|--------------|-------------|
-| **LTR-303ALS-01** | Ambient Light (lux) | 0x29 |
-| **SHT30-DIS** | Temperature, Humidity | 0x44 |
-| **SCD40** | CO2 (ppm) | 0x62 |
-
-### Mini External Connectors
-
-| Connector | Purpose |
-|-----------|---------|
-| **JST3_UART** | LD2412 radar (UART) |
-| **JST4_SEN** | External sensors like SEN55 (I2C) |
-
-### Mini Product Configurations
-
-| Product | Description |
-|---------|-------------|
-| `sense360-mini-airiq-basic.yaml` | Air quality + basic presence |
-| `sense360-mini-airiq-ld2412.yaml` | Air quality + LD2412 radar |
-| `sense360-mini-full-ld2412.yaml` | Full sensors + LD2412 |
-| `sense360-mini-presence-basic.yaml` | Presence detection only |
-| `sense360-mini-presence-ld2412.yaml` | Presence with LD2412 |
-
-**Best for:** Compact installations, cinema rooms, bedrooms, offices
+| Slot | Value | Notes |
+|------|-------|-------|
+| Mount | `Ceiling` | Release-one ships ceiling mount only |
+| Power | `USB` | 5 V USB-C, dev/portable |
+| Power | `POE` | IEEE 802.3af, single-cable installs |
+| Power | `PWR` | 100–240 V AC mains (HLK-PM01) |
 
 ---
 
-## Product Configurations
+## Compatibility Rules
 
-### Ready-to-Use Products
+These rules apply to every WebFlash config string and every product YAML:
 
-The `products/` directory contains complete, tested configurations:
+1. **`AirIQ` and `VentIQ` are mutually exclusive.** A device runs one or the
+   other, never both.
+2. **`VentIQ` is the bathroom-focused air-quality module.** Use it for
+   bathroom/laundry/shower environments.
+3. **`RoomIQ` can be combined with either `AirIQ` or `VentIQ`.** It carries
+   comfort and presence sensing and is independent of the air-quality slot.
+4. **Fan driver variants are firmware-distinct.** `FanRelay`, `FanPWM`,
+   `FanDAC`, and `FanTRIAC` each produce a separate firmware binary.
+5. **`FanTRIAC` is not interchangeable with `FanRelay`, `FanPWM`, or `FanDAC`.**
+   The GPIO routing and driver code differ; flashing the wrong driver will not
+   control the fan correctly and may damage the load.
 
-#### Full Sensor Packages (AirIQ + Comfort + Presence)
+---
 
-| Product | Mounting | Power Variants |
-|---------|----------|----------------|
-| Sense360 Core Ceiling | Ceiling | USB, PoE, PWR |
-| Sense360 Core Wall | Wall/Desk | USB, PoE, PWR |
+## Build Output Contract
 
-**Config files:**
-- `products/sense360-core-ceiling.yaml`
-- `products/sense360-core-wall.yaml`
-- Power variants: `sense360-core-c-usb.yaml`, `sense360-core-c-poe.yaml`, `sense360-core-c-pwr.yaml`
-- Power variants: `sense360-core-w-usb.yaml`, `sense360-core-w-poe.yaml`, `sense360-core-w-pwr.yaml`
+CI in this repo publishes WebFlash-compatible `.bin` assets named:
 
-#### Presence Only
+```text
+Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin
+```
 
-| Product | Config File |
-|---------|-------------|
-| Sense360 Core Ceiling Presence | `products/sense360-core-ceiling-presence.yaml` |
-| Sense360 Core Wall Presence | `products/sense360-core-wall-presence.yaml` |
+Where:
 
-#### Bathroom (Ceiling Only)
+| Field | Source | Example |
+|-------|--------|---------|
+| `CONFIG_STRING` | WebFlash slot chain | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` |
+| `VERSION` | Release tag (`v` stripped) | `1.0.0` |
+| `CHANNEL` | `stable`, `preview`, or `beta` | `stable` |
 
-| Product | Config File |
-|---------|-------------|
-| Sense360 Core Ceiling Bathroom | `products/sense360-core-ceiling-bathroom.yaml` |
+Example for Release-One:
 
-#### Specialty Products
+```text
+Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin
+```
 
-| Product | Description | Config File |
-|---------|-------------|-------------|
-| Sense360 PoE | Ethernet-connected sensor hub | `products/sense360-poe.yaml` |
-| Sense360 Fan PWM | 4-channel PWM fan controller | `products/sense360-fan-pwm.yaml` |
-| Sense360 Ceiling S3 | Full ESP32-S3 ceiling board | `products/sense360-ceiling-s3-full.yaml` |
+The mapping from product YAML → WebFlash filename is implemented in
+[`scripts/product_name_mapper.py`](scripts/product_name_mapper.py) and exercised
+by [`.github/workflows/firmware-build-release.yml`](.github/workflows/firmware-build-release.yml).
+
+> **Signing:** This repo does **not** sign firmware. WebFlash remains the
+> production signing/deployment authority and consumes the unsigned `.bin`
+> assets attached to GitHub releases.
+
+---
+
+## Quick Start (Custom / Manual Flash)
+
+> Most customers should use [WebFlash](https://mysense360.com) instead.
+> This section is for advanced users running the YAML directly through
+> ESPHome.
+
+### 1. Pick a product configuration
+
+Find the YAML matching your hardware in [`products/`](products/). For
+Release-One that is:
+
+```text
+products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+```
+
+### 2. Configure secrets
+
+Create a `secrets.yaml` (see [`examples/secrets.yaml.template`](examples/secrets.yaml.template)):
+
+```yaml
+wifi_ssid: "YourNetworkName"
+wifi_password: "YourWiFiPassword"
+api_encryption_key: "GENERATE_WITH_ESPHOME_WIZARD"
+ota_password: "your-secure-ota-password"
+web_username: "admin"
+web_password: "your-secure-web-password"
+```
+
+> Generate an API key with `esphome wizard` or `openssl rand -base64 32`.
+
+### 3. Reference the product from your device YAML
+
+```yaml
+packages:
+  sense360_firmware:
+    url: https://github.com/sense360store/esphome-public
+    ref: v1.0.0  # Pin to a release tag — never use 'main' in production
+    files:
+      - products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+    refresh: 1d
+
+substitutions:
+  device_name: sense360-bathroom
+  friendly_name: "Bathroom Sense360"
+```
+
+> Do **not** add your own `wifi:`, `api:`, or `ota:` blocks — the package
+> wires those up via `secrets.yaml`.
+
+### 4. Flash
+
+1. **Initial flash:** USB-C, then ESPHome Dashboard → Install → "Plug into this computer".
+2. **Future updates:** ESPHome Dashboard → Install → "Wirelessly".
 
 ---
 
 ## Configuration Approaches
-
-This repository supports three configuration methods. Choose based on your needs:
 
 | Approach | Best For | Complexity |
 |----------|----------|------------|
@@ -223,239 +269,88 @@ This repository supports three configuration methods. Choose based on your needs
 | **Individual packages** | Custom module combinations | Moderate |
 | **External components only** | From-scratch builds, experts | Advanced |
 
-### Approach 1: Product Files (Recommended)
-
-Use a single pre-built product file. Everything is included and tested:
+### Approach 1 — Product files (recommended)
 
 ```yaml
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: main
+    ref: v1.0.0
     files:
-      - products/sense360-core-ceiling.yaml
+      - products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+    refresh: 1d
 ```
 
-### Approach 2: Individual Packages
+### Approach 2 — Individual packages
 
-Pick and choose specific modules. See the [Package Reference](#package-reference) below:
+Compose your own product from base + hardware + expansion + feature packages:
 
 ```yaml
 packages:
   sense360_base:
     url: https://github.com/sense360store/esphome-public
-    ref: main
+    ref: v1.0.0
     files:
       - packages/base/wifi.yaml
       - packages/base/api_encrypted.yaml
-      - packages/expansions/presence_ceiling.yaml
+      - packages/hardware/sense360_core_ceiling.yaml
+      - packages/hardware/power_poe.yaml
+      - packages/expansions/airiq_bathroom_base.yaml  # VentIQ Base
+      - packages/expansions/comfort_ceiling.yaml      # RoomIQ comfort
+      - packages/expansions/presence_ceiling.yaml     # RoomIQ presence
+      - packages/expansions/fan_triac.yaml            # FanTRIAC
+      - packages/features/bathroom_profile.yaml
+      - packages/features/presence_basic_profile.yaml
+      - packages/features/fan_control_profile.yaml
+    refresh: 1d
 ```
 
-### Approach 3: External Components Only (Expert)
+### Approach 3 — External components only (expert)
 
-⚠️ **Warning**: This only pulls C++ component code, NOT YAML configuration.
+> ⚠️ Pulls only the C++ component drivers. You write all YAML yourself.
 
 ```yaml
 external_components:
   - source:
       type: git
       url: https://github.com/sense360store/esphome-public
-      ref: main
+      ref: v1.0.0
     components: [ld2412, ld24xx]
-```
-
-With this approach, you must write ALL configuration yourself (UART, sensors, automations, etc.). Only use this if you need the radar drivers for a completely custom build.
-
----
-
-## Quick Start Guide
-
-### Step 1: Choose Your Configuration
-
-Select a product configuration that matches your hardware and use case from the table above.
-
-### Step 2: Configure Required Secrets
-
-The firmware packages use secrets for WiFi, API, OTA, and web server authentication. Add these to your `secrets.yaml`:
-
-```yaml
-# WiFi credentials
-wifi_ssid: "YourNetworkName"
-wifi_password: "YourWiFiPassword"
-
-# Security credentials
-api_encryption_key: "GENERATE_WITH_ESPHOME_WIZARD"  # Generate: esphome wizard
-ota_password: "your-secure-ota-password"
-
-# Web server authentication (required)
-web_username: "admin"
-web_password: "your-secure-web-password"
-```
-
-> **Generate API Key**: Run `esphome wizard` or use: `openssl rand -base64 32`
-
-### Step 3: Create Your Device Configuration
-
-In your ESPHome dashboard, create a new file (e.g., `sense360-living-room.yaml`):
-
-```yaml
-# Load firmware from GitHub - this handles WiFi, API, OTA automatically via secrets
-packages:
-  sense360_firmware:
-    url: https://github.com/sense360store/esphome-public
-    ref: v3.0.0  # Always use a version tag (check releases for latest)
-    ref: main  # Use 'main' for latest stable version
-    files:
-      - products/sense360-core-ceiling.yaml
-    refresh: 1d
-
-# Override device identification (optional)
-substitutions:
-  device_name: sense360-living-room
-  friendly_name: "Living Room Sense360"
-```
-
-> **Important**:
-> - **Always use a version tag** (e.g., `ref: v3.0.0`) - never use `ref: main` in production
-> - Do NOT add `wifi:`, `api:`, or `ota:` sections to your config - packages handle these via secrets
-
-### Step 4: Flash Your Device
-
-1. **Initial flash**: Connect via USB-C, click "Install" > "Plug into this computer"
-2. **Future updates**: Click "Install" > "Wirelessly"
-
----
-
-## Module Combination Rules
-
-You can combine modules freely with two constraints:
-
-1. **AirIQ and Bathroom cannot be used together** (Bathroom replaces AirIQ)
-2. **Bathroom is ceiling-only**
-
-### Valid Combinations
-
-**Ceiling:**
-- Any single module: AirIQ, Comfort, Presence, Fan, Bathroom
-- AirIQ + Comfort, AirIQ + Presence, AirIQ + Fan
-- Bathroom + Comfort, Bathroom + Presence, Bathroom + Fan
-- AirIQ + Comfort + Presence + Fan (full package)
-- Bathroom + Comfort + Presence + Fan
-
-**Wall:**
-- Any single module: AirIQ, Comfort, Presence, Fan
-- Any combination of: AirIQ, Comfort, Presence, Fan
-
----
-
-## Configuration Approaches
-
-This repository supports three configuration methods. Choose based on your needs:
-
-| Approach | Best For | Complexity |
-|----------|----------|------------|
-| **Product files** | Standard setups, most users | Simple |
-| **Individual packages** | Custom module combinations | Moderate |
-| **External components only** | From-scratch builds, experts | Advanced |
-
-### Approach 1: Product Files (Recommended)
-
-Use a single pre-built product file. Everything is included and tested:
-
-```yaml
-packages:
-  sense360_firmware:
-    url: https://github.com/sense360store/esphome-public
-    ref: v3.0.0
-    files:
-      - products/sense360-core-ceiling.yaml  # One file, everything included
     refresh: 1d
 ```
 
-### Approach 2: Individual Packages (Custom Builds)
+---
 
-Pick specific modules for custom hardware combinations:
-
-```yaml
-packages:
-  sense360_base:
-    url: https://github.com/sense360store/esphome-public
-    ref: v3.0.0
-    files:
-      - packages/base/wifi.yaml
-      - packages/base/api_encrypted.yaml
-      - packages/hardware/sense360_core_ceiling.yaml
-      - packages/expansions/presence_ceiling.yaml
-      - packages/features/presence_basic_profile.yaml
-    refresh: 1d
-```
 ## Package Reference
 
-For custom builds using Approach 2, here are the available packages:
-
-| Category | Package | Purpose |
-|----------|---------|---------|
+| Category | Package | Description |
+|----------|---------|-------------|
 | **Base** | `packages/base/wifi.yaml` | WiFi connectivity |
 | | `packages/base/api_encrypted.yaml` | Home Assistant API |
 | | `packages/base/ota.yaml` | Over-the-air updates |
 | | `packages/base/time.yaml` | Time synchronization |
 | **Hardware** | `packages/hardware/sense360_core_ceiling.yaml` | Ceiling core board |
-| | `packages/hardware/sense360_core_wall.yaml` | Wall core board |
 | | `packages/hardware/led_ring_ceiling.yaml` | Ceiling LED ring |
-| **Expansions** | `packages/expansions/presence_ceiling.yaml` | Presence module (ceiling) |
-| | `packages/expansions/presence_wall.yaml` | Presence module (wall) |
-| | `packages/expansions/fan_pwm.yaml` | PWM fan control |
-| | `packages/expansions/airiq.yaml` | Air quality sensors |
-| **Features** | `packages/features/presence_basic_profile.yaml` | Basic presence config |
+| | `packages/hardware/power_usb.yaml` | USB-C power |
+| | `packages/hardware/power_poe.yaml` | PoE power |
+| | `packages/hardware/power_240v.yaml` | AC mains power |
+| **AirIQ** | `packages/expansions/airiq_ceiling.yaml` | Air-quality sensor pack |
+| **VentIQ** | `packages/expansions/airiq_bathroom_base.yaml` | VentIQ Base |
+| | `packages/expansions/airiq_bathroom_pro.yaml` | VentIQ Pro |
+| **RoomIQ** | `packages/expansions/comfort_ceiling.yaml` | Climate + light |
+| | `packages/expansions/presence_ceiling.yaml` | LD2450 presence |
+| **Fan drivers** | `packages/expansions/fan_relay.yaml` | FanRelay (ON/OFF) |
+| | `packages/expansions/fan_pwm.yaml` | FanPWM (25 kHz PWM) |
+| | `packages/expansions/fan_gp8403.yaml` | FanDAC (0–10 V) |
+| | `packages/expansions/fan_triac.yaml` | FanTRIAC (AC dimmer) |
+| **Features** | `packages/features/airiq_basic_profile.yaml` | AirIQ logic |
+| | `packages/features/bathroom_profile.yaml` | VentIQ logic |
+| | `packages/features/presence_basic_profile.yaml` | RoomIQ presence logic |
 | | `packages/features/fan_control_profile.yaml` | Fan automation |
 
-### Approach 3: External Components Only (Expert)
-
-> **⚠️ Not recommended unless you need full control.**
-
-This pulls in **only the C++ component drivers** (like `ld2412`). You must write all YAML configuration yourself:
-
-```yaml
-external_components:
-  - source:
-      type: git
-      url: https://github.com/sense360store/esphome-public
-      ref: v3.0.0
-    components: [ld2412, ld24xx]
-    refresh: 1d
-
-# You must then define ALL configuration manually:
-# - UART setup, sensor definitions, LED config, etc.
-```
-
-**Use this only if:** You're building completely custom firmware and want just the radar drivers without any pre-configured sensors or features.
-
----
-
-## Package Reference
-
-When using [Approach 2](#approach-2-individual-packages-custom-builds) for custom builds, select from these packages:
-
-| Category | Package | Description |
-|----------|---------|-------------|
-| **Base (Required)** | `packages/base/wifi.yaml` | WiFi connectivity |
-| | `packages/base/api_encrypted.yaml` | Home Assistant API |
-| | `packages/base/ota.yaml` | Over-the-air updates |
-| | `packages/base/time.yaml` | Time synchronization |
-| **Hardware** | `packages/hardware/sense360_core_ceiling.yaml` | Ceiling core board |
-| | `packages/hardware/sense360_core_wall.yaml` | Wall core board |
-| | `packages/hardware/led_ring_ceiling.yaml` | Ceiling LED ring |
-| | `packages/hardware/led_ring_wall.yaml` | Wall LED ring |
-| **Expansions** | `packages/expansions/presence_ceiling.yaml` | LD2450 presence (ceiling) |
-| | `packages/expansions/airiq_ceiling.yaml` | Air quality sensors (ceiling) |
-| | `packages/expansions/comfort_ceiling.yaml` | Comfort sensors (ceiling) |
-| | `packages/expansions/fan_pwm.yaml` | PWM fan control |
-| | `packages/expansions/bathroom.yaml` | Bathroom sensors |
-| **Features** | `packages/features/presence_basic_profile.yaml` | Basic presence detection |
-| | `packages/features/airiq_basic_profile.yaml` | Basic air quality |
-| | `packages/features/fan_control_profile.yaml` | Fan automation |
-
-See [docs/product-matrix.md](docs/product-matrix.md) for the complete module reference.
+See [docs/product-matrix.md](docs/product-matrix.md) for the complete module
+reference, and [docs/release-one.md](docs/release-one.md) for the Release-One
+configuration in detail.
 
 ---
 
@@ -466,11 +361,11 @@ esphome-public/
 ├── products/           # Ready-to-use device configurations (start here)
 ├── packages/
 │   ├── base/           # Core system (WiFi, API, OTA, logging)
-│   ├── hardware/       # Core board and LED ring definitions
-│   ├── expansions/     # Sensor module drivers
-│   └── features/       # Feature profiles and behaviors
+│   ├── hardware/       # Core board, LED ring, power
+│   ├── expansions/     # AirIQ / VentIQ / RoomIQ / Fan drivers
+│   └── features/       # Feature profiles (logic, automations)
 ├── examples/           # Customer configuration templates
-├── docs/               # Installation and configuration guides
+├── docs/               # Installation, product matrix, release notes
 └── tests/              # Validation and testing infrastructure
 ```
 
@@ -478,50 +373,52 @@ esphome-public/
 
 ## Documentation
 
-- [Product Matrix](docs/product-matrix.md) - Complete product hierarchy and module reference
-- [Installation Guide](docs/installation.md) - Step-by-step setup instructions
-- [Configuration Reference](docs/configuration.md) - Customization options
-- [Development Guide](docs/development.md) - Contributing and testing
-- [Changelog](CHANGELOG.md) - Version history
+- [Release-One Configuration](docs/release-one.md) — Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
+- [Product Matrix](docs/product-matrix.md) — Slot/module reference
+- [Installation Guide](docs/installation.md) — Step-by-step setup
+- [Configuration Reference](docs/configuration.md) — Customization options
+- [Development Guide](docs/development.md) — Contributing and testing
+- [Changelog](CHANGELOG.md) — Version history
+
+---
+
+## Legacy Terminology
+
+Earlier versions of this repo used a different vocabulary. The mapping to the
+current WebFlash taxonomy is:
+
+| Legacy term | Current term | Notes |
+|-------------|--------------|-------|
+| Comfort | **RoomIQ** (climate + light half) | Folded into RoomIQ |
+| Presence | **RoomIQ** (mmWave half) | Folded into RoomIQ |
+| Bathroom | **VentIQ** | Same module, renamed |
+| Fan (generic) | **FanRelay / FanPWM / FanDAC / FanTRIAC** | Split into firmware-distinct drivers |
+| Mini / Wall variants | _Not in Release-One_ | Older form factors not part of release one |
+
+Files under `packages/expansions/` still carry legacy filenames
+(`comfort_*.yaml`, `airiq_bathroom_*.yaml`) for backwards compatibility — the
+README, product YAML, and WebFlash taxonomy are the source of truth for naming
+going forward.
 
 ---
 
 ## System Requirements
 
-- **ESPHome**: Version 2025.10.0 or newer
-- **Home Assistant**: Version 2024.1.0 or newer (recommended)
-
----
-
-## Use Cases
-
-| Room | Recommended Modules | Why |
-|------|---------------------|-----|
-| Living Room | AirIQ + Comfort + Presence | Full environmental awareness + automation |
-| Bedroom | Comfort + Presence | Sleep environment + lighting automation |
-| Home Office | AirIQ + Presence | CO2 for productivity + occupancy |
-| Bathroom | Bathroom + Presence + Fan | Humidity control + ventilation automation |
-| Kitchen | AirIQ + Presence | Cooking air quality + occupancy |
-| Workshop | AirIQ | VOC and PM monitoring for safety |
+- **ESPHome:** 2025.10.0 or newer
+- **Home Assistant:** 2024.1.0 or newer (recommended)
 
 ---
 
 ## Support
 
-- **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/sense360store/esphome-public/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/sense360store/esphome-public/discussions)
-- **Email**: support@mysense360.com
-- **Purchase**: [mysense360.com](https://mysense360.com)
+- **Documentation:** [docs/](docs/)
+- **Issues:** [GitHub Issues](https://github.com/sense360store/esphome-public/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/sense360store/esphome-public/discussions)
+- **Email:** support@mysense360.com
+- **Purchase:** [mysense360.com](https://mysense360.com)
 
 ---
 
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
----
-
-## Future Products
-
-- **Sense360 Voice**: Core boards with integrated voice assistant support (coming soon)

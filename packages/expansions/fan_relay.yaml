@@ -1,0 +1,65 @@
+# ============================================================================
+# SENSE360 FAN EXPANSION MODULE - RELAY (ON/OFF) VERSION
+# ============================================================================
+# Single-speed AC fan control via the on-board relay (or an external SSR
+# wired to one of the expansion GPIOs).
+#
+# Use this driver for fans where you only need ON/OFF control — no speed
+# control. For variable speed AC fans use FanTRIAC; for DC/PWM fans use
+# FanPWM; for 0–10 V controlled equipment use FanDAC.
+#
+# Expansion Bus Connection (default: built-in relay):
+#   Built-in 10 A relay on the Core board (GPIO4 by default).
+#
+# IMPORTANT:
+#   - This module is NOT compatible with fan_pwm.yaml, fan_gp8403.yaml, or
+#     fan_triac.yaml. The output pin and driver code differ.
+# ============================================================================
+
+substitutions:
+  # GPIO Configuration
+  # By default the FanRelay driver reuses the built-in relay (`relay_pin`)
+  # already declared by the core board. To drive an external SSR/relay from
+  # an expansion pin instead, override `fan_relay_pin` from the parent file:
+  #
+  #   fan_relay_pin: ${expansion_gpio1}
+  #
+  fan_relay_pin: ${relay_pin}
+
+  fan_default_state: "OFF"  # OFF | ON | RESTORE
+
+# ============================================================================
+# Switch (single-speed fan)
+# ============================================================================
+switch:
+  - platform: gpio
+    id: fan_relay_switch
+    name: "${friendly_name} Fan"
+    pin: ${fan_relay_pin}
+    icon: mdi:fan
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      - logger.log: "FanRelay turned ON"
+    on_turn_off:
+      - logger.log: "FanRelay turned OFF"
+
+# ============================================================================
+# Globals for Fan Control (shared with feature profiles)
+# ============================================================================
+globals:
+  - id: fan_auto_mode
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+# ============================================================================
+# Scripts for Fan Control
+# ============================================================================
+script:
+  - id: fan_emergency_stop
+    mode: single
+    then:
+      - switch.turn_off: fan_relay_switch
+      - logger.log:
+          level: WARN
+          format: "FanRelay emergency stop activated"

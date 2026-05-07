@@ -2,6 +2,14 @@
 
 Complete instructions for setting up your Sense360 device with ESPHome.
 
+> **Most customers should use [WebFlash](https://mysense360.com)** — the
+> browser-based flasher for official, signed Sense360 firmware. This guide
+> is the manual/custom path for advanced users who want to inspect or
+> customize the ESPHome YAML.
+>
+> See [`release-one.md`](release-one.md) for the Release-One configuration
+> (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`).
+
 ## Before You Begin
 
 Ensure you have the following items ready:
@@ -45,8 +53,8 @@ Estimated time: 15-20 minutes for first device
 ```yaml
 # Sense360 Configuration
 substitutions:
-  device_name: sense360-living-room  # Change this
-  friendly_name: "Living Room Sense360"  # Change this
+  device_name: sense360-bathroom  # Change this
+  friendly_name: "Bathroom Sense360"  # Change this
 
 esphome:
   name: ${device_name}
@@ -56,22 +64,13 @@ esphome:
 packages:
   sense360_firmware:
     url: https://github.com/sense360store/esphome-public
-    ref: v2.2.0
+    ref: v1.0.0  # Pin to a release tag — never use 'main' in production
     files:
-      - products/sense360-mini-airiq.yaml
+      - products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
     refresh: 1d
 
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-
-api:
-  encryption:
-    key: !secret api_encryption_key
-
-ota:
-  - platform: esphome
-    password: !secret ota_password
+# wifi:, api:, and ota: are wired up by the package via secrets.yaml.
+# Do NOT redeclare them here.
 ```
 
 4. **Customize Device Name**
