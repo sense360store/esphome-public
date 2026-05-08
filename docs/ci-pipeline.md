@@ -294,7 +294,9 @@ ERROR: Could not fetch external component from branch 'main'
 
 Common causes:
 - **Different ESPHome version:** CI uses `ESPHOME_VERSION: "2025.3.0"`
-- **Missing secrets.yaml:** Create a local test secrets file
+- **Missing secrets.yaml:** Copy the tracked template to a local file —
+  `cp secrets.example.yaml secrets.yaml`. CI writes its own placeholder
+  `secrets.yaml` at runtime, so the tracked template is not used by CI.
 - **External components:** CI patches `external_components.yaml` to use the current branch
 
 ---

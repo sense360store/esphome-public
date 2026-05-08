@@ -64,7 +64,7 @@ Status vocabulary:
 | `requirements-dev.txt` | active | Pre-commit, yamllint, black, flake8, esphome, pytest. Referenced from `docs/development.md` and `CHANGELOG.md`. | Keep. |
 | `.yamllint` | active | YAML lint config, consumed by `pre-commit` and `yamllint .`. | Keep. |
 | `.pre-commit-config.yaml` | active | Pre-commit hook config; references `validate_configs.py` and `validate_webflash_builds.py`, and includes the legacy `(products\|packages\|base\|features\|hardware)` regex. | Keep. Update regex when the symlink aliases are removed in a follow-up PR. |
-| `secrets.yaml` | legacy-compatibility / footgun | Tracked file with a header that explicitly states "placeholder values for CI/CD validation". `.gitignore` lists `secrets.yaml`, so the tracked copy was force-added; subsequent edits will not be picked up by `git add` without `-f`. CI workflows (`ci-validate-configs.yml`, `firmware-build-release.yml`) overwrite this file at runtime via heredoc, so the tracked copy is only effectively used for local validation runs. See dedicated section below. | Keep for now. Follow-up PR should rename to `secrets.example.yaml`. |
+| `secrets.example.yaml` | active, public-api | Tracked template with obvious-fake placeholder values. Replaces the previously-tracked `secrets.yaml`. Local users copy it to `secrets.yaml` (gitignored). `products/secrets.yaml` symlinks to it so fresh-checkout `esphome config` keeps working. CI heredocs its own placeholder secrets, independent of this file. | Keep. |
 | `CHANGELOG.md`, `LICENSE`, `README.md`, `.gitignore` | active | Standard repo metadata. | Keep. |
 
 ## `components/` deep dive
@@ -158,9 +158,17 @@ deprecation pass in a separate PR that:**
 
 ## `secrets.yaml` deep dive
 
-### What is in it
+> **Status update:** The follow-up actions in this section have been
+> implemented in the ESP-010 PR. Root `secrets.yaml` is no longer tracked,
+> `secrets.example.yaml` is the tracked template, `products/secrets.yaml`
+> symlinks to it, and `scripts/check-no-tracked-secrets.py` guards against
+> regressions. The history below is preserved for context. **Rotation
+> reminder:** the previously-tracked `api_encryption_key` value should be
+> treated as compromised; if it was ever flashed to real hardware, rotate it.
 
-The tracked `secrets.yaml` is 53 lines. The header comment reads:
+### What was in it (historical)
+
+The tracked `secrets.yaml` was 53 lines. The header comment read:
 
 ```
 # This file contains placeholder values for CI/validation.

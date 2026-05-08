@@ -91,6 +91,17 @@ packages:
 
 Secrets keep your sensitive information secure and separate from your main configuration.
 
+> **Standalone ESPHome users:** the repo ships
+> [`secrets.example.yaml`](../secrets.example.yaml) as the starting point.
+> Copy it to `secrets.yaml` and edit it locally:
+>
+> ```bash
+> cp secrets.example.yaml secrets.yaml
+> ```
+>
+> `secrets.yaml` is gitignored — never commit it. CI generates its own
+> placeholder secrets for validation/builds.
+
 ### In Home Assistant ESPHome
 
 1. Click the "Secrets" button in the top right of the ESPHome dashboard
