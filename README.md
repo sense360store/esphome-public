@@ -199,6 +199,12 @@ The mapping from product YAML → WebFlash filename is implemented in
 [`scripts/product_name_mapper.py`](scripts/product_name_mapper.py) and exercised
 by [`.github/workflows/firmware-build-release.yml`](.github/workflows/firmware-build-release.yml).
 
+The same mapping is published as machine-readable JSON in
+[`config/webflash-builds.json`](config/webflash-builds.json), validated against
+the contract snapshot at
+[`config/webflash-compatibility.json`](config/webflash-compatibility.json) by
+[`tests/validate_webflash_builds.py`](tests/validate_webflash_builds.py).
+
 > **Signing:** This repo does **not** sign firmware. WebFlash remains the
 > production signing/deployment authority and consumes the unsigned `.bin`
 > assets attached to GitHub releases.

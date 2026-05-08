@@ -63,3 +63,10 @@ repos:
         files: ^(products|packages|base|features|hardware)/.*\.yaml$
         additional_dependencies:
           - pyyaml>=6.0
+
+      - id: validate-webflash-builds
+        name: Validate WebFlash Build Matrix
+        entry: python tests/validate_webflash_builds.py
+        language: python
+        pass_filenames: false
+        files: ^(config/webflash-(builds|compatibility)\.json|tests/validate_webflash_builds\.py)$

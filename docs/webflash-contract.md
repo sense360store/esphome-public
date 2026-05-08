@@ -246,6 +246,18 @@ documented in [`release-one.md`](release-one.md)):
 When a new WebFlash `config_string` is added to a release, this table must be
 updated in the same PR.
 
+### Repo-local validator
+
+The build matrix this repo declares it will ship lives at
+[`config/webflash-builds.json`](../config/webflash-builds.json), and a local
+mirror of the contract above lives at
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json).
+[`tests/validate_webflash_builds.py`](../tests/validate_webflash_builds.py)
+checks every build entry against that snapshot — config-string grammar,
+forbidden tokens, mutual-exclusion rules, artifact-name format, channel
+membership, and the existence of each `product_yaml`. Run it locally with
+`python3 tests/validate_webflash_builds.py`; CI runs it on every push.
+
 ---
 
 ## 7. Build Output Expectations
@@ -348,6 +360,32 @@ Rules:
 WebFlash will produce a sidecar (`*.meta.json`) from this body with the
 shape documented in WebFlash's `DEVELOPER.md → Via GitHub Releases`. This
 repo never authors the sidecar directly.
+
+---
+
+## Machine-Readable Snapshot
+
+For machine-readable consumption (validators, tooling, the WebFlash importer),
+this contract is mirrored in two JSON files at the repo root:
+
+- [`config/webflash-compatibility.json`](../config/webflash-compatibility.json) —
+  snapshot of §1–§5: filename pattern, allowed mounting/power/module tokens,
+  channels, forbidden-token replacements, mutually-exclusive pairs, conflicts,
+  and the fan-driver "max one of" rule.
+- [`config/webflash-builds.json`](../config/webflash-builds.json) —
+  the build mapping: each entry binds a WebFlash `config_string` to its
+  product YAML and the production artifact name.
+
+The Release-One entry references
+[`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml),
+a thin wrapper that `!include`s the canonical
+[`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml).
+
+[`tests/validate_webflash_builds.py`](../tests/validate_webflash_builds.py)
+loads `config/webflash-compatibility.json` as a required source of truth and
+fails fast if it is missing or malformed — there is no hardcoded fallback. If
+you change the rules in this document, update the JSON snapshot in the same
+PR and re-run the validator.
 
 ---
 
