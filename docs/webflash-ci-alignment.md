@@ -192,7 +192,7 @@ This document also does **not** authorize:
 | `ESP-003` | Add local WebFlash compatibility snapshot | Existing | [`config/webflash-compatibility.json`](../config/webflash-compatibility.json) |
 | `ESP-004` | Add release-one product YAML | Existing | [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml), [`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml) |
 | `ESP-005` | Validate WebFlash firmware config matrix | Existing (partial) | [`tests/validate_webflash_builds.py`](../tests/validate_webflash_builds.py); coverage to expand |
-| `ESP-006` | Build WebFlash-compatible `.bin` artifacts in CI | Existing — needs end-to-end verification | [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml), [`scripts/product_name_mapper.py`](../scripts/product_name_mapper.py); confirm a real release attaches a correctly-named `.bin` |
+| `ESP-006` | Build WebFlash-compatible `.bin` artifacts in CI | Proof path added; awaiting recorded CI run | [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml), [`scripts/product_name_mapper.py`](../scripts/product_name_mapper.py), [`tests/test_webflash_artifact_naming.py`](../tests/test_webflash_artifact_naming.py), [`tests/check_webflash_build_output.py`](../tests/check_webflash_build_output.py); see "ESP-006 build proof path" below |
 | `ESP-007` | Publish WebFlash-compatible GitHub Release assets | Existing — needs end-to-end verification | release-attach job in `firmware-build-release.yml`; confirm assets land on a real release tag |
 | `ESP-008` | Document WebFlash handoff | Planned | This doc covers the boundary; a dedicated handoff page may follow |
 | `ESP-009` | Audit and classify legacy repo paths | Planned | Inventory `Bathroom`, `Comfort`, `Presence`, `Wall`, `Mini` usage in `packages/` and `products/` before any cleanup |
@@ -200,3 +200,63 @@ This document also does **not** authorize:
 If a follow-up PR finds that an "Existing" item no longer matches this
 contract, that PR should update both the implementation and this table in
 the same change.
+
+## ESP-006 build proof path
+
+The build/upload portion of ESP-006 is proved in three layers. The first
+two are deterministic and run on every push or PR. The third is a recorded
+end-to-end CI run that captures the actual `.bin` artifact uploaded by
+[`firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml).
+
+1. **Static naming proof.**
+   [`tests/test_webflash_artifact_naming.py`](../tests/test_webflash_artifact_naming.py)
+   loads every entry in
+   [`config/webflash-builds.json`](../config/webflash-builds.json) and asserts
+   that
+   [`scripts/product_name_mapper.py`](../scripts/product_name_mapper.py)
+   produces exactly the declared `artifact_name` for the entry's
+   `product_yaml` basename, version, and channel. Three explicit assertions
+   pin the Release-One filename
+   `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin` so that
+   any drift in the mapper or the build matrix fails the test. This step
+   is wired into the `quick-validate` job in
+   [`.github/workflows/validate.yml`](../.github/workflows/validate.yml).
+
+2. **Build-time output assertion.**
+   [`tests/check_webflash_build_output.py`](../tests/check_webflash_build_output.py)
+   runs inside the build job in
+   [`firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml),
+   immediately after the rename step. When `webflash-builds.json` declares
+   an entry whose `version` and `channel` match the current build, the
+   helper fails the job unless the renamed binary's basename equals the
+   declared `artifact_name`. Dev/preview dispatches that intentionally use
+   non-matrix version/channel values are skipped (exit 0), so they cannot
+   accidentally trip the assertion.
+
+3. **Recorded end-to-end CI run** *(pending)*. Once `firmware-build-release.yml`
+   is dispatched against this branch with `single_product` set to
+   `sense360-ceiling-poe-ventiq-fantriac-roomiq`, `version` set to `1.0.0`,
+   and `channel` set to `stable`, the build job uploads a CI artifact named
+   exactly `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin`.
+   When that run is captured, fill in the proof record below and flip the
+   ESP-006 row in the table above to "Verified".
+
+   The release-attach proof (binary attached to a real GitHub Release) is
+   tracked separately under `ESP-007`.
+
+### Proof record
+
+> *Pending* — awaiting a recorded `workflow_dispatch` of
+> [`firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
+> with `single_product=sense360-ceiling-poe-ventiq-fantriac-roomiq`,
+> `version=1.0.0`, `channel=stable`.
+
+When the run lands, replace the block above with:
+
+| Field | Value |
+|-------|-------|
+| Workflow run | `<URL>` |
+| Artifact | `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin` |
+| Build date | `<YYYY-MM-DD>` |
+| ESPHome version | `<from workflow env.ESPHOME_VERSION>` |
+| Git SHA | `<commit SHA built>` |

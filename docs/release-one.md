@@ -45,6 +45,19 @@ The mapping from product YAML → WebFlash filename is implemented in
 exercised by
 [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml).
 
+### Proof of build
+
+Per-PR static proof (mapper agrees with `config/webflash-builds.json`) is
+covered by
+[`tests/test_webflash_artifact_naming.py`](../tests/test_webflash_artifact_naming.py),
+and a build-time assertion against the declared `artifact_name` is wired
+into the build job via
+[`tests/check_webflash_build_output.py`](../tests/check_webflash_build_output.py).
+A recorded end-to-end CI run that uploads the exact `.bin` above is
+**pending**; see
+[`docs/webflash-ci-alignment.md`](webflash-ci-alignment.md#proof-record)
+for the open proof record.
+
 ---
 
 ## Compatibility Rules
