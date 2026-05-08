@@ -450,6 +450,38 @@ jobs:
           echo "Manifest created:"
           cat all-firmware/manifest.json
 
+      - name: Validate WebFlash release notes
+        env:
+          RELEASE_CHANNEL: ${{ needs.generate-matrix.outputs.channel }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          event_path = os.environ.get("GITHUB_EVENT_PATH", "")
+          if not event_path or not Path(event_path).is_file():
+              raise SystemExit(
+                  "GITHUB_EVENT_PATH is not set or does not exist; "
+                  "cannot read release body."
+              )
+          event = json.loads(Path(event_path).read_text(encoding="utf-8"))
+          body = (event.get("release") or {}).get("body") or ""
+          Path("release-notes.md").write_text(body, encoding="utf-8")
+          print(f"Wrote release-notes.md ({len(body)} bytes)")
+          PY
+
+          python3 scripts/validate-webflash-release-notes.py \
+            release-notes.md \
+            --channel "$RELEASE_CHANNEL"
+
+      - name: Check WebFlash release assets
+        run: |
+          python3 scripts/check-webflash-release-assets.py \
+            --dir all-firmware \
+            --version "${{ needs.generate-matrix.outputs.version }}" \
+            --channel "${{ needs.generate-matrix.outputs.channel }}"
+
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
