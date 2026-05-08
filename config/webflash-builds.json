@@ -21,3 +21,17 @@
     ]
   }
 ]
+{
+  "schema_version": 1,
+  "description": "WebFlash-compatible firmware build matrix. Each entry is validated by tests/validate_webflash_builds.py against config/webflash-compatibility.json.",
+  "builds": [
+    {
+      "config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
+      "product_yaml": "products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin",
+      "channel": "stable",
+      "version": "1.0.0",
+      "chip_family": "ESP32"
+    }
+  ]
+}

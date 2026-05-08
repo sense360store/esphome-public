@@ -48,4 +48,37 @@
   "max_one_of": {
     "fan_driver": ["FanRelay", "FanPWM", "FanDAC", "FanTRIAC"]
   }
+  "schema_version": 1,
+  "source": "docs/webflash-contract.md",
+  "description": "Local mirror of the WebFlash compatibility contract. WebFlash (sense360store/WebFlash) remains the source of truth; this file is a deliberate snapshot used by tests/validate_webflash_builds.py to detect drift before release.",
+  "allowed_channels": ["stable", "preview", "beta"],
+  "rescue_config_string": "Rescue",
+  "mounting_tokens": ["Ceiling"],
+  "power_tokens": ["USB", "POE", "PWR"],
+  "module_tokens": [
+    "AirIQ",
+    "VentIQ",
+    "RoomIQ",
+    "FanRelay",
+    "FanPWM",
+    "FanDAC",
+    "FanTRIAC",
+    "LED"
+  ],
+  "fan_tokens": ["FanRelay", "FanPWM", "FanDAC", "FanTRIAC"],
+  "forbidden_tokens": [
+    "Bathroom",
+    "Comfort",
+    "Presence",
+    "Fan",
+    "FanAnalog",
+    "BathroomAirIQ",
+    "AirIQBase",
+    "AirIQPro",
+    "AirIQProv"
+  ],
+  "mutually_exclusive_groups": [["AirIQ", "VentIQ"]],
+  "conflicting_pairs": [["FanDAC", "AirIQ"]],
+  "artifact_name_template": "Sense360-{config_string}-v{version}-{channel}.bin",
+  "release_one_required_config": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
 }
