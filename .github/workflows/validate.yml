@@ -46,6 +46,10 @@ jobs:
         run: |
           python3 tests/validate_webflash_builds.py
 
+      - name: Verify WebFlash artifact naming (mapper agrees with builds JSON)
+        run: |
+          python3 tests/test_webflash_artifact_naming.py
+
       - name: Count products
         run: |
           PRODUCT_COUNT=$(find products/ -name "*.yaml" -type f ! -name "secrets.yaml" | wc -l)

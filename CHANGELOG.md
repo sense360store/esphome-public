@@ -25,8 +25,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rules, and the build output contract.
 - **Product name mapper entries** for `VentIQ`, `RoomIQ`, `FanRelay`, `FanPWM`, `FanDAC`,
   and `FanTRIAC` so unmapped products serialize to the correct WebFlash artifact name.
+- **WebFlash artifact naming proof** (ESP-006): `tests/test_webflash_artifact_naming.py`
+  asserts that, for every entry in `config/webflash-builds.json`,
+  `scripts/product_name_mapper.py` produces exactly the declared `artifact_name`. Three
+  explicit assertions pin the Release-One filename
+  `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin`. Wired into
+  `.github/workflows/validate.yml` so it runs on every push and PR.
+- **Build-time output assertion** (ESP-006): `tests/check_webflash_build_output.py`
+  runs inside the build job in `.github/workflows/firmware-build-release.yml` after the
+  rename step. When `config/webflash-builds.json` declares an entry whose `version` and
+  `channel` match the current build, the helper fails the job unless the renamed binary's
+  basename matches the declared `artifact_name`. Dev/preview dispatches with non-matrix
+  version/channel values are skipped (exit 0).
+- **`single_product` workflow_dispatch input** (ESP-006) on
+  `.github/workflows/firmware-build-release.yml` so a single product (e.g. Release-One)
+  can be built end-to-end from CI without rebuilding the full product matrix.
 
 ### Changed
+- **`.github/workflows/firmware-build-release.yml`**: matrix discovery now excludes
+  `products/webflash/*` so the thin WebFlash wrappers do not double-build the canonical
+  product YAML and emit a duplicate WebFlash filename that would collide on release attach.
 - **README**: rewritten around the WebFlash taxonomy (RoomIQ / AirIQ / VentIQ / FanRelay /
   FanPWM / FanDAC / FanTRIAC). Duplicate "Configuration Approaches" and "Package Reference"
   sections collapsed. All examples now pin a release tag (`ref: v1.0.0`) instead of mixing
