@@ -228,7 +228,12 @@ products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
 
 ### 2. Configure secrets
 
-Create a `secrets.yaml` (see [`examples/secrets.yaml.template`](examples/secrets.yaml.template)):
+Copy [`secrets.example.yaml`](secrets.example.yaml) to `secrets.yaml` and
+edit it with your real local credentials:
+
+```bash
+cp secrets.example.yaml secrets.yaml
+```
 
 ```yaml
 wifi_ssid: "YourNetworkName"
@@ -239,6 +244,10 @@ web_username: "admin"
 web_password: "your-secure-web-password"
 ```
 
+> `secrets.yaml` is gitignored — never commit it. CI generates its own
+> placeholder secrets for validation/builds, so you do not need to commit
+> anything for CI to pass.
+>
 > Generate an API key with `esphome wizard` or `openssl rand -base64 32`.
 
 ### 3. Reference the product from your device YAML

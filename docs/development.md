@@ -266,7 +266,8 @@ If pre-commit hooks fail:
 
 Common issues:
 
-- **Missing secrets**: Create a `secrets.yaml` file with test values
+- **Missing secrets**: Copy `secrets.example.yaml` to `secrets.yaml`
+  (`cp secrets.example.yaml secrets.yaml`). `secrets.yaml` is gitignored.
 - **Platform not found**: Update ESPHome to latest version
 - **Component errors**: Check ESPHome version compatibility
 

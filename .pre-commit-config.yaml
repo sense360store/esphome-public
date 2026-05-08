@@ -70,3 +70,10 @@ repos:
         language: python
         pass_filenames: false
         files: ^(config/webflash-(builds|compatibility)\.json|tests/validate_webflash_builds\.py)$
+
+      - id: check-no-tracked-secrets
+        name: Ensure secrets.yaml is not tracked
+        entry: python3 scripts/check-no-tracked-secrets.py
+        language: system
+        pass_filenames: false
+        always_run: true
