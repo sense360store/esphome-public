@@ -1,3 +1,13 @@
+# Release-One WebFlash product entry.
+#
+# Canonical config lives in
+# products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml.
+# This file exists so config/webflash-builds.json can point at the
+# products/webflash/ path WebFlash expects, without duplicating
+# package composition.
+#
+# WebFlash config string: Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
+# Artifact name:          Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin
 # ============================================================================
 # WEBFLASH-NAMESPACED VIEW OF RELEASE-ONE
 # ============================================================================
