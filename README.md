@@ -390,6 +390,7 @@ esphome-public/
 
 - [WebFlash Compatibility Contract](docs/webflash-contract.md) — Artifact naming, config-string grammar, release-body format
 - [WebFlash Compatibility Snapshot](config/webflash-compatibility.json) — Machine-readable local mirror of the contract for validators and CI
+- [WebFlash Release Handoff](docs/webflash-release-handoff.md) — Operational source-to-installer flow, troubleshooting, and release proof checklist
 - [Release-One Configuration](docs/release-one.md) — Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
 - [Product Matrix](docs/product-matrix.md) — Slot/module reference
 - [Installation Guide](docs/installation.md) — Step-by-step setup
