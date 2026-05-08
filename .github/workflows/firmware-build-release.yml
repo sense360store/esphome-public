@@ -42,6 +42,13 @@ on:
           - stable
           - preview
           - beta
+      single_product:
+        description: >-
+          Optional: build only this single product (matrix.product basename,
+          e.g. sense360-ceiling-poe-ventiq-fantriac-roomiq). Leave blank to
+          build the full product matrix.
+        required: false
+        default: ''
 
 # Ensure only one release workflow runs at a time
 concurrency:
@@ -100,9 +107,15 @@ jobs:
 
       - name: Generate product build matrix
         id: generate
+        env:
+          SINGLE_PRODUCT: ${{ github.event.inputs.single_product }}
         run: |
-          # Find all product YAML files
-          PRODUCTS=$(find products/ -name "*.yaml" -type f | sort)
+          # Find all product YAML files. Exclude products/webflash/* — those
+          # are thin wrappers that re-export canonical products/*.yaml so
+          # config/webflash-builds.json can address them via the WebFlash
+          # namespace; building them would emit a duplicate WebFlash filename
+          # that collides with the canonical build during release attach.
+          PRODUCTS=$(find products/ -name "*.yaml" -type f -not -path 'products/webflash/*' | sort)
 
           # Build JSON matrix
           MATRIX='{"include":['
@@ -118,6 +131,12 @@ jobs:
               continue
             fi
 
+            # If single_product is provided (workflow_dispatch only),
+            # filter the matrix down to that one product.
+            if [ -n "$SINGLE_PRODUCT" ] && [ "$PRODUCT_NAME" != "$SINGLE_PRODUCT" ]; then
+              continue
+            fi
+
             if [ "$FIRST" = true ]; then
               FIRST=false
             else
@@ -130,8 +149,19 @@ jobs:
 
           MATRIX+=']}'
 
+          if [ "$COUNT" -eq 0 ]; then
+            echo "::error::No products matched the build matrix."
+            if [ -n "$SINGLE_PRODUCT" ]; then
+              echo "::error::single_product='$SINGLE_PRODUCT' did not match any products/*.yaml basename."
+            fi
+            exit 1
+          fi
+
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
           echo "product_count=$COUNT" >> $GITHUB_OUTPUT
+          if [ -n "$SINGLE_PRODUCT" ]; then
+            echo "single_product filter active: $SINGLE_PRODUCT"
+          fi
           echo "Found $COUNT products to build"
           echo "Matrix: $MATRIX"
 
@@ -319,6 +349,19 @@ jobs:
 
           echo "webflash_name=$WEBFLASH_NAME" >> $GITHUB_OUTPUT
           echo "firmware_path=firmware-output/$WEBFLASH_NAME" >> $GITHUB_OUTPUT
+
+      - name: Assert renamed binary matches WebFlash build matrix
+        run: |
+          # Fail the build if config/webflash-builds.json declares an
+          # artifact for this product at this version+channel and the
+          # renamed file's basename does not match. Skipped (exit 0) when
+          # no entry matches — e.g. dev/preview dispatches with version
+          # values that aren't in the published WebFlash matrix.
+          python3 tests/check_webflash_build_output.py \
+            --product "${{ matrix.product }}" \
+            --version "${{ needs.generate-matrix.outputs.version }}" \
+            --channel "${{ needs.generate-matrix.outputs.channel }}" \
+            --actual "${{ steps.rename.outputs.firmware_path }}"
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
