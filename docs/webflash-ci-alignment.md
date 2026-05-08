@@ -35,6 +35,15 @@ for signing, manifesting, and deploying them.
 - Generating the WebFlash production-signed `manifest.json`.
 - Deploying the WebFlash installer.
 
+WebFlash is responsible for:
+
+- Production signing.
+- Manifest generation.
+- Sidecar metadata ingestion.
+- GitHub Pages deployment.
+- Runtime authenticity verification.
+- Customer install UX.
+
 A note on the in-repo `manifest.json` produced by
 `.github/workflows/firmware-build-release.yml`: that file is a **build-info**
 manifest (per-file SHA256 and size, build timestamp, git SHA, ESPHome version)
@@ -103,6 +112,8 @@ Allowed module tokens: `AirIQ`, `VentIQ`, `RoomIQ`, `FanRelay`, `FanPWM`,
 - `RoomIQ` may be combined with `VentIQ`.
 - Fan variants are firmware-distinct (`FanRelay`, `FanPWM`, `FanDAC`,
   `FanTRIAC`).
+- `FanDAC` conflicts with `AirIQ`, as encoded in
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json).
 - Generic `Fan` is forbidden.
 - `FanAnalog` is legacy and must not appear in new WebFlash artifacts.
 - `Bathroom`, `Comfort`, and `Presence` are not WebFlash config tokens.
