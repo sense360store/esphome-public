@@ -562,7 +562,6 @@ Each core product is available with specific power configurations:
 
 | Product File | Description | Hardware |
 |--------------|-------------|----------|
-| `sense360-ceiling-s3-full.yaml` | Full-featured ESP32-S3 ceiling board | Sense360 Ceiling S3 |
 | `sense360-poe.yaml` | Power over Ethernet configuration | Sense360 PoE |
 | `sense360-fan-pwm.yaml` | 4-channel PWM fan controller | Sense360 Fan PWM |
 
