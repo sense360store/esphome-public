@@ -389,6 +389,7 @@ esphome-public/
 ## Documentation
 
 - [Hardware Catalog](docs/hardware-catalog.md) — canonical Sense360 board/module names, SKUs, revisions, and legacy names.
+- [S360-100-R4 Core Hardware Reference](docs/hardware/s360-100-r4-core.md) — pins, connectors, and schematic net names for the Sense360 Core board.
 - [WebFlash Compatibility Contract](docs/webflash-contract.md) — Artifact naming, config-string grammar, release-body format
 - [WebFlash Compatibility Snapshot](config/webflash-compatibility.json) — Machine-readable local mirror of the contract for validators and CI
 - [WebFlash Release Handoff](docs/webflash-release-handoff.md) — Operational source-to-installer flow, troubleshooting, and release proof checklist
