@@ -222,20 +222,88 @@ jobs:
           cp secrets.yaml tests/secrets.yaml
           cp secrets.yaml tests/generated/secrets.yaml
 
-      - name: Update external_components to use current branch
+      - name: Patch external_components to use local checked-out source
         run: |
-          # For builds, we need to use the current branch's components instead of 'main'
-          # This ensures builds use the components from the release branch/tag
-          # The checked-in file uses 'ref: main' which is correct for end-users
-          BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
-          # For release tags, use the tag name
-          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            BRANCH_NAME="${GITHUB_REF#refs/tags/}"
-          fi
-          echo "Updating external_components.yaml to use ref: $BRANCH_NAME"
-          sed -i "s|ref: main|ref: $BRANCH_NAME|g" packages/base/external_components.yaml
-          echo "Updated external_components.yaml:"
+          # CI/release builds run inside the checked-out repo, so cloning
+          # https://github.com/sense360store/esphome-public@<ref> through
+          # external_components is both unnecessary and fragile (the requested
+          # ref may not yet exist on GitHub, e.g. when proving a fix on a
+          # working branch). Override the shared external_components include
+          # and any inline external_components blocks in product YAMLs to
+          # point at the local components/ directory.
+          #
+          # IMPORTANT: this rewrite happens in the workflow workspace only.
+          # It is never committed back to the repo, so end-users consuming
+          # this repo as a remote ESPHome package continue to get the
+          # git-source version checked into git.
+
+          echo "Rewriting packages/base/external_components.yaml -> local source"
+          cat > packages/base/external_components.yaml <<'EOF'
+          # CI-only override: use the locally checked-out components/ tree
+          # instead of cloning this repo from GitHub. The committed version
+          # of this file (with type: git) is intentionally unchanged.
+          external_components:
+            - source:
+                type: local
+                path: components
+              components: [ld2412, ld2450, ld24xx]
+          EOF
+          echo "Patched packages/base/external_components.yaml:"
           cat packages/base/external_components.yaml
+
+          # Some product YAMLs declare their own inline external_components
+          # block (e.g. products/sense360-mini-full-ld2412.yaml). Rewrite any
+          # such block to also use the local components/ directory. Path is
+          # ../components because product YAMLs live in products/.
+          echo ""
+          echo "Searching products/ for inline external_components blocks..."
+          python3 - <<'PY'
+          import pathlib
+          import re
+
+          PRODUCTS = pathlib.Path("products")
+          # Match a top-level external_components: block followed by a single
+          # git-source entry. Conservative: only rewrites blocks that look
+          # exactly like the known shape we ship.
+          pattern = re.compile(
+              r"^external_components:\s*\n"
+              r"(?:[ \t]*#[^\n]*\n)*"
+              r"[ \t]*-[ \t]*source:\s*\n"
+              r"[ \t]+type:[ \t]*git\s*\n"
+              r"[ \t]+url:[ \t]*\S+\s*\n"
+              r"[ \t]+ref:[ \t]*\S+\s*\n"
+              r"([ \t]+components:[ \t]*\[[^\]]*\]\s*\n)"
+              r"(?:[ \t]+refresh:[ \t]*\S+\s*\n)?",
+              re.MULTILINE,
+          )
+
+          for path in sorted(PRODUCTS.glob("*.yaml")):
+              text = path.read_text()
+              match = pattern.search(text)
+              if not match:
+                  continue
+              components_line = match.group(1).strip()
+              replacement = (
+                  "external_components:\n"
+                  "  # CI-only override: rewritten to local source by the\n"
+                  "  # firmware-build-release workflow.\n"
+                  "  - source:\n"
+                  "      type: local\n"
+                  "      path: ../components\n"
+                  f"    {components_line}\n"
+              )
+              new_text = pattern.sub(replacement, text, count=1)
+              path.write_text(new_text)
+              print(f"  rewrote inline external_components in {path}")
+          PY
+
+          # Sanity check: no committed/inline references should still be
+          # pulling from github.com inside the workspace after this step.
+          if grep -RIn --include="*.yaml" -E "type:[[:space:]]*git" packages/base products; then
+            echo "::warning::Some YAMLs still declare type: git external_components after patch (see above). They will fall back to network cloning."
+          else
+            echo "All external_components in packages/base and products are now local."
+          fi
 
       - name: Compile firmware
         run: |
@@ -243,8 +311,10 @@ jobs:
           echo "Compiling: ${{ matrix.file }}"
           echo "ESPHome version: ${{ env.ESPHOME_VERSION }}"
           echo "=============================================="
-          # First validate config to catch errors early
-          esphome config ${{ matrix.file }} > /dev/null
+          # First validate config to catch errors early.
+          # Do NOT redirect to /dev/null — we need the real ESPHome error to
+          # surface in the workflow log if validation fails.
+          esphome config "${{ matrix.file }}"
           echo "Config validation passed, starting compilation..."
           OUTPUT_DIR="firmware-output"
           OUTPUT_FILE="$OUTPUT_DIR/${{ matrix.product }}.bin"
