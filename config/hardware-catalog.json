@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "description": "Canonical Sense360 board and module catalog. Friendly name, SKU, and revision are the source of truth for product YAML comments, docs, and WebFlash module labels.",
+  "source": "Sense360 hardware naming table",
+  "source_of_truth": "docs/hardware-catalog.md",
+  "items": [
+    {
+      "group": "Ceiling",
+      "type": "Hub",
+      "friendly_name": "Sense360 Core",
+      "sku": "S360-100",
+      "rev": "R4",
+      "old_name": "360Core_Ceiling_V3_R",
+      "description": "Main board. Has the ESP32-S3 and connectors for all other modules.",
+      "schematic_status": "verified",
+      "schematic_file": "S360-100-R4.pdf"
+    },
+    {
+      "group": "Ceiling",
+      "type": "Sensor",
+      "friendly_name": "Sense360 RoomIQ",
+      "sku": "S360-200",
+      "rev": "R4",
+      "old_name": "Presence + Comfort (two boards)",
+      "description": "Merged board. PIR, LD2450, SEN0609, LTR-303ALS light, SHT4x temp/humidity, BMP581 pressure.",
+      "schematic_status": "verified",
+      "schematic_file": "S360-200-R4.pdf"
+    },
+    {
+      "group": "Ceiling",
+      "type": "Sensor",
+      "friendly_name": "Sense360 AirIQ",
+      "sku": "S360-210",
+      "rev": "R4",
+      "old_name": "AirIQ Ceiling",
+      "description": "Air quality board. CO2 SCD41, VOC SGP41, gas MICS-4514 with STM8. Connectors for SPS30 PM and SFA30 HCHO.",
+      "schematic_status": "cataloged_unverified"
+    },
+    {
+      "group": "Ceiling",
+      "type": "Sensor",
+      "friendly_name": "Sense360 VentIQ",
+      "sku": "S360-211",
+      "rev": "R4",
+      "old_name": "Bathroom Pro",
+      "description": "Smaller bathroom air-quality board. SGP41 on board. Connectors for IR temp and SPS30.",
+      "schematic_status": "cataloged_unverified"
+    },
+    {
+      "group": "Ceiling",
+      "type": "Indicator",
+      "friendly_name": "Sense360 LED",
+      "sku": "S360-300",
+      "rev": "R4",
+      "old_name": "LED Ring",
+      "description": "Ring of WS2812B LEDs.",
+      "schematic_status": "cataloged_unverified"
+    },
+    {
+      "group": "Inline",
+      "type": "Driver",
+      "friendly_name": "Sense360 Relay",
+      "sku": "S360-310",
+      "rev": "R4",
+      "old_name": "S360-Relay-C",
+      "description": "On/off relay for bathroom fans.",
+      "schematic_status": "cataloged_unverified"
+    },
+    {
+      "group": "Inline",
+      "type": "Driver",
+      "friendly_name": "Sense360 PWM",
+      "sku": "S360-311",
+      "rev": "R4",
+      "old_name": "12vFan_PWM_PulseCounter",
+      "description": "12V PWM fan driver, up to 4 fans with tach feedback.",
+      "schematic_status": "cataloged_unverified"
+    },
+    {
+      "group": "Inline",
+      "type": "Driver",
+      "friendly_name": "Sense360 DAC",
+      "sku": "S360-312",
+      "rev": "R4",
+      "old_name": "Fan_GP8403",
+      "description": "0 to 10V analog fan driver, for example Cloudlift S12.",
+      "schematic_status": "cataloged_unverified"
+    },
+    {
+      "group": "Inline",
+      "type": "Driver",
+      "friendly_name": "Sense360 TRIAC",
+      "sku": "S360-320",
+      "rev": "R4",
+      "old_name": "TRIAC_Board",
+      "description": "Phase dimmer for mains fan or lamp.",
+      "schematic_status": "cataloged_unverified"
+    },
+    {
+      "group": "Power",
+      "type": "PSU",
+      "friendly_name": "Sense360 240v PSU",
+      "sku": "S360-400",
+      "rev": "R4",
+      "old_name": "PWR Module",
+      "description": "Mains to 5V using HLK-5M05.",
+      "schematic_status": "cataloged_unverified"
+    },
+    {
+      "group": "Power",
+      "type": "PSU",
+      "friendly_name": "Sense360 PoE PSU",
+      "sku": "S360-410",
+      "rev": "R4",
+      "old_name": "PoE Module",
+      "description": "PoE to 5V.",
+      "schematic_status": "cataloged_unverified"
+    }
+  ]
+}

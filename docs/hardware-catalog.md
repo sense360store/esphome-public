@@ -1,0 +1,60 @@
+# Sense360 Hardware Catalog
+
+## Purpose
+
+This document is the canonical mapping of Sense360 boards and modules to their
+**friendly names**, **SKUs**, **revisions**, and **legacy names**. It is the
+naming source of truth for ESPHome product YAML comments, customer-facing docs,
+WebFlash module labels, and future hardware pin/connector reference documents.
+
+The machine-readable mirror of this catalog is
+[`../config/hardware-catalog.json`](../config/hardware-catalog.json).
+
+## Naming rule
+
+Friendly names (the **Friendly name** column below) are canonical going forward.
+Old names appear only in the **Old name** column for legacy reference and must
+not be used in new user-facing documentation, YAML, or build artifacts.
+
+Use `Ceiling`, never `Celling`. `Celling` is only acceptable when literally
+quoting a legacy old-name field that contained the typo.
+
+## Catalog
+
+| Group   | Type      | Friendly name      | SKU      | Rev | Old name                        | What it does |
+|---------|-----------|--------------------|----------|-----|---------------------------------|--------------|
+| Ceiling | Hub       | Sense360 Core      | S360-100 | R4  | 360Core_Ceiling_V3_R            | Main board. Has the ESP32-S3 and connectors for all other modules. |
+| Ceiling | Sensor    | Sense360 RoomIQ    | S360-200 | R4  | Presence + Comfort (two boards) | Merged board. PIR, LD2450, SEN0609, LTR-303ALS light, SHT4x temp/humidity, BMP581 pressure. |
+| Ceiling | Sensor    | Sense360 AirIQ     | S360-210 | R4  | AirIQ Ceiling                   | Air quality board. CO2 SCD41, VOC SGP41, gas MICS-4514 with STM8. Connectors for SPS30 PM and SFA30 HCHO. |
+| Ceiling | Sensor    | Sense360 VentIQ    | S360-211 | R4  | Bathroom Pro                    | Smaller bathroom air-quality board. SGP41 on board. Connectors for IR temp and SPS30. |
+| Ceiling | Indicator | Sense360 LED       | S360-300 | R4  | LED Ring                        | Ring of WS2812B LEDs. |
+| Inline  | Driver    | Sense360 Relay     | S360-310 | R4  | S360-Relay-C                    | On/off relay for bathroom fans. |
+| Inline  | Driver    | Sense360 PWM       | S360-311 | R4  | 12vFan_PWM_PulseCounter         | 12V PWM fan driver, up to 4 fans with tach feedback. |
+| Inline  | Driver    | Sense360 DAC       | S360-312 | R4  | Fan_GP8403                      | 0 to 10V analog fan driver, for example Cloudlift S12. |
+| Inline  | Driver    | Sense360 TRIAC     | S360-320 | R4  | TRIAC_Board                     | Phase dimmer for mains fan or lamp. |
+| Power   | PSU       | Sense360 240v PSU  | S360-400 | R4  | PWR Module                      | Mains to 5V using HLK-5M05. |
+| Power   | PSU       | Sense360 PoE PSU   | S360-410 | R4  | PoE Module                      | PoE to 5V. |
+
+## Verified schematics currently available
+
+Only the following boards have schematics pinned to this repository and are
+treated as **schematic-backed**:
+
+- `S360-100-R4` — Sense360 Core
+- `S360-200-R4` — Sense360 RoomIQ
+
+All other rows in the catalog above are marked
+**`cataloged, schematic not yet verified`**. Their friendly names, SKUs, and
+revisions are committed naming, but the underlying schematics have not been
+pinned to this repo yet.
+
+> Firmware pin mappings must not be considered verified until a board has a
+> dedicated pin/connector reference document. The next two PRs after this one
+> (HW-002 for `S360-100-R4`, HW-003 for `S360-200-R4`) will add those references
+> for the two schematic-backed boards. Release-One YAML must not be revised on
+> the basis of pin assumptions before then.
+
+## Companion file
+
+- [`../config/hardware-catalog.json`](../config/hardware-catalog.json) —
+  machine-readable mirror of this catalog with `schematic_status` per entry.
