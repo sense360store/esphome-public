@@ -32,6 +32,14 @@ Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
 | Power (POE) | [`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml) |
 | Core Hardware | [`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml) |
 
+The Release-One YAML omits the Sense360 LED (`S360-300`) packages on
+purpose: the WebFlash config string `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
+does not carry a `LED` token, so the binary built from this YAML does not
+include LED firmware. See
+[`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md) for
+the audit decision, the FanTRIAC pin-mapping blocker, the VentIQ
+schematic-pending caveat, and the full hardware-vs-firmware findings table.
+
 ## Firmware Artifact
 
 CI publishes this as a release asset on the matching GitHub release:
@@ -141,6 +149,7 @@ substitutions:
   friendly_name: "Bathroom Sense360"
 ```
 
-The product file already wires up `wifi:`, `api:`, `ota:`, time, logging, the
-LED ring, VentIQ, RoomIQ, and FanTRIAC — only `device_name` and
-`friendly_name` need to be overridden in your device YAML.
+The product file already wires up `wifi:`, `api:`, `ota:`, time, logging,
+VentIQ, RoomIQ, and FanTRIAC — only `device_name` and `friendly_name` need
+to be overridden in your device YAML. Sense360 LED (`S360-300`) is not
+bundled into this product (see the Files table above).
