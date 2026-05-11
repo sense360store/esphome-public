@@ -28,10 +28,10 @@ matching version + channel.
 Usage::
 
     python3 tests/check_webflash_build_output.py \\
-        --product sense360-ceiling-poe-ventiq-fantriac-roomiq \\
+        --product sense360-ceiling-poe-ventiq-roomiq \\
         --version 1.0.0 \\
         --channel stable \\
-        --actual firmware-output/Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin
+        --actual firmware-output/Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
 """
 
 from __future__ import annotations

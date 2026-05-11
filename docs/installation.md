@@ -8,7 +8,9 @@ Complete instructions for setting up your Sense360 device with ESPHome.
 > customize the ESPHome YAML.
 >
 > See [`release-one.md`](release-one.md) for the Release-One configuration
-> (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`).
+> (`Ceiling-POE-VentIQ-RoomIQ`). FanTRIAC is excluded from production
+> Release-One while HW-005 is open — see
+> [`release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution).
 
 ## Before You Begin
 
@@ -66,7 +68,7 @@ packages:
     url: https://github.com/sense360store/esphome-public
     ref: v1.0.0  # Pin to a release tag — never use 'main' in production
     files:
-      - products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+      - products/sense360-ceiling-poe-ventiq-roomiq.yaml
     refresh: 1d
 
 # wifi:, api:, and ota: are wired up by the package via secrets.yaml.

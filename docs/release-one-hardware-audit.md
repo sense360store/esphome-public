@@ -40,13 +40,29 @@ The audit covers the Release-One YAML and every package it `!include`s:
 
 This audit is documentation and minimal-fix work only. It does not change
 firmware build behaviour, WebFlash manifest behaviour, signing, or release
-artifact naming. The WebFlash config string and artifact name for Release-One
-remain:
+artifact naming.
 
-```text
-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
-Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin
-```
+> **Update (REL-001):** the production Release-One config string and
+> artifact name have since been changed to **exclude** FanTRIAC while the
+> blocker captured below remains open. Production Release-One is now:
+>
+> ```text
+> Ceiling-POE-VentIQ-RoomIQ
+> Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
+> ```
+>
+> The FanTRIAC product YAML and WebFlash wrapper are retained in the repo
+> as **blocked / reference** files but are NOT in the WebFlash build
+> matrix. The FanTRIAC findings, timing constraint, and resolution table
+> below all remain authoritative — they are now the gate that decides when
+> FanTRIAC can re-enter the production Release-One build.
+>
+> The pre-REL-001 names are preserved here for historical context:
+>
+> ```text
+> Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
+> Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin
+> ```
 
 ## Source hardware references
 

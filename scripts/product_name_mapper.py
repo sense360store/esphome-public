@@ -29,9 +29,19 @@ import re
 
 PRODUCT_MAPPINGS = {
     # -------------------------------------------------------------------------
-    # Release-One — WebFlash config: Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
-    # Artifact name: Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-vX.Y.Z-{channel}.bin
+    # Release-One (production) — WebFlash config: Ceiling-POE-VentIQ-RoomIQ
+    # Artifact name: Sense360-Ceiling-POE-VentIQ-RoomIQ-vX.Y.Z-{channel}.bin
+    #
+    # FanTRIAC is intentionally excluded from production Release-One while
+    # HW-005 is open. The FanTRIAC mapping is kept here so legacy references
+    # (the blocked/reference product YAML) still resolve correctly, but it is
+    # NOT in the WebFlash build matrix at config/webflash-builds.json.
+    # See docs/release-one-hardware-audit.md#fantriac-mapping-resolution
     # -------------------------------------------------------------------------
+    "sense360-ceiling-poe-ventiq-roomiq":
+        "Sense360-Ceiling-POE-VentIQ-RoomIQ",
+    "ceiling-poe-ventiq-roomiq":
+        "Sense360-Ceiling-POE-VentIQ-RoomIQ",
     "sense360-ceiling-poe-ventiq-fantriac-roomiq":
         "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
 

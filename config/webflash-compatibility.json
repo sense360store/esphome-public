@@ -30,7 +30,7 @@
     "fandac_conflicts_with_airiq": true
   },
   "release_one_required_configs": [
-    "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
+    "Ceiling-POE-VentIQ-RoomIQ"
   ],
   "artifact_pattern": "Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin",
   "allowed_channels": [

@@ -29,9 +29,9 @@ from validate_webflash_builds import (  # noqa: E402
 CANONICAL_COMPAT_PATH = REPO_ROOT / "config" / "webflash-compatibility.json"
 
 RELEASE_ONE_ENTRY = {
-    "config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
-    "product_yaml": "products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml",
-    "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin",
+    "config_string": "Ceiling-POE-VentIQ-RoomIQ",
+    "product_yaml": "products/webflash/ceiling-poe-ventiq-roomiq.yaml",
+    "artifact_name": "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin",
     "channel": "stable",
     "version": "1.0.0",
     "chip_family": "ESP32",
@@ -154,12 +154,12 @@ class WebflashBuildsValidatorTests(unittest.TestCase):
     # 6. artifact_name mismatch fails with the spec-mandated message.
     # ------------------------------------------------------------------
     def test_artifact_name_mismatch_fails(self):
-        entry = _entry(artifact_name="Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v9.9.9-stable.bin")
+        entry = _entry(artifact_name="Sense360-Ceiling-POE-VentIQ-RoomIQ-v9.9.9-stable.bin")
         validator, _, failed = self._run([entry])
         self.assertEqual(failed, 1)
         self.assertTrue(
             any(
-                "artifact_name mismatch: expected " "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin" in e
+                "artifact_name mismatch: expected " "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin" in e
                 for e in validator.errors
             ),
             f"expected mismatch message; got {validator.errors}",
@@ -235,7 +235,7 @@ class WebflashBuildsValidatorTests(unittest.TestCase):
     def test_channel_outside_allowed_fails(self):
         entry = _entry(
             channel="nightly",
-            artifact_name="Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-nightly.bin",
+            artifact_name="Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-nightly.bin",
         )
         validator, _, failed = self._run([entry])
         self.assertGreaterEqual(failed, 1)

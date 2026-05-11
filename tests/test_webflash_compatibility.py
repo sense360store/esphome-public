@@ -68,7 +68,7 @@ def test_legacy_tokens_are_forbidden():
 
 def test_release_one_required_config_present():
     data = _load_snapshot()
-    assert "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ" in data["release_one_required_configs"]
+    assert "Ceiling-POE-VentIQ-RoomIQ" in data["release_one_required_configs"]
 
 
 def test_artifact_pattern_matches_contract():

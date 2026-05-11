@@ -1,27 +1,30 @@
-# Release-One WebFlash product entry.
+# BLOCKED / REFERENCE — not a production Release-One WebFlash entry.
 #
-# Canonical config lives in
-# products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml.
-# This file exists so config/webflash-builds.json can point at the
-# products/webflash/ path WebFlash expects, without duplicating
-# package composition.
+# As of REL-001, production Release-One ships from the no-TRIAC build at
+#   products/webflash/ceiling-poe-ventiq-roomiq.yaml
+#       (config string: Ceiling-POE-VentIQ-RoomIQ)
+# This FanTRIAC wrapper is retained in the repo for future use only and is
+# NOT in the WebFlash build matrix at config/webflash-builds.json.
 #
-# WebFlash config string: Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
-# Artifact name:          Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin
-# ============================================================================
-# WEBFLASH-NAMESPACED VIEW OF RELEASE-ONE
-# ============================================================================
-# This file is a thin wrapper that re-exports the canonical Release-One
-# product YAML so the WebFlash build matrix can address it via the
-# products/webflash/ namespace without duplicating package wiring.
+# The FanTRIAC slot is blocked per HW-005:
+#   - S360-320 Sense360 TRIAC schematic is not committed.
+#   - Placeholder GPIO5/GPIO6 substitutions in the canonical YAML collide
+#     with RoomIQ J10 nets (IO5 = SEN0609_TX, IO6 = out(gpio6)).
+#   - ESPHome's `ac_dimmer` requires direct interrupt-capable ESP32 GPIOs;
+#     SX1509 expander pins cannot meet the timing.
+# See: docs/release-one-hardware-audit.md#fantriac-mapping-resolution
 #
-# Canonical YAML (full substitutions, packages, board config):
-#   products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+# When HW-005 is resolved, this wrapper plus the canonical FanTRIAC product
+# YAML may be re-introduced into config/webflash-builds.json as a
+# distinct WebFlash entry; do not promote them to production silently.
 #
-# WebFlash config string : Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
-# WebFlash artifact name : Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin
+# Pre-REL-001 metadata (preserved for historical context):
+#   WebFlash config string : Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
+#   WebFlash artifact name : Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin
+#   Canonical YAML         : products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
 #
-# See docs/webflash-contract.md for the contract this file satisfies.
+# See docs/webflash-contract.md for the contract this file would satisfy
+# once the FanTRIAC blocker is cleared.
 
 packages:
-  release_one: !include ../sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+  release_one_fantriac_blocked: !include ../sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml

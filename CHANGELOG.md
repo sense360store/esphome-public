@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **REL-001 — Production Release-One excludes Sense360 TRIAC.** The
+  production Release-One config string is now `Ceiling-POE-VentIQ-RoomIQ`
+  with artifact `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`,
+  built from `products/sense360-ceiling-poe-ventiq-roomiq.yaml` via the
+  WebFlash wrapper at `products/webflash/ceiling-poe-ventiq-roomiq.yaml`.
+  The FanTRIAC slot is blocked per HW-005 (S360-320 schematic uncommitted,
+  GPIO5/GPIO6 collide with RoomIQ J10 nets, and ESPHome's `ac_dimmer`
+  cannot run across the SX1509 expander). `config/webflash-builds.json`
+  and `config/webflash-compatibility.json` now point at the no-TRIAC build
+  matrix entry; the FanTRIAC product YAML and WebFlash wrapper remain in
+  the repo as blocked / reference files but are not in the build matrix.
+  See `docs/release-one-hardware-audit.md#fantriac-mapping-resolution`.
+
 ### Added
 - **WebFlash compatibility contract** (`docs/webflash-contract.md`): canonical, repo-local
   contract documenting WebFlash artifact naming (`Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin`),

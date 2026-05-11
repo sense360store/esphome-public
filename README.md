@@ -31,7 +31,7 @@ Official ESPHome firmware repository for [Sense360](https://mysense360.com) envi
 The **Release-One** shipping configuration is:
 
 ```text
-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
+Ceiling-POE-VentIQ-RoomIQ
 ```
 
 | Slot | Value | Meaning |
@@ -39,17 +39,27 @@ Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
 | Mount | `Ceiling` | Flush ceiling-mount Core board |
 | Power | `POE` | IEEE 802.3af Power-over-Ethernet |
 | Air Quality | `VentIQ` | Vent/bathroom-focused air-quality module |
-| Fan Driver | `FanTRIAC` | TRIAC-based AC fan dimming output |
 | Room Sense | `RoomIQ` | Comfort + presence sensing |
 
 The matching ESPHome product YAML is
-[`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml).
+[`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](products/sense360-ceiling-poe-ventiq-roomiq.yaml).
 
 The matching firmware artifact published by CI is:
 
 ```text
-Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin
+Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
 ```
+
+> **FanTRIAC excluded from production Release-One** while HW-005 is open.
+> The Sense360 TRIAC (`S360-320`) slot is blocked because the schematic is
+> not committed, the placeholder GPIO5/GPIO6 substitutions collide with
+> RoomIQ J10 nets, and ESPHome's `ac_dimmer` requires direct
+> interrupt-capable ESP32 GPIOs that the SX1509 expander cannot provide.
+> The FanTRIAC product YAML
+> ([`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml))
+> remains in the repo as a blocked / reference file but is NOT in the
+> WebFlash build matrix. See
+> [`docs/release-one-hardware-audit.md#fantriac-mapping-resolution`](docs/release-one-hardware-audit.md#fantriac-mapping-resolution).
 
 See [Build Output Contract](#build-output-contract) below.
 
@@ -185,14 +195,14 @@ Where:
 
 | Field | Source | Example |
 |-------|--------|---------|
-| `CONFIG_STRING` | WebFlash slot chain | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` |
+| `CONFIG_STRING` | WebFlash slot chain | `Ceiling-POE-VentIQ-RoomIQ` |
 | `VERSION` | Release tag (`v` stripped) | `1.0.0` |
 | `CHANNEL` | `stable`, `preview`, or `beta` | `stable` |
 
 Example for Release-One:
 
 ```text
-Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin
+Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
 ```
 
 The mapping from product YAML → WebFlash filename is implemented in
@@ -223,7 +233,7 @@ Find the YAML matching your hardware in [`products/`](products/). For
 Release-One that is:
 
 ```text
-products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+products/sense360-ceiling-poe-ventiq-roomiq.yaml
 ```
 
 ### 2. Configure secrets
@@ -258,7 +268,7 @@ packages:
     url: https://github.com/sense360store/esphome-public
     ref: v1.0.0  # Pin to a release tag — never use 'main' in production
     files:
-      - products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+      - products/sense360-ceiling-poe-ventiq-roomiq.yaml
     refresh: 1d
 
 substitutions:
@@ -292,7 +302,7 @@ packages:
     url: https://github.com/sense360store/esphome-public
     ref: v1.0.0
     files:
-      - products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+      - products/sense360-ceiling-poe-ventiq-roomiq.yaml
     refresh: 1d
 ```
 
@@ -313,10 +323,12 @@ packages:
       - packages/expansions/airiq_bathroom_base.yaml  # VentIQ Base
       - packages/expansions/comfort_ceiling.yaml      # RoomIQ comfort
       - packages/expansions/presence_ceiling.yaml     # RoomIQ presence
-      - packages/expansions/fan_triac.yaml            # FanTRIAC
+      # FanTRIAC (packages/expansions/fan_triac.yaml +
+      # packages/features/fan_control_profile.yaml) is intentionally
+      # omitted from production Release-One while HW-005 is open. See
+      # docs/release-one-hardware-audit.md#fantriac-mapping-resolution
       - packages/features/bathroom_profile.yaml
       - packages/features/presence_basic_profile.yaml
-      - packages/features/fan_control_profile.yaml
     refresh: 1d
 ```
 
@@ -394,7 +406,7 @@ esphome-public/
 - [WebFlash Compatibility Contract](docs/webflash-contract.md) — Artifact naming, config-string grammar, release-body format
 - [WebFlash Compatibility Snapshot](config/webflash-compatibility.json) — Machine-readable local mirror of the contract for validators and CI
 - [WebFlash Release Handoff](docs/webflash-release-handoff.md) — Operational source-to-installer flow, troubleshooting, and release proof checklist
-- [Release-One Configuration](docs/release-one.md) — Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
+- [Release-One Configuration](docs/release-one.md) — Ceiling-POE-VentIQ-RoomIQ (FanTRIAC excluded while HW-005 is open)
 - [Product Matrix](docs/product-matrix.md) — Slot/module reference
 - [Installation Guide](docs/installation.md) — Step-by-step setup
 - [Configuration Reference](docs/configuration.md) — Customization options

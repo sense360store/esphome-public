@@ -64,7 +64,7 @@ successfully:
 1. Capture the GitHub Release URL from the release page.
 2. Capture the workflow run URL from the Actions tab.
 3. Confirm the
-   `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin` asset is
+   `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` asset is
    among the published assets, and read its size from the release page.
 4. Confirm `checksums-sha256.txt` is also attached.
 5. Read the workflow log for the "Validate WebFlash release notes" and
