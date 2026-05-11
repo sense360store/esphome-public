@@ -18,10 +18,17 @@
 # - Fan driver variants (FanRelay/FanPWM/FanDAC/FanTRIAC) are firmware-distinct.
 # - FanTRIAC is NOT interchangeable with FanRelay/FanPWM/FanDAC.
 #
-# Hardware:
-# - Core: S360-CORE-C (ESP32-S3, ceiling mount)
-# - Power: PoE (IEEE 802.3af, 36-57V input, 5V/2A output)
-# - LED: Halo LED ring
+# Hardware (canonical friendly names; see docs/hardware-catalog.md):
+# - Core         : Sense360 Core    (S360-100-R4, ESP32-S3, ceiling mount)
+# - Power        : Sense360 PoE PSU (S360-410, IEEE 802.3af)
+# - Air Quality  : Sense360 VentIQ  (S360-211, bathroom-focused) — schematic verification pending
+# - Fan Driver   : Sense360 TRIAC   (S360-320, AC phase-cut) — pin mapping unverified, see audit
+# - Room Sense   : Sense360 RoomIQ  (S360-200-R4, comfort + presence)
+# - LED          : not included     (Sense360 LED S360-300 is an optional add-on;
+#                                    config string `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
+#                                    does not carry the `LED` token)
+#
+# Hardware audit: docs/release-one-hardware-audit.md
 #
 # Customer usage in their ESPHome config (pin to a release tag):
 #
@@ -63,8 +70,23 @@ substitutions:
   mold_risk_humidity: "65"
   mold_risk_duration_minutes: "30"
 
-  # === FanTRIAC pins (mapped onto Core Ceiling expansion GPIOs) ===
-  # GPIO5 -> TRIAC gate, GPIO6 -> zero-crossing input
+  # === FanTRIAC pins ===
+  # BLOCKED / UNVERIFIED — see docs/release-one-hardware-audit.md (FanTRIAC row)
+  #
+  # The values below are inherited from the firmware's abstract "expansion bus"
+  # in packages/hardware/sense360_core_ceiling.yaml. They are NOT verified
+  # against the S360-100-R4 schematic:
+  #
+  #   - S360-100-R4 IO5 = SEN0609_TX (RoomIQ radar UART) — already used by RoomIQ
+  #   - S360-100-R4 IO6 = out(gpio6) (RoomIQ aux)        — already used by RoomIQ
+  #   - J15 TRIAC connector carries TRI_GPIO1 / TRI_GPIO2, which appear to
+  #     route via the SX1509 expander (U3), not directly to any free ESP32 GPIO.
+  #
+  # The correct ESP32 ↔ TRIAC mapping requires the S360-320 schematic and an
+  # SX1509-channel reference. Do NOT change these values to "fix" the conflict
+  # by inventing GPIOs; resolve in a later HW PR. The values below are kept
+  # only so the YAML parses; firmware compiled from this YAML must not be
+  # treated as TRIAC-verified.
   fan_triac_gate_pin: GPIO5
   fan_triac_zc_pin: GPIO6
   fan_triac_line_frequency: "50"
@@ -83,27 +105,41 @@ packages:
   base_ota: !include ../packages/base/ota.yaml
   base_time: !include ../packages/base/time.yaml
 
-  # === Core Hardware (Ceiling Board) ===
+  # === Sense360 Core (Ceiling, S360-100-R4) ===
   core_hardware: !include ../packages/hardware/sense360_core_ceiling.yaml
 
-  # === Power (POE) ===
+  # === Sense360 PoE PSU (S360-410) ===
   power_config: !include ../packages/hardware/power_poe.yaml
 
-  # === LED Ring ===
-  led_ring: !include ../packages/hardware/led_ring_ceiling.yaml
-  led_effects: !include ../packages/features/ceiling_halo_leds.yaml
+  # === Sense360 LED (S360-300) ===
+  # Intentionally NOT included for Release-One.
+  # WebFlash config string `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` does not carry
+  # the `LED` token (LED is a separately selectable module per WebFlash
+  # taxonomy — see docs/webflash-contract.md §3). A future LED-included
+  # variant would use a distinct config string such as
+  # `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-LED` and a distinct artifact name.
+  # See docs/release-one-hardware-audit.md (Sense360 LED row) for the policy
+  # decision and follow-ups.
 
-  # === VentIQ (bathroom-focused air quality, replaces AirIQ) ===
+  # === Sense360 VentIQ (S360-211, bathroom-focused air quality) ===
+  # Package-level expected; schematic verification pending — no committed
+  # S360-211 schematic in this repo. See docs/release-one-hardware-audit.md.
+  # AirIQ and VentIQ are mutually exclusive; Release-One uses VentIQ.
   ventiq_module: !include ../packages/expansions/airiq_bathroom_base.yaml
   ventiq_profile: !include ../packages/features/bathroom_profile.yaml
 
-  # === RoomIQ (comfort + presence) ===
+  # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
+  # The package filenames (`comfort_ceiling.yaml`, `presence_ceiling.yaml`)
+  # retain the legacy split-board naming and are kept for backwards
+  # compatibility (see docs/webflash-contract.md §6 footnote).
   roomiq_comfort: !include ../packages/expansions/comfort_ceiling.yaml
   roomiq_comfort_profile: !include ../packages/features/comfort_basic_profile.yaml
   roomiq_presence: !include ../packages/expansions/presence_ceiling.yaml
   roomiq_presence_profile: !include ../packages/features/presence_basic_profile.yaml
 
-  # === FanTRIAC (AC phase-cut fan driver) ===
+  # === Sense360 TRIAC (S360-320, AC phase-cut fan driver) ===
+  # Pin mapping unverified; see substitutions block above and
+  # docs/release-one-hardware-audit.md (FanTRIAC row).
   fan_module: !include ../packages/expansions/fan_triac.yaml
   fan_profile: !include ../packages/features/fan_control_profile.yaml
 
