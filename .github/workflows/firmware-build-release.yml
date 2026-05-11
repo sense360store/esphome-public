@@ -242,10 +242,19 @@ jobs:
           # CI-only override: use the locally checked-out components/ tree
           # instead of cloning this repo from GitHub. The committed version
           # of this file (with type: git) is intentionally unchanged.
+          #
+          # NOTE on the relative path: ESPHome resolves
+          # external_components.source.path relative to the directory of
+          # the main YAML being compiled (the config_dir), NOT relative
+          # to the file in which the external_components block appears.
+          # Every product YAML in the build matrix lives under products/,
+          # so ../components points at the repo-root components/ tree.
+          # Using `path: components` would make ESPHome look for
+          # products/components, which does not exist.
           external_components:
             - source:
                 type: local
-                path: components
+                path: ../components
               components: [ld2412, ld2450, ld24xx]
           EOF
           echo "Patched packages/base/external_components.yaml:"
