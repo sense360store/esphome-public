@@ -112,7 +112,7 @@ What this audit therefore does:
 
 | Area                     | Status                                  | Finding                                                                                                                                                                                                                                                                       | Action                                                                                                                                                                                |
 | ------------------------ | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| FanTRIAC                 | **blocked**                             | `fan_triac_gate_pin: GPIO5` and `fan_triac_zc_pin: GPIO6` in Release-One YAML conflict with S360-100-R4: `IO5 = SEN0609_TX` (RoomIQ radar UART) and `IO6 = out(gpio6)` (RoomIQ aux). J15 TRIAC connector carries `TRI_GPIO1` / `TRI_GPIO2`, which appear to route via the SX1509 expander (`U3`), not directly to any ESP32 GPIO. The correct ESP32 ↔ TRIAC mapping is not determinable from current docs. | Mark the substitutions in Release-One YAML as **blocked / unverified** in comments. Do **not** invent SX1509-mapped pins here. Resolve in a later HW PR after the `S360-320` schematic is committed and SX1509-channel ↔ TRI_GPIOx is mapped. |
+| FanTRIAC                 | **blocked — must not ship** (HW-005)    | `fan_triac_gate_pin: GPIO5` and `fan_triac_zc_pin: GPIO6` in Release-One YAML conflict with S360-100-R4: `IO5 = SEN0609_TX` (RoomIQ radar UART) and `IO6 = out(gpio6)` (RoomIQ aux). J15 TRIAC connector carries `TRI_GPIO1` / `TRI_GPIO2`, visible only at the SX1509 (`U3`) side of the Core sheet, with no direct ESP32 route. The `S360-320` Sense360 TRIAC schematic is not committed. Additionally, ESPHome's `ac_dimmer` requires direct interrupt-capable ESP32 GPIOs for both `gate_pin` and `zero_cross_pin`, so even a verified SX1509 mapping would not unblock this slot. | See [FanTRIAC mapping resolution](#fantriac-mapping-resolution) for the resolution table, the timing constraint, and the explicit ship verdict. The Release-One FanTRIAC binary must not be published as TRIAC-capable until the `S360-320` schematic plus a verified direct-ESP32 mapping (or a replacement non-`ac_dimmer` driver) is delivered. Do not invent SX1509 pin mappings here. |
 | Sense360 LED             | **policy decision (removed)**           | WebFlash config string `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` (see [`webflash-contract.md`](webflash-contract.md)) does **not** contain the `LED` token. The `LED` token (`S360-300`) is a separate selectable module. Release-One YAML currently `!include`s both `packages/hardware/led_ring_ceiling.yaml` (WS2812B on `GPIO14`) and `packages/features/ceiling_halo_leds.yaml` (PCA9685 monochromatic halo segments on `halo_i2c`), which are two different LED systems anyway. S360-100-R4 schematic shows `IO14 = SCS` (peripheral SPI chip-select), with `LED_DATA` actually on `IO38`. | **Option A applied**: remove both LED package includes from Release-One YAML so the binary built from this YAML matches the LED-less WebFlash config string. LED packages remain in the repo for other products and for a future `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-LED` config. Update comment block to drop "Halo LED ring" legacy name. |
 | RoomIQ                   | **partial — abstraction mismatch**      | `packages/expansions/comfort_ceiling.yaml` and `packages/expansions/presence_ceiling.yaml` reference firmware-abstraction substitutions (`expansion_i2c`, `uart_bus`, `comfort_ceiling_als_int_pin: GPIO3`) that do **not** match S360-200-R4 / S360-100-R4 J10/J6 nets. Schematic-required signals (`PIR` on `IO15`, `ALS_INT` on `IO47`, `I2C_SDA` on `IO48`, `I2C_SCL` on `IO45`, `Hi-Link_RX/TX` on `IO1`/`IO2`, `SEN0609_RX/TX` on `IO4`/`IO5`, `out(gpio6)` on `IO6`) are not directly bound in the package YAML. The packages function as logical sensor wrappers but the underlying pin map is wrong. | Keep package includes in place (the *logical* RoomIQ composition is correct). Do **not** rename or move package files. Track the full pin-map rework as **HW follow-up** outside this audit. |
 | VentIQ                   | **schematic pending**                   | Release-One YAML `!include`s `packages/expansions/airiq_bathroom_base.yaml` and `packages/features/bathroom_profile.yaml`. These represent the `S360-211` (Sense360 VentIQ) module. There is no committed schematic for `S360-211` in this repository yet, so no pin-by-pin verification is possible. The package targets `expansion_i2c` (the same abstract bus as RoomIQ), which is also unverified against S360-100-R4 J9 (AirIQ Module Connector). | Mark VentIQ as **package-level expected / schematic verification pending** in YAML comments. Do **not** claim the J9 pinout is verified. Drop the legacy "Bathroom Pro" name from any user-facing comments. |
@@ -304,6 +304,151 @@ This PR does **not** change:
 - `docs/webflash-contract.md`, `docs/webflash-ci-alignment.md`,
   `docs/webflash-release-handoff.md`, `docs/hardware/s360-100-r4-core.md`,
   `docs/hardware/s360-200-r4-roomiq.md`, `docs/hardware-catalog.md`.
+
+## FanTRIAC mapping resolution
+
+This section is the HW-005 resolution for the FanTRIAC pin-mapping blocker
+flagged in PR #440 and in the [Findings](#findings) table above. It is the
+single explicit answer to "can Release-One ship FanTRIAC firmware today?".
+
+### Verdict
+
+**Outcome C — mapping cannot be verified.** The Release-One FanTRIAC slot is
+**blocked**: a binary built from
+[`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
+must **not** be published as TRIAC-capable until the resolution work below is
+done. There is additional **Outcome D risk** because the SX1509 expander
+cannot meet the timing the ESPHome `ac_dimmer` component requires, so even a
+verified SX1509-only mapping would still not unblock this slot — see
+[Timing constraint](#timing-constraint-ac_dimmer-vs-sx1509-expander).
+
+### Resolution table
+
+| Question | Answer | Evidence |
+| --- | --- | --- |
+| Is `TRI_GPIO1` direct ESP32? | **Unverified.** Not visible as a direct ESP32 GPIO on the `S360-100-R4` Core sheet. | [`s360-100-r4-core.md`](hardware/s360-100-r4-core.md#fan--driver-outputs) lists `TRI_GPIO1` only at the J15 connector and on the SX1509 (U3) side. The Open Question is captured explicitly at [Open Questions #1](hardware/s360-100-r4-core.md#open-questions--verification-needed). |
+| Is `TRI_GPIO2` direct ESP32? | **Unverified.** Same status as `TRI_GPIO1`. | Same row of [`s360-100-r4-core.md`](hardware/s360-100-r4-core.md#fan--driver-outputs); the source pin is "not unambiguously visible" on the visible Core sheet. |
+| SX1509 (U3) involved? | **Strongly suspected, not confirmed.** | The other expander-driven fan nets on the Core sheet (`TachPMW1..4`, `Pul_Cou1..4`) are visible only on the SX1509 side, and `TRI_GPIO1` / `TRI_GPIO2` appear in the same routing region. The repo's SX1509 channel map in [`packages/expansions/gpio_expander_sx1509.yaml`](../packages/expansions/gpio_expander_sx1509.yaml) does **not** allocate any channel to TRIAC (0–3 fan PWM, 4–7 tach, 8–11 aux PWM, 12–15 generic inputs). The `S360-320` schematic that would complete the trace is not committed (`config/hardware-catalog.json` → `S360-320` → `schematic_status: cataloged_unverified`). |
+| Timing safe? | **No.** Even if the SX1509 routing is later confirmed, it cannot meet the timing `ac_dimmer` requires. | [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml) uses ESPHome's `output: ac_dimmer` platform. That platform attaches a hardware interrupt to `zero_cross_pin` and drives `gate_pin` from a timed ISR with sub-millisecond precision. The SX1509 is an I²C-driven expander; register reads/writes go over the shared 400 kHz I²C bus and take hundreds of microseconds each, with no host-visible interrupt for input changes. On 50/60 Hz mains the half-cycle is only ~8.33–10 ms, and gate-firing delay normally needs <100 µs resolution. The expander cannot deliver that. |
+| Mapping verified? | **No.** | Two missing pieces: (a) the `S360-320` Sense360 TRIAC schematic is not committed to this repo, and (b) no SX1509 channel in [`packages/expansions/gpio_expander_sx1509.yaml`](../packages/expansions/gpio_expander_sx1509.yaml) is assigned to `TRI_GPIO1` or `TRI_GPIO2`. The current placeholders `fan_triac_gate_pin: GPIO5` and `fan_triac_zc_pin: GPIO6` are **provably wrong** on a Release-One unit because `IO5 = SEN0609_TX` and `IO6 = out(gpio6)` are already claimed by RoomIQ at J10. |
+| Release-One allowed to ship with FanTRIAC? | **No.** Do not publish a Release-One binary as FanTRIAC-capable until the resolution work below is complete. | All four rows above are failing. The current YAML still parses, but firmware compiled from it cannot actually drive the J15 TRIAC connector and may attempt to drive RoomIQ UART/aux nets via the dimmer ISR if any of `GPIO5`/`GPIO6` are ever taken seriously. |
+
+### Timing constraint: `ac_dimmer` vs SX1509 expander
+
+`packages/expansions/fan_triac.yaml` instantiates ESPHome's `output: ac_dimmer`
+platform. That platform:
+
+- attaches a **hardware interrupt** to `zero_cross_pin` to detect mains
+  zero-crossing edges, and
+- toggles `gate_pin` from a **timed ISR** at a precise delay after each
+  zero-cross to set the phase-cut firing angle.
+
+Both pins must therefore be **direct, interrupt-capable ESP32 GPIOs**. The
+SX1509 (U3) is an I²C GPIO/PWM expander. Every read or write of an SX1509
+register goes through the shared I²C bus (`IO48/IO45` on `S360-100-R4`,
+running at 400 kHz alongside RoomIQ, AirIQ/VentIQ, and the on-board
+expander). Each I²C transaction is hundreds of microseconds, sometimes
+milliseconds under contention, and the host CPU cannot attach an interrupt
+to an SX1509 input pin.
+
+Because of this:
+
+- A zero-cross **input** cannot be reliably timed across I²C — the latency
+  alone exceeds the precision phase-cut dimming requires.
+- A TRIAC **gate** output cannot be toggled across I²C with sub-millisecond
+  precision either — the gate-firing delay between zero cross and gate
+  assertion sets the dimmer's output level, so I²C latency would dominate
+  and produce flicker, runaway current, or no useful control at all.
+
+Therefore, **even if the suspected SX1509 routing is later confirmed**, the
+current `fan_triac.yaml` driver cannot be used as-is to drive
+`TRI_GPIO1`/`TRI_GPIO2` through the SX1509. A working FanTRIAC build needs
+either:
+
+a. **Direct ESP32 GPIOs** for both the gate and the zero-cross input — both
+   pins must be free, interrupt-capable, and not already consumed by RoomIQ
+   (J10), VentIQ/AirIQ (J9), the shared I²C bus, the SPI peripheral block,
+   UART0/Hi-Link/SEN0609, or SX1509 control; or
+b. **A different driver** entirely — for example, an on-board TRIAC
+   controller chip on the `S360-320` board that handles all gate-timing
+   internally and only exposes a "dim level" register over I²C. In that case
+   `packages/expansions/fan_triac.yaml` must be replaced (not just rewired),
+   because `ac_dimmer` is the wrong abstraction.
+
+The "use SX1509 channels directly for `gate_pin` / `zero_cross_pin`"
+hypothesis is **rejected** for Release-One regardless of how the schematic
+turns out.
+
+### What this PR does (HW-005)
+
+This PR does **not** invent GPIOs and does **not** unblock FanTRIAC. It only
+makes the blocker more explicit and surfaces the timing constraint:
+
+- Adds this resolution section to the audit doc.
+- Updates [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+  header comments to remove the misleading "GPIO5 / GPIO6 = expansion bus"
+  example and to spell out the `ac_dimmer` timing requirement (direct,
+  interrupt-capable ESP32 GPIOs only — no expander pins).
+- Updates the Release-One product YAML header comments to point at this
+  resolution section as the single source of truth for the ship verdict.
+- Updates [`docs/release-one.md`](release-one.md) with the explicit
+  FanTRIAC ship status.
+
+It does **not** change:
+
+- The WebFlash config string `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` (per the
+  HW-004 ground rules; removing the FanTRIAC slot from the Release-One
+  taxonomy is a separate product decision, not a hardware-audit decision).
+- The `config/webflash-builds.json` / `config/webflash-compatibility.json` /
+  `config/hardware-catalog.json` entries.
+- Any hardware-reference doc under `docs/hardware/`.
+- The actual GPIO substitutions in the Release-One YAML — `GPIO5` / `GPIO6`
+  remain only so the YAML still parses, with a stronger pointer to this
+  resolution section. **A Release-One binary built from this YAML must not
+  be published as FanTRIAC-capable.**
+
+### What needs to happen to clear the blocker
+
+1. Commit the `S360-320` Sense360 TRIAC schematic into `docs/hardware/`
+   following the structure of
+   [`s360-100-r4-core.md`](hardware/s360-100-r4-core.md) and
+   [`s360-200-r4-roomiq.md`](hardware/s360-200-r4-roomiq.md).
+2. From `S360-100-R4` + `S360-320` together, document the actual end-to-end
+   path that drives `TRI_GPIO1` and `TRI_GPIO2`. Acceptable outcomes:
+
+   a. **Direct ESP32 GPIOs.** Identify the specific `IOxx` pins on the
+      ESP32-S3 that drive `TRI_GPIO1` (gate) and `TRI_GPIO2` (zero-cross).
+      Both must be free, interrupt-capable, and not already consumed by
+      RoomIQ, VentIQ/AirIQ, shared I²C, SPI, UART0/Hi-Link/SEN0609, or
+      SX1509 control. Then update `fan_triac_gate_pin` and
+      `fan_triac_zc_pin` in the Release-One YAML and the example block in
+      `packages/expansions/fan_triac.yaml`.
+   b. **On-board TRIAC controller IC.** If `S360-320` carries a dedicated
+      TRIAC controller that handles gate timing internally and exposes only
+      a "dim level" interface over I²C, replace
+      `packages/expansions/fan_triac.yaml` with a driver that targets that
+      controller. Do **not** keep `ac_dimmer`.
+
+   The "SX1509 channel for gate / SX1509 input for zero-cross" hypothesis
+   is rejected — see [Timing constraint](#timing-constraint-ac_dimmer-vs-sx1509-expander).
+3. Until either (2a) or (2b) is delivered:
+   - The Release-One FanTRIAC binary must not be uploaded to WebFlash
+     release assets.
+   - Product owners may also choose to drop the FanTRIAC slot from the
+     Release-One WebFlash config string entirely. That would change
+     `config/webflash-builds.json`, `config/webflash-compatibility.json`,
+     the artifact name, and `docs/release-one.md`; it is **out of scope for
+     HW-005** and requires an explicit product decision.
+
+### Cross-references
+
+- Schematic source (Core): [`docs/hardware/s360-100-r4-core.md`](hardware/s360-100-r4-core.md)
+- Schematic source (RoomIQ): [`docs/hardware/s360-200-r4-roomiq.md`](hardware/s360-200-r4-roomiq.md)
+- TRIAC driver package: [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+- Fan-control profile (downstream user-facing entities): [`packages/features/fan_control_profile.yaml`](../packages/features/fan_control_profile.yaml)
+- Release-One product YAML: [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
+- SX1509 channel map (no TRIAC channels assigned today): [`packages/expansions/gpio_expander_sx1509.yaml`](../packages/expansions/gpio_expander_sx1509.yaml)
+- Hardware catalog (S360-320 — `cataloged_unverified`): [`config/hardware-catalog.json`](../config/hardware-catalog.json)
 
 ## See also
 
