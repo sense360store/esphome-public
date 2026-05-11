@@ -3,10 +3,12 @@
 Complete product hierarchy and configuration guide for the Sense360 modular sensor platform.
 
 > **WebFlash users:** see [`release-one.md`](release-one.md) for the
-> Release-One configuration (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`). This page
-> is the long-form reference for slot/module selection. Some legacy
-> terminology (`Comfort`, `Presence`, `Bathroom`, generic `Fan`) is still
-> present below for hardware-level detail — see the mapping table.
+> Release-One configuration (`Ceiling-POE-VentIQ-RoomIQ`). FanTRIAC is
+> excluded from production Release-One while HW-005 is open — see
+> [`release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution).
+> This page is the long-form reference for slot/module selection. Some
+> legacy terminology (`Comfort`, `Presence`, `Bathroom`, generic `Fan`) is
+> still present below for hardware-level detail — see the mapping table.
 
 ## Current WebFlash Taxonomy
 

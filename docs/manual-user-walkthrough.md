@@ -83,23 +83,29 @@ If any of those answers is "no" or "I had to guess", capture it.
 The Release-One shipping configuration is:
 
 ```text
-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
+Ceiling-POE-VentIQ-RoomIQ
 ```
 
 The matching product YAML in this repo is:
 
 ```text
-products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+products/sense360-ceiling-poe-ventiq-roomiq.yaml
 ```
 
 Open that file directly:
-[`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml).
+[`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml).
 
 The expected firmware artifact name (when CI publishes it) is:
 
 ```text
-Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin
+Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
 ```
+
+> **FanTRIAC is excluded from production Release-One** while HW-005 is
+> open. The FanTRIAC product YAML
+> ([`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml))
+> is retained in the repo as a blocked / reference file only — see
+> [`release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution).
 
 **Answer in your findings:**
 
@@ -119,8 +125,11 @@ The Release-One configuration assumes the following physical hardware:
 - **Sense360 Core R4** (or newer ceiling-mount core board)
 - **Sense360 PoE PSU** (IEEE 802.3af Power-over-Ethernet)
 - **Sense360 VentIQ module** (bathroom-focused air quality)
-- **Sense360 TRIAC fan board** (AC phase-cut fan dimming)
 - **Sense360 RoomIQ module** (comfort + presence)
+
+> The Sense360 TRIAC (`S360-320`, FanTRIAC) board is **not** part of
+> production Release-One while HW-005 is open. If you have one on hand,
+> production Release-One firmware will not drive it.
 
 Reference: [`docs/release-one.md`](release-one.md) and the
 [Sensor & Driver Modules](../README.md#sensor--driver-modules) section of the
@@ -131,12 +140,13 @@ README.
 - Could you tell whether your hardware matches this configuration? (If you
   don't have hardware, answer based on whether the docs make it possible to
   check.)
-- Were **RoomIQ**, **VentIQ**, and **TRIAC** explained clearly enough that you
+- Were **RoomIQ** and **VentIQ** explained clearly enough that you
   understood what each one is for?
 - Was the difference between **AirIQ** and **VentIQ** clear, including that
   they are mutually exclusive?
-- Was it clear that **FanTRIAC is not interchangeable** with FanRelay,
-  FanPWM, or FanDAC, and that flashing the wrong one is a bad idea?
+- Was it clear that **FanTRIAC is currently excluded** from production
+  Release-One while HW-005 is open, and where to find the audit doc that
+  explains why?
 
 ---
 
@@ -175,7 +185,7 @@ installed, skip the command and answer the doc-finding question instead.
 **With ESPHome installed**, from the repo root run:
 
 ```bash
-esphome config products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+esphome config products/sense360-ceiling-poe-ventiq-roomiq.yaml
 ```
 
 This should print the rendered configuration and exit successfully. It does
@@ -201,7 +211,7 @@ This step is optional. It compiles the firmware locally; it does **not** flash
 hardware.
 
 ```bash
-esphome compile products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+esphome compile products/sense360-ceiling-poe-ventiq-roomiq.yaml
 ```
 
 This will take a few minutes and download toolchains the first time.
@@ -281,8 +291,8 @@ Existing docs in this repo that the walkthrough touches:
 - [`docs/webflash-release-handoff.md`](webflash-release-handoff.md) — release
   flow and troubleshooting
 - [`secrets.example.yaml`](../secrets.example.yaml) — local secrets template
-- [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
-  — Release-One product YAML
+- [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+  — Release-One product YAML (FanTRIAC excluded while HW-005 is open)
 
 ---
 

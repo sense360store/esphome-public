@@ -111,13 +111,19 @@ file / binary mapping.
 
 | Field | Value |
 |-------|-------|
-| Config string | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` |
-| Source YAML | [`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml) |
-| Canonical product YAML | [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml) |
-| GitHub Release asset | `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin` |
+| Config string | `Ceiling-POE-VentIQ-RoomIQ` |
+| Source YAML | [`products/webflash/ceiling-poe-ventiq-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq.yaml) |
+| Canonical product YAML | [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml) |
+| GitHub Release asset | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` |
 | Channel | `stable` |
 | Version | `1.0.0` |
 | Chip family | `ESP32-S3` |
+
+> **FanTRIAC excluded from production Release-One** while HW-005 is open
+> (see
+> [`docs/release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution)).
+> The FanTRIAC product YAML and WebFlash wrapper remain in the repo as
+> blocked / reference files but are NOT in the WebFlash build matrix.
 
 The matching matrix entry is in
 [`config/webflash-builds.json`](../config/webflash-builds.json); the contract
@@ -157,9 +163,9 @@ this section is a copy for convenience and must not drift from the contract.
 ```markdown
 ## Changelog
 
-- Initial production stable release for Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
-  with PoE power, VentIQ bathroom air-quality sensing, TRIAC fan switching,
-  and RoomIQ room sensing.
+- Initial production stable release for Ceiling-POE-VentIQ-RoomIQ with PoE
+  power, VentIQ bathroom air-quality sensing, and RoomIQ room sensing.
+  FanTRIAC is excluded from production Release-One while HW-005 is open.
 
 ## Known Issues
 
@@ -169,7 +175,6 @@ this section is a copy for convenience and must not drift from the contract.
 
 - PoE-powered Sense360 Core configuration
 - VentIQ bathroom air-quality sensing
-- TRIAC fan switching
 - RoomIQ room sensing
 
 ## Hardware Requirements
@@ -177,7 +182,6 @@ this section is a copy for convenience and must not drift from the contract.
 - Sense360 Core R4 or newer
 - Sense360 PoE PSU
 - Sense360 VentIQ module
-- Sense360 TRIAC board
 - Sense360 RoomIQ module
 ```
 
@@ -267,7 +271,7 @@ Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin
 Release-One builds to:
 
 ```text
-Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin
+Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
 ```
 
 The build job lives in
@@ -349,7 +353,7 @@ CI is not enough. A human operator must still flash a real device and verify:
 - firmware flashes successfully via WebFlash.
 - the device boots.
 - Wi-Fi setup / Improv handoff completes.
-- RoomIQ, VentIQ, and FanTRIAC behave sanely (sensors report, fan responds).
+- RoomIQ and VentIQ behave sanely (sensors report).
 - the rescue path remains available.
 
 The Release Proof Checklist below is not "done" until this hardware step has

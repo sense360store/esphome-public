@@ -1,0 +1,32 @@
+# Release-One WebFlash product entry (no-TRIAC, production).
+#
+# Canonical config lives in
+# products/sense360-ceiling-poe-ventiq-roomiq.yaml.
+# This file exists so config/webflash-builds.json can point at the
+# products/webflash/ path WebFlash expects, without duplicating
+# package composition.
+#
+# WebFlash config string: Ceiling-POE-VentIQ-RoomIQ
+# Artifact name:          Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
+# ============================================================================
+# WEBFLASH-NAMESPACED VIEW OF RELEASE-ONE
+# ============================================================================
+# This file is a thin wrapper that re-exports the canonical Release-One
+# product YAML so the WebFlash build matrix can address it via the
+# products/webflash/ namespace without duplicating package wiring.
+#
+# Canonical YAML (full substitutions, packages, board config):
+#   products/sense360-ceiling-poe-ventiq-roomiq.yaml
+#
+# WebFlash config string : Ceiling-POE-VentIQ-RoomIQ
+# WebFlash artifact name : Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
+#
+# FanTRIAC is intentionally not part of production Release-One while HW-005
+# is open. The FanTRIAC wrapper at
+# `products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml` is retained as
+# a blocked/reference file but is NOT in the WebFlash build matrix.
+#
+# See docs/webflash-contract.md for the contract this file satisfies.
+
+packages:
+  release_one_no_triac: !include ../sense360-ceiling-poe-ventiq-roomiq.yaml

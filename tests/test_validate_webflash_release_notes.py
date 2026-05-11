@@ -27,7 +27,7 @@ validate_body = _mod.validate_body
 
 VALID_RELEASE_ONE = """## Changelog
 
-- Initial production stable release for Ceiling-POE-VentIQ-FanTRIAC-RoomIQ with PoE power, VentIQ bathroom air-quality sensing, TRIAC fan switching, and RoomIQ room sensing.
+- Initial production stable release for Ceiling-POE-VentIQ-RoomIQ with PoE power, VentIQ bathroom air-quality sensing, and RoomIQ room sensing. FanTRIAC is excluded from production Release-One while HW-005 is open.
 
 ## Known Issues
 
@@ -37,7 +37,6 @@ VALID_RELEASE_ONE = """## Changelog
 
 - PoE-powered Sense360 Core configuration
 - VentIQ bathroom air-quality sensing
-- TRIAC fan switching
 - RoomIQ room sensing
 
 ## Hardware Requirements
@@ -45,7 +44,6 @@ VALID_RELEASE_ONE = """## Changelog
 - Sense360 Core R4 or newer
 - Sense360 PoE PSU
 - Sense360 VentIQ module
-- Sense360 TRIAC board
 - Sense360 RoomIQ module
 """
 
@@ -134,9 +132,10 @@ class WebflashReleaseNotesTests(unittest.TestCase):
     def test_filler_changelog_fails_on_stable(self):
         original_bullet = (
             "- Initial production stable release for "
-            "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ with PoE power, VentIQ "
-            "bathroom air-quality sensing, TRIAC fan switching, and "
-            "RoomIQ room sensing."
+            "Ceiling-POE-VentIQ-RoomIQ with PoE power, VentIQ "
+            "bathroom air-quality sensing, and RoomIQ room sensing. "
+            "FanTRIAC is excluded from production Release-One while "
+            "HW-005 is open."
         )
         for filler in (
             "TBD",

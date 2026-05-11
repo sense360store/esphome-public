@@ -15,8 +15,13 @@ This locks the contract that the rename step in
 ``artifact_name`` declared in ``config/webflash-builds.json``.
 
 Plus three explicit Release-One assertions so the canonical
-``Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin``
+``Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin``
 name cannot drift silently.
+
+FanTRIAC is intentionally excluded from production Release-One while HW-005
+is open (see docs/release-one-hardware-audit.md#fantriac-mapping-resolution).
+The FanTRIAC product YAML is retained as a blocked/reference file but is not
+in the WebFlash build matrix.
 
 Run with:
 
@@ -40,11 +45,11 @@ from product_name_mapper import (  # noqa: E402
 
 BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 
-RELEASE_ONE_CANONICAL_PRODUCT = "sense360-ceiling-poe-ventiq-fantriac-roomiq"
-RELEASE_ONE_WEBFLASH_BASENAME = "ceiling-poe-ventiq-fantriac-roomiq"
-RELEASE_ONE_DISPLAY_NAME = "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
+RELEASE_ONE_CANONICAL_PRODUCT = "sense360-ceiling-poe-ventiq-roomiq"
+RELEASE_ONE_WEBFLASH_BASENAME = "ceiling-poe-ventiq-roomiq"
+RELEASE_ONE_DISPLAY_NAME = "Sense360-Ceiling-POE-VentIQ-RoomIQ"
 RELEASE_ONE_ARTIFACT = (
-    "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin"
+    "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin"
 )
 
 

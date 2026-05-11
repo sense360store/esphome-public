@@ -45,8 +45,8 @@ on:
       single_product:
         description: >-
           Optional: build only this single product (matrix.product basename,
-          e.g. sense360-ceiling-poe-ventiq-fantriac-roomiq). Leave blank to
-          build the full product matrix.
+          e.g. sense360-ceiling-poe-ventiq-roomiq). Leave blank to build the
+          full product matrix.
         required: false
         default: ''
 
