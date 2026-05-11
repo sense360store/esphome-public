@@ -71,22 +71,27 @@ substitutions:
   mold_risk_duration_minutes: "30"
 
   # === FanTRIAC pins ===
-  # BLOCKED / UNVERIFIED — see docs/release-one-hardware-audit.md (FanTRIAC row)
+  # BLOCKED / UNVERIFIED — must not ship as FanTRIAC-capable.
+  # See: docs/release-one-hardware-audit.md#fantriac-mapping-resolution
   #
-  # The values below are inherited from the firmware's abstract "expansion bus"
-  # in packages/hardware/sense360_core_ceiling.yaml. They are NOT verified
-  # against the S360-100-R4 schematic:
+  # Summary of the blocker (full evidence and ship verdict in the audit doc):
   #
   #   - S360-100-R4 IO5 = SEN0609_TX (RoomIQ radar UART) — already used by RoomIQ
   #   - S360-100-R4 IO6 = out(gpio6) (RoomIQ aux)        — already used by RoomIQ
-  #   - J15 TRIAC connector carries TRI_GPIO1 / TRI_GPIO2, which appear to
-  #     route via the SX1509 expander (U3), not directly to any free ESP32 GPIO.
+  #   - J15 TRIAC connector carries TRI_GPIO1 / TRI_GPIO2; on the Core sheet
+  #     these nets are visible only at the SX1509 (U3) side. The S360-320
+  #     Sense360 TRIAC schematic is not yet committed to this repo, so the
+  #     end-to-end ESP32 ↔ J15 path cannot be confirmed.
+  #   - Even if the routing were known, ESPHome's `ac_dimmer` (used by
+  #     packages/expansions/fan_triac.yaml) requires direct interrupt-capable
+  #     ESP32 GPIOs for both the gate and the zero-cross input. SX1509
+  #     expander pins cannot satisfy the required sub-millisecond timing.
   #
-  # The correct ESP32 ↔ TRIAC mapping requires the S360-320 schematic and an
-  # SX1509-channel reference. Do NOT change these values to "fix" the conflict
-  # by inventing GPIOs; resolve in a later HW PR. The values below are kept
-  # only so the YAML parses; firmware compiled from this YAML must not be
-  # treated as TRIAC-verified.
+  # Do NOT change these values to "fix" the conflict by inventing GPIOs.
+  # Resolution requires the S360-320 schematic plus a verified direct-ESP32
+  # mapping (or a different driver entirely). The placeholder values below
+  # are kept only so the YAML still parses; firmware compiled from this YAML
+  # must not be published as TRIAC-capable.
   fan_triac_gate_pin: GPIO5
   fan_triac_zc_pin: GPIO6
   fan_triac_line_frequency: "50"

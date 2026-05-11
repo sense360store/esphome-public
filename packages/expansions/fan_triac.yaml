@@ -7,10 +7,24 @@
 # controlled by phase-cut dimming. NOT interchangeable with FanRelay,
 # FanPWM, or FanDAC — the GPIO routing and driver code differ.
 #
-# Expansion Bus Connection:
-#   Pin 8 (GPIO5)  -> TRIAC gate output (expansion_gpio1)
-#   Pin 9 (GPIO6)  -> Zero-crossing input (expansion_gpio2)
-#   Pin 1 (GND)    -> Ground reference for the dimmer board
+# Required pin substitutions (must come from the parent board file):
+#   fan_triac_gate_pin  -> TRIAC gate output
+#   fan_triac_zc_pin    -> Zero-crossing input
+#
+# Both pins MUST be **direct, interrupt-capable ESP32 GPIOs**. This driver
+# uses ESPHome's `output: ac_dimmer` platform, which attaches a hardware
+# interrupt to `zero_cross_pin` and toggles `gate_pin` from a timed ISR with
+# sub-millisecond precision (typical gate-firing resolution <100 µs on
+# 50/60 Hz mains). I²C-attached GPIO expanders (e.g. the SX1509 on the
+# Sense360 Core) cannot meet that timing and are NOT supported as a source
+# for either pin.
+#
+# Sense360 Core (S360-100-R4) FanTRIAC mapping status: BLOCKED / UNVERIFIED.
+# The current Release-One YAML supplies placeholder values that conflict with
+# the RoomIQ J10 nets on the schematic. The correct ESP32 ↔ J15 TRIAC
+# connector mapping requires the S360-320 schematic, which is not yet
+# committed to this repo. Do NOT invent values here.
+# See: docs/release-one-hardware-audit.md#fantriac-mapping-resolution
 #
 # IMPORTANT:
 #   - The fan load is mains AC. Wiring must be done by a qualified
@@ -21,13 +35,13 @@
 
 substitutions:
   # GPIO Configuration
-  # IMPORTANT: fan_triac_gate_pin and fan_triac_zc_pin MUST be provided by
-  # the parent board file. The Sense360 Core Ceiling board provides them via
-  # expansion_gpio1 / expansion_gpio2 by default.
-  #
-  # Examples from Sense360 Core Ceiling:
-  #   fan_triac_gate_pin: ${expansion_gpio1}  # GPIO5
-  #   fan_triac_zc_pin:   ${expansion_gpio2}  # GPIO6
+  # fan_triac_gate_pin and fan_triac_zc_pin MUST be provided by the parent
+  # board file. Both must resolve to **direct, interrupt-capable ESP32 GPIOs**
+  # — expander-driven pins (SX1509, PCA9555, etc.) are NOT acceptable because
+  # the ac_dimmer ISR timing cannot be served across I²C. See the header
+  # comment above and the FanTRIAC mapping resolution in
+  # docs/release-one-hardware-audit.md before adding new product YAMLs that
+  # consume this package.
 
   # Mains line frequency (Hz). Use "60" for 60 Hz regions.
   fan_triac_line_frequency: "50"

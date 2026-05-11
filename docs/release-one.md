@@ -40,6 +40,16 @@ include LED firmware. See
 the audit decision, the FanTRIAC pin-mapping blocker, the VentIQ
 schematic-pending caveat, and the full hardware-vs-firmware findings table.
 
+> **FanTRIAC ship status: BLOCKED.** The Release-One FanTRIAC slot cannot
+> currently be shipped. The `S360-320` Sense360 TRIAC schematic is not
+> committed, the `TRI_GPIO1` / `TRI_GPIO2` routing is not verified, and
+> ESPHome's `ac_dimmer` driver requires direct interrupt-capable ESP32
+> GPIOs that SX1509 expander channels cannot provide. A binary built from
+> [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
+> must **not** be published as TRIAC-capable until the resolution work in
+> [`release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution)
+> is complete.
+
 ## Firmware Artifact
 
 CI publishes this as a release asset on the matching GitHub release:
