@@ -47,7 +47,10 @@
 
 substitutions:
   # === Device Configuration ===
-  device_name: sense360-ceiling-poe-ventiq-fantriac-roomiq
+  # BLOCKED / REFERENCE ONLY — this product is NOT in the WebFlash build
+  # matrix (see header). Shortened hostname so the YAML still parses past
+  # ESPHome's 31-char hostname check; this does not unblock FanTRIAC.
+  device_name: s360-ceil-poe-ventiq-triac
   friendly_name: Sense360 Ceiling Bathroom
   device_sku: S360-CORE-C-POE
   device_version: "1.0.0"
@@ -65,10 +68,13 @@ substitutions:
   # docs/release-one-hardware-audit.md#fantriac-mapping-resolution.
   #
   # The base wifi package (packages/base/wifi.yaml) defaults fallback_ssid
-  # to '${device_name} FB', which for this product would be
-  # 'sense360-ceiling-poe-ventiq-fantriac-roomiq FB' = 46 chars and exceeds
-  # ESPHome's 32-character AP SSID limit. The short override below exists
-  # ONLY so that ESPHome config validation in tests/CI can parse this YAML
+  # to '${device_name} FB'. The historical device_name
+  # ('sense360-ceiling-poe-ventiq-fantriac-roomiq') made that resolve to
+  # 46 chars; even the shortened device_name above
+  # ('s360-ceil-poe-ventiq-triac', 26 chars) still benefits from an
+  # explicit literal so this blocked/reference YAML continues to parse
+  # past ESPHome's 32-character AP SSID limit. The override exists ONLY
+  # so that ESPHome config validation in tests/CI can parse this YAML
   # while the FanTRIAC blocker remains open; it does not make this build
   # production-eligible.
   fallback_ssid: "S360 TRIAC BLOCKED"

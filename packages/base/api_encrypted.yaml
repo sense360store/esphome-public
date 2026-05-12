@@ -2,7 +2,3 @@ api:
   encryption:
     key: !secret api_encryption_key
   reboot_timeout: 15min
-  services:
-    - service: factory_reset
-      then:
-        - button.press: reset_button

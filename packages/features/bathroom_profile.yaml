@@ -34,7 +34,7 @@ sensor:
   - platform: copy
     id: bathroom_temp_display
     source_id: bathroom_temperature
-    name: "${friendly_name} Temperature"
+    name: "${friendly_name} VentIQ Temperature"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -44,7 +44,7 @@ sensor:
   - platform: copy
     id: bathroom_humidity_display
     source_id: bathroom_humidity
-    name: "${friendly_name} Humidity"
+    name: "${friendly_name} VentIQ Humidity"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     device_class: humidity
@@ -54,7 +54,7 @@ sensor:
   - platform: copy
     id: bathroom_pressure_display
     source_id: bathroom_pressure
-    name: "${friendly_name} Pressure"
+    name: "${friendly_name} VentIQ Pressure"
     unit_of_measurement: "hPa"
     accuracy_decimals: 1
     device_class: atmospheric_pressure
@@ -64,7 +64,7 @@ sensor:
   - platform: copy
     id: bathroom_voc_display
     source_id: bathroom_voc_index
-    name: "${friendly_name} VOC Index"
+    name: "${friendly_name} VentIQ VOC Index"
     accuracy_decimals: 0
     icon: "mdi:air-filter"
 
@@ -72,7 +72,7 @@ sensor:
   - platform: copy
     id: bathroom_nox_display
     source_id: bathroom_nox_index
-    name: "${friendly_name} NOx Index"
+    name: "${friendly_name} VentIQ NOx Index"
     accuracy_decimals: 0
     icon: "mdi:smog"
 
@@ -80,7 +80,7 @@ sensor:
   - platform: copy
     id: bathroom_dew_point_display
     source_id: bathroom_dew_point
-    name: "${friendly_name} Dew Point"
+    name: "${friendly_name} VentIQ Dew Point"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -90,7 +90,7 @@ sensor:
   - platform: copy
     id: bathroom_humidity_rate_display
     source_id: bathroom_humidity_rate
-    name: "${friendly_name} Humidity Rate"
+    name: "${friendly_name} VentIQ Humidity Rate"
     unit_of_measurement: "%/min"
     accuracy_decimals: 1
     icon: "mdi:trending-up"

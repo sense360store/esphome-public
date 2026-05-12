@@ -46,6 +46,10 @@ jobs:
         run: |
           python3 tests/test_product_substitutions.py
 
+      - name: Preflight Release-One profile entity-name collisions
+        run: |
+          python3 tests/test_release_one_entity_names.py
+
       - name: Validate WebFlash build matrix
         run: |
           python3 tests/validate_webflash_builds.py

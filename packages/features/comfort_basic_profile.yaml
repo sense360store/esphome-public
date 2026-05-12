@@ -25,7 +25,7 @@ sensor:
   - platform: copy
     id: comfort_temperature_display
     source_id: comfort_ceiling_temperature
-    name: "${friendly_name} Temperature"
+    name: "${friendly_name} RoomIQ Temperature"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -35,7 +35,7 @@ sensor:
   - platform: copy
     id: comfort_humidity_display
     source_id: comfort_ceiling_humidity
-    name: "${friendly_name} Humidity"
+    name: "${friendly_name} RoomIQ Humidity"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     device_class: humidity
@@ -44,7 +44,7 @@ sensor:
   # Feels-like temperature (heat index) - Keep template for global access
   - platform: template
     id: comfort_feels_like
-    name: "${friendly_name} Feels Like"
+    name: "${friendly_name} RoomIQ Feels Like"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -56,7 +56,7 @@ sensor:
   - platform: copy
     id: comfort_light_display
     source_id: comfort_ceiling_illuminance
-    name: "${friendly_name} Light Level"
+    name: "${friendly_name} RoomIQ Light Level"
     unit_of_measurement: "lx"
     accuracy_decimals: 0
     device_class: illuminance
@@ -65,7 +65,7 @@ sensor:
   # Comfort score (0-100) - Keep template for global access
   - platform: template
     id: comfort_score_display
-    name: "${friendly_name} Comfort Score"
+    name: "${friendly_name} RoomIQ Comfort Score"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     icon: "mdi:emoticon-happy-outline"

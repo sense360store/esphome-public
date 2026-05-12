@@ -46,7 +46,10 @@ PRODUCTS_DIR = REPO_ROOT / "products"
 MAX_SSID_LEN = 32
 MIN_AP_PASSWORD_LEN = 8
 MAX_AP_PASSWORD_LEN = 64
-MAX_DEVICE_NAME_LEN = 63
+# ESPHome enforces a 31-character hostname limit on the device name; mDNS /
+# DNS labels are also capped at 63 chars but the tighter ESPHome rule is what
+# actually fails compilation, so use that here.
+MAX_DEVICE_NAME_LEN = 31
 DEVICE_NAME_RE = re.compile(r"^[a-z0-9-]+$")
 SUBST_RE = re.compile(r"\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}")
 
