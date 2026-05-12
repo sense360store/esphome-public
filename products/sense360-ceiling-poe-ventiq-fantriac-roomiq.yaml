@@ -47,7 +47,10 @@
 
 substitutions:
   # === Device Configuration ===
-  device_name: sense360-ceiling-poe-ventiq-fantriac-roomiq
+  # BLOCKED / REFERENCE ONLY — this product is NOT in the WebFlash build
+  # matrix (see header). Shortened hostname so the YAML still parses past
+  # ESPHome's 31-char hostname check; this does not unblock FanTRIAC.
+  device_name: s360-ceil-poe-ventiq-triac
   friendly_name: Sense360 Ceiling Bathroom
   device_sku: S360-CORE-C-POE
   device_version: "1.0.0"
@@ -58,6 +61,9 @@ substitutions:
 
   # === WiFi Behavior ===
   wifi_fast_connect: "false"
+  # Explicit short fallback AP SSID so ESPHome's 32-char SSID check passes on
+  # this blocked/reference YAML.
+  fallback_ssid: "S360 TRIAC BLOCKED"
 
   # === Power configuration (PoE) ===
   power_source: poe

@@ -59,7 +59,11 @@
 
 substitutions:
   # === Device Configuration ===
-  device_name: sense360-ceiling-poe-ventiq-roomiq
+  # ESPHome hostnames are limited to 31 chars; this is the shortened hostname
+  # only. WebFlash identity (config string, artifact name, text sensors, build
+  # matrix) remains `Ceiling-POE-VentIQ-RoomIQ` /
+  # `Sense360-Ceiling-POE-VentIQ-RoomIQ`.
+  device_name: s360-ceil-poe-ventiq-roomiq
   friendly_name: Sense360 Ceiling Bathroom
   device_sku: S360-CORE-C-POE
   device_version: "1.0.0"
@@ -70,6 +74,9 @@ substitutions:
 
   # === WiFi Behavior ===
   wifi_fast_connect: "false"
+  # Fallback AP SSID is capped at 32 chars by ESPHome. The base-wifi default of
+  # "${device_name} FB" would exceed the limit, so set an explicit short SSID.
+  fallback_ssid: "S360 VentIQ RoomIQ"
 
   # === Power configuration (PoE) ===
   power_source: poe
