@@ -351,6 +351,8 @@ jobs:
       - name: Find and rename firmware binary
         id: rename
         run: |
+          set -euo pipefail
+
           echo "Searching for firmware binary..."
 
           # Prefer the explicitly requested output file from the compile step
@@ -363,8 +365,12 @@ jobs:
           else
             echo "Explicit output file not found. Falling back to search in .esphome and build directories..."
 
-            # ESPHome with ESP-IDF outputs to various locations depending on version
-            SEARCH_ROOTS=$(find . -type d -name ".esphome" -prune -print)
+            # ESPHome with ESP-IDF outputs to various locations depending on
+            # version. `find` can return non-zero (e.g., a missing directory),
+            # so each tolerant lookup is suffixed with `|| true` so the strict
+            # `set -euo pipefail` mode does not abort the step on a benign
+            # not-found result.
+            SEARCH_ROOTS=$(find . -type d -name ".esphome" -prune -print 2>/dev/null || true)
             if [ -d build ]; then
               SEARCH_ROOTS="$SEARCH_ROOTS build"
             fi
@@ -375,27 +381,27 @@ jobs:
 
               # Pattern 1: Standard firmware.bin
               if [ -z "$FIRMWARE_PATH" ]; then
-                FIRMWARE_PATH=$(find "$BASE_DIR" -name "firmware.bin" -type f 2>/dev/null | head -1)
+                FIRMWARE_PATH=$(find "$BASE_DIR" -name "firmware.bin" -type f 2>/dev/null | head -1 || true)
               fi
 
               # Pattern 2: Factory bin (ESP-IDF merged binary for initial flash)
               if [ -z "$FIRMWARE_PATH" ]; then
-                FIRMWARE_PATH=$(find "$BASE_DIR" -name "firmware-factory.bin" -type f 2>/dev/null | head -1)
+                FIRMWARE_PATH=$(find "$BASE_DIR" -name "firmware-factory.bin" -type f 2>/dev/null | head -1 || true)
               fi
 
               # Pattern 3: ESP-IDF style merged binary
               if [ -z "$FIRMWARE_PATH" ]; then
-                FIRMWARE_PATH=$(find "$BASE_DIR" -path "*/.pioenvs/*/firmware*.bin" -type f 2>/dev/null | head -1)
+                FIRMWARE_PATH=$(find "$BASE_DIR" -path "*/.pioenvs/*/firmware*.bin" -type f 2>/dev/null | head -1 || true)
               fi
 
               # Pattern 4: Any .bin file in idedata directory (ESP-IDF)
               if [ -z "$FIRMWARE_PATH" ]; then
-                FIRMWARE_PATH=$(find "$BASE_DIR" -path "*/idedata/*" -name "*.bin" -type f 2>/dev/null | grep -v bootloader | head -1)
+                FIRMWARE_PATH=$(find "$BASE_DIR" -path "*/idedata/*" -name "*.bin" -type f 2>/dev/null | grep -v bootloader | head -1 || true)
               fi
 
               # Pattern 5: Last resort - any firmware*.bin
               if [ -z "$FIRMWARE_PATH" ]; then
-                FIRMWARE_PATH=$(find "$BASE_DIR" -name "firmware*.bin" -type f 2>/dev/null | head -1)
+                FIRMWARE_PATH=$(find "$BASE_DIR" -name "firmware*.bin" -type f 2>/dev/null | head -1 || true)
               fi
             done
           fi
@@ -415,19 +421,68 @@ jobs:
           echo "Found firmware at: $FIRMWARE_PATH"
           echo "File size: $(stat -c%s "$FIRMWARE_PATH") bytes"
 
-          # Generate WebFlash-compatible filename
+          # Generate WebFlash-compatible filename.
+          # `tail -n 1 | tr -d '\r\n'` is a defensive guard: it isolates the
+          # final line of stdout and strips any CR/LF so a future debug print
+          # in the mapper cannot pollute the captured filename.
           VERSION="${{ needs.generate-matrix.outputs.version }}"
           CHANNEL="${{ needs.generate-matrix.outputs.channel }}"
-          WEBFLASH_NAME=$(python3 scripts/product_name_mapper.py "${{ matrix.product }}" "$VERSION" "$CHANNEL")
+          WEBFLASH_NAME="$(python3 scripts/product_name_mapper.py "${{ matrix.product }}" "$VERSION" "$CHANNEL" | tail -n 1 | tr -d '\r\n')"
+
+          if [ -z "$WEBFLASH_NAME" ]; then
+            echo "ERROR: product_name_mapper.py returned empty filename"
+            exit 1
+          fi
+
+          case "$WEBFLASH_NAME" in
+            *.bin) ;;
+            *)
+              echo "ERROR: WebFlash filename does not end in .bin: '$WEBFLASH_NAME'"
+              exit 1
+              ;;
+          esac
 
           echo "Renaming to: $WEBFLASH_NAME"
 
+          # Pre-copy debug: confirm cwd, firmware-output state, and which
+          # compiled .bin files exist under products/.esphome.
+          echo "--- pre-copy debug ---"
+          pwd
+          ls -la firmware-output 2>/dev/null || true
+          find products/.esphome -type f -name "*.bin" -printf "%p %s bytes\n" 2>/dev/null || true
+          echo "----------------------"
+
           # Create output directory and copy with new name
           mkdir -p firmware-output
-          cp "$FIRMWARE_PATH" "firmware-output/$WEBFLASH_NAME"
+          DEST="firmware-output/$WEBFLASH_NAME"
+          cp "$FIRMWARE_PATH" "$DEST"
 
-          echo "webflash_name=$WEBFLASH_NAME" >> $GITHUB_OUTPUT
-          echo "firmware_path=firmware-output/$WEBFLASH_NAME" >> $GITHUB_OUTPUT
+          if [ ! -f "$DEST" ]; then
+            echo "ERROR: copied firmware not found at $DEST"
+            exit 1
+          fi
+
+          SIZE="$(stat -c%s "$DEST")"
+          echo "Copied firmware to: $DEST"
+          echo "Copied size: $SIZE bytes"
+
+          # A real Release-One binary is ~1MB; anything under 100KB indicates
+          # a truncated copy or wrong source path.
+          if [ "$SIZE" -lt 102400 ]; then
+            echo "ERROR: copied firmware is suspiciously small: $SIZE bytes"
+            exit 1
+          fi
+
+          # Post-copy debug: confirm the copy landed in firmware-output.
+          echo "--- post-copy debug ---"
+          pwd
+          ls -la firmware-output 2>/dev/null || true
+          echo "-----------------------"
+
+          {
+            echo "webflash_name=$WEBFLASH_NAME"
+            echo "firmware_path=$DEST"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Assert renamed binary matches WebFlash build matrix
         run: |
