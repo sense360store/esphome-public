@@ -42,6 +42,10 @@ jobs:
         run: |
           python3 tests/validate_configs.py
 
+      - name: Preflight product substitutions (fallback SSID length, AP password, device_name)
+        run: |
+          python3 tests/test_product_substitutions.py
+
       - name: Validate WebFlash build matrix
         run: |
           python3 tests/validate_webflash_builds.py
