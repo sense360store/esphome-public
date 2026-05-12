@@ -74,8 +74,17 @@ substitutions:
 
   # === WiFi Behavior ===
   wifi_fast_connect: "false"
-  # Fallback AP SSID is capped at 32 chars by ESPHome. The base-wifi default of
-  # "${device_name} FB" would exceed the limit, so set an explicit short SSID.
+
+  # === WiFi AP fallback ===
+  # ESPHome enforces a 32-character maximum on the AP SSID. The base wifi
+  # package (packages/base/wifi.yaml) defaults fallback_ssid to
+  # '${device_name} FB'. Even with the shortened device_name above
+  # ('s360-ceil-poe-ventiq-roomiq', 27 chars), the default would resolve to
+  # 30 chars and a longer device_name (the historical
+  # 'sense360-ceiling-poe-ventiq-roomiq', 33 chars + ' FB' = 37) would
+  # exceed the limit and fail validation. Override with a short,
+  # human-readable label that identifies the production no-TRIAC
+  # Release-One build during AP/setup mode.
   fallback_ssid: "S360 VentIQ RoomIQ"
 
   # === Power configuration (PoE) ===
