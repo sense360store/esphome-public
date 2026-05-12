@@ -108,62 +108,131 @@ jobs:
       - name: Generate product build matrix
         id: generate
         env:
+          VERSION: ${{ steps.version.outputs.version }}
+          CHANNEL: ${{ steps.version.outputs.channel }}
           SINGLE_PRODUCT: ${{ github.event.inputs.single_product }}
         run: |
-          # Find all product YAML files. Exclude products/webflash/* — those
-          # are thin wrappers that re-export canonical products/*.yaml so
-          # config/webflash-builds.json can address them via the WebFlash
-          # namespace; building them would emit a duplicate WebFlash filename
-          # that collides with the canonical build during release attach.
-          PRODUCTS=$(find products/ -name "*.yaml" -type f -not -path 'products/webflash/*' | sort)
+          set -euo pipefail
 
-          # Build JSON matrix
-          MATRIX='{"include":['
-          FIRST=true
-          COUNT=0
+          # ESP-007: the release/build matrix is driven by
+          # config/webflash-builds.json, filtered by version + channel (and
+          # optional single_product for manual dispatch). This replaces the
+          # previous broad `find products/` scan, which built every legacy
+          # / reference / blocked product (including FanTRIAC) when a real
+          # Release was published. The WebFlash build matrix is the single
+          # source of truth for what release publishing ships.
+          #
+          # When a JSON entry points at a products/webflash/* wrapper, we
+          # compile the canonical products/sense360-<stem>.yaml instead.
+          # The wrapper changes ESPHome's config_dir to products/webflash/,
+          # which breaks the `path: ../components` rewrite emitted by the
+          # external_components patch step (that path resolves to
+          # products/components from the wrapper's config_dir). The
+          # WebFlash artifact name is still produced because
+          # scripts/product_name_mapper.py maps the wrapper stem to the
+          # same display name as the canonical stem.
 
-          for PRODUCT_FILE in $PRODUCTS; do
-            # Extract product name (without path and extension)
-            PRODUCT_NAME=$(basename "$PRODUCT_FILE" .yaml)
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          from pathlib import Path
 
-            # Skip secrets.yaml if it exists
-            if [ "$PRODUCT_NAME" = "secrets" ]; then
-              continue
-            fi
+          REPO_ROOT = Path(".").resolve()
+          BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 
-            # If single_product is provided (workflow_dispatch only),
-            # filter the matrix down to that one product.
-            if [ -n "$SINGLE_PRODUCT" ] && [ "$PRODUCT_NAME" != "$SINGLE_PRODUCT" ]; then
-              continue
-            fi
+          version = os.environ["VERSION"]
+          channel = os.environ["CHANNEL"]
+          single_product = os.environ.get("SINGLE_PRODUCT", "").strip()
 
-            if [ "$FIRST" = true ]; then
-              FIRST=false
-            else
-              MATRIX+=','
-            fi
+          if not BUILDS_PATH.is_file():
+              sys.exit(f"error: {BUILDS_PATH} does not exist")
 
-            MATRIX+="{\"product\":\"$PRODUCT_NAME\",\"file\":\"$PRODUCT_FILE\"}"
-            COUNT=$((COUNT + 1))
-          done
+          try:
+              data = json.loads(BUILDS_PATH.read_text())
+          except json.JSONDecodeError as exc:
+              sys.exit(f"error: cannot parse {BUILDS_PATH}: {exc}")
 
-          MATRIX+=']}'
+          entries = data.get("builds", [])
+          if not isinstance(entries, list):
+              sys.exit(f"error: {BUILDS_PATH}: 'builds' must be a list")
 
-          if [ "$COUNT" -eq 0 ]; then
-            echo "::error::No products matched the build matrix."
-            if [ -n "$SINGLE_PRODUCT" ]; then
-              echo "::error::single_product='$SINGLE_PRODUCT' did not match any products/*.yaml basename."
-            fi
-            exit 1
-          fi
+          rows = []
+          for entry in entries:
+              if not isinstance(entry, dict):
+                  continue
+              if entry.get("version") != version:
+                  continue
+              if entry.get("channel") != channel:
+                  continue
 
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
-          echo "product_count=$COUNT" >> $GITHUB_OUTPUT
-          if [ -n "$SINGLE_PRODUCT" ]; then
+              product_yaml = entry.get("product_yaml", "")
+              if not product_yaml:
+                  sys.exit(
+                      f"error: webflash-builds entry missing product_yaml: {entry}"
+                  )
+
+              wrapper_stem = Path(product_yaml).stem
+              canonical_stem = f"sense360-{wrapper_stem}"
+
+              if product_yaml.startswith("products/webflash/"):
+                  canonical_yaml = f"products/{canonical_stem}.yaml"
+                  if not (REPO_ROOT / canonical_yaml).is_file():
+                      sys.exit(
+                          f"error: wrapper {product_yaml} has no canonical "
+                          f"product YAML at {canonical_yaml}"
+                      )
+                  build_file = canonical_yaml
+              else:
+                  if not (REPO_ROOT / product_yaml).is_file():
+                      sys.exit(
+                          f"error: product_yaml does not exist: {product_yaml}"
+                      )
+                  build_file = product_yaml
+
+              if single_product:
+                  allowed = {wrapper_stem, canonical_stem}
+                  if single_product not in allowed:
+                      continue
+
+              rows.append({
+                  "product": wrapper_stem,
+                  "file": build_file,
+                  "artifact_name": entry.get("artifact_name", ""),
+              })
+
+          if not rows:
+              detail = (
+                  f"version={version!r} channel={channel!r} "
+                  f"single_product={single_product!r}"
+              )
+              sys.exit(
+                  f"error: no config/webflash-builds.json entries matched {detail}"
+              )
+
+          matrix_json = json.dumps({"include": rows}, separators=(",", ":"))
+          count = len(rows)
+
+          github_output = os.environ.get("GITHUB_OUTPUT")
+          if github_output:
+              with open(github_output, "a", encoding="utf-8") as fh:
+                  fh.write(f"matrix={matrix_json}\n")
+                  fh.write(f"product_count={count}\n")
+
+          print(f"WebFlash build matrix ({count} entry/entries) "
+                f"for version={version} channel={channel}:")
+          for row in rows:
+              print(
+                  f"  - product={row['product']} "
+                  f"file={row['file']} "
+                  f"artifact={row['artifact_name']}"
+              )
+          print(f"Matrix JSON: {matrix_json}")
+          PY
+
+          if [ -n "${SINGLE_PRODUCT:-}" ]; then
             echo "single_product filter active: $SINGLE_PRODUCT"
           fi
-          echo "Found $COUNT products to build"
-          echo "Matrix: $MATRIX"
 
   # ============================================================================
   # JOB 2: BUILD FIRMWARE
