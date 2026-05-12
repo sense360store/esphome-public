@@ -59,6 +59,20 @@ substitutions:
   # === WiFi Behavior ===
   wifi_fast_connect: "false"
 
+  # === WiFi AP fallback ===
+  # NOTE: This product is BLOCKED / REFERENCE-ONLY (HW-005) and MUST NOT
+  # ship as TRIAC-capable. See the FanTRIAC pins comment block below and
+  # docs/release-one-hardware-audit.md#fantriac-mapping-resolution.
+  #
+  # The base wifi package (packages/base/wifi.yaml) defaults fallback_ssid
+  # to '${device_name} FB', which for this product would be
+  # 'sense360-ceiling-poe-ventiq-fantriac-roomiq FB' = 46 chars and exceeds
+  # ESPHome's 32-character AP SSID limit. The short override below exists
+  # ONLY so that ESPHome config validation in tests/CI can parse this YAML
+  # while the FanTRIAC blocker remains open; it does not make this build
+  # production-eligible.
+  fallback_ssid: "S360 TRIAC BLOCKED"
+
   # === Power configuration (PoE) ===
   power_source: poe
   poe_class: "0"
