@@ -74,6 +74,29 @@ mapper, and also exposes a `--checklist` mode for adding future product
 configs. The Release-One product, artifact, build matrix, and FanTRIAC /
 LED policy are unchanged by PRODUCT-003.
 
+RELEASE-001 adds a read-only release-notes draft generator at
+[`scripts/generate_webflash_release_notes.py`](../scripts/generate_webflash_release_notes.py)
+(unit-tested by
+[`tests/test_generate_webflash_release_notes.py`](../tests/test_generate_webflash_release_notes.py))
+that produces a Markdown draft body for a catalog product/version/channel
+matching the format enforced by
+[`scripts/validate-webflash-release-notes.py`](../scripts/validate-webflash-release-notes.py).
+The generator sources lifecycle and SKU data from
+[`config/product-catalog.json`](../config/product-catalog.json), the
+human-readable feature bullets from
+[`config/webflash-builds.json`](../config/webflash-builds.json), and
+friendly hardware names from
+[`config/hardware-catalog.json`](../config/hardware-catalog.json). It
+refuses blocked, legacy-compatible, deprecated, and removed entries; it
+refuses preview entries on the stable channel; and it always emits
+FanTRIAC and Sense360 LED as Known-Issues exclusions, never as Features.
+The `## Changelog` section remains a TODO placeholder that requires
+human review and replacement before a release is tagged. The generator
+does not create releases, publish firmware, infer changelog content from
+git history, or call any external service. The Release-One product,
+artifact, build matrix, and FanTRIAC / LED policy are unchanged by
+RELEASE-001.
+
 The Release-One YAML omits the Sense360 LED (`S360-300`) packages on
 purpose: the WebFlash config string `Ceiling-POE-VentIQ-RoomIQ` does not
 carry a `LED` token, so the binary built from this YAML does not include

@@ -58,6 +58,11 @@ jobs:
       - name: Test WebFlash release-notes validator
         run: |
           python3 tests/test_validate_webflash_release_notes.py
+
+      - name: Test WebFlash release-notes generator
+        run: |
+          python3 tests/test_generate_webflash_release_notes.py
+
       - name: Verify WebFlash artifact naming (mapper agrees with builds JSON)
         run: |
           python3 tests/test_webflash_artifact_naming.py
