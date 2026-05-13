@@ -10,7 +10,8 @@
 #   - Missing required keys (substitutions, esphome)
 #   - Invalid package references
 #
-# For full ESPHome compilation tests, see ci-validate-configs.yml
+# For broad legacy/manual ESPHome compilation sweeps, run the manual
+# workflow ci-validate-configs.yml (workflow_dispatch only).
 # ============================================================================
 
 name: Quick Validation
@@ -68,4 +69,4 @@ jobs:
           echo "Products: $PRODUCT_COUNT"
           echo "Packages: $PACKAGE_COUNT"
           echo ""
-          echo "For full ESPHome compilation tests, see the 'CI - Validate Firmware Configs' workflow"
+          echo "For a broad legacy/manual ESPHome compilation sweep, manually dispatch the 'CI - Validate Firmware Configs' workflow"
