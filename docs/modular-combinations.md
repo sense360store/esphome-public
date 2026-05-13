@@ -1,5 +1,22 @@
 # Sense360 Complete Modular Combinations List
 
+> **Release-One scope:** Production Release-One ships the WebFlash config
+> `Ceiling-POE-VentIQ-RoomIQ`, artifact
+> `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`. FanTRIAC is
+> **blocked pending HW-005** and Sense360 LED is **excluded from
+> Release-One** (the config string carries no `LED` token). This document
+> enumerates every theoretically valid module combination across the
+> Sense360 platform — it is **not** the Release-One catalog. See
+> [`release-one.md`](release-one.md) for the shipping configuration.
+
+> **Legacy naming note:** `Sense360 VentIQ` replaces the old name
+> `Sense360 VentIQ`. `Sense360 LED` replaces the old name `LED Ring`. The
+> legacy `Bathroom Base` SKU is retained below as a **retired legacy
+> bathroom variant** — it has no canonical successor in
+> [`hardware-catalog.md`](hardware-catalog.md) and is not part of the
+> current Sense360 lineup. Some legacy SKU strings are retained pending a
+> separate SKU / catalog audit.
+
 This document provides an exhaustive list of all possible Sense360 product configurations.
 
 ---
@@ -47,10 +64,10 @@ This document provides an exhaustive list of all possible Sense360 product confi
 
 | Component | Options | Notes |
 |-----------|---------|-------|
-| **LED Ring** | Standard LED, LED+MIC | Optional for Core, **REQUIRED for Core Voice** |
+| **Sense360 LED** | Standard LED, LED+MIC | Optional for Core, **REQUIRED for Core Voice**. Excluded from Release-One. |
 | **AirIQ** | S360-AIR | Full air quality monitoring |
-| **Bathroom Base** | S360-BATH-B | Ceiling only, replaces AirIQ |
-| **Bathroom Pro** | S360-BATH-P | Ceiling only, replaces AirIQ |
+| **Bathroom Base** *(legacy, retired)* | S360-BATH-B | Ceiling only, replaces AirIQ. Retired legacy SKU — no canonical successor in [`hardware-catalog.md`](hardware-catalog.md). |
+| **Sense360 VentIQ** | S360-BATH-P | Ceiling only, replaces AirIQ. |
 | **Comfort** | S360-CMFT | Temp/humidity/light |
 | **Presence** | S360-PRES | mmWave radar occupancy |
 | **Fan PWM** | S360-PWM | PWM fan control |
@@ -89,13 +106,17 @@ Example: Core-C + USB = Basic ceiling unit with relay control only
 | Ceiling | -C | Ceiling flush mount |
 | Wall | -W | Wall or desk mount |
 
-### LED Rings (OPTIONAL* - Pick 0 or 1)
-| LED | SKU | Description |
-|-----|-----|-------------|
-| LED Ceiling | S360-LED-C | Standard LED ring for ceiling |
-| LED Wall | S360-LED-W | Standard LED ring for wall |
-| LED+MIC Ceiling | S360-LED-V-C | LED + Microphone for Voice ceiling |
-| LED+MIC Wall | S360-LED-V-W | LED + Microphone for Voice wall |
+### Sense360 LED (OPTIONAL* - Pick 0 or 1)
+
+> Old name: `LED Ring`. Excluded from Release-One — the WebFlash config
+> string `Ceiling-POE-VentIQ-RoomIQ` does not carry a `LED` token.
+
+| Sense360 LED | SKU | Description |
+|--------------|-----|-------------|
+| Sense360 LED (Ceiling) | S360-LED-C | Standard Sense360 LED for ceiling |
+| Sense360 LED (Wall) | S360-LED-W | Standard Sense360 LED for wall |
+| LED+MIC Ceiling | S360-LED-V-C | Sense360 LED + Microphone for Voice ceiling |
+| LED+MIC Wall | S360-LED-V-W | Sense360 LED + Microphone for Voice wall |
 
 > *LED+MIC ring is **REQUIRED** for Core Voice configurations
 
@@ -103,8 +124,8 @@ Example: Core-C + USB = Basic ceiling unit with relay control only
 | Module | SKU | Ceiling | Wall | Notes |
 |--------|-----|---------|------|-------|
 | AirIQ | S360-AIR | ✓ | ✓ | Full air quality suite |
-| Bathroom Base | S360-BATH-B | ✓ | ✗ | Replaces AirIQ |
-| Bathroom Pro | S360-BATH-P | ✓ | ✗ | Replaces AirIQ |
+| Bathroom Base *(legacy, retired)* | S360-BATH-B | ✓ | ✗ | Retired legacy bathroom SKU; no canonical successor. Replaces AirIQ. |
+| Sense360 VentIQ | S360-BATH-P | ✓ | ✗ | Replaces AirIQ. |
 | Comfort | S360-CMFT | ✓ | ✓ | Temp/humidity/light |
 | Presence | S360-PRES | ✓ | ✓ | mmWave radar |
 | Fan PWM | S360-PWM | ✓ | ✓ | PWM fan control |
@@ -162,13 +183,18 @@ These are Core + Power only configurations with no sensor modules.
 
 All combinations for ceiling-mounted cores (Core-C or Core-V-C).
 
+> **Note:** Rows mentioning `Bathroom Base` enumerate the retired legacy
+> SKU (`S360-BATH-B`) — see the legend at the top of this document. Rows
+> formerly labelled `Bathroom Pro` now read `Sense360 VentIQ` (canonical
+> name for `S360-BATH-P` / `S360-211`).
+
 ### Single Module (Ceiling)
 
 | # | Modules | × Power Options | = Configs |
 |---|---------|-----------------|-----------|
 | 1 | AirIQ | × 3 | 3 |
 | 2 | Bathroom Base | × 3 | 3 |
-| 3 | Bathroom Pro | × 3 | 3 |
+| 3 | Sense360 VentIQ | × 3 | 3 |
 | 4 | Comfort | × 3 | 3 |
 | 5 | Presence | × 3 | 3 |
 | 6 | Fan PWM | × 3 | 3 |
@@ -181,7 +207,7 @@ All combinations for ceiling-mounted cores (Core-C or Core-V-C).
 |---|---------------|-----|-----|-----|
 | 1 | Core-C + AirIQ | ✓ | ✓ | ✓ |
 | 2 | Core-C + Bathroom Base | ✓ | ✓ | ✓ |
-| 3 | Core-C + Bathroom Pro | ✓ | ✓ | ✓ |
+| 3 | Core-C + Sense360 VentIQ | ✓ | ✓ | ✓ |
 | 4 | Core-C + Comfort | ✓ | ✓ | ✓ |
 | 5 | Core-C + Presence | ✓ | ✓ | ✓ |
 | 6 | Core-C + Fan PWM | ✓ | ✓ | ✓ |
@@ -201,10 +227,10 @@ All combinations for ceiling-mounted cores (Core-C or Core-V-C).
 | 6 | Bathroom Base + Presence | × 3 | 3 |
 | 7 | Bathroom Base + Fan PWM | × 3 | 3 |
 | 8 | Bathroom Base + Fan GP8403 | × 3 | 3 |
-| 9 | Bathroom Pro + Comfort | × 3 | 3 |
-| 10 | Bathroom Pro + Presence | × 3 | 3 |
-| 11 | Bathroom Pro + Fan PWM | × 3 | 3 |
-| 12 | Bathroom Pro + Fan GP8403 | × 3 | 3 |
+| 9 | Sense360 VentIQ + Comfort | × 3 | 3 |
+| 10 | Sense360 VentIQ + Presence | × 3 | 3 |
+| 11 | Sense360 VentIQ + Fan PWM | × 3 | 3 |
+| 12 | Sense360 VentIQ + Fan GP8403 | × 3 | 3 |
 | 13 | Comfort + Presence | × 3 | 3 |
 | 14 | Comfort + Fan PWM | × 3 | 3 |
 | 15 | Comfort + Fan GP8403 | × 3 | 3 |
@@ -224,10 +250,10 @@ All combinations for ceiling-mounted cores (Core-C or Core-V-C).
 | 6 | Core-C + Bathroom Base + Presence | ✓ | ✓ | ✓ |
 | 7 | Core-C + Bathroom Base + Fan PWM | ✓ | ✓ | ✓ |
 | 8 | Core-C + Bathroom Base + Fan GP8403 | ✓ | ✓ | ✓ |
-| 9 | Core-C + Bathroom Pro + Comfort | ✓ | ✓ | ✓ |
-| 10 | Core-C + Bathroom Pro + Presence | ✓ | ✓ | ✓ |
-| 11 | Core-C + Bathroom Pro + Fan PWM | ✓ | ✓ | ✓ |
-| 12 | Core-C + Bathroom Pro + Fan GP8403 | ✓ | ✓ | ✓ |
+| 9 | Core-C + Sense360 VentIQ + Comfort | ✓ | ✓ | ✓ |
+| 10 | Core-C + Sense360 VentIQ + Presence | ✓ | ✓ | ✓ |
+| 11 | Core-C + Sense360 VentIQ + Fan PWM | ✓ | ✓ | ✓ |
+| 12 | Core-C + Sense360 VentIQ + Fan GP8403 | ✓ | ✓ | ✓ |
 | 13 | Core-C + Comfort + Presence | ✓ | ✓ | ✓ |
 | 14 | Core-C + Comfort + Fan PWM | ✓ | ✓ | ✓ |
 | 15 | Core-C + Comfort + Fan GP8403 | ✓ | ✓ | ✓ |
@@ -250,11 +276,11 @@ All combinations for ceiling-mounted cores (Core-C or Core-V-C).
 | 8 | Bathroom Base + Comfort + Fan GP8403 | × 3 | 3 |
 | 9 | Bathroom Base + Presence + Fan PWM | × 3 | 3 |
 | 10 | Bathroom Base + Presence + Fan GP8403 | × 3 | 3 |
-| 11 | Bathroom Pro + Comfort + Presence | × 3 | 3 |
-| 12 | Bathroom Pro + Comfort + Fan PWM | × 3 | 3 |
-| 13 | Bathroom Pro + Comfort + Fan GP8403 | × 3 | 3 |
-| 14 | Bathroom Pro + Presence + Fan PWM | × 3 | 3 |
-| 15 | Bathroom Pro + Presence + Fan GP8403 | × 3 | 3 |
+| 11 | Sense360 VentIQ + Comfort + Presence | × 3 | 3 |
+| 12 | Sense360 VentIQ + Comfort + Fan PWM | × 3 | 3 |
+| 13 | Sense360 VentIQ + Comfort + Fan GP8403 | × 3 | 3 |
+| 14 | Sense360 VentIQ + Presence + Fan PWM | × 3 | 3 |
+| 15 | Sense360 VentIQ + Presence + Fan GP8403 | × 3 | 3 |
 | 16 | Comfort + Presence + Fan PWM | × 3 | 3 |
 | 17 | Comfort + Presence + Fan GP8403 | × 3 | 3 |
 | | **Subtotal** | | **51** |
@@ -273,11 +299,11 @@ All combinations for ceiling-mounted cores (Core-C or Core-V-C).
 | 8 | Core-C + Bathroom Base + Comfort + Fan GP8403 | ✓ | ✓ | ✓ |
 | 9 | Core-C + Bathroom Base + Presence + Fan PWM | ✓ | ✓ | ✓ |
 | 10 | Core-C + Bathroom Base + Presence + Fan GP8403 | ✓ | ✓ | ✓ |
-| 11 | Core-C + Bathroom Pro + Comfort + Presence | ✓ | ✓ | ✓ |
-| 12 | Core-C + Bathroom Pro + Comfort + Fan PWM | ✓ | ✓ | ✓ |
-| 13 | Core-C + Bathroom Pro + Comfort + Fan GP8403 | ✓ | ✓ | ✓ |
-| 14 | Core-C + Bathroom Pro + Presence + Fan PWM | ✓ | ✓ | ✓ |
-| 15 | Core-C + Bathroom Pro + Presence + Fan GP8403 | ✓ | ✓ | ✓ |
+| 11 | Core-C + Sense360 VentIQ + Comfort + Presence | ✓ | ✓ | ✓ |
+| 12 | Core-C + Sense360 VentIQ + Comfort + Fan PWM | ✓ | ✓ | ✓ |
+| 13 | Core-C + Sense360 VentIQ + Comfort + Fan GP8403 | ✓ | ✓ | ✓ |
+| 14 | Core-C + Sense360 VentIQ + Presence + Fan PWM | ✓ | ✓ | ✓ |
+| 15 | Core-C + Sense360 VentIQ + Presence + Fan GP8403 | ✓ | ✓ | ✓ |
 | 16 | Core-C + Comfort + Presence + Fan PWM | ✓ | ✓ | ✓ |
 | 17 | Core-C + Comfort + Presence + Fan GP8403 | ✓ | ✓ | ✓ |
 
@@ -291,8 +317,8 @@ All combinations for ceiling-mounted cores (Core-C or Core-V-C).
 | 2 | AirIQ + Comfort + Presence + Fan GP8403 | × 3 | 3 |
 | 3 | Bathroom Base + Comfort + Presence + Fan PWM | × 3 | 3 |
 | 4 | Bathroom Base + Comfort + Presence + Fan GP8403 | × 3 | 3 |
-| 5 | Bathroom Pro + Comfort + Presence + Fan PWM | × 3 | 3 |
-| 6 | Bathroom Pro + Comfort + Presence + Fan GP8403 | × 3 | 3 |
+| 5 | Sense360 VentIQ + Comfort + Presence + Fan PWM | × 3 | 3 |
+| 6 | Sense360 VentIQ + Comfort + Presence + Fan GP8403 | × 3 | 3 |
 | | **Subtotal** | | **18** |
 
 #### Detailed Four Module List (Ceiling)
@@ -303,8 +329,8 @@ All combinations for ceiling-mounted cores (Core-C or Core-V-C).
 | 2 | Core-C + AirIQ + Comfort + Presence + Fan GP8403 | ✓ | ✓ | ✓ |
 | 3 | Core-C + Bathroom Base + Comfort + Presence + Fan PWM | ✓ | ✓ | ✓ |
 | 4 | Core-C + Bathroom Base + Comfort + Presence + Fan GP8403 | ✓ | ✓ | ✓ |
-| 5 | Core-C + Bathroom Pro + Comfort + Presence + Fan PWM | ✓ | ✓ | ✓ |
-| 6 | Core-C + Bathroom Pro + Comfort + Presence + Fan GP8403 | ✓ | ✓ | ✓ |
+| 5 | Core-C + Sense360 VentIQ + Comfort + Presence + Fan PWM | ✓ | ✓ | ✓ |
+| 6 | Core-C + Sense360 VentIQ + Comfort + Presence + Fan GP8403 | ✓ | ✓ | ✓ |
 
 ---
 
@@ -416,9 +442,9 @@ All combinations for wall-mounted cores (Core-W or Core-V-W).
 | 7 | Core-C | USB | Bathroom Base | - | - | - |
 | 8 | Core-C | PoE | Bathroom Base | - | - | - |
 | 9 | Core-C | PWR | Bathroom Base | - | - | - |
-| 10 | Core-C | USB | Bathroom Pro | - | - | - |
-| 11 | Core-C | PoE | Bathroom Pro | - | - | - |
-| 12 | Core-C | PWR | Bathroom Pro | - | - | - |
+| 10 | Core-C | USB | Sense360 VentIQ | - | - | - |
+| 11 | Core-C | PoE | Sense360 VentIQ | - | - | - |
+| 12 | Core-C | PWR | Sense360 VentIQ | - | - | - |
 | 13 | Core-C | USB | - | Comfort | - | - |
 | 14 | Core-C | PoE | - | Comfort | - | - |
 | 15 | Core-C | PWR | - | Comfort | - | - |
@@ -455,18 +481,18 @@ All combinations for wall-mounted cores (Core-W or Core-V-W).
 | 46 | Core-C | USB | Bathroom Base | - | - | GP8403 |
 | 47 | Core-C | PoE | Bathroom Base | - | - | GP8403 |
 | 48 | Core-C | PWR | Bathroom Base | - | - | GP8403 |
-| 49 | Core-C | USB | Bathroom Pro | Comfort | - | - |
-| 50 | Core-C | PoE | Bathroom Pro | Comfort | - | - |
-| 51 | Core-C | PWR | Bathroom Pro | Comfort | - | - |
-| 52 | Core-C | USB | Bathroom Pro | - | Presence | - |
-| 53 | Core-C | PoE | Bathroom Pro | - | Presence | - |
-| 54 | Core-C | PWR | Bathroom Pro | - | Presence | - |
-| 55 | Core-C | USB | Bathroom Pro | - | - | PWM |
-| 56 | Core-C | PoE | Bathroom Pro | - | - | PWM |
-| 57 | Core-C | PWR | Bathroom Pro | - | - | PWM |
-| 58 | Core-C | USB | Bathroom Pro | - | - | GP8403 |
-| 59 | Core-C | PoE | Bathroom Pro | - | - | GP8403 |
-| 60 | Core-C | PWR | Bathroom Pro | - | - | GP8403 |
+| 49 | Core-C | USB | Sense360 VentIQ | Comfort | - | - |
+| 50 | Core-C | PoE | Sense360 VentIQ | Comfort | - | - |
+| 51 | Core-C | PWR | Sense360 VentIQ | Comfort | - | - |
+| 52 | Core-C | USB | Sense360 VentIQ | - | Presence | - |
+| 53 | Core-C | PoE | Sense360 VentIQ | - | Presence | - |
+| 54 | Core-C | PWR | Sense360 VentIQ | - | Presence | - |
+| 55 | Core-C | USB | Sense360 VentIQ | - | - | PWM |
+| 56 | Core-C | PoE | Sense360 VentIQ | - | - | PWM |
+| 57 | Core-C | PWR | Sense360 VentIQ | - | - | PWM |
+| 58 | Core-C | USB | Sense360 VentIQ | - | - | GP8403 |
+| 59 | Core-C | PoE | Sense360 VentIQ | - | - | GP8403 |
+| 60 | Core-C | PWR | Sense360 VentIQ | - | - | GP8403 |
 | 61 | Core-C | USB | - | Comfort | Presence | - |
 | 62 | Core-C | PoE | - | Comfort | Presence | - |
 | 63 | Core-C | PWR | - | Comfort | Presence | - |
@@ -512,21 +538,21 @@ All combinations for wall-mounted cores (Core-W or Core-V-W).
 | 103 | Core-C | USB | Bathroom Base | - | Presence | GP8403 |
 | 104 | Core-C | PoE | Bathroom Base | - | Presence | GP8403 |
 | 105 | Core-C | PWR | Bathroom Base | - | Presence | GP8403 |
-| 106 | Core-C | USB | Bathroom Pro | Comfort | Presence | - |
-| 107 | Core-C | PoE | Bathroom Pro | Comfort | Presence | - |
-| 108 | Core-C | PWR | Bathroom Pro | Comfort | Presence | - |
-| 109 | Core-C | USB | Bathroom Pro | Comfort | - | PWM |
-| 110 | Core-C | PoE | Bathroom Pro | Comfort | - | PWM |
-| 111 | Core-C | PWR | Bathroom Pro | Comfort | - | PWM |
-| 112 | Core-C | USB | Bathroom Pro | Comfort | - | GP8403 |
-| 113 | Core-C | PoE | Bathroom Pro | Comfort | - | GP8403 |
-| 114 | Core-C | PWR | Bathroom Pro | Comfort | - | GP8403 |
-| 115 | Core-C | USB | Bathroom Pro | - | Presence | PWM |
-| 116 | Core-C | PoE | Bathroom Pro | - | Presence | PWM |
-| 117 | Core-C | PWR | Bathroom Pro | - | Presence | PWM |
-| 118 | Core-C | USB | Bathroom Pro | - | Presence | GP8403 |
-| 119 | Core-C | PoE | Bathroom Pro | - | Presence | GP8403 |
-| 120 | Core-C | PWR | Bathroom Pro | - | Presence | GP8403 |
+| 106 | Core-C | USB | Sense360 VentIQ | Comfort | Presence | - |
+| 107 | Core-C | PoE | Sense360 VentIQ | Comfort | Presence | - |
+| 108 | Core-C | PWR | Sense360 VentIQ | Comfort | Presence | - |
+| 109 | Core-C | USB | Sense360 VentIQ | Comfort | - | PWM |
+| 110 | Core-C | PoE | Sense360 VentIQ | Comfort | - | PWM |
+| 111 | Core-C | PWR | Sense360 VentIQ | Comfort | - | PWM |
+| 112 | Core-C | USB | Sense360 VentIQ | Comfort | - | GP8403 |
+| 113 | Core-C | PoE | Sense360 VentIQ | Comfort | - | GP8403 |
+| 114 | Core-C | PWR | Sense360 VentIQ | Comfort | - | GP8403 |
+| 115 | Core-C | USB | Sense360 VentIQ | - | Presence | PWM |
+| 116 | Core-C | PoE | Sense360 VentIQ | - | Presence | PWM |
+| 117 | Core-C | PWR | Sense360 VentIQ | - | Presence | PWM |
+| 118 | Core-C | USB | Sense360 VentIQ | - | Presence | GP8403 |
+| 119 | Core-C | PoE | Sense360 VentIQ | - | Presence | GP8403 |
+| 120 | Core-C | PWR | Sense360 VentIQ | - | Presence | GP8403 |
 | 121 | Core-C | USB | - | Comfort | Presence | PWM |
 | 122 | Core-C | PoE | - | Comfort | Presence | PWM |
 | 123 | Core-C | PWR | - | Comfort | Presence | PWM |
@@ -545,12 +571,12 @@ All combinations for wall-mounted cores (Core-W or Core-V-W).
 | 136 | Core-C | USB | Bathroom Base | Comfort | Presence | GP8403 |
 | 137 | Core-C | PoE | Bathroom Base | Comfort | Presence | GP8403 |
 | 138 | Core-C | PWR | Bathroom Base | Comfort | Presence | GP8403 |
-| 139 | Core-C | USB | Bathroom Pro | Comfort | Presence | PWM |
-| 140 | Core-C | PoE | Bathroom Pro | Comfort | Presence | PWM |
-| 141 | Core-C | PWR | Bathroom Pro | Comfort | Presence | PWM |
-| 142 | Core-C | USB | Bathroom Pro | Comfort | Presence | GP8403 |
-| 143 | Core-C | PoE | Bathroom Pro | Comfort | Presence | GP8403 |
-| 144 | Core-C | PWR | Bathroom Pro | Comfort | Presence | GP8403 |
+| 139 | Core-C | USB | Sense360 VentIQ | Comfort | Presence | PWM |
+| 140 | Core-C | PoE | Sense360 VentIQ | Comfort | Presence | PWM |
+| 141 | Core-C | PWR | Sense360 VentIQ | Comfort | Presence | PWM |
+| 142 | Core-C | USB | Sense360 VentIQ | Comfort | Presence | GP8403 |
+| 143 | Core-C | PoE | Sense360 VentIQ | Comfort | Presence | GP8403 |
+| 144 | Core-C | PWR | Sense360 VentIQ | Comfort | Presence | GP8403 |
 
 **Ceiling Standard Core Total: 144 configurations**
 
@@ -663,8 +689,8 @@ This multiplies presence-enabled configurations by 3, resulting in **700+ unique
 | Variant | SKU | Sensors | Use Case |
 |---------|-----|---------|----------|
 | AirIQ | S360-AIR | SPS30, SGP41, SCD41, BMP390 | General air quality |
-| Bathroom Base | S360-BATH-B | SHT4x, BMP390, SGP41 | Basic bathroom |
-| Bathroom Pro | S360-BATH-P | SHT4x, BMP390, SGP41, MLX90614, SPS30 | Full bathroom |
+| Bathroom Base *(legacy, retired)* | S360-BATH-B | SHT4x, BMP390, SGP41 | Retired legacy bathroom SKU; no canonical successor. |
+| Sense360 VentIQ | S360-BATH-P | SHT4x, BMP390, SGP41, MLX90614, SPS30 | Old name `Bathroom Pro`. |
 
 ### Fan Control Variants
 
