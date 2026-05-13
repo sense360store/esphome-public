@@ -257,7 +257,7 @@ After the initial USB flash, all future updates can be done wirelessly.
    ```yaml
    packages:
      sense360_firmware:
-       ref: v2.2.0  # Change to the new version number
+       ref: <new-release-tag>  # Example: v1.0.0. Replace with the release tag you are updating to.
    ```
 
 3. **Flash wirelessly**:

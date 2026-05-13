@@ -585,6 +585,16 @@ Each core product is available with specific power configurations:
 
 ## Configuration Examples
 
+> **Legacy examples.** The snippets in Examples 1–3 below intentionally
+> pin to the historical `v2.2.0` tag for legacy Core/Wall/Bathroom
+> package examples — that is the last tag at which these legacy product
+> YAMLs were exercised together as the primary release. For current
+> Release-One WebFlash firmware, use `Ceiling-POE-VentIQ-RoomIQ` and
+> release [`v1.0.0`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0)
+> (see [`release-one.md`](release-one.md)). For custom / manual builds,
+> pin to a release tag that is known to support the packages you
+> include; do not use `ref: main` for production.
+
 ### Example 1: Core Ceiling with Full Monitoring
 
 Complete ceiling-mounted system with AirIQ, Comfort, and Presence.
