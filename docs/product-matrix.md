@@ -47,7 +47,7 @@ WebFlash describes a device as `{Mount}-{Power}-{AirQuality}-{Fan}-{Room}`:
 - [Quick Assembly Guide](#quick-assembly-guide)
 - [Core Boards](#core-boards)
 - [Power Modules](#power-modules)
-- [LED Rings](#led-rings)
+- [Sense360 LED](#sense360-led)
 - [Sensor Modules](#sensor-modules)
 - [Module Combination Rules](#module-combination-rules)
 - [Fan Control Modules](#fan-control-modules)
@@ -62,7 +62,7 @@ The Sense360 system is a modular smart home sensor platform built around an ESP3
 
 1. **Core Board** - The ESP32-S3 base that connects all modules
 2. **Power Module** - How the system is powered (USB, POE, or PWR)
-3. **LED Ring** - Visual feedback (Standard LED or LED+MIC for voice)
+3. **Sense360 LED** - Visual feedback (Standard LED or LED+MIC for voice). Excluded from Release-One.
 4. **Sensor Modules** - Air-quality (AirIQ or VentIQ), Room sensing (RoomIQ), Fan driver (FanRelay / FanPWM / FanDAC / FanTRIAC)
 
 ---
@@ -92,10 +92,13 @@ CORE (1x) + POWER (1x) + LED (see rules) + MODULES (any combination*)
 | POE | S360-POE | Power over Ethernet (professional installations) |
 | PWR | S360-PWR | 240V AC mains power (permanent installations) |
 
-### Step 3: Add LED Ring (Optional)
+### Step 3: Add Sense360 LED (Optional)
 
-| Core Type | LED Ring | Description |
-|-----------|----------|-------------|
+> Old name: `LED Ring`. Excluded from Release-One — the WebFlash config
+> string `Ceiling-POE-VentIQ-RoomIQ` does not carry a `LED` token.
+
+| Core Type | Sense360 LED | Description |
+|-----------|--------------|-------------|
 | CORE-C | Standard LED (Ceiling) | Visual feedback for air quality and status |
 | CORE-W | Standard LED (Wall) | Visual feedback for air quality and status |
 
@@ -117,18 +120,18 @@ Add any combination of modules following the [Module Combination Rules](#module-
         ┌─────────────────────┼─────────────────────┐
         ▼                     ▼                     ▼
 ┌───────────────┐    ┌───────────────┐    ┌───────────────┐
-│ POWER MODULE  │    │   LED RING    │    │SENSOR MODULES │
+│ POWER MODULE  │    │ SENSE360 LED  │    │SENSOR MODULES │
 │  (Required)   │    │  (Optional)   │    │  (Optional)   │
 │               │    │               │    │               │
 │  - USB        │    │  Standard LED │    │  - AirIQ      │
 │  - POE        │    │  (Ceiling or  │    │  - Comfort    │
 │  - PWR (240V) │    │   Wall)       │    │  - Presence   │
-│               │    │               │    │  - Bathroom*  │
+│               │    │               │    │  - VentIQ*    │
 │               │    │               │    │  - Fan GP8403 │
 │               │    │               │    │  - Fan PWM    │
 └───────────────┘    └───────────────┘    └───────────────┘
 
-* Bathroom is Ceiling-only and replaces AirIQ
+* VentIQ (old name `Bathroom Pro`) is Ceiling-only and replaces AirIQ
 ```
 
 ---
@@ -258,30 +261,35 @@ packages:
 
 ---
 
-## LED Rings
+## Sense360 LED
 
-LED rings provide visual feedback for air quality, presence, and system status.
+> Old name: `LED Ring`. Excluded from Release-One — the WebFlash config
+> string `Ceiling-POE-VentIQ-RoomIQ` does not carry a `LED` token. The
+> `led_ring_*.yaml` package filenames are retained for remote-package
+> compatibility.
+
+Sense360 LED provides visual feedback for air quality, presence, and system status.
 
 | Project Name | Product Name | Variant | SKU | Pairs With |
 |-------------|--------------|---------|-----|------------|
 | `Sense360_LED_Ceiling` | Sense 360 LEDs | Ceiling | S360-LED-C | Core Ceiling |
 | `Sense360_LED_Wall` | Sense 360 LEDs | Wall/Desk | S360-LED-W | Core Wall |
 
-### LED Ring Specifications
+### Sense360 LED Specifications
 
-| Ring Type | LEDs | Description |
-|-----------|------|-------------|
+| LED Variant | LEDs | Description |
+|-------------|------|-------------|
 | Standard Ceiling (S360-LED-C) | WS2812B RGB | Visual feedback for ceiling mount |
 | Standard Wall (S360-LED-W) | WS2812B RGB | Visual feedback for wall/desk mount |
 
 ### YAML Package Files
 
 ```yaml
-# Standard LED Ring (Ceiling)
+# Sense360 LED (Ceiling)
 packages:
   led_ring: !include packages/hardware/led_ring_ceiling.yaml
 
-# Standard LED Ring (Wall/Desk)
+# Sense360 LED (Wall/Desk)
 packages:
   led_ring: !include packages/hardware/led_ring_wall.yaml
 ```
@@ -347,23 +355,29 @@ mmWave radar-based presence and occupancy detection.
 - Distance and angle measurement
 - Speed measurement (C4001)
 
-### Bathroom Module
+### Sense360 VentIQ (Bathroom) Module
 
 Specialized module for bathroom environments. **Ceiling mount only.**
 
+> `Sense360 VentIQ` is the canonical name (`S360-BATH-P` / `S360-211`).
+> Old name: `Bathroom Pro`. The older `Bathroom Base` (`S360-BATH-B`) is a
+> retired legacy bathroom SKU with no canonical successor in
+> [`hardware-catalog.md`](hardware-catalog.md); it is retained below
+> pending a separate SKU / catalog audit.
+
 | Project Name | Product Name | Variant | SKU | Sensors |
 |-------------|--------------|---------|-----|---------|
-| `Sense360_Module_Bathroom_Base` | Sense 360 Bathroom Base | Ceiling | S360-BATH-B | SHT4x, BMP390, SGP41 |
-| `Sense360_Module_Bathroom_Pro` | Sense 360 Bathroom Pro | Ceiling | S360-BATH-P | SHT4x, BMP390, SGP41, MLX90614, SPS30 |
+| `Sense360_Module_Bathroom_Base` *(legacy, retired)* | Sense 360 Bathroom Base | Ceiling | S360-BATH-B | SHT4x, BMP390, SGP41 |
+| `Sense360_Module_VentIQ` | Sense360 VentIQ | Ceiling | S360-BATH-P | SHT4x, BMP390, SGP41, MLX90614, SPS30 |
 
-> **Note**: The Bathroom module **replaces the AirIQ module** - they cannot be used together.
+> **Note**: The bathroom-class module **replaces the AirIQ module** - they cannot be used together.
 
-**Bathroom Base Features:**
+**Bathroom Base Features (legacy, retired):**
 - SHT4x (Temperature, Humidity)
 - BMP390 (Pressure)
 - SGP41 (VOC/NOx)
 
-**Bathroom Pro (additional):**
+**Sense360 VentIQ (additional over the retired Base):**
 - MLX90614 (IR surface temperature / condensation risk)
 - SPS30 (PM1.0, PM2.5, PM10)
 
@@ -681,7 +695,7 @@ packages:
   # Core Hardware
   core: !include packages/hardware/sense360_core_ceiling.yaml
 
-  # LED Ring (optional)
+  # Sense360 LED (optional; old name `LED Ring`)
   led_ring: !include packages/hardware/led_ring_ceiling.yaml
 
   # Modules - Presence + Fan only
@@ -719,11 +733,11 @@ ota:
 | S360-POE | `packages/hardware/power_poe.yaml` |
 | S360-PWR | `packages/hardware/power_240v.yaml` |
 
-### LED Rings
+### Sense360 LED
 | SKU | Package File |
 |-----|--------------|
-| S360-LED-C | `packages/hardware/led_ring_ceiling.yaml` |
-| S360-LED-W | `packages/hardware/led_ring_wall.yaml` |
+| S360-LED-C | `packages/hardware/led_ring_ceiling.yaml` (filename retained for remote-package compatibility) |
+| S360-LED-W | `packages/hardware/led_ring_wall.yaml` (filename retained for remote-package compatibility) |
 
 ### Sensor Modules
 | SKU | Package File |

@@ -1,5 +1,23 @@
 # Sense360 Modular Board Combinations Guide
 
+> **Release-One scope:** Production Release-One ships the WebFlash config
+> `Ceiling-POE-VentIQ-RoomIQ`, artifact
+> `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`. FanTRIAC is
+> **blocked pending HW-005** and Sense360 LED is **excluded from
+> Release-One** (the config string carries no `LED` token). This document
+> describes the broader Sense360 hardware combination space, not the
+> Release-One catalog. See [`release-one.md`](release-one.md) for the
+> shipping configuration.
+
+> **Legacy naming note:** `Sense360 VentIQ` replaces the old name
+> `Bathroom Pro` / `Bathroom AirIQ Pro` (`S360-BATH-P` / `S360-211`). The
+> older `Bathroom Base` / `Bathroom AirIQ Base` (`S360-BATH-B`) is retained
+> below as a **retired legacy bathroom variant** — it has no canonical
+> successor in [`hardware-catalog.md`](hardware-catalog.md) and is not
+> part of the current Sense360 lineup. `Sense360 LED` replaces the old
+> name `LED Ring`. Some legacy SKU strings are retained pending a separate
+> SKU / catalog audit.
+
 This document provides a clear overview of all possible board combinations for the Sense360 modular sensor platform.
 
 ---
@@ -73,10 +91,10 @@ Add sensor capabilities to your core. Multiple modules can be combined (with som
 | Module | SKU | Sensors | Use Case |
 |--------|-----|---------|----------|
 | **AirIQ** | `S360-AIR` | SPS30 (PM), SGP41 (VOC/NOx), SCD41 (CO2), BMP390 (Pressure) | General air quality monitoring |
-| **Bathroom AirIQ Base** | `S360-BATH-B` | SHT4x, BMP390, SGP41 | Shower detection, mold risk |
-| **Bathroom AirIQ Pro** | `S360-BATH-P` | Base + MLX90614 (IR), SPS30 (PM) | Condensation risk, PM monitoring |
+| **Bathroom AirIQ Base** *(legacy, retired)* | `S360-BATH-B` | SHT4x, BMP390, SGP41 | Retired legacy bathroom SKU; no canonical successor in [`hardware-catalog.md`](hardware-catalog.md). Shower detection, mold risk. |
+| **Sense360 VentIQ** | `S360-BATH-P` | Base + MLX90614 (IR), SPS30 (PM) | Old name `Bathroom Pro` / `Bathroom AirIQ Pro`. Condensation risk, PM monitoring. |
 
-> **Note**: Bathroom modules are **ceiling-only** and **replace** AirIQ (cannot use both together).
+> **Note**: Bathroom-class modules are **ceiling-only** and **replace** AirIQ (cannot use both together).
 
 ### Environmental Modules
 
@@ -95,16 +113,19 @@ Add sensor capabilities to your core. Multiple modules can be combined (with som
 
 ---
 
-## 5. LED Rings
+## 5. Sense360 LED
 
 Visual feedback system. Choose based on core type and mounting.
 
-| LED Type | SKU | Features | Pairs With |
-|----------|-----|----------|-----------|
-| **LED Ceiling** | `S360-LED-C` | WS2812B halo ring | Core Ceiling |
-| **LED Wall** | `S360-LED-W` | WS2812B standard ring | Core Wall |
-| **LED Voice Ceiling** | `S360-LED-V-C` | LED + Microphone | Core Voice Ceiling |
-| **LED Voice Wall** | `S360-LED-V-W` | LED + Microphone | Core Voice Wall |
+> Old name: `LED Ring`. Excluded from Release-One — the WebFlash config
+> string `Ceiling-POE-VentIQ-RoomIQ` does not carry a `LED` token.
+
+| Sense360 LED | SKU | Features | Pairs With |
+|--------------|-----|----------|-----------|
+| **Sense360 LED (Ceiling)** | `S360-LED-C` | WS2812B halo ring | Core Ceiling |
+| **Sense360 LED (Wall)** | `S360-LED-W` | WS2812B standard ring | Core Wall |
+| **LED Voice Ceiling** | `S360-LED-V-C` | Sense360 LED + Microphone | Core Voice Ceiling |
+| **LED Voice Wall** | `S360-LED-V-W` | Sense360 LED + Microphone | Core Voice Wall |
 
 ---
 
@@ -248,7 +269,7 @@ packages:
 # Components:
 # - Core Voice Ceiling
 # - 240V Power
-# - Bathroom AirIQ Pro Module
+# - Sense360 VentIQ Module (old name Bathroom AirIQ Pro)
 # - Presence Module
 # - Fan GP8403
 # - LED Voice Ceiling
@@ -351,14 +372,14 @@ Examples:
                     │   Add Modules...      │
                     │                       │
                     │  □ AirIQ              │
-                    │  □ Bathroom AirIQ*    │
+                    │  □ Sense360 VentIQ*   │
                     │  □ Comfort            │
                     │  □ Presence           │
                     │  □ Fan Control        │
-                    │  □ LED Ring           │
+                    │  □ Sense360 LED       │
                     └───────────────────────┘
 
-                    * Ceiling only, replaces AirIQ
+                    * Ceiling only, replaces AirIQ. Old name `Bathroom AirIQ`.
 ```
 
 ---
@@ -369,12 +390,12 @@ Examples:
 |-----------|-----------|---------|----------|
 | Core Board | 200mA | 500mA | - |
 | AirIQ Module | 500mA | - | - |
-| Bathroom Module | 500mA | - | - |
+| Sense360 VentIQ Module | 500mA | - | - |
 | Comfort Module | 200mA | - | - |
 | Presence Module | - | 150mA | - |
 | Fan GP8403 | 50mA | - | - |
 | Fan PWM | 50mA | - | - |
-| LED Ring | - | 500mA | - |
+| Sense360 LED | - | 500mA | - |
 | **Budget Limits** | **500mA** | **2000mA** | **4000mA** |
 
 ---
@@ -385,6 +406,6 @@ Examples:
 |----------|-----------|---------------|
 | Core Boards | `packages/hardware/` | `sense360_core_ceiling.yaml`, `sense360_core_voice_wall.yaml` |
 | Power | `packages/hardware/` | `power_poe.yaml`, `power_240v.yaml` |
-| LED Rings | `packages/hardware/` | `led_ring_ceiling.yaml`, `led_ring_mic_wall.yaml` |
+| Sense360 LED | `packages/hardware/` | `led_ring_ceiling.yaml`, `led_ring_mic_wall.yaml` (filenames retained for remote-package compatibility) |
 | Modules | `packages/expansions/` | `airiq_ceiling.yaml`, `presence_wall.yaml`, `fan_gp8403.yaml` |
 | Complete Products | `products/` | `sense360-core-c-poe.yaml`, `sense360-core-v-w-usb.yaml` |

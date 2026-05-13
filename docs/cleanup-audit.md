@@ -604,3 +604,103 @@ document.
 - No `CHANGELOG.md` edits — the stale `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
   mention in the `Unreleased / Added` block is recorded above and
   deferred to CLEANUP-002.
+
+## CLEANUP-003 update (legacy naming docs sweep)
+
+This section records what CLEANUP-003 actually swept. It does **not**
+rewrite the audit above. Findings and recommendations recorded earlier
+in this document remain accurate; the entries below summarise the
+applied changes.
+
+### Files swept (docs/comments only)
+
+| Path | Sweep |
+|---|---|
+| `docs/modular-combinations.md` | Added Release-One scope banner + legacy-naming banner. Replaced `Bathroom Pro` → `Sense360 VentIQ` in current-tense tables. Tagged `Bathroom Base` as `*(legacy, retired)*` in definition tables. Replaced LED-Ring section heading + per-row product labels with `Sense360 LED`. |
+| `docs/board-combinations.md` | Added Release-One + legacy-naming banner. Replaced `Bathroom AirIQ Pro` → `Sense360 VentIQ` and tagged `Bathroom AirIQ Base` as `*(legacy, retired)*`. Replaced section 5 heading `LED Rings` → `Sense360 LED`; updated ASCII decision tree, power-budget row, and file-reference table to use `Sense360 LED` / `Sense360 VentIQ`. Updated the Example 3 `Bathroom AirIQ Pro Module` comment to call out the canonical name. |
+| `docs/product-matrix.md` | Updated TOC + section heading `LED Rings` → `Sense360 LED` (anchor `#sense360-led`). Updated Step 3 heading, ASCII assembly diagram, YAML example comment, and SKU → Package mapping label. Renamed the `Bathroom Module` heading to `Sense360 VentIQ (Bathroom) Module`; renamed the SKU-row entry `Sense360_Module_Bathroom_Pro` / "Sense 360 Bathroom Pro" to `Sense360_Module_VentIQ` / "Sense360 VentIQ"; flagged `Sense360_Module_Bathroom_Base` row as `*(legacy, retired)*`. |
+| `docs/product-release-matrix.md` | Refreshed the stale `v3.0.0 / 2025-12-05` release header to current Release-One v1.0.0 framing (with explicit "not a historical release matrix" caveat). Section 3 heading `LED Attachments` → `Sense360 LED Attachments`; product labels `LED Ring Ceiling/Wall` → `Sense360 LED (Ceiling)/(Wall)`. Refreshed install example refs from `v3.0.0` to `v1.0.0` and the canonical Release-One product YAML. Flagged the `S360-BATH-C` row as a legacy SKU pending a separate SKU / catalog audit. |
+
+### Legacy aliases intentionally preserved
+
+The following references are **clearly labelled legacy / old_name /
+schematic / compatibility references** and are preserved on purpose. No
+sweep was applied to them.
+
+- `config/hardware-catalog.json` — `old_name` JSON fields (e.g.
+  `"Bathroom Pro"` for `S360-211`, `"LED Ring"` for `S360-300`).
+- `docs/hardware-catalog.md` — canonical-name table with "Old name"
+  column (`LED Ring` / `Bathroom Pro`).
+- `docs/hardware/s360-100-r4-core.md` — explicit `Old name: LED Ring`
+  rows tied to schematic-level discussion.
+- `docs/release-one-hardware-audit.md` — explicit "Old name: `Bathroom
+  Pro`. Do not reuse `Bathroom Pro` in new user-facing material" guidance
+  (and surrounding context).
+- `docs/webflash-contract.md` — legacy → WebFlash mapping table
+  (`Bathroom` → `VentIQ`, `LED` → S360-300, etc.).
+- `docs/webflash-ci-alignment.md` — legacy-token discussion (the
+  ESP-009 inventory bullet).
+- `packages/README.md` — `### Bathroom (legacy → WebFlash VentIQ)`
+  section header and adjacent legacy-mapping commentary.
+- `docs/manual-user-walkthrough.md` — "Sense360 LED (ceiling LED ring)
+  is excluded from Release-One firmware" framing.
+- `CHANGELOG.md` — historical entries (3.0.0 and earlier) that mention
+  `Ceiling LED Ring`, `LED ring`, `Bathroom Pro`. Historical changelog
+  entries describe the state at the time of release and were not
+  rewritten.
+- `packages/SENSE360_MODULES.md` — register-map context (`0x59 |
+  GP8403 alt, SGP40 (Bathroom)`).
+- `docs/architecture.html`, `docs/configuration.html`,
+  `docs/product-guide.html`, `docs/technical-reference.html` —
+  HTML doc snapshots; decision deferred to CLEANUP-004.
+- Package and product YAML filenames + YAML-internal comments
+  (`packages/hardware/led_ring_*.yaml`,
+  `packages/features/ceiling_led_ring_air_quality.yaml`,
+  `packages/expansions/airiq_bathroom_*.yaml`,
+  `products/sense360-core-ceiling*.yaml`, etc.) — preserved as public
+  API / remote-package surface per the recommendation above.
+
+### Bathroom Base treatment
+
+`Bathroom Base` (`S360-BATH-B`) has **no canonical successor** in
+`docs/hardware-catalog.md`. Per CLEANUP-003 decision, the term was
+**not** silently collapsed into `Sense360 VentIQ`. Where it appears as a
+current-tense product label in user-facing docs, it is now annotated as
+a retired legacy bathroom SKU (`*(legacy, retired)*`) in the relevant
+definition tables. A separate SKU / catalog audit is needed to decide
+whether `Bathroom Base` should be removed from the docs entirely or
+formally cataloged.
+
+### Out of scope (unchanged by CLEANUP-003)
+
+CLEANUP-003 is docs/comments only. The following remain untouched:
+
+- `products/*.yaml`, `products/webflash/*.yaml`, `packages/*.yaml`.
+- `config/webflash-builds.json`, `config/webflash-compatibility.json`,
+  `config/hardware-catalog.json` (including `old_name` fields).
+- `.github/workflows/*`, `scripts/*`, `tests/*`, `components/*`,
+  `include/*`.
+- File renames (none performed).
+- WebFlash config strings, artifact names, build matrix, firmware
+  package IDs, hardware SKUs.
+- FanTRIAC blocked status (remains blocked pending HW-005).
+- LED exclusion status (remains excluded from Release-One).
+- HTML doc snapshots in `docs/*.html` (deferred to CLEANUP-004).
+
+### Validation run for CLEANUP-003
+
+The commands at the top of this document, plus the sanity greps below,
+were re-run after the sweep. Results are captured in the commit body
+for the CLEANUP-003 PR.
+
+```text
+grep -RIn "Celling"      README.md CHANGELOG.md docs examples packages products config tests scripts
+grep -RIn "AirlQ"        README.md CHANGELOG.md docs examples packages products config tests scripts
+grep -RIn "Bathroom Pro" README.md CHANGELOG.md docs examples packages products config tests scripts
+grep -RIn "LED Ring"     README.md CHANGELOG.md docs examples packages products config tests scripts
+```
+
+Any remaining `Bathroom Pro` / `LED Ring` hits after the sweep are
+clearly framed as legacy / old_name / schematic / compatibility /
+historical references in the locations listed under "Legacy aliases
+intentionally preserved" above.

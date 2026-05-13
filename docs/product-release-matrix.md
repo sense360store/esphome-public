@@ -1,11 +1,28 @@
 # Sense360 Product Release Matrix
 
-This document defines the complete product SKU matrix for Sense360 devices, including all valid hardware combinations, firmware configurations, and release packages.
+This document is the **current Release-One-oriented** product SKU matrix
+for Sense360 devices, covering valid hardware combinations, firmware
+configurations, and release packages. It is **not** a historical
+release matrix; older releases (`v3.0.0` and earlier) are not described
+here.
+
+> **Release-One scope:** Production Release-One ships the WebFlash config
+> `Ceiling-POE-VentIQ-RoomIQ`, artifact
+> `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`. FanTRIAC is
+> **blocked pending HW-005** and Sense360 LED is **excluded from
+> Release-One** (the config string carries no `LED` token). See
+> [`release-one.md`](release-one.md) for the shipping configuration.
+
+> **Legacy naming note:** `Sense360 VentIQ` replaces the old name
+> `Bathroom Pro` (`S360-BATH-P` / `S360-211`). `Sense360 LED` replaces the
+> old name `LED Ring`. Some legacy SKU strings below (for example
+> `S360-BATH-C`) are retained pending a separate SKU / catalog audit.
 
 ## Version Information
 
-- **Release Version**: 3.0.0
-- **Release Date**: 2025-12-05
+- **Release Version**: 1.0.0 (Release-One)
+- **Release Tag**: [`v1.0.0`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0)
+- **Release Artifact**: `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`
 - **ESPHome Minimum Version**: 2025.10.0
 
 ---
@@ -44,23 +61,26 @@ This document defines the complete product SKU matrix for Sense360 devices, incl
 
 ---
 
-## 3. LED Attachments
+## 3. Sense360 LED Attachments
+
+> Old name: `LED Ring`. **Excluded from Release-One** — the WebFlash config
+> string `Ceiling-POE-VentIQ-RoomIQ` does not carry a `LED` token.
 
 | SKU | Name | LEDs | Microphone | Use With |
 |-----|------|------|------------|----------|
-| **S360-LED-C** | LED Ring Ceiling | 12x WS2812B | No | CORE-C |
+| **S360-LED-C** | Sense360 LED (Ceiling) | 12x WS2812B | No | CORE-C |
 | **S360-LED-V-C** | LED+MIC Ring Ceiling | 12x WS2812B | I2S Array | CORE-V-C (Required) |
-| **S360-LED-W** | LED Ring Wall | 12x WS2812B | No | CORE-W |
+| **S360-LED-W** | Sense360 LED (Wall) | 12x WS2812B | No | CORE-W |
 | **S360-LED-V-W** | LED+MIC Ring Wall | 12x WS2812B | I2S Array | CORE-V-W (Required) |
 
-### LED Attachment Rules
+### Sense360 LED Attachment Rules
 
 | Core Type | LED Requirement |
 |-----------|-----------------|
 | CORE-V-C (Voice Ceiling) | **LED+MIC Ring Required** (S360-LED-V-C) |
 | CORE-V-W (Voice Wall) | **LED+MIC Ring Required** (S360-LED-V-W) |
-| CORE-C (Ceiling) | LED Ring Optional (S360-LED-C) |
-| CORE-W (Wall) | LED Ring Optional (S360-LED-W) |
+| CORE-C (Ceiling) | Sense360 LED Optional (S360-LED-C); excluded from Release-One |
+| CORE-W (Wall) | Sense360 LED Optional (S360-LED-W); excluded from Release-One |
 
 ---
 
@@ -71,7 +91,7 @@ This document defines the complete product SKU matrix for Sense360 devices, incl
 | SKU | Name | Sensors | Function |
 |-----|------|---------|----------|
 | **S360-AIR-C** | AirIQ Ceiling | SEN55, SCD41, BMP390 | Air quality monitoring |
-| **S360-BATH-C** | Bathroom Ceiling | SHT40, SCD41, SGP40, BH1750 | Bathroom-specific monitoring |
+| **S360-BATH-C** *(legacy SKU, pending audit)* | Bathroom Ceiling | SHT40, SCD41, SGP40, BH1750 | Bathroom-specific monitoring. Legacy SKU retained pending a separate SKU / catalog audit; the canonical [`hardware-catalog.md`](hardware-catalog.md) currently lists `Sense360 VentIQ` (`S360-BATH-P` / `S360-211`) and the retired `Bathroom Base` (`S360-BATH-B`) instead. |
 | **S360-CMFT-C** | Comfort Ceiling | SHT4x, VEML7700 | Temperature, humidity, light |
 | **S360-PRES-C** | Presence Ceiling | HLK-LD2450, DFRobot C4001 | Multi-target presence detection |
 | **S360-FAN-GP** | Fan Control GP8403 | GP8403 DAC | 0-10V analog fan control |
@@ -234,11 +254,11 @@ Examples:
 Users can combine base configurations with module packages:
 
 ```yaml
-# Example: Voice Ceiling with PoE and AirIQ + Presence
+# Example (legacy-compatible Core path): Voice Ceiling with PoE and AirIQ + Presence
 packages:
   sense360:
     url: https://github.com/sense360store/esphome-public
-    ref: v3.0.0
+    ref: v1.0.0
     files:
       - products/sense360-core-v-c-poe.yaml
       - packages/expansions/airiq_ceiling.yaml
@@ -276,7 +296,7 @@ packages:
 
 ### GitHub Release Tags
 
-- `v3.0.0` - Current stable release
+- `v1.0.0` - Current Release-One stable release (artifact `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`)
 - `main` - Development branch (not recommended for production)
 
 ### Installation
@@ -286,9 +306,9 @@ packages:
 packages:
   sense360:
     url: https://github.com/sense360store/esphome-public
-    ref: v3.0.0
+    ref: v1.0.0
     files:
-      - products/sense360-ceiling-full.yaml
+      - products/sense360-ceiling-poe-ventiq-roomiq.yaml
 
 wifi:
   ssid: !secret wifi_ssid
