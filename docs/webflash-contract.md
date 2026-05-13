@@ -404,6 +404,22 @@ fails fast if it is missing or malformed — there is no hardcoded fallback. If
 you change the rules in this document, update the JSON snapshot in the same
 PR and re-run the validator.
 
+### Product status catalog
+
+The lifecycle layer on top of the build matrix lives in
+[`config/product-catalog.json`](../config/product-catalog.json). It records
+the lifecycle status (`production`, `preview`, `blocked`, `legacy-compatible`,
+etc.) for each Sense360 product configuration, the canonical product YAML and
+WebFlash wrapper paths, the artifact name for production entries, the hardware
+SKUs, and any blocked / excluded modules. `config/webflash-builds.json` remains
+the authoritative WebFlash build matrix; the catalog adds the lifecycle layer
+and is one-way cross-checked against the build matrix by
+[`tests/test_product_catalog.py`](../tests/test_product_catalog.py) — every
+`status: blocked` entry must NOT appear in the build matrix, and every build
+matrix entry must appear in the catalog with a WebFlash-eligible status. New
+product configs should declare their status in the catalog before being added
+to the build matrix.
+
 ---
 
 ## Compatibility Rule of Thumb
