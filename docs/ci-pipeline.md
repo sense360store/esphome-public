@@ -15,12 +15,28 @@ This document explains how the Continuous Integration (CI) pipeline validates fi
 
 ## Overview
 
-The CI pipeline automatically validates all firmware configurations on every push and pull request. This ensures:
+The CI pipeline has two layers:
 
-1. **All product configs compile** - Every YAML file in `products/` is tested with ESPHome
-2. **No broken packages** - Package references are validated
-3. **Module combinations work** - Generated configs test various module permutations
-4. **Code quality** - YAML syntax, C++ formatting, and style checks
+1. **Per-PR gate** (`validate.yml` + `firmware-build-release.yml`) — runs on
+   every push and pull request, plus on release publish. Covers YAML syntax,
+   product substitutions, Release-One entity-name collisions, and the full
+   WebFlash build/artifact-naming contract.
+2. **Manual broad sweep** (`ci-validate-configs.yml`) — runs only on manual
+   dispatch. Sweeps every legacy/manual/reference product YAML through
+   `esphome config`, exercises generated module combinations, and lints C++
+   headers. Useful for spotting drift in older configs without blocking
+   day-to-day PRs.
+
+What this pipeline ensures:
+
+1. **Release-One/WebFlash compiles and ships correctly** - `validate.yml`
+   guards the WebFlash build matrix and artifact names on every PR;
+   `firmware-build-release.yml` builds and publishes the signed `.bin` set
+   on release.
+2. **No broken packages** - Package references are validated by both layers.
+3. **Module combinations work** - Generated configs test various module
+   permutations (manual sweep).
+4. **Code quality** - YAML syntax, C++ formatting, and style checks.
 
 ---
 
@@ -103,33 +119,44 @@ Three GitHub Actions workflows handle firmware validation:
 Push/PR → YAML Syntax Check → Pass/Fail (30 sec)
 ```
 
-### 2. Full Config Validation (`ci-validate-configs.yml`)
+### 2. Broad Legacy/Manual Config Sweep (`ci-validate-configs.yml`)
 
-**Triggers:** Push/PR when config files change
+**Triggers:** Manual (`workflow_dispatch`) only
 **Duration:** ~5-10 minutes
-**Purpose:** Complete ESPHome validation of all products
+**Purpose:** Broad ESPHome validation of legacy/manual/reference product
+configurations and generated module combinations.
+
+> **Not a PR gate.** This workflow does **not** run on push or pull request.
+> Release-One/WebFlash gating lives in `validate.yml` (every push/PR) and
+> `firmware-build-release.yml` (release publish). Failures here indicate
+> legacy/manual compatibility drift — they do not block normal PRs and do
+> not by themselves indicate a Release-One/WebFlash regression.
 
 **Jobs:**
 
 | Job | Description |
 |-----|-------------|
 | `validate-yaml` | YAML syntax + yamllint checks |
-| `discover-products` | Dynamically finds ALL products in `products/` |
-| `test-all-products` | Runs `esphome config` on every product |
+| `discover-products` | Dynamically finds product YAML files (excludes WebFlash wrappers) |
+| `test-all-products` | Runs `esphome config` on every discovered legacy/manual product |
 | `test-generated-configs` | Tests module combination permutations |
 | `lint-cpp` | Checks C++ header formatting |
 | `test-summary` | Reports overall results |
 
 **Dynamic Product Discovery:**
 ```bash
-# The CI automatically discovers all products - no hardcoded list!
-PRODUCTS=$(find products/ -name "*.yaml" -type f ! -name "secrets.yaml" | sort)
+# The sweep automatically discovers product YAMLs. The WebFlash wrappers in
+# products/webflash/ are intentionally excluded: they are not standalone
+# product configs but thin mappers from WebFlash config strings to canonical
+# products/sense360-*.yaml files (see firmware-build-release.yml and
+# config/webflash-builds.json).
+PRODUCTS=$(find products/ -name "*.yaml" -type f ! -name "secrets.yaml" ! -path "products/webflash/*" | sort)
 ```
 
 This means:
-- Adding a new product automatically includes it in CI
+- Adding a new product automatically includes it in the manual sweep
 - No workflow changes needed when adding products
-- Every product in `products/` is validated
+- Every non-wrapper product in `products/` is validated when the sweep is run
 
 ### 3. Build & Release (`firmware-build-release.yml`)
 
@@ -160,17 +187,19 @@ This means:
 
 ### Test Modes
 
-The `ci-validate-configs.yml` workflow supports two modes:
+The `ci-validate-configs.yml` workflow supports two modes for the generated
+module combinations job. The workflow is manual-only (`workflow_dispatch`), so
+both modes are reached by manually dispatching the workflow.
 
-| Mode | Description | When Used |
-|------|-------------|-----------|
-| `quick` | Representative subset of module combinations | Default on push/PR |
-| `full` | All possible module combinations | Manual dispatch |
+| Mode | Description |
+|------|-------------|
+| `quick` | Representative subset of module combinations (default) |
+| `full` | All possible module combinations |
 
-To run full validation manually:
+To run the broad legacy/manual sweep:
 1. Go to Actions → "CI - Validate Firmware Configs"
 2. Click "Run workflow"
-3. Select `test_mode: full`
+3. Select `test_mode: quick` (representative) or `full` (all combinations)
 
 ---
 

@@ -1,43 +1,41 @@
 ---
 # ============================================================================
-# CI - VALIDATE FIRMWARE CONFIGURATIONS
+# CI - VALIDATE FIRMWARE CONFIGURATIONS (MANUAL BROAD/LEGACY SWEEP)
 # ============================================================================
-# This workflow validates all ESPHome firmware configurations to ensure they
-# can be compiled and are syntactically correct.
+# This workflow is a MANUAL broad/legacy compatibility sweep across every
+# product YAML in the repo (excluding the WebFlash wrappers in
+# products/webflash/, which are not standalone configs) plus generated
+# module combinations.
 #
-# Purpose:
-#   - Validate YAML syntax for all configuration files
-#   - Test all existing product configurations (31+ products)
-#   - Test generated module combinations for full coverage
-#   - Lint C++ headers
+# It is NOT the normal PR gate. The Release-One / WebFlash blocking checks
+# live in:
+#   - .github/workflows/validate.yml
+#   - .github/workflows/firmware-build-release.yml
+# along with the test scripts they invoke (validate_configs.py,
+# validate_webflash_builds.py, test_webflash_compatibility.py,
+# test_webflash_artifact_naming.py, test_product_substitutions.py,
+# test_release_one_entity_names.py, test_validate_webflash_release_notes.py).
+#
+# Purpose (manual use):
+#   - Spot-check that historical / manual / reference product configurations
+#     still validate against the current ESPHome version.
+#   - Validate YAML syntax across products and packages.
+#   - Exercise generated module combinations.
+#   - Lint C++ headers.
 #
 # Test Modes:
-#   - quick: Fast representative subset for CI (default on push/PR)
-#   - full: All module combinations (manual dispatch)
+#   - quick: Fast representative subset of generated module combinations.
+#   - full:  All generated module combinations.
 #
-# This ensures firmware builds won't fail when released via WebFlash or
-# when users pull packages into their own ESPHome configurations.
+# Failures here indicate legacy/manual compatibility issues. They do NOT
+# block normal PRs and do NOT indicate a Release-One/WebFlash regression
+# unless the same failure also surfaces in validate.yml or the release
+# workflow.
 # ============================================================================
 
 name: CI - Validate Firmware Configs
 
 on:
-  push:
-    branches: ["*"]
-    paths:
-      - 'products/**'
-      - 'packages/**'
-      - 'components/**'
-      - 'tests/**'
-      - '.github/workflows/ci-validate-configs.yml'
-  pull_request:
-    branches: ["*"]
-    paths:
-      - 'products/**'
-      - 'packages/**'
-      - 'components/**'
-      - 'tests/**'
-      - '.github/workflows/ci-validate-configs.yml'
   workflow_dispatch:
     inputs:
       test_mode:
@@ -85,8 +83,11 @@ jobs:
   # ============================================================================
   # JOB 2: DISCOVER ALL PRODUCTS
   # ============================================================================
-  # Dynamically discovers all product YAML files to ensure no products are
-  # missed when new ones are added
+  # Dynamically discovers all product YAML files for the broad legacy/manual
+  # sweep. WebFlash wrappers in products/webflash/ are intentionally excluded:
+  # they are not standalone product configs but thin mappers from WebFlash
+  # config strings to canonical products/sense360-*.yaml files, and the
+  # release workflow short-circuits them via config/webflash-builds.json.
   # ============================================================================
   discover-products:
     name: Discover Products
@@ -101,8 +102,9 @@ jobs:
       - name: Discover product configurations
         id: discover
         run: |
-          # Find all product YAML files (excluding secrets.yaml)
-          PRODUCTS=$(find products/ -name "*.yaml" -type f ! -name "secrets.yaml" | sort)
+          # Find all product YAML files (excluding secrets.yaml and the
+          # WebFlash wrapper directory, which is not a standalone product).
+          PRODUCTS=$(find products/ -name "*.yaml" -type f ! -name "secrets.yaml" ! -path "products/webflash/*" | sort)
 
           # Build JSON matrix
           MATRIX='{"include":['
@@ -130,10 +132,13 @@ jobs:
           echo "Products: $(echo $PRODUCTS | tr '\n' ' ')"
 
   # ============================================================================
-  # JOB 3: TEST ALL EXISTING PRODUCTS
+  # JOB 3: BROAD LEGACY/MANUAL PRODUCT SWEEP
   # ============================================================================
-  # Tests every product configuration in the products/ directory
-  # This ensures all shipping products can be compiled
+  # Runs `esphome config` against every discovered product YAML (legacy,
+  # manual, and reference configs included; WebFlash wrappers excluded).
+  # Failures here flag legacy/manual compatibility drift, NOT a Release-One
+  # or WebFlash regression. The Release-One/WebFlash gate is owned by
+  # validate.yml and firmware-build-release.yml.
   # ============================================================================
   test-all-products:
     name: "Test: ${{ matrix.product }}"
@@ -370,27 +375,35 @@ jobs:
       - name: Check test results
         run: |
           echo "=============================================="
-          echo "FIRMWARE VALIDATION SUMMARY"
+          echo "BROAD LEGACY/MANUAL CONFIG SWEEP SUMMARY"
           echo "=============================================="
           echo ""
-          echo "Products Tested: ${{ needs.discover-products.outputs.product_count }}"
+          echo "This is a MANUAL broad/legacy compatibility sweep."
+          echo "It is NOT the Release-One/WebFlash PR gate."
+          echo "Release-One/WebFlash gating lives in:"
+          echo "  - .github/workflows/validate.yml"
+          echo "  - .github/workflows/firmware-build-release.yml"
+          echo ""
+          echo "Products Swept (legacy/manual, webflash wrappers excluded): ${{ needs.discover-products.outputs.product_count }}"
           echo "Generated Configs: ${{ needs.generate-test-matrix.outputs.config_count }}"
           echo ""
           echo "Job Results:"
-          echo "  - YAML Validation:      ${{ needs.validate-yaml.result }}"
-          echo "  - Product Discovery:    ${{ needs.discover-products.result }}"
-          echo "  - All Products Test:    ${{ needs.test-all-products.result }}"
-          echo "  - Matrix Generation:    ${{ needs.generate-test-matrix.result }}"
-          echo "  - Generated Configs:    ${{ needs.test-generated-configs.result }}"
-          echo "  - C++ Linting:          ${{ needs.lint-cpp.result }}"
+          echo "  - YAML Validation:        ${{ needs.validate-yaml.result }}"
+          echo "  - Product Discovery:      ${{ needs.discover-products.result }}"
+          echo "  - Legacy/Manual Sweep:    ${{ needs.test-all-products.result }}"
+          echo "  - Matrix Generation:      ${{ needs.generate-test-matrix.result }}"
+          echo "  - Generated Configs:      ${{ needs.test-generated-configs.result }}"
+          echo "  - C++ Linting:            ${{ needs.lint-cpp.result }}"
           echo ""
 
-          # Fail if any critical job failed
+          # Fail if any critical job failed. Failures here indicate
+          # legacy/manual compatibility issues; they do not gate normal PRs
+          # because this workflow runs only on manual dispatch.
           if [ "${{ needs.validate-yaml.result }}" = "failure" ] || \
              [ "${{ needs.test-all-products.result }}" = "failure" ] || \
              [ "${{ needs.test-generated-configs.result }}" = "failure" ]; then
-            echo "CRITICAL TESTS FAILED!"
+            echo "LEGACY/MANUAL SWEEP FAILED (manual workflow; not a PR gate)."
             exit 1
           fi
 
-          echo "All critical tests passed!"
+          echo "Legacy/manual sweep passed."
