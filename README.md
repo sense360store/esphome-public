@@ -411,7 +411,7 @@ esphome-public/
 - [Installation Guide](docs/installation.md) — Step-by-step setup
 - [Configuration Reference](docs/configuration.md) — Customization options
 - [Development Guide](docs/development.md) — Contributing and testing
-- [Manual / Custom User Walkthrough](docs/manual-user-walkthrough.md) — QA checklist for testing the manual ESPHome path
+- [Manual / Custom User Walkthrough](docs/manual-user-walkthrough.md) — test plan and findings template for validating the advanced manual ESPHome path.
 - [Changelog](CHANGELOG.md) — Version history
 
 ---
