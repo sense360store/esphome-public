@@ -108,6 +108,8 @@ Inspected paths: `README.md`, `CHANGELOG.md`, `docs/**`, `examples/**`,
 | `config/hardware-catalog.json` | `current` | Canonical SKU → friendly-name table; carries `old_name` entries for `LED Ring` (S360-300) and `Bathroom Pro` (S360-211), which is correct. | Keep. |
 | `config/product-catalog.json` | `current` | Product source-of-truth catalog (PRODUCT-001). Records lifecycle status for each Sense360 product configuration; Release-One is `production`, FanTRIAC is `blocked` (HW-005). Lifecycle layer on top of `config/webflash-builds.json`. | Keep. |
 | `tests/test_product_catalog.py` | `current` | Validates `config/product-catalog.json`: schema, required fields per status, path existence, config-string uniqueness, artifact-name pattern, and one-way cross-check against `config/webflash-builds.json` (blocked entries must not appear in the build matrix; build entries must appear in the catalog with a WebFlash-eligible status). | Keep. |
+| `scripts/validate_product_catalog_consistency.py` | `current` | PRODUCT-003 read-only catalog consistency validator. Cross-checks `config/product-catalog.json` against `config/webflash-builds.json`, `config/webflash-compatibility.json`, `config/hardware-catalog.json`, `scripts/product_name_mapper.py`, product YAML paths, and WebFlash wrapper paths. Provides `--checklist` and `--product` modes for the add-product workflow. Read-only; no mutation, no scaffold generation. | Keep. |
+| `tests/test_product_catalog_consistency.py` | `current` | Stdlib `unittest` suite covering `scripts/validate_product_catalog_consistency.py`: current-repo-state pass, Release-One production checks, FanTRIAC blocked checks, legacy-compatible non-shippability sweep, mapper agreement, wrapper basename agreement, and checklist mode. | Keep. |
 | `.github/workflows/firmware-build-release.yml` | `current` | Release-One build/release gate; excludes `products/webflash/*` from matrix discovery; runs `tests/check_webflash_build_output.py`. | Keep. |
 | `.github/workflows/validate.yml` | `current` | Quick YAML syntax pre-flight. | Keep. |
 | `scripts/product_name_mapper.py` | `current` | Maps product YAML basenames → WebFlash artifact names; explicit comment retains FanTRIAC mapping as legacy reference. | Keep. |
@@ -1125,3 +1127,47 @@ hits are clearly framed as one of:
   `packages/base/external_components.yaml:26` and
   `products/sense360-mini-full-ld2412.yaml:99` (internal loader
   paths, not user copy-paste examples).
+
+## PRODUCT-003 update (add-product validator)
+
+PRODUCT-003 adds a read-only product-catalog consistency validator and a
+companion unit-test suite. It does not change any product, wrapper, package,
+build matrix, compatibility JSON, hardware catalog, artifact name, mapper,
+Release-One config, FanTRIAC blocked status, or LED exclusion status.
+
+### Files added
+
+- `scripts/validate_product_catalog_consistency.py` — read-only validator.
+  Cross-checks `config/product-catalog.json` against
+  `config/webflash-builds.json`, `config/webflash-compatibility.json`,
+  `config/hardware-catalog.json`, `scripts/product_name_mapper.py`, and the
+  product / wrapper YAML paths. Supports `--checklist
+  <CONFIG_STRING_OR_LEGACY_ID>` and `--product <PATH>` modes for the
+  add-product workflow.
+- `tests/test_product_catalog_consistency.py` — stdlib `unittest` suite that
+  asserts: the current repo state passes; Release-One passes every
+  production-specific check; FanTRIAC passes every blocked-specific check;
+  every legacy-compatible entry stays non-WebFlash-shippable; the mapper
+  agrees with every production entry's declared `artifact_name`; every
+  WebFlash-eligible entry's wrapper basename equals lowercased
+  `config_string`; and the checklist mode resolves real entries cleanly.
+
+### CI wiring
+
+`.github/workflows/validate.yml` runs both new commands after the existing
+`Validate product catalog` step:
+
+```text
+python3 scripts/validate_product_catalog_consistency.py
+python3 tests/test_product_catalog_consistency.py
+```
+
+### Out of scope (unchanged by PRODUCT-003)
+
+- `products/*.yaml`, `products/webflash/*.yaml`, `packages/**`
+- `config/webflash-builds.json`, `config/webflash-compatibility.json`,
+  `config/hardware-catalog.json`, `config/product-catalog.json`
+- `scripts/product_name_mapper.py`
+- `tests/test_product_catalog.py` (kept as-is; new validator is additive)
+- Release-One config string, artifact name, build matrix, hardware SKUs
+- FanTRIAC blocked status, LED exclusion status

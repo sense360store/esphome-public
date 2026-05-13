@@ -430,6 +430,24 @@ exclusively from [`config/webflash-builds.json`](../config/webflash-builds.json)
 this PR does not add any product to that build matrix and does not change any
 WebFlash config string or artifact name.
 
+PRODUCT-003 adds a read-only catalog consistency validator at
+[`scripts/validate_product_catalog_consistency.py`](../scripts/validate_product_catalog_consistency.py)
+(unit-tested by
+[`tests/test_product_catalog_consistency.py`](../tests/test_product_catalog_consistency.py))
+that cross-checks `config/product-catalog.json` against
+`config/webflash-builds.json`, `config/webflash-compatibility.json`,
+`config/hardware-catalog.json`, `scripts/product_name_mapper.py`, and the
+product / wrapper YAML paths. It also exposes a `--checklist` mode for the
+add-product workflow:
+
+```text
+python3 scripts/validate_product_catalog_consistency.py --checklist Ceiling-POE-VentIQ-RoomIQ
+python3 scripts/validate_product_catalog_consistency.py --product products/sense360-ceiling-poe-ventiq-roomiq.yaml
+```
+
+The validator does not mutate any file, does not generate any product / wrapper
+YAML, and does not change the WebFlash build matrix or artifact name.
+
 ---
 
 ## Compatibility Rule of Thumb

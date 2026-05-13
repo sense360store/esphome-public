@@ -64,6 +64,16 @@ they have no `config_string`, no `artifact_name`, no `webflash_wrapper`, and
 `webflash_build_matrix` is `false`. The Release-One product, artifact, and
 WebFlash build matrix are unchanged by PRODUCT-002.
 
+PRODUCT-003 adds a read-only catalog consistency validator at
+[`scripts/validate_product_catalog_consistency.py`](../scripts/validate_product_catalog_consistency.py)
+(unit-tested by
+[`tests/test_product_catalog_consistency.py`](../tests/test_product_catalog_consistency.py))
+that cross-checks the catalog against the WebFlash build matrix, the
+WebFlash compatibility snapshot, the hardware catalog, and the artifact
+mapper, and also exposes a `--checklist` mode for adding future product
+configs. The Release-One product, artifact, build matrix, and FanTRIAC /
+LED policy are unchanged by PRODUCT-003.
+
 The Release-One YAML omits the Sense360 LED (`S360-300`) packages on
 purpose: the WebFlash config string `Ceiling-POE-VentIQ-RoomIQ` does not
 carry a `LED` token, so the binary built from this YAML does not include
