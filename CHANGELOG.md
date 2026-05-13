@@ -25,13 +25,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **WebFlash compatibility contract** (`docs/webflash-contract.md`): canonical, repo-local
   contract documenting WebFlash artifact naming (`Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin`),
   config-string grammar, allowed tokens, release-one config
-  (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`), compatibility rules, mapping from WebFlash
-  config strings to ESPHome product YAML files, build output expectations, and the
-  required GitHub Release body format (`## Changelog`, `## Known Issues`, `## Features`,
-  `## Hardware Requirements`).
-- **Release-One product YAML**: `products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`
-  matches the WebFlash config string `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` and produces the
-  artifact `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-vX.Y.Z-{channel}.bin`.
+  (`Ceiling-POE-VentIQ-RoomIQ`, with FanTRIAC blocked/excluded per HW-005),
+  compatibility rules, mapping from WebFlash config strings to ESPHome product
+  YAML files, build output expectations, and the required GitHub Release body
+  format (`## Changelog`, `## Known Issues`, `## Features`, `## Hardware Requirements`).
+- **FanTRIAC reference product YAML** (blocked / not in the production
+  Release-One build matrix): `products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`
+  is retained as a reference for a future FanTRIAC build (config string
+  `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`, artifact pattern
+  `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-vX.Y.Z-{channel}.bin`) but is NOT
+  shipped as production Release-One while HW-005 is open. Production Release-One
+  uses `products/sense360-ceiling-poe-ventiq-roomiq.yaml` and the config string
+  `Ceiling-POE-VentIQ-RoomIQ`.
 - **FanTRIAC driver package**: `packages/expansions/fan_triac.yaml` for AC phase-cut fan
   dimming via TRIAC + zero-crossing detection.
 - **FanRelay driver package**: `packages/expansions/fan_relay.yaml` for ON/OFF AC fan control.
@@ -43,7 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   asserts that, for every entry in `config/webflash-builds.json`,
   `scripts/product_name_mapper.py` produces exactly the declared `artifact_name`. Three
   explicit assertions pin the Release-One filename
-  `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin`. Wired into
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` (FanTRIAC excluded
+  from the production Release-One build matrix per HW-005). Wired into
   `.github/workflows/validate.yml` so it runs on every push and PR.
 - **Build-time output assertion** (ESP-006): `tests/check_webflash_build_output.py`
   runs inside the build job in `.github/workflows/firmware-build-release.yml` after the

@@ -108,15 +108,31 @@ Three GitHub Actions workflows handle firmware validation:
 
 **Triggers:** Every push and PR
 **Duration:** ~30 seconds
-**Purpose:** Fast pre-flight syntax check
+**Purpose:** Release-One / WebFlash per-PR gate. Lightweight, fast feedback;
+not a full ESPHome compilation sweep (that lives in
+`firmware-build-release.yml` on release and in the manual
+`ci-validate-configs.yml` sweep).
 
 **What it checks:**
-- YAML syntax validity
-- Basic structure validation
+- YAML syntax validity (`tests/validate_configs.py`)
+- Product substitutions — fallback SSID length, AP password, `device_name`
+  (`tests/test_product_substitutions.py`)
+- Release-One profile entity-name collisions
+  (`tests/test_release_one_entity_names.py`)
+- WebFlash build matrix vs. compatibility snapshot
+  (`tests/validate_webflash_builds.py`)
+- WebFlash release-notes validator self-test
+  (`tests/test_validate_webflash_release_notes.py`)
+- WebFlash artifact naming — `scripts/product_name_mapper.py` agrees with
+  `config/webflash-builds.json` (`tests/test_webflash_artifact_naming.py`)
 - Product and package counts
 
+This workflow does **not** run `esphome config` on the full product set.
+For a broad legacy/manual ESPHome compilation sweep, manually dispatch
+`ci-validate-configs.yml`.
+
 ```
-Push/PR → YAML Syntax Check → Pass/Fail (30 sec)
+Push/PR → YAML + WebFlash gate checks → Pass/Fail (~30 sec)
 ```
 
 ### 2. Broad Legacy/Manual Config Sweep (`ci-validate-configs.yml`)
@@ -166,7 +182,7 @@ This means:
 **Process:**
 1. Generate build matrix from `products/` directory
 2. Compile each product with ESPHome
-3. Rename binaries to WebFlash format (e.g., `Sense360-Mini-AirIQ-v3.0.0-stable.bin`)
+3. Rename binaries to WebFlash format (e.g., `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`)
 4. Attach to GitHub release with checksums
 
 ---
