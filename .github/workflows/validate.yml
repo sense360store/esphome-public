@@ -66,6 +66,14 @@ jobs:
         run: |
           python3 tests/test_product_catalog.py
 
+      - name: Validate product catalog cross-file consistency
+        run: |
+          python3 scripts/validate_product_catalog_consistency.py
+
+      - name: Product catalog consistency unit tests
+        run: |
+          python3 tests/test_product_catalog_consistency.py
+
       - name: Count products
         run: |
           PRODUCT_COUNT=$(find products/ -name "*.yaml" -type f ! -name "secrets.yaml" | wc -l)
