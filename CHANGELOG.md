@@ -54,6 +54,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`single_product` workflow_dispatch input** (ESP-006) on
   `.github/workflows/firmware-build-release.yml` so a single product (e.g. Release-One)
   can be built end-to-end from CI without rebuilding the full product matrix.
+- **ESP-006 / ESP-007 release proof recorded** (docs-only): documented the
+  WebFlash-compatible Release-One firmware build and GitHub Release publish
+  proof for release `v1.0.0` (Actions run `25763009641`, event `release`,
+  asset `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, 1.04 MB) in
+  `docs/webflash-release-proof.md`, `docs/webflash-ci-alignment.md`,
+  `docs/release-one.md`, and `docs/webflash-release-handoff.md`. WebFlash
+  production signing, the WebFlash production-signed `manifest.json`, and
+  WebFlash deploy remain WebFlash-owned and are not claimed by this record.
 
 ### Changed
 - **`.github/workflows/firmware-build-release.yml`**: matrix discovery now excludes
