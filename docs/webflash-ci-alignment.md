@@ -170,6 +170,32 @@ the work is tracked.
 9. **Hand off to WebFlash for import, signing, manifest, and deploy.** Owned
    by WebFlash; documented under `ESP-008`.
 
+## Release-notes drafting
+
+The release body required by §8 of
+[`docs/webflash-contract.md`](./webflash-contract.md) can be drafted from
+the product catalog with the read-only generator added in RELEASE-001:
+
+```
+python3 scripts/generate_webflash_release_notes.py \
+    --config-string Ceiling-POE-VentIQ-RoomIQ \
+    --version 1.0.0 \
+    --channel stable
+```
+
+The generator
+([`scripts/generate_webflash_release_notes.py`](../scripts/generate_webflash_release_notes.py),
+unit-tested by
+[`tests/test_generate_webflash_release_notes.py`](../tests/test_generate_webflash_release_notes.py))
+produces a Markdown draft that already passes
+[`scripts/validate-webflash-release-notes.py`](../scripts/validate-webflash-release-notes.py)
+on every channel, lists FanTRIAC and Sense360 LED as Known-Issues
+exclusions for Release-One, and refuses blocked / legacy-compatible /
+deprecated / removed entries. Human review of the `## Changelog` section
+is still required — the generator emits a TODO placeholder that the
+release author must replace before tagging. The generator does not
+create releases, publish firmware, or change the build matrix.
+
 ## Non-goals for this repo
 
 This repo must not:

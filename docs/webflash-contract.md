@@ -378,6 +378,29 @@ WebFlash will produce a sidecar (`*.meta.json`) from this body with the
 shape documented in WebFlash's `DEVELOPER.md → Via GitHub Releases`. This
 repo never authors the sidecar directly.
 
+### Drafting the release body
+
+A starting draft for the release body can be produced from the product
+catalog with the read-only generator added in RELEASE-001:
+
+```
+python3 scripts/generate_webflash_release_notes.py \
+    --config-string Ceiling-POE-VentIQ-RoomIQ \
+    --version 1.0.0 \
+    --channel stable
+```
+
+The generator emits all four required sections in the exact format
+[`scripts/validate-webflash-release-notes.py`](../scripts/validate-webflash-release-notes.py)
+expects, pulls features and hardware metadata from
+[`config/webflash-builds.json`](../config/webflash-builds.json) and
+[`config/product-catalog.json`](../config/product-catalog.json), and lists
+FanTRIAC and Sense360 LED as Known-Issues exclusions for Release-One.
+The `## Changelog` section starts as a TODO placeholder; a human must
+replace it with the actual user-visible changes for the release before
+the body is published. The generator does not create releases, publish
+firmware, or call any external service.
+
 ---
 
 ## Machine-Readable Snapshot
