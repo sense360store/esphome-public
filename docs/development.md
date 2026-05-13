@@ -54,13 +54,21 @@ This validates:
 
 ### Test ESPHome Compilation
 
-Validate a specific product configuration:
+Validate the Release-One product configuration
+(`Ceiling-POE-VentIQ-RoomIQ`):
+
+```bash
+esphome config products/sense360-ceiling-poe-ventiq-roomiq.yaml
+```
+
+Validate a legacy-compatible Mini product (not Release-One):
 
 ```bash
 esphome config products/sense360-mini-airiq.yaml
 ```
 
-Test all product configurations:
+Test all product configurations (broad legacy sweep — not the Release-One
+gate):
 
 ```bash
 for file in products/*.yaml; do
@@ -137,17 +145,30 @@ Full test suite:
 - **test-unit-tests**: Runs ESPHome test configurations
 - **lint-cpp**: Checks C++ header formatting
 
-Matrix testing across all product configurations:
-- `sense360-mini-airiq.yaml`
-- `sense360-mini-airiq-basic.yaml`
-- `sense360-mini-airiq-advanced.yaml`
-- `sense360-mini-airiq-ld2412.yaml`
-- `sense360-mini-presence.yaml`
-- `sense360-mini-presence-basic.yaml`
-- `sense360-mini-presence-advanced.yaml`
-- `sense360-mini-presence-ld2412.yaml`
-- `sense360-ceiling-presence.yaml`
-- `sense360-ceiling-presence-ld2412.yaml`
+> The Release-One build/release gate is
+> [`firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml),
+> which builds only the Release-One configuration
+> (`Ceiling-POE-VentIQ-RoomIQ`) from
+> [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml).
+> The matrix below belongs to the broad legacy / Mini-board CI sweep
+> ([`ci-validate-configs.yml`](../.github/workflows/ci-validate-configs.yml))
+> and is **not** the Release-One PR gate.
+
+Matrix testing across product configurations (legacy sweep — not the
+Release-One gate):
+
+- `sense360-ceiling-poe-ventiq-roomiq.yaml` — _Release-One; gated by
+  [`firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)._
+- `sense360-mini-airiq.yaml` — _legacy-compatible_
+- `sense360-mini-airiq-basic.yaml` — _legacy-compatible_
+- `sense360-mini-airiq-advanced.yaml` — _legacy-compatible_
+- `sense360-mini-airiq-ld2412.yaml` — _legacy-compatible_
+- `sense360-mini-presence.yaml` — _legacy-compatible_
+- `sense360-mini-presence-basic.yaml` — _legacy-compatible_
+- `sense360-mini-presence-advanced.yaml` — _legacy-compatible_
+- `sense360-mini-presence-ld2412.yaml` — _legacy-compatible_
+- `sense360-ceiling-presence.yaml` — _legacy-compatible_
+- `sense360-ceiling-presence-ld2412.yaml` — _legacy-compatible_
 
 ### Viewing Test Results
 

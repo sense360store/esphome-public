@@ -2,6 +2,15 @@
 
 This directory contains modular ESPHome configuration packages organized by category.
 
+> **Production Release-One ships `Ceiling-POE-VentIQ-RoomIQ`** — built from
+> [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+> and published as `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`.
+> Most customers should use [WebFlash](https://mysense360.com); this README
+> documents the lower-level package surface used by both Release-One and
+> legacy / Mini-board products. FanTRIAC is blocked pending HW-005; the
+> Sense360 LED token is excluded from Release-One because the config string
+> has no `LED` slot. See [`docs/release-one.md`](../docs/release-one.md).
+
 > **WebFlash compatibility:** see [`docs/webflash-contract.md`](../docs/webflash-contract.md)
 > for the canonical token list (`AirIQ`, `VentIQ`, `RoomIQ`, `FanRelay`,
 > `FanPWM`, `FanDAC`, `FanTRIAC`, `LED`) used in firmware artifact names.
@@ -68,24 +77,34 @@ All features are available in two versions:
 
 ### Using Pre-Built Products (Recommended)
 
-For most users, start with a pre-built product configuration from the `/products/` directory:
+For most users, start with a pre-built product configuration from the
+`/products/` directory. The Release-One product is the recommended default:
 
 ```yaml
 substitutions:
-  device_name: living-room-sensor
-  friendly_name: "Living Room Sensor"
+  device_name: sense360-bathroom
+  friendly_name: "Bathroom Sense360"
 
 packages:
   firmware:
     url: https://github.com/sense360store/esphome-public
     ref: v1.0.0  # Pin to a release tag — never use 'main' in production
     files:
-      - products/sense360-core-ceiling.yaml
+      - products/sense360-ceiling-poe-ventiq-roomiq.yaml  # Release-One
 ```
+
+The `sense360-core-*.yaml` and `sense360-mini-*.yaml` products are
+**legacy-compatible** and remain available for users with older hardware.
 
 ### Custom Module Combinations
 
-For advanced users who want to build custom configurations:
+For advanced users who want to build custom configurations. **The example
+below is a legacy-compatible custom build** (AirIQ + LED-ring ceiling
+configuration); it is not the Release-One module set. Release-One users
+should reference the Release-One product YAML above instead. The Sense360
+LED token is excluded from Release-One — the example below includes
+`led_ring_ceiling.yaml` only because this is an explicit non-Release-One
+custom build.
 
 ```yaml
 substitutions:
@@ -106,11 +125,11 @@ packages:
       - packages/base/api_encrypted.yaml
       - packages/base/ota.yaml
       - packages/base/time.yaml
-      # Core hardware
+      # Core hardware (legacy-compatible AirIQ + LED ceiling build)
       - packages/hardware/sense360_core_ceiling.yaml
-      - packages/hardware/led_ring_ceiling.yaml
+      - packages/hardware/led_ring_ceiling.yaml   # Sense360 LED — not in Release-One
       # Sensor modules
-      - packages/expansions/airiq_ceiling.yaml
+      - packages/expansions/airiq_ceiling.yaml    # AirIQ — Release-One uses VentIQ
       - packages/features/airiq_advanced_profile.yaml
       - packages/expansions/presence_ceiling.yaml
       - packages/features/presence_basic_profile.yaml

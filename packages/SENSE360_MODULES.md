@@ -1,5 +1,18 @@
 # Sense360 Module Documentation
 
+> **Legacy / advanced module inventory — NOT the Release-One path.**
+> Production Release-One ships the WebFlash configuration
+> `Ceiling-POE-VentIQ-RoomIQ`, built from
+> [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+> and published as `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`.
+> The Sense360 Mini board, AirIQ ceiling module, and the other modules
+> documented here are retained for legacy / advanced / custom builds. They
+> are not Release-One production targets. FanTRIAC is blocked pending
+> HW-005; the Sense360 LED is excluded from Release-One because the config
+> string has no `LED` token. For the Release-One source of truth see
+> [`docs/release-one.md`](../docs/release-one.md). For canonical SKU /
+> friendly-name mapping see [`docs/hardware-catalog.md`](../docs/hardware-catalog.md).
+
 ## Overview
 
 The Sense360 platform is built on ESP32-S3-WROOM-1-N16R8 and supports modular expansion through I2C, UART, and GPIO interfaces.
