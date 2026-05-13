@@ -1,11 +1,33 @@
 # ============================================================================
 # SENSE360 CUSTOMER CONFIGURATION EXAMPLE
 # ============================================================================
-# Ready-to-use template for Sense360 devices with clear basic/advanced options.
+# Manual / custom-flash template for advanced ESPHome users.
+#
+# Most customers should use WebFlash at https://mysense360.com instead — it
+# is the recommended production path for official, signed Sense360 firmware.
+# This template is for advanced users who want to inspect or customize the
+# ESPHome YAML directly.
+#
+# Production Release-One configuration:
+#   - WebFlash config string: Ceiling-POE-VentIQ-RoomIQ
+#   - Product YAML:           products/sense360-ceiling-poe-ventiq-roomiq.yaml
+#   - Firmware artifact:      Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
+#
+# The default option below points at this Release-One product YAML.
+# Legacy-compatible Mini variants are retained as commented-out alternatives.
+# They are NOT part of production Release-One firmware; uncomment one only if
+# you know your hardware matches that variant.
+#
+# FanTRIAC is blocked pending HW-005 and must not be treated as production
+# Release-One. See docs/release-one-hardware-audit.md#fantriac-mapping-resolution.
+#
+# Sense360 LED is excluded from Release-One because the WebFlash config
+# string `Ceiling-POE-VentIQ-RoomIQ` does not carry a `LED` token.
+#
 # Copy this to your ESPHome dashboard and customize for your room.
 #
 # Filename suggestion: sense360-<room-name>.yaml
-# Example: sense360-living-room.yaml, sense360-bedroom.yaml
+# Example: sense360-bathroom.yaml, sense360-living-room.yaml
 # ============================================================================
 
 # ----------------------------------------------------------------------------
@@ -13,11 +35,12 @@
 # ----------------------------------------------------------------------------
 substitutions:
   # === REQUIRED: Customize these for your device ===
-  device_name: sense360-living-room      # Unique name (lowercase, no spaces)
-  friendly_name: "Living Room Sense360"  # Display name in Home Assistant
+  device_name: sense360-bathroom         # Unique name (lowercase, no spaces)
+  friendly_name: "Bathroom Sense360"     # Display name in Home Assistant
 
-  # === MQTT Configuration (Required for AirIQ features) ===
-  # Uncomment and configure these for MQTT air quality publishing:
+  # === MQTT Configuration (Required for AirIQ / VentIQ MQTT publishing) ===
+  # Uncomment and configure these for air quality MQTT publishing
+  # (used by both AirIQ and VentIQ air-quality features):
   # airiq_mqtt_broker: !secret mqtt_broker
   # airiq_mqtt_port: "1883"  # Standard port (use 8883 for TLS)
   # airiq_mqtt_username: !secret mqtt_username
@@ -29,23 +52,18 @@ substitutions:
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
-  min_version: 2024.11.0  # Minimum ESPHome version required
+  min_version: 2025.10.0  # Minimum ESPHome version for Release-One
 
 # ----------------------------------------------------------------------------
-# CHOOSE YOUR FIRMWARE VERSION
+# CHOOSE YOUR FIRMWARE
 # ----------------------------------------------------------------------------
-# Select ONE of the following based on your needs:
+# The default (OPTION 0) below is the current production Release-One Ceiling
+# product. Most users should keep that option and ignore the rest.
 #
-# BASIC VERSIONS (Recommended for most users):
-# ✓ Simple, user-friendly interface
-# ✓ No technical jargon
-# ✓ Easy to understand readings
-#
-# ADVANCED VERSIONS (For power users):
-# ✓ All technical sensors and data
-# ✓ Customizable thresholds
-# ✓ Calibration controls
-# ✓ Detailed diagnostics
+# The Mini variants further down (OPTIONS 1–4) are legacy-compatible
+# alternatives kept for advanced users with older Mini-form-factor hardware.
+# They are NOT part of production Release-One firmware. To use one, comment
+# OPTION 0 and uncomment exactly ONE Mini option that matches your device.
 # ----------------------------------------------------------------------------
 
 packages:
@@ -54,41 +72,61 @@ packages:
     ref: v1.0.0  # Pin to a release tag — never use 'main' in production
     files:
       # ═══════════════════════════════════════════════════════════════
-      # OPTION 1: BASIC - Air Quality Only (Simplest)
+      # OPTION 0 (DEFAULT): Production Release-One
+      # WebFlash config: Ceiling-POE-VentIQ-RoomIQ
+      # ═══════════════════════════════════════════════════════════════
+      # Matches WebFlash artifact:
+      #   Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
+      # Hardware: Sense360 Core R4 (ceiling) + PoE PSU + VentIQ + RoomIQ.
+      # FanTRIAC is intentionally excluded while HW-005 is open.
+      # Sense360 LED is intentionally excluded (no LED token in config).
+      # ───────────────────────────────────────────────────────────────
+      - products/sense360-ceiling-poe-ventiq-roomiq.yaml
+
+      # ───────────────────────────────────────────────────────────────
+      # LEGACY-COMPATIBLE MINI OPTIONS (advanced / custom users only)
+      # ───────────────────────────────────────────────────────────────
+      # The Mini variants below are NOT part of production Release-One.
+      # They are retained for users running the older Sense360 Mini
+      # form factor. Uncomment ONE of these only if it matches your
+      # hardware AND comment OPTION 0 above.
+
+      # ═══════════════════════════════════════════════════════════════
+      # OPTION 1 (legacy): Mini Air Quality — Basic
       # ═══════════════════════════════════════════════════════════════
       # Shows: Air Quality (Excellent/Good/Fair/Poor)
       #        Temperature & Humidity
       #        Simple recommendations
-      # Perfect for: Bedrooms, living rooms, general home monitoring
+      # For: legacy Sense360 Mini hardware (not Release-One)
       # ───────────────────────────────────────────────────────────────
-      - products/sense360-mini-airiq-basic.yaml
+      # - products/sense360-mini-airiq-basic.yaml
 
       # ═══════════════════════════════════════════════════════════════
-      # OPTION 2: BASIC - Presence Detection Only
+      # OPTION 2 (legacy): Mini Presence Detection — Basic
       # ═══════════════════════════════════════════════════════════════
       # Shows: Room Occupied (Yes/No)
       #        Activity Level (Still/Moving)
-      # Perfect for: Smart lighting, occupancy automation
+      # For: legacy Sense360 Mini hardware (not Release-One)
       # ───────────────────────────────────────────────────────────────
       # - products/sense360-mini-presence-basic.yaml
 
       # ═══════════════════════════════════════════════════════════════
-      # OPTION 3: ADVANCED - Air Quality (Full Technical Suite)
+      # OPTION 3 (legacy): Mini Air Quality — Advanced
       # ═══════════════════════════════════════════════════════════════
       # Shows: CO₂ (ppm), PM1.0, PM2.5, PM4.0, PM10 (µg/m³)
       #        VOC & NOx Index, Temperature, Humidity, Pressure
       #        Light Level, Customizable thresholds, Calibration
-      # Perfect for: HVAC control, research, commercial applications
+      # For: legacy Sense360 Mini hardware (not Release-One)
       # ───────────────────────────────────────────────────────────────
       # - products/sense360-mini-airiq-advanced.yaml
 
       # ═══════════════════════════════════════════════════════════════
-      # OPTION 4: ADVANCED - Presence Detection (Full Controls)
+      # OPTION 4 (legacy): Mini Presence Detection — Advanced
       # ═══════════════════════════════════════════════════════════════
       # Shows: Multi-zone tracking, Individual targets (up to 3)
       #        Distance measurements, Sensitivity controls
       #        Zone configuration, Full diagnostics
-      # Perfect for: Complex automations, commercial spaces
+      # For: legacy Sense360 Mini hardware (not Release-One)
       # ───────────────────────────────────────────────────────────────
       # - products/sense360-mini-presence-advanced.yaml
 
@@ -131,9 +169,11 @@ ota:
     password: !secret ota_password
 
 # ----------------------------------------------------------------------------
-# MQTT CONFIGURATION (Required for AirIQ Air Quality Publishing)
+# MQTT CONFIGURATION (Required for AirIQ / VentIQ Air Quality Publishing)
 # ----------------------------------------------------------------------------
-# If using the AirIQ air quality features, MQTT is required to publish data.
+# If using the AirIQ or VentIQ air quality features, MQTT is required to
+# publish data. (Release-One uses VentIQ; the same MQTT substitutions cover
+# both air-quality modules.)
 # For Home Assistant's Mosquitto add-on:
 # 1. Install Mosquitto broker add-on in Home Assistant
 # 2. Create a user in: Settings > Add-ons > Mosquitto broker > Configuration
@@ -143,7 +183,7 @@ ota:
 #    mqtt_username: "your_mqtt_user"
 #    mqtt_password: "your_mqtt_password"
 
-# To disable MQTT entirely (if not using AirIQ features), add:
+# To disable MQTT entirely (if not using AirIQ or VentIQ features), add:
 # mqtt: null
 
 # ----------------------------------------------------------------------------
@@ -206,21 +246,22 @@ ota:
 # QUICK START GUIDE
 # ============================================================================
 #
-# STEP 1: Choose your version
-# ────────────────────────────
-# Uncomment ONE of the product files above based on your needs:
-# - Basic Air Quality: Simple air quality monitoring
-# - Basic Presence: Simple room occupancy detection
-# - Advanced Air Quality: Full technical air quality suite
-# - Advanced Presence: Advanced presence detection with zones
+# STEP 1: Confirm which firmware option you need
+# ────────────────────────────────────────────────
+# - Default (OPTION 0): Production Release-One — Ceiling-POE-VentIQ-RoomIQ.
+#   Use this unless you specifically have legacy Mini hardware.
+# - OPTIONS 1–4: legacy-compatible Mini variants. Uncomment ONE only if
+#   your hardware matches; comment OPTION 0 in that case.
 #
 # STEP 2: Update device name
 # ────────────────────────────
-# Change 'device_name' and 'friendly_name' to match your room
+# Change 'device_name' and 'friendly_name' to match your room.
 #
 # STEP 3: Add secrets
 # ────────────────────────────
-# Add to your secrets.yaml:
+# Copy secrets.example.yaml to secrets.yaml and edit it:
+#   cp secrets.example.yaml secrets.yaml
+# Required entries:
 #   wifi_ssid: "YourNetwork"
 #   wifi_password: "YourPassword"
 #   api_encryption_key: "GENERATE_THIS_WITH_ESPHOME"
@@ -228,17 +269,19 @@ ota:
 #
 # STEP 4: Upload to device
 # ────────────────────────────
-# Connect via USB and upload using ESPHome dashboard
+# Connect via USB and upload using the ESPHome dashboard.
 #
 # ============================================================================
 # SUPPORT & DOCUMENTATION
 # ============================================================================
+# Release-One Configuration:
+#   https://github.com/sense360store/esphome-public/blob/main/docs/release-one.md
+# Manual / Custom User Walkthrough:
+#   https://github.com/sense360store/esphome-public/blob/main/docs/manual-user-walkthrough.md
 # Installation Guide:
 #   https://github.com/sense360store/esphome-public/blob/main/docs/installation.md
-# Configuration:
+# Configuration Reference:
 #   https://github.com/sense360store/esphome-public/blob/main/docs/configuration.md
-# Troubleshooting:
-#   https://github.com/sense360store/esphome-public/blob/main/docs/troubleshooting.md
 # Support:
 #   https://github.com/sense360store/esphome-public/issues
 # ============================================================================

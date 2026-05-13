@@ -806,3 +806,107 @@ unrelated `.html` mentions (the SemVer URL at
 `tests/README.md:383`) plus the audit-narrative mentions inside this
 file and `docs/repo-structure-audit.md` that record the CLEANUP-004
 decision history.
+
+## CLEANUP-005 update (examples refresh)
+
+This section records what CLEANUP-005 actually swept. As with the
+CLEANUP-003 and CLEANUP-004 updates above, it does **not** rewrite the
+audit earlier in this document. The "Findings summary" rows for the
+files listed below remain accurate as historical records; the entry
+below summarises the applied changes and supersedes the
+`Reword in CLEANUP-005` / `refresh wording in CLEANUP-005` placeholders.
+
+### Goal
+
+Refresh user-facing examples and Mini-centric doc sections so that
+production Release-One (`Ceiling-POE-VentIQ-RoomIQ`) is the leading
+default, while preserving legacy-compatible Mini / AirIQ / custom
+examples as clearly-labelled alternatives.
+
+### Files swept (docs / examples only)
+
+| Path | Sweep |
+|---|---|
+| `examples/customer-basic.yaml` | Restructured: replaced the Mini-centric header with a Release-One-leading banner; flipped the active default include to `products/sense360-ceiling-poe-ventiq-roomiq.yaml` (OPTION 0); demoted the four Mini variants to commented-out alternatives (OPTIONS 1–4) explicitly labelled `legacy`; bumped `min_version` `2024.11.0` → `2025.10.0` to match Release-One; reworded the MQTT/Required-for-AirIQ framing to AirIQ / VentIQ; refreshed the bottom "Quick Start" guide so STEP 1 explains OPTION 0 vs the Mini options. Body and threshold-customisation examples preserved. |
+| `examples/custom-with-remote-headers.yaml` | Prepended a top-of-file banner: "Advanced / custom example — NOT the Release-One path." Points readers at `examples/customer-basic.yaml` and `docs/release-one.md`. The `@v2.0.0` C++ header pin is **not** changed (deferred to CLEANUP-006 per the audit); the banner explains why it predates the Release-One firmware tag `v1.0.0`. |
+| `examples/secrets.yaml.template` | No change. Already a 9-line pointer to `secrets.example.yaml`. |
+| `secrets.example.yaml` | Reworded line-42 "MQTT CREDENTIALS (required for AirIQ MQTT publishing)" → "(required for AirIQ / VentIQ MQTT publishing)", and the line-50 "AirIQ-specific MQTT substitutions" comment → "AirIQ / VentIQ MQTT substitutions" with a Release-One note that the same vars cover both modules. No variable names changed. (This was assigned to CLEANUP-002 in the audit; bringing it forward keeps the secrets template consistent with the customer-basic example.) |
+| `docs/configuration.md` | Inserted a Release-One pointer admonition before `### Product Variants`, plus a new `#### Release-One — Ceiling-POE-VentIQ-RoomIQ (Recommended)` sub-section that points at the canonical product YAML. Suffixed the four Mini/Ceiling sub-headings with `— _legacy-compatible_`. Inserted a Sense360-LED-excluded admonition before `### Night Mode and LED Controls` and suffixed `#### Mini Night Brightness` with `— _legacy-compatible (Mini board only)_`. Suffixed `#### Mini Board Default Pins` similarly and added a pointer to `docs/hardware/s360-100-r4-core.md` for Release-One pin reference. Added a "this is not the Release-One path" preamble to `### Component-Level Customization` and tagged its `sense360_core_mini.yaml` hardware line accordingly. Content (thresholds, automations, scenarios) preserved. |
+| `docs/development.md` | Replaced the canonical `esphome config products/sense360-mini-airiq.yaml` example with a two-snippet pair: Release-One first (`sense360-ceiling-poe-ventiq-roomiq.yaml`), Mini second (labelled legacy). Above the "Matrix testing" list, inserted a banner clarifying that `firmware-build-release.yml` is the Release-One gate and the matrix below is the broad legacy sweep run by `ci-validate-configs.yml`. Added the Release-One YAML as the first entry in the matrix list and suffixed each Mini / Ceiling-presence entry with `— _legacy-compatible_`. List itself preserved. |
+| `docs/installation.md` | Reworded the "Change Product Variant" snippet so the active uncommented file is `sense360-ceiling-poe-ventiq-roomiq.yaml` (Release-One) and the three Mini / Ceiling-presence YAMLs become commented-out alternatives flagged as legacy. Reworded the "MQTT Credentials (required for AirIQ MQTT publishing)" comment line and the matching "AirIQ-enabled product" sentence to mention `AirIQ / VentIQ`. |
+| `packages/README.md` | Inserted a Release-One pointer at the top (above the existing WebFlash-compatibility note) so the package README leads with `Ceiling-POE-VentIQ-RoomIQ`. Reworded the "Using Pre-Built Products" example so the active product is `sense360-ceiling-poe-ventiq-roomiq.yaml`. Added a "this is a legacy-compatible custom build" preamble to the "Custom Module Combinations" example and inline-tagged the `airiq_ceiling.yaml` / `led_ring_ceiling.yaml` lines to call out that AirIQ + LED are not in Release-One. Section bodies preserved. |
+| `packages/SENSE360_MODULES.md` | Prepended a top-of-file admonition labelling the whole document as a legacy / advanced module inventory and pointing at `docs/release-one.md` and `docs/hardware-catalog.md`. Body content (pin reference, module descriptions, examples) preserved. Defer fuller content revisit to CLEANUP-006. |
+
+### Files not touched
+
+- `README.md` — already leads with Release-One, the FanTRIAC-excluded
+  callout, and a "Legacy Terminology" table. No CLEANUP-005-shaped edit
+  needed.
+- `docs/manual-user-walkthrough.md` — already pinned to Release-One with
+  explicit FanTRIAC / LED exclusion language.
+
+### Legacy aliases intentionally preserved
+
+The following references remain on purpose, in line with the
+"Legacy aliases intentionally preserved" lists for CLEANUP-003 /
+CLEANUP-004:
+
+- The four legacy Mini OPTION blocks in `examples/customer-basic.yaml`
+  are kept (commented out) so users with older Mini hardware still have
+  a working manual-flash template.
+- The Mini sub-sections in `docs/configuration.md` and the Mini matrix
+  entries in `docs/development.md` are kept (with `_legacy-compatible_`
+  labels) so customers running Mini hardware can still find their docs.
+- The `@v2.0.0` header pin in `examples/custom-with-remote-headers.yaml`
+  is intentionally retained; the C++ header API is stable across
+  `v2.0.0` and the Release-One `v1.0.0` firmware tag. Re-pinning is
+  deferred to CLEANUP-006 (audit row at lines 388, 390, 503–505).
+- `packages/SENSE360_MODULES.md` body content is not restructured;
+  fuller revisit is deferred to CLEANUP-006 (audit row at lines 392, 506–507).
+- Legacy filenames (`comfort_*.yaml`, `airiq_bathroom_*.yaml`,
+  `led_ring_*.yaml`, `sense360_core_mini.yaml`, etc.) remain unchanged —
+  these are public API / remote-package surfaces.
+
+### Out of scope (unchanged by CLEANUP-005)
+
+CLEANUP-005 is docs / examples wording only. The following remain
+untouched:
+
+- `products/*.yaml`, `products/webflash/*.yaml`, `packages/*.yaml`.
+- `config/webflash-builds.json`, `config/webflash-compatibility.json`,
+  `config/hardware-catalog.json` (including `old_name` fields).
+- `.github/workflows/*`, `scripts/*`, `tests/*`, `components/*`,
+  `include/*`.
+- File renames (none performed).
+- WebFlash config strings, artifact names, build matrix, firmware
+  package IDs, hardware SKUs.
+- FanTRIAC blocked status (remains blocked pending HW-005).
+- LED exclusion status (remains excluded from Release-One).
+
+### Validation run for CLEANUP-005
+
+The commands at the top of this document, plus the sanity greps below,
+were re-run after the sweep. Results are captured in the commit body
+for the CLEANUP-005 PR.
+
+```text
+python3 tests/validate_webflash_builds.py
+python3 tests/test_webflash_compatibility.py
+python3 tests/test_webflash_artifact_naming.py
+python3 tests/test_validate_webflash_release_notes.py
+python3 tests/test_product_substitutions.py
+python3 tests/test_release_one_entity_names.py
+python3 tests/validate_configs.py
+
+grep -RIn "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ" examples README.md docs packages secrets.example.yaml
+grep -RIn "FanTRIAC"                            examples README.md docs packages secrets.example.yaml
+grep -RIn "LED Ring"                            examples README.md docs packages secrets.example.yaml
+grep -RIn "Bathroom Pro"                        examples README.md docs packages secrets.example.yaml
+grep -RIn "customer-basic"                      examples README.md docs packages secrets.example.yaml
+```
+
+After the sweep, any remaining hits for `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`,
+`FanTRIAC`, `LED Ring`, or `Bathroom Pro` are clearly framed as
+blocked-reference, legacy / old_name, schematic, historical-context, or
+compatibility references in the locations listed under "Legacy aliases
+intentionally preserved" (CLEANUP-003 + CLEANUP-005) above.

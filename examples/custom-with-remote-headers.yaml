@@ -1,3 +1,24 @@
+# ============================================================================
+# ADVANCED / CUSTOM EXAMPLE — NOT THE RELEASE-ONE PATH
+# ============================================================================
+# This example demonstrates how to consume the Sense360 C++ headers from
+# GitHub while writing a fully custom ESPHome configuration. It is intended
+# for advanced users who want to integrate the tested LED-logic, threshold,
+# calibration, and time-utility headers into their own device YAML.
+#
+# This is NOT the production Release-One path.
+#   - Most customers should use WebFlash at https://mysense360.com.
+#   - Manual Release-One users should reference
+#     `products/sense360-ceiling-poe-ventiq-roomiq.yaml` instead
+#     (see `examples/customer-basic.yaml` for a Release-One-first template,
+#     and `docs/release-one.md` for the full Release-One configuration).
+#
+# The `@v2.0.0` pin below is for the C++ header API; it predates the
+# Release-One firmware tag `v1.0.0` and is retained because the header API
+# is stable across both. Production firmware should always come from
+# WebFlash or from a pinned Release-One product YAML.
+# ============================================================================
+
 # Example: Custom Device Config Using Remote Headers
 # This demonstrates how to use the sense360 headers from GitHub packages
 # while creating a fully custom configuration

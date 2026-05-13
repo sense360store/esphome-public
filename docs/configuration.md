@@ -45,7 +45,44 @@ substitutions:
 
 Choose the configuration that matches your device and intended use.
 
-#### Sense360 Mini + AirIQ (Full Features)
+> **Production Release-One ships `Ceiling-POE-VentIQ-RoomIQ`.** The
+> Release-One product YAML is
+> [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+> and the firmware artifact is
+> `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`. Most customers
+> should use [WebFlash](https://mysense360.com) for that artifact. The
+> Mini variants below are **legacy-compatible** customer/advanced paths
+> retained for older Mini-form-factor hardware; they are not part of
+> production Release-One. FanTRIAC is blocked pending HW-005, and the
+> Sense360 LED is excluded from Release-One because the config string
+> `Ceiling-POE-VentIQ-RoomIQ` has no `LED` token. See
+> [`release-one.md`](release-one.md) for the full Release-One configuration.
+
+#### Release-One — Ceiling-POE-VentIQ-RoomIQ (Recommended)
+
+The current production Release-One configuration. Uses the Sense360 Core R4
+ceiling board, PoE power, VentIQ air quality, and RoomIQ presence + comfort
+sensing.
+
+```yaml
+packages:
+  sense360_firmware:
+    url: https://github.com/sense360store/esphome-public
+    ref: v1.0.0  # Pin to a release tag — never use 'main' in production
+    files:
+      - products/sense360-ceiling-poe-ventiq-roomiq.yaml
+```
+
+**Includes:**
+
+- VentIQ air-quality module (bathroom-focused: SHT4x, BMP390, SGP41,
+  optionally MLX90614 + SPS30)
+- RoomIQ room sensing (climate + light + LD2450 presence)
+- PoE power (IEEE 802.3af)
+- Wi-Fi, Home Assistant API, OTA, time, and logging are wired up by the
+  product YAML — do not redeclare them in your device YAML.
+
+#### Sense360 Mini + AirIQ (Full Features) — _legacy-compatible_
 
 Complete air quality monitoring with presence detection (recommended for most users).
 
@@ -67,7 +104,7 @@ packages:
 
 > AirIQ uses the Bosch BSEC2 external component, pinned to the public `v1.4.2500` archive of `BSEC2-ESPHome`. ESPHome will download that archive during the first build and prompt you to accept the Bosch BSEC license before compilation continues.
 
-#### Sense360 Mini + Presence Only
+#### Sense360 Mini + Presence Only — _legacy-compatible_
 
 Presence detection without air quality sensors. Ideal for occupancy sensing and lighting automation.
 
@@ -78,7 +115,7 @@ packages:
       - products/sense360-mini-presence.yaml
 ```
 
-#### Sense360 Mini + Presence (LD2412)
+#### Sense360 Mini + Presence (LD2412) — _legacy-compatible_
 
 Presence detection using the LD2412 sensor. Uses a basic profile that provides presence detection without target counting.
 
@@ -91,9 +128,12 @@ packages:
 
 Note: The LD2412 component does not provide target count sensors. It provides only presence-related binary sensors.
 
-#### Sense360 Ceiling + Presence
+#### Sense360 Ceiling + Presence — _legacy-compatible_
 
 Ceiling-mounted presence detection with the standard LD2450 sensor.
+(Production Release-One uses the Ceiling-POE-VentIQ-RoomIQ product above
+instead, which already bundles RoomIQ presence + comfort + VentIQ air
+quality.)
 
 ```yaml
 packages:
@@ -102,9 +142,10 @@ packages:
       - products/sense360-ceiling-presence.yaml
 ```
 
-#### Sense360 Ceiling + Presence (LD2412)
+#### Sense360 Ceiling + Presence (LD2412) — _legacy-compatible_
 
-Ceiling-mounted presence detection using the LD2412 sensor.
+Ceiling-mounted presence detection using the LD2412 sensor. Not the
+Release-One Ceiling-POE-VentIQ-RoomIQ product.
 
 ```yaml
 packages:
@@ -312,7 +353,14 @@ interval:
 
 ### Night Mode and LED Controls
 
-#### Mini Night Brightness
+> **Sense360 LED is excluded from Release-One.** The WebFlash config string
+> `Ceiling-POE-VentIQ-RoomIQ` does not carry a `LED` token, so the
+> production Release-One artifact does not bundle LED-driver behaviour. The
+> Mini LED / night-mode features below are **legacy-compatible** Mini-board
+> paths retained for custom builds. See
+> [`release-one.md`](release-one.md) for the LED exclusion policy.
+
+#### Mini Night Brightness — _legacy-compatible (Mini board only)_
 
 The Mini LED package stores night brightness as a persisted value that survives reboots. You can adjust it through Home Assistant.
 
@@ -342,9 +390,11 @@ This section is for users with technical knowledge of ESPHome and the firmware a
 
 ### Hardware Pin Configuration
 
-#### Mini Board Default Pins
+#### Mini Board Default Pins — _legacy-compatible (Mini board only)_
 
-Only modify these if you have custom hardware:
+Only modify these if you have custom Mini-board hardware. The Release-One
+Ceiling Core (`S360-100-R4`) uses a different pin map — see
+[`docs/hardware/s360-100-r4-core.md`](hardware/s360-100-r4-core.md).
 
 ```yaml
 substitutions:
@@ -380,7 +430,11 @@ substitutions:
 
 ### Component-Level Customization
 
-For advanced users who want to load specific components only:
+For advanced users who want to load specific components only. **This is not
+the Release-One path.** For Release-One firmware, reference the product YAML
+[`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+instead. The example below uses Mini-board packages and is retained as a
+legacy-compatible custom-build template.
 
 ```yaml
 packages:
@@ -394,7 +448,7 @@ packages:
       - packages/base/ota.yaml
       - packages/base/time.yaml
 
-      # Choose hardware
+      # Choose hardware (Mini-board example — legacy-compatible, not Release-One)
       - packages/hardware/sense360_core_mini.yaml
 
       # Select features

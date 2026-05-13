@@ -120,14 +120,15 @@ api_encryption_key: "WILL_BE_GENERATED"
 # OTA Password
 ota_password: "ChooseASecurePassword123"
 
-# MQTT Credentials (required for AirIQ MQTT publishing)
+# MQTT Credentials (required for AirIQ / VentIQ MQTT publishing)
 mqtt_username: "YourMQTTUsername"
 mqtt_password: "YourMQTTPassword"
 ```
 
 3. Update the WiFi credentials with your actual network name and password
 4. Set a secure OTA password
-5. Add MQTT credentials if you are using an AirIQ-enabled product (required for air quality MQTT publishing)
+5. Add MQTT credentials if you are using an AirIQ- or VentIQ-enabled product
+   (required for air quality MQTT publishing — Release-One uses VentIQ)
 6. Leave the API key as-is for now (it will be generated automatically)
 6. Click "Save"
 
@@ -270,16 +271,20 @@ After the initial USB flash, all future updates can be done wirelessly.
 
 ### Change Product Variant
 
-Edit your configuration to use a different product:
+Edit your configuration to use a different product. The default (and the
+Release-One production target) is `sense360-ceiling-poe-ventiq-roomiq.yaml`.
+The other entries are **legacy-compatible** Mini / Ceiling-presence
+variants — uncomment one only if you have that specific older hardware.
 
 ```yaml
 packages:
   sense360_firmware:
     files:
       # Choose ONE:
-      - products/sense360-mini-airiq.yaml     # Full sensors
-      # - products/sense360-mini-presence.yaml  # Presence only
-      # - products/sense360-ceiling-presence.yaml  # Ceiling mount
+      - products/sense360-ceiling-poe-ventiq-roomiq.yaml  # Release-One (recommended)
+      # - products/sense360-mini-airiq.yaml               # legacy-compatible Mini full sensors
+      # - products/sense360-mini-presence.yaml            # legacy-compatible Mini presence only
+      # - products/sense360-ceiling-presence.yaml         # legacy-compatible ceiling presence
 ```
 
 ### Override Thresholds
