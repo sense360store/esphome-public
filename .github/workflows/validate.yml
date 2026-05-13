@@ -62,6 +62,10 @@ jobs:
         run: |
           python3 tests/test_webflash_artifact_naming.py
 
+      - name: Validate product catalog
+        run: |
+          python3 tests/test_product_catalog.py
+
       - name: Count products
         run: |
           PRODUCT_COUNT=$(find products/ -name "*.yaml" -type f ! -name "secrets.yaml" | wc -l)

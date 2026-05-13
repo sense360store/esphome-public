@@ -47,6 +47,14 @@ build is not part of production Release-One while HW-005 is open.
 | RoomIQ Presence | [`packages/expansions/presence_ceiling.yaml`](../packages/expansions/presence_ceiling.yaml) |
 | Power (POE) | [`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml) |
 | Core Hardware | [`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml) |
+| Product status catalog | [`config/product-catalog.json`](../config/product-catalog.json) |
+
+The Release-One product status (lifecycle, modules, blocked modules, hardware
+SKUs) is also recorded in [`config/product-catalog.json`](../config/product-catalog.json),
+the repo's product source-of-truth catalog.
+[`config/webflash-builds.json`](../config/webflash-builds.json) remains the
+authoritative WebFlash build matrix; the catalog adds the lifecycle layer on
+top and is validated by [`tests/test_product_catalog.py`](../tests/test_product_catalog.py).
 
 The Release-One YAML omits the Sense360 LED (`S360-300`) packages on
 purpose: the WebFlash config string `Ceiling-POE-VentIQ-RoomIQ` does not

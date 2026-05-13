@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "description": "Product source-of-truth catalog. Lifecycle status for Sense360 product configurations. Validated by tests/test_product_catalog.py. config/webflash-builds.json remains the authoritative WebFlash build matrix; this catalog adds the lifecycle layer on top. Legacy product YAMLs under products/sense360-core-*.yaml, products/sense360-mini-*.yaml, products/sense360-poe.yaml, and products/sense360-fan-pwm.yaml are not yet enumerated here -- deferred to PRODUCT-002.",
+  "source_of_truth": [
+    "docs/release-one.md",
+    "docs/webflash-contract.md",
+    "docs/release-one-hardware-audit.md"
+  ],
+  "lifecycle_statuses": [
+    "production",
+    "preview",
+    "compile-only",
+    "hardware-pending",
+    "blocked",
+    "legacy-compatible",
+    "deprecated",
+    "removed"
+  ],
+  "products": [
+    {
+      "config_string": "Ceiling-POE-VentIQ-RoomIQ",
+      "status": "production",
+      "version": "1.0.0",
+      "channel": "stable",
+      "product_yaml": "products/sense360-ceiling-poe-ventiq-roomiq.yaml",
+      "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin",
+      "webflash_build_matrix": true,
+      "modules": {
+        "mount": "Ceiling",
+        "power": "POE",
+        "air_quality": "VentIQ",
+        "room_sense": "RoomIQ",
+        "fan": "none",
+        "led": "none"
+      },
+      "blocked_modules": [
+        "FanTRIAC",
+        "LED"
+      ],
+      "hardware": {
+        "core": "S360-100",
+        "ventiq": "S360-211",
+        "roomiq": "S360-200",
+        "poe": "S360-410"
+      },
+      "hardware_status": "verified-for-release-one",
+      "notes": "Release-One production target. FanTRIAC blocked per HW-005; LED excluded because config string carries no LED token. See docs/release-one.md and docs/release-one-hardware-audit.md."
+    },
+    {
+      "config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
+      "status": "blocked",
+      "blocker": "HW-005",
+      "reason": "FanTRIAC hardware mapping unresolved: S360-320 schematic uncommitted; placeholder GPIO5/GPIO6 collide with RoomIQ J10 nets; ESPHome ac_dimmer cannot run across the SX1509 expander.",
+      "product_yaml": "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
+      "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml",
+      "webflash_build_matrix": false,
+      "notes": "Retained as blocked / reference. Not part of production Release-One while HW-005 is open. See docs/release-one-hardware-audit.md#fantriac-mapping-resolution."
+    }
+  ]
+}
