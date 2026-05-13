@@ -36,6 +36,9 @@ from typing import Any, Dict, List
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CATALOG_PATH = REPO_ROOT / "config" / "product-catalog.json"
 BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
+PRODUCTS_DIR = REPO_ROOT / "products"
+WEBFLASH_WRAPPER_DIR = PRODUCTS_DIR / "webflash"
+EXCLUDED_TOP_LEVEL_YAMLS = {"secrets.yaml"}
 
 EXPECTED_LIFECYCLE_STATUSES = [
     "production",
@@ -81,6 +84,39 @@ def _load_builds() -> Dict[str, Any]:
 
 def _products(catalog: Dict[str, Any]) -> List[Dict[str, Any]]:
     return catalog.get("products", [])
+
+
+def _top_level_product_yamls() -> List[str]:
+    """Return repo-relative paths for every top-level product YAML.
+
+    Excludes ``products/secrets.yaml`` and anything under
+    ``products/webflash/``. The catalog must enumerate every path returned
+    here.
+    """
+    paths: List[str] = []
+    for child in sorted(PRODUCTS_DIR.iterdir()):
+        if not child.is_file():
+            continue
+        if child.suffix != ".yaml":
+            continue
+        if child.name in EXCLUDED_TOP_LEVEL_YAMLS:
+            continue
+        paths.append(child.relative_to(REPO_ROOT).as_posix())
+    return paths
+
+
+def _webflash_wrapper_yamls() -> List[str]:
+    """Return repo-relative paths for every WebFlash wrapper YAML."""
+    if not WEBFLASH_WRAPPER_DIR.is_dir():
+        return []
+    paths: List[str] = []
+    for child in sorted(WEBFLASH_WRAPPER_DIR.iterdir()):
+        if not child.is_file():
+            continue
+        if child.suffix != ".yaml":
+            continue
+        paths.append(child.relative_to(REPO_ROOT).as_posix())
+    return paths
 
 
 class ProductCatalogTests(unittest.TestCase):
@@ -161,6 +197,47 @@ class ProductCatalogTests(unittest.TestCase):
                     f"webflash_wrapper not found: {rel}",
                 )
 
+    # ----- Catalog ↔ products/ enumeration --------------------------------
+
+    def test_every_top_level_product_yaml_is_in_catalog(self) -> None:
+        cataloged = {entry["product_yaml"] for entry in self.products}
+        for rel in _top_level_product_yamls():
+            with self.subTest(product_yaml=rel):
+                self.assertIn(
+                    rel,
+                    cataloged,
+                    f"product YAML {rel!r} has no entry in "
+                    "config/product-catalog.json (PRODUCT-002 requires every "
+                    "top-level product YAML to be enumerated; add a "
+                    "legacy-compatible entry if it is not WebFlash-shippable)",
+                )
+
+    def test_no_product_yaml_points_at_webflash_wrapper(self) -> None:
+        for idx, entry in enumerate(self.products):
+            with self.subTest(idx=idx, entry=entry):
+                rel = entry.get("product_yaml", "")
+                self.assertFalse(
+                    rel.startswith("products/webflash/"),
+                    f"product_yaml {rel!r} points at a WebFlash wrapper; "
+                    "wrappers may only appear in webflash_wrapper",
+                )
+
+    def test_webflash_wrappers_only_appear_in_webflash_wrapper_field(
+        self,
+    ) -> None:
+        product_yaml_paths = {
+            entry.get("product_yaml") for entry in self.products
+        }
+        for wrapper in _webflash_wrapper_yamls():
+            with self.subTest(wrapper=wrapper):
+                self.assertNotIn(
+                    wrapper,
+                    product_yaml_paths,
+                    f"WebFlash wrapper {wrapper!r} is referenced as a "
+                    "catalog product_yaml; wrappers may only appear in "
+                    "webflash_wrapper",
+                )
+
     # ----- Uniqueness -----------------------------------------------------
 
     def test_every_config_string_is_unique(self) -> None:
@@ -182,6 +259,39 @@ class ProductCatalogTests(unittest.TestCase):
             len(set(paths)),
             f"duplicate product_yaml values in catalog: {paths}",
         )
+
+    def test_legacy_config_id_values_are_unique(self) -> None:
+        ids = [
+            entry["legacy_config_id"]
+            for entry in self.products
+            if "legacy_config_id" in entry
+        ]
+        self.assertEqual(
+            len(ids),
+            len(set(ids)),
+            f"duplicate legacy_config_id values in catalog: {ids}",
+        )
+
+    def test_legacy_config_id_does_not_collide_with_config_string(
+        self,
+    ) -> None:
+        config_strings = {
+            entry["config_string"]
+            for entry in self.products
+            if "config_string" in entry
+        }
+        for idx, entry in enumerate(self.products):
+            if "legacy_config_id" not in entry:
+                continue
+            with self.subTest(idx=idx, entry=entry):
+                self.assertNotIn(
+                    entry["legacy_config_id"],
+                    config_strings,
+                    "legacy_config_id "
+                    f"{entry['legacy_config_id']!r} collides with a "
+                    "WebFlash config_string; the two namespaces must stay "
+                    "disjoint",
+                )
 
     # ----- Production-entry contract --------------------------------------
 
@@ -260,6 +370,42 @@ class ProductCatalogTests(unittest.TestCase):
                         "only production or preview entries may set "
                         "webflash_build_matrix=true",
                     )
+
+    def test_non_eligible_statuses_have_webflash_build_matrix_false(
+        self,
+    ) -> None:
+        for idx, entry in enumerate(self.products):
+            if entry.get("status") in WEBFLASH_ELIGIBLE_STATUSES:
+                continue
+            with self.subTest(idx=idx, entry=entry):
+                self.assertFalse(
+                    entry["webflash_build_matrix"],
+                    f"entry with status {entry.get('status')!r} must have "
+                    "webflash_build_matrix=false",
+                )
+
+    def test_legacy_compatible_entries_have_no_artifact_name(self) -> None:
+        for idx, entry in enumerate(self.products):
+            if entry.get("status") != "legacy-compatible":
+                continue
+            with self.subTest(idx=idx, entry=entry):
+                self.assertNotIn(
+                    "artifact_name",
+                    entry,
+                    "legacy-compatible entries must not have artifact_name; "
+                    "they are not WebFlash-shippable",
+                )
+
+    def test_blocked_entries_have_no_artifact_name(self) -> None:
+        for idx, entry in enumerate(self.products):
+            if entry.get("status") != "blocked":
+                continue
+            with self.subTest(idx=idx, entry=entry):
+                self.assertNotIn(
+                    "artifact_name",
+                    entry,
+                    "blocked entries must not have artifact_name",
+                )
 
     # ----- Release-One specific assertions --------------------------------
 

@@ -56,6 +56,14 @@ the repo's product source-of-truth catalog.
 authoritative WebFlash build matrix; the catalog adds the lifecycle layer on
 top and is validated by [`tests/test_product_catalog.py`](../tests/test_product_catalog.py).
 
+PRODUCT-002 extended the catalog to enumerate every legacy / manual product
+YAML under `products/` as `status: legacy-compatible`. Release-One remains
+the only `production` entry and `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` remains
+`blocked` (HW-005). `legacy-compatible` entries are not WebFlash-shippable —
+they have no `config_string`, no `artifact_name`, no `webflash_wrapper`, and
+`webflash_build_matrix` is `false`. The Release-One product, artifact, and
+WebFlash build matrix are unchanged by PRODUCT-002.
+
 The Release-One YAML omits the Sense360 LED (`S360-300`) packages on
 purpose: the WebFlash config string `Ceiling-POE-VentIQ-RoomIQ` does not
 carry a `LED` token, so the binary built from this YAML does not include

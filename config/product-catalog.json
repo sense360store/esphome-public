@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "Product source-of-truth catalog. Lifecycle status for Sense360 product configurations. Validated by tests/test_product_catalog.py. config/webflash-builds.json remains the authoritative WebFlash build matrix; this catalog adds the lifecycle layer on top. Legacy product YAMLs under products/sense360-core-*.yaml, products/sense360-mini-*.yaml, products/sense360-poe.yaml, and products/sense360-fan-pwm.yaml are not yet enumerated here -- deferred to PRODUCT-002.",
+  "description": "Product source-of-truth catalog. Lifecycle status for Sense360 product configurations. Validated by tests/test_product_catalog.py. config/webflash-builds.json remains the authoritative WebFlash build matrix; this catalog adds the lifecycle layer on top. PRODUCT-002 extends the catalog to enumerate every legacy/manual product YAML under products/ as legacy-compatible. legacy-compatible entries are NOT WebFlash-shippable: they have no config_string, no artifact_name, no webflash_wrapper, and webflash_build_matrix is false. WebFlash wrappers under products/webflash/ are not standalone products; they appear only as webflash_wrapper on the entry they wrap.",
   "source_of_truth": [
     "docs/release-one.md",
     "docs/webflash-contract.md",
@@ -56,6 +56,223 @@
       "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml",
       "webflash_build_matrix": false,
       "notes": "Retained as blocked / reference. Not part of production Release-One while HW-005 is open. See docs/release-one-hardware-audit.md#fantriac-mapping-resolution."
+    },
+    {
+      "product_yaml": "products/sense360-core-c-poe.yaml",
+      "legacy_config_id": "sense360-core-c-poe",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core ceiling-mount PoE YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-c-pwr.yaml",
+      "legacy_config_id": "sense360-core-c-pwr",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core ceiling-mount AC-power YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-c-usb.yaml",
+      "legacy_config_id": "sense360-core-c-usb",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core ceiling-mount USB YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-ceiling.yaml",
+      "legacy_config_id": "sense360-core-ceiling",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core ceiling complete config (AirIQ + Comfort + Presence + LED); retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-ceiling-bathroom.yaml",
+      "legacy_config_id": "sense360-core-ceiling-bathroom",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash bathroom ceiling config; uses legacy Bathroom module (the bathroom-focused air-quality module is VentIQ in the WebFlash taxonomy). Retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-ceiling-presence.yaml",
+      "legacy_config_id": "sense360-core-ceiling-presence",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash presence-only ceiling config; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-v-c-poe.yaml",
+      "legacy_config_id": "sense360-core-v-c-poe",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core Voice ceiling-mount PoE YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-v-c-pwr.yaml",
+      "legacy_config_id": "sense360-core-v-c-pwr",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core Voice ceiling-mount AC-power YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-v-c-usb.yaml",
+      "legacy_config_id": "sense360-core-v-c-usb",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core Voice ceiling-mount USB YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-v-w-poe.yaml",
+      "legacy_config_id": "sense360-core-v-w-poe",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core Voice wall-mount PoE YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-v-w-pwr.yaml",
+      "legacy_config_id": "sense360-core-v-w-pwr",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core Voice wall-mount AC-power YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-v-w-usb.yaml",
+      "legacy_config_id": "sense360-core-v-w-usb",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core Voice wall-mount USB YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-voice-ceiling.yaml",
+      "legacy_config_id": "sense360-core-voice-ceiling",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core Voice ceiling complete config (LED+MIC ring required); retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-voice-wall.yaml",
+      "legacy_config_id": "sense360-core-voice-wall",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core Voice wall complete config (LED+MIC ring required); retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-w-poe.yaml",
+      "legacy_config_id": "sense360-core-w-poe",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core wall-mount PoE YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-w-pwr.yaml",
+      "legacy_config_id": "sense360-core-w-pwr",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core wall-mount AC-power YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-w-usb.yaml",
+      "legacy_config_id": "sense360-core-w-usb",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core wall-mount USB YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-wall.yaml",
+      "legacy_config_id": "sense360-core-wall",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Core wall complete config (AirIQ + Comfort + Presence + LED); retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-core-wall-presence.yaml",
+      "legacy_config_id": "sense360-core-wall-presence",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash presence-only wall config; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-fan-pwm.yaml",
+      "legacy_config_id": "sense360-fan-pwm",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Legacy single-purpose 4-channel fan-PWM accessory YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-mini-airiq.yaml",
+      "legacy_config_id": "sense360-mini-airiq",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Mini AirIQ YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-mini-airiq-advanced.yaml",
+      "legacy_config_id": "sense360-mini-airiq-advanced",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Mini AirIQ Advanced variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-mini-airiq-basic.yaml",
+      "legacy_config_id": "sense360-mini-airiq-basic",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Mini AirIQ Basic variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-mini-airiq-ld2412.yaml",
+      "legacy_config_id": "sense360-mini-airiq-ld2412",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Mini AirIQ + LD2412 variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-mini-full-ld2412.yaml",
+      "legacy_config_id": "sense360-mini-full-ld2412",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Mini full (AirIQ + LD2412) variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-mini-presence.yaml",
+      "legacy_config_id": "sense360-mini-presence",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Mini presence-only YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-mini-presence-advanced.yaml",
+      "legacy_config_id": "sense360-mini-presence-advanced",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Mini presence Advanced variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-mini-presence-advanced-ld2412.yaml",
+      "legacy_config_id": "sense360-mini-presence-advanced-ld2412",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Mini presence Advanced + LD2412 variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-mini-presence-basic.yaml",
+      "legacy_config_id": "sense360-mini-presence-basic",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Mini presence Basic variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-mini-presence-ld2412.yaml",
+      "legacy_config_id": "sense360-mini-presence-ld2412",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Pre-WebFlash Mini presence + LD2412 variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "product_yaml": "products/sense360-poe.yaml",
+      "legacy_config_id": "sense360-poe",
+      "status": "legacy-compatible",
+      "webflash_build_matrix": false,
+      "notes": "Legacy single-purpose PoE network-controller YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
     }
   ]
 }
