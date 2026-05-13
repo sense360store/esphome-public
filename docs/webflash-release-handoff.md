@@ -486,6 +486,9 @@ run URL, release URL, hardware test record). Do not pre-check items.
   ESP-007 release proof record.
 - [`docs/repo-structure-audit.md`](./repo-structure-audit.md) — top-level
   repo path classification.
+- [`docs/manual-user-walkthrough.md`](./manual-user-walkthrough.md) — test
+  plan and findings template for validating the manual / custom ESPHome
+  path with a real tester.
 - [`config/webflash-builds.json`](../config/webflash-builds.json) — declared
   build matrix.
 - [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
