@@ -211,6 +211,15 @@ require firmware or workflow logic changes.
 
 ## FanTRIAC / TRIAC references
 
+> **HW-005 re-verified: still blocked — missing evidence.** No new schematic,
+> pin map, or driver evidence has landed; the `S360-320` schematic is still
+> uncommitted, no SX1509 channel is assigned to `TRI_GPIO1` / `TRI_GPIO2`,
+> and the placeholder GPIO5/GPIO6 substitutions still collide with RoomIQ
+> J10. See
+> [`docs/release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution)
+> for the full verdict, the missing-evidence checklist, and the
+> re-verification record.
+
 FanTRIAC is intentionally excluded from production Release-One while HW-005
 is open. Every FanTRIAC reference in the repo is **`blocked-reference`** —
 retained on purpose so the slot can be re-armed once the
