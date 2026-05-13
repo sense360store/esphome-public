@@ -1,28 +1,67 @@
-# WebFlash Release Asset Proof (ESP-007)
+# WebFlash Release Asset Proof (ESP-006 / ESP-007)
 
-Release validation hooks are in place.
-Awaiting recorded release run proof.
+ESP-006 (CI builds and uploads a WebFlash-compatible firmware artifact) and
+ESP-007 (a real GitHub Release publishes the WebFlash-compatible firmware
+assets) are **proven** for `esphome-public` as of the run recorded below.
 
-## Status
+This proof covers the repo-side responsibilities only: raw `.bin` build,
+WebFlash-compatible artifact naming, GitHub Release asset publishing, and
+the pre-upload release-notes and asset gates. It does **not** prove WebFlash
+production signing, the WebFlash production-signed `manifest.json`, or
+WebFlash deploy — those remain WebFlash-owned (see "What ESP-007 does NOT
+do" below).
+
+## Proof record
 
 | Field | Value |
 |-------|-------|
-| GitHub Release URL | `<pending>` |
-| Release tag | `<pending>` |
-| Workflow run URL | `<pending>` |
-| Commit SHA | `<pending>` |
-| Asset filename | `<pending>` |
-| Asset size (bytes) | `<pending>` |
-| Release-body validation result | `<pending>` |
-| Checksum file present (`checksums-sha256.txt`) | `<pending>` |
-| Date / time (UTC) | `<pending>` |
+| GitHub Release URL | <https://github.com/sense360store/esphome-public/releases/tag/v1.0.0> |
+| Release tag | `v1.0.0` |
+| Workflow run URL | <https://github.com/sense360store/esphome-public/actions/runs/25763009641> |
+| Workflow | `Build & Release Firmware` |
+| Workflow event | `release` (not `workflow_dispatch`) |
+| Matrix product | `ceiling-poe-ventiq-roomiq` |
+| Build file | [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml) |
+| WebFlash config string | `Ceiling-POE-VentIQ-RoomIQ` |
+| Firmware asset | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` |
+| Firmware asset size (release page) | `1.04 MB` |
+| Release-body validation | passed |
+| Checksums attached | `checksums-sha256.txt`, `checksums-md5.txt` |
+| Build-info manifest attached | `manifest.json` |
+| Status | ESP-006 and ESP-007 proven |
 
-## What ESP-007 enforces today
+### Release assets present
+
+- `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`
+- `checksums-sha256.txt`
+- `checksums-md5.txt`
+- `manifest.json`
+
+### Jobs that passed in the recorded run
+
+Top-level jobs:
+
+- `Generate Build Matrix`
+- `Build: ceiling-poe-ventiq-roomiq`
+- `Attach to Release`
+
+Steps that passed inside `Attach to Release`:
+
+- download firmware artifacts
+- list downloaded firmware
+- generate checksums
+- create firmware manifest
+- validate WebFlash release notes
+- check WebFlash release assets
+- upload release assets
+- release summary
+
+## What ESP-006 / ESP-007 enforce today
 
 The release workflow
 ([`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml))
-now runs two gating steps in the `release` job before any release asset is
-uploaded for a `release.published` event:
+runs two gating steps in the `Attach to Release` job before any release asset
+is uploaded for a `release.published` event:
 
 1. **Release-notes validation** —
    [`scripts/validate-webflash-release-notes.py`](../scripts/validate-webflash-release-notes.py)
@@ -44,43 +83,32 @@ uploaded for a `release.published` event:
    The bypass flag `--allow-no-matching-builds` exists for manual /
    dry-run flows only and is **not** passed by the release job.
 
-If either step fails, asset upload is skipped and the workflow run is marked
-failed. WebFlash never sees the release.
+Both gates passed in the recorded run above.
 
 ## What ESP-007 does NOT do
 
 - Does not sign firmware (WebFlash is the production signing authority).
-- Does not generate the WebFlash production-signed `manifest.json`.
+- Does not generate the WebFlash production-signed `manifest.json`. The
+  `manifest.json` attached to the release is the build-info manifest
+  (per-file SHA256 and size, build timestamp, git SHA, ESPHome version),
+  not the WebFlash production-signed manifest.
 - Does not deploy to WebFlash.
 - Does not narrow the build matrix to "WebFlash-only"; the workflow still
   builds every YAML in `products/`. Narrowing scope is out of scope for
   ESP-007.
 
-## How to fill in this proof
-
-After a real release tag is published and the workflow run finishes
-successfully:
-
-1. Capture the GitHub Release URL from the release page.
-2. Capture the workflow run URL from the Actions tab.
-3. Confirm the
-   `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` asset is
-   among the published assets, and read its size from the release page.
-4. Confirm `checksums-sha256.txt` is also attached.
-5. Read the workflow log for the "Validate WebFlash release notes" and
-   "Check WebFlash release assets" steps to record the validation result.
-6. Replace each `<pending>` value above with the recorded value, and commit
-   the update.
-
-Until the table above is filled in by hand based on a real run,
-**ESP-007 is not yet end-to-end proven.** Do not edit this document to
-claim otherwise.
+This proof therefore covers raw build + GitHub Release publishing only. Do
+not edit this document to claim WebFlash signing, manifest generation, or
+deploy are proven from this repo.
 
 ## See also
 
 - [`docs/webflash-contract.md`](./webflash-contract.md) — full WebFlash
   compatibility contract, including §8 release-body expectations.
 - [`docs/webflash-ci-alignment.md`](./webflash-ci-alignment.md) — CI/build
-  alignment overview and the ESP-007 row in §"Follow-up PR anchors".
+  alignment overview and the ESP-006 / ESP-007 rows in §"Follow-up PR
+  anchors".
 - [`docs/release-one.md`](./release-one.md) — Release-One configuration and
   artifact name.
+- [`docs/webflash-release-handoff.md`](./webflash-release-handoff.md) —
+  operational handoff and Release Proof Checklist.

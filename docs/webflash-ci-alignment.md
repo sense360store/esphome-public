@@ -197,10 +197,10 @@ This document also does **not** authorize:
 | `ESP-003` | Add local WebFlash compatibility snapshot | Existing | [`config/webflash-compatibility.json`](../config/webflash-compatibility.json) |
 | `ESP-004` | Add release-one product YAML | Existing | [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml), [`products/webflash/ceiling-poe-ventiq-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq.yaml) |
 | `ESP-005` | Validate WebFlash firmware config matrix | Existing (partial) | [`tests/validate_webflash_builds.py`](../tests/validate_webflash_builds.py); coverage to expand |
-| `ESP-006` | Build WebFlash-compatible `.bin` artifacts in CI | Existing — needs end-to-end verification | [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml), [`scripts/product_name_mapper.py`](../scripts/product_name_mapper.py); confirm a real release attaches a correctly-named `.bin` |
-| `ESP-007` | Publish WebFlash-compatible GitHub Release assets | Validation hooks landed; awaiting real release run proof | release-attach job in `firmware-build-release.yml` with pre-upload guards in [`scripts/validate-webflash-release-notes.py`](../scripts/validate-webflash-release-notes.py) and [`scripts/check-webflash-release-assets.py`](../scripts/check-webflash-release-assets.py); see [`docs/webflash-release-proof.md`](./webflash-release-proof.md) |
-| `ESP-006` | Build WebFlash-compatible `.bin` artifacts in CI | Proof path added; awaiting recorded CI run | [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml), [`scripts/product_name_mapper.py`](../scripts/product_name_mapper.py), [`tests/test_webflash_artifact_naming.py`](../tests/test_webflash_artifact_naming.py), [`tests/check_webflash_build_output.py`](../tests/check_webflash_build_output.py); see "ESP-006 build proof path" below |
-| `ESP-007` | Publish WebFlash-compatible GitHub Release assets | Existing — needs end-to-end verification | release-attach job in `firmware-build-release.yml`; confirm assets land on a real release tag |
+| `ESP-006` | Build WebFlash-compatible `.bin` artifacts in CI | Proven / verified — release `v1.0.0`, run [`25763009641`](https://github.com/sense360store/esphome-public/actions/runs/25763009641) | [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml), [`scripts/product_name_mapper.py`](../scripts/product_name_mapper.py); recorded end-to-end run attached the correctly-named `.bin` — see [`docs/webflash-release-proof.md`](./webflash-release-proof.md) |
+| `ESP-007` | Publish WebFlash-compatible GitHub Release assets | Proven / verified — release `v1.0.0`, run [`25763009641`](https://github.com/sense360store/esphome-public/actions/runs/25763009641) | release-attach job in `firmware-build-release.yml` with pre-upload guards in [`scripts/validate-webflash-release-notes.py`](../scripts/validate-webflash-release-notes.py) and [`scripts/check-webflash-release-assets.py`](../scripts/check-webflash-release-assets.py); see [`docs/webflash-release-proof.md`](./webflash-release-proof.md) |
+| `ESP-006` | Build WebFlash-compatible `.bin` artifacts in CI | Proven / verified — release `v1.0.0`, run [`25763009641`](https://github.com/sense360store/esphome-public/actions/runs/25763009641) | [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml), [`scripts/product_name_mapper.py`](../scripts/product_name_mapper.py), [`tests/test_webflash_artifact_naming.py`](../tests/test_webflash_artifact_naming.py), [`tests/check_webflash_build_output.py`](../tests/check_webflash_build_output.py); see "ESP-006 build proof path" below |
+| `ESP-007` | Publish WebFlash-compatible GitHub Release assets | Proven / verified — release `v1.0.0`, run [`25763009641`](https://github.com/sense360store/esphome-public/actions/runs/25763009641) | release-attach job in `firmware-build-release.yml`; assets recorded on release tag `v1.0.0` — see [`docs/webflash-release-proof.md`](./webflash-release-proof.md) |
 | `ESP-008` | Document WebFlash handoff | Planned | This doc covers the boundary; a dedicated handoff page may follow |
 | `ESP-009` | Audit and classify legacy repo paths | Planned | Inventory `Bathroom`, `Comfort`, `Presence`, `Wall`, `Mini` usage in `packages/` and `products/` before any cleanup |
 
@@ -240,30 +240,33 @@ end-to-end CI run that captures the actual `.bin` artifact uploaded by
    non-matrix version/channel values are skipped (exit 0), so they cannot
    accidentally trip the assertion.
 
-3. **Recorded end-to-end CI run** *(pending)*. Once `firmware-build-release.yml`
-   is dispatched against this branch with `single_product` set to
-   `sense360-ceiling-poe-ventiq-roomiq`, `version` set to `1.0.0`, and
-   `channel` set to `stable`, the build job uploads a CI artifact named
-   exactly `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`. When
-   that run is captured, fill in the proof record below and flip the
-   ESP-006 row in the table above to "Verified".
-
-   The release-attach proof (binary attached to a real GitHub Release) is
-   tracked separately under `ESP-007`.
+3. **Recorded end-to-end CI run** *(proven)*. A `release` event for tag
+   `v1.0.0` invoked
+   [`firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
+   in run
+   [`25763009641`](https://github.com/sense360store/esphome-public/actions/runs/25763009641).
+   The build job uploaded an artifact named exactly
+   `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` for the matrix
+   product `ceiling-poe-ventiq-roomiq`, and the `Attach to Release` job
+   then published it to the release. This proves the ESP-006 build path
+   end-to-end; the release-attach proof under `ESP-007` was satisfied by
+   the same run.
 
 ### Proof record
 
-> *Pending* — awaiting a recorded `workflow_dispatch` of
-> [`firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
-> with `single_product=sense360-ceiling-poe-ventiq-roomiq`,
-> `version=1.0.0`, `channel=stable`.
-
-When the run lands, replace the block above with:
-
 | Field | Value |
 |-------|-------|
-| Workflow run | `<URL>` |
+| Workflow run | <https://github.com/sense360store/esphome-public/actions/runs/25763009641> |
+| Workflow event | `release` |
+| GitHub Release | [`v1.0.0`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0) |
 | Artifact | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` |
-| Build date | `<YYYY-MM-DD>` |
-| ESPHome version | `<from workflow env.ESPHOME_VERSION>` |
-| Git SHA | `<commit SHA built>` |
+| Artifact size (release page) | `1.04 MB` |
+| Matrix product | `ceiling-poe-ventiq-roomiq` |
+| Build file | [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml) |
+| Status | ESP-006 and ESP-007 proven (repo-side build + Release publish) |
+
+See [`docs/webflash-release-proof.md`](./webflash-release-proof.md) for the
+full proof record, including the asset set (`.bin`, `checksums-sha256.txt`,
+`checksums-md5.txt`, `manifest.json`) and the validated `Attach to Release`
+sub-steps. WebFlash production signing, the production-signed `manifest.json`,
+and WebFlash deploy remain WebFlash-owned and are not claimed by this proof.

@@ -296,12 +296,17 @@ Two pre-upload gates run before assets are attached:
   verifies the declared `artifact_name` is present and is at least 100 KB.
   Fails closed if no matrix entry matches.
 
-> **ESP-007 end-to-end release proof is still pending.** The validation hooks
-> above are landed and exercised in CI, but a recorded GitHub Release run with
-> the actual `.bin` attached has not yet been captured. See
+> **ESP-007 end-to-end release proof is recorded** for the repo-side publish
+> path. Release [`v1.0.0`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0)
+> attached `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` (1.04 MB)
+> via run
+> [`25763009641`](https://github.com/sense360store/esphome-public/actions/runs/25763009641)
+> after the `validate-webflash-release-notes` and `check-webflash-release-assets`
+> gates passed. See
 > [`docs/webflash-release-proof.md`](./webflash-release-proof.md) for the
-> open proof record. Do not claim ESP-007 is fully proven until that record
-> is filled in from a real release.
+> full record. WebFlash import, sidecar generation, production signing,
+> production manifest generation, deploy, and smoke test remain WebFlash-owned
+> and are **not** proven by this record.
 
 ### 5. WebFlash imports release assets
 
@@ -441,11 +446,17 @@ they want.
 Tick each box only when there is **actual recorded evidence** for it (workflow
 run URL, release URL, hardware test record). Do not pre-check items.
 
-- [ ] `esphome-public` workflow completed successfully.
-- [ ] Release-One `.bin` artifact exists.
-- [ ] Artifact name exactly matches the WebFlash contract.
-- [ ] Artifact size is plausible for ESPHome firmware.
-- [ ] Release body passed validation.
+- [x] `esphome-public` workflow completed successfully.
+      (run [`25763009641`](https://github.com/sense360store/esphome-public/actions/runs/25763009641),
+      event `release`, tag `v1.0.0`)
+- [x] Release-One `.bin` artifact exists.
+      (`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` attached to
+      [`v1.0.0`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0))
+- [x] Artifact name exactly matches the WebFlash contract.
+- [x] Artifact size is plausible for ESPHome firmware. (1.04 MB on the
+      release page)
+- [x] Release body passed validation. (`validate WebFlash release notes`
+      and `check WebFlash release assets` both passed in `Attach to Release`)
 - [ ] WebFlash imported the release asset.
 - [ ] WebFlash generated the metadata sidecar.
 - [ ] WebFlash signed the firmware with the production key.
@@ -453,11 +464,12 @@ run URL, release URL, hardware test record). Do not pre-check items.
 - [ ] WebFlash deployment smoke test passed.
 - [ ] Real hardware flash test passed.
 
-> ESP-007 end-to-end release proof is still pending; see
-> [`docs/webflash-release-proof.md`](./webflash-release-proof.md). The
-> checklist above will only be fully tickable after a real release tag has
-> been published, WebFlash has imported it, and a hardware flash has been
-> recorded.
+> Repo-side ESP-006 and ESP-007 are proven by release `v1.0.0` and run
+> [`25763009641`](https://github.com/sense360store/esphome-public/actions/runs/25763009641);
+> see [`docs/webflash-release-proof.md`](./webflash-release-proof.md). The
+> remaining unchecked boxes cover WebFlash import, signing, manifest,
+> deploy, smoke test, and real-hardware flash, all of which are owned
+> outside this repo and have not been recorded here.
 
 ---
 

@@ -82,7 +82,7 @@ The mapping from product YAML → WebFlash filename is implemented in
 exercised by
 [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml).
 
-### Proof of build
+### Proof of build (recorded)
 
 Per-PR static proof (mapper agrees with `config/webflash-builds.json`) is
 covered by
@@ -90,10 +90,31 @@ covered by
 and a build-time assertion against the declared `artifact_name` is wired
 into the build job via
 [`tests/check_webflash_build_output.py`](../tests/check_webflash_build_output.py).
-A recorded end-to-end CI run that uploads the exact `.bin` above is
-**pending**; see
+
+A recorded end-to-end CI run is now in hand. ESP-006 and ESP-007 are
+**proven** for Release-One:
+
+| Field | Value |
+|-------|-------|
+| WebFlash config | `Ceiling-POE-VentIQ-RoomIQ` |
+| GitHub Release | [`v1.0.0`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0) |
+| Asset name | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` |
+| Actions run | <https://github.com/sense360store/esphome-public/actions/runs/25763009641> |
+| Workflow event | `release` |
+| Status | ESP-006 and ESP-007 proven for raw build + GitHub Release publish |
+
+Sense360 TRIAC / FanTRIAC remains excluded from production Release-One and
+**blocked pending hardware verification** under HW-005 — see
+[`release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution).
+Sense360 LED remains excluded because the WebFlash config string
+`Ceiling-POE-VentIQ-RoomIQ` does not include a `LED` token.
+
+WebFlash production signing, the WebFlash production-signed
+`manifest.json`, and WebFlash deploy remain WebFlash-owned and are not
+claimed by this record. See
+[`docs/webflash-release-proof.md`](webflash-release-proof.md) and
 [`docs/webflash-ci-alignment.md`](webflash-ci-alignment.md#proof-record)
-for the open proof record.
+for the full proof record.
 
 ---
 
