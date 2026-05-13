@@ -323,6 +323,16 @@ This PR does **not** change:
 
 ## FanTRIAC mapping resolution
 
+> **HW-005 — still blocked. Missing evidence.**
+>
+> The Release-One FanTRIAC slot remains **blocked**. The `S360-320` Sense360
+> TRIAC schematic is still not committed, no SX1509 channel is allocated to
+> `TRI_GPIO1` / `TRI_GPIO2`, and the placeholder `GPIO5` / `GPIO6`
+> substitutions in the canonical FanTRIAC product YAML still collide with the
+> RoomIQ J10 nets on `S360-100-R4`. See
+> [Missing evidence checklist](#missing-evidence-checklist) and
+> [Re-verification](#re-verification) below.
+
 This section is the HW-005 resolution for the FanTRIAC pin-mapping blocker
 flagged in PR #440 and in the [Findings](#findings) table above. It is the
 single explicit answer to "can Release-One ship FanTRIAC firmware today?".
@@ -348,6 +358,51 @@ verified SX1509-only mapping would still not unblock this slot — see
 | Timing safe? | **No.** Even if the SX1509 routing is later confirmed, it cannot meet the timing `ac_dimmer` requires. | [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml) uses ESPHome's `output: ac_dimmer` platform. That platform attaches a hardware interrupt to `zero_cross_pin` and drives `gate_pin` from a timed ISR with sub-millisecond precision. The SX1509 is an I²C-driven expander; register reads/writes go over the shared 400 kHz I²C bus and take hundreds of microseconds each, with no host-visible interrupt for input changes. On 50/60 Hz mains the half-cycle is only ~8.33–10 ms, and gate-firing delay normally needs <100 µs resolution. The expander cannot deliver that. |
 | Mapping verified? | **No.** | Two missing pieces: (a) the `S360-320` Sense360 TRIAC schematic is not committed to this repo, and (b) no SX1509 channel in [`packages/expansions/gpio_expander_sx1509.yaml`](../packages/expansions/gpio_expander_sx1509.yaml) is assigned to `TRI_GPIO1` or `TRI_GPIO2`. The current placeholders `fan_triac_gate_pin: GPIO5` and `fan_triac_zc_pin: GPIO6` are **provably wrong** on a Release-One unit because `IO5 = SEN0609_TX` and `IO6 = out(gpio6)` are already claimed by RoomIQ at J10. |
 | Release-One allowed to ship with FanTRIAC? | **No.** Do not publish a Release-One binary as FanTRIAC-capable until the resolution work below is complete. | All four rows above are failing. The current YAML still parses, but firmware compiled from it cannot actually drive the J15 TRIAC connector and may attempt to drive RoomIQ UART/aux nets via the dimmer ISR if any of `GPIO5`/`GPIO6` are ever taken seriously. |
+
+### Missing evidence checklist
+
+HW-005 stays blocked until **all** of the following land. Until then,
+FanTRIAC is not preview-ready and is not stable-ready. Do not invent any of
+these items in the meantime.
+
+- [ ] **`S360-320` Sense360 TRIAC schematic committed** to `docs/hardware/`
+  (e.g. `docs/hardware/s360-320-r4-triac.md`), mirroring the structure of
+  [`s360-100-r4-core.md`](hardware/s360-100-r4-core.md) and
+  [`s360-200-r4-roomiq.md`](hardware/s360-200-r4-roomiq.md), and the
+  catalog entry in [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+  flipped from `cataloged_unverified` to `verified`.
+- [ ] **End-to-end ESP32 ↔ J15 path documented** for `TRI_GPIO1` (gate) and
+  `TRI_GPIO2` (zero-cross), traced through `S360-100-R4` + `S360-320`
+  together. Acceptable outcomes are (a) direct ESP32 GPIOs or (b) an
+  on-board TRIAC controller IC on `S360-320` that exposes only a "dim
+  level" interface — see
+  [What needs to happen to clear the blocker](#what-needs-to-happen-to-clear-the-blocker)
+  for the two acceptable paths and the rejected SX1509-only hypothesis.
+- [ ] **Two free, interrupt-capable ESP32 pins identified** (only required
+  for outcome (a) above). Pins must not already be consumed by RoomIQ J10
+  (`SEN0609_RX/TX`, `out(gpio6)`, `Hi-Link_RX/TX`, `PIR`, `ALS_INT`,
+  `I2C_SDA`, `I2C_SCL`), VentIQ/AirIQ J9, the shared I²C bus
+  (`IO48`/`IO45`), the SPI peripheral block, UART0, or SX1509 control.
+  Update `fan_triac_gate_pin` / `fan_triac_zc_pin` in
+  [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
+  and the example block in
+  [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+  to the verified values in the same PR that lands the schematic.
+- [ ] **Replacement driver** (only required for outcome (b) above):
+  [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+  rewritten to target the on-board TRIAC controller IC over I²C — `ac_dimmer`
+  must not be used, because it is the wrong abstraction for an I²C "dim
+  level" register.
+
+Until that checklist is fully satisfied:
+
+- The FanTRIAC product YAML, WebFlash wrapper, and `fan_triac.yaml` package
+  remain `blocked-reference` and are not added to
+  [`config/webflash-builds.json`](../config/webflash-builds.json).
+- The Release-One WebFlash config string stays `Ceiling-POE-VentIQ-RoomIQ`
+  and the artifact name stays
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`.
+- No FanTRIAC binary may be published as TRIAC-capable, even for preview.
 
 ### Timing constraint: `ac_dimmer` vs SX1509 expander
 
@@ -455,6 +510,68 @@ It does **not** change:
      `config/webflash-builds.json`, `config/webflash-compatibility.json`,
      the artifact name, and `docs/release-one.md`; it is **out of scope for
      HW-005** and requires an explicit product decision.
+
+### Re-verification
+
+HW-005 was re-checked as a docs-only re-verification pass. The verdict is
+**unchanged**: still blocked, missing evidence. No new schematic, pin map,
+or driver evidence has landed since the original resolution above was
+written.
+
+Files inspected for this re-verification (read-only):
+
+- [`docs/hardware/`](hardware/) — directory listing shows only
+  [`s360-100-r4-core.md`](hardware/s360-100-r4-core.md) and
+  [`s360-200-r4-roomiq.md`](hardware/s360-200-r4-roomiq.md). **No
+  `s360-320-*-triac.md` schematic doc exists.**
+- [`config/hardware-catalog.json`](../config/hardware-catalog.json) —
+  `S360-320` row still carries `"schematic_status": "cataloged_unverified"`.
+- [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+  — still uses `output: ac_dimmer` and still requires direct
+  interrupt-capable ESP32 GPIOs; BLOCKED / UNVERIFIED banner intact.
+- [`packages/expansions/gpio_expander_sx1509.yaml`](../packages/expansions/gpio_expander_sx1509.yaml)
+  — SX1509 channels 0–3 are fan PWM, 4–7 are tach, 8–11 are aux PWM, 12–15
+  are inputs. **No channel is allocated to `TRI_GPIO1` / `TRI_GPIO2`.**
+- [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
+  — `fan_triac_gate_pin: GPIO5` and `fan_triac_zc_pin: GPIO6` still in
+  place as parse-only placeholders; BLOCKED / UNVERIFIED banner intact;
+  `IO5 = SEN0609_TX` and `IO6 = out(gpio6)` on `S360-100-R4` are still
+  claimed by RoomIQ at J10.
+- [`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml)
+  — still flagged `BLOCKED / REFERENCE`, still not present in
+  [`config/webflash-builds.json`](../config/webflash-builds.json).
+- [`docs/hardware/s360-100-r4-core.md`](hardware/s360-100-r4-core.md) —
+  J15 row still shows `TRI_GPIO1` / `TRI_GPIO2` reachable only via the
+  SX1509 (`U3`) side; `IO5` / `IO6` still tagged "Do not reuse blindly for
+  FanTRIAC".
+
+Files intentionally left unchanged by this re-verification pass (no
+evidence supports any edit):
+
+- All product YAMLs under `products/` — including the Release-One no-TRIAC
+  files and the FanTRIAC `blocked-reference` files.
+- All package YAMLs under `packages/` — including
+  `packages/expansions/fan_triac.yaml` and
+  `packages/expansions/gpio_expander_sx1509.yaml`.
+- All config JSON under `config/` — `webflash-builds.json`,
+  `webflash-compatibility.json`, `hardware-catalog.json`.
+- All hardware reference docs under `docs/hardware/`.
+- `docs/release-one.md`, `docs/webflash-contract.md`,
+  `docs/webflash-ci-alignment.md`, `docs/webflash-release-handoff.md`,
+  `docs/hardware-catalog.md`.
+- All workflows under `.github/workflows/`, scripts under `scripts/`,
+  tests under `tests/`, components under `components/`, headers under
+  `include/`.
+
+No new `s360-320-*-triac.md` doc was created. Inventing a schematic doc
+without source-of-truth schematic evidence would itself be a HW-005
+violation. The absence of that file is the blocker; this PR documents the
+absence, it does not paper over it.
+
+Next evidence needed to move HW-005 from "still blocked" to either
+"resolved / preview-ready" or "invalid / unsafe": every item in the
+[Missing evidence checklist](#missing-evidence-checklist) above. Until
+that lands, FanTRIAC stays out of WebFlash and out of any release matrix.
 
 ### Cross-references
 
