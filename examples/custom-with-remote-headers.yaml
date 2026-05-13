@@ -13,9 +13,10 @@
 #     (see `examples/customer-basic.yaml` for a Release-One-first template,
 #     and `docs/release-one.md` for the full Release-One configuration).
 #
-# The `@v2.0.0` pin below is for the C++ header API; it predates the
-# Release-One firmware tag `v1.0.0` and is retained because the header API
-# is stable across both. Production firmware should always come from
+# The `@v1.0.0` pin below is for the C++ header API and matches the
+# Release-One firmware tag `v1.0.0`. The header API is stable; if you are
+# building against a different release, replace `v1.0.0` with the release
+# tag you are pinning to. Production firmware should always come from
 # WebFlash or from a pinned Release-One product YAML.
 # ============================================================================
 
@@ -39,10 +40,15 @@ esphome:
 
   # Include tested C++ headers from GitHub
   # These headers are fully unit-tested with 133 passing tests
+  #
+  # Pin to a tested release tag. Release-One is v1.0.0.
+  # For future releases, replace v1.0.0 with the release tag you want to
+  # pin to. Placeholder shape (do not flash):
+  #   - github://sense360store/esphome-public/include/sense360/led_logic.h@<release-tag>
   includes:
-    - github://sense360store/esphome-public/include/sense360/led_logic.h@v2.0.0
-    - github://sense360store/esphome-public/include/sense360/thresholds.h@v2.0.0
-    - github://sense360store/esphome-public/include/sense360/calibration.h@v2.0.0
+    - github://sense360store/esphome-public/include/sense360/led_logic.h@v1.0.0
+    - github://sense360store/esphome-public/include/sense360/thresholds.h@v1.0.0
+    - github://sense360store/esphome-public/include/sense360/calibration.h@v1.0.0
 
 esp32:
   board: esp32-s3-devkitc-1

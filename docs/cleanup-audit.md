@@ -910,3 +910,189 @@ After the sweep, any remaining hits for `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`,
 blocked-reference, legacy / old_name, schematic, historical-context, or
 compatibility references in the locations listed under "Legacy aliases
 intentionally preserved" (CLEANUP-003 + CLEANUP-005) above.
+
+## CLEANUP-006 update (remote header / pinned version refresh)
+
+This section records what CLEANUP-006 actually swept. As with the
+CLEANUP-003, CLEANUP-004, and CLEANUP-005 updates above, it does **not**
+rewrite the audit earlier in this document. The "Findings summary" rows
+at lines 157, 175, 388, 390, and the "Recommended cleanup PRs" entry at
+lines 502–507 remain accurate as historical records; the entry below
+summarises the applied changes and supersedes the
+`pin to a Release-One-aware tag in CLEANUP-006` placeholders for the
+files that were actually in scope for this PR.
+
+### Goal
+
+Audit the remote-package / external-header examples in user-facing
+docs and examples, and decide whether each pinned version reference
+should be re-pinned to current Release-One (`v1.0.0`), kept as an
+explicit legacy example, replaced with a `<release-tag>` placeholder,
+or carry a clearer pinning warning. The goal is to prevent users from
+copying stale remote-package examples without understanding they are
+advanced / legacy paths.
+
+Before any edits, the C++ header API at `v1.0.0` was verified to
+contain every symbol used in
+`examples/custom-with-remote-headers.yaml`
+(`compute_level`, `color_for_severity`, `LEVEL_POOR`,
+`compute_pulse_multiplier`, `scale_color`, `classify_value`,
+`PM25_GOOD` / `PM25_MODERATE` / `PM25_UNHEALTHY`, `AirQualityStatus`,
+`status_to_string`, `CalibrationResult`,
+`compute_single_point_calibration`, `Time`, `is_within_night_mode`),
+confirmed via `git show v1.0.0:include/sense360/*.h`. Re-pinning the
+example to `@v1.0.0` therefore does not break the lambda body.
+
+### Files swept (docs / examples only)
+
+| Path | Sweep |
+|---|---|
+| `examples/custom-with-remote-headers.yaml` | Re-pinned the three `includes:` lines from `@v2.0.0` to `@v1.0.0` so the example matches the Release-One firmware tag. Inserted a guidance comment block above the `includes:` list explaining how to substitute another tag for future releases, with a `@<release-tag>` placeholder shape. Updated the top-of-file banner (the "predates the Release-One firmware tag `v1.0.0`" sentence) to reflect the new pin. No lambda, sensor, package, or `min_version` changes — the `min_version: 2025.10.0` already matches Release-One. |
+| `docs/product-matrix.md` | Inserted a "Legacy examples" admonition immediately above `### Example 1: Core Ceiling with Full Monitoring` (the start of the three "Configuration Examples" snippets that pin `ref: v2.2.0`). The admonition explains that the snippets intentionally pin to the historical `v2.2.0` tag for legacy Core/Wall/Bathroom package examples, that current Release-One WebFlash firmware is `Ceiling-POE-VentIQ-RoomIQ` at `v1.0.0`, and that custom / manual users should pin to a known-compatible release tag and never use `ref: main` for production. The three `ref: v2.2.0` lines themselves are **not changed** — Release-One `v1.0.0` has not been proven as the baseline for those legacy package paths, so re-pinning would be misleading. |
+| `docs/installation.md` | Replaced the "Wireless Updates → Update your configuration" placeholder `ref: v2.2.0  # Change to the new version number` with `ref: <new-release-tag>  # Example: v1.0.0. Replace with the release tag you are updating to.`. This block is an update-to-future-tag instruction, not a working copy-paste, so a generic placeholder is more appropriate than a concrete pin that would re-stale next release. |
+
+### Files not touched
+
+The following files were inspected and confirmed to need no
+CLEANUP-006-shaped edit:
+
+- `examples/customer-basic.yaml` — `ref: v1.0.0` is already current
+  Release-One; banner / structure already refreshed in CLEANUP-005.
+- `README.md` — every `ref:` snippet (lines 24, 269, 303, 317, 344)
+  already pins `v1.0.0`; the production-vs-`main` warning is already
+  present.
+- `docs/configuration.md` — every `ref:` snippet (lines 71, 93, 443,
+  607) already pins `v1.0.0`; the `ref: main` development-only example
+  at line 622 is explicitly framed as "Development only — never for
+  production devices".
+- `docs/release-one.md` — `ref: v1.0.0` snippet at line 193 already
+  current.
+- `docs/manual-user-walkthrough.md` — "Suggested ref / tag: `v1.0.0`"
+  scope table at line 36 already current.
+- `docs/development.md` — no remote-package pins in the doc body
+  (only the `git clone` URL); nothing to re-pin.
+- `docs/product-release-matrix.md` — `ref: v1.0.0` snippets at lines
+  261 and 309 already current.
+- `packages/README.md` — `ref: v1.0.0` snippets at lines 91 and 121
+  already current after CLEANUP-005.
+- `packages/SENSE360_MODULES.md` — no `ref:` or `@vX` pins to audit.
+  The deeper "Mini-centric module inventory revisit" deferred at the
+  end of CLEANUP-005 remains deferred; the task scope here was
+  remote-package pins, not module-inventory rewording.
+- `CHANGELOG.md` — every `ref: vX` / `ref: main` mention is historical
+  narrative ("`ref: v3.0.0` with `ref: main`", etc.) describing past
+  releases. Historical changelog entries are not rewritten.
+- `docs/repo-structure-audit.md` — the `@v2.0.0` mentions at lines 52
+  and 113 are descriptive prose recording the public-API surface at
+  the time the audit was written. Historical-snapshot doc; not
+  rewritten, mirroring the CLEANUP-005 pattern of leaving earlier
+  audit rows intact.
+
+### Legacy pins intentionally preserved
+
+The following references remain on purpose, in line with the
+"Legacy aliases intentionally preserved" lists for CLEANUP-003 /
+CLEANUP-004 / CLEANUP-005:
+
+- The three `ref: v2.2.0` snippets in `docs/product-matrix.md` lines
+  601, 631, 661 (`Example 1: Core Ceiling with Full Monitoring`,
+  `Example 2: Core Wall with All Sensors`,
+  `Example 3: Core Ceiling Bathroom Installation`). Re-pinning to
+  `v1.0.0` would imply Release-One `v1.0.0` has been proven against
+  the legacy Core / Wall / Bathroom product YAML set, which it has
+  not. Instead, a "Legacy examples" admonition was added above them.
+- The `ref: main` development-only example in `docs/configuration.md`
+  line 622 is intentionally retained as a maintainer-testing example,
+  with the explicit "Never for production devices" warning preserved
+  above it.
+- The `ref: main` internal-loader references in
+  `packages/base/external_components.yaml:26` and
+  `products/sense360-mini-full-ld2412.yaml:99` are internal
+  self-references inside the repo, not user copy-paste examples, and
+  are out of CLEANUP-006 scope (`packages/*.yaml` and
+  `products/*.yaml` are in the "do not edit" list).
+
+### Deferred / out of scope
+
+The following `@v2.0.0` / `ref: v2.0.0` references are still in the
+repo after CLEANUP-006. They are recorded here as a deferred follow-up
+rather than fixed in this PR, because the directories that contain
+them are in the CLEANUP-006 task's explicit "do not change" list:
+
+- `include/README.md` lines 79–80 — Header API usage example showing
+  `@v2.0.0`. Out of scope: `include/*` is reserved. A future PR with
+  scope for `include/*` should re-pin these to `@v1.0.0` to match
+  `examples/custom-with-remote-headers.yaml`.
+- `tests/INTEGRATION_GUIDE.md` lines 32–38 — Integration guide for
+  the C++ header API, pinning `@v2.0.0` / `ref: v2.0.0`. Out of
+  scope: `tests/*` is reserved. The original audit row paired this
+  file with `custom-with-remote-headers.yaml` for CLEANUP-006; only
+  the example file was actually in scope this round.
+- `products/sense360-core-*.yaml` and `products/sense360-mini-*.yaml`
+  comment-block `ref: v2.2.0` / `ref: v3.0.0` example pins (lines 21,
+  24, 26, 28, 29, 103, 145, 258, 358, 474 across the affected files).
+  Already tracked under CLEANUP-002 in the audit rows at lines 143,
+  144, and 207–209; `products/*.yaml` is out of CLEANUP-006 scope.
+
+### Out of scope (unchanged by CLEANUP-006)
+
+CLEANUP-006 is docs / examples wording and example-pin alignment only.
+The following remain untouched:
+
+- `products/*.yaml`, `products/webflash/*.yaml`, `packages/*.yaml`.
+- `config/webflash-builds.json`, `config/webflash-compatibility.json`,
+  `config/hardware-catalog.json` (including `old_name` fields).
+- `.github/workflows/*`, `scripts/*`, `tests/*`, `components/*`,
+  `include/*`.
+- File renames (none performed).
+- WebFlash config strings, artifact names, build matrix, firmware
+  package IDs, hardware SKUs.
+- FanTRIAC blocked status (remains blocked pending HW-005).
+- LED exclusion status (remains excluded from Release-One).
+
+### Validation run for CLEANUP-006
+
+The commands at the top of this document, plus the sanity greps below,
+were re-run after the sweep. Results are captured in the commit body
+for the CLEANUP-006 PR.
+
+```text
+python3 tests/validate_webflash_builds.py
+python3 tests/test_webflash_compatibility.py
+python3 tests/test_webflash_artifact_naming.py
+python3 tests/test_validate_webflash_release_notes.py
+python3 tests/test_product_substitutions.py
+python3 tests/test_release_one_entity_names.py
+python3 tests/validate_configs.py
+
+grep -RIn "@v[0-9]"                              README.md docs examples packages products include components CHANGELOG.md
+grep -RIn "ref: main"                            README.md docs examples packages products include components CHANGELOG.md
+grep -RIn "ref: v"                               README.md docs examples packages products include components CHANGELOG.md
+grep -RIn "github://sense360store/esphome-public" README.md docs examples packages products include components CHANGELOG.md
+```
+
+After the sweep, the remaining `@v[0-9]`, `ref: v`, and `ref: main`
+hits are clearly framed as one of:
+
+- current Release-One pins (`@v1.0.0` / `ref: v1.0.0`) in
+  `examples/custom-with-remote-headers.yaml`, `examples/customer-basic.yaml`,
+  `README.md`, `docs/configuration.md`, `docs/installation.md`,
+  `docs/release-one.md`, `docs/product-release-matrix.md`,
+  `docs/manual-user-walkthrough.md`, `packages/README.md`;
+- intentionally-legacy pins (`ref: v2.2.0` in `docs/product-matrix.md`
+  Examples 1–3) under the new "Legacy examples" admonition;
+- deferred follow-ups (`@v2.0.0` in `include/README.md` and
+  `tests/INTEGRATION_GUIDE.md`; stale `ref: v2.2.0` / `ref: v3.0.0`
+  comment headers in `products/sense360-core-*.yaml` and
+  `products/sense360-mini-*.yaml`) explicitly listed above;
+- historical audit / changelog prose (`docs/cleanup-audit.md`,
+  `docs/repo-structure-audit.md`, `CHANGELOG.md`) which is not
+  rewritten;
+- production-warning text in `README.md`, `docs/configuration.md`,
+  `docs/webflash-release-handoff.md`, and `CHANGELOG.md` that
+  explicitly cautions against `ref: main` in production; the
+  maintainer-only `ref: main` example at `docs/configuration.md:622`;
+  and the in-repo `ref: main` self-references in
+  `packages/base/external_components.yaml:26` and
+  `products/sense360-mini-full-ld2412.yaml:99` (internal loader
+  paths, not user copy-paste examples).
