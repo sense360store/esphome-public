@@ -1,0 +1,120 @@
+---
+# ============================================================================
+# DRAFT WEBFLASH RELEASE NOTES (RELEASE-002)
+# ============================================================================
+# Manual operator helper: produces a WebFlash release-notes draft from the
+# product catalog, validates it against the WebFlash release-body contract,
+# and uploads the result as a workflow artifact.
+#
+# This workflow is preflight only. It does NOT:
+#   - create a GitHub Release
+#   - publish or compile firmware
+#   - upload any release asset
+#   - infer changelog content from git history
+#   - commit the generated release-notes.md anywhere
+#   - modify the firmware-build-release workflow's gates
+#
+# Publication of the actual GitHub Release body is still gated separately
+# by scripts/validate-webflash-release-notes.py inside
+# .github/workflows/firmware-build-release.yml at release.published time.
+# That gate is unchanged by this workflow.
+#
+# Human review of the ## Changelog section remains required: when the
+# `changelog` input is omitted, the draft contains a TODO placeholder that
+# the release author must replace before tagging.
+# ============================================================================
+
+name: Draft WebFlash Release Notes
+
+on:
+  workflow_dispatch:
+    inputs:
+      config_string:
+        description: >-
+          WebFlash config string (e.g. Ceiling-POE-VentIQ-RoomIQ). Must
+          match an entry in config/product-catalog.json.
+        required: true
+        default: Ceiling-POE-VentIQ-RoomIQ
+      version:
+        description: >-
+          Release version, no leading 'v' (e.g. 1.0.0). Must match the
+          catalog entry's declared version.
+        required: true
+        default: 1.0.0
+      channel:
+        description: Release channel
+        required: true
+        default: stable
+        type: choice
+        options:
+          - stable
+          - preview
+      changelog:
+        description: >-
+          Optional changelog text. One bullet per line; leading -/*/+ is
+          stripped. If omitted, the draft contains a TODO placeholder that
+          the release author must replace before publishing.
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  draft:
+    name: Draft release notes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate release-notes draft
+        env:
+          CONFIG_STRING: ${{ inputs.config_string }}
+          VERSION: ${{ inputs.version }}
+          CHANNEL: ${{ inputs.channel }}
+          CHANGELOG: ${{ inputs.changelog }}
+        run: |
+          set -euo pipefail
+
+          # Inputs are passed via env to keep them out of the shell command
+          # line. --require-changelog is intentionally NOT passed: when the
+          # operator leaves the changelog input blank, the generator emits a
+          # TODO placeholder that survives structural validation and signals
+          # to the release author that the section still needs human review.
+          ARGS=(
+            --config-string "$CONFIG_STRING"
+            --version "$VERSION"
+            --channel "$CHANNEL"
+            --output release-notes.md
+          )
+          if [ -n "${CHANGELOG:-}" ]; then
+            ARGS+=( --changelog "$CHANGELOG" )
+          fi
+
+          python3 scripts/generate_webflash_release_notes.py "${ARGS[@]}"
+
+          echo "----- generated release-notes.md -----"
+          cat release-notes.md
+          echo "--------------------------------------"
+
+      - name: Validate release-notes draft
+        env:
+          CHANNEL: ${{ inputs.channel }}
+        run: |
+          python3 scripts/validate-webflash-release-notes.py \
+            release-notes.md --channel "$CHANNEL"
+
+      - name: Upload release-notes artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: >-
+            release-notes-${{ inputs.config_string }}-v${{ inputs.version }}-${{ inputs.channel }}
+          path: release-notes.md
+          if-no-files-found: error
+          retention-days: 14

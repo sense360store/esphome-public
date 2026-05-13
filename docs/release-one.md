@@ -97,6 +97,23 @@ git history, or call any external service. The Release-One product,
 artifact, build matrix, and FanTRIAC / LED policy are unchanged by
 RELEASE-001.
 
+RELEASE-002 wires the same generator behind a manual GitHub Actions
+workflow at
+[`.github/workflows/release-notes-draft.yml`](../.github/workflows/release-notes-draft.yml)
+(smoke-tested by
+[`tests/test_release_notes_draft_workflow.py`](../tests/test_release_notes_draft_workflow.py)).
+The workflow is `workflow_dispatch` only: it accepts `config_string`,
+`version`, `channel` (`stable` or `preview`), and an optional
+`changelog` text input; it runs the generator and the release-notes
+validator; and it uploads `release-notes.md` as a workflow artifact.
+RELEASE-002 does not modify the release-publish gates in
+[`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml),
+does not create GitHub Releases, does not publish firmware, does not
+infer changelog content from git history, and does not commit the
+generated draft. Human review of the `## Changelog` section remains
+required. The Release-One product, artifact, build matrix, and FanTRIAC
+/ LED policy are unchanged by RELEASE-002.
+
 The Release-One YAML omits the Sense360 LED (`S360-300`) packages on
 purpose: the WebFlash config string `Ceiling-POE-VentIQ-RoomIQ` does not
 carry a `LED` token, so the binary built from this YAML does not include

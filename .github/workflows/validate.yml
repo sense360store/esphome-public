@@ -63,6 +63,10 @@ jobs:
         run: |
           python3 tests/test_generate_webflash_release_notes.py
 
+      - name: Smoke-check release-notes draft workflow
+        run: |
+          python3 tests/test_release_notes_draft_workflow.py
+
       - name: Verify WebFlash artifact naming (mapper agrees with builds JSON)
         run: |
           python3 tests/test_webflash_artifact_naming.py

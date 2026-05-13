@@ -174,14 +174,32 @@ the work is tracked.
 
 The release body required by §8 of
 [`docs/webflash-contract.md`](./webflash-contract.md) can be drafted from
-the product catalog with the read-only generator added in RELEASE-001:
+the product catalog with the read-only generator added in RELEASE-001.
+Local invocation:
 
 ```
 python3 scripts/generate_webflash_release_notes.py \
     --config-string Ceiling-POE-VentIQ-RoomIQ \
     --version 1.0.0 \
-    --channel stable
+    --channel stable \
+    --output release-notes.md \
+    --validate
 ```
+
+RELEASE-002 also wires the same generator behind a manual GitHub Actions
+workflow at
+[`.github/workflows/release-notes-draft.yml`](../.github/workflows/release-notes-draft.yml).
+The workflow is `workflow_dispatch` only: it accepts `config_string`,
+`version`, `channel` (`stable` or `preview`), and an optional
+`changelog` text input; runs the generator; runs
+[`scripts/validate-webflash-release-notes.py`](../scripts/validate-webflash-release-notes.py)
+against the draft; and uploads `release-notes.md` as a workflow artifact.
+It does **not** create a GitHub Release, publish firmware, commit the
+draft, or change the existing release-publish gates in
+[`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml).
+Workflow shape is locked in by the smoke test at
+[`tests/test_release_notes_draft_workflow.py`](../tests/test_release_notes_draft_workflow.py),
+which runs in `.github/workflows/validate.yml` on every push / PR.
 
 The generator
 ([`scripts/generate_webflash_release_notes.py`](../scripts/generate_webflash_release_notes.py),
@@ -193,8 +211,9 @@ on every channel, lists FanTRIAC and Sense360 LED as Known-Issues
 exclusions for Release-One, and refuses blocked / legacy-compatible /
 deprecated / removed entries. Human review of the `## Changelog` section
 is still required — the generator emits a TODO placeholder that the
-release author must replace before tagging. The generator does not
-create releases, publish firmware, or change the build matrix.
+release author must replace before tagging. The generator and the
+RELEASE-002 workflow do not create releases, publish firmware, infer
+changelog content from git history, or change the build matrix.
 
 ## Non-goals for this repo
 
