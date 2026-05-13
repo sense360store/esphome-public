@@ -383,6 +383,24 @@ are stale; fix those in CLEANUP-002 alongside the other doc-only rewords.
 follow-up cleanup PRs without first auditing customer remote-package
 URLs.
 
+**Status:** PRODUCT-002 has applied this classification in
+[`config/product-catalog.json`](../config/product-catalog.json) — every
+top-level product YAML listed above now has a `status: legacy-compatible`
+catalog entry with `webflash_build_matrix: false`, no `config_string`, no
+`artifact_name`, and a `legacy_config_id` equal to the YAML basename
+(without `.yaml`).
+[`tests/test_product_catalog.py`](../tests/test_product_catalog.py) now
+enforces that every top-level product YAML is cataloged, that no catalog
+`product_yaml` points at a `products/webflash/*` wrapper, that
+`legacy_config_id` values are unique and disjoint from WebFlash
+`config_string` values, and that `legacy-compatible` and `blocked`
+entries carry no `artifact_name`. `legacy-compatible` does **not** mean
+WebFlash-shippable: [`config/webflash-builds.json`](../config/webflash-builds.json)
+remains the authoritative WebFlash build matrix, and PRODUCT-002 does not
+add any product to it. Release-One remains the only `production` entry;
+FanTRIAC (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`) remains `blocked` per
+HW-005; Sense360 LED remains excluded from Release-One.
+
 ## Legacy docs/examples
 
 | Path | Issue | Recommended action |

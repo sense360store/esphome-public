@@ -420,6 +420,16 @@ matrix entry must appear in the catalog with a WebFlash-eligible status. New
 product configs should declare their status in the catalog before being added
 to the build matrix.
 
+PRODUCT-002 extends this catalog to enumerate every legacy/manual product YAML
+under `products/` as `status: legacy-compatible`. `legacy-compatible` entries
+are retained for manual / custom / remote-package users and are validated by
+the broad legacy CI sweep, but they are **not** WebFlash-shippable: they have
+no `config_string`, no `artifact_name`, no `webflash_wrapper`, and
+`webflash_build_matrix` is `false`. WebFlash builds are still sourced
+exclusively from [`config/webflash-builds.json`](../config/webflash-builds.json);
+this PR does not add any product to that build matrix and does not change any
+WebFlash config string or artifact name.
+
 ---
 
 ## Compatibility Rule of Thumb
