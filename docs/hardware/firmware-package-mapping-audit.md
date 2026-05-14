@@ -165,7 +165,7 @@ deferred-to-follow-up).
 
 | Mapping / package area | Schematic evidence | Current YAML / package mapping | Status | Recommended action |
 |---|---|---|---|---|
-| **LED_DATA / Sense360 LED** | Core (`S360-100-R4`) `IO38 = LED_DATA` → `U2A` 74LVC1G07 buffer → `R8` 330 Ω → `J3` → S360-300 `J1` `LED_DATA` input. Core `IO14 = SCS` (peripheral SPI chip-select). Verified in [`s360-100-r4-core.md`](s360-100-r4-core.md) and [`s360-300-r4-led.md`](s360-300-r4-led.md). | [`packages/hardware/led_ring_ceiling.yaml`](../../packages/hardware/led_ring_ceiling.yaml) hardcodes `led_data_pin: GPIO14`. Release-One YAML **does not include** this package — the WebFlash config string `Ceiling-POE-VentIQ-RoomIQ` carries no `LED` token. | `needs-package-change` (deferred) | Document the discrepancy. **Do not edit** `led_ring_ceiling.yaml` in this PR. Propose follow-up: **HW-010 — Fix Sense360 LED package pin mapping** (`GPIO14` → `GPIO38` to match `IO38 = LED_DATA`). HW-010 is gated on the existence (or addition) of an LED-bearing config string; nothing about Release-One needs to change. |
+| **LED_DATA / Sense360 LED** | Core (`S360-100-R4`) `IO38 = LED_DATA` → `U2A` 74LVC1G07 buffer → `R8` 330 Ω → `J3` → S360-300 `J1` `LED_DATA` input. Core `IO14 = SCS` (peripheral SPI chip-select). Verified in [`s360-100-r4-core.md`](s360-100-r4-core.md) and [`s360-300-r4-led.md`](s360-300-r4-led.md). | [`packages/hardware/led_ring_ceiling.yaml`](../../packages/hardware/led_ring_ceiling.yaml) binds `led_data_pin: GPIO38` (HW-010). Release-One YAML **does not include** this package — the WebFlash config string `Ceiling-POE-VentIQ-RoomIQ` carries no `LED` token. | `confirmed-ok` (resolved by HW-010) | **HW-010 has landed.** Ceiling LED package pin now matches the verified schematic (`GPIO38`). LED remains excluded from Release-One; no `LED` token was added to the config string; no WebFlash LED build was added. The wall LED package ([`led_ring_wall.yaml`](../../packages/hardware/led_ring_wall.yaml)) and the legacy S3 Core package ([`sense360_core_ceiling_s3.yaml`](../../packages/hardware/sense360_core_ceiling_s3.yaml)) stay unchanged — neither has a Core-side schematic proving the same `LED_DATA` path; both remain documented as unresolved. |
 | **Core J10 vs RoomIQ J6 pin-order** | Two `verified` schematics disagree on the 12-pin mating connector. Core J10: pin 1 = `+3.3V`, pin 2 = `+5V`, signals at pins 3–11, pin 12 = `GND`. RoomIQ J6: pin 1 = `+5V`, pin 7 = `+3.3V`, signals at pins 2–6 / 8–11, pin 12 = `GND`. Both nominally mate. | No package YAML binds J10 / J6 pins by number. RoomIQ packages ([`comfort_ceiling.yaml`](../../packages/expansions/comfort_ceiling.yaml), [`presence_ceiling.yaml`](../../packages/expansions/presence_ceiling.yaml)) target the abstract `expansion_i2c` bus and `uart_bus` UART — no pin-number drift in firmware today. | `needs-silkscreen/bench-verification` | Document. **Do not edit** either hardware reference doc in HW-009; both already flag the discrepancy as an Open Question. The resolution must come from the physical silkscreen on `S360-100-R4` and `S360-200-R4`. Until then, no firmware change is safe. |
 | **VentIQ J9 / `AirQ_Led` / `AirQ_Status_Led`** | Core J9 (S360-100-R4) carries `AirQ_Status_Led` at pin 5 (Core `IO7`) and `AirQ_Led` at pin 6 (Core `IO8`). [`s360-211-r4-ventiq.md`](s360-211-r4-ventiq.md) explicitly marks whether VentIQ reuses these as **verify**. | [`packages/expansions/airiq_bathroom_base.yaml`](../../packages/expansions/airiq_bathroom_base.yaml) declares only I²C sensors (SHT4x at `0x44`, BMP390 at `0x77`, SGP41 at `0x59`) on the abstract `expansion_i2c` bus. **It does not bind `AirQ_Led` / `AirQ_Status_Led` to any GPIO.** [`packages/features/bathroom_profile.yaml`](../../packages/features/bathroom_profile.yaml) is logic-only. | `confirmed-ok` (legacy-naming caveat) | Document. **Do not rename** the legacy `AirQ_*` nets — they are schematic labels, not firmware identifiers. **Do not change** the VentIQ package. Whether the nets actually drive a VentIQ-side indicator on the physical board is HW-002 Open Question #4 and is out of scope for HW-009. |
 | **AirIQ J9 / `AirQ_Led` / `AirQ_Status_Led`** | Same Core J9 nets, shared between AirIQ and VentIQ at the connector. [`s360-210-r4-airiq.md`](s360-210-r4-airiq.md) marks AirIQ-side consumption as **verify**. AirIQ ↔ VentIQ mutex preserved in [`config/webflash-compatibility.json`](../../config/webflash-compatibility.json) (`rules.airiq_and_ventiq_mutually_exclusive: true`). | [`packages/expansions/airiq_ceiling.yaml`](../../packages/expansions/airiq_ceiling.yaml), [`packages/expansions/airiq.yaml`](../../packages/expansions/airiq.yaml), and the AirIQ feature-side packages declare I²C sensors only (SPS30 at `0x69`, SGP41 at `0x59`, SCD41 at `0x62`, BMP390 at `0x77`) on the abstract `expansion_i2c` / `airiq_i2c_id` bus. **They do not bind `AirQ_Led` / `AirQ_Status_Led` to any GPIO.** AirIQ is not in Release-One. | `confirmed-ok` (legacy-naming caveat) | Document. **Do not rename** AirIQ packages or nets. **Do not change** the mutex with VentIQ. Indicator-line reuse remains HW-002 Open Question #4. |
@@ -199,29 +199,36 @@ Schematic evidence (LED board):
   does not resolve the `GPIO14` (package) vs `IO38` (Core schematic)
   discrepancy.
 
-Package evidence:
+Package evidence (after HW-010):
 
-- `packages/hardware/led_ring_ceiling.yaml` line 20 (comment) and line
-  24: `led_data_pin: GPIO14`. Used by the `esp32_rmt_led_strip` light
-  platform at line 35.
+- `packages/hardware/led_ring_ceiling.yaml` now binds
+  `led_data_pin: GPIO38` and cites the `S360-100-R4` / `S360-300-R4`
+  schematic evidence in a short comment. The substitution is consumed
+  by the `esp32_rmt_led_strip` light platform via `pin: ${led_data_pin}`.
 
 Release-One impact:
 
 - The Release-One YAML
   [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
-  intentionally omits LED package includes (see comments at lines
+  still intentionally omits LED package includes (see comments at lines
   121–128). The WebFlash config string `Ceiling-POE-VentIQ-RoomIQ`
-  carries no `LED` token. **No current production binary lights up
-  `GPIO14`.** The package mismatch is latent: it would surface only on a
-  future LED-bearing config string.
+  still carries no `LED` token. HW-010 does **not** add `LED` to the
+  Release-One config string, the Release-One artifact name, the WebFlash
+  build matrix, or the product catalog.
 
-Status: `needs-package-change` (deferred). The fix is a one-line YAML
-edit (`GPIO14` → `GPIO38`) in `led_ring_ceiling.yaml`, but performing it
-here would silently mutate the only LED-driving package in the repo. The
-correct sequence is to land that change inside a scoped PR (HW-010)
-whose acceptance criteria include either (a) verifying it does not break
-the legacy non-Release-One products that include the package, or (b)
-gating the change behind a new LED-bearing WebFlash config string.
+Status: `confirmed-ok` (resolved by HW-010 — this PR). HW-010 is the
+scoped one-package edit anticipated by the HW-009 audit: it changes the
+ceiling LED `led_data_pin` substitution from `GPIO14` to `GPIO38`,
+adds [`tests/test_led_package_mapping.py`](../../tests/test_led_package_mapping.py)
+to lock in the new value, the Release-One LED exclusion, and the
+FanTRIAC HW-005 blocker, and updates the surrounding documentation. The
+non-Release-One products that consume the ceiling LED package
+([`sense360-core-ceiling.yaml`](../../products/sense360-core-ceiling.yaml),
+[`sense360-core-ceiling-bathroom.yaml`](../../products/sense360-core-ceiling-bathroom.yaml),
+[`sense360-core-ceiling-presence.yaml`](../../products/sense360-core-ceiling-presence.yaml))
+are `legacy-compatible` in the product catalog and are not part of the
+WebFlash build matrix; they now drive the WS2812B ring on the
+schematic-correct pin.
 
 ### Core J10 vs RoomIQ J6 pin-order
 
@@ -467,23 +474,42 @@ Each item below is **separate**, **scoped**, and **not approved by
 HW-009**. They are recorded here so the audit's findings have a clear
 next-action chain.
 
-### HW-010 — Fix Sense360 LED package pin mapping
+### HW-010 — Fix Sense360 LED package pin mapping (resolved)
 
-- **Scope.** A one-package PR that changes `led_data_pin` in
+- **Status.** **Resolved.** HW-010 landed as a scoped one-package edit:
   [`packages/hardware/led_ring_ceiling.yaml`](../../packages/hardware/led_ring_ceiling.yaml)
-  from `GPIO14` to `GPIO38` so the package matches the now-`verified`
-  `S360-100-R4` schematic (`IO38 = LED_DATA`).
-- **Gate.** The change must not break the legacy / non-Release-One
-  products that include `led_ring_ceiling.yaml`. The PR must either (a)
-  prove via `tests/validate_configs.py` and the existing test suite
-  that nothing else regresses, or (b) split the package so legacy
-  configs keep the old behaviour while a new variant carries the
-  schematic-correct pin.
-- **Out of scope for HW-010.** Adding `LED` to the Release-One config
-  string. Sense360 LED stays excluded from Release-One; an LED-bearing
-  config string (e.g. `Ceiling-POE-VentIQ-RoomIQ-LED`) is a separate,
-  later product PR with its own catalog entry, build-matrix entry, and
-  release-notes draft.
+  now binds `led_data_pin: GPIO38`, matching the verified `S360-100-R4`
+  schematic (`IO38 = LED_DATA → U2A 74LVC1G07 → R8 → J3 → S360-300 J1`).
+- **Test guard.** [`tests/test_led_package_mapping.py`](../../tests/test_led_package_mapping.py)
+  locks in the new pin value, the Release-One LED exclusion, the
+  absence of any `LED` token in
+  [`config/webflash-builds.json`](../../config/webflash-builds.json), and
+  the FanTRIAC `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` entry's
+  `status: blocked`, `blocker: HW-005`,
+  `webflash_build_matrix: false`. The existing test suite
+  (`tests/validate_configs.py` and the WebFlash / catalog / product /
+  release-notes validators) passes unchanged.
+- **What HW-010 did not change.** No `LED` token added to the
+  Release-One config string. No WebFlash LED build added. No product
+  catalog LED entry added. No `LED` Release-One YAML include added. The
+  Release-One config string remains `Ceiling-POE-VentIQ-RoomIQ` and the
+  artifact remains
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`.
+- **Still unresolved after HW-010.** The wall LED package
+  ([`packages/hardware/led_ring_wall.yaml`](../../packages/hardware/led_ring_wall.yaml),
+  `led_data_pin: GPIO48`) and the legacy S3 Core package
+  ([`packages/hardware/sense360_core_ceiling_s3.yaml`](../../packages/hardware/sense360_core_ceiling_s3.yaml),
+  `led_data_pin: GPIO14`) are **not** changed by HW-010. Neither has a
+  Core-side schematic that proves the same `LED_DATA` path; both are
+  documented here as unresolved. The S3 Core package has no product
+  YAML consumer in this repo. The wall LED package is consumed by
+  `legacy-compatible` products only.
+- **Still required before any LED-bearing config can ship.** A future
+  LED-bearing config (e.g. `Ceiling-POE-VentIQ-RoomIQ-LED`) is a
+  **separate** product PR with its own catalog entry, build-matrix
+  entry, release-notes draft, and onboarding gate per
+  [`docs/product-onboarding.md`](../product-onboarding.md). HW-010 only
+  fixes the underlying package mapping.
 
 ### J10 / J6 silkscreen reconciliation
 
@@ -616,13 +642,20 @@ includes, and product YAMLs and asserted invariants.
 After HW-009 lands, these greps should hold:
 
 - `grep -RIn "GPIO14\|IO38\|LED_DATA" docs packages products config` —
-  the only `GPIO14` hit in package YAML remains in
-  [`packages/hardware/led_ring_ceiling.yaml`](../../packages/hardware/led_ring_ceiling.yaml);
-  every other hit is a documentation reference (this audit, the LED
-  hardware reference, the Core hardware reference, the Release-One
-  audit, the COMPAT-001 audit, the product-onboarding guide, the
-  cleanup audit). The `IO38` / `LED_DATA` evidence remains the
-  authoritative schematic value in the Core and LED reference docs.
+  after HW-010 has also landed, the `led_ring_ceiling.yaml` hit binds
+  `GPIO38`, not `GPIO14`. Remaining `GPIO14` hits in package YAML are
+  on unrelated boards / signals
+  ([`packages/hardware/sense360_core_ceiling_s3.yaml`](../../packages/hardware/sense360_core_ceiling_s3.yaml)
+  — legacy S3 Core; no schematic backing; no product consumer in this
+  repo;
+  [`packages/hardware/sense360_core_poe.yaml`](../../packages/hardware/sense360_core_poe.yaml)
+  — `w5500_cs_pin`, different signal;
+  [`packages/expansions/sense360_fan_pwm.yaml`](../../packages/expansions/sense360_fan_pwm.yaml)
+  — `fan3_tach_pin`, different signal). Every documentation `GPIO14`
+  hit is either historical narration of the HW-009 / HW-010 chain or
+  the unresolved wall LED / S3 Core legacy note. The `IO38` /
+  `LED_DATA` evidence remains the authoritative schematic value in the
+  Core and LED reference docs.
 - `grep -RIn "J10\|J6\|RoomIQ" docs packages products config` — the
   Core J10 and RoomIQ J6 pin-order tables are unchanged in both
   reference docs; the discrepancy is unresolved by HW-009 (it requires

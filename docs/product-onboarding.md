@@ -296,9 +296,13 @@ These guardrails apply to every onboarding PR. They are not optional.
   does not carry a `LED` token; the Release-One YAML omits LED
   package includes on purpose. A future LED-bearing config (e.g.
   `Ceiling-POE-VentIQ-RoomIQ-LED`) requires its own `S360-300`
-  schematic, reconciliation of the `GPIO14` (package) vs `IO38`
-  (schematic) `LED_DATA` discrepancy, a new catalog entry, and a new
-  build-matrix entry — not a modification of Release-One.
+  schematic (committed HW-007 / `verified` HW-008), a new catalog
+  entry, a new build-matrix entry, and a release-notes draft — not a
+  modification of Release-One. The package-level `LED_DATA`
+  reconciliation (`GPIO14` package vs `IO38` schematic) is now done
+  (HW-010 binds the ceiling LED package to `GPIO38`); HW-010 by
+  itself does **not** add `LED` to Release-One and does **not** make
+  Sense360 LED WebFlash-shippable.
 - **Do not treat `legacy-compatible` as WebFlash-shippable.**
   `legacy-compatible` entries are retained for manual / custom /
   remote-package users. They have no `config_string`, no
