@@ -79,6 +79,10 @@ Only the two `verified` boards above are considered authoritative for the pin
 checks below. Everything else in the catalog is named and SKU'd, but pin
 behaviour cannot be confirmed by this audit.
 
+See also: [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)
+— companion HW-004 / HW-006 audit that classifies every catalog row's
+documentation state and records evidence available vs. evidence missing.
+
 ## Summary
 
 The Release-One YAML and its package tree have **systemic mismatches** against
