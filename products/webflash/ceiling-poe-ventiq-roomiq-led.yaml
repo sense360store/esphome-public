@@ -1,0 +1,48 @@
+# ============================================================================
+# Sense360 WebFlash wrapper — LED-bearing PREVIEW CANDIDATE.
+# ============================================================================
+# This file is the WebFlash-namespaced wrapper for the LED-bearing sibling
+# product candidate. It mirrors the pattern of
+#   products/webflash/ceiling-poe-ventiq-roomiq.yaml
+# (the production Release-One wrapper) so that, when PRODUCT-009 adds the
+# LED-bearing preview build to config/webflash-builds.json, the build matrix
+# can address this YAML via the products/webflash/ namespace without
+# duplicating package wiring.
+#
+# Canonical YAML (full substitutions, packages, board config):
+#   products/sense360-ceiling-poe-ventiq-roomiq-led.yaml
+#
+# WebFlash config string : Ceiling-POE-VentIQ-RoomIQ-LED
+#
+# ============================================================================
+# STATUS — WHAT THIS WRAPPER IS NOT
+# ============================================================================
+#   * NOT Release-One stable. The Release-One production target stays
+#     `Ceiling-POE-VentIQ-RoomIQ` (LED-less). The Release-One wrapper at
+#     `products/webflash/ceiling-poe-ventiq-roomiq.yaml` is unchanged.
+#   * NOT in the WebFlash build matrix. PRODUCT-008 promotes the catalog
+#     entry from `compile-only` to `preview` with
+#     `webflash_build_matrix: false`. No entry is added to
+#     `config/webflash-builds.json` by PRODUCT-008; PRODUCT-009 owns
+#     build-matrix inclusion and the recorded build / release proof.
+#   * NO firmware artifact. No `.bin` exists for `Ceiling-POE-VentIQ-RoomIQ-LED`.
+#     No `version`, no `channel`, no `artifact_name` is declared by
+#     PRODUCT-008 — those land with PRODUCT-009 on a non-`stable` channel.
+#   * NO production promotion. Promotion to `production` / `stable` would
+#     require a separate PR with a full build / release proof equivalent
+#     to the Release-One row in
+#     `docs/release-one.md#proof-of-build-recorded`.
+#   * FanTRIAC remains blocked under HW-005. This LED-bearing sibling, like
+#     Release-One, ships no fan-driver firmware while HW-005 is open. See
+#     `docs/release-one-hardware-audit.md#fantriac-mapping-resolution`.
+#
+# Decision record and follow-up sequence (PRODUCT-005 → PRODUCT-006 →
+# PRODUCT-007 (no-op) → PRODUCT-008 (this PR) → PRODUCT-009):
+# `docs/product-led-preview-decision.md`.
+#
+# See docs/webflash-contract.md for the WebFlash artifact / grammar /
+# token contract this wrapper would satisfy once PRODUCT-009 lands.
+# ============================================================================
+
+packages:
+  led_preview_candidate: !include ../sense360-ceiling-poe-ventiq-roomiq-led.yaml

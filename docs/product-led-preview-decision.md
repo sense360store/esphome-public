@@ -122,15 +122,16 @@ Evidence that does **not** yet exist for an LED-bearing variant:
   YAML plus
   [`packages/hardware/led_ring_ceiling.yaml`](../packages/hardware/led_ring_ceiling.yaml),
   with the WebFlash Config text sensor returning
-  `Ceiling-POE-VentIQ-RoomIQ-LED`. PRODUCT-006 also added the
-  **minimum** `status: compile-only` entry to
-  [`config/product-catalog.json`](../config/product-catalog.json)
-  (carrying `config_string`, `product_yaml`,
-  `webflash_build_matrix: false`, and `notes` only) needed to keep
-  the existing PRODUCT-002 enumeration gate at
-  [`tests/test_product_catalog.py::test_every_top_level_product_yaml_is_in_catalog`](../tests/test_product_catalog.py)
-  green. There is still no WebFlash wrapper, no build-matrix entry,
-  no release-notes draft, and no build / release proof. The
+  `Ceiling-POE-VentIQ-RoomIQ-LED`. PRODUCT-008 has since added the
+  WebFlash wrapper
+  [`products/webflash/ceiling-poe-ventiq-roomiq-led.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq-led.yaml)
+  and promoted the catalog entry in
+  [`config/product-catalog.json`](../config/product-catalog.json) from
+  `status: compile-only` to `status: preview` (with
+  `webflash_build_matrix: false`, `hardware_status:
+  verified-led-candidate`, and the new `webflash_wrapper` pointer).
+  PRODUCT-008 added no `channel`, `version`, or `artifact_name`; no
+  build-matrix entry; no release-notes draft; and no firmware. The
   Release-One YAML
   [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
   is unchanged. Legacy LED-bearing ceiling configs
@@ -138,15 +139,23 @@ Evidence that does **not** yet exist for an LED-bearing variant:
   `sense360-core-ceiling-presence.yaml`) are `legacy-compatible` only
   and are explicitly not WebFlash-shippable per
   [`config/product-catalog.json`](../config/product-catalog.json).
-- No WebFlash wrapper for an LED-bearing variant
-  (`products/webflash/ceiling-poe-ventiq-roomiq-led.yaml` does not
-  exist).
+- The WebFlash wrapper
+  [`products/webflash/ceiling-poe-ventiq-roomiq-led.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq-led.yaml)
+  now exists after PRODUCT-008. Its basename (`ceiling-poe-ventiq-roomiq-led`)
+  matches the lower-cased config string per the validator rule in
+  [`scripts/validate_product_catalog_consistency.py`](../scripts/validate_product_catalog_consistency.py).
+  It is referenced by the catalog entry as `webflash_wrapper` but is
+  **not** in
+  [`config/webflash-builds.json`](../config/webflash-builds.json) yet
+  — `webflash_build_matrix: false` remains until PRODUCT-009.
 - The catalog entry for `Ceiling-POE-VentIQ-RoomIQ-LED` in
-  [`config/product-catalog.json`](../config/product-catalog.json)
-  exists at `status: compile-only` only. No `preview`, no
-  `production`, no WebFlash-eligible status. PRODUCT-008 will promote
-  it to `preview` on a non-`stable` channel after the WebFlash
-  wrapper is added.
+  [`config/product-catalog.json`](../config/product-catalog.json) is
+  at `status: preview` after PRODUCT-008. It carries `config_string`,
+  `product_yaml`, `webflash_wrapper`, `webflash_build_matrix: false`,
+  `hardware_status: verified-led-candidate`, and `notes` — it
+  intentionally does **not** carry `channel`, `version`, or
+  `artifact_name`. PRODUCT-009 owns adding those fields together
+  with the build-matrix entry.
 - No build entry with that config string in
   [`config/webflash-builds.json`](../config/webflash-builds.json).
 - No release-notes draft for any LED-bearing build.
@@ -488,22 +497,38 @@ work is PRODUCT-008 (add WebFlash wrapper and promote to `preview`).
 
 ### PRODUCT-008 — Add WebFlash wrapper and promote to preview
 
+**Status: landed.** PRODUCT-008 created the WebFlash wrapper
+[`products/webflash/ceiling-poe-ventiq-roomiq-led.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq-led.yaml)
+and promoted the catalog entry in
+[`config/product-catalog.json`](../config/product-catalog.json) from
+`status: compile-only` to `status: preview`. The entry now carries
+`config_string`, `product_yaml`, `webflash_wrapper`,
+`webflash_build_matrix: false`, `hardware_status:
+verified-led-candidate`, and the updated `notes`. PRODUCT-008
+intentionally did **not** add `channel`, `version`, `artifact_name`,
+or a build-matrix entry — those land with PRODUCT-009 alongside the
+build / release proof on a non-`stable` channel. The
+bench-verification Open Questions in
+[`docs/hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md#open-questions--verification-needed)
+(harness rail, LED count, harness identity) remain unresolved and are
+carried as preview-stage caveats in the catalog `notes`.
+
 - **Scope.** Add
   `products/webflash/ceiling-poe-ventiq-roomiq-led.yaml` as a thin
   wrapper that `!include`s the canonical product YAML, in the same
   pattern as
   [`products/webflash/ceiling-poe-ventiq-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq.yaml).
-  Update the catalog entry to `status: preview`, add the required
-  `preview` fields per
-  [`docs/product-onboarding.md` Required evidence before preview](product-onboarding.md#required-evidence-before-preview),
-  set `channel` to a non-`stable` value (`preview` or `beta`), set
-  `webflash_build_matrix: false` initially (a separate PRODUCT-009 turns
-  it on with a build-matrix entry).
-- **Pre-requisites.** PRODUCT-007 landed (the catalog entry exists at
-  `compile-only`); the bench-verification Open Questions in
-  [`docs/hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md#open-questions--verification-needed)
-  (harness rail, LED count, harness identity) resolved or explicitly
-  carried in the catalog `notes`.
+  Promote the catalog entry from `status: compile-only` to
+  `status: preview`. Add the `webflash_wrapper` pointer and the
+  required `preview` fields per
+  [`docs/product-onboarding.md` Required evidence before preview](product-onboarding.md#required-evidence-before-preview)
+  (`config_string`, `product_yaml`, `hardware_status`). Leave
+  `webflash_build_matrix: false` so no build-matrix entry is implied
+  yet; do **not** declare `channel`, `version`, or `artifact_name`
+  — those are PRODUCT-009's responsibility on a non-`stable` channel.
+- **Pre-requisites.** PRODUCT-006 landed (the YAML exists on disk
+  and the `compile-only` catalog entry is present); PRODUCT-007 is a
+  no-op because PRODUCT-006 already added the minimum entry.
 - **Gate.**
   [`scripts/validate_product_catalog_consistency.py`](../scripts/validate_product_catalog_consistency.py)
   passes;
@@ -512,7 +537,14 @@ work is PRODUCT-008 (add WebFlash wrapper and promote to `preview`).
   [`tests/test_product_catalog_consistency.py`](../tests/test_product_catalog_consistency.py)
   pass. The wrapper basename equals the config-string lower-cased.
 - **Out of scope for PRODUCT-008.** Build-matrix entry, release-notes
-  draft, Release-One edit, FanTRIAC unblock.
+  draft, firmware artifact, declared `channel` / `version` /
+  `artifact_name`, Release-One edit, FanTRIAC unblock. The LED-test
+  invariant
+  [`tests/test_led_package_mapping.py::WebflashBuildsLedExclusionTests::test_no_led_token_in_any_build`](../tests/test_led_package_mapping.py)
+  is **not** re-scoped by PRODUCT-008 — it asserts against the
+  build matrix at
+  [`config/webflash-builds.json`](../config/webflash-builds.json),
+  which PRODUCT-008 does not touch.
 
 ### PRODUCT-009 — Add preview build / release proof
 
