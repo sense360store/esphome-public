@@ -497,6 +497,7 @@ file an upstream change in WebFlash first and update this contract afterward.
   — machine-readable local snapshot of this contract for validators and CI.
 - [`docs/release-one.md`](release-one.md) — Release-One configuration with full
   slot/file/binary mapping.
+- [`docs/product-onboarding.md`](product-onboarding.md) — PRODUCT-004 ordered safe sequence for adding a new product / config.
 - [`docs/product-matrix.md`](product-matrix.md) — full module/slot reference.
 - WebFlash `DEVELOPER.md → Via GitHub Releases` — upstream operator flow.
 - WebFlash `CLAUDE.md` — canonical SKU table and product taxonomy.
