@@ -38,33 +38,42 @@ quoting a legacy old-name field that contained the typo.
 ## Verified schematics currently available
 
 The following boards have schematic PDFs pinned to this repository under
-[`hardware/schematics/`](hardware/schematics/) and a standalone pin /
-connector reference doc under `docs/hardware/`:
+[`hardware/schematics/`](hardware/schematics/), a standalone pin /
+connector reference doc under `docs/hardware/`, and
+`schematic_status: verified` with a `schematic_file` path in
+[`../config/hardware-catalog.json`](../config/hardware-catalog.json):
 
 - `S360-100-R4` — Sense360 Core ([PDF](hardware/schematics/S360-100-R4.pdf),
   [doc](hardware/s360-100-r4-core.md))
 - `S360-200-R4` — Sense360 RoomIQ ([PDF](hardware/schematics/S360-200-R4.pdf),
   [doc](hardware/s360-200-r4-roomiq.md))
 - `S360-210-R4` — Sense360 AirIQ ([PDF](hardware/schematics/S360-210-R4.pdf),
-  [doc](hardware/s360-210-r4-airiq.md)) — committed under HW-007
+  [doc](hardware/s360-210-r4-airiq.md))
 - `S360-211-R4` — Sense360 VentIQ ([PDF](hardware/schematics/S360-211-R4.pdf),
-  [doc](hardware/s360-211-r4-ventiq.md)) — committed under HW-007
+  [doc](hardware/s360-211-r4-ventiq.md))
 - `S360-300-R4` — Sense360 LED ([PDF](hardware/schematics/S360-300-R4.pdf),
-  [doc](hardware/s360-300-r4-led.md)) — committed under HW-007
+  [doc](hardware/s360-300-r4-led.md))
 
-All other rows in the catalog above are still marked
-**`cataloged, schematic not yet verified`**. Their friendly names, SKUs, and
-revisions are committed naming, but the underlying schematics have not been
-pinned to this repo yet.
+The remaining catalog rows — `S360-310` Sense360 Relay, `S360-311` Sense360
+PWM, `S360-312` Sense360 DAC, `S360-320` Sense360 TRIAC, `S360-400` Sense360
+240v PSU, and `S360-410` Sense360 PoE PSU — are still marked
+`schematic_status: cataloged_unverified` in
+[`../config/hardware-catalog.json`](../config/hardware-catalog.json). Their
+friendly names, SKUs, and revisions are committed naming, but the underlying
+module-side schematics have not been pinned to this repo yet.
 
-> **HW-007 ingest.** HW-007 commits the schematic PDFs and the three new
-> standalone reference docs for AirIQ, VentIQ, and Sense360 LED. HW-007 is
-> **documentation only**: it does **not** change the
-> [`config/hardware-catalog.json`](../config/hardware-catalog.json)
-> `schematic_status` values for any row — that machine-readable status
-> refresh is deferred to HW-008. HW-007 does not promote any module into
-> Release-One, does not unblock FanTRIAC (HW-005), and does not add `LED`
-> to the Release-One config string `Ceiling-POE-VentIQ-RoomIQ`.
+> **HW-007 / HW-008 ingest.** HW-007 committed the schematic PDFs and the
+> three new standalone reference docs for AirIQ, VentIQ, and Sense360 LED.
+> HW-008 then aligned the machine-readable
+> [`../config/hardware-catalog.json`](../config/hardware-catalog.json) with
+> that committed evidence: `S360-100`, `S360-200`, `S360-210`, `S360-211`,
+> and `S360-300` are now `schematic_status: verified` with their
+> `schematic_file` pointing under `docs/hardware/schematics/`. **Verified
+> schematic evidence is not a shippability claim.** HW-008 does not promote
+> any module into Release-One, does not unblock FanTRIAC (HW-005), does not
+> add `LED` to the Release-One config string `Ceiling-POE-VentIQ-RoomIQ`,
+> and does not change the mains-voltage compliance status of `S360-400` or
+> `S360-320` (see [COMPLIANCE-001](compliance/mains-voltage-uk-eu-assessment.md)).
 
 > Firmware pin mappings must not be considered verified merely because a
 > board has a schematic-backed reference doc. Release-One YAML and package

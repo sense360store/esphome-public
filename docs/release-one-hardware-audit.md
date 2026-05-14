@@ -68,22 +68,28 @@ artifact naming.
 
 | Board                | Doc                                                                         | Schematic     | Status                                  |
 | -------------------- | --------------------------------------------------------------------------- | ------------- | --------------------------------------- |
-| Sense360 Core        | [`s360-100-r4-core.md`](hardware/s360-100-r4-core.md)                       | `S360-100-R4` | schematic-backed / verified (PDF committed under HW-007 at [`hardware/schematics/S360-100-R4.pdf`](hardware/schematics/S360-100-R4.pdf)) |
-| Sense360 RoomIQ      | [`s360-200-r4-roomiq.md`](hardware/s360-200-r4-roomiq.md)                   | `S360-200-R4` | schematic-backed / verified (PDF committed under HW-007 at [`hardware/schematics/S360-200-R4.pdf`](hardware/schematics/S360-200-R4.pdf)) |
-| Sense360 AirIQ       | [`s360-210-r4-airiq.md`](hardware/s360-210-r4-airiq.md)                     | `S360-210-R4` | PDF committed under HW-007 at [`hardware/schematics/S360-210-R4.pdf`](hardware/schematics/S360-210-R4.pdf); **JSON `schematic_status` flip deferred to HW-008**. Not in Release-One. |
-| Sense360 VentIQ      | [`s360-211-r4-ventiq.md`](hardware/s360-211-r4-ventiq.md)                   | `S360-211-R4` | **cataloged, schematic verification pending.** PDF committed under HW-007 at [`hardware/schematics/S360-211-R4.pdf`](hardware/schematics/S360-211-R4.pdf); the caveat is **retained** until HW-008 flips the JSON `schematic_status` value. |
-| Sense360 LED         | [`s360-300-r4-led.md`](hardware/s360-300-r4-led.md)                         | `S360-300-R4` | PDF committed under HW-007 at [`hardware/schematics/S360-300-R4.pdf`](hardware/schematics/S360-300-R4.pdf). **Sense360 LED remains excluded from Release-One**; HW-007 does not add `LED` to the config string. |
-| Sense360 TRIAC       | (not yet committed)                                                         | `S360-320`    | cataloged, schematic verification pending. **HW-005 blocked**; PDF is **not** part of HW-007. |
-| Sense360 PoE PSU     | (not yet committed)                                                         | `S360-410`    | cataloged, schematic verification pending. PDF is **not** part of HW-007. |
+| Sense360 Core        | [`s360-100-r4-core.md`](hardware/s360-100-r4-core.md)                       | `S360-100-R4` | schematic-backed / verified (PDF committed under HW-007 at [`hardware/schematics/S360-100-R4.pdf`](hardware/schematics/S360-100-R4.pdf); JSON `schematic_status: verified` with `schematic_file: docs/hardware/schematics/S360-100-R4.pdf` under HW-008) |
+| Sense360 RoomIQ      | [`s360-200-r4-roomiq.md`](hardware/s360-200-r4-roomiq.md)                   | `S360-200-R4` | schematic-backed / verified (PDF committed under HW-007 at [`hardware/schematics/S360-200-R4.pdf`](hardware/schematics/S360-200-R4.pdf); JSON `schematic_status: verified` with `schematic_file: docs/hardware/schematics/S360-200-R4.pdf` under HW-008) |
+| Sense360 AirIQ       | [`s360-210-r4-airiq.md`](hardware/s360-210-r4-airiq.md)                     | `S360-210-R4` | schematic-backed / verified (PDF committed under HW-007 at [`hardware/schematics/S360-210-R4.pdf`](hardware/schematics/S360-210-R4.pdf); JSON `schematic_status: verified` with `schematic_file: docs/hardware/schematics/S360-210-R4.pdf` under HW-008). Not in Release-One; AirIQ ↔ VentIQ mutex unchanged. |
+| Sense360 VentIQ      | [`s360-211-r4-ventiq.md`](hardware/s360-211-r4-ventiq.md)                   | `S360-211-R4` | schematic-backed / verified (PDF committed under HW-007 at [`hardware/schematics/S360-211-R4.pdf`](hardware/schematics/S360-211-R4.pdf); JSON `schematic_status: verified` with `schematic_file: docs/hardware/schematics/S360-211-R4.pdf` under HW-008). VentIQ remains the Release-One air-quality slot. |
+| Sense360 LED         | [`s360-300-r4-led.md`](hardware/s360-300-r4-led.md)                         | `S360-300-R4` | schematic-backed / verified (PDF committed under HW-007 at [`hardware/schematics/S360-300-R4.pdf`](hardware/schematics/S360-300-R4.pdf); JSON `schematic_status: verified` with `schematic_file: docs/hardware/schematics/S360-300-R4.pdf` under HW-008). **Sense360 LED remains excluded from Release-One**; HW-008 does not add `LED` to the config string and the `GPIO14` (package) vs `IO38` (schematic) `LED_DATA` discrepancy is still unresolved. |
+| Sense360 TRIAC       | (not yet committed)                                                         | `S360-320`    | cataloged, schematic verification pending. **HW-005 blocked**; PDF is not committed; JSON `schematic_status` stays `cataloged_unverified` after HW-008. |
+| Sense360 PoE PSU     | (not yet committed)                                                         | `S360-410`    | cataloged, schematic verification pending. PDF is not committed; JSON `schematic_status` stays `cataloged_unverified` after HW-008. |
 
-Only the two `verified` boards above (Core and RoomIQ) are considered
-authoritative for the pin checks below. AirIQ, VentIQ, and Sense360 LED gain
-**module-side schematic PDFs and standalone reference docs under HW-007**,
-but their machine-readable `schematic_status` value in
-[`config/hardware-catalog.json`](../config/hardware-catalog.json) and the
-"schematic verification pending" wording for VentIQ in this audit are
-**unchanged by HW-007** — those changes are owned by HW-008. Pin behaviour
-for AirIQ / VentIQ / LED is therefore still not gated through this audit.
+The pin-by-pin checks below were written against the Core and RoomIQ
+schematic-backed reference docs. Under HW-007 + HW-008, AirIQ, VentIQ, and
+Sense360 LED also gain module-side schematic PDFs, standalone reference
+docs, and `schematic_status: verified` rows in
+[`config/hardware-catalog.json`](../config/hardware-catalog.json) with
+`schematic_file` values pointing under `docs/hardware/schematics/`. The
+pin-binding rework that would turn that hardware evidence into firmware
+changes (package-YAML rebinds, Core J10 / RoomIQ J6 pin-order
+reconciliation, `GPIO14` vs `IO38` `LED_DATA` reconciliation) is **not**
+in scope for this audit and is **not** in scope for HW-008 — both
+discrepancies are still open. HW-008 also does **not** change the
+Release-One config string, the WebFlash build matrix, the artifact name,
+any product YAML, any package YAML, or the FanTRIAC / LED / mains-voltage
+policies.
 
 See also: [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)
 — companion HW-004 / HW-006 audit that classifies every catalog row's
@@ -202,9 +208,14 @@ Release-One.
 - Catalog: `Sense360 VentIQ`, SKU `S360-211`, Rev `R4`.
 - Old name: `Bathroom Pro`. Do not reuse `Bathroom Pro` in new user-facing
   text.
-- Schematic in this repo: **none committed**.
-  [`config/hardware-catalog.json`](../config/hardware-catalog.json) lists
-  `S360-211` with `"schematic_status": "cataloged_unverified"`.
+- Schematic in this repo: **committed** under HW-007 at
+  [`hardware/schematics/S360-211-R4.pdf`](hardware/schematics/S360-211-R4.pdf)
+  with a standalone reference doc at
+  [`hardware/s360-211-r4-ventiq.md`](hardware/s360-211-r4-ventiq.md).
+  Under HW-008,
+  [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+  lists `S360-211` with `"schematic_status": "verified"` and
+  `"schematic_file": "docs/hardware/schematics/S360-211-R4.pdf"`.
 - Package YAML used: `packages/expansions/airiq_bathroom_base.yaml`. The
   filename retains the legacy `airiq_bathroom_base` form for backwards
   compatibility (per the WebFlash contract §6 footnote about legacy package
@@ -213,9 +224,13 @@ Release-One.
   `J9` (the "AirIQ Module Connector"), which currently carries the legacy
   `AirQ_Led` / `AirQ_Status_Led` net names. Whether `VentIQ` reuses those
   same physical lines is **verify** — flagged in HW-002 Open Questions #4.
+  This question is **not** resolved by HW-008.
 
-Release-One YAML therefore marks VentIQ as schematic-pending in its comment
-block, while keeping the package include.
+The Release-One YAML's "VentIQ schematic-pending" comment block is left
+unchanged by HW-008 (any YAML edit is out of scope for this PR). The
+machine-readable JSON evidence is now `verified`, but the pin-binding
+rework that would let firmware claim VentIQ pins are verified against the
+schematic is still open.
 
 ### Detail: Core / RoomIQ pin-order discrepancy
 

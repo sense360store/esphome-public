@@ -38,35 +38,37 @@ document wins and this audit must be updated. The sources of truth this
 audit reads from are in
 [Source-of-truth separation](#source-of-truth-separation).
 
-> **Note on schematic uploads — HW-007 has landed.** The new schematic
-> PDFs for `S360-100`, `S360-200`, `S360-210`, `S360-211`, and `S360-300`
-> are now committed under
-> [`docs/hardware/schematics/`](hardware/schematics/), and standalone
-> per-board reference docs now exist for AirIQ
+> **Note on schematic uploads — HW-007 + HW-008 have landed.** The
+> module-side schematic PDFs for `S360-100`, `S360-200`, `S360-210`,
+> `S360-211`, and `S360-300` are committed under
+> [`docs/hardware/schematics/`](hardware/schematics/) (HW-007), and
+> standalone per-board reference docs now exist for AirIQ
 > ([`hardware/s360-210-r4-airiq.md`](hardware/s360-210-r4-airiq.md)),
 > VentIQ ([`hardware/s360-211-r4-ventiq.md`](hardware/s360-211-r4-ventiq.md)),
 > and Sense360 LED ([`hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md)).
-> HW-007 is **documentation only**: it does **not** change
-> [`config/hardware-catalog.json`](../config/hardware-catalog.json)
-> `schematic_status` rows, and it does **not** alter any decision in
-> this audit. The machine-readable status refresh — flipping AirIQ /
-> VentIQ / LED rows from `cataloged_unverified` to `verified` and
-> populating the `schematic_file` field — is deferred to **HW-008**.
-> Until HW-008 lands, every per-token cell below is read against the
-> repo state as recorded at the time of COMPAT-001: the
-> [decision table](#per-token-decision-table) "Hardware evidence state"
-> column intentionally keeps the same labels it had pre-HW-007, and the
-> "schematic verification pending" caveats for VentIQ in
+> HW-008 then aligned the machine-readable
+> [`config/hardware-catalog.json`](../config/hardware-catalog.json) with
+> that evidence: the five SKUs above are now
+> `schematic_status: verified` with `schematic_file` pointing under
+> `docs/hardware/schematics/`. The remaining hardware-catalog rows
+> (`S360-310`, `S360-311`, `S360-312`, `S360-320`, `S360-400`,
+> `S360-410`) stay `cataloged_unverified`. The per-token decision rows
+> below are updated to record the new JSON state; **no shippability or
+> Release-One verdict cell changes**. The "schematic verification
+> pending" caveat for VentIQ in
 > [`release-one-hardware-audit.md`](release-one-hardware-audit.md) and
-> in COMPAT-001 itself are retained until HW-008 flips the JSON status.
-> Promotion of any future `AirIQ` / `LED` / `FanTRIAC` / `FanRelay` /
-> `FanPWM` / `FanDAC` / `PWR` config string still requires a catalog
-> entry, a build-matrix entry, a release-notes draft, a build/release
-> proof, and (for mains-voltage modules) a qualified compliance review
-> per [`docs/product-onboarding.md`](product-onboarding.md). HW-007
-> does not by itself ship any new firmware; it does not change
-> FanTRIAC's HW-005 blocked status; and it does not change LED's
-> Release-One exclusion.
+> in COMPAT-001 is retired by HW-008. Promotion of any future `AirIQ`
+> / `LED` / `FanTRIAC` / `FanRelay` / `FanPWM` / `FanDAC` / `PWR`
+> config string still requires a catalog entry, a build-matrix entry,
+> a release-notes draft, a build/release proof, and (for mains-voltage
+> modules) a qualified compliance review per
+> [`docs/product-onboarding.md`](product-onboarding.md). HW-007 and
+> HW-008 together commit hardware-evidence only; they do **not** ship
+> any new firmware, do **not** change FanTRIAC's HW-005 blocked
+> status, do **not** change LED's Release-One exclusion, and do
+> **not** clear the mains-voltage compliance gate for `S360-400` or
+> `S360-320`. **Verified schematic evidence is not a
+> WebFlash-shippability claim.**
 
 ## Source-of-truth separation
 
@@ -137,8 +139,9 @@ plus the legacy concept `Voice` which is **not** a WebFlash taxonomy
 token but is mentioned in legacy product YAMLs. The "Hardware evidence
 state" column is read from the per-board classification in
 [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md#decision-table)
-as committed today; HW-007 may upgrade some of these (see the
-note at the top of this document).
+as committed today, including HW-007's per-board doc commits and HW-008's
+JSON `schematic_status` refresh (see the note at the top of this
+document).
 
 | Token / concept | In compatibility taxonomy? | In product catalog? | Hardware evidence state (per HW-004 / HW-006) | Release-One status | WebFlash-stable-eligible today? | Recommendation |
 |---|---|---|---|---|---|---|
@@ -146,14 +149,14 @@ note at the top of this document).
 | `POE` | Yes — `canonical_power`. | Yes — Release-One `modules.power = "POE"` and `hardware.poe = "S360-410"`. | `S360-410` Sense360 PoE PSU is `partially-documented` (Core-side J2 inlet captured; module-side schematic pending). | In Release-One. | Yes (power slot for the only production entry). | Keep. The "schematic verification pending" caveat must remain visible in the catalog `notes` and in the Release-One docs; do not promote that caveat away in this audit. |
 | `PWR` | Yes — `canonical_power`. | Not in any current catalog entry. Mains-input module; `S360-400` is the SKU. | `S360-400` Sense360 240v PSU is `cataloged-unverified`, `not-needed-for-release-one`. | Not in Release-One. | **No.** | Keep as a future-token. A future `PWR`-bearing config requires: `S360-400` schematic; standalone pin/connector reference doc; a new catalog entry; a build-matrix entry; **and** a qualified mains-voltage compliance review per [`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md) before preview or stable promotion. |
 | `USB` | Yes — `canonical_power`. | Not in any current catalog entry (legacy `sense360-core-*-usb` YAMLs are `legacy-compatible`, off the WebFlash track). | USB-C input lives on Core; no separate SKU. No dedicated catalog row. | Not in Release-One. | **No.** | Keep as a future-token. A future `USB`-bearing config requires a new catalog entry (mapping a USB-input Ceiling product) and a build-matrix entry. Not gated by mains-voltage compliance, but still gated by hardware-evidence and onboarding-sequence gates in [`docs/product-onboarding.md`](product-onboarding.md). |
-| `AirIQ` | Yes — `canonical_modules`. Mutually exclusive with `VentIQ` (`rules.airiq_and_ventiq_mutually_exclusive: true`). | Not in any current catalog entry. Legacy `sense360-core-*` YAMLs that include AirIQ-style sensors are `legacy-compatible`. | `S360-210` Sense360 AirIQ is `cataloged-unverified`, `not-needed-for-release-one`. *Per-board doc now at [`hardware/s360-210-r4-airiq.md`](hardware/s360-210-r4-airiq.md); PDF committed under HW-007 at [`hardware/schematics/S360-210-R4.pdf`](hardware/schematics/S360-210-R4.pdf); JSON `schematic_status` refresh deferred to HW-008 — label unchanged in this audit.* | Not in Release-One. | **No.** | Keep. A future `AirIQ`-bearing config requires `S360-210` schematic + pin/connector doc (HW-007 lands both), a new catalog entry (acknowledging AirIQ ↔ VentIQ mutual exclusion), and a build-matrix entry. HW-007 only improves legacy / manual hardware documentation; it does **not** make AirIQ WebFlash-shippable. `FanDAC` is additionally forbidden alongside `AirIQ` by `rules.fandac_conflicts_with_airiq` — that rule already enforces the bus conflict for any future `AirIQ`-bearing build entry. |
-| `VentIQ` | Yes — `canonical_modules`. | Yes — Release-One `modules.air_quality = "VentIQ"` and `hardware.ventiq = "S360-211"`. | `S360-211` Sense360 VentIQ is `partially-documented` (Core-side J9 nets captured; module-side schematic pending). *Per-board doc now at [`hardware/s360-211-r4-ventiq.md`](hardware/s360-211-r4-ventiq.md); PDF committed under HW-007 at [`hardware/schematics/S360-211-R4.pdf`](hardware/schematics/S360-211-R4.pdf); JSON `schematic_status` refresh deferred to HW-008 — label and "schematic verification pending" caveat retained in this audit.* | In Release-One. | Yes (air-quality slot for the only production entry). | Keep. The "schematic verification pending" caveat must remain visible in the catalog `notes` and in [`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md). Do not promote that caveat away in HW-007; HW-008 owns it. |
+| `AirIQ` | Yes — `canonical_modules`. Mutually exclusive with `VentIQ` (`rules.airiq_and_ventiq_mutually_exclusive: true`). | Not in any current catalog entry. Legacy `sense360-core-*` YAMLs that include AirIQ-style sensors are `legacy-compatible`. | `S360-210` Sense360 AirIQ is `documented`, `not-needed-for-release-one`. *Per-board doc at [`hardware/s360-210-r4-airiq.md`](hardware/s360-210-r4-airiq.md); PDF committed under HW-007 at [`hardware/schematics/S360-210-R4.pdf`](hardware/schematics/S360-210-R4.pdf); JSON `schematic_status: verified` with `schematic_file: docs/hardware/schematics/S360-210-R4.pdf` under HW-008.* | Not in Release-One. | **No.** | Keep. A future `AirIQ`-bearing config still requires a new catalog entry (acknowledging AirIQ ↔ VentIQ mutual exclusion) and a build-matrix entry. HW-007 + HW-008 only commit hardware-evidence; they do **not** make AirIQ WebFlash-shippable. `FanDAC` is additionally forbidden alongside `AirIQ` by `rules.fandac_conflicts_with_airiq` — that rule already enforces the bus conflict for any future `AirIQ`-bearing build entry. |
+| `VentIQ` | Yes — `canonical_modules`. | Yes — Release-One `modules.air_quality = "VentIQ"` and `hardware.ventiq = "S360-211"`. | `S360-211` Sense360 VentIQ is `documented`. *Per-board doc at [`hardware/s360-211-r4-ventiq.md`](hardware/s360-211-r4-ventiq.md); PDF committed under HW-007 at [`hardware/schematics/S360-211-R4.pdf`](hardware/schematics/S360-211-R4.pdf); JSON `schematic_status: verified` with `schematic_file: docs/hardware/schematics/S360-211-R4.pdf` under HW-008. The "schematic verification pending" caveat in [`release-one-hardware-audit.md`](release-one-hardware-audit.md) and in this audit has been retired by HW-008.* | In Release-One. | Yes (air-quality slot for the only production entry). | Keep. Release-One air-quality slot continues to be VentIQ. |
 | `RoomIQ` | Yes — `canonical_modules`. | Yes — Release-One `modules.room_sense = "RoomIQ"` and `hardware.roomiq = "S360-200"`. | `S360-200` Sense360 RoomIQ is `documented`. | In Release-One. | Yes (room-sense slot for the only production entry). | Keep. Carries the Core J10 vs RoomIQ J6 pin-order open question already tracked in the hardware docs; no impact on the taxonomy. |
 | `FanRelay` | Yes — `canonical_modules`. Subject to fan-driver max-one-of rule (`FAN_DRIVER_TOKENS` in [`tests/validate_webflash_builds.py`](../tests/validate_webflash_builds.py)). | Not in any current catalog entry. | `S360-310` Sense360 Relay is `partially-documented` (Core-side J4 nets captured; module-side schematic pending), `not-needed-for-release-one`. | Not in Release-One. | **No.** | Keep. A future `FanRelay`-bearing config requires `S360-310` schematic + pin/connector doc, catalog entry, and build-matrix entry. |
 | `FanPWM` | Yes — `canonical_modules`. Subject to fan-driver max-one-of rule. | Not in any current catalog entry. Legacy `sense360-fan-pwm.yaml` is `legacy-compatible`. | `S360-311` Sense360 PWM is `partially-documented` (Core-side J6 nets captured with **verify** flag on pin order; module-side schematic pending), `not-needed-for-release-one`. | Not in Release-One. | **No.** | Keep. A future `FanPWM`-bearing config requires `S360-311` schematic + pin/connector doc (resolve the J6 1-to-13 pin-order **verify** flag), catalog entry, and build-matrix entry. |
 | `FanDAC` | Yes — `canonical_modules`. Subject to fan-driver max-one-of rule. Additionally forbidden alongside `AirIQ` by `rules.fandac_conflicts_with_airiq`. | Not in any current catalog entry. | `S360-312` Sense360 DAC is `partially-documented` (Core-side J7 nets captured; module-side schematic pending), `not-needed-for-release-one`. | Not in Release-One. | **No.** | Keep. A future `FanDAC`-bearing config requires `S360-312` schematic + pin/connector doc, a catalog entry, and a build-matrix entry; the existing `fandac_conflicts_with_airiq` rule continues to forbid pairing it with `AirIQ`. |
 | `FanTRIAC` | Yes — `canonical_modules`. Subject to fan-driver max-one-of rule. | Yes — `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is in the catalog with `status: blocked`, `blocker: HW-005`. **Not** in `config/webflash-builds.json`. | `S360-320` Sense360 TRIAC is `blocked` (HW-005), `not-needed-for-release-one`. Mains-output module; additionally subject to the mains-voltage compliance tracker in [`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md). | Excluded from Release-One. Release-One's `blocked_modules` list explicitly includes `FanTRIAC`. | **No.** | **Keep blocked.** Token stays in the taxonomy as a reserved future name. Unblocking requires the HW-005 missing-evidence checklist in [`docs/release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution) to be fully satisfied **and** a qualified mains-voltage compliance review per COMPLIANCE-001. Neither happens in this audit. |
-| `LED` | Yes — `canonical_modules`. | Not as its own catalog entry; appears in Release-One's `blocked_modules: ["FanTRIAC", "LED"]` because the Release-One `config_string` carries no `LED` token. | `S360-300` Sense360 LED is `partially-documented` (Core-side J3 / LED-data path captured; module-side schematic pending; unresolved `GPIO14` package vs `IO38` schematic discrepancy), `not-needed-for-release-one`. *Per-board doc now at [`hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md); PDF committed under HW-007 at [`hardware/schematics/S360-300-R4.pdf`](hardware/schematics/S360-300-R4.pdf); JSON `schematic_status` refresh deferred to HW-008 — label unchanged in this audit. The `GPIO14` vs `IO38` `LED_DATA` discrepancy is still unresolved; HW-007 commits LED-board schematic evidence, not a new Core-side trace.* | Excluded from Release-One. The Release-One YAML omits LED package includes on purpose. | **No.** | **Keep excluded from Release-One.** Token stays in the taxonomy as a reserved future name. A future LED-bearing config (e.g. `Ceiling-POE-VentIQ-RoomIQ-LED`) is a separate product: it requires `S360-300` schematic (HW-007 lands the PDF + doc), reconciliation of `GPIO14` (package) vs `IO38` (schematic) for `LED_DATA`, a new catalog entry, and a new build-matrix entry. **HW-007 does not add `LED` to the Release-One config string. Sense360 LED remains excluded from Release-One.** |
+| `LED` | Yes — `canonical_modules`. | Not as its own catalog entry; appears in Release-One's `blocked_modules: ["FanTRIAC", "LED"]` because the Release-One `config_string` carries no `LED` token. | `S360-300` Sense360 LED is `documented`, `not-needed-for-release-one`; the unresolved `GPIO14` package vs `IO38` schematic discrepancy persists at the package level. *Per-board doc at [`hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md); PDF committed under HW-007 at [`hardware/schematics/S360-300-R4.pdf`](hardware/schematics/S360-300-R4.pdf); JSON `schematic_status: verified` with `schematic_file: docs/hardware/schematics/S360-300-R4.pdf` under HW-008. The `GPIO14` vs `IO38` `LED_DATA` discrepancy is still unresolved; HW-007 committed LED-board schematic evidence and HW-008 only updates JSON status — neither commits a new Core-side trace.* | Excluded from Release-One. The Release-One YAML omits LED package includes on purpose. | **No.** | **Keep excluded from Release-One.** Token stays in the taxonomy as a reserved future name. A future LED-bearing config (e.g. `Ceiling-POE-VentIQ-RoomIQ-LED`) is a separate product: it requires reconciliation of `GPIO14` (package) vs `IO38` (schematic) for `LED_DATA`, a new catalog entry, and a new build-matrix entry. **HW-008 does not add `LED` to the Release-One config string. Sense360 LED remains excluded from Release-One.** |
 | `Voice` (legacy concept) | **No.** Not in `canonical_mounting`, `canonical_power`, or `canonical_modules`. Not in `forbidden_tokens` either. | Several `sense360-core-v-*` YAMLs are catalogued as `legacy-compatible` (pre-WebFlash Core Voice variants requiring a LED+MIC ring). | No `Voice` SKU in `config/hardware-catalog.json`. `S360-LED-V-*` LED+MIC ring SKUs are referenced in legacy docs only. | Not in Release-One. Not a WebFlash token. | **No.** | Keep out of the taxonomy. A future Voice-bearing config string would require an upstream WebFlash change (taxonomy update upstream first, then mirror locally), a new SKU in `config/hardware-catalog.json`, a new catalog entry, and a new build-matrix entry. This audit does **not** add a `Voice` token to the local snapshot. |
 
 ### Forbidden / deprecated tokens
@@ -323,42 +326,52 @@ The items below are **not** part of COMPAT-001. They are each a separate
 scoped PR with its own gate, its own validation, and its own approval.
 COMPAT-001 only records that they would each be a sensible next step.
 
-1. **HW-007 — ingest the new schematic uploads.** Commit the
-   `S360-100`, `S360-200`, `S360-210`, `S360-211`, and `S360-300`
-   schematic PDFs; refresh
+1. **HW-007 — ingest the new schematic uploads.** *Landed.* HW-007
+   committed `S360-100`, `S360-200`, `S360-210`, `S360-211`, and
+   `S360-300` schematic PDFs under
+   [`docs/hardware/schematics/`](hardware/schematics/) and three new
+   standalone reference docs (AirIQ / VentIQ / LED). HW-007 was
+   documentation only and did not change
+   [`config/hardware-catalog.json`](../config/hardware-catalog.json).
+2. **HW-008 — refresh hardware-catalog machine-readable status.**
+   *Landed.* HW-008 aligned
    [`config/hardware-catalog.json`](../config/hardware-catalog.json)
-   `schematic_status` / `schematic_file` rows; refresh the per-board
-   pin/connector references under `docs/hardware/` (for boards where
-   the doc already exists) or commit new ones (for boards where it
-   does not); reclassify the relevant rows in
-   [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md#decision-table)
-   from `cataloged-unverified` / `partially-documented` to `documented`
-   where the new evidence justifies it. HW-007 changes hardware
-   evidence; it does **not** by itself ship any new firmware, does
-   **not** change FanTRIAC's HW-005 blocked status, and does **not**
-   change LED's Release-One exclusion.
-2. **LED variant (`Ceiling-POE-VentIQ-RoomIQ-LED`).** Pre-requisite:
-   HW-007 commits `S360-300` schematic evidence and the per-board doc
-   resolves the `GPIO14` (package) vs `IO38` (schematic) `LED_DATA`
-   discrepancy. The PR itself adds a new product YAML, a new WebFlash
-   wrapper, a new catalog entry, a new build-matrix entry, and a
-   release-notes draft. It does **not** modify Release-One; it is a
-   sibling product.
-3. **FanTRIAC unblock (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`).**
+   with HW-007's committed evidence: `S360-100`, `S360-200`,
+   `S360-210`, `S360-211`, and `S360-300` flipped to
+   `schematic_status: verified` with `schematic_file` paths under
+   `docs/hardware/schematics/`. The
+   [decision table](hardware/remaining-board-documentation-audit.md#decision-table)
+   rows for AirIQ / VentIQ / LED were reclassified from
+   `cataloged-unverified` / `partially-documented` to `documented`.
+   HW-008 changed hardware-evidence JSON and prose only; it did
+   **not** ship any firmware, did **not** change FanTRIAC's HW-005
+   blocked status, did **not** add `LED` to the Release-One config
+   string, and did **not** clear the mains-voltage compliance gate
+   for `S360-400` or `S360-320`.
+3. **LED variant (`Ceiling-POE-VentIQ-RoomIQ-LED`).** Pre-requisite:
+   HW-007 (PDF + per-board doc) and HW-008 (JSON `verified` for
+   `S360-300`) have landed; the package-level reconciliation of
+   `GPIO14` (package) vs `IO38` (schematic) for `LED_DATA` is still
+   open and must be resolved before the variant ships. The PR itself
+   adds a new product YAML, a new WebFlash wrapper, a new catalog
+   entry, a new build-matrix entry, and a release-notes draft. It
+   does **not** modify Release-One; it is a sibling product.
+4. **FanTRIAC unblock (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`).**
    Pre-requisites: (a) the full HW-005 missing-evidence checklist in
    [`release-one-hardware-audit.md#missing-evidence-checklist`](release-one-hardware-audit.md#missing-evidence-checklist)
    is resolved, **and** (b) the qualified mains-voltage compliance
    review tracked in
    [`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)
-   has completed. Neither pre-requisite is satisfied by HW-007 alone.
-4. **AirIQ / FanRelay / FanPWM / FanDAC preview entries.** Each is a
+   has completed. Neither pre-requisite is satisfied by HW-007 or
+   HW-008. `S360-320` stays `cataloged_unverified` after HW-008.
+5. **AirIQ / FanRelay / FanPWM / FanDAC preview entries.** Each is a
    separate PR with its own per-board hardware evidence, catalog entry,
    build-matrix entry, and release-notes draft. They are mutually
    constrained by the existing `airiq_and_ventiq_mutually_exclusive`
    and `fandac_conflicts_with_airiq` rules; no taxonomy change needed.
-5. **Mains-input (`PWR`-bearing) preview entry.** Pre-requisite:
+6. **Mains-input (`PWR`-bearing) preview entry.** Pre-requisite:
    `S360-400` schematic + qualified mains-voltage compliance review.
-6. **Optional: align local `forbidden_tokens` with `docs/webflash-contract.md` §3.**
+7. **Optional: align local `forbidden_tokens` with `docs/webflash-contract.md` §3.**
    The local snapshot's `forbidden_tokens` is a strict subset of the
    alias list in
    [`docs/webflash-contract.md` §3](webflash-contract.md). Adding
@@ -394,8 +407,14 @@ elsewhere — this audit explicitly does not provide that justification.
   [`config/product-catalog.json`](../config/product-catalog.json) — no
   lifecycle statuses changed; no blocked-modules lists changed.
 - The hardware catalog
-  [`config/hardware-catalog.json`](../config/hardware-catalog.json) — no
-  SKUs, friendly names, revisions, or `schematic_status` values changed.
+  [`config/hardware-catalog.json`](../config/hardware-catalog.json) — at
+  the time COMPAT-001 was authored, no SKUs, friendly names, revisions,
+  or `schematic_status` values were changed by this audit. HW-008 has
+  since updated `schematic_status` / `schematic_file` for the five SKUs
+  with committed module-side schematic PDFs (`S360-100`, `S360-200`,
+  `S360-210`, `S360-211`, `S360-300`); that JSON refresh is owned by
+  HW-008, not by COMPAT-001, and does not change any decision in this
+  audit.
 - Any product YAML under `products/` (including legacy / Mini / Voice
   legacy variants and the FanTRIAC blocked / reference YAML).
 - Any WebFlash wrapper under `products/webflash/`.

@@ -13,7 +13,7 @@
       "old_name": "360Core_Ceiling_V3_R",
       "description": "Main board. Has the ESP32-S3 and connectors for all other modules.",
       "schematic_status": "verified",
-      "schematic_file": "S360-100-R4.pdf"
+      "schematic_file": "docs/hardware/schematics/S360-100-R4.pdf"
     },
     {
       "group": "Ceiling",
@@ -24,7 +24,7 @@
       "old_name": "Presence + Comfort (two boards)",
       "description": "Merged board. PIR, LD2450, SEN0609, LTR-303ALS light, SHT4x temp/humidity, BMP581 pressure.",
       "schematic_status": "verified",
-      "schematic_file": "S360-200-R4.pdf"
+      "schematic_file": "docs/hardware/schematics/S360-200-R4.pdf"
     },
     {
       "group": "Ceiling",
@@ -34,7 +34,8 @@
       "rev": "R4",
       "old_name": "AirIQ Ceiling",
       "description": "Air quality board. CO2 SCD41, VOC SGP41, gas MICS-4514 with STM8. Connectors for SPS30 PM and SFA30 HCHO.",
-      "schematic_status": "cataloged_unverified"
+      "schematic_status": "verified",
+      "schematic_file": "docs/hardware/schematics/S360-210-R4.pdf"
     },
     {
       "group": "Ceiling",
@@ -44,7 +45,8 @@
       "rev": "R4",
       "old_name": "Bathroom Pro",
       "description": "Smaller bathroom air-quality board. SGP41 on board. Connectors for IR temp and SPS30.",
-      "schematic_status": "cataloged_unverified"
+      "schematic_status": "verified",
+      "schematic_file": "docs/hardware/schematics/S360-211-R4.pdf"
     },
     {
       "group": "Ceiling",
@@ -54,7 +56,8 @@
       "rev": "R4",
       "old_name": "LED Ring",
       "description": "Ring of WS2812B LEDs.",
-      "schematic_status": "cataloged_unverified"
+      "schematic_status": "verified",
+      "schematic_file": "docs/hardware/schematics/S360-300-R4.pdf"
     },
     {
       "group": "Inline",
