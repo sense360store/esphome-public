@@ -310,18 +310,28 @@ These guardrails apply to every onboarding PR. They are not optional.
   sequence (PRODUCT-006 / PRODUCT-007 / PRODUCT-008 / PRODUCT-009).
   **PRODUCT-006 has landed:** the sibling-candidate YAML
   [`products/sense360-ceiling-poe-ventiq-roomiq-led.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq-led.yaml)
-  now exists, with the **minimum** `status: compile-only` entry in
-  [`config/product-catalog.json`](../config/product-catalog.json)
-  needed to satisfy the PRODUCT-002 enumeration gate at
-  [`tests/test_product_catalog.py::test_every_top_level_product_yaml_is_in_catalog`](../tests/test_product_catalog.py)
-  (no `webflash_wrapper`, no `artifact_name`, no `version`, no
-  `channel`, `webflash_build_matrix: false`). It has no WebFlash
-  wrapper under `products/webflash/`, is not in
+  exists. **PRODUCT-008 has landed:** the WebFlash wrapper
+  [`products/webflash/ceiling-poe-ventiq-roomiq-led.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq-led.yaml)
+  exists, and the `Ceiling-POE-VentIQ-RoomIQ-LED` entry in
+  [`config/product-catalog.json`](../config/product-catalog.json) has
+  been promoted from `status: compile-only` to `status: preview`. It
+  carries `config_string`, `product_yaml`, `webflash_wrapper`,
+  `webflash_build_matrix: false`, `hardware_status:
+  verified-led-candidate`, and `notes`; it intentionally still has
+  no `channel`, `version`, or `artifact_name`. The preview entry is
+  **not** in
   [`config/webflash-builds.json`](../config/webflash-builds.json),
   produces no firmware artifact, and does not change the Release-One
   product, config string, or artifact name. LED remains excluded
   from current Release-One stable; FanTRIAC remains blocked under
-  HW-005.
+  HW-005. PRODUCT-009 owns adding the LED-bearing preview build to
+  the build matrix on a non-`stable` channel, re-scoping
+  [`tests/test_led_package_mapping.py`](../tests/test_led_package_mapping.py)
+  so only the Release-One build must remain LED-less, updating
+  [`scripts/generate_webflash_release_notes.py`](../scripts/generate_webflash_release_notes.py)
+  so the LED-bearing build emits Sense360 LED as a Feature (Release-One
+  keeps LED as a Known-Issues exclusion), and recording a build /
+  release proof.
 - **Do not treat `legacy-compatible` as WebFlash-shippable.**
   `legacy-compatible` entries are retained for manual / custom /
   remote-package users. They have no `config_string`, no
@@ -520,9 +530,12 @@ and the per-release proof checklist, see
   product catalog, hardware evidence, and future-token policy.
 - [`docs/product-led-preview-decision.md`](product-led-preview-decision.md)
   — PRODUCT-005 decision doc for the LED preview product path:
-  keeps LED documented-only for now and defines the
-  PRODUCT-006 / PRODUCT-007 / PRODUCT-008 / PRODUCT-009 follow-up PR
-  sequence (product YAML → `compile-only` catalog entry → WebFlash
-  wrapper + `preview` promotion → build-matrix entry + release proof)
-  that every gate in this onboarding guide must clear before LED
-  becomes WebFlash-shippable.
+  defines the PRODUCT-006 / PRODUCT-007 / PRODUCT-008 / PRODUCT-009
+  follow-up PR sequence (product YAML → `compile-only` catalog entry
+  → WebFlash wrapper + `preview` promotion → build-matrix entry +
+  release proof). PRODUCT-006 and PRODUCT-008 have landed
+  (the sibling YAML, the WebFlash wrapper, and the `preview` catalog
+  entry now exist with `webflash_build_matrix: false`); PRODUCT-007
+  is a no-op absorbed by PRODUCT-006; PRODUCT-009 (build-matrix entry
+  + release proof) remains outstanding before LED becomes
+  WebFlash-shippable.

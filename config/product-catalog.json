@@ -59,10 +59,12 @@
     },
     {
       "config_string": "Ceiling-POE-VentIQ-RoomIQ-LED",
-      "status": "compile-only",
+      "status": "preview",
       "product_yaml": "products/sense360-ceiling-poe-ventiq-roomiq-led.yaml",
+      "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-roomiq-led.yaml",
       "webflash_build_matrix": false,
-      "notes": "PRODUCT-006 LED-bearing sibling-candidate YAML. Compile-only: validates under tests/validate_configs.py and tests/test_product_substitutions.py but is NOT WebFlash-shippable. No webflash_wrapper, no artifact_name, no version, no channel, not in config/webflash-builds.json. The minimum catalog entry required to satisfy PRODUCT-002 (every top-level products/*.yaml must be enumerated). PRODUCT-008 will add the WebFlash wrapper and promote this entry to status=preview on a non-stable channel; PRODUCT-009 will add the build-matrix entry and record a build / release proof. Release-One stays Ceiling-POE-VentIQ-RoomIQ (LED-less); FanTRIAC stays blocked under HW-005. See docs/product-led-preview-decision.md."
+      "hardware_status": "verified-led-candidate",
+      "notes": "LED-bearing sibling product promoted to preview candidate by PRODUCT-008. PRODUCT-006 added the canonical YAML; PRODUCT-008 adds the WebFlash wrapper at products/webflash/ceiling-poe-ventiq-roomiq-led.yaml and promotes the catalog entry from compile-only to preview. Still NOT in the WebFlash build matrix (webflash_build_matrix=false), still NOT Release-One stable, and still has no artifact_name / version / channel — those land with PRODUCT-009 alongside the build-matrix entry and a recorded build / release proof on a non-stable channel. Hardware evidence: S360-300 schematic_status=verified (HW-008); ceiling LED package binds led_data_pin=GPIO38 (HW-010); LED_DATA / Sense360 LED firmware-package mapping is confirmed-ok after HW-010 (HW-009). Bench-verification Open Questions in docs/hardware/s360-300-r4-led.md (harness rail, LED count, harness identity) remain carried as preview-stage caveats and must resolve before any production promotion. Release-One stays Ceiling-POE-VentIQ-RoomIQ (LED-less); FanTRIAC stays blocked under HW-005. See docs/product-led-preview-decision.md."
     },
     {
       "product_yaml": "products/sense360-core-c-poe.yaml",
