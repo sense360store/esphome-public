@@ -60,11 +60,32 @@
     {
       "config_string": "Ceiling-POE-VentIQ-RoomIQ-LED",
       "status": "preview",
+      "version": "1.0.0",
+      "channel": "preview",
       "product_yaml": "products/sense360-ceiling-poe-ventiq-roomiq-led.yaml",
       "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-roomiq-led.yaml",
-      "webflash_build_matrix": false,
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin",
+      "webflash_build_matrix": true,
+      "modules": {
+        "mount": "Ceiling",
+        "power": "POE",
+        "air_quality": "VentIQ",
+        "room_sense": "RoomIQ",
+        "fan": "none",
+        "led": "LED"
+      },
+      "blocked_modules": [
+        "FanTRIAC"
+      ],
+      "hardware": {
+        "core": "S360-100",
+        "ventiq": "S360-211",
+        "roomiq": "S360-200",
+        "poe": "S360-410",
+        "led": "S360-300"
+      },
       "hardware_status": "verified-led-candidate",
-      "notes": "LED-bearing sibling product promoted to preview candidate by PRODUCT-008. PRODUCT-006 added the canonical YAML; PRODUCT-008 adds the WebFlash wrapper at products/webflash/ceiling-poe-ventiq-roomiq-led.yaml and promotes the catalog entry from compile-only to preview. Still NOT in the WebFlash build matrix (webflash_build_matrix=false), still NOT Release-One stable, and still has no artifact_name / version / channel — those land with PRODUCT-009 alongside the build-matrix entry and a recorded build / release proof on a non-stable channel. Hardware evidence: S360-300 schematic_status=verified (HW-008); ceiling LED package binds led_data_pin=GPIO38 (HW-010); LED_DATA / Sense360 LED firmware-package mapping is confirmed-ok after HW-010 (HW-009). Bench-verification Open Questions in docs/hardware/s360-300-r4-led.md (harness rail, LED count, harness identity) remain carried as preview-stage caveats and must resolve before any production promotion. Release-One stays Ceiling-POE-VentIQ-RoomIQ (LED-less); FanTRIAC stays blocked under HW-005. See docs/product-led-preview-decision.md."
+      "notes": "LED-bearing sibling product promoted to a preview build by PRODUCT-009. PRODUCT-006 added the canonical YAML; PRODUCT-008 added the WebFlash wrapper at products/webflash/ceiling-poe-ventiq-roomiq-led.yaml and promoted the catalog entry from compile-only to preview with webflash_build_matrix=false. PRODUCT-009 now flips webflash_build_matrix to true, declares version=1.0.0 / channel=preview / artifact_name=Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin, and adds the matching entry to config/webflash-builds.json on the preview (non-stable) channel. No firmware artifact is built or imported by PRODUCT-009; that build / release proof remains outstanding. Release-One stays Ceiling-POE-VentIQ-RoomIQ on stable (LED-less); FanTRIAC stays blocked under HW-005 and is carried in this entry's blocked_modules. Hardware evidence: S360-300 schematic_status=verified (HW-008); ceiling LED package binds led_data_pin=GPIO38 (HW-010); LED_DATA / Sense360 LED firmware-package mapping is confirmed-ok after HW-010 (HW-009). Bench-verification Open Questions in docs/hardware/s360-300-r4-led.md (harness rail, LED count, harness identity) remain carried as preview-stage caveats and must resolve before any production promotion. See docs/product-led-preview-decision.md."
     },
     {
       "product_yaml": "products/sense360-core-c-poe.yaml",
