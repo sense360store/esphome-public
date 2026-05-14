@@ -302,7 +302,12 @@ These guardrails apply to every onboarding PR. They are not optional.
   reconciliation (`GPIO14` package vs `IO38` schematic) is now done
   (HW-010 binds the ceiling LED package to `GPIO38`); HW-010 by
   itself does **not** add `LED` to Release-One and does **not** make
-  Sense360 LED WebFlash-shippable.
+  Sense360 LED WebFlash-shippable. The decision about whether and
+  when an LED-bearing preview product should land is recorded in
+  [`docs/product-led-preview-decision.md`](product-led-preview-decision.md)
+  (PRODUCT-005); that document keeps LED documented-only for now and
+  defers any catalog / WebFlash change to a scoped follow-up PR
+  sequence (PRODUCT-006 / PRODUCT-007 / PRODUCT-008 / PRODUCT-009).
 - **Do not treat `legacy-compatible` as WebFlash-shippable.**
   `legacy-compatible` entries are retained for manual / custom /
   remote-package users. They have no `config_string`, no
@@ -499,3 +504,11 @@ and the per-release proof checklist, see
 - [`docs/webflash-compatibility-taxonomy-audit.md`](webflash-compatibility-taxonomy-audit.md)
   — COMPAT-001 per-token audit of the WebFlash taxonomy against the
   product catalog, hardware evidence, and future-token policy.
+- [`docs/product-led-preview-decision.md`](product-led-preview-decision.md)
+  — PRODUCT-005 decision doc for the LED preview product path:
+  keeps LED documented-only for now and defines the
+  PRODUCT-006 / PRODUCT-007 / PRODUCT-008 / PRODUCT-009 follow-up PR
+  sequence (product YAML → `compile-only` catalog entry → WebFlash
+  wrapper + `preview` promotion → build-matrix entry + release proof)
+  that every gate in this onboarding guide must clear before LED
+  becomes WebFlash-shippable.
