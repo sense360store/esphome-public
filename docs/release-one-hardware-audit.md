@@ -623,3 +623,12 @@ that lands, FanTRIAC stays out of WebFlash and out of any release matrix.
   Sense360 Core pin / connector / net reference.
 - [`docs/hardware/s360-200-r4-roomiq.md`](hardware/s360-200-r4-roomiq.md) —
   Sense360 RoomIQ pin / connector / net reference.
+- [`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md)
+  — HW-009 docs-only audit classifying every firmware-package-vs-schematic
+  mapping (`confirmed-ok` / `needs-package-change` /
+  `needs-silkscreen/bench-verification` / `blocked` / etc.). Required
+  follow-ups #2 and #3 in this audit (systemic Core abstract-bus rebind,
+  RoomIQ package pinmap) remain owned here; HW-009 inherits them
+  unchanged and only documents the gap. The Sense360 LED `GPIO14` (package)
+  vs `IO38` (schematic) discrepancy is recorded in HW-009 as a deferred
+  follow-up (HW-010), not resolved by either PR.

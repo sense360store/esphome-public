@@ -568,6 +568,14 @@ counterpart of HW-007's documentation ingest.
   the VentIQ fan-relay path, on `S360-400`, and on `S360-320` — tracked
   separately under COMPLIANCE-001.
 
+The firmware-package-mapping classification of each item above —
+`confirmed-ok` / `needs-package-change` / `needs-doc-fix` /
+`needs-silkscreen/bench-verification` / `blocked` / `unknown` — is
+recorded in
+[`firmware-package-mapping-audit.md`](firmware-package-mapping-audit.md)
+(HW-009). HW-009 is documentation only; it does not change any
+firmware, product YAML, package YAML, JSON, or test.
+
 ## Sanity-grep expectations
 
 After this audit lands, the following greps should hold:
@@ -643,6 +651,12 @@ No other file is changed.
   schematic-backed Core doc.
 - [S360-200-R4 RoomIQ Hardware Reference](s360-200-r4-roomiq.md) — the
   only schematic-backed RoomIQ doc.
+- [Firmware Package Mapping Audit (HW-009)](firmware-package-mapping-audit.md)
+  — companion docs-only audit that classifies each
+  package-vs-schematic gap against the boards this audit covers
+  (`confirmed-ok` / `needs-package-change` /
+  `needs-silkscreen/bench-verification` / `blocked` / etc.) and
+  proposes the scoped follow-up PRs.
 - [Release-One Hardware Audit](../release-one-hardware-audit.md) — the
   firmware-vs-schematic audit for the production Release-One YAML, the
   FanTRIAC HW-005 blocker, and the LED policy.
