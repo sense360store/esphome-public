@@ -339,7 +339,12 @@ These guardrails apply to every onboarding PR. They are not optional.
   (harness rail, LED count, harness identity) before any promotion
   to `production` / `stable`. The Release-One product, config string,
   and artifact name are unchanged. FanTRIAC remains blocked under
-  HW-005.
+  HW-005. RELEASE-003 documents the pending-proof scaffolding,
+  operator runbook, and proof checklist for this step in
+  [`docs/webflash-release-proof.md` LED preview release proof (RELEASE-003)](webflash-release-proof.md#led-preview-release-proof-release-003);
+  every proof field there is marked `pending` until an operator
+  publishes a `prerelease` tag, lets the build/release workflow
+  attach the LED preview artifact, and back-fills the record.
 - **Do not treat `legacy-compatible` as WebFlash-shippable.**
   `legacy-compatible` entries are retained for manual / custom /
   remote-package users. They have no `config_string`, no
