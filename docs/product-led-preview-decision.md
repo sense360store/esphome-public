@@ -122,17 +122,21 @@ Evidence that does **not** yet exist for an LED-bearing variant:
   YAML plus
   [`packages/hardware/led_ring_ceiling.yaml`](../packages/hardware/led_ring_ceiling.yaml),
   with the WebFlash Config text sensor returning
-  `Ceiling-POE-VentIQ-RoomIQ-LED`. PRODUCT-008 has since added the
-  WebFlash wrapper
+  `Ceiling-POE-VentIQ-RoomIQ-LED`. PRODUCT-008 added the WebFlash
+  wrapper
   [`products/webflash/ceiling-poe-ventiq-roomiq-led.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq-led.yaml)
   and promoted the catalog entry in
   [`config/product-catalog.json`](../config/product-catalog.json) from
   `status: compile-only` to `status: preview` (with
   `webflash_build_matrix: false`, `hardware_status:
   verified-led-candidate`, and the new `webflash_wrapper` pointer).
-  PRODUCT-008 added no `channel`, `version`, or `artifact_name`; no
-  build-matrix entry; no release-notes draft; and no firmware. The
-  Release-One YAML
+  **PRODUCT-009 has since flipped `webflash_build_matrix` to `true`,
+  declared `version: 1.0.0`, `channel: preview`,
+  `artifact_name: Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`,
+  populated the `hardware` SKU map and `modules` map, and set
+  `blocked_modules: ["FanTRIAC"]` (LED is intentionally omitted from
+  this entry's `blocked_modules` because the LED-bearing sibling
+  carries the `LED` token).** The Release-One YAML
   [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
   is unchanged. Legacy LED-bearing ceiling configs
   (`sense360-core-ceiling.yaml`, `sense360-core-ceiling-bathroom.yaml`,
@@ -141,26 +145,46 @@ Evidence that does **not** yet exist for an LED-bearing variant:
   [`config/product-catalog.json`](../config/product-catalog.json).
 - The WebFlash wrapper
   [`products/webflash/ceiling-poe-ventiq-roomiq-led.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq-led.yaml)
-  now exists after PRODUCT-008. Its basename (`ceiling-poe-ventiq-roomiq-led`)
+  exists after PRODUCT-008. Its basename (`ceiling-poe-ventiq-roomiq-led`)
   matches the lower-cased config string per the validator rule in
   [`scripts/validate_product_catalog_consistency.py`](../scripts/validate_product_catalog_consistency.py).
-  It is referenced by the catalog entry as `webflash_wrapper` but is
-  **not** in
-  [`config/webflash-builds.json`](../config/webflash-builds.json) yet
-  — `webflash_build_matrix: false` remains until PRODUCT-009.
+  After PRODUCT-009 it is referenced both by the catalog entry's
+  `webflash_wrapper` field and by the new LED preview entry in
+  [`config/webflash-builds.json`](../config/webflash-builds.json) as
+  the build's `product_yaml`.
 - The catalog entry for `Ceiling-POE-VentIQ-RoomIQ-LED` in
   [`config/product-catalog.json`](../config/product-catalog.json) is
-  at `status: preview` after PRODUCT-008. It carries `config_string`,
-  `product_yaml`, `webflash_wrapper`, `webflash_build_matrix: false`,
-  `hardware_status: verified-led-candidate`, and `notes` — it
-  intentionally does **not** carry `channel`, `version`, or
-  `artifact_name`. PRODUCT-009 owns adding those fields together
-  with the build-matrix entry.
-- No build entry with that config string in
-  [`config/webflash-builds.json`](../config/webflash-builds.json).
-- No release-notes draft for any LED-bearing build.
-- No build/release proof equivalent to the Release-One row in
-  [`docs/release-one.md` Proof of build (recorded)](release-one.md#proof-of-build-recorded).
+  at `status: preview` with `webflash_build_matrix: true` after
+  PRODUCT-009. It now carries `config_string`, `product_yaml`,
+  `webflash_wrapper`, `version: 1.0.0`, `channel: preview`,
+  `artifact_name`, `modules`, `blocked_modules: ["FanTRIAC"]`,
+  `hardware` (SKU map for Core / VentIQ / RoomIQ / PoE / LED),
+  `hardware_status: verified-led-candidate`, and `notes`. The catalog
+  entry mirrors what would be required for a `production` entry, but
+  the lifecycle status remains `preview` until a recorded build /
+  release proof on a non-`stable` channel is in place.
+- A new LED preview build entry now exists in
+  [`config/webflash-builds.json`](../config/webflash-builds.json),
+  appended alongside the unchanged Release-One stable build. It
+  declares `config_string: Ceiling-POE-VentIQ-RoomIQ-LED`,
+  `product_yaml: products/webflash/ceiling-poe-ventiq-roomiq-led.yaml`,
+  `artifact_name: Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`,
+  `channel: preview`, `version: 1.0.0`, `chip_family: ESP32-S3`, the
+  hardware requirements list (including Sense360 LED), and the
+  features list (including the Sense360 LED ring as a preview feature).
+- No release-notes draft for the LED preview build has been
+  committed; PRODUCT-009 only adds the catalog / build-matrix /
+  generator support for one. Smoke-running
+  [`scripts/generate_webflash_release_notes.py`](../scripts/generate_webflash_release_notes.py)
+  for `Ceiling-POE-VentIQ-RoomIQ-LED` on the `preview` channel now
+  succeeds and validates.
+- **No firmware artifact** has been built. **No GitHub Release** has
+  been tagged. **No build / release proof** equivalent to the
+  Release-One row in
+  [`docs/release-one.md` Proof of build (recorded)](release-one.md#proof-of-build-recorded)
+  exists yet for the LED preview build. WebFlash has not imported or
+  published the LED preview. Those steps remain outstanding before
+  any production promotion.
 - No bench verification of the harness rail (`J1` pin 2 `+5V` vs
   `+3.3V` per Open Question 1 in
   [`docs/hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md#open-questions--verification-needed)),
@@ -546,25 +570,61 @@ carried as preview-stage caveats in the catalog `notes`.
   [`config/webflash-builds.json`](../config/webflash-builds.json),
   which PRODUCT-008 does not touch.
 
-### PRODUCT-009 — Add preview build / release proof
+### PRODUCT-009 — Add preview build-matrix entry and release-proof path
+
+**Status: build-matrix entry landed; build / release proof outstanding.**
+PRODUCT-009 added the LED-bearing preview build to
+[`config/webflash-builds.json`](../config/webflash-builds.json) on
+`channel: preview` (non-`stable`); flipped the catalog entry's
+`webflash_build_matrix` to `true` and populated `version`, `channel`,
+`artifact_name`, `modules`, `blocked_modules: ["FanTRIAC"]`, and the
+`hardware` SKU map; added the LED-bearing explicit mappings to
+[`scripts/product_name_mapper.py`](../scripts/product_name_mapper.py)
+so the mapper emits `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED` (instead
+of the intelligent-convert fallback `Sense360-Ceiling-POE-VentIQ-RoomIQ-Led`);
+softened the FanTRIAC Known-Issues wording in
+[`scripts/generate_webflash_release_notes.py`](../scripts/generate_webflash_release_notes.py)
+from "this Release-One firmware" to "this firmware" so the bullet is
+accurate for non-Release-One builds; re-scoped
+[`tests/test_led_package_mapping.py::WebflashBuildsLedExclusionTests`](../tests/test_led_package_mapping.py)
+from "no LED token in any build" to "no LED token in any **stable**
+build; LED-bearing builds must be non-stable and use the LED
+wrapper"; and added a new
+`LedPreviewGenerationTests` class in
+[`tests/test_generate_webflash_release_notes.py`](../tests/test_generate_webflash_release_notes.py)
+that proves the LED preview generator output places Sense360 LED in
+Features / Hardware Requirements (not Known Issues) while keeping
+FanTRIAC in Known Issues with the HW-005 reference. The
+`LedCeilingPackageMappingTests::test_release_one_does_not_include_led_ceiling_package`
+invariant stays as-is; the
+`FanTRIACStatusUnaffectedTests` invariants stay as-is; the
+Release-One stable build, config string, and artifact name stay
+as-is.
+
+**Still outstanding after PRODUCT-009:** a recorded build / release
+proof for the LED preview build (firmware artifact, GitHub Release
+tag, Actions run URL, ESP-006 / ESP-007 status row in
+[`docs/release-one.md` Proof of build (recorded)](release-one.md#proof-of-build-recorded));
+WebFlash-side ingest, manifest generation, signing, and publish;
+resolution of the S360-300 bench-verification Open Questions
+(harness rail, LED count, harness identity) before any promotion to
+`production` / `stable`.
 
 - **Scope.** Add the LED-bearing build to
   [`config/webflash-builds.json`](../config/webflash-builds.json) on
-  a non-`stable` channel; flip the catalog entry's
-  `webflash_build_matrix` to `true` and reference the
-  `webflash_wrapper`; re-scope
-  [`tests/test_led_package_mapping.py::WebflashBuildsLedExclusionTests::test_no_led_token_in_any_build`](../tests/test_led_package_mapping.py)
-  so the Release-One build must remain LED-less while the LED-bearing
-  preview build is allowed to carry the `LED` token (the
-  `LedCeilingPackageMappingTests::test_release_one_does_not_include_led_ceiling_package`
-  invariant stays as-is; the `FanTRIACStatusUnaffectedTests`
-  invariants stay as-is); update
-  [`scripts/generate_webflash_release_notes.py`](../scripts/generate_webflash_release_notes.py)
-  so that for the LED-bearing build, Sense360 LED moves out of
-  Known-Issues and into Features for that build only (Release-One's
-  Known-Issues remains unchanged); produce and record a build /
-  release proof equivalent to the Release-One row in
-  [`docs/release-one.md` Proof of build (recorded)](release-one.md#proof-of-build-recorded).
+  a non-`stable` channel (landed); flip the catalog entry's
+  `webflash_build_matrix` to `true` and populate the supporting
+  `version` / `channel` / `artifact_name` / `modules` /
+  `blocked_modules` / `hardware` fields (landed); add explicit
+  mappings to the artifact-name mapper for both the canonical and
+  WebFlash basenames (landed); re-scope the LED-exclusion test class
+  to stable Release-One only and add LED-preview-shape assertions
+  (landed); add release-notes generator tests for the LED preview
+  Features / Known Issues / Hardware Requirements behavior (landed);
+  produce and record a build / release proof equivalent to the
+  Release-One row in
+  [`docs/release-one.md` Proof of build (recorded)](release-one.md#proof-of-build-recorded)
+  (still outstanding — owned by a follow-up build / release PR).
 - **Pre-requisites.** PRODUCT-008 landed (the wrapper exists and the
   catalog entry is at `preview` with `webflash_build_matrix: false`).
 - **Gate.** All of:
@@ -582,8 +642,9 @@ carried as preview-stage caveats in the catalog `notes`.
   recorded in this repo before any WebFlash-side handoff is
   requested.
 - **Out of scope for PRODUCT-009.** Release-One edit. FanTRIAC
-  unblock. Promotion to `production` / `stable` (that would be a
-  later PR with its own build / release proof).
+  unblock. Firmware generation, GitHub Release creation, WebFlash
+  import, WebFlash publish. Promotion to `production` / `stable`
+  (that would be a later PR with its own build / release proof).
 
 ## Guardrails
 

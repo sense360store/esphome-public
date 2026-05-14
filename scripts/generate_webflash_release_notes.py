@@ -87,8 +87,8 @@ REFUSED_STATUSES = frozenset({
 # generator never silently drops an exclusion.
 BLOCKED_MODULE_BULLETS = {
     "FanTRIAC": (
-        "FanTRIAC is not included in this Release-One firmware and remains "
-        "blocked pending HW-005."
+        "FanTRIAC is not included in this firmware and remains blocked "
+        "pending HW-005."
     ),
     "LED": (
         "Sense360 LED is not included in this Release-One firmware because "

@@ -46,6 +46,16 @@ PRODUCT_MAPPINGS = {
         "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
 
     # -------------------------------------------------------------------------
+    # LED-bearing preview sibling — WebFlash config: Ceiling-POE-VentIQ-RoomIQ-LED
+    # Artifact name: Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-vX.Y.Z-{channel}.bin
+    # Non-stable channel only (preview). Release-One stays LED-less.
+    # -------------------------------------------------------------------------
+    "sense360-ceiling-poe-ventiq-roomiq-led":
+        "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED",
+    "ceiling-poe-ventiq-roomiq-led":
+        "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED",
+
+    # -------------------------------------------------------------------------
     # Core Series - Ceiling Mount with Power Types
     # -------------------------------------------------------------------------
     "sense360-core-c-usb": "Sense360-Core-Ceiling-USB",

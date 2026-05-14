@@ -63,6 +63,20 @@ RELEASE_ONE_SKUS = ("S360-100", "S360-211", "S360-200", "S360-410")
 FANTRIAC_BLOCKED_CONFIG = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
 LEGACY_CONFIG_ID = "sense360-poe"
 
+LED_PREVIEW_CONFIG_STRING = "Ceiling-POE-VentIQ-RoomIQ-LED"
+LED_PREVIEW_VERSION = "1.0.0"
+LED_PREVIEW_CHANNEL = "preview"
+LED_PREVIEW_ARTIFACT = (
+    "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin"
+)
+LED_PREVIEW_SKUS = (
+    "S360-100",
+    "S360-211",
+    "S360-200",
+    "S360-410",
+    "S360-300",
+)
+
 
 def _generate_release_one(**overrides: Any) -> str:
     kwargs: Dict[str, Any] = dict(
@@ -162,6 +176,109 @@ class FanTRIACAndLEDExclusionTests(unittest.TestCase):
         )
         self.assertIsNotNone(fantriac_bullet)
         self.assertIn("HW-005", fantriac_bullet or "")
+
+
+# ----------------------------------------------------------------------
+# LED preview generation (PRODUCT-009): LED moves from Known Issues to
+# Features for the LED-bearing sibling, FanTRIAC remains a Known Issue.
+# ----------------------------------------------------------------------
+
+
+def _generate_led_preview(**overrides):
+    kwargs = dict(
+        config_string=LED_PREVIEW_CONFIG_STRING,
+        version=LED_PREVIEW_VERSION,
+        channel=LED_PREVIEW_CHANNEL,
+    )
+    kwargs.update(overrides)
+    return gen.generate(**kwargs)
+
+
+class LedPreviewGenerationTests(unittest.TestCase):
+    def test_generates_all_four_required_sections(self) -> None:
+        body = _generate_led_preview()
+        sections = val._parse_sections(body)
+        for required in (
+            "Changelog",
+            "Known Issues",
+            "Features",
+            "Hardware Requirements",
+        ):
+            self.assertIn(
+                required,
+                sections,
+                f"missing required section {required}; body was:\n{body}",
+            )
+
+    def test_generated_output_passes_validator(self) -> None:
+        body = _generate_led_preview()
+        errors = val.validate_body(body, channel=LED_PREVIEW_CHANNEL)
+        self.assertEqual(
+            errors, [], f"validator errors: {errors}\nbody:\n{body}"
+        )
+
+    def test_output_contains_config_string(self) -> None:
+        body = _generate_led_preview()
+        self.assertIn(LED_PREVIEW_CONFIG_STRING, body)
+
+    def test_output_contains_artifact_name(self) -> None:
+        body = _generate_led_preview()
+        self.assertIn(LED_PREVIEW_ARTIFACT, body)
+
+    def test_output_contains_all_hardware_skus_including_led(self) -> None:
+        body = _generate_led_preview()
+        for sku in LED_PREVIEW_SKUS:
+            self.assertIn(
+                sku, body, f"missing SKU {sku} in body:\n{body}"
+            )
+
+    def test_led_is_feature_not_known_issue_for_led_preview(self) -> None:
+        body = _generate_led_preview()
+        features = _section_bullets(body, "Features")
+        known_issues = _section_bullets(body, "Known Issues")
+        self.assertTrue(
+            any("LED" in b for b in features),
+            f"LED missing from Features for LED preview: {features}",
+        )
+        self.assertFalse(
+            any("LED" in b for b in known_issues),
+            f"LED must not appear in Known Issues for LED preview: "
+            f"{known_issues}",
+        )
+
+    def test_led_appears_in_hardware_requirements_for_led_preview(self) -> None:
+        body = _generate_led_preview()
+        hardware = _section_bullets(body, "Hardware Requirements")
+        self.assertTrue(
+            any("LED" in b or "S360-300" in b for b in hardware),
+            "Sense360 LED hardware must appear in Hardware Requirements "
+            f"for the LED preview: {hardware}",
+        )
+
+    def test_fantriac_remains_known_issue_for_led_preview(self) -> None:
+        body = _generate_led_preview()
+        known_issues = _section_bullets(body, "Known Issues")
+        features = _section_bullets(body, "Features")
+        self.assertTrue(
+            any("FanTRIAC" in b for b in known_issues),
+            f"FanTRIAC missing from Known Issues for LED preview: "
+            f"{known_issues}",
+        )
+        self.assertTrue(
+            any("HW-005" in b for b in known_issues),
+            f"FanTRIAC Known-Issues bullet must reference HW-005: "
+            f"{known_issues}",
+        )
+        self.assertFalse(
+            any("FanTRIAC" in b for b in features),
+            f"FanTRIAC must not appear in Features for LED preview: "
+            f"{features}",
+        )
+
+    def test_stable_channel_refused_for_led_preview(self) -> None:
+        with self.assertRaises(gen.GeneratorError) as ctx:
+            _generate_led_preview(channel="stable")
+        self.assertIn("stable", str(ctx.exception).lower())
 
 
 # ----------------------------------------------------------------------

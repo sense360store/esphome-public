@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""HW-010 invariants for the Sense360 LED ceiling package pin mapping.
+"""HW-010 invariants for the Sense360 LED ceiling package pin mapping
+plus PRODUCT-009 scoping of LED exclusion to stable Release-One.
 
 These tests lock in the package-level fix HW-010 lands against the verified
 schematic evidence (`S360-100-R4` and `S360-300-R4`):
@@ -11,9 +12,14 @@ schematic evidence (`S360-100-R4` and `S360-300-R4`):
 The fix is a single-package edit in
 ``packages/hardware/led_ring_ceiling.yaml``: ``led_data_pin`` flips from
 ``GPIO14`` to ``GPIO38``. HW-010 does **not** add ``LED`` to the Release-One
-config string, does **not** add a WebFlash LED build, does **not** add a
-product-catalog LED entry, and does **not** change the FanTRIAC HW-005
-blocked status.
+config string and does **not** change the FanTRIAC HW-005 blocked status.
+
+After PRODUCT-009 the WebFlash build matrix is allowed to carry a
+**non-stable** LED-bearing preview build alongside the Release-One stable
+build. The LED-exclusion guarantee is therefore scoped to the
+**stable** channel (Release-One) only: stable builds must remain
+LED-less, but a preview build may carry the ``LED`` token if it points
+at the LED wrapper.
 
 What this file checks:
 
@@ -24,9 +30,14 @@ What this file checks:
   * The Release-One product YAML
     ``products/sense360-ceiling-poe-ventiq-roomiq.yaml`` does **not**
     ``!include`` ``led_ring_ceiling.yaml``. Release-One stays LED-less.
-  * ``config/webflash-builds.json`` continues to ship exactly one build,
-    ``Ceiling-POE-VentIQ-RoomIQ``, with no ``LED`` token in the config
-    string or artifact name.
+  * ``config/webflash-builds.json`` still contains the Release-One
+    stable build ``Ceiling-POE-VentIQ-RoomIQ`` with no ``LED`` token in
+    its config string or artifact name.
+  * Every **stable** build in ``config/webflash-builds.json`` is
+    LED-less (no ``LED`` token in config_string or artifact_name).
+  * Any LED-bearing build in ``config/webflash-builds.json`` is
+    **non-stable** (channel != ``stable``) and points at the LED
+    WebFlash wrapper ``products/webflash/ceiling-poe-ventiq-roomiq-led.yaml``.
   * ``config/product-catalog.json`` keeps the FanTRIAC entry
     (``Ceiling-POE-VentIQ-FanTRIAC-RoomIQ``) ``status: blocked``,
     ``blocker: HW-005``, ``webflash_build_matrix: false``.
@@ -57,6 +68,8 @@ PRODUCT_CATALOG = REPO_ROOT / "config" / "product-catalog.json"
 
 RELEASE_ONE_CONFIG_STRING = "Ceiling-POE-VentIQ-RoomIQ"
 FANTRIAC_CONFIG_STRING = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
+LED_PREVIEW_CONFIG_STRING = "Ceiling-POE-VentIQ-RoomIQ-LED"
+LED_PREVIEW_WRAPPER = "products/webflash/ceiling-poe-ventiq-roomiq-led.yaml"
 
 
 class LedCeilingPackageMappingTests(unittest.TestCase):
@@ -119,7 +132,15 @@ class LedCeilingPackageMappingTests(unittest.TestCase):
 
 
 class WebflashBuildsLedExclusionTests(unittest.TestCase):
-    """HW-010 does not add an LED-bearing WebFlash build."""
+    """LED exclusion is scoped to the stable Release-One build only.
+
+    HW-010 did not add any LED-bearing WebFlash build. PRODUCT-009 added a
+    **non-stable** LED-bearing preview build alongside the Release-One
+    stable build. The LED-exclusion guarantee is therefore scoped to
+    stable channels (Release-One). Stable builds must remain LED-less;
+    LED-bearing builds must be non-stable and must point at the LED
+    WebFlash wrapper.
+    """
 
     def setUp(self) -> None:
         self.doc = json.loads(WEBFLASH_BUILDS.read_text())
@@ -141,23 +162,86 @@ class WebflashBuildsLedExclusionTests(unittest.TestCase):
             "Release-One build must remain in the WebFlash build matrix.",
         )
 
-    def test_no_led_token_in_any_build(self) -> None:
+    def test_release_one_build_is_stable_and_led_less(self) -> None:
+        matches = [
+            b
+            for b in self.doc["builds"]
+            if b.get("config_string") == RELEASE_ONE_CONFIG_STRING
+        ]
+        self.assertEqual(
+            len(matches),
+            1,
+            "expected exactly one Release-One build entry",
+        )
+        entry = matches[0]
+        self.assertEqual(
+            entry.get("channel"),
+            "stable",
+            "Release-One build must remain on the 'stable' channel.",
+        )
+        tokens = entry.get("config_string", "").split("-")
+        self.assertNotIn(
+            "LED",
+            tokens,
+            "Release-One config string must not carry an LED token.",
+        )
+        self.assertNotIn(
+            "LED",
+            entry.get("artifact_name", "").split("-"),
+            "Release-One artifact name must not carry an LED token.",
+        )
+
+    def test_stable_channel_builds_have_no_led_token(self) -> None:
         for build in self.doc["builds"]:
+            if build.get("channel") != "stable":
+                continue
             config_string = build.get("config_string", "")
             artifact_name = build.get("artifact_name", "")
-            tokens = config_string.split("-")
-            self.assertNotIn(
-                "LED",
-                tokens,
-                f"WebFlash build {config_string!r} must not carry an LED "
-                "token. HW-010 does not add LED to any WebFlash build.",
-            )
-            self.assertNotIn(
-                "LED",
-                artifact_name.split("-"),
-                f"WebFlash artifact {artifact_name!r} must not carry an LED "
-                "token. HW-010 does not add LED to any WebFlash artifact.",
-            )
+            with self.subTest(config_string=config_string):
+                tokens = config_string.split("-")
+                self.assertNotIn(
+                    "LED",
+                    tokens,
+                    f"Stable WebFlash build {config_string!r} must not "
+                    "carry an LED token. LED is reserved for non-stable "
+                    "(preview / beta) channels until a stable build / "
+                    "release proof has been recorded.",
+                )
+                self.assertNotIn(
+                    "LED",
+                    artifact_name.split("-"),
+                    f"Stable WebFlash artifact {artifact_name!r} must not "
+                    "carry an LED token.",
+                )
+
+    def test_led_preview_build_is_non_stable(self) -> None:
+        for build in self.doc["builds"]:
+            config_string = build.get("config_string", "")
+            if "LED" not in config_string.split("-"):
+                continue
+            with self.subTest(config_string=config_string):
+                channel = build.get("channel")
+                self.assertNotEqual(
+                    channel,
+                    "stable",
+                    f"LED-bearing build {config_string!r} is on the "
+                    f"'stable' channel; LED-bearing builds must be on a "
+                    "non-stable channel (e.g. 'preview' or 'beta') until "
+                    "a stable build / release proof has been recorded.",
+                )
+
+    def test_led_preview_build_uses_led_wrapper(self) -> None:
+        for build in self.doc["builds"]:
+            config_string = build.get("config_string", "")
+            if "LED" not in config_string.split("-"):
+                continue
+            with self.subTest(config_string=config_string):
+                self.assertEqual(
+                    build.get("product_yaml"),
+                    LED_PREVIEW_WRAPPER,
+                    f"LED-bearing build {config_string!r} must point at "
+                    f"the LED WebFlash wrapper {LED_PREVIEW_WRAPPER!r}.",
+                )
 
 
 class FanTRIACStatusUnaffectedTests(unittest.TestCase):
