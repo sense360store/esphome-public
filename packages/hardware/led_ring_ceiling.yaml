@@ -16,12 +16,17 @@
 # - Do NOT use with voice cores (use LED+MIC ring instead)
 #
 # Pin Assignment:
-# - LED Data: GPIO14 (via level shifter)
+# - LED Data: GPIO38 (ESP32-S3 IO38 → U2A 74LVC1G07 buffer → R8 330 Ω → Core
+#   J3 → S360-300 J1 LED_DATA; per `S360-100-R4` and `S360-300-R4` schematics,
+#   see docs/hardware/s360-100-r4-core.md §LED output and
+#   docs/hardware/s360-300-r4-led.md §J1)
 # ============================================================================
 
 substitutions:
   led_ring_sku: S360-LED-C
-  led_data_pin: GPIO14
+  # HW-010: led_data_pin is GPIO38 (Core IO38 = LED_DATA per S360-100-R4
+  # schematic — buffered through U2A 74LVC1G07 + R8 330 Ω to Core J3).
+  led_data_pin: GPIO38
   led_count: "12"
   led_chipset: WS2812
   led_rgb_order: GRB

@@ -98,7 +98,7 @@ is included.
 | Sense360 RoomIQ | `S360-200` | [`docs/hardware/s360-200-r4-roomiq.md`](s360-200-r4-roomiq.md) (schematic-backed; PDF `S360-200-R4.pdf` cited); `schematic_status: verified` in JSON. | `documented` | None — already documented. | Resolve open-questions list at [`s360-200-r4-roomiq.md#open-questions--verification-needed`](s360-200-r4-roomiq.md#open-questions--verification-needed); reconcile the Core J10 vs RoomIQ J6 pin-order discrepancy already flagged in both docs. |
 | Sense360 AirIQ | `S360-210` | Module-side schematic committed under HW-007 at [`schematics/S360-210-R4.pdf`](schematics/S360-210-R4.pdf); standalone reference doc at [`s360-210-r4-airiq.md`](s360-210-r4-airiq.md) (SGP41, SCD41, SFA40 connector, SPS30 connector, MICS-4514 + STM8 I²C bridge sub-sheet). Core-side `J9` mating captured in [`s360-100-r4-core.md` J9](s360-100-r4-core.md#j9--airiq-module-connector-7-pin) with legacy `AirQ_*` nets. `airiq_*.yaml` packages exist (logical, not pin-bound to a verified schematic). Mutually exclusive with VentIQ; not in Release-One. JSON `schematic_status` is `verified` with `schematic_file: docs/hardware/schematics/S360-210-R4.pdf` under HW-008. | `documented`, `not-needed-for-release-one` | Not required (Release-One ships `VentIQ`, not `AirIQ`). | Any future `AirIQ`-bearing config string is a separate product PR with its own catalog entry, build-matrix entry, and onboarding-gate clearance — HW-008's `verified` schematic evidence is not by itself a shippability claim. Confirm `AirQ_Led` / `AirQ_Status_Led` net reuse at `J9` (HW-002 Open Question #4) before any such promotion. |
 | Sense360 VentIQ | `S360-211` | **Used in Release-One.** Module-side schematic committed under HW-007 at [`schematics/S360-211-R4.pdf`](schematics/S360-211-R4.pdf); standalone reference doc at [`s360-211-r4-ventiq.md`](s360-211-r4-ventiq.md) (SGP41 on board, IR-temperature connector, SPS30 connector, on-board fan-relay drive circuitry). Core-side `J9` (AirIQ Module Connector) captured in [`s360-100-r4-core.md` J9](s360-100-r4-core.md#j9--airiq-module-connector-7-pin) with legacy `AirQ_*` nets. Firmware package: [`packages/expansions/airiq_bathroom_base.yaml`](../../packages/expansions/airiq_bathroom_base.yaml) (legacy filename retained per WebFlash contract §6). JSON `schematic_status` is `verified` with `schematic_file: docs/hardware/schematics/S360-211-R4.pdf` under HW-008; the "schematic verification pending" caveat that previously lived in [`release-one-hardware-audit.md` Findings → VentIQ](../release-one-hardware-audit.md#findings) and in [`webflash-compatibility-taxonomy-audit.md`](../webflash-compatibility-taxonomy-audit.md) has been retired by HW-008. | `documented` | None — already documented and JSON-verified under HW-008. | Confirm `AirQ_Led` / `AirQ_Status_Led` reuse at `J9` (HW-002 Open Question #4); confirm fan-relay drive-signal source for any future fan-driver audit; mains-side compliance evidence for the on-board relay remains tracked under COMPLIANCE-001 and is **not** cleared by HW-008. |
-| Sense360 LED | `S360-300` | **Excluded from Release-One by policy.** Module-side schematic committed under HW-007 at [`schematics/S360-300-R4.pdf`](schematics/S360-300-R4.pdf); standalone reference doc at [`s360-300-r4-led.md`](s360-300-r4-led.md) (3-pin `J1` carrying `LED_DATA` / `+5V` / `GND`; WS2812B LED chain). Core-side `J3` connector and the `LED_DATA → U2A 74LVC1G07 → R8 → J3` path are captured in [`s360-100-r4-core.md` LED output](s360-100-r4-core.md#led-output). Reconciliation flag in the Core doc notes that [`packages/hardware/led_ring_ceiling.yaml`](../../packages/hardware/led_ring_ceiling.yaml) uses `GPIO14`, while the schematic shows `IO14 = SCS` and `LED_DATA = IO38` — **still unresolved** at the package level (HW-008 commits no new Core-side trace). JSON `schematic_status` is `verified` with `schematic_file: docs/hardware/schematics/S360-300-R4.pdf` under HW-008. | `documented`, `not-needed-for-release-one` | Not required. The Release-One WebFlash config string `Ceiling-POE-VentIQ-RoomIQ` does not carry a `LED` token, and the Release-One YAML omits LED package includes on purpose. HW-008's `verified` schematic evidence does not change this. | Required only if a future Release-One variant adds a `LED` token (e.g. `Ceiling-POE-VentIQ-RoomIQ-LED`). At that point: reconcile `GPIO14` (package) vs `IO38` (schematic) for `LED_DATA`. **HW-008 does not add `LED` to the Release-One config string; Sense360 LED stays excluded from Release-One.** |
+| Sense360 LED | `S360-300` | **Excluded from Release-One by policy.** Module-side schematic committed under HW-007 at [`schematics/S360-300-R4.pdf`](schematics/S360-300-R4.pdf); standalone reference doc at [`s360-300-r4-led.md`](s360-300-r4-led.md) (3-pin `J1` carrying `LED_DATA` / `+5V` / `GND`; WS2812B LED chain). Core-side `J3` connector and the `LED_DATA → U2A 74LVC1G07 → R8 → J3` path are captured in [`s360-100-r4-core.md` LED output](s360-100-r4-core.md#led-output). The ceiling LED package [`packages/hardware/led_ring_ceiling.yaml`](../../packages/hardware/led_ring_ceiling.yaml) binds `led_data_pin: GPIO38` after **HW-010**, matching `LED_DATA = IO38` on the schematic (`IO14` is `SCS`, not LED). JSON `schematic_status` is `verified` with `schematic_file: docs/hardware/schematics/S360-300-R4.pdf` under HW-008. | `documented`, `not-needed-for-release-one` | Not required. The Release-One WebFlash config string `Ceiling-POE-VentIQ-RoomIQ` does not carry a `LED` token, and the Release-One YAML omits LED package includes on purpose. HW-008's `verified` schematic evidence and HW-010's package-level pin fix do not change this. | Required only if a future Release-One variant adds a `LED` token (e.g. `Ceiling-POE-VentIQ-RoomIQ-LED`). The package-level `LED_DATA` pin reconciliation is now done (HW-010); a future LED-bearing config still needs its own product YAML, catalog entry, build-matrix entry, and release-notes draft. **HW-010 does not add `LED` to the Release-One config string; Sense360 LED stays excluded from Release-One.** |
 | Sense360 Relay | `S360-310` | Core-side `J4` connector documented in [`s360-100-r4-core.md` J4](s360-100-r4-core.md#j4--relay-module-connector-3-pin): 3-pin (`+5V`, `Relay`, `GND`), drive signal `Relay` from ESP32 `IO3`. Module-side schematic not committed. Firmware package: [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml). Not in Release-One. | `partially-documented`, `not-needed-for-release-one` | Not required (no `FanRelay` in Release-One). | Commit `S360-310` schematic and a standalone pin/connector doc before any `FanRelay`-bearing config string ships as stable. |
 | Sense360 PWM | `S360-311` | Core-side `J6` (12 V PWM fan connector, 13-pin) documented in [`s360-100-r4-core.md` J6](s360-100-r4-core.md#j6--12-v-pwm-fan-connector-13-pin). Net list captured (`+5V`, `GND`, `TachIO`, `TachPMW1..4`, `Pul_Cou1..4`); `TachPMW*` / `Pul_Cou*` are driven by the SX1509 expander per [`s360-100-r4-core.md` fan-driver outputs](s360-100-r4-core.md#fan--driver-outputs). The 1-to-13 pin order is explicitly marked **verify** in the Core doc. Module-side schematic not committed. Firmware package: [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml). Not in Release-One. | `partially-documented`, `not-needed-for-release-one` | Not required (no `FanPWM` in Release-One). | Commit `S360-311` schematic + standalone pin/connector doc; resolve the J6 pin-order **verify** flag against the silkscreen. |
 | Sense360 DAC | `S360-312` | Core-side `J7` (GP8403 fan connector, 6-pin) fully captured in [`s360-100-r4-core.md` J7](s360-100-r4-core.md#j7--gp8403-fan-connector-6-pin) — `+5V`, `I2C_SDA`, `I2C_SCL`, `UART_RX`, `UART_TX`, `GND`. Module-side schematic not committed. Firmware package: [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml). Not in Release-One. | `partially-documented`, `not-needed-for-release-one` | Not required (no `FanDAC` in Release-One). | Commit `S360-312` schematic + standalone pin/connector doc. |
@@ -222,27 +222,32 @@ committed; this audit does **not** upgrade it to `documented` and does
   330 Ω `R8` series resistor are documented at
   [`s360-100-r4-core.md` LED output](s360-100-r4-core.md#led-output).
   Firmware-side, [`packages/hardware/led_ring_ceiling.yaml`](../../packages/hardware/led_ring_ceiling.yaml)
-  drives WS2812B on `GPIO14`. The Core doc flags that the schematic
-  actually has `LED_DATA = IO38` and `IO14 = SCS`, which is unresolved at
-  the package level. **Under HW-007**, the module-side schematic PDF is
-  now committed at
+  drives WS2812B on `GPIO38` (HW-010), matching the schematic
+  (`LED_DATA = IO38`; `IO14 = SCS`). **Under HW-007**, the module-side
+  schematic PDF is committed at
   [`schematics/S360-300-R4.pdf`](schematics/S360-300-R4.pdf) and a
   standalone reference doc is available at
   [`s360-300-r4-led.md`](s360-300-r4-led.md) (visible on the sheet:
   3-pin `J1` carrying `LED_DATA` / `+5V` / `GND`; WS2812B LED chain).
-- **Evidence missing.** The `GPIO14` (package) vs `IO38` (Core
-  schematic) reconciliation for `LED_DATA` is **still not resolved** by
-  HW-007 / HW-008 — the LED-board schematic shows the connector and
-  the chain but does not change which ESP32-S3 pin originates the data
-  signal on the Core. This is **not** a Release-One blocker because
-  Sense360 LED is intentionally excluded from the Release-One config
-  string. **HW-008 does not add a `LED` token to the Release-One
-  config string; Sense360 LED stays excluded from Release-One.** Other
-  Open Questions raised by the LED board itself (rail identity on `J1`
-  pin 2, LED count on the chain, harness identity between Core `J3`
-  and LED `J1`) are recorded in
-  [`s360-300-r4-led.md`](s360-300-r4-led.md). JSON
-  `schematic_status` for `S360-300` is `verified` under HW-008 with
+- **Evidence missing.** The package-level `GPIO14` (package) vs `IO38`
+  (Core schematic) reconciliation for `LED_DATA` is **resolved by
+  HW-010** — the ceiling LED package now binds `led_data_pin: GPIO38`.
+  HW-010 is a one-package edit; it does **not** add `LED` to the
+  Release-One config string, does **not** add a WebFlash LED build,
+  does **not** add a product-catalog LED entry, and does **not** change
+  the FanTRIAC HW-005 blocker. Sense360 LED remains intentionally
+  excluded from Release-One; the Release-One YAML continues to omit
+  LED package includes. Other Open Questions raised by the LED board
+  itself (rail identity on `J1` pin 2, LED count on the chain, harness
+  identity between Core `J3` and LED `J1`) are recorded in
+  [`s360-300-r4-led.md`](s360-300-r4-led.md). The wall LED package
+  ([`packages/hardware/led_ring_wall.yaml`](../../packages/hardware/led_ring_wall.yaml),
+  `GPIO48`) and the legacy S3 Core package
+  ([`packages/hardware/sense360_core_ceiling_s3.yaml`](../../packages/hardware/sense360_core_ceiling_s3.yaml),
+  `GPIO14`) were intentionally not changed by HW-010 — neither has a
+  Core-side schematic that proves the same `LED_DATA` path; both
+  remain documented as unresolved. JSON `schematic_status` for
+  `S360-300` is `verified` under HW-008 with
   `schematic_file: docs/hardware/schematics/S360-300-R4.pdf`.
 
 ### Sense360 Relay (`S360-310`)
@@ -450,7 +455,10 @@ discoverable.
   "this improves legacy / manual hardware documentation only".
 - Does **not** resolve the Core J10 vs RoomIQ J6 pin-order discrepancy.
 - Does **not** resolve the `GPIO14` (package) vs `IO38` (Core
-  schematic) `LED_DATA` discrepancy.
+  schematic) `LED_DATA` discrepancy. (That package-level reconciliation
+  was later landed by **HW-010** — the ceiling LED package now binds
+  `led_data_pin: GPIO38`. HW-010 did not add `LED` to the Release-One
+  config string and did not promote Sense360 LED to WebFlash-shippable.)
 - Does **not** make any mains-voltage safety or compliance claim. The
   VentIQ on-board fan-relay drive circuitry is noted as **present** in
   [`s360-211-r4-ventiq.md`](s360-211-r4-ventiq.md); mains compliance
@@ -468,8 +476,11 @@ later PRs:
   still uncommitted.
 - Core J10 vs RoomIQ J6 pin-order — still requires silkscreen
   verification.
-- LED_DATA `GPIO14` (package) vs `IO38` (Core schematic) — still
-  unresolved at the package level.
+- LED_DATA `GPIO14` (package) vs `IO38` (Core schematic) — **resolved
+  by HW-010** at the package level for the ceiling LED package only
+  (`led_ring_ceiling.yaml` now binds `GPIO38`). The wall LED package
+  and the legacy S3 Core package remain unresolved (no Core-side
+  schematic proving the same `LED_DATA` path).
 - `AirQ_Led` / `AirQ_Status_Led` net reuse on AirIQ vs VentIQ (HW-002
   Open Question #4) — still unverified.
 - Mains-voltage safety / compliance for any mains-switching surface
@@ -545,7 +556,10 @@ counterpart of HW-007's documentation ingest.
   (COMPLIANCE-001); HW-008 makes no compliance claim.
 - Does **not** resolve the Core J10 vs RoomIQ J6 pin-order discrepancy
   or the `GPIO14` (package) vs `IO38` (Core schematic) `LED_DATA`
-  discrepancy. Both stay flagged in the per-board docs.
+  discrepancy. Both stay flagged in the per-board docs at HW-008 time.
+  (The package-level `LED_DATA` reconciliation was later landed by
+  **HW-010** for the ceiling LED package only; HW-010 did not add
+  `LED` to the Release-One config string.)
 - Does **not** infer pin maps, package YAML rebinds, or new firmware
   behaviour from the now-verified schematics. `verified` schematic
   evidence is not a WebFlash-shippability, production-readiness, or
@@ -560,7 +574,13 @@ counterpart of HW-007's documentation ingest.
   still uncommitted; JSON `schematic_status` stays `cataloged_unverified`.
 - Core J10 vs RoomIQ J6 pin-order — still requires silkscreen
   verification.
-- LED_DATA `GPIO14` (package) vs `IO38` (Core schematic) — still
+- LED_DATA `GPIO14` (package) vs `IO38` (Core schematic) — **resolved
+  by HW-010** at the package level for the ceiling LED package only
+  (`led_ring_ceiling.yaml` now binds `GPIO38`). HW-010 did not add
+  `LED` to the Release-One config string; Sense360 LED stays excluded
+  from Release-One. The wall LED package
+  (`packages/hardware/led_ring_wall.yaml`) and the legacy S3 Core
+  package (`packages/hardware/sense360_core_ceiling_s3.yaml`) remain
   unresolved at the package level.
 - `AirQ_Led` / `AirQ_Status_Led` net reuse on AirIQ vs VentIQ (HW-002
   Open Question #4) — still unverified.

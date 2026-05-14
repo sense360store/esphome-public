@@ -156,7 +156,7 @@ document).
 | `FanPWM` | Yes — `canonical_modules`. Subject to fan-driver max-one-of rule. | Not in any current catalog entry. Legacy `sense360-fan-pwm.yaml` is `legacy-compatible`. | `S360-311` Sense360 PWM is `partially-documented` (Core-side J6 nets captured with **verify** flag on pin order; module-side schematic pending), `not-needed-for-release-one`. | Not in Release-One. | **No.** | Keep. A future `FanPWM`-bearing config requires `S360-311` schematic + pin/connector doc (resolve the J6 1-to-13 pin-order **verify** flag), catalog entry, and build-matrix entry. |
 | `FanDAC` | Yes — `canonical_modules`. Subject to fan-driver max-one-of rule. Additionally forbidden alongside `AirIQ` by `rules.fandac_conflicts_with_airiq`. | Not in any current catalog entry. | `S360-312` Sense360 DAC is `partially-documented` (Core-side J7 nets captured; module-side schematic pending), `not-needed-for-release-one`. | Not in Release-One. | **No.** | Keep. A future `FanDAC`-bearing config requires `S360-312` schematic + pin/connector doc, a catalog entry, and a build-matrix entry; the existing `fandac_conflicts_with_airiq` rule continues to forbid pairing it with `AirIQ`. |
 | `FanTRIAC` | Yes — `canonical_modules`. Subject to fan-driver max-one-of rule. | Yes — `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is in the catalog with `status: blocked`, `blocker: HW-005`. **Not** in `config/webflash-builds.json`. | `S360-320` Sense360 TRIAC is `blocked` (HW-005), `not-needed-for-release-one`. Mains-output module; additionally subject to the mains-voltage compliance tracker in [`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md). | Excluded from Release-One. Release-One's `blocked_modules` list explicitly includes `FanTRIAC`. | **No.** | **Keep blocked.** Token stays in the taxonomy as a reserved future name. Unblocking requires the HW-005 missing-evidence checklist in [`docs/release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution) to be fully satisfied **and** a qualified mains-voltage compliance review per COMPLIANCE-001. Neither happens in this audit. |
-| `LED` | Yes — `canonical_modules`. | Not as its own catalog entry; appears in Release-One's `blocked_modules: ["FanTRIAC", "LED"]` because the Release-One `config_string` carries no `LED` token. | `S360-300` Sense360 LED is `documented`, `not-needed-for-release-one`; the unresolved `GPIO14` package vs `IO38` schematic discrepancy persists at the package level. *Per-board doc at [`hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md); PDF committed under HW-007 at [`hardware/schematics/S360-300-R4.pdf`](hardware/schematics/S360-300-R4.pdf); JSON `schematic_status: verified` with `schematic_file: docs/hardware/schematics/S360-300-R4.pdf` under HW-008. The `GPIO14` vs `IO38` `LED_DATA` discrepancy is still unresolved; HW-007 committed LED-board schematic evidence and HW-008 only updates JSON status — neither commits a new Core-side trace.* | Excluded from Release-One. The Release-One YAML omits LED package includes on purpose. | **No.** | **Keep excluded from Release-One.** Token stays in the taxonomy as a reserved future name. A future LED-bearing config (e.g. `Ceiling-POE-VentIQ-RoomIQ-LED`) is a separate product: it requires reconciliation of `GPIO14` (package) vs `IO38` (schematic) for `LED_DATA`, a new catalog entry, and a new build-matrix entry. **HW-008 does not add `LED` to the Release-One config string. Sense360 LED remains excluded from Release-One.** |
+| `LED` | Yes — `canonical_modules`. | Not as its own catalog entry; appears in Release-One's `blocked_modules: ["FanTRIAC", "LED"]` because the Release-One `config_string` carries no `LED` token. | `S360-300` Sense360 LED is `documented`, `not-needed-for-release-one`. The `GPIO14` package vs `IO38` schematic discrepancy at the package level has been **resolved by HW-010** — [`packages/hardware/led_ring_ceiling.yaml`](../packages/hardware/led_ring_ceiling.yaml) now binds `led_data_pin: GPIO38`. *Per-board doc at [`hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md); PDF committed under HW-007 at [`hardware/schematics/S360-300-R4.pdf`](hardware/schematics/S360-300-R4.pdf); JSON `schematic_status: verified` with `schematic_file: docs/hardware/schematics/S360-300-R4.pdf` under HW-008. HW-007 committed LED-board schematic evidence, HW-008 updated JSON status, and HW-010 landed the matching package-level pin edit (`GPIO14` → `GPIO38`). The wall LED package and the legacy S3 Core package remain unresolved at the package level — neither has Core-side schematic evidence proving the same `LED_DATA` path.* | Excluded from Release-One. The Release-One YAML omits LED package includes on purpose. | **No.** | **Keep excluded from Release-One.** Token stays in the taxonomy as a reserved future name. A future LED-bearing config (e.g. `Ceiling-POE-VentIQ-RoomIQ-LED`) is a separate product: it requires its own catalog entry, build-matrix entry, and release-notes draft. The package-level `LED_DATA` pin reconciliation is now done (HW-010); the remaining gates are product-level, not package-level. **HW-010 does not add `LED` to the Release-One config string. Sense360 LED remains excluded from Release-One.** |
 | `Voice` (legacy concept) | **No.** Not in `canonical_mounting`, `canonical_power`, or `canonical_modules`. Not in `forbidden_tokens` either. | Several `sense360-core-v-*` YAMLs are catalogued as `legacy-compatible` (pre-WebFlash Core Voice variants requiring a LED+MIC ring). | No `Voice` SKU in `config/hardware-catalog.json`. `S360-LED-V-*` LED+MIC ring SKUs are referenced in legacy docs only. | Not in Release-One. Not a WebFlash token. | **No.** | Keep out of the taxonomy. A future Voice-bearing config string would require an upstream WebFlash change (taxonomy update upstream first, then mirror locally), a new SKU in `config/hardware-catalog.json`, a new catalog entry, and a new build-matrix entry. This audit does **not** add a `Voice` token to the local snapshot. |
 
 ### Forbidden / deprecated tokens
@@ -225,9 +225,12 @@ production Release-One today. Both exclusions are upheld by this audit.
   LED packages remain in the repo for legacy / non-Release-One products
   and for a future LED-bearing config string such as
   `Ceiling-POE-VentIQ-RoomIQ-LED`, which would be a **separate**
-  product with its own catalog entry, build-matrix entry, schematic
-  evidence (`S360-300`), and reconciliation of the `GPIO14` (package)
-  vs `IO38` (schematic) `LED_DATA` discrepancy.
+  product with its own catalog entry, build-matrix entry, and
+  release-notes draft. Schematic evidence (`S360-300`) is committed
+  (HW-007 / HW-008) and the package-level `GPIO14` (package) vs
+  `IO38` (schematic) `LED_DATA` reconciliation is done (HW-010);
+  the remaining gates for a future LED variant are product-level,
+  not package-level.
 
 Both exclusions are also enumerated in Release-One's `blocked_modules:
 ["FanTRIAC", "LED"]` field in
@@ -348,14 +351,15 @@ COMPAT-001 only records that they would each be a sensible next step.
    blocked status, did **not** add `LED` to the Release-One config
    string, and did **not** clear the mains-voltage compliance gate
    for `S360-400` or `S360-320`.
-3. **LED variant (`Ceiling-POE-VentIQ-RoomIQ-LED`).** Pre-requisite:
-   HW-007 (PDF + per-board doc) and HW-008 (JSON `verified` for
-   `S360-300`) have landed; the package-level reconciliation of
-   `GPIO14` (package) vs `IO38` (schematic) for `LED_DATA` is still
-   open and must be resolved before the variant ships. The PR itself
-   adds a new product YAML, a new WebFlash wrapper, a new catalog
+3. **LED variant (`Ceiling-POE-VentIQ-RoomIQ-LED`).** Pre-requisites
+   landed: HW-007 (PDF + per-board doc), HW-008 (JSON `verified` for
+   `S360-300`), and HW-010 (package-level reconciliation of `GPIO14`
+   (package) vs `IO38` (schematic) for `LED_DATA` — the ceiling LED
+   package now binds `GPIO38`). The variant PR itself still has to
+   add a new product YAML, a new WebFlash wrapper, a new catalog
    entry, a new build-matrix entry, and a release-notes draft. It
-   does **not** modify Release-One; it is a sibling product.
+   does **not** modify Release-One; it is a sibling product. HW-010
+   alone does **not** make LED WebFlash-shippable.
 4. **FanTRIAC unblock (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`).**
    Pre-requisites: (a) the full HW-005 missing-evidence checklist in
    [`release-one-hardware-audit.md#missing-evidence-checklist`](release-one-hardware-audit.md#missing-evidence-checklist)
