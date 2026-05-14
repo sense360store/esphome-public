@@ -407,6 +407,7 @@ esphome-public/
 - [WebFlash Compatibility Snapshot](config/webflash-compatibility.json) — Machine-readable local mirror of the contract for validators and CI
 - [WebFlash Release Handoff](docs/webflash-release-handoff.md) — Operational source-to-installer flow, troubleshooting, and release proof checklist
 - [Release-One Configuration](docs/release-one.md) — Ceiling-POE-VentIQ-RoomIQ (FanTRIAC excluded while HW-005 is open)
+- [Product Onboarding Guide](docs/product-onboarding.md) — Ordered safe sequence for adding a new product / config (PRODUCT-004)
 - [Product Matrix](docs/product-matrix.md) — Slot/module reference
 - [Installation Guide](docs/installation.md) — Step-by-step setup
 - [Configuration Reference](docs/configuration.md) — Customization options

@@ -114,6 +114,8 @@ generated draft. Human review of the `## Changelog` section remains
 required. The Release-One product, artifact, build matrix, and FanTRIAC
 / LED policy are unchanged by RELEASE-002.
 
+PRODUCT-004 adds a cross-doc product onboarding guide at [`docs/product-onboarding.md`](product-onboarding.md) that orders the existing guardrails into a safe sequence for adding a new product / config; it is documentation only and does not change the Release-One product, artifact, build matrix, or FanTRIAC / LED policy.
+
 The Release-One YAML omits the Sense360 LED (`S360-300`) packages on
 purpose: the WebFlash config string `Ceiling-POE-VentIQ-RoomIQ` does not
 carry a `LED` token, so the binary built from this YAML does not include
