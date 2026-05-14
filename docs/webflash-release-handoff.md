@@ -87,6 +87,7 @@ change through WebFlash instead.
 ESPHome YAML source
   → CI validates config and WebFlash matrix
   → CI builds raw .bin artifacts
+  → operator drafts the release body from the catalog (RELEASE-002)
   → GitHub Release publishes WebFlash-compatible .bin assets
   → WebFlash imports release assets
   → WebFlash generates sidecar metadata
@@ -97,7 +98,7 @@ ESPHome YAML source
   → real hardware test validates flash/boot
 ```
 
-Steps 1–4 happen here. Steps 5–9 happen in WebFlash. Step 10 is a human
+Steps 1–5 happen here. Steps 6–9 happen in WebFlash. Step 10 is a human
 operator with a real device. Each step is detailed in
 [Handoff flow, step by step](#handoff-flow-step-by-step) below.
 
@@ -277,7 +278,35 @@ Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
 The build job lives in
 [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml).
 
-### 4. Publish GitHub Release assets
+### 4. Draft the release body (RELEASE-002)
+
+Before tagging a release, draft the release body from the catalog. Either
+run the read-only generator locally:
+
+```bash
+python3 scripts/generate_webflash_release_notes.py \
+    --config-string Ceiling-POE-VentIQ-RoomIQ \
+    --version 1.0.0 \
+    --channel stable \
+    --output release-notes.md \
+    --validate
+```
+
+…or manually dispatch the
+[`Draft WebFlash Release Notes`](../.github/workflows/release-notes-draft.yml)
+workflow (`workflow_dispatch` only) and download the `release-notes.md`
+workflow artifact. The workflow runs the generator, runs
+[`scripts/validate-webflash-release-notes.py`](../scripts/validate-webflash-release-notes.py)
+against the draft, and uploads the result. It does **not** create a
+GitHub Release, publish firmware, or commit the draft.
+
+The generated `## Changelog` section starts as a TODO bullet that
+deliberately survives structural validation; replace it with the actual
+user-visible changes for the release before pasting the body into the
+GitHub Release. Filler text (`TBD`, `Placeholder`, `Initial release`,
+etc.) is still rejected at publish time on `stable`.
+
+### 5. Publish GitHub Release assets
 
 When a release tag is published, the workflow attaches:
 
@@ -308,7 +337,7 @@ Two pre-upload gates run before assets are attached:
 > production manifest generation, deploy, and smoke test remain WebFlash-owned
 > and are **not** proven by this record.
 
-### 5. WebFlash imports release assets
+### 6. WebFlash imports release assets
 
 WebFlash's release importer reads the new release's assets and the release
 body, then generates the per-firmware sidecar metadata it needs to drive the
@@ -316,7 +345,7 @@ installer wizard. This step happens entirely in WebFlash; this repo only
 needs to make the upstream artifacts and release body discoverable and
 correctly named.
 
-### 6. WebFlash signs firmware
+### 7. WebFlash signs firmware
 
 Production signing runs **only inside WebFlash**, using WebFlash-controlled
 secrets. The unsigned `.bin` published from this repo is the input; the
@@ -326,7 +355,7 @@ WebFlash.
 This repo must never hold the production signing private key, sign firmware,
 or attempt to bypass signing.
 
-### 7. WebFlash generates manifest and deploys
+### 8. WebFlash generates manifest and deploys
 
 WebFlash builds the production installer manifest (`manifest.json` /
 `firmware-N.json`) from the signed binaries and its own metadata, then
@@ -337,7 +366,7 @@ is **not** the WebFlash production manifest — see
 [`docs/webflash-ci-alignment.md`](./webflash-ci-alignment.md) for the
 distinction.
 
-### 8. WebFlash smoke test validates live deployment
+### 9. WebFlash smoke test validates live deployment
 
 The post-deploy smoke test in WebFlash should confirm at minimum:
 
@@ -351,7 +380,7 @@ The post-deploy smoke test in WebFlash should confirm at minimum:
 Smoke-test wiring lives in WebFlash. This repo cannot diagnose a smoke-test
 failure on its own; it can only verify the upstream artifacts.
 
-### 9. Real hardware test
+### 10. Real hardware test
 
 CI is not enough. A human operator must still flash a real device and verify:
 

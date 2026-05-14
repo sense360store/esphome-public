@@ -387,8 +387,18 @@ catalog with the read-only generator added in RELEASE-001:
 python3 scripts/generate_webflash_release_notes.py \
     --config-string Ceiling-POE-VentIQ-RoomIQ \
     --version 1.0.0 \
-    --channel stable
+    --channel stable \
+    --output release-notes.md \
+    --validate
 ```
+
+RELEASE-002 exposes the same generator behind a manual
+`workflow_dispatch` workflow at
+[`.github/workflows/release-notes-draft.yml`](../.github/workflows/release-notes-draft.yml).
+The workflow takes `config_string`, `version`, `channel`, and an
+optional `changelog` input, runs the generator and validator, and
+uploads `release-notes.md` as a workflow artifact. It does not create a
+GitHub Release, publish firmware, or commit the draft.
 
 The generator emits all four required sections in the exact format
 [`scripts/validate-webflash-release-notes.py`](../scripts/validate-webflash-release-notes.py)
@@ -398,8 +408,9 @@ expects, pulls features and hardware metadata from
 FanTRIAC and Sense360 LED as Known-Issues exclusions for Release-One.
 The `## Changelog` section starts as a TODO placeholder; a human must
 replace it with the actual user-visible changes for the release before
-the body is published. The generator does not create releases, publish
-firmware, or call any external service.
+the body is published. Neither the generator nor the RELEASE-002
+workflow creates releases, publishes firmware, or calls any external
+service.
 
 ---
 
