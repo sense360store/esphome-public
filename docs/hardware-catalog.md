@@ -37,22 +37,39 @@ quoting a legacy old-name field that contained the typo.
 
 ## Verified schematics currently available
 
-Only the following boards have schematics pinned to this repository and are
-treated as **schematic-backed**:
+The following boards have schematic PDFs pinned to this repository under
+[`hardware/schematics/`](hardware/schematics/) and a standalone pin /
+connector reference doc under `docs/hardware/`:
 
-- `S360-100-R4` — Sense360 Core
-- `S360-200-R4` — Sense360 RoomIQ
+- `S360-100-R4` — Sense360 Core ([PDF](hardware/schematics/S360-100-R4.pdf),
+  [doc](hardware/s360-100-r4-core.md))
+- `S360-200-R4` — Sense360 RoomIQ ([PDF](hardware/schematics/S360-200-R4.pdf),
+  [doc](hardware/s360-200-r4-roomiq.md))
+- `S360-210-R4` — Sense360 AirIQ ([PDF](hardware/schematics/S360-210-R4.pdf),
+  [doc](hardware/s360-210-r4-airiq.md)) — committed under HW-007
+- `S360-211-R4` — Sense360 VentIQ ([PDF](hardware/schematics/S360-211-R4.pdf),
+  [doc](hardware/s360-211-r4-ventiq.md)) — committed under HW-007
+- `S360-300-R4` — Sense360 LED ([PDF](hardware/schematics/S360-300-R4.pdf),
+  [doc](hardware/s360-300-r4-led.md)) — committed under HW-007
 
-All other rows in the catalog above are marked
+All other rows in the catalog above are still marked
 **`cataloged, schematic not yet verified`**. Their friendly names, SKUs, and
 revisions are committed naming, but the underlying schematics have not been
 pinned to this repo yet.
 
-> Firmware pin mappings must not be considered verified until a board has a
-> dedicated pin/connector reference document. The next two PRs after this one
-> (HW-002 for `S360-100-R4`, HW-003 for `S360-200-R4`) will add those references
-> for the two schematic-backed boards. Release-One YAML must not be revised on
-> the basis of pin assumptions before then.
+> **HW-007 ingest.** HW-007 commits the schematic PDFs and the three new
+> standalone reference docs for AirIQ, VentIQ, and Sense360 LED. HW-007 is
+> **documentation only**: it does **not** change the
+> [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+> `schematic_status` values for any row — that machine-readable status
+> refresh is deferred to HW-008. HW-007 does not promote any module into
+> Release-One, does not unblock FanTRIAC (HW-005), and does not add `LED`
+> to the Release-One config string `Ceiling-POE-VentIQ-RoomIQ`.
+
+> Firmware pin mappings must not be considered verified merely because a
+> board has a schematic-backed reference doc. Release-One YAML and package
+> pin maps remain subject to the separate firmware-audit follow-ups tracked
+> in [`release-one-hardware-audit.md`](release-one-hardware-audit.md).
 
 ## Companion file
 

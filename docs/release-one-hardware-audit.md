@@ -68,20 +68,28 @@ artifact naming.
 
 | Board                | Doc                                                                         | Schematic     | Status                                  |
 | -------------------- | --------------------------------------------------------------------------- | ------------- | --------------------------------------- |
-| Sense360 Core        | [`s360-100-r4-core.md`](hardware/s360-100-r4-core.md)                       | `S360-100-R4` | schematic-backed / verified             |
-| Sense360 RoomIQ      | [`s360-200-r4-roomiq.md`](hardware/s360-200-r4-roomiq.md)                   | `S360-200-R4` | schematic-backed / verified             |
-| Sense360 VentIQ      | (not yet committed)                                                         | `S360-211`    | **cataloged, schematic verification pending** |
-| Sense360 LED         | (not yet committed)                                                         | `S360-300`    | cataloged, schematic verification pending    |
-| Sense360 TRIAC       | (not yet committed)                                                         | `S360-320`    | cataloged, schematic verification pending    |
-| Sense360 PoE PSU     | (not yet committed)                                                         | `S360-410`    | cataloged, schematic verification pending    |
+| Sense360 Core        | [`s360-100-r4-core.md`](hardware/s360-100-r4-core.md)                       | `S360-100-R4` | schematic-backed / verified (PDF committed under HW-007 at [`hardware/schematics/S360-100-R4.pdf`](hardware/schematics/S360-100-R4.pdf)) |
+| Sense360 RoomIQ      | [`s360-200-r4-roomiq.md`](hardware/s360-200-r4-roomiq.md)                   | `S360-200-R4` | schematic-backed / verified (PDF committed under HW-007 at [`hardware/schematics/S360-200-R4.pdf`](hardware/schematics/S360-200-R4.pdf)) |
+| Sense360 AirIQ       | [`s360-210-r4-airiq.md`](hardware/s360-210-r4-airiq.md)                     | `S360-210-R4` | PDF committed under HW-007 at [`hardware/schematics/S360-210-R4.pdf`](hardware/schematics/S360-210-R4.pdf); **JSON `schematic_status` flip deferred to HW-008**. Not in Release-One. |
+| Sense360 VentIQ      | [`s360-211-r4-ventiq.md`](hardware/s360-211-r4-ventiq.md)                   | `S360-211-R4` | **cataloged, schematic verification pending.** PDF committed under HW-007 at [`hardware/schematics/S360-211-R4.pdf`](hardware/schematics/S360-211-R4.pdf); the caveat is **retained** until HW-008 flips the JSON `schematic_status` value. |
+| Sense360 LED         | [`s360-300-r4-led.md`](hardware/s360-300-r4-led.md)                         | `S360-300-R4` | PDF committed under HW-007 at [`hardware/schematics/S360-300-R4.pdf`](hardware/schematics/S360-300-R4.pdf). **Sense360 LED remains excluded from Release-One**; HW-007 does not add `LED` to the config string. |
+| Sense360 TRIAC       | (not yet committed)                                                         | `S360-320`    | cataloged, schematic verification pending. **HW-005 blocked**; PDF is **not** part of HW-007. |
+| Sense360 PoE PSU     | (not yet committed)                                                         | `S360-410`    | cataloged, schematic verification pending. PDF is **not** part of HW-007. |
 
-Only the two `verified` boards above are considered authoritative for the pin
-checks below. Everything else in the catalog is named and SKU'd, but pin
-behaviour cannot be confirmed by this audit.
+Only the two `verified` boards above (Core and RoomIQ) are considered
+authoritative for the pin checks below. AirIQ, VentIQ, and Sense360 LED gain
+**module-side schematic PDFs and standalone reference docs under HW-007**,
+but their machine-readable `schematic_status` value in
+[`config/hardware-catalog.json`](../config/hardware-catalog.json) and the
+"schematic verification pending" wording for VentIQ in this audit are
+**unchanged by HW-007** — those changes are owned by HW-008. Pin behaviour
+for AirIQ / VentIQ / LED is therefore still not gated through this audit.
 
 See also: [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)
 — companion HW-004 / HW-006 audit that classifies every catalog row's
 documentation state and records evidence available vs. evidence missing.
+HW-007 ingest is recorded in
+[`hardware/remaining-board-documentation-audit.md#hw-007-schematic-ingest`](hardware/remaining-board-documentation-audit.md#hw-007-schematic-ingest).
 
 ## Summary
 

@@ -32,7 +32,8 @@ This row matches the entries in
 
 | Field          | Value                          |
 | -------------- | ------------------------------ |
-| Schematic file | `S360-200-R4.pdf`              |
+| Schematic file | [`schematics/S360-200-R4.pdf`](schematics/S360-200-R4.pdf) |
+| PDF committed  | Yes, under HW-007              |
 | KiCad source   | `S360-200-R4.kicad_sch`        |
 | KiCad version  | 10.0.0                         |
 | Sheet size     | A4                             |
@@ -42,6 +43,15 @@ This row matches the entries in
 The schematic PDF is the authoritative reference for every table below. The
 KiCad source file itself is **not** committed to this repository. Where a label
 in the PDF was ambiguous or hard to read, the affected row is marked **verify**.
+
+> **HW-007 — PDF committed.** The schematic PDF cited above is now committed
+> to this repo at [`schematics/S360-200-R4.pdf`](schematics/S360-200-R4.pdf).
+> No pin tables, Open Questions, or reconciliation flags in this doc are
+> changed by HW-007 — the tables below were already written from this PDF.
+> The `config/hardware-catalog.json` `schematic_status` value for `S360-200`
+> remains as committed; any JSON status refresh is deferred to HW-008. The
+> Core J10 vs RoomIQ J6 pin-order discrepancy remains an Open Question and
+> is not resolved by HW-007.
 
 ## Main components
 
