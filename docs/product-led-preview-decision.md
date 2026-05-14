@@ -608,7 +608,21 @@ tag, Actions run URL, ESP-006 / ESP-007 status row in
 WebFlash-side ingest, manifest generation, signing, and publish;
 resolution of the S360-300 bench-verification Open Questions
 (harness rail, LED count, harness identity) before any promotion to
-`production` / `stable`.
+`production` / `stable`. RELEASE-003 records the pending-proof
+scaffolding for this step in
+[`docs/webflash-release-proof.md` LED preview release proof (RELEASE-003)](webflash-release-proof.md#led-preview-release-proof-release-003):
+it lists every proof field as `pending`, includes the operator
+runbook (generate the release-notes draft, tag a GitHub
+`prerelease`, let
+[`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
+build and attach the LED preview artifact, back-fill the table),
+and carries the LED preview proof checklist (tag, run URL, asset
+name, asset size, SHA256, validator pass, asset-check pass,
+WebFlash import source URL, explicit Release-One-unchanged
+statement). RELEASE-003 itself is documentation-only — it does not
+produce or import any firmware, and the LED preview catalog entry
+stays at `status: preview` until a real artifact and a recorded
+build / release proof exist.
 
 - **Scope.** Add the LED-bearing build to
   [`config/webflash-builds.json`](../config/webflash-builds.json) on
@@ -736,6 +750,10 @@ PRODUCT-005 specifically does **not**:
   WebFlash artifact / grammar / token contract.
 - [`docs/webflash-release-handoff.md`](webflash-release-handoff.md)
   — operational source-to-installer flow.
+- [`docs/webflash-release-proof.md`](webflash-release-proof.md)
+  — ESP-006 / ESP-007 Release-One proof record and RELEASE-003 LED
+  preview release-proof scaffolding (every proof field marked
+  `pending` until an operator runs the runbook).
 - [`docs/hardware-catalog.md`](hardware-catalog.md) — canonical
   Sense360 board / module names, SKUs, revisions.
 - [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)
