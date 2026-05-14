@@ -130,6 +130,7 @@ Inspected paths: `README.md`, `CHANGELOG.md`, `docs/**`, `examples/**`,
 | `tests/validate_configs.py` | `current` | Repo-wide YAML/syntax validator. | Keep. |
 | `docs/release-one.md` | `current` | Source of truth for Release-One config string / artifact / exclusions. | Keep. |
 | `docs/release-one-hardware-audit.md` | `current` | HW-005 / FanTRIAC mapping resolution; LED policy. | Keep. |
+| `docs/hardware/remaining-board-documentation-audit.md` | `current` | HW-004 / HW-006 audit classifying every `config/hardware-catalog.json` row by documentation state (`documented` / `partially-documented` / `cataloged-unverified` / `blocked` / `not-needed-for-release-one`); records evidence available vs. missing per board; preserves FanTRIAC blocked and LED Release-One-excluded statuses; no firmware / product / workflow / build-matrix change. | Keep. |
 | `docs/webflash-contract.md` | `current` | Canonical WebFlash artifact/grammar/token contract. | Keep. |
 | `docs/webflash-ci-alignment.md` | `current` | CI ↔ WebFlash alignment record. | Keep. |
 | `docs/webflash-release-handoff.md` | `current` | Release-handoff record. | Keep. |
