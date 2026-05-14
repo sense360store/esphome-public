@@ -308,6 +308,20 @@ These guardrails apply to every onboarding PR. They are not optional.
   (PRODUCT-005); that document keeps LED documented-only for now and
   defers any catalog / WebFlash change to a scoped follow-up PR
   sequence (PRODUCT-006 / PRODUCT-007 / PRODUCT-008 / PRODUCT-009).
+  **PRODUCT-006 has landed:** the sibling-candidate YAML
+  [`products/sense360-ceiling-poe-ventiq-roomiq-led.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq-led.yaml)
+  now exists, with the **minimum** `status: compile-only` entry in
+  [`config/product-catalog.json`](../config/product-catalog.json)
+  needed to satisfy the PRODUCT-002 enumeration gate at
+  [`tests/test_product_catalog.py::test_every_top_level_product_yaml_is_in_catalog`](../tests/test_product_catalog.py)
+  (no `webflash_wrapper`, no `artifact_name`, no `version`, no
+  `channel`, `webflash_build_matrix: false`). It has no WebFlash
+  wrapper under `products/webflash/`, is not in
+  [`config/webflash-builds.json`](../config/webflash-builds.json),
+  produces no firmware artifact, and does not change the Release-One
+  product, config string, or artifact name. LED remains excluded
+  from current Release-One stable; FanTRIAC remains blocked under
+  HW-005.
 - **Do not treat `legacy-compatible` as WebFlash-shippable.**
   `legacy-compatible` entries are retained for manual / custom /
   remote-package users. They have no `config_string`, no
