@@ -115,9 +115,25 @@ committed to this repo today:
 
 Evidence that does **not** yet exist for an LED-bearing variant:
 
-- No dedicated LED-bearing product YAML
-  (`products/sense360-ceiling-poe-ventiq-roomiq-led.yaml` does not
-  exist). Legacy LED-bearing ceiling configs
+- A dedicated LED-bearing product YAML now exists after PRODUCT-006:
+  [`products/sense360-ceiling-poe-ventiq-roomiq-led.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq-led.yaml).
+  It is the sibling-candidate YAML described in this document — same
+  Core ceiling + PoE PSU + VentIQ + RoomIQ stack as the Release-One
+  YAML plus
+  [`packages/hardware/led_ring_ceiling.yaml`](../packages/hardware/led_ring_ceiling.yaml),
+  with the WebFlash Config text sensor returning
+  `Ceiling-POE-VentIQ-RoomIQ-LED`. PRODUCT-006 also added the
+  **minimum** `status: compile-only` entry to
+  [`config/product-catalog.json`](../config/product-catalog.json)
+  (carrying `config_string`, `product_yaml`,
+  `webflash_build_matrix: false`, and `notes` only) needed to keep
+  the existing PRODUCT-002 enumeration gate at
+  [`tests/test_product_catalog.py::test_every_top_level_product_yaml_is_in_catalog`](../tests/test_product_catalog.py)
+  green. There is still no WebFlash wrapper, no build-matrix entry,
+  no release-notes draft, and no build / release proof. The
+  Release-One YAML
+  [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+  is unchanged. Legacy LED-bearing ceiling configs
   (`sense360-core-ceiling.yaml`, `sense360-core-ceiling-bathroom.yaml`,
   `sense360-core-ceiling-presence.yaml`) are `legacy-compatible` only
   and are explicitly not WebFlash-shippable per
@@ -125,9 +141,12 @@ Evidence that does **not** yet exist for an LED-bearing variant:
 - No WebFlash wrapper for an LED-bearing variant
   (`products/webflash/ceiling-poe-ventiq-roomiq-led.yaml` does not
   exist).
-- No catalog entry with `config_string` `Ceiling-POE-VentIQ-RoomIQ-LED`
-  in [`config/product-catalog.json`](../config/product-catalog.json) —
-  no entry of any lifecycle status.
+- The catalog entry for `Ceiling-POE-VentIQ-RoomIQ-LED` in
+  [`config/product-catalog.json`](../config/product-catalog.json)
+  exists at `status: compile-only` only. No `preview`, no
+  `production`, no WebFlash-eligible status. PRODUCT-008 will promote
+  it to `preview` on a non-`stable` channel after the WebFlash
+  wrapper is added.
 - No build entry with that config string in
   [`config/webflash-builds.json`](../config/webflash-builds.json).
 - No release-notes draft for any LED-bearing build.
@@ -393,32 +412,67 @@ a clear next-action chain. Each PR is gated by
 
 ### PRODUCT-006 — Add LED-bearing product YAML
 
+**Status: landed.**
+[`products/sense360-ceiling-poe-ventiq-roomiq-led.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq-led.yaml)
+exists in the repo as the sibling-candidate YAML described in this
+decision doc. The Release-One YAML
+[`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+was not edited.
+
+PRODUCT-006 also added the **minimum** `compile-only` entry to
+[`config/product-catalog.json`](../config/product-catalog.json) so that
+the existing PRODUCT-002 gate
+([`tests/test_product_catalog.py::test_every_top_level_product_yaml_is_in_catalog`](../tests/test_product_catalog.py))
+keeps passing. The compile-only entry carries `config_string`,
+`product_yaml`, `status: "compile-only"`, `webflash_build_matrix: false`,
+and `notes` only — no `webflash_wrapper`, no `artifact_name`, no
+`version`, no `channel`. No WebFlash wrapper file, no build-matrix
+entry, no release-notes draft, and no firmware were added.
+
 - **Scope.** Create
   `products/sense360-ceiling-poe-ventiq-roomiq-led.yaml`, composed
   from the same Core ceiling + PoE PSU + VentIQ + RoomIQ package stack
   as the Release-One YAML, **plus**
   [`packages/hardware/led_ring_ceiling.yaml`](../packages/hardware/led_ring_ceiling.yaml)
-  (which already binds `led_data_pin: GPIO38` after HW-010).
+  (which already binds `led_data_pin: GPIO38` after HW-010). Add the
+  minimum `compile-only` catalog entry needed to satisfy the
+  PRODUCT-002 enumeration gate.
 - **Pre-requisites.** HW-007 (PDF committed), HW-008 (JSON
   `verified`), HW-010 (package pin reconciliation). All landed.
 - **Gate.** Validates clean under
-  [`tests/validate_configs.py`](../tests/validate_configs.py). Does
-  **not** edit the Release-One YAML
+  [`tests/validate_configs.py`](../tests/validate_configs.py),
+  [`tests/test_product_substitutions.py`](../tests/test_product_substitutions.py),
+  [`tests/test_product_catalog.py`](../tests/test_product_catalog.py),
+  [`tests/test_product_catalog_consistency.py`](../tests/test_product_catalog_consistency.py),
+  and
+  [`tests/test_led_package_mapping.py`](../tests/test_led_package_mapping.py).
+  Does **not** edit the Release-One YAML
   [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml).
-- **Out of scope for PRODUCT-006.** No catalog entry, no WebFlash
-  wrapper, no build-matrix entry, no release-notes draft, no test
-  edit beyond `tests/validate_configs.py` passing.
+- **Out of scope for PRODUCT-006.** No WebFlash wrapper, no build-matrix
+  entry, no release-notes draft, no test edits, no Release-One change,
+  no FanTRIAC unblock. The catalog entry is at the **minimum**
+  `compile-only` shape only — PRODUCT-008 promotes it to `preview` and
+  adds the wrapper.
 
 ### PRODUCT-007 — Add compile-only catalog entry
 
-- **Scope.** Add a single entry to
+**Status: minimum entry already added under PRODUCT-006.** The
+PRODUCT-002 enumeration gate
+([`tests/test_product_catalog.py::test_every_top_level_product_yaml_is_in_catalog`](../tests/test_product_catalog.py))
+required PRODUCT-006 to add the minimum `compile-only` entry alongside
+the new YAML. PRODUCT-007 is therefore a **no-op** in its originally
+scoped form — there is nothing left to add at the `compile-only`
+shape. PRODUCT-007 may be repurposed (or skipped) so the next active
+work is PRODUCT-008 (add WebFlash wrapper and promote to `preview`).
+
+- **Scope (originally).** Add a single entry to
   [`config/product-catalog.json`](../config/product-catalog.json)
   for the LED-bearing variant with `status: compile-only`,
   `config_string: "Ceiling-POE-VentIQ-RoomIQ-LED"`,
   `product_yaml: "products/sense360-ceiling-poe-ventiq-roomiq-led.yaml"`,
   `webflash_build_matrix: false`, no `artifact_name`, no
   `webflash_wrapper`, with `notes` recording that `compile-only`
-  means CI-compiled, **not** WebFlash-shippable.
+  means CI-compiled, **not** WebFlash-shippable. **Done by PRODUCT-006.**
 - **Pre-requisites.** PRODUCT-006 landed (the YAML exists on disk).
 - **Gate.**
   [`scripts/validate_product_catalog_consistency.py`](../scripts/validate_product_catalog_consistency.py)
