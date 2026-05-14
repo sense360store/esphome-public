@@ -63,3 +63,8 @@ pinned to this repo yet.
   state (`documented` / `partially-documented` / `cataloged-unverified` /
   `blocked` / `not-needed-for-release-one`) and records the evidence
   available vs. missing for each board.
+- [`compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)
+  — COMPLIANCE-001 mains-voltage UK / EU compliance-assessment tracker
+  for `S360-400` Sense360 240v PSU and `S360-320` Sense360 TRIAC.
+  Documentation only; not a compliance declaration. Release-One uses
+  PoE (`S360-410`) and is separate from this tracker.
