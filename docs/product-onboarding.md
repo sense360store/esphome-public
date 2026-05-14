@@ -491,3 +491,6 @@ and the per-release proof checklist, see
 - [`docs/cleanup-audit.md`](cleanup-audit.md) — classification of
   stale / current / blocked-reference / legacy-compatible repo
   content.
+- [`docs/webflash-compatibility-taxonomy-audit.md`](webflash-compatibility-taxonomy-audit.md)
+  — COMPAT-001 per-token audit of the WebFlash taxonomy against the
+  product catalog, hardware evidence, and future-token policy.
