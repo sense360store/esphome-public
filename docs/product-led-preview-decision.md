@@ -178,13 +178,23 @@ Evidence that does **not** yet exist for an LED-bearing variant:
   [`scripts/generate_webflash_release_notes.py`](../scripts/generate_webflash_release_notes.py)
   for `Ceiling-POE-VentIQ-RoomIQ-LED` on the `preview` channel now
   succeeds and validates.
-- **No firmware artifact** has been built. **No GitHub Release** has
-  been tagged. **No build / release proof** equivalent to the
-  Release-One row in
-  [`docs/release-one.md` Proof of build (recorded)](release-one.md#proof-of-build-recorded)
-  exists yet for the LED preview build. WebFlash has not imported or
-  published the LED preview. Those steps remain outstanding before
-  any production promotion.
+- **Firmware artifact, GitHub Release, and build / release proof now
+  recorded by RELEASE-005.**
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`
+  (1,135,904 bytes; SHA256
+  `93310d2cbc27355e399f36a232336b6b9075dacfc178d603c7a92aa1089182d3`)
+  is attached to the GitHub prerelease
+  [`v1.0.0-led-preview`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0-led-preview);
+  workflow run
+  [`25918422743`](https://github.com/sense360store/esphome-public/actions/runs/25918422743)
+  succeeded with release-body validation and release-asset assertion
+  passing; the build / release proof row is recorded in
+  [`docs/webflash-release-proof.md` LED preview release proof (RELEASE-003)](webflash-release-proof.md#led-preview-release-proof-release-003).
+  **WebFlash has not yet imported or published the LED preview**; that
+  step is owned by the follow-up `WF-LED-001` PR in the WebFlash repo
+  and remains outstanding. Promotion to `production` / `stable` still
+  requires the S360-300 bench-verification Open Questions to resolve
+  (harness rail, LED count, harness identity).
 - No bench verification of the harness rail (`J1` pin 2 `+5V` vs
   `+3.3V` per Open Question 1 in
   [`docs/hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md#open-questions--verification-needed)),
@@ -572,7 +582,8 @@ carried as preview-stage caveats in the catalog `notes`.
 
 ### PRODUCT-009 — Add preview build-matrix entry and release-proof path
 
-**Status: build-matrix entry landed; build / release proof outstanding.**
+**Status: build-matrix entry landed; build / release proof recorded by
+RELEASE-005.**
 PRODUCT-009 added the LED-bearing preview build to
 [`config/webflash-builds.json`](../config/webflash-builds.json) on
 `channel: preview` (non-`stable`); flipped the catalog entry's
@@ -601,34 +612,44 @@ invariant stays as-is; the
 Release-One stable build, config string, and artifact name stay
 as-is.
 
-**Still outstanding after PRODUCT-009:** a recorded build / release
-proof for the LED preview build (firmware artifact, GitHub Release
-tag, Actions run URL, ESP-006 / ESP-007 status row in
-[`docs/release-one.md` Proof of build (recorded)](release-one.md#proof-of-build-recorded));
-WebFlash-side ingest, manifest generation, signing, and publish;
-resolution of the S360-300 bench-verification Open Questions
-(harness rail, LED count, harness identity) before any promotion to
-`production` / `stable`. RELEASE-003 records the pending-proof
-scaffolding for this step in
-[`docs/webflash-release-proof.md` LED preview release proof (RELEASE-003)](webflash-release-proof.md#led-preview-release-proof-release-003):
-it lists every proof field as `pending`, includes the operator
-runbook (generate the release-notes draft, tag a GitHub
-`prerelease`, let
-[`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
-build and attach the LED preview artifact, back-fill the table),
-and carries the LED preview proof checklist (tag, run URL, asset
-name, asset size, SHA256, validator pass, asset-check pass,
-WebFlash import source URL, explicit Release-One-unchanged
-statement). LED preview release tags use suffix form such as
-`v1.0.0-led-preview`. The workflow normalizes this to
+**Recorded by RELEASE-005:** the LED preview build / release proof is
+backfilled in
+[`docs/webflash-release-proof.md` LED preview release proof (RELEASE-003)](webflash-release-proof.md#led-preview-release-proof-release-003).
+The prerelease [`v1.0.0-led-preview`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0-led-preview)
+was published with `prerelease: true`; workflow run
+[`25918422743`](https://github.com/sense360store/esphome-public/actions/runs/25918422743)
+(git SHA `4493e0c9b3914d5dfcf41f71b4129cf23cda75d2`) produced and
+attached `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`
+(1,135,904 bytes; SHA256
+`93310d2cbc27355e399f36a232336b6b9075dacfc178d603c7a92aa1089182d3`),
+plus `checksums-sha256.txt`, `checksums-md5.txt`, and `manifest.json`.
+The `Attach to Release` job's release-body validation and release-asset
+assertion both passed. RELEASE-003 scaffolded the pending-proof table,
+operator runbook, and checklist; RELEASE-005 records the successful
+prerelease proof — RELEASE-003 by itself only produced documentation
+scaffolding.
+
+**Still outstanding after RELEASE-005:** WebFlash-side ingest, manifest
+generation, signing, and publish remain owned by the follow-up
+`WF-LED-001` PR in the
+[`sense360store/WebFlash`](https://github.com/sense360store/WebFlash)
+repo (RELEASE-005 only records the evidence WebFlash will consume —
+the firmware-asset URL
+<https://github.com/sense360store/esphome-public/releases/download/v1.0.0-led-preview/Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin>,
+the tag `v1.0.0-led-preview`, and the SHA256 above). Resolution of the
+S360-300 bench-verification Open Questions (harness rail, LED count,
+harness identity) is still required before any promotion to
+`production` / `stable`. LED preview release tags use suffix form such
+as `v1.0.0-led-preview`. The workflow normalizes this to
 `version=1.0.0` and `channel=preview` via
 [`scripts/derive_release_version_channel.py`](../scripts/derive_release_version_channel.py)
-(RELEASE-004), so the LED preview tag can coexist with the stable
+(RELEASE-004), so the LED preview tag coexists with the stable
 Release-One tag `v1.0.0`. Stable releases must use plain semantic
-tags such as `v1.0.0`. RELEASE-003 itself is documentation-only — it
-does not produce or import any firmware, and the LED preview catalog
-entry stays at `status: preview` until a real artifact and a
-recorded build / release proof exist.
+tags such as `v1.0.0`. RELEASE-005 itself is documentation-only — it
+does not produce, modify, or re-import any firmware; the LED preview
+catalog entry stays at `status: preview`; the WebFlash import is not
+performed in the RELEASE-005 PR; FanTRIAC stays blocked under HW-005;
+stable Release-One stays unchanged.
 
 - **Scope.** Add the LED-bearing build to
   [`config/webflash-builds.json`](../config/webflash-builds.json) on
@@ -757,9 +778,11 @@ PRODUCT-005 specifically does **not**:
 - [`docs/webflash-release-handoff.md`](webflash-release-handoff.md)
   — operational source-to-installer flow.
 - [`docs/webflash-release-proof.md`](webflash-release-proof.md)
-  — ESP-006 / ESP-007 Release-One proof record and RELEASE-003 LED
-  preview release-proof scaffolding (every proof field marked
-  `pending` until an operator runs the runbook).
+  — ESP-006 / ESP-007 Release-One proof record, RELEASE-003 LED
+  preview release-proof scaffolding, and the RELEASE-005 backfill that
+  records the real prerelease proof (tag `v1.0.0-led-preview`, run
+  `25918422743`, artifact
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`).
 - [`docs/hardware-catalog.md`](hardware-catalog.md) — canonical
   Sense360 board / module names, SKUs, revisions.
 - [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)

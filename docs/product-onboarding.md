@@ -331,20 +331,30 @@ These guardrails apply to every onboarding PR. They are not optional.
   the LED wrapper. The release-notes generator emits Sense360 LED in
   `## Features` and `## Hardware Requirements` (not `## Known Issues`)
   for the LED preview, while keeping LED as a Known-Issues exclusion
-  for the Release-One build. **Still outstanding after PRODUCT-009:**
-  a recorded firmware build / GitHub Release / WebFlash import proof
-  for the LED preview, plus resolution of the S360-300
+  for the Release-One build. **RELEASE-005 records the LED preview
+  build / release proof:** prerelease
+  [`v1.0.0-led-preview`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0-led-preview)
+  is published, workflow run
+  [`25918422743`](https://github.com/sense360store/esphome-public/actions/runs/25918422743)
+  attached
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`
+  (1,135,904 bytes; SHA256
+  `93310d2cbc27355e399f36a232336b6b9075dacfc178d603c7a92aa1089182d3`),
+  and the release-body / release-asset gates both passed. **Still
+  outstanding after RELEASE-005:** the WebFlash-side import,
+  manifest, signing, and publish (owned by the follow-up `WF-LED-001`
+  PR in the WebFlash repo); resolution of the S360-300
   bench-verification Open Questions in
   [`docs/hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md#open-questions--verification-needed)
   (harness rail, LED count, harness identity) before any promotion
   to `production` / `stable`. The Release-One product, config string,
   and artifact name are unchanged. FanTRIAC remains blocked under
-  HW-005. RELEASE-003 documents the pending-proof scaffolding,
-  operator runbook, and proof checklist for this step in
+  HW-005. RELEASE-003 scaffolded the pending-proof record, operator
+  runbook, and proof checklist in
   [`docs/webflash-release-proof.md` LED preview release proof (RELEASE-003)](webflash-release-proof.md#led-preview-release-proof-release-003);
-  every proof field there is marked `pending` until an operator
-  publishes a `prerelease` tag, lets the build/release workflow
-  attach the LED preview artifact, and back-fills the record.
+  RELEASE-005 backfilled the same section with the real recorded
+  values (tag, run URL, artifact size, SHA256, validator pass,
+  asset-check pass, WebFlash import source URL).
 - **Do not treat `legacy-compatible` as WebFlash-shippable.**
   `legacy-compatible` entries are retained for manual / custom /
   remote-package users. They have no `config_string`, no
@@ -534,7 +544,9 @@ and the per-release proof checklist, see
 - [`docs/webflash-release-handoff.md`](webflash-release-handoff.md)
   — operational source-to-installer flow.
 - [`docs/webflash-release-proof.md`](webflash-release-proof.md) —
-  ESP-006 / ESP-007 proof record.
+  ESP-006 / ESP-007 Release-One proof record plus the RELEASE-003
+  scaffolding and RELEASE-005 backfill of the LED preview prerelease
+  proof (tag `v1.0.0-led-preview`, run `25918422743`).
 - [`docs/cleanup-audit.md`](cleanup-audit.md) — classification of
   stale / current / blocked-reference / legacy-compatible repo
   content.
@@ -546,9 +558,11 @@ and the per-release proof checklist, see
   defines the PRODUCT-006 / PRODUCT-007 / PRODUCT-008 / PRODUCT-009
   follow-up PR sequence (product YAML → `compile-only` catalog entry
   → WebFlash wrapper + `preview` promotion → build-matrix entry +
-  release proof). PRODUCT-006 and PRODUCT-008 have landed
-  (the sibling YAML, the WebFlash wrapper, and the `preview` catalog
-  entry now exist with `webflash_build_matrix: false`); PRODUCT-007
-  is a no-op absorbed by PRODUCT-006; PRODUCT-009 (build-matrix entry
-  + release proof) remains outstanding before LED becomes
+  release proof). PRODUCT-006, PRODUCT-008, and PRODUCT-009 have
+  landed (the sibling YAML, the WebFlash wrapper, the `preview`
+  catalog entry, and the LED-preview build-matrix entry now exist);
+  PRODUCT-007 is a no-op absorbed by PRODUCT-006; the LED preview
+  build / release proof is recorded by RELEASE-005 in
+  [`docs/webflash-release-proof.md`](webflash-release-proof.md). The
+  WebFlash-side import remains outstanding before LED becomes
   WebFlash-shippable.
