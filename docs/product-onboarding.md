@@ -96,6 +96,13 @@ the gate passes.
    `webflash_build_matrix: false` and omit `artifact_name` /
    `webflash_wrapper` as required by the status's rule block in
    [`scripts/validate_product_catalog_consistency.py`](../scripts/validate_product_catalog_consistency.py).
+   For a read-only, dry-run Markdown report covering config-string
+   grammar, duplicate detection, hardware-SKU lookup, a proposed
+   catalog snippet, and a human review checklist, run
+   [`scripts/scaffold_product.py`](../scripts/scaffold_product.py)
+   (PRODUCT-010); the scaffold tool cannot scaffold `production` and
+   never writes any file — see
+   [`docs/product-scaffold-generator.md`](product-scaffold-generator.md).
 5. **Product catalog consistency validator.** Run
    `python3 scripts/validate_product_catalog_consistency.py` until it
    exits zero. For a focused check on the new entry, use
