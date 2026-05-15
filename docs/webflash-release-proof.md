@@ -196,15 +196,22 @@ PR; this PR is documentation only.
        --channel preview
    ```
 
-3. Tag a GitHub **prerelease** on `main` (e.g. a tag like
-   `v1.0.0-led-preview`; the exact tag string is the operator's
-   choice — only the `prerelease: true` flag is load-bearing). Paste
-   the validated release-notes body. Publish the release.
+3. Tag a GitHub **prerelease** on `main` using the suffix form
+   `v1.0.0-led-preview` (the generic `v1.0.0-preview` is also
+   accepted). LED preview release tags use suffix form such as
+   `v1.0.0-led-preview`. The workflow normalizes this to
+   `version=1.0.0` and `channel=preview` via
+   [`scripts/derive_release_version_channel.py`](../scripts/derive_release_version_channel.py),
+   so the suffixed tag can coexist with the stable Release-One tag
+   `v1.0.0`. Stable releases must use plain semantic tags such as
+   `v1.0.0` — suffixed tags on a non-prerelease release are rejected.
+   Paste the validated release-notes body. Publish the release.
 
 4. The
    [`Build & Release Firmware`](../.github/workflows/firmware-build-release.yml)
    workflow runs automatically on `release.published`. It derives
-   `channel=preview` from `release.prerelease == true`, filters
+   `channel=preview` from `release.prerelease == true`, normalizes the
+   suffixed tag to `version=1.0.0`, filters
    [`config/webflash-builds.json`](../config/webflash-builds.json) by
    `(version=1.0.0, channel=preview)` so only the LED preview entry
    builds, compiles the canonical YAML, renames the binary via

@@ -619,10 +619,16 @@ build and attach the LED preview artifact, back-fill the table),
 and carries the LED preview proof checklist (tag, run URL, asset
 name, asset size, SHA256, validator pass, asset-check pass,
 WebFlash import source URL, explicit Release-One-unchanged
-statement). RELEASE-003 itself is documentation-only — it does not
-produce or import any firmware, and the LED preview catalog entry
-stays at `status: preview` until a real artifact and a recorded
-build / release proof exist.
+statement). LED preview release tags use suffix form such as
+`v1.0.0-led-preview`. The workflow normalizes this to
+`version=1.0.0` and `channel=preview` via
+[`scripts/derive_release_version_channel.py`](../scripts/derive_release_version_channel.py)
+(RELEASE-004), so the LED preview tag can coexist with the stable
+Release-One tag `v1.0.0`. Stable releases must use plain semantic
+tags such as `v1.0.0`. RELEASE-003 itself is documentation-only — it
+does not produce or import any firmware, and the LED preview catalog
+entry stays at `status: preview` until a real artifact and a
+recorded build / release proof exist.
 
 - **Scope.** Add the LED-bearing build to
   [`config/webflash-builds.json`](../config/webflash-builds.json) on
