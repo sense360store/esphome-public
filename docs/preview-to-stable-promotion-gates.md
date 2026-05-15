@@ -725,3 +725,7 @@ non-FanTRIAC variant does not advance the FanTRIAC unblock.
 - [`docs/cleanup-audit.md`](cleanup-audit.md) — classification of
   stale / current / blocked-reference / legacy-compatible repo
   content.
+- [`docs/product-scaffold-generator.md`](product-scaffold-generator.md)
+  — PRODUCT-010 conservative product scaffold report generator. The
+  scaffold tool cannot scaffold `production`; stable promotion is
+  reached via the gates in this document, not via a scaffold.
