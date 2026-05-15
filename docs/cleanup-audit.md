@@ -1202,3 +1202,18 @@ python3 tests/test_product_catalog_consistency.py
 - `tests/test_product_catalog.py` (kept as-is; new validator is additive)
 - Release-One config string, artifact name, build matrix, hardware SKUs
 - FanTRIAC blocked status, LED exclusion status
+
+## PRODUCT-DEP-001 update (deprecation / removal policy)
+
+PRODUCT-DEP-001 adds a canonical cross-cutting deprecation / removal
+policy at
+[`docs/product-deprecation-removal-policy.md`](product-deprecation-removal-policy.md).
+Documentation only. No catalog row is set to `deprecated` or
+`removed`; no entry is reclassified; no product, wrapper, package,
+build-matrix entry, manifest, kit, or `REQUIRED_CONFIGS` membership
+is touched. Release-One stays `production`, LED stays `preview`,
+FanTRIAC stays `blocked` under HW-005, every `legacy-compatible`
+entry stays `legacy-compatible`. Cross-linked from
+[`docs/product-onboarding.md`](product-onboarding.md),
+[`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md),
+and [`docs/product-scaffold-generator.md`](product-scaffold-generator.md).

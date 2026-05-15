@@ -729,3 +729,11 @@ non-FanTRIAC variant does not advance the FanTRIAC unblock.
   — PRODUCT-010 conservative product scaffold report generator. The
   scaffold tool cannot scaffold `production`; stable promotion is
   reached via the gates in this document, not via a scaffold.
+- [`docs/product-deprecation-removal-policy.md`](product-deprecation-removal-policy.md)
+  — PRODUCT-DEP-001 canonical cross-cutting deprecation / removal
+  policy. Defines the opposite direction (production / preview →
+  deprecated → removed), inherits the REQUIRED_CONFIGS and kit
+  policies from this document, and records the future
+  `_validate_deprecated` / `_validate_removed` enforcement work as
+  a backlog. Documentation only; no entries are deprecated or
+  removed by PRODUCT-DEP-001.

@@ -587,3 +587,11 @@ and the per-release proof checklist, see
   artifact, stable WebFlash import, REQUIRED_CONFIGS decision,
   kit decision). FanTRIAC stays blocked under HW-005 and is not
   on the stable promotion path.
+- [`docs/product-deprecation-removal-policy.md`](product-deprecation-removal-policy.md)
+  — PRODUCT-DEP-001 canonical cross-cutting deprecation / removal
+  policy. Defines the `deprecated` and `removed` lifecycle states,
+  required metadata, deprecation / removal gates, WebFlash
+  implications, REQUIRED_CONFIGS and kit ineligibility, tombstone
+  retention, release-note call-out rules, and the follow-up PR
+  sequence for a future deprecation or removal. Documentation only;
+  no entries are deprecated or removed by PRODUCT-DEP-001.

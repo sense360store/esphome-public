@@ -250,3 +250,8 @@ before opening a PR.
 - [`docs/cleanup-audit.md`](cleanup-audit.md) — classification of
   stale / current / blocked-reference / legacy-compatible repo
   content; carries PRODUCT-010 entries.
+- [`docs/product-deprecation-removal-policy.md`](product-deprecation-removal-policy.md)
+  — PRODUCT-DEP-001 canonical deprecation / removal policy. The
+  scaffold tool already rejects `deprecated` and `removed` via
+  `REJECTED_STATUSES`; the policy doc records the reasoning and
+  the required metadata for any future deprecation or removal PR.
