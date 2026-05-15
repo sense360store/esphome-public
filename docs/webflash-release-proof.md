@@ -103,68 +103,86 @@ deploy are proven from this repo.
 
 ## LED preview release proof (RELEASE-003)
 
-RELEASE-003 records the build / release proof for the LED-bearing
+RELEASE-003 scaffolded the pending-proof record for the LED-bearing
 preview sibling
 [`Ceiling-POE-VentIQ-RoomIQ-LED`](../config/webflash-builds.json) added by
-PRODUCT-009. **As of this PR no proof exists.** No GitHub Release or
-Actions artifact currently exists for
-`Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`. Every proof
-field below is marked **pending** until an operator follows the
-[Operator runbook](#operator-runbook-future) and back-fills the values
-from a real Actions run.
+PRODUCT-009. **RELEASE-005 records the successful prerelease proof.** The
+GitHub prerelease [`v1.0.0-led-preview`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0-led-preview)
+was published; the
+[`Build & Release Firmware`](../.github/workflows/firmware-build-release.yml)
+workflow run
+[`25918422743`](https://github.com/sense360store/esphome-public/actions/runs/25918422743)
+built `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`, both
+release-body validation and release-asset assertion passed, and the
+`.bin`, `checksums-sha256.txt`, `checksums-md5.txt`, and `manifest.json`
+assets were uploaded. The values in
+[Proof record](#proof-record) below are the real recorded values, not
+placeholders.
 
 This section is **separate from** the ESP-006 / ESP-007 Release-One
 proof above. The Release-One record (tag `v1.0.0`, artifact
 `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, run
 [`25763009641`](https://github.com/sense360store/esphome-public/actions/runs/25763009641))
-is unchanged by RELEASE-003.
+is unchanged by RELEASE-003 or RELEASE-005.
 
-### Pending proof record
+### Proof record
 
-The static values below are already known from
+The static values below come from
 [`config/webflash-builds.json`](../config/webflash-builds.json) and
 [`config/product-catalog.json`](../config/product-catalog.json) (both
-populated by PRODUCT-009). The dynamic values become known only after
-a successful workflow run on a real prerelease tag and must be
-back-filled here at that time.
+populated by PRODUCT-009). The dynamic values are the real recorded
+values from the successful workflow run on tag
+[`v1.0.0-led-preview`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0-led-preview)
+(run
+[`25918422743`](https://github.com/sense360store/esphome-public/actions/runs/25918422743)),
+backfilled by RELEASE-005.
 
 | Field | Value |
 |-------|-------|
-| GitHub Release URL | pending |
-| Release tag | pending (operator's choice; the tag must be marked `prerelease: true` so the workflow derives `channel=preview`) |
-| Workflow run URL | pending |
+| GitHub Release URL | <https://github.com/sense360store/esphome-public/releases/tag/v1.0.0-led-preview> |
+| Release tag | `v1.0.0-led-preview` (marked `prerelease: true`; the workflow derives `channel=preview`) |
+| Release title | `Sense360 LED Preview Firmware v1.0.0` |
+| Workflow run URL | <https://github.com/sense360store/esphome-public/actions/runs/25918422743> |
 | Workflow | `Build & Release Firmware` ([`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)) |
-| Workflow event | must be `release` with `prerelease: true` (not `workflow_dispatch`; `workflow_dispatch` does not attach assets) |
+| Workflow event | `release` with `prerelease: true` (the run was triggered on `release.published`; not `workflow_dispatch`) |
+| Git SHA | `4493e0c9b3914d5dfcf41f71b4129cf23cda75d2` |
 | Matrix product | `ceiling-poe-ventiq-roomiq-led` |
 | Build file | [`products/sense360-ceiling-poe-ventiq-roomiq-led.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq-led.yaml) (compiled; the matrix entry's `product_yaml` is the wrapper [`products/webflash/ceiling-poe-ventiq-roomiq-led.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq-led.yaml), which `!include`s the canonical YAML) |
 | WebFlash config string | `Ceiling-POE-VentIQ-RoomIQ-LED` |
 | Channel | `preview` |
 | Version | `1.0.0` |
 | Firmware asset | `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin` |
-| Firmware asset size (release page) | pending |
-| SHA256 | pending (read from `checksums-sha256.txt` once the release is published) |
-| Release-body validation | pending (`validate WebFlash release notes` step in `Attach to Release`) |
-| Release-asset assertion | pending (`check WebFlash release assets` step in `Attach to Release`) |
-| Checksums attached | pending (`checksums-sha256.txt`, `checksums-md5.txt`) |
-| Build-info manifest attached | pending (`manifest.json`) |
-| Status | **pending — RELEASE-003 not yet proven** |
+| Firmware asset size | `1135904` bytes |
+| SHA256 | `93310d2cbc27355e399f36a232336b6b9075dacfc178d603c7a92aa1089182d3` |
+| Firmware asset URL (WebFlash import source) | <https://github.com/sense360store/esphome-public/releases/download/v1.0.0-led-preview/Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin> |
+| Checksums SHA256 URL | <https://github.com/sense360store/esphome-public/releases/download/v1.0.0-led-preview/checksums-sha256.txt> |
+| Checksums MD5 URL | <https://github.com/sense360store/esphome-public/releases/download/v1.0.0-led-preview/checksums-md5.txt> |
+| Release manifest URL | <https://github.com/sense360store/esphome-public/releases/download/v1.0.0-led-preview/manifest.json> |
+| Release-body validation | **passed** (`validate WebFlash release notes` step in `Attach to Release`) |
+| Release-asset assertion | **passed** (`check WebFlash release assets` step in `Attach to Release`) |
+| Uploaded assets | `.bin`, `checksums-sha256.txt`, `checksums-md5.txt`, `manifest.json` |
+| Status | **proven — RELEASE-005 records the LED preview prerelease proof; ready for WebFlash import planning** |
 
-### Expected release assets (once published)
+### Release assets present
 
-When the prerelease is published and the workflow run succeeds, the
-following assets must be present on the release page. Until then the
-list is aspirational.
+The following assets are attached to the published prerelease
+[`v1.0.0-led-preview`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0-led-preview)
+and were uploaded by the `Attach to Release` job in workflow run
+[`25918422743`](https://github.com/sense360store/esphome-public/actions/runs/25918422743):
 
-- `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`
-- `checksums-sha256.txt`
-- `checksums-md5.txt`
-- `manifest.json` (build-info, not the WebFlash production manifest)
+- [`Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`](https://github.com/sense360store/esphome-public/releases/download/v1.0.0-led-preview/Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin) (1,135,904 bytes; SHA256 `93310d2cbc27355e399f36a232336b6b9075dacfc178d603c7a92aa1089182d3`)
+- [`checksums-sha256.txt`](https://github.com/sense360store/esphome-public/releases/download/v1.0.0-led-preview/checksums-sha256.txt)
+- [`checksums-md5.txt`](https://github.com/sense360store/esphome-public/releases/download/v1.0.0-led-preview/checksums-md5.txt)
+- [`manifest.json`](https://github.com/sense360store/esphome-public/releases/download/v1.0.0-led-preview/manifest.json) (build-info, not the WebFlash production manifest)
 
-### Operator runbook (future)
+### Operator runbook (applied for RELEASE-005; reusable for future preview releases)
 
-The exact sequence an operator must run before this section can be
-flipped from "pending" to "proven". Do **not** run steps 3–4 from this
-PR; this PR is documentation only.
+The exact sequence an operator runs to back the
+[Proof record](#proof-record) above with real evidence. RELEASE-005
+executed this runbook against tag `v1.0.0-led-preview` (workflow run
+[`25918422743`](https://github.com/sense360store/esphome-public/actions/runs/25918422743),
+git SHA `4493e0c9b3914d5dfcf41f71b4129cf23cda75d2`); this PR is
+documentation-only and does not re-run steps 3–4.
 
 1. Generate and validate the release-notes draft from the catalog. The
    generator emits Sense360 LED in `## Features` and
@@ -222,12 +240,13 @@ PR; this PR is documentation only.
    [`scripts/check-webflash-release-assets.py`](../scripts/check-webflash-release-assets.py)
    before uploading the `.bin`, checksums, and `manifest.json`.
 
-5. Back-fill the [Pending proof record](#pending-proof-record) table
-   above with the real GitHub Release URL, tag, workflow run URL,
-   asset size (from the release page), SHA256 (read from
-   `checksums-sha256.txt`), and gate pass states. Tick every box in
-   the [checklist](#ceiling-poe-ventiq-roomiq-led-preview-release-proof-checklist)
-   only when the corresponding evidence is recorded.
+5. Back-fill the [Proof record](#proof-record) table above with the
+   real GitHub Release URL, tag, workflow run URL, asset size (from the
+   release page), SHA256 (read from `checksums-sha256.txt`), and gate
+   pass states. Tick every box in the
+   [checklist](#ceiling-poe-ventiq-roomiq-led-preview-release-proof-checklist)
+   only when the corresponding evidence is recorded. RELEASE-005
+   completed this back-fill for tag `v1.0.0-led-preview`.
 
 6. The follow-up WebFlash-side PR (`WF-LED-001 — Import and manifest
    LED preview firmware`) consumes the GitHub Release asset, the
@@ -236,26 +255,30 @@ PR; this PR is documentation only.
 
 ### Ceiling-POE-VentIQ-RoomIQ-LED preview release proof checklist
 
-Tick each box only when there is **actual recorded evidence** for it.
-Do not pre-tick any item.
+Every item below has actual recorded evidence backfilled by RELEASE-005.
 
-- [ ] GitHub Release tag (back-fill the exact tag string here).
-- [ ] Actions run URL (`Build & Release Firmware` run that produced
-      the artifact).
-- [ ] Artifact filename equals
+- [x] GitHub Release tag: `v1.0.0-led-preview`
+      (<https://github.com/sense360store/esphome-public/releases/tag/v1.0.0-led-preview>).
+- [x] Actions run URL: `Build & Release Firmware` run
+      [`25918422743`](https://github.com/sense360store/esphome-public/actions/runs/25918422743).
+- [x] Artifact filename equals
       `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`.
-- [ ] Artifact size on the release page (must be at least 100 KB per
-      [`scripts/check-webflash-release-assets.py`](../scripts/check-webflash-release-assets.py);
-      a real ESPHome firmware is ~1 MB).
-- [ ] SHA256 from `checksums-sha256.txt` recorded here.
-- [ ] Release-body validation command run and passed:
-      `python3 scripts/validate-webflash-release-notes.py release-notes.md --channel preview`.
-- [ ] Generated release-notes command run and passed:
+- [x] Artifact size on the release page: `1135904` bytes (≥ 100 KB
+      threshold per
+      [`scripts/check-webflash-release-assets.py`](../scripts/check-webflash-release-assets.py)).
+- [x] SHA256 from `checksums-sha256.txt` recorded:
+      `93310d2cbc27355e399f36a232336b6b9075dacfc178d603c7a92aa1089182d3`.
+- [x] Release-body validation command run and passed:
+      `python3 scripts/validate-webflash-release-notes.py release-notes.md --channel preview`
+      (the `validate WebFlash release notes` step in `Attach to Release`
+      passed in run `25918422743`).
+- [x] Generated release-notes command run and passed:
       `python3 scripts/generate_webflash_release_notes.py --config-string Ceiling-POE-VentIQ-RoomIQ-LED --version 1.0.0 --channel preview --validate`.
-- [ ] WebFlash import source URL recorded (the
-      `browser_download_url` of the `.bin` asset on the published
-      GitHub Release).
-- [ ] Explicit statement preserved that stable Release-One
+- [x] WebFlash import source URL recorded:
+      <https://github.com/sense360store/esphome-public/releases/download/v1.0.0-led-preview/Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin>
+      (the `browser_download_url` of the `.bin` asset on the published
+      GitHub prerelease).
+- [x] Explicit statement preserved that stable Release-One
       (`Ceiling-POE-VentIQ-RoomIQ`,
       `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`,
       tag [`v1.0.0`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0))
@@ -263,16 +286,17 @@ Do not pre-tick any item.
 
 ### What RELEASE-003 does NOT do
 
-- Does **not** prove a build / release artifact exists today. Every
-  field above is `pending`; do not edit this section to claim
-  otherwise without an Actions run URL and a release asset to back
-  the claim.
-- Does **not** create, tag, or publish a GitHub Release. The repo
-  still has only one release (tag `v1.0.0`, stable, Release-One only).
-- Does **not** run the firmware build workflow. No `.bin` is built or
-  committed by this PR.
+- Does **not** itself prove a build / release artifact exists.
+  RELEASE-003 only scaffolded the pending-proof record, the operator
+  runbook, and the checklist; the actual proof values were backfilled
+  by RELEASE-005 from a real Actions run.
+- Does **not** create, tag, or publish a GitHub Release. The
+  `v1.0.0-led-preview` prerelease was tagged separately, outside the
+  RELEASE-003 PR.
+- Does **not** run the firmware build workflow. No `.bin` was built or
+  committed by the RELEASE-003 PR.
 - Does **not** commit firmware binaries to git. No `.bin` is in the
-  PR diff.
+  RELEASE-003 diff.
 - Does **not** import anything into WebFlash. The follow-up
   `WF-LED-001` PR in the
   [`sense360store/WebFlash`](https://github.com/sense360store/WebFlash)
@@ -299,6 +323,48 @@ Do not pre-tick any item.
   `products/webflash/*`, `packages/*`, `.github/workflows/*`,
   `scripts/*`, `tests/*`, `components/*`, or `include/*` file.
 
+### What RELEASE-005 does NOT do
+
+- Does **not** generate firmware. No new build is run; no `.bin` is
+  produced or committed. The recorded artifact came from the
+  pre-existing `v1.0.0-led-preview` workflow run
+  [`25918422743`](https://github.com/sense360store/esphome-public/actions/runs/25918422743).
+- Does **not** modify or replace any release asset. The `.bin`,
+  `checksums-sha256.txt`, `checksums-md5.txt`, and `manifest.json`
+  already attached to the prerelease are unchanged.
+- Does **not** change the artifact filename, version, or channel. The
+  artifact remains
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin` on
+  `version=1.0.0`, `channel=preview`.
+- Does **not** promote `Ceiling-POE-VentIQ-RoomIQ-LED` to
+  `production` / `stable`. The catalog entry stays at
+  `status: preview` on the `preview` channel; production promotion
+  still requires the bench-verification Open Questions in
+  [`docs/hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md#open-questions--verification-needed)
+  (harness rail, LED count, harness identity) to resolve.
+- Does **not** add `LED` to the stable Release-One config string.
+  Release-One stays `Ceiling-POE-VentIQ-RoomIQ`,
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, tag
+  [`v1.0.0`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0),
+  unchanged.
+- Does **not** import the LED preview into WebFlash. WebFlash-side
+  ingest, sidecar metadata, production signing, manifest generation,
+  and deploy remain owned by the follow-up `WF-LED-001` PR in the
+  [`sense360store/WebFlash`](https://github.com/sense360store/WebFlash)
+  repo. RELEASE-005 only records the evidence WebFlash will consume.
+- Does **not** unblock FanTRIAC. `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
+  stays `status: blocked` under HW-005;
+  `webflash_build_matrix: false`; the LED preview catalog entry still
+  carries `blocked_modules: ["FanTRIAC"]`.
+- Does **not** modify any `config/*`, `products/*`,
+  `products/webflash/*`, `packages/*`, `.github/workflows/*`,
+  `scripts/*`, `tests/*`, `components/*`, or `include/*` file. The
+  RELEASE-005 diff is limited to
+  [`docs/webflash-release-proof.md`](webflash-release-proof.md),
+  [`docs/product-led-preview-decision.md`](product-led-preview-decision.md),
+  [`docs/product-onboarding.md`](product-onboarding.md), and
+  [`docs/cleanup-audit.md`](cleanup-audit.md).
+
 ## See also
 
 - [`docs/webflash-contract.md`](./webflash-contract.md) — full WebFlash
@@ -312,7 +378,8 @@ Do not pre-tick any item.
   operational handoff and Release Proof Checklist.
 - [`docs/product-led-preview-decision.md`](./product-led-preview-decision.md)
   — PRODUCT-005 LED preview product path decision doc and the
-  PRODUCT-009 outstanding-proof pointer that RELEASE-003 fills in.
+  PRODUCT-009 outstanding-proof pointer that RELEASE-003 scaffolded
+  and RELEASE-005 records.
 - [`docs/product-onboarding.md`](./product-onboarding.md) — cross-doc
   product onboarding guide; covers the "build / release proof" gate
   for preview / production promotion.
