@@ -541,3 +541,14 @@ run URL, release URL, hardware test record). Do not pre-check items.
   build matrix.
 - [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
   — machine-readable contract snapshot.
+- [`docs/preview-to-stable-promotion-gates.md`](./preview-to-stable-promotion-gates.md)
+  — RELEASE-006 canonical preview-to-stable promotion gate
+  document. Maps every step of the handoff flow above onto the
+  gate table: steps 5–8 (preview release artifact, preview release
+  proof recorded, WebFlash import, live preview deploy) are the
+  preview floor; steps 9–10 (operator flash proof + real hardware
+  test) and the WebFlash-side stable import and post-deploy smoke
+  cover rows 9 and 14. The Release Proof Checklist's unchecked
+  boxes (WebFlash import, signing, manifest, deploy, smoke test,
+  real-hardware flash) overlap with rows 7–9 and 14 of the gate
+  table.

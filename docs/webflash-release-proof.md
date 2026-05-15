@@ -383,3 +383,15 @@ Every item below has actual recorded evidence backfilled by RELEASE-005.
 - [`docs/product-onboarding.md`](./product-onboarding.md) — cross-doc
   product onboarding guide; covers the "build / release proof" gate
   for preview / production promotion.
+- [`docs/preview-to-stable-promotion-gates.md`](./preview-to-stable-promotion-gates.md)
+  — RELEASE-006 canonical preview-to-stable promotion gate
+  document. The LED preview release proof recorded in this file
+  is **row 5** ("preview release artifact exists") and **row 6**
+  ("preview release proof recorded") of the gate table — the
+  preview floor, not stable promotion. Rows 9–17 (operator flash
+  proof, S360-300 bench verification, stable release notes,
+  production catalog promotion, stable build artifact, stable
+  WebFlash import, REQUIRED_CONFIGS decision, kit decision,
+  human approval) remain pending or decision-needed before the
+  LED-bearing build is eligible for `status: production` /
+  `channel: stable`.
