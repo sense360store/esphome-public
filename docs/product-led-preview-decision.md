@@ -803,3 +803,15 @@ PRODUCT-005 specifically does **not**:
 - [`docs/cleanup-audit.md`](cleanup-audit.md) — classification of
   stale / current / blocked-reference / legacy-compatible repo
   content.
+- [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
+  — RELEASE-006 canonical preview-to-stable promotion gate
+  document. The LED preview is the document's first live case
+  study: rows 1–8 (preview floor) are `done`; rows 9–17 are
+  `pending` or `decision needed` — operator flash proof
+  (WF-HW-TEST-001), S360-300 bench verification (harness rail,
+  LED count, harness identity), stable release notes, production
+  catalog promotion, stable build artifact, stable WebFlash
+  import, REQUIRED_CONFIGS decision, kit / UI decision, and
+  recorded human approval. Stable promotion is not performed by
+  RELEASE-006; the catalog entry stays `status: preview`,
+  `channel: preview`. FanTRIAC stays blocked under HW-005.

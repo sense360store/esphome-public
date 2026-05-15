@@ -566,3 +566,17 @@ and the per-release proof checklist, see
   [`docs/webflash-release-proof.md`](webflash-release-proof.md). The
   WebFlash-side import remains outstanding before LED becomes
   WebFlash-shippable.
+- [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
+  — RELEASE-006 canonical preview-to-stable promotion gate
+  document. Cross-cutting policy: the gate table, required
+  upstream / firmware / hardware / WebFlash / operator evidence,
+  the per-field catalog and build-matrix promotion diff, the
+  human approval checklist, the explicit "preview artifact +
+  WebFlash import + deployed manifest do not equal stable"
+  guardrails, the separate `REQUIRED_CONFIGS` and kit decision
+  policies, and the LED preview case study with pending gates
+  (operator flash proof, S360-300 bench verification, stable
+  release notes, production catalog promotion, stable build
+  artifact, stable WebFlash import, REQUIRED_CONFIGS decision,
+  kit decision). FanTRIAC stays blocked under HW-005 and is not
+  on the stable promotion path.
