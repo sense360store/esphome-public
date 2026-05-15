@@ -308,6 +308,25 @@ etc.) is still rejected at publish time on `stable`.
 
 ### 5. Publish GitHub Release assets
 
+#### Release tag format (RELEASE-004)
+
+The workflow derives `(version, channel)` from the GitHub release tag
+and the release's `prerelease` flag using
+[`scripts/derive_release_version_channel.py`](../scripts/derive_release_version_channel.py):
+
+- **Stable** releases must use plain semantic tags such as `v1.0.0`.
+  Suffixed tags on a non-prerelease release are rejected — there is no
+  ambiguity to fall through.
+- **Preview** releases use the suffix form `vX.Y.Z-led-preview` (for
+  the LED preview build) or the generic `vX.Y.Z-preview`. The workflow
+  normalizes both to `version=X.Y.Z`, `channel=preview`, so the suffixed
+  preview tag can coexist with the stable tag of the same firmware
+  version (e.g. LED preview `v1.0.0-led-preview` alongside stable
+  Release-One `v1.0.0`).
+- Any other suffix on a prerelease tag is rejected with a clear error
+  so operator typos fail fast at this step rather than later in the
+  matrix-filter step.
+
 When a release tag is published, the workflow attaches:
 
 - the `.bin` files matching the build matrix for `(version, channel)`.
