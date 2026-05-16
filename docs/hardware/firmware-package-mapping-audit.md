@@ -689,6 +689,11 @@ After HW-009 lands, these greps should hold:
   — HW-004 / HW-006 per-board documentation-state classification, plus
   HW-007 schematic ingest and HW-008 JSON refresh subsections.
 - [`docs/hardware/hardware-artifact-policy.md`](hardware-artifact-policy.md)
+  — HW-ASSETS-001 canonical policy for hardware source / manufacturing
+  artifacts (schematic PDF / KiCad / BOM / CPL / Gerbers / STEP /
+  images / raw vendor ZIPs). Defines the per-board artifact index
+  schema whose `package_yaml_status` field mirrors this audit's
+  six-label classification taxonomy.
   — HW-ASSETS-001 commit / exclude rules for hardware artifacts and the
   per-board curated-index pattern under
   [`docs/hardware/artifacts/`](artifacts/) (HW-ASSETS-002 lands the first

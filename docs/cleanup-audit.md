@@ -1219,3 +1219,73 @@ entry stays `legacy-compatible`. Cross-linked from
 [`docs/product-onboarding.md`](product-onboarding.md),
 [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md),
 and [`docs/product-scaffold-generator.md`](product-scaffold-generator.md).
+
+## HW-ASSETS-001 update (hardware artifact policy)
+
+HW-ASSETS-001 adds a canonical hardware source and manufacturing
+artifact policy at
+[`docs/hardware/hardware-artifact-policy.md`](hardware/hardware-artifact-policy.md).
+The policy defines the artifact classes (schematic PDF, KiCad
+project / schematic / PCB source, BOM, CPL / pick-and-place,
+Gerbers, drill files, STEP, board images, raw vendor ZIPs, and
+the OS / IDE / SCM noise classes); the storage locations
+(`docs/hardware/schematics/` for PDFs today; future
+`docs/hardware/artifacts/`, `docs/hardware/sources/<SKU>-<REV>/`,
+`docs/hardware/manufacturing/<SKU>-<REV>/`, and
+`docs/hardware/images/<SKU>-<REV>/` directories deferred to
+HW-ASSETS-002); the commit-vs-exclude rules; the raw-ZIP
+workflow (extract outside the repo, checksum the original,
+inventory the expansion, curate selected commits, retain the raw
+ZIP externally); the per-board artifact index requirement
+(`docs/hardware/artifacts/<SKU>-<REV>.md`) and its 22-field
+schema (`board_sku`, `revision`, `artifact_source`,
+`artifact_date`, `schematic_pdf`, `kicad_project`,
+`kicad_schematic`, `kicad_pcb`, `bom`, `cpl`, `gerbers`,
+`drill_files`, `step_file`, `images`, `excluded_files`,
+`checksums`, `known_open_questions`, `pin_map_status`,
+`package_yaml_status`, `product_yaml_status`, `webflash_status`,
+`reviewer_notes`); the relationship to
+`config/hardware-catalog.json` (JSON wins on drift; the artifact
+index does not introduce any new JSON fields); the relationship
+to product availability (the key rule: *hardware artifact
+availability does not equal firmware support or WebFlash
+availability*); the relationship to pin maps / package YAML /
+product YAML (the recommended ordering); the manufacturing-
+evidence handling options (commit directly / Git LFS / GitHub
+Release / dedicated hardware repo / external-only with
+checksum); the versioning and revision naming convention; the
+finished-board inventory (`S360-100`, `S360-200`, `S360-210`,
+`S360-211`, `S360-300`, all R4); the design-pending board
+inventory (`S360-310`, `S360-311`, `S360-312`, `S360-320`,
+`S360-400`, `S360-410`, all R4) with the per-board evidence
+required before package / product / WebFlash work; the
+follow-up PR sequence (HW-ASSETS-002, HW-GAP-001, HW-PINMAP-310
+/ -311 / -312 / -320 / HW-PINMAP-400 / -410, PACKAGE-GAP-001,
+PRODUCT-GAP-001); and the explicit do-not-change guardrails.
+Documentation only. No raw vendor / fab ZIP contents are
+added; no KiCad / BOM / CPL / Gerbers / drill / STEP / image
+files are added; the per-board artifact index for
+`S360-100-R4` is **not** added (that is the scope of
+HW-ASSETS-002); no entry in `config/hardware-catalog.json`,
+`config/product-catalog.json`, `config/webflash-builds.json`,
+or `config/webflash-compatibility.json` is changed; no product
+YAML, WebFlash wrapper, or package YAML is changed; no script,
+test, workflow, component, or include is changed;
+`.gitignore` / `.gitattributes` / pre-commit configuration are
+not changed (actual exclusion-rule additions are deferred to
+HW-ASSETS-002, which is the first PR to land a curated
+artifact tree); Git LFS is **not** introduced (it is listed in
+the policy as a future decision option only); no firmware is
+regenerated; no GitHub Release is created or modified;
+Release-One (`Ceiling-POE-VentIQ-RoomIQ`,
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, tag
+`v1.0.0`) stays unchanged; the Sense360 LED preview catalog
+entry stays `status: preview`, `channel: preview`; FanTRIAC
+stays `blocked` under HW-005; the mains-voltage compliance
+status for `S360-320` / `S360-400` (COMPLIANCE-001) is not
+changed. Cross-linked from
+[`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md),
+[`docs/product-onboarding.md`](product-onboarding.md),
+[`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md),
+[`docs/hardware/s360-100-r4-core.md`](hardware/s360-100-r4-core.md),
+and [`docs/hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md).

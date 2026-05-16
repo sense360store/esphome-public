@@ -545,6 +545,13 @@ and the per-release proof checklist, see
   Sense360 board / module names, SKUs, revisions.
 - [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)
   — per-board documentation-state classification (HW-004 / HW-006).
+- [`docs/hardware/hardware-artifact-policy.md`](hardware/hardware-artifact-policy.md)
+  — HW-ASSETS-001 canonical policy for hardware source / manufacturing
+  artifacts. Defines the artifact classes, commit-vs-exclude rules,
+  raw-ZIP workflow, per-board artifact index schema, finished /
+  design-pending board inventories, and the "hardware artifact
+  availability does not equal WebFlash availability" guardrail that
+  this onboarding guide depends on.
 - [`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)
   — mains-voltage UK / EU compliance-assessment tracker
   (COMPLIANCE-001). Documentation only.
