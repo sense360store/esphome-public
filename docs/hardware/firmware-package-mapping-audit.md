@@ -727,3 +727,9 @@ After HW-009 lands, these greps should hold:
 - [`config/webflash-compatibility.json`](../../config/webflash-compatibility.json)
   — WebFlash compatibility taxonomy; preserves the AirIQ ↔ VentIQ
   mutex and the fan-driver max-one-of rule.
+- [`docs/product-availability-taxonomy.md`](../product-availability-taxonomy.md)
+  — PRODUCT-AVAIL-001 canonical product availability taxonomy.
+  Maps this audit's six-label classification onto the
+  `package-yaml-ready` rung (`confirmed-ok` and `confirmed-ok` with
+  caveats) and the `package-yaml-pending` rung (every other label
+  except `blocked`, which is its own axis). Documentation only.

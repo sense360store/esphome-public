@@ -743,3 +743,13 @@ non-FanTRIAC variant does not advance the FanTRIAC unblock.
   `_validate_deprecated` / `_validate_removed` enforcement work as
   a backlog. Documentation only; no entries are deprecated or
   removed by PRODUCT-DEP-001.
+- [`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+  — PRODUCT-AVAIL-001 canonical product availability taxonomy.
+  Names the ladder this gate document sits on:
+  `preview-available` (rows 1–8 of the gate summary) →
+  `stable-available` (rows 1–17 done) → `production-required`
+  (separate REQUIRED_CONFIGS decision) → `kit-exposed` (separate
+  kit / UI decision). Records the policy-only `design-pending` and
+  `firmware-missing` exception labels for modules that exist in
+  docs but are not buildable. Documentation only; no JSON fields
+  added; no statuses changed.

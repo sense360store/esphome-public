@@ -687,3 +687,10 @@ No other file is changed.
 - [Mains-voltage Safety and Compliance Assessment — UK / EU (COMPLIANCE-001)](../compliance/mains-voltage-uk-eu-assessment.md)
   — structured compliance-assessment tracker for `S360-400` and
   `S360-320`; documentation only, no compliance claim.
+- [Product Availability Taxonomy (PRODUCT-AVAIL-001)](../product-availability-taxonomy.md)
+  — cross-cutting availability ladder. Reuses this audit's
+  `documented` / `partially-documented` / `cataloged-unverified` /
+  `blocked` / `not-needed-for-release-one` vocabulary as the
+  pin-map-axis label set, and adds the policy-only `design-pending`
+  and `firmware-missing` exception labels for modules that exist
+  in docs but are not buildable today.

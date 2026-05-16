@@ -602,3 +602,17 @@ and the per-release proof checklist, see
   retention, release-note call-out rules, and the follow-up PR
   sequence for a future deprecation or removal. Documentation only;
   no entries are deprecated or removed by PRODUCT-DEP-001.
+- [`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+  — PRODUCT-AVAIL-001 canonical cross-cutting product availability
+  taxonomy. Names the ladder (`hardware-listed` → `artifact-indexed`
+  → `schematic-verified` → `pin-map-ready` → `package-yaml-ready`
+  → `product-yaml-ready` → `build-matrix-ready` →
+  `release-artifact-ready` → `webflash-imported` →
+  `webflash-live-preview` → `webflash-live-stable` →
+  `production-required` → `kit-exposed`); maps the
+  `config/product-catalog.json` lifecycle statuses and the
+  `config/hardware-catalog.json` schematic statuses onto that
+  ladder; introduces the policy-only `design-pending` and
+  `firmware-missing` exception labels; records a current-state
+  snapshot for every SKU in the hardware catalog. Documentation
+  only; no JSON fields added; no statuses changed.
