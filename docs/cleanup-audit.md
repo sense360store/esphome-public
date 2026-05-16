@@ -211,6 +211,7 @@ Inspected paths: `README.md`, `CHANGELOG.md`, `docs/**`, `examples/**`,
 | `tests/test_scaffold_product.py` (PRODUCT-010) | `current` | Stdlib `unittest` suite for `scripts/scaffold_product.py`. Covers: valid compile-only happy path; validation-commands section present; do-not-change-guardrails section present; invalid module / mounting tokens; AirIQ vs VentIQ mutex; future tokens (LED / FanRelay / FanPWM / FanDAC / AirIQ) parse cleanly; duplicate catalog entry; unknown hardware SKU; `production` / `legacy-compatible` status rejection; preview with `--channel stable` rejection; preview `--webflash-build-matrix` without `--webflash-wrapper` rejection; preview must not claim a Release-One required config; preview catalog-only happy path; FanTRIAC compile-only rejection / FanTRIAC blocked with `HW-005` accepted / FanTRIAC blocked with wrong blocker rejected; compile-only must not request build matrix; hardware-pending requires `--missing-hardware-evidence`; `products/webflash/*` rejected as `--product-yaml`; read-only invariant (no fixture file is mutated by a run). Uses synthetic JSON fixtures via the script's `--catalog` / `--builds` / `--compat` / `--hardware-catalog` override flags so the real catalog state cannot influence the assertions. | Keep. |
 | `docs/product-scaffold-generator.md` (PRODUCT-010) | `current` | PRODUCT-010 workflow doc for `scripts/scaffold_product.py`. Explains the conservative-by-default principle (dry-run, no production, no build-matrix by default, no firmware, no release artifacts, no WebFlash import, human review required); enumerates the allowed scaffold statuses and per-status required flags; gives worked invocations for compile-only / blocked-FanTRIAC / preview-catalog-only / preview-with-build-matrix; documents the Markdown report structure and exit codes; states explicitly that the tool does not write `config/*.json`, product YAML, wrapper YAML, `product_name_mapper.py`, `validate_product_catalog_consistency.py`, packages, workflows, components, headers, or tests; does not generate firmware or release notes; does not unblock FanTRIAC; does not change Release-One or the LED preview catalog entry or the mains-voltage compliance status. Cross-linked from `docs/product-onboarding.md` (step 4) and `docs/preview-to-stable-promotion-gates.md` (See also). | Keep. |
 | `docs/product-availability-taxonomy.md` (PRODUCT-AVAIL-001) | `current` | PRODUCT-AVAIL-001 canonical cross-cutting product availability taxonomy. Names the 13-rung availability ladder (`hardware-listed` → `artifact-indexed` → `schematic-verified` → `pin-map-ready` → `package-yaml-ready` → `product-yaml-ready` → `build-matrix-ready` → `release-artifact-ready` → `webflash-imported` → `webflash-live-preview` → `webflash-live-stable` → `production-required` → `kit-exposed`); defines the per-axis availability states (hardware-side, product-lifecycle, WebFlash-availability, and exception states); introduces the two policy-only exception labels `design-pending` (module named in docs / taxonomy / wizard but not buildable) and `firmware-missing` (board evidenced but no product YAML consumes it); maps every existing enum / classification verbatim — `config/product-catalog.json` `lifecycle_statuses` (`production` / `preview` / `compile-only` / `hardware-pending` / `blocked` / `legacy-compatible` / `deprecated` / `removed`), `config/hardware-catalog.json` `schematic_status` (`verified` / `cataloged_unverified`), HW-004 / HW-006 audit labels (`documented` / `partially-documented` / `cataloged-unverified` / `blocked` / `not-needed-for-release-one`), HW-009 package-mapping labels (`confirmed-ok` / `needs-package-change` / `needs-doc-fix` / `needs-silkscreen/bench-verification` / `blocked` / `unknown`), and the HW-ASSETS-001 per-board artifact index field schema (`pin_map_status` / `package_yaml_status` / `product_yaml_status` / `webflash_status`); records the hardware-evidence vs product-support vs WebFlash-support axis separations; records the preview-vs-stable distinction by reference to RELEASE-006; records the blocked / legacy-compatible / deprecated / removed exception lifecycles by reference to PRODUCT-DEP-001; carries a current-state snapshot table for every SKU in the hardware catalog (`S360-100` Core schematic-verified + artifact-indexed + Release-One + LED preview; `S360-200` RoomIQ schematic-verified + Release-One + LED preview; `S360-210` AirIQ schematic-verified + not-needed-for-release-one + no product YAML; `S360-211` VentIQ schematic-verified + Release-One + LED preview; `S360-300` LED schematic-verified + LED preview only + stable blocked by RELEASE-006 rows 9–17; `S360-310` Relay partially-documented + design-pending; `S360-311` PWM partially-documented + design-pending; `S360-312` DAC partially-documented + design-pending; `S360-320` TRIAC blocked under HW-005 + COMPLIANCE-001; `S360-400` 240v PSU cataloged-unverified + COMPLIANCE-001-gated; `S360-410` PoE PSU partially-documented + Release-One with schematic-verification-pending caveat preserved); records how WebFlash should eventually consume the taxonomy (wizard distinguishes buildable from unbuildable; import readiness rejects blocked / deprecated / removed; wizard must not imply installability when YAML / build / manifest is missing; kits only reference WebFlash-ready products; REQUIRED_CONFIGS remains stable-only and intentionally chosen; wizard surfaces blocker names; wizard respects mutex / max-one-of rules) and lists the future validator / schema candidate fields (`artifact_index_status`, `pin_map_status`, `package_yaml_status`, `product_yaml_status`, `webflash_status`, `availability_notes`, `missing_evidence`) as policy-only names belonging to a future PRODUCT-AVAIL-002 PR; records the follow-up PR sequence (HW-GAP-001 readiness matrix → WF-WIZARD-AVAIL-001 wizard gating → WF-STALE-001 / PRODUCT-STALE-001 stale-data cleanup → PRODUCT-AVAIL-002 machine-readable fields → HW-PINMAP-310 / -311 / -312 / -320 / -400 / -410 → PACKAGE-GAP-001 → PRODUCT-GAP-001); carries the explicit do-not-change guardrails. Documentation only. PRODUCT-AVAIL-001 adds **no** JSON fields and changes **no** statuses: `config/product-catalog.json` `lifecycle_statuses` unchanged; `config/hardware-catalog.json` `schematic_status` unchanged for every SKU; `config/webflash-builds.json` build matrix unchanged; `config/webflash-compatibility.json` unchanged; every product YAML, WebFlash wrapper, and package YAML unchanged; every script, test, workflow, component, and include unchanged. Release-One stays `Ceiling-POE-VentIQ-RoomIQ` on `stable` with artifact `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` and tag `v1.0.0`; the LED preview entry `Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview`, `channel: preview`; FanTRIAC stays `status: blocked`, `blocker: HW-005`, `webflash_build_matrix: false`; mains-voltage compliance status for `S360-320` / `S360-400` (COMPLIANCE-001) is not changed. Cross-linked from `docs/product-onboarding.md`, `docs/product-deprecation-removal-policy.md`, `docs/preview-to-stable-promotion-gates.md`, `docs/hardware/hardware-artifact-policy.md`, `docs/hardware/firmware-package-mapping-audit.md`, and `docs/hardware/remaining-board-documentation-audit.md`. | Keep. |
+| `docs/hardware/board-readiness-matrix.md` (HW-GAP-001) | `current` | HW-GAP-001 canonical board-level readiness matrix for every SKU in `config/hardware-catalog.json`. Threads together the per-board evidence axes — hardware catalog status, schematic PDF, per-board artifact index (HW-ASSETS-001 / 002), pin-map / standalone reference doc (HW-004 / HW-006 / HW-008), package YAML (HW-009 / HW-010), product YAML, WebFlash wrapper, WebFlash build matrix, release artifact, WebFlash manifest / import, bench / operator proof (RELEASE-006), blockers / open questions, and current classification — into a single per-board × per-axis matrix. Uses two summary tables (hardware-evidence axis and productization / WebFlash axis) plus per-board notes that link back to the source-of-truth docs. Records the policy-only status vocabulary (`done` / `partial` / `missing` / `not applicable` / `blocked` / `compliance-gated` / `preview-only` / `legacy-only` / `unknown`) as cell labels only — adds **no** JSON enum, schema, or validator. Records ready / evidenced boards (`S360-100` Core, `S360-200` RoomIQ, `S360-210` AirIQ, `S360-211` VentIQ, `S360-300` LED), missing / unfinished boards (`S360-310` Relay, `S360-311` PWM, `S360-312` DAC, `S360-400` 240v PSU, `S360-410` PoE PSU) and the blocked / compliance-gated boards (`S360-320` TRIAC under HW-005 + COMPLIANCE-001; `S360-400` under COMPLIANCE-001). Records the follow-up PR sequence (`HW-PINMAP-310` / `-311` / `-312` / `-320` / `-400` / `-410` → `PACKAGE-GAP-001` → `PRODUCT-GAP-001` → `WEBFLASH-GAP-001` → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`). Carries the explicit do-not-change guardrails. Documentation only. HW-GAP-001 adds **no** JSON fields and changes **no** statuses: `config/hardware-catalog.json` `schematic_status` unchanged for every SKU; `config/product-catalog.json` `lifecycle_statuses` unchanged; `config/webflash-builds.json` build matrix unchanged; `config/webflash-compatibility.json` unchanged; every product YAML, WebFlash wrapper, and package YAML unchanged; every script, test, workflow, component, and include unchanged; no firmware regenerated, no GitHub Release created or modified, no WebFlash import. Release-One stays `Ceiling-POE-VentIQ-RoomIQ` on `stable` with artifact `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` and tag `v1.0.0`; the LED preview entry `Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview`, `channel: preview`; FanTRIAC stays `status: blocked`, `blocker: HW-005`, `webflash_build_matrix: false`; mains-voltage compliance status for `S360-320` / `S360-400` (COMPLIANCE-001) is not changed; the Core J10 vs RoomIQ J6 pin-order discrepancy (HW-009 `needs-silkscreen/bench-verification`) is not resolved; the systemic Core abstract-bus mismatch (HW-009 `needs-package-change`, owned by `release-one-hardware-audit.md` Required follow-ups #2 / #3) is not resolved; the `S360-410` PoE PSU schematic-pending caveat in `release-one-hardware-audit.md` Findings → PoE PSU is preserved; the `S360-300` bench-verification Open Questions are preserved; every `legacy-compatible` entry stays `legacy-compatible`. Cross-linked from `docs/product-availability-taxonomy.md` (See also + Follow-up-PR-sequence row #1), `docs/hardware/hardware-artifact-policy.md` (See also + Follow-up-PR-sequence row #2), `docs/hardware/firmware-package-mapping-audit.md` (See also), and `docs/hardware/remaining-board-documentation-audit.md` (See also). | Keep. |
 | Backup / tmp files | `dead` (none found) | `find . -name '*.bak' -o -name '*.orig' -o -name '*~' -o -name '*.tmp'` returns no matches. | None. |
 
 ## Stale Release-One references
@@ -1363,3 +1364,69 @@ resolved; every `legacy-compatible` entry stays
 [`docs/hardware/hardware-artifact-policy.md`](hardware/hardware-artifact-policy.md),
 [`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md),
 and [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md).
+
+## HW-GAP-001 update (board readiness matrix)
+
+HW-GAP-001 adds the canonical board-level readiness matrix at
+[`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md).
+The matrix threads together the per-board evidence axes — hardware
+catalog status, schematic PDF, per-board artifact index (HW-ASSETS-001
+/ 002), pin-map / standalone reference doc (HW-004 / HW-006 / HW-008),
+package YAML (HW-009 / HW-010), product YAML, WebFlash wrapper,
+WebFlash build matrix, release artifact, WebFlash manifest / import,
+bench / operator proof (RELEASE-006), blockers / open questions, and
+current classification — into a single per-board × per-axis matrix
+for every SKU in
+[`config/hardware-catalog.json`](../config/hardware-catalog.json)
+(`S360-100` Core, `S360-200` RoomIQ, `S360-210` AirIQ, `S360-211`
+VentIQ, `S360-300` LED, `S360-310` Relay, `S360-311` PWM, `S360-312`
+DAC, `S360-320` TRIAC, `S360-400` 240v PSU, `S360-410` PoE PSU). Uses
+two summary tables (hardware-evidence axis and productization /
+WebFlash axis) plus per-board notes that link back to the
+source-of-truth docs rather than re-summarising them. Records the
+policy-only status vocabulary (`done` / `partial` / `missing` / `not
+applicable` / `blocked` / `compliance-gated` / `preview-only` /
+`legacy-only` / `unknown`) as cell labels only — adds **no** JSON
+enum, schema, or validator and reuses every existing classification
+vocabulary verbatim. Distinguishes ready / evidenced boards from
+missing / unfinished boards and from blocked / compliance-gated
+boards. Records the follow-up PR sequence (`HW-PINMAP-310` / `-311` /
+`-312` / `-320` / `-400` / `-410` → `PACKAGE-GAP-001` →
+`PRODUCT-GAP-001` → `WEBFLASH-GAP-001` → `RELEASE-GAP-001` →
+`WF-IMPORT-GAP-001`). Carries the explicit do-not-change guardrails.
+Documentation only. No entry in
+[`config/hardware-catalog.json`](../config/hardware-catalog.json),
+[`config/product-catalog.json`](../config/product-catalog.json),
+[`config/webflash-builds.json`](../config/webflash-builds.json), or
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+is changed; no product YAML, WebFlash wrapper, or package YAML is
+changed; no script, test, workflow, component, or include is changed;
+no firmware is regenerated; no GitHub Release is created or modified;
+no WebFlash import is performed. Release-One stays
+`Ceiling-POE-VentIQ-RoomIQ` on `stable` with artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` and tag
+`v1.0.0`; the LED preview entry `Ceiling-POE-VentIQ-RoomIQ-LED` stays
+`status: preview`, `channel: preview`; FanTRIAC stays `status:
+blocked`, `blocker: HW-005`, `webflash_build_matrix: false`; the
+mains-voltage compliance status for `S360-320` / `S360-400`
+(COMPLIANCE-001) is not changed; the Core J10 vs RoomIQ J6 pin-order
+discrepancy (HW-009 `needs-silkscreen/bench-verification`) is not
+resolved; the systemic Core abstract-bus mismatch (HW-009
+`needs-package-change`, owned by
+[`docs/release-one-hardware-audit.md` Required follow-ups #2 / #3](release-one-hardware-audit.md#required-follow-ups))
+is not resolved; the `S360-410` PoE PSU schematic-pending caveat in
+[`docs/release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings)
+is preserved, not promoted away; the `S360-300` bench-verification
+Open Questions in
+[`docs/hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md#open-questions--verification-needed)
+(harness rail, LED count, harness identity, observed behaviour) are
+preserved; every `legacy-compatible` entry stays `legacy-compatible`.
+Cross-linked from
+[`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+(See also + Follow-up-PR-sequence row #1),
+[`docs/hardware/hardware-artifact-policy.md`](hardware/hardware-artifact-policy.md)
+(See also + Follow-up-PR-sequence row #2),
+[`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md)
+(See also), and
+[`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)
+(See also).

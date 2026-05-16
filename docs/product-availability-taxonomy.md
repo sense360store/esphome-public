@@ -714,6 +714,8 @@ The recommended sequence after PRODUCT-AVAIL-001 lands is:
    the [current snapshot](#current-board--product-snapshot) above
    as its starting point and produces a single matrix doc that can
    be referenced by every downstream PR. Documentation-only.
+   **Landed** at
+   [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md).
 2. **WF-WIZARD-AVAIL-001 — Gate unavailable modules / configs in
    wizard.** Implements the
    [WebFlash consumption](#how-webflash-should-consume-this-taxonomy)
@@ -859,6 +861,14 @@ gate evidence.
   `needs-silkscreen/bench-verification` / `blocked` / `unknown`
   classification vocabulary this taxonomy maps onto
   `package-yaml-ready` / `package-yaml-pending`.
+- [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+  — HW-GAP-001 board-level readiness matrix. Expands the
+  [Current board / product snapshot](#current-board--product-snapshot)
+  above into a per-board × per-axis matrix (artifact index / pin map /
+  package YAML / product YAML / WebFlash wrapper / build matrix /
+  release artifact / WebFlash manifest / bench proof) and records the
+  follow-up PR sequence for the six `cataloged_unverified` boards.
+  Documentation only.
 - [`docs/hardware-catalog.md`](hardware-catalog.md) — canonical
   Sense360 board / module names, SKUs, revisions; the naming
   source of truth this taxonomy quotes.

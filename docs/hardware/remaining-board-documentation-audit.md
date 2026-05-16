@@ -694,3 +694,11 @@ No other file is changed.
   pin-map-axis label set, and adds the policy-only `design-pending`
   and `firmware-missing` exception labels for modules that exist
   in docs but are not buildable today.
+- [Board Readiness Matrix (HW-GAP-001)](board-readiness-matrix.md)
+  — cross-board readiness view that consumes this audit's pin-map
+  vocabulary (`documented` / `partially-documented` /
+  `cataloged-unverified` / `blocked` / `not-needed-for-release-one`)
+  as its `Pin-map status` column and threads it together with the
+  artifact-index, package-YAML, product-YAML, WebFlash-wrapper,
+  build-matrix, release-artifact, WebFlash-manifest, and
+  bench-proof axes. Documentation only.

@@ -733,3 +733,7 @@ After HW-009 lands, these greps should hold:
   `package-yaml-ready` rung (`confirmed-ok` and `confirmed-ok` with
   caveats) and the `package-yaml-pending` rung (every other label
   except `blocked`, which is its own axis). Documentation only.
+- [`docs/hardware/board-readiness-matrix.md`](board-readiness-matrix.md)
+  — HW-GAP-001 board-level readiness matrix. Cross-board view that
+  consumes this audit's package-mapping vocabulary as the
+  `Package YAML status` column. Documentation only.

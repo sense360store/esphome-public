@@ -600,7 +600,8 @@ The recommended sequence after HW-ASSETS-001 lands is:
    catalog, the current state of artifact index, standalone
    hardware reference doc, hardware-catalog JSON status, package
    YAML, product YAML, and WebFlash availability. Documentation
-   only.
+   only. **Landed** at
+   [`docs/hardware/board-readiness-matrix.md`](board-readiness-matrix.md).
 3. **HW-PINMAP-310 — S360-310 pin/package mapping audit.**
    Schematic ingest, standalone reference doc, and pin / package
    classification for `S360-310` (Sense360 Relay).
@@ -727,6 +728,11 @@ This PR also does **not**:
   — HW-009 / HW-010 firmware-package-vs-schematic audit. The
   artifact index `package_yaml_status` field mirrors this audit's
   classification taxonomy.
+- [`docs/hardware/board-readiness-matrix.md`](board-readiness-matrix.md)
+  — HW-GAP-001 board-level readiness matrix. Consumes the per-board
+  artifact-index field schema (`pin_map_status` /
+  `package_yaml_status` / `product_yaml_status` / `webflash_status`)
+  defined here as policy-only column vocabulary. Documentation only.
 - [`docs/product-onboarding.md`](../product-onboarding.md) —
   PRODUCT-004 ordered safe sequence for adding any new product /
   config. Any new product YAML derived from a newly-evidenced
