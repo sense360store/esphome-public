@@ -1103,6 +1103,13 @@ and update the [Artifact classes table](#artifact-classes-and-commit-status).
 - [S360-100-R4 Hardware Artifact Index](artifacts/S360-100-R4.md) —
   curated per-board artifact index for the Core board (HW-ASSETS-002,
   the first board to apply this policy).
+- [S360-311-R4 Hardware Artifact Index](artifacts/S360-311-R4.md),
+  [S360-312-R4 Hardware Artifact Index](artifacts/S360-312-R4.md), and
+  [S360-320-R4 Hardware Artifact Index](artifacts/S360-320-R4.md) —
+  curated per-board artifact indexes for Sense360 PWM, DAC, and TRIAC
+  (HW-ASSETS-003; schematic PDFs committed; JSON `schematic_status`
+  stays `cataloged_unverified` for all three; S360-320 stays blocked
+  under HW-005 and COMPLIANCE-001).
 - [Remaining Board Documentation Audit](remaining-board-documentation-audit.md)
   — HW-004 / HW-006 / HW-007 / HW-008 per-board documentation-state
   classification.
