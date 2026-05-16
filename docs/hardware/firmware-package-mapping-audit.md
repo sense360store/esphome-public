@@ -688,6 +688,11 @@ After HW-009 lands, these greps should hold:
 - [`docs/hardware/remaining-board-documentation-audit.md`](remaining-board-documentation-audit.md)
   — HW-004 / HW-006 per-board documentation-state classification, plus
   HW-007 schematic ingest and HW-008 JSON refresh subsections.
+- [`docs/hardware/hardware-artifact-policy.md`](hardware-artifact-policy.md)
+  — HW-ASSETS-001 commit / exclude rules for hardware artifacts and the
+  per-board curated-index pattern under
+  [`docs/hardware/artifacts/`](artifacts/) (HW-ASSETS-002 lands the first
+  per-board index for `S360-100-R4`).
 - [`docs/release-one-hardware-audit.md`](../release-one-hardware-audit.md)
   — Release-One firmware-vs-schematic audit, the FanTRIAC HW-005
   resolution, the Sense360 LED policy, and the Required follow-ups
