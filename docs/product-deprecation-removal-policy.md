@@ -810,3 +810,10 @@ not on this sequence; that path runs through
 - [`scripts/scaffold_product.py`](../scripts/scaffold_product.py)
   — PRODUCT-010 scaffold tool. Already refuses `deprecated` /
   `removed` via `REJECTED_STATUSES`.
+- [`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+  — PRODUCT-AVAIL-001 canonical product availability taxonomy.
+  Defines the ladder this policy's `blocked` /
+  `legacy-compatible` / `deprecated` / `removed` exception states
+  sit on (parallel track for `legacy-compatible`; held-at-rung for
+  `blocked`; descent / tombstone for `deprecated` / `removed`).
+  Documentation only; no JSON fields added; no statuses changed.

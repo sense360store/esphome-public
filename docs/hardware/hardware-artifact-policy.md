@@ -760,6 +760,14 @@ This PR also does **not**:
 - [`docs/cleanup-audit.md`](../cleanup-audit.md) — classification
   of stale / current / blocked-reference / legacy-compatible repo
   content; carries the HW-ASSETS-001 registration entry.
+- [`docs/product-availability-taxonomy.md`](../product-availability-taxonomy.md)
+  — PRODUCT-AVAIL-001 canonical product availability taxonomy.
+  Reuses the per-board artifact index `pin_map_status` /
+  `package_yaml_status` / `product_yaml_status` / `webflash_status`
+  field names as policy-only vocabulary for the cross-cutting
+  availability ladder; codifies the "hardware artifact availability
+  does not equal WebFlash availability" guardrail this policy
+  introduces. Documentation only.
 # Hardware Artifact Policy (HW-ASSETS-001)
 
 ## Purpose
@@ -1106,3 +1114,9 @@ and update the [Artifact classes table](#artifact-classes-and-commit-status).
 - [Mains-voltage Safety and Compliance Assessment — UK / EU (COMPLIANCE-001)](../compliance/mains-voltage-uk-eu-assessment.md)
   — separate compliance tracker for `S360-400` and `S360-320`; not
   cleared by this policy.
+- [Product Availability Taxonomy (PRODUCT-AVAIL-001)](../product-availability-taxonomy.md)
+  — cross-cutting availability ladder that reuses the per-board
+  artifact-index `pin_map_status` / `package_yaml_status` /
+  `product_yaml_status` / `webflash_status` field names as
+  policy-only vocabulary and codifies the "hardware artifact
+  availability does not equal WebFlash availability" guardrail.
