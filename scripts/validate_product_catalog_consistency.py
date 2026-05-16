@@ -54,7 +54,20 @@ Legacy-compatible entries (``status: legacy-compatible``) additionally require:
   - ``webflash_build_matrix: false``.
   - No ``artifact_name``.
   - No ``webflash_wrapper``.
+  - No ``config_string`` (the WebFlash ``config_string`` namespace is
+    reserved for WebFlash-shippable entries; legacy-compatible entries use
+    ``legacy_config_id`` instead).
   - Not present in ``config/webflash-builds.json``.
+
+Cross-cutting forbidden-token guard (PRODUCT-STALE-001):
+
+  - No catalog entry's ``config_string`` may contain any token from
+    ``config/webflash-compatibility.json`` ``forbidden_tokens``. This
+    mirrors the existing build-matrix-level guard in
+    ``tests/validate_webflash_builds.py`` at the catalog layer so a
+    stale alias (e.g. ``Bathroom``, ``Comfort``, ``Presence``) cannot
+    leak into any catalog row, even one with
+    ``webflash_build_matrix: false``.
 
 The validator is read-only. The intended use is:
 
@@ -523,6 +536,14 @@ class ProductCatalogConsistencyValidator:
                 "legacy-compatible entry must not have webflash_wrapper",
             )
 
+        if "config_string" in entry:
+            self._err(
+                label,
+                "legacy-compatible entry must not have config_string "
+                "(use legacy_config_id; the WebFlash config_string "
+                "namespace is reserved for WebFlash-shippable entries)",
+            )
+
         cs = entry.get("config_string")
         if isinstance(cs, str) and cs and cs in self._build_config_strings():
             self._err(
@@ -530,6 +551,36 @@ class ProductCatalogConsistencyValidator:
                 f"legacy-compatible entry config_string {cs!r} appears in "
                 "config/webflash-builds.json",
             )
+
+    def _validate_forbidden_tokens(
+        self,
+        entry: Dict[str, Any],
+        label: str,
+    ) -> None:
+        """Reject any catalog entry whose ``config_string`` contains a token
+        from ``config/webflash-compatibility.json`` ``forbidden_tokens``.
+
+        Mirrors the existing build-matrix-level guard at the catalog layer so
+        a stale alias cannot leak into any catalog row, regardless of
+        ``webflash_build_matrix`` value. PRODUCT-STALE-001.
+        """
+        cs = entry.get("config_string")
+        if not isinstance(cs, str) or not cs:
+            return
+        forbidden = self.compat.get("forbidden_tokens", [])
+        if not isinstance(forbidden, list):
+            return
+        forbidden_set = {t for t in forbidden if isinstance(t, str)}
+        if not forbidden_set:
+            return
+        for token in cs.split("-"):
+            if token in forbidden_set:
+                self._err(
+                    label,
+                    f"config_string {cs!r} contains forbidden token "
+                    f"{token!r} (see config/webflash-compatibility.json "
+                    "forbidden_tokens and docs/webflash-contract.md)",
+                )
 
     # ------------------------------------------------------------------
     # Driver
@@ -545,6 +596,7 @@ class ProductCatalogConsistencyValidator:
         for idx, entry in enumerate(products):
             label = self._entry_label(entry, idx)
             self._validate_common(entry, label)
+            self._validate_forbidden_tokens(entry, label)
             status = entry.get("status")
             if status == "production":
                 self._validate_production(entry, label)

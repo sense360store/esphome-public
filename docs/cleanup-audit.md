@@ -1430,3 +1430,232 @@ Cross-linked from
 (See also), and
 [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)
 (See also).
+
+## PRODUCT-STALE-001 update (stale upstream product/catalog inventory)
+
+PRODUCT-STALE-001 is the upstream paired cleanup for the WebFlash-side
+`WF-STALE-001`. It performs a fresh inventory of the upstream product
+catalog, build matrix, WebFlash wrappers, and the cross-cutting
+docs/scripts/tests that govern them, records the no-action verdict, and
+strengthens the catalog test surface so the current shape cannot
+silently regress. PRODUCT-STALE-001 changes **no** catalog data, **no**
+YAML, **no** build-matrix entry, **no** wrapper, **no** package,
+**no** workflow, **no** firmware, and **no** release.
+
+### Inventory pass
+
+| Surface | Status today | Action by PRODUCT-STALE-001 |
+|---|---|---|
+| [`config/product-catalog.json`](../config/product-catalog.json) — 34 entries (1 `production` Release-One, 1 `preview` LED, 1 `blocked` FanTRIAC, 31 `legacy-compatible`) | Clean. Every entry is correctly classified. Every top-level `products/*.yaml` is enumerated. Every `legacy-compatible` entry has `webflash_build_matrix: false`, no `config_string`, no `artifact_name`, no `webflash_wrapper`, and a `notes` field calling out non-WebFlash / non-Release-One / manual / custom status. | None. No status flip, no entry add, no entry remove. |
+| [`config/webflash-builds.json`](../config/webflash-builds.json) — 2 builds (Release-One stable + LED preview) | Clean. No stale entries. | None. |
+| [`config/webflash-compatibility.json`](../config/webflash-compatibility.json) — taxonomy snapshot | Clean. `forbidden_tokens` covers `Bathroom` / `Comfort` / `Presence` / `Fan` / `FanAnalog`. Stricter upstream aliases (`BathroomAirIQ` / `BathroomAirIQBase` / `BathroomAirIQPro` / `Base` / `Pro` / `AirIQBase` / `AirIQPro` / `AirIQProv`) remain a non-blocking documentation observation tracked in [`docs/webflash-compatibility-taxonomy-audit.md`](webflash-compatibility-taxonomy-audit.md). | None. PRODUCT-STALE-001 does not add tokens. The deferred alignment stays a future scoped PR per the COMPAT-001 follow-up list. |
+| [`config/hardware-catalog.json`](../config/hardware-catalog.json) | Clean. All `old_name` aliases (e.g. `Bathroom Pro`, `LED Ring`, `TRIAC_Board`) are deliberate historical references. | None. |
+| [`products/`](../products/) (34 top-level YAMLs) and [`products/webflash/`](../products/webflash/) (3 wrappers) | Clean. Every wrapper is referenced by exactly one catalog entry. Legacy YAMLs are retained as `legacy-compatible` per the [Do-not-delete list](#do-not-delete-list) above. | None. No YAML added, removed, renamed, or rewritten. |
+| Scripts that consume the catalog ([`scripts/generate_webflash_release_notes.py`](../scripts/generate_webflash_release_notes.py), [`scripts/scaffold_product.py`](../scripts/scaffold_product.py)) | Already refuse `blocked` / `legacy-compatible` / `deprecated` / `removed` / `compile-only` / `hardware-pending` via `REFUSED_STATUSES` and reject `production` / `deprecated` / `removed` / `legacy-compatible` scaffolds via `REJECTED_STATUSES`. | None. PRODUCT-STALE-001 does not edit these scripts. |
+| Tests | All green before and after PRODUCT-STALE-001 (see [Validation](#validation-run-for-product-stale-001) below). | **Strengthened** at the catalog layer — three new tests in [`tests/test_product_catalog.py`](../tests/test_product_catalog.py), three new synthetic-fixture test classes in [`tests/test_product_catalog_consistency.py`](../tests/test_product_catalog_consistency.py), and one new rule block + one extended rule block in [`scripts/validate_product_catalog_consistency.py`](../scripts/validate_product_catalog_consistency.py). |
+
+### Findings against the PRODUCT-STALE-001 design questions
+
+The investigation walked the 22 design questions in the task description.
+Summary:
+
+- **Production / preview / blocked / legacy-compatible totals.** 1 / 1 / 1 / 31 respectively. No drift.
+- **Legacy-compatible WebFlash-shippability.** None look WebFlash-shippable. None carry `config_string`, `artifact_name`, `webflash_wrapper`, or `webflash_build_matrix: true`. Every `notes` string explicitly says "Pre-WebFlash … retained for manual/custom users. Not Release-One WebFlash firmware."
+- **Stale tokens in current-tense docs/scripts.** None. References to `AirIQPro` / `AirIQBase` / `CoreVoice` / `Wall` / `Ceiling-USB` / `Ceiling-PWR` / `Ceiling-POE-AirIQ` / `Ceiling-Voice` only appear in: (a) the legacy → WebFlash alias table in [`docs/webflash-contract.md`](webflash-contract.md) §3, (b) the COMPAT-001 audit at [`docs/webflash-compatibility-taxonomy-audit.md`](webflash-compatibility-taxonomy-audit.md), (c) audit-narrative inside this file, (d) `legacy-compatible` catalog entries (notes) and legacy YAML header comments, (e) historical CHANGELOG / `packages/SENSE360_MODULES.md` context. None of these are presented as current WebFlash products.
+- **Stale WebFlash wrappers / build-matrix entries.** None.
+- **Product YAMLs referencing blocked modules.** Only `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`, which is the `blocked` catalog entry; the LED preview entry carries `blocked_modules: ["FanTRIAC"]` correctly.
+- **PRODUCT-DEP-001 metadata requirements.** Tombstoning requires substantial metadata. No catalog entry is a candidate for `deprecated` / `removed` today.
+- **Validator support for `deprecated` / `removed`.** [`scripts/validate_product_catalog_consistency.py`](../scripts/validate_product_catalog_consistency.py) accepts both as valid statuses but does **not** yet enforce their required-metadata blocks. That enforcement is owned by **PRODUCT-DEP-002** per the backlog in [`docs/product-deprecation-removal-policy.md`](product-deprecation-removal-policy.md#recommended-future-enforcement-not-added-by-product-dep-001). PRODUCT-STALE-001 does not preempt PRODUCT-DEP-002.
+- **Status flips.** None proposed. No catalog entry is a clean candidate for `deprecated` or `removed` today.
+- **YAML / doc deletions.** None. The `legacy-compatible` YAMLs are public-API / remote-package surfaces per the [Public API / remote package risk](#public-api--remote-package-risk) section above, and PRODUCT-DEP-001 still requires explicit per-entry tombstone metadata before deletion.
+- **Historical references.** All retained: COMPAT-001 audit, this cleanup audit, the deprecation/removal policy, the availability taxonomy, the board readiness matrix, legacy YAML comments, and historical CHANGELOG entries.
+- **Current-tense reword candidates.** None remain in scope for PRODUCT-STALE-001. The lingering `docs/ci-pipeline.md` Mini-centric framing is a CLEANUP-002 straggler explicitly listed under [Stale Release-One references](#stale-release-one-references) above and is **deferred** from this PR.
+- **Test strengthening needed.** Yes: three new catalog-level guards (see [Test strengthening](#test-strengthening-product-stale-001) below).
+
+### Test strengthening (PRODUCT-STALE-001)
+
+These guards pin down rules that are already documented in the catalog
+description and in [`docs/product-onboarding.md`](product-onboarding.md)
+but were not directly enforced by the test surface. They are additive —
+the current real catalog passes all of them.
+
+[`tests/test_product_catalog.py`](../tests/test_product_catalog.py):
+
+- `test_legacy_compatible_entries_have_no_config_string` — every
+  `legacy-compatible` entry must omit `config_string`. The WebFlash
+  `config_string` namespace is reserved for WebFlash-shippable entries;
+  legacy-compatible entries use `legacy_config_id` instead.
+- `test_legacy_compatible_entry_notes_call_out_non_webflash` — every
+  `legacy-compatible` entry's `notes` field must contain at least one of
+  the markers `not release-one`, `not webflash`, `manual/custom`, or
+  `manual users` (case-insensitive). Locks the disclaimer wording so a
+  future edit cannot silently drop the "not WebFlash" framing.
+- `test_no_webflash_eligible_entry_uses_forbidden_token` — for every
+  `production` / `preview` catalog entry, every hyphen-separated token
+  of `config_string` must not be in the `forbidden_tokens` list of
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json).
+  Catalog-layer mirror of the build-matrix-level guard in
+  [`tests/validate_webflash_builds.py`](../tests/validate_webflash_builds.py),
+  so a stale alias is caught even if `webflash_build_matrix: false`.
+
+[`scripts/validate_product_catalog_consistency.py`](../scripts/validate_product_catalog_consistency.py):
+
+- `_validate_legacy_compatible` is extended to reject `config_string`
+  presence on any `legacy-compatible` entry.
+- A new cross-cutting `_validate_forbidden_tokens` rule block rejects
+  any catalog entry whose `config_string` contains a token from the
+  compatibility snapshot's `forbidden_tokens` list, regardless of
+  lifecycle status or `webflash_build_matrix` value.
+
+[`tests/test_product_catalog_consistency.py`](../tests/test_product_catalog_consistency.py):
+
+- New `LegacyCompatibleConfigStringRejectionTests` — synthetic-fixture
+  cases for the new `config_string` rejection rule.
+- New `ForbiddenTokenGuardTests` — synthetic-fixture cases for the
+  cross-cutting forbidden-token rule (`Bathroom`, `Comfort`), plus a
+  positive case (`Ceiling-POE-VentIQ-RoomIQ`).
+- New `CurrentCatalogPassesAfterStrengtheningTests` — regression guard
+  asserting the real catalog still passes the strengthened validator.
+
+### Deferrals
+
+PRODUCT-STALE-001 deliberately does **not** roll in the following.
+Each is named for traceability so the next maintainer knows where the
+work lives:
+
+- **`_validate_deprecated` / `_validate_removed` validator rule
+  blocks → PRODUCT-DEP-002.** PRODUCT-DEP-001 explicitly defers the
+  required-metadata enforcement for `deprecated` / `removed` to a
+  scoped follow-up PR. PRODUCT-STALE-001 does not add either rule
+  block. No catalog entry is `deprecated` or `removed` today.
+- **`docs/ci-pipeline.md` Mini-centric framing → CLEANUP-002.**
+  Section 1 / section 2 distinction is in place but the document
+  header (line 3) and the "Mini Board Product Configurations" /
+  "Adding New Mini Board Configs" sections still frame the Mini board
+  as the primary product type. This is documented under
+  [Stale Release-One references](#stale-release-one-references) and
+  [Workflow/CI wording](#workflowci-wording) above; PRODUCT-STALE-001
+  does not edit it.
+- **Stricter `forbidden_tokens` alignment with upstream WebFlash
+  `validate-naming-policy.js` → future scoped PR.** Adding
+  `BathroomAirIQ` / `BathroomAirIQBase` / `BathroomAirIQPro` / `Base`
+  / `Pro` / `AirIQBase` / `AirIQPro` / `AirIQProv` to
+  `config/webflash-compatibility.json` `forbidden_tokens` is a
+  COMPAT-001 follow-up; PRODUCT-STALE-001 does not edit
+  `config/webflash-compatibility.json`.
+- **WebFlash-side stale-data cleanup → WF-STALE-001.** The paired
+  WebFlash repo PR removes stale `REQUIRED_CONFIGS` / kit / manifest /
+  `firmware/sources.json` / wizard-taxonomy references on the
+  WebFlash side. PRODUCT-STALE-001 does not edit anything in the
+  WebFlash repo.
+- **Future machine-readable availability fields → PRODUCT-AVAIL-002.**
+  The candidate field names (`artifact_index_status` /
+  `pin_map_status` / `package_yaml_status` / `product_yaml_status` /
+  `webflash_status` / `availability_notes` / `missing_evidence`) are
+  enumerated in
+  [`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md);
+  PRODUCT-STALE-001 adds none of them to any JSON.
+
+### Out of scope (unchanged by PRODUCT-STALE-001)
+
+PRODUCT-STALE-001 does **not**:
+
+- edit
+  [`config/product-catalog.json`](../config/product-catalog.json),
+  [`config/webflash-builds.json`](../config/webflash-builds.json),
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json),
+  or [`config/hardware-catalog.json`](../config/hardware-catalog.json);
+- edit any product YAML under [`products/`](../products/) or any
+  WebFlash wrapper under [`products/webflash/`](../products/webflash/);
+- edit any package YAML under [`packages/`](../packages/);
+- edit any workflow under `.github/workflows/`, any component under
+  `components/`, any include under `include/`,
+  [`scripts/generate_webflash_release_notes.py`](../scripts/generate_webflash_release_notes.py),
+  or [`scripts/scaffold_product.py`](../scripts/scaffold_product.py);
+- generate, regenerate, sign, import, deploy, or otherwise produce
+  firmware;
+- create, edit, or delete any GitHub Release, tag, or asset;
+- change the Release-One config string `Ceiling-POE-VentIQ-RoomIQ`,
+  its artifact
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, or its tag
+  `v1.0.0`;
+- change the LED preview catalog entry `Ceiling-POE-VentIQ-RoomIQ-LED`
+  (stays `status: preview`, `channel: preview`);
+- unblock FanTRIAC (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays
+  `status: blocked`, `blocker: HW-005`,
+  `webflash_build_matrix: false`);
+- change the mains-voltage compliance status for `S360-320` or
+  `S360-400` (COMPLIANCE-001);
+- flip any catalog entry to `deprecated` or `removed`;
+- delete, rename, restructure, or rewrite any `legacy-compatible`
+  product YAML or any WebFlash wrapper;
+- add a new product YAML, WebFlash wrapper, package YAML,
+  build-matrix entry, or catalog entry;
+- add, remove, or modify any entry in WebFlash-side
+  `REQUIRED_CONFIGS`, `scripts/data/kits.json`,
+  `firmware/sources.json`, or `manifest.json` — those are
+  WebFlash-owned and are not touched by this repo.
+
+Every `legacy-compatible` entry remains `legacy-compatible`; the 30+
+manual / remote-package surfaces stay public-API per the
+[Do-not-delete list](#do-not-delete-list) above.
+
+### Validation run for PRODUCT-STALE-001
+
+The full validator and test surface was re-run after the strengthening.
+All green.
+
+```text
+python3 scripts/validate_product_catalog_consistency.py
+python3 tests/test_product_catalog.py
+python3 tests/test_product_catalog_consistency.py
+python3 tests/validate_webflash_builds.py
+python3 tests/test_webflash_compatibility.py
+python3 tests/test_webflash_artifact_naming.py
+python3 tests/test_validate_webflash_release_notes.py
+python3 tests/test_generate_webflash_release_notes.py
+python3 tests/test_product_substitutions.py
+python3 tests/test_release_one_entity_names.py
+python3 tests/validate_configs.py
+python3 tests/test_hardware_catalog.py
+python3 tests/test_led_package_mapping.py
+python3 tests/test_scaffold_product.py
+```
+
+Sanity grep run from the repo root:
+
+```text
+grep -RIn "AirIQPro\|AirIQBase\|CoreVoice\|Core Voice\|Voice\|voice\|Wall\|wall\|Ceiling-USB\|Ceiling-PWR\|Ceiling-POE-AirIQ\|Ceiling-Voice\|FanTRIAC\|legacy-compatible\|deprecated\|removed\|tombstone\|not WebFlash-shippable\|PRODUCT-STALE-001" config products packages scripts tests docs README.md
+```
+
+Remaining hits after the run are exclusively one of: historical
+references (this cleanup audit, COMPAT-001 audit, deprecation /
+removal policy, availability taxonomy, board readiness matrix),
+legacy-compatible / blocked-reference catalog entries and their YAML
+headers, parser / negative test fixtures, the legacy → WebFlash alias
+table in
+[`docs/webflash-contract.md`](webflash-contract.md) §3, or PRODUCT-STALE-001
+itself. No stale upstream config is presented as current
+WebFlash-shippable; Release-One stays `Ceiling-POE-VentIQ-RoomIQ` on
+`stable`; LED stays `preview`; FanTRIAC stays `blocked` under HW-005;
+no unsupported YAML / build-matrix / release change occurs.
+
+### See also (PRODUCT-STALE-001)
+
+- [`docs/product-deprecation-removal-policy.md`](product-deprecation-removal-policy.md)
+  — PRODUCT-DEP-001 canonical deprecation / removal policy. Owns the
+  `deprecated` / `removed` validator-rule-block backlog
+  (PRODUCT-DEP-002).
+- [`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+  — PRODUCT-AVAIL-001 canonical availability taxonomy. Names
+  `PRODUCT-STALE-001` in its follow-up PR sequence.
+- [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+  — HW-GAP-001 per-board readiness matrix. Names `WF-STALE-001` as
+  the WebFlash-side paired cleanup.
+- [`tests/test_product_catalog.py`](../tests/test_product_catalog.py),
+  [`tests/test_product_catalog_consistency.py`](../tests/test_product_catalog_consistency.py),
+  [`scripts/validate_product_catalog_consistency.py`](../scripts/validate_product_catalog_consistency.py)
+  — the three files this PR strengthens.
+- [`docs/webflash-compatibility-taxonomy-audit.md`](webflash-compatibility-taxonomy-audit.md)
+  — COMPAT-001 audit. Owns the stricter-`forbidden_tokens`-alignment
+  backlog.
