@@ -272,7 +272,10 @@ Status: `needs-silkscreen/bench-verification`. The resolution path is
 physical: confirm which doc matches the silkscreen on the manufactured
 `S360-100-R4` and `S360-200-R4` boards. Until that lands, do not derive
 firmware pin assignments from either pin order. HW-009 does **not**
-edit either reference doc.
+edit either reference doc. The bench-side / manufacturing-side
+companion record for the Core J10 silkscreen observation is
+[**S360-100-BENCH-001**](s360-100-r4-core.md#s360-100-bench-001-status),
+currently `pending — bench/manufacturing evidence required`.
 
 ### VentIQ J9 / `AirQ_Led` / `AirQ_Status_Led`
 
