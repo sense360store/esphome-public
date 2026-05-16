@@ -303,5 +303,238 @@ class ChecklistModeTests(unittest.TestCase):
                 self.assertTrue(ok, f"checklist item failed: {desc}")
 
 
+# ----------------------------------------------------------------------
+# PRODUCT-STALE-001 synthetic-fixture tests
+#
+# These exercise the legacy-compatible ``config_string`` rejection and the
+# cross-cutting forbidden-token guard without touching the real catalog,
+# so the rules stay enforced even when the current repo state happens to
+# pass for unrelated reasons.
+# ----------------------------------------------------------------------
+
+
+def _synthetic_compat() -> Dict[str, Any]:
+    """Minimal compatibility snapshot with the forbidden tokens this guard
+    needs to see. Mirrors the shape of the real
+    ``config/webflash-compatibility.json``."""
+    return {
+        "canonical_mounting": ["Ceiling"],
+        "canonical_power": ["USB", "POE", "PWR"],
+        "canonical_modules": [
+            "AirIQ",
+            "VentIQ",
+            "RoomIQ",
+            "FanRelay",
+            "FanPWM",
+            "FanDAC",
+            "FanTRIAC",
+            "LED",
+        ],
+        "forbidden_tokens": [
+            "Bathroom",
+            "Comfort",
+            "Presence",
+            "Fan",
+            "FanAnalog",
+        ],
+        "release_one_required_configs": ["Ceiling-POE-VentIQ-RoomIQ"],
+    }
+
+
+def _synthetic_hardware() -> Dict[str, Any]:
+    return {"items": []}
+
+
+def _synthetic_builds() -> Dict[str, Any]:
+    return {"builds": []}
+
+
+def _validator_with_synthetic_catalog(
+    catalog: Dict[str, Any],
+    builds: Dict[str, Any] = None,
+    compat: Dict[str, Any] = None,
+    hardware: Dict[str, Any] = None,
+) -> ProductCatalogConsistencyValidator:
+    """Build a validator pre-populated with synthetic data; skips
+    file-system loading. This is the test-only injection pattern, kept
+    inside the test module so the validator itself stays read-only and
+    free of CLI overrides."""
+    v = ProductCatalogConsistencyValidator()
+    v.catalog = catalog
+    v.builds_doc = builds if builds is not None else _synthetic_builds()
+    v.compat = compat if compat is not None else _synthetic_compat()
+    v.hardware_doc = (
+        hardware if hardware is not None else _synthetic_hardware()
+    )
+    v._loaded = True  # noqa: SLF001
+    return v
+
+
+class LegacyCompatibleConfigStringRejectionTests(unittest.TestCase):
+    """PRODUCT-STALE-001: ``legacy-compatible`` entries must not declare a
+    WebFlash ``config_string``."""
+
+    def test_legacy_compatible_with_config_string_fails(self) -> None:
+        # A legacy-compatible entry that wrongly claims a WebFlash
+        # config_string would otherwise look like a candidate for
+        # WebFlash exposure. The validator must reject it.
+        catalog = {
+            "products": [
+                {
+                    "config_string": "Ceiling-POE-VentIQ-RoomIQ",
+                    "legacy_config_id": "sense360-core-c-poe",
+                    "status": "legacy-compatible",
+                    "product_yaml": "products/sense360-core-c-poe.yaml",
+                    "webflash_build_matrix": False,
+                    "notes": (
+                        "Pre-WebFlash Core ceiling-mount PoE YAML; "
+                        "retained for manual/custom users. "
+                        "Not Release-One WebFlash firmware."
+                    ),
+                }
+            ]
+        }
+        v = _validator_with_synthetic_catalog(catalog)
+        v.validate_all()
+        self.assertTrue(
+            any(
+                "legacy-compatible entry must not have config_string" in e
+                for e in v.errors
+            ),
+            f"expected config_string rejection error, got: {v.errors}",
+        )
+
+    def test_legacy_compatible_without_config_string_passes_rule(self) -> None:
+        # Positive case: a well-formed legacy-compatible entry (no
+        # config_string, no artifact_name, no webflash_wrapper) does not
+        # trigger the new rule. Other rules (path existence) are not the
+        # subject of this test; we only assert the config_string rejection
+        # error is not present.
+        catalog = {
+            "products": [
+                {
+                    "legacy_config_id": "sense360-core-c-poe",
+                    "status": "legacy-compatible",
+                    "product_yaml": "products/sense360-core-c-poe.yaml",
+                    "webflash_build_matrix": False,
+                    "notes": (
+                        "Pre-WebFlash Core ceiling-mount PoE YAML; "
+                        "retained for manual/custom users. "
+                        "Not Release-One WebFlash firmware."
+                    ),
+                }
+            ]
+        }
+        v = _validator_with_synthetic_catalog(catalog)
+        v.validate_all()
+        self.assertFalse(
+            any(
+                "legacy-compatible entry must not have config_string" in e
+                for e in v.errors
+            ),
+            f"unexpected config_string rejection error: {v.errors}",
+        )
+
+
+class ForbiddenTokenGuardTests(unittest.TestCase):
+    """PRODUCT-STALE-001: the catalog-level forbidden-token guard rejects
+    any ``config_string`` containing a token from the compatibility
+    snapshot's ``forbidden_tokens`` list, regardless of lifecycle status
+    or ``webflash_build_matrix`` value."""
+
+    def test_preview_entry_with_forbidden_token_fails(self) -> None:
+        # ``Bathroom`` is a forbidden alias for ``VentIQ``; a preview entry
+        # carrying it must be rejected at the catalog layer so a future
+        # build-matrix promotion cannot leak the alias.
+        catalog = {
+            "products": [
+                {
+                    "config_string": "Ceiling-POE-Bathroom",
+                    "status": "preview",
+                    "product_yaml": "products/sense360-some-preview.yaml",
+                    "hardware_status": "verified-candidate",
+                    "webflash_build_matrix": False,
+                    "channel": "preview",
+                }
+            ]
+        }
+        v = _validator_with_synthetic_catalog(catalog)
+        v.validate_all()
+        self.assertTrue(
+            any("forbidden token 'Bathroom'" in e for e in v.errors),
+            f"expected forbidden-token rejection, got: {v.errors}",
+        )
+
+    def test_production_entry_with_forbidden_token_fails(self) -> None:
+        # A production entry must also fail. ``Comfort`` is a legacy alias
+        # for ``RoomIQ``.
+        catalog = {
+            "products": [
+                {
+                    "config_string": "Ceiling-POE-Comfort",
+                    "status": "production",
+                    "product_yaml": "products/sense360-some-prod.yaml",
+                    "webflash_wrapper": (
+                        "products/webflash/ceiling-poe-comfort.yaml"
+                    ),
+                    "artifact_name": (
+                        "Sense360-Ceiling-POE-Comfort-v1.0.0-stable.bin"
+                    ),
+                    "version": "1.0.0",
+                    "channel": "stable",
+                    "hardware_status": "verified",
+                    "webflash_build_matrix": True,
+                    "modules": {"mount": "Ceiling"},
+                    "hardware": {"core": "S360-100"},
+                }
+            ]
+        }
+        v = _validator_with_synthetic_catalog(catalog)
+        v.validate_all()
+        self.assertTrue(
+            any("forbidden token 'Comfort'" in e for e in v.errors),
+            f"expected forbidden-token rejection, got: {v.errors}",
+        )
+
+    def test_clean_config_string_does_not_trigger_token_guard(self) -> None:
+        # Positive case: a canonical config_string never trips the
+        # forbidden-token guard, even if other rules fail.
+        catalog = {
+            "products": [
+                {
+                    "config_string": "Ceiling-POE-VentIQ-RoomIQ",
+                    "status": "preview",
+                    "product_yaml": "products/sense360-some-preview.yaml",
+                    "hardware_status": "verified",
+                    "webflash_build_matrix": False,
+                    "channel": "preview",
+                }
+            ]
+        }
+        v = _validator_with_synthetic_catalog(catalog)
+        v.validate_all()
+        self.assertFalse(
+            any("forbidden token" in e for e in v.errors),
+            f"unexpected forbidden-token error: {v.errors}",
+        )
+
+
+class CurrentCatalogPassesAfterStrengtheningTests(unittest.TestCase):
+    """Regression guard: the current real repo state still passes the
+    strengthened validator with zero errors."""
+
+    def test_real_catalog_passes_with_zero_errors(self) -> None:
+        v = ProductCatalogConsistencyValidator()
+        self.assertTrue(v.load(), "validator failed to load real catalog")
+        total, _failed = v.validate_all()
+        self.assertGreater(total, 0)
+        self.assertEqual(
+            v.errors,
+            [],
+            "real catalog must remain clean after PRODUCT-STALE-001 "
+            "strengthening; got errors:\n  - " + "\n  - ".join(v.errors),
+        )
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

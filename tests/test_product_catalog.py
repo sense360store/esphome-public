@@ -36,9 +36,20 @@ from typing import Any, Dict, List
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CATALOG_PATH = REPO_ROOT / "config" / "product-catalog.json"
 BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
+COMPAT_PATH = REPO_ROOT / "config" / "webflash-compatibility.json"
 PRODUCTS_DIR = REPO_ROOT / "products"
 WEBFLASH_WRAPPER_DIR = PRODUCTS_DIR / "webflash"
 EXCLUDED_TOP_LEVEL_YAMLS = {"secrets.yaml"}
+
+# Substrings that mark a ``legacy-compatible`` entry's ``notes`` field as
+# explicitly non-WebFlash / non-Release-One / manual. Matched case-insensitively
+# (PRODUCT-STALE-001 wording guard).
+LEGACY_NOTES_REQUIRED_MARKERS = (
+    "not release-one",
+    "not webflash",
+    "manual/custom",
+    "manual users",
+)
 
 EXPECTED_LIFECYCLE_STATUSES = [
     "production",
@@ -80,6 +91,10 @@ def _load_catalog() -> Dict[str, Any]:
 
 def _load_builds() -> Dict[str, Any]:
     return json.loads(BUILDS_PATH.read_text())
+
+
+def _load_compat() -> Dict[str, Any]:
+    return json.loads(COMPAT_PATH.read_text())
 
 
 def _products(catalog: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -126,8 +141,12 @@ class ProductCatalogTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.catalog = _load_catalog()
         cls.builds_doc = _load_builds()
+        cls.compat = _load_compat()
         cls.products = _products(cls.catalog)
         cls.builds = cls.builds_doc.get("builds", [])
+        cls.forbidden_tokens = frozenset(
+            cls.compat.get("forbidden_tokens", []) or []
+        )
 
     # ----- Top-level shape -------------------------------------------------
 
@@ -395,6 +414,80 @@ class ProductCatalogTests(unittest.TestCase):
                     "legacy-compatible entries must not have artifact_name; "
                     "they are not WebFlash-shippable",
                 )
+
+    def test_legacy_compatible_entries_have_no_config_string(self) -> None:
+        # PRODUCT-STALE-001: the WebFlash config_string namespace is reserved
+        # for WebFlash-shippable entries; legacy-compatible entries must use
+        # legacy_config_id instead. Catalog description spells this out.
+        for idx, entry in enumerate(self.products):
+            if entry.get("status") != "legacy-compatible":
+                continue
+            with self.subTest(idx=idx, entry=entry):
+                self.assertNotIn(
+                    "config_string",
+                    entry,
+                    "legacy-compatible entries must not have config_string; "
+                    "use legacy_config_id (the WebFlash config_string "
+                    "namespace is reserved for WebFlash-shippable entries)",
+                )
+
+    def test_legacy_compatible_entry_notes_call_out_non_webflash(self) -> None:
+        # PRODUCT-STALE-001: every legacy-compatible note must explicitly
+        # signal that the entry is non-WebFlash / non-Release-One / manual so
+        # the disclaimer cannot be silently edited away.
+        for idx, entry in enumerate(self.products):
+            if entry.get("status") != "legacy-compatible":
+                continue
+            with self.subTest(idx=idx, entry=entry):
+                notes = entry.get("notes", "")
+                self.assertIsInstance(
+                    notes,
+                    str,
+                    "legacy-compatible entry must have a notes string",
+                )
+                self.assertNotEqual(
+                    notes,
+                    "",
+                    "legacy-compatible entry notes must not be empty",
+                )
+                lowered = notes.lower()
+                self.assertTrue(
+                    any(
+                        marker in lowered
+                        for marker in LEGACY_NOTES_REQUIRED_MARKERS
+                    ),
+                    "legacy-compatible entry notes must call out "
+                    "non-WebFlash / non-Release-One / manual status; "
+                    f"got {notes!r} (expected one of "
+                    f"{list(LEGACY_NOTES_REQUIRED_MARKERS)})",
+                )
+
+    def test_no_webflash_eligible_entry_uses_forbidden_token(self) -> None:
+        # PRODUCT-STALE-001: catalog-layer mirror of the build-matrix-level
+        # forbidden-token guard in tests/validate_webflash_builds.py. Catches
+        # a stale alias (Bathroom / Comfort / Presence / Fan / FanAnalog)
+        # leaking into a production or preview entry even before the
+        # webflash_build_matrix flag is flipped.
+        if not self.forbidden_tokens:
+            self.skipTest(
+                "no forbidden_tokens declared in webflash-compatibility.json"
+            )
+        for idx, entry in enumerate(self.products):
+            if entry.get("status") not in WEBFLASH_ELIGIBLE_STATUSES:
+                continue
+            cs = entry.get("config_string")
+            if not isinstance(cs, str) or not cs:
+                continue
+            for token in cs.split("-"):
+                with self.subTest(idx=idx, config_string=cs, token=token):
+                    self.assertNotIn(
+                        token,
+                        self.forbidden_tokens,
+                        f"production/preview catalog entry {cs!r} contains "
+                        f"forbidden token {token!r}; see "
+                        "config/webflash-compatibility.json forbidden_tokens "
+                        "and docs/webflash-contract.md",
+                    )
 
     def test_blocked_entries_have_no_artifact_name(self) -> None:
         for idx, entry in enumerate(self.products):
