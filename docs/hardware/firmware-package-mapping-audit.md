@@ -694,6 +694,10 @@ After HW-009 lands, these greps should hold:
   images / raw vendor ZIPs). Defines the per-board artifact index
   schema whose `package_yaml_status` field mirrors this audit's
   six-label classification taxonomy.
+  — HW-ASSETS-001 commit / exclude rules for hardware artifacts and the
+  per-board curated-index pattern under
+  [`docs/hardware/artifacts/`](artifacts/) (HW-ASSETS-002 lands the first
+  per-board index for `S360-100-R4`).
 - [`docs/release-one-hardware-audit.md`](../release-one-hardware-audit.md)
   — Release-One firmware-vs-schematic audit, the FanTRIAC HW-005
   resolution, the Sense360 LED policy, and the Required follow-ups
