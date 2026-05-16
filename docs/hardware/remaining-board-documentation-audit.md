@@ -271,11 +271,18 @@ committed; this audit does **not** upgrade it to `documented` and does
   `TachIO` is the ESP32 `IO16` passthrough. The SX1509 channel map is in
   [`packages/expansions/gpio_expander_sx1509.yaml`](../../packages/expansions/gpio_expander_sx1509.yaml).
   Firmware-side, [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml)
-  is the PWM-fan driver.
-- **Evidence missing.** No `S360-311` schematic is committed. The
-  1-to-13 pin order on J6 is explicitly **verify** on the Core sheet. The
-  module-side circuitry (fan power switch, tach pull-up, level shifting)
-  is not in this repo.
+  is the PWM-fan driver. **Module-side schematic now committed under
+  HW-ASSETS-003** at [`docs/hardware/schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf),
+  with curated artifact index at
+  [`docs/hardware/artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md).
+- **Evidence missing.** Standalone schematic-backed reference doc
+  (pending `HW-PINMAP-311`). The 1-to-13 pin order on Core J6 remains
+  explicitly **verify** against silkscreen; the module-side `J3`
+  additionally labels pins 11 / 12 as `UART_RX` / `UART_TX` not yet
+  reconciled against the Core J6 capture (see the new artifact index).
+  Catalog `schematic_status` for `S360-311` is unchanged
+  (`cataloged_unverified`); promotion to `verified` is owed to a
+  separate JSON PR after `HW-PINMAP-311` resolves.
 
 ### Sense360 DAC (`S360-312`)
 
@@ -284,10 +291,20 @@ committed; this audit does **not** upgrade it to `documented` and does
   `+5V`, `I2C_SDA`, `I2C_SCL`, `UART_RX`, `UART_TX`, `GND`. UART0 at
   ESP32 `TXD0` / `RXD0` and the shared I²C bus reach this connector.
   Firmware-side, [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml)
-  is the 0–10 V analog-fan driver.
-- **Evidence missing.** No `S360-312` schematic is committed. The
-  module-side GP8403 circuit (DAC, 0–10 V output stage, isolation if any)
-  is not in this repo.
+  is the 0–10 V analog-fan driver. **Module-side schematic now
+  committed under HW-ASSETS-003** at
+  [`docs/hardware/schematics/S360-312-R4.pdf`](schematics/S360-312-R4.pdf),
+  with curated artifact index at
+  [`docs/hardware/artifacts/S360-312-R4.md`](artifacts/S360-312-R4.md).
+- **Evidence missing.** Standalone schematic-backed reference doc
+  (pending `HW-PINMAP-312`). The module-side `J1` capture labels
+  pin 1 as `+3.3V`, conflicting with the Core J7 capture's `+5V` —
+  the voltage-rail discrepancy is flagged in the new artifact index
+  and owed to `HW-PINMAP-312`. The board also carries **two** GP8403
+  DACs (`IC1` / `IC2`) on a shared I²C bus with operator-selectable
+  addresses, broader than the singular catalog description; broadening
+  the catalog row is a separate later PR. Catalog `schematic_status`
+  for `S360-312` is unchanged (`cataloged_unverified`).
 
 ### Sense360 TRIAC (`S360-320`)
 
@@ -298,17 +315,33 @@ committed; this audit does **not** upgrade it to `documented` and does
   re-verification) is in
   [`release-one-hardware-audit.md#fantriac-mapping-resolution`](../release-one-hardware-audit.md#fantriac-mapping-resolution).
   Firmware-side, [`packages/expansions/fan_triac.yaml`](../../packages/expansions/fan_triac.yaml)
-  carries an explicit BLOCKED / UNVERIFIED banner.
-- **Evidence missing.** No `S360-320` schematic is committed. The source
-  ESP32 pins (or rejection of the direct-ESP32 path in favour of an
-  on-board controller IC) for `TRI_GPIO1` / `TRI_GPIO2` are unverified.
-  The SX1509 channel map does not assign any channel to TRIAC and, per
-  the timing analysis in the audit, **cannot** be the answer for an
-  `ac_dimmer`-based driver. **This module stays blocked under HW-005;
-  this audit does not change that status. Mains-voltage compliance is
-  additionally tracked in
+  carries an explicit BLOCKED / UNVERIFIED banner. **Module-side
+  schematic now committed under HW-ASSETS-003** at
+  [`docs/hardware/schematics/S360-320-R4.pdf`](schematics/S360-320-R4.pdf),
+  with curated artifact index at
+  [`docs/hardware/artifacts/S360-320-R4.md`](artifacts/S360-320-R4.md).
+  The module-side `J3` labels the same physical pins as `+3V3` /
+  `ESP_GPIO1` / `ESP_GPIO2` / `GND` (naming reconciliation owed to
+  `HW-PINMAP-320`) and uses discrete `MOC3023M` + `BT136` + `EL814`
+  with no on-board controller IC — eliminating Option (b) (a
+  replacement non-`ac_dimmer` driver targeting an on-board controller)
+  from the HW-005 missing-evidence checklist for this revision.
+- **Evidence missing.** Standalone schematic-backed reference doc
+  (pending `HW-PINMAP-320`). The source ESP32 pins (Option (a):
+  end-to-end direct interrupt-capable ESP32 GPIOs traced through
+  `S360-100-R4` + `S360-320`) for `TRI_GPIO1` / `TRI_GPIO2` /
+  `ESP_GPIO1` / `ESP_GPIO2` remain unverified — the Core-side trace
+  still routes via SX1509, which the timing analysis rejects. KiCad
+  PCB source, Gerbers, and BOM are also not in this upload; all three
+  are COMPLIANCE-001-adjacent (trace creepage / clearance / component
+  voltage ratings). **This module stays blocked under HW-005;
+  committing the schematic PDF and the artifact index does not change
+  that status. Mains-voltage compliance is additionally tracked in
   [`../compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md)
-  (COMPLIANCE-001); HW-005 remains a separate, prior blocker.**
+  (COMPLIANCE-001); HW-005 remains a separate, prior blocker; neither
+  blocker is cleared by this audit or by HW-ASSETS-003.** Catalog
+  `schematic_status` for `S360-320` is unchanged
+  (`cataloged_unverified`).
 
 ### Sense360 240v PSU (`S360-400`)
 

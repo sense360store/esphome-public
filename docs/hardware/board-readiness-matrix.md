@@ -153,9 +153,9 @@ evidence (file paths and line numbers) for every cell.
 | `S360-211` | Sense360 VentIQ (bathroom air-quality) | `verified` | `done` | `missing` (HW-ASSETS-005 deferred) | `documented` | `confirmed-ok` (legacy filename `airiq_bathroom_base.yaml` retained per [`webflash-contract.md`](../webflash-contract.md) §6) |
 | `S360-300` | Sense360 LED (WS2812B ring) | `verified` | `done` | `missing` (HW-ASSETS-006 deferred) | `documented`, `not-needed-for-release-one` | `confirmed-ok` for `led_ring_ceiling.yaml` (HW-010); `led_ring_wall.yaml` and `sense360_core_ceiling_s3.yaml` remain unresolved |
 | `S360-310` | Sense360 Relay (on/off relay for fans) | `cataloged_unverified` | `missing` | `missing` | `partially-documented`, `not-needed-for-release-one` (Core J4 captured) | `package-yaml-pending` ([`fan_relay.yaml`](../../packages/expansions/fan_relay.yaml) exists; not reconciled against module-side schematic) |
-| `S360-311` | Sense360 PWM (12V PWM fan driver) | `cataloged_unverified` | `missing` | `missing` | `partially-documented`, `not-needed-for-release-one` (Core J6 captured; pin-order **verify**) | `package-yaml-pending` ([`fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml) exists; not reconciled against module-side schematic) |
-| `S360-312` | Sense360 DAC (0–10 V analog fan driver) | `cataloged_unverified` | `missing` | `missing` | `partially-documented`, `not-needed-for-release-one` (Core J7 fully captured) | `package-yaml-pending` ([`fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) exists; not reconciled against module-side schematic) |
-| `S360-320` | Sense360 TRIAC (phase-cut mains dimmer) | `cataloged_unverified` | `blocked` (HW-005) | `blocked` (HW-005) | `blocked` (HW-005), `compliance-gated` (COMPLIANCE-001) | `blocked` ([`fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) retained as blocked / reference; `GPIO5` / `GPIO6` placeholders collide with RoomIQ J10 nets) |
+| `S360-311` | Sense360 PWM (12V PWM fan driver) | `cataloged_unverified` | `done` (HW-ASSETS-003; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003) | `partially-documented`, `not-needed-for-release-one` (Core J6 captured; pin-order **verify**; new module-side `J3` pin-11 / pin-12 `UART_RX` / `UART_TX` reconciliation owed to `HW-PINMAP-311`) | `package-yaml-pending` ([`fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml) exists; not reconciled against module-side schematic) |
+| `S360-312` | Sense360 DAC (0–10 V analog fan driver) | `cataloged_unverified` | `done` (HW-ASSETS-003; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003) | `partially-documented`, `not-needed-for-release-one` (Core J7 fully captured; new module-side `J1` pin-1 `+3.3V` vs Core J7 pin-1 `+5V` rail discrepancy owed to `HW-PINMAP-312`) | `package-yaml-pending` ([`fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) exists; not reconciled against module-side schematic) |
+| `S360-320` | Sense360 TRIAC (phase-cut mains dimmer) | `cataloged_unverified` | `done` (HW-ASSETS-003; **does not unblock HW-005 or clear COMPLIANCE-001**; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003; **does not unblock HW-005 or clear COMPLIANCE-001**) | `blocked` (HW-005), `compliance-gated` (COMPLIANCE-001) | `blocked` ([`fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) retained as blocked / reference; `GPIO5` / `GPIO6` placeholders collide with RoomIQ J10 nets) |
 | `S360-400` | Sense360 240v PSU (HLK-5M05 mains PSU) | `cataloged_unverified` | `missing`, `compliance-gated` | `missing` | `not applicable` (off-board) / `cataloged-unverified`, `compliance-gated` | `package-yaml-pending` ([`power_240v.yaml`](../../packages/hardware/power_240v.yaml) is a logical-power package; no GPIO binding) |
 | `S360-410` | Sense360 PoE PSU (802.3af PoE → 5 V) | `cataloged_unverified` | `missing` (Release-One caveat preserved) | `missing` | `partially-documented` (Core J2 captured; module-side schematic pending; HW-002 OQ#6 open) | `confirmed-ok` (logical-only [`power_poe.yaml`](../../packages/hardware/power_poe.yaml) emits diagnostic sensors; no GPIO binding) |
 
@@ -350,14 +350,22 @@ rather than restate them.
 - **Role.** 12V PWM fan driver, up to 4 fans with tach feedback.
 - **Hardware evidence.** Catalog row at
   [`config/hardware-catalog.json`](../../config/hardware-catalog.json)
-  lines 72–80; `schematic_status: cataloged_unverified`. **No
-  module-side schematic** committed. **No standalone reference doc.**
-  **No artifact index.** Core-side J6 13-pin connector capture
+  lines 72–80; `schematic_status: cataloged_unverified` (unchanged
+  after HW-ASSETS-003). **Module-side schematic now committed under
+  HW-ASSETS-003** at
+  [`docs/hardware/schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf);
+  **artifact index now committed** at
+  [`docs/hardware/artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md).
+  **Still no standalone reference doc** (pending `HW-PINMAP-311`).
+  Core-side J6 13-pin connector capture
   (`+5V` / `GND` / `TachIO` / `TachPMW1..4` / `Pul_Cou1..4`) lives in
   [`s360-100-r4-core.md#j6--12-v-pwm-fan-connector-13-pin`](s360-100-r4-core.md#j6--12-v-pwm-fan-connector-13-pin)
   with the 1-to-13 pin order explicitly marked **verify** against the
-  silkscreen. `TachPMW*` / `Pul_Cou*` are driven by the SX1509 expander
-  (see
+  silkscreen. The new module-side `J3` capture additionally labels
+  pin 11 / 12 as `UART_RX` / `UART_TX` (routed on-board to a Nextion
+  display connector); reconciliation against the Core J6 capture is
+  owed to `HW-PINMAP-311` per the new artifact index. `TachPMW*` /
+  `Pul_Cou*` are driven by the SX1509 expander (see
   [`packages/expansions/gpio_expander_sx1509.yaml`](../../packages/expansions/gpio_expander_sx1509.yaml));
   `TachIO` is ESP32 `IO16` direct.
 - **Package YAML.** [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml).
@@ -376,12 +384,22 @@ rather than restate them.
 - **Role.** 0–10 V analog fan driver (GP8403), for example Cloudlift S12.
 - **Hardware evidence.** Catalog row at
   [`config/hardware-catalog.json`](../../config/hardware-catalog.json)
-  lines 82–90; `schematic_status: cataloged_unverified`. **No
-  module-side schematic** committed. **No standalone reference doc.**
-  **No artifact index.** Core-side J7 6-pin connector capture (`+5V` /
+  lines 82–90; `schematic_status: cataloged_unverified` (unchanged
+  after HW-ASSETS-003). **Module-side schematic now committed under
+  HW-ASSETS-003** at
+  [`docs/hardware/schematics/S360-312-R4.pdf`](schematics/S360-312-R4.pdf);
+  **artifact index now committed** at
+  [`docs/hardware/artifacts/S360-312-R4.md`](artifacts/S360-312-R4.md).
+  **Still no standalone reference doc** (pending `HW-PINMAP-312`).
+  Core-side J7 6-pin connector capture (`+5V` /
   `I2C_SDA` / `I2C_SCL` / `UART_RX` / `UART_TX` / `GND`; no `verify`
   flag) lives in
   [`s360-100-r4-core.md#j7--gp8403-fan-connector-6-pin`](s360-100-r4-core.md#j7--gp8403-fan-connector-6-pin).
+  The new module-side `J1` capture labels pin 1 as `+3.3V` rather than
+  `+5V` and shows **two** GP8403 DACs (`IC1` / `IC2`) on a shared I²C
+  bus driving two Cloudlift-style 3-pin outputs; both the voltage-rail
+  discrepancy and the dual-DAC capacity are flagged in the new
+  artifact index and owed to `HW-PINMAP-312`.
 - **Package YAML.** [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml).
   `package-yaml-pending` against the missing module-side schematic.
 - **Productization.** No active product. WebFlash taxonomy enforces
@@ -399,12 +417,18 @@ rather than restate them.
 ### `S360-320` Sense360 TRIAC
 
 - **Role.** Phase-cut TRIAC dimmer for mains fan / lamp loads. **Stays
-  blocked.**
+  blocked under HW-005 + COMPLIANCE-001.**
 - **Hardware evidence.** Catalog row at
   [`config/hardware-catalog.json`](../../config/hardware-catalog.json)
-  lines 92–100; `schematic_status: cataloged_unverified`. **No
-  module-side schematic** committed. **No standalone reference doc.**
-  **No artifact index.** Core-side J15 4-pin connector capture
+  lines 92–100; `schematic_status: cataloged_unverified` (unchanged
+  after HW-ASSETS-003). **Module-side schematic now committed under
+  HW-ASSETS-003** at
+  [`docs/hardware/schematics/S360-320-R4.pdf`](schematics/S360-320-R4.pdf);
+  **artifact index now committed** at
+  [`docs/hardware/artifacts/S360-320-R4.md`](artifacts/S360-320-R4.md).
+  **Committing the schematic and the artifact index does not unblock
+  HW-005 or clear COMPLIANCE-001.** **Still no standalone reference
+  doc** (pending `HW-PINMAP-320`). Core-side J15 4-pin connector capture
   (`+3.3V` / `TRI_GPIO1` / `TRI_GPIO2` / `GND`) lives in
   [`s360-100-r4-core.md#j15--triac-fan-module-connector-4-pin`](s360-100-r4-core.md#j15--triac-fan-module-connector-4-pin).
   `TRI_GPIO1` / `TRI_GPIO2` source pins are **not visible as direct
@@ -412,8 +436,14 @@ rather than restate them.
   expander (U3), which the ESPHome `ac_dimmer` driver cannot use per
   the timing analysis in
   [`release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander`](../release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander).
-  HW-004 / HW-008 classification: `blocked`,
-  `not-needed-for-release-one`.
+  The new module-side `J3` capture labels the same physical pins as
+  `+3V3` / `ESP_GPIO1` / `ESP_GPIO2` / `GND` (naming reconciliation
+  owed to `HW-PINMAP-320`) and shows discrete `MOC3023M` + `BT136` +
+  `EL814` with no on-board controller IC — eliminating Option (b) from
+  the HW-005 missing-evidence checklist for this revision, while
+  Option (a) (end-to-end direct ESP32 GPIOs through Core `J15`)
+  remains required and unmet. **HW-004 / HW-008 classification stays
+  `blocked`, `not-needed-for-release-one`.**
 - **Package YAML.** [`packages/expansions/fan_triac.yaml`](../../packages/expansions/fan_triac.yaml)
   is retained as a **blocked / reference** package; HW-009 row
   `blocked`. Placeholder `fan_triac_gate_pin: GPIO5` and

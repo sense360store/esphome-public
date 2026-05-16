@@ -430,9 +430,22 @@ Schematic evidence:
   Core sheet appear only at the SX1509 (U3) side.
 - `s360-100-r4-core.md` Open Question #1 (lines 358–361): TRIAC source
   pins not visible as direct ESP32 GPIOs.
-- `S360-320` schematic: **not committed**;
-  `config/hardware-catalog.json` records `S360-320` →
-  `schematic_status: cataloged_unverified`.
+- `S360-320` schematic: **module-side PDF committed under HW-ASSETS-003**
+  at [`docs/hardware/schematics/S360-320-R4.pdf`](../hardware/schematics/S360-320-R4.pdf)
+  (curated index at
+  [`docs/hardware/artifacts/S360-320-R4.md`](../hardware/artifacts/S360-320-R4.md));
+  `config/hardware-catalog.json` still records `S360-320` →
+  `schematic_status: cataloged_unverified` (HW-ASSETS-003 deliberately
+  does **not** flip the JSON status; promotion is owed to a separate
+  PR after `HW-PINMAP-320` resolves, and is additionally gated by HW-005
+  unblock and COMPLIANCE-001 clearance). The module-side schematic
+  shows discrete `MOC3023M` + `BT136` + `EL814` with no on-board
+  controller IC; this eliminates Option (b) from the HW-005
+  missing-evidence checklist for this revision but does **not** unblock
+  HW-005 — Option (a) (direct interrupt-capable ESP32 GPIOs traced
+  end-to-end through `S360-100-R4` + `S360-320`) remains required and
+  unmet because the Core-side `TRI_GPIO1` / `TRI_GPIO2` nets still
+  route via the SX1509.
 
 Driver constraint:
 
