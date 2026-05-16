@@ -140,7 +140,12 @@ committed; this audit does **not** upgrade it to `documented` and does
   among `IO39 / IO40 / IO41 / IO42`, the 1-to-N pin order on `J6` (13 pins)
   and `J10` (12 pins), and the `R5`/`R6` divider value. The open-questions
   list at [`s360-100-r4-core.md#open-questions--verification-needed`](s360-100-r4-core.md#open-questions--verification-needed)
-  enumerates all of them.
+  enumerates all of them. The bench-side / manufacturing-side companion
+  record where any future real-hardware observation against these
+  `verify` flags (plus BOM / CPL / Gerber / STEP manufacturing-artifact
+  review against the artifacts inventoried in [`artifacts/S360-100-R4.md`](artifacts/S360-100-R4.md))
+  is captured is [**S360-100-BENCH-001**](s360-100-r4-core.md#s360-100-bench-001-status),
+  currently `pending — bench/manufacturing evidence required`.
 
 ### Sense360 RoomIQ (`S360-200`)
 

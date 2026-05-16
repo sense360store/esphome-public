@@ -163,7 +163,7 @@ evidence (file paths and line numbers) for every cell.
 
 | Board | Product YAML usage | WebFlash wrapper | Build matrix | Release artifact | WebFlash manifest / import | Bench / operator proof | Current classification | Blockers / open questions |
 |---|---|---|---|---|---|---|---|---|
-| `S360-100` | Release-One (`production`) + LED preview (`preview`) + 30+ `legacy-compatible` Core variants | `done` (`ceiling-poe-ventiq-roomiq.yaml`, `ceiling-poe-ventiq-roomiq-led.yaml`) plus blocked `ceiling-poe-ventiq-fantriac-roomiq.yaml` | `done` (`stable` + `preview`) | `done` (Release-One stable bin; LED preview bin) | `webflash-imported` (Release-One); `webflash-imported` for LED preview (WF-LED-001 / WF-LED-002 / WF-LED-003 / WF-DEPLOY-001 per [`webflash-release-proof.md`](../webflash-release-proof.md)) | `done` for Release-One (REL-001); `partial` for LED preview (operator flash proof outstanding) | `hardware-evidenced / productized / WebFlash-used` | J6 vs J10 pin-order (silkscreen verify); `AirQ_Led` / `AirQ_Status_Led` reuse (HW-002 OQ#4); systemic Core abstract-bus rebind (owned by [`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups)) |
+| `S360-100` | Release-One (`production`) + LED preview (`preview`) + 30+ `legacy-compatible` Core variants | `done` (`ceiling-poe-ventiq-roomiq.yaml`, `ceiling-poe-ventiq-roomiq-led.yaml`) plus blocked `ceiling-poe-ventiq-fantriac-roomiq.yaml` | `done` (`stable` + `preview`) | `done` (Release-One stable bin; LED preview bin) | `webflash-imported` (Release-One); `webflash-imported` for LED preview (WF-LED-001 / WF-LED-002 / WF-LED-003 / WF-DEPLOY-001 per [`webflash-release-proof.md`](../webflash-release-proof.md)) | `done` for Release-One firmware (REL-001); `partial` for LED preview firmware (operator flash proof outstanding); Core board bench / manufacturing review tracked as [**S360-100-BENCH-001**](s360-100-r4-core.md#s360-100-bench-001-status) `pending — bench/manufacturing evidence required` | `hardware-evidenced / productized / WebFlash-used` | J6 vs J10 pin-order (silkscreen verify); `IO10` net label; `IO39`–`IO42` ↔ TPx mapping; J2 PoE harness identity; `AirQ_Led` / `AirQ_Status_Led` reuse (HW-002 OQ#4); BOM / CPL / Gerber / STEP manufacturing-artifact review — all tracked under [S360-100-BENCH-001](s360-100-r4-core.md#s360-100-bench-001-status); systemic Core abstract-bus rebind (owned by [`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups)) |
 | `S360-200` | Release-One (`production`) + LED preview (`preview`) + legacy-compatible | `done` (same wrappers as Core) | `done` (`stable` + `preview`) | `done` (same artifacts as Core) | `webflash-imported` (Release-One); `webflash-imported` for LED preview | `done` for Release-One; `partial` for LED preview | `hardware-evidenced / productized / WebFlash-used` | Core J10 vs RoomIQ J6 pin-order discrepancy (`needs-silkscreen/bench-verification`); `AirQ_Led` reuse |
 | `S360-210` | `none` active; legacy-compatible AirIQ Core / Mini paths only | `none` | `none` | `none` | `none` (`firmware-missing` for any AirIQ-bearing config) | `not applicable` | `hardware-evidenced / firmware-missing` (mutex with VentIQ enforced by [`config/webflash-compatibility.json`](../../config/webflash-compatibility.json) `rules.airiq_and_ventiq_mutually_exclusive: true`) | No active product YAML consumes AirIQ; `AirQ_Led` / `AirQ_Status_Led` reuse (HW-002 OQ#4); any AirIQ-bearing config requires its own catalog entry + build-matrix entry + onboarding-gate clearance |
 | `S360-211` | Release-One (`production`) + LED preview (`preview`) + 6 legacy-compatible bathroom variants | `done` (same wrappers as Core) | `done` (`stable` + `preview`) | `done` (same artifacts as Core) | `webflash-imported` (Release-One); `webflash-imported` for LED preview | `done` for Release-One; `partial` for LED preview | `hardware-evidenced / productized / WebFlash-used` | `AirQ_Led` / `AirQ_Status_Led` reuse (HW-002 OQ#4); on-board fan-relay drive-signal source (future fan-driver audit); on-board relay mains-side compliance tracked under COMPLIANCE-001 |
@@ -213,7 +213,12 @@ rather than restate them.
   [`s360-100-r4-core.md#open-questions--verification-needed`](s360-100-r4-core.md#open-questions--verification-needed)
   (J6 / J10 pin-order, `IO10` net label, `IO39`–`IO42` ↔ TP mapping, J2
   PoE harness identity, `AirQ_Led` / `AirQ_Status_Led` reuse, FanTRIAC
-  GPIO mapping). HW-GAP-001 does not resolve any of them.
+  GPIO mapping). The bench-side / manufacturing-side companion record
+  is [**S360-100-BENCH-001**](s360-100-r4-core.md#s360-100-bench-001-status),
+  currently `pending — bench/manufacturing evidence required` (no
+  operator, no review date, no observed board / connector / silkscreen
+  / harness / rail values, and no BOM / CPL / Gerber / STEP review
+  findings supplied). HW-GAP-001 does not resolve any of these.
 
 ### `S360-200` Sense360 RoomIQ
 
@@ -763,6 +768,17 @@ them must use a separate, scoped PR with its own gate evidence.
   [S360-300-BENCH-001](s360-300-r4-led.md#s360-300-bench-001-status)
   remains `pending — bench hardware evidence required` (no operator,
   no date, no observed values supplied).
+- The `S360-100` Core schematic-side Open Questions in
+  [`s360-100-r4-core.md`](s360-100-r4-core.md#open-questions--verification-needed)
+  (J6 / J10 silkscreen pin order, `IO10` net label, `IO39`–`IO42` ↔ TP
+  mapping, J2 PoE harness identity, `AirQ_Led` / `AirQ_Status_Led`
+  reuse) are **preserved**; the bench-side / manufacturing-side
+  tracking record
+  [S360-100-BENCH-001](s360-100-r4-core.md#s360-100-bench-001-status)
+  remains `pending — bench/manufacturing evidence required` (no
+  operator, no review date, no observed board / connector / silkscreen
+  / harness / rail values, and no BOM / CPL / Gerber / STEP review
+  findings supplied).
 - Every `legacy-compatible` entry stays `legacy-compatible` and
   remains out of the WebFlash build matrix.
 - No entry is added to or removed from WebFlash-side
