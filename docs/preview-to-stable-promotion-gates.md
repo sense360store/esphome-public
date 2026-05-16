@@ -80,7 +80,7 @@ sequence.
 | 7 | WebFlash import complete | WebFlash-side ingest of the preview `.bin`; sidecar metadata generated; build entered into `firmware/sources.json`; signed firmware produced | WebFlash | **done** — per WF-LED-001 / WF-LED-002 |
 | 8 | Live preview deploy current | WebFlash production `manifest.json` / `firmware-N.json` regenerated; deployment refreshed to GitHub Pages; post-deploy smoke green; `__tests__/github-pages-surface.test.js` aware of the preview entry | WebFlash | **done** — manifest-only exposure per WF-LED-003; WF-DEPLOY-001 fixed deployment drift |
 | 9 | Real WebFlash flash proof recorded | Operator-proof container filled: a human flashed a real device via WebFlash; device booted; Improv / Wi-Fi handoff completed; sensors and the LED ring report sanely; rescue path verified | WebFlash | **pending** — WF-HW-TEST-001 operator-proof container exists but has not been filled by an operator |
-| 10 | Hardware bench verification | Module-side Open Questions in the hardware reference doc are closed or explicitly accepted. For LED: harness rail (`J1` pin 2 `+5V` vs `+3.3V`), LED chain count, harness identity (direct mate vs cable) per [`docs/hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md#open-questions--verification-needed) | esphome-public | **pending** — three S360-300 Open Questions remain `verify` |
+| 10 | Hardware bench verification | Module-side Open Questions in the hardware reference doc are closed or explicitly accepted. For LED: harness rail (`J1` pin 2 `+5V` vs `+3.3V`), LED chain count, harness identity (direct mate vs cable) per [`docs/hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md#open-questions--verification-needed); bench-side observations recorded against the tracking record **S360-300-BENCH-001** in [`docs/hardware/s360-300-r4-led.md`](hardware/s360-300-r4-led.md#s360-300-bench-001-status) | esphome-public | **pending** — S360-300-BENCH-001 status is `pending — bench hardware evidence required`; three Open Questions remain `verify`, observed LED ring behaviour not recorded |
 | 11 | Stable-ready release notes | [`scripts/generate_webflash_release_notes.py`](../scripts/generate_webflash_release_notes.py) output for the target `(config_string, version, channel=stable)`; `## Changelog` replaced with a human-authored, user-visible summary; [`scripts/validate-webflash-release-notes.py`](../scripts/validate-webflash-release-notes.py) accepts the body on `stable` (filler text rejected) | esphome-public | **pending** — no `channel=stable` draft generated yet |
 | 12 | Production catalog promotion | [`config/product-catalog.json`](../config/product-catalog.json) entry flipped to `status: production`, `channel: stable`; per-field updates listed in [Required catalog changes](#required-catalog-changes); [`scripts/validate_product_catalog_consistency.py`](../scripts/validate_product_catalog_consistency.py) passes | esphome-public | **pending** |
 | 13 | Stable build artifact | Plain semantic tag (`vX.Y.Z`, no suffix) published; [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml) builds the stable `.bin`; `Attach to Release` gates pass; assets attached | esphome-public | **pending** |
@@ -403,6 +403,13 @@ row is implied done by any other row.
   - harness identity (direct mate vs cable).
   Each must close (silkscreen / scope / measurement evidence
   committed) or be explicitly accepted with a written rationale.
+  Bench-side observations are tracked in
+  [**S360-300-BENCH-001**](hardware/s360-300-r4-led.md#s360-300-bench-001-status),
+  which today is `pending — bench hardware evidence required` (no
+  operator, no date, no observed values supplied; observed LED ring
+  behaviour also not recorded). The bench record can only flip away
+  from `pending` when real evidence is committed — implicit
+  acceptance is not allowed.
 - **Row 11 — Stable-ready release notes.** No `channel=stable`
   release-notes draft has been generated for
   `Ceiling-POE-VentIQ-RoomIQ-LED`. The generator currently emits
