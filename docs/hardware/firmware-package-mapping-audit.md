@@ -688,6 +688,12 @@ After HW-009 lands, these greps should hold:
 - [`docs/hardware/remaining-board-documentation-audit.md`](remaining-board-documentation-audit.md)
   — HW-004 / HW-006 per-board documentation-state classification, plus
   HW-007 schematic ingest and HW-008 JSON refresh subsections.
+- [`docs/hardware/hardware-artifact-policy.md`](hardware-artifact-policy.md)
+  — HW-ASSETS-001 canonical policy for hardware source / manufacturing
+  artifacts (schematic PDF / KiCad / BOM / CPL / Gerbers / STEP /
+  images / raw vendor ZIPs). Defines the per-board artifact index
+  schema whose `package_yaml_status` field mirrors this audit's
+  six-label classification taxonomy.
 - [`docs/release-one-hardware-audit.md`](../release-one-hardware-audit.md)
   — Release-One firmware-vs-schematic audit, the FanTRIAC HW-005
   resolution, the Sense360 LED policy, and the Required follow-ups

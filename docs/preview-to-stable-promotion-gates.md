@@ -720,6 +720,12 @@ non-FanTRIAC variant does not advance the FanTRIAC unblock.
 - [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)
   — per-board documentation-state classification (HW-004 / HW-006 /
   HW-008).
+- [`docs/hardware/hardware-artifact-policy.md`](hardware/hardware-artifact-policy.md)
+  — HW-ASSETS-001 canonical policy for hardware source / manufacturing
+  artifacts. Defines the per-board artifact index whose
+  `webflash_status` field is sourced from the product catalog and
+  whose finished-board inventory feeds the hardware-evidence side of
+  the gate-summary table in this document.
 - [`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)
   — COMPLIANCE-001 mains-voltage UK / EU compliance tracker.
 - [`docs/cleanup-audit.md`](cleanup-audit.md) — classification of
