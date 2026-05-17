@@ -249,7 +249,7 @@ done
 
 ```bash
 # 1. Install dependencies
-pip install pyyaml yamllint esphome==2025.3.0
+pip install pyyaml yamllint esphome==2026.4.5
 
 # 2. Create test secrets
 cat > secrets.yaml << 'EOF'
@@ -338,7 +338,7 @@ ERROR: Could not fetch external component from branch 'main'
 ### CI Passes but Local Fails (or vice versa)
 
 Common causes:
-- **Different ESPHome version:** CI uses `ESPHOME_VERSION: "2025.3.0"`
+- **Different ESPHome version:** CI uses `ESPHOME_VERSION: "2026.4.5"`
 - **Missing secrets.yaml:** Copy the tracked template to a local file —
   `cp secrets.example.yaml secrets.yaml`. CI writes its own placeholder
   `secrets.yaml` at runtime, so the tracked template is not used by CI.
@@ -381,7 +381,7 @@ When adding a new mini board product configuration:
 
 | Setting | Value |
 |---------|-------|
-| ESPHome Version | 2025.3.0 |
+| ESPHome Version | 2026.4.5 |
 | Python Version | 3.11 |
 | Runner | ubuntu-latest |
 | Cache | PlatformIO (~/.platformio) |
