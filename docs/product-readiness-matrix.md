@@ -927,6 +927,15 @@ No match outside of those trees is expected.
 
 ## See also
 
+- [`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md)
+  — WEBFLASH-GAP-001 WebFlash-layer exposure readiness gate.
+  Downstream from this matrix: classifies per-family WebFlash
+  exposure (wrapper / catalog / build-matrix / release / import) for
+  the same FanRelay / FanPWM / FanDAC / FanTRIAC / PWR-240V /
+  PoE-410 candidate families, and names the per-family follow-up
+  PRs (`WEBFLASH-RELAY-001`, `WEBFLASH-PWM-001`, `WEBFLASH-DAC-001`,
+  `WF-TRIAC-001`, `WEBFLASH-POWER-400-001`, `WEBFLASH-POE-410-001`).
+  Documentation only.
 - [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
   — PACKAGE-GAP-001 package-level readiness gate. Source of truth
   for the "Package readiness" column on every candidate row in
