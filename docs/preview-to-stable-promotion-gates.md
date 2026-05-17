@@ -686,7 +686,18 @@ path under HW-005 — a separate hardware-evidence chain (committed
 direct interrupt-capable ESP32 GPIOs, a verified non-`ac_dimmer`
 driver path or an accepted alternative), plus mains-voltage
 compliance review per COMPLIANCE-001. Stable promotion of any
-non-FanTRIAC variant does not advance the FanTRIAC unblock.
+non-FanTRIAC variant does not advance the FanTRIAC unblock. The
+HW-PINMAP-320 schematic-backed audit doc has landed at
+[`docs/hardware/s360-320-r4-triac.md`](hardware/s360-320-r4-triac.md)
+with **status: `partial — schematic evidence available; package
+reconciliation, timing validation, and compliance/certification
+pending`**, records the intended advanced / manual-warning
+long-term product posture for FanTRIAC (visible / selectable,
+buildable after package evidence, installable only through an
+advanced / manual-warning path; **not** Release-One, **not**
+REQUIRED_CONFIGS, **not** recommended, **not** kit / default,
+**not** compliance-certified), and explicitly does **not** advance
+any RELEASE-006 row, unblock HW-005, or clear COMPLIANCE-001.
 
 ## See also
 
