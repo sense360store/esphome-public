@@ -40,13 +40,24 @@ class EntityTracker:
     def extract_entities(self, file_path: Path):
         """Extract entity definitions from a YAML file."""
         try:
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 content = f.read()
-                lines = content.split('\n')
+                lines = content.split("\n")
 
             # Look for entity platforms
-            platforms = ['sensor', 'binary_sensor', 'switch', 'button', 'text_sensor',
-                        'number', 'select', 'light', 'fan', 'climate', 'cover']
+            platforms = [
+                "sensor",
+                "binary_sensor",
+                "switch",
+                "button",
+                "text_sensor",
+                "number",
+                "select",
+                "light",
+                "fan",
+                "climate",
+                "cover",
+            ]
 
             current_platform = None
             current_line_num = 0
@@ -54,7 +65,7 @@ class EntityTracker:
             for line_num, line in enumerate(lines, 1):
                 # Check if this is a platform definition
                 for platform in platforms:
-                    if re.match(rf'^{platform}:', line):
+                    if re.match(rf"^{platform}:", line):
                         current_platform = platform
                         break
 
@@ -67,31 +78,35 @@ class EntityTracker:
                     platform_type = None
                     # Look backwards for platform: line
                     for prev_line_num in range(line_num - 1, max(0, line_num - 10), -1):
-                        platform_match = re.match(r'\s+platform:\s*(\w+)', lines[prev_line_num - 1])
+                        platform_match = re.match(
+                            r"\s+platform:\s*(\w+)", lines[prev_line_num - 1]
+                        )
                         if platform_match:
                             platform_type = platform_match.group(1)
                             break
 
-                    self.entities[entity_name].append((
-                        file_path,
-                        current_platform,
-                        platform_type or 'unknown',
-                        line_num
-                    ))
+                    self.entities[entity_name].append(
+                        (
+                            file_path,
+                            current_platform,
+                            platform_type or "unknown",
+                            line_num,
+                        )
+                    )
 
         except Exception as e:
             print(f"Warning: Could not parse {file_path}: {e}")
 
     def scan_all_files(self):
         """Scan all YAML files in the repository."""
-        dirs = ['products', 'packages', 'base', 'features', 'hardware']
+        dirs = ["products", "packages", "base", "features", "hardware"]
 
         for dir_name in dirs:
             dir_path = self.repo_root / dir_name
             if not dir_path.exists():
                 continue
 
-            for yaml_file in dir_path.rglob('*.yaml'):
+            for yaml_file in dir_path.rglob("*.yaml"):
                 self.extract_entities(yaml_file)
 
     def find_duplicates(self) -> Dict[str, List[Tuple[Path, str, str, int]]]:
@@ -132,7 +147,9 @@ class EntityTracker:
         # Special check for restart buttons/switches
         print("\n🔍 Specific Issues Found:\n")
 
-        restart_entities = [name for name in duplicates.keys() if 'restart' in name.lower()]
+        restart_entities = [
+            name for name in duplicates.keys() if "restart" in name.lower()
+        ]
         if restart_entities:
             print("1. RESTART ENTITY CONFLICTS:")
             print("   The following restart entities have duplicates:")
@@ -142,7 +159,9 @@ class EntityTracker:
                 print(f"   - '{name}' defined as: {', '.join(platforms_used)}")
 
             print("\n   FIX: Remove duplicate restart definitions.")
-            print("   Hardware configs (sense360_core_*.yaml) already define button.restart.")
+            print(
+                "   Hardware configs (sense360_core_*.yaml) already define button.restart."
+            )
             print("   Remove switch.restart from device_health.yaml")
             print("   Remove redundant button.restart from product configs.")
 

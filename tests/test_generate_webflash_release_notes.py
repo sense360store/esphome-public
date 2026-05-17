@@ -56,9 +56,7 @@ val = _load_module("validate_webflash_release_notes", VALIDATOR_SCRIPT)
 RELEASE_ONE_CONFIG_STRING = "Ceiling-POE-VentIQ-RoomIQ"
 RELEASE_ONE_VERSION = "1.0.0"
 RELEASE_ONE_CHANNEL = "stable"
-RELEASE_ONE_ARTIFACT = (
-    "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin"
-)
+RELEASE_ONE_ARTIFACT = "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin"
 RELEASE_ONE_SKUS = ("S360-100", "S360-211", "S360-200", "S360-410")
 FANTRIAC_BLOCKED_CONFIG = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
 LEGACY_CONFIG_ID = "sense360-poe"
@@ -66,9 +64,7 @@ LEGACY_CONFIG_ID = "sense360-poe"
 LED_PREVIEW_CONFIG_STRING = "Ceiling-POE-VentIQ-RoomIQ-LED"
 LED_PREVIEW_VERSION = "1.0.0"
 LED_PREVIEW_CHANNEL = "preview"
-LED_PREVIEW_ARTIFACT = (
-    "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin"
-)
+LED_PREVIEW_ARTIFACT = "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin"
 LED_PREVIEW_SKUS = (
     "S360-100",
     "S360-211",
@@ -116,9 +112,7 @@ class ReleaseOneGenerationTests(unittest.TestCase):
     def test_generated_output_passes_validator(self) -> None:
         body = _generate_release_one()
         errors = val.validate_body(body, channel=RELEASE_ONE_CHANNEL)
-        self.assertEqual(
-            errors, [], f"validator errors: {errors}\nbody:\n{body}"
-        )
+        self.assertEqual(errors, [], f"validator errors: {errors}\nbody:\n{body}")
 
     def test_output_contains_config_string(self) -> None:
         body = _generate_release_one()
@@ -131,9 +125,7 @@ class ReleaseOneGenerationTests(unittest.TestCase):
     def test_output_contains_hardware_skus(self) -> None:
         body = _generate_release_one()
         for sku in RELEASE_ONE_SKUS:
-            self.assertIn(
-                sku, body, f"missing SKU {sku} in body:\n{body}"
-            )
+            self.assertIn(sku, body, f"missing SKU {sku} in body:\n{body}")
 
 
 # ----------------------------------------------------------------------
@@ -171,9 +163,7 @@ class FanTRIACAndLEDExclusionTests(unittest.TestCase):
     def test_fantriac_known_issue_references_hw_005(self) -> None:
         body = _generate_release_one()
         known_issues = _section_bullets(body, "Known Issues")
-        fantriac_bullet = next(
-            (b for b in known_issues if "FanTRIAC" in b), None
-        )
+        fantriac_bullet = next((b for b in known_issues if "FanTRIAC" in b), None)
         self.assertIsNotNone(fantriac_bullet)
         self.assertIn("HW-005", fantriac_bullet or "")
 
@@ -213,9 +203,7 @@ class LedPreviewGenerationTests(unittest.TestCase):
     def test_generated_output_passes_validator(self) -> None:
         body = _generate_led_preview()
         errors = val.validate_body(body, channel=LED_PREVIEW_CHANNEL)
-        self.assertEqual(
-            errors, [], f"validator errors: {errors}\nbody:\n{body}"
-        )
+        self.assertEqual(errors, [], f"validator errors: {errors}\nbody:\n{body}")
 
     def test_output_contains_config_string(self) -> None:
         body = _generate_led_preview()
@@ -228,9 +216,7 @@ class LedPreviewGenerationTests(unittest.TestCase):
     def test_output_contains_all_hardware_skus_including_led(self) -> None:
         body = _generate_led_preview()
         for sku in LED_PREVIEW_SKUS:
-            self.assertIn(
-                sku, body, f"missing SKU {sku} in body:\n{body}"
-            )
+            self.assertIn(sku, body, f"missing SKU {sku} in body:\n{body}")
 
     def test_led_is_feature_not_known_issue_for_led_preview(self) -> None:
         body = _generate_led_preview()
@@ -242,8 +228,7 @@ class LedPreviewGenerationTests(unittest.TestCase):
         )
         self.assertFalse(
             any("LED" in b for b in known_issues),
-            f"LED must not appear in Known Issues for LED preview: "
-            f"{known_issues}",
+            f"LED must not appear in Known Issues for LED preview: " f"{known_issues}",
         )
 
     def test_led_appears_in_hardware_requirements_for_led_preview(self) -> None:
@@ -261,18 +246,15 @@ class LedPreviewGenerationTests(unittest.TestCase):
         features = _section_bullets(body, "Features")
         self.assertTrue(
             any("FanTRIAC" in b for b in known_issues),
-            f"FanTRIAC missing from Known Issues for LED preview: "
-            f"{known_issues}",
+            f"FanTRIAC missing from Known Issues for LED preview: " f"{known_issues}",
         )
         self.assertTrue(
             any("HW-005" in b for b in known_issues),
-            f"FanTRIAC Known-Issues bullet must reference HW-005: "
-            f"{known_issues}",
+            f"FanTRIAC Known-Issues bullet must reference HW-005: " f"{known_issues}",
         )
         self.assertFalse(
             any("FanTRIAC" in b for b in features),
-            f"FanTRIAC must not appear in Features for LED preview: "
-            f"{features}",
+            f"FanTRIAC must not appear in Features for LED preview: " f"{features}",
         )
 
     def test_stable_channel_refused_for_led_preview(self) -> None:
@@ -296,9 +278,7 @@ class RefusalTests(unittest.TestCase):
 
     def test_refuses_legacy_compatible_product(self) -> None:
         with self.assertRaises(gen.GeneratorError) as ctx:
-            _generate_release_one(
-                config_string=LEGACY_CONFIG_ID, channel="stable"
-            )
+            _generate_release_one(config_string=LEGACY_CONFIG_ID, channel="stable")
         self.assertIn("legacy", str(ctx.exception).lower())
 
     def test_refuses_unknown_config_string(self) -> None:
@@ -334,8 +314,7 @@ class StableRequiresProductionTests(unittest.TestCase):
                             "product_yaml": "products/x.yaml",
                             "webflash_wrapper": "products/webflash/x.yaml",
                             "artifact_name": (
-                                "Sense360-Ceiling-USB-AirIQ-"
-                                "v0.9.0-preview.bin"
+                                "Sense360-Ceiling-USB-AirIQ-" "v0.9.0-preview.bin"
                             ),
                             "webflash_build_matrix": True,
                             "modules": {"mount": "Ceiling"},
@@ -358,8 +337,7 @@ class StableRequiresProductionTests(unittest.TestCase):
                             "features": ["Preview AirIQ feature"],
                             "hardware_requirements": ["Sense360 Core"],
                             "artifact_name": (
-                                "Sense360-Ceiling-USB-AirIQ-"
-                                "v0.9.0-preview.bin"
+                                "Sense360-Ceiling-USB-AirIQ-" "v0.9.0-preview.bin"
                             ),
                         }
                     ]
@@ -411,9 +389,7 @@ class StableRequiresProductionTests(unittest.TestCase):
 
 class CustomChangelogTests(unittest.TestCase):
     def test_custom_changelog_text_appears_in_output(self) -> None:
-        body = _generate_release_one(
-            changelog="Real change one\nReal change two"
-        )
+        body = _generate_release_one(changelog="Real change one\nReal change two")
         bullets = _section_bullets(body, "Changelog")
         self.assertIn("Real change one", bullets)
         self.assertIn("Real change two", bullets)
@@ -457,9 +433,7 @@ class CustomChangelogTests(unittest.TestCase):
 
     def test_changelog_and_changelog_file_are_mutually_exclusive(self) -> None:
         with self.assertRaises(gen.GeneratorError):
-            _generate_release_one(
-                changelog="x", changelog_file=Path("/tmp/no")
-            )
+            _generate_release_one(changelog="x", changelog_file=Path("/tmp/no"))
 
 
 # ----------------------------------------------------------------------
@@ -473,16 +447,18 @@ class OutputFileTests(unittest.TestCase):
             out = Path(d) / "notes.md"
             rc = gen.main(
                 [
-                    "--config-string", RELEASE_ONE_CONFIG_STRING,
-                    "--version", RELEASE_ONE_VERSION,
-                    "--channel", RELEASE_ONE_CHANNEL,
-                    "--output", str(out),
+                    "--config-string",
+                    RELEASE_ONE_CONFIG_STRING,
+                    "--version",
+                    RELEASE_ONE_VERSION,
+                    "--channel",
+                    RELEASE_ONE_CHANNEL,
+                    "--output",
+                    str(out),
                 ]
             )
             self.assertEqual(rc, 0)
-            self.assertTrue(
-                out.is_file(), f"{out} should have been written"
-            )
+            self.assertTrue(out.is_file(), f"{out} should have been written")
             content = out.read_text(encoding="utf-8")
             self.assertIn("## Changelog", content)
             self.assertIn("## Known Issues", content)
@@ -502,16 +478,18 @@ class ValidateFlagTests(unittest.TestCase):
             out = Path(d) / "notes.md"
             rc = gen.main(
                 [
-                    "--config-string", RELEASE_ONE_CONFIG_STRING,
-                    "--version", RELEASE_ONE_VERSION,
-                    "--channel", RELEASE_ONE_CHANNEL,
-                    "--output", str(out),
+                    "--config-string",
+                    RELEASE_ONE_CONFIG_STRING,
+                    "--version",
+                    RELEASE_ONE_VERSION,
+                    "--channel",
+                    RELEASE_ONE_CHANNEL,
+                    "--output",
+                    str(out),
                     "--validate",
                 ]
             )
-            self.assertEqual(
-                rc, 0, "expected --validate to return 0 on Release-One"
-            )
+            self.assertEqual(rc, 0, "expected --validate to return 0 on Release-One")
 
 
 if __name__ == "__main__":

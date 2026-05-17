@@ -143,9 +143,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             continue
         size = path.stat().st_size
         if size < args.min_size_bytes:
-            errors.append(
-                f"{name} too small: {size} bytes < min {args.min_size_bytes}"
-            )
+            errors.append(f"{name} too small: {size} bytes < min {args.min_size_bytes}")
             continue
         checked.append(f"{name} ({size} bytes)")
 

@@ -64,7 +64,9 @@ class ConfigValidator:
                 return False
 
             # Check if this uses packages pattern (package-based composition)
-            uses_packages = "packages" in config and isinstance(config.get("packages"), dict)
+            uses_packages = "packages" in config and isinstance(
+                config.get("packages"), dict
+            )
 
             # For package-based configs, esphome section may be in a package
             if not uses_packages:
@@ -72,9 +74,7 @@ class ConfigValidator:
                 required_keys = ["substitutions", "esphome"]
                 for key in required_keys:
                     if key not in config:
-                        self.errors.append(
-                            f"{file_path}: Missing required key '{key}'"
-                        )
+                        self.errors.append(f"{file_path}: Missing required key '{key}'")
                         return False
 
             # Validate substitutions if present
@@ -100,9 +100,7 @@ class ConfigValidator:
             if "esphome" in config:
                 esphome = config["esphome"]
                 if not isinstance(esphome, dict):
-                    self.errors.append(
-                        f"{file_path}: 'esphome' must be a dictionary"
-                    )
+                    self.errors.append(f"{file_path}: 'esphome' must be a dictionary")
                     return False
 
                 if "name" not in esphome:
@@ -157,7 +155,15 @@ class ConfigValidator:
 
     def validate_all_configs(self) -> Tuple[int, int]:
         """Validate all configuration files in the repository."""
-        config_dirs = ["products", "packages", "base", "features", "hardware", "tests", "examples"]
+        config_dirs = [
+            "products",
+            "packages",
+            "base",
+            "features",
+            "hardware",
+            "tests",
+            "examples",
+        ]
         total_files = 0
         failed_files = 0
 
@@ -166,9 +172,7 @@ class ConfigValidator:
             if not dir_path.exists():
                 continue
 
-            yaml_files = list(dir_path.rglob("*.yaml")) + list(
-                dir_path.rglob("*.yml")
-            )
+            yaml_files = list(dir_path.rglob("*.yaml")) + list(dir_path.rglob("*.yml"))
 
             for yaml_file in yaml_files:
                 total_files += 1

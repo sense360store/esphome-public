@@ -102,9 +102,7 @@ def validate_body(body: str, channel: str = "stable") -> List[str]:
 
     for section in NON_EMPTY_SECTIONS:
         if section in sections and not sections[section]:
-            errors.append(
-                f"Section ## {section} must contain at least one bullet"
-            )
+            errors.append(f"Section ## {section} must contain at least one bullet")
 
     if channel == "stable" and sections.get("Changelog"):
         non_filler = [b for b in sections["Changelog"] if not _is_filler(b)]

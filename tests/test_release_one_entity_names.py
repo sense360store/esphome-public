@@ -75,10 +75,8 @@ yaml.add_multi_constructor("!include_dir_", _esphome_tag, Loader=yaml.SafeLoader
 
 def _render_name(raw_name: str) -> str:
     """Substitute ``${friendly_name}`` with a fixed placeholder for comparison."""
-    return (
-        raw_name
-        .replace("${friendly_name}", FRIENDLY_NAME_PLACEHOLDER)
-        .replace("$friendly_name", FRIENDLY_NAME_PLACEHOLDER)
+    return raw_name.replace("${friendly_name}", FRIENDLY_NAME_PLACEHOLDER).replace(
+        "$friendly_name", FRIENDLY_NAME_PLACEHOLDER
     )
 
 

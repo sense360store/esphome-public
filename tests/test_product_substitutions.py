@@ -67,7 +67,9 @@ def _esphome_tag_constructor(loader, node):
 
 for tag in ("!secret", "!include", "!extend", "!lambda", "!remove"):
     yaml.add_constructor(tag, _esphome_tag_constructor, Loader=yaml.SafeLoader)
-yaml.add_multi_constructor("!include_dir_", _esphome_tag_constructor, Loader=yaml.SafeLoader)
+yaml.add_multi_constructor(
+    "!include_dir_", _esphome_tag_constructor, Loader=yaml.SafeLoader
+)
 
 
 def _discover_products():
@@ -223,7 +225,9 @@ def main():
         print(f"No product YAMLs found under {PRODUCTS_DIR}", file=sys.stderr)
         return 1
 
-    print(f"Preflight check on {len(files)} product YAMLs under {PRODUCTS_DIR.relative_to(REPO_ROOT)}/")
+    print(
+        f"Preflight check on {len(files)} product YAMLs under {PRODUCTS_DIR.relative_to(REPO_ROOT)}/"
+    )
     checker = Checker()
     for path in files:
         checker.check_file(path)

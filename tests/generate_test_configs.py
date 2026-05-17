@@ -82,7 +82,9 @@ class ModuleType(Enum):
     COMFORT_W = ("comfort_wall", FormFactor.WALL, "comfort")
     PRESENCE_W = ("presence_wall", FormFactor.WALL, "presence")
 
-    def __init__(self, package_name: str, form_factor: Optional[FormFactor], category: str):
+    def __init__(
+        self, package_name: str, form_factor: Optional[FormFactor], category: str
+    ):
         self.package_name = package_name
         self.form_factor = form_factor
         self.category = category
@@ -91,6 +93,7 @@ class ModuleType(Enum):
 @dataclass
 class TestConfig:
     """Represents a single test configuration."""
+
     name: str
     core: CoreType
     power: PowerType
@@ -116,7 +119,7 @@ class TestConfig:
             f"# Modules: {', '.join(m.name for m in self.modules) or 'None'}",
             "",
             "substitutions:",
-            f'  device_name: test-{self.get_config_name()[:20]}',
+            f"  device_name: test-{self.get_config_name()[:20]}",
             f'  friendly_name: "Test {self.get_config_name()[:30]}"',
             '  timezone: "America/New_York"',
             '  api_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="',
@@ -127,17 +130,21 @@ class TestConfig:
         # Check if fan_pwm module is present
         has_fan_pwm = any(mod.category == "fan_pwm" for mod in self.modules)
         if has_fan_pwm:
-            lines.extend([
-                '  fan_pwm_pin: "${expansion_gpio1}"  # GPIO5',
-                '  fan_tach_pin: "${expansion_gpio2}"  # GPIO6',
-            ])
+            lines.extend(
+                [
+                    '  fan_pwm_pin: "${expansion_gpio1}"  # GPIO5',
+                    '  fan_tach_pin: "${expansion_gpio2}"  # GPIO6',
+                ]
+            )
 
         # Check if fan_gp8403 module is present - ceiling uses different I2C bus name
         has_fan_gp8403 = any(mod.category == "fan_gp8403" for mod in self.modules)
         if has_fan_gp8403 and self.core.form_factor == FormFactor.CEILING:
-            lines.extend([
-                '  fan_dac_i2c_id: expansion_i2c  # Ceiling uses expansion_i2c instead of i2c0',
-            ])
+            lines.extend(
+                [
+                    "  fan_dac_i2c_id: expansion_i2c  # Ceiling uses expansion_i2c instead of i2c0",
+                ]
+            )
 
         # Check if presence module is included (requires ld2412/ld24xx local components)
         has_presence = any(mod.category == "presence" for mod in self.modules)
@@ -149,48 +156,56 @@ class TestConfig:
         # IMPORTANT: external_components must come BEFORE packages for valid YAML
         # NOTE: ld2450 is native to ESPHome 2025.3.0+, no external component needed
         if has_presence:
-            lines.extend([
-                "",
-                "# External components (ld2412/ld24xx radar)",
-                "# NOTE: ld2450 is native to ESPHome 2025.3.0+, no external component needed",
-                "external_components:",
-                "  # LD2412/LD24xx from local components",
-                "  - source:",
-                "      type: local",
-                "      path: ../../components",
-                "    components: [ld2412, ld24xx]",
-            ])
+            lines.extend(
+                [
+                    "",
+                    "# External components (ld2412/ld24xx radar)",
+                    "# NOTE: ld2450 is native to ESPHome 2025.3.0+, no external component needed",
+                    "external_components:",
+                    "  # LD2412/LD24xx from local components",
+                    "  - source:",
+                    "      type: local",
+                    "      path: ../../components",
+                    "    components: [ld2412, ld24xx]",
+                ]
+            )
 
-        lines.extend([
-            "",
-            "packages:",
-            "  # Base system components",
-            "  base_wifi: !include ../../packages/base/wifi.yaml",
-            "  base_logging: !include ../../packages/base/logging.yaml",
-            "  base_api: !include ../../packages/base/api_encrypted.yaml",
-            "  base_ota: !include ../../packages/base/ota.yaml",
-            "  base_time: !include ../../packages/base/time.yaml",
-            "",
-            "  # Core hardware",
-            f"  core_hardware: !include ../../packages/hardware/{self.core.package_name}.yaml",
-            "",
-            "  # Power module",
-            f"  power_module: !include ../../packages/hardware/{self.power.value}.yaml",
-        ])
+        lines.extend(
+            [
+                "",
+                "packages:",
+                "  # Base system components",
+                "  base_wifi: !include ../../packages/base/wifi.yaml",
+                "  base_logging: !include ../../packages/base/logging.yaml",
+                "  base_api: !include ../../packages/base/api_encrypted.yaml",
+                "  base_ota: !include ../../packages/base/ota.yaml",
+                "  base_time: !include ../../packages/base/time.yaml",
+                "",
+                "  # Core hardware",
+                f"  core_hardware: !include ../../packages/hardware/{self.core.package_name}.yaml",
+                "",
+                "  # Power module",
+                f"  power_module: !include ../../packages/hardware/{self.power.value}.yaml",
+            ]
+        )
 
         # Add LED package if present
         if self.led != LEDType.NONE:
-            lines.extend([
-                "",
-                "  # LED module",
-                f"  led_module: !include ../../packages/hardware/{self.led.value}.yaml",
-            ])
+            lines.extend(
+                [
+                    "",
+                    "  # LED module",
+                    f"  led_module: !include ../../packages/hardware/{self.led.value}.yaml",
+                ]
+            )
 
         # Add expansion modules
         if self.modules:
             lines.extend(["", "  # Expansion modules"])
             for i, mod in enumerate(self.modules):
-                lines.append(f"  module_{mod.category}: !include ../../packages/expansions/{mod.package_name}.yaml")
+                lines.append(
+                    f"  module_{mod.category}: !include ../../packages/expansions/{mod.package_name}.yaml"
+                )
 
         lines.append("")
         return "\n".join(lines)
@@ -207,21 +222,44 @@ class ConfigGenerator:
         # Empty (no modules)
         set(),
         # Single modules
-        {"comfort"}, {"presence"}, {"fan_pwm"}, {"fan_gp8403"}, {"airiq"}, {"bathroom"},
+        {"comfort"},
+        {"presence"},
+        {"fan_pwm"},
+        {"fan_gp8403"},
+        {"airiq"},
+        {"bathroom"},
         # Two-module builds
-        {"comfort", "presence"}, {"comfort", "fan_pwm"}, {"comfort", "fan_gp8403"},
-        {"presence", "fan_pwm"}, {"presence", "fan_gp8403"},
-        {"airiq", "comfort"}, {"airiq", "presence"}, {"airiq", "fan_pwm"}, {"airiq", "fan_gp8403"},
-        {"bathroom", "comfort"}, {"bathroom", "presence"}, {"bathroom", "fan_pwm"}, {"bathroom", "fan_gp8403"},
+        {"comfort", "presence"},
+        {"comfort", "fan_pwm"},
+        {"comfort", "fan_gp8403"},
+        {"presence", "fan_pwm"},
+        {"presence", "fan_gp8403"},
+        {"airiq", "comfort"},
+        {"airiq", "presence"},
+        {"airiq", "fan_pwm"},
+        {"airiq", "fan_gp8403"},
+        {"bathroom", "comfort"},
+        {"bathroom", "presence"},
+        {"bathroom", "fan_pwm"},
+        {"bathroom", "fan_gp8403"},
         # Three-module builds
-        {"comfort", "presence", "fan_pwm"}, {"comfort", "presence", "fan_gp8403"},
-        {"airiq", "comfort", "presence"}, {"airiq", "comfort", "fan_pwm"}, {"airiq", "comfort", "fan_gp8403"},
-        {"airiq", "presence", "fan_pwm"}, {"airiq", "presence", "fan_gp8403"},
-        {"bathroom", "comfort", "presence"}, {"bathroom", "comfort", "fan_pwm"}, {"bathroom", "comfort", "fan_gp8403"},
-        {"bathroom", "presence", "fan_pwm"}, {"bathroom", "presence", "fan_gp8403"},
+        {"comfort", "presence", "fan_pwm"},
+        {"comfort", "presence", "fan_gp8403"},
+        {"airiq", "comfort", "presence"},
+        {"airiq", "comfort", "fan_pwm"},
+        {"airiq", "comfort", "fan_gp8403"},
+        {"airiq", "presence", "fan_pwm"},
+        {"airiq", "presence", "fan_gp8403"},
+        {"bathroom", "comfort", "presence"},
+        {"bathroom", "comfort", "fan_pwm"},
+        {"bathroom", "comfort", "fan_gp8403"},
+        {"bathroom", "presence", "fan_pwm"},
+        {"bathroom", "presence", "fan_gp8403"},
         # Four-module builds
-        {"airiq", "comfort", "presence", "fan_pwm"}, {"airiq", "comfort", "presence", "fan_gp8403"},
-        {"bathroom", "comfort", "presence", "fan_pwm"}, {"bathroom", "comfort", "presence", "fan_gp8403"},
+        {"airiq", "comfort", "presence", "fan_pwm"},
+        {"airiq", "comfort", "presence", "fan_gp8403"},
+        {"bathroom", "comfort", "presence", "fan_pwm"},
+        {"bathroom", "comfort", "presence", "fan_gp8403"},
     ]
 
     # Wall module combinations (no bathroom)
@@ -229,17 +267,32 @@ class ConfigGenerator:
         # Empty
         set(),
         # Single modules
-        {"comfort"}, {"presence"}, {"fan_pwm"}, {"fan_gp8403"}, {"airiq"},
+        {"comfort"},
+        {"presence"},
+        {"fan_pwm"},
+        {"fan_gp8403"},
+        {"airiq"},
         # Two-module builds
-        {"comfort", "presence"}, {"comfort", "fan_pwm"}, {"comfort", "fan_gp8403"},
-        {"presence", "fan_pwm"}, {"presence", "fan_gp8403"},
-        {"airiq", "comfort"}, {"airiq", "presence"}, {"airiq", "fan_pwm"}, {"airiq", "fan_gp8403"},
+        {"comfort", "presence"},
+        {"comfort", "fan_pwm"},
+        {"comfort", "fan_gp8403"},
+        {"presence", "fan_pwm"},
+        {"presence", "fan_gp8403"},
+        {"airiq", "comfort"},
+        {"airiq", "presence"},
+        {"airiq", "fan_pwm"},
+        {"airiq", "fan_gp8403"},
         # Three-module builds
-        {"comfort", "presence", "fan_pwm"}, {"comfort", "presence", "fan_gp8403"},
-        {"airiq", "comfort", "presence"}, {"airiq", "comfort", "fan_pwm"}, {"airiq", "comfort", "fan_gp8403"},
-        {"airiq", "presence", "fan_pwm"}, {"airiq", "presence", "fan_gp8403"},
+        {"comfort", "presence", "fan_pwm"},
+        {"comfort", "presence", "fan_gp8403"},
+        {"airiq", "comfort", "presence"},
+        {"airiq", "comfort", "fan_pwm"},
+        {"airiq", "comfort", "fan_gp8403"},
+        {"airiq", "presence", "fan_pwm"},
+        {"airiq", "presence", "fan_gp8403"},
         # Four-module builds
-        {"airiq", "comfort", "presence", "fan_pwm"}, {"airiq", "comfort", "presence", "fan_gp8403"},
+        {"airiq", "comfort", "presence", "fan_pwm"},
+        {"airiq", "comfort", "presence", "fan_gp8403"},
     ]
 
     # Map category to module type for each form factor
@@ -353,13 +406,15 @@ class ConfigGenerator:
 
             for module_set in module_sets:
                 modules = [module_map[cat] for cat in module_set]
-                add_config(TestConfig(
-                    name=f"{core.name}-USB-{led.name}",
-                    core=core,
-                    power=PowerType.USB,
-                    led=led,
-                    modules=modules,
-                ))
+                add_config(
+                    TestConfig(
+                        name=f"{core.name}-USB-{led.name}",
+                        core=core,
+                        power=PowerType.USB,
+                        led=led,
+                        modules=modules,
+                    )
+                )
 
         # Part 2: Test ALL power types with representative module configurations
         # This ensures power module compatibility is tested
@@ -378,13 +433,15 @@ class ConfigGenerator:
                     # Filter to valid modules for this form factor
                     valid_modules = {m for m in module_set if m in module_map}
                     modules = [module_map[cat] for cat in valid_modules]
-                    add_config(TestConfig(
-                        name=f"{core.name}-{power.name}-{led.name}",
-                        core=core,
-                        power=power,
-                        led=led,
-                        modules=modules,
-                    ))
+                    add_config(
+                        TestConfig(
+                            name=f"{core.name}-{power.name}-{led.name}",
+                            core=core,
+                            power=power,
+                            led=led,
+                            modules=modules,
+                        )
+                    )
 
         # Part 3: Test LED variations for non-voice cores (if include_all_led)
         if self.include_all_led:
@@ -395,20 +452,24 @@ class ConfigGenerator:
                     for module_set in [set(), {"presence"}]:
                         valid_modules = {m for m in module_set if m in module_map}
                         modules = [module_map[cat] for cat in valid_modules]
-                        add_config(TestConfig(
-                            name=f"{core.name}-USB-NONE",
-                            core=core,
-                            power=PowerType.USB,
-                            led=LEDType.NONE,
-                            modules=modules,
-                        ))
+                        add_config(
+                            TestConfig(
+                                name=f"{core.name}-USB-NONE",
+                                core=core,
+                                power=PowerType.USB,
+                                led=LEDType.NONE,
+                                modules=modules,
+                            )
+                        )
 
         # Validate we're under the GitHub Actions limit
         if len(configs) > self.MAX_MATRIX_SIZE:
-            print(f"WARNING: Generated {len(configs)} configs, exceeds limit of {self.MAX_MATRIX_SIZE}",
-                  file=sys.stderr)
+            print(
+                f"WARNING: Generated {len(configs)} configs, exceeds limit of {self.MAX_MATRIX_SIZE}",
+                file=sys.stderr,
+            )
             # Truncate to stay within limits (shouldn't happen with current logic)
-            configs = configs[:self.MAX_MATRIX_SIZE]
+            configs = configs[: self.MAX_MATRIX_SIZE]
 
         return configs
 
@@ -418,29 +479,35 @@ class ConfigGenerator:
 
         # Test each core type with USB power and LED
         for core in CoreType:
-            led = self.get_led_options(core)[0]  # Required LED for voice, default for non-voice
+            led = self.get_led_options(core)[
+                0
+            ]  # Required LED for voice, default for non-voice
 
             # 1. Minimal config (no modules)
-            configs.append(TestConfig(
-                name=f"{core.name}-minimal",
-                core=core,
-                power=PowerType.USB,
-                led=led,
-                modules=[],
-            ))
+            configs.append(
+                TestConfig(
+                    name=f"{core.name}-minimal",
+                    core=core,
+                    power=PowerType.USB,
+                    led=led,
+                    modules=[],
+                )
+            )
 
             module_map = self.get_module_map(core.form_factor)
 
             # 2. Single module configs (one of each type)
             for cat in ["airiq", "comfort", "presence", "fan_pwm"]:
                 if cat in module_map:
-                    configs.append(TestConfig(
-                        name=f"{core.name}-{cat}",
-                        core=core,
-                        power=PowerType.USB,
-                        led=led,
-                        modules=[module_map[cat]],
-                    ))
+                    configs.append(
+                        TestConfig(
+                            name=f"{core.name}-{cat}",
+                            core=core,
+                            power=PowerType.USB,
+                            led=led,
+                            modules=[module_map[cat]],
+                        )
+                    )
 
             # 3. Full config (all modules except bathroom for ceiling)
             if core.form_factor == FormFactor.CEILING:
@@ -457,33 +524,43 @@ class ConfigGenerator:
                     module_map["presence"],
                     module_map["fan_pwm"],
                 ]
-            configs.append(TestConfig(
-                name=f"{core.name}-full",
-                core=core,
-                power=PowerType.USB,
-                led=led,
-                modules=full_modules,
-            ))
-
-            # 4. Bathroom config (ceiling only)
-            if core.form_factor == FormFactor.CEILING:
-                configs.append(TestConfig(
-                    name=f"{core.name}-bathroom",
+            configs.append(
+                TestConfig(
+                    name=f"{core.name}-full",
                     core=core,
                     power=PowerType.USB,
                     led=led,
-                    modules=[module_map["bathroom"], module_map["comfort"], module_map["presence"]],
-                ))
+                    modules=full_modules,
+                )
+            )
+
+            # 4. Bathroom config (ceiling only)
+            if core.form_factor == FormFactor.CEILING:
+                configs.append(
+                    TestConfig(
+                        name=f"{core.name}-bathroom",
+                        core=core,
+                        power=PowerType.USB,
+                        led=led,
+                        modules=[
+                            module_map["bathroom"],
+                            module_map["comfort"],
+                            module_map["presence"],
+                        ],
+                    )
+                )
 
         # Test different power types with one core
         for power in [PowerType.POE, PowerType.PWR]:
-            configs.append(TestConfig(
-                name=f"CORE_C-{power.name}",
-                core=CoreType.CORE_C,
-                power=power,
-                led=LEDType.LED_CEILING,
-                modules=[],
-            ))
+            configs.append(
+                TestConfig(
+                    name=f"CORE_C-{power.name}",
+                    core=CoreType.CORE_C,
+                    power=power,
+                    led=LEDType.LED_CEILING,
+                    modules=[],
+                )
+            )
 
         return configs
 
@@ -527,7 +604,7 @@ def create_secrets_file(output_dir: Path) -> Path:
         "web_password": "test_web_password",
     }
     secrets_path = output_dir / "secrets.yaml"
-    lines = [f"{k}: \"{v}\"" for k, v in secrets.items()]
+    lines = [f'{k}: "{v}"' for k, v in secrets.items()]
     secrets_path.write_text("\n".join(lines))
     return secrets_path
 
@@ -589,8 +666,12 @@ def main():
             print(f"Total configurations: {len(configs)}\n")
             for i, config in enumerate(configs, 1):
                 print(f"{i:3}. {config.get_config_name()}")
-                print(f"      Core: {config.core.name}, Power: {config.power.name}, LED: {config.led.name}")
-                print(f"      Modules: {', '.join(m.name for m in config.modules) or 'None'}")
+                print(
+                    f"      Core: {config.core.name}, Power: {config.power.name}, LED: {config.led.name}"
+                )
+                print(
+                    f"      Modules: {', '.join(m.name for m in config.modules) or 'None'}"
+                )
 
     elif args.mode == "generate":
         args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -640,13 +721,15 @@ def main():
         # Output format for GitHub Actions matrix
         matrix_configs = []
         for config in configs:
-            matrix_configs.append({
-                "name": config.get_config_name(),
-                "core": config.core.name,
-                "power": config.power.name,
-                "led": config.led.name,
-                "modules": [m.name for m in config.modules],
-            })
+            matrix_configs.append(
+                {
+                    "name": config.get_config_name(),
+                    "core": config.core.name,
+                    "power": config.power.name,
+                    "led": config.led.name,
+                    "modules": [m.name for m in config.modules],
+                }
+            )
 
         output = {"include": matrix_configs}
         print(json.dumps(output))

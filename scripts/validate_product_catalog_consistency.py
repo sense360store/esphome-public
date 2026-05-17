@@ -204,11 +204,7 @@ class ProductCatalogConsistencyValidator:
 
     def _hardware_skus(self) -> set:
         items = self.hardware_doc.get("items", [])
-        return {
-            i.get("sku")
-            for i in items
-            if isinstance(i, dict) and i.get("sku")
-        }
+        return {i.get("sku") for i in items if isinstance(i, dict) and i.get("sku")}
 
     def _release_one_required(self) -> set:
         return set(self.compat.get("release_one_required_configs", []))
@@ -281,8 +277,9 @@ class ProductCatalogConsistencyValidator:
                 self._err(label, f"product_yaml file does not exist: {rel}")
 
         has_cs = "config_string" in entry and entry["config_string"] not in (None, "")
-        has_legacy = (
-            "legacy_config_id" in entry and entry["legacy_config_id"] not in (None, "")
+        has_legacy = "legacy_config_id" in entry and entry["legacy_config_id"] not in (
+            None,
+            "",
         )
         if not (has_cs or has_legacy):
             self._err(
@@ -354,8 +351,7 @@ class ProductCatalogConsistencyValidator:
             if not isinstance(value, str) or value == "":
                 self._err(
                     label,
-                    f"production entry missing required string field "
-                    f"{field!r}",
+                    f"production entry missing required string field " f"{field!r}",
                 )
 
         for field in PRODUCTION_REQUIRED_MAP_FIELDS:
@@ -679,43 +675,56 @@ class ProductCatalogConsistencyValidator:
             ident_repr = identifier or product_yaml or "<unspecified>"
             items.append((False, f"catalog entry exists for {ident_repr!r}"))
             items.append((False, "product YAML exists (path: <set in catalog entry>)"))
-            items.append((False, "WebFlash wrapper exists (path: <set if WebFlash-shippable>)"))
+            items.append(
+                (False, "WebFlash wrapper exists (path: <set if WebFlash-shippable>)")
+            )
             items.append((False, "WebFlash wrapper basename matches config string"))
             items.append((False, "webflash-builds entry exists if production"))
             items.append((False, "artifact mapper agrees with declared artifact_name"))
             items.append((False, "hardware SKUs declared (production only)"))
-            items.append((False, "blocked modules declared (production only, where applicable)"))
+            items.append(
+                (False, "blocked modules declared (production only, where applicable)")
+            )
             return items
 
         status = entry.get("status")
-        items.append((
-            True,
-            f"catalog entry exists (status={status!r})",
-        ))
+        items.append(
+            (
+                True,
+                f"catalog entry exists (status={status!r})",
+            )
+        )
 
         rel = entry.get("product_yaml")
         if isinstance(rel, str) and rel and (self.repo_root / rel).is_file():
             items.append((True, f"product YAML exists ({rel})"))
         else:
-            items.append((
-                False,
-                f"product YAML exists (catalog: {rel!r})",
-            ))
+            items.append(
+                (
+                    False,
+                    f"product YAML exists (catalog: {rel!r})",
+                )
+            )
 
         wrapper = entry.get("webflash_wrapper")
-        wrapper_required = status in WEBFLASH_ELIGIBLE_STATUSES and entry.get(
-            "webflash_build_matrix"
-        ) is True
+        wrapper_required = (
+            status in WEBFLASH_ELIGIBLE_STATUSES
+            and entry.get("webflash_build_matrix") is True
+        )
         if wrapper_required:
-            if isinstance(wrapper, str) and wrapper and (
-                self.repo_root / wrapper
-            ).is_file():
+            if (
+                isinstance(wrapper, str)
+                and wrapper
+                and (self.repo_root / wrapper).is_file()
+            ):
                 items.append((True, f"WebFlash wrapper exists ({wrapper})"))
             else:
-                items.append((
-                    False,
-                    f"WebFlash wrapper exists (catalog: {wrapper!r})",
-                ))
+                items.append(
+                    (
+                        False,
+                        f"WebFlash wrapper exists (catalog: {wrapper!r})",
+                    )
+                )
             cs = entry.get("config_string")
             if (
                 isinstance(wrapper, str)
@@ -724,44 +733,56 @@ class ProductCatalogConsistencyValidator:
                 and cs
                 and self._wrapper_basename_stem(wrapper) == cs.lower()
             ):
-                items.append((
-                    True,
-                    "WebFlash wrapper basename matches config string",
-                ))
+                items.append(
+                    (
+                        True,
+                        "WebFlash wrapper basename matches config string",
+                    )
+                )
             else:
-                items.append((
-                    False,
-                    "WebFlash wrapper basename matches config string",
-                ))
+                items.append(
+                    (
+                        False,
+                        "WebFlash wrapper basename matches config string",
+                    )
+                )
         else:
-            items.append((
-                True,
-                "WebFlash wrapper not required (not WebFlash-shippable)",
-            ))
-            items.append((
-                True,
-                "WebFlash wrapper basename check skipped",
-            ))
+            items.append(
+                (
+                    True,
+                    "WebFlash wrapper not required (not WebFlash-shippable)",
+                )
+            )
+            items.append(
+                (
+                    True,
+                    "WebFlash wrapper basename check skipped",
+                )
+            )
 
         cs = entry.get("config_string")
-        in_builds = (
-            isinstance(cs, str) and cs and cs in self._build_config_strings()
-        )
+        in_builds = isinstance(cs, str) and cs and cs in self._build_config_strings()
         if status == "production":
-            items.append((
-                bool(in_builds),
-                f"webflash-builds entry exists (config_string={cs!r})",
-            ))
+            items.append(
+                (
+                    bool(in_builds),
+                    f"webflash-builds entry exists (config_string={cs!r})",
+                )
+            )
         elif status == "blocked":
-            items.append((
-                not in_builds,
-                f"webflash-builds entry absent (blocked, config_string={cs!r})",
-            ))
+            items.append(
+                (
+                    not in_builds,
+                    f"webflash-builds entry absent (blocked, config_string={cs!r})",
+                )
+            )
         else:
-            items.append((
-                True,
-                f"webflash-builds entry rule N/A for status={status!r}",
-            ))
+            items.append(
+                (
+                    True,
+                    f"webflash-builds entry rule N/A for status={status!r}",
+                )
+            )
 
         if status == "production":
             rel = entry.get("product_yaml")
@@ -780,23 +801,23 @@ class ProductCatalogConsistencyValidator:
                     self._product_key_from_yaml(rel), version, channel
                 )
                 mapper_ok = produced == artifact
-                mapper_detail = (
-                    f"mapper={produced!r}, catalog={artifact!r}"
-                )
+                mapper_detail = f"mapper={produced!r}, catalog={artifact!r}"
             else:
-                mapper_detail = (
-                    "missing product_yaml/version/channel/artifact_name"
+                mapper_detail = "missing product_yaml/version/channel/artifact_name"
+            items.append(
+                (
+                    mapper_ok,
+                    f"artifact mapper agrees with declared artifact_name "
+                    f"({mapper_detail})",
                 )
-            items.append((
-                mapper_ok,
-                f"artifact mapper agrees with declared artifact_name "
-                f"({mapper_detail})",
-            ))
+            )
         else:
-            items.append((
-                True,
-                "artifact mapper check N/A (only required for production)",
-            ))
+            items.append(
+                (
+                    True,
+                    "artifact mapper check N/A (only required for production)",
+                )
+            )
 
         if status == "production":
             hardware = entry.get("hardware")
@@ -811,33 +832,43 @@ class ProductCatalogConsistencyValidator:
                     skus = ", ".join(sorted(set(hardware.values())))
                     items.append((True, f"hardware SKUs declared ({skus})"))
                 else:
-                    items.append((
-                        False,
-                        f"hardware SKUs declared (unknown: {unknown})",
-                    ))
+                    items.append(
+                        (
+                            False,
+                            f"hardware SKUs declared (unknown: {unknown})",
+                        )
+                    )
             else:
                 items.append((False, "hardware SKUs declared"))
 
             blocked = entry.get("blocked_modules", [])
             if isinstance(blocked, list) and blocked:
-                items.append((
-                    True,
-                    f"blocked modules declared ({', '.join(blocked)})",
-                ))
+                items.append(
+                    (
+                        True,
+                        f"blocked modules declared ({', '.join(blocked)})",
+                    )
+                )
             else:
-                items.append((
-                    True,
-                    "blocked modules declared (none — optional)",
-                ))
+                items.append(
+                    (
+                        True,
+                        "blocked modules declared (none — optional)",
+                    )
+                )
         else:
-            items.append((
-                True,
-                "hardware SKUs check N/A (only required for production)",
-            ))
-            items.append((
-                True,
-                "blocked modules check N/A (only meaningful for production)",
-            ))
+            items.append(
+                (
+                    True,
+                    "hardware SKUs check N/A (only required for production)",
+                )
+            )
+            items.append(
+                (
+                    True,
+                    "blocked modules check N/A (only meaningful for production)",
+                )
+            )
 
         return items
 

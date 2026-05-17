@@ -58,11 +58,7 @@ def _load_builds() -> Dict[str, Any]:
 
 
 def _products() -> List[Dict[str, Any]]:
-    return [
-        p
-        for p in _load_catalog().get("products", [])
-        if isinstance(p, dict)
-    ]
+    return [p for p in _load_catalog().get("products", []) if isinstance(p, dict)]
 
 
 def _build_config_strings() -> set:
@@ -91,8 +87,7 @@ class FullValidationTests(unittest.TestCase):
         self.assertEqual(
             v.errors,
             [],
-            "validate_all() reported errors:\n  - "
-            + "\n  - ".join(v.errors),
+            "validate_all() reported errors:\n  - " + "\n  - ".join(v.errors),
         )
 
 
@@ -195,9 +190,7 @@ class LegacyCompatibleSweepTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.entries = [
-            p for p in _products() if p.get("status") == "legacy-compatible"
-        ]
+        cls.entries = [p for p in _products() if p.get("status") == "legacy-compatible"]
         cls.builds = _build_config_strings()
 
     def test_at_least_one_legacy_compatible_entry(self) -> None:
@@ -230,9 +223,7 @@ class ArtifactMapperAgreementTests(unittest.TestCase):
     """Mapper output must match every production entry's artifact_name."""
 
     def test_every_production_entry_matches_mapper(self) -> None:
-        production = [
-            p for p in _products() if p.get("status") == "production"
-        ]
+        production = [p for p in _products() if p.get("status") == "production"]
         self.assertGreater(len(production), 0)
         for entry in production:
             with self.subTest(config_string=entry.get("config_string")):
@@ -363,9 +354,7 @@ def _validator_with_synthetic_catalog(
     v.catalog = catalog
     v.builds_doc = builds if builds is not None else _synthetic_builds()
     v.compat = compat if compat is not None else _synthetic_compat()
-    v.hardware_doc = (
-        hardware if hardware is not None else _synthetic_hardware()
-    )
+    v.hardware_doc = hardware if hardware is not None else _synthetic_hardware()
     v._loaded = True  # noqa: SLF001
     return v
 
@@ -474,12 +463,8 @@ class ForbiddenTokenGuardTests(unittest.TestCase):
                     "config_string": "Ceiling-POE-Comfort",
                     "status": "production",
                     "product_yaml": "products/sense360-some-prod.yaml",
-                    "webflash_wrapper": (
-                        "products/webflash/ceiling-poe-comfort.yaml"
-                    ),
-                    "artifact_name": (
-                        "Sense360-Ceiling-POE-Comfort-v1.0.0-stable.bin"
-                    ),
+                    "webflash_wrapper": ("products/webflash/ceiling-poe-comfort.yaml"),
+                    "artifact_name": ("Sense360-Ceiling-POE-Comfort-v1.0.0-stable.bin"),
                     "version": "1.0.0",
                     "channel": "stable",
                     "hardware_status": "verified",

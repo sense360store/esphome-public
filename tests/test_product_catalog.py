@@ -144,9 +144,7 @@ class ProductCatalogTests(unittest.TestCase):
         cls.compat = _load_compat()
         cls.products = _products(cls.catalog)
         cls.builds = cls.builds_doc.get("builds", [])
-        cls.forbidden_tokens = frozenset(
-            cls.compat.get("forbidden_tokens", []) or []
-        )
+        cls.forbidden_tokens = frozenset(cls.compat.get("forbidden_tokens", []) or [])
 
     # ----- Top-level shape -------------------------------------------------
 
@@ -244,9 +242,7 @@ class ProductCatalogTests(unittest.TestCase):
     def test_webflash_wrappers_only_appear_in_webflash_wrapper_field(
         self,
     ) -> None:
-        product_yaml_paths = {
-            entry.get("product_yaml") for entry in self.products
-        }
+        product_yaml_paths = {entry.get("product_yaml") for entry in self.products}
         for wrapper in _webflash_wrapper_yamls():
             with self.subTest(wrapper=wrapper):
                 self.assertNotIn(
@@ -452,10 +448,7 @@ class ProductCatalogTests(unittest.TestCase):
                 )
                 lowered = notes.lower()
                 self.assertTrue(
-                    any(
-                        marker in lowered
-                        for marker in LEGACY_NOTES_REQUIRED_MARKERS
-                    ),
+                    any(marker in lowered for marker in LEGACY_NOTES_REQUIRED_MARKERS),
                     "legacy-compatible entry notes must call out "
                     "non-WebFlash / non-Release-One / manual status; "
                     f"got {notes!r} (expected one of "
@@ -469,9 +462,7 @@ class ProductCatalogTests(unittest.TestCase):
         # leaking into a production or preview entry even before the
         # webflash_build_matrix flag is flipped.
         if not self.forbidden_tokens:
-            self.skipTest(
-                "no forbidden_tokens declared in webflash-compatibility.json"
-            )
+            self.skipTest("no forbidden_tokens declared in webflash-compatibility.json")
         for idx, entry in enumerate(self.products):
             if entry.get("status") not in WEBFLASH_ELIGIBLE_STATUSES:
                 continue
@@ -518,14 +509,10 @@ class ProductCatalogTests(unittest.TestCase):
 
     def test_fantriac_entry_when_present_is_not_production(self) -> None:
         matches = [
-            e
-            for e in self.products
-            if e.get("config_string") == FANTRIAC_CONFIG_STRING
+            e for e in self.products if e.get("config_string") == FANTRIAC_CONFIG_STRING
         ]
         if not matches:
-            self.skipTest(
-                f"{FANTRIAC_CONFIG_STRING} not in catalog; nothing to check"
-            )
+            self.skipTest(f"{FANTRIAC_CONFIG_STRING} not in catalog; nothing to check")
         for entry in matches:
             self.assertNotEqual(
                 entry["status"],
@@ -538,9 +525,7 @@ class ProductCatalogTests(unittest.TestCase):
 
     def test_no_blocked_entry_in_webflash_build_matrix(self) -> None:
         build_strings = {
-            b.get("config_string")
-            for b in self.builds
-            if isinstance(b, dict)
+            b.get("config_string") for b in self.builds if isinstance(b, dict)
         }
         for idx, entry in enumerate(self.products):
             if entry.get("status") != "blocked":
@@ -558,9 +543,7 @@ class ProductCatalogTests(unittest.TestCase):
         self,
     ) -> None:
         catalog_by_cs = {
-            e.get("config_string"): e
-            for e in self.products
-            if "config_string" in e
+            e.get("config_string"): e for e in self.products if "config_string" in e
         }
         for idx, build in enumerate(self.builds):
             cs = build.get("config_string") if isinstance(build, dict) else None

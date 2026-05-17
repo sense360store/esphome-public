@@ -107,9 +107,7 @@ def _parse_bool(value: str) -> bool:
         return True
     if lowered in ("false", "0", "no", ""):
         return False
-    raise DeriveError(
-        f"PRERELEASE must be 'true' or 'false', got {value!r}"
-    )
+    raise DeriveError(f"PRERELEASE must be 'true' or 'false', got {value!r}")
 
 
 def main() -> int:
