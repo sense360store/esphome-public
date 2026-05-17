@@ -762,3 +762,18 @@ After HW-009 lands, these greps should hold:
   — HW-GAP-001 board-level readiness matrix. Cross-board view that
   consumes this audit's package-mapping vocabulary as the
   `Package YAML status` column. Documentation only.
+- [`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md) —
+  HW-PINMAP-311 pin / package mapping audit for `S360-311` Sense360
+  PWM, **status: `partial — schematic evidence available; package
+  reconciliation pending`**. Records the SX1509-channel vs
+  direct-ESP32-GPIO mapping disagreement for
+  [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml)
+  (`fan_pwm_pin: ${expansion_gpio1}` and `fan_tach_pin:
+  ${expansion_gpio2}` resolve to direct ESP32 expansion GPIOs while
+  the Core schematic routes `TachPMW*` / `Pul_Cou*` through the
+  SX1509 expander); explicitly defers this to the systemic Core
+  abstract-bus rebind owned by Required follow-ups #2 / #3 in
+  [`release-one-hardware-audit.md`](../release-one-hardware-audit.md#required-follow-ups)
+  and to a future `PACKAGE-GAP-001` FanPWM slice. HW-009 does not
+  reclassify `fan_pwm.yaml` here — `package-yaml-pending` / `needs-
+  package-reconciliation` is recorded in the per-board audit doc.

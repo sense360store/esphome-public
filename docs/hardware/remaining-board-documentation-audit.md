@@ -289,14 +289,24 @@ committed; this audit does **not** upgrade it to `documented` and does
   HW-ASSETS-003** at [`docs/hardware/schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf),
   with curated artifact index at
   [`docs/hardware/artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md).
+  **HW-PINMAP-311 audit doc now committed** at
+  [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) with **status:
+  `partial — schematic evidence available; package reconciliation
+  pending`**; records the schematic-vs-package reconciliation flags
+  (SX1509-channel vs direct-ESP32-GPIO mapping, UART-on-`J3`-pins-11/12
+  routing, `"NINE 4pin FANs"` documentation question, single-channel
+  vs four-channel canonical-abstraction decision) as **unresolved by
+  this PR**.
 - **Evidence missing.** Standalone schematic-backed reference doc
-  (pending `HW-PINMAP-311`). The 1-to-13 pin order on Core J6 remains
-  explicitly **verify** against silkscreen; the module-side `J3`
-  additionally labels pins 11 / 12 as `UART_RX` / `UART_TX` not yet
-  reconciled against the Core J6 capture (see the new artifact index).
+  (pending `HW-PINMAP-311-FOLLOWUP` per
+  [`s360-311-r4-pwm.md` Follow-up PRs](s360-311-r4-pwm.md#follow-up-pr-sequence)).
+  The 1-to-13 pin order on Core J6 remains explicitly **verify**
+  against silkscreen; the module-side `J3` additionally labels pins
+  11 / 12 as `UART_RX` / `UART_TX` not yet reconciled against the Core
+  J6 capture (see [`s360-311-r4-pwm.md` UART pins on J3 pins 11–12](s360-311-r4-pwm.md#uart-pins-on-j3-pins-1112)).
   Catalog `schematic_status` for `S360-311` is unchanged
   (`cataloged_unverified`); promotion to `verified` is owed to a
-  separate JSON PR after `HW-PINMAP-311` resolves.
+  separate JSON PR after `HW-PINMAP-311-FOLLOWUP` resolves.
 
 ### Sense360 DAC (`S360-312`)
 

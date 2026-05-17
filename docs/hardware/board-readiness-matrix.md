@@ -153,7 +153,7 @@ evidence (file paths and line numbers) for every cell.
 | `S360-211` | Sense360 VentIQ (bathroom air-quality) | `verified` | `done` | `missing` (HW-ASSETS-005 deferred) | `documented` | `confirmed-ok` (legacy filename `airiq_bathroom_base.yaml` retained per [`webflash-contract.md`](../webflash-contract.md) §6) |
 | `S360-300` | Sense360 LED (WS2812B ring) | `verified` | `done` | `missing` (HW-ASSETS-006 deferred) | `documented`, `not-needed-for-release-one` | `confirmed-ok` for `led_ring_ceiling.yaml` (HW-010); `led_ring_wall.yaml` and `sense360_core_ceiling_s3.yaml` remain unresolved |
 | `S360-310` | Sense360 Relay (on/off relay for fans) | `cataloged_unverified` | `missing` | `missing` | `partially-documented`, `not-needed-for-release-one` (Core J4 captured) | `package-yaml-pending` ([`fan_relay.yaml`](../../packages/expansions/fan_relay.yaml) exists; not reconciled against module-side schematic) |
-| `S360-311` | Sense360 PWM (12V PWM fan driver) | `cataloged_unverified` | `done` (HW-ASSETS-003; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003) | `partially-documented`, `not-needed-for-release-one` (Core J6 captured; pin-order **verify**; new module-side `J3` pin-11 / pin-12 `UART_RX` / `UART_TX` reconciliation owed to `HW-PINMAP-311`) | `package-yaml-pending` ([`fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml) exists; not reconciled against module-side schematic) |
+| `S360-311` | Sense360 PWM (12V PWM fan driver) | `cataloged_unverified` | `done` (HW-ASSETS-003; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003); HW-PINMAP-311 audit doc landed at [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) with **status: `partial — schematic evidence available; package reconciliation pending`** | `partially-documented`, `not-needed-for-release-one` (Core J6 captured; pin-order **verify**; new module-side `J3` pin-11 / pin-12 `UART_RX` / `UART_TX` reconciliation recorded in [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) and owed to HW-PINMAP-311-FOLLOWUP) | `package-yaml-pending` ([`fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml) exists; `needs-package-reconciliation` per [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md); not reconciled against module-side schematic) |
 | `S360-312` | Sense360 DAC (0–10 V analog fan driver) | `cataloged_unverified` | `done` (HW-ASSETS-003; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003) | `partially-documented`, `not-needed-for-release-one` (Core J7 fully captured; new module-side `J1` pin-1 `+3.3V` vs Core J7 pin-1 `+5V` rail discrepancy owed to `HW-PINMAP-312`) | `package-yaml-pending` ([`fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) exists; not reconciled against module-side schematic) |
 | `S360-320` | Sense360 TRIAC (phase-cut mains dimmer) | `cataloged_unverified` | `done` (HW-ASSETS-003; **does not unblock HW-005 or clear COMPLIANCE-001**; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003; **does not unblock HW-005 or clear COMPLIANCE-001**) | `blocked` (HW-005), `compliance-gated` (COMPLIANCE-001) | `blocked` ([`fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) retained as blocked / reference; `GPIO5` / `GPIO6` placeholders collide with RoomIQ J10 nets) |
 | `S360-400` | Sense360 240v PSU (HLK-5M05 mains PSU) | `cataloged_unverified` | `missing`, `compliance-gated` | `missing` | `not applicable` (off-board) / `cataloged-unverified`, `compliance-gated` | `package-yaml-pending` ([`power_240v.yaml`](../../packages/hardware/power_240v.yaml) is a logical-power package; no GPIO binding) |
@@ -369,34 +369,59 @@ rather than restate them.
 - **Role.** 12V PWM fan driver, up to 4 fans with tach feedback.
 - **Hardware evidence.** Catalog row at
   [`config/hardware-catalog.json`](../../config/hardware-catalog.json)
-  lines 72–80; `schematic_status: cataloged_unverified` (unchanged
-  after HW-ASSETS-003). **Module-side schematic now committed under
-  HW-ASSETS-003** at
+  lines 72–81; `schematic_status: cataloged_unverified` (unchanged
+  after HW-ASSETS-003 and HW-PINMAP-311). **Module-side schematic now
+  committed under HW-ASSETS-003** at
   [`docs/hardware/schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf);
   **artifact index now committed** at
-  [`docs/hardware/artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md).
-  **Still no standalone reference doc** (pending `HW-PINMAP-311`).
+  [`docs/hardware/artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md);
+  **HW-PINMAP-311 audit doc now committed** at
+  [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) with **status:
+  `partial — schematic evidence available; package reconciliation
+  pending`**. The audit doc consumes the artifact index and the
+  Core-side `J6` capture; it does **not** rewrite either source of
+  truth and does **not** promote the JSON `schematic_status`. Still
+  no standalone schematic-backed reference doc (the pin-level
+  rewrite belongs to HW-PINMAP-311-FOLLOWUP per
+  [`s360-311-r4-pwm.md` Follow-up PR sequence](s360-311-r4-pwm.md#follow-up-pr-sequence)).
   Core-side J6 13-pin connector capture
   (`+5V` / `GND` / `TachIO` / `TachPMW1..4` / `Pul_Cou1..4`) lives in
   [`s360-100-r4-core.md#j6--12-v-pwm-fan-connector-13-pin`](s360-100-r4-core.md#j6--12-v-pwm-fan-connector-13-pin)
   with the 1-to-13 pin order explicitly marked **verify** against the
-  silkscreen. The new module-side `J3` capture additionally labels
+  silkscreen. The module-side `J3` capture additionally labels
   pin 11 / 12 as `UART_RX` / `UART_TX` (routed on-board to a Nextion
   display connector); reconciliation against the Core J6 capture is
-  owed to `HW-PINMAP-311` per the new artifact index. `TachPMW*` /
-  `Pul_Cou*` are driven by the SX1509 expander (see
+  recorded in
+  [`s360-311-r4-pwm.md` UART pins on J3 pins 11–12](s360-311-r4-pwm.md#uart-pins-on-j3-pins-1112)
+  and owed to HW-PINMAP-311-FOLLOWUP. `TachPMW*` / `Pul_Cou*` are
+  driven by the SX1509 expander (see
   [`packages/expansions/gpio_expander_sx1509.yaml`](../../packages/expansions/gpio_expander_sx1509.yaml));
   `TachIO` is ESP32 `IO16` direct.
 - **Package YAML.** [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml).
-  `package-yaml-pending` against the missing module-side schematic.
+  `package-yaml-pending` / `needs-package-reconciliation` per
+  [`s360-311-r4-pwm.md` Package YAML status](s360-311-r4-pwm.md#package-yaml-status).
+  The SX1509-channel vs direct-ESP32-GPIO mapping disagreement (Core
+  abstract packages bind FanPWM to direct ESP32 expansion GPIOs
+  while the verified Core schematic routes the per-fan signals
+  through the SX1509 expander) is recorded in
+  [`s360-311-r4-pwm.md` Parent Core packages that resolve `fan_pwm_pin` / `fan_tach_pin`](s360-311-r4-pwm.md#parent-core-packages-that-resolve-fan_pwm_pin--fan_tach_pin)
+  and is **not** resolved by HW-PINMAP-311 — resolution belongs to
+  the systemic Core abstract-bus rebind owned by
+  [`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups).
 - **Productization.** No active product. Legacy
   [`products/sense360-fan-pwm.yaml`](../../products/sense360-fan-pwm.yaml)
-  is `legacy-compatible` (pre-WebFlash; standalone fan board).
-- **Required before promotion.** Module-side schematic + standalone
-  reference doc (`HW-PINMAP-311`); resolve J6 1-to-13 pin-order
-  **verify** flag against silkscreen; package YAML reconciliation;
-  product YAML + WebFlash wrapper + catalog entry + build-matrix entry
-  through [`docs/product-onboarding.md`](../product-onboarding.md).
+  is `legacy-compatible` (pre-WebFlash; standalone fan board; uses
+  the legacy four-channel
+  [`packages/expansions/sense360_fan_pwm.yaml`](../../packages/expansions/sense360_fan_pwm.yaml),
+  not the single-channel `fan_pwm.yaml`).
+- **Required before promotion.** Standalone reference doc
+  (`HW-PINMAP-311-FOLLOWUP` per
+  [`s360-311-r4-pwm.md` Follow-up PRs](s360-311-r4-pwm.md#follow-up-pr-sequence));
+  resolve J6 1-to-13 pin-order **verify** flag against silkscreen;
+  resolve the UART-on-`J3`-pins-11/12 routing question; package YAML
+  reconciliation (`PACKAGE-GAP-001` FanPWM slice); product YAML +
+  WebFlash wrapper + catalog entry + build-matrix entry through
+  [`docs/product-onboarding.md`](../product-onboarding.md).
 
 ### `S360-312` Sense360 DAC
 
@@ -571,10 +596,15 @@ artifact index**. They are not productized to WebFlash today.
 - `S360-310` Sense360 Relay — `design-pending`. Needs `HW-PINMAP-310`
   (schematic + reference doc), pin-map reconciliation, package YAML
   reconciliation, product YAML decision.
-- `S360-311` Sense360 PWM — `design-pending`. Needs `HW-PINMAP-311`
-  (schematic + reference doc; J6 pin-order **verify** must resolve
-  against silkscreen), package YAML reconciliation, product YAML
-  decision.
+- `S360-311` Sense360 PWM — `design-pending`. Module-side schematic
+  committed under HW-ASSETS-003; HW-PINMAP-311 audit doc landed at
+  [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) (status:
+  `partial — schematic evidence available; package reconciliation
+  pending`). Still needs `HW-PINMAP-311-FOLLOWUP` (standalone
+  reference doc + pin-map reconciliation; J6 pin-order **verify**
+  must resolve against silkscreen; UART-on-`J3`-pins-11/12 routing
+  resolution), `PACKAGE-GAP-001` FanPWM slice for package YAML
+  reconciliation, product YAML decision.
 - `S360-312` Sense360 DAC — `design-pending`. Needs `HW-PINMAP-312`
   (schematic + reference doc), package YAML reconciliation, product
   YAML decision; FanDAC ↔ AirIQ conflict and fan-driver max-one-of
@@ -696,8 +726,16 @@ and
    `PACKAGE-GAP-001` FanRelay slice — see
    [`s360-310-r4-relay.md` Follow-up PRs](s360-310-r4-relay.md#follow-up-prs)).
 2. **`HW-PINMAP-311` — `S360-311` pin / package mapping audit.** Same
-   for Sense360 PWM. Resolves the Core J6 1-to-13 pin-order **verify**
-   flag against silkscreen.
+   for Sense360 PWM. The HW-PINMAP-311 audit doc has landed at
+   [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) with
+   **status: `partial — schematic evidence available; package
+   reconciliation pending`**; the standalone schematic-backed
+   reference doc rewrite, the Core J6 1-to-13 pin-order **verify**
+   flag against silkscreen, the UART-on-`J3`-pins-11/12 routing
+   resolution, and the FanPWM package YAML reconciliation each
+   remain owed to evidence-bearing follow-up PRs
+   (`HW-PINMAP-311-FOLLOWUP`, `PACKAGE-GAP-001` FanPWM slice — see
+   [`s360-311-r4-pwm.md` Follow-up PRs](s360-311-r4-pwm.md#follow-up-pr-sequence)).
 3. **`HW-PINMAP-312` — `S360-312` pin / package mapping audit.** Same
    for Sense360 DAC.
 4. **`HW-PINMAP-320` — `S360-320` FanTRIAC pin / package mapping
@@ -902,3 +940,15 @@ them must use a separate, scoped PR with its own gate evidence.
   a schematic-backed reference doc; an evidence-gap record that
   inventories what HW-ASSETS-310 / HW-PINMAP-310-FOLLOWUP must
   supply.
+- [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) — HW-PINMAP-311
+  pin/package mapping audit for `S360-311` Sense360 PWM,
+  **status: `partial — schematic evidence available; package
+  reconciliation pending`**. Consumes the HW-ASSETS-003 module-side
+  schematic and artifact index; records the
+  SX1509-channel vs direct-ESP32-GPIO mapping disagreement, the
+  UART-on-`J3`-pins-11/12 routing question, and the
+  `"NINE 4pin FANs"` documentation question as **unresolved by this
+  PR**; defers package YAML reconciliation to a future
+  `PACKAGE-GAP-001` FanPWM slice and the systemic Core abstract-bus
+  rebind owned by
+  [`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups).
