@@ -155,7 +155,7 @@ evidence (file paths and line numbers) for every cell.
 | `S360-310` | Sense360 Relay (on/off relay for fans) | `cataloged_unverified` | `missing` | `missing` | `partially-documented`, `not-needed-for-release-one` (Core J4 captured) | `package-yaml-pending` ([`fan_relay.yaml`](../../packages/expansions/fan_relay.yaml) exists; not reconciled against module-side schematic) |
 | `S360-311` | Sense360 PWM (12V PWM fan driver) | `cataloged_unverified` | `done` (HW-ASSETS-003; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003); HW-PINMAP-311 audit doc landed at [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) with **status: `partial — schematic evidence available; package reconciliation pending`** | `partially-documented`, `not-needed-for-release-one` (Core J6 captured; pin-order **verify**; new module-side `J3` pin-11 / pin-12 `UART_RX` / `UART_TX` reconciliation recorded in [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) and owed to HW-PINMAP-311-FOLLOWUP) | `package-yaml-pending` ([`fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml) exists; `needs-package-reconciliation` per [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md); not reconciled against module-side schematic) |
 | `S360-312` | Sense360 DAC (0–10 V analog fan driver) | `cataloged_unverified` | `done` (HW-ASSETS-003; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003) | `partially-documented`, `not-needed-for-release-one` (Core J7 fully captured; new module-side `J1` pin-1 `+3.3V` vs Core J7 pin-1 `+5V` rail discrepancy owed to `HW-PINMAP-312`) | `package-yaml-pending` ([`fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) exists; not reconciled against module-side schematic) |
-| `S360-320` | Sense360 TRIAC (phase-cut mains dimmer) | `cataloged_unverified` | `done` (HW-ASSETS-003; **does not unblock HW-005 or clear COMPLIANCE-001**; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003; **does not unblock HW-005 or clear COMPLIANCE-001**) | `blocked` (HW-005), `compliance-gated` (COMPLIANCE-001) | `blocked` ([`fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) retained as blocked / reference; `GPIO5` / `GPIO6` placeholders collide with RoomIQ J10 nets) |
+| `S360-320` | Sense360 TRIAC (phase-cut mains dimmer) | `cataloged_unverified` | `done` (HW-ASSETS-003; **does not unblock HW-005 or clear COMPLIANCE-001**; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003); HW-PINMAP-320 audit doc landed at [`s360-320-r4-triac.md`](s360-320-r4-triac.md) with **status: `partial — schematic evidence available; package reconciliation, timing validation, and compliance/certification pending`** (**does not unblock HW-005 or clear COMPLIANCE-001**) | `blocked` (HW-005), `compliance-gated` (COMPLIANCE-001) (advanced / manual-warning long-term posture intended per [`s360-320-r4-triac.md`](s360-320-r4-triac.md#advanced--manual-warning-product-posture); **not realised in this PR** — JSON lifecycle row unchanged) | `blocked` / `needs-package-reconciliation` ([`fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) retained as blocked / reference with BLOCKED / UNVERIFIED banner; `GPIO5` / `GPIO6` placeholders collide with RoomIQ J10 nets; see [`s360-320-r4-triac.md` Package YAML status](s360-320-r4-triac.md#package-yaml-status)) |
 | `S360-400` | Sense360 240v PSU (HLK-5M05 mains PSU) | `cataloged_unverified` | `missing`, `compliance-gated` | `missing` | `not applicable` (off-board) / `cataloged-unverified`, `compliance-gated` | `package-yaml-pending` ([`power_240v.yaml`](../../packages/hardware/power_240v.yaml) is a logical-power package; no GPIO binding) |
 | `S360-410` | Sense360 PoE PSU (802.3af PoE → 5 V) | `cataloged_unverified` | `missing` (Release-One caveat preserved) | `missing` | `partially-documented` (Core J2 captured; module-side schematic pending; HW-002 OQ#6 open) | `confirmed-ok` (logical-only [`power_poe.yaml`](../../packages/hardware/power_poe.yaml) emits diagnostic sensors; no GPIO binding) |
 
@@ -461,54 +461,79 @@ rather than restate them.
 ### `S360-320` Sense360 TRIAC
 
 - **Role.** Phase-cut TRIAC dimmer for mains fan / lamp loads. **Stays
-  blocked under HW-005 + COMPLIANCE-001.**
+  blocked under HW-005 + COMPLIANCE-001.** Intended long-term posture
+  is **advanced / manual-warning** per
+  [`s360-320-r4-triac.md` §Advanced / manual-warning product posture](s360-320-r4-triac.md#advanced--manual-warning-product-posture)
+  — visible / selectable, buildable after package evidence, installable
+  only through an advanced / manual-warning path, **not** Release-One,
+  **not** REQUIRED_CONFIGS, **not** recommended, **not** kit / default,
+  **not** compliance-certified. The advanced / manual-warning posture
+  is **intent only**; this matrix does not realise it.
 - **Hardware evidence.** Catalog row at
   [`config/hardware-catalog.json`](../../config/hardware-catalog.json)
-  lines 92–100; `schematic_status: cataloged_unverified` (unchanged
+  lines 92–101; `schematic_status: cataloged_unverified` (unchanged
   after HW-ASSETS-003). **Module-side schematic now committed under
   HW-ASSETS-003** at
   [`docs/hardware/schematics/S360-320-R4.pdf`](schematics/S360-320-R4.pdf);
   **artifact index now committed** at
-  [`docs/hardware/artifacts/S360-320-R4.md`](artifacts/S360-320-R4.md).
-  **Committing the schematic and the artifact index does not unblock
-  HW-005 or clear COMPLIANCE-001.** **Still no standalone reference
-  doc** (pending `HW-PINMAP-320`). Core-side J15 4-pin connector capture
-  (`+3.3V` / `TRI_GPIO1` / `TRI_GPIO2` / `GND`) lives in
+  [`docs/hardware/artifacts/S360-320-R4.md`](artifacts/S360-320-R4.md);
+  **HW-PINMAP-320 audit doc now landed** at
+  [`s360-320-r4-triac.md`](s360-320-r4-triac.md) with **status:
+  `partial — schematic evidence available; package reconciliation,
+  timing validation, and compliance/certification pending`**.
+  **Committing the schematic, the artifact index, and this audit does
+  not unblock HW-005 or clear COMPLIANCE-001.** Core-side J15 4-pin
+  connector capture (`+3.3V` / `TRI_GPIO1` / `TRI_GPIO2` / `GND`)
+  lives in
   [`s360-100-r4-core.md#j15--triac-fan-module-connector-4-pin`](s360-100-r4-core.md#j15--triac-fan-module-connector-4-pin).
   `TRI_GPIO1` / `TRI_GPIO2` source pins are **not visible as direct
   ESP32 GPIOs** on the Core sheet; they appear to route via the SX1509
   expander (U3), which the ESPHome `ac_dimmer` driver cannot use per
   the timing analysis in
   [`release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander`](../release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander).
-  The new module-side `J3` capture labels the same physical pins as
+  The module-side `J3` capture labels the same physical pins as
   `+3V3` / `ESP_GPIO1` / `ESP_GPIO2` / `GND` (naming reconciliation
-  owed to `HW-PINMAP-320`) and shows discrete `MOC3023M` + `BT136` +
-  `EL814` with no on-board controller IC — eliminating Option (b) from
-  the HW-005 missing-evidence checklist for this revision, while
-  Option (a) (end-to-end direct ESP32 GPIOs through Core `J15`)
-  remains required and unmet. **HW-004 / HW-008 classification stays
-  `blocked`, `not-needed-for-release-one`.**
+  owed to `HW-PINMAP-320-FOLLOWUP`) and shows discrete `MOC3023M` +
+  `BT136` + `EL814` (specifically `Q1 BT136S-600D,118`,
+  `U1 MOC3023M`, `OK1 EL814`) with no on-board controller IC —
+  eliminating Option (b) from the HW-005 missing-evidence checklist
+  for this revision, while Option (a) (end-to-end direct ESP32 GPIOs
+  through Core `J15`) remains required and unmet. **HW-004 / HW-008
+  classification stays `blocked`, `not-needed-for-release-one`.**
 - **Package YAML.** [`packages/expansions/fan_triac.yaml`](../../packages/expansions/fan_triac.yaml)
   is retained as a **blocked / reference** package; HW-009 row
-  `blocked`. Placeholder `fan_triac_gate_pin: GPIO5` and
-  `fan_triac_zc_pin: GPIO6` collide with RoomIQ J10 nets
-  (`SEN0609_TX` / `out(gpio6)`).
+  `blocked`. HW-PINMAP-320 records the package YAML status as
+  `package-yaml-pending` / `needs-package-reconciliation` per
+  [`s360-320-r4-triac.md` Package YAML status](s360-320-r4-triac.md#package-yaml-status).
+  Placeholder `fan_triac_gate_pin: GPIO5` and `fan_triac_zc_pin: GPIO6`
+  in the blocked-reference product YAML collide with RoomIQ J10 nets
+  (`SEN0609_TX` / `out(gpio6)`). The BLOCKED / UNVERIFIED banner and
+  the mains-voltage / qualified-electrician warnings in
+  [`packages/expansions/fan_triac.yaml`](../../packages/expansions/fan_triac.yaml)
+  remain.
 - **Productization.** `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` exists at
   [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
   + [`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml)
   as `status: blocked`, `blocker: HW-005`,
   `webflash_build_matrix: false`. Never built; never imported.
+  HW-PINMAP-320 records the desired reclassification path to an
+  `advanced/manual-warning pending implementation`-style framing but
+  **does not change** the JSON lifecycle row in this PR; the
+  reclassification is owed to `PRODUCT-TRIAC-001` per
+  [`s360-320-r4-triac.md` Follow-up PR sequence](s360-320-r4-triac.md#follow-up-pr-sequence).
 - **Required before unblock.** The HW-005 missing-evidence checklist
   at
   [`release-one-hardware-audit.md#missing-evidence-checklist`](../release-one-hardware-audit.md#missing-evidence-checklist)
   — direct, interrupt-capable ESP32 GPIOs for both `gate_pin` and
   `zero_cross_pin`, traced end-to-end through `S360-100-R4` +
   `S360-320`; or a replacement non-`ac_dimmer` driver targeting an
-  on-board controller IC over I²C. **Additionally** the
-  mains-voltage compliance gate at
+  on-board controller IC over I²C (the latter eliminated for this
+  revision). **Additionally** the mains-voltage compliance gate at
   [`docs/compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md)
   (COMPLIANCE-001) must clear independently. HW-005 and COMPLIANCE-001
-  are **separate** blockers; neither subsumes the other.
+  are **separate** blockers; neither subsumes the other. Full
+  required-evidence list at
+  [`s360-320-r4-triac.md` Required evidence before implementation](s360-320-r4-triac.md#required-evidence-before-implementation).
 
 ### `S360-400` Sense360 240v PSU
 
@@ -739,9 +764,24 @@ and
 3. **`HW-PINMAP-312` — `S360-312` pin / package mapping audit.** Same
    for Sense360 DAC.
 4. **`HW-PINMAP-320` — `S360-320` FanTRIAC pin / package mapping
-   audit.** Does **not** unblock HW-005 by itself; HW-005 resolution
-   and COMPLIANCE-001 mains-voltage sign-off remain prerequisites for
-   any product / WebFlash work on this board.
+   audit.** **Landed** at
+   [`s360-320-r4-triac.md`](s360-320-r4-triac.md) with
+   **status: `partial — schematic evidence available; package
+   reconciliation, timing validation, and compliance/certification
+   pending`**; records the module-side `J3` ↔ Core-side `J15`
+   reconciliation, the `TRI_GPIO*` / `ESP_GPIO*` naming divergence,
+   the `ac_dimmer` timing constraint, the FanTRIAC package
+   `needs-package-reconciliation` status, the intended advanced /
+   manual-warning long-term product posture (not realised by this
+   PR), and the full follow-up PR sequence. Does **not** unblock
+   HW-005 by itself; HW-005 resolution and COMPLIANCE-001
+   mains-voltage sign-off remain prerequisites for any product /
+   WebFlash work on this board. Follow-ups:
+   `HW-PINMAP-320-FOLLOWUP`, `PACKAGE-TRIAC-001`,
+   `PRODUCT-TRIAC-001`, `PRODUCT-TRIAC-002`, `WF-TRIAC-001`,
+   `RELEASE-TRIAC-001`, `WF-IMPORT-TRIAC-001`, `COMPLIANCE-001`,
+   `HW-005`, `HW-CATALOG-320` — per
+   [`s360-320-r4-triac.md` Follow-up PR sequence](s360-320-r4-triac.md#follow-up-pr-sequence).
 5. **`HW-PINMAP-400` — `S360-400` power-board mapping audit.** Gated
    by COMPLIANCE-001 for any product / WebFlash work.
 6. **`HW-PINMAP-410` — `S360-410` PoE PSU mapping audit.** Closes the
