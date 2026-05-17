@@ -608,7 +608,17 @@ The recommended sequence after HW-ASSETS-001 lands is:
 4. **HW-PINMAP-311 — S360-311 pin/package mapping audit.** Same
    for `S360-311` (Sense360 PWM).
 5. **HW-PINMAP-312 — S360-312 pin/package mapping audit.** Same
-   for `S360-312` (Sense360 DAC).
+   for `S360-312` (Sense360 DAC). **Landed** at
+   [`docs/hardware/s360-312-r4-dac.md`](s360-312-r4-dac.md) with
+   **status: `partial — schematic evidence available; package
+   reconciliation pending`**; the standalone schematic-backed
+   reference doc rewrite, the Core `J7` pin-1 `+5V` vs Module `J1`
+   pin-1 `+3.3V` voltage-rail discrepancy resolution, the
+   DIP-switch I²C address-selection scheme on the two GP8403
+   DACs, the UART0-vs-Nextion path resolution, and the FanDAC
+   package YAML reconciliation each remain owed to
+   evidence-bearing follow-up PRs (`HW-PINMAP-312-FOLLOWUP`,
+   `PACKAGE-GAP-001` FanDAC slice).
 6. **HW-PINMAP-320 — S360-320 FanTRIAC pin/package mapping
    audit.** Same for `S360-320` (Sense360 TRIAC). Does not unblock
    HW-005 by itself; HW-005 resolution and COMPLIANCE-001
