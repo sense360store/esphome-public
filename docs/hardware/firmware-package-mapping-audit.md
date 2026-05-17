@@ -791,3 +791,24 @@ After HW-009 lands, these greps should hold:
   and to a future `PACKAGE-GAP-001` FanPWM slice. HW-009 does not
   reclassify `fan_pwm.yaml` here — `package-yaml-pending` / `needs-
   package-reconciliation` is recorded in the per-board audit doc.
+- [`docs/hardware/s360-312-r4-dac.md`](s360-312-r4-dac.md) —
+  HW-PINMAP-312 pin / package mapping audit for `S360-312` Sense360
+  DAC, **status: `partial — schematic evidence available; package
+  reconciliation pending`**. Records the Core `J7` pin-1 `+5V` vs
+  Module `J1` pin-1 `+3.3V` voltage-rail discrepancy, the DIP-switch
+  I²C address-selection scheme on the two `GP8403-TC50-EW` DACs
+  (`IC1` / `IC2`), the UART0-vs-Nextion arbitration question on
+  Module `J1` pins 4 / 5, and the stale header-comment connector /
+  GPIO claims (file lines 13–18 reading `Pin 4 SDA → GPIO39`,
+  `Pin 5 SCL → GPIO40`, `Pin 2 3.3V → Power`, `Pin 1 GND → Ground`)
+  in [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml)
+  that disagree with both the Core `J7` capture and the Module `J1`
+  capture. HW-PINMAP-312 is out of scope for HW-009 today — `S360-312`
+  is still `schematic_status: cataloged_unverified` and is therefore
+  out of HW-009's verified-schematic scope — but the per-board audit
+  doc records `fan_gp8403.yaml` as `package-yaml-pending` / `needs-
+  package-reconciliation`. The active YAML body's `${fan_dac_i2c_id}`
+  / `${fan_dac_address}` substitutions are abstract-bus inheritance
+  and do not depend on the stale header-comment claims; resolution
+  belongs to `HW-PINMAP-312-FOLLOWUP` and to a future `PACKAGE-GAP-001`
+  FanDAC slice.

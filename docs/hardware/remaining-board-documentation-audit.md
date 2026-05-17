@@ -321,14 +321,19 @@ committed; this audit does **not** upgrade it to `documented` and does
   with curated artifact index at
   [`docs/hardware/artifacts/S360-312-R4.md`](artifacts/S360-312-R4.md).
 - **Evidence missing.** Standalone schematic-backed reference doc
-  (pending `HW-PINMAP-312`). The module-side `J1` capture labels
+  (pending HW-PINMAP-312-FOLLOWUP). The HW-PINMAP-312 audit doc has
+  landed at [`s360-312-r4-dac.md`](s360-312-r4-dac.md) with
+  **status: `partial — schematic evidence available; package
+  reconciliation pending`**; the module-side `J1` capture labels
   pin 1 as `+3.3V`, conflicting with the Core J7 capture's `+5V` —
-  the voltage-rail discrepancy is flagged in the new artifact index
-  and owed to `HW-PINMAP-312`. The board also carries **two** GP8403
+  the voltage-rail discrepancy is flagged in the artifact index and
+  in [`s360-312-r4-dac.md`](s360-312-r4-dac.md), owed to
+  HW-PINMAP-312-FOLLOWUP. The board also carries **two** GP8403
   DACs (`IC1` / `IC2`) on a shared I²C bus with operator-selectable
-  addresses, broader than the singular catalog description; broadening
-  the catalog row is a separate later PR. Catalog `schematic_status`
-  for `S360-312` is unchanged (`cataloged_unverified`).
+  addresses via DIP `SW1` / `SW2`, broader than the singular catalog
+  description; broadening the catalog row is a separate later PR.
+  Catalog `schematic_status` for `S360-312` is unchanged
+  (`cataloged_unverified`).
 
 ### Sense360 TRIAC (`S360-320`)
 
