@@ -457,7 +457,21 @@ Schematic evidence:
   HW-005 — Option (a) (direct interrupt-capable ESP32 GPIOs traced
   end-to-end through `S360-100-R4` + `S360-320`) remains required and
   unmet because the Core-side `TRI_GPIO1` / `TRI_GPIO2` nets still
-  route via the SX1509.
+  route via the SX1509. The **HW-PINMAP-320 audit doc** has landed at
+  [`docs/hardware/s360-320-r4-triac.md`](../hardware/s360-320-r4-triac.md)
+  with **status: `partial — schematic evidence available; package
+  reconciliation, timing validation, and compliance/certification
+  pending`**; records the module-side `J3` ↔ Core-side `J15`
+  reconciliation, the `TRI_GPIO*` vs `ESP_GPIO*` naming divergence,
+  the `ac_dimmer` timing constraint, the package YAML status as
+  `package-yaml-pending` / `needs-package-reconciliation`, and the
+  intended advanced / manual-warning long-term product posture
+  (visible / selectable, buildable after package evidence, installable
+  only through an advanced / manual-warning path; **not** Release-One,
+  **not** REQUIRED_CONFIGS, **not** recommended, **not** kit / default,
+  **not** compliance-certified). The audit doc explicitly **does not**
+  change this HW-009 row's `blocked` classification, **does not**
+  unblock FanTRIAC, and **does not** clear COMPLIANCE-001.
 
 Driver constraint:
 

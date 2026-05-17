@@ -620,7 +620,13 @@ The recommended sequence after HW-ASSETS-001 lands is:
    evidence-bearing follow-up PRs (`HW-PINMAP-312-FOLLOWUP`,
    `PACKAGE-GAP-001` FanDAC slice).
 6. **HW-PINMAP-320 — S360-320 FanTRIAC pin/package mapping
-   audit.** Same for `S360-320` (Sense360 TRIAC). Does not unblock
+   audit.** **Landed** at
+   [`docs/hardware/s360-320-r4-triac.md`](s360-320-r4-triac.md)
+   with **status: `partial — schematic evidence available;
+   package reconciliation, timing validation, and
+   compliance/certification pending`**. Records the intended
+   advanced / manual-warning long-term product posture as
+   **intent only** (not realised by that PR). Does not unblock
    HW-005 by itself; HW-005 resolution and COMPLIANCE-001
    mains-voltage sign-off remain prerequisites for any product /
    WebFlash work on this board.

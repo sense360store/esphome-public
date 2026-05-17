@@ -102,7 +102,7 @@ is included.
 | Sense360 Relay | `S360-310` | Core-side `J4` connector documented in [`s360-100-r4-core.md` J4](s360-100-r4-core.md#j4--relay-module-connector-3-pin): 3-pin (`+5V`, `Relay`, `GND`), drive signal `Relay` from ESP32 `IO3`. Module-side schematic not committed. Firmware package: [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml). Not in Release-One. | `partially-documented`, `not-needed-for-release-one` | Not required (no `FanRelay` in Release-One). | Commit `S360-310` schematic and a standalone pin/connector doc before any `FanRelay`-bearing config string ships as stable. |
 | Sense360 PWM | `S360-311` | Core-side `J6` (12 V PWM fan connector, 13-pin) documented in [`s360-100-r4-core.md` J6](s360-100-r4-core.md#j6--12-v-pwm-fan-connector-13-pin). Net list captured (`+5V`, `GND`, `TachIO`, `TachPMW1..4`, `Pul_Cou1..4`); `TachPMW*` / `Pul_Cou*` are driven by the SX1509 expander per [`s360-100-r4-core.md` fan-driver outputs](s360-100-r4-core.md#fan--driver-outputs). The 1-to-13 pin order is explicitly marked **verify** in the Core doc. Module-side schematic not committed. Firmware package: [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml). Not in Release-One. | `partially-documented`, `not-needed-for-release-one` | Not required (no `FanPWM` in Release-One). | Commit `S360-311` schematic + standalone pin/connector doc; resolve the J6 pin-order **verify** flag against the silkscreen. |
 | Sense360 DAC | `S360-312` | Core-side `J7` (GP8403 fan connector, 6-pin) fully captured in [`s360-100-r4-core.md` J7](s360-100-r4-core.md#j7--gp8403-fan-connector-6-pin) — `+5V`, `I2C_SDA`, `I2C_SCL`, `UART_RX`, `UART_TX`, `GND`. Module-side schematic not committed. Firmware package: [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml). Not in Release-One. | `partially-documented`, `not-needed-for-release-one` | Not required (no `FanDAC` in Release-One). | Commit `S360-312` schematic + standalone pin/connector doc. |
-| Sense360 TRIAC | `S360-320` | **HW-005 blocked — must not ship as TRIAC-capable.** Core-side `J15` (TRIAC fan module connector, 4-pin) documented in [`s360-100-r4-core.md` J15](s360-100-r4-core.md#j15--triac-fan-module-connector-4-pin): `+3.3V`, `TRI_GPIO1`, `TRI_GPIO2`, `GND`. Source pins for `TRI_GPIO1` / `TRI_GPIO2` are **not visible** as direct ESP32 GPIOs on the Core sheet; they appear to route via the SX1509 (U3). Module-side schematic **not committed**. The ESPHome `ac_dimmer` driver in [`packages/expansions/fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) requires direct interrupt-capable ESP32 GPIOs that the SX1509 cannot deliver — see [`release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander`](../release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander). | `blocked` (HW-005), `not-needed-for-release-one` | **Stays blocked.** Do not promote to preview. | Stays blocked until the HW-005 missing-evidence checklist at [`release-one-hardware-audit.md#missing-evidence-checklist`](../release-one-hardware-audit.md#missing-evidence-checklist) is fully satisfied — either (a) direct, interrupt-capable ESP32 GPIOs for both `gate_pin` and `zero_cross_pin`, traced end-to-end through `S360-100-R4` + `S360-320`; or (b) a replacement non-`ac_dimmer` driver that targets an on-board TRIAC controller IC over I²C. The SX1509-only hypothesis is rejected. **Mains-voltage compliance is additionally tracked in [`../compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md) (COMPLIANCE-001); HW-005 remains a separate, prior blocker.** |
+| Sense360 TRIAC | `S360-320` | **HW-005 blocked — must not ship as TRIAC-capable.** Core-side `J15` (TRIAC fan module connector, 4-pin) documented in [`s360-100-r4-core.md` J15](s360-100-r4-core.md#j15--triac-fan-module-connector-4-pin): `+3.3V`, `TRI_GPIO1`, `TRI_GPIO2`, `GND`. Source pins for `TRI_GPIO1` / `TRI_GPIO2` are **not visible** as direct ESP32 GPIOs on the Core sheet; they appear to route via the SX1509 (U3). **Module-side schematic now committed under HW-ASSETS-003** at [`docs/hardware/schematics/S360-320-R4.pdf`](schematics/S360-320-R4.pdf) with curated artifact index at [`docs/hardware/artifacts/S360-320-R4.md`](artifacts/S360-320-R4.md). **HW-PINMAP-320 audit doc now landed** at [`s360-320-r4-triac.md`](s360-320-r4-triac.md) with **status: `partial — schematic evidence available; package reconciliation, timing validation, and compliance/certification pending`**; records discrete `MOC3023M` + `BT136` + `EL814` topology, the `TRI_GPIO*` (Core) vs `ESP_GPIO*` (Module) naming divergence, and the intended advanced / manual-warning long-term product posture (not realised in this PR). The ESPHome `ac_dimmer` driver in [`packages/expansions/fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) requires direct interrupt-capable ESP32 GPIOs that the SX1509 cannot deliver — see [`release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander`](../release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander). | `blocked` (HW-005), `not-needed-for-release-one` | **Stays blocked.** Do not promote to preview. | Stays blocked until the HW-005 missing-evidence checklist at [`release-one-hardware-audit.md#missing-evidence-checklist`](../release-one-hardware-audit.md#missing-evidence-checklist) is fully satisfied — either (a) direct, interrupt-capable ESP32 GPIOs for both `gate_pin` and `zero_cross_pin`, traced end-to-end through `S360-100-R4` + `S360-320` (the only viable path for this revision; module-side schematic confirms there is no on-board controller IC, eliminating Option (b) for `S360-320-R4`); or (b) a future Core / module revision that introduces an on-board TRIAC controller IC and a non-`ac_dimmer` driver. The SX1509-only hypothesis is rejected. **Mains-voltage compliance is additionally tracked in [`../compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md) (COMPLIANCE-001); HW-005 remains a separate, prior blocker.** Follow-ups: `HW-PINMAP-320-FOLLOWUP`, `PACKAGE-TRIAC-001`, `PRODUCT-TRIAC-001`, `PRODUCT-TRIAC-002`, `WF-TRIAC-001`, `RELEASE-TRIAC-001`, `WF-IMPORT-TRIAC-001`, `COMPLIANCE-001`, `HW-005`, `HW-CATALOG-320` — per [`s360-320-r4-triac.md` Follow-up PR sequence](s360-320-r4-triac.md#follow-up-pr-sequence). |
 | Sense360 240v PSU | `S360-400` | Catalog row only. No Core-side connector documented (the 240 V PSU is off-board; Release-One uses PoE instead). No module-side schematic committed. Firmware-side, [`packages/hardware/power_240v.yaml`](../../packages/hardware/power_240v.yaml) is a logical-power package and does not bind to any specific GPIO. Not in Release-One. | `cataloged-unverified`, `not-needed-for-release-one` | Not required (Release-One uses `POE`, not `PWR`). | Commit `S360-400` schematic + standalone pin/connector doc before any `PWR`-bearing config string ships as stable. **Also subject to the mains-voltage safety/compliance review noted below; tracked in [`../compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md) (COMPLIANCE-001).** |
 | Sense360 PoE PSU | `S360-410` | **Used in Release-One.** Core-side `J2` (`PoE_ACDC`, 2-pin power inlet) documented in [`s360-100-r4-core.md` J2](s360-100-r4-core.md#j2--poe_acdc-inlet-2-pin) and in the Core power-rails section. PSU module itself lives off-board; module-side schematic **not committed**. Firmware-side, [`packages/hardware/power_poe.yaml`](../../packages/hardware/power_poe.yaml) is a logical package that emits diagnostic sensors only and does not bind to any specific GPIO. [`release-one-hardware-audit.md` Findings → PoE PSU](../release-one-hardware-audit.md#findings) already classifies this as "cataloged, schematic pending". HW-002 Open Question #6 (J2 harness identity) is still open. | `partially-documented` | Acceptable as-is for preview. The Core-side inlet capture plus the logical-only firmware package are sufficient evidence for the current Release-One use; the schematic-pending caveat in `release-one-hardware-audit.md` must remain visible. | Commit `S360-410` schematic + a standalone pin/connector doc; verify the J2 cable/harness between the off-board PSU and the Core inlet (HW-002 Open Question #6). |
 
@@ -355,22 +355,45 @@ committed; this audit does **not** upgrade it to `documented` and does
   with no on-board controller IC — eliminating Option (b) (a
   replacement non-`ac_dimmer` driver targeting an on-board controller)
   from the HW-005 missing-evidence checklist for this revision.
+- **Audit doc.** The HW-PINMAP-320 per-board audit record has
+  landed at [`s360-320-r4-triac.md`](s360-320-r4-triac.md) with
+  **status: `partial — schematic evidence available; package
+  reconciliation, timing validation, and compliance/certification
+  pending`**. It inventories the schematic-backed evidence
+  (`Q1 BT136S-600D,118` TRIAC; `U1 MOC3023M` optotriac;
+  `OK1 EL814` zero-cross optocoupler; `J1` 3-pin AC LINE;
+  `J2` 2-pin LOAD; `J3` 4-pin "From Core" with
+  `+3V3` / `ESP_GPIO1` / `ESP_GPIO2` / `GND`; no on-board controller
+  IC), records the `TRI_GPIO*` (Core) vs `ESP_GPIO*` (Module)
+  naming divergence, records the `ac_dimmer`-vs-SX1509 timing
+  constraint, records the package YAML status as
+  `package-yaml-pending` / `needs-package-reconciliation`, and
+  records the intended advanced / manual-warning long-term product
+  posture (visible / selectable, buildable after package evidence,
+  installable only through an advanced / manual-warning path,
+  **not** Release-One, **not** REQUIRED_CONFIGS, **not** recommended,
+  **not** kit / default, **not** compliance-certified). The audit
+  doc explicitly **does not** unblock HW-005 or clear
+  COMPLIANCE-001 and **does not** change the JSON lifecycle row.
 - **Evidence missing.** Standalone schematic-backed reference doc
-  (pending `HW-PINMAP-320`). The source ESP32 pins (Option (a):
-  end-to-end direct interrupt-capable ESP32 GPIOs traced through
-  `S360-100-R4` + `S360-320`) for `TRI_GPIO1` / `TRI_GPIO2` /
+  rewrite (pending `HW-PINMAP-320-FOLLOWUP` per
+  [`s360-320-r4-triac.md` Follow-up PR sequence](s360-320-r4-triac.md#follow-up-pr-sequence)).
+  The source ESP32 pins (Option (a): end-to-end direct
+  interrupt-capable ESP32 GPIOs traced through `S360-100-R4` +
+  `S360-320`) for `TRI_GPIO1` / `TRI_GPIO2` /
   `ESP_GPIO1` / `ESP_GPIO2` remain unverified — the Core-side trace
   still routes via SX1509, which the timing analysis rejects. KiCad
   PCB source, Gerbers, and BOM are also not in this upload; all three
   are COMPLIANCE-001-adjacent (trace creepage / clearance / component
   voltage ratings). **This module stays blocked under HW-005;
-  committing the schematic PDF and the artifact index does not change
-  that status. Mains-voltage compliance is additionally tracked in
+  committing the schematic PDF, the artifact index, and the
+  HW-PINMAP-320 audit doc does not change that status.
+  Mains-voltage compliance is additionally tracked in
   [`../compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md)
   (COMPLIANCE-001); HW-005 remains a separate, prior blocker; neither
-  blocker is cleared by this audit or by HW-ASSETS-003.** Catalog
-  `schematic_status` for `S360-320` is unchanged
-  (`cataloged_unverified`).
+  blocker is cleared by this audit, by HW-ASSETS-003, or by
+  HW-PINMAP-320.** Catalog `schematic_status` for `S360-320` is
+  unchanged (`cataloged_unverified`).
 
 ### Sense360 240v PSU (`S360-400`)
 
