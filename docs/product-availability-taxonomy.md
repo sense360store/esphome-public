@@ -871,6 +871,25 @@ gate evidence.
   release artifact / WebFlash manifest / bench proof) and records the
   follow-up PR sequence for the six `cataloged_unverified` boards.
   Documentation only.
+- [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+  — PACKAGE-GAP-001 package-level readiness gate. Per-package
+  verdict for the six in-scope expansion / power packages
+  ([`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml),
+  [`packages/expansions/fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml),
+  [`packages/expansions/fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml),
+  [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml),
+  [`packages/hardware/power_240v.yaml`](../packages/hardware/power_240v.yaml),
+  [`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml));
+  policy-only label vocabulary that maps onto the
+  `package-yaml-ready` / `package-yaml-pending` rungs of this
+  taxonomy without changing JSON enums. Records the load-bearing
+  rule "package YAML changes require schematic-backed pin-map
+  evidence", the per-slice implementation gates, and the
+  per-package follow-up PR sequence
+  (`PACKAGE-RELAY-001` / `PACKAGE-PWM-001` / `PACKAGE-DAC-001` /
+  `PACKAGE-TRIAC-001` / `PACKAGE-POWER-400-001` /
+  `PACKAGE-POE-410-001` / `CORE-ABSTRACT-BUS-001`). Documentation
+  only.
 - [`docs/hardware-catalog.md`](hardware-catalog.md) — canonical
   Sense360 board / module names, SKUs, revisions; the naming
   source of truth this taxonomy quotes.

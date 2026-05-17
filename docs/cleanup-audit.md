@@ -1668,3 +1668,128 @@ no unsupported YAML / build-matrix / release change occurs.
 - [`docs/webflash-compatibility-taxonomy-audit.md`](webflash-compatibility-taxonomy-audit.md)
   — COMPAT-001 audit. Owns the stricter-`forbidden_tokens`-alignment
   backlog.
+
+## PACKAGE-GAP-001 update (package readiness matrix)
+
+PACKAGE-GAP-001 adds the canonical package-level readiness gate at
+[`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md).
+The matrix records, per package, the current evidence state, the
+known schematic / pin-map conflicts, the allowed action right now,
+and the named follow-up PR that owns reconciliation for each of the
+six in-scope expansion / power packages:
+[`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml)
+(`S360-310`),
+[`packages/expansions/fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml)
+(`S360-311`),
+[`packages/expansions/fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml)
+(`S360-312`),
+[`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+(`S360-320`),
+[`packages/hardware/power_240v.yaml`](../packages/hardware/power_240v.yaml)
+(`S360-400`), and
+[`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
+(`S360-410`). The matrix also records the Core abstract-bus packages
+([`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml)
+and
+[`packages/hardware/sense360_core.yaml`](../packages/hardware/sense360_core.yaml))
+as `do-not-change-release-one` + `needs-package-reconciliation`
+deferred to the systemic `CORE-ABSTRACT-BUS-001` rebind that aliases
+[`docs/release-one-hardware-audit.md` Required follow-ups #2 / #3](release-one-hardware-audit.md#required-follow-ups).
+Carries the load-bearing **Core rule**: *"Package YAML changes are
+allowed only when the target board has verified pin-map evidence and
+the package change can be traced to a schematic-backed audit.
+Partial, pending, or blocked audits may produce follow-up
+requirements, but must not be treated as implementation approval."*
+Uses a policy-only label vocabulary (`ready-for-package-change` /
+`needs-package-reconciliation` / `schematic-evidence-pending` /
+`bench-evidence-pending` / `timing/compliance-pending` /
+`reference-only` / `do-not-change-release-one` /
+`blocked-from-standard-exposure` / `unknown`) — adds **no** JSON
+enum, schema, or validator and reuses every existing classification
+vocabulary verbatim
+(`confirmed-ok` / `needs-package-change` / `needs-doc-fix` /
+`needs-silkscreen/bench-verification` / `blocked` / `unknown` from
+HW-009; `documented` / `partially-documented` /
+`cataloged-unverified` / `blocked` / `not-needed-for-release-one`
+from HW-004 / HW-006 / HW-008; `package-yaml-ready` /
+`package-yaml-pending` from PRODUCT-AVAIL-001). Status summary: **no
+package YAML is `ready-for-package-change` today** — every in-scope
+package carries at least one of `schematic-evidence-pending`,
+`needs-package-reconciliation`, `bench-evidence-pending`,
+`timing/compliance-pending`, `reference-only`,
+`do-not-change-release-one`, or `blocked-from-standard-exposure`.
+Records the per-slice implementation gates (schematic ingest /
+pin-map standalone reference doc / JSON `schematic_status` promotion
+/ bench evidence / timing & compliance / Core abstract-bus rebind)
+and the follow-up PR sequence (`PACKAGE-RELAY-001`,
+`PACKAGE-PWM-001`, `PACKAGE-DAC-001`, `PACKAGE-TRIAC-001`,
+`PACKAGE-POWER-400-001`, `PACKAGE-POE-410-001`,
+`CORE-ABSTRACT-BUS-001`) as separate scoped PRs with their own gate
+evidence. Carries the explicit do-not-change guardrails.
+Documentation only. **No** package YAML under
+[`packages/`](../packages/) is edited (including all six in-scope
+packages, the legacy four-channel
+[`packages/expansions/sense360_fan_pwm.yaml`](../packages/expansions/sense360_fan_pwm.yaml),
+the legacy alias
+[`packages/expansions/fan_12v_pwm.yaml`](../packages/expansions/fan_12v_pwm.yaml),
+[`packages/expansions/gpio_expander_sx1509.yaml`](../packages/expansions/gpio_expander_sx1509.yaml),
+the Core abstract packages, and every other package in the tree).
+[`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+retains its BLOCKED / UNVERIFIED banner, its `ac_dimmer` driver
+topology, and its mains-voltage / qualified-electrician warnings
+verbatim. No entry in
+[`config/hardware-catalog.json`](../config/hardware-catalog.json),
+[`config/product-catalog.json`](../config/product-catalog.json),
+[`config/webflash-builds.json`](../config/webflash-builds.json), or
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+is changed; no product YAML, WebFlash wrapper, script, test,
+workflow, component, or include is changed; no firmware is
+regenerated; no GitHub Release is created or modified; no WebFlash
+import is performed; no kit is added; no `REQUIRED_CONFIGS` /
+`scripts/data/kits.json` / `firmware/sources.json` / `manifest.json`
+entry is added or removed. Release-One stays
+`Ceiling-POE-VentIQ-RoomIQ` on `stable` with artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` and tag
+`v1.0.0`; the LED preview entry `Ceiling-POE-VentIQ-RoomIQ-LED`
+stays `status: preview`, `channel: preview`; FanTRIAC stays
+`status: blocked`, `blocker: HW-005`, `webflash_build_matrix: false`
+(the advanced / manual-warning long-term posture in
+[`docs/hardware/s360-320-r4-triac.md`](hardware/s360-320-r4-triac.md)
+is **intent only**; the JSON lifecycle row is unchanged); the
+mains-voltage compliance status for `S360-320` / `S360-400`
+(COMPLIANCE-001) is not changed; HW-005 is not resolved; the Core
+J10 vs RoomIQ J6 pin-order discrepancy (HW-009
+`needs-silkscreen/bench-verification`) is not resolved; the
+systemic Core abstract-bus mismatch (HW-009 `needs-package-change`,
+owned by
+[`docs/release-one-hardware-audit.md` Required follow-ups #2 / #3](release-one-hardware-audit.md#required-follow-ups);
+recorded by this matrix as `CORE-ABSTRACT-BUS-001`) is not
+resolved; the `S360-410` PoE PSU schematic-pending caveat in
+[`docs/release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings)
+is preserved, not promoted away; every `legacy-compatible` entry
+stays `legacy-compatible`. No new test is added; a future
+per-package slice PR may add a structural file-content guard
+analogous to
+[`tests/test_led_package_mapping.py`](../tests/test_led_package_mapping.py)
+once it edits the corresponding package. Cross-linked from
+[`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+(See also + Follow-up-PR-sequence row #7),
+[`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md)
+(See also),
+[`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+(See also), and
+[`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md)
+(See also). Source-of-truth consumed: the per-board pin / package
+mapping audits
+[`docs/hardware/s360-310-r4-relay.md`](hardware/s360-310-r4-relay.md)
+(HW-PINMAP-310, `pending`),
+[`docs/hardware/s360-311-r4-pwm.md`](hardware/s360-311-r4-pwm.md)
+(HW-PINMAP-311, `partial`),
+[`docs/hardware/s360-312-r4-dac.md`](hardware/s360-312-r4-dac.md)
+(HW-PINMAP-312, `partial`),
+[`docs/hardware/s360-320-r4-triac.md`](hardware/s360-320-r4-triac.md)
+(HW-PINMAP-320, `partial`),
+[`docs/hardware/s360-400-r4-power.md`](hardware/s360-400-r4-power.md)
+(HW-PINMAP-400, `pending`),
+[`docs/hardware/s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md)
+(HW-PINMAP-410, `pending`).
