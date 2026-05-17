@@ -1145,6 +1145,18 @@ Expected:
 
 ## See also
 
+- [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+  — RELEASE-GAP-001 release-layer readiness gate. Downstream from
+  this matrix: classifies per-family release artifact eligibility
+  (build / sign / attach / checksums / release-notes /
+  release-proof / operator-proof / import) for the same FanRelay /
+  FanPWM / FanDAC / FanTRIAC / PWR-240V / PoE-410 candidate
+  families, and names the per-family release slices
+  (`RELEASE-RELAY-001`, `RELEASE-PWM-001`, `RELEASE-DAC-001`,
+  `RELEASE-TRIAC-001`, `RELEASE-POWER-400-001`,
+  `RELEASE-POE-410-001`). Preserves Release-One, the LED preview,
+  and the FanTRIAC blocked reference; treats `RELEASE-007` LED
+  stable as reference-only and out-of-scope. Documentation only.
 - [`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
   — PRODUCT-GAP-001 product-level readiness gate. Source of truth
   for the "Current product readiness" column on every candidate row

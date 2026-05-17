@@ -784,3 +784,19 @@ any RELEASE-006 row, unblock HW-005, or clear COMPLIANCE-001.
   the LED preview, and the FanTRIAC blocked reference; any
   stable promotion arising from a future product slice goes
   through the 17-row gate in this document.
+- [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+  — RELEASE-GAP-001 release-layer readiness gate. Records the
+  per-family release-artifact eligibility (build / sign / attach
+  / checksums / release-notes / release-proof / operator-proof /
+  import) for FanRelay / FanPWM / FanDAC / FanTRIAC / PWR-240V /
+  PoE-410 and the per-family release slices (`RELEASE-RELAY-001`,
+  `RELEASE-PWM-001`, `RELEASE-DAC-001`, `RELEASE-TRIAC-001`,
+  `RELEASE-POWER-400-001`, `RELEASE-POE-410-001`); treats
+  `RELEASE-007` LED stable as reference-only and out-of-scope —
+  any LED stable promotion goes through the 17-row gauntlet in
+  this document (rows 9–17 still pending), including
+  `WF-HW-TEST-002` and
+  [`S360-300-BENCH-001`](hardware/s360-300-r4-led.md#s360-300-bench-001-status).
+  Preserves Release-One, the LED preview, and the FanTRIAC blocked
+  reference; FanTRIAC stays `stable-not-approved` and
+  `blocked-from-standard-release`. Documentation only.
