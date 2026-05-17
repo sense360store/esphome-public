@@ -936,6 +936,25 @@ No match outside of those trees is expected.
   PRs (`WEBFLASH-RELAY-001`, `WEBFLASH-PWM-001`, `WEBFLASH-DAC-001`,
   `WF-TRIAC-001`, `WEBFLASH-POWER-400-001`, `WEBFLASH-POE-410-001`).
   Documentation only.
+- [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+  — RELEASE-GAP-001 release-layer readiness gate. Two layers
+  downstream from this matrix: classifies per-family release
+  artifact eligibility (build / sign / attach / checksums /
+  release-notes / release-proof / operator-proof / import) for
+  the same FanRelay / FanPWM / FanDAC / FanTRIAC / PWR-240V /
+  PoE-410 candidate families, and names the per-family follow-up
+  release slices (`RELEASE-RELAY-001`, `RELEASE-PWM-001`,
+  `RELEASE-DAC-001`, `RELEASE-TRIAC-001`,
+  `RELEASE-POWER-400-001`, `RELEASE-POE-410-001`). Records the
+  policy-only `not-release-ready` / `missing-build-matrix` /
+  `preview-artifact-candidate` /
+  `advanced/manual-warning-artifact-only` / `stable-not-approved`
+  / `operator-proof-required` / `release-proof-required` label
+  vocabulary; preserves Release-One, the LED preview, and the
+  FanTRIAC blocked reference; treats `RELEASE-007` LED stable as
+  reference-only and out-of-scope (owned by
+  `docs/preview-to-stable-promotion-gates.md`). Documentation
+  only.
 - [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
   — PACKAGE-GAP-001 package-level readiness gate. Source of truth
   for the "Package readiness" column on every candidate row in
