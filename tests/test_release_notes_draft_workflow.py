@@ -39,9 +39,7 @@ def _strip_comment_lines(text: str) -> str:
     than narrative comments that document what the workflow deliberately
     does or does not do.
     """
-    return "\n".join(
-        line for line in text.splitlines() if line.lstrip()[:1] != "#"
-    )
+    return "\n".join(line for line in text.splitlines() if line.lstrip()[:1] != "#")
 
 
 class ReleaseNotesDraftWorkflowSmokeTests(unittest.TestCase):

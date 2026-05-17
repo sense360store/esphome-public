@@ -93,9 +93,7 @@ class WebflashReleaseNotesTests(unittest.TestCase):
     # 5. Missing ## Hardware Requirements fails.
     # ------------------------------------------------------------------
     def test_missing_hardware_requirements_fails(self):
-        body = VALID_RELEASE_ONE.replace(
-            "## Hardware Requirements\n", "## Hardware\n"
-        )
+        body = VALID_RELEASE_ONE.replace("## Hardware Requirements\n", "## Hardware\n")
         errors = validate_body(body, channel="stable")
         self.assertTrue(
             any("Hardware Requirements" in e for e in errors),
@@ -146,9 +144,7 @@ class WebflashReleaseNotesTests(unittest.TestCase):
             "See release notes",
         ):
             with self.subTest(filler=filler):
-                body = VALID_RELEASE_ONE.replace(
-                    original_bullet, f"- {filler}"
-                )
+                body = VALID_RELEASE_ONE.replace(original_bullet, f"- {filler}")
                 errors = validate_body(body, channel="stable")
                 self.assertTrue(
                     any("filler" in e.lower() for e in errors),

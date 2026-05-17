@@ -60,9 +60,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 LED_CEILING_PACKAGE = REPO_ROOT / "packages" / "hardware" / "led_ring_ceiling.yaml"
-RELEASE_ONE_PRODUCT = (
-    REPO_ROOT / "products" / "sense360-ceiling-poe-ventiq-roomiq.yaml"
-)
+RELEASE_ONE_PRODUCT = REPO_ROOT / "products" / "sense360-ceiling-poe-ventiq-roomiq.yaml"
 WEBFLASH_BUILDS = REPO_ROOT / "config" / "webflash-builds.json"
 PRODUCT_CATALOG = REPO_ROOT / "config" / "product-catalog.json"
 

@@ -74,9 +74,15 @@ def _matches(entry: dict, product: str, version: str, channel: str) -> bool:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--product", required=True, help="matrix.product (basename of product YAML)")
-    parser.add_argument("--version", required=True, help="version emitted into filename")
-    parser.add_argument("--channel", required=True, help="channel emitted into filename")
+    parser.add_argument(
+        "--product", required=True, help="matrix.product (basename of product YAML)"
+    )
+    parser.add_argument(
+        "--version", required=True, help="version emitted into filename"
+    )
+    parser.add_argument(
+        "--channel", required=True, help="channel emitted into filename"
+    )
     parser.add_argument(
         "--actual",
         required=True,
@@ -94,7 +100,9 @@ def main() -> int:
         print(f"error: cannot parse {BUILDS_PATH}: {exc}", file=sys.stderr)
         return 1
 
-    matches = [b for b in builds if _matches(b, args.product, args.version, args.channel)]
+    matches = [
+        b for b in builds if _matches(b, args.product, args.version, args.channel)
+    ]
 
     if not matches:
         print(

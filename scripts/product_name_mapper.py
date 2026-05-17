@@ -19,7 +19,6 @@ Example:
 import sys
 import re
 
-
 # ============================================================================
 # PRODUCT NAME MAPPING
 # ============================================================================
@@ -38,51 +37,40 @@ PRODUCT_MAPPINGS = {
     # NOT in the WebFlash build matrix at config/webflash-builds.json.
     # See docs/release-one-hardware-audit.md#fantriac-mapping-resolution
     # -------------------------------------------------------------------------
-    "sense360-ceiling-poe-ventiq-roomiq":
-        "Sense360-Ceiling-POE-VentIQ-RoomIQ",
-    "ceiling-poe-ventiq-roomiq":
-        "Sense360-Ceiling-POE-VentIQ-RoomIQ",
-    "sense360-ceiling-poe-ventiq-fantriac-roomiq":
-        "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
-
+    "sense360-ceiling-poe-ventiq-roomiq": "Sense360-Ceiling-POE-VentIQ-RoomIQ",
+    "ceiling-poe-ventiq-roomiq": "Sense360-Ceiling-POE-VentIQ-RoomIQ",
+    "sense360-ceiling-poe-ventiq-fantriac-roomiq": "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
     # -------------------------------------------------------------------------
     # LED-bearing preview sibling — WebFlash config: Ceiling-POE-VentIQ-RoomIQ-LED
     # Artifact name: Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-vX.Y.Z-{channel}.bin
     # Non-stable channel only (preview). Release-One stays LED-less.
     # -------------------------------------------------------------------------
-    "sense360-ceiling-poe-ventiq-roomiq-led":
-        "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED",
-    "ceiling-poe-ventiq-roomiq-led":
-        "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED",
-
+    "sense360-ceiling-poe-ventiq-roomiq-led": "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED",
+    "ceiling-poe-ventiq-roomiq-led": "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED",
     # -------------------------------------------------------------------------
     # Core Series - Ceiling Mount with Power Types
     # -------------------------------------------------------------------------
     "sense360-core-c-usb": "Sense360-Core-Ceiling-USB",
     "sense360-core-c-poe": "Sense360-Core-Ceiling-POE",
     "sense360-core-c-pwr": "Sense360-Core-Ceiling-PWR",
-
     # -------------------------------------------------------------------------
     # Core Series - Wall Mount with Power Types
     # -------------------------------------------------------------------------
     "sense360-core-w-usb": "Sense360-Core-Wall-USB",
     "sense360-core-w-poe": "Sense360-Core-Wall-POE",
     "sense360-core-w-pwr": "Sense360-Core-Wall-PWR",
-
     # -------------------------------------------------------------------------
     # Core Voice Series - Ceiling Mount with Power Types
     # -------------------------------------------------------------------------
     "sense360-core-v-c-usb": "Sense360-CoreVoice-Ceiling-USB",
     "sense360-core-v-c-poe": "Sense360-CoreVoice-Ceiling-POE",
     "sense360-core-v-c-pwr": "Sense360-CoreVoice-Ceiling-PWR",
-
     # -------------------------------------------------------------------------
     # Core Voice Series - Wall Mount with Power Types
     # -------------------------------------------------------------------------
     "sense360-core-v-w-usb": "Sense360-CoreVoice-Wall-USB",
     "sense360-core-v-w-poe": "Sense360-CoreVoice-Wall-POE",
     "sense360-core-v-w-pwr": "Sense360-CoreVoice-Wall-PWR",
-
     # -------------------------------------------------------------------------
     # Core Series - Base Configurations (no power type specified)
     # -------------------------------------------------------------------------
@@ -91,13 +79,11 @@ PRODUCT_MAPPINGS = {
     "sense360-core-ceiling-presence": "Sense360-Core-Ceiling-Presence",
     "sense360-core-wall-presence": "Sense360-Core-Wall-Presence",
     "sense360-core-ceiling-bathroom": "Sense360-Core-Ceiling-Bathroom",
-
     # -------------------------------------------------------------------------
     # Core Voice Series - Base Configurations
     # -------------------------------------------------------------------------
     "sense360-core-voice-ceiling": "Sense360-CoreVoice-Ceiling",
     "sense360-core-voice-wall": "Sense360-CoreVoice-Wall",
-
     # -------------------------------------------------------------------------
     # Mini Series - Presence Variants
     # -------------------------------------------------------------------------
@@ -106,7 +92,6 @@ PRODUCT_MAPPINGS = {
     "sense360-mini-presence-advanced": "Sense360-Mini-Presence-Advanced",
     "sense360-mini-presence-ld2412": "Sense360-Mini-Presence-LD2412",
     "sense360-mini-presence-advanced-ld2412": "Sense360-Mini-Presence-Advanced-LD2412",
-
     # -------------------------------------------------------------------------
     # Mini Series - AirIQ Variants
     # -------------------------------------------------------------------------
@@ -114,7 +99,6 @@ PRODUCT_MAPPINGS = {
     "sense360-mini-airiq-basic": "Sense360-Mini-AirIQ-Basic",
     "sense360-mini-airiq-advanced": "Sense360-Mini-AirIQ-Advanced",
     "sense360-mini-airiq-ld2412": "Sense360-Mini-AirIQ-LD2412",
-
     # -------------------------------------------------------------------------
     # Accessory Products
     # -------------------------------------------------------------------------
@@ -214,11 +198,7 @@ def _intelligent_convert(product_name: str) -> str:
     return "-".join(converted_parts)
 
 
-def generate_webflash_filename(
-    product_name: str,
-    version: str,
-    channel: str
-) -> str:
+def generate_webflash_filename(product_name: str, version: str, channel: str) -> str:
     """
     Generate the full WebFlash-compatible firmware filename.
 
@@ -240,12 +220,12 @@ def main():
         print(
             "Usage: python product_name_mapper.py "
             "<product_name> <version> <channel>",
-            file=sys.stderr
+            file=sys.stderr,
         )
         print(
             "Example: python product_name_mapper.py "
             "sense360-core-c-usb 3.0.0 stable",
-            file=sys.stderr
+            file=sys.stderr,
         )
         sys.exit(1)
 

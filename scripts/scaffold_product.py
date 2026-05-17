@@ -165,21 +165,16 @@ def _parse_hardware_assignments(values: List[str]) -> Dict[str, str]:
     out: Dict[str, str] = {}
     for raw in values:
         if "=" not in raw:
-            raise ScaffoldError(
-                f"--hardware value {raw!r} must be SLOT=SKU"
-            )
+            raise ScaffoldError(f"--hardware value {raw!r} must be SLOT=SKU")
         slot, sku = raw.split("=", 1)
         slot = slot.strip()
         sku = sku.strip()
         if not slot or not sku:
             raise ScaffoldError(
-                f"--hardware value {raw!r} must be SLOT=SKU "
-                "(both parts non-empty)"
+                f"--hardware value {raw!r} must be SLOT=SKU " "(both parts non-empty)"
             )
         if slot in out:
-            raise ScaffoldError(
-                f"--hardware slot {slot!r} declared more than once"
-            )
+            raise ScaffoldError(f"--hardware slot {slot!r} declared more than once")
         out[slot] = sku
     return out
 
@@ -217,13 +212,11 @@ def _parse_config_string(
 
     if tokens[0] not in mounting:
         errors.append(
-            f"Invalid mounting token {tokens[0]!r}; "
-            f"allowed: {sorted(mounting)}"
+            f"Invalid mounting token {tokens[0]!r}; " f"allowed: {sorted(mounting)}"
         )
     if tokens[1] not in power:
         errors.append(
-            f"Invalid power token {tokens[1]!r}; "
-            f"allowed: {sorted(power)}"
+            f"Invalid power token {tokens[1]!r}; " f"allowed: {sorted(power)}"
         )
 
     for token in tokens:
@@ -243,9 +236,7 @@ def _parse_config_string(
         if token in forbidden:
             continue
         if token not in modules:
-            errors.append(
-                f"Unknown module token {token!r}"
-            )
+            errors.append(f"Unknown module token {token!r}")
 
     rules = compat.get("rules", {})
     if (
@@ -260,15 +251,11 @@ def _parse_config_string(
         and "FanDAC" in tokens
         and "AirIQ" in tokens
     ):
-        errors.append(
-            "FanDAC conflicts with AirIQ; see docs/webflash-contract.md"
-        )
+        errors.append("FanDAC conflicts with AirIQ; see docs/webflash-contract.md")
 
     present_fans = [t for t in FAN_DRIVER_TOKENS if t in tokens]
     if len(present_fans) > 1:
-        errors.append(
-            f"more than one fan-driver token: {present_fans}"
-        )
+        errors.append(f"more than one fan-driver token: {present_fans}")
 
     return tokens, errors
 
@@ -296,11 +283,7 @@ def _section(title: str, lines: List[str]) -> str:
 
 
 def _json_block(data: Any) -> str:
-    return (
-        "```json\n"
-        + json.dumps(data, indent=2, sort_keys=False)
-        + "\n```"
-    )
+    return "```json\n" + json.dumps(data, indent=2, sort_keys=False) + "\n```"
 
 
 # ----------------------------------------------------------------------
@@ -341,9 +324,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
         catalog = _load_json(Path(args.catalog), "product catalog")
         builds_doc = _load_json(Path(args.builds), "webflash builds")
         compat = _load_json(Path(args.compat), "webflash compatibility")
-        hardware_doc = _load_json(
-            Path(args.hardware_catalog), "hardware catalog"
-        )
+        hardware_doc = _load_json(Path(args.hardware_catalog), "hardware catalog")
     except ScaffoldError as exc:
         return f"# Product Scaffold Report\n\nERROR: {exc}\n", 2
 
@@ -360,17 +341,13 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
         _info(f"`product_yaml`: `{args.product_yaml}`"),
     ]
     if args.webflash_wrapper:
-        input_lines.append(
-            _info(f"`webflash_wrapper`: `{args.webflash_wrapper}`")
-        )
+        input_lines.append(_info(f"`webflash_wrapper`: `{args.webflash_wrapper}`"))
     if args.version:
         input_lines.append(_info(f"`version`: `{args.version}`"))
     if args.channel:
         input_lines.append(_info(f"`channel`: `{args.channel}`"))
     if args.hardware_status:
-        input_lines.append(
-            _info(f"`hardware_status`: `{args.hardware_status}`")
-        )
+        input_lines.append(_info(f"`hardware_status`: `{args.hardware_status}`"))
     if args.webflash_build_matrix:
         input_lines.append(_info("`webflash_build_matrix`: requested"))
     if args.blocker:
@@ -379,10 +356,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
         input_lines.append(_info(f"`reason`: `{args.reason}`"))
     if args.missing_hardware_evidence:
         input_lines.append(
-            _info(
-                "`missing_hardware_evidence`: "
-                f"`{args.missing_hardware_evidence}`"
-            )
+            _info("`missing_hardware_evidence`: " f"`{args.missing_hardware_evidence}`")
         )
     if hardware:
         for slot, sku in hardware.items():
@@ -410,8 +384,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
         (
             p
             for p in catalog_products
-            if isinstance(p, dict)
-            and p.get("config_string") == args.config_string
+            if isinstance(p, dict) and p.get("config_string") == args.config_string
         ),
         None,
     )
@@ -424,14 +397,11 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
             )
         )
         errors.append(
-            f"duplicate catalog entry for config_string "
-            f"{args.config_string!r}"
+            f"duplicate catalog entry for config_string " f"{args.config_string!r}"
         )
     else:
         existing_lines.append(
-            _ok(
-                f"no existing catalog entry for {args.config_string!r}"
-            )
+            _ok(f"no existing catalog entry for {args.config_string!r}")
         )
 
     builds = builds_doc.get("builds", []) or []
@@ -439,8 +409,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
         (
             b
             for b in builds
-            if isinstance(b, dict)
-            and b.get("config_string") == args.config_string
+            if isinstance(b, dict) and b.get("config_string") == args.config_string
         ),
         None,
     )
@@ -452,15 +421,11 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
             )
         )
         errors.append(
-            f"build-matrix entry already exists for "
-            f"{args.config_string!r}"
+            f"build-matrix entry already exists for " f"{args.config_string!r}"
         )
     else:
         existing_lines.append(
-            _ok(
-                f"no existing build-matrix entry for "
-                f"{args.config_string!r}"
-            )
+            _ok(f"no existing build-matrix entry for " f"{args.config_string!r}")
         )
 
     if args.product_yaml.startswith("products/webflash/"):
@@ -478,9 +443,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
 
     product_yaml_abs = REPO_ROOT / args.product_yaml
     if product_yaml_abs.is_file():
-        existing_lines.append(
-            _ok(f"product YAML exists ({args.product_yaml})")
-        )
+        existing_lines.append(_ok(f"product YAML exists ({args.product_yaml})"))
     else:
         existing_lines.append(
             _info(
@@ -493,9 +456,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
         wrapper_abs = REPO_ROOT / args.webflash_wrapper
         if wrapper_abs.is_file():
             existing_lines.append(
-                _ok(
-                    f"WebFlash wrapper exists ({args.webflash_wrapper})"
-                )
+                _ok(f"WebFlash wrapper exists ({args.webflash_wrapper})")
             )
         else:
             existing_lines.append(
@@ -528,10 +489,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
                 hardware_lines.append(_ok(f"`{slot}` → `{sku}` (catalog)"))
             else:
                 hardware_lines.append(
-                    _err(
-                        f"`{slot}` → `{sku}` not in "
-                        "config/hardware-catalog.json"
-                    )
+                    _err(f"`{slot}` → `{sku}` not in " "config/hardware-catalog.json")
                 )
                 errors.append(
                     f"hardware slot {slot!r} SKU {sku!r} is not in "
@@ -550,9 +508,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
             )
         else:
             if args.blocker != FANTRIAC_BLOCKER:
-                errors.append(
-                    "FanTRIAC scaffold must set --blocker HW-005"
-                )
+                errors.append("FanTRIAC scaffold must set --blocker HW-005")
 
     # ----- Per-status lifecycle rules --------------------------------------
     derived_artifact: Optional[str] = None
@@ -567,9 +523,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
         except Exception as exc:  # pragma: no cover - mapper is pure
             errors.append(f"artifact-name derivation failed: {exc}")
 
-    release_one_required = set(
-        compat.get("release_one_required_configs", [])
-    )
+    release_one_required = set(compat.get("release_one_required_configs", []))
 
     if status == "compile-only":
         if not args.hardware_status:
@@ -592,9 +546,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
                 "--missing-hardware-evidence describing the open evidence"
             )
         if args.webflash_build_matrix:
-            errors.append(
-                "hardware-pending must not request --webflash-build-matrix"
-            )
+            errors.append("hardware-pending must not request --webflash-build-matrix")
 
     elif status == "preview":
         if not args.hardware_status:
@@ -646,9 +598,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
         if not args.reason:
             errors.append("blocked requires --reason")
         if args.webflash_build_matrix:
-            errors.append(
-                "blocked must not request --webflash-build-matrix"
-            )
+            errors.append("blocked must not request --webflash-build-matrix")
 
     # ----- Proposed product-catalog entry ----------------------------------
     proposed_entry: Dict[str, Any] = {
@@ -702,9 +652,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
                 f"`product_name_mapper.py`: `{derived_artifact}`"
             ),
         )
-    sections.append(
-        _section("Proposed product-catalog entry", catalog_section)
-    )
+    sections.append(_section("Proposed product-catalog entry", catalog_section))
 
     # ----- Optional WebFlash build-matrix entry ----------------------------
     build_lines: List[str] = []
@@ -720,9 +668,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
             "features": [],
         }
         build_lines.append(
-            _info(
-                "The example below is NOT written to disk by this script."
-            )
+            _info("The example below is NOT written to disk by this script.")
         )
         build_lines.append(
             _info(
@@ -740,15 +686,11 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
                 "build-matrix entry from this scaffold."
             )
         )
-    sections.append(
-        _section("Optional WebFlash build-matrix entry", build_lines)
-    )
+    sections.append(_section("Optional WebFlash build-matrix entry", build_lines))
 
     # ----- Required files ---------------------------------------------------
     required_files = [
-        _info(
-            f"Product YAML: `{args.product_yaml}` (create if missing)"
-        ),
+        _info(f"Product YAML: `{args.product_yaml}` (create if missing)"),
     ]
     if status == "preview" and args.webflash_build_matrix:
         required_files.append(
@@ -769,10 +711,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
     )
     if status == "preview" and args.webflash_build_matrix:
         required_files.append(
-            _info(
-                "Build matrix entry: hand-edit "
-                "`config/webflash-builds.json`"
-            )
+            _info("Build matrix entry: hand-edit " "`config/webflash-builds.json`")
         )
     sections.append(_section("Required files", required_files))
 
@@ -816,8 +755,7 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
     )
     checklist_items.append(
         (
-            args.config_string not in release_one_required
-            or status != "preview",
+            args.config_string not in release_one_required or status != "preview",
             "Preview does not claim a Release-One required config",
         )
     )

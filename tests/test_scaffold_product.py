@@ -564,9 +564,7 @@ class PreviewRulesTests(unittest.TestCase):
             ]
         )
         self.assertEqual(code, 0, msg=out)
-        self.assertIn(
-            "Recommendation: `webflash_build_matrix: false`", out
-        )
+        self.assertIn("Recommendation: `webflash_build_matrix: false`", out)
 
 
 class FanTriacPolicyTests(unittest.TestCase):

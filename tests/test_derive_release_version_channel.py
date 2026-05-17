@@ -39,14 +39,10 @@ class DeriveFunctionTests(unittest.TestCase):
         self.assertEqual(derive("1.0.0", False), ("1.0.0", "stable"))
 
     def test_preview_led_preview_suffix(self) -> None:
-        self.assertEqual(
-            derive("v1.0.0-led-preview", True), ("1.0.0", "preview")
-        )
+        self.assertEqual(derive("v1.0.0-led-preview", True), ("1.0.0", "preview"))
 
     def test_preview_generic_preview_suffix(self) -> None:
-        self.assertEqual(
-            derive("v1.0.0-preview", True), ("1.0.0", "preview")
-        )
+        self.assertEqual(derive("v1.0.0-preview", True), ("1.0.0", "preview"))
 
     def test_prerelease_plain_tag_is_preview(self) -> None:
         # A prerelease tagged with a plain semver string (no suffix) is

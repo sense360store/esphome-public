@@ -45,7 +45,9 @@ class _StagedRepo:
         self.tmpdir = tempfile.TemporaryDirectory()
         self.root = Path(self.tmpdir.name)
         (self.root / "config").mkdir()
-        shutil.copy(CANONICAL_COMPAT_PATH, self.root / "config" / "webflash-compatibility.json")
+        shutil.copy(
+            CANONICAL_COMPAT_PATH, self.root / "config" / "webflash-compatibility.json"
+        )
 
     def write_builds(self, builds):
         """Write a webflash-builds.json with the given entries."""
@@ -154,12 +156,15 @@ class WebflashBuildsValidatorTests(unittest.TestCase):
     # 6. artifact_name mismatch fails with the spec-mandated message.
     # ------------------------------------------------------------------
     def test_artifact_name_mismatch_fails(self):
-        entry = _entry(artifact_name="Sense360-Ceiling-POE-VentIQ-RoomIQ-v9.9.9-stable.bin")
+        entry = _entry(
+            artifact_name="Sense360-Ceiling-POE-VentIQ-RoomIQ-v9.9.9-stable.bin"
+        )
         validator, _, failed = self._run([entry])
         self.assertEqual(failed, 1)
         self.assertTrue(
             any(
-                "artifact_name mismatch: expected " "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin" in e
+                "artifact_name mismatch: expected "
+                "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin" in e
                 for e in validator.errors
             ),
             f"expected mismatch message; got {validator.errors}",

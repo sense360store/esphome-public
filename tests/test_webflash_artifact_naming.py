@@ -48,9 +48,7 @@ BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 RELEASE_ONE_CANONICAL_PRODUCT = "sense360-ceiling-poe-ventiq-roomiq"
 RELEASE_ONE_WEBFLASH_BASENAME = "ceiling-poe-ventiq-roomiq"
 RELEASE_ONE_DISPLAY_NAME = "Sense360-Ceiling-POE-VentIQ-RoomIQ"
-RELEASE_ONE_ARTIFACT = (
-    "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin"
-)
+RELEASE_ONE_ARTIFACT = "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin"
 
 
 def _load_builds():

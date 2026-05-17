@@ -44,7 +44,7 @@ web_password: "test_web_password"
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=60,
             )
 
             # ESPHome returns non-zero exit code on validation failure
@@ -106,20 +106,23 @@ web_password: "test_web_password"
 
     def _print_errors(self, output: str):
         """Extract and print errors from ESPHome output."""
-        lines = output.split('\n')
+        lines = output.split("\n")
         in_error_section = False
         error_lines = []
 
         for line in lines:
             # Look for error indicators
-            if any(keyword in line.lower() for keyword in ['failed config', 'error:', 'duplicate']):
+            if any(
+                keyword in line.lower()
+                for keyword in ["failed config", "error:", "duplicate"]
+            ):
                 in_error_section = True
 
             if in_error_section:
                 error_lines.append(line)
 
                 # Stop at certain markers
-                if line.strip().startswith('===') or line.strip().startswith('---'):
+                if line.strip().startswith("===") or line.strip().startswith("---"):
                     break
 
         # If we found specific errors, print them
@@ -138,7 +141,7 @@ web_password: "test_web_password"
         """Remove temporary secrets files."""
         for secrets_path in [
             self.repo_root / "secrets.yaml",
-            self.repo_root / "products" / "secrets.yaml"
+            self.repo_root / "products" / "secrets.yaml",
         ]:
             if secrets_path.exists():
                 secrets_path.unlink()
@@ -147,11 +150,7 @@ web_password: "test_web_password"
 def check_esphome_installed() -> bool:
     """Check if ESPHome is installed."""
     try:
-        subprocess.run(
-            ["esphome", "version"],
-            capture_output=True,
-            check=True
-        )
+        subprocess.run(["esphome", "version"], capture_output=True, check=True)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
@@ -169,11 +168,7 @@ def main():
         sys.exit(1)
 
     # Get ESPHome version
-    result = subprocess.run(
-        ["esphome", "version"],
-        capture_output=True,
-        text=True
-    )
+    result = subprocess.run(["esphome", "version"], capture_output=True, text=True)
     print(f"ESPHome version: {result.stdout.strip()}\n")
 
     # Run validation
@@ -186,7 +181,9 @@ def main():
         validator.print_summary()
 
         # Return error code if any validation failed
-        failed = sum(1 for success, _ in validator.validation_results.values() if not success)
+        failed = sum(
+            1 for success, _ in validator.validation_results.values() if not success
+        )
         sys.exit(1 if failed > 0 else 0)
 
     finally:

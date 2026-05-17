@@ -97,9 +97,7 @@ class WebflashBuildsValidator:
         for token in tokens:
             if token in forbidden:
                 if token == "Fan":
-                    self.errors.append(
-                        f"{GENERIC_FAN_MESSAGE} (in '{config_string}')"
-                    )
+                    self.errors.append(f"{GENERIC_FAN_MESSAGE} (in '{config_string}')")
                 else:
                     self.errors.append(
                         f"Forbidden legacy token '{token}' in "
@@ -183,9 +181,7 @@ class WebflashBuildsValidator:
             return False
         return True
 
-    def _validate_channel(
-        self, entry: Dict[str, Any], compat: Dict[str, Any]
-    ) -> bool:
+    def _validate_channel(self, entry: Dict[str, Any], compat: Dict[str, Any]) -> bool:
         allowed = compat.get("allowed_channels", [])
         channel = entry.get("channel")
         if channel not in allowed:
@@ -220,9 +216,7 @@ class WebflashBuildsValidator:
 
         builds = builds_doc.get("builds")
         if not isinstance(builds, list):
-            self.errors.append(
-                f"{BUILDS_PATH}: top-level 'builds' must be a list"
-            )
+            self.errors.append(f"{BUILDS_PATH}: top-level 'builds' must be a list")
             return 0, 0
 
         total = len(builds)

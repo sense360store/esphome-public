@@ -72,14 +72,16 @@ VALIDATOR_SCRIPT = REPO_ROOT / "scripts" / "validate-webflash-release-notes.py"
 
 # Statuses that are not WebFlash-shippable. ``preview`` is excluded from
 # this set because it is shippable on the preview channel.
-REFUSED_STATUSES = frozenset({
-    "blocked",
-    "legacy-compatible",
-    "deprecated",
-    "removed",
-    "compile-only",
-    "hardware-pending",
-})
+REFUSED_STATUSES = frozenset(
+    {
+        "blocked",
+        "legacy-compatible",
+        "deprecated",
+        "removed",
+        "compile-only",
+        "hardware-pending",
+    }
+)
 
 # Wording for known blocked-module exclusions in ## Known Issues. Mirrors
 # the example in docs/release-one.md and the RELEASE-001 task description.
@@ -163,9 +165,7 @@ def _resolve_changelog_bullets(
     parsed input yielded zero non-empty bullets.
     """
     if changelog is not None and changelog_file is not None:
-        raise GeneratorError(
-            "specify either --changelog or --changelog-file, not both"
-        )
+        raise GeneratorError("specify either --changelog or --changelog-file, not both")
 
     raw: Optional[str] = None
     if changelog is not None:
@@ -336,13 +336,15 @@ def _render_preamble(
     ]
     for b in hardware_bullets:
         lines.append(f"  - {b}")
-    lines.extend([
-        "",
-        "Human review required before publishing. Replace the TODO bullet",
-        "in the Changelog section with the real user-visible changes for",
-        "this release, then re-run scripts/validate-webflash-release-notes.py.",
-        "-->",
-    ])
+    lines.extend(
+        [
+            "",
+            "Human review required before publishing. Replace the TODO bullet",
+            "in the Changelog section with the real user-visible changes for",
+            "this release, then re-run scripts/validate-webflash-release-notes.py.",
+            "-->",
+        ]
+    )
     return "\n".join(lines) + "\n"
 
 
@@ -508,15 +510,21 @@ def _build_parser() -> argparse.ArgumentParser:
     # Test-only path overrides. Hidden from --help so the public surface
     # stays focused on the documented inputs.
     parser.add_argument(
-        "--catalog", type=Path, default=DEFAULT_CATALOG_PATH,
+        "--catalog",
+        type=Path,
+        default=DEFAULT_CATALOG_PATH,
         help=argparse.SUPPRESS,
     )
     parser.add_argument(
-        "--builds", type=Path, default=DEFAULT_BUILDS_PATH,
+        "--builds",
+        type=Path,
+        default=DEFAULT_BUILDS_PATH,
         help=argparse.SUPPRESS,
     )
     parser.add_argument(
-        "--hardware-catalog", type=Path, default=DEFAULT_HARDWARE_PATH,
+        "--hardware-catalog",
+        type=Path,
+        default=DEFAULT_HARDWARE_PATH,
         help=argparse.SUPPRESS,
     )
     return parser

@@ -94,11 +94,13 @@ class CatalogEntryShapeTests(unittest.TestCase):
                 with self.subTest(sku=sku, field=field):
                     value = entry.get(field)
                     self.assertIsInstance(
-                        value, str,
+                        value,
+                        str,
                         f"entry {sku!r} field {field!r} must be a string",
                     )
                     self.assertNotEqual(
-                        value, "",
+                        value,
+                        "",
                         f"entry {sku!r} field {field!r} must be non-empty",
                     )
 
@@ -124,11 +126,13 @@ class VerifiedEntryEvidenceTests(unittest.TestCase):
             with self.subTest(sku=sku):
                 schematic_file = entry.get("schematic_file")
                 self.assertIsInstance(
-                    schematic_file, str,
+                    schematic_file,
+                    str,
                     f"verified entry {sku!r} missing schematic_file",
                 )
                 self.assertNotEqual(
-                    schematic_file, "",
+                    schematic_file,
+                    "",
                     f"verified entry {sku!r} has empty schematic_file",
                 )
 
@@ -147,12 +151,11 @@ class VerifiedEntryEvidenceTests(unittest.TestCase):
 
     def test_unverified_entries_may_omit_schematic_file(self) -> None:
         unverified = [
-            e
-            for e in _items()
-            if e.get("schematic_status") == "cataloged_unverified"
+            e for e in _items() if e.get("schematic_status") == "cataloged_unverified"
         ]
         self.assertGreater(
-            len(unverified), 0,
+            len(unverified),
+            0,
             "expected at least one cataloged_unverified entry to remain",
         )
         # No assertion that schematic_file is absent — the test merely
@@ -205,9 +208,7 @@ class HW008VerifiedSKUsTests(unittest.TestCase):
 
     def test_all_expected_verified_skus_are_verified(self) -> None:
         verified = {
-            e["sku"]
-            for e in _items()
-            if e.get("schematic_status") == "verified"
+            e["sku"] for e in _items() if e.get("schematic_status") == "verified"
         }
         self.assertEqual(EXPECTED_VERIFIED_SKUS, verified & EXPECTED_VERIFIED_SKUS)
 
@@ -223,12 +224,14 @@ class HW008StillUnverifiedSKUsTests(unittest.TestCase):
     def test_s360_320_triac_is_not_verified(self) -> None:
         entry = _entry_by_sku("S360-320")
         self.assertNotEqual(
-            entry.get("schematic_status"), "verified",
+            entry.get("schematic_status"),
+            "verified",
             "S360-320 must remain cataloged_unverified; HW-005 blocks "
             "FanTRIAC and the S360-320 schematic is not committed.",
         )
         self.assertNotIn(
-            "schematic_file", entry,
+            "schematic_file",
+            entry,
             "S360-320 must not carry a schematic_file value while it is "
             "not verified.",
         )
@@ -236,13 +239,15 @@ class HW008StillUnverifiedSKUsTests(unittest.TestCase):
     def test_s360_400_psu_is_not_verified(self) -> None:
         entry = _entry_by_sku("S360-400")
         self.assertNotEqual(
-            entry.get("schematic_status"), "verified",
+            entry.get("schematic_status"),
+            "verified",
             "S360-400 must remain cataloged_unverified; the mains-voltage "
             "compliance review (COMPLIANCE-001) still applies and the "
             "S360-400 schematic is not committed.",
         )
         self.assertNotIn(
-            "schematic_file", entry,
+            "schematic_file",
+            entry,
             "S360-400 must not carry a schematic_file value while it is "
             "not verified.",
         )
