@@ -616,3 +616,11 @@ and the per-release proof checklist, see
   `firmware-missing` exception labels; records a current-state
   snapshot for every SKU in the hardware catalog. Documentation
   only; no JSON fields added; no statuses changed.
+- [`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
+  — PRODUCT-GAP-001 product-level readiness gate. Classifies the
+  FanRelay / FanPWM / FanDAC / FanTRIAC / PWR-240V / PoE-410
+  candidate product families against package readiness and the
+  WebFlash compatibility grammar; gates every future
+  `PRODUCT-*-001` slice on this onboarding guide's ordered safe
+  sequence; preserves Release-One, the LED preview, and the
+  FanTRIAC blocked reference verbatim.

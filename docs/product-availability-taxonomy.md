@@ -890,6 +890,21 @@ gate evidence.
   `PACKAGE-TRIAC-001` / `PACKAGE-POWER-400-001` /
   `PACKAGE-POE-410-001` / `CORE-ABSTRACT-BUS-001`). Documentation
   only.
+- [`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
+  — PRODUCT-GAP-001 product-level readiness gate. Per-family
+  verdict for the FanRelay / FanPWM / FanDAC / FanTRIAC /
+  PWR-240V / PoE-410 candidate product families; consumes the
+  `package-yaml-ready` / `package-yaml-pending` verdicts of the
+  package matrix and maps onto the `product-yaml-ready` /
+  `build-matrix-ready` / `release-artifact-ready` /
+  `webflash-imported` / `webflash-live-preview` /
+  `webflash-live-stable` rungs of this taxonomy without changing
+  JSON enums. Records the per-family follow-up PR sequence
+  (`PRODUCT-RELAY-001` / `PRODUCT-PWM-001` / `PRODUCT-DAC-001` /
+  `PRODUCT-TRIAC-001` / `PRODUCT-POWER-400-001` /
+  `PRODUCT-POE-410-001`) and the downstream
+  `WEBFLASH-GAP-001` / `RELEASE-GAP-001` / `WF-IMPORT-GAP-001`
+  chain. Documentation only.
 - [`docs/hardware-catalog.md`](hardware-catalog.md) — canonical
   Sense360 board / module names, SKUs, revisions; the naming
   source of truth this taxonomy quotes.

@@ -1122,3 +1122,16 @@ them must use a separate, scoped PR with its own gate evidence.
   "schematic verification pending" caveat** in
   [`release-one-hardware-audit.md` Findings → PoE PSU](../release-one-hardware-audit.md#findings)
   and **does not promote it away**.
+- [`../product-readiness-matrix.md`](../product-readiness-matrix.md)
+  — PRODUCT-GAP-001 product-level readiness gate. Per-candidate-
+  product-family verdict (FanRelay / FanPWM / FanDAC / FanTRIAC /
+  PWR-240V / PoE-410) that sits one rung above the per-package
+  [`package-readiness-matrix.md`](package-readiness-matrix.md) and
+  records the per-family follow-up PR sequence (`PRODUCT-RELAY-001`,
+  `PRODUCT-PWM-001`, `PRODUCT-DAC-001`, `PRODUCT-TRIAC-001`,
+  `PRODUCT-POWER-400-001`, `PRODUCT-POE-410-001`) plus the
+  downstream WebFlash exposure chain (`WEBFLASH-GAP-001` /
+  `RELEASE-GAP-001` / `WF-IMPORT-GAP-001`, `WF-TRIAC-001` for the
+  FanTRIAC advanced-flow). The Follow-up PR sequence row #8 of
+  this matrix already names PRODUCT-GAP-001 as its successor.
+  Documentation only.

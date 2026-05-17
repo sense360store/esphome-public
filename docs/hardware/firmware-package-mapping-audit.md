@@ -800,6 +800,19 @@ After HW-009 lands, these greps should hold:
   `CORE-ABSTRACT-BUS-001` follow-up that owns the systemic Core
   abstract-bus mismatch enumerated by HW-009. Documentation only;
   no package YAML edits.
+- [`docs/product-readiness-matrix.md`](../product-readiness-matrix.md)
+  — PRODUCT-GAP-001 product-level readiness gate. Per-family
+  verdict for the FanRelay / FanPWM / FanDAC / FanTRIAC /
+  PWR-240V / PoE-410 candidate product families; consumes this
+  audit (transitively, via the package matrix) for the
+  `Package readiness` column and records the downstream
+  per-family follow-up PRs (`PRODUCT-RELAY-001` /
+  `PRODUCT-PWM-001` / `PRODUCT-DAC-001` / `PRODUCT-TRIAC-001` /
+  `PRODUCT-POWER-400-001` / `PRODUCT-POE-410-001`) plus the
+  separate WebFlash exposure chain
+  (`WEBFLASH-GAP-001` / `RELEASE-GAP-001` / `WF-IMPORT-GAP-001`,
+  `WF-TRIAC-001` for the FanTRIAC advanced-flow). Documentation
+  only; no product YAML edits.
 - [`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md) —
   HW-PINMAP-311 pin / package mapping audit for `S360-311` Sense360
   PWM, **status: `partial — schematic evidence available; package

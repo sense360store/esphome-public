@@ -771,3 +771,16 @@ any RELEASE-006 row, unblock HW-005, or clear COMPLIANCE-001.
   `firmware-missing` exception labels for modules that exist in
   docs but are not buildable. Documentation only; no JSON fields
   added; no statuses changed.
+- [`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
+  — PRODUCT-GAP-001 product-level readiness gate. Classifies the
+  FanRelay / FanPWM / FanDAC / FanTRIAC / PWR-240V / PoE-410
+  candidate product families against package readiness and the
+  WebFlash compatibility grammar; records the per-family
+  follow-up PRs (`PRODUCT-RELAY-001`, `PRODUCT-PWM-001`,
+  `PRODUCT-DAC-001`, `PRODUCT-TRIAC-001`,
+  `PRODUCT-POWER-400-001`, `PRODUCT-POE-410-001`) and the
+  downstream `WEBFLASH-GAP-001` / `RELEASE-GAP-001` /
+  `WF-IMPORT-GAP-001` chain; explicitly preserves Release-One,
+  the LED preview, and the FanTRIAC blocked reference; any
+  stable promotion arising from a future product slice goes
+  through the 17-row gate in this document.
