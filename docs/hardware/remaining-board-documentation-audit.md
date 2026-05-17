@@ -265,6 +265,15 @@ committed; this audit does **not** upgrade it to `documented` and does
 - **Evidence missing.** No `S360-310` schematic is committed. The
   module-side relay circuitry (relay coil drive, snubber, contact rating,
   on-board indicator) is not in this repo.
+- **Audit doc.** The HW-PINMAP-310 per-board audit record has landed
+  at [`s360-310-r4-relay.md`](s360-310-r4-relay.md) with **status:
+  `pending — schematic/design evidence required`**. It inventories
+  the missing evidence in full and records the `IO3` (Core
+  schematic) vs `GPIO4` ([`sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml))
+  vs `GPIO10` ([`sense360_core.yaml`](../../packages/hardware/sense360_core.yaml))
+  `relay_pin` disagreement as unresolved — resolution belongs to a
+  future HW-PINMAP-310 follow-up and the systemic Core abstract-bus
+  rebind, not to this audit.
 
 ### Sense360 PWM (`S360-311`)
 

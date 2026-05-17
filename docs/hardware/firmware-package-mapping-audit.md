@@ -403,7 +403,16 @@ for HW-009):
   - `uart_tx_pin: GPIO1`, `uart_rx_pin: GPIO2` — these are
     `Hi-Link_RX/TX` for RoomIQ J10, not a generic expansion UART.
   - `relay_pin: GPIO4` — `IO4` is `SEN0609_RX`; the `Relay` net is on
-    `IO3`.
+    `IO3`. The companion `packages/hardware/sense360_core.yaml` binds
+    `relay_pin: GPIO10`, which also does not match the Core
+    schematic's `IO3` `Relay` source pin. The full `IO3` vs `GPIO4`
+    vs `GPIO10` disagreement (and the fact that
+    `packages/expansions/fan_relay.yaml` inherits whichever value the
+    parent Core package binds via `${relay_pin}`) is recorded in
+    [`s360-310-r4-relay.md` Pin-map reconciliation status](s360-310-r4-relay.md#pin-map-reconciliation-status)
+    (HW-PINMAP-310 audit, **status: `pending — schematic/design
+    evidence required`**). HW-PINMAP-310 does not resolve it; the
+    resolution stays with this systemic Core abstract-bus rebind.
   - `status_led_pin: GPIO48` — `IO48` is `I2C_SDA`.
   - `pir_sensor_pin: GPIO47` — `IO47` is `ALS_INT`; `PIR` is on `IO15`.
   - `expansion_gpio1: GPIO5`, `expansion_gpio2: GPIO6` — `IO5` is

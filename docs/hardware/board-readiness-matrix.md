@@ -339,17 +339,29 @@ rather than restate them.
   `IO3`) lives in
   [`s360-100-r4-core.md#j4--relay-module-connector-3-pin`](s360-100-r4-core.md#j4--relay-module-connector-3-pin).
   HW-004 / HW-008 classification: `partially-documented`,
-  `not-needed-for-release-one`.
+  `not-needed-for-release-one`. The HW-PINMAP-310 audit doc
+  landed at
+  [`s360-310-r4-relay.md`](s360-310-r4-relay.md) records the
+  current state as **`pending — schematic/design evidence
+  required`** and inventories the evidence required to close it.
 - **Package YAML.** [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml).
   `package-yaml-pending` against the missing module-side schematic.
+  The `IO3` (Core schematic) vs `GPIO4` ([`sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml))
+  vs `GPIO10` ([`sense360_core.yaml`](../../packages/hardware/sense360_core.yaml))
+  `relay_pin` disagreement is recorded in
+  [`s360-310-r4-relay.md` Pin-map reconciliation status](s360-310-r4-relay.md#pin-map-reconciliation-status)
+  and is **not** resolved by HW-PINMAP-310 — resolution belongs to
+  the systemic Core abstract-bus rebind owned by
+  [`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups).
 - **Productization.** No active product consumes Relay. WebFlash
   taxonomy reserves the `FanRelay` token (
   [`config/webflash-compatibility.json`](../../config/webflash-compatibility.json))
   subject to the fan-driver `max-one-of` rule, but no build uses it.
 - **Required before promotion.** Module-side schematic + standalone
-  reference doc (`HW-PINMAP-310`); pin-map reconciliation; package YAML
-  reconciliation; product YAML + WebFlash wrapper + catalog entry +
-  build-matrix entry through
+  reference doc (`HW-PINMAP-310-FOLLOWUP` per
+  [`s360-310-r4-relay.md` Follow-up PRs](s360-310-r4-relay.md#follow-up-prs));
+  pin-map reconciliation; package YAML reconciliation; product YAML +
+  WebFlash wrapper + catalog entry + build-matrix entry through
   [`docs/product-onboarding.md`](../product-onboarding.md).
 
 ### `S360-311` Sense360 PWM
@@ -674,7 +686,15 @@ and
    Module-side schematic ingest, standalone reference doc, pin-map
    reconciliation, package YAML reconciliation. Per
    [`hardware-artifact-policy.md` Follow-up PR sequence](hardware-artifact-policy.md#follow-up-pr-sequence)
-   item #3.
+   item #3. The HW-PINMAP-310 audit doc has landed at
+   [`s360-310-r4-relay.md`](s360-310-r4-relay.md) with
+   **status: `pending — schematic/design evidence required`**;
+   the schematic ingest, the standalone schematic-backed reference
+   doc, the pin-map reconciliation, and the package YAML
+   reconciliation each remain owed to evidence-bearing follow-up
+   PRs (`HW-ASSETS-310`, `HW-PINMAP-310-FOLLOWUP`,
+   `PACKAGE-GAP-001` FanRelay slice — see
+   [`s360-310-r4-relay.md` Follow-up PRs](s360-310-r4-relay.md#follow-up-prs)).
 2. **`HW-PINMAP-311` — `S360-311` pin / package mapping audit.** Same
    for Sense360 PWM. Resolves the Core J6 1-to-13 pin-order **verify**
    flag against silkscreen.
@@ -876,3 +896,9 @@ them must use a separate, scoped PR with its own gate evidence.
   [`s360-300-r4-led.md`](s360-300-r4-led.md). Each carries its own
   open-questions list and is the source of truth for pin-level
   questions about its board.
+- [`s360-310-r4-relay.md`](s360-310-r4-relay.md) — HW-PINMAP-310
+  pin/package mapping audit for `S360-310` Sense360 Relay,
+  **status: `pending — schematic/design evidence required`**. Not
+  a schematic-backed reference doc; an evidence-gap record that
+  inventories what HW-ASSETS-310 / HW-PINMAP-310-FOLLOWUP must
+  supply.
