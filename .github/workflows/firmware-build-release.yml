@@ -60,7 +60,7 @@ permissions:
   contents: write
 
 env:
-  ESPHOME_VERSION: "2025.3.0"
+  ESPHOME_VERSION: "2026.4.5"
 
 jobs:
   # ============================================================================
