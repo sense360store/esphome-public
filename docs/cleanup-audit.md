@@ -1793,3 +1793,162 @@ mapping audits
 (HW-PINMAP-400, `pending`),
 [`docs/hardware/s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md)
 (HW-PINMAP-410, `pending`).
+
+## PRODUCT-GAP-001 update (product readiness matrix)
+
+PRODUCT-GAP-001 adds the canonical product-level readiness gate at
+[`docs/product-readiness-matrix.md`](product-readiness-matrix.md).
+The matrix records, per candidate product family, the current
+package-evidence state, the WebFlash compatibility grammar verdict,
+the allowed action right now, and the named follow-up PR that owns
+each family's product slice for the six candidate product families
+(FanRelay / `S360-310`, FanPWM / `S360-311`, FanDAC / `S360-312`,
+FanTRIAC / `S360-320`, PWR-240V / `S360-400`, PoE-410 / `S360-410`).
+Carries the load-bearing **Core rule**: *"Product YAML changes are
+allowed only when (a) every package the product would consume is
+`ready-for-package-change` per
+[`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md),
+(b) the combination is permitted by the WebFlash compatibility
+grammar in
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json),
+and (c) the
+[`docs/product-onboarding.md`](product-onboarding.md) safe sequence
+is followed end-to-end. Package readiness, product readiness, and
+WebFlash exposure are three separate gates; product YAML existence
+does not itself authorise WebFlash exposure."* Uses a policy-only
+label vocabulary (`ready-for-product-yaml` /
+`needs-package-reconciliation` / `schematic-evidence-pending` /
+`hardware-evidence-pending` / `timing/compliance-pending` /
+`advanced/manual-warning-only` / `blocked-from-standard-exposure` /
+`not-webflash-default` / `not-recommended` / `not-required-configs`
+/ `not-kit` / `legacy-only` / `invalid-combination` / `unknown`) —
+adds **no** JSON enum, schema, or validator and reuses every
+existing classification vocabulary verbatim
+(`production` / `preview` / `compile-only` / `hardware-pending` /
+`blocked` / `legacy-compatible` / `deprecated` / `removed` from
+[`config/product-catalog.json`](../config/product-catalog.json)
+`lifecycle_statuses`; `ready-for-package-change` /
+`needs-package-reconciliation` /
+`schematic-evidence-pending` / `bench-evidence-pending` /
+`timing/compliance-pending` / `reference-only` /
+`do-not-change-release-one` / `blocked-from-standard-exposure` from
+PACKAGE-GAP-001; `hardware-listed` / `artifact-indexed` /
+`schematic-verified` / `pin-map-ready` / `package-yaml-ready` /
+`product-yaml-ready` / `build-matrix-ready` /
+`release-artifact-ready` / `webflash-imported` /
+`webflash-live-preview` / `webflash-live-stable` /
+`production-required` / `kit-exposed` from PRODUCT-AVAIL-001).
+Status summary: **no candidate product family is
+`ready-for-product-yaml` today** — every candidate carries at least
+one of `needs-package-reconciliation`, `schematic-evidence-pending`,
+`hardware-evidence-pending`, `timing/compliance-pending`,
+`reference-only`, `blocked-from-standard-exposure`, or
+`do-not-change-release-one`. Records the current product surface
+(1 `production` Release-One, 1 `preview` LED, 1 `blocked` FanTRIAC
+reference, 31 `legacy-compatible`) verbatim from
+[`config/product-catalog.json`](../config/product-catalog.json), the
+WebFlash compatibility grammar from
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+(canonical modules `AirIQ` / `VentIQ` / `RoomIQ` / `FanRelay` /
+`FanPWM` / `FanDAC` / `FanTRIAC` / `LED`; AirIQ ↔ VentIQ mutex;
+FanDAC ↔ AirIQ mutex; `fan_variants_are_firmware_distinct: true`;
+`generic_fan_token_forbidden: true`; forbidden tokens `Bathroom` /
+`Comfort` / `Presence` / `Fan` / `FanAnalog`;
+`release_one_required_configs: ["Ceiling-POE-VentIQ-RoomIQ"]`), the
+WebFlash exposure class table (`none` / `docs-only` /
+`preview-candidate` / `advanced/manual-warning-only` /
+`production-candidate` / `legacy-only`), and the follow-up PR
+sequence (`PRODUCT-RELAY-001`, `PRODUCT-PWM-001`, `PRODUCT-DAC-001`,
+`PRODUCT-TRIAC-001`, `PRODUCT-POWER-400-001`, `PRODUCT-POE-410-001`,
+`WEBFLASH-GAP-001`, `RELEASE-GAP-001`, `WF-IMPORT-GAP-001`,
+`WF-TRIAC-001`) as separate scoped PRs with their own gate
+evidence. Carries the explicit do-not-change guardrails.
+Documentation only. **No** product YAML under
+[`products/`](../products/) is added or edited (including all 34
+existing entries: Release-One, LED preview, the blocked FanTRIAC
+reference, and the 31 `legacy-compatible` Core / Core-Voice / Mini /
+standalone-legacy entries such as
+[`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml)
+and [`products/sense360-poe.yaml`](../products/sense360-poe.yaml));
+no WebFlash wrapper under
+[`products/webflash/`](../products/webflash/) is added or edited
+(`ceiling-poe-ventiq-roomiq.yaml`,
+`ceiling-poe-ventiq-roomiq-led.yaml`, and the blocked
+`ceiling-poe-ventiq-fantriac-roomiq.yaml` all stay verbatim); no
+package YAML under [`packages/`](../packages/) is edited; no entry
+in [`config/hardware-catalog.json`](../config/hardware-catalog.json),
+[`config/product-catalog.json`](../config/product-catalog.json),
+[`config/webflash-builds.json`](../config/webflash-builds.json), or
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+is changed; no script, test, workflow, component, or include is
+changed; no firmware is regenerated; no GitHub Release is created
+or modified; no WebFlash import is performed; no kit is added; no
+`REQUIRED_CONFIGS` / `scripts/data/kits.json` /
+`firmware/sources.json` / `manifest.json` entry is added or
+removed. Release-One stays `Ceiling-POE-VentIQ-RoomIQ` on `stable`
+with artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` and tag
+`v1.0.0`; the LED preview entry `Ceiling-POE-VentIQ-RoomIQ-LED`
+stays `status: preview`, `channel: preview`, version `1.0.0`,
+artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin` (no
+promotion to `production` / `stable`; no addition to
+`release_one_required_configs`; no kit added); the FanTRIAC
+reference `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status:
+blocked`, `blocker: HW-005`, `webflash_build_matrix: false` (the
+advanced / manual-warning long-term posture in
+[`docs/hardware/s360-320-r4-triac.md`](hardware/s360-320-r4-triac.md)
+is **intent only**; the JSON lifecycle row is unchanged); the
+mains-voltage compliance status for `S360-320` / `S360-400`
+(COMPLIANCE-001) is not changed; HW-005 is not resolved; the Core
+J10 vs RoomIQ J6 pin-order discrepancy (HW-009
+`needs-silkscreen/bench-verification`) is not resolved; the
+systemic Core abstract-bus mismatch (HW-009 `needs-package-change`,
+owned by
+[`docs/release-one-hardware-audit.md` Required follow-ups #2 / #3](release-one-hardware-audit.md#required-follow-ups);
+recorded by PACKAGE-GAP-001 as `CORE-ABSTRACT-BUS-001`) is not
+resolved; the `S360-410` PoE PSU schematic-pending caveat in
+[`docs/release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings)
+is preserved, not promoted away; every `legacy-compatible` entry
+(31 today) stays `legacy-compatible`. No new test is added; a
+future per-family slice PR may add a structural file-content guard
+analogous to
+[`tests/test_release_one_entity_names.py`](../tests/test_release_one_entity_names.py)
+once it adds the corresponding product YAML. Cross-linked from
+[`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+(See also),
+[`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+(See also; Follow-up PR sequence row #8 already names
+PRODUCT-GAP-001),
+[`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md)
+(See also),
+[`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+(See also; the existing PRODUCT-GAP-001 future-PR mentions at
+lines 69, 705, and 735 are preserved),
+[`docs/product-onboarding.md`](product-onboarding.md) (See also),
+[`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
+(See also), and
+[`docs/product-deprecation-removal-policy.md`](product-deprecation-removal-policy.md)
+(See also). Source-of-truth consumed: PACKAGE-GAP-001
+[`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+(per-package verdict for every required package); the six per-board
+pin / package mapping audits
+[`docs/hardware/s360-310-r4-relay.md`](hardware/s360-310-r4-relay.md)
+(HW-PINMAP-310, `pending`),
+[`docs/hardware/s360-311-r4-pwm.md`](hardware/s360-311-r4-pwm.md)
+(HW-PINMAP-311, `partial`),
+[`docs/hardware/s360-312-r4-dac.md`](hardware/s360-312-r4-dac.md)
+(HW-PINMAP-312, `partial`),
+[`docs/hardware/s360-320-r4-triac.md`](hardware/s360-320-r4-triac.md)
+(HW-PINMAP-320, `partial`),
+[`docs/hardware/s360-400-r4-power.md`](hardware/s360-400-r4-power.md)
+(HW-PINMAP-400, `pending`),
+[`docs/hardware/s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md)
+(HW-PINMAP-410, `pending`); the cross-cutting
+[`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+(13-rung availability ladder); the WebFlash grammar in
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json);
+the product catalog in
+[`config/product-catalog.json`](../config/product-catalog.json);
+and the build matrix in
+[`config/webflash-builds.json`](../config/webflash-builds.json).

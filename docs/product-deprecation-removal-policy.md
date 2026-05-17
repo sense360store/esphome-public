@@ -817,3 +817,12 @@ not on this sequence; that path runs through
   sit on (parallel track for `legacy-compatible`; held-at-rung for
   `blocked`; descent / tombstone for `deprecated` / `removed`).
   Documentation only; no JSON fields added; no statuses changed.
+- [`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
+  — PRODUCT-GAP-001 product-level readiness gate. Records the
+  forward (`legacy-compatible` stays `legacy-compatible`,
+  `blocked` stays `blocked`) invariants this policy depends on
+  for the existing FanTRIAC reference entry and the 31
+  `legacy-compatible` entries; any future retirement of a
+  legacy-compatible entry that arises out of a `PRODUCT-*-001`
+  slice is gated by this deprecation / removal policy, not by
+  PRODUCT-GAP-001 itself.

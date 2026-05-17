@@ -785,6 +785,18 @@ No match outside of those trees is expected.
 - [`docs/cleanup-audit.md`](../cleanup-audit.md) — classification
   of stale / current / blocked-reference / legacy-compatible repo
   content; carries the PACKAGE-GAP-001 registration row.
+- [`docs/product-readiness-matrix.md`](../product-readiness-matrix.md)
+  — PRODUCT-GAP-001 product-level readiness gate. Per-candidate-
+  product-family verdict (FanRelay / FanPWM / FanDAC / FanTRIAC /
+  PWR-240V / PoE-410) that consumes this matrix as the source of
+  truth for the `Package readiness` column. Records the per-family
+  follow-up PRs (`PRODUCT-RELAY-001` / `PRODUCT-PWM-001` /
+  `PRODUCT-DAC-001` / `PRODUCT-TRIAC-001` /
+  `PRODUCT-POWER-400-001` / `PRODUCT-POE-410-001`) downstream of
+  the per-package slices owned by this matrix, plus the separate
+  WebFlash exposure chain (`WEBFLASH-GAP-001` / `RELEASE-GAP-001`
+  / `WF-IMPORT-GAP-001`, `WF-TRIAC-001` for the FanTRIAC
+  advanced-flow). Documentation only; no product YAML edits.
 - [`config/hardware-catalog.json`](../../config/hardware-catalog.json)
   — machine-readable hardware catalog. `schematic_status` stays
   `cataloged_unverified` for `S360-310`, `S360-311`, `S360-312`,
