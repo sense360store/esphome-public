@@ -158,8 +158,8 @@ evidence (file paths and line numbers) for every cell.
 | `S360-320` | Sense360 TRIAC (phase-cut mains dimmer) | `cataloged_unverified` | `done` (HW-ASSETS-003; **does not unblock HW-005 or clear COMPLIANCE-001**; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003; **does not unblock HW-005 or clear COMPLIANCE-001**) | `blocked` (HW-005), `compliance-gated` (COMPLIANCE-001) | `blocked` ([`fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) retained as blocked / reference; `GPIO5` / `GPIO6` placeholders collide with RoomIQ J10 nets) |
 | `S360-312` | Sense360 DAC (0–10 V analog fan driver) | `cataloged_unverified` | `done` (HW-ASSETS-003; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003) | `partially-documented`, `not-needed-for-release-one` (Core J7 fully captured; new module-side `J1` pin-1 `+3.3V` vs Core J7 pin-1 `+5V` rail discrepancy owed to `HW-PINMAP-312`) | `package-yaml-pending` ([`fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) exists; not reconciled against module-side schematic) |
 | `S360-320` | Sense360 TRIAC (phase-cut mains dimmer) | `cataloged_unverified` | `done` (HW-ASSETS-003; **does not unblock HW-005 or clear COMPLIANCE-001**; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003); HW-PINMAP-320 audit doc landed at [`s360-320-r4-triac.md`](s360-320-r4-triac.md) with **status: `partial — schematic evidence available; package reconciliation, timing validation, and compliance/certification pending`** (**does not unblock HW-005 or clear COMPLIANCE-001**) | `blocked` (HW-005), `compliance-gated` (COMPLIANCE-001) (advanced / manual-warning long-term posture intended per [`s360-320-r4-triac.md`](s360-320-r4-triac.md#advanced--manual-warning-product-posture); **not realised in this PR** — JSON lifecycle row unchanged) | `blocked` / `needs-package-reconciliation` ([`fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) retained as blocked / reference with BLOCKED / UNVERIFIED banner; `GPIO5` / `GPIO6` placeholders collide with RoomIQ J10 nets; see [`s360-320-r4-triac.md` Package YAML status](s360-320-r4-triac.md#package-yaml-status)) |
-| `S360-400` | Sense360 240v PSU (HLK-5M05 mains PSU) | `cataloged_unverified` | `missing`, `compliance-gated` | `missing` | `not applicable` (off-board) / `cataloged-unverified`, `compliance-gated` | `package-yaml-pending` ([`power_240v.yaml`](../../packages/hardware/power_240v.yaml) is a logical-power package; no GPIO binding) |
-| `S360-410` | Sense360 PoE PSU (802.3af PoE → 5 V) | `cataloged_unverified` | `missing` (Release-One caveat preserved) | `missing` | `partially-documented` (Core J2 captured; module-side schematic pending; HW-002 OQ#6 open) | `confirmed-ok` (logical-only [`power_poe.yaml`](../../packages/hardware/power_poe.yaml) emits diagnostic sensors; no GPIO binding) |
+| `S360-400` | Sense360 240v PSU (HLK-5M05 mains PSU) | `cataloged_unverified` | `missing`, `compliance-gated` | `missing` | `not applicable` (off-board) / `cataloged-unverified`, `compliance-gated`; HW-PINMAP-400 audit doc landed at [`s360-400-r4-power.md`](s360-400-r4-power.md) with **status: `pending — schematic/design evidence required`** | `package-yaml-pending` ([`power_240v.yaml`](../../packages/hardware/power_240v.yaml) is a logical-power package; no GPIO binding) |
+| `S360-410` | Sense360 PoE PSU (802.3af PoE → 5 V) | `cataloged_unverified` | `missing` (Release-One caveat preserved) | `missing` | `partially-documented` (Core J2 captured; module-side schematic pending; HW-002 OQ#6 open); HW-PINMAP-410 audit doc landed at [`s360-410-r4-poe.md`](s360-410-r4-poe.md) with **status: `pending — schematic/design evidence required`** | `confirmed-ok` (logical-only [`power_poe.yaml`](../../packages/hardware/power_poe.yaml) emits diagnostic sensors; no GPIO binding) |
 
 ### Productization / WebFlash axis
 
@@ -556,14 +556,21 @@ rather than restate them.
   **No artifact index.** **No Core-side connector capture** because the
   240 V PSU is off-board and Release-One does not use it. HW-004 /
   HW-008 classification: `cataloged-unverified`,
-  `not-needed-for-release-one`.
+  `not-needed-for-release-one`. The HW-PINMAP-400 audit doc has
+  landed at
+  [`s360-400-r4-power.md`](s360-400-r4-power.md) and records the
+  current state as **`pending — schematic/design evidence
+  required`**; it inventories the evidence required to close it,
+  including the COMPLIANCE-001 mains-voltage UK / EU sign-off.
 - **Package YAML.** [`packages/hardware/power_240v.yaml`](../../packages/hardware/power_240v.yaml)
   is a logical-power package with no GPIO binding.
 - **Productization.** No active product. Legacy `c-pwr` / `v-c-pwr` /
   `w-pwr` / `v-w-pwr` Core variants under
   [`products/`](../../products/) are `legacy-compatible`.
 - **Required before promotion.** Module-side schematic + standalone
-  reference doc (`HW-PINMAP-400`); **COMPLIANCE-001 mains-voltage
+  reference doc (`HW-PINMAP-400-FOLLOWUP` per
+  [`s360-400-r4-power.md` Follow-up PRs](s360-400-r4-power.md#follow-up-prs));
+  **COMPLIANCE-001 mains-voltage
   UK / EU assessment** ([`docs/compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md))
   must clear before any `PWR`-bearing config ships. Not critical for
   Release-One.
@@ -581,7 +588,12 @@ rather than restate them.
   [`s360-100-r4-core.md#j2--poe_acdc-inlet-2-pin`](s360-100-r4-core.md#j2--poe_acdc-inlet-2-pin)
   and in the Core power-rails section. HW-004 / HW-008 classification:
   `partially-documented` (Core-side captured; module-side schematic
-  pending).
+  pending). The HW-PINMAP-410 audit doc has landed at
+  [`s360-410-r4-poe.md`](s360-410-r4-poe.md) and records the
+  current state as **`pending — schematic/design evidence
+  required`**; it inventories the evidence required to close it
+  and **preserves** the Release-One "schematic verification
+  pending" caveat.
 - **Package YAML.** [`packages/hardware/power_poe.yaml`](../../packages/hardware/power_poe.yaml)
   is a logical PoE-power package emitting diagnostic sensors only; no
   GPIO binding. `package-yaml-ready` (logical, abstract).
@@ -589,13 +601,19 @@ rather than restate them.
   preview. The "schematic verification pending" caveat is preserved
   verbatim in
   [`release-one-hardware-audit.md` Findings → PoE PSU](../release-one-hardware-audit.md#findings)
-  and is **not promoted away** by this matrix.
+  and is **not promoted away** by this matrix or by the HW-PINMAP-410
+  audit doc.
 - **Required before module-side promotion.** Module-side schematic +
-  standalone reference doc (`HW-PINMAP-410`); J2 PoE harness identity
+  standalone reference doc (`HW-PINMAP-410-FOLLOWUP` per
+  [`s360-410-r4-poe.md` Follow-up PRs](s360-410-r4-poe.md#follow-up-prs));
+  J2 PoE harness identity
   (HW-002 Open Question #6 at
-  [`s360-100-r4-core.md#open-questions--verification-needed`](s360-100-r4-core.md#open-questions--verification-needed)).
-  None of these block Release-One use; they are open work for the
-  PoE PSU module itself.
+  [`s360-100-r4-core.md#open-questions--verification-needed`](s360-100-r4-core.md#open-questions--verification-needed),
+  tracked on
+  [S360-100-BENCH-001](s360-100-r4-core.md#s360-100-bench-001-status)
+  as `pending — bench/manufacturing evidence required`). None of these
+  block Release-One use; they are open work for the PoE PSU module
+  itself.
 
 ## Ready / evidenced boards
 
@@ -650,13 +668,22 @@ artifact index**. They are not productized to WebFlash today.
   reconciliation, product YAML decision; FanDAC ↔ AirIQ conflict and
   fan-driver max-one-of rule must be respected.
 - `S360-400` Sense360 240v PSU — `design-pending` + `compliance-gated`.
-  Needs `HW-PINMAP-400` (schematic + reference doc) and
-  COMPLIANCE-001 sign-off; off-board PSU, no Core-side connector
-  capture today.
+  HW-PINMAP-400 audit doc landed at
+  [`s360-400-r4-power.md`](s360-400-r4-power.md) with **status:
+  `pending — schematic/design evidence required`**. Still needs
+  `HW-ASSETS-400` (schematic ingest), `HW-PINMAP-400-FOLLOWUP`
+  (standalone reference doc), and COMPLIANCE-001 sign-off;
+  off-board PSU, no Core-side connector capture today.
 - `S360-410` Sense360 PoE PSU — `partially-documented`, **used by
-  Release-One with documented schematic-pending caveat**. Needs
-  `HW-PINMAP-410` (module-side schematic + reference doc) and
-  resolution of HW-002 Open Question #6 (J2 harness identity).
+  Release-One with documented schematic-pending caveat**.
+  HW-PINMAP-410 audit doc landed at
+  [`s360-410-r4-poe.md`](s360-410-r4-poe.md) with **status:
+  `pending — schematic/design evidence required`** (caveat
+  preserved). Still needs `HW-ASSETS-410` (schematic ingest),
+  `HW-PINMAP-410-FOLLOWUP` (standalone reference doc), and
+  resolution of HW-002 Open Question #6 (J2 harness identity,
+  tracked on
+  [S360-100-BENCH-001](s360-100-r4-core.md#s360-100-bench-001-status)).
 - `S360-320` Sense360 TRIAC — see [Blocked / compliance-gated boards](#blocked--compliance-gated-boards).
 
 **None of the missing boards is unblocked or promoted by HW-GAP-001.**
@@ -807,11 +834,32 @@ and
    `RELEASE-TRIAC-001`, `WF-IMPORT-TRIAC-001`, `COMPLIANCE-001`,
    `HW-005`, `HW-CATALOG-320` — per
    [`s360-320-r4-triac.md` Follow-up PR sequence](s360-320-r4-triac.md#follow-up-pr-sequence).
-5. **`HW-PINMAP-400` — `S360-400` power-board mapping audit.** Gated
-   by COMPLIANCE-001 for any product / WebFlash work.
-6. **`HW-PINMAP-410` — `S360-410` PoE PSU mapping audit.** Closes the
-   schematic-pending caveat preserved in
-   [`release-one-hardware-audit.md` Findings → PoE PSU](../release-one-hardware-audit.md#findings).
+5. **`HW-PINMAP-400` — `S360-400` power-board mapping audit.** The
+   HW-PINMAP-400 audit doc has landed at
+   [`s360-400-r4-power.md`](s360-400-r4-power.md) with
+   **status: `pending — schematic/design evidence required`**;
+   the schematic ingest, the standalone schematic-backed reference
+   doc, the rail / harness / safety reconciliation, and the
+   COMPLIANCE-001 mains-voltage UK / EU sign-off each remain owed
+   to evidence-bearing follow-up PRs (`HW-ASSETS-400`,
+   `HW-PINMAP-400-FOLLOWUP`, `COMPLIANCE-001` S360-400 slice — see
+   [`s360-400-r4-power.md` Follow-up PRs](s360-400-r4-power.md#follow-up-prs)).
+   Gated by COMPLIANCE-001 for any product / WebFlash work.
+6. **`HW-PINMAP-410` — `S360-410` PoE PSU mapping audit.** The
+   HW-PINMAP-410 audit doc has landed at
+   [`s360-410-r4-poe.md`](s360-410-r4-poe.md) with
+   **status: `pending — schematic/design evidence required`**;
+   the schematic ingest, the standalone schematic-backed reference
+   doc, the PoE / rail / connector / harness reconciliation, and
+   the HW-002 OQ#6 (J2 harness identity) closure each remain
+   owed to evidence-bearing follow-up PRs (`HW-ASSETS-410`,
+   `HW-PINMAP-410-FOLLOWUP`, `S360-100-BENCH-001` update — see
+   [`s360-410-r4-poe.md` Follow-up PRs](s360-410-r4-poe.md#follow-up-prs)).
+   The "schematic verification pending" caveat preserved in
+   [`release-one-hardware-audit.md` Findings → PoE PSU](../release-one-hardware-audit.md#findings)
+   is **not** promoted away by the audit doc; the caveat closure
+   is owed to a later Release-One caveat-closure PR after the
+   evidence above lands.
 7. **`PACKAGE-GAP-001` — Add / reconcile package YAMLs where evidence
    exists.** After the `HW-PINMAP-*` sequence; per-board scope; does
    not promote any product.
@@ -1017,3 +1065,21 @@ them must use a separate, scoped PR with its own gate evidence.
   `PACKAGE-GAP-001` FanPWM slice and the systemic Core abstract-bus
   rebind owned by
   [`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups).
+- [`s360-400-r4-power.md`](s360-400-r4-power.md) — HW-PINMAP-400
+  pin/package mapping audit for `S360-400` Sense360 240v PSU,
+  **status: `pending — schematic/design evidence required`**. Not
+  a schematic-backed reference doc; an evidence-gap record that
+  inventories what HW-ASSETS-400 / HW-PINMAP-400-FOLLOWUP /
+  COMPLIANCE-001 must supply. Records the `HLK-5M05` (catalog)
+  vs `HLK-PM01 or similar` (package-header) AC-DC part-identity
+  disagreement and the COMPLIANCE-001 mains-voltage UK / EU
+  gate as **unresolved by this PR**.
+- [`s360-410-r4-poe.md`](s360-410-r4-poe.md) — HW-PINMAP-410
+  pin/package mapping audit for `S360-410` Sense360 PoE PSU,
+  **status: `pending — schematic/design evidence required`**. Not
+  a schematic-backed reference doc; an evidence-gap record that
+  inventories what HW-ASSETS-410 / HW-PINMAP-410-FOLLOWUP /
+  HW-002 OQ#6 closure must supply. **Preserves the Release-One
+  "schematic verification pending" caveat** in
+  [`release-one-hardware-audit.md` Findings → PoE PSU](../release-one-hardware-audit.md#findings)
+  and **does not promote it away**.
