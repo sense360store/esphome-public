@@ -862,7 +862,25 @@ and
    evidence above lands.
 7. **`PACKAGE-GAP-001` — Add / reconcile package YAMLs where evidence
    exists.** After the `HW-PINMAP-*` sequence; per-board scope; does
-   not promote any product.
+   not promote any product. The package-level readiness matrix has
+   landed at [`package-readiness-matrix.md`](package-readiness-matrix.md)
+   with **status: no package YAML is `ready-for-package-change`
+   today**. All six in-scope packages
+   ([`fan_relay.yaml`](../../packages/expansions/fan_relay.yaml),
+   [`fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml),
+   [`fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml),
+   [`fan_triac.yaml`](../../packages/expansions/fan_triac.yaml),
+   [`power_240v.yaml`](../../packages/hardware/power_240v.yaml),
+   [`power_poe.yaml`](../../packages/hardware/power_poe.yaml)) carry
+   `schematic-evidence-pending` / `needs-package-reconciliation` /
+   `bench-evidence-pending` / `timing/compliance-pending` /
+   `reference-only` / `blocked-from-standard-exposure` labels; the
+   per-package follow-up PRs are split as `PACKAGE-RELAY-001`,
+   `PACKAGE-PWM-001`, `PACKAGE-DAC-001`, `PACKAGE-TRIAC-001`,
+   `PACKAGE-POWER-400-001`, `PACKAGE-POE-410-001`, with
+   `CORE-ABSTRACT-BUS-001` paired where the Core abstract
+   substitutions are consumed. See
+   [`package-readiness-matrix.md` Follow-up PR sequence](package-readiness-matrix.md#follow-up-pr-sequence).
 8. **`PRODUCT-GAP-001` — Add product YAMLs where packages and
    evidence exist.** After `PACKAGE-GAP-001`. Goes through
    [`docs/product-onboarding.md`](../product-onboarding.md) gates and,
@@ -985,6 +1003,27 @@ them must use a separate, scoped PR with its own gate evidence.
   truth for the `confirmed-ok` / `needs-package-change` /
   `needs-doc-fix` / `needs-silkscreen/bench-verification` / `blocked`
   / `unknown` package-mapping vocabulary the matrix consumes.
+- [`docs/hardware/package-readiness-matrix.md`](package-readiness-matrix.md)
+  — PACKAGE-GAP-001 package-level readiness gate. Per-package status
+  for the six in-scope expansion / power packages
+  ([`fan_relay.yaml`](../../packages/expansions/fan_relay.yaml),
+  [`fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml),
+  [`fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml),
+  [`fan_triac.yaml`](../../packages/expansions/fan_triac.yaml),
+  [`power_240v.yaml`](../../packages/hardware/power_240v.yaml),
+  [`power_poe.yaml`](../../packages/hardware/power_poe.yaml)) plus
+  the Core abstract-bus packages, with the policy-only label
+  vocabulary (`ready-for-package-change` /
+  `needs-package-reconciliation` /
+  `schematic-evidence-pending` / `bench-evidence-pending` /
+  `timing/compliance-pending` / `reference-only` /
+  `do-not-change-release-one` /
+  `blocked-from-standard-exposure`), the per-slice
+  implementation gates, and the per-package follow-up PR sequence
+  (`PACKAGE-RELAY-001`, `PACKAGE-PWM-001`, `PACKAGE-DAC-001`,
+  `PACKAGE-TRIAC-001`, `PACKAGE-POWER-400-001`,
+  `PACKAGE-POE-410-001`, `CORE-ABSTRACT-BUS-001`). Documentation
+  only.
 - [`docs/release-one-hardware-audit.md`](../release-one-hardware-audit.md)
   — Release-One firmware-vs-schematic audit; the source of truth for
   the HW-005 FanTRIAC blocker, the systemic Core abstract-bus rebind

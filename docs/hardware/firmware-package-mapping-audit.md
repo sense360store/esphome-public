@@ -776,6 +776,30 @@ After HW-009 lands, these greps should hold:
   — HW-GAP-001 board-level readiness matrix. Cross-board view that
   consumes this audit's package-mapping vocabulary as the
   `Package YAML status` column. Documentation only.
+- [`docs/hardware/package-readiness-matrix.md`](package-readiness-matrix.md)
+  — PACKAGE-GAP-001 package-level readiness gate. Documents the
+  per-package verdict for the six in-scope expansion / power
+  packages
+  ([`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml),
+  [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml),
+  [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml),
+  [`packages/expansions/fan_triac.yaml`](../../packages/expansions/fan_triac.yaml),
+  [`packages/hardware/power_240v.yaml`](../../packages/hardware/power_240v.yaml),
+  [`packages/hardware/power_poe.yaml`](../../packages/hardware/power_poe.yaml))
+  using the policy-only labels
+  (`ready-for-package-change` / `needs-package-reconciliation` /
+  `schematic-evidence-pending` / `bench-evidence-pending` /
+  `timing/compliance-pending` / `reference-only` /
+  `do-not-change-release-one` /
+  `blocked-from-standard-exposure`). Records the load-bearing
+  rule "package YAML changes require schematic-backed pin-map
+  evidence", the per-slice follow-up PRs
+  (`PACKAGE-RELAY-001` / `PACKAGE-PWM-001` / `PACKAGE-DAC-001` /
+  `PACKAGE-TRIAC-001` / `PACKAGE-POWER-400-001` /
+  `PACKAGE-POE-410-001`), and the paired
+  `CORE-ABSTRACT-BUS-001` follow-up that owns the systemic Core
+  abstract-bus mismatch enumerated by HW-009. Documentation only;
+  no package YAML edits.
 - [`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md) —
   HW-PINMAP-311 pin / package mapping audit for `S360-311` Sense360
   PWM, **status: `partial — schematic evidence available; package

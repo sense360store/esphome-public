@@ -632,3 +632,14 @@ that lands, FanTRIAC stays out of WebFlash and out of any release matrix.
   unchanged and only documents the gap. The Sense360 LED `GPIO14` (package)
   vs `IO38` (schematic) discrepancy is recorded in HW-009 as a deferred
   follow-up (HW-010), not resolved by either PR.
+- [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+  — PACKAGE-GAP-001 package-level readiness gate. Per-package
+  verdict for the six in-scope expansion / power packages
+  (`fan_relay.yaml`, `fan_pwm.yaml`, `fan_gp8403.yaml`,
+  `fan_triac.yaml`, `power_240v.yaml`, `power_poe.yaml`). Names
+  CORE-ABSTRACT-BUS-001 as the alias for Required follow-ups #2 /
+  #3 above; carries the load-bearing rule "package YAML changes
+  require schematic-backed pin-map evidence"; records the
+  `do-not-change-release-one` posture for the Release-One package
+  stack and the `blocked-from-standard-exposure` posture for
+  FanTRIAC. Documentation only; no package YAML edits.
