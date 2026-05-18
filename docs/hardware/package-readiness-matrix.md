@@ -287,6 +287,69 @@ labels keep their current scope for the FanPWM row, and the
 `PACKAGE-PWM-001` paired with `CORE-ABSTRACT-BUS-001`) is
 unchanged.
 
+The 2026-05-18 HW-PINMAP-312-FOLLOWUP evidence-pass re-check (see
+[`s360-312-r4-dac.md` HW-PINMAP-312-FOLLOWUP audit log](s360-312-r4-dac.md#hw-pinmap-312-followup-audit-log))
+confirms no new committed silkscreen evidence for the Core-side
+`J7` 1-to-6 pin order or the parallel module-side `J1` 1-to-6
+pin order (particularly the pin-1 rail value `+5V` vs `+3.3V`),
+no physical 6-pin Core ↔ module harness inspection, no
+silkscreen reading of the module-side `J2` / `J3` Cloudlift S12
+output connector pin-1 location, no bench / scope / I²C /
+waveform / Cloudlift-functional capture of the GP8403 DAC
+outputs at `J2` / `J3`, the shared I²C bus exchange to `IC1` /
+`IC2`, the `vout0` / `vout1` analog rail behaviour at the
+configured `${fan_dac_voltage_mode}`, or the Cloudlift S12
+functional response, no DIP-switch I²C address-selection
+measurement on `SW1` / `SW2` (the schematic shows the hardware
+via 4.7 kΩ pull-ups `R3` / `R5` / `R7` for `IC1` `A0` / `A1` /
+`A2` and `R4` / `R6` / `R8` for `IC2` `2A0` / `2A1` / `2A2`,
+but not the DIP-position-to-address mapping;
+[`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml)
+still exposes only `0x58` / `0x59` and addresses `IC1` only),
+no `fan_dac_voltage_mode` 5 V vs 10 V hardware-select
+identification (jumper / solder-bridge / DIP position), no
+UART0-vs-Nextion arbitration evidence (Module `J1` pins 4 / 5
+carry `UART_RX` / `UART_TX` on-board to Module `J7` Nextion
+connector; Core ties same nets to ESP32 `TXD0` / `RXD0` = UART0
+= boot-log path on USB per
+[`s360-100-r4-core.md` §UART buses](s360-100-r4-core.md#uart-buses)
+line 349), no resolution of the stale header-comment block in
+[`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml)
+lines 13–18 (`Pin 4 (SDA) → GPIO39`, `Pin 5 (SCL) → GPIO40`,
+`Pin 2 (3.3V) → Power`, `Pin 1 (GND) → Ground` — disagrees with
+both Module `J1` and Core `J7` schematics and with the Core
+I²C bus identity `IO48` / `IO45`; active YAML body is unaffected
+because `${fan_dac_i2c_id}` uses abstract-bus inheritance, but
+the comment is uncorrected), no KiCad schematic source / KiCad
+PCB source / KiCad project metadata / BOM / CPL / Gerber /
+drill / STEP / board-image evidence for `S360-312-R4`, and no
+progress on `CORE-ABSTRACT-BUS-001` (alias for
+[`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups))
+since HW-PINMAP-312 landed. The
+[`fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml)
+row below stays `needs-package-reconciliation` +
+`bench-evidence-pending` as a result of this re-check; the
+dual-channel YAML body (two `output.platform: gp8403` channels
+0 / 1, two `fan.platform: speed` entities with
+`speed_count: 100`, `${fan_dac_i2c_id}` default `i2c0`,
+`${fan_dac_address}` default `0x58` / alternate `0x59`,
+`${fan_dac_voltage_mode}` default `10V` / alternate `5V`),
+the per-channel template sensors / voltage calculations, the
+fan-control scripts, and the link-mode / auto-mode globals are
+all preserved. HW-PINMAP-312 itself remains `partial — schematic
+evidence available; package reconciliation pending`. The
+`needs-package-reconciliation` and `bench-evidence-pending`
+labels keep their current scope for the FanDAC row, and the
+`PACKAGE-DAC-001` follow-up PR chain (`HW-PINMAP-312-FOLLOWUP` →
+`S360-312 schematic_status` promotion (separate JSON PR) →
+`PACKAGE-DAC-001`) is unchanged. The explicit `FanDAC` ↔ `AirIQ`
+mutex
+([`config/webflash-compatibility.json`](../../config/webflash-compatibility.json)
+`rules.fandac_conflicts_with_airiq: true` line 30) and the
+fan-driver `max-one-of` rule (`FAN_DRIVER_TOKENS` in
+[`tests/validate_webflash_builds.py`](../../tests/validate_webflash_builds.py)
+line 37) are unchanged.
+
 ## Status summary
 
 **No package in scope is `ready-for-package-change`.** All six
