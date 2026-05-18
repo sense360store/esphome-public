@@ -24,7 +24,11 @@ audits that PACKAGE-GAP-001 depends on are all `partial`, `pending`,
 or `blocked`:
 
 - HW-PINMAP-310 ([`s360-310-r4-relay.md`](s360-310-r4-relay.md)) —
-  `pending — schematic/design evidence required`,
+  `pending — schematic/design evidence required` (HW-ASSETS-310
+  schematic ingest now landed at
+  [`docs/hardware/artifacts/S360-310-R4.md`](artifacts/S360-310-R4.md)
+  + [`schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf); audit
+  status unchanged — `HW-PINMAP-310-FOLLOWUP` still owed),
 - HW-PINMAP-311 ([`s360-311-r4-pwm.md`](s360-311-r4-pwm.md)) —
   `partial — schematic evidence available; package reconciliation
   pending`,
@@ -371,7 +375,7 @@ own gate evidence.
 
 | Package path | Board / module | Current role | Evidence source | Current audit status | Known conflicts | Allowed action now | Follow-up owner |
 |---|---|---|---|---|---|---|---|
-| [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml) | `S360-310` Sense360 Relay | `FanRelay` — single on/off relay-driven fan via `${fan_relay_pin}` defaulting to `${relay_pin}` | [`s360-310-r4-relay.md`](s360-310-r4-relay.md) (HW-PINMAP-310) **`pending — schematic/design evidence required`**; module-side schematic not committed | `schematic-evidence-pending` + `needs-package-reconciliation` | `relay_pin` abstract-bus disagreement: Core schematic `Relay = IO3`; ceiling Core abstract `relay_pin: GPIO4` (`IO4 = SEN0609_RX`); generic Core abstract `relay_pin: GPIO10` (per [`s360-310-r4-relay.md` Pin-map reconciliation status](s360-310-r4-relay.md#pin-map-reconciliation-status)). Module-side connector pinout, relay-coil drive circuit, harness identity all unknown. | **No package edit.** Schematic must arrive first (HW-ASSETS-310). | `HW-ASSETS-310` → `HW-PINMAP-310-FOLLOWUP` → `PACKAGE-RELAY-001` (alias: `PACKAGE-GAP-001` FanRelay slice). Abstract-bus rebind is `CORE-ABSTRACT-BUS-001`. |
+| [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml) | `S360-310` Sense360 Relay | `FanRelay` — single on/off relay-driven fan via `${fan_relay_pin}` defaulting to `${relay_pin}` | [`s360-310-r4-relay.md`](s360-310-r4-relay.md) (HW-PINMAP-310) **`pending — schematic/design evidence required`** (audit status unchanged); module-side schematic PDF + curated artifact index now committed under HW-ASSETS-310 at [`docs/hardware/artifacts/S360-310-R4.md`](artifacts/S360-310-R4.md) + [`schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf) | `schematic-evidence-pending` + `needs-package-reconciliation` | `relay_pin` abstract-bus disagreement: Core schematic `Relay = IO3`; ceiling Core abstract `relay_pin: GPIO4` (`IO4 = SEN0609_RX`); generic Core abstract `relay_pin: GPIO10` (per [`s360-310-r4-relay.md` Pin-map reconciliation status](s360-310-r4-relay.md#pin-map-reconciliation-status)). Module schematic confirms `J2` 3-pin "From Core" net order (`+5V` / `Relay` / `GND`) matches Core `J4`, and that the `Relay` net drives a `Q1` MMBT3904 NPN low-side switch (`R1` 1 kΩ base / `R2` 10 kΩ pull-down / `D1` flyback) into a `K1` mechanical relay — but **does not** establish which Core-side GPIO carries that net. Module-side silkscreen pin-1, `J1` `NO` / `COM` / `NC` mapping, `K1` relay part / contact rating, and Core-to-module harness identity all unknown. | **No package edit.** Schematic has arrived (HW-ASSETS-310); `HW-PINMAP-310-FOLLOWUP` must close before any package edit. | `HW-ASSETS-310` *(landed)* → `HW-PINMAP-310-FOLLOWUP` → `PACKAGE-RELAY-001` (alias: `PACKAGE-GAP-001` FanRelay slice). Abstract-bus rebind is `CORE-ABSTRACT-BUS-001`. |
 | [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml) | `S360-311` Sense360 PWM | `FanPWM` — single-channel 25 kHz PWM fan + `pulse_counter` tach via `${fan_pwm_pin}` / `${fan_tach_pin}` | [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) (HW-PINMAP-311) **`partial — schematic evidence available; package reconciliation pending`**; module-side schematic PDF + curated artifact index committed under HW-ASSETS-003 | `needs-package-reconciliation` + `bench-evidence-pending` | SX1509-channel (`TachPMW1..4`, `Pul_Cou1..4`) vs direct-ESP32-GPIO mismatch (Core abstract `expansion_gpio1/2` resolves to `GPIO5 = SEN0609_TX` / `GPIO6 = out(gpio6)`); UART-on-`J3`-pins-11/12 routing; single-channel YAML vs four 4-pin fan output connectors on the module; PWM polarity, tach pull-up, `"NINE 4pin FANs"` documentation question (per [`s360-311-r4-pwm.md` Reconciliation flags](s360-311-r4-pwm.md#reconciliation-flags-raised-or-strengthened-by-this-schematic) and [§Existing package abstraction](s360-311-r4-pwm.md#existing-package-abstraction)). `S360-311` JSON `schematic_status` stays `cataloged_unverified`. Sibling [`packages/expansions/sense360_fan_pwm.yaml`](../../packages/expansions/sense360_fan_pwm.yaml) (legacy four-channel; direct ESP32 GPIOs) is consumed only by the legacy-compatible product [`products/sense360-fan-pwm.yaml`](../../products/sense360-fan-pwm.yaml) and stays out of any WebFlash-shippable surface. | **No package edit.** HW-PINMAP-311-FOLLOWUP must close first. | `HW-PINMAP-311-FOLLOWUP` → `S360-311` `schematic_status` promotion (separate JSON PR) → `PACKAGE-PWM-001` (alias: `PACKAGE-GAP-001` FanPWM slice). Abstract-bus rebind is `CORE-ABSTRACT-BUS-001`. |
 | [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) | `S360-312` Sense360 DAC | `FanDAC` — dual-channel GP8403 12-bit DAC over I²C; two `fan: speed` entities + per-channel voltage / speed templates | [`s360-312-r4-dac.md`](s360-312-r4-dac.md) (HW-PINMAP-312) **`partial — schematic evidence available; package reconciliation pending`**; module-side schematic PDF + curated artifact index committed under HW-ASSETS-003 | `needs-package-reconciliation` + `bench-evidence-pending` | Core `J7` pin-1 `+5V` vs Module `J1` pin-1 `+3.3V` rail discrepancy; DIP-switch I²C address selection on `IC1` / `IC2` (package allows only `0x58` / `0x59`); UART0-vs-Nextion routing on Module `J1` pins 4 / 5 (shared with boot log on Core `TXD0` / `RXD0`); 5 V vs 10 V hardware-select identity; stale header-comment claims `Pin 4 (SDA) → GPIO39`, `Pin 5 (SCL) → GPIO40` disagree with Module `J1` (`I2C_SDA` / `I2C_SCL`) and Core `J7` (`IO48` / `IO45`) (per [`s360-312-r4-dac.md` Header-comment claims vs schematic evidence](s360-312-r4-dac.md#header-comment-claims-vs-schematic-evidence) and [§Reconciliation flags](s360-312-r4-dac.md#reconciliation-flags-raised-or-strengthened-by-this-schematic)). `S360-312` JSON `schematic_status` stays `cataloged_unverified`. Subject to `FanDAC` ↔ `AirIQ` mutex in [`config/webflash-compatibility.json`](../../config/webflash-compatibility.json). | **No package edit.** HW-PINMAP-312-FOLLOWUP must close first. | `HW-PINMAP-312-FOLLOWUP` → `S360-312` `schematic_status` promotion (separate JSON PR) → `PACKAGE-DAC-001` (alias: `PACKAGE-GAP-001` FanDAC slice). |
 | [`packages/expansions/fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) | `S360-320` Sense360 TRIAC | `FanTRIAC` — `output: ac_dimmer` + `fan: speed` (phase-cut AC); requires direct interrupt-capable ESP32 GPIOs for `gate_pin` + `zero_cross_pin`; retained with BLOCKED / UNVERIFIED banner | [`s360-320-r4-triac.md`](s360-320-r4-triac.md) (HW-PINMAP-320) **`partial — schematic evidence available; package reconciliation, timing validation, and compliance/certification pending`**; module-side schematic PDF + curated artifact index committed under HW-ASSETS-003 | `timing/compliance-pending` + `needs-package-reconciliation` + `blocked-from-standard-exposure` | `TRI_GPIO1` / `TRI_GPIO2` (Core sheet labels) ↔ `ESP_GPIO1` / `ESP_GPIO2` (module sheet labels) — same wire, two names; placeholder `fan_triac_gate_pin: GPIO5` / `fan_triac_zc_pin: GPIO6` in the Release-One reference product YAML already claimed by RoomIQ J10 (`IO5 = SEN0609_TX`, `IO6 = out(gpio6)`); `ac_dimmer` ISR requires direct interrupt-capable ESP32 GPIOs and explicitly **rejects** SX1509-routed pins; module-side EL814 zero-cross topology + module-side TRIAC drive topology need bench / waveform proof; mains-voltage compliance owed by COMPLIANCE-001 (per [`s360-320-r4-triac.md` Package YAML status](s360-320-r4-triac.md#package-yaml-status)); HW-005 (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` blocker) unresolved. | **No package edit.** HW-005 + HW-PINMAP-320-FOLLOWUP + bench timing evidence + COMPLIANCE-001 advanced/manual-warning sign-off all required. | `HW-PINMAP-320-FOLLOWUP` + `HW-005` unblock + `COMPLIANCE-001` advanced/manual-warning slice → `PACKAGE-TRIAC-001` (alias: `PACKAGE-GAP-001` FanTRIAC slice). Long-term advanced / manual-warning posture in [`s360-320-r4-triac.md` Advanced / manual-warning product posture](s360-320-r4-triac.md#advanced--manual-warning-product-posture); JSON `status: blocked` stays. |
@@ -406,22 +410,34 @@ named follow-up.
   pin 2 (per [`s360-310-r4-relay.md` Pin-map reconciliation status](s360-310-r4-relay.md#pin-map-reconciliation-status)).
   The ceiling Core abstract package binds `relay_pin: GPIO4`; the
   generic Core abstract package binds `relay_pin: GPIO10`. The
-  module-side connector pinout, relay-coil drive circuit, and
-  harness identity are unknown — no `S360-310-R4` schematic is
-  committed.
+  module-side schematic has now landed under HW-ASSETS-310 at
+  [`docs/hardware/artifacts/S360-310-R4.md`](artifacts/S360-310-R4.md)
+  + [`schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf): it
+  confirms a `J2` 3-pin "From Core" connector (`+5V` / `Relay` /
+  `GND`) net-order match to Core `J4`, and a `K1` mechanical-relay
+  coil-drive topology (`Q1` MMBT3904 NPN low-side; `R1` 1 kΩ base;
+  `R2` 10 kΩ base pull-down; `D1` flyback). It does **not** label
+  the `K1` part number / coil-voltage / contact-current rating, does
+  **not** label `J1` `NO` / `COM` / `NC` mapping, and does **not**
+  resolve which Core-side GPIO physically carries the `Relay` net.
+  The module-side silkscreen pin-1, the `J1` `NO` / `COM` / `NC`
+  silkscreen mapping, the relay part / contact rating, the
+  Core-to-module harness identity, and the `IO3` vs `GPIO4` vs
+  `GPIO10` `relay_pin` resolution all remain owed.
 - **Allowed action now.** None on
   [`fan_relay.yaml`](../../packages/expansions/fan_relay.yaml).
   `fan_relay_pin: ${relay_pin}` inherits whichever value the parent
   Core abstract package binds, and both candidate values disagree
-  with the schematic; PACKAGE-GAP-001 cannot resolve which is
-  correct.
-- **Follow-up owner.** `HW-ASSETS-310` (supplier-side schematic
-  delivery) → `HW-PINMAP-310-FOLLOWUP` (standalone schematic-backed
-  reference doc + pin-map reconciliation) → `PACKAGE-RELAY-001` /
-  `PACKAGE-GAP-001` FanRelay slice. The `IO3` vs `GPIO4` vs `GPIO10`
-  resolution belongs to **CORE-ABSTRACT-BUS-001**, not to the
-  FanRelay slice itself.
-- **Cross-references.** [`s360-310-r4-relay.md` Follow-up PRs](s360-310-r4-relay.md#follow-up-prs);
+  with the Core schematic; PACKAGE-GAP-001 cannot resolve which is
+  correct from the module-side schematic alone.
+- **Follow-up owner.** `HW-ASSETS-310` *(landed)* →
+  `HW-PINMAP-310-FOLLOWUP` (standalone schematic-backed reference
+  doc + pin-map reconciliation against silkscreen / bench evidence)
+  → `PACKAGE-RELAY-001` / `PACKAGE-GAP-001` FanRelay slice. The
+  `IO3` vs `GPIO4` vs `GPIO10` resolution belongs to
+  **CORE-ABSTRACT-BUS-001**, not to the FanRelay slice itself.
+- **Cross-references.** [`docs/hardware/artifacts/S360-310-R4.md`](artifacts/S360-310-R4.md);
+  [`s360-310-r4-relay.md` Follow-up PRs](s360-310-r4-relay.md#follow-up-prs);
   [`board-readiness-matrix.md` `S360-310` notes](board-readiness-matrix.md#s360-310-sense360-relay).
 
 ### `fan_pwm.yaml` / S360-311
