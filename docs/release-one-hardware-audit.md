@@ -210,6 +210,59 @@ What this audit therefore does:
 > configuration (`v1.0.0` / `stable`) and the LED preview
 > `Ceiling-POE-VentIQ-RoomIQ-LED` path are unchanged.
 
+> **COMPLIANCE-001 re-check (2026-05-18).** A documentation-only
+> COMPLIANCE-001 mains-voltage advanced / manual-warning sign-off
+> evidence-pass investigation on 2026-05-18 confirms COMPLIANCE-001
+> **remains open / not cleared** for `S360-320` (and for `S360-400`)
+> under (i) standard exposure, (ii) a limited advanced /
+> manual-warning sign-off, and (iii) formal compliance certification.
+> No qualified-electrician / safety-review sign-off (named party,
+> review date, observed board serial / batch, covered load types,
+> installation context, "**this is not compliance certification**"
+> framing) is on file; no accredited test-lab report, signed
+> Declaration of Conformity, marking artwork, or production-control
+> plan exists for any `S360-320`-bearing finished product; no KiCad
+> PCB / Gerbers / BOM / CPL / drill / STEP / board-image evidence
+> permitting a creepage / clearance / isolation-coordination /
+> component-rating review is committed; no fusing / over-current /
+> surge / thermal protection analysis is recorded; no `J1` / `J2`
+> connector voltage / current / wire-range / UL or VDE or TUV or
+> IEC certification record exists; no enclosure / IP / IK /
+> flame-rating evidence is on file; no thermal characterisation of
+> `Q1 BT136S-600D`, no conducted / radiated EMI capture, no
+> immunity test, no harmonics / flicker test, and no UKCA / CE /
+> FCC / UL applicability decision is recorded; the AC LINE `J1`
+> 3-pin function (L / N / PE / doubled-line) remains `not recorded`
+> and silkscreen-evidence-required (see
+> [`compliance/mains-voltage-uk-eu-assessment.md` COMPLIANCE-001 audit log](compliance/mains-voltage-uk-eu-assessment.md#compliance-001-audit-log)).
+> FanTRIAC stays **compliance-gated** under COMPLIANCE-001; the
+> [FanTRIAC mapping resolution](#fantriac-mapping-resolution)
+> section, the [Missing evidence checklist](#missing-evidence-checklist),
+> the [Timing constraint](#timing-constraint-ac_dimmer-vs-sx1509-expander)
+> analysis, the [Re-verification](#re-verification) section, and the
+> [Required follow-ups](#required-follow-ups) above are **not** moved
+> by this re-check. HW-005 stays blocked. FanTRIAC stays
+> `status: blocked` / `blocker: HW-005` /
+> `webflash_build_matrix: false` with no `artifact_name`.
+> [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+> keeps its BLOCKED / UNVERIFIED banner and its mains-voltage /
+> qualified-electrician warnings. The intended advanced /
+> manual-warning long-term product posture per
+> [`hardware/s360-320-r4-triac.md` Advanced / manual-warning product posture](hardware/s360-320-r4-triac.md#advanced--manual-warning-product-posture)
+> stays **intent only** — the wording-only `PRODUCT-TRIAC-001`
+> catalog-notes edit is a policy-direction record and is **not**
+> a compliance sign-off. `PACKAGE-TRIAC-001` stays deferred;
+> `PRODUCT-TRIAC-002`, in-repo `WF-TRIAC-001`, `RELEASE-TRIAC-001`,
+> and `WF-IMPORT-TRIAC-001` stay blocked; `HW-CATALOG-320`
+> `schematic_status` promotion stays gated. The Release-One
+> `Ceiling-POE-VentIQ-RoomIQ` configuration (`v1.0.0` / `stable`)
+> and the LED preview `Ceiling-POE-VentIQ-RoomIQ-LED` path are
+> unchanged. The runtime advanced / manual-warning UX `WF-TRIAC-001`
+> slice already landed in
+> [`sense360store/WebFlash`](https://github.com/sense360store/WebFlash)
+> is **not** affected and does **not** satisfy any COMPLIANCE-001
+> row — it is a runtime UX gate only.
+
 ### Detail: FanTRIAC
 
 S360-100-R4 nets directly relevant to FanTRIAC:

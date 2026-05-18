@@ -584,7 +584,21 @@ rather than restate them.
   stay blocked; COMPLIANCE-001 stays in force; the JSON lifecycle
   row for `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is unchanged
   (`status: blocked`, `blocker: HW-005`,
-  `webflash_build_matrix: false`, no `artifact_name`).
+  `webflash_build_matrix: false`, no `artifact_name`). The
+  2026-05-18 COMPLIANCE-001 mains-voltage advanced / manual-warning
+  sign-off evidence-pass re-check (see
+  [`../compliance/mains-voltage-uk-eu-assessment.md` COMPLIANCE-001 audit log](../compliance/mains-voltage-uk-eu-assessment.md#compliance-001-audit-log))
+  confirms COMPLIANCE-001 **remains open / not cleared** for
+  `S360-320` under standard exposure, under a limited advanced /
+  manual-warning sign-off, and under formal compliance
+  certification (no qualified-electrician / safety-review sign-off,
+  no accredited test-lab report, no Declaration of Conformity, no
+  marking artwork, no production-control plan); the advanced /
+  manual-warning long-term product posture stays **intent only** —
+  the wording-only `PRODUCT-TRIAC-001` catalog-notes edit is a
+  policy-direction record and is **not** a compliance sign-off. No
+  row state changes; no JSON / YAML / build / release / import
+  changes.
 
 ### `S360-400` Sense360 240v PSU
 

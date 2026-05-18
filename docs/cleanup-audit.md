@@ -3475,3 +3475,516 @@ report the same `partial — schematic evidence available;
 package reconciliation, timing validation, and
 compliance/certification pending` outcome with the new
 inspection date.
+
+## COMPLIANCE-001 update (2026-05-18 mains-voltage advanced/manual-warning sign-off evidence-pass investigation)
+
+COMPLIANCE-001 is a **docs-only evidence-pass investigation**
+against the mains-voltage UK / EU compliance tracker at
+[`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md).
+The purpose of this update is to re-check, on 2026-05-18, whether
+any new committed evidence supports (i) **standard-exposure
+clearance** for `S360-320` under COMPLIANCE-001 (CE / UKCA / FCC /
+UL / LVD / RED / EMC / RoHS conformity for the finished product
+placed on the market); (ii) a **limited advanced / manual-warning
+sign-off** that records, by named qualified party and date, the
+scope of an advanced / manual-warning posture distinct from
+compliance certification; or (iii) **formal compliance
+certification** evidence (accredited test-lab report, signed
+Declaration of Conformity, marking artwork, production-control
+plan) for any `S360-320`-bearing finished product — and to record
+the result of that re-check as a dated audit-log entry in
+[`docs/compliance/mains-voltage-uk-eu-assessment.md` COMPLIANCE-001 audit log](compliance/mains-voltage-uk-eu-assessment.md#compliance-001-audit-log).
+**COMPLIANCE-001 remains open / not cleared** for `S360-320`
+under all three evaluation paths. No row of the COMPLIANCE-001
+tracker is promoted from `Not proven by this repository` /
+`To be confirmed` / `Requires qualified review` /
+`Likely applicable` to anything stronger. No CE / UKCA / FCC /
+UL / LVD / RED / EMC / RoHS conformity claim is produced. No
+limited advanced / manual-warning sign-off is recorded (no
+qualified-electrician / safety-review record on file). No
+formal compliance certification is recorded (no accredited
+test-lab report, no signed Declaration of Conformity, no
+marking artwork, no production-control plan). The intended
+advanced / manual-warning long-term product posture per
+[`docs/hardware/s360-320-r4-triac.md` Advanced / manual-warning product posture](hardware/s360-320-r4-triac.md#advanced--manual-warning-product-posture)
+stays **intent only** — the only realised piece is the
+wording-only [`PRODUCT-TRIAC-001`](#product-triac-001-update-reclassify-fantriac-as-advancedmanual-warning)
+catalog-notes edit, which is a policy-direction record and is
+**not** a compliance sign-off. HW-005 stays blocked.
+HW-PINMAP-320-FOLLOWUP stays outstanding. PACKAGE-TRIAC-001 stays
+deferred. PRODUCT-TRIAC-002, in-repo WF-TRIAC-001,
+RELEASE-TRIAC-001, and WF-IMPORT-TRIAC-001 stay blocked.
+HW-ASSETS-400 / HW-PINMAP-400-FOLLOWUP / PACKAGE-POWER-400-001
+stay outstanding for `S360-400`. Release-One is unchanged. The
+LED preview path is unchanged.
+
+**Why this is the next actionable evidence item.** After
+[§PACKAGE-TRIAC-001 update](#package-triac-001-update-deferred--hw-005--hw-pinmap-320-followup--compliance-001-not-landed)
+deferred PACKAGE-TRIAC-001 explicitly until HW-005 /
+HW-PINMAP-320-FOLLOWUP / COMPLIANCE-001 advance, after
+[§TRIAC-QUEUE-001 update](#triac-queue-001-update-remaining-fantriac-chain-normalized-after-package-deferral)
+normalised the remaining FanTRIAC chain as **blocked until the
+upstream evidence / compliance gates clear**, after
+[§S360-100-BENCH-001 update](#s360-100-bench-001-update-2026-05-18-evidence-pass-investigation)
+re-confirmed the broad Core-board bench / manufacturing evidence
+remains pending, and after
+[§HW-PINMAP-320-FOLLOWUP update](#hw-pinmap-320-followup-update-2026-05-18-evidence-pass-investigation)
+re-confirmed the FanTRIAC-board pin-map / direct-GPIO / timing
+evidence remains pending, the next docs-only actionable work on
+the FanTRIAC chain is the **compliance side** — the
+`COMPLIANCE-001` mains-voltage advanced / manual-warning sign-off
+slice. It covers the schematic-side evidence path (AC LINE `J1`
+3-pin function, isolation-barrier identity), the
+fabrication-side path (PCB / KiCad / Gerbers / BOM / CPL / drill
+/ STEP / board images for creepage / clearance / component
+ratings), the bench-side path (real-load, thermal, EMI, conducted
+/ radiated emissions, immunity, harmonics / flicker), the
+regulatory path (CE / UKCA / FCC / UL applicability decision,
+accredited test-lab report, signed Declaration of Conformity,
+marking artwork, production-control plan), and the
+qualified-review path (named qualified-electrician /
+safety-review record with date, board serial / batch, scope
+statement, and "**this is not compliance certification**"
+framing) that the package-readiness matrix
+(`timing/compliance-pending` + `needs-package-reconciliation` +
+`blocked-from-standard-exposure` for FanTRIAC), the
+board-readiness matrix (`S360-320` `blocked` +
+`compliance-gated` rows), the firmware-package-mapping audit
+(`fan_triac.yaml` `blocked` row), the
+remaining-board-documentation audit (`Sense360 TRIAC (S360-320)`
+`blocked` + `not-needed-for-release-one` classification), the
+product-availability taxonomy, and every prior FanTRIAC chain
+entry all forward-reference.
+
+**Investigation scope.** The 2026-05-18 re-check inspected the
+following committed files and re-confirmed each against the
+COMPLIANCE-001 evidence standards at
+[`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)
+(a schematic identifies components and nets but does **not** prove
+compliance; an artifact index identifies missing files but does
+**not** prove compliance; PCB / Gerber / KiCad / layout is needed
+for creepage / clearance and isolation geometry; BOM / CPL is
+needed for component ratings and assembly review; bench / thermal
+/ EMI / real-load data is needed for operating behaviour; formal
+certification requires actual certification / test evidence;
+advanced / manual-warning sign-off can be a policy decision but
+must clearly say it is **not** compliance certification;
+compliance must not be inferred from "advanced / manual-warning
+UX exists" nor from "schematic exists"):
+
+- [`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)
+  — COMPLIANCE-001 mains-voltage UK / EU assessment tracker.
+  Every row of [Board table](compliance/mains-voltage-uk-eu-assessment.md#board-table),
+  [Product classification — questions](compliance/mains-voltage-uk-eu-assessment.md#product-classification--questions),
+  [Protection class — decision tree](compliance/mains-voltage-uk-eu-assessment.md#protection-class--decision-tree),
+  [Standards and regulations — applicability checklist](compliance/mains-voltage-uk-eu-assessment.md#standards-and-regulations--applicability-checklist),
+  [Electrical-safety topics — checklist](compliance/mains-voltage-uk-eu-assessment.md#electrical-safety-topics--checklist),
+  [EMC topics — checklist](compliance/mains-voltage-uk-eu-assessment.md#emc-topics--checklist),
+  [Evidence required before any "preview" promotion](compliance/mains-voltage-uk-eu-assessment.md#evidence-required-before-any-preview-promotion),
+  [Evidence required before any "stable" / shipping promotion](compliance/mains-voltage-uk-eu-assessment.md#evidence-required-before-any-stable--shipping-promotion),
+  [Technical-file checklist](compliance/mains-voltage-uk-eu-assessment.md#technical-file-checklist),
+  [Declaration of Conformity — checklist](compliance/mains-voltage-uk-eu-assessment.md#declaration-of-conformity--checklist),
+  [Open questions for compliance engineer / test lab](compliance/mains-voltage-uk-eu-assessment.md#open-questions-for-compliance-engineer--test-lab),
+  [Release blockers](compliance/mains-voltage-uk-eu-assessment.md#release-blockers),
+  and
+  [Do-not-change / do-not-claim](compliance/mains-voltage-uk-eu-assessment.md#do-not-change--do-not-claim)
+  stays at its current value. A new
+  [§COMPLIANCE-001 audit log](compliance/mains-voltage-uk-eu-assessment.md#compliance-001-audit-log)
+  section is appended to record the dated re-check.
+- [`docs/hardware/schematics/S360-320-R4.pdf`](../docs/hardware/schematics/S360-320-R4.pdf)
+  — HW-ASSETS-003 module-side schematic (SHA256
+  `4cd0685251dcdbc7aa8933cbfa92008df46940b6349f0dea91d32e1028c2911f`,
+  54,565 bytes). Identifies `Q1 BT136S-600D,118`, `U1 MOC3023M`,
+  `OK1 EL814`, mains-side resistor network, 3-pin AC LINE `J1`,
+  2-pin LOAD `J2`, 4-pin "From Core" `J3`. **Does not** establish
+  any creepage / clearance value, any component rating, any
+  isolation-barrier rating, any L / N / PE assignment on `J1`,
+  any fusing / over-current decision, any thermal envelope, any
+  EMI behaviour, or any compliance claim. **No edit.**
+- [`docs/hardware/artifacts/S360-320-R4.md`](hardware/artifacts/S360-320-R4.md)
+  — HW-ASSETS-003 curated artifact index. KiCad schematic source,
+  KiCad PCB source, KiCad project metadata, BOM, CPL, Gerbers,
+  drill files, STEP, and board images all remain marked
+  `not provided in this upload` per
+  [§Files NOT provided in this upload](hardware/artifacts/S360-320-R4.md#files-not-provided-in-this-upload).
+  No new artifact has been added since HW-ASSETS-003. AC LINE
+  `J1` 3-pin function, PCB-level creepage / clearance, and
+  component voltage / power ratings remain COMPLIANCE-001-adjacent
+  per [§Open questions / verification needed](hardware/artifacts/S360-320-R4.md#open-questions--verification-needed).
+  **No edit.**
+- [`docs/hardware/s360-320-r4-triac.md`](hardware/s360-320-r4-triac.md)
+  — HW-PINMAP-320 audit doc. Status stays `partial — schematic
+  evidence available; package reconciliation, timing validation,
+  and compliance/certification pending`. A short COMPLIANCE-001
+  re-check cross-reference paragraph is appended to
+  [§Compliance / safety status](hardware/s360-320-r4-triac.md#compliance--safety-status)
+  pointing at the new audit-log entry; no other section is
+  rewritten. The
+  [§Advanced / manual-warning product posture](hardware/s360-320-r4-triac.md#advanced--manual-warning-product-posture)
+  framing is unchanged.
+- [`docs/hardware/s360-100-r4-core.md`](hardware/s360-100-r4-core.md)
+  §[J15 — TRIAC fan module connector (4-pin)](hardware/s360-100-r4-core.md#j15--triac-fan-module-connector-4-pin)
+  — Core-side `J15` 4-pin connector capture. Low-voltage
+  interface only; not in COMPLIANCE-001 scope on its own. **No
+  edit.**
+- [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+  — BLOCKED / UNVERIFIED banner intact. `output: ac_dimmer`
+  topology intact. `fan_triac_gate_pin` / `fan_triac_zc_pin`
+  substitutions intact. `method: leading`,
+  `init_with_half_cycle: true`, default
+  `fan_triac_line_frequency: "50"`, `fan_triac_min_power: "10"`
+  intact. SX1509-rejection clause intact. The `IMPORTANT:` block
+  stating "**The fan load is mains AC. Wiring must be done by a
+  qualified electrician and only with a TRIAC dimmer module rated
+  for the load.**" intact. Mains-voltage / qualified-electrician
+  warnings preserved. **No edit.**
+- [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
+  — blocked-reference product YAML; placeholder
+  `fan_triac_gate_pin: GPIO5` / `fan_triac_zc_pin: GPIO6` intact;
+  **provably disagrees** with the `S360-100-R4` schematic per
+  HW-PINMAP-320. **No edit.**
+- [`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml)
+  — blocked WebFlash wrapper; retained as reference only; not in
+  any build matrix. **No edit.**
+- [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+  `S360-320` row — `schematic_status: cataloged_unverified`, no
+  `schematic_file`; `S360-400` row —
+  `schematic_status: cataloged_unverified`, no `schematic_file`.
+  **No edit.** The `HW-CATALOG-320` schematic-status promotion
+  stays gated on HW-PINMAP-320-FOLLOWUP + HW-005 + COMPLIANCE-001
+  sufficiency.
+- [`config/product-catalog.json`](../config/product-catalog.json)
+  `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` entry —
+  `status: blocked`, `blocker: HW-005`, `reason` unchanged,
+  `webflash_build_matrix: false`, no `artifact_name`, advanced /
+  manual-warning candidate posture recorded notes-only by
+  PRODUCT-TRIAC-001. **No edit.**
+- [`config/webflash-builds.json`](../config/webflash-builds.json)
+  — no FanTRIAC-bearing build, no PWR-bearing build; the two
+  existing builds (`Ceiling-POE-VentIQ-RoomIQ` stable;
+  `Ceiling-POE-VentIQ-RoomIQ-LED` preview) are unchanged. **No
+  edit.**
+- [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+  — `FanTRIAC` reserved in `canonical_modules` subject to the
+  fan-driver `max-one-of` rule; `FanTRIAC` carried in Release-One
+  and LED preview `blocked_modules`;
+  `release_one_required_configs` unchanged. **No edit.**
+- [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+  `S360-320` hardware-evidence and productization-axis rows and
+  §[`S360-320` Sense360 TRIAC](hardware/board-readiness-matrix.md#s360-320-sense360-triac)
+  board-by-board notes — `blocked` (HW-005) +
+  `compliance-gated` (COMPLIANCE-001). A short cross-reference
+  sentence is appended to the `S360-320` Open work bullet
+  recording the 2026-05-18 COMPLIANCE-001 re-check outcome; no
+  row state changes. `S360-400` row stays
+  `cataloged_unverified / compliance-gated`; no edit.
+- [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+  `fan_triac.yaml` row stays `timing/compliance-pending` +
+  `needs-package-reconciliation` +
+  `blocked-from-standard-exposure`; `power_240v.yaml` row stays
+  `schematic-evidence-pending` + `needs-package-reconciliation` +
+  `timing/compliance-pending`. A short admonition parallel to the
+  existing 2026-05-18 S360-100-BENCH-001 and HW-PINMAP-320-FOLLOWUP
+  admonitions is added confirming the re-check does not move
+  either row.
+- [`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md)
+  §[FanTRIAC mapping resolution](release-one-hardware-audit.md#fantriac-mapping-resolution),
+  §[Missing evidence checklist](release-one-hardware-audit.md#missing-evidence-checklist),
+  §[Timing constraint: `ac_dimmer` vs SX1509 expander](release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander),
+  §[Re-verification](release-one-hardware-audit.md#re-verification),
+  and §[Required follow-ups](release-one-hardware-audit.md#required-follow-ups)
+  — unchanged. A short
+  `COMPLIANCE-001 re-check (2026-05-18)` admonition is added at
+  the tail of the Findings block as a parallel of the existing
+  `S360-100-BENCH-001 re-check (2026-05-18)` and
+  `HW-PINMAP-320-FOLLOWUP re-check (2026-05-18)` admonitions; the
+  body of the FanTRIAC mapping resolution section is not edited.
+- [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)
+  §[Sense360 TRIAC (`S360-320`)](hardware/remaining-board-documentation-audit.md#sense360-triac-s360-320)
+  — `blocked` (HW-005), `not-needed-for-release-one`. **No edit.**
+- [`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md)
+  FanTRIAC placeholder-GPIOs row — `blocked`. **No edit.**
+- [`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+  `S360-320 Sense360 TRIAC` snapshot row — `blocked` +
+  `compliance-gated`; `S360-400 Sense360 240v PSU` snapshot row —
+  `design-pending` + `compliance-gated`. **No edit.**
+- This file —
+  [§PRODUCT-TRIAC-001 update](#product-triac-001-update-reclassify-fantriac-as-advancedmanual-warning),
+  [§PRODUCT-TRIAC-002 update](#product-triac-002-update-deferred--package-triac-001-not-landed),
+  [§PACKAGE-TRIAC-001 update](#package-triac-001-update-deferred--hw-005--hw-pinmap-320-followup--compliance-001-not-landed),
+  [§TRIAC-QUEUE-001 update](#triac-queue-001-update-remaining-fantriac-chain-normalized-after-package-deferral),
+  [§S360-100-BENCH-001 update](#s360-100-bench-001-update-2026-05-18-evidence-pass-investigation),
+  [§HW-PINMAP-320-FOLLOWUP update](#hw-pinmap-320-followup-update-2026-05-18-evidence-pass-investigation)
+  — the pre-existing FanTRIAC-chain updates this section
+  follows. They are unchanged; this section appends after them.
+- The [`sense360store/WebFlash`](https://github.com/sense360store/WebFlash)
+  repository's runtime advanced / manual-warning UX
+  `WF-TRIAC-001` slice — out-of-repo reference only; runtime UX
+  gate; **does not** import firmware, **does not** add a
+  manifest build, **does not** flip `webflash_build_matrix`,
+  **does not** change `release_one_required_configs` /
+  REQUIRED_CONFIGS or kits, and **does not** constitute
+  compliance evidence, qualified electrical-safety review, or
+  formal certification of any kind. Not affected by this re-check.
+
+**Outcome.** A dated audit-log entry recording the 2026-05-18
+re-check is appended to
+[`docs/compliance/mains-voltage-uk-eu-assessment.md` COMPLIANCE-001 audit log](compliance/mains-voltage-uk-eu-assessment.md#compliance-001-audit-log)
+under a newly-added `## COMPLIANCE-001 audit log` heading (the
+doc had no audit-log section before this PR). Every row of the
+[Board table](compliance/mains-voltage-uk-eu-assessment.md#board-table),
+[Product classification — questions](compliance/mains-voltage-uk-eu-assessment.md#product-classification--questions),
+[Protection class — decision tree](compliance/mains-voltage-uk-eu-assessment.md#protection-class--decision-tree),
+[Standards and regulations — applicability checklist](compliance/mains-voltage-uk-eu-assessment.md#standards-and-regulations--applicability-checklist),
+[Electrical-safety topics — checklist](compliance/mains-voltage-uk-eu-assessment.md#electrical-safety-topics--checklist),
+[EMC topics — checklist](compliance/mains-voltage-uk-eu-assessment.md#emc-topics--checklist),
+[Evidence required before any "preview" promotion](compliance/mains-voltage-uk-eu-assessment.md#evidence-required-before-any-preview-promotion),
+[Evidence required before any "stable" / shipping promotion](compliance/mains-voltage-uk-eu-assessment.md#evidence-required-before-any-stable--shipping-promotion),
+[Technical-file checklist](compliance/mains-voltage-uk-eu-assessment.md#technical-file-checklist),
+[Declaration of Conformity — checklist](compliance/mains-voltage-uk-eu-assessment.md#declaration-of-conformity--checklist),
+[Open questions for compliance engineer / test lab](compliance/mains-voltage-uk-eu-assessment.md#open-questions-for-compliance-engineer--test-lab),
+[Release blockers](compliance/mains-voltage-uk-eu-assessment.md#release-blockers),
+and
+[Do-not-change / do-not-claim](compliance/mains-voltage-uk-eu-assessment.md#do-not-change--do-not-claim)
+stays at its current value.
+
+**Short cross-reference notes** are added to:
+
+- [`docs/hardware/s360-320-r4-triac.md`](hardware/s360-320-r4-triac.md)
+  §[Compliance / safety status](hardware/s360-320-r4-triac.md#compliance--safety-status)
+  — a short `COMPLIANCE-001 re-check (2026-05-18)` paragraph is
+  appended pointing at the new COMPLIANCE-001 audit-log entry;
+  the HW-PINMAP-320 audit-doc status stays `partial — schematic
+  evidence available; package reconciliation, timing validation,
+  and compliance/certification pending`; HW-005 stays blocked.
+- [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+  §[`S360-320` Sense360 TRIAC](hardware/board-readiness-matrix.md#s360-320-sense360-triac)
+  — the `S360-320` Open work bullet gains one short sentence
+  recording the 2026-05-18 COMPLIANCE-001 re-check outcome; no
+  row state changes.
+- [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+  §Status labels tail — short admonition parallel to the existing
+  2026-05-18 S360-100-BENCH-001 and HW-PINMAP-320-FOLLOWUP
+  admonitions confirming the re-check does not move the
+  `fan_triac.yaml` row off `timing/compliance-pending` +
+  `needs-package-reconciliation` + `blocked-from-standard-exposure`
+  or the `power_240v.yaml` row off `schematic-evidence-pending` +
+  `needs-package-reconciliation` + `timing/compliance-pending`.
+- [`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md)
+  Findings table tail — short `COMPLIANCE-001 re-check (2026-05-18)`
+  admonition parallel to the existing
+  `S360-100-BENCH-001 re-check (2026-05-18)` and
+  `HW-PINMAP-320-FOLLOWUP re-check (2026-05-18)` admonitions
+  confirming the re-check does not move the
+  [FanTRIAC mapping resolution](release-one-hardware-audit.md#fantriac-mapping-resolution),
+  the
+  [Missing evidence checklist](release-one-hardware-audit.md#missing-evidence-checklist),
+  the
+  [Timing constraint](release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander)
+  analysis, the [Re-verification](release-one-hardware-audit.md#re-verification)
+  section, or the [Required follow-ups](release-one-hardware-audit.md#required-follow-ups).
+  FanTRIAC stays compliance-gated.
+
+[`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md),
+[`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md),
+[`docs/hardware/artifacts/S360-320-R4.md`](hardware/artifacts/S360-320-R4.md),
+[`docs/hardware/s360-100-r4-core.md`](hardware/s360-100-r4-core.md),
+and
+[`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+already forward-reference COMPLIANCE-001 correctly and are
+**not** edited by this update.
+
+**What this update does NOT do.** COMPLIANCE-001 is
+documentation-only. The 2026-05-18 re-check explicitly does
+**not**:
+
+- promote any row of the COMPLIANCE-001 tracker (`Board table`,
+  `Product classification — questions`, `Protection class —
+  decision tree`, `Standards and regulations — applicability
+  checklist`, `Electrical-safety topics — checklist`, `EMC
+  topics — checklist`, `Evidence required before any "preview"
+  promotion`, `Evidence required before any "stable" / shipping
+  promotion`, `Technical-file checklist`, `Declaration of
+  Conformity — checklist`, `Open questions for compliance
+  engineer / test lab`) from `Not proven by this repository` /
+  `To be confirmed` / `Requires qualified review` /
+  `Likely applicable` to anything stronger;
+- claim CE / UKCA / FCC / UL / LVD / RED / EMC / RoHS conformity
+  for any Sense360 board, module, or product;
+- produce a limited advanced / manual-warning sign-off (no
+  qualified-electrician / safety-review record with named party,
+  review date, observed board serial / batch, covered load types,
+  installation context, and "**this is not compliance
+  certification**" framing is on file);
+- mark COMPLIANCE-001 resolved or cleared for `S360-320` or
+  `S360-400`;
+- claim that any qualified electrical-safety review,
+  isolation-barrier measurement, creepage / clearance
+  measurement, fusing / over-current / surge / thermal-protection
+  decision, PCB-finger / connector-rating decision, enclosure /
+  IP / IK / flame-rating decision, conducted / radiated EMI
+  capture, immunity test, harmonics / flicker test, real-load
+  test, phase-cut dimming standards analysis, or accredited
+  test-lab report has been performed;
+- claim that any AC LINE `J1` 3-pin function resolution
+  (L / N / PE / doubled-line) is on file;
+- resolve the `S360-320` `J1` 3-pin function, the AC LINE
+  isolation barrier, the `J2` LOAD connector rating, or any
+  on-board component voltage / power rating;
+- commit KiCad schematic source, KiCad PCB source, KiCad project
+  metadata, BOM, CPL / pick-and-place, Gerbers, drill files,
+  STEP, or board images for `S360-320-R4`;
+- flip `S360-320` `schematic_status` in
+  [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+  away from `cataloged_unverified` or set `schematic_file` (the
+  `HW-CATALOG-320` schematic-status promotion stays gated on
+  HW-PINMAP-320-FOLLOWUP + HW-005 + COMPLIANCE-001 sufficiency);
+- flip `S360-400` `schematic_status` away from
+  `cataloged_unverified` or set `schematic_file` (`HW-ASSETS-400`
+  / `HW-PINMAP-400-FOLLOWUP` / `PACKAGE-POWER-400-001` /
+  `COMPLIANCE-001` `S360-400` slice stay outstanding);
+- mark
+  [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+  `confirmed-ok` (it stays `package-yaml-pending` /
+  `needs-package-reconciliation`);
+- remove the BLOCKED / UNVERIFIED banner from
+  [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml);
+- remove the mains-voltage / qualified-electrician warnings
+  from
+  [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+  (including the `IMPORTANT:` block stating "**The fan load is
+  mains AC. Wiring must be done by a qualified electrician and
+  only with a TRIAC dimmer module rated for the load.**");
+- edit
+  [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+  at all (the `output: ac_dimmer` topology, the
+  `fan_triac_gate_pin` / `fan_triac_zc_pin` substitutions, the
+  `method: leading`, `init_with_half_cycle: true`, default
+  `fan_triac_line_frequency: "50"`, `fan_triac_min_power: "10"`,
+  the SX1509-rejection clause, and the header comments are all
+  preserved);
+- edit
+  [`packages/expansions/gpio_expander_sx1509.yaml`](../packages/expansions/gpio_expander_sx1509.yaml)
+  or any other package YAML under
+  [`packages/`](../packages/);
+- edit
+  [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
+  (the placeholder `fan_triac_gate_pin: GPIO5` /
+  `fan_triac_zc_pin: GPIO6` substitutions stay; they remain
+  provably wrong against the Core schematic);
+- edit
+  [`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml)
+  or any other product YAML / WebFlash wrapper;
+- edit the `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` entry in
+  [`config/product-catalog.json`](../config/product-catalog.json)
+  (`status` stays `blocked`, `blocker` stays `HW-005`, `reason`
+  is unchanged, `webflash_build_matrix` stays `false`, no
+  `artifact_name`, advanced / manual-warning candidate posture
+  recorded notes-only by PRODUCT-TRIAC-001 is preserved);
+- add or change `release_one_required_configs` /
+  `REQUIRED_CONFIGS` in
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json);
+- add a FanTRIAC build (or any PWR-bearing build) to
+  [`config/webflash-builds.json`](../config/webflash-builds.json);
+- add a `FanTRIAC` token (or any PWR token) to any current or
+  future config string;
+- add FanTRIAC to any kit, recommended bundle, or default
+  onboarding flow;
+- make FanTRIAC recommended;
+- generate firmware, create a GitHub Release or tag, or perform
+  any WebFlash manifest / import operation;
+- change Release-One (stays `Ceiling-POE-VentIQ-RoomIQ`,
+  version `1.0.0`, channel `stable`, artifact
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, tag
+  [`v1.0.0`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0));
+- change the LED preview path
+  (`Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview`,
+  `channel: preview`, artifact
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`);
+- change the Sense360 LED Release-One exclusion;
+- resolve the Core J10 vs RoomIQ J6 pin-order open question;
+- advance CORE-ABSTRACT-BUS-001 (alias for
+  [`release-one-hardware-audit.md` Required follow-ups #2 / #3](release-one-hardware-audit.md#required-follow-ups));
+- close `HW-005`, `HW-PINMAP-310`, `HW-PINMAP-311`,
+  `HW-PINMAP-312`, `HW-PINMAP-320`, `HW-PINMAP-320-FOLLOWUP`,
+  `HW-PINMAP-400`, `HW-PINMAP-400-FOLLOWUP`, `HW-PINMAP-410`,
+  `HW-PINMAP-410-FOLLOWUP`, `HW-ASSETS-310`, `HW-ASSETS-400`,
+  `HW-ASSETS-410`, `HW-CATALOG-320`, `S360-100-BENCH-001`,
+  `PACKAGE-GAP-001`, `PRODUCT-GAP-001`, `WEBFLASH-GAP-001`,
+  `RELEASE-GAP-001`, `WF-IMPORT-GAP-001`, `PACKAGE-TRIAC-001`,
+  `PACKAGE-POWER-400-001`, `PACKAGE-POE-410-001`,
+  `PRODUCT-TRIAC-001`, `PRODUCT-TRIAC-002`, in-repo `WF-TRIAC-001`,
+  `RELEASE-TRIAC-001`, `WF-IMPORT-TRIAC-001`, or
+  `COMPLIANCE-001` itself;
+- realise the long-term advanced / manual-warning posture per
+  [`s360-320-r4-triac.md` Advanced / manual-warning product posture](hardware/s360-320-r4-triac.md#advanced--manual-warning-product-posture)
+  beyond the wording-only PRODUCT-TRIAC-001 catalog notes edit
+  that already landed (the JSON `status` stays `blocked`, no
+  new lifecycle enum value, no advanced channel, no WebFlash
+  wrapper edit, no build-matrix entry, no release artifact, no
+  WebFlash import);
+- treat the
+  [`sense360store/WebFlash`](https://github.com/sense360store/WebFlash)
+  runtime advanced / manual-warning UX `WF-TRIAC-001` slice as
+  satisfying any HW-005 / HW-PINMAP-320-FOLLOWUP /
+  PACKAGE-TRIAC-001 / PRODUCT-TRIAC-002 / in-repo
+  `WF-TRIAC-001` / RELEASE-TRIAC-001 / WF-IMPORT-TRIAC-001 /
+  COMPLIANCE-001 gate — it does not import firmware, does not
+  add a manifest build, does not flip
+  `webflash_build_matrix`, does not change REQUIRED_CONFIGS or
+  kits, and is **not** compliance evidence, a qualified
+  electrical-safety review, an accredited test-lab report, a
+  signed Declaration of Conformity, or a limited advanced /
+  manual-warning sign-off as defined by
+  [`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md);
+- edit any file under
+  [`config/`](../config/), [`products/`](../products/),
+  [`products/webflash/`](../products/webflash/),
+  [`packages/`](../packages/), [`scripts/`](../scripts/),
+  [`tests/`](../tests/),
+  [`.github/workflows/`](../.github/workflows/),
+  [`components/`](../components/), [`include/`](../include/),
+  [`firmware/`](../firmware/),
+  [`manifest.json`](../manifest.json), or
+  [`firmware/sources.json`](../firmware/sources.json);
+- edit
+  [`docs/hardware/artifacts/S360-320-R4.md`](hardware/artifacts/S360-320-R4.md),
+  [`docs/hardware/artifacts/S360-100-R4.md`](hardware/artifacts/S360-100-R4.md),
+  [`docs/hardware/schematics/S360-320-R4.pdf`](hardware/schematics/S360-320-R4.pdf)
+  (the schematic stays byte-identical to the HW-ASSETS-003
+  commit; SHA256 unchanged),
+  [`docs/hardware/s360-100-r4-core.md`](hardware/s360-100-r4-core.md),
+  [`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md),
+  [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md),
+  or
+  [`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md).
+
+**When the next COMPLIANCE-001 audit-log entry should be
+recorded.** When committed evidence is added to this repository
+that the field-evidence rules in
+[`docs/compliance/mains-voltage-uk-eu-assessment.md` COMPLIANCE-001 audit log](compliance/mains-voltage-uk-eu-assessment.md#compliance-001-audit-log)
+can cite: a qualified-electrician / electrical-safety reviewer's
+signed scope-and-finding record (with named party, review date,
+observed board serial / batch, covered load types, installation
+context, and explicit "**this is not compliance certification**"
+framing) sufficient to record a limited advanced / manual-warning
+sign-off; committed KiCad PCB source, Gerbers, BOM, CPL, drill
+files, STEP, or board images for `S360-320-R4` (or any future
+`S360-320-R5`) that the audit can cite by repo path and that
+supports a creepage / clearance / isolation / component-rating /
+fusing / thermal / EMI review; committed silkscreen / KiCad
+PCB-source / board-image evidence resolving the AC LINE `J1`
+3-pin (L / N / PE / doubled-line) function; an accredited
+test-lab report covering the applicable LVD / EESR safety
+standard(s), the applicable EMC standard(s), and (if the finished
+product carries a radio) the applicable RED / UK RER standards
+for an `S360-320`-bearing finished product; a signed Declaration
+of Conformity for an `S360-320`-bearing finished product;
+marking artwork; a production-control plan; a CE / UKCA / FCC /
+UL applicability decision recorded with its standards set and
+notified-body reference (if applicable); or any equivalent
+evidence for `S360-400` (`HW-ASSETS-400` /
+`HW-PINMAP-400-FOLLOWUP` / `COMPLIANCE-001` `S360-400` slice).
+Until any of those land, the next audit-log entry should report
+the same `open / not cleared` outcome with the new inspection
+date.
