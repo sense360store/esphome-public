@@ -179,6 +179,36 @@ as a result of this re-check. S360-100-BENCH-001 itself remains
 `bench-evidence-pending` label keeps its current scope for every
 fan-driver / Core-abstract-bus row below.
 
+The 2026-05-18 HW-005 / HW-PINMAP-320-FOLLOWUP evidence-pass
+re-check (see
+[`s360-320-r4-triac.md` HW-PINMAP-320-FOLLOWUP audit log](s360-320-r4-triac.md#hw-pinmap-320-followup-audit-log))
+confirms no new committed Core direct-ESP32-GPIO trace evidence
+(HW-005 Option (a) remains unmet), no on-board controller IC on
+`S360-320` (HW-005 Option (b) remains eliminated for this revision
+per the committed module-side schematic), no bench / scope /
+waveform / real-load / zero-cross / phase-control / thermal / EMI
+evidence on a populated `S360-100-R4` + `S360-320-R4` pair, no
+KiCad PCB / Gerbers / BOM / board-image evidence for `S360-320-R4`,
+no `TRI_GPIO*` / `ESP_GPIO*` canonical-naming choice, no AC LINE
+`J1` 3-pin (L / N / PE) function resolution, and no COMPLIANCE-001
+mains-voltage UK / EU sign-off has been recorded since HW-PINMAP-320
+landed. The
+[`fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) row
+below stays `timing/compliance-pending` +
+`needs-package-reconciliation` + `blocked-from-standard-exposure`
+as a result of this re-check; the BLOCKED / UNVERIFIED banner and
+the mains-voltage / qualified-electrician warnings in
+[`packages/expansions/fan_triac.yaml`](../../packages/expansions/fan_triac.yaml)
+are preserved. HW-PINMAP-320 itself remains `partial — schematic
+evidence available; package reconciliation, timing validation,
+and compliance/certification pending`. The `timing/compliance-pending`,
+`needs-package-reconciliation`, and `blocked-from-standard-exposure`
+labels keep their current scope for the FanTRIAC row, and the
+`PACKAGE-TRIAC-001` follow-up PR chain (`HW-PINMAP-320-FOLLOWUP` +
+`HW-005` unblock + `COMPLIANCE-001` advanced / manual-warning
+slice → `PACKAGE-TRIAC-001` / `PACKAGE-GAP-001` FanTRIAC slice) is
+unchanged.
+
 ## Status summary
 
 **No package in scope is `ready-for-package-change`.** All six
