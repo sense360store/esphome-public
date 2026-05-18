@@ -604,7 +604,18 @@ The recommended sequence after HW-ASSETS-001 lands is:
    [`docs/hardware/board-readiness-matrix.md`](board-readiness-matrix.md).
 3. **HW-PINMAP-310 — S360-310 pin/package mapping audit.**
    Schematic ingest, standalone reference doc, and pin / package
-   classification for `S360-310` (Sense360 Relay).
+   classification for `S360-310` (Sense360 Relay). **HW-ASSETS-310
+   artifact ingest landed** at
+   [`docs/hardware/artifacts/S360-310-R4.md`](artifacts/S360-310-R4.md)
+   with the schematic PDF committed at
+   [`docs/hardware/schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf);
+   the HW-PINMAP-310 audit doc at
+   [`s360-310-r4-relay.md`](s360-310-r4-relay.md) **status remains
+   unchanged**: `pending — schematic/design evidence required`.
+   `HW-PINMAP-310-FOLLOWUP` (standalone schematic-backed reference
+   doc + pin-map reconciliation) and `CORE-ABSTRACT-BUS-001`
+   (`IO3` vs `GPIO4` vs `GPIO10` `relay_pin` resolution) are still
+   owed.
 4. **HW-PINMAP-311 — S360-311 pin/package mapping audit.** Same
    for `S360-311` (Sense360 PWM).
 5. **HW-PINMAP-312 — S360-312 pin/package mapping audit.** Same
