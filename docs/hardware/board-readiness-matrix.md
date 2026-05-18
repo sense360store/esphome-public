@@ -431,6 +431,33 @@ rather than restate them.
   reconciliation (`PACKAGE-GAP-001` FanPWM slice); product YAML +
   WebFlash wrapper + catalog entry + build-matrix entry through
   [`docs/product-onboarding.md`](../product-onboarding.md).
+- **Open work.** The 2026-05-18 HW-PINMAP-311-FOLLOWUP
+  evidence-pass re-check (see
+  [`s360-311-r4-pwm.md` HW-PINMAP-311-FOLLOWUP audit log](s360-311-r4-pwm.md#hw-pinmap-311-followup-audit-log))
+  confirms no new committed silkscreen / bench / harness /
+  waveform / KiCad schematic source / KiCad PCB source / KiCad
+  project metadata / BOM / CPL / Gerber / drill / STEP /
+  board-image evidence for `S360-311-R4` has been recorded since
+  HW-PINMAP-311 landed. The Core-side `J6` 1-to-13 silkscreen
+  pin order and the parallel module-side `J3` 1-to-13 silkscreen
+  pin order, the SX1509-channel vs direct-ESP32-GPIO routing for
+  `TachPMW1..4` / `Pul_Cou1..4`, the UART-on-`J3`-pins-11/12
+  routing question, the single-channel vs four-channel canonical
+  cardinality decision, the PWM polarity / tach pull-up /
+  pulses-per-revolution decisions, and the `"NINE 4pin FANs"`
+  section-title documentation question all remain open.
+  [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml)
+  stays `package-yaml-pending` / `needs-package-reconciliation`;
+  the legacy four-channel
+  [`packages/expansions/sense360_fan_pwm.yaml`](../../packages/expansions/sense360_fan_pwm.yaml)
+  stays `legacy-compatible`-only;
+  `S360-311` JSON `schematic_status` stays `cataloged_unverified`
+  with no `schematic_file` in
+  [`config/hardware-catalog.json`](../../config/hardware-catalog.json).
+  No row state changes. `PACKAGE-PWM-001` /
+  `PRODUCT-PWM-001` / `WEBFLASH-PWM-001` / `RELEASE-PWM-001` /
+  `WF-IMPORT-PWM-001` all stay blocked. `CORE-ABSTRACT-BUS-001`
+  is not advanced.
 
 ### `S360-312` Sense360 DAC
 

@@ -247,6 +247,46 @@ manual-warning long-term product posture per
 [`s360-320-r4-triac.md` Advanced / manual-warning product posture](s360-320-r4-triac.md#advanced--manual-warning-product-posture)
 stays **intent only**.
 
+The 2026-05-18 HW-PINMAP-311-FOLLOWUP evidence-pass re-check (see
+[`s360-311-r4-pwm.md` HW-PINMAP-311-FOLLOWUP audit log](s360-311-r4-pwm.md#hw-pinmap-311-followup-audit-log))
+confirms no new committed silkscreen evidence for the Core-side
+`J6` 1-to-13 pin order or the parallel module-side `J3` 1-to-13
+pin order, no physical 13-pin Core ↔ module harness inspection,
+no bench / scope / waveform / pulses-per-revolution evidence for
+the per-fan PWM (`TachPMW*`) / tach (`Pul_Cou*`) / shared
+open-drain (`TachIO`) paths, no UART-on-`J3`-pins-11/12 routing
+resolution, no PWM polarity / tach pull-up identification, no
+single-channel vs four-channel canonical-abstraction decision
+against the FanPWM token, no `"NINE 4pin FANs"`
+section-title documentation resolution, no KiCad schematic source
+/ KiCad PCB source / KiCad project metadata / BOM / CPL / Gerber
+/ drill / STEP / board-image evidence for `S360-311-R4`, and no
+progress on `CORE-ABSTRACT-BUS-001` (alias for
+[`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups))
+since HW-PINMAP-311 landed. The
+[`fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml) row
+below stays `needs-package-reconciliation` +
+`bench-evidence-pending` as a result of this re-check; the
+single-channel `${fan_pwm_pin}` / `${fan_tach_pin}` binding, the
+`fan_pwm_frequency: "25000"`, the `multiply: 0.5` pulses-per-revolution
+factor, and the parent-Core substitution comment block are all
+preserved. The legacy four-channel
+[`sense360_fan_pwm.yaml`](../../packages/expansions/sense360_fan_pwm.yaml)
+stays `legacy-compatible`-only — consumed solely by
+[`products/sense360-fan-pwm.yaml`](../../products/sense360-fan-pwm.yaml)
+(pre-WebFlash standalone fan board; not WebFlash-shippable);
+the direct ESP32 GPIO bindings (`GPIO7` / `GPIO11` / `GPIO13` /
+`GPIO15` PWM; `GPIO8` / `GPIO12` / `GPIO14` / `GPIO16` tach;
+`GPIO6` shared `tach_io_pin`; `GPIO43` / `GPIO44` Nextion UART)
+remain in place. HW-PINMAP-311 itself remains `partial —
+schematic evidence available; package reconciliation pending`.
+The `needs-package-reconciliation` and `bench-evidence-pending`
+labels keep their current scope for the FanPWM row, and the
+`PACKAGE-PWM-001` follow-up PR chain (`HW-PINMAP-311-FOLLOWUP` →
+`S360-311 schematic_status` promotion (separate JSON PR) →
+`PACKAGE-PWM-001` paired with `CORE-ABSTRACT-BUS-001`) is
+unchanged.
+
 ## Status summary
 
 **No package in scope is `ready-for-package-change`.** All six
