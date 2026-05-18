@@ -167,6 +167,49 @@ What this audit therefore does:
 > FanTRIAC stays `status: blocked` / `blocker: HW-005`. None of the
 > Required follow-ups below is closed by this re-check.
 
+> **HW-PINMAP-320-FOLLOWUP re-check (2026-05-18).** A documentation-only
+> HW-005 / HW-PINMAP-320-FOLLOWUP evidence-pass investigation on
+> 2026-05-18 confirms no new committed evidence supports an end-to-end
+> direct interrupt-capable ESP32 GPIO trace through `S360-100-R4` +
+> `S360-320` reaching Core `J15` pins 2 / 3 — **HW-005 Option (a)
+> remains unmet** (no Core schematic re-trace, no Core revision
+> respin; the `TRI_GPIO1` / `TRI_GPIO2` nets still appear only on the
+> J15 / SX1509 side of the `S360-100-R4` sheet). The committed
+> module-side schematic at
+> [`hardware/schematics/S360-320-R4.pdf`](hardware/schematics/S360-320-R4.pdf)
+> continues to show discrete `MOC3023M` + `BT136` + `EL814` with no
+> on-board controller IC, no microcontroller, and no I²C peripheral
+> — **HW-005 Option (b) remains eliminated** for this `S360-320`
+> revision. No bench / scope / waveform / real-load / zero-cross /
+> phase-control / thermal / EMI evidence has been committed against
+> a populated `S360-100-R4` + `S360-320-R4` pair; no KiCad PCB /
+> Gerbers / BOM / board images for `S360-320-R4` have been committed;
+> the AC LINE `J1` 3-pin (L / N / PE) function remains `not recorded`;
+> the `TRI_GPIO*` (Core) ↔ `ESP_GPIO*` (module) canonical-naming
+> divergence remains unresolved; and no COMPLIANCE-001 mains-voltage
+> UK / EU sign-off has been recorded. The HW-PINMAP-320 audit doc
+> stays `partial — schematic evidence available; package
+> reconciliation, timing validation, and compliance/certification
+> pending` (see
+> [`hardware/s360-320-r4-triac.md` HW-PINMAP-320-FOLLOWUP audit log](hardware/s360-320-r4-triac.md#hw-pinmap-320-followup-audit-log)).
+> The [FanTRIAC mapping resolution](#fantriac-mapping-resolution)
+> section, the [Missing evidence checklist](#missing-evidence-checklist),
+> the [Timing constraint](#timing-constraint-ac_dimmer-vs-sx1509-expander)
+> analysis, the [Re-verification](#re-verification) section, and the
+> [Required follow-ups](#required-follow-ups) above are **not** moved
+> by this re-check. HW-005 stays blocked. FanTRIAC stays
+> `status: blocked` / `blocker: HW-005` /
+> `webflash_build_matrix: false` with no `artifact_name`.
+> [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+> keeps its BLOCKED / UNVERIFIED banner and its mains-voltage /
+> qualified-electrician warnings. `PACKAGE-TRIAC-001` stays deferred;
+> `PRODUCT-TRIAC-002`, in-repo `WF-TRIAC-001`, `RELEASE-TRIAC-001`,
+> and `WF-IMPORT-TRIAC-001` stay blocked; COMPLIANCE-001 stays in
+> force. `S360-320` `schematic_status` stays `cataloged_unverified`
+> with no `schematic_file`. The Release-One `Ceiling-POE-VentIQ-RoomIQ`
+> configuration (`v1.0.0` / `stable`) and the LED preview
+> `Ceiling-POE-VentIQ-RoomIQ-LED` path are unchanged.
+
 ### Detail: FanTRIAC
 
 S360-100-R4 nets directly relevant to FanTRIAC:

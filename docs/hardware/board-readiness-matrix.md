@@ -563,6 +563,28 @@ rather than restate them.
   are **separate** blockers; neither subsumes the other. Full
   required-evidence list at
   [`s360-320-r4-triac.md` Required evidence before implementation](s360-320-r4-triac.md#required-evidence-before-implementation).
+- **Open work.** The 2026-05-18 HW-005 / HW-PINMAP-320-FOLLOWUP
+  evidence-pass re-check (see
+  [`s360-320-r4-triac.md` HW-PINMAP-320-FOLLOWUP audit log](s360-320-r4-triac.md#hw-pinmap-320-followup-audit-log))
+  confirms no new committed Core direct-ESP32-GPIO trace evidence
+  (HW-005 Option (a) remains unmet), no on-board controller IC
+  (HW-005 Option (b) remains eliminated for this `S360-320` revision),
+  no bench / scope / waveform / real-load / zero-cross /
+  phase-control / thermal / EMI evidence, no KiCad PCB / Gerbers /
+  BOM / board-image evidence resolving the AC LINE `J1` 3-pin
+  (L / N / PE) function or supporting any creepage / clearance /
+  component-rating claim, no `TRI_GPIO*` / `ESP_GPIO*` canonical-
+  naming choice, and no COMPLIANCE-001 mains-voltage UK / EU
+  clearance has been recorded since HW-PINMAP-320 landed. The
+  HW-PINMAP-320 audit doc stays `partial — schematic evidence
+  available; package reconciliation, timing validation, and
+  compliance/certification pending`; HW-005 stays blocked;
+  `PACKAGE-TRIAC-001` stays deferred; `PRODUCT-TRIAC-002`, in-repo
+  `WF-TRIAC-001`, `RELEASE-TRIAC-001`, and `WF-IMPORT-TRIAC-001`
+  stay blocked; COMPLIANCE-001 stays in force; the JSON lifecycle
+  row for `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is unchanged
+  (`status: blocked`, `blocker: HW-005`,
+  `webflash_build_matrix: false`, no `artifact_name`).
 
 ### `S360-400` Sense360 240v PSU
 
