@@ -409,10 +409,13 @@ for HW-009):
     vs `GPIO10` disagreement (and the fact that
     `packages/expansions/fan_relay.yaml` inherits whichever value the
     parent Core package binds via `${relay_pin}`) is recorded in
-    [`s360-310-r4-relay.md` Pin-map reconciliation status](s360-310-r4-relay.md#pin-map-reconciliation-status)
-    (HW-PINMAP-310 audit, **status: `pending — schematic/design
-    evidence required`**). HW-PINMAP-310 does not resolve it; the
-    resolution stays with this systemic Core abstract-bus rebind.
+    [`s360-310-r4-relay.md` Reconciliation findings](s360-310-r4-relay.md#reconciliation-findings)
+    (HW-PINMAP-310 audit, **status: `partial — schematic evidence
+    available; package reconciliation pending`** after
+    HW-PINMAP-310-FOLLOWUP consumed the HW-ASSETS-310 schematic).
+    Neither HW-PINMAP-310 nor HW-PINMAP-310-FOLLOWUP resolves it;
+    the resolution stays with this systemic Core abstract-bus
+    rebind (`CORE-ABSTRACT-BUS-001`).
   - `status_led_pin: GPIO48` — `IO48` is `I2C_SDA`.
   - `pir_sensor_pin: GPIO47` — `IO47` is `ALS_INT`; `PIR` is on `IO15`.
   - `expansion_gpio1: GPIO5`, `expansion_gpio2: GPIO6` — `IO5` is

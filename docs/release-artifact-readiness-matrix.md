@@ -590,7 +590,7 @@ enumerate against). Every cell is a policy label as defined in
 
 | Candidate family | Required product / build gate | Current WebFlash readiness | Current build-matrix status | Current artifact status | Allowed release action now | Future release class | Stable eligibility | REQUIRED_CONFIGS eligibility | Kit / recommended eligibility | Follow-up owner |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **FanRelay / S360-310** | none (no `sense360-*-fanrelay-*.yaml`; no `products/webflash/<…>-fanrelay-<…>.yaml`); `WEBFLASH-RELAY-001` not landed | `not-webflash-ready` per [`webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md#fanrelay--s360-310-webflash-posture) | none (no `webflash_build_matrix: true` row for any FanRelay config) | none | `not-release-ready` (`missing-build-matrix` + `missing-webflash-wrapper` + `missing-product-yaml` + `missing-package-readiness` + `missing-hardware-evidence`) | `preview-artifact-candidate` (after all upstream slices land and `RELEASE-RELAY-001` builds the first preview `.bin`) | `not-stable-by-default`; `operator-proof-required` + `release-proof-required` before any 17-row gauntlet entry | `not-required-configs` | `not-recommended` + `not-kit-default` | `HW-ASSETS-310` → `HW-PINMAP-310-FOLLOWUP` → `PACKAGE-RELAY-001` → `PRODUCT-RELAY-001` → `WEBFLASH-RELAY-001` → `RELEASE-RELAY-001` → `WF-IMPORT-GAP-001`. |
+| **FanRelay / S360-310** | none (no `sense360-*-fanrelay-*.yaml`; no `products/webflash/<…>-fanrelay-<…>.yaml`); `WEBFLASH-RELAY-001` not landed | `not-webflash-ready` per [`webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md#fanrelay--s360-310-webflash-posture) (module-side schematic now committed under HW-ASSETS-310 and consumed by HW-PINMAP-310-FOLLOWUP; package still `schematic-evidence-pending` + `needs-package-reconciliation` until `CORE-ABSTRACT-BUS-001` + silkscreen / harness / `K1` BOM evidence + `PACKAGE-RELAY-001` land) | none (no `webflash_build_matrix: true` row for any FanRelay config) | none | `not-release-ready` (`missing-build-matrix` + `missing-webflash-wrapper` + `missing-product-yaml` + `missing-package-readiness` + `missing-hardware-evidence`) | `preview-artifact-candidate` (after all upstream slices land and `RELEASE-RELAY-001` builds the first preview `.bin`) | `not-stable-by-default`; `operator-proof-required` + `release-proof-required` before any 17-row gauntlet entry | `not-required-configs` | `not-recommended` + `not-kit-default` | `HW-ASSETS-310` *(landed)* → `HW-PINMAP-310-FOLLOWUP` *(landed)* → silkscreen / harness / `K1` BOM evidence + `CORE-ABSTRACT-BUS-001` → `PACKAGE-RELAY-001` → `PRODUCT-RELAY-001` → `WEBFLASH-RELAY-001` → `RELEASE-RELAY-001` → `WF-IMPORT-GAP-001`. |
 | **FanPWM / S360-311** | none (no non-legacy `sense360-*-fanpwm-*.yaml`; legacy [`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml) is `legacy-compatible` only; no WebFlash wrapper); `WEBFLASH-PWM-001` not landed | `not-webflash-ready` per [`webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md#pwm--s360-311-webflash-posture) | none | none | `not-release-ready` (`missing-build-matrix` + `missing-webflash-wrapper` + `missing-product-yaml` + `missing-package-readiness`) | `preview-artifact-candidate` (after upstream slices + `RELEASE-PWM-001`) | `not-stable-by-default`; `operator-proof-required` + `release-proof-required` | `not-required-configs` | `not-recommended` + `not-kit-default` (legacy four-channel YAML retention / migration / removal decided by `PRODUCT-PWM-001`; legacy entry stays `legacy-only`) | `HW-PINMAP-311-FOLLOWUP` → `PACKAGE-PWM-001` (+ `CORE-ABSTRACT-BUS-001`) → `PRODUCT-PWM-001` → `WEBFLASH-PWM-001` → `RELEASE-PWM-001` → `WF-IMPORT-GAP-001`. |
 | **FanDAC / S360-312** | none (no `sense360-*-fandac-*.yaml`; no WebFlash wrapper); future FanDAC product must respect the `fandac_conflicts_with_airiq` mutex | `not-webflash-ready` per [`webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md#dac--s360-312-webflash-posture) | none | none | `not-release-ready` (`missing-build-matrix` + `missing-webflash-wrapper` + `missing-product-yaml` + `missing-package-readiness`) | `preview-artifact-candidate` (after upstream slices + `RELEASE-DAC-001`; AirIQ-bearing FanDAC variants forbidden) | `not-stable-by-default`; `operator-proof-required` + `release-proof-required` | `not-required-configs` | `not-recommended` + `not-kit-default` (FanDAC ↔ AirIQ mutex narrows the eligible config-string space) | `HW-PINMAP-312-FOLLOWUP` → `PACKAGE-DAC-001` → `PRODUCT-DAC-001` → `WEBFLASH-DAC-001` → `RELEASE-DAC-001` → `WF-IMPORT-GAP-001`. |
 | **FanTRIAC / S360-320** | blocked reference [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml) exists; catalog status `blocked`, blocker `HW-005`, `webflash_build_matrix: false`; `PRODUCT-TRIAC-001` has performed a **notes-only** catalog edit recording the advanced / manual-warning candidate posture without changing any structural field; the blocked WebFlash wrapper [`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml) is retained as reference only | blocked reference; `not-webflash-ready` per [`webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md#triac--s360-320-webflash-posture); the long-term posture is `advanced/manual-warning-only`, policy-recorded by `PRODUCT-TRIAC-001` notes-only | not in build matrix; `webflash_build_matrix: false` | none | `not-release-ready` (`missing-build-matrix` + the blocked reference is not a release-candidate; `blocked-from-standard-release`) | `advanced/manual-warning-artifact-only` **only** (long-term posture; policy-recorded by `PRODUCT-TRIAC-001` notes-only; a live advanced-channel `.bin` still requires `WF-TRIAC-001` after `PACKAGE-TRIAC-001` + `PRODUCT-TRIAC-002` + `COMPLIANCE-001` advanced / manual-warning sign-off + WebFlash-side manual-warning UX; then `RELEASE-TRIAC-001` builds the advanced-channel `.bin`) | **`stable-not-approved` — never by default.** Stable promotion is not authorised by this matrix, by `RELEASE-TRIAC-001`, or by any future routine release-side PR. Any such promotion would be a separately-scoped, explicit PR with COMPLIANCE-001 sign-off. | **`not-required-configs` — never by default.** | **`not-recommended` + `not-kit-default` — never by default.** Mains-voltage advanced / manual-warning artifacts are categorically excluded from kit / default / recommended / Release-One surfaces, irrespective of any future product / wrapper / build / release / import existence. | `PRODUCT-TRIAC-001` (landed: notes-only catalog reclassification) → `HW-005` resolution → `HW-PINMAP-320-FOLLOWUP` → `PACKAGE-TRIAC-001` → `PRODUCT-TRIAC-002` → `COMPLIANCE-001` advanced / manual-warning sign-off → `WF-TRIAC-001` (advanced / manual-warning WebFlash slice) → `RELEASE-TRIAC-001` (advanced-channel release) → `WF-IMPORT-TRIAC-001` (advanced / manual-warning WebFlash import). |
@@ -617,11 +617,24 @@ FanRelay build-matrix row in
 FanRelay artifact has ever been built / signed / attached / imported.
 The upstream gates per
 [`webflash-exposure-readiness-matrix.md` §Relay / S360-310 WebFlash posture](webflash-exposure-readiness-matrix.md#relay--s360-310-webflash-posture)
-all carry `not-webflash-ready`. The Relay board itself is at
+all carry `not-webflash-ready`. **Module-side schematic PDF is
+committed under HW-ASSETS-310** at
+[`docs/hardware/schematics/S360-310-R4.pdf`](hardware/schematics/S360-310-R4.pdf)
++
+[`docs/hardware/artifacts/S360-310-R4.md`](hardware/artifacts/S360-310-R4.md);
+**HW-PINMAP-310-FOLLOWUP** has consumed the schematic and promoted
+the audit doc at
 [`hardware/s360-310-r4-relay.md`](hardware/s360-310-r4-relay.md)
-status `pending — schematic / design evidence required`;
+from `pending — schematic / design evidence required` to
+`partial — schematic evidence available; package reconciliation
+pending`. The audit records the schematic-backed module-`J2` ↔
+Core-`J4` logical net match and the module-side relay coil-drive
+topology, and inventories the silkscreen / harness / `K1` BOM /
+bench / Core abstract-bus rebind gaps that still block downstream
+work.
 [`hardware/board-readiness-matrix.md` §S360-310](hardware/board-readiness-matrix.md#s360-310-sense360-relay)
-records `missing` evidence;
+records the post-FOLLOWUP `partially-documented` /
+`package-yaml-pending` state;
 [`hardware/package-readiness-matrix.md` §fan_relay.yaml](hardware/package-readiness-matrix.md#fan_relayyaml--s360-310)
 records `schematic-evidence-pending` +
 `needs-package-reconciliation`.
@@ -633,19 +646,21 @@ the Relay family.
 
 **Future release class (intent).** `preview-artifact-candidate` only
 after the full upstream chain has closed:
-`HW-ASSETS-310` (supplier delivery of module-side schematic PDF +
-curated artifact index) → `HW-PINMAP-310-FOLLOWUP` (standalone
-schematic-backed reference doc + pin-map reconciliation, including
-the `relay_pin` resolution and `CORE-ABSTRACT-BUS-001` rebind) →
-`PACKAGE-RELAY-001` (FanRelay package YAML reconciliation) →
-`PRODUCT-RELAY-001` (canonical product YAML under
-[`products/`](../products/)) → `WEBFLASH-RELAY-001` (wrapper +
+`HW-ASSETS-310` *(landed; module-side schematic PDF + curated
+artifact index committed)* → `HW-PINMAP-310-FOLLOWUP` *(landed;
+schematic-backed reconciliation recorded in
+[`hardware/s360-310-r4-relay.md`](hardware/s360-310-r4-relay.md))*
+→ silkscreen / harness / `K1` BOM evidence +
+`CORE-ABSTRACT-BUS-001` (resolves the `relay_pin` `IO3` vs `GPIO4`
+vs `GPIO10` disagreement) → `PACKAGE-RELAY-001` (FanRelay package
+YAML reconciliation) → `PRODUCT-RELAY-001` (canonical product YAML
+under [`products/`](../products/)) → `WEBFLASH-RELAY-001` (wrapper +
 catalog entry + build-matrix entry on a non-`stable` channel) →
 `RELEASE-RELAY-001` (build / sign / attach the preview `.bin`;
-generate and validate release notes; record SHA256 + MD5
-checksums and the build-info `manifest.json`; record the proof row
-in [`docs/webflash-release-proof.md`](webflash-release-proof.md))
-→ `WF-IMPORT-GAP-001` (WebFlash-side import).
+generate and validate release notes; record SHA256 + MD5 checksums
+and the build-info `manifest.json`; record the proof row in
+[`docs/webflash-release-proof.md`](webflash-release-proof.md)) →
+`WF-IMPORT-GAP-001` (WebFlash-side import).
 
 **Stable eligibility.** `not-stable-by-default`. After
 `RELEASE-RELAY-001`, FanRelay enters

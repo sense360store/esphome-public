@@ -152,7 +152,7 @@ evidence (file paths and line numbers) for every cell.
 | `S360-210` | Sense360 AirIQ (air-quality, ceiling) | `verified` | `done` | `missing` (HW-ASSETS-004 deferred) | `documented`, `not-needed-for-release-one` | `confirmed-ok` (legacy-naming caveat) |
 | `S360-211` | Sense360 VentIQ (bathroom air-quality) | `verified` | `done` | `missing` (HW-ASSETS-005 deferred) | `documented` | `confirmed-ok` (legacy filename `airiq_bathroom_base.yaml` retained per [`webflash-contract.md`](../webflash-contract.md) §6) |
 | `S360-300` | Sense360 LED (WS2812B ring) | `verified` | `done` | `missing` (HW-ASSETS-006 deferred) | `documented`, `not-needed-for-release-one` | `confirmed-ok` for `led_ring_ceiling.yaml` (HW-010); `led_ring_wall.yaml` and `sense360_core_ceiling_s3.yaml` remain unresolved |
-| `S360-310` | Sense360 Relay (on/off relay for fans) | `cataloged_unverified` | `done` (HW-ASSETS-310; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-310 artifact index at [`docs/hardware/artifacts/S360-310-R4.md`](artifacts/S360-310-R4.md)); HW-PINMAP-310 audit doc at [`s360-310-r4-relay.md`](s360-310-r4-relay.md) **status unchanged**: `pending — schematic/design evidence required` (HW-ASSETS-310 supplies the schematic; HW-PINMAP-310-FOLLOWUP owes the standalone reference doc + pin-map reconciliation) | `partially-documented`, `not-needed-for-release-one` (Core J4 captured; module-side schematic now committed under HW-ASSETS-310 at [`schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf); reconciliation owed to HW-PINMAP-310-FOLLOWUP) | `package-yaml-pending` ([`fan_relay.yaml`](../../packages/expansions/fan_relay.yaml) exists; not reconciled against module-side schematic; `IO3` vs `GPIO4` vs `GPIO10` `relay_pin` disagreement unresolved — see [`s360-310-r4-relay.md` Pin-map reconciliation status](s360-310-r4-relay.md#pin-map-reconciliation-status)) |
+| `S360-310` | Sense360 Relay (on/off relay for fans) | `cataloged_unverified` | `done` (HW-ASSETS-310; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-310 artifact index at [`docs/hardware/artifacts/S360-310-R4.md`](artifacts/S360-310-R4.md)); HW-PINMAP-310 audit doc at [`s360-310-r4-relay.md`](s360-310-r4-relay.md) **status promoted by HW-PINMAP-310-FOLLOWUP**: `partial — schematic evidence available; package reconciliation pending` (module schematic consumed; logical module-`J2` ↔ Core-`J4` net match recorded; silkscreen / harness / BOM / Core abstract-bus rebind still owed) | `partially-documented`, `not-needed-for-release-one` (Core J4 captured; module-side schematic committed under HW-ASSETS-310 at [`schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf); HW-PINMAP-310-FOLLOWUP has consumed the schematic and recorded schematic-backed module/Core logical alignment in [`s360-310-r4-relay.md`](s360-310-r4-relay.md)) | `package-yaml-pending` / `needs-package-reconciliation` ([`fan_relay.yaml`](../../packages/expansions/fan_relay.yaml) exists; `IO3` vs `GPIO4` vs `GPIO10` `relay_pin` disagreement unresolved — see [`s360-310-r4-relay.md` Reconciliation findings](s360-310-r4-relay.md#reconciliation-findings); resolution owned by `CORE-ABSTRACT-BUS-001`, not by HW-PINMAP-310) |
 | `S360-311` | Sense360 PWM (12V PWM fan driver) | `cataloged_unverified` | `done` (HW-ASSETS-003; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003); HW-PINMAP-311 audit doc landed at [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) with **status: `partial — schematic evidence available; package reconciliation pending`** | `partially-documented`, `not-needed-for-release-one` (Core J6 captured; pin-order **verify**; new module-side `J3` pin-11 / pin-12 `UART_RX` / `UART_TX` reconciliation recorded in [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) and owed to HW-PINMAP-311-FOLLOWUP) | `package-yaml-pending` ([`fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml) exists; `needs-package-reconciliation` per [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md); not reconciled against module-side schematic) |
 | `S360-312` | Sense360 DAC (0–10 V analog fan driver) | `cataloged_unverified` | `done` (HW-ASSETS-003; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003); HW-PINMAP-312 audit doc landed at [`s360-312-r4-dac.md`](s360-312-r4-dac.md) with **status: `partial — schematic evidence available; package reconciliation pending`** | `partially-documented`, `not-needed-for-release-one` (Core J7 fully captured; new module-side `J1` pin-1 `+3.3V` vs Core J7 pin-1 `+5V` rail discrepancy recorded in [`s360-312-r4-dac.md`](s360-312-r4-dac.md) and owed to HW-PINMAP-312-FOLLOWUP) | `package-yaml-pending` ([`fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) exists; `needs-package-reconciliation` per [`s360-312-r4-dac.md`](s360-312-r4-dac.md); not reconciled against module-side schematic) |
 | `S360-320` | Sense360 TRIAC (phase-cut mains dimmer) | `cataloged_unverified` | `done` (HW-ASSETS-003; **does not unblock HW-005 or clear COMPLIANCE-001**; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-003; **does not unblock HW-005 or clear COMPLIANCE-001**) | `blocked` (HW-005), `compliance-gated` (COMPLIANCE-001) | `blocked` ([`fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) retained as blocked / reference; `GPIO5` / `GPIO6` placeholders collide with RoomIQ J10 nets) |
@@ -342,10 +342,10 @@ rather than restate them.
 - **Hardware evidence.** Catalog row at
   [`config/hardware-catalog.json`](../../config/hardware-catalog.json)
   lines 62–70; `schematic_status: cataloged_unverified` (unchanged
-  after HW-ASSETS-310; no `schematic_file` set). **Module-side
-  schematic now committed under HW-ASSETS-310** at
+  after HW-ASSETS-310 and HW-PINMAP-310-FOLLOWUP; no `schematic_file`
+  set). **Module-side schematic committed under HW-ASSETS-310** at
   [`docs/hardware/schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf);
-  **curated artifact index now committed** at
+  **curated artifact index committed** at
   [`docs/hardware/artifacts/S360-310-R4.md`](artifacts/S360-310-R4.md)
   (records "INLINE FAN CONTROL USING RELAY" topology — `J2` 3-pin
   `+5V` / `Relay` / `GND` "From Core" connector matching the Core
@@ -359,32 +359,48 @@ rather than restate them.
   `Relay` / `GND`; drive signal `Relay` from ESP32 `IO3`) lives in
   [`s360-100-r4-core.md#j4--relay-module-connector-3-pin`](s360-100-r4-core.md#j4--relay-module-connector-3-pin).
   HW-004 / HW-008 classification: `partially-documented`,
-  `not-needed-for-release-one`. The HW-PINMAP-310 audit doc at
-  [`s360-310-r4-relay.md`](s360-310-r4-relay.md) **status remains
-  unchanged**: `pending — schematic/design evidence required`.
-  HW-ASSETS-310 supplies the schematic evidence the audit doc
-  required; the standalone schematic-backed reference doc, the
-  silkscreen / bench reconciliation, and the abstract-bus rebind are
-  still owed to `HW-PINMAP-310-FOLLOWUP` and `CORE-ABSTRACT-BUS-001`.
+  `not-needed-for-release-one`. **The HW-PINMAP-310 audit doc at
+  [`s360-310-r4-relay.md`](s360-310-r4-relay.md) has been promoted
+  by HW-PINMAP-310-FOLLOWUP** from `pending — schematic/design
+  evidence required` to `partial — schematic evidence available;
+  package reconciliation pending`: the audit consumes the
+  HW-ASSETS-310 schematic, records the logical module-`J2` ↔
+  Core-`J4` net match and the module-side relay coil-drive topology,
+  and inventories the remaining silkscreen / harness / BOM / bench
+  gaps. The standalone per-board reference doc rewrite (in the
+  `s360-200-r4-roomiq.md` / `s360-211-r4-ventiq.md` /
+  `s360-300-r4-led.md` style) and the abstract-bus rebind are still
+  owed — to a later evidence-bearing slice and to
+  `CORE-ABSTRACT-BUS-001`, respectively.
 - **Package YAML.** [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml).
-  `package-yaml-pending` against the missing module-side schematic.
-  The `IO3` (Core schematic) vs `GPIO4` ([`sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml))
+  `package-yaml-pending` / `needs-package-reconciliation` (the module
+  schematic is now committed but silkscreen / harness / BOM evidence
+  and the Core abstract-bus rebind are still owed). The `IO3` (Core
+  schematic) vs `GPIO4` ([`sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml))
   vs `GPIO10` ([`sense360_core.yaml`](../../packages/hardware/sense360_core.yaml))
   `relay_pin` disagreement is recorded in
-  [`s360-310-r4-relay.md` Pin-map reconciliation status](s360-310-r4-relay.md#pin-map-reconciliation-status)
-  and is **not** resolved by HW-PINMAP-310 — resolution belongs to
-  the systemic Core abstract-bus rebind owned by
-  [`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups).
+  [`s360-310-r4-relay.md` Reconciliation findings](s360-310-r4-relay.md#reconciliation-findings)
+  and is **not** resolved by HW-PINMAP-310 / HW-PINMAP-310-FOLLOWUP —
+  resolution belongs to the systemic Core abstract-bus rebind owned
+  by
+  [`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups)
+  (alias `CORE-ABSTRACT-BUS-001`).
 - **Productization.** No active product consumes Relay. WebFlash
   taxonomy reserves the `FanRelay` token (
   [`config/webflash-compatibility.json`](../../config/webflash-compatibility.json))
   subject to the fan-driver `max-one-of` rule, but no build uses it.
-- **Required before promotion.** Module-side schematic + standalone
-  reference doc (`HW-PINMAP-310-FOLLOWUP` per
-  [`s360-310-r4-relay.md` Follow-up PRs](s360-310-r4-relay.md#follow-up-prs));
-  pin-map reconciliation; package YAML reconciliation; product YAML +
+- **Required before promotion.** `CORE-ABSTRACT-BUS-001` (resolves
+  `IO3` / `GPIO4` / `GPIO10`); module-side silkscreen / harness /
+  BOM evidence (`J2` pin-1 orientation; `J1` NO / COM / NC; `K1`
+  part identity / contact rating; Core-to-module harness identity);
+  separate JSON-only `S360-310` `schematic_status` promotion PR;
+  `PACKAGE-RELAY-001` (package YAML reconciliation); product YAML +
   WebFlash wrapper + catalog entry + build-matrix entry through
-  [`docs/product-onboarding.md`](../product-onboarding.md).
+  [`docs/product-onboarding.md`](../product-onboarding.md). See
+  [`s360-310-r4-relay.md` Required evidence before promotion](s360-310-r4-relay.md#required-evidence-before-promotion)
+  and
+  [`s360-310-r4-relay.md` Follow-up PR sequence](s360-310-r4-relay.md#follow-up-pr-sequence)
+  for the full chain.
 
 ### `S360-311` Sense360 PWM
 

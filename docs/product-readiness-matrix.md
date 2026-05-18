@@ -431,12 +431,20 @@ named follow-up.
   [`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml)
   is `schematic-evidence-pending` + `needs-package-reconciliation`
   per
-  [`package-readiness-matrix.md` `fan_relay.yaml` / S360-310](hardware/package-readiness-matrix.md#fan_relayyaml--s360-310):
-  no `S360-310-R4` schematic is committed; the Core abstract
-  `relay_pin` value disagrees with the Core schematic at the
-  `IO3` net level. A FanRelay product cannot be added until the
-  schematic arrives, the package is reconciled, and the Core
-  abstract-bus rebind lands.
+  [`package-readiness-matrix.md` `fan_relay.yaml` / S360-310](hardware/package-readiness-matrix.md#fan_relayyaml--s360-310).
+  The module-side schematic is now committed under HW-ASSETS-310 at
+  [`docs/hardware/schematics/S360-310-R4.pdf`](hardware/schematics/S360-310-R4.pdf)
+  + [`docs/hardware/artifacts/S360-310-R4.md`](hardware/artifacts/S360-310-R4.md),
+  and HW-PINMAP-310-FOLLOWUP has consumed it and promoted the audit
+  doc at
+  [`docs/hardware/s360-310-r4-relay.md`](hardware/s360-310-r4-relay.md)
+  to `partial — schematic evidence available; package
+  reconciliation pending`. The Core abstract `relay_pin` value
+  still disagrees with the Core schematic at the `IO3` net level,
+  silkscreen / harness / `K1` BOM evidence is still owed, and the
+  Core abstract-bus rebind (`CORE-ABSTRACT-BUS-001`) has not
+  landed. A FanRelay product cannot be added until the package is
+  reconciled and the Core abstract-bus rebind lands.
 - **Product YAML action now.** None. No FanRelay candidate is
   added to [`products/`](../products/) or to any
   [`products/webflash/`](../products/webflash/) wrapper. The
@@ -445,14 +453,18 @@ named follow-up.
   gains no FanRelay entry.
 - **WebFlash exposure class.** `none`. No build-matrix entry, no
   REQUIRED_CONFIGS membership, no landing-page exposure.
-- **Follow-up owner.** `HW-ASSETS-310` (supplier-side schematic
-  delivery) → `HW-PINMAP-310-FOLLOWUP` → `PACKAGE-RELAY-001` (with
-  `CORE-ABSTRACT-BUS-001` paired) → `PRODUCT-RELAY-001` (this
-  matrix's named FanRelay product slice). PRODUCT-RELAY-001 itself
-  must clear the [`docs/product-onboarding.md`](product-onboarding.md)
-  ordered safe sequence before adding any FanRelay product YAML.
+- **Follow-up owner.** `HW-ASSETS-310` *(landed)* →
+  `HW-PINMAP-310-FOLLOWUP` *(landed; schematic-backed reconciliation
+  recorded in [`s360-310-r4-relay.md`](hardware/s360-310-r4-relay.md))*
+  → silkscreen / harness / `K1` BOM evidence +
+  `CORE-ABSTRACT-BUS-001` → `PACKAGE-RELAY-001` →
+  `PRODUCT-RELAY-001` (this matrix's named FanRelay product slice).
+  `PRODUCT-RELAY-001` itself must clear the
+  [`docs/product-onboarding.md`](product-onboarding.md) ordered
+  safe sequence before adding any FanRelay product YAML.
 - **Cross-references.**
   [`docs/hardware/s360-310-r4-relay.md`](hardware/s360-310-r4-relay.md);
+  [`docs/hardware/artifacts/S360-310-R4.md`](hardware/artifacts/S360-310-R4.md);
   [`board-readiness-matrix.md` `S360-310` notes](hardware/board-readiness-matrix.md#s360-310-sense360-relay);
   [`package-readiness-matrix.md` `fan_relay.yaml` / S360-310](hardware/package-readiness-matrix.md#fan_relayyaml--s360-310).
 
