@@ -596,7 +596,16 @@ named follow-up.
   advanced-flow wrapper / catalog / build with the manual-warning
   UX gate) → `RELEASE-TRIAC-001` (advanced-channel build / release
   artifact) → `WF-IMPORT-TRIAC-001` (advanced / manual artifact
-  import).
+  import). `PRODUCT-TRIAC-002` cannot proceed from `WF-TRIAC-001`
+  having landed in the WebFlash repo (runtime advanced /
+  manual-warning UX gate) alone; it **remains deferred** and is
+  gated by `PACKAGE-TRIAC-001` (currently deferred), `HW-005`,
+  `HW-PINMAP-320-FOLLOWUP`, and `COMPLIANCE-001`. After
+  `PACKAGE-TRIAC-001` deferral, `RELEASE-TRIAC-001` and
+  `WF-IMPORT-TRIAC-001` are likewise **blocked**, and the in-repo
+  `WF-TRIAC-001` wrapper / catalog / build slice remains
+  outstanding; see
+  [`docs/cleanup-audit.md` §TRIAC-QUEUE-001 update](cleanup-audit.md#triac-queue-001-update-remaining-fantriac-chain-normalized-after-package-deferral).
 - **Cross-references.**
   [`docs/hardware/s360-320-r4-triac.md` Advanced / manual-warning product posture](hardware/s360-320-r4-triac.md#advanced--manual-warning-product-posture);
   [`board-readiness-matrix.md` `S360-320` notes](hardware/board-readiness-matrix.md#s360-320-sense360-triac);

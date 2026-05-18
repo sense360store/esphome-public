@@ -2556,3 +2556,222 @@ recorded in
 [§PRODUCT-TRIAC-001 update](#product-triac-001-update-reclassify-fantriac-as-advancedmanual-warning)
 and
 [§PRODUCT-TRIAC-002 update](#product-triac-002-update-deferred--package-triac-001-not-landed).
+
+## TRIAC-QUEUE-001 update (remaining FanTRIAC chain normalized after package deferral)
+
+TRIAC-QUEUE-001 is a **docs-only queue normalization** that makes
+the remaining FanTRIAC follow-up sequence explicit after
+`PACKAGE-TRIAC-001` was investigated and deferred (see
+[§PACKAGE-TRIAC-001 update](#package-triac-001-update-deferred--hw-005--hw-pinmap-320-followup--compliance-001-not-landed))
+and `PRODUCT-TRIAC-002` was confirmed deferred (see
+[§PRODUCT-TRIAC-002 update](#product-triac-002-update-deferred--package-triac-001-not-landed)).
+The purpose of this update is to prevent accidental downstream
+work on `PRODUCT-TRIAC-002`, `WF-TRIAC-001` (in-repo wrapper /
+catalog / build slice), `RELEASE-TRIAC-001`, or
+`WF-IMPORT-TRIAC-001` while their named prerequisites — `HW-005`,
+`HW-PINMAP-320-FOLLOWUP`, bench / waveform / real-load evidence,
+and `COMPLIANCE-001` advanced / manual-warning sign-off — remain
+open.
+
+**Queue state after PACKAGE-TRIAC-001 deferral.**
+
+- `PACKAGE-TRIAC-001` — **investigated and deferred** (per
+  [§PACKAGE-TRIAC-001 update](#package-triac-001-update-deferred--hw-005--hw-pinmap-320-followup--compliance-001-not-landed)).
+  The named prerequisites `HW-005` unblock, `HW-PINMAP-320-FOLLOWUP`,
+  bench / waveform / real-load timing evidence, and `COMPLIANCE-001`
+  advanced / manual-warning sign-off have not landed.
+  [`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+  is unchanged.
+- `PRODUCT-TRIAC-002` — **remains deferred** (per
+  [§PRODUCT-TRIAC-002 update](#product-triac-002-update-deferred--package-triac-001-not-landed)).
+  The product YAML / catalog-entry rework cannot proceed because
+  its named prerequisite `PACKAGE-TRIAC-001` has not landed, and
+  the upstream `HW-005` / `HW-PINMAP-320-FOLLOWUP` / `COMPLIANCE-001`
+  gates remain open.
+  [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
+  and the `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` catalog entry in
+  [`config/product-catalog.json`](../config/product-catalog.json)
+  are unchanged (`status: blocked`, `blocker: HW-005`,
+  `webflash_build_matrix: false`, no `artifact_name`; the
+  PRODUCT-TRIAC-001 notes-only reclassification is preserved
+  verbatim).
+- `RELEASE-TRIAC-001` — **blocked after PACKAGE-TRIAC-001 deferral**.
+  No advanced-channel build, no GitHub Release, no signing, no
+  checksums, no build-info `manifest.json`, no release-proof row
+  in [`docs/webflash-release-proof.md`](webflash-release-proof.md).
+  Its named prerequisites
+  (`WF-TRIAC-001` in-repo wrapper / catalog / build, `HW-005`
+  unblock, `COMPLIANCE-001` advanced sufficiently for the
+  advanced channel) are not satisfied.
+- `WF-IMPORT-TRIAC-001` — **blocked after PACKAGE-TRIAC-001 deferral**.
+  No WebFlash-side import behind manual-warning UX. Its named
+  prerequisite `RELEASE-TRIAC-001` is not satisfied.
+
+**WF-TRIAC-001 runtime UX vs in-repo wrapper / catalog / build.**
+The `WF-TRIAC-001` slice has **landed in the
+[`sense360store/WebFlash`](https://github.com/sense360store/WebFlash)
+repo as a runtime UX-only gate**: FanTRIAC is now visible /
+selectable in the WebFlash custom path as advanced /
+manual-warning with explicit acknowledgement and install
+blocking. **The runtime UX slice does not unblock
+`PACKAGE-TRIAC-001`, `PRODUCT-TRIAC-002`, `RELEASE-TRIAC-001`,
+or `WF-IMPORT-TRIAC-001`.** It did not produce direct ESP32 GPIO
+trace evidence, did not produce bench / waveform / real-load
+evidence, did not clear `COMPLIANCE-001`, did not import
+firmware, did not add a manifest build, did not flip
+`webflash_build_matrix` to `true`, did not change
+REQUIRED_CONFIGS, did not add kits, did not promote FanTRIAC to
+Release-One, and did not produce the in-repo `WF-TRIAC-001`
+wrapper under
+[`products/webflash/`](../products/webflash/) /
+catalog flip in
+[`config/product-catalog.json`](../config/product-catalog.json) /
+build-matrix row in
+[`config/webflash-builds.json`](../config/webflash-builds.json).
+The in-repo `WF-TRIAC-001` wrapper / catalog / build slice
+remains outstanding and is itself gated by `PRODUCT-TRIAC-002`
+and `PACKAGE-TRIAC-001`, both deferred.
+
+**Next actionable FanTRIAC work (evidence / compliance only).**
+The only actionable downstream work today is **upstream
+evidence and compliance**, not product / release / import work:
+
+- `HW-005` unblock — direct interrupt-capable ESP32 GPIO trace
+  end-to-end through `S360-100-R4` + `S360-320`, Option (a) per
+  [`release-one-hardware-audit.md#missing-evidence-checklist`](release-one-hardware-audit.md#missing-evidence-checklist),
+  or a Core revision respin. Option (b) on-board controller IC
+  is eliminated for this `S360-320` revision per the committed
+  module-side schematic.
+- `HW-PINMAP-320-FOLLOWUP` — standalone schematic-backed
+  reference doc; J3 ↔ J15 reconciliation; `TRI_GPIO*` / `ESP_GPIO*`
+  canonical-naming choice; `ac_dimmer` ISR timing budget
+  recomputation; AC LINE `J1` 3-pin function resolution against
+  silkscreen / PCB-source evidence.
+- Bench / waveform / real-load proof — `ac_dimmer` ISR runs
+  against the reconciled pin pair on a populated board, on at
+  least one real load, with measured zero-crossing edges,
+  gate-trigger pulses, and the `EL814` zero-cross /
+  optotriac-driver topology characterised.
+- `COMPLIANCE-001` advanced / manual-warning sign-off — UK / EU
+  mains-voltage compliance evidence; qualified-electrician
+  acknowledgement; document approval per
+  [`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md).
+
+`PRODUCT-TRIAC-002`, the in-repo `WF-TRIAC-001` wrapper / catalog
+/ build slice, `RELEASE-TRIAC-001`, and `WF-IMPORT-TRIAC-001`
+are **not** actionable until the evidence / compliance work
+above lands.
+
+**Exclusions (reaffirmed).** Every durable FanTRIAC exclusion
+recorded by `PRODUCT-TRIAC-001`, `PRODUCT-TRIAC-002`, and
+`PACKAGE-TRIAC-001` is reaffirmed verbatim and is **not**
+relaxed by this update: **not** Release-One, **not**
+`REQUIRED_CONFIGS`, **not** recommended, **not** kit / default,
+**not** compliance-certified — irrespective of any future product
+YAML, WebFlash wrapper, build, release, or import existence, and
+irrespective of `WF-TRIAC-001` having landed as runtime UX on
+the WebFlash side.
+
+Documentation only and explicitly **does not**: edit
+[`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+(BLOCKED / UNVERIFIED banner, `ac_dimmer` topology,
+substitutions, defaults, and mains-voltage /
+qualified-electrician warnings all preserved); edit any other
+package YAML under [`packages/`](../packages/); edit
+[`config/hardware-catalog.json`](../config/hardware-catalog.json),
+[`config/product-catalog.json`](../config/product-catalog.json),
+[`config/webflash-builds.json`](../config/webflash-builds.json),
+or
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json);
+edit any product YAML under [`products/`](../products/)
+(including
+[`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml));
+edit any WebFlash wrapper under
+[`products/webflash/`](../products/webflash/) (including
+[`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml));
+edit any script under [`scripts/`](../scripts/); edit any test
+under [`tests/`](../tests/); edit any workflow under
+[`.github/workflows/`](../.github/workflows/); edit any
+component under [`components/`](../components/); edit any
+header under [`include/`](../include/); edit any firmware
+sources or manifests
+([`firmware/sources.json`](../firmware/sources.json),
+[`manifest.json`](../manifest.json)); edit the curated artifact
+index [`docs/hardware/artifacts/S360-320-R4.md`](hardware/artifacts/S360-320-R4.md)
+or the schematic PDF
+[`docs/hardware/schematics/S360-320-R4.pdf`](hardware/schematics/S360-320-R4.pdf)
+(both byte-identical to HW-ASSETS-003); edit
+[`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md),
+[`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md),
+[`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md),
+[`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md),
+or
+[`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)
+(owned by HW-005 / HW-PINMAP-320-FOLLOWUP / COMPLIANCE-001
+respectively); add or modify any lifecycle enum value; add or
+modify any `canonical_modules` token, any
+`release_one_required_configs` membership, any build-matrix
+entry, any `webflash_build_matrix` flip, any `artifact_name`,
+any release tag, or any new channel; remove the BLOCKED /
+UNVERIFIED banner from
+[`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml);
+remove the mains-voltage / qualified-electrician warnings; mark
+the pin map confirmed; unblock FanTRIAC under HW-005
+(`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status: blocked`,
+`blocker: HW-005`, `webflash_build_matrix: false`); clear
+`COMPLIANCE-001` for `S360-320` or `S360-400` (compliance
+status is owned by
+[`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md));
+claim that FanTRIAC is compliance-certified; promote `S360-320`
+to `preview` / `stable` / `production`; add a `FanTRIAC` token
+to any Release-One or preview config string; add a
+`FanTRIAC`-bearing entry to
+[`config/webflash-builds.json`](../config/webflash-builds.json);
+add FanTRIAC to `release_one_required_configs` /
+REQUIRED_CONFIGS; add FanTRIAC to any kit / default onboarding
+flow; make FanTRIAC recommended; generate firmware; create a
+GitHub Release or tag; perform a WebFlash import; change
+Release-One (`Ceiling-POE-VentIQ-RoomIQ`,
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, tag
+`v1.0.0`); change the LED preview path
+(`Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview`,
+`channel: preview`); resolve `HW-005`, `COMPLIANCE-001`,
+`HW-PINMAP-320-FOLLOWUP`, or `PACKAGE-TRIAC-001`; advance
+`PRODUCT-TRIAC-002`, the in-repo `WF-TRIAC-001` wrapper /
+catalog / build slice, `RELEASE-TRIAC-001`, or
+`WF-IMPORT-TRIAC-001` past their currently-blocked state.
+Adds no edits to
+[`config/hardware-catalog.json`](../config/hardware-catalog.json),
+[`config/product-catalog.json`](../config/product-catalog.json),
+[`config/webflash-builds.json`](../config/webflash-builds.json),
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json),
+[`products/*`](../products/),
+[`products/webflash/*`](../products/webflash/),
+[`packages/*`](../packages/), [`scripts/*`](../scripts/),
+[`tests/*`](../tests/),
+[`.github/workflows/*`](../.github/workflows/),
+[`components/*`](../components/), [`include/*`](../include/),
+[`manifest.json`](../manifest.json), or
+[`firmware/sources.json`](../firmware/sources.json).
+
+The remaining chain after TRIAC-QUEUE-001 is recorded exactly
+as in
+[`docs/hardware/package-readiness-matrix.md` Follow-up PR sequence](hardware/package-readiness-matrix.md#follow-up-pr-sequence),
+[`docs/hardware/s360-320-r4-triac.md` Follow-up PR sequence](hardware/s360-320-r4-triac.md#follow-up-pr-sequence),
+[`docs/product-readiness-matrix.md` FanTRIAC / S360-320](product-readiness-matrix.md#fantriac--s360-320),
+[`docs/webflash-exposure-readiness-matrix.md` TRIAC / S360-320 WebFlash posture](webflash-exposure-readiness-matrix.md#triac--s360-320-webflash-posture),
+and
+[`docs/release-artifact-readiness-matrix.md` TRIAC / S360-320 release posture](release-artifact-readiness-matrix.md#triac--s360-320-release-posture):
+`HW-005` unblock (Option (a) direct-ESP32 pair or Core respin) +
+`HW-PINMAP-320-FOLLOWUP` + bench timing / waveform / real-load
+evidence + `COMPLIANCE-001` advanced / manual-warning sign-off →
+`PACKAGE-TRIAC-001` (currently deferred) → `PRODUCT-TRIAC-002`
+(currently deferred) → in-repo `WF-TRIAC-001` wrapper / catalog /
+build slice (currently blocked; runtime UX slice has landed
+separately in the WebFlash repo) → `RELEASE-TRIAC-001`
+(currently blocked) → `WF-IMPORT-TRIAC-001` (currently
+blocked). Cross-linked from
+[§PACKAGE-TRIAC-001 update](#package-triac-001-update-deferred--hw-005--hw-pinmap-320-followup--compliance-001-not-landed),
+[§PRODUCT-TRIAC-002 update](#product-triac-002-update-deferred--package-triac-001-not-landed),
+and
+[§PRODUCT-TRIAC-001 update](#product-triac-001-update-reclassify-fantriac-as-advancedmanual-warning).

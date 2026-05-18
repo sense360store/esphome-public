@@ -816,6 +816,24 @@ Release. No checksums. No proof. No WebFlash import. No promotion
 of FanTRIAC to `production` / `preview` / `compile-only` /
 `hardware-pending` / `legacy-compatible` at any layer.
 
+**`RELEASE-TRIAC-001` blocked after `PACKAGE-TRIAC-001`
+deferral.** `RELEASE-TRIAC-001` is explicitly blocked while
+`PACKAGE-TRIAC-001`, `PRODUCT-TRIAC-002`, and the in-repo
+`WF-TRIAC-001` wrapper / catalog / build slice remain deferred.
+No release artifact may be produced — no advanced-channel
+`.bin`, no GitHub Release, no signing, no checksums, no
+build-info `manifest.json`, no release-proof row — until those
+upstream package / product / WebFlash gates clear. The runtime
+advanced / manual-warning UX slice having landed in the
+[`sense360store/WebFlash`](https://github.com/sense360store/WebFlash)
+repo (also named `WF-TRIAC-001`) is UX-only; it does **not**
+unblock release work in this repo. The next actionable FanTRIAC
+work is evidence / compliance: `HW-005` direct-GPIO / timing
+unblock, `HW-PINMAP-320-FOLLOWUP`, bench / waveform / real-load
+proof, and `COMPLIANCE-001` advanced / manual-warning sign-off
+— not release work. See
+[`docs/cleanup-audit.md` §TRIAC-QUEUE-001 update](cleanup-audit.md#triac-queue-001-update-remaining-fantriac-chain-normalized-after-package-deferral).
+
 **Future release class (policy-recorded by `PRODUCT-TRIAC-001`).**
 `advanced/manual-warning-artifact-only` **only**. Reachable through
 the release flow exclusively behind the advanced / manual-warning
