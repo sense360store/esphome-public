@@ -327,6 +327,22 @@ Test-side anchors that hold this contract in place:
 No FanTRIAC cleanup belongs in this audit-only PR or in CLEANUP-002 /
 CLEANUP-003. FanTRIAC is unblocked only by HW-005, not by repo cleanup.
 
+> **PRODUCT-TRIAC-001 update.** `PRODUCT-TRIAC-001` has separately
+> reclassified the catalog-entry policy for
+> `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` from
+> "intentionally-excluded / blocked-reference" framing to
+> **advanced / manual-warning candidate** framing via a notes-only
+> edit on
+> [`config/product-catalog.json`](../config/product-catalog.json).
+> The structural fields (`status: blocked`, `blocker: HW-005`,
+> `reason`, `webflash_build_matrix: false`, no `artifact_name`) and
+> every blocked-reference artifact listed above remain unchanged.
+> FanTRIAC is **still** blocked from standard exposure, **still**
+> not Release-One, **still** not REQUIRED_CONFIGS, **still** not
+> recommended, **still** not kit / default, and **still** not
+> compliance-certified. HW-005 and COMPLIANCE-001 remain open. See
+> [§PRODUCT-TRIAC-001 update](#product-triac-001-update-reclassify-fantriac-as-advancedmanual-warning).
+
 ## LED / LED Ring references
 
 Two distinct things to keep straight:
@@ -1954,3 +1970,161 @@ the product catalog in
 [`config/product-catalog.json`](../config/product-catalog.json);
 and the build matrix in
 [`config/webflash-builds.json`](../config/webflash-builds.json).
+
+## PRODUCT-TRIAC-001 update (reclassify FanTRIAC as advanced/manual-warning)
+
+PRODUCT-TRIAC-001 reclassifies the FanTRIAC product policy from
+"intentionally excluded / hidden / blocked-as-if-unavailable" to
+**advanced / manual-warning candidate**, while preserving every
+existing blocker and exclusion. The change is **wording-only /
+notes-only**: a single edit to the `notes` field of the
+`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` entry in
+[`config/product-catalog.json`](../config/product-catalog.json),
+plus reinforcement of the policy posture across the listed docs.
+**No** new lifecycle enum value is added; **no** product YAML, no
+WebFlash wrapper, no build-matrix entry, no release artifact, and
+no WebFlash import is created or modified. The structural fields
+on the FanTRIAC catalog entry are preserved verbatim:
+`status: blocked`, `blocker: HW-005`, `reason` unchanged,
+`webflash_build_matrix: false`, no `artifact_name`. The
+`lifecycle_statuses` enum in
+[`config/product-catalog.json`](../config/product-catalog.json) is
+unchanged. The blocked-reference WebFlash wrapper
+[`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml)
+is retained verbatim and stays out of the build matrix. The
+blocked-reference product YAML
+[`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
+is unchanged; the BLOCKED / UNVERIFIED banner, the
+`fallback_ssid: "S360 TRIAC BLOCKED"` admonition, and the
+placeholder `fan_triac_gate_pin: GPIO5` / `fan_triac_zc_pin: GPIO6`
+all stay. The package YAML
+[`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+is unchanged; its BLOCKED / UNVERIFIED banner, its mains-voltage /
+qualified-electrician warnings, and its `ac_dimmer` driver topology
+all remain in place. The `FanTRIAC` token remains in
+`canonical_modules` in
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+and remains in the Release-One `blocked_modules` list (carried in
+[`config/product-catalog.json`](../config/product-catalog.json) on
+the `Ceiling-POE-VentIQ-RoomIQ` Release-One entry and the
+`Ceiling-POE-VentIQ-RoomIQ-LED` LED preview entry). HW-005 and
+COMPLIANCE-001 remain open and unresolved; this update makes no
+compliance claim. The advanced / manual-warning posture recorded
+on the FanTRIAC catalog entry's `notes` field reads as: "Advanced /
+manual-warning candidate after HW-005 unblock,
+HW-PINMAP-320-FOLLOWUP, PACKAGE-TRIAC-001, COMPLIANCE-001 advanced
+/ manual-warning sign-off, and WebFlash-side manual-warning UX
+gates clear. Not Release-One, not REQUIRED_CONFIGS, not
+recommended, not kit / default, not compliance-certified. Retained
+as documented hardware; blocked from standard exposure until gates
+clear." Every exclusion is durable: **not** Release-One, **not**
+`REQUIRED_CONFIGS`, **not** recommended, **not** kit / default,
+**not** compliance-certified — irrespective of any future product
+YAML, WebFlash wrapper, build, release, or import existence. The
+follow-up PR sequence has been updated across
+[`docs/hardware/s360-320-r4-triac.md`](hardware/s360-320-r4-triac.md)
+(§Advanced / manual-warning product posture; §Follow-up PR sequence
+PRODUCT-TRIAC-001 row marked landed; §Do-not-change guardrails
+clarified that PRODUCT-TRIAC-001's notes-only edit preserves the
+structural fields),
+[`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
+(§FanTRIAC / S360-320; Product readiness table FanTRIAC row;
+Follow-up PR sequence — adds `PRODUCT-TRIAC-002` as the product
+YAML / catalog-entry rework slice gated on PRODUCT-TRIAC-001 +
+PACKAGE-TRIAC-001),
+[`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md)
+(§TRIAC / S360-320 WebFlash posture; exposure class table; family
+row),
+[`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+(§TRIAC / S360-320 release posture; release class table; family
+row),
+[`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+(§Blocked, legacy-compatible, deprecated, and removed — adds the
+"`blocked` does not mean removed or hidden" clarification; S360-320
+snapshot row updated from "intent only" to "policy-recorded by
+PRODUCT-TRIAC-001"),
+[`docs/product-onboarding.md`](product-onboarding.md) (§What not to
+do — adds the "Advanced / manual-warning products are not standard
+onboarding" rule),
+[`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
+(FanTRIAC carve-out clarified — `RELEASE-006` preview-to-stable does
+**not** apply; FanTRIAC's release class is
+`advanced/manual-warning-artifact-only`, owned by `WF-TRIAC-001` /
+`RELEASE-TRIAC-001` / `WF-IMPORT-TRIAC-001`), and
+[`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+(§`S360-320` Sense360 TRIAC — Role and Productization paragraphs
+updated to reflect policy-recorded posture). Documentation only and
+explicitly **does not**: edit
+[`config/hardware-catalog.json`](../config/hardware-catalog.json),
+[`config/webflash-builds.json`](../config/webflash-builds.json), or
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json);
+edit any product YAML under [`products/`](../products/) (including
+[`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml));
+edit any WebFlash wrapper under
+[`products/webflash/`](../products/webflash/) (including
+[`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml));
+edit any package YAML under [`packages/`](../packages/) (including
+[`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml));
+edit any script under [`scripts/`](../scripts/); edit any test
+under [`tests/`](../tests/); edit any workflow under
+[`.github/workflows/`](../.github/workflows/); edit any component
+under [`components/`](../components/); edit any header under
+[`include/`](../include/); edit any firmware sources or manifests
+([`firmware/sources.json`](../firmware/sources.json),
+[`manifest.json`](../manifest.json)); add or modify any new
+lifecycle enum value; unblock FanTRIAC under HW-005
+(`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status: blocked`,
+`blocker: HW-005`, `webflash_build_matrix: false`); clear
+COMPLIANCE-001 for `S360-320` or `S360-400` (compliance status is
+owned by
+[`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md));
+claim that FanTRIAC is compliance-certified; promote `S360-320` to
+`preview` / `stable` / `production`; add a `FanTRIAC` token to any
+Release-One or preview config string; add a `FanTRIAC`-bearing
+entry to
+[`config/webflash-builds.json`](../config/webflash-builds.json);
+add FanTRIAC to `release_one_required_configs` / REQUIRED_CONFIGS;
+add FanTRIAC to any kit / default onboarding flow; make FanTRIAC
+recommended; generate firmware; create a GitHub Release or tag;
+perform a WebFlash import; change Release-One
+(`Ceiling-POE-VentIQ-RoomIQ`,
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, tag
+`v1.0.0`); change the LED preview path
+(`Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview`,
+`channel: preview`); resolve HW-005, COMPLIANCE-001,
+`HW-PINMAP-320-FOLLOWUP`, or PACKAGE-TRIAC-001. Adds no edits to
+[`config/hardware-catalog.json`](../config/hardware-catalog.json),
+[`config/webflash-builds.json`](../config/webflash-builds.json),
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json),
+[`products/*`](../products/), [`products/webflash/*`](../products/webflash/),
+[`packages/*`](../packages/), [`scripts/*`](../scripts/),
+[`tests/*`](../tests/), [`.github/workflows/*`](../.github/workflows/),
+[`components/*`](../components/), [`include/*`](../include/),
+[`manifest.json`](../manifest.json), or
+[`firmware/sources.json`](../firmware/sources.json). Cross-linked
+from
+[`docs/hardware/s360-320-r4-triac.md`](hardware/s360-320-r4-triac.md)
+(Advanced / manual-warning product posture; Follow-up PR sequence),
+[`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
+(FanTRIAC family section; Product readiness table; Follow-up PR
+sequence),
+[`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md)
+(TRIAC / S360-320 WebFlash posture; FanTRIAC family row),
+[`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+(TRIAC / S360-320 release posture; FanTRIAC family row),
+[`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+(Blocked discussion; S360-320 snapshot row),
+[`docs/product-onboarding.md`](product-onboarding.md) (What not to
+do — advanced / manual-warning rule),
+[`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
+(FanTRIAC carve-out), and
+[`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+(§`S360-320` Sense360 TRIAC). Source of truth consumed:
+[`docs/hardware/s360-320-r4-triac.md` Advanced / manual-warning product posture](hardware/s360-320-r4-triac.md#advanced--manual-warning-product-posture)
+(intended long-term posture);
+[`config/product-catalog.json`](../config/product-catalog.json) (the
+catalog entry whose `notes` field is updated); the existing
+HW-005 record at
+[`docs/release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution);
+the existing COMPLIANCE-001 tracker at
+[`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md).

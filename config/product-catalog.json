@@ -55,7 +55,7 @@
       "product_yaml": "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
       "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml",
       "webflash_build_matrix": false,
-      "notes": "Retained as blocked / reference. Not part of production Release-One while HW-005 is open. See docs/release-one-hardware-audit.md#fantriac-mapping-resolution."
+      "notes": "Advanced/manual-warning candidate after HW-005 unblock, HW-PINMAP-320-FOLLOWUP, PACKAGE-TRIAC-001, COMPLIANCE-001 advanced/manual-warning sign-off, and WebFlash-side manual-warning UX gates clear. Not Release-One, not REQUIRED_CONFIGS, not recommended, not kit/default, not compliance-certified. Retained as documented hardware; blocked from standard exposure until gates clear. See docs/release-one-hardware-audit.md#fantriac-mapping-resolution and docs/hardware/s360-320-r4-triac.md#advanced--manual-warning-product-posture."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-RoomIQ-LED",

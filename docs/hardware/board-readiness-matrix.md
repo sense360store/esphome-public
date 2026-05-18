@@ -478,7 +478,14 @@ rather than restate them.
   only through an advanced / manual-warning path, **not** Release-One,
   **not** REQUIRED_CONFIGS, **not** recommended, **not** kit / default,
   **not** compliance-certified. The advanced / manual-warning posture
-  is **intent only**; this matrix does not realise it.
+  is now **policy-recorded** by `PRODUCT-TRIAC-001` as a notes-only
+  catalog edit on `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` in
+  [`config/product-catalog.json`](../../config/product-catalog.json);
+  the JSON lifecycle row stays `status: blocked`, `blocker: HW-005`,
+  `webflash_build_matrix: false`, no `artifact_name`, no new lifecycle
+  enum value. This board-readiness matrix does not realise any
+  buildable / installable FanTRIAC path; HW-005 and COMPLIANCE-001
+  remain open.
 - **Hardware evidence.** Catalog row at
   [`config/hardware-catalog.json`](../../config/hardware-catalog.json)
   lines 92–101; `schematic_status: cataloged_unverified` (unchanged
@@ -526,10 +533,15 @@ rather than restate them.
   + [`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml)
   as `status: blocked`, `blocker: HW-005`,
   `webflash_build_matrix: false`. Never built; never imported.
-  HW-PINMAP-320 records the desired reclassification path to an
-  `advanced/manual-warning pending implementation`-style framing but
-  **does not change** the JSON lifecycle row in this PR; the
-  reclassification is owed to `PRODUCT-TRIAC-001` per
+  `PRODUCT-TRIAC-001` has performed the **wording-only / notes-only**
+  catalog reclassification on this entry, recording the advanced /
+  manual-warning candidate posture in `notes` while leaving the
+  structural fields (`status` / `blocker` / `reason` /
+  `webflash_build_matrix` / no `artifact_name`) unchanged and adding
+  no new lifecycle enum value. The product-side rework
+  (`PRODUCT-TRIAC-002`), the WebFlash slice (`WF-TRIAC-001`), the
+  advanced-channel release (`RELEASE-TRIAC-001`), and the WebFlash
+  import (`WF-IMPORT-TRIAC-001`) all remain outstanding per
   [`s360-320-r4-triac.md` Follow-up PR sequence](s360-320-r4-triac.md#follow-up-pr-sequence).
 - **Required before unblock.** The HW-005 missing-evidence checklist
   at

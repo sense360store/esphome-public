@@ -298,6 +298,28 @@ These guardrails apply to every onboarding PR. They are not optional.
   `TRI_GPIO2` not traced to direct interrupt-capable ESP32 GPIOs;
   `ac_dimmer` over SX1509 expander is rejected). This guide does
   not promote FanTRIAC to preview or stable.
+- **Advanced / manual-warning products are not standard onboarding.**
+  Some product families (today: FanTRIAC) are policy-recorded as
+  **advanced / manual-warning candidates** rather than standard
+  preview / production candidates. Advanced / manual-warning products
+  require explicit approval, an advanced-flow / manual-warning UX
+  gate, mains-voltage / qualified-electrician warnings (where
+  applicable), and a separately-scoped `WF-*-001`-style WebFlash slice
+  that is **not** part of the standard `WEBFLASH-*-001` flow. By
+  implication and **never** by default, advanced / manual-warning
+  products are: **not** Release-One, **not** `REQUIRED_CONFIGS`,
+  **not** recommended, **not** kit / default, **not**
+  compliance-certified. Their catalog rows stay `blocked` (or the
+  next applicable lifecycle state) until every gate clears; the
+  advanced / manual-warning posture is recorded as catalog `notes`
+  policy rather than as a new lifecycle enum value. FanTRIAC is the
+  only such candidate today, recorded by `PRODUCT-TRIAC-001` as a
+  notes-only catalog edit on `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`;
+  the entry's `status: blocked` / `blocker: HW-005` /
+  `webflash_build_matrix: false` are unchanged. This guide does
+  **not** authorise any advanced / manual-warning product YAML,
+  WebFlash wrapper, build-matrix entry, release artifact, or
+  WebFlash import.
 - **Do not add `LED` to Release-One without an LED token and hardware
   evidence.** The Release-One config string `Ceiling-POE-VentIQ-RoomIQ`
   does not carry a `LED` token; the Release-One YAML omits LED

@@ -137,10 +137,12 @@ separate per-family slice PRs:
   build-matrix slice. Gated on `PRODUCT-DAC-001`.
 - **`WF-TRIAC-001`** — FanTRIAC (S360-320) advanced /
   manual-warning-only wrapper / catalog / build-matrix slice with the
-  manual-warning UX gate enforced. Gated on `PRODUCT-TRIAC-001`,
-  `COMPLIANCE-001` advanced / manual-warning sign-off, and the
-  WebFlash-side manual-warning UX. Never standard, never recommended,
-  never kit / default, never `release_one_required_configs`.
+  manual-warning UX gate enforced. Gated on `PRODUCT-TRIAC-001`
+  (landed: notes-only catalog policy decided) + `PRODUCT-TRIAC-002`
+  (product YAML / catalog-entry rework) + `COMPLIANCE-001` advanced
+  / manual-warning sign-off + WebFlash-side manual-warning UX. Never
+  standard, never recommended, never kit / default, never
+  `release_one_required_configs`.
 - **`WEBFLASH-POWER-400-001`** — PWR-240V (S360-400) wrapper /
   catalog / build-matrix slice. Gated on `PRODUCT-POWER-400-001` and
   `COMPLIANCE-001` `S360-400` slice closure.
@@ -285,7 +287,7 @@ labels that this matrix consumes for the upstream-gate columns.
 | `missing-package-readiness` | At least one required package for the family is **not** `ready-for-package-change` per [`hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md). The follow-up is the per-family `PACKAGE-*-001` slice. Until that slice lands, no `PRODUCT-*-001` slice may add a product YAML, so no WebFlash surface may be added. |
 | `missing-hardware-evidence` | At least one required board carries `schematic-evidence-pending` or `hardware-evidence-pending` per [`hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md) and the per-board `HW-PINMAP-*` audit doc. The follow-up is the per-board `HW-ASSETS-*` supplier-delivery + `HW-PINMAP-*-FOLLOWUP` reconciliation. Until that lands, package readiness cannot advance. |
 | `preview-candidate` | If and when the per-family product slice lands, the eventual WebFlash exposure class is `preview-candidate`: canonical YAML + wrapper + catalog entry + build-matrix entry on a non-`stable` channel (typically `preview`), with the WebFlash-side import optional / staged. The first stable promotion would later require the full 17-row [`preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md) gauntlet. |
-| `advanced/manual-warning-only` | If and when the per-family product slice lands, the eventual WebFlash exposure class is `advanced/manual-warning-only`: reachable only behind an explicit advanced-flow / manual-warning UX, never on the standard landing list, never in `release_one_required_configs`, never kit / recommended / default. Today this applies only to FanTRIAC; the long-term posture is documented in [`hardware/s360-320-r4-triac.md` Advanced / manual-warning product posture](hardware/s360-320-r4-triac.md#advanced--manual-warning-product-posture) and remains intent-only until HW-005 + COMPLIANCE-001 + `HW-PINMAP-320-FOLLOWUP` + `PACKAGE-TRIAC-001` + `PRODUCT-TRIAC-001` clear. |
+| `advanced/manual-warning-only` | If and when the per-family product slice lands, the eventual WebFlash exposure class is `advanced/manual-warning-only`: reachable only behind an explicit advanced-flow / manual-warning UX, never on the standard landing list, never in `release_one_required_configs`, never kit / recommended / default. Today this applies only to FanTRIAC; the long-term posture is documented in [`hardware/s360-320-r4-triac.md` Advanced / manual-warning product posture](hardware/s360-320-r4-triac.md#advanced--manual-warning-product-posture) and is now policy-recorded by `PRODUCT-TRIAC-001` as a notes-only catalog edit (JSON `status: blocked` / `blocker: HW-005` / `webflash_build_matrix: false` unchanged; no new lifecycle enum). A live WebFlash surface still requires HW-005 + COMPLIANCE-001 + `HW-PINMAP-320-FOLLOWUP` + `PACKAGE-TRIAC-001` + `PRODUCT-TRIAC-002` + `WF-TRIAC-001` to clear. |
 | `standard-exposure-candidate` | If and when the per-family product slice lands, the eventual WebFlash exposure class will be standard (i.e. `preview-candidate` → `production-candidate` subject to the promotion gauntlet), without an advanced / manual-warning UX qualifier. The standard / advanced distinction is decided per family on first per-family product-slice PR, not by this matrix. |
 | `production-candidate` | If and when the per-family product slice lands **and** the full 17-row [`preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md) gauntlet clears, the eventual WebFlash exposure class is `production-candidate`: canonical YAML + wrapper + catalog entry + build-matrix entry on `stable`, signed release artifact, WebFlash-side import live. Today carried only by `Ceiling-POE-VentIQ-RoomIQ`; no candidate family in this matrix is `production-candidate` today. |
 | `not-required-configs` | Even after a family has reached `preview-candidate` (or beyond), it is **not** added to `release_one_required_configs` by default. Any addition is a separately gated, explicit PR per [REQUIRED_CONFIGS policy](#required_configs-policy). |
@@ -367,7 +369,7 @@ Every cell is a policy label as defined in
 | **FanRelay / S360-310** | none (no `sense360-*-fanrelay-*.yaml`) | `missing` (S360-310 schematic uncommitted; `packages/expansions/fan_relay.yaml` `schematic-evidence-pending` + `needs-package-reconciliation`) | `missing-product-yaml` + `missing-package-readiness` + `missing-hardware-evidence` per [`product-readiness-matrix.md`](product-readiness-matrix.md#fanrelay--s360-310) | none | none | `not-webflash-ready` | `preview-candidate` (standard exposure; reach reserved for after package + product slices) | `not-required-configs` (no by default after preview) | `not-recommended` + `not-kit-default` until separate product / UX decision lands | `HW-ASSETS-310` → `HW-PINMAP-310-FOLLOWUP` → `PACKAGE-RELAY-001` → `PRODUCT-RELAY-001` → `WEBFLASH-RELAY-001` → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`. |
 | **FanPWM / S360-311** | none (no `sense360-*-fanpwm-*.yaml`; legacy [`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml) is `legacy-compatible` only and is not a WebFlash-shippable product entry) | `missing` (S360-311 schematic committed; SX1509-vs-direct-GPIO mapping disagreement unresolved; `packages/expansions/fan_pwm.yaml` `needs-package-reconciliation`) | `missing-product-yaml` + `needs-package-reconciliation` per [`product-readiness-matrix.md`](product-readiness-matrix.md#fanpwm--s360-311) | none | none | `not-webflash-ready` | `preview-candidate` (standard exposure once Core abstract-bus rebind + package slice land) | `not-required-configs` | `not-recommended` + `not-kit-default` (legacy four-channel YAML retention / migration / removal decided by `PRODUCT-PWM-001`) | `HW-PINMAP-311-FOLLOWUP` → `PACKAGE-PWM-001` (+ `CORE-ABSTRACT-BUS-001`) → `PRODUCT-PWM-001` → `WEBFLASH-PWM-001` → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`. |
 | **FanDAC / S360-312** | none (no `sense360-*-fandac-*.yaml`); any future FanDAC product must respect the `FanDAC ↔ AirIQ` mutex (`config/webflash-compatibility.json` `rules.fandac_conflicts_with_airiq: true`) | `missing` (S360-312 schematic committed; voltage-rail discrepancy + DIP-switch I²C address + UART-vs-Nextion arbitration + stale header-comment block all unresolved; `packages/expansions/fan_gp8403.yaml` `needs-package-reconciliation`) | `missing-product-yaml` + `needs-package-reconciliation` + `invalid-combination` with any AirIQ-bearing variant per [`product-readiness-matrix.md`](product-readiness-matrix.md#fandac--s360-312) | none | none | `not-webflash-ready` | `preview-candidate` (standard exposure; AirIQ-bearing FanDAC variants forbidden by mutex) | `not-required-configs` | `not-recommended` + `not-kit-default` (FanDAC ↔ AirIQ mutex narrows the eligible config-string space; kit / recommended decision belongs to `PRODUCT-DAC-001`) | `HW-PINMAP-312-FOLLOWUP` → `PACKAGE-DAC-001` → `PRODUCT-DAC-001` → `WEBFLASH-DAC-001` → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`. |
-| **FanTRIAC / S360-320** | exists as the **blocked** reference [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml); catalog status `blocked`, blocker `HW-005`, `webflash_build_matrix: false`. No new product YAML is added by `WEBFLASH-GAP-001`. | `missing` (S360-320 schematic committed; `ac_dimmer` timing across SX1509 expander rejected; `fan_triac.yaml` `needs-package-reconciliation` + `timing/compliance-pending` + `blocked-from-standard-exposure`) | `timing/compliance-pending` + `advanced/manual-warning-only` + `blocked-from-standard-exposure` per [`product-readiness-matrix.md`](product-readiness-matrix.md#fantriac--s360-320); HW-005 unblock + COMPLIANCE-001 sign-off required before any product / WebFlash motion | exists for the blocked reference; `webflash_build_matrix: false` | not in the build matrix | `not-webflash-ready` (blocked reference wrapper retained as evidence; no live build / WebFlash surface) | `advanced/manual-warning-only` (long-term posture; reach requires `WF-TRIAC-001` after `PACKAGE-TRIAC-001` + `PRODUCT-TRIAC-001` + `COMPLIANCE-001` advanced / manual-warning sign-off + WebFlash-side manual-warning UX) | **`not-required-configs` — never by default.** Any future addition to `release_one_required_configs` would be a separate explicit, scoped PR with COMPLIANCE-001 sign-off and is **not** authorised by this matrix. | **`not-recommended` + `not-kit-default` — never by default.** Mains-voltage advanced / manual-warning products are categorically excluded from kit / default / recommended / Release-One surfaces, irrespective of any future product YAML existence. | `HW-005` resolution → `HW-PINMAP-320-FOLLOWUP` → `PACKAGE-TRIAC-001` → `PRODUCT-TRIAC-001` → `COMPLIANCE-001` advanced / manual-warning sign-off → `WF-TRIAC-001` (advanced / manual-warning WebFlash slice) → `RELEASE-TRIAC-001` → `WF-IMPORT-TRIAC-001`. See [`hardware/s360-320-r4-triac.md` Follow-up PR sequence](hardware/s360-320-r4-triac.md#follow-up-pr-sequence). |
+| **FanTRIAC / S360-320** | exists as the **blocked** reference [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml); catalog status `blocked`, blocker `HW-005`, `webflash_build_matrix: false`; `PRODUCT-TRIAC-001` has performed a **notes-only** catalog edit recording the advanced / manual-warning candidate posture without changing any structural field. No new product YAML is added by `WEBFLASH-GAP-001`. | `missing` (S360-320 schematic committed; `ac_dimmer` timing across SX1509 expander rejected; `fan_triac.yaml` `needs-package-reconciliation` + `timing/compliance-pending` + `blocked-from-standard-exposure`) | `timing/compliance-pending` + `advanced/manual-warning-only` (policy-recorded by `PRODUCT-TRIAC-001` notes-only) + `blocked-from-standard-exposure` per [`product-readiness-matrix.md`](product-readiness-matrix.md#fantriac--s360-320); HW-005 unblock + COMPLIANCE-001 sign-off required before any product / WebFlash motion | exists for the blocked reference; `webflash_build_matrix: false` | not in the build matrix | `not-webflash-ready` (blocked reference wrapper retained as evidence; no live build / WebFlash surface) | `advanced/manual-warning-only` (long-term posture; policy-recorded by `PRODUCT-TRIAC-001` notes-only; reach to a live WebFlash surface still requires `WF-TRIAC-001` after `PACKAGE-TRIAC-001` + `PRODUCT-TRIAC-002` + `COMPLIANCE-001` advanced / manual-warning sign-off + WebFlash-side manual-warning UX) | **`not-required-configs` — never by default.** Any future addition to `release_one_required_configs` would be a separate explicit, scoped PR with COMPLIANCE-001 sign-off and is **not** authorised by this matrix. | **`not-recommended` + `not-kit-default` — never by default.** Mains-voltage advanced / manual-warning products are categorically excluded from kit / default / recommended / Release-One surfaces, irrespective of any future product YAML existence. | `PRODUCT-TRIAC-001` (landed: notes-only catalog reclassification) → `HW-005` resolution → `HW-PINMAP-320-FOLLOWUP` → `PACKAGE-TRIAC-001` → `PRODUCT-TRIAC-002` → `COMPLIANCE-001` advanced / manual-warning sign-off → `WF-TRIAC-001` (advanced / manual-warning WebFlash slice) → `RELEASE-TRIAC-001` → `WF-IMPORT-TRIAC-001`. See [`hardware/s360-320-r4-triac.md` Follow-up PR sequence](hardware/s360-320-r4-triac.md#follow-up-pr-sequence). |
 | **PWR-240V / S360-400** | none (the four `legacy-compatible` `*-pwr` Core variants are `*-pwr` mains-power Core configurations only; no WebFlash-shippable PWR-240V product entry exists) | `missing` (S360-400 schematic uncommitted; `packages/hardware/power_240v.yaml` `schematic-evidence-pending` + `timing/compliance-pending` under COMPLIANCE-001) | `schematic-evidence-pending` + `timing/compliance-pending` per [`product-readiness-matrix.md`](product-readiness-matrix.md#pwr-240v--s360-400); COMPLIANCE-001 `S360-400` slice closure required before any product / WebFlash motion | none | none | `not-webflash-ready` | `preview-candidate` (standard exposure once schematic + compliance gates clear; advanced / manual-warning posture **not** the default for PWR-240V, but the per-family `PRODUCT-POWER-400-001` slice decides) | `not-required-configs` | `not-recommended` + `not-kit-default` (mains-voltage compliance posture is gating-priority over exposure decision; kit / recommended decision belongs to `PRODUCT-POWER-400-001`) | `HW-ASSETS-400` → `HW-PINMAP-400-FOLLOWUP` → `PACKAGE-POWER-400-001` → `COMPLIANCE-001` S360-400 slice closure → `PRODUCT-POWER-400-001` → `WEBFLASH-POWER-400-001` → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`. |
 | **PoE-410 / S360-410** | none directly; the verified S360-410 PoE PSU is consumed only by Release-One (`Ceiling-POE-VentIQ-RoomIQ`) and the LED preview (`Ceiling-POE-VentIQ-RoomIQ-LED`) under their existing schematic-pending caveat | `missing` (S360-410 schematic uncommitted; `packages/hardware/power_poe.yaml` `schematic-evidence-pending` + `reference-only`) | `schematic-evidence-pending` per [`product-readiness-matrix.md`](product-readiness-matrix.md#poe-410--s360-410); per the matrix, "often this slice will close by promoting Release-One's preserved schematic-pending caveat alone, without adding a new product entry" | none new; existing Release-One wrapper unchanged | none new; existing Release-One row unchanged | `not-webflash-ready` for any **new** PoE-410 product entry. Existing Release-One PoE consumption is **not** affected; Release-One wrapper / catalog / build / artifact stays verbatim | `preview-candidate` (only if a new product entry is added; the default close is no-new-entry / caveat-closure-only) | `not-required-configs` (Release-One's existing membership is not touched) | `not-recommended` + `not-kit-default` (no new product entry implies no new kit / recommended membership) | `HW-ASSETS-410` → `HW-PINMAP-410-FOLLOWUP` → `S360-100-BENCH-001` update / `HW-002 OQ#6` closure → `PACKAGE-POE-410-001` → `PRODUCT-POE-410-001` (if warranted) → `WEBFLASH-POE-410-001` (if a new product entry is added) → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`. |
 
@@ -552,8 +554,10 @@ interrupt-capable ESP32 GPIOs; the Core currently routes
 analysis rejects. HW-005 remains unresolved. COMPLIANCE-001
 (mains-voltage UK / EU) is in force. The catalog entry
 `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is `status: blocked`,
-`blocker: HW-005`, `webflash_build_matrix: false`; the WebFlash
-wrapper
+`blocker: HW-005`, `webflash_build_matrix: false`, with `notes`
+edited by `PRODUCT-TRIAC-001` to record the advanced /
+manual-warning candidate posture (notes-only; structural fields
+unchanged; no new lifecycle enum). The WebFlash wrapper
 [`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml)
 is retained as a blocked reference but is not in the build matrix
 and has no release artifact / WebFlash import.
@@ -566,34 +570,37 @@ import. **No promotion of FanTRIAC to `production` / `preview` /
 `compile-only` / `hardware-pending` / `legacy-compatible` at any
 layer.**
 
-**Future exposure class (intent).** `advanced/manual-warning-only`
-**only**. Reachable through WebFlash exclusively behind an explicit
-advanced-flow / manual-warning UX gate. **Never** on the standard
-WebFlash flasher landing list. **Never** in
-`release_one_required_configs`. **Never** kit / default /
-recommended. **Never** Release-One. **Not** compliance-certified —
-the advanced / manual-warning posture is an exposure class, not a
-certification claim; the COMPLIANCE-001 mains-voltage UK / EU
-sign-off runs in addition.
+**Future exposure class (policy-recorded by `PRODUCT-TRIAC-001`).**
+`advanced/manual-warning-only` **only**. Reachable through WebFlash
+exclusively behind an explicit advanced-flow / manual-warning UX
+gate. **Never** on the standard WebFlash flasher landing list.
+**Never** in `release_one_required_configs`. **Never** kit /
+default / recommended. **Never** Release-One. **Not**
+compliance-certified — the advanced / manual-warning posture is an
+exposure class, not a certification claim; the COMPLIANCE-001
+mains-voltage UK / EU sign-off runs in addition.
 
-The reach to `advanced/manual-warning-only` requires, in order:
-`HW-005` unblock (S360-320 schematic-side electrical / firmware-side
-timing reconciliation; per
+The reach to a live `advanced/manual-warning-only` WebFlash surface
+requires, in order: `PRODUCT-TRIAC-001` (**landed**: notes-only
+catalog policy reclassification on `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
+recording the advanced / manual-warning candidate posture; JSON
+`status: blocked` / `blocker: HW-005` / `webflash_build_matrix: false`
+unchanged; no new lifecycle enum) → `HW-005` unblock (S360-320
+schematic-side electrical / firmware-side timing reconciliation; per
 [`docs/release-one-hardware-audit.md` §FanTRIAC mapping resolution](release-one-hardware-audit.md#fantriac-mapping-resolution)) →
 `HW-PINMAP-320-FOLLOWUP` (standalone schematic-backed reference doc;
 J3 ↔ J15 reconciliation; `TRI_GPIO*` / `ESP_GPIO*` naming;
 `ac_dimmer` ISR timing budget recomputation) → `PACKAGE-TRIAC-001`
 (FanTRIAC package YAML reconciliation; timing-correctness verdict) →
-`PRODUCT-TRIAC-001` (reclassify the FanTRIAC reference product
-policy to `advanced/manual-warning-only`; decide canonical FanTRIAC
-config-string shape; preserve all mains-voltage warnings) →
-`COMPLIANCE-001` advanced / manual-warning sign-off (UK / EU
-mains-voltage compliance evidence; qualified-electrician
-acknowledgement; document approval) → `WF-TRIAC-001` (advanced /
-manual-warning WebFlash wrapper / catalog / build-matrix entry,
-behind the manual-warning UX gate; separate from the standard
-`WEBFLASH-*-001` flow because of the advanced / manual-warning
-posture) → `RELEASE-TRIAC-001` (signed artifact) →
+`PRODUCT-TRIAC-002` (FanTRIAC product YAML / catalog-entry rework;
+decide canonical FanTRIAC config-string shape; preserve all
+mains-voltage warnings) → `COMPLIANCE-001` advanced /
+manual-warning sign-off (UK / EU mains-voltage compliance evidence;
+qualified-electrician acknowledgement; document approval) →
+`WF-TRIAC-001` (advanced / manual-warning WebFlash wrapper / catalog
+/ build-matrix entry, behind the manual-warning UX gate; separate
+from the standard `WEBFLASH-*-001` flow because of the advanced /
+manual-warning posture) → `RELEASE-TRIAC-001` (signed artifact) →
 `WF-IMPORT-TRIAC-001` (WebFlash-side import behind manual-warning
 UX).
 
@@ -964,7 +971,7 @@ and the per-board audit docs.
 | **`WEBFLASH-RELAY-001`** (alias: `WEBFLASH-GAP-001` FanRelay slice) | Add the FanRelay WebFlash wrapper under [`products/webflash/`](../products/webflash/), catalog entry in [`config/product-catalog.json`](../config/product-catalog.json) with `webflash_wrapper` + `webflash_build_matrix: true` on a non-`stable` channel, and build-matrix row in [`config/webflash-builds.json`](../config/webflash-builds.json). Honours the standard exposure class; not `release_one_required_configs`, not kit / recommended. | `PRODUCT-RELAY-001` landed. |
 | **`WEBFLASH-PWM-001`** (alias: `WEBFLASH-GAP-001` FanPWM slice) | Same as above for FanPWM. Decide retention / migration / removal of the legacy four-channel [`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml) in coordination with `PRODUCT-PWM-001` (typically: retain `legacy-compatible`; do not migrate to a non-legacy sibling). | `PRODUCT-PWM-001` landed. |
 | **`WEBFLASH-DAC-001`** (alias: `WEBFLASH-GAP-001` FanDAC slice) | Same as above for FanDAC. Enforce the `FanDAC ↔ AirIQ` mutex; no AirIQ-bearing FanDAC product / wrapper / catalog entry / build-matrix row is added. | `PRODUCT-DAC-001` landed. |
-| **`WF-TRIAC-001`** | Advanced / manual-warning WebFlash wrapper / catalog / build-matrix entry for FanTRIAC, behind an explicit manual-warning UX gate. **Separate** from the standard `WEBFLASH-*-001` flow because of the advanced / manual-warning posture. Not standard, not recommended, not kit / default, not `release_one_required_configs`. | `PRODUCT-TRIAC-001` landed + `COMPLIANCE-001` advanced / manual-warning sign-off + WebFlash-side manual-warning UX implemented. |
+| **`WF-TRIAC-001`** | Advanced / manual-warning WebFlash wrapper / catalog / build-matrix entry for FanTRIAC, behind an explicit manual-warning UX gate. **Separate** from the standard `WEBFLASH-*-001` flow because of the advanced / manual-warning posture. Not standard, not recommended, not kit / default, not `release_one_required_configs`. | `PRODUCT-TRIAC-001` landed (wording-only catalog policy decided) + `PRODUCT-TRIAC-002` landed (product YAML / catalog-entry rework) + `COMPLIANCE-001` advanced / manual-warning sign-off + WebFlash-side manual-warning UX implemented. |
 | **`WEBFLASH-POWER-400-001`** (alias: `WEBFLASH-GAP-001` PWR-240V slice) | Same as above for PWR-240V. UX class (standard preview-candidate vs advanced / manual-warning) decided per the `PRODUCT-POWER-400-001` compliance verdict. | `PRODUCT-POWER-400-001` landed + `COMPLIANCE-001` S360-400 slice closed. |
 | **`WEBFLASH-POE-410-001`** (alias: `WEBFLASH-GAP-001` PoE-410 slice) | **If and only if** `PRODUCT-POE-410-001` adds a new PoE-410-explicit product YAML, add the corresponding wrapper + catalog entry + build-matrix row. Often this slice is not required because `PRODUCT-POE-410-001` closes by extending the Release-One caveat without adding a new product. | `PRODUCT-POE-410-001` landed + new product entry added (else: not required). |
 | **`RELEASE-GAP-001`** | Build, sign, and release firmware artifacts for the WebFlash entries added by the per-family slices above. Uses the existing [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml) flow. Stable promotion gated additionally by [`preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md). | The relevant per-family slice landed; the 17-row gauntlet applied for any stable promotion. |
