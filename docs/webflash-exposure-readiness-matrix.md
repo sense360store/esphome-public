@@ -570,6 +570,31 @@ import. **No promotion of FanTRIAC to `production` / `preview` /
 `compile-only` / `hardware-pending` / `legacy-compatible` at any
 layer.**
 
+**WebFlash runtime UX `WF-TRIAC-001` landed; in-repo wrapper /
+catalog / build slice still blocked.** The `WF-TRIAC-001`
+runtime slice has **landed in the
+[`sense360store/WebFlash`](https://github.com/sense360store/WebFlash)
+repo** as a runtime advanced / manual-warning UX gate: FanTRIAC
+is visible / selectable in the WebFlash custom path with
+explicit acknowledgement and install blocking. **The runtime UX
+gate is the only `WF-TRIAC-001` work that has landed.** The
+in-repo `WF-TRIAC-001` wrapper / catalog / build-matrix slice —
+a WebFlash wrapper under
+[`products/webflash/`](../products/webflash/), a catalog edit on
+[`config/product-catalog.json`](../config/product-catalog.json)
+flipping `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` off `blocked` and
+flipping `webflash_build_matrix` to `true`, and a build-matrix
+row in
+[`config/webflash-builds.json`](../config/webflash-builds.json)
+— **remains blocked** until `PRODUCT-TRIAC-002` (currently
+deferred) and `PACKAGE-TRIAC-001` (currently deferred) clear,
+which themselves require `HW-005`, `HW-PINMAP-320-FOLLOWUP`,
+bench / waveform / real-load evidence, and `COMPLIANCE-001`
+advanced / manual-warning sign-off. No wrapper, no catalog
+flip, no build-matrix entry, no `webflash_build_matrix: true`
+flip, no firmware import. See
+[`docs/cleanup-audit.md` §TRIAC-QUEUE-001 update](cleanup-audit.md#triac-queue-001-update-remaining-fantriac-chain-normalized-after-package-deferral).
+
 **Future exposure class (policy-recorded by `PRODUCT-TRIAC-001`).**
 `advanced/manual-warning-only` **only**. Reachable through WebFlash
 exclusively behind an explicit advanced-flow / manual-warning UX
