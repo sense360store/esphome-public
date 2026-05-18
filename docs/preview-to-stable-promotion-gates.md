@@ -699,6 +699,22 @@ REQUIRED_CONFIGS, **not** recommended, **not** kit / default,
 **not** compliance-certified), and explicitly does **not** advance
 any RELEASE-006 row, unblock HW-005, or clear COMPLIANCE-001.
 
+`PRODUCT-TRIAC-001` has separately recorded the advanced /
+manual-warning candidate posture as catalog policy via a
+**notes-only** edit on `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` in
+[`config/product-catalog.json`](../config/product-catalog.json);
+the structural fields (`status: blocked`, `blocker: HW-005`,
+`reason` unchanged, `webflash_build_matrix: false`, no
+`artifact_name`) are preserved, and no new lifecycle enum value was
+added. The `RELEASE-006` preview-to-stable promotion path does
+**not** apply to FanTRIAC at any layer: the FanTRIAC release class
+is `advanced/manual-warning-artifact-only` (advanced channel only)
+rather than `preview-artifact-candidate` →
+`stable-candidate-after-promotion`, and any future advanced-channel
+artifact is owned by the separate `WF-TRIAC-001` /
+`RELEASE-TRIAC-001` / `WF-IMPORT-TRIAC-001` chain — not by this
+document.
+
 ## See also
 
 - [`README.md`](../README.md) — repo overview, Release-One quick
