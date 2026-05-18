@@ -209,6 +209,44 @@ labels keep their current scope for the FanTRIAC row, and the
 slice → `PACKAGE-TRIAC-001` / `PACKAGE-GAP-001` FanTRIAC slice) is
 unchanged.
 
+The 2026-05-18 COMPLIANCE-001 mains-voltage advanced / manual-warning
+sign-off evidence-pass re-check (see
+[`../compliance/mains-voltage-uk-eu-assessment.md` COMPLIANCE-001 audit log](../compliance/mains-voltage-uk-eu-assessment.md#compliance-001-audit-log))
+confirms COMPLIANCE-001 **remains open / not cleared** for
+`S360-320` under (i) standard exposure, (ii) a limited advanced /
+manual-warning sign-off, and (iii) formal compliance certification.
+No qualified-electrician / safety-review sign-off (named party,
+review date, observed board serial / batch, covered load types,
+installation context, "**this is not compliance certification**"
+framing) is on file; no accredited test-lab report, signed
+Declaration of Conformity, marking artwork, or production-control
+plan exists for any `S360-320`-bearing finished product; no KiCad
+PCB / Gerbers / BOM / CPL / drill / STEP / board-image evidence
+permitting a creepage / clearance / isolation-coordination /
+component-rating review is committed; no fusing / over-current /
+surge / thermal-protection analysis is recorded; no `J1` / `J2`
+connector voltage / current / wire-range / UL or VDE or TUV or
+IEC certification record exists; no enclosure / IP / IK /
+flame-rating evidence is on file; no thermal characterisation, no
+conducted / radiated EMI capture, no immunity test, no harmonics
+/ flicker test, and no UKCA / CE / FCC / UL applicability decision
+is recorded. The
+[`fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) row
+below **does not move** off `timing/compliance-pending` +
+`needs-package-reconciliation` + `blocked-from-standard-exposure`
+as a result of this re-check; the BLOCKED / UNVERIFIED banner and
+the mains-voltage / qualified-electrician warnings remain. The
+[`power_240v.yaml`](../../packages/hardware/power_240v.yaml) row
+below also does not move off `schematic-evidence-pending` +
+`needs-package-reconciliation` + `timing/compliance-pending`. The
+`PACKAGE-TRIAC-001` follow-up PR chain stays unchanged; the
+`PACKAGE-POWER-400-001` follow-up PR chain (`HW-ASSETS-400` →
+`HW-PINMAP-400-FOLLOWUP` → `COMPLIANCE-001` `S360-400` slice →
+`PACKAGE-POWER-400-001`) also stays unchanged. The advanced /
+manual-warning long-term product posture per
+[`s360-320-r4-triac.md` Advanced / manual-warning product posture](s360-320-r4-triac.md#advanced--manual-warning-product-posture)
+stays **intent only**.
+
 ## Status summary
 
 **No package in scope is `ready-for-package-change`.** All six
