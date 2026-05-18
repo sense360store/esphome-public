@@ -501,6 +501,45 @@ rather than restate them.
   through [`docs/product-onboarding.md`](../product-onboarding.md);
   observe the FanDAC ↔ AirIQ conflict and the fan-driver max-one-of
   rule.
+- **Open work.** The 2026-05-18 HW-PINMAP-312-FOLLOWUP
+  evidence-pass re-check (see
+  [`s360-312-r4-dac.md` HW-PINMAP-312-FOLLOWUP audit log](s360-312-r4-dac.md#hw-pinmap-312-followup-audit-log))
+  confirms no new committed silkscreen / bench / harness /
+  I²C / Cloudlift / UART / waveform / DIP-switch-address /
+  voltage-mode-jumper / KiCad schematic source / KiCad PCB
+  source / KiCad project metadata / BOM / CPL / Gerber / drill /
+  STEP / board-image evidence for `S360-312-R4` has been
+  recorded since HW-PINMAP-312 landed. The Core `J7` pin-1
+  `+5V` vs Module `J1` pin-1 `+3.3V` voltage-rail discrepancy,
+  the DIP-switch I²C address-selection scheme on `SW1` / `SW2`
+  (the schematic shows the address-select hardware but not the
+  DIP-position-to-address mapping; the package only exposes
+  `0x58` / `0x59` and addresses `IC1` only), the UART0-vs-
+  Nextion arbitration question on Module `J1` pins 4 / 5
+  (shared with the boot-log path on Core `TXD0` / `RXD0` =
+  UART0), the `J2` / `J3` Cloudlift S12 output silkscreen pin-1
+  location, the `fan_dac_voltage_mode` 5 V vs 10 V hardware-
+  select identity (jumper / solder-bridge / DIP position), and
+  the stale header-comment block in
+  [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml)
+  lines 13–18 (`Pin 4 (SDA) → GPIO39`, `Pin 5 (SCL) → GPIO40`,
+  `Pin 2 (3.3V) → Power`, `Pin 1 (GND) → Ground` — disagrees
+  with both Module `J1` and Core `J7` schematics) all remain
+  open. The dual-DAC / dual-output canonical-abstraction
+  decision stays in its current form ([`fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml)
+  is already dual-channel and matches the schematic; broadening
+  the singular hardware-catalog `description` belongs to a
+  separate later JSON-only PR).
+  [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml)
+  stays `package-yaml-pending` / `needs-package-reconciliation`;
+  `S360-312` JSON `schematic_status` stays `cataloged_unverified`
+  with no `schematic_file` in
+  [`config/hardware-catalog.json`](../../config/hardware-catalog.json).
+  No row state changes. `PACKAGE-DAC-001` / `PRODUCT-DAC-001` /
+  `WEBFLASH-DAC-001` / `RELEASE-DAC-001` / `WF-IMPORT-DAC-001`
+  all stay blocked. The FanDAC ↔ AirIQ mutex and the fan-driver
+  `max-one-of` rule are unchanged. `CORE-ABSTRACT-BUS-001` is
+  not advanced.
 
 ### `S360-320` Sense360 TRIAC
 
