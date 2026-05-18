@@ -2775,3 +2775,222 @@ blocked). Cross-linked from
 [§PRODUCT-TRIAC-002 update](#product-triac-002-update-deferred--package-triac-001-not-landed),
 and
 [§PRODUCT-TRIAC-001 update](#product-triac-001-update-reclassify-fantriac-as-advancedmanual-warning).
+
+## S360-100-BENCH-001 update (2026-05-18 evidence-pass investigation)
+
+S360-100-BENCH-001 is a **docs-only evidence-pass investigation**
+against the Core board bench / manufacturing tracking record at
+[`docs/hardware/s360-100-r4-core.md` S360-100-BENCH-001 status](hardware/s360-100-r4-core.md#s360-100-bench-001-status).
+The purpose of this update is to re-check, on 2026-05-18, whether
+any new bench-side or manufacturing-side evidence has been
+committed against the field-evidence and per-question tables in
+that record since it was created, and to record the result of
+that re-check as a dated audit-log entry. **The status remains
+`pending — bench/manufacturing evidence required`.** No
+per-question row has been promoted. No downstream gate moves.
+Release-One is unchanged.
+
+**Why this is the next actionable item.** The follow-up PR list
+in [§Findings summary](#findings-summary) row 1 already names
+`S360-100-BENCH-001 (Core bench / manufacturing pass)` as a
+pending follow-up. FanTRIAC downstream work (`PRODUCT-TRIAC-002`,
+in-repo `WF-TRIAC-001`, `RELEASE-TRIAC-001`,
+`WF-IMPORT-TRIAC-001`) is explicitly blocked after
+[§PACKAGE-TRIAC-001 update](#package-triac-001-update-deferred--hw-005--hw-pinmap-320-followup--compliance-001-not-landed)
+and
+[§TRIAC-QUEUE-001 update](#triac-queue-001-update-remaining-fantriac-chain-normalized-after-package-deferral),
+so the next docs-only actionable work shifts onto evidence rather
+than product / release / import slices. S360-100-BENCH-001 is the
+broad Core-board evidence pass that the package-readiness matrix
+(`bench-evidence-pending` rows for FanRelay, FanPWM, FanDAC,
+FanTRIAC; Core abstract-bus row for `CORE-ABSTRACT-BUS-001`), the
+PoE-PSU `J2` harness identity question (`HW-002` Open Question #6),
+and the Core J10 vs RoomIQ J6 silkscreen verification all
+forward-reference.
+
+**Investigation scope.** The 2026-05-18 re-check inspected the
+following committed files and re-confirmed each against the
+S360-100-BENCH-001 evidence rules in
+[`docs/hardware/s360-100-r4-core.md` §Status-language rules](hardware/s360-100-r4-core.md#status-language-rules):
+
+- [`docs/hardware/schematics/S360-100-R4.pdf`](../docs/hardware/schematics/S360-100-R4.pdf)
+  — schematic-tier evidence; already committed under HW-007
+  (`schematic_status: verified` in
+  [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+  under HW-008). Schematic evidence cannot promote a bench /
+  manufacturing-side row by itself per the evidence rules.
+- [`docs/hardware/artifacts/S360-100-R4.md`](hardware/artifacts/S360-100-R4.md)
+  — HW-ASSETS-002 curated artifact index. Records that BOM
+  (`bc386261-S360100R4_BOM.xlsx`, 12,543 B), CPL
+  (`d5bb9e7b-S360100R4pos.csv`, 4,803 B), Gerbers
+  (`2248fe0e-S360100R4gerbers.zip`, 290,097 B, 4-layer
+  `F_Cu` / `In1_Cu` / `In2_Cu` / `B_Cu`), and STEP
+  (`0a7f7965-S360100R4.step`, 6,335,475 B) are
+  **retained-but-not-committed** under HW-ASSETS-001 by SHA256
+  pointer only. No KiCad schematic source, no KiCad PCB source,
+  no KiCad project metadata, no packed archive, and no board
+  images are committed. No manufacturing-artifact review
+  findings have been recorded since the artifact index was
+  added.
+- [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+  `S360-100` row — `schematic_status: verified`,
+  `schematic_file: docs/hardware/schematics/S360-100-R4.pdf` (HW-008).
+  This is schematic-tier evidence and is not changed by this
+  re-check.
+- [`docs/hardware/s360-100-r4-core.md`](hardware/s360-100-r4-core.md)
+  Open Questions list and S360-100-BENCH-001 field-evidence and
+  per-question tables — every row still reads `not recorded —
+  pending bench/manufacturing evidence` or `pending —
+  bench/manufacturing evidence required`. No operator initials,
+  no review date, no observed board serial / batch, no observed
+  silkscreen / J-numbering / harness / rail value, and no
+  manufacturing-artifact review finding have been added since
+  the record was created.
+- [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+  `S360-100` row — already cross-references S360-100-BENCH-001
+  as `pending — bench/manufacturing evidence required`. The
+  productization-axis row (Release-One, LED preview, blocked
+  FanTRIAC) is unchanged by this re-check.
+- [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+  `bench-evidence-pending` legend and per-package rows for
+  FanRelay (`packages/expansions/fan_relay.yaml`), FanPWM
+  (`packages/expansions/fan_pwm.yaml`), FanDAC
+  (`packages/expansions/fan_gp8403.yaml`), FanTRIAC
+  (`packages/expansions/fan_triac.yaml`), and the Core
+  abstract-bus row
+  (`packages/hardware/sense360_core_ceiling.yaml` +
+  `packages/hardware/sense360_core.yaml`) — none of these rows
+  is moved off `bench-evidence-pending` or
+  `schematic-evidence-pending` by this re-check.
+- [`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md)
+  PoE PSU + Core / RoomIQ connector findings — both rows still
+  forward-reference S360-100-BENCH-001 as the bench-side
+  companion. Neither is moved by this re-check. Required
+  follow-ups #2 / #3 (Core abstract-bus rebind, alias
+  `CORE-ABSTRACT-BUS-001`) are not advanced.
+- [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)
+  Sense360 Core (`S360-100`) Evidence missing bullet — the
+  remaining `verify` flags on `IO10` net label, `IO39`–`IO42` ↔
+  TPx mapping, J6 1-to-13 / J10 1-to-12 silkscreen pin order
+  stay unresolved. No row is moved.
+- [`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md)
+  Core J10 vs RoomIQ J6 row — stays
+  `needs-silkscreen/bench-verification`. The Core abstract-bus
+  systemic mismatch (`needs-package-change`) is unchanged.
+
+**Outcome.** A dated audit-log entry recording the 2026-05-18
+re-check is appended to
+[`docs/hardware/s360-100-r4-core.md` §Audit log](hardware/s360-100-r4-core.md#audit-log)
+under the existing `## S360-100-BENCH-001 status` heading. Every
+row of the field-evidence table and per-question table in that
+section stays `pending — bench/manufacturing evidence required` /
+`not recorded — pending bench/manufacturing evidence`.
+
+**Short cross-reference notes** are added to:
+
+- [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+  `S360-100` §Open work bullet — records the 2026-05-18
+  re-check confirms S360-100-BENCH-001 stays `pending —
+  bench/manufacturing evidence required` and no per-question
+  row has been promoted; HW-GAP-001 resolution scope is
+  unchanged.
+- [`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md)
+  Findings table tail — short admonition that the 2026-05-18
+  re-check does **not** move the PoE PSU `cataloged, schematic
+  pending` row or the Core / RoomIQ connector `discrepancy`
+  row. Release-One stays unchanged. None of the Required
+  follow-ups is closed.
+- [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+  §Status labels tail — short admonition that the 2026-05-18
+  re-check does **not** move any package row off
+  `bench-evidence-pending` or `schematic-evidence-pending`. The
+  follow-up PR chain for every fan-driver slice and for
+  `CORE-ABSTRACT-BUS-001` is unchanged.
+- [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)
+  Sense360 Core §Evidence missing bullet — one-line
+  cross-reference to the dated audit-log entry.
+
+`docs/hardware/firmware-package-mapping-audit.md` and
+`docs/hardware/artifacts/S360-100-R4.md` already
+forward-reference S360-100-BENCH-001 correctly and are **not**
+edited by this update.
+
+**What this update does NOT do.** S360-100-BENCH-001 is
+documentation-only. The 2026-05-18 re-check explicitly does
+**not**:
+
+- promote any field of the S360-100-BENCH-001 field-evidence
+  table from `not recorded — pending bench/manufacturing
+  evidence` to anything stronger;
+- promote any per-question row from `pending —
+  bench/manufacturing evidence required` to `partial`,
+  `verified`, or `failed / blocked`;
+- close any of the schematic-side Open Questions in
+  [`docs/hardware/s360-100-r4-core.md` Open questions](hardware/s360-100-r4-core.md#open-questions--verification-needed)
+  (J2 PoE harness identity, J6 / J10 silkscreen pin order,
+  `IO10` net label, `IO39`–`IO42` ↔ TPx mapping,
+  `AirQ_Led` / `AirQ_Status_Led` reuse, TRI_GPIO1 / TRI_GPIO2
+  routing, IO5 / IO6 vs FanTRIAC);
+- record any BOM, CPL, Gerber, drill, or STEP review finding
+  (those artifacts remain retained-but-not-committed under
+  HW-ASSETS-001; no review can be cited from this repo);
+- commit KiCad schematic source, KiCad PCB source, KiCad
+  project metadata, board images, or any packed archive
+  (HW-ASSETS-002 records them as `not provided in this upload`;
+  the 2026-05-18 re-check does not alter that record);
+- flip `S360-100` `schematic_status` in
+  [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+  (already `verified` under HW-008; bench/manufacturing
+  evidence is a separate axis);
+- change Release-One. Release-One stays `Ceiling-POE-VentIQ-RoomIQ`,
+  version `1.0.0`, channel `stable`, artifact
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, tag
+  [`v1.0.0`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0);
+- change the LED preview path
+  (`Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview`,
+  `channel: preview`, artifact
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`);
+- unblock FanTRIAC
+  (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status: blocked`,
+  `blocker: HW-005`, `webflash_build_matrix: false`);
+- close `HW-005`, `HW-PINMAP-310`, `HW-PINMAP-311`,
+  `HW-PINMAP-312`, `HW-PINMAP-320`, `HW-PINMAP-320-FOLLOWUP`,
+  `HW-PINMAP-400`, `HW-PINMAP-410`, `HW-PINMAP-410-FOLLOWUP`,
+  `HW-ASSETS-310`, `HW-ASSETS-400`, `HW-ASSETS-410`,
+  `PACKAGE-GAP-001`, `PRODUCT-GAP-001`, `WEBFLASH-GAP-001`,
+  `RELEASE-GAP-001`, `WF-IMPORT-GAP-001`, `PACKAGE-TRIAC-001`,
+  `PRODUCT-TRIAC-002`, `WF-TRIAC-001`, `RELEASE-TRIAC-001`,
+  `WF-IMPORT-TRIAC-001`, or `COMPLIANCE-001`;
+- advance `CORE-ABSTRACT-BUS-001` (alias for
+  [`docs/release-one-hardware-audit.md` Required follow-ups #2 / #3](release-one-hardware-audit.md#required-follow-ups));
+- claim that any bench evidence (operator observation,
+  silkscreen photo, scope trace, continuity measurement,
+  serial log) exists;
+- claim that any manufacturing-artifact review (BOM, CPL,
+  Gerber, drill, STEP) has been performed;
+- claim that any compliance certification or mains-voltage
+  assessment for `S360-320` or `S360-400` has been performed
+  (owned by `COMPLIANCE-001`;
+  [`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md));
+- edit any file under
+  [`config/`](../config/), [`products/`](../products/),
+  [`products/webflash/`](../products/webflash/),
+  [`packages/`](../packages/), [`scripts/`](../scripts/),
+  [`tests/`](../tests/),
+  [`.github/workflows/`](../.github/workflows/),
+  [`components/`](../components/), [`include/`](../include/),
+  [`firmware/`](../firmware/),
+  [`manifest.json`](../manifest.json), or
+  [`firmware/sources.json`](../firmware/sources.json).
+
+**When the next S360-100-BENCH-001 audit-log entry should be
+recorded.** When committed evidence is added to this repository
+that the S360-100-BENCH-001 field-evidence rules can cite:
+operator-attributed silkscreen photos / scope or continuity
+traces / serial logs against the open Core-board questions; a
+committed manufacturing-artifact review record citing the
+retained-but-not-committed BOM / CPL / Gerbers / STEP; or
+committed KiCad source / Gerbers / BOM / CPL / STEP that the
+audit can cite by repo path. Until then, the next audit-log
+entry should report the same `pending` outcome with the new
+inspection date.
