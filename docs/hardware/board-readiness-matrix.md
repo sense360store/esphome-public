@@ -220,7 +220,14 @@ rather than restate them.
   currently `pending — bench/manufacturing evidence required` (no
   operator, no review date, no observed board / connector / silkscreen
   / harness / rail values, and no BOM / CPL / Gerber / STEP review
-  findings supplied). HW-GAP-001 does not resolve any of these.
+  findings supplied). HW-GAP-001 does not resolve any of these. The
+  2026-05-18 S360-100-BENCH-001 evidence-pass re-check confirms no new
+  bench-side or manufacturing-side evidence has been committed since
+  the record was created; the status remains `pending —
+  bench/manufacturing evidence required` and no per-question row has
+  been promoted (see
+  [`s360-100-r4-core.md` Audit log](s360-100-r4-core.md#audit-log)
+  for the dated investigation entry).
 
 ### `S360-200` Sense360 RoomIQ
 

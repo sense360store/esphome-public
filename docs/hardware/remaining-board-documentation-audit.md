@@ -145,7 +145,12 @@ committed; this audit does **not** upgrade it to `documented` and does
   `verify` flags (plus BOM / CPL / Gerber / STEP manufacturing-artifact
   review against the artifacts inventoried in [`artifacts/S360-100-R4.md`](artifacts/S360-100-R4.md))
   is captured is [**S360-100-BENCH-001**](s360-100-r4-core.md#s360-100-bench-001-status),
-  currently `pending — bench/manufacturing evidence required`.
+  currently `pending — bench/manufacturing evidence required`. The
+  2026-05-18 S360-100-BENCH-001 evidence-pass re-check (see
+  [`s360-100-r4-core.md` Audit log](s360-100-r4-core.md#audit-log))
+  confirms none of these `verify` flags has been closed by new
+  bench-side or manufacturing-side evidence; the record stays
+  `pending — bench/manufacturing evidence required`.
 
 ### Sense360 RoomIQ (`S360-200`)
 

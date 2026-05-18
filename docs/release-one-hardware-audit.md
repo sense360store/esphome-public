@@ -153,6 +153,20 @@ What this audit therefore does:
 | PoE PSU                  | **cataloged, schematic pending**        | `packages/hardware/power_poe.yaml` is a logical PoE-power package that emits diagnostic sensors only; it does not bind to any specific GPIO. The `S360-410` PoE PSU module schematic is not committed to this repo. `S360-100-R4` shows `J2 = PoE_ACDC` (2-pin power inlet to the Core). The exact harness between the off-board PoE PSU and the Core's `J2` is unverified. | No code change. Comment update only — refer to the module as **Sense360 PoE PSU** (`S360-410`), not "PoE module". The J2 PoE harness identity is the bench-side / manufacturing-side companion question tracked under [**S360-100-BENCH-001**](hardware/s360-100-r4-core.md#s360-100-bench-001-status), currently `pending — bench/manufacturing evidence required`. |
 | Core / RoomIQ connector  | **discrepancy**                         | `s360-100-r4-core.md` J10 table puts `+3.3V` at pin 1, `+5V` at pin 2 (signal nets at pins 3–11, `GND` at pin 12). `s360-200-r4-roomiq.md` J6 table puts `+5V` at pin 1, `+3.3V` at pin 7 (signal nets at pins 2–6, 8–11, `GND` at pin 12). These connectors are nominally a mating pair. One of the two tables is wrong. | Capture the discrepancy here only (already flagged in both hardware docs). Do **not** edit either hardware reference doc in this audit PR. Resolve in a follow-up by checking both schematics and the physical silkscreen on `S360-100-R4` and `S360-200-R4` boards. Bench-side / manufacturing-side silkscreen observation tracked under [**S360-100-BENCH-001**](hardware/s360-100-r4-core.md#s360-100-bench-001-status), currently `pending — bench/manufacturing evidence required`. |
 
+> **S360-100-BENCH-001 re-check (2026-05-18).** A documentation-only
+> S360-100-BENCH-001 evidence-pass investigation on 2026-05-18 confirms
+> no new bench-side or manufacturing-side evidence has been committed
+> against the PoE PSU (`J2` harness identity, HW-002 Open Question #6)
+> or Core / RoomIQ connector (J10 vs J6 silkscreen pin order) findings
+> above. The S360-100-BENCH-001 record stays `pending —
+> bench/manufacturing evidence required` (see
+> [`hardware/s360-100-r4-core.md` Audit log](hardware/s360-100-r4-core.md#audit-log)).
+> The PoE PSU `cataloged, schematic pending` row and the Core / RoomIQ
+> connector `discrepancy` row are **not** moved by this re-check.
+> Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`;
+> FanTRIAC stays `status: blocked` / `blocker: HW-005`. None of the
+> Required follow-ups below is closed by this re-check.
+
 ### Detail: FanTRIAC
 
 S360-100-R4 nets directly relevant to FanTRIAC:

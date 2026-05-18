@@ -170,6 +170,15 @@ qualifier labels (e.g. `needs-package-reconciliation` +
 `timing/compliance-pending` + `blocked-from-standard-exposure` for
 FanTRIAC).
 
+The 2026-05-18 S360-100-BENCH-001 evidence-pass re-check (see
+[`s360-100-r4-core.md` Audit log](s360-100-r4-core.md#audit-log))
+confirms no package row below moves off `bench-evidence-pending`
+or `schematic-evidence-pending`, and no follow-up PR chain advances
+as a result of this re-check. S360-100-BENCH-001 itself remains
+`pending — bench/manufacturing evidence required`. The
+`bench-evidence-pending` label keeps its current scope for every
+fan-driver / Core-abstract-bus row below.
+
 ## Status summary
 
 **No package in scope is `ready-for-package-change`.** All six
