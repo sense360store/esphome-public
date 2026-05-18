@@ -362,6 +362,44 @@ named follow-up.
 - **Cross-references.** [`s360-320-r4-triac.md` Follow-up PR sequence](s360-320-r4-triac.md#follow-up-pr-sequence);
   [`board-readiness-matrix.md` `S360-320` notes](board-readiness-matrix.md#s360-320-sense360-triac);
   [`release-one-hardware-audit.md#fantriac-mapping-resolution`](../release-one-hardware-audit.md#fantriac-mapping-resolution).
+- **PACKAGE-TRIAC-001 investigation outcome.** PACKAGE-TRIAC-001
+  was investigated against the readiness gates above and is
+  **confirmed deferred**: `HW-005` is unresolved (Core-side
+  `TRI_GPIO1` / `TRI_GPIO2` still visible only on the SX1509 side
+  of the Core sheet; no direct interrupt-capable ESP32 GPIO trace
+  proven end-to-end through `S360-100-R4` + `S360-320`; Option (a)
+  unmet; Option (b) eliminated for this revision per the committed
+  module-side schematic);
+  `HW-PINMAP-320-FOLLOWUP` is outstanding (standalone
+  schematic-backed reference doc, `TRI_GPIO*` / `ESP_GPIO*` canonical
+  naming, end-to-end pin-map reconciliation, and AC LINE `J1` 3-pin
+  function all owed); no bench / waveform / real-load /
+  zero-cross / phase-control / thermal evidence on file; and
+  `COMPLIANCE-001` advanced / manual-warning sign-off has not landed.
+  The package YAML topology itself is **already correct** for the
+  state of the evidence (`output: ac_dimmer` on direct
+  interrupt-capable ESP32 GPIOs supplied via parent substitutions
+  `fan_triac_gate_pin` / `fan_triac_zc_pin`, BLOCKED / UNVERIFIED
+  banner, SX1509-rejection clause, mains-voltage /
+  qualified-electrician warnings, `method: leading`,
+  `init_with_half_cycle: true`, default
+  `fan_triac_line_frequency: "50"`, `fan_triac_min_power: "10"`);
+  no safe functional package YAML edit exists today. The
+  `WF-TRIAC-001` slice has landed in the
+  [`sense360store/WebFlash`](https://github.com/sense360store/WebFlash)
+  repo as a runtime advanced / manual-warning UX gate, but it does
+  **not** satisfy any PACKAGE-TRIAC-001 gate (no direct ESP32 GPIO
+  trace evidence, no bench / waveform / real-load evidence, no
+  COMPLIANCE-001 sign-off). The investigation outcome and full
+  do-not-change inventory are recorded in
+  [`docs/cleanup-audit.md` §PACKAGE-TRIAC-001 update](../cleanup-audit.md#package-triac-001-update-deferred--hw-005--hw-pinmap-320-followup--compliance-001-not-landed).
+  Status stays `timing/compliance-pending` +
+  `needs-package-reconciliation` + `blocked-from-standard-exposure`;
+  FanTRIAC remains **not** Release-One, **not** REQUIRED_CONFIGS,
+  **not** recommended, **not** kit / default, **not**
+  compliance-certified. The JSON lifecycle row
+  (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`, `status: blocked`,
+  `blocker: HW-005`, `webflash_build_matrix: false`) is unchanged.
 
 ### `power_240v.yaml` / S360-400
 
@@ -532,7 +570,7 @@ and the per-board audit docs.
 | **`PACKAGE-RELAY-001`** (alias: `PACKAGE-GAP-001` FanRelay slice) | Reconcile [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml) and the Core abstract packages' `relay_pin` value(s) against the now-verified schematic evidence. Decide whether `fan_relay_pin: ${relay_pin}` is the right abstraction or whether the package should bind an explicit module-side connector pin. | `HW-ASSETS-310` + `HW-PINMAP-310-FOLLOWUP` + `S360-310` `schematic_status: verified` + bench / silkscreen evidence + `CORE-ABSTRACT-BUS-001`. |
 | **`PACKAGE-PWM-001`** (alias: `PACKAGE-GAP-001` FanPWM slice) | Reconcile [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml) (and decide the fate of the legacy four-channel [`packages/expansions/sense360_fan_pwm.yaml`](../../packages/expansions/sense360_fan_pwm.yaml)) against the now-verified schematic evidence: single-channel vs four-channel canonical abstraction; SX1509-channel vs direct-ESP32 binding decision; PWM polarity / frequency decision; tach polarity / pull-up / pulses-per-revolution decision; UART-on-`J3`-pins-11/12 resolution. | `HW-PINMAP-311-FOLLOWUP` + `S360-311` `schematic_status: verified` + bench / silkscreen evidence + `CORE-ABSTRACT-BUS-001`. |
 | **`PACKAGE-DAC-001`** (alias: `PACKAGE-GAP-001` FanDAC slice) | Reconcile [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) against the now-verified schematic evidence: at minimum delete or correct the stale header-comment connector / GPIO block (file lines 13–18), decide the `${fan_dac_address}` allowed-values set against the DIP-switch evidence, decide whether to add a Nextion `display:` or `uart:` binding on the `UART_RX` / `UART_TX` pair, decide the canonical single- vs dual-channel abstraction (the active YAML is already dual-channel and matches the schematic). | `HW-PINMAP-312-FOLLOWUP` + `S360-312` `schematic_status: verified` + bench / silkscreen / DIP-switch evidence. |
-| **`PACKAGE-TRIAC-001`** (alias: `PACKAGE-GAP-001` FanTRIAC slice) | Reconcile [`packages/expansions/fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) against the now-verified schematic + verified direct-ESP32 pin pair: remove the BLOCKED / UNVERIFIED banner **only** if HW-005 and the timing-correctness gate justify it; retain the mains-voltage / qualified-electrician warnings; leave the `ac_dimmer` topology intact (if confirmed correct); add the advanced / manual-warning posture wording per [`s360-320-r4-triac.md` Advanced / manual-warning product posture](s360-320-r4-triac.md#advanced--manual-warning-product-posture). **Must not** add FanTRIAC to Release-One, REQUIRED_CONFIGS, kit / default lists, recommended surfaces, or compliance-certified surfaces. | `HW-005` unblock (Option (a) direct-ESP32 pair or Core respin) + `HW-PINMAP-320-FOLLOWUP` + bench timing / waveform / real-load evidence + `COMPLIANCE-001` advanced/manual-warning sign-off. |
+| **`PACKAGE-TRIAC-001`** (alias: `PACKAGE-GAP-001` FanTRIAC slice) | **Investigated and deferred** — readiness gates are not satisfied. Would reconcile [`packages/expansions/fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) against the now-verified schematic + verified direct-ESP32 pin pair: remove the BLOCKED / UNVERIFIED banner **only** if HW-005 and the timing-correctness gate justify it; retain the mains-voltage / qualified-electrician warnings; leave the `ac_dimmer` topology intact (if confirmed correct); add the advanced / manual-warning posture wording per [`s360-320-r4-triac.md` Advanced / manual-warning product posture](s360-320-r4-triac.md#advanced--manual-warning-product-posture). **Must not** add FanTRIAC to Release-One, REQUIRED_CONFIGS, kit / default lists, recommended surfaces, or compliance-certified surfaces. Until the gates clear, the only PACKAGE-TRIAC-001 work recorded in this repo is the docs-only deferral note in [`docs/cleanup-audit.md` §PACKAGE-TRIAC-001 update](../cleanup-audit.md#package-triac-001-update-deferred--hw-005--hw-pinmap-320-followup--compliance-001-not-landed); the package YAML itself is unchanged (BLOCKED / UNVERIFIED banner, `ac_dimmer` topology, substitutions, mains-voltage / qualified-electrician warnings all preserved). `WF-TRIAC-001` having landed in the WebFlash repo (runtime advanced / manual-warning UX gate) does **not** satisfy these package-layer gates. | `HW-005` unblock (Option (a) direct-ESP32 pair or Core respin) + `HW-PINMAP-320-FOLLOWUP` + bench timing / waveform / real-load evidence + `COMPLIANCE-001` advanced/manual-warning sign-off. |
 | **`PACKAGE-POWER-400-001`** (alias: `PACKAGE-GAP-001` PWR slice) | Reconcile [`packages/hardware/power_240v.yaml`](../../packages/hardware/power_240v.yaml) header claims (AC-DC part identity `HLK-5M05` vs `HLK-PM01 or similar`, input / output / isolation / protection ratings) against the now-verified schematic and module BOM. | `HW-ASSETS-400` + `HW-PINMAP-400-FOLLOWUP` + `S360-400` `schematic_status: verified` + module BOM cross-check. (Product / WebFlash promotion remains separately gated by `COMPLIANCE-001` `S360-400` slice.) |
 | **`PACKAGE-POE-410-001`** (alias: `PACKAGE-GAP-001` PoE slice) | Reconcile [`packages/hardware/power_poe.yaml`](../../packages/hardware/power_poe.yaml) header claims (PoE module part identity, standard / class, input / output / protection ratings) against the now-verified schematic and module BOM. **Does not** by itself close the Release-One "schematic verification pending" caveat in [`release-one-hardware-audit.md` Findings → PoE PSU](../release-one-hardware-audit.md#findings); that closure is a separate later PR per [`s360-410-r4-poe.md` Follow-up PRs](s360-410-r4-poe.md#follow-up-prs). | `HW-ASSETS-410` + `HW-PINMAP-410-FOLLOWUP` + `S360-410` `schematic_status: verified` + `HW-002 OQ#6` closure / `S360-100-BENCH-001` update. |
 | **`CORE-ABSTRACT-BUS-001`** (alias for [`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups)) | Systemic rebind of the Core abstract substitutions (`halo_i2c`, `expansion_i2c`, `uart_bus`, `relay_pin`, `status_led_pin`, `pir_sensor_pin`, `expansion_gpio1` / `expansion_gpio2`) in [`packages/hardware/sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml) and [`packages/hardware/sense360_core.yaml`](../../packages/hardware/sense360_core.yaml) against the verified `S360-100-R4` schematic. Independently drives the resolution of the Core J10 vs RoomIQ J6 pin-order silkscreen check. Must re-validate every non-Release-One product YAML that consumes the Ceiling Core abstract package. | Core J10 vs RoomIQ J6 silkscreen verification (S360-100-BENCH-001 evidence) + RoomIQ / AirIQ / VentIQ package rebind plan + re-validation pass. **Owned by [`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups), not by PACKAGE-GAP-001.** |

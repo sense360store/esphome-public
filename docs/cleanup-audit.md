@@ -2285,3 +2285,274 @@ and the Follow-up PR sequence
 (COMPLIANCE-001); and the existing PRODUCT-TRIAC-001 catalog
 reclassification recorded in
 [§PRODUCT-TRIAC-001 update](#product-triac-001-update-reclassify-fantriac-as-advancedmanual-warning).
+
+## PACKAGE-TRIAC-001 update (deferred — HW-005 / HW-PINMAP-320-FOLLOWUP / COMPLIANCE-001 not landed)
+
+PACKAGE-TRIAC-001 is the **FanTRIAC package YAML reconciliation**
+slice that would, when its readiness gates clear, reconcile
+[`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+against the verified end-to-end direct-ESP32-GPIO pin pair, decide
+whether the body of the package needs any edit beyond removing the
+BLOCKED / UNVERIFIED banner (the topology may already be correct —
+`output: ac_dimmer` on direct interrupt-capable ESP32 GPIOs supplied
+via parent substitutions `fan_triac_gate_pin` / `fan_triac_zc_pin`),
+preserve the mains-voltage / qualified-electrician warnings, and
+preserve the advanced / manual-warning posture wording per
+[`docs/hardware/s360-320-r4-triac.md` Advanced / manual-warning product posture](hardware/s360-320-r4-triac.md#advanced--manual-warning-product-posture).
+PACKAGE-TRIAC-001 was investigated in this PR against the readiness
+gates recorded in
+[`docs/hardware/package-readiness-matrix.md` `fan_triac.yaml` / S360-320](hardware/package-readiness-matrix.md#fan_triacyaml--s360-320),
+[`docs/hardware/s360-320-r4-triac.md` Package YAML status](hardware/s360-320-r4-triac.md#package-yaml-status),
+and
+[`docs/release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution),
+and is **confirmed deferred**: every gate it depends on is still
+open. (1) `HW-005` is unresolved — the Core-side `TRI_GPIO1` /
+`TRI_GPIO2` nets are visible only on the SX1509 (`U3`) side of the
+Core sheet (per [`docs/hardware/s360-100-r4-core.md` §J15 — TRIAC fan module connector (4-pin)](hardware/s360-100-r4-core.md#j15--triac-fan-module-connector-4-pin),
+[`docs/hardware/s360-100-r4-core.md` §Fan / driver outputs](hardware/s360-100-r4-core.md#fan--driver-outputs),
+and Open Question #1); no direct interrupt-capable ESP32 GPIO trace
+is established end-to-end through `S360-100-R4` + `S360-320`. Option
+(a) of the HW-005 missing-evidence checklist
+([`release-one-hardware-audit.md#missing-evidence-checklist`](release-one-hardware-audit.md#missing-evidence-checklist))
+is unmet; Option (b) is **eliminated for this revision** of
+`S360-320` (the committed module-side schematic at
+[`docs/hardware/schematics/S360-320-R4.pdf`](hardware/schematics/S360-320-R4.pdf)
+shows no on-board controller IC). (2) `HW-PINMAP-320-FOLLOWUP` is
+outstanding — the standalone schematic-backed reference doc, the
+`TRI_GPIO*` (Core) ↔ `ESP_GPIO*` (Module) canonical naming choice,
+the end-to-end pin-map reconciliation, and the AC LINE `J1` 3-pin
+function are all owed to that follow-up per
+[`docs/hardware/s360-320-r4-triac.md` Follow-up PR sequence](hardware/s360-320-r4-triac.md#follow-up-pr-sequence).
+(3) ESPHome's `ac_dimmer` driver continues to require direct
+interrupt-capable ESP32 GPIOs for both `gate_pin` and
+`zero_cross_pin`; the timing analysis in
+[`docs/release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander`](release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander)
+rejects the SX1509 expander as a viable source. No direct
+interrupt-capable ESP32 GPIO pair has been proven for the FanTRIAC
+nets on this revision. (4) No bench / waveform / real-load /
+zero-cross / phase-control / thermal evidence has been recorded on
+any populated `S360-100-R4` + `S360-320-R4` pair; the full
+missing-evidence inventory is enumerated in
+[`docs/hardware/s360-320-r4-triac.md` Required evidence before implementation](hardware/s360-320-r4-triac.md#required-evidence-before-implementation).
+(5) `COMPLIANCE-001` is not cleared — the mains-voltage UK / EU
+assessment tracker at
+[`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)
+is documentation only and makes no compliance claim; creepage /
+clearance / fusing / BOM / EMI / certification evidence remains
+owed. (6) The placeholder `fan_triac_gate_pin: GPIO5` /
+`fan_triac_zc_pin: GPIO6` in the blocked-reference product YAML
+[`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
+still collide with the RoomIQ J10 nets (`IO5 = SEN0609_TX`,
+`IO6 = out(gpio6)`) per
+[`docs/hardware/s360-100-r4-core.md` §Pin assignments](hardware/s360-100-r4-core.md#pin-assignments)
+and
+[`docs/hardware/s360-100-r4-core.md` §Release-One YAML pin reconciliation flag](hardware/s360-100-r4-core.md#release-one-yaml-pin-reconciliation-flag);
+that resolution belongs to `PRODUCT-TRIAC-002`, not to
+PACKAGE-TRIAC-001.
+
+The package YAML itself is **already correctly authored** for the
+state of the evidence: it exposes the two required pin choices as
+substitutions (`fan_triac_gate_pin` / `fan_triac_zc_pin`) rather
+than hardcoding GPIOs; it uses `output: ac_dimmer` matching the
+module-side schematic topology (gate trigger through `MOC3023M`
+optotriac, zero-cross sensed through `EL814` collector pull-up to
+`+3V3`); it carries the BLOCKED / UNVERIFIED banner; it carries the
+explicit "direct, interrupt-capable ESP32 GPIO" requirement and the
+SX1509-rejection clause for both `gate_pin` and `zero_cross_pin`;
+it carries the mains-voltage / qualified-electrician warnings; it
+keeps `method: leading`, `init_with_half_cycle: true`,
+`fan_triac_line_frequency: "50"` (parent override for 60 Hz
+regions), and `fan_triac_min_power: "10"` as package-assumed
+defaults; and it does not bind any specific GPIO value. The
+topology is correct; what is missing is upstream evidence (the
+Core re-trace, the bench / waveform / real-load proof, the
+mains-voltage compliance posture) — none of which lives in this
+file. **There is no safe functional package YAML edit available
+today.** Because PACKAGE-TRIAC-001's named prerequisites — `HW-005`
+unblock, `HW-PINMAP-320-FOLLOWUP`, bench timing / waveform /
+real-load evidence, and `COMPLIANCE-001` advanced / manual-warning
+sign-off — have not landed, the per-family decision rule in
+[`docs/hardware/package-readiness-matrix.md` `fan_triac.yaml` / S360-320](hardware/package-readiness-matrix.md#fan_triacyaml--s360-320)
+forbids any functional package YAML edit in this PR. The update is
+therefore **docs-only**: this section records the investigation
+outcome and the deferral; the `fan_triac.yaml` / S360-320 row in
+[`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+and the **Package YAML status** section in
+[`docs/hardware/s360-320-r4-triac.md`](hardware/s360-320-r4-triac.md)
+are tightened to cross-link this entry and to state PACKAGE-TRIAC-001
+was investigated and confirmed deferred. No structural change is
+made anywhere else.
+
+The `WF-TRIAC-001` slice has landed in the
+[`sense360store/WebFlash`](https://github.com/sense360store/WebFlash)
+repo as a runtime UX gate that makes FanTRIAC visible /
+selectable in the WebFlash custom path as advanced / manual-warning
+with explicit acknowledgement and install blocking. **It does not
+satisfy any PACKAGE-TRIAC-001 gate.** WF-TRIAC-001 did not import
+firmware, did not add a manifest build, did not change
+REQUIRED_CONFIGS, did not add kits, did not promote FanTRIAC to
+Release-One, did not claim compliance certification, and crucially
+did not produce direct ESP32 GPIO trace evidence, bench / waveform /
+real-load evidence, or COMPLIANCE-001 sign-off — all of which
+PACKAGE-TRIAC-001 still requires from upstream hardware /
+compliance work in this repo.
+
+The package YAML
+[`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+is unchanged; its BLOCKED / UNVERIFIED banner, its
+direct-interrupt-capable-GPIO requirement, its SX1509-rejection
+clause, its mains-voltage / qualified-electrician warnings, its
+`output: ac_dimmer` topology, its
+`fan_triac_gate_pin` / `fan_triac_zc_pin` substitutions, its default
+`fan_triac_line_frequency: "50"`, `method: leading`,
+`init_with_half_cycle: true`, and `fan_triac_min_power: "10"` all
+remain in place. The blocked-reference product YAML
+[`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
+is unchanged; the BLOCKED / UNVERIFIED banner, the
+`fallback_ssid: "S360 TRIAC BLOCKED"` admonition, and the
+placeholder `fan_triac_gate_pin: GPIO5` / `fan_triac_zc_pin: GPIO6`
+all stay. The blocked-reference WebFlash wrapper
+[`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml)
+is unchanged and stays out of the build matrix. The FanTRIAC
+catalog entry in
+[`config/product-catalog.json`](../config/product-catalog.json)
+(`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`) is unchanged — `status` stays
+`blocked`, `blocker` stays `HW-005`, `reason` is unchanged,
+`webflash_build_matrix` stays `false`, no `artifact_name` is added,
+and the `notes` field reclassified by PRODUCT-TRIAC-001 to
+advanced / manual-warning is preserved verbatim. The
+`lifecycle_statuses` enum in
+[`config/product-catalog.json`](../config/product-catalog.json) is
+unchanged. The `FanTRIAC` token remains in `canonical_modules` in
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json),
+the Release-One `release_one_required_configs` stays
+`["Ceiling-POE-VentIQ-RoomIQ"]`, and `FanTRIAC` remains in the
+Release-One and LED preview `blocked_modules` lists in
+[`config/product-catalog.json`](../config/product-catalog.json).
+The `S360-320` row in
+[`config/hardware-catalog.json`](../config/hardware-catalog.json)
+stays `schematic_status: cataloged_unverified` with no
+`schematic_file` set. HW-005 and COMPLIANCE-001 remain open and
+unresolved; this update makes no compliance claim. Every exclusion
+is durable and explicitly reaffirmed: **not** Release-One, **not**
+`REQUIRED_CONFIGS`, **not** recommended, **not** kit / default,
+**not** compliance-certified — irrespective of any future product
+YAML, WebFlash wrapper, build, release, or import existence, and
+irrespective of WF-TRIAC-001 having landed on the WebFlash side.
+
+Documentation only and explicitly **does not**: edit
+[`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+(BLOCKED / UNVERIFIED banner, `ac_dimmer` topology, substitutions,
+defaults, and mains-voltage / qualified-electrician warnings all
+preserved); edit any other package YAML under
+[`packages/`](../packages/) (including
+[`packages/hardware/sense360_core.yaml`](../packages/hardware/sense360_core.yaml)
+and
+[`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml));
+edit
+[`config/hardware-catalog.json`](../config/hardware-catalog.json),
+[`config/product-catalog.json`](../config/product-catalog.json),
+[`config/webflash-builds.json`](../config/webflash-builds.json), or
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json);
+edit any product YAML under [`products/`](../products/) (including
+[`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml));
+edit any WebFlash wrapper under
+[`products/webflash/`](../products/webflash/) (including
+[`products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml));
+edit any script under [`scripts/`](../scripts/); edit any test
+under [`tests/`](../tests/); edit any workflow under
+[`.github/workflows/`](../.github/workflows/); edit any component
+under [`components/`](../components/); edit any header under
+[`include/`](../include/); edit any firmware sources or manifests
+([`firmware/sources.json`](../firmware/sources.json),
+[`manifest.json`](../manifest.json)); edit the curated artifact
+index [`docs/hardware/artifacts/S360-320-R4.md`](hardware/artifacts/S360-320-R4.md)
+or the schematic PDF
+[`docs/hardware/schematics/S360-320-R4.pdf`](hardware/schematics/S360-320-R4.pdf)
+(both byte-identical to HW-ASSETS-003); edit
+[`docs/hardware/s360-100-r4-core.md`](hardware/s360-100-r4-core.md),
+[`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md),
+or
+[`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)
+(owned by HW-005 / HW-PINMAP-320-FOLLOWUP / COMPLIANCE-001
+respectively); add or modify any lifecycle enum value; add or
+modify any `canonical_modules` token, any
+`release_one_required_configs` membership, any build-matrix entry,
+any `webflash_build_matrix` flip, any `artifact_name`, any release
+tag, or any new channel; remove the BLOCKED / UNVERIFIED banner
+from
+[`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml);
+remove the mains-voltage / qualified-electrician warnings; mark the
+pin map confirmed; mark
+[`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
+`confirmed-ok`; unblock FanTRIAC under HW-005
+(`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status: blocked`,
+`blocker: HW-005`, `webflash_build_matrix: false`); clear
+COMPLIANCE-001 for `S360-320` or `S360-400` (compliance status is
+owned by
+[`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md));
+claim that FanTRIAC is compliance-certified; promote `S360-320` to
+`preview` / `stable` / `production`; add a `FanTRIAC` token to any
+Release-One or preview config string; add a `FanTRIAC`-bearing
+entry to
+[`config/webflash-builds.json`](../config/webflash-builds.json);
+add FanTRIAC to `release_one_required_configs` / REQUIRED_CONFIGS;
+add FanTRIAC to any kit / default onboarding flow; make FanTRIAC
+recommended; generate firmware; create a GitHub Release or tag;
+perform a WebFlash import; change Release-One
+(`Ceiling-POE-VentIQ-RoomIQ`,
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, tag
+`v1.0.0`); change the LED preview path
+(`Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview`,
+`channel: preview`); resolve HW-005, COMPLIANCE-001,
+`HW-PINMAP-320-FOLLOWUP`, `PRODUCT-TRIAC-002`, `WF-TRIAC-001`
+(landed in the WebFlash repo; not this repo's gate),
+`RELEASE-TRIAC-001`, or `WF-IMPORT-TRIAC-001`. Adds no edits to
+[`config/hardware-catalog.json`](../config/hardware-catalog.json),
+[`config/product-catalog.json`](../config/product-catalog.json),
+[`config/webflash-builds.json`](../config/webflash-builds.json),
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json),
+[`products/*`](../products/),
+[`products/webflash/*`](../products/webflash/),
+[`packages/*`](../packages/), [`scripts/*`](../scripts/),
+[`tests/*`](../tests/), [`.github/workflows/*`](../.github/workflows/),
+[`components/*`](../components/), [`include/*`](../include/),
+[`manifest.json`](../manifest.json), or
+[`firmware/sources.json`](../firmware/sources.json). The remaining
+chain after PACKAGE-TRIAC-001 stays exactly as recorded in
+[`docs/hardware/package-readiness-matrix.md` Follow-up PR sequence](hardware/package-readiness-matrix.md#follow-up-pr-sequence)
+and
+[`docs/hardware/s360-320-r4-triac.md` Follow-up PR sequence](hardware/s360-320-r4-triac.md#follow-up-pr-sequence):
+`HW-005` unblock (Option (a) direct-ESP32 pair or Core respin) +
+`HW-PINMAP-320-FOLLOWUP` + bench timing / waveform / real-load
+evidence + `COMPLIANCE-001` advanced / manual-warning sign-off →
+`PACKAGE-TRIAC-001` (this slice; **deferred until those
+prerequisites land**) → `PRODUCT-TRIAC-002` (FanTRIAC product YAML
+/ catalog-entry rework; also currently deferred per
+[§PRODUCT-TRIAC-002 update](#product-triac-002-update-deferred--package-triac-001-not-landed))
+→ `WF-TRIAC-001` (advanced-flow WebFlash wrapper / catalog / build
+with the manual-warning UX gate; runtime-UX slice landed in the
+WebFlash repo, but the in-repo wrapper / catalog / build remains
+outstanding) → `RELEASE-TRIAC-001` (advanced-channel build /
+release artifact) → `WF-IMPORT-TRIAC-001` (advanced / manual
+artifact import). Cross-linked from
+[`docs/hardware/package-readiness-matrix.md` `fan_triac.yaml` / S360-320](hardware/package-readiness-matrix.md#fan_triacyaml--s360-320),
+[`docs/hardware/package-readiness-matrix.md` Follow-up PR sequence `PACKAGE-TRIAC-001` row](hardware/package-readiness-matrix.md#follow-up-pr-sequence),
+and
+[`docs/hardware/s360-320-r4-triac.md` Package YAML status](hardware/s360-320-r4-triac.md#package-yaml-status).
+Source of truth consumed:
+[`docs/hardware/s360-320-r4-triac.md` Reconciliation findings](hardware/s360-320-r4-triac.md#reconciliation-findings),
+[`docs/hardware/s360-320-r4-triac.md` Timing constraint against the package](hardware/s360-320-r4-triac.md#timing-constraint-against-the-package),
+[`docs/hardware/s360-320-r4-triac.md` HW-005 evidence updates that do not unblock](hardware/s360-320-r4-triac.md#hw-005-evidence-updates-that-do-not-unblock),
+[`docs/hardware/s360-320-r4-triac.md` Required evidence before implementation](hardware/s360-320-r4-triac.md#required-evidence-before-implementation),
+[`docs/hardware/s360-100-r4-core.md` §J15 — TRIAC fan module connector (4-pin)](hardware/s360-100-r4-core.md#j15--triac-fan-module-connector-4-pin),
+[`docs/hardware/s360-100-r4-core.md` §Fan / driver outputs](hardware/s360-100-r4-core.md#fan--driver-outputs),
+[`docs/hardware/artifacts/S360-320-R4.md`](hardware/artifacts/S360-320-R4.md),
+[`docs/release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution),
+[`docs/release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander`](release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander),
+[`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md),
+and the existing PRODUCT-TRIAC-001 / PRODUCT-TRIAC-002 entries
+recorded in
+[§PRODUCT-TRIAC-001 update](#product-triac-001-update-reclassify-fantriac-as-advancedmanual-warning)
+and
+[§PRODUCT-TRIAC-002 update](#product-triac-002-update-deferred--package-triac-001-not-landed).
