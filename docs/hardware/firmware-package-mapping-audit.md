@@ -415,7 +415,21 @@ for HW-009):
     HW-PINMAP-310-FOLLOWUP consumed the HW-ASSETS-310 schematic).
     Neither HW-PINMAP-310 nor HW-PINMAP-310-FOLLOWUP resolves it;
     the resolution stays with this systemic Core abstract-bus
-    rebind (`CORE-ABSTRACT-BUS-001`).
+    rebind (`CORE-ABSTRACT-BUS-001`). **PACKAGE-RELAY-001 was
+    subsequently investigated against this finding and confirmed
+    deferred** — it did **not** edit
+    `packages/expansions/fan_relay.yaml` because the package is
+    already correctly abstracted (`fan_relay_pin: ${relay_pin}`
+    inherits whichever value the parent Core abstract package binds)
+    and the wrong values live in the Core abstract packages, not in
+    `fan_relay.yaml`. The Core abstract `relay_pin` variable
+    therefore **remains** the source of conflict, and resolution
+    stays owned by `CORE-ABSTRACT-BUS-001`. The PACKAGE-RELAY-001
+    investigation outcome is recorded in
+    [`s360-310-r4-relay.md` Package YAML status](s360-310-r4-relay.md#package-yaml-status),
+    [`package-readiness-matrix.md` `fan_relay.yaml` / S360-310](package-readiness-matrix.md#fan_relayyaml--s360-310),
+    and
+    [`docs/cleanup-audit.md` §PACKAGE-RELAY-001 update](../cleanup-audit.md#package-relay-001-update-deferred--core-abstract-bus-001--silkscreen--harness--k1-bom-evidence-not-landed).
   - `status_led_pin: GPIO48` — `IO48` is `I2C_SDA`.
   - `pir_sensor_pin: GPIO47` — `IO47` is `ALS_INT`; `PIR` is on `IO15`.
   - `expansion_gpio1: GPIO5`, `expansion_gpio2: GPIO6` — `IO5` is
