@@ -773,6 +773,73 @@ promotion; no `webflash_build_matrix` flip; no `REQUIRED_CONFIGS`
 [`cleanup-audit.md` §`PRODUCT-POWER-400-001 update (2026-05-19 — docs-only investigation pass)`](cleanup-audit.md#product-power-400-001-update-2026-05-19--docs-only-investigation-pass)
 and [`product-readiness-matrix.md` §PWR-240V / S360-400](product-readiness-matrix.md#pwr-240v--s360-400).
 
+**2026-05-19 — `WEBFLASH-POWER-400-001` investigation pass
+(Path A docs-only deferral; class unchanged).**
+The upstream `PRODUCT-POWER-400-001` investigation pass merged
+as **PR #521** on 2026-05-19 (docs-only Path A deferral) and the
+downstream `WEBFLASH-POWER-400-001` investigation pass ran on
+2026-05-19 (this PR — docs-only Path A deferral). Re-verified
+against the live files: no S360-400-explicit / `PWR`-bearing
+WebFlash wrapper exists under
+[`../products/webflash/`](../products/webflash/) (the directory
+contains only three POE wrappers
+[`ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml),
+[`ceiling-poe-ventiq-roomiq-led.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq-led.yaml),
+and
+[`ceiling-poe-ventiq-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq.yaml));
+[`../config/webflash-builds.json`](../config/webflash-builds.json)
+has no `PWR` build (only Release-One
+`Ceiling-POE-VentIQ-RoomIQ` `stable` and
+`Ceiling-POE-VentIQ-RoomIQ-LED` `preview`);
+[`../config/product-catalog.json`](../config/product-catalog.json)
+has no S360-400-specific product (the four `legacy-compatible`
+`*-pwr` Core variants stay `legacy-compatible` /
+`webflash_build_matrix: false` / no `config_string` / no
+`webflash_wrapper` / no `artifact_name`, and are **not**
+WebFlash exposure evidence);
+[`../config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+reserves `PWR` in `canonical_power: ["USB", "POE", "PWR"]` but
+no `webflash_build_matrix: true` row consumes it — reservation
+is grammar-only and does **not** imply WebFlash exposure;
+[`../config/hardware-catalog.json`](../config/hardware-catalog.json)
+`S360-400` row stays `schematic_status: cataloged_unverified`
+with no `schematic_file`. `WEBFLASH-POWER-400-001` stays
+**blocked** behind `PRODUCT-POWER-400-001` implementation (PR
+#521 was docs-only investigation only), `PACKAGE-POWER-400-001`
+implementation (PR #520 docs-only), BOM cross-check, the
+`S360-400` `schematic_status: verified` JSON PR, the
+`COMPLIANCE-001` `S360-400` slice, package / catalog
+reconciliation, product-onboarding approval, and release /
+build / artifact readiness; `RELEASE-POWER-400-001` /
+`WF-IMPORT-POWER-400-001` stay blocked behind it. Path B
+(documentation-only cleanup) is unhelpful because this section
+and the matching sections of
+[`release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+and [`product-readiness-matrix.md`](product-readiness-matrix.md)
+already correctly classify the slice as `not-webflash-ready` /
+`not-release-ready` / `no product YAML` / `no wrapper` /
+`no build-matrix row`. Path C (implementation) is unsafe
+because every gate is open: adding a wrapper while no
+S360-400 product YAML exists would have nothing to wrap;
+flipping `webflash_build_matrix: true` while the catalog has
+no S360-400-specific entry would have nothing to flip; adding
+a build-matrix row would emit a mains-voltage artifact while
+`packages/hardware/power_240v.yaml` is
+`schematic-evidence-pending` + `needs-package-reconciliation`
++ `timing/compliance-pending` and `COMPLIANCE-001` `S360-400`
+is open. No package, product, WebFlash, build, release,
+compliance, JSON catalog, test, script, workflow, component,
+include, firmware, or manifest edits; no `schematic_status` /
+`schematic_file` promotion; no `webflash_build_matrix` flip;
+no `artifact_name` added; no `REQUIRED_CONFIGS` / kit change.
+Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `stable` /
+`v1.0.0`; LED preview stays
+`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays
+`blocked` / `HW-005`. Investigation outcome cross-recorded at
+[`cleanup-audit.md` §`WEBFLASH-POWER-400-001 update (2026-05-19 — docs-only investigation pass)`](cleanup-audit.md#webflash-power-400-001-update-2026-05-19--docs-only-investigation-pass)
+and
+[`release-artifact-readiness-matrix.md` §Power / S360-400 release posture](release-artifact-readiness-matrix.md#power--s360-400-release-posture).
+
 ## PoE / S360-410 WebFlash posture
 
 **Current state.** `S360-410 Sense360 PoE PSU`,

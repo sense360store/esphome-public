@@ -293,8 +293,8 @@ mirrored here.
   verified` JSON promotion (separate PR) + the package header
   reconciliation + the catalog `description` reconciliation as a
   single atomic slice**, not as a comment-only cleanup alone.
-- **PRODUCT-POWER-400-001** investigation pass ran on 2026-05-19
-  (this PR — docs-only Path A deferral). The pass evaluated
+- **PRODUCT-POWER-400-001** investigation merged as **PR #521** on
+  2026-05-19 (docs-only Path A deferral). The pass evaluated
   whether `PRODUCT-POWER-400-001` could safely proceed now
   (Path C implementation — add a canonical `S360-400` /
   `PWR`-bearing product YAML under
@@ -421,6 +421,181 @@ mirrored here.
   `PACKAGE-POWER-400-001` implementation, the `S360-400`
   `schematic_status: verified` JSON PR, the `COMPLIANCE-001`
   `S360-400` slice, and product-onboarding approval all land.
+- **WEBFLASH-POWER-400-001** investigation pass ran on 2026-05-19
+  (this PR — docs-only Path A deferral). The pass evaluated
+  whether `WEBFLASH-POWER-400-001` could safely proceed now
+  (Path C implementation — add the S360-400 / `PWR`-bearing
+  WebFlash wrapper under
+  [`products/webflash/`](products/webflash/), flip the matching
+  catalog row in
+  [`config/product-catalog.json`](config/product-catalog.json)
+  to set `webflash_wrapper` + `webflash_build_matrix: true` +
+  `artifact_name` + `config_string` + `channel` + `version`,
+  and add the corresponding build-matrix row to
+  [`config/webflash-builds.json`](config/webflash-builds.json)),
+  as a documentation-only cleanup PR (Path B), or as a
+  docs-only deferral (Path A), and is **confirmed deferred** —
+  eight preconditions remain open: (1) **`PRODUCT-POWER-400-001`
+  implementation slice has not landed** — only the docs-only
+  investigation pass merged as PR #521; no S360-400-explicit /
+  `PWR`-bearing WebFlash-shippable product YAML exists under
+  [`products/`](products/) or
+  [`products/webflash/`](products/webflash/), so there is
+  nothing for a WebFlash wrapper to wrap; the canonical
+  product YAML + the matching `config/product-catalog.json`
+  entry + the legacy-compatible `*-pwr` Core variant
+  relationship decision that PR #521 enumerated all remain
+  owed to a future evidence-bearing `PRODUCT-POWER-400-001`
+  PR; (2) **`PACKAGE-POWER-400-001` implementation slice has
+  not landed** — only the docs-only investigation pass merged
+  as PR #520; the package YAML header reconciliation, the
+  catalog `description` reconciliation, the `S360-400`
+  `schematic_status: verified` JSON promotion, and the BOM
+  citation that PR #520 enumerated all remain owed;
+  (3) **BOM cross-check missing** — same five-component gap
+  PR #520 / PR #521 recorded (no BOM line item for `PS1` /
+  `F1 A250-1200` / `RV1 10D391K` / `C1 470nF` / `C5..C8` /
+  `J1` / `J2`); (4) **`S360-400` `schematic_status: verified`
+  JSON PR not landed** —
+  [`config/hardware-catalog.json`](config/hardware-catalog.json)
+  line 110 still records `cataloged_unverified` with no
+  `schematic_file`, and `tests/test_hardware_catalog.py:53`
+  `EXPECTED_STILL_UNVERIFIED_SKUS = frozenset({"S360-320",
+  "S360-400"})` actively enforces this state;
+  (5) **`COMPLIANCE-001` `S360-400` slice still open** — last
+  re-checked PR #506; the mains-voltage UK / EU assessment at
+  [`docs/compliance/mains-voltage-uk-eu-assessment.md`](docs/compliance/mains-voltage-uk-eu-assessment.md)
+  is not cleared, and per the
+  [`docs/webflash-exposure-readiness-matrix.md` candidate exposure table](docs/webflash-exposure-readiness-matrix.md)
+  `WEBFLASH-POWER-400-001` is explicitly gated on
+  "`PRODUCT-POWER-400-001` landed + `COMPLIANCE-001`
+  `S360-400` slice closed"; (6) **package / catalog
+  reconciliation owed to `PACKAGE-POWER-400-001`** — the
+  three-way `HLK-5M05` / `HLK-PM01 or similar` /
+  `HLK-10M05` AC/DC part-identity disagreement and the
+  input / output / isolation / protection / fusing header
+  text in
+  [`packages/hardware/power_240v.yaml`](packages/hardware/power_240v.yaml)
+  remain unresolved and BOM-bound, and the catalog
+  `description: Mains to 5V using HLK-5M05.` in
+  [`config/hardware-catalog.json`](config/hardware-catalog.json)
+  remains uncorrected, so a WebFlash wrapper cannot rely
+  on any of those claims; (7) **product-onboarding approval
+  missing** — per the
+  [`docs/product-readiness-matrix.md` Core rule](docs/product-readiness-matrix.md#core-rule),
+  exposing a product through WebFlash requires every
+  consumed package to be `ready-for-package-change` (the
+  `power_240v.yaml` row stays `schematic-evidence-pending` +
+  `needs-package-reconciliation` + `timing/compliance-pending`),
+  the
+  [`docs/product-onboarding.md`](docs/product-onboarding.md)
+  safe sequence to be followed end-to-end, and the upstream
+  product YAML to exist before any wrapper edit;
+  (8) **release / build / artifact readiness missing** —
+  there is no `artifact_name`, no `.bin` artifact, no
+  GitHub Release, no checksums, no proof, no WebFlash
+  import; the candidate `Sense360-Ceiling-PWR-{AIR}-{ROOM}-v{VERSION}-{CHANNEL}.bin`
+  pattern cannot be reified until `PRODUCT-POWER-400-001`
+  lands a canonical product YAML with a decided
+  `config_string`. Path B (documentation-only cleanup) was
+  rejected because the readiness matrices
+  ([`docs/webflash-exposure-readiness-matrix.md` §Power / S360-400 WebFlash posture](docs/webflash-exposure-readiness-matrix.md#power--s360-400-webflash-posture),
+  [`docs/release-artifact-readiness-matrix.md` §Power / S360-400 release posture](docs/release-artifact-readiness-matrix.md#power--s360-400-release-posture),
+  [`docs/product-readiness-matrix.md` §PWR-240V / S360-400](docs/product-readiness-matrix.md#pwr-240v--s360-400))
+  already correctly classify the slice as `not-webflash-ready`
+  / `not-release-ready` / `no product YAML` / `no wrapper` /
+  `no build-matrix row` and the
+  `WEBFLASH-POWER-400-001` wrapper / catalog / build sub-gate
+  rows already name the upstream gates; any further
+  documentation cleanup belongs to a separate CLEANUP slice,
+  not to `WEBFLASH-POWER-400-001`. Path C (implementation)
+  was rejected because every gate is open: adding a WebFlash
+  wrapper while no S360-400 product YAML exists under
+  [`products/`](products/) would have nothing to wrap;
+  flipping `webflash_build_matrix: true` while
+  [`config/product-catalog.json`](config/product-catalog.json)
+  has no S360-400-specific entry would have nothing to flip;
+  adding a build-matrix row to
+  [`config/webflash-builds.json`](config/webflash-builds.json)
+  would emit a mains-voltage artifact while
+  [`packages/hardware/power_240v.yaml`](packages/hardware/power_240v.yaml)
+  carries `schematic-evidence-pending` +
+  `needs-package-reconciliation` +
+  `timing/compliance-pending` and `COMPLIANCE-001` `S360-400`
+  is open, which would break the
+  [`docs/product-readiness-matrix.md` Core rule](docs/product-readiness-matrix.md#core-rule)
+  and the mains-voltage compliance gate at
+  [`docs/compliance/mains-voltage-uk-eu-assessment.md`](docs/compliance/mains-voltage-uk-eu-assessment.md).
+  The investigation outcome confirms **no S360-400-explicit /
+  `PWR`-bearing WebFlash wrapper exists** under
+  [`products/webflash/`](products/webflash/) (the directory
+  contains only three POE wrappers
+  [`ceiling-poe-ventiq-fantriac-roomiq.yaml`](products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml),
+  [`ceiling-poe-ventiq-roomiq-led.yaml`](products/webflash/ceiling-poe-ventiq-roomiq-led.yaml),
+  [`ceiling-poe-ventiq-roomiq.yaml`](products/webflash/ceiling-poe-ventiq-roomiq.yaml));
+  [`config/webflash-builds.json`](config/webflash-builds.json)
+  has **no `PWR` build** (only Release-One
+  `Ceiling-POE-VentIQ-RoomIQ` `stable` and
+  `Ceiling-POE-VentIQ-RoomIQ-LED` `preview`);
+  [`config/product-catalog.json`](config/product-catalog.json)
+  has **no S360-400-specific product** (the four
+  `legacy-compatible` `*-pwr` Core variants
+  [`products/sense360-core-c-pwr.yaml`](products/sense360-core-c-pwr.yaml),
+  [`products/sense360-core-w-pwr.yaml`](products/sense360-core-w-pwr.yaml),
+  [`products/sense360-core-v-c-pwr.yaml`](products/sense360-core-v-c-pwr.yaml),
+  [`products/sense360-core-v-w-pwr.yaml`](products/sense360-core-v-w-pwr.yaml)
+  stay `status: legacy-compatible` /
+  `webflash_build_matrix: false` / no `config_string` / no
+  `webflash_wrapper` / no `artifact_name`, and are **not**
+  WebFlash exposure evidence — reservation of `PWR` in
+  `canonical_power` is grammar-only and does not imply
+  exposure);
+  [`config/webflash-compatibility.json`](config/webflash-compatibility.json)
+  reserves `PWR` in `canonical_power: ["USB", "POE", "PWR"]`
+  but **no `webflash_build_matrix: true` row consumes it**,
+  and `release_one_required_configs` stays
+  `["Ceiling-POE-VentIQ-RoomIQ"]`. Investigation outcome
+  recorded at
+  `docs/webflash-exposure-readiness-matrix.md` §Power /
+  S360-400 WebFlash posture,
+  `docs/release-artifact-readiness-matrix.md` §Power /
+  S360-400 release posture, and `docs/cleanup-audit.md`
+  §`WEBFLASH-POWER-400-001 update
+  (2026-05-19 — docs-only investigation pass)`. No package /
+  product / WebFlash / build / release / import / test /
+  config / workflow / component / include / firmware /
+  manifest edits. No catalog `schematic_status` promotion.
+  No `schematic_file` set. No COMPLIANCE-001 movement. No
+  `lifecycle_statuses` / `canonical_modules` /
+  `canonical_power` / `forbidden_tokens` /
+  `release_one_required_configs` / `webflash_build_matrix` /
+  `artifact_name` / kit / `REQUIRED_CONFIGS` change.
+  `WEBFLASH-POWER-400-001` stays blocked behind
+  `PRODUCT-POWER-400-001` implementation,
+  `PACKAGE-POWER-400-001` implementation, BOM cross-check,
+  the `S360-400` `schematic_status: verified` JSON PR, the
+  `COMPLIANCE-001` `S360-400` slice, package / catalog
+  reconciliation, product-onboarding approval, and release /
+  build / artifact readiness; `RELEASE-POWER-400-001` /
+  `WF-IMPORT-POWER-400-001` stay blocked behind it.
+  Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / version
+  `1.0.0` / channel `stable`; LED preview stays
+  `Ceiling-POE-VentIQ-RoomIQ-LED` / `status: preview` /
+  `channel: preview`; FanTRIAC stays `status: blocked` /
+  `blocker: HW-005` / `webflash_build_matrix: false`. The
+  next `WEBFLASH-POWER-400-001` PR must land **the
+  `products/webflash/` wrapper YAML + the matching
+  `config/product-catalog.json` entry promotion
+  (`webflash_wrapper` set + `webflash_build_matrix: true`
+  flip + `artifact_name` set + `config_string` set +
+  `channel` set + `version` set) + the build-matrix row in
+  `config/webflash-builds.json` as a single atomic slice**,
+  not as a documentation cleanup alone, and only after
+  `PRODUCT-POWER-400-001` implementation,
+  `PACKAGE-POWER-400-001` implementation, the `S360-400`
+  `schematic_status: verified` JSON PR, the `COMPLIANCE-001`
+  `S360-400` slice, and product-onboarding approval all
+  land.
 - **PWM** and **DAC** evidence re-checks (HW-PINMAP-311-FOLLOWUP /
   HW-PINMAP-312-FOLLOWUP) remain insufficient — both audits are still
   partial.
@@ -455,6 +630,7 @@ add rows without verifying the PR number.
 | CORE-ABSTRACT-BUS-001C       | #518      | esphome-public  | Merged — docs-only investigation pass   | Recorded `CORE-ABSTRACT-BUS-001C` investigation outcome as Path A docs-only deferral; re-verified all six preconditions (`S360-100-BENCH-001` silkscreen evidence for Core `J4` / `J10` and RoomIQ `J6` pin orders; RoomIQ / AirIQ / VentIQ rebind plan; expansion-GPIO bench evidence or documented retirement decision; ESP32-S3 `GPIO3` strap-pin boot-behaviour bench characterisation; `tests/test_core_abstract_bus.py` scaffold; full non-Release-One product re-validation pass) remain open; updated `docs/hardware/core-abstract-bus-reconciliation.md` audit log and `docs/cleanup-audit.md` `CORE-ABSTRACT-BUS-001C update` entry | No package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, or manifest edits; no `CORE-ABSTRACT-BUS-001*` slice status change; no `schematic_status` / `schematic_file` promotion; Release-One / LED preview / FanTRIAC identity unchanged | `CORE-ABSTRACT-BUS-001C` stays at top of queue, blocked on the six preconditions; `CORE-ABSTRACT-BUS-001A` stays blocked behind `001C`; `CORE-ABSTRACT-BUS-001B` stays independent of `001A` / `001C` ordering; `PACKAGE-RELAY-001` and downstream relay slices still blocked behind `001A`; `PACKAGE-PWM-001` / `PACKAGE-DAC-001` still blocked behind their evidence + `001B` |
 | CORE-ABSTRACT-BUS-001B       | #519      | esphome-public  | Merged — docs-only investigation pass   | Recorded `CORE-ABSTRACT-BUS-001B` investigation outcome as Path A docs-only deferral; re-verified all four preconditions (canonical I²C bus-id decision among `shared_i2c` / `core_i2c` / `i2c0` candidates; `tests/test_core_abstract_bus.py` pin-pinning scaffold; re-validation plan for every non-Release-One product YAML consuming an affected Core / expansion package; downstream-consumer audit lands in PR but implementation still needs canonical name + tests + product re-validation before YAML edits) remain open; downstream-consumer audit added to `docs/hardware/core-abstract-bus-reconciliation.md` §`Downstream consumer inventory (2026-05-19)` (eight in-scope Core packages including newly-added `sense360_core_voice_ceiling.yaml` / `sense360_core_voice_wall.yaml`; 13 expansion-package consumers plus `packages/features/ceiling_halo_leds.yaml` hard-coded `i2c_id: halo_i2c` with no current product `!include`r); `docs/cleanup-audit.md` `CORE-ABSTRACT-BUS-001B update` entry recorded | No package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, or manifest edits; no `CORE-ABSTRACT-BUS-001*` slice status change; no `schematic_status` / `schematic_file` promotion; Release-One / LED preview / FanTRIAC identity unchanged; canonical I²C bus-id **not chosen** (only candidate set recorded) | `CORE-ABSTRACT-BUS-001B` stays at queue entry #3, blocked on the four preconditions and independent of `001A` / `001C` ordering; `PACKAGE-PWM-001` / `PACKAGE-DAC-001` still blocked behind `001B` implementation + their own evidence gates; `PACKAGE-POWER-400-001` becomes next active queue item |
 | PACKAGE-POWER-400-001        | #520      | esphome-public  | Merged — docs-only investigation pass   | Recorded `PACKAGE-POWER-400-001` investigation outcome as Path A docs-only deferral; re-verified all five preconditions (BOM cross-check missing; `S360-400` `schematic_status: verified` JSON PR not landed; `COMPLIANCE-001` `S360-400` slice still open; silkscreen / PCB / creepage / clearance / bench / thermal / EMI evidence missing; three-way AC/DC part-identity disagreement between catalog `HLK-5M05`, package header `HLK-PM01 or similar`, and schematic `PS1 = HLK-10M05` unresolved and BOM-bound) remain open; `power_240v.yaml` re-confirmed byte-identical to PR #515 state (stale `HLK-PM01 or similar` header at line 7, `100-240V AC, 50/60Hz` input claim at line 7, `5V DC, 2A (10W)` output claim at line 8, `3000VAC` isolation claim at line 9, `Overcurrent, overvoltage, short-circuit` protection text at line 10, recommended `1A` AC-input fusing line at line 15, `substitutions: power_source: "240v_ac"` at line 29, `globals: power_source_type` at lines 32–36, template diagnostic sensors `Supply Voltage` / `Power Source` / `Power Configuration` / `AC Power Connected`, and logger config all preserved); `config/hardware-catalog.json` `S360-400` row at lines 102–110 re-confirmed byte-identical (`schematic_status: cataloged_unverified`, no `schematic_file`, `description: Mains to 5V using HLK-5M05.`); `tests/test_hardware_catalog.py:53` `EXPECTED_STILL_UNVERIFIED_SKUS = frozenset({"S360-320", "S360-400"})` actively enforces the `cataloged_unverified` state; `docs/hardware/s360-400-r4-power.md` audit-log entry `### 2026-05-19 — PACKAGE-POWER-400-001 investigation pass (deferred; preconditions still open)` added; `docs/cleanup-audit.md` `PACKAGE-POWER-400-001 update (2026-05-19 — docs-only investigation pass)` entry recorded; `docs/hardware/package-readiness-matrix.md` `power_240v.yaml` row and `docs/hardware/firmware-package-mapping-audit.md` §`power_240v.yaml` AC/DC part-identity disagreement cross-link addendums recorded | No package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, or manifest edits; no `schematic_status` / `schematic_file` promotion; no COMPLIANCE-001 movement; no PWR-bearing entry added; `power_240v.yaml` byte-identical to PR #515 (comment-only cleanup still deferred); four `legacy-compatible` `*-pwr` Core variants (`sense360-core-c-pwr.yaml` / `sense360-core-w-pwr.yaml` / `sense360-core-v-c-pwr.yaml` / `sense360-core-v-w-pwr.yaml`) stay `legacy-compatible` / `webflash_build_matrix: false`; Release-One / LED preview / FanTRIAC identity unchanged | `PACKAGE-POWER-400-001` stays blocked on the five preconditions; `PRODUCT-POWER-400-001` / `WEBFLASH-POWER-400-001` / `RELEASE-POWER-400-001` / `WF-IMPORT-POWER-400-001` stay blocked behind it; `PRODUCT-POWER-400-001` becomes next active queue item |
+| PRODUCT-POWER-400-001        | #521      | esphome-public  | Merged — docs-only investigation pass   | Recorded `PRODUCT-POWER-400-001` investigation outcome as Path A docs-only deferral; re-verified all six preconditions (`PACKAGE-POWER-400-001` implementation slice has not landed — PR #520 was docs-only investigation only; BOM cross-check missing; `S360-400` `schematic_status: verified` JSON PR not landed; `COMPLIANCE-001` `S360-400` slice still open — last re-checked PR #506; package / catalog reconciliation owed to `PACKAGE-POWER-400-001` — three-way `HLK-5M05` / `HLK-PM01 or similar` / `HLK-10M05` AC/DC part-identity disagreement unresolved and BOM-bound; product-onboarding approval missing per `docs/product-onboarding.md` safe sequence) remain open; confirmed no S360-400-explicit / `PWR`-bearing WebFlash-shippable product YAML exists under `products/` or `products/webflash/`; `config/product-catalog.json` has no S360-400-specific product (the four `legacy-compatible` `*-pwr` Core variants `sense360-core-c-pwr` / `sense360-core-w-pwr` / `sense360-core-v-c-pwr` / `sense360-core-v-w-pwr` stay `status: legacy-compatible` / `webflash_build_matrix: false` / no `config_string` / no `webflash_wrapper` / no `artifact_name`); `config/webflash-builds.json` has no `PWR` build (only Release-One `Ceiling-POE-VentIQ-RoomIQ` stable and `Ceiling-POE-VentIQ-RoomIQ-LED` preview); `config/webflash-compatibility.json` reserves `PWR` in `canonical_power: ["USB", "POE", "PWR"]` but no `webflash_build_matrix: true` row consumes it (reservation is grammar-only and does not imply exposure); `config/hardware-catalog.json` `S360-400` row at lines 102–110 stays byte-identical to PR #520 (`schematic_status: cataloged_unverified`, no `schematic_file`); `docs/product-readiness-matrix.md` §PWR-240V / S360-400 audit-log entry `2026-05-19 — PRODUCT-POWER-400-001 investigation pass (Path A docs-only deferral)` added; `docs/webflash-exposure-readiness-matrix.md` §Power / S360-400 WebFlash posture audit-log paragraph added; `docs/release-artifact-readiness-matrix.md` §Power / S360-400 release posture audit-log paragraph added; `docs/cleanup-audit.md` `PRODUCT-POWER-400-001 update (2026-05-19 — docs-only investigation pass)` entry recorded | No package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, or manifest edits; no `schematic_status` / `schematic_file` promotion; no COMPLIANCE-001 movement; no PWR-bearing product entry added; no `webflash_wrapper` added; no `webflash_build_matrix: true` flip; no `artifact_name` added; no `config_string` added; four `legacy-compatible` `*-pwr` Core variants byte-identical (stay `legacy-compatible` / `webflash_build_matrix: false`); Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays `status: blocked` / `blocker: HW-005` / `webflash_build_matrix: false`; `release_one_required_configs` stays `["Ceiling-POE-VentIQ-RoomIQ"]` | `PRODUCT-POWER-400-001` stays blocked on the six preconditions; `WEBFLASH-POWER-400-001` / `RELEASE-POWER-400-001` / `WF-IMPORT-POWER-400-001` stay blocked behind it; `WEBFLASH-POWER-400-001` becomes next active queue item |
 
 ## Active / upcoming esphome-public queue
 
@@ -623,139 +799,163 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      and `docs/cleanup-audit.md` §`CORE-ABSTRACT-BUS-001B update
      (2026-05-19 — docs-only investigation pass)`.
 
-4. **PRODUCT-POWER-400-001**
+4. **WEBFLASH-POWER-400-001**
    - Status: **Investigated 2026-05-19 — confirmed deferred (Path A
-     docs-only); six preconditions still open**. Blocked on
-     `PACKAGE-POWER-400-001` implementation (only the docs-only
-     investigation merged as PR #520; the package YAML
-     reconciliation slice has not run), BOM cross-check,
-     `S360-400` `schematic_status: verified` JSON PR,
-     `COMPLIANCE-001` `S360-400` slice, package / catalog
-     reconciliation, and product-onboarding approval per
-     [`docs/product-onboarding.md`](docs/product-onboarding.md).
-   - Purpose: Add the first `S360-400` / `PWR`-bearing
-     WebFlash-shippable canonical product YAML under
-     [`products/`](products/) (candidate shape
-     `Ceiling-PWR-{AIR}-{ROOM}`) plus the matching entry in
-     [`config/product-catalog.json`](config/product-catalog.json),
-     decide the legacy-compatible `*-pwr` Core variant
-     relationship (retain / migrate / coexist) for
-     [`products/sense360-core-c-pwr.yaml`](products/sense360-core-c-pwr.yaml),
-     [`products/sense360-core-w-pwr.yaml`](products/sense360-core-w-pwr.yaml),
-     [`products/sense360-core-v-c-pwr.yaml`](products/sense360-core-v-c-pwr.yaml),
-     and
-     [`products/sense360-core-v-w-pwr.yaml`](products/sense360-core-v-w-pwr.yaml),
-     and route the slice through the
-     [`docs/product-onboarding.md`](docs/product-onboarding.md)
-     safe sequence. **Does not** add a WebFlash wrapper, catalog
-     `webflash_build_matrix: true` flip, build-matrix entry, or
-     release artifact (those are additionally gated by
-     `WEBFLASH-POWER-400-001` and `COMPLIANCE-001` `S360-400`
-     slice closure).
-   - Notes: 2026-05-19 investigation pass (this PR) is **docs-only
-     deferral**. Re-verified against the live files: **no
-     S360-400-explicit / `PWR`-bearing WebFlash-shippable product
-     YAML exists** under [`products/`](products/) or
-     [`products/webflash/`](products/webflash/);
+     docs-only); eight preconditions still open**. Blocked on
+     `PRODUCT-POWER-400-001` implementation (only the docs-only
+     investigation merged as PR #521; the canonical S360-400 /
+     `PWR`-bearing product YAML + the matching
+     `config/product-catalog.json` entry have not landed),
+     `PACKAGE-POWER-400-001` implementation (PR #520 docs-only),
+     BOM cross-check, `S360-400` `schematic_status: verified`
+     JSON PR, `COMPLIANCE-001` `S360-400` slice, package /
+     catalog reconciliation, product-onboarding approval per
+     [`docs/product-onboarding.md`](docs/product-onboarding.md),
+     and release / build / artifact readiness (no
+     `artifact_name`, no `.bin`, no GitHub Release, no
+     checksums, no proof, no WebFlash import).
+   - Purpose: Add the S360-400 / `PWR`-bearing WebFlash wrapper
+     under [`products/webflash/`](products/webflash/) (candidate
+     shape `ceiling-pwr-{air}-{room}.yaml`), promote the
+     matching catalog row in
      [`config/product-catalog.json`](config/product-catalog.json)
-     has **no S360-400-specific product** (the only `pwr`-bearing
-     rows are the four `legacy-compatible` Core variants
-     `sense360-core-c-pwr` / `sense360-core-w-pwr` /
-     `sense360-core-v-c-pwr` / `sense360-core-v-w-pwr`, each
-     `status: legacy-compatible` / `webflash_build_matrix: false`
-     / no `config_string` / no `webflash_wrapper` / no
-     `artifact_name`; those four products consume the logical
-     `power_240v.yaml` package via
-     `power_config: !include ../packages/hardware/power_240v.yaml`
-     without explicit `S360-400` binding, and are **not**
-     S360-400-specific product-readiness evidence — the package
-     itself binds no GPIO / I²C / UART / SPI / DAC and emits
-     diagnostic sensors only, and its header carries the stale
-     `HLK-PM01 or similar` AC/DC part hint plus unverified input
-     / output / isolation / protection / fusing claims that
-     remain BOM-bound);
+     by setting `webflash_wrapper` + `webflash_build_matrix:
+     true` + `artifact_name` + `config_string` + `channel` +
+     `version`, and add the corresponding build-matrix row to
+     [`config/webflash-builds.json`](config/webflash-builds.json).
+     **Does not** build / sign / attach a `.bin` artifact,
+     create a GitHub Release, generate release notes, mint
+     checksums, file a release-proof entry, or trigger a
+     WebFlash import (those belong to `RELEASE-POWER-400-001`
+     and `WF-IMPORT-POWER-400-001` cross-repo respectively).
+     **Does not** modify `release_one_required_configs`,
+     `canonical_modules`, `canonical_power`, `forbidden_tokens`,
+     `lifecycle_statuses`, kit membership, or `REQUIRED_CONFIGS`.
+   - Notes: 2026-05-19 investigation pass (this PR) is
+     **docs-only deferral**. Re-verified against the live
+     files: **no S360-400-explicit / `PWR`-bearing WebFlash
+     wrapper exists** under
+     [`products/webflash/`](products/webflash/) (the directory
+     contains only three POE wrappers
+     [`ceiling-poe-ventiq-fantriac-roomiq.yaml`](products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml),
+     [`ceiling-poe-ventiq-roomiq-led.yaml`](products/webflash/ceiling-poe-ventiq-roomiq-led.yaml),
+     and
+     [`ceiling-poe-ventiq-roomiq.yaml`](products/webflash/ceiling-poe-ventiq-roomiq.yaml));
      [`config/webflash-builds.json`](config/webflash-builds.json)
-     has **no `PWR` build** (only Release-One
+     has **no `PWR` build** — only Release-One
      `Ceiling-POE-VentIQ-RoomIQ` `stable` and
-     `Ceiling-POE-VentIQ-RoomIQ-LED` `preview`);
+     `Ceiling-POE-VentIQ-RoomIQ-LED` `preview`;
+     [`config/product-catalog.json`](config/product-catalog.json)
+     has **no S360-400-specific product** (the only
+     `pwr`-bearing entries are the four `legacy-compatible`
+     Core variants
+     [`sense360-core-c-pwr`](config/product-catalog.json),
+     [`sense360-core-w-pwr`](config/product-catalog.json),
+     [`sense360-core-v-c-pwr`](config/product-catalog.json),
+     and
+     [`sense360-core-v-w-pwr`](config/product-catalog.json),
+     each `status: legacy-compatible` /
+     `webflash_build_matrix: false` / no `config_string` / no
+     `webflash_wrapper` / no `artifact_name`, and **not**
+     WebFlash exposure evidence);
      [`config/webflash-compatibility.json`](config/webflash-compatibility.json)
      reserves `PWR` in `canonical_power: ["USB", "POE", "PWR"]`
-     but **no `webflash_build_matrix: true` row consumes it**;
+     but **no `webflash_build_matrix: true` row consumes it**,
+     and `release_one_required_configs` stays
+     `["Ceiling-POE-VentIQ-RoomIQ"]` — reservation of `PWR` is
+     grammar-only and does **not** imply WebFlash exposure;
      [`config/hardware-catalog.json`](config/hardware-catalog.json)
      `S360-400` row at lines 102–110 still records
      `schematic_status: cataloged_unverified` with no
-     `schematic_file` (asserted by `tests/test_hardware_catalog.py:53`
+     `schematic_file` (asserted by
+     [`tests/test_hardware_catalog.py:53`](tests/test_hardware_catalog.py)
      `EXPECTED_STILL_UNVERIFIED_SKUS = frozenset({"S360-320",
      "S360-400"})`); and
      [`docs/compliance/mains-voltage-uk-eu-assessment.md`](docs/compliance/mains-voltage-uk-eu-assessment.md)
      COMPLIANCE-001 `S360-400` slice is unchanged since PR #506
-     (open / not cleared). The six open preconditions are:
-     (1) **`PACKAGE-POWER-400-001` implementation slice has not
-     landed** — only the docs-only investigation pass merged as
-     PR #520; the underlying package YAML header reconciliation,
-     catalog `description` reconciliation, `S360-400`
-     `schematic_status: verified` JSON promotion, and BOM
-     citation that PR #520 enumerated as the required atomic
-     slice all remain owed to a future evidence-bearing
-     `PACKAGE-POWER-400-001` PR; (2) **BOM cross-check missing** —
-     same five-component gap PR #520 recorded for the package
-     slice (no BOM line item for `PS1` / `F1 A250-1200` / `RV1
-     10D391K` / `C1 470nF` / `C5..C8` / `J1` / `J2`);
-     (3) **`S360-400` `schematic_status: verified` JSON PR not
-     landed** — separate JSON-only PR after BOM + silkscreen
-     evidence land; (4) **`COMPLIANCE-001` `S360-400` slice still
-     open** — per the
-     [`docs/product-readiness-matrix.md` Follow-up PR sequence](docs/product-readiness-matrix.md#follow-up-pr-sequence)
-     `PRODUCT-POWER-400-001` is explicitly gated on
-     "`PACKAGE-POWER-400-001` landed + `COMPLIANCE-001`
-     `S360-400` slice closed"; (5) **package / catalog
+     (open / not cleared). The eight open preconditions are:
+     (1) **`PRODUCT-POWER-400-001` implementation slice has not
+     landed** — only the docs-only investigation pass merged
+     as PR #521; no canonical product YAML exists under
+     [`products/`](products/) for a WebFlash wrapper to wrap;
+     (2) **`PACKAGE-POWER-400-001` implementation slice has
+     not landed** — PR #520 docs-only; package YAML
+     reconciliation, catalog `description` reconciliation,
+     `S360-400` `schematic_status: verified` JSON promotion,
+     and BOM citation all owed; (3) **BOM cross-check
+     missing** — no BOM line item for `PS1` / `F1 A250-1200` /
+     `RV1 10D391K` / `C1 470nF` / `C5..C8` / `J1` / `J2`;
+     (4) **`S360-400` `schematic_status: verified` JSON PR
+     not landed** — separate JSON-only PR after BOM +
+     silkscreen evidence land; (5) **`COMPLIANCE-001`
+     `S360-400` slice still open** — last re-checked PR #506;
+     mains-voltage UK / EU assessment at
+     [`docs/compliance/mains-voltage-uk-eu-assessment.md`](docs/compliance/mains-voltage-uk-eu-assessment.md)
+     is not cleared, and per the
+     [`docs/webflash-exposure-readiness-matrix.md` wrapper / catalog / build sub-gate table](docs/webflash-exposure-readiness-matrix.md)
+     `WEBFLASH-POWER-400-001` is explicitly gated on
+     "`PRODUCT-POWER-400-001` landed + `COMPLIANCE-001`
+     `S360-400` slice closed"; (6) **package / catalog
      reconciliation owed to `PACKAGE-POWER-400-001`** — the
-     three-way `HLK-5M05` / `HLK-PM01 or similar` / `HLK-10M05`
-     AC/DC part-identity disagreement and the input / output /
-     isolation / protection / fusing header text in
+     three-way `HLK-5M05` / `HLK-PM01 or similar` /
+     `HLK-10M05` AC/DC part-identity disagreement and the
+     input / output / isolation / protection / fusing header
+     text in
      [`packages/hardware/power_240v.yaml`](packages/hardware/power_240v.yaml)
      remain unresolved and BOM-bound, and the catalog
-     `description: Mains to 5V using HLK-5M05.` at
+     `description: Mains to 5V using HLK-5M05.` in
      [`config/hardware-catalog.json`](config/hardware-catalog.json)
-     line 109 remains uncorrected, so a product YAML cannot rely
-     on any of those claims; (6) **product-onboarding approval
+     remains uncorrected, so a WebFlash wrapper cannot rely on
+     any of those claims; (7) **product-onboarding approval
      missing** — per the
-     [Core rule](docs/product-readiness-matrix.md#core-rule),
-     adding a product YAML requires every consumed package to be
-     `ready-for-package-change` (`power_240v.yaml` stays
-     `schematic-evidence-pending` + `needs-package-reconciliation`
-     + `timing/compliance-pending`), the combination to clear the
-     WebFlash compatibility grammar in
-     [`config/webflash-compatibility.json`](config/webflash-compatibility.json)
-     (no mutex hit on `Ceiling-PWR-{AIR}-{ROOM}` provided the
-     `airiq_and_ventiq_mutually_exclusive` rule is honoured, and
-     no `forbidden_tokens` value is introduced; `PWR` is reserved
-     in `canonical_power` but is unexercised), and the
+     [`docs/product-readiness-matrix.md` Core rule](docs/product-readiness-matrix.md#core-rule),
+     exposing a product through WebFlash requires every
+     consumed package to be `ready-for-package-change` (the
+     `power_240v.yaml` row stays `schematic-evidence-pending` +
+     `needs-package-reconciliation` +
+     `timing/compliance-pending`), the
      [`docs/product-onboarding.md`](docs/product-onboarding.md)
-     safe sequence to be followed end-to-end (not designed for
-     this slice). Path B (documentation / catalog-note-only
-     cleanup) is not useful right now because the readiness
-     matrices
-     ([`docs/product-readiness-matrix.md` §PWR-240V / S360-400](docs/product-readiness-matrix.md#pwr-240v--s360-400),
-     [`docs/webflash-exposure-readiness-matrix.md` §Power / S360-400 WebFlash posture](docs/webflash-exposure-readiness-matrix.md#power--s360-400-webflash-posture),
-     [`docs/release-artifact-readiness-matrix.md` §Power / S360-400 release posture](docs/release-artifact-readiness-matrix.md#power--s360-400-release-posture))
-     already correctly classify the slice as `no product YAML` /
-     `not-webflash-ready` / `not-release-ready` and the
-     `PRODUCT-POWER-400-001` Follow-up PR sequence row already
-     names the package-gate; any further documentation cleanup
-     (for example, retiring stale "(this PR; docs-only)" prose
-     left over from HW-PINMAP-400-FOLLOWUP / PR #515 in the
-     Follow-up owner cells) belongs to a separate CLEANUP slice,
-     not to `PRODUCT-POWER-400-001`. Path C (implementation) is
-     unsafe right now because every gate is open and adding a
-     product YAML while
+     safe sequence to be followed end-to-end, and the
+     upstream product YAML to exist before any wrapper edit;
+     (8) **release / build / artifact readiness missing** —
+     no `artifact_name`, no `.bin` artifact, no GitHub
+     Release, no checksums, no proof, no WebFlash import; the
+     candidate
+     `Sense360-Ceiling-PWR-{AIR}-{ROOM}-v{VERSION}-{CHANNEL}.bin`
+     pattern cannot be reified until `PRODUCT-POWER-400-001`
+     lands a canonical product YAML with a decided
+     `config_string`. Path B (documentation-only cleanup) was
+     rejected because the readiness matrices
+     ([`docs/webflash-exposure-readiness-matrix.md` §Power / S360-400 WebFlash posture](docs/webflash-exposure-readiness-matrix.md#power--s360-400-webflash-posture),
+     [`docs/release-artifact-readiness-matrix.md` §Power / S360-400 release posture](docs/release-artifact-readiness-matrix.md#power--s360-400-release-posture),
+     [`docs/product-readiness-matrix.md` §PWR-240V / S360-400](docs/product-readiness-matrix.md#pwr-240v--s360-400))
+     already correctly classify the slice as
+     `not-webflash-ready` / `not-release-ready` / `no product
+     YAML` / `no wrapper` / `no build-matrix row` and the
+     `WEBFLASH-POWER-400-001` wrapper / catalog / build sub-gate
+     rows already name the upstream gates; any further
+     documentation cleanup belongs to a separate CLEANUP
+     slice. Path C (implementation) was rejected because every
+     gate is open: adding a wrapper to
+     [`products/webflash/`](products/webflash/) while no
+     S360-400 product YAML exists under
+     [`products/`](products/) would have nothing to wrap;
+     flipping `webflash_build_matrix: true` while
+     [`config/product-catalog.json`](config/product-catalog.json)
+     has no S360-400-specific entry would have nothing to
+     flip; adding a build-matrix row to
+     [`config/webflash-builds.json`](config/webflash-builds.json)
+     would emit a mains-voltage artifact while
      [`packages/hardware/power_240v.yaml`](packages/hardware/power_240v.yaml)
      carries `schematic-evidence-pending` +
      `needs-package-reconciliation` +
-     `timing/compliance-pending` would break the
-     [`docs/product-readiness-matrix.md` Core rule](docs/product-readiness-matrix.md#core-rule).
-     Must not destabilize Release-One (Release-One uses PoE PSU
-     `S360-410`, not the 240 V PSU `S360-400`); the four
+     `timing/compliance-pending` and `COMPLIANCE-001`
+     `S360-400` is open, which would break the
+     [`docs/product-readiness-matrix.md` Core rule](docs/product-readiness-matrix.md#core-rule)
+     and the mains-voltage compliance gate at
+     [`docs/compliance/mains-voltage-uk-eu-assessment.md`](docs/compliance/mains-voltage-uk-eu-assessment.md).
+     Must not destabilize Release-One (Release-One uses PoE
+     PSU `S360-410`, not the 240 V PSU `S360-400`); the four
      `legacy-compatible` `*-pwr` Core variants
      ([`products/sense360-core-c-pwr.yaml`](products/sense360-core-c-pwr.yaml),
      [`products/sense360-core-w-pwr.yaml`](products/sense360-core-w-pwr.yaml),
@@ -763,49 +963,43 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      [`products/sense360-core-v-w-pwr.yaml`](products/sense360-core-v-w-pwr.yaml))
      stay `legacy-compatible` / `webflash_build_matrix: false`;
      the Release-One entry `Ceiling-POE-VentIQ-RoomIQ` stays
-     `status: production` / `channel: stable` / version `1.0.0` /
-     artifact
+     `status: production` / `channel: stable` / version
+     `1.0.0` / artifact
      `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` /
      tag `v1.0.0`; the LED preview entry
      `Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview` /
      `channel: preview` / version `1.0.0` / artifact
      `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`;
      the FanTRIAC blocked-reference entry
-     `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status: blocked`
-     / `blocker: HW-005` / `webflash_build_matrix: false`. The
-     next `PRODUCT-POWER-400-001` PR must land **the canonical
-     S360-400 / `PWR`-bearing product YAML + the matching
-     `config/product-catalog.json` entry + the legacy-compatible
-     `*-pwr` Core variant relationship decision (retain /
-     migrate / coexist) as a single atomic slice**, not as a
-     documentation cleanup alone, and only after
+     `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status:
+     blocked` / `blocker: HW-005` / `webflash_build_matrix:
+     false`. The next `WEBFLASH-POWER-400-001` PR must land
+     **the `products/webflash/` wrapper YAML + the matching
+     `config/product-catalog.json` entry promotion
+     (`webflash_wrapper` set + `webflash_build_matrix: true`
+     flip + `artifact_name` set + `config_string` set +
+     `channel` set + `version` set) + the build-matrix row in
+     `config/webflash-builds.json` as a single atomic slice**,
+     not as a documentation cleanup alone, and only after
+     `PRODUCT-POWER-400-001` implementation,
      `PACKAGE-POWER-400-001` implementation, the `S360-400`
      `schematic_status: verified` JSON PR, the `COMPLIANCE-001`
-     `S360-400` slice, and product-onboarding approval all land.
+     `S360-400` slice, and product-onboarding approval all
+     land. Pairs with WebFlash-side
+     `WF-IMPORT-POWER-400-001` — see cross-repo dependencies.
      Investigation outcome recorded at
-     `docs/product-readiness-matrix.md` §PWR-240V / S360-400 and
-     Follow-up PR sequence,
-     `docs/webflash-exposure-readiness-matrix.md` §Power /
-     S360-400 WebFlash posture,
-     `docs/release-artifact-readiness-matrix.md` §Power /
-     S360-400 release posture, and `docs/cleanup-audit.md`
-     §`PRODUCT-POWER-400-001 update (2026-05-19 — docs-only
-     investigation pass)`.
+     [`docs/webflash-exposure-readiness-matrix.md` §Power / S360-400 WebFlash posture](docs/webflash-exposure-readiness-matrix.md#power--s360-400-webflash-posture),
+     [`docs/release-artifact-readiness-matrix.md` §Power / S360-400 release posture](docs/release-artifact-readiness-matrix.md#power--s360-400-release-posture),
+     and
+     [`docs/cleanup-audit.md` §`WEBFLASH-POWER-400-001 update (2026-05-19 — docs-only investigation pass)`](docs/cleanup-audit.md).
 
-5. **WEBFLASH-POWER-400-001**
-   - Status: Planned / after PRODUCT-POWER-400-001
-   - Purpose: Add the WebFlash wrapper, compatibility entry, and build
-     matrix row for the S360-400 product.
-   - Notes: Pairs with WebFlash-side WF-IMPORT-POWER-400-001 — see
-     cross-repo dependencies.
-
-6. **RELEASE-POWER-400-001**
+5. **RELEASE-POWER-400-001**
    - Status: Planned / after WEBFLASH-POWER-400-001
    - Purpose: Produce the release artifact + release-proof entries for the
      S360-400 product.
    - Notes: Subject to existing release-artifact readiness gates.
 
-7. **PACKAGE-POE-410-001**
+6. **PACKAGE-POE-410-001**
     - Status: **Blocked** — remains blocked after HW-PINMAP-410-FOLLOWUP
       (the schematic-backed reconciliation surfaces the package-header
       vs schematic part-identity disagreement but does not by itself
@@ -827,7 +1021,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       requalify Release-One; the "schematic verification pending"
       caveat closure is a separate later PR.
 
-8. **PRODUCT-POE-410-001**
+7. **PRODUCT-POE-410-001**
     - Status: Planned / after PACKAGE-POE-410-001 (and only if a new
       PoE-410-explicit product entry is warranted; often the slice will
       close by promoting Release-One's preserved schematic-pending
@@ -835,19 +1029,19 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
     - Purpose: Add the S360-410 product YAML against the new package.
     - Notes: No WebFlash exposure until WEBFLASH-POE-410-001.
 
-9. **WEBFLASH-POE-410-001**
+8. **WEBFLASH-POE-410-001**
     - Status: Planned / after PRODUCT-POE-410-001
     - Purpose: Add the WebFlash wrapper, compatibility entry, and build
       matrix row for the S360-410 product.
     - Notes: Pairs with WebFlash-side WF-IMPORT-POE-410-001.
 
-10. **RELEASE-POE-410-001**
+9. **RELEASE-POE-410-001**
     - Status: Planned / after WEBFLASH-POE-410-001
     - Purpose: Produce the release artifact + release-proof entries for the
       S360-410 product.
     - Notes: Subject to existing release-artifact readiness gates.
 
-11. **PRODUCT-RELAY-001**
+10. **PRODUCT-RELAY-001**
     - Status: Blocked on CORE-ABSTRACT-BUS-001A (relay_pin slice;
       itself blocked on 001C) + PACKAGE-RELAY-001 implementation
     - Purpose: Add the S360-310 Relay product YAML once the Relay package is
@@ -856,20 +1050,20 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       docs-only deferral) and now further gated by the
       CORE-ABSTRACT-BUS-001A relay_pin slice landing.
 
-12. **WEBFLASH-RELAY-001**
+11. **WEBFLASH-RELAY-001**
     - Status: Blocked on PRODUCT-RELAY-001 (which is itself blocked on
       CORE-ABSTRACT-BUS-001A)
     - Purpose: Add the WebFlash wrapper, compatibility entry, and build
       matrix row for the Relay product.
     - Notes: Pairs with WebFlash-side WF-IMPORT-RELAY-001.
 
-13. **RELEASE-RELAY-001**
+12. **RELEASE-RELAY-001**
     - Status: Blocked on WEBFLASH-RELAY-001 (ultimately on
       CORE-ABSTRACT-BUS-001A)
     - Purpose: Produce the release artifact + release-proof entries for the
       Relay product.
 
-14. **PACKAGE-PWM-001**
+13. **PACKAGE-PWM-001**
     - Status: Blocked on HW-PINMAP-311-FOLLOWUP returning sufficient evidence
     - Purpose: Stand up / re-stand up the S360-311 PWM package wiring once
       the pin/package audit is no longer partial.
@@ -878,20 +1072,20 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       / `expansion_gpio2` rebind that `fan_pwm.yaml` consumes via
       `${fan_pwm_pin}` / `${fan_tach_pin}`).
 
-15. **PRODUCT-PWM-001**
+14. **PRODUCT-PWM-001**
     - Status: Blocked on PACKAGE-PWM-001
     - Purpose: Add / re-align the S360-311 PWM product YAML.
 
-16. **WEBFLASH-PWM-001**
+15. **WEBFLASH-PWM-001**
     - Status: Blocked on PRODUCT-PWM-001
     - Purpose: WebFlash wrapper, compatibility entry, build matrix row.
     - Notes: Pairs with WebFlash-side WF-IMPORT-PWM-001.
 
-17. **RELEASE-PWM-001**
+16. **RELEASE-PWM-001**
     - Status: Blocked on WEBFLASH-PWM-001
     - Purpose: Release artifact + release-proof entries for the PWM product.
 
-18. **PACKAGE-DAC-001**
+17. **PACKAGE-DAC-001**
     - Status: Blocked on HW-PINMAP-312-FOLLOWUP returning sufficient evidence
     - Purpose: Stand up / re-stand up the S360-312 DAC (GP8403) package
       wiring once the pin/package audit is no longer partial.
@@ -899,33 +1093,33 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       DAC is I²C-attached, so it consumes whichever bus id 001B
       settles on).
 
-19. **PRODUCT-DAC-001**
+18. **PRODUCT-DAC-001**
     - Status: Blocked on PACKAGE-DAC-001
     - Purpose: Add / re-align the S360-312 DAC product YAML.
 
-20. **WEBFLASH-DAC-001**
+19. **WEBFLASH-DAC-001**
     - Status: Blocked on PRODUCT-DAC-001
     - Purpose: WebFlash wrapper, compatibility entry, build matrix row.
     - Notes: Pairs with WebFlash-side WF-IMPORT-DAC-001.
 
-21. **RELEASE-DAC-001**
+20. **RELEASE-DAC-001**
     - Status: Blocked on WEBFLASH-DAC-001
     - Purpose: Release artifact + release-proof entries for the DAC product.
 
-22. **S360-300-BENCH-001**
+21. **S360-300-BENCH-001**
     - Status: Pending bench evidence
     - Purpose: LED ring bench / verification gate for S360-300.
     - Notes: Blocks the LED stable chain together with the WebFlash-owned
       operator-proof follow-ups.
 
-23. **RELEASE-007**
+22. **RELEASE-007**
     - Status: Planned / promotion of LED stable
     - Purpose: Promote the LED package + product from preview to stable
       once S360-300-BENCH-001 and the WebFlash operator-proof follow-ups
       land.
     - Notes: Subject to preview-to-stable promotion gates.
 
-24. **HW-005 / HW-PINMAP-320-FOLLOWUP**
+23. **HW-005 / HW-PINMAP-320-FOLLOWUP**
     - Status: Open / evidence-pass re-checked (PR #505); audit remains
       partial
     - Purpose: Resolve the S360-320 FanTRIAC pin/package collisions and
@@ -933,13 +1127,13 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       progress the FanTRIAC chain.
     - Notes: Gating PACKAGE-TRIAC-001 implementation.
 
-25. **COMPLIANCE-001**
+24. **COMPLIANCE-001**
     - Status: Open / not cleared (PR #506 re-checked, no sign-off yet)
     - Purpose: Land the S360-320 mains-voltage advanced / manual-warning
       compliance sign-off.
     - Notes: Gating PRODUCT-TRIAC-002 / FanTRIAC release exposure.
 
-26. **PACKAGE-TRIAC-001**
+25. **PACKAGE-TRIAC-001**
     - Status: Deferred (PR #502 docs-only); blocked on HW-005 /
       HW-PINMAP-320-FOLLOWUP / COMPLIANCE-001
     - Purpose: Implement the FanTRIAC package once the gating HW +
@@ -947,12 +1141,12 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
     - Notes: `packages/expansions/fan_triac.yaml` retained as-is in the
       meantime.
 
-27. **PRODUCT-TRIAC-002**
+26. **PRODUCT-TRIAC-002**
     - Status: Deferred (PR #501 docs-only); blocked on PACKAGE-TRIAC-001
     - Purpose: Implement the FanTRIAC product YAML once PACKAGE-TRIAC-001
       lands.
 
-28. **WF-TRIAC-001 — In-repo wrapper/catalog/build slice**
+27. **WF-TRIAC-001 — In-repo wrapper/catalog/build slice**
     - Status: Blocked on PRODUCT-TRIAC-002
     - Purpose: Add the in-repo WebFlash wrapper, compatibility entry, and
       build matrix row for the FanTRIAC product. (This is the
@@ -962,19 +1156,19 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       touches `products/webflash/`, `config/`, and the build matrix in this
       repo.
 
-29. **RELEASE-TRIAC-001**
+28. **RELEASE-TRIAC-001**
     - Status: Blocked on WF-TRIAC-001 and COMPLIANCE-001
     - Purpose: Release artifact + release-proof entries for the FanTRIAC
       product, contingent on compliance sign-off.
 
-30. **PRODUCT-DEP-002**
+29. **PRODUCT-DEP-002**
     - Status: Planned / housekeeping
     - Purpose: Continue dependency / toolchain alignment work (pre-commit
       tooling, ESPHome pin, Python tooling) without changing functional
       behavior.
     - Notes: Must not destabilize Release-One.
 
-31. **CI-TOOLCHAIN-001**
+30. **CI-TOOLCHAIN-001**
     - Status: Planned / housekeeping
     - Purpose: CI toolchain alignment follow-ups (workflow images, action
       versions, ESPHome version pinning consistency).
@@ -1079,9 +1273,10 @@ visible. Do not implement them from this repo.
   and `docs/cleanup-audit.md` §`PACKAGE-POWER-400-001 update`.
 - **No new evidence committed for `PRODUCT-POWER-400-001`
   preconditions (2026-05-19 re-check).** The 2026-05-19
-  `PRODUCT-POWER-400-001` investigation pass (this PR) re-checked
-  every precondition and confirmed that none has been satisfied
-  since the 2026-05-19 `PACKAGE-POWER-400-001` re-check (PR #520):
+  `PRODUCT-POWER-400-001` investigation pass merged as **PR #521**
+  re-checked every precondition and confirmed that none has been
+  satisfied since the 2026-05-19 `PACKAGE-POWER-400-001` re-check
+  (PR #520):
   the `PACKAGE-POWER-400-001` implementation slice has not landed
   (only the docs-only investigation pass merged as PR #520; the
   package YAML header reconciliation, the catalog `description`
@@ -1133,6 +1328,77 @@ visible. Do not implement them from this repo.
   `docs/release-artifact-readiness-matrix.md` §Power / S360-400
   release posture, and `docs/cleanup-audit.md`
   §`PRODUCT-POWER-400-001 update`.
+- **No new evidence committed for `WEBFLASH-POWER-400-001`
+  preconditions (2026-05-19 re-check).** The 2026-05-19
+  `WEBFLASH-POWER-400-001` investigation pass (this PR) re-checked
+  every precondition and confirmed that none has been satisfied
+  since the 2026-05-19 `PRODUCT-POWER-400-001` re-check (PR #521):
+  the `PRODUCT-POWER-400-001` implementation slice has not landed
+  (only the docs-only investigation pass merged as PR #521; no
+  canonical S360-400 / `PWR`-bearing WebFlash-shippable product
+  YAML exists under [`products/`](products/) for a WebFlash
+  wrapper to wrap; the matching `config/product-catalog.json`
+  entry and the legacy-compatible `*-pwr` Core variant
+  relationship decision that PR #521 enumerated all remain owed
+  to a future evidence-bearing `PRODUCT-POWER-400-001` PR); the
+  `PACKAGE-POWER-400-001` implementation slice has not landed
+  (PR #520 docs-only); no BOM line item with manufacturer + part
+  number + revision for `PS1` is committed (so the three-way
+  catalog `HLK-5M05` vs package header `HLK-PM01 or similar` vs
+  schematic `PS1 = HLK-10M05` disagreement stays unresolved); no
+  BOM lines for `F1 A250-1200` / `RV1 10D391K` / `C1 470nF` /
+  `C5..C8` / `J1` / `J2` are committed; no separate JSON-only PR
+  for `S360-400` `schematic_status` promotion has landed
+  (`config/hardware-catalog.json` line 110 stays `schematic_status:
+  cataloged_unverified` with no `schematic_file`;
+  `tests/test_hardware_catalog.py:53` `EXPECTED_STILL_UNVERIFIED_SKUS
+  = frozenset({"S360-320", "S360-400"})` actively enforces this
+  state); no `COMPLIANCE-001` `S360-400` slice mains-voltage UK /
+  EU sign-off has landed since PR #506; no silkscreen / PCB /
+  creepage / clearance / bench / thermal / EMI evidence is
+  committed for `S360-400-R4`; no product-onboarding approval has
+  been recorded against `PRODUCT-POWER-400-001` or
+  `WEBFLASH-POWER-400-001`; and no release / build / artifact
+  readiness — no `artifact_name`, no `.bin` artifact, no GitHub
+  Release, no checksums, no proof, no WebFlash import — has been
+  produced. No S360-400-explicit / `PWR`-bearing WebFlash wrapper
+  exists under [`products/webflash/`](products/webflash/) (the
+  directory contains only three POE wrappers
+  [`ceiling-poe-ventiq-fantriac-roomiq.yaml`](products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml),
+  [`ceiling-poe-ventiq-roomiq-led.yaml`](products/webflash/ceiling-poe-ventiq-roomiq-led.yaml),
+  [`ceiling-poe-ventiq-roomiq.yaml`](products/webflash/ceiling-poe-ventiq-roomiq.yaml));
+  no `PWR` build is added to
+  [`config/webflash-builds.json`](config/webflash-builds.json)
+  (only Release-One `Ceiling-POE-VentIQ-RoomIQ` stable and
+  `Ceiling-POE-VentIQ-RoomIQ-LED` preview); no
+  S360-400-specific product is added to
+  [`config/product-catalog.json`](config/product-catalog.json)
+  (the four `legacy-compatible` `*-pwr` Core variants
+  `sense360-core-c-pwr.yaml` / `sense360-core-w-pwr.yaml` /
+  `sense360-core-v-c-pwr.yaml` / `sense360-core-v-w-pwr.yaml`
+  stay `legacy-compatible` / `webflash_build_matrix: false`);
+  `PWR` stays reserved in
+  [`config/webflash-compatibility.json`](config/webflash-compatibility.json)
+  `canonical_power` without any `webflash_build_matrix: true`
+  consumer (reservation is grammar-only and does not imply
+  exposure); `release_one_required_configs` stays
+  `["Ceiling-POE-VentIQ-RoomIQ"]`. The next evidence-bearing PR
+  against `WEBFLASH-POWER-400-001` should appear when
+  `PRODUCT-POWER-400-001` implementation lands (which itself
+  requires `PACKAGE-POWER-400-001` implementation + BOM + the
+  `S360-400` `schematic_status: verified` JSON PR + the
+  `COMPLIANCE-001` `S360-400` slice + product-onboarding approval),
+  release / build / artifact readiness is produced (an
+  `artifact_name` is decided alongside the canonical
+  `config_string`, a `.bin` artifact is built and signed, a
+  GitHub Release is created, checksums are minted, and the
+  release-proof entry is filed), and product-onboarding approval
+  for the WebFlash exposure layer is granted. See
+  `docs/webflash-exposure-readiness-matrix.md` §Power / S360-400
+  WebFlash posture,
+  `docs/release-artifact-readiness-matrix.md` §Power / S360-400
+  release posture, and `docs/cleanup-audit.md`
+  §`WEBFLASH-POWER-400-001 update`.
 
 ## Do-not-change guardrails
 
