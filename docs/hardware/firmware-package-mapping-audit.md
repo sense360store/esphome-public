@@ -541,6 +541,66 @@ Lifecycle evidence:
 Status: `blocked`. HW-009 does **not** change the GPIOs, the blocker
 status, the catalog entry, or any reference to FanTRIAC.
 
+### `power_240v.yaml` AC/DC part-identity disagreement (S360-400)
+
+Schematic evidence:
+
+- `S360-400` schematic: **module-side PDF committed under
+  HW-ASSETS-400 (PR #514)** at
+  [`docs/hardware/schematics/S360-400-R4.pdf`](schematics/S360-400-R4.pdf)
+  (curated index at
+  [`docs/hardware/artifacts/S360-400-R4.md`](artifacts/S360-400-R4.md));
+  `config/hardware-catalog.json` still records `S360-400` →
+  `schematic_status: cataloged_unverified` (HW-ASSETS-400 / HW-PINMAP-400-FOLLOWUP
+  deliberately do **not** flip the JSON status; promotion is owed
+  to a separate JSON-only PR after BOM cross-check + silkscreen
+  evidence land, and is additionally gated by `COMPLIANCE-001`
+  clearance). The module-side schematic shows
+  `PS1 = HLK-10M05` (4-pin pinout `AC(L)` / `AC(N)` / `-VO` /
+  `+VO`); 3-pin AC input `J1` (`LIVE` / `NEUTRAL` /
+  `Earth_Protective`); resettable fuse `F1 A250-1200` on the LIVE
+  leg; MOV `RV1 10D391K` across the AC line; X-cap `C1 470nF`
+  across the AC line; four-cap output filter
+  `C5 100uF` / `C6 10u` / `C7 100n` / `C8 100uF` between `+VO`
+  and `-VO` / `GND`; 2-pin output `J2` (`+5VP` / `GND`); mounting
+  holes `H1`..`H4` with no nets; no Y-caps, no CM/DM line filter,
+  no secondary regulator, no on-board indicator LED, no thermal
+  cutout, no I²C / UART / SPI / GPIO. The **HW-PINMAP-400 audit
+  doc** has landed at
+  [`docs/hardware/s360-400-r4-power.md`](s360-400-r4-power.md)
+  with **status: `partial — schematic evidence available;
+  package reconciliation, BOM, silkscreen, creepage/clearance,
+  and COMPLIANCE-001 pending`** (promoted by
+  HW-PINMAP-400-FOLLOWUP from the prior
+  `pending — schematic/design evidence required`); records the
+  three-way AC/DC part-identity disagreement (catalog `HLK-5M05`
+  vs package header `HLK-PM01 or similar` vs schematic
+  `HLK-10M05`) as **unresolved by this PR**, BOM-bound, and owed
+  to `PACKAGE-POWER-400-001`; records the package YAML status as
+  `schematic-evidence-pending` + `needs-package-reconciliation` +
+  `timing/compliance-pending` (compliance-gated); preserves the
+  COMPLIANCE-001 mains-voltage UK / EU sign-off requirement as a
+  separate gate before any product-side promotion.
+
+Package file:
+[`packages/hardware/power_240v.yaml`](../../packages/hardware/power_240v.yaml)
+is a logical-power package emitting diagnostic sensors only
+(`Supply Voltage`, `Power Source`, `Power Configuration`,
+`AC Power Connected`); no GPIO binding. Header comments at
+lines 5–10 carry the disagreed `HLK-PM01 or similar` AC-DC part
+hint plus the unverified input / output / isolation / protection
+claims; line 15 carries a recommended `1A` AC-input fusing line
+that disagrees with the on-board `F1 A250-1200` polyfuse class.
+**None of those comments is edited by HW-009 or by
+HW-PINMAP-400-FOLLOWUP** — comment-only cleanup is deferred to
+`PACKAGE-POWER-400-001` once BOM evidence lands.
+
+Status: `package-yaml-pending` / `needs-package-reconciliation` +
+`timing/compliance-pending` (compliance-gated). HW-009 does
+**not** change the package, the catalog `description`, the
+COMPLIANCE-001 status, the JSON `schematic_status`, or any
+reference to PWR-240V.
+
 ## Recommended follow-up PRs
 
 Each item below is **separate**, **scoped**, and **not approved by
