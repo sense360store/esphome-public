@@ -57,9 +57,21 @@ mirrored here.
   ESP32-S3 `GPIO3` strap-pin boot-behaviour bench characterisation,
   silkscreen / harness / `K1` BOM evidence for `S360-310`, and a new
   pin-pinning test scaffold (`tests/test_core_abstract_bus.py`).
-- **S360-400** and **S360-410** schematic evidence is now uploaded in the
-  current task context and should move toward **HW-ASSETS-400** /
-  **HW-ASSETS-410** artifact ingest PRs.
+- **HW-ASSETS-400** is the work item for this PR (artifact ingest in
+  progress / PR open — PR number pending). It commits the
+  `S360-400-R4` schematic PDF at
+  `docs/hardware/schematics/S360-400-R4.pdf` (byte-identical to the
+  upload; 461,206 bytes; SHA256
+  `295e3ec9192603fd4ca7d89b8cda68777e5cb8e9713ed8b0fba2316babb0e765`)
+  and the curated artifact index at
+  `docs/hardware/artifacts/S360-400-R4.md`. **HW-PINMAP-400-FOLLOWUP
+  becomes the next S360-400 step after this PR merges.** No
+  `schematic_status` promotion, no `schematic_file` set, no package /
+  product / WebFlash / build / release / import edit, no COMPLIANCE-001
+  movement.
+- **S360-410** schematic evidence remains uploaded in the current task
+  context and is the candidate for the next ingest PR (**HW-ASSETS-410**),
+  independent of HW-ASSETS-400 / HW-PINMAP-400-FOLLOWUP.
 - **PWM** and **DAC** evidence re-checks (HW-PINMAP-311-FOLLOWUP /
   HW-PINMAP-312-FOLLOWUP) remain insufficient — both audits are still
   partial.
@@ -86,6 +98,7 @@ add rows without verifying the PR number.
 | HW-ASSETS-310                | #509      | esphome-public  | Merged — artifact ingest                | Added S360-310-R4 schematic PDF and curated artifact index                            | No package, product, WebFlash, or release files            | Unblocked HW-PINMAP-310-FOLLOWUP schematic-backed reconciliation                   |
 | HW-PINMAP-310-FOLLOWUP       | #510      | esphome-public  | Merged — schematic-backed partial       | Consumed S360-310-R4 schematic; promoted Relay pin/package audit to partial          | `packages/expansions/fan_relay.yaml`, product/WebFlash      | Relay package work surfaced shared-variable mismatches → CORE-ABSTRACT-BUS-001     |
 | PACKAGE-RELAY-001            | #511      | esphome-public  | Merged — docs-only deferral             | Recorded deferral until CORE-ABSTRACT-BUS-001 / silkscreen / harness / K1 BOM land   | `packages/expansions/fan_relay.yaml`                        | Relay package implementation now gated by CORE-ABSTRACT-BUS-001                    |
+| CORE-ABSTRACT-BUS-001        | #513      | esphome-public  | Merged — docs-only audit + slice plan   | Added `docs/hardware/core-abstract-bus-reconciliation.md` and split implementation into 001A / 001B / 001C | No package YAML, product YAML, config, tests, firmware, or release files changed | Queue now prioritises 001C before 001A (GPIO3 collision); Relay package remains blocked on 001A; PWM / DAC additionally affected by 001B / 001C |
 
 ## Active / upcoming esphome-public queue
 
@@ -155,14 +168,28 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      `docs/hardware/core-abstract-bus-reconciliation.md` §CORE-ABSTRACT-BUS-001B.
 
 4. **HW-ASSETS-400 — Add curated S360-400 power board artifacts**
-   - Status: Next / evidence available
+   - Status: **In flight (this PR) — PR open / PR number pending**
    - Purpose: Ingest the uploaded S360-400-R4 schematic PDF and create a
      curated artifact index alongside the existing S360-310 / S360-311 /
      S360-312 / S360-320 entries.
-   - Notes: The S360-400 schematic appears to show AC/DC regulation to 5V
-     using HLK-10M05, input Live / Neutral / Earth, fuse / MOV / filter,
-     and +5VP / GND output. Do not claim compliance or product readiness
-     in this artifact PR.
+   - This PR commits the schematic PDF at
+     `docs/hardware/schematics/S360-400-R4.pdf` (byte-identical to the
+     upload; 461,206 bytes; SHA256
+     `295e3ec9192603fd4ca7d89b8cda68777e5cb8e9713ed8b0fba2316babb0e765`)
+     and the curated artifact index at
+     `docs/hardware/artifacts/S360-400-R4.md`. The schematic shows
+     AC/DC regulation to 5 V using **`PS1 = HLK-10M05`** (catalog
+     says `HLK-5M05`, package header says `HLK-PM01 or similar` —
+     **three-way part-identity disagreement recorded, not resolved**);
+     3-pin AC input `J1` (`LIVE` / `NEUTRAL` / `Earth_Protective`);
+     resettable fuse `F1 A250-1200`; MOV `RV1 10D391K`; X-cap `C1 470nF`;
+     four-cap output filter `C5 100uF` / `C6 10u` / `C7 100n` /
+     `C8 100uF`; 2-pin `J2` output (`+5VP` / `GND`); mounting holes
+     `H1`..`H4`. No package / product / WebFlash / build / release /
+     import edits. No `schematic_status` promotion. No `schematic_file`
+     set. No compliance claim. After merge this row moves to
+     **Completed / merged PRs** and **HW-PINMAP-400-FOLLOWUP** (item 5
+     below) becomes the next S360-400 step.
 
 5. **HW-PINMAP-400-FOLLOWUP — Complete S360-400 power board mapping**
    - Status: Planned / after HW-ASSETS-400
@@ -394,14 +421,17 @@ visible. Do not implement them from this repo.
 
 ## Recently uploaded evidence
 
-- **S360-400-R4.pdf** — uploaded in current task context; candidate for
-  **HW-ASSETS-400** ingest.
+- **S360-400-R4.pdf** — ingested by **HW-ASSETS-400** (this PR);
+  committed at `docs/hardware/schematics/S360-400-R4.pdf`
+  (461,206 bytes; SHA256
+  `295e3ec9192603fd4ca7d89b8cda68777e5cb8e9713ed8b0fba2316babb0e765`)
+  with curated artifact index at
+  `docs/hardware/artifacts/S360-400-R4.md`.
 - **S360-410-R4.pdf** — uploaded in current task context; candidate for
-  **HW-ASSETS-410** ingest.
+  **HW-ASSETS-410** ingest (not in scope for this PR).
 
-**Note:** These PDFs are not committed in this tracker PR. This PR only
-records that the evidence is available. Ingest happens in the dedicated
-HW-ASSETS-400 / HW-ASSETS-410 PRs.
+**Note:** Ingest of `S360-410-R4.pdf` is reserved for the dedicated
+`HW-ASSETS-410` PR. This PR scopes only to `S360-400` evidence.
 
 ## Do-not-change guardrails
 
