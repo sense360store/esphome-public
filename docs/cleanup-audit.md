@@ -5668,3 +5668,281 @@ together with the existing
 and
 [§HW-PINMAP-312-FOLLOWUP update](#hw-pinmap-312-followup-update-2026-05-18-evidence-pass-investigation)
 entries that this PR follows in pattern.
+
+## CORE-ABSTRACT-BUS-001 update (2026-05-19 — docs-only audit + slice plan)
+
+CORE-ABSTRACT-BUS-001 is the systemic rebind of the Core abstract
+substitutions (`halo_i2c`, `expansion_i2c`, `uart_bus`, `relay_pin`,
+`status_led_pin`, `pir_sensor_pin`, `expansion_gpio1` /
+`expansion_gpio2`) in
+[`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml)
+and the sibling Core abstract packages
+([`packages/hardware/sense360_core.yaml`](../packages/hardware/sense360_core.yaml),
+[`packages/hardware/sense360_core_mapping.yaml`](../packages/hardware/sense360_core_mapping.yaml),
+[`packages/hardware/sense360_core_poe.yaml`](../packages/hardware/sense360_core_poe.yaml),
+[`packages/hardware/sense360_core_wall.yaml`](../packages/hardware/sense360_core_wall.yaml),
+[`packages/hardware/sense360_core_ceiling_s3.yaml`](../packages/hardware/sense360_core_ceiling_s3.yaml))
+against the verified `S360-100-R4` schematic captured in
+[`docs/hardware/s360-100-r4-core.md`](hardware/s360-100-r4-core.md).
+It is the alias for
+[`docs/release-one-hardware-audit.md` Required follow-ups #2 / #3](release-one-hardware-audit.md#required-follow-ups)
+and is named as the gating systemic blocker for `PACKAGE-RELAY-001`
+([§PACKAGE-RELAY-001 update](#package-relay-001-update-deferred--core-abstract-bus-001--silkscreen--harness--k1-bom-evidence-not-landed)),
+`PACKAGE-PWM-001`, `PACKAGE-DAC-001`, and the wider fan-driver chain
+in
+[`docs/hardware/package-readiness-matrix.md` Follow-up PR sequence](hardware/package-readiness-matrix.md#follow-up-pr-sequence).
+
+CORE-ABSTRACT-BUS-001 was investigated in this PR against the
+readiness gates recorded in
+[`docs/hardware/package-readiness-matrix.md` `CORE-ABSTRACT-BUS-001` row](hardware/package-readiness-matrix.md#follow-up-pr-sequence)
+(Core J10 vs RoomIQ J6 silkscreen verification via S360-100-BENCH-001
+evidence + RoomIQ / AirIQ / VentIQ package rebind plan +
+re-validation pass for every non-Release-One product YAML that
+consumes the Ceiling Core abstract package) and is **confirmed
+deferred at the implementation layer**, with the investigation
+producing a docs-only audit / slice plan rather than any package YAML
+edit. Every readiness gate it depends on is still open.
+
+(1) `S360-100-BENCH-001` Core silkscreen evidence (Core `J4` 1-to-3
+pin order, Core `J10` 1-to-12 pin order, RoomIQ `J6` 1-to-12 pin
+order) has not been committed; the
+[`docs/hardware/s360-100-r4-core.md` §S360-100-BENCH-001 status](hardware/s360-100-r4-core.md#s360-100-bench-001-status)
+record stays `pending — bench/manufacturing evidence required` per
+the most recent re-check in
+[§S360-100-BENCH-001 update (2026-05-18)](#s360-100-bench-001-update-2026-05-18--evidence-pass-investigation)
+(if present in this file) and per the inline re-check note in
+[`docs/release-one-hardware-audit.md` Findings → Core / RoomIQ connector](release-one-hardware-audit.md#findings).
+
+(2) The RoomIQ / AirIQ / VentIQ package rebind plan (rebinding
+[`packages/expansions/comfort_ceiling.yaml`](../packages/expansions/comfort_ceiling.yaml),
+[`packages/expansions/presence_ceiling.yaml`](../packages/expansions/presence_ceiling.yaml),
+[`packages/expansions/airiq_bathroom_base.yaml`](../packages/expansions/airiq_bathroom_base.yaml),
+[`packages/expansions/airiq_ceiling.yaml`](../packages/expansions/airiq_ceiling.yaml),
+[`packages/expansions/airiq_wall.yaml`](../packages/expansions/airiq_wall.yaml),
+and the matching feature profiles to the schematic-correct shared
+I²C bus on `IO48` / `IO45` and the two radar UARTs `Hi-Link` on
+`IO1` / `IO2` + `SEN0609` on `IO4` / `IO5`) has not been drafted.
+
+(3) The re-validation pass for every non-Release-One product YAML
+that consumes any affected Core abstract package — at minimum the
+~30 product YAMLs enumerated in
+[`docs/hardware/core-abstract-bus-reconciliation.md` Blast radius per Core package](hardware/core-abstract-bus-reconciliation.md#blast-radius-per-core-package)
+— has not been designed.
+
+(4) The GPIO3 collision between the schematic-correct
+`relay_pin: GPIO3` (per
+[`docs/hardware/s360-100-r4-core.md` §ESP32-S3 pin and net mapping](hardware/s360-100-r4-core.md#esp32-s3-pin-and-net-mapping)
+line 100 — `IO3 → Relay (J4 Relay module gate)` — and §J4 Relay
+module connector (3-pin) pin 2 — `Relay (drive signal from ESP32
+IO3)`) and the existing
+`comfort_ceiling_als_int_pin: GPIO3`
+([`packages/expansions/comfort_ceiling.yaml`](../packages/expansions/comfort_ceiling.yaml)
+line 42 — consumed by Release-One via
+[`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+line 140) was first surfaced in this investigation. The same `GPIO3`
+is also currently bound to `comfort_als_int_pin` in
+[`packages/expansions/comfort_ceiling_s3.yaml`](../packages/expansions/comfort_ceiling_s3.yaml)
+line 29 and
+[`packages/hardware/sense360_core_ceiling_s3.yaml`](../packages/hardware/sense360_core_ceiling_s3.yaml)
+line 140, to `expander_int_pin` in
+[`packages/hardware/sense360_core_mapping.yaml`](../packages/hardware/sense360_core_mapping.yaml)
+line 54, and to `sx1509_interrupt_pin` in
+[`packages/expansions/gpio_expander_sx1509.yaml`](../packages/expansions/gpio_expander_sx1509.yaml)
+line 17. These bindings are themselves schematic-conflicting (the
+RoomIQ `ALS_INT` net is on `IO47` per
+[`docs/hardware/s360-100-r4-core.md` §ESP32-S3 pin and net mapping](hardware/s360-100-r4-core.md#esp32-s3-pin-and-net-mapping)
+line 109; the SX1509 `expander_int` net is on `IO17` per line 96) —
+so resolving the collision requires moving every `GPIO3` consumer to
+its schematic-correct net before the relay slice can use `GPIO3`.
+
+(5) ESP32-S3 `GPIO3` is a strap pin (JTAG-select). The relay
+module's `Q1` MMBT3904 NPN low-side topology recorded in
+[`docs/hardware/artifacts/S360-310-R4.md`](hardware/artifacts/S360-310-R4.md)
+suggests `RESTORE_DEFAULT_OFF` keeps the strap in a benign state at
+boot, but no bench evidence against a populated `S360-310-R4` +
+`S360-100-R4` pair has been committed to verify this; the
+characterisation is recorded as an open gate in
+[`docs/hardware/core-abstract-bus-reconciliation.md` Required evidence before any slice can land](hardware/core-abstract-bus-reconciliation.md#required-evidence-before-any-slice-can-land).
+
+(6) No test today asserts Core-abstract-substitution values against
+the schematic. The pattern to follow when the implementation slices
+land is
+[`tests/test_led_package_mapping.py`](../tests/test_led_package_mapping.py)
+(HW-010); a proposed new file `tests/test_core_abstract_bus.py`
+recorded in
+[`docs/hardware/core-abstract-bus-reconciliation.md` Test scaffolding plan](hardware/core-abstract-bus-reconciliation.md#test-scaffolding-plan)
+must land with the first implementation slice.
+
+Because every readiness gate is open and the GPIO3 collision means
+no single substitution can land safely on its own, the only
+CORE-ABSTRACT-BUS-001 work recorded in this PR is the docs-only
+audit / slice plan committed to
+[`docs/hardware/core-abstract-bus-reconciliation.md`](hardware/core-abstract-bus-reconciliation.md),
+together with the cross-link addenda in
+[`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+(`fan_relay.yaml` row + Core abstract-bus row + Follow-up PR sequence
+`CORE-ABSTRACT-BUS-001` row),
+[`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md)
+(Release-One product YAML package stack `relay_pin: GPIO4` bullet +
+Systemic Core abstract-bus rebind recommended-follow-up entry), this
+file, and
+[`UPCOMING_PR.md`](../UPCOMING_PR.md) (queue split into
+`CORE-ABSTRACT-BUS-001A` / `B` / `C`; `PRODUCT-RELAY-001` /
+`PACKAGE-RELAY-001` / `WEBFLASH-RELAY-001` / `RELEASE-RELAY-001` /
+`WF-IMPORT-RELAY-001` blocker references refined to cite
+`CORE-ABSTRACT-BUS-001A` rather than generic `001`). The package
+YAML files
+[`packages/hardware/sense360_core.yaml`](../packages/hardware/sense360_core.yaml)
+(`relay_pin: GPIO10` line 63),
+[`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml)
+(`relay_pin: GPIO4` line 61, `status_led_pin: GPIO48` line 76,
+`pir_sensor_pin: GPIO47` line 77, `expansion_gpio1..4: GPIO5..GPIO8`
+lines 65–68, `halo_i2c` on `GPIO39/40` lines 50–51, 105–110,
+`expansion_i2c` on `GPIO21/18` lines 52–53, 113–117, `uart_bus` on
+`GPIO1/2/256000` lines 56–58, 120–124),
+[`packages/hardware/sense360_core_mapping.yaml`](../packages/hardware/sense360_core_mapping.yaml)
+(`relay_pin: GPIO10` line 47, `expander_int_pin: GPIO3` line 54),
+[`packages/hardware/sense360_core_poe.yaml`](../packages/hardware/sense360_core_poe.yaml)
+(`relay_pin: GPIO10` line 76),
+[`packages/hardware/sense360_core_wall.yaml`](../packages/hardware/sense360_core_wall.yaml)
+(`relay_pin: GPIO4` line 65),
+[`packages/hardware/sense360_core_ceiling_s3.yaml`](../packages/hardware/sense360_core_ceiling_s3.yaml)
+(`comfort_als_int_pin: GPIO3` line 140),
+[`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml)
+(`fan_relay_pin: ${relay_pin}` line 27 — already correctly
+abstracted; the wrong values live in the parent Core packages, not
+in this file),
+[`packages/expansions/comfort_ceiling.yaml`](../packages/expansions/comfort_ceiling.yaml)
+(`comfort_ceiling_als_int_pin: GPIO3` line 42),
+[`packages/expansions/comfort_ceiling_s3.yaml`](../packages/expansions/comfort_ceiling_s3.yaml)
+(`comfort_als_int_pin: GPIO3` line 29), and
+[`packages/expansions/gpio_expander_sx1509.yaml`](../packages/expansions/gpio_expander_sx1509.yaml)
+(`sx1509_interrupt_pin: GPIO3` line 17) all stay **byte-identical**
+to their pre-PR state.
+
+The `IO3` (Core schematic) vs `GPIO4` (Ceiling Core) vs `GPIO10`
+(generic / Mapping / PoE Core) `relay_pin` resolution stays owned by
+`CORE-ABSTRACT-BUS-001A` (the relay slice, depends on `001C`
+landing first), not by this audit. The `halo_i2c` /
+`expansion_i2c` / `i2c0` / `i2c1` / `i2c_primary` / `i2c_expander`
+consolidation to the single shared I²C bus on `IO48` / `IO45` stays
+owned by `CORE-ABSTRACT-BUS-001B`. The UART split, status LED
+move, PIR rebind to `IO15`, ALS_INT rebind to `IO47`, and expansion
+GPIO rebind stay owned by `CORE-ABSTRACT-BUS-001C`.
+
+Documentation only. CORE-ABSTRACT-BUS-001 (this audit) does **not**
+edit
+[`config/hardware-catalog.json`](../config/hardware-catalog.json)
+(`S360-100` stays `schematic_status: verified` per HW-008; `S360-310`
+stays `cataloged_unverified`; `S360-311` / `S360-312` / `S360-320` /
+`S360-400` / `S360-410` stay as recorded today),
+[`config/product-catalog.json`](../config/product-catalog.json),
+[`config/webflash-builds.json`](../config/webflash-builds.json),
+or
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json);
+does **not** edit any product YAML under
+[`products/`](../products/) or any WebFlash wrapper under
+[`products/webflash/`](../products/webflash/); does **not** edit any
+package YAML under [`packages/`](../packages/) (no Core, no
+expansion, no feature profile); does **not** edit any test under
+[`tests/`](../tests/), any script under [`scripts/`](../scripts/),
+any workflow under `.github/workflows/`, any component under
+`components/`, any header under `include/`, `firmware/*`,
+`manifest.json`, or `firmware/sources.json`; does **not** regenerate
+firmware, create a GitHub Release or tag, or change any WebFlash
+manifest / import; does **not** advance `PACKAGE-RELAY-001`,
+`PRODUCT-RELAY-001`, `WEBFLASH-RELAY-001`, `RELEASE-RELAY-001`,
+`WF-IMPORT-RELAY-001`, `PACKAGE-PWM-001`, `PRODUCT-PWM-001`,
+`WEBFLASH-PWM-001`, `RELEASE-PWM-001`, `PACKAGE-DAC-001`,
+`PRODUCT-DAC-001`, `WEBFLASH-DAC-001`, `RELEASE-DAC-001`,
+`PACKAGE-TRIAC-001`, `PRODUCT-TRIAC-002`, `WF-TRIAC-001`,
+`RELEASE-TRIAC-001`, or `WF-IMPORT-TRIAC-001`; does **not** close
+`S360-100-BENCH-001`, `HW-PINMAP-310-FOLLOWUP`,
+`HW-PINMAP-311-FOLLOWUP`, `HW-PINMAP-312-FOLLOWUP`,
+`HW-PINMAP-320-FOLLOWUP`, `HW-PINMAP-400-FOLLOWUP`,
+`HW-PINMAP-410-FOLLOWUP`, or `COMPLIANCE-001`; does **not** unblock
+FanTRIAC (HW-005 stays a separate gate); does **not** change the
+Release-One configuration (`Ceiling-POE-VentIQ-RoomIQ`, version
+`1.0.0`, channel `stable`, artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, tag
+`v1.0.0`); does **not** change the LED preview entry
+(`Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview`,
+`channel: preview`, artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`); does
+**not** change the Sense360 LED Release-One exclusion; does **not**
+relax or change the fan-driver `max-one-of` rule
+(`FAN_DRIVER_TOKENS` in
+[`tests/validate_webflash_builds.py`](../tests/validate_webflash_builds.py));
+does **not** resolve the Core J10 vs RoomIQ J6 pin-order open
+question (HW-009 `needs-silkscreen/bench-verification`); does
+**not** itself resolve the systemic Core abstract-bus mismatch
+enumerated in
+[`release-one-hardware-audit.md` Required follow-ups #2 / #3](release-one-hardware-audit.md#required-follow-ups)
+(it produces the implementation plan; the implementation PRs
+`CORE-ABSTRACT-BUS-001A` / `B` / `C` perform the actual rebind);
+does **not** change the mains-voltage compliance status for
+`S360-320` or `S360-400` (owned by COMPLIANCE-001); does **not**
+claim that any bench / silkscreen / harness / `K1` BOM evidence
+exists; does **not** claim that any compliance evidence for a
+mains-switching FanRelay product exists; does **not** characterise
+ESP32-S3 `GPIO3` strap-pin boot behaviour (that characterisation is
+itself an open gate for `CORE-ABSTRACT-BUS-001A`).
+
+**Next audit-log trigger.** The next CORE-ABSTRACT-BUS-001
+audit-log entry should appear when committed evidence is added to
+this repository that one of the implementation slices can cite:
+S360-100-BENCH-001 silkscreen captures of Core `J4` / `J10` and
+RoomIQ `J6`; ESP32-S3 `GPIO3` strap-pin boot-behaviour bench
+characterisation against a populated `S360-310-R4` + `S360-100-R4`
+pair; a committed RoomIQ / AirIQ / VentIQ package rebind plan;
+landing of `CORE-ABSTRACT-BUS-001C` (rebinding
+`comfort_ceiling_als_int_pin: GPIO3 → GPIO47`,
+`expander_int_pin: GPIO3 → GPIO17`,
+`sx1509_interrupt_pin: GPIO3 → GPIO17`, and the UART / status LED /
+PIR / expansion GPIO substitutions per
+[`docs/hardware/core-abstract-bus-reconciliation.md`](hardware/core-abstract-bus-reconciliation.md));
+landing of `CORE-ABSTRACT-BUS-001A` (`relay_pin → GPIO3` across the
+Core abstract packages plus the new
+`tests/test_core_abstract_bus.py` regression coverage); or landing
+of `CORE-ABSTRACT-BUS-001B` (single shared I²C bus consolidation).
+Until any of those land, the next audit-log entry should report the
+same `docs-only audit + slice plan; implementation deferred` outcome
+with the new inspection date.
+
+Cross-linked from
+[`docs/hardware/core-abstract-bus-reconciliation.md`](hardware/core-abstract-bus-reconciliation.md)
+(See also section + audit log),
+[`docs/hardware/package-readiness-matrix.md` Follow-up PR sequence `CORE-ABSTRACT-BUS-001` row](hardware/package-readiness-matrix.md#follow-up-pr-sequence),
+[`docs/hardware/package-readiness-matrix.md` `fan_relay.yaml` / S360-310](hardware/package-readiness-matrix.md#fan_relayyaml--s360-310),
+[`docs/hardware/firmware-package-mapping-audit.md` Release-One product YAML package stack](hardware/firmware-package-mapping-audit.md#release-one-product-yaml-package-stack)
+(HW-009 systemic Core-vs-schematic mismatch bullet + `Systemic Core
+abstract-bus rebind` recommended-follow-up entry), and
+[`UPCOMING_PR.md`](../UPCOMING_PR.md) (queue split). Source of
+truth consumed:
+[`docs/hardware/s360-100-r4-core.md` §ESP32-S3 pin and net mapping](hardware/s360-100-r4-core.md#esp32-s3-pin-and-net-mapping),
+[`docs/hardware/s360-100-r4-core.md` §J4 — Relay module connector (3-pin)](hardware/s360-100-r4-core.md#j4--relay-module-connector-3-pin),
+[`docs/hardware/s360-100-r4-core.md` §S360-100-BENCH-001 status](hardware/s360-100-r4-core.md#s360-100-bench-001-status),
+[`docs/hardware/s360-310-r4-relay.md`](hardware/s360-310-r4-relay.md),
+[`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md)
+(Findings + Required follow-ups #2 / #3),
+[`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md)
+(HW-009),
+[`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+(PACKAGE-GAP-001),
+[`packages/hardware/sense360_core.yaml`](../packages/hardware/sense360_core.yaml),
+[`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml),
+[`packages/hardware/sense360_core_ceiling_s3.yaml`](../packages/hardware/sense360_core_ceiling_s3.yaml),
+[`packages/hardware/sense360_core_mapping.yaml`](../packages/hardware/sense360_core_mapping.yaml),
+[`packages/hardware/sense360_core_poe.yaml`](../packages/hardware/sense360_core_poe.yaml),
+[`packages/hardware/sense360_core_wall.yaml`](../packages/hardware/sense360_core_wall.yaml),
+[`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml),
+[`packages/expansions/comfort_ceiling.yaml`](../packages/expansions/comfort_ceiling.yaml),
+[`packages/expansions/comfort_ceiling_s3.yaml`](../packages/expansions/comfort_ceiling_s3.yaml),
+[`packages/expansions/gpio_expander_sx1509.yaml`](../packages/expansions/gpio_expander_sx1509.yaml),
+and
+[`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml),
+together with the existing
+[§HW-PINMAP-310-FOLLOWUP update](#hw-pinmap-310-followup-update-2026-05-18-schematic-backed-reconciliation)
+and
+[§PACKAGE-RELAY-001 update](#package-relay-001-update-deferred--core-abstract-bus-001--silkscreen--harness--k1-bom-evidence-not-landed)
+entries that this PR follows in pattern.
