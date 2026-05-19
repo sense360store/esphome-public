@@ -658,8 +658,25 @@ The recommended sequence after HW-ASSETS-001 lands is:
    `COMPLIANCE-001` (mains-voltage UK / EU sign-off) are still owed.
 8. **HW-PINMAP-410 — S360-410 PoE PSU mapping audit.** Same for
    `S360-410` (Sense360 PoE PSU). Sense360 PoE PSU is consumed by
-   the current Release-One product but its module-side schematic
-   is still uncommitted; this PR closes that gap.
+   the current Release-One product under a documented
+   `"schematic verification pending"` caveat. **HW-ASSETS-410
+   artifact ingest landed** at
+   [`docs/hardware/artifacts/S360-410-R4.md`](artifacts/S360-410-R4.md)
+   with the schematic PDF committed at
+   [`docs/hardware/schematics/S360-410-R4.pdf`](schematics/S360-410-R4.pdf);
+   the HW-PINMAP-410 audit doc at
+   [`s360-410-r4-poe.md`](s360-410-r4-poe.md) **status remains
+   unchanged**: `pending — schematic/design evidence required`.
+   `HW-PINMAP-410-FOLLOWUP` (standalone schematic-backed reference
+   doc + PoE PD controller / magnetics / buck / isolated-DC/DC /
+   harness reconciliation; package-header reconciliation against
+   the schematic-shown `TPS2378DDAR` / `TX4138` / `F0505S-2WR2` /
+   `RJP-003TC1(LPJ4112CNL)` parts) is still owed; HW-002 OQ#6 /
+   S360-100-BENCH-001 J2-harness identity remains an independent
+   bench-side gate; the Release-One `"schematic verification
+   pending"` caveat in
+   [`../release-one-hardware-audit.md` Findings → PoE PSU](../release-one-hardware-audit.md#findings)
+   is **preserved verbatim** by HW-ASSETS-410.
 9. **PACKAGE-GAP-001 — Add / reconcile package YAMLs where
    evidence exists.** After the HW-PINMAP-* sequence, adds or
    reconciles
