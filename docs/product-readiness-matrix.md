@@ -405,7 +405,7 @@ own gate evidence.
 | `Ceiling-POE-FanDAC-RoomIQ` (FanDAC slice; AirIQ excluded by mutex) | `FanDAC` + `RoomIQ` (no `AirIQ`; `VentIQ` independent) | POE (S360-410) | [`fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml) + Core abstract + RoomIQ (+ optional VentIQ) + [`power_poe.yaml`](../packages/hardware/power_poe.yaml) | grammar-clean **only if** `AirIQ` absent (`fandac_conflicts_with_airiq`); `Ceiling-POE-AirIQ-FanDAC-*` is `invalid-combination` | [`fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml): `needs-package-reconciliation` + `bench-evidence-pending`; Core abstract: `do-not-change-release-one` + `needs-package-reconciliation` | **No product YAML.** | `none` (not in build matrix; not in REQUIRED_CONFIGS; not on landing list) | `HW-PINMAP-312-FOLLOWUP` → `S360-312` `schematic_status` promotion → `PACKAGE-DAC-001` → `PRODUCT-DAC-001` |
 | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` (FanTRIAC slice; **existing blocked reference**) | `VentIQ` + `FanTRIAC` + `RoomIQ` | POE (S360-410) | [`fan_triac.yaml`](../packages/expansions/fan_triac.yaml) + Core abstract + RoomIQ + VentIQ + [`power_poe.yaml`](../packages/hardware/power_poe.yaml) | grammar-clean (FanTRIAC is a canonical fan variant) | [`fan_triac.yaml`](../packages/expansions/fan_triac.yaml): `timing/compliance-pending` + `needs-package-reconciliation` + `blocked-from-standard-exposure`; Core abstract: `do-not-change-release-one` + `needs-package-reconciliation` | **No new product YAML; no status flip.** The existing blocked reference YAML stays `status: blocked`, `blocker: HW-005`, `webflash_build_matrix: false`. PRODUCT-TRIAC-001 has performed a **notes-only** edit on this entry's `notes` field; the structural fields (`status` / `blocker` / `reason` / `webflash_build_matrix` / no-`artifact_name`) are unchanged. | `advanced/manual-warning-only` + `blocked-from-standard-exposure` + `not-recommended` + `not-required-configs` + `not-kit` + `not-webflash-default` (policy-recorded by PRODUCT-TRIAC-001 notes-only catalog edit; JSON `status: blocked` unchanged; no new lifecycle enum) | `HW-005` unblock + `HW-PINMAP-320-FOLLOWUP` + `COMPLIANCE-001` advanced/manual-warning sign-off → `PACKAGE-TRIAC-001` → `PRODUCT-TRIAC-002` → `WF-TRIAC-001` |
 | `Ceiling-PWR-{AIR}-{ROOM}` (PWR-240V slice; not yet on WebFlash surface) | any single air-quality token (`AirIQ` xor `VentIQ`) + optional `RoomIQ` | PWR (S360-400) | [`power_240v.yaml`](../packages/hardware/power_240v.yaml) + Core abstract + air / room packages | grammar-clean if mutex respected; `PWR` is in `canonical_power` but no `webflash_build_matrix: true` entry exercises it today | [`power_240v.yaml`](../packages/hardware/power_240v.yaml): `schematic-evidence-pending` + `needs-package-reconciliation` + `timing/compliance-pending` (compliance-gated) | **No product YAML.** The four `legacy-compatible` `*-pwr` Core variants stay `legacy-compatible`. | `none` (not in build matrix; not in REQUIRED_CONFIGS; not on landing list); ultimately `production-candidate` only after `COMPLIANCE-001` `S360-400` slice clears | `HW-ASSETS-400` *(landed at PR #514)* → `HW-PINMAP-400-FOLLOWUP` *(this PR; docs-only)* → BOM + silkscreen + creepage / clearance + bench / thermal / EMI evidence → `COMPLIANCE-001` `S360-400` slice → `PACKAGE-POWER-400-001` → `PRODUCT-POWER-400-001` |
-| `Ceiling-POE-{AIR}-{ROOM}` (PoE-410 slice; explicit board-level) | as today; PoE module the explicit subject | POE (S360-410) | [`power_poe.yaml`](../packages/hardware/power_poe.yaml) + Core abstract + air / room packages | grammar-clean; Release-One already exercises this shape | [`power_poe.yaml`](../packages/hardware/power_poe.yaml): `reference-only` + `schematic-evidence-pending` + `do-not-change-release-one` | **No new product YAML.** Release-One already consumes the package under the preserved [`release-one-hardware-audit.md` schematic-pending caveat](release-one-hardware-audit.md#findings); PRODUCT-GAP-001 does not requalify Release-One and does not promote the caveat away. | `none` for **new** PoE-410 candidate; Release-One stays `production` / `stable` on its existing entry | `HW-ASSETS-410` → `HW-PINMAP-410-FOLLOWUP` → `HW-002 OQ#6` closure / `S360-100-BENCH-001` update → `PACKAGE-POE-410-001` → separate later Release-One caveat-closure PR + `PRODUCT-POE-410-001` if a new entry is warranted |
+| `Ceiling-POE-{AIR}-{ROOM}` (PoE-410 slice; explicit board-level) | as today; PoE module the explicit subject | POE (S360-410) | [`power_poe.yaml`](../packages/hardware/power_poe.yaml) + Core abstract + air / room packages | grammar-clean; Release-One already exercises this shape | [`power_poe.yaml`](../packages/hardware/power_poe.yaml): `reference-only` + `schematic-evidence-pending` (schematic landed under HW-ASSETS-410 / PR #516 and was consumed by HW-PINMAP-410-FOLLOWUP; package-header reconciliation still owed to `PACKAGE-POE-410-001` after BOM lands) + `do-not-change-release-one` | **No new product YAML.** Release-One already consumes the package under the preserved [`release-one-hardware-audit.md` schematic-pending caveat](release-one-hardware-audit.md#findings); PRODUCT-GAP-001 does not requalify Release-One and does not promote the caveat away. | `none` for **new** PoE-410 candidate; Release-One stays `production` / `stable` on its existing entry | `HW-ASSETS-410` (PR #516) → `HW-PINMAP-410-FOLLOWUP` (this PR) → BOM cross-check → `HW-002 OQ#6` closure / `S360-100-BENCH-001` update → `S360-410` `schematic_status: verified` JSON PR → `PACKAGE-POE-410-001` → separate later Release-One caveat-closure PR + `PRODUCT-POE-410-001` if a new entry is warranted |
 
 The Release-One package stack consumed by
 [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
@@ -684,15 +684,27 @@ named follow-up.
 
 ### PoE-410 / S360-410
 
-- **Status.** `reference-only` + `schematic-evidence-pending` +
-  `do-not-change-release-one`.
+- **Status.** `reference-only` + `schematic-evidence-pending`
+  (schematic landed under HW-ASSETS-410 / PR #516 and was consumed
+  by HW-PINMAP-410-FOLLOWUP; package-header reconciliation still
+  owed) + `do-not-change-release-one`.
 - **Why no product YAML.** The required package
   [`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
   is `reference-only` (logical PoE-power package; emits diagnostic
   sensors only, binds no GPIOs) + `schematic-evidence-pending` +
   `do-not-change-release-one` per
   [`package-readiness-matrix.md` `power_poe.yaml` / S360-410](hardware/package-readiness-matrix.md#power_poeyaml--s360-410).
-  Release-One
+  Module-side schematic now committed under HW-ASSETS-410 / PR #516
+  and consumed by HW-PINMAP-410-FOLLOWUP — the HW-PINMAP-410 audit
+  doc at [`docs/hardware/s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md)
+  is now `partial — schematic evidence available; package
+  reconciliation, PoE PD controller / magnetics / buck / isolated
+  DC/DC / harness identity evidence pending`. The
+  package-header whole-module `Ag9712M / Silvertel Ag9700 / or
+  similar` hint vs the schematic-shown discrete topology
+  (`TPS2378DDAR / TX4138 / F0505S-2WR2 / RJP-003TC1(LPJ4112CNL)`)
+  is recorded as **unresolved** — BOM evidence is required before
+  `PACKAGE-POE-410-001` can resolve the part identity. Release-One
   [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
   consumes the package today under the documented
   "schematic verification pending" caveat in
@@ -700,8 +712,9 @@ named follow-up.
   PRODUCT-GAP-001 **does not** add a sibling PoE-410 product YAML,
   **does not** requalify Release-One, and **does not** promote the
   caveat away. Adding a new product YAML that explicitly subjects
-  the PoE PSU as a verified module is gated on `HW-ASSETS-410` and
-  `HW-PINMAP-410-FOLLOWUP`.
+  the PoE PSU as a verified module is gated on
+  `PACKAGE-POE-410-001` (BOM-bound) and the separate `S360-410`
+  `schematic_status: verified` JSON-only PR.
 - **Product YAML action now.** None. Release-One stays
   `Ceiling-POE-VentIQ-RoomIQ`, `status: production`,
   `channel: stable`, version `1.0.0`, artifact
@@ -713,10 +726,13 @@ named follow-up.
 - **WebFlash exposure class.** Release-One's existing
   `production-candidate` exposure is unchanged. No new PoE-410
   candidate is on the WebFlash surface.
-- **Follow-up owner.** `HW-ASSETS-410` → `HW-PINMAP-410-FOLLOWUP`
-  → `HW-002 OQ#6` closure / `S360-100-BENCH-001` update →
-  `PACKAGE-POE-410-001` → separate later Release-One caveat-closure
-  PR + `PRODUCT-POE-410-001` (only if a new explicitly-PoE-subject
+- **Follow-up owner.** `HW-ASSETS-410` (merged as PR #516) →
+  `HW-PINMAP-410-FOLLOWUP` (schematic-backed partial audit; this
+  PR) → BOM cross-check → `HW-002 OQ#6` closure /
+  `S360-100-BENCH-001` update → `S360-410`
+  `schematic_status: verified` JSON-only PR → `PACKAGE-POE-410-001`
+  → separate later Release-One caveat-closure PR +
+  `PRODUCT-POE-410-001` (only if a new explicitly-PoE-subject
   product is warranted; otherwise the slice closes by promoting
   the caveat alone).
 - **Cross-references.**

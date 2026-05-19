@@ -117,7 +117,17 @@ Hardware:
 - [`packages/hardware/led_ring_ceiling.yaml`](../../packages/hardware/led_ring_ceiling.yaml)
   — Sense360 LED WS2812B driver.
 - [`packages/hardware/power_poe.yaml`](../../packages/hardware/power_poe.yaml)
-  — Sense360 PoE PSU diagnostic-only logical package.
+  — Sense360 PoE PSU diagnostic-only logical package. **Module-side
+  schematic now committed under HW-ASSETS-410 / PR #516 at
+  [`docs/hardware/schematics/S360-410-R4.pdf`](schematics/S360-410-R4.pdf)**
+  and consumed by HW-PINMAP-410-FOLLOWUP at
+  [`s360-410-r4-poe.md`](s360-410-r4-poe.md). The package-header
+  whole-module PoE-module hint (`Ag9712M / Silvertel Ag9700 / or
+  similar`) **disagrees** with the schematic-shown discrete
+  topology (`TPS2378DDAR(HSOIC-8)` + `TX4138(ESOIC-8)` +
+  `F0505S-2WR2(SIP-7)` with `AM1D-0505S-NZ` annotated alternate +
+  `RJP-003TC1(LPJ4112CNL)`). Resolution is BOM-bound and belongs
+  to `PACKAGE-POE-410-001`, not HW-009.
 
 Expansions:
 
@@ -600,6 +610,80 @@ Status: `package-yaml-pending` / `needs-package-reconciliation` +
 **not** change the package, the catalog `description`, the
 COMPLIANCE-001 status, the JSON `schematic_status`, or any
 reference to PWR-240V.
+
+### `power_poe.yaml` PoE-module part-identity disagreement (S360-410)
+
+Schematic evidence:
+
+- `S360-410` schematic: **module-side PDF committed under
+  HW-ASSETS-410 (PR #516)** at
+  [`docs/hardware/schematics/S360-410-R4.pdf`](schematics/S360-410-R4.pdf)
+  (curated index at
+  [`docs/hardware/artifacts/S360-410-R4.md`](artifacts/S360-410-R4.md));
+  `config/hardware-catalog.json` still records `S360-410` →
+  `schematic_status: cataloged_unverified` (HW-ASSETS-410 /
+  HW-PINMAP-410-FOLLOWUP deliberately do **not** flip the JSON
+  status; promotion is owed to a separate JSON-only PR after BOM
+  cross-check + HW-002 OQ#6 / `S360-100-BENCH-001` J2-harness
+  closure). The module-side schematic shows a **discrete** PoE PSU
+  topology: `LAN_CON1 = RJP-003TC1(LPJ4112CNL)` integrated 10/100
+  BASE-TX magnetics / RJ45 module with Bob-Smith bridge
+  (`2x1000pF/2KV` + `2x75 Ω` + `C3 1nF` shield-to-`Lan_earth`
+  bridge); `U1 = TPS2378DDAR(HSOIC-8)` PoE PD controller with
+  `R1 24.9k` DEN, `R2 1.27k` CLS (`Class=0 (0.44 to 12.95W)`),
+  `D1 SMAJ58A` TVS, `C2 15uF` CBULK, `R5 0.03R` RTN sense; `U2 =
+  TX4138(ESOIC-8)` buck with `R3/R4 9.1k` ILIM, `L1 33uH`, `D2
+  ss510`, `C6 470u`, and a `R7 10.5k` (Rd) / `R8 56.2k` (Rc)
+  feedback divider giving nominal `Vout = 0.8 · (1 + Rc/Rd) ≈
+  5.08 V` on `Sw_Vin_Poe`; `DCDC1 = F0505S-2WR2(SIP-7)` isolated
+  5 V → 5 V (with `AM1D-0505S-NZ` annotated as alternate;
+  pinout `Vin+` / `Vin-` / `Vout-` / `Vout+`); `J3` 2-pin
+  "Connection to Cores" output (pin 1 = `+5VP`, pin 2 = `GND`;
+  `C8 22u` bulk, `R9 1k` bleed); `D3 Green` status LED on buck
+  output; four mounting holes `H1`..`H4` each labelled `Earth`;
+  no on-board PoE-link / activity LED on the primary side, no
+  spare-pair vs data-pair selection, no explicit 802.3at
+  signature network, no secondary regulator after isolation, no
+  I²C / UART / SPI / GPIO / digital-bus circuitry. The
+  **HW-PINMAP-410 audit doc** has landed at
+  [`docs/hardware/s360-410-r4-poe.md`](s360-410-r4-poe.md) with
+  **status: `partial — schematic evidence available; package
+  reconciliation, PoE PD controller / magnetics / buck / isolated
+  DC/DC / harness identity evidence pending`** (promoted by
+  HW-PINMAP-410-FOLLOWUP from the prior `pending —
+  schematic/design evidence required`); records the
+  package-header whole-module `Ag9712M / Silvertel Ag9700 / or
+  similar` hint vs the schematic-shown discrete topology
+  (`TPS2378DDAR / TX4138 / F0505S-2WR2 / RJP-003TC1(LPJ4112CNL)`)
+  as **unresolved by this PR**, BOM-bound, and owed to
+  `PACKAGE-POE-410-001`; preserves the Release-One PoE
+  "schematic verification pending" caveat verbatim. PoE is SELV;
+  **not** in scope for COMPLIANCE-001.
+
+Package file:
+[`packages/hardware/power_poe.yaml`](../../packages/hardware/power_poe.yaml)
+is a logical PoE-power package emitting diagnostic sensors only
+(`Supply Voltage`, `Power Source`, `Power Configuration`, `PoE
+Power Connected`); no GPIO binding. Header comments at line 6
+carry the disagreed `Ag9712M, Silvertel Ag9700, or similar`
+whole-module PoE-PSU hint plus the partially-evidenced
+`IEEE 802.3af / 802.3at` / `Class 0 / Class 1` / `36-57V DC` /
+`5V DC, 2A (10W) or 3.3V DC` / `Overcurrent, overvoltage,
+short-circuit` claims. **None of those comments is edited by
+HW-009 or by HW-PINMAP-410-FOLLOWUP** — comment-only cleanup is
+deferred to `PACKAGE-POE-410-001` once BOM evidence lands,
+matching the rule HW-PINMAP-400-FOLLOWUP applied to
+`power_240v.yaml`.
+
+Status: `reference-only` (logical, no GPIO binding) +
+`schematic-evidence-pending` (schematic consumed by
+HW-PINMAP-410-FOLLOWUP; package-header reconciliation still owed)
++ `do-not-change-release-one`. HW-009 does **not** change the
+package, the catalog `description` (`PoE to 5V.`), the JSON
+`schematic_status`, the Release-One PoE caveat, or any reference
+to PoE-410. `PACKAGE-POE-410-001` stays blocked behind BOM
+cross-check, the `S360-410` `schematic_status: verified` JSON
+PR, and HW-002 OQ#6 / `S360-100-BENCH-001` closure.
 
 ## Recommended follow-up PRs
 

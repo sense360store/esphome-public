@@ -371,7 +371,7 @@ Every cell is a policy label as defined in
 | **FanDAC / S360-312** | none (no `sense360-*-fandac-*.yaml`); any future FanDAC product must respect the `FanDAC ↔ AirIQ` mutex (`config/webflash-compatibility.json` `rules.fandac_conflicts_with_airiq: true`) | `missing` (S360-312 schematic committed; voltage-rail discrepancy + DIP-switch I²C address + UART-vs-Nextion arbitration + stale header-comment block all unresolved; `packages/expansions/fan_gp8403.yaml` `needs-package-reconciliation`) | `missing-product-yaml` + `needs-package-reconciliation` + `invalid-combination` with any AirIQ-bearing variant per [`product-readiness-matrix.md`](product-readiness-matrix.md#fandac--s360-312) | none | none | `not-webflash-ready` | `preview-candidate` (standard exposure; AirIQ-bearing FanDAC variants forbidden by mutex) | `not-required-configs` | `not-recommended` + `not-kit-default` (FanDAC ↔ AirIQ mutex narrows the eligible config-string space; kit / recommended decision belongs to `PRODUCT-DAC-001`) | `HW-PINMAP-312-FOLLOWUP` → `PACKAGE-DAC-001` → `PRODUCT-DAC-001` → `WEBFLASH-DAC-001` → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`. |
 | **FanTRIAC / S360-320** | exists as the **blocked** reference [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml); catalog status `blocked`, blocker `HW-005`, `webflash_build_matrix: false`; `PRODUCT-TRIAC-001` has performed a **notes-only** catalog edit recording the advanced / manual-warning candidate posture without changing any structural field. No new product YAML is added by `WEBFLASH-GAP-001`. | `missing` (S360-320 schematic committed; `ac_dimmer` timing across SX1509 expander rejected; `fan_triac.yaml` `needs-package-reconciliation` + `timing/compliance-pending` + `blocked-from-standard-exposure`) | `timing/compliance-pending` + `advanced/manual-warning-only` (policy-recorded by `PRODUCT-TRIAC-001` notes-only) + `blocked-from-standard-exposure` per [`product-readiness-matrix.md`](product-readiness-matrix.md#fantriac--s360-320); HW-005 unblock + COMPLIANCE-001 sign-off required before any product / WebFlash motion | exists for the blocked reference; `webflash_build_matrix: false` | not in the build matrix | `not-webflash-ready` (blocked reference wrapper retained as evidence; no live build / WebFlash surface) | `advanced/manual-warning-only` (long-term posture; policy-recorded by `PRODUCT-TRIAC-001` notes-only; reach to a live WebFlash surface still requires `WF-TRIAC-001` after `PACKAGE-TRIAC-001` + `PRODUCT-TRIAC-002` + `COMPLIANCE-001` advanced / manual-warning sign-off + WebFlash-side manual-warning UX) | **`not-required-configs` — never by default.** Any future addition to `release_one_required_configs` would be a separate explicit, scoped PR with COMPLIANCE-001 sign-off and is **not** authorised by this matrix. | **`not-recommended` + `not-kit-default` — never by default.** Mains-voltage advanced / manual-warning products are categorically excluded from kit / default / recommended / Release-One surfaces, irrespective of any future product YAML existence. | `PRODUCT-TRIAC-001` (landed: notes-only catalog reclassification) → `HW-005` resolution → `HW-PINMAP-320-FOLLOWUP` → `PACKAGE-TRIAC-001` → `PRODUCT-TRIAC-002` → `COMPLIANCE-001` advanced / manual-warning sign-off → `WF-TRIAC-001` (advanced / manual-warning WebFlash slice) → `RELEASE-TRIAC-001` → `WF-IMPORT-TRIAC-001`. See [`hardware/s360-320-r4-triac.md` Follow-up PR sequence](hardware/s360-320-r4-triac.md#follow-up-pr-sequence). |
 | **PWR-240V / S360-400** | none (the four `legacy-compatible` `*-pwr` Core variants are `*-pwr` mains-power Core configurations only; no WebFlash-shippable PWR-240V product entry exists) | `missing` (S360-400 module-side schematic committed under HW-ASSETS-400 / PR #514 at [`hardware/schematics/S360-400-R4.pdf`](hardware/schematics/S360-400-R4.pdf) with curated artifact index at [`hardware/artifacts/S360-400-R4.md`](hardware/artifacts/S360-400-R4.md); HW-PINMAP-400-FOLLOWUP consumed both and promoted [`s360-400-r4-power.md`](hardware/s360-400-r4-power.md) to `partial — schematic evidence available; package reconciliation, BOM, silkscreen, creepage/clearance, and COMPLIANCE-001 pending`; `packages/hardware/power_240v.yaml` stays `schematic-evidence-pending` + `timing/compliance-pending` under COMPLIANCE-001 — three-way `HLK-5M05` / `HLK-PM01 or similar` / `HLK-10M05` part-identity disagreement + silkscreen + BOM + creepage/clearance + compliance still owed) | `schematic-evidence-pending` + `timing/compliance-pending` per [`product-readiness-matrix.md`](product-readiness-matrix.md#pwr-240v--s360-400); COMPLIANCE-001 `S360-400` slice closure required before any product / WebFlash motion | none | none | `not-webflash-ready` | `preview-candidate` (standard exposure once schematic-backed pin-map + compliance gates clear; advanced / manual-warning posture **not** the default for PWR-240V, but the per-family `PRODUCT-POWER-400-001` slice decides) | `not-required-configs` | `not-recommended` + `not-kit-default` (mains-voltage compliance posture is gating-priority over exposure decision; kit / recommended decision belongs to `PRODUCT-POWER-400-001`) | `HW-ASSETS-400` *(landed at PR #514)* → `HW-PINMAP-400-FOLLOWUP` *(this PR; docs-only)* → BOM + silkscreen + creepage / clearance + bench / thermal / EMI evidence → `PACKAGE-POWER-400-001` → `COMPLIANCE-001` S360-400 slice closure → `PRODUCT-POWER-400-001` → `WEBFLASH-POWER-400-001` → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`. |
-| **PoE-410 / S360-410** | none directly; the verified S360-410 PoE PSU is consumed only by Release-One (`Ceiling-POE-VentIQ-RoomIQ`) and the LED preview (`Ceiling-POE-VentIQ-RoomIQ-LED`) under their existing schematic-pending caveat | `missing` (S360-410 schematic uncommitted; `packages/hardware/power_poe.yaml` `schematic-evidence-pending` + `reference-only`) | `schematic-evidence-pending` per [`product-readiness-matrix.md`](product-readiness-matrix.md#poe-410--s360-410); per the matrix, "often this slice will close by promoting Release-One's preserved schematic-pending caveat alone, without adding a new product entry" | none new; existing Release-One wrapper unchanged | none new; existing Release-One row unchanged | `not-webflash-ready` for any **new** PoE-410 product entry. Existing Release-One PoE consumption is **not** affected; Release-One wrapper / catalog / build / artifact stays verbatim | `preview-candidate` (only if a new product entry is added; the default close is no-new-entry / caveat-closure-only) | `not-required-configs` (Release-One's existing membership is not touched) | `not-recommended` + `not-kit-default` (no new product entry implies no new kit / recommended membership) | `HW-ASSETS-410` → `HW-PINMAP-410-FOLLOWUP` → `S360-100-BENCH-001` update / `HW-002 OQ#6` closure → `PACKAGE-POE-410-001` → `PRODUCT-POE-410-001` (if warranted) → `WEBFLASH-POE-410-001` (if a new product entry is added) → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`. |
+| **PoE-410 / S360-410** | none directly; the verified S360-410 PoE PSU is consumed only by Release-One (`Ceiling-POE-VentIQ-RoomIQ`) and the LED preview (`Ceiling-POE-VentIQ-RoomIQ-LED`) under their existing schematic-pending caveat | S360-410 schematic committed under HW-ASSETS-410 / PR #516 at [`docs/hardware/schematics/S360-410-R4.pdf`](hardware/schematics/S360-410-R4.pdf) (975,137 bytes; SHA256 `4a8b7a3b2a89006a9332eaa486743f687aaedc4b6bb807c6b25670f742ac2414`) with curated artifact index at [`docs/hardware/artifacts/S360-410-R4.md`](hardware/artifacts/S360-410-R4.md); HW-PINMAP-410-FOLLOWUP has consumed both and promoted [`docs/hardware/s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md) to `partial`; `packages/hardware/power_poe.yaml` stays `reference-only` + `schematic-evidence-pending` + `do-not-change-release-one` | `schematic-evidence-pending` per [`product-readiness-matrix.md`](product-readiness-matrix.md#poe-410--s360-410); per the matrix, "often this slice will close by promoting Release-One's preserved schematic-pending caveat alone, without adding a new product entry" | none new; existing Release-One wrapper unchanged | none new; existing Release-One row unchanged | `not-webflash-ready` for any **new** PoE-410 product entry. Existing Release-One PoE consumption is **not** affected; Release-One wrapper / catalog / build / artifact stays verbatim | `preview-candidate` (only if a new product entry is added; the default close is no-new-entry / caveat-closure-only) | `not-required-configs` (Release-One's existing membership is not touched) | `not-recommended` + `not-kit-default` (no new product entry implies no new kit / recommended membership) | `HW-ASSETS-410` (PR #516) → `HW-PINMAP-410-FOLLOWUP` (this PR) → BOM cross-check → `S360-100-BENCH-001` update / `HW-002 OQ#6` closure → `S360-410` `schematic_status: verified` JSON PR → `PACKAGE-POE-410-001` → `PRODUCT-POE-410-001` (if warranted) → `WEBFLASH-POE-410-001` (if a new product entry is added) → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`. |
 
 No row in this table carries `standard-exposure-candidate` or
 `production-candidate` as a *current* class today; every row is
@@ -740,14 +740,23 @@ decisions; kit / recommended membership decision belongs to
 ## PoE / S360-410 WebFlash posture
 
 **Current state.** `S360-410 Sense360 PoE PSU`,
-`schematic_status: cataloged_unverified`, no `schematic_file`, no
-committed module-side schematic PDF, no curated artifact index, no
-standalone schematic-backed reference doc (only the audit-stub
-[`s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md) at status
-`pending — schematic/design evidence required`).
-`packages/hardware/power_poe.yaml` carries
-`schematic-evidence-pending` + `reference-only`. The Release-One
-product `Ceiling-POE-VentIQ-RoomIQ` and the LED preview
+`schematic_status: cataloged_unverified` (unchanged by HW-ASSETS-410
+or HW-PINMAP-410-FOLLOWUP), no `schematic_file`. Module-side
+schematic now **committed under HW-ASSETS-410 / PR #516** at
+[`docs/hardware/schematics/S360-410-R4.pdf`](hardware/schematics/S360-410-R4.pdf)
+with curated artifact index at
+[`docs/hardware/artifacts/S360-410-R4.md`](hardware/artifacts/S360-410-R4.md);
+[`s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md) audit doc
+**promoted by HW-PINMAP-410-FOLLOWUP** to `partial — schematic
+evidence available; package reconciliation, PoE PD controller /
+magnetics / buck / isolated DC/DC / harness identity evidence
+pending`. Standalone schematic-backed reference-doc rewrite still
+owed.
+`packages/hardware/power_poe.yaml` stays `reference-only` +
+`schematic-evidence-pending` (schematic consumed; package-header
+reconciliation still owed to `PACKAGE-POE-410-001` after BOM
+lands) + `do-not-change-release-one`. The Release-One product
+`Ceiling-POE-VentIQ-RoomIQ` and the LED preview
 `Ceiling-POE-VentIQ-RoomIQ-LED` both consume S360-410 logically
 under the existing schematic-pending caveat preserved in
 [`release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings).
@@ -779,15 +788,16 @@ is not required, and the family closes at the existing Release-One
 caveat without a new exposure class. The reach to a new
 `preview-candidate` exposure, if `PRODUCT-POE-410-001` decides one
 is warranted, requires: `HW-ASSETS-410` (supplier delivery of
-module-side schematic PDF + curated artifact index) →
-`HW-PINMAP-410-FOLLOWUP` (standalone schematic-backed reference
-doc; PoE / rail / connector / harness reconciliation; `HW-002 OQ#6`
-J2 harness identity closure; `S360-100-BENCH-001` update) →
-`PACKAGE-POE-410-001` (PoE-410 package YAML reconciliation) →
-`PRODUCT-POE-410-001` (canonical product YAML, **if warranted**) →
-`WEBFLASH-POE-410-001` (wrapper + catalog + build-matrix, **if a
-new product entry is added**) → `RELEASE-GAP-001` →
-`WF-IMPORT-GAP-001`.
+module-side schematic PDF + curated artifact index — landed as PR
+#516) → `HW-PINMAP-410-FOLLOWUP` (schematic-backed partial audit —
+this PR; standalone schematic-backed reference-doc rewrite still
+owed) → BOM cross-check → `HW-002 OQ#6` J2 harness identity
+closure / `S360-100-BENCH-001` update → `S360-410`
+`schematic_status: verified` JSON PR → `PACKAGE-POE-410-001`
+(PoE-410 package YAML reconciliation) → `PRODUCT-POE-410-001`
+(canonical product YAML, **if warranted**) → `WEBFLASH-POE-410-001`
+(wrapper + catalog + build-matrix, **if a new product entry is
+added**) → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`.
 
 **REQUIRED_CONFIGS posture.** Release-One's existing
 `release_one_required_configs: ["Ceiling-POE-VentIQ-RoomIQ"]`
