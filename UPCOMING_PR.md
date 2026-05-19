@@ -57,18 +57,29 @@ mirrored here.
   ESP32-S3 `GPIO3` strap-pin boot-behaviour bench characterisation,
   silkscreen / harness / `K1` BOM evidence for `S360-310`, and a new
   pin-pinning test scaffold (`tests/test_core_abstract_bus.py`).
-- **HW-ASSETS-400** is the work item for this PR (artifact ingest in
-  progress / PR open — PR number pending). It commits the
+- **HW-ASSETS-400** merged as **PR #514** and landed the
   `S360-400-R4` schematic PDF at
   `docs/hardware/schematics/S360-400-R4.pdf` (byte-identical to the
   upload; 461,206 bytes; SHA256
   `295e3ec9192603fd4ca7d89b8cda68777e5cb8e9713ed8b0fba2316babb0e765`)
   and the curated artifact index at
-  `docs/hardware/artifacts/S360-400-R4.md`. **HW-PINMAP-400-FOLLOWUP
-  becomes the next S360-400 step after this PR merges.** No
-  `schematic_status` promotion, no `schematic_file` set, no package /
-  product / WebFlash / build / release / import edit, no COMPLIANCE-001
-  movement.
+  `docs/hardware/artifacts/S360-400-R4.md`. No `schematic_status`
+  promotion, no `schematic_file` set, no package / product / WebFlash
+  / build / release / import edit, no COMPLIANCE-001 movement.
+- **HW-PINMAP-400-FOLLOWUP** is the work item for this PR
+  (docs-only schematic-backed reconciliation in progress / PR open —
+  PR number pending). It consumes the HW-ASSETS-400 schematic
+  evidence and promotes `docs/hardware/s360-400-r4-power.md` from
+  `pending — schematic/design evidence required` to
+  `partial — schematic evidence available; package reconciliation,
+  BOM, silkscreen, creepage/clearance, and COMPLIANCE-001 pending`.
+  Records the three-way AC/DC part-identity disagreement (catalog
+  `HLK-5M05` vs package header `HLK-PM01 or similar` vs schematic
+  `HLK-10M05`) as unresolved (BOM-bound). `packages/hardware/power_240v.yaml`
+  stays byte-identical; comment-only cleanup deferred to
+  `PACKAGE-POWER-400-001` once BOM evidence lands. **PACKAGE-POWER-400-001
+  remains blocked** behind BOM cross-check, the `S360-400`
+  `schematic_status: verified` JSON PR, and `COMPLIANCE-001`.
 - **S360-410** schematic evidence remains uploaded in the current task
   context and is the candidate for the next ingest PR (**HW-ASSETS-410**),
   independent of HW-ASSETS-400 / HW-PINMAP-400-FOLLOWUP.
@@ -99,6 +110,7 @@ add rows without verifying the PR number.
 | HW-PINMAP-310-FOLLOWUP       | #510      | esphome-public  | Merged — schematic-backed partial       | Consumed S360-310-R4 schematic; promoted Relay pin/package audit to partial          | `packages/expansions/fan_relay.yaml`, product/WebFlash      | Relay package work surfaced shared-variable mismatches → CORE-ABSTRACT-BUS-001     |
 | PACKAGE-RELAY-001            | #511      | esphome-public  | Merged — docs-only deferral             | Recorded deferral until CORE-ABSTRACT-BUS-001 / silkscreen / harness / K1 BOM land   | `packages/expansions/fan_relay.yaml`                        | Relay package implementation now gated by CORE-ABSTRACT-BUS-001                    |
 | CORE-ABSTRACT-BUS-001        | #513      | esphome-public  | Merged — docs-only audit + slice plan   | Added `docs/hardware/core-abstract-bus-reconciliation.md` and split implementation into 001A / 001B / 001C | No package YAML, product YAML, config, tests, firmware, or release files changed | Queue now prioritises 001C before 001A (GPIO3 collision); Relay package remains blocked on 001A; PWM / DAC additionally affected by 001B / 001C |
+| HW-ASSETS-400                | #514      | esphome-public  | Merged — artifact ingest                | Added `S360-400-R4` schematic PDF (461,206 bytes; SHA256 `295e3ec9192603fd4ca7d89b8cda68777e5cb8e9713ed8b0fba2316babb0e765`) and curated artifact index | No package, product, WebFlash, build, release, compliance, or JSON catalog files | Unblocked HW-PINMAP-400-FOLLOWUP schematic-backed reconciliation |
 
 ## Active / upcoming esphome-public queue
 
@@ -167,39 +179,34 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      coverage. Plan recorded in
      `docs/hardware/core-abstract-bus-reconciliation.md` §CORE-ABSTRACT-BUS-001B.
 
-4. **HW-ASSETS-400 — Add curated S360-400 power board artifacts**
+4. **HW-PINMAP-400-FOLLOWUP — Complete S360-400 power board mapping**
    - Status: **In flight (this PR) — PR open / PR number pending**
-   - Purpose: Ingest the uploaded S360-400-R4 schematic PDF and create a
-     curated artifact index alongside the existing S360-310 / S360-311 /
-     S360-312 / S360-320 entries.
-   - This PR commits the schematic PDF at
-     `docs/hardware/schematics/S360-400-R4.pdf` (byte-identical to the
-     upload; 461,206 bytes; SHA256
-     `295e3ec9192603fd4ca7d89b8cda68777e5cb8e9713ed8b0fba2316babb0e765`)
-     and the curated artifact index at
-     `docs/hardware/artifacts/S360-400-R4.md`. The schematic shows
-     AC/DC regulation to 5 V using **`PS1 = HLK-10M05`** (catalog
-     says `HLK-5M05`, package header says `HLK-PM01 or similar` —
-     **three-way part-identity disagreement recorded, not resolved**);
-     3-pin AC input `J1` (`LIVE` / `NEUTRAL` / `Earth_Protective`);
-     resettable fuse `F1 A250-1200`; MOV `RV1 10D391K`; X-cap `C1 470nF`;
-     four-cap output filter `C5 100uF` / `C6 10u` / `C7 100n` /
-     `C8 100uF`; 2-pin `J2` output (`+5VP` / `GND`); mounting holes
-     `H1`..`H4`. No package / product / WebFlash / build / release /
-     import edits. No `schematic_status` promotion. No `schematic_file`
-     set. No compliance claim. After merge this row moves to
-     **Completed / merged PRs** and **HW-PINMAP-400-FOLLOWUP** (item 5
-     below) becomes the next S360-400 step.
+   - Purpose: Docs-only schematic-backed reconciliation. Consume the
+     HW-ASSETS-400 (PR #514) module-side schematic evidence and
+     promote `docs/hardware/s360-400-r4-power.md` from
+     `pending — schematic/design evidence required` to
+     `partial — schematic evidence available; package reconciliation,
+     BOM, silkscreen, creepage/clearance, and COMPLIANCE-001 pending`.
+     Records the three-way AC/DC part-identity disagreement (catalog
+     `HLK-5M05` vs package header `HLK-PM01 or similar` vs schematic
+     `HLK-10M05`) as **unresolved** — BOM-bound, owed to
+     `PACKAGE-POWER-400-001`. Refreshes the `S360-400` cross-link
+     narrative in
+     [`docs/hardware/board-readiness-matrix.md`](docs/hardware/board-readiness-matrix.md),
+     [`docs/hardware/remaining-board-documentation-audit.md`](docs/hardware/remaining-board-documentation-audit.md),
+     [`docs/hardware/package-readiness-matrix.md`](docs/hardware/package-readiness-matrix.md),
+     [`docs/hardware/firmware-package-mapping-audit.md`](docs/hardware/firmware-package-mapping-audit.md),
+     [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+     [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+     [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
+     and [`docs/cleanup-audit.md`](docs/cleanup-audit.md). No package
+     / product / WebFlash / build / release / import edits. No
+     `schematic_status` promotion. No `schematic_file` set. No
+     COMPLIANCE-001 movement. No `packages/hardware/power_240v.yaml`
+     edit (comment-only cleanup deferred to `PACKAGE-POWER-400-001`
+     once BOM evidence lands).
 
-5. **HW-PINMAP-400-FOLLOWUP — Complete S360-400 power board mapping**
-   - Status: Planned / after HW-ASSETS-400
-   - Purpose: Promote `docs/hardware/s360-400-r4-power.md` from
-     "pending evidence" to schematic-backed (partial or complete) using the
-     newly ingested S360-400-R4 artifacts.
-   - Notes: Cannot start until HW-ASSETS-400 lands the schematic PDF and
-     artifact index.
-
-6. **HW-ASSETS-410 — Add curated S360-410 PoE PSU artifacts**
+5. **HW-ASSETS-410 — Add curated S360-410 PoE PSU artifacts**
    - Status: Next / evidence available
    - Purpose: Ingest the uploaded S360-410-R4 schematic PDF and create a
      curated artifact index.
@@ -207,7 +214,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      connector, TPS2378, TX4138, isolated F0505S-2WR2, and +5VP / GND Core
      output. Do not requalify Release-One implicitly.
 
-7. **HW-PINMAP-410-FOLLOWUP — Complete S360-410 PoE PSU mapping**
+6. **HW-PINMAP-410-FOLLOWUP — Complete S360-410 PoE PSU mapping**
    - Status: Planned / after HW-ASSETS-410
    - Purpose: Promote `docs/hardware/s360-410-r4-poe.md` from
      "pending evidence" to schematic-backed using the newly ingested
@@ -215,7 +222,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
    - Notes: Cannot start until HW-ASSETS-410 lands the schematic PDF and
      artifact index.
 
-8. **PACKAGE-POWER-400-001**
+7. **PACKAGE-POWER-400-001**
    - Status: Planned / after HW-PINMAP-400-FOLLOWUP
    - Purpose: Stand up the S360-400 power board package wiring once the
      pin/package audit is schematic-backed.
@@ -223,48 +230,48 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      CORE-ABSTRACT-BUS-001 slices (001A/001B/001C) for any shared
      Core variables the power package touches.
 
-9. **PRODUCT-POWER-400-001**
+8. **PRODUCT-POWER-400-001**
    - Status: Planned / after PACKAGE-POWER-400-001
    - Purpose: Add the S360-400 product YAML against the new package.
    - Notes: No WebFlash exposure until WEBFLASH-POWER-400-001.
 
-10. **WEBFLASH-POWER-400-001**
+9. **WEBFLASH-POWER-400-001**
    - Status: Planned / after PRODUCT-POWER-400-001
    - Purpose: Add the WebFlash wrapper, compatibility entry, and build
      matrix row for the S360-400 product.
    - Notes: Pairs with WebFlash-side WF-IMPORT-POWER-400-001 — see
      cross-repo dependencies.
 
-11. **RELEASE-POWER-400-001**
+10. **RELEASE-POWER-400-001**
    - Status: Planned / after WEBFLASH-POWER-400-001
    - Purpose: Produce the release artifact + release-proof entries for the
      S360-400 product.
    - Notes: Subject to existing release-artifact readiness gates.
 
-12. **PACKAGE-POE-410-001**
+11. **PACKAGE-POE-410-001**
     - Status: Planned / after HW-PINMAP-410-FOLLOWUP
     - Purpose: Stand up the S360-410 PoE PSU package wiring once the
       pin/package audit is schematic-backed.
     - Notes: Must not implicitly requalify Release-One.
 
-13. **PRODUCT-POE-410-001**
+12. **PRODUCT-POE-410-001**
     - Status: Planned / after PACKAGE-POE-410-001
     - Purpose: Add the S360-410 product YAML against the new package.
     - Notes: No WebFlash exposure until WEBFLASH-POE-410-001.
 
-14. **WEBFLASH-POE-410-001**
+13. **WEBFLASH-POE-410-001**
     - Status: Planned / after PRODUCT-POE-410-001
     - Purpose: Add the WebFlash wrapper, compatibility entry, and build
       matrix row for the S360-410 product.
     - Notes: Pairs with WebFlash-side WF-IMPORT-POE-410-001.
 
-15. **RELEASE-POE-410-001**
+14. **RELEASE-POE-410-001**
     - Status: Planned / after WEBFLASH-POE-410-001
     - Purpose: Produce the release artifact + release-proof entries for the
       S360-410 product.
     - Notes: Subject to existing release-artifact readiness gates.
 
-16. **PRODUCT-RELAY-001**
+15. **PRODUCT-RELAY-001**
     - Status: Blocked on CORE-ABSTRACT-BUS-001A (relay_pin slice;
       itself blocked on 001C) + PACKAGE-RELAY-001 implementation
     - Purpose: Add the S360-310 Relay product YAML once the Relay package is
@@ -273,20 +280,20 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       docs-only deferral) and now further gated by the
       CORE-ABSTRACT-BUS-001A relay_pin slice landing.
 
-17. **WEBFLASH-RELAY-001**
+16. **WEBFLASH-RELAY-001**
     - Status: Blocked on PRODUCT-RELAY-001 (which is itself blocked on
       CORE-ABSTRACT-BUS-001A)
     - Purpose: Add the WebFlash wrapper, compatibility entry, and build
       matrix row for the Relay product.
     - Notes: Pairs with WebFlash-side WF-IMPORT-RELAY-001.
 
-18. **RELEASE-RELAY-001**
+17. **RELEASE-RELAY-001**
     - Status: Blocked on WEBFLASH-RELAY-001 (ultimately on
       CORE-ABSTRACT-BUS-001A)
     - Purpose: Produce the release artifact + release-proof entries for the
       Relay product.
 
-19. **PACKAGE-PWM-001**
+18. **PACKAGE-PWM-001**
     - Status: Blocked on HW-PINMAP-311-FOLLOWUP returning sufficient evidence
     - Purpose: Stand up / re-stand up the S360-311 PWM package wiring once
       the pin/package audit is no longer partial.
@@ -295,20 +302,20 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       / `expansion_gpio2` rebind that `fan_pwm.yaml` consumes via
       `${fan_pwm_pin}` / `${fan_tach_pin}`).
 
-20. **PRODUCT-PWM-001**
+19. **PRODUCT-PWM-001**
     - Status: Blocked on PACKAGE-PWM-001
     - Purpose: Add / re-align the S360-311 PWM product YAML.
 
-21. **WEBFLASH-PWM-001**
+20. **WEBFLASH-PWM-001**
     - Status: Blocked on PRODUCT-PWM-001
     - Purpose: WebFlash wrapper, compatibility entry, build matrix row.
     - Notes: Pairs with WebFlash-side WF-IMPORT-PWM-001.
 
-22. **RELEASE-PWM-001**
+21. **RELEASE-PWM-001**
     - Status: Blocked on WEBFLASH-PWM-001
     - Purpose: Release artifact + release-proof entries for the PWM product.
 
-23. **PACKAGE-DAC-001**
+22. **PACKAGE-DAC-001**
     - Status: Blocked on HW-PINMAP-312-FOLLOWUP returning sufficient evidence
     - Purpose: Stand up / re-stand up the S360-312 DAC (GP8403) package
       wiring once the pin/package audit is no longer partial.
@@ -316,33 +323,33 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       DAC is I²C-attached, so it consumes whichever bus id 001B
       settles on).
 
-24. **PRODUCT-DAC-001**
+23. **PRODUCT-DAC-001**
     - Status: Blocked on PACKAGE-DAC-001
     - Purpose: Add / re-align the S360-312 DAC product YAML.
 
-25. **WEBFLASH-DAC-001**
+24. **WEBFLASH-DAC-001**
     - Status: Blocked on PRODUCT-DAC-001
     - Purpose: WebFlash wrapper, compatibility entry, build matrix row.
     - Notes: Pairs with WebFlash-side WF-IMPORT-DAC-001.
 
-26. **RELEASE-DAC-001**
+25. **RELEASE-DAC-001**
     - Status: Blocked on WEBFLASH-DAC-001
     - Purpose: Release artifact + release-proof entries for the DAC product.
 
-27. **S360-300-BENCH-001**
+26. **S360-300-BENCH-001**
     - Status: Pending bench evidence
     - Purpose: LED ring bench / verification gate for S360-300.
     - Notes: Blocks the LED stable chain together with the WebFlash-owned
       operator-proof follow-ups.
 
-28. **RELEASE-007**
+27. **RELEASE-007**
     - Status: Planned / promotion of LED stable
     - Purpose: Promote the LED package + product from preview to stable
       once S360-300-BENCH-001 and the WebFlash operator-proof follow-ups
       land.
     - Notes: Subject to preview-to-stable promotion gates.
 
-29. **HW-005 / HW-PINMAP-320-FOLLOWUP**
+28. **HW-005 / HW-PINMAP-320-FOLLOWUP**
     - Status: Open / evidence-pass re-checked (PR #505); audit remains
       partial
     - Purpose: Resolve the S360-320 FanTRIAC pin/package collisions and
@@ -350,13 +357,13 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       progress the FanTRIAC chain.
     - Notes: Gating PACKAGE-TRIAC-001 implementation.
 
-30. **COMPLIANCE-001**
+29. **COMPLIANCE-001**
     - Status: Open / not cleared (PR #506 re-checked, no sign-off yet)
     - Purpose: Land the S360-320 mains-voltage advanced / manual-warning
       compliance sign-off.
     - Notes: Gating PRODUCT-TRIAC-002 / FanTRIAC release exposure.
 
-31. **PACKAGE-TRIAC-001**
+30. **PACKAGE-TRIAC-001**
     - Status: Deferred (PR #502 docs-only); blocked on HW-005 /
       HW-PINMAP-320-FOLLOWUP / COMPLIANCE-001
     - Purpose: Implement the FanTRIAC package once the gating HW +
@@ -364,12 +371,12 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
     - Notes: `packages/expansions/fan_triac.yaml` retained as-is in the
       meantime.
 
-32. **PRODUCT-TRIAC-002**
+31. **PRODUCT-TRIAC-002**
     - Status: Deferred (PR #501 docs-only); blocked on PACKAGE-TRIAC-001
     - Purpose: Implement the FanTRIAC product YAML once PACKAGE-TRIAC-001
       lands.
 
-33. **WF-TRIAC-001 — In-repo wrapper/catalog/build slice**
+32. **WF-TRIAC-001 — In-repo wrapper/catalog/build slice**
     - Status: Blocked on PRODUCT-TRIAC-002
     - Purpose: Add the in-repo WebFlash wrapper, compatibility entry, and
       build matrix row for the FanTRIAC product. (This is the
@@ -379,19 +386,19 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       touches `products/webflash/`, `config/`, and the build matrix in this
       repo.
 
-34. **RELEASE-TRIAC-001**
+33. **RELEASE-TRIAC-001**
     - Status: Blocked on WF-TRIAC-001 and COMPLIANCE-001
     - Purpose: Release artifact + release-proof entries for the FanTRIAC
       product, contingent on compliance sign-off.
 
-35. **PRODUCT-DEP-002**
+34. **PRODUCT-DEP-002**
     - Status: Planned / housekeeping
     - Purpose: Continue dependency / toolchain alignment work (pre-commit
       tooling, ESPHome pin, Python tooling) without changing functional
       behavior.
     - Notes: Must not destabilize Release-One.
 
-36. **CI-TOOLCHAIN-001**
+35. **CI-TOOLCHAIN-001**
     - Status: Planned / housekeeping
     - Purpose: CI toolchain alignment follow-ups (workflow images, action
       versions, ESPHome version pinning consistency).
@@ -421,17 +428,21 @@ visible. Do not implement them from this repo.
 
 ## Recently uploaded evidence
 
-- **S360-400-R4.pdf** — ingested by **HW-ASSETS-400** (this PR);
+- **S360-400-R4.pdf** — ingested by **HW-ASSETS-400** (PR #514);
   committed at `docs/hardware/schematics/S360-400-R4.pdf`
   (461,206 bytes; SHA256
   `295e3ec9192603fd4ca7d89b8cda68777e5cb8e9713ed8b0fba2316babb0e765`)
   with curated artifact index at
-  `docs/hardware/artifacts/S360-400-R4.md`.
+  `docs/hardware/artifacts/S360-400-R4.md`. Consumed by
+  **HW-PINMAP-400-FOLLOWUP** (this PR) under
+  `docs/hardware/s360-400-r4-power.md` to produce a schematic-backed
+  partial audit.
 - **S360-410-R4.pdf** — uploaded in current task context; candidate for
   **HW-ASSETS-410** ingest (not in scope for this PR).
 
 **Note:** Ingest of `S360-410-R4.pdf` is reserved for the dedicated
-`HW-ASSETS-410` PR. This PR scopes only to `S360-400` evidence.
+`HW-ASSETS-410` PR. This PR scopes only to docs-only consumption of
+the already-committed `S360-400` evidence under HW-PINMAP-400-FOLLOWUP.
 
 ## Do-not-change guardrails
 

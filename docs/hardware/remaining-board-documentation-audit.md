@@ -103,7 +103,7 @@ is included.
 | Sense360 PWM | `S360-311` | Core-side `J6` (12 V PWM fan connector, 13-pin) documented in [`s360-100-r4-core.md` J6](s360-100-r4-core.md#j6--12-v-pwm-fan-connector-13-pin). Net list captured (`+5V`, `GND`, `TachIO`, `TachPMW1..4`, `Pul_Cou1..4`); `TachPMW*` / `Pul_Cou*` are driven by the SX1509 expander per [`s360-100-r4-core.md` fan-driver outputs](s360-100-r4-core.md#fan--driver-outputs). The 1-to-13 pin order is explicitly marked **verify** in the Core doc. Module-side schematic not committed. Firmware package: [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml). Not in Release-One. | `partially-documented`, `not-needed-for-release-one` | Not required (no `FanPWM` in Release-One). | Commit `S360-311` schematic + standalone pin/connector doc; resolve the J6 pin-order **verify** flag against the silkscreen. |
 | Sense360 DAC | `S360-312` | Core-side `J7` (GP8403 fan connector, 6-pin) fully captured in [`s360-100-r4-core.md` J7](s360-100-r4-core.md#j7--gp8403-fan-connector-6-pin) — `+5V`, `I2C_SDA`, `I2C_SCL`, `UART_RX`, `UART_TX`, `GND`. Module-side schematic not committed. Firmware package: [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml). Not in Release-One. | `partially-documented`, `not-needed-for-release-one` | Not required (no `FanDAC` in Release-One). | Commit `S360-312` schematic + standalone pin/connector doc. |
 | Sense360 TRIAC | `S360-320` | **HW-005 blocked — must not ship as TRIAC-capable.** Core-side `J15` (TRIAC fan module connector, 4-pin) documented in [`s360-100-r4-core.md` J15](s360-100-r4-core.md#j15--triac-fan-module-connector-4-pin): `+3.3V`, `TRI_GPIO1`, `TRI_GPIO2`, `GND`. Source pins for `TRI_GPIO1` / `TRI_GPIO2` are **not visible** as direct ESP32 GPIOs on the Core sheet; they appear to route via the SX1509 (U3). **Module-side schematic now committed under HW-ASSETS-003** at [`docs/hardware/schematics/S360-320-R4.pdf`](schematics/S360-320-R4.pdf) with curated artifact index at [`docs/hardware/artifacts/S360-320-R4.md`](artifacts/S360-320-R4.md). **HW-PINMAP-320 audit doc now landed** at [`s360-320-r4-triac.md`](s360-320-r4-triac.md) with **status: `partial — schematic evidence available; package reconciliation, timing validation, and compliance/certification pending`**; records discrete `MOC3023M` + `BT136` + `EL814` topology, the `TRI_GPIO*` (Core) vs `ESP_GPIO*` (Module) naming divergence, and the intended advanced / manual-warning long-term product posture (not realised in this PR). The ESPHome `ac_dimmer` driver in [`packages/expansions/fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) requires direct interrupt-capable ESP32 GPIOs that the SX1509 cannot deliver — see [`release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander`](../release-one-hardware-audit.md#timing-constraint-ac_dimmer-vs-sx1509-expander). | `blocked` (HW-005), `not-needed-for-release-one` | **Stays blocked.** Do not promote to preview. | Stays blocked until the HW-005 missing-evidence checklist at [`release-one-hardware-audit.md#missing-evidence-checklist`](../release-one-hardware-audit.md#missing-evidence-checklist) is fully satisfied — either (a) direct, interrupt-capable ESP32 GPIOs for both `gate_pin` and `zero_cross_pin`, traced end-to-end through `S360-100-R4` + `S360-320` (the only viable path for this revision; module-side schematic confirms there is no on-board controller IC, eliminating Option (b) for `S360-320-R4`); or (b) a future Core / module revision that introduces an on-board TRIAC controller IC and a non-`ac_dimmer` driver. The SX1509-only hypothesis is rejected. **Mains-voltage compliance is additionally tracked in [`../compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md) (COMPLIANCE-001); HW-005 remains a separate, prior blocker.** Follow-ups: `HW-PINMAP-320-FOLLOWUP`, `PACKAGE-TRIAC-001`, `PRODUCT-TRIAC-001`, `PRODUCT-TRIAC-002`, `WF-TRIAC-001`, `RELEASE-TRIAC-001`, `WF-IMPORT-TRIAC-001`, `COMPLIANCE-001`, `HW-005`, `HW-CATALOG-320` — per [`s360-320-r4-triac.md` Follow-up PR sequence](s360-320-r4-triac.md#follow-up-pr-sequence). |
-| Sense360 240v PSU | `S360-400` | No Core-side connector documented (the 240 V PSU is off-board; Release-One uses PoE instead). **Module-side schematic now committed under HW-ASSETS-400** at [`docs/hardware/schematics/S360-400-R4.pdf`](schematics/S360-400-R4.pdf) with curated artifact index at [`docs/hardware/artifacts/S360-400-R4.md`](artifacts/S360-400-R4.md) (records single-sheet KiCad 10.0.3 export; 3-pin AC input `J1` `LIVE` / `NEUTRAL` / `Earth_Protective`; resettable fuse `F1` A250-1200; MOV `RV1` 10D391K; X-cap `C1` 470nF; AC/DC module `PS1 = HLK-10M05` — disagreeing with catalog `HLK-5M05` and package header `HLK-PM01 or similar`; output filter `C5` / `C6` / `C7` / `C8`; 2-pin `J2` `+5VP` / `GND` output; mounting holes `H1`..`H4`; no Y-caps, no line filter inductor, no on-board indicator visible). **HW-PINMAP-400 audit doc at [`s360-400-r4-power.md`](s360-400-r4-power.md) stays `pending — schematic/design evidence required`** because the standalone schematic-backed reference doc, the BOM-backed three-way part-identity reconciliation, the silkscreen pin-1 on `J1` / `J2`, the creepage / clearance / thermal / EMI evidence, and COMPLIANCE-001 mains-voltage sign-off are all owed. Firmware-side, [`packages/hardware/power_240v.yaml`](../../packages/hardware/power_240v.yaml) is a logical-power package and does not bind to any specific GPIO. Not in Release-One. Catalog `schematic_status` for `S360-400` is unchanged (`cataloged_unverified`; no `schematic_file` set). | `partially-documented`, `compliance-gated`, `not-needed-for-release-one` | Not required (Release-One uses `POE`, not `PWR`). | Module-side silkscreen / BOM / connector-rating / creepage / thermal / EMI evidence, separate JSON `schematic_status` promotion PR, package YAML reconciliation (`PACKAGE-POWER-400-001`), and COMPLIANCE-001 mains-voltage UK / EU sign-off before any `PWR`-bearing config string ships. **Also subject to the mains-voltage safety/compliance review noted below; tracked in [`../compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md) (COMPLIANCE-001).** |
+| Sense360 240v PSU | `S360-400` | No Core-side connector documented (the 240 V PSU is off-board; Release-One uses PoE instead). **Module-side schematic committed under HW-ASSETS-400 (PR #514)** at [`docs/hardware/schematics/S360-400-R4.pdf`](schematics/S360-400-R4.pdf) with curated artifact index at [`docs/hardware/artifacts/S360-400-R4.md`](artifacts/S360-400-R4.md) (records single-sheet KiCad 10.0.3 export; 3-pin AC input `J1` `LIVE` / `NEUTRAL` / `Earth_Protective`; resettable fuse `F1` A250-1200; MOV `RV1` 10D391K; X-cap `C1` 470nF; AC/DC module `PS1 = HLK-10M05` — disagreeing with catalog `HLK-5M05` and package header `HLK-PM01 or similar`; output filter `C5` / `C6` / `C7` / `C8`; 2-pin `J2` `+5VP` / `GND` output; mounting holes `H1`..`H4`; no Y-caps, no line filter inductor, no on-board indicator visible). **HW-PINMAP-400 audit doc at [`s360-400-r4-power.md`](s360-400-r4-power.md) promoted by HW-PINMAP-400-FOLLOWUP to `partial — schematic evidence available; package reconciliation, BOM, silkscreen, creepage/clearance, and COMPLIANCE-001 pending`**; the standalone schematic-backed reference-doc rewrite, the BOM-backed three-way part-identity reconciliation, the silkscreen pin-1 on `J1` / `J2`, the creepage / clearance / thermal / EMI evidence, and COMPLIANCE-001 mains-voltage sign-off are all owed. Firmware-side, [`packages/hardware/power_240v.yaml`](../../packages/hardware/power_240v.yaml) is a logical-power package and does not bind to any specific GPIO; its header comments are **not** edited by HW-PINMAP-400-FOLLOWUP (cleanup deferred to `PACKAGE-POWER-400-001` once BOM lands). Not in Release-One. Catalog `schematic_status` for `S360-400` is unchanged (`cataloged_unverified`; no `schematic_file` set). | `partially-documented`, `compliance-gated`, `not-needed-for-release-one` | Not required (Release-One uses `POE`, not `PWR`). | Module-side silkscreen / BOM / connector-rating / creepage / thermal / EMI evidence, separate JSON `schematic_status` promotion PR, package YAML reconciliation (`PACKAGE-POWER-400-001`), and COMPLIANCE-001 mains-voltage UK / EU sign-off before any `PWR`-bearing config string ships. **Also subject to the mains-voltage safety/compliance review noted below; tracked in [`../compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md) (COMPLIANCE-001).** |
 | Sense360 PoE PSU | `S360-410` | **Used in Release-One.** Core-side `J2` (`PoE_ACDC`, 2-pin power inlet) documented in [`s360-100-r4-core.md` J2](s360-100-r4-core.md#j2--poe_acdc-inlet-2-pin) and in the Core power-rails section. PSU module itself lives off-board; module-side schematic **not committed**. Firmware-side, [`packages/hardware/power_poe.yaml`](../../packages/hardware/power_poe.yaml) is a logical package that emits diagnostic sensors only and does not bind to any specific GPIO. [`release-one-hardware-audit.md` Findings → PoE PSU](../release-one-hardware-audit.md#findings) already classifies this as "cataloged, schematic pending". HW-002 Open Question #6 (J2 harness identity) is still open. | `partially-documented` | Acceptable as-is for preview. The Core-side inlet capture plus the logical-only firmware package are sufficient evidence for the current Release-One use; the schematic-pending caveat in `release-one-hardware-audit.md` must remain visible. | Commit `S360-410` schematic + a standalone pin/connector doc; verify the J2 cable/harness between the off-board PSU and the Core inlet (HW-002 Open Question #6). |
 
 ### Release-One coverage summary
@@ -439,36 +439,56 @@ committed; this audit does **not** upgrade it to `documented` and does
 
 ### Sense360 240v PSU (`S360-400`)
 
-- **Evidence available.** Module-side schematic now committed under
-  HW-ASSETS-400 at
+- **Evidence available.** Module-side schematic committed under
+  HW-ASSETS-400 (PR #514) at
   [`docs/hardware/schematics/S360-400-R4.pdf`](schematics/S360-400-R4.pdf)
   with curated artifact index at
   [`docs/hardware/artifacts/S360-400-R4.md`](artifacts/S360-400-R4.md).
-  The schematic shows a single-sheet KiCad 10.0.3 export: a 3-pin AC
-  input `J1` (`LIVE` / `NEUTRAL` / `Earth_Protective`), resettable
-  fuse `F1` (`A250-1200`) on the LIVE leg, MOV `RV1` (`10D391K`) and
-  X-cap `C1` (`470nF`) across the AC line, AC/DC module
-  `PS1 = HLK-10M05`, four-cap output filter network
-  (`C5 100uF / C6 10u / C7 100n / C8 100uF`), and a 2-pin output `J2`
-  (`+5VP` / `GND`). No Core-side connector is documented for the
-  240 V PSU because Release-One ships with PoE; the mains-PSU variant
-  is not currently part of any production config. Firmware-side,
+  **Standalone schematic-backed audit now exists** —
+  HW-PINMAP-400-FOLLOWUP consumed both and promoted
+  [`s360-400-r4-power.md`](s360-400-r4-power.md) to
+  `partial — schematic evidence available; package reconciliation,
+  BOM, silkscreen, creepage/clearance, and COMPLIANCE-001 pending`,
+  with schematic-backed §Schematic summary, §Connector / pin-map
+  findings, §Protection / power topology findings, §AC/DC converter
+  findings, §Part identity reconciliation, §Reconciliation findings,
+  and §HW-PINMAP-400-FOLLOWUP audit log sections recording the
+  visible facts from the PDF: single-sheet KiCad 10.0.3 export; 3-pin
+  AC input `J1` (`LIVE` / `NEUTRAL` / `Earth_Protective`); resettable
+  fuse `F1` (`A250-1200`) on the LIVE leg; MOV `RV1` (`10D391K`) and
+  X-cap `C1` (`470nF`) across the AC line; AC/DC module
+  `PS1 = HLK-10M05`; four-cap output filter network
+  (`C5 100uF` / `C6 10u` / `C7 100n` / `C8 100uF`); 2-pin output
+  `J2` (`+5VP` / `GND`); mounting holes `H1`..`H4`; no Y-caps, no
+  CM/DM line filter inductor, no secondary regulator, no on-board
+  LED, no thermal cutout, no GPIO. No Core-side connector is
+  documented for the 240 V PSU because Release-One ships with PoE;
+  the mains-PSU variant is not currently part of any production
+  config. Firmware-side,
   [`packages/hardware/power_240v.yaml`](../../packages/hardware/power_240v.yaml)
-  is a logical-power package that does not bind to a specific GPIO.
-- **Evidence missing.** Standalone schematic-backed reference doc not
-  produced (owed to `HW-PINMAP-400-FOLLOWUP`). KiCad source / PCB /
-  metadata / BOM / CPL / gerbers / drill / STEP / board images /
-  silkscreen photos / bench / load / thermal / EMI evidence /
-  compliance test reports not in this upload. Three-way AC/DC
-  part-identity disagreement (catalog `HLK-5M05` vs package header
-  `HLK-PM01 or similar` vs schematic `HLK-10M05`) not resolved.
-  Silkscreen pin-1 location on `J1` / `J2` not derivable from
-  schematic. Creepage / clearance, thermal rise, inrush, insulation
-  resistance, Hi-pot, earth-continuity, leakage current, and EMI / EMC
-  not derivable from schematic alone. **Also subject to the
-  mains-voltage safety/compliance review noted below; tracked in
+  is a logical-power package that does not bind to a specific GPIO;
+  its header comments are **not** edited by HW-PINMAP-400-FOLLOWUP
+  (cleanup deferred to `PACKAGE-POWER-400-001` once BOM lands).
+- **Evidence missing.** Standalone schematic-backed reference-doc
+  rewrite in the per-board `s360-XXX-r4-<role>.md` reference pattern
+  not produced (owed to a later PR after BOM / silkscreen / bench
+  evidence). KiCad source / PCB / metadata / BOM / CPL / gerbers /
+  drill / STEP / board images / silkscreen photos / bench / load /
+  thermal / EMI evidence / compliance test reports not in repo.
+  Three-way AC/DC part-identity disagreement (catalog `HLK-5M05` vs
+  package header `HLK-PM01 or similar` vs schematic `HLK-10M05`) not
+  resolved — BOM-bound, owed to `PACKAGE-POWER-400-001`. Silkscreen
+  pin-1 location on `J1` / `J2` not derivable from schematic; `J1` /
+  `J2` connector identity / current / voltage / approvals not
+  derivable from schematic. `F1 A250-1200` / `RV1 10D391K` / `C1
+  470nF` / `C5..C8` per-component ratings not annotated on the
+  schematic — BOM-bound. Creepage / clearance, thermal rise, inrush,
+  insulation resistance, Hi-pot, earth-continuity, leakage current,
+  and EMI / EMC not derivable from schematic alone. **Also subject
+  to the mains-voltage safety/compliance review noted below; tracked
+  in
   [`../compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md)
-  (COMPLIANCE-001).**
+  (COMPLIANCE-001; last re-check PR #506).**
 
 ### Sense360 PoE PSU (`S360-410`)
 

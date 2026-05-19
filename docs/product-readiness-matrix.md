@@ -404,7 +404,7 @@ own gate evidence.
 | `Ceiling-POE-VentIQ-FanPWM-RoomIQ` (FanPWM slice) | `VentIQ` + `FanPWM` + `RoomIQ` | POE (S360-410) | [`fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml) + Core abstract + RoomIQ + VentIQ + [`power_poe.yaml`](../packages/hardware/power_poe.yaml) | grammar-clean | [`fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml): `needs-package-reconciliation` + `bench-evidence-pending`; Core abstract: `do-not-change-release-one` + `needs-package-reconciliation` | **No product YAML.** The legacy four-channel [`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml) stays `legacy-compatible` and is **not** the FanPWM candidate. | `none` (not in build matrix; not in REQUIRED_CONFIGS; not on landing list) | `HW-PINMAP-311-FOLLOWUP` → `S360-311` `schematic_status` promotion → `PACKAGE-PWM-001` (with `CORE-ABSTRACT-BUS-001` paired) → `PRODUCT-PWM-001` |
 | `Ceiling-POE-FanDAC-RoomIQ` (FanDAC slice; AirIQ excluded by mutex) | `FanDAC` + `RoomIQ` (no `AirIQ`; `VentIQ` independent) | POE (S360-410) | [`fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml) + Core abstract + RoomIQ (+ optional VentIQ) + [`power_poe.yaml`](../packages/hardware/power_poe.yaml) | grammar-clean **only if** `AirIQ` absent (`fandac_conflicts_with_airiq`); `Ceiling-POE-AirIQ-FanDAC-*` is `invalid-combination` | [`fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml): `needs-package-reconciliation` + `bench-evidence-pending`; Core abstract: `do-not-change-release-one` + `needs-package-reconciliation` | **No product YAML.** | `none` (not in build matrix; not in REQUIRED_CONFIGS; not on landing list) | `HW-PINMAP-312-FOLLOWUP` → `S360-312` `schematic_status` promotion → `PACKAGE-DAC-001` → `PRODUCT-DAC-001` |
 | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` (FanTRIAC slice; **existing blocked reference**) | `VentIQ` + `FanTRIAC` + `RoomIQ` | POE (S360-410) | [`fan_triac.yaml`](../packages/expansions/fan_triac.yaml) + Core abstract + RoomIQ + VentIQ + [`power_poe.yaml`](../packages/hardware/power_poe.yaml) | grammar-clean (FanTRIAC is a canonical fan variant) | [`fan_triac.yaml`](../packages/expansions/fan_triac.yaml): `timing/compliance-pending` + `needs-package-reconciliation` + `blocked-from-standard-exposure`; Core abstract: `do-not-change-release-one` + `needs-package-reconciliation` | **No new product YAML; no status flip.** The existing blocked reference YAML stays `status: blocked`, `blocker: HW-005`, `webflash_build_matrix: false`. PRODUCT-TRIAC-001 has performed a **notes-only** edit on this entry's `notes` field; the structural fields (`status` / `blocker` / `reason` / `webflash_build_matrix` / no-`artifact_name`) are unchanged. | `advanced/manual-warning-only` + `blocked-from-standard-exposure` + `not-recommended` + `not-required-configs` + `not-kit` + `not-webflash-default` (policy-recorded by PRODUCT-TRIAC-001 notes-only catalog edit; JSON `status: blocked` unchanged; no new lifecycle enum) | `HW-005` unblock + `HW-PINMAP-320-FOLLOWUP` + `COMPLIANCE-001` advanced/manual-warning sign-off → `PACKAGE-TRIAC-001` → `PRODUCT-TRIAC-002` → `WF-TRIAC-001` |
-| `Ceiling-PWR-{AIR}-{ROOM}` (PWR-240V slice; not yet on WebFlash surface) | any single air-quality token (`AirIQ` xor `VentIQ`) + optional `RoomIQ` | PWR (S360-400) | [`power_240v.yaml`](../packages/hardware/power_240v.yaml) + Core abstract + air / room packages | grammar-clean if mutex respected; `PWR` is in `canonical_power` but no `webflash_build_matrix: true` entry exercises it today | [`power_240v.yaml`](../packages/hardware/power_240v.yaml): `schematic-evidence-pending` + `needs-package-reconciliation` + `timing/compliance-pending` (compliance-gated) | **No product YAML.** The four `legacy-compatible` `*-pwr` Core variants stay `legacy-compatible`. | `none` (not in build matrix; not in REQUIRED_CONFIGS; not on landing list); ultimately `production-candidate` only after `COMPLIANCE-001` `S360-400` slice clears | `HW-ASSETS-400` → `HW-PINMAP-400-FOLLOWUP` → `COMPLIANCE-001` `S360-400` slice → `PACKAGE-POWER-400-001` → `PRODUCT-POWER-400-001` |
+| `Ceiling-PWR-{AIR}-{ROOM}` (PWR-240V slice; not yet on WebFlash surface) | any single air-quality token (`AirIQ` xor `VentIQ`) + optional `RoomIQ` | PWR (S360-400) | [`power_240v.yaml`](../packages/hardware/power_240v.yaml) + Core abstract + air / room packages | grammar-clean if mutex respected; `PWR` is in `canonical_power` but no `webflash_build_matrix: true` entry exercises it today | [`power_240v.yaml`](../packages/hardware/power_240v.yaml): `schematic-evidence-pending` + `needs-package-reconciliation` + `timing/compliance-pending` (compliance-gated) | **No product YAML.** The four `legacy-compatible` `*-pwr` Core variants stay `legacy-compatible`. | `none` (not in build matrix; not in REQUIRED_CONFIGS; not on landing list); ultimately `production-candidate` only after `COMPLIANCE-001` `S360-400` slice clears | `HW-ASSETS-400` *(landed at PR #514)* → `HW-PINMAP-400-FOLLOWUP` *(this PR; docs-only)* → BOM + silkscreen + creepage / clearance + bench / thermal / EMI evidence → `COMPLIANCE-001` `S360-400` slice → `PACKAGE-POWER-400-001` → `PRODUCT-POWER-400-001` |
 | `Ceiling-POE-{AIR}-{ROOM}` (PoE-410 slice; explicit board-level) | as today; PoE module the explicit subject | POE (S360-410) | [`power_poe.yaml`](../packages/hardware/power_poe.yaml) + Core abstract + air / room packages | grammar-clean; Release-One already exercises this shape | [`power_poe.yaml`](../packages/hardware/power_poe.yaml): `reference-only` + `schematic-evidence-pending` + `do-not-change-release-one` | **No new product YAML.** Release-One already consumes the package under the preserved [`release-one-hardware-audit.md` schematic-pending caveat](release-one-hardware-audit.md#findings); PRODUCT-GAP-001 does not requalify Release-One and does not promote the caveat away. | `none` for **new** PoE-410 candidate; Release-One stays `production` / `stable` on its existing entry | `HW-ASSETS-410` → `HW-PINMAP-410-FOLLOWUP` → `HW-002 OQ#6` closure / `S360-100-BENCH-001` update → `PACKAGE-POE-410-001` → separate later Release-One caveat-closure PR + `PRODUCT-POE-410-001` if a new entry is warranted |
 
 The Release-One package stack consumed by
@@ -629,26 +629,33 @@ named follow-up.
 
 - **Status.** `schematic-evidence-pending` + `needs-package-reconciliation`
   + `timing/compliance-pending` (compliance-gated). Class unchanged
-  by HW-ASSETS-400.
+  by HW-PINMAP-400-FOLLOWUP. The per-board audit doc
+  [`docs/hardware/s360-400-r4-power.md`](hardware/s360-400-r4-power.md)
+  is now `partial — schematic evidence available; package
+  reconciliation, BOM, silkscreen, creepage/clearance, and
+  COMPLIANCE-001 pending` after HW-PINMAP-400-FOLLOWUP consumed
+  the HW-ASSETS-400 (PR #514) schematic.
 - **Why no product YAML.** The required package
   [`packages/hardware/power_240v.yaml`](../packages/hardware/power_240v.yaml)
   is `schematic-evidence-pending` + `needs-package-reconciliation`
   + `timing/compliance-pending` per
   [`package-readiness-matrix.md` `power_240v.yaml` / S360-400](hardware/package-readiness-matrix.md#power_240vyaml--s360-400).
-  The `S360-400-R4` module-side schematic is now committed under
-  HW-ASSETS-400 at
+  The `S360-400-R4` module-side schematic is committed under
+  HW-ASSETS-400 (PR #514) at
   [`docs/hardware/schematics/S360-400-R4.pdf`](hardware/schematics/S360-400-R4.pdf)
   with curated artifact index at
-  [`docs/hardware/artifacts/S360-400-R4.md`](hardware/artifacts/S360-400-R4.md),
-  and confirms a three-way AC/DC part-identity disagreement: the
-  package header says `HLK-PM01 or similar`, the catalog says
-  `HLK-5M05`, and the schematic shows `PS1 = HLK-10M05`. BOM
-  cross-check, silkscreen pin-1, and creepage / clearance evidence
-  remain owed to `HW-PINMAP-400-FOLLOWUP`. Input / output /
-  isolation / protection ratings are package-header text only;
-  COMPLIANCE-001 mains-voltage UK / EU sign-off is a separate,
-  additional gate before any PWR-bearing **product** promotion.
-  The four `legacy-compatible` `*-pwr` Core variants in
+  [`docs/hardware/artifacts/S360-400-R4.md`](hardware/artifacts/S360-400-R4.md);
+  HW-PINMAP-400-FOLLOWUP consumed both and confirms a three-way
+  AC/DC part-identity disagreement: the package header says
+  `HLK-PM01 or similar`, the catalog says `HLK-5M05`, and the
+  schematic shows `PS1 = HLK-10M05`. BOM cross-check, silkscreen
+  pin-1, and creepage / clearance evidence remain owed to
+  evidence-bearing follow-up slices and to `PACKAGE-POWER-400-001`.
+  Input / output / isolation / protection ratings are
+  package-header text only; COMPLIANCE-001 mains-voltage UK / EU
+  sign-off is a separate, additional gate before any PWR-bearing
+  **product** promotion. The four `legacy-compatible` `*-pwr` Core
+  variants in
   [`products/`](../products/)
   (`sense360-core-c-pwr.yaml`, `sense360-core-w-pwr.yaml`,
   `sense360-core-v-c-pwr.yaml`, `sense360-core-v-w-pwr.yaml`)
@@ -658,14 +665,19 @@ named follow-up.
   the future PWR-240V product surface (if any) is
   `production-candidate` **only after** `COMPLIANCE-001`
   `S360-400` slice clears; until then `not-webflash-default`.
-- **Follow-up owner.** `HW-ASSETS-400` *(landed)* →
-  `HW-PINMAP-400-FOLLOWUP` → `COMPLIANCE-001` `S360-400` slice
-  (independent track) → `PACKAGE-POWER-400-001` →
+- **Follow-up owner.** `HW-ASSETS-400` *(landed at PR #514)* →
+  `HW-PINMAP-400-FOLLOWUP` *(this PR; docs-only schematic-backed
+  reconciliation; product row unchanged)* → BOM cross-check +
+  silkscreen + creepage / clearance + bench / load / thermal /
+  EMI evidence (separate slices) → `S360-400` `schematic_status`
+  promotion (separate JSON PR) → `COMPLIANCE-001` `S360-400`
+  slice (independent track) → `PACKAGE-POWER-400-001` →
   `PRODUCT-POWER-400-001` (this matrix's named PWR-240V product
   slice).
 - **Cross-references.**
   [`docs/hardware/artifacts/S360-400-R4.md`](hardware/artifacts/S360-400-R4.md);
   [`docs/hardware/s360-400-r4-power.md`](hardware/s360-400-r4-power.md);
+  [`docs/hardware/s360-400-r4-power.md` HW-PINMAP-400-FOLLOWUP audit log](hardware/s360-400-r4-power.md#hw-pinmap-400-followup-audit-log);
   [`board-readiness-matrix.md` `S360-400` notes](hardware/board-readiness-matrix.md#s360-400-sense360-240v-psu);
   [`package-readiness-matrix.md` `power_240v.yaml` / S360-400](hardware/package-readiness-matrix.md#power_240vyaml--s360-400);
   [`compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md).
