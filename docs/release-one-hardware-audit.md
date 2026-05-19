@@ -414,6 +414,28 @@ here so they are not silently lost when later HW PRs land.
    S360-200-R4 J6 pin order against the physical board silkscreen; update
    whichever doc is wrong.
 
+> **Investigation outcome (2026-05-19).** Required follow-ups #2 / #3
+> above are now aliased by `CORE-ABSTRACT-BUS-001` and its three
+> coordinated slices `CORE-ABSTRACT-BUS-001A` / `001B` / `001C` at
+> [`docs/hardware/core-abstract-bus-reconciliation.md`](hardware/core-abstract-bus-reconciliation.md).
+> A `CORE-ABSTRACT-BUS-001C` investigation pass ran on 2026-05-19
+> (UART split / status LED move off `GPIO48` / `pir_sensor_pin: GPIO47 → GPIO15`
+> / `comfort_ceiling_als_int_pin: GPIO3 → GPIO47` / `expander_int_pin: GPIO3 → GPIO17`
+> / `sx1509_interrupt_pin: GPIO3 → GPIO17` / `expansion_gpio1..4` rebind)
+> and is **confirmed deferred** — all six preconditions
+> (`S360-100-BENCH-001` silkscreen evidence, RoomIQ / AirIQ / VentIQ
+> rebind plan, expansion-GPIO bench evidence or documented retirement
+> decision, ESP32-S3 `GPIO3` strap-pin boot-behaviour bench
+> characterisation, `tests/test_core_abstract_bus.py` scaffold, and the
+> non-Release-One product re-validation pass) remain open. See
+> [`docs/cleanup-audit.md` §CORE-ABSTRACT-BUS-001C update](cleanup-audit.md#core-abstract-bus-001c-update-2026-05-19--docs-only-investigation-pass)
+> and the `CORE-ABSTRACT-BUS-001C` audit-log entry in
+> [`docs/hardware/core-abstract-bus-reconciliation.md`](hardware/core-abstract-bus-reconciliation.md).
+> This audit makes **no firmware change** as a result. The Release-One
+> identity (`Ceiling-POE-VentIQ-RoomIQ`, version `1.0.0`, channel
+> `stable`, artifact `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`,
+> tag `v1.0.0`) is preserved verbatim.
+
 ## Files changed
 
 This audit PR changes only the following files:

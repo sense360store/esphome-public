@@ -785,6 +785,18 @@ next-action chain.
   slice from landing in isolation). The audit performs no firmware
   rebind; it is the planning artifact that the future implementation
   PRs will reference.
+- **`CORE-ABSTRACT-BUS-001C` investigation pass (2026-05-19).**
+  A docs-only `001C` investigation pass ran on 2026-05-19 and is
+  **confirmed deferred** — all six preconditions
+  (`S360-100-BENCH-001` silkscreen evidence, RoomIQ / AirIQ / VentIQ
+  rebind plan, expansion-GPIO bench evidence or documented retirement
+  decision, ESP32-S3 `GPIO3` strap-pin boot-behaviour bench
+  characterisation, `tests/test_core_abstract_bus.py` scaffold, and
+  the non-Release-One product re-validation pass) remain open. See
+  [`core-abstract-bus-reconciliation.md` §CORE-ABSTRACT-BUS-001 audit log](core-abstract-bus-reconciliation.md#core-abstract-bus-001-audit-log)
+  and
+  [`docs/cleanup-audit.md` §CORE-ABSTRACT-BUS-001C update](../cleanup-audit.md#core-abstract-bus-001c-update-2026-05-19--docs-only-investigation-pass).
+  HW-009 makes no firmware change as a result of this re-check.
 
 ### HW-005 (FanTRIAC) — remains blocked separately
 
