@@ -1174,6 +1174,53 @@ FanTRIAC stays `blocked` / `HW-005`. Investigation outcome
 cross-recorded at
 [`cleanup-audit.md` §`RELEASE-POWER-400-001 update (2026-05-19 — docs-only investigation pass)`](cleanup-audit.md#release-power-400-001-update-2026-05-19--docs-only-investigation-pass)
 and this matrix §Follow-up PR sequence row at line 1502.
+The upstream `PRODUCT-POWER-400-001` investigation pass merged
+as **PR #521** on 2026-05-19 (docs-only Path A deferral) and the
+downstream `WEBFLASH-POWER-400-001` investigation pass ran on
+2026-05-19 (this PR — docs-only Path A deferral). Re-verified
+against the live files: no S360-400-explicit / `PWR`-bearing
+WebFlash wrapper exists under
+[`../products/webflash/`](../products/webflash/); no `PWR`
+build in
+[`../config/webflash-builds.json`](../config/webflash-builds.json);
+no S360-400-specific product entry in
+[`../config/product-catalog.json`](../config/product-catalog.json)
+(four `legacy-compatible` `*-pwr` Core variants unchanged);
+no PWR-240V WebFlash wrapper, catalog entry, build-matrix
+entry, artifact, or release tag. No `artifact_name` exists for
+S360-400; no `.bin` artifact has been built; no GitHub Release
+has been created; no checksums have been minted; no release
+proof has been filed; no WebFlash import has been triggered.
+`RELEASE-POWER-400-001` stays **blocked** behind
+`WEBFLASH-POWER-400-001` implementation, `PRODUCT-POWER-400-001`
+implementation (PR #521 docs-only), `PACKAGE-POWER-400-001`
+implementation (PR #520 docs-only), BOM cross-check, the
+`S360-400` `schematic_status: verified` JSON PR, the
+`COMPLIANCE-001` `S360-400` slice, package / catalog
+reconciliation, product-onboarding approval, and release /
+build / artifact readiness; `WEBFLASH-POWER-400-001` stays
+**blocked** behind the same upstream chain plus its own
+wrapper / catalog / build-matrix sub-gate. `not-release-ready`
+/ `missing-build-matrix` / `missing-webflash-wrapper` /
+`missing-product-yaml` / `missing-package-readiness` all
+continue to hold; mains-voltage compliance posture is
+gating-priority over stable promotion;
+`operator-proof-required` + `release-proof-required` both
+apply. No package, product, WebFlash, build, release,
+compliance, JSON catalog, test, script, workflow, component,
+include, firmware, or manifest edits; no `schematic_status` /
+`schematic_file` promotion; no `webflash_build_matrix` flip;
+no artifact built / signed / attached; no release tag
+created; no `REQUIRED_CONFIGS` / kit change. Release-One
+stays `Ceiling-POE-VentIQ-RoomIQ` /
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` / tag
+`v1.0.0`; LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` /
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`;
+FanTRIAC stays `blocked` / `HW-005`. Investigation outcome
+cross-recorded at
+[`cleanup-audit.md` §`WEBFLASH-POWER-400-001 update (2026-05-19 — docs-only investigation pass)`](cleanup-audit.md#webflash-power-400-001-update-2026-05-19--docs-only-investigation-pass)
+and
+[`webflash-exposure-readiness-matrix.md` §Power / S360-400 WebFlash posture](webflash-exposure-readiness-matrix.md#power--s360-400-webflash-posture).
 
 ## PoE / S360-410 release posture
 
