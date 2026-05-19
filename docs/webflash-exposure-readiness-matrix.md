@@ -775,6 +775,60 @@ and [`product-readiness-matrix.md` §PWR-240V / S360-400](product-readiness-matr
 
 **2026-05-19 — `WEBFLASH-POWER-400-001` investigation pass
 (Path A docs-only deferral; class unchanged).**
+The downstream `WEBFLASH-POWER-400-001` investigation pass merged
+as **PR #522** on 2026-05-19 (docs-only Path A deferral). The
+upstream `PRODUCT-POWER-400-001` investigation pass merged
+earlier the same day as **PR #521** (docs-only Path A deferral)
+and is recorded above. Re-verified against the live files: no
+S360-400 WebFlash wrapper exists under
+[`../products/webflash/`](../products/webflash/) (three PoE
+wrappers only —
+[`ceiling-poe-ventiq-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq.yaml),
+[`ceiling-poe-ventiq-roomiq-led.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq-led.yaml),
+[`ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml));
+[`../config/webflash-builds.json`](../config/webflash-builds.json)
+has no PWR build (only `Ceiling-POE-VentIQ-RoomIQ` stable +
+`Ceiling-POE-VentIQ-RoomIQ-LED` preview);
+[`../config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+reserves `PWR` in `canonical_power: ["USB", "POE", "PWR"]` with
+no `webflash_build_matrix: true` consumer;
+`release_one_required_configs` stays
+`["Ceiling-POE-VentIQ-RoomIQ"]`;
+[`../config/product-catalog.json`](../config/product-catalog.json)
+has no S360-400-specific product (four `legacy-compatible`
+`*-pwr` Core variants unchanged: `sense360-core-c-pwr`,
+`sense360-core-w-pwr`, `sense360-core-v-c-pwr`,
+`sense360-core-v-w-pwr` — each `status: legacy-compatible` /
+`webflash_build_matrix: false` / no `config_string` / no
+`webflash_wrapper` / no `artifact_name`);
+[`../config/hardware-catalog.json`](../config/hardware-catalog.json)
+`S360-400` row stays `schematic_status: cataloged_unverified`
+with no `schematic_file`;
+[`../tests/test_hardware_catalog.py:53`](../tests/test_hardware_catalog.py)
+`EXPECTED_STILL_UNVERIFIED_SKUS = frozenset({"S360-320",
+"S360-400"})` actively enforces this state. UX class (standard
+preview-candidate vs advanced / manual-warning) stays undecided
+— owed to the per-family `PRODUCT-POWER-400-001` compliance
+verdict; `PRODUCT-POWER-400-001` is deferred (PR #521) and the
+compliance verdict has not been rendered, so
+`WEBFLASH-POWER-400-001` cannot set the UX class either.
+`RELEASE-POWER-400-001` stays **blocked** behind
+`WEBFLASH-POWER-400-001` and `COMPLIANCE-001` `S360-400` slice
+closure; `WEBFLASH-POWER-400-001` itself stays blocked on
+`PRODUCT-POWER-400-001` implementation (PR #521 was docs-only
+investigation only), `PACKAGE-POWER-400-001` implementation
+(PR #520 was docs-only investigation only), BOM cross-check,
+the `S360-400` `schematic_status: verified` JSON PR, the
+`COMPLIANCE-001` `S360-400` slice, and the UX-class decision.
+No package, product, WebFlash, build, release, compliance, JSON
+catalog, test, script, workflow, component, include, firmware,
+or manifest edits; no `schematic_status` / `schematic_file`
+promotion; no `webflash_build_matrix` flip; no
+`REQUIRED_CONFIGS` / kit change. Release-One stays
+`Ceiling-POE-VentIQ-RoomIQ` / `stable` / `v1.0.0`; LED preview
+stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC
+stays `blocked` / `HW-005`. Investigation outcome
+cross-recorded at
 The upstream `PRODUCT-POWER-400-001` investigation pass merged
 as **PR #521** on 2026-05-19 (docs-only Path A deferral) and the
 downstream `WEBFLASH-POWER-400-001` investigation pass ran on
