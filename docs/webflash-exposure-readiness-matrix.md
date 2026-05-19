@@ -366,7 +366,7 @@ Every cell is a policy label as defined in
 
 | Candidate family | Required product YAML | Required package status | Current product readiness | Current WebFlash wrapper | Current build-matrix status | Allowed WebFlash action now | Future exposure class | REQUIRED_CONFIGS eligibility | Kit / recommended eligibility | Follow-up owner |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **FanRelay / S360-310** | none (no `sense360-*-fanrelay-*.yaml`) | `missing` (S360-310 schematic uncommitted; `packages/expansions/fan_relay.yaml` `schematic-evidence-pending` + `needs-package-reconciliation`) | `missing-product-yaml` + `missing-package-readiness` + `missing-hardware-evidence` per [`product-readiness-matrix.md`](product-readiness-matrix.md#fanrelay--s360-310) | none | none | `not-webflash-ready` | `preview-candidate` (standard exposure; reach reserved for after package + product slices) | `not-required-configs` (no by default after preview) | `not-recommended` + `not-kit-default` until separate product / UX decision lands | `HW-ASSETS-310` → `HW-PINMAP-310-FOLLOWUP` → `PACKAGE-RELAY-001` → `PRODUCT-RELAY-001` → `WEBFLASH-RELAY-001` → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`. |
+| **FanRelay / S360-310** | none (no `sense360-*-fanrelay-*.yaml`) | `missing` (S360-310 module-side schematic committed under HW-ASSETS-310; HW-PINMAP-310-FOLLOWUP has consumed the schematic and recorded schematic-backed module-`J2` ↔ Core-`J4` logical net match in [`s360-310-r4-relay.md`](hardware/s360-310-r4-relay.md); `packages/expansions/fan_relay.yaml` stays `schematic-evidence-pending` + `needs-package-reconciliation` — silkscreen / harness / `K1` BOM evidence + Core abstract-bus rebind still owed) | `missing-product-yaml` + `missing-package-readiness` + `missing-hardware-evidence` per [`product-readiness-matrix.md`](product-readiness-matrix.md#fanrelay--s360-310) | none | none | `not-webflash-ready` | `preview-candidate` (standard exposure; reach reserved for after package + product slices) | `not-required-configs` (no by default after preview) | `not-recommended` + `not-kit-default` until separate product / UX decision lands | `HW-ASSETS-310` *(landed)* → `HW-PINMAP-310-FOLLOWUP` *(landed)* → silkscreen / harness / `K1` BOM evidence + `CORE-ABSTRACT-BUS-001` → `PACKAGE-RELAY-001` → `PRODUCT-RELAY-001` → `WEBFLASH-RELAY-001` → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`. |
 | **FanPWM / S360-311** | none (no `sense360-*-fanpwm-*.yaml`; legacy [`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml) is `legacy-compatible` only and is not a WebFlash-shippable product entry) | `missing` (S360-311 schematic committed; SX1509-vs-direct-GPIO mapping disagreement unresolved; `packages/expansions/fan_pwm.yaml` `needs-package-reconciliation`) | `missing-product-yaml` + `needs-package-reconciliation` per [`product-readiness-matrix.md`](product-readiness-matrix.md#fanpwm--s360-311) | none | none | `not-webflash-ready` | `preview-candidate` (standard exposure once Core abstract-bus rebind + package slice land) | `not-required-configs` | `not-recommended` + `not-kit-default` (legacy four-channel YAML retention / migration / removal decided by `PRODUCT-PWM-001`) | `HW-PINMAP-311-FOLLOWUP` → `PACKAGE-PWM-001` (+ `CORE-ABSTRACT-BUS-001`) → `PRODUCT-PWM-001` → `WEBFLASH-PWM-001` → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`. |
 | **FanDAC / S360-312** | none (no `sense360-*-fandac-*.yaml`); any future FanDAC product must respect the `FanDAC ↔ AirIQ` mutex (`config/webflash-compatibility.json` `rules.fandac_conflicts_with_airiq: true`) | `missing` (S360-312 schematic committed; voltage-rail discrepancy + DIP-switch I²C address + UART-vs-Nextion arbitration + stale header-comment block all unresolved; `packages/expansions/fan_gp8403.yaml` `needs-package-reconciliation`) | `missing-product-yaml` + `needs-package-reconciliation` + `invalid-combination` with any AirIQ-bearing variant per [`product-readiness-matrix.md`](product-readiness-matrix.md#fandac--s360-312) | none | none | `not-webflash-ready` | `preview-candidate` (standard exposure; AirIQ-bearing FanDAC variants forbidden by mutex) | `not-required-configs` | `not-recommended` + `not-kit-default` (FanDAC ↔ AirIQ mutex narrows the eligible config-string space; kit / recommended decision belongs to `PRODUCT-DAC-001`) | `HW-PINMAP-312-FOLLOWUP` → `PACKAGE-DAC-001` → `PRODUCT-DAC-001` → `WEBFLASH-DAC-001` → `RELEASE-GAP-001` → `WF-IMPORT-GAP-001`. |
 | **FanTRIAC / S360-320** | exists as the **blocked** reference [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml); catalog status `blocked`, blocker `HW-005`, `webflash_build_matrix: false`; `PRODUCT-TRIAC-001` has performed a **notes-only** catalog edit recording the advanced / manual-warning candidate posture without changing any structural field. No new product YAML is added by `WEBFLASH-GAP-001`. | `missing` (S360-320 schematic committed; `ac_dimmer` timing across SX1509 expander rejected; `fan_triac.yaml` `needs-package-reconciliation` + `timing/compliance-pending` + `blocked-from-standard-exposure`) | `timing/compliance-pending` + `advanced/manual-warning-only` (policy-recorded by `PRODUCT-TRIAC-001` notes-only) + `blocked-from-standard-exposure` per [`product-readiness-matrix.md`](product-readiness-matrix.md#fantriac--s360-320); HW-005 unblock + COMPLIANCE-001 sign-off required before any product / WebFlash motion | exists for the blocked reference; `webflash_build_matrix: false` | not in the build matrix | `not-webflash-ready` (blocked reference wrapper retained as evidence; no live build / WebFlash surface) | `advanced/manual-warning-only` (long-term posture; policy-recorded by `PRODUCT-TRIAC-001` notes-only; reach to a live WebFlash surface still requires `WF-TRIAC-001` after `PACKAGE-TRIAC-001` + `PRODUCT-TRIAC-002` + `COMPLIANCE-001` advanced / manual-warning sign-off + WebFlash-side manual-warning UX) | **`not-required-configs` — never by default.** Any future addition to `release_one_required_configs` would be a separate explicit, scoped PR with COMPLIANCE-001 sign-off and is **not** authorised by this matrix. | **`not-recommended` + `not-kit-default` — never by default.** Mains-voltage advanced / manual-warning products are categorically excluded from kit / default / recommended / Release-One surfaces, irrespective of any future product YAML existence. | `PRODUCT-TRIAC-001` (landed: notes-only catalog reclassification) → `HW-005` resolution → `HW-PINMAP-320-FOLLOWUP` → `PACKAGE-TRIAC-001` → `PRODUCT-TRIAC-002` → `COMPLIANCE-001` advanced / manual-warning sign-off → `WF-TRIAC-001` (advanced / manual-warning WebFlash slice) → `RELEASE-TRIAC-001` → `WF-IMPORT-TRIAC-001`. See [`hardware/s360-320-r4-triac.md` Follow-up PR sequence](hardware/s360-320-r4-triac.md#follow-up-pr-sequence). |
@@ -382,23 +382,32 @@ only if the named upstream gates close.
 ## Relay / S360-310 WebFlash posture
 
 **Current state.** `S360-310 Sense360 Relay`,
-`schematic_status: cataloged_unverified`, no `schematic_file`, no
-committed module-side schematic PDF under
-[`docs/hardware/schematics/`](hardware/schematics/), no curated
-artifact index under [`docs/hardware/artifacts/`](hardware/artifacts/),
-no standalone schematic-backed reference doc (only the audit-stub
-[`s360-310-r4-relay.md`](hardware/s360-310-r4-relay.md) at
-status `pending — schematic/design evidence required`).
+`schematic_status: cataloged_unverified`, no `schematic_file`.
+**Module-side schematic PDF committed under HW-ASSETS-310** at
+[`docs/hardware/schematics/S360-310-R4.pdf`](hardware/schematics/S360-310-R4.pdf)
+and curated artifact index committed at
+[`docs/hardware/artifacts/S360-310-R4.md`](hardware/artifacts/S360-310-R4.md).
+**HW-PINMAP-310-FOLLOWUP** has consumed the schematic and promoted
+[`s360-310-r4-relay.md`](hardware/s360-310-r4-relay.md) from
+`pending — schematic/design evidence required` to
+`partial — schematic evidence available; package reconciliation
+pending`; the audit records the schematic-backed module-`J2` ↔
+Core-`J4` logical net match (`+5V` ↔ `+5V`, `Relay` ↔ `Relay`,
+`GND` ↔ `GND`) and the module-side relay coil-drive topology
+(`Q1` MMBT3904 NPN low-side; `R1` 1 kΩ; `R2` 10 kΩ; `D1` flyback;
+coil rail `+5V`; no opto; no indicator LED; no snubber). A
+standalone per-board schematic-backed reference doc rewrite is
+still owed.
 [`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml)
 carries `schematic-evidence-pending` + `needs-package-reconciliation`
 (Core abstract-bus binds disagree on `relay_pin`: `IO3` per Core
 schematic, `GPIO4` per
 [`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml),
 `GPIO10` per
-[`packages/hardware/sense360_core.yaml`](../packages/hardware/sense360_core.yaml)).
-No product YAML consumes S360-310. No WebFlash wrapper / catalog
-entry / build-matrix entry / release artifact / WebFlash import
-exists.
+[`packages/hardware/sense360_core.yaml`](../packages/hardware/sense360_core.yaml);
+silkscreen / harness / `K1` BOM evidence still owed). No product
+YAML consumes S360-310. No WebFlash wrapper / catalog entry /
+build-matrix entry / release artifact / WebFlash import exists.
 
 **Allowed WebFlash action now.** `not-webflash-ready`. No wrapper, no
 catalog entry, no build-matrix entry, no release artifact, no
@@ -407,16 +416,18 @@ Relay family.
 
 **Future exposure class (intent).** `preview-candidate` as a standard
 exposure, only after the full upstream chain has closed:
-`HW-ASSETS-310` (supplier delivery of module-side schematic PDF +
-curated artifact index) → `HW-PINMAP-310-FOLLOWUP` (standalone
-schematic-backed reference doc + pin-map reconciliation) →
-`PACKAGE-RELAY-001` (FanRelay package YAML reconciliation,
-including the `relay_pin` resolution and the
-`CORE-ABSTRACT-BUS-001` rebind) → `PRODUCT-RELAY-001` (canonical
-product YAML under [`products/`](../products/), config string per the
-WebFlash grammar) → `WEBFLASH-RELAY-001` (wrapper + catalog entry +
-build-matrix entry on a non-`stable` channel) → `RELEASE-GAP-001`
-(signed artifact) → `WF-IMPORT-GAP-001` (WebFlash-side import).
+`HW-ASSETS-310` *(landed; module-side schematic PDF + curated
+artifact index committed)* → `HW-PINMAP-310-FOLLOWUP` *(landed;
+schematic-backed reconciliation recorded in
+[`s360-310-r4-relay.md`](hardware/s360-310-r4-relay.md))* →
+silkscreen / harness / `K1` BOM evidence + `CORE-ABSTRACT-BUS-001`
+→ `PACKAGE-RELAY-001` (FanRelay package YAML reconciliation,
+including the `relay_pin` resolution) → `PRODUCT-RELAY-001`
+(canonical product YAML under [`products/`](../products/), config
+string per the WebFlash grammar) → `WEBFLASH-RELAY-001` (wrapper +
+catalog entry + build-matrix entry on a non-`stable` channel) →
+`RELEASE-GAP-001` (signed artifact) → `WF-IMPORT-GAP-001`
+(WebFlash-side import).
 
 **REQUIRED_CONFIGS posture.** `not-required-configs` by default.
 After preview-candidate exposure, FanRelay is not added to
