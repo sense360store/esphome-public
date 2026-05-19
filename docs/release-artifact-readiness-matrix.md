@@ -1037,6 +1037,144 @@ cross-recorded at
 and
 [`webflash-exposure-readiness-matrix.md` §Power / S360-400 WebFlash posture](webflash-exposure-readiness-matrix.md#power--s360-400-webflash-posture).
 
+**2026-05-19 — `WEBFLASH-POWER-400-001` investigation pass
+(Path A docs-only deferral; release row unchanged).**
+The upstream `PRODUCT-POWER-400-001` investigation pass merged as
+**PR #521** on 2026-05-19 (docs-only Path A deferral) and the
+downstream `WEBFLASH-POWER-400-001` investigation pass merged as
+**PR #522** on 2026-05-19 (docs-only Path A deferral).
+Re-verified against the live files: no S360-400 WebFlash wrapper
+exists under [`../products/webflash/`](../products/webflash/)
+(three PoE wrappers only); no `PWR` build in
+[`../config/webflash-builds.json`](../config/webflash-builds.json)
+(two PoE builds only);
+[`../config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+`PWR` stays reserved in `canonical_power` with no
+`webflash_build_matrix: true` consumer;
+`release_one_required_configs` stays
+`["Ceiling-POE-VentIQ-RoomIQ"]`; no S360-400 product entry in
+[`../config/product-catalog.json`](../config/product-catalog.json)
+(four `legacy-compatible` `*-pwr` Core variants unchanged);
+[`../config/hardware-catalog.json`](../config/hardware-catalog.json)
+`S360-400` row stays `schematic_status: cataloged_unverified`
+with no `schematic_file`; `.github/workflows/firmware-build-release.yml`
+byte-identical. UX-class decision (standard preview-candidate vs
+advanced / manual-warning) stays undecided — owed to the
+`PRODUCT-POWER-400-001` / `WEBFLASH-POWER-400-001` compliance
+verdict per the Follow-up PR sequence row at this matrix
+§Follow-up PR sequence. `RELEASE-POWER-400-001` stays **blocked**
+behind `WEBFLASH-POWER-400-001` + `COMPLIANCE-001` `S360-400`
+slice closure; `WEBFLASH-POWER-400-001` itself stays blocked
+behind `PRODUCT-POWER-400-001` implementation (PR #521 was
+docs-only investigation only), `PACKAGE-POWER-400-001`
+implementation (PR #520 was docs-only investigation only), the
+`S360-400` `schematic_status: verified` JSON PR, the
+`COMPLIANCE-001` `S360-400` slice, and the UX-class decision.
+`not-release-ready` / `missing-build-matrix` /
+`missing-webflash-wrapper` / `missing-product-yaml` /
+`missing-package-readiness` all hold; mains-voltage compliance
+posture is gating-priority over stable promotion;
+`operator-proof-required` + `release-proof-required` both apply.
+No package, product, WebFlash, build, release, compliance, JSON
+catalog, test, script, workflow, component, include, firmware,
+or manifest edits; no `schematic_status` / `schematic_file`
+promotion; no `webflash_build_matrix` flip; no artifact built /
+signed / attached; no release tag created; no `REQUIRED_CONFIGS`
+/ kit change. Release-One stays `Ceiling-POE-VentIQ-RoomIQ` /
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` / tag
+`v1.0.0`; LED preview stays
+`Ceiling-POE-VentIQ-RoomIQ-LED` /
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`;
+FanTRIAC stays `blocked` / `HW-005`. Investigation outcome
+cross-recorded at
+[`cleanup-audit.md` §`WEBFLASH-POWER-400-001 update (2026-05-19 — docs-only investigation pass)`](cleanup-audit.md#webflash-power-400-001-update-2026-05-19--docs-only-investigation-pass)
+and
+[`webflash-exposure-readiness-matrix.md` §Power / S360-400 WebFlash posture](webflash-exposure-readiness-matrix.md#power--s360-400-webflash-posture).
+
+**2026-05-19 — `RELEASE-POWER-400-001` investigation pass
+(Path A docs-only deferral; release row unchanged).**
+The upstream `WEBFLASH-POWER-400-001` investigation pass merged
+as **PR #522** on 2026-05-19 (docs-only Path A deferral) and the
+`RELEASE-POWER-400-001` investigation pass ran on 2026-05-19
+(this PR — docs-only Path A deferral). Re-verified against the
+live release surface — answers to the 15 investigation
+questions, each a verifiable live-state fact:
+(Q1) no S360-400 product YAML exists under
+[`../products/`](../products/) or
+[`../products/webflash/`](../products/webflash/);
+(Q2) no S360-400 WebFlash wrapper exists (only three PoE
+wrappers);
+(Q3) [`../config/webflash-builds.json`](../config/webflash-builds.json)
+has no PWR build (only `Ceiling-POE-VentIQ-RoomIQ` stable +
+`Ceiling-POE-VentIQ-RoomIQ-LED` preview);
+(Q4) [`../config/product-catalog.json`](../config/product-catalog.json)
+has no S360-400 `artifact_name` (only
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` and
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`);
+(Q5) no `firmware/configurations/` directory exists; release
+infrastructure is `config/webflash-builds.json` consumed by
+`.github/workflows/firmware-build-release.yml`;
+(Q6) no `firmware/sources.json` file exists;
+(Q7) no `manifest.json` or `firmware-*.json` file exists at the
+repo root;
+(Q8) `PACKAGE-POWER-400-001` is docs-only **PR #520** —
+package reconciliation not implemented;
+(Q9) `PRODUCT-POWER-400-001` is docs-only **PR #521** — product
+YAML / catalog not implemented;
+(Q10) `WEBFLASH-POWER-400-001` is docs-only **PR #522** —
+wrapper / build matrix not implemented;
+(Q11) `COMPLIANCE-001` `S360-400` slice still open (last
+re-check PR #506);
+(Q12) [`../config/hardware-catalog.json`](../config/hardware-catalog.json)
+`S360-400` row stays `schematic_status: cataloged_unverified`
+with no `schematic_file`;
+[`../tests/test_hardware_catalog.py:53`](../tests/test_hardware_catalog.py)
+`EXPECTED_STILL_UNVERIFIED_SKUS = frozenset({"S360-320",
+"S360-400"})` enforces this state;
+(Q13) no BOM evidence committed (missing
+`PS1` / `F1 A250-1200` / `RV1 10D391K` / `C1 470nF` / `C5..C8` /
+`J1` / `J2` BOM lines);
+(Q14) no release-notes / SHA256 / MD5 checksum / build-info
+manifest / proof row exists for any PWR-240V artifact;
+[`../docs/webflash-release-proof.md`](webflash-release-proof.md)
+has no PWR-240V row;
+(Q15) generating a release artifact now would violate all eight
+release-time sub-gates listed below at §Release note / artifact
+/ checksum gates (product-catalog entry, build-matrix entry,
+artifact-name conformance, release-tag conformance,
+release-notes generated / valid, artifact built, checksums
+attached, manifest attached, proof recorded) — all unmet because
+their upstream inputs do not exist. `.github/workflows/firmware-build-release.yml`
+is in the do-not-change guardrail and processes only entries in
+`config/webflash-builds.json`, which has no PWR-240V row.
+`WF-IMPORT-POWER-400-001` (cross-repo) stays **blocked** behind
+`RELEASE-POWER-400-001`. UX class (standard preview vs advanced
+/ manual-warning) decided per the `PRODUCT-POWER-400-001` /
+`WEBFLASH-POWER-400-001` compliance verdict per the Follow-up
+PR sequence row at §Follow-up PR sequence (this matrix line
+1502); that verdict has not been rendered. `not-release-ready`
+/ `missing-build-matrix` / `missing-webflash-wrapper` /
+`missing-product-yaml` / `missing-package-readiness` all hold;
+mains-voltage compliance posture is gating-priority over stable
+promotion; `operator-proof-required` + `release-proof-required`
+both apply. No package, product, WebFlash, build, release,
+compliance, JSON catalog, test, script, workflow, component,
+include, firmware, or manifest edits; no `schematic_status` /
+`schematic_file` promotion; no `webflash_build_matrix` flip; no
+artifact built / signed / attached; no release tag created; no
+SHA256 / MD5 emitted; no build-info manifest attached; no proof
+row recorded; no WebFlash import triggered; no
+`REQUIRED_CONFIGS` / kit change. Release-One stays
+`Ceiling-POE-VentIQ-RoomIQ` /
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` / tag
+`v1.0.0`; LED preview stays
+`Ceiling-POE-VentIQ-RoomIQ-LED` /
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`;
+FanTRIAC stays `blocked` / `HW-005`. Investigation outcome
+cross-recorded at
+[`cleanup-audit.md` §`RELEASE-POWER-400-001 update (2026-05-19 — docs-only investigation pass)`](cleanup-audit.md#release-power-400-001-update-2026-05-19--docs-only-investigation-pass)
+and this matrix §Follow-up PR sequence row at line 1502.
+
 ## PoE / S360-410 release posture
 
 **Current state.** No new PoE-410-explicit product YAML; no new
