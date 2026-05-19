@@ -6334,3 +6334,257 @@ COMPLIANCE-001 pending` outcome with the new inspection date.
 This update is recorded together with the existing
 [§HW-PINMAP-310-FOLLOWUP update](#hw-pinmap-310-followup-update-2026-05-18-schematic-backed-reconciliation)
 entry that this PR follows in pattern.
+
+## HW-PINMAP-410-FOLLOWUP update (2026-05-19 — schematic-backed reconciliation)
+
+HW-PINMAP-410-FOLLOWUP is the **docs-only schematic-backed
+reconciliation** that consumes the module-side schematic evidence
+committed under HW-ASSETS-410 (PR #516) at
+[`docs/hardware/schematics/S360-410-R4.pdf`](hardware/schematics/S360-410-R4.pdf)
+and inventoried in
+[`docs/hardware/artifacts/S360-410-R4.md`](hardware/artifacts/S360-410-R4.md),
+and uses that evidence to promote the HW-PINMAP-410 audit doc at
+[`docs/hardware/s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md)
+from `pending — schematic/design evidence required` to
+`partial — schematic evidence available; package reconciliation,
+PoE PD controller / magnetics / buck / isolated DC/DC / harness
+identity evidence pending`. The purpose of this update is to
+record, on 2026-05-19, what schematic-backed reconciliation work
+HW-PINMAP-410-FOLLOWUP performed against the PoE-410 pin-map /
+connector / PoE-controller / magnetics / buck / isolated-DC/DC /
+output / mounting-hole / package-header part-identity gates owed
+by HW-PINMAP-410, and what stays unresolved after the FOLLOWUP —
+and to record the result as a dated audit-log entry in
+[`docs/hardware/s360-410-r4-poe.md` HW-PINMAP-410-FOLLOWUP audit log](hardware/s360-410-r4-poe.md#hw-pinmap-410-followup-audit-log).
+**The status is `partial — schematic evidence available; package
+reconciliation, PoE PD controller / magnetics / buck / isolated
+DC/DC / harness identity evidence pending`** after this update
+(promoted from the prior `pending — schematic/design evidence
+required`). Schematic-backed module-side `LAN_CON1
+RJP-003TC1(LPJ4112CNL)` integrated 10/100 BASE-TX magnetics / RJ45
+module with Bob-Smith bridge (`2x1000pF/2KV` + `2x75 Ω` + `C3 1nF`
+shield bridge) is recorded; `U1 TPS2378DDAR(HSOIC-8)` PoE PD
+controller with `R1 24.9k` DEN / `R2 1.27k` CLS (`Class=0 (0.44 to
+12.95W)`) / `D1 SMAJ58A` TVS / `C2 15uF` CBULK / `R5 0.03R` RTN
+sense is recorded; `U2 TX4138(ESOIC-8)` buck with `R3/R4 9.1k`
+ILIM / `L1 33uH` / `D2 ss510` Schottky / `C6 470u` output bulk /
+`R7 10.5k` (Rd) / `R8 56.2k` (Rc) feedback divider with on-sheet
+formula `Vout = 0.8 · (1 + Rc/Rd)` ≈ 5.08 V design set-point on
+`Sw_Vin_Poe` is recorded; `DCDC1 F0505S-2WR2(SIP-7)` isolated
+DC/DC with `AM1D-0505S-NZ` annotated alternate (5 V → 5 V;
+pinout `Vin+` / `Vin-` / `Vout-` / `Vout+`) is recorded;
+module-side `J3` 2-pin output (`+5VP` / `GND`; `C8 22u` bulk,
+`R9 1k` bleed) is recorded; `D3 Green` status LED on buck output
+is recorded; four mounting holes `H1`..`H4` each labelled `Earth`
+are recorded at the symbol layer; absences (no on-board
+PoE-present LED on primary, no spare-pair vs data-pair selection,
+no explicit 802.3at signature network, no secondary regulator
+after isolation, no I²C / UART / SPI / GPIO / JTAG / Nextion, no
+Core-side mating connector pinout) are recorded. **No BOM
+evidence, no silkscreen evidence, no PCB / isolation-barrier
+evidence, no bench / load / PoE-link-up / thermal / inrush /
+insulation / Hi-pot / earth-continuity / leakage / EMI / EMC
+evidence, and no HW-002 OQ#6 / `S360-100-BENCH-001` J2-harness
+closure** is on file. The **part-identity disagreement** between
+the package header in
+[`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
+line 6 (`Ag9712M, Silvertel Ag9700, or similar` — whole-module
+hint) and the schematic-shown discrete topology
+(`TPS2378DDAR + TX4138 + F0505S-2WR2 + RJP-003TC1(LPJ4112CNL)`) is
+**not** resolved — BOM evidence is required, and resolution
+belongs to `PACKAGE-POE-410-001`, not HW-PINMAP-410-FOLLOWUP.
+`PACKAGE-POE-410-001` stays blocked behind (a) BOM cross-check,
+(b) the `S360-410` `schematic_status: verified` JSON-only PR
+(itself gated on BOM + HW-002 OQ#6 closure), (c) HW-002 OQ#6 /
+`S360-100-BENCH-001` J2-harness identity closure, and (d) the
+package-header reconciliation itself. The downstream PoE-410
+chain (`PRODUCT-POE-410-001`, `WEBFLASH-POE-410-001`,
+`RELEASE-POE-410-001`, `WF-IMPORT-POE-410-001`) stays blocked.
+Release-One is unchanged. The LED preview path is unchanged.
+FanTRIAC stays `status: blocked`. The Sense360 LED Release-One
+exclusion is unchanged. The mains-voltage compliance status of
+`S360-320` (FanTRIAC) and `S360-400` (240 V PSU) is unchanged
+(COMPLIANCE-001; `S360-410` PoE PSU is **not** in scope because
+PoE is SELV). The Release-One PoE "schematic verification
+pending" caveat in
+[`docs/release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings)
+and [Required follow-ups #6](release-one-hardware-audit.md#required-follow-ups)
+is **preserved verbatim**.
+
+The HW-PINMAP-410-FOLLOWUP entry in the queue is moved from
+`Next / after HW-ASSETS-410 merges` to `In flight (this PR) — PR
+open / PR number pending`. The HW-ASSETS-410 entry is moved from
+`In flight (this PR) — PR open / PR number pending` to
+**Completed / merged PRs** as `HW-ASSETS-410 | #516`.
+
+This update edits the following docs-only files:
+[`docs/hardware/s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md)
+(promotes the top-line status; rewrites the audit body into the
+schematic-backed-partial pattern of
+[`docs/hardware/s360-400-r4-power.md`](hardware/s360-400-r4-power.md)
+/
+[`docs/hardware/s360-310-r4-relay.md`](hardware/s360-310-r4-relay.md);
+adds the schematic-summary tables for `LAN_CON1` / `U1` / `U2` /
+`DCDC1` / `J3` / `D3` / `H1`–`H4` / net topology; adds the
+PoE-PD-controller / buck-stage / isolated-DC/DC / output /
+mounting-hole findings sections; adds the part-identity
+reconciliation table; updates the reconciliation findings table
+and the known-unresolved-issues list; updates the package-YAML
+status / product-WebFlash status / compliance-safety status /
+required-evidence-before-promotion / follow-up PR sequence /
+do-not-change guardrails sections; adds the HW-PINMAP-410-FOLLOWUP
+audit log section with the 2026-05-19 dated row);
+[`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+(refreshes the `S360-410` evidence-axis row, the `S360-410`
+productization-axis row, the §`S360-410 Sense360 PoE PSU`
+board-by-board notes, the Missing / unfinished boards narrative
+`S360-410` bullet, and the Follow-up PR sequence item #6);
+[`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)
+(refreshes the `S360-410` decision-table row and the
+§Sense360 PoE PSU (`S360-410`) Evidence-available /
+Evidence-missing bullets);
+[`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+(refreshes the `power_poe.yaml` row and the §`power_poe.yaml` /
+S360-410 detail subsection);
+[`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md)
+(refreshes the `power_poe.yaml` cross-link mention and adds the
+new §`power_poe.yaml` PoE-module part-identity disagreement
+(S360-410) per-area finding);
+[`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
+(refreshes the PoE-410 candidate-product row and the §PoE-410 /
+S360-410 subsection);
+[`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+(refreshes the `S360-410` snapshot-row note to reflect
+HW-PINMAP-410-FOLLOWUP consumption of the schematic);
+[`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md)
+(refreshes the PoE-410 candidate-product row and the §PoE /
+S360-410 WebFlash posture Current-state paragraph);
+[`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+(refreshes the PoE-410 candidate-product row and the §PoE /
+S360-410 release-posture Current-state paragraph);
+[`UPCOMING_PR.md`](../UPCOMING_PR.md) (records HW-ASSETS-410 as
+PR #516 in Completed / merged PRs, removes HW-ASSETS-410 from the
+in-flight slot, promotes HW-PINMAP-410-FOLLOWUP into the
+in-flight slot, renumbers downstream queue items, refreshes the
+PACKAGE-POE-410-001 row blocker notes, and updates the
+"Recently uploaded evidence" S360-410 bullet); and this entry in
+[`docs/cleanup-audit.md`](cleanup-audit.md).
+
+This update explicitly **does not** edit
+[`docs/hardware/schematics/S360-410-R4.pdf`](hardware/schematics/S360-410-R4.pdf)
+(stays byte-identical to the HW-ASSETS-410 / PR #516 commit);
+does **not** edit
+[`docs/hardware/artifacts/S360-410-R4.md`](hardware/artifacts/S360-410-R4.md)
+(its content is consumed by HW-PINMAP-410-FOLLOWUP, not
+rewritten); does **not** edit
+[`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md)
+(the PoE PSU caveat language is preserved verbatim); does
+**not** edit
+[`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)
+(COMPLIANCE-001 unchanged; PoE is SELV and `S360-410` is **not**
+in scope); does **not** edit any value in
+[`config/hardware-catalog.json`](../config/hardware-catalog.json)
+(`S360-410` row stays `schematic_status: cataloged_unverified`
+with no `schematic_file`),
+[`config/product-catalog.json`](../config/product-catalog.json),
+[`config/webflash-builds.json`](../config/webflash-builds.json),
+or
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json);
+does **not** add or modify any product YAML under
+[`products/`](../products/) or any WebFlash wrapper under
+[`products/webflash/`](../products/webflash/); does **not** add
+or modify any package YAML under [`packages/`](../packages/)
+(including
+[`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
+— comment-only cleanup of the stale `Ag9712M / Silvertel
+Ag9700 / or similar` header, the partially-evidenced `IEEE
+802.3af / 802.3at` / `Class 0 / Class 1` / `36-57V DC` / `5V DC,
+2A (10W) or 3.3V DC` / `Overcurrent, overvoltage, short-circuit`
+header lines, and the substitutions / globals / sensors / logger
+/ on_boot blocks are **all** preserved byte-for-byte; comment-only
+cleanup is **deferred to `PACKAGE-POE-410-001`** once BOM
+evidence lands, per the brief's evidence standards "BOM is
+required to resolve part number/rating disputes"); does **not**
+edit any test under [`tests/`](../tests/), any script under
+[`scripts/`](../scripts/), any workflow under
+`.github/workflows/`, any component under `components/`, any
+header under `include/`, `firmware/*`, `manifest.json`, or
+`firmware/sources.json`; does **not** regenerate firmware,
+create a GitHub Release or tag, or change any WebFlash manifest
+/ import; does **not** advance `PACKAGE-POE-410-001`,
+`PRODUCT-POE-410-001`, `WEBFLASH-POE-410-001`,
+`RELEASE-POE-410-001`, or `WF-IMPORT-POE-410-001`; does **not**
+close `S360-100-BENCH-001`, `HW-PINMAP-311-FOLLOWUP`,
+`HW-PINMAP-312-FOLLOWUP`, `HW-PINMAP-320-FOLLOWUP`,
+`HW-PINMAP-310-FOLLOWUP`, `HW-PINMAP-400-FOLLOWUP`, or
+`CORE-ABSTRACT-BUS-001`; does **not** unblock FanTRIAC (HW-005
+stays a separate gate); does **not** clear `COMPLIANCE-001` (for
+`S360-320` or `S360-400`); does **not** change the Release-One
+configuration (`Ceiling-POE-VentIQ-RoomIQ`, version `1.0.0`,
+channel `stable`, artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, tag
+`v1.0.0`); does **not** change the LED preview entry
+(`Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview`,
+`channel: preview`, artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`);
+does **not** change FanTRIAC state
+(`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status: blocked`,
+`blocker: HW-005`, `webflash_build_matrix: false`); does
+**not** change `REQUIRED_CONFIGS`, kits, or any WebFlash-side
+artifact; does **not** change the `S360-400` Sense360 240v PSU
+status or its documented part-identity disagreement; does
+**not** resolve the systemic Core abstract-bus mismatch
+enumerated in
+[`docs/release-one-hardware-audit.md` Required follow-ups #2 / #3](release-one-hardware-audit.md#required-follow-ups);
+does **not** claim that any bench / load / PoE-link-up / thermal
+/ inrush / insulation / Hi-pot / earth-continuity / leakage /
+EMI / EMC evidence exists; does **not** claim IEEE 802.3af /
+802.3at PoE compliance for the design; does **not** claim
+isolation / Hi-pot / earth-continuity / leakage compliance for
+the assembled board; does **not** claim Release-One
+requalification, product readiness, or WebFlash readiness; does
+**not** make any CE / UKCA / FCC / UL / LVD / EMC / RoHS / IEC
+claim.
+
+**Next audit-log trigger.** The next HW-PINMAP-410-FOLLOWUP
+audit-log entry should appear when committed evidence is added
+to this repository that the field-evidence rules above can cite:
+a BOM line item with manufacturer + part number + revision for
+`U1` (settling the package-header whole-module vs
+schematic-shown discrete topology disagreement), `U2`, `DCDC1`
+(settling primary `F0505S-2WR2` vs alternate `AM1D-0505S-NZ`),
+`LAN_CON1`, `D1`, `D2`, `D3`, `L1`, `R1`–`R9`, `C1`–`C8`, and
+`J3` with ratings; operator-attributed silkscreen captures of
+the module-side `J3` 1-to-2 pin order; KiCad PCB source /
+gerbers / board photos sufficient to verify isolation-barrier
+widths around the `F0505S-2WR2` and `H1`–`H4` PCB-level bonding
+to `Lan_earth` / RJ45 shield; bench / load / PoE link-up
+against 802.3af and 802.3at PSE / signature / classification /
+load regulation / cold-start inrush / thermal rise / insulation
+resistance / Hi-pot / earth-continuity / leakage / EMI / EMC
+measurements against a populated `S360-410-R4` board with
+operator / reviewer / serial recorded; HW-002 Open Question #6
+/ `S360-100-BENCH-001` J2-harness identity closure (cable /
+pigtail manufacturer, length, conductor count, connector key /
+polarity at both ends); a standalone schematic-backed reference
+doc (e.g. a new
+`docs/hardware/s360-410-r4-poe-reference.md` companion in the
+per-board reference pattern of
+[`s360-200-r4-roomiq.md`](hardware/s360-200-r4-roomiq.md) /
+[`s360-211-r4-ventiq.md`](hardware/s360-211-r4-ventiq.md) /
+[`s360-300-r4-led.md`](hardware/s360-300-r4-led.md)); KiCad
+schematic source (`S360-410-R4.kicad_sch`) / KiCad PCB source
+(`S360-410-R4.kicad_pcb`) / KiCad project metadata
+(`*.kicad_pro` / `*.kicad_prl` / `fp-lib-table` /
+`sym-lib-table`) / CPL / drill files / STEP for `S360-410-R4`
+that the audit can cite by repo path; or IEEE 802.3af /
+802.3at compliance test reports / isolation / Hi-pot /
+earth-continuity / leakage reports. Until any of those land,
+the next audit-log entry should report the same
+`partial — schematic evidence available; package reconciliation,
+PoE PD controller / magnetics / buck / isolated DC/DC / harness
+identity evidence pending` outcome with the new inspection date.
+
+This update is recorded together with the existing
+[§HW-PINMAP-400-FOLLOWUP update](#hw-pinmap-400-followup-update-2026-05-19-schematic-backed-reconciliation)
+entry that this PR follows in pattern.
