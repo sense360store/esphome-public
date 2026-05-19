@@ -737,6 +737,42 @@ decisions; kit / recommended membership decision belongs to
 [`product-readiness-matrix.md` §PWR-240V / S360-400](product-readiness-matrix.md#pwr-240v--s360-400),
 [`compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md).
 
+**2026-05-19 — `PRODUCT-POWER-400-001` investigation pass
+(Path A docs-only deferral; class unchanged).**
+The upstream `PACKAGE-POWER-400-001` investigation pass merged as
+**PR #520** on 2026-05-19 (docs-only Path A deferral) and the
+downstream `PRODUCT-POWER-400-001` investigation pass ran on
+2026-05-19 (this PR — docs-only Path A deferral). Re-verified
+against the live files: no S360-400-explicit / `PWR`-bearing
+WebFlash-shippable product YAML exists under
+[`../products/`](../products/) or
+[`../products/webflash/`](../products/webflash/); no S360-400
+product entry in
+[`../config/product-catalog.json`](../config/product-catalog.json)
+(four `legacy-compatible` `*-pwr` Core variants unchanged); no
+`PWR` build in
+[`../config/webflash-builds.json`](../config/webflash-builds.json);
+[`../config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+`PWR` stays reserved in `canonical_power` with no
+`webflash_build_matrix: true` consumer. `WEBFLASH-POWER-400-001`
+stays **blocked** behind `PRODUCT-POWER-400-001` and
+`COMPLIANCE-001` `S360-400` slice closure; `PRODUCT-POWER-400-001`
+itself stays blocked behind `PACKAGE-POWER-400-001`
+implementation (PR #520 was docs-only investigation only), BOM
+cross-check, `S360-400` `schematic_status: verified` JSON PR,
+`COMPLIANCE-001` `S360-400` slice, package / catalog
+reconciliation, and product-onboarding approval. No package,
+product, WebFlash, build, release, compliance, JSON catalog,
+test, script, workflow, component, include, firmware, or
+manifest edits; no `schematic_status` / `schematic_file`
+promotion; no `webflash_build_matrix` flip; no `REQUIRED_CONFIGS`
+/ kit change. Release-One stays `Ceiling-POE-VentIQ-RoomIQ` /
+`stable` / `v1.0.0`; LED preview stays
+`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays
+`blocked` / `HW-005`. Investigation outcome cross-recorded at
+[`cleanup-audit.md` §`PRODUCT-POWER-400-001 update (2026-05-19 — docs-only investigation pass)`](cleanup-audit.md#product-power-400-001-update-2026-05-19--docs-only-investigation-pass)
+and [`product-readiness-matrix.md` §PWR-240V / S360-400](product-readiness-matrix.md#pwr-240v--s360-400).
+
 ## PoE / S360-410 WebFlash posture
 
 **Current state.** `S360-410 Sense360 PoE PSU`,
