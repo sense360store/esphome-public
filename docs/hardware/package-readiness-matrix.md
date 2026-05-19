@@ -446,6 +446,57 @@ named follow-up.
   [`s360-310-r4-relay.md` Follow-up PR sequence](s360-310-r4-relay.md#follow-up-pr-sequence);
   [`s360-310-r4-relay.md` HW-PINMAP-310-FOLLOWUP audit log](s360-310-r4-relay.md#hw-pinmap-310-followup-audit-log);
   [`board-readiness-matrix.md` `S360-310` notes](board-readiness-matrix.md#s360-310-sense360-relay).
+- **PACKAGE-RELAY-001 investigation outcome.** PACKAGE-RELAY-001
+  was investigated against the readiness gates above and is
+  **confirmed deferred**: `CORE-ABSTRACT-BUS-001` (alias for
+  [`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups))
+  has not landed and owns the `IO3` (Core schematic) vs `GPIO4`
+  ([`sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml)
+  line 61) vs `GPIO10`
+  ([`sense360_core.yaml`](../../packages/hardware/sense360_core.yaml)
+  line 63) `relay_pin` resolution; the module-side silkscreen /
+  harness / `K1` BOM evidence (module-side `J2` pin-1 orientation;
+  module-side `J1` pin-1 orientation and NO / COM / NC mapping;
+  Core-side `J4` pin-1 orientation; `K1` part identity / coil
+  voltage / contact configuration / contact rating / isolation
+  rating; Core-to-module 3-pin harness conductor-by-conductor
+  mapping) is not on file; and no bench / continuity / waveform
+  evidence against a populated `S360-310-R4` + `S360-100-R4` pair
+  has been recorded. The package YAML
+  [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml)
+  is **already structurally correct** for the state of the
+  evidence: `fan_relay_pin: ${relay_pin}` (line 27) inherits
+  whichever value the parent Core abstract package binds, the
+  override-hook comment block (lines 22–25) documents how a parent
+  product YAML can drive an external SSR from an expansion pin
+  (`fan_relay_pin: ${expansion_gpio1}`), the `switch.platform: gpio`
+  declaration uses `pin: ${fan_relay_pin}` (line 38), and the
+  `restore_mode: RESTORE_DEFAULT_OFF` / `on_turn_on` / `on_turn_off`
+  / `fan_auto_mode` global / `fan_emergency_stop` script wiring
+  carry no hardcoded GPIOs. The wrong values live in the **Core
+  abstract packages**
+  ([`packages/hardware/sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml)
+  `relay_pin: GPIO4`,
+  [`packages/hardware/sense360_core.yaml`](../../packages/hardware/sense360_core.yaml)
+  `relay_pin: GPIO10`), and the resolution is owned by
+  `CORE-ABSTRACT-BUS-001`, not by `PACKAGE-RELAY-001`. There is no
+  safe functional package YAML edit available today: a definitive
+  binding change on `fan_relay.yaml` cannot be authored without
+  picking a Core-side GPIO, and that choice belongs to
+  `CORE-ABSTRACT-BUS-001`. The investigation outcome and full
+  do-not-change inventory are recorded in
+  [`docs/cleanup-audit.md` §PACKAGE-RELAY-001 update](../../docs/cleanup-audit.md#package-relay-001-update-deferred--core-abstract-bus-001--silkscreen--harness--k1-bom-evidence-not-landed).
+  Status stays `schematic-evidence-pending` +
+  `needs-package-reconciliation`; FanRelay remains **not**
+  Release-One, **not** REQUIRED_CONFIGS, **not** kit / default,
+  **not** recommended, and **not** consumed by any active product
+  YAML, WebFlash wrapper, build-matrix row, release artifact, or
+  WebFlash import. The `S360-310` JSON `schematic_status` stays
+  `cataloged_unverified` with no `schematic_file` in
+  [`config/hardware-catalog.json`](../../config/hardware-catalog.json);
+  the `FanRelay` token reservation in
+  [`config/webflash-compatibility.json`](../../config/webflash-compatibility.json)
+  `canonical_modules` (line 11) is unchanged.
 
 ### `fan_pwm.yaml` / S360-311
 
@@ -770,7 +821,7 @@ and the per-board audit docs.
 
 | PR | Purpose | Gated on |
 |---|---|---|
-| **`PACKAGE-RELAY-001`** (alias: `PACKAGE-GAP-001` FanRelay slice) | Reconcile [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml) and the Core abstract packages' `relay_pin` value(s) against the now-verified schematic evidence. Decide whether `fan_relay_pin: ${relay_pin}` is the right abstraction or whether the package should bind an explicit module-side connector pin. | `HW-ASSETS-310` + `HW-PINMAP-310-FOLLOWUP` + `S360-310` `schematic_status: verified` + bench / silkscreen evidence + `CORE-ABSTRACT-BUS-001`. |
+| **`PACKAGE-RELAY-001`** (alias: `PACKAGE-GAP-001` FanRelay slice) | **Investigated and deferred** — readiness gates are not satisfied. Would reconcile [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml) and the Core abstract packages' `relay_pin` value(s) against the now-verified schematic evidence. Would decide whether `fan_relay_pin: ${relay_pin}` is the right abstraction or whether the package should bind an explicit module-side connector pin. Until the gates clear, the only PACKAGE-RELAY-001 work recorded in this repo is the docs-only deferral note in [`docs/cleanup-audit.md` §PACKAGE-RELAY-001 update](../../docs/cleanup-audit.md#package-relay-001-update-deferred--core-abstract-bus-001--silkscreen--harness--k1-bom-evidence-not-landed); [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml) is unchanged (`fan_relay_pin: ${relay_pin}` line 27, override-hook comment lines 22–25, `switch.platform: gpio` with `pin: ${fan_relay_pin}` line 38, `restore_mode: RESTORE_DEFAULT_OFF`, `fan_auto_mode` global, `fan_emergency_stop` script all preserved), and the Core abstract packages [`packages/hardware/sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml) (`relay_pin: GPIO4`) and [`packages/hardware/sense360_core.yaml`](../../packages/hardware/sense360_core.yaml) (`relay_pin: GPIO10`) are also unchanged. The `IO3` (Core schematic) vs `GPIO4` vs `GPIO10` `relay_pin` resolution stays owned by `CORE-ABSTRACT-BUS-001`, not by PACKAGE-RELAY-001. | `HW-ASSETS-310` + `HW-PINMAP-310-FOLLOWUP` + `S360-310` `schematic_status: verified` + bench / silkscreen evidence + `CORE-ABSTRACT-BUS-001`. |
 | **`PACKAGE-PWM-001`** (alias: `PACKAGE-GAP-001` FanPWM slice) | Reconcile [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml) (and decide the fate of the legacy four-channel [`packages/expansions/sense360_fan_pwm.yaml`](../../packages/expansions/sense360_fan_pwm.yaml)) against the now-verified schematic evidence: single-channel vs four-channel canonical abstraction; SX1509-channel vs direct-ESP32 binding decision; PWM polarity / frequency decision; tach polarity / pull-up / pulses-per-revolution decision; UART-on-`J3`-pins-11/12 resolution. | `HW-PINMAP-311-FOLLOWUP` + `S360-311` `schematic_status: verified` + bench / silkscreen evidence + `CORE-ABSTRACT-BUS-001`. |
 | **`PACKAGE-DAC-001`** (alias: `PACKAGE-GAP-001` FanDAC slice) | Reconcile [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) against the now-verified schematic evidence: at minimum delete or correct the stale header-comment connector / GPIO block (file lines 13–18), decide the `${fan_dac_address}` allowed-values set against the DIP-switch evidence, decide whether to add a Nextion `display:` or `uart:` binding on the `UART_RX` / `UART_TX` pair, decide the canonical single- vs dual-channel abstraction (the active YAML is already dual-channel and matches the schematic). | `HW-PINMAP-312-FOLLOWUP` + `S360-312` `schematic_status: verified` + bench / silkscreen / DIP-switch evidence. |
 | **`PACKAGE-TRIAC-001`** (alias: `PACKAGE-GAP-001` FanTRIAC slice) | **Investigated and deferred** — readiness gates are not satisfied. Would reconcile [`packages/expansions/fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) against the now-verified schematic + verified direct-ESP32 pin pair: remove the BLOCKED / UNVERIFIED banner **only** if HW-005 and the timing-correctness gate justify it; retain the mains-voltage / qualified-electrician warnings; leave the `ac_dimmer` topology intact (if confirmed correct); add the advanced / manual-warning posture wording per [`s360-320-r4-triac.md` Advanced / manual-warning product posture](s360-320-r4-triac.md#advanced--manual-warning-product-posture). **Must not** add FanTRIAC to Release-One, REQUIRED_CONFIGS, kit / default lists, recommended surfaces, or compliance-certified surfaces. Until the gates clear, the only PACKAGE-TRIAC-001 work recorded in this repo is the docs-only deferral note in [`docs/cleanup-audit.md` §PACKAGE-TRIAC-001 update](../cleanup-audit.md#package-triac-001-update-deferred--hw-005--hw-pinmap-320-followup--compliance-001-not-landed); the package YAML itself is unchanged (BLOCKED / UNVERIFIED banner, `ac_dimmer` topology, substitutions, mains-voltage / qualified-electrician warnings all preserved). `WF-TRIAC-001` having landed in the WebFlash repo (runtime advanced / manual-warning UX gate) does **not** satisfy these package-layer gates. After PACKAGE-TRIAC-001 deferral, the downstream `PRODUCT-TRIAC-002`, in-repo `WF-TRIAC-001` wrapper / catalog / build slice, `RELEASE-TRIAC-001`, and `WF-IMPORT-TRIAC-001` slices remain blocked until `HW-005` + `HW-PINMAP-320-FOLLOWUP` + bench / waveform / real-load evidence + `COMPLIANCE-001` evidence lands; see [`docs/cleanup-audit.md` §TRIAC-QUEUE-001 update](../cleanup-audit.md#triac-queue-001-update-remaining-fantriac-chain-normalized-after-package-deferral). | `HW-005` unblock (Option (a) direct-ESP32 pair or Core respin) + `HW-PINMAP-320-FOLLOWUP` + bench timing / waveform / real-load evidence + `COMPLIANCE-001` advanced/manual-warning sign-off. |

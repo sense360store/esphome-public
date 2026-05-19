@@ -5321,3 +5321,350 @@ path; or progress on the systemic Core abstract-bus rebind
 Until any of those land, the next audit-log entry should report
 the same `partial — schematic evidence available; package
 reconciliation pending` outcome with the new inspection date.
+
+## PACKAGE-RELAY-001 update (deferred — CORE-ABSTRACT-BUS-001 / silkscreen / harness / K1 BOM evidence not landed)
+
+PACKAGE-RELAY-001 is the **FanRelay package YAML reconciliation**
+slice that would, when its readiness gates clear, reconcile
+[`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml)
+and the Core abstract packages' `relay_pin` value(s) against the
+verified Core schematic + module schematic + silkscreen / harness /
+`K1` BOM evidence, and decide whether
+`fan_relay_pin: ${relay_pin}` is the right abstraction or whether
+the package should bind an explicit module-side connector pin.
+PACKAGE-RELAY-001 was investigated in this PR against the
+readiness gates recorded in
+[`docs/hardware/package-readiness-matrix.md` `fan_relay.yaml` / S360-310](hardware/package-readiness-matrix.md#fan_relayyaml--s360-310),
+[`docs/hardware/s360-310-r4-relay.md` Package YAML status](hardware/s360-310-r4-relay.md#package-yaml-status),
+[`docs/hardware/s360-310-r4-relay.md` Required evidence before promotion](hardware/s360-310-r4-relay.md#required-evidence-before-promotion),
+[`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md)
+(HW-009 Release-One package-stack `relay_pin: GPIO4` bullet), and
+[`docs/release-one-hardware-audit.md` Required follow-ups #2 / #3](release-one-hardware-audit.md#required-follow-ups),
+and is **confirmed deferred**: every gate it depends on is still
+open.
+
+(1) `CORE-ABSTRACT-BUS-001` (alias for
+[`release-one-hardware-audit.md` Required follow-ups #2 / #3](release-one-hardware-audit.md#required-follow-ups))
+has not landed. The systemic `IO3` (Core schematic per
+[`docs/hardware/s360-100-r4-core.md` §Pin assignments](hardware/s360-100-r4-core.md#pin-assignments)
+line 100 — `IO3 → Relay (J4 Relay module gate)` — and
+[`docs/hardware/s360-100-r4-core.md` §J4 — Relay module connector (3-pin)](hardware/s360-100-r4-core.md#j4--relay-module-connector-3-pin)
+pin 2 — and
+[`docs/hardware/s360-100-r4-core.md` §Fan / driver outputs](hardware/s360-100-r4-core.md#fan--driver-outputs)
+line 276 — `Relay ↔ J4 Relay module (3-pin)` originating at ESP32
+`IO3`) vs `GPIO4`
+([`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml)
+line 61 — `IO4` is `SEN0609_RX` per HW-009 in
+[`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md))
+vs `GPIO10`
+([`packages/hardware/sense360_core.yaml`](../packages/hardware/sense360_core.yaml)
+line 63) `relay_pin` disagreement is unresolved. Resolution belongs
+to `CORE-ABSTRACT-BUS-001`, not to `PACKAGE-RELAY-001`. The Core
+abstract-bus rebind is also broader than `relay_pin` alone: per
+[`docs/hardware/firmware-package-mapping-audit.md` Release-One package stack](hardware/firmware-package-mapping-audit.md#release-one-product-yaml-package-stack)
+and
+[`docs/release-one-hardware-audit.md` Summary](release-one-hardware-audit.md#summary)
+it must also re-anchor `halo_i2c`, `expansion_i2c`, `uart_bus`,
+`status_led_pin`, `pir_sensor_pin`, and `expansion_gpio1` /
+`expansion_gpio2` against the verified `S360-100-R4` schematic,
+and must re-validate every non-Release-One product YAML that
+consumes the Ceiling Core abstract package. That broader scope is
+incompatible with a single relay-only PR.
+
+(2) Module-side silkscreen / harness / `K1` BOM evidence is not
+on file. Per
+[`docs/hardware/s360-310-r4-relay.md` Known unresolved issues](hardware/s360-310-r4-relay.md#known-unresolved-issues):
+no operator-attributed silkscreen reading of the module-side `J2`
+1-to-3 pin order; no operator-attributed silkscreen reading of the
+module-side `J1` 1-to-3 pin order or NO / COM / NC labelling; no
+operator-attributed silkscreen reading of the Core-side `J4`
+1-to-3 pin order (paired with the broader Core silkscreen gate in
+[`docs/hardware/s360-100-r4-core.md` §S360-100-BENCH-001 status](hardware/s360-100-r4-core.md#s360-100-bench-001-status));
+no physical Core ↔ module 3-pin harness inspection with
+conductor-by-conductor mapping; no `K1` BOM identity (part number,
+manufacturer, coil voltage, contact configuration SPST / SPDT,
+contact current / voltage / AC vs DC rating, isolation rating); no
+SOA analysis of the `Q1` MMBT3904 against the chosen `K1`
+coil-current draw.
+
+(3) No bench / continuity / waveform evidence exists. No populated
+`S360-310-R4` board on a populated `S360-100-R4` Core has been
+exercised with operator / reviewer / serial recorded; no
+oscilloscope or bench capture of the relay coil-drive waveform,
+the `K1` switching behaviour, or the load-side continuity through
+`J1` NO / COM / NC contacts is on file.
+
+(4) The `S360-310` JSON `schematic_status` stays
+`cataloged_unverified` with no `schematic_file` set in
+[`config/hardware-catalog.json`](../config/hardware-catalog.json)
+(`S360-310` row lines 62–70). The separate JSON-only
+`schematic_status` promotion PR for `S360-310` is itself gated on
+silkscreen / harness / BOM evidence per
+[`docs/hardware/s360-310-r4-relay.md` Follow-up PR sequence](hardware/s360-310-r4-relay.md#follow-up-pr-sequence)
+and is not in scope here.
+
+The package YAML
+[`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml)
+itself is **already structurally correct** for the state of the
+evidence: it binds the relay-drive signal as a single substitution
+`fan_relay_pin: ${relay_pin}` (file line 27) that inherits
+whichever value the parent Core abstract package binds; it carries
+an override-hook comment block (lines 22–25) documenting how a
+parent product YAML can drive an external SSR from an expansion
+pin instead (`fan_relay_pin: ${expansion_gpio1}`); it exposes one
+`switch.platform: gpio` with `pin: ${fan_relay_pin}` (line 38);
+it preserves `restore_mode: RESTORE_DEFAULT_OFF`, `on_turn_on` /
+`on_turn_off` log actions, the `fan_auto_mode` global (lines
+50–53), and the `fan_emergency_stop` script (lines 58–65); and it
+does **not** hardcode any GPIO. The wrong values live in the
+**Core abstract packages**
+([`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml)
+`relay_pin: GPIO4` at line 61;
+[`packages/hardware/sense360_core.yaml`](../packages/hardware/sense360_core.yaml)
+`relay_pin: GPIO10` at line 63), and the resolution is owned by
+`CORE-ABSTRACT-BUS-001`. **There is no safe functional package
+YAML edit available today.** A definitive binding change on
+`fan_relay.yaml` cannot be authored without picking a Core-side
+GPIO, and that choice belongs to `CORE-ABSTRACT-BUS-001`. Because
+PACKAGE-RELAY-001's named prerequisites — `CORE-ABSTRACT-BUS-001`
++ module-side silkscreen / harness / `K1` BOM evidence + bench /
+continuity / waveform evidence — have not landed, the per-family
+decision rule in
+[`docs/hardware/package-readiness-matrix.md` `fan_relay.yaml` / S360-310](hardware/package-readiness-matrix.md#fan_relayyaml--s360-310)
+forbids any functional package YAML edit in this PR. The update is
+therefore **docs-only**: this section records the investigation
+outcome and the deferral; the `fan_relay.yaml` / S360-310
+subsection and the `PACKAGE-RELAY-001` Follow-up PR sequence row
+in
+[`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+are tightened to cross-link this entry; the **Package YAML
+status** section in
+[`docs/hardware/s360-310-r4-relay.md`](hardware/s360-310-r4-relay.md)
+gains a PACKAGE-RELAY-001 investigation-outcome paragraph; and the
+HW-009 Release-One package-stack `relay_pin: GPIO4` bullet in
+[`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md)
+is tightened to record that PACKAGE-RELAY-001 did not edit
+`fan_relay.yaml` because the package inherits `${relay_pin}` and
+the Core abstract `relay_pin` variable remains the source of
+conflict. No structural change is made anywhere else.
+
+The package YAML
+[`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml)
+is unchanged; the header (lines 1–17) describing the FanRelay
+single-speed AC fan ON / OFF role and the cross-driver
+non-interchangeability notice with `fan_pwm.yaml` /
+`fan_gp8403.yaml` / `fan_triac.yaml`, the `substitutions` block
+(lines 19–29) including `fan_relay_pin: ${relay_pin}` and
+`fan_default_state: "OFF"`, the override-hook comment block (lines
+22–25) showing `fan_relay_pin: ${expansion_gpio1}` as the
+external-SSR override, the `switch.platform: gpio` declaration
+(lines 34–44) with `id: fan_relay_switch`, `name: "${friendly_name}
+Fan"`, `pin: ${fan_relay_pin}`, `icon: mdi:fan`,
+`restore_mode: RESTORE_DEFAULT_OFF`, and `on_turn_on` /
+`on_turn_off` log actions, the `fan_auto_mode` global declaration
+(lines 49–53), and the `fan_emergency_stop` script (lines 58–65)
+all remain in place. The Core abstract packages
+[`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml)
+(`relay_pin: GPIO4` line 61; ceiling-Core abstract) and
+[`packages/hardware/sense360_core.yaml`](../packages/hardware/sense360_core.yaml)
+(`relay_pin: GPIO10` line 63; generic Core abstract) are
+unchanged. The sibling Core abstract packages
+[`packages/hardware/sense360_core_voice_ceiling.yaml`](../packages/hardware/sense360_core_voice_ceiling.yaml),
+[`packages/hardware/sense360_core_poe.yaml`](../packages/hardware/sense360_core_poe.yaml),
+[`packages/hardware/sense360_core_mapping.yaml`](../packages/hardware/sense360_core_mapping.yaml),
+and
+[`packages/hardware/sense360_core_wall.yaml`](../packages/hardware/sense360_core_wall.yaml)
+(which also bind `relay_pin` to `GPIO4` or `GPIO10`) are
+unchanged. The `S360-310` row in
+[`config/hardware-catalog.json`](../config/hardware-catalog.json)
+(lines 62–70) stays `schematic_status: cataloged_unverified` with
+no `schematic_file` set; no `FanRelay`-bearing entry is added to
+[`config/product-catalog.json`](../config/product-catalog.json)
+or
+[`config/webflash-builds.json`](../config/webflash-builds.json);
+the `FanRelay` token reservation in
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+`canonical_modules` (line 11) is unchanged and stays subject to
+the fan-driver `max-one-of` rule enforced by `FAN_DRIVER_TOKENS`
+in
+[`tests/validate_webflash_builds.py`](../tests/validate_webflash_builds.py).
+No product YAML under [`products/`](../products/) is added or
+modified — the legacy
+[`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml)
+remains `legacy-compatible` and targets `S360-311` Sense360 PWM,
+not `S360-310`; no `FanRelay`-bearing product YAML exists. No
+WebFlash wrapper under [`products/webflash/`](../products/webflash/)
+is added or modified. The Release-One YAML
+[`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+and its WebFlash wrapper
+[`products/webflash/ceiling-poe-ventiq-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq.yaml)
+are unchanged; the LED preview product
+[`products/sense360-ceiling-poe-ventiq-roomiq-led.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq-led.yaml)
+and its WebFlash wrapper
+[`products/webflash/ceiling-poe-ventiq-roomiq-led.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq-led.yaml)
+are unchanged; the blocked FanTRIAC reference
+[`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
+and its WebFlash wrapper are unchanged. Every exclusion is durable
+and explicitly reaffirmed: **not** Release-One, **not**
+`REQUIRED_CONFIGS`, **not** recommended, **not** kit / default,
+**not** verified — irrespective of any future product YAML,
+WebFlash wrapper, build, release, or import existence.
+
+Documentation only and explicitly **does not**: edit
+[`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml)
+(header, `substitutions` block, override-hook comment, `switch`
+declaration, `fan_auto_mode` global, and `fan_emergency_stop`
+script all preserved); edit
+[`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml)
+(`relay_pin: GPIO4` line 61 preserved);  edit
+[`packages/hardware/sense360_core.yaml`](../packages/hardware/sense360_core.yaml)
+(`relay_pin: GPIO10` line 63 preserved); edit any sibling Core
+abstract package
+([`packages/hardware/sense360_core_voice_ceiling.yaml`](../packages/hardware/sense360_core_voice_ceiling.yaml),
+[`packages/hardware/sense360_core_poe.yaml`](../packages/hardware/sense360_core_poe.yaml),
+[`packages/hardware/sense360_core_mapping.yaml`](../packages/hardware/sense360_core_mapping.yaml),
+[`packages/hardware/sense360_core_wall.yaml`](../packages/hardware/sense360_core_wall.yaml));
+edit any other package YAML under [`packages/`](../packages/);
+drop the `fan_relay.yaml` line 12 comment text (`Built-in 10 A
+relay on the Core board (GPIO4 by default).`) — the comment is
+preserved verbatim because changing it requires either picking a
+concrete GPIO (which belongs to `CORE-ABSTRACT-BUS-001`) or
+removing the GPIO reference (a cosmetic Path B edit that this PR
+deliberately does not make); edit
+[`config/hardware-catalog.json`](../config/hardware-catalog.json),
+[`config/product-catalog.json`](../config/product-catalog.json),
+[`config/webflash-builds.json`](../config/webflash-builds.json),
+or [`config/webflash-compatibility.json`](../config/webflash-compatibility.json);
+edit any product YAML under [`products/`](../products/) (including
+the Release-One, LED preview, blocked FanTRIAC reference, and
+legacy four-channel PWM accessory entries); edit any WebFlash
+wrapper under [`products/webflash/`](../products/webflash/); edit
+any script under [`scripts/`](../scripts/); edit any test under
+[`tests/`](../tests/); edit any workflow under
+[`.github/workflows/`](../.github/workflows/); edit any component
+under [`components/`](../components/); edit any header under
+[`include/`](../include/); edit any firmware sources or manifests
+([`firmware/sources.json`](../firmware/sources.json),
+[`manifest.json`](../manifest.json)); edit the committed
+module-side schematic PDF
+[`docs/hardware/schematics/S360-310-R4.pdf`](hardware/schematics/S360-310-R4.pdf)
+(byte-identical to the HW-ASSETS-310 commit); edit the curated
+artifact index
+[`docs/hardware/artifacts/S360-310-R4.md`](hardware/artifacts/S360-310-R4.md)
+(its content is consumed by HW-PINMAP-310-FOLLOWUP and by this
+investigation, not rewritten); edit
+[`docs/product-readiness-matrix.md`](product-readiness-matrix.md),
+[`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md),
+or
+[`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+(their existing FanRelay / S360-310 wording already enumerates
+`PACKAGE-RELAY-001` as a future PR with the same prerequisites; no
+"not investigated" stale wording exists to refresh — the
+classifications stay `not-webflash-ready` and `not-release-ready`
+respectively); add or modify any lifecycle enum value; add or
+modify any `canonical_modules` token, any
+`release_one_required_configs` membership, any build-matrix entry,
+any `webflash_build_matrix` flip, any `artifact_name`, any release
+tag, or any new channel; mark the pin map confirmed; mark
+[`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml)
+`confirmed-ok`; promote `S360-310` to `preview` / `stable` /
+`production`; add `FanRelay` to `release_one_required_configs` /
+REQUIRED_CONFIGS; add FanRelay to any kit / default onboarding
+flow; make FanRelay recommended; mark `S360-310` `verified`; add
+or set `schematic_file` for `S360-310` in
+[`config/hardware-catalog.json`](../config/hardware-catalog.json);
+flip the `S360-310` JSON `schematic_status` from
+`cataloged_unverified`; claim a `K1` relay part number, coil
+voltage, contact configuration, or contact rating; claim a `J1`
+NO / COM / NC mapping; claim that any bench / continuity /
+waveform / silkscreen / harness evidence exists; claim that any
+compliance evidence for a mains-switching FanRelay product exists;
+generate firmware; create a GitHub Release or tag; perform a
+WebFlash import; change the Release-One configuration
+(`Ceiling-POE-VentIQ-RoomIQ`,
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, tag
+`v1.0.0`); change the LED preview path
+(`Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview`,
+`channel: preview`); unblock FanTRIAC
+(`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status: blocked`,
+`blocker: HW-005`, `webflash_build_matrix: false`); change the
+Sense360 LED Release-One exclusion; change the mains-voltage
+compliance status for `S360-320` or `S360-400` (owned by
+COMPLIANCE-001); resolve `HW-005`, `COMPLIANCE-001`,
+`S360-100-BENCH-001`, `HW-PINMAP-311-FOLLOWUP`,
+`HW-PINMAP-312-FOLLOWUP`, `HW-PINMAP-320-FOLLOWUP`,
+`HW-PINMAP-400-FOLLOWUP`, `HW-PINMAP-410-FOLLOWUP`, or
+`CORE-ABSTRACT-BUS-001`; advance `PRODUCT-RELAY-001`,
+`WEBFLASH-RELAY-001`, `RELEASE-RELAY-001`, or
+`WF-IMPORT-RELAY-001` (all stay blocked behind `PACKAGE-RELAY-001`);
+or change the fan-driver `max-one-of` rule (`FAN_DRIVER_TOKENS`
+in
+[`tests/validate_webflash_builds.py`](../tests/validate_webflash_builds.py)).
+Adds no edits to
+[`config/hardware-catalog.json`](../config/hardware-catalog.json),
+[`config/product-catalog.json`](../config/product-catalog.json),
+[`config/webflash-builds.json`](../config/webflash-builds.json),
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json),
+[`products/*`](../products/),
+[`products/webflash/*`](../products/webflash/),
+[`packages/*`](../packages/), [`scripts/*`](../scripts/),
+[`tests/*`](../tests/), [`.github/workflows/*`](../.github/workflows/),
+[`components/*`](../components/), [`include/*`](../include/),
+[`manifest.json`](../manifest.json), or
+[`firmware/sources.json`](../firmware/sources.json).
+
+The remaining chain after PACKAGE-RELAY-001 stays exactly as
+recorded in
+[`docs/hardware/package-readiness-matrix.md` Follow-up PR sequence](hardware/package-readiness-matrix.md#follow-up-pr-sequence)
+and
+[`docs/hardware/s360-310-r4-relay.md` Follow-up PR sequence](hardware/s360-310-r4-relay.md#follow-up-pr-sequence):
+`CORE-ABSTRACT-BUS-001` (alias for
+[`release-one-hardware-audit.md` Required follow-ups #2 / #3](release-one-hardware-audit.md#required-follow-ups))
++ silkscreen / harness / `K1` BOM evidence + bench / continuity /
+waveform evidence → `S360-310` `schematic_status: verified`
+(separate JSON-only PR) → `PACKAGE-RELAY-001` (this slice;
+**deferred until those prerequisites land**) → `PRODUCT-RELAY-001`
+(FanRelay product YAML under [`products/`](../products/); through
+the [`docs/product-onboarding.md`](product-onboarding.md) ordered
+safe sequence) → `WEBFLASH-RELAY-001` (FanRelay WebFlash wrapper +
+catalog + build-matrix on a non-`stable` channel) →
+`RELEASE-RELAY-001` (preview-artifact slice; alias:
+`RELEASE-GAP-001` FanRelay slice) → `WF-IMPORT-RELAY-001`
+(WebFlash-side import; alias: `WF-IMPORT-GAP-001` FanRelay slice).
+
+Cross-linked from
+[`docs/hardware/package-readiness-matrix.md` `fan_relay.yaml` / S360-310](hardware/package-readiness-matrix.md#fan_relayyaml--s360-310),
+[`docs/hardware/package-readiness-matrix.md` Follow-up PR sequence `PACKAGE-RELAY-001` row](hardware/package-readiness-matrix.md#follow-up-pr-sequence),
+[`docs/hardware/s360-310-r4-relay.md` Package YAML status](hardware/s360-310-r4-relay.md#package-yaml-status),
+and
+[`docs/hardware/firmware-package-mapping-audit.md` Release-One product YAML package stack](hardware/firmware-package-mapping-audit.md#release-one-product-yaml-package-stack)
+(HW-009 `relay_pin: GPIO4` bullet).
+
+Source of truth consumed:
+[`docs/hardware/s360-310-r4-relay.md` Status](hardware/s360-310-r4-relay.md#status),
+[`docs/hardware/s360-310-r4-relay.md` Reconciliation findings](hardware/s360-310-r4-relay.md#reconciliation-findings),
+[`docs/hardware/s360-310-r4-relay.md` Existing package abstraction](hardware/s360-310-r4-relay.md#existing-package-abstraction),
+[`docs/hardware/s360-310-r4-relay.md` Known unresolved issues](hardware/s360-310-r4-relay.md#known-unresolved-issues),
+[`docs/hardware/s360-310-r4-relay.md` Required evidence before promotion](hardware/s360-310-r4-relay.md#required-evidence-before-promotion),
+[`docs/hardware/s360-310-r4-relay.md` Follow-up PR sequence](hardware/s360-310-r4-relay.md#follow-up-pr-sequence),
+[`docs/hardware/s360-310-r4-relay.md` HW-PINMAP-310-FOLLOWUP audit log](hardware/s360-310-r4-relay.md#hw-pinmap-310-followup-audit-log),
+[`docs/hardware/s360-100-r4-core.md` §Pin assignments](hardware/s360-100-r4-core.md#pin-assignments),
+[`docs/hardware/s360-100-r4-core.md` §J4 — Relay module connector (3-pin)](hardware/s360-100-r4-core.md#j4--relay-module-connector-3-pin),
+[`docs/hardware/s360-100-r4-core.md` §Fan / driver outputs](hardware/s360-100-r4-core.md#fan--driver-outputs),
+[`docs/hardware/s360-100-r4-core.md` §S360-100-BENCH-001 status](hardware/s360-100-r4-core.md#s360-100-bench-001-status),
+[`docs/hardware/artifacts/S360-310-R4.md`](hardware/artifacts/S360-310-R4.md),
+[`docs/hardware/schematics/S360-310-R4.pdf`](hardware/schematics/S360-310-R4.pdf),
+[`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md),
+[`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md),
+[`docs/release-one-hardware-audit.md` Required follow-ups #2 / #3](release-one-hardware-audit.md#required-follow-ups),
+[`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml),
+[`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml),
+and
+[`packages/hardware/sense360_core.yaml`](../packages/hardware/sense360_core.yaml),
+together with the existing
+[§HW-PINMAP-310-FOLLOWUP update](#hw-pinmap-310-followup-update-2026-05-18-schematic-backed-reconciliation),
+[§PACKAGE-TRIAC-001 update](#package-triac-001-update-deferred--hw-005--hw-pinmap-320-followup--compliance-001-not-landed),
+[§HW-PINMAP-311-FOLLOWUP update](#hw-pinmap-311-followup-update-2026-05-18-evidence-pass-investigation),
+and
+[§HW-PINMAP-312-FOLLOWUP update](#hw-pinmap-312-followup-update-2026-05-18-evidence-pass-investigation)
+entries that this PR follows in pattern.
