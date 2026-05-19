@@ -442,7 +442,24 @@ Status: `needs-package-change` (systemic; **explicit out-of-scope for
 HW-009**). HW-009 does **not** rebind any pin. The systemic rework is
 gated on a separate, larger follow-up that must also re-validate every
 non-Release-One product YAML that consumes
-`sense360_core_ceiling.yaml`.
+`sense360_core_ceiling.yaml`. The `CORE-ABSTRACT-BUS-001` docs-only
+audit / slice plan landed at
+[`core-abstract-bus-reconciliation.md`](core-abstract-bus-reconciliation.md)
+and split that follow-up into three implementation slices:
+**`CORE-ABSTRACT-BUS-001A`** (`relay_pin → GPIO3` across all Core
+packages — depends on 001C to free `GPIO3`),
+**`CORE-ABSTRACT-BUS-001B`** (consolidate `halo_i2c` /
+`expansion_i2c` / `i2c0` / `i2c1` / `i2c_primary` / `i2c_expander`
+definitions to the single shared I²C bus on `IO48`/`IO45`), and
+**`CORE-ABSTRACT-BUS-001C`** (UART split, status LED move off
+`GPIO48`, `pir_sensor_pin: GPIO47 → GPIO15`,
+`comfort_ceiling_als_int_pin: GPIO3 → GPIO47` in
+[`packages/expansions/comfort_ceiling.yaml`](../../packages/expansions/comfort_ceiling.yaml)
+line 42, `expander_int_pin: GPIO3 → GPIO17`,
+`sx1509_interrupt_pin: GPIO3 → GPIO17`, `expansion_gpio1..4`
+rebind). HW-009 still does not perform any of those slices; they
+remain owned by the corresponding `CORE-ABSTRACT-BUS-001*`
+implementation PRs.
 
 ### FanTRIAC placeholder GPIOs
 
@@ -611,6 +628,19 @@ next-action chain.
     I²C bus (`IO48` / `IO45`) and the two radar UARTs
     (`Hi-Link` on `IO1` / `IO2`; `SEN0609` on `IO4` / `IO5`).
 - **Out of scope for HW-009.** HW-009 only documents the gap.
+- **Investigation outcome.** The `CORE-ABSTRACT-BUS-001` docs-only
+  audit + slice plan has since landed at
+  [`core-abstract-bus-reconciliation.md`](core-abstract-bus-reconciliation.md).
+  It splits the implementation into three coordinated future PRs —
+  `CORE-ABSTRACT-BUS-001A` (`relay_pin → GPIO3`),
+  `CORE-ABSTRACT-BUS-001B` (single shared I²C bus consolidation), and
+  `CORE-ABSTRACT-BUS-001C` (UART split + status LED + PIR + ALS_INT
+  + expansion GPIO rebind) — and records the GPIO3 collision between
+  the schematic-correct `relay_pin` and the existing
+  `comfort_ceiling_als_int_pin: GPIO3` (which prevents the relay
+  slice from landing in isolation). The audit performs no firmware
+  rebind; it is the planning artifact that the future implementation
+  PRs will reference.
 
 ### HW-005 (FanTRIAC) — remains blocked separately
 
