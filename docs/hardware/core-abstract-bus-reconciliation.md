@@ -379,6 +379,34 @@ old names — `airiq.yaml`, `airiq_bathroom_base.yaml`, `airiq_ceiling.yaml`,
 4. Re-validation of every non-Release-One product YAML — this slice
    touches more packages than 001A and the blast radius is larger.
 
+**Scope-extension addendum (2026-05-19, recorded by the `001B`
+investigation pass — see [§2026-05-19 — CORE-ABSTRACT-BUS-001B
+investigation pass](#2026-05-19--core-abstract-bus-001b-investigation-pass-deferred-preconditions-still-open)
+below).** Two Core packages that mirror the same conflicting dual-bus
+definitions were missed when the slice scope was originally drafted
+and must be included in the eventual `001B` implementation slice:
+
+- [`packages/hardware/sense360_core_voice_ceiling.yaml`](../../packages/hardware/sense360_core_voice_ceiling.yaml)
+  lines 113–124 — defines `halo_i2c` (`GPIO39` / `GPIO40`) plus
+  `expansion_i2c` (`GPIO21` / `GPIO18`), identical to the ceiling
+  variant.
+- [`packages/hardware/sense360_core_voice_wall.yaml`](../../packages/hardware/sense360_core_voice_wall.yaml)
+  lines 134–143 — defines `i2c0` (`GPIO39` / `GPIO40`) plus
+  `i2c1` (`GPIO21` / `GPIO18`), identical to the wall variant.
+
+In addition,
+[`packages/features/ceiling_halo_leds.yaml`](../../packages/features/ceiling_halo_leds.yaml)
+line 6 hard-codes `i2c_id: halo_i2c` and currently has no product
+`!include`r, so the eventual `001B` PR must either rebind that
+literal to the canonical bus id or document the feature as dead
+code.
+[`packages/hardware/sense360_core_ceiling_s3.yaml`](../../packages/hardware/sense360_core_ceiling_s3.yaml)
+(`i2c_primary` on `GPIO17` / `GPIO18`) and
+[`packages/hardware/sense360_core_mini.yaml`](../../packages/hardware/sense360_core_mini.yaml)
+(`i2c0` already on the schematic-correct `GPIO48` / `GPIO45` via
+[`packages/hardware/mini_onboard_sensors.yaml`](../../packages/hardware/mini_onboard_sensors.yaml))
+remain out-of-scope per their separate board lineage.
+
 ### CORE-ABSTRACT-BUS-001C — UART / status LED / PIR / expansion GPIO slice
 
 **Scope.** This is the largest slice and the one that has to land
@@ -1076,6 +1104,334 @@ hardware-verified claim. No `CORE-ABSTRACT-BUS-001*` slice has
 moved its status as a result. No precondition is closed by this
 pass.
 
+### 2026-05-19 — CORE-ABSTRACT-BUS-001B investigation pass (deferred; preconditions still open)
+
+Performed the docs-only `CORE-ABSTRACT-BUS-001B` investigation pass
+gated by
+[§CORE-ABSTRACT-BUS-001B — Shared-I²C-bus consolidation slice](#core-abstract-bus-001b--shared-i²c-bus-consolidation-slice)
+and by the queue row at
+[`UPCOMING_PR.md`](../../UPCOMING_PR.md) (entry #3
+`CORE-ABSTRACT-BUS-001B`). The companion `001C` investigation pass
+merged earlier the same day as **PR #518** and is recorded above at
+[§2026-05-19 — CORE-ABSTRACT-BUS-001C investigation pass](#2026-05-19--core-abstract-bus-001c-investigation-pass-deferred-six-preconditions-still-open).
+This `001B` pass evaluated whether `001B` could safely proceed now,
+either as a docs-only Path A deferral, as a Path B test-scaffold-only
+PR, or as a Path C implementation PR, against the current state of
+the repo.
+
+#### Outcome
+
+**Path A — docs-only investigation / deferral.** `001B` is
+**confirmed deferred at the implementation layer.** The four
+preconditions enumerated under
+[§CORE-ABSTRACT-BUS-001B — Shared-I²C-bus consolidation slice](#core-abstract-bus-001b--shared-i²c-bus-consolidation-slice)
+remain open (the downstream-consumer audit lands in this pass —
+see [§Downstream consumer inventory](#downstream-consumer-inventory-2026-05-19)
+immediately below — but is **not by itself** sufficient to land
+an implementation slice). The pass produced no package YAML,
+product YAML, WebFlash wrapper, JSON catalog, script, test,
+workflow, component, include, firmware artifact, or manifest edit.
+
+#### Verification of scope against current repo state
+
+Re-verified the `001B` scope inventory against the live YAML (no
+changes; the values quoted match
+[§I²C bus substitutions](#i²c-bus-substitutions) and
+[§GPIO collision matrix](#gpio-collision-matrix) byte-for-byte, plus
+two Core packages newly added to scope by this investigation):
+
+- **In-scope Core packages defining I²C buses.** Eight Core
+  packages still carry the schematic-conflicting `GPIO39`/`GPIO40`
+  + `GPIO21`/`GPIO18` dual-bus definitions, none on the
+  schematic-correct `IO48`/`IO45` shared bus:
+  - [`packages/hardware/sense360_core.yaml`](../../packages/hardware/sense360_core.yaml)
+    lines 100–112 — `i2c0` (`GPIO39`/`GPIO40`) + `i2c1`
+    (`GPIO21`/`GPIO18`).
+  - [`packages/hardware/sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml)
+    lines 104–117 — `halo_i2c` (`GPIO39`/`GPIO40`) + `expansion_i2c`
+    (`GPIO21`/`GPIO18`). Consumed by Release-One.
+  - [`packages/hardware/sense360_core_mapping.yaml`](../../packages/hardware/sense360_core_mapping.yaml)
+    lines 93–104 — `i2c_primary` + `i2c_expander`.
+  - [`packages/hardware/sense360_core_poe.yaml`](../../packages/hardware/sense360_core_poe.yaml)
+    lines 124–137 — `i2c0` + `i2c1`.
+  - [`packages/hardware/sense360_core_wall.yaml`](../../packages/hardware/sense360_core_wall.yaml)
+    lines 114–127 — `i2c0` + `i2c1`.
+  - [`packages/hardware/sense360_core_voice_ceiling.yaml`](../../packages/hardware/sense360_core_voice_ceiling.yaml)
+    lines 113–124 — `halo_i2c` + `expansion_i2c`.
+    **Newly added to `001B` scope** by this investigation.
+  - [`packages/hardware/sense360_core_voice_wall.yaml`](../../packages/hardware/sense360_core_voice_wall.yaml)
+    lines 134–143 — `i2c0` + `i2c1`.
+    **Newly added to `001B` scope** by this investigation.
+
+  The scope-extension addendum at the end of
+  [§CORE-ABSTRACT-BUS-001B — Shared-I²C-bus consolidation slice](#core-abstract-bus-001b--shared-i²c-bus-consolidation-slice)
+  records both newly-in-scope files.
+
+- **Out-of-scope Core packages.** Recorded for completeness so a
+  later implementation PR does not accidentally edit them:
+  - [`packages/hardware/sense360_core_ceiling_s3.yaml`](../../packages/hardware/sense360_core_ceiling_s3.yaml)
+    lines 203–208 — `i2c_primary` on `GPIO17`/`GPIO18`; different
+    board layout (S3 variant). Already classified `out-of-scope`
+    by [§I²C bus substitutions](#i²c-bus-substitutions).
+  - [`packages/hardware/sense360_core_mini.yaml`](../../packages/hardware/sense360_core_mini.yaml)
+    lines 68–71 — `i2c0` on `GPIO48`/`GPIO45` already (via
+    [`packages/hardware/mini_onboard_sensors.yaml`](../../packages/hardware/mini_onboard_sensors.yaml)).
+    The Mini family is a separate board baseline; `001B`
+    intentionally does not touch it. The Mini family also serves
+    as a useful precedent that the canonical bus id **could** be
+    named `i2c0` if the implementation slice chooses, although
+    `shared_i2c` and `core_i2c` are equally valid candidates.
+
+- **Schematic ground truth.** A **single shared I²C bus** on `IO48`
+  (SDA) / `IO45` (SCL), pulled up by R22 / R21 10 kΩ, shared by the
+  on-board SX1509 (U3) GPIO expander, J7 GP8403 fan, J9 AirIQ, and
+  J10 RoomIQ. Recorded in
+  [`docs/hardware/s360-100-r4-core.md` §I2C bus, lines 334–337](s360-100-r4-core.md#i2c-bus).
+
+#### Downstream consumer inventory (2026-05-19)
+
+This is the downstream-consumer audit listed as precondition #1 under
+[§CORE-ABSTRACT-BUS-001B — Shared-I²C-bus consolidation slice](#core-abstract-bus-001b--shared-i²c-bus-consolidation-slice).
+It lands as part of this investigation pass; the implementation
+slice still has to translate it into a rename + re-validation plan.
+
+**Expansion-package `*_i2c_id` substitution defaults (13 entries
+across 13 files).** Every default below resolves to one of the
+existing conflicting Core bus ids and must be re-evaluated when the
+canonical bus id is chosen:
+
+| Package | Substitution | Default value |
+|---|---|---|
+| [`packages/expansions/airiq.yaml`](../../packages/expansions/airiq.yaml) line 27 | `airiq_i2c_id` | `i2c0` |
+| [`packages/expansions/airiq_wall.yaml`](../../packages/expansions/airiq_wall.yaml) line 32 | `airiq_i2c_id` | `i2c0` |
+| [`packages/expansions/airiq_ceiling.yaml`](../../packages/expansions/airiq_ceiling.yaml) line 35 | `airiq_i2c_id` | `expansion_i2c` |
+| [`packages/expansions/airiq_ceiling_s3.yaml`](../../packages/expansions/airiq_ceiling_s3.yaml) line 28 | `airiq_i2c_id` | `i2c_primary` |
+| [`packages/expansions/airiq_bathroom_base.yaml`](../../packages/expansions/airiq_bathroom_base.yaml) line 29 | `bathroom_i2c_id` | `expansion_i2c` (consumed by Release-One via VentIQ) |
+| [`packages/expansions/airiq_bathroom_pro.yaml`](../../packages/expansions/airiq_bathroom_pro.yaml) line 31 | `bathroom_i2c_id` | `expansion_i2c` |
+| [`packages/expansions/comfort.yaml`](../../packages/expansions/comfort.yaml) line 24 | `comfort_i2c_id` | `i2c0` |
+| [`packages/expansions/comfort_wall.yaml`](../../packages/expansions/comfort_wall.yaml) line 27 | `comfort_i2c_id` | `i2c0` |
+| [`packages/expansions/comfort_ceiling.yaml`](../../packages/expansions/comfort_ceiling.yaml) line 39 | `comfort_ceiling_i2c_id` | `expansion_i2c` (consumed by Release-One via RoomIQ comfort) |
+| [`packages/expansions/comfort_ceiling_s3.yaml`](../../packages/expansions/comfort_ceiling_s3.yaml) line 24 | `comfort_i2c_id` | `i2c_primary` |
+| [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) line 26 | `fan_dac_i2c_id` | `i2c0` |
+| [`packages/expansions/gpio_expander_sx1509.yaml`](../../packages/expansions/gpio_expander_sx1509.yaml) line 15 | `sx1509_i2c_id` | `i2c1` |
+| [`packages/features/ceiling_halo_leds.yaml`](../../packages/features/ceiling_halo_leds.yaml) line 6 | (literal `i2c_id: halo_i2c`) | not overridable — hard-coded |
+
+The `ceiling_halo_leds.yaml` row is the awkward one: the literal
+`i2c_id: halo_i2c` is not exposed as a substitution and the feature
+file currently has **no product `!include`r** (`grep -RIln
+"ceiling_halo_leds\\|features/halo_leds" products/ packages/`
+returns no product YAML). The eventual `001B` PR must either
+rebind the literal to the canonical bus id or document this
+feature file as dead code (and decide separately whether to retain
+it for future products).
+
+**Release-One + LED preview consumer paths.** Both
+[`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+and
+[`products/sense360-ceiling-poe-ventiq-roomiq-led.yaml`](../../products/sense360-ceiling-poe-ventiq-roomiq-led.yaml)
+include the same Core stack via
+[`packages/hardware/sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml)
+(which defines `halo_i2c` + `expansion_i2c`) and consume
+`expansion_i2c` indirectly through:
+
+- VentIQ — [`packages/expansions/airiq_bathroom_base.yaml`](../../packages/expansions/airiq_bathroom_base.yaml)
+  line 29 — `bathroom_i2c_id: expansion_i2c`.
+- RoomIQ comfort — [`packages/expansions/comfort_ceiling.yaml`](../../packages/expansions/comfort_ceiling.yaml)
+  line 39 — `comfort_ceiling_i2c_id: expansion_i2c`.
+
+The LED preview product additionally `!include`s
+[`packages/hardware/led_ring_ceiling.yaml`](../../packages/hardware/led_ring_ceiling.yaml),
+which uses `led_data_pin: GPIO38` (WS2812B, **not** I²C). Neither
+product `!include`s `packages/features/ceiling_halo_leds.yaml`, so
+the `halo_i2c` bus is **defined-but-unused** by both shipping
+configurations today.
+
+**Mini family inline I²C definitions.**
+[`products/sense360-mini-airiq-advanced.yaml`](../../products/sense360-mini-airiq-advanced.yaml)
+line 99,
+[`products/sense360-mini-airiq-basic.yaml`](../../products/sense360-mini-airiq-basic.yaml)
+line 87,
+[`products/sense360-mini-full-ld2412.yaml`](../../products/sense360-mini-full-ld2412.yaml)
+line 126,
+[`products/sense360-mini-presence-advanced.yaml`](../../products/sense360-mini-presence-advanced.yaml)
+line 78,
+[`products/sense360-mini-presence-advanced-ld2412.yaml`](../../products/sense360-mini-presence-advanced-ld2412.yaml)
+line 79, and
+[`products/sense360-mini-presence-basic.yaml`](../../products/sense360-mini-presence-basic.yaml)
+line 67 all define an inline `i2c0` bus on the substitution pair
+exposed by
+[`packages/hardware/mini_onboard_sensors.yaml`](../../packages/hardware/mini_onboard_sensors.yaml)
+(`mini_sensors_i2c_id: i2c0`, `i2c_sda_pin: GPIO48`,
+`i2c_scl_pin: GPIO45`). These are already schematic-correct for
+the Mini board family and are explicitly out-of-scope for `001B`.
+
+#### Four open preconditions
+
+Each precondition is recorded against the doc that owns its closure.
+The downstream-consumer audit lands in this pass; the remaining
+three remain open.
+
+1. **Canonical I²C bus-id decision** — candidates `shared_i2c` /
+   `core_i2c` / `i2c0` are recorded above and at
+   [§CORE-ABSTRACT-BUS-001B — Shared-I²C-bus consolidation slice](#core-abstract-bus-001b--shared-i²c-bus-consolidation-slice)
+   but **not chosen** by this PR. Owner: the `001B` implementation
+   slice; the chosen value must be recorded in this doc and in
+   [`docs/hardware/firmware-package-mapping-audit.md`](firmware-package-mapping-audit.md)
+   or a sibling doc per the original §CORE-ABSTRACT-BUS-001B
+   precondition #2.
+2. **`tests/test_core_abstract_bus.py` pin-pinning scaffold** —
+   confirmed absent from the repo today (same finding as the
+   2026-05-19 `001C` investigation pass / PR #518). Per
+   [§Test scaffolding plan](#test-scaffolding-plan) the test file
+   lands **with** the first implementation slice; for `001B` the
+   test must assert (a) each in-scope Core package defines exactly
+   one `i2c:` bus, (b) `sda: GPIO48` / `scl: GPIO45`, (c) the bus
+   id matches the canonical name in every in-scope Core package,
+   and (d) every downstream `*_i2c_id` substitution default
+   resolves to the canonical name.
+3. **Re-validation plan for every non-Release-One product YAML** —
+   not designed. The implementation slice must enumerate the
+   ~25 product YAMLs in [§Blast radius per Core package](#blast-radius-per-core-package)
+   under each in-scope Core package, plus the Release-One and LED
+   preview generated-config diff check per
+   [§Validation plan for implementation slices](#validation-plan-for-implementation-slices).
+4. **Downstream-consumer audit lands in this PR** (above), but
+   implementation still needs the canonical name + the pin-pinning
+   test + the non-Release-One product re-validation pass before
+   any YAML edit. The audit alone is not a substitute for any of
+   the other three preconditions.
+
+#### Why neither Path B nor Path C is taken now
+
+- **Path B (test-scaffold-only).** A test must assert a value.
+  Pinning the **current** YAML state would enshrine the
+  schematic-conflicting `GPIO39`/`GPIO40` + `GPIO21`/`GPIO18` dual
+  buses on six Core packages (eight after the scope-extension
+  above) and become a tripwire that fails the moment the future
+  implementation slice tries to do the right thing. Pinning the
+  **target** schematic-correct values (`GPIO48`/`GPIO45` on a
+  single bus) is also unsafe today because the canonical bus-id
+  name is undecided — pinning any of `shared_i2c` / `core_i2c` /
+  `i2c0` pre-commits a choice that may not match the eventual
+  implementation slice and would fail immediately against the
+  current YAML state. The test file is recorded by
+  [§Test scaffolding plan](#test-scaffolding-plan) as a
+  prerequisite that lands **with** the first implementation slice,
+  not before it.
+- **Path C (implementation).** All four preconditions above are
+  open. Renaming any of the six current bus ids (`halo_i2c` /
+  `expansion_i2c` / `i2c0` / `i2c1` / `i2c_primary` /
+  `i2c_expander`) without simultaneously updating every
+  downstream `*_i2c_id` consumer would break parse-time
+  substitution resolution in some product. Even an in-place
+  rebind of `halo_i2c` to `GPIO48`/`GPIO45` (without renaming)
+  would silently re-bind Release-One because
+  [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+  consumes
+  [`sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml)
+  and
+  [`comfort_ceiling.yaml`](../../packages/expansions/comfort_ceiling.yaml),
+  and the LED preview product similarly re-builds — both without
+  the pin-pinning regression test. Explicitly forbidden by
+  [§Do-not-change list](#do-not-change-list) above and by the
+  per-slice guardrails throughout this doc.
+
+#### Recommendation for the next `001B` PR
+
+The next PR that touches `001B` should land **the canonical
+bus-id decision plus the pin-pinning test plus the YAML rebind
+(Core packages plus every downstream `*_i2c_id` consumer) plus
+the product re-validation pass as a single atomic slice**, not as
+a test-scaffold-only PR alone. The atomic slice must include:
+
+1. The canonical I²C bus-id name (from the candidate set
+   `shared_i2c` / `core_i2c` / `i2c0`, or another name justified
+   by the slice) recorded in this doc and in
+   [`docs/hardware/firmware-package-mapping-audit.md`](firmware-package-mapping-audit.md)
+   or a sibling doc.
+2. `tests/test_core_abstract_bus.py` asserting (a) each in-scope
+   Core package defines exactly one `i2c:` bus, (b) `sda: GPIO48`
+   / `scl: GPIO45`, (c) the bus id matches the canonical name in
+   every in-scope Core package, and (d) every downstream
+   `*_i2c_id` substitution default resolves to the canonical
+   name — per [§Test scaffolding plan](#test-scaffolding-plan).
+3. The YAML edits across the eight in-scope Core packages plus
+   every downstream expansion / feature package that resolves an
+   `*_i2c_id` substitution (or carries a hard-coded `i2c_id:`
+   reference such as
+   [`packages/features/ceiling_halo_leds.yaml`](../../packages/features/ceiling_halo_leds.yaml)).
+4. The Release-One generated-config diff check per
+   [§Validation plan for implementation slices](#validation-plan-for-implementation-slices).
+5. The re-validation pass for every non-Release-One product YAML
+   listed per in-scope Core package in
+   [§Blast radius per Core package](#blast-radius-per-core-package),
+   plus the
+   [`packages/hardware/sense360_core_voice_ceiling.yaml`](../../packages/hardware/sense360_core_voice_ceiling.yaml)
+   and
+   [`packages/hardware/sense360_core_voice_wall.yaml`](../../packages/hardware/sense360_core_voice_wall.yaml)
+   consumers
+   ([`products/sense360-core-voice-ceiling.yaml`](../../products/sense360-core-voice-ceiling.yaml),
+   [`products/sense360-core-v-c-poe.yaml`](../../products/sense360-core-v-c-poe.yaml),
+   [`products/sense360-core-v-c-pwr.yaml`](../../products/sense360-core-v-c-pwr.yaml),
+   [`products/sense360-core-v-c-usb.yaml`](../../products/sense360-core-v-c-usb.yaml),
+   [`products/sense360-core-voice-wall.yaml`](../../products/sense360-core-voice-wall.yaml),
+   [`products/sense360-core-v-w-poe.yaml`](../../products/sense360-core-v-w-poe.yaml),
+   [`products/sense360-core-v-w-pwr.yaml`](../../products/sense360-core-v-w-pwr.yaml),
+   [`products/sense360-core-v-w-usb.yaml`](../../products/sense360-core-v-w-usb.yaml))
+   that the scope-extension addendum now brings in.
+
+`001B` remains independent of `001A` / `001C` ordering but must
+land before `PACKAGE-PWM-001` and `PACKAGE-DAC-001` to avoid
+re-doing the downstream `*_i2c_id` substitution rewrite twice.
+
+#### Queue effect
+
+- `CORE-ABSTRACT-BUS-001B` is now **investigated and deferred** in
+  the [`UPCOMING_PR.md`](../../UPCOMING_PR.md) active queue
+  (entry #3), blocked on the four preconditions above.
+- `CORE-ABSTRACT-BUS-001C` stays at the top of the active queue
+  (entry #1), blocked on its own six preconditions per the
+  2026-05-19 `001C` investigation pass merged as **PR #518**.
+- `CORE-ABSTRACT-BUS-001A` stays blocked behind `001C` (per
+  [§GPIO collision matrix](#gpio-collision-matrix) row `GPIO3`).
+- `PACKAGE-PWM-001` and `PACKAGE-DAC-001` stay blocked behind
+  `001B` implementation (plus their own evidence gates). The
+  PWM / DAC chains specifically need the canonical bus-id rebind
+  so that `fan_gp8403.yaml` (`fan_dac_i2c_id: i2c0`) and the
+  SX1509 expander (`sx1509_i2c_id: i2c1`) resolve to the shared
+  bus on `IO48` / `IO45`.
+- `PACKAGE-RELAY-001` / `PRODUCT-RELAY-001` / `WEBFLASH-RELAY-001`
+  / `RELEASE-RELAY-001` / `WF-IMPORT-RELAY-001` stay blocked
+  behind `001A` (which is itself blocked behind `001C`).
+- Release-One stays `Ceiling-POE-VentIQ-RoomIQ`, version `1.0.0`,
+  channel `stable`, artifact
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, tag
+  [`v1.0.0`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0).
+- LED preview entry `Ceiling-POE-VentIQ-RoomIQ-LED` stays
+  `status: preview`, `channel: preview`, artifact
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`.
+- FanTRIAC stays `status: blocked`, `blocker: HW-005`,
+  `webflash_build_matrix: false`. HW-005 is not advanced.
+- COMPLIANCE-001 mains-voltage status for `S360-320` / `S360-400`
+  unchanged. PoE is SELV and out of scope.
+
+#### What this audit-log entry does **not** do
+
+Mirrors the [§Do-not-change list](#do-not-change-list) above. The
+2026-05-19 `001B` investigation pass adds no package YAML, no
+product YAML, no WebFlash wrapper, no JSON catalog change, no
+script, no test, no workflow, no component, no include, no
+firmware artifact, no manifest, no GitHub Release, no tag, no
+WebFlash import, no kit, and no `schematic_status` /
+`schematic_file` / hardware-verified claim. The canonical I²C
+bus-id is **not chosen** by this pass — only the candidate set
+`shared_i2c` / `core_i2c` / `i2c0` is recorded. No
+`CORE-ABSTRACT-BUS-001*` slice has moved its status as a result.
+No precondition is closed by this pass — the downstream-consumer
+audit lands here but is not a substitute for the canonical name,
+the test scaffold, or the non-Release-One product re-validation
+pass.
+
 ### Next audit-log trigger
 
 The next CORE-ABSTRACT-BUS-001 audit-log entry should appear when one
@@ -1090,6 +1446,11 @@ of the following lands:
 - Expansion-GPIO bench evidence committed, or a documented decision
   to retire the `expansion_gpio*` abstraction recorded in
   [§CORE-ABSTRACT-BUS-001C — UART / status LED / PIR / expansion GPIO slice](#core-abstract-bus-001c--uart--status-led--pir--expansion-gpio-slice).
+- **Canonical I²C bus-id decision** recorded against `001B`
+  (from candidates `shared_i2c` / `core_i2c` / `i2c0`, or another
+  name justified by the slice).
+- `tests/test_core_abstract_bus.py` scaffold lands together with
+  the first implementation slice (`001A`, `001B`, or `001C`).
 - Implementation slice `CORE-ABSTRACT-BUS-001C` lands (rebinding
   `comfort_ceiling_als_int_pin: GPIO3 → GPIO47`, freeing `GPIO3`
   for the relay slice; UART split; status LED move off `GPIO48`;
@@ -1100,8 +1461,12 @@ of the following lands:
   `relay_pin → GPIO3` across Core packages).
 - Implementation slice `CORE-ABSTRACT-BUS-001B` lands (collapsing
   the duplicated I²C bus definitions to the single shared bus on
-  `IO48 / IO45`).
+  `IO48 / IO45`; rebinding every downstream `*_i2c_id` consumer
+  including
+  [`packages/features/ceiling_halo_leds.yaml`](../../packages/features/ceiling_halo_leds.yaml)'s
+  hard-coded `i2c_id: halo_i2c` literal or retiring the file as
+  dead code).
 
 Until any of those land, the next audit-log entry should report the
-same `CORE-ABSTRACT-BUS-001C investigation pass — six preconditions
+same `CORE-ABSTRACT-BUS-001B / 001C investigation pass — preconditions
 still open` outcome with the new inspection date.
