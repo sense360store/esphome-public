@@ -643,7 +643,19 @@ The recommended sequence after HW-ASSETS-001 lands is:
    WebFlash work on this board.
 7. **HW-PINMAP-400 — S360-400 power board mapping audit.** Same
    for `S360-400` (Sense360 240v PSU). Gated by COMPLIANCE-001
-   for any product / WebFlash work.
+   for any product / WebFlash work. **HW-ASSETS-400 artifact
+   ingest landed** at
+   [`docs/hardware/artifacts/S360-400-R4.md`](artifacts/S360-400-R4.md)
+   with the schematic PDF committed at
+   [`docs/hardware/schematics/S360-400-R4.pdf`](schematics/S360-400-R4.pdf);
+   the HW-PINMAP-400 audit doc at
+   [`s360-400-r4-power.md`](s360-400-r4-power.md) **status remains
+   unchanged**: `pending — schematic/design evidence required`.
+   `HW-PINMAP-400-FOLLOWUP` (standalone schematic-backed reference
+   doc + BOM-backed reconciliation of the three-way `HLK-5M05` /
+   `HLK-PM01 or similar` / `HLK-10M05` part-identity disagreement +
+   silkscreen pin-1 + creepage/clearance evidence) and
+   `COMPLIANCE-001` (mains-voltage UK / EU sign-off) are still owed.
 8. **HW-PINMAP-410 — S360-410 PoE PSU mapping audit.** Same for
    `S360-410` (Sense360 PoE PSU). Sense360 PoE PSU is consumed by
    the current Release-One product but its module-side schematic

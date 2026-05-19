@@ -628,19 +628,27 @@ named follow-up.
 ### PWR-240V / S360-400
 
 - **Status.** `schematic-evidence-pending` + `needs-package-reconciliation`
-  + `timing/compliance-pending` (compliance-gated).
+  + `timing/compliance-pending` (compliance-gated). Class unchanged
+  by HW-ASSETS-400.
 - **Why no product YAML.** The required package
   [`packages/hardware/power_240v.yaml`](../packages/hardware/power_240v.yaml)
   is `schematic-evidence-pending` + `needs-package-reconciliation`
   + `timing/compliance-pending` per
-  [`package-readiness-matrix.md` `power_240v.yaml` / S360-400](hardware/package-readiness-matrix.md#power_240vyaml--s360-400):
-  no `S360-400-R4` schematic is committed; the package header
-  disagrees with the catalog on AC-DC part identity (`HLK-PM01 or
-  similar` vs `HLK-5M05`); input / output / isolation / protection
-  ratings are package-header text only; COMPLIANCE-001
-  mains-voltage UK / EU sign-off is a separate, additional gate
-  before any PWR-bearing **product** promotion. The four
-  `legacy-compatible` `*-pwr` Core variants in
+  [`package-readiness-matrix.md` `power_240v.yaml` / S360-400](hardware/package-readiness-matrix.md#power_240vyaml--s360-400).
+  The `S360-400-R4` module-side schematic is now committed under
+  HW-ASSETS-400 at
+  [`docs/hardware/schematics/S360-400-R4.pdf`](hardware/schematics/S360-400-R4.pdf)
+  with curated artifact index at
+  [`docs/hardware/artifacts/S360-400-R4.md`](hardware/artifacts/S360-400-R4.md),
+  and confirms a three-way AC/DC part-identity disagreement: the
+  package header says `HLK-PM01 or similar`, the catalog says
+  `HLK-5M05`, and the schematic shows `PS1 = HLK-10M05`. BOM
+  cross-check, silkscreen pin-1, and creepage / clearance evidence
+  remain owed to `HW-PINMAP-400-FOLLOWUP`. Input / output /
+  isolation / protection ratings are package-header text only;
+  COMPLIANCE-001 mains-voltage UK / EU sign-off is a separate,
+  additional gate before any PWR-bearing **product** promotion.
+  The four `legacy-compatible` `*-pwr` Core variants in
   [`products/`](../products/)
   (`sense360-core-c-pwr.yaml`, `sense360-core-w-pwr.yaml`,
   `sense360-core-v-c-pwr.yaml`, `sense360-core-v-w-pwr.yaml`)
@@ -650,11 +658,13 @@ named follow-up.
   the future PWR-240V product surface (if any) is
   `production-candidate` **only after** `COMPLIANCE-001`
   `S360-400` slice clears; until then `not-webflash-default`.
-- **Follow-up owner.** `HW-ASSETS-400` → `HW-PINMAP-400-FOLLOWUP`
-  → `COMPLIANCE-001` `S360-400` slice (independent track) →
-  `PACKAGE-POWER-400-001` → `PRODUCT-POWER-400-001` (this matrix's
-  named PWR-240V product slice).
+- **Follow-up owner.** `HW-ASSETS-400` *(landed)* →
+  `HW-PINMAP-400-FOLLOWUP` → `COMPLIANCE-001` `S360-400` slice
+  (independent track) → `PACKAGE-POWER-400-001` →
+  `PRODUCT-POWER-400-001` (this matrix's named PWR-240V product
+  slice).
 - **Cross-references.**
+  [`docs/hardware/artifacts/S360-400-R4.md`](hardware/artifacts/S360-400-R4.md);
   [`docs/hardware/s360-400-r4-power.md`](hardware/s360-400-r4-power.md);
   [`board-readiness-matrix.md` `S360-400` notes](hardware/board-readiness-matrix.md#s360-400-sense360-240v-psu);
   [`package-readiness-matrix.md` `power_240v.yaml` / S360-400](hardware/package-readiness-matrix.md#power_240vyaml--s360-400);
