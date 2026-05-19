@@ -611,6 +611,30 @@ Status: `package-yaml-pending` / `needs-package-reconciliation` +
 COMPLIANCE-001 status, the JSON `schematic_status`, or any
 reference to PWR-240V.
 
+The 2026-05-19 `PACKAGE-POWER-400-001` investigation pass
+(docs-only Path A deferral) re-confirmed this status against the
+live files (`packages/hardware/power_240v.yaml` byte-identical to
+PR #515; `config/hardware-catalog.json` `S360-400` row
+byte-identical to PR #515 — `schematic_status: cataloged_unverified`
+with no `schematic_file`; `tests/test_hardware_catalog.py:53`
+still asserts `S360-400` in `EXPECTED_STILL_UNVERIFIED_SKUS`;
+COMPLIANCE-001 last re-checked PR #506 and remains open). All
+five preconditions stay open — BOM cross-check missing; `S360-400`
+`schematic_status: verified` JSON PR not landed; COMPLIANCE-001
+`S360-400` slice still open; silkscreen / PCB / creepage /
+clearance / bench / thermal / EMI evidence missing; three-way
+AC/DC part-identity disagreement (catalog `HLK-5M05` vs package
+header `HLK-PM01 or similar` vs schematic `PS1 = HLK-10M05`)
+stays unresolved and BOM-bound. See
+[`s360-400-r4-power.md` §2026-05-19 — PACKAGE-POWER-400-001
+investigation pass](s360-400-r4-power.md#2026-05-19--package-power-400-001-investigation-pass-deferred-preconditions-still-open)
+and
+[`docs/cleanup-audit.md` §PACKAGE-POWER-400-001 update](../cleanup-audit.md#package-power-400-001-update-2026-05-19--docs-only-investigation-pass).
+`CORE-ABSTRACT-BUS-001B` merged the same day as PR #519 (docs-only
+Path A deferral) but is unrelated to the power package because
+`power_240v.yaml` binds no shared Core variables (no GPIO / I²C /
+UART / SPI / DAC binding).
+
 ### `power_poe.yaml` PoE-module part-identity disagreement (S360-410)
 
 Schematic evidence:
