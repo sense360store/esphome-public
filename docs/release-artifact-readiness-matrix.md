@@ -1254,6 +1254,63 @@ membership decision belongs to `PRODUCT-POE-410-001`.
 [`webflash-exposure-readiness-matrix.md` §PoE / S360-410 WebFlash posture](webflash-exposure-readiness-matrix.md#poe--s360-410-webflash-posture),
 [`release-one-hardware-audit.md` §Findings → PoE PSU](release-one-hardware-audit.md#findings).
 
+**2026-05-20 — `PRODUCT-POE-410-001` investigation pass
+(Path A docs-only deferral).** Re-verified against the live
+release surface: **no PoE-410-subject release artifact
+exists of any kind** beyond the existing Release-One stable
+artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` (tag
+`v1.0.0`) and the LED preview artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`
+(tag `v1.0.0-led-preview`), both of which consume S360-410
+**logically** under Release-One identity and the preserved
+schematic-pending caveat; no PoE-410-subject build is added
+to
+[`config/webflash-builds.json`](../config/webflash-builds.json);
+no PoE-410-subject `artifact_name` is added to
+[`config/product-catalog.json`](../config/product-catalog.json);
+no PoE-410-subject GitHub Release tag has been created; no
+SHA256 / MD5 checksums or build-info manifest for any
+PoE-410-subject artifact have been emitted; no proof row
+in [`docs/webflash-release-proof.md`](webflash-release-proof.md)
+for any PoE-410-subject artifact has been recorded;
+[`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
+stays byte-identical (and is in the do-not-change
+guardrail, processing only entries in the build matrix —
+which has no PoE-410-explicit row). The 2026-05-20
+`PRODUCT-POE-410-001` investigation pass is **confirmed
+deferred** — the eight preconditions recorded under
+[`product-readiness-matrix.md` §PoE-410 / S360-410](product-readiness-matrix.md#poe-410--s360-410)
+all remain open. `RELEASE-POE-410-001` therefore stays
+blocked behind `WEBFLASH-POE-410-001` implementation,
+`PRODUCT-POE-410-001` implementation, `PACKAGE-POE-410-001`
+implementation, BOM cross-check, `S360-410`
+`schematic_status: verified` JSON PR, HW-002 OQ#6 /
+`S360-100-BENCH-001` J2-harness identity closure,
+package-header reconciliation, Release-One PoE caveat
+closure, product-onboarding approval, and the no-new-entry
+vs new-entry product-catalog readiness decision;
+`WF-IMPORT-POE-410-001` (cross-repo) stays blocked behind
+it. The existing Release-One and LED preview release
+surface that consumes S360-410 is **not** affected:
+Release-One catalog row stays `status: production`,
+`channel: stable`, `webflash_build_matrix: true`, artifact
+unchanged, tag `v1.0.0`; LED preview catalog row stays
+`status: preview`, `channel: preview`,
+`webflash_build_matrix: true`, artifact unchanged, tag
+`v1.0.0-led-preview`. No re-release. No re-qualification.
+The Release-One PoE "schematic verification pending"
+caveat in
+[`release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings)
+is **preserved verbatim** by this re-check. Per
+[`product-readiness-matrix.md` §PoE-410 / S360-410](product-readiness-matrix.md#poe-410--s360-410)
+and the Follow-up PR sequence row above,
+`RELEASE-POE-410-001` "is not required, and the family
+closes at the existing Release-One caveat without
+producing a new release artifact" if `PRODUCT-POE-410-001`
+decides no new product entry is warranted. See
+[`docs/cleanup-audit.md` §`PRODUCT-POE-410-001 update (2026-05-20 — docs-only investigation pass)`](cleanup-audit.md#product-poe-410-001-update-2026-05-20--docs-only-investigation-pass).
+
 ## Release-One and LED preview safety
 
 The Release-One production product and the LED preview product are

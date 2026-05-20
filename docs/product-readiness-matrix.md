@@ -828,6 +828,110 @@ named follow-up.
   [`package-readiness-matrix.md` `power_poe.yaml` / S360-410](hardware/package-readiness-matrix.md#power_poeyaml--s360-410);
   [`release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings).
 
+- **2026-05-20 — `PRODUCT-POE-410-001` investigation pass
+  (Path A docs-only deferral).** Re-verified against the live
+  files: no S360-410-explicit / `POE`-410-subject
+  WebFlash-shippable product YAML exists under
+  [`products/`](../products/) or
+  [`products/webflash/`](../products/webflash/). The three
+  shipping PoE entries in
+  [`config/product-catalog.json`](../config/product-catalog.json)
+  (`Ceiling-POE-VentIQ-RoomIQ` `status: production` /
+  `channel: stable`, `Ceiling-POE-VentIQ-RoomIQ-LED`
+  `status: preview` / `channel: preview`, and
+  `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` `status: blocked` /
+  `blocker: HW-005` / `webflash_build_matrix: false`) each
+  carry `hardware.poe: "S360-410"` as a catalog-level
+  mapping field only — they consume the **logical**
+  [`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
+  package under Release-One identity and the preserved
+  schematic-pending caveat, **not** as S360-410-subject
+  product-readiness evidence; the six `legacy-compatible`
+  `*-poe` Core variants
+  ([`sense360-core-c-poe.yaml`](../products/sense360-core-c-poe.yaml),
+  [`sense360-core-w-poe.yaml`](../products/sense360-core-w-poe.yaml),
+  [`sense360-core-v-c-poe.yaml`](../products/sense360-core-v-c-poe.yaml),
+  [`sense360-core-v-w-poe.yaml`](../products/sense360-core-v-w-poe.yaml),
+  [`sense360-poe.yaml`](../products/sense360-poe.yaml),
+  [`sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml))
+  stay `legacy-compatible` / `webflash_build_matrix: false`
+  and are also **not** S360-410-subject product-readiness
+  evidence;
+  [`config/webflash-builds.json`](../config/webflash-builds.json)
+  has only the Release-One `stable` build and the LED
+  `preview` build (no new PoE-410-explicit build);
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+  reserves `POE` in `canonical_power: ["USB", "POE", "PWR"]`
+  consumed by both committed builds (POE reservation does
+  **not** imply S360-410-subject product readiness);
+  `release_one_required_configs` stays
+  `["Ceiling-POE-VentIQ-RoomIQ"]`;
+  [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+  `S360-410` row at lines 112–121 still records
+  `schematic_status: cataloged_unverified` with no
+  `schematic_file` and `description: "PoE to 5V."`;
+  [`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
+  stays byte-identical to PR #517 / PR #526 state. Eight
+  preconditions remain open: (1) `PACKAGE-POE-410-001`
+  implementation slice has not landed (only the docs-only
+  investigation pass merged as PR #526; the package-header
+  reconciliation against the schematic-shown discrete
+  topology, the catalog `description` reconciliation (if
+  applicable), the BOM citation, and the `S360-410`
+  `schematic_status: verified` JSON promotion all remain
+  owed); (2) BOM cross-check missing; (3) `S360-410`
+  `schematic_status: verified` JSON PR not landed; (4)
+  HW-002 OQ#6 / `S360-100-BENCH-001` J2-harness identity
+  closure missing; (5) package-header reconciliation owed to
+  `PACKAGE-POE-410-001` (the `Ag9712M, Silvertel Ag9700, or
+  similar` whole-module hint vs schematic-shown discrete
+  topology stays unresolved and BOM-bound); (6) Release-One
+  PoE "schematic verification pending" caveat closure
+  missing (preserved verbatim, owed to a separate later PR);
+  (7) product-onboarding approval missing per the
+  [Core rule](#core-rule); (8) product / catalog readiness
+  approval missing (no-new-entry vs new-entry decision
+  belongs to this slice and has not been made; per the
+  [Follow-up PR sequence](#follow-up-pr-sequence) row,
+  `PRODUCT-POE-410-001` "often will close by promoting
+  Release-One's preserved schematic-pending caveat alone,
+  without adding a new product entry"). Path B
+  (documentation / catalog-note-only cleanup) is not useful
+  right now because this section and the matching sections
+  of
+  [`webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md)
+  and
+  [`release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+  already correctly classify the slice; Path C
+  (implementation) is unsafe because adding a
+  S360-410-subject product YAML while
+  [`power_poe.yaml`](../packages/hardware/power_poe.yaml)
+  stays `reference-only` + `schematic-evidence-pending` +
+  `do-not-change-release-one` would break the
+  [Core rule](#core-rule), and adding a sibling PoE-410
+  product entry while the Release-One PoE caveat is
+  preserved would implicitly requalify Release-One —
+  explicitly forbidden by PR #526 and by every prior PoE-410
+  follow-up document. The next `PRODUCT-POE-410-001` PR
+  must land **the no-new-entry vs new-entry decision +
+  (if a new entry is warranted) the canonical S360-410 /
+  `POE`-410-subject product YAML + the matching
+  `config/product-catalog.json` entry as a single atomic
+  slice**, not as a documentation cleanup alone, and only
+  after `PACKAGE-POE-410-001` implementation, the
+  Release-One PoE caveat-closure PR, and product-onboarding
+  approval all land. The Release-One product
+  (`Ceiling-POE-VentIQ-RoomIQ` / version `1.0.0` / channel
+  `stable` / artifact
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`),
+  the LED preview (`Ceiling-POE-VentIQ-RoomIQ-LED` /
+  `status: preview` / `channel: preview` / version
+  `1.0.0` / artifact
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`),
+  and the FanTRIAC blocked reference are all preserved.
+  See
+  [`docs/cleanup-audit.md` §`PRODUCT-POE-410-001 update (2026-05-20 — docs-only investigation pass)`](cleanup-audit.md#product-poe-410-001-update-2026-05-20--docs-only-investigation-pass).
+
 ## Release-One and LED preview safety
 
 PRODUCT-GAP-001 **does not change Release-One product behaviour** and
