@@ -635,6 +635,56 @@ Path A deferral) but is unrelated to the power package because
 `power_240v.yaml` binds no shared Core variables (no GPIO / I²C /
 UART / SPI / DAC binding).
 
+**2026-05-20 — `HW-BOM-ASSETS-002` BOM-evidence ingest addendum
+(record-only).** The `HW-BOM-ASSETS-002` record-only BOM ingest
+landed the `S360-400-R4_BOM.xlsx`
+(`95878198-S360400R4_BOM.xlsx`; 10,987 bytes; SHA256
+`bb59f56da11fe83f83b2547322af4e594b658384ade9f06267af367ffb603a1d`)
+as retained-but-not-committed evidence inventoried at
+[`docs/hardware/artifacts/S360-400-R4.md` §HW-BOM-ASSETS-002 BOM ingest (2026-05-20)](artifacts/S360-400-R4.md#hw-bom-assets-002-bom-ingest-2026-05-20).
+The BOM `PS1` row records `Value: HLK-5M05` / `MFR#: HLK-5M05` /
+`Manufacturer: HI-LINK` / footprint
+`greencharge-footprints:CONV_HLK-5M05`, agreeing with the catalog
+`description: "Mains to 5V using HLK-5M05."` and **reclassifying**
+the three-way disagreement above: catalog `HLK-5M05` + BOM
+`HLK-5M05` = **BOM/user-confirmed sourcing truth** for the
+populated `PS1`; schematic `PS1 = HLK-10M05` (committed PDF) =
+**schematic-label discrepancy** (committed PDF stays byte-identical;
+correction owed to a later HW-ASSETS-400 follow-up); package header
+`HLK-PM01 or similar`
+([`packages/hardware/power_240v.yaml`](../../packages/hardware/power_240v.yaml)
+line 7) = **disproved package-header comment text**, comment-only
+cleanup deferred to `PACKAGE-POWER-400-001`. The
+`packages/hardware/power_240v.yaml` file stays **byte-identical to
+PR #515 / PR #520** (stale `HLK-PM01 or similar` line 7, input /
+output / isolation / protection / recommended-fusing claims all
+preserved; substitutions / globals / template diagnostic sensors /
+logger blocks all preserved). The `config/hardware-catalog.json`
+`S360-400` row at lines 102–110 stays byte-identical (no
+`schematic_status` promotion, no `schematic_file` set, no
+`description` edit). Other BOM-confirmed component identities:
+`F1 A250-1200` (JDTfuse), `RV1 10D391K` (RUILON), `C1 470nF`
+(WALSON `C322S47438P40001`), `C5, C8 100uF` (KNSCHA `189RV0058`),
+`C6 10u` (Chinocera), `C7 100n` (CCTC), `J1` WAGO 2601-3103 1×3
+terminal block, `J2` JST SH `SM02B-SRSS-TB(LF)(SN)` 1×2.
+Per-component voltage / energy / safety-class ratings remain
+vendor-datasheet / silkscreen / bench / EMI / EMC evidence and are
+**not** resolved by this ingest. COMPLIANCE-001 mains-voltage UK
+/ EU sign-off is unchanged. The `BOM cross-check missing`
+precondition listed under `PACKAGE-POWER-400-001` /
+`PRODUCT-POWER-400-001` / `WEBFLASH-POWER-400-001` /
+`RELEASE-POWER-400-001` is now **resolved at the AC/DC
+part-identity layer**; each slice stays blocked on its other
+recorded preconditions (the `S360-400` `schematic_status:
+verified` JSON PR; `COMPLIANCE-001` `S360-400` slice closure;
+silkscreen / PCB / creepage / clearance / bench / thermal / EMI
+evidence; package / catalog reconciliation; product-onboarding
+approval; UX-class decision; release-time sub-gates). The status
+above stays `package-yaml-pending` /
+`needs-package-reconciliation` + `timing/compliance-pending`. See
+[`s360-400-r4-power.md` §2026-05-20 — HW-BOM-ASSETS-002 BOM ingest](s360-400-r4-power.md#2026-05-20--hw-bom-assets-002-bom-ingest-bom-confirmed-part-identity-reclassified-package-header-cleanup-still-deferred)
+and [`docs/cleanup-audit.md` §HW-BOM-ASSETS-002 update](../cleanup-audit.md#hw-bom-assets-002-update-2026-05-20--s360-400--s360-410-bom-evidence-ingest).
+
 ### `power_poe.yaml` PoE-module part-identity disagreement (S360-410)
 
 Schematic evidence:
@@ -760,6 +810,85 @@ is **preserved verbatim**. Investigation outcome recorded at
 [`s360-410-r4-poe.md` §2026-05-20 — PACKAGE-POE-410-001 investigation pass](s360-410-r4-poe.md#2026-05-20--package-poe-410-001-investigation-pass)
 and
 [`docs/cleanup-audit.md` §PACKAGE-POE-410-001 update](../cleanup-audit.md#package-poe-410-001-update-2026-05-20--docs-only-investigation-pass).
+
+**2026-05-20 — `HW-BOM-ASSETS-002` BOM-evidence ingest addendum
+(record-only).** The `HW-BOM-ASSETS-002` record-only BOM ingest
+landed the `S360-410-R4_BOM.xlsx`
+(`0de7679d-S360410R4_BOM.xlsx`; 11,980 bytes; SHA256
+`b5f4bad842a930de03cd47327f477c21afcb82e4533a9d8be38b54990b38f285`)
+as retained-but-not-committed evidence inventoried at
+[`docs/hardware/artifacts/S360-410-R4.md` §HW-BOM-ASSETS-002 BOM ingest (2026-05-20)](artifacts/S360-410-R4.md#hw-bom-assets-002-bom-ingest-2026-05-20).
+The accompanying PDF re-upload (`7f920771-S360410R4.pdf`;
+975,137 bytes; SHA256
+`4a8b7a3b2a89006a9332eaa486743f687aaedc4b6bb807c6b25670f742ac2414`)
+is **byte-identical** to the committed
+[`docs/hardware/schematics/S360-410-R4.pdf`](schematics/S360-410-R4.pdf)
+(HW-ASSETS-410 / PR #516); no re-commit. The BOM confirms each
+load-bearing schematic part with manufacturer attribution
+(`U1 TPS2378DDAR` TI, `U2 TX4138` XDS, `DCDC1 F0505S-2WR2`
+EVISUN, `LAN_CON1 LPJ4112CNL` Link-PP) and **reclassifies** the
+package-header / schematic disagreement above:
+schematic-shown discrete topology (`TPS2378DDAR + TX4138 +
+F0505S-2WR2 + RJP-003TC1(LPJ4112CNL)`) = **BOM-confirmed
+sourcing truth**; package-header whole-module hint
+`Ag9712M, Silvertel Ag9700, or similar`
+([`packages/hardware/power_poe.yaml`](../../packages/hardware/power_poe.yaml)
+line 6) = **disproved package-header comment text** (neither
+`Ag9712M` nor `Silvertel Ag9700` appears anywhere in the BOM),
+comment-only cleanup deferred to `PACKAGE-POE-410-001`;
+schematic-annotated `AM1D-0505S-NZ` = **schematic-annotation-only
+alternate not present in the BOM** (`F0505S-2WR2` EVISUN is the
+BOM-confirmed populated primary for `DCDC1`); catalog
+`description: "PoE to 5V."` carries no part identity and is
+unchanged. PoE class declaration: BOM `R2 1.27k` (PANASONIC) is
+consistent with the schematic-recorded `Class=0 (0.44 to 12.95W)`
+programming; whether the design is intended as 802.3af-only or
+802.3af/at-capable remains a design-intent question. Output
+rating: BOM `DCDC1 F0505S-2WR2` + BOM `R7 10.5k` / `R8 56.2k`
+feedback divider are consistent with the schematic-recorded
+5 V → 5 V isolated output only; the package-header `or 3.3V DC`
+option is not schematic- or BOM-evidenced. The
+`packages/hardware/power_poe.yaml` file stays **byte-identical to
+PR #517 / PR #526** (stale `Ag9712M, Silvertel Ag9700, or
+similar` header at line 6, IEEE 802.3af / 802.3at standard line,
+Class 0 / Class 1 line, 36–57 V DC input line, 5 V / 3.3 V
+output line, OCP / OVP / SCP protection line, substitutions /
+globals / template sensors / logger / on_boot blocks all
+preserved). The `config/hardware-catalog.json` `S360-410` row at
+lines 112–120 stays byte-identical (no `schematic_status`
+promotion, no `schematic_file` set). Other BOM-confirmed
+components: `R1 24.9k` (EVER OHMS) DEN; `R3, R4 9.1k`
+(UNI-ROYAL) paired ILIM; `R5 0.03R` (YAGEO) RTN sense; `R7
+10.5k` (KOA) `Rd` / `R8 56.2k` (FOJAN) `Rc` feedback divider;
+`L1 33uH` (Yanchuang); `D1 SMAJ58A` (Littelfuse) TVS; `D2 ss510`
+(MDD SS510C) Schottky; `D3 Green` (Orient) indicator; `C2 15uF`
+(Rubycon) CBULK; `C6 470u` (ROQANG) buck-output bulk; `C8 22u`
+(muRata) `+5VP` output bulk; `J3` JST `SM02B-SRSS-TB(LF)(SN)`
+1×2 Core-facing connector. Per-component tolerance / power
+rating evidence beyond the BOM strings, silkscreen pin-1 markers
+on `J3`, PCB / isolation-barrier / `H1`–`H4` bonding evidence,
+PoE link-up / signature / classification / load regulation /
+inrush / thermal / insulation / Hi-pot / earth-continuity /
+leakage / EMI / EMC measurements, IEEE 802.3af / 802.3at
+compliance test reports, and the `F0505S-2WR2`-vs-`AM1D-0505S-NZ`
+primary-vs-alternate intent resolution are all bench /
+silkscreen / vendor-datasheet evidence and are **not** resolved
+by this ingest. PoE is SELV; **not** in scope for
+COMPLIANCE-001. Release-One PoE "schematic verification pending"
+caveat is **preserved verbatim**. The `BOM cross-check missing`
+precondition listed under `PACKAGE-POE-410-001` /
+`PRODUCT-POE-410-001` / `WEBFLASH-POE-410-001` /
+`RELEASE-POE-410-001` is now **resolved at the discrete-topology
+part-identity layer**; each slice stays blocked on its other
+recorded preconditions (the `S360-410` `schematic_status:
+verified` JSON PR; HW-002 OQ#6 / `S360-100-BENCH-001`
+J2-harness closure; the package-header comment cleanup itself;
+the Release-One PoE caveat closure as a separate later PR;
+product-onboarding approval; UX-class decision; release-time
+sub-gates). The status above stays `reference-only` +
+`schematic-evidence-pending` + `do-not-change-release-one`. See
+[`s360-410-r4-poe.md` §2026-05-20 — HW-BOM-ASSETS-002 BOM ingest](s360-410-r4-poe.md#2026-05-20--hw-bom-assets-002-bom-ingest-bom-confirmed-part-identity-reclassified-package-header-cleanup-still-deferred)
+and [`docs/cleanup-audit.md` §HW-BOM-ASSETS-002 update](../cleanup-audit.md#hw-bom-assets-002-update-2026-05-20--s360-400--s360-410-bom-evidence-ingest).
 
 ## Recommended follow-up PRs
 

@@ -10508,6 +10508,330 @@ The next `HW-BOM-ASSETS` audit-log entry should appear when:
 Until then, the per-board `BOM missing` / `BOM cross-check
 missing` blocker wording for the eight deferred boards
 remains the explicit, honest gate.
+
+## HW-BOM-ASSETS-002 update (2026-05-20 — S360-400 / S360-410 BOM evidence ingest)
+
+`HW-BOM-ASSETS-002` is a **partial-batch, record-only**
+BOM-evidence ingest follow-up to `HW-BOM-ASSETS-001` / PR #533.
+The task environment uploaded BOM `.xlsx` files for two of the
+eight boards that `HW-BOM-ASSETS-001` left BOM-bound
+(`S360-400` Sense360 240v PSU and `S360-410` Sense360 PoE PSU)
+plus a byte-identical re-upload of the committed
+`S360-410-R4.pdf` schematic. This PR scopes the ingest to **only
+those two boards** and defers the remaining six BOMs
+(`S360-211`, `S360-300`, `S360-310`, `S360-311`, `S360-312`
+Fan_GP8403, `S360-320`) to a later `HW-BOM-ASSETS` follow-up.
+
+### Scope of this PR
+
+**Updated by this PR:**
+
+- `S360-400` — new section appended to the existing
+  [`docs/hardware/artifacts/S360-400-R4.md`](hardware/artifacts/S360-400-R4.md)
+  recording the BOM evidence (`95878198-S360400R4_BOM.xlsx`,
+  10,987 bytes, SHA256
+  `bb59f56da11fe83f83b2547322af4e594b658384ade9f06267af367ffb603a1d`)
+  with the full 9-row component table. The BOM `PS1` row
+  (`Value: HLK-5M05` / `MFR#: HLK-5M05` / `Manufacturer: HI-LINK`
+  / footprint `greencharge-footprints:CONV_HLK-5M05`) agrees with
+  the catalog `description: "Mains to 5V using HLK-5M05."` and
+  **reclassifies** the three-way AC/DC part-identity
+  disagreement recorded by HW-PINMAP-400-FOLLOWUP / PR #515 +
+  PR #520:
+  - **`HLK-5M05` (catalog + BOM) = BOM/user-confirmed sourcing
+    truth** for the populated `PS1` AC/DC converter.
+  - **Schematic `PS1 = HLK-10M05` (committed PDF) =
+    schematic-label discrepancy.** The committed PDF stays
+    byte-identical; schematic-side correction is owed to a
+    separate later HW-ASSETS-400 follow-up.
+  - **Package header `HLK-PM01 or similar`
+    ([`packages/hardware/power_240v.yaml`](../packages/hardware/power_240v.yaml)
+    line 7) = disproved package-header comment text.**
+    Comment-only cleanup stays **deferred to
+    `PACKAGE-POWER-400-001`**; the package YAML is **not** edited
+    and stays byte-identical to PR #515 / PR #520.
+
+  The standalone audit doc
+  [`docs/hardware/s360-400-r4-power.md`](hardware/s360-400-r4-power.md)
+  receives a Part identity reconciliation addendum, a new
+  audit-log table row at the top of the audit log, and a new
+  `### 2026-05-20 — HW-BOM-ASSETS-002 BOM ingest` subsection at
+  the end of the file.
+- `S360-410` — new section appended to the existing
+  [`docs/hardware/artifacts/S360-410-R4.md`](hardware/artifacts/S360-410-R4.md)
+  recording the BOM evidence (`0de7679d-S360410R4_BOM.xlsx`,
+  11,980 bytes, SHA256
+  `b5f4bad842a930de03cd47327f477c21afcb82e4533a9d8be38b54990b38f285`)
+  plus a confirmation that the accompanying PDF re-upload
+  (`7f920771-S360410R4.pdf`; 975,137 bytes; SHA256
+  `4a8b7a3b2a89006a9332eaa486743f687aaedc4b6bb807c6b25670f742ac2414`)
+  is **byte-identical** to the committed schematic at
+  [`docs/hardware/schematics/S360-410-R4.pdf`](hardware/schematics/S360-410-R4.pdf)
+  (HW-ASSETS-410 / PR #516). The 24-row BOM component table is
+  recorded with manufacturer attribution. The BOM confirms each
+  load-bearing schematic part (`U1 TPS2378DDAR` TI; `U2 TX4138`
+  XDS; `DCDC1 F0505S-2WR2` EVISUN; `LAN_CON1 LPJ4112CNL`
+  Link-PP) and **reclassifies** the package-header / schematic
+  disagreement recorded by HW-PINMAP-410-FOLLOWUP / PR #517 +
+  PR #526:
+  - **Schematic-shown discrete topology
+    (`TPS2378DDAR + TX4138 + F0505S-2WR2 + RJP-003TC1(LPJ4112CNL)`)
+    = BOM-confirmed sourcing truth.**
+  - **Package-header `Ag9712M, Silvertel Ag9700, or similar`
+    ([`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
+    line 6) = disproved package-header comment text** (neither
+    whole-module part appears anywhere in the BOM). Comment-only
+    cleanup stays **deferred to `PACKAGE-POE-410-001`**; the
+    package YAML is **not** edited and stays byte-identical to
+    PR #517 / PR #526.
+  - **Schematic-annotated `AM1D-0505S-NZ` =
+    schematic-annotation-only alternate not present in the BOM.**
+    The BOM-confirmed populated primary for `DCDC1` is
+    `F0505S-2WR2` (EVISUN).
+
+  The standalone audit doc
+  [`docs/hardware/s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md)
+  receives a Part identity reconciliation addendum, a new
+  audit-log table row at the end of the audit log, and a new
+  `### 2026-05-20 — HW-BOM-ASSETS-002 BOM ingest` subsection at
+  the end of the file. The Release-One PoE `"schematic
+  verification pending"` caveat in
+  [`docs/release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings)
+  is **preserved verbatim**.
+
+**Explicitly deferred by this PR (broader batch is still partial):**
+
+The remaining BOMs are **not** ingested by this PR. Their blocker
+wording in [`UPCOMING_PR.md`](../UPCOMING_PR.md) and in the
+per-board audit docs is **unchanged**:
+
+- `S360-211` BOM (Sense360 VentIQ) — not ingested.
+- `S360-300` BOM (Sense360 LED) — not ingested. LED preview →
+  stable promotion gates per
+  [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
+  rows 9–17 and `S360-300-BENCH-001` are unchanged; no LED
+  stable claim is made.
+- `S360-310` BOM (Sense360 Relay, including K1 identity) —
+  not ingested. `PACKAGE-RELAY-001` stays blocked behind
+  `CORE-ABSTRACT-BUS-001A`, silkscreen / harness / `K1` BOM
+  evidence, and the test-scaffolding gate.
+- `S360-311` BOM (Sense360 PWM) — not ingested.
+  `PACKAGE-PWM-001` stays blocked behind
+  `HW-PINMAP-311-FOLLOWUP` evidence, `CORE-ABSTRACT-BUS-001B`,
+  and `CORE-ABSTRACT-BUS-001C`.
+- `S360-312` `Fan_GP8403` BOM (Sense360 DAC) — not ingested.
+  `PACKAGE-DAC-001` stays blocked behind
+  `HW-PINMAP-312-FOLLOWUP` evidence and
+  `CORE-ABSTRACT-BUS-001B`.
+- `S360-320` BOM (Sense360 TRIAC) — not ingested.
+  `PACKAGE-TRIAC-001` stays blocked behind `HW-005` /
+  `HW-PINMAP-320-FOLLOWUP` / `COMPLIANCE-001`. No mains
+  compliance claim is made.
+
+A later **`HW-BOM-ASSETS` follow-up** PR is owed to ingest the
+remaining six BOMs above and update their blockers.
+
+### Policy posture
+
+This PR follows the existing
+[Hardware Artifact Policy](hardware/hardware-artifact-policy.md)
+(HW-ASSETS-001) **without changing the policy**:
+
+- BOM `.xlsx` files stay **retained-but-not-committed** under
+  the current per-board decision. Filename, size, and SHA256
+  are recorded in each artifact index; the `.xlsx` itself is
+  not added to `git`.
+- No `docs/hardware/bom/` directory is created.
+- No `.gitignore` / `.gitattributes` / `.pre-commit-config.yaml`
+  change.
+- No Git LFS introduction.
+- The
+  [Hardware Artifact Policy](hardware/hardware-artifact-policy.md)
+  document is **not edited** by this PR.
+
+### Files this PR touches
+
+Only the following files are touched:
+
+- [`docs/hardware/artifacts/S360-400-R4.md`](hardware/artifacts/S360-400-R4.md)
+  — appends a new
+  `## HW-BOM-ASSETS-002 BOM ingest (2026-05-20)` section recording
+  the BOM filename, size, SHA256, the full 9-row component table,
+  the disagreement reclassification, BOM-confirmed component
+  details, what the ingest does NOT close, and cross-links.
+- [`docs/hardware/artifacts/S360-410-R4.md`](hardware/artifacts/S360-410-R4.md)
+  — appends a new
+  `## HW-BOM-ASSETS-002 BOM ingest (2026-05-20)` section recording
+  the BOM filename, size, SHA256, the byte-identical PDF
+  re-upload confirmation, the full 24-row component table, the
+  discrete-topology BOM-confirmation, the `AM1D-0505S-NZ`
+  schematic-annotation-only alternate note, BOM-confirmed
+  component details, what the ingest does NOT close, and
+  cross-links.
+- [`docs/hardware/s360-400-r4-power.md`](hardware/s360-400-r4-power.md)
+  — appends an HW-BOM-ASSETS-002 update paragraph to
+  §Part identity reconciliation; adds a new row at the top of
+  the §HW-PINMAP-400-FOLLOWUP audit log table; adds a new
+  `### 2026-05-20 — HW-BOM-ASSETS-002 BOM ingest` subsection at
+  the end of the file. Top-line audit status stays
+  `partial — schematic evidence available; package
+  reconciliation, BOM, silkscreen, creepage/clearance, and
+  COMPLIANCE-001 pending`.
+- [`docs/hardware/s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md)
+  — appends an HW-BOM-ASSETS-002 update paragraph to
+  §Part identity reconciliation; adds a new row at the end of
+  the §HW-PINMAP-410-FOLLOWUP audit log table; adds a new
+  `### 2026-05-20 — HW-BOM-ASSETS-002 BOM ingest` subsection at
+  the end of the file. Top-line audit status stays
+  `partial — schematic evidence available; package
+  reconciliation, PoE PD controller / magnetics / buck /
+  isolated DC/DC / harness identity evidence pending`. The
+  Release-One PoE `"schematic verification pending"` caveat is
+  **preserved verbatim**.
+- [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+  — adds HW-BOM-ASSETS-002 addendum bullets to the
+  §`power_240v.yaml` / S360-400 and §`power_poe.yaml` / S360-410
+  subsections. Row-status entries unchanged
+  (`schematic-evidence-pending` + `needs-package-reconciliation`
+  + `timing/compliance-pending` for S360-400;
+  `reference-only` + `schematic-evidence-pending` +
+  `do-not-change-release-one` for S360-410).
+- [`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md)
+  — appends an HW-BOM-ASSETS-002 paragraph to each of the
+  §`power_240v.yaml` AC/DC part-identity disagreement (S360-400)
+  and §`power_poe.yaml` PoE-module part-identity disagreement
+  (S360-410) sections.
+- [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+  — refreshes the **Required before promotion** wording for
+  §`S360-400` Sense360 240v PSU (drops the BOM cross-check
+  precondition; records the schematic-label discrepancy as a
+  new gate; records the BOM-confirmed `HLK-5M05` truth) and the
+  **Required before module-side promotion** wording for
+  §`S360-410` Sense360 PoE PSU (drops the BOM cross-check
+  precondition; records the BOM-confirmed discrete topology;
+  records the `AM1D-0505S-NZ` schematic-annotation-only
+  alternate; preserves the Release-One PoE caveat verbatim).
+- [`docs/cleanup-audit.md`](cleanup-audit.md) — this section.
+- [`UPCOMING_PR.md`](../UPCOMING_PR.md) — adds the
+  `HW-BOM-ASSETS-002` active-queue entry; adds a Current queue
+  summary bullet recording the S360-400 / S360-410 BOM ingest;
+  refreshes the precondition wording in active-queue entries
+  #4 / #5 / #6 / #7 so the BOM-cross-check precondition reads
+  "landed in HW-BOM-ASSETS-002 / PR #XXX" instead of "missing";
+  adds a Recently uploaded evidence entry for the two BOMs and
+  the byte-identical S360-410 PDF re-upload; refreshes the
+  partial-batch deferral note so it reflects six remaining
+  BOMs; refreshes the BOM-still-bound items list so it no
+  longer carries S360-400 / S360-410; adds the
+  `HW-BOM-ASSETS-002 / #XXX` row to the Completed / merged PRs
+  table.
+
+### What this PR does NOT change
+
+- No `config/**` file is edited. No `schematic_status`
+  promotion. No `schematic_file` set. No lifecycle status
+  change. No `webflash_build_matrix` flip. No `artifact_name`,
+  no `webflash_wrapper`, no `config_string`. No
+  `release_one_required_configs` / `lifecycle_statuses` /
+  `canonical_modules` / `canonical_power` / `forbidden_tokens`
+  / `REQUIRED_CONFIGS` / kit change.
+- No `packages/**` edit. `power_240v.yaml` /
+  `power_poe.yaml` stay byte-identical to PR #515 / PR #520
+  and PR #517 / PR #526 respectively. The stale `HLK-PM01 or
+  similar` header in `power_240v.yaml` and the stale
+  `Ag9712M, Silvertel Ag9700, or similar` header in
+  `power_poe.yaml` both stay in place; comment-only cleanup is
+  deferred to `PACKAGE-POWER-400-001` and `PACKAGE-POE-410-001`
+  respectively.
+- No `products/**` edit. No `products/webflash/**` edit. No
+  new product YAML. No new WebFlash wrapper. The four
+  `legacy-compatible` `*-pwr` Core variants and the six
+  `legacy-compatible` `*-poe` Core variants all stay
+  `legacy-compatible` and `webflash_build_matrix: false`.
+- No `tests/**` edit. No `scripts/**` edit. No
+  `.github/workflows/**` edit. No `components/**` edit. No
+  `include/**` edit. No `firmware/**` edit. No
+  `manifest.json` edit. No `firmware/sources.json` edit.
+- No `docs/hardware/bom/` directory created. No `.xlsx`
+  file added to `git`.
+- No `hardware-artifact-policy.md` edit.
+- No `release-one-hardware-audit.md` edit. The Release-One PoE
+  `"schematic verification pending"` caveat is **preserved
+  verbatim**.
+- No COMPLIANCE-001 movement. No mains-voltage UK / EU
+  sign-off. PoE-410 is SELV and **not** in scope for
+  COMPLIANCE-001.
+- No correction of the schematic-label discrepancy at `PS1`
+  in `S360-400-R4.pdf` (the committed PDF stays byte-identical;
+  the `HLK-10M05` value-field string is recorded as a
+  schematic-label discrepancy but the PDF is **not** edited).
+- No re-commit of `S360-410-R4.pdf` (the upload is
+  byte-identical to the committed file).
+- No Release-One change (`Ceiling-POE-VentIQ-RoomIQ` stays
+  `status: production`, `channel: stable`, artifact
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, tag
+  `v1.0.0`). No LED preview change
+  (`Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview`,
+  `channel: preview`). No FanTRIAC change (stays `blocked`
+  under HW-005, `webflash_build_matrix: false`).
+- No advancement of `PACKAGE-POWER-400-001` /
+  `PRODUCT-POWER-400-001` / `WEBFLASH-POWER-400-001` /
+  `RELEASE-POWER-400-001` / `WF-IMPORT-POWER-400-001`
+  implementation slices. The BOM-cross-check precondition is
+  recorded as landed for each, but the other recorded
+  preconditions (`S360-400` `schematic_status: verified` JSON
+  PR; COMPLIANCE-001 `S360-400` slice; silkscreen / PCB /
+  creepage / clearance / bench / thermal / EMI evidence;
+  package / catalog reconciliation; product-onboarding
+  approval; UX-class decision; release-time sub-gates) stay
+  open.
+- No advancement of `PACKAGE-POE-410-001` /
+  `PRODUCT-POE-410-001` / `WEBFLASH-POE-410-001` /
+  `RELEASE-POE-410-001` / `WF-IMPORT-POE-410-001`
+  implementation slices. The BOM-cross-check precondition is
+  recorded as landed for each, but the other recorded
+  preconditions (the `S360-410` `schematic_status: verified`
+  JSON PR; HW-002 OQ#6 / `S360-100-BENCH-001` J2-harness
+  closure; the package-header comment cleanup itself; the
+  Release-One PoE caveat closure as a separate later PR;
+  product-onboarding approval; UX-class decision;
+  release-time sub-gates) stay open.
+- No advancement of `PACKAGE-RELAY-001` / `PRODUCT-RELAY-001`
+  / `WEBFLASH-RELAY-001` / `RELEASE-RELAY-001` /
+  `WF-IMPORT-RELAY-001`.
+- No advancement of `PACKAGE-PWM-001` / `PRODUCT-PWM-001` /
+  `WEBFLASH-PWM-001` / `RELEASE-PWM-001`.
+- No advancement of `PACKAGE-DAC-001` / `PRODUCT-DAC-001` /
+  `WEBFLASH-DAC-001` / `RELEASE-DAC-001`.
+- No advancement of `PACKAGE-TRIAC-001` / `PRODUCT-TRIAC-002`
+  / `WF-TRIAC-001` / `RELEASE-TRIAC-001` /
+  `WF-IMPORT-TRIAC-001`.
+- No advancement of `CORE-ABSTRACT-BUS-001A`,
+  `CORE-ABSTRACT-BUS-001B`, or `CORE-ABSTRACT-BUS-001C`.
+- No closure of `S360-100-BENCH-001`, `S360-300-BENCH-001`,
+  `HW-PINMAP-310-FOLLOWUP`, `HW-PINMAP-311-FOLLOWUP`,
+  `HW-PINMAP-312-FOLLOWUP`, `HW-PINMAP-320-FOLLOWUP`,
+  `HW-PINMAP-400-FOLLOWUP`, `HW-PINMAP-410-FOLLOWUP`,
+  `HW-002` Open Questions, `COMPLIANCE-001`, or `HW-005`.
+
+### Next HW-BOM-ASSETS trigger
+
+The next `HW-BOM-ASSETS` audit-log entry should appear when:
+
+1. The remaining BOMs (`S360-211`, `S360-300`, `S360-310`,
+   `S360-311`, `S360-312`, `S360-320`) are ingested as a
+   follow-up partial or full batch; or
+2. The retained-but-not-committed BOM `.xlsx` storage
+   decision changes (would require a separate policy PR
+   amending
+   [Hardware Artifact Policy](hardware/hardware-artifact-policy.md)
+   §Future storage decision before BOMs may be committed
+   directly).
+
+Until then, the per-board `BOM missing` / `BOM cross-check
+missing` blocker wording for the six deferred boards remains
+the explicit, honest gate.
+
 ## RELEASE-POE-410-001 update (2026-05-20 — docs-only investigation pass)
 
 This update records the 2026-05-20 docs-only investigation

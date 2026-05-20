@@ -759,16 +759,31 @@ rather than restate them.
   `w-pwr` / `v-w-pwr` Core variants under
   [`products/`](../../products/) are `legacy-compatible`.
 - **Required before promotion.** Standalone schematic-backed
-  reference-doc rewrite + BOM cross-check + silkscreen pin-1
+  reference-doc rewrite + silkscreen pin-1
   evidence + PCB / creepage / clearance evidence + bench / load /
   thermal / EMI evidence (separate evidence-bearing slices after
   HW-PINMAP-400-FOLLOWUP per
   [`s360-400-r4-power.md` Follow-up PR sequence](s360-400-r4-power.md#follow-up-pr-sequence));
-  separate JSON-only PR to flip `schematic_status` and set
+  schematic-side correction of the `PS1` value-field discrepancy
+  (`HLK-10M05` in the committed PDF vs. `HLK-5M05` BOM-confirmed
+  truth — owed to a later HW-ASSETS-400 follow-up); separate
+  JSON-only PR to flip `schematic_status` and set
   `schematic_file`; **COMPLIANCE-001 mains-voltage
   UK / EU assessment** ([`docs/compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md))
-  must clear before any `PWR`-bearing config ships. Not critical for
-  Release-One.
+  must clear before any `PWR`-bearing config ships. Not critical
+  for Release-One. **BOM cross-check landed under
+  `HW-BOM-ASSETS-002`** (`S360-400-R4_BOM.xlsx`
+  retained-but-not-committed at
+  [`docs/hardware/artifacts/S360-400-R4.md` §HW-BOM-ASSETS-002 BOM ingest (2026-05-20)](artifacts/S360-400-R4.md#hw-bom-assets-002-bom-ingest-2026-05-20)):
+  BOM `PS1 = HLK-5M05` (HI-LINK) is BOM/user-confirmed sourcing
+  truth, agreeing with catalog `description: "Mains to 5V using
+  HLK-5M05."`; schematic-PDF value field `PS1 = HLK-10M05` is
+  reclassified as a **schematic-label discrepancy**; package-header
+  `HLK-PM01 or similar` is reclassified as **disproved
+  package-header comment text** (comment-only cleanup still
+  deferred to `PACKAGE-POWER-400-001`). `power_240v.yaml` is
+  **not** edited; the package YAML stays byte-identical to
+  PR #515 / PR #520.
 
 ### `S360-410` Sense360 PoE PSU
 
@@ -830,29 +845,40 @@ rather than restate them.
 - **Required before module-side promotion.** Module-side schematic
   is committed under HW-ASSETS-410 / PR #516. HW-PINMAP-410-FOLLOWUP
   has consumed it and produced the schematic-backed partial audit.
-  Still owed: BOM cross-check (resolves the package-header
-  whole-module `Ag9712M / Silvertel Ag9700 / or similar` hint vs the
-  schematic-shown discrete topology
-  `TPS2378DDAR / TX4138 / F0505S-2WR2 / RJP-003TC1(LPJ4112CNL)`,
-  the `F0505S-2WR2`-vs-`AM1D-0505S-NZ` primary-vs-alternate
-  selection, and the 802.3af-only vs 802.3af/at-capable design
-  intent); module-side `J3` silkscreen pin-1 evidence; KiCad PCB
+  Still owed: module-side `J3` silkscreen pin-1 evidence; KiCad PCB
   source / gerbers for isolation-barrier widths and `H1`–`H4` PCB
   bonding; bench / load / PoE-link-up against 802.3af and 802.3at
   PSE / thermal / inrush / insulation / Hi-pot / earth-continuity /
   leakage / EMI / EMC measurements; standalone schematic-backed
   reference-doc rewrite (`s360-410-r4-poe-reference.md` companion);
-  `PACKAGE-POE-410-001` package-header reconciliation against
-  module BOM; `S360-410` `schematic_status: verified` JSON-only PR
-  (separate, after BOM + HW-002 OQ#6 closure); J2 PoE harness
-  identity (HW-002 Open Question #6 at
+  `PACKAGE-POE-410-001` package-header reconciliation; `S360-410`
+  `schematic_status: verified` JSON-only PR (separate, after
+  HW-002 OQ#6 closure); J2 PoE harness identity (HW-002 Open
+  Question #6 at
   [`s360-100-r4-core.md#open-questions--verification-needed`](s360-100-r4-core.md#open-questions--verification-needed),
   tracked on
   [S360-100-BENCH-001](s360-100-r4-core.md#s360-100-bench-001-status)
   as `pending — bench/manufacturing evidence required`);
-  Release-One caveat closure as a separate later PR. None of these
-  block Release-One use; they are open work for the PoE PSU module
-  itself.
+  Release-One caveat closure as a separate later PR; resolution of
+  the `F0505S-2WR2`-vs-`AM1D-0505S-NZ` primary-vs-alternate intent
+  (the BOM lists `F0505S-2WR2` only); 802.3af-only vs
+  802.3af/at-capable design intent. **BOM cross-check landed under
+  `HW-BOM-ASSETS-002`** (`S360-410-R4_BOM.xlsx`
+  retained-but-not-committed at
+  [`docs/hardware/artifacts/S360-410-R4.md` §HW-BOM-ASSETS-002 BOM ingest (2026-05-20)](artifacts/S360-410-R4.md#hw-bom-assets-002-bom-ingest-2026-05-20)):
+  the schematic-shown discrete topology
+  (`U1 TPS2378DDAR` TI + `U2 TX4138` XDS + `DCDC1 F0505S-2WR2`
+  EVISUN + `LAN_CON1 LPJ4112CNL` Link-PP) is BOM-confirmed;
+  package-header `Ag9712M / Silvertel Ag9700 / or similar` is
+  reclassified as **disproved package-header comment text**
+  (neither part is in the BOM; comment-only cleanup still deferred
+  to `PACKAGE-POE-410-001`); schematic-annotated `AM1D-0505S-NZ`
+  is a schematic-annotation-only alternate not present in the
+  BOM. `power_poe.yaml` is **not** edited; the package YAML stays
+  byte-identical to PR #517 / PR #526. None of these block
+  Release-One use; they are open work for the PoE PSU module
+  itself. The Release-One PoE "schematic verification pending"
+  caveat is **preserved verbatim**.
 
 ## Ready / evidenced boards
 
