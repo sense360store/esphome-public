@@ -9707,3 +9707,544 @@ implementation PR makes a `PRODUCT-POE-410-001` product YAML
 next audit-log entry should report the same
 `PRODUCT-POE-410-001 investigation pass — preconditions
 still open` outcome with the new inspection date.
+
+## WEBFLASH-POE-410-001 update (2026-05-20 — docs-only investigation pass)
+
+This update records the 2026-05-20 docs-only investigation pass
+against `WEBFLASH-POE-410-001` (the S360-410 PoE-410-subject
+WebFlash wrapper / catalog `webflash_build_matrix: true` flip /
+build-matrix row slice). The upstream `PRODUCT-POE-410-001`
+investigation pass merged earlier on 2026-05-20 as **PR #528**
+(docs-only Path A deferral) and is recorded above at
+[§PRODUCT-POE-410-001 update](#product-poe-410-001-update-2026-05-20--docs-only-investigation-pass);
+the follow-up tracker cleanup `CLEANUP-POE-410-002` merged the
+same day as **PR #529** (docs-only `UPCOMING_PR.md` cleanup
+that swapped the `PR #XXX` / `this PR` placeholders for
+`PR #528`, removed the `PRODUCT-POE-410-001` active-queue entry
+since the investigation pass has merged, and promoted
+`WEBFLASH-POE-410-001` to active queue item #7).
+`PRODUCT-POE-410-001` is the named immediate gate for
+`WEBFLASH-POE-410-001` per
+[`docs/webflash-exposure-readiness-matrix.md` Follow-up PR sequence](webflash-exposure-readiness-matrix.md#follow-up-pr-sequence),
+and the product slice is **not** advanced by PR #528 — the
+no-new-entry vs new-entry decision, and (if a new entry is
+warranted) the canonical S360-410 / `POE`-410-subject product
+YAML plus the matching `config/product-catalog.json` entry,
+that PR #528 enumerated as the required atomic slice all
+remain owed to a future evidence-bearing `PRODUCT-POE-410-001`
+PR.
+
+**Outcome — Path A docs-only investigation / deferral.**
+`WEBFLASH-POE-410-001` is **confirmed deferred at the
+implementation layer.** Eight blocker preconditions remain
+open, plus a ninth observation that the slice may not be
+required at all if `PRODUCT-POE-410-001` ultimately closes
+via the default no-new-entry / caveat-closure-only path. No
+new package, product, WebFlash, build, release, compliance,
+JSON catalog, test, script, workflow, component, include,
+firmware, or manifest evidence has arrived since PR #528 /
+PR #529; the live state of every WebFlash / release surface
+that `WEBFLASH-POE-410-001` would touch stays byte-identical
+to PR #528 / PR #529.
+
+**Findings against the WEBFLASH-POE-410-001 design questions.**
+
+1. **Q1: Does any S360-410-explicit product YAML exist?** No.
+   The three shipping PoE products
+   ([`sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml),
+   [`sense360-ceiling-poe-ventiq-roomiq-led.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq-led.yaml),
+   [`sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml))
+   and the six `legacy-compatible` `*-poe` Core variants
+   consume `power_poe.yaml` as a **logical** PoE-power
+   package under Release-One / legacy identity. None
+   subjects S360-410 as the explicit product topic.
+2. **Q2: Does any S360-410 WebFlash wrapper exist?** No. Only
+   three PoE wrappers exist under
+   [`products/webflash/`](../products/webflash/):
+   [`ceiling-poe-ventiq-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq.yaml)
+   (Release-One stable),
+   [`ceiling-poe-ventiq-roomiq-led.yaml`](../products/webflash/ceiling-poe-ventiq-roomiq-led.yaml)
+   (LED preview), and
+   [`ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml)
+   (FanTRIAC blocked reference). All are Release-One identity
+   under the preserved schematic-pending caveat, **not**
+   S360-410-subject WebFlash exposure.
+3. **Q3: Does any PoE-410-specific WebFlash wrapper exist?**
+   No.
+4. **Q4: Does
+   [`config/webflash-builds.json`](../config/webflash-builds.json)
+   contain any S360-410-specific build?** No. Only the two
+   existing Release-One / LED preview builds.
+5. **Q5: Does
+   [`config/product-catalog.json`](../config/product-catalog.json)
+   contain any S360-410-explicit product entry?** No. The
+   three shipping PoE entries (`Ceiling-POE-VentIQ-RoomIQ`
+   `status: production` / `channel: stable`,
+   `Ceiling-POE-VentIQ-RoomIQ-LED` `status: preview` /
+   `channel: preview`, `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
+   `status: blocked` / `blocker: HW-005` /
+   `webflash_build_matrix: false`) each carry
+   `hardware.poe: "S360-410"` as a catalog-level mapping
+   field only — Release-One identity, not S360-410-subject
+   WebFlash exposure. The six `legacy-compatible` `*-poe`
+   Core variants stay `legacy-compatible` /
+   `webflash_build_matrix: false` / no `config_string` / no
+   `webflash_wrapper` / no `artifact_name`.
+6. **Q6: Do existing PoE entries have
+   `webflash_build_matrix: true` only because of Release-One
+   / LED preview and not because S360-410 is verified?** Yes.
+   `Ceiling-POE-VentIQ-RoomIQ` and
+   `Ceiling-POE-VentIQ-RoomIQ-LED` are
+   `webflash_build_matrix: true` because they are Release-One
+   stable and LED preview respectively, **not** because they
+   subject S360-410 explicitly.
+7. **Q7: Does
+   [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+   reserve `POE`?** Yes — `canonical_power: ["USB", "POE",
+   "PWR"]`. POE is consumed by both committed builds under
+   Release-One identity and the preserved schematic-pending
+   caveat.
+8. **Q8: Does POE reservation imply S360-410 WebFlash
+   exposure?** No. POE is a grammar reservation; it does not
+   constitute S360-410-subject WebFlash readiness. The same
+   reasoning applies to `PWR` (reserved in `canonical_power`
+   but no `webflash_build_matrix: true` consumer).
+9. **Q9: Did `PRODUCT-POE-410-001` implement product YAML /
+   catalog?** No. Only the docs-only investigation pass
+   merged as PR #528; the no-new-entry vs new-entry decision
+   and (if a new entry is warranted) the canonical product
+   YAML + matching catalog entry all remain owed.
+10. **Q10: Did `PACKAGE-POE-410-001` implement package
+    reconciliation?** No. Only the docs-only investigation
+    pass merged as PR #526.
+11. **Q11: Is
+    [`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
+    still unreconciled?** Yes — byte-identical to PR #517 /
+    PR #526 / PR #528 state; the stale `Ag9712M, Silvertel
+    Ag9700, or similar` header (line 6) and the
+    partially-evidenced standard / class / input / output /
+    protection lines (7–11) are unchanged.
+12. **Q12: Is `S360-410` `schematic_status: verified`?** No.
+    [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+    line 120 still records
+    `schematic_status: cataloged_unverified`.
+13. **Q13: Is `schematic_file` set for `S360-410`?** No.
+14. **Q14: Is HW-002 OQ#6 / `S360-100-BENCH-001` J2-harness
+    evidence closed?** No. Both stay
+    `pending — bench/manufacturing evidence required` per the
+    2026-05-18 re-check.
+15. **Q15: Is BOM evidence committed?** No.
+16. **Q16: Is Release-One PoE caveat closure complete?** No.
+    The caveat in
+    [`docs/release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings)
+    and [Required follow-ups #6](release-one-hardware-audit.md#required-follow-ups)
+    is **preserved verbatim** by this pass and is owed to a
+    separate caveat-closure PR.
+17. **Q17: Is there any release artifact for a PoE-410-specific
+    product?** No. The two existing `artifact_name` entries
+    (`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` and
+    `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`)
+    consume S360-410 logically under Release-One identity, not
+    as S360-410-subject release artifacts.
+18. **Q18: Would adding wrapper/build row violate the product
+    readiness and WebFlash exposure gates?** Yes. Breaks the
+    [`docs/webflash-exposure-readiness-matrix.md` Core rule](webflash-exposure-readiness-matrix.md#core-rule)
+    (a wrapper requires the upstream product YAML to exist
+    and every consumed package to be `ready-for-package-change`);
+    breaks the
+    [`docs/product-readiness-matrix.md` Core rule](product-readiness-matrix.md#core-rule)
+    (every consumed package must be
+    `ready-for-package-change`; `power_poe.yaml` stays
+    `reference-only` + `schematic-evidence-pending` +
+    `do-not-change-release-one`); flipping
+    `webflash_build_matrix: true` on a Release-One-identity
+    entry while the Release-One PoE caveat is preserved would
+    implicitly requalify Release-One — explicitly forbidden by
+    PR #526 / PR #528 and by every prior PoE-410 follow-up
+    document.
+19. **Q19: Is Path A, B, or C recommended?** Path A docs-only
+    deferral.
+20. **Q20: How should
+    [`UPCOMING_PR.md`](../UPCOMING_PR.md) be updated?** Add
+    `CLEANUP-POE-410-002` / PR #529 and this PR /
+    `WEBFLASH-POE-410-001` rows to Completed / merged PRs;
+    add Current queue summary bullets for PR #529 and this
+    PR; expand active-queue entry #7 `WEBFLASH-POE-410-001`
+    from the planned stub to `Investigated 2026-05-20; merged
+    as this PR; confirmed deferred (Path A docs-only); nine
+    observations still open` status; add a Recently uploaded
+    evidence entry for "No new evidence committed for
+    `WEBFLASH-POE-410-001` preconditions (2026-05-20
+    re-check)".
+21. **Q21: What downstream rows remain blocked?**
+    `RELEASE-POE-410-001` and `WF-IMPORT-POE-410-001`
+    (cross-repo) stay blocked behind `WEBFLASH-POE-410-001` +
+    `PRODUCT-POE-410-001` + Release-One PoE caveat closure.
+
+**Open preconditions (carried forward).**
+
+1. **`PRODUCT-POE-410-001` implementation slice has not
+   landed.** Only the docs-only investigation pass merged
+   as PR #528. The no-new-entry vs new-entry decision, and
+   (if a new entry is warranted) the canonical S360-410 /
+   `POE`-410-subject product YAML plus the matching
+   `config/product-catalog.json` entry, that PR #528
+   enumerated as the required atomic slice all remain owed
+   to a future evidence-bearing `PRODUCT-POE-410-001` PR. Per
+   [`docs/webflash-exposure-readiness-matrix.md` Follow-up PR sequence](webflash-exposure-readiness-matrix.md#follow-up-pr-sequence)
+   the `WEBFLASH-POE-410-001` row is explicitly gated on
+   "`PRODUCT-POE-410-001` resolved with a new product entry".
+2. **`PACKAGE-POE-410-001` implementation slice has not
+   landed.** Only the docs-only investigation pass merged as
+   PR #526. A wrapper cannot wrap a package that stays
+   `reference-only` + `schematic-evidence-pending` +
+   `do-not-change-release-one`.
+3. **BOM cross-check missing.** Same multi-component gap PR
+   #526 / PR #528 recorded: no BOM line item with
+   manufacturer + part number + revision for
+   `LAN_CON1 RJP-003TC1(LPJ4112CNL)` magnetics / RJ45,
+   `U1 TPS2378DDAR(HSOIC-8)` PoE PD controller,
+   `U2 TX4138(ESOIC-8)` buck, `DCDC1 F0505S-2WR2(SIP-7)`
+   isolated DC/DC (settling the primary-vs-alternate question
+   against the annotated `AM1D-0505S-NZ`), `D1 SMAJ58A`,
+   `D2 ss510`, `D3 Green`, `L1 33uH`, `R1`–`R9`, `C1`–`C8`,
+   or `J3` 2-pin Core-facing connector is committed.
+4. **`S360-410` `schematic_status: verified` JSON PR not
+   landed.** [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+   line 120 stays `schematic_status: cataloged_unverified`
+   with no `schematic_file`. Separate JSON-only PR after BOM
+   + HW-002 OQ#6 / `S360-100-BENCH-001` closure +
+   standalone reference-doc rewrite.
+5. **HW-002 Open Question #6 / `S360-100-BENCH-001`
+   J2-harness identity closure missing.** Both stay
+   `pending — bench/manufacturing evidence required` per the
+   2026-05-18 re-check.
+6. **Release-One PoE "schematic verification pending"
+   caveat closure missing.** The caveat in
+   [`docs/release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings)
+   and [Required follow-ups #6](release-one-hardware-audit.md#required-follow-ups)
+   is **preserved verbatim** by this pass and is owed to a
+   separate caveat-closure PR. Adding a sibling PoE-410
+   WebFlash exposure while the caveat is preserved would
+   implicitly requalify Release-One — explicitly forbidden
+   by PR #526 / PR #528 and by every prior PoE-410 follow-up
+   document.
+7. **Product-onboarding approval missing.** Per the
+   [`docs/webflash-exposure-readiness-matrix.md` Core rule](webflash-exposure-readiness-matrix.md#core-rule),
+   a WebFlash wrapper requires (a) product readiness — the
+   upstream canonical product YAML must exist (it does not);
+   (b) package readiness — `power_poe.yaml` stays
+   `reference-only` + `schematic-evidence-pending` +
+   `do-not-change-release-one`; (c) the WebFlash compatibility
+   grammar in
+   [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+   to be cleared — `POE` is already reserved in
+   `canonical_power` and is consumed by both committed builds
+   under the preserved Release-One caveat (no new
+   `webflash_build_matrix: true` row is required to make the
+   grammar pass, but a wrapper still cannot land without the
+   upstream product YAML); and (d) the
+   [`docs/product-onboarding.md`](product-onboarding.md) safe
+   sequence to be followed end-to-end (not designed for this
+   slice). None of the four has been satisfied for
+   `WEBFLASH-POE-410-001`.
+8. **Release / build readiness gates open.** Per the
+   [Core rule](webflash-exposure-readiness-matrix.md#core-rule),
+   a WebFlash wrapper requires product readiness + package
+   readiness + the upstream product YAML to exist; none of
+   those is satisfied today. Adding a build-matrix row to
+   [`config/webflash-builds.json`](../config/webflash-builds.json)
+   without that wrapper would break
+   [`tests/test_validate_webflash_builds.py`](../tests/test_validate_webflash_builds.py)
+   shape requirements. The
+   [`docs/release-artifact-readiness-matrix.md` §Release note / artifact / checksum gates](release-artifact-readiness-matrix.md#release-note--artifact--checksum-gates)
+   eight release-time sub-gates remain unmet for any
+   PoE-410-explicit `.bin`: product-catalog entry (none),
+   build-matrix entry (none), artifact-name conformance
+   (no `artifact_name`), release-tag conformance (no tag),
+   release-notes generated (no `(config_string, version,
+   channel)` input), release-notes valid (no body to
+   validate), artifact built (no input matrix row),
+   checksums attached / manifest attached / proof recorded
+   (no asset to checksum / manifest / prove).
+9. **`WEBFLASH-POE-410-001` may not be required at all if
+   `PRODUCT-POE-410-001` closes by no-new-entry / caveat-closure
+   only.** Per
+   [`docs/product-readiness-matrix.md` §PoE-410 / S360-410](product-readiness-matrix.md#poe-410--s360-410)
+   and the
+   [`docs/release-artifact-readiness-matrix.md` Follow-up PR sequence](release-artifact-readiness-matrix.md#follow-up-pr-sequence)
+   row for `WEBFLASH-POE-410-001`, "often this slice is not
+   required because `PRODUCT-POE-410-001` closes by extending
+   the Release-One caveat without adding a new product." If
+   `PRODUCT-POE-410-001` ultimately closes via the default
+   no-new-entry / caveat-closure-only path,
+   `WEBFLASH-POE-410-001` becomes a no-op and the family
+   closes at the existing Release-One caveat without a new
+   WebFlash wrapper / catalog entry / build-matrix row. This
+   observation is recorded as a carried-forward ninth
+   observation, **not** as a completed outcome. The queue
+   stays blocked / deferred until `PRODUCT-POE-410-001`
+   implementation or no-op closure is explicitly decided
+   later.
+
+**Why Path B and Path C are not taken now.**
+
+- **Path B (documentation / catalog-classification-note-only
+  cleanup)** is not useful right now because the readiness
+  matrices
+  ([`docs/webflash-exposure-readiness-matrix.md` §PoE / S360-410 WebFlash posture](webflash-exposure-readiness-matrix.md#poe--s360-410-webflash-posture),
+  [`docs/release-artifact-readiness-matrix.md` §PoE / S360-410 release posture](release-artifact-readiness-matrix.md#poe--s360-410-release-posture),
+  [`docs/product-readiness-matrix.md` §PoE-410 / S360-410](product-readiness-matrix.md#poe-410--s360-410))
+  already correctly classify the slice as `not-webflash-ready`
+  / `no wrapper` / `no build-matrix entry` for any new
+  PoE-410 product entry, and the `WEBFLASH-POE-410-001`
+  Follow-up PR sequence row already names the product +
+  caveat-closure + product-onboarding gates. Any further
+  documentation cleanup (for example, retiring stale prose
+  left over from earlier matrix iterations) belongs to a
+  separate CLEANUP slice, not to `WEBFLASH-POE-410-001`. PR
+  #522 applied the same rule to the parallel
+  `WEBFLASH-POWER-400-001` slice; PR #528 applied the same
+  rule to the parallel `PRODUCT-POE-410-001` slice.
+- **Path C (implementation)** is unsafe right now because
+  every blocker precondition is open. Adding a WebFlash
+  wrapper under
+  [`products/webflash/`](../products/webflash/) without a
+  canonical S360-410 / `POE`-410-subject product YAML to
+  wrap would break the
+  [`docs/webflash-exposure-readiness-matrix.md` Core rule](webflash-exposure-readiness-matrix.md#core-rule)
+  ("WebFlash exposure requires every upstream gate … to be
+  satisfied; product YAML existence alone does not imply
+  WebFlash exposure"). Adding a build-matrix row to
+  [`config/webflash-builds.json`](../config/webflash-builds.json)
+  without that wrapper would break
+  [`tests/test_validate_webflash_builds.py`](../tests/test_validate_webflash_builds.py)
+  shape requirements (every build entry must point at an
+  existing `webflash_wrapper`). Flipping
+  `webflash_build_matrix: true` on a Release-One-identity
+  catalog entry while the Release-One PoE "schematic
+  verification pending" caveat is preserved would
+  implicitly requalify Release-One — explicitly forbidden
+  by PR #526 / PR #528 and by every prior PoE-410 follow-up
+  document.
+
+**Recommendation for the next `WEBFLASH-POE-410-001` PR.**
+**If and only if `PRODUCT-POE-410-001` adds a new
+PoE-410-explicit product entry**, land **the WebFlash
+wrapper under
+[`products/webflash/`](../products/webflash/) + the catalog
+`webflash_build_matrix: true` flip in
+[`config/product-catalog.json`](../config/product-catalog.json)
++ the build-matrix row in
+[`config/webflash-builds.json`](../config/webflash-builds.json)
++ the UX-class decision as a single atomic slice**, after
+`PRODUCT-POE-410-001` implementation, the Release-One PoE
+caveat-closure PR, and product-onboarding approval per
+[`docs/product-onboarding.md`](product-onboarding.md) all
+land. **Does not** build / sign / attach a release
+artifact, generate or validate release notes, emit
+checksums, or add a WebFlash import — those belong to
+`RELEASE-POE-410-001` and `WF-IMPORT-POE-410-001`
+(cross-repo) respectively. If `PRODUCT-POE-410-001` closes
+by the default no-new-entry / caveat-closure-only path,
+`WEBFLASH-POE-410-001` becomes a no-op and no
+implementation PR is needed.
+
+**Queue effect.**
+
+- `WEBFLASH-POE-410-001` is now **investigated and deferred**
+  in the [`UPCOMING_PR.md`](../UPCOMING_PR.md) active queue
+  (entry #7), blocked on the eight blocker preconditions
+  above (with the ninth observation carried forward).
+- `PRODUCT-POE-410-001` is recorded as **PR #528** in the
+  [`UPCOMING_PR.md`](../UPCOMING_PR.md) Completed / merged
+  PRs table. Per the
+  [§PRODUCT-POE-410-001 update](#product-poe-410-001-update-2026-05-20--docs-only-investigation-pass)
+  entry, `PRODUCT-POE-410-001` stays blocked on its own
+  eight preconditions; the product slice is **not** advanced
+  by PR #528.
+- `CLEANUP-POE-410-002` is recorded as **PR #529** in the
+  [`UPCOMING_PR.md`](../UPCOMING_PR.md) Completed / merged
+  PRs table — a docs-only tracker cleanup that swapped
+  `PR #XXX` / `this PR` placeholders for `PR #528`, removed
+  the `PRODUCT-POE-410-001` active-queue entry (the
+  investigation pass has merged, so the row no longer
+  belongs in the active queue), and promoted
+  `WEBFLASH-POE-410-001` to active queue item #7.
+- `PACKAGE-POE-410-001` is recorded as **PR #526** in the
+  [`UPCOMING_PR.md`](../UPCOMING_PR.md) Completed / merged
+  PRs table; stays blocked on its own five preconditions
+  per the 2026-05-20 `PACKAGE-POE-410-001` investigation
+  pass.
+- `CLEANUP-POE-410-001` is recorded as **PR #527** in the
+  [`UPCOMING_PR.md`](../UPCOMING_PR.md) Completed / merged
+  PRs table — a docs-only tracker cleanup that swapped
+  `PR #XXX` / `this PR` placeholders for `PR #526` and
+  added the `PACKAGE-POE-410-001` row to Completed / merged
+  PRs.
+- `RELEASE-POE-410-001` and `WF-IMPORT-POE-410-001`
+  (cross-repo) stay **blocked** behind
+  `WEBFLASH-POE-410-001` + `PRODUCT-POE-410-001` +
+  Release-One PoE caveat closure. If `PRODUCT-POE-410-001`
+  closes by the default no-new-entry / caveat-closure-only
+  path, `WEBFLASH-POE-410-001` becomes a no-op and
+  `RELEASE-POE-410-001` / `WF-IMPORT-POE-410-001` are also
+  not required.
+- `CORE-ABSTRACT-BUS-001C` stays at the top of the active
+  queue (entry #1), blocked on its own six preconditions
+  per the 2026-05-19 `001C` investigation pass merged as
+  PR #518.
+- `CORE-ABSTRACT-BUS-001A` stays blocked behind `001C`.
+- `CORE-ABSTRACT-BUS-001B` stays at queue entry #3, blocked
+  on its own four preconditions per the 2026-05-19 `001B`
+  investigation pass merged as PR #519.
+- `PRODUCT-POWER-400-001`, `WEBFLASH-POWER-400-001`,
+  `RELEASE-POWER-400-001`, and `WF-IMPORT-POWER-400-001`
+  stay blocked on their own preconditions.
+- `PACKAGE-PWM-001` / `PACKAGE-DAC-001` stay blocked behind
+  `001B` implementation + their own evidence gates.
+- `PACKAGE-RELAY-001` and downstream relay slices stay
+  blocked behind `001A` (which is itself blocked behind
+  `001C`).
+- `PACKAGE-TRIAC-001` / `PRODUCT-TRIAC-002` / `WF-TRIAC-001`
+  / `RELEASE-TRIAC-001` / `WF-IMPORT-TRIAC-001` stay blocked
+  behind HW-005 / `HW-PINMAP-320-FOLLOWUP` / COMPLIANCE-001.
+
+**What this update does *not* do.** Adds **no** package YAML,
+product YAML, WebFlash wrapper, JSON catalog change, script,
+test, workflow, component, include, firmware artifact,
+manifest, GitHub Release, tag, WebFlash import, or kit
+edit. Does **not** edit
+[`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
+(byte-identical to PR #517 / PR #526 / PR #528 state); does
+**not** edit any other file under
+[`packages/`](../packages/); does **not** edit
+[`config/hardware-catalog.json`](../config/hardware-catalog.json)
+(`S360-410` row stays byte-identical — no `schematic_status`
+promotion, no `schematic_file` set, no `description` edit);
+does **not** edit
+[`config/product-catalog.json`](../config/product-catalog.json)
+(no S360-410-subject product added; no
+`webflash_build_matrix: true` flip on any entry; no new
+`webflash_wrapper` or `artifact_name` or `config_string`
+added; Release-One + LED preview + FanTRIAC blocked-reference
++ six `legacy-compatible` `*-poe` Core variants all
+byte-identical; the `lifecycle_statuses` enum is unchanged);
+does **not** edit
+[`config/webflash-builds.json`](../config/webflash-builds.json)
+(no PoE-410-subject build added; two PoE builds only); does
+**not** edit
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+(`POE` stays consumed by both committed builds; `canonical_modules`
+/ `canonical_mounting` / `canonical_power` / `forbidden_tokens`
+/ mutex rules / `release_one_required_configs` /
+`artifact_pattern` / `allowed_channels` / `production_channel`
+/ `rescue_config_string` all unchanged); does **not** edit
+any product YAML under [`products/`](../products/)
+(including the three shipping PoE entries and the six
+legacy-compatible `*-poe` Core variants); does **not** edit
+any WebFlash wrapper under
+[`products/webflash/`](../products/webflash/) (only three
+PoE wrappers under Release-One identity; no new wrapper
+added); does **not** edit
+[`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)
+(PoE is SELV; `S360-410` PoE PSU is **not** in scope for
+COMPLIANCE-001; unchanged); does **not** edit
+[`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md)
+Findings → PoE PSU or Required follow-ups #6 (caveat
+preserved verbatim); does **not** edit
+[`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+`S360-410` rows; does **not** edit
+[`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md);
+does **not** edit
+[`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md);
+does **not** edit
+[`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md);
+does **not** edit
+[`docs/hardware/s360-100-r4-core.md`](hardware/s360-100-r4-core.md)
+Open Question #6 or §S360-100-BENCH-001 status (both stay
+`pending — bench/manufacturing evidence required`); does
+**not** edit
+[`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+`S360-410` snapshot row; does **not** edit
+[`docs/hardware/schematics/S360-410-R4.pdf`](hardware/schematics/S360-410-R4.pdf)
+or
+[`docs/hardware/artifacts/S360-410-R4.md`](hardware/artifacts/S360-410-R4.md)
+(both byte-identical to HW-ASSETS-410 / PR #516); does
+**not** edit
+[`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
+(workflow-frozen). No precondition is closed by this pass.
+Specifically: does **not** advance `WEBFLASH-POE-410-001`,
+`PRODUCT-POE-410-001`, `PACKAGE-POE-410-001`,
+`RELEASE-POE-410-001`, or `WF-IMPORT-POE-410-001`; does
+**not** advance `PRODUCT-POWER-400-001`,
+`PACKAGE-POWER-400-001`, `WEBFLASH-POWER-400-001`,
+`RELEASE-POWER-400-001`, or `WF-IMPORT-POWER-400-001`; does
+**not** advance `PACKAGE-RELAY-001`, `PRODUCT-RELAY-001`,
+`WEBFLASH-RELAY-001`, `RELEASE-RELAY-001`, or
+`WF-IMPORT-RELAY-001`; does **not** advance
+`PACKAGE-PWM-001`, `PRODUCT-PWM-001`, `WEBFLASH-PWM-001`,
+or `RELEASE-PWM-001`; does **not** advance
+`PACKAGE-DAC-001`, `PRODUCT-DAC-001`, `WEBFLASH-DAC-001`,
+or `RELEASE-DAC-001`; does **not** advance
+`PACKAGE-TRIAC-001`, `PRODUCT-TRIAC-002`, `WF-TRIAC-001`,
+`RELEASE-TRIAC-001`, or `WF-IMPORT-TRIAC-001`; does **not**
+advance `CORE-ABSTRACT-BUS-001A`, `CORE-ABSTRACT-BUS-001B`,
+or `CORE-ABSTRACT-BUS-001C`; does **not** close
+`S360-100-BENCH-001`, `HW-PINMAP-310-FOLLOWUP`,
+`HW-PINMAP-311-FOLLOWUP`, `HW-PINMAP-312-FOLLOWUP`,
+`HW-PINMAP-320-FOLLOWUP`, `HW-PINMAP-400-FOLLOWUP`,
+`HW-PINMAP-410-FOLLOWUP`, `COMPLIANCE-001`, or
+`S360-300-BENCH-001`; does **not** unblock FanTRIAC (HW-005
+stays a separate gate); does **not** change the Release-One
+configuration (`Ceiling-POE-VentIQ-RoomIQ`, version
+`1.0.0`, channel `stable`, artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, tag
+`v1.0.0`); does **not** change the LED preview entry
+(`Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview`,
+`channel: preview`, artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`);
+does **not** change `REQUIRED_CONFIGS` or kits; does **not**
+promote any `schematic_status`; does **not** set any
+`schematic_file`; does **not** claim any hardware-verified
+evidence; does **not** claim that any BOM / silkscreen /
+PCB / creepage / clearance / bench / load / link-up /
+thermal / inrush / insulation / Hi-pot / earth-continuity /
+leakage / EMI / EMC / IEEE 802.3af / 802.3at / isolation /
+safety evidence exists; does **not** make any CE / UKCA /
+FCC / UL / LVD / EMC / RoHS / IEC / IEEE compliance claim.
+
+The only files this update touches are this
+`WEBFLASH-POE-410-001 update` section in
+`docs/cleanup-audit.md`, the audit-log row added to
+[`docs/hardware/s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md)
+§HW-PINMAP-410-FOLLOWUP audit log, the investigation-pass
+paragraphs added under
+[`docs/webflash-exposure-readiness-matrix.md` §PoE / S360-410 WebFlash posture](webflash-exposure-readiness-matrix.md#poe--s360-410-webflash-posture)
+and
+[`docs/release-artifact-readiness-matrix.md` §PoE / S360-410 release posture](release-artifact-readiness-matrix.md#poe--s360-410-release-posture),
+and the queue refresh in
+[`UPCOMING_PR.md`](../UPCOMING_PR.md)
+(`CLEANUP-POE-410-002` recorded as PR #529 and this PR /
+`WEBFLASH-POE-410-001` recorded in the Completed / merged
+PRs table; current-queue-summary updated with the PR #529
+/ this PR investigation bullets; active-queue entry #7
+`WEBFLASH-POE-410-001` expanded from the planned stub to
+investigated-and-deferred with the eight blocker
+preconditions and the ninth carried-forward observation;
+new entry added under §Recently uploaded evidence for "No
+new evidence committed for `WEBFLASH-POE-410-001`
+preconditions").
+
+**Next `WEBFLASH-POE-410-001` audit-log trigger.** The next
+audit-log entry against this slice should appear when one
+of the eight blocker preconditions above lands, when
+`PRODUCT-POE-410-001` makes the no-new-entry vs new-entry
+decision (which may close `WEBFLASH-POE-410-001` as a no-op
+per the carried-forward ninth observation), or when the
+next implementation PR makes a `WEBFLASH-POE-410-001`
+wrapper / catalog `webflash_build_matrix: true` flip /
+build-matrix row edit. Until then, the next audit-log entry
+should report the same `WEBFLASH-POE-410-001 investigation
+pass — preconditions still open` outcome with the new
+inspection date.
