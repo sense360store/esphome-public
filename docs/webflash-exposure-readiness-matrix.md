@@ -1181,6 +1181,41 @@ a documentation cleanup alone, and only after
 PoE caveat-closure PR both land. See
 [`docs/cleanup-audit.md` §`WEBFLASH-POE-410-001 update (2026-05-20 — docs-only investigation pass)`](cleanup-audit.md#webflash-poe-410-001-update-2026-05-20--docs-only-investigation-pass).
 
+**2026-05-20 — `RELEASE-POE-410-001` investigation pass
+(Path A docs-only deferral) — note on WebFlash exposure
+surface.** The downstream `RELEASE-POE-410-001` Path A
+investigation pass merged the same day as this PR
+re-verified the WebFlash exposure surface that
+`RELEASE-POE-410-001` consumes (the
+[`config/webflash-builds.json`](../config/webflash-builds.json)
+matrix and the
+[`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
+workflow that processes it) and confirmed it is byte-identical
+to the PR #530 state: only the two existing
+Release-One / LED preview builds remain, both consuming
+S360-410 logically under the preserved Release-One caveat,
+not as S360-410-subject WebFlash exposure. No PoE-410-explicit
+WebFlash wrapper / catalog `webflash_build_matrix: true` flip
+/ build-matrix row was added by `RELEASE-POE-410-001`; this
+WebFlash-exposure layer is **not** advanced by that release-layer
+investigation pass. The eight `WEBFLASH-POE-410-001` blocker
+preconditions recorded above stay open; the ninth carried-forward
+observation (`WEBFLASH-POE-410-001` may not be required if
+`PRODUCT-POE-410-001` closes by no-new-entry / caveat-closure
+only) is restated by `RELEASE-POE-410-001` for the release
+layer (`RELEASE-POE-410-001` is similarly not required if the
+upstream family closes by no-new-entry / caveat-closure only).
+Re repo-committed BOM evidence: BOM files have been supplied
+out-of-band / uploaded, and for `S360-410` the uploaded BOM
+appears to support the schematic-shown discrete PoE topology,
+but **repo-committed BOM evidence has not landed in this
+repository yet** — BOM ingest is the responsibility of a
+separate `HW-BOM-ASSETS-001` follow-up, not of
+`RELEASE-POE-410-001`. See
+[`docs/release-artifact-readiness-matrix.md` §PoE / S360-410 release posture](release-artifact-readiness-matrix.md#poe--s360-410-release-posture)
+and
+[`docs/cleanup-audit.md` §`RELEASE-POE-410-001 update (2026-05-20 — docs-only investigation pass)`](cleanup-audit.md#release-poe-410-001-update-2026-05-20--docs-only-investigation-pass).
+
 ## Release-One and LED preview safety
 
 The Release-One production product and the LED preview product are
