@@ -765,6 +765,41 @@ named follow-up.
   [`s360-410-r4-poe.md` HW-PINMAP-410-FOLLOWUP audit log](s360-410-r4-poe.md#hw-pinmap-410-followup-audit-log);
   [`board-readiness-matrix.md` `S360-410` notes](board-readiness-matrix.md#s360-410-sense360-poe-psu);
   [`release-one-hardware-audit.md` Findings → PoE PSU](../release-one-hardware-audit.md#findings).
+- **2026-05-20 — `PACKAGE-POE-410-001` investigation pass addendum
+  (docs-only deferral).** The 2026-05-20
+  `PACKAGE-POE-410-001` investigation pass re-verified all five
+  preconditions (BOM cross-check; `S360-410`
+  `schematic_status: verified` JSON PR; HW-002 OQ#6 /
+  `S360-100-BENCH-001` J2-harness closure; package-header
+  reconciliation against the schematic-shown discrete topology;
+  Release-One PoE caveat closure as a separate later PR) remain
+  open and confirmed deferral. [`power_poe.yaml`](../../packages/hardware/power_poe.yaml)
+  stays byte-identical to PR #517 state (the stale `Ag9712M,
+  Silvertel Ag9700, or similar` line at line 6, the
+  `IEEE 802.3af (PoE) or 802.3at (PoE+)` standard line at
+  line 7, the `Class 0 (0.44-12.95W) or Class 1 (0.44-3.84W)`
+  class line at line 8, the `36-57V DC` input line at line 9,
+  the `5V DC, 2A (10W) or 3.3V DC` output line at line 10, the
+  `Overcurrent, overvoltage, short-circuit` protection line at
+  line 11, the substitutions / globals / sensors / logger /
+  on_boot blocks all preserved); the package binds **no** GPIO
+  / I²C / UART / SPI / DAC / runtime hardware. The three-way
+  catalog [`config/hardware-catalog.json`](../../config/hardware-catalog.json)
+  `description: "PoE to 5V."` (line 119) vs package header
+  `Ag9712M, Silvertel Ag9700, or similar` (line 6) vs schematic
+  discrete topology (`TPS2378DDAR + TX4138 + F0505S-2WR2 +
+  RJP-003TC1(LPJ4112CNL)`) part-identity disagreement therefore
+  stays unresolved and remains BOM-bound — the same evidence-
+  standards rule HW-PINMAP-400-FOLLOWUP / PR #515 + PR #520
+  applied to the parallel
+  [`power_240v.yaml`](../../packages/hardware/power_240v.yaml)
+  slice. The row above stays
+  `reference-only` + `schematic-evidence-pending` +
+  `do-not-change-release-one`; no row-status change. PoE is
+  SELV; **not** in scope for COMPLIANCE-001. Investigation
+  outcome recorded at
+  [`s360-410-r4-poe.md` §2026-05-20 — PACKAGE-POE-410-001 investigation pass](s360-410-r4-poe.md#2026-05-20--package-poe-410-001-investigation-pass)
+  and [`docs/cleanup-audit.md` §PACKAGE-POE-410-001 update](../cleanup-audit.md#package-poe-410-001-update-2026-05-20--docs-only-investigation-pass).
 
 ### Core abstract packages (`sense360_core_ceiling.yaml`, `sense360_core.yaml`)
 

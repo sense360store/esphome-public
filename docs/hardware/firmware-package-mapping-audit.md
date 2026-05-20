@@ -709,6 +709,58 @@ to PoE-410. `PACKAGE-POE-410-001` stays blocked behind BOM
 cross-check, the `S360-410` `schematic_status: verified` JSON
 PR, and HW-002 OQ#6 / `S360-100-BENCH-001` closure.
 
+**2026-05-20 — `PACKAGE-POE-410-001` investigation pass addendum
+(docs-only deferral).** The 2026-05-20
+`PACKAGE-POE-410-001` investigation pass re-verified all five
+preconditions (BOM cross-check; `S360-410`
+`schematic_status: verified` JSON PR; HW-002 OQ#6 /
+`S360-100-BENCH-001` J2-harness closure; package-header
+reconciliation against the schematic-shown discrete topology;
+Release-One PoE caveat closure as a separate later PR) remain
+open and confirmed deferral.
+[`packages/hardware/power_poe.yaml`](../../packages/hardware/power_poe.yaml)
+stays byte-identical to PR #517 state — the stale `Ag9712M,
+Silvertel Ag9700, or similar` line at line 6, the `IEEE 802.3af
+(PoE) or 802.3at (PoE+)` standard line at line 7, the
+`Class 0 (0.44-12.95W) or Class 1 (0.44-3.84W)` class line at
+line 8, the `36-57V DC` input line at line 9, the
+`5V DC, 2A (10W) or 3.3V DC` output line at line 10, the
+`Overcurrent, overvoltage, short-circuit` protection line at
+line 11, the `substitutions: power_source: "poe"` /
+`poe_class: "0"` / `poe_standard: "802.3af"` block at lines
+28–31, the `globals: power_source_type` block at lines 33–38,
+the template diagnostic sensors `Supply Voltage` (constant-`5.0`
+lambda) / `Power Source` / `Power Configuration` /
+`PoE Power Connected` (constant-`true` lambda), the logger
+config, and the `on_boot` logger statements are all preserved
+byte-for-byte. The package binds **no** GPIO, I²C, UART, SPI,
+DAC, or runtime hardware. The three-way catalog
+[`config/hardware-catalog.json`](../../config/hardware-catalog.json)
+`description: "PoE to 5V."` (line 119; no part identity
+asserted) vs package header `Ag9712M, Silvertel Ag9700, or
+similar` (line 6; whole-module hint) vs schematic discrete
+topology (`TPS2378DDAR + TX4138 + F0505S-2WR2 +
+RJP-003TC1(LPJ4112CNL)`) part-identity disagreement therefore
+**stays unresolved** and remains BOM-bound. Per the explicit
+HW-PINMAP-410-FOLLOWUP / PR #517 decision in
+[`s360-410-r4-poe.md` §Existing package abstraction](s360-410-r4-poe.md#existing-package-abstraction)
+and §Package YAML status, even a comment-only YAML cleanup that
+removed the `Ag9712M, Silvertel Ag9700, or similar` line (and
+softened the standard / class / input / output / protection
+lines) without claiming a replacement is **deferred** to the
+eventual `PACKAGE-POE-410-001` implementation PR so header
+reconciliation + BOM citation + catalog `description`
+reconciliation can land as one coordinated change — the same
+rule PR #520 applied to the parallel `PACKAGE-POWER-400-001`
+slice and `packages/hardware/power_240v.yaml`. PoE is SELV;
+**not** in scope for COMPLIANCE-001. Release-One PoE
+"schematic verification pending" caveat in
+[`docs/release-one-hardware-audit.md` Findings → PoE PSU](../release-one-hardware-audit.md#findings)
+is **preserved verbatim**. Investigation outcome recorded at
+[`s360-410-r4-poe.md` §2026-05-20 — PACKAGE-POE-410-001 investigation pass](s360-410-r4-poe.md#2026-05-20--package-poe-410-001-investigation-pass)
+and
+[`docs/cleanup-audit.md` §PACKAGE-POE-410-001 update](../cleanup-audit.md#package-poe-410-001-update-2026-05-20--docs-only-investigation-pass).
+
 ## Recommended follow-up PRs
 
 Each item below is **separate**, **scoped**, and **not approved by
