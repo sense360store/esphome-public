@@ -649,7 +649,7 @@ mirrored here.
   renumbered the active queue so `PACKAGE-POE-410-001` is the
   next item. No functional, package, product, WebFlash, config,
   firmware, test, workflow, or compliance file changed.
-- **PACKAGE-POE-410-001** investigation merged as **PR #XXX** on
+- **PACKAGE-POE-410-001** investigation merged as **PR #526** on
   2026-05-20 (docs-only Path A deferral). The pass evaluated
   whether `PACKAGE-POE-410-001` could safely proceed now (Path C
   implementation — header / catalog reconciliation against the
@@ -708,7 +708,7 @@ mirrored here.
   [`docs/release-one-hardware-audit.md` Findings → PoE PSU](docs/release-one-hardware-audit.md#findings)
   and
   [Required follow-ups #6](docs/release-one-hardware-audit.md#required-follow-ups)
-  is **preserved verbatim** by this PR and is owed to a separate
+  is **preserved verbatim** by PR #526 and is owed to a separate
   caveat-closure PR after all of the above land. Path B was
   rejected because the only safe comment-only change would be to
   remove the `Ag9712M, Silvertel Ag9700, or similar` line and to
@@ -815,6 +815,7 @@ add rows without verifying the PR number.
 | RELEASE-POWER-400-001        | #523      | esphome-public  | Merged — docs-only investigation pass   | Recorded `RELEASE-POWER-400-001` Path A deferral; confirmed no S360-400 release artifact, firmware/source/manifest/release proof/checksum/tag/build-matrix inputs exist; recorded Q1–Q15 release-surface findings; kept all release gates blocked | No package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, manifest, checksum, release-proof, or artifact edits | `RELEASE-POWER-400-001` stays blocked behind `WEBFLASH-POWER-400-001` implementation, `PRODUCT-POWER-400-001`, `PACKAGE-POWER-400-001`, `S360-400 schematic_status: verified`, `COMPLIANCE-001`, BOM/silkscreen/bench/thermal/EMI evidence, and UX-class decision; `WF-IMPORT-POWER-400-001` stays blocked |
 | CLEANUP-POWER-RELEASE-001    | #524      | esphome-public  | Merged — docs-only tracker cleanup      | Removed stale `WEBFLASH-POWER-400-001` / `RELEASE-POWER-400-001` tracker prose left after PR #523; converted stale "this PR" references so `WEBFLASH-POWER-400-001` consistently points to PR #522 and `RELEASE-POWER-400-001` consistently points to PR #523 | No functional, package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, manifest, or artifact files | Prepared the tracker for `CLEANUP-POWER-RELEASE-002` / PR #525, which then removed the remaining duplicate active `RELEASE-POWER-400-001` stub; no queue-ordering effect on `PACKAGE-POE-410-001` |
 | CLEANUP-POWER-RELEASE-002    | #525      | esphome-public  | Merged — docs-only tracker cleanup      | Removed the stale duplicate active-queue stub entry for `RELEASE-POWER-400-001` (and the duplicate `PRODUCT-POWER-400-001` #521 merged-table row) left over after PR #523; renumbered the active queue so `PACKAGE-POE-410-001` is the next item | No functional, package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, manifest, or artifact files | `PACKAGE-POE-410-001` becomes the next active queue item; downstream `PRODUCT-POE-410-001` / `WEBFLASH-POE-410-001` / `RELEASE-POE-410-001` / `WF-IMPORT-POE-410-001` stay blocked behind it |
+| PACKAGE-POE-410-001          | #526      | esphome-public  | Merged — docs-only investigation pass   | Recorded `PACKAGE-POE-410-001` Path A deferral; confirmed BOM cross-check / `S360-410 schematic_status: verified` JSON promotion / HW-002 OQ#6 / `S360-100-BENCH-001` J2-harness identity closure / package-header reconciliation / Release-One PoE "schematic verification pending" caveat-closure preconditions remain open; kept `packages/hardware/power_poe.yaml` byte-identical to PR #517 state | No package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, manifest, or artifact edits | `PRODUCT-POE-410-001` / `WEBFLASH-POE-410-001` / `RELEASE-POE-410-001` / `WF-IMPORT-POE-410-001` stay blocked behind `PACKAGE-POE-410-001` implementation and the five preconditions |
 
 ## Active / upcoming esphome-public queue
 
@@ -1276,7 +1277,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      [`docs/cleanup-audit.md` §`WEBFLASH-POWER-400-001 update (2026-05-19 — docs-only investigation pass)`](docs/cleanup-audit.md).
 
 7. **PACKAGE-POE-410-001**
-    - Status: **Investigated 2026-05-20; merged as PR #XXX;
+    - Status: **Investigated 2026-05-20; merged as PR #526;
       confirmed deferred (Path A docs-only); five preconditions
       still open**. Blocked on (a) BOM cross-check (settles the
       whole-module-vs-discrete topology disagreement and the
@@ -1298,7 +1299,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       PoE standard / class / input / output / protection ratings;
       diagnostic-sensor topology) against the now-verified schematic
       and the module BOM.
-    - Notes: 2026-05-20 investigation pass (this PR) is **docs-only
+    - Notes: 2026-05-20 investigation pass (merged as PR #526) is **docs-only
       deferral**. Re-verified against the live files: **no BOM line
       item with manufacturer + part number + revision** for
       `LAN_CON1 RJP-003TC1(LPJ4112CNL)` / `U1 TPS2378DDAR` /
@@ -1337,7 +1338,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       Ag9700 / or similar` line and the standard / class /
       input / output / protection lines without claiming
       `TPS2378DDAR` / `TX4138` / `F0505S-2WR2` /
-      `RJP-003TC1(LPJ4112CNL)`) is not taken in this PR — PR
+      `RJP-003TC1(LPJ4112CNL)`) is not taken in PR #526 — PR
       #517's recorded decision is that even that removal should
       wait for BOM so the eventual implementation PR can land
       header reconciliation + BOM citation as one coordinated
@@ -1784,7 +1785,7 @@ visible. Do not implement them from this repo.
   §`RELEASE-POWER-400-001 update`.
 - **No new evidence committed for `PACKAGE-POE-410-001`
   preconditions (2026-05-20 re-check).** The 2026-05-20
-  `PACKAGE-POE-410-001` investigation pass (this PR) re-checked
+  `PACKAGE-POE-410-001` investigation pass (merged as PR #526) re-checked
   every precondition and confirmed that none has been satisfied
   since the 2026-05-19 `HW-PINMAP-410-FOLLOWUP` re-check
   (PR #517): no BOM line item with manufacturer + part number +
