@@ -636,6 +636,146 @@ mirrored here.
   release-notes / proof-template-only PR alone, and only
   after `WEBFLASH-POWER-400-001` implementation and the
   `COMPLIANCE-001` `S360-400` slice closure both land.
+- **CLEANUP-POWER-RELEASE-001** merged as **PR #524** on 2026-05-19
+  and **CLEANUP-POWER-RELEASE-002** merged as **PR #525** on
+  2026-05-19 (both docs-only tracker cleanups). PR #524 removed
+  stale `WEBFLASH-POWER-400-001` / `RELEASE-POWER-400-001`
+  tracker prose left after PR #523 and converted stale "this PR"
+  references so `WEBFLASH-POWER-400-001` consistently points to
+  PR #522 and `RELEASE-POWER-400-001` consistently points to
+  PR #523. PR #525 removed the remaining stale duplicate
+  active-queue stub for `RELEASE-POWER-400-001` (and the
+  duplicate `PRODUCT-POWER-400-001` #521 merged-table row) and
+  renumbered the active queue so `PACKAGE-POE-410-001` is the
+  next item. No functional, package, product, WebFlash, config,
+  firmware, test, workflow, or compliance file changed.
+- **PACKAGE-POE-410-001** investigation merged as **PR #XXX** on
+  2026-05-20 (docs-only Path A deferral). The pass evaluated
+  whether `PACKAGE-POE-410-001` could safely proceed now (Path C
+  implementation — header / catalog reconciliation against the
+  module BOM and the schematic-shown discrete topology), as a
+  comment-only package cleanup PR (Path B — soften / remove the
+  stale `Ag9712M, Silvertel Ag9700, or similar` whole-module
+  PoE-PSU header hint without claiming a replacement), or as a
+  docs-only deferral (Path A), and is **confirmed deferred** —
+  five preconditions remain open: (1) **BOM cross-check missing**
+  (no BOM line item with manufacturer + part number + revision
+  for `LAN_CON1 RJP-003TC1(LPJ4112CNL)`, `U1 TPS2378DDAR`,
+  `U2 TX4138`, `DCDC1 F0505S-2WR2(SIP-7)` (settling the
+  primary-vs-alternate question against the annotated
+  `AM1D-0505S-NZ`), `D1 SMAJ58A`, `D2 ss510`, `D3 Green`,
+  `L1 33uH`, `R1`–`R9`, `C1`–`C8`, or `J3` with full ratings —
+  the three-way disagreement between catalog
+  [`config/hardware-catalog.json`](config/hardware-catalog.json)
+  line 119 (`description: "PoE to 5V."`), package-header
+  [`packages/hardware/power_poe.yaml`](packages/hardware/power_poe.yaml)
+  line 6 (`Ag9712M, Silvertel Ag9700, or similar` — whole-module
+  hint), and schematic
+  [`docs/hardware/schematics/S360-410-R4.pdf`](docs/hardware/schematics/S360-410-R4.pdf)
+  discrete topology (`TPS2378DDAR(HSOIC-8)` PoE PD controller +
+  `TX4138(ESOIC-8)` buck + `F0505S-2WR2(SIP-7)` isolated DC/DC
+  with `AM1D-0505S-NZ` annotated alternate +
+  `RJP-003TC1(LPJ4112CNL)` magnetics) therefore stays
+  unresolved and remains BOM-bound per the explicit decision
+  recorded by HW-PINMAP-410-FOLLOWUP / PR #517 in
+  [`docs/hardware/s360-410-r4-poe.md` §Existing package abstraction](docs/hardware/s360-410-r4-poe.md#existing-package-abstraction)
+  and §Package YAML status; (2) **`S360-410`
+  `schematic_status: verified` JSON PR not landed** —
+  [`config/hardware-catalog.json`](config/hardware-catalog.json)
+  line 120 still records `S360-410` →
+  `schematic_status: cataloged_unverified` and no
+  `schematic_file` is set; the separate JSON-only promotion PR
+  is gated on BOM cross-check + HW-002 OQ#6 /
+  `S360-100-BENCH-001` J2-harness closure + a standalone
+  reference-doc rewrite; (3) **HW-002 Open Question #6 /
+  `S360-100-BENCH-001` J2-harness identity stays open** — last
+  re-checked PR #504 / 2026-05-18; both
+  [`docs/hardware/s360-100-r4-core.md` Open Question #6](docs/hardware/s360-100-r4-core.md#open-questions--verification-needed)
+  and the
+  [S360-100-BENCH-001 J2 PoE harness identity row](docs/hardware/s360-100-r4-core.md#s360-100-bench-001-status)
+  stay `pending — bench/manufacturing evidence required`;
+  (4) **package-header reconciliation not landed** — the
+  package-header `Ag9712M / Silvertel Ag9700 / or similar` line
+  (6), the `IEEE 802.3af (PoE) or 802.3at (PoE+)` standard line
+  (7), the `Class 0 (0.44-12.95W) or Class 1 (0.44-3.84W)`
+  class line (8), the `36-57V DC` input line (9), the
+  `5V DC, 2A (10W) or 3.3V DC` output line (10), and the
+  `Overcurrent, overvoltage, short-circuit` protection line
+  (11) are not yet reconciled against the schematic-shown
+  discrete topology; (5) **Release-One PoE caveat closure is a
+  separate later PR** — the documented "schematic verification
+  pending" caveat in
+  [`docs/release-one-hardware-audit.md` Findings → PoE PSU](docs/release-one-hardware-audit.md#findings)
+  and
+  [Required follow-ups #6](docs/release-one-hardware-audit.md#required-follow-ups)
+  is **preserved verbatim** by this PR and is owed to a separate
+  caveat-closure PR after all of the above land. Path B was
+  rejected because the only safe comment-only change would be to
+  remove the `Ag9712M, Silvertel Ag9700, or similar` line and to
+  soften / remove the standard / class / input / output /
+  protection lines without claiming `TPS2378DDAR` / `TX4138` /
+  `F0505S-2WR2` / `RJP-003TC1(LPJ4112CNL)` — and PR #517's
+  recorded decision was specifically that even that removal
+  should wait for BOM so the eventual `PACKAGE-POE-410-001`
+  implementation PR can land header reconciliation + BOM
+  citation as one coordinated change (the same rule PR #520
+  applied to the parallel `PACKAGE-POWER-400-001` slice). Path C
+  was unsafe because the five preconditions above are open and
+  any header / catalog edit without BOM evidence would
+  substitute one unsourced claim for another. The investigation
+  outcome confirms
+  [`packages/hardware/power_poe.yaml`](packages/hardware/power_poe.yaml)
+  stays byte-identical to PR #517 state: the stale
+  `Ag9712M, Silvertel Ag9700, or similar` header (line 6), the
+  `IEEE 802.3af (PoE) or 802.3at (PoE+)` standard line (7), the
+  `Class 0 (0.44-12.95W) or Class 1 (0.44-3.84W)` class line
+  (8), the `36-57V DC (from PoE switch/injector)` input line
+  (9), the `5V DC, 2A (10W) or 3.3V DC` output line (10), the
+  `Overcurrent, overvoltage, short-circuit` protection line
+  (11), the `substitutions: power_source: "poe"` /
+  `poe_class: "0"` / `poe_standard: "802.3af"` block (lines
+  28–31), the `globals: power_source_type` block (lines 33–38),
+  the template diagnostic sensors (`Supply Voltage` constant-
+  `5.0` lambda, `Power Source`, `Power Configuration`,
+  `PoE Power Connected` constant-`true` lambda), the logger
+  config, and the `on_boot` logger statements are **all**
+  preserved byte-for-byte. The package has **no GPIO / I²C /
+  UART / SPI / DAC / runtime binding** — it is a logical PoE
+  power package emitting diagnostic sensors only. Investigation
+  outcome recorded at `docs/hardware/s360-410-r4-poe.md`
+  §`### 2026-05-20 — PACKAGE-POE-410-001 investigation pass`,
+  `docs/hardware/package-readiness-matrix.md` §`power_poe.yaml`
+  / S360-410 addendum,
+  `docs/hardware/firmware-package-mapping-audit.md`
+  §`power_poe.yaml` PoE-module part-identity disagreement
+  (S360-410) addendum, and `docs/cleanup-audit.md`
+  §`PACKAGE-POE-410-001 update (2026-05-20 — docs-only
+  investigation pass)`. No package, product, WebFlash, build,
+  release, compliance, JSON catalog, test, script, workflow,
+  component, include, firmware, or manifest edits; no
+  `schematic_status` / `schematic_file` promotion; no
+  COMPLIANCE-001 movement (PoE is SELV; `S360-410` is **not** in
+  scope); no Release-One caveat closure (preserved verbatim);
+  no `lifecycle_statuses` / `canonical_modules` /
+  `canonical_power` / `forbidden_tokens` /
+  `release_one_required_configs` / `webflash_build_matrix` /
+  `artifact_name` / kit / `REQUIRED_CONFIGS` change.
+  `PACKAGE-POE-410-001` stays blocked on the five preconditions;
+  `PRODUCT-POE-410-001` / `WEBFLASH-POE-410-001` /
+  `RELEASE-POE-410-001` / `WF-IMPORT-POE-410-001` stay blocked
+  behind it. Release-One stays `Ceiling-POE-VentIQ-RoomIQ` /
+  version `1.0.0` / channel `stable`; LED preview stays
+  `Ceiling-POE-VentIQ-RoomIQ-LED` / `status: preview` /
+  `channel: preview`; FanTRIAC stays `status: blocked` /
+  `blocker: HW-005` / `webflash_build_matrix: false`. The next
+  `PACKAGE-POE-410-001` PR must land **the BOM cross-check +
+  the `S360-410` `schematic_status: verified` JSON promotion
+  (separate JSON-only PR after BOM + HW-002 OQ#6 /
+  `S360-100-BENCH-001` closure) + the package header
+  reconciliation against the schematic-shown discrete topology
+  as a single atomic slice**, not as a comment-only cleanup
+  alone, and the Release-One PoE caveat closure stays a separate
+  later PR.
 - **PWM** and **DAC** evidence re-checks (HW-PINMAP-311-FOLLOWUP /
   HW-PINMAP-312-FOLLOWUP) remain insufficient — both audits are still
   partial.
@@ -673,6 +813,8 @@ add rows without verifying the PR number.
 | PRODUCT-POWER-400-001        | #521      | esphome-public  | Merged — docs-only investigation pass   | Recorded `PRODUCT-POWER-400-001` investigation outcome as Path A docs-only deferral; re-verified all six preconditions (`PACKAGE-POWER-400-001` implementation slice not landed — only docs-only investigation merged as PR #520; BOM cross-check missing — same five-component gap as PR #520; `S360-400` `schematic_status: verified` JSON PR not landed; `COMPLIANCE-001` `S360-400` slice still open — last re-check PR #506; package / catalog reconciliation owed to `PACKAGE-POWER-400-001`; product-onboarding approval missing per `docs/product-onboarding.md`) remain open; no S360-400-explicit / `PWR`-bearing WebFlash-shippable product YAML exists under `products/` or `products/webflash/`; `config/product-catalog.json` has no S360-400-specific product (four `legacy-compatible` `*-pwr` Core variants stay `legacy-compatible` / `webflash_build_matrix: false` / no `config_string` / no `webflash_wrapper` / no `artifact_name`); `config/webflash-builds.json` has no `PWR` build (only `Ceiling-POE-VentIQ-RoomIQ` stable + `Ceiling-POE-VentIQ-RoomIQ-LED` preview); `config/webflash-compatibility.json` reserves `PWR` in `canonical_power` with no `webflash_build_matrix: true` consumer; `release_one_required_configs` stays `["Ceiling-POE-VentIQ-RoomIQ"]`; `config/hardware-catalog.json` `S360-400` row stays byte-identical (`schematic_status: cataloged_unverified`, no `schematic_file`, `description: Mains to 5V using HLK-5M05.`); `tests/test_hardware_catalog.py:53` `EXPECTED_STILL_UNVERIFIED_SKUS = frozenset({"S360-320", "S360-400"})` enforces this state; `docs/product-readiness-matrix.md` §PWR-240V / S360-400 + Follow-up PR sequence cross-link addendums recorded; `docs/webflash-exposure-readiness-matrix.md` §Power / S360-400 WebFlash posture audit-log entry added; `docs/release-artifact-readiness-matrix.md` §Power / S360-400 release posture audit-log entry added; `docs/cleanup-audit.md` `PRODUCT-POWER-400-001 update (2026-05-19 — docs-only investigation pass)` section recorded | No package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, or manifest edits; no `schematic_status` / `schematic_file` promotion; no COMPLIANCE-001 movement; no PWR-bearing entry added; no `webflash_build_matrix: true` flip; no new `artifact_name`; no `lifecycle_statuses` / `canonical_modules` / `canonical_power` / `forbidden_tokens` / `release_one_required_configs` / `webflash_build_matrix` / kit / `REQUIRED_CONFIGS` change; `packages/hardware/power_240v.yaml` byte-identical to PR #520 state; four `legacy-compatible` `*-pwr` Core variants stay `legacy-compatible` / `webflash_build_matrix: false`; Release-One / LED preview / FanTRIAC identity unchanged | `PRODUCT-POWER-400-001` stays blocked on the six preconditions; `WEBFLASH-POWER-400-001` / `RELEASE-POWER-400-001` / `WF-IMPORT-POWER-400-001` stay blocked behind it; `WEBFLASH-POWER-400-001` becomes next active queue item |
 | WEBFLASH-POWER-400-001       | #522      | esphome-public  | Merged — docs-only investigation pass   | Recorded `WEBFLASH-POWER-400-001` investigation outcome as Path A docs-only deferral; re-verified all five preconditions (`PRODUCT-POWER-400-001` implementation slice not landed — only docs-only investigation merged as PR #521; `PACKAGE-POWER-400-001` implementation slice not landed — only docs-only investigation merged as PR #520; `S360-400` `schematic_status: verified` JSON PR not landed; `COMPLIANCE-001` `S360-400` slice still open — last re-check PR #506; UX-class decision pending — standard preview-candidate vs advanced / manual-warning posture owed to per-family `PRODUCT-POWER-400-001` compliance verdict) remain open; no S360-400 WebFlash wrapper exists under `products/webflash/` (three PoE wrappers only: `ceiling-poe-ventiq-roomiq.yaml`, `ceiling-poe-ventiq-roomiq-led.yaml`, `ceiling-poe-ventiq-fantriac-roomiq.yaml`); `config/webflash-builds.json` has no `PWR` build (two PoE builds only); `config/webflash-compatibility.json` reserves `PWR` in `canonical_power` with no `webflash_build_matrix: true` consumer; `release_one_required_configs` stays `["Ceiling-POE-VentIQ-RoomIQ"]`; `config/product-catalog.json` has no S360-400-specific product (four `legacy-compatible` `*-pwr` Core variants unchanged); `config/hardware-catalog.json` `S360-400` row stays byte-identical; `tests/test_hardware_catalog.py:53` continues to enforce `cataloged_unverified`; `docs/webflash-exposure-readiness-matrix.md` §Power / S360-400 WebFlash posture audit-log entry added; `docs/release-artifact-readiness-matrix.md` §Power / S360-400 release posture audit-log entry added; `docs/cleanup-audit.md` `WEBFLASH-POWER-400-001 update (2026-05-19 — docs-only investigation pass)` section recorded | No package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, or manifest edits; no `schematic_status` / `schematic_file` promotion; no COMPLIANCE-001 movement; no PWR-bearing entry added; no `webflash_build_matrix: true` flip; no new `artifact_name`; no `lifecycle_statuses` / `canonical_modules` / `canonical_power` / `forbidden_tokens` / `release_one_required_configs` / kit / `REQUIRED_CONFIGS` change; `packages/hardware/power_240v.yaml` byte-identical; `products/webflash/` byte-identical (only three PoE wrappers); `.github/workflows/firmware-build-release.yml` byte-identical; Release-One / LED preview / FanTRIAC identity unchanged | `WEBFLASH-POWER-400-001` stays blocked on the five preconditions; `RELEASE-POWER-400-001` / `WF-IMPORT-POWER-400-001` stay blocked behind it; `RELEASE-POWER-400-001` becomes next active queue item |
 | RELEASE-POWER-400-001        | #523      | esphome-public  | Merged — docs-only investigation pass   | Recorded `RELEASE-POWER-400-001` Path A deferral; confirmed no S360-400 release artifact, firmware/source/manifest/release proof/checksum/tag/build-matrix inputs exist; recorded Q1–Q15 release-surface findings; kept all release gates blocked | No package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, manifest, checksum, release-proof, or artifact edits | `RELEASE-POWER-400-001` stays blocked behind `WEBFLASH-POWER-400-001` implementation, `PRODUCT-POWER-400-001`, `PACKAGE-POWER-400-001`, `S360-400 schematic_status: verified`, `COMPLIANCE-001`, BOM/silkscreen/bench/thermal/EMI evidence, and UX-class decision; `WF-IMPORT-POWER-400-001` stays blocked |
+| CLEANUP-POWER-RELEASE-001    | #524      | esphome-public  | Merged — docs-only tracker cleanup      | Removed stale `WEBFLASH-POWER-400-001` / `RELEASE-POWER-400-001` tracker prose left after PR #523; converted stale "this PR" references so `WEBFLASH-POWER-400-001` consistently points to PR #522 and `RELEASE-POWER-400-001` consistently points to PR #523 | No functional, package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, manifest, or artifact files | Prepared the tracker for `CLEANUP-POWER-RELEASE-002` / PR #525, which then removed the remaining duplicate active `RELEASE-POWER-400-001` stub; no queue-ordering effect on `PACKAGE-POE-410-001` |
+| CLEANUP-POWER-RELEASE-002    | #525      | esphome-public  | Merged — docs-only tracker cleanup      | Removed the stale duplicate active-queue stub entry for `RELEASE-POWER-400-001` (and the duplicate `PRODUCT-POWER-400-001` #521 merged-table row) left over after PR #523; renumbered the active queue so `PACKAGE-POE-410-001` is the next item | No functional, package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, manifest, or artifact files | `PACKAGE-POE-410-001` becomes the next active queue item; downstream `PRODUCT-POE-410-001` / `WEBFLASH-POE-410-001` / `RELEASE-POE-410-001` / `WF-IMPORT-POE-410-001` stay blocked behind it |
 
 ## Active / upcoming esphome-public queue
 
@@ -1134,10 +1276,21 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      [`docs/cleanup-audit.md` §`WEBFLASH-POWER-400-001 update (2026-05-19 — docs-only investigation pass)`](docs/cleanup-audit.md).
 
 7. **PACKAGE-POE-410-001**
-    - Status: **Blocked** — remains blocked after HW-PINMAP-410-FOLLOWUP
-      (the schematic-backed reconciliation surfaces the package-header
-      vs schematic part-identity disagreement but does not by itself
-      resolve it).
+    - Status: **Investigated 2026-05-20; merged as PR #XXX;
+      confirmed deferred (Path A docs-only); five preconditions
+      still open**. Blocked on (a) BOM cross-check (settles the
+      whole-module-vs-discrete topology disagreement and the
+      `F0505S-2WR2`-vs-`AM1D-0505S-NZ` primary-vs-alternate
+      selection); (b) the separate `S360-410`
+      `schematic_status: verified` JSON-only PR (after BOM +
+      HW-002 OQ#6 / `S360-100-BENCH-001` closure +
+      standalone-reference-doc rewrite); (c) HW-002 OQ#6 /
+      `S360-100-BENCH-001` J2-harness identity closure (last
+      re-checked PR #504 / 2026-05-18); (d) the package-header
+      reconciliation itself; and (e) Release-One PoE
+      "schematic verification pending" caveat closure as a
+      separate later PR (the caveat is **preserved verbatim**
+      by every investigation pass to date, including this one).
     - Purpose: Reconcile [`packages/hardware/power_poe.yaml`](packages/hardware/power_poe.yaml)
       header claims (PoE module part identity `Ag9712M / Silvertel
       Ag9700 / or similar` vs schematic-shown discrete topology
@@ -1145,15 +1298,80 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       PoE standard / class / input / output / protection ratings;
       diagnostic-sensor topology) against the now-verified schematic
       and the module BOM.
-    - Notes: Blocked on (a) BOM cross-check (settles the
-      whole-module-vs-discrete topology disagreement and the
-      `F0505S-2WR2`-vs-`AM1D-0505S-NZ` primary-vs-alternate selection),
-      (b) the separate `S360-410` `schematic_status: verified`
-      JSON-only PR (after BOM and HW-002 OQ#6 closure), (c) HW-002 OQ#6
-      / `S360-100-BENCH-001` J2-harness identity closure, and (d) the
-      package-header reconciliation itself. Must not implicitly
-      requalify Release-One; the "schematic verification pending"
-      caveat closure is a separate later PR.
+    - Notes: 2026-05-20 investigation pass (this PR) is **docs-only
+      deferral**. Re-verified against the live files: **no BOM line
+      item with manufacturer + part number + revision** for
+      `LAN_CON1 RJP-003TC1(LPJ4112CNL)` / `U1 TPS2378DDAR` /
+      `U2 TX4138` / `DCDC1 F0505S-2WR2(SIP-7)` (settling primary
+      vs the annotated `AM1D-0505S-NZ` alternate) /
+      `D1 SMAJ58A` / `D2 ss510` / `D3 Green` / `L1 33uH` /
+      `R1`–`R9` / `C1`–`C8` / `J3` is committed; the three-way
+      disagreement between catalog
+      [`config/hardware-catalog.json`](config/hardware-catalog.json)
+      line 119 (`description: "PoE to 5V."` — no part identity
+      asserted), package-header
+      [`packages/hardware/power_poe.yaml`](packages/hardware/power_poe.yaml)
+      line 6 (`Ag9712M, Silvertel Ag9700, or similar` —
+      whole-module hint), and schematic
+      [`docs/hardware/schematics/S360-410-R4.pdf`](docs/hardware/schematics/S360-410-R4.pdf)
+      discrete topology therefore **stays unresolved** and remains
+      BOM-bound per the explicit decision recorded by
+      HW-PINMAP-410-FOLLOWUP / PR #517 in
+      [`docs/hardware/s360-410-r4-poe.md` §Existing package abstraction](docs/hardware/s360-410-r4-poe.md#existing-package-abstraction)
+      and §Package YAML status, mirroring the rule PR #520
+      applied to the parallel `PACKAGE-POWER-400-001` slice;
+      `config/hardware-catalog.json` `S360-410` row at lines
+      112–121 stays byte-identical (`schematic_status:
+      cataloged_unverified`, no `schematic_file`,
+      `description: "PoE to 5V."`); no separate JSON-only PR
+      for the `S360-410` `schematic_status: verified` promotion
+      has landed; HW-002 Open Question #6 and the
+      [S360-100-BENCH-001 J2 PoE harness identity row](docs/hardware/s360-100-r4-core.md#s360-100-bench-001-status)
+      stay `pending — bench/manufacturing evidence required`;
+      no silkscreen / PCB / Gerber / KiCad-source / bench /
+      load / link-up / thermal / isolation / Hi-pot /
+      earth-continuity / leakage / EMI / EMC / 802.3af / 802.3at
+      compliance evidence is committed; and no Release-One PoE
+      caveat closure has landed. Path B (comment-only YAML
+      cleanup that removes / softens the `Ag9712M / Silvertel
+      Ag9700 / or similar` line and the standard / class /
+      input / output / protection lines without claiming
+      `TPS2378DDAR` / `TX4138` / `F0505S-2WR2` /
+      `RJP-003TC1(LPJ4112CNL)`) is not taken in this PR — PR
+      #517's recorded decision is that even that removal should
+      wait for BOM so the eventual implementation PR can land
+      header reconciliation + BOM citation as one coordinated
+      change (the same rule PR #520 applied to
+      `power_240v.yaml`). Path C (implementation — write a
+      BOM-cited header / rating block / catalog `description`
+      reconciliation) is unsafe because the five preconditions
+      above are open. Must not implicitly requalify Release-One;
+      the "schematic verification pending" caveat closure is a
+      separate later PR.
+      [`packages/hardware/power_poe.yaml`](packages/hardware/power_poe.yaml)
+      stays byte-identical to PR #517 state; the package has
+      **no GPIO / I²C / UART / SPI / DAC / runtime binding** —
+      it is a logical PoE power package emitting diagnostic
+      sensors only (`Supply Voltage` constant-`5.0` lambda,
+      `Power Source`, `Power Configuration`, `PoE Power
+      Connected` constant-`true` lambda). Investigation outcome
+      recorded at `docs/hardware/s360-410-r4-poe.md`
+      §`### 2026-05-20 — PACKAGE-POE-410-001 investigation pass`,
+      `docs/hardware/package-readiness-matrix.md` §`power_poe.yaml`
+      / S360-410 addendum,
+      `docs/hardware/firmware-package-mapping-audit.md`
+      §`power_poe.yaml` PoE-module part-identity disagreement
+      (S360-410) addendum, and `docs/cleanup-audit.md`
+      §`PACKAGE-POE-410-001 update (2026-05-20 — docs-only
+      investigation pass)`. The next `PACKAGE-POE-410-001` PR
+      must land **the BOM cross-check + the `S360-410`
+      `schematic_status: verified` JSON promotion (separate
+      JSON-only PR after BOM + HW-002 OQ#6 /
+      `S360-100-BENCH-001` closure) + the package header
+      reconciliation against the schematic-shown discrete
+      topology as a single atomic slice**, not as a
+      comment-only cleanup alone. The Release-One PoE caveat
+      closure stays a separate later PR.
 
 8. **PRODUCT-POE-410-001**
     - Status: Planned / after PACKAGE-POE-410-001 (and only if a new
@@ -1564,6 +1782,97 @@ visible. Do not implement them from this repo.
   `docs/release-artifact-readiness-matrix.md` §Power / S360-400
   release posture and `docs/cleanup-audit.md`
   §`RELEASE-POWER-400-001 update`.
+- **No new evidence committed for `PACKAGE-POE-410-001`
+  preconditions (2026-05-20 re-check).** The 2026-05-20
+  `PACKAGE-POE-410-001` investigation pass (this PR) re-checked
+  every precondition and confirmed that none has been satisfied
+  since the 2026-05-19 `HW-PINMAP-410-FOLLOWUP` re-check
+  (PR #517): no BOM line item with manufacturer + part number +
+  revision for `LAN_CON1 RJP-003TC1(LPJ4112CNL)` magnetics /
+  RJ45, `U1 TPS2378DDAR(HSOIC-8)` PoE PD controller,
+  `U2 TX4138(ESOIC-8)` buck, or `DCDC1 F0505S-2WR2(SIP-7)`
+  isolated DC/DC (settling the primary-vs-alternate question
+  against the annotated `AM1D-0505S-NZ`) is committed (the
+  three-way `config/hardware-catalog.json` `description:
+  "PoE to 5V."` (line 119) vs package header `Ag9712M,
+  Silvertel Ag9700, or similar` (`packages/hardware/power_poe.yaml`
+  line 6) vs schematic discrete topology
+  (`TPS2378DDAR + TX4138 + F0505S-2WR2 + RJP-003TC1(LPJ4112CNL)`)
+  disagreement therefore stays unresolved); no BOM lines for
+  `D1 SMAJ58A` / `D2 ss510` / `D3 Green` / `L1 33uH` /
+  `R1`–`R9` (including `R1 24.9k` DEN, `R2 1.27k` CLS,
+  `R5 0.03R` RTN sense, `R3/R4 9.1k` paired ILIM, `R7 10.5k`
+  Rd, `R8 56.2k` Rc) / `C1`–`C8` (including `C2 15uF` CBULK,
+  `C6 470u` buck output bulk, `C8 22u` `+5VP` output bulk) /
+  `J3` 2-pin Core-facing connector are committed; no
+  operator-attributed silkscreen captures of the module-side
+  `J3` 1-to-2 pin order are committed; no KiCad PCB source /
+  Gerbers / drill / STEP / board photos sufficient to verify
+  isolation-barrier widths around the `F0505S-2WR2` or
+  `H1`–`H4` PCB-level electrical bonding to `Lan_earth` / RJ45
+  shield are committed; no bench / load / PoE-link-up against
+  802.3af and 802.3at PSE / thermal / inrush / insulation /
+  Hi-pot / earth-continuity / leakage / EMI / EMC measurements
+  against a populated `S360-410-R4` board are committed; no
+  IEEE 802.3af / 802.3at compliance test reports are
+  committed; no isolation / safety test reports (Hi-pot,
+  insulation resistance, earth continuity, leakage) are
+  committed; no separate JSON-only PR for `S360-410`
+  `schematic_status` promotion has landed
+  (`config/hardware-catalog.json` line 120 stays
+  `schematic_status: cataloged_unverified` with no
+  `schematic_file`); no HW-002 Open Question #6 closure /
+  `S360-100-BENCH-001` J2-harness identity update has landed
+  (both stay `pending — bench/manufacturing evidence
+  required` per the 2026-05-18 re-check); and no Release-One
+  PoE "schematic verification pending" caveat closure PR has
+  landed (the caveat in
+  [`docs/release-one-hardware-audit.md` Findings → PoE PSU](docs/release-one-hardware-audit.md#findings)
+  and [Required follow-ups #6](docs/release-one-hardware-audit.md#required-follow-ups)
+  is **preserved verbatim** by this re-check).
+  [`packages/hardware/power_poe.yaml`](packages/hardware/power_poe.yaml)
+  stays byte-identical to PR #517 state (the stale `Ag9712M,
+  Silvertel Ag9700, or similar` header at line 6, the `IEEE
+  802.3af (PoE) or 802.3at (PoE+)` standard line at line 7,
+  the `Class 0 (0.44-12.95W) or Class 1 (0.44-3.84W)` class
+  line at line 8, the `36-57V DC` input line at line 9, the
+  `5V DC, 2A (10W) or 3.3V DC` output line at line 10, the
+  `Overcurrent, overvoltage, short-circuit` protection line at
+  line 11, the `substitutions: power_source: "poe"` /
+  `poe_class: "0"` / `poe_standard: "802.3af"` block at lines
+  28–31, the `globals: power_source_type` block at lines
+  33–38, the template diagnostic sensors `Supply Voltage` /
+  `Power Source` / `Power Configuration` / `PoE Power
+  Connected`, the logger config, and the `on_boot` logger
+  statements all preserved); the package has **no GPIO /
+  I²C / UART / SPI / DAC / runtime binding**; the
+  [`docs/hardware/s360-410-r4-poe.md`](docs/hardware/s360-410-r4-poe.md)
+  status stays `partial — schematic evidence available;
+  package reconciliation, PoE PD controller / magnetics /
+  buck / isolated DC/DC / harness identity evidence pending`;
+  [`docs/hardware/package-readiness-matrix.md` `power_poe.yaml`](docs/hardware/package-readiness-matrix.md#power_poeyaml--s360-410)
+  row stays `reference-only` + `schematic-evidence-pending` +
+  `do-not-change-release-one`; no PoE-410-explicit entry
+  exists in [`config/product-catalog.json`](config/product-catalog.json),
+  [`config/webflash-builds.json`](config/webflash-builds.json),
+  [`products/`](products/), or
+  [`products/webflash/`](products/webflash/); Release-One stays
+  `Ceiling-POE-VentIQ-RoomIQ` / version `1.0.0` / channel
+  `stable`; LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED`
+  / `status: preview` / `channel: preview`; FanTRIAC stays
+  `status: blocked` / `blocker: HW-005` /
+  `webflash_build_matrix: false`. PoE is SELV; `S360-410` is
+  **not** in scope for COMPLIANCE-001. The next
+  evidence-bearing PR against `PACKAGE-POE-410-001` should
+  appear when one of the five gates lands: BOM cross-check;
+  the `S360-410` `schematic_status: verified` JSON PR;
+  HW-002 Open Question #6 / `S360-100-BENCH-001` J2-harness
+  closure; the package-header reconciliation against the
+  schematic-shown discrete topology; or the Release-One PoE
+  caveat closure. See `docs/hardware/s360-410-r4-poe.md`
+  §`### 2026-05-20 — PACKAGE-POE-410-001 investigation pass`
+  and `docs/cleanup-audit.md` §`PACKAGE-POE-410-001 update
+  (2026-05-20 — docs-only investigation pass)`.
 
 ## Do-not-change guardrails
 

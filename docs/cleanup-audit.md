@@ -8782,3 +8782,422 @@ catalog / build edit. Until then, the next audit-log entry
 should report the same `WEBFLASH-POWER-400-001 investigation
 pass — preconditions still open` outcome with the new
 inspection date.
+
+## PACKAGE-POE-410-001 update (2026-05-20 — docs-only investigation pass)
+
+**Slice.** `PACKAGE-POE-410-001` — reconcile
+[`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
+header claims (PoE module part identity, IEEE 802.3af / 802.3at
+standard, PoE class, input / output / protection ratings,
+diagnostic-sensor topology) against the now-verified module-side
+S360-410-R4 schematic and the module BOM, and (if applicable)
+reconcile the
+[`config/hardware-catalog.json`](../config/hardware-catalog.json)
+`S360-410` `description: "PoE to 5V."` field. Does **not** by
+itself close the Release-One PoE "schematic verification
+pending" caveat in
+[`docs/release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings);
+that closure is a separate later PR after BOM cross-check,
+`PACKAGE-POE-410-001` reconciliation, HW-002 OQ#6 /
+`S360-100-BENCH-001` J2-harness closure, and the `S360-410`
+`schematic_status: verified` JSON-only PR all land.
+
+**Outcome.** Path A docs-only deferral. The pass evaluated:
+
+- **Path C — implementation** (write a BOM-cited header / rating
+  block in `power_poe.yaml`, reconcile catalog `description` if
+  applicable).
+- **Path B — comment-only YAML cleanup** (remove the `Ag9712M,
+  Silvertel Ag9700, or similar` line and soften / remove the
+  partially-evidenced `IEEE 802.3af / 802.3at` / `Class 0 / Class 1`
+  / `36-57V DC` / `5V DC, 2A (10W) or 3.3V DC` / `Overcurrent,
+  overvoltage, short-circuit` lines without claiming
+  `TPS2378DDAR` / `TX4138` / `F0505S-2WR2` /
+  `RJP-003TC1(LPJ4112CNL)` as replacements).
+- **Path A — docs-only deferral**.
+
+**Confirmed deferred.** Five preconditions remain open.
+
+**Findings against the PACKAGE-POE-410-001 design questions.**
+
+1. **Q1: What does
+   [`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
+   currently contain?** Header comments at lines 1–26 documenting
+   the `Sense360 Core - PoE (Power over Ethernet) Configuration`
+   block, with the `Ag9712M, Silvertel Ag9700, or similar` PoE-
+   module hint at line 6, the `IEEE 802.3af (PoE) or 802.3at
+   (PoE+)` standard at line 7, the
+   `Class 0 (0.44-12.95W) or Class 1 (0.44-3.84W)` class at
+   line 8, the `36-57V DC (from PoE switch/injector)` input at
+   line 9, the `5V DC, 2A (10W) or 3.3V DC` output at line 10,
+   and the `Overcurrent, overvoltage, short-circuit` protection
+   at line 11; benefits / recommended-for / note bullets at
+   lines 13–26. `substitutions:` at lines 28–31 set
+   `power_source: "poe"`, `poe_class: "0"`, and
+   `poe_standard: "802.3af"`. `globals:` at lines 33–38 declare
+   `power_source_type` as `'"PoE"'`. The `sensor` block at lines
+   41–53 declares a template `Supply Voltage` sensor with a
+   constant-`5.0` lambda (i.e. **not** a measurement). The
+   `text_sensor` block at lines 56–72 declares `Power Source`
+   and `Power Configuration` template text sensors. The
+   `binary_sensor` block at lines 74–85 declares
+   `PoE Power Connected` with a constant-`true` lambda. The
+   `logger.logs` block at lines 87–90 enables `ethernet: INFO`.
+   The `esphome: on_boot` block at lines 92–103 logs the
+   power-source string and a startup-complete debug line.
+2. **Q2: Does `power_poe.yaml` bind any GPIO, I²C, UART, SPI,
+   DAC, or runtime component, or is it a logical power package
+   only?** Logical only. The file carries **no** `pin:` /
+   `pins:` / numeric GPIO references, no I²C bus declaration,
+   no UART / SPI / DAC binding, no on/off output, no
+   sensor-platform reading from any pin. The only "runtime"
+   surfaces are template diagnostic sensors whose lambdas
+   return constants. The package can be `!include`d into any
+   Core variant without claiming hardware resources.
+3. **Q3: What comments or substitutions mention `Ag9712M`,
+   `Silvertel`, `Ag9700`, `802.3af`, `802.3at`, `Class 0`,
+   `Class 1`, `36–57V DC`, `5V`, `3.3V`, `10W`, `protection`,
+   or `isolation`?** All header-comment lines 6–11, plus the
+   `${poe_standard}` and `${poe_class}` substitutions consumed
+   by the `Power Source` and `Power Configuration` template
+   text sensors, plus the `IEEE %s, Class %s` format string in
+   the `on_boot` logger statement. The header-comment string
+   `Galvanic isolation from mains` (line 15) is in the
+   benefits / recommended-for bullets, not in the rating
+   claims.
+4. **Q4: Does any functional YAML in `power_poe.yaml` conflict
+   with the S360-410 schematic?** No. The substitutions
+   (`power_source: "poe"`, `poe_class: "0"`,
+   `poe_standard: "802.3af"`), globals
+   (`power_source_type: '"PoE"'`), template sensors, and
+   logger config are all compatible with the schematic-shown
+   discrete topology. The schematic-visible `Class=0 (0.44 to
+   12.95W)` annotation on `R2 1.27k` CLS classification
+   programming matches `poe_class: "0"`. The conflict is in
+   the **header-comment text** at line 6 (`Ag9712M, Silvertel
+   Ag9700, or similar` — whole-module hint, disagrees with
+   the schematic-shown discrete topology) and in the partially
+   schematic-evidenced lines 7–11 (the `or 802.3at` clause is
+   not schematic-evidenced; the `or Class 1` clause is not
+   schematic-evidenced; the `36–57V DC` input claim is the
+   PD-controller-side range, not a schematic-recorded
+   value-field on `S360-410-R4`; the `or 3.3V DC` output claim
+   is not schematic-evidenced — schematic shows 5 V → 5 V
+   isolated via `DCDC1 F0505S-2WR2(SIP-7)` only; the
+   `Overcurrent, overvoltage, short-circuit` claim is not
+   directly schematic-verifiable against the
+   `TPS2378DDAR + TX4138 + F0505S-2WR2` stack).
+5. **Q5: Does the schematic prove enough to change package
+   behavior?** No. The package has no behavior to change
+   (logical-only). Even if the package did bind hardware, the
+   schematic alone does not prove primary-vs-alternate
+   fitment between `F0505S-2WR2` and the annotated
+   `AM1D-0505S-NZ`, as-built classification intent against an
+   802.3at PSE, as-built protection behaviour, or as-built
+   load / thermal / isolation behaviour.
+6. **Q6: Does BOM evidence exist to resolve the package-header
+   vs schematic part identity disagreement?** No. The
+   [`docs/hardware/artifacts/S360-410-R4.md`](hardware/artifacts/S360-410-R4.md)
+   §Files NOT provided in this upload list records BOM, CPL,
+   gerbers, drill, STEP, images, silkscreen photos, bench /
+   compliance reports as **retained-but-not-committed**.
+7. **Q7: Does PCB/Gerber evidence exist to resolve isolation
+   barrier / layout / PoE compliance details?** No.
+8. **Q8: Does HW-002 OQ#6 / `S360-100-BENCH-001` J2-harness
+   evidence exist?** No. Both stay
+   `pending — bench/manufacturing evidence required` per the
+   2026-05-18 re-check in
+   [`docs/hardware/s360-100-r4-core.md` Open Questions](hardware/s360-100-r4-core.md#open-questions--verification-needed)
+   and
+   [§S360-100-BENCH-001 status](hardware/s360-100-r4-core.md#s360-100-bench-001-status).
+9. **Q9: Is `S360-410` `schematic_status` verified?** No.
+   [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+   line 120 still records `schematic_status:
+   cataloged_unverified`.
+10. **Q10: Is `schematic_file` set for `S360-410`?** No.
+    `schematic_file` is absent from the `S360-410` row
+    (`config/hardware-catalog.json` lines 112–121).
+11. **Q11: Does this PR have enough evidence to change
+    [`config/hardware-catalog.json`](../config/hardware-catalog.json)?**
+    No. The JSON promotion is owed to a separate JSON-only PR
+    after BOM + HW-002 OQ#6 / `S360-100-BENCH-001` closure +
+    standalone reference-doc rewrite.
+12. **Q12: Does this PR have enough evidence to edit
+    `power_poe.yaml` comments safely?** No — see Q6.
+13. **Q13: Would removing specific `Ag9712M` / `Silvertel` /
+    `Ag9700` claims reduce confusion without asserting a
+    replacement?** Marginally — but per the explicit decision
+    recorded by HW-PINMAP-410-FOLLOWUP / PR #517 in
+    [`s360-410-r4-poe.md` §Existing package abstraction](hardware/s360-410-r4-poe.md#existing-package-abstraction)
+    and §Package YAML status, even that removal should wait
+    for BOM so the eventual `PACKAGE-POE-410-001`
+    implementation PR can land header reconciliation + BOM
+    citation + catalog `description` reconciliation as one
+    coordinated change. PR #520 applied the same rule to
+    `power_240v.yaml` for the parallel
+    `PACKAGE-POWER-400-001` slice.
+14. **Q14: Would comment-only cleanup conflict with PR #517's
+    decision to defer package-header reconciliation until
+    BOM?** Yes. PR #517's decision is explicit and
+    cross-referenced in multiple audit docs; reversing it
+    inside `PACKAGE-POE-410-001` would muddy the future
+    implementation PR's scope.
+15. **Q15: Are there tests that validate `power_poe.yaml`
+    comments or package content?** No. The only `power_poe`
+    reference in [`tests/`](../tests/) is
+    [`tests/generate_test_configs.py`](../tests/generate_test_configs.py)
+    line 59 (`POE = "power_poe"`) which references the package
+    by name for test-config generation. The only reference in
+    [`scripts/`](../scripts/) is
+    [`scripts/scaffold_product.py`](../scripts/scaffold_product.py)
+    line 54 (`--hardware poe=S360-410` doc-string example).
+    Neither test nor script inspects header content.
+16. **Q16: Would changing comments affect generated configs?**
+    No — comments are stripped by the YAML parser. But this
+    PR is **not changing comments** in any case.
+17. **Q17: Can `PACKAGE-POE-410-001` proceed as implementation
+    today?** No — five preconditions are open.
+18. **Q18: Is Path A, B, or C recommended?** Path A docs-only
+    deferral.
+19. **Q19: How should
+    [`UPCOMING_PR.md`](../UPCOMING_PR.md) be updated?** Add
+    CLEANUP-POWER-RELEASE-001 / PR #524 and
+    CLEANUP-POWER-RELEASE-002 / PR #525 rows to Completed /
+    merged PRs; add a Current queue summary bullet for PR
+    #524 / PR #525 / this PR; promote active-queue entry #7
+    `PACKAGE-POE-410-001` from `Blocked` to
+    `Investigated 2026-05-20; merged as PR #XXX; confirmed
+    deferred (Path A docs-only); five preconditions still
+    open`; add a Recently uploaded evidence entry for "No new
+    evidence committed for `PACKAGE-POE-410-001`
+    preconditions (2026-05-20 re-check)".
+20. **Q20: What downstream rows remain blocked?**
+    `PRODUCT-POE-410-001`, `WEBFLASH-POE-410-001`,
+    `RELEASE-POE-410-001`, and `WF-IMPORT-POE-410-001`
+    (cross-repo) stay blocked behind `PACKAGE-POE-410-001` +
+    Release-One PoE caveat closure.
+
+**Open preconditions (carried forward).**
+
+1. **BOM cross-check missing.** No BOM line item with
+   manufacturer + part number + revision for `LAN_CON1
+   RJP-003TC1(LPJ4112CNL)` magnetics / RJ45, `U1
+   TPS2378DDAR(HSOIC-8)` PoE PD controller, `U2
+   TX4138(ESOIC-8)` buck, `DCDC1 F0505S-2WR2(SIP-7)` isolated
+   DC/DC (settling the primary-vs-alternate question against
+   the annotated `AM1D-0505S-NZ`), `D1 SMAJ58A`, `D2 ss510`,
+   `D3 Green`, `L1 33uH`, `R1`–`R9`, `C1`–`C8`, or `J3`
+   2-pin Core-facing connector is committed. The three-way
+   disagreement between catalog
+   [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+   `description: "PoE to 5V."` (line 119), package header
+   `Ag9712M, Silvertel Ag9700, or similar`
+   (`packages/hardware/power_poe.yaml` line 6), and schematic
+   discrete topology (`TPS2378DDAR + TX4138 + F0505S-2WR2 +
+   RJP-003TC1(LPJ4112CNL)`) therefore stays unresolved and
+   remains BOM-bound.
+2. **`S360-410` `schematic_status: verified` JSON PR not
+   landed.** [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+   line 120 stays `schematic_status: cataloged_unverified`
+   with no `schematic_file`. Separate JSON-only PR after BOM +
+   HW-002 OQ#6 / `S360-100-BENCH-001` closure +
+   standalone reference-doc rewrite.
+3. **HW-002 Open Question #6 / `S360-100-BENCH-001`
+   J2-harness identity closure missing.** Both stay
+   `pending — bench/manufacturing evidence required` per the
+   2026-05-18 re-check.
+4. **Package-header reconciliation not landed.** The
+   package-header `Ag9712M / Silvertel Ag9700 / or similar`
+   line (6), the `IEEE 802.3af (PoE) or 802.3at (PoE+)`
+   standard line (7), the `Class 0 (0.44-12.95W) or Class 1
+   (0.44-3.84W)` class line (8), the `36-57V DC` input line
+   (9), the `5V DC, 2A (10W) or 3.3V DC` output line (10),
+   and the `Overcurrent, overvoltage, short-circuit`
+   protection line (11) are not yet reconciled against the
+   schematic-shown discrete topology.
+5. **Release-One PoE "schematic verification pending" caveat
+   closure is a separate later PR.** The caveat in
+   [`docs/release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings)
+   and [Required follow-ups #6](release-one-hardware-audit.md#required-follow-ups)
+   is **preserved verbatim** by this PR and is owed to a
+   separate caveat-closure PR after the four preconditions
+   above land.
+
+**Why Path B and Path C are not taken now.**
+
+- **Path B (comment-only YAML cleanup)** is rejected because
+  PR #517's recorded decision in
+  [`s360-410-r4-poe.md` §Existing package abstraction](hardware/s360-410-r4-poe.md#existing-package-abstraction)
+  and §Package YAML status is specifically that even a
+  comment-only YAML edit (removing the `Ag9712M, Silvertel
+  Ag9700, or similar` line and softening the standard / class
+  / input / output / protection lines) should wait for BOM
+  evidence so the eventual `PACKAGE-POE-410-001`
+  implementation PR can land header reconciliation + BOM
+  citation + catalog `description` reconciliation (if any)
+  + the Release-One caveat-closure follow-up as one
+  coordinated change. PR #520 applied the same rule to the
+  parallel `PACKAGE-POWER-400-001` slice and `power_240v.yaml`.
+  Splitting the YAML edit into a comment-only PR ahead of BOM
+  would not raise the evidence quality of the package and
+  would muddy the future `PACKAGE-POE-410-001` PR's scope.
+- **Path C (implementation)** is unsafe right now because
+  all five preconditions are open. Writing a BOM-cited header
+  / rating block / catalog `description` reconciliation
+  without BOM evidence would substitute one unsourced claim
+  for another and would not be schematic-derivable in any
+  case — the schematic alone does not prove primary-vs-
+  alternate fitment between `F0505S-2WR2` and `AM1D-0505S-NZ`,
+  as-built classification intent against an 802.3at PSE,
+  as-built protection behaviour, or as-built load / thermal /
+  isolation behaviour.
+
+**Recommendation for the next `PACKAGE-POE-410-001` PR.** Land
+**the BOM cross-check + the `S360-410`
+`schematic_status: verified` JSON promotion (separate JSON-only
+PR after BOM + HW-002 OQ#6 / `S360-100-BENCH-001` closure) +
+the package header reconciliation against the schematic-shown
+discrete topology + (if applicable) the catalog `description`
+reconciliation as a single atomic slice**, not as a
+comment-only cleanup alone. The Release-One PoE
+"schematic verification pending" caveat closure stays a separate
+later PR.
+
+**Queue effect.**
+
+- `PACKAGE-POE-410-001` is now **investigated and deferred**
+  in the [`UPCOMING_PR.md`](../UPCOMING_PR.md) active queue
+  (entry #7), blocked on the five preconditions above.
+- `CLEANUP-POWER-RELEASE-001` is recorded as **PR #524** and
+  `CLEANUP-POWER-RELEASE-002` is recorded as **PR #525** in
+  the [`UPCOMING_PR.md`](../UPCOMING_PR.md) Completed /
+  merged PRs table.
+- `PRODUCT-POE-410-001` / `WEBFLASH-POE-410-001` /
+  `RELEASE-POE-410-001` / `WF-IMPORT-POE-410-001`
+  (cross-repo) stay blocked behind `PACKAGE-POE-410-001` +
+  Release-One PoE caveat closure.
+- `CORE-ABSTRACT-BUS-001C` / `001A` / `001B` stay deferred
+  behind their own preconditions.
+- All PoE-410 / RELAY / PWM / DAC / TRIAC slices stay
+  blocked behind their own evidence gates.
+
+**What this update does *not* do.** Adds **no** package YAML,
+product YAML, WebFlash wrapper, JSON catalog change, script,
+test, workflow, component, include, firmware artifact, manifest,
+GitHub Release, tag, WebFlash import, or kit edit. Does **not**
+edit
+[`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
+(byte-identical to PR #517 / HW-PINMAP-410-FOLLOWUP state); does
+**not** edit any other file under
+[`packages/`](../packages/); does **not** edit
+[`config/hardware-catalog.json`](../config/hardware-catalog.json)
+(`S360-410` row stays `schematic_status: cataloged_unverified`,
+no `schematic_file`, `description: "PoE to 5V."`); does **not**
+edit
+[`config/product-catalog.json`](../config/product-catalog.json)
+(no new PoE-410-explicit entry; Release-One + LED preview +
+FanTRIAC blocked-reference + six `legacy-compatible` `*-poe`
+Core variants all byte-identical); does **not** edit
+[`config/webflash-builds.json`](../config/webflash-builds.json)
+(two PoE builds only — byte-identical); does **not** edit
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+(`POE` in `canonical_power` consumed by both committed builds —
+byte-identical;
+`release_one_required_configs` stays
+`["Ceiling-POE-VentIQ-RoomIQ"]`); does **not** edit any product
+YAML under [`products/`](../products/); does **not** edit any
+WebFlash wrapper under
+[`products/webflash/`](../products/webflash/); does **not**
+create `firmware/`, `firmware/configurations/`,
+`firmware/sources.json`, `manifest.json`, or any `firmware-*.json`
+file (none of those paths exist at HEAD; this PR does not add
+them); does **not** edit
+[`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
+or any other workflow; does **not** edit any script under
+[`scripts/`](../scripts/) or any test under
+[`tests/`](../tests/); does **not** edit
+[`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)
+(COMPLIANCE-001 unchanged; `S360-410` PoE PSU is **not** in
+scope because PoE is SELV); does **not** edit
+[`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md)
+Findings → PoE PSU or Required follow-ups #6 (caveat
+preserved verbatim); does **not** edit
+[`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+`S360-410` rows; does **not** edit
+[`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)
+§Sense360 PoE PSU (S360-410); does **not** edit
+[`docs/hardware/s360-100-r4-core.md`](hardware/s360-100-r4-core.md)
+Open Question #6 or §S360-100-BENCH-001 status (both stay
+`pending — bench/manufacturing evidence required`); does
+**not** edit
+[`docs/hardware/schematics/S360-410-R4.pdf`](hardware/schematics/S360-410-R4.pdf)
+(byte-identical to HW-ASSETS-410 / PR #516 commit); does
+**not** edit
+[`docs/hardware/artifacts/S360-410-R4.md`](hardware/artifacts/S360-410-R4.md)
+(its content is consumed by this pass, not rewritten — HW-ASSETS-410
+/ PR #516 owns it); does **not** edit
+[`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
+§PoE-410 / S360-410; does **not** edit
+[`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md)
+§PoE / S360-410 WebFlash posture; does **not** edit
+[`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+§PoE / S360-410 release posture; does **not** edit
+[`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+`S360-410` snapshot row; does **not** create or modify any
+GitHub Release; does **not** create or modify any release tag;
+does **not** emit or attach any SHA256 / MD5 / asset checksum;
+does **not** attach or modify any build-info manifest; does
+**not** record or modify any release-proof row; does **not**
+trigger or modify any WebFlash import. No precondition is
+closed by this pass. Specifically: does **not** advance
+`PACKAGE-POE-410-001`, `PRODUCT-POE-410-001`,
+`WEBFLASH-POE-410-001`, `RELEASE-POE-410-001`, or
+`WF-IMPORT-POE-410-001`; does **not** advance any other
+CORE-ABSTRACT-BUS / PWR / POE-410 / RELAY / PWM / DAC / TRIAC
+slice; does **not** close `COMPLIANCE-001`,
+`S360-100-BENCH-001`, `HW-PINMAP-*-FOLLOWUP`, or
+`S360-300-BENCH-001`; does **not** change Release-One
+(`Ceiling-POE-VentIQ-RoomIQ` / version `1.0.0` / channel
+`stable` / artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` / tag
+`v1.0.0`); does **not** change the LED preview entry
+(`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview` /
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`);
+does **not** change `REQUIRED_CONFIGS` or kits; does **not**
+promote any `schematic_status`; does **not** set any
+`schematic_file`; does **not** claim any hardware-verified
+evidence; does **not** claim that any BOM / silkscreen / PCB /
+creepage / clearance / bench / load / link-up / thermal /
+inrush / insulation / Hi-pot / earth-continuity / leakage /
+EMI / EMC / IEEE 802.3af / 802.3at / isolation / safety
+evidence exists; does **not** make any CE / UKCA / FCC / UL /
+LVD / EMC / RoHS / IEC / IEEE compliance claim.
+
+The only files this update touches are this
+`PACKAGE-POE-410-001 update` section in
+`docs/cleanup-audit.md`, the new audit-log row in
+[`docs/hardware/s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md)
+§HW-PINMAP-410-FOLLOWUP audit log, the audit-log addendums
+under
+[`docs/hardware/package-readiness-matrix.md` §`power_poe.yaml` / S360-410](hardware/package-readiness-matrix.md#power_poeyaml--s360-410)
+and
+[`docs/hardware/firmware-package-mapping-audit.md` §`power_poe.yaml` PoE-module part-identity disagreement (S360-410)](hardware/firmware-package-mapping-audit.md#power_poeyaml-poe-module-part-identity-disagreement-s360-410),
+and the queue refresh in
+[`UPCOMING_PR.md`](../UPCOMING_PR.md) (`CLEANUP-POWER-RELEASE-001`
+recorded as PR #524 and `CLEANUP-POWER-RELEASE-002` recorded as
+PR #525 in the Completed / merged PRs table;
+current-queue-summary updated with the PR #524 / PR #525 / this
+PR investigation bullet; active-queue entry #7 expanded with
+the `PACKAGE-POE-410-001` investigation outcome; new entry
+added under §Recently uploaded evidence for "No new evidence
+committed for `PACKAGE-POE-410-001` preconditions").
+
+**Next `PACKAGE-POE-410-001` audit-log trigger.** The next
+audit-log entry against this slice should appear when one of
+the five preconditions above lands or when the next
+implementation PR makes a `PACKAGE-POE-410-001` package YAML /
+catalog `description` / `S360-410` `schematic_status` /
+Release-One caveat edit. Until then, the next audit-log entry
+should report the same `PACKAGE-POE-410-001 investigation pass
+— preconditions still open` outcome with the new inspection
+date.
