@@ -1358,9 +1358,9 @@ mirrored here.
   `S360-300-BENCH-001` plus the WebFlash operator-proof
   follow-ups (LED BOM evidence is **one** of several gates and
   does **not** by itself promote LED stable when it lands).
-- **HW-BOM-ASSETS-002 ingest in flight as PR #XXX on
-  2026-05-20.** A second **partial-batch, record-only**
-  BOM-evidence ingest. Ingests `S360-400-R4_BOM.xlsx`
+- **HW-BOM-ASSETS-002 merged as PR #535 on 2026-05-20.**
+  It was a second **partial-batch, record-only**
+  BOM-evidence ingest. Ingested `S360-400-R4_BOM.xlsx`
   (`95878198-S360400R4_BOM.xlsx`; 10,987 bytes; SHA256
   `bb59f56da11fe83f83b2547322af4e594b658384ade9f06267af367ffb603a1d`)
   and `S360-410-R4_BOM.xlsx`
@@ -1454,7 +1454,7 @@ add rows without verifying the PR number.
 | CLEANUP-POE-410-003          | #531      | esphome-public  | Merged — docs-only tracker cleanup      | Converted the unresolved `PR #XXX` / `this PR` placeholders that PR #530 left in `UPCOMING_PR.md` so `WEBFLASH-POE-410-001` consistently points to PR #530 (Current queue summary bullet, `CLEANUP-POE-410-002` Follow-up impact column, `WEBFLASH-POE-410-001` row in the Completed / merged PRs table, and the Recently uploaded evidence entry all now name PR #530 explicitly); removed the `WEBFLASH-POE-410-001` active-queue entry (the investigation pass has merged, so the row no longer belongs in the active queue) and renumbered subsequent entries so `RELEASE-POE-410-001` becomes active queue item #7 | No functional, package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, manifest, audit-document, or artifact files; only `UPCOMING_PR.md` was touched | Prepared the tracker for `RELEASE-POE-410-001` / PR #532; no queue-ordering effect on `RELEASE-POE-410-001` |
 | RELEASE-POE-410-001          | #532      | esphome-public  | Merged — docs-only investigation pass   | Recorded `RELEASE-POE-410-001` Path A deferral; confirmed `WEBFLASH-POE-410-001` implementation slice / `PRODUCT-POE-410-001` implementation slice / `PACKAGE-POE-410-001` implementation slice / repo-committed BOM evidence (the uploaded BOM appears to support the schematic-shown discrete PoE topology — `LAN_CON1 RJP-003TC1(LPJ4112CNL)` magnetics / RJ45, `U1 TPS2378DDAR(HSOIC-8)` PoE PD controller, `U2 TX4138(ESOIC-8)` buck, `DCDC1 F0505S-2WR2(SIP-7)` isolated DC/DC — but BOM ingest is the responsibility of a separate `HW-BOM-ASSETS-001` follow-up, not PR #532) / `S360-410 schematic_status: verified` JSON PR / HW-002 OQ#6 / `S360-100-BENCH-001` J2-harness identity closure / Release-One PoE caveat closure / product-onboarding approval / eight release-time sub-gates preconditions remain open; carried forward the observation that `RELEASE-POE-410-001` may not be required at all if `PRODUCT-POE-410-001` / `WEBFLASH-POE-410-001` ultimately close via the default no-new-entry / caveat-closure-only path (queue stays blocked / deferred until that decision is made later); no PoE-410-explicit release artifact exists of any kind (no `firmware/` directory, no `firmware/configurations/`, no `firmware/sources.json`, no top-level `manifest.json`, no `firmware-*.json`, no PoE-410-explicit GitHub Release tag, no PoE-410-explicit `.bin`, no PoE-410-explicit SHA256 / MD5 checksum files, no PoE-410-explicit build-info `manifest.json`, no PoE-410-explicit proof row in `docs/webflash-release-proof.md`); kept Release-One / LED preview / FanTRIAC blocked-reference / six `legacy-compatible` `*-poe` Core variants byte-identical; kept `.github/workflows/firmware-build-release.yml` byte-identical (workflow-frozen) | No package, product, WebFlash, build, release, compliance, JSON catalog, test, script, workflow, component, include, firmware, manifest, or artifact edits; no `schematic_status` / `schematic_file` promotion; no COMPLIANCE-001 movement; no PoE-410-explicit entry added; no `webflash_build_matrix: true` flip; no new `artifact_name`; no `webflash_wrapper` added; no `config_string` added; no new GitHub Release / tag / checksum / build-info manifest / proof row created; no BOM ingest (deferred to a separate `HW-BOM-ASSETS-001` follow-up); no `lifecycle_statuses` / `canonical_modules` / `canonical_power` / `forbidden_tokens` / `release_one_required_configs` / kit / `REQUIRED_CONFIGS` change; no Release-One caveat closure | `RELEASE-POE-410-001` stays blocked on the eight blocker preconditions (with the no-op observation carried forward); `WF-IMPORT-POE-410-001` (cross-repo) stays blocked behind it |
 | HW-BOM-ASSETS-001            | #533      | esphome-public  | Merged — partial record-only BOM evidence ingest | S360-200/S360-210 curated BOM evidence indexes; S360-100 byte-identical re-upload confirmation; retained-but-not-committed BOM policy preserved. | No .xlsx committed; no package/product/config/WebFlash/release/test/workflow/firmware changes; no schematic_status or schematic_file changes. | HW-BOM-ASSETS follow-up still owed for S360-211, S360-300, S360-310, S360-311, S360-312, S360-320, S360-400, S360-410; high-value blockers for S360-400/S360-410/PWM/DAC/TRIAC remain until those BOMs are ingested. |
-| HW-BOM-ASSETS-002            | #XXX      | esphome-public  | Merged — partial record-only BOM evidence ingest | S360-400 curated BOM evidence index appended (BOM `PS1 = HLK-5M05` HI-LINK confirms catalog `description: "Mains to 5V using HLK-5M05."`; schematic `PS1 = HLK-10M05` reclassified as schematic-label discrepancy; package header `HLK-PM01 or similar` reclassified as disproved comment text). S360-410 curated BOM evidence index appended (schematic-shown discrete topology `U1 TPS2378DDAR` TI + `U2 TX4138` XDS + `DCDC1 F0505S-2WR2` EVISUN + `LAN_CON1 LPJ4112CNL` Link-PP confirmed by BOM; package header `Ag9712M, Silvertel Ag9700, or similar` disproved by BOM; schematic-annotated `AM1D-0505S-NZ` recorded as schematic-annotation-only alternate not present in the BOM). S360-410 PDF re-upload byte-identical to committed schematic; no re-commit. Retained-but-not-committed BOM policy preserved (no `.xlsx` added to git; no `docs/hardware/bom/` directory; no Git LFS; policy doc unchanged). Audit-log + Part identity addendums added to `s360-400-r4-power.md` and `s360-410-r4-poe.md`; package-readiness-matrix and firmware-package-mapping-audit addendums added; board-readiness-matrix S360-400 / S360-410 row notes refreshed; cleanup-audit §HW-BOM-ASSETS-002 update section added. | No .xlsx committed; no package YAML edits (`power_240v.yaml` and `power_poe.yaml` byte-identical to PR #515 / PR #520 and PR #517 / PR #526 respectively; comment-only cleanups still deferred to `PACKAGE-POWER-400-001` and `PACKAGE-POE-410-001`); no product YAML / WebFlash wrapper / `config/**` / `tests/**` / `scripts/**` / `.github/workflows/**` / `components/**` / `include/**` / `firmware/**` / `manifest.json` / `firmware/sources.json` edit; no `schematic_status` / `schematic_file` change; no `webflash_build_matrix` flip; no `artifact_name` / `webflash_wrapper` / `config_string` added; no `release_one_required_configs` / `lifecycle_statuses` / `canonical_modules` / `canonical_power` / `forbidden_tokens` / `REQUIRED_CONFIGS` / kit change; no COMPLIANCE-001 movement (PoE is SELV); no Release-One / LED preview / FanTRIAC identity change; no Release-One PoE caveat closure (preserved verbatim); no schematic-PDF correction for the S360-400 `PS1` value-field discrepancy (committed PDF byte-identical); no schematic-PDF re-commit for S360-410 (upload byte-identical to committed file); no `hardware-artifact-policy.md` edit. | The `BOM cross-check missing` precondition recorded under `PACKAGE-POWER-400-001` / `PRODUCT-POWER-400-001` / `WEBFLASH-POWER-400-001` / `RELEASE-POWER-400-001` and under `PACKAGE-POE-410-001` / `PRODUCT-POE-410-001` / `WEBFLASH-POE-410-001` / `RELEASE-POE-410-001` is now **resolved at the part-identity layer**. Each downstream slice stays blocked on its other recorded preconditions (the respective `schematic_status: verified` JSON PR; COMPLIANCE-001 for S360-400 — PoE-410 is SELV and not in scope; silkscreen / PCB / creepage / clearance / bench / thermal / EMI / PoE-link-up / isolation evidence; HW-002 OQ#6 / `S360-100-BENCH-001` J2-harness closure for S360-410; the package-header comment cleanups themselves; the schematic-label correction PR for the S360-400 `PS1` value field; the Release-One PoE caveat closure for S360-410; product-onboarding / UX-class / release-time sub-gates where applicable). `HW-BOM-ASSETS` follow-up still owed for the six remaining BOMs: `S360-211`, `S360-300`, `S360-310`, `S360-311`, `S360-312` (Fan_GP8403), and `S360-320`. |
+| HW-BOM-ASSETS-002            | #535      | esphome-public  | Merged — partial record-only BOM evidence ingest | S360-400 curated BOM evidence index appended (BOM `PS1 = HLK-5M05` HI-LINK confirms catalog `description: "Mains to 5V using HLK-5M05."`; schematic `PS1 = HLK-10M05` reclassified as schematic-label discrepancy; package header `HLK-PM01 or similar` reclassified as disproved comment text). S360-410 curated BOM evidence index appended (schematic-shown discrete topology `U1 TPS2378DDAR` TI + `U2 TX4138` XDS + `DCDC1 F0505S-2WR2` EVISUN + `LAN_CON1 LPJ4112CNL` Link-PP confirmed by BOM; package header `Ag9712M, Silvertel Ag9700, or similar` disproved by BOM; schematic-annotated `AM1D-0505S-NZ` recorded as schematic-annotation-only alternate not present in the BOM). S360-410 PDF re-upload byte-identical to committed schematic; no re-commit. Retained-but-not-committed BOM policy preserved (no `.xlsx` added to git; no `docs/hardware/bom/` directory; no Git LFS; policy doc unchanged). Audit-log + Part identity addendums added to `s360-400-r4-power.md` and `s360-410-r4-poe.md`; package-readiness-matrix and firmware-package-mapping-audit addendums added; board-readiness-matrix S360-400 / S360-410 row notes refreshed; cleanup-audit §HW-BOM-ASSETS-002 update section added. | No .xlsx committed; no package YAML edits (`power_240v.yaml` and `power_poe.yaml` byte-identical to PR #515 / PR #520 and PR #517 / PR #526 respectively; comment-only cleanups still deferred to `PACKAGE-POWER-400-001` and `PACKAGE-POE-410-001`); no product YAML / WebFlash wrapper / `config/**` / `tests/**` / `scripts/**` / `.github/workflows/**` / `components/**` / `include/**` / `firmware/**` / `manifest.json` / `firmware/sources.json` edit; no `schematic_status` / `schematic_file` change; no `webflash_build_matrix` flip; no `artifact_name` / `webflash_wrapper` / `config_string` added; no `release_one_required_configs` / `lifecycle_statuses` / `canonical_modules` / `canonical_power` / `forbidden_tokens` / `REQUIRED_CONFIGS` / kit change; no COMPLIANCE-001 movement (PoE is SELV); no Release-One / LED preview / FanTRIAC identity change; no Release-One PoE caveat closure (preserved verbatim); no schematic-PDF correction for the S360-400 `PS1` value-field discrepancy (committed PDF byte-identical); no schematic-PDF re-commit for S360-410 (upload byte-identical to committed file); no `hardware-artifact-policy.md` edit. | The `BOM cross-check missing` precondition recorded under `PACKAGE-POWER-400-001` / `PRODUCT-POWER-400-001` / `WEBFLASH-POWER-400-001` / `RELEASE-POWER-400-001` and under `PACKAGE-POE-410-001` / `PRODUCT-POE-410-001` / `WEBFLASH-POE-410-001` / `RELEASE-POE-410-001` is now **resolved at the part-identity layer**. Each downstream slice stays blocked on its other recorded preconditions (the respective `schematic_status: verified` JSON PR; COMPLIANCE-001 for S360-400 — PoE-410 is SELV and not in scope; silkscreen / PCB / creepage / clearance / bench / thermal / EMI / PoE-link-up / isolation evidence; HW-002 OQ#6 / `S360-100-BENCH-001` J2-harness closure for S360-410; the package-header comment cleanups themselves; the schematic-label correction PR for the S360-400 `PS1` value field; the Release-One PoE caveat closure for S360-410; product-onboarding / UX-class / release-time sub-gates where applicable). `HW-BOM-ASSETS` follow-up still owed for the six remaining BOMs: `S360-211`, `S360-300`, `S360-310`, `S360-311`, `S360-312` (Fan_GP8403), and `S360-320`. |
 
 ## Active / upcoming esphome-public queue
 
@@ -1463,117 +1463,7 @@ this table; see **Cross-repo dependencies**. The only `WF-`-prefixed entry
 that appears below is **WF-TRIAC-001**, which is the in-repo
 wrapper/catalog/build slice (not a WebFlash-runtime import).
 
-1. **HW-BOM-ASSETS-002 — partial BOM evidence ingest (record-only)**
-   - Status: **Active / current evidence-ingest PR (this PR);
-     partial-batch — only `S360-400` and `S360-410` blocker state
-     updated; remaining six BOMs (`S360-211`, `S360-300`,
-     `S360-310`, `S360-311`, `S360-312` Fan_GP8403, `S360-320`)
-     deferred to a later `HW-BOM-ASSETS` follow-up**
-   - Purpose: Append curated BOM-evidence sections to the existing
-     per-board artifact indexes
-     [`docs/hardware/artifacts/S360-400-R4.md`](docs/hardware/artifacts/S360-400-R4.md)
-     and
-     [`docs/hardware/artifacts/S360-410-R4.md`](docs/hardware/artifacts/S360-410-R4.md)
-     recording the uploaded `S360-400-R4_BOM.xlsx`
-     (`95878198-S360400R4_BOM.xlsx`; 10,987 bytes; SHA256
-     `bb59f56da11fe83f83b2547322af4e594b658384ade9f06267af367ffb603a1d`)
-     and `S360-410-R4_BOM.xlsx`
-     (`0de7679d-S360410R4_BOM.xlsx`; 11,980 bytes; SHA256
-     `b5f4bad842a930de03cd47327f477c21afcb82e4533a9d8be38b54990b38f285`)
-     by filename, size, SHA256, and full component summary. Confirm
-     the byte-identical `S360-410-R4.pdf` re-upload
-     (`7f920771-S360410R4.pdf`; 975,137 bytes; SHA256
-     `4a8b7a3b2a89006a9332eaa486743f687aaedc4b6bb807c6b25670f742ac2414`)
-     against the already-committed schematic at
-     [`docs/hardware/schematics/S360-410-R4.pdf`](docs/hardware/schematics/S360-410-R4.pdf)
-     (HW-ASSETS-410 / PR #516); no PDF re-commit. **Reclassify** the
-     part-identity disagreements recorded by HW-PINMAP-400-FOLLOWUP /
-     PR #515 + PR #520 and HW-PINMAP-410-FOLLOWUP / PR #517 +
-     PR #526: for **S360-400**, BOM `PS1` = `HLK-5M05` (HI-LINK) is
-     BOM/user-confirmed sourcing truth (agreeing with catalog
-     `description: "Mains to 5V using HLK-5M05."`); schematic-PDF
-     value field `PS1 = HLK-10M05` is reclassified as a
-     **schematic-label discrepancy** (committed PDF stays
-     byte-identical; correction owed to a later HW-ASSETS-400
-     follow-up); package header `HLK-PM01 or similar` is
-     reclassified as **disproved package-header comment text**
-     (cleanup deferred to `PACKAGE-POWER-400-001`). For **S360-410**,
-     the schematic-shown discrete topology (`U1 TPS2378DDAR` TI +
-     `U2 TX4138` XDS + `DCDC1 F0505S-2WR2` EVISUN + `LAN_CON1
-     LPJ4112CNL` Link-PP) is BOM-confirmed sourcing truth;
-     package-header `Ag9712M, Silvertel Ag9700, or similar` is
-     disproved by BOM (cleanup deferred to `PACKAGE-POE-410-001`);
-     schematic-annotated `AM1D-0505S-NZ` is recorded as a
-     **schematic-annotation-only alternate** not present in the BOM.
-     Record the partial-batch state explicitly so the deferred
-     boards' `BOM missing` blocker wording remains visible.
-   - Notes: Follows the existing
-     [Hardware Artifact Policy](docs/hardware/hardware-artifact-policy.md)
-     (HW-ASSETS-001) **without changing it**. BOM `.xlsx` files are
-     **retained-but-not-committed** per the current per-board
-     decision — recorded by filename + size + SHA256 only; the
-     `.xlsx` itself is not added to `git`. No `docs/hardware/bom/`
-     directory created. No `.xlsx` in `git`. No `config/` /
-     `packages/` / `products/` / `tests/` / `scripts/` /
-     `.github/workflows/` / `components/` / `include/` / `firmware/`
-     / `manifest.json` / `firmware/sources.json` edit. No
-     `schematic_status` promotion; no `schematic_file` set; no
-     `webflash_build_matrix` flip; no `artifact_name`; no
-     `REQUIRED_CONFIGS` change; no compliance claim; no Release-One
-     change (`Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`); no
-     LED preview change; no FanTRIAC change; no Release-One PoE
-     caveat closure (preserved verbatim); no schematic-PDF
-     correction for the S360-400 `PS1` value-field discrepancy
-     (committed PDF byte-identical); no schematic-PDF re-commit for
-     S360-410 (upload byte-identical to committed file).
-     `PACKAGE-POWER-400-001` (alias: `PACKAGE-GAP-001` PWR slice)
-     and `PACKAGE-POE-410-001` (alias: `PACKAGE-GAP-001` PoE slice)
-     have their **BOM cross-check** precondition resolved at the
-     part-identity layer by this PR; each slice **stays blocked** on
-     its other recorded preconditions (the respective
-     `schematic_status: verified` JSON PR; COMPLIANCE-001 for
-     S360-400 — PoE-410 is SELV and not in scope; silkscreen / PCB
-     / creepage / clearance / bench / thermal / EMI / PoE-link-up /
-     isolation evidence; HW-002 OQ#6 / `S360-100-BENCH-001`
-     J2-harness closure for S360-410; the package-header comment
-     cleanups themselves; the schematic-label correction PR for
-     S360-400; the Release-One PoE caveat closure for S360-410;
-     product-onboarding / UX-class / release-time sub-gates where
-     applicable). The downstream `PRODUCT-*` / `WEBFLASH-*` /
-     `RELEASE-*` / `WF-IMPORT-*` slices (entries #5 / #6 / #7 / #8
-     below) all have their `BOM cross-check missing` /
-     "BOM-bound part-identity disagreement" precondition wording
-     refreshed to reflect this; each stays blocked on its remaining
-     preconditions. `PACKAGE-RELAY-001` (`K1` BOM identity),
-     `PACKAGE-PWM-001`, `PACKAGE-DAC-001`, `PACKAGE-TRIAC-001`,
-     `CORE-ABSTRACT-BUS-001A/B/C`, `COMPLIANCE-001`, `HW-005`,
-     `S360-100-BENCH-001`, `S360-300-BENCH-001`, and the
-     HW-PINMAP-* follow-ups all remain blocked on their existing
-     gates — this PR does **not** flip the BOM gate for any of
-     those boards because their BOMs are not ingested in this batch.
-     Files touched (nine total): updated
-     [`docs/hardware/artifacts/S360-400-R4.md`](docs/hardware/artifacts/S360-400-R4.md);
-     updated
-     [`docs/hardware/artifacts/S360-410-R4.md`](docs/hardware/artifacts/S360-410-R4.md);
-     updated [`docs/hardware/s360-400-r4-power.md`](docs/hardware/s360-400-r4-power.md);
-     updated [`docs/hardware/s360-410-r4-poe.md`](docs/hardware/s360-410-r4-poe.md);
-     updated [`docs/hardware/package-readiness-matrix.md`](docs/hardware/package-readiness-matrix.md);
-     updated [`docs/hardware/firmware-package-mapping-audit.md`](docs/hardware/firmware-package-mapping-audit.md);
-     updated [`docs/hardware/board-readiness-matrix.md`](docs/hardware/board-readiness-matrix.md);
-     updated [`docs/cleanup-audit.md`](docs/cleanup-audit.md)
-     (`HW-BOM-ASSETS-002 update (2026-05-20 — S360-400 / S360-410
-     BOM evidence ingest)` section); updated this
-     [`UPCOMING_PR.md`](UPCOMING_PR.md) (active-queue entry,
-     Current queue summary, Recently uploaded evidence entry,
-     active-queue entries #5 / #6 / #7 / #8 precondition wording,
-     and Completed / merged PRs row). The follow-up cleanup PR
-     (analogous to `CLEANUP-BOM-ASSETS-001` / PR #534) is expected
-     to (a) backfill the literal PR number into the placeholder
-     `#XXX` references this PR leaves behind, and (b) remove the
-     `HW-BOM-ASSETS-002` active-queue entry from this section once
-     the ingest is merged.
-
-2. **CORE-ABSTRACT-BUS-001C — UART / status LED / PIR / expansion GPIO + ALS_INT rebind**
+1. **CORE-ABSTRACT-BUS-001C — UART / status LED / PIR / expansion GPIO + ALS_INT rebind**
    - Status: **Investigated 2026-05-19 — confirmed deferred (Path A
      docs-only); six preconditions still open** (next / systemic
      blocker — must land at-or-before the relay slice to free
@@ -1626,7 +1516,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      `docs/hardware/core-abstract-bus-reconciliation.md` §`### 2026-05-19 — CORE-ABSTRACT-BUS-001C investigation pass`
      and `docs/cleanup-audit.md` §CORE-ABSTRACT-BUS-001C update.
 
-3. **CORE-ABSTRACT-BUS-001A — relay_pin slice (`GPIO3`)**
+2. **CORE-ABSTRACT-BUS-001A — relay_pin slice (`GPIO3`)**
    - Status: Blocked on **CORE-ABSTRACT-BUS-001C**
    - Purpose: Rebind `relay_pin` to `GPIO3` in
      `packages/hardware/sense360_core.yaml` (line 63),
@@ -1646,7 +1536,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      recorded in
      `docs/hardware/core-abstract-bus-reconciliation.md` §CORE-ABSTRACT-BUS-001A.
 
-4. **CORE-ABSTRACT-BUS-001B — Shared-I²C-bus consolidation**
+3. **CORE-ABSTRACT-BUS-001B — Shared-I²C-bus consolidation**
    - Status: **Investigated 2026-05-19 — confirmed deferred (Path A
      docs-only); four preconditions still open**. Independent of
      `001A` / `001C` ordering; should land before `PACKAGE-PWM-001`
@@ -1733,11 +1623,11 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      and `docs/cleanup-audit.md` §`CORE-ABSTRACT-BUS-001B update
      (2026-05-19 — docs-only investigation pass)`.
 
-5. **PRODUCT-POWER-400-001**
+4. **PRODUCT-POWER-400-001**
    - Status: **Investigated 2026-05-19; merged as PR #521;
      confirmed deferred (Path A docs-only); six preconditions
      still open** (BOM cross-check precondition resolved at the
-     AC/DC part-identity layer by `HW-BOM-ASSETS-002` / PR #XXX;
+     AC/DC part-identity layer by `HW-BOM-ASSETS-002` / PR #535;
      see Recently uploaded evidence). Blocked on
      `PACKAGE-POWER-400-001` implementation (only the docs-only
      investigation merged as PR #520; the package YAML
@@ -1780,7 +1670,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      YAML exists** under [`products/`](products/) or
      [`products/webflash/`](products/webflash/).
 
-6. **WEBFLASH-POWER-400-001**
+5. **WEBFLASH-POWER-400-001**
    - Status: **Investigated 2026-05-19; merged as PR #522;
      confirmed deferred (Path A docs-only); five preconditions
      still open**. Blocked on `PRODUCT-POWER-400-001`
@@ -1900,7 +1790,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      investigation pass)`. Pairs with WebFlash-side
      `WF-IMPORT-POWER-400-001` — see cross-repo dependencies.
 
-7. **RELEASE-POWER-400-001**
+6. **RELEASE-POWER-400-001**
    - Status: **Investigated 2026-05-19; merged as PR #523;
      confirmed deferred (Path A docs-only); seven preconditions
      still open**. Blocked on `WEBFLASH-POWER-400-001`
@@ -1971,7 +1861,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      creepage / clearance / bench / thermal / EMI evidence
      missing** — the five-component BOM gap that PR #520
      recorded is now **landed under
-     `HW-BOM-ASSETS-002` / PR #XXX** (see Recently uploaded
+     `HW-BOM-ASSETS-002` / PR #535** (see Recently uploaded
      evidence; BOM `PS1 = HLK-5M05` HI-LINK confirmed as
      populated AC/DC converter; `F1 A250-1200` JDTfuse,
      `RV1 10D391K` RUILON, `C1 470nF` WALSON,
@@ -2052,7 +1942,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
      and
      [`docs/cleanup-audit.md` §`WEBFLASH-POWER-400-001 update (2026-05-19 — docs-only investigation pass)`](docs/cleanup-audit.md).
 
-8. **RELEASE-POE-410-001**
+7. **RELEASE-POE-410-001**
     - Status: **Investigated 2026-05-20; merged as PR #532;
       confirmed deferred (Path A docs-only); preconditions still
       open**. Blocked on `WEBFLASH-POE-410-001` implementation
@@ -2064,7 +1954,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       investigation merged as PR #528),
       `PACKAGE-POE-410-001` implementation (only the docs-only
       investigation merged as PR #526; BOM cross-check **landed
-      under `HW-BOM-ASSETS-002` / PR #XXX** at the
+      under `HW-BOM-ASSETS-002` / PR #535** at the
       discrete-topology part-identity layer — the schematic-shown
       `LAN_CON1 RJP-003TC1(LPJ4112CNL)` magnetics / RJ45,
       `U1 TPS2378DDAR(HSOIC-8)` PoE PD controller,
@@ -2167,7 +2057,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       `PRODUCT-POE-410-001` / `PACKAGE-POE-410-001`
       implementation slices have not landed; repo-committed
       BOM evidence has **now landed under
-      `HW-BOM-ASSETS-002` / PR #XXX** (see Recently uploaded
+      `HW-BOM-ASSETS-002` / PR #535** (see Recently uploaded
       evidence; the schematic-shown discrete topology
       `U1 TPS2378DDAR` TI + `U2 TX4138` XDS +
       `DCDC1 F0505S-2WR2` EVISUN + `LAN_CON1 LPJ4112CNL`
@@ -2207,7 +2097,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       implementation, `PRODUCT-POE-410-001` implementation,
       `PACKAGE-POE-410-001` implementation (with the
       BOM-cross-check precondition now landed under
-      `HW-BOM-ASSETS-002` / PR #XXX), the `S360-410`
+      `HW-BOM-ASSETS-002` / PR #535), the `S360-410`
       `schematic_status: verified` JSON PR, the Release-One PoE
       caveat-closure PR, and product-onboarding approval all
       land. If `PRODUCT-POE-410-001` / `WEBFLASH-POE-410-001`
@@ -2223,7 +2113,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       `2026-05-20 — RELEASE-POE-410-001 investigation pass`, and
       [`docs/cleanup-audit.md` §`RELEASE-POE-410-001 update (2026-05-20 — docs-only investigation pass)`](docs/cleanup-audit.md).
 
-9. **PRODUCT-RELAY-001**
+8. **PRODUCT-RELAY-001**
     - Status: Blocked on CORE-ABSTRACT-BUS-001A (relay_pin slice;
       itself blocked on 001C) + PACKAGE-RELAY-001 implementation
     - Purpose: Add the S360-310 Relay product YAML once the Relay package is
@@ -2232,20 +2122,20 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       docs-only deferral) and now further gated by the
       CORE-ABSTRACT-BUS-001A relay_pin slice landing.
 
-10. **WEBFLASH-RELAY-001**
+9. **WEBFLASH-RELAY-001**
     - Status: Blocked on PRODUCT-RELAY-001 (which is itself blocked on
       CORE-ABSTRACT-BUS-001A)
     - Purpose: Add the WebFlash wrapper, compatibility entry, and build
       matrix row for the Relay product.
     - Notes: Pairs with WebFlash-side WF-IMPORT-RELAY-001.
 
-11. **RELEASE-RELAY-001**
+10. **RELEASE-RELAY-001**
     - Status: Blocked on WEBFLASH-RELAY-001 (ultimately on
       CORE-ABSTRACT-BUS-001A)
     - Purpose: Produce the release artifact + release-proof entries for the
       Relay product.
 
-12. **PACKAGE-PWM-001**
+11. **PACKAGE-PWM-001**
     - Status: Blocked on HW-PINMAP-311-FOLLOWUP returning sufficient evidence
     - Purpose: Stand up / re-stand up the S360-311 PWM package wiring once
       the pin/package audit is no longer partial.
@@ -2254,20 +2144,20 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       / `expansion_gpio2` rebind that `fan_pwm.yaml` consumes via
       `${fan_pwm_pin}` / `${fan_tach_pin}`).
 
-13. **PRODUCT-PWM-001**
+12. **PRODUCT-PWM-001**
     - Status: Blocked on PACKAGE-PWM-001
     - Purpose: Add / re-align the S360-311 PWM product YAML.
 
-14. **WEBFLASH-PWM-001**
+13. **WEBFLASH-PWM-001**
     - Status: Blocked on PRODUCT-PWM-001
     - Purpose: WebFlash wrapper, compatibility entry, build matrix row.
     - Notes: Pairs with WebFlash-side WF-IMPORT-PWM-001.
 
-15. **RELEASE-PWM-001**
+14. **RELEASE-PWM-001**
     - Status: Blocked on WEBFLASH-PWM-001
     - Purpose: Release artifact + release-proof entries for the PWM product.
 
-16. **PACKAGE-DAC-001**
+15. **PACKAGE-DAC-001**
     - Status: Blocked on HW-PINMAP-312-FOLLOWUP returning sufficient evidence
     - Purpose: Stand up / re-stand up the S360-312 DAC (GP8403) package
       wiring once the pin/package audit is no longer partial.
@@ -2275,33 +2165,33 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       DAC is I²C-attached, so it consumes whichever bus id 001B
       settles on).
 
-17. **PRODUCT-DAC-001**
+16. **PRODUCT-DAC-001**
     - Status: Blocked on PACKAGE-DAC-001
     - Purpose: Add / re-align the S360-312 DAC product YAML.
 
-18. **WEBFLASH-DAC-001**
+17. **WEBFLASH-DAC-001**
     - Status: Blocked on PRODUCT-DAC-001
     - Purpose: WebFlash wrapper, compatibility entry, build matrix row.
     - Notes: Pairs with WebFlash-side WF-IMPORT-DAC-001.
 
-19. **RELEASE-DAC-001**
+18. **RELEASE-DAC-001**
     - Status: Blocked on WEBFLASH-DAC-001
     - Purpose: Release artifact + release-proof entries for the DAC product.
 
-20. **S360-300-BENCH-001**
+19. **S360-300-BENCH-001**
     - Status: Pending bench evidence
     - Purpose: LED ring bench / verification gate for S360-300.
     - Notes: Blocks the LED stable chain together with the WebFlash-owned
       operator-proof follow-ups.
 
-21. **RELEASE-007**
+20. **RELEASE-007**
     - Status: Planned / promotion of LED stable
     - Purpose: Promote the LED package + product from preview to stable
       once S360-300-BENCH-001 and the WebFlash operator-proof follow-ups
       land.
     - Notes: Subject to preview-to-stable promotion gates.
 
-22. **HW-005 / HW-PINMAP-320-FOLLOWUP**
+21. **HW-005 / HW-PINMAP-320-FOLLOWUP**
     - Status: Open / evidence-pass re-checked (PR #505); audit remains
       partial
     - Purpose: Resolve the S360-320 FanTRIAC pin/package collisions and
@@ -2309,13 +2199,13 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       progress the FanTRIAC chain.
     - Notes: Gating PACKAGE-TRIAC-001 implementation.
 
-23. **COMPLIANCE-001**
+22. **COMPLIANCE-001**
     - Status: Open / not cleared (PR #506 re-checked, no sign-off yet)
     - Purpose: Land the S360-320 mains-voltage advanced / manual-warning
       compliance sign-off.
     - Notes: Gating PRODUCT-TRIAC-002 / FanTRIAC release exposure.
 
-24. **PACKAGE-TRIAC-001**
+23. **PACKAGE-TRIAC-001**
     - Status: Deferred (PR #502 docs-only); blocked on HW-005 /
       HW-PINMAP-320-FOLLOWUP / COMPLIANCE-001
     - Purpose: Implement the FanTRIAC package once the gating HW +
@@ -2323,12 +2213,12 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
     - Notes: `packages/expansions/fan_triac.yaml` retained as-is in the
       meantime.
 
-25. **PRODUCT-TRIAC-002**
+24. **PRODUCT-TRIAC-002**
     - Status: Deferred (PR #501 docs-only); blocked on PACKAGE-TRIAC-001
     - Purpose: Implement the FanTRIAC product YAML once PACKAGE-TRIAC-001
       lands.
 
-26. **WF-TRIAC-001 — In-repo wrapper/catalog/build slice**
+25. **WF-TRIAC-001 — In-repo wrapper/catalog/build slice**
     - Status: Blocked on PRODUCT-TRIAC-002
     - Purpose: Add the in-repo WebFlash wrapper, compatibility entry, and
       build matrix row for the FanTRIAC product. (This is the
@@ -2338,19 +2228,19 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       touches `products/webflash/`, `config/`, and the build matrix in this
       repo.
 
-27. **RELEASE-TRIAC-001**
+26. **RELEASE-TRIAC-001**
     - Status: Blocked on WF-TRIAC-001 and COMPLIANCE-001
     - Purpose: Release artifact + release-proof entries for the FanTRIAC
       product, contingent on compliance sign-off.
 
-28. **PRODUCT-DEP-002**
+27. **PRODUCT-DEP-002**
     - Status: Planned / housekeeping
     - Purpose: Continue dependency / toolchain alignment work (pre-commit
       tooling, ESPHome pin, Python tooling) without changing functional
       behavior.
     - Notes: Must not destabilize Release-One.
 
-29. **CI-TOOLCHAIN-001**
+28. **CI-TOOLCHAIN-001**
     - Status: Planned / housekeeping
     - Purpose: CI toolchain alignment follow-ups (workflow images, action
       versions, ESPHome version pinning consistency).
@@ -2436,7 +2326,7 @@ visible. Do not implement them from this repo.
   [`docs/hardware/artifacts/S360-100-R4.md`](docs/hardware/artifacts/S360-100-R4.md)
   Checksums section.
 - **S360-400-R4 BOM** — ingested by **HW-BOM-ASSETS-002**
-  (PR #XXX) as `95878198-S360400R4_BOM.xlsx` (10,987 bytes;
+  (PR #535) as `95878198-S360400R4_BOM.xlsx` (10,987 bytes;
   SHA256
   `bb59f56da11fe83f83b2547322af4e594b658384ade9f06267af367ffb603a1d`).
   **Retained-but-not-committed** under the current
@@ -2481,7 +2371,7 @@ visible. Do not implement them from this repo.
   `WEBFLASH-POWER-400-001` / `RELEASE-POWER-400-001` /
   `WF-IMPORT-POWER-400-001` implementation slice.
 - **S360-410-R4 BOM and PDF re-upload (byte-identical)** —
-  ingested by **HW-BOM-ASSETS-002** (PR #XXX) as
+  ingested by **HW-BOM-ASSETS-002** (PR #535) as
   `0de7679d-S360410R4_BOM.xlsx` (11,980 bytes; SHA256
   `b5f4bad842a930de03cd47327f477c21afcb82e4533a9d8be38b54990b38f285`).
   **Retained-but-not-committed**; inventoried (filename, size,
@@ -2542,7 +2432,7 @@ visible. Do not implement them from this repo.
   BOM `.xlsx` files (for `S360-211`, `S360-300`, `S360-310`,
   `S360-311`, `S360-312` (Fan_GP8403), `S360-320`, `S360-400`,
   and `S360-410`) were owed to a later `HW-BOM-ASSETS`
-  follow-up PR. **`HW-BOM-ASSETS-002` / PR #XXX (above)
+  follow-up PR. **`HW-BOM-ASSETS-002` / PR #535 (above)
   ingests two of the eight (`S360-400` and `S360-410`).** Until
   the next `HW-BOM-ASSETS` follow-up lands, the per-board
   `BOM missing` / `BOM cross-check missing` blocker wording
