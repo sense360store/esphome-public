@@ -148,8 +148,8 @@ evidence (file paths and line numbers) for every cell.
 | Board | Friendly name / role | Hardware catalog | Schematic PDF | Artifact index | Pin-map status | Package YAML status |
 |---|---|---|---|---|---|---|
 | `S360-100` | Sense360 Core (ESP32-S3 hub) | `verified` | `done` | `done` (HW-ASSETS-002) | `documented` (with open-questions list) | `confirmed-ok` against connector-level; systemic abstract-bus rebind owed by [`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups) |
-| `S360-200` | Sense360 RoomIQ (room sensor) | `verified` | `done` | `missing` (HW-ASSETS-003 deferred) | `documented` | `confirmed-ok` (abstract `expansion_i2c` / `uart_bus`) |
-| `S360-210` | Sense360 AirIQ (air-quality, ceiling) | `verified` | `done` | `missing` (HW-ASSETS-004 deferred) | `documented`, `not-needed-for-release-one` | `confirmed-ok` (legacy-naming caveat) |
+| `S360-200` | Sense360 RoomIQ (room sensor) | `verified` | `done` | `done` (HW-BOM-ASSETS-001 partial — BOM-only ingest at [`docs/hardware/artifacts/S360-200-R4.md`](artifacts/S360-200-R4.md); BOM retained-but-not-committed per [`hardware-artifact-policy.md`](hardware-artifact-policy.md); no CPL / gerbers / STEP / KiCad source committed) | `documented` | `confirmed-ok` (abstract `expansion_i2c` / `uart_bus`) |
+| `S360-210` | Sense360 AirIQ (air-quality, ceiling) | `verified` | `done` | `done` (HW-BOM-ASSETS-001 partial — BOM-only ingest at [`docs/hardware/artifacts/S360-210-R4.md`](artifacts/S360-210-R4.md); BOM retained-but-not-committed per [`hardware-artifact-policy.md`](hardware-artifact-policy.md); no CPL / gerbers / STEP / KiCad source committed) | `documented`, `not-needed-for-release-one` | `confirmed-ok` (legacy-naming caveat) |
 | `S360-211` | Sense360 VentIQ (bathroom air-quality) | `verified` | `done` | `missing` (HW-ASSETS-005 deferred) | `documented` | `confirmed-ok` (legacy filename `airiq_bathroom_base.yaml` retained per [`webflash-contract.md`](../webflash-contract.md) §6) |
 | `S360-300` | Sense360 LED (WS2812B ring) | `verified` | `done` | `missing` (HW-ASSETS-006 deferred) | `documented`, `not-needed-for-release-one` | `confirmed-ok` for `led_ring_ceiling.yaml` (HW-010); `led_ring_wall.yaml` and `sense360_core_ceiling_s3.yaml` remain unresolved |
 | `S360-310` | Sense360 Relay (on/off relay for fans) | `cataloged_unverified` | `done` (HW-ASSETS-310; JSON `schematic_status` still `cataloged_unverified`, `schematic_file` not yet set) | `done` (HW-ASSETS-310 artifact index at [`docs/hardware/artifacts/S360-310-R4.md`](artifacts/S360-310-R4.md)); HW-PINMAP-310 audit doc at [`s360-310-r4-relay.md`](s360-310-r4-relay.md) **status promoted by HW-PINMAP-310-FOLLOWUP**: `partial — schematic evidence available; package reconciliation pending` (module schematic consumed; logical module-`J2` ↔ Core-`J4` net match recorded; silkscreen / harness / BOM / Core abstract-bus rebind still owed) | `partially-documented`, `not-needed-for-release-one` (Core J4 captured; module-side schematic committed under HW-ASSETS-310 at [`schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf); HW-PINMAP-310-FOLLOWUP has consumed the schematic and recorded schematic-backed module/Core logical alignment in [`s360-310-r4-relay.md`](s360-310-r4-relay.md)) | `package-yaml-pending` / `needs-package-reconciliation` ([`fan_relay.yaml`](../../packages/expansions/fan_relay.yaml) exists; `IO3` vs `GPIO4` vs `GPIO10` `relay_pin` disagreement unresolved — see [`s360-310-r4-relay.md` Reconciliation findings](s360-310-r4-relay.md#reconciliation-findings); resolution owned by `CORE-ABSTRACT-BUS-001`, not by HW-PINMAP-310) |
@@ -238,7 +238,16 @@ rather than restate them.
   lines 18–27; `schematic_status: verified` under HW-008. PDF at
   [`schematics/S360-200-R4.pdf`](schematics/S360-200-R4.pdf). Standalone
   reference at [`s360-200-r4-roomiq.md`](s360-200-r4-roomiq.md). Curated
-  artifact index deferred (HW-ASSETS-003 conditional).
+  artifact index landed under **HW-BOM-ASSETS-001** (partial BOM ingest)
+  at [`docs/hardware/artifacts/S360-200-R4.md`](artifacts/S360-200-R4.md);
+  the index records the BOM-only evidence (file size + SHA256 +
+  component summary) for `b35d4654-S360200R4_BOM.xlsx` (11,177 bytes;
+  SHA256 `8b9da0fc669091b6015b6af09408edf1e5dc90a4e0aaf8557047c28e9a7e4ae2`).
+  Per the current
+  [`hardware-artifact-policy.md`](hardware-artifact-policy.md)
+  per-board decision the BOM `.xlsx` is **retained-but-not-committed**;
+  no CPL / KiCad source / gerbers / STEP / board images accompanied
+  this BOM upload.
 - **Package YAML.** [`packages/expansions/comfort_ceiling.yaml`](../../packages/expansions/comfort_ceiling.yaml)
   + [`packages/expansions/presence_ceiling.yaml`](../../packages/expansions/presence_ceiling.yaml).
   Both target the abstract `expansion_i2c` bus and `uart_bus`; HW-009
@@ -261,7 +270,23 @@ rather than restate them.
   lines 29–38; `schematic_status: verified` under HW-008. PDF at
   [`schematics/S360-210-R4.pdf`](schematics/S360-210-R4.pdf). Standalone
   reference at [`s360-210-r4-airiq.md`](s360-210-r4-airiq.md). Curated
-  artifact index deferred (HW-ASSETS-004 conditional).
+  artifact index landed under **HW-BOM-ASSETS-001** (partial BOM ingest)
+  at [`docs/hardware/artifacts/S360-210-R4.md`](artifacts/S360-210-R4.md);
+  the index records the BOM-only evidence (file size + SHA256 +
+  component summary) for `c551e467-S360210R4_BOM.xlsx` (11,966 bytes;
+  SHA256 `0b3dc2f73d6f71234170b4f0d0b95cd3231ca93218b80cc1d81e0e013477dd23`).
+  Per the current
+  [`hardware-artifact-policy.md`](hardware-artifact-policy.md)
+  per-board decision the BOM `.xlsx` is **retained-but-not-committed**;
+  no CPL / KiCad source / gerbers / STEP / board images accompanied
+  this BOM upload. The BOM also surfaced two **BOM-vs-doc**
+  reconciliation candidates owed to a follow-up:
+  `U2 = SFA40-D-Rx` populated on-board (the standalone reference
+  doc describes `SFA40` as a connector); and `U6 = LMV358B-SR`
+  op-amp not enumerated in the standalone reference doc. Neither
+  flip unblocks any productisation work — AirIQ stays
+  `hardware-evidenced / firmware-missing` with no active product
+  consumer and the `airiq ↔ ventiq` mutex preserved.
 - **Package YAML.** [`packages/expansions/airiq_ceiling.yaml`](../../packages/expansions/airiq_ceiling.yaml),
   [`packages/expansions/airiq.yaml`](../../packages/expansions/airiq.yaml),
   and the related `airiq_*` family. HW-009 `confirmed-ok` with the

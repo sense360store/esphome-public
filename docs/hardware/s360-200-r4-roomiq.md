@@ -316,7 +316,41 @@ No claim is made here that any of those files are currently pin-correct for
   `verified`, `schematic_file` is `S360-200-R4.pdf`).
 - [S360-100-R4 Core Hardware Reference](./s360-100-r4-core.md) — the mating
   Sense360 Core board; `J10` on the Core mates with `J6` on this board.
+- [S360-200-R4 Hardware Artifact Index](artifacts/S360-200-R4.md) — the
+  curated per-board artifact index. Records the BOM evidence delivered
+  under HW-BOM-ASSETS-001 (`S360-200-R4_BOM.xlsx`,
+  retained-but-not-committed) plus its size + SHA256 + component
+  summary. **Does not** by itself resolve the Core J10 vs RoomIQ J6
+  pin-order discrepancy or any item in
+  [Open questions](#open-questions--verification-needed).
 - [Release-One Configuration](../release-one.md) — the
   Ceiling-POE-VentIQ-FanTRIAC-RoomIQ shipping configuration that consumes the
   RoomIQ board.
+
+## Audit log
+
+### 2026-05-20 — HW-BOM-ASSETS-001 partial BOM ingest
+
+The HW-BOM-ASSETS-001 partial BOM batch landed the S360-200-R4
+BOM evidence at
+[`artifacts/S360-200-R4.md`](artifacts/S360-200-R4.md)
+(`b35d4654-S360200R4_BOM.xlsx`; 11,177 bytes; SHA256
+`8b9da0fc669091b6015b6af09408edf1e5dc90a4e0aaf8557047c28e9a7e4ae2`).
+The BOM confirms the on-board sensor identities described in
+[Main components](#main-components) (`LTR-303ALS-01`,
+`SHT45-AD1B-R3`, `EKMC1601111`, `BMP581`) and the 12-pin JST SH
+`SM12B-SRSS-TB` identity of `J6`. The BOM `.xlsx` itself is
+**retained-but-not-committed** per the current
+[Hardware Artifact Policy](hardware-artifact-policy.md). The
+Core J10 vs RoomIQ J6 pin-order discrepancy, the `JP1`
+jumper-vs-BOM gap, the `R1` / `R2` / `R4` exact-role `verify`
+flags, and the `AirQ_Led` reuse question remain
+**unchanged** by this PR — see
+[`artifacts/S360-200-R4.md` Open questions](artifacts/S360-200-R4.md#open-questions--verification-needed).
+
+This PR does **not**: change `schematic_status`; set
+`schematic_file`; edit `comfort_ceiling.yaml`,
+`presence_ceiling.yaml`, or any other package YAML; edit any
+product YAML or WebFlash wrapper; promote any Release-One
+shipping artefact; or commit the BOM `.xlsx`.
 - [Repository README](../../README.md) — entry point and documentation index.

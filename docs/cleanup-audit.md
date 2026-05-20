@@ -10248,3 +10248,263 @@ build-matrix row edit. Until then, the next audit-log entry
 should report the same `WEBFLASH-POE-410-001 investigation
 pass — preconditions still open` outcome with the new
 inspection date.
+
+## HW-BOM-ASSETS-001 update (2026-05-20 — partial BOM evidence ingest, record-only)
+
+`HW-BOM-ASSETS-001` is a **partial-batch**, **record-only**
+BOM-evidence ingest. The task environment uploaded BOM `.xlsx`
+files and re-uploaded schematic PDFs for ten Sense360 boards
+across the multi-batch upload. This PR scopes the ingest to
+**only the boards whose blocker state is updated** by the BOM
+landing, deferring the remaining boards to a later
+`HW-BOM-ASSETS` follow-up.
+
+### Scope of this PR
+
+**Updated by this PR:**
+
+- `S360-200` — new artifact index at
+  [`docs/hardware/artifacts/S360-200-R4.md`](hardware/artifacts/S360-200-R4.md)
+  records the BOM evidence (`b35d4654-S360200R4_BOM.xlsx`,
+  11,177 bytes, SHA256
+  `8b9da0fc669091b6015b6af09408edf1e5dc90a4e0aaf8557047c28e9a7e4ae2`)
+  plus its component summary; the `Artifact index` cell in
+  [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+  flips from `missing (HW-ASSETS-003 deferred)` to `done
+  (HW-BOM-ASSETS-001 partial)`. The standalone reference doc
+  [`docs/hardware/s360-200-r4-roomiq.md`](hardware/s360-200-r4-roomiq.md)
+  receives a `2026-05-20 — HW-BOM-ASSETS-001 partial BOM ingest`
+  audit-log entry and a cross-link to the new index.
+- `S360-210` — new artifact index at
+  [`docs/hardware/artifacts/S360-210-R4.md`](hardware/artifacts/S360-210-R4.md)
+  records the BOM evidence (`c551e467-S360210R4_BOM.xlsx`,
+  11,966 bytes, SHA256
+  `0b3dc2f73d6f71234170b4f0d0b95cd3231ca93218b80cc1d81e0e013477dd23`)
+  plus its component summary plus two BOM-vs-doc reconciliation
+  candidates (`U2 = SFA40-D-Rx` on-board vs the standalone
+  reference doc's connector-only description, and the
+  `U6 = LMV358B-SR` op-amp not enumerated in the standalone
+  reference doc). The `Artifact index` cell in
+  [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+  flips from `missing (HW-ASSETS-004 deferred)` to `done
+  (HW-BOM-ASSETS-001 partial)`. The standalone reference doc
+  [`docs/hardware/s360-210-r4-airiq.md`](hardware/s360-210-r4-airiq.md)
+  receives a `2026-05-20 — HW-BOM-ASSETS-001 partial BOM ingest`
+  audit-log entry and a cross-link to the new index.
+- `S360-100` — byte-identical re-upload confirmation only. The
+  HW-BOM-ASSETS-001 upload contained
+  `f5e98864-S360100R4.pdf` (849,828 bytes; SHA256
+  `173a60792703923c69639772c4e23531faedf8a88e5147656d133a6317acf435`,
+  identical to the already-committed PDF) and
+  `df6da128-S360100R4_BOM.xlsx` (12,543 bytes; SHA256
+  `e289f135a2c88dd747689c70075e2f1cf49906f4bda8b4c4abad67d0dad961fc`,
+  identical to the BOM already inventoried under HW-ASSETS-002).
+  A `2026-05-20 — HW-BOM-ASSETS-001 byte-identical re-upload
+  confirmation` subsection is added to the existing
+  [`docs/hardware/artifacts/S360-100-R4.md`](hardware/artifacts/S360-100-R4.md)
+  Checksums section. **No new S360-100 evidence is added by this
+  PR.** S360-100-BENCH-001 stays `pending —
+  bench/manufacturing evidence required`; HW-002 Open Questions
+  stay open.
+
+**Explicitly deferred by this PR (broader batch is partial):**
+
+The remaining BOMs were also present in the multi-batch upload
+but are **not** ingested by this PR. Their blocker wording in
+[`UPCOMING_PR.md`](../UPCOMING_PR.md) and in the per-board
+audit docs is **unchanged**:
+
+- `S360-211` BOM (Sense360 VentIQ) — not ingested. `S360-211`
+  blocker wording in the active queue stays as recorded.
+- `S360-300` BOM (Sense360 LED) — not ingested. LED preview →
+  stable promotion gates per
+  [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
+  rows 9–17 and `S360-300-BENCH-001` are **unchanged**; no LED
+  stable claim is made.
+- `S360-310` BOM (Sense360 Relay, including K1 identity) —
+  not ingested. `PACKAGE-RELAY-001` stays blocked behind
+  `CORE-ABSTRACT-BUS-001A` (itself blocked on `001C`),
+  silkscreen / harness / `K1` BOM evidence, and the
+  test-scaffolding gate. K1 identity gate is **not** flipped
+  by this PR.
+- `S360-311` BOM (Sense360 PWM) — not ingested.
+  `PACKAGE-PWM-001` stays blocked behind
+  `HW-PINMAP-311-FOLLOWUP` evidence, `CORE-ABSTRACT-BUS-001B`,
+  and `CORE-ABSTRACT-BUS-001C`.
+- `S360-312` `Fan_GP8403` BOM (Sense360 DAC) — not ingested.
+  `PACKAGE-DAC-001` stays blocked behind
+  `HW-PINMAP-312-FOLLOWUP` evidence and
+  `CORE-ABSTRACT-BUS-001B`.
+- `S360-320` BOM (Sense360 TRIAC) — not ingested.
+  `PACKAGE-TRIAC-001` stays blocked behind `HW-005` /
+  `HW-PINMAP-320-FOLLOWUP` / `COMPLIANCE-001`. No mains
+  compliance claim is made.
+- `S360-400` BOM (HLK-5M05) — not ingested.
+  `PACKAGE-POWER-400-001` stays blocked behind its five
+  documented preconditions including the BOM cross-check; the
+  three-way `HLK-5M05` (catalog) vs `HLK-PM01 or similar`
+  (package header) vs `HLK-10M05` (schematic label) AC/DC
+  part-identity disagreement stays **unresolved and
+  BOM-bound** in this PR.
+- `S360-410` BOM (discrete PoE topology) — not ingested.
+  `PACKAGE-POE-410-001` stays blocked behind its five
+  documented preconditions including the BOM cross-check; the
+  package-header `Ag9712M / Silvertel Ag9700 / or similar`
+  vs schematic-shown discrete `TPS2378DDAR / TX4138 /
+  F0505S-2WR2 / RJP-003TC1(LPJ4112CNL)` topology
+  part-identity disagreement stays **unresolved and
+  BOM-bound** in this PR. The Release-One PoE "schematic
+  verification pending" caveat in
+  [`docs/release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings)
+  is **preserved verbatim**.
+
+A later **`HW-BOM-ASSETS` follow-up** PR is owed to ingest the
+remaining eight BOMs above and update their blockers.
+
+### Policy posture
+
+This PR follows the existing
+[Hardware Artifact Policy](hardware/hardware-artifact-policy.md)
+(HW-ASSETS-001) **without changing the policy**:
+
+- BOM `.xlsx` files stay **retained-but-not-committed** under
+  the current per-board decision. Filename, size, and SHA256
+  are recorded in each artifact index; the `.xlsx` itself is
+  not added to `git`.
+- No `docs/hardware/bom/` directory is created.
+- No `.gitignore` / `.gitattributes` / `.pre-commit-config.yaml`
+  change.
+- No Git LFS introduction.
+- The
+  [Hardware Artifact Policy](hardware/hardware-artifact-policy.md)
+  document is **not edited** by this PR.
+
+### Files this PR touches
+
+Only the following files are touched:
+
+- [`docs/hardware/artifacts/S360-200-R4.md`](hardware/artifacts/S360-200-R4.md)
+  — **new file.** Curated artifact index for the Sense360
+  RoomIQ board.
+- [`docs/hardware/artifacts/S360-210-R4.md`](hardware/artifacts/S360-210-R4.md)
+  — **new file.** Curated artifact index for the Sense360
+  AirIQ board.
+- [`docs/hardware/artifacts/S360-100-R4.md`](hardware/artifacts/S360-100-R4.md)
+  — adds a `2026-05-20 — HW-BOM-ASSETS-001 byte-identical
+  re-upload confirmation` subsection inside the existing
+  Checksums section, and updates the Follow-up PRs table to
+  point at HW-BOM-ASSETS-001 with the partial-batch note.
+- [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
+  — flips the `Artifact index` cells for `S360-200` and
+  `S360-210` from `missing` to `done`, and expands the
+  per-board notes for both boards.
+- [`docs/hardware/s360-200-r4-roomiq.md`](hardware/s360-200-r4-roomiq.md)
+  — adds a See-also cross-link to the new artifact index and a
+  `2026-05-20 — HW-BOM-ASSETS-001 partial BOM ingest` audit-log
+  entry.
+- [`docs/hardware/s360-210-r4-airiq.md`](hardware/s360-210-r4-airiq.md)
+  — adds a See-also cross-link to the new artifact index and a
+  `2026-05-20 — HW-BOM-ASSETS-001 partial BOM ingest` audit-log
+  entry.
+- [`docs/cleanup-audit.md`](cleanup-audit.md) — this section.
+- [`UPCOMING_PR.md`](../UPCOMING_PR.md) — adds the
+  `HW-BOM-ASSETS-001` active-queue entry; adds the
+  `CLEANUP-POE-410-003 / PR #531` row to the
+  Completed / merged PRs table (previously missing); updates
+  the Current queue summary to record the partial-batch
+  ingest; adds a `Recently uploaded evidence` entry for the
+  S360-200 and S360-210 BOMs and the byte-identical S360-100
+  re-upload.
+
+### What this PR does NOT change
+
+- No `config/**` file is edited. No `schematic_status`
+  promotion. No `schematic_file` set. No lifecycle status
+  change. No `webflash_build_matrix` flip. No `artifact_name`,
+  no `webflash_wrapper`, no `config_string`. No
+  `release_one_required_configs` / `lifecycle_statuses` /
+  `canonical_modules` / `canonical_power` / `forbidden_tokens`
+  / `REQUIRED_CONFIGS` / kit change. No
+  `rules.airiq_and_ventiq_mutually_exclusive` change.
+- No `packages/**` edit. `power_240v.yaml` / `power_poe.yaml`
+  / `comfort_ceiling.yaml` / `presence_ceiling.yaml` /
+  `airiq_*.yaml` / `fan_*.yaml` all stay byte-identical.
+- No `products/**` edit. No `products/webflash/**` edit. No
+  new product YAML. No new WebFlash wrapper.
+- No `tests/**` edit. No `scripts/**` edit. No
+  `.github/workflows/**` edit. No `components/**` edit. No
+  `include/**` edit. No `firmware/**` edit. No
+  `manifest.json` edit. No `firmware/sources.json` edit.
+- No `docs/hardware/bom/` directory created. No `.xlsx`
+  file added to `git`.
+- No `hardware-artifact-policy.md` edit.
+- No `release-one-hardware-audit.md` edit. The Release-One PoE
+  "schematic verification pending" caveat is **preserved
+  verbatim**.
+- No `release-one.md`, `preview-to-stable-promotion-gates.md`,
+  `product-readiness-matrix.md`, `webflash-exposure-readiness-matrix.md`,
+  `release-artifact-readiness-matrix.md`,
+  `firmware-package-mapping-audit.md`,
+  `package-readiness-matrix.md`,
+  `remaining-board-documentation-audit.md`, or per-board
+  reference doc for `S360-100`, `S360-211`, `S360-300`,
+  `S360-310`, `S360-311`, `S360-312`, `S360-320`, `S360-400`,
+  or `S360-410` edit (S360-100 artifact index gets a checksum
+  re-upload subsection only; the standalone S360-100 reference
+  doc itself is unchanged).
+- No `schematic_status` flip for any board (S360-200 and
+  S360-210 were already `verified` under HW-008). No
+  `schematic_file` change.
+- No COMPLIANCE-001 movement. No mains-voltage UK / EU
+  sign-off. No claim that any mains-voltage or PoE compliance
+  evidence exists.
+- No Release-One change (`Ceiling-POE-VentIQ-RoomIQ` stays
+  `status: production`, `channel: stable`, artifact
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, tag
+  `v1.0.0`). No LED preview change
+  (`Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview`,
+  `channel: preview`). No FanTRIAC change (stays `blocked`
+  under HW-005, `webflash_build_matrix: false`).
+- No advancement of `PACKAGE-POWER-400-001` /
+  `PRODUCT-POWER-400-001` / `WEBFLASH-POWER-400-001` /
+  `RELEASE-POWER-400-001` / `WF-IMPORT-POWER-400-001`.
+- No advancement of `PACKAGE-POE-410-001` /
+  `PRODUCT-POE-410-001` / `WEBFLASH-POE-410-001` /
+  `RELEASE-POE-410-001` / `WF-IMPORT-POE-410-001`. The
+  Release-One PoE caveat stays preserved.
+- No advancement of `PACKAGE-RELAY-001` / `PRODUCT-RELAY-001`
+  / `WEBFLASH-RELAY-001` / `RELEASE-RELAY-001` /
+  `WF-IMPORT-RELAY-001`.
+- No advancement of `PACKAGE-PWM-001` / `PRODUCT-PWM-001` /
+  `WEBFLASH-PWM-001` / `RELEASE-PWM-001`.
+- No advancement of `PACKAGE-DAC-001` / `PRODUCT-DAC-001` /
+  `WEBFLASH-DAC-001` / `RELEASE-DAC-001`.
+- No advancement of `PACKAGE-TRIAC-001` / `PRODUCT-TRIAC-002`
+  / `WF-TRIAC-001` / `RELEASE-TRIAC-001` /
+  `WF-IMPORT-TRIAC-001`.
+- No advancement of `CORE-ABSTRACT-BUS-001A`,
+  `CORE-ABSTRACT-BUS-001B`, or `CORE-ABSTRACT-BUS-001C`.
+- No closure of `S360-100-BENCH-001`, `S360-300-BENCH-001`,
+  `HW-PINMAP-311-FOLLOWUP`, `HW-PINMAP-312-FOLLOWUP`,
+  `HW-PINMAP-320-FOLLOWUP`, `HW-PINMAP-400-FOLLOWUP`,
+  `HW-PINMAP-410-FOLLOWUP`, `HW-002` Open Questions,
+  `COMPLIANCE-001`, or `HW-005`.
+
+### Next HW-BOM-ASSETS trigger
+
+The next `HW-BOM-ASSETS` audit-log entry should appear when:
+
+1. The remaining BOMs (`S360-211`, `S360-300`, `S360-310`,
+   `S360-311`, `S360-312`, `S360-320`, `S360-400`,
+   `S360-410`) are ingested as a follow-up partial or full
+   batch; or
+2. The retained-but-not-committed BOM `.xlsx` storage
+   decision changes (would require a separate policy PR
+   amending
+   [Hardware Artifact Policy](hardware/hardware-artifact-policy.md)
+   §Future storage decision before BOMs may be committed
+   directly).
+
+Until then, the per-board `BOM missing` / `BOM cross-check
+missing` blocker wording for the eight deferred boards
+remains the explicit, honest gate.
