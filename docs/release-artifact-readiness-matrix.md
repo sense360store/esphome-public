@@ -1175,6 +1175,48 @@ cross-recorded at
 [`cleanup-audit.md` §`RELEASE-POWER-400-001 update (2026-05-19 — docs-only investigation pass)`](cleanup-audit.md#release-power-400-001-update-2026-05-19--docs-only-investigation-pass)
 and this matrix §Follow-up PR sequence row at line 1502.
 
+**2026-05-20 — `PACKAGE-POWER-400-001` package-header cleanup
+(Path B / limited implementation).** Following the
+`HW-BOM-ASSETS-002` / PR #535 BOM-confirmation of
+`PS1 = HLK-5M05` (HI-LINK), the comment-only header cleanup of
+[`packages/hardware/power_240v.yaml`](../packages/hardware/power_240v.yaml)
+that PR #515 and PR #520 deferred has now landed under Path B:
+the disproved `HLK-PM01 or similar` claim is removed, the
+BOM-confirmed part identity (`PS1 = HLK-5M05 (HI-LINK)`) and
+BOM-confirmed populated protection / connector components
+(`F1 A250-1200`, `RV1 10D391K`, `C1 470nF`, `J1` WAGO 2601-3103,
+`J2` JST SH `SM02B-SRSS-TB(LF)(SN)`) are now named in the header,
+input / output / isolation / protection ratings are reclassified
+as vendor-datasheet typicals (not BOM-confirmed and not
+compliance evidence), the misleading `1A recommended` AC-input
+fusing line is removed, and the header restates that
+mains-voltage UK / EU compliance is tracked by COMPLIANCE-001
+and remains OPEN. Runtime YAML behavior is unchanged
+(substitutions / globals / sensors / binary_sensor / logger
+blocks preserved byte-for-byte). `RELEASE-POWER-400-001`
+posture is unchanged — the release-artifact slice **stays
+blocked** (`not-release-ready`) on `WEBFLASH-POWER-400-001`
+implementation, on COMPLIANCE-001 `S360-400` slice closure,
+and on the eight release-time sub-gates; the residual
+coordinated `PACKAGE-POWER-400-001` work (the `S360-400`
+`schematic_status: verified` JSON-only PR, additionally gated
+on the schematic-side correction of the committed PDF's
+`PS1 = HLK-10M05` value-field string) is still owed. No
+release artifact built; no GitHub Release / tag; no
+`firmware/**`, `manifest.json`, or `firmware/sources.json` edit;
+no `webflash_build_matrix: true` flip; no `artifact_name` added;
+no `release_one_required_configs` / `lifecycle_statuses` /
+`canonical_modules` / `canonical_power` / `forbidden_tokens` /
+kit / `REQUIRED_CONFIGS` change. Release-One stays
+`Ceiling-POE-VentIQ-RoomIQ` / `stable` / `v1.0.0`; LED preview
+stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC
+stays `blocked` / `HW-005`. Outcome cross-recorded at
+[`docs/hardware/s360-400-r4-power.md` §2026-05-20 — PACKAGE-POWER-400-001 package-header cleanup](hardware/s360-400-r4-power.md#2026-05-20--package-power-400-001-package-header-cleanup-bom-confirmed-part-identity-in-header-ratings-softened-downstream-slices-still-blocked),
+[`docs/hardware/package-readiness-matrix.md` `power_240v.yaml` / S360-400](hardware/package-readiness-matrix.md#power_240vyaml--s360-400),
+[`docs/cleanup-audit.md` §`PACKAGE-POWER-400-001 update (2026-05-20 — Path B package-header cleanup)`](cleanup-audit.md#package-power-400-001-update-2026-05-20--path-b-package-header-cleanup),
+and
+[`webflash-exposure-readiness-matrix.md` §Power / S360-400 WebFlash posture](webflash-exposure-readiness-matrix.md#power--s360-400-webflash-posture).
+
 ## PoE / S360-410 release posture
 
 **Current state.** No new PoE-410-explicit product YAML; no new

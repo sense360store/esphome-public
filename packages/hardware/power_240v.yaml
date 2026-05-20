@@ -2,18 +2,34 @@
 #
 # This package configures the Sense360 Core board for 240V AC mains power.
 #
-# Hardware:
-# - Onboard AC-DC converter (HLK-PM01 or similar)
-# - Input: 100-240V AC, 50/60Hz
-# - Output: 5V DC, 2A (10W)
-# - Isolation: 3000VAC
-# - Protection: Overcurrent, overvoltage, short-circuit
+# Hardware (BOM-confirmed at the part-identity layer):
+# - Onboard AC-DC converter: PS1 = HLK-5M05 (HI-LINK)
+# - Mains input via J1 WAGO 2601-3103 1x3 terminal block
+#   (LIVE / NEUTRAL / Earth_Protective)
+# - Mains-side protection populated on the module:
+#     F1 polyfuse  = A250-1200
+#     RV1 MOV      = 10D391K
+#     C1 X-cap     = 470nF
+# - Output to Core via J2 JST SH SM02B-SRSS-TB(LF)(SN) 1x2 (+5VP / GND)
+#
+# Vendor-datasheet typicals (NOT BOM-confirmed and NOT compliance evidence):
+# - Input:      100-240V AC, 50/60Hz
+# - Output:     5V DC, 2A (10W)
+# - Isolation:  3000VAC
+# - Protection: overcurrent / overvoltage / short-circuit (vendor claim)
+# Per-component voltage / energy / safety-class ratings (F1 hold/trip/voltage;
+# RV1 clamp/energy; C1 X-cap class X1/X2; C5..C8 voltage/dielectric/ESR)
+# remain vendor-datasheet, silkscreen, bench, and EMI / EMC evidence and
+# are not asserted by this package.
 #
 # Safety Notes:
-# - This configuration assumes proper electrical isolation
-# - Ensure device enclosure meets electrical safety standards
-# - AC input should have appropriate fusing (1A recommended)
-# - Follow local electrical codes and regulations
+# - This package binds no GPIOs and emits diagnostic-only template sensors.
+# - Mains-voltage UK / EU compliance is tracked by COMPLIANCE-001 at
+#   docs/compliance/mains-voltage-uk-eu-assessment.md and remains OPEN.
+#   No CE / UKCA / FCC / UL / LVD / EMC / RoHS / IEC claim is made here.
+# - On-board mains-side fault protection is the populated F1 A250-1200
+#   polyfuse plus RV1 / C1; ensure device enclosure meets electrical
+#   safety standards and follow local electrical codes and regulations.
 #
 # Power Monitoring:
 # - Optional current sensor (e.g., ACS712) for power consumption monitoring
