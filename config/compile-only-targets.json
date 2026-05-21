@@ -20,7 +20,7 @@
     "compile-only"
   ],
   "totals": {
-    "targets": 2
+    "targets": 7
   },
   "targets": [
     {
@@ -46,6 +46,61 @@
       "webflash_exposure_allowed_now": true,
       "blocked": false,
       "notes": "Preview-only product (config/product-catalog.json status=preview, channel=preview, webflash_build_matrix=true). This compile-only target does NOT promote the LED preview to stable, change the committed build entry, or claim hardware proof exists."
+    },
+    {
+      "id": "ceiling-poe-compile-only",
+      "product_yaml": "products/compile-only/ceiling-poe.yaml",
+      "config_string": "Ceiling-POE",
+      "reason": "POE non-fan compile-confidence target (FW-COMPILE-POE-NONFAN-001). Validates the minimum Core ceiling + PoE PSU + base + health package composition that the WebFlash-shipping Release-One build already proves compiles. Compile success is not WebFlash exposure, not a release artifact, not S360-410 schematic verification, not Release-One PoE caveat closure, and not product-catalog / stable / preview promotion.",
+      "shipment_status": "compile-only",
+      "hardware_required_for_validation": true,
+      "webflash_exposure_allowed_now": false,
+      "blocked": false,
+      "notes": "Skeleton lives under products/compile-only/ so the top-level product-catalog enumeration gate at tests/test_product_catalog.py::_top_level_product_yamls does not require a config/product-catalog.json entry. No webflash_wrapper, no artifact_name, no entry in config/webflash-builds.json."
+    },
+    {
+      "id": "ceiling-poe-roomiq-compile-only",
+      "product_yaml": "products/compile-only/ceiling-poe-roomiq.yaml",
+      "config_string": "Ceiling-POE-RoomIQ",
+      "reason": "POE non-fan compile-confidence target (FW-COMPILE-POE-NONFAN-001). Validates the Core ceiling + PoE PSU + RoomIQ (comfort_ceiling + presence_ceiling) package composition stripped of VentIQ. Same RoomIQ subset that the WebFlash-shipping Release-One build already exercises. Compile success is not WebFlash exposure, not a release artifact, and not product-catalog / stable / preview promotion.",
+      "shipment_status": "compile-only",
+      "hardware_required_for_validation": true,
+      "webflash_exposure_allowed_now": false,
+      "blocked": false,
+      "notes": "Skeleton lives under products/compile-only/ so the top-level product-catalog enumeration gate does not require a config/product-catalog.json entry. No webflash_wrapper, no artifact_name, no entry in config/webflash-builds.json."
+    },
+    {
+      "id": "ceiling-poe-ventiq-compile-only",
+      "product_yaml": "products/compile-only/ceiling-poe-ventiq.yaml",
+      "config_string": "Ceiling-POE-VentIQ",
+      "reason": "POE non-fan compile-confidence target (FW-COMPILE-POE-NONFAN-001). Validates the Core ceiling + PoE PSU + VentIQ (airiq_bathroom_base + bathroom_profile) package composition stripped of RoomIQ. Same VentIQ subset that the WebFlash-shipping Release-One build already exercises. Compile success is not WebFlash exposure, not a release artifact, and not product-catalog / stable / preview promotion.",
+      "shipment_status": "compile-only",
+      "hardware_required_for_validation": true,
+      "webflash_exposure_allowed_now": false,
+      "blocked": false,
+      "notes": "Skeleton lives under products/compile-only/ so the top-level product-catalog enumeration gate does not require a config/product-catalog.json entry. No webflash_wrapper, no artifact_name, no entry in config/webflash-builds.json."
+    },
+    {
+      "id": "ceiling-poe-airiq-compile-only",
+      "product_yaml": "products/compile-only/ceiling-poe-airiq.yaml",
+      "config_string": "Ceiling-POE-AirIQ",
+      "reason": "POE non-fan compile-confidence target (FW-COMPILE-POE-NONFAN-001). Validates the Core ceiling + PoE PSU + AirIQ (airiq_ceiling + airiq_basic_profile) package composition. The AirIQ + comfort + presence package composition is already proven expressible by products/sense360-core-ceiling.yaml. Compile success is not WebFlash exposure, not a release artifact, and not AirIQ stable / preview promotion.",
+      "shipment_status": "compile-only",
+      "hardware_required_for_validation": true,
+      "webflash_exposure_allowed_now": false,
+      "blocked": false,
+      "notes": "Skeleton lives under products/compile-only/ so the top-level product-catalog enumeration gate does not require a config/product-catalog.json entry. No webflash_wrapper, no artifact_name, no entry in config/webflash-builds.json. AirIQ and VentIQ are mutually exclusive; this target uses AirIQ."
+    },
+    {
+      "id": "ceiling-poe-airiq-roomiq-compile-only",
+      "product_yaml": "products/compile-only/ceiling-poe-airiq-roomiq.yaml",
+      "config_string": "Ceiling-POE-AirIQ-RoomIQ",
+      "reason": "POE non-fan compile-confidence target (FW-COMPILE-POE-NONFAN-001). Validates the Core ceiling + PoE PSU + AirIQ + RoomIQ package composition. The AirIQ + comfort + presence composition is already proven expressible by products/sense360-core-ceiling.yaml. Compile success is not WebFlash exposure, not a release artifact, and not AirIQ stable / preview promotion.",
+      "shipment_status": "compile-only",
+      "hardware_required_for_validation": true,
+      "webflash_exposure_allowed_now": false,
+      "blocked": false,
+      "notes": "Skeleton lives under products/compile-only/ so the top-level product-catalog enumeration gate does not require a config/product-catalog.json entry. No webflash_wrapper, no artifact_name, no entry in config/webflash-builds.json. AirIQ and VentIQ are mutually exclusive; this target uses AirIQ."
     }
   ]
 }

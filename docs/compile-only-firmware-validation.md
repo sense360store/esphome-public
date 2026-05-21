@@ -203,14 +203,17 @@ not** fake a compile pass.
 
 ESPHome resolves `!secret` lookups relative to the top-level YAML being
 compiled, so the directory each `product_yaml` lives in must contain a
-`secrets.yaml` at compile time. The current targets all live under
-`products/webflash/`, so the workflow at
+`secrets.yaml` at compile time. Current targets live under
+`products/webflash/` (FW-COMPILE-MATRIX-001) and
+`products/compile-only/` (FW-COMPILE-POE-NONFAN-001), so the workflow
+at
 [`.github/workflows/compile-only.yml`](../.github/workflows/compile-only.yml)
 provisions a test `secrets.yaml` at the repo root, under `products/`,
-and under `products/webflash/`. Any future compile-only target placed in
-a new directory needs the same provisioning extended to that directory.
-The `secrets.yaml` written by the workflow is a CI-only stub; it
-contains no real credentials and is gitignored.
+under `products/webflash/`, and under `products/compile-only/`. Any
+future compile-only target placed in a new directory needs the same
+provisioning extended to that directory. The `secrets.yaml` written
+by the workflow is a CI-only stub; it contains no real credentials
+and is gitignored.
 
 ## CI integration
 
@@ -365,6 +368,135 @@ The full 17-row stable-promotion gauntlet documented in
 [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
 remains the source of truth for preview / stable readiness; this
 audit-log entry does not close any row in that gauntlet.
+
+### 2026-05-21 — FW-COMPILE-POE-NONFAN-001 POE non-fan compile-only expansion
+
+This entry records the addition of five compile-only product YAML
+skeletons for POE non-fan candidates to the
+[`config/compile-only-targets.json`](../config/compile-only-targets.json)
+lane. The candidates are config-string-valid per
+[`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json)
+and reuse package-composition patterns already proven to compile by
+the Release-One WebFlash build
+(`Ceiling-POE-VentIQ-RoomIQ`) and the LED preview build
+(`Ceiling-POE-VentIQ-RoomIQ-LED`).
+
+#### Target list
+
+The five new compile-only targets, all with
+`shipment_status: compile-only`,
+`webflash_exposure_allowed_now: false`, and
+`hardware_required_for_validation: true`:
+
+| `id`                                       | `product_yaml`                                          | `config_string`             |
+|--------------------------------------------|---------------------------------------------------------|-----------------------------|
+| `ceiling-poe-compile-only`                 | `products/compile-only/ceiling-poe.yaml`                | `Ceiling-POE`               |
+| `ceiling-poe-roomiq-compile-only`          | `products/compile-only/ceiling-poe-roomiq.yaml`         | `Ceiling-POE-RoomIQ`        |
+| `ceiling-poe-ventiq-compile-only`          | `products/compile-only/ceiling-poe-ventiq.yaml`         | `Ceiling-POE-VentIQ`        |
+| `ceiling-poe-airiq-compile-only`           | `products/compile-only/ceiling-poe-airiq.yaml`          | `Ceiling-POE-AirIQ`         |
+| `ceiling-poe-airiq-roomiq-compile-only`    | `products/compile-only/ceiling-poe-airiq-roomiq.yaml`   | `Ceiling-POE-AirIQ-RoomIQ`  |
+
+Each YAML composes only from existing packages — `sense360_core_ceiling.yaml`,
+`power_poe.yaml`, base packages, `device_health.yaml`, and (where the
+config string carries the token) `airiq_ceiling.yaml` /
+`airiq_basic_profile.yaml`, `airiq_bathroom_base.yaml` /
+`bathroom_profile.yaml`, `comfort_ceiling.yaml` /
+`comfort_basic_profile.yaml`, `presence_ceiling.yaml` /
+`presence_basic_profile.yaml`. No new package is added by this
+expansion.
+
+#### Why these are lower-risk than fan / PWR targets
+
+- **No FanTRIAC** (blocked under `HW-005`,
+  `HW-PINMAP-320-FOLLOWUP`, `PACKAGE-TRIAC-001`, and `COMPLIANCE-001`).
+  These five candidates carry no `FanTRIAC` token.
+- **No FanRelay / FanPWM / FanDAC**. The relay package
+  `packages/expansions/fan_relay.yaml` remains blocked behind
+  `CORE-ABSTRACT-BUS-001A` / `S360-310` silkscreen / `GPIO3`
+  strap-pin bench evidence; PWM and FanDAC packages remain blocked
+  behind `CORE-ABSTRACT-BUS-001B` and their own evidence gates.
+  These five candidates carry no fan token at all.
+- **No PWR / S360-400**. Mains-voltage compliance
+  (`COMPLIANCE-001` UK / EU assessment) and the
+  `PACKAGE-POWER-400-001` / `PRODUCT-POWER-400-001` /
+  `WEBFLASH-POWER-400-001` / `RELEASE-POWER-400-001` chain are open;
+  these five candidates carry only `POE` in the `power` slot.
+- **No LED**. The LED stable gauntlet (`S360-300-BENCH-001`,
+  `WF-HW-TEST-001`, `WF-HW-TEST-003`, `RELEASE-007`) is unchanged;
+  these five candidates carry no `LED` token.
+- **No new packages**. Every `!include` resolves to a package already
+  consumed by either the Release-One YAML
+  (`products/webflash/ceiling-poe-ventiq-roomiq.yaml`) or the
+  enumerated `products/sense360-core-ceiling.yaml` reference YAML.
+
+The package compositions are therefore subsets / sibling variants of
+compositions already exercised by the WebFlash-shipping Release-One
+build, so the compile-confidence risk is proportionally lower than
+fan / PWR / new-package targets.
+
+#### What compile-only proves for these five candidates
+
+Once
+[`scripts/validate_compile_targets.py --compile`](../scripts/validate_compile_targets.py)
+is run against the expanded lane, a passing run proves the following
+for each of the five new YAMLs (and only for them, only under the
+ESPHome version recorded in the workflow):
+
+- the YAML parses and the substitutions resolve;
+- the `packages:` composition resolves and every `!include` resolves;
+- ESPHome's component / config schema validates;
+- the codegen pass produces compilable source;
+- the validator script's metadata gates pass alongside the compile
+  pass.
+
+#### What compile-only does **not** prove for these five candidates
+
+These five candidates are **pre-hardware confidence** only. A
+passing compile run does **not** prove any of the following, and
+nothing in this audit-log entry should be read as a claim that any
+of them are now closed:
+
+- **Hardware behavior.** No bench, harness, silkscreen, schematic,
+  pinmap, thermal, or EMI evidence is generated. The PoE PSU
+  (`S360-410`) `schematic_status: cataloged_unverified` and the
+  Release-One PoE "schematic verification pending" caveat remain
+  open. The VentIQ (`S360-211`) "schematic verification pending"
+  caveat remains open.
+- **AirIQ hardware proof.** The AirIQ stack (`SPS30` / `SGP41` /
+  `SCD41` / `BMP390`) has no committed bench or schematic evidence
+  in this repo; compile success does not imply AirIQ stable /
+  preview readiness.
+- **Web Serial flashing.** None of the five candidates are imported
+  into WebFlash. No `.bin`, no `manifest.json`, no
+  `firmware/sources.json` entry, no GitHub Release tag, and no
+  proof row in `docs/webflash-release-proof.md` is created.
+- **WebFlash exposure.** None of the five candidates are added to
+  [`config/webflash-builds.json`](../config/webflash-builds.json),
+  none flip `webflash_build_matrix: true` on any product, and none
+  have a `webflash_wrapper` under
+  [`products/webflash/`](../products/webflash/).
+- **Product-catalog promotion.** None of the five candidates are
+  added to
+  [`config/product-catalog.json`](../config/product-catalog.json).
+  The YAMLs live under `products/compile-only/`, which is excluded
+  from `tests/test_product_catalog.py::_top_level_product_yamls`
+  enumeration scanning.
+- **Stable or preview promotion.** Release-One stays
+  `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; the LED preview
+  stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`. FanTRIAC stays
+  `blocked` / `HW-005`.
+- **Release artifacts.** No checksum, build-info manifest, or
+  release tag is created.
+- **Hardware-required gates.** Every candidate sets
+  `hardware_required_for_validation: true` precisely because
+  shipment-readiness for any of these five config strings still
+  needs the full 17-row gauntlet in
+  [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md).
+
+Compile success for the five new candidates is therefore a
+**necessary-but-insufficient** input to the broader
+preview-to-stable promotion process; it does not unblock any
+hardware / compliance / release gate on its own.
 
 ## See also
 

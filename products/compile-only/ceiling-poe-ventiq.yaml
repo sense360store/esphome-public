@@ -1,0 +1,131 @@
+# ============================================================================
+# COMPILE-ONLY SKELETON — Ceiling-POE-VentIQ (FW-COMPILE-POE-NONFAN-001)
+# ============================================================================
+# WebFlash config string : Ceiling-POE-VentIQ
+#
+# Status — what this YAML is NOT:
+#
+#   * NOT a WebFlash exposed build. No entry is added to
+#     `config/webflash-builds.json`; no `webflash_build_matrix: true`
+#     flip; no `webflash_wrapper` is created under
+#     `products/webflash/`; no `artifact_name` is declared.
+#   * NOT a release artifact. No `.bin` is produced for
+#     `Ceiling-POE-VentIQ`; no version, channel, checksum, build-info
+#     manifest, GitHub Release tag, or proof row is created.
+#   * NOT hardware proof. Compile success says nothing about
+#     bench / harness / silkscreen / schematic / pinmap evidence.
+#     The PoE PSU (`S360-410`) `schematic_status: cataloged_unverified`
+#     and the VentIQ (`S360-211`) "schematic verification pending"
+#     caveat remain open.
+#   * NOT product-catalog promotion. No entry is added to
+#     `config/product-catalog.json` and no `status: production` /
+#     `status: preview` flip happens. Top-level catalog scanning is
+#     intentionally avoided by placing this YAML in
+#     `products/compile-only/`.
+#   * NOT a stable / preview promotion. The two committed
+#     WebFlash builds (`Ceiling-POE-VentIQ-RoomIQ` stable,
+#     `Ceiling-POE-VentIQ-RoomIQ-LED` preview) are unchanged.
+#
+# Purpose:
+#
+#   Exercise the package composition for the VentIQ-only POE variant
+#   (Core ceiling + PoE PSU + airiq_bathroom_base + bathroom_profile)
+#   under the current ESPHome version. The constituent packages are
+#   already proven to compose by the WebFlash-shipping
+#   `Ceiling-POE-VentIQ-RoomIQ` build; this skeleton removes RoomIQ
+#   to surface VentIQ-only regressions in CI before they reach the
+#   Release-One build.
+#
+# Compatibility rules (see docs/release-one.md):
+# - AirIQ and VentIQ are mutually exclusive.
+# - VentIQ is the bathroom-focused air-quality module.
+#
+# Hardware (canonical friendly names; see docs/hardware-catalog.md):
+# - Core         : Sense360 Core    (S360-100-R4, ESP32-S3, ceiling mount)
+# - Power        : Sense360 PoE PSU (S360-410, IEEE 802.3af) — schematic
+#                  verification pending; this compile-only target does
+#                  NOT close that caveat.
+# - Air Quality  : Sense360 VentIQ  (S360-211, bathroom-focused) — schematic verification pending
+# - Room Sense   : not included     (no RoomIQ token in config string)
+# - Fan Driver   : not included     (no fan token in config string)
+# - LED          : not included     (no LED token in config string)
+#
+# See: docs/compile-only-firmware-validation.md
+# ============================================================================
+
+substitutions:
+  device_name: s360-co-ceil-poe-vntq
+  friendly_name: Sense360 Ceiling POE VentIQ (compile-only)
+  device_sku: S360-CORE-C-POE
+  device_version: "0.0.0-compile-only"
+  timezone: "UTC"
+
+  log_level: INFO
+  wifi_fast_connect: "false"
+  fallback_ssid: "S360 CO POE VentIQ"
+
+  # === Power configuration (PoE) ===
+  power_source: poe
+  poe_class: "0"
+  poe_standard: "802.3af"
+
+  # === VentIQ (bathroom) thresholds ===
+  shower_humidity_threshold: "75"
+  shower_humidity_rate: "5"
+  mold_risk_humidity: "65"
+  mold_risk_duration_minutes: "30"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === External Components (radar firmware) ===
+  external_components: !include ../../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../../packages/base/wifi.yaml
+  base_logging: !include ../../packages/base/logging.yaml
+  base_api: !include ../../packages/base/api_encrypted.yaml
+  base_ota: !include ../../packages/base/ota.yaml
+  base_time: !include ../../packages/base/time.yaml
+
+  # === Sense360 Core (Ceiling, S360-100-R4) ===
+  core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
+
+  # === Sense360 PoE PSU (S360-410) ===
+  power_config: !include ../../packages/hardware/power_poe.yaml
+
+  # === Sense360 VentIQ (S360-211, bathroom-focused air quality) ===
+  # Package-level expected; schematic verification pending — no committed
+  # S360-211 schematic in this repo. See docs/release-one-hardware-audit.md.
+  # AirIQ and VentIQ are mutually exclusive; this skeleton uses VentIQ.
+  ventiq_module: !include ../../packages/expansions/airiq_bathroom_base.yaml
+  ventiq_profile: !include ../../packages/features/bathroom_profile.yaml
+
+  # === Device Health & Diagnostics ===
+  health: !include ../../packages/features/device_health.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} WebFlash Config"
+    lambda: |-
+      return {"Ceiling-POE-VentIQ"};
+    update_interval: never
+    entity_category: diagnostic

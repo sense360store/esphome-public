@@ -1714,6 +1714,66 @@ mirrored here.
   `webflash_build_matrix: true` flip; no `artifact_name` added; no
   LED stable promotion; no `RELEASE-007` unblock; no Release-One /
   LED preview / FanTRIAC identity change.
+- **FW-COMPILE-POE-NONFAN-001 — POE non-fan compile-only expansion
+  (2026-05-21).** Added five compile-only product YAML skeletons for
+  safe POE non-fan candidates under `products/compile-only/` —
+  `ceiling-poe.yaml` (`Ceiling-POE`), `ceiling-poe-roomiq.yaml`
+  (`Ceiling-POE-RoomIQ`), `ceiling-poe-ventiq.yaml`
+  (`Ceiling-POE-VentIQ`), `ceiling-poe-airiq.yaml`
+  (`Ceiling-POE-AirIQ`), and `ceiling-poe-airiq-roomiq.yaml`
+  (`Ceiling-POE-AirIQ-RoomIQ`). Each skeleton composes only from
+  packages already proven to compose by either the Release-One YAML
+  (`products/webflash/ceiling-poe-ventiq-roomiq.yaml`) or
+  `products/sense360-core-ceiling.yaml`; no new package is added.
+  Each is enrolled in `config/compile-only-targets.json` with
+  `shipment_status: compile-only`,
+  `webflash_exposure_allowed_now: false`,
+  `hardware_required_for_validation: true`, `blocked: false`, and a
+  POE-non-fan-compile-confidence reason; totals updated from 2 to 7.
+  Added `PoeNonFanCompileOnlyCoverageTests` in
+  `tests/test_compile_targets.py` (14 new cases pinning: every
+  candidate's product YAML exists on disk under
+  `products/compile-only/`; every candidate's `config_string` is
+  present in `config/firmware-combination-matrix.json`; no candidate
+  is in `config/webflash-builds.json`; every candidate is
+  `shipment_status: compile-only`,
+  `webflash_exposure_allowed_now: false`,
+  `hardware_required_for_validation: true`; no candidate declares
+  `webflash_build_matrix` / `artifact_name` / `webflash_wrapper`; no
+  candidate carries a `FanRelay` / `FanPWM` / `FanDAC` / `FanTRIAC` /
+  `PWR` token; totals match expected count). Extended
+  `.github/workflows/compile-only.yml` to provision a
+  `products/compile-only/secrets.yaml` stub during the full compile
+  job so `!secret` lookups resolve for the new directory. Added the
+  `### 2026-05-21 — FW-COMPILE-POE-NONFAN-001 POE non-fan
+  compile-only expansion` section to
+  `docs/compile-only-firmware-validation.md` (target list table,
+  lower-risk rationale, what compile-only proves for the five new
+  candidates, and what compile-only does **not** prove). **PR is
+  compile-only confidence only.** No `config/webflash-builds.json`
+  edit, no `config/product-catalog.json` edit, no
+  `config/hardware-catalog.json` edit, no
+  `config/webflash-compatibility.json` edit, no
+  `config/firmware-combination-matrix.json` edit, no
+  `config/kit-intent-matrix.json` edit, no `products/webflash/**`
+  edit, no `firmware/**` / `manifest.json` / `firmware/sources.json`
+  / release artifact / checksum / build-info manifest edit, no
+  WebFlash wrapper added, no `webflash_build_matrix: true` flip, no
+  `artifact_name` added, no release artifact built or attached, no
+  firmware import, no LED stable promotion, no AirIQ stable / preview
+  / release promotion, no POE / `S360-410` promotion, no fan-control
+  target added, no PWR / `S360-400` target added, no hardware-proof
+  claim, no WebFlash import-readiness claim, no `RELEASE-007`
+  unblock claim, no Release-One / LED preview / FanTRIAC identity
+  change, no `release_one_required_configs` /
+  `lifecycle_statuses` / `canonical_modules` / `canonical_power` /
+  `forbidden_tokens` / `REQUIRED_CONFIGS` / kit change, no
+  `schematic_status` / `schematic_file` promotion, no COMPLIANCE-001
+  movement, no Release-One PoE caveat closure. Next-step pointer:
+  run `workflow_dispatch` with `compile_mode=full` against the
+  expanded lane; if any new target fails compile, fix the compile
+  failure (or, if a target is invalid by grammar / unsafe to
+  represent, remove only that target).
 
 ## Completed / merged PRs
 
