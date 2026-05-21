@@ -199,6 +199,19 @@ Metadata-only mode asserts:
 not, the script exits non-zero with an explicit error — it **does
 not** fake a compile pass.
 
+### Test secrets must sit next to the target YAML
+
+ESPHome resolves `!secret` lookups relative to the top-level YAML being
+compiled, so the directory each `product_yaml` lives in must contain a
+`secrets.yaml` at compile time. The current targets all live under
+`products/webflash/`, so the workflow at
+[`.github/workflows/compile-only.yml`](../.github/workflows/compile-only.yml)
+provisions a test `secrets.yaml` at the repo root, under `products/`,
+and under `products/webflash/`. Any future compile-only target placed in
+a new directory needs the same provisioning extended to that directory.
+The `secrets.yaml` written by the workflow is a CI-only stub; it
+contains no real credentials and is gitignored.
+
 ## CI integration
 
 The metadata-only validator is safe to run on any CI lane that already
