@@ -125,6 +125,12 @@ jobs:
 
       - name: Provision test secrets
         run: |
+          # ESPHome resolves `!secret` lookups relative to the top-level
+          # YAML being compiled, so each directory that a compile-only
+          # target lives in must have a `secrets.yaml` next to it.
+          # The current compile-only targets live in `products/webflash/`,
+          # so a `secrets.yaml` must be provisioned there as well as at
+          # the repo root and at `products/`.
           cat > secrets.yaml << 'EOF'
           wifi_ssid: "TestNetwork"
           wifi_password: "TestPassword123"
@@ -136,6 +142,7 @@ jobs:
           EOF
           rm -f products/secrets.yaml
           cp secrets.yaml products/secrets.yaml
+          cp secrets.yaml products/webflash/secrets.yaml
 
       - name: Run compile-only validator (full compile)
         run: |
