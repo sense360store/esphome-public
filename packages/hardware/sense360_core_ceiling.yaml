@@ -16,11 +16,27 @@
 # Pin Assignments (ESP32-S3):
 # - I2C0 (Halo LED):  SDA=GPIO39, SCL=GPIO40
 # - I2C1 (Expansion): SDA=GPIO21, SCL=GPIO18
-# - UART:             TX=GPIO1, RX=GPIO2
+# - UART (Hi-Link):   TX=GPIO2, RX=GPIO1, baud 256000  (RoomIQ J10 LD2450 radar)
+# - UART (SEN0609):   TX=GPIO5, RX=GPIO4, baud 115200  (RoomIQ J10 DFRobot radar)
 # - Relay:            GPIO4 (10A AC/DC for ceiling fan/light)
-# - GPIO Expansion:   GPIO5, GPIO6, GPIO7, GPIO8
-# - Status LED:       GPIO48 (center indicator)
-# - PIR/Motion:       GPIO47 (optional backup motion sensor)
+#                     (Note: GPIO4 remains until CORE-ABSTRACT-BUS-001A rebinds
+#                      relay_pin to GPIO3.)
+# - PIR/Motion:       GPIO15 (schematic IO15 = PIR, RoomIQ J10 motion input)
+# - Fan Status LED:   GPIO46 (schematic IO46 = GP_Fan_Status_Led, Core-side
+#                     indicator independent of any module)
+# - SEN0609 output:   GPIO6  (schematic IO6 = out(gpio6), RoomIQ J10 aux line)
+#
+# CORE-ABSTRACT-BUS-001C rebinds applied here:
+#   * generic `status_led_pin` retired (no Core-baseline status-LED net on the
+#     schematic; the S360-300 LED ring is owned by `led_ring_ceiling.yaml`)
+#   * `expansion_gpio1..4` retired (replaced by function-specific names)
+#   * UART split into `roomiq_hi_link_uart` (256000) and `roomiq_sen0609_uart`
+#     (115200); ESP-perspective tx/rx direction is now schematic-correct
+#   * `pir_sensor_pin` rebound GPIO47 → GPIO15 (schematic PIR net)
+#   * `fan_status_led_pin` introduced on GPIO46 (Core-side indicator)
+#   * `roomiq_sen0609_output_pin` introduced on GPIO6
+# relay_pin is NOT changed in this PR (stays GPIO4) — that move belongs to
+# CORE-ABSTRACT-BUS-001A.
 #
 # Form Factor:
 # - Ceiling recessed mount
@@ -32,13 +48,13 @@
 # 1. GND
 # 2. 3.3V (500mA max)
 # 3. 5V (1A max)
-# 4. I2C1 SDA (GPIO21) - for expansion modules
-# 5. I2C1 SCL (GPIO18) - for expansion modules
-# 6. UART TX (GPIO1)
-# 7. UART RX (GPIO2)
-# 8. GPIO5 (expansion)
-# 9. GPIO6 (expansion)
-# 10. GPIO7 (expansion/IRQ)
+# 4. I2C1 SDA (GPIO21) - for expansion modules (consolidation owed to 001B)
+# 5. I2C1 SCL (GPIO18) - for expansion modules (consolidation owed to 001B)
+# 6. Hi-Link UART RX (GPIO1) — ESP receives from Hi-Link radar
+# 7. Hi-Link UART TX (GPIO2) — ESP transmits to Hi-Link radar
+# 8. SEN0609 UART RX (GPIO4) — ESP receives from DFRobot radar
+# 9. SEN0609 UART TX (GPIO5) — ESP transmits to DFRobot radar
+# 10. SEN0609 out (GPIO6) — DFRobot auxiliary line
 
 substitutions:
   device_name: sense360-ceiling
@@ -52,29 +68,26 @@ substitutions:
   expansion_i2c_sda_pin: GPIO21
   expansion_i2c_scl_pin: GPIO18
 
-  # UART for expansion modules
-  uart_tx_pin: GPIO1
-  uart_rx_pin: GPIO2
-  uart_baud: "256000"
-
   # Relay (ceiling fan/light control)
+  # NOTE: relay_pin is intentionally NOT moved to GPIO3 in this PR.
+  # The schematic-correct value `relay_pin: GPIO3` lands in
+  # CORE-ABSTRACT-BUS-001A, which is unblocked only after this 001C slice
+  # frees GPIO3 (ALS_INT moves to GPIO47, expander_int moves to GPIO17).
   relay_pin: GPIO4
   relay_max_current: "10A"
 
-  # GPIO expansion pins
-  expansion_gpio1: GPIO5
-  expansion_gpio2: GPIO6
-  expansion_gpio3: GPIO7
-  expansion_gpio4: GPIO8
+  # CORE-ABSTRACT-BUS-001C: Fan Status LED indicator (Core-side, no module
+  # dependency). Schematic IO46 = GP_Fan_Status_Led per S360-100-R4.
+  fan_status_led_pin: GPIO46
 
-  # Optional expansion modules
-  # PWM fan module uses expansion pins to avoid conflicting with the built-in relay on GPIO4
-  fan_pwm_pin: ${expansion_gpio1}
-  fan_tach_pin: ${expansion_gpio2}
+  # CORE-ABSTRACT-BUS-001C: PIR motion input.
+  # Schematic IO15 = PIR (RoomIQ J10 PIR motion input). Was GPIO47 (= ALS_INT
+  # net, schematic-conflicting).
+  pir_sensor_pin: GPIO15
 
-  # Status indicator
-  status_led_pin: GPIO48
-  pir_sensor_pin: GPIO47  # Optional PIR backup sensor
+  # CORE-ABSTRACT-BUS-001C: SEN0609 auxiliary output line.
+  # Schematic IO6 = out(gpio6), RoomIQ J10 auxiliary line.
+  roomiq_sen0609_output_pin: GPIO6
 
 esphome:
   name: ${device_name}
@@ -116,17 +129,26 @@ i2c:
     scan: true
     frequency: 400kHz
 
-# UART for expansion modules (presence sensors, etc.)
+# CORE-ABSTRACT-BUS-001C: split single uart_bus into two named RoomIQ UARTs
+# matching the schematic-correct ESP-perspective direction and baud rates.
 uart:
-  - id: uart_bus
-    tx_pin: ${uart_tx_pin}
-    rx_pin: ${uart_rx_pin}
-    baud_rate: ${uart_baud}
+  # RoomIQ J10 Hi-Link radar UART — Hi-Link LD2450 default baud 256000.
+  - id: roomiq_hi_link_uart
+    tx_pin: GPIO2
+    rx_pin: GPIO1
+    baud_rate: 256000
 
-# Status LED (center indicator on ceiling unit)
+  # RoomIQ J10 DFRobot SEN0609 radar UART — SEN0609/C4001 default baud 115200.
+  - id: roomiq_sen0609_uart
+    tx_pin: GPIO5
+    rx_pin: GPIO4
+    baud_rate: 115200
+
+# Core-side Fan Status LED indicator (independent of any module).
+# Replaces the retired generic status_led_pin per CORE-ABSTRACT-BUS-001C.
 status_led:
   pin:
-    number: ${status_led_pin}
+    number: ${fan_status_led_pin}
     inverted: true
 
 # Main relay for ceiling fan or light control
@@ -149,7 +171,7 @@ binary_sensor:
     id: system_status
 
 # Optional: PIR motion sensor (backup for mmWave radar)
-# Uncomment if PIR sensor is installed on GPIO47
+# Uncomment if PIR sensor is installed on GPIO15 (schematic PIR net).
 # binary_sensor:
 #   - platform: gpio
 #     name: "${friendly_name} PIR Motion"

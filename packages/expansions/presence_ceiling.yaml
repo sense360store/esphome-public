@@ -33,8 +33,11 @@ substitutions:
   module_sku: S360-PRES-C
   module_variant: ceiling
 
-  # UART Configuration (Ceiling reuses shared expansion UART)
-  ld2450_uart_id: uart_bus
+  # UART Configuration — RoomIQ J10 Hi-Link radar UART.
+  # CORE-ABSTRACT-BUS-001C: was `uart_bus` (single, schematic-conflicting); now
+  # uses the named Hi-Link UART defined by the Core abstract package. The
+  # Hi-Link LD2450 radar runs at 256000 baud per operator decision #7.
+  ld2450_uart_id: roomiq_hi_link_uart
   ld2450_baud: "256000"
 
   # Presence detection settings

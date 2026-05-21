@@ -10,9 +10,9 @@
 # This file provides the base hardware setup. User-facing entities are defined
 # in the feature profile files (basic or advanced).
 #
-# Expansion Bus Connection:
-#   Pin 6 (UART TX) → GPIO1 (ESP RX)
-#   Pin 7 (UART RX) → GPIO2 (ESP TX)
+# Expansion Bus Connection (RoomIQ J10 Hi-Link radar UART, ESP-perspective):
+#   Pin 6 (Hi-Link_RX) → GPIO1 (ESP rx_pin, ESP receives from radar)
+#   Pin 7 (Hi-Link_TX) → GPIO2 (ESP tx_pin, ESP transmits to radar)
 #   Pin 3 (5V) → Power
 #   Pin 1 (GND) → Ground
 #
@@ -22,16 +22,13 @@
 # ============================================================================
 
 substitutions:
-  # UART Configuration
-  ld2450_uart_id: uart_bus
-  ld2450_tx_pin: GPIO1
-  ld2450_rx_pin: GPIO2
+  # UART Configuration — RoomIQ J10 Hi-Link radar UART.
+  # CORE-ABSTRACT-BUS-001C: was `uart_bus` (single, schematic-conflicting); now
+  # uses the named Hi-Link UART defined by the Core abstract package. The
+  # Hi-Link LD2450 radar runs at 256000 baud and the UART pin / direction /
+  # baud_rate are owned by the Core package's `roomiq_hi_link_uart` block.
+  ld2450_uart_id: roomiq_hi_link_uart
   ld2450_baud: "256000"
-
-  # Apply UART settings to the shared expansion bus
-  uart_tx_pin: ${ld2450_tx_pin}
-  uart_rx_pin: ${ld2450_rx_pin}
-  uart_baud: ${ld2450_baud}
 
   # Presence detection settings
   presence_timeout: 30s

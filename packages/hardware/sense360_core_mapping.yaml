@@ -1,16 +1,22 @@
 # Sense360 Core - Hardware Pin Mapping
 # ESP32-S3-WROOM-1-N16R8 (16MB Flash, 8MB PSRAM)
 #
+# CORE-ABSTRACT-BUS-001C: status_led_simple_pin (was GPIO47=ALS_INT),
+# expander_int_pin (was GPIO3=Relay net), and expansion_gpio1..3 retired or
+# rebound per the schematic-backed plan in
+# docs/hardware/core-abstract-bus-001c-rebind-plan.md.
+#
 # Pin Map:
 #   I2C Primary:   SDA=GPIO39, SCL=GPIO40 (sensors)
 #   I2C Secondary: SDA=GPIO21, SCL=GPIO18 (expander)
-#   UART Presence: TX=GPIO1, RX=GPIO2
+#   UART Hi-Link:  TX=GPIO2, RX=GPIO1, baud=256000 (RoomIQ J10 Hi-Link radar)
+#   UART SEN0609:  TX=GPIO5, RX=GPIO4, baud=115200 (RoomIQ J10 DFRobot radar)
 #   UART Aux:      TX=GPIO43, RX=GPIO44
 #   Fan PWM:       GPIO4 (output), GPIO5 (tach)
-#   Relay:         GPIO10
-#   Status LED:    GPIO48 (RGB), GPIO47 (simple)
+#   Relay:         GPIO10 (unchanged until CORE-ABSTRACT-BUS-001A)
+#   Fan Status LED: GPIO46 (GP_Fan_Status_Led per Core schematic IO46)
 #   User Button:   GPIO9
-#   Expander INT:  GPIO3
+#   Expander INT:  GPIO17 (was GPIO3 - rebound per schematic IO17=expander_int)
 
 substitutions:
   device_name: sense360-core
@@ -28,11 +34,6 @@ substitutions:
   i2c1_scl_pin: GPIO18
   i2c1_frequency: "400000"
 
-  # UART Presence (LD2450: 256000, LD2412: 115200)
-  uart_presence_tx_pin: GPIO1
-  uart_presence_rx_pin: GPIO2
-  uart_presence_baud: "256000"
-
   # UART Auxiliary
   uart_aux_tx_pin: GPIO43
   uart_aux_rx_pin: GPIO44
@@ -46,17 +47,19 @@ substitutions:
   # Outputs
   relay_pin: GPIO10
   status_led_rgb_pin: GPIO48
-  status_led_simple_pin: GPIO47
+  # CORE-ABSTRACT-BUS-001C: status_led_simple_pin (was GPIO47=ALS_INT) retired;
+  # replaced with the schematic-named fan_status_led_pin on IO46 (GP_Fan_Status_Led).
+  # The schematic-correct LED ring data line is on GPIO38 and owned by the LED
+  # ring package (packages/hardware/led_ring_ceiling.yaml), not the Core abstract.
+  fan_status_led_pin: GPIO46
+  roomiq_sen0609_output_pin: GPIO6
 
   # Inputs
   user_button_pin: GPIO9
   boot_button_pin: GPIO0
-  expander_int_pin: GPIO3
-
-  # Expansion GPIOs
-  expansion_gpio1: GPIO6
-  expansion_gpio2: GPIO7
-  expansion_gpio3: GPIO8
+  # CORE-ABSTRACT-BUS-001C: rebound from GPIO3 (Relay net) to GPIO17
+  # (schematic IO17 = expander_int per S360-100-R4).
+  expander_int_pin: GPIO17
 
 esphome:
   name: ${device_name}
@@ -104,10 +107,23 @@ i2c:
     frequency: ${i2c1_frequency}Hz
 
 uart:
-  - id: uart_presence
-    tx_pin: ${uart_presence_tx_pin}
-    rx_pin: ${uart_presence_rx_pin}
-    baud_rate: ${uart_presence_baud}
+  # CORE-ABSTRACT-BUS-001C: RoomIQ J10 Hi-Link radar UART.
+  # Schematic-correct ESP-perspective direction: tx_pin=GPIO2 (Hi-Link_TX),
+  # rx_pin=GPIO1 (Hi-Link_RX). Baud 256000 per operator decision #7.
+  - id: roomiq_hi_link_uart
+    tx_pin: GPIO2
+    rx_pin: GPIO1
+    baud_rate: 256000
+    parity: NONE
+    stop_bits: 1
+
+  # CORE-ABSTRACT-BUS-001C: RoomIQ J10 DFRobot SEN0609 radar UART.
+  # Schematic-correct ESP-perspective direction: tx_pin=GPIO5 (SEN0609_TX),
+  # rx_pin=GPIO4 (SEN0609_RX). Baud 115200 per operator decision #7.
+  - id: roomiq_sen0609_uart
+    tx_pin: GPIO5
+    rx_pin: GPIO4
+    baud_rate: 115200
     parity: NONE
     stop_bits: 1
 
@@ -131,28 +147,12 @@ switch:
     pin: ${relay_pin}
     restore_mode: RESTORE_DEFAULT_OFF
 
-  - platform: gpio
-    id: expansion_out_1
-    pin: ${expansion_gpio1}
-    restore_mode: RESTORE_DEFAULT_OFF
-    internal: true
-
-  - platform: gpio
-    id: expansion_out_2
-    pin: ${expansion_gpio2}
-    restore_mode: RESTORE_DEFAULT_OFF
-    internal: true
-
-  - platform: gpio
-    id: expansion_out_3
-    pin: ${expansion_gpio3}
-    restore_mode: RESTORE_DEFAULT_OFF
-    internal: true
-
-# Simple Status LED
+# Fan Status LED (Core-side indicator on IO46 = GP_Fan_Status_Led).
+# CORE-ABSTRACT-BUS-001C: replaces the retired generic `status_led_simple_pin`
+# (which was on GPIO47 = ALS_INT and is now schematic-correct for ALS_INT).
 status_led:
   pin:
-    number: ${status_led_simple_pin}
+    number: ${fan_status_led_pin}
     inverted: true
 
 # RGB Status LED

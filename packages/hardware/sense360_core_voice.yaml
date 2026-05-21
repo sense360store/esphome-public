@@ -35,8 +35,14 @@ substitutions:
   device_name: sense360-core-voice
   friendly_name: Sense360 Core Voice
 
-  # Allow voice status LED to use a dedicated pin when needed
-  voice_status_led_pin: "${status_led_pin}"
+  # Allow voice status LED to use a dedicated pin when needed.
+  # CORE-ABSTRACT-BUS-001C: the generic `status_led_pin` substitution was
+  # retired from `sense360_core.yaml` (no Core-baseline status-LED net on the
+  # schematic). Default `voice_status_led_pin` to the schematic-named
+  # `fan_status_led_pin` (GPIO46 = GP_Fan_Status_Led). Products that need a
+  # different pin override `voice_status_led_pin` explicitly (see e.g.
+  # `products/sense360-fan-pwm.yaml` which sets `voice_status_led_pin: GPIO47`).
+  voice_status_led_pin: "${fan_status_led_pin}"
 
   # Microphone I2S pins
   mic_i2s_sck_pin: GPIO11
