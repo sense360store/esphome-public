@@ -1666,6 +1666,54 @@ mirrored here.
   reviewed compile-only targets or new product YAMLs to the
   lane, still without WebFlash exposure, release artifacts,
   stable promotion, or hardware proof.
+- **FW-COMPILE-FIX-001 — compile-only secrets provisioning fix
+  landed as PR #546 on 2026-05-21.** The
+  `Compile-only Firmware Validation` workflow's full compile job
+  was failing at config-validation time because the
+  `Provision test secrets` step only wrote `secrets.yaml` at the
+  repo root and under `products/`, while the current compile-only
+  targets live under `products/webflash/`. ESPHome resolves
+  `!secret` lookups relative to the top-level YAML being compiled,
+  so the compile step aborted with
+  `Error reading file products/webflash/secrets.yaml: No such file
+  or directory`. PR #546 provisions
+  `products/webflash/secrets.yaml` so `esphome compile` can resolve
+  `!secret` for both wrapper YAMLs. **PR #546 is a workflow-only
+  bug fix.** It does not add WebFlash exposure, release artifacts,
+  product YAMLs, WebFlash wrappers, build-matrix entries, hardware
+  proof, or LED stable promotion.
+- **FW-COMPILE-RESULT-001 — record successful full compile validation
+  (2026-05-21 audit).** The
+  `Compile-only Firmware Validation` workflow was manually run via
+  `workflow_dispatch` with `compile_mode=full` after PR #546 landed
+  and **passed**. Run number `#9`
+  (<https://github.com/sense360store/esphome-public/actions/runs/26228528326>),
+  job `Compile-only Targets — Full ESPHome Compile`
+  (<https://github.com/sense360store/esphome-public/actions/runs/26228528326/job/77182121905>),
+  result `succeeded`, duration `7m 33s`, ESPHome `2026.4.5`,
+  Python `3.11.15`, command
+  `python3 scripts/validate_compile_targets.py --compile`. Both
+  compile-only targets returned `rc=0`
+  (`ceiling-poe-ventiq-roomiq-webflash` and
+  `ceiling-poe-ventiq-roomiq-led-webflash`); the validator reported
+  `All 2 compile target(s) passed.` This audit closes the PR #544
+  next-step pointer ("run the workflow's `workflow_dispatch` full
+  compile mode") and is recorded in
+  [`docs/compile-only-firmware-validation.md`](docs/compile-only-firmware-validation.md#2026-05-21--fw-compile-result-001-successful-full-compile-run).
+  **FW-COMPILE-RESULT-001 is a docs-only audit recording.** It
+  proves YAML / package / ESPHome compile confidence for the two
+  current WebFlash product YAMLs under ESPHome `2026.4.5`; it does
+  **not** prove hardware behavior, Web Serial flashing, boot on
+  real hardware, sensor or LED runtime behavior, Improv / Home
+  Assistant handoff, release readiness, LED stable readiness,
+  WebFlash import readiness, or compliance. No `config/**`,
+  `products/**`, `products/webflash/**`, `packages/**`,
+  `firmware/**`, `manifest.json`, `firmware/sources.json`,
+  `.github/workflows/**`, release artifact, checksum, or
+  build-info manifest is touched; no compile target is added; no
+  `webflash_build_matrix: true` flip; no `artifact_name` added; no
+  LED stable promotion; no `RELEASE-007` unblock; no Release-One /
+  LED preview / FanTRIAC identity change.
 
 ## Completed / merged PRs
 
