@@ -1,0 +1,38 @@
+# ============================================================================
+# SENSE360 ROOMIQ RADAR MODULE - CANONICAL ALIAS (Phase 2)
+# ============================================================================
+# Canonical RoomIQ alias for the room sensing radar / occupancy
+# hardware driver (S360-200 — ceiling variant; HLK-LD2450 24GHz
+# mmWave radar on the expansion UART bus, with optional DFRobot
+# C4001 24GHz FMCW radar).
+#
+# This file is a thin `!include` wrapper introduced by
+# PACKAGE-NAMING-ALIASES-ROOMIQ-001 as the Phase 2 follow-up to
+# PACKAGE-NAMING-AUDIT-001 (PR #550) and the sibling Phase 2 slice
+# PACKAGE-NAMING-ALIASES-VENTIQ-001 (PR #552). It exists so new
+# product / compile-only YAMLs can `!include` the canonical
+# productized `RoomIQ` name instead of the legacy `presence_ceiling`
+# filename, without breaking any current consumer of the legacy path
+# (Release-One product `products/sense360-ceiling-poe-ventiq-roomiq.yaml`
+# and several Core / compile-only ceiling YAMLs `!include` the
+# legacy file by path).
+#
+# The `_radar` suffix is deliberately not `_presence`: per the
+# naming-audit Rule 7, `Presence` is a forbidden customer-facing
+# token from config/webflash-compatibility.json's forbidden_tokens
+# list and must not appear in any newly added package filename.
+# `_radar` describes the underlying 24GHz mmWave radar sensor and
+# avoids the deprecated `Presence` token.
+#
+# Implementation source of truth:
+#   packages/expansions/presence_ceiling.yaml
+#
+# The legacy file remains the actual hardware driver. Do not add
+# substitutions, globals, sensors, or any other YAML blocks here —
+# this file must stay a pure include wrapper per the naming-audit
+# Phase 2 contract (docs/package-naming-audit.md §"Phase 2 — Add
+# canonical aliases / wrapper packages").
+# ============================================================================
+
+packages:
+  legacy_roomiq_radar: !include presence_ceiling.yaml
