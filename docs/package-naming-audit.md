@@ -682,9 +682,73 @@ Notes on the chosen alias names:
   flagged in the audit's per-area findings and the wrappers cost
   nothing at runtime (pure include shims).
 
-The next Phase-2 slices (`roomiq_*`, `fan_dac.yaml`,
+The next Phase-2 slices (`fan_dac.yaml`,
 `airiq_profile_*`, etc.) are each their own scoped PR with their
 own evidence and tests and are not landed here.
+
+#### Phase 2 progress — RoomIQ aliases landed (2026-05-21)
+
+`PACKAGE-NAMING-ALIASES-ROOMIQ-001` is the second Phase 2 slice and
+adds the four canonical `RoomIQ` alias files listed below. Each
+alias is a thin `!include` wrapper around the legacy implementation
+file; the legacy file remains the source of truth and is not edited,
+moved, renamed, or deleted. New product / compile-only YAMLs that
+want to use the canonical productized `RoomIQ` name may include any
+of the alias files instead of the legacy filename; existing
+consumers of the legacy paths continue to work unchanged. The four
+target legacy files are exactly the ones the Release-One product
+[`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+already binds to under `roomiq_*` package keys.
+
+| Canonical alias (added)                                                                                       | Legacy implementation file (unchanged)                                                                       |
+|---------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| [`packages/expansions/roomiq.yaml`](../packages/expansions/roomiq.yaml)                                       | [`packages/expansions/comfort_ceiling.yaml`](../packages/expansions/comfort_ceiling.yaml)                    |
+| [`packages/expansions/roomiq_radar.yaml`](../packages/expansions/roomiq_radar.yaml)                           | [`packages/expansions/presence_ceiling.yaml`](../packages/expansions/presence_ceiling.yaml)                  |
+| [`packages/features/roomiq_profile.yaml`](../packages/features/roomiq_profile.yaml)                           | [`packages/features/comfort_basic_profile.yaml`](../packages/features/comfort_basic_profile.yaml)            |
+| [`packages/features/roomiq_radar_profile.yaml`](../packages/features/roomiq_radar_profile.yaml)               | [`packages/features/presence_basic_profile.yaml`](../packages/features/presence_basic_profile.yaml)          |
+
+Notes on the chosen alias names:
+
+- The `_radar` suffix on `roomiq_radar.yaml` and
+  `roomiq_radar_profile.yaml` is deliberately not `_presence`.
+  `Presence` is listed in
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)'s
+  `forbidden_tokens` array, and per Rule 7 above no newly added
+  package filename may carry a forbidden customer-facing token.
+  `_radar` describes the underlying 24GHz mmWave radar sensor
+  (HLK-LD2450 by default, with optional DFRobot C4001) consumed by
+  the legacy `presence_ceiling.yaml` / `presence_basic_profile.yaml`
+  files and avoids the deprecated `Presence` token. This refines
+  the non-binding Phase-2 inventory above (which proposed
+  `roomiq_presence_*.yaml`) to comply with Rule 7.
+- The base `roomiq.yaml` alias wraps the ceiling-variant comfort
+  hardware driver (`comfort_ceiling.yaml`) rather than the
+  orphan generic `comfort.yaml`, because the ceiling variant is the
+  schematic-bound S360-200-R4 hardware driver that Release-One
+  binds to. This mirrors the VentIQ slice precedent where
+  `ventiq.yaml` was pointed at the schematic-bound
+  `airiq_bathroom_base.yaml` rather than the legacy `bathroom.yaml`
+  compatibility wrapper.
+- The alias filenames carry no token listed in
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)'s
+  `forbidden_tokens` (`Bathroom`, `Comfort`, `Presence`, generic
+  `Fan`, `FanAnalog`). The pinning test
+  [`tests/test_roomiq_alias_packages.py`](../tests/test_roomiq_alias_packages.py)
+  enforces this.
+- Aliases for the wall / S3-ceiling form factors
+  (`comfort_wall.yaml`, `comfort_ceiling_s3.yaml`,
+  `presence_wall.yaml`, `presence_ceiling_s3.yaml`,
+  `comfort_basic_profile_wall.yaml`) and the orphan generic
+  `comfort.yaml` are **not** added in this slice. They each have
+  their own consumer set and Phase-2 alias decision; future Phase-2
+  slices may add them under canonical `roomiq_*` names that also
+  avoid forbidden tokens (e.g. by following the
+  `roomiq_radar_*` precedent for any future presence-half wall
+  alias).
+
+The next Phase-2 slices (`fan_dac.yaml`, `airiq_profile_*`, etc.)
+are each their own scoped PR with their own evidence and tests and
+are not landed here.
 
 ### Phase 3 — Update new compile-only / product YAMLs to canonical names
 

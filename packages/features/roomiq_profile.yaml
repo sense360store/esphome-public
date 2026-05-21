@@ -1,0 +1,34 @@
+# ============================================================================
+# SENSE360 ROOMIQ FEATURE PROFILE - CANONICAL ALIAS (Phase 2)
+# ============================================================================
+# Canonical RoomIQ alias for the user-facing RoomIQ comfort feature
+# profile (RoomIQ Temperature / Humidity / Light Level / Comfort
+# entities). Entity names exposed by the legacy file already use the
+# productized `RoomIQ` prefix in user-facing labels (e.g.
+# `${friendly_name} RoomIQ Temperature`); only the filename remains
+# legacy.
+#
+# This file is a thin `!include` wrapper introduced by
+# PACKAGE-NAMING-ALIASES-ROOMIQ-001 as the Phase 2 follow-up to
+# PACKAGE-NAMING-AUDIT-001 (PR #550) and the sibling Phase 2 slice
+# PACKAGE-NAMING-ALIASES-VENTIQ-001 (PR #552). It exists so new
+# product / compile-only YAMLs can `!include` the canonical
+# productized `RoomIQ` name instead of the legacy
+# `comfort_basic_profile` filename, without breaking any current
+# consumer of the legacy path (Release-One product
+# `products/sense360-ceiling-poe-ventiq-roomiq.yaml` and several
+# Core / compile-only ceiling YAMLs `!include` the legacy file by
+# path).
+#
+# Implementation source of truth:
+#   packages/features/comfort_basic_profile.yaml
+#
+# The legacy file remains the actual feature profile. Do not add
+# substitutions, globals, sensors, or any other YAML blocks here —
+# this file must stay a pure include wrapper per the naming-audit
+# Phase 2 contract (docs/package-naming-audit.md §"Phase 2 — Add
+# canonical aliases / wrapper packages").
+# ============================================================================
+
+packages:
+  legacy_roomiq_profile: !include comfort_basic_profile.yaml
