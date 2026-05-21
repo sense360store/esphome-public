@@ -850,6 +850,88 @@ The next Phase-2 slices (`fan_dac.yaml`, wall / S3-ceiling RoomIQ
 form-factor aliases, etc.) are each their own scoped PR with
 their own evidence and tests and are not landed here.
 
+#### Phase 2 progress — FanDAC alias landed (2026-05-21)
+
+`PACKAGE-NAMING-ALIASES-FANDAC-001` is the fourth Phase 2 slice and
+adds the canonical `FanDAC` alias file listed below. The alias is a
+thin `!include` wrapper around the legacy implementation file; the
+legacy file remains the source of truth and is not edited, moved,
+renamed, or deleted. New product / compile-only YAMLs that want to
+use the canonical productized `FanDAC` name may include the alias
+file instead of the legacy vendor-chip filename; existing consumers
+of the legacy path continue to work unchanged.
+
+| Canonical alias (added)                                                             | Legacy implementation file (unchanged)                                                |
+|-------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| [`packages/expansions/fan_dac.yaml`](../packages/expansions/fan_dac.yaml)           | [`packages/expansions/fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml)       |
+
+Notes on the chosen alias name:
+
+- `fan_dac.yaml` is the lowercase `snake_case` rendering of the
+  canonical productized module token `FanDAC` from
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)'s
+  `canonical_modules` array (`AirIQ`, `VentIQ`, `RoomIQ`,
+  `FanRelay`, `FanPWM`, `FanDAC`, `FanTRIAC`, `LED`). The legacy
+  filename `fan_gp8403.yaml` is named after the GP8403 DAC
+  implementation detail (a DFRobot dual-channel 12-bit I²C DAC);
+  the productized / package-facing module name is `FanDAC`, which
+  is what new product / compile-only YAMLs should `!include`.
+- **Why the alias filename is allowed despite the `Fan` forbidden
+  token.** The token `Fan` (uppercase, standalone) is listed in
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)'s
+  `forbidden_tokens` array as a generic / customer-facing label
+  that must not appear in WebFlash artifact filenames; the
+  productized fan modules are firmware-distinct (`FanRelay` /
+  `FanPWM` / `FanDAC` / `FanTRIAC`) per the
+  `fan_variants_are_firmware_distinct` rule and the
+  `generic_fan_token_forbidden` rule. The FanDAC alias filename
+  `fan_dac.yaml` is an internal `packages/**` implementation alias,
+  not a WebFlash artifact name; the canonical product / module
+  token it represents is `FanDAC` (a member of `canonical_modules`),
+  not the forbidden generic `Fan` token. The audit's non-binding
+  Phase-2 inventory above explicitly proposes `fan_dac.yaml` as
+  the canonical alias for `fan_gp8403.yaml`. Customer-facing labels
+  surfaced to the WebFlash UI / Home Assistant / marketing remain
+  outcome-first (for example, "0–10V fan control" describes what
+  the customer gets without leaking the GP8403 chip name or the
+  forbidden generic `Fan` token); the alias file must not be
+  exposed as a loose customer-facing product. The pinning test
+  [`tests/test_fandac_alias_packages.py`](../tests/test_fandac_alias_packages.py)
+  enforces the alias filename prefix, the include target, the
+  legacy-file-preserved invariant, and the pure-wrapper Rule 8
+  contract (no substitutions / globals / sensors / outputs /
+  components / fan-control behaviour added by the alias), but
+  deliberately omits the forbidden-token assertion used by the
+  VentIQ / RoomIQ / AirIQ alias tests because `FanDAC` is the
+  canonical module token rather than a forbidden token.
+- The GP8403 is implementation detail. The legacy
+  `fan_gp8403.yaml` file declares the GP8403 DAC component, two
+  DAC outputs (Channel 0 / Channel 1), two `fan` speed
+  controllers, monitoring sensors (speed percent + calculated
+  output voltage), globals (target speeds, auto mode, link mode),
+  and control scripts (set-speed, set-both, emergency-stop). The
+  alias adds none of these — it `!include`s the legacy file under
+  the package key `legacy_fan_dac_gp8403` and adds nothing else.
+  This makes the alias byte-identical-for-runtime to the legacy
+  file: a product YAML that previously did
+  `fan_module: !include ../packages/expansions/fan_gp8403.yaml`
+  may instead do
+  `fan_module: !include ../packages/expansions/fan_dac.yaml` and
+  get the same runtime behaviour (the alias resolves through to
+  the legacy file via the inner `packages:` block).
+- The corresponding `_radar` / `_extended` / `_mqtt` /
+  `_auto_ventilation` suffix choices used in the VentIQ, RoomIQ,
+  and AirIQ slices do not apply here: the canonical `FanDAC`
+  module already names the underlying control behaviour (DAC-driven
+  0–10V analog fan control) at the module-token level, so the
+  alias filename does not need a separate behaviour-revealing
+  suffix to satisfy naming-audit Rule 6.
+
+The next Phase-2 slices (wall / S3-ceiling RoomIQ form-factor
+aliases, the orphan generic `comfort.yaml` alias, and any future
+fan-side feature aliases) are each their own scoped PR with
+their own evidence and tests and are not landed here.
+
 ### Phase 3 — Update new compile-only / product YAMLs to canonical names
 
 Once Phase-2 aliases exist:
