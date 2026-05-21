@@ -1,0 +1,48 @@
+# ============================================================================
+# SENSE360 AIRIQ AUTO-VENTILATION FEATURE PROFILE - CANONICAL ALIAS (Phase 2)
+# ============================================================================
+# Canonical AirIQ alias for the AirIQ auto-ventilation feature
+# profile. The legacy file `!include`s `airiq_basic_profile.yaml`
+# and `diagnostics.yaml`, declares a `gpio` output on `GPIO15`, a
+# `fan_switch` template switch wired to that output (exposed as
+# `${friendly_name} Air Exchange`), and an `auto_fan_control`
+# script that turns the fan switch on whenever `air_quality_state`
+# is `"heavily polluted"` and off otherwise. A 5-minute interval
+# logs the current IAQ classification and re-runs the
+# auto_fan_control script, and a hidden internal text sensor
+# re-runs the script on every change of `air_quality_state`. This
+# is the file the naming-audit flags as `behavior-hidden-by-name`:
+# the legacy `airiq_advanced_profile.yaml` filename implies "AirIQ
+# advanced" but the file actually drives a fan output.
+#
+# Per naming-audit Rule 6 (docs/package-naming-audit.md §"Rule 6 —
+# Avoid package names that hide control behavior"), the canonical
+# alias filename includes `auto_ventilation` so that the hidden
+# fan-control behaviour is visible at a glance to anyone reading
+# the include path. The token `auto_ventilation` describes the
+# behaviour (automated air exchange) without using the forbidden
+# WebFlash customer-facing token `Fan` (see
+# config/webflash-compatibility.json `forbidden_tokens`).
+#
+# This file is a thin `!include` wrapper introduced by
+# PACKAGE-NAMING-ALIASES-AIRIQ-001 as the Phase 2 follow-up to
+# PACKAGE-NAMING-AUDIT-001 (PR #550) and mirrors the sibling Phase 2
+# slices PACKAGE-NAMING-ALIASES-VENTIQ-001 (PR #552) and
+# PACKAGE-NAMING-ALIASES-ROOMIQ-001 (PR #553). It exists so new
+# product / compile-only YAMLs can `!include` the canonical
+# productized `AirIQ` name instead of the legacy
+# `airiq_advanced_profile` filename, without breaking any current
+# consumer of the legacy path.
+#
+# Implementation source of truth:
+#   packages/features/airiq_advanced_profile.yaml
+#
+# The legacy file remains the actual feature profile. Do not add
+# substitutions, globals, sensors, or any other YAML blocks here —
+# this file must stay a pure include wrapper per the naming-audit
+# Phase 2 contract (docs/package-naming-audit.md §"Phase 2 — Add
+# canonical aliases / wrapper packages").
+# ============================================================================
+
+packages:
+  legacy_airiq_auto_ventilation_profile: !include airiq_advanced_profile.yaml
