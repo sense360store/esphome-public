@@ -1859,6 +1859,77 @@ mirrored here.
   FanTRIAC deferral rows remain blocked behind their named
   evidence chains and must not be added as compile-only targets
   until those chains close.
+- **PACKAGE-NAMING-AUDIT-001 — audit `packages/**` filenames
+  against productized naming model (2026-05-21).** Added
+  `docs/package-naming-audit.md` recording an inventory of every
+  YAML file under `packages/**` (79 files across `base/` (9),
+  `expansions/` (24), `features/` (24), and `hardware/` (22))
+  classified against
+  the WebFlash token list from `docs/webflash-contract.md` §3.
+  Per-file rows record current path, apparent purpose,
+  customer-facing concept, module identity, config-string token
+  relationship, current known consumers (from repo grep across
+  `products/**` and `packages/**`), recommended canonical name,
+  migration risk, and whether a compatibility shim is recommended.
+  The classification taxonomy is `canonical-current` /
+  `acceptable-internal` / `legacy-compatible` / `misleading-name`
+  / `behavior-hidden-by-name` / `candidate-for-alias` /
+  `candidate-for-future-rename`. Four problem areas are documented
+  in detail: (1) AirIQ — `AirIQ` is reused for the productized
+  `S360-210` module, for the productized `S360-211` (VentIQ)
+  module via the legacy `airiq_bathroom_*` filenames, and as a
+  generic IAQ-feature token in `packages/features/airiq_*`; (2)
+  VentIQ / bathroom — `bathroom_profile.yaml` and
+  `bathroom_pro_profile.yaml` use the forbidden `Bathroom` token
+  but already carry `VentIQ` in user-facing entity names; (3)
+  RoomIQ / comfort / presence — `comfort_*.yaml` and
+  `presence_*.yaml` filenames use forbidden `Comfort` and
+  `Presence` tokens but entity names already use `RoomIQ`; (4)
+  hidden control behaviour —
+  `packages/features/airiq_advanced_profile.yaml` adds an
+  `auto_fan_control` script and a `fan_switch` output on GPIO15
+  that is not described by the filename. The naming-policy section
+  documents eight rules (filenames are internal; customer-facing
+  names are outcome-first; module names map to SKUs; config
+  strings remain build identity; avoid `basic` / `advanced` /
+  `pro` unless explicitly productized; avoid filenames that hide
+  control behaviour; deprecated WebFlash tokens never appear in
+  new filenames; compatibility shims live in the repo). The
+  five-phase migration plan is Phase 1 (this audit), Phase 2
+  (canonical aliases that `!include` legacy files), Phase 3 (new
+  compile-only / product YAMLs use canonical names), Phase 4
+  (deprecation comments on legacy files), Phase 5 (legacy
+  filename removal after all consumers migrated and one release
+  tag has elapsed). **PR is audit / docs / planning only.** No
+  `packages/**` rename / move / delete; no `packages/**` content
+  edit; no `products/**` / `products/webflash/**` /
+  `firmware/**` / `manifest.json` / `firmware/sources.json` /
+  `.github/workflows/**` / `components/**` / `include/**` edit;
+  no `config/compile-only-targets.json` /
+  `config/compile-only-candidates.json` /
+  `config/webflash-builds.json` /
+  `config/product-catalog.json` /
+  `config/hardware-catalog.json` /
+  `config/webflash-compatibility.json` /
+  `config/firmware-combination-matrix.json` /
+  `config/kit-intent-matrix.json` edit; no `tests/**` /
+  `scripts/**` edit; no `forbidden_tokens` / `canonical_modules`
+  / `canonical_power` / `lifecycle_statuses` /
+  `release_one_required_configs` / `REQUIRED_CONFIGS` /
+  `webflash_build_matrix` / `artifact_name` / `webflash_wrapper`
+  / `config_string` change; no compile-only target added; no
+  product YAML added; no WebFlash wrapper added; no LED stable
+  promotion; no AirIQ / VentIQ / RoomIQ / fan / PWR / POE
+  promotion; no hardware-proof claim; no WebFlash
+  import-readiness claim; no `RELEASE-007` unblock claim; no
+  Release-One / LED preview / FanTRIAC identity change; no
+  `schematic_status` / `schematic_file` promotion; no
+  COMPLIANCE-001 movement; no release artifact built or attached.
+  Next-step pointer: Phase 2 PRs would add canonical-name alias
+  files (e.g. `packages/expansions/ventiq.yaml` `!include`-wrapping
+  `packages/expansions/bathroom.yaml`); each Phase-2 PR is its own
+  scoped change with its own evidence and tests and must not edit
+  the legacy file.
 
 ## Completed / merged PRs
 
