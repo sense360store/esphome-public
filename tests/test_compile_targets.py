@@ -38,6 +38,34 @@ CATALOG_PATH = REPO_ROOT / "config" / "product-catalog.json"
 RELEASE_ONE_CONFIG_STRING = "Ceiling-POE-VentIQ-RoomIQ"
 LED_PREVIEW_CONFIG_STRING = "Ceiling-POE-VentIQ-RoomIQ-LED"
 
+# FW-COMPILE-POE-NONFAN-001: POE non-fan compile-only candidates added in
+# this PR. Each maps to a product YAML under products/compile-only/.
+POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS = frozenset(
+    {
+        "Ceiling-POE",
+        "Ceiling-POE-RoomIQ",
+        "Ceiling-POE-VentIQ",
+        "Ceiling-POE-AirIQ",
+        "Ceiling-POE-AirIQ-RoomIQ",
+    }
+)
+
+POE_NONFAN_COMPILE_ONLY_PRODUCT_YAMLS = frozenset(
+    {
+        "products/compile-only/ceiling-poe.yaml",
+        "products/compile-only/ceiling-poe-roomiq.yaml",
+        "products/compile-only/ceiling-poe-ventiq.yaml",
+        "products/compile-only/ceiling-poe-airiq.yaml",
+        "products/compile-only/ceiling-poe-airiq-roomiq.yaml",
+    }
+)
+
+# Fan / PWR tokens that this PR must not introduce as compile-only targets.
+FORBIDDEN_FAN_TOKENS_FOR_THIS_PR = frozenset(
+    {"FanRelay", "FanPWM", "FanDAC", "FanTRIAC"}
+)
+FORBIDDEN_POWER_TOKENS_FOR_THIS_PR = frozenset({"PWR"})
+
 ALLOWED_SHIPMENT_STATUSES = frozenset(
     {"webflash-current", "preview-current", "compile-only"}
 )
@@ -316,6 +344,194 @@ class CurrentWebflashCoverageTests(unittest.TestCase):
 
     def test_led_preview_is_a_compile_only_target(self):
         self.assertIn(LED_PREVIEW_CONFIG_STRING, self.config_strings)
+
+
+class PoeNonFanCompileOnlyCoverageTests(unittest.TestCase):
+    """FW-COMPILE-POE-NONFAN-001: POE non-fan compile-only candidates.
+
+    These tests pin the invariants for the POE non-fan compile-only
+    candidates added by FW-COMPILE-POE-NONFAN-001: each candidate's
+    product YAML exists on disk under ``products/compile-only/``,
+    each candidate's ``config_string`` is present in
+    ``config/firmware-combination-matrix.json``, each candidate is
+    absent from ``config/webflash-builds.json``, each candidate
+    declares ``shipment_status: compile-only`` /
+    ``webflash_exposure_allowed_now: false`` /
+    ``hardware_required_for_validation: true``, no candidate declares
+    ``webflash_build_matrix`` or ``artifact_name``, and no candidate
+    carries a forbidden fan / PWR token.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.doc = _load(TARGETS_PATH)
+        cls.targets = cls.doc["targets"]
+        cls.by_config = {
+            t["config_string"]: t for t in cls.targets if t.get("config_string")
+        }
+        cls.builds = _load(BUILDS_PATH)
+        cls.matrix = _load(MATRIX_PATH)
+        cls.committed_configs = {
+            entry["config_string"]
+            for entry in (cls.builds.get("builds", []) or [])
+            if entry.get("config_string")
+        }
+        cls.matrix_configs = {
+            row["config_string"]
+            for row in (cls.matrix.get("combinations", []) or [])
+            if row.get("config_string")
+        }
+
+    def test_every_poe_nonfan_config_string_is_a_compile_only_target(self):
+        for cs in POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS:
+            self.assertIn(
+                cs,
+                self.by_config,
+                f"POE non-fan config_string {cs!r} is not present in "
+                "config/compile-only-targets.json",
+            )
+
+    def test_every_poe_nonfan_product_yaml_exists_on_disk(self):
+        for rel in POE_NONFAN_COMPILE_ONLY_PRODUCT_YAMLS:
+            self.assertTrue(
+                (REPO_ROOT / rel).is_file(),
+                f"POE non-fan compile-only product YAML not found: {rel}",
+            )
+
+    def test_every_poe_nonfan_config_string_is_in_firmware_matrix(self):
+        for cs in POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS:
+            self.assertIn(
+                cs,
+                self.matrix_configs,
+                f"POE non-fan config_string {cs!r} is not present in "
+                "config/firmware-combination-matrix.json",
+            )
+
+    def test_no_poe_nonfan_config_string_is_in_webflash_builds(self):
+        for cs in POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS:
+            self.assertNotIn(
+                cs,
+                self.committed_configs,
+                f"POE non-fan compile-only target {cs!r} must NOT be "
+                "present in config/webflash-builds.json (compile-only "
+                "targets are not WebFlash exposed)",
+            )
+
+    def test_every_poe_nonfan_target_has_compile_only_shipment_status(self):
+        for cs in POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS:
+            target = self.by_config.get(cs)
+            self.assertIsNotNone(target, f"missing compile-only target for {cs!r}")
+            self.assertEqual(
+                target["shipment_status"],
+                "compile-only",
+                f"target {target['id']!r}: shipment_status must be "
+                "'compile-only' for POE non-fan compile-confidence targets",
+            )
+
+    def test_every_poe_nonfan_target_disallows_webflash_exposure(self):
+        for cs in POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS:
+            target = self.by_config.get(cs)
+            self.assertIsNotNone(target, f"missing compile-only target for {cs!r}")
+            self.assertFalse(
+                target.get("webflash_exposure_allowed_now"),
+                f"target {target['id']!r}: webflash_exposure_allowed_now "
+                "must be false for POE non-fan compile-confidence targets",
+            )
+
+    def test_every_poe_nonfan_target_requires_hardware_for_validation(self):
+        for cs in POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS:
+            target = self.by_config.get(cs)
+            self.assertIsNotNone(target, f"missing compile-only target for {cs!r}")
+            self.assertTrue(
+                target.get("hardware_required_for_validation"),
+                f"target {target['id']!r}: "
+                "hardware_required_for_validation must be true — "
+                "compile-only is pre-hardware confidence, not "
+                "hardware-validated readiness",
+            )
+
+    def test_no_poe_nonfan_target_declares_webflash_build_matrix(self):
+        for cs in POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS:
+            target = self.by_config.get(cs)
+            self.assertIsNotNone(target, f"missing compile-only target for {cs!r}")
+            self.assertNotIn(
+                "webflash_build_matrix",
+                target,
+                f"target {target['id']!r}: must not declare "
+                "webflash_build_matrix; that flag is owned by "
+                "config/product-catalog.json",
+            )
+
+    def test_no_poe_nonfan_target_declares_artifact_name(self):
+        for cs in POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS:
+            target = self.by_config.get(cs)
+            self.assertIsNotNone(target, f"missing compile-only target for {cs!r}")
+            self.assertNotIn(
+                "artifact_name",
+                target,
+                f"target {target['id']!r}: must not declare artifact_name; "
+                "that field is owned by config/webflash-builds.json",
+            )
+
+    def test_no_poe_nonfan_target_declares_webflash_wrapper(self):
+        for cs in POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS:
+            target = self.by_config.get(cs)
+            self.assertIsNotNone(target, f"missing compile-only target for {cs!r}")
+            self.assertNotIn(
+                "webflash_wrapper",
+                target,
+                f"target {target['id']!r}: must not declare webflash_wrapper; "
+                "compile-only targets do not add WebFlash wrappers",
+            )
+
+    def test_no_poe_nonfan_product_yaml_lives_in_webflash_directory(self):
+        for rel in POE_NONFAN_COMPILE_ONLY_PRODUCT_YAMLS:
+            self.assertFalse(
+                rel.startswith("products/webflash/"),
+                f"POE non-fan compile-only product YAML {rel!r} must NOT "
+                "live under products/webflash/; that directory is the "
+                "WebFlash wrapper namespace",
+            )
+
+    def test_this_pr_introduces_no_fan_compile_only_target(self):
+        """FW-COMPILE-POE-NONFAN-001 must not add any Fan* compile-only target."""
+        for target in self.targets:
+            cs = target.get("config_string") or ""
+            tokens = set(cs.split("-")) if cs else set()
+            forbidden_fan_tokens = tokens & FORBIDDEN_FAN_TOKENS_FOR_THIS_PR
+            self.assertFalse(
+                forbidden_fan_tokens,
+                f"target {target['id']!r}: carries forbidden fan token "
+                f"{sorted(forbidden_fan_tokens)} — this PR must not add "
+                "any FanRelay / FanPWM / FanDAC / FanTRIAC compile-only "
+                "target",
+            )
+
+    def test_this_pr_introduces_no_pwr_compile_only_target(self):
+        """FW-COMPILE-POE-NONFAN-001 must not add any PWR compile-only target."""
+        for target in self.targets:
+            cs = target.get("config_string") or ""
+            tokens = set(cs.split("-")) if cs else set()
+            forbidden_power_tokens = tokens & FORBIDDEN_POWER_TOKENS_FOR_THIS_PR
+            self.assertFalse(
+                forbidden_power_tokens,
+                f"target {target['id']!r}: carries forbidden power token "
+                f"{sorted(forbidden_power_tokens)} — this PR must not add "
+                "any PWR / S360-400 compile-only target",
+            )
+
+    def test_totals_match_expected_target_count(self):
+        """Totals must match the sum of the two committed WebFlash targets
+        plus the five FW-COMPILE-POE-NONFAN-001 candidates."""
+        totals = self.doc.get("totals") or {}
+        self.assertEqual(totals.get("targets"), len(self.targets))
+        expected_min_targets = 2 + len(POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS)
+        self.assertGreaterEqual(
+            len(self.targets),
+            expected_min_targets,
+            "expected at least the two committed WebFlash targets plus "
+            "the five POE non-fan compile-only candidates",
+        )
 
 
 class ValidatorScriptTests(unittest.TestCase):
