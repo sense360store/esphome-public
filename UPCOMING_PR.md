@@ -1590,6 +1590,44 @@ mirrored here.
   ranked kit-intent view rather than the raw combination matrix.
   KIT-MATRIX-001 does not exist yet, has no PR number, and adds
   no product / build / WebFlash / release exposure on its own.
+- **KIT-MATRIX-001 — productized kit / bundle intent matrix
+  landed on 2026-05-21.** Added the source-of-truth planning
+  matrix at `config/kit-intent-matrix.json` (six initial kit
+  intent rows: `S360-KIT-BATH-POE` / `S360-KIT-BATH-POE-LED` /
+  `S360-KIT-BATH-RELAY` / `S360-KIT-BATH-TRIAC` /
+  `S360-KIT-DUCT-PWM` / `S360-KIT-DUCT-0-10V`), the documentation
+  at `docs/kit-intent-matrix.md` (kit-SKU vs module-SKU vs
+  firmware-config-string identifier separation, productization
+  rules, wizard usage, hard guardrails), and the tests at
+  `tests/test_kit_intent_matrix.py` (21 stdlib-unittest cases
+  pinning kit-id uniqueness, default-config-string presence in
+  the firmware matrix, S360-KIT-BATH-POE stable-ready mapping,
+  S360-KIT-BATH-POE-LED preview blockers including
+  `S360-300-BENCH-001` / `WF-HW-TEST-001` / `WF-HW-TEST-003`,
+  FanTRIAC blockers including `HW-005` / `COMPLIANCE-001`, PWM
+  and FanDAC kits being classified as duct-fan futures rather
+  than default bathroom stable kits, and the guardrails that no
+  kit with `webflash_exposure_allowed_now=true` points to a
+  config string absent from `config/webflash-builds.json` and
+  that no PWR-bearing kit claims WebFlash exposure or stable
+  readiness). **This PR is planning / docs / data only.** No
+  product YAML was added, no WebFlash wrapper was added, no
+  firmware was built, no release artifact was produced, no
+  `webflash_build_matrix: true` flip happened, the LED preview
+  was not promoted to stable, `RELEASE-007` was not unblocked,
+  and `config/webflash-builds.json` / `config/product-catalog.json`
+  / `config/hardware-catalog.json` / `config/webflash-compatibility.json`
+  / `config/firmware-combination-matrix.json` were not changed.
+  The two committed firmware builds remain authoritative:
+  `Ceiling-POE-VentIQ-RoomIQ` (stable) and
+  `Ceiling-POE-VentIQ-RoomIQ-LED` (preview). The kit intent
+  matrix is now the planning layer above the 168-row firmware
+  combination matrix and the priority-lane build-gap report;
+  downstream product / WebFlash / release sequencing should pull
+  from the kit intent view rather than the raw combination
+  matrix, while WebFlash installability is still controlled
+  exclusively by `config/webflash-builds.json` and the WebFlash
+  manifest.
 
 ## Completed / merged PRs
 

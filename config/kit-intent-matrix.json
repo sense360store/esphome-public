@@ -1,0 +1,270 @@
+{
+  "schema_version": 1,
+  "description": "Productized kit / bundle intent matrix (KIT-MATRIX-001). Source-of-truth planning data mapping customer-facing kit SKUs onto module SKUs and the firmware combination strings tracked in config/firmware-combination-matrix.json. This file is planning / intent only: it does not add product YAMLs, WebFlash wrappers, firmware builds, artifacts, releases, or stable promotions, and it does not imply WebFlash exposure. See docs/kit-intent-matrix.md.",
+  "sources": {
+    "firmware_matrix": "config/firmware-combination-matrix.json",
+    "firmware_build_gap_report": "docs/firmware-build-gap-report.md",
+    "webflash_builds": "config/webflash-builds.json",
+    "hardware_catalog": "config/hardware-catalog.json",
+    "product_catalog": "config/product-catalog.json"
+  },
+  "rules": {
+    "kit_intent_is_not_product_yaml": true,
+    "kit_intent_is_not_webflash_exposure": true,
+    "kit_intent_is_not_release_artifact": true,
+    "bathroom_default_air_quality": "VentIQ",
+    "bathroom_optional_room_sense": "RoomIQ",
+    "led_is_preview_gated_until_stable": true,
+    "pwr_is_compliance_blocked": true,
+    "fantriac_is_blocked_until_hw_and_compliance_clear": true,
+    "pwm_and_dac_are_advanced_duct_fan_concepts_not_default_bathroom": true,
+    "custom_pick_and_choose_must_combine_kit_intent_with_firmware_matrix_and_webflash_manifest": true
+  },
+  "allowed_tiers": [
+    "ready-kit",
+    "preview-kit",
+    "future-expansion",
+    "advanced-manual"
+  ],
+  "allowed_lifecycle_statuses": [
+    "production",
+    "preview",
+    "hardware-pending",
+    "blocked"
+  ],
+  "allowed_use_cases": [
+    "bathroom",
+    "kitchen-or-duct-fan"
+  ],
+  "kits": [
+    {
+      "kit_id": "S360-KIT-BATH-POE",
+      "customer_name": "Sense360 Bathroom Kit — PoE",
+      "use_case": "bathroom",
+      "tier": "ready-kit",
+      "lifecycle_status": "production",
+      "default_config_string": "Ceiling-POE-VentIQ-RoomIQ",
+      "included_module_skus": [
+        "S360-100",
+        "S360-200",
+        "S360-211",
+        "S360-410"
+      ],
+      "recommended_modules": [
+        "S360-200",
+        "S360-211"
+      ],
+      "optional_modules": [],
+      "advanced_modules": [],
+      "excluded_or_not_recommended_modules": [
+        "S360-210",
+        "S360-300",
+        "S360-310",
+        "S360-311",
+        "S360-312",
+        "S360-320",
+        "S360-400"
+      ],
+      "firmware_matrix_lane": "current-webflash",
+      "webflash_exposure_allowed_now": true,
+      "stable_ready_now": true,
+      "blockers": [],
+      "notes": "Default stable bathroom bundle. Mounts Core (S360-100) on a PoE PSU (S360-410), pairs the bathroom-purpose VentIQ air-quality module (S360-211) with RoomIQ (S360-200). The firmware config string Ceiling-POE-VentIQ-RoomIQ is the Release-One stable WebFlash build (see config/webflash-builds.json). LED ring (S360-300) is deliberately excluded from this kit and routed through the preview kit S360-KIT-BATH-POE-LED until LED stable gates close."
+    },
+    {
+      "kit_id": "S360-KIT-BATH-POE-LED",
+      "customer_name": "Sense360 Bathroom Kit — PoE + Status Ring Preview",
+      "use_case": "bathroom",
+      "tier": "preview-kit",
+      "lifecycle_status": "preview",
+      "default_config_string": "Ceiling-POE-VentIQ-RoomIQ-LED",
+      "included_module_skus": [
+        "S360-100",
+        "S360-200",
+        "S360-211",
+        "S360-300",
+        "S360-410"
+      ],
+      "recommended_modules": [
+        "S360-200",
+        "S360-211"
+      ],
+      "optional_modules": [
+        "S360-300"
+      ],
+      "advanced_modules": [],
+      "excluded_or_not_recommended_modules": [
+        "S360-210",
+        "S360-310",
+        "S360-311",
+        "S360-312",
+        "S360-320",
+        "S360-400"
+      ],
+      "firmware_matrix_lane": "current-webflash",
+      "webflash_exposure_allowed_now": true,
+      "stable_ready_now": false,
+      "blockers": [
+        "S360-300-BENCH-001",
+        "WF-HW-TEST-001",
+        "WF-HW-TEST-003",
+        "RELEASE-007"
+      ],
+      "notes": "Preview / early-access bundle that adds the LED status ring (S360-300) on top of the stable bathroom kit. The firmware config string Ceiling-POE-VentIQ-RoomIQ-LED is committed to config/webflash-builds.json on the preview channel only. Stable promotion requires the 17-row preview-to-stable gauntlet in docs/preview-to-stable-promotion-gates.md, including S360-300-BENCH-001 bench evidence (harness rail, LED count, harness identity) and the WebFlash operator-proof containers WF-HW-TEST-001 / WF-HW-TEST-003, plus RELEASE-007. None of those have closed yet, so this row stays preview only and stable_ready_now is false."
+    },
+    {
+      "kit_id": "S360-KIT-BATH-RELAY",
+      "customer_name": "Sense360 Bathroom Kit — Relay Fan Control",
+      "use_case": "bathroom",
+      "tier": "future-expansion",
+      "lifecycle_status": "hardware-pending",
+      "default_config_string": null,
+      "included_module_skus": [],
+      "recommended_modules": [
+        "S360-100",
+        "S360-200",
+        "S360-211",
+        "S360-310",
+        "S360-410"
+      ],
+      "optional_modules": [],
+      "advanced_modules": [
+        "S360-310"
+      ],
+      "excluded_or_not_recommended_modules": [
+        "S360-300",
+        "S360-311",
+        "S360-312",
+        "S360-320",
+        "S360-400"
+      ],
+      "firmware_matrix_lane": "fanrelay-blocked-package-or-core-bus",
+      "webflash_exposure_allowed_now": false,
+      "stable_ready_now": false,
+      "blockers": [
+        "CORE-ABSTRACT-BUS-001C",
+        "CORE-ABSTRACT-BUS-001A",
+        "PACKAGE-RELAY-001",
+        "PRODUCT-RELAY-001",
+        "WEBFLASH-RELAY-001",
+        "RELEASE-RELAY-001"
+      ],
+      "notes": "Future expansion bundle pairing the stable bathroom kit with the FanRelay driver (S360-310). No default_config_string is committed because no FanRelay config string is currently in config/webflash-builds.json. Implementation chain runs CORE-ABSTRACT-BUS-001C → CORE-ABSTRACT-BUS-001A → PACKAGE-RELAY-001 → PRODUCT-RELAY-001 → WEBFLASH-RELAY-001 → RELEASE-RELAY-001 per docs/firmware-build-gap-report.md fanrelay lane."
+    },
+    {
+      "kit_id": "S360-KIT-BATH-TRIAC",
+      "customer_name": "Sense360 Bathroom Kit — TRIAC Fan Control",
+      "use_case": "bathroom",
+      "tier": "advanced-manual",
+      "lifecycle_status": "blocked",
+      "default_config_string": null,
+      "included_module_skus": [],
+      "recommended_modules": [
+        "S360-100",
+        "S360-200",
+        "S360-211",
+        "S360-320",
+        "S360-410"
+      ],
+      "optional_modules": [],
+      "advanced_modules": [
+        "S360-320"
+      ],
+      "excluded_or_not_recommended_modules": [
+        "S360-300",
+        "S360-310",
+        "S360-311",
+        "S360-312",
+        "S360-400"
+      ],
+      "firmware_matrix_lane": "fantriac-blocked-hardware-compliance",
+      "webflash_exposure_allowed_now": false,
+      "stable_ready_now": false,
+      "blockers": [
+        "HW-005",
+        "HW-PINMAP-320-FOLLOWUP",
+        "PACKAGE-TRIAC-001",
+        "COMPLIANCE-001"
+      ],
+      "notes": "Advanced / manual bathroom bundle using the FanTRIAC driver (S360-320) for mains-voltage fan control. Currently blocked: HW-005 (S360-320 schematic uncommitted; placeholder GPIO5/GPIO6 collide with RoomIQ J10 nets; ESPHome ac_dimmer cannot run across the SX1509 expander), HW-PINMAP-320-FOLLOWUP (audit partial), PACKAGE-TRIAC-001 (package deferred), and COMPLIANCE-001 (mains-voltage advanced/manual-warning sign-off open). FanTRIAC stays advanced/manual or blocked until all four gates clear."
+    },
+    {
+      "kit_id": "S360-KIT-DUCT-PWM",
+      "customer_name": "Sense360 Duct Fan Kit — PWM Fan Control",
+      "use_case": "kitchen-or-duct-fan",
+      "tier": "future-expansion",
+      "lifecycle_status": "hardware-pending",
+      "default_config_string": null,
+      "included_module_skus": [],
+      "recommended_modules": [
+        "S360-100",
+        "S360-311",
+        "S360-410"
+      ],
+      "optional_modules": [
+        "S360-200"
+      ],
+      "advanced_modules": [
+        "S360-311"
+      ],
+      "excluded_or_not_recommended_modules": [
+        "S360-211",
+        "S360-300",
+        "S360-310",
+        "S360-312",
+        "S360-320",
+        "S360-400"
+      ],
+      "firmware_matrix_lane": "fanpwm-blocked-package-or-core-bus",
+      "webflash_exposure_allowed_now": false,
+      "stable_ready_now": false,
+      "blockers": [
+        "CORE-ABSTRACT-BUS-001B",
+        "PACKAGE-PWM-001",
+        "PRODUCT-PWM-001",
+        "WEBFLASH-PWM-001",
+        "RELEASE-PWM-001"
+      ],
+      "notes": "Future kitchen / duct-fan bundle using the 12V PWM fan driver (S360-311). PWM is not a default bathroom option — this is an advanced duct-fan / kitchen-style concept. No default_config_string is committed because no FanPWM config string is currently in config/webflash-builds.json. Implementation chain runs CORE-ABSTRACT-BUS-001B → PACKAGE-PWM-001 → PRODUCT-PWM-001 → WEBFLASH-PWM-001 → RELEASE-PWM-001 per docs/firmware-build-gap-report.md fanpwm lane."
+    },
+    {
+      "kit_id": "S360-KIT-DUCT-0-10V",
+      "customer_name": "Sense360 Duct Fan Kit — 0–10V Fan Control",
+      "use_case": "kitchen-or-duct-fan",
+      "tier": "future-expansion",
+      "lifecycle_status": "hardware-pending",
+      "default_config_string": null,
+      "included_module_skus": [],
+      "recommended_modules": [
+        "S360-100",
+        "S360-312",
+        "S360-410"
+      ],
+      "optional_modules": [
+        "S360-200"
+      ],
+      "advanced_modules": [
+        "S360-312"
+      ],
+      "excluded_or_not_recommended_modules": [
+        "S360-211",
+        "S360-300",
+        "S360-310",
+        "S360-311",
+        "S360-320",
+        "S360-400"
+      ],
+      "firmware_matrix_lane": "fandac-blocked-package-or-core-bus",
+      "webflash_exposure_allowed_now": false,
+      "stable_ready_now": false,
+      "blockers": [
+        "CORE-ABSTRACT-BUS-001B",
+        "PACKAGE-DAC-001",
+        "PRODUCT-DAC-001",
+        "WEBFLASH-DAC-001",
+        "RELEASE-DAC-001"
+      ],
+      "notes": "Future kitchen / duct-fan bundle using the 0–10V (GP8403 I²C DAC) fan driver (S360-312). 0–10V is not a default bathroom option — this is an advanced duct-fan / kitchen-style concept. The grammar in config/webflash-compatibility.json forbids FanDAC + AirIQ, so FanDAC-bearing combinations live entirely in the duct-fan space. No default_config_string is committed because no FanDAC config string is currently in config/webflash-builds.json. Implementation chain runs CORE-ABSTRACT-BUS-001B → PACKAGE-DAC-001 → PRODUCT-DAC-001 → WEBFLASH-DAC-001 → RELEASE-DAC-001 per docs/firmware-build-gap-report.md fandac lane."
+    }
+  ]
+}
