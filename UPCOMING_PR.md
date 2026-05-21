@@ -1774,6 +1774,91 @@ mirrored here.
   expanded lane; if any new target fails compile, fix the compile
   failure (or, if a target is invalid by grammar / unsafe to
   represent, remove only that target).
+- **FW-COMPILE-EXPAND-001 — identify next compile-only target
+  candidates (2026-05-21).** Added a reviewed, machine-readable
+  candidate ledger for the next compile-only firmware targets at
+  `config/compile-only-candidates.json` (26 ranked candidates
+  spanning the four non-blocked lanes — `poe-non-fan` /
+  `poe-non-fan-led` / `usb-non-fan` / `usb-non-fan-led` — and
+  representative deferral rows for each blocked lane: `pwr` /
+  `fanrelay` / `fanpwm` / `fandac` / `fantriac`). Each candidate
+  carries the required schema (`config_string`, `rank`, `lane`,
+  `use_case`, `proposed_product_yaml`, `candidate_status`,
+  `reason`, `blockers`, `would_be_webflash_exposed_now: false`,
+  `compile_only_safe`). Documentation at
+  `docs/compile-only-expansion-candidates.md` explains the
+  per-row schema, the lane ranking invariant, the
+  already-compile-only POE non-fan anchors, the POE LED preview
+  next-up compile-only candidates, the USB non-fan and USB LED
+  preview future candidates blocked on the USB-family scope
+  decision, and the PWR / FanRelay / FanPWM / FanDAC / FanTRIAC
+  deferral rationale. Tests at
+  `tests/test_compile_expansion_candidates.py` (37 stdlib-unittest
+  cases) pin: schema shape and required / forbidden fields; allowed
+  candidate statuses and lanes; no duplicate `config_string` or
+  `rank`; every candidate's `config_string` is present in
+  `config/firmware-combination-matrix.json`; no candidate appears
+  in `config/webflash-builds.json` unless it is one of the two
+  currently shipping builds (none do); no PWR candidate is marked
+  `compile_only_safe=true`; no FanTRIAC candidate is marked
+  `compile_only_safe=true`; FanRelay candidates carry both a
+  `PACKAGE-RELAY-001` blocker and a `CORE-ABSTRACT-BUS-001*`
+  blocker; FanPWM candidates carry both a `PACKAGE-PWM-001` blocker
+  and a `CORE-ABSTRACT-BUS-001*` blocker; FanDAC candidates carry
+  both a `PACKAGE-DAC-001` blocker and a `CORE-ABSTRACT-BUS-001*`
+  blocker; FanTRIAC candidates carry both an `HW-005` and a
+  `COMPLIANCE-001` blocker; non-blocked lane ranks (POE / USB non-fan
+  +/- LED) are all strictly lower than blocked lane ranks (PWR /
+  FanRelay / FanPWM / FanDAC / FanTRIAC); no candidate declares
+  forbidden shipment fields (`artifact_name`, `webflash_build_matrix`,
+  `webflash_wrapper`, `release_ready`, `stable_ready`,
+  `hardware_proof`, etc.) or claims release readiness or hardware
+  proof; the doc references the candidate JSON and the test file;
+  `currently_shipping_config_strings` matches the actual two
+  WebFlash builds; `currently_compile_only_config_strings` matches
+  the seven targets actually present in
+  `config/compile-only-targets.json`. **PR is planning-ledger
+  confidence only.** No `config/compile-only-targets.json` edit, no
+  `config/webflash-builds.json` edit, no `config/product-catalog.json`
+  edit, no `config/hardware-catalog.json` edit, no
+  `config/webflash-compatibility.json` edit, no
+  `config/firmware-combination-matrix.json` edit, no
+  `config/kit-intent-matrix.json` edit, no `products/**` edit, no
+  `products/webflash/**` edit, no `packages/**` edit, no
+  `firmware/**` / `manifest.json` / `firmware/sources.json` /
+  release artifact / checksum / build-info manifest edit, no
+  `.github/workflows/**` edit, no compile-only target added, no
+  product YAML added, no WebFlash wrapper added, no
+  `webflash_build_matrix: true` flip, no `artifact_name` added, no
+  release artifact built or attached, no firmware import, no LED
+  stable promotion, no AirIQ stable / preview / release promotion,
+  no POE / `S360-410` promotion, no PWR / `S360-400` promotion, no
+  fan-control target added, no hardware-proof claim, no WebFlash
+  import-readiness claim, no `RELEASE-007` unblock claim, no
+  Release-One / LED preview / FanTRIAC identity change, no
+  `release_one_required_configs` / `lifecycle_statuses` /
+  `canonical_modules` / `canonical_power` / `forbidden_tokens` /
+  `REQUIRED_CONFIGS` / kit change, no `schematic_status` /
+  `schematic_file` promotion, no `COMPLIANCE-001` movement, no
+  Release-One PoE caveat closure. Next-step pointer: once a
+  compile-only PR picks up Lane 2 (POE non-fan LED preview), it
+  must add the candidate's `proposed_product_yaml` under
+  `products/compile-only/`, enroll it in
+  `config/compile-only-targets.json` with
+  `shipment_status: compile-only` /
+  `webflash_exposure_allowed_now: false` /
+  `hardware_required_for_validation: true`, and run
+  `workflow_dispatch` with `compile_mode=full` to verify the
+  compile; it must NOT promote LED to stable, NOT add a
+  `webflash_wrapper`, NOT flip `webflash_build_matrix`, NOT add
+  `artifact_name`, NOT add to `config/webflash-builds.json`, and
+  NOT close `S360-300-BENCH-001` / `WF-HW-TEST-001` /
+  `WF-HW-TEST-003` / `RELEASE-007`. Lane 3 / Lane 4 (USB) require
+  a USB-family scope decision and a USB power package first
+  (neither exists today). The PWR / FanRelay / FanPWM / FanDAC /
+  FanTRIAC deferral rows remain blocked behind their named
+  evidence chains and must not be added as compile-only targets
+  until those chains close.
 
 ## Completed / merged PRs
 

@@ -1,0 +1,606 @@
+{
+  "schema_version": 1,
+  "description": "Reviewed candidate list for the next compile-only firmware targets (FW-COMPILE-EXPAND-001). This file is a planning / readiness-tracking document only: it does NOT add any compile-only target, does NOT add any product YAML, does NOT add any WebFlash wrapper, does NOT add any entry to config/webflash-builds.json, does NOT set webflash_build_matrix or artifact_name on any product, does NOT promote any product to preview / stable, does NOT build or attach any firmware artifact, does NOT import to WebFlash, and does NOT claim hardware proof exists or that RELEASE-007 is unblocked. The source-of-truth compile-only lane remains config/compile-only-targets.json; this file is a separate planning ledger. See docs/compile-only-expansion-candidates.md.",
+  "sources": {
+    "compile_only_targets": "config/compile-only-targets.json",
+    "webflash_builds": "config/webflash-builds.json",
+    "firmware_combination_matrix": "config/firmware-combination-matrix.json",
+    "firmware_build_gap_report": "docs/firmware-build-gap-report.md",
+    "kit_intent_matrix": "config/kit-intent-matrix.json"
+  },
+  "rules": {
+    "candidate_listing_is_not_compile_only_target": true,
+    "candidate_listing_is_not_product_yaml": true,
+    "candidate_listing_is_not_webflash_exposure": true,
+    "candidate_listing_is_not_release_artifact": true,
+    "candidate_listing_is_not_stable_promotion": true,
+    "candidate_listing_is_not_preview_promotion": true,
+    "candidate_listing_is_not_hardware_proof": true,
+    "candidate_listing_is_not_release_007_unblock": true,
+    "every_candidate_must_be_present_in_firmware_combination_matrix": true,
+    "no_candidate_appears_in_webflash_builds_unless_already_shipping": true,
+    "no_pwr_candidate_is_compile_only_safe": true,
+    "no_fantriac_candidate_is_compile_only_safe": true,
+    "fanrelay_fanpwm_fandac_candidates_carry_required_blockers": true,
+    "non_blocked_lanes_ranked_ahead_of_blocked_lanes": true,
+    "no_candidate_declares_artifact_name_or_webflash_build_matrix": true,
+    "no_candidate_claims_release_readiness_or_hardware_proof": true
+  },
+  "allowed_candidate_statuses": [
+    "ready-for-product-yaml",
+    "needs-product-yaml",
+    "blocked-package",
+    "blocked-core-bus",
+    "blocked-hardware",
+    "blocked-compliance",
+    "defer"
+  ],
+  "allowed_lanes": [
+    "poe-non-fan",
+    "poe-non-fan-led",
+    "usb-non-fan",
+    "usb-non-fan-led",
+    "pwr",
+    "fanrelay",
+    "fanpwm",
+    "fandac",
+    "fantriac"
+  ],
+  "non_blocked_lanes": [
+    "poe-non-fan",
+    "poe-non-fan-led",
+    "usb-non-fan",
+    "usb-non-fan-led"
+  ],
+  "blocked_lanes": [
+    "pwr",
+    "fanrelay",
+    "fanpwm",
+    "fandac",
+    "fantriac"
+  ],
+  "currently_shipping_config_strings": [
+    "Ceiling-POE-VentIQ-RoomIQ",
+    "Ceiling-POE-VentIQ-RoomIQ-LED"
+  ],
+  "currently_compile_only_config_strings": [
+    "Ceiling-POE-VentIQ-RoomIQ",
+    "Ceiling-POE-VentIQ-RoomIQ-LED",
+    "Ceiling-POE",
+    "Ceiling-POE-RoomIQ",
+    "Ceiling-POE-VentIQ",
+    "Ceiling-POE-AirIQ",
+    "Ceiling-POE-AirIQ-RoomIQ"
+  ],
+  "totals": {
+    "candidates": 26,
+    "by_lane": {
+      "poe-non-fan": 5,
+      "poe-non-fan-led": 5,
+      "usb-non-fan": 6,
+      "usb-non-fan-led": 5,
+      "pwr": 1,
+      "fanrelay": 1,
+      "fanpwm": 1,
+      "fandac": 1,
+      "fantriac": 1
+    }
+  },
+  "candidates": [
+    {
+      "config_string": "Ceiling-POE",
+      "rank": 1,
+      "lane": "poe-non-fan",
+      "use_case": "Minimum POE-powered Ceiling Core build without AirIQ / VentIQ / RoomIQ / fan / LED.",
+      "proposed_product_yaml": "products/compile-only/ceiling-poe.yaml",
+      "candidate_status": "ready-for-product-yaml",
+      "reason": "Already exists in the compile-only lane (FW-COMPILE-POE-NONFAN-001 / PR #548). The package composition is a strict subset of the proven Release-One YAML (products/webflash/ceiling-poe-ventiq-roomiq.yaml). Promotion to a full product-catalog YAML remains blocked behind PRODUCT-POE-410-001 / S360-410 schematic_status: verified / Release-One PoE caveat closure / product-onboarding approval.",
+      "blockers": [
+        "PRODUCT-POE-410-001",
+        "PACKAGE-POE-410-001",
+        "S360-410-schematic-status-verified",
+        "S360-410-BOM-evidence",
+        "Release-One-PoE-caveat-closure",
+        "product-onboarding-approval"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": true,
+      "notes": "Already compile-only as of PR #548 — listed here to anchor the ranking. This candidate file does NOT re-add the compile-only target."
+    },
+    {
+      "config_string": "Ceiling-POE-RoomIQ",
+      "rank": 2,
+      "lane": "poe-non-fan",
+      "use_case": "POE-powered Ceiling Core + RoomIQ without VentIQ / AirIQ / fan / LED.",
+      "proposed_product_yaml": "products/compile-only/ceiling-poe-roomiq.yaml",
+      "candidate_status": "ready-for-product-yaml",
+      "reason": "Already exists in the compile-only lane (PR #548). RoomIQ (comfort_ceiling + presence_ceiling) subset is already proven to compose by Release-One. Same product-yaml chain as Ceiling-POE.",
+      "blockers": [
+        "PRODUCT-POE-410-001",
+        "PACKAGE-POE-410-001",
+        "S360-410-schematic-status-verified",
+        "S360-410-BOM-evidence",
+        "Release-One-PoE-caveat-closure",
+        "product-onboarding-approval"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": true,
+      "notes": "Already compile-only as of PR #548."
+    },
+    {
+      "config_string": "Ceiling-POE-VentIQ",
+      "rank": 3,
+      "lane": "poe-non-fan",
+      "use_case": "POE-powered Ceiling Core + VentIQ (bathroom air-quality) without RoomIQ / AirIQ / fan / LED.",
+      "proposed_product_yaml": "products/compile-only/ceiling-poe-ventiq.yaml",
+      "candidate_status": "ready-for-product-yaml",
+      "reason": "Already exists in the compile-only lane (PR #548). VentIQ (airiq_bathroom_base + bathroom_profile) subset is already proven to compose by Release-One.",
+      "blockers": [
+        "PRODUCT-POE-410-001",
+        "PACKAGE-POE-410-001",
+        "S360-410-schematic-status-verified",
+        "S360-410-BOM-evidence",
+        "Release-One-PoE-caveat-closure",
+        "product-onboarding-approval",
+        "VentIQ-S360-211-schematic-verification"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": true,
+      "notes": "Already compile-only as of PR #548."
+    },
+    {
+      "config_string": "Ceiling-POE-AirIQ",
+      "rank": 4,
+      "lane": "poe-non-fan",
+      "use_case": "POE-powered Ceiling Core + AirIQ (general air-quality) without VentIQ / RoomIQ / fan / LED.",
+      "proposed_product_yaml": "products/compile-only/ceiling-poe-airiq.yaml",
+      "candidate_status": "ready-for-product-yaml",
+      "reason": "Already exists in the compile-only lane (PR #548). AirIQ composition (airiq_ceiling + airiq_basic_profile) is proven expressible by products/sense360-core-ceiling.yaml. AirIQ and VentIQ are mutually exclusive.",
+      "blockers": [
+        "PRODUCT-POE-410-001",
+        "PACKAGE-POE-410-001",
+        "S360-410-schematic-status-verified",
+        "S360-410-BOM-evidence",
+        "Release-One-PoE-caveat-closure",
+        "product-onboarding-approval",
+        "AirIQ-stack-hardware-evidence-SPS30-SGP41-SCD41-BMP390"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": true,
+      "notes": "Already compile-only as of PR #548."
+    },
+    {
+      "config_string": "Ceiling-POE-AirIQ-RoomIQ",
+      "rank": 5,
+      "lane": "poe-non-fan",
+      "use_case": "POE-powered Ceiling Core + AirIQ + RoomIQ without VentIQ / fan / LED.",
+      "proposed_product_yaml": "products/compile-only/ceiling-poe-airiq-roomiq.yaml",
+      "candidate_status": "ready-for-product-yaml",
+      "reason": "Already exists in the compile-only lane (PR #548). AirIQ + comfort + presence composition is proven expressible by products/sense360-core-ceiling.yaml.",
+      "blockers": [
+        "PRODUCT-POE-410-001",
+        "PACKAGE-POE-410-001",
+        "S360-410-schematic-status-verified",
+        "S360-410-BOM-evidence",
+        "Release-One-PoE-caveat-closure",
+        "product-onboarding-approval",
+        "AirIQ-stack-hardware-evidence-SPS30-SGP41-SCD41-BMP390"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": true,
+      "notes": "Already compile-only as of PR #548."
+    },
+    {
+      "config_string": "Ceiling-POE-LED",
+      "rank": 6,
+      "lane": "poe-non-fan-led",
+      "use_case": "POE-powered Ceiling Core + LED ring without AirIQ / VentIQ / RoomIQ / fan. Compile-only preview only.",
+      "proposed_product_yaml": "products/compile-only/ceiling-poe-led.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "POE non-fan with LED is the next-lowest-risk LED preview compile-only candidate. The LED ring (S360-300) is already schematic_status: verified, but the LED stable gauntlet (S360-300-BENCH-001, WF-HW-TEST-001, WF-HW-TEST-003, RELEASE-007) is open, so this candidate can only ever be compile-only preview confidence, NOT LED stable promotion. Package composition mirrors Ceiling-POE plus the existing ceiling_halo_leds.yaml feature already consumed by Release-One LED preview (products/webflash/ceiling-poe-ventiq-roomiq-led.yaml).",
+      "blockers": [
+        "compile-only-product-yaml-not-yet-added",
+        "PRODUCT-POE-410-001",
+        "PACKAGE-POE-410-001",
+        "S360-410-schematic-status-verified",
+        "S360-300-BENCH-001 (only blocks LED stable, NOT compile-only preview)"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": true,
+      "notes": "Compile-only preview ONLY. Adding this target must NOT promote LED to stable, must NOT add a webflash_wrapper, must NOT flip webflash_build_matrix, must NOT add an artifact_name, and must NOT claim S360-300-BENCH-001 / RELEASE-007 are closed."
+    },
+    {
+      "config_string": "Ceiling-POE-RoomIQ-LED",
+      "rank": 7,
+      "lane": "poe-non-fan-led",
+      "use_case": "POE-powered Ceiling Core + RoomIQ + LED ring without VentIQ / AirIQ / fan. Compile-only preview only.",
+      "proposed_product_yaml": "products/compile-only/ceiling-poe-roomiq-led.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "Sibling of Ceiling-POE-RoomIQ plus LED. Same Release-One-mirrored package composition; LED stable gauntlet remains open so this is compile-only preview only.",
+      "blockers": [
+        "compile-only-product-yaml-not-yet-added",
+        "PRODUCT-POE-410-001",
+        "PACKAGE-POE-410-001",
+        "S360-410-schematic-status-verified",
+        "S360-300-BENCH-001 (only blocks LED stable, NOT compile-only preview)"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": true,
+      "notes": "Compile-only preview ONLY. Adding this target must NOT promote LED to stable."
+    },
+    {
+      "config_string": "Ceiling-POE-VentIQ-LED",
+      "rank": 8,
+      "lane": "poe-non-fan-led",
+      "use_case": "POE-powered Ceiling Core + VentIQ + LED ring without RoomIQ / AirIQ / fan. Compile-only preview only.",
+      "proposed_product_yaml": "products/compile-only/ceiling-poe-ventiq-led.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "Sibling of Ceiling-POE-VentIQ plus LED.",
+      "blockers": [
+        "compile-only-product-yaml-not-yet-added",
+        "PRODUCT-POE-410-001",
+        "PACKAGE-POE-410-001",
+        "S360-410-schematic-status-verified",
+        "S360-300-BENCH-001 (only blocks LED stable, NOT compile-only preview)",
+        "VentIQ-S360-211-schematic-verification"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": true,
+      "notes": "Compile-only preview ONLY. Adding this target must NOT promote LED to stable."
+    },
+    {
+      "config_string": "Ceiling-POE-AirIQ-LED",
+      "rank": 9,
+      "lane": "poe-non-fan-led",
+      "use_case": "POE-powered Ceiling Core + AirIQ + LED ring without VentIQ / RoomIQ / fan. Compile-only preview only.",
+      "proposed_product_yaml": "products/compile-only/ceiling-poe-airiq-led.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "Sibling of Ceiling-POE-AirIQ plus LED.",
+      "blockers": [
+        "compile-only-product-yaml-not-yet-added",
+        "PRODUCT-POE-410-001",
+        "PACKAGE-POE-410-001",
+        "S360-410-schematic-status-verified",
+        "S360-300-BENCH-001 (only blocks LED stable, NOT compile-only preview)",
+        "AirIQ-stack-hardware-evidence-SPS30-SGP41-SCD41-BMP390"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": true,
+      "notes": "Compile-only preview ONLY. Adding this target must NOT promote LED to stable."
+    },
+    {
+      "config_string": "Ceiling-POE-AirIQ-RoomIQ-LED",
+      "rank": 10,
+      "lane": "poe-non-fan-led",
+      "use_case": "POE-powered Ceiling Core + AirIQ + RoomIQ + LED ring without VentIQ / fan. Compile-only preview only.",
+      "proposed_product_yaml": "products/compile-only/ceiling-poe-airiq-roomiq-led.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "Sibling of Ceiling-POE-AirIQ-RoomIQ plus LED.",
+      "blockers": [
+        "compile-only-product-yaml-not-yet-added",
+        "PRODUCT-POE-410-001",
+        "PACKAGE-POE-410-001",
+        "S360-410-schematic-status-verified",
+        "S360-300-BENCH-001 (only blocks LED stable, NOT compile-only preview)",
+        "AirIQ-stack-hardware-evidence-SPS30-SGP41-SCD41-BMP390"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": true,
+      "notes": "Compile-only preview ONLY. Adding this target must NOT promote LED to stable."
+    },
+    {
+      "config_string": "Ceiling-USB",
+      "rank": 11,
+      "lane": "usb-non-fan",
+      "use_case": "USB-powered Ceiling Core build without AirIQ / VentIQ / RoomIQ / fan / LED. USB family is not opened yet.",
+      "proposed_product_yaml": "products/compile-only/ceiling-usb.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "No S360-* USB PSU board exists in config/hardware-catalog.json; USB on S360-100 is debug-only. There is no PACKAGE-USB-* / PRODUCT-USB-* / WEBFLASH-USB-* / RELEASE-USB-* chain. Before USB compile-only can land, a USB-family product-onboarding scope decision and a packages/hardware/power_usb.yaml (or equivalent) must exist.",
+      "blockers": [
+        "USB-family-scope-decision-not-recorded",
+        "PACKAGE-USB-001-not-opened",
+        "PRODUCT-USB-001-not-opened",
+        "no-USB-PSU-board-in-hardware-catalog",
+        "USB-on-S360-100-is-debug-only"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "USB non-fan ranks ahead of all blocked Fan / PWR lanes because the USB-family chain is opened-once, not gated on compliance or core-bus rebinds. Once a USB-family scope decision and a package exist, this becomes the simplest compile-only candidate to add."
+    },
+    {
+      "config_string": "Ceiling-USB-RoomIQ",
+      "rank": 12,
+      "lane": "usb-non-fan",
+      "use_case": "USB-powered Ceiling Core + RoomIQ without VentIQ / AirIQ / fan / LED.",
+      "proposed_product_yaml": "products/compile-only/ceiling-usb-roomiq.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "Sibling of Ceiling-USB plus RoomIQ. Same USB-family chain.",
+      "blockers": [
+        "USB-family-scope-decision-not-recorded",
+        "PACKAGE-USB-001-not-opened",
+        "PRODUCT-USB-001-not-opened",
+        "no-USB-PSU-board-in-hardware-catalog",
+        "USB-on-S360-100-is-debug-only"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Same USB-family prerequisites as Ceiling-USB."
+    },
+    {
+      "config_string": "Ceiling-USB-VentIQ",
+      "rank": 13,
+      "lane": "usb-non-fan",
+      "use_case": "USB-powered Ceiling Core + VentIQ without RoomIQ / AirIQ / fan / LED.",
+      "proposed_product_yaml": "products/compile-only/ceiling-usb-ventiq.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "Sibling of Ceiling-USB plus VentIQ.",
+      "blockers": [
+        "USB-family-scope-decision-not-recorded",
+        "PACKAGE-USB-001-not-opened",
+        "PRODUCT-USB-001-not-opened",
+        "no-USB-PSU-board-in-hardware-catalog",
+        "USB-on-S360-100-is-debug-only",
+        "VentIQ-S360-211-schematic-verification"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Same USB-family prerequisites as Ceiling-USB."
+    },
+    {
+      "config_string": "Ceiling-USB-AirIQ",
+      "rank": 14,
+      "lane": "usb-non-fan",
+      "use_case": "USB-powered Ceiling Core + AirIQ without VentIQ / RoomIQ / fan / LED.",
+      "proposed_product_yaml": "products/compile-only/ceiling-usb-airiq.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "Sibling of Ceiling-USB plus AirIQ.",
+      "blockers": [
+        "USB-family-scope-decision-not-recorded",
+        "PACKAGE-USB-001-not-opened",
+        "PRODUCT-USB-001-not-opened",
+        "no-USB-PSU-board-in-hardware-catalog",
+        "USB-on-S360-100-is-debug-only",
+        "AirIQ-stack-hardware-evidence-SPS30-SGP41-SCD41-BMP390"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Same USB-family prerequisites as Ceiling-USB."
+    },
+    {
+      "config_string": "Ceiling-USB-AirIQ-RoomIQ",
+      "rank": 15,
+      "lane": "usb-non-fan",
+      "use_case": "USB-powered Ceiling Core + AirIQ + RoomIQ without VentIQ / fan / LED.",
+      "proposed_product_yaml": "products/compile-only/ceiling-usb-airiq-roomiq.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "Sibling of Ceiling-USB-AirIQ plus RoomIQ.",
+      "blockers": [
+        "USB-family-scope-decision-not-recorded",
+        "PACKAGE-USB-001-not-opened",
+        "PRODUCT-USB-001-not-opened",
+        "no-USB-PSU-board-in-hardware-catalog",
+        "USB-on-S360-100-is-debug-only",
+        "AirIQ-stack-hardware-evidence-SPS30-SGP41-SCD41-BMP390"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Same USB-family prerequisites as Ceiling-USB."
+    },
+    {
+      "config_string": "Ceiling-USB-VentIQ-RoomIQ",
+      "rank": 16,
+      "lane": "usb-non-fan",
+      "use_case": "USB-powered Ceiling Core + VentIQ + RoomIQ without AirIQ / fan / LED. The USB analogue of Release-One.",
+      "proposed_product_yaml": "products/compile-only/ceiling-usb-ventiq-roomiq.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "Sibling of Release-One on USB power. Useful as the canonical USB candidate once the USB-family chain opens.",
+      "blockers": [
+        "USB-family-scope-decision-not-recorded",
+        "PACKAGE-USB-001-not-opened",
+        "PRODUCT-USB-001-not-opened",
+        "no-USB-PSU-board-in-hardware-catalog",
+        "USB-on-S360-100-is-debug-only",
+        "VentIQ-S360-211-schematic-verification"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Same USB-family prerequisites as Ceiling-USB."
+    },
+    {
+      "config_string": "Ceiling-USB-LED",
+      "rank": 17,
+      "lane": "usb-non-fan-led",
+      "use_case": "USB-powered Ceiling Core + LED ring without AirIQ / VentIQ / RoomIQ / fan. Compile-only preview only.",
+      "proposed_product_yaml": "products/compile-only/ceiling-usb-led.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "Sibling of Ceiling-USB plus LED. Requires both the USB-family chain to open and the LED-preview compile-only stance.",
+      "blockers": [
+        "USB-family-scope-decision-not-recorded",
+        "PACKAGE-USB-001-not-opened",
+        "PRODUCT-USB-001-not-opened",
+        "no-USB-PSU-board-in-hardware-catalog",
+        "S360-300-BENCH-001 (only blocks LED stable, NOT compile-only preview)"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Compile-only preview ONLY. Adding this target must NOT promote LED to stable."
+    },
+    {
+      "config_string": "Ceiling-USB-RoomIQ-LED",
+      "rank": 18,
+      "lane": "usb-non-fan-led",
+      "use_case": "USB-powered Ceiling Core + RoomIQ + LED ring without VentIQ / AirIQ / fan.",
+      "proposed_product_yaml": "products/compile-only/ceiling-usb-roomiq-led.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "Sibling of Ceiling-USB-RoomIQ plus LED.",
+      "blockers": [
+        "USB-family-scope-decision-not-recorded",
+        "PACKAGE-USB-001-not-opened",
+        "PRODUCT-USB-001-not-opened",
+        "no-USB-PSU-board-in-hardware-catalog",
+        "S360-300-BENCH-001 (only blocks LED stable, NOT compile-only preview)"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Compile-only preview ONLY. Adding this target must NOT promote LED to stable."
+    },
+    {
+      "config_string": "Ceiling-USB-VentIQ-LED",
+      "rank": 19,
+      "lane": "usb-non-fan-led",
+      "use_case": "USB-powered Ceiling Core + VentIQ + LED ring without RoomIQ / AirIQ / fan.",
+      "proposed_product_yaml": "products/compile-only/ceiling-usb-ventiq-led.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "Sibling of Ceiling-USB-VentIQ plus LED.",
+      "blockers": [
+        "USB-family-scope-decision-not-recorded",
+        "PACKAGE-USB-001-not-opened",
+        "PRODUCT-USB-001-not-opened",
+        "no-USB-PSU-board-in-hardware-catalog",
+        "S360-300-BENCH-001 (only blocks LED stable, NOT compile-only preview)",
+        "VentIQ-S360-211-schematic-verification"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Compile-only preview ONLY. Adding this target must NOT promote LED to stable."
+    },
+    {
+      "config_string": "Ceiling-USB-AirIQ-LED",
+      "rank": 20,
+      "lane": "usb-non-fan-led",
+      "use_case": "USB-powered Ceiling Core + AirIQ + LED ring without VentIQ / RoomIQ / fan.",
+      "proposed_product_yaml": "products/compile-only/ceiling-usb-airiq-led.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "Sibling of Ceiling-USB-AirIQ plus LED.",
+      "blockers": [
+        "USB-family-scope-decision-not-recorded",
+        "PACKAGE-USB-001-not-opened",
+        "PRODUCT-USB-001-not-opened",
+        "no-USB-PSU-board-in-hardware-catalog",
+        "S360-300-BENCH-001 (only blocks LED stable, NOT compile-only preview)",
+        "AirIQ-stack-hardware-evidence-SPS30-SGP41-SCD41-BMP390"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Compile-only preview ONLY. Adding this target must NOT promote LED to stable."
+    },
+    {
+      "config_string": "Ceiling-USB-AirIQ-RoomIQ-LED",
+      "rank": 21,
+      "lane": "usb-non-fan-led",
+      "use_case": "USB-powered Ceiling Core + AirIQ + RoomIQ + LED ring without VentIQ / fan.",
+      "proposed_product_yaml": "products/compile-only/ceiling-usb-airiq-roomiq-led.yaml",
+      "candidate_status": "needs-product-yaml",
+      "reason": "Sibling of Ceiling-USB-AirIQ-RoomIQ plus LED.",
+      "blockers": [
+        "USB-family-scope-decision-not-recorded",
+        "PACKAGE-USB-001-not-opened",
+        "PRODUCT-USB-001-not-opened",
+        "no-USB-PSU-board-in-hardware-catalog",
+        "S360-300-BENCH-001 (only blocks LED stable, NOT compile-only preview)",
+        "AirIQ-stack-hardware-evidence-SPS30-SGP41-SCD41-BMP390"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Compile-only preview ONLY. Adding this target must NOT promote LED to stable."
+    },
+    {
+      "config_string": "Ceiling-PWR",
+      "rank": 22,
+      "lane": "pwr",
+      "use_case": "Mains-powered (PWR / 240V) Ceiling Core build. Representative deferral row for the entire PWR / S360-400 lane (56 matrix rows).",
+      "proposed_product_yaml": "products/compile-only/ceiling-pwr.yaml",
+      "candidate_status": "defer",
+      "reason": "PWR / S360-400 is mains-voltage and gated by COMPLIANCE-001 (mains-voltage UK / EU assessment, last re-checked PR #506; not cleared). The entire PACKAGE-POWER-400-001 / PRODUCT-POWER-400-001 / WEBFLASH-POWER-400-001 / RELEASE-POWER-400-001 chain is in docs-only deferral state. The S360-400 row in config/hardware-catalog.json stays schematic_status: cataloged_unverified and is asserted unverified by tests/test_hardware_catalog.py::EXPECTED_STILL_UNVERIFIED_SKUS. Adding any PWR compile-only target would imply mains-voltage compile confidence that the assessment has not granted. Do NOT add any PWR compile-only target until COMPLIANCE-001 closes and the PACKAGE-POWER-400-001 implementation slice lands.",
+      "blockers": [
+        "COMPLIANCE-001-mains-voltage-UK-EU-not-cleared",
+        "PACKAGE-POWER-400-001-implementation-not-landed",
+        "PRODUCT-POWER-400-001-implementation-not-landed",
+        "WEBFLASH-POWER-400-001-implementation-not-landed",
+        "RELEASE-POWER-400-001-implementation-not-landed",
+        "S360-400-schematic-status-verified-JSON-PR-not-landed",
+        "S360-400-BOM-evidence-missing",
+        "HLK-PM01-HLK-5M05-HLK-10M05-part-identity-disagreement-unresolved"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Representative deferral row for the 56-row PWR lane (Ceiling-PWR plus 55 variants). Do NOT enumerate individual PWR-bearing candidates as compile-only-safe; all 56 are deferred under the same compliance / package / product / webflash / release chain."
+    },
+    {
+      "config_string": "Ceiling-POE-FanRelay",
+      "rank": 23,
+      "lane": "fanrelay",
+      "use_case": "POE-powered Ceiling Core + FanRelay control. Representative deferral row for the entire FanRelay lane (36 matrix rows).",
+      "proposed_product_yaml": "products/compile-only/ceiling-poe-fanrelay.yaml",
+      "candidate_status": "defer",
+      "reason": "FanRelay (S360-310) is blocked by both PACKAGE-RELAY-001 (deferred until CORE-ABSTRACT-BUS-001A + S360-100-BENCH-001 silkscreen + K1 BOM + harness evidence) and CORE-ABSTRACT-BUS-001A / CORE-ABSTRACT-BUS-001C (relay_pin -> GPIO3 rebind requires GPIO3 to be freed by 001C first; ESP32-S3 GPIO3 strap-pin bench characterisation outstanding). Adding a compile-only FanRelay target would either pin schematic-conflicting pin values or pre-commit an undecided rebind.",
+      "blockers": [
+        "PACKAGE-RELAY-001-deferred",
+        "CORE-ABSTRACT-BUS-001A-not-landed",
+        "CORE-ABSTRACT-BUS-001C-not-landed",
+        "S360-100-BENCH-001-silkscreen-evidence-missing",
+        "ESP32-S3-GPIO3-strap-pin-bench-characterisation-missing",
+        "S360-310-K1-BOM-identity-missing",
+        "tests-test_core_abstract_bus.py-pin-pinning-scaffold-missing"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Representative deferral row for the 36-row FanRelay lane (POE + USB + PWR variants). Carries blocked-package and blocked-core-bus blockers."
+    },
+    {
+      "config_string": "Ceiling-POE-FanPWM",
+      "rank": 24,
+      "lane": "fanpwm",
+      "use_case": "POE-powered Ceiling Core + FanPWM (PWM fan driver). Representative deferral row for the entire FanPWM lane (36 matrix rows).",
+      "proposed_product_yaml": "products/compile-only/ceiling-poe-fanpwm.yaml",
+      "candidate_status": "defer",
+      "reason": "FanPWM (S360-311) is blocked by PACKAGE-PWM-001 (own evidence gates open) and CORE-ABSTRACT-BUS-001B (canonical I2C / expansion-GPIO bus-id consolidation not yet implemented; fan_pwm_pin: ${expansion_gpio1} / fan_tach_pin: ${expansion_gpio2} depend on the unresolved expansion_gpio* abstraction). Adding a compile-only FanPWM target would pin currently-undefined or undecided pin values.",
+      "blockers": [
+        "PACKAGE-PWM-001-not-landed",
+        "CORE-ABSTRACT-BUS-001B-not-landed",
+        "expansion-GPIO-abstraction-undecided",
+        "tests-test_core_abstract_bus.py-pin-pinning-scaffold-missing"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Representative deferral row for the 36-row FanPWM lane. Carries blocked-core-bus blocker (CORE-ABSTRACT-BUS-001B)."
+    },
+    {
+      "config_string": "Ceiling-POE-FanDAC",
+      "rank": 25,
+      "lane": "fandac",
+      "use_case": "POE-powered Ceiling Core + FanDAC (GP8403 DAC fan driver). Representative deferral row for the entire FanDAC lane (24 matrix rows).",
+      "proposed_product_yaml": "products/compile-only/ceiling-poe-fandac.yaml",
+      "candidate_status": "defer",
+      "reason": "FanDAC (S360-312) is blocked by PACKAGE-DAC-001 (deferred) and CORE-ABSTRACT-BUS-001B (canonical I2C bus-id consolidation; the GP8403 DAC is an I2C peripheral). FanDAC + AirIQ is forbidden by the grammar (12 rows excluded from the matrix), so this lane carries 24 rows.",
+      "blockers": [
+        "PACKAGE-DAC-001-deferred",
+        "CORE-ABSTRACT-BUS-001B-not-landed",
+        "S360-312-BOM-evidence-missing-HW-BOM-ASSETS-S360-312",
+        "tests-test_core_abstract_bus.py-pin-pinning-scaffold-missing"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Representative deferral row for the 24-row FanDAC lane. Carries blocked-core-bus blocker (CORE-ABSTRACT-BUS-001B)."
+    },
+    {
+      "config_string": "Ceiling-POE-FanTRIAC",
+      "rank": 26,
+      "lane": "fantriac",
+      "use_case": "POE-powered Ceiling Core + FanTRIAC (TRIAC mains fan driver). Representative deferral row for the entire FanTRIAC lane (36 matrix rows).",
+      "proposed_product_yaml": "products/compile-only/ceiling-poe-fantriac.yaml",
+      "candidate_status": "defer",
+      "reason": "FanTRIAC (S360-320) is blocked by HW-005, HW-PINMAP-320-FOLLOWUP, PACKAGE-TRIAC-001, and COMPLIANCE-001 (TRIAC switches a mains-voltage load). Adding any FanTRIAC compile-only target would imply mains-voltage / TRIAC compile confidence that hardware and compliance evidence has not granted. Do NOT add any FanTRIAC compile-only target until HW-005 / PACKAGE-TRIAC-001 / COMPLIANCE-001 all close.",
+      "blockers": [
+        "HW-005-not-cleared",
+        "HW-PINMAP-320-FOLLOWUP-not-landed",
+        "PACKAGE-TRIAC-001-not-landed",
+        "COMPLIANCE-001-TRIAC-load-mains-voltage-not-cleared",
+        "S360-320-BOM-evidence-missing"
+      ],
+      "would_be_webflash_exposed_now": false,
+      "compile_only_safe": false,
+      "notes": "Representative deferral row for the 36-row FanTRIAC lane. Carries blocked-hardware and blocked-compliance blockers."
+    }
+  ]
+}
