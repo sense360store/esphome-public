@@ -750,6 +750,106 @@ The next Phase-2 slices (`fan_dac.yaml`, `airiq_profile_*`, etc.)
 are each their own scoped PR with their own evidence and tests and
 are not landed here.
 
+#### Phase 2 progress — AirIQ aliases landed (2026-05-21)
+
+`PACKAGE-NAMING-ALIASES-AIRIQ-001` is the third Phase 2 slice and
+adds the four canonical `AirIQ` alias files listed below. Each
+alias is a thin `!include` wrapper around the legacy implementation
+file; the legacy file remains the source of truth and is not edited,
+moved, renamed, or deleted. New product / compile-only YAMLs that
+want to use the canonical productized `AirIQ` name may include any
+of the alias files instead of the legacy filename; existing
+consumers of the legacy paths continue to work unchanged.
+
+| Canonical alias (added)                                                                                                                       | Legacy implementation file (unchanged)                                                                                       |
+|-----------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| [`packages/features/airiq_profile.yaml`](../packages/features/airiq_profile.yaml)                                                             | [`packages/features/airiq_basic.yaml`](../packages/features/airiq_basic.yaml)                                                |
+| [`packages/features/airiq_extended_profile.yaml`](../packages/features/airiq_extended_profile.yaml)                                           | [`packages/features/airiq_advanced.yaml`](../packages/features/airiq_advanced.yaml)                                          |
+| [`packages/features/airiq_mqtt_profile.yaml`](../packages/features/airiq_mqtt_profile.yaml)                                                   | [`packages/features/airiq_basic_profile.yaml`](../packages/features/airiq_basic_profile.yaml)                                |
+| [`packages/features/airiq_auto_ventilation_profile.yaml`](../packages/features/airiq_auto_ventilation_profile.yaml)                           | [`packages/features/airiq_advanced_profile.yaml`](../packages/features/airiq_advanced_profile.yaml)                          |
+
+Notes on the chosen alias names:
+
+- `airiq_profile.yaml` wraps the legacy `airiq_basic.yaml` — the
+  safest-default user-facing AirIQ feature profile. The legacy
+  file is a simple template-sensor surface (Excellent / Good /
+  Fair / Poor air-quality rating, Temperature, Humidity, comfort
+  level, recommendation text, air-quality alert binary sensor)
+  with no MQTT block and no GPIO output. The unqualified
+  `airiq_profile.yaml` name reflects this as the canonical
+  starting point of the AirIQ feature surface.
+- `airiq_extended_profile.yaml` wraps the legacy
+  `airiq_advanced.yaml` — the extended sensing surface that adds
+  CO₂ / PM1.0 / PM2.5 / PM4.0 / PM10 / VOC / NOx template
+  sensors, threshold globals, customizable threshold controls,
+  sensor-calibration buttons, and a composite `evaluate_air_quality`
+  AQI calculation script on top of `airiq_basic.yaml`. The
+  legacy file's `evaluate_air_quality` script only **calculates**
+  the AQI; it does not drive any GPIO output and does not toggle
+  any fan switch — the file remains pure AirIQ sensing / display
+  behaviour. The `_extended` suffix is deliberately not
+  `_advanced` or `_pro`: per Rule 5 above, a filename containing
+  `advanced` or `pro` must not imply a productized tier customer
+  SKU unless that SKU exists in
+  [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+  and [`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json),
+  which is not the case today for any AirIQ extended tier. This
+  follows the precedent set by the VentIQ slice's `_extended`
+  suffix on `ventiq_extended.yaml` / `ventiq_extended_profile.yaml`.
+- `airiq_mqtt_profile.yaml` wraps the legacy
+  `airiq_basic_profile.yaml`. The legacy filename uses the
+  ambiguous tier token `basic`, but the file's dominant surface
+  is in fact MQTT publishing: it declares
+  `airiq_mqtt_broker` / `airiq_mqtt_port` / `airiq_mqtt_username` /
+  `airiq_mqtt_password` substitutions, the placeholder
+  `air_quality_state` template text sensor, and a top-level
+  `mqtt:` block that publishes IAQ telemetry under the
+  `${device_name}/air_quality` topic prefix. The canonical alias
+  names the MQTT behaviour explicitly so downstream readers and
+  new product YAMLs can tell at a glance that including this
+  profile turns on MQTT.
+- `airiq_auto_ventilation_profile.yaml` wraps the legacy
+  `airiq_advanced_profile.yaml`. This is the
+  `behavior-hidden-by-name` case the audit's per-area findings
+  table flags: the legacy filename implies an "AirIQ advanced
+  profile" but the file actually declares a `gpio` output on
+  `GPIO15`, a `fan_switch` template switch (exposed as
+  `${friendly_name} Air Exchange`), and an `auto_fan_control`
+  script that toggles the fan switch on changes to
+  `air_quality_state`. Per Rule 6 above (avoid package names
+  that hide control behaviour), the canonical alias filename
+  carries the behaviour-revealing token `auto_ventilation` so
+  the hidden fan-control behaviour is visible from the include
+  path. The token `auto_ventilation` describes the behaviour
+  (automated air exchange) without using the forbidden WebFlash
+  customer-facing token `Fan` (see
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+  `forbidden_tokens`).
+- The alias filenames carry no token listed in
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)'s
+  `forbidden_tokens` (`Bathroom`, `Comfort`, `Presence`, generic
+  `Fan`, `FanAnalog`). The pinning test
+  [`tests/test_airiq_alias_packages.py`](../tests/test_airiq_alias_packages.py)
+  enforces this, and additionally pins the behaviour-revealing
+  naming requirement for fan-control aliases per Rule 6.
+- The four aliases all live under `packages/features/` because
+  every legacy AirIQ feature-profile file lives there. No
+  `packages/expansions/` AirIQ alias is added in this slice:
+  `packages/expansions/airiq.yaml`, `airiq_ceiling.yaml`,
+  `airiq_ceiling_s3.yaml`, and `airiq_wall.yaml` are already
+  `canonical-current` per the per-area findings table (their
+  filenames already match the productized `AirIQ` token) and
+  therefore do not need an alias. The legacy
+  `packages/expansions/airiq_bathroom_base.yaml` and
+  `airiq_bathroom_pro.yaml` files were already aliased under
+  canonical `VentIQ` names in the prior
+  PACKAGE-NAMING-ALIASES-VENTIQ-001 slice because their
+  productized module identity is VentIQ / `S360-211`, not AirIQ.
+
+The next Phase-2 slices (`fan_dac.yaml`, wall / S3-ceiling RoomIQ
+form-factor aliases, etc.) are each their own scoped PR with
+their own evidence and tests and are not landed here.
+
 ### Phase 3 — Update new compile-only / product YAMLs to canonical names
 
 Once Phase-2 aliases exist:

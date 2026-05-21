@@ -2248,6 +2248,141 @@ mirrored here.
   GPIO3` slice) per the `GPIO3` collision recorded in
   `docs/hardware/core-abstract-bus-reconciliation.md` §GPIO
   collision matrix.
+- **PACKAGE-NAMING-ALIASES-AIRIQ-001 — add AirIQ canonical
+  package aliases (Phase 2 of PACKAGE-NAMING-AUDIT-001 /
+  PR #550, third slice after PACKAGE-NAMING-ALIASES-VENTIQ-001 /
+  PR #552 and PACKAGE-NAMING-ALIASES-ROOMIQ-001 / PR #553)
+  (2026-05-21).** Added four canonical AirIQ alias package files
+  that wrap the legacy AirIQ feature-profile files via `!include`
+  and add no other YAML:
+  `packages/features/airiq_profile.yaml` wraps
+  `packages/features/airiq_basic.yaml` (the safest-default
+  user-facing AirIQ feature profile — Excellent / Good / Fair /
+  Poor rating, Temperature, Humidity, recommendation text,
+  air-quality alert binary sensor; no MQTT, no GPIO output);
+  `packages/features/airiq_extended_profile.yaml` wraps
+  `packages/features/airiq_advanced.yaml` (extended CO₂ / PM1.0 /
+  PM2.5 / PM4.0 / PM10 / VOC / NOx sensors, threshold globals,
+  customizable threshold controls, sensor-calibration buttons,
+  composite `evaluate_air_quality` AQI calculation script — the
+  script only calculates AQI, it does not drive any GPIO output
+  and does not toggle any fan switch, so the file remains pure
+  AirIQ sensing / display behaviour);
+  `packages/features/airiq_mqtt_profile.yaml` wraps
+  `packages/features/airiq_basic_profile.yaml` (the AirIQ MQTT
+  publish profile with `airiq_mqtt_broker` /
+  `airiq_mqtt_port` / `airiq_mqtt_username` /
+  `airiq_mqtt_password` substitutions, the placeholder
+  `air_quality_state` template text sensor, and a top-level
+  `mqtt:` block publishing IAQ telemetry under
+  `${device_name}/air_quality`); and
+  `packages/features/airiq_auto_ventilation_profile.yaml` wraps
+  `packages/features/airiq_advanced_profile.yaml` (the
+  behaviour-hidden-by-name legacy file that declares a `gpio`
+  output on `GPIO15`, a `fan_switch` template switch exposed as
+  `${friendly_name} Air Exchange`, and an `auto_fan_control`
+  script that toggles the fan switch on changes to
+  `air_quality_state`). The `_extended` suffix on
+  `airiq_extended_profile.yaml` is deliberately not `_advanced`
+  or `_pro`: per naming-audit Rule 5, a filename containing
+  `advanced` or `pro` must not imply a productized tier customer
+  SKU unless that SKU exists in `config/hardware-catalog.json`
+  and `config/kit-intent-matrix.json`, which is not the case
+  today for any AirIQ extended tier (mirrors the VentIQ slice's
+  `_extended` precedent on `ventiq_extended.yaml` /
+  `ventiq_extended_profile.yaml`). The `_mqtt` suffix on
+  `airiq_mqtt_profile.yaml` names the dominant behavioural
+  surface (MQTT publishing) explicitly so downstream readers and
+  new product YAMLs can tell at a glance that including this
+  profile turns on MQTT, replacing the ambiguous legacy `basic`
+  tier token. The `_auto_ventilation` suffix on
+  `airiq_auto_ventilation_profile.yaml` names the hidden
+  fan-control behaviour explicitly per naming-audit Rule 6
+  (avoid package names that hide control behaviour); the token
+  `auto_ventilation` describes the behaviour (automated air
+  exchange) without using the forbidden WebFlash customer-facing
+  token `Fan` listed in
+  `config/webflash-compatibility.json`'s `forbidden_tokens`. All
+  four alias filenames carry no token listed in
+  `config/webflash-compatibility.json`'s `forbidden_tokens`
+  (`Bathroom`, `Comfort`, `Presence`, generic `Fan`,
+  `FanAnalog`). All four aliases live under
+  `packages/features/` because every legacy AirIQ feature-profile
+  file lives there; the existing `packages/expansions/airiq.yaml`
+  / `airiq_ceiling.yaml` / `airiq_ceiling_s3.yaml` /
+  `airiq_wall.yaml` are already `canonical-current` per the
+  per-area findings table and do not need an alias, and the
+  legacy `packages/expansions/airiq_bathroom_*` files were
+  already aliased under canonical `VentIQ` names in
+  PACKAGE-NAMING-ALIASES-VENTIQ-001. Added
+  `tests/test_airiq_alias_packages.py` (10 stdlib-unittest cases
+  mirroring `tests/test_ventiq_alias_packages.py` and
+  `tests/test_roomiq_alias_packages.py`: alias files exist;
+  aliases parse as YAML; each alias contains exactly one
+  `!include` line targeting the intended legacy bare basename;
+  alias filenames carry no forbidden customer-facing token;
+  alias filenames start with the `airiq` token; legacy
+  implementation files still exist; alias inventory shape
+  pinning — exactly four entries, no duplicate alias_path, no
+  duplicate legacy_path; plus a new fan-control behaviour-
+  revealing-name test that pins the Rule 6 requirement — any
+  alias wrapping a legacy file that drives a fan output /
+  fan_switch must contain a behaviour-revealing term such as
+  `auto_ventilation`). Updated `docs/package-naming-audit.md`
+  with a new `#### Phase 2 progress — AirIQ aliases landed
+  (2026-05-21)` subsection inside the Phase-2 section that
+  records the alias / legacy mapping table and the notes on the
+  chosen alias names (covering the safest-default classification
+  of `airiq_basic.yaml`, the still-pure-sensing classification
+  of `airiq_advanced.yaml`, the MQTT-publish classification of
+  `airiq_basic_profile.yaml`, and the
+  behaviour-hidden-by-name fan-control classification of
+  `airiq_advanced_profile.yaml`). **PR is alias-only.** No
+  legacy `packages/**` file edited / moved / renamed / deleted;
+  no other `packages/**` file added; no `products/**` /
+  `products/webflash/**` / `firmware/**` / `manifest.json` /
+  `firmware/sources.json` / `.github/workflows/**` /
+  `components/**` / `include/**` edit; no
+  `config/compile-only-targets.json` /
+  `config/compile-only-candidates.json` /
+  `config/webflash-builds.json` /
+  `config/product-catalog.json` /
+  `config/hardware-catalog.json` /
+  `config/webflash-compatibility.json` /
+  `config/firmware-combination-matrix.json` /
+  `config/kit-intent-matrix.json` edit; no
+  `forbidden_tokens` / `canonical_modules` / `canonical_power` /
+  `lifecycle_statuses` / `release_one_required_configs` /
+  `REQUIRED_CONFIGS` / `webflash_build_matrix` / `artifact_name`
+  / `webflash_wrapper` / `config_string` change; no compile-only
+  target added; no product YAML added; no WebFlash wrapper
+  added; no LED stable promotion; no AirIQ / VentIQ / RoomIQ /
+  fan / PWR / POE promotion; no hardware-proof claim; no
+  WebFlash import-readiness claim; no `RELEASE-007` unblock
+  claim; no Release-One / LED preview / FanTRIAC identity
+  change; no `schematic_status` / `schematic_file` promotion;
+  no COMPLIANCE-001 movement; no Core bus / GPIO / UART / LED /
+  status substitution change; no release artifact built or
+  attached. Runtime YAML behavior is unchanged: the aliases are
+  pure `!include` wrappers; no existing consumer of the legacy
+  filenames is affected. Validation suite (`python3
+  tests/validate_configs.py`, `python3
+  scripts/validate_compile_targets.py --metadata-only`,
+  `python3 tests/test_compile_targets.py`, `python3
+  tests/test_compile_expansion_candidates.py`, `python3
+  tests/test_firmware_combination_matrix.py`, `python3
+  tests/test_firmware_build_gap_report.py`, `python3
+  tests/test_kit_intent_matrix.py`, `python3
+  tests/test_ventiq_alias_packages.py`, `python3
+  tests/test_roomiq_alias_packages.py`, `python3
+  tests/test_airiq_alias_packages.py`, `python3
+  tests/validate_webflash_builds.py`, `python3 -m unittest
+  discover -s tests -p "test_*.py"`) all pass. Next-step
+  pointer: remaining Phase-2 slices (`fan_dac.yaml` alias for
+  `fan_gp8403.yaml`; wall / S3-ceiling RoomIQ form-factor
+  aliases; orphan generic `comfort.yaml` alias) are each their
+  own scoped PR with their own evidence and tests and are not
+  landed here.
 
 ## Completed / merged PRs
 

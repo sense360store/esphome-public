@@ -1,0 +1,41 @@
+# ============================================================================
+# SENSE360 AIRIQ MQTT FEATURE PROFILE - CANONICAL ALIAS (Phase 2)
+# ============================================================================
+# Canonical AirIQ alias for the AirIQ MQTT publish profile. The
+# legacy file defines `airiq_mqtt_broker` / `airiq_mqtt_port` /
+# `airiq_mqtt_username` / `airiq_mqtt_password` substitutions, the
+# placeholder `air_quality_state` template text sensor, and a
+# top-level `mqtt:` block that publishes IAQ telemetry under the
+# `${device_name}/air_quality` topic prefix. The "MQTT publish"
+# behaviour is the dominant surface of the legacy file and is
+# not described by the original `airiq_basic_profile` filename;
+# the canonical alias names the behaviour explicitly so that
+# downstream readers and new product YAMLs can tell at a glance
+# that including this profile turns on MQTT.
+#
+# This file is a thin `!include` wrapper introduced by
+# PACKAGE-NAMING-ALIASES-AIRIQ-001 as the Phase 2 follow-up to
+# PACKAGE-NAMING-AUDIT-001 (PR #550) and mirrors the sibling Phase 2
+# slices PACKAGE-NAMING-ALIASES-VENTIQ-001 (PR #552) and
+# PACKAGE-NAMING-ALIASES-ROOMIQ-001 (PR #553). It exists so new
+# product / compile-only YAMLs can `!include` the canonical
+# productized `AirIQ` name instead of the legacy
+# `airiq_basic_profile` filename, without breaking any current
+# consumer of the legacy path (the Release-One product
+# `products/sense360-ceiling-poe-ventiq-roomiq.yaml` does not bind
+# to this file; the legacy file is currently consumed by Core /
+# Voice / Mini ceiling / wall product YAMLs and two compile-only
+# ceiling YAMLs).
+#
+# Implementation source of truth:
+#   packages/features/airiq_basic_profile.yaml
+#
+# The legacy file remains the actual feature profile. Do not add
+# substitutions, globals, sensors, or any other YAML blocks here —
+# this file must stay a pure include wrapper per the naming-audit
+# Phase 2 contract (docs/package-naming-audit.md §"Phase 2 — Add
+# canonical aliases / wrapper packages").
+# ============================================================================
+
+packages:
+  legacy_airiq_mqtt_profile: !include airiq_basic_profile.yaml
