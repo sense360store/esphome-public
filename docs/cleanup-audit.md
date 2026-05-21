@@ -10832,6 +10832,255 @@ Until then, the per-board `BOM missing` / `BOM cross-check
 missing` blocker wording for the six deferred boards remains
 the explicit, honest gate.
 
+## PACKAGE-POWER-400-001 update (2026-05-20 — Path B package-header cleanup)
+
+This update records the 2026-05-20 Path B / limited
+implementation of `PACKAGE-POWER-400-001`. Path B is the
+comment-only package-header cleanup that HW-PINMAP-400-FOLLOWUP
+/ PR #515 and the `PACKAGE-POWER-400-001` investigation pass /
+PR #520 explicitly deferred until BOM evidence landed.
+`HW-BOM-ASSETS-002` / PR #535 (recorded above at
+[§HW-BOM-ASSETS-002 update](#hw-bom-assets-002-update-2026-05-20--s360-400--s360-410-bom-evidence-ingest))
+BOM-confirmed `PS1 = HLK-5M05` (HI-LINK), unblocking the header
+cleanup at the AC/DC part-identity layer.
+
+**Outcome — Path B / limited implementation.** The package
+header at
+[`packages/hardware/power_240v.yaml`](../packages/hardware/power_240v.yaml)
+lines 1–42 is reconciled against BOM. Runtime YAML behavior is
+unchanged. The coordinated catalog `description` reconciliation
++ `S360-400` `schematic_status: verified` JSON promotion +
+COMPLIANCE-001 closure + silkscreen / PCB / creepage / clearance
+/ bench / thermal / EMI evidence that `PACKAGE-POWER-400-001`'s
+full implementation slice requires remain owed; this PR lands
+only the header-reconciliation component.
+
+### What this PR changes
+
+**Header-only edit to
+[`packages/hardware/power_240v.yaml`](../packages/hardware/power_240v.yaml).**
+Lines 1–42 are rewritten as comments-only:
+
+- **AC/DC part identity.** Disproved `HLK-PM01 or similar` claim
+  removed. Header now records BOM-confirmed
+  `PS1 = HLK-5M05 (HI-LINK)`, matching the catalog
+  `description: "Mains to 5V using HLK-5M05."` and the BOM `PS1`
+  row recorded under `HW-BOM-ASSETS-002` / PR #535.
+- **BOM-confirmed mains-side topology named.** `F1 A250-1200`
+  polyfuse, `RV1 10D391K` MOV, `C1 470nF` X-cap, grouped under
+  "Mains-side protection populated on the module."
+- **BOM-confirmed connectors named.** `J1` = WAGO 2601-3103 1×3
+  vertical terminal block (LIVE / NEUTRAL / Earth_Protective);
+  `J2` = JST SH `SM02B-SRSS-TB(LF)(SN)` 1×2 Core-facing output
+  (`+5VP` / `GND`).
+- **Rating claims reclassified as vendor-datasheet typicals.**
+  Input (`100-240V AC, 50/60Hz`), output (`5V DC, 2A (10W)`),
+  isolation (`3000VAC`), and overcurrent / overvoltage /
+  short-circuit protection claims are now under an explicit
+  "Vendor-datasheet typicals (NOT BOM-confirmed and NOT
+  compliance evidence)" heading. Per-component voltage / energy
+  / safety-class ratings (`F1` hold/trip/voltage; `RV1`
+  clamp/energy; `C1` X-cap class X1/X2; `C5..C8`
+  voltage/dielectric/ESR) explicitly remain vendor-datasheet,
+  silkscreen, bench, and EMI / EMC evidence and are not asserted
+  by the package.
+- **Misleading fusing recommendation removed.** The previous
+  `# - AC input should have appropriate fusing (1A recommended)`
+  line conflicted with the on-board `F1 A250-1200` polyfuse,
+  which is a different protection class. Safety Notes now point
+  at the populated `F1 A250-1200` polyfuse plus `RV1` / `C1` as
+  the actual on-board mains-side fault protection.
+- **COMPLIANCE-001 OPEN reminder added.** Header explicitly
+  states that mains-voltage UK / EU compliance is tracked by
+  COMPLIANCE-001 at
+  [`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)
+  and remains OPEN, and that no CE / UKCA / FCC / UL / LVD /
+  EMC / RoHS / IEC claim is made by this package.
+- **GPIO posture restated.** "Binds no GPIOs and emits
+  diagnostic-only template sensors" wording matches what the
+  runtime YAML actually does.
+
+**Runtime YAML blocks preserved byte-for-byte.** The
+`substitutions: power_source: "240v_ac"` at line 44, the
+`globals: power_source_type` block, the four template
+diagnostic sensors (`Supply Voltage` template platform; `Power
+Source` text sensor returning `"240V AC"`; `Power Configuration`
+text sensor; `AC Power Connected` binary sensor returning
+`true`), and the `logger` block (`sensor: INFO`,
+`power: ${log_level}`) are byte-identical to PR #515 / PR #520
+/ PR #535 state. No runtime behavior change.
+
+**Doc / tracker updates.**
+
+- [`docs/hardware/s360-400-r4-power.md`](hardware/s360-400-r4-power.md)
+  — adds a new audit-log table row for 2026-05-20 Path B
+  package-header cleanup at the top of
+  §[HW-PINMAP-400-FOLLOWUP audit log](hardware/s360-400-r4-power.md#hw-pinmap-400-followup-audit-log)
+  (above the existing 2026-05-20 HW-BOM-ASSETS-002 row); appends
+  a new
+  `### 2026-05-20 — PACKAGE-POWER-400-001 package-header cleanup`
+  subsection at the end of the file; refreshes
+  §[Existing package abstraction](hardware/s360-400-r4-power.md#existing-package-abstraction),
+  §[Part identity reconciliation](hardware/s360-400-r4-power.md#part-identity-reconciliation),
+  and
+  §[Package YAML status](hardware/s360-400-r4-power.md#package-yaml-status)
+  to reflect the new header state. Top-line audit status stays
+  `partial — schematic evidence available; package
+  reconciliation, BOM, silkscreen, creepage/clearance, and
+  COMPLIANCE-001 pending`.
+- [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
+  §`power_240v.yaml` / S360-400 — adds a `2026-05-20 —
+  PACKAGE-POWER-400-001 package-header cleanup (Path B)`
+  addendum bullet. Row class
+  (`schematic-evidence-pending` + `needs-package-reconciliation`
+  + `timing/compliance-pending`) unchanged.
+- [`docs/hardware/firmware-package-mapping-audit.md`](hardware/firmware-package-mapping-audit.md)
+  §`power_240v.yaml` AC/DC part-identity disagreement
+  (S360-400) — appends a Path B paragraph. Status unchanged.
+- [`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
+  §PWR-240V / S360-400 — appends a `2026-05-20 —
+  PACKAGE-POWER-400-001 package-header cleanup (Path B)` note.
+  Row class unchanged; the product YAML slice stays blocked on
+  its other preconditions.
+- [`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md)
+  §Power / S360-400 WebFlash posture — appends a Path B note.
+  Exposure class unchanged (`not-webflash-ready`).
+- [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+  §Power / S360-400 release posture — appends a Path B note.
+  Release class unchanged (`not-release-ready`).
+- [`docs/cleanup-audit.md`](cleanup-audit.md) — this section.
+- [`UPCOMING_PR.md`](../UPCOMING_PR.md) — adds a Current queue
+  summary bullet recording the 2026-05-20 Path B package-header
+  cleanup; refreshes active-queue entries #4 / #5 / #6 so the
+  `PACKAGE-POWER-400-001` package-header-cleanup precondition is
+  recorded as landed under Path B (the coordinated catalog
+  `description` + JSON `schematic_status: verified` +
+  COMPLIANCE-001 + silkscreen / PCB / creepage / clearance /
+  bench / thermal / EMI evidence remain owed); adds a Recently
+  uploaded evidence entry recording that the Path B header
+  cleanup landed without new external evidence beyond PR #535;
+  adds the `PACKAGE-POWER-400-001 / #XXX` row to the Completed
+  / merged PRs table.
+
+### What this PR does NOT change
+
+- No `config/**` file is edited. No `schematic_status`
+  promotion. No `schematic_file` set. No lifecycle status
+  change. No `webflash_build_matrix` flip. No `artifact_name`,
+  no `webflash_wrapper`, no `config_string`. No
+  `release_one_required_configs` / `lifecycle_statuses` /
+  `canonical_modules` / `canonical_power` / `forbidden_tokens`
+  / `REQUIRED_CONFIGS` / kit change. The catalog
+  `description: "Mains to 5V using HLK-5M05."` for
+  [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+  `S360-400` was already BOM-consistent under
+  HW-BOM-ASSETS-002 and stays byte-identical.
+- No `products/**` edit. No `products/webflash/**` edit. No new
+  product YAML. No new WebFlash wrapper. The four
+  `legacy-compatible` `*-pwr` Core variants
+  (`sense360-core-c-pwr.yaml` / `sense360-core-w-pwr.yaml` /
+  `sense360-core-v-c-pwr.yaml` / `sense360-core-v-w-pwr.yaml`)
+  stay `legacy-compatible` and `webflash_build_matrix: false`.
+- No `tests/**` edit
+  ([`tests/test_hardware_catalog.py:53`](../tests/test_hardware_catalog.py)
+  `EXPECTED_STILL_UNVERIFIED_SKUS = frozenset({"S360-320",
+  "S360-400"})` stays in force). No `scripts/**` edit. No
+  `.github/workflows/**` edit. No `components/**` edit. No
+  `include/**` edit. No `firmware/**` edit. No
+  `manifest.json` edit. No `firmware/sources.json` edit.
+- No edit to the committed schematic PDF
+  [`docs/hardware/schematics/S360-400-R4.pdf`](hardware/schematics/S360-400-R4.pdf)
+  (the `PS1 = HLK-10M05` schematic-label discrepancy stays
+  recorded but is **not** corrected; correction owed to a
+  separate later HW-ASSETS-400 follow-up).
+- No edit to
+  [`docs/hardware/artifacts/S360-400-R4.md`](hardware/artifacts/S360-400-R4.md)
+  (the HW-BOM-ASSETS-002 BOM-ingest record is consumed, not
+  rewritten).
+- No edit to any `.xlsx`. No `docs/hardware/bom/` directory
+  created. No Git LFS introduced. Hardware Artifact Policy
+  unchanged.
+- No COMPLIANCE-001 movement. The `S360-400` mains-voltage
+  UK / EU slice stays OPEN (last re-check PR #506). No
+  mains-voltage UK / EU sign-off. The mains-voltage compliance
+  status of `S360-320` (FanTRIAC) is unchanged.
+- No Release-One change (`Ceiling-POE-VentIQ-RoomIQ` stays
+  `status: production`, `channel: stable`, version `1.0.0`,
+  artifact `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`,
+  tag `v1.0.0`). No LED preview change
+  (`Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: preview`,
+  `channel: preview`, artifact
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`).
+  No FanTRIAC change (stays `status: blocked`, `blocker:
+  HW-005`, `webflash_build_matrix: false`).
+- No Release-One PoE "schematic verification pending" caveat
+  closure. PoE is SELV and is **not** in scope for
+  COMPLIANCE-001. `S360-410` status unchanged.
+- No CE / UKCA / FCC / UL / LVD / EMC / RoHS / IEC claim. No
+  bench / load / thermal / inrush / insulation / Hi-pot /
+  earth-continuity / leakage / EMI / EMC measurement claim.
+
+### Downstream-slice impact
+
+- `PRODUCT-POWER-400-001` stays blocked on the coordinated
+  `PACKAGE-POWER-400-001` catalog `description` + JSON
+  `schematic_status: verified` slice (the catalog `description`
+  is already BOM-consistent so the residual coordinated work is
+  the JSON promotion, additionally gated on the schematic-side
+  PDF correction), `COMPLIANCE-001` `S360-400` slice closure,
+  silkscreen / PCB / creepage / clearance / bench / thermal /
+  EMI evidence, and product-onboarding approval per
+  [`docs/product-onboarding.md`](product-onboarding.md).
+- `WEBFLASH-POWER-400-001` stays blocked on
+  `PRODUCT-POWER-400-001` implementation, `COMPLIANCE-001`, and
+  the UX-class decision.
+- `RELEASE-POWER-400-001` stays blocked on
+  `WEBFLASH-POWER-400-001` implementation, `COMPLIANCE-001`,
+  and the eight release-time sub-gates.
+- `WF-IMPORT-POWER-400-001` (cross-repo) stays blocked on
+  `RELEASE-POWER-400-001`.
+
+### Why Path B is appropriate now (and Path C is not)
+
+- **Path B is appropriate** because `HW-BOM-ASSETS-002` /
+  PR #535 BOM-confirmed `PS1 = HLK-5M05` at the part-identity
+  layer, which directly disproves the package header's
+  `HLK-PM01 or similar` claim and disproves the schematic value
+  field `HLK-10M05` as the populated part. Removing the
+  disproved claim and naming the BOM-confirmed parts in the
+  package header is BOM-grounded; reclassifying the unverified
+  ratings as vendor-datasheet typicals is also BOM-grounded
+  (the BOM `MFR#` strings do not assert ratings). Removing the
+  misleading `1A recommended` AC-input fusing line is BOM- and
+  schematic-grounded (the on-board `F1 A250-1200` polyfuse is
+  the actual protection device, and is a different protection
+  class from a 1A line-side fuse).
+- **Path C (full implementation slice) is not taken now** because
+  the coordinated `PACKAGE-POWER-400-001` slice that PR #515 +
+  PR #520 enumerated also requires the catalog `description`
+  reconciliation (already BOM-consistent so nothing to do at
+  this layer), the `S360-400` `schematic_status: verified`
+  JSON-only PR (additionally gated on the schematic-side
+  correction of the committed PDF's `PS1 = HLK-10M05`
+  value-field string), `COMPLIANCE-001` `S360-400` slice
+  closure, and the silkscreen / PCB / creepage / clearance /
+  bench / thermal / EMI evidence. Those preconditions are out
+  of scope for this PR.
+
+### Next `PACKAGE-POWER-400-001` audit-log trigger
+
+The next audit-log entry against `PACKAGE-POWER-400-001` should
+appear when (i) the schematic-side correction PR for the
+committed PDF's `PS1` value-field string lands, (ii) the
+`S360-400` `schematic_status: verified` JSON-only PR lands,
+(iii) `COMPLIANCE-001` `S360-400` slice closes, or (iv)
+silkscreen / PCB / creepage / clearance / bench / thermal / EMI
+evidence lands. Until then, the next audit-log entry should
+report the same "package-header cleanup landed under Path B;
+coordinated catalog `description` (already BOM-consistent) +
+JSON `schematic_status: verified` + COMPLIANCE-001 + evidence
+slice still owed" outcome with the new inspection date.
+
 ## RELEASE-POE-410-001 update (2026-05-20 — docs-only investigation pass)
 
 This update records the 2026-05-20 docs-only investigation

@@ -685,6 +685,70 @@ above stays `package-yaml-pending` /
 [`s360-400-r4-power.md` §2026-05-20 — HW-BOM-ASSETS-002 BOM ingest](s360-400-r4-power.md#2026-05-20--hw-bom-assets-002-bom-ingest-bom-confirmed-part-identity-reclassified-package-header-cleanup-still-deferred)
 and [`docs/cleanup-audit.md` §HW-BOM-ASSETS-002 update](../cleanup-audit.md#hw-bom-assets-002-update-2026-05-20--s360-400--s360-410-bom-evidence-ingest).
 
+**2026-05-20 — `PACKAGE-POWER-400-001` package-header cleanup
+(Path B / limited implementation).** Following `HW-BOM-ASSETS-002`
+/ PR #535 BOM-confirmation of `PS1 = HLK-5M05` (HI-LINK), the
+comment-only package-header cleanup that PR #515 + PR #520
+deferred has now landed against
+[`packages/hardware/power_240v.yaml`](../../packages/hardware/power_240v.yaml).
+The header at lines 1–42 has been edited to:
+
+- replace the disproved `HLK-PM01 or similar` AC/DC part hint
+  with the BOM-confirmed `PS1 = HLK-5M05 (HI-LINK)` part
+  identity (consistent with the catalog
+  `description: "Mains to 5V using HLK-5M05."` at
+  [`config/hardware-catalog.json`](../../config/hardware-catalog.json)
+  line 109);
+- group the BOM-confirmed mains-side topology in the header:
+  `F1 A250-1200` polyfuse, `RV1 10D391K` MOV, `C1 470nF` X-cap,
+  `J1` WAGO 2601-3103 1×3 terminal block (LIVE / NEUTRAL /
+  Earth_Protective), `J2` JST SH `SM02B-SRSS-TB(LF)(SN)` 1×2
+  (`+5VP` / `GND`);
+- reclassify input / output / isolation / protection ratings
+  under an explicit "Vendor-datasheet typicals (NOT BOM-confirmed
+  and NOT compliance evidence)" heading;
+- remove the misleading `1A recommended` AC-input fusing line
+  that disagreed with the on-board `F1 A250-1200` polyfuse class;
+  the safety-notes block now points at the populated
+  `F1 A250-1200` polyfuse plus `RV1` / `C1` as the on-board
+  mains-side fault protection;
+- restate that mains-voltage UK / EU compliance is tracked by
+  COMPLIANCE-001 and remains **OPEN**, and that no CE / UKCA /
+  FCC / UL / LVD / EMC / RoHS / IEC claim is made by this
+  package.
+
+The `substitutions: power_source: "240v_ac"`,
+`globals: power_source_type`, the four template diagnostic
+sensors (`Supply Voltage` / `Power Source` / `Power Configuration`
+/ `AC Power Connected`), and the `logger` block from line 44
+onward are **byte-identical** to PR #515 / PR #520 / PR #535
+state — no runtime YAML behavior change. The
+[`config/hardware-catalog.json`](../../config/hardware-catalog.json)
+`S360-400` row at lines 102–110 stays byte-identical (no
+`schematic_status` promotion, no `schematic_file` set, no
+`description` edit). The committed schematic PDF
+[`docs/hardware/schematics/S360-400-R4.pdf`](schematics/S360-400-R4.pdf)
+stays byte-identical (the `PS1 = HLK-10M05` value-field
+discrepancy stays recorded but is **not** corrected; correction
+owed to a separate later HW-ASSETS-400 follow-up). COMPLIANCE-001
+mains-voltage UK / EU sign-off is unchanged (last re-check
+PR #506). The status above stays `package-yaml-pending` /
+`needs-package-reconciliation` + `timing/compliance-pending`:
+Path B is the header-reconciliation component of the coordinated
+`PACKAGE-POWER-400-001` slice; the catalog `description` is
+already BOM-consistent, the `S360-400`
+`schematic_status: verified` JSON-only PR is still owed
+(additionally gated on the schematic-side correction of the
+committed PDF's `PS1` value-field string), and the
+COMPLIANCE-001 closure plus the silkscreen / PCB / creepage /
+clearance / bench / thermal / EMI evidence remain owed.
+`PRODUCT-POWER-400-001`, `WEBFLASH-POWER-400-001`,
+`RELEASE-POWER-400-001`, and `WF-IMPORT-POWER-400-001`
+(cross-repo) stay blocked on their other recorded preconditions.
+See
+[`s360-400-r4-power.md` §2026-05-20 — PACKAGE-POWER-400-001 package-header cleanup](s360-400-r4-power.md#2026-05-20--package-power-400-001-package-header-cleanup-bom-confirmed-part-identity-in-header-ratings-softened-downstream-slices-still-blocked)
+and [`docs/cleanup-audit.md` §PACKAGE-POWER-400-001 update (2026-05-20 — Path B package-header cleanup)](../cleanup-audit.md#package-power-400-001-update-2026-05-20--path-b-package-header-cleanup).
+
 ### `power_poe.yaml` PoE-module part-identity disagreement (S360-410)
 
 Schematic evidence:
