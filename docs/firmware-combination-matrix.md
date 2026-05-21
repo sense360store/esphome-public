@@ -260,3 +260,16 @@ status in CI, cross-referencing the
 [`docs/product-readiness-matrix.md`](product-readiness-matrix.md) and
 [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
 gate columns) is out of scope for FW-MATRIX-001.
+
+## See also
+
+- [`docs/firmware-build-gap-report.md`](firmware-build-gap-report.md) —
+  FW-MATRIX-002, the generated build-gap report that groups every row
+  in this matrix into a practical implementation lane (
+  `current-webflash`, the four fan lanes, `pwr-blocked-compliance`,
+  `led-preview-and-stable-candidates`, `poe-non-fan-candidates`,
+  `usb-non-fan-candidates`, and the `missing-product-yaml` sentinel).
+  The build-gap report is planning / reporting only; it does not add
+  builds, wrappers, artifacts, or releases, and it never marks a lane
+  as WebFlash-exposable unless every row in that lane is already in
+  [`config/webflash-builds.json`](../config/webflash-builds.json).
