@@ -13,7 +13,7 @@
 #   UART SEN0609:  TX=GPIO5, RX=GPIO4, baud=115200 (RoomIQ J10 DFRobot radar)
 #   UART Aux:      TX=GPIO43, RX=GPIO44
 #   Fan PWM:       GPIO4 (output), GPIO5 (tach)
-#   Relay:         GPIO10 (unchanged until CORE-ABSTRACT-BUS-001A)
+#   Relay:         GPIO3 (schematic Relay net; CORE-ABSTRACT-BUS-001A)
 #   Fan Status LED: GPIO46 (GP_Fan_Status_Led per Core schematic IO46)
 #   User Button:   GPIO9
 #   Expander INT:  GPIO17 (was GPIO3 - rebound per schematic IO17=expander_int)
@@ -45,7 +45,10 @@ substitutions:
   fan_pwm_frequency: "25000"
 
   # Outputs
-  relay_pin: GPIO10
+  # CORE-ABSTRACT-BUS-001A: schematic Relay net on IO3 per S360-100-R4.
+  # GPIO3 was freed by CORE-ABSTRACT-BUS-001C (#557) which moved the
+  # expander interrupt off GPIO3 to GPIO17.
+  relay_pin: GPIO3
   status_led_rgb_pin: GPIO48
   # CORE-ABSTRACT-BUS-001C: status_led_simple_pin (was GPIO47=ALS_INT) retired;
   # replaced with the schematic-named fan_status_led_pin on IO46 (GP_Fan_Status_Led).

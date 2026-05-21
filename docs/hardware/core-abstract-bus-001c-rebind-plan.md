@@ -702,6 +702,57 @@ entities, `relay_pin` move, `led_data_pin` move, a new
 `status_led_pin` somewhere, an `expansion_gpio*` reappearing,
 artifact-name change, etc.), stop and fix before merging.
 
+## CORE-ABSTRACT-BUS-001A status update (2026-05-21)
+
+`CORE-ABSTRACT-BUS-001A` landed as a separate atomic slice the same
+day as the 001C implementation recorded above. The 001A slice applied
+the schematic-correct `relay_pin: GPIO3` value across the five
+affected Core abstract packages
+(`packages/hardware/sense360_core.yaml`,
+`packages/hardware/sense360_core_ceiling.yaml`,
+`packages/hardware/sense360_core_mapping.yaml`,
+`packages/hardware/sense360_core_poe.yaml`,
+`packages/hardware/sense360_core_wall.yaml`) and extended
+[`tests/test_core_abstract_bus.py`](../../tests/test_core_abstract_bus.py)
+with the `RelayPinRebindTests` and `MainRelaySwitchBindingTests`
+classes that lock the rebind against future regression.
+
+The forward references to 001A throughout this rebind plan document
+(`§Status`, `§Relay / 001A dependency`, `§Implementation readiness
+classification` precondition #4, `§Implementation result (2026-05-21)
+§ relay_pin stays at its pre-001A value`, `§Pin-pinning regression
+scaffold` final bullet, `§See also`) referred to 001A as a future
+slice gated behind 001C; with both slices now landed, those references
+record the historical ordering rather than describe a remaining
+blocker. The pre-001A values listed under
+[§`relay_pin` stays at its pre-001A value](#relay_pin-stays-at-its-pre-001a-value)
+(GPIO10 / GPIO4 / GPIO10 / GPIO10 / GPIO4 across the five Core
+packages) are preserved here verbatim as the audit record of the
+state immediately before 001A applied; the schematic-correct
+post-001A value is `GPIO3` in every one of those five files.
+
+This update does **not**:
+
+- close S360-100-BENCH-001 silkscreen evidence (Core `J4` 1-to-3 pin
+  order, harness identity, board-serial / batch attribution);
+- promote the general ESP32-S3 `GPIO3` strap-pin boot-behaviour bench
+  characterisation beyond operator decisions #16 / #17 (which remain
+  scoped to the populated `S360-310-R4` + `S360-100-R4` pair under
+  operator review);
+- close `K1` BOM identity, contact-current rating, or harness
+  identity per
+  [`docs/hardware/s360-310-r4-relay.md` Required evidence before promotion](s360-310-r4-relay.md#required-evidence-before-promotion);
+- advance `PACKAGE-RELAY-001` / `PRODUCT-RELAY-001` /
+  `WEBFLASH-RELAY-001` / `RELEASE-RELAY-001` /
+  `WF-IMPORT-RELAY-001` beyond the `relay_pin: GPIO3` substitution
+  layer; or
+- prove Relay load / contact / `K1` rating.
+
+The full 001A implementation record (YAML edits, test updates,
+generated-config diff expectations, queue effect, what the entry
+does not do) lives in
+[`core-abstract-bus-reconciliation.md` §`### 2026-05-21 — CORE-ABSTRACT-BUS-001A implementation`](core-abstract-bus-reconciliation.md#2026-05-21--core-abstract-bus-001a-implementation).
+
 ## See also
 
 - [`docs/hardware/core-abstract-bus-reconciliation.md`](core-abstract-bus-reconciliation.md)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pin-pinning regression tests for CORE-ABSTRACT-BUS-001C.
+"""Pin-pinning regression tests for CORE-ABSTRACT-BUS-001A / 001C.
 
 These tests lock in the schematic-backed CORE-ABSTRACT-BUS-001C rebind plan
 recorded in
@@ -10,8 +10,14 @@ scaffold owed by precondition #5 of the 001C planning record (the
 ``tests/test_core_abstract_bus.py`` scaffold lands **with** the first
 implementation slice).
 
+CORE-ABSTRACT-BUS-001A extends this scaffold with the schematic-backed
+``relay_pin: GPIO3`` rebind. The 001A rebind landed once 001C (PR #557)
+freed ``GPIO3`` by moving ALS_INT off ``GPIO3`` to ``GPIO47`` and the
+SX1509 / expander interrupt off ``GPIO3`` to ``GPIO17``.
+
 Schematic ground truth references (S360-100-R4, the Core schematic):
 
+* ``IO3 = Relay``       — J4 Relay module gate (drives S360-310 K1 coil)
 * ``IO15 = PIR``        — RoomIQ J10 PIR motion input
 * ``IO47 = ALS_INT``    — RoomIQ J10 ambient-light-sensor interrupt
 * ``IO17 = expander_int`` — SX1509 GPIO/PWM expander interrupt
@@ -27,10 +33,12 @@ Schematic ground truth references (S360-100-R4, the Core schematic):
 
 Hi-Link baud is 256000 and SEN0609 baud is 115200 per operator decision #7.
 
-This PR does NOT move ``relay_pin`` to ``GPIO3`` — that move belongs to the
-next slice, CORE-ABSTRACT-BUS-001A. The test below pins each Core
-abstract package's current ``relay_pin`` value so any accidental relay
-re-bind in this PR fails loudly.
+The Core abstract packages affected by CORE-ABSTRACT-BUS-001A are listed
+in ``RELAY_REBIND_PACKAGES`` below. Voice-variant Core packages
+(``sense360_core_voice_ceiling.yaml`` / ``sense360_core_voice_wall.yaml``)
+are deliberately out of scope for the 001A rebind; their ``relay_pin``
+substitutions remain at their pre-001A values until a later slice
+addresses them.
 
 Run with::
 
@@ -46,10 +54,10 @@ from typing import Optional
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# Core abstract packages whose 001C substitutions / blocks this PR
-# rebinds. Each must drop the generic ``status_led_pin`` and
-# ``expansion_gpio1..4`` substitutions and adopt the schematic-named
-# replacements.
+# Core abstract packages whose 001C substitutions / blocks were rebound
+# by CORE-ABSTRACT-BUS-001C (#557). Each must drop the generic
+# ``status_led_pin`` and ``expansion_gpio1..4`` substitutions and adopt
+# the schematic-named replacements.
 AFFECTED_CORE_PACKAGES = [
     REPO_ROOT / "packages" / "hardware" / "sense360_core.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml",
@@ -58,6 +66,20 @@ AFFECTED_CORE_PACKAGES = [
     REPO_ROOT / "packages" / "hardware" / "sense360_core_wall.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_voice_ceiling.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_voice_wall.yaml",
+]
+
+# Core abstract packages whose ``relay_pin`` substitution is rebound to
+# the schematic-correct ``GPIO3`` by CORE-ABSTRACT-BUS-001A. Voice-
+# variant Core packages are deliberately not in this list; the 001A
+# scope is restricted to the five non-voice Core packages enumerated
+# below. Each must drop the pre-001A ``GPIO4`` / ``GPIO10`` value and
+# adopt ``GPIO3`` (schematic Relay net per S360-100-R4 IO3).
+RELAY_REBIND_PACKAGES = [
+    REPO_ROOT / "packages" / "hardware" / "sense360_core.yaml",
+    REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml",
+    REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml",
+    REPO_ROOT / "packages" / "hardware" / "sense360_core_poe.yaml",
+    REPO_ROOT / "packages" / "hardware" / "sense360_core_wall.yaml",
 ]
 
 # Per-package substitutions affected by 001C.
@@ -450,11 +472,10 @@ class NoSubstitutionCollisionTests(unittest.TestCase):
     """No collision between relay_pin, comfort_ceiling_als_int_pin, expander_int_pin, sx1509_interrupt_pin.
 
     Each of these substitutions resolves to a single pin per file. The
-    rebind must ensure the three previously-colliding substitutions
-    (ALS_INT, expander_int, SX1509 INT, all on GPIO3) no longer share a
-    pin with relay_pin (which is the schematic-correct Relay net on
-    GPIO3 once CORE-ABSTRACT-BUS-001A lands; in this PR it stays at its
-    current pre-001A values).
+    rebind ensures the three previously-colliding substitutions
+    (ALS_INT, expander_int, SX1509 INT, all on GPIO3 before 001C) no
+    longer share a pin with relay_pin (which is now the schematic-
+    correct Relay net on GPIO3 after CORE-ABSTRACT-BUS-001A).
     """
 
     def test_relay_pin_does_not_collide_with_001c_rebound_pins(self) -> None:
@@ -479,7 +500,8 @@ class NoSubstitutionCollisionTests(unittest.TestCase):
                     f"relay_pin in {pkg.name} ({relay}) must not collide "
                     f"with comfort_ceiling_als_int_pin ({comfort}). 001C "
                     f"moved ALS_INT off GPIO3 specifically to free GPIO3 "
-                    f"for the relay slice.",
+                    f"for the relay slice; 001A then rebound relay_pin "
+                    f"to GPIO3.",
                 )
             with self.subTest(package=pkg.name, sub="expander_int_pin"):
                 self.assertNotEqual(
@@ -525,52 +547,86 @@ class NoSubstitutionCollisionTests(unittest.TestCase):
         )
 
 
-class RelayPinUnchangedTests(unittest.TestCase):
-    """relay_pin is NOT moved to GPIO3 in this PR.
+class RelayPinRebindTests(unittest.TestCase):
+    """CORE-ABSTRACT-BUS-001A: relay_pin rebound to GPIO3 (schematic Relay net).
 
-    Each Core abstract package keeps its pre-001A value. The relay
-    move to ``GPIO3`` belongs to CORE-ABSTRACT-BUS-001A and lands in a
-    later atomic slice; this PR only frees ``GPIO3`` by moving the
-    schematic-conflicting bindings (ALS_INT, expander_int, SX1509 INT)
-    away from ``GPIO3``.
+    Each Core abstract package listed in ``RELAY_REBIND_PACKAGES`` has
+    ``relay_pin`` set to ``GPIO3`` (schematic IO3 = Relay per
+    S360-100-R4). The GPIO3 collision was resolved by CORE-ABSTRACT-
+    BUS-001C (#557) which moved ALS_INT off GPIO3 to GPIO47 and the
+    expander interrupt off GPIO3 to GPIO17.
+
+    Voice-variant Core packages (``sense360_core_voice_ceiling.yaml``
+    and ``sense360_core_voice_wall.yaml``) are out-of-scope for the
+    001A rebind; their ``relay_pin`` substitutions are not asserted by
+    this class.
     """
 
-    EXPECTED_RELAY_PINS = {
-        "sense360_core.yaml": "GPIO10",
-        "sense360_core_ceiling.yaml": "GPIO4",
-        "sense360_core_mapping.yaml": "GPIO10",
-        "sense360_core_poe.yaml": "GPIO10",
-        "sense360_core_wall.yaml": "GPIO4",
-        "sense360_core_voice_ceiling.yaml": "GPIO4",
-        "sense360_core_voice_wall.yaml": "GPIO4",
-    }
-
-    def test_relay_pin_holds_current_value_in_each_core_package(self) -> None:
-        for pkg in AFFECTED_CORE_PACKAGES:
+    def test_relay_pin_is_gpio3_in_every_affected_core_package(self) -> None:
+        for pkg in RELAY_REBIND_PACKAGES:
             relay = _substitution_value(pkg.read_text(), "relay_pin")
-            expected = self.EXPECTED_RELAY_PINS.get(pkg.name)
             with self.subTest(package=pkg.name):
                 self.assertEqual(
                     relay,
-                    expected,
-                    f"relay_pin in {pkg.name} must remain {expected} "
-                    f"until CORE-ABSTRACT-BUS-001A lands. This 001C PR "
-                    f"frees GPIO3 but does not consume it.",
+                    "GPIO3",
+                    f"relay_pin in {pkg.name} must be GPIO3 (schematic "
+                    f"IO3 = Relay per S360-100-R4) after "
+                    f"CORE-ABSTRACT-BUS-001A; got {relay!r}.",
                 )
 
-    def test_relay_pin_is_not_gpio3_in_any_affected_core_package(self) -> None:
-        for pkg in AFFECTED_CORE_PACKAGES:
+    def test_relay_pin_is_not_gpio4_or_gpio10_in_any_affected_core_package(
+        self,
+    ) -> None:
+        for pkg in RELAY_REBIND_PACKAGES:
             relay = _substitution_value(pkg.read_text(), "relay_pin")
-            if relay is None:
-                continue
             with self.subTest(package=pkg.name):
-                self.assertNotEqual(
+                self.assertNotIn(
                     relay,
-                    "GPIO3",
-                    f"relay_pin in {pkg.name} must not be GPIO3 in this "
-                    f"PR. The GPIO3 rebind belongs to "
-                    f"CORE-ABSTRACT-BUS-001A.",
+                    ("GPIO4", "GPIO10"),
+                    f"relay_pin in {pkg.name} must not be the pre-001A "
+                    f"value GPIO4 or GPIO10. CORE-ABSTRACT-BUS-001A "
+                    f"rebinds relay_pin to the schematic-correct GPIO3 "
+                    f"(IO4 is SEN0609_RX; IO10 is not the Relay net per "
+                    f"S360-100-R4).",
                 )
+
+
+class MainRelaySwitchBindingTests(unittest.TestCase):
+    """``main_relay`` in sense360_core_ceiling.yaml resolves to ${relay_pin}.
+
+    Asserts the ``switch.platform: gpio`` block declaring ``id:
+    main_relay`` in sense360_core_ceiling.yaml has ``pin:
+    ${relay_pin}`` so the generated-config diff for Release-One
+    moves ``main_relay`` from ``GPIO4`` to ``GPIO3`` cleanly with the
+    relay_pin substitution.
+    """
+
+    def test_main_relay_pin_is_relay_pin_substitution(self) -> None:
+        text = SENSE360_CORE_CEILING.read_text()
+        # Look for the ``id: main_relay`` line followed by a ``pin:``
+        # line referencing the ``${relay_pin}`` substitution.
+        pattern = re.compile(
+            r"id:\s*main_relay\s*\n"
+            r"(?P<between>(?:\s*[a-z_]+:\s*[^\n]+\n)*?)"
+            r"\s*pin:\s*(?P<pin>\S+)",
+            re.MULTILINE,
+        )
+        match = pattern.search(text)
+        self.assertIsNotNone(
+            match,
+            "Expected a switch.platform: gpio block with id: main_relay "
+            "followed by a pin: declaration in "
+            "sense360_core_ceiling.yaml.",
+        )
+        pin_value = match.group("pin").strip("\"'")
+        self.assertEqual(
+            pin_value,
+            "${relay_pin}",
+            "main_relay in sense360_core_ceiling.yaml must bind "
+            "pin: ${relay_pin} so the schematic-correct Relay net "
+            "(GPIO3 per CORE-ABSTRACT-BUS-001A) is consumed by "
+            "downstream products through substitution.",
+        )
 
 
 if __name__ == "__main__":
