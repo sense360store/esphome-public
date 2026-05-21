@@ -440,6 +440,36 @@ for HW-009):
     [`package-readiness-matrix.md` `fan_relay.yaml` / S360-310](package-readiness-matrix.md#fan_relayyaml--s360-310),
     and
     [`docs/cleanup-audit.md` §PACKAGE-RELAY-001 update](../cleanup-audit.md#package-relay-001-update-deferred--core-abstract-bus-001--silkscreen--harness--k1-bom-evidence-not-landed).
+    **Update (2026-05-21).** `CORE-ABSTRACT-BUS-001A` landed via PR
+    #558 and rebound `relay_pin: GPIO4 → GPIO3` (ceiling Core) /
+    `GPIO10 → GPIO3` (generic Core) plus the parallel mapping / PoE /
+    wall Core packages. The `GPIO3` collision that previously
+    blocked the rebind was resolved by `CORE-ABSTRACT-BUS-001C` / PR
+    #557 (ALS_INT moved to `GPIO47`, expander interrupt moved to
+    `GPIO17`). The schematic-correct `relay_pin: GPIO3` is now bound
+    in the five non-voice Core abstract packages and pinned by
+    [`tests/test_core_abstract_bus.py`](../../tests/test_core_abstract_bus.py)
+    `RelayPinRebindTests` / `MainRelaySwitchBindingTests`. The
+    voice-variant Core packages stay at pre-001A `relay_pin: GPIO4`
+    (out of scope for 001A). `packages/expansions/fan_relay.yaml`
+    is unchanged — `fan_relay_pin: ${relay_pin}` (line 27) now
+    resolves to `GPIO3` automatically. The
+    `PACKAGE-RELAY-001-READINESS-REFRESH` PR (2026-05-21, docs-only)
+    re-evaluated the `PACKAGE-RELAY-001` blocker set against this
+    post-001A / 001C state and recorded the readiness table at
+    [`s360-310-r4-relay.md` PACKAGE-RELAY-001 readiness refresh after CORE-ABSTRACT-BUS-001C / 001A](s360-310-r4-relay.md#package-relay-001-readiness-refresh-after-core-abstract-bus-001c--001a):
+    the substitution-layer blockers are **resolved**, but
+    `PACKAGE-RELAY-001` stays blocked on the hardware-evidence
+    blockers — S360-100 Core `J4` silkscreen, module-side `J2` / `J1`
+    silkscreen, `J1` `NO` / `COM` / `NC` mapping, Core ↔ module
+    harness identity, `K1` BOM identity, `K1` contact-current
+    rating, Relay load / contact proof, and the general (not
+    pair-scoped) ESP32-S3 `GPIO3` strap-pin boot-behaviour bench
+    characterisation. The conservative recommended next PR is a
+    bench-evidence-capture slice for `S360-310`, **not**
+    `PACKAGE-RELAY-001` implementation, **not** a Relay product
+    YAML, **not** a WebFlash wrapper, **not** a compile-only target,
+    and **not** a release artifact.
   - `status_led_pin: GPIO48` — `IO48` is `I2C_SDA`.
   - `pir_sensor_pin: GPIO47` — `IO47` is `ALS_INT`; `PIR` is on `IO15`.
   - `expansion_gpio1: GPIO5`, `expansion_gpio2: GPIO6` — `IO5` is
