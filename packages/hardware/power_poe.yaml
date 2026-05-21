@@ -2,13 +2,44 @@
 #
 # This package configures the Sense360 Core board for IEEE 802.3af PoE power.
 #
-# Hardware:
-# - PoE module (e.g., Ag9712M, Silvertel Ag9700, or similar)
-# - Standard: IEEE 802.3af (PoE) or 802.3at (PoE+)
-# - Class: Class 0 (0.44-12.95W) or Class 1 (0.44-3.84W)
-# - Input: 36-57V DC (from PoE switch/injector)
-# - Output: 5V DC, 2A (10W) or 3.3V DC
-# - Protection: Overcurrent, overvoltage, short-circuit
+# Hardware (BOM-confirmed S360-410-R4 discrete PoE topology):
+# - LAN_CON1: LPJ4112CNL (RJP-003TC1-style) integrated RJ45 + magnetics
+# - U1:       TPS2378DDAR PoE PD controller (HSOIC-8)
+# - U2:       TX4138 buck converter (ESOIC-8)
+# - DCDC1:    F0505S-2WR2 isolated 5V/5V DC/DC (SIP-7)
+#             Note: AM1D-0505S-NZ is a schematic-annotation-only
+#             alternate, NOT the BOM-populated part.
+# - D1:       SMAJ58A TVS
+# - D2:       SS510 Schottky catch diode
+# - D3:       Green status LED on the buck output
+# - L1:       33uH buck inductor
+# - R1..R9, C1..C8, and the J3 +5VP / GND output header are part of
+#   the populated BOM set
+#
+# Vendor-datasheet typicals (NOT BOM-confirmed and NOT compliance evidence):
+# - Standard:   IEEE 802.3af (PoE); schematic-visible R2 1.27k programs
+#               Class 0 (0.44-12.95W) on the TPS2378DDAR
+# - Input:      36-57V DC (from PoE switch/injector)
+# - Output:     5V DC, ~2A (10W) nominal at the Core-side +5VP / GND
+#               header (TX4138 buck + F0505S-2WR2 isolated DC/DC chain)
+# - Protection: overcurrent / overvoltage / short-circuit (vendor claim)
+# Per-component voltage / isolation / Hi-pot / IEEE 802.3af / 802.3at /
+# EMI / EMC ratings remain vendor-datasheet, silkscreen, bench, and
+# compliance evidence and are not asserted by this package.
+#
+# Safety / scope notes:
+# - This package is logical / diagnostic only. It binds no GPIO / I2C /
+#   UART / SPI / DAC at runtime and emits diagnostic-only template sensors.
+# - This package change makes no release, WebFlash, product-catalog, or
+#   schematic-status claim: it does not promote S360-410 schematic_status,
+#   does not set schematic_file, does not close the Release-One PoE
+#   "schematic verification pending" caveat, does not add a product YAML,
+#   does not add a WebFlash wrapper, does not flip webflash_build_matrix,
+#   does not add an artifact_name, and does not build or attach a release
+#   artifact.
+# - No IEEE 802.3af / 802.3at PoE-compliance claim, no isolation / Hi-pot
+#   / earth-continuity / leakage claim, and no thermal / EMI / EMC claim
+#   is made by this package.
 #
 # Benefits:
 # - Most stable power source
