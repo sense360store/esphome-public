@@ -26,7 +26,7 @@
 # - I2C1 (Secondary): SDA=GPIO21, SCL=GPIO18    (consolidation owed to 001B)
 # - UART (Hi-Link):   TX=GPIO2, RX=GPIO1, baud 256000
 # - UART (SEN0609):   TX=GPIO5, RX=GPIO4, baud 115200
-# - Relay:            GPIO10 (unchanged until CORE-ABSTRACT-BUS-001A)
+# - Relay:            GPIO3 (schematic Relay net; CORE-ABSTRACT-BUS-001A)
 # - Fan Status LED:   GPIO46 (GP_Fan_Status_Led per Core schematic)
 # - User Button:      GPIO9
 # - Boot Button:      GPIO0
@@ -43,8 +43,10 @@ substitutions:
   i2c1_sda_pin: GPIO21
   i2c1_scl_pin: GPIO18
 
-  # Relay (unchanged in this PR — moves to GPIO3 in CORE-ABSTRACT-BUS-001A)
-  relay_pin: GPIO10
+  # Relay: schematic-correct Relay net on IO3 (CORE-ABSTRACT-BUS-001A).
+  # GPIO3 was freed by CORE-ABSTRACT-BUS-001C (#557) moving ALS_INT to
+  # GPIO47 and the expander interrupt to GPIO17.
+  relay_pin: GPIO3
 
   # Status indicators
   # CORE-ABSTRACT-BUS-001C: generic `status_led_pin` retired (was GPIO2 =

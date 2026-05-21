@@ -18,9 +18,10 @@
 # - I2C1 (Expansion): SDA=GPIO21, SCL=GPIO18
 # - UART (Hi-Link):   TX=GPIO2, RX=GPIO1, baud 256000  (RoomIQ J10 LD2450 radar)
 # - UART (SEN0609):   TX=GPIO5, RX=GPIO4, baud 115200  (RoomIQ J10 DFRobot radar)
-# - Relay:            GPIO4 (10A AC/DC for ceiling fan/light)
-#                     (Note: GPIO4 remains until CORE-ABSTRACT-BUS-001A rebinds
-#                      relay_pin to GPIO3.)
+# - Relay:            GPIO3 (10A AC/DC for ceiling fan/light; schematic Relay
+#                     net per S360-100-R4. CORE-ABSTRACT-BUS-001A rebound
+#                     relay_pin GPIO4 → GPIO3 after CORE-ABSTRACT-BUS-001C
+#                     freed GPIO3 by moving ALS_INT off it.)
 # - PIR/Motion:       GPIO15 (schematic IO15 = PIR, RoomIQ J10 motion input)
 # - Fan Status LED:   GPIO46 (schematic IO46 = GP_Fan_Status_Led, Core-side
 #                     indicator independent of any module)
@@ -35,8 +36,9 @@
 #   * `pir_sensor_pin` rebound GPIO47 → GPIO15 (schematic PIR net)
 #   * `fan_status_led_pin` introduced on GPIO46 (Core-side indicator)
 #   * `roomiq_sen0609_output_pin` introduced on GPIO6
-# relay_pin is NOT changed in this PR (stays GPIO4) — that move belongs to
-# CORE-ABSTRACT-BUS-001A.
+# CORE-ABSTRACT-BUS-001A rebinds relay_pin GPIO4 → GPIO3 (schematic Relay
+# net per S360-100-R4). The GPIO3 collision was resolved by 001C (#557)
+# which moved ALS_INT to GPIO47 and the expander interrupt to GPIO17.
 #
 # Form Factor:
 # - Ceiling recessed mount
@@ -69,11 +71,11 @@ substitutions:
   expansion_i2c_scl_pin: GPIO18
 
   # Relay (ceiling fan/light control)
-  # NOTE: relay_pin is intentionally NOT moved to GPIO3 in this PR.
-  # The schematic-correct value `relay_pin: GPIO3` lands in
-  # CORE-ABSTRACT-BUS-001A, which is unblocked only after this 001C slice
-  # frees GPIO3 (ALS_INT moves to GPIO47, expander_int moves to GPIO17).
-  relay_pin: GPIO4
+  # CORE-ABSTRACT-BUS-001A: schematic-correct Relay net on IO3 per
+  # S360-100-R4. GPIO3 was freed by CORE-ABSTRACT-BUS-001C (#557) which
+  # moved ALS_INT off GPIO3 to GPIO47 and the expander interrupt off
+  # GPIO3 to GPIO17.
+  relay_pin: GPIO3
   relay_max_current: "10A"
 
   # CORE-ABSTRACT-BUS-001C: Fan Status LED indicator (Core-side, no module
