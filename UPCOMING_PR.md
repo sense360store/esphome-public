@@ -2383,6 +2383,122 @@ mirrored here.
   aliases; orphan generic `comfort.yaml` alias) are each their
   own scoped PR with their own evidence and tests and are not
   landed here.
+- **PACKAGE-NAMING-ALIASES-FANDAC-001 — add FanDAC canonical
+  package alias (Phase 2 of PACKAGE-NAMING-AUDIT-001 / PR #550,
+  fourth slice after PACKAGE-NAMING-ALIASES-VENTIQ-001 / PR #552,
+  PACKAGE-NAMING-ALIASES-ROOMIQ-001 / PR #553, and
+  PACKAGE-NAMING-ALIASES-AIRIQ-001 / PR #555) (2026-05-21).**
+  Added one canonical FanDAC alias package file that wraps the
+  legacy GP8403 DAC package via `!include` and adds no other YAML:
+  `packages/expansions/fan_dac.yaml` wraps
+  `packages/expansions/fan_gp8403.yaml`. The legacy filename
+  `fan_gp8403.yaml` is named after the GP8403 DAC implementation
+  detail (a DFRobot dual-channel 12-bit I²C DAC providing 0–10V
+  or 0–5V analog output for commercial HVAC fans / EC motors /
+  VFDs); the productized / package-facing module name is `FanDAC`
+  (a member of `config/webflash-compatibility.json`'s
+  `canonical_modules` array alongside `AirIQ`, `VentIQ`, `RoomIQ`,
+  `FanRelay`, `FanPWM`, `FanTRIAC`, and `LED`). The alias filename
+  `fan_dac.yaml` is the lowercase `snake_case` rendering of the
+  canonical `FanDAC` module token, mirroring the existing
+  `airiq.yaml` / `ventiq.yaml` / `roomiq.yaml` precedent where the
+  alias filename is the lowercase rendering of the productized
+  module token. **Why the alias filename is allowed despite the
+  `Fan` forbidden token.** The token `Fan` (uppercase, standalone)
+  is listed in `config/webflash-compatibility.json`'s
+  `forbidden_tokens` array as a generic / customer-facing label
+  that must not appear in WebFlash artifact filenames; the
+  productized fan modules are firmware-distinct (`FanRelay` /
+  `FanPWM` / `FanDAC` / `FanTRIAC`) per the
+  `fan_variants_are_firmware_distinct` rule and the
+  `generic_fan_token_forbidden` rule. This file is an internal
+  `packages/**` implementation alias, not a WebFlash artifact
+  name; the canonical product / module token it represents is
+  `FanDAC`, not the forbidden generic `Fan` token. The audit's
+  non-binding Phase-2 inventory in `docs/package-naming-audit.md`
+  explicitly proposes `fan_dac.yaml` as the canonical alias for
+  `fan_gp8403.yaml`. Customer-facing labels surfaced to the
+  WebFlash UI / Home Assistant / marketing remain outcome-first
+  (for example, "0–10V fan control" describes what the customer
+  gets without leaking the GP8403 chip name or the forbidden
+  generic `Fan` token); the alias file must not be exposed as a
+  loose customer-facing product. Added
+  `tests/test_fandac_alias_packages.py` (12 stdlib-unittest cases
+  mirroring `tests/test_ventiq_alias_packages.py`,
+  `tests/test_roomiq_alias_packages.py`, and
+  `tests/test_airiq_alias_packages.py`: alias file exists; alias
+  parses as YAML; alias contains exactly one `!include` line
+  targeting the intended legacy bare basename; alias `!include`s
+  exactly `fan_gp8403.yaml`; alias filename starts with the
+  canonical `fan_dac` token; legacy implementation file still
+  exists; alias inventory shape pinning — exactly one entry, no
+  duplicate alias_path, no duplicate legacy_path; plus new
+  pure-wrapper Rule 8 tests that pin the alias contains only the
+  `packages:` top-level key, does not redeclare any forbidden
+  top-level YAML block such as `substitutions:` / `globals:` /
+  `sensor:` / `output:` / `fan:` / `script:` / `gp8403:`, and
+  does not embed any fan-control behaviour beyond the single
+  `!include` of the legacy file). The forbidden-token assertion
+  used by the VentIQ / RoomIQ / AirIQ alias tests is deliberately
+  not applied here because `FanDAC` is the canonical module token
+  rather than a forbidden token. Updated
+  `docs/package-naming-audit.md` with a new `#### Phase 2
+  progress — FanDAC alias landed (2026-05-21)` subsection inside
+  the Phase-2 section that records the alias / legacy mapping
+  table and the notes on the chosen alias name (covering the
+  canonical-`FanDAC`-versus-vendor-`gp8403` rationale, the
+  `Fan`-forbidden-token justification, the GP8403-is-
+  implementation-detail rationale, and the absence of a separate
+  behaviour-revealing suffix because `FanDAC` already names the
+  underlying DAC-driven 0–10V control behaviour at the module-
+  token level). **PR is alias-only.** No legacy `packages/**`
+  file edited / moved / renamed / deleted (the legacy
+  `fan_gp8403.yaml` file is byte-identical); no other
+  `packages/**` file added; no `products/**` /
+  `products/webflash/**` / `firmware/**` / `manifest.json` /
+  `firmware/sources.json` / `.github/workflows/**` /
+  `components/**` / `include/**` edit; no
+  `config/compile-only-targets.json` /
+  `config/compile-only-candidates.json` /
+  `config/webflash-builds.json` /
+  `config/product-catalog.json` /
+  `config/hardware-catalog.json` /
+  `config/webflash-compatibility.json` /
+  `config/firmware-combination-matrix.json` /
+  `config/kit-intent-matrix.json` edit; no
+  `forbidden_tokens` / `canonical_modules` / `canonical_power` /
+  `lifecycle_statuses` / `release_one_required_configs` /
+  `REQUIRED_CONFIGS` / `webflash_build_matrix` / `artifact_name`
+  / `webflash_wrapper` / `config_string` change; no compile-only
+  target added; no product YAML added; no WebFlash wrapper added;
+  no LED stable promotion; no AirIQ / VentIQ / RoomIQ / fan / PWR
+  / POE promotion; no FanDAC promotion; no DAC readiness claim;
+  no fan-module promotion; no hardware-proof claim; no WebFlash
+  import-readiness claim; no `RELEASE-DAC-001` unblock claim; no
+  `RELEASE-007` unblock claim; no Release-One / LED preview /
+  FanTRIAC identity change; no `schematic_status` /
+  `schematic_file` promotion; no COMPLIANCE-001 movement; no
+  Core bus / GPIO / UART / LED / status substitution change; no
+  release artifact built or attached. Runtime YAML behavior is
+  unchanged: the alias is a pure `!include` wrapper; no existing
+  consumer of the legacy `fan_gp8403.yaml` filename is affected.
+  Validation suite (`python3 tests/validate_configs.py`, `python3
+  scripts/validate_compile_targets.py --metadata-only`, `python3
+  tests/test_compile_targets.py`, `python3
+  tests/test_compile_expansion_candidates.py`, `python3
+  tests/test_firmware_combination_matrix.py`, `python3
+  tests/test_firmware_build_gap_report.py`, `python3
+  tests/test_kit_intent_matrix.py`, `python3
+  tests/test_ventiq_alias_packages.py`, `python3
+  tests/test_roomiq_alias_packages.py`, `python3
+  tests/test_airiq_alias_packages.py`, `python3
+  tests/test_fandac_alias_packages.py`, `python3
+  tests/validate_webflash_builds.py`, `python3 -m unittest
+  discover -s tests -p "test_*.py"`) all pass. Next-step
+  pointer: remaining Phase-2 slices (wall / S3-ceiling RoomIQ
+  form-factor aliases; orphan generic `comfort.yaml` alias; any
+  future fan-side feature aliases) are each their own scoped PR
+  with their own evidence and tests and are not landed here.
 
 ## Completed / merged PRs
 
