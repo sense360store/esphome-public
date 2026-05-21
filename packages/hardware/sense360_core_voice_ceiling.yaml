@@ -20,14 +20,25 @@
 # - This core MUST be paired with LED+MIC ring (S360-LED-V-C)
 #
 # Pin Assignments (ESP32-S3):
-# - I2C0 (Sensors):     SDA=GPIO39, SCL=GPIO40
-# - I2C1 (Expansion):   SDA=GPIO21, SCL=GPIO18
-# - UART:               TX=GPIO1, RX=GPIO2
-# - Relay:              GPIO4 (10A AC/DC for ceiling fan/light)
-# - GPIO Expansion:     GPIO5, GPIO6, GPIO7, GPIO8
-# - Status LED:         GPIO48 (center indicator)
+# - I2C0 (Sensors):     SDA=GPIO39, SCL=GPIO40    (consolidation owed to 001B)
+# - I2C1 (Expansion):   SDA=GPIO21, SCL=GPIO18    (consolidation owed to 001B)
+# - UART (Hi-Link):     TX=GPIO2, RX=GPIO1, baud 256000
+# - UART (SEN0609):     TX=GPIO5, RX=GPIO4, baud 115200
+# - Relay:              GPIO4 (unchanged until CORE-ABSTRACT-BUS-001A)
+# - Fan Status LED:     GPIO46 (GP_Fan_Status_Led per Core schematic)
 # - Microphone I2S:     SCK=GPIO11, WS=GPIO12, SD=GPIO13
 # - Speaker I2S:        BCLK=GPIO17, LRC=GPIO15, DIN=GPIO16
+#   (NOTE: this voice-ceiling variant uses GPIO15/17 for I2S. It does NOT
+#    include the comfort_ceiling.yaml ALS_INT binding or the gpio_expander
+#    SX1509 interrupt, so the schematic PIR (IO15) and expander_int (IO17)
+#    nets recorded for 001C are not consumed by this voice product stack.)
+#
+# CORE-ABSTRACT-BUS-001C rebinds applied here:
+#   * generic `status_led_pin` retired (was GPIO48 = I2C_SDA, schematic-conflict)
+#   * `expansion_gpio1..4` retired (replaced by function-specific names)
+#   * UART split into `roomiq_hi_link_uart` (256000) and `roomiq_sen0609_uart`
+#     (115200); ESP-perspective tx/rx direction is now schematic-correct
+#   * `fan_status_led_pin` introduced on GPIO46
 # ============================================================================
 
 substitutions:
@@ -43,26 +54,14 @@ substitutions:
   expansion_i2c_sda_pin: GPIO21
   expansion_i2c_scl_pin: GPIO18
 
-  # UART for expansion modules
-  uart_tx_pin: GPIO1
-  uart_rx_pin: GPIO2
-  uart_baud: "256000"
-
-  # Relay (ceiling fan/light control)
+  # Relay (unchanged in this PR — moves to GPIO3 in CORE-ABSTRACT-BUS-001A)
   relay_pin: GPIO4
 
-  # GPIO expansion pins
-  expansion_gpio1: GPIO5
-  expansion_gpio2: GPIO6
-  expansion_gpio3: GPIO7
-  expansion_gpio4: GPIO8
-
-  # Fan control pins (for fan_pwm expansion module)
-  fan_pwm_pin: ${expansion_gpio1}
-  fan_tach_pin: ${expansion_gpio2}
-
   # Status indicator
-  status_led_pin: GPIO48
+  # CORE-ABSTRACT-BUS-001C: generic `status_led_pin: GPIO48` (= I2C_SDA,
+  # schematic-conflict) retired; Core-side indicator now uses the schematic-
+  # named `fan_status_led_pin: GPIO46`.
+  fan_status_led_pin: GPIO46
 
   # Microphone I2S pins (for LED+MIC ring)
   mic_i2s_sck_pin: GPIO11
@@ -125,17 +124,24 @@ i2c:
     scan: true
     frequency: 400kHz
 
-# UART for expansion modules (presence sensors, etc.)
+# CORE-ABSTRACT-BUS-001C: split single uart_bus into two named RoomIQ UARTs
+# matching the schematic-correct ESP-perspective direction and baud rates.
 uart:
-  - id: uart_bus
-    tx_pin: ${uart_tx_pin}
-    rx_pin: ${uart_rx_pin}
-    baud_rate: ${uart_baud}
+  - id: roomiq_hi_link_uart
+    tx_pin: GPIO2
+    rx_pin: GPIO1
+    baud_rate: 256000
 
-# Status LED (center indicator on ceiling unit)
+  - id: roomiq_sen0609_uart
+    tx_pin: GPIO5
+    rx_pin: GPIO4
+    baud_rate: 115200
+
+# Core-side Fan Status LED indicator (independent of any module).
+# Replaces the retired generic status_led_pin per CORE-ABSTRACT-BUS-001C.
 status_led:
   pin:
-    number: ${status_led_pin}
+    number: ${fan_status_led_pin}
     inverted: true
 
 # Main relay for ceiling fan or light control

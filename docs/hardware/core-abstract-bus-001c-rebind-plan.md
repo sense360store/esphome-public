@@ -2,42 +2,52 @@
 
 ## Status
 
-**Status: docs-only planning record — implementation still requires a
-separate scoped YAML / test PR.**
+**Status: implementation landed 2026-05-21 via
+`CORE-ABSTRACT-BUS-001C-IMPLEMENT-001`.** The schematic-backed
+substitution map below has been applied to the affected Core abstract
+packages and to `packages/expansions/comfort_ceiling.yaml`,
+`packages/expansions/gpio_expander_sx1509.yaml`, and the affected
+presence packages. The pin-pinning regression scaffold at
+[`tests/test_core_abstract_bus.py`](../../tests/test_core_abstract_bus.py)
+locks the substitution map against future regression.
 
 This document is the schematic-backed and operator-confirmed rebind plan
 for **CORE-ABSTRACT-BUS-001C** — the UART / status LED / PIR / ALS_INT /
 expander interrupt / expansion GPIO slice of the
-`CORE-ABSTRACT-BUS-001` series. It is the planning record that closes
-several of the long-standing `001C` preconditions enumerated in
+`CORE-ABSTRACT-BUS-001` series. It was originally the planning record
+that closed several of the long-standing `001C` preconditions
+enumerated in
 [`docs/hardware/core-abstract-bus-reconciliation.md` §CORE-ABSTRACT-BUS-001C — UART / status LED / PIR / expansion GPIO slice](core-abstract-bus-reconciliation.md#core-abstract-bus-001c--uart--status-led--pir--expansion-gpio-slice)
 and at
 [`docs/hardware/core-abstract-bus-reconciliation.md` §Six open preconditions](core-abstract-bus-reconciliation.md#six-open-preconditions).
 
-This PR does **not** edit any package YAML, any product YAML, any
-WebFlash wrapper, any JSON catalog, any script, any test, any workflow,
-any component, any include, any firmware artifact, any release artifact,
-any checksum file, any build-info manifest, or any kit / lifecycle /
-canonical / required-config / webflash_build_matrix / artifact_name /
-webflash_wrapper / config_string entry. It records the schematic-backed
-and operator-confirmed decisions needed to unblock `001C` implementation
-planning, and nothing else.
+The **planning-record** PR did not edit any package YAML, any product
+YAML, any WebFlash wrapper, any JSON catalog, any script, any test, any
+workflow, any component, any include, any firmware artifact, any
+release artifact, any checksum file, any build-info manifest, or any
+kit / lifecycle / canonical / required-config / webflash_build_matrix /
+artifact_name / webflash_wrapper / config_string entry — that PR
+recorded the schematic-backed and operator-confirmed decisions needed
+to unblock `001C` implementation planning, and nothing else.
 
-`001C` is now **implementation-plannable** — but landing the substitution
-map below still requires a separate scoped YAML / test PR that itself
-must include (i) the pin-pinning regression test scaffold
-`tests/test_core_abstract_bus.py`, (ii) the YAML edits across the affected
-Core abstract packages and the affected expansion packages, (iii) the
-Release-One generated-config diff check per the
-[validation plan for implementation slices](core-abstract-bus-reconciliation.md#validation-plan-for-implementation-slices),
-and (iv) the re-validation pass for every non-Release-One product YAML
-listed under
-[§Blast radius per Core package](core-abstract-bus-reconciliation.md#blast-radius-per-core-package).
+The **implementation** PR (`CORE-ABSTRACT-BUS-001C-IMPLEMENT-001`)
+applies the substitution map below as YAML edits to the affected Core
+abstract packages and the affected expansion packages, lands
+[`tests/test_core_abstract_bus.py`](../../tests/test_core_abstract_bus.py)
+as the pin-pinning regression test scaffold, and **does not** change
+`relay_pin` (the move to `GPIO3` belongs to
+`CORE-ABSTRACT-BUS-001A`). It also makes no compile-only target
+change, no product / catalog / WebFlash / release / kit /
+compliance change. See [§Implementation result](#implementation-result-2026-05-21)
+below.
 
 `001C` must land at-or-before `001A` (the `relay_pin: GPIO3` slice) so
 that the `GPIO3` collision recorded in
 [`docs/hardware/core-abstract-bus-reconciliation.md` §GPIO collision matrix](core-abstract-bus-reconciliation.md#gpio-collision-matrix)
-is resolved before the relay slice tries to consume `GPIO3`.
+is resolved before the relay slice tries to consume `GPIO3`. This
+implementation PR satisfies that ordering: ALS_INT and the expander
+interrupt are both moved off `GPIO3` before the relay slice is
+attempted.
 
 ## Evidence summary
 
@@ -352,26 +362,28 @@ retirement decision only.
 `001C` was previously classified `deferred — six preconditions still
 open` per
 [`docs/hardware/core-abstract-bus-reconciliation.md` §Six open preconditions](core-abstract-bus-reconciliation.md#six-open-preconditions).
-This rebind plan closes the *planning* layer of several of those
-preconditions:
+The planning record (PR #554) closed the *planning* layer of several
+of those preconditions; this implementation PR
+(`CORE-ABSTRACT-BUS-001C-IMPLEMENT-001`) closes the YAML-edit and
+test-scaffold layers.
 
 | Precondition (per [§Six open preconditions](core-abstract-bus-reconciliation.md#six-open-preconditions)) | State after this PR                                                                                                                                                                                                                                                                                                                                                  |
 | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1. `S360-100-BENCH-001` silkscreen evidence                                                            | **Still open** at the bench-side / silkscreen-side / harness-side / continuity-trace layer. Schematic-side net order is recorded above against the committed `S360-100-R4` and `S360-200-R4` schematic PDFs; full silkscreen / harness / continuity-trace evidence remains owed to `S360-100-BENCH-001` closure.                                                       |
-| 2. RoomIQ / AirIQ / VentIQ rebind plan                                                                 | **Closed for RoomIQ** (the substitution map above covers the RoomIQ Hi-Link / SEN0609 UART split, PIR rebind, ALS_INT rebind, and SEN0609 auxiliary output rebind) and **closed at the planning layer for AirIQ / VentIQ** (operator decisions #11, #12 record that `AirQ_Status_Led` and `AirQ_Led` are AirIQ-only and VentIQ has no Core-driven LED). YAML edits still owed. |
-| 3. Expansion-GPIO bench evidence or documented retirement decision                                     | **Closed at the planning layer** by operator decision #13 — the generic `expansion_gpio*` abstraction is retired in favour of function-specific substitutions. YAML edits still owed.                                                                                                                                                                                  |
-| 4. ESP32-S3 `GPIO3` strap-pin boot-behaviour bench characterisation                                    | **Operator-confirmed OK** for the populated `S360-310-R4` + `S360-100-R4` pair under operator decisions #16 and #17. **Not** a closure of the general boot-strap characterisation evidence — that remains a `001A` precondition recorded against this same row in [`docs/hardware/core-abstract-bus-reconciliation.md`](core-abstract-bus-reconciliation.md). The scope of decisions #16 and #17 is the observed pair under operator review only. |
-| 5. `tests/test_core_abstract_bus.py` scaffold                                                          | **Still open.** Per [§Test scaffolding plan](core-abstract-bus-reconciliation.md#test-scaffolding-plan), the test file lands **with** the first implementation slice and is not added by this planning record.                                                                                                                                                          |
-| 6. Re-validation pass for every non-Release-One product YAML consuming an affected Core abstract package | **Still open.** Per [§Blast radius per Core package](core-abstract-bus-reconciliation.md#blast-radius-per-core-package), the full re-validation pass lands with the implementation slice; this planning record does not perform it.                                                                                                                                    |
+| 2. RoomIQ / AirIQ / VentIQ rebind plan                                                                 | **Closed for RoomIQ** at the implementation layer — the substitution map above is applied as YAML edits in this PR. AirIQ / VentIQ remain **closed at the planning layer**; AirIQ-only `airiq_status_led_pin: GPIO7` and `airiq_led_pin: GPIO8` substitutions are owned by the AirIQ expansion package, and no VentIQ Core-driven LED substitution exists anywhere under `packages/`.        |
+| 3. Expansion-GPIO bench evidence or documented retirement decision                                     | **Closed at the implementation layer** by this PR — every affected Core abstract package retires the generic `expansion_gpio1..4` substitutions in favour of function-specific names (`roomiq_sen0609_output_pin`, `fan_status_led_pin`, etc.). The pin-pinning regression scaffold asserts the substitutions are absent.                                            |
+| 4. ESP32-S3 `GPIO3` strap-pin boot-behaviour bench characterisation                                    | **Still operator-confirmed OK only for the populated `S360-310-R4` + `S360-100-R4` pair** under operator decisions #16 and #17. The general boot-strap characterisation evidence remains a `001A` precondition; this 001C implementation does **not** consume `GPIO3` and therefore does not depend on the general characterisation.                                |
+| 5. `tests/test_core_abstract_bus.py` scaffold                                                          | **Closed by this PR.** The new pin-pinning regression scaffold at [`tests/test_core_abstract_bus.py`](../../tests/test_core_abstract_bus.py) asserts the substitution map above and is run as part of `python3 -m unittest discover -s tests -p "test_*.py"`.                                                                                                          |
+| 6. Re-validation pass for every non-Release-One product YAML consuming an affected Core abstract package | **Closed at the static-validation layer** by this PR — `python3 tests/validate_configs.py`, `python3 tests/test_product_substitutions.py`, and `python3 -m unittest discover -s tests -p "test_*.py"` all pass against the affected Core / expansion packages. **Full ESPHome compile-time re-validation is not run** in this environment (ESPHome is not installed); the static checks are necessary but not sufficient for guaranteed compile success. The Release-One generated-config diff (the precondition #6 layer that owes a compile-time check) is expected to show the moves recorded under [§Generated-config diff expectations for Release-One](#generated-config-diff-expectations-for-release-one). |
 
-**Outcome.** `001C` is **implementation-plannable** after this PR.
-Implementation still requires a separate scoped YAML / test PR that
-lands the substitution map above as YAML edits, lands
-`tests/test_core_abstract_bus.py` per the test-scaffolding plan, runs
-the Release-One generated-config diff check, and runs the
-re-validation pass for every non-Release-One product YAML enumerated
-in
-[`docs/hardware/core-abstract-bus-reconciliation.md` §Blast radius per Core package](core-abstract-bus-reconciliation.md#blast-radius-per-core-package).
+**Outcome.** `001C` is **implementation-landed** after this PR at the
+YAML / test-scaffold / static-validation layer.
+`CORE-ABSTRACT-BUS-001A` is now unblocked at the `GPIO3`-collision
+layer: ALS_INT and the expander interrupt have moved off `GPIO3`, so a
+later `001A` slice can rebind `relay_pin: GPIO3` without a pin
+collision against the Release-One stack. `001A` retains its other
+preconditions (S360-100-BENCH-001 silkscreen evidence, general
+`GPIO3` strap-pin boot characterisation, `K1` BOM / harness identity).
 
 ## Remaining caveats
 
@@ -468,39 +480,227 @@ record mistakes it for closure of any of the listed gates.
 
 ## Validation plan
 
-This PR is docs-only. Running the validator suite is expected to
-pass unchanged. The implementation slice that consumes this rebind
-plan will have its own validation plan per
-[`docs/hardware/core-abstract-bus-reconciliation.md` §Validation plan for implementation slices](core-abstract-bus-reconciliation.md#validation-plan-for-implementation-slices),
-including the Release-One generated-config diff check and the
-re-validation pass for every non-Release-One product YAML.
+The implementation PR (`CORE-ABSTRACT-BUS-001C-IMPLEMENT-001`) runs the
+full validator suite plus the new pin-pinning regression scaffold.
 
-Commands run against this PR (all pass unchanged):
+Commands run against the implementation PR (all pass):
 
 ```text
 python3 tests/validate_configs.py
 python3 scripts/validate_compile_targets.py --metadata-only
+python3 tests/test_core_abstract_bus.py
+python3 tests/test_led_package_mapping.py
 python3 tests/test_compile_targets.py
 python3 tests/test_compile_expansion_candidates.py
 python3 tests/test_firmware_combination_matrix.py
 python3 tests/test_firmware_build_gap_report.py
 python3 tests/test_kit_intent_matrix.py
+python3 tests/test_product_substitutions.py
+python3 tests/test_release_one_entity_names.py
 python3 tests/validate_webflash_builds.py
 python3 -m unittest discover -s tests -p "test_*.py"
 ```
 
-The expected `git diff` footprint of this PR is restricted to:
+The `git diff` footprint of the implementation PR is restricted to:
 
-- `docs/hardware/core-abstract-bus-001c-rebind-plan.md` (this new
-  file)
+- `docs/hardware/core-abstract-bus-001c-rebind-plan.md` (this file —
+  implementation-result addendum)
 - `docs/hardware/core-abstract-bus-reconciliation.md` (audit-log
-  addendum cross-linking to this doc)
+  addendum recording 001C implementation)
+- `packages/hardware/sense360_core.yaml`,
+  `packages/hardware/sense360_core_ceiling.yaml`,
+  `packages/hardware/sense360_core_mapping.yaml`,
+  `packages/hardware/sense360_core_poe.yaml`,
+  `packages/hardware/sense360_core_wall.yaml`,
+  `packages/hardware/sense360_core_voice.yaml`,
+  `packages/hardware/sense360_core_voice_ceiling.yaml`,
+  `packages/hardware/sense360_core_voice_wall.yaml`,
+- `packages/expansions/comfort_ceiling.yaml`,
+  `packages/expansions/gpio_expander_sx1509.yaml`,
+  `packages/expansions/presence_ceiling.yaml`,
+  `packages/expansions/presence_ld2450.yaml`,
+  `packages/expansions/presence_wall.yaml`,
+- `tests/test_core_abstract_bus.py` (new pin-pinning regression scaffold)
 - `UPCOMING_PR.md` (queue update — completed-merged row plus 001C
   blocker summary refresh)
 
-`git diff packages products products/webflash config scripts tests
-.github/workflows components include firmware manifest.json
-firmware/sources.json` is expected to be empty.
+`git diff config products products/webflash scripts .github/workflows
+components include firmware manifest.json firmware/sources.json` is
+expected to be empty. **No** config catalog change. **No** product /
+WebFlash wrapper change. **No** compile-only target change. **No**
+firmware artifact change. **No** release artifact change.
+
+## Implementation result (2026-05-21)
+
+The `CORE-ABSTRACT-BUS-001C-IMPLEMENT-001` PR applied the substitution
+map above to the following affected packages:
+
+### Substitution edits
+
+| File | Before | After | Schematic net |
+| --- | --- | --- | --- |
+| `packages/expansions/comfort_ceiling.yaml` line 42 | `comfort_ceiling_als_int_pin: GPIO3` | `comfort_ceiling_als_int_pin: GPIO47` | `ALS_INT` (RoomIQ J10 pin 9) |
+| `packages/expansions/gpio_expander_sx1509.yaml` line 17 | `sx1509_interrupt_pin: GPIO3` | `sx1509_interrupt_pin: GPIO17` | `expander_int` (Core schematic IO17) |
+| `packages/hardware/sense360_core_mapping.yaml` line 54 | `expander_int_pin: GPIO3` | `expander_int_pin: GPIO17` | `expander_int` |
+| `packages/hardware/sense360_core_ceiling.yaml` line 77 | `pir_sensor_pin: GPIO47` | `pir_sensor_pin: GPIO15` | `PIR` (RoomIQ J10 pin 8) |
+
+### Substitutions retired
+
+| File | Retired substitution(s) |
+| --- | --- |
+| `packages/hardware/sense360_core.yaml` | `status_led_pin: GPIO2`, `expansion_gpio1..4` |
+| `packages/hardware/sense360_core_ceiling.yaml` | `status_led_pin: GPIO48`, `expansion_gpio1..4`, default `fan_pwm_pin`/`fan_tach_pin` mapped to expansion GPIOs |
+| `packages/hardware/sense360_core_mapping.yaml` | `status_led_simple_pin: GPIO47`, `expansion_gpio1..3` |
+| `packages/hardware/sense360_core_poe.yaml` | `status_led_pin: GPIO8`, `expansion_gpio1..4` |
+| `packages/hardware/sense360_core_wall.yaml` | `status_led_pin: GPIO47`, `expansion_gpio1..4`, default `fan_pwm_pin`/`fan_tach_pin` |
+| `packages/hardware/sense360_core_voice_ceiling.yaml` | `status_led_pin: GPIO48`, `expansion_gpio1..4`, default `fan_pwm_pin`/`fan_tach_pin` |
+| `packages/hardware/sense360_core_voice_wall.yaml` | `status_led_pin: GPIO47`, `expansion_gpio1..4`, default `fan_pwm_pin`/`fan_tach_pin` |
+
+### Substitutions introduced
+
+| File | New substitution | Pin | Schematic net |
+| --- | --- | --- | --- |
+| `packages/hardware/sense360_core.yaml` | `fan_status_led_pin` | `GPIO46` | `GP_Fan_Status_Led` |
+| `packages/hardware/sense360_core_ceiling.yaml` | `fan_status_led_pin` | `GPIO46` | `GP_Fan_Status_Led` |
+| `packages/hardware/sense360_core_ceiling.yaml` | `roomiq_sen0609_output_pin` | `GPIO6` | `out(gpio6)` |
+| `packages/hardware/sense360_core_mapping.yaml` | `fan_status_led_pin` | `GPIO46` | `GP_Fan_Status_Led` |
+| `packages/hardware/sense360_core_mapping.yaml` | `roomiq_sen0609_output_pin` | `GPIO6` | `out(gpio6)` |
+| `packages/hardware/sense360_core_poe.yaml` | `fan_status_led_pin` | `GPIO46` | `GP_Fan_Status_Led` |
+| `packages/hardware/sense360_core_wall.yaml` | `fan_status_led_pin` | `GPIO46` | `GP_Fan_Status_Led` |
+| `packages/hardware/sense360_core_voice_ceiling.yaml` | `fan_status_led_pin` | `GPIO46` | `GP_Fan_Status_Led` |
+| `packages/hardware/sense360_core_voice_wall.yaml` | `fan_status_led_pin` | `GPIO46` | `GP_Fan_Status_Led` |
+
+### UART split
+
+In each affected Core abstract package the single legacy
+`- id: uart_bus` block (originally `tx_pin: GPIO1`, `rx_pin: GPIO2`,
+schematic-conflicting direction) is replaced with two function-named
+UART blocks matching the schematic-correct ESP-perspective direction
+and the operator-confirmed baud rates:
+
+```yaml
+uart:
+  - id: roomiq_hi_link_uart
+    tx_pin: GPIO2
+    rx_pin: GPIO1
+    baud_rate: 256000
+
+  - id: roomiq_sen0609_uart
+    tx_pin: GPIO5
+    rx_pin: GPIO4
+    baud_rate: 115200
+```
+
+Downstream presence packages
+([`packages/expansions/presence_ceiling.yaml`](../../packages/expansions/presence_ceiling.yaml),
+[`packages/expansions/presence_wall.yaml`](../../packages/expansions/presence_wall.yaml),
+[`packages/expansions/presence_ld2450.yaml`](../../packages/expansions/presence_ld2450.yaml))
+now bind `ld2450_uart_id: roomiq_hi_link_uart` rather than the old
+`ld2450_uart_id: uart_bus`. The schematic-correct Hi-Link baud is
+recorded as `256000` per operator decision #7.
+
+`packages/hardware/sense360_core_mapping.yaml` previously exposed a
+`uart_presence` block on `GPIO1` / `GPIO2`; the implementation
+collapses that into the new `roomiq_hi_link_uart` block and preserves
+the separate `uart_auxiliary` bus on `GPIO43` / `GPIO44` for the
+Nextion / aux line.
+
+### Downstream consumer updates
+
+[`packages/hardware/sense360_core_voice.yaml`](../../packages/hardware/sense360_core_voice.yaml)
+previously defaulted `voice_status_led_pin` to `${status_led_pin}`.
+That substitution was retired; the default now points at the new
+`fan_status_led_pin` (`GPIO46`). Products that need a different pin
+(e.g. [`products/sense360-fan-pwm.yaml`](../../products/sense360-fan-pwm.yaml)
+which sets `voice_status_led_pin: GPIO47`) continue to override
+`voice_status_led_pin` explicitly.
+
+### `relay_pin` stays at its pre-001A value
+
+Per the do-not-change list, `relay_pin` is **not** changed in this PR.
+Each affected Core abstract package keeps its current pre-001A value:
+
+| File | `relay_pin` value (unchanged) |
+| --- | --- |
+| `packages/hardware/sense360_core.yaml` | `GPIO10` |
+| `packages/hardware/sense360_core_ceiling.yaml` | `GPIO4` |
+| `packages/hardware/sense360_core_mapping.yaml` | `GPIO10` |
+| `packages/hardware/sense360_core_poe.yaml` | `GPIO10` |
+| `packages/hardware/sense360_core_wall.yaml` | `GPIO4` |
+| `packages/hardware/sense360_core_voice_ceiling.yaml` | `GPIO4` |
+| `packages/hardware/sense360_core_voice_wall.yaml` | `GPIO4` |
+
+`CORE-ABSTRACT-BUS-001A` is the slice that moves `relay_pin` to
+`GPIO3`. The 001C slice only **frees** `GPIO3` (by moving ALS_INT to
+`GPIO47` and the expander interrupt to `GPIO17`).
+
+### Pin-pinning regression scaffold
+
+[`tests/test_core_abstract_bus.py`](../../tests/test_core_abstract_bus.py)
+locks the schematic-backed substitution map against future regression.
+The scaffold asserts:
+
+- `pir_sensor_pin: GPIO15` where defined (Release-One Core ceiling).
+- `comfort_ceiling_als_int_pin: GPIO47` in the comfort ceiling
+  expansion package; explicitly disallows `GPIO3` for that substitution.
+- `roomiq_sen0609_output_pin: GPIO6` wherever defined (at least one
+  Core abstract package).
+- `expander_int_pin: GPIO17` in the mapping Core package.
+- `sx1509_interrupt_pin: GPIO17` in the SX1509 expansion package.
+- `roomiq_hi_link_uart` block exists with `tx_pin: GPIO2`,
+  `rx_pin: GPIO1`, `baud_rate: 256000` in every Core abstract package
+  that defines it.
+- `roomiq_sen0609_uart` block exists with `tx_pin: GPIO5`,
+  `rx_pin: GPIO4`, `baud_rate: 115200` in every Core abstract package
+  that defines it.
+- Generic `status_led_pin` substitution is **absent** from every
+  affected Core abstract package.
+- `led_data_pin: GPIO38` remains in `led_ring_ceiling.yaml` (the
+  S360-300 LED ring is unchanged).
+- `fan_status_led_pin` is `GPIO46` wherever defined and is defined in
+  at least one Core abstract package.
+- `airiq_status_led_pin` is `GPIO7` if defined; `airiq_led_pin` is
+  `GPIO8` if defined.
+- No `ventiq*_led_pin` substitution exists anywhere under `packages/`.
+- `expansion_gpio1..4` substitutions are **absent** from every
+  affected Core abstract package.
+- No pin collision remains between `relay_pin`,
+  `comfort_ceiling_als_int_pin`, `expander_int_pin`, and
+  `sx1509_interrupt_pin`. `expander_int_pin` and `sx1509_interrupt_pin`
+  intentionally share `GPIO17` because they name the same schematic
+  `expander_int` net.
+- `relay_pin` holds its pre-001A value in each Core abstract package
+  (the relay move to `GPIO3` belongs to `CORE-ABSTRACT-BUS-001A`).
+
+### Generated-config diff expectations for Release-One
+
+For
+[`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+(Release-One) and
+[`products/sense360-ceiling-poe-ventiq-roomiq-led.yaml`](../../products/sense360-ceiling-poe-ventiq-roomiq-led.yaml)
+(LED preview sibling), running `esphome config` before-and-after this
+PR is expected to show only:
+
+- The `status_led:` block's underlying `pin: number:` moves from
+  `GPIO48` (the previous Release-One Core ceiling `status_led_pin`) to
+  `GPIO46` (`fan_status_led_pin`).
+- The UART named `id: uart_bus` is replaced with two UART buses
+  `id: roomiq_hi_link_uart` (`tx_pin: GPIO2`, `rx_pin: GPIO1`,
+  `baud_rate: 256000`) and `id: roomiq_sen0609_uart` (`tx_pin: GPIO5`,
+  `rx_pin: GPIO4`, `baud_rate: 115200`).
+- The LD2450 `uart_id` reference moves from `uart_bus` to
+  `roomiq_hi_link_uart`.
+- The VEML7700 ALS interrupt binary-sensor pin moves from `GPIO3` to
+  `GPIO47`.
+- No `main_relay` switch pin change (relay stays on `GPIO4`).
+- No new entity, no entity removal, no `config_string` change, no
+  artifact-name change, no WebFlash exposure change, no release-channel
+  change, no product-catalog change.
+
+If any other change appears (new entities, renamed entities, removed
+entities, `relay_pin` move, `led_data_pin` move, a new
+`status_led_pin` somewhere, an `expansion_gpio*` reappearing,
+artifact-name change, etc.), stop and fix before merging.
 
 ## See also
 

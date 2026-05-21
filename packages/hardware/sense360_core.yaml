@@ -8,33 +8,28 @@
 # - WiFi 2.4GHz, Bluetooth 5.0 LE
 # - Power: 240V AC / PoE / USB-C (configurable via power packages)
 # - Dual I2C buses for expansion modules
-# - UART for presence/radar sensors
-# - 4x GPIO expansion pins
+# - RoomIQ J10 Hi-Link + DFRobot SEN0609 radar UARTs
 # - Built-in relay (10A)
-# - RGB status LED + status LED
+# - Core-side fan status LED indicator (GPIO46)
+#
+# CORE-ABSTRACT-BUS-001C rebinds applied here:
+#   * generic `status_led_pin` retired (no Core-baseline status-LED net on the
+#     schematic; the S360-300 LED ring is owned by `led_ring_ceiling.yaml`)
+#   * `expansion_gpio1..4` retired (replaced by function-specific names where
+#     needed by downstream modules; no generic replacement)
+#   * UART split into `roomiq_hi_link_uart` (256000) and `roomiq_sen0609_uart`
+#     (115200); ESP-perspective tx/rx direction is now schematic-correct
+#   * `fan_status_led_pin` introduced on GPIO46 (Core-side indicator)
 #
 # Pin Assignments:
-# - I2C0 (Primary):   SDA=GPIO39, SCL=GPIO40
-# - I2C1 (Secondary): SDA=GPIO21, SCL=GPIO18
-# - UART:             TX=GPIO1, RX=GPIO2
-# - GPIO Expansion:   GPIO4, GPIO5, GPIO6, GPIO7
-# - Relay:            GPIO10
-# - Status LED:       GPIO48 (RGB WS2812B)
-# - Status LED:       GPIO2 (simple LED)
+# - I2C0 (Primary):   SDA=GPIO39, SCL=GPIO40    (consolidation owed to 001B)
+# - I2C1 (Secondary): SDA=GPIO21, SCL=GPIO18    (consolidation owed to 001B)
+# - UART (Hi-Link):   TX=GPIO2, RX=GPIO1, baud 256000
+# - UART (SEN0609):   TX=GPIO5, RX=GPIO4, baud 115200
+# - Relay:            GPIO10 (unchanged until CORE-ABSTRACT-BUS-001A)
+# - Fan Status LED:   GPIO46 (GP_Fan_Status_Led per Core schematic)
 # - User Button:      GPIO9
 # - Boot Button:      GPIO0
-#
-# Expansion Bus Pinout (10-pin connector):
-# 1. GND
-# 2. 3.3V
-# 3. 5V
-# 4. I2C0 SDA (GPIO39)
-# 5. I2C0 SCL (GPIO40)
-# 6. UART TX (GPIO1)
-# 7. UART RX (GPIO2)
-# 8. GPIO4
-# 9. GPIO5
-# 10. IRQ/GPIO6 (optional)
 
 substitutions:
   device_name: sense360-core
@@ -48,23 +43,14 @@ substitutions:
   i2c1_sda_pin: GPIO21
   i2c1_scl_pin: GPIO18
 
-  # UART
-  uart_tx_pin: GPIO1
-  uart_rx_pin: GPIO2
-  uart_baud: "115200"
-
-  # GPIO expansion pins
-  expansion_gpio1: GPIO4
-  expansion_gpio2: GPIO5
-  expansion_gpio3: GPIO6
-  expansion_gpio4: GPIO7
-
-  # Relay
+  # Relay (unchanged in this PR — moves to GPIO3 in CORE-ABSTRACT-BUS-001A)
   relay_pin: GPIO10
 
   # Status indicators
+  # CORE-ABSTRACT-BUS-001C: generic `status_led_pin` retired (was GPIO2 =
+  # Hi-Link_TX). Core-side indicator now uses `fan_status_led_pin`.
   status_led_rgb_pin: GPIO48
-  status_led_pin: GPIO2
+  fan_status_led_pin: GPIO46
 
   # Buttons
   user_button_pin: GPIO9
@@ -111,17 +97,24 @@ i2c:
     scan: true
     frequency: 400kHz
 
-# UART for expansion modules (presence sensors, etc.)
+# CORE-ABSTRACT-BUS-001C: split single uart_bus into two named RoomIQ UARTs
+# matching the schematic-correct ESP-perspective direction and baud rates.
 uart:
-  - id: uart_bus
-    tx_pin: ${uart_tx_pin}
-    rx_pin: ${uart_rx_pin}
-    baud_rate: ${uart_baud}
+  - id: roomiq_hi_link_uart
+    tx_pin: GPIO2
+    rx_pin: GPIO1
+    baud_rate: 256000
 
-# Simple Status LED
+  - id: roomiq_sen0609_uart
+    tx_pin: GPIO5
+    rx_pin: GPIO4
+    baud_rate: 115200
+
+# Core-side Fan Status LED indicator (independent of any module).
+# Replaces the retired generic status_led_pin per CORE-ABSTRACT-BUS-001C.
 status_led:
   pin:
-    number: ${status_led_pin}
+    number: ${fan_status_led_pin}
     inverted: true
 
 # Main relay output
