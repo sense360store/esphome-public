@@ -498,6 +498,156 @@ Compile success for the five new candidates is therefore a
 preview-to-stable promotion process; it does not unblock any
 hardware / compliance / release gate on its own.
 
+### 2026-05-21 — POE non-fan 7-target full compile result
+
+After FW-COMPILE-POE-NONFAN-001 / PR #548 expanded the compile-only
+lane from 2 to 7 targets, the `Compile-only Firmware Validation`
+workflow was manually re-run via `workflow_dispatch` with
+`compile_mode=full` against the expanded lane and **passed**. This is
+the first recorded successful full compile pass across all seven
+compile-only targets — the two committed WebFlash product YAMLs from
+FW-COMPILE-MATRIX-001 plus the five POE non-fan compile-only skeletons
+from FW-COMPILE-POE-NONFAN-001.
+
+- **Workflow.** `Compile-only Firmware Validation`
+  ([`.github/workflows/compile-only.yml`](../.github/workflows/compile-only.yml))
+- **Run URL.** <https://github.com/sense360store/esphome-public/actions/runs/26236882386>
+- **Full compile job ID.** `77212453770`
+- **Job name.** `Compile-only Targets — Full ESPHome Compile`
+- **Result.** `success`
+- **Commit tested.** `1b587cd25cdf5d7bd400cf9b783dccbbb8de3442`
+- **Start / end.** `2026-05-21T15:48:46Z` → `2026-05-21T16:10:03Z`
+- **ESPHome version.** `2026.4.5`
+- **Python.** `3.11.15`
+- **Command.** `python3 scripts/validate_compile_targets.py --compile`
+
+Observed output:
+
+- Read 7 compile-only target(s) from `config/compile-only-targets.json`.
+- Metadata validation passed.
+- `ceiling-poe-ventiq-roomiq-webflash`: `rc=0`
+- `ceiling-poe-ventiq-roomiq-led-webflash`: `rc=0`
+- `ceiling-poe-compile-only`: `rc=0`
+- `ceiling-poe-roomiq-compile-only`: `rc=0`
+- `ceiling-poe-ventiq-compile-only`: `rc=0`
+- `ceiling-poe-airiq-compile-only`: `rc=0`
+- `ceiling-poe-airiq-roomiq-compile-only`: `rc=0`
+- All 7 compile target(s) passed.
+
+Targets exercised by this run:
+
+1. `ceiling-poe-ventiq-roomiq-webflash`
+   - `product_yaml`: `products/webflash/ceiling-poe-ventiq-roomiq.yaml`
+   - `config_string`: `Ceiling-POE-VentIQ-RoomIQ`
+   - `shipment_status`: `webflash-current`
+2. `ceiling-poe-ventiq-roomiq-led-webflash`
+   - `product_yaml`: `products/webflash/ceiling-poe-ventiq-roomiq-led.yaml`
+   - `config_string`: `Ceiling-POE-VentIQ-RoomIQ-LED`
+   - `shipment_status`: `preview-current`
+3. `ceiling-poe-compile-only`
+   - `product_yaml`: `products/compile-only/ceiling-poe.yaml`
+   - `config_string`: `Ceiling-POE`
+   - `shipment_status`: `compile-only`
+4. `ceiling-poe-roomiq-compile-only`
+   - `product_yaml`: `products/compile-only/ceiling-poe-roomiq.yaml`
+   - `config_string`: `Ceiling-POE-RoomIQ`
+   - `shipment_status`: `compile-only`
+5. `ceiling-poe-ventiq-compile-only`
+   - `product_yaml`: `products/compile-only/ceiling-poe-ventiq.yaml`
+   - `config_string`: `Ceiling-POE-VentIQ`
+   - `shipment_status`: `compile-only`
+6. `ceiling-poe-airiq-compile-only`
+   - `product_yaml`: `products/compile-only/ceiling-poe-airiq.yaml`
+   - `config_string`: `Ceiling-POE-AirIQ`
+   - `shipment_status`: `compile-only`
+7. `ceiling-poe-airiq-roomiq-compile-only`
+   - `product_yaml`: `products/compile-only/ceiling-poe-airiq-roomiq.yaml`
+   - `config_string`: `Ceiling-POE-AirIQ-RoomIQ`
+   - `shipment_status`: `compile-only`
+
+#### What this successful run proves
+
+This `workflow_dispatch` full compile pass proves
+**YAML / package / ESPHome compile confidence** for all seven
+compile-only targets under ESPHome `2026.4.5`. Concretely:
+
+- the two current WebFlash product YAMLs
+  (`products/webflash/ceiling-poe-ventiq-roomiq.yaml` and
+  `products/webflash/ceiling-poe-ventiq-roomiq-led.yaml`) still
+  compose / substitute / `!include`-resolve / codegen cleanly under
+  the current ESPHome version, so no regression has been introduced
+  to the Release-One stable build or the LED preview build;
+- the five POE non-fan compile-only skeletons under
+  `products/compile-only/` compose / substitute / `!include`-resolve /
+  codegen cleanly under the current ESPHome version, against the
+  package set already proven by the Release-One YAML and
+  `products/sense360-core-ceiling.yaml`;
+- for every target, the YAML parses and the substitutions resolve,
+  the `packages:` composition resolves and every `!include` resolves,
+  ESPHome's component / config schema validates, and the codegen pass
+  produces compilable source;
+- the validator script's metadata gates pass alongside the compile
+  pass (`rc=0` from `python3 scripts/validate_compile_targets.py --compile`);
+- CI will now catch future package drift across the 7-target compile
+  lane on subsequent `workflow_dispatch` `compile_mode=full` runs.
+
+#### What this successful run does **not** prove
+
+Compile success is necessary but **not sufficient** for any
+shipment-readiness claim. In particular, this run does **not** prove
+any of the following, and nothing in this audit-log entry should be
+read as a claim that any of them are now closed:
+
+- **Hardware behavior.** No bench, harness, silkscreen, schematic,
+  pinmap, thermal, or EMI evidence is generated by a compile pass.
+- **Web Serial flashing.** A compile pass does not exercise the Web
+  Serial / WebFlash flashing path for any target.
+- **Boot on real hardware.** A compile pass does not boot the
+  resulting firmware on a device.
+- **Sensor behavior.** A compile pass does not exercise any sensor
+  or peripheral at runtime (AirIQ `SPS30` / `SGP41` / `SCD41` /
+  `BMP390`, VentIQ, RoomIQ, presence, comfort, or PoE-PSU
+  diagnostics).
+- **LED behavior.** A compile pass does not exercise any LED
+  runtime behavior on the LED-bearing preview target.
+- **Improv or Home Assistant handoff.** A compile pass does not
+  exercise the Improv provisioning flow or the Home Assistant
+  hand-off / API path.
+- **Release artifacts.** A compile pass does not produce a firmware
+  binary, checksum, build-info manifest, or GitHub Release tag for
+  any target. The compile-only workflow treats ESPHome compile
+  output as ephemeral CI artefact only.
+- **WebFlash import readiness.** A compile pass does not import,
+  publish, or otherwise expose any build to the WebFlash UI. The
+  five compile-only skeletons are not imported to WebFlash.
+- **WebFlash exposure.** None of the five compile-only skeletons
+  are added to [`config/webflash-builds.json`](../config/webflash-builds.json),
+  none flip `webflash_build_matrix: true` on any product, and none
+  have a `webflash_wrapper` under
+  [`products/webflash/`](../products/webflash/).
+- **`REQUIRED_CONFIGS` eligibility.** A compile pass does not add
+  any of the five compile-only config strings to
+  `release_one_required_configs` / `REQUIRED_CONFIGS`. Release-One
+  stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`.
+- **Stable promotion.** A compile pass does not promote any
+  compile-only target to `stable` (or to `preview` /
+  `webflash-current`). The LED-bearing target remains `preview`;
+  the five compile-only skeletons remain `compile-only`.
+- **LED stable promotion.** The LED stable gauntlet
+  (`S360-300-BENCH-001`, `WF-HW-TEST-001`, `WF-HW-TEST-003`,
+  `RELEASE-007`) is unchanged. LED preview stays
+  `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`.
+- **`RELEASE-007` unblock.** A compile pass does not close or
+  unblock `RELEASE-007`.
+- **Compliance.** A compile pass produces no compliance evidence;
+  `COMPLIANCE-001` and the `WF-HW-TEST-*` slices remain governed by
+  their own evidence gates.
+
+The full 17-row stable-promotion gauntlet documented in
+[`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
+remains the source of truth for preview / stable readiness; this
+audit-log entry does not close any row in that gauntlet.
+
 ## See also
 
 - [`docs/firmware-combination-matrix.md`](firmware-combination-matrix.md) — FW-MATRIX-001, the 168-row source matrix the `config_string` field cross-references.

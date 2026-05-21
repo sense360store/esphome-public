@@ -1930,6 +1930,54 @@ mirrored here.
   `packages/expansions/bathroom.yaml`); each Phase-2 PR is its own
   scoped change with its own evidence and tests and must not edit
   the legacy file.
+- **FW-COMPILE-POE-NONFAN-RESULT-001 — record 7-target compile success
+  (2026-05-21 audit).** After FW-COMPILE-POE-NONFAN-001 / PR #548
+  expanded the compile-only lane from 2 to 7 targets, the
+  `Compile-only Firmware Validation` workflow was manually re-run via
+  `workflow_dispatch` with `compile_mode=full` against the expanded
+  lane and **passed**. Run URL
+  <https://github.com/sense360store/esphome-public/actions/runs/26236882386>,
+  full compile job ID `77212453770`
+  (`Compile-only Targets — Full ESPHome Compile`), result `success`,
+  commit tested `1b587cd25cdf5d7bd400cf9b783dccbbb8de3442`, start /
+  end `2026-05-21T15:48:46Z` → `2026-05-21T16:10:03Z`, ESPHome
+  `2026.4.5`, Python `3.11.15`, command
+  `python3 scripts/validate_compile_targets.py --compile`. All seven
+  compile-only targets returned `rc=0`
+  (`ceiling-poe-ventiq-roomiq-webflash`,
+  `ceiling-poe-ventiq-roomiq-led-webflash`,
+  `ceiling-poe-compile-only`, `ceiling-poe-roomiq-compile-only`,
+  `ceiling-poe-ventiq-compile-only`, `ceiling-poe-airiq-compile-only`,
+  `ceiling-poe-airiq-roomiq-compile-only`); the validator reported
+  `All 7 compile target(s) passed.` This audit closes the
+  FW-COMPILE-POE-NONFAN-001 next-step pointer ("run
+  `workflow_dispatch` with `compile_mode=full` against the expanded
+  lane") and is recorded in
+  [`docs/compile-only-firmware-validation.md`](docs/compile-only-firmware-validation.md#2026-05-21--poe-non-fan-7-target-full-compile-result).
+  **FW-COMPILE-POE-NONFAN-RESULT-001 is a docs-only audit recording
+  of the compile result only.** It proves YAML / package / ESPHome
+  compile confidence for the two current WebFlash product YAMLs (no
+  regression) and for the five POE non-fan compile-only skeletons
+  under `products/compile-only/`, all under ESPHome `2026.4.5`. CI
+  will now catch future package drift across the 7-target compile
+  lane on subsequent `workflow_dispatch` `compile_mode=full` runs.
+  It does **not** prove hardware behavior, Web Serial flashing, boot
+  on real hardware, sensor runtime behavior, LED runtime behavior,
+  Improv / Home Assistant handoff, release artifacts, WebFlash
+  import readiness, WebFlash exposure, `REQUIRED_CONFIGS`
+  eligibility, stable promotion, LED stable promotion,
+  `RELEASE-007` unblock, or compliance. No `config/**`,
+  `products/**`, `products/webflash/**`, `packages/**`,
+  `firmware/**`, `manifest.json`, `firmware/sources.json`,
+  `.github/workflows/**`, release artifact, checksum, or
+  build-info manifest is touched; no compile-only target is added;
+  no `webflash_build_matrix: true` flip; no `artifact_name` added;
+  no `webflash_wrapper` added; no LED stable promotion; no
+  AirIQ / VentIQ / RoomIQ promotion; no POE / `S360-410`
+  promotion; no PWR / `S360-400` promotion; no fan-module
+  promotion; no `RELEASE-007` unblock; no Release-One / LED
+  preview / FanTRIAC identity change; no Release-One PoE caveat
+  closure.
 - **PACKAGE-NAMING-ALIASES-VENTIQ-001 — add VentIQ canonical
   package aliases (Phase 2 of PACKAGE-NAMING-AUDIT-001 /
   PR #550) (2026-05-21).** Added four canonical VentIQ alias
