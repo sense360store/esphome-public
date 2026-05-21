@@ -1,0 +1,33 @@
+# ============================================================================
+# SENSE360 VENTIQ EXTENDED MODULE - CANONICAL ALIAS (Phase 2)
+# ============================================================================
+# Canonical VentIQ alias for the extended bathroom IAQ module
+# (S360-211, "Pro" hardware variant — adds MLX90614 IR surface
+# temperature and SPS30 particulate matter on top of the base
+# SHT4x + BMP390 + SGP41 stack).
+#
+# This file is a thin `!include` wrapper introduced by
+# PACKAGE-NAMING-ALIASES-VENTIQ-001 as the Phase 2 follow-up to
+# PACKAGE-NAMING-AUDIT-001 (PR #550). It exists so new product /
+# compile-only YAMLs can `!include` the canonical productized
+# `VentIQ` name instead of the legacy `airiq_bathroom_pro` filename,
+# without breaking any current consumer of the legacy path.
+#
+# The `_extended` suffix is deliberately not `_pro`: per the
+# naming-audit Rule 5, a filename containing `pro` must not imply a
+# productized Pro tier customer SKU unless that SKU exists in
+# config/hardware-catalog.json and config/kit-intent-matrix.json,
+# which is not the case today for any VentIQ Pro variant.
+#
+# Implementation source of truth:
+#   packages/expansions/airiq_bathroom_pro.yaml
+#
+# The legacy file remains the actual hardware driver. Do not add
+# substitutions, globals, sensors, or any other YAML blocks here —
+# this file must stay a pure include wrapper per the naming-audit
+# Phase 2 contract (docs/package-naming-audit.md §"Phase 2 — Add
+# canonical aliases / wrapper packages").
+# ============================================================================
+
+packages:
+  legacy_ventiq_extended: !include airiq_bathroom_pro.yaml

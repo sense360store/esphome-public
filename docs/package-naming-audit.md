@@ -633,6 +633,59 @@ Suggested Phase-2 alias inventory (initial, non-binding):
 Phase 2 is **planning only** in this PR; the alias inventory is
 non-binding and may be refined in the per-alias PRs.
 
+#### Phase 2 progress — VentIQ aliases landed (2026-05-21)
+
+`PACKAGE-NAMING-ALIASES-VENTIQ-001` is the first Phase 2 slice and
+adds the four canonical `VentIQ` alias files listed below. Each
+alias is a thin `!include` wrapper around the legacy implementation
+file; the legacy file remains the source of truth and is not edited,
+moved, renamed, or deleted. New product / compile-only YAMLs that
+want to use the canonical productized `VentIQ` name may include any
+of the alias files instead of the legacy filename; existing
+consumers of the legacy paths continue to work unchanged.
+
+| Canonical alias (added)                                       | Legacy implementation file (unchanged)                          |
+|---------------------------------------------------------------|-----------------------------------------------------------------|
+| [`packages/expansions/ventiq.yaml`](../packages/expansions/ventiq.yaml)                                   | [`packages/expansions/airiq_bathroom_base.yaml`](../packages/expansions/airiq_bathroom_base.yaml) |
+| [`packages/expansions/ventiq_extended.yaml`](../packages/expansions/ventiq_extended.yaml)                 | [`packages/expansions/airiq_bathroom_pro.yaml`](../packages/expansions/airiq_bathroom_pro.yaml)  |
+| [`packages/features/ventiq_profile.yaml`](../packages/features/ventiq_profile.yaml)                       | [`packages/features/bathroom_profile.yaml`](../packages/features/bathroom_profile.yaml)          |
+| [`packages/features/ventiq_extended_profile.yaml`](../packages/features/ventiq_extended_profile.yaml)     | [`packages/features/bathroom_pro_profile.yaml`](../packages/features/bathroom_pro_profile.yaml)  |
+
+Notes on the chosen alias names:
+
+- The `_extended` suffix on `ventiq_extended.yaml` and
+  `ventiq_extended_profile.yaml` is deliberately not `_pro`. Per
+  Rule 5 above, a filename containing `pro` must not imply a
+  productized Pro tier customer SKU unless that SKU exists in
+  [`config/hardware-catalog.json`](../config/hardware-catalog.json)
+  and [`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json),
+  which is not the case today for any VentIQ Pro variant.
+- The alias filenames carry no token listed in
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)'s
+  `forbidden_tokens` (`Bathroom`, `Comfort`, `Presence`, generic
+  `Fan`, `FanAnalog`). The pinning test
+  [`tests/test_ventiq_alias_packages.py`](../tests/test_ventiq_alias_packages.py)
+  enforces this.
+- The alias for `packages/expansions/bathroom.yaml` (the legacy
+  compatibility wrapper) is **not** added in this slice. The
+  audit's non-binding Phase-2 inventory proposed
+  `packages/expansions/ventiq.yaml` against `bathroom.yaml`; this
+  slice instead points `ventiq.yaml` at the underlying
+  `airiq_bathroom_base.yaml` hardware driver, which is the
+  schematic-bound S360-211 module driver. A future Phase-2 slice may
+  add an additional alias for `bathroom.yaml` if a consumer needs
+  the hardware+profile combined entry point under a canonical name.
+- The aliases for `airiq_bathroom_pro.yaml` and
+  `bathroom_pro_profile.yaml` are included even though neither
+  legacy file has a current product YAML consumer, because the
+  `_extended` naming neutralizes the Pro-tier-implication concern
+  flagged in the audit's per-area findings and the wrappers cost
+  nothing at runtime (pure include shims).
+
+The next Phase-2 slices (`roomiq_*`, `fan_dac.yaml`,
+`airiq_profile_*`, etc.) are each their own scoped PR with their
+own evidence and tests and are not landed here.
+
 ### Phase 3 — Update new compile-only / product YAMLs to canonical names
 
 Once Phase-2 aliases exist:

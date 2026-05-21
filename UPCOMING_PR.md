@@ -1978,6 +1978,82 @@ mirrored here.
   promotion; no `RELEASE-007` unblock; no Release-One / LED
   preview / FanTRIAC identity change; no Release-One PoE caveat
   closure.
+- **PACKAGE-NAMING-ALIASES-VENTIQ-001 — add VentIQ canonical
+  package aliases (Phase 2 of PACKAGE-NAMING-AUDIT-001 /
+  PR #550) (2026-05-21).** Added four canonical VentIQ alias
+  package files that wrap the legacy bathroom / airiq_bathroom
+  package files via `!include` and add no other YAML:
+  `packages/expansions/ventiq.yaml` wraps
+  `packages/expansions/airiq_bathroom_base.yaml`;
+  `packages/expansions/ventiq_extended.yaml` wraps
+  `packages/expansions/airiq_bathroom_pro.yaml`;
+  `packages/features/ventiq_profile.yaml` wraps
+  `packages/features/bathroom_profile.yaml`;
+  `packages/features/ventiq_extended_profile.yaml` wraps
+  `packages/features/bathroom_pro_profile.yaml`. The `_extended`
+  suffix is deliberately not `_pro`: per naming-audit Rule 5, a
+  filename containing `pro` must not imply a productized Pro tier
+  customer SKU unless that SKU exists in
+  `config/hardware-catalog.json` and
+  `config/kit-intent-matrix.json`, which is not the case today
+  for any VentIQ Pro variant. Alias filenames carry no token
+  listed in `config/webflash-compatibility.json`'s
+  `forbidden_tokens` (`Bathroom`, `Comfort`, `Presence`, generic
+  `Fan`, `FanAnalog`). Added
+  `tests/test_ventiq_alias_packages.py` (9 stdlib-unittest cases:
+  alias files exist; aliases parse as YAML; each alias contains
+  exactly one `!include` line targeting the intended legacy bare
+  basename; alias filenames carry no forbidden customer-facing
+  token; alias filenames start with the `ventiq` token; legacy
+  implementation files still exist; alias inventory shape pinning
+  — exactly four entries, no duplicate alias_path, no duplicate
+  legacy_path). Updated `docs/package-naming-audit.md` with a
+  new `#### Phase 2 progress — VentIQ aliases landed (2026-05-21)`
+  subsection inside the Phase-2 section that records the
+  alias / legacy mapping table and the four notes on the chosen
+  alias names. **PR is alias-only.** No legacy `packages/**` file
+  edited / moved / renamed / deleted; no other `packages/**` file
+  added; no `products/**` / `products/webflash/**` /
+  `firmware/**` / `manifest.json` / `firmware/sources.json` /
+  `.github/workflows/**` / `components/**` / `include/**` edit;
+  no `config/compile-only-targets.json` /
+  `config/compile-only-candidates.json` /
+  `config/webflash-builds.json` /
+  `config/product-catalog.json` /
+  `config/hardware-catalog.json` /
+  `config/webflash-compatibility.json` /
+  `config/firmware-combination-matrix.json` /
+  `config/kit-intent-matrix.json` edit; no
+  `forbidden_tokens` / `canonical_modules` / `canonical_power` /
+  `lifecycle_statuses` / `release_one_required_configs` /
+  `REQUIRED_CONFIGS` / `webflash_build_matrix` / `artifact_name`
+  / `webflash_wrapper` / `config_string` change; no compile-only
+  target added; no product YAML added; no WebFlash wrapper added;
+  no LED stable promotion; no AirIQ / VentIQ / RoomIQ / fan / PWR
+  / POE promotion; no hardware-proof claim; no WebFlash
+  import-readiness claim; no `RELEASE-007` unblock claim; no
+  Release-One / LED preview / FanTRIAC identity change; no
+  `schematic_status` / `schematic_file` promotion; no
+  COMPLIANCE-001 movement; no release artifact built or
+  attached. Runtime YAML behavior is unchanged: the aliases are
+  pure `!include` wrappers; no existing consumer of the legacy
+  filenames is affected. Validation suite (`python3
+  tests/validate_configs.py`, `python3
+  scripts/validate_compile_targets.py --metadata-only`, `python3
+  tests/test_compile_targets.py`, `python3
+  tests/test_compile_expansion_candidates.py`, `python3
+  tests/test_firmware_combination_matrix.py`, `python3
+  tests/test_firmware_build_gap_report.py`, `python3
+  tests/test_kit_intent_matrix.py`, `python3
+  tests/validate_webflash_builds.py`, `python3 -m unittest
+  discover -s tests -p "test_*.py"`) all pass. Next-step pointer:
+  remaining Phase-2 slices (`roomiq_*` aliases for
+  `comfort_*` / `presence_*`; `fan_dac.yaml` alias for
+  `fan_gp8403.yaml`; `airiq_profile_*` aliases for the
+  `airiq_basic_profile.yaml` / `airiq_advanced_profile.yaml`
+  pair, with the latter renamed to reveal the hidden auto-fan
+  behaviour) are each their own scoped PR with their own
+  evidence and tests and are not landed here.
 
 ## Completed / merged PRs
 

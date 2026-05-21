@@ -1,0 +1,24 @@
+# ============================================================================
+# SENSE360 VENTIQ MODULE - CANONICAL ALIAS (Phase 2)
+# ============================================================================
+# Canonical VentIQ alias for the bathroom IAQ module (S360-211).
+#
+# This file is a thin `!include` wrapper introduced by
+# PACKAGE-NAMING-ALIASES-VENTIQ-001 as the Phase 2 follow-up to
+# PACKAGE-NAMING-AUDIT-001 (PR #550). It exists so new product /
+# compile-only YAMLs can `!include` the canonical productized
+# `VentIQ` name instead of the legacy `airiq_bathroom_*` filename,
+# without breaking any current consumer of the legacy path.
+#
+# Implementation source of truth:
+#   packages/expansions/airiq_bathroom_base.yaml
+#
+# The legacy file remains the actual hardware driver. Do not add
+# substitutions, globals, sensors, or any other YAML blocks here —
+# this file must stay a pure include wrapper per the naming-audit
+# Phase 2 contract (docs/package-naming-audit.md §"Phase 2 — Add
+# canonical aliases / wrapper packages").
+# ============================================================================
+
+packages:
+  legacy_ventiq_base: !include airiq_bathroom_base.yaml
