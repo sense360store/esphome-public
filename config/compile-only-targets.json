@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "description": "Compile-only firmware validation targets (FW-COMPILE-MATRIX-001). Source-of-truth list of product YAMLs that CI may compile to validate YAML / config / codegen buildability before hardware is available. This file is a CI validation lane only: compile success is necessary but not sufficient for preview / stable readiness. It does not expose new WebFlash builds, create release artifacts, import firmware, promote any product, or add any product YAML. See docs/compile-only-firmware-validation.md.",
+  "sources": {
+    "webflash_builds": "config/webflash-builds.json",
+    "firmware_combination_matrix": "config/firmware-combination-matrix.json",
+    "product_catalog": "config/product-catalog.json"
+  },
+  "rules": {
+    "compile_only_is_not_webflash_exposure": true,
+    "compile_only_is_not_release_artifact": true,
+    "compile_only_is_not_stable_promotion": true,
+    "compile_only_is_not_hardware_proof": true,
+    "compile_only_does_not_imply_webflash_build_matrix_true": true,
+    "no_blocked_fantriac_or_pwr_target_without_explicit_marker": true
+  },
+  "allowed_shipment_statuses": [
+    "webflash-current",
+    "preview-current",
+    "compile-only"
+  ],
+  "totals": {
+    "targets": 2
+  },
+  "targets": [
+    {
+      "id": "ceiling-poe-ventiq-roomiq-webflash",
+      "product_yaml": "products/webflash/ceiling-poe-ventiq-roomiq.yaml",
+      "config_string": "Ceiling-POE-VentIQ-RoomIQ",
+      "expected_channel": "stable",
+      "reason": "Currently committed Release-One stable WebFlash build. Compile-only validation pins that the canonical Release-One YAML still composes / substitutes / includes / generates code cleanly under the current ESPHome version, independent of hardware availability.",
+      "shipment_status": "webflash-current",
+      "hardware_required_for_validation": false,
+      "webflash_exposure_allowed_now": true,
+      "blocked": false,
+      "notes": "Verified-for-release-one product (config/product-catalog.json status=production, webflash_build_matrix=true). This compile-only target does NOT add a new WebFlash exposure, flip webflash_build_matrix, or change the committed build entry; it only validates buildability."
+    },
+    {
+      "id": "ceiling-poe-ventiq-roomiq-led-webflash",
+      "product_yaml": "products/webflash/ceiling-poe-ventiq-roomiq-led.yaml",
+      "config_string": "Ceiling-POE-VentIQ-RoomIQ-LED",
+      "expected_channel": "preview",
+      "reason": "Currently committed LED-bearing preview WebFlash build. Compile-only validation pins that the LED-bearing canonical YAML still composes / substitutes / includes / generates code cleanly under the current ESPHome version, independent of hardware availability. Compile success is not LED-stable proof; the LED stable gauntlet (S360-300-BENCH-001, WF-HW-TEST-001, WF-HW-TEST-003, RELEASE-007) remains open.",
+      "shipment_status": "preview-current",
+      "hardware_required_for_validation": false,
+      "webflash_exposure_allowed_now": true,
+      "blocked": false,
+      "notes": "Preview-only product (config/product-catalog.json status=preview, channel=preview, webflash_build_matrix=true). This compile-only target does NOT promote the LED preview to stable, change the committed build entry, or claim hardware proof exists."
+    }
+  ]
+}

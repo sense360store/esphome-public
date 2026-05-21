@@ -1,0 +1,142 @@
+---
+# ============================================================================
+# COMPILE-ONLY FIRMWARE VALIDATION (FW-COMPILE-MATRIX-001)
+# ============================================================================
+# This workflow runs the compile-only firmware validation lane defined by:
+#   - config/compile-only-targets.json
+#   - scripts/validate_compile_targets.py
+#   - tests/test_compile_targets.py
+#   - docs/compile-only-firmware-validation.md
+#
+# Purpose:
+#   Validate YAML / config / codegen buildability for a curated set of
+#   product YAMLs **before hardware is available**. Compile success is
+#   necessary but NOT sufficient for preview / stable readiness.
+#
+# This workflow does NOT:
+#   - expose new WebFlash builds,
+#   - create release artifacts,
+#   - import firmware,
+#   - promote any product,
+#   - upload any `.bin`, checksum, build-info manifest, or release proof,
+#   - tag a GitHub release,
+#   - modify config/webflash-builds.json or config/product-catalog.json.
+#
+# Any ESPHome compile output produced by the `--compile` mode is a
+# **CI-only artefact** intended to surface YAML / package / codegen
+# failure modes. It MUST NOT be treated as a shippable build artifact.
+#
+# Modes:
+#   - push / pull_request: metadata-only validation. Safe to run without
+#     ESPHome installed. Asserts target list shape and cross-references.
+#   - workflow_dispatch:    metadata-only validation by default, or full
+#     `esphome compile` pass when `compile_mode=full` is selected.
+# ============================================================================
+
+name: Compile-only Firmware Validation
+
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: ["*"]
+  workflow_dispatch:
+    inputs:
+      compile_mode:
+        description: "Compile mode: metadata (no ESPHome) or full (esphome compile)"
+        required: true
+        default: "metadata"
+        type: choice
+        options:
+          - metadata
+          - full
+
+env:
+  ESPHOME_VERSION: "2026.4.5"
+
+jobs:
+  # --------------------------------------------------------------------------
+  # JOB 1: metadata-only validation (always runs)
+  # --------------------------------------------------------------------------
+  # Validates config/compile-only-targets.json without invoking ESPHome.
+  # This is the default mode on every push / PR; it does not produce any
+  # build artefact and does not require an ESPHome runtime.
+  # --------------------------------------------------------------------------
+  metadata-validate:
+    name: Compile-only Targets — Metadata Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate compile-only target metadata
+        run: |
+          python3 scripts/validate_compile_targets.py --metadata-only
+
+      - name: Run compile-only target tests
+        run: |
+          python3 tests/test_compile_targets.py
+
+  # --------------------------------------------------------------------------
+  # JOB 2: full compile pass (workflow_dispatch with compile_mode=full only)
+  # --------------------------------------------------------------------------
+  # Invokes `esphome compile` against every product YAML listed in
+  # config/compile-only-targets.json.
+  #
+  # IMPORTANT:
+  #   - This job does NOT upload firmware binaries, checksum files,
+  #     build-info manifests, release proofs, or any artefact that could
+  #     be mistaken for a release artifact.
+  #   - This job does NOT tag a GitHub Release.
+  #   - This job does NOT write to config/webflash-builds.json or any
+  #     other shipment manifest.
+  #   - ESPHome compile output is ephemeral CI confidence only.
+  # --------------------------------------------------------------------------
+  full-compile:
+    name: Compile-only Targets — Full ESPHome Compile
+    needs: metadata-validate
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.compile_mode == 'full'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-platformio-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-platformio-
+
+      - name: Install ESPHome
+        run: |
+          pip install "esphome==${{ env.ESPHOME_VERSION }}"
+
+      - name: Provision test secrets
+        run: |
+          cat > secrets.yaml << 'EOF'
+          wifi_ssid: "TestNetwork"
+          wifi_password: "TestPassword123"
+          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+          ota_password: "test-ota-password"
+          fallback_ap_password: "fallback123"
+          web_username: "admin"
+          web_password: "test_web_password"
+          EOF
+          rm -f products/secrets.yaml
+          cp secrets.yaml products/secrets.yaml
+
+      - name: Run compile-only validator (full compile)
+        run: |
+          python3 scripts/validate_compile_targets.py --compile
