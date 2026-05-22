@@ -781,6 +781,85 @@ mirrored here.
   planning continues) or `CORE-ABSTRACT-BUS-001B` (if PWM / DAC
   blocker removal is prioritised instead); **not** immediate
   `WEBFLASH-RELAY-001` wrapper / catalog / build-matrix work.
+- **CORE-ABSTRACT-BUS-001B-PLAN-001** (this PR) records the
+  operator-confirmed implementation plan for
+  `CORE-ABSTRACT-BUS-001B` (the shared-I²C-bus consolidation
+  slice) ahead of any YAML rebind. **Canonical I²C bus id is now
+  decided: `core_i2c`.** Migration style is **hard rename only**;
+  no compatibility aliases are added by default (aliases will only
+  be considered if implementation tests later prove one
+  unavoidable). All affected old bus ids
+  (`halo_i2c` / `expansion_i2c` / `i2c0` / `i2c1` / `i2c_primary` /
+  `i2c_expander`) must be **removed** from the in-scope Core
+  abstract packages by the future implementation slice unless an
+  explicitly-documented package-private exception is justified.
+  The future implementation PR must update every known consumer
+  atomically (seven in-scope Core packages, 11 expansion-package
+  `*_i2c_id` consumer defaults, the hard-coded `i2c_id: halo_i2c`
+  literal in `packages/features/ceiling_halo_leds.yaml`, the
+  `tests/generate_test_configs.py` override, the
+  `tests/test_core_abstract_bus.py` `SharedI2CBusTests` scaffold,
+  and the Release-One + LED preview generated-config diff check
+  plus the re-validation pass for every non-Release-One product
+  YAML). Recorded the new
+  §`### 2026-05-22 — CORE-ABSTRACT-BUS-001B core_i2c plan`
+  audit-log entry in
+  `docs/hardware/core-abstract-bus-reconciliation.md` (decision
+  table; refreshed bus-definition inventory; consumer inventory
+  organised into categories A–I — Core bus definitions, expansion
+  `*_i2c_id` consumers, hard-coded literals, LED / halo-specific
+  buses, GP8403 / FanDAC consumers, SX1509 expander consumers,
+  RoomIQ / VentIQ / AirIQ sensor consumers, unused / dead / legacy
+  references, tests and config catalogs; final desired mapping;
+  implementation scope; non-goals; risk notes; test plan; status
+  update; queue effect; do-not-do list). Refreshed the
+  "Next audit-log trigger" section to drop the canonical-id-decision
+  trigger and reword the implementation-slice trigger to reference
+  the `core_i2c` rename target. Refreshed the
+  `CORE-ABSTRACT-BUS-001B` entry in the Active / upcoming queue
+  (item #1) so its status reads `Plan recorded 2026-05-22 —
+  implementation-plannable; YAML rebind + test scaffold +
+  non-Release-One product re-validation still pending`, the
+  canonical id `core_i2c` is named, hard-rename-only is recorded,
+  the seven in-scope Core packages are enumerated, the 11 in-scope
+  expansion-package consumer defaults are enumerated, the
+  `ceiling_halo_leds.yaml` literal rebind is recorded against the
+  four product `!include`rs, and the two remaining preconditions
+  (test scaffold and non-Release-One product re-validation, both
+  of which land **with** the implementation slice) are recorded.
+  **`PACKAGE-PWM-001` / `PACKAGE-DAC-001` blocker status is
+  unchanged.** The canonical-id decision recorded here does **not**
+  unblock either package — they remain blocked behind (a) `001B`
+  implementation actually landing in YAML, (b) the underlying
+  per-board pinmap evidence (`HW-PINMAP-311-FOLLOWUP` /
+  `HW-PINMAP-312-FOLLOWUP`), and (c) BOM cross-checks. The PWM
+  / DAC compile-only candidate rows in
+  `config/compile-only-candidates.json` keep all of their existing
+  blockers. **No `packages/**`, `products/**`,
+  `products/webflash/**`, `config/**`, `scripts/**`,
+  `.github/workflows/**`, `components/**`, `include/**`,
+  `firmware/**`, `manifest.json`, `firmware/sources.json`,
+  `tests/**`, release-artifact, checksum, build-info manifest, or
+  WebFlash-repo edit; no I²C bus rename; no compatibility alias
+  added; no `webflash_build_matrix` flip; no `artifact_name`; no
+  `webflash_wrapper`; no `config_string` change; no
+  `release_one_required_configs` change; no `lifecycle_statuses` /
+  `canonical_modules` / `canonical_power` / `forbidden_tokens` /
+  `REQUIRED_CONFIGS` / kit change; no `schematic_status` /
+  `schematic_file` promotion; no COMPLIANCE-001 movement; no
+  Release-One change (`Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` /
+  `stable`); no LED preview change
+  (`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`); no FanTRIAC
+  change (`blocked` / `HW-005`).** No `tests/test_core_abstract_bus.py`
+  extension. No `SharedI2CBusTests` scaffold. No `S360-100-BENCH-001`
+  closure. No PACKAGE-PWM-001 / PACKAGE-DAC-001 / PACKAGE-RELAY-001 /
+  RELEASE-* unblock claim. No claim of WebFlash import-readiness.
+  No claim of compliance evidence for any mains-switching product.
+  Recommended next active-queue PR is
+  `CORE-ABSTRACT-BUS-001B-IMPLEMENT-001` (the atomic YAML rebind +
+  test scaffold + Release-One generated-config diff check +
+  non-Release-One product re-validation), **not** a
+  test-scaffold-only PR.
 - **HW-ASSETS-400** merged as **PR #514** and landed the
   `S360-400-R4` schematic PDF at
   `docs/hardware/schematics/S360-400-R4.pdf` (byte-identical to the
@@ -3280,6 +3359,7 @@ add rows without verifying the PR number.
 | FW-COMPILE-RELAY-001         | #566      | esphome-public  | Merged — compile-only target add for the PRODUCT-RELAY-001 / PR #564 FanRelay product YAML | Added a single FanRelay compile-only validation target to [`config/compile-only-targets.json`](config/compile-only-targets.json) pointing at the PRODUCT-RELAY-001 / PR #564 canonical FanRelay product YAML [`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml). The target row carries `id: ceiling-poe-ventiq-fanrelay-roomiq-compile-only`, `config_string: Ceiling-POE-VentIQ-FanRelay-RoomIQ`, `shipment_status: compile-only`, `webflash_exposure_allowed_now: false`, `hardware_required_for_validation: true`, `advanced_manual_warning_only: true`, `hardware_pending: true`, and `blocked: false`. Totals updated from 7 → 8. Synchronised [`config/compile-only-candidates.json`](config/compile-only-candidates.json) `currently_compile_only_config_strings` (extended by one entry — the candidate ledger doc-mirror that `tests/test_compile_expansion_candidates.py::test_currently_compile_only_field_matches_compile_only_targets` cross-checks). Added the new `FanRelayCompileOnlyCoverageTests` class to [`tests/test_compile_targets.py`](tests/test_compile_targets.py) (22 stdlib-unittest cases pinning: FanRelay compile-only target exists; points at the PRODUCT-RELAY-001 product YAML; config string is `Ceiling-POE-VentIQ-FanRelay-RoomIQ`; present in `config/firmware-combination-matrix.json`; `shipment_status: compile-only`; `webflash_exposure_allowed_now: false`; `hardware_required_for_validation: true`; `advanced_manual_warning_only: true`; `hardware_pending: true`; `blocked: false`; no `webflash_build_matrix` / `artifact_name` / `webflash_wrapper` / `expected_channel` declarations; not in `config/webflash-builds.json`; no `FanRelay` token anywhere in `config/webflash-builds.json`; not in `release_one_required_configs`; product YAML does not live under `products/webflash/`; no FanRelay WebFlash wrapper file exists; Release-One and LED preview compile-only targets unchanged; totals match expected target count after add). Refactored the FW-COMPILE-POE-NONFAN-001 lane's `PoeNonFanCompileOnlyCoverageTests` fan / PWR-token guardrails (`test_this_pr_introduces_no_fan_compile_only_target` / `test_this_pr_introduces_no_pwr_compile_only_target`) to scope to targets whose `product_yaml` lives under `products/compile-only/` (the FW-COMPILE-POE-NONFAN-001 directory) and renamed them `test_poe_nonfan_lane_introduces_no_fan_compile_only_target` / `test_poe_nonfan_lane_introduces_no_pwr_compile_only_target` so the FW-COMPILE-RELAY-001 target — which reuses the canonical FanRelay product YAML under `products/`, not under `products/compile-only/` — no longer trips the lane guard. Added the new `RelayProductCompileOnlyTargetTests` class to [`tests/test_relay_product_readiness.py`](tests/test_relay_product_readiness.py) (17 cases pinning the same invariants from the product-readiness angle: target exists; points at the product YAML; correct `config_string`; `shipment_status: compile-only`; `advanced_manual_warning_only: true`; `hardware_pending: true`; `hardware_required_for_validation: true`; `webflash_exposure_allowed_now: false`; `blocked: false`; no `webflash_build_matrix` / `artifact_name` / `webflash_wrapper` / `expected_channel`; config string absent from `config/webflash-builds.json` and `release_one_required_configs`; Release-One and LED preview compile-only targets unchanged). Updated `docs/compile-only-firmware-validation.md` (new `### 2026-05-22 — FW-COMPILE-RELAY-001 FanRelay compile-only validation` audit-log entry — target table, rationale linking the closed `CORE-ABSTRACT-BUS-001A` / `001C` / `PACKAGE-RELAY-001` / `S360-310-BENCH-EVIDENCE-001` / `PRODUCT-RELAY-001` / `WEBFLASH-RELAY-001-READINESS-REFRESH` chain, what compile-only proves for the FanRelay target, and what compile-only does **not** prove); `docs/webflash-exposure-readiness-matrix.md` §Relay / S360-310 WebFlash posture (new 2026-05-22 `FW-COMPILE-RELAY-001` audit-log note explicitly recording WebFlash exposure remains blocked, the seven WebFlash gates not advanced, the four possible exposure shapes unchanged); `docs/release-artifact-readiness-matrix.md` §Relay / S360-310 release posture (new 2026-05-22 `FW-COMPILE-RELAY-001` audit-log note explicitly recording `RELEASE-RELAY-001` remains blocked, no FanRelay release artifact exists, no release-proof row is added). | **No `packages/**` edit**; **no `products/**` or `products/webflash/**` edit** (the FanRelay product YAML at `products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml` is consumed verbatim from PR #564); **no `config/webflash-builds.json` edit**; **no `config/webflash-compatibility.json` edit**; **no `config/hardware-catalog.json` edit**; **no `config/kit-intent-matrix.json` edit**; **no `config/firmware-combination-matrix.json` edit**; **no `config/product-catalog.json` edit**; **no `scripts/**`, `.github/workflows/**`, `components/**`, `include/**`, `firmware/**`, `manifest.json`, `firmware/sources.json` edit**; **no WebFlash repo (`sense360store/WebFlash`) edit** (this PR is one-repo scope); **no `webflash_build_matrix` flip**; **no `artifact_name`**; **no `webflash_wrapper`**; **no `config_string` change**; **no `release_one_required_configs` change**; **no `lifecycle_statuses` change**; **no `canonical_modules` / `canonical_power` / `forbidden_tokens` change**; **no `REQUIRED_CONFIGS` / kit JSON change**; **no `schematic_status` / `schematic_file` promotion** (`S360-310` stays `cataloged_unverified`); **no COMPLIANCE-001 movement**; no Release-One change (`Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`); no LED preview change (`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`); no FanTRIAC change (`blocked` / `HW-005`); voice-variant Core packages stay at pre-001A `relay_pin: GPIO4`; no firmware artifact built or attached; no release artifact / tag / checksum / build-info manifest / proof row; **no WebFlash import-readiness claim**; **no WebFlash exposure claim**; **no `RELEASE-RELAY-001` unblock claim**; **no `WEBFLASH-RELAY-001` unblock claim**; **no `WF-IMPORT-RELAY-001` unblock claim**; **no claim that the FanRelay product is WebFlash-ready, release-ready, compliance-cleared, safe for arbitrary mains installation, kit-default-ready, recommended-bundle-ready, or verified across production batches**; no Relay WebFlash wrapper; no PWM / FanDAC / FanTRIAC / LED stable promotion; no `CORE-ABSTRACT-BUS-001B` advancement; **no closure of `S360-100-BENCH-001`**; **no board-level mains-safety / installation-approval / creepage / clearance / thermal / EMI certification claim**; **no production-wide / multi-unit / oscilloscope-traced general `GPIO3` strap-pin boot-behaviour characterisation claim**. | `FW-COMPILE-RELAY-001` is now landed as a **compile-only validation lane addition** pointing at the existing PRODUCT-RELAY-001 / PR #564 canonical FanRelay product YAML. The FanRelay product YAML is now CI-validated for YAML / package / ESPHome compile drift (necessary-but-insufficient for any shipment-readiness claim). **WebFlash exposure stays blocked** behind the seven WebFlash gates owned by `WEBFLASH-RELAY-001`. **`RELEASE-RELAY-001` stays blocked** behind those gates plus its own release-readiness gates. **`WF-IMPORT-RELAY-001` stays blocked** behind upstream `RELEASE-RELAY-001`. Compile success does **not** discharge any of the seven WebFlash gates, does **not** discharge any release-readiness gate, and does **not** discharge any compliance / installation / production-wide hardware characterisation gate. The recommended next Relay-chain PR is one of `WEBFLASH-RELAY-001` implementation plan / scaffold only (if allowed by the project lead), `RELEASE-RELAY-001` (still blocked until artifact path exists), or, if a future ESPHome upgrade breaks compile, a targeted compile fix for the FanRelay compile-only target only; **not** immediate `WEBFLASH-RELAY-001` wrapper / catalog / build-matrix work. `CORE-ABSTRACT-BUS-001B` stays independent. `S360-100-BENCH-001`, `HW-PINMAP-311-FOLLOWUP`, `HW-PINMAP-312-FOLLOWUP`, `HW-PINMAP-320-FOLLOWUP`, and `COMPLIANCE-001` are **not** closed by this PR. |
 | PACKAGE-RELAY-001            | #562      | esphome-public  | Merged — implementation slice (test + readiness reconciliation; no YAML rebind) | Reconciled the FanRelay package after the package-evidence layer closed under PR #557 (`CORE-ABSTRACT-BUS-001C`), PR #558 (`CORE-ABSTRACT-BUS-001A`), PR #559 (`PACKAGE-RELAY-001-READINESS-REFRESH`), PR #560 (`S360-310-BENCH-001` evidence-capture checklist), and PR #561 (`S360-310-BENCH-EVIDENCE-001` evidence population). **No YAML edit required** on `packages/expansions/fan_relay.yaml`: the package was already structurally correct (`fan_relay_pin: ${relay_pin}` line 27 inherits the parent Core abstract package binding; post-001A `${relay_pin}` resolves to the schematic-correct `GPIO3` per S360-100-R4 `IO3 = Relay`); the override-hook comment block (lines 22–25), the `switch.platform: gpio` declaration with `pin: ${fan_relay_pin}` (line 38), `restore_mode: RESTORE_DEFAULT_OFF`, the `fan_auto_mode` global (lines 50–53), and the `fan_emergency_stop` script (lines 58–65) are preserved verbatim. The reconciliation is the addition of `tests/test_fan_relay_package.py` (12 stdlib-unittest cases) pinning the FanRelay package abstraction against future regression: the package exists and parses as YAML; `fan_relay_pin` defaults to `${relay_pin}` and is not a hardcoded GPIO; the package does not hard-code `GPIO3` / `GPIO4` / `GPIO10` or any other GPIO on an active (non-comment) line; the `fan_relay_switch` switch block uses platform `gpio` and binds `pin: ${fan_relay_pin}`; the five non-voice Core abstract packages bind `relay_pin: GPIO3` (cross-check against `tests/test_core_abstract_bus.py` `RelayPinRebindTests`); the voice-variant Core packages stay at the pre-001A `relay_pin: GPIO4` (deliberately out of scope); no FanRelay product YAML exists under `products/`; no `FanRelay` token exists in `config/webflash-builds.json`. Docs refreshed: `docs/hardware/s360-310-r4-relay.md` §Package YAML status PACKAGE-RELAY-001 investigation-outcome bullet extended with a PACKAGE-RELAY-001 implementation-outcome paragraph; new 2026-05-22 audit-log row appended to §HW-PINMAP-310-FOLLOWUP audit log recording the implementation. `docs/hardware/package-readiness-matrix.md` `fan_relay.yaml` row + §`fan_relay.yaml` / S360-310 detail section refreshed to `package-implemented` + `reconciled-at-package-layer` with Allowed-action-now and Follow-up-owner chain refreshed. `docs/hardware/firmware-package-mapping-audit.md` Release-One package-stack `relay_pin` bullet appended with a PACKAGE-RELAY-001 implementation sub-paragraph. `UPCOMING_PR.md` Current queue summary (new bullet), Completed / merged PRs (this row), Active / upcoming queue (PACKAGE-RELAY-001 item #6 moved from "Evidence-ready" to "Merged"), and Recently uploaded evidence (new 2026-05-22 bullet) refreshed. | **No `packages/**` edit** (`fan_relay.yaml`, the five non-voice Core abstract packages at post-001A `relay_pin: GPIO3`, and the voice-variant Core packages at pre-001A `relay_pin: GPIO4` all stay byte-identical); **no `products/**` or `products/webflash/**` edit**; **no `config/**` edit** (`config/hardware-catalog.json`, `config/product-catalog.json`, `config/webflash-builds.json`, `config/webflash-compatibility.json`, `config/firmware-combination-matrix.json`, `config/kit-intent-matrix.json`, `config/compile-only-targets.json`, `config/compile-only-candidates.json` all byte-identical); **no `scripts/**`, `.github/workflows/**`, `components/**`, `include/**`, `firmware/**`, `manifest.json`, or `firmware/sources.json` edit**. Only one `tests/**` addition: `tests/test_fan_relay_package.py` (new file). The `tests/test_core_abstract_bus.py` scaffold from 001A / 001C is preserved verbatim; no other test is edited. **No `webflash_build_matrix` flip**; **no `artifact_name` / `webflash_wrapper` / `config_string` / `release_one_required_configs` / `lifecycle_statuses` / `canonical_modules` / `canonical_power` / `forbidden_tokens` / `REQUIRED_CONFIGS` / kit change**; **no `schematic_status` / `schematic_file` promotion** (`S360-310` stays `cataloged_unverified`); **no COMPLIANCE-001 movement**; no Release-One change (`Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`); no LED preview change (`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`); no FanTRIAC change (`blocked` / `HW-005`); no `HW-PINMAP-310-FOLLOWUP` top-line status promotion (stays `partial — schematic evidence available; package reconciliation pending`); no compile-only target added; no firmware artifact built or attached; no release artifact / tag / checksum / build-info manifest / proof row; **no WebFlash import-readiness claim**; **no hardware release-readiness claim**; **no `RELEASE-RELAY-001` unblock claim**; **no `PRODUCT-RELAY-001` / `WEBFLASH-RELAY-001` / `WF-IMPORT-RELAY-001` advancement claim**; **no claim that `PACKAGE-RELAY-001` is product-ready, WebFlash-ready, release-ready, compliance-cleared, safe for arbitrary mains installation, or verified across production batches**; no Relay product YAML; no WebFlash wrapper; no compile-only target for FanRelay; no PWM / FanDAC / FanTRIAC / LED stable promotion; no `CORE-ABSTRACT-BUS-001B` advancement; **no closure of `S360-100-BENCH-001`**; **no board-level mains-safety / installation-approval / creepage / clearance / thermal / EMI certification claim**; **no production-wide / multi-unit / oscilloscope-traced general `GPIO3` strap-pin boot-behaviour characterisation claim**. | `PACKAGE-RELAY-001` is now **implemented / reconciled at the package layer only**. "Implemented / reconciled at the `PACKAGE-RELAY-001` package layer" does **not** mean product-ready, WebFlash-ready, release-ready, compliance-cleared, safe for arbitrary mains installation, or verified across production batches. The next Relay PR is `PRODUCT-RELAY-001`, which stays separately gated on product-layer compliance / mains-safety / installation / production-wide characterisation evidence. `PRODUCT-RELAY-001` / `WEBFLASH-RELAY-001` / `RELEASE-RELAY-001` / `WF-IMPORT-RELAY-001` stay blocked behind PACKAGE-RELAY-001 → PRODUCT-RELAY-001. `S360-100-BENCH-001`, `HW-PINMAP-311-FOLLOWUP`, `HW-PINMAP-312-FOLLOWUP`, `HW-PINMAP-320-FOLLOWUP`, and `COMPLIANCE-001` are **not** closed by this PR. `CORE-ABSTRACT-BUS-001B` stays independent of 001A / 001C ordering. |
 | FW-COMPILE-RELAY-RESULT-001  | (this PR) | esphome-public  | Merged — docs-only record of successful FanRelay compile-only CI result | Recorded the **successful GitHub Actions compile-only validation result** for the FanRelay compile-only target added by `FW-COMPILE-RELAY-001` / PR #566. The `Compile-only Firmware Validation` workflow ran against the expanded eight-target compile-only lane (the FanRelay compile-only target + the two WebFlash-current product YAMLs + the five POE non-fan compile-only skeletons) and **passed** — GitHub Actions Run ID `26298089904`, status `completed`, conclusion `success`, PR/head validation for PR #566; companion Quick Validation Run ID `26298090061` also succeeded. **FanRelay compile-only validation now has a green CI result.** Updated [`docs/compile-only-firmware-validation.md`](docs/compile-only-firmware-validation.md) (new `### 2026-05-22 — FW-COMPILE-RELAY-RESULT-001` audit-log entry recording the run ID, workflow completion, conclusion, target count of 8, what the run proves, and what it does not prove). Updated [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md) §Relay / S360-310 WebFlash posture (new 2026-05-22 `FW-COMPILE-RELAY-RESULT-001` audit-log note recording the green CI result while explicitly recording WebFlash exposure remains blocked; the seven WebFlash gates not advanced; the four possible exposure shapes unchanged). Updated [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md) §Relay / S360-310 release posture (new 2026-05-22 `FW-COMPILE-RELAY-RESULT-001` audit-log note recording the green CI result while explicitly recording `RELEASE-RELAY-001` remains blocked because no WebFlash wrapper / build matrix / artifact path exists; no release-proof row is added). Updated `UPCOMING_PR.md` Current queue summary (new bullet for this PR with refreshed Relay-chain status: package done; product YAML done; compile-only target done; compile-only result passed; WebFlash / release / import still blocked) and Active / upcoming queue (item #8 `WEBFLASH-RELAY-001` entry refreshed to reference this PR alongside `WEBFLASH-RELAY-001-READINESS-REFRESH` / PR #565 and `FW-COMPILE-RELAY-001` / PR #566; recommended next Relay-chain PR is `WEBFLASH-RELAY-001-SCAFFOLD-001` (if WebFlash Relay planning continues) or `CORE-ABSTRACT-BUS-001B` (if PWM / DAC blocker removal is prioritised instead)). | **No `packages/**` edit**; **no `products/**` or `products/webflash/**` edit**; **no `config/compile-only-targets.json` edit** (totals stay at 8 targets after PR #566); **no `config/compile-only-candidates.json` edit**; **no `config/webflash-builds.json` edit**; **no `config/webflash-compatibility.json` edit**; **no `config/hardware-catalog.json` edit**; **no `config/kit-intent-matrix.json` edit**; **no `config/firmware-combination-matrix.json` edit**; **no `config/product-catalog.json` edit**; **no `scripts/**`, `.github/workflows/**`, `components/**`, `include/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`, `tests/**` edit** (test surface from PR #566 is preserved verbatim); **no WebFlash repo (`sense360store/WebFlash`) edit** (this PR is one-repo scope); **no `webflash_build_matrix` flip**; **no `artifact_name`**; **no `webflash_wrapper`**; **no `config_string` change**; **no `release_one_required_configs` change**; **no `lifecycle_statuses` change**; **no `canonical_modules` / `canonical_power` / `forbidden_tokens` change**; **no `REQUIRED_CONFIGS` / kit JSON change**; **no `schematic_status` / `schematic_file` promotion** (`S360-310` stays `cataloged_unverified`); **no COMPLIANCE-001 movement**; no Release-One change (`Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`); no LED preview change (`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`); no FanTRIAC change (`blocked` / `HW-005`); no firmware artifact built or attached; no release artifact / tag / checksum / build-info manifest / proof row added; **no WebFlash import-readiness claim**; **no WebFlash exposure claim**; **no `RELEASE-RELAY-001` unblock claim**; **no `WEBFLASH-RELAY-001` unblock claim**; **no `WF-IMPORT-RELAY-001` unblock claim**; **no claim that the FanRelay product is WebFlash-ready, release-ready, compliance-cleared, safe for arbitrary mains installation, kit-default-ready, recommended-bundle-ready, hardware-stable, or verified across production batches**; **no closure of `S360-100-BENCH-001`**; **no board-level mains-safety / installation-approval / creepage / clearance / thermal / EMI certification claim**; **no production-wide / multi-unit / oscilloscope-traced general `GPIO3` strap-pin boot-behaviour characterisation claim**. | `FW-COMPILE-RELAY-RESULT-001` records the **green CI result** of the FanRelay compile-only validation introduced by PR #566. The Relay chain now stands: package done (PR #562); product YAML done (PR #564); compile-only target done (PR #566); **compile-only result passed (this PR)**; WebFlash / release / import still blocked. A green compile-only CI result is **necessary-but-insufficient** input to the broader preview-to-stable promotion process; it does **not** discharge any of the seven WebFlash gates owned by `WEBFLASH-RELAY-001`, and does **not** discharge any release-readiness gate owned by `RELEASE-RELAY-001`. The recommended next Relay-chain PR is one of `WEBFLASH-RELAY-001-SCAFFOLD-001` (if WebFlash Relay planning continues) or `CORE-ABSTRACT-BUS-001B` (if PWM / DAC blocker removal is prioritised instead); **not** immediate `WEBFLASH-RELAY-001` wrapper / catalog / build-matrix work. `CORE-ABSTRACT-BUS-001B` stays independent. `S360-100-BENCH-001`, `HW-PINMAP-311-FOLLOWUP`, `HW-PINMAP-312-FOLLOWUP`, `HW-PINMAP-320-FOLLOWUP`, and `COMPLIANCE-001` are **not** closed by this PR. |
+| CORE-ABSTRACT-BUS-001B-PLAN-001 | (this PR) | esphome-public  | Merged — docs-only implementation plan (canonical id `core_i2c`; hard rename only) | Recorded the operator-confirmed implementation plan for `CORE-ABSTRACT-BUS-001B` (shared-I²C-bus consolidation slice) ahead of any YAML rebind. Canonical I²C bus id is now **decided: `core_i2c`**; migration style is **hard rename only**; no compatibility aliases by default (aliases will only be considered if implementation tests later prove one unavoidable). All affected old bus ids (`halo_i2c` / `expansion_i2c` / `i2c0` / `i2c1` / `i2c_primary` / `i2c_expander`) must be **removed** from the seven in-scope Core abstract packages by the future implementation slice unless an explicitly-documented package-private exception is justified. Added the new §`### 2026-05-22 — CORE-ABSTRACT-BUS-001B core_i2c plan` audit-log entry to [`docs/hardware/core-abstract-bus-reconciliation.md`](docs/hardware/core-abstract-bus-reconciliation.md) (decision table; refreshed bus-definition inventory listing the seven in-scope Core packages + two out-of-scope; consumer inventory organised into nine categories A–I — Core bus definitions, expansion `*_i2c_id` consumers (11 in-scope, two S3-variant out-of-scope, one Mini hardware-helper out-of-scope), hard-coded `i2c_id:` literals, LED / halo-specific buses (none survive the rename), GP8403 / FanDAC consumers (single consumer `fan_gp8403.yaml`), SX1509 expander consumers (single consumer `gpio_expander_sx1509.yaml`), RoomIQ / VentIQ / AirIQ sensor consumers (the same 11 expansion consumers), unused / dead / legacy references (none), tests and config catalogs; final desired mapping (single `i2c: - id: core_i2c, sda: GPIO48, scl: GPIO45, frequency: 400kHz` block per in-scope Core package); implementation scope (atomic slice: seven Core packages + 11 expansion consumers + one feature file literal + one `tests/generate_test_configs.py` override + one `SharedI2CBusTests` test class + Release-One generated-config diff check + non-Release-One product re-validation across ~25 product YAMLs); non-goals; risk notes (substitution-graph reach, hard-coded `halo_i2c` literal, out-of-scope ceiling_s3 and Mini lineages, frequency mismatch in mapping Core, pull-up evidence assumption, GP8403 / SX1509 shared-bus address space, voice-variant Cores, 001A / 001C ordering independence); test plan for implementation PR (10 assertions including canonical id present in each Core package, legacy bus ids absent, every `*_i2c_id` consumer default resolves to `core_i2c`, hard-coded literal rebound, package-specific private buses documented, FanDAC / SX1509 bind `core_i2c`, Release-One / LED preview products parse, WebFlash build rows unchanged, no product / catalog / release / WebFlash exposure changes); status update (canonical-id-decision precondition closed; downstream-consumer audit refreshed; two preconditions remain open at the implementation layer — test scaffold and non-Release-One product re-validation, both of which land **with** the implementation slice); queue effect; what-this-entry-does-not-do list). Refreshed the [§CORE-ABSTRACT-BUS-001B — Shared-I²C-bus consolidation slice](docs/hardware/core-abstract-bus-reconciliation.md#core-abstract-bus-001b--shared-i²c-bus-consolidation-slice) "next audit-log trigger" section to drop the canonical-id-decision trigger and reword the implementation-slice trigger to reference the `core_i2c` rename target. Refreshed `UPCOMING_PR.md` Current queue summary (new bullet for this PR), Completed / merged PRs (this row), Active / upcoming queue (item #1 `CORE-ABSTRACT-BUS-001B` entry refreshed: canonical id `core_i2c` named; hard-rename-only recorded; seven in-scope Core packages enumerated; 11 in-scope expansion-package consumer defaults enumerated; out-of-scope packages enumerated; rationale recorded; two remaining preconditions identified — test scaffold + non-Release-One product re-validation, both land **with** implementation slice). **`PACKAGE-PWM-001` / `PACKAGE-DAC-001` blocker status is unchanged** — they remain blocked behind (a) `001B` implementation actually landing in YAML, (b) the underlying per-board pinmap evidence (`HW-PINMAP-311-FOLLOWUP` / `HW-PINMAP-312-FOLLOWUP`), and (c) BOM cross-checks. The PWM / DAC compile-only candidate rows in `config/compile-only-candidates.json` keep all of their existing blockers. | **No `packages/**` edit**; **no `products/**` or `products/webflash/**` edit**; **no `config/**` edit** (`config/hardware-catalog.json`, `config/product-catalog.json`, `config/webflash-builds.json`, `config/webflash-compatibility.json`, `config/firmware-combination-matrix.json`, `config/kit-intent-matrix.json`, `config/compile-only-targets.json`, `config/compile-only-candidates.json` all byte-identical); **no `scripts/**`, `.github/workflows/**`, `components/**`, `include/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`, `tests/**` edit** (no I²C bus is renamed; no `*_i2c_id` consumer default is changed; the hard-coded `i2c_id: halo_i2c` literal in `packages/features/ceiling_halo_leds.yaml` line 6 is **not** rebound; the `tests/generate_test_configs.py` `fan_dac_i2c_id: expansion_i2c` override at line 145 is **not** removed; no `SharedI2CBusTests` scaffold is added; `tests/test_core_abstract_bus.py` is unchanged from PR #558); **no WebFlash repo (`sense360store/WebFlash`) edit** (this PR is one-repo scope; the WebFlash repo is re-read read-only — `CORE-ABSTRACT-BUS-001` is referenced only as an upstream dependency, no WebFlash file changes); **no `webflash_build_matrix` flip**; **no `artifact_name`**; **no `webflash_wrapper`**; **no `config_string` change**; **no `release_one_required_configs` change**; **no `lifecycle_statuses` change**; **no `canonical_modules` / `canonical_power` / `forbidden_tokens` change**; **no `REQUIRED_CONFIGS` / kit JSON change**; **no `schematic_status` / `schematic_file` promotion**; **no COMPLIANCE-001 movement**; no Release-One change (`Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`); no LED preview change (`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`); no FanTRIAC change (`blocked` / `HW-005`); no compile-only target added; no firmware artifact built or attached; no release artifact / tag / checksum / build-info manifest / proof row; **no WebFlash import-readiness claim**; **no `PACKAGE-PWM-001` unblock claim**; **no `PACKAGE-DAC-001` unblock claim**; **no `PACKAGE-RELAY-001` re-implementation claim**; **no claim that `CORE-ABSTRACT-BUS-001B` has advanced past the planning layer**; no claim of compliance evidence for any mains-switching product; no `S360-100-BENCH-001` closure. | `CORE-ABSTRACT-BUS-001B` moves from `confirmed deferred (Path A docs-only); four preconditions still open` (PR #519) to **implementation-plannable** at the planning layer. The canonical-id-decision precondition (#1 of the four enumerated by PR #519) is **closed** by this PR (chose `core_i2c`; recorded hard-rename-only + no-aliases policy). The downstream-consumer audit precondition (#4) is **refreshed** in this PR (extended with the four product `!include`rs that `packages/features/ceiling_halo_leds.yaml` gained since PR #519, the `tests/generate_test_configs.py` override, and the explicit out-of-scope classification for the Mini family and ceiling_s3 lineage). Two preconditions remain open at the implementation layer: (#2) extending [`tests/test_core_abstract_bus.py`](tests/test_core_abstract_bus.py) with a `SharedI2CBusTests` class — lands **with** the implementation slice; (#3) the re-validation pass for every non-Release-One product YAML consuming any affected Core / expansion package (~25 product YAMLs) — execution lands **with** the implementation slice. The implementation slice (`CORE-ABSTRACT-BUS-001B-IMPLEMENT-001`) must land all of the following as a single atomic PR: (1) the YAML rebind across the seven in-scope Core packages; (2) the 11 expansion-package consumer rebinds; (3) the `ceiling_halo_leds.yaml` literal rebind; (4) the `tests/generate_test_configs.py` override removal; (5) the `SharedI2CBusTests` scaffold; (6) the Release-One + LED preview generated-config diff check; (7) the re-validation pass for every non-Release-One product YAML. `PACKAGE-PWM-001` / `PRODUCT-PWM-001` / `WEBFLASH-PWM-001` / `RELEASE-PWM-001` stay blocked on the underlying `HW-PINMAP-311-FOLLOWUP` evidence **and** on `001B` implementation. `PACKAGE-DAC-001` / `PRODUCT-DAC-001` / `WEBFLASH-DAC-001` / `RELEASE-DAC-001` stay blocked on the underlying `HW-PINMAP-312-FOLLOWUP` evidence **and** on `001B` implementation. The canonical-id decision recorded here does **not** unblock either chain. `PACKAGE-RELAY-001` / `PRODUCT-RELAY-001` / `WEBFLASH-RELAY-001` / `RELEASE-RELAY-001` / `WF-IMPORT-RELAY-001` stay blocked behind `PACKAGE-RELAY-001` bench / silkscreen / harness / `K1` BOM gates (independent of `001B`). `CORE-ABSTRACT-BUS-001A` (PR #558) and `CORE-ABSTRACT-BUS-001C` (PR #557) stay completed-merged. `S360-100-BENCH-001`, `HW-PINMAP-311-FOLLOWUP`, `HW-PINMAP-312-FOLLOWUP`, `HW-PINMAP-320-FOLLOWUP`, and `COMPLIANCE-001` are **not** closed by this PR. |
 
 ## Active / upcoming esphome-public queue
 
@@ -3288,92 +3368,85 @@ this table; see **Cross-repo dependencies**. The only `WF-`-prefixed entry
 that appears below is **WF-TRIAC-001**, which is the in-repo
 wrapper/catalog/build slice (not a WebFlash-runtime import).
 
-1. **CORE-ABSTRACT-BUS-001B — Shared-I²C-bus consolidation**
-   - Status: **Investigated 2026-05-19 — confirmed deferred (Path A
-     docs-only); four preconditions still open**. Independent of
-     `001A` / `001C` ordering; should land before `PACKAGE-PWM-001`
-     / `PACKAGE-DAC-001`.
-   - Purpose: Collapse the duplicated `halo_i2c` / `expansion_i2c` /
-     `i2c0` / `i2c1` / `i2c_primary` / `i2c_expander` bus definitions
-     in the Core abstract packages down to the **single shared I²C
-     bus** on `IO48` (SDA) / `IO45` (SCL) that the `S360-100-R4`
-     schematic actually exposes. Realign every downstream expansion
-     package that currently references one of the old bus ids.
-   - Notes: 2026-05-19 investigation pass (this PR) is **docs-only
-     deferral**. Re-verified against the live YAML; the eight Core
-     packages that define an I²C bus are
-     `packages/hardware/sense360_core.yaml` (lines 100–112; `i2c0`
-     `GPIO39`/`GPIO40` + `i2c1` `GPIO21`/`GPIO18`),
-     `packages/hardware/sense360_core_ceiling.yaml` (lines 104–117;
-     `halo_i2c` `GPIO39`/`GPIO40` + `expansion_i2c`
-     `GPIO21`/`GPIO18`),
-     `packages/hardware/sense360_core_mapping.yaml` (lines 93–104;
-     `i2c_primary` + `i2c_expander`),
-     `packages/hardware/sense360_core_poe.yaml` (lines 124–137;
-     `i2c0` + `i2c1`),
-     `packages/hardware/sense360_core_wall.yaml` (lines 114–127;
-     `i2c0` + `i2c1`),
-     `packages/hardware/sense360_core_voice_ceiling.yaml`
-     (lines 113–124; `halo_i2c` + `expansion_i2c` — **newly added
-     to 001B scope by this investigation**), and
-     `packages/hardware/sense360_core_voice_wall.yaml` (lines
-     134–143; `i2c0` + `i2c1` — **newly added to 001B scope by
-     this investigation**); `packages/hardware/sense360_core_ceiling_s3.yaml`
-     (`i2c_primary` on `GPIO17`/`GPIO18`) and
-     `packages/hardware/sense360_core_mini.yaml` (`i2c0` on
-     `GPIO48`/`GPIO45` via `mini_onboard_sensors.yaml`) remain
-     out-of-scope — S3 has a different board layout; Mini already
-     binds the schematic-correct pins. Schematic ground truth per
-     `docs/hardware/s360-100-r4-core.md` §I2C bus is a **single
-     shared bus** on `IO48` (SDA) / `IO45` (SCL) pulled up by
-     R22/R21 10 kΩ, shared by SX1509 U3 + J7 GP8403 + J9 AirIQ +
-     J10 RoomIQ. The 13 downstream expansion-package consumers
-     are `airiq.yaml` (`airiq_i2c_id: i2c0`),
-     `airiq_wall.yaml` (`i2c0`),
-     `airiq_ceiling.yaml` (`expansion_i2c`),
-     `airiq_ceiling_s3.yaml` (`i2c_primary`),
-     `airiq_bathroom_base.yaml` (`bathroom_i2c_id: expansion_i2c`),
-     `airiq_bathroom_pro.yaml` (`expansion_i2c`),
-     `comfort.yaml` (`comfort_i2c_id: i2c0`),
-     `comfort_wall.yaml` (`i2c0`),
-     `comfort_ceiling.yaml` (`comfort_ceiling_i2c_id: expansion_i2c`),
-     `comfort_ceiling_s3.yaml` (`comfort_i2c_id: i2c_primary`),
-     `fan_gp8403.yaml` (`fan_dac_i2c_id: i2c0`),
-     `gpio_expander_sx1509.yaml` (`sx1509_i2c_id: i2c1`), and the
-     feature file `packages/features/ceiling_halo_leds.yaml` which
-     **hard-codes `i2c_id: halo_i2c`** and has no current product
-     includer — needs rebind or dead-code decision. Release-One
-     (`products/sense360-ceiling-poe-ventiq-roomiq.yaml`) and the
-     LED preview (`products/sense360-ceiling-poe-ventiq-roomiq-led.yaml`)
-     both resolve `expansion_i2c` via VentIQ
-     `airiq_bathroom_base.yaml` line 29 and RoomIQ
-     `comfort_ceiling.yaml` line 39 (the LED preview uses
-     WS2812B `led_data_pin: GPIO38` from
-     `packages/hardware/led_ring_ceiling.yaml`, **not** I²C).
-     Mini products define their own inline `i2c0` on
-     `GPIO48`/`GPIO45` and are out of scope. The four open
-     preconditions are: (1) **canonical I²C bus-id decision**
-     remains open — candidates `shared_i2c`, `core_i2c`, `i2c0`
-     recorded but not chosen; (2) **`tests/test_core_abstract_bus.py`
-     pin-pinning scaffold** remains absent (confirmed by this
-     investigation; same finding as PR #518) and, per the
-     test-scaffolding plan, lands **with** the first implementation
-     slice; (3) **re-validation plan for every non-Release-One
-     product YAML** consuming any affected Core / expansion package
-     is not designed; (4) the **downstream-consumer audit** lands
-     in this PR (above) but implementation still needs canonical
-     name + tests + product re-validation before YAML edits.
-     The next `001B` PR must land **the canonical bus-id decision
-     + the pin-pinning test + the YAML rebind (Core packages +
-     every downstream `*_i2c_id` consumer) + the product
-     re-validation pass as a single atomic slice**, not as a
-     test-scaffold-only PR alone. Plan recorded in
+1. **CORE-ABSTRACT-BUS-001B — Shared-I²C-bus consolidation
+   (canonical id `core_i2c`, hard rename only)**
+   - Status: **Plan recorded 2026-05-22 — implementation-plannable;
+     YAML rebind + test scaffold + non-Release-One product
+     re-validation still pending**. Canonical I²C bus id is decided
+     (`core_i2c`), migration style is hard rename only, no
+     compatibility aliases by default. Independent of `001A` /
+     `001C` ordering (both completed-merged as PR #558 / PR #557);
+     must land before `PACKAGE-PWM-001` / `PACKAGE-DAC-001`.
+   - Purpose: Hard-rename every in-scope Core abstract package's
+     `halo_i2c` / `expansion_i2c` / `i2c0` / `i2c1` / `i2c_primary`
+     / `i2c_expander` bus definitions down to a **single shared
+     `core_i2c` bus** on `IO48` (SDA) / `IO45` (SCL) at `400 kHz` —
+     the schematic-correct topology per `S360-100-R4`. Rebind every
+     downstream `*_i2c_id` substitution default to `core_i2c` and
+     rebind the hard-coded `i2c_id: halo_i2c` literal in
+     `packages/features/ceiling_halo_leds.yaml` line 6 to
+     `i2c_id: core_i2c` (the feature file now has four product
+     `!include`rs — `sense360-core-ceiling.yaml`,
+     `sense360-core-ceiling-bathroom.yaml`,
+     `sense360-core-ceiling-presence.yaml`,
+     `sense360-core-voice-ceiling.yaml`).
+   - Notes: 2026-05-22 plan record (this PR) is **docs-only**.
+     Closes the canonical-id-decision precondition (#1 of four
+     enumerated by PR #519) and refreshes the downstream-consumer
+     audit (#4). Two preconditions remain open at the
+     implementation layer: (#2) extending
+     `tests/test_core_abstract_bus.py` with a `SharedI2CBusTests`
+     class asserting `core_i2c` in every affected Core package + on
+     `GPIO48`/`GPIO45` + `400kHz` + every `*_i2c_id` consumer
+     default resolving to `core_i2c` + the `ceiling_halo_leds.yaml`
+     literal rebound; (#3) executing the re-validation pass for
+     every non-Release-One product YAML consuming any affected Core
+     / expansion package (~25 product YAMLs across the seven
+     in-scope Core packages). Both land **with** the implementation
+     slice, not before. **In-scope Core packages (seven):**
+     `sense360_core.yaml`, `sense360_core_ceiling.yaml`,
+     `sense360_core_mapping.yaml`, `sense360_core_poe.yaml`,
+     `sense360_core_wall.yaml`, `sense360_core_voice_ceiling.yaml`,
+     `sense360_core_voice_wall.yaml`. **Out-of-scope Core packages:**
+     `sense360_core_ceiling_s3.yaml` (`i2c_primary` on
+     `GPIO17`/`GPIO18`, different board layout) and
+     `sense360_core_mini.yaml` (`i2c0` already on schematic-correct
+     `GPIO48`/`GPIO45`). **In-scope expansion package `*_i2c_id`
+     consumer defaults (11):** `airiq.yaml`, `airiq_wall.yaml`,
+     `airiq_ceiling.yaml`, `airiq_bathroom_base.yaml`,
+     `airiq_bathroom_pro.yaml`, `comfort.yaml`, `comfort_wall.yaml`,
+     `comfort_ceiling.yaml`, `fan_gp8403.yaml`,
+     `gpio_expander_sx1509.yaml`, plus the
+     `packages/features/ceiling_halo_leds.yaml` hard-coded literal.
+     **Out-of-scope expansion / hardware-helper consumers:**
+     `airiq_ceiling_s3.yaml` (defaults to `i2c_primary`),
+     `comfort_ceiling_s3.yaml` (defaults to `i2c_primary`), and
+     `mini_onboard_sensors.yaml` (`mini_sensors_i2c_id: i2c0` Mini
+     baseline). Six Mini product YAMLs
+     (`sense360-mini-airiq-advanced.yaml`,
+     `sense360-mini-airiq-basic.yaml`,
+     `sense360-mini-full-ld2412.yaml`,
+     `sense360-mini-presence-advanced.yaml`,
+     `sense360-mini-presence-advanced-ld2412.yaml`,
+     `sense360-mini-presence-basic.yaml`) define their own inline
+     `i2c0` block on `GPIO48`/`GPIO45` and stay byte-identical.
+     **Rationale** for choosing `core_i2c` over `shared_i2c` /
+     `i2c0`: self-describing; not currently used anywhere in the
+     repo (no collision with existing substitution defaults); does
+     not silently re-bind the Mini family. Hard-rename-only keeps
+     the substitution graph single-rooted and avoids alias
+     maintenance debt. Plan recorded in
      `docs/hardware/core-abstract-bus-reconciliation.md`
-     §CORE-ABSTRACT-BUS-001B; investigation pass log recorded at
+     §`### 2026-05-22 — CORE-ABSTRACT-BUS-001B core_i2c plan`
+     (decision table, refreshed bus-definition inventory, consumer
+     inventory, final desired mapping, implementation scope,
+     non-goals, risk notes, test plan). Earlier investigation pass
+     log lives at
      `docs/hardware/core-abstract-bus-reconciliation.md`
      §`### 2026-05-19 — CORE-ABSTRACT-BUS-001B investigation pass`
-     and `docs/cleanup-audit.md` §`CORE-ABSTRACT-BUS-001B update
-     (2026-05-19 — docs-only investigation pass)`.
+     (PR #519) and `docs/cleanup-audit.md`
+     §`CORE-ABSTRACT-BUS-001B update (2026-05-19 — docs-only
+     investigation pass)`.
 
 2. **PRODUCT-POWER-400-001**
    - Status: **Investigated 2026-05-19; merged as PR #521;
@@ -4174,9 +4247,20 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
     - Purpose: Stand up / re-stand up the S360-311 PWM package wiring once
       the pin/package audit is no longer partial.
     - Notes: Also affected by CORE-ABSTRACT-BUS-001B (shared I²C bus
-      consolidation) and CORE-ABSTRACT-BUS-001C (`expansion_gpio1`
-      / `expansion_gpio2` rebind that `fan_pwm.yaml` consumes via
-      `${fan_pwm_pin}` / `${fan_tach_pin}`).
+      consolidation — **canonical id `core_i2c` decided 2026-05-22**
+      per `CORE-ABSTRACT-BUS-001B-PLAN-001`; **hard rename only**,
+      no compatibility aliases by default; YAML rebind still
+      pending until the `001B` implementation slice lands; until
+      then `PACKAGE-PWM-001` stays blocked behind both the
+      `HW-PINMAP-311-FOLLOWUP` evidence and `001B` implementation
+      actually landing in YAML) and CORE-ABSTRACT-BUS-001C
+      (completed-merged as PR #557 — the generic `expansion_gpio*`
+      substitutions were retired and the affected Core packages now
+      expose schematic-named function-specific substitutions instead;
+      `fan_pwm.yaml`'s `${fan_pwm_pin}` / `${fan_tach_pin}` defaults
+      are independent of the 001C rebind and stay as-is until the
+      `PACKAGE-PWM-001` slice re-aligns them against bench
+      evidence).
 
 11. **PRODUCT-PWM-001**
     - Status: Blocked on PACKAGE-PWM-001
@@ -4195,9 +4279,17 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
     - Status: Blocked on HW-PINMAP-312-FOLLOWUP returning sufficient evidence
     - Purpose: Stand up / re-stand up the S360-312 DAC (GP8403) package
       wiring once the pin/package audit is no longer partial.
-    - Notes: Also affected by CORE-ABSTRACT-BUS-001B (the GP8403
-      DAC is I²C-attached, so it consumes whichever bus id 001B
-      settles on).
+    - Notes: Also affected by CORE-ABSTRACT-BUS-001B. The GP8403
+      DAC is I²C-attached and consumes the `fan_dac_i2c_id`
+      substitution default at
+      `packages/expansions/fan_gp8403.yaml` line 26
+      (currently `i2c0`). **The canonical I²C bus id is now
+      decided as `core_i2c` per `CORE-ABSTRACT-BUS-001B-PLAN-001`
+      / 2026-05-22**, so the future `001B` implementation slice
+      will rebind that default to `core_i2c` (hard rename only).
+      Until the implementation slice lands, `PACKAGE-DAC-001`
+      stays blocked behind both the `HW-PINMAP-312-FOLLOWUP`
+      evidence and `001B` implementation actually landing in YAML.
 
 15. **PRODUCT-DAC-001**
     - Status: Blocked on PACKAGE-DAC-001
