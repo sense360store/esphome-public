@@ -236,8 +236,8 @@ its production-wide / installation / competent-person sign-off
 gates) + `RELEASE-RELAY-001` + WebFlash-side
 `WF-IMPORT-RELAY-001` — has cleared.
 
-**2026-05-22 — `PRODUCT-RELAY-001` status update (implementation
-slice).** `PRODUCT-RELAY-001` has now **landed** as a
+**2026-05-22 — `PRODUCT-RELAY-001` status update (PR #564;
+implementation slice).** `PRODUCT-RELAY-001` **landed** as a
 product-YAML-only / no-WebFlash-exposure slice. The canonical
 FanRelay product YAML
 [`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml)
@@ -266,6 +266,68 @@ parity. The default sellable bathroom kit remains
 becomes installable only via the full chain
 `WEBFLASH-RELAY-001` → `RELEASE-RELAY-001` →
 `WF-IMPORT-RELAY-001`.
+
+**2026-05-22 — `WEBFLASH-RELAY-001-READINESS-REFRESH` status
+update (this PR; docs-only).** Re-evaluated the Relay Bathroom
+Kit posture after `PRODUCT-RELAY-001` / PR #564 landed the
+FanRelay product YAML without WebFlash exposure. Re-verified
+against the live files: the
+[`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json)
+`S360-KIT-BATH-RELAY` row stays byte-identical
+(`tier: future-expansion`, `lifecycle_status: hardware-pending`,
+`default_config_string: null`, `webflash_exposure_allowed_now:
+false`, `stable_ready_now: false`); the
+[`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json)
+lane `fanrelay-blocked-package-or-core-bus` count stays at 36
+(reclassification from `missing-product-yaml` to
+`blocked-hardware` was performed by PRODUCT-RELAY-001 / PR #564,
+not by this readiness refresh); no kit / preset / bundle
+configuration is added on either side of the cross-repo boundary.
+**The Relay Bathroom Kit now has a product YAML upstream** (the
+PRODUCT-RELAY-001 catalog row above) but **still has no WebFlash
+exposure and is still not default** — neither
+`webflash_exposure_allowed_now` nor `stable_ready_now` flips,
+neither `S360-KIT-BATH-RELAY` nor any `Ceiling-POE-VentIQ-FanRelay-*`
+config-string enters the WebFlash build matrix, and the kit
+remains `future-expansion` / `hardware-pending`. **The default
+sellable kit remains `S360-KIT-BATH-POE`** mapped to Release-One
+`Ceiling-POE-VentIQ-RoomIQ` on the `stable` channel; the LED
+preview kit remains `S360-KIT-BATH-POE-LED` on the `preview`
+channel; FanTRIAC stays `blocked` / `HW-005`. The cross-repo
+WebFlash Stage 1 bundle preset
+[`scripts/data/kit-presets.js`](https://github.com/sense360store/WebFlash/blob/main/scripts/data/kit-presets.js)
+`S360-KIT-BATH-RELAY` entry stays `status: planned` / `badge:
+Planned` / `firmwareConfigString: null` /
+`notAvailableReason: "Awaiting upstream RELEASE-RELAY-001
+firmware import (WF-IMPORT-RELAY-001)."` — the WebFlash repo's
+kit-preset surface and the in-Step-4 outcome-first label
+"Fan relay control" remain aligned with this kit-intent matrix
+and the WebFlash-side `WF-IMPORT-RELAY-001` queue item stays
+blocked behind upstream `RELEASE-RELAY-001`. **No
+[`config/`](../config/) edit (the live blocker token list in
+[`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json)
+still mirrors the pre-refresh state; the config-edit PR
+refreshing it to drop the landed `CORE-ABSTRACT-BUS-001C` /
+`CORE-ABSTRACT-BUS-001A` / `PACKAGE-RELAY-001` / `PRODUCT-RELAY-001`
+blockers is still owed separately); no `packages/**`, `products/**`,
+`products/webflash/**`, `scripts/**`, `.github/workflows/**`,
+`components/**`, `include/**`, `firmware/**`, `manifest.json`,
+`firmware/sources.json`, `tests/**`, WebFlash repo edit; no
+`webflash_build_matrix` flip; no `artifact_name`; no
+`webflash_wrapper`; no `release_one_required_configs` change; no
+COMPLIANCE-001 movement; no `schematic_status` / `schematic_file`
+promotion** (`S360-310` stays `cataloged_unverified`). **No claim
+of FanRelay WebFlash-readiness, release-readiness,
+compliance-clearance, kit-default-readiness, recommended-bundle
+readiness, board-level mains-safety certification,
+installation-approval, qualified-electrician sign-off, or
+production-wide / multi-unit hardware characterisation.** The
+recommended next Relay-chain PR is one of `WEBFLASH-RELAY-001`
+implementation plan / scaffold only (if allowed by the project
+lead), `RELEASE-RELAY-001` (blocked until artifact path exists),
+or `FW-COMPILE-RELAY-001` (if compile-only validation should
+happen first); none of those promotes the Relay Bathroom Kit on
+either side of the cross-repo boundary.
 
 ### S360-KIT-BATH-TRIAC — Sense360 Bathroom Kit — TRIAC Fan Control
 
