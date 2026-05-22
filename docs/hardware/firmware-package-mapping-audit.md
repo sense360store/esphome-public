@@ -470,6 +470,26 @@ for HW-009):
     `PACKAGE-RELAY-001` implementation, **not** a Relay product
     YAML, **not** a WebFlash wrapper, **not** a compile-only target,
     and **not** a release artifact.
+    **Update (2026-05-22).** `S360-310-BENCH-EVIDENCE-001` (docs-only)
+    populated the ten enumerated `S360-310-BENCH-001` hardware-evidence
+    rows from operator-attested + BOM-backed + public-reference-backed
+    sources supplied by operator `@wifispray` (Wifi Guy). Relay pin
+    substitution is **resolved** by PR #558 (`CORE-ABSTRACT-BUS-001A`);
+    `S360-310` evidence is now populated enough for `PACKAGE-RELAY-001`
+    implementation **at the package-evidence layer only**.
+    `PRODUCT-RELAY-001` / `WEBFLASH-RELAY-001` / `RELEASE-RELAY-001` /
+    `WF-IMPORT-RELAY-001` gates stay separately blocked behind
+    `PACKAGE-RELAY-001`; no product, WebFlash, release, compliance,
+    mains-safety, board-level installation-approval, or
+    hardware-stable readiness claim is made. The captured-evidence
+    table lives at
+    [`s360-310-r4-relay.md` §S360-310-BENCH-001 — Relay bench evidence](s360-310-r4-relay.md#s360-310-bench-001--relay-bench-evidence),
+    and the readiness-matrix refresh lives at
+    [`package-readiness-matrix.md` `fan_relay.yaml` / S360-310](package-readiness-matrix.md#fan_relayyaml--s360-310).
+    No photo / video / oscilloscope / continuity-meter artifacts are
+    attached; the operator-uploaded `S360-310-R4_BOM.xlsx` is consumed
+    for the `K1` BOM-backed row only and is **not** committed to this
+    repository.
   - `status_led_pin: GPIO48` — `IO48` is `I2C_SDA`.
   - `pir_sensor_pin: GPIO47` — `IO47` is `ALS_INT`; `PIR` is on `IO15`.
   - `expansion_gpio1: GPIO5`, `expansion_gpio2: GPIO6` — `IO5` is
