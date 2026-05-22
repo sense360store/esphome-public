@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pin-pinning regression tests for CORE-ABSTRACT-BUS-001A / 001C.
+"""Pin-pinning regression tests for CORE-ABSTRACT-BUS-001A / 001B / 001C.
 
 These tests lock in the schematic-backed CORE-ABSTRACT-BUS-001C rebind plan
 recorded in
@@ -14,6 +14,19 @@ CORE-ABSTRACT-BUS-001A extends this scaffold with the schematic-backed
 ``relay_pin: GPIO3`` rebind. The 001A rebind landed once 001C (PR #557)
 freed ``GPIO3`` by moving ALS_INT off ``GPIO3`` to ``GPIO47`` and the
 SX1509 / expander interrupt off ``GPIO3`` to ``GPIO17``.
+
+CORE-ABSTRACT-BUS-001B further extends this scaffold with the
+schematic-backed I²C consolidation: every in-scope Core abstract package
+exposes a single shared bus ``core_i2c`` on ``GPIO48`` (SDA) /
+``GPIO45`` (SCL) at ``400kHz`` (schematic ``IO48`` / ``IO45`` per
+``S360-100-R4``, pulled up by ``R22``/``R21`` 10 kΩ). The six legacy
+bus ids (``halo_i2c`` / ``expansion_i2c`` / ``i2c0`` / ``i2c1`` /
+``i2c_primary`` / ``i2c_expander``) are removed from every in-scope
+Core abstract package. Every downstream ``*_i2c_id`` consumer default
+is rebound to ``core_i2c``. The hard-coded ``i2c_id: halo_i2c`` literal
+in ``packages/features/ceiling_halo_leds.yaml`` is rebound to
+``i2c_id: core_i2c``. The implementation is a **hard rename only** —
+no compatibility aliases are introduced.
 
 Schematic ground truth references (S360-100-R4, the Core schematic):
 
@@ -627,6 +640,398 @@ class MainRelaySwitchBindingTests(unittest.TestCase):
             "(GPIO3 per CORE-ABSTRACT-BUS-001A) is consumed by "
             "downstream products through substitution.",
         )
+
+
+# ============================================================================
+# CORE-ABSTRACT-BUS-001B — Shared Core I²C bus consolidation tests
+# ============================================================================
+
+# Core abstract packages whose I²C bus is consolidated to the single shared
+# ``core_i2c`` bus by CORE-ABSTRACT-BUS-001B. Each must define exactly one
+# top-level ``i2c:`` bus with ``id: core_i2c``, ``sda: GPIO48``,
+# ``scl: GPIO45``, ``frequency: 400kHz`` (schematic IO48/IO45 per
+# S360-100-R4, pulled up by R22/R21 10 kΩ).
+SHARED_I2C_BUS_PACKAGES = [
+    REPO_ROOT / "packages" / "hardware" / "sense360_core.yaml",
+    REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml",
+    REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml",
+    REPO_ROOT / "packages" / "hardware" / "sense360_core_poe.yaml",
+    REPO_ROOT / "packages" / "hardware" / "sense360_core_wall.yaml",
+    REPO_ROOT / "packages" / "hardware" / "sense360_core_voice_ceiling.yaml",
+    REPO_ROOT / "packages" / "hardware" / "sense360_core_voice_wall.yaml",
+]
+
+# Expansion-package consumers whose ``*_i2c_id`` substitution default is
+# rebound to ``core_i2c`` by CORE-ABSTRACT-BUS-001B. Each tuple records the
+# package path and the substitution name. The two S3-variant consumers
+# (``airiq_ceiling_s3.yaml``, ``comfort_ceiling_s3.yaml``) and the Mini
+# helper (``mini_onboard_sensors.yaml``) are deliberately out of scope.
+SHARED_I2C_CONSUMER_DEFAULTS = [
+    (REPO_ROOT / "packages" / "expansions" / "airiq.yaml", "airiq_i2c_id"),
+    (REPO_ROOT / "packages" / "expansions" / "airiq_wall.yaml", "airiq_i2c_id"),
+    (REPO_ROOT / "packages" / "expansions" / "airiq_ceiling.yaml", "airiq_i2c_id"),
+    (REPO_ROOT / "packages" / "expansions" / "airiq_bathroom_base.yaml", "bathroom_i2c_id"),
+    (REPO_ROOT / "packages" / "expansions" / "airiq_bathroom_pro.yaml", "bathroom_i2c_id"),
+    (REPO_ROOT / "packages" / "expansions" / "comfort.yaml", "comfort_i2c_id"),
+    (REPO_ROOT / "packages" / "expansions" / "comfort_wall.yaml", "comfort_i2c_id"),
+    (REPO_ROOT / "packages" / "expansions" / "comfort_ceiling.yaml", "comfort_ceiling_i2c_id"),
+    (REPO_ROOT / "packages" / "expansions" / "fan_gp8403.yaml", "fan_dac_i2c_id"),
+    (REPO_ROOT / "packages" / "expansions" / "gpio_expander_sx1509.yaml", "sx1509_i2c_id"),
+]
+
+CEILING_HALO_LEDS_PACKAGE = REPO_ROOT / "packages" / "features" / "ceiling_halo_leds.yaml"
+FAN_GP8403_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_gp8403.yaml"
+GP8403_FANDAC_ALIAS_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_dac.yaml"
+GENERATE_TEST_CONFIGS_SCRIPT = REPO_ROOT / "tests" / "generate_test_configs.py"
+
+# Legacy bus ids retired from every in-scope Core abstract package by
+# CORE-ABSTRACT-BUS-001B. Each must not appear as an active ``- id:``
+# binding in any package in ``SHARED_I2C_BUS_PACKAGES``.
+LEGACY_BUS_IDS = (
+    "halo_i2c",
+    "expansion_i2c",
+    "i2c0",
+    "i2c1",
+    "i2c_primary",
+    "i2c_expander",
+)
+
+CORE_I2C_SDA_PIN = "GPIO48"
+CORE_I2C_SCL_PIN = "GPIO45"
+CORE_I2C_FREQUENCY = "400kHz"
+
+
+def _find_i2c_bus_block(text: str, bus_id: str) -> Optional[dict]:
+    """Return the parsed sda/scl/frequency for the named I²C bus, or None.
+
+    Mirrors ``_find_uart_block`` but matches an ``i2c:`` bus block. Returns
+    a dict with the literal sda / scl / frequency values found on the
+    immediately-following indented lines.
+    """
+    pattern = re.compile(
+        rf"-\s*id:\s*{re.escape(bus_id)}\s*\n"
+        r"(?P<body>(?:\s*[a-z_]+:\s*\S+\s*\n)+)",
+        re.MULTILINE,
+    )
+    match = pattern.search(text)
+    if not match:
+        return None
+    body = match.group("body")
+    fields: dict = {}
+    for key in ("sda", "scl", "frequency"):
+        m = re.search(rf"^\s*{key}:\s*(\S+)", body, re.MULTILINE)
+        if m:
+            value = m.group(1).split("#", 1)[0].rstrip()
+            fields[key] = value.strip("\"'")
+    return fields
+
+
+def _active_top_level_bus_ids(text: str) -> list:
+    """Return the list of active ``- id: <bus>`` declarations.
+
+    Only returns ids that follow a top-level ``i2c:`` block (the ``i2c:``
+    section header). Lines inside commented-out blocks are skipped.
+    """
+    ids: list = []
+    in_i2c_block = False
+    base_indent: Optional[int] = None
+    for raw_line in text.splitlines():
+        # Detect the start of a top-level ``i2c:`` block.
+        if re.match(r"^i2c:\s*$", raw_line):
+            in_i2c_block = True
+            base_indent = None
+            continue
+        if not in_i2c_block:
+            continue
+        # Skip blank lines and comment-only lines.
+        stripped = raw_line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        # A new top-level section ends the i2c block.
+        if not raw_line.startswith((" ", "\t", "-")) and not raw_line.startswith("  "):
+            indent_match = re.match(r"^(\s*)(\S)", raw_line)
+            if indent_match and len(indent_match.group(1)) == 0:
+                in_i2c_block = False
+                continue
+        m = re.match(r"\s*-\s*id:\s*(\S+)", raw_line)
+        if m:
+            value = m.group(1).split("#", 1)[0].strip().strip("\"'")
+            ids.append(value)
+    return ids
+
+
+class SharedI2CBusTests(unittest.TestCase):
+    """CORE-ABSTRACT-BUS-001B: single shared ``core_i2c`` bus consolidation.
+
+    Asserts the schematic-correct hard rename across every in-scope Core
+    abstract package, every in-scope expansion-package consumer default,
+    and the hard-coded literal in
+    ``packages/features/ceiling_halo_leds.yaml``. The two S3-variant
+    Core / expansion packages and the Mini family are deliberately
+    out-of-scope and are checked here only to confirm they retain their
+    pre-001B bus ids.
+    """
+
+    def test_every_in_scope_core_package_defines_core_i2c(self) -> None:
+        for pkg in SHARED_I2C_BUS_PACKAGES:
+            fields = _find_i2c_bus_block(pkg.read_text(), "core_i2c")
+            with self.subTest(package=pkg.name):
+                self.assertIsNotNone(
+                    fields,
+                    f"{pkg.name} must define an i2c bus with `id: core_i2c` "
+                    f"per CORE-ABSTRACT-BUS-001B.",
+                )
+                self.assertEqual(
+                    fields.get("sda"),
+                    CORE_I2C_SDA_PIN,
+                    f"{pkg.name} core_i2c.sda must be {CORE_I2C_SDA_PIN} "
+                    f"(schematic IO48 = I2C_SDA per S360-100-R4); "
+                    f"got {fields.get('sda')!r}.",
+                )
+                self.assertEqual(
+                    fields.get("scl"),
+                    CORE_I2C_SCL_PIN,
+                    f"{pkg.name} core_i2c.scl must be {CORE_I2C_SCL_PIN} "
+                    f"(schematic IO45 = I2C_SCL per S360-100-R4); "
+                    f"got {fields.get('scl')!r}.",
+                )
+                self.assertEqual(
+                    fields.get("frequency"),
+                    CORE_I2C_FREQUENCY,
+                    f"{pkg.name} core_i2c.frequency must be "
+                    f"{CORE_I2C_FREQUENCY}; got {fields.get('frequency')!r}.",
+                )
+
+    def test_legacy_bus_ids_absent_in_every_in_scope_core_package(self) -> None:
+        for pkg in SHARED_I2C_BUS_PACKAGES:
+            active_ids = _active_top_level_bus_ids(pkg.read_text())
+            with self.subTest(package=pkg.name):
+                for legacy in LEGACY_BUS_IDS:
+                    self.assertNotIn(
+                        legacy,
+                        active_ids,
+                        f"Legacy bus id `{legacy}` must not survive in "
+                        f"{pkg.name} after CORE-ABSTRACT-BUS-001B (hard "
+                        f"rename only). Active top-level i2c ids found: "
+                        f"{active_ids!r}.",
+                    )
+
+    def test_every_in_scope_core_package_defines_exactly_one_i2c_bus(self) -> None:
+        for pkg in SHARED_I2C_BUS_PACKAGES:
+            active_ids = _active_top_level_bus_ids(pkg.read_text())
+            with self.subTest(package=pkg.name):
+                self.assertEqual(
+                    active_ids,
+                    ["core_i2c"],
+                    f"{pkg.name} must define exactly one i2c bus "
+                    f"(`core_i2c`) per CORE-ABSTRACT-BUS-001B operator "
+                    f"decision #4 (legacy bus ids removed; no parallel "
+                    f"definitions). Active top-level i2c ids found: "
+                    f"{active_ids!r}.",
+                )
+
+    def test_every_in_scope_consumer_default_resolves_to_core_i2c(self) -> None:
+        for pkg, sub_name in SHARED_I2C_CONSUMER_DEFAULTS:
+            value = _substitution_value(pkg.read_text(), sub_name)
+            with self.subTest(package=pkg.name, substitution=sub_name):
+                self.assertEqual(
+                    value,
+                    "core_i2c",
+                    f"{pkg.name} substitution `{sub_name}` default must "
+                    f"be `core_i2c` per CORE-ABSTRACT-BUS-001B; "
+                    f"got {value!r}.",
+                )
+
+    def test_ceiling_halo_leds_literal_rebound_to_core_i2c(self) -> None:
+        text = CEILING_HALO_LEDS_PACKAGE.read_text()
+        # Active (non-comment) i2c_id: literal must be core_i2c.
+        active_value: Optional[str] = None
+        for line in text.splitlines():
+            stripped = line.lstrip()
+            if stripped.startswith("#"):
+                continue
+            m = re.match(r"i2c_id:\s*(\S+)", stripped)
+            if m:
+                active_value = m.group(1).split("#", 1)[0].strip().strip("\"'")
+                break
+        self.assertEqual(
+            active_value,
+            "core_i2c",
+            f"`packages/features/ceiling_halo_leds.yaml` hard-coded "
+            f"`i2c_id:` literal must be `core_i2c` per "
+            f"CORE-ABSTRACT-BUS-001B; got {active_value!r}.",
+        )
+        # The literal `halo_i2c` must not appear on any active line.
+        for line in text.splitlines():
+            stripped = line.lstrip()
+            if stripped.startswith("#"):
+                continue
+            self.assertNotIn(
+                "halo_i2c",
+                line,
+                f"`halo_i2c` must not appear on any active line in "
+                f"ceiling_halo_leds.yaml after CORE-ABSTRACT-BUS-001B; "
+                f"found on line: {line!r}.",
+            )
+
+    def test_fan_gp8403_binds_core_i2c_via_substitution(self) -> None:
+        text = FAN_GP8403_PACKAGE.read_text()
+        default = _substitution_value(text, "fan_dac_i2c_id")
+        self.assertEqual(
+            default,
+            "core_i2c",
+            "fan_gp8403.yaml fan_dac_i2c_id default must be core_i2c "
+            "per CORE-ABSTRACT-BUS-001B.",
+        )
+        # The gp8403: block must consume the substitution (not a literal).
+        self.assertRegex(
+            text,
+            r"gp8403:\s*\n[^\n]*\n[^\n]*i2c_id:\s*\$\{fan_dac_i2c_id\}",
+            "fan_gp8403.yaml `gp8403:` block must bind "
+            "`i2c_id: ${fan_dac_i2c_id}` so the rename flows through.",
+        )
+
+    def test_fan_dac_alias_includes_fan_gp8403_implementation(self) -> None:
+        text = GP8403_FANDAC_ALIAS_PACKAGE.read_text()
+        self.assertIn(
+            "!include fan_gp8403.yaml",
+            text,
+            "packages/expansions/fan_dac.yaml must remain a thin "
+            "`!include` of fan_gp8403.yaml so the canonical FanDAC alias "
+            "inherits the core_i2c rebind without adding parallel "
+            "substitutions.",
+        )
+
+    def test_sx1509_binds_core_i2c_via_substitution(self) -> None:
+        text = SX1509_PACKAGE.read_text()
+        default = _substitution_value(text, "sx1509_i2c_id")
+        self.assertEqual(
+            default,
+            "core_i2c",
+            "gpio_expander_sx1509.yaml sx1509_i2c_id default must be "
+            "core_i2c per CORE-ABSTRACT-BUS-001B.",
+        )
+        # The sx1509: block must consume the substitution.
+        self.assertRegex(
+            text,
+            r"sx1509:\s*\n[^\n]*\n[^\n]*i2c_id:\s*\$\{sx1509_i2c_id\}",
+            "gpio_expander_sx1509.yaml `sx1509:` block must bind "
+            "`i2c_id: ${sx1509_i2c_id}` so the rename flows through.",
+        )
+
+    def test_generate_test_configs_does_not_set_expansion_i2c_override(self) -> None:
+        text = GENERATE_TEST_CONFIGS_SCRIPT.read_text()
+        # The pre-001B helper hard-coded `fan_dac_i2c_id: expansion_i2c`
+        # as a per-product override for the ceiling lineage. The default
+        # in fan_gp8403.yaml now resolves to core_i2c directly, so the
+        # override must be removed.
+        self.assertNotIn(
+            "fan_dac_i2c_id: expansion_i2c",
+            text,
+            "tests/generate_test_configs.py must not emit the pre-001B "
+            "`fan_dac_i2c_id: expansion_i2c` override; the fan_gp8403.yaml "
+            "default already resolves to core_i2c after "
+            "CORE-ABSTRACT-BUS-001B.",
+        )
+
+    def test_out_of_scope_ceiling_s3_keeps_i2c_primary(self) -> None:
+        # The S3 ceiling Core variant has a different board lineage and
+        # keeps `i2c_primary` on GPIO17/GPIO18. A future 001B sweep must
+        # not silently fold it into the Core namespace.
+        text = SENSE360_CORE_CEILING_S3.read_text()
+        fields = _find_i2c_bus_block(text, "i2c_primary")
+        self.assertIsNotNone(
+            fields,
+            "sense360_core_ceiling_s3.yaml must retain its `i2c_primary` "
+            "bus definition (out-of-scope for CORE-ABSTRACT-BUS-001B per "
+            "operator decision #10).",
+        )
+
+    def test_out_of_scope_mini_keeps_i2c0(self) -> None:
+        # The Mini Core variant has a different board lineage and already
+        # binds i2c0 to the schematic-correct GPIO48/GPIO45 pins. It stays
+        # at `i2c0` on the Mini baseline.
+        mini_core = REPO_ROOT / "packages" / "hardware" / "sense360_core_mini.yaml"
+        fields = _find_i2c_bus_block(mini_core.read_text(), "i2c0")
+        self.assertIsNotNone(
+            fields,
+            "sense360_core_mini.yaml must retain its `i2c0` bus "
+            "definition (out-of-scope for CORE-ABSTRACT-BUS-001B per "
+            "operator decision #10).",
+        )
+
+    def test_no_legacy_bus_id_in_any_active_consumer_line(self) -> None:
+        # Sweep every package YAML under `packages/` for active
+        # ``i2c_id: <legacy>`` lines. The two out-of-scope S3 expansion
+        # packages (airiq_ceiling_s3.yaml, comfort_ceiling_s3.yaml) are
+        # allowed to keep ``i2c_primary``; the Mini-family helper
+        # (mini_onboard_sensors.yaml) is allowed to keep ``i2c0``. Every
+        # other active reference to a legacy id is a regression.
+        out_of_scope_paths = {
+            REPO_ROOT / "packages" / "expansions" / "airiq_ceiling_s3.yaml",
+            REPO_ROOT / "packages" / "expansions" / "comfort_ceiling_s3.yaml",
+            REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling_s3.yaml",
+            REPO_ROOT / "packages" / "hardware" / "sense360_core_mini.yaml",
+            REPO_ROOT / "packages" / "hardware" / "mini_onboard_sensors.yaml",
+        }
+        for yaml_path in PACKAGES_DIR.rglob("*.yaml"):
+            if yaml_path in out_of_scope_paths:
+                continue
+            text = yaml_path.read_text()
+            for line_no, raw_line in enumerate(text.splitlines(), start=1):
+                stripped = raw_line.lstrip()
+                if stripped.startswith("#"):
+                    continue
+                m = re.search(
+                    r"\bi2c_id:\s*(\S+)|^\s*-?\s*id:\s*(\S+)",
+                    raw_line,
+                )
+                if not m:
+                    continue
+                value = (m.group(1) or m.group(2) or "").split("#", 1)[0].strip()
+                value = value.strip("\"'")
+                with self.subTest(file=str(yaml_path.relative_to(REPO_ROOT)), line=line_no):
+                    self.assertNotIn(
+                        value,
+                        LEGACY_BUS_IDS,
+                        f"Active reference to legacy bus id `{value}` "
+                        f"found at {yaml_path.relative_to(REPO_ROOT)}:{line_no} "
+                        f"after CORE-ABSTRACT-BUS-001B. Either rebind to "
+                        f"core_i2c or add to the explicit out-of-scope list "
+                        f"in this test.",
+                    )
+
+    def test_no_legacy_pin_substitutions_in_in_scope_core_packages(self) -> None:
+        # The pre-001B Core packages exposed ``i2c0_sda_pin`` /
+        # ``i2c0_scl_pin`` / ``i2c0_frequency`` / ``i2c1_*`` /
+        # ``halo_i2c_*`` / ``expansion_i2c_*`` pin substitutions. The
+        # recommended retirement path (CORE-ABSTRACT-BUS-001B operator
+        # decisions / risk note #4) inlines GPIO48 / GPIO45 / 400kHz into
+        # each Core package and retires the substitutions.
+        retired_subs = (
+            "i2c0_sda_pin",
+            "i2c0_scl_pin",
+            "i2c0_frequency",
+            "i2c1_sda_pin",
+            "i2c1_scl_pin",
+            "i2c1_frequency",
+            "halo_i2c_sda_pin",
+            "halo_i2c_scl_pin",
+            "expansion_i2c_sda_pin",
+            "expansion_i2c_scl_pin",
+        )
+        for pkg in SHARED_I2C_BUS_PACKAGES:
+            text = pkg.read_text()
+            for sub_name in retired_subs:
+                value = _substitution_value(text, sub_name)
+                with self.subTest(package=pkg.name, substitution=sub_name):
+                    self.assertIsNone(
+                        value,
+                        f"Legacy pin substitution `{sub_name}` must be "
+                        f"retired from {pkg.name} per "
+                        f"CORE-ABSTRACT-BUS-001B (the consolidated bus "
+                        f"inlines GPIO48 / GPIO45 / 400kHz).",
+                    )
 
 
 if __name__ == "__main__":

@@ -15,8 +15,8 @@
 # Note: The Mini ESP uses the SEN55 all-in-one sensor instead.
 #
 # Expansion Bus Connection (Ceiling):
-#   Pin 4 (SDA) → GPIO21
-#   Pin 5 (SCL) → GPIO18
+#   Pin 4 (SDA) → GPIO48 (Core I2C SDA per CORE-ABSTRACT-BUS-001B)
+#   Pin 5 (SCL) → GPIO45 (Core I2C SCL per CORE-ABSTRACT-BUS-001B)
 #   Pin 2 (3.3V) → Power
 #   Pin 1 (GND) → Ground
 #
@@ -27,12 +27,14 @@ substitutions:
   module_sku: S360-AIR-C
   module_variant: ceiling
 
-  # I2C Configuration (Ceiling reuses core expansion I2C bus)
-  airiq_i2c_sda: GPIO21
-  airiq_i2c_scl: GPIO18
-  # Use the existing expansion bus defined by the core hardware package to avoid
-  # duplicate I2C declarations when multiple modules are enabled together.
-  airiq_i2c_id: expansion_i2c
+  # I2C Configuration (Ceiling reuses the shared core_i2c bus per
+  # CORE-ABSTRACT-BUS-001B).
+  airiq_i2c_sda: GPIO48
+  airiq_i2c_scl: GPIO45
+  # Use the existing shared Core bus defined by the core hardware package
+  # to avoid duplicate I2C declarations when multiple modules are enabled
+  # together.
+  airiq_i2c_id: core_i2c
 
   # Sensor update intervals
   airiq_sps30_update: 30s

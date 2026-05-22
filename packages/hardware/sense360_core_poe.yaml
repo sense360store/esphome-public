@@ -7,7 +7,7 @@
 # - ESP32-S3-WROOM-1 (8MB Flash, 2MB PSRAM)
 # - W5500 Ethernet Controller (SPI interface)
 # - IEEE 802.3af PoE Power Supply
-# - Dual I2C buses for expansion modules
+# - Shared Core I²C bus for expansion modules
 # - UART for presence/radar sensors
 # - 4x GPIO expansion pins
 # - Built-in relay (10A)
@@ -23,8 +23,7 @@
 #                                this Core variant repurposes it for W5500 INT
 #                                and does not expose PIR.)
 #   - RST:              GPIO16
-# - I2C0 (Primary):     SDA=GPIO39, SCL=GPIO40    (consolidation owed to 001B)
-# - I2C1 (Secondary):   SDA=GPIO21, SCL=GPIO18    (consolidation owed to 001B)
+# - Core I2C (shared):  SDA=GPIO48, SCL=GPIO45, 400kHz
 # - UART (Hi-Link):     TX=GPIO2, RX=GPIO1, baud 256000
 # - UART (SEN0609):     TX=GPIO5, RX=GPIO4, baud 115200
 # - Relay:              GPIO3 (schematic Relay net; CORE-ABSTRACT-BUS-001A)
@@ -32,6 +31,13 @@
 # - User Button:        GPIO9
 # - Boot Button:        GPIO0
 #
+# CORE-ABSTRACT-BUS-001B rebinds applied here:
+#   * Single shared Core I²C bus `core_i2c` on schematic-correct
+#     `IO48` (SDA) / `IO45` (SCL) at `400kHz`; the legacy dual-bus
+#     `i2c0` (`GPIO39` / `GPIO40`) and `i2c1` (`GPIO21` / `GPIO18`)
+#     definitions and their `i2c0_*` / `i2c1_*` pin substitutions are
+#     retired (hard rename only, no compatibility aliases per
+#     CORE-ABSTRACT-BUS-001B-PLAN-001 operator decisions).
 # CORE-ABSTRACT-BUS-001C rebinds applied here:
 #   * generic `status_led_pin` retired (was GPIO8 = AirQ_Led, AirIQ-only)
 #   * `expansion_gpio1..4` retired (replaced by function-specific names)
@@ -51,12 +57,6 @@ substitutions:
   w5500_cs_pin: GPIO14
   w5500_int_pin: GPIO15
   w5500_rst_pin: GPIO16
-
-  # I2C buses
-  i2c0_sda_pin: GPIO39
-  i2c0_scl_pin: GPIO40
-  i2c1_sda_pin: GPIO21
-  i2c1_scl_pin: GPIO18
 
   # Relay: schematic Relay net on IO3 per S360-100-R4
   # (CORE-ABSTRACT-BUS-001A). GPIO3 was freed by CORE-ABSTRACT-BUS-001C
@@ -113,18 +113,13 @@ ethernet:
   # Enable IPv6 support (optional)
   # enable_ipv6: false
 
-# Primary I2C bus for expansion modules
+# Shared Core I2C bus (CORE-ABSTRACT-BUS-001B).
+# Schematic IO48 = I2C_SDA, IO45 = I2C_SCL per S360-100-R4; pulled up by
+# R22/R21 10 kΩ. Single bus serves every Core-side I²C consumer.
 i2c:
-  - id: i2c0
-    sda: ${i2c0_sda_pin}
-    scl: ${i2c0_scl_pin}
-    scan: true
-    frequency: 400kHz
-
-  # Secondary I2C bus (optional, for additional modules)
-  - id: i2c1
-    sda: ${i2c1_sda_pin}
-    scl: ${i2c1_scl_pin}
+  - id: core_i2c
+    sda: GPIO48
+    scl: GPIO45
     scan: true
     frequency: 400kHz
 

@@ -12,7 +12,8 @@
 # - Power: 240V AC / PoE (via separate power packages)
 # - I2S MEMS Microphone array (via LED+MIC ring)
 # - I2S DAC/Amplifier output
-# - Dual I2C buses (sensors + expansion modules)
+# - Shared Core I²C bus (halo LED ring PCA9685 + sensors + expansion modules
+#   all live on the same schematic-correct IO48/IO45 bus)
 # - UART for presence/radar sensors
 # - Built-in relay for load switching (ceiling fan, lights)
 #
@@ -20,11 +21,11 @@
 # - This core MUST be paired with LED+MIC ring (S360-LED-V-C)
 #
 # Pin Assignments (ESP32-S3):
-# - I2C0 (Sensors):     SDA=GPIO39, SCL=GPIO40    (consolidation owed to 001B)
-# - I2C1 (Expansion):   SDA=GPIO21, SCL=GPIO18    (consolidation owed to 001B)
+# - Core I2C (shared):  SDA=GPIO48, SCL=GPIO45, 400kHz
 # - UART (Hi-Link):     TX=GPIO2, RX=GPIO1, baud 256000
 # - UART (SEN0609):     TX=GPIO5, RX=GPIO4, baud 115200
-# - Relay:              GPIO4 (unchanged until CORE-ABSTRACT-BUS-001A)
+# - Relay:              GPIO4 (unchanged; voice-variant deliberately out of
+#                       scope for CORE-ABSTRACT-BUS-001A)
 # - Fan Status LED:     GPIO46 (GP_Fan_Status_Led per Core schematic)
 # - Microphone I2S:     SCK=GPIO11, WS=GPIO12, SD=GPIO13
 # - Speaker I2S:        BCLK=GPIO17, LRC=GPIO15, DIN=GPIO16
@@ -33,6 +34,15 @@
 #    SX1509 interrupt, so the schematic PIR (IO15) and expander_int (IO17)
 #    nets recorded for 001C are not consumed by this voice product stack.)
 #
+# CORE-ABSTRACT-BUS-001B rebinds applied here:
+#   * Single shared Core I²C bus `core_i2c` on schematic-correct
+#     `IO48` (SDA) / `IO45` (SCL) at `400kHz`; the legacy dual-bus
+#     `halo_i2c` (`GPIO39` / `GPIO40`) and `expansion_i2c`
+#     (`GPIO21` / `GPIO18`) definitions and their `i2c0_*` /
+#     `expansion_i2c_*` pin substitutions are retired (hard rename only,
+#     no compatibility aliases per CORE-ABSTRACT-BUS-001B-PLAN-001
+#     operator decisions). The halo LED ring PCA9685 (consumed via
+#     packages/features/ceiling_halo_leds.yaml) now binds `core_i2c`.
 # CORE-ABSTRACT-BUS-001C rebinds applied here:
 #   * generic `status_led_pin` retired (was GPIO48 = I2C_SDA, schematic-conflict)
 #   * `expansion_gpio1..4` retired (replaced by function-specific names)
@@ -47,14 +57,8 @@ substitutions:
   device_sku: S360-CORE-V-C
   timezone: "America/New_York"
 
-  # Pin definitions
-  # I2C buses
-  i2c0_sda_pin: GPIO39
-  i2c0_scl_pin: GPIO40
-  expansion_i2c_sda_pin: GPIO21
-  expansion_i2c_scl_pin: GPIO18
-
-  # Relay (unchanged in this PR — moves to GPIO3 in CORE-ABSTRACT-BUS-001A)
+  # Relay (unchanged in this PR — voice-variant deliberately out of scope
+  # for CORE-ABSTRACT-BUS-001A relay_pin rebind)
   relay_pin: GPIO4
 
   # Status indicator
@@ -108,19 +112,15 @@ psram:
   mode: octal
   speed: 80MHz
 
-# I2C buses
+# Shared Core I2C bus (CORE-ABSTRACT-BUS-001B).
+# Schematic IO48 = I2C_SDA, IO45 = I2C_SCL per S360-100-R4; pulled up by
+# R22/R21 10 kΩ. Single bus serves the halo LED ring PCA9685
+# (consumed via packages/features/ceiling_halo_leds.yaml) and every
+# expansion module (sensors, SX1509 expander, GP8403 DAC).
 i2c:
-  # Primary I2C bus for halo LED ring (PCA9685) and sensors
-  # Named halo_i2c for compatibility with ceiling_halo_leds.yaml
-  - id: halo_i2c
-    sda: ${i2c0_sda_pin}
-    scl: ${i2c0_scl_pin}
-    scan: true
-    frequency: 400kHz
-
-  - id: expansion_i2c
-    sda: ${expansion_i2c_sda_pin}
-    scl: ${expansion_i2c_scl_pin}
+  - id: core_i2c
+    sda: GPIO48
+    scl: GPIO45
     scan: true
     frequency: 400kHz
 

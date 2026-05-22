@@ -12,8 +12,8 @@
 # ventilation optimization, and mold prevention.
 #
 # Expansion Bus Connection:
-#   Pin 4 (SDA) → GPIO21 (via expansion_i2c from core hardware)
-#   Pin 5 (SCL) → GPIO18 (via expansion_i2c from core hardware)
+#   Pin 4 (SDA) → GPIO48 (Core I2C SDA per CORE-ABSTRACT-BUS-001B)
+#   Pin 5 (SCL) → GPIO45 (Core I2C SCL per CORE-ABSTRACT-BUS-001B)
 #   Pin 2 (3.3V) → Power
 #   Pin 1 (GND) → Ground
 #
@@ -25,8 +25,9 @@ substitutions:
   module_variant: bathroom_base
 
   # I2C Configuration
-  # Uses the expansion_i2c bus defined in core hardware (GPIO21/18)
-  bathroom_i2c_id: expansion_i2c
+  # Uses the shared core_i2c bus defined by the parent Core abstract package
+  # (GPIO48/GPIO45 per S360-100-R4; CORE-ABSTRACT-BUS-001B).
+  bathroom_i2c_id: core_i2c
 
   # Sensor update intervals
   bathroom_sht4x_update: 10s   # Fast updates for shower detection

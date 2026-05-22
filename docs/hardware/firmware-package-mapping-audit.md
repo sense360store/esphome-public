@@ -1138,6 +1138,29 @@ next-action chain.
   and
   [`docs/cleanup-audit.md` §CORE-ABSTRACT-BUS-001C update](../cleanup-audit.md#core-abstract-bus-001c-update-2026-05-19--docs-only-investigation-pass).
   HW-009 makes no firmware change as a result of this re-check.
+- **All three CORE-ABSTRACT-BUS-001 slices have now landed at the
+  substitution layer (2026-05-22).** `CORE-ABSTRACT-BUS-001C` landed
+  via PR #557, `CORE-ABSTRACT-BUS-001A` via PR #558, and
+  `CORE-ABSTRACT-BUS-001B` via `CORE-ABSTRACT-BUS-001B-IMPLEMENT-001`
+  (the same PR as this audit-log update) — the hard rename to the
+  canonical shared `core_i2c` bus id (`GPIO48` SDA / `GPIO45` SCL
+  / `400kHz`) was applied across the seven in-scope Core abstract
+  packages, the 10 in-scope expansion-package `*_i2c_id` consumer
+  defaults, and the hard-coded `packages/features/ceiling_halo_leds.yaml`
+  literal. The `SharedI2CBusTests` class in
+  [`tests/test_core_abstract_bus.py`](../../tests/test_core_abstract_bus.py)
+  (13 new cases) pins the rename against future regression. The
+  Release-One product YAML package-stack systemic mismatch
+  enumerated at [§Release-One product YAML package stack](#release-one-product-yaml-package-stack)
+  above (lines 382 ff.) is **closed at the substitution layer for the
+  I²C bus axis** — every I²C-bound sensor on Release-One and the LED
+  preview now resolves to `i2c_id: core_i2c` on the schematic-correct
+  `GPIO48` / `GPIO45` bus. The HW-009 row stays at
+  `needs-package-change` for the **other** historical mismatches
+  (UART nets, relay pin, status LED, PIR, expansion GPIO) that are
+  owned by `001A` / `001C` (already merged) and the still-deferred
+  voice-variant `relay_pin: GPIO4`. No Release-One identity or
+  WebFlash exposure change results from `001B`.
 
 ### HW-005 (FanTRIAC) — remains blocked separately
 

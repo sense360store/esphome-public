@@ -1,9 +1,12 @@
 substitutions:
   halo_segment_transition: 250ms
 
+# CORE-ABSTRACT-BUS-001B: PCA9685 halo LED driver now binds the shared
+# Core I²C bus `core_i2c` (GPIO48 SDA / GPIO45 SCL per S360-100-R4).
+# The legacy `halo_i2c` bus id is retired with the hard rename.
 pca9685:
   - id: halo_led_driver
-    i2c_id: halo_i2c
+    i2c_id: core_i2c
     frequency: 1000
     address: 0x40
 
