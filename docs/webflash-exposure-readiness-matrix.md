@@ -913,6 +913,93 @@ upgrade breaks compile, a targeted compile fix for the FanRelay
 target only; **not** immediate `WEBFLASH-RELAY-001` wrapper / catalog
 / build-matrix work.
 
+**2026-05-22 — `FW-COMPILE-RELAY-RESULT-001` (this PR; docs-only
+record of successful CI result).** The
+`Compile-only Firmware Validation` workflow ran against the
+expanded eight-target compile-only lane (the FanRelay
+compile-only target added by `FW-COMPILE-RELAY-001` / PR #566 plus
+the seven prior compile-only targets) and **passed** —
+GitHub Actions Run ID `26298089904`, status `completed`,
+conclusion `success`, PR/head validation for PR #566; the
+companion Quick Validation run ID `26298090061` also succeeded.
+**FanRelay compile-only validation now has a green CI result.**
+**WebFlash Relay exposure remains blocked.** The seven WebFlash
+gates enumerated above under
+[Allowed WebFlash action now](#allowed-webflash-action-now-1) are
+**not** advanced by a green compile-only CI result; the four
+possible exposure shapes a future `WEBFLASH-RELAY-001` slice
+could take (blocked entirely; advanced / manual-warning import
+only; hidden / manual mode only; or compile-only / no-runtime
+exposure) are unchanged. Re-verified against the live files:
+
+- **No FanRelay WebFlash wrapper** under
+  [`products/webflash/`](../products/webflash/) — only the
+  Release-One, LED preview, and blocked FanTRIAC reference
+  wrappers remain.
+- **No FanRelay row in
+  [`config/webflash-builds.json`](../config/webflash-builds.json)**
+  — only Release-One stable + LED preview.
+- `release_one_required_configs` in
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+  stays `["Ceiling-POE-VentIQ-RoomIQ"]`.
+- The [`config/product-catalog.json`](../config/product-catalog.json)
+  FanRelay row landed by PRODUCT-RELAY-001 / PR #564 (`status:
+  hardware-pending`, `webflash_build_matrix: false`, no
+  `artifact_name`, no `webflash_wrapper`) is byte-identical.
+- The [`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json)
+  `S360-KIT-BATH-RELAY` row stays `future-expansion` /
+  `hardware-pending` / `webflash_exposure_allowed_now: false` /
+  `stable_ready_now: false`; the default sellable bathroom kit
+  remains `S360-KIT-BATH-POE` mapped to Release-One.
+
+**No `packages/**` edit; no `products/**` or `products/webflash/**`
+edit; no
+[`config/compile-only-targets.json`](../config/compile-only-targets.json)
+edit (totals stay at 8 targets after PR #566); no
+[`config/webflash-builds.json`](../config/webflash-builds.json)
+edit; no
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+edit; no
+[`config/hardware-catalog.json`](../config/hardware-catalog.json)
+edit; no
+[`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json)
+edit; no
+[`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json)
+edit; no
+[`config/product-catalog.json`](../config/product-catalog.json)
+edit; no `scripts/**`, `.github/workflows/**`, `components/**`,
+`include/**`, `firmware/**`, `manifest.json`,
+`firmware/sources.json`, `tests/**` edit; no WebFlash repo
+(`sense360store/WebFlash`) edit; no `webflash_build_matrix` flip;
+no `artifact_name`; no `webflash_wrapper`; no `config_string`
+change; no `release_one_required_configs` change; no
+`lifecycle_statuses` change; no `canonical_modules` /
+`canonical_power` / `forbidden_tokens` change; no
+`REQUIRED_CONFIGS` / kit JSON change; no `schematic_status` /
+`schematic_file` promotion** (`S360-310` stays
+`cataloged_unverified`); **no COMPLIANCE-001 movement**;
+Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` /
+`stable`; LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` /
+`preview`; FanTRIAC stays `blocked` / `HW-005`. **No WebFlash
+import-readiness claim. No WebFlash exposure claim. No
+`RELEASE-RELAY-001` unblock claim. No `WEBFLASH-RELAY-001`
+unblock claim. No `WF-IMPORT-RELAY-001` unblock claim. No
+`REQUIRED_CONFIGS` membership claim. No kit / recommended /
+default membership claim. No compliance / board-level
+mains-safety certification claim. No installation-approval /
+qualified-electrician sign-off claim. No production-wide /
+multi-unit hardware characterisation claim. No hardware stable /
+release-readiness claim.** Compile success on GitHub Actions is
+**necessary-but-insufficient** input to the broader
+preview-to-stable promotion process; it does **not** discharge
+any of the seven WebFlash gates owned by `WEBFLASH-RELAY-001`,
+and does **not** discharge any release-readiness gate owned by
+`RELEASE-RELAY-001`. The recommended next Relay-chain PR is one
+of `WEBFLASH-RELAY-001-SCAFFOLD-001` (if WebFlash Relay planning
+continues) or `CORE-ABSTRACT-BUS-001B` (if PWM / DAC blocker
+removal is prioritised instead); **not** immediate
+`WEBFLASH-RELAY-001` wrapper / catalog / build-matrix work.
+
 ## PWM / S360-311 WebFlash posture
 
 **Current state.** `S360-311 Sense360 PWM`,
