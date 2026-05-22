@@ -490,6 +490,28 @@ for HW-009):
     attached; the operator-uploaded `S360-310-R4_BOM.xlsx` is consumed
     for the `K1` BOM-backed row only and is **not** committed to this
     repository.
+    **Update (PACKAGE-RELAY-001 implementation).** PACKAGE-RELAY-001
+    landed as a **test + readiness reconciliation** PR after the
+    package-evidence layer closed. No YAML edit was required: the
+    package was already correctly abstracted
+    (`fan_relay_pin: ${relay_pin}` in
+    [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml)
+    line 27 inherits the parent Core abstract package binding, and
+    post-001A `${relay_pin}` resolves to the schematic-correct
+    `GPIO3`). The PR added
+    [`tests/test_fan_relay_package.py`](../../tests/test_fan_relay_package.py)
+    pinning the package abstraction (the package exists and parses
+    as YAML; `fan_relay_pin` defaults to `${relay_pin}`; the package
+    does not hard-code any GPIO; `fan_relay_switch` binds
+    `pin: ${fan_relay_pin}`; the five non-voice Core abstract
+    packages bind `relay_pin: GPIO3`; the voice-variant Core
+    packages stay at the pre-001A `relay_pin: GPIO4`; no FanRelay
+    product YAML or WebFlash-builds entry was added). PACKAGE-RELAY-001
+    is recorded as **implemented / reconciled at the package layer
+    only**; PRODUCT-RELAY-001 is the next Relay-chain PR but
+    remains separate and gated on its own evidence. No WebFlash /
+    product / release / compliance / mains-safety / hardware-stable
+    readiness claim is made.
   - `status_led_pin: GPIO48` — `IO48` is `I2C_SDA`.
   - `pir_sensor_pin: GPIO47` — `IO47` is `ALS_INT`; `PIR` is on `IO15`.
   - `expansion_gpio1: GPIO5`, `expansion_gpio2: GPIO6` — `IO5` is
