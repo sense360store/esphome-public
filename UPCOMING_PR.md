@@ -24,9 +24,95 @@ mirrored here.
 
 ## Current queue summary
 
-- **HW-PINMAP-312-FOLLOWUP** advances by a **docs / evidence /
-  readiness-only** slice via **this PR** on 2026-05-22.
-  This PR adds a new standalone schematic+BOM reference doc at
+- **PACKAGE-DAC-001-READINESS-REFRESH** advances by a **docs /
+  readiness-only** slice via **this PR** on 2026-05-22. This PR
+  re-evaluates the 10 FanDAC-specific blockers enumerated in
+  [`docs/hardware/s360-312-r4-fandac.md` Blockers remaining for PACKAGE-DAC-001](docs/hardware/s360-312-r4-fandac.md#blockers-remaining-for-package-dac-001)
+  after `CORE-ABSTRACT-BUS-001B-IMPLEMENT-001` (PR #569) and
+  `HW-PINMAP-312-FOLLOWUP` (PR #570) both landed on 2026-05-22.
+  Adds a new
+  [`docs/hardware/s360-312-r4-fandac.md` §PACKAGE-DAC-001 readiness refresh](docs/hardware/s360-312-r4-fandac.md#package-dac-001-readiness-refresh)
+  section with a 10-row readiness table (blocker × previous state ×
+  current state × evidence × still blocks `PACKAGE-DAC-001`? × what
+  unblocks it), a verdict (`PACKAGE-DAC-001` is **not
+  implementation-plannable yet**), and a recommended next PR
+  (a DAC address / range / silkscreen evidence PR, provisionally
+  `HW-PINMAP-312-FOLLOWUP-DAC-EVIDENCE-001` — **not**
+  `PACKAGE-DAC-001-IMPLEMENT-001`). Rows 1 and 2 (shared-I²C-bus
+  naming via PR #569; GP8403 BOM identity via PR #570) are
+  **resolved**. Rows 5 and 7 (firmware/register-driven range
+  mechanism; per-channel range mixing on a single GP8403 is **not**
+  a hardware capability) are **evidence-captured**. Row 9 (Nextion
+  / UART0) is **deferred out of `PACKAGE-DAC-001` scope** into a
+  future product slice. Rows 3, 6, 8, and 10 **still block**: row 3
+  (DIP-switch ↔ 7-bit I²C address truth table for `SW1` / `SW2`),
+  row 6 (operator-requested firmware/product-selectable 0–5 V /
+  0–10 V output-range policy decision), row 8 (`J2` / `J3` Cloudlift
+  S12 silkscreen pin-1 identity + harness conductor trace), and
+  row 10 (package YAML correctness — implementation-pending; gated
+  on rows 3, 6, and 8). Refreshed cross-links in
+  [`docs/hardware/package-readiness-matrix.md`](docs/hardware/package-readiness-matrix.md)
+  (`fan_gp8403.yaml` row notes + §`fan_gp8403.yaml` / S360-312
+  detail block + `PACKAGE-DAC-001-IMPLEMENT-001` follow-up PR row +
+  per-slice gate-table row); refreshed the `PACKAGE-DAC-001` queue
+  entry below. **No** `packages/**` edit (both
+  [`packages/expansions/fan_gp8403.yaml`](packages/expansions/fan_gp8403.yaml)
+  and
+  [`packages/expansions/fan_dac.yaml`](packages/expansions/fan_dac.yaml)
+  byte-identical). **No** `products/**` edit. **No**
+  `products/webflash/**` edit. **No** `config/**` edit
+  (`config/hardware-catalog.json`, `config/product-catalog.json`,
+  `config/webflash-builds.json`, `config/webflash-compatibility.json`,
+  `config/firmware-combination-matrix.json`,
+  `config/kit-intent-matrix.json`, `config/compile-only-targets.json`,
+  `config/compile-only-candidates.json` all byte-identical). **No**
+  `scripts/**`, `.github/workflows/**`, `components/**`, `include/**`,
+  `firmware/**`, `manifest.json`, `firmware/sources.json`, `tests/**`
+  edit. **No** `webflash_build_matrix` flip. **No** `artifact_name`
+  / `webflash_wrapper` / `config_string` /
+  `release_one_required_configs` / `lifecycle_statuses` /
+  `canonical_modules` / `canonical_power` / `forbidden_tokens` /
+  `REQUIRED_CONFIGS` / kit change. **No** `schematic_status` /
+  `schematic_file` promotion (`S360-312` stays
+  `cataloged_unverified`; no `schematic_file` set). **No**
+  COMPLIANCE-001 movement. **No** Release-One change
+  (`Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`). **No** LED
+  preview change (`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`).
+  **No** FanTRIAC change (`blocked` / `HW-005`). **No** compile-only
+  target added. **No** firmware artifact built or attached. **No**
+  release artifact / tag / checksum / build-info manifest / proof
+  row. **No** WebFlash import readiness claim. **No** hardware
+  release-readiness claim. **No** claim that `RELEASE-DAC-001`,
+  `PRODUCT-DAC-001`, `WEBFLASH-DAC-001`, or `WF-IMPORT-DAC-001` are
+  unblocked beyond what `CORE-ABSTRACT-BUS-001B-IMPLEMENT-001` and
+  `HW-PINMAP-312-FOLLOWUP` already established. **No** claim of
+  simultaneous one-channel-0–5 V and one-channel-0–10 V on a single
+  GP8403 (the readiness refresh re-records this as a hard
+  guardrail). **No** edit to the WebFlash repository
+  (`sense360store/WebFlash`) — it is **read-only** for the purposes
+  of this PR. Doc-side updates: refreshed
+  [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md)
+  with the new §`PACKAGE-DAC-001 readiness refresh` section and a
+  new 2026-05-22 audit-log entry for the readiness refresh;
+  refreshed
+  [`docs/hardware/package-readiness-matrix.md`](docs/hardware/package-readiness-matrix.md)
+  (`fan_gp8403.yaml` row notes + §`fan_gp8403.yaml` / S360-312
+  detail block + the `PACKAGE-DAC-001-IMPLEMENT-001` follow-up PR
+  row + the per-slice gate-table row); refreshed this
+  `UPCOMING_PR.md` queue summary and the `PACKAGE-DAC-001` queue
+  entry. Validation: `python3 tests/validate_configs.py`;
+  `python3 scripts/validate_compile_targets.py --metadata-only`;
+  `python3 tests/test_core_abstract_bus.py`;
+  `python3 tests/test_fandac_alias_packages.py`;
+  `python3 tests/test_compile_targets.py`;
+  `python3 tests/test_compile_expansion_candidates.py`;
+  `python3 tests/test_firmware_combination_matrix.py`;
+  `python3 tests/test_firmware_build_gap_report.py`;
+  `python3 tests/validate_webflash_builds.py`;
+  `python3 -m unittest discover -s tests -p "test_*.py"`.
+- **HW-PINMAP-312-FOLLOWUP** advanced by a **docs / evidence /
+  readiness-only** slice via **PR #570** on 2026-05-22.
+  That PR added a new standalone schematic+BOM reference doc at
   [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md)
   for the `S360-312-R4` Sense360 DAC (`Fan_GP8403`) board after the
   user supplied the same module-side schematic PDF (byte-identical
@@ -4551,21 +4637,80 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
     - Status: Blocked on WEBFLASH-PWM-001
     - Purpose: Release artifact + release-proof entries for the PWM product.
 
-14. **PACKAGE-DAC-001**
-    - Status: Blocked on HW-PINMAP-312-FOLLOWUP returning sufficient evidence
-    - Purpose: Stand up / re-stand up the S360-312 DAC (GP8403) package
-      wiring once the pin/package audit is no longer partial.
-    - Notes: Also affected by CORE-ABSTRACT-BUS-001B. The GP8403
-      DAC is I²C-attached and consumes the `fan_dac_i2c_id`
-      substitution default at
-      `packages/expansions/fan_gp8403.yaml` line 26
-      (currently `i2c0`). **The canonical I²C bus id is now
-      decided as `core_i2c` per `CORE-ABSTRACT-BUS-001B-PLAN-001`
-      / 2026-05-22**, so the future `001B` implementation slice
-      will rebind that default to `core_i2c` (hard rename only).
-      Until the implementation slice lands, `PACKAGE-DAC-001`
-      stays blocked behind both the `HW-PINMAP-312-FOLLOWUP`
-      evidence and `001B` implementation actually landing in YAML.
+14. **PACKAGE-DAC-001-IMPLEMENT-001** (was `PACKAGE-DAC-001` before
+    the 2026-05-22 readiness refresh split out a docs-only
+    `PACKAGE-DAC-001-READINESS-REFRESH` and recommended a DAC
+    address / range / silkscreen evidence PR as the next step)
+    - Status: **Not implementation-plannable yet** per the
+      2026-05-22 `PACKAGE-DAC-001-READINESS-REFRESH` (this PR) —
+      see
+      [`docs/hardware/s360-312-r4-fandac.md` §PACKAGE-DAC-001 readiness refresh](docs/hardware/s360-312-r4-fandac.md#package-dac-001-readiness-refresh).
+      Of the 10 FanDAC-specific blockers, rows 1 (shared-I²C-bus
+      naming via PR #569) and 2 (GP8403 BOM identity via PR #570)
+      are **resolved**; rows 5 (firmware/register-driven range
+      mechanism) and 7 (no simultaneous per-channel 0–5 V +
+      0–10 V on a single GP8403) are **evidence-captured**;
+      row 9 (Nextion / UART0) is **deferred** out of
+      `PACKAGE-DAC-001` scope into a future product slice;
+      rows 3, 6, 8, and 10 **still block**.
+    - Purpose: Reconcile
+      [`packages/expansions/fan_gp8403.yaml`](packages/expansions/fan_gp8403.yaml)
+      against the now-verified schematic + BOM evidence: at
+      minimum correct the stale `"(jumper selectable on
+      hardware)"` comment at file line 6; decide the
+      `${fan_dac_address}` allowed-values set against the
+      DIP-switch ↔ I²C-address truth table (row 3); decide the
+      package-design shape among "one logical FanDAC, two
+      channels" vs "two GP8403 devices each with its own
+      `${fan_dac_address*}` / `${fan_dac_voltage_mode*}`" vs
+      "four logical outputs" (row 4); decide the output-range
+      policy (row 6); document the `J2` / `J3` Cloudlift S12
+      silkscreen pin-1 + harness conductor mapping per row 8;
+      keep the
+      [`packages/expansions/fan_dac.yaml`](packages/expansions/fan_dac.yaml)
+      alias as a canonical pure-wrapper of `fan_gp8403.yaml`
+      unless a separate `PACKAGE-DAC-SPLIT-001` slice argues
+      otherwise. The active package YAML is already dual-channel
+      and matches the schematic for `IC1`.
+    - Notes: The recommended next PR is **not**
+      `PACKAGE-DAC-001-IMPLEMENT-001`; it is a separately-scoped
+      **DAC address / range / silkscreen evidence PR**
+      (provisionally `HW-PINMAP-312-FOLLOWUP-DAC-EVIDENCE-001`)
+      that closes rows 3, 6, and 8 of the readiness refresh by
+      adding (a) a GP8403 datasheet excerpt under
+      `docs/hardware/` (path + citation) covering the 7-bit
+      address base, the `A0` / `A1` / `A2` bit ordering, and the
+      range-selection register layout — **or** a logic-analyser
+      bench capture against a populated `S360-100-R4` +
+      `S360-312-R4` pair under at least three DIP-switch settings
+      (all-open, all-closed, one mixed), recorded with operator /
+      date; (b) an operator-attested silkscreen reading of
+      `J2` / `J3` pin-1 location + harness conductor trace; and
+      (c) a recorded operator / product output-range policy
+      decision (chip-level only vs per-chip substitution pair vs
+      per-product range exposure). The evidence PR must **not**
+      edit
+      [`packages/expansions/fan_gp8403.yaml`](packages/expansions/fan_gp8403.yaml),
+      [`packages/expansions/fan_dac.yaml`](packages/expansions/fan_dac.yaml),
+      any product / WebFlash wrapper, `config/**`, `firmware/**`,
+      `manifest.json`, `firmware/sources.json`, `scripts/**`,
+      `.github/workflows/**`, `components/**`, `include/**`, or
+      `tests/**`, and must **not** flip `webflash_build_matrix`,
+      add an `artifact_name`, add a compile-only target, claim
+      DAC product / WebFlash / release readiness, or claim
+      simultaneous per-channel 0–5 V + 0–10 V on a single GP8403.
+      `PACKAGE-DAC-001-IMPLEMENT-001` becomes the **next-next**
+      PR, gated on the evidence PR landing **and** on
+      `S360-312` `schematic_status` promotion (separate JSON
+      PR). The Core `J7` pin-1 `+5V` vs Module `J1` pin-1
+      `+3.3V` voltage-rail discrepancy stays on a parallel
+      `S360-100-BENCH-001` track and is not gating
+      `PACKAGE-DAC-001-IMPLEMENT-001` directly. The shared-I²C-bus
+      blocker is closed at the substitution layer:
+      `${fan_dac_i2c_id}` already defaults to `core_i2c` at
+      [`packages/expansions/fan_gp8403.yaml`](packages/expansions/fan_gp8403.yaml)
+      line 27 after `CORE-ABSTRACT-BUS-001B-IMPLEMENT-001`
+      (PR #569).
 
 15. **PRODUCT-DAC-001**
     - Status: Blocked on PACKAGE-DAC-001
