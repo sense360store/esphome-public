@@ -377,7 +377,7 @@ own gate evidence.
 
 | Package path | Board / module | Current role | Evidence source | Current audit status | Known conflicts | Allowed action now | Follow-up owner |
 |---|---|---|---|---|---|---|---|
-| [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml) | `S360-310` Sense360 Relay | `FanRelay` — single on/off relay-driven fan via `${fan_relay_pin}` defaulting to `${relay_pin}` | [`s360-310-r4-relay.md`](s360-310-r4-relay.md) (HW-PINMAP-310) **`partial — schematic evidence available; package reconciliation pending`** (audit status promoted by HW-PINMAP-310-FOLLOWUP); module-side schematic PDF + curated artifact index committed under HW-ASSETS-310 at [`docs/hardware/artifacts/S360-310-R4.md`](artifacts/S360-310-R4.md) + [`schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf); evidence-capture **checklist** recorded under `S360-310-BENCH-001` at [`s360-310-r4-relay.md` §S360-310-BENCH-001 — Relay bench evidence](s360-310-r4-relay.md#s360-310-bench-001--relay-bench-evidence) **and populated by `S360-310-BENCH-EVIDENCE-001` (2026-05-22)** from operator-attested + BOM-backed + public-reference-backed sources (all ten enumerated hardware-evidence rows now carry captured values; no photo / video / oscilloscope / continuity-meter artifacts attached; operator-uploaded `S360-310-R4_BOM.xlsx` consumed for `K1` BOM-backed row but not committed to this repository) | `package-evidence-captured` + `implementation-ready at PACKAGE-RELAY-001 evidence layer` (substitution-layer blockers resolved by 001A / 001C, PR #557 + PR #558; hardware-evidence blockers populated by `S360-310-BENCH-EVIDENCE-001` from operator-attested + BOM-backed + public-reference-backed sources; no photo / video / oscilloscope / continuity-meter artifacts attached; product / WebFlash / release / compliance / mains-safety gates stay separately blocked — see [§`fan_relay.yaml` / S360-310](#fan_relayyaml--s360-310)) | **Substitution-layer blockers resolved by 001A / 001C (PR #557 + PR #558, 2026-05-21).** Pre-001A the Core abstract packages bound `relay_pin: GPIO4` (ceiling Core) / `GPIO10` (generic Core), neither matching the Core schematic `Relay = IO3`; the schematic-correct `relay_pin: GPIO3` also collided with `comfort_ceiling_als_int_pin: GPIO3` (Release-One via [`comfort_ceiling.yaml`](../../packages/expansions/comfort_ceiling.yaml)), `expander_int_pin: GPIO3` ([`sense360_core_mapping.yaml`](../../packages/hardware/sense360_core_mapping.yaml)), and `sx1509_interrupt_pin: GPIO3` ([`gpio_expander_sx1509.yaml`](../../packages/expansions/gpio_expander_sx1509.yaml)). Post-001C / 001A the five non-voice Core abstract packages bind `relay_pin: GPIO3`; ALS_INT is on `GPIO47`; the expander interrupt is on `GPIO17`; [`tests/test_core_abstract_bus.py`](../../tests/test_core_abstract_bus.py) `RelayPinRebindTests` / `MainRelaySwitchBindingTests` / `NoSubstitutionCollisionTests` pin the rebind. Module schematic confirms `J2` 3-pin "From Core" net order (`+5V` / `Relay` / `GND`) matches Core `J4`, and that the `Relay` net drives a `Q1` MMBT3904 NPN low-side switch (`R1` 1 kΩ base / `R2` 10 kΩ pull-down / `D1` flyback) into a `K1` mechanical relay. **Hardware-evidence blockers still owed (now enumerated as a `S360-310-BENCH-001` checklist with ten rows, every row `pending — bench evidence required`)**: S360-100 Core `J4` silkscreen / pin-1 orientation (gated on `S360-100-BENCH-001`); S360-310 Relay `J2` 1-to-3 pin order; S360-310 Relay `J1` `NO` / `COM` / `NC` mapping; Core `J4` ↔ Relay `J2` harness identity (straight-through or keyed); `K1` BOM identity / manufacturer / part number; `K1` contact-current rating; expected controlled load type; relay boot state with `S360-100-R4` + `S360-310-R4` attached; ESP32-S3 `GPIO3` strap-pin boot characterisation generalisation status (the operator-confirmed pair-scoped boot OK in [`docs/hardware/core-abstract-bus-001c-rebind-plan.md`](core-abstract-bus-001c-rebind-plan.md) decisions #16 / #17 is **pair-scoped**, not generic); Relay load / contact proof. | **Hardware-evidence blockers populated by `S360-310-BENCH-EVIDENCE-001` (2026-05-22)** from operator-attested (Core `J4` pin order `+5V` / `Relay` / `GND`; Relay `J2` pin order `+5V` / `Relay` / `GND`; Relay `J1` mapping `NO` / `COM` / `NC`; straight-through 3-pin harness with J4-N↔J2-N identity; expected controlled load type UK mains Manrose `MT100S`-class extractor fan; relay boot state de-energized across 10 cycles × 4 power paths with firmware `Ceiling-POE-VentIQ-RoomIQ`; load / contact behaviour consistent with `NO` + `COM` wiring) + BOM-backed (`K1` Songle `SRD-05VDC-SL-C` from operator-uploaded `S360-310-R4_BOM.xlsx`, not committed) + public-reference-backed (`K1` contact-current rating `10 A @ 250 VAC; 10 A @ 30 VDC` from SRD-style relay reference) + operator-framed pair-scoped sufficient for package implementation (`GPIO3` strap-pin boot behaviour on the populated `S360-100-R4` + `S360-310-R4` pair). | **`PACKAGE-RELAY-001` implementation slice may now proceed at the package-evidence layer.** `fan_relay.yaml` remains structurally correct (`fan_relay_pin: ${relay_pin}` line 27 resolves to the schematic-correct `GPIO3` automatically post-001A). Any future `PACKAGE-RELAY-001` implementation PR must honour the do-not-change guardrails for `products/`, `products/webflash/`, `config/`, scripts, tests, workflows, firmware, manifests, and release artifacts unless explicitly authorised. "Implementation-ready at the `PACKAGE-RELAY-001` evidence layer" does **not** mean: product-ready; WebFlash-ready; release-ready; compliance-cleared; safe for arbitrary mains installation; or verified across production batches. No photo / video / oscilloscope / continuity-meter artifacts are attached by `S360-310-BENCH-EVIDENCE-001`; production-wide / multi-unit / oscilloscope-traced general `GPIO3` strap-pin characterisation and board-level mains-safety / installation-approval / creepage / clearance / thermal / EMI certification remain owed and are **not** prerequisites for `PACKAGE-RELAY-001` implementation. | `HW-ASSETS-310` *(landed)* → `HW-PINMAP-310-FOLLOWUP` *(landed)* → `CORE-ABSTRACT-BUS-001` docs-only audit *(landed)* → `CORE-ABSTRACT-BUS-001C` *(landed PR #557 — ALS_INT / PIR / UART / status / expansion GPIO rebind; freed `GPIO3`)* → `CORE-ABSTRACT-BUS-001A` *(landed PR #558 — `relay_pin → GPIO3` rebound + pin-pinning regression scaffold)* → `PACKAGE-RELAY-001-READINESS-REFRESH` *(landed PR #559 — docs/evidence/readiness only)* → `S360-310-BENCH-001` *(landed PR #560 — evidence-capture **checklist** added; ten rows pending; no artifacts supplied)* → **`S360-310-BENCH-EVIDENCE-001`** *(this PR — evidence-population only; ten rows captured from operator-attested + BOM-backed + public-reference-backed sources; no photo / video / oscilloscope / continuity-meter artifacts attached; `PACKAGE-RELAY-001` implementation-ready at package-evidence layer only)* → `PACKAGE-RELAY-001` (alias: `PACKAGE-GAP-001` FanRelay slice — implementation). |
+| [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml) | `S360-310` Sense360 Relay | `FanRelay` — single on/off relay-driven fan via `${fan_relay_pin}` defaulting to `${relay_pin}` | [`s360-310-r4-relay.md`](s360-310-r4-relay.md) (HW-PINMAP-310) **`partial — schematic evidence available; package reconciliation pending`** (audit status promoted by HW-PINMAP-310-FOLLOWUP); module-side schematic PDF + curated artifact index committed under HW-ASSETS-310 at [`docs/hardware/artifacts/S360-310-R4.md`](artifacts/S360-310-R4.md) + [`schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf); evidence-capture **checklist** recorded under `S360-310-BENCH-001` at [`s360-310-r4-relay.md` §S360-310-BENCH-001 — Relay bench evidence](s360-310-r4-relay.md#s360-310-bench-001--relay-bench-evidence) **and populated by `S360-310-BENCH-EVIDENCE-001` (2026-05-22)** from operator-attested + BOM-backed + public-reference-backed sources (all ten enumerated hardware-evidence rows now carry captured values; no photo / video / oscilloscope / continuity-meter artifacts attached; operator-uploaded `S360-310-R4_BOM.xlsx` consumed for `K1` BOM-backed row but not committed to this repository); pin-pinning regression for the FanRelay package itself landed in `PACKAGE-RELAY-001` at [`tests/test_fan_relay_package.py`](../../tests/test_fan_relay_package.py) | `package-implemented` + `reconciled-at-package-layer` (substitution-layer blockers resolved by 001A / 001C, PR #557 + PR #558; hardware-evidence blockers populated by `S360-310-BENCH-EVIDENCE-001` from operator-attested + BOM-backed + public-reference-backed sources; package abstraction pinned by `PACKAGE-RELAY-001` test scaffold; product / WebFlash / release / compliance / mains-safety gates stay separately blocked — see [§`fan_relay.yaml` / S360-310](#fan_relayyaml--s360-310)) | **Substitution-layer blockers resolved by 001A / 001C (PR #557 + PR #558, 2026-05-21).** Pre-001A the Core abstract packages bound `relay_pin: GPIO4` (ceiling Core) / `GPIO10` (generic Core), neither matching the Core schematic `Relay = IO3`; the schematic-correct `relay_pin: GPIO3` also collided with `comfort_ceiling_als_int_pin: GPIO3` (Release-One via [`comfort_ceiling.yaml`](../../packages/expansions/comfort_ceiling.yaml)), `expander_int_pin: GPIO3` ([`sense360_core_mapping.yaml`](../../packages/hardware/sense360_core_mapping.yaml)), and `sx1509_interrupt_pin: GPIO3` ([`gpio_expander_sx1509.yaml`](../../packages/expansions/gpio_expander_sx1509.yaml)). Post-001C / 001A the five non-voice Core abstract packages bind `relay_pin: GPIO3`; ALS_INT is on `GPIO47`; the expander interrupt is on `GPIO17`; [`tests/test_core_abstract_bus.py`](../../tests/test_core_abstract_bus.py) `RelayPinRebindTests` / `MainRelaySwitchBindingTests` / `NoSubstitutionCollisionTests` pin the rebind. Module schematic confirms `J2` 3-pin "From Core" net order (`+5V` / `Relay` / `GND`) matches Core `J4`, and that the `Relay` net drives a `Q1` MMBT3904 NPN low-side switch (`R1` 1 kΩ base / `R2` 10 kΩ pull-down / `D1` flyback) into a `K1` mechanical relay. **Hardware-evidence blockers still owed (now enumerated as a `S360-310-BENCH-001` checklist with ten rows, every row `pending — bench evidence required`)**: S360-100 Core `J4` silkscreen / pin-1 orientation (gated on `S360-100-BENCH-001`); S360-310 Relay `J2` 1-to-3 pin order; S360-310 Relay `J1` `NO` / `COM` / `NC` mapping; Core `J4` ↔ Relay `J2` harness identity (straight-through or keyed); `K1` BOM identity / manufacturer / part number; `K1` contact-current rating; expected controlled load type; relay boot state with `S360-100-R4` + `S360-310-R4` attached; ESP32-S3 `GPIO3` strap-pin boot characterisation generalisation status (the operator-confirmed pair-scoped boot OK in [`docs/hardware/core-abstract-bus-001c-rebind-plan.md`](core-abstract-bus-001c-rebind-plan.md) decisions #16 / #17 is **pair-scoped**, not generic); Relay load / contact proof. | **Hardware-evidence blockers populated by `S360-310-BENCH-EVIDENCE-001` (2026-05-22)** from operator-attested (Core `J4` pin order `+5V` / `Relay` / `GND`; Relay `J2` pin order `+5V` / `Relay` / `GND`; Relay `J1` mapping `NO` / `COM` / `NC`; straight-through 3-pin harness with J4-N↔J2-N identity; expected controlled load type UK mains Manrose `MT100S`-class extractor fan; relay boot state de-energized across 10 cycles × 4 power paths with firmware `Ceiling-POE-VentIQ-RoomIQ`; load / contact behaviour consistent with `NO` + `COM` wiring) + BOM-backed (`K1` Songle `SRD-05VDC-SL-C` from operator-uploaded `S360-310-R4_BOM.xlsx`, not committed) + public-reference-backed (`K1` contact-current rating `10 A @ 250 VAC; 10 A @ 30 VDC` from SRD-style relay reference) + operator-framed pair-scoped sufficient for package implementation (`GPIO3` strap-pin boot behaviour on the populated `S360-100-R4` + `S360-310-R4` pair). | **`PACKAGE-RELAY-001` is implemented / reconciled at the package layer (this PR).** `fan_relay.yaml` remains structurally correct and **unchanged**: `fan_relay_pin: ${relay_pin}` line 27 resolves to the schematic-correct `GPIO3` automatically post-001A. The reconciliation is the addition of [`tests/test_fan_relay_package.py`](../../tests/test_fan_relay_package.py) which pins the FanRelay package abstraction against future regression (package parses as YAML; `fan_relay_pin` defaults to `${relay_pin}`; no GPIO is hard-coded; `fan_relay_switch` binds `pin: ${fan_relay_pin}`; non-voice Core packages bind `relay_pin: GPIO3`; voice variants stay at the pre-001A `relay_pin: GPIO4`; no FanRelay product YAML or WebFlash-builds entry was added). "Reconciled at the `PACKAGE-RELAY-001` package layer" does **not** mean: product-ready; WebFlash-ready; release-ready; compliance-cleared; safe for arbitrary mains installation; or verified across production batches. `PRODUCT-RELAY-001` is the next Relay-chain PR and stays separately gated on its own evidence. | `HW-ASSETS-310` *(landed)* → `HW-PINMAP-310-FOLLOWUP` *(landed)* → `CORE-ABSTRACT-BUS-001` docs-only audit *(landed)* → `CORE-ABSTRACT-BUS-001C` *(landed PR #557 — ALS_INT / PIR / UART / status / expansion GPIO rebind; freed `GPIO3`)* → `CORE-ABSTRACT-BUS-001A` *(landed PR #558 — `relay_pin → GPIO3` rebound + pin-pinning regression scaffold)* → `PACKAGE-RELAY-001-READINESS-REFRESH` *(landed PR #559 — docs/evidence/readiness only)* → `S360-310-BENCH-001` *(landed PR #560 — evidence-capture **checklist** added)* → `S360-310-BENCH-EVIDENCE-001` *(landed PR #561 — evidence-population only; ten rows captured)* → **`PACKAGE-RELAY-001`** *(this PR — test + readiness reconciliation; no YAML rebind; added `tests/test_fan_relay_package.py`; package status moves to `package-implemented` + `reconciled-at-package-layer`)* → `PRODUCT-RELAY-001` (alias: `PRODUCT-GAP-001` FanRelay slice). |
 | [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml) | `S360-311` Sense360 PWM | `FanPWM` — single-channel 25 kHz PWM fan + `pulse_counter` tach via `${fan_pwm_pin}` / `${fan_tach_pin}` | [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) (HW-PINMAP-311) **`partial — schematic evidence available; package reconciliation pending`**; module-side schematic PDF + curated artifact index committed under HW-ASSETS-003 | `needs-package-reconciliation` + `bench-evidence-pending` | SX1509-channel (`TachPMW1..4`, `Pul_Cou1..4`) vs direct-ESP32-GPIO mismatch (Core abstract `expansion_gpio1/2` resolves to `GPIO5 = SEN0609_TX` / `GPIO6 = out(gpio6)`); UART-on-`J3`-pins-11/12 routing; single-channel YAML vs four 4-pin fan output connectors on the module; PWM polarity, tach pull-up, `"NINE 4pin FANs"` documentation question (per [`s360-311-r4-pwm.md` Reconciliation flags](s360-311-r4-pwm.md#reconciliation-flags-raised-or-strengthened-by-this-schematic) and [§Existing package abstraction](s360-311-r4-pwm.md#existing-package-abstraction)). `S360-311` JSON `schematic_status` stays `cataloged_unverified`. Sibling [`packages/expansions/sense360_fan_pwm.yaml`](../../packages/expansions/sense360_fan_pwm.yaml) (legacy four-channel; direct ESP32 GPIOs) is consumed only by the legacy-compatible product [`products/sense360-fan-pwm.yaml`](../../products/sense360-fan-pwm.yaml) and stays out of any WebFlash-shippable surface. | **No package edit.** HW-PINMAP-311-FOLLOWUP must close first. | `HW-PINMAP-311-FOLLOWUP` → `S360-311` `schematic_status` promotion (separate JSON PR) → `PACKAGE-PWM-001` (alias: `PACKAGE-GAP-001` FanPWM slice). Abstract-bus rebind is `CORE-ABSTRACT-BUS-001`. |
 | [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) | `S360-312` Sense360 DAC | `FanDAC` — dual-channel GP8403 12-bit DAC over I²C; two `fan: speed` entities + per-channel voltage / speed templates | [`s360-312-r4-dac.md`](s360-312-r4-dac.md) (HW-PINMAP-312) **`partial — schematic evidence available; package reconciliation pending`**; module-side schematic PDF + curated artifact index committed under HW-ASSETS-003 | `needs-package-reconciliation` + `bench-evidence-pending` | Core `J7` pin-1 `+5V` vs Module `J1` pin-1 `+3.3V` rail discrepancy; DIP-switch I²C address selection on `IC1` / `IC2` (package allows only `0x58` / `0x59`); UART0-vs-Nextion routing on Module `J1` pins 4 / 5 (shared with boot log on Core `TXD0` / `RXD0`); 5 V vs 10 V hardware-select identity; stale header-comment claims `Pin 4 (SDA) → GPIO39`, `Pin 5 (SCL) → GPIO40` disagree with Module `J1` (`I2C_SDA` / `I2C_SCL`) and Core `J7` (`IO48` / `IO45`) (per [`s360-312-r4-dac.md` Header-comment claims vs schematic evidence](s360-312-r4-dac.md#header-comment-claims-vs-schematic-evidence) and [§Reconciliation flags](s360-312-r4-dac.md#reconciliation-flags-raised-or-strengthened-by-this-schematic)). `S360-312` JSON `schematic_status` stays `cataloged_unverified`. Subject to `FanDAC` ↔ `AirIQ` mutex in [`config/webflash-compatibility.json`](../../config/webflash-compatibility.json). | **No package edit.** HW-PINMAP-312-FOLLOWUP must close first. | `HW-PINMAP-312-FOLLOWUP` → `S360-312` `schematic_status` promotion (separate JSON PR) → `PACKAGE-DAC-001` (alias: `PACKAGE-GAP-001` FanDAC slice). |
 | [`packages/expansions/fan_triac.yaml`](../../packages/expansions/fan_triac.yaml) | `S360-320` Sense360 TRIAC | `FanTRIAC` — `output: ac_dimmer` + `fan: speed` (phase-cut AC); requires direct interrupt-capable ESP32 GPIOs for `gate_pin` + `zero_cross_pin`; retained with BLOCKED / UNVERIFIED banner | [`s360-320-r4-triac.md`](s360-320-r4-triac.md) (HW-PINMAP-320) **`partial — schematic evidence available; package reconciliation, timing validation, and compliance/certification pending`**; module-side schematic PDF + curated artifact index committed under HW-ASSETS-003 | `timing/compliance-pending` + `needs-package-reconciliation` + `blocked-from-standard-exposure` | `TRI_GPIO1` / `TRI_GPIO2` (Core sheet labels) ↔ `ESP_GPIO1` / `ESP_GPIO2` (module sheet labels) — same wire, two names; placeholder `fan_triac_gate_pin: GPIO5` / `fan_triac_zc_pin: GPIO6` in the Release-One reference product YAML already claimed by RoomIQ J10 (`IO5 = SEN0609_TX`, `IO6 = out(gpio6)`); `ac_dimmer` ISR requires direct interrupt-capable ESP32 GPIOs and explicitly **rejects** SX1509-routed pins; module-side EL814 zero-cross topology + module-side TRIAC drive topology need bench / waveform proof; mains-voltage compliance owed by COMPLIANCE-001 (per [`s360-320-r4-triac.md` Package YAML status](s360-320-r4-triac.md#package-yaml-status)); HW-005 (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` blocker) unresolved. | **No package edit.** HW-005 + HW-PINMAP-320-FOLLOWUP + bench timing evidence + COMPLIANCE-001 advanced/manual-warning sign-off all required. | `HW-PINMAP-320-FOLLOWUP` + `HW-005` unblock + `COMPLIANCE-001` advanced/manual-warning slice → `PACKAGE-TRIAC-001` (alias: `PACKAGE-GAP-001` FanTRIAC slice). Long-term advanced / manual-warning posture in [`s360-320-r4-triac.md` Advanced / manual-warning product posture](s360-320-r4-triac.md#advanced--manual-warning-product-posture); JSON `status: blocked` stays. |
@@ -407,16 +407,27 @@ named follow-up.
 
 ### `fan_relay.yaml` / S360-310
 
-- **Status.** `package-evidence-captured` +
-  `implementation-ready at PACKAGE-RELAY-001 evidence layer`.
-  Substitution-layer blockers resolved by `CORE-ABSTRACT-BUS-001A`
+- **Status.** `package-implemented` +
+  `reconciled-at-package-layer`. PACKAGE-RELAY-001 has landed as a
+  **test + readiness reconciliation** after the package-evidence
+  layer closed: no YAML edit was required because the FanRelay
+  package was already structurally correct
+  (`fan_relay_pin: ${relay_pin}` in
+  [`packages/expansions/fan_relay.yaml`](../../packages/expansions/fan_relay.yaml)
+  line 27 inherits the parent Core abstract package binding, and
+  post-001A `${relay_pin}` resolves to the schematic-correct
+  `GPIO3`). The PR added
+  [`tests/test_fan_relay_package.py`](../../tests/test_fan_relay_package.py)
+  pinning the package abstraction against future regression.
+  Substitution-layer blockers were resolved by `CORE-ABSTRACT-BUS-001A`
   (PR #558) + `CORE-ABSTRACT-BUS-001C` (PR #557); hardware-evidence
-  blockers populated by `S360-310-BENCH-EVIDENCE-001` (2026-05-22)
-  from operator-attested + BOM-backed + public-reference-backed
-  sources. **No photo / video / oscilloscope / continuity-meter
-  artifacts attached.** `PACKAGE-RELAY-001` implementation slice may
-  now proceed at the package-evidence layer. Product / WebFlash /
-  release / compliance / mains-safety gates stay separately blocked.
+  blockers were populated by `S360-310-BENCH-EVIDENCE-001` (PR #561,
+  2026-05-22) from operator-attested + BOM-backed + public-reference-
+  backed sources. **No photo / video / oscilloscope / continuity-meter
+  artifacts attached.** Product / WebFlash / release / compliance /
+  mains-safety gates stay separately blocked. PRODUCT-RELAY-001 is the
+  next Relay-chain PR but remains separate and gated on its own
+  evidence.
 - **Evidence state.** The Core schematic shows `Relay = IO3` at `J4`
   pin 2 (per [`s360-310-r4-relay.md` Reconciliation findings](s360-310-r4-relay.md#reconciliation-findings)).
   **Pre-001A** the ceiling Core abstract package bound
@@ -470,23 +481,29 @@ named follow-up.
     on the populated `S360-100-R4` + `S360-310-R4` pair. **Caveat:**
     **not** a production-wide, multi-unit, oscilloscope-traced,
     compliance, release-readiness, or safety-certification claim.
-- **Allowed action now.** **`PACKAGE-RELAY-001` implementation slice
-  may now proceed at the package-evidence layer.**
+- **Allowed action now.** **`PACKAGE-RELAY-001` is implemented /
+  reconciled at the package layer.**
   [`fan_relay.yaml`](../../packages/expansions/fan_relay.yaml)
-  remains structurally correct: `fan_relay_pin: ${relay_pin}`
-  (line 27) inherits the parent Core abstract package binding, and
-  that binding resolves to the schematic-correct `GPIO3`
-  automatically post-001A. Any future `PACKAGE-RELAY-001`
-  implementation PR must continue to honour the do-not-change
-  guardrails for `products/`, `products/webflash/`, `config/`,
-  `scripts/`, `tests/`, `.github/workflows/`, `components/`,
-  `include/`, `firmware/`, `manifest.json`, `firmware/sources.json`,
-  and release artifacts / checksums / build-info manifests unless
-  explicitly authorised. "Implementation-ready at the
-  `PACKAGE-RELAY-001` evidence layer" does **not** mean
-  product-ready, WebFlash-ready, release-ready, compliance-cleared,
-  safe for arbitrary mains installation, or verified across
-  production batches.
+  remains structurally correct and unchanged:
+  `fan_relay_pin: ${relay_pin}` (line 27) inherits the parent Core
+  abstract package binding, and that binding resolves to the
+  schematic-correct `GPIO3` automatically post-001A. The
+  PACKAGE-RELAY-001 PR added
+  [`tests/test_fan_relay_package.py`](../../tests/test_fan_relay_package.py)
+  to pin the package abstraction (the package parses as YAML;
+  `fan_relay_pin` defaults to `${relay_pin}`; the package does not
+  hard-code any GPIO; `fan_relay_switch` binds
+  `pin: ${fan_relay_pin}`; the five non-voice Core abstract
+  packages bind `relay_pin: GPIO3`; voice variants stay at the
+  pre-001A `relay_pin: GPIO4`; no FanRelay product YAML or
+  WebFlash-builds entry was added). The next Relay PR is
+  `PRODUCT-RELAY-001`, but it stays separately gated on
+  product-layer compliance / mains-safety / installation /
+  production-wide characterisation evidence. "Implemented /
+  reconciled at the `PACKAGE-RELAY-001` package layer" does **not**
+  mean product-ready, WebFlash-ready, release-ready,
+  compliance-cleared, safe for arbitrary mains installation, or
+  verified across production batches.
 - **Follow-up owner.** `HW-ASSETS-310` *(landed)* →
   `HW-PINMAP-310-FOLLOWUP` *(landed; schematic-backed reconciliation
   recorded in [`s360-310-r4-relay.md`](s360-310-r4-relay.md))* →
@@ -500,19 +517,27 @@ named follow-up.
   recorded against the populated `S360-310-R4` + `S360-100-R4`
   pair, all rows `pending — bench evidence required`; no physical
   evidence supplied)*
-  → **`S360-310-BENCH-EVIDENCE-001`** *(this PR — evidence-population
-  only; ten rows captured from operator-attested + BOM-backed +
-  public-reference-backed sources; no photo / video / oscilloscope
-  / continuity-meter artifacts attached; `PACKAGE-RELAY-001`
-  implementation-ready at package-evidence layer only)*
-  → `PACKAGE-RELAY-001` (alias: `PACKAGE-GAP-001` FanRelay slice)
-  implementation slice. The `IO3` vs `GPIO4` vs `GPIO10`
-  substitution-layer resolution **belonged to** `CORE-ABSTRACT-BUS-001`
-  and is now **resolved by** `CORE-ABSTRACT-BUS-001A`; the hardware
-  / bench / silkscreen / harness / BOM / load-contact / pair-scoped
-  `GPIO3` strap-pin boot-behaviour evidence is now captured at the
-  package-evidence layer by `S360-310-BENCH-EVIDENCE-001` (this
-  PR). The next Relay PR can be `PACKAGE-RELAY-001` implementation.
+  → `S360-310-BENCH-EVIDENCE-001` *(landed PR #561 — evidence-
+  population only; ten rows captured from operator-attested +
+  BOM-backed + public-reference-backed sources; no photo / video /
+  oscilloscope / continuity-meter artifacts attached;
+  `PACKAGE-RELAY-001` implementation-ready at package-evidence
+  layer only)*
+  → **`PACKAGE-RELAY-001`** *(this PR — test + readiness
+  reconciliation only; no YAML rebind; added
+  `tests/test_fan_relay_package.py` pinning the FanRelay package
+  abstraction; package status moves to `package-implemented` +
+  `reconciled-at-package-layer`; no Relay product YAML / WebFlash
+  wrapper / release artifact / compliance movement)*
+  → `PRODUCT-RELAY-001` (alias: `PRODUCT-GAP-001` FanRelay slice).
+  The `IO3` vs `GPIO4` vs `GPIO10` substitution-layer resolution
+  **belonged to** `CORE-ABSTRACT-BUS-001` and was **resolved by**
+  `CORE-ABSTRACT-BUS-001A`; the hardware / bench / silkscreen /
+  harness / BOM / load-contact / pair-scoped `GPIO3` strap-pin
+  boot-behaviour evidence was captured at the package-evidence
+  layer by `S360-310-BENCH-EVIDENCE-001` (PR #561); the package
+  reconciliation itself is closed by **this PR**
+  (`PACKAGE-RELAY-001`). The next Relay PR is `PRODUCT-RELAY-001`.
 - **Cross-references.** [`docs/hardware/artifacts/S360-310-R4.md`](artifacts/S360-310-R4.md);
   [`s360-310-r4-relay.md` PACKAGE-RELAY-001 readiness refresh after CORE-ABSTRACT-BUS-001C / 001A](s360-310-r4-relay.md#package-relay-001-readiness-refresh-after-core-abstract-bus-001c--001a);
   [`s360-310-r4-relay.md` S360-310-BENCH-001 — Relay bench evidence](s360-310-r4-relay.md#s360-310-bench-001--relay-bench-evidence);
@@ -607,6 +632,25 @@ named follow-up.
   The `FanRelay` token reservation in
   [`config/webflash-compatibility.json`](../../config/webflash-compatibility.json)
   `canonical_modules` (line 11) is unchanged.
+  **Update (PACKAGE-RELAY-001 implementation).** PACKAGE-RELAY-001
+  has now **landed** as a **test + readiness reconciliation** —
+  no YAML rebind, no product / WebFlash / release / compliance
+  movement. The package was already structurally correct; the
+  reconciliation is the addition of
+  [`tests/test_fan_relay_package.py`](../../tests/test_fan_relay_package.py)
+  which pins the FanRelay package abstraction (the package parses
+  as YAML; `fan_relay_pin` defaults to `${relay_pin}`; the package
+  does not hard-code any GPIO; `fan_relay_switch` binds
+  `pin: ${fan_relay_pin}`; the five non-voice Core abstract
+  packages bind `relay_pin: GPIO3`; voice variants stay at the
+  pre-001A `relay_pin: GPIO4`; no FanRelay product YAML or
+  WebFlash-builds entry was added by PACKAGE-RELAY-001). Status
+  moves to `package-implemented` + `reconciled-at-package-layer`.
+  `PRODUCT-RELAY-001` is the next Relay-chain PR but stays
+  separately gated on its own evidence (no product / WebFlash /
+  release / compliance / mains-safety / board-level installation
+  approval / hardware-stable readiness claim is made by
+  PACKAGE-RELAY-001).
 
 ### `fan_pwm.yaml` / S360-311
 
