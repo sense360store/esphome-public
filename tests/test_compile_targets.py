@@ -60,11 +60,26 @@ POE_NONFAN_COMPILE_ONLY_PRODUCT_YAMLS = frozenset(
     }
 )
 
-# Fan / PWR tokens that this PR must not introduce as compile-only targets.
+# Fan / PWR tokens that the FW-COMPILE-POE-NONFAN-001 lane
+# (products/compile-only/) must never introduce. Compile-only targets
+# that carry a fan-driver token (e.g. FW-COMPILE-RELAY-001) live outside
+# products/compile-only/ and reuse the canonical product YAML under
+# products/ so the catalog enumeration / product-readiness gates apply.
 FORBIDDEN_FAN_TOKENS_FOR_THIS_PR = frozenset(
     {"FanRelay", "FanPWM", "FanDAC", "FanTRIAC"}
 )
 FORBIDDEN_POWER_TOKENS_FOR_THIS_PR = frozenset({"PWR"})
+
+# FW-COMPILE-RELAY-001: FanRelay compile-only target added in this PR.
+# The product YAML was landed by PRODUCT-RELAY-001 / PR #564 and lives at
+# the top level of products/ (not under products/webflash/ and not under
+# products/compile-only/). The target is advanced / manual-warning-only,
+# hardware-pending, and explicitly NOT WebFlash exposed.
+FANRELAY_COMPILE_ONLY_TARGET_ID = "ceiling-poe-ventiq-fanrelay-roomiq-compile-only"
+FANRELAY_COMPILE_ONLY_CONFIG_STRING = "Ceiling-POE-VentIQ-FanRelay-RoomIQ"
+FANRELAY_COMPILE_ONLY_PRODUCT_YAML = (
+    "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml"
+)
 
 ALLOWED_SHIPMENT_STATUSES = frozenset(
     {"webflash-current", "preview-current", "compile-only"}
@@ -493,31 +508,53 @@ class PoeNonFanCompileOnlyCoverageTests(unittest.TestCase):
                 "WebFlash wrapper namespace",
             )
 
-    def test_this_pr_introduces_no_fan_compile_only_target(self):
-        """FW-COMPILE-POE-NONFAN-001 must not add any Fan* compile-only target."""
+    def test_poe_nonfan_lane_introduces_no_fan_compile_only_target(self):
+        """FW-COMPILE-POE-NONFAN-001 lane must not carry any Fan* token.
+
+        Scoped to targets whose ``product_yaml`` lives under
+        ``products/compile-only/`` (the directory FW-COMPILE-POE-NONFAN-001
+        owns). Compile-only targets for fan-driver products live outside
+        that directory (e.g. FW-COMPILE-RELAY-001 reuses the canonical
+        ``products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml``).
+        """
         for target in self.targets:
+            product_yaml = target.get("product_yaml") or ""
+            if not product_yaml.startswith("products/compile-only/"):
+                continue
             cs = target.get("config_string") or ""
             tokens = set(cs.split("-")) if cs else set()
             forbidden_fan_tokens = tokens & FORBIDDEN_FAN_TOKENS_FOR_THIS_PR
             self.assertFalse(
                 forbidden_fan_tokens,
                 f"target {target['id']!r}: carries forbidden fan token "
-                f"{sorted(forbidden_fan_tokens)} — this PR must not add "
-                "any FanRelay / FanPWM / FanDAC / FanTRIAC compile-only "
-                "target",
+                f"{sorted(forbidden_fan_tokens)} — the "
+                "FW-COMPILE-POE-NONFAN-001 lane (products/compile-only/) "
+                "must not add any FanRelay / FanPWM / FanDAC / FanTRIAC "
+                "compile-only target",
             )
 
-    def test_this_pr_introduces_no_pwr_compile_only_target(self):
-        """FW-COMPILE-POE-NONFAN-001 must not add any PWR compile-only target."""
+    def test_poe_nonfan_lane_introduces_no_pwr_compile_only_target(self):
+        """FW-COMPILE-POE-NONFAN-001 lane must not carry any PWR token.
+
+        Scoped to targets whose ``product_yaml`` lives under
+        ``products/compile-only/`` (the directory FW-COMPILE-POE-NONFAN-001
+        owns). PWR / S360-400 compile-only targets remain blocked by
+        COMPLIANCE-001 and are not in scope for any compile-only lane
+        until a separate FW-COMPILE-PWR-001 slice is approved.
+        """
         for target in self.targets:
+            product_yaml = target.get("product_yaml") or ""
+            if not product_yaml.startswith("products/compile-only/"):
+                continue
             cs = target.get("config_string") or ""
             tokens = set(cs.split("-")) if cs else set()
             forbidden_power_tokens = tokens & FORBIDDEN_POWER_TOKENS_FOR_THIS_PR
             self.assertFalse(
                 forbidden_power_tokens,
                 f"target {target['id']!r}: carries forbidden power token "
-                f"{sorted(forbidden_power_tokens)} — this PR must not add "
-                "any PWR / S360-400 compile-only target",
+                f"{sorted(forbidden_power_tokens)} — the "
+                "FW-COMPILE-POE-NONFAN-001 lane (products/compile-only/) "
+                "must not add any PWR / S360-400 compile-only target",
             )
 
     def test_totals_match_expected_target_count(self):
@@ -531,6 +568,297 @@ class PoeNonFanCompileOnlyCoverageTests(unittest.TestCase):
             expected_min_targets,
             "expected at least the two committed WebFlash targets plus "
             "the five POE non-fan compile-only candidates",
+        )
+
+
+class FanRelayCompileOnlyCoverageTests(unittest.TestCase):
+    """FW-COMPILE-RELAY-001: FanRelay compile-only validation target.
+
+    Pins the invariants for the single FanRelay compile-only target
+    added by FW-COMPILE-RELAY-001 on top of the PRODUCT-RELAY-001 /
+    PR #564 product YAML. The target validates that the canonical
+    FanRelay product YAML at
+    ``products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`` still
+    composes / substitutes / includes / generates code cleanly under
+    the current ESPHome version. Compile success here is **not**
+    WebFlash exposure, **not** a release artifact, **not** WebFlash
+    import readiness, **not** a ``RELEASE-RELAY-001`` unblock, **not**
+    compliance approval, **not** hardware proof, and **not** stable /
+    preview promotion. WebFlash exposure remains blocked behind the
+    separate ``WEBFLASH-RELAY-001`` slice.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.doc = _load(TARGETS_PATH)
+        cls.targets = cls.doc["targets"]
+        cls.by_id = {t["id"]: t for t in cls.targets if t.get("id")}
+        cls.by_config = {
+            t["config_string"]: t
+            for t in cls.targets
+            if t.get("config_string")
+        }
+        cls.builds = _load(BUILDS_PATH)
+        cls.matrix = _load(MATRIX_PATH)
+        cls.committed_configs = {
+            entry["config_string"]
+            for entry in (cls.builds.get("builds", []) or [])
+            if entry.get("config_string")
+        }
+        cls.matrix_configs = {
+            row["config_string"]
+            for row in (cls.matrix.get("combinations", []) or [])
+            if row.get("config_string")
+        }
+        cls.target = cls.by_id.get(FANRELAY_COMPILE_ONLY_TARGET_ID)
+
+    def test_fanrelay_compile_only_target_exists(self):
+        self.assertIsNotNone(
+            self.target,
+            f"FW-COMPILE-RELAY-001 must add the FanRelay compile-only "
+            f"target with id {FANRELAY_COMPILE_ONLY_TARGET_ID!r} to "
+            "config/compile-only-targets.json",
+        )
+
+    def test_fanrelay_compile_only_target_points_at_product_yaml(self):
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("product_yaml"),
+            FANRELAY_COMPILE_ONLY_PRODUCT_YAML,
+            f"FanRelay compile-only target must point at "
+            f"{FANRELAY_COMPILE_ONLY_PRODUCT_YAML!r} — the PRODUCT-RELAY-001 "
+            "/ PR #564 canonical FanRelay product YAML",
+        )
+
+    def test_fanrelay_compile_only_product_yaml_exists_on_disk(self):
+        path = REPO_ROOT / FANRELAY_COMPILE_ONLY_PRODUCT_YAML
+        self.assertTrue(
+            path.is_file(),
+            f"FanRelay compile-only product YAML not found at {path}",
+        )
+
+    def test_fanrelay_compile_only_config_string_is_correct(self):
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("config_string"),
+            FANRELAY_COMPILE_ONLY_CONFIG_STRING,
+        )
+
+    def test_fanrelay_compile_only_config_string_is_in_firmware_matrix(self):
+        self.assertIn(
+            FANRELAY_COMPILE_ONLY_CONFIG_STRING,
+            self.matrix_configs,
+            f"FanRelay compile-only config_string "
+            f"{FANRELAY_COMPILE_ONLY_CONFIG_STRING!r} must be present in "
+            "config/firmware-combination-matrix.json",
+        )
+
+    def test_fanrelay_compile_only_shipment_status_is_compile_only(self):
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("shipment_status"),
+            "compile-only",
+            "FanRelay compile-only target must declare "
+            "shipment_status: compile-only — FW-COMPILE-RELAY-001 does "
+            "not advance the WebFlash exposure or release surface",
+        )
+
+    def test_fanrelay_compile_only_disallows_webflash_exposure(self):
+        self.assertIsNotNone(self.target)
+        self.assertFalse(
+            self.target.get("webflash_exposure_allowed_now"),
+            "FanRelay compile-only target must declare "
+            "webflash_exposure_allowed_now: false — WebFlash Relay "
+            "exposure remains blocked behind the separate "
+            "WEBFLASH-RELAY-001 slice",
+        )
+
+    def test_fanrelay_compile_only_requires_hardware_for_validation(self):
+        self.assertIsNotNone(self.target)
+        self.assertTrue(
+            self.target.get("hardware_required_for_validation"),
+            "FanRelay compile-only target must declare "
+            "hardware_required_for_validation: true — compile-only is "
+            "pre-hardware confidence, not hardware-validated readiness",
+        )
+
+    def test_fanrelay_compile_only_is_marked_advanced_manual_warning_only(self):
+        self.assertIsNotNone(self.target)
+        self.assertTrue(
+            self.target.get("advanced_manual_warning_only"),
+            "FanRelay compile-only target must declare "
+            "advanced_manual_warning_only: true — the FanRelay product "
+            "is advanced / manual-warning-only per "
+            "PRODUCT-RELAY-001-READINESS-REFRESH / PR #563 and "
+            "PRODUCT-RELAY-001 / PR #564",
+        )
+
+    def test_fanrelay_compile_only_is_marked_hardware_pending(self):
+        self.assertIsNotNone(self.target)
+        self.assertTrue(
+            self.target.get("hardware_pending"),
+            "FanRelay compile-only target must declare "
+            "hardware_pending: true — the FanRelay catalog row is "
+            "status: hardware-pending per PRODUCT-RELAY-001 / PR #564",
+        )
+
+    def test_fanrelay_compile_only_does_not_declare_webflash_build_matrix(self):
+        self.assertIsNotNone(self.target)
+        self.assertNotIn(
+            "webflash_build_matrix",
+            self.target,
+            "FanRelay compile-only target must not declare "
+            "webflash_build_matrix; that flag is owned by "
+            "config/product-catalog.json",
+        )
+
+    def test_fanrelay_compile_only_does_not_declare_artifact_name(self):
+        self.assertIsNotNone(self.target)
+        self.assertNotIn(
+            "artifact_name",
+            self.target,
+            "FanRelay compile-only target must not declare "
+            "artifact_name; no release artifact is built by "
+            "FW-COMPILE-RELAY-001",
+        )
+
+    def test_fanrelay_compile_only_does_not_declare_webflash_wrapper(self):
+        self.assertIsNotNone(self.target)
+        self.assertNotIn(
+            "webflash_wrapper",
+            self.target,
+            "FanRelay compile-only target must not declare "
+            "webflash_wrapper; no WebFlash wrapper under "
+            "products/webflash/ is added by FW-COMPILE-RELAY-001",
+        )
+
+    def test_fanrelay_compile_only_does_not_declare_expected_channel(self):
+        self.assertIsNotNone(self.target)
+        self.assertNotIn(
+            "expected_channel",
+            self.target,
+            "FanRelay compile-only target must not declare "
+            "expected_channel; compile-only targets do not pin a "
+            "WebFlash channel",
+        )
+
+    def test_fanrelay_compile_only_target_is_not_blocked(self):
+        self.assertIsNotNone(self.target)
+        self.assertFalse(
+            self.target.get("blocked"),
+            "FanRelay compile-only target must declare blocked: false "
+            "— the FanRelay product is product-YAML-landed and "
+            "compile-only-eligible (it is not FanTRIAC / HW-005 / "
+            "PWR / COMPLIANCE-001 blocked)",
+        )
+
+    def test_fanrelay_compile_only_target_is_not_in_webflash_builds(self):
+        self.assertNotIn(
+            FANRELAY_COMPILE_ONLY_CONFIG_STRING,
+            self.committed_configs,
+            f"FanRelay compile-only target {FANRELAY_COMPILE_ONLY_CONFIG_STRING!r} "
+            "must NOT be present in config/webflash-builds.json — "
+            "compile-only targets do not add WebFlash builds",
+        )
+
+    def test_no_fanrelay_token_in_webflash_builds(self):
+        text = BUILDS_PATH.read_text()
+        self.assertNotIn(
+            "FanRelay",
+            text,
+            "config/webflash-builds.json must not contain the FanRelay "
+            "token — FW-COMPILE-RELAY-001 does not add a FanRelay "
+            "WebFlash build entry. A FanRelay-bearing build entry is "
+            "owned by RELEASE-RELAY-001 (not landed).",
+        )
+
+    def test_fanrelay_compile_only_target_is_not_in_release_one_required_configs(
+        self,
+    ):
+        compat_path = REPO_ROOT / "config" / "webflash-compatibility.json"
+        compat = _load(compat_path)
+        required = compat.get("release_one_required_configs", []) or []
+        self.assertNotIn(
+            FANRELAY_COMPILE_ONLY_CONFIG_STRING,
+            required,
+            f"release_one_required_configs in "
+            f"config/webflash-compatibility.json must not contain "
+            f"{FANRELAY_COMPILE_ONLY_CONFIG_STRING!r} — "
+            "FW-COMPILE-RELAY-001 does not promote FanRelay into "
+            "Release-One required configs",
+        )
+
+    def test_fanrelay_product_yaml_does_not_live_in_webflash_directory(self):
+        self.assertFalse(
+            FANRELAY_COMPILE_ONLY_PRODUCT_YAML.startswith("products/webflash/"),
+            f"FanRelay compile-only product YAML "
+            f"{FANRELAY_COMPILE_ONLY_PRODUCT_YAML!r} must NOT live under "
+            "products/webflash/ — that directory is the WebFlash "
+            "wrapper namespace, and FW-COMPILE-RELAY-001 does not add a "
+            "WebFlash wrapper",
+        )
+
+    def test_no_fanrelay_webflash_wrapper_file_exists(self):
+        webflash_dir = REPO_ROOT / "products" / "webflash"
+        if not webflash_dir.is_dir():
+            return
+        offenders = []
+        for path in webflash_dir.glob("*.yaml"):
+            name = path.name.lower()
+            if "fanrelay" in name or "fan-relay" in name or "fan_relay" in name:
+                offenders.append(path.relative_to(REPO_ROOT).as_posix())
+        self.assertEqual(
+            offenders,
+            [],
+            f"FW-COMPILE-RELAY-001 must NOT add any FanRelay WebFlash "
+            f"wrapper under products/webflash/ — that work belongs to "
+            f"WEBFLASH-RELAY-001 (not landed). Offending paths: "
+            f"{offenders!r}",
+        )
+
+    def test_release_one_target_unchanged(self):
+        """The Release-One compile-only target must remain unchanged."""
+        target = self.by_config.get(RELEASE_ONE_CONFIG_STRING)
+        self.assertIsNotNone(
+            target,
+            "Release-One compile-only target must remain present",
+        )
+        self.assertEqual(target.get("shipment_status"), "webflash-current")
+        self.assertEqual(target.get("expected_channel"), "stable")
+        self.assertTrue(target.get("webflash_exposure_allowed_now"))
+        self.assertEqual(
+            target.get("product_yaml"),
+            "products/webflash/ceiling-poe-ventiq-roomiq.yaml",
+        )
+
+    def test_led_preview_target_unchanged(self):
+        """The LED preview compile-only target must remain unchanged."""
+        target = self.by_config.get(LED_PREVIEW_CONFIG_STRING)
+        self.assertIsNotNone(
+            target,
+            "LED preview compile-only target must remain present",
+        )
+        self.assertEqual(target.get("shipment_status"), "preview-current")
+        self.assertEqual(target.get("expected_channel"), "preview")
+        self.assertTrue(target.get("webflash_exposure_allowed_now"))
+        self.assertEqual(
+            target.get("product_yaml"),
+            "products/webflash/ceiling-poe-ventiq-roomiq-led.yaml",
+        )
+
+    def test_totals_match_expected_target_count_after_fanrelay(self):
+        """Totals must match the targets array length after the FanRelay add."""
+        totals = self.doc.get("totals") or {}
+        self.assertEqual(totals.get("targets"), len(self.targets))
+        expected_min_targets = (
+            2 + len(POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS) + 1
+        )
+        self.assertGreaterEqual(
+            len(self.targets),
+            expected_min_targets,
+            "expected at least the two committed WebFlash targets, the "
+            "five POE non-fan compile-only candidates, and the FanRelay "
+            "compile-only target",
         )
 
 

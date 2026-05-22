@@ -70,7 +70,8 @@
     "Ceiling-POE-RoomIQ",
     "Ceiling-POE-VentIQ",
     "Ceiling-POE-AirIQ",
-    "Ceiling-POE-AirIQ-RoomIQ"
+    "Ceiling-POE-AirIQ-RoomIQ",
+    "Ceiling-POE-VentIQ-FanRelay-RoomIQ"
   ],
   "totals": {
     "candidates": 26,

@@ -594,5 +594,209 @@ class ReleaseOneAndLedPreviewUnchangedTests(unittest.TestCase):
         )
 
 
+class RelayProductCompileOnlyTargetTests(unittest.TestCase):
+    """FW-COMPILE-RELAY-001 enrols the FanRelay product into compile-only.
+
+    The PRODUCT-RELAY-001 / PR #564 product YAML lives at
+    ``products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`` and
+    carries the advanced / manual-warning-only posture. FW-COMPILE-RELAY-001
+    adds a single compile-only validation target pointing at that same
+    YAML so YAML / package / ESPHome compile drift surfaces in CI. The
+    compile-only target does **not** change the WebFlash exposure or
+    release surface: no WebFlash wrapper, no
+    ``config/webflash-builds.json`` row, no ``webflash_build_matrix``
+    flip, no ``artifact_name``, no release artifact, no proof row.
+    """
+
+    COMPILE_ONLY_TARGETS_PATH = (
+        REPO_ROOT / "config" / "compile-only-targets.json"
+    )
+    EXPECTED_TARGET_ID = "ceiling-poe-ventiq-fanrelay-roomiq-compile-only"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.doc = _load_json(cls.COMPILE_ONLY_TARGETS_PATH)
+        cls.targets = cls.doc.get("targets") or []
+        cls.by_id = {t.get("id"): t for t in cls.targets if t.get("id")}
+        cls.target = cls.by_id.get(cls.EXPECTED_TARGET_ID)
+
+    def test_relay_compile_only_target_exists(self) -> None:
+        self.assertIsNotNone(
+            self.target,
+            f"FW-COMPILE-RELAY-001 must add a compile-only target with "
+            f"id {self.EXPECTED_TARGET_ID!r} to "
+            "config/compile-only-targets.json",
+        )
+
+    def test_relay_compile_only_target_points_at_product_yaml(self) -> None:
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("product_yaml"),
+            RELAY_PRODUCT_REL,
+            f"FanRelay compile-only target must point at "
+            f"{RELAY_PRODUCT_REL!r}",
+        )
+
+    def test_relay_compile_only_target_config_string(self) -> None:
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("config_string"),
+            RELAY_CONFIG_STRING,
+        )
+
+    def test_relay_compile_only_target_shipment_status(self) -> None:
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("shipment_status"),
+            "compile-only",
+            "FanRelay compile-only target must declare "
+            "shipment_status: compile-only — FW-COMPILE-RELAY-001 does "
+            "not advance WebFlash exposure or release",
+        )
+
+    def test_relay_compile_only_target_is_advanced_manual_warning_only(
+        self,
+    ) -> None:
+        self.assertIsNotNone(self.target)
+        self.assertTrue(
+            self.target.get("advanced_manual_warning_only"),
+            "FanRelay compile-only target must declare "
+            "advanced_manual_warning_only: true",
+        )
+
+    def test_relay_compile_only_target_is_hardware_pending(self) -> None:
+        self.assertIsNotNone(self.target)
+        self.assertTrue(
+            self.target.get("hardware_pending"),
+            "FanRelay compile-only target must declare "
+            "hardware_pending: true (PRODUCT-RELAY-001 catalog row is "
+            "status: hardware-pending)",
+        )
+
+    def test_relay_compile_only_target_requires_hardware(self) -> None:
+        self.assertIsNotNone(self.target)
+        self.assertTrue(
+            self.target.get("hardware_required_for_validation"),
+            "FanRelay compile-only target must declare "
+            "hardware_required_for_validation: true",
+        )
+
+    def test_relay_compile_only_target_disallows_webflash_exposure(
+        self,
+    ) -> None:
+        self.assertIsNotNone(self.target)
+        self.assertFalse(
+            self.target.get("webflash_exposure_allowed_now"),
+            "FanRelay compile-only target must declare "
+            "webflash_exposure_allowed_now: false",
+        )
+
+    def test_relay_compile_only_target_not_blocked(self) -> None:
+        self.assertIsNotNone(self.target)
+        self.assertFalse(
+            self.target.get("blocked"),
+            "FanRelay compile-only target must declare blocked: false "
+            "— the FanRelay product is product-YAML-landed and "
+            "compile-only-eligible",
+        )
+
+    def test_relay_compile_only_target_has_no_webflash_build_matrix(
+        self,
+    ) -> None:
+        self.assertIsNotNone(self.target)
+        self.assertNotIn(
+            "webflash_build_matrix",
+            self.target,
+            "FanRelay compile-only target must NOT declare "
+            "webflash_build_matrix — that field is owned by "
+            "config/product-catalog.json and stays false",
+        )
+
+    def test_relay_compile_only_target_has_no_artifact_name(self) -> None:
+        self.assertIsNotNone(self.target)
+        self.assertNotIn(
+            "artifact_name",
+            self.target,
+            "FanRelay compile-only target must NOT declare artifact_name "
+            "— no release artifact is built by FW-COMPILE-RELAY-001",
+        )
+
+    def test_relay_compile_only_target_has_no_webflash_wrapper(self) -> None:
+        self.assertIsNotNone(self.target)
+        self.assertNotIn(
+            "webflash_wrapper",
+            self.target,
+            "FanRelay compile-only target must NOT declare "
+            "webflash_wrapper — no WebFlash wrapper is added by "
+            "FW-COMPILE-RELAY-001",
+        )
+
+    def test_relay_compile_only_target_has_no_expected_channel(self) -> None:
+        self.assertIsNotNone(self.target)
+        self.assertNotIn(
+            "expected_channel",
+            self.target,
+            "FanRelay compile-only target must NOT declare "
+            "expected_channel — compile-only targets do not pin a "
+            "WebFlash channel",
+        )
+
+    def test_relay_compile_only_config_string_not_in_webflash_builds(
+        self,
+    ) -> None:
+        builds = _load_json(WEBFLASH_BUILDS)
+        for entry in builds.get("builds", []) or []:
+            self.assertNotEqual(
+                entry.get("config_string"),
+                RELAY_CONFIG_STRING,
+                f"config/webflash-builds.json must not contain "
+                f"{RELAY_CONFIG_STRING!r} — FW-COMPILE-RELAY-001 does "
+                "not add a build-matrix entry",
+            )
+
+    def test_relay_compile_only_config_string_not_in_required_configs(
+        self,
+    ) -> None:
+        compat = _load_json(WEBFLASH_COMPATIBILITY)
+        required = compat.get("release_one_required_configs", []) or []
+        self.assertNotIn(
+            RELAY_CONFIG_STRING,
+            required,
+            f"release_one_required_configs must not contain "
+            f"{RELAY_CONFIG_STRING!r} — FW-COMPILE-RELAY-001 does not "
+            "promote FanRelay into Release-One required configs",
+        )
+
+    def test_release_one_compile_only_target_unchanged(self) -> None:
+        """Release-One compile-only target stays webflash-current / stable."""
+        rel_one = None
+        for t in self.targets:
+            if t.get("config_string") == RELEASE_ONE_CONFIG_STRING:
+                rel_one = t
+                break
+        self.assertIsNotNone(
+            rel_one,
+            "Release-One compile-only target must remain present",
+        )
+        self.assertEqual(rel_one.get("shipment_status"), "webflash-current")
+        self.assertEqual(rel_one.get("expected_channel"), "stable")
+        self.assertTrue(rel_one.get("webflash_exposure_allowed_now"))
+
+    def test_led_preview_compile_only_target_unchanged(self) -> None:
+        """LED preview compile-only target stays preview-current / preview."""
+        led = None
+        for t in self.targets:
+            if t.get("config_string") == LED_PREVIEW_CONFIG_STRING:
+                led = t
+                break
+        self.assertIsNotNone(
+            led,
+            "LED preview compile-only target must remain present",
+        )
+        self.assertEqual(led.get("shipment_status"), "preview-current")
+        self.assertEqual(led.get("expected_channel"), "preview")
+        self.assertTrue(led.get("webflash_exposure_allowed_now"))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

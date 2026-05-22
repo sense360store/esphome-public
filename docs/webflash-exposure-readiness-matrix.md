@@ -813,6 +813,106 @@ artifact path exists), or `FW-COMPILE-RELAY-001` (if compile-only
 validation should happen first); **not** immediate
 `WEBFLASH-RELAY-001` wrapper / catalog / build-matrix work.
 
+**2026-05-22 — `FW-COMPILE-RELAY-001` (this PR; compile-only target
+add) — note on WebFlash surface.** Added a single FanRelay
+compile-only validation target to
+[`config/compile-only-targets.json`](../config/compile-only-targets.json)
+pointing at the PRODUCT-RELAY-001 / PR #564 canonical FanRelay
+product YAML
+[`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml).
+The target carries `shipment_status: compile-only`,
+`webflash_exposure_allowed_now: false`,
+`hardware_required_for_validation: true`,
+`advanced_manual_warning_only: true`, `hardware_pending: true`, and
+`blocked: false`. **WebFlash Relay exposure remains blocked.** The
+seven WebFlash gates enumerated above under
+[Allowed WebFlash action now](#allowed-webflash-action-now-1) are
+**not** advanced by this compile-only target; the four possible
+exposure shapes a future `WEBFLASH-RELAY-001` slice could take
+(blocked entirely; advanced / manual-warning import only; hidden /
+manual mode only; or compile-only / no-runtime exposure) are
+unchanged. Re-verified against the live files:
+
+- **No FanRelay WebFlash wrapper** under
+  [`products/webflash/`](../products/webflash/) — only the
+  Release-One, LED preview, and blocked FanTRIAC reference wrappers
+  remain.
+- **No FanRelay row in
+  [`config/webflash-builds.json`](../config/webflash-builds.json)**
+  — only Release-One stable + LED preview.
+- The FanRelay token does not appear anywhere in
+  [`config/webflash-builds.json`](../config/webflash-builds.json);
+  `release_one_required_configs` in
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+  stays `["Ceiling-POE-VentIQ-RoomIQ"]`.
+- The [`config/product-catalog.json`](../config/product-catalog.json)
+  FanRelay row landed by PRODUCT-RELAY-001 / PR #564 (`status:
+  hardware-pending`, `webflash_build_matrix: false`, no
+  `artifact_name`, no `webflash_wrapper`) is byte-identical.
+- The [`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json)
+  `S360-KIT-BATH-RELAY` row stays `future-expansion` /
+  `hardware-pending` / `webflash_exposure_allowed_now: false` /
+  `stable_ready_now: false`; the default sellable bathroom kit
+  remains `S360-KIT-BATH-POE` mapped to Release-One.
+
+**No `packages/**` edit; no `products/**` or `products/webflash/**`
+edit** (the FanRelay product YAML at
+[`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml)
+is consumed verbatim as landed by PR #564; no edits made); **no
+[`config/webflash-builds.json`](../config/webflash-builds.json)
+edit**; **no
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+edit**; **no
+[`config/hardware-catalog.json`](../config/hardware-catalog.json)
+edit**; **no
+[`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json)
+edit**; **no
+[`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json)
+edit**; **no
+[`config/product-catalog.json`](../config/product-catalog.json)
+edit**; **no `scripts/**`, `.github/workflows/**`,
+`components/**`, `include/**`, `firmware/**`, `manifest.json`,
+`firmware/sources.json` edit**; **no WebFlash repo
+(`sense360store/WebFlash`) edit**; **no `webflash_build_matrix`
+flip; no `artifact_name`; no `webflash_wrapper`; no `config_string`
+change; no `release_one_required_configs` change; no
+`lifecycle_statuses` change; no `canonical_modules` /
+`canonical_power` / `forbidden_tokens` change; no
+`REQUIRED_CONFIGS` / kit JSON change; no `schematic_status` /
+`schematic_file` promotion** (`S360-310` stays
+`cataloged_unverified`); **no COMPLIANCE-001 movement**;
+Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` /
+`stable`; LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` /
+`preview`; FanTRIAC stays `blocked` / `HW-005`. **No WebFlash
+import-readiness claim. No WebFlash exposure claim. No
+`RELEASE-RELAY-001` unblock claim. No `WEBFLASH-RELAY-001`
+unblock claim. No `WF-IMPORT-RELAY-001` unblock claim. No
+`REQUIRED_CONFIGS` membership claim. No kit / recommended /
+default membership claim. No compliance / board-level mains-safety
+certification claim. No installation-approval / qualified-electrician
+sign-off claim. No production-wide / multi-unit hardware
+characterisation claim. No hardware stable / release-readiness
+claim.** Edits are scoped to
+[`config/compile-only-targets.json`](../config/compile-only-targets.json)
+(one new row, totals 7 → 8), the matching ledger
+[`config/compile-only-candidates.json`](../config/compile-only-candidates.json)
+(`currently_compile_only_config_strings` extended by one),
+[`tests/test_compile_targets.py`](../tests/test_compile_targets.py)
+(new `FanRelayCompileOnlyCoverageTests` class; the POE non-fan lane's
+fan / PWR-token guardrails scoped to `products/compile-only/`),
+[`tests/test_relay_product_readiness.py`](../tests/test_relay_product_readiness.py)
+(new `RelayProductCompileOnlyTargetTests` class), this matrix,
+[`docs/compile-only-firmware-validation.md`](compile-only-firmware-validation.md)
+(new audit-log entry),
+[`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+(new audit-log note), and `UPCOMING_PR.md`. The recommended next
+Relay-chain PR is one of `WEBFLASH-RELAY-001` implementation plan /
+scaffold only (if allowed by the project lead), `RELEASE-RELAY-001`
+(still blocked until artifact path exists), or, if any future ESPHome
+upgrade breaks compile, a targeted compile fix for the FanRelay
+target only; **not** immediate `WEBFLASH-RELAY-001` wrapper / catalog
+/ build-matrix work.
+
 ## PWM / S360-311 WebFlash posture
 
 **Current state.** `S360-311 Sense360 PWM`,

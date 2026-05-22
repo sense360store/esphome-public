@@ -648,6 +648,172 @@ The full 17-row stable-promotion gauntlet documented in
 remains the source of truth for preview / stable readiness; this
 audit-log entry does not close any row in that gauntlet.
 
+### 2026-05-22 — FW-COMPILE-RELAY-001 FanRelay compile-only validation
+
+This entry records the addition of a single FanRelay compile-only
+target to the
+[`config/compile-only-targets.json`](../config/compile-only-targets.json)
+lane after `PRODUCT-RELAY-001` / PR #564 landed the canonical FanRelay
+product YAML at
+[`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml)
+and `WEBFLASH-RELAY-001-READINESS-REFRESH` / PR #565 confirmed that
+WebFlash Relay exposure remains blocked behind seven separate gates.
+The target reuses the canonical FanRelay product YAML (it does **not**
+introduce a new YAML under `products/compile-only/` or
+`products/webflash/`); the catalog row landed by PR #564 (status
+`hardware-pending`, `webflash_build_matrix: false`, no
+`artifact_name`, no `webflash_wrapper`) is consumed unchanged.
+
+#### Target
+
+The single new compile-only target:
+
+| `id`                                                | `product_yaml`                                                       | `config_string`                       |
+|-----------------------------------------------------|----------------------------------------------------------------------|---------------------------------------|
+| `ceiling-poe-ventiq-fanrelay-roomiq-compile-only`   | `products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`          | `Ceiling-POE-VentIQ-FanRelay-RoomIQ`  |
+
+Settings on the row:
+
+- `shipment_status: compile-only`
+- `webflash_exposure_allowed_now: false`
+- `hardware_required_for_validation: true`
+- `blocked: false`
+- `advanced_manual_warning_only: true`
+- `hardware_pending: true`
+
+The two flags `advanced_manual_warning_only` and `hardware_pending`
+are FanRelay-specific markers that record the product-layer
+disposition defined by `PRODUCT-RELAY-001-READINESS-REFRESH` / PR
+#563 and confirmed by `PRODUCT-RELAY-001` / PR #564. They do **not**
+gate the compile-only validator itself; they record posture so a
+later reader of the compile-only target row can see at a glance that
+the row corresponds to an `advanced/manual-warning-only` +
+hardware-pending product and does **not** silently re-promote the
+FanRelay product to a less-restricted exposure class.
+
+#### Why FanRelay is now safely compile-only
+
+The compile-only target became safe to add only because the
+upstream evidence layer closed:
+
+- **`CORE-ABSTRACT-BUS-001C`** / PR #557 freed `GPIO3` (the
+  schematic-correct Relay net per `S360-100-R4` `IO3`).
+- **`CORE-ABSTRACT-BUS-001A`** / PR #558 rebound `relay_pin` to
+  `GPIO3` across the five non-voice Core abstract packages.
+- **`PACKAGE-RELAY-001-READINESS-REFRESH`** / PR #559 separated the
+  substitution-layer blockers (resolved) from the hardware-evidence
+  blockers (open at that point).
+- **`S360-310-BENCH-001`** / PR #560 added the ten-row bench
+  evidence checklist.
+- **`S360-310-BENCH-EVIDENCE-001`** / PR #561 populated the
+  operator / BOM / public-reference rows.
+- **`PACKAGE-RELAY-001`** / PR #562 added
+  [`tests/test_fan_relay_package.py`](../tests/test_fan_relay_package.py)
+  pinning the FanRelay package abstraction.
+- **`PRODUCT-RELAY-001-READINESS-REFRESH`** / PR #563 defined the
+  product-layer posture as
+  `advanced/manual-warning-only + product-YAML-allowed + compile-only-allowed + WebFlash-blocked`.
+- **`PRODUCT-RELAY-001`** / PR #564 landed the canonical product
+  YAML.
+- **`WEBFLASH-RELAY-001-READINESS-REFRESH`** / PR #565 confirmed
+  WebFlash Relay exposure remains blocked behind the seven WebFlash
+  gates.
+
+Compile-only validation is the next safe step in the chain because
+the product YAML is structurally landed and consumes only packages
+that already compose / substitute / `!include`-resolve under the
+current ESPHome version. The compile-only lane has historically
+required the underlying YAML to already exist; the FanRelay YAML
+landed at PR #564, so the YAML / package / ESPHome compile drift
+risk can now be guarded by CI.
+
+#### What compile-only proves for the FanRelay target
+
+Once
+[`scripts/validate_compile_targets.py --compile`](../scripts/validate_compile_targets.py)
+is run against the expanded lane, a passing run proves the following
+for the FanRelay product YAML (and only for it, only under the
+ESPHome version recorded in the workflow):
+
+- the YAML parses and the substitutions resolve (including the
+  `${relay_pin}` → `GPIO3` inheritance chain from the parent Core
+  abstract package);
+- the `packages:` composition resolves and every `!include` resolves
+  (Core ceiling, PoE PSU, VentIQ, RoomIQ, FanRelay, base, health);
+- ESPHome's component / config schema validates;
+- the codegen pass produces compilable source;
+- the validator script's metadata gates pass alongside the compile
+  pass.
+
+#### What compile-only does **not** prove for the FanRelay target
+
+Compile success is necessary but **not sufficient** for any
+shipment-readiness claim. In particular, this target does **not**
+prove any of the following, and nothing in this audit-log entry
+should be read as a claim that any of them are now closed:
+
+- **WebFlash exposure.** No `products/webflash/` wrapper is added;
+  no `config/webflash-builds.json` row is added; no
+  `webflash_build_matrix: true` flip; no `artifact_name`. WebFlash
+  Relay exposure stays **blocked** behind the seven WebFlash gates
+  documented in
+  [`docs/webflash-exposure-readiness-matrix.md` §Relay / S360-310 WebFlash posture](webflash-exposure-readiness-matrix.md#relay--s360-310-webflash-posture).
+- **WebFlash import readiness.** Cross-repo `WF-IMPORT-RELAY-001`
+  stays blocked behind upstream `RELEASE-RELAY-001`.
+- **Release artifact.** No FanRelay `.bin` is built / signed /
+  attached / imported; no checksum file; no build-info
+  `manifest.json`; no GitHub Release tag; no proof row in
+  [`docs/webflash-release-proof.md`](webflash-release-proof.md).
+  `RELEASE-RELAY-001` stays **blocked**.
+- **Compliance approval.** Mains-voltage compliance
+  (`COMPLIANCE-001` UK / EU assessment) is not advanced; no
+  competent-person sign-off; no installation-approval evidence; no
+  creepage / clearance / thermal / EMI certification claim.
+- **Hardware behavior.** No bench, harness, silkscreen, schematic,
+  pinmap, thermal, or EMI evidence is generated by a compile pass.
+  The pair-scoped boot-OK observation in
+  [`docs/hardware/core-abstract-bus-001c-rebind-plan.md`](hardware/core-abstract-bus-001c-rebind-plan.md)
+  decisions #16 / #17 and the `S360-310-BENCH-EVIDENCE-001`
+  pair-scoped 10-cycle × 4-power-path boot evidence are **not**
+  generic `GPIO3` strap-pin boot-behaviour claims and remain
+  unchanged.
+- **Production-wide / multi-unit hardware characterisation.** Single
+  pair-scoped evidence does not generalise to production batches; no
+  multi-unit / oscilloscope-traced generalisation is implied by
+  compile success.
+- **Web Serial flashing.** A compile pass does not exercise the Web
+  Serial / WebFlash flashing path; the FanRelay target is not
+  imported to WebFlash.
+- **Boot on real hardware.** A compile pass does not boot the
+  resulting firmware on a device.
+- **Sensor / Relay / LED behavior.** A compile pass does not
+  exercise the FanRelay switch / `K1` contact / VentIQ / RoomIQ
+  sensors at runtime.
+- **`RELEASE-RELAY-001` unblock.** A compile pass does not close or
+  unblock `RELEASE-RELAY-001`. The atomic `RELEASE-RELAY-001` slice
+  (build / sign / attach the `.bin`, generate release notes, emit
+  SHA256 + MD5 checksums, attach the build-info `manifest.json`,
+  record the release-proof row, hand off to WebFlash-side import)
+  remains owed to a later PR.
+- **`WEBFLASH-RELAY-001` unblock.** A compile pass does not advance
+  any of the seven WebFlash gates owned by `WEBFLASH-RELAY-001`.
+- **Default-kit / recommended status.** The `S360-KIT-BATH-RELAY`
+  row in
+  [`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json)
+  stays `future-expansion` / `hardware-pending` /
+  `webflash_exposure_allowed_now: false` /
+  `stable_ready_now: false`; the default sellable bathroom kit
+  remains `S360-KIT-BATH-POE` mapped to Release-One.
+- **Stable or preview promotion.** Release-One stays
+  `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; the LED preview
+  stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays
+  `blocked` / `HW-005`.
+
+The full 17-row stable-promotion gauntlet documented in
+[`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
+remains the source of truth for preview / stable readiness; this
+audit-log entry does not close any row in that gauntlet.
+
 ## See also
 
 - [`docs/firmware-combination-matrix.md`](firmware-combination-matrix.md) — FW-MATRIX-001, the 168-row source matrix the `config_string` field cross-references.

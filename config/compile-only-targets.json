@@ -20,7 +20,7 @@
     "compile-only"
   ],
   "totals": {
-    "targets": 7
+    "targets": 8
   },
   "targets": [
     {
@@ -101,6 +101,19 @@
       "webflash_exposure_allowed_now": false,
       "blocked": false,
       "notes": "Skeleton lives under products/compile-only/ so the top-level product-catalog enumeration gate does not require a config/product-catalog.json entry. No webflash_wrapper, no artifact_name, no entry in config/webflash-builds.json. AirIQ and VentIQ are mutually exclusive; this target uses AirIQ."
+    },
+    {
+      "id": "ceiling-poe-ventiq-fanrelay-roomiq-compile-only",
+      "product_yaml": "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+      "config_string": "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
+      "reason": "FanRelay (S360-310) compile-only validation target (FW-COMPILE-RELAY-001). Validates that the PRODUCT-RELAY-001 / PR #564 product YAML (advanced / manual-warning-only sibling of Release-One; composes Core ceiling + PoE PSU + VentIQ + RoomIQ + FanRelay; inherits ${relay_pin} → GPIO3 from the parent Core abstract package post-CORE-ABSTRACT-BUS-001A) still composes / substitutes / includes / generates code cleanly under the current ESPHome version. Compile success is NOT WebFlash exposure, NOT a release artifact, NOT WebFlash import readiness, NOT a RELEASE-RELAY-001 unblock, NOT compliance approval, NOT hardware proof, NOT a competent-person sign-off, NOT a default kit / not recommended, and NOT stable / preview promotion. The advanced / manual-warning posture defined by PRODUCT-RELAY-001-READINESS-REFRESH / PR #563 and confirmed by WEBFLASH-RELAY-001-READINESS-REFRESH / PR #565 stays in force: WebFlash exposure remains blocked behind the seven remaining WebFlash gates owned by a separate WEBFLASH-RELAY-001 slice. This target sits in the compile-only validation lane only.",
+      "shipment_status": "compile-only",
+      "hardware_required_for_validation": true,
+      "webflash_exposure_allowed_now": false,
+      "blocked": false,
+      "advanced_manual_warning_only": true,
+      "hardware_pending": true,
+      "notes": "FanRelay product YAML lives at products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml (NOT under products/webflash/, NOT under products/compile-only/). The matching catalog row in config/product-catalog.json (config_string: Ceiling-POE-VentIQ-FanRelay-RoomIQ, status: hardware-pending, webflash_build_matrix: false, no artifact_name, no webflash_wrapper) was landed by PRODUCT-RELAY-001 / PR #564. The FanRelay token is NOT in config/webflash-builds.json (no FanRelay build entry exists). The FanRelay config string is NOT in release_one_required_configs. No WebFlash wrapper exists under products/webflash/. The S360-KIT-BATH-RELAY kit stays future-expansion / hardware-pending / webflash_exposure_allowed_now: false / stable_ready_now: false. WEBFLASH-RELAY-001, RELEASE-RELAY-001, and WF-IMPORT-RELAY-001 stay blocked behind their own gates."
     }
   ]
 }
