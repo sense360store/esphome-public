@@ -209,6 +209,33 @@ CORE-ABSTRACT-BUS-001A → PACKAGE-RELAY-001 → PRODUCT-RELAY-001 →
 WEBFLASH-RELAY-001 → RELEASE-RELAY-001 per the FanRelay lane in
 [`docs/firmware-build-gap-report.md`](firmware-build-gap-report.md).
 
+**2026-05-22 — `PRODUCT-RELAY-001-READINESS-REFRESH` status update
+(docs-only).** `CORE-ABSTRACT-BUS-001C` (PR #557),
+`CORE-ABSTRACT-BUS-001A` (PR #558), and `PACKAGE-RELAY-001`
+(PR #562 — implemented at the package layer only) have **landed**;
+`PRODUCT-RELAY-001`, `WEBFLASH-RELAY-001`, and `RELEASE-RELAY-001`
+remain **open**. The blocker token list above mirrors
+[`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json)
+verbatim; a config-edit PR refreshing the list to drop the landed
+blockers is owed separately (this readiness-refresh PR is
+documentation-only and does not edit any
+[`config/`](../config/) file). Per the
+[`docs/product-readiness-matrix.md` §FanRelay / S360-310](product-readiness-matrix.md#fanrelay--s360-310)
+recommended posture, the FanRelay product-layer disposition is
+`advanced/manual-warning-only` + product-YAML-allowed (no
+WebFlash) + compile-only-allowed; **the Relay Bathroom Kit
+remains `future-expansion` / `hardware-pending` and
+`webflash_exposure_allowed_now: false` /
+`stable_ready_now: false`**, irrespective of any future
+`PRODUCT-RELAY-001` implementation. The default sellable kit
+remains `S360-KIT-BATH-POE` mapped to Release-One
+`Ceiling-POE-VentIQ-RoomIQ` on the `stable` channel; Relay
+remains a fan-control option that becomes installable only when
+the full chain — `PRODUCT-RELAY-001` + `WEBFLASH-RELAY-001` (with
+its production-wide / installation / competent-person sign-off
+gates) + `RELEASE-RELAY-001` + WebFlash-side
+`WF-IMPORT-RELAY-001` — has cleared.
+
 ### S360-KIT-BATH-TRIAC — Sense360 Bathroom Kit — TRIAC Fan Control
 
 - **Tier.** `advanced-manual`
