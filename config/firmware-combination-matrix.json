@@ -20,8 +20,8 @@
   "totals": {
     "combinations": 168,
     "by_status": {
-      "missing-product-yaml": 130,
-      "blocked-hardware": 36,
+      "missing-product-yaml": 129,
+      "blocked-hardware": 37,
       "webflash-shipping": 1,
       "webflash-preview": 1
     }
@@ -881,8 +881,9 @@
       "room_sense": "RoomIQ",
       "fan": "FanRelay",
       "led": "none",
-      "status": "missing-product-yaml",
-      "notes": "No product YAML in config/product-catalog.json and no entry in config/webflash-builds.json."
+      "status": "blocked-hardware",
+      "product_yaml": "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+      "notes": "Catalog status=hardware-pending."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanRelay-RoomIQ-LED",

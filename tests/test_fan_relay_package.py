@@ -368,25 +368,43 @@ class VoiceCoreOutOfScopeTests(unittest.TestCase):
 
 
 class PackageRelayDoesNotTouchWebFlashOrProductTests(unittest.TestCase):
-    """PACKAGE-RELAY-001 does not introduce any WebFlash / product file.
+    """PACKAGE-RELAY-001 does not introduce a WebFlash build / wrapper.
 
-    PACKAGE-RELAY-001 is a package-layer reconciliation only. The
-    do-not-change guardrails listed in
-    ``docs/hardware/s360-310-r4-relay.md`` §[Do-not-change guardrails]
-    forbid:
+    PACKAGE-RELAY-001 is a package-layer reconciliation only and stays
+    out of the WebFlash / release layers. PRODUCT-RELAY-001 has since
+    landed a single canonical FanRelay product YAML
+    (``products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml``) as
+    an advanced / manual-warning-only sibling without any WebFlash
+    exposure — that one allowed product YAML is enumerated below.
 
-    * adding a Relay product YAML under ``products/`` or
-      ``products/webflash/``
-    * adding a ``FanRelay``-bearing entry to
-      ``config/webflash-builds.json``
-    * adding a ``FanRelay`` token to any Release-One config string
+    What this class still guards:
 
-    These tests pin the guardrails so a future PACKAGE-RELAY-001 PR
-    does not accidentally cross into the product / WebFlash / release
-    layers.
+    * No additional FanRelay product YAML may be added outside the
+      single PRODUCT-RELAY-001 canonical product
+      (``products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml``).
+      A FanRelay WebFlash wrapper under ``products/webflash/`` is
+      explicitly forbidden until ``WEBFLASH-RELAY-001`` lands.
+    * No ``FanRelay`` token may appear in
+      ``config/webflash-builds.json`` — PRODUCT-RELAY-001 does not add
+      a build-matrix entry, and PACKAGE-RELAY-001 likewise must not.
+      A ``FanRelay``-bearing build entry is owned by
+      ``RELEASE-RELAY-001``.
+
+    These tests pin both guardrails so neither slice accidentally
+    crosses into the WebFlash / release layers.
     """
 
-    def test_no_fan_relay_product_yaml(self) -> None:
+    # Single FanRelay product YAML allowed under products/. Anything else
+    # is a guardrail violation. PRODUCT-RELAY-001 introduces exactly this
+    # path; WEBFLASH-RELAY-001 (not landed) would later add a wrapper
+    # under products/webflash/.
+    ALLOWED_FAN_RELAY_PRODUCT_YAMLS = frozenset(
+        {
+            "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+        }
+    )
+
+    def test_no_extra_fan_relay_product_yaml(self) -> None:
         products_dir = REPO_ROOT / "products"
         if not products_dir.is_dir():
             self.skipTest("products/ directory not present in repo")
@@ -394,13 +412,17 @@ class PackageRelayDoesNotTouchWebFlashOrProductTests(unittest.TestCase):
         for path in products_dir.glob("**/*.yaml"):
             name = path.name.lower()
             if "fanrelay" in name or "fan-relay" in name or "fan_relay" in name:
-                offenders.append(path.relative_to(REPO_ROOT))
+                rel = path.relative_to(REPO_ROOT).as_posix()
+                if rel not in self.ALLOWED_FAN_RELAY_PRODUCT_YAMLS:
+                    offenders.append(rel)
         self.assertEqual(
             offenders,
             [],
-            f"PACKAGE-RELAY-001 must not introduce a FanRelay product "
-            f"YAML — that work belongs to PRODUCT-RELAY-001 and stays "
-            f"separately gated. Offending paths: {offenders!r}",
+            f"Only the PRODUCT-RELAY-001 canonical FanRelay product YAMLs "
+            f"{sorted(self.ALLOWED_FAN_RELAY_PRODUCT_YAMLS)!r} are allowed "
+            f"under products/. A FanRelay WebFlash wrapper under "
+            f"products/webflash/ requires WEBFLASH-RELAY-001 (not landed). "
+            f"Offending paths: {offenders!r}",
         )
 
     def test_no_fan_relay_token_in_webflash_builds(self) -> None:
@@ -412,9 +434,9 @@ class PackageRelayDoesNotTouchWebFlashOrProductTests(unittest.TestCase):
             "FanRelay",
             text,
             "config/webflash-builds.json must not contain the FanRelay "
-            "token — PACKAGE-RELAY-001 does not advance WEBFLASH-RELAY-"
-            "001 or RELEASE-RELAY-001. A FanRelay-bearing entry belongs "
-            "to RELEASE-RELAY-001, not to PACKAGE-RELAY-001.",
+            "token — neither PACKAGE-RELAY-001 nor PRODUCT-RELAY-001 "
+            "advances WEBFLASH-RELAY-001 or RELEASE-RELAY-001. A "
+            "FanRelay-bearing build entry belongs to RELEASE-RELAY-001.",
         )
 
 

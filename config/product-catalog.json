@@ -58,6 +58,33 @@
       "notes": "Advanced/manual-warning candidate after HW-005 unblock, HW-PINMAP-320-FOLLOWUP, PACKAGE-TRIAC-001, COMPLIANCE-001 advanced/manual-warning sign-off, and WebFlash-side manual-warning UX gates clear. Not Release-One, not REQUIRED_CONFIGS, not recommended, not kit/default, not compliance-certified. Retained as documented hardware; blocked from standard exposure until gates clear. See docs/release-one-hardware-audit.md#fantriac-mapping-resolution and docs/hardware/s360-320-r4-triac.md#advanced--manual-warning-product-posture."
     },
     {
+      "config_string": "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
+      "status": "hardware-pending",
+      "product_yaml": "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+      "webflash_build_matrix": false,
+      "modules": {
+        "mount": "Ceiling",
+        "power": "POE",
+        "air_quality": "VentIQ",
+        "room_sense": "RoomIQ",
+        "fan": "FanRelay",
+        "led": "none"
+      },
+      "blocked_modules": [
+        "FanTRIAC",
+        "LED"
+      ],
+      "hardware": {
+        "core": "S360-100",
+        "ventiq": "S360-211",
+        "roomiq": "S360-200",
+        "relay": "S360-310",
+        "poe": "S360-410"
+      },
+      "hardware_status": "package-implemented-product-layer-pending",
+      "notes": "FanRelay product YAML added by PRODUCT-RELAY-001 as an advanced/manual-warning-only sibling of Release-One. PACKAGE-RELAY-001 / PR #562 implemented the FanRelay package at the package layer only; product-layer blockers remain open (production-wide / multi-unit ESP32-S3 GPIO3 strap-pin boot-behaviour characterisation; board-level mains-safety / installation-approval / creepage / clearance / thermal / EMI / EMC evidence; competent-person caveat sign-off). NOT release-one, NOT REQUIRED_CONFIGS, NOT recommended, NOT kit-default, NOT compliance-certified, NOT WebFlash-exposed. webflash_build_matrix is false; no artifact_name; no webflash_wrapper; no config/webflash-builds.json entry; no release artifact. WebFlash exposure (if and when appropriate) is owned by a separate WEBFLASH-RELAY-001 slice gated additionally on production-wide hardware characterisation + installation / competent-person sign-off + WebFlash-side manual-warning UX parity. The default sellable bathroom kit remains S360-KIT-BATH-POE (Release-One); S360-KIT-BATH-RELAY stays future-expansion / hardware-pending. See docs/product-readiness-matrix.md §FanRelay / S360-310, docs/webflash-exposure-readiness-matrix.md §Relay / S360-310 WebFlash posture, docs/release-artifact-readiness-matrix.md §Relay / S360-310 release posture."
+    },
+    {
       "config_string": "Ceiling-POE-VentIQ-RoomIQ-LED",
       "status": "preview",
       "version": "1.0.0",
