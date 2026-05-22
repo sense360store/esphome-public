@@ -7,15 +7,15 @@
 # - ESP32-S3-WROOM-1 (8MB Flash, 2MB PSRAM)
 # - WiFi 2.4GHz, Bluetooth 5.0 LE
 # - Power: 240V AC / PoE (via separate power packages)
-# - Dual I2C buses (halo LED ring + expansion modules)
+# - Shared Core I²C bus (halo LED ring PCA9685 + sensors + SX1509 expander +
+#   GP8403 DAC all live on the same schematic-correct IO48/IO45 bus)
 # - UART for presence/radar sensors
 # - Built-in relay for load switching (ceiling fan, lights)
 # - GPIO expansion pins
 # - RGB LED halo ring and status LED
 #
 # Pin Assignments (ESP32-S3):
-# - I2C0 (Halo LED):  SDA=GPIO39, SCL=GPIO40
-# - I2C1 (Expansion): SDA=GPIO21, SCL=GPIO18
+# - Core I2C (shared): SDA=GPIO48, SCL=GPIO45, 400kHz
 # - UART (Hi-Link):   TX=GPIO2, RX=GPIO1, baud 256000  (RoomIQ J10 LD2450 radar)
 # - UART (SEN0609):   TX=GPIO5, RX=GPIO4, baud 115200  (RoomIQ J10 DFRobot radar)
 # - Relay:            GPIO3 (10A AC/DC for ceiling fan/light; schematic Relay
@@ -27,6 +27,14 @@
 #                     indicator independent of any module)
 # - SEN0609 output:   GPIO6  (schematic IO6 = out(gpio6), RoomIQ J10 aux line)
 #
+# CORE-ABSTRACT-BUS-001B rebinds applied here:
+#   * Single shared Core I²C bus `core_i2c` on schematic-correct
+#     `IO48` (SDA) / `IO45` (SCL) at `400kHz`; the legacy dual-bus
+#     `halo_i2c` (`GPIO39` / `GPIO40`) and `expansion_i2c`
+#     (`GPIO21` / `GPIO18`) definitions and their `halo_i2c_*` /
+#     `expansion_i2c_*` pin substitutions are retired (hard rename only,
+#     no compatibility aliases per CORE-ABSTRACT-BUS-001B-PLAN-001
+#     operator decisions).
 # CORE-ABSTRACT-BUS-001C rebinds applied here:
 #   * generic `status_led_pin` retired (no Core-baseline status-LED net on the
 #     schematic; the S360-300 LED ring is owned by `led_ring_ceiling.yaml`)
@@ -50,8 +58,8 @@
 # 1. GND
 # 2. 3.3V (500mA max)
 # 3. 5V (1A max)
-# 4. I2C1 SDA (GPIO21) - for expansion modules (consolidation owed to 001B)
-# 5. I2C1 SCL (GPIO18) - for expansion modules (consolidation owed to 001B)
+# 4. Core I2C SDA (GPIO48) - shared Core I²C bus per CORE-ABSTRACT-BUS-001B
+# 5. Core I2C SCL (GPIO45) - shared Core I²C bus per CORE-ABSTRACT-BUS-001B
 # 6. Hi-Link UART RX (GPIO1) — ESP receives from Hi-Link radar
 # 7. Hi-Link UART TX (GPIO2) — ESP transmits to Hi-Link radar
 # 8. SEN0609 UART RX (GPIO4) — ESP receives from DFRobot radar
@@ -62,13 +70,6 @@ substitutions:
   device_name: sense360-ceiling
   friendly_name: Sense360 Ceiling
   timezone: "America/New_York"
-
-  # Pin definitions
-  # I2C buses
-  halo_i2c_sda_pin: GPIO39
-  halo_i2c_scl_pin: GPIO40
-  expansion_i2c_sda_pin: GPIO21
-  expansion_i2c_scl_pin: GPIO18
 
   # Relay (ceiling fan/light control)
   # CORE-ABSTRACT-BUS-001A: schematic-correct Relay net on IO3 per
@@ -116,18 +117,15 @@ esp32:
       CONFIG_ESP32S3_SPIRAM_SUPPORT: y
       CONFIG_SPIRAM_MODE_OCT: y
 
-# I2C bus for Halo LED ring (primary use)
+# Shared Core I2C bus (CORE-ABSTRACT-BUS-001B).
+# Schematic IO48 = I2C_SDA, IO45 = I2C_SCL per S360-100-R4; pulled up by
+# R22/R21 10 kΩ. Single bus serves the halo LED ring PCA9685
+# (consumed via packages/features/ceiling_halo_leds.yaml) and every
+# expansion module (sensors, SX1509 expander, GP8403 DAC).
 i2c:
-  - id: halo_i2c
-    sda: ${halo_i2c_sda_pin}
-    scl: ${halo_i2c_scl_pin}
-    scan: true
-    frequency: 400kHz
-
-  # I2C bus for expansion modules (air quality, comfort, etc.)
-  - id: expansion_i2c
-    sda: ${expansion_i2c_sda_pin}
-    scl: ${expansion_i2c_scl_pin}
+  - id: core_i2c
+    sda: GPIO48
+    scl: GPIO45
     scan: true
     frequency: 400kHz
 

@@ -13,8 +13,8 @@
 # in the feature profile files (basic or advanced).
 #
 # Expansion Bus Connection:
-#   Pin 4 (SDA) → GPIO39
-#   Pin 5 (SCL) → GPIO40
+#   Pin 4 (SDA) → GPIO48 (Core I2C SDA per CORE-ABSTRACT-BUS-001B)
+#   Pin 5 (SCL) → GPIO45 (Core I2C SCL per CORE-ABSTRACT-BUS-001B)
 #   Pin 2 (3.3V) → Power
 #   Pin 1 (GND) → Ground
 #
@@ -22,9 +22,10 @@
 # ============================================================================
 
 substitutions:
-  # I2C bus ID (uses i2c0 from core hardware by default)
-  # Override with airiq_i2c_id substitution if using different bus
-  airiq_i2c_id: i2c0
+  # I2C bus ID (uses the shared core_i2c bus from the parent Core abstract
+  # package by default; CORE-ABSTRACT-BUS-001B). Override with the
+  # airiq_i2c_id substitution if a product binds a different bus.
+  airiq_i2c_id: core_i2c
 
   # Sensor update intervals
   airiq_sps30_update: 30s

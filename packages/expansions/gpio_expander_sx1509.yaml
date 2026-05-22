@@ -7,12 +7,14 @@
 #   IO8-IO11: Auxiliary PWM outputs
 #   IO12-IO15: General purpose inputs
 #
-# Connection: I2C Secondary bus (GPIO21/18), Address 0x3E
+# Connection: shared core_i2c bus (GPIO48 SDA / GPIO45 SCL per
+# CORE-ABSTRACT-BUS-001B), Address 0x3E.
 
 substitutions:
-  # I2C bus ID (uses i2c1 from core hardware by default)
-  # Override with sx1509_i2c_id substitution if using different bus
-  sx1509_i2c_id: i2c1
+  # I2C bus ID (uses the shared core_i2c bus from the parent Core abstract
+  # package by default; CORE-ABSTRACT-BUS-001B). Override with the
+  # sx1509_i2c_id substitution if a product binds a different bus.
+  sx1509_i2c_id: core_i2c
   sx1509_address: "0x3E"
   # CORE-ABSTRACT-BUS-001C: rebound from GPIO3 to GPIO17. The schematic-correct
   # SX1509 expander interrupt net is `expander_int` on IO17 per S360-100-R4.
