@@ -236,6 +236,37 @@ its production-wide / installation / competent-person sign-off
 gates) + `RELEASE-RELAY-001` + WebFlash-side
 `WF-IMPORT-RELAY-001` — has cleared.
 
+**2026-05-22 — `PRODUCT-RELAY-001` status update (implementation
+slice).** `PRODUCT-RELAY-001` has now **landed** as a
+product-YAML-only / no-WebFlash-exposure slice. The canonical
+FanRelay product YAML
+[`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml)
+is committed alongside a non-WebFlash catalog row in
+[`config/product-catalog.json`](../config/product-catalog.json)
+(config string `Ceiling-POE-VentIQ-FanRelay-RoomIQ`, `status:
+hardware-pending`, `webflash_build_matrix: false`, no
+`artifact_name`, no `webflash_wrapper`, no entry in
+[`config/webflash-builds.json`](../config/webflash-builds.json),
+not in `release_one_required_configs`). The product YAML carries
+explicit advanced / manual-warning + installation / safety +
+competent-person caveat wording per the readiness-refresh
+recommended posture; the structural pins are recorded in
+[`tests/test_relay_product_readiness.py`](../tests/test_relay_product_readiness.py).
+**The Relay Bathroom Kit still remains `future-expansion` /
+`hardware-pending` and `webflash_exposure_allowed_now: false` /
+`stable_ready_now: false`** — `PRODUCT-RELAY-001` lands the
+product YAML only and explicitly does **not** add a WebFlash
+wrapper, build-matrix row, release artifact, or kit promotion.
+`WEBFLASH-RELAY-001`, `RELEASE-RELAY-001`, and
+`WF-IMPORT-RELAY-001` remain **blocked** behind production-wide
+hardware characterisation + installation / safety wording +
+competent-person sign-off + WebFlash-side manual-warning UX
+parity. The default sellable bathroom kit remains
+`S360-KIT-BATH-POE` mapped to Release-One on `stable`. Relay
+becomes installable only via the full chain
+`WEBFLASH-RELAY-001` → `RELEASE-RELAY-001` →
+`WF-IMPORT-RELAY-001`.
+
 ### S360-KIT-BATH-TRIAC — Sense360 Bathroom Kit — TRIAC Fan Control
 
 - **Tier.** `advanced-manual`
