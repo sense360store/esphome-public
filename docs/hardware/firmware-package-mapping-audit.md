@@ -1403,16 +1403,45 @@ After HW-009 lands, these greps should hold:
   I²C address-selection scheme on the two `GP8403-TC50-EW` DACs
   (`IC1` / `IC2`), the UART0-vs-Nextion arbitration question on
   Module `J1` pins 4 / 5, and the stale header-comment connector /
-  GPIO claims (file lines 13–18 reading `Pin 4 SDA → GPIO39`,
-  `Pin 5 SCL → GPIO40`, `Pin 2 3.3V → Power`, `Pin 1 GND → Ground`)
-  in [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml)
-  that disagree with both the Core `J7` capture and the Module `J1`
-  capture. HW-PINMAP-312 is out of scope for HW-009 today — `S360-312`
-  is still `schematic_status: cataloged_unverified` and is therefore
-  out of HW-009's verified-schematic scope — but the per-board audit
-  doc records `fan_gp8403.yaml` as `package-yaml-pending` / `needs-
+  GPIO claims previously in
+  [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml)
+  lines 13–18 (the comment was rewritten by `CORE-ABSTRACT-BUS-001B-IMPLEMENT-001`
+  (PR #569) to reference `GPIO48` / `GPIO45`). HW-PINMAP-312 is out
+  of scope for HW-009 today — `S360-312` is still
+  `schematic_status: cataloged_unverified` and is therefore out of
+  HW-009's verified-schematic scope — but the per-board audit doc
+  records `fan_gp8403.yaml` as `package-yaml-pending` / `needs-
   package-reconciliation`. The active YAML body's `${fan_dac_i2c_id}`
   / `${fan_dac_address}` substitutions are abstract-bus inheritance
-  and do not depend on the stale header-comment claims; resolution
-  belongs to `HW-PINMAP-312-FOLLOWUP` and to a future `PACKAGE-GAP-001`
-  FanDAC slice.
+  and do not depend on any header-comment claims; the
+  `${fan_dac_i2c_id}` default is now `core_i2c` after PR #569.
+  Resolution belongs to `HW-PINMAP-312-FOLLOWUP` and to a future
+  `PACKAGE-GAP-001` FanDAC slice.
+- [`docs/hardware/s360-312-r4-fandac.md`](s360-312-r4-fandac.md) —
+  HW-PINMAP-312-FOLLOWUP standalone schematic+BOM reference doc for
+  `S360-312-R4` (landed 2026-05-22). Consolidates the committed
+  schematic PDF + the `Fan_GP8403.xlsx` BOM spreadsheet (transcribed
+  in [§BOM cross-check](s360-312-r4-fandac.md#bom-cross-check)) into
+  a single per-board reference following the
+  [`s360-200-r4-roomiq.md`](s360-200-r4-roomiq.md) /
+  [`s360-211-r4-ventiq.md`](s360-211-r4-ventiq.md) /
+  [`s360-300-r4-led.md`](s360-300-r4-led.md) pattern. Records the
+  post-PR-#569 effect on this board (the shared-I²C-bus-naming
+  blocker is closed; `${fan_dac_i2c_id}: core_i2c` resolves to
+  `GPIO48` / `GPIO45` automatically from the parent Core abstract
+  packages), the schematic+BOM-confirmed GP8403 variant
+  (`GP8403-TC50-EW` from Guestgood), the BOM-confirmed
+  `219-3MSTR` 3-pole SPST DIP switches (`SW1` / `SW2`) and the
+  six `4.7 kΩ` address-pin pull-ups, and the schematic+BOM-grounded
+  conclusion that output-range selection (0–5 V vs 0–10 V) is
+  **firmware/register-driven only** — there is no hardware
+  jumper / solder bridge in the BOM, and the schematic ties each
+  GP8403's `V5V` pin directly to the `+12V` MT3608 boost output.
+  Records that simultaneous one-channel-0–5 V plus
+  one-channel-0–10 V on a **single** GP8403 is not a hardware
+  capability of this board (one `V5V` per chip). Enumerates the
+  10 FanDAC-specific evidence blockers that still gate
+  `PACKAGE-DAC-001` in
+  [§Blockers remaining for PACKAGE-DAC-001](s360-312-r4-fandac.md#blockers-remaining-for-package-dac-001).
+  HW-PINMAP-312-FOLLOWUP is out of scope for HW-009 today (same
+  `cataloged_unverified` gate).

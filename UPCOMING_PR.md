@@ -24,8 +24,117 @@ mirrored here.
 
 ## Current queue summary
 
+- **HW-PINMAP-312-FOLLOWUP** advances by a **docs / evidence /
+  readiness-only** slice via **this PR** on 2026-05-22.
+  This PR adds a new standalone schematic+BOM reference doc at
+  [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md)
+  for the `S360-312-R4` Sense360 DAC (`Fan_GP8403`) board after the
+  user supplied the same module-side schematic PDF (byte-identical
+  to the already-committed schematic; SHA256
+  `2888f626bfa0139d2190f154f9b02ecf4cb06f2522a5b5802eaf96e16de39e28`)
+  plus a previously-not-recorded `Fan_GP8403.xlsx` BOM spreadsheet
+  (SHA256
+  `1886ecad5b9dd1a683b8c0ccebb770e5c02894854650b5a5553b19875f7e3a20`;
+  12,744 bytes; 19 rows including header). The new reference doc
+  follows the per-board pattern of
+  [`s360-200-r4-roomiq.md`](docs/hardware/s360-200-r4-roomiq.md),
+  [`s360-211-r4-ventiq.md`](docs/hardware/s360-211-r4-ventiq.md),
+  and [`s360-300-r4-led.md`](docs/hardware/s360-300-r4-led.md), and
+  it complements the broader HW-PINMAP-312 reconciliation audit at
+  [`s360-312-r4-dac.md`](docs/hardware/s360-312-r4-dac.md). The doc
+  consolidates: (i) the schematic+BOM-confirmed GP8403 variant
+  (`GP8403-TC50-EW` from Guestgood — two chips `IC1` and `IC2`);
+  (ii) the BOM-confirmed `219-3MSTR` 3-pole SPST DIP switches
+  (`SW1` for `IC1`; `SW2` for `IC2`; CTS Electronic Components) and
+  the six `4.7 kΩ` GP8403 address-pin pull-ups (`R3` / `R5` / `R7`
+  for `IC1` `A0` / `A1` / `A2`; `R4` / `R6` / `R8` for `IC2` `2A0` /
+  `2A1` / `2A2`); (iii) the MT3608 boost converter generating
+  `+12V` from `+3.3V` for the GP8403 `V5V` rails (input cap `C1`,
+  inductor `L1` `22 µH`, Schottky `D1 SS34`, output cap `C2`,
+  feedback divider `R1 2 kΩ` / `R2 38 kΩ`); (iv) the `J1` 6-pin
+  JST SH "From Core" connector (`SM06B-SRSS-TB(LF)(SN)`), the `J2`
+  / `J3` 3-pin Phoenix-compatible terminal blocks
+  (`MX350-3.5-03P-GN01-Cu-Y-A`), and the `J7` 4-pin JST PH Nextion
+  connector (`B4B-PH-K-S(LF)(SN)`); (v) the
+  schematic+BOM-grounded conclusion that GP8403 output-range
+  selection (0–5 V vs 0–10 V) is **firmware/register-driven only**
+  — there is no hardware jumper / solder bridge in the 19-row BOM,
+  and the schematic ties each chip's `V5V` pin directly to the
+  `+12V` MT3608 boost output, so the stale
+  [`packages/expansions/fan_gp8403.yaml`](packages/expansions/fan_gp8403.yaml)
+  header comment ("0-10V or 0-5V (jumper selectable on hardware)",
+  file line 6) is not corroborated by visible hardware; (vi) the
+  conservative finding that simultaneous one-channel-0–5 V and
+  one-channel-0–10 V on a **single** GP8403 chip is **not** a
+  hardware capability of this board (one `V5V` reference per chip),
+  and that per-channel range mixing across the two DACs requires
+  using one channel from each chip — no overclaim is made that the
+  GP8403 supports per-channel range; (vii) the post-`CORE-ABSTRACT-
+  BUS-001B-IMPLEMENT-001` (PR #569) bus state — `fan_gp8403.yaml`
+  `${fan_dac_i2c_id}` default is `core_i2c`, resolving through the
+  parent Core abstract package to the single shared bus on `GPIO48`
+  / `GPIO45`; (viii) the BOM-confirmed observation that there is
+  **no** `+5V` source on this board — the Nextion `J7` pin 1 `+5V`
+  rail is an expected external supply, not a board-generated rail;
+  (ix) a 10-row "Blockers remaining for `PACKAGE-DAC-001`" table
+  enumerating what still gates the package slice; and (x) a
+  10-row "What `CORE-ABSTRACT-BUS-001B` unblocked vs what remains
+  blocked" table. **No** `packages/**` edit. **No** `products/**`
+  edit. **No** `products/webflash/**` edit. **No** `config/**`
+  edit (`config/hardware-catalog.json`, `config/product-catalog.json`,
+  `config/webflash-builds.json`, `config/webflash-compatibility.json`,
+  `config/firmware-combination-matrix.json`,
+  `config/kit-intent-matrix.json`, `config/compile-only-targets.json`
+  all byte-identical). **No** `scripts/**`, `.github/workflows/**`,
+  `components/**`, `include/**`, `firmware/**`, `manifest.json`,
+  `firmware/sources.json`, `tests/**` edit. **No**
+  `webflash_build_matrix` flip. **No** `artifact_name`
+  / `webflash_wrapper` / `config_string` /
+  `release_one_required_configs` / `lifecycle_statuses` /
+  `canonical_modules` / `canonical_power` / `forbidden_tokens` /
+  `REQUIRED_CONFIGS` / kit change. **No** `schematic_status` /
+  `schematic_file` promotion (`S360-312` stays
+  `cataloged_unverified`; no `schematic_file` set). **No** COMPLIANCE-001
+  movement. **No** Release-One change (`Ceiling-POE-VentIQ-RoomIQ`
+  / `v1.0.0` / `stable`). **No** LED preview change
+  (`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`). **No** FanTRIAC
+  change (`blocked` / `HW-005`). **No** edit to
+  [`packages/expansions/fan_gp8403.yaml`](packages/expansions/fan_gp8403.yaml)
+  or to its FanDAC alias
+  [`packages/expansions/fan_dac.yaml`](packages/expansions/fan_dac.yaml).
+  **No** compile-only target added. **No** firmware artifact built
+  or attached. **No** release artifact / tag / checksum /
+  build-info manifest / proof row. **No** WebFlash import readiness
+  claim. **No** hardware release-readiness claim. **No** claim that
+  `RELEASE-DAC-001`, `PRODUCT-DAC-001`, `WEBFLASH-DAC-001`, or
+  `WF-IMPORT-DAC-001` are unblocked beyond what `CORE-ABSTRACT-BUS-001B-IMPLEMENT-001`
+  already established. **No** edit to the WebFlash repository
+  (`sense360store/WebFlash`) — it is **read-only** for the purposes
+  of this PR. Doc-side updates: the new
+  [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md)
+  file; refreshed notes on the `fan_gp8403.yaml` row in
+  [`docs/hardware/package-readiness-matrix.md`](docs/hardware/package-readiness-matrix.md)
+  (new 2026-05-22 evidence-consolidation paragraph; row-level
+  evidence-source citation extended to the new reference doc;
+  `§fan_gp8403.yaml / S360-312` detail block refreshed to point at
+  the new reference doc and to record the schematic+BOM-grounded
+  range-selection finding); refreshed FanDAC See-also entry in
+  [`docs/hardware/firmware-package-mapping-audit.md`](docs/hardware/firmware-package-mapping-audit.md)
+  (HW-009 still out-of-scope, but the FanDAC entry now points at
+  the new reference doc and at the post-PR-#569 state); this
+  `UPCOMING_PR.md` queue entry. Validation: `python3
+  tests/validate_configs.py` (202 configs); `python3
+  scripts/validate_compile_targets.py --metadata-only` (8 targets);
+  `python3 tests/test_core_abstract_bus.py` (33 tests);
+  `python3 tests/test_fandac_alias_packages.py` (12 tests);
+  `python3 tests/test_compile_targets.py` (67 tests); `python3
+  tests/test_compile_expansion_candidates.py` (37 tests); `python3
+  tests/test_firmware_combination_matrix.py` (24 tests); `python3
+  tests/test_firmware_build_gap_report.py` (27 tests); `python3
+  tests/validate_webflash_builds.py` (2 builds); `python3 -m
+  unittest discover -s tests -p "test_*.py"` (515 tests). All pass.
 - **CORE-ABSTRACT-BUS-001B** has now **landed at the substitution
-  layer** via **CORE-ABSTRACT-BUS-001B-IMPLEMENT-001 (this PR)** on
+  layer** via **CORE-ABSTRACT-BUS-001B-IMPLEMENT-001 (PR #569)** on
   2026-05-22. The hard rename to the canonical shared `core_i2c` bus
   id (`GPIO48` SDA / `GPIO45` SCL / `400kHz`) is applied across the
   seven in-scope Core abstract packages
