@@ -411,6 +411,29 @@ RELEASE-DAC-001 per the FanDAC lane in
 > RELEASE-DAC-001. No `webflash_build_matrix`, `artifact_name`, kit
 > config string, or readiness flag is changed here.
 
+> **Status note (2026-05-23 — `PRODUCT-DAC-001`).** Two further chain
+> links have since landed: `FW-COMPILE-DAC-001` (compile-only target +
+> `gp8403:` `voltage:` `0-10V` → ESPHome `10V` enum fix) merged as
+> **PR #575**, `FW-COMPILE-DAC-RESULT-001` recorded the compile-only
+> **metadata** lane green as **PR #576**, and **`PRODUCT-DAC-001`** (this
+> PR) added the canonical FanDAC product YAML
+> [`products/sense360-ceiling-poe-fandac.yaml`](../products/sense360-ceiling-poe-fandac.yaml)
+> (config string `Ceiling-POE-FanDAC`) as **product-YAML-only /
+> no-WebFlash-exposure** with a `hardware-pending`
+> [`config/product-catalog.json`](../config/product-catalog.json) row
+> (`webflash_build_matrix: false`, no `artifact_name`, no wrapper). **The
+> kit stays `future-expansion` / `hardware-pending` and gated** — a
+> product-layer YAML is not WebFlash or release readiness, and the full
+> ESPHome `--compile` pass is still **owed** (only the compile-only
+> metadata lane is green). `WEBFLASH-DAC-001` and `RELEASE-DAC-001` stay
+> blocked. The `blockers` array above is the canonical
+> [`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json)
+> array and is unchanged by this docs refresh; no kit config string or
+> readiness flag is changed. Recommended next link before
+> `WEBFLASH-DAC-001`: `FW-COMPILE-DAC-FULL-001` (record the owed manual
+> `workflow_dispatch` `compile_mode=full` compile) or
+> `WEBFLASH-DAC-001-READINESS-REFRESH`.
+
 ## Hard guardrails
 
 The kit intent matrix is a **planning artifact**. It does not change:

@@ -81,17 +81,24 @@ FANRELAY_COMPILE_ONLY_PRODUCT_YAML = (
     "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml"
 )
 
-# FW-COMPILE-DAC-001: FanDAC compile-only validation target. Unlike
-# FanRelay, FanDAC has no landed product YAML (PRODUCT-DAC-001 is gated
-# on this very compile-only validation), so a top-level products/ YAML
-# plus catalog row is forbidden. The FanDAC compile-only skeleton
-# therefore lives UNDER products/compile-only/ (the only place that
-# avoids the top-level product-catalog enumeration gate) and is the one
-# explicitly-registered exception to the otherwise-non-fan
-# products/compile-only/ lane.
+# FW-COMPILE-DAC-001: FanDAC compile-only validation target. The FanDAC
+# compile-only skeleton lives UNDER products/compile-only/ (the only
+# place that avoids the top-level product-catalog enumeration gate) and
+# is the one explicitly-registered fan exception to the otherwise-non-fan
+# products/compile-only/ lane. This compile-only target stays unchanged
+# by PRODUCT-DAC-001 and is independent of the product YAML below.
+#
+# PRODUCT-DAC-001 has since landed the canonical FanDAC product YAML at
+# the top level of products/ as the product-YAML-only / no-WebFlash-
+# exposure slice (see tests/test_dac_product_readiness.py for the full
+# non-WebFlash invariants). The top-level product YAML and the
+# compile-only skeleton both reference config string Ceiling-POE-FanDAC
+# but are separate files: the compile-only skeleton is the CI validation
+# target; the product YAML is the consumer-facing deliverable.
 FANDAC_COMPILE_ONLY_TARGET_ID = "ceiling-poe-fandac-compile-only"
 FANDAC_COMPILE_ONLY_CONFIG_STRING = "Ceiling-POE-FanDAC"
 FANDAC_COMPILE_ONLY_PRODUCT_YAML = "products/compile-only/ceiling-poe-fandac.yaml"
+FANDAC_PRODUCT_YAML = "products/sense360-ceiling-poe-fandac.yaml"
 
 ALLOWED_SHIPMENT_STATUSES = frozenset(
     {"webflash-current", "preview-current", "compile-only"}
@@ -1086,24 +1093,73 @@ class FanDACCompileOnlyCoverageTests(unittest.TestCase):
             f"under products/webflash/. Offending paths: {offenders!r}",
         )
 
-    def test_no_normal_fandac_product_yaml_added(self):
-        """No FanDAC product YAML may be added at the top level of products/.
+    def test_compile_only_skeleton_stays_separate_from_product_yaml(self):
+        """The compile-only skeleton is not the top-level product YAML.
 
-        PRODUCT-DAC-001 is gated on this compile-only validation; the
-        FanDAC YAML must stay under products/compile-only/ (no catalog
-        enumeration), never at the top level of products/.
+        FW-COMPILE-DAC-001 deliberately keeps the FanDAC compile-only
+        skeleton UNDER products/compile-only/. PRODUCT-DAC-001 later
+        landed the canonical product YAML at the top level of products/;
+        the two must remain distinct files (the compile-only target must
+        never silently repoint at the top-level product YAML).
         """
-        products_dir = REPO_ROOT / "products"
+        self.assertTrue(
+            FANDAC_COMPILE_ONLY_PRODUCT_YAML.startswith("products/compile-only/"),
+            "FanDAC compile-only skeleton must stay under "
+            "products/compile-only/",
+        )
+        self.assertNotEqual(
+            FANDAC_COMPILE_ONLY_PRODUCT_YAML,
+            FANDAC_PRODUCT_YAML,
+            "The compile-only skeleton and the PRODUCT-DAC-001 product "
+            "YAML must be distinct files",
+        )
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("product_yaml"),
+            FANDAC_COMPILE_ONLY_PRODUCT_YAML,
+            "FanDAC compile-only target must keep pointing at the "
+            "products/compile-only/ skeleton, not the top-level product "
+            "YAML",
+        )
+
+    def test_product_dac_001_yaml_landed_at_top_level(self):
+        """PRODUCT-DAC-001 landed the canonical FanDAC product YAML.
+
+        The product-YAML-only / no-WebFlash-exposure slice adds the
+        single canonical FanDAC product YAML at the top level of
+        products/. The detailed non-WebFlash invariants
+        (no webflash_build_matrix flip, no artifact_name, no wrapper, no
+        config/webflash-builds.json row, full-compile + J3-silk +
+        Cloudlift-harness caveats) are owned by
+        tests/test_dac_product_readiness.py.
+        """
+        path = REPO_ROOT / FANDAC_PRODUCT_YAML
+        self.assertTrue(
+            path.is_file(),
+            f"PRODUCT-DAC-001 must add the FanDAC product YAML at "
+            f"{FANDAC_PRODUCT_YAML}",
+        )
+
+    def test_no_fandac_product_yaml_under_webflash_wrapper_dir(self):
+        """No FanDAC YAML may live under products/webflash/.
+
+        PRODUCT-DAC-001 is product-YAML-only / no-WebFlash-exposure: the
+        WebFlash wrapper namespace (products/webflash/) must carry no
+        FanDAC YAML. That work belongs to WEBFLASH-DAC-001 (not landed).
+        """
+        webflash_dir = REPO_ROOT / "products" / "webflash"
+        if not webflash_dir.is_dir():
+            return
         offenders = []
-        for path in products_dir.glob("*.yaml"):
+        for path in webflash_dir.glob("*.yaml"):
             name = path.name.lower()
             if "fandac" in name or "fan-dac" in name or "fan_dac" in name:
                 offenders.append(path.relative_to(REPO_ROOT).as_posix())
         self.assertEqual(
             offenders,
             [],
-            "FW-COMPILE-DAC-001 must NOT add a normal DAC product YAML at "
-            f"the top level of products/. Offending paths: {offenders!r}",
+            "PRODUCT-DAC-001 must NOT add a FanDAC WebFlash wrapper under "
+            f"products/webflash/. Offending paths: {offenders!r}",
         )
 
     def test_fandac_voltage_enum_concern_is_fixed(self):
