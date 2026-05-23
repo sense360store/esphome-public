@@ -818,8 +818,12 @@ named follow-up.
 
 - **Status.** **`package-implemented-at-package-layer` (upstream;
   PACKAGE-DAC-001 / PR #573) + `compile-only-target-landed` +
-  `voltage-enum-fixed` + `compile-pass-pending-ci`
-  (FW-COMPILE-DAC-001 / this PR) + `not-required-configs` +
+  `voltage-enum-fixed` (FW-COMPILE-DAC-001 / PR #575) +
+  `compile-only-metadata-ci-green` (FW-COMPILE-DAC-RESULT-001 / this PR;
+  Run ID `26332462496`, conclusion `success`) + `compile-pass-pending-ci`
+  (the full `esphome config` / `--compile` job was `skipped` on PR #575;
+  it runs only via `workflow_dispatch` `compile_mode=full`) +
+  `not-required-configs` +
   `not-recommended` + `not-kit-default` + `not-webflash-default`**
   + `invalid-combination` for any `AirIQ`-bearing variant. The
   package-side disposition is recorded in
@@ -862,19 +866,39 @@ named follow-up.
   inherits a valid `voltage: 10V` binding. A single GP8403 still cannot
   drive one output at 0-5V and the other at 0-10V (one `V5V` reference /
   one range register per chip).
-- **Compile-pass status — pending CI.** FW-COMPILE-DAC-001 adds the
-  `ceiling-poe-fandac-compile-only` target
+- **Compile-pass status — metadata CI green; full compile still
+  owed.** FW-COMPILE-DAC-001 adds the `ceiling-poe-fandac-compile-only`
+  target
   ([`products/compile-only/ceiling-poe-fandac.yaml`](../products/compile-only/ceiling-poe-fandac.yaml),
   config string `Ceiling-POE-FanDAC`) and passes
-  `scripts/validate_compile_targets.py --metadata-only`, but ESPHome is
-  not assumed available locally — the actual `esphome config` /
-  `--compile` pass is **owed to CI**. No compile-success claim is made
-  until CI proves it (`compile_validation_status: pending-ci`).
-- **Recommended product posture / next PR.** The compile / voltage-enum
-  gate that blocked `PRODUCT-DAC-001` is now resolved at the package
-  layer. `PRODUCT-DAC-001` may proceed once the CI `--compile` pass is
-  green **and** `S360-312` `schematic_status: verified` lands (separate
-  JSON PR). When it does, `PRODUCT-DAC-001` may add a single canonical
+  `scripts/validate_compile_targets.py --metadata-only`. **FW-COMPILE-DAC-RESULT-001**
+  (2026-05-23) records the GitHub Actions result for PR #575: the
+  `Compile-only Firmware Validation` workflow (Run ID `26332462496`,
+  conclusion `success`, target count 9) passed its **metadata-validation
+  lane**. The `Compile-only Targets — Full ESPHome Compile` job was
+  **`skipped`** — it runs only on a manual `workflow_dispatch` with
+  `compile_mode=full`
+  ([`.github/workflows/compile-only.yml`](../.github/workflows/compile-only.yml)
+  line 103) — so **no `esphome config` / `esphome compile` was executed
+  against the FanDAC skeleton in CI**. The `voltage: 10V` fix is
+  confirmed against ESPHome's **documented** `gp8403` schema and pinned
+  by `tests/test_fandac_package.py`, but not yet by ESPHome's own
+  validator. The actual `esphome config` / `--compile` pass therefore
+  remains **owed to a `workflow_dispatch` full-compile run**; no
+  "compiles cleanly" claim is made and `compile_validation_status:
+  pending-ci` **stands**.
+- **Recommended product posture / next PR.** The voltage-enum gate that
+  blocked `PRODUCT-DAC-001` is resolved at the package layer (the
+  `0-10V` → `10V` fix is in place), and the compile-only **metadata** CI
+  lane is now green (FW-COMPILE-DAC-RESULT-001, Run ID `26332462496`,
+  conclusion `success`). **`PRODUCT-DAC-001` can now be considered the
+  next chain step, subject to its product-layer gates** — but it is
+  **not** unblocked yet: the full ESPHome `--compile` pass was
+  **`skipped`** on PR #575 (it runs only via `workflow_dispatch`
+  `compile_mode=full`), so the compile gate remains **owed**.
+  `PRODUCT-DAC-001` may proceed once the CI `--compile` pass is green
+  **and** `S360-312` `schematic_status: verified` lands (separate JSON
+  PR). When it does, `PRODUCT-DAC-001` may add a single canonical
   FanDAC product YAML under [`products/`](../products/)
   **without** a [`products/webflash/`](../products/webflash/) wrapper,
   **without** a `webflash_build_matrix: true` catalog flip, **without** a

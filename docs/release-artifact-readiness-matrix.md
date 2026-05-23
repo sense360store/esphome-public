@@ -1186,6 +1186,65 @@ compile-only target; the CI `--compile` pass is owed
 `WEBFLASH-DAC-001`, which is upstream of `RELEASE-DAC-001`. No release
 artifact or proof row is added by this refresh.
 
+**2026-05-23 — `FW-COMPILE-DAC-RESULT-001` (this PR; docs-only record
+of CI result) — note on release surface.** The
+`Compile-only Firmware Validation` workflow ran against the expanded
+nine-target compile-only lane after `FW-COMPILE-DAC-001` / PR #575 added
+the `Ceiling-POE-FanDAC` compile-only target, and the
+**metadata-validation lane passed** — GitHub Actions Run ID
+`26332462496`, status `completed`, conclusion `success`, target count 9;
+companion Quick Validation Run ID `26332462516` also succeeded.
+**FanDAC compile-only (metadata) validation now has a green CI result,
+but `RELEASE-DAC-001` remains blocked** because no FanDAC product YAML /
+WebFlash wrapper / build matrix / artifact path exists. Precise scope:
+the `Compile-only Targets — Full ESPHome Compile` job was **`skipped`**
+(it runs only on a manual `workflow_dispatch` with `compile_mode=full`),
+so **no `esphome config` / `esphome compile` ran against the FanDAC
+skeleton in CI**; the green result proves the metadata / structural lane
+and the documented-schema `voltage: 10V` enum fix, not a full ESPHome
+compile, and the CI `--compile` pass remains owed
+(`compile_validation_status: pending-ci`). No release-proof row is added
+by this PR. Re-verified against the live release surface:
+
+- No FanDAC release artifact of any kind exists; **no
+  `Sense360-Ceiling-*-FanDAC-*-v*.*-*.bin`** has been built / signed /
+  attached / imported.
+- No FanDAC row in
+  [`config/webflash-builds.json`](../config/webflash-builds.json) (the
+  `FanDAC` token is absent there) — only Release-One stable + LED
+  preview.
+- No GitHub Release for any FanDAC tag; no SHA256 / MD5 checksum files;
+  no build-info `manifest.json` asset; no proof row in
+  [`webflash-release-proof.md`](webflash-release-proof.md) for any
+  FanDAC artifact.
+- The two existing `artifact_name` entries
+  (`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` and
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`) stay
+  byte-identical;
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+  `release_one_required_configs` stays `["Ceiling-POE-VentIQ-RoomIQ"]`.
+
+A green compile-only CI result is **necessary-but-insufficient** input
+to the broader preview-to-stable promotion process. The atomic
+`RELEASE-DAC-001` slice (build / sign / attach the `.bin`, release
+notes, SHA256 + MD5 checksums, build-info `manifest.json`,
+release-proof row, hand-off to `WF-IMPORT-DAC-001`) remains owed to a
+later PR because the upstream `PRODUCT-DAC-001` / `WEBFLASH-DAC-001`
+product / wrapper / build-matrix / artifact path does not yet exist.
+**No `packages/**`, `products/**`, `products/webflash/**`, `config/**`,
+`scripts/**`, `.github/workflows/**`, `components/**`, `include/**`,
+`tests/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`,
+release-artifact, checksum, build-info, or WebFlash-repo edit; no
+`webflash_build_matrix` flip; no `artifact_name`; no
+`release_one_required_configs` change; the `FanDAC ↔ AirIQ` mutex is
+not relaxed; `S360-312` stays `cataloged_unverified`.** **No claim of
+FanDAC release readiness, `RELEASE-DAC-001` / `WEBFLASH-DAC-001` /
+`WF-IMPORT-DAC-001` unblock, DAC product readiness, WebFlash readiness,
+harness / fan bench validation, compliance approval, or simultaneous
+per-output 0-5V + 0-10V on a single GP8403.** The next chain step is
+`PRODUCT-DAC-001`, gated on the still-owed full `--compile` pass +
+`S360-312 schematic_status: verified`.
+
 **Allowed release action now.** `not-release-ready`. No artifact
 build, no signing, no GitHub Release, no checksums, no proof, no
 WebFlash import. The FanDAC ↔ AirIQ mutex is not relaxed.
