@@ -24,6 +24,71 @@ mirrored here.
 
 ## Current queue summary
 
+- **PRODUCT-DAC-001** advances the FanDAC chain to the **product layer**
+  via **this PR** on 2026-05-23, as **product-YAML-only /
+  no-WebFlash-exposure**. It adds the single canonical FanDAC product
+  YAML [`products/sense360-ceiling-poe-fandac.yaml`](products/sense360-ceiling-poe-fandac.yaml)
+  (config string `Ceiling-POE-FanDAC`) composing Core ceiling + PoE PSU +
+  base/health with the canonical FanDAC alias
+  [`packages/expansions/fan_dac.yaml`](packages/expansions/fan_dac.yaml)
+  (→ `fan_gp8403.yaml`; two GP8403 DACs / four neutral outputs), plus a
+  `hardware-pending`
+  [`config/product-catalog.json`](config/product-catalog.json) row
+  (`webflash_build_matrix: false`, no `artifact_name`, no
+  `webflash_wrapper`). Outcome-first naming ("0-10V fan control" /
+  "Cloudlift S12 fan control"); neutral package output IDs unchanged.
+  **The full ESPHome `--compile` pass remains OWED** — only the
+  compile-only **metadata** lane is green (FW-COMPILE-DAC-RESULT-001 /
+  PR #576, Run ID `26332462496`); the manual `workflow_dispatch`
+  `compile_mode=full` run is still owed and `compile_validation_status:
+  pending-ci` stands. The product YAML carries the full-compile-owed
+  caveat, the `J3` `out0`/`out1` silkscreen transposition caveat, the
+  Cloudlift S12 harness / product-bench caveat, the `FanDAC` ↔ `AirIQ`
+  mutex (no AirIQ token), the per-chip (not per-output) output-range
+  limitation, and the Nextion / `J7` out-of-scope note (no `uart:` /
+  `display:` bound). The FW-COMPILE-DAC-001 compile-only skeleton
+  [`products/compile-only/ceiling-poe-fandac.yaml`](products/compile-only/ceiling-poe-fandac.yaml)
+  and its target are **unchanged** and stay separate. New
+  [`tests/test_dac_product_readiness.py`](tests/test_dac_product_readiness.py)
+  (44 cases) pins the non-WebFlash invariants + caveats; the superseded
+  pre-PRODUCT-DAC-001 guards in
+  [`tests/test_compile_targets.py`](tests/test_compile_targets.py) and
+  [`tests/test_fandac_package.py`](tests/test_fandac_package.py) are
+  updated to the landed-product reality. The regenerated
+  [`config/firmware-combination-matrix.json`](config/firmware-combination-matrix.json)
+  + [`docs/firmware-build-gap-report.md`](docs/firmware-build-gap-report.md)
+  reclassify `Ceiling-POE-FanDAC` from `missing-product-yaml` to
+  `blocked-hardware` (catalog `hardware-pending`, matching the FanRelay
+  precedent). **No** WebFlash wrapper; **no** `webflash_build_matrix`
+  flip; **no** `artifact_name`; **no** entry in
+  [`config/webflash-builds.json`](config/webflash-builds.json) (the
+  `FanDAC` token is absent there); **no** release artifact / checksum /
+  build-info / `manifest.json` / `firmware/sources.json` /
+  `.github/workflows/**` / `components/**` / `include/**` edit; **no**
+  `schematic_status` / `schematic_file` promotion (`S360-312` stays
+  `cataloged_unverified`); **no** `release_one_required_configs` change.
+  **`WEBFLASH-DAC-001`, `RELEASE-DAC-001`, and `WF-IMPORT-DAC-001` remain
+  blocked**; no full-compile-success, WebFlash, release, compliance, or
+  hardware-stable readiness claim is made, and no simultaneous per-output
+  0-5V + 0-10V on a single GP8403 is claimed. Updates
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+  [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
+  [`docs/kit-intent-matrix.md`](docs/kit-intent-matrix.md),
+  [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md)
+  (new audit-log row), and this `UPCOMING_PR.md`. **Next recommended PR:**
+  `FW-COMPILE-DAC-FULL-001` (record the still-owed manual
+  `workflow_dispatch` `compile_mode=full` ESPHome compile before WebFlash
+  planning) **or** `WEBFLASH-DAC-001-READINESS-REFRESH` (re-evaluate the
+  WebFlash gate). The WebFlash repository (`sense360store/WebFlash`) is
+  untouched. Validation: `python3 tests/validate_configs.py`; `python3
+  scripts/validate_compile_targets.py --metadata-only`; `python3
+  tests/test_dac_product_readiness.py`; `python3
+  tests/test_fandac_package.py`; `python3
+  tests/test_compile_targets.py`; `python3
+  tests/test_firmware_combination_matrix.py`; `python3
+  tests/test_firmware_build_gap_report.py`; `python3 -m unittest discover
+  -s tests -p "test_*.py"`.
 - **FW-COMPILE-DAC-RESULT-001** advances by a **docs-only record of the
   GitHub Actions compile-only validation result** via **this PR** on
   2026-05-23. It records the CI outcome for the FanDAC compile-only
@@ -4037,6 +4102,7 @@ add rows without verifying the PR number.
 | PRODUCT-DAC-001-READINESS-REFRESH | (this PR) | esphome-public  | Merged — docs / readiness-only refresh defining FanDAC product-layer gates after PACKAGE-DAC-001 / PR #573 | Re-evaluated `PRODUCT-DAC-001` after the package-layer landing (PR #573). Recorded the package as `package-layer-implemented` + `compile-validation-pending` across the readiness matrices; identified that the `gp8403:` `voltage:` field is fed the neutral `0-10V` value rather than ESPHome's bare `10V` / `5V` enum and that, with no FanDAC compile-only target, the compile is **unvalidated**. Verdict: product YAML waits on **`FW-COMPILE-DAC-001`** (compile-only validation; confirm `0-10V` validates or record the `0-10V` → `10V` fix) before `PRODUCT-DAC-001`. Recorded product-layer gates: `J2` / `J3` board-level pin mapping captured but the Cloudlift S12 harness conductor trace stays a product / bench item; the `J3` `out0` / `out1` silkscreen transposition must be carried into product docs / caveats; user-facing outputs map to outcome-first names ("0–10V fan control" / "Cloudlift S12 fan control") while the package keeps neutral output IDs; Nextion / `J7` is out of scope for the first DAC product unless it drives a display; `WEBFLASH-DAC-001` + `RELEASE-DAC-001` stay blocked. Updated [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md) (§FanDAC / S360-312 + candidate-table row + new `FW-COMPILE-DAC-001` / refreshed `PRODUCT-DAC-001` gate rows), [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md) (§DAC posture refresh-note + matrix row), [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md) (§DAC posture refresh-note + matrix row), [`docs/kit-intent-matrix.md`](docs/kit-intent-matrix.md) (`S360-KIT-DUCT-0-10V` status note), and `UPCOMING_PR.md` (Current queue summary + this row + active-queue `FW-COMPILE-DAC-001` entry + refreshed `PRODUCT-DAC-001` row). Validation: `python3 tests/validate_configs.py`; `python3 scripts/validate_compile_targets.py --metadata-only`; `python3 tests/test_core_abstract_bus.py`; `python3 tests/test_fandac_alias_packages.py`; `python3 tests/test_fandac_package.py`; `python3 tests/test_compile_targets.py`; `python3 tests/test_compile_expansion_candidates.py`; `python3 tests/test_firmware_combination_matrix.py`; `python3 tests/test_firmware_build_gap_report.py`; `python3 tests/validate_webflash_builds.py`; `python3 -m unittest discover -s tests -p "test_*.py"`. | **Docs / readiness only. No edit to `packages/expansions/fan_gp8403.yaml` or `fan_dac.yaml`; no DAC product YAML; no compile-only target; no WebFlash wrapper; no `config/**`, `products/**`, `products/webflash/**`, `scripts/**`, `.github/workflows/**`, `components/**`, `include/**`, `tests/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`, release-artifact, checksum, or build-info edit; no `webflash_build_matrix` flip; no `artifact_name`; no `schematic_status` / `schematic_file` promotion (`S360-312` stays `cataloged_unverified`); no claim of compile validation (none was run); no claim of simultaneous per-output 0–5 V + 0–10 V on a single GP8403; no DAC product / WebFlash / release readiness claim; the WebFlash repo (`sense360store/WebFlash`) is untouched.** | The recommended next PR is `FW-COMPILE-DAC-001` (compile-only validation of the `voltage:` binding) before `PRODUCT-DAC-001`. `WEBFLASH-DAC-001` / `RELEASE-DAC-001` / `WF-IMPORT-DAC-001` stay blocked behind it. |
 | FW-COMPILE-DAC-001 | #575 | esphome-public  | Merged — compile-only validation + package voltage-enum fix (Option A) | Added compile-only / config-validation coverage for the FanDAC package after PR #573 / PR #574. **Fixed the `gp8403:` `voltage:` enum (Option A):** ESPHome's gp8403 accepts only `10V` / `5V`, so [`packages/expansions/fan_gp8403.yaml`](packages/expansions/fan_gp8403.yaml) `fan_dac_1_output_range` / `fan_dac_2_output_range` were corrected from the invalid `0-10V` string to `10V` (customer-facing 0-10V; user-facing 0-10V / 0-5V labels stay in product / kit docs), matching the default `10V` operator decision D3 implied. Added the compile-only target `ceiling-poe-fandac-compile-only` ([`config/compile-only-targets.json`](config/compile-only-targets.json), totals 8→9) pointing at the new skeleton [`products/compile-only/ceiling-poe-fandac.yaml`](products/compile-only/ceiling-poe-fandac.yaml) (config string `Ceiling-POE-FanDAC`; Core ceiling + PoE PSU + base + health + FanDAC alias). Refreshed the FanDAC row + `currently_compile_only_config_strings` in [`config/compile-only-candidates.json`](config/compile-only-candidates.json). Extended [`tests/test_fandac_package.py`](tests/test_fandac_package.py) (enum-validity) and [`tests/test_compile_targets.py`](tests/test_compile_targets.py) (`FanDACCompileOnlyCoverageTests`). Updated [`docs/compile-only-firmware-validation.md`](docs/compile-only-firmware-validation.md), [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md), [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md), [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md), [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md), `UPCOMING_PR.md`. Validation: `python3 -m unittest discover -s tests -p "test_*.py"` PASS (559 / 559); `python3 scripts/validate_compile_targets.py --metadata-only` PASS; `python3 tests/validate_configs.py` PASS. | **No DAC product YAML at the top level of `products/`; no `config/product-catalog.json` entry; no WebFlash wrapper; no `config/webflash-builds.json` entry (FanDAC token absent there); no `webflash_build_matrix` flip; no `artifact_name`; no release artifact; no `firmware/**`, `manifest.json`, `firmware/sources.json`, `.github/workflows/**`, `components/**`, `include/**` edit; no `schematic_status` / `schematic_file` promotion; no claim of compile success (CI `--compile` pending); no claim of simultaneous per-output 0–5 V + 0–10 V on a single GP8403; the WebFlash repo (`sense360store/WebFlash`) is untouched.** | The gp8403 voltage-enum concern is **resolved** (Option A). `PRODUCT-DAC-001` stays gated on the CI `--compile` pass (`compile_validation_status: pending-ci`) + `S360-312 schematic_status: verified`. `WEBFLASH-DAC-001` / `RELEASE-DAC-001` / `WF-IMPORT-DAC-001` stay blocked behind it. |
 | FW-COMPILE-DAC-RESULT-001 | (this PR) | esphome-public  | Merged — docs-only record of FanDAC compile-only CI result (metadata lane green; full ESPHome compile skipped on PR) | Recorded the **GitHub Actions compile-only validation result** for the FanDAC compile-only target added by `FW-COMPILE-DAC-001` / PR #575. The `Compile-only Firmware Validation` workflow ran against the expanded nine-target compile-only lane on the PR head and the **metadata-validation lane passed** — Run ID `26332462496`, status `completed`, conclusion `success`, target count 9; companion Quick Validation Run ID `26332462516` also succeeded. **Recorded green, but precise:** the `Compile-only Targets — Full ESPHome Compile` job was **`skipped`** (it runs only on a manual `workflow_dispatch` with `compile_mode=full` per [`.github/workflows/compile-only.yml`](.github/workflows/compile-only.yml) line 103), so **no `esphome config` / `esphome compile` ran against the FanDAC skeleton in CI**. The green result proves the metadata / structural lane (target shape, cross-references, count 9, guardrails, and the `voltage: 10V` enum pinned by `tests/test_fandac_package.py` against ESPHome's documented `gp8403` schema), **not** a full ESPHome compile; `compile_validation_status: pending-ci` **stands**. Updated [`docs/compile-only-firmware-validation.md`](docs/compile-only-firmware-validation.md) (new `### 2026-05-23 — FW-COMPILE-DAC-RESULT-001` audit-log entry: workflow / run ID / conclusion / target count 9; jobs incl. the skipped full-compile; what it proves vs. does not prove), [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md) (§FanDAC / S360-312 Status + compile-pass + next-PR bullets), [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md) (§DAC / S360-312 posture note; `WEBFLASH-DAC-001` stays blocked), [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md) (§DAC / S360-312 posture note; `RELEASE-DAC-001` stays blocked), and `UPCOMING_PR.md` (Current queue summary bullet + this row + active-queue items 14 / 15 refresh). | **No `packages/**` edit** (`fan_gp8403.yaml` / `fan_dac.yaml` byte-identical); **no `products/**` or `products/webflash/**` edit**; **no `config/compile-only-targets.json` / `config/compile-only-candidates.json` edit** (totals stay 9 after PR #575); **no `config/webflash-builds.json` / `config/webflash-compatibility.json` / `config/product-catalog.json` / `config/hardware-catalog.json` / `config/kit-intent-matrix.json` / `config/firmware-combination-matrix.json` edit**; **no `scripts/**`, `.github/workflows/**`, `components/**`, `include/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`, `tests/**` edit**; **no WebFlash repo (`sense360store/WebFlash`) edit**; **no `webflash_build_matrix` flip**; **no `artifact_name`**; **no `webflash_wrapper`**; **no `config_string` change**; **no `release_one_required_configs` change**; **no `schematic_status` / `schematic_file` promotion** (`S360-312` stays `cataloged_unverified`); **no release artifact / tag / checksum / build-info manifest / proof row**; **no claim of compile success, DAC product / WebFlash / release readiness, harness / fan bench validation, compliance approval, or simultaneous per-output 0-5V + 0-10V on a single GP8403.** Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays `blocked` / `HW-005`. | `FW-COMPILE-DAC-RESULT-001` records the **green metadata CI result** of the FanDAC compile-only validation introduced by PR #575. The DAC chain now stands: evidence done (PR #572); package done (PR #573); compile-only target + voltage-enum fix done (PR #575); **compile-only (metadata) result passed (this PR)**; next recommended PR `PRODUCT-DAC-001`, gated on the still-owed full `--compile` pass (`workflow_dispatch` `compile_mode=full`) + `S360-312 schematic_status: verified`; `WEBFLASH-DAC-001` / `RELEASE-DAC-001` / `WF-IMPORT-DAC-001` stay blocked behind it. A green compile-only CI result is **necessary-but-insufficient** input to the broader preview-to-stable promotion process; it discharges no DAC product / WebFlash / release / hardware / compliance gate. |
+| PRODUCT-DAC-001 | (this PR) | esphome-public | Merged — implementation slice (product-YAML-only / no-WebFlash-exposure) | Added the canonical FanDAC product YAML [`products/sense360-ceiling-poe-fandac.yaml`](products/sense360-ceiling-poe-fandac.yaml) (config string `Ceiling-POE-FanDAC`) as the product-YAML-only / no-WebFlash-exposure slice following PACKAGE-DAC-001 (PR #573) and the FW-COMPILE-DAC-001 / FW-COMPILE-DAC-RESULT-001 compile-only **metadata** lane (PR #575 / PR #576). The YAML composes Core ceiling abstract + `packages/hardware/power_poe.yaml` + base + `packages/features/device_health.yaml` + the canonical FanDAC alias `packages/expansions/fan_dac.yaml` (→ `fan_gp8403.yaml`; two GP8403 DACs / four neutral outputs); inherits `fan_dac_i2c_id: core_i2c` + per-chip address + per-chip `voltage: 10V` enum from the package without hard-coding them; header carries explicit caveats: full ESPHome compile still **owed** (`compile_validation_status: pending-ci`; only the compile-only metadata lane is green; manual `workflow_dispatch compile_mode=full` run owed), `J3` `out0`/`out1` silkscreen transposition, Cloudlift S12 harness / product-bench residual, FanDAC ↔ AirIQ mutex (no AirIQ token), per-chip (not per-output) output-range limitation, Nextion / `J7` out of scope (no `uart:` / `display:`), not WebFlash exposed, not a default / recommended kit, not a release artifact, not compliance-certified, not hardware-stable-ready. Outcome-first user-facing naming ("0-10V fan control" / "Cloudlift S12 fan control"); neutral package output IDs unchanged. Added a non-WebFlash row to `config/product-catalog.json` (`config_string: Ceiling-POE-FanDAC`, `status: hardware-pending`, `webflash_build_matrix: false`, no `artifact_name`, no `webflash_wrapper`, `hardware_status: package-implemented-product-layer-pending`) required by the [`tests/test_product_catalog.py`](tests/test_product_catalog.py) enumeration. Regenerated `config/firmware-combination-matrix.json` (the `Ceiling-POE-FanDAC` row reclassifies `missing-product-yaml` → `blocked-hardware`; 168-row total unchanged) and `docs/firmware-build-gap-report.md` via `scripts/generate_firmware_matrix.py` and `scripts/report_firmware_build_gaps.py`. Added new test `tests/test_dac_product_readiness.py` (44 stdlib-unittest cases) pinning the non-WebFlash invariants + caveats. Updated the superseded pre-PRODUCT-DAC-001 guards in `tests/test_compile_targets.py` (the `test_no_normal_fandac_product_yaml_added` guard replaced with landed-product / compile-only-separation / no-webflash-wrapper assertions) and `tests/test_fandac_package.py` (the "no top-level product includes the FanDAC package" guard replaced with an exactly-the-canonical-product-YAML assertion). Updated docs `docs/product-readiness-matrix.md` §FanDAC / S360-312 (Product YAML action + Status + sequence), `docs/webflash-exposure-readiness-matrix.md` §DAC / S360-312 (PRODUCT-DAC-001 posture note; `WEBFLASH-DAC-001` stays blocked), `docs/release-artifact-readiness-matrix.md` §DAC / S360-312 (posture note; `RELEASE-DAC-001` stays blocked), `docs/kit-intent-matrix.md` §S360-KIT-DUCT-0-10V (kit stays future-expansion / hardware-pending), `docs/hardware/s360-312-r4-fandac.md` (new audit-log row), and this `UPCOMING_PR.md`. | **No `packages/**` edit** (the FanDAC package and Core abstract packages are consumed as-is); **no `products/webflash/**` edit**; **no `config/webflash-builds.json` edit** (the `FanDAC` token stays absent there); **no `config/webflash-compatibility.json` edit** (`release_one_required_configs` stays `[Ceiling-POE-VentIQ-RoomIQ]`; the `FanDAC` ↔ `AirIQ` mutex is not relaxed); **no `config/hardware-catalog.json` / `config/kit-intent-matrix.json` / `config/compile-only-targets.json` / `config/compile-only-candidates.json` edit** (the FanDAC compile-only target stays unchanged at 9 targets); **no `scripts/**` edit** (only the outputs of `scripts/generate_firmware_matrix.py` and `scripts/report_firmware_build_gaps.py` are refreshed; the scripts are byte-identical); **no `.github/workflows/**`, `components/**`, `include/**`, `firmware/**`, `manifest.json`, `firmware/sources.json` edit**; **no `webflash_build_matrix` flip**; **no `artifact_name`**; **no `webflash_wrapper`**; **no `schematic_status` / `schematic_file` promotion** (`S360-312` stays `cataloged_unverified`); **no release artifact / tag / checksum / build-info manifest / proof row**; **no claim of full compile success, DAC WebFlash / release / import readiness, harness / fan bench validation, compliance approval, hardware-stable readiness, or simultaneous per-output 0-5V + 0-10V on a single GP8403.** Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays `blocked` / `HW-005`; FanRelay stays `hardware-pending`; the existing FanDAC compile-only target is unchanged. The WebFlash repository (`sense360store/WebFlash`) is untouched. | `PRODUCT-DAC-001` is now **landed as a product-YAML-only / no-WebFlash-exposure slice**. The FanDAC product YAML exists under `products/`; the matching non-WebFlash catalog row exists in `config/product-catalog.json`; structural invariants + caveats are pinned by `tests/test_dac_product_readiness.py`. The full ESPHome `--compile` pass remains **owed** (only the compile-only metadata lane is green). `WEBFLASH-DAC-001`, `RELEASE-DAC-001`, and `WF-IMPORT-DAC-001` remain **blocked**. Recommended next DAC chain PR: `FW-COMPILE-DAC-FULL-001` (record the owed manual `workflow_dispatch compile_mode=full` ESPHome compile before WebFlash planning) or `WEBFLASH-DAC-001-READINESS-REFRESH` (docs-only WebFlash-gate re-evaluation). `S360-100-BENCH-001`, `HW-PINMAP-312-FOLLOWUP`, and `COMPLIANCE-001` are **not** closed by this PR. |
 
 ## Active / upcoming esphome-public queue
 
@@ -5065,37 +5131,51 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       line 27 after `CORE-ABSTRACT-BUS-001B-IMPLEMENT-001`
       (PR #569).
 
-15. **PRODUCT-DAC-001** (preceded by **PRODUCT-DAC-001-READINESS-REFRESH** /
-    PR #574, **FW-COMPILE-DAC-001** / PR #575, and
-    **FW-COMPILE-DAC-RESULT-001** / this PR — the gp8403 `voltage:` enum
-    concern is resolved and the compile-only metadata CI lane is green)
-    - Status: **Next chain step**, but still gated on (a) the CI
-      `esphome config` / `--compile` pass for the `Ceiling-POE-FanDAC`
-      compile-only target landed by `FW-COMPILE-DAC-001` / PR #575 —
-      **still owed**: `FW-COMPILE-DAC-RESULT-001` (this PR) recorded the
-      PR #575 `Compile-only Firmware Validation` run (Run ID
-      `26332462496`, conclusion `success`) passing its
-      **metadata-validation lane**, but the `Full ESPHome Compile` job
-      was **`skipped`** (it runs only via `workflow_dispatch`
-      `compile_mode=full`), so `compile_validation_status: pending-ci`
-      stands and no `esphome config` / `--compile` has actually run —
-      and (b) `S360-312 schematic_status: verified` (separate JSON PR).
-      The `gp8403:` `voltage:` enum concern is **resolved**:
-      `FW-COMPILE-DAC-001` fixed the package substitutions from the
-      invalid `0-10V` string to ESPHome's valid `10V` enum (Option A),
-      so a product YAML that `!include`s the package now inherits a
-      valid binding. `PACKAGE-DAC-001` landed at the package layer as
-      **PR #573**.
-    - Purpose: Add / re-align the S360-312 DAC product YAML. Map the
-      neutral package outputs to outcome-first user-facing names
-      (e.g. "0–10V fan control" / "Cloudlift S12 fan control") while
-      keeping the package's neutral output IDs; carry the `J2` / `J3`
-      Cloudlift S12 harness-trace and `J3` `out0` / `out1`
-      silkscreen-transposition caveats into the product / installation
-      docs; treat Nextion / `J7` as out of scope unless the product
-      drives a display; enforce the `fandac_conflicts_with_airiq`
-      mutex (no AirIQ-bearing FanDAC product). Does not add a WebFlash
-      wrapper, build-matrix entry, or release artifact.
+15. **PRODUCT-DAC-001** — **LANDED (this PR; product-YAML-only /
+    no-WebFlash-exposure)** (preceded by
+    **PRODUCT-DAC-001-READINESS-REFRESH** / PR #574,
+    **FW-COMPILE-DAC-001** / PR #575, and **FW-COMPILE-DAC-RESULT-001** /
+    PR #576)
+    - Status: **Landed at the product layer.** Added the canonical FanDAC
+      product YAML
+      [`products/sense360-ceiling-poe-fandac.yaml`](products/sense360-ceiling-poe-fandac.yaml)
+      (config string `Ceiling-POE-FanDAC`) + a `hardware-pending`
+      [`config/product-catalog.json`](config/product-catalog.json) row
+      (`webflash_build_matrix: false`, no `artifact_name`, no
+      `webflash_wrapper`). It composes Core ceiling + PoE PSU +
+      base/health with the canonical FanDAC alias
+      [`packages/expansions/fan_dac.yaml`](packages/expansions/fan_dac.yaml).
+      **The full ESPHome `--compile` pass is still OWED** — only the
+      compile-only **metadata** lane is green
+      (FW-COMPILE-DAC-RESULT-001 / PR #576, Run ID `26332462496`); the
+      `Full ESPHome Compile` job runs only via `workflow_dispatch`
+      `compile_mode=full` and `compile_validation_status: pending-ci`
+      stands. The `gp8403:` `voltage:` enum concern was resolved by
+      `FW-COMPILE-DAC-001` (`0-10V` → `10V`); `PACKAGE-DAC-001` landed at
+      the package layer as **PR #573**. `S360-312 schematic_status` stays
+      `cataloged_unverified` (separate JSON PR). New
+      [`tests/test_dac_product_readiness.py`](tests/test_dac_product_readiness.py)
+      (44 cases) pins the non-WebFlash invariants + caveats; superseded
+      pre-PRODUCT-DAC-001 guards in `tests/test_compile_targets.py` and
+      `tests/test_fandac_package.py` updated.
+    - Purpose: Added the S360-312 DAC product YAML with outcome-first
+      user-facing naming ("0-10V fan control" / "Cloudlift S12 fan
+      control") while keeping the package's neutral output IDs; carried
+      the full-compile-owed caveat, the `J2` / `J3` Cloudlift S12
+      harness-trace / product-bench caveat, the `J3` `out0` / `out1`
+      silkscreen-transposition caveat into the product / installation
+      docs; treated Nextion / `J7` as out of scope (no `uart:` /
+      `display:` bound); enforced the `fandac_conflicts_with_airiq` mutex
+      (no AirIQ-bearing FanDAC product). **Does NOT** add a WebFlash
+      wrapper, `webflash_build_matrix` flip, `config/webflash-builds.json`
+      row, `artifact_name`, or release artifact;
+      **`WEBFLASH-DAC-001` / `RELEASE-DAC-001` / `WF-IMPORT-DAC-001`
+      remain blocked**.
+    - Next recommended PR: **`FW-COMPILE-DAC-FULL-001`** (record the owed
+      manual `workflow_dispatch` `compile_mode=full` ESPHome compile
+      before WebFlash planning) **or**
+      **`WEBFLASH-DAC-001-READINESS-REFRESH`** (re-evaluate the WebFlash
+      gate).
 
 16. **WEBFLASH-DAC-001**
     - Status: Blocked on PRODUCT-DAC-001

@@ -388,23 +388,31 @@ class FanDACPackageLayerOnlyTests(unittest.TestCase):
                 f"release token {token!r}.",
             )
 
-    def test_no_top_level_product_actively_includes_the_dac_package(self) -> None:
-        """Guardrail: no DAC *product* YAML exists yet (PRODUCT-DAC-001 is
-        gated on FW-COMPILE-DAC-001), so no TOP-LEVEL file under
-        products/ may actively !include the FanDAC package (comment-only
-        references are allowed).
+    def test_only_the_product_dac_001_yaml_includes_the_dac_package(self) -> None:
+        """Only the canonical PRODUCT-DAC-001 product YAML may actively
+        !include the FanDAC package at the top level of products/.
+
+        PRODUCT-DAC-001 landed the single canonical FanDAC product YAML
+        (``products/sense360-ceiling-poe-fandac.yaml``) as the
+        product-YAML-only / no-WebFlash-exposure slice. That product is
+        the one and only top-level product YAML allowed to actively
+        !include the FanDAC package; any other top-level product YAML
+        doing so would be an unscoped FanDAC product.
 
         The FW-COMPILE-DAC-001 compile-only skeleton under
-        products/compile-only/ IS allowed to !include the package — it is
-        a compile-validation skeleton, not a catalog-enumerated product
-        YAML. That skeleton's invariants are pinned by
-        tests/test_compile_targets.py::FanDACCompileOnlyCoverageTests.
+        products/compile-only/ is exempt — it is a compile-validation
+        skeleton, not a catalog-enumerated product YAML. Its invariants
+        are pinned by
+        tests/test_compile_targets.py::FanDACCompileOnlyCoverageTests and
+        the non-WebFlash invariants of the product YAML by
+        tests/test_dac_product_readiness.py.
         """
 
         if not PRODUCTS_DIR.is_dir():
             self.skipTest("no products/ directory")
         compile_only_dir = PRODUCTS_DIR / "compile-only"
-        offenders: list[str] = []
+        allowed_rel = "products/sense360-ceiling-poe-fandac.yaml"
+        includers: list[str] = []
         for path in PRODUCTS_DIR.rglob("*.yaml"):
             # The compile-only skeleton namespace is exempt — it is not a
             # product YAML and adds no config/product-catalog.json entry.
@@ -417,12 +425,14 @@ class FanDACPackageLayerOnlyTests(unittest.TestCase):
                 if "!include" in stripped and (
                     "fan_gp8403.yaml" in stripped or "fan_dac.yaml" in stripped
                 ):
-                    offenders.append(f"{path.name}: {stripped}")
+                    includers.append(path.relative_to(REPO_ROOT).as_posix())
+                    break
         self.assertEqual(
-            offenders,
-            [],
-            "No top-level product YAML may actively !include the FanDAC "
-            f"package until PRODUCT-DAC-001 lands; found: {offenders!r}.",
+            sorted(includers),
+            [allowed_rel],
+            "Exactly one top-level product YAML — the canonical "
+            f"PRODUCT-DAC-001 product {allowed_rel!r} — may actively "
+            f"!include the FanDAC package; found: {sorted(includers)!r}.",
         )
 
 

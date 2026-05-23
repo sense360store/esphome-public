@@ -85,6 +85,31 @@
       "notes": "FanRelay product YAML added by PRODUCT-RELAY-001 as an advanced/manual-warning-only sibling of Release-One. PACKAGE-RELAY-001 / PR #562 implemented the FanRelay package at the package layer only; product-layer blockers remain open (production-wide / multi-unit ESP32-S3 GPIO3 strap-pin boot-behaviour characterisation; board-level mains-safety / installation-approval / creepage / clearance / thermal / EMI / EMC evidence; competent-person caveat sign-off). NOT release-one, NOT REQUIRED_CONFIGS, NOT recommended, NOT kit-default, NOT compliance-certified, NOT WebFlash-exposed. webflash_build_matrix is false; no artifact_name; no webflash_wrapper; no config/webflash-builds.json entry; no release artifact. WebFlash exposure (if and when appropriate) is owned by a separate WEBFLASH-RELAY-001 slice gated additionally on production-wide hardware characterisation + installation / competent-person sign-off + WebFlash-side manual-warning UX parity. The default sellable bathroom kit remains S360-KIT-BATH-POE (Release-One); S360-KIT-BATH-RELAY stays future-expansion / hardware-pending. See docs/product-readiness-matrix.md §FanRelay / S360-310, docs/webflash-exposure-readiness-matrix.md §Relay / S360-310 WebFlash posture, docs/release-artifact-readiness-matrix.md §Relay / S360-310 release posture."
     },
     {
+      "config_string": "Ceiling-POE-FanDAC",
+      "status": "hardware-pending",
+      "product_yaml": "products/sense360-ceiling-poe-fandac.yaml",
+      "webflash_build_matrix": false,
+      "modules": {
+        "mount": "Ceiling",
+        "power": "POE",
+        "air_quality": "none",
+        "room_sense": "none",
+        "fan": "FanDAC",
+        "led": "none"
+      },
+      "blocked_modules": [
+        "AirIQ",
+        "LED"
+      ],
+      "hardware": {
+        "core": "S360-100",
+        "dac": "S360-312",
+        "poe": "S360-410"
+      },
+      "hardware_status": "package-implemented-product-layer-pending",
+      "notes": "FanDAC (0-10V / Cloudlift S12 fan control) product YAML added by PRODUCT-DAC-001 as the product-YAML-only / no-WebFlash-exposure slice. Composes Core ceiling + PoE PSU + base/health with the canonical FanDAC alias packages/expansions/fan_dac.yaml -> fan_gp8403.yaml (two GP8403 DACs / four neutral outputs). PACKAGE-DAC-001 / PR #573 implemented the package at the package layer; FW-COMPILE-DAC-001 / PR #575 fixed the gp8403 voltage enum (0-10V -> 10V) and added the Ceiling-POE-FanDAC compile-only target; FW-COMPILE-DAC-RESULT-001 / PR #576 recorded the compile-only METADATA lane green (Run ID 26332462496, conclusion success, target count 9). The full ESPHome compile job was SKIPPED (runs only via manual workflow_dispatch compile_mode=full), so compile_validation_status remains pending-ci and the full FanDAC compile is still OWED. NOT full-compile-validated, NOT release-one, NOT REQUIRED_CONFIGS, NOT recommended, NOT kit-default, NOT compliance-certified, NOT hardware-stable-ready, NOT WebFlash-exposed. webflash_build_matrix is false; no artifact_name; no webflash_wrapper; no config/webflash-builds.json entry; no release artifact. WEBFLASH-DAC-001, RELEASE-DAC-001, and WF-IMPORT-DAC-001 stay BLOCKED. Enforces the FanDAC <-> AirIQ mutex (no AirIQ token; any Ceiling-POE-AirIQ-FanDAC-* is invalid-combination). Carries the J3 out0/out1 silkscreen transposition caveat and the Cloudlift S12 harness/product-bench caveat. No simultaneous per-output 0-5V + 0-10V on one GP8403 is claimed (one V5V reference / one range register per chip). Nextion/J7 display out of scope (no uart:/display: bound). The duct-fan kit S360-KIT-DUCT-0-10V stays future-expansion / hardware-pending. See docs/product-readiness-matrix.md §FanDAC / S360-312, docs/webflash-exposure-readiness-matrix.md §DAC / S360-312 WebFlash posture, docs/release-artifact-readiness-matrix.md §DAC / S360-312 release posture, docs/hardware/s360-312-r4-fandac.md."
+    },
+    {
       "config_string": "Ceiling-POE-VentIQ-RoomIQ-LED",
       "status": "preview",
       "version": "1.0.0",

@@ -20,8 +20,8 @@
   "totals": {
     "combinations": 168,
     "by_status": {
-      "missing-product-yaml": 129,
-      "blocked-hardware": 37,
+      "missing-product-yaml": 128,
+      "blocked-hardware": 38,
       "webflash-shipping": 1,
       "webflash-preview": 1
     }
@@ -351,8 +351,9 @@
       "room_sense": "none",
       "fan": "FanDAC",
       "led": "none",
-      "status": "missing-product-yaml",
-      "notes": "No product YAML in config/product-catalog.json and no entry in config/webflash-builds.json."
+      "status": "blocked-hardware",
+      "product_yaml": "products/sense360-ceiling-poe-fandac.yaml",
+      "notes": "Catalog status=hardware-pending."
     },
     {
       "config_string": "Ceiling-POE-FanDAC-LED",
