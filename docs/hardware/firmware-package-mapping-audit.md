@@ -1409,14 +1409,17 @@ After HW-009 lands, these greps should hold:
   (PR #569) to reference `GPIO48` / `GPIO45`). HW-PINMAP-312 is out
   of scope for HW-009 today — `S360-312` is still
   `schematic_status: cataloged_unverified` and is therefore out of
-  HW-009's verified-schematic scope — but the per-board audit doc
-  records `fan_gp8403.yaml` as `package-yaml-pending` / `needs-
-  package-reconciliation`. The active YAML body's `${fan_dac_i2c_id}`
-  / `${fan_dac_address}` substitutions are abstract-bus inheritance
-  and do not depend on any header-comment claims; the
-  `${fan_dac_i2c_id}` default is now `core_i2c` after PR #569.
-  Resolution belongs to `HW-PINMAP-312-FOLLOWUP` and to a future
-  `PACKAGE-GAP-001` FanDAC slice.
+  HW-009's verified-schematic scope. The package YAML was reconciled
+  at the **package layer** by `PACKAGE-DAC-001-IMPLEMENT-001`
+  (2026-05-23): `fan_gp8403.yaml` now binds two GP8403 chips
+  (`fan_dac_1` / `fan_dac_2`) with per-chip `${fan_dac_1_i2c_address}`
+  / `${fan_dac_2_i2c_address}` and `${fan_dac_1_output_range}` /
+  `${fan_dac_2_output_range}` substitutions and four neutral outputs;
+  `${fan_dac_i2c_id}` defaults to `core_i2c` after PR #569. This does
+  **not** change the HW-009 / HW-010 firmware-label classification of
+  the FanDAC slice, and product / WebFlash / release readiness remains
+  blocked (the product YAML and user-facing fan entities move to
+  `PRODUCT-DAC-001`).
 - [`docs/hardware/s360-312-r4-fandac.md`](s360-312-r4-fandac.md) —
   HW-PINMAP-312-FOLLOWUP standalone schematic+BOM reference doc for
   `S360-312-R4` (landed 2026-05-22). Consolidates the committed
