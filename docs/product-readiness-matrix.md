@@ -402,7 +402,7 @@ own gate evidence.
 |---|---|---|---|---|---|---|---|---|
 | `Ceiling-POE-VentIQ-FanRelay-RoomIQ` (FanRelay slice) | `VentIQ` + `FanRelay` + `RoomIQ` | POE (S360-410) | [`fan_relay.yaml`](../packages/expansions/fan_relay.yaml) + Core abstract + RoomIQ + VentIQ + [`power_poe.yaml`](../packages/hardware/power_poe.yaml) | grammar-clean (no mutex hit, no forbidden token) | [`fan_relay.yaml`](../packages/expansions/fan_relay.yaml): **`package-implemented` + `reconciled-at-package-layer`** (PACKAGE-RELAY-001 / PR #562; tests pin via [`tests/test_fan_relay_package.py`](../tests/test_fan_relay_package.py); package-evidence layer populated by `S360-310-BENCH-EVIDENCE-001` / PR #561 from operator-attested + BOM-backed + public-reference-backed sources, no photo / video / oscilloscope / continuity-meter artifacts); Core abstract: `relay_pin: GPIO3` post-`CORE-ABSTRACT-BUS-001A` / PR #558 (the `GPIO3` collision was resolved by `CORE-ABSTRACT-BUS-001C` / PR #557); voice-variant Core packages stay at pre-001A `relay_pin: GPIO4` (out of scope) | **`PRODUCT-RELAY-001` landed (this PR)** as product-YAML-only / no-WebFlash-exposure. Canonical FanRelay product YAML [`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml) committed; non-WebFlash catalog row added (`status: hardware-pending`, `webflash_build_matrix: false`, no `artifact_name`, no `webflash_wrapper`); product YAML carries explicit advanced / manual-warning + installation / safety + competent-person caveat wording; structural pins in [`tests/test_relay_product_readiness.py`](../tests/test_relay_product_readiness.py). Product-layer disposition remains `advanced/manual-warning-only` + WebFlash-blocked; `not-required-configs` + `not-recommended` + `not-kit-default`. | `none` (not in build matrix; not in REQUIRED_CONFIGS; not on landing list); long-term posture is `advanced/manual-warning-only` (never standard, never recommended, never kit / default), not `preview-candidate` | `HW-ASSETS-310` → `HW-PINMAP-310-FOLLOWUP` → `CORE-ABSTRACT-BUS-001C` / PR #557 → `CORE-ABSTRACT-BUS-001A` / PR #558 → `PACKAGE-RELAY-001-READINESS-REFRESH` / PR #559 → `S360-310-BENCH-001` / PR #560 → `S360-310-BENCH-EVIDENCE-001` / PR #561 → `PACKAGE-RELAY-001` / PR #562 → `PRODUCT-RELAY-001-READINESS-REFRESH` / PR #563 → **`PRODUCT-RELAY-001`** *(this PR — product YAML only; no WebFlash wrapper / catalog flip / build-matrix entry / release artifact)* → `WEBFLASH-RELAY-001-READINESS-REFRESH` (recommended next; readiness re-evaluation after PRODUCT-RELAY-001 lands) → `WEBFLASH-RELAY-001` → `RELEASE-RELAY-001` → `WF-IMPORT-RELAY-001` |
 | `Ceiling-POE-VentIQ-FanPWM-RoomIQ` (FanPWM slice) | `VentIQ` + `FanPWM` + `RoomIQ` | POE (S360-410) | [`fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml) + Core abstract + RoomIQ + VentIQ + [`power_poe.yaml`](../packages/hardware/power_poe.yaml) | grammar-clean | [`fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml): `needs-package-reconciliation` + `bench-evidence-pending`; Core abstract: `do-not-change-release-one` + `needs-package-reconciliation` | **No product YAML.** The legacy four-channel [`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml) stays `legacy-compatible` and is **not** the FanPWM candidate. | `none` (not in build matrix; not in REQUIRED_CONFIGS; not on landing list) | `HW-PINMAP-311-FOLLOWUP` → `S360-311` `schematic_status` promotion → `PACKAGE-PWM-001` (with `CORE-ABSTRACT-BUS-001` paired) → `PRODUCT-PWM-001` |
-| `Ceiling-POE-FanDAC-RoomIQ` (FanDAC slice; AirIQ excluded by mutex) | `FanDAC` + `RoomIQ` (no `AirIQ`; `VentIQ` independent) | POE (S360-410) | [`fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml) + Core abstract + RoomIQ (+ optional VentIQ) + [`power_poe.yaml`](../packages/hardware/power_poe.yaml) | grammar-clean **only if** `AirIQ` absent (`fandac_conflicts_with_airiq`); `Ceiling-POE-AirIQ-FanDAC-*` is `invalid-combination` | [`fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml): `needs-package-reconciliation` + `bench-evidence-pending`; Core abstract: `do-not-change-release-one` + `needs-package-reconciliation` | **No product YAML.** | `none` (not in build matrix; not in REQUIRED_CONFIGS; not on landing list) | `HW-PINMAP-312-FOLLOWUP` → `S360-312` `schematic_status` promotion → `PACKAGE-DAC-001` → `PRODUCT-DAC-001` |
+| `Ceiling-POE-FanDAC-RoomIQ` (FanDAC slice; AirIQ excluded by mutex) | `FanDAC` + `RoomIQ` (no `AirIQ`; `VentIQ` independent) | POE (S360-410) | [`fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml) + Core abstract + RoomIQ (+ optional VentIQ) + [`power_poe.yaml`](../packages/hardware/power_poe.yaml) | grammar-clean **only if** `AirIQ` absent (`fandac_conflicts_with_airiq`); `Ceiling-POE-AirIQ-FanDAC-*` is `invalid-combination` | [`fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml): **`package-layer-implemented`** (PACKAGE-DAC-001 / PR #573 — two GP8403 chips, four neutral outputs, per-chip address + range substitutions; tests pin via [`tests/test_fandac_package.py`](../tests/test_fandac_package.py)) + **`compile-validation-pending`** (the `gp8403:` `voltage:` field is fed the neutral `0-10V` value, not ESPHome's bare `10V` / `5V` enum; no FanDAC compile-only target exists, so compile is **unvalidated**); Core abstract: `do-not-change-release-one` | **No product YAML.** Product YAML gated on `FW-COMPILE-DAC-001` (compile-only `voltage:` confirmation or `0-10V` → `10V` fix) per [§FanDAC / S360-312](#fandac--s360-312). | `none` (not in build matrix; not in REQUIRED_CONFIGS; not on landing list) | `PACKAGE-DAC-001` *(PR #573)* → **`FW-COMPILE-DAC-001`** → `PRODUCT-DAC-001` → `WEBFLASH-DAC-001` → `RELEASE-DAC-001` |
 | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` (FanTRIAC slice; **existing blocked reference**) | `VentIQ` + `FanTRIAC` + `RoomIQ` | POE (S360-410) | [`fan_triac.yaml`](../packages/expansions/fan_triac.yaml) + Core abstract + RoomIQ + VentIQ + [`power_poe.yaml`](../packages/hardware/power_poe.yaml) | grammar-clean (FanTRIAC is a canonical fan variant) | [`fan_triac.yaml`](../packages/expansions/fan_triac.yaml): `timing/compliance-pending` + `needs-package-reconciliation` + `blocked-from-standard-exposure`; Core abstract: `do-not-change-release-one` + `needs-package-reconciliation` | **No new product YAML; no status flip.** The existing blocked reference YAML stays `status: blocked`, `blocker: HW-005`, `webflash_build_matrix: false`. PRODUCT-TRIAC-001 has performed a **notes-only** edit on this entry's `notes` field; the structural fields (`status` / `blocker` / `reason` / `webflash_build_matrix` / no-`artifact_name`) are unchanged. | `advanced/manual-warning-only` + `blocked-from-standard-exposure` + `not-recommended` + `not-required-configs` + `not-kit` + `not-webflash-default` (policy-recorded by PRODUCT-TRIAC-001 notes-only catalog edit; JSON `status: blocked` unchanged; no new lifecycle enum) | `HW-005` unblock + `HW-PINMAP-320-FOLLOWUP` + `COMPLIANCE-001` advanced/manual-warning sign-off → `PACKAGE-TRIAC-001` → `PRODUCT-TRIAC-002` → `WF-TRIAC-001` |
 | `Ceiling-PWR-{AIR}-{ROOM}` (PWR-240V slice; not yet on WebFlash surface) | any single air-quality token (`AirIQ` xor `VentIQ`) + optional `RoomIQ` | PWR (S360-400) | [`power_240v.yaml`](../packages/hardware/power_240v.yaml) + Core abstract + air / room packages | grammar-clean if mutex respected; `PWR` is in `canonical_power` but no `webflash_build_matrix: true` entry exercises it today | [`power_240v.yaml`](../packages/hardware/power_240v.yaml): `schematic-evidence-pending` + `needs-package-reconciliation` + `timing/compliance-pending` (compliance-gated) | **No product YAML.** The four `legacy-compatible` `*-pwr` Core variants stay `legacy-compatible`. | `none` (not in build matrix; not in REQUIRED_CONFIGS; not on landing list); ultimately `production-candidate` only after `COMPLIANCE-001` `S360-400` slice clears | `HW-ASSETS-400` *(landed at PR #514)* → `HW-PINMAP-400-FOLLOWUP` *(this PR; docs-only)* → BOM + silkscreen + creepage / clearance + bench / thermal / EMI evidence → `COMPLIANCE-001` `S360-400` slice → `PACKAGE-POWER-400-001` → `PRODUCT-POWER-400-001` |
 | `Ceiling-POE-{AIR}-{ROOM}` (PoE-410 slice; explicit board-level) | as today; PoE module the explicit subject | POE (S360-410) | [`power_poe.yaml`](../packages/hardware/power_poe.yaml) + Core abstract + air / room packages | grammar-clean; Release-One already exercises this shape | [`power_poe.yaml`](../packages/hardware/power_poe.yaml): `reference-only` + `schematic-evidence-pending` (schematic landed under HW-ASSETS-410 / PR #516 and was consumed by HW-PINMAP-410-FOLLOWUP; package-header reconciliation still owed to `PACKAGE-POE-410-001` after BOM lands) + `do-not-change-release-one` | **No new product YAML.** Release-One already consumes the package under the preserved [`release-one-hardware-audit.md` schematic-pending caveat](release-one-hardware-audit.md#findings); PRODUCT-GAP-001 does not requalify Release-One and does not promote the caveat away. | `none` for **new** PoE-410 candidate; Release-One stays `production` / `stable` on its existing entry | `HW-ASSETS-410` (PR #516) → `HW-PINMAP-410-FOLLOWUP` (this PR) → BOM cross-check → `HW-002 OQ#6` closure / `S360-100-BENCH-001` update → `S360-410` `schematic_status: verified` JSON PR → `PACKAGE-POE-410-001` → separate later Release-One caveat-closure PR + `PRODUCT-POE-410-001` if a new entry is warranted |
@@ -816,29 +816,123 @@ named follow-up.
 
 ### FanDAC / S360-312
 
-- **Status.** `needs-package-reconciliation` + `hardware-evidence-pending`
-  + `invalid-combination` for any `AirIQ`-bearing variant.
-- **Why no product YAML.** The required package
+- **Status.** **`package-implemented-at-package-layer` (upstream;
+  PACKAGE-DAC-001 / PR #573) + `compile-validation-pending`
+  (product-layer gate; this refresh) + `not-required-configs` +
+  `not-recommended` + `not-kit-default` + `not-webflash-default`**
+  + `invalid-combination` for any `AirIQ`-bearing variant. The
+  package-side disposition is recorded in
+  [`hardware/package-readiness-matrix.md` `fan_gp8403.yaml` / S360-312](hardware/package-readiness-matrix.md#fan_gp8403yaml--s360-312)
+  as `package-layer-implemented`; the product-layer disposition is
+  recorded here. **PRODUCT-DAC-001, WEBFLASH-DAC-001, and
+  RELEASE-DAC-001 all remain blocked.**
+- **Package layer (PR #573).** The required package
   [`packages/expansions/fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml)
-  is `needs-package-reconciliation` + `bench-evidence-pending`
-  per
-  [`package-readiness-matrix.md` `fan_gp8403.yaml` / S360-312](hardware/package-readiness-matrix.md#fan_gp8403yaml--s360-312):
-  the package's header-comment GPIOs disagree with the module-side
-  schematic; the DIP-switch I²C address-selection scheme is not
-  reflected in the package's allowed `${fan_dac_address}` values;
-  the Core `J7` pin-1 `+5V` vs Module `J1` pin-1 `+3.3V` rail
-  discrepancy is unresolved. In addition,
-  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
-  `fandac_conflicts_with_airiq: true` makes any
-  `Ceiling-POE-AirIQ-FanDAC-*` candidate
-  `invalid-combination` regardless of package readiness.
-- **Product YAML action now.** None.
-- **WebFlash exposure class.** `none`.
-- **Follow-up owner.** `HW-PINMAP-312-FOLLOWUP` → `S360-312`
-  `schematic_status` promotion (separate JSON PR) →
-  `PACKAGE-DAC-001` → `PRODUCT-DAC-001` (this matrix's named
-  FanDAC product slice; must enforce the FanDAC ↔ AirIQ mutex).
+  is now **implemented at the package layer** by
+  PACKAGE-DAC-001-IMPLEMENT-001 / PR #573 (see
+  [`docs/hardware/s360-312-r4-fandac.md` §2026-05-23 — PACKAGE-DAC-001-IMPLEMENT-001](hardware/s360-312-r4-fandac.md#2026-05-23--package-dac-001-implement-001)):
+  two GP8403 chips (`fan_dac_1` / IC1 at `0x58`, `fan_dac_2` / IC2 at
+  `0x59`) on the shared `${fan_dac_i2c_id}` (`core_i2c`) bus; per-chip
+  address substitutions; per-chip output-range substitutions (both
+  default `0-10V`, independently overridable per chip via register
+  `0x01`); four neutral outputs (`fan_dac_1_vout0` / `fan_dac_1_vout1`
+  / `fan_dac_2_vout0` / `fan_dac_2_vout1`). The earlier evidence
+  blockers (rows 3 / 6 / 8 — DIP-switch ↔ address truth table,
+  output-range policy, `J2` / `J3` pin-1 identity) were closed by
+  PR #572. As recorded in the package-readiness row, "implemented at
+  the package layer" explicitly **does not mean** product-ready,
+  WebFlash-ready, release-ready, compile-validated, or
+  compliance-cleared.
+- **Compile concern (the gate to product YAML).** The package binds
+  the GP8403 `voltage:` field to the **neutral substitution value
+  `0-10V`** (`fan_dac_1_output_range` / `fan_dac_2_output_range`),
+  whereas the upstream ESPHome `gp8403:` component models range as a
+  bare chip-level enum **`10V` / `5V`** (the pre-implementation
+  [§GP8403 output range capability](hardware/s360-312-r4-fandac.md#gp8403-output-range-capability)
+  notes describe a `${fan_dac_voltage_mode}` default of `10V`). The
+  package's neutral `0-10V` value is therefore **not known to be a
+  valid ESPHome enum**, and because **no compile-only target exists
+  for FanDAC yet**, this compile behaviour is **unvalidated**. This
+  is a hard gate on a product YAML: a product that `!include`s the
+  package would inherit the same unvalidated `voltage: 0-10V` binding.
+  Resolving it requires one of:
+  1. a **package substitution value change** (`0-10V` → ESPHome's
+     `10V`) — a `packages/**` edit owned by a follow-up, not this PR;
+  2. a **product-layer mapping** from the neutral product value
+     (`0-10V`) to the ESPHome enum (`10V`) inside `PRODUCT-DAC-001`; or
+  3. a **compile-only / config-validation pass** that actually
+     compiles the FanDAC package end-to-end and confirms (or fixes)
+     the `voltage:` binding before any product promotion.
+  This refresh does **not** run a compile, does **not** edit the
+  package, and does **not** claim the package compiles.
+- **Recommended product posture / next PR.** **Product YAML should
+  wait on compile-only validation.** The recommended next PR is
+  **`FW-COMPILE-DAC-001`** — a compile-only / config-validation slice
+  that exercises the FanDAC `gp8403:` `voltage:` binding end-to-end and
+  either confirms `0-10V` validates or records the `0-10V` → `10V`
+  fix — **before** `PRODUCT-DAC-001` adds a product YAML. (This mirrors
+  the FanRelay lane, where compile-only validation was available, but
+  is stricter here because the unvalidated `voltage:` enum is a known,
+  named correctness risk rather than a routine pass.) If a later pass
+  establishes that the `voltage:` binding validates (or `PRODUCT-DAC-001`
+  carries the mapping itself), `PRODUCT-DAC-001` may then add a single
+  canonical FanDAC product YAML under [`products/`](../products/)
+  **without** a [`products/webflash/`](../products/webflash/) wrapper,
+  **without** a `webflash_build_matrix: true` catalog flip, **without** a
+  [`config/webflash-builds.json`](../config/webflash-builds.json)
+  build-matrix row, and **without** a release artifact — the
+  product-YAML-only / no-WebFlash-exposure path. It must enforce the
+  `fandac_conflicts_with_airiq` mutex (no `AirIQ`-bearing FanDAC
+  product); any `Ceiling-POE-AirIQ-FanDAC-*` candidate is
+  `invalid-combination` regardless of compile or package readiness.
+- **Product YAML action now.** None. **No FanDAC product YAML, no
+  compile-only target, and no `packages/**` edit are added by this
+  readiness refresh** — it is documentation-only. The catalog
+  [`config/product-catalog.json`](../config/product-catalog.json) gains
+  no FanDAC entry; the build matrix
+  [`config/webflash-builds.json`](../config/webflash-builds.json) gains
+  no FanDAC row.
+- **Harness / board-level pin mapping.** The `J2` (IC1, Cloudlift S12
+  FAN) / `J3` (IC2, Cloudlift S12 FAN2) board-level pin-1 identity and
+  pin order (**pin 1 = `VOUT0`**, **pin 2 = `GND`**, **pin 3 =
+  `VOUT1`**) are captured at the board level (PR #572, row 8). Two
+  product / bench residuals must be **carried into product docs /
+  caveats** by `PRODUCT-DAC-001`:
+  - the **harness conductor-by-conductor trace** from `J2` / `J3` to
+    the physical Cloudlift S12 fan input remains an unresolved
+    product / bench item (no fan / harness artifact exists in Drive);
+  - the **`J3` `out0` / `out1` silkscreen transposition** (the pin-1
+    pad — `IC2` `VOUT0` — is silk-labelled `out1`, and the pin-3 pad —
+    `IC2` `VOUT1` — is silk-labelled `out0`) must be honoured in any
+    installation / harness documentation and warrants operator / bench
+    confirmation before the printed `J3` labels are relied upon.
+- **Output naming.** The package keeps **neutral output IDs**
+  (`fan_dac_1_vout0` … `fan_dac_2_vout1`). The product layer may map
+  these to user-facing, **outcome-first** names — for example
+  "0–10V fan control" / "Cloudlift S12 fan control" — and must **not**
+  leak board-module jargon (the GP8403 chip name, `VOUTn`, `IC1` / `IC2`,
+  or the generic `Fan` token) into customer-facing labels. The neutral
+  package IDs stay unchanged.
+- **Nextion / UART scope.** The Nextion display on Module `J7` (and the
+  UART0-vs-Nextion arbitration) is **out of scope for the first DAC
+  product** unless that product explicitly drives a display. The
+  package binds **no** `uart:` and **no** `display:` on this pair;
+  resolution stays a deferred item (row 9) and does not block
+  `PRODUCT-DAC-001` for a non-display FanDAC product.
+- **WebFlash exposure class.** `none`. WebFlash exposure remains
+  blocked (`WEBFLASH-DAC-001`); release artifact remains blocked
+  (`RELEASE-DAC-001`). No WebFlash wrapper, build-matrix entry,
+  `artifact_name`, or release / proof row is added by this refresh.
+- **Follow-up owner / sequence.** `PACKAGE-DAC-001` *(landed PR #573)*
+  → **`FW-COMPILE-DAC-001`** (compile-only validation / `voltage:`
+  binding confirmation or `0-10V` → `10V` fix) → `PRODUCT-DAC-001`
+  (canonical product YAML; enforce the FanDAC ↔ AirIQ mutex;
+  outcome-first naming; carry the harness / `J3`-silk caveats) →
+  `WEBFLASH-DAC-001` → `RELEASE-DAC-001` → `WF-IMPORT-DAC-001`
+  (WebFlash-owned). `S360-312` `schematic_status` promotion stays a
+  separate JSON PR.
 - **Cross-references.**
+  [`docs/hardware/s360-312-r4-fandac.md`](hardware/s360-312-r4-fandac.md);
   [`docs/hardware/s360-312-r4-dac.md`](hardware/s360-312-r4-dac.md);
   [`board-readiness-matrix.md` `S360-312` notes](hardware/board-readiness-matrix.md#s360-312-sense360-dac);
   [`package-readiness-matrix.md` `fan_gp8403.yaml` / S360-312](hardware/package-readiness-matrix.md#fan_gp8403yaml--s360-312).
@@ -1382,7 +1476,8 @@ and the per-board audit docs.
 |---|---|---|
 | **`PRODUCT-RELAY-001`** (alias: `PRODUCT-GAP-001` FanRelay slice) | **Landed (this PR).** Added the first FanRelay canonical product YAML [`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml) with config string `Ceiling-POE-VentIQ-FanRelay-RoomIQ` per the WebFlash grammar; carries **advanced / manual-warning wording + installation / safety caveat + competent-person caveat** in the product YAML header (per [§FanRelay / S360-310](#fanrelay--s360-310) recommended posture refreshed by `PRODUCT-RELAY-001-READINESS-REFRESH`); passes [`tests/test_product_substitutions.py`](../tests/test_product_substitutions.py) and [`tests/validate_configs.py`](../tests/validate_configs.py); added a non-WebFlash catalog row in [`config/product-catalog.json`](../config/product-catalog.json) (`status: hardware-pending`, `webflash_build_matrix: false`, no `artifact_name`, no `webflash_wrapper`) required by the [`tests/test_product_catalog.py`](../tests/test_product_catalog.py) enumeration; added [`tests/test_relay_product_readiness.py`](../tests/test_relay_product_readiness.py) (42 cases) pinning the structural invariants; tightened [`tests/test_fan_relay_package.py`](../tests/test_fan_relay_package.py) `PackageRelayDoesNotTouchWebFlashOrProductTests` to allow the single PRODUCT-RELAY-001 canonical product YAML while continuing to forbid additional FanRelay product YAMLs / WebFlash wrappers / build-matrix entries. **No compile-only target added.** **Does not** add a WebFlash wrapper, catalog `webflash_build_matrix: true` flip, [`config/webflash-builds.json`](../config/webflash-builds.json) build-matrix row, release artifact, REQUIRED_CONFIGS membership, kit / recommended membership, or stable-channel promotion. WebFlash exposure (if and when appropriate) is owned by a separate `WEBFLASH-RELAY-001` slice with its own gates; the recommended next PR is `WEBFLASH-RELAY-001-READINESS-REFRESH`, not immediate WebFlash exposure. | `PACKAGE-RELAY-001` landed (i.e. `HW-ASSETS-310` + `HW-PINMAP-310-FOLLOWUP` + `CORE-ABSTRACT-BUS-001C` + `CORE-ABSTRACT-BUS-001A` + `S360-310-BENCH-001` + `S360-310-BENCH-EVIDENCE-001` + the package-layer test + readiness reconciliation — **all landed via PR #557 / PR #558 / PR #559 / PR #560 / PR #561 / PR #562**) + `PRODUCT-RELAY-001-READINESS-REFRESH` *(landed PR #563)*. **Note:** "implemented / reconciled at the `PACKAGE-RELAY-001` package layer" explicitly does **not** mean product-ready, WebFlash-ready, release-ready, compliance-cleared, safe for arbitrary mains installation, or verified across production batches; the product-layer blockers in [§FanRelay / S360-310](#fanrelay--s360-310) (production-wide / multi-unit `GPIO3` strap-pin boot characterisation; board-level mains-safety / installation-approval evidence; competent-person sign-off) remain owed to subsequent slices and to any later `WEBFLASH-RELAY-001` motion. |
 | **`PRODUCT-PWM-001`** (alias: `PRODUCT-GAP-001` FanPWM slice) | Add the first FanPWM canonical product YAML under [`products/`](../products/) consuming the reconciled [`packages/expansions/fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml); decide the fate of the legacy [`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml) (retain / migrate / remove); follow the [`product-onboarding.md`](product-onboarding.md) safe sequence. **Does not** add a WebFlash wrapper, catalog entry, build-matrix entry, or release artifact. | `PACKAGE-PWM-001` landed (i.e. `HW-PINMAP-311-FOLLOWUP` + `S360-311` `schematic_status: verified` + bench / silkscreen evidence + `CORE-ABSTRACT-BUS-001`). |
-| **`PRODUCT-DAC-001`** (alias: `PRODUCT-GAP-001` FanDAC slice) | Add the first FanDAC canonical product YAML under [`products/`](../products/) consuming the reconciled [`packages/expansions/fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml); enforce the `fandac_conflicts_with_airiq` mutex (no `AirIQ`-bearing FanDAC product); follow the [`product-onboarding.md`](product-onboarding.md) safe sequence. **Does not** add a WebFlash wrapper, catalog entry, build-matrix entry, or release artifact. | `PACKAGE-DAC-001` landed (i.e. `HW-PINMAP-312-FOLLOWUP` + `S360-312` `schematic_status: verified` + bench / silkscreen / DIP-switch evidence). |
+| **`FW-COMPILE-DAC-001`** (FanDAC compile-only / config-validation slice) | Compile-only validation of the implemented FanDAC package (PR #573). Exercises the `gp8403:` `voltage:` binding end-to-end and either confirms the neutral `0-10V` value validates against the upstream ESPHome `gp8403:` enum or records the `0-10V` → `10V` fix (a `packages/**` edit), so the unvalidated `voltage:` enum risk is closed **before** any product YAML inherits it. Compile-only is a validation pass, not a release class: it adds **no** WebFlash wrapper, catalog `webflash_build_matrix: true` flip, build-matrix row, release artifact, or `preview-candidate` / `production-candidate` promotion. | `PACKAGE-DAC-001` landed *(PR #573)*. |
+| **`PRODUCT-DAC-001`** (alias: `PRODUCT-GAP-001` FanDAC slice) | Add the first FanDAC canonical product YAML under [`products/`](../products/) consuming the implemented [`packages/expansions/fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml); map the neutral package outputs to **outcome-first** user-facing names (e.g. "0–10V fan control" / "Cloudlift S12 fan control") while keeping the package's neutral output IDs; carry the `J2` / `J3` harness-trace and `J3` silkscreen-transposition caveats into the product / installation docs; treat Nextion / `J7` as out of scope unless the product drives a display; enforce the `fandac_conflicts_with_airiq` mutex (no `AirIQ`-bearing FanDAC product); follow the [`product-onboarding.md`](product-onboarding.md) safe sequence. **Does not** add a WebFlash wrapper, catalog entry, build-matrix entry, or release artifact. | `PACKAGE-DAC-001` landed *(PR #573)* + **`FW-COMPILE-DAC-001`** (the `voltage:` `0-10V`-vs-`10V` compile concern resolved — either compile-validated or carried as a documented product-layer `0-10V` → `10V` mapping) + `S360-312` `schematic_status: verified` (separate JSON PR). |
 | **`PRODUCT-TRIAC-001`** (alias: `PRODUCT-GAP-001` FanTRIAC slice) | **Landed as wording-only / notes-only.** Reclassified the FanTRIAC reference product policy to `advanced/manual-warning-only` via a `notes`-only edit on `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` in [`config/product-catalog.json`](../config/product-catalog.json) plus reinforcement of the listed docs. The JSON `status` stays `blocked`, `blocker` stays `HW-005`, `reason` is unchanged, `webflash_build_matrix` stays `false`, no `artifact_name` is added, and the lifecycle enum is unchanged. **Does not** add FanTRIAC to Release-One, REQUIRED_CONFIGS, kit / default lists, recommended surfaces, or compliance-certified surfaces; preserves all mains-voltage / qualified-electrician warnings. **Does not** add a product YAML, WebFlash wrapper, build-matrix entry, release artifact, or WebFlash import. The product YAML / catalog-entry rework (`PRODUCT-TRIAC-002`) remains outstanding. | None — wording-only catalog reclassification was acceptable without `HW-005` / `COMPLIANCE-001` / `HW-PINMAP-320-FOLLOWUP` / `PACKAGE-TRIAC-001` closure. |
 | **`PRODUCT-TRIAC-002`** (alias: `PRODUCT-GAP-001` FanTRIAC product-YAML slice) | **Investigated and deferred** — readiness gates are not satisfied. Decide whether to retain `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` as the canonical FanTRIAC shape or to add an alternative variant; perform the product YAML / catalog-entry rework (removes `GPIO5` / `GPIO6` placeholders); follows the [`product-onboarding.md`](product-onboarding.md) safe sequence. **Does not** add a WebFlash wrapper, build-matrix entry, release artifact, or WebFlash import. **Does not** add FanTRIAC to Release-One, REQUIRED_CONFIGS, kit / default lists, recommended surfaces, or compliance-certified surfaces; preserves all mains-voltage / qualified-electrician warnings. Until the gates clear, the only PRODUCT-TRIAC-002 work recorded in this repo is the docs-only deferral note in [`docs/cleanup-audit.md` PRODUCT-TRIAC-002 update](cleanup-audit.md#product-triac-002-update-deferred--package-triac-001-not-landed). | `PACKAGE-TRIAC-001` landed (i.e. `HW-005` unblock + `HW-PINMAP-320-FOLLOWUP` + bench timing / waveform / real-load evidence + `COMPLIANCE-001` advanced/manual-warning sign-off) + `PRODUCT-TRIAC-001` landed (wording-only catalog policy decided; **already landed**). |
 | **`PRODUCT-POWER-400-001`** (alias: `PRODUCT-GAP-001` PWR-240V slice) | **Investigated 2026-05-19 — confirmed deferred (Path A docs-only); six preconditions still open** per [PWR-240V / S360-400](#pwr-240v--s360-400) §2026-05-19 — `PRODUCT-POWER-400-001` investigation pass and [`docs/cleanup-audit.md` §`PRODUCT-POWER-400-001 update`](cleanup-audit.md#product-power-400-001-update-2026-05-19--docs-only-investigation-pass). Add the first PWR-240V WebFlash-shippable canonical product YAML under [`products/`](../products/); decide the legacy-compatible `*-pwr` Core variant relationship (retain / migrate / coexist) for the four existing entries ([`sense360-core-c-pwr.yaml`](../products/sense360-core-c-pwr.yaml), [`sense360-core-w-pwr.yaml`](../products/sense360-core-w-pwr.yaml), [`sense360-core-v-c-pwr.yaml`](../products/sense360-core-v-c-pwr.yaml), [`sense360-core-v-w-pwr.yaml`](../products/sense360-core-v-w-pwr.yaml)); follow the [`product-onboarding.md`](product-onboarding.md) safe sequence; preserve the four `legacy-compatible` `*-pwr` Core variants byte-for-byte during the investigation phase. **Does not** add a WebFlash wrapper, catalog entry, build-matrix entry, or release artifact (those are additionally gated by `COMPLIANCE-001` `S360-400` slice closure). | `PACKAGE-POWER-400-001` implementation landed (only the docs-only investigation pass merged as PR #520; package YAML reconciliation, catalog `description` reconciliation, `S360-400` `schematic_status: verified` JSON PR, and BOM citation all still owed) + `COMPLIANCE-001` `S360-400` slice closed + product-onboarding approval per [`product-onboarding.md`](product-onboarding.md). |
