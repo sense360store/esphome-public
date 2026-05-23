@@ -1,0 +1,139 @@
+# ============================================================================
+# COMPILE-ONLY SKELETON — Ceiling-POE-FanDAC (FW-COMPILE-DAC-001)
+# ============================================================================
+# WebFlash config string : Ceiling-POE-FanDAC
+#
+# Purpose:
+#
+#   Exercise the FanDAC package composition (two GP8403 dual-channel
+#   I2C DACs, four neutral outputs) on top of the proven Core ceiling +
+#   PoE PSU + base + health base, so the GP8403 `voltage:` enum and the
+#   `core_i2c` bus binding surface at ESPHome config / compile time
+#   before any FanDAC product YAML is added. This is the closure target
+#   for `FW-COMPILE-DAC-001` (docs/hardware/s360-312-r4-fandac.md row 10:
+#   "Compile-only and package-level test coverage for fan_gp8403.yaml /
+#   fan_dac.yaml after evidence closure").
+#
+#   This skeleton includes the canonical FanDAC alias
+#   `packages/expansions/fan_dac.yaml` (a pure `!include` wrapper of the
+#   legacy `fan_gp8403.yaml` implementation). The GP8403 `voltage:`
+#   substitutions default to the ESPHome enum `10V` (customer-facing
+#   0-10V) — FW-COMPILE-DAC-001 corrected the prior invalid `0-10V`
+#   enum string that ESPHome config validation rejects.
+#
+# Status — what this YAML is NOT:
+#
+#   * NOT a FanDAC product YAML. PRODUCT-DAC-001 is gated on this
+#     compile-only validation and is NOT landed by FW-COMPILE-DAC-001.
+#     This skeleton lives under `products/compile-only/` (a subdirectory
+#     excluded by `tests/test_product_catalog.py::_top_level_product_yamls`),
+#     so it adds NO `config/product-catalog.json` entry. No normal DAC
+#     product YAML is added under `products/`.
+#   * NOT a WebFlash exposed build. No entry is added to
+#     `config/webflash-builds.json`; no `webflash_build_matrix: true`
+#     flip; no `webflash_wrapper` under `products/webflash/`; no
+#     `artifact_name`. The `FanDAC` token does not appear in
+#     `config/webflash-builds.json`.
+#   * NOT a release artifact. No `.bin`, version, channel, checksum,
+#     build-info manifest, GitHub Release tag, or proof row is created.
+#   * NOT hardware proof. Compile success says nothing about bench /
+#     harness / silkscreen / schematic / pinmap evidence. S360-312
+#     `schematic_status` and the S360-312 BOM evidence remain open.
+#   * NOT compile-validated until CI proves it. ESPHome is not assumed
+#     present locally; `FW-COMPILE-DAC-001` does NOT claim a successful
+#     compile until `scripts/validate_compile_targets.py --compile`
+#     (or `esphome config` against this YAML) passes in CI. The metadata
+#     lane (`--metadata-only`) is what is asserted here.
+#   * NOT a stable / preview promotion. Release-One stays
+#     `Ceiling-POE-VentIQ-RoomIQ` (stable) and the LED preview stays
+#     `Ceiling-POE-VentIQ-RoomIQ-LED` (preview), both unchanged.
+#
+# Compatibility (see docs/release-one.md):
+# - FanDAC is mutually exclusive with AirIQ (`fandac_conflicts_with_airiq`);
+#   this skeleton carries neither AirIQ nor VentIQ.
+# - Fan driver variants (FanRelay/FanPWM/FanDAC/FanTRIAC) are
+#   firmware-distinct; this skeleton ships FanDAC only.
+#
+# Hardware (canonical friendly names; see docs/hardware-catalog.md):
+# - Core         : Sense360 Core    (S360-100-R4, ESP32-S3, ceiling mount)
+# - Power        : Sense360 PoE PSU (S360-410, IEEE 802.3af) — schematic
+#                  verification pending; this target does NOT close that.
+# - Air Quality  : not included     (no AirIQ / no VentIQ — FanDAC ⊥ AirIQ)
+# - Room Sense   : not included     (no RoomIQ token in config string)
+# - Fan Driver   : Sense360 FanDAC  (S360-312, two GP8403 DACs / four outputs)
+# - LED          : not included     (no LED token in config string)
+#
+# See: docs/compile-only-firmware-validation.md
+#      docs/hardware/s360-312-r4-fandac.md
+# ============================================================================
+
+substitutions:
+  device_name: s360-co-ceil-poe-dac
+  friendly_name: Sense360 Ceiling POE FanDAC (compile-only)
+  device_sku: S360-CORE-C-POE
+  device_version: "0.0.0-compile-only"
+  timezone: "UTC"
+
+  log_level: INFO
+  wifi_fast_connect: "false"
+  fallback_ssid: "S360 CO POE DAC"
+
+  # === Power configuration (PoE) ===
+  power_source: poe
+  poe_class: "0"
+  poe_standard: "802.3af"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === External Components (radar firmware) ===
+  external_components: !include ../../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../../packages/base/wifi.yaml
+  base_logging: !include ../../packages/base/logging.yaml
+  base_api: !include ../../packages/base/api_encrypted.yaml
+  base_ota: !include ../../packages/base/ota.yaml
+  base_time: !include ../../packages/base/time.yaml
+
+  # === Sense360 Core (Ceiling, S360-100-R4) ===
+  # Provides the shared `core_i2c` bus the GP8403 DACs bind to.
+  core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
+
+  # === Sense360 PoE PSU (S360-410) ===
+  power_config: !include ../../packages/hardware/power_poe.yaml
+
+  # === Sense360 FanDAC (S360-312, two GP8403 DACs / four outputs) ===
+  # Canonical FanDAC alias -> packages/expansions/fan_gp8403.yaml.
+  # Inherits `fan_dac_i2c_id: core_i2c` and per-chip address / `voltage:`
+  # enum (10V) substitutions from the package; do NOT hard-code them here.
+  fan_dac_module: !include ../../packages/expansions/fan_dac.yaml
+
+  # === Device Health & Diagnostics ===
+  health: !include ../../packages/features/device_health.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} WebFlash Config"
+    lambda: |-
+      return {"Ceiling-POE-FanDAC"};
+    update_interval: never
+    entity_category: diagnostic

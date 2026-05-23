@@ -11,7 +11,10 @@ decisions recorded there:
   * two GP8403 DAC chips (IC1 / IC2) on the shared ``core_i2c`` bus,
   * four neutral package-layer outputs (two per chip),
   * per-chip I2C address substitutions,
-  * per-chip output-range substitutions, both defaulting to 0-10V,
+  * per-chip output-range substitutions, both defaulting to the
+    ESPHome ``gp8403:`` ``voltage:`` enum ``10V`` (customer-facing
+    0-10V); the prior invalid ``0-10V`` enum string was corrected by
+    FW-COMPILE-DAC-001,
   * range is firmware/register-driven (no hardware jumper),
   * a single GP8403 cannot mix 0-5V / 0-10V across its two outputs,
   * the package stays package-layer only — no product fan names,
@@ -182,20 +185,61 @@ class FanDACAddressSubstitutionTests(unittest.TestCase):
 
 
 class FanDACRangeSubstitutionTests(unittest.TestCase):
-    """Per-chip output-range substitutions, both defaulting to 0-10V."""
+    """Per-chip output-range substitutions, both defaulting to the
+    ESPHome ``voltage:`` enum ``10V`` (customer-facing 0-10V)."""
 
-    def test_two_range_substitutions_default_to_0_10v(self) -> None:
+    # ESPHome's gp8403 component accepts only these bare enum tokens for
+    # `voltage:` (https://esphome.io/components/output/gp8403). The
+    # customer-facing "0-10V" / "0-5V" range labels are NOT valid enum
+    # values and must never be fed to `gp8403.voltage:`.
+    ESPHOME_GP8403_VOLTAGE_ENUM = frozenset({"10V", "5V"})
+    INVALID_RANGE_LABELS = ("0-10V", "0-5V", "0–10V", "0–5V")
+
+    def test_two_range_substitutions_default_to_10v(self) -> None:
         text = _read(FAN_GP8403)
         self.assertEqual(
             _substitution_value(text, "fan_dac_1_output_range"),
-            "0-10V",
-            "fan_dac_1_output_range (IC1) must default to 0-10V.",
+            "10V",
+            "fan_dac_1_output_range (IC1) must default to the ESPHome "
+            "`voltage:` enum value 10V (customer-facing 0-10V).",
         )
         self.assertEqual(
             _substitution_value(text, "fan_dac_2_output_range"),
-            "0-10V",
-            "fan_dac_2_output_range (IC2) must default to 0-10V.",
+            "10V",
+            "fan_dac_2_output_range (IC2) must default to the ESPHome "
+            "`voltage:` enum value 10V (customer-facing 0-10V).",
         )
+
+    def test_range_substitutions_are_valid_esphome_voltage_enum(self) -> None:
+        """FW-COMPILE-DAC-001: the gp8403 `voltage:` substitutions must be
+        ESPHome-valid enum tokens (10V / 5V), never the user-facing
+        0-10V / 0-5V range labels that ESPHome config validation rejects."""
+
+        text = _read(FAN_GP8403)
+        for key in ("fan_dac_1_output_range", "fan_dac_2_output_range"):
+            value = _substitution_value(text, key)
+            self.assertIn(
+                value,
+                self.ESPHOME_GP8403_VOLTAGE_ENUM,
+                f"{key} = {value!r} is not a valid ESPHome gp8403 "
+                f"`voltage:` enum value {sorted(self.ESPHOME_GP8403_VOLTAGE_ENUM)}; "
+                "ESPHome rejects the user-facing 0-10V / 0-5V labels.",
+            )
+
+    def test_no_invalid_range_label_fed_to_voltage(self) -> None:
+        """The literal user-facing range labels (0-10V / 0-5V) must not be
+        assigned to either `voltage:` substitution value."""
+
+        text = _read(FAN_GP8403)
+        for key in ("fan_dac_1_output_range", "fan_dac_2_output_range"):
+            value = _substitution_value(text, key) or ""
+            for bad in self.INVALID_RANGE_LABELS:
+                self.assertNotEqual(
+                    value,
+                    bad,
+                    f"{key} must not be the user-facing range label {bad!r}; "
+                    "feed ESPHome's gp8403 `voltage:` enum (10V / 5V) instead.",
+                )
 
     def test_chips_consume_range_substitutions(self) -> None:
         text = _read(FAN_GP8403)
@@ -344,15 +388,28 @@ class FanDACPackageLayerOnlyTests(unittest.TestCase):
                 f"release token {token!r}.",
             )
 
-    def test_no_product_actively_includes_the_dac_package(self) -> None:
-        """Guardrail: this slice adds no DAC product YAML, so no file under
+    def test_no_top_level_product_actively_includes_the_dac_package(self) -> None:
+        """Guardrail: no DAC *product* YAML exists yet (PRODUCT-DAC-001 is
+        gated on FW-COMPILE-DAC-001), so no TOP-LEVEL file under
         products/ may actively !include the FanDAC package (comment-only
-        references are allowed)."""
+        references are allowed).
+
+        The FW-COMPILE-DAC-001 compile-only skeleton under
+        products/compile-only/ IS allowed to !include the package — it is
+        a compile-validation skeleton, not a catalog-enumerated product
+        YAML. That skeleton's invariants are pinned by
+        tests/test_compile_targets.py::FanDACCompileOnlyCoverageTests.
+        """
 
         if not PRODUCTS_DIR.is_dir():
             self.skipTest("no products/ directory")
+        compile_only_dir = PRODUCTS_DIR / "compile-only"
         offenders: list[str] = []
         for path in PRODUCTS_DIR.rglob("*.yaml"):
+            # The compile-only skeleton namespace is exempt — it is not a
+            # product YAML and adds no config/product-catalog.json entry.
+            if compile_only_dir in path.parents:
+                continue
             for raw in path.read_text().splitlines():
                 stripped = raw.strip()
                 if not stripped or stripped.startswith("#"):
@@ -364,8 +421,8 @@ class FanDACPackageLayerOnlyTests(unittest.TestCase):
         self.assertEqual(
             offenders,
             [],
-            "No product YAML may actively !include the FanDAC package in "
-            f"this package-layer-only slice; found: {offenders!r}.",
+            "No top-level product YAML may actively !include the FanDAC "
+            f"package until PRODUCT-DAC-001 lands; found: {offenders!r}.",
         )
 
 

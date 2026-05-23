@@ -41,11 +41,25 @@ substitutions:
   fan_dac_2_i2c_address: "0x59"  # IC2 (DAC2)
 
   # Per-chip output range (one range per GP8403, register 0x01).
-  # Both chips default to 0-10V; a product/firmware may override DAC1 and
-  # DAC2 independently (e.g. to "0-5V"). Range cannot be mixed per-output
-  # within a single chip.
-  fan_dac_1_output_range: "0-10V"  # IC1 (DAC1)
-  fan_dac_2_output_range: "0-10V"  # IC2 (DAC2)
+  #
+  # VALUE IS THE ESPHome `gp8403:` `voltage:` ENUM, NOT a user-facing
+  # label. ESPHome's gp8403 component accepts only the bare enum tokens
+  # "10V" or "5V" for `voltage:` (https://esphome.io/components/output/
+  # gp8403). The customer-facing range that "10V" produces is 0-10V
+  # (and "5V" produces 0-5V); the user-facing "0-10V" / "0-5V" wording
+  # lives in the product / kit docs (e.g. S360-KIT-DUCT-0-10V), never in
+  # this `voltage:` substitution. FW-COMPILE-DAC-001 corrected these
+  # values from the prior invalid "0-10V" / "0-5V" strings that ESPHome
+  # config validation rejects; this matches the default "10V" the
+  # output-range policy (docs/hardware/s360-312-r4-fandac.md row 6,
+  # operator decision D3) already implied.
+  #
+  # Both chips default to "10V" (customer-facing 0-10V); a product /
+  # firmware may override DAC1 and DAC2 independently (e.g. to "5V" for
+  # customer-facing 0-5V). Range cannot be mixed per-output within a
+  # single chip (one V5V reference / one range register 0x01 per chip).
+  fan_dac_1_output_range: "10V"  # IC1 (DAC1) -> customer-facing 0-10V
+  fan_dac_2_output_range: "10V"  # IC2 (DAC2) -> customer-facing 0-10V
 
 # ============================================================================
 # GP8403 DAC chips (two on the shared core_i2c bus)

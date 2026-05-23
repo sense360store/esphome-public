@@ -81,6 +81,18 @@ FANRELAY_COMPILE_ONLY_PRODUCT_YAML = (
     "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml"
 )
 
+# FW-COMPILE-DAC-001: FanDAC compile-only validation target. Unlike
+# FanRelay, FanDAC has no landed product YAML (PRODUCT-DAC-001 is gated
+# on this very compile-only validation), so a top-level products/ YAML
+# plus catalog row is forbidden. The FanDAC compile-only skeleton
+# therefore lives UNDER products/compile-only/ (the only place that
+# avoids the top-level product-catalog enumeration gate) and is the one
+# explicitly-registered exception to the otherwise-non-fan
+# products/compile-only/ lane.
+FANDAC_COMPILE_ONLY_TARGET_ID = "ceiling-poe-fandac-compile-only"
+FANDAC_COMPILE_ONLY_CONFIG_STRING = "Ceiling-POE-FanDAC"
+FANDAC_COMPILE_ONLY_PRODUCT_YAML = "products/compile-only/ceiling-poe-fandac.yaml"
+
 ALLOWED_SHIPMENT_STATUSES = frozenset(
     {"webflash-current", "preview-current", "compile-only"}
 )
@@ -521,6 +533,14 @@ class PoeNonFanCompileOnlyCoverageTests(unittest.TestCase):
             product_yaml = target.get("product_yaml") or ""
             if not product_yaml.startswith("products/compile-only/"):
                 continue
+            # FW-COMPILE-DAC-001: the FanDAC compile-only target is the one
+            # explicitly-registered fan target allowed under
+            # products/compile-only/ — PRODUCT-DAC-001 is not landed, so a
+            # top-level products/ YAML + catalog row is forbidden, leaving
+            # products/compile-only/ as the only valid home. Its full
+            # invariants are pinned by FanDACCompileOnlyCoverageTests.
+            if target.get("id") == FANDAC_COMPILE_ONLY_TARGET_ID:
+                continue
             cs = target.get("config_string") or ""
             tokens = set(cs.split("-")) if cs else set()
             forbidden_fan_tokens = tokens & FORBIDDEN_FAN_TOKENS_FOR_THIS_PR
@@ -530,7 +550,8 @@ class PoeNonFanCompileOnlyCoverageTests(unittest.TestCase):
                 f"{sorted(forbidden_fan_tokens)} — the "
                 "FW-COMPILE-POE-NONFAN-001 lane (products/compile-only/) "
                 "must not add any FanRelay / FanPWM / FanDAC / FanTRIAC "
-                "compile-only target",
+                "compile-only target (except the explicitly-registered "
+                "FW-COMPILE-DAC-001 FanDAC validation target)",
             )
 
     def test_poe_nonfan_lane_introduces_no_pwr_compile_only_target(self):
@@ -860,6 +881,288 @@ class FanRelayCompileOnlyCoverageTests(unittest.TestCase):
             "five POE non-fan compile-only candidates, and the FanRelay "
             "compile-only target",
         )
+
+
+class FanDACCompileOnlyCoverageTests(unittest.TestCase):
+    """FW-COMPILE-DAC-001: FanDAC compile-only validation target.
+
+    Pins the invariants for the single FanDAC compile-only target added
+    by FW-COMPILE-DAC-001 after PACKAGE-DAC-001 / PR #573 implemented the
+    FanDAC package and PR #574 recorded the gp8403 voltage-enum concern.
+    The skeleton lives under ``products/compile-only/`` (PRODUCT-DAC-001
+    is gated on this validation, so no top-level product YAML / catalog
+    row may be added). Compile success here is **not** WebFlash exposure,
+    **not** a release artifact, **not** a PRODUCT-DAC-001 /
+    WEBFLASH-DAC-001 / RELEASE-DAC-001 unblock, **not** S360-312
+    schematic / BOM verification, and **not** stable / preview promotion.
+    Compile success is **not** claimed until CI runs the ``--compile``
+    lane (ESPHome is not assumed available locally).
+    """
+
+    PACKAGE_FAN_GP8403 = REPO_ROOT / "packages" / "expansions" / "fan_gp8403.yaml"
+
+    @classmethod
+    def setUpClass(cls):
+        cls.doc = _load(TARGETS_PATH)
+        cls.targets = cls.doc["targets"]
+        cls.by_id = {t["id"]: t for t in cls.targets if t.get("id")}
+        cls.builds = _load(BUILDS_PATH)
+        cls.matrix = _load(MATRIX_PATH)
+        cls.committed_configs = {
+            entry["config_string"]
+            for entry in (cls.builds.get("builds", []) or [])
+            if entry.get("config_string")
+        }
+        cls.matrix_configs = {
+            row["config_string"]
+            for row in (cls.matrix.get("combinations", []) or [])
+            if row.get("config_string")
+        }
+        cls.target = cls.by_id.get(FANDAC_COMPILE_ONLY_TARGET_ID)
+
+    def test_fandac_compile_only_target_exists(self):
+        self.assertIsNotNone(
+            self.target,
+            f"FW-COMPILE-DAC-001 must add the FanDAC compile-only target "
+            f"with id {FANDAC_COMPILE_ONLY_TARGET_ID!r} to "
+            "config/compile-only-targets.json",
+        )
+
+    def test_fandac_compile_only_points_at_compile_only_skeleton(self):
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("product_yaml"),
+            FANDAC_COMPILE_ONLY_PRODUCT_YAML,
+        )
+
+    def test_fandac_compile_only_skeleton_exists_on_disk(self):
+        path = REPO_ROOT / FANDAC_COMPILE_ONLY_PRODUCT_YAML
+        self.assertTrue(
+            path.is_file(),
+            f"FanDAC compile-only skeleton not found at {path}",
+        )
+
+    def test_fandac_skeleton_includes_the_fandac_package(self):
+        """Target must include the fan_dac / fan_gp8403 package."""
+        path = REPO_ROOT / FANDAC_COMPILE_ONLY_PRODUCT_YAML
+        text = path.read_text()
+        self.assertTrue(
+            ("fan_dac.yaml" in text) or ("fan_gp8403.yaml" in text),
+            "FanDAC compile-only skeleton must !include the FanDAC package "
+            "(packages/expansions/fan_dac.yaml or fan_gp8403.yaml)",
+        )
+        self.assertIn(
+            "!include",
+            text,
+            "FanDAC compile-only skeleton must compose packages via !include",
+        )
+
+    def test_fandac_config_string_is_correct(self):
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("config_string"),
+            FANDAC_COMPILE_ONLY_CONFIG_STRING,
+        )
+
+    def test_fandac_config_string_is_in_firmware_matrix(self):
+        self.assertIn(
+            FANDAC_COMPILE_ONLY_CONFIG_STRING,
+            self.matrix_configs,
+            f"FanDAC compile-only config_string "
+            f"{FANDAC_COMPILE_ONLY_CONFIG_STRING!r} must be present in "
+            "config/firmware-combination-matrix.json",
+        )
+
+    def test_fandac_shipment_status_is_compile_only(self):
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("shipment_status"),
+            "compile-only",
+            "FanDAC target must be compile-only — it is NOT a WebFlash "
+            "build (no webflash-current / preview-current)",
+        )
+
+    def test_fandac_disallows_webflash_exposure(self):
+        self.assertIsNotNone(self.target)
+        self.assertFalse(
+            self.target.get("webflash_exposure_allowed_now"),
+            "FanDAC compile-only target must declare "
+            "webflash_exposure_allowed_now: false",
+        )
+
+    def test_fandac_requires_hardware_for_validation(self):
+        self.assertIsNotNone(self.target)
+        self.assertTrue(
+            self.target.get("hardware_required_for_validation"),
+            "FanDAC compile-only target must declare "
+            "hardware_required_for_validation: true — compile-only is "
+            "pre-hardware confidence, not hardware-validated readiness",
+        )
+
+    def test_fandac_target_is_not_blocked(self):
+        self.assertIsNotNone(self.target)
+        self.assertFalse(
+            self.target.get("blocked"),
+            "FanDAC compile-only target must declare blocked: false — "
+            "FanDAC is not FanTRIAC / PWR / COMPLIANCE-001 blocked",
+        )
+
+    def test_fandac_does_not_declare_webflash_build_matrix(self):
+        self.assertIsNotNone(self.target)
+        self.assertNotIn(
+            "webflash_build_matrix",
+            self.target,
+            "FanDAC compile-only target must not declare "
+            "webflash_build_matrix; that flag is owned by "
+            "config/product-catalog.json",
+        )
+
+    def test_fandac_does_not_declare_artifact_name(self):
+        self.assertIsNotNone(self.target)
+        self.assertNotIn(
+            "artifact_name",
+            self.target,
+            "FanDAC compile-only target must not declare artifact_name; "
+            "no release artifact is built by FW-COMPILE-DAC-001",
+        )
+
+    def test_fandac_does_not_declare_webflash_wrapper(self):
+        self.assertIsNotNone(self.target)
+        self.assertNotIn(
+            "webflash_wrapper",
+            self.target,
+            "FanDAC compile-only target must not declare webflash_wrapper",
+        )
+
+    def test_fandac_target_is_not_in_webflash_builds(self):
+        self.assertNotIn(
+            FANDAC_COMPILE_ONLY_CONFIG_STRING,
+            self.committed_configs,
+            f"FanDAC compile-only target {FANDAC_COMPILE_ONLY_CONFIG_STRING!r} "
+            "must NOT be present in config/webflash-builds.json",
+        )
+
+    def test_no_fandac_token_in_webflash_builds(self):
+        text = BUILDS_PATH.read_text()
+        self.assertNotIn(
+            "FanDAC",
+            text,
+            "config/webflash-builds.json must not contain the FanDAC token "
+            "— FW-COMPILE-DAC-001 adds no FanDAC WebFlash build entry",
+        )
+
+    def test_fandac_target_is_not_in_release_one_required_configs(self):
+        compat_path = REPO_ROOT / "config" / "webflash-compatibility.json"
+        compat = _load(compat_path)
+        required = compat.get("release_one_required_configs", []) or []
+        self.assertNotIn(
+            FANDAC_COMPILE_ONLY_CONFIG_STRING,
+            required,
+            "release_one_required_configs must not contain "
+            f"{FANDAC_COMPILE_ONLY_CONFIG_STRING!r} — FW-COMPILE-DAC-001 "
+            "does not promote FanDAC into Release-One required configs",
+        )
+
+    def test_fandac_skeleton_not_under_webflash_directory(self):
+        self.assertFalse(
+            FANDAC_COMPILE_ONLY_PRODUCT_YAML.startswith("products/webflash/"),
+            "FanDAC compile-only skeleton must NOT live under "
+            "products/webflash/ (the WebFlash wrapper namespace)",
+        )
+
+    def test_no_fandac_webflash_wrapper_file_exists(self):
+        webflash_dir = REPO_ROOT / "products" / "webflash"
+        if not webflash_dir.is_dir():
+            return
+        offenders = []
+        for path in webflash_dir.glob("*.yaml"):
+            name = path.name.lower()
+            if "fandac" in name or "fan-dac" in name or "fan_dac" in name:
+                offenders.append(path.relative_to(REPO_ROOT).as_posix())
+        self.assertEqual(
+            offenders,
+            [],
+            f"FW-COMPILE-DAC-001 must NOT add any FanDAC WebFlash wrapper "
+            f"under products/webflash/. Offending paths: {offenders!r}",
+        )
+
+    def test_no_normal_fandac_product_yaml_added(self):
+        """No FanDAC product YAML may be added at the top level of products/.
+
+        PRODUCT-DAC-001 is gated on this compile-only validation; the
+        FanDAC YAML must stay under products/compile-only/ (no catalog
+        enumeration), never at the top level of products/.
+        """
+        products_dir = REPO_ROOT / "products"
+        offenders = []
+        for path in products_dir.glob("*.yaml"):
+            name = path.name.lower()
+            if "fandac" in name or "fan-dac" in name or "fan_dac" in name:
+                offenders.append(path.relative_to(REPO_ROOT).as_posix())
+        self.assertEqual(
+            offenders,
+            [],
+            "FW-COMPILE-DAC-001 must NOT add a normal DAC product YAML at "
+            f"the top level of products/. Offending paths: {offenders!r}",
+        )
+
+    def test_fandac_voltage_enum_concern_is_fixed(self):
+        """The gp8403 voltage-enum concern must be resolved, not just tracked.
+
+        ESPHome's gp8403 `voltage:` accepts only the bare enum tokens
+        10V / 5V (https://esphome.io/components/output/gp8403); the prior
+        invalid 0-10V / 0-5V strings are rejected by ESPHome config
+        validation. The package substitutions must now feed a valid enum.
+        """
+        text = self.PACKAGE_FAN_GP8403.read_text()
+        for active_assignment in (
+            'fan_dac_1_output_range: "0-10V"',
+            'fan_dac_2_output_range: "0-10V"',
+            'fan_dac_1_output_range: "0-5V"',
+            'fan_dac_2_output_range: "0-5V"',
+        ):
+            self.assertNotIn(
+                active_assignment,
+                text,
+                "packages/expansions/fan_gp8403.yaml must not assign the "
+                "invalid ESPHome gp8403 voltage enum string via "
+                f"{active_assignment!r}; use 10V / 5V instead",
+            )
+        self.assertIn(
+            'fan_dac_1_output_range: "10V"',
+            text,
+            "fan_dac_1_output_range must default to the valid ESPHome "
+            "voltage enum 10V (customer-facing 0-10V)",
+        )
+        self.assertIn(
+            'fan_dac_2_output_range: "10V"',
+            text,
+            "fan_dac_2_output_range must default to the valid ESPHome "
+            "voltage enum 10V (customer-facing 0-10V)",
+        )
+
+    def test_fandac_compile_success_not_claimed_in_target(self):
+        """The target must record that compile validation is pending CI."""
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("compile_validation_status"),
+            "pending-ci",
+            "FanDAC compile-only target must record "
+            "compile_validation_status: pending-ci — compile success is "
+            "not claimed until CI runs scripts/validate_compile_targets.py "
+            "--compile (ESPHome is not assumed available locally)",
+        )
+
+    def test_release_one_and_led_targets_unchanged(self):
+        by_config = {
+            t["config_string"]: t for t in self.targets if t.get("config_string")
+        }
+        r1 = by_config.get(RELEASE_ONE_CONFIG_STRING)
+        self.assertIsNotNone(r1)
+        self.assertEqual(r1.get("shipment_status"), "webflash-current")
+        led = by_config.get(LED_PREVIEW_CONFIG_STRING)
+        self.assertIsNotNone(led)
+        self.assertEqual(led.get("shipment_status"), "preview-current")
 
 
 class ValidatorScriptTests(unittest.TestCase):

@@ -71,7 +71,8 @@
     "Ceiling-POE-VentIQ",
     "Ceiling-POE-AirIQ",
     "Ceiling-POE-AirIQ-RoomIQ",
-    "Ceiling-POE-VentIQ-FanRelay-RoomIQ"
+    "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
+    "Ceiling-POE-FanDAC"
   ],
   "totals": {
     "candidates": 26,
@@ -570,19 +571,19 @@
       "config_string": "Ceiling-POE-FanDAC",
       "rank": 25,
       "lane": "fandac",
-      "use_case": "POE-powered Ceiling Core + FanDAC (GP8403 DAC fan driver). Representative deferral row for the entire FanDAC lane (24 matrix rows).",
+      "use_case": "POE-powered Ceiling Core + FanDAC (GP8403 DAC fan driver). Representative row for the entire FanDAC lane (24 matrix rows).",
       "proposed_product_yaml": "products/compile-only/ceiling-poe-fandac.yaml",
       "candidate_status": "defer",
-      "reason": "FanDAC (S360-312) is blocked by PACKAGE-DAC-001 (deferred) and CORE-ABSTRACT-BUS-001B (canonical I2C bus-id consolidation; the GP8403 DAC is an I2C peripheral). FanDAC + AirIQ is forbidden by the grammar (12 rows excluded from the matrix), so this lane carries 24 rows.",
+      "reason": "PACKAGE-DAC-001 / PR #573 implemented the FanDAC package at the package layer (two GP8403 chips / four neutral outputs) and CORE-ABSTRACT-BUS-001B landed the core_i2c bus the GP8403 I2C peripheral binds. FW-COMPILE-DAC-001 adds ONE compile-only validation target for Ceiling-POE-FanDAC (products/compile-only/ceiling-poe-fandac.yaml) and fixes the gp8403 voltage substitutions from the invalid ESPHome enum string '0-10V' to the valid '10V' (customer-facing 0-10V). The broader FanDAC lane stays deferred: no PRODUCT-DAC-001 product YAML exists and S360-312 BOM evidence is still missing. FanDAC + AirIQ is forbidden by the grammar (12 rows excluded from the matrix), so this lane carries 24 rows. compile_only_safe stays false at the lane level — a single validation target is not lane-wide compile-only readiness.",
       "blockers": [
-        "PACKAGE-DAC-001-deferred",
-        "CORE-ABSTRACT-BUS-001B-not-landed",
-        "S360-312-BOM-evidence-missing-HW-BOM-ASSETS-S360-312",
-        "tests-test_core_abstract_bus.py-pin-pinning-scaffold-missing"
+        "PRODUCT-DAC-001-not-landed-no-DAC-product-yaml",
+        "PACKAGE-DAC-001-implemented-package-layer-only-PR573-no-product-layer",
+        "CORE-ABSTRACT-BUS-001B-core_i2c-consolidation-landed-lane-wide-compile-only-still-deferred",
+        "S360-312-BOM-evidence-missing-HW-BOM-ASSETS-S360-312"
       ],
       "would_be_webflash_exposed_now": false,
       "compile_only_safe": false,
-      "notes": "Representative deferral row for the 24-row FanDAC lane. Carries blocked-core-bus blocker (CORE-ABSTRACT-BUS-001B)."
+      "notes": "Representative row for the 24-row FanDAC lane. FW-COMPILE-DAC-001 adds ONE compile-only validation target (config string Ceiling-POE-FanDAC, now listed in currently_compile_only_config_strings) and does NOT add a product YAML, WebFlash exposure, or release artifact, and does NOT claim compile success until CI runs the --compile lane. Carries blocked-package / blocked-core-bus history; the lane stays deferred pending PRODUCT-DAC-001 and S360-312 BOM evidence."
     },
     {
       "config_string": "Ceiling-POE-FanTRIAC",

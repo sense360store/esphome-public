@@ -942,6 +942,123 @@ The full 17-row stable-promotion gauntlet documented in
 remains the source of truth for preview / stable readiness; this
 audit-log entry does not close any row in that gauntlet.
 
+### 2026-05-23 — FW-COMPILE-DAC-001 FanDAC compile-only validation
+
+This entry records the addition of a single FanDAC compile-only
+target to the
+[`config/compile-only-targets.json`](../config/compile-only-targets.json)
+lane after `PACKAGE-DAC-001` / PR #573 implemented the FanDAC package
+(two GP8403 dual-channel I²C DACs, four neutral outputs) and
+`PRODUCT-DAC-001-READINESS-REFRESH` / PR #574 recorded the gp8403
+voltage-enum concern and blocked the FanDAC product YAML until this
+compile-only validation confirms or fixes it.
+
+Unlike `FW-COMPILE-RELAY-001` (which reused a landed canonical
+product YAML at the top level of `products/`), **FanDAC has no landed
+product YAML** — `PRODUCT-DAC-001` is gated on this validation, and a
+top-level `products/` YAML would require a
+[`config/product-catalog.json`](../config/product-catalog.json) entry,
+which this slice must not add. The FanDAC compile-only skeleton
+therefore lives **under `products/compile-only/`** (the namespace
+excluded from the top-level catalog-enumeration gate at
+[`tests/test_product_catalog.py`](../tests/test_product_catalog.py)),
+and is the one explicitly-registered fan target permitted under that
+directory.
+
+#### Target
+
+| `id`                              | `product_yaml`                                | `config_string`      |
+|-----------------------------------|-----------------------------------------------|----------------------|
+| `ceiling-poe-fandac-compile-only` | `products/compile-only/ceiling-poe-fandac.yaml` | `Ceiling-POE-FanDAC` |
+
+Settings on the row:
+
+- `shipment_status: compile-only`
+- `webflash_exposure_allowed_now: false`
+- `hardware_required_for_validation: true`
+- `blocked: false`
+- `compile_validation_status: pending-ci`
+- `voltage_enum_fixed: true`
+
+The skeleton composes Core ceiling + PoE PSU + base + health (the
+proven `Ceiling-POE` base) plus the canonical FanDAC alias
+[`packages/expansions/fan_dac.yaml`](../packages/expansions/fan_dac.yaml)
+(a pure `!include` wrapper of the legacy
+[`packages/expansions/fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml)).
+The GP8403 chips bind the shared `core_i2c` bus the Core ceiling
+package provides.
+
+#### The gp8403 voltage-enum concern — resolved (Option A)
+
+PR #574 flagged that the package fed the gp8403 `voltage:` field the
+neutral string `0-10V`, while ESPHome's gp8403 component accepts only
+the bare enum tokens **`10V`** or **`5V`**
+([esphome.io/components/output/gp8403](https://esphome.io/components/output/gp8403)).
+ESPHome config validation rejects `0-10V` / `0-5V`. This is a static
+(documented-schema) defect, so FW-COMPILE-DAC-001 **fixes** it rather
+than merely tracking it:
+
+- `fan_dac_1_output_range` and `fan_dac_2_output_range` in
+  [`packages/expansions/fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml)
+  are corrected from `"0-10V"` to `"10V"`.
+- The **customer-facing** range that `10V` produces stays **0-10V**;
+  the user-facing `0-10V` / `0-5V` labels live in the product / kit
+  docs (e.g. `S360-KIT-DUCT-0-10V`), never in the `voltage:`
+  substitution.
+- This matches the default `10V` the output-range policy already
+  implied (operator decision D3,
+  [`docs/hardware/s360-312-r4-fandac.md` §Output-range policy — row 6](hardware/s360-312-r4-fandac.md#output-range-policy--row-6-closed)).
+- A single GP8403 still **cannot** drive one output at 0-5V and the
+  other at 0-10V (one `V5V` reference / one range register `0x01` per
+  chip); this target makes no such claim.
+
+[`tests/test_fandac_package.py`](../tests/test_fandac_package.py)
+pins the corrected enum (`10V`, never `0-10V` / `0-5V`); the new
+[`tests/test_compile_targets.py`](../tests/test_compile_targets.py)
+`FanDACCompileOnlyCoverageTests` pins the target invariants.
+
+#### What compile-only proves for the FanDAC target
+
+Once
+[`scripts/validate_compile_targets.py --compile`](../scripts/validate_compile_targets.py)
+(or `esphome config products/compile-only/ceiling-poe-fandac.yaml`)
+is run **in CI**, a passing run proves the following for the FanDAC
+skeleton (and only for it, only under the ESPHome version recorded in
+the workflow):
+
+- the YAML parses and substitutions resolve (including the
+  `fan_dac_i2c_id: core_i2c` bus binding and the per-chip `address`
+  / `voltage` enum substitutions);
+- the `packages:` composition and every `!include` resolve;
+- ESPHome's gp8403 component / config schema validates the corrected
+  `voltage: 10V` enum;
+- the codegen pass produces compilable source.
+
+#### What is NOT claimed
+
+- **Compile success is not claimed yet.** ESPHome is not assumed
+  present in the local environment; `compile_validation_status:
+  pending-ci` records that compile success is **unproven** until the
+  `--compile` lane runs in CI. The metadata lane
+  (`--metadata-only`) is what is asserted by this PR. No "compiles
+  cleanly" claim is made until CI proves it.
+- **No product YAML.** No FanDAC YAML is added at the top level of
+  `products/`; no `config/product-catalog.json` entry;
+  `PRODUCT-DAC-001` stays gated.
+- **No WebFlash exposure.** No `products/webflash/` wrapper; no
+  `config/webflash-builds.json` entry; no `webflash_build_matrix`
+  flip; no `artifact_name`. The `FanDAC` token does not appear in
+  `config/webflash-builds.json`.
+- **No release artifact.** No `.bin`, checksum, build-info manifest,
+  GitHub Release tag, or proof row.
+- **No hardware / schematic / BOM proof.** S360-312
+  `schematic_status` and BOM evidence remain open; compile success
+  proves none of it.
+- **No stable / preview promotion.** Release-One stays
+  `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; the LED preview
+  stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays
+  `blocked` / `HW-005`.
+
 ## See also
 
 - [`docs/firmware-combination-matrix.md`](firmware-combination-matrix.md) — FW-MATRIX-001, the 168-row source matrix the `config_string` field cross-references.

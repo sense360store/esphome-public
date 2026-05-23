@@ -20,7 +20,7 @@
     "compile-only"
   ],
   "totals": {
-    "targets": 8
+    "targets": 9
   },
   "targets": [
     {
@@ -114,6 +114,19 @@
       "advanced_manual_warning_only": true,
       "hardware_pending": true,
       "notes": "FanRelay product YAML lives at products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml (NOT under products/webflash/, NOT under products/compile-only/). The matching catalog row in config/product-catalog.json (config_string: Ceiling-POE-VentIQ-FanRelay-RoomIQ, status: hardware-pending, webflash_build_matrix: false, no artifact_name, no webflash_wrapper) was landed by PRODUCT-RELAY-001 / PR #564. The FanRelay token is NOT in config/webflash-builds.json (no FanRelay build entry exists). The FanRelay config string is NOT in release_one_required_configs. No WebFlash wrapper exists under products/webflash/. The S360-KIT-BATH-RELAY kit stays future-expansion / hardware-pending / webflash_exposure_allowed_now: false / stable_ready_now: false. WEBFLASH-RELAY-001, RELEASE-RELAY-001, and WF-IMPORT-RELAY-001 stay blocked behind their own gates."
+    },
+    {
+      "id": "ceiling-poe-fandac-compile-only",
+      "product_yaml": "products/compile-only/ceiling-poe-fandac.yaml",
+      "config_string": "Ceiling-POE-FanDAC",
+      "reason": "FanDAC (S360-312) compile-only validation target (FW-COMPILE-DAC-001). Exercises the FanDAC package composition (two GP8403 dual-channel I2C DACs, four neutral outputs; canonical alias packages/expansions/fan_dac.yaml -> fan_gp8403.yaml) on the proven Core ceiling + PoE PSU + base + health base after PACKAGE-DAC-001 / PR #573 implemented the package and CORE-ABSTRACT-BUS-001B landed the core_i2c bus the GP8403 peripheral binds. This target resolves the gp8403 voltage enum concern raised by PR #574: the package fan_dac_1_output_range / fan_dac_2_output_range substitutions are fixed from the invalid ESPHome enum string '0-10V' to the valid '10V' (customer-facing 0-10V) per https://esphome.io/components/output/gp8403, matching the default '10V' the output-range policy already implied (docs/hardware/s360-312-r4-fandac.md row 6). Compile success is NOT claimed until CI runs scripts/validate_compile_targets.py --compile (or esphome config) against this YAML — ESPHome is not assumed available locally. Compile success is NOT WebFlash exposure, NOT a release artifact, NOT WebFlash import readiness, NOT a PRODUCT-DAC-001 / WEBFLASH-DAC-001 / RELEASE-DAC-001 unblock, NOT S360-312 schematic / BOM verification, NOT hardware proof, and NOT stable / preview promotion.",
+      "shipment_status": "compile-only",
+      "hardware_required_for_validation": true,
+      "webflash_exposure_allowed_now": false,
+      "blocked": false,
+      "compile_validation_status": "pending-ci",
+      "voltage_enum_fixed": true,
+      "notes": "FanDAC compile-only skeleton lives at products/compile-only/ceiling-poe-fandac.yaml (NOT under products/webflash/, NOT a top-level products/ product YAML). No config/product-catalog.json entry is added (the products/compile-only/ subdirectory is excluded from the top-level catalog enumeration gate), so NO normal DAC product YAML is added; PRODUCT-DAC-001 stays gated on this validation. The FanDAC token is NOT in config/webflash-builds.json (no FanDAC build entry exists). The Ceiling-POE-FanDAC config string is NOT in release_one_required_configs. No WebFlash wrapper exists under products/webflash/. No webflash_build_matrix flip, no artifact_name. compile_validation_status: pending-ci records that compile success is unproven until CI runs --compile / esphome config; voltage_enum_fixed: true records that the gp8403 voltage enum concern is resolved at the package layer (10V, customer-facing 0-10V), not merely tracked. A single GP8403 cannot drive one output at 0-5V and the other at 0-10V (one V5V reference / one range register per chip); this target does not claim that."
     }
   ]
 }

@@ -302,14 +302,25 @@ so this lane carries 24 rows rather than 36.
 |------|----------------------|---------|
 | 25   | `Ceiling-POE-FanDAC` | `defer` |
 
-`compile_only_safe: false`. FanDAC (`S360-312`) is blocked by:
+`compile_only_safe: false` **at the lane level**. `PACKAGE-DAC-001`
+(PR #573) implemented the package and `CORE-ABSTRACT-BUS-001B` landed
+the `core_i2c` bus the GP8403 I²C peripheral binds, and
+**`FW-COMPILE-DAC-001`** (this PR) added a **single** compile-only
+validation target for `Ceiling-POE-FanDAC`
+(`products/compile-only/ceiling-poe-fandac.yaml`, now listed in
+`currently_compile_only_config_strings`) and fixed the gp8403
+`voltage:` substitutions `0-10V` → `10V`. The broader **24-row** FanDAC
+lane nonetheless stays `defer` / `compile_only_safe: false`:
 
-- **PACKAGE-DAC-001** — deferred;
-- **CORE-ABSTRACT-BUS-001B** — canonical I²C bus-id consolidation;
-  the GP8403 DAC is an I²C peripheral.
+- **PRODUCT-DAC-001** — not landed; no FanDAC product YAML exists.
+- **PACKAGE-DAC-001** — implemented at the package layer only (PR #573);
+  no product-layer slice.
+- **S360-312 BOM evidence** — still missing.
 
-The blockers list carries `CORE-ABSTRACT-BUS-001B-not-landed` to
-capture the `blocked-core-bus` evidence.
+A single compile-only validation target is **not** lane-wide
+compile-only readiness; the candidate row's blockers carry a
+`PACKAGE-DAC-001` substring and a `CORE-ABSTRACT-BUS-001B` substring to
+capture the `blocked-package` / `blocked-core-bus` history.
 
 ### Lane 9 — FanTRIAC (rank 26) — `defer` / `blocked-hardware` + `blocked-compliance`
 
