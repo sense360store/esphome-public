@@ -391,6 +391,26 @@ PACKAGE-DAC-001 → PRODUCT-DAC-001 → WEBFLASH-DAC-001 →
 RELEASE-DAC-001 per the FanDAC lane in
 [`docs/firmware-build-gap-report.md`](firmware-build-gap-report.md).
 
+> **Status note (2026-05-23 — `PRODUCT-DAC-001-READINESS-REFRESH`).**
+> The two earliest chain links have now landed at their own layer:
+> `CORE-ABSTRACT-BUS-001B` (the `core_i2c` shared-bus rename) merged as
+> **PR #569**, and `PACKAGE-DAC-001` (the FanDAC dual-GP8403 package —
+> two chips, four neutral outputs, per-chip address + range
+> substitutions) merged as **PR #573**. The `blockers` list above is
+> the canonical [`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json)
+> array and is unchanged by this docs refresh. **The kit stays
+> `future-expansion` / `hardware-pending` and gated** — a package-layer
+> landing is not product, WebFlash, or release readiness. Before
+> `PRODUCT-DAC-001` can add a FanDAC product YAML, the recommended next
+> link is **`FW-COMPILE-DAC-001`** (compile-only validation): the
+> package binds the `gp8403:` `voltage:` field to the neutral `0-10V`
+> value rather than ESPHome's bare `10V` / `5V` enum, and with no FanDAC
+> compile-only target this is **unvalidated**. So the live chain is
+> CORE-ABSTRACT-BUS-001B *(PR #569)* → PACKAGE-DAC-001 *(PR #573)* →
+> **FW-COMPILE-DAC-001** → PRODUCT-DAC-001 → WEBFLASH-DAC-001 →
+> RELEASE-DAC-001. No `webflash_build_matrix`, `artifact_name`, kit
+> config string, or readiness flag is changed here.
+
 ## Hard guardrails
 
 The kit intent matrix is a **planning artifact**. It does not change:
