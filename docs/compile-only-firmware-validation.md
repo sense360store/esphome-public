@@ -1059,6 +1059,131 @@ the workflow):
   stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays
   `blocked` / `HW-005`.
 
+### 2026-05-23 — FW-COMPILE-DAC-RESULT-001
+
+This entry records the **GitHub Actions compile-only validation
+result** for the FanDAC compile-only target added by
+`FW-COMPILE-DAC-001` / PR #575
+(`ceiling-poe-fandac-compile-only`, pointing at
+[`products/compile-only/ceiling-poe-fandac.yaml`](../products/compile-only/ceiling-poe-fandac.yaml)
+with `config_string: Ceiling-POE-FanDAC`,
+`shipment_status: compile-only`,
+`webflash_exposure_allowed_now: false`,
+`hardware_required_for_validation: true`,
+`compile_validation_status: pending-ci`, `voltage_enum_fixed: true`).
+The `Compile-only Firmware Validation` workflow ran against the
+expanded nine-target compile-only lane on the PR head and the
+metadata-validation lane **passed**.
+
+- **Workflow.** `Compile-only Firmware Validation`
+  ([`.github/workflows/compile-only.yml`](../.github/workflows/compile-only.yml))
+- **Run ID.** `26332462496`
+- **Status.** `completed`
+- **Conclusion.** `success`
+- **Head SHA.** `9989861befdec81e630f7a0749f9f4019084c607`
+- **Scope.** PR/head validation for `FW-COMPILE-DAC-001` / PR #575.
+- **Target count.** **9** compile-only targets (the two
+  WebFlash-current product YAMLs from FW-COMPILE-MATRIX-001 + the
+  five POE non-fan compile-only skeletons from
+  FW-COMPILE-POE-NONFAN-001 + the FanRelay compile-only target from
+  FW-COMPILE-RELAY-001 / PR #566 + the new FanDAC compile-only
+  target from FW-COMPILE-DAC-001 / PR #575).
+- **Jobs.**
+  - `Compile-only Targets — Metadata Validation` — **`success`**
+    (the `--metadata-only` lane plus `tests/test_compile_targets.py`).
+  - `Compile-only Targets — Full ESPHome Compile` — **`skipped`**.
+    This job is gated
+    `if: github.event_name == 'workflow_dispatch' && github.event.inputs.compile_mode == 'full'`
+    ([`.github/workflows/compile-only.yml`](../.github/workflows/compile-only.yml)
+    line 103), so it does **not** run on a `pull_request` / `push`
+    event — only on a manual `workflow_dispatch` with
+    `compile_mode=full`. No such dispatch was run for this head, so
+    **no `esphome config` / `esphome compile` was executed against
+    the FanDAC skeleton in CI**.
+- **Companion run.** `Quick Validation` run ID `26332462516`
+  (`YAML Syntax Check`) also succeeded against the same head; that
+  job runs only Python / `pyyaml` validators
+  ([`.github/workflows/validate.yml`](../.github/workflows/validate.yml)),
+  **not** `esphome config` / `compile`.
+
+#### What this result proves
+
+The green `Compile-only Firmware Validation` run proves the
+**metadata / structural** lane for the nine-target compile-only
+lane, including the new FanDAC target. Concretely, for
+`ceiling-poe-fandac-compile-only`:
+
+- the target's `product_yaml`
+  ([`products/compile-only/ceiling-poe-fandac.yaml`](../products/compile-only/ceiling-poe-fandac.yaml))
+  exists on disk and the row's metadata is well-formed;
+- the `config_string` `Ceiling-POE-FanDAC` cross-references cleanly
+  against
+  [`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json);
+- the row carries no `webflash_build_matrix` / `artifact_name`
+  declaration, is absent from
+  [`config/webflash-builds.json`](../config/webflash-builds.json),
+  and is not in `release_one_required_configs` — the compile-only
+  guardrails hold;
+- the lane total is **9** and the prior eight targets are unchanged
+  (no metadata regression);
+- `tests/test_compile_targets.py`
+  (`FanDACCompileOnlyCoverageTests`) and `tests/test_fandac_package.py`
+  pass — the latter pins the corrected GP8403 `voltage:`
+  substitutions to the ESPHome-**documented** bare enum **`10V`**
+  (never `0-10V` / `0-5V`).
+
+The GP8403 voltage-enum fix (Option A — `0-10V` → `10V`) is therefore
+confirmed against the **documented** ESPHome `gp8403` schema and
+pinned by string-equality tests, and the metadata lane is green.
+
+#### What this result does **not** prove
+
+The full `esphome config` / `esphome compile` lane was **skipped** on
+this PR (it runs only via `workflow_dispatch` with
+`compile_mode=full`). This green result therefore does **not** prove
+that ESPHome itself compiled the FanDAC skeleton, and the
+`compile_validation_status: pending-ci` marker on the target
+**stands** — an actual `esphome config` / `--compile` pass for
+`Ceiling-POE-FanDAC` is still owed to a manual `workflow_dispatch`
+full-compile run. Specifically, this result does **not** prove:
+
+- **Skeleton compiles in ESPHome.** No `esphome config` /
+  `esphome compile` was executed against
+  `products/compile-only/ceiling-poe-fandac.yaml`; the `packages:`
+  composition / `!include` resolution / component-schema validation /
+  codegen pass were **not** exercised by ESPHome in this run.
+- **The `voltage: 10V` enum is accepted by the ESPHome config
+  validator at runtime.** The fix is validated only against ESPHome's
+  *documented* schema and pinned by tests; ESPHome's own validator
+  did not run on this PR.
+- **DAC product readiness.** No FanDAC product YAML at the top level
+  of [`products/`](../products/); no
+  [`config/product-catalog.json`](../config/product-catalog.json)
+  entry. `PRODUCT-DAC-001` stays gated.
+- **WebFlash readiness.** No `products/webflash/` wrapper, no
+  [`config/webflash-builds.json`](../config/webflash-builds.json) row,
+  no `webflash_build_matrix` flip, no `artifact_name`.
+  `WEBFLASH-DAC-001` stays blocked.
+- **Release artifact.** No `.bin`, checksum, build-info manifest,
+  GitHub Release tag, or proof row. `RELEASE-DAC-001` stays blocked.
+- **Harness / fan bench validation.** No bench, harness, silkscreen,
+  schematic, pinmap, thermal, or EMI evidence is generated. The
+  `J2` / `J3` → Cloudlift S12 harness conductor trace and the `J3`
+  `out0` / `out1` silkscreen-transposition caveat remain open.
+  `S360-312` `schematic_status` stays `cataloged_unverified`.
+- **Compliance.** No compliance claim; no simultaneous per-output
+  0-5V + 0-10V on a single GP8403 is claimed (one `V5V` reference /
+  one range register `0x01` per chip).
+
+The target is **compile-only only**: a green metadata CI result is a
+necessary-but-insufficient input to the broader preview-to-stable
+promotion process and discharges none of the DAC product / WebFlash /
+release / hardware / compliance gates. The full 17-row
+stable-promotion gauntlet in
+[`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
+remains the source of truth for preview / stable readiness; this
+audit-log entry does not close any row in that gauntlet.
+
 ## See also
 
 - [`docs/firmware-combination-matrix.md`](firmware-combination-matrix.md) — FW-MATRIX-001, the 168-row source matrix the `config_string` field cross-references.
