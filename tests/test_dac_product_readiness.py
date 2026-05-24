@@ -549,14 +549,15 @@ class DacProductCompileOnlyTargetUnchangedTests(unittest.TestCase):
         self.assertIsNotNone(self.target)
         self.assertEqual(self.target.get("shipment_status"), "compile-only")
 
-    def test_compile_only_target_compile_validation_pending_ci(self) -> None:
+    def test_compile_only_target_compile_validation_full_compile(self) -> None:
         self.assertIsNotNone(self.target)
         self.assertEqual(
             self.target.get("compile_validation_status"),
-            "pending-ci",
-            "FanDAC compile-only target must still record "
-            "compile_validation_status: pending-ci — the full ESPHome "
-            "compile remains owed; PRODUCT-DAC-001 does not claim it.",
+            "validated-full-compile",
+            "FanDAC compile-only target must record "
+            "compile_validation_status: validated-full-compile — the manual "
+            "workflow_dispatch compile_mode=full run 26364679370 compiled the "
+            "FanDAC target green (COMPILE-STATUS-FLAGS-001).",
         )
 
 

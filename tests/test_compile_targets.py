@@ -1197,16 +1197,17 @@ class FanDACCompileOnlyCoverageTests(unittest.TestCase):
             "voltage enum 10V (customer-facing 0-10V)",
         )
 
-    def test_fandac_compile_success_not_claimed_in_target(self):
-        """The target must record that compile validation is pending CI."""
+    def test_fandac_compile_validated_by_full_compile_run(self):
+        """The target must record the full compile passed (run 26364679370)."""
         self.assertIsNotNone(self.target)
         self.assertEqual(
             self.target.get("compile_validation_status"),
-            "pending-ci",
+            "validated-full-compile",
             "FanDAC compile-only target must record "
-            "compile_validation_status: pending-ci — compile success is "
-            "not claimed until CI runs scripts/validate_compile_targets.py "
-            "--compile (ESPHome is not assumed available locally)",
+            "compile_validation_status: validated-full-compile — the manual "
+            "workflow_dispatch compile_mode=full run 26364679370 ran "
+            "scripts/validate_compile_targets.py --compile against this YAML "
+            "and passed (9 targets, conclusion success)",
         )
 
     def test_release_one_and_led_targets_unchanged(self):
