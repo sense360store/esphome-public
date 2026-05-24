@@ -1459,6 +1459,9 @@ schematic, compliance, or safety claim:
   [`config/compile-only-targets.json`](../config/compile-only-targets.json)
   is now satisfied by this run; flipping that literal config flag is a
   separate config-layer change outside this docs-only record's scope.
+  **Update — COMPILE-STATUS-FLAGS-001 (2026-05-24):** that flag has now
+  been flipped to `compile_validation_status: validated-full-compile` (see
+  the `COMPILE-STATUS-FLAGS-001` entry below).
 - `S360-312` `schematic_status` stays `cataloged_unverified`; the `J2` /
   `J3` → Cloudlift S12 harness conductor trace and the `J3` `out0` /
   `out1` silkscreen-transposition caveat remain open; no compliance or
@@ -1475,6 +1478,44 @@ This is a docs-only record. No `packages/**`, `products/**`,
 artifact, checksum, or build-info edit is made; FanDAC and FanRelay code
 is untouched; the WebFlash repository (`sense360store/WebFlash`) is
 untouched.
+
+### 2026-05-24 — COMPILE-STATUS-FLAGS-001 reconcile compile_validation_status after full compile
+
+This entry records the **config-layer flag flip** that
+`FW-COMPILE-DAC-FULL-RESULT-001` (2026-05-24) deferred as "a separate
+config-layer change". The successful manual full-compile run
+`26364679370` (`workflow_dispatch` / `compile_mode=full`, 9 compile-only
+targets, conclusion `success`) compiled the FanDAC compile-only target
+`ceiling-poe-fandac-compile-only` →
+[`products/compile-only/ceiling-poe-fandac.yaml`](../products/compile-only/ceiling-poe-fandac.yaml)
+green, so the stale `compile_validation_status: pending-ci` marker is
+reconciled to the proven state.
+
+- **Config.** In
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+  the FanDAC target's `compile_validation_status` is changed from
+  `pending-ci` to **`validated-full-compile`**; its `reason` / `notes`
+  wording is updated from "compile success is unproven until CI runs
+  `--compile`" to record that run `26364679370` ran
+  `scripts/validate_compile_targets.py --compile` against the YAML and
+  passed. No other target changes; the target count stays **9**.
+- **Tests.** The two assertions that pinned `pending-ci`
+  (`tests/test_compile_targets.py`,
+  `tests/test_dac_product_readiness.py`) are updated to assert
+  `validated-full-compile`.
+- **FanRelay** carries no `compile_validation_status` field and is left
+  unchanged.
+
+This is a narrow status reconciliation. **No** real blocker moves:
+`PRODUCT-DAC-001` stays no-WebFlash / no-release;
+`WEBFLASH-DAC-001`, `RELEASE-DAC-001`, and `WF-IMPORT-DAC-001` stay
+**blocked**; `S360-310` / `S360-312` `schematic_status` stays
+`cataloged_unverified`; no `webflash_build_matrix` flip, no
+`artifact_name`, no release artifact, no compliance or safety claim. No
+`packages/**`, `products/**`, `products/webflash/**`,
+`.github/workflows/**`, `components/**`, `include/**`, `firmware/**`,
+`manifest.json`, `firmware/sources.json`, or WebFlash-repo edit. Compile
+success stays necessary-but-insufficient for shipment readiness.
 
 ## See also
 
