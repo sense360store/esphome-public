@@ -780,6 +780,37 @@ named follow-up.
   parity per
   [`docs/webflash-exposure-readiness-matrix.md` §Relay / S360-310 WebFlash posture](webflash-exposure-readiness-matrix.md#relay--s360-310-webflash-posture).
 
+- **2026-05-24 — `FW-COMPILE-RELAY-FULL-FIX-001` (this PR).** Fixed
+  the FanRelay `GPIO3` double-bind found by the full compile lane
+  (run `26334334727`). The Core abstract package's `main_relay`
+  `switch.gpio` on `${relay_pin}` and the FanRelay package's own
+  `switch.gpio` on `${fan_relay_pin}` (default `${relay_pin}`) both
+  bound `GPIO3` when composed, which ESPHome rejects.
+  [`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml)
+  now exposes `fan_relay_switch` as a `switch.template` that proxies
+  the single Core `main_relay` GPIO owner (no second `gpio` binding,
+  no GPIO named, `${relay_pin}` unchanged at `GPIO3`); invariants
+  pinned by the updated
+  [`tests/test_fan_relay_package.py`](../tests/test_fan_relay_package.py).
+  **The FanRelay readiness status is unchanged** —
+  `advanced/manual-warning-only` + product-YAML-landed +
+  WebFlash-blocked. No `webflash_build_matrix` flip; no
+  `artifact_name`; no `webflash_wrapper`; no
+  [`config/webflash-builds.json`](../config/webflash-builds.json) row;
+  no release artifact; no `release_one_required_configs` change; no
+  `schematic_status` / `schematic_file` promotion; no COMPLIANCE-001
+  movement; FanDAC untouched. **Full compile success is not claimed**
+  — ESPHome was not run in the authoring environment; a manual
+  `workflow_dispatch` `compile_mode=full` rerun of the
+  `Compile-only Firmware Validation` lane remains required to confirm
+  the FanRelay target now compiles green. This supersedes the
+  FW-COMPILE-RELAY-RESULT-001 (2026-05-22) "successful full compile"
+  claim, which run `26334334727` contradicted. **No claim of FanRelay
+  WebFlash-readiness, release-readiness, compliance-clearance,
+  board-level mains-safety certification, installation-approval,
+  qualified-electrician sign-off, or production-wide / multi-unit
+  hardware characterisation.**
+
 ### FanPWM / S360-311
 
 - **Status.** `needs-package-reconciliation` + `hardware-evidence-pending`.

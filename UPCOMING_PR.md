@@ -24,6 +24,67 @@ mirrored here.
 
 ## Current queue summary
 
+- **FW-COMPILE-RELAY-FULL-FIX-001** fixes the FanRelay `GPIO3`
+  double-bind found by the full compile lane via **this PR** on
+  2026-05-24. The full-compile run **`26334334727`** **failed** on the
+  FanRelay target (`Ceiling-POE-VentIQ-FanRelay-RoomIQ`); FanDAC
+  validated cleanly and is **not** touched. Root cause: the parent Core
+  abstract package
+  [`packages/hardware/sense360_core_ceiling.yaml`](packages/hardware/sense360_core_ceiling.yaml)
+  already declares the `main_relay` `switch.gpio` on `pin: ${relay_pin}`
+  (`GPIO3` post-`CORE-ABSTRACT-BUS-001A`), and
+  [`packages/expansions/fan_relay.yaml`](packages/expansions/fan_relay.yaml)
+  declared a **second** `switch.gpio` (`id: fan_relay_switch`) on
+  `pin: ${fan_relay_pin}` (default `${relay_pin}`), so composing both
+  layers bound `GPIO3` twice. Fix (shape C — split ownership, no pin
+  rebind): `fan_relay_switch` is now a `switch.template` that proxies
+  the single Core `main_relay` GPIO owner; the package declares no
+  `gpio` component and names no GPIO, the `fan_relay_pin` substitution
+  is retired, and `${relay_pin}` stays abstract (`relay_pin` unchanged
+  at `GPIO3`). Invariants pinned by the updated
+  [`tests/test_fan_relay_package.py`](tests/test_fan_relay_package.py)
+  (`FanRelaySwitchReusesMainRelayTests`, `FanRelayNoGpioPlatformTests`,
+  `FanRelaySingleRelayGpioOwnerTests`, `FanDacCompileOnlyTargetUnchangedTests`).
+  **The FanRelay readiness status is unchanged** —
+  `advanced/manual-warning-only` + product-YAML-landed +
+  WebFlash-blocked. **Full compile success is NOT claimed** — ESPHome
+  was not available in the authoring environment, so `esphome config` /
+  `scripts/validate_compile_targets.py --compile` were not run; a manual
+  `workflow_dispatch` `compile_mode=full` rerun of the
+  `Compile-only Firmware Validation` lane remains required to confirm
+  the FanRelay target compiles green. This supersedes the
+  FW-COMPILE-RELAY-RESULT-001 (2026-05-22) "successful full compile"
+  claim, which run `26334334727` contradicted. **No** WebFlash wrapper;
+  **no** `webflash_build_matrix` flip; **no** `artifact_name`; **no**
+  entry in [`config/webflash-builds.json`](config/webflash-builds.json);
+  **no** release artifact / checksum / build-info / `manifest.json` /
+  `firmware/sources.json` / `.github/workflows/**` / `components/**` /
+  `include/**` edit; **no** `schematic_status` / `schematic_file`
+  promotion (`S360-310` stays `cataloged_unverified`); **no**
+  `release_one_required_configs` change; **no** COMPLIANCE-001 movement;
+  FanDAC package/product/target untouched. `WEBFLASH-RELAY-001`,
+  `RELEASE-RELAY-001`, and `WF-IMPORT-RELAY-001` stay blocked; no
+  WebFlash / release / import / compliance / competent-person sign-off
+  claim is made. Updates
+  [`packages/expansions/fan_relay.yaml`](packages/expansions/fan_relay.yaml),
+  [`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml)
+  (comments only),
+  [`tests/test_fan_relay_package.py`](tests/test_fan_relay_package.py),
+  [`docs/compile-only-firmware-validation.md`](docs/compile-only-firmware-validation.md),
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+  [`docs/hardware/s360-310-r4-relay.md`](docs/hardware/s360-310-r4-relay.md)
+  (new audit-log row), and this `UPCOMING_PR.md`. **Next recommended
+  PR:** a manual `workflow_dispatch` `compile_mode=full` rerun to record
+  FanRelay full-compile green (an `FW-COMPILE-RELAY-FULL-RESULT-001`
+  docs-only record), **not** WebFlash exposure. The WebFlash repository
+  (`sense360store/WebFlash`) is untouched. Validation: `python3
+  tests/validate_configs.py`; `python3
+  scripts/validate_compile_targets.py --metadata-only`; `python3
+  tests/test_core_abstract_bus.py`; `python3
+  tests/test_fan_relay_package.py`; `python3
+  tests/test_relay_product_readiness.py`; `python3
+  tests/test_compile_targets.py`; `python3 -m unittest discover -s tests
+  -p "test_*.py"`.
 - **PRODUCT-DAC-001** advances the FanDAC chain to the **product layer**
   via **this PR** on 2026-05-23, as **product-YAML-only /
   no-WebFlash-exposure**. It adds the single canonical FanDAC product
