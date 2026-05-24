@@ -24,6 +24,42 @@ mirrored here.
 
 ## Current queue summary
 
+- **REPO-FRESHNESS-ROADMAP-AUDIT-001** delivers, via **this PR** on
+  2026-05-24, an **audit / docs-only** sweep for stale config, old
+  source-of-truth files, missed roadmap/feature/upgrade/security items, and
+  cross-repo drift. Output:
+  [`docs/repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md)
+  (stale-files, source-of-truth, cross-repo-drift, roadmap-coverage,
+  security/dependency, CI-coverage, and follow-up-queue tables). **Key
+  findings:** (1) one logical stale active item — the FanDAC full-compile
+  narrative still reads `pending-ci` / `OWED` in
+  [`config/product-catalog.json`](config/product-catalog.json) and
+  [`products/sense360-ceiling-poe-fandac.yaml`](products/sense360-ceiling-poe-fandac.yaml)
+  (the exact narrative `COMPILE-STATUS-FLAGS-001` deferred above as "a
+  separate follow-up", and **pinned** by
+  `tests/test_dac_product_readiness.py::test_carries_full_compile_owed_caveat`)
+  → **`CONFIG-FRESHNESS-001`**; (2) the WebFlash repo could **not** be read
+  this session (access scoped to `esphome-public` / `esphome`), so cross-repo
+  drift is `NEEDS-TOOLING` → **`WEBFLASH-DRIFT-001`**; (3) workflow hardening
+  (no explicit `permissions:` on `validate.yml` / `compile-only.yml` /
+  `ci-validate-configs.yml`; actions on mutable major tags) → **`SECURITY-AUDIT-FIX-001`**
+  (no Dependabot/code-scanning alert feed available → **no** clean-bill
+  claim); (4) PWM (`S360-311`) is the next hardware blocker now Relay/DAC
+  full-compile are clean → **`PWM-BLOCKER-REMOVAL-001`**; (5) generated-matrix
+  sync tests + full `unittest discover` are not auto-gated on PR →
+  **`CI-GATE-HARDENING-001`**. **Audit-only — no real blocker moves:** the
+  three readiness matrices were inspected and found **current at the headline
+  level** and are left unedited; generated files
+  ([`config/firmware-combination-matrix.json`](config/firmware-combination-matrix.json),
+  [`docs/firmware-build-gap-report.md`](docs/firmware-build-gap-report.md))
+  are verified in-sync (regeneration tests green). No `packages/**`,
+  `products/**`, `products/webflash/**`, `config/**` behaviour,
+  `.github/workflows/**`, `components/**`, `include/**`, `firmware/**`,
+  `manifest.json`, `firmware/sources.json`, or WebFlash-repo edit; no
+  `webflash_build_matrix` flip, no `artifact_name`, no release artifact, no
+  WebFlash-import / release / compliance / security clean-bill claim.
+  `S360-310` / `S360-312` `schematic_status` stays `cataloged_unverified`;
+  `WEBFLASH-DAC-001` / `RELEASE-DAC-001` / `WF-IMPORT-DAC-001` stay blocked.
 - **COMPILE-STATUS-FLAGS-001** reconciles, via **this PR** on 2026-05-24,
   the stale config-layer flag that `FW-COMPILE-DAC-FULL-RESULT-001`
   (PR #580) deferred as "a separate config-layer change". The FanDAC
