@@ -190,15 +190,19 @@ substitutions:
   mold_risk_duration_minutes: "30"
 
   # === FanRelay binding ===
-  # The FanRelay package
-  # (packages/expansions/fan_relay.yaml) declares
-  # `fan_relay_pin: ${relay_pin}` so the relay output is exposed through
-  # the substitution layer rather than a hard-coded GPIO. The parent Core
-  # abstract package `packages/hardware/sense360_core_ceiling.yaml` binds
+  # The relay GPIO output is owned by the parent Core abstract package
+  # `packages/hardware/sense360_core_ceiling.yaml`, which declares the
+  # `main_relay` `switch.gpio` on `pin: ${relay_pin}` and binds
   # `relay_pin: GPIO3` (schematic-correct Relay net per S360-100-R4 IO3
-  # after `CORE-ABSTRACT-BUS-001A` / PR #558). DO NOT hard-code `GPIO3`
-  # here — the substitution chain must remain abstract so future Core
-  # rebinds propagate without re-editing every product YAML. The
+  # after `CORE-ABSTRACT-BUS-001A` / PR #558). The FanRelay package
+  # (packages/expansions/fan_relay.yaml) does NOT re-bind that GPIO; it
+  # exposes a user-facing `fan_relay_switch` `template` switch that
+  # proxies the Core `main_relay`, so the resolved relay pin has exactly
+  # one owner (FW-COMPILE-RELAY-FULL-FIX-001 — fixes the GPIO3 double-bind
+  # that a duplicate `switch.gpio` on `${relay_pin}` caused in the full
+  # compile lane, run 26334334727). DO NOT hard-code `GPIO3` here — the
+  # substitution chain must remain abstract so future Core rebinds
+  # propagate without re-editing every product YAML. The
   # `tests/test_relay_product_readiness.py` `RelayProductGpio3Tests`
   # pins this guarantee.
 
@@ -246,11 +250,11 @@ packages:
   roomiq_presence_profile: !include ../packages/features/presence_basic_profile.yaml
 
   # === Sense360 Relay (S360-310, on-board K1, on/off fan-control) ===
-  # The FanRelay package inherits `${relay_pin}` from the parent Core
-  # abstract package above (post-CORE-ABSTRACT-BUS-001A this resolves to
-  # GPIO3, schematic-correct Relay net per S360-100-R4 IO3). The FanRelay
-  # package exposes the relay output as the `fan_relay_switch` switch
-  # entity bound through `${fan_relay_pin}` — see
+  # The Core abstract package above owns the relay GPIO output as the
+  # `main_relay` `switch.gpio` on `${relay_pin}` (post-CORE-ABSTRACT-BUS-001A
+  # this resolves to GPIO3, schematic-correct Relay net per S360-100-R4 IO3).
+  # The FanRelay package exposes the relay as the `fan_relay_switch`
+  # `template` switch that proxies that single `main_relay` GPIO owner — see
   # packages/expansions/fan_relay.yaml. PACKAGE-RELAY-001 / PR #562
   # implemented the package at the package layer only; PRODUCT-RELAY-001
   # (this product YAML) is the product-layer slice and does NOT add

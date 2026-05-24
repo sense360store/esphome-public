@@ -14,27 +14,37 @@ substitution-layer slices closed at the package-evidence layer:
   ``sense360_core_mapping.yaml``, ``sense360_core_poe.yaml``,
   ``sense360_core_wall.yaml``).
 
-The FanRelay package was already structurally correct against this
-post-001A / 001C state:
-``packages/expansions/fan_relay.yaml`` declares
-``fan_relay_pin: ${relay_pin}`` and exposes its relay output through
-the substitution layer. PACKAGE-RELAY-001 is therefore reconciled at
-the package layer as a **test + readiness** PR — no YAML rebind, no
-hardcoded GPIO, no behaviour change.
+FW-COMPILE-RELAY-FULL-FIX-001 corrects the package after the full
+compile lane (run 26334334727) failed on the FanRelay target with a
+``GPIO3`` double-bind: the parent Core abstract package already declares
+the ``main_relay`` ``switch.gpio`` on ``pin: ${relay_pin}``, and the
+FanRelay package previously declared a *second* ``switch.gpio`` on the
+same resolved pin (``${fan_relay_pin}`` defaulting to ``${relay_pin}``).
+Two GPIO components on one pin fail the full ESPHome compile.
+
+The fix de-duplicates GPIO ownership without rebinding the pin (shape C:
+Core owns the GPIO output, FanRelay owns the user-facing fan switch).
+``packages/expansions/fan_relay.yaml`` now exposes ``fan_relay_switch``
+as a ``switch.template`` that proxies the Core ``main_relay``; it names
+no GPIO and declares no ``gpio``-platform component, so the resolved
+relay pin has exactly one owner (``main_relay``). ``${relay_pin}`` stays
+abstract and still resolves through the Core substitution layer.
 
 What this file checks:
 
   * ``packages/expansions/fan_relay.yaml`` exists and parses as YAML.
-  * The package declares ``fan_relay_pin: ${relay_pin}`` as the
-    default substitution (so it inherits the parent Core abstract
-    package binding).
   * The package does **not** hard-code ``GPIO3`` / ``GPIO4`` /
-    ``GPIO10`` (or any other ``GPIO``) on an active substitution or
-    binding line — the relay output / switch must be exposed through
-    the substitution layer.
-  * The ``switch.platform: gpio`` block declaring
-    ``id: fan_relay_switch`` binds ``pin: ${fan_relay_pin}``, so the
-    switch consumes the substitution rather than a fixed pin.
+    ``GPIO10`` (or any other ``GPIO``) on an active line — the relay
+    output stays owned by the Core abstraction.
+  * ``fan_relay_switch`` is a ``switch.platform: template`` that reuses
+    (proxies) the Core ``main_relay`` abstraction via its
+    ``turn_on_action`` / ``turn_off_action`` / ``lambda``.
+  * The package declares **no** ``gpio``-platform switch or output, so
+    it does not double-bind the relay pin the Core package owns.
+  * The composed FanRelay product has exactly one owner of the resolved
+    relay GPIO: the Core ``main_relay`` ``switch.gpio`` on
+    ``${relay_pin}``.
+  * The FanDAC compile-only target is left unchanged.
   * The five non-voice Core abstract packages bind
     ``relay_pin: GPIO3`` (cross-check against the schematic-correct
     value pinned by ``tests/test_core_abstract_bus.py``).
@@ -171,39 +181,6 @@ class FanRelayPackageStructureTests(unittest.TestCase):
             )
 
 
-class FanRelayPinSubstitutionTests(unittest.TestCase):
-    """``fan_relay_pin`` defaults to ``${relay_pin}`` and stays abstracted."""
-
-    def test_fan_relay_pin_default_is_relay_pin_substitution(self) -> None:
-        value = _substitution_value(FAN_RELAY_PACKAGE.read_text(), "fan_relay_pin")
-        self.assertEqual(
-            value,
-            "${relay_pin}",
-            "fan_relay_pin in packages/expansions/fan_relay.yaml must "
-            "default to ${relay_pin} so the FanRelay package inherits "
-            "whichever Core abstract package binding the parent product "
-            "YAML supplies (post-CORE-ABSTRACT-BUS-001A this resolves to "
-            "GPIO3, the schematic-correct Relay net per S360-100-R4 "
-            "IO3).",
-        )
-
-    def test_fan_relay_pin_substitution_is_not_a_hardcoded_gpio(self) -> None:
-        value = _substitution_value(FAN_RELAY_PACKAGE.read_text(), "fan_relay_pin")
-        self.assertIsNotNone(
-            value,
-            "fan_relay_pin substitution must be present in fan_relay.yaml.",
-        )
-        assert value is not None  # mypy / type checker hint after assert above
-        self.assertFalse(
-            re.match(r"^GPIO\d+$", value),
-            f"fan_relay_pin must NOT be a hard-coded GPIO (got {value!r}). "
-            f"PACKAGE-RELAY-001 keeps the FanRelay package abstracted "
-            f"through ${{relay_pin}}; the schematic-correct GPIO3 value "
-            f"is bound by the Core abstract packages and pinned by "
-            f"tests/test_core_abstract_bus.py.",
-        )
-
-
 class FanRelayNoHardcodedGpioTests(unittest.TestCase):
     """``fan_relay.yaml`` does not hard-code any GPIO on an active line."""
 
@@ -217,13 +194,12 @@ class FanRelayNoHardcodedGpioTests(unittest.TestCase):
                     gpio,
                     line,
                     f"fan_relay.yaml must not hard-code {gpio} on an "
-                    f"active (non-comment) line. The Relay pin must be "
-                    f"exposed through the ${{relay_pin}} / "
-                    f"${{fan_relay_pin}} substitution layer so the "
-                    f"package composes against any Core abstract "
-                    f"package binding (post-001A the schematic-correct "
-                    f"value is GPIO3, but the package must not "
-                    f"hard-code it). Offending line: {line!r}",
+                    f"active (non-comment) line. The relay GPIO output is "
+                    f"owned by the Core abstract package's `main_relay` "
+                    f"`switch.gpio` on `${{relay_pin}}` (post-001A the "
+                    f"schematic-correct value is GPIO3); the FanRelay "
+                    f"package proxies it and must not name a GPIO. "
+                    f"Offending line: {line!r}",
                 )
 
     def test_fan_relay_yaml_has_no_hardcoded_gpio_anywhere_active(self) -> None:
@@ -234,46 +210,22 @@ class FanRelayNoHardcodedGpioTests(unittest.TestCase):
             self.assertIsNone(
                 match,
                 f"fan_relay.yaml must not name any GPIO on an active "
-                f"(non-comment) line; the package exposes its relay "
-                f"output through the substitution layer. Offending "
-                f"line: {line!r}",
+                f"(non-comment) line; the relay output stays owned by the "
+                f"Core `main_relay` abstraction. Offending line: {line!r}",
             )
 
 
-class FanRelaySwitchUsesSubstitutionTests(unittest.TestCase):
-    """The ``fan_relay_switch`` switch binds ``pin: ${fan_relay_pin}``."""
+class FanRelaySwitchReusesMainRelayTests(unittest.TestCase):
+    """``fan_relay_switch`` is a ``template`` switch proxying ``main_relay``.
 
-    def test_fan_relay_switch_pin_is_substitution(self) -> None:
-        text = FAN_RELAY_PACKAGE.read_text()
-        # Match the ``id: fan_relay_switch`` line followed by a ``pin:``
-        # line that references the ``${fan_relay_pin}`` substitution
-        # (the intermediate lines may include ``name:`` etc.).
-        pattern = re.compile(
-            r"id:\s*fan_relay_switch\s*\n"
-            r"(?P<between>(?:\s*[a-z_]+:\s*[^\n]+\n)*?)"
-            r"\s*pin:\s*(?P<pin>\S+)",
-            re.MULTILINE,
-        )
-        match = pattern.search(text)
-        self.assertIsNotNone(
-            match,
-            "Expected a `switch.platform: gpio` block declaring "
-            "`id: fan_relay_switch` followed by a `pin:` line in "
-            "packages/expansions/fan_relay.yaml.",
-        )
-        assert match is not None
-        pin_value = match.group("pin").strip("\"'")
-        self.assertEqual(
-            pin_value,
-            "${fan_relay_pin}",
-            "fan_relay_switch must bind `pin: ${fan_relay_pin}` so the "
-            "schematic-correct Relay net (GPIO3 per CORE-ABSTRACT-BUS-"
-            "001A, inherited from the Core abstract ${relay_pin}) is "
-            "consumed by downstream products through substitution. The "
-            "FanRelay package must NOT name a GPIO directly.",
-        )
+    FW-COMPILE-RELAY-FULL-FIX-001: the FanRelay package must NOT declare a
+    second ``gpio``-platform switch / output on the relay pin (that
+    double-binds GPIO3 with the Core ``main_relay`` and fails the full
+    ESPHome compile). It instead reuses the Core relay abstraction by
+    proxying ``main_relay`` through a ``switch.template``.
+    """
 
-    def test_fan_relay_switch_platform_is_gpio(self) -> None:
+    def _fan_relay_switch_entry(self) -> dict:
         data = yaml.safe_load(FAN_RELAY_PACKAGE.read_text())
         switches = data.get("switch", [])
         self.assertIsInstance(
@@ -282,28 +234,179 @@ class FanRelaySwitchUsesSubstitutionTests(unittest.TestCase):
             "fan_relay.yaml `switch:` block must be a list of switch "
             "platforms.",
         )
-        match = None
         for entry in switches:
             if isinstance(entry, dict) and entry.get("id") == "fan_relay_switch":
-                match = entry
-                break
-        self.assertIsNotNone(
-            match,
+                return entry
+        self.fail(
             "fan_relay.yaml must declare a switch with id "
-            "`fan_relay_switch` (the FanRelay output).",
+            "`fan_relay_switch` (the user-facing FanRelay control)."
         )
-        assert match is not None
+        raise AssertionError  # unreachable; satisfies type checker
+
+    def test_fan_relay_switch_platform_is_template(self) -> None:
+        entry = self._fan_relay_switch_entry()
         self.assertEqual(
-            match.get("platform"),
-            "gpio",
-            "fan_relay_switch must use the `gpio` switch platform.",
+            entry.get("platform"),
+            "template",
+            "fan_relay_switch must use the `template` switch platform so "
+            "it proxies the Core `main_relay` rather than re-binding the "
+            "relay GPIO. A `gpio`-platform switch here double-binds "
+            "GPIO3 with the Core `main_relay` and fails the full compile "
+            "(run 26334334727).",
+        )
+
+    def test_fan_relay_switch_does_not_bind_a_pin(self) -> None:
+        entry = self._fan_relay_switch_entry()
+        self.assertNotIn(
+            "pin",
+            entry,
+            "fan_relay_switch must NOT declare a `pin:` — the relay GPIO "
+            "is owned by the Core `main_relay`; the template switch only "
+            "proxies it.",
+        )
+
+    def test_fan_relay_switch_proxies_main_relay(self) -> None:
+        entry = self._fan_relay_switch_entry()
+        rendered = yaml.safe_dump(entry)
+        for action in ("turn_on_action", "turn_off_action"):
+            self.assertIn(
+                action,
+                entry,
+                f"fan_relay_switch must declare `{action}` so it proxies "
+                f"the Core `main_relay` (reuses the abstraction).",
+            )
+        self.assertIn(
+            "main_relay",
+            rendered,
+            "fan_relay_switch must reference `main_relay` (the Core relay "
+            "abstraction) in its actions / lambda — the FanRelay layer "
+            "reuses the single Core GPIO owner instead of binding its own.",
+        )
+
+
+class FanRelayNoGpioPlatformTests(unittest.TestCase):
+    """The FanRelay package declares no ``gpio``-platform switch / output.
+
+    This is the package-level half of the single-owner invariant: if
+    ``fan_relay.yaml`` declares no ``gpio`` switch / output, then the only
+    component that binds the resolved relay pin in the composed product is
+    the Core ``main_relay``.
+    """
+
+    def test_no_gpio_platform_switch_or_output(self) -> None:
+        data = yaml.safe_load(FAN_RELAY_PACKAGE.read_text())
+        for block_key in ("switch", "output"):
+            entries = data.get(block_key) or []
+            if not isinstance(entries, list):
+                continue
+            for entry in entries:
+                if not isinstance(entry, dict):
+                    continue
+                self.assertNotEqual(
+                    entry.get("platform"),
+                    "gpio",
+                    f"fan_relay.yaml must not declare a `{block_key}.gpio` "
+                    f"entry (id={entry.get('id')!r}); a second GPIO binding "
+                    f"on the relay pin double-binds GPIO3 with the Core "
+                    f"`main_relay`. The relay GPIO has exactly one owner.",
+                )
+
+
+class FanRelaySingleRelayGpioOwnerTests(unittest.TestCase):
+    """Exactly one component owns the resolved relay GPIO in the product.
+
+    The Core ceiling abstract package owns the relay GPIO as the
+    ``main_relay`` ``switch.gpio`` on ``pin: ${relay_pin}``. The FanRelay
+    package (above) declares no ``gpio`` component, so the composed
+    FanRelay product binds the resolved relay pin exactly once.
+    """
+
+    CORE_CEILING_PACKAGE = (
+        REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml"
+    )
+
+    def test_core_ceiling_main_relay_is_sole_relay_pin_gpio_owner(self) -> None:
+        data = yaml.safe_load(self.CORE_CEILING_PACKAGE.read_text())
+        switches = data.get("switch") or []
+        gpio_relay_pin_owners = [
+            entry
+            for entry in switches
+            if isinstance(entry, dict)
+            and entry.get("platform") == "gpio"
+            and entry.get("pin") == "${relay_pin}"
+        ]
+        self.assertEqual(
+            len(gpio_relay_pin_owners),
+            1,
+            "sense360_core_ceiling.yaml must declare exactly one "
+            "`switch.gpio` on `pin: ${relay_pin}` (the `main_relay` relay "
+            f"owner); found {len(gpio_relay_pin_owners)}.",
         )
         self.assertEqual(
-            match.get("pin"),
-            "${fan_relay_pin}",
-            "fan_relay_switch must bind pin: ${fan_relay_pin} so the "
-            "Relay net is exposed through the substitution layer.",
+            gpio_relay_pin_owners[0].get("id"),
+            "main_relay",
+            "the sole `switch.gpio` on `${relay_pin}` in "
+            "sense360_core_ceiling.yaml must be `id: main_relay`.",
         )
+
+    def test_fan_relay_package_adds_no_relay_pin_gpio_owner(self) -> None:
+        data = yaml.safe_load(FAN_RELAY_PACKAGE.read_text())
+        for block_key in ("switch", "output"):
+            for entry in data.get(block_key) or []:
+                if not isinstance(entry, dict):
+                    continue
+                if entry.get("platform") == "gpio":
+                    self.fail(
+                        f"fan_relay.yaml `{block_key}` declares a gpio "
+                        f"platform entry (id={entry.get('id')!r}); the "
+                        f"FanRelay product would then have two owners of "
+                        f"the resolved relay GPIO (Core `main_relay` + this "
+                        f"entry). The FanRelay layer must proxy "
+                        f"`main_relay`, not re-bind the pin."
+                    )
+
+
+class FanDacCompileOnlyTargetUnchangedTests(unittest.TestCase):
+    """The FanDAC compile-only target is unchanged by the Relay fix.
+
+    FW-COMPILE-RELAY-FULL-FIX-001 must not touch FanDAC. The FanDAC
+    compile-only target stays a separate compile-only lane pointing at the
+    FanDAC skeleton, distinct from the FanRelay product YAML.
+    """
+
+    COMPILE_ONLY_TARGETS = (
+        REPO_ROOT / "config" / "compile-only-targets.json"
+    )
+    FANDAC_TARGET_ID = "ceiling-poe-fandac-compile-only"
+
+    def setUp(self) -> None:
+        import json
+
+        if not self.COMPILE_ONLY_TARGETS.is_file():
+            self.skipTest("config/compile-only-targets.json not present")
+        self.doc = json.loads(self.COMPILE_ONLY_TARGETS.read_text())
+        self.by_id = {
+            t.get("id"): t for t in self.doc.get("targets", []) if t.get("id")
+        }
+
+    def test_fandac_compile_only_target_unchanged(self) -> None:
+        target = self.by_id.get(self.FANDAC_TARGET_ID)
+        self.assertIsNotNone(
+            target,
+            f"FanDAC compile-only target {self.FANDAC_TARGET_ID!r} must "
+            "remain present and unchanged.",
+        )
+        assert target is not None
+        self.assertEqual(
+            target.get("product_yaml"),
+            "products/compile-only/ceiling-poe-fandac.yaml",
+            "FanDAC compile-only target must still point at the FanDAC "
+            "skeleton (FW-COMPILE-RELAY-FULL-FIX-001 must not touch "
+            "FanDAC).",
+        )
+        self.assertEqual(target.get("config_string"), "Ceiling-POE-FanDAC")
+        self.assertEqual(target.get("shipment_status"), "compile-only")
+        self.assertFalse(target.get("webflash_exposure_allowed_now"))
 
 
 class CoreAbstractRelayPinCrossCheckTests(unittest.TestCase):
@@ -311,9 +414,9 @@ class CoreAbstractRelayPinCrossCheckTests(unittest.TestCase):
 
     Cross-check against the schematic-correct value pinned by
     ``tests/test_core_abstract_bus.py`` ``RelayPinRebindTests``. The
-    FanRelay package's ``fan_relay_pin: ${relay_pin}`` only resolves
-    to the right pin if every parent Core abstract package binds
-    ``relay_pin`` to ``GPIO3``.
+    Core ``main_relay`` (which the FanRelay ``fan_relay_switch`` proxies)
+    only resolves to the right pin if every parent Core abstract package
+    binds ``relay_pin`` to ``GPIO3``.
     """
 
     def test_relay_pin_is_gpio3_in_every_non_voice_core_package(self) -> None:

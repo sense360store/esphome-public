@@ -1,15 +1,35 @@
 # ============================================================================
 # SENSE360 FAN EXPANSION MODULE - RELAY (ON/OFF) VERSION
 # ============================================================================
-# Single-speed AC fan control via the on-board relay (or an external SSR
-# wired to one of the expansion GPIOs).
+# Single-speed AC fan control via the on-board relay (K1) on the Core board.
 #
 # Use this driver for fans where you only need ON/OFF control — no speed
 # control. For variable speed AC fans use FanTRIAC; for DC/PWM fans use
 # FanPWM; for 0–10 V controlled equipment use FanDAC.
 #
 # Expansion Bus Connection (default: built-in relay):
-#   Built-in 10 A relay on the Core board (GPIO4 by default).
+#   Built-in 10 A relay (K1) on the Core board, schematic Relay net on
+#   `${relay_pin}` (GPIO3 per S360-100-R4 IO3 after CORE-ABSTRACT-BUS-001A).
+#
+# GPIO OWNERSHIP (FW-COMPILE-RELAY-FULL-FIX-001):
+#   The on-board relay GPIO output is owned EXCLUSIVELY by the parent Core
+#   abstract package, which already declares the `main_relay` `switch.gpio`
+#   on `pin: ${relay_pin}` (see packages/hardware/sense360_core*.yaml, pinned
+#   by tests/test_core_abstract_bus.py MainRelaySwitchBindingTests). This
+#   FanRelay package therefore must NOT declare a second `switch.gpio` /
+#   `output.gpio` on the same resolved pin — composing both layers would bind
+#   GPIO3 twice and fail the full ESPHome compile (the GPIO3 double-bind
+#   surfaced by the full compile lane, run 26334334727). Instead the package
+#   owns user-facing fan behaviour only: `fan_relay_switch` is a `template`
+#   switch that reuses (proxies) the Core `main_relay` abstraction, plus the
+#   fan-control global and the emergency-stop script. This split — Core owns
+#   the GPIO output, FanRelay owns the fan UX — keeps `${relay_pin}` abstract:
+#   no GPIO is named in this file and the resolved pin has exactly one owner.
+#
+#   This package requires a parent Core package that declares `main_relay`
+#   (every packages/hardware/sense360_core*.yaml does). It is composed only by
+#   products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml, which includes
+#   packages/hardware/sense360_core_ceiling.yaml.
 #
 # IMPORTANT:
 #   - This module is NOT compatible with fan_pwm.yaml, fan_gp8403.yaml, or
@@ -17,30 +37,25 @@
 # ============================================================================
 
 substitutions:
-  # GPIO Configuration
-  # By default the FanRelay driver reuses the built-in relay (`relay_pin`)
-  # already declared by the core board. To drive an external SSR/relay from
-  # an expansion pin instead, override `fan_relay_pin` from the parent file:
-  #
-  #   fan_relay_pin: ${expansion_gpio1}
-  #
-  fan_relay_pin: ${relay_pin}
-
-  fan_default_state: "OFF"  # OFF | ON | RESTORE
+  fan_default_state: "OFF"  # OFF | ON | RESTORE (restore is owned by main_relay)
 
 # ============================================================================
-# Switch (single-speed fan)
+# Switch (single-speed fan) — user-facing proxy of the Core `main_relay`.
+# The parent Core abstract package owns the GPIO output on `${relay_pin}`;
+# this `template` switch exposes it as a fan-named entity WITHOUT re-binding
+# the GPIO, so the resolved relay pin has exactly one owner.
 # ============================================================================
 switch:
-  - platform: gpio
+  - platform: template
     id: fan_relay_switch
     name: "${friendly_name} Fan"
-    pin: ${fan_relay_pin}
     icon: mdi:fan
-    restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
+    lambda: "return id(main_relay).state;"
+    turn_on_action:
+      - switch.turn_on: main_relay
       - logger.log: "FanRelay turned ON"
-    on_turn_off:
+    turn_off_action:
+      - switch.turn_off: main_relay
       - logger.log: "FanRelay turned OFF"
 
 # ============================================================================

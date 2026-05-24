@@ -816,6 +816,17 @@ audit-log entry does not close any row in that gauntlet.
 
 ### 2026-05-22 — FW-COMPILE-RELAY-RESULT-001
 
+> **Superseded / corrected by FW-COMPILE-RELAY-FULL-FIX-001
+> (2026-05-24).** A later full-compile run (`26334334727`) **failed**
+> on the FanRelay target with a `GPIO3` double-bind (the Core
+> `main_relay` `switch.gpio` and the FanRelay `fan_relay_switch`
+> `switch.gpio` both bound `${relay_pin}` → `GPIO3`). The "successful
+> full compile" claim below did not exercise the composed GPIO binding
+> that the full-compile lane catches. The double-bind is fixed by
+> FW-COMPILE-RELAY-FULL-FIX-001 (see the 2026-05-24 audit-log entry
+> below); full-compile success is **not** re-claimed until a manual
+> `workflow_dispatch` `compile_mode=full` rerun passes.
+
 This entry records the **successful GitHub Actions compile-only
 validation result** for the FanRelay compile-only target added by
 `FW-COMPILE-RELAY-001` / PR #566. The
@@ -1183,6 +1194,79 @@ stable-promotion gauntlet in
 [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
 remains the source of truth for preview / stable readiness; this
 audit-log entry does not close any row in that gauntlet.
+
+### 2026-05-24 — FW-COMPILE-RELAY-FULL-FIX-001 FanRelay GPIO3 double-bind fix
+
+This entry records the **fix** for the FanRelay full-compile failure.
+The `Compile-only Firmware Validation` full-compile lane run
+**`26334334727`** **failed** on the FanRelay target
+(`Ceiling-POE-VentIQ-FanRelay-RoomIQ`,
+[`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml))
+with a `GPIO3` double-bind. FanDAC validated cleanly in the same set
+and is **not** touched by this fix.
+
+#### Root cause
+
+The parent Core abstract package
+[`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml)
+already declares the `main_relay` `switch.gpio` on
+`pin: ${relay_pin}` (the schematic-correct `GPIO3` post-`CORE-ABSTRACT-BUS-001A`).
+[`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml)
+additionally declared a **second** `switch.platform: gpio`
+(`id: fan_relay_switch`) on `pin: ${fan_relay_pin}`, whose default is
+`${relay_pin}`. When the FanRelay product composes both packages, two
+GPIO components bind the same resolved pin (`GPIO3`), which ESPHome
+rejects at config validation. The package-layer / metadata gates that
+ran on earlier PRs never composed the two `gpio` switches together, so
+only the full `esphome` compile lane surfaced the collision.
+
+#### Fix (shape C — split ownership, no pin rebind)
+
+The FanRelay package now exposes `fan_relay_switch` as a
+`switch.platform: template` that **proxies** the Core `main_relay`
+(`turn_on_action: switch.turn_on: main_relay`,
+`turn_off_action: switch.turn_off: main_relay`,
+`lambda: 'return id(main_relay).state;'`). It declares no
+`gpio`-platform component and names no GPIO, so the resolved relay pin
+has exactly **one** owner (`main_relay`). `${relay_pin}` stays abstract
+and resolves through the Core substitution layer; the `relay_pin` value
+is unchanged (`GPIO3`). The `fan_relay_pin` substitution is retired (it
+no longer has a consumer). Invariants are pinned by the updated
+[`tests/test_fan_relay_package.py`](../tests/test_fan_relay_package.py)
+(`FanRelaySwitchReusesMainRelayTests`, `FanRelayNoGpioPlatformTests`,
+`FanRelaySingleRelayGpioOwnerTests`, `FanDacCompileOnlyTargetUnchangedTests`).
+
+#### What this fix proves — and does **not** prove
+
+The double-bind is removed at the YAML / package layer and the local
+metadata / structural lane is green
+(`tests/validate_configs.py`,
+`scripts/validate_compile_targets.py --metadata-only`,
+`tests/test_fan_relay_package.py`, `tests/test_relay_product_readiness.py`,
+`tests/test_core_abstract_bus.py`, `tests/test_compile_targets.py`, and
+the full `python3 -m unittest discover -s tests` suite all pass).
+
+**Full compile success is NOT claimed.** ESPHome is not available in the
+authoring environment, so neither `esphome config
+products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml` nor
+`scripts/validate_compile_targets.py --compile` was run here. A manual
+`workflow_dispatch` of the `Compile-only Firmware Validation` lane with
+`compile_mode=full` remains **required** to confirm the FanRelay target
+now compiles green. This fix supersedes the FW-COMPILE-RELAY-RESULT-001
+(2026-05-22) "successful full compile" claim, which run `26334334727`
+contradicted.
+
+This entry does **not** advance WebFlash exposure, release, or import:
+no `products/webflash/` wrapper, no
+[`config/webflash-builds.json`](../config/webflash-builds.json) row, no
+`webflash_build_matrix` flip, no `artifact_name`, no release artifact.
+`WEBFLASH-RELAY-001`, `RELEASE-RELAY-001`, and `WF-IMPORT-RELAY-001`
+stay blocked; the FanRelay compile-only target stays
+`shipment_status: compile-only` /
+`webflash_exposure_allowed_now: false` /
+`advanced_manual_warning_only: true` / `hardware_pending: true`. No
+compliance / installation-approval / competent-person sign-off claim is
+made.
 
 ## See also
 
