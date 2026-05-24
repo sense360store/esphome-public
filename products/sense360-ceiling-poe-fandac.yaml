@@ -16,23 +16,23 @@
 # Status — what this YAML is NOT (read before installing or planning a build)
 # ----------------------------------------------------------------------------
 #
-#   * NOT full-compile-validated. No full ESPHome compile has been
-#     recorded for the FanDAC composition yet. The compile-only lane has
-#     passed only its **metadata / structural** validation (FW-COMPILE-
-#     DAC-RESULT-001 / PR #576: `Compile-only Firmware Validation` Run ID
-#     26332462496, conclusion `success`, target count 9). The full
-#     `esphome config` / `esphome compile` job was **skipped** — it runs
-#     only via a manual `workflow_dispatch` with `compile_mode=full` — so
-#     the FanDAC full ESPHome compile remains **owed**
-#     (`compile_validation_status: pending-ci`). Do NOT read this product
-#     YAML as "compiles cleanly".
+#   * Full-compile-validated (compile coverage only — NOT shipment
+#     readiness). The full ESPHome compile of the FanDAC composition is
+#     recorded green by the manual `workflow_dispatch` `compile_mode=full`
+#     run `26364679370` (`Compile-only Firmware Validation`, 9 compile-only
+#     targets, conclusion `success`; FW-COMPILE-DAC-FULL-RESULT-001 /
+#     PR #580), and `compile_validation_status: validated-full-compile` was
+#     flipped by COMPILE-STATUS-FLAGS-001 / PR #581 — superseding the prior
+#     metadata-only run `26332462496` marker. A clean full
+#     compile is NOT WebFlash exposure, NOT a release artifact, and NOT
+#     hardware / bench / harness proof; the caveats below still stand.
 #
 #   * NOT WebFlash-exposed. There is no `products/webflash/` wrapper for
 #     this product, no `config/webflash-builds.json` row, no
 #     `config/product-catalog.json` `webflash_build_matrix: true` flip,
 #     and no `artifact_name`. WebFlash exposure is owned by a separate
-#     `WEBFLASH-DAC-001` slice, which stays BLOCKED behind the owed full
-#     compile + `S360-312 schematic_status: verified`. See
+#     `WEBFLASH-DAC-001` slice, which stays BLOCKED behind
+#     `S360-312 schematic_status: verified`. See
 #     `docs/webflash-exposure-readiness-matrix.md` §DAC / S360-312
 #     WebFlash posture.
 #
@@ -223,7 +223,8 @@ packages:
   # package at the package layer; PRODUCT-DAC-001 (this product YAML) is
   # the product-layer slice and adds NO WebFlash exposure / release
   # artifact / build-matrix row. The full ESPHome compile of this
-  # composition is still owed (see header full-compile caveat).
+  # composition is validated by run 26364679370 (see header
+  # full-compile-validated caveat).
   fan_dac_module: !include ../packages/expansions/fan_dac.yaml
 
   # === Device Health & Diagnostics ===

@@ -24,6 +24,44 @@ mirrored here.
 
 ## Current queue summary
 
+- **CONFIG-FRESHNESS-001** closes, via **this PR** on 2026-05-24, the
+  single **`ACTIVE-STALE-RISK`** item found by
+  `REPO-FRESHNESS-ROADMAP-AUDIT-001` / PR #582: the stale FanDAC
+  full-compile narrative that still read `pending-ci` / `OWED` /
+  "NOT full-compile-validated" (citing the superseded metadata-only run
+  `26332462496`) in
+  [`config/product-catalog.json`](config/product-catalog.json) (FanDAC
+  `notes`) and
+  [`products/sense360-ceiling-poe-fandac.yaml`](products/sense360-ceiling-poe-fandac.yaml)
+  (header caveat + inline DAC-block comment). Both are reconciled to the
+  canonical state already recorded by `FW-COMPILE-DAC-FULL-RESULT-001`
+  (PR #580) and `COMPILE-STATUS-FLAGS-001` (PR #581): the full FanDAC
+  ESPHome compile is **validated by run `26364679370`**
+  (`workflow_dispatch` / `compile_mode=full`, 9 targets, conclusion
+  `success`) and `compile_validation_status` is
+  **`validated-full-compile`** in
+  [`config/compile-only-targets.json`](config/compile-only-targets.json)
+  (unchanged here — only asserted). The test that pinned the stale
+  wording,
+  `tests/test_dac_product_readiness.py::test_carries_full_compile_owed_caveat`,
+  is replaced with `test_carries_full_compile_validated_caveat` (asserts
+  `validated-full-compile` + run `26364679370`, and that the `pending-ci`
+  token is gone), and
+  [`docs/repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md)
+  marks the two ACTIVE-STALE-RISK rows **RESOLVED**. **Narrative
+  reconciliation only — no blocker moves:** the FanDAC product stays
+  no-WebFlash / no-release / hardware-pending; `webflash_build_matrix`
+  stays `false`; no `artifact_name`, no `products/webflash/` wrapper, no
+  `config/webflash-builds.json` row, no release artifact; the catalog
+  `status` enum stays `hardware-pending`; `WEBFLASH-DAC-001`,
+  `RELEASE-DAC-001`, and `WF-IMPORT-DAC-001` stay **blocked**; `S360-312`
+  `schematic_status` stays `cataloged_unverified`; the AirIQ-mutex /
+  J3-silk / Cloudlift-S12 harness / single-range caveats are retained.
+  No `packages/**`, `products/webflash/**`, `.github/workflows/**`,
+  `components/**`, `include/**`, `firmware/**`, `manifest.json`,
+  `firmware/sources.json`, or WebFlash-repo edit; no WebFlash-import /
+  release / compliance / hardware-stable claim. FanRelay and Relay
+  behaviour are untouched.
 - **REPO-FRESHNESS-ROADMAP-AUDIT-001** delivers, via **this PR** on
   2026-05-24, an **audit / docs-only** sweep for stale config, old
   source-of-truth files, missed roadmap/feature/upgrade/security items, and

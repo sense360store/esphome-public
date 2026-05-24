@@ -63,15 +63,17 @@ governs behaviour and is out of date), **ARCHIVE/HISTORICAL** (not active), **GE
 | `config/compile-only-targets.json` | COMPILE-STATUS-FLAGS-001 #581 (2026-05-24) | **ACTIVE-STABLE** | FanDAC flag correctly `validated-full-compile` (run `26364679370`). Current. |
 | `docs/product-readiness-matrix.md`, `docs/webflash-exposure-readiness-matrix.md`, `docs/release-artifact-readiness-matrix.md` | #581 (2026-05-24) | **ACTIVE-STABLE** | Append-only logs; **headline/current posture verified current** (FanDAC = validated-full-compile, FanRelay = product-yaml-landed). Historical `pending-ci` rows are correctly superseded. **No edit needed.** |
 | `docs/hardware/s360-312-r4-fandac.md` | #581 (2026-05-24) | **ACTIVE-STABLE** | Dated changelog; `pending-ci`/`owed` only in historical 2026-05-23 rows, superseded by 2026-05-24 rows. Current. |
-| **`config/product-catalog.json`** (FanDAC `notes`, line ~110) | PRODUCT-DAC-001 #577 (2026-05-23) | **ACTIVE-STALE-RISK** | FanDAC `notes` still say *"compile_validation_status remains pending-ci and the full FanDAC compile is still OWED … NOT full-compile-validated"* and cite the superseded metadata-only run `26332462496`. Contradicts `compile-only-targets.json` (`validated-full-compile`) and PR #580/#581. **Known deferred item** — #581 explicitly left it "a separate follow-up" (UPCOMING_PR.md lines 54-56). → `CONFIG-FRESHNESS-001`. |
-| **`products/sense360-ceiling-poe-fandac.yaml`** (header lines ~19-34, 226) | PRODUCT-DAC-001 #577 (2026-05-23) | **ACTIVE-STALE-RISK** | Same stale "NOT full-compile-validated / remains owed / pending-ci / run `26332462496`" narrative in the product header comment. → `CONFIG-FRESHNESS-001`. |
+| **`config/product-catalog.json`** (FanDAC `notes`, line ~110) | CONFIG-FRESHNESS-001 (2026-05-24) | **RESOLVED** (was ACTIVE-STALE-RISK) | FanDAC `notes` reconciled by `CONFIG-FRESHNESS-001`: the stale *"remains pending-ci / still OWED / NOT full-compile-validated"* wording is replaced with *"full compile validated by run `26364679370` … `compile_validation_status` is `validated-full-compile`"* (matching `compile-only-targets.json` and PR #580/#581). No-WebFlash / no-release / hardware-pending posture and the AirIQ-mutex / J3-silk / Cloudlift-S12 / single-range caveats are unchanged. |
+| **`products/sense360-ceiling-poe-fandac.yaml`** (header lines ~19-34, 226) | CONFIG-FRESHNESS-001 (2026-05-24) | **RESOLVED** (was ACTIVE-STALE-RISK) | Header + inline DAC-block comment reconciled by `CONFIG-FRESHNESS-001` to the full-compile-validated narrative (run `26364679370` / `validated-full-compile`); all non-shipment caveats retained. |
 | `examples/secrets.yaml.template` | PR #532 (2026-05-20) | **SUPERSEDED** | Tombstone redirect stub ("This template has moved → use root `secrets.example.yaml`"). Harmless breadcrumb; optional cleanup only. Do not delete solely for age. |
 
-> The two **ACTIVE-STALE-RISK** items are a *single coordinated reconciliation* (`CONFIG-FRESHNESS-001`)
-> and are **out of scope here**: `products/**` is a hard do-not-edit path, `config/**` is edit-avoid,
-> and the stale wording is **pinned by a test** (`tests/test_dac_product_readiness.py::test_carries_full_compile_owed_caveat`,
-> which asserts *"manual workflow_dispatch compile_mode=full still owed"* + *"compile_validation_status: pending-ci still stands"*).
-> Reconciling it requires a coordinated config + product-YAML + test change — exactly why #581 deferred it.
+> The two **ACTIVE-STALE-RISK** items were a *single coordinated reconciliation* (`CONFIG-FRESHNESS-001`)
+> and are now **RESOLVED** by it: the FanDAC `notes` in `config/product-catalog.json` and the
+> `products/sense360-ceiling-poe-fandac.yaml` header/inline comment were updated to the
+> full-compile-validated narrative (run `26364679370` / `validated-full-compile`), and the pinning test
+> `tests/test_dac_product_readiness.py::test_carries_full_compile_owed_caveat` was replaced with
+> `test_carries_full_compile_validated_caveat` (asserts `validated-full-compile` + run `26364679370`,
+> and that the superseded `pending-ci` token is gone) in the same PR. No blocker moved.
 
 ---
 
@@ -192,7 +194,7 @@ No **SECURITY-BLOCKING** items were found in the inspected surface. Hardening it
 
 | PR id | Trigger condition (met?) | Scope | Out-of-scope-here because |
 |---|---|---|---|
-| **`CONFIG-FRESHNESS-001`** | **YES** — stale active config found | Reconcile FanDAC full-compile narrative in `config/product-catalog.json` (notes) **and** `products/sense360-ceiling-poe-fandac.yaml` (header) from `pending-ci`/`owed` → `validated-full-compile` (run `26364679370`), matching #581; **update `tests/test_dac_product_readiness.py::test_carries_full_compile_owed_caveat`** in the same PR. | `config/**` edit-avoid + `products/**` do-not-edit + test-pinned wording. |
+| **`CONFIG-FRESHNESS-001`** | **DONE** (2026-05-24) — closed this stale-active item | Reconciled the FanDAC full-compile narrative in `config/product-catalog.json` (notes) **and** `products/sense360-ceiling-poe-fandac.yaml` (header + inline comment) from `pending-ci`/`owed` → `validated-full-compile` (run `26364679370`), matching #581, and replaced `tests/test_dac_product_readiness.py::test_carries_full_compile_owed_caveat` with `test_carries_full_compile_validated_caveat`. No-WebFlash / no-release / hardware-pending posture and all installation caveats retained; no blocker moved. | — (resolved). |
 | **`WEBFLASH-DRIFT-001`** | **YES (unverifiable here)** | Verify WebFlash repo manifest/build-matrix matches the §3 contract (config_string, artifact_name, artifact_pattern, channels, visible products, default posture). | WebFlash repo not accessible this session. |
 | **`SECURITY-AUDIT-FIX-001`** | **YES** — hardening items found | Add least-privilege `permissions: contents: read` to `validate.yml` / `compile-only.yml` / `ci-validate-configs.yml`; consider SHA-pinning `softprops/action-gh-release`. | `.github/workflows/**` do-not-edit. |
 | **`CI-GATE-HARDENING-001`** | optional | Run generated-matrix sync tests + full `unittest discover` on PR; consider an opt-in PR full-compile gate. | `.github/workflows/**` do-not-edit. |
@@ -248,8 +250,10 @@ The green generated-file sync tests confirm `config/firmware-combination-matrix.
 ## 10. Audit summary
 
 - **Stale active source-of-truth:** exactly one logical item — the FanDAC full-compile narrative in
-  `config/product-catalog.json` + `products/sense360-ceiling-poe-fandac.yaml` (test-pinned) →
-  `CONFIG-FRESHNESS-001`. Everything else is ACTIVE-STABLE or GENERATED-CURRENT.
+  `config/product-catalog.json` + `products/sense360-ceiling-poe-fandac.yaml` (test-pinned) —
+  now **RESOLVED** by `CONFIG-FRESHNESS-001` (2026-05-24), which reconciled both to
+  `validated-full-compile` (run `26364679370`) and updated the pinning test. Everything else is
+  ACTIVE-STABLE or GENERATED-CURRENT.
 - **Source-of-truth:** cleanly layered, no conflicting ownership.
 - **Cross-repo drift:** undetermined — WebFlash repo not accessible → `WEBFLASH-DRIFT-001`.
 - **Roadmap:** complete and current; PWM is the next blocker → `PWM-BLOCKER-REMOVAL-001`.

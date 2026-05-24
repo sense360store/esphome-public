@@ -22,7 +22,8 @@ The product intentionally has:
   * no entry in ``config/webflash-builds.json``;
   * no entry in ``release_one_required_configs``;
   * no release artifact / tag / checksum / build-info manifest;
-  * an explicit full-compile-still-owed caveat, a J3 silkscreen
+  * an explicit full-compile-validated caveat (run 26364679370 /
+    validated-full-compile; CONFIG-FRESHNESS-001), a J3 silkscreen
     transposition caveat, and a Cloudlift S12 harness / product-bench
     caveat in the product YAML header.
 
@@ -403,11 +404,11 @@ class DacProductWebFlashExposureGuardsTests(unittest.TestCase):
 class DacProductCaveatWordingTests(unittest.TestCase):
     """The FanDAC product YAML carries the PRODUCT-DAC-001 caveats.
 
-    PRODUCT-DAC-001 requires explicit full-compile-still-owed, J3
-    silkscreen transposition, Cloudlift S12 harness / product-bench, and
-    no-WebFlash / no-release / no-compliance caveat wording in the
-    product YAML itself. These tests pin that wording so a later refactor
-    cannot silently strip it.
+    PRODUCT-DAC-001 requires explicit full-compile-validated (run
+    26364679370; CONFIG-FRESHNESS-001), J3 silkscreen transposition,
+    Cloudlift S12 harness / product-bench, and no-WebFlash / no-release /
+    no-compliance caveat wording in the product YAML itself. These tests
+    pin that wording so a later refactor cannot silently strip it.
     """
 
     @classmethod
@@ -426,7 +427,7 @@ class DacProductCaveatWordingTests(unittest.TestCase):
             self.normalized,
             f"FanDAC product YAML must contain wording matching {phrase!r} "
             f"({hint}). PRODUCT-DAC-001 requires the product YAML to carry "
-            f"explicit no-WebFlash / full-compile-owed / J3-silk / "
+            f"explicit no-WebFlash / full-compile-validated / J3-silk / "
             f"Cloudlift-harness caveat text.",
         )
 
@@ -442,19 +443,32 @@ class DacProductCaveatWordingTests(unittest.TestCase):
             "outcome-first Cloudlift S12 fan control naming",
         )
 
-    def test_carries_full_compile_owed_caveat(self) -> None:
-        # The full ESPHome compile has not been recorded yet.
+    def test_carries_full_compile_validated_caveat(self) -> None:
+        # CONFIG-FRESHNESS-001: the full ESPHome compile is now recorded
+        # green (run 26364679370, compile_mode=full); the caveat must say
+        # validated-full-compile, not the superseded owed / pending-ci
+        # narrative.
         self._assert_phrase(
             "full esphome compile",
             "full ESPHome compile caveat",
         )
         self._assert_phrase(
             "compile_mode=full",
-            "manual workflow_dispatch compile_mode=full still owed",
+            "manual workflow_dispatch compile_mode=full run that validated it",
         )
         self._assert_phrase(
+            "validated-full-compile",
+            "compile_validation_status: validated-full-compile now stands",
+        )
+        self._assert_phrase(
+            "26364679370",
+            "the full-compile run id that validated the FanDAC target",
+        )
+        self.assertNotIn(
             "pending-ci",
-            "compile_validation_status: pending-ci still stands",
+            self.normalized,
+            "FanDAC product YAML must no longer carry the superseded "
+            "pending-ci / full-compile-owed narrative (CONFIG-FRESHNESS-001).",
         )
 
     def test_carries_j3_silk_transposition_caveat(self) -> None:
