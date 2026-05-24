@@ -1047,6 +1047,48 @@ named follow-up.
   WebFlash gate) → `WEBFLASH-DAC-001` → `RELEASE-DAC-001` →
   `WF-IMPORT-DAC-001` (WebFlash-owned). `S360-312` `schematic_status`
   promotion stays a separate JSON PR.
+- **2026-05-24 — `FW-COMPILE-DAC-FULL-RESULT-001` (this PR).** Records
+  that the **successful manual full-compile run `26364679370`** — the
+  same `workflow_dispatch` `compile_mode=full` run
+  `FW-COMPILE-RELAY-FULL-RESULT-001` / PR #579 recorded for FanRelay —
+  **also validates the FanDAC compile-only target**. Run ID
+  `26364679370`, event `workflow_dispatch`, mode `compile_mode=full`,
+  status `completed`, conclusion `success`, **9** compile-only targets
+  (job `Compile-only Targets — Metadata Validation` `77606314361`
+  `success` → `Compile-only Targets — Full ESPHome Compile`
+  `77606324332` `success`), against post-#578 `main` (merge commit
+  `4906a22`). The full-compile lane runs `esphome compile` against
+  **every** [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+  target and fails on the first failure, so the `success` conclusion
+  proves all nine targets compiled — including the 9th,
+  `ceiling-poe-fandac-compile-only` →
+  [`products/compile-only/ceiling-poe-fandac.yaml`](../products/compile-only/ceiling-poe-fandac.yaml)
+  (`Ceiling-POE-FanDAC`), present at the validated ref. **This
+  supersedes the full-compile concern left owed by
+  FW-COMPILE-DAC-RESULT-001 / PR #576** (which recorded only the green
+  metadata lane — the full-compile job was `skipped` on PR #575's head),
+  and the **GP8403 `voltage: 10V` enum fix is now compile-validated by
+  ESPHome's own validator**, not only against the documented schema. The
+  `compile_validation_status: pending-ci` marker in
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+  is satisfied by this run; flipping that literal config flag is a
+  separate config-layer change outside this docs-only record. **`PRODUCT-DAC-001`
+  has product YAML
+  ([`products/sense360-ceiling-poe-fandac.yaml`](../products/sense360-ceiling-poe-fandac.yaml),
+  PR #577) but remains no-WebFlash / no-release** — `webflash_build_matrix:
+  false`, no `artifact_name`, no `webflash_wrapper`, no
+  [`config/webflash-builds.json`](../config/webflash-builds.json) row.
+  `WEBFLASH-DAC-001`, `RELEASE-DAC-001`, and `WF-IMPORT-DAC-001` stay
+  **blocked**. No `webflash_build_matrix` flip; no `artifact_name`; no
+  release artifact / tag / checksum / build-info manifest; no
+  `release_one_required_configs` change; no `schematic_status` /
+  `schematic_file` promotion (`S360-312` stays `cataloged_unverified`);
+  no COMPLIANCE-001 movement; FanDAC / FanRelay code untouched. Compile
+  success is a necessary-but-insufficient input to the broader
+  preview-to-stable promotion process. **No claim of FanDAC
+  WebFlash-readiness, release-readiness, WebFlash import-readiness,
+  compliance / safety certification, hardware proof, or simultaneous
+  per-output 0-5V + 0-10V on a single GP8403.**
 - **Cross-references.**
   [`docs/hardware/s360-312-r4-fandac.md`](hardware/s360-312-r4-fandac.md);
   [`docs/hardware/s360-312-r4-dac.md`](hardware/s360-312-r4-dac.md);

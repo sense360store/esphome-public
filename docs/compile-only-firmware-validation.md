@@ -1072,6 +1072,22 @@ the workflow):
 
 ### 2026-05-23 — FW-COMPILE-DAC-RESULT-001
 
+> **Update — FW-COMPILE-DAC-FULL-RESULT-001 (2026-05-24).** The full
+> `esphome compile` pass that this entry recorded as **owed** (the
+> `Compile-only Targets — Full ESPHome Compile` job was `skipped` on the
+> PR #575 head, so `compile_validation_status: pending-ci` stood) has now
+> **passed** — the manual `workflow_dispatch` `compile_mode=full` run
+> `26364679370` against post-#578 `main` (merge commit `4906a22`)
+> compiled all nine compile-only targets green, including the FanDAC
+> target `ceiling-poe-fandac-compile-only` →
+> [`products/compile-only/ceiling-poe-fandac.yaml`](../products/compile-only/ceiling-poe-fandac.yaml)
+> (see the `FW-COMPILE-DAC-FULL-RESULT-001` entry below). For the
+> full-compile concern this **metadata-only** result is therefore
+> superseded; the `compile_validation_status: pending-ci` marker in
+> [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+> is now satisfied by run `26364679370` (the literal config-flag flip is a
+> separate config-layer change, out of scope for this docs-only record).
+
 This entry records the **GitHub Actions compile-only validation
 result** for the FanDAC compile-only target added by
 `FW-COMPILE-DAC-001` / PR #575
@@ -1353,6 +1369,112 @@ This is a docs-only record. No `packages/**`, `products/**`,
 `firmware/**`, `manifest.json`, `firmware/sources.json`, release
 artifact, checksum, or build-info edit is made; the WebFlash repository
 (`sense360store/WebFlash`) is untouched.
+
+### 2026-05-24 — FW-COMPILE-DAC-FULL-RESULT-001 FanDAC full compile result in run 26364679370
+
+This entry records that the **successful manual full-compile run
+`26364679370`** — the same `workflow_dispatch` `compile_mode=full` run
+that `FW-COMPILE-RELAY-FULL-RESULT-001` recorded for the FanRelay
+target — **also validates the FanDAC compile-only target**. The
+`compile_mode=full` lane invokes `esphome` against **every**
+[`config/compile-only-targets.json`](../config/compile-only-targets.json)
+target via `scripts/validate_compile_targets.py --compile`
+([`.github/workflows/compile-only.yml`](../.github/workflows/compile-only.yml)
+lines 100-153); `run_compile()` returns non-zero if **any** target
+fails, so a `success` conclusion proves **all nine** targets compiled —
+FanDAC included. No separate FanDAC-only run was needed.
+
+- **Workflow.** `Compile-only Firmware Validation`
+  ([`.github/workflows/compile-only.yml`](../.github/workflows/compile-only.yml))
+- **Run ID.** `26364679370`
+- **Event.** `workflow_dispatch`
+- **Mode.** `compile_mode=full`
+- **Status.** `completed`
+- **Conclusion.** `success`
+- **Jobs.** `Compile-only Targets — Metadata Validation` (job
+  `77606314361`, conclusion `success`) → `Compile-only Targets — Full
+  ESPHome Compile` (job `77606324332`, conclusion `success`; the
+  "Run compile-only validator (full compile)" step completed
+  successfully after ~26m of `esphome compile` work).
+- **Target count.** **9** compile-only targets.
+- **FanDAC target included.** The 9th target
+  `ceiling-poe-fandac-compile-only` →
+  [`products/compile-only/ceiling-poe-fandac.yaml`](../products/compile-only/ceiling-poe-fandac.yaml)
+  (`config_string: Ceiling-POE-FanDAC`) was present in
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+  at the ref the run validated and the YAML existed on disk there.
+- **Ref.** post-#578 `main` (merge commit `4906a22`) — the same ref
+  `FW-COMPILE-RELAY-FULL-RESULT-001` recorded.
+
+#### How FanDAC inclusion is proven
+
+The run was triggered against merge commit `4906a22` (post-#578 `main`).
+At that commit, [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+declared exactly **9** targets (`totals.targets: 9`), the ninth being
+`ceiling-poe-fandac-compile-only` pointing at
+`products/compile-only/ceiling-poe-fandac.yaml`, and that YAML existed.
+The `--compile` validator iterates over every target and fails the job
+on the first non-zero `esphome compile`, so the job's `success`
+conclusion means **each** of the nine — FanDAC among them — compiled
+under the pinned ESPHome `2026.4.5`. FanDAC inclusion is therefore proven
+from the target manifest at the validated ref combined with the
+all-or-nothing semantics of the full-compile job, not inferred.
+
+#### What this successful run proves
+
+A passing `compile_mode=full` run proves the FanDAC compile-only target
+passes a real `esphome` compile: YAML parse, substitution resolution
+(including the corrected GP8403 `voltage: 10V` enum), `packages:` /
+`!include` composition of the two GP8403 dual-channel DACs on the shared
+`core_i2c` bus, component / config-schema validation, and the codegen
+pass. The **GP8403 voltage-enum fix** (Option A, `0-10V` → `10V`, from
+`FW-COMPILE-DAC-001` / PR #575) is now **compile-validated by ESPHome's
+own validator**, not only against the documented schema and the
+string-equality tests in `tests/test_fandac_package.py`. This supersedes
+the **full-compile** concern that `FW-COMPILE-DAC-RESULT-001`
+(2026-05-23) left owed: that entry recorded only the green
+**metadata** lane (the full-compile job was `skipped` on the PR head).
+
+#### What this successful run does **not** prove
+
+Compile success is necessary but **not sufficient** for any
+shipment-readiness claim. This run does **not** advance DAC product
+WebFlash exposure, release, or import, and is **not** a hardware, bench,
+schematic, compliance, or safety claim:
+
+- **`PRODUCT-DAC-001` has product YAML but stays no-WebFlash /
+  no-release.** The canonical product YAML
+  [`products/sense360-ceiling-poe-fandac.yaml`](../products/sense360-ceiling-poe-fandac.yaml)
+  (PR #577) and its `hardware-pending`
+  [`config/product-catalog.json`](../config/product-catalog.json) row
+  (`webflash_build_matrix: false`, no `artifact_name`, no
+  `webflash_wrapper`) are unchanged; no `products/webflash/` wrapper; no
+  [`config/webflash-builds.json`](../config/webflash-builds.json) row
+  (the `FanDAC` token is absent there).
+- `WEBFLASH-DAC-001`, `RELEASE-DAC-001`, and `WF-IMPORT-DAC-001` stay
+  **blocked**; WebFlash import / release readiness is **not** claimed.
+- The FanDAC compile-only target stays `shipment_status: compile-only` /
+  `webflash_exposure_allowed_now: false`. The
+  `compile_validation_status: pending-ci` marker in
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+  is now satisfied by this run; flipping that literal config flag is a
+  separate config-layer change outside this docs-only record's scope.
+- `S360-312` `schematic_status` stays `cataloged_unverified`; the `J2` /
+  `J3` → Cloudlift S12 harness conductor trace and the `J3` `out0` /
+  `out1` silkscreen-transposition caveat remain open; no compliance or
+  safety-certification claim is made. A single GP8403 still cannot drive
+  one output at 0-5V and the other at 0-10V (one `V5V` reference / one
+  range register per chip); this run claims no such thing.
+- The artefact produced by `--compile` is CI-only confidence and is
+  **not** a shippable build.
+
+This is a docs-only record. No `packages/**`, `products/**`,
+`products/webflash/**`, `config/**`, `scripts/**`,
+`.github/workflows/**`, `components/**`, `include/**`, `tests/**`,
+`firmware/**`, `manifest.json`, `firmware/sources.json`, release
+artifact, checksum, or build-info edit is made; FanDAC and FanRelay code
+is untouched; the WebFlash repository (`sense360store/WebFlash`) is
+untouched.
 
 ## See also
 
