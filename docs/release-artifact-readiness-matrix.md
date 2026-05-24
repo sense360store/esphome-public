@@ -1098,6 +1098,50 @@ continues) or `CORE-ABSTRACT-BUS-001B` (if PWM / DAC blocker
 removal is prioritised instead); **not** an immediate
 `RELEASE-RELAY-001` build / sign / attach pass.
 
+**2026-05-24 — `FW-COMPILE-RELAY-FULL-RESULT-001` (this PR; docs-only
+record of successful full-compile result) — note on release surface.**
+The manual `workflow_dispatch` `compile_mode=full` run of the
+`Compile-only Firmware Validation` lane owed by
+`FW-COMPILE-RELAY-FULL-FIX-001` / PR #578 ran against post-#578 `main`
+and **passed** — GitHub Actions Run ID `26364679370`, event
+`workflow_dispatch`, mode `compile_mode=full`, status `completed`,
+conclusion `success`, **9** compile-only targets; the
+`Compile-only Targets — Full ESPHome Compile` job (`77606324332`)
+completed `success`. **The previously failed full-compile run
+`26334334727` is superseded.** **The FanRelay target now full-compiles
+green, but `RELEASE-RELAY-001` remains blocked because no WebFlash
+wrapper / build matrix / artifact path exists.** No release-proof row is
+added by this PR. Re-verified against the live release surface: no
+FanRelay release artifact of any kind exists (**no
+`Sense360-Ceiling-*-FanRelay-*-v*.*-*.bin`** built / signed / attached /
+imported); no FanRelay row in
+[`config/webflash-builds.json`](../config/webflash-builds.json); no
+GitHub Release for any FanRelay tag; no SHA256 / MD5 checksum files; no
+build-info `manifest.json` asset; no release-proof row in
+[`webflash-release-proof.md`](webflash-release-proof.md) for any
+FanRelay artifact; the two existing `artifact_name` entries stay
+byte-identical; `release_one_required_configs` stays
+`["Ceiling-POE-VentIQ-RoomIQ"]`. A green full-compile CI result is
+**necessary-but-insufficient** input to the broader preview-to-stable
+promotion process; the atomic `RELEASE-RELAY-001` slice (build / sign /
+attach the `.bin`, release notes, SHA256 + MD5 checksums, build-info
+`manifest.json`, release-proof row, hand-off to `WF-IMPORT-RELAY-001`)
+remains **owed** because the upstream WebFlash wrapper / build matrix /
+artifact path does not yet exist. **No
+[`products/webflash/`](../products/webflash/), `config/**`,
+`.github/workflows/`, firmware / signing / sources / manifest /
+checksum, or `tests/**` edit; no `webflash_build_matrix` flip; no
+`artifact_name`; no `webflash_wrapper`; no `release_one_required_configs`
+change; no COMPLIANCE-001 movement; no `schematic_status` /
+`schematic_file` promotion** (`S360-310` stays `cataloged_unverified`).
+Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; LED
+preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays
+`blocked` / `HW-005`. **No claim of FanRelay release-readiness,
+stable-channel readiness, `RELEASE-RELAY-001` / `WEBFLASH-RELAY-001` /
+`WF-IMPORT-RELAY-001` unblock, board-level mains-safety certification,
+installation-approval, qualified-electrician sign-off, production-wide /
+multi-unit hardware characterisation, or WebFlash import readiness.**
+
 ## PWM / S360-311 release posture
 
 **Current state.** No non-legacy FanPWM product YAML under
