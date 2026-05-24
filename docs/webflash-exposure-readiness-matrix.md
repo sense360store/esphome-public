@@ -1207,6 +1207,47 @@ is `FW-COMPILE-DAC-FULL-001` (record the owed full compile) or
 `WEBFLASH-DAC-001-READINESS-REFRESH` (re-evaluate the WebFlash gate)
 before `WEBFLASH-DAC-001` itself.
 
+**2026-05-24 — `FW-COMPILE-DAC-FULL-RESULT-001` (this PR; docs-only
+record of successful full-compile result).** The manual
+`workflow_dispatch` `compile_mode=full` run `26364679370` — the same run
+`FW-COMPILE-RELAY-FULL-RESULT-001` / PR #579 recorded — ran against
+post-#578 `main` (merge commit `4906a22`) and **passed**, and it **also
+validates the FanDAC compile-only target**: event `workflow_dispatch`,
+mode `compile_mode=full`, status `completed`, conclusion `success`,
+**9** compile-only targets; the `Compile-only Targets — Full ESPHome
+Compile` job (`77606324332`) completed `success`. The full-compile lane
+runs `esphome compile` against every
+[`config/compile-only-targets.json`](../config/compile-only-targets.json)
+target and fails on the first failure, so `success` proves all nine —
+including `ceiling-poe-fandac-compile-only` →
+[`products/compile-only/ceiling-poe-fandac.yaml`](../products/compile-only/ceiling-poe-fandac.yaml)
+(`Ceiling-POE-FanDAC`) — compiled. **This supersedes the full-compile
+concern left owed by FW-COMPILE-DAC-RESULT-001 / PR #576** and
+compile-validates the GP8403 `voltage: 10V` enum fix in ESPHome itself.
+**FanDAC now full-compiles green, but WebFlash DAC exposure remains
+blocked.** A green full-compile CI result does **not** advance any
+WebFlash gate. Re-verified against the live files: no FanDAC WebFlash
+wrapper under [`products/webflash/`](../products/webflash/); no FanDAC
+row in [`config/webflash-builds.json`](../config/webflash-builds.json)
+(the `FanDAC` token is absent there); the
+[`config/product-catalog.json`](../config/product-catalog.json) FanDAC
+row (PRODUCT-DAC-001 / PR #577) stays `status: hardware-pending` /
+`webflash_build_matrix: false` / no `artifact_name` / no
+`webflash_wrapper`; `release_one_required_configs` stays
+`["Ceiling-POE-VentIQ-RoomIQ"]`; the `FanDAC ↔ AirIQ` mutex is not
+relaxed; `S360-312` stays `cataloged_unverified`. **No `packages/**`,
+`products/**`, `products/webflash/**`, `config/**`, `scripts/**`,
+`.github/workflows/**`, `components/**`, `include/**`, `tests/**`,
+`firmware/**`, `manifest.json`, `firmware/sources.json` edit; no
+`webflash_build_matrix` flip; no `artifact_name`; no `webflash_wrapper`;
+no `release_one_required_configs` change; no `schematic_status` /
+`schematic_file` promotion; no COMPLIANCE-001 movement.** **No WebFlash
+exposure / import-readiness claim; no `WEBFLASH-DAC-001` /
+`RELEASE-DAC-001` / `WF-IMPORT-DAC-001` unblock claim; no compliance or
+safety-certification claim; no simultaneous per-output 0-5V + 0-10V on a
+single GP8403 claim.** `WEBFLASH-DAC-001` stays blocked behind
+`PRODUCT-DAC-001`'s remaining WebFlash gates.
+
 **Allowed WebFlash action now.** `not-webflash-ready`. No wrapper,
 no build-matrix entry, no release artifact, no WebFlash import. A
 product-layer catalog row (`webflash_build_matrix: false`) now exists for
