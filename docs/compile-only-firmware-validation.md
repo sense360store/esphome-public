@@ -1197,6 +1197,12 @@ audit-log entry does not close any row in that gauntlet.
 
 ### 2026-05-24 — FW-COMPILE-RELAY-FULL-FIX-001 FanRelay GPIO3 double-bind fix
 
+> **Update — FW-COMPILE-RELAY-FULL-RESULT-001 (2026-05-24).** The manual
+> `workflow_dispatch` `compile_mode=full` rerun owed by this entry has now
+> **passed** — run `26364679370` (see the
+> `FW-COMPILE-RELAY-FULL-RESULT-001` entry below). The previously failed
+> run `26334334727` is superseded.
+
 This entry records the **fix** for the FanRelay full-compile failure.
 The `Compile-only Firmware Validation` full-compile lane run
 **`26334334727`** **failed** on the FanRelay target
@@ -1267,6 +1273,86 @@ stay blocked; the FanRelay compile-only target stays
 `advanced_manual_warning_only: true` / `hardware_pending: true`. No
 compliance / installation-approval / competent-person sign-off claim is
 made.
+
+### 2026-05-24 — FW-COMPILE-RELAY-FULL-RESULT-001 FanRelay full compile result after #578
+
+This entry records the **successful manual full-compile run** for the
+FanRelay target after `FW-COMPILE-RELAY-FULL-FIX-001` / PR #578 fixed the
+`GPIO3` double-bind. A `workflow_dispatch` run of the
+`Compile-only Firmware Validation` lane with `compile_mode=full` — the
+mode that actually invokes `esphome` against every
+[`config/compile-only-targets.json`](../config/compile-only-targets.json)
+target per
+[`.github/workflows/compile-only.yml`](../.github/workflows/compile-only.yml)
+line 103 — was triggered against the post-#578 `main` and **passed**.
+
+- **Workflow.** `Compile-only Firmware Validation`
+  ([`.github/workflows/compile-only.yml`](../.github/workflows/compile-only.yml))
+- **Run ID.** `26364679370`
+- **Event.** `workflow_dispatch`
+- **Mode.** `compile_mode=full`
+- **Status.** `completed`
+- **Conclusion.** `success`
+- **Jobs.** `Compile-only Targets — Metadata Validation` (job
+  `77606314361`, conclusion `success`) → `Compile-only Targets — Full
+  ESPHome Compile` (job `77606324332`, conclusion `success`; the
+  "Run compile-only validator (full compile)" step completed
+  successfully).
+- **Target count.** **9** compile-only targets — the FanRelay target
+  `ceiling-poe-ventiq-fanrelay-roomiq-compile-only` →
+  [`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml)
+  alongside the eight others.
+- **Ref.** post-#578 `main` (merge commit `4906a22`).
+
+**The previous full-compile run `26334334727` — which failed on the
+FanRelay target (`Ceiling-POE-VentIQ-FanRelay-RoomIQ`) with the `GPIO3`
+double-bind — is superseded by this successful run `26364679370`.** The
+FW-COMPILE-RELAY-FULL-FIX-001 shape-C fix (`fan_relay_switch` as a
+`switch.template` proxying the Core `main_relay`; single owner of the
+resolved relay pin; `relay_pin` unchanged at `GPIO3`) now composes and
+full-compiles green.
+
+#### What this successful run proves
+
+A passing `compile_mode=full` run proves that the FanRelay target — and
+all nine compile-only targets — pass a real `esphome` compile under the
+pinned ESPHome version: YAML parse, substitution resolution (including
+`${relay_pin}` → `GPIO3`), `packages:` / `!include` composition, the
+single-relay-owner GPIO binding, component / config schema validation,
+and the codegen pass. It confirms the `GPIO3` double-bind is gone at the
+full-compile layer, not just the metadata layer.
+
+#### What this successful run does **not** prove
+
+Compile success is necessary but **not sufficient** for any
+shipment-readiness claim. This run does **not** advance WebFlash
+exposure, release, or import for the Relay product, and is **not** a
+hardware, bench, compliance, installation-approval, or safety claim:
+
+- **Relay stays no-WebFlash / no-release.** No `products/webflash/`
+  wrapper; no
+  [`config/webflash-builds.json`](../config/webflash-builds.json) row;
+  no `webflash_build_matrix` flip; no `artifact_name`; no release
+  artifact / tag / checksum / build-info manifest.
+- `WEBFLASH-RELAY-001`, `RELEASE-RELAY-001`, and `WF-IMPORT-RELAY-001`
+  stay **blocked**; WebFlash import / release readiness is **not**
+  claimed.
+- The FanRelay compile-only target stays `shipment_status: compile-only`
+  / `webflash_exposure_allowed_now: false` /
+  `advanced_manual_warning_only: true` / `hardware_pending: true`.
+- `S360-310` `schematic_status` stays `cataloged_unverified`; no
+  COMPLIANCE-001 movement; no compliance / board-level mains-safety
+  certification, installation-approval, competent-person sign-off, or
+  production-wide / multi-unit hardware characterisation claim.
+- FanDAC is untouched; the artefact produced by `--compile` is CI-only
+  confidence and is **not** a shippable build.
+
+This is a docs-only record. No `packages/**`, `products/**`,
+`products/webflash/**`, `config/**`, `scripts/**`,
+`.github/workflows/**`, `components/**`, `include/**`, `tests/**`,
+`firmware/**`, `manifest.json`, `firmware/sources.json`, release
+artifact, checksum, or build-info edit is made; the WebFlash repository
+(`sense360store/WebFlash`) is untouched.
 
 ## See also
 

@@ -1000,6 +1000,49 @@ continues) or `CORE-ABSTRACT-BUS-001B` (if PWM / DAC blocker
 removal is prioritised instead); **not** immediate
 `WEBFLASH-RELAY-001` wrapper / catalog / build-matrix work.
 
+**2026-05-24 — `FW-COMPILE-RELAY-FULL-RESULT-001` (this PR; docs-only
+record of successful full-compile result).** The manual
+`workflow_dispatch` `compile_mode=full` run of the
+`Compile-only Firmware Validation` lane owed by
+`FW-COMPILE-RELAY-FULL-FIX-001` / PR #578 ran against post-#578 `main`
+and **passed** — GitHub Actions Run ID `26364679370`, event
+`workflow_dispatch`, mode `compile_mode=full`, status `completed`,
+conclusion `success`, **9** compile-only targets; the
+`Compile-only Targets — Full ESPHome Compile` job (`77606324332`)
+completed `success`. **The previously failed full-compile run
+`26334334727` is superseded.** **The FanRelay target now full-compiles
+green, but WebFlash Relay exposure remains blocked.** The seven WebFlash
+gates enumerated above under
+[Allowed WebFlash action now](#allowed-webflash-action-now-1) are **not**
+advanced by a green full-compile CI result; the four possible exposure
+shapes a future `WEBFLASH-RELAY-001` slice could take are unchanged.
+Re-verified against the live files: no FanRelay WebFlash wrapper under
+[`products/webflash/`](../products/webflash/); no FanRelay row in
+[`config/webflash-builds.json`](../config/webflash-builds.json);
+`release_one_required_configs` in
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+stays `["Ceiling-POE-VentIQ-RoomIQ"]`; the
+[`config/product-catalog.json`](../config/product-catalog.json) FanRelay
+row stays `status: hardware-pending` / `webflash_build_matrix: false` /
+no `artifact_name` / no `webflash_wrapper`. **No `packages/**`,
+`products/**`, `products/webflash/**`, `config/**`, `scripts/**`,
+`.github/workflows/**`, `components/**`, `include/**`, `tests/**`,
+`firmware/**`, `manifest.json`, `firmware/sources.json` edit; no
+`webflash_build_matrix` flip; no `artifact_name`; no `webflash_wrapper`;
+no `release_one_required_configs` change; no `schematic_status` /
+`schematic_file` promotion** (`S360-310` stays `cataloged_unverified`);
+**no COMPLIANCE-001 movement.** Release-One stays
+`Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; LED preview stays
+`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays `blocked` /
+`HW-005`. **No WebFlash import-readiness claim. No WebFlash exposure
+claim. No `RELEASE-RELAY-001` / `WEBFLASH-RELAY-001` /
+`WF-IMPORT-RELAY-001` unblock claim. No compliance / board-level
+mains-safety / installation-approval / qualified-electrician sign-off /
+production-wide / multi-unit hardware characterisation / hardware-stable
+claim.** A green full-compile CI result is **necessary-but-insufficient**
+input to the broader preview-to-stable promotion process; it does **not**
+discharge any of the seven WebFlash gates owned by `WEBFLASH-RELAY-001`.
+
 ## PWM / S360-311 WebFlash posture
 
 **Current state.** `S360-311 Sense360 PWM`,
