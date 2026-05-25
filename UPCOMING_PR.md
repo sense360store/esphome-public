@@ -24,6 +24,52 @@ mirrored here.
 
 ## Current queue summary
 
+- **PACKAGE-PWM-001-IMPLEMENT-001** delivers, via **this PR** on 2026-05-25,
+  the **package-layer** implementation of the canonical FanPWM package as
+  **PWM-drive-only** (operator decision D-T1 / `PACKAGE-PWM-TACH-STRATEGY-001`,
+  confirmed by `PWM-SX1509-TACH-PROOF-001`). It reconciles
+  [`packages/expansions/fan_pwm.yaml`](packages/expansions/fan_pwm.yaml) from
+  the legacy single-channel `ledc` + `pulse_counter` form into the
+  four-channel SX1509 PWM-drive form by **composing** the neutral binding
+  [`packages/expansions/fan_pwm_sx1509.yaml`](packages/expansions/fan_pwm_sx1509.yaml)
+  (`packages:` `!include`) and exposing **four independent**
+  `fan: platform: speed` controllers (`fan_pwm_1..4`) on the SX1509 PWM-drive
+  outputs `fan_pwm_drive_1..4` (channels 0..3). **SX1509 PWM-drive output is
+  supported and is the mechanism used** (`output: platform: sx1509`).
+  **RPM via an SX1509 tach `pulse_counter` is not implemented and not
+  claimed** — it is compile-proven unsupported (`PWM-SX1509-TACH-PROOF-001`:
+  `esphome config` rejects it with `[sx1509] is an invalid option for [pin]`),
+  so the package wires no `pulse_counter` and no RPM sensor; the four
+  `Pul_Cou1..4` lines stay as the binding's INTERNAL diagnostic binary GPIO
+  states (`fan_pwm_tach_1..4`), never labelled or surfaced as RPM. **`TachIO`
+  / `GPIO16` stays reserved/pending** (no `TachIO` sensor, no aggregate-RPM
+  claim). New [`tests/test_fan_pwm_package.py`](tests/test_fan_pwm_package.py)
+  pins: four independent PWM-drive channels; reuse-not-duplicate of the
+  binding; no `pulse_counter`; no RPM; `TachIO`/`GPIO16` reserved; no direct
+  ESP32 mapping; no product / WebFlash surface; FanRelay + FanDAC unchanged.
+  **Package layer only — nothing else moves:** no `products/**`,
+  `products/webflash/**`, `config/**` (no `webflash_build_matrix` flip, no
+  `artifact_name`, no `config/webflash-builds.json` row, no compile-only
+  target), `.github/workflows/**`, `components/**`, `include/**`,
+  `firmware/**`, `manifest.json`, `firmware/sources.json`, release artifact, or
+  WebFlash-repo edit; `sense360_fan_pwm.yaml`, `gpio_expander_sx1509.yaml`, and
+  all Core abstract packages are unedited; `S360-311` `schematic_status` stays
+  `cataloged_unverified`; no PWM product / WebFlash / import / release /
+  compliance / hardware-stable / product-readiness / RPM-support claim. **Does
+  NOT make any FanPWM product ready** — remaining gates: bench **PWM
+  polarity**; per-fan / aggregate **current/thermal envelope**; **product
+  YAML**; **compile-only target/result**; **WebFlash/release/import/
+  compliance**; and the **optional future RPM strategy**
+  (`COMPONENT-SX1509-TACH-001` or a bench-confirmed `TachIO` follow-up). Next
+  is the product slice `PRODUCT-PWM-001`. FanRelay and FanDAC are unchanged;
+  Release-One, the LED preview, and FanTRIAC (`blocked` / `HW-005`) are
+  untouched. Docs updated:
+  [`s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md) (audit-log row +
+  Next-PR designation + blocker-table row 7),
+  [`package-readiness-matrix.md`](docs/hardware/package-readiness-matrix.md),
+  [`product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+  [`repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md),
+  and this file.
 - **PWM-BLOCKER-REMOVAL-001** delivers, via **this PR** on 2026-05-25,
   the **audit / docs-only** S360-311 / FanPWM blocker sweep named as the
   next hardware blocker by `REPO-FRESHNESS-ROADMAP-AUDIT-001` / PR #582.

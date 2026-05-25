@@ -825,9 +825,14 @@ named follow-up.
 
 ### `fan_pwm.yaml` / S360-311
 
-- **Status.** `needs-package-reconciliation` + `bench-evidence-pending`.
-- **What is wrong.** [`fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml)
-  binds a single `${fan_pwm_pin}` to a direct ESP32 GPIO (resolved
+- **Status.** `package-layer-implemented (PWM-drive-only)` +
+  `bench-evidence-pending`. The package-YAML reconciliation landed via
+  `PACKAGE-PWM-001-IMPLEMENT-001` (2026-05-25, PWM-drive-only scope); product
+  / WebFlash / release readiness remains blocked (see the
+  `PACKAGE-PWM-001-IMPLEMENT-001 addendum` below).
+- **What was wrong (pre-`PACKAGE-PWM-001-IMPLEMENT-001`).**
+  [`fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml)
+  bound a single `${fan_pwm_pin}` to a direct ESP32 GPIO (resolved
   through the Core abstract package to `GPIO5` on the ceiling
   Core), but the module-side schematic carries four 4-pin fan
   output connectors (`J1` / `J2` / `J4` / `J5`) routed via the
@@ -888,7 +893,41 @@ named follow-up.
     `J3` / `J6` 1-to-13 silkscreen pin order; PWM polarity / tach
     pull-up / pulses-per-revolution; UART-on-`J3`-pins-11/12; per-fan
     current + thermal envelope. `PACKAGE-PWM-001-IMPLEMENT-001` stays
-    **NOT READY**.
+    **NOT READY** *(superseded at the package layer by the addendum
+    below — the PWM-drive-only package has since landed)*.
+- **PACKAGE-PWM-001-IMPLEMENT-001 addendum (2026-05-25).** The canonical
+  FanPWM package has been **implemented at the package layer for the
+  PWM-drive-only scope** (operator decision D-T1 / `PACKAGE-PWM-TACH-STRATEGY-001`,
+  confirmed by `PWM-SX1509-TACH-PROOF-001`).
+  [`fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml) is **rewritten**
+  to compose the neutral binding
+  [`fan_pwm_sx1509.yaml`](../../packages/expansions/fan_pwm_sx1509.yaml)
+  (`packages:` `!include`) and expose **four independent** `fan: platform:
+  speed` controllers (`fan_pwm_1..4`) on the SX1509 PWM-drive outputs
+  `fan_pwm_drive_1..4` (channels 0..3), pinned by
+  [`tests/test_fan_pwm_package.py`](../../tests/test_fan_pwm_package.py).
+  - **SX1509 PWM-drive output is supported and is the mechanism used**
+    (`output: platform: sx1509`, the on-chip LED-driver PWM engine). The
+    package does not re-declare the SX1509 channel map — it reuses the
+    binding.
+  - **No RPM is implemented or claimed.** Per-fan RPM via an SX1509
+    `pulse_counter` is compile-proven unsupported (`PWM-SX1509-TACH-PROOF-001`:
+    `esphome config` rejects it with `[sx1509] is an invalid option for
+    [pin]`), so the package wires no `pulse_counter` and no RPM sensor. The
+    four `Pul_Cou1..4` lines stay as the binding's INTERNAL diagnostic binary
+    GPIO states (`fan_pwm_tach_1..4`) — diagnostic only, never labelled or
+    surfaced as RPM.
+  - **`TachIO` / `GPIO16` stays reserved/pending** — no `TachIO` sensor and
+    no aggregate-RPM claim in the package.
+  - **No direct ESP32 mapping** is reintroduced for `TachPMW1..4` /
+    `Pul_Cou1..4` (no `ledc`, no raw GPIO in the package).
+  - **Remaining gates before any FanPWM product surface:** bench **PWM
+    polarity**; per-fan / aggregate **current + thermal envelope**; **product
+    YAML**; **compile-only target / result**; **WebFlash / release / import /
+    compliance**; and the **optional future RPM strategy**
+    (`COMPONENT-SX1509-TACH-001` or a bench-confirmed `TachIO` follow-up). No
+    product / WebFlash / release / config / firmware surface is advanced here;
+    FanRelay and FanDAC are unchanged.
 
 ### `fan_gp8403.yaml` / S360-312
 

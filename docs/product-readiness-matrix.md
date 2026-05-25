@@ -937,6 +937,34 @@ named follow-up.
   unsupported by ESPHome validation", not "unsupported online". No PWM
   product / WebFlash / import / release / RPM-support / compliance
   readiness is claimed.
+- **PACKAGE-PWM-001-IMPLEMENT-001 addendum (2026-05-25).** **No product YAML
+  is added and the product-layer status is unchanged** — this is a
+  **package-layer** slice. The canonical FanPWM package
+  [`fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml) is implemented for the
+  **PWM-drive-only** scope: it composes the neutral binding
+  [`fan_pwm_sx1509.yaml`](../packages/expansions/fan_pwm_sx1509.yaml) and
+  exposes **four independent** `fan: platform: speed` controllers
+  (`fan_pwm_1..4`) on the SX1509 PWM-drive outputs `fan_pwm_drive_1..4`
+  (channels 0..3), pinned by
+  [`tests/test_fan_pwm_package.py`](../tests/test_fan_pwm_package.py).
+  **SX1509 PWM-drive output is supported and is the mechanism used**
+  (`output: platform: sx1509`). **RPM via an SX1509 tach `pulse_counter` is
+  not implemented and not claimed** — it is compile-proven unsupported
+  (`PWM-SX1509-TACH-PROOF-001`: `esphome config` rejects it with `[sx1509] is
+  an invalid option for [pin]`); the package wires no `pulse_counter` and no
+  RPM sensor, and the `Pul_Cou1..4` lines stay as the binding's internal
+  diagnostic binary states (never RPM). **`TachIO` / `GPIO16` stays
+  reserved/pending.** This does **not** unblock `PRODUCT-PWM-001`: the FanPWM
+  product / WebFlash / import / release / compliance surface stays blocked
+  behind the remaining gates — bench **PWM polarity**, per-fan / aggregate
+  **current + thermal envelope**, **product YAML**, **compile-only target /
+  result**, **WebFlash / release / import / compliance**, and the **optional
+  future RPM strategy** (`COMPONENT-SX1509-TACH-001` or a bench-confirmed
+  `TachIO` follow-up). No product / WebFlash / import / release / RPM-support /
+  compliance / product-readiness claim is made; the legacy
+  [`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml) stays
+  `legacy-compatible` and is **not** promoted; FanRelay and FanDAC are
+  unchanged.
 
 ### FanDAC / S360-312
 
