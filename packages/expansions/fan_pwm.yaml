@@ -1,212 +1,118 @@
 # ============================================================================
-# SENSE360 FAN EXPANSION MODULE - PWM VERSION
+# SENSE360 FANPWM PACKAGE — PWM-DRIVE-ONLY (PACKAGE-PWM-001-IMPLEMENT-001)
 # ============================================================================
-# Variable-speed fan control module with feedback:
-# - PWM Output: GPIO5 (expansion_gpio1), 25kHz frequency, 0-100% duty cycle
-# - Tachometer Input: GPIO6 (expansion_gpio2) for RPM monitoring
+# Canonical FanPWM hardware package for the S360-311 12 V PWM fan driver.
+# This implements the PWM-drive-only initial scope: four independent SX1509
+# PWM-drive fan-speed controllers, no per-fan RPM.
 #
-# This file provides the base hardware setup. User-facing entities are defined
-# in the feature profile files.
+# Decision lineage:
+#   * PR #586 (PWM-BLOCKER-REMOVAL-001) — operator decisions D1 (FanPWM is
+#     four-channel) / D2 (SX1509 routing: TachPMW1..4 -> channels 0..3,
+#     Pul_Cou1..4 -> channels 4..7, TachIO direct on ESP32 IO16) / D3
+#     (committed JST-SH schematic is current R4).
+#   * PR #587 (CORE-ABSTRACT-BUS-SX1509-001) — added the neutral binding-only
+#     SX1509 layer packages/expansions/fan_pwm_sx1509.yaml that this package
+#     composes.
+#   * PR #588 (PACKAGE-PWM-TACH-STRATEGY-001, operator decision D-T1) — scoped
+#     the first FanPWM package PWM-drive-only: four PWM outputs, no per-fan RPM
+#     sensors, optional diagnostic binary tach only, TachIO/GPIO16
+#     reserved/pending.
+#   * PR #589 (PWM-SX1509-TACH-PROOF-001) — compile/config proof confirming
+#     SX1509 PWM-drive output is supported and that an SX1509 pin cannot back
+#     an ESPHome pulse_counter RPM input.
 #
-# Expansion Bus Connection:
-#   Pin 8 (GPIO5) → GPIO5 (PWM Output)
-#   Pin 9 (GPIO6) → GPIO6 (Tachometer Input)
-#   Pin 3 (5V) → Power (for external fan)
-#   Pin 1 (GND) → Ground
+# Scope (PWM-drive-only):
+#   * Four INDEPENDENT PWM fan-speed controllers, one per SX1509 PWM-drive
+#     channel exposed by packages/expansions/fan_pwm_sx1509.yaml:
+#       fan channel 1 -> output fan_pwm_drive_1 (SX1509 channel 0, TachPMW1)
+#       fan channel 2 -> output fan_pwm_drive_2 (SX1509 channel 1, TachPMW2)
+#       fan channel 3 -> output fan_pwm_drive_3 (SX1509 channel 2, TachPMW3)
+#       fan channel 4 -> output fan_pwm_drive_4 (SX1509 channel 3, TachPMW4)
+#   * NO per-fan RPM sensors and NO RPM claim of any kind.
+#   * NO ESPHome pulse_counter (see capability note below).
+#   * The four Pul_Cou1..4 tach lines stay as the polled, INTERNAL diagnostic
+#     binary GPIO states declared by fan_pwm_sx1509.yaml (fan_pwm_tach_1..4).
+#     They are diagnostic level states only — NOT RPM, and are never labelled
+#     or surfaced as RPM by this package.
+#   * TachIO / GPIO16 is RESERVED / PENDING: this package binds no TachIO
+#     sensor and makes no aggregate-RPM claim.
 #
-# Power Requirements: 5V / 1A max (for external fan)
-# Note: Fan power typically supplied externally, not from expansion bus
+# Composition (DO NOT duplicate the SX1509 channel definitions):
+#   This package COMPOSES packages/expansions/fan_pwm_sx1509.yaml — the
+#   neutral, binding-only Core abstract-bus layer (CORE-ABSTRACT-BUS-SX1509-001).
+#   That binding owns the SX1509 hub, the four PWM-drive outputs
+#   (fan_pwm_drive_1..4 -> channels 0..3), the four diagnostic tach binary
+#   inputs (fan_pwm_tach_1..4 -> channels 4..7), and the tach_io_pin: GPIO16
+#   substitution. This package adds ONLY the four user-facing fan-speed
+#   controllers on top of those neutral output IDs; it declares no SX1509
+#   channels, no `ledc`/direct-ESP32 PWM, and no direct ESP32 mapping for
+#   TachPMW1..4 / Pul_Cou1..4.
+#
+# ESPHome capability note (compile-proven — PWM-SX1509-TACH-PROOF-001):
+#   SX1509 PWM-drive output IS supported and is the basis of this package
+#   (`output: platform: sx1509`, the SX1509 on-chip LED-driver PWM engine).
+#   Only per-fan RPM via an SX1509 pin used as an ESPHome `pulse_counter` is
+#   compile-proven unsupported: `esphome config` rejects it with
+#   `[sx1509] is an invalid option for [pin]` (ESPHome 2026.5.1). Per-fan RPM
+#   therefore stays future work (COMPONENT-SX1509-TACH-001 or a bench-confirmed
+#   TachIO follow-up); no RPM is implemented or claimed here. See
+#   packages/expansions/fan_pwm_sx1509.yaml and
+#   tests/test_sx1509_tach_pulse_counter_proof.py for the proof.
+#
+# Readiness: this is a PACKAGE-layer artifact only. It does NOT make any
+# FanPWM product, WebFlash build, release artifact, import, or compliance
+# posture ready. Remaining gates (bench PWM polarity; per-fan / aggregate
+# current and thermal envelope; product YAML; compile-only target / result;
+# WebFlash / release / import / compliance; optional future RPM strategy) are
+# tracked in docs/hardware/s360-311-r4-pwm.md.
+#
+# Requires a parent Core package that provides the shared `core_i2c` I2C bus
+# (CORE-ABSTRACT-BUS-001B) and a `${friendly_name}` substitution.
+#
+# NOT compatible with the other fan-driver variants (FanRelay / FanDAC /
+# FanTRIAC) — fan-driver variants are firmware-distinct.
 # ============================================================================
 
 substitutions:
-  # GPIO Configuration
-  # IMPORTANT: fan_pwm_pin and fan_tach_pin MUST be provided by the parent board file
-  # Examples from Sense360 Core Ceiling:
-  # - fan_pwm_pin: ${expansion_gpio1}  (GPIO5)
-  # - fan_tach_pin: ${expansion_gpio2} (GPIO6)
-  #
-  # These pins are NOT defined here to prevent overriding parent board values.
-  # If not provided by parent board, the configuration will fail with "undefined substitution" error.
+  # Number of discrete speed steps presented per fan (1..100).
+  fan_pwm_speed_count: "100"
 
-  # PWM Configuration
-  fan_pwm_frequency: "25000"  # 25kHz (standard PC fan PWM)
+# Neutral SX1509 binding layer (CORE-ABSTRACT-BUS-SX1509-001). Owns the SX1509
+# hub, the four PWM-drive outputs (fan_pwm_drive_1..4 -> channels 0..3), the
+# four diagnostic tach binary inputs (fan_pwm_tach_1..4 -> channels 4..7), and
+# the tach_io_pin: GPIO16 substitution. Composed here so the SX1509 channel map
+# is defined in exactly one place (this package never re-declares it).
+packages:
+  fan_pwm_sx1509_binding: !include fan_pwm_sx1509.yaml
 
-  # Fan settings
-  fan_min_speed: "10"    # Minimum speed percentage (for quiet mode)
-  fan_max_speed: "100"   # Maximum speed percentage
-  fan_default_speed: "50"
-
-# ============================================================================
-# PWM Output Configuration
-# ============================================================================
-output:
-  - platform: ledc
-    id: fan_pwm_output
-    pin: ${fan_pwm_pin}
-    frequency: ${fan_pwm_frequency}Hz
-
-# ============================================================================
-# Fan Component
-# ============================================================================
+# Four independent PWM fan-speed controllers, one per SX1509 PWM-drive output.
+# Speed control only — no RPM feedback is wired (per-fan RPM via an SX1509
+# pulse_counter is compile-proven unsupported; see the capability note above).
 fan:
   - platform: speed
-    id: fan_controller
-    name: "${friendly_name} Fan"
-    output: fan_pwm_output
-    speed_count: 100
+    id: fan_pwm_1
+    name: "${friendly_name} Fan 1"
+    output: fan_pwm_drive_1
+    speed_count: ${fan_pwm_speed_count}
     restore_mode: RESTORE_DEFAULT_OFF
 
-# ============================================================================
-# Tachometer Input (RPM Monitoring)
-# ============================================================================
-sensor:
-  # RPM calculation via pulse counter
-  - platform: pulse_counter
-    id: fan_tach_sensor
-    pin:
-      number: ${fan_tach_pin}
-      mode:
-        input: true
-        pullup: true
-    name: "${friendly_name} Fan RPM"
-    internal: true
-    unit_of_measurement: "RPM"
-    accuracy_decimals: 0
-    update_interval: 2s
-    filters:
-      # Standard fans output 2 pulses per revolution
-      - multiply: 0.5
-      # Convert from pulses/min to RPM (pulse_counter gives pulses/min)
-      - lambda: return x * 60.0f;
+  - platform: speed
+    id: fan_pwm_2
+    name: "${friendly_name} Fan 2"
+    output: fan_pwm_drive_2
+    speed_count: ${fan_pwm_speed_count}
+    restore_mode: RESTORE_DEFAULT_OFF
 
-  # Fan speed percentage (for UI)
-  - platform: template
-    id: fan_speed_percent
-    name: "${friendly_name} Fan Speed"
-    internal: true
-    unit_of_measurement: "%"
-    accuracy_decimals: 0
-    update_interval: 1s
-    lambda: |-
-      if (id(fan_controller).state) {
-        return id(fan_controller).speed;
-      }
-      return 0.0f;
+  - platform: speed
+    id: fan_pwm_3
+    name: "${friendly_name} Fan 3"
+    output: fan_pwm_drive_3
+    speed_count: ${fan_pwm_speed_count}
+    restore_mode: RESTORE_DEFAULT_OFF
 
-# ============================================================================
-# Globals for Fan Control
-# ============================================================================
-globals:
-  # Target speed (0-100)
-  - id: fan_target_speed
-    type: int
-    restore_value: true
-    initial_value: '${fan_default_speed}'
-
-  # Stall detection flag
-  - id: fan_stall_detected
-    type: bool
-    restore_value: false
-    initial_value: 'false'
-
-  # Quiet mode enabled
-  - id: fan_quiet_mode
-    type: bool
-    restore_value: true
-    initial_value: 'false'
-
-  # Auto mode enabled (based on temperature/humidity)
-  - id: fan_auto_mode
-    type: bool
-    restore_value: true
-    initial_value: 'false'
-
-# ============================================================================
-# Binary Sensor for Stall Detection
-# ============================================================================
-binary_sensor:
-  - platform: template
-    id: fan_stall_alarm
-    name: "${friendly_name} Fan Stall"
-    internal: true
-    device_class: problem
-    lambda: |-
-      return id(fan_stall_detected);
-
-# ============================================================================
-# Interval for Fan Monitoring
-# ============================================================================
-interval:
-  - interval: 5s
-    then:
-      - lambda: |-
-          // Stall detection logic
-          // If fan is running at >20% but RPM is 0, it might be stalled
-          if (id(fan_controller).state && id(fan_controller).speed > 20) {
-            float rpm = id(fan_tach_sensor).state;
-            if (!std::isnan(rpm) && rpm < 100.0f) {
-              // Fan should be spinning but isn't
-              id(fan_stall_detected) = true;
-              ESP_LOGW("fan", "Fan stall detected! Speed set to %.0f%% but RPM is %.0f",
-                       id(fan_controller).speed, rpm);
-            } else {
-              id(fan_stall_detected) = false;
-            }
-          } else {
-            id(fan_stall_detected) = false;
-          }
-
-          // Apply quiet mode (cap maximum speed)
-          if (id(fan_quiet_mode) && id(fan_controller).state) {
-            if (id(fan_controller).speed > 50) {
-              // In quiet mode, limit to 50%
-              auto call = id(fan_controller).turn_on();
-              call.set_speed(50);
-              call.perform();
-            }
-          }
-
-# ============================================================================
-# Scripts for Fan Control
-# ============================================================================
-script:
-  # Set fan to specific speed
-  - id: fan_set_speed
-    mode: single
-    parameters:
-      speed: int
-    then:
-      - lambda: |-
-          int target = speed;
-          if (target < 0) target = 0;
-          if (target > 100) target = 100;
-
-          // Apply minimum speed when on
-          if (target > 0 && target < ${fan_min_speed}) {
-            target = ${fan_min_speed};
-          }
-
-          // Apply quiet mode limit
-          if (id(fan_quiet_mode) && target > 50) {
-            target = 50;
-          }
-
-          id(fan_target_speed) = target;
-
-          if (target == 0) {
-            auto call = id(fan_controller).turn_off();
-            call.perform();
-          } else {
-            auto call = id(fan_controller).turn_on();
-            call.set_speed(target);
-            call.perform();
-          }
-
-  # Emergency stop
-  - id: fan_emergency_stop
-    mode: single
-    then:
-      - fan.turn_off: fan_controller
-      - lambda: |-
-          id(fan_target_speed) = 0;
-          ESP_LOGW("fan", "Emergency stop activated");
+  - platform: speed
+    id: fan_pwm_4
+    name: "${friendly_name} Fan 4"
+    output: fan_pwm_drive_4
+    speed_count: ${fan_pwm_speed_count}
+    restore_mode: RESTORE_DEFAULT_OFF
