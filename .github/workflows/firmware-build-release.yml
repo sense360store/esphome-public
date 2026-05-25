@@ -55,9 +55,14 @@ concurrency:
   group: firmware-release-${{ github.ref }}
   cancel-in-progress: false
 
-# Required permissions for release asset uploads
+# SECURITY-AUDIT-FIX-001: least-privilege top-level token scope. Only the
+# `release` job uploads release assets, and it requests `contents: write`
+# at the job level (see below). The matrix-generation, build, and summary
+# jobs only read the repo and exchange CI artifacts (via the artifact
+# service, which does not use the `contents` scope), so the workflow-level
+# default is pinned to read-only.
 permissions:
-  contents: write
+  contents: read
 
 env:
   ESPHOME_VERSION: "2026.4.5"
@@ -590,6 +595,11 @@ jobs:
     needs: [generate-matrix, build]
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
+    # SECURITY-AUDIT-FIX-001: this is the only job that needs write. It
+    # attaches firmware binaries + checksums + manifest to the GitHub
+    # Release via softprops/action-gh-release, which requires
+    # `contents: write`. Scoped to this job so the rest of the workflow
+    # stays read-only.
     permissions:
       contents: write
     steps:
