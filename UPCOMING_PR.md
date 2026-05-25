@@ -73,8 +73,19 @@ mirrored here.
   not-yet-applied silkscreen task (so row 2's rev-stamp residual is now
   explained, not unknown); and `C02` (Core fan connector → XH2.54, Done)
   vs the module's JST-SH connectors adds a connector-type/pitch
-  reconciliation sub-item to row 3. No row moves to CLOSED on this pass;
-  see [§Project-tracker corroboration](docs/hardware/s360-311-r4-pwm.md#project-tracker-corroboration-drive-sense360_r4_tracker-evidence-pass-2).
+  reconciliation sub-item to row 3. **Operator decisions captured this
+  pass** (see [§Operator decisions](docs/hardware/s360-311-r4-pwm.md#operator-decisions-pwm-blocker-removal-001-2026-05-25)):
+  **D1** canonical FanPWM is **four-channel**; **D2** PWM/tach route via
+  the **SX1509** (`TachPMW1..4`→ch0..3, `Pul_Cou1..4`→ch4..7, `TachIO`
+  direct `IO16`); **D3** the committed JST-SH schematic **is** the
+  current R4 (Core↔module harness adapts XH2.54↔JST-SH). These resolve
+  the design-intent gates on rows 4/7 and the connector-identity
+  sub-item on row 3 and set the explicit next prerequisite — a
+  `CORE-ABSTRACT-BUS-001` / SX1509 four-channel binding follow-up
+  (operator: record, do not fabricate). No row moves to CLOSED on this
+  pass (the resolved items are design decisions, not bench evidence);
+  rows 3/4/7 stay blocking on implementation + bench.
+  `PACKAGE-PWM-001-IMPLEMENT-001` stays **NOT READY**.
 - **SECURITY-AUDIT-FIX-001** closes, via **this PR** on 2026-05-25, the
   workflow-permissions hardening follow-up found by
   `REPO-FRESHNESS-ROADMAP-AUDIT-001` / PR #582 (security §5/§7 of
