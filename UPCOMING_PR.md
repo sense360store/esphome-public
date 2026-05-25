@@ -66,7 +66,15 @@ mirrored here.
   `manifest.json`, `firmware/sources.json`, or WebFlash-repo edit; no
   WebFlash / import / release / compliance / hardware-readiness claim.
   Release-One, the LED preview, and FanTRIAC (`blocked` / `HW-005`) are
-  untouched.
+  untouched. **Evidence-pass 2 (2026-05-25):** the Drive project tracker
+  `Sense360_R4_Tracker` (owner `neilmcrae@googlemail.com`) was inspected
+  and recorded for provenance — `R07` confirms the `S360-311 R4` rename
+  (Done); `G01`/`N01` explain the blank `REV` as a fleet-wide,
+  not-yet-applied silkscreen task (so row 2's rev-stamp residual is now
+  explained, not unknown); and `C02` (Core fan connector → XH2.54, Done)
+  vs the module's JST-SH connectors adds a connector-type/pitch
+  reconciliation sub-item to row 3. No row moves to CLOSED on this pass;
+  see [§Project-tracker corroboration](docs/hardware/s360-311-r4-pwm.md#project-tracker-corroboration-drive-sense360_r4_tracker-evidence-pass-2).
 - **SECURITY-AUDIT-FIX-001** closes, via **this PR** on 2026-05-25, the
   workflow-permissions hardening follow-up found by
   `REPO-FRESHNESS-ROADMAP-AUDIT-001` / PR #582 (security §5/§7 of
