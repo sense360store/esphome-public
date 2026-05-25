@@ -1556,16 +1556,18 @@ class FanPWMCompileOnlyCoverageTests(unittest.TestCase):
                 f"on any active line. Line: {line!r}",
             )
 
-    def test_fanpwm_compile_validation_pending_until_ci(self):
-        """Conservative status: compile result pending until CI proves it."""
+    def test_fanpwm_compile_validated_by_full_compile_run(self):
+        """The target must record the full compile passed (run 26414398902)."""
         self.assertIsNotNone(self.target)
         self.assertEqual(
             self.target.get("compile_validation_status"),
-            "pending-ci",
+            "validated-full-compile",
             "FanPWM compile-only target must record "
-            "compile_validation_status: pending-ci — FW-COMPILE-PWM-001 does "
-            "not claim a successful full compile until CI runs "
-            "scripts/validate_compile_targets.py --compile against the YAML",
+            "compile_validation_status: validated-full-compile — the "
+            "Compile-only Firmware Validation run 26414398902 "
+            "(compile_mode=full, 10 targets, conclusion success) ran "
+            "scripts/validate_compile_targets.py --compile against this YAML "
+            "and passed, superseding the prior pending-ci marker",
         )
 
     def test_release_one_and_led_targets_unchanged(self):
