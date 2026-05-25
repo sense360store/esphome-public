@@ -134,7 +134,7 @@ as the next hardware blocker now that Relay (#579) and DAC (#580/#581) full-comp
 |---|---|---|---|
 | Relay / FanRelay (S360-310) | COVERED | product-readiness-matrix §FanRelay | DONE: pkg #562, product YAML #564, full compile #579. WebFlash/release blocked (by design). |
 | FanDAC / 0-10V / Cloudlift S12 (S360-312) | COVERED | product-readiness-matrix §FanDAC | DONE: pkg #573, product YAML #577, full compile #580, flag `validated-full-compile` #581. |
-| PWM / FanPWM (S360-311) | COVERED | product-readiness-matrix §FanPWM | **OPEN — next blocker** (package reconciliation + bench evidence). |
+| PWM / FanPWM (S360-311) | COVERED | product-readiness-matrix §FanPWM; [`s360-311-r4-pwm.md` blocker table](hardware/s360-311-r4-pwm.md#pwm-blocker-removal-001-readiness--blocker-table) | **OPEN — gate narrowed** by `PWM-BLOCKER-REMOVAL-001` (2026-05-25): hardware-evidence / controlled-load / BOM-part-identity / no-mains-compliance rows CLOSED; `core_i2c` blocker lifted (`001B`). Remaining `PACKAGE-PWM-001` gate is operator + bench (single-vs-four-channel; SX1509-vs-direct-ESP32 routing; `J3`/`J6` silkscreen; PWM polarity / tach / pulses-per-rev; current envelope). `PACKAGE-PWM-001-IMPLEMENT-001` NOT READY. |
 | TRIAC / FanTRIAC (S360-320) | COVERED | product-readiness-matrix §FanTRIAC | OPEN/blocked (HW-005, COMPLIANCE-001). |
 | AirIQ | COVERED | catalog + matrices | Mutex with VentIQ/FanDAC documented. |
 | RoomIQ | COVERED | catalog (production) | Release-One stable. |
@@ -199,7 +199,8 @@ No **SECURITY-BLOCKING** items were found in the inspected surface. Hardening it
 | **`SECURITY-AUDIT-FIX-001`** | **YES** — hardening items found | Add least-privilege `permissions: contents: read` to `validate.yml` / `compile-only.yml` / `ci-validate-configs.yml`; consider SHA-pinning `softprops/action-gh-release`. | `.github/workflows/**` do-not-edit. |
 | **`CI-GATE-HARDENING-001`** | optional | Run generated-matrix sync tests + full `unittest discover` on PR; consider an opt-in PR full-compile gate. | `.github/workflows/**` do-not-edit. |
 | **`ROADMAP-COVERAGE-001`** | optional / low | Add explicit SX1509 + SEN0609 roadmap/constraint rows (doc-only). | Cosmetic; no material gap. |
-| **`PWM-BLOCKER-REMOVAL-001`** | **YES** — Relay/DAC clean | PWM (S360-311) is the next hardware blocker; advance the FanPWM package reconciliation + compile-only/full-compile slice. | New hardware/package work; not an audit edit. |
+| **`PWM-BLOCKER-REMOVAL-001`** | **DONE** (2026-05-25) | Audited the S360-311 / FanPWM lane against repo + Drive evidence; recorded the Drive `12vFan_PWM_PulseCounter` artifact set (BOM / gerbers / CPL / STEP / renders) with provenance; cross-checked the BOM against the committed `S360-311-R4` schematic 1:1; produced the [blocker table](hardware/s360-311-r4-pwm.md#pwm-blocker-removal-001-readiness--blocker-table) (rows 1/2/5/11 CLOSED, row 6 PARTIAL, rows 3/4/7/8/9/10 still blocking) in `s360-311-r4-pwm.md` + matrix addenda. Docs-only; no `.xlsx`/binary committed; no config/package/product/WebFlash edit. | — (resolved; this PR). |
+| **`PACKAGE-PWM-001-IMPLEMENT-001`** | **NO** — operator + bench owed | Reconcile [`fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml) against the schematic (single-vs-four-channel; SX1509-vs-direct-ESP32 routing; PWM polarity / tach / pulses-per-rev), then the compile-only / product slice. | Blocked on the minimum operator answers + bench/silkscreen evidence enumerated in [`s360-311-r4-pwm.md` §Next-PR designation](hardware/s360-311-r4-pwm.md#next-pr-designation). |
 
 ---
 
@@ -256,7 +257,7 @@ The green generated-file sync tests confirm `config/firmware-combination-matrix.
   ACTIVE-STABLE or GENERATED-CURRENT.
 - **Source-of-truth:** cleanly layered, no conflicting ownership.
 - **Cross-repo drift:** undetermined — WebFlash repo not accessible → `WEBFLASH-DRIFT-001`.
-- **Roadmap:** complete and current; PWM is the next blocker → `PWM-BLOCKER-REMOVAL-001`.
+- **Roadmap:** complete and current; PWM blocker audit done → `PWM-BLOCKER-REMOVAL-001` (2026-05-25) closed the hardware-evidence / controlled-load / BOM-part-identity / no-mains-compliance rows and lifted the `core_i2c` blocker; the remaining `PACKAGE-PWM-001` gate is operator + bench → next is `PACKAGE-PWM-001-IMPLEMENT-001` (NOT READY).
 - **Security:** good hygiene; two hardening follow-ups (workflow permissions, action SHA-pinning) →
   `SECURITY-AUDIT-FIX-001`; **no clean-bill claim** (alert tooling unavailable).
 - **CI:** PR/push proves structure + metadata; full compile, generated-drift, and WebFlash/release checks

@@ -24,6 +24,49 @@ mirrored here.
 
 ## Current queue summary
 
+- **PWM-BLOCKER-REMOVAL-001** delivers, via **this PR** on 2026-05-25,
+  the **audit / docs-only** S360-311 / FanPWM blocker sweep named as the
+  next hardware blocker by `REPO-FRESHNESS-ROADMAP-AUDIT-001` / PR #582.
+  Output: a [PWM-BLOCKER-REMOVAL-001 readiness / blocker table](docs/hardware/s360-311-r4-pwm.md#pwm-blocker-removal-001-readiness--blocker-table)
+  and dated audit-log row in
+  [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md),
+  plus addenda in
+  [`docs/hardware/package-readiness-matrix.md`](docs/hardware/package-readiness-matrix.md),
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+  and [`docs/repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md).
+  **Key findings:** (1) a Google Drive folder `12vFan_PWM_PulseCounter`
+  (= `S360-311` `old_name`; owner `neilmcrae@googlemail.com`) holds the
+  full manufacturing artifact set the HW-ASSETS-003 index had recorded as
+  `not provided in this upload` — BOM `.xlsx`, gerbers, CPL, STEP, and 3
+  board renders; (2) the Drive BOM cross-checks the committed
+  `S360-311-R4` schematic **1:1** (`U1` MT3608 boost; `Q1`–`Q4`
+  `ME15N10-G` low-side N-FETs; `D1` SS34; `L1` SRN6045TA 22 µH; `R3` 38k
+  / `R5` 2k divider; JST-SH `SM04B` ×5 / `SM13B` ×1), closing the
+  BOM cross-check **at the part-identity layer**; (3) `CORE-ABSTRACT-BUS-001B-IMPLEMENT-001`
+  already lifted the shared-I²C-bus blocker (`core_i2c`), and `001C`
+  retired `expansion_gpio1..4` so the package's `${expansion_gpio*}`
+  binding is now stale; (4) blocker rows 1 (hardware evidence), 2
+  (schematic/BOM identity, part-identity layer), 5 (controlled-load
+  type), 11 (no-mains compliance) are **CLOSED**, row 6 (output
+  electrical) is **PARTIAL**, and rows 3/4/7/8/9/10 stay blocking. **Next
+  PR:** `PACKAGE-PWM-001-IMPLEMENT-001` is **NOT READY** — gated on the
+  minimum operator + bench set (single-vs-four-channel; SX1509-vs-direct-
+  ESP32 routing; `J3`/`J6` 1-to-13 silkscreen; PWM polarity / tach
+  pull-up / pulses-per-rev; per-fan current envelope; rev-stamp
+  confirmation). **Audit-only — no blocker moves:** no `.xlsx` / gerber /
+  CPL / STEP / PNG binary committed (retained-but-not-committed per
+  `hardware-artifact-policy.md`); `S360-311` `schematic_status` stays
+  `cataloged_unverified`; [`fan_pwm.yaml`](packages/expansions/fan_pwm.yaml)
+  and [`sense360_fan_pwm.yaml`](packages/expansions/sense360_fan_pwm.yaml)
+  unedited; no `config/**` edit (the `Ceiling-POE-FanPWM` compile-only
+  candidate keeps `defer` + all blockers; its now-stale
+  `CORE-ABSTRACT-BUS-001B-not-landed` label is flagged for a later
+  refresh, not flipped); no `products/**`, `products/webflash/**`,
+  `.github/workflows/**`, `components/**`, `include/**`, `firmware/**`,
+  `manifest.json`, `firmware/sources.json`, or WebFlash-repo edit; no
+  WebFlash / import / release / compliance / hardware-readiness claim.
+  Release-One, the LED preview, and FanTRIAC (`blocked` / `HW-005`) are
+  untouched.
 - **CONFIG-FRESHNESS-001** closes, via **this PR** on 2026-05-24, the
   single **`ACTIVE-STALE-RISK`** item found by
   `REPO-FRESHNESS-ROADMAP-AUDIT-001` / PR #582: the stale FanDAC

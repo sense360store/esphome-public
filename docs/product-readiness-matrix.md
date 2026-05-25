@@ -876,6 +876,18 @@ named follow-up.
   [`docs/hardware/s360-311-r4-pwm.md`](hardware/s360-311-r4-pwm.md);
   [`board-readiness-matrix.md` `S360-311` notes](hardware/board-readiness-matrix.md#s360-311-sense360-pwm);
   [`package-readiness-matrix.md` `fan_pwm.yaml` / S360-311](hardware/package-readiness-matrix.md#fan_pwmyaml--s360-311).
+- **PWM-BLOCKER-REMOVAL-001 addendum (2026-05-25).** No product YAML is
+  added and the product-layer status is unchanged. The audit in
+  [`s360-311-r4-pwm.md` §PWM-BLOCKER-REMOVAL-001 readiness / blocker table](hardware/s360-311-r4-pwm.md#pwm-blocker-removal-001-readiness--blocker-table)
+  closed the hardware-evidence, controlled-load, BOM-part-identity, and
+  (no-mains) compliance rows and lifted the shared-I²C-bus blocker, but
+  the product gate is unchanged: `PRODUCT-PWM-001` stays blocked behind
+  `PACKAGE-PWM-001`, which is itself **NOT READY** pending the operator
+  + bench decisions (single-vs-four-channel; SX1509-vs-direct-ESP32
+  routing; `J3` / `J6` silkscreen pin order; PWM polarity / tach
+  pull-up / pulses-per-revolution; per-fan current envelope). The
+  legacy [`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml)
+  stays `legacy-compatible` and is **not** promoted.
 
 ### FanDAC / S360-312
 
