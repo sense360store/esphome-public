@@ -965,6 +965,34 @@ named follow-up.
   [`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml) stays
   `legacy-compatible` and is **not** promoted; FanRelay and FanDAC are
   unchanged.
+- **FW-COMPILE-PWM-001 addendum (2026-05-25).** **No product YAML is added and
+  the product-layer status is unchanged** — this is a **compile-only
+  validation** slice. FW-COMPILE-PWM-001 adds a single compile-only target
+  `ceiling-poe-fanpwm-compile-only` →
+  [`products/compile-only/ceiling-poe-fanpwm.yaml`](../products/compile-only/ceiling-poe-fanpwm.yaml)
+  (config string `Ceiling-POE-FanPWM`) to
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json),
+  composing Core ceiling + PoE PSU + base + health + the PWM-drive-only
+  [`fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml). It **validates the
+  PWM-drive-only package scope** (SX1509 hub on `core_i2c`; four
+  `output: platform: sx1509` PWM-drive outputs; four `fan: platform: speed`
+  controllers) at ESPHome config / compile time. It **does not prove
+  product / WebFlash / import / release readiness** — `PRODUCT-PWM-001` /
+  `WEBFLASH-PWM-001` / `RELEASE-PWM-001` / `WF-IMPORT-PWM-001` stay blocked;
+  no `config/webflash-builds.json` row, no `webflash_build_matrix` flip, no
+  `artifact_name`, no release artifact; the skeleton lives under
+  `products/compile-only/` so no `config/product-catalog.json` entry is added.
+  It **does not claim RPM support** (`rpm_supported: false`; no
+  `pulse_counter`; `TachIO` / `GPIO16` reserved) and **does not claim a full
+  compile** — `compile_validation_status: pending-ci`, so a GitHub Actions /
+  `workflow_dispatch` `--compile` run is required before any compile result is
+  claimed (only the metadata lane is asserted). `S360-311` `schematic_status`
+  stays `cataloged_unverified`; the bench gates and the optional future RPM
+  strategy stay open. Pinned by
+  [`tests/test_compile_targets.py`](../tests/test_compile_targets.py)
+  `FanPWMCompileOnlyCoverageTests`; the `Ceiling-POE-FanPWM` lane stays `defer`
+  in [`config/compile-only-candidates.json`](../config/compile-only-candidates.json).
+  FanRelay and FanDAC are unchanged.
 
 ### FanDAC / S360-312
 

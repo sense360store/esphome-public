@@ -1517,6 +1517,95 @@ This is a narrow status reconciliation. **No** real blocker moves:
 `manifest.json`, `firmware/sources.json`, or WebFlash-repo edit. Compile
 success stays necessary-but-insufficient for shipment readiness.
 
+### 2026-05-25 — FW-COMPILE-PWM-001 FanPWM compile-only validation
+
+This entry records the addition of a single FanPWM compile-only
+target to the
+[`config/compile-only-targets.json`](../config/compile-only-targets.json)
+lane after `PACKAGE-PWM-001-IMPLEMENT-001` / PR #590 reconciled the
+FanPWM package
+[`packages/expansions/fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml)
+to the **PWM-drive-only** scope (four independent SX1509 PWM-drive fan
+controllers, composing the neutral binding
+[`packages/expansions/fan_pwm_sx1509.yaml`](../packages/expansions/fan_pwm_sx1509.yaml);
+**no** RPM, **no** `pulse_counter`, `TachIO` / `GPIO16` reserved) and
+`CORE-ABSTRACT-BUS-001B` landed the shared `core_i2c` bus the SX1509
+expander binds.
+
+Like `FW-COMPILE-DAC-001`, **FanPWM has no landed product YAML** —
+`PRODUCT-PWM-001` is not landed, and a top-level `products/` YAML would
+require a
+[`config/product-catalog.json`](../config/product-catalog.json) entry,
+which this slice must not add. The FanPWM compile-only skeleton
+therefore lives **under `products/compile-only/`** (the namespace
+excluded from the top-level catalog-enumeration gate at
+[`tests/test_product_catalog.py`](../tests/test_product_catalog.py)),
+and is the **second** explicitly-registered fan target permitted under
+that directory.
+
+#### Target
+
+| `id`                              | `product_yaml`                                  | `config_string`      |
+|-----------------------------------|-------------------------------------------------|----------------------|
+| `ceiling-poe-fanpwm-compile-only` | `products/compile-only/ceiling-poe-fanpwm.yaml` | `Ceiling-POE-FanPWM` |
+
+Settings on the row:
+
+- `shipment_status: compile-only`
+- `webflash_exposure_allowed_now: false`
+- `hardware_required_for_validation: true`
+- `blocked: false`
+- `compile_validation_status: pending-ci`
+- `rpm_supported: false`
+
+The skeleton composes Core ceiling + PoE PSU + base + health (the
+proven `Ceiling-POE` base) plus the canonical PWM-drive-only FanPWM
+package
+[`packages/expansions/fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml),
+which composes the neutral SX1509 binding
+[`packages/expansions/fan_pwm_sx1509.yaml`](../packages/expansions/fan_pwm_sx1509.yaml).
+The SX1509 hub binds the shared `core_i2c` bus the Core ceiling package
+provides.
+
+#### What this target validates — and what it does not
+
+- **Validates** the **PWM-drive-only package scope** at ESPHome
+  config / compile time: the SX1509 hub binding on `core_i2c`, the four
+  `output: platform: sx1509` PWM-drive outputs (`fan_pwm_drive_1..4` on
+  channels 0..3), and the four `fan: platform: speed` controllers
+  (`fan_pwm_1..4`) compose / substitute / include / generate code.
+- **Does NOT claim RPM support.** The PWM-drive-only package exposes no
+  per-fan or aggregate RPM and no `pulse_counter` — an SX1509 expander
+  pin is compile-proven unable to back an ESPHome `pulse_counter`
+  (`PWM-SX1509-TACH-PROOF-001` / PR #589: `esphome config` rejects it
+  with `[sx1509] is an invalid option for [pin]`). The four `Pul_Cou1..4`
+  lines stay the binding's INTERNAL diagnostic binary GPIO states
+  (`fan_pwm_tach_1..4`), never surfaced as RPM; `TachIO` / `GPIO16`
+  stays reserved/pending.
+- **Does NOT prove product / WebFlash / release readiness.** No
+  `config/webflash-builds.json` row, no `webflash_build_matrix` flip, no
+  `webflash_wrapper`, no `artifact_name`, no release artifact. The
+  `FanPWM` token does not appear in `config/webflash-builds.json`, and
+  `Ceiling-POE-FanPWM` is not in `release_one_required_configs`.
+  `PRODUCT-PWM-001` / `WEBFLASH-PWM-001` / `RELEASE-PWM-001` /
+  `WF-IMPORT-PWM-001` stay **blocked**.
+- **Does NOT prove hardware readiness.** `S360-311` `schematic_status`
+  stays `cataloged_unverified`; the bench gates (PWM polarity; per-fan /
+  aggregate current + thermal envelope) remain open.
+- **Full compile result remains pending.** ESPHome is not assumed
+  present locally, so `compile_validation_status` is `pending-ci`:
+  `FW-COMPILE-PWM-001` does **not** claim a successful full compile
+  until `scripts/validate_compile_targets.py --compile` (or `esphome
+  config` against this YAML) passes in a GitHub Actions /
+  `workflow_dispatch` run. Only the metadata lane (`--metadata-only`) is
+  asserted here, and the target count rises **9 → 10**.
+
+[`tests/test_compile_targets.py`](../tests/test_compile_targets.py)
+`FanPWMCompileOnlyCoverageTests` pins the target invariants (compile-only,
+no WebFlash exposure, no artifact, no RPM / `pulse_counter`, `TachIO` /
+`GPIO16` not bound), and the `Ceiling-POE-FanPWM` lane stays `defer` in
+[`config/compile-only-candidates.json`](../config/compile-only-candidates.json).
+
 ## See also
 
 - [`docs/firmware-combination-matrix.md`](firmware-combination-matrix.md) — FW-MATRIX-001, the 168-row source matrix the `config_string` field cross-references.

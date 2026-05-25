@@ -100,6 +100,20 @@ FANDAC_COMPILE_ONLY_CONFIG_STRING = "Ceiling-POE-FanDAC"
 FANDAC_COMPILE_ONLY_PRODUCT_YAML = "products/compile-only/ceiling-poe-fandac.yaml"
 FANDAC_PRODUCT_YAML = "products/sense360-ceiling-poe-fandac.yaml"
 
+# FW-COMPILE-PWM-001: FanPWM compile-only validation target. Like the
+# FanDAC compile-only skeleton, the FanPWM skeleton lives UNDER
+# products/compile-only/ (the only place that avoids the top-level
+# product-catalog enumeration gate). It is the second explicitly-
+# registered fan exception to the otherwise-non-fan products/compile-only/
+# lane. PRODUCT-PWM-001 is not landed, so no top-level products/ YAML and
+# no catalog row is added; the compile-only skeleton is the sole CI
+# validation target. The PWM-drive-only package (PACKAGE-PWM-001-
+# IMPLEMENT-001 / PR #590) exposes four SX1509 PWM-drive fan controllers
+# and NO RPM / NO pulse_counter; this target makes no RPM claim.
+FANPWM_COMPILE_ONLY_TARGET_ID = "ceiling-poe-fanpwm-compile-only"
+FANPWM_COMPILE_ONLY_CONFIG_STRING = "Ceiling-POE-FanPWM"
+FANPWM_COMPILE_ONLY_PRODUCT_YAML = "products/compile-only/ceiling-poe-fanpwm.yaml"
+
 ALLOWED_SHIPMENT_STATUSES = frozenset(
     {"webflash-current", "preview-current", "compile-only"}
 )
@@ -548,6 +562,14 @@ class PoeNonFanCompileOnlyCoverageTests(unittest.TestCase):
             # invariants are pinned by FanDACCompileOnlyCoverageTests.
             if target.get("id") == FANDAC_COMPILE_ONLY_TARGET_ID:
                 continue
+            # FW-COMPILE-PWM-001: the FanPWM compile-only target is the
+            # second explicitly-registered fan target allowed under
+            # products/compile-only/ — PRODUCT-PWM-001 is not landed, so a
+            # top-level products/ YAML + catalog row is forbidden, leaving
+            # products/compile-only/ as the only valid home. Its full
+            # invariants are pinned by FanPWMCompileOnlyCoverageTests.
+            if target.get("id") == FANPWM_COMPILE_ONLY_TARGET_ID:
+                continue
             cs = target.get("config_string") or ""
             tokens = set(cs.split("-")) if cs else set()
             forbidden_fan_tokens = tokens & FORBIDDEN_FAN_TOKENS_FOR_THIS_PR
@@ -558,7 +580,8 @@ class PoeNonFanCompileOnlyCoverageTests(unittest.TestCase):
                 "FW-COMPILE-POE-NONFAN-001 lane (products/compile-only/) "
                 "must not add any FanRelay / FanPWM / FanDAC / FanTRIAC "
                 "compile-only target (except the explicitly-registered "
-                "FW-COMPILE-DAC-001 FanDAC validation target)",
+                "FW-COMPILE-DAC-001 FanDAC and FW-COMPILE-PWM-001 FanPWM "
+                "validation targets)",
             )
 
     def test_poe_nonfan_lane_introduces_no_pwr_compile_only_target(self):
@@ -1220,6 +1243,357 @@ class FanDACCompileOnlyCoverageTests(unittest.TestCase):
         led = by_config.get(LED_PREVIEW_CONFIG_STRING)
         self.assertIsNotNone(led)
         self.assertEqual(led.get("shipment_status"), "preview-current")
+
+
+class FanPWMCompileOnlyCoverageTests(unittest.TestCase):
+    """FW-COMPILE-PWM-001: FanPWM compile-only validation target.
+
+    Pins the invariants for the single FanPWM compile-only target added
+    by FW-COMPILE-PWM-001 after PACKAGE-PWM-001-IMPLEMENT-001 / PR #590
+    reconciled the FanPWM package to the PWM-drive-only scope (four
+    independent SX1509 PWM-drive fan controllers; no RPM; no
+    ``pulse_counter``; ``TachIO`` / ``GPIO16`` reserved) and
+    CORE-ABSTRACT-BUS-001B landed the ``core_i2c`` bus the SX1509
+    expander binds. The skeleton lives under ``products/compile-only/``
+    (PRODUCT-PWM-001 is not landed, so no top-level product YAML /
+    catalog row may be added). Compile success here is **not** WebFlash
+    exposure, **not** a release artifact, **not** a PRODUCT-PWM-001 /
+    WEBFLASH-PWM-001 / RELEASE-PWM-001 unblock, **not** S360-311
+    schematic / BOM / bench verification, **not** RPM support, and
+    **not** stable / preview promotion. Compile success is **not**
+    claimed until CI runs the ``--compile`` lane (ESPHome is not assumed
+    available locally).
+    """
+
+    PACKAGE_FAN_PWM = REPO_ROOT / "packages" / "expansions" / "fan_pwm.yaml"
+
+    @classmethod
+    def setUpClass(cls):
+        cls.doc = _load(TARGETS_PATH)
+        cls.targets = cls.doc["targets"]
+        cls.by_id = {t["id"]: t for t in cls.targets if t.get("id")}
+        cls.builds = _load(BUILDS_PATH)
+        cls.matrix = _load(MATRIX_PATH)
+        cls.committed_configs = {
+            entry["config_string"]
+            for entry in (cls.builds.get("builds", []) or [])
+            if entry.get("config_string")
+        }
+        cls.matrix_configs = {
+            row["config_string"]
+            for row in (cls.matrix.get("combinations", []) or [])
+            if row.get("config_string")
+        }
+        cls.target = cls.by_id.get(FANPWM_COMPILE_ONLY_TARGET_ID)
+
+    @staticmethod
+    def _active_lines(text):
+        out = []
+        for line in text.splitlines():
+            stripped = line.lstrip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            out.append(line)
+        return out
+
+    def test_fanpwm_compile_only_target_exists(self):
+        self.assertIsNotNone(
+            self.target,
+            f"FW-COMPILE-PWM-001 must add the FanPWM compile-only target "
+            f"with id {FANPWM_COMPILE_ONLY_TARGET_ID!r} to "
+            "config/compile-only-targets.json",
+        )
+
+    def test_fanpwm_compile_only_points_at_compile_only_skeleton(self):
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("product_yaml"),
+            FANPWM_COMPILE_ONLY_PRODUCT_YAML,
+        )
+
+    def test_fanpwm_compile_only_skeleton_exists_on_disk(self):
+        path = REPO_ROOT / FANPWM_COMPILE_ONLY_PRODUCT_YAML
+        self.assertTrue(
+            path.is_file(),
+            f"FanPWM compile-only skeleton not found at {path}",
+        )
+
+    def test_fanpwm_skeleton_includes_the_fanpwm_package(self):
+        """Target must include packages/expansions/fan_pwm.yaml."""
+        path = REPO_ROOT / FANPWM_COMPILE_ONLY_PRODUCT_YAML
+        text = path.read_text()
+        self.assertIn(
+            "fan_pwm.yaml",
+            text,
+            "FanPWM compile-only skeleton must !include the FanPWM package "
+            "(packages/expansions/fan_pwm.yaml)",
+        )
+        self.assertIn(
+            "!include",
+            text,
+            "FanPWM compile-only skeleton must compose packages via !include",
+        )
+
+    def test_fanpwm_config_string_is_correct(self):
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("config_string"),
+            FANPWM_COMPILE_ONLY_CONFIG_STRING,
+        )
+
+    def test_fanpwm_config_string_is_in_firmware_matrix(self):
+        self.assertIn(
+            FANPWM_COMPILE_ONLY_CONFIG_STRING,
+            self.matrix_configs,
+            f"FanPWM compile-only config_string "
+            f"{FANPWM_COMPILE_ONLY_CONFIG_STRING!r} must be present in "
+            "config/firmware-combination-matrix.json",
+        )
+
+    def test_fanpwm_shipment_status_is_compile_only(self):
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("shipment_status"),
+            "compile-only",
+            "FanPWM target must be compile-only — it is NOT a WebFlash "
+            "build (no webflash-current / preview-current)",
+        )
+
+    def test_fanpwm_disallows_webflash_exposure(self):
+        self.assertIsNotNone(self.target)
+        self.assertFalse(
+            self.target.get("webflash_exposure_allowed_now"),
+            "FanPWM compile-only target must declare "
+            "webflash_exposure_allowed_now: false",
+        )
+
+    def test_fanpwm_requires_hardware_for_validation(self):
+        self.assertIsNotNone(self.target)
+        self.assertTrue(
+            self.target.get("hardware_required_for_validation"),
+            "FanPWM compile-only target must declare "
+            "hardware_required_for_validation: true — compile-only is "
+            "pre-hardware confidence, not hardware-validated readiness",
+        )
+
+    def test_fanpwm_target_is_not_blocked(self):
+        self.assertIsNotNone(self.target)
+        self.assertFalse(
+            self.target.get("blocked"),
+            "FanPWM compile-only target must declare blocked: false — "
+            "FanPWM is a SELV low-voltage board, not FanTRIAC / PWR / "
+            "COMPLIANCE-001 blocked",
+        )
+
+    def test_fanpwm_does_not_declare_webflash_build_matrix(self):
+        self.assertIsNotNone(self.target)
+        self.assertNotIn(
+            "webflash_build_matrix",
+            self.target,
+            "FanPWM compile-only target must not declare "
+            "webflash_build_matrix; that flag is owned by "
+            "config/product-catalog.json",
+        )
+
+    def test_fanpwm_does_not_declare_artifact_name(self):
+        self.assertIsNotNone(self.target)
+        self.assertNotIn(
+            "artifact_name",
+            self.target,
+            "FanPWM compile-only target must not declare artifact_name; "
+            "no release artifact is built by FW-COMPILE-PWM-001",
+        )
+
+    def test_fanpwm_does_not_declare_webflash_wrapper(self):
+        self.assertIsNotNone(self.target)
+        self.assertNotIn(
+            "webflash_wrapper",
+            self.target,
+            "FanPWM compile-only target must not declare webflash_wrapper",
+        )
+
+    def test_fanpwm_target_is_not_in_webflash_builds(self):
+        self.assertNotIn(
+            FANPWM_COMPILE_ONLY_CONFIG_STRING,
+            self.committed_configs,
+            f"FanPWM compile-only target {FANPWM_COMPILE_ONLY_CONFIG_STRING!r} "
+            "must NOT be present in config/webflash-builds.json",
+        )
+
+    def test_no_fanpwm_token_in_webflash_builds(self):
+        text = BUILDS_PATH.read_text()
+        self.assertNotIn(
+            "FanPWM",
+            text,
+            "config/webflash-builds.json must not contain the FanPWM token "
+            "— FW-COMPILE-PWM-001 adds no FanPWM WebFlash build entry",
+        )
+
+    def test_fanpwm_target_is_not_in_release_one_required_configs(self):
+        compat_path = REPO_ROOT / "config" / "webflash-compatibility.json"
+        compat = _load(compat_path)
+        required = compat.get("release_one_required_configs", []) or []
+        self.assertNotIn(
+            FANPWM_COMPILE_ONLY_CONFIG_STRING,
+            required,
+            "release_one_required_configs must not contain "
+            f"{FANPWM_COMPILE_ONLY_CONFIG_STRING!r} — FW-COMPILE-PWM-001 "
+            "does not promote FanPWM into Release-One required configs",
+        )
+
+    def test_fanpwm_skeleton_not_under_webflash_directory(self):
+        self.assertFalse(
+            FANPWM_COMPILE_ONLY_PRODUCT_YAML.startswith("products/webflash/"),
+            "FanPWM compile-only skeleton must NOT live under "
+            "products/webflash/ (the WebFlash wrapper namespace)",
+        )
+
+    def test_no_fanpwm_webflash_wrapper_file_exists(self):
+        webflash_dir = REPO_ROOT / "products" / "webflash"
+        if not webflash_dir.is_dir():
+            return
+        offenders = []
+        for path in webflash_dir.glob("*.yaml"):
+            name = path.name.lower()
+            if "fanpwm" in name or "fan-pwm" in name or "fan_pwm" in name:
+                offenders.append(path.relative_to(REPO_ROOT).as_posix())
+        self.assertEqual(
+            offenders,
+            [],
+            f"FW-COMPILE-PWM-001 must NOT add any FanPWM WebFlash wrapper "
+            f"under products/webflash/. Offending paths: {offenders!r}",
+        )
+
+    def test_fanpwm_skeleton_stays_under_compile_only(self):
+        self.assertTrue(
+            FANPWM_COMPILE_ONLY_PRODUCT_YAML.startswith("products/compile-only/"),
+            "FanPWM compile-only skeleton must stay under "
+            "products/compile-only/",
+        )
+
+    def test_no_top_level_fanpwm_product_yaml_added(self):
+        """PRODUCT-PWM-001 is not landed: no top-level FanPWM product YAML.
+
+        FW-COMPILE-PWM-001 adds only the compile-only skeleton under
+        products/compile-only/. The legacy standalone fan-board product
+        (products/sense360-fan-pwm.yaml) predates this slice and is
+        allowed; no other FanPWM-named YAML may appear outside
+        products/compile-only/.
+        """
+        products_dir = REPO_ROOT / "products"
+        if not products_dir.is_dir():
+            self.skipTest("products/ directory not present")
+        compile_only_dir = products_dir / "compile-only"
+        allowed = {"products/sense360-fan-pwm.yaml"}
+        offenders = []
+        for path in products_dir.rglob("*.yaml"):
+            if compile_only_dir in path.parents:
+                continue
+            name = path.name.lower()
+            if "fanpwm" in name or "fan-pwm" in name or "fan_pwm" in name:
+                rel = path.relative_to(REPO_ROOT).as_posix()
+                if rel not in allowed:
+                    offenders.append(rel)
+        self.assertEqual(
+            sorted(offenders),
+            [],
+            "FW-COMPILE-PWM-001 must add no top-level FanPWM product YAML "
+            f"(PRODUCT-PWM-001 not landed); unexpected: {sorted(offenders)!r}",
+        )
+
+    def test_fanpwm_target_makes_no_rpm_claim(self):
+        self.assertIsNotNone(self.target)
+        self.assertFalse(
+            self.target.get("rpm_supported", False),
+            "FanPWM compile-only target must not claim RPM support — the "
+            "PWM-drive-only package exposes no per-fan or aggregate RPM",
+        )
+
+    def test_fanpwm_skeleton_exposes_no_rpm_or_pulse_counter(self):
+        """The skeleton must wire no pulse_counter and no RPM entity."""
+        text = (REPO_ROOT / FANPWM_COMPILE_ONLY_PRODUCT_YAML).read_text()
+        for line in self._active_lines(text):
+            self.assertNotIn(
+                "pulse_counter",
+                line,
+                "FanPWM compile-only skeleton must not use pulse_counter on "
+                f"any active line. Line: {line!r}",
+            )
+            low = line.lower()
+            if "name:" in low or "unit_of_measurement:" in low:
+                self.assertNotIn(
+                    "rpm",
+                    low,
+                    "FanPWM compile-only skeleton must expose no RPM-named / "
+                    f"RPM-unit entity (PWM-drive-only). Line: {line!r}",
+                )
+
+    def test_fanpwm_skeleton_does_not_bind_tachio_gpio16(self):
+        """TachIO / GPIO16 stays reserved/pending — not an active binding."""
+        text = (REPO_ROOT / FANPWM_COMPILE_ONLY_PRODUCT_YAML).read_text()
+        for line in self._active_lines(text):
+            self.assertNotIn(
+                "${tach_io_pin}",
+                line,
+                "FanPWM compile-only skeleton must not consume "
+                f"${{tach_io_pin}} — TachIO / GPIO16 stays reserved. Line: {line!r}",
+            )
+            self.assertNotRegex(
+                line,
+                r"\bGPIO16\b",
+                "FanPWM compile-only skeleton must not bind GPIO16 (TachIO) "
+                f"on an active line. Line: {line!r}",
+            )
+
+    def test_underlying_fanpwm_package_has_no_pulse_counter(self):
+        """Cross-check: the composed package itself wires no pulse_counter."""
+        text = self.PACKAGE_FAN_PWM.read_text()
+        for line in self._active_lines(text):
+            self.assertNotIn(
+                "pulse_counter",
+                line,
+                "packages/expansions/fan_pwm.yaml must not use pulse_counter "
+                f"on any active line. Line: {line!r}",
+            )
+
+    def test_fanpwm_compile_validation_pending_until_ci(self):
+        """Conservative status: compile result pending until CI proves it."""
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("compile_validation_status"),
+            "pending-ci",
+            "FanPWM compile-only target must record "
+            "compile_validation_status: pending-ci — FW-COMPILE-PWM-001 does "
+            "not claim a successful full compile until CI runs "
+            "scripts/validate_compile_targets.py --compile against the YAML",
+        )
+
+    def test_release_one_and_led_targets_unchanged(self):
+        by_config = {
+            t["config_string"]: t for t in self.targets if t.get("config_string")
+        }
+        r1 = by_config.get(RELEASE_ONE_CONFIG_STRING)
+        self.assertIsNotNone(r1)
+        self.assertEqual(r1.get("shipment_status"), "webflash-current")
+        led = by_config.get(LED_PREVIEW_CONFIG_STRING)
+        self.assertIsNotNone(led)
+        self.assertEqual(led.get("shipment_status"), "preview-current")
+
+    def test_relay_and_dac_targets_unchanged(self):
+        self.assertIn(FANRELAY_COMPILE_ONLY_TARGET_ID, self.by_id)
+        self.assertEqual(
+            self.by_id[FANRELAY_COMPILE_ONLY_TARGET_ID].get("shipment_status"),
+            "compile-only",
+        )
+        self.assertIn(FANDAC_COMPILE_ONLY_TARGET_ID, self.by_id)
+        self.assertEqual(
+            self.by_id[FANDAC_COMPILE_ONLY_TARGET_ID].get(
+                "compile_validation_status"
+            ),
+            "validated-full-compile",
+            "FW-COMPILE-PWM-001 must not change the FanDAC target's "
+            "validated-full-compile status",
+        )
 
 
 class ValidatorScriptTests(unittest.TestCase):

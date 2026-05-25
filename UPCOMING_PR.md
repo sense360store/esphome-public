@@ -24,7 +24,58 @@ mirrored here.
 
 ## Current queue summary
 
-- **PACKAGE-PWM-001-IMPLEMENT-001** delivers, via **this PR** on 2026-05-25,
+- **FW-COMPILE-PWM-001** delivers, via **this PR** on 2026-05-25, a single
+  **compile-only validation target** for the PWM-drive-only FanPWM package
+  landed by `PACKAGE-PWM-001-IMPLEMENT-001` / PR #590. It adds the skeleton
+  [`products/compile-only/ceiling-poe-fanpwm.yaml`](products/compile-only/ceiling-poe-fanpwm.yaml)
+  (config string `Ceiling-POE-FanPWM`; Core ceiling + PoE PSU + base + health +
+  `!include packages/expansions/fan_pwm.yaml`) and the target row
+  `ceiling-poe-fanpwm-compile-only` to
+  [`config/compile-only-targets.json`](config/compile-only-targets.json)
+  (`shipment_status: compile-only`, `webflash_exposure_allowed_now: false`,
+  `hardware_required_for_validation: true`, `blocked: false`,
+  `compile_validation_status: pending-ci`, `rpm_supported: false`;
+  `totals.targets` 9 → 10). It **validates the PWM-drive-only package scope**
+  (SX1509 hub on `core_i2c`; four `output: platform: sx1509` PWM-drive
+  outputs; four `fan: platform: speed` controllers) at ESPHome config /
+  compile time. It **does not claim product / WebFlash / import / release
+  readiness** (`PRODUCT-PWM-001` / `WEBFLASH-PWM-001` / `RELEASE-PWM-001` /
+  `WF-IMPORT-PWM-001` stay blocked; no `config/webflash-builds.json` row, no
+  `webflash_build_matrix` flip, no `artifact_name`, no release artifact; the
+  skeleton lives under `products/compile-only/` so no
+  `config/product-catalog.json` entry is added), **does not claim RPM support**
+  (no `pulse_counter`; `TachIO` / `GPIO16` reserved), and **does not claim a
+  full compile** — ESPHome is not assumed present locally, so the full compile
+  result remains **pending** until a GitHub Actions / `workflow_dispatch`
+  `--compile` run proves it (only the metadata lane is asserted). The
+  `Ceiling-POE-FanPWM` lane stays `defer` in
+  [`config/compile-only-candidates.json`](config/compile-only-candidates.json)
+  (`Ceiling-POE-FanPWM` added to `currently_compile_only_config_strings`,
+  blockers refreshed, `compile_only_safe` stays `false`). New
+  `FanPWMCompileOnlyCoverageTests` in
+  [`tests/test_compile_targets.py`](tests/test_compile_targets.py); a
+  `products/compile-only/` exemption added to
+  [`tests/test_fan_pwm_package.py`](tests/test_fan_pwm_package.py). **Nothing
+  else moves:** no `products/webflash/**`, `config/webflash-builds.json`,
+  `.github/workflows/**`, `components/**`, `include/**`, `firmware/**`,
+  `manifest.json`, `firmware/sources.json`, release artifact, checksum,
+  build-info manifest, or WebFlash-repo edit; `fan_pwm.yaml`,
+  `fan_pwm_sx1509.yaml`, and all Core abstract packages are unedited; `S360-311`
+  `schematic_status` stays `cataloged_unverified`. Validation:
+  `python3 tests/validate_configs.py`,
+  `python3 scripts/validate_compile_targets.py --metadata-only`,
+  `python3 -m unittest discover -s tests -p "test_*.py"` all PASS (693 tests).
+  Docs updated:
+  [`compile-only-firmware-validation.md`](docs/compile-only-firmware-validation.md)
+  (FW-COMPILE-PWM-001 audit-log entry),
+  [`s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md) (blocker-table row 9
+  + audit-log row),
+  [`package-readiness-matrix.md`](docs/hardware/package-readiness-matrix.md),
+  [`product-readiness-matrix.md`](docs/product-readiness-matrix.md), and this
+  file. Next is the product slice `PRODUCT-PWM-001`. FanRelay and FanDAC are
+  unchanged; Release-One, the LED preview, and FanTRIAC (`blocked` / `HW-005`)
+  are untouched.
+- **PACKAGE-PWM-001-IMPLEMENT-001** delivers, via PR #590 on 2026-05-25,
   the **package-layer** implementation of the canonical FanPWM package as
   **PWM-drive-only** (operator decision D-T1 / `PACKAGE-PWM-TACH-STRATEGY-001`,
   confirmed by `PWM-SX1509-TACH-PROOF-001`). It reconciles

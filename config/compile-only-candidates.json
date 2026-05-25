@@ -72,7 +72,8 @@
     "Ceiling-POE-AirIQ",
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
-    "Ceiling-POE-FanDAC"
+    "Ceiling-POE-FanDAC",
+    "Ceiling-POE-FanPWM"
   ],
   "totals": {
     "candidates": 26,
@@ -553,19 +554,20 @@
       "config_string": "Ceiling-POE-FanPWM",
       "rank": 24,
       "lane": "fanpwm",
-      "use_case": "POE-powered Ceiling Core + FanPWM (PWM fan driver). Representative deferral row for the entire FanPWM lane (36 matrix rows).",
+      "use_case": "POE-powered Ceiling Core + FanPWM (PWM fan driver). Representative row for the entire FanPWM lane (36 matrix rows).",
       "proposed_product_yaml": "products/compile-only/ceiling-poe-fanpwm.yaml",
       "candidate_status": "defer",
-      "reason": "FanPWM (S360-311) is blocked by PACKAGE-PWM-001 (own evidence gates open) and CORE-ABSTRACT-BUS-001B (canonical I2C / expansion-GPIO bus-id consolidation not yet implemented; fan_pwm_pin: ${expansion_gpio1} / fan_tach_pin: ${expansion_gpio2} depend on the unresolved expansion_gpio* abstraction). Adding a compile-only FanPWM target would pin currently-undefined or undecided pin values.",
+      "reason": "PACKAGE-PWM-001-IMPLEMENT-001 / PR #590 reconciled the FanPWM package to the PWM-drive-only scope (four independent SX1509 PWM-drive fan controllers; canonical packages/expansions/fan_pwm.yaml composing the neutral binding packages/expansions/fan_pwm_sx1509.yaml; no pulse_counter, no RPM, TachIO/GPIO16 reserved) and CORE-ABSTRACT-BUS-001B landed the core_i2c bus the SX1509 expander binds. FW-COMPILE-PWM-001 adds ONE compile-only validation target for Ceiling-POE-FanPWM (products/compile-only/ceiling-poe-fanpwm.yaml) that exercises the PWM-drive-only package syntax / substitutions / includes. The broader FanPWM lane stays deferred: no PRODUCT-PWM-001 product YAML exists, S360-311 schematic_status stays cataloged_unverified, and the bench gates (PWM polarity; per-fan / aggregate current + thermal envelope) plus the optional future RPM strategy (COMPONENT-SX1509-TACH-001 or a bench-confirmed TachIO follow-up) remain open. compile_only_safe stays false at the lane level — a single validation target is not lane-wide compile-only readiness, and the target's compile result stays pending until CI runs --compile.",
       "blockers": [
-        "PACKAGE-PWM-001-not-landed",
-        "CORE-ABSTRACT-BUS-001B-not-landed",
-        "expansion-GPIO-abstraction-undecided",
-        "tests-test_core_abstract_bus.py-pin-pinning-scaffold-missing"
+        "PRODUCT-PWM-001-not-landed-no-PWM-product-yaml",
+        "PACKAGE-PWM-001-implemented-package-layer-only-PR590-PWM-drive-only-no-product-layer",
+        "CORE-ABSTRACT-BUS-001B-core_i2c-consolidation-landed-lane-wide-compile-only-still-deferred",
+        "S360-311-bench-PWM-polarity-and-current-thermal-envelope-pending",
+        "per-fan-RPM-deferred-COMPONENT-SX1509-TACH-001-or-TachIO-followup"
       ],
       "would_be_webflash_exposed_now": false,
       "compile_only_safe": false,
-      "notes": "Representative deferral row for the 36-row FanPWM lane. Carries blocked-core-bus blocker (CORE-ABSTRACT-BUS-001B)."
+      "notes": "Representative row for the 36-row FanPWM lane. FW-COMPILE-PWM-001 adds ONE compile-only validation target (config string Ceiling-POE-FanPWM, now listed in currently_compile_only_config_strings) and does NOT add a product YAML, WebFlash exposure, or release artifact, does NOT claim RPM support, and does NOT claim compile success until CI runs the --compile lane. Carries blocked-package / blocked-core-bus history; the lane stays deferred pending PRODUCT-PWM-001 and the S360-311 bench gates."
     },
     {
       "config_string": "Ceiling-POE-FanDAC",

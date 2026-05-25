@@ -1,0 +1,149 @@
+# ============================================================================
+# COMPILE-ONLY SKELETON — Ceiling-POE-FanPWM (FW-COMPILE-PWM-001)
+# ============================================================================
+# WebFlash config string : Ceiling-POE-FanPWM
+#
+# Purpose:
+#
+#   Exercise the PWM-drive-only FanPWM package composition (four
+#   independent SX1509 PWM-drive fan-speed controllers) on top of the
+#   proven Core ceiling + PoE PSU + base + health base, so the SX1509
+#   hub binding on the shared `core_i2c` bus, the four `output:
+#   platform: sx1509` PWM-drive outputs, and the four `fan: platform:
+#   speed` controllers surface at ESPHome config / compile time before
+#   any FanPWM product YAML is added. This is the compile-only
+#   validation closure target for `FW-COMPILE-PWM-001`
+#   (docs/hardware/s360-311-r4-pwm.md §Blocker table row 9:
+#   "Compile-only target eligibility").
+#
+#   This skeleton includes the canonical PWM-drive-only FanPWM package
+#   `packages/expansions/fan_pwm.yaml`, which itself composes the
+#   neutral binding-only `packages/expansions/fan_pwm_sx1509.yaml`
+#   (CORE-ABSTRACT-BUS-SX1509-001). No RPM sensor and no
+#   `pulse_counter` is wired (an SX1509 expander pin is compile-proven
+#   unable to back an ESPHome `pulse_counter`, PWM-SX1509-TACH-PROOF-001);
+#   `TachIO` / `GPIO16` stays reserved/pending.
+#
+# Status — what this YAML is NOT:
+#
+#   * NOT a FanPWM product YAML. PRODUCT-PWM-001 is not landed and is
+#     NOT landed by FW-COMPILE-PWM-001. This skeleton lives under
+#     `products/compile-only/` (a subdirectory excluded by
+#     `tests/test_product_catalog.py::_top_level_product_yamls`), so it
+#     adds NO `config/product-catalog.json` entry. No normal FanPWM
+#     product YAML is added under `products/`.
+#   * NOT a WebFlash exposed build. No entry is added to
+#     `config/webflash-builds.json`; no `webflash_build_matrix: true`
+#     flip; no `webflash_wrapper` under `products/webflash/`; no
+#     `artifact_name`. The `FanPWM` token does not appear in
+#     `config/webflash-builds.json`.
+#   * NOT a release artifact. No `.bin`, version, channel, checksum,
+#     build-info manifest, GitHub Release tag, or proof row is created.
+#   * NOT RPM support. The PWM-drive-only package exposes no per-fan or
+#     aggregate RPM and no `pulse_counter`; this skeleton makes no RPM
+#     claim of any kind.
+#   * NOT hardware proof. Compile success says nothing about bench /
+#     PWM-polarity / current / thermal / silkscreen / schematic
+#     evidence. S360-311 `schematic_status` stays `cataloged_unverified`
+#     and the bench gates (PWM polarity; per-fan / aggregate current +
+#     thermal envelope) remain open.
+#   * NOT compile-validated until CI proves it. ESPHome is not assumed
+#     present locally; `FW-COMPILE-PWM-001` does NOT claim a successful
+#     compile until `scripts/validate_compile_targets.py --compile`
+#     (or `esphome config` against this YAML) passes in CI. The metadata
+#     lane (`--metadata-only`) is what is asserted here.
+#   * NOT a stable / preview promotion. Release-One stays
+#     `Ceiling-POE-VentIQ-RoomIQ` (stable) and the LED preview stays
+#     `Ceiling-POE-VentIQ-RoomIQ-LED` (preview), both unchanged.
+#
+# Compatibility (see docs/release-one.md):
+# - Fan driver variants (FanRelay/FanPWM/FanDAC/FanTRIAC) are
+#   firmware-distinct; this skeleton ships FanPWM only.
+# - This skeleton carries neither AirIQ nor VentIQ nor RoomIQ nor LED
+#   (config string Ceiling-POE-FanPWM).
+#
+# Hardware (canonical friendly names; see docs/hardware-catalog.md):
+# - Core         : Sense360 Core    (S360-100-R4, ESP32-S3, ceiling mount)
+# - Power        : Sense360 PoE PSU (S360-410, IEEE 802.3af) — schematic
+#                  verification pending; this target does NOT close that.
+# - Air Quality  : not included     (no AirIQ / no VentIQ)
+# - Room Sense   : not included     (no RoomIQ token in config string)
+# - Fan Driver   : Sense360 PWM     (S360-311, four SX1509 PWM-drive outputs)
+# - LED          : not included     (no LED token in config string)
+#
+# See: docs/compile-only-firmware-validation.md
+#      docs/hardware/s360-311-r4-pwm.md
+# ============================================================================
+
+substitutions:
+  device_name: s360-co-ceil-poe-pwm
+  friendly_name: Sense360 Ceiling POE FanPWM (compile-only)
+  device_sku: S360-CORE-C-POE
+  device_version: "0.0.0-compile-only"
+  timezone: "UTC"
+
+  log_level: INFO
+  wifi_fast_connect: "false"
+  fallback_ssid: "S360 CO POE PWM"
+
+  # === Power configuration (PoE) ===
+  power_source: poe
+  poe_class: "0"
+  poe_standard: "802.3af"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === External Components (radar firmware) ===
+  external_components: !include ../../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../../packages/base/wifi.yaml
+  base_logging: !include ../../packages/base/logging.yaml
+  base_api: !include ../../packages/base/api_encrypted.yaml
+  base_ota: !include ../../packages/base/ota.yaml
+  base_time: !include ../../packages/base/time.yaml
+
+  # === Sense360 Core (Ceiling, S360-100-R4) ===
+  # Provides the shared `core_i2c` bus the SX1509 expander binds.
+  core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
+
+  # === Sense360 PoE PSU (S360-410) ===
+  power_config: !include ../../packages/hardware/power_poe.yaml
+
+  # === Sense360 FanPWM (S360-311, four SX1509 PWM-drive outputs) ===
+  # PWM-drive-only canonical FanPWM package. Composes the neutral
+  # binding `fan_pwm_sx1509.yaml` (SX1509 hub on `core_i2c`, four
+  # `fan_pwm_drive_1..4` PWM outputs on channels 0..3). Exposes four
+  # `fan_pwm_1..4` speed controllers. No RPM, no `pulse_counter`;
+  # `TachIO`/`GPIO16` reserved. Do NOT hard-code its substitutions here.
+  fan_pwm_module: !include ../../packages/expansions/fan_pwm.yaml
+
+  # === Device Health & Diagnostics ===
+  health: !include ../../packages/features/device_health.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} WebFlash Config"
+    lambda: |-
+      return {"Ceiling-POE-FanPWM"};
+    update_interval: never
+    entity_category: diagnostic

@@ -405,14 +405,23 @@ class FanPwmNoProductOrWebFlashSurfaceTests(unittest.TestCase):
         products_dir = REPO_ROOT / "products"
         if not products_dir.is_dir():
             self.skipTest("products/ directory not present in repo")
+        # The FW-COMPILE-PWM-001 compile-only skeleton under
+        # products/compile-only/ is exempt — it is a compile-validation
+        # skeleton, not a catalog-enumerated product YAML. Its invariants
+        # are pinned by
+        # tests/test_compile_targets.py::FanPWMCompileOnlyCoverageTests.
+        compile_only_dir = products_dir / "compile-only"
         offenders = []
         for path in products_dir.glob("**/*.yaml"):
+            if compile_only_dir in path.parents:
+                continue
             name = path.name.lower()
             if "fanpwm" in name or "fan-pwm" in name or "fan_pwm" in name:
                 offenders.append(path.relative_to(REPO_ROOT).as_posix())
         # The legacy standalone fan board product (sense360-fan-pwm.yaml)
         # predates this slice and is allowed; PACKAGE-PWM-001-IMPLEMENT-001
-        # adds NO new FanPWM product YAML.
+        # adds NO new FanPWM product YAML and FW-COMPILE-PWM-001 adds only
+        # the compile-only skeleton (exempted above).
         allowed = {"products/sense360-fan-pwm.yaml"}
         unexpected = sorted(set(offenders) - allowed)
         self.assertEqual(

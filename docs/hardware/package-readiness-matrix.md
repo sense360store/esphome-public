@@ -928,6 +928,32 @@ named follow-up.
     (`COMPONENT-SX1509-TACH-001` or a bench-confirmed `TachIO` follow-up). No
     product / WebFlash / release / config / firmware surface is advanced here;
     FanRelay and FanDAC are unchanged.
+- **FW-COMPILE-PWM-001 addendum (2026-05-25).** A single **compile-only
+  validation target** has been added for the PWM-drive-only FanPWM package:
+  `ceiling-poe-fanpwm-compile-only` →
+  [`products/compile-only/ceiling-poe-fanpwm.yaml`](../../products/compile-only/ceiling-poe-fanpwm.yaml)
+  (config string `Ceiling-POE-FanPWM`) in
+  [`config/compile-only-targets.json`](../../config/compile-only-targets.json),
+  composing Core ceiling + PoE PSU + base + health + the PWM-drive-only
+  [`fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml). It **validates the
+  PWM-drive-only package scope** (SX1509 hub on `core_i2c`; four
+  `output: platform: sx1509` PWM-drive outputs; four `fan: platform: speed`
+  controllers) at ESPHome config / compile time.
+  - It **does not prove product / WebFlash / release readiness** (no product
+    YAML, no `config/webflash-builds.json` row, no `webflash_build_matrix`
+    flip, no `artifact_name`, no release artifact; the skeleton lives under
+    `products/compile-only/` so no `config/product-catalog.json` entry is
+    added) and **does not claim RPM support** (`rpm_supported: false`; no
+    `pulse_counter`; `TachIO` / `GPIO16` reserved).
+  - The **full compile result remains pending** (`compile_validation_status:
+    pending-ci`): ESPHome is not assumed present locally, so a GitHub Actions /
+    `workflow_dispatch` `--compile` run is required before any compile result
+    is claimed; only the metadata lane is asserted. Pinned by
+    [`tests/test_compile_targets.py`](../../tests/test_compile_targets.py)
+    `FanPWMCompileOnlyCoverageTests`. The S360-311 bench gates above and the
+    optional future RPM strategy stay open; the `Ceiling-POE-FanPWM` lane stays
+    `defer` in
+    [`config/compile-only-candidates.json`](../../config/compile-only-candidates.json).
 
 ### `fan_gp8403.yaml` / S360-312
 
