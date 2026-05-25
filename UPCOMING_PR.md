@@ -49,11 +49,18 @@ mirrored here.
   (schematic/BOM identity, part-identity layer), 5 (controlled-load
   type), 11 (no-mains compliance) are **CLOSED**, row 6 (output
   electrical) is **PARTIAL**, and rows 3/4/7/8/9/10 stay blocking. **Next
-  PR:** `PACKAGE-PWM-001-IMPLEMENT-001` is **NOT READY** — gated on the
-  minimum operator + bench set (single-vs-four-channel; SX1509-vs-direct-
-  ESP32 routing; `J3`/`J6` 1-to-13 silkscreen; PWM polarity / tach
-  pull-up / pulses-per-rev; per-fan current envelope; rev-stamp
-  confirmation). **Audit-only — no blocker moves:** no `.xlsx` / gerber /
+  PR (updated by `PACKAGE-PWM-TACH-STRATEGY-001`, 2026-05-25):**
+  `PACKAGE-PWM-001-IMPLEMENT-001` is now scoped **PWM-drive-only** (four
+  SX1509 PWM outputs; no per-fan RPM; optional diagnostic binary tach only;
+  `TachIO`/`GPIO16` reserved) — the expander-tach RPM gate is
+  resolved-by-deferral and tach-pull-up / pulses-per-rev no longer gate the
+  PWM-only slice. It is **not yet implementation-ready**: the remaining gate
+  is bench **PWM-polarity** + per-fan/aggregate **current/thermal envelope**
+  + the **four-channel reconciliation** of `fan_pwm.yaml` (the
+  silkscreen / UART / rev-stamp / JSON-promotion items remain open but are
+  product-side, not PWM-only-package-blocking). Per-fan RPM stays future
+  work (`COMPONENT-SX1509-TACH-001` or a bench-confirmed `TachIO`
+  follow-up). **Audit-only — no blocker moves:** no `.xlsx` / gerber /
   CPL / STEP / PNG binary committed (retained-but-not-committed per
   `hardware-artifact-policy.md`); `S360-311` `schematic_status` stays
   `cataloged_unverified`; [`fan_pwm.yaml`](packages/expansions/fan_pwm.yaml)
@@ -131,6 +138,46 @@ mirrored here.
   [`package-readiness-matrix.md`](docs/hardware/package-readiness-matrix.md),
   [`product-readiness-matrix.md`](docs/product-readiness-matrix.md), and
   [`repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md).
+- **PACKAGE-PWM-TACH-STRATEGY-001** delivers, via **this PR** on 2026-05-25,
+  the **docs-only** decision that classifies and resolves the tach/RPM
+  blocker `CORE-ABSTRACT-BUS-SX1509-001` surfaced (SX1509 expander pins
+  cannot back a hardware `pulse_counter`, so per-fan RPM via `Pul_Cou1..4`
+  is un-implementable in ESPHome). It evaluates the five candidate
+  strategies (A no per-fan RPM / B direct-`TachIO` aggregate / C custom
+  component / D hardware rework / E alternative ESPHome component) and
+  records the **operator decision**: **D-T1** the first FanPWM package is
+  allowed to be **PWM-drive-only** (four SX1509 PWM outputs on channels
+  0..3; **no** per-fan RPM sensors; optional diagnostic binary tach states
+  only on channels 4..7; per-fan RPM deferred to future work); **D-T2**
+  `TachIO` / `GPIO16` is **reserved/pending** with no aggregate-RPM and no
+  per-fan-RPM claim and no `TachIO` sensor in the initial package (future
+  aggregate RPM needs bench confirmation of a usable `TachIO` signal **and**
+  resolution of the `GPIO16` conflict — `GPIO16` is also W5500 `RST` on the
+  PoE core and Speaker I2S `DIN` on the voice cores). **Effect:** the
+  expander-tach RPM gate on `PACKAGE-PWM-001-IMPLEMENT-001` is
+  **resolved-by-deferral**; tach-pull-up / pulses-per-rev stop gating the
+  PWM-only slice; the remaining gate narrows to bench **PWM-polarity** +
+  per-fan/aggregate **current/thermal envelope** + the **four-channel
+  reconciliation** of `fan_pwm.yaml`. **Next PR:**
+  `PACKAGE-PWM-001-IMPLEMENT-001` (**PWM-only** scope) is now the designated
+  next PR, but is **not** made implementation-ready here (bench PWM-polarity
+  / current-thermal set and the four-channel reconciliation remain open).
+  Per-fan RPM stays future work — a `COMPONENT-SX1509-TACH-001` or a
+  bench-confirmed `TachIO` follow-up. **Audit-only — nothing moves:** no
+  package / product / config / WebFlash / workflow / firmware / binary edit;
+  no custom component built; `fan_pwm.yaml`, `fan_pwm_sx1509.yaml`,
+  `sense360_fan_pwm.yaml`, `gpio_expander_sx1509.yaml`, and all Core
+  abstract packages are unedited; `S360-311` `schematic_status` stays
+  `cataloged_unverified`; no `products/**`, `products/webflash/**`,
+  `config/**`, `.github/workflows/**`, `components/**`, `include/**`,
+  `firmware/**`, `manifest.json`, `firmware/sources.json`, or WebFlash-repo
+  edit; no PWM product / RPM-via-SX1509 / WebFlash / import / release /
+  compliance readiness claim. Release-One, the LED preview, and FanTRIAC
+  (`blocked` / `HW-005`) are untouched. Docs updated:
+  [`s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md) (new §Tach / RPM
+  strategy + Next-PR designation + audit-log row),
+  [`package-readiness-matrix.md`](docs/hardware/package-readiness-matrix.md),
+  and [`product-readiness-matrix.md`](docs/product-readiness-matrix.md).
 - **SECURITY-AUDIT-FIX-001** closes, via **this PR** on 2026-05-25, the
   workflow-permissions hardening follow-up found by
   `REPO-FRESHNESS-ROADMAP-AUDIT-001` / PR #582 (security §5/§7 of
