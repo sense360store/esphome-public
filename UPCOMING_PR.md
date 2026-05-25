@@ -178,6 +178,55 @@ mirrored here.
   strategy + Next-PR designation + audit-log row),
   [`package-readiness-matrix.md`](docs/hardware/package-readiness-matrix.md),
   and [`product-readiness-matrix.md`](docs/product-readiness-matrix.md).
+- **PWM-SX1509-TACH-PROOF-001** delivers, via **this PR** on 2026-05-25,
+  the **compile/config proof** that replaces the previously-inferred /
+  over-strong SX1509 tach blocker wording with actual ESPHome evidence.
+  Prior wording asserted, by reasoning from `InternalGPIOPin`, that SX1509
+  expander pins "cannot" back a `pulse_counter`; this PR proves it.
+  **What it adds:** a minimal proof fixture
+  [`tests/esphome/sx1509_pulse_counter_proof.yaml`](tests/esphome/sx1509_pulse_counter_proof.yaml)
+  (SX1509 hub on `core_i2c`, channel 4 = `Pul_Cou1`, behind a
+  `sensor: platform: pulse_counter`) and a test
+  [`tests/test_sx1509_tach_pulse_counter_proof.py`](tests/test_sx1509_tach_pulse_counter_proof.py)
+  that runs the proof when the `esphome` CLI is available and otherwise
+  skips (never fakes). **Proof result (ESPHome 2026.5.1, `esphome config`,
+  exit code 2):** the fixture is **rejected** with
+  `[sx1509] is an invalid option for [pin]`. Two control checks in the same
+  test confirm the rejection is `pulse_counter`+SX1509-specific: the same
+  SX1509 pin validates as a `binary_sensor: gpio`, and `pulse_counter`
+  validates on a native ESP32 GPIO. **Wording corrected (not over-claimed):**
+  SX1509 PWM-drive **output** IS supported (`output: platform: sx1509`) and
+  stays the basis of FanPWM drive; SX1509 GPIO/binary **input** is supported;
+  **only** per-fan RPM via an SX1509 `pulse_counter` is compile-proven
+  unsupported by ESPHome validation. The wording moves from "unsupported
+  online" / inferred to "compile-proven unsupported by ESPHome validation".
+  **Decision:** the proof **confirms** the PWM-drive-only-first strategy
+  (`PACKAGE-PWM-TACH-STRATEGY-001`), so the next PR **remains**
+  `PACKAGE-PWM-001-IMPLEMENT-001` scoped PWM-drive-only; per-fan RPM stays
+  future work (`COMPONENT-SX1509-TACH-001` or a bench-confirmed `TachIO`
+  follow-up). New wording-regression guards in
+  [`tests/test_sx1509_tach_pulse_counter_proof.py`](tests/test_sx1509_tach_pulse_counter_proof.py)
+  forbid "SX1509 does not support PWM", forbid uncited "online docs say tach
+  unsupported" attributions, and require the docs to keep PWM-output support
+  distinct from the `pulse_counter`/RPM limitation. **What it does NOT do:**
+  no FanPWM product YAML / WebFlash wrapper / `webflash_build_matrix` flip /
+  `artifact_name` / release artifact / compile-only target; does not edit
+  [`fan_pwm.yaml`](packages/expansions/fan_pwm.yaml),
+  [`sense360_fan_pwm.yaml`](packages/expansions/sense360_fan_pwm.yaml),
+  [`gpio_expander_sx1509.yaml`](packages/expansions/gpio_expander_sx1509.yaml),
+  any Core abstract package, or any `config/**`; `S360-311`
+  `schematic_status` stays `cataloged_unverified`; no `products/**`,
+  `products/webflash/**`, `.github/workflows/**`, `components/**`,
+  `include/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`, or
+  WebFlash-repo edit; no WebFlash / import / release / compliance /
+  hardware-readiness claim. FanRelay and FanDAC are unchanged; Release-One,
+  the LED preview, and FanTRIAC (`blocked` / `HW-005`) are untouched. Edits:
+  [`packages/expansions/fan_pwm_sx1509.yaml`](packages/expansions/fan_pwm_sx1509.yaml)
+  (capability note → compile-proven),
+  [`s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md),
+  [`package-readiness-matrix.md`](docs/hardware/package-readiness-matrix.md),
+  [`product-readiness-matrix.md`](docs/product-readiness-matrix.md), and this
+  file.
 - **SECURITY-AUDIT-FIX-001** closes, via **this PR** on 2026-05-25, the
   workflow-permissions hardening follow-up found by
   `REPO-FRESHNESS-ROADMAP-AUDIT-001` / PR #582 (security §5/§7 of

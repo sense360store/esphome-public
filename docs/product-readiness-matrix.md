@@ -918,6 +918,25 @@ named follow-up.
   / WebFlash / import / release / RPM-support readiness is claimed; the
   legacy [`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml)
   stays `legacy-compatible` and is **not** promoted.
+- **PWM-SX1509-TACH-PROOF-001 addendum (2026-05-25).** No product YAML is
+  added and the product-layer status is unchanged. This PR replaces the
+  previously-inferred tach blocker wording with an actual ESPHome
+  compile/config proof. **SX1509 PWM-drive output IS supported**
+  (`output: platform: sx1509`) and remains the basis of FanPWM drive;
+  SX1509 GPIO/binary input is supported too. **Only the per-fan RPM path —
+  an SX1509 expander pin used as an ESPHome `pulse_counter` — is
+  compile-proven unsupported by ESPHome validation:** the minimal fixture
+  [`tests/esphome/sx1509_pulse_counter_proof.yaml`](../tests/esphome/sx1509_pulse_counter_proof.yaml)
+  is rejected by `esphome config` (ESPHome 2026.5.1, exit code 2) with
+  `[sx1509] is an invalid option for [pin]`, while two control checks in
+  [`tests/test_sx1509_tach_pulse_counter_proof.py`](../tests/test_sx1509_tach_pulse_counter_proof.py)
+  confirm the rejection is `pulse_counter`+SX1509-specific (the same SX1509
+  pin validates as a `binary_sensor: gpio`; `pulse_counter` validates on a
+  native ESP32 GPIO). The proof **confirms** the PWM-drive-only-first
+  strategy rather than revising it; the wording is now "compile-proven
+  unsupported by ESPHome validation", not "unsupported online". No PWM
+  product / WebFlash / import / release / RPM-support / compliance
+  readiness is claimed.
 
 ### FanDAC / S360-312
 

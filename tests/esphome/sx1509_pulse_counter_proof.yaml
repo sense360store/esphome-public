@@ -1,0 +1,76 @@
+# ============================================================================
+# PWM-SX1509-TACH-PROOF-001 — minimal proof fixture (INTENTIONALLY REJECTED)
+# ============================================================================
+# This is a deliberately-failing ESPHome configuration. Its only purpose is to
+# PROVE, by running it through `esphome config`, whether an SX1509 GPIO/PWM
+# expander pin can back an ESPHome `pulse_counter` sensor (the per-fan RPM
+# input that the S360-311 / FanPWM lane would need for `Pul_Cou1..4`).
+#
+# It mirrors the real binding in
+# `packages/expansions/fan_pwm_sx1509.yaml`:
+#   * SX1509 hub `sx1509_expander` on the shared Core bus `core_i2c`
+#     (GPIO48 SDA / GPIO45 SCL @ 400 kHz, address 0x3E)
+#   * channel 4 = the first tach lane (`Pul_Cou1`)
+# but instead of exposing channel 4 as a polled `binary_sensor: platform: gpio`
+# (the supported path the package actually ships), it attempts to use it as a
+# `sensor: platform: pulse_counter` pin — the path whose support was previously
+# only *inferred*.
+#
+# PROOF RESULT (recorded, not faked) — ESPHome 2026.5.1, `esphome config`:
+#   Failed config
+#   sensor.pulse_counter:
+#     pin:
+#       [sx1509] is an invalid option for [pin]. Please check the indentation.
+#
+# i.e. `esphome config` REJECTS this fixture (exit code 2). The `pulse_counter`
+# pin schema accepts only an interrupt-capable native ESP32 `InternalGPIOPin`;
+# the SX1509 expander pin schema (`sx1509:` key) is not a valid option for that
+# pin. This is the compile/config evidence that SX1509 expander pins cannot be
+# used as `pulse_counter` (per-fan RPM) inputs.
+#
+# Control checks run alongside this proof (see
+# `tests/test_sx1509_tach_pulse_counter_proof.py`) confirm the rejection is
+# specific to `pulse_counter` + SX1509, not a generic config error:
+#   * the same SX1509 channel 4 validates fine as a `binary_sensor: gpio`
+#   * `pulse_counter` validates fine on a native ESP32 GPIO (the TachIO line)
+#
+# DO NOT "fix" this file to make it validate. It is supposed to fail; the
+# failure is the evidence. It is NOT a product, compile-only target, WebFlash
+# build, or release artifact, and it is excluded from the compile-only target
+# list in `config/compile-only-targets.json` (those targets must all compile).
+# ============================================================================
+
+esphome:
+  name: sx1509-tach-proof
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+# Shared Core I2C bus (CORE-ABSTRACT-BUS-001B): GPIO48 SDA / GPIO45 SCL.
+i2c:
+  - id: core_i2c
+    sda: GPIO48
+    scl: GPIO45
+    frequency: 400kHz
+
+# SX1509 GPIO/PWM expander hub, same binding as fan_pwm_sx1509.yaml.
+sx1509:
+  - id: sx1509_expander
+    i2c_id: core_i2c
+    address: 0x3E
+
+# The claim under test: SX1509 channel 4 (Pul_Cou1) as a pulse_counter RPM pin.
+# `esphome config` rejects this with
+# "[sx1509] is an invalid option for [pin]".
+sensor:
+  - platform: pulse_counter
+    id: fan_pwm_tach_1_rpm
+    name: "Fan 1 RPM"
+    pin:
+      sx1509: sx1509_expander
+      number: 4
+      mode:
+        input: true
+        pullup: true
