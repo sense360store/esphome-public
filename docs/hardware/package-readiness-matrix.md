@@ -830,6 +830,35 @@ named follow-up.
   **CORE-ABSTRACT-BUS-001**.
 - **Cross-references.** [`s360-311-r4-pwm.md` Follow-up PR sequence](s360-311-r4-pwm.md#follow-up-pr-sequence);
   [`board-readiness-matrix.md` `S360-311` notes](board-readiness-matrix.md#s360-311-sense360-pwm).
+- **PWM-BLOCKER-REMOVAL-001 addendum (2026-05-25).** Status label
+  unchanged (`needs-package-reconciliation` + `bench-evidence-pending`);
+  the FanPWM-specific evidence audit recorded in
+  [`s360-311-r4-pwm.md` §PWM-BLOCKER-REMOVAL-001 readiness / blocker table](s360-311-r4-pwm.md#pwm-blocker-removal-001-readiness--blocker-table)
+  narrows — but does not close — the `PACKAGE-PWM-001` gate:
+  - **BOM cross-check resolved at the part-identity layer.** The Drive
+    `12vFan_PWM_PulseCounter.xlsx` BOM cross-checks the committed
+    `S360-311-R4` schematic 1:1 (`U1` MT3608 boost; `Q1`–`Q4`
+    `ME15N10-G` low-side N-FETs; `D1` SS34; `L1` SRN6045TA 22 µH;
+    `R3` 38k / `R5` 2k divider; JST-SH `SM04B` ×5 / `SM13B` ×1) — same
+    standard `HW-BOM-ASSETS-002` applied to `S360-400` / `S360-410`. No
+    `.xlsx` is committed; `schematic_status` is not promoted.
+  - **Shared-I²C-bus blocker lifted.** `CORE-ABSTRACT-BUS-001B-IMPLEMENT-001`
+    landed the `core_i2c` rename (the SX1509 expander now binds
+    `sx1509_i2c_id: core_i2c`), so `PACKAGE-PWM-001` is no longer
+    blocked at the shared-I²C-bus layer.
+  - **Routing disagreement persists and shifted.** `CORE-ABSTRACT-BUS-001C`
+    retired `expansion_gpio1..4`, so this package's documented
+    `${expansion_gpio1}` / `${expansion_gpio2}` binding is now stale;
+    the ceiling Core no longer defines `fan_pwm_pin` / `fan_tach_pin`,
+    while the mapping Core binds them to direct ESP32 `GPIO4` / `GPIO5`
+    — both still disagree with the schematic's SX1509-routed
+    four-channel topology.
+  - **Remaining gate is operator + bench, not evidence.** Single-vs-
+    four-channel decision; SX1509-vs-direct-ESP32 routing decision;
+    `J3` / `J6` 1-to-13 silkscreen pin order; PWM polarity / tach
+    pull-up / pulses-per-revolution; UART-on-`J3`-pins-11/12; per-fan
+    current + thermal envelope. `PACKAGE-PWM-001-IMPLEMENT-001` stays
+    **NOT READY**.
 
 ### `fan_gp8403.yaml` / S360-312
 
