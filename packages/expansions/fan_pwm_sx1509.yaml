@@ -34,20 +34,32 @@
 # binding; the legacy multi-fan "module" lane uses gpio_expander_sx1509.yaml).
 #
 # ----------------------------------------------------------------------------
-# ESPHome capability note (recorded, not faked):
+# ESPHome capability note (compile-proven, not inferred — PWM-SX1509-TACH-PROOF-001):
 #   * PWM DRIVE (channels 0..3) IS supported: the `output: platform: sx1509`
 #     entries below use the SX1509 on-chip LED-driver PWM engine. This is the
-#     same mechanism used by gpio_expander_sx1509.yaml today.
-#   * TACH RPM via the expander (channels 4..7) is NOT supported as a hardware
-#     pulse counter. ESPHome's `pulse_counter` sensor requires an
-#     interrupt-capable native (`InternalGPIOPin`) pin; SX1509 expander pins
-#     are not internal GPIOs, so they can only be read as polled binary GPIO
-#     state (exposed below as internal `binary_sensor`s), not counted for RPM.
-#     Per-fan RPM through `Pul_Cou1..4` therefore remains a documented blocker
-#     for PACKAGE-PWM-001-IMPLEMENT-001 (resolve via the direct `tach_io_pin`
-#     line, a future custom component, or a bench-decided alternative). The
-#     direct-ESP32 `tach_io_pin` (IO16) IS interrupt-capable and CAN back a
-#     downstream `pulse_counter`.
+#     same mechanism used by gpio_expander_sx1509.yaml today. (SX1509 PWM
+#     output support is NOT in question and stays the basis of FanPWM drive.)
+#   * SX1509 GPIO / binary input (channels 4..7) IS supported: read as polled
+#     binary GPIO state via `binary_sensor: platform: gpio` (exposed below as
+#     internal `binary_sensor`s). This is also config-proven (control check).
+#   * TACH RPM via an SX1509 expander pin (i.e. an SX1509 pin used as an
+#     ESPHome `pulse_counter` input) is compile-proven UNSUPPORTED by ESPHome
+#     validation. This is no longer inferred from "online docs": the minimal
+#     fixture tests/esphome/sx1509_pulse_counter_proof.yaml puts SX1509
+#     channel 4 (`Pul_Cou1`) behind a `sensor: platform: pulse_counter` and
+#     `esphome config` REJECTS it (ESPHome 2026.5.1, exit code 2) with:
+#         sensor.pulse_counter: pin:
+#           [sx1509] is an invalid option for [pin].
+#     The `pulse_counter` pin schema accepts only an interrupt-capable native
+#     ESP32 `InternalGPIOPin`; the SX1509 expander pin schema is not a valid
+#     option for it. Per-fan RPM through `Pul_Cou1..4` therefore remains a
+#     compile-proven blocker for PACKAGE-PWM-001-IMPLEMENT-001 (resolve via the
+#     direct `tach_io_pin` line, a future custom component, or a bench-decided
+#     alternative). The direct-ESP32 `tach_io_pin` (IO16) IS interrupt-capable
+#     and CAN back a downstream `pulse_counter` (config-proven control check).
+#   See tests/test_sx1509_tach_pulse_counter_proof.py for the proof + the two
+#   control checks (SX1509 pin valid as binary_sensor; pulse_counter valid on a
+#   native GPIO) that show the rejection is pulse_counter+SX1509-specific.
 # ============================================================================
 
 substitutions:

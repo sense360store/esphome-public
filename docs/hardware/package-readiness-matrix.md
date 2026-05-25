@@ -304,6 +304,25 @@ is a scope decision only; the FanPWM row stays
 `needs-package-reconciliation` + `bench-evidence-pending` and the
 package is **not yet implemented**.
 
+`PWM-SX1509-TACH-PROOF-001` (2026-05-25) upgrades the premise of
+that decision from an inferred claim to a compile/config proof.
+**SX1509 PWM-drive output IS supported** (`output: platform:
+sx1509`) and stays the basis of FanPWM drive; SX1509 GPIO/binary
+input is supported too. **Only the per-fan RPM path — an SX1509
+expander pin used as an ESPHome `pulse_counter` — is compile-proven
+unsupported by ESPHome validation.** The minimal fixture
+[`tests/esphome/sx1509_pulse_counter_proof.yaml`](../../tests/esphome/sx1509_pulse_counter_proof.yaml)
+is rejected by `esphome config` (ESPHome 2026.5.1, exit code 2)
+with `[sx1509] is an invalid option for [pin]`; two control checks
+in
+[`tests/test_sx1509_tach_pulse_counter_proof.py`](../../tests/test_sx1509_tach_pulse_counter_proof.py)
+confirm the rejection is `pulse_counter`+SX1509-specific (the same
+SX1509 pin validates as a `binary_sensor: gpio`, and
+`pulse_counter` validates on a native ESP32 GPIO). The proof
+**confirms** the PWM-drive-only-first strategy; it does not revise
+it. The wording is now "compile-proven unsupported by ESPHome
+validation", not "unsupported online".
+
 The 2026-05-22 `PACKAGE-DAC-001-READINESS-REFRESH` pass (see
 [`s360-312-r4-fandac.md` PACKAGE-DAC-001 readiness refresh](s360-312-r4-fandac.md#package-dac-001-readiness-refresh))
 re-evaluated the 10 FanDAC-specific blockers enumerated in
