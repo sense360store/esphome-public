@@ -902,6 +902,22 @@ named follow-up.
   RPM via `Pul_Cou1..4` needs the direct `tach_io_pin` / `IO16` line, a
   future custom component, or a bench-decided alternative). No WebFlash /
   release readiness is claimed; FanRelay and FanDAC are unchanged.
+- **PACKAGE-PWM-TACH-STRATEGY-001 addendum (2026-05-25).** No product YAML
+  is added and the product-layer status is unchanged. This PR records the
+  operator tach/RPM decision (see
+  [`s360-311-r4-pwm.md` §Tach / RPM strategy](hardware/s360-311-r4-pwm.md#tach--rpm-strategy-package-pwm-tach-strategy-001)):
+  the first FanPWM package is scoped **PWM-drive-only** (four PWM outputs,
+  **no** per-fan RPM sensors, optional diagnostic binary tach states only,
+  `TachIO`/`GPIO16` reserved/pending), with per-fan RPM deferred to future
+  work. This resolves the expander-tach RPM blocker by deferral but does
+  **not** unblock `PRODUCT-PWM-001`: the product surface stays blocked
+  behind `PACKAGE-PWM-001-IMPLEMENT-001` (PWM-only), which is itself not
+  yet implementation-complete (bench PWM-polarity + current/thermal
+  envelope and the four-channel reconciliation remain). Per-fan RPM is
+  explicitly **out of scope** for the first FanPWM product. No PWM product
+  / WebFlash / import / release / RPM-support readiness is claimed; the
+  legacy [`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml)
+  stays `legacy-compatible` and is **not** promoted.
 
 ### FanDAC / S360-312
 
