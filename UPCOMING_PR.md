@@ -24,6 +24,49 @@ mirrored here.
 
 ## Current queue summary
 
+- **SECURITY-AUDIT-FIX-001** closes, via **this PR** on 2026-05-25, the
+  workflow-permissions hardening follow-up found by
+  `REPO-FRESHNESS-ROADMAP-AUDIT-001` / PR #582 (security §5/§7 of
+  [`docs/repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md)).
+  **What was hardened:** all five workflows under `.github/workflows/`
+  now declare an **explicit top-level `permissions:` block**. The three
+  that previously declared none —
+  [`validate.yml`](.github/workflows/validate.yml),
+  [`compile-only.yml`](.github/workflows/compile-only.yml),
+  [`ci-validate-configs.yml`](.github/workflows/ci-validate-configs.yml) —
+  are pinned to least-privilege `permissions: contents: read`; and
+  [`firmware-build-release.yml`](.github/workflows/firmware-build-release.yml)
+  is narrowed from top-level `contents: write` to `contents: read`,
+  keeping `contents: write` **only** on its `release` job (which attaches
+  release assets via `softprops/action-gh-release`).
+  [`release-notes-draft.yml`](.github/workflows/release-notes-draft.yml)
+  already had `contents: read` and is unchanged. A new regression guard,
+  [`tests/test_workflow_permissions.py`](tests/test_workflow_permissions.py),
+  asserts: explicit top-level `permissions:` on every workflow, no
+  `pull_request_target` trigger, no `permissions: write-all`, no
+  unallowlisted `write` scope (only the `release` job's `contents: write`
+  is allowlisted with a reason), and that every action `uses:` reference
+  is SHA-pinned **or** in a documented mutable-major-tag allowlist. **What
+  remains as follow-up:** GitHub Actions are still pinned to **mutable
+  major tags** (`actions/checkout@v4`, `setup-python@v5`, `cache@v4`,
+  `upload/download-artifact@v4`, `softprops/action-gh-release@v2`), **not**
+  immutable commit SHAs; converting them (starting with the third-party
+  `softprops/action-gh-release@v2`) is carried forward as
+  **`SECURITY-ACTION-PINNING-001`**. The six actions are inventoried with
+  the pinning policy in
+  [`docs/workflow-security-hardening.md`](docs/workflow-security-hardening.md).
+  **No security clean bill of health is claimed** — no Dependabot /
+  code-scanning / secret-scanning **alert** feed was available, so no
+  "no vulnerabilities" claim is made. **Hardening-only — no behaviour
+  change:** token scopes were **tightened**, never widened or weakened; no
+  validation step was removed or relaxed. Edits are confined to
+  `.github/workflows/**` (security hardening only), `tests/**`, `docs/**`,
+  and this file; **no** `packages/**`, `products/**`, `products/webflash/**`,
+  `config/**`, `components/**`, `include/**`, `firmware/**`, `manifest.json`,
+  `firmware/sources.json`, release artifact, checksum, or WebFlash-repo
+  edit; **no** `webflash_build_matrix` flip, `artifact_name`, release
+  artifact, or WebFlash-import / release / compliance / security
+  clean-bill claim.
 - **CONFIG-FRESHNESS-001** closes, via **this PR** on 2026-05-24, the
   single **`ACTIVE-STALE-RISK`** item found by
   `REPO-FRESHNESS-ROADMAP-AUDIT-001` / PR #582: the stale FanDAC

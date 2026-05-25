@@ -51,6 +51,12 @@ on:
           - metadata
           - full
 
+# SECURITY-AUDIT-FIX-001: least-privilege token scope. Both jobs only
+# read the repo and run compile-only validation; nothing here writes
+# contents or any other resource, so the token is pinned to read-only.
+permissions:
+  contents: read
+
 env:
   ESPHOME_VERSION: "2026.4.5"
 

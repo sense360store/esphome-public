@@ -22,6 +22,12 @@ on:
   pull_request:
     branches: ["*"]
 
+# SECURITY-AUDIT-FIX-001: least-privilege token scope. This workflow only
+# reads the repo and runs validation scripts; it never writes contents,
+# issues, PRs, or any other resource, so it is pinned to read-only.
+permissions:
+  contents: read
+
 jobs:
   quick-validate:
     name: YAML Syntax Check
