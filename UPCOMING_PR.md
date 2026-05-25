@@ -86,6 +86,51 @@ mirrored here.
   pass (the resolved items are design decisions, not bench evidence);
   rows 3/4/7 stay blocking on implementation + bench.
   `PACKAGE-PWM-001-IMPLEMENT-001` stays **NOT READY**.
+- **CORE-ABSTRACT-BUS-SX1509-001** delivers, via **this PR** on 2026-05-25,
+  the explicit next prerequisite named by `PWM-BLOCKER-REMOVAL-001`
+  operator decision **D2**: a neutral, **binding-only** Core abstract-bus
+  layer at
+  [`packages/expansions/fan_pwm_sx1509.yaml`](packages/expansions/fan_pwm_sx1509.yaml)
+  that re-anchors the four FanPWM PWM-drive lines and four tach lines onto
+  the **SX1509** expander on `core_i2c`, with `TachIO` direct on `IO16`.
+  **What it adds:** the SX1509 hub (`id: sx1509_expander`,
+  `i2c_id: ${sx1509_i2c_id}` default `core_i2c`, `address: 0x3E`,
+  `sx1509_interrupt_pin: GPIO17`); four `output: platform: sx1509`
+  PWM-drive outputs `fan_pwm_drive_1..4` → channels 0..3 (`TachPMW1..4`);
+  four `binary_sensor: platform: gpio` tach inputs `fan_pwm_tach_1..4`
+  routed through the expander → channels 4..7 (`Pul_Cou1..4`); and a
+  `tach_io_pin: GPIO16` substitution for the direct line. Pinned by new
+  `FanPwm*` regression classes in
+  [`tests/test_core_abstract_bus.py`](tests/test_core_abstract_bus.py).
+  **ESPHome capability finding (recorded, not faked):** SX1509 **PWM
+  drive** IS supported via the on-chip LED-driver PWM (`output: platform:
+  sx1509`), but the SX1509 **tach** lines **cannot** back a hardware
+  `pulse_counter` (that platform requires an interrupt-capable native
+  `InternalGPIOPin`; an expander pin is not one), so they are exposed as
+  polled binary GPIO state only — per-fan RPM via `Pul_Cou1..4` is a
+  **new documented blocker** for `PACKAGE-PWM-001-IMPLEMENT-001` (resolve
+  via the direct `tach_io_pin` / `IO16`, a future custom component, or a
+  bench-decided alternative). **What it does NOT do:** does not close any
+  bench / silkscreen / current / thermal / PWM-polarity / tach-pull-up /
+  pulses-per-revolution evidence; does not make
+  `PACKAGE-PWM-001-IMPLEMENT-001` implementation-ready; does not edit
+  [`fan_pwm.yaml`](packages/expansions/fan_pwm.yaml),
+  [`sense360_fan_pwm.yaml`](packages/expansions/sense360_fan_pwm.yaml),
+  [`gpio_expander_sx1509.yaml`](packages/expansions/gpio_expander_sx1509.yaml),
+  any Core abstract package, or any `config/**`; adds no FanPWM product
+  YAML / WebFlash wrapper / `webflash_build_matrix` flip / `artifact_name`
+  / release artifact, and no compile-only target. **FanRelay and FanDAC
+  are unchanged.** No `products/**`, `products/webflash/**`,
+  `.github/workflows/**`, `components/**`, `include/**`, `firmware/**`,
+  `manifest.json`, `firmware/sources.json`, or WebFlash-repo edit; no
+  WebFlash / import / release / compliance / hardware-readiness claim. The
+  FanPWM **product / WebFlash / release** surface stays blocked. Docs
+  updated:
+  [`s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md) (Next-PR
+  designation + audit-log row),
+  [`package-readiness-matrix.md`](docs/hardware/package-readiness-matrix.md),
+  [`product-readiness-matrix.md`](docs/product-readiness-matrix.md), and
+  [`repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md).
 - **SECURITY-AUDIT-FIX-001** closes, via **this PR** on 2026-05-25, the
   workflow-permissions hardening follow-up found by
   `REPO-FRESHNESS-ROADMAP-AUDIT-001` / PR #582 (security §5/§7 of
