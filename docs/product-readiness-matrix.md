@@ -888,6 +888,20 @@ named follow-up.
   pull-up / pulses-per-revolution; per-fan current envelope). The
   legacy [`products/sense360-fan-pwm.yaml`](../products/sense360-fan-pwm.yaml)
   stays `legacy-compatible` and is **not** promoted.
+- **CORE-ABSTRACT-BUS-SX1509-001 addendum (2026-05-25).** No product YAML
+  is added and the product-layer status is unchanged. This PR landed the
+  neutral, binding-only Core abstract-bus prerequisite
+  [`packages/expansions/fan_pwm_sx1509.yaml`](../packages/expansions/fan_pwm_sx1509.yaml)
+  (SX1509 hub on `core_i2c`; PWM-drive outputs `fan_pwm_drive_1..4` →
+  channels 0..3; tach inputs `fan_pwm_tach_1..4` → channels 4..7;
+  `tach_io_pin: GPIO16`) — the explicit next prerequisite named by
+  operator decision D2. It does **not** unblock `PRODUCT-PWM-001`: the
+  product surface stays blocked behind `PACKAGE-PWM-001`, which is still
+  **NOT READY** (bench evidence owed, plus a **new** documented blocker —
+  ESPHome's `pulse_counter` cannot bind an SX1509 expander pin, so per-fan
+  RPM via `Pul_Cou1..4` needs the direct `tach_io_pin` / `IO16` line, a
+  future custom component, or a bench-decided alternative). No WebFlash /
+  release readiness is claimed; FanRelay and FanDAC are unchanged.
 
 ### FanDAC / S360-312
 

@@ -98,6 +98,11 @@ RELAY_REBIND_PACKAGES = [
 # Per-package substitutions affected by 001C.
 COMFORT_CEILING_PACKAGE = REPO_ROOT / "packages" / "expansions" / "comfort_ceiling.yaml"
 SX1509_PACKAGE = REPO_ROOT / "packages" / "expansions" / "gpio_expander_sx1509.yaml"
+# CORE-ABSTRACT-BUS-SX1509-001: neutral FanPWM SX1509 binding layer.
+FAN_PWM_SX1509_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_pwm_sx1509.yaml"
+FAN_RELAY_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_relay.yaml"
+FAN_DAC_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_dac.yaml"
+FAN_GP8403_PACKAGE_PATH = REPO_ROOT / "packages" / "expansions" / "fan_gp8403.yaml"
 SENSE360_CORE_CEILING = REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml"
 SENSE360_CORE_MAPPING = REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml"
 LED_RING_CEILING_PACKAGE = REPO_ROOT / "packages" / "hardware" / "led_ring_ceiling.yaml"
@@ -1032,6 +1037,291 @@ class SharedI2CBusTests(unittest.TestCase):
                         f"CORE-ABSTRACT-BUS-001B (the consolidated bus "
                         f"inlines GPIO48 / GPIO45 / 400kHz).",
                     )
+
+
+# ============================================================================
+# CORE-ABSTRACT-BUS-SX1509-001 — neutral FanPWM SX1509 binding layer tests
+# ============================================================================
+#
+# These tests pin the neutral, product-agnostic SX1509 binding layer added by
+# CORE-ABSTRACT-BUS-SX1509-001 in
+# ``packages/expansions/fan_pwm_sx1509.yaml``. The binding satisfies the
+# explicit "next prerequisite" recorded by PWM-BLOCKER-REMOVAL-001 (PR #586)
+# operator decision D2:
+#
+#   * TachPMW1..4 (per-fan PWM drive) -> SX1509 channels 0..3
+#   * Pul_Cou1..4 (per-fan tach feedback) -> SX1509 channels 4..7
+#   * TachIO (shared tach passthrough) -> ESP32 IO16 (direct, NOT the expander)
+#
+# The layer is BINDING-ONLY: it adds no FanPWM product, no WebFlash surface,
+# and no product-facing entities, and it does not resurrect the retired
+# ``expansion_gpio1..4`` substitutions.
+
+# SX1509 PWM-drive output ids (TachPMW1..4 -> channels 0..3) and their channel
+# substitutions, in channel order.
+FAN_PWM_DRIVE_BINDINGS = [
+    ("fan_pwm_drive_1", "fan_pwm_drive_1_channel", "0"),
+    ("fan_pwm_drive_2", "fan_pwm_drive_2_channel", "1"),
+    ("fan_pwm_drive_3", "fan_pwm_drive_3_channel", "2"),
+    ("fan_pwm_drive_4", "fan_pwm_drive_4_channel", "3"),
+]
+
+# SX1509 tach binary-sensor ids (Pul_Cou1..4 -> channels 4..7) and their
+# channel substitutions, in channel order.
+FAN_PWM_TACH_BINDINGS = [
+    ("fan_pwm_tach_1", "fan_pwm_tach_1_channel", "4"),
+    ("fan_pwm_tach_2", "fan_pwm_tach_2_channel", "5"),
+    ("fan_pwm_tach_3", "fan_pwm_tach_3_channel", "6"),
+    ("fan_pwm_tach_4", "fan_pwm_tach_4_channel", "7"),
+]
+
+
+class FanPwmSx1509BindingExistsTests(unittest.TestCase):
+    """The neutral FanPWM SX1509 binding package exists."""
+
+    def test_binding_package_present(self) -> None:
+        self.assertTrue(
+            FAN_PWM_SX1509_PACKAGE.is_file(),
+            "packages/expansions/fan_pwm_sx1509.yaml must exist — it is the "
+            "CORE-ABSTRACT-BUS-SX1509-001 neutral binding prerequisite for "
+            "PACKAGE-PWM-001-IMPLEMENT-001.",
+        )
+
+
+class FanPwmSx1509BoundThroughCoreI2cTests(unittest.TestCase):
+    """SX1509 is bound through the shared ``core_i2c`` bus."""
+
+    def test_sx1509_i2c_id_defaults_to_core_i2c(self) -> None:
+        value = _substitution_value(
+            FAN_PWM_SX1509_PACKAGE.read_text(), "sx1509_i2c_id"
+        )
+        self.assertEqual(
+            value,
+            "core_i2c",
+            "fan_pwm_sx1509.yaml sx1509_i2c_id default must be core_i2c "
+            "(CORE-ABSTRACT-BUS-001B shared bus).",
+        )
+
+    def test_sx1509_block_binds_i2c_id_substitution(self) -> None:
+        text = FAN_PWM_SX1509_PACKAGE.read_text()
+        self.assertRegex(
+            text,
+            r"sx1509:\s*\n[^\n]*\n[^\n]*i2c_id:\s*\$\{sx1509_i2c_id\}",
+            "fan_pwm_sx1509.yaml `sx1509:` block must bind "
+            "`i2c_id: ${sx1509_i2c_id}` so the SX1509 hub rides core_i2c.",
+        )
+
+    def test_sx1509_interrupt_pin_is_gpio17(self) -> None:
+        value = _substitution_value(
+            FAN_PWM_SX1509_PACKAGE.read_text(), "sx1509_interrupt_pin"
+        )
+        self.assertEqual(
+            value,
+            "GPIO17",
+            "fan_pwm_sx1509.yaml sx1509_interrupt_pin must be GPIO17 "
+            "(schematic IO17 = expander_int per S360-100-R4).",
+        )
+
+
+class FanPwmSx1509EightChannelTests(unittest.TestCase):
+    """The eight FanPWM-related expander channels are represented neutrally."""
+
+    def test_drive_channel_substitutions_map_0_to_3(self) -> None:
+        text = FAN_PWM_SX1509_PACKAGE.read_text()
+        for _id, sub, expected in FAN_PWM_DRIVE_BINDINGS:
+            with self.subTest(channel_sub=sub):
+                self.assertEqual(
+                    _substitution_value(text, sub),
+                    expected,
+                    f"{sub} must map to SX1509 channel {expected} "
+                    f"(TachPMW -> channels 0..3 per operator decision D2).",
+                )
+
+    def test_tach_channel_substitutions_map_4_to_7(self) -> None:
+        text = FAN_PWM_SX1509_PACKAGE.read_text()
+        for _id, sub, expected in FAN_PWM_TACH_BINDINGS:
+            with self.subTest(channel_sub=sub):
+                self.assertEqual(
+                    _substitution_value(text, sub),
+                    expected,
+                    f"{sub} must map to SX1509 channel {expected} "
+                    f"(Pul_Cou -> channels 4..7 per operator decision D2).",
+                )
+
+    def test_four_sx1509_pwm_drive_outputs_declared(self) -> None:
+        text = FAN_PWM_SX1509_PACKAGE.read_text()
+        for out_id, sub, _expected in FAN_PWM_DRIVE_BINDINGS:
+            with self.subTest(output=out_id):
+                # Each drive output is an `output: platform: sx1509` entry that
+                # references the channel substitution (not a raw GPIO).
+                pattern = re.compile(
+                    r"platform:\s*sx1509\s*\n"
+                    r"(?:\s*[a-z0-9_]+:\s*\S+\s*\n)*?"
+                    rf"\s*id:\s*{re.escape(out_id)}\s*\n"
+                    r"(?:\s*[a-z0-9_]+:\s*\S+\s*\n)*?"
+                    rf"\s*pin:\s*\$\{{{re.escape(sub)}\}}",
+                    re.MULTILINE,
+                )
+                self.assertRegex(
+                    text,
+                    pattern,
+                    f"{out_id} must be declared as `output: platform: sx1509` "
+                    f"with `pin: ${{{sub}}}` (SX1509 on-chip PWM, not ledc).",
+                )
+
+    def test_four_sx1509_tach_binary_sensors_declared(self) -> None:
+        text = FAN_PWM_SX1509_PACKAGE.read_text()
+        for bs_id, sub, _expected in FAN_PWM_TACH_BINDINGS:
+            with self.subTest(binary_sensor=bs_id):
+                # Each tach input is a gpio binary_sensor whose pin routes
+                # through the SX1509 expander at the channel substitution.
+                pattern = re.compile(
+                    rf"id:\s*{re.escape(bs_id)}\s*\n"
+                    r"(?:\s*[a-z_]+:\s*\S+\s*\n)*?"
+                    r"\s*pin:\s*\n"
+                    r"\s*sx1509:\s*sx1509_expander\s*\n"
+                    rf"\s*number:\s*\$\{{{re.escape(sub)}\}}",
+                    re.MULTILINE,
+                )
+                self.assertRegex(
+                    text,
+                    pattern,
+                    f"{bs_id} must be a gpio binary_sensor whose pin routes "
+                    f"through `sx1509: sx1509_expander` at "
+                    f"`number: ${{{sub}}}`.",
+                )
+
+
+class FanPwmTachIoDirectOnGpio16Tests(unittest.TestCase):
+    """TachIO remains direct on ESP32 IO16 (NOT the expander)."""
+
+    def test_tach_io_pin_is_gpio16(self) -> None:
+        value = _substitution_value(
+            FAN_PWM_SX1509_PACKAGE.read_text(), "tach_io_pin"
+        )
+        self.assertEqual(
+            value,
+            "GPIO16",
+            "fan_pwm_sx1509.yaml tach_io_pin must be GPIO16 (schematic "
+            "IO16 = TachIO, direct on the ESP32 per S360-100-R4 — TachIO is "
+            "the only fan line NOT routed through the SX1509 expander).",
+        )
+
+
+class FanPwmNoDirectEsp32FanChannelTests(unittest.TestCase):
+    """No direct ESP32 mapping is used for TachPMW1..4 / Pul_Cou1..4."""
+
+    def test_drive_and_tach_channels_are_not_raw_gpio(self) -> None:
+        text = FAN_PWM_SX1509_PACKAGE.read_text()
+        # The eight FanPWM channels are SX1509 channel numbers, never raw
+        # GPIO pins. Only TachIO (tach_io_pin) and the expander interrupt
+        # (sx1509_interrupt_pin) are GPIO substitutions in this file.
+        for _id, sub, _expected in FAN_PWM_DRIVE_BINDINGS + FAN_PWM_TACH_BINDINGS:
+            value = _substitution_value(text, sub)
+            with self.subTest(channel_sub=sub):
+                self.assertIsNotNone(value, f"{sub} must be defined.")
+                self.assertFalse(
+                    value.upper().startswith("GPIO"),
+                    f"{sub} must be an SX1509 channel number, not a raw ESP32 "
+                    f"GPIO (operator decision D2: TachPMW1..4 / Pul_Cou1..4 are "
+                    f"expander-routed, not direct ESP32).",
+                )
+
+    def test_no_ledc_pwm_drive_in_binding(self) -> None:
+        text = FAN_PWM_SX1509_PACKAGE.read_text()
+        for line in text.splitlines():
+            stripped = line.lstrip()
+            if stripped.startswith("#"):
+                continue
+            self.assertNotRegex(
+                stripped,
+                r"platform:\s*ledc",
+                "fan_pwm_sx1509.yaml must not drive the four PWM channels via "
+                "`ledc` (direct ESP32 PWM); the schematic routes TachPMW1..4 "
+                "through the SX1509 expander.",
+            )
+
+
+class FanPwmSx1509NeutralityTests(unittest.TestCase):
+    """The binding layer adds no FanPWM product / WebFlash / product surface."""
+
+    def test_no_product_facing_entity_names(self) -> None:
+        text = FAN_PWM_SX1509_PACKAGE.read_text()
+        for line_no, line in enumerate(text.splitlines(), start=1):
+            stripped = line.lstrip()
+            if stripped.startswith("#"):
+                continue
+            with self.subTest(line=line_no):
+                self.assertNotRegex(
+                    stripped,
+                    r"^name:\s",
+                    "fan_pwm_sx1509.yaml is binding-only and must not declare "
+                    "product-facing `name:` entities (no fan/light/sensor "
+                    "names; downstream FanPWM owns user-facing entities).",
+                )
+
+    def test_no_esphome_block_or_webflash_surface(self) -> None:
+        text = FAN_PWM_SX1509_PACKAGE.read_text()
+        active = "\n".join(
+            line for line in text.splitlines()
+            if not line.lstrip().startswith("#")
+        )
+        for forbidden in ("esphome:", "artifact_name", "webflash", "fan:", "light:"):
+            with self.subTest(token=forbidden):
+                self.assertNotIn(
+                    forbidden,
+                    active,
+                    f"fan_pwm_sx1509.yaml must not contain `{forbidden}` — it "
+                    f"is a neutral binding layer, not a product / WebFlash / "
+                    f"fan-controller surface.",
+                )
+
+    def test_no_expansion_gpio_substitutions_resurrected(self) -> None:
+        text = FAN_PWM_SX1509_PACKAGE.read_text()
+        for n in (1, 2, 3, 4):
+            with self.subTest(n=n):
+                self.assertIsNone(
+                    _substitution_value(text, f"expansion_gpio{n}"),
+                    f"fan_pwm_sx1509.yaml must not resurrect the retired "
+                    f"`expansion_gpio{n}` substitution (CORE-ABSTRACT-BUS-001C "
+                    f"retired the generic expansion_gpio* abstraction).",
+                )
+
+
+class FanRelayAndFanDacUnchangedTests(unittest.TestCase):
+    """FanRelay / FanDAC remain unaffected by the SX1509 FanPWM binding."""
+
+    def test_fan_relay_does_not_route_through_sx1509(self) -> None:
+        text = FAN_RELAY_PACKAGE.read_text()
+        self.assertNotIn(
+            "sx1509",
+            text,
+            "fan_relay.yaml must remain a relay-only driver (the FanPWM "
+            "SX1509 binding must not leak into FanRelay).",
+        )
+
+    def test_fan_dac_remains_thin_gp8403_include(self) -> None:
+        text = FAN_DAC_PACKAGE.read_text()
+        self.assertIn(
+            "!include fan_gp8403.yaml",
+            text,
+            "fan_dac.yaml must remain a thin !include of fan_gp8403.yaml "
+            "(unchanged by CORE-ABSTRACT-BUS-SX1509-001).",
+        )
+
+    def test_fan_gp8403_uses_dac_not_sx1509(self) -> None:
+        text = FAN_GP8403_PACKAGE_PATH.read_text()
+        self.assertIn(
+            "gp8403:",
+            text,
+            "fan_gp8403.yaml must remain a GP8403 DAC driver.",
+        )
+        self.assertNotIn(
+            "sx1509",
+            text,
+            "fan_gp8403.yaml (FanDAC) must not route through the SX1509 "
+            "expander.",
+        )
 
 
 if __name__ == "__main__":

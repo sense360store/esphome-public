@@ -1,0 +1,153 @@
+# ============================================================================
+# CORE ABSTRACT-BUS — FanPWM SX1509 BINDING LAYER (CORE-ABSTRACT-BUS-SX1509-001)
+# ============================================================================
+# Neutral, product-agnostic Core abstract-bus binding that exposes the four
+# FanPWM PWM-drive channels and four FanPWM tach channels of the S360-311
+# 12 V PWM fan driver on the SX1509 GPIO/PWM expander, plus the direct-ESP32
+# shared `TachIO` line. It exists to satisfy the explicit "next prerequisite"
+# recorded by PWM-BLOCKER-REMOVAL-001 (PR #586) operator decision D2 before
+# any canonical four-channel FanPWM package (PACKAGE-PWM-001-IMPLEMENT-001)
+# can proceed.
+#
+# This package is BINDING-ONLY. It defines no fan controllers, no light/fan
+# entities, no product-facing (`name:`) entities, no `esphome:` block, and no
+# WebFlash / product surface. A downstream FanPWM package consumes the neutral
+# output/binary_sensor IDs and the `tach_io_pin` substitution below.
+#
+# Schematic ground truth (S360-100-R4 Core, per docs/hardware/s360-100-r4-core.md
+# §"Fan / driver outputs" and docs/hardware/s360-311-r4-pwm.md operator
+# decision D2):
+#   * TachPMW1..4 (per-fan PWM drive) -> SX1509 (U3) channels 0..3
+#   * Pul_Cou1..4 (per-fan tach feedback) -> SX1509 (U3) channels 4..7
+#   * TachIO (shared tach passthrough) -> ESP32 IO16 (direct, NOT the expander)
+# The older direct-ESP32 PWM/tach binding (e.g. the single-channel
+# `fan_pwm_pin: GPIO4` / `fan_tach_pin: GPIO5` in sense360_core_mapping.yaml)
+# contradicts this schematic and is NOT reproduced here.
+#
+# Bus: shared `core_i2c` (GPIO48 SDA / GPIO45 SCL @ 400 kHz per
+# CORE-ABSTRACT-BUS-001B), SX1509 at address 0x3E, interrupt on
+# `expander_int` = IO17 (CORE-ABSTRACT-BUS-001C).
+#
+# MUTUALLY EXCLUSIVE WITH packages/expansions/gpio_expander_sx1509.yaml:
+# both bind the SX1509 hub id `sx1509_expander` on `core_i2c`, so a product
+# composes exactly one of them (the canonical FanPWM lane uses this neutral
+# binding; the legacy multi-fan "module" lane uses gpio_expander_sx1509.yaml).
+#
+# ----------------------------------------------------------------------------
+# ESPHome capability note (recorded, not faked):
+#   * PWM DRIVE (channels 0..3) IS supported: the `output: platform: sx1509`
+#     entries below use the SX1509 on-chip LED-driver PWM engine. This is the
+#     same mechanism used by gpio_expander_sx1509.yaml today.
+#   * TACH RPM via the expander (channels 4..7) is NOT supported as a hardware
+#     pulse counter. ESPHome's `pulse_counter` sensor requires an
+#     interrupt-capable native (`InternalGPIOPin`) pin; SX1509 expander pins
+#     are not internal GPIOs, so they can only be read as polled binary GPIO
+#     state (exposed below as internal `binary_sensor`s), not counted for RPM.
+#     Per-fan RPM through `Pul_Cou1..4` therefore remains a documented blocker
+#     for PACKAGE-PWM-001-IMPLEMENT-001 (resolve via the direct `tach_io_pin`
+#     line, a future custom component, or a bench-decided alternative). The
+#     direct-ESP32 `tach_io_pin` (IO16) IS interrupt-capable and CAN back a
+#     downstream `pulse_counter`.
+# ============================================================================
+
+substitutions:
+  # I2C bus id — shared Core bus by default (CORE-ABSTRACT-BUS-001B). Override
+  # with `sx1509_i2c_id` if a product binds a different bus.
+  sx1509_i2c_id: core_i2c
+  sx1509_address: "0x3E"
+  # CORE-ABSTRACT-BUS-001C: expander interrupt net `expander_int` on IO17.
+  sx1509_interrupt_pin: GPIO17
+
+  # FanPWM PWM-drive channels (TachPMW1..4 -> SX1509 channels 0..3).
+  fan_pwm_drive_1_channel: "0"
+  fan_pwm_drive_2_channel: "1"
+  fan_pwm_drive_3_channel: "2"
+  fan_pwm_drive_4_channel: "3"
+
+  # FanPWM tach channels (Pul_Cou1..4 -> SX1509 channels 4..7). Polled binary
+  # state only — see the ESPHome capability note above.
+  fan_pwm_tach_1_channel: "4"
+  fan_pwm_tach_2_channel: "5"
+  fan_pwm_tach_3_channel: "6"
+  fan_pwm_tach_4_channel: "7"
+
+  # Shared TachIO line: direct on ESP32 IO16 (schematic IO16 = TachIO). Not on
+  # the expander. Exposed for a downstream FanPWM package to consume (e.g. as a
+  # `pulse_counter` pin); no consumer is declared in this binding-only package.
+  tach_io_pin: GPIO16
+
+# SX1509 GPIO/PWM expander hub on the shared Core I2C bus.
+sx1509:
+  - id: sx1509_expander
+    i2c_id: ${sx1509_i2c_id}
+    address: ${sx1509_address}
+
+# FanPWM PWM-drive outputs — SX1509 on-chip PWM, channels 0..3 (TachPMW1..4).
+# Neutral float outputs; no fan controller / name is declared here.
+output:
+  - platform: sx1509
+    sx1509_id: sx1509_expander
+    id: fan_pwm_drive_1
+    pin: ${fan_pwm_drive_1_channel}
+
+  - platform: sx1509
+    sx1509_id: sx1509_expander
+    id: fan_pwm_drive_2
+    pin: ${fan_pwm_drive_2_channel}
+
+  - platform: sx1509
+    sx1509_id: sx1509_expander
+    id: fan_pwm_drive_3
+    pin: ${fan_pwm_drive_3_channel}
+
+  - platform: sx1509
+    sx1509_id: sx1509_expander
+    id: fan_pwm_drive_4
+    pin: ${fan_pwm_drive_4_channel}
+
+# FanPWM tach inputs — SX1509 channels 4..7 (Pul_Cou1..4), read as polled
+# binary GPIO state. NOT a hardware pulse counter (see capability note).
+binary_sensor:
+  - platform: gpio
+    id: fan_pwm_tach_1
+    internal: true
+    pin:
+      sx1509: sx1509_expander
+      number: ${fan_pwm_tach_1_channel}
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+  - platform: gpio
+    id: fan_pwm_tach_2
+    internal: true
+    pin:
+      sx1509: sx1509_expander
+      number: ${fan_pwm_tach_2_channel}
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+  - platform: gpio
+    id: fan_pwm_tach_3
+    internal: true
+    pin:
+      sx1509: sx1509_expander
+      number: ${fan_pwm_tach_3_channel}
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+  - platform: gpio
+    id: fan_pwm_tach_4
+    internal: true
+    pin:
+      sx1509: sx1509_expander
+      number: ${fan_pwm_tach_4_channel}
+      mode:
+        input: true
+        pullup: true
+      inverted: true
