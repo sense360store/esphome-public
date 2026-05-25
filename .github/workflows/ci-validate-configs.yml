@@ -47,6 +47,13 @@ on:
           - quick
           - full
 
+# SECURITY-AUDIT-FIX-001: least-privilege token scope. This manual
+# broad/legacy sweep only reads the repo and runs validation / esphome
+# config / lint; it never writes contents or any other resource, so the
+# token is pinned to read-only.
+permissions:
+  contents: read
+
 env:
   ESPHOME_VERSION: "2026.4.5"
 
