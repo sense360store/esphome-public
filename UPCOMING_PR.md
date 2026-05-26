@@ -58,6 +58,55 @@ mirrored here.
   / import / release / compliance / hardware-stable / RPM claim; **no**
   fabricated evidence; Release-One + LED preview unchanged.
 
+- **S360-311-BENCH-EVIDENCE-REQUEST-001** delivers, via **this PR** on
+  2026-05-26, a **docs-only** FanPWM bench **evidence-request**: it turns
+  the still-open S360-311 / FanPWM bench blockers (`PWM-3` / `PWM-6` /
+  `PWM-10` / `PWM-11` / `PWM-13` from BLOCKER-BURNDOWN-001 / PR #599) into
+  one **operator-answerable fill-in checklist** (board rev, fan/load
+  model, supply voltage, PSU/current limit, channels tested, PWM
+  frequency, duty range, **PWM polarity** incl. inversion-required,
+  boot/default output before/after boot + after restart, per-channel +
+  **aggregate** current, inrush/startup, **thermal** with
+  duration/ambient/hottest-location/reading, MT3608/boost observation,
+  connector/pin-1/silkscreen confirmation, TachIO/GPIO16 observation with
+  **no RPM claim**, photos/videos/logs, operator/date/provenance) plus a
+  **pass/fail evidence contract** (what closes PWM polarity / per-fan
+  current / aggregate current / thermal / product bench, and what stays
+  out-of-scope: RPM, WebFlash exposure, release artifact, import
+  readiness, hardware-stable promotion, compliance) in
+  [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md)
+  (canonical), [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §5A,
+  and a dated addendum in
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+  §FanPWM / S360-311. **Drive re-search (this session):** searched
+  `S360-311` / `S360-311-R4` / `FanPWM` / `PWM bench` / `polarity` /
+  `current` / `thermal` / `TachIO` / `GPIO16` / `fan test` / `product
+  bench` / photos / videos / spreadsheets / logs and found **no bench
+  artifact** — only **design / CAD** material (the already-recorded
+  `12vFan_PWM_PulseCounter` set, a canonically-named `S360-311-R4` Drive
+  folder owned by `kanyugistash@gmail.com` created 2026-05-16 holding
+  KiCad sources / gerbers / `positions.csv` CPL / STEP /
+  `S360-311-R4_BOM.xlsx` / `S360-311-R4.pdf` / three renders, and the
+  unchanged `Sense360_R4_Tracker` 2026-05-18), recorded for provenance
+  only, committing no Drive file. **Recommended next PWM PR:**
+  `S360-311-BENCH-RESULT-001` — **gated until the operator uploads /
+  answers the checklist** (no FanPWM bench row can close in a docs-only
+  pass); WebFlash wrapper / build PRs (`WEBFLASH-PWM-001` /
+  `RELEASE-PWM-001` / `WF-IMPORT-PWM-001`) stay blocked, and
+  `WEBFLASH-PWM-LIVE-CHECK-001` stays queued behind WebFlash access. The
+  FanPWM package/product/full-compile chain is complete (PWM-drive-only,
+  no RPM, no `pulse_counter`, `TachIO`/`GPIO16` reserved): PR #590
+  package, PR #591 compile-only target, PR #592 full compile green (run
+  `26414398902`, `compile_mode=full`, 10 targets, success), PR #593
+  product YAML, PR #594 composition parity, PR #598 WebFlash kept
+  blocked. **No** product / package / config / WebFlash / firmware /
+  workflow / release edit; **no** product YAML, WebFlash wrapper,
+  `webflash_build_matrix` flip, `artifact_name`, or release artifact;
+  **no** RPM / WebFlash / import / release / compliance / hardware-stable
+  claim; **no** `schematic_status` change (`S360-311` stays
+  `cataloged_unverified`); **no** fabricated Drive / operator evidence;
+  Release-One + LED preview unchanged.
+
 - **WEBFLASH-PWM-001-READINESS** delivers, via **this PR** on 2026-05-26,
   a **docs-only** re-evaluation of FanPWM / S360-311 WebFlash-exposure
   readiness using the latest package / product / full-compile /
@@ -6274,6 +6323,64 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       compliance / hardware-stable / security clean-bill claim; no fabricated
       WebFlash evidence. Release-One + LED preview + FanTRIAC (`blocked` /
       `HW-005`) unchanged; `S360-311` stays `cataloged_unverified`.
+32. **S360-311-BENCH-EVIDENCE-REQUEST-001 — Define FanPWM bench evidence
+    checklist**
+    - Status: **DONE — docs-only (2026-05-26; this PR); no exposure flip,
+      no behaviour change**
+    - Purpose: Turn the still-open S360-311 / FanPWM bench blockers
+      (`PWM-3` / `PWM-6` / `PWM-10` / `PWM-11` / `PWM-13` from
+      BLOCKER-BURNDOWN-001 / PR #599) into a precise operator checklist and
+      pass/fail evidence contract so a later `S360-311-BENCH-RESULT-001` is
+      small and evidence-backed. Added the canonical checklist + contract
+      to [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md)
+      §S360-311-BENCH-EVIDENCE-REQUEST-001, the cross-lane copy to
+      [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §5A, and a
+      dated addendum to
+      [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+      §FanPWM / S360-311.
+    - Checklist (operator-answerable): board revision tested; fan/load
+      model; supply voltage; PSU/current limit; channels tested; PWM
+      frequency; PWM duty range; **PWM polarity** (does increasing duty
+      increase fan speed? is inversion required?); boot/default output
+      (before boot / after boot / after restart); per-channel current;
+      **aggregate** 4-channel current; inrush/startup; **thermal**
+      (duration / ambient / hottest location / reading); MT3608/boost
+      observation; connector/pin-1/silkscreen confirmation; TachIO/GPIO16
+      observation (**no RPM claim**); photos/videos/logs;
+      operator/date/source/provenance.
+    - Evidence contract: defines what PASS-grade evidence closes PWM
+      polarity (`PWM-10`), per-fan current (`PWM-6`), aggregate current
+      (`PWM-6`), thermal (`PWM-6`/`PWM-13`), and product bench (`PWM-11`),
+      and what stays out-of-scope — RPM support, WebFlash exposure,
+      release artifact, import readiness, hardware-stable promotion, and
+      compliance approval.
+    - Drive re-search (this session): searched `S360-311` / `S360-311-R4`
+      / `FanPWM` / `PWM bench` / `polarity` / `current` / `thermal` /
+      `TachIO` / `GPIO16` / `fan test` / `product bench` / photos / videos
+      / spreadsheets / logs — **no bench artifact found**, only design /
+      CAD material (the already-recorded `12vFan_PWM_PulseCounter` set, a
+      canonically-named `S360-311-R4` Drive folder owned by
+      `kanyugistash@gmail.com` created 2026-05-16 with KiCad sources /
+      gerbers / CPL / STEP / `S360-311-R4_BOM.xlsx` / `S360-311-R4.pdf` /
+      three renders, and the unchanged `Sense360_R4_Tracker` 2026-05-18),
+      recorded for provenance only and committing no Drive file.
+    - Recommends next: **`S360-311-BENCH-RESULT-001`** — gated until the
+      operator uploads / answers the checklist; no FanPWM bench row can
+      close in a docs-only pass. WebFlash wrapper / build PRs
+      (`WEBFLASH-PWM-001` / `RELEASE-PWM-001` / `WF-IMPORT-PWM-001`) stay
+      blocked; `WEBFLASH-PWM-LIVE-CHECK-001` stays queued behind WebFlash
+      access restoration.
+    - Guardrails: no `packages/**`, `products/**`, `products/webflash/**`,
+      `config/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`,
+      release-artifact, checksum, build-info, `tests/**`, `scripts/**`,
+      `.github/workflows/**`, `components/**`, `include/**`, or
+      `sense360store/WebFlash` edit; no FanPWM behaviour change; no product
+      YAML; no WebFlash wrapper; no `webflash_build_matrix` flip; no
+      `artifact_name`; no release artifact; no RPM / WebFlash / import /
+      release / compliance / hardware-stable claim; no `schematic_status`
+      promotion (`S360-311` stays `cataloged_unverified`); no fabricated
+      Drive / operator evidence. Release-One + LED preview + FanTRIAC
+      (`blocked` / `HW-005`) unchanged.
 
 ## Cross-repo dependencies
 
@@ -6346,6 +6453,39 @@ visible. Do not implement them from this repo.
 
 ## Recently uploaded evidence
 
+- **2026-05-26 — `S360-311-BENCH-EVIDENCE-REQUEST-001` Drive re-search:
+  no new FanPWM bench evidence (design / CAD only; provenance recorded,
+  nothing committed).** Searched Google Drive for `S360-311`,
+  `S360-311-R4`, `FanPWM`, `PWM bench`, `polarity`, `current`, `thermal`,
+  `TachIO`, `GPIO16`, `fan test`, `product bench`, and photos / videos /
+  spreadsheets / logs. **No bench artifact exists** — no PWM-polarity
+  waveform, no per-fan / aggregate current measurement, no MT3608
+  boost-ceiling note, no inrush / locked-rotor capture, no thermal
+  observation, no product-bench sign-off. The only FanPWM-bearing
+  material is **design / CAD**: (a) the already-recorded
+  `12vFan_PWM_PulseCounter` set (schematic PDF, `.xlsx` BOM, gerbers,
+  CPL, STEP, KiCad sources, 3 renders); (b) a canonically-named
+  `S360-311-R4` Drive folder (owner `kanyugistash@gmail.com`, folder
+  created 2026-05-16) holding `S360-311-R4.kicad_sch` / `.kicad_pcb` /
+  `.kicad_pro`, `S360-311-R4.step`, `S360-311-R4_GERBERS.zip`,
+  `S360-311-R4_positions.csv` (CPL), `S360-311-R4.pdf` (schematic),
+  `S360-311-R4_BOM.xlsx` (modified 2026-02-08), and three renders
+  `S360-311-R4.png` / `_2.png` / `_3.png` (modified 2026-05-14); (c) the
+  unchanged `Sense360_R4_Tracker` (2026-05-18). This is the same artifact
+  class as the committed
+  [`docs/hardware/schematics/S360-311-R4.pdf`](docs/hardware/schematics/S360-311-R4.pdf),
+  is recorded for **provenance only**, closes **no** bench blocker, and
+  **no Drive file is committed by this PR**. The open FanPWM bench rows
+  (`PWM-3` / `PWM-6` / `PWM-10` / `PWM-11` / `PWM-13`) are converted into
+  the operator checklist + pass/fail evidence contract in
+  [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md)
+  §S360-311-BENCH-EVIDENCE-REQUEST-001 and
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §5A.
+  `S360-311-BENCH-RESULT-001` stays **gated** until the operator uploads
+  / answers the checklist. No claim of FanPWM bench-readiness, RPM
+  support, WebFlash / import / release readiness, compliance clearance,
+  or hardware-stable readiness; `S360-311` stays `cataloged_unverified`;
+  no fabricated evidence.
 - **2026-05-22 — `WEBFLASH-RELAY-001-READINESS-REFRESH` defined the
   Relay WebFlash-layer disposition after `PRODUCT-RELAY-001` /
   PR #564 landed the FanRelay product YAML without WebFlash
