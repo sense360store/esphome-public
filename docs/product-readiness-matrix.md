@@ -1349,6 +1349,35 @@ named follow-up.
   `config/product-catalog.json` are unchanged (their full-compile-owed
   narrative is a separate follow-up). FanRelay carries no
   `compile_validation_status` field and is unchanged.
+- **2026-05-26 — `WEBFLASH-DAC-001-READINESS` (this PR; docs-only).**
+  Re-evaluated the FanDAC WebFlash-exposure readiness after the
+  `WEBFLASH-DRIFT-001` / PR #595 audit, **without exposing FanDAC to
+  WebFlash**. The product-layer disposition is **unchanged** —
+  product-YAML-landed + WebFlash-blocked + `validated-full-compile`. The
+  full re-evaluated DAC WebFlash readiness table (gate / status /
+  evidence / next action) is recorded in
+  [`webflash-exposure-readiness-matrix.md` §DAC / S360-312 WebFlash posture](webflash-exposure-readiness-matrix.md#dac--s360-312-webflash-posture):
+  the package / product / full-compile / `compile_validation_status` /
+  `voltage`-enum / config-posture-hardware / `FanDAC ↔ AirIQ` mutex gates
+  are `CLOSED` (stronger than FanRelay — DAC's compile-status flag is
+  already set, so there is no compile-flag gap); WebFlash wrapper /
+  `config/webflash-builds.json` row / `artifact_name` / release artifact /
+  import-source / voltage-mode UX / compliance are `BLOCKING`; live
+  `sense360store/WebFlash` re-verification and the still-owed `S360-312`
+  module-availability classification (`WEBFLASH-DRIFT-001` row #17) are
+  `NEEDS-TOOLING` (read access denied this session); the `J3` silkscreen
+  transposition and Cloudlift S12 harness / product-bench caveats remain
+  `NEEDS-OPERATOR-INPUT`. **The recommended next DAC PR is
+  `WEBFLASH-DAC-LIVE-CHECK-001`, not `WEBFLASH-DAC-002-WRAPPER-PLAN`
+  and not `WEBFLASH-DAC-001`** (non-WebFlash gates are not all clean). No
+  `config/`, `packages/`, `products/`, `products/webflash/`, test,
+  workflow, firmware, or `sense360store/WebFlash` edit; no
+  `webflash_build_matrix` flip; no `artifact_name`; no `schematic_status` /
+  `schematic_file` promotion (`S360-312` stays `cataloged_unverified`); no
+  COMPLIANCE-001 movement; the `FanDAC ↔ AirIQ` mutex is not relaxed.
+  **No claim of FanDAC WebFlash-readiness, release-readiness, WebFlash
+  import-readiness, compliance-clearance, board-level safety
+  certification, or hardware-stable readiness.**
 - **Cross-references.**
   [`docs/hardware/s360-312-r4-fandac.md`](hardware/s360-312-r4-fandac.md);
   [`docs/hardware/s360-312-r4-dac.md`](hardware/s360-312-r4-dac.md);
