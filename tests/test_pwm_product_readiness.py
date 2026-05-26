@@ -137,6 +137,26 @@ def _catalog_entry_for(rel_path: str) -> Dict[str, Any]:
     )
 
 
+def _package_include_map(yaml_path: Path) -> Dict[str, str]:
+    """Return ``{package_key: repo-relative !include target}`` for a YAML.
+
+    The minimal ESPHome constructors registered above turn an ``!include
+    <path>`` scalar into the raw (directory-relative) path string, so every
+    ``packages:`` value is that include target. Resolve it against the YAML's
+    own directory and re-root on ``REPO_ROOT`` so a top-level product YAML
+    (``../packages/...``) and a ``products/compile-only/`` skeleton
+    (``../../packages/...``) become directly comparable.
+    """
+    data = _load_yaml(yaml_path)
+    packages = data.get("packages", {}) or {}
+    out: Dict[str, str] = {}
+    base = yaml_path.parent
+    for key, value in packages.items():
+        resolved = (base / str(value)).resolve()
+        out[key] = resolved.relative_to(REPO_ROOT).as_posix()
+    return out
+
+
 class PwmProductYamlExistsTests(unittest.TestCase):
     """The PRODUCT-PWM-001 product YAML exists at the canonical path."""
 
@@ -640,6 +660,107 @@ class PwmProductCompileOnlyTargetUnchangedTests(unittest.TestCase):
             f"full compile passed in run {FANPWM_FULL_COMPILE_RUN_ID} "
             "(FW-COMPILE-PWM-RESULT-001 / PR #592); PRODUCT-PWM-001 must "
             "not regress it.",
+        )
+
+
+class PwmProductMatchesValidatedCompileOnlyCompositionTests(unittest.TestCase):
+    """FW-COMPILE-PWM-PRODUCT-001: the product YAML composes the SAME
+    validated package set as the full-compile-validated compile-only target.
+
+    ``products/compile-only/ceiling-poe-fanpwm.yaml`` is the skeleton whose
+    FULL ESPHome compile passed in run 26414398902 (``compile_mode=full``;
+    FW-COMPILE-PWM-RESULT-001 / PR #592). PRODUCT-PWM-001 then added the
+    normal product YAML. These tests pin that the two YAMLs compose the
+    identical Core ceiling + PoE PSU + base/health + FanPWM package set (same
+    package keys, same repo-relative ``!include`` targets), so the recorded
+    full compile transfers to the product YAML's composition. The two differ
+    only in substitutions / identification ``text_sensor`` wording, never in
+    which packages are composed.
+
+    Live ``esphome config products/sense360-ceiling-poe-fanpwm.yaml`` is NOT
+    asserted here (ESPHome is not assumed present); the structural parity to
+    the already-validated compile-only skeleton is what these tests pin. See
+    docs/product-readiness-matrix.md §FanPWM / S360-311
+    FW-COMPILE-PWM-PRODUCT-001 addendum for the conservative status and the
+    exact manual / CI command that still owns the live product-config run.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.compile_only_yaml = REPO_ROOT / FANPWM_COMPILE_ONLY_PRODUCT_YAML
+        cls.product_map = _package_include_map(PWM_PRODUCT_YAML)
+        cls.compile_map = _package_include_map(cls.compile_only_yaml)
+
+    def test_compile_only_skeleton_file_exists(self) -> None:
+        self.assertTrue(
+            self.compile_only_yaml.is_file(),
+            f"the full-compile-validated compile-only skeleton "
+            f"{FANPWM_COMPILE_ONLY_PRODUCT_YAML} must exist for the product "
+            "YAML to inherit its validated composition",
+        )
+
+    def test_product_and_compile_only_compose_identical_package_set(
+        self,
+    ) -> None:
+        self.assertEqual(
+            self.product_map,
+            self.compile_map,
+            "FanPWM product YAML must compose the IDENTICAL package set "
+            "(same package keys, same repo-relative !include targets) as the "
+            "full-compile-validated compile-only skeleton "
+            f"{FANPWM_COMPILE_ONLY_PRODUCT_YAML} (run "
+            f"{FANPWM_FULL_COMPILE_RUN_ID}); otherwise the recorded full "
+            "compile does not transfer to the product composition.",
+        )
+
+    def test_both_compose_canonical_fan_pwm_package(self) -> None:
+        for label, mapping in (
+            ("product", self.product_map),
+            ("compile-only", self.compile_map),
+        ):
+            self.assertIn(
+                "packages/expansions/fan_pwm.yaml",
+                set(mapping.values()),
+                f"the {label} FanPWM YAML must compose the canonical "
+                "PWM-drive-only package packages/expansions/fan_pwm.yaml",
+            )
+
+    def test_both_yamls_surface_same_config_string(self) -> None:
+        for path in (PWM_PRODUCT_YAML, self.compile_only_yaml):
+            data = _load_yaml(path)
+            sensors = data.get("text_sensor", []) or []
+            lambdas = " ".join(
+                str(s.get("lambda", "")) for s in sensors if isinstance(s, dict)
+            )
+            self.assertIn(
+                PWM_CONFIG_STRING,
+                lambdas,
+                f"{path.name} must surface the {PWM_CONFIG_STRING!r} config "
+                "string so the product and its validated compile-only "
+                "skeleton agree on the config identity.",
+            )
+
+    def test_validated_composition_is_recorded_full_compile(self) -> None:
+        doc = _load_json(COMPILE_ONLY_TARGETS)
+        target = next(
+            (
+                t
+                for t in doc.get("targets", [])
+                if t.get("id") == FANPWM_COMPILE_ONLY_TARGET_ID
+            ),
+            None,
+        )
+        self.assertIsNotNone(target)
+        self.assertEqual(
+            target.get("compile_validation_status"),
+            "validated-full-compile",
+            "the composition the product YAML mirrors must remain "
+            f"validated-full-compile (run {FANPWM_FULL_COMPILE_RUN_ID}); "
+            "FW-COMPILE-PWM-PRODUCT-001 relies on that recorded full compile.",
+        )
+        self.assertFalse(
+            target.get("rpm_supported", False),
+            "the validated composition must keep rpm_supported false.",
         )
 
 

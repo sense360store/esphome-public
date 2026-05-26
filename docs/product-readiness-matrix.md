@@ -1030,6 +1030,41 @@ named follow-up.
   stays the separate CI validation target (unchanged). Pinned by
   [`tests/test_pwm_product_readiness.py`](../tests/test_pwm_product_readiness.py).
   FanRelay and FanDAC are unchanged.
+- **FW-COMPILE-PWM-PRODUCT-001 addendum (2026-05-26; validation slice —
+  docs / tests only).** This slice **validates** the PRODUCT-PWM-001 product
+  YAML without changing WebFlash / release exposure. It adds a
+  composition-parity check
+  (`PwmProductMatchesValidatedCompileOnlyCompositionTests` in
+  [`tests/test_pwm_product_readiness.py`](../tests/test_pwm_product_readiness.py))
+  that pins that
+  [`products/sense360-ceiling-poe-fanpwm.yaml`](../products/sense360-ceiling-poe-fanpwm.yaml)
+  composes the **identical** package set (same package keys, same
+  repo-relative `!include` targets — Core ceiling + PoE PSU + base/health +
+  [`fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml)) as the
+  full-compile-validated compile-only skeleton
+  [`products/compile-only/ceiling-poe-fanpwm.yaml`](../products/compile-only/ceiling-poe-fanpwm.yaml)
+  (run `26414398902`, `compile_mode=full`, `validated-full-compile`). The two
+  YAMLs differ only in substitutions / identification `text_sensor` wording,
+  so the recorded full compile transfers to the product composition. The
+  existing guards continue to pin **no WebFlash / release metadata** (no
+  `webflash_build_matrix` flip, no `artifact_name`, no `webflash_wrapper`, no
+  `config/webflash-builds.json` row) and **no RPM** (no `pulse_counter`, no
+  `${tach_io_pin}` / `GPIO16` active binding). **Live `esphome config` was NOT
+  run** — ESPHome is not present in this environment, so live product-config
+  validation of `products/sense360-ceiling-poe-fanpwm.yaml` **remains
+  pending**. The exact action that still owns it: run
+  `esphome config products/sense360-ceiling-poe-fanpwm.yaml` locally with
+  ESPHome installed, **or** rely on the `Compile-only Firmware Validation`
+  action (`scripts/validate_compile_targets.py --compile`) which already
+  full-compiles the byte-for-byte-equivalent composition via the compile-only
+  skeleton. **Status stays conservative and unchanged:** `Ceiling-POE-FanPWM`
+  remains `hardware-pending`, PWM-drive-only, **no RPM**; `WEBFLASH-PWM-001` /
+  `RELEASE-PWM-001` / `WF-IMPORT-PWM-001` stay blocked; the S360-311 bench
+  gates (PWM polarity; per-fan / aggregate current + thermal envelope; product
+  bench) stay open; `S360-311` `schematic_status` stays
+  `cataloged_unverified`. This is **not** WebFlash / import / release
+  readiness, **not** compliance approval, and **not** hardware-stable
+  readiness.
 
 ### FanDAC / S360-312
 
