@@ -24,6 +24,48 @@ mirrored here.
 
 ## Current queue summary
 
+- **S360-311-BENCH-RESULT-001** delivers, via **this PR** on 2026-05-26, a
+  **docs-only** record of the operator's FanPWM bench result. The operator
+  (`@wifispray`) ran the bench requested by
+  `S360-311-BENCH-EVIDENCE-REQUEST-001` (PR #600) and reported, as
+  **operator notes only** (no photo / video / log): board tested =
+  **S360-311-R4**; fan/load = **Arctic P14 Plus**; supply = **12 V** from
+  the on-board **MT3608 boost** (~**2 A** available); **all 4 channels
+  tested individually** for speed / control; **all 4 ran simultaneously
+  for 1+ hour** with no heat issue noticed; **increasing duty increased
+  fan speed** (non-inverting) across **low / medium / high** duty;
+  **fans stayed on at the last commanded speed during restart**;
+  per-channel + aggregate current and TachIO/GPIO16 **not measured**;
+  operator **confirms working**. This **closes** PWM polarity (`PWM-10`)
+  and the **functional product bench** (`PWM-11`) and **partially
+  advances** `PWM-3` (board rev), `PWM-6` (fan/load + supply) and `PWM-13`
+  (qualitative 1+ hour thermal). It **keeps open** measured per-channel +
+  aggregate current and measured thermal temperature (`PWM-6` / `PWM-13`),
+  `TachIO`/`GPIO16` + RPM (`PWM-12`; `rpm_supported: false`, no
+  `pulse_counter`), WebFlash live access / `S360-311` module-availability
+  (`PWM-15`), WebFlash wrapper / build / artifact / import, release
+  readiness, hardware-stable promotion (`S360-311` stays
+  `cataloged_unverified`), and compliance. Records in
+  [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md)
+  §S360-311-BENCH-RESULT-001 (canonical),
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §5B + updated
+  §2A / §3 / §4, and dated addenda in
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+  [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+  and [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md).
+  **Recommended next PWM PR: `S360-311-CURRENT-THERMAL-001`** (measured
+  per-channel + aggregate current, MT3608 measured ceiling / inrush,
+  measured thermal temperature or documented method); WebFlash stays
+  separate and blocked (`WEBFLASH-PWM-LIVE-CHECK-001` behind access) and
+  **no `WEBFLASH-PWM-001` wrapper** is recommended until measured
+  current/thermal *and* the WebFlash live classification are done. **No**
+  product / package / config / WebFlash / firmware / workflow / release
+  edit; **no** product YAML, WebFlash wrapper, `webflash_build_matrix`
+  flip, `artifact_name`, or release artifact; **no** RPM / WebFlash /
+  import / release / compliance / hardware-stable claim; **no**
+  `schematic_status` change; **no** fabricated photo / video / log /
+  measurement evidence; Release-One + LED preview unchanged.
+
 - **BLOCKER-BURNDOWN-001** delivers, via **this PR** on 2026-05-26, a
   **docs-only** consolidated blocker burn-down across the Relay / DAC /
   PWM lanes, WebFlash live access, security action pinning, release /
@@ -6381,6 +6423,69 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       promotion (`S360-311` stays `cataloged_unverified`); no fabricated
       Drive / operator evidence. Release-One + LED preview + FanTRIAC
       (`blocked` / `HW-005`) unchanged.
+33. **S360-311-BENCH-RESULT-001 — Record FanPWM operator bench result**
+    - Status: **DONE — docs-only (2026-05-26; this PR); no exposure flip,
+      no behaviour change**
+    - Purpose: Record the operator-provided S360-311 / FanPWM bench
+      evidence (requested by `S360-311-BENCH-EVIDENCE-REQUEST-001` /
+      PR #600) and close **only** the supported bench gates. Canonical
+      record in [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md)
+      §S360-311-BENCH-RESULT-001; cross-lane copy in
+      [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §5B (with
+      updated §2A rows `PWM-3`/`6`/`10`/`11`/`13`, §3 counts, §4 next-PR);
+      dated addenda in
+      [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+      [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+      [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md).
+    - Operator evidence (operator `@wifispray`, 2026-05-26; **operator
+      notes only**, no photo/video/log): board tested = **S360-311-R4**;
+      fan/load = **Arctic P14 Plus**; supply = **12 V** from on-board
+      **MT3608 boost** (~**2 A** available); **all 4 channels tested
+      individually** for speed/control; **all 4 ran simultaneously for
+      1+ hour**, no heat issue noticed; **increasing duty increased fan
+      speed** (non-inverting, no inversion required) across **low/medium/
+      high** duty; **fans retained the last commanded speed across
+      restart**; per-channel + aggregate current **not measured**;
+      TachIO/GPIO16 **not measured**; operator **confirms working**.
+    - Gates closed / partially closed: **CLOSED** — PWM polarity
+      (`PWM-10`, observed behaviour) and the **functional product bench**
+      (`PWM-11`: four-channel individual speed/control + all-four
+      simultaneous + restart retention, operator-notes-only). **PARTIAL**
+      — `PWM-3` (board rev `S360-311-R4` recorded), `PWM-6` (fan/load +
+      12 V/MT3608/~2 A supply recorded), `PWM-13` (qualitative 1+ hour
+      no-heat observation).
+    - Gates kept open: measured per-channel + aggregate current and
+      measured thermal temperature (`PWM-6` / `PWM-13`); TachIO/GPIO16 +
+      RPM (`PWM-12`; `rpm_supported: false`, no `pulse_counter`); WebFlash
+      live access + `S360-311` module-availability (`PWM-15`); WebFlash
+      wrapper / build / artifact / import; release readiness
+      (`RELEASE-PWM-001`); hardware-stable promotion (`S360-311` stays
+      `cataloged_unverified`); compliance (SELV — `COMPLIANCE-001` n/a).
+    - Exact remaining evidence checklist: (1) measured current per
+      channel; (2) measured aggregate current with all 4 active + MT3608
+      measured ceiling / inrush; (3) measured thermal temperature or a
+      documented thermal method if policy requires more than the recorded
+      qualitative 1+ hour observation; (4) optional TachIO/GPIO16
+      observation only if RPM/diagnostics ever become in scope (not an RPM
+      claim); (5) photo/video/log evidence if policy requires more than
+      operator notes.
+    - Recommends next: **`S360-311-CURRENT-THERMAL-001`** (measured
+      current / thermal). WebFlash stays separate and blocked —
+      `WEBFLASH-PWM-LIVE-CHECK-001` behind `sense360store/WebFlash`
+      access; **no `WEBFLASH-PWM-001` wrapper** until measured
+      current/thermal *and* the WebFlash live classification are done;
+      `RELEASE-PWM-001` / `WF-IMPORT-PWM-001` stay gated behind that.
+    - Guardrails: no `packages/**`, `products/**`, `products/webflash/**`,
+      `config/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`,
+      release-artifact, checksum, build-info, `tests/**`, `scripts/**`,
+      `.github/workflows/**`, `components/**`, `include/**`, or
+      `sense360store/WebFlash` edit; no FanPWM behaviour change; no product
+      YAML; no WebFlash wrapper; no `webflash_build_matrix` flip; no
+      `artifact_name`; no release artifact; no RPM / WebFlash / import /
+      release / compliance / hardware-stable claim; no `schematic_status`
+      promotion (`S360-311` stays `cataloged_unverified`); no fabricated
+      photo / video / log / measurement evidence. Release-One + LED
+      preview + FanTRIAC (`blocked` / `HW-005`) unchanged.
 
 ## Cross-repo dependencies
 
@@ -6453,6 +6558,34 @@ visible. Do not implement them from this repo.
 
 ## Recently uploaded evidence
 
+- **2026-05-26 — `S360-311-BENCH-RESULT-001`: operator FanPWM bench
+  result recorded (operator notes only; no photo/video/log; nothing
+  fabricated).** The operator (`@wifispray`) ran the FanPWM bench
+  requested by `S360-311-BENCH-EVIDENCE-REQUEST-001` (PR #600) and
+  reported: board tested = **S360-311-R4**; fan/load = **Arctic P14
+  Plus**; supply = **12 V** from the on-board **MT3608 boost** (~**2 A**
+  available); **all 4 channels (`J1`/`J2`/`J4`/`J5`) tested individually**
+  for speed/control; **all 4 ran simultaneously for 1+ hour**, no heat
+  issue noticed; **increasing duty increased fan speed** (non-inverting,
+  no inversion required) across **low/medium/high** duty; **fans retained
+  the last commanded speed across a restart**; per-channel + aggregate
+  current **not measured**; TachIO/GPIO16 **not measured**; **operator
+  confirms working**. This evidence is an **operator attestation** (the
+  same class that closed the `S360-310-BENCH-EVIDENCE-001` package rows),
+  **not** a Drive artifact — no file is committed and no photo / video /
+  log / measurement is fabricated. It **closes** PWM polarity (`PWM-10`)
+  and the **functional product bench** (`PWM-11`) and **partially
+  advances** `PWM-3` / `PWM-6` / `PWM-13`; the **measured** current /
+  thermal rows stay open and feed **`S360-311-CURRENT-THERMAL-001`**. RPM
+  stays unsupported (no `pulse_counter`; `PWM-12`); WebFlash live access /
+  module-availability (`PWM-15`), wrapper / build / artifact / import,
+  release, hardware-stable promotion (`S360-311` stays
+  `cataloged_unverified`), and compliance stay unchanged. Recorded in
+  [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md)
+  §S360-311-BENCH-RESULT-001 and
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §5B. No claim of
+  FanPWM RPM support, WebFlash / import / release readiness, compliance
+  clearance, or hardware-stable readiness.
 - **2026-05-26 — `S360-311-BENCH-EVIDENCE-REQUEST-001` Drive re-search:
   no new FanPWM bench evidence (design / CAD only; provenance recorded,
   nothing committed).** Searched Google Drive for `S360-311`,
