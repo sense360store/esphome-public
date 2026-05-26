@@ -1112,6 +1112,40 @@ named follow-up.
   `cataloged_unverified`. This is **not** WebFlash / import / release
   readiness, **not** compliance approval, and **not** hardware-stable
   readiness.
+- **2026-05-26 — `WEBFLASH-PWM-001-READINESS` (this PR; docs-only).**
+  Re-evaluated the FanPWM WebFlash-exposure readiness after the
+  `WEBFLASH-DRIFT-001` / PR #595 audit, **without exposing FanPWM to
+  WebFlash**. The product-layer disposition is **unchanged** —
+  product-YAML-landed + WebFlash-blocked + `validated-full-compile` +
+  `rpm_supported: false`. The full re-evaluated PWM WebFlash readiness
+  table (gate / status / evidence / next action) is recorded in
+  [`webflash-exposure-readiness-matrix.md` §PWM / S360-311 WebFlash posture](webflash-exposure-readiness-matrix.md#pwm--s360-311-webflash-posture):
+  the package / product / full-compile / `compile_validation_status` /
+  `rpm_supported` / product-YAML-composition-parity (FW-COMPILE-PWM-PRODUCT-001
+  / PR #594) / config-posture-hardware gates are `CLOSED` (stronger than
+  FanRelay — PWM's compile-status flag is already set, so there is no
+  compile-flag gap); WebFlash wrapper / `config/webflash-builds.json`
+  row / `artifact_name` / release artifact / import-source / no-RPM UX
+  are `BLOCKING`; live `sense360store/WebFlash` re-verification, the
+  still-owed `S360-311` module-availability classification
+  (`WEBFLASH-DRIFT-001` row #16), and the live product-YAML `esphome
+  config` are `NEEDS-TOOLING` (read / ESPHome access unavailable this
+  session); the **PWM polarity**, **per-fan / aggregate current +
+  thermal envelope**, **product bench**, `TachIO` / `GPIO16`
+  reserved/pending, and board-level thermal / EMI caveats remain
+  `NEEDS-OPERATOR-INPUT` (the board is SELV — no mains — so the
+  `COMPLIANCE-001` mains gate does not apply to FanPWM). **The
+  recommended next PWM PR is `WEBFLASH-PWM-LIVE-CHECK-001`, with
+  `S360-311-BENCH-001` as the substantive evidence gate, not
+  `WEBFLASH-PWM-002-WRAPPER-PLAN` and not `WEBFLASH-PWM-001`**
+  (non-WebFlash gates are not all clean). No `config/`, `packages/`,
+  `products/`, `products/webflash/`, test, workflow, firmware, or
+  `sense360store/WebFlash` edit; no `webflash_build_matrix` flip; no
+  `artifact_name`; no RPM added or claimed; no `schematic_status` /
+  `schematic_file` promotion (`S360-311` stays `cataloged_unverified`).
+  **No claim of FanPWM WebFlash-readiness, release-readiness, WebFlash
+  import-readiness, RPM support, compliance-clearance, board-level safety
+  certification, or hardware-stable readiness.**
 
 ### FanDAC / S360-312
 
