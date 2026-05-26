@@ -421,8 +421,15 @@ class FanPwmNoProductOrWebFlashSurfaceTests(unittest.TestCase):
         # The legacy standalone fan board product (sense360-fan-pwm.yaml)
         # predates this slice and is allowed; PACKAGE-PWM-001-IMPLEMENT-001
         # adds NO new FanPWM product YAML and FW-COMPILE-PWM-001 adds only
-        # the compile-only skeleton (exempted above).
-        allowed = {"products/sense360-fan-pwm.yaml"}
+        # the compile-only skeleton (exempted above). PRODUCT-PWM-001 / PR #593
+        # has since landed the canonical FanPWM product YAML at the top level
+        # of products/ as the product-YAML-only / no-WebFlash-exposure slice
+        # (its full non-WebFlash invariants are pinned by
+        # tests/test_pwm_product_readiness.py); it is allowed here too.
+        allowed = {
+            "products/sense360-fan-pwm.yaml",
+            "products/sense360-ceiling-poe-fanpwm.yaml",
+        }
         unexpected = sorted(set(offenders) - allowed)
         self.assertEqual(
             unexpected,

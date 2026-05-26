@@ -1606,6 +1606,44 @@ no WebFlash exposure, no artifact, no RPM / `pulse_counter`, `TachIO` /
 `GPIO16` not bound), and the `Ceiling-POE-FanPWM` lane stays `defer` in
 [`config/compile-only-candidates.json`](../config/compile-only-candidates.json).
 
+### 2026-05-25 — FW-COMPILE-PWM-RESULT-001 FanPWM full-compile result
+
+`FW-COMPILE-PWM-RESULT-001` / PR #592 recorded the **full ESPHome compile
+result** for the FanPWM compile-only target. The `Compile-only Firmware
+Validation` run `26414398902` (`compile_mode=full`, 10 compile-only
+targets, conclusion `success`) ran `scripts/validate_compile_targets.py
+--compile` against
+[`products/compile-only/ceiling-poe-fanpwm.yaml`](../products/compile-only/ceiling-poe-fanpwm.yaml)
+and **passed**, so the target's `compile_validation_status` is flipped
+from `pending-ci` to `validated-full-compile` (superseding the
+"Full compile result remains pending" note above). `rpm_supported` stays
+`false`, `shipment_status` stays `compile-only`, and
+`webflash_exposure_allowed_now` stays `false`. This records the
+**compile-only result only**; it is **not** WebFlash exposure, **not** a
+release artifact, **not** RPM support, and **not** hardware-stable
+readiness.
+
+### 2026-05-26 — PRODUCT-PWM-001 FanPWM product YAML (separate from this lane)
+
+`PRODUCT-PWM-001` lands the canonical FanPWM **product YAML**
+[`products/sense360-ceiling-poe-fanpwm.yaml`](../products/sense360-ceiling-poe-fanpwm.yaml)
+(config string `Ceiling-POE-FanPWM`) as the product-YAML-only /
+no-WebFlash-exposure slice, superseding the "FanPWM has no landed product
+YAML" note above. Like `PRODUCT-DAC-001`, the product YAML is a
+**separate file** from the compile-only skeleton: the compile-only target
+above keeps pointing at
+[`products/compile-only/ceiling-poe-fanpwm.yaml`](../products/compile-only/ceiling-poe-fanpwm.yaml)
+(unchanged, still `validated-full-compile`), while the product YAML lives
+at the top level of `products/` with a matching non-WebFlash catalog row
+(`status: hardware-pending`, `webflash_build_matrix: false`, no
+`artifact_name`, no `webflash_wrapper`). It adds **no** WebFlash wrapper,
+**no** `config/webflash-builds.json` row, **no** `webflash_build_matrix`
+flip, **no** `artifact_name`, **no** release artifact, and **no** RPM
+claim; `WEBFLASH-PWM-001` / `RELEASE-PWM-001` / `WF-IMPORT-PWM-001` stay
+blocked, the S360-311 bench gates stay open, and `S360-311`
+`schematic_status` stays `cataloged_unverified`. Pinned by
+[`tests/test_pwm_product_readiness.py`](../tests/test_pwm_product_readiness.py).
+
 ## See also
 
 - [`docs/firmware-combination-matrix.md`](firmware-combination-matrix.md) — FW-MATRIX-001, the 168-row source matrix the `config_string` field cross-references.

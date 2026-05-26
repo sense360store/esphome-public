@@ -24,7 +24,53 @@ mirrored here.
 
 ## Current queue summary
 
-- **FW-COMPILE-PWM-001** delivers, via **this PR** on 2026-05-25, a single
+- **PRODUCT-PWM-001** delivers, via **this PR** on 2026-05-26, the canonical
+  FanPWM **product YAML** as the **product-YAML-only / no-WebFlash-exposure**
+  slice, after the PWM-drive-only package (`PACKAGE-PWM-001-IMPLEMENT-001` /
+  PR #590), the compile-only target (`FW-COMPILE-PWM-001` / PR #591), and the
+  validated full compile (`FW-COMPILE-PWM-RESULT-001` / PR #592; `Compile-only
+  Firmware Validation` run `26414398902`, `compile_mode=full`, conclusion
+  `success`, `compile_validation_status: validated-full-compile`,
+  `rpm_supported: false`). It adds the product YAML
+  [`products/sense360-ceiling-poe-fanpwm.yaml`](products/sense360-ceiling-poe-fanpwm.yaml)
+  (config string `Ceiling-POE-FanPWM`; composes Core ceiling + PoE PSU + base +
+  health + `!include packages/expansions/fan_pwm.yaml`; carries explicit
+  full-compile-validated / no-RPM / PWM-polarity / current-thermal /
+  TachIO-reserved / no-WebFlash / no-release / no-compliance /
+  not-hardware-stable caveat wording) and the matching non-WebFlash catalog row
+  in [`config/product-catalog.json`](config/product-catalog.json)
+  (`status: hardware-pending`, `webflash_build_matrix: false`, no
+  `artifact_name`, no `webflash_wrapper`). It regenerates
+  [`config/firmware-combination-matrix.json`](config/firmware-combination-matrix.json)
+  (`Ceiling-POE-FanPWM` row `missing-product-yaml` → `blocked-hardware` +
+  `product_yaml`) and
+  [`docs/firmware-build-gap-report.md`](docs/firmware-build-gap-report.md). It
+  **does not** add a WebFlash wrapper, a `config/webflash-builds.json` row, a
+  `webflash_build_matrix` flip, an `artifact_name`, or a release artifact;
+  **does not** claim **RPM support** (no `pulse_counter`; `TachIO` / `GPIO16`
+  reserved); and **does not** claim WebFlash / import / release / compliance /
+  hardware-stable readiness — `WEBFLASH-PWM-001` / `RELEASE-PWM-001` /
+  `WF-IMPORT-PWM-001` stay blocked, the S360-311 bench gates (PWM polarity;
+  per-fan / aggregate current + thermal envelope; product bench) stay open, and
+  `S360-311` `schematic_status` stays `cataloged_unverified`. The
+  FW-COMPILE-PWM-001 compile-only skeleton stays the separate CI validation
+  target (unchanged, still `validated-full-compile`). New
+  [`tests/test_pwm_product_readiness.py`](tests/test_pwm_product_readiness.py);
+  `allowed` sets updated in
+  [`tests/test_fan_pwm_package.py`](tests/test_fan_pwm_package.py) and
+  [`tests/test_compile_targets.py`](tests/test_compile_targets.py); addenda in
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+  [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
+  [`docs/compile-only-firmware-validation.md`](docs/compile-only-firmware-validation.md),
+  and [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md).
+  **Nothing else moves:** no `products/webflash/**`,
+  `config/webflash-builds.json`, `.github/workflows/**`, `components/**`,
+  `include/**`, `firmware/**`, `manifest.json`, `firmware/sources.json` edit;
+  FanRelay and FanDAC unchanged; Release-One (`Ceiling-POE-VentIQ-RoomIQ` /
+  `v1.0.0` / `stable`), the LED preview, and FanTRIAC (`blocked` / `HW-005`)
+  unchanged.
+- **FW-COMPILE-PWM-001** delivers, via PR #591 on 2026-05-25, a single
   **compile-only validation target** for the PWM-drive-only FanPWM package
   landed by `PACKAGE-PWM-001-IMPLEMENT-001` / PR #590. It adds the skeleton
   [`products/compile-only/ceiling-poe-fanpwm.yaml`](products/compile-only/ceiling-poe-fanpwm.yaml)
