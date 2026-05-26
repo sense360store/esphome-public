@@ -1146,6 +1146,33 @@ named follow-up.
   **No claim of FanPWM WebFlash-readiness, release-readiness, WebFlash
   import-readiness, RPM support, compliance-clearance, board-level safety
   certification, or hardware-stable readiness.**
+- **2026-05-26 — `S360-311-BENCH-EVIDENCE-REQUEST-001` (this PR;
+  docs-only).** The product-layer disposition is **unchanged** —
+  product-YAML-landed + WebFlash-blocked + `validated-full-compile` +
+  `rpm_supported: false` + `hardware-pending`. This PR adds **no**
+  product YAML and changes no status; it turns the still-open FanPWM
+  bench blockers (`PWM-3` / `PWM-6` / `PWM-10` / `PWM-11` / `PWM-13`)
+  into an operator-answerable bench checklist + pass/fail evidence
+  contract in
+  [`s360-311-r4-pwm.md` §S360-311-BENCH-EVIDENCE-REQUEST-001](hardware/s360-311-r4-pwm.md#s360-311-bench-evidence-request-001--fanpwm-bench-evidence-checklist--contract-2026-05-26)
+  and
+  [`blocker-burndown.md` §5A](blocker-burndown.md#5a-s360-311-bench-evidence-request-001--fanpwm-detailed-bench-checklist--evidence-contract-2026-05-26).
+  A fresh Drive re-search found **no** new FanPWM bench evidence — only
+  design / CAD material (the `12vFan_PWM_PulseCounter` set, a
+  canonically-named `S360-311-R4` Drive folder of KiCad / gerbers / CPL /
+  STEP / BOM / schematic PDF / renders, and the unchanged
+  `Sense360_R4_Tracker`), recorded for provenance only and committing no
+  Drive file. The product bench (`PWM-11`), PWM polarity (`PWM-10`),
+  per-fan / aggregate current + thermal (`PWM-6` / `PWM-13`) stay
+  `NEEDS-OPERATOR-INPUT`/`NEEDS BENCH`; `TachIO` / `GPIO16` stays
+  reserved (no RPM). **Recommended next PWM PR: `S360-311-BENCH-RESULT-001`,
+  gated until the operator uploads / answers the checklist** —
+  WebFlash wrapper / release / import PRs stay blocked. No `config/` /
+  `packages/` / `products/` / `products/webflash/` / test / workflow /
+  firmware / `sense360store/WebFlash` edit; no `webflash_build_matrix`
+  flip; no `artifact_name`; no RPM / WebFlash / release / import /
+  compliance / hardware-stable claim; `S360-311` stays
+  `cataloged_unverified`.
 
 ### FanDAC / S360-312
 

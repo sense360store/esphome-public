@@ -230,7 +230,12 @@ Applying the burn-down decision rules:
 
 Short, answerable items. Each maps to a blocker ID. No vague language.
 
-**FanPWM / S360-311 (S360-311-BENCH-EVIDENCE-REQUEST-001):**
+**FanPWM / S360-311 (S360-311-BENCH-EVIDENCE-REQUEST-001):** the
+short items below are expanded into the full operator-answerable
+fill-in checklist + pass/fail evidence contract in
+[§5A](#5a-s360-311-bench-evidence-request-001--fanpwm-detailed-bench-checklist--evidence-contract-2026-05-26)
+and in
+[`s360-311-r4-pwm.md` §S360-311-BENCH-EVIDENCE-REQUEST-001](hardware/s360-311-r4-pwm.md#s360-311-bench-evidence-request-001--fanpwm-bench-evidence-checklist--contract-2026-05-26).
 1. PWM polarity at the SX1509 PWM-drive output vs the fan PWM input —
    active-high or active-low? (PWM-10)
 2. Per-fan current draw and the 4-fan aggregate current at full speed? (PWM-6)
@@ -265,6 +270,82 @@ Short, answerable items. Each maps to a blocker ID. No vague language.
 **Security:**
 15. Approve **`SECURITY-ACTION-PINNING-001`** as the next non-hardware
     PR (SHA-pin the six actions)? (SEC-2)
+
+### 5A. S360-311-BENCH-EVIDENCE-REQUEST-001 — FanPWM detailed bench checklist & evidence contract (2026-05-26)
+
+`S360-311-BENCH-EVIDENCE-REQUEST-001` expands the short FanPWM items in
+§5 into one precise, operator-answerable evidence request. It is
+**documentation only** — it requests evidence, records none, and changes
+no behaviour. The canonical board-side copy lives in
+[`s360-311-r4-pwm.md` §S360-311-BENCH-EVIDENCE-REQUEST-001](hardware/s360-311-r4-pwm.md#s360-311-bench-evidence-request-001--fanpwm-bench-evidence-checklist--contract-2026-05-26);
+this is the cross-lane index copy.
+
+**Drive re-search (2026-05-26).** A fresh search (`S360-311`,
+`S360-311-R4`, `FanPWM`, `PWM bench`, `polarity`, `current`, `thermal`,
+`TachIO`, `GPIO16`, `fan test`, `product bench`, photos / videos /
+spreadsheets / logs) found **no bench artifact** — only **design / CAD**
+material: the already-recorded `12vFan_PWM_PulseCounter` set, a
+canonically-named `S360-311-R4` Drive folder (owner
+`kanyugistash@gmail.com`, created 2026-05-16: KiCad sources, gerbers,
+`positions.csv` CPL, STEP, `S360-311-R4_BOM.xlsx`, `S360-311-R4.pdf`
+schematic, three renders), and the unchanged `Sense360_R4_Tracker`
+(2026-05-18). This is the same artifact class as the committed
+[`schematics/S360-311-R4.pdf`](hardware/schematics/S360-311-R4.pdf), is
+recorded for provenance only, closes no bench blocker, and **no Drive
+file is committed by this PR**. So `S360-311-BENCH-RESULT-001` stays
+gated until the operator uploads / answers the checklist below.
+
+**Operator checklist (fill in; leave `UNANSWERED` rather than guess):**
+
+| # | Item | Feeds |
+|---|---|---|
+| 1 | Board revision tested (silkscreen P/N + rev; note if blank per `G01`) | PWM-3 |
+| 2 | Fan / load model tested (make / model; rated current) | PWM-6 |
+| 3 | Supply voltage (input rail into the board) | PWM-6 |
+| 4 | PSU / current limit (bench PSU; set current limit) | PWM-6 |
+| 5 | Number of channels tested (1–4 of `J1`/`J2`/`J4`/`J5`) | PWM-6 |
+| 6 | PWM frequency used (Hz) | PWM-10 |
+| 7 | PWM duty range tested (min%–max%) | PWM-10 |
+| 8a | PWM polarity — does increasing duty increase fan speed? | PWM-10 |
+| 8b | PWM polarity — is inversion required? (where) | PWM-10 |
+| 9a | Boot / default output — before ESPHome boots | PWM-10 / PWM-11 |
+| 9b | Boot / default output — after ESPHome boots | PWM-10 / PWM-11 |
+| 9c | Boot / default output — after restart | PWM-10 / PWM-11 |
+| 10 | Per-channel current measured (A at full speed) | PWM-6 |
+| 11 | Aggregate current, all four channels active (A) | PWM-6 |
+| 12 | Inrush / startup behaviour (peak A; locked-rotor) | PWM-6 |
+| 13a | Thermal — duration | PWM-6 / PWM-13 |
+| 13b | Thermal — ambient temp | PWM-6 / PWM-13 |
+| 13c | Thermal — hottest component / location | PWM-6 / PWM-13 |
+| 13d | Thermal — measured temp or qualitative observation | PWM-6 / PWM-13 |
+| 14 | MT3608 / boost observation (output-current ceiling; sag) | PWM-6 |
+| 15 | Connector / pin-1 / silkscreen confirmation (`J6`/`J3` 1-to-13; fan-output pin-1; UART on `J3` 11/12?) | PWM-3 |
+| 16 | TachIO / GPIO16 observation — **no RPM claim unless separately proven** | PWM-12 (deferred) |
+| 17 | Photos / videos / logs attached | all |
+| 18 | Operator / date / source / provenance (who, when, serial, Drive path) | all |
+
+**Pass/fail evidence contract:**
+
+| Blocker | Closes when (PASS) | FAIL |
+|---|---|---|
+| PWM polarity (PWM-10) | Duty sweep showing increasing duty → increasing fan speed, with inversion-required answer (items 6–8b) | Un-scoped "it works"; no recorded direction |
+| Per-fan current (PWM-6) | Measured per-channel current at full speed with method (items 2–5, 10) | Datasheet rating only; no board-side measurement |
+| Aggregate current (PWM-6) | Measured 4-channel total at full speed + inrush / locked-rotor peak (items 11–12, 14) | Single-channel × 4; no inrush capture |
+| Thermal (PWM-6 / PWM-13) | Worst-case-load observation with duration, ambient, hottest location, reading (items 13a–13d) — characterisation, **not** certification | No duration/ambient; or a certification claim |
+| Product bench (PWM-11) | Operator end-to-end sign-off on `S360-311-R4` (boot items 9a–9c + polarity/current/thermal) with operator/date/serial + attached evidence | Compile-pass or package test treated as a product bench |
+
+**Out of scope (stays blocked regardless of answers):** RPM support
+(`rpm_supported: false`; `TachIO`/`GPIO16` reserved; RPM →
+`COMPONENT-SX1509-TACH-001`, future); WebFlash exposure (`PWM-15`,
+`NEEDS WEBFLASH ACCESS`); release artifact (`RELEASE-PWM-001`); import
+readiness (`WF-IMPORT-PWM-001`); hardware-stable promotion (`S360-311`
+stays `cataloged_unverified` unless policy allows); compliance approval
+(board is SELV — `COMPLIANCE-001` does not apply).
+
+**Next PR:** if the operator uploads / answers the checklist with bench
+evidence → **`S360-311-BENCH-RESULT-001`** (record results, close the
+rows it proves); while evidence is missing → `S360-311-BENCH-RESULT-001`
+stays gated. WebFlash wrapper / build PRs stay blocked.
 
 ## 6. Guardrails honoured / non-claims
 
