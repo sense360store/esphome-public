@@ -1142,6 +1142,41 @@ stable-channel readiness, `RELEASE-RELAY-001` / `WEBFLASH-RELAY-001` /
 installation-approval, qualified-electrician sign-off, production-wide /
 multi-unit hardware characterisation, or WebFlash import readiness.**
 
+**2026-05-26 — `WEBFLASH-RELAY-001-READINESS` (this PR; docs-only) — note
+on release surface.** Re-evaluated the FanRelay release-layer disposition
+alongside the WebFlash re-evaluation in
+[`webflash-exposure-readiness-matrix.md` §Relay / S360-310 WebFlash posture](webflash-exposure-readiness-matrix.md#relay--s360-310-webflash-posture)
+(which carries the full re-evaluated Relay WebFlash readiness table).
+**The release surface is unchanged and stays `not-release-ready`.** The
+two `BLOCKING` release-side gates — `artifact_name` (absent;
+`webflash_build_matrix: false`) and the firmware release artifact (no
+`.bin` / tag / SHA256 / MD5 / build-info `manifest.json` /
+[`webflash-release-proof.md`](webflash-release-proof.md) row) — remain
+owed to the atomic `RELEASE-RELAY-001` slice, which itself stays blocked
+behind the upstream `WEBFLASH-RELAY-001` wrapper / catalog / build-matrix
+path that does not yet exist. The FanRelay full-compile evidence (run
+`26364679370`, prior-recorded) is `necessary-but-insufficient` and does
+**not** discharge any release gate. **No release artifact is built /
+signed / attached / imported; no release-proof row is added** — a proof
+row would forward-reference a `.bin` that has never been built. **No
+[`products/webflash/`](../products/webflash/), `config/**`,
+`.github/workflows/`, firmware / signing / sources / manifest / checksum,
+`tests/**`, or `sense360store/WebFlash` edit; no `webflash_build_matrix`
+flip; no `artifact_name`; no `webflash_wrapper`;
+no `release_one_required_configs` change; no COMPLIANCE-001 movement; no
+`schematic_status` / `schematic_file` promotion** (`S360-310` stays
+`cataloged_unverified`). Release-One stays `Ceiling-POE-VentIQ-RoomIQ` /
+`v1.0.0` / `stable`; LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` /
+`preview`; FanTRIAC stays `blocked` / `HW-005`. **No claim of FanRelay
+release-readiness, stable-channel readiness, `RELEASE-RELAY-001` /
+`WEBFLASH-RELAY-001` / `WF-IMPORT-RELAY-001` unblock, board-level
+mains-safety certification, installation-approval, qualified-electrician
+sign-off, production-wide / multi-unit hardware characterisation, or
+WebFlash import readiness.** The recommended next Relay-chain step is
+`WEBFLASH-RELAY-LIVE-CHECK-001` (re-run the live WebFlash readiness /
+drift check once `sense360store/WebFlash` read access is restored), **not**
+`RELEASE-RELAY-001` or `WEBFLASH-RELAY-001`.
+
 ## PWM / S360-311 release posture
 
 **Current state.** No non-legacy FanPWM product YAML under

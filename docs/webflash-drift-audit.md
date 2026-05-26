@@ -209,6 +209,47 @@ close drift rows #4, #5, #11, #16, #17 (currently `NEEDS-OPERATOR-INPUT` /
 
 ---
 
+## 4.1 Follow-up resolution log (updated 2026-05-26 by `WEBFLASH-RELAY-001-READINESS`)
+
+The docs-only `WEBFLASH-RELAY-001-READINESS` re-evaluation (this follow-up;
+recorded in full in
+[`webflash-exposure-readiness-matrix.md` §Relay / S360-310 WebFlash posture](webflash-exposure-readiness-matrix.md#relay--s360-310-webflash-posture))
+resolves the FanRelay follow-up tracked by this audit:
+
+- **Drift row #21 (FanRelay narrative-vs-config compile-flag gap) —
+  RESOLVED as a docs clarification; no config edit.** The narrative
+  correctly records the FanRelay full compile as green (run `26364679370`;
+  the full-compile lane runs `esphome compile` against every
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+  target and fails on the first failure, so `success` proves all nine
+  targets including FanRelay — FW-COMPILE-RELAY-FULL-RESULT-001 / PR #579).
+  The config target deliberately carries **no** `compile_validation_status`
+  field: `COMPILE-STATUS-FLAGS-001` (2026-05-24) explicitly left FanRelay
+  unchanged while flipping only FanDAC. No doc stale-says the FanRelay
+  compile is unvalidated, and no test asserts the flag's presence or
+  absence, so this is **not** drift and **not** a WebFlash blocker — it is
+  an optional, non-blocking config-completeness item. Adding the explicit
+  flag (to match FanDAC / FanPWM `validated-full-compile`) remains a
+  separate optional `FW-COMPILE-RELAY-RESULT-001` config-only PR;
+  `WEBFLASH-RELAY-001-READINESS` is docs-only and does not touch `config/`.
+- **WebFlash-side axes stay `NEEDS-TOOLING`.** A live re-read of
+  `sense360store/WebFlash` was again **denied** this session (GitHub scope
+  is `sense360store/esphome-public` + `sense360store/esphome` only), so
+  drift rows #4, #5, #11, #16, #17 stay open and the FanRelay WebFlash
+  import / module-availability / manifest axes remain prior-recorded
+  (2026-05-22, PR #565), not re-verified. The recommended next Relay step
+  is **`WEBFLASH-RELAY-LIVE-CHECK-001`** (or a `WEBFLASH-DRIFT-001` re-run)
+  once read access is restored — **not** a `WEBFLASH-RELAY-002-WRAPPER-PLAN`
+  slice, because non-WebFlash gates (compliance / mains-safety,
+  production-wide `GPIO3` characterisation, competent-person sign-off) are
+  not all clean.
+
+This follow-up makes **no** config / product / package / WebFlash / build /
+release / workflow / test edit and **no** WebFlash exposure / import /
+release / compliance / hardware-stable claim.
+
+---
+
 ## 5. Guardrails honoured / non-claims
 
 This PR does **not** edit `products/**`, `products/webflash/**`,
