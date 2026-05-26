@@ -845,8 +845,25 @@ named follow-up.
 
 ### FanPWM / S360-311
 
-- **Status.** `needs-package-reconciliation` + `hardware-evidence-pending`.
-- **Why no product YAML.** The required package
+- **Status.** **`product-yaml-landed`** (PRODUCT-PWM-001 / 2026-05-26;
+  product-YAML-only, PWM-drive-only, **no RPM**) + `package-implemented-at-package-layer`
+  (PACKAGE-PWM-001-IMPLEMENT-001 / PR #590) + `compile-pass-validated-full-compile`
+  (run `26414398902`) + `hardware-pending` + `not-webflash-ready` +
+  `not-required-configs` + `not-recommended` + `not-kit-default`.
+  > **Headline reconciliation — `WEBFLASH-DRIFT-001` (2026-05-26).** The original
+  > `needs-package-reconciliation` + `hardware-evidence-pending` status and the
+  > "Why no product YAML" / "Product YAML action now: None" prose immediately
+  > below **predate PRODUCT-PWM-001** and are **superseded** by the dated
+  > PRODUCT-PWM-001 addendum further down this section (FanRelay and FanDAC had
+  > their headline statuses refreshed when their product YAMLs landed; this
+  > FanPWM headline had not been). The current posture is the compound status on
+  > this line: the canonical product YAML
+  > [`products/sense360-ceiling-poe-fanpwm.yaml`](../products/sense360-ceiling-poe-fanpwm.yaml)
+  > (`Ceiling-POE-FanPWM`) **exists** as a product-YAML-only, no-WebFlash-exposure
+  > slice; the legacy four-channel YAML stays `legacy-compatible`. The historical
+  > prose below is retained for the audit trail only.
+- **Why no product YAML.** *(Historical — superseded; see the reconciliation
+  note above.)* The required package
   [`packages/expansions/fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml)
   is `needs-package-reconciliation` + `bench-evidence-pending`
   per

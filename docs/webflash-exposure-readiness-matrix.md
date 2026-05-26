@@ -354,6 +354,18 @@ candidate family in this matrix is added to it. The LED preview is
 **not** in `release_one_required_configs` and remains explicitly
 outside; FanTRIAC is **never** added.
 
+> **Cross-repo drift note — `WEBFLASH-DRIFT-001` (2026-05-26).** The standing
+> cross-repo drift audit is [`docs/webflash-drift-audit.md`](webflash-drift-audit.md).
+> It found **no confirmed product/import drift** between this matrix's surface and
+> the (prior-recorded, PR #565) WebFlash side: the 2 shippable builds, their
+> artifact names, the default-kit posture, and the outcome-first naming all
+> `MATCH`; Relay/DAC/PWM/TRIAC are `INTENTIONALLY-BLOCKED` (absent on both sides);
+> and the WebFlash `manifest.json`'s 3rd build is the WebFlash-owned **Rescue**
+> recovery image (esphome-public ships 2 product builds, by design — not drift).
+> Axes needing a live-WebFlash re-run (`artifact_pattern` source, grammar-validator
+> parity, full channel list, PWM/DAC `module-availability.js`) are recorded as
+> `NEEDS-OPERATOR-INPUT` there.
+
 ## Candidate exposure table
 
 The table below is the matrix's primary deliverable. Each row is a
@@ -2432,6 +2444,11 @@ Expected:
 
 ## See also
 
+- [`docs/webflash-drift-audit.md`](webflash-drift-audit.md) —
+  `WEBFLASH-DRIFT-001` cross-repo drift audit (esphome-public vs WebFlash
+  product / import). Source of the prior-recorded WebFlash-side facts and the
+  `MATCH` / `INTENTIONALLY-BLOCKED` / `NEEDS-OPERATOR-INPUT` drift classification
+  cited in the cross-repo drift note above. Documentation only.
 - [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
   — RELEASE-GAP-001 release-layer readiness gate. Downstream from
   this matrix: classifies per-family release artifact eligibility
