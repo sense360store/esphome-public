@@ -2695,6 +2695,30 @@ and the per-board audit docs.
 None of these PRs is approved or scoped by WEBFLASH-GAP-001 itself.
 They are recorded so the matrix has a clear next-action chain.
 
+## BLOCKER-BURNDOWN-001 consolidation (2026-05-26)
+
+The consolidated cross-lane blocker view now lives in
+[`docs/blocker-burndown.md`](blocker-burndown.md) (BLOCKER-BURNDOWN-001).
+For the WebFlash axes specifically, that pass re-confirms — without any
+exposure change — that:
+
+- **Live `sense360store/WebFlash` access is unavailable this session**
+  (GitHub scope is `esphome-public` + `esphome` only), so every
+  WebFlash-side gate stays prior-recorded (`NEEDS WEBFLASH ACCESS`),
+  including the still-owed `S360-311` / `S360-312`
+  `module-availability.js` classifications (`WEBFLASH-DRIFT-001`
+  rows #16/#17) and the `S360-310` `design-pending` re-record.
+- The Relay / DAC / PWM WebFlash wrappers stay **`BLOCKING`**; the
+  substantive non-WebFlash gates are bench / operator / safety, not
+  repo gates.
+- The recommended next WebFlash steps stay the per-family
+  **`WEBFLASH-{RELAY,DAC,PWM}-LIVE-CHECK-001`** (or a `WEBFLASH-DRIFT-001`
+  re-run) once read access is restored — **not** any wrapper-plan slice.
+
+No `webflash_build_matrix` flip, no `artifact_name`, no wrapper, and no
+exposure / import / release / compliance claim is made by the
+consolidation.
+
 ## Do-not-change guardrails
 
 WEBFLASH-GAP-001 — this matrix — performs **none** of the following.

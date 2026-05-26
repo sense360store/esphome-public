@@ -2721,6 +2721,24 @@ and the per-board audit docs.
 None of these PRs is approved or scoped by RELEASE-GAP-001 itself.
 They are recorded so the matrix has a clear next-action chain.
 
+## BLOCKER-BURNDOWN-001 consolidation (2026-05-26)
+
+The consolidated cross-lane blocker view now lives in
+[`docs/blocker-burndown.md`](blocker-burndown.md) (BLOCKER-BURNDOWN-001).
+For release-artifact readiness it re-confirms — with no release change —
+that **no** FanRelay / FanDAC / FanPWM / FanTRIAC release artifact (`.bin`
+/ tag / checksum / build-info) exists, which is the correct current
+posture: each is gated behind its `PRODUCT-*` + `WEBFLASH-*` slice and,
+upstream of those, the open bench / operator / safety evidence requests
+(`S360-311-BENCH-EVIDENCE-REQUEST-001`,
+`S360-312-BENCH-EVIDENCE-REQUEST-001`,
+`S360-310-SAFETY-EVIDENCE-REQUEST-001`). The `WF-IMPORT-RELAY-001`
+cross-repo import stays blocked behind `RELEASE-RELAY-001` and live
+WebFlash access (`NEEDS WEBFLASH ACCESS`). Release-One
+(`Ceiling-POE-VentIQ-RoomIQ` / stable) and the LED preview stay
+unchanged. No artifact is built, signed, released, or imported by the
+consolidation.
+
 ## Do-not-change guardrails
 
 RELEASE-GAP-001 — this matrix — performs **none** of the following.

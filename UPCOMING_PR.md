@@ -24,6 +24,40 @@ mirrored here.
 
 ## Current queue summary
 
+- **BLOCKER-BURNDOWN-001** delivers, via **this PR** on 2026-05-26, a
+  **docs-only** consolidated blocker burn-down across the Relay / DAC /
+  PWM lanes, WebFlash live access, security action pinning, release /
+  import / artifact, compliance / safety, LED-stable, and TRIAC
+  blockers. It adds [`docs/blocker-burndown.md`](docs/blocker-burndown.md)
+  (one classified table — id / family / status / evidence / provenance /
+  closed? / remaining action / next PR — plus a class summary, a minimum
+  operator checklist, and next-PR recommendations) and dated
+  consolidation pointers in
+  [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
+  and the three driver hardware docs. **Findings:** the Relay / DAC /
+  PWM lanes are package + product + full-compile complete and are now
+  **bench / operator / safety gated**, not repo gated; a Drive re-search
+  this session found **no new** bench / sign-off / harness / polarity /
+  current / thermal / compliance evidence (only already-recorded CAD /
+  BOM / gerber sets + trackers); live `sense360store/WebFlash` access
+  stays **unavailable** (GitHub scope `esphome-public` + `esphome`
+  only); the `Sense360_R4_Tracker` (2026-05-18) shows the Fan Relay
+  board's further work (`Y02`) **Waiting** on the TRIAC merge decision
+  (`T02`, **Doing**). **Recommended next PRs:**
+  `S360-311-BENCH-EVIDENCE-REQUEST-001` (PWM bench evidence missing),
+  `S360-312-BENCH-EVIDENCE-REQUEST-001` (DAC harness / transposition /
+  product bench missing), `S360-310-SAFETY-EVIDENCE-REQUEST-001` (Relay
+  multi-unit GPIO3 + competent-person sign-off missing); keep the
+  `WEBFLASH-{RELAY,DAC,PWM}-LIVE-CHECK-001` / `WEBFLASH-DRIFT-001` re-run
+  PRs blocked behind WebFlash access restoration; and the one actionable
+  non-hardware lane is **`SECURITY-ACTION-PINNING-001`** (kept visible
+  and separate — not merged into this PR). **No** product / package /
+  config / WebFlash / firmware / workflow / release edit; **no** exposure
+  / import / release / compliance / hardware-stable / RPM claim; **no**
+  fabricated evidence; Release-One + LED preview unchanged.
+
 - **WEBFLASH-PWM-001-READINESS** delivers, via **this PR** on 2026-05-26,
   a **docs-only** re-evaluation of FanPWM / S360-311 WebFlash-exposure
   readiness using the latest package / product / full-compile /

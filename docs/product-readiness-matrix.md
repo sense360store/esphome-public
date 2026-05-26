@@ -1971,6 +1971,34 @@ and the per-board audit docs.
 None of these PRs is approved or scoped by PRODUCT-GAP-001 itself.
 They are recorded so the matrix has a clear next-action chain.
 
+## BLOCKER-BURNDOWN-001 consolidation (2026-05-26)
+
+The consolidated cross-lane blocker view now lives in
+[`docs/blocker-burndown.md`](blocker-burndown.md) (BLOCKER-BURNDOWN-001).
+For product-YAML readiness specifically it re-confirms — with no product
+change — that the FanRelay (`PRODUCT-RELAY-001`), FanDAC
+(`PRODUCT-DAC-001`), and FanPWM (`PRODUCT-PWM-001`) product YAMLs have
+**landed** and full-compiled, so the remaining blockers are **bench /
+operator / safety**, not product-layer:
+
+- **FanPWM** — bench items open (PWM polarity; per-fan / aggregate
+  current + MT3608 ceiling + inrush + thermal; product bench). RPM stays
+  unsupported (no `pulse_counter`; per-fan RPM via an SX1509
+  `pulse_counter` is compile-proven unsupported,
+  `PWM-SX1509-TACH-PROOF-001`, captured `esphome config` rejection
+  `[sx1509] is an invalid option for [pin]`). SX1509 PWM-drive output
+  is supported and is the basis of FanPWM drive. → `S360-311-BENCH-EVIDENCE-REQUEST-001`.
+- **FanDAC** — `J3` `out0`/`out1` silkscreen transposition confirmation,
+  Cloudlift S12 harness trace, and Cloudlift S12 product bench open; the
+  no-simultaneous-per-output-0–5 V/0–10 V constraint stays correct. →
+  `S360-312-BENCH-EVIDENCE-REQUEST-001`.
+- **FanRelay** — production-wide / multi-unit / oscilloscope-traced
+  GPIO3 strap characterization + competent-person sign-off + mains
+  compliance caveats remain owed. → `S360-310-SAFETY-EVIDENCE-REQUEST-001`.
+
+No product YAML, catalog, `webflash_build_matrix`, `artifact_name`,
+release, RPM, or readiness claim is made by the consolidation.
+
 ## Do-not-change guardrails
 
 PRODUCT-GAP-001 — this matrix — performs **none** of the following.
