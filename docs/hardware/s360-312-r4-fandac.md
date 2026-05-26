@@ -1388,3 +1388,25 @@ capture, a silkscreen reading of `J1` / `J2` / `J3`, a Core-side
 discrepancy, a GP8403 datasheet excerpt added under
 `docs/hardware/`, or KiCad source for source-level pin
 verification.
+
+## BLOCKER-BURNDOWN-001 consolidation note (2026-05-26)
+
+This board's blockers are consolidated into the cross-lane
+[`docs/blocker-burndown.md`](../blocker-burndown.md) §2B (FanDAC /
+S360-312). No new DAC evidence appeared this session: a Drive re-search
+found only the already-recorded `Fan_GP8403` / `GP8403-Module` CAD / BOM
+/ gerber set — **no** fan / harness artifact and **no** Cloudlift S12
+product-bench artifact exist in Drive. The board-level rows stay
+**CLOSED** (DIP-address truth table, range mechanism / policy, `J2`/`J3`
+pin order + silk labels including the `J3` `out0`/`out1` transposition,
+two-chip / four-output package). The residuals remain product / bench:
+operator / bench confirmation of the `J3` silkscreen transposition, the
+Cloudlift S12 harness conductor-by-conductor trace, and the Cloudlift
+S12 product bench — see
+[§Remaining `PACKAGE-DAC-001` blockers after this pass](#remaining-package-dac-001-blockers-after-this-pass).
+The no-simultaneous-per-output-0–5 V/0–10 V constraint stays correct.
+Recommended next FanDAC PR: **`S360-312-BENCH-EVIDENCE-REQUEST-001`**
+(residuals converted into operator questions in
+[`blocker-burndown.md` §5](../blocker-burndown.md#5-minimum-operator-checklist)).
+This note makes no config / product / package / WebFlash / release /
+compliance / `schematic_status` change and fabricates no evidence.
