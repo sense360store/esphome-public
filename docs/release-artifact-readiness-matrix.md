@@ -1248,6 +1248,45 @@ posture above is unchanged.
 [`product-readiness-matrix.md` §FanPWM / S360-311](product-readiness-matrix.md#fanpwm--s360-311),
 [`webflash-exposure-readiness-matrix.md` §PWM / S360-311 WebFlash posture](webflash-exposure-readiness-matrix.md#pwm--s360-311-webflash-posture).
 
+**2026-05-26 — `WEBFLASH-PWM-001-READINESS` (this PR; docs-only) — note
+on release surface.** Re-evaluated the FanPWM release-layer disposition
+alongside the WebFlash re-evaluation in
+[`webflash-exposure-readiness-matrix.md` §PWM / S360-311 WebFlash posture](webflash-exposure-readiness-matrix.md#pwm--s360-311-webflash-posture)
+(which carries the full re-evaluated PWM WebFlash readiness table).
+**The release surface is unchanged and stays `not-release-ready`.** The
+two `BLOCKING` release-side gates — `artifact_name` (absent;
+`webflash_build_matrix: false`) and the firmware release artifact (no
+`.bin` / tag / SHA256 / MD5 / build-info `manifest.json` /
+[`webflash-release-proof.md`](webflash-release-proof.md) row) — remain
+owed to the atomic `RELEASE-PWM-001` slice, which itself stays blocked
+behind the upstream `WEBFLASH-PWM-001` wrapper / catalog / build-matrix
+path that does not yet exist. The FanPWM full-compile evidence (run
+`26414398902`, prior-recorded; `compile_validation_status:
+validated-full-compile`, `rpm_supported: false`) is
+`necessary-but-insufficient` and does **not** discharge any release
+gate. **No release artifact is built / signed / attached / imported; no
+release-proof row is added** — a proof row would forward-reference a
+`.bin` that has never been built. **No
+[`products/webflash/`](../products/webflash/), `config/**`,
+`.github/workflows/`, firmware / signing / sources / manifest / checksum,
+`tests/**`, or `sense360store/WebFlash` edit; no `webflash_build_matrix`
+flip; no `artifact_name`; no `webflash_wrapper`; no
+`release_one_required_configs` change; no RPM added or claimed; no
+`schematic_status` / `schematic_file` promotion** (`S360-311` stays
+`cataloged_unverified`). Release-One stays `Ceiling-POE-VentIQ-RoomIQ` /
+`v1.0.0` / `stable`; LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` /
+`preview`; FanTRIAC stays `blocked` / `HW-005`. **No claim of FanPWM
+release-readiness, stable-channel readiness, `RELEASE-PWM-001` /
+`WEBFLASH-PWM-001` / `WF-IMPORT-PWM-001` unblock, RPM support, board-level
+safety certification, PWM-polarity / current / thermal bench validation,
+or WebFlash import readiness.** The recommended next PWM-chain step is
+`WEBFLASH-PWM-LIVE-CHECK-001` (re-run the live WebFlash readiness / drift
+check once `sense360store/WebFlash` read access is restored; record the
+owed `S360-311` module-availability classification), with
+`S360-311-BENCH-001` (PWM polarity + per-fan / aggregate current +
+thermal envelope + product bench) as the substantive evidence gate —
+**not** `RELEASE-PWM-001` or `WEBFLASH-PWM-001`.
+
 ## DAC / S360-312 release posture
 
 **Current state.** No FanDAC product YAML under

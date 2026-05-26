@@ -1250,6 +1250,165 @@ hardware-stable readiness and not product-release approval**. The
 [`hardware/package-readiness-matrix.md` §fan_pwm.yaml](hardware/package-readiness-matrix.md#fan_pwmyaml--s360-311),
 [`product-readiness-matrix.md` §FanPWM / S360-311](product-readiness-matrix.md#fanpwm--s360-311).
 
+**2026-05-26 — `WEBFLASH-PWM-001-READINESS` (this PR; docs-only
+re-evaluation, no exposure flip).** Re-evaluated FanPWM / S360-311
+WebFlash-exposure readiness using the latest package / product /
+full-compile / product-validation and `WEBFLASH-DRIFT-001` / PR #595
+drift-audit evidence, **without exposing FanPWM to WebFlash**.
+Re-verified against the live esphome-public files this session:
+
+- **Product YAML exists** —
+  [`products/sense360-ceiling-poe-fanpwm.yaml`](../products/sense360-ceiling-poe-fanpwm.yaml)
+  (PRODUCT-PWM-001 / PR #593), config string `Ceiling-POE-FanPWM`,
+  confirmed on disk; the matching
+  [`config/product-catalog.json`](../config/product-catalog.json) row
+  is `status: hardware-pending`, `webflash_build_matrix: false`, no
+  `artifact_name`, no `webflash_wrapper`.
+- **Package layer implemented (PWM-drive-only)** —
+  [`packages/expansions/fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml)
+  composes the neutral binding
+  [`packages/expansions/fan_pwm_sx1509.yaml`](../packages/expansions/fan_pwm_sx1509.yaml)
+  (PACKAGE-PWM-001-IMPLEMENT-001 / PR #590): SX1509 hub on `core_i2c`,
+  four PWM-drive outputs (`fan_pwm_drive_1..4` on channels 0..3), four
+  user-facing speed controllers (`fan_pwm_1..4`). **No `pulse_counter`,
+  no per-fan / aggregate RPM**; the four `Pul_Cou1..4` lines stay as
+  INTERNAL diagnostic binary GPIO states. Pinned by
+  [`tests/test_fan_pwm_package.py`](../tests/test_fan_pwm_package.py).
+- **Full-compile evidence recorded** — the FanPWM compile-only target
+  full-compiled green in run `26414398902` (`Compile-only Firmware
+  Validation`, `compile_mode=full`, 10 targets, conclusion `success`;
+  the `Run compile-only validator (full compile)` step ran
+  `scripts/validate_compile_targets.py --compile` against
+  [`products/compile-only/ceiling-poe-fanpwm.yaml`](../products/compile-only/ceiling-poe-fanpwm.yaml)
+  and passed; FW-COMPILE-PWM-RESULT-001 / PR #592). This is
+  **prior-recorded in-repo evidence**; the GitHub Actions run could not
+  be re-read with the tooling scoped to this session.
+- **`compile_validation_status: validated-full-compile` and
+  `rpm_supported: false`** — both present on the FanPWM compile-only
+  target in
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json).
+  **Unlike FanRelay** (drift row #21, intentionally flag-less),
+  FanPWM's compile-status flag is already set, so there is **no**
+  narrative-vs-config compile-flag gap to resolve for PWM.
+- **Product YAML composition validation** — the parity check
+  `PwmProductMatchesValidatedCompileOnlyCompositionTests`
+  (FW-COMPILE-PWM-PRODUCT-001 / PR #594) in
+  [`tests/test_pwm_product_readiness.py`](../tests/test_pwm_product_readiness.py)
+  pins that the product YAML composes the **identical** package set
+  (same keys, same repo-relative `!include` targets) as the
+  full-compile-validated compile-only skeleton, so the recorded full
+  compile transfers to the product composition. **Live `esphome
+  config` against the normal product YAML was NOT re-run this session**
+  (ESPHome is not present in this environment), so live product-config
+  validation of `products/sense360-ceiling-poe-fanpwm.yaml` remains
+  pending — owed to a local `esphome config` run or the
+  `Compile-only Firmware Validation` action (which already full-compiles
+  the byte-equivalent composition).
+- **No WebFlash wrapper** under
+  [`products/webflash/`](../products/webflash/) — only Release-One, LED
+  preview, and the blocked FanTRIAC reference.
+- **No [`config/webflash-builds.json`](../config/webflash-builds.json)
+  row** — only the 2 existing builds; the `FanPWM` token appears 0
+  times.
+- **No `artifact_name`, no `webflash_wrapper`,
+  `webflash_build_matrix: false`** on the `Ceiling-POE-FanPWM` catalog
+  row.
+- **No release artifact** — no `.bin`, tag, checksum, or build-info
+  manifest.
+- **No import readiness** — WebFlash-owned; `WF-IMPORT-PWM-001` is
+  blocked behind `RELEASE-PWM-001`. A **live re-read of
+  `sense360store/WebFlash` was denied this session** (the GitHub scope
+  is `sense360store/esphome-public` + `sense360store/esphome` only), so
+  the WebFlash side stays prior-recorded, not re-verified —
+  `NEEDS-TOOLING`. In particular `WEBFLASH-DRIFT-001` row #16 (WebFlash
+  `scripts/utils/module-availability.js` carries **no** `S360-311`
+  classification in any recorded snapshot) cannot be closed this PR;
+  recording that classification stays owed to a live check.
+- **RPM is not supported** — an SX1509 expander pin is compile-proven
+  unable to back an ESPHome `pulse_counter`
+  (PWM-SX1509-TACH-PROOF-001 / PR #589: `esphome config` rejects it
+  with `[sx1509] is an invalid option for [pin]`); per-fan RPM is
+  deferred to `COMPONENT-SX1509-TACH-001` or a bench-confirmed TachIO
+  follow-up. `TachIO` / `GPIO16` stays reserved/pending.
+
+**PWM WebFlash readiness table (re-evaluated 2026-05-26).** Status
+legend: `CLOSED` (gate satisfied); `BLOCKING` (open gate that blocks
+WebFlash exposure); `NEEDS-TOOLING` (cannot be re-verified without live
+WebFlash / CI / ESPHome access); `NEEDS-OPERATOR-INPUT` (requires
+operator evidence / sign-off); `OUT-OF-SCOPE` (not advanced by any
+WebFlash slice and/or never by default).
+
+| Gate | Status | Evidence | Next action |
+|---|---|---|---|
+| Product YAML exists | `CLOSED` | `products/sense360-ceiling-poe-fanpwm.yaml` (`Ceiling-POE-FanPWM`, PRODUCT-PWM-001 / PR #593); verified on disk this session | none — landed |
+| Package layer implemented (PWM-drive-only) | `CLOSED` | `packages/expansions/fan_pwm.yaml` → `fan_pwm_sx1509.yaml` (PACKAGE-PWM-001-IMPLEMENT-001 / PR #590); four SX1509 PWM-drive controllers; pinned by `tests/test_fan_pwm_package.py` | none — landed |
+| Full-compile evidence recorded | `CLOSED` | run `26414398902` (`compile_mode=full`, 10 targets, `success`); FW-COMPILE-PWM-RESULT-001 / PR #592; prior-recorded in-repo | none — recorded |
+| `compile_validation_status` config flag | `CLOSED` | `validated-full-compile` on the FanPWM compile-only target; no narrative-vs-config gap (unlike FanRelay drift row #21) | none — flag set |
+| `rpm_supported` config flag | `CLOSED` | `rpm_supported: false` on the FanPWM compile-only target; package wires no `pulse_counter` and no per-fan / aggregate RPM | none — flag set |
+| Product YAML composition validation | `CLOSED` | `PwmProductMatchesValidatedCompileOnlyCompositionTests` (FW-COMPILE-PWM-PRODUCT-001 / PR #594) pins identical package set vs the full-compile-validated skeleton; full compile transfers | none — parity pinned |
+| Live `esphome config` of the product YAML | `NEEDS-TOOLING` | ESPHome not present this session; byte-equivalent composition full-compiled via the compile-only skeleton (run `26414398902`) | local `esphome config products/sense360-ceiling-poe-fanpwm.yaml`, or rely on the full-compile action |
+| Hardware evidence — package/product config posture | `CLOSED` | module-side schematic PDF `S360-311-R4.pdf` (HW-ASSETS-003); SX1509 routing per operator decision D2 (PWM-BLOCKER-REMOVAL-001 / PR #586); package reconciled at the package layer | none for config posture |
+| Hardware evidence — PWM polarity bench | `NEEDS-OPERATOR-INPUT` | SX1509 PWM-drive output polarity vs the fan's PWM input (and any inversion / pull-up on the `TachPMW*` gate path) not bench-confirmed | operator / bench waveform confirmation (`S360-311-BENCH-001`) |
+| Hardware evidence — per-fan / aggregate current + thermal envelope | `NEEDS-OPERATOR-INPUT` | per-fan current budget, MT3608 boost output-current ceiling, multi-fan aggregate load, and locked-rotor / inrush envelope not specified / not bench-characterised | operator-supplied bench / thermal evidence (`S360-311-BENCH-001`) |
+| Hardware evidence — product bench | `NEEDS-OPERATOR-INPUT` | S360-311 / FanPWM product bench not complete; product YAML exists for manual / compile-your-own use only | operator-supplied product-bench sign-off (`S360-311-BENCH-001`) |
+| WebFlash wrapper | `BLOCKING` | none under `products/webflash/` (only Release-One / LED / blocked FanTRIAC) | `WEBFLASH-PWM-001` (gated) |
+| `config/webflash-builds.json` row | `BLOCKING` | absent — 2 builds only; 0 FanPWM tokens | `WEBFLASH-PWM-001` |
+| `artifact_name` | `BLOCKING` | catalog row has none; `webflash_build_matrix: false` | `WEBFLASH-PWM-001` |
+| Firmware release artifact | `BLOCKING` | no `.bin` / tag / checksum / build-info manifest | `RELEASE-PWM-001` (behind wrapper / build-matrix) |
+| Import-source path (WebFlash `firmware/sources.json` / `manifest.json`) | `BLOCKING` | WebFlash-owned; no FanPWM source / build prior-recorded; `WF-IMPORT-PWM-001` blocked behind `RELEASE-PWM-001` | `WF-IMPORT-PWM-001` (cross-repo) |
+| WebFlash live repo re-verification | `NEEDS-TOOLING` | `sense360store/WebFlash` read access denied this session; WebFlash facts stay prior-recorded | `WEBFLASH-PWM-LIVE-CHECK-001` once access restored |
+| WebFlash `module-availability.js` `S360-311` classification (drift row #16) | `NEEDS-TOOLING` | `S360-311` not recorded in any WebFlash module-availability snapshot; cannot be read / recorded without live access | `WEBFLASH-PWM-LIVE-CHECK-001` (record the classification) |
+| No-RPM / product UX expectations | `BLOCKING` | no WebFlash-side UX confirmed; any future UX must surface speed-only control and must **not** present per-fan / aggregate RPM entities | `WEBFLASH-PWM-001` + WebFlash-side UX |
+| `TachIO` / `GPIO16` reserved/pending | `NEEDS-OPERATOR-INPUT` | binding binds no TachIO sensor; per-fan RPM via SX1509 `pulse_counter` is compile-proven unsupported (PWM-SX1509-TACH-PROOF-001 / PR #589) | `COMPONENT-SX1509-TACH-001` or a bench-confirmed TachIO follow-up |
+| Compliance / safety approval | `NEEDS-OPERATOR-INPUT` | SELV low-voltage board (5 V → 12 V boost via MT3608; no mains path → `COMPLIANCE-001` mains gate does **not** apply); board-level thermal / EMI / EMC not certified | board-level thermal / EMI evidence via `S360-311-BENCH-001` (not a WebFlash slice) |
+| REQUIRED_CONFIGS / kit / recommended membership | `OUT-OF-SCOPE` | `release_one_required_configs = ["Ceiling-POE-VentIQ-RoomIQ"]`; legacy four-channel `sense360-fan-pwm.yaml` retention / migration / removal owned by `PRODUCT-PWM-001` | never by default; separate explicit PR |
+
+**Verdict — WebFlash PWM exposure stays blocked; recommended next PWM
+PR is `WEBFLASH-PWM-LIVE-CHECK-001`, with `S360-311-BENCH-001` as the
+substantive evidence gate.** The package / product / full-compile /
+`compile_validation_status` / `rpm_supported` / composition-parity /
+config-posture-hardware gates are `CLOSED` (this is **stronger** than
+the FanRelay state — PWM's compile-status flag is already set, so there
+is no compile-flag gap), but the non-WebFlash gates are **not** all
+clean: the **PWM polarity**, **per-fan / aggregate current + thermal
+envelope**, and **product bench** caveats remain `NEEDS-OPERATOR-INPUT`;
+`TachIO` / `GPIO16` stays reserved/pending; the no-RPM UX expectation is
+`BLOCKING` on the WebFlash side; and the WebFlash side cannot be
+re-verified live this session (`NEEDS-TOOLING`, including the still-owed
+`S360-311` module-availability classification, `WEBFLASH-DRIFT-001`
+row #16). This is therefore **not** the "only WebFlash-wrapper /
+artifact / import missing" case that would justify a
+`WEBFLASH-PWM-002-WRAPPER-PLAN` slice, and **not** `WEBFLASH-PWM-001`.
+The recommended next esphome-public step is
+**`WEBFLASH-PWM-LIVE-CHECK-001`** — a re-run of the live WebFlash
+readiness / drift check (`firmware/sources.json`, `manifest.json`,
+`scripts/utils/module-availability.js`, `scripts/data/kit-presets.js`,
+import grammar; record the `S360-311` classification) once read access
+to `sense360store/WebFlash` is restored — while the substantive
+exposure blocker is the bench evidence, owned by **`S360-311-BENCH-001`**
+(PWM polarity + per-fan / aggregate current + thermal envelope + product
+bench). Both must clear before any `WEBFLASH-PWM-001` wrapper / catalog /
+build-matrix work is even considered.
+
+**Guardrails honoured.** **No `packages/**`, `products/**`,
+`products/webflash/**`, `config/**` (including
+`config/webflash-builds.json`, `config/product-catalog.json`,
+`config/compile-only-targets.json`, `config/firmware-combination-matrix.json`),
+`scripts/**`, `.github/workflows/**`, `components/**`, `include/**`,
+`tests/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`,
+release-artifact / checksum / build-info, or `sense360store/WebFlash`
+edit.** No WebFlash wrapper added; no `webflash_build_matrix` flip; no
+`artifact_name`; no `webflash_wrapper`; no `config_string` /
+`release_one_required_configs` / `canonical_modules` change; no
+`schematic_status` / `schematic_file` promotion (`S360-311` stays
+`cataloged_unverified`); no RPM added or claimed. Release-One stays
+`Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; LED preview stays
+`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays `blocked` /
+`HW-005`. **No WebFlash import-readiness claim, no WebFlash exposure
+claim, no release-readiness claim, no RPM-support claim, no compliance /
+safety approval claim, no hardware-stable readiness claim, and no
+fabricated WebFlash evidence.**
+
 ## DAC / S360-312 WebFlash posture
 
 **Current state.** `S360-312 Sense360 DAC`,

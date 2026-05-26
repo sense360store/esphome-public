@@ -297,6 +297,65 @@ WebFlash evidence.
 
 ---
 
+## 4.3 Follow-up resolution log (updated 2026-05-26 by `WEBFLASH-PWM-001-READINESS`)
+
+The docs-only `WEBFLASH-PWM-001-READINESS` re-evaluation (this follow-up;
+recorded in full in
+[`webflash-exposure-readiness-matrix.md` §PWM / S360-311 WebFlash posture](webflash-exposure-readiness-matrix.md#pwm--s360-311-webflash-posture))
+addresses the FanPWM follow-up tracked by this audit (recommended next PR
+#3 in §4):
+
+- **No FanPWM compile-flag gap (contrast with FanRelay drift row #21).**
+  The FanPWM compile-only target in
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+  already carries `compile_validation_status: validated-full-compile` and
+  `rpm_supported: false` (run `26414398902`, `compile_mode=full`, 10
+  targets, `success`; the full-compile lane runs `esphome compile`
+  against every target and fails on the first failure, so `success`
+  proves all ten including FanPWM — FW-COMPILE-PWM-RESULT-001 / PR #592).
+  So the narrative-vs-config gap that applied to FanRelay (#21) does
+  **not** apply to FanPWM; the PWM compile-status posture is `CLOSED`,
+  not drift. The product YAML composition was further validated as a
+  byte-equivalent package-set parity against that skeleton
+  (FW-COMPILE-PWM-PRODUCT-001 / PR #594), though a live `esphome config`
+  of the product YAML itself stays pending (`NEEDS-TOOLING`; ESPHome not
+  present this session).
+- **Drift row #16 (PWM module availability) — stays open, `NEEDS-TOOLING`;
+  cannot be recorded this PR.** The recommended follow-up for row #16 was
+  that `WEBFLASH-PWM-001-READINESS` "should record" the WebFlash
+  `scripts/utils/module-availability.js` `S360-311` classification. A
+  live re-read of `sense360store/WebFlash` was again **denied** this
+  session (GitHub scope is `sense360store/esphome-public` +
+  `sense360store/esphome` only), so `S360-311` remains **not recorded**
+  in any module-availability snapshot and the classification cannot be
+  captured here without fabricating evidence. Row #16 therefore stays
+  `NEEDS-TOOLING`, deferred to **`WEBFLASH-PWM-LIVE-CHECK-001`** (or a
+  `WEBFLASH-DRIFT-001` re-run) once read access is restored — **not** a
+  `WEBFLASH-PWM-002-WRAPPER-PLAN` slice, because the non-WebFlash bench
+  gates (PWM polarity; per-fan / aggregate current + thermal envelope;
+  product bench, owned by `S360-311-BENCH-001`) are not clean.
+- **Drift row #20 (stale "FanPWM package/product missing" headline) —
+  already reconciled in-repo; re-confirmed here.** The
+  `product-readiness-matrix.md` §FanPWM headline carries the dated
+  `WEBFLASH-DRIFT-001` headline-reconciliation note and the compound
+  `product-yaml-landed` + `validated-full-compile` status; the historical
+  "no product YAML / needs-package-reconciliation" prose is explicitly
+  retained for the audit trail only. This re-evaluation adds its own
+  dated audit-log entry to that section and does **not** rewrite the
+  historical prose.
+- **RPM stays unsupported; `TachIO` / `GPIO16` reserved.** The PWM-drive-only
+  package wires no `pulse_counter` and no per-fan / aggregate RPM (an
+  SX1509 expander pin is compile-proven invalid for an ESPHome
+  `pulse_counter`, PWM-SX1509-TACH-PROOF-001 / PR #589). No RPM is added
+  or claimed.
+
+This follow-up makes **no** config / product / package / WebFlash / build /
+release / workflow / test edit and **no** WebFlash exposure / import /
+release / compliance / hardware-stable / RPM-support claim, and
+**fabricates no** WebFlash evidence.
+
+---
+
 ## 5. Guardrails honoured / non-claims
 
 This PR does **not** edit `products/**`, `products/webflash/**`,
