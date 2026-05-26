@@ -250,6 +250,53 @@ release / compliance / hardware-stable claim.
 
 ---
 
+## 4.2 Follow-up resolution log (updated 2026-05-26 by `WEBFLASH-DAC-001-READINESS`)
+
+The docs-only `WEBFLASH-DAC-001-READINESS` re-evaluation (this follow-up;
+recorded in full in
+[`webflash-exposure-readiness-matrix.md` §DAC / S360-312 WebFlash posture](webflash-exposure-readiness-matrix.md#dac--s360-312-webflash-posture))
+addresses the FanDAC follow-up tracked by this audit (recommended next PR
+#2 in §4):
+
+- **No FanDAC compile-flag gap (contrast with FanRelay drift row #21).**
+  The FanDAC compile-only target in
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+  already carries `compile_validation_status: validated-full-compile` and
+  `voltage_enum_fixed: true` (flipped by `COMPILE-STATUS-FLAGS-001` after
+  run `26364679370`; the full-compile lane runs `esphome compile` against
+  every target and fails on the first failure, so `success` proves all
+  nine including FanDAC — FW-COMPILE-DAC-FULL-RESULT-001 / PR #580). So
+  the narrative-vs-config gap that applied to FanRelay (#21) does **not**
+  apply to FanDAC; the DAC compile-status posture is `CLOSED`, not drift.
+- **Drift row #17 (DAC module availability) — stays open, `NEEDS-TOOLING`;
+  cannot be recorded this PR.** The recommended follow-up for row #17 was
+  that `WEBFLASH-DAC-001-READINESS` "should record" the WebFlash
+  `scripts/utils/module-availability.js` `S360-312` classification. A live
+  re-read of `sense360store/WebFlash` was again **denied** this session
+  (GitHub scope is `sense360store/esphome-public` + `sense360store/esphome`
+  only), so `S360-312` remains **not recorded** in any module-availability
+  snapshot and the classification cannot be captured here without
+  fabricating evidence. Row #17 therefore stays `NEEDS-TOOLING`, deferred
+  to **`WEBFLASH-DAC-LIVE-CHECK-001`** (or a `WEBFLASH-DRIFT-001` re-run)
+  once read access is restored — **not** a `WEBFLASH-DAC-002-WRAPPER-PLAN`
+  slice, because non-WebFlash gates (the `J3` silkscreen transposition and
+  Cloudlift S12 harness / product-bench caveats, compliance / safety
+  sign-off) are not all clean.
+- **`FanDAC ↔ AirIQ` mutex re-confirmed.** `fandac_conflicts_with_airiq:
+  true` in
+  [`config/webflash-compatibility.json`](../config/webflash-compatibility.json);
+  no AirIQ-bearing FanDAC combination exists in
+  [`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json)
+  (24 FanDAC config strings, 0 with an `AirIQ` token). The mutex is not
+  relaxed.
+
+This follow-up makes **no** config / product / package / WebFlash / build /
+release / workflow / test edit and **no** WebFlash exposure / import /
+release / compliance / hardware-stable claim, and **fabricates no**
+WebFlash evidence.
+
+---
+
 ## 5. Guardrails honoured / non-claims
 
 This PR does **not** edit `products/**`, `products/webflash/**`,

@@ -1454,6 +1454,148 @@ PR and is **not** in scope for this matrix.
 [`hardware/package-readiness-matrix.md` §fan_gp8403.yaml](hardware/package-readiness-matrix.md#fan_gp8403yaml--s360-312),
 [`product-readiness-matrix.md` §FanDAC / S360-312](product-readiness-matrix.md#fandac--s360-312).
 
+**2026-05-26 — `WEBFLASH-DAC-001-READINESS` (this PR; docs-only
+re-evaluation, no exposure flip).** Re-evaluated FanDAC / S360-312
+WebFlash-exposure readiness using the latest package / product /
+full-compile and `WEBFLASH-DRIFT-001` / PR #595 drift-audit evidence,
+**without exposing FanDAC to WebFlash**. Re-verified against the live
+esphome-public files this session:
+
+- **Product YAML exists** —
+  [`products/sense360-ceiling-poe-fandac.yaml`](../products/sense360-ceiling-poe-fandac.yaml)
+  (PRODUCT-DAC-001 / PR #577), config string `Ceiling-POE-FanDAC`,
+  confirmed on disk.
+- **Package layer implemented** —
+  [`packages/expansions/fan_dac.yaml`](../packages/expansions/fan_dac.yaml)
+  (canonical alias, PACKAGE-NAMING-ALIASES-FANDAC-001) → the
+  [`packages/expansions/fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml)
+  implementation (PACKAGE-DAC-001 / PR #573): two GP8403 dual-channel
+  I²C DACs (`fan_dac_1` / IC1 at `0x58`, `fan_dac_2` / IC2 at `0x59`)
+  on the shared `${fan_dac_i2c_id}` (`core_i2c`) bus, four neutral
+  outputs (`fan_dac_1_vout0` … `fan_dac_2_vout1`), per-chip address +
+  range substitutions.
+- **Full-compile evidence recorded** — the FanDAC compile-only target
+  full-compiled green in run `26364679370` (`workflow_dispatch` /
+  `compile_mode=full`, 9 targets, conclusion `success`; the
+  `Compile-only Targets — Full ESPHome Compile` job `77606324332`
+  completed `success`; the lane runs `esphome compile` against every
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+  target and fails on the first failure, so `success` proves all nine
+  including `ceiling-poe-fandac-compile-only`; FW-COMPILE-DAC-FULL-RESULT-001
+  / PR #580). This is **prior-recorded in-repo evidence**; the GitHub
+  Actions run could not be re-read with the tooling scoped to this
+  session.
+- **`compile_validation_status: validated-full-compile` and
+  `voltage_enum_fixed: true`** — both present on the FanDAC
+  compile-only target in
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+  (flipped from `pending-ci` by COMPILE-STATUS-FLAGS-001 / PR #581;
+  the `gp8403:` `voltage:` `0-10V` → ESPHome's `10V` enum fix by
+  FW-COMPILE-DAC-001 / PR #575). **Unlike FanRelay** (drift row #21,
+  intentionally flag-less), FanDAC's compile-status flag is already
+  set, so there is **no** narrative-vs-config compile-flag gap to
+  resolve for DAC.
+- **No WebFlash wrapper** under
+  [`products/webflash/`](../products/webflash/) — only Release-One, LED
+  preview, and the blocked FanTRIAC reference.
+- **No [`config/webflash-builds.json`](../config/webflash-builds.json)
+  row** — only the 2 existing builds; the `FanDAC` token appears 0
+  times.
+- **No `artifact_name`, no `webflash_wrapper`,
+  `webflash_build_matrix: false`** on the
+  [`config/product-catalog.json`](../config/product-catalog.json)
+  `Ceiling-POE-FanDAC` row (`status: hardware-pending`).
+- **No release artifact** — no `.bin`, tag, checksum, or build-info
+  manifest.
+- **No import readiness** — WebFlash-owned; `WF-IMPORT-DAC-001` is
+  blocked behind `RELEASE-DAC-001`. A **live re-read of
+  `sense360store/WebFlash` was denied this session** (the GitHub scope
+  is `sense360store/esphome-public` + `sense360store/esphome` only), so
+  the WebFlash side stays prior-recorded, not re-verified —
+  `NEEDS-TOOLING`. In particular `WEBFLASH-DRIFT-001` row #17
+  (WebFlash `scripts/utils/module-availability.js` carries **no**
+  `S360-312` classification in any recorded snapshot) cannot be closed
+  this PR; recording that classification stays owed to a live check.
+- **`FanDAC ↔ AirIQ` mutex honoured** — `config/webflash-compatibility.json`
+  `rules.fandac_conflicts_with_airiq: true`; no `AirIQ`-bearing FanDAC
+  combination exists in
+  [`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json)
+  (24 FanDAC config strings, 0 with an `AirIQ` token); any
+  `Ceiling-POE-AirIQ-FanDAC-*` is `invalid-combination`.
+
+**DAC WebFlash readiness table (re-evaluated 2026-05-26).** Status
+legend: `CLOSED` (gate satisfied); `BLOCKING` (open gate that blocks
+WebFlash exposure); `NEEDS-TOOLING` (cannot be re-verified without live
+WebFlash / CI access); `NEEDS-OPERATOR-INPUT` (requires operator
+evidence / sign-off); `OUT-OF-SCOPE` (not advanced by any WebFlash slice
+and/or never by default).
+
+| Gate | Status | Evidence | Next action |
+|---|---|---|---|
+| Product YAML exists | `CLOSED` | `products/sense360-ceiling-poe-fandac.yaml` (`Ceiling-POE-FanDAC`, PRODUCT-DAC-001 / PR #577); verified on disk this session | none — landed |
+| Package layer implemented | `CLOSED` | `packages/expansions/fan_dac.yaml` → `fan_gp8403.yaml` (PACKAGE-DAC-001 / PR #573); two GP8403 chips, four neutral outputs; pinned by `tests/test_fandac_package.py` | none — landed |
+| Full-compile evidence recorded | `CLOSED` | run `26364679370` (`compile_mode=full`, 9 targets, `success`); fails-on-first → FanDAC green (FW-COMPILE-DAC-FULL-RESULT-001 / PR #580); prior-recorded in-repo | none — recorded |
+| `compile_validation_status` config flag | `CLOSED` | `validated-full-compile` on the FanDAC compile-only target (COMPILE-STATUS-FLAGS-001 / PR #581); no narrative-vs-config gap (unlike FanRelay drift row #21) | none — flag set |
+| `voltage:` enum fixed | `CLOSED` | `voltage_enum_fixed: true`; package substitutions `10V` (customer-facing 0-10V), FW-COMPILE-DAC-001 / PR #575; compile-validated by run `26364679370` | none — fixed |
+| Hardware evidence — package/product config posture | `CLOSED` | HW-ASSETS-003 schematic PDF `S360-312-R4.pdf`; board-audit rows 3/6/8 (DIP-switch↔address, output-range policy, `J2`/`J3` pin-1 identity) closed by PR #572 | none for config posture |
+| Hardware evidence — `J3` `out0`/`out1` silkscreen transposition | `NEEDS-OPERATOR-INPUT` | pin-1 pad (IC2 VOUT0) silk-labelled `out1`, pin-3 pad (IC2 VOUT1) silk-labelled `out0`; carried as a product caveat, not bench-confirmed | operator / bench confirmation before printed `J3` labels are relied upon |
+| Hardware evidence — Cloudlift S12 harness / product bench | `NEEDS-OPERATOR-INPUT` | no fan / harness artifact captured; conductor-by-conductor `J2`/`J3` → Cloudlift S12 fan-input trace unresolved | operator-supplied bench / harness evidence (`S360-312-BENCH-*`) |
+| WebFlash wrapper | `BLOCKING` | none under `products/webflash/` (only Release-One / LED / blocked FanTRIAC) | `WEBFLASH-DAC-001` (gated) |
+| `config/webflash-builds.json` row | `BLOCKING` | absent — 2 builds only; 0 FanDAC tokens | `WEBFLASH-DAC-001` |
+| `artifact_name` | `BLOCKING` | catalog row has none; `webflash_build_matrix: false` | `WEBFLASH-DAC-001` |
+| Firmware release artifact | `BLOCKING` | no `.bin` / tag / checksum / build-info manifest | `RELEASE-DAC-001` (behind wrapper / build-matrix) |
+| Import-source path (WebFlash `firmware/sources.json` / `manifest.json`) | `BLOCKING` | WebFlash-owned; no FanDAC source / build prior-recorded; `WF-IMPORT-DAC-001` blocked behind `RELEASE-DAC-001` | `WF-IMPORT-DAC-001` (cross-repo) |
+| WebFlash live repo re-verification | `NEEDS-TOOLING` | `sense360store/WebFlash` read access denied this session; WebFlash facts stay prior-recorded | `WEBFLASH-DAC-LIVE-CHECK-001` once access restored |
+| WebFlash `module-availability.js` `S360-312` classification (drift row #17) | `NEEDS-TOOLING` | `S360-312` not recorded in any WebFlash module-availability snapshot; cannot be read / recorded without live access | `WEBFLASH-DAC-LIVE-CHECK-001` (record the classification) |
+| Voltage-mode / product UX expectations | `BLOCKING` | no WebFlash-side 0-10V/0-5V voltage-mode UX confirmed; per-chip (not per-output) range limitation must surface in any future UX | `WEBFLASH-DAC-001` + WebFlash-side UX |
+| Compliance / safety approval | `BLOCKING` | SELV 0-10V control signalling only; no board-level creepage / clearance / thermal / EMI / EMC certification; `COMPLIANCE-001` not signed off | `COMPLIANCE-001` (separate; not a WebFlash slice) |
+| `FanDAC ↔ AirIQ` mutex | `CLOSED` | `fandac_conflicts_with_airiq: true`; 0 AirIQ-bearing FanDAC combos in `firmware-combination-matrix.json` | none — enforced; not relaxed |
+| REQUIRED_CONFIGS / kit / recommended membership | `OUT-OF-SCOPE` | `release_one_required_configs = ["Ceiling-POE-VentIQ-RoomIQ"]`; duct-fan kit `S360-KIT-DUCT-0-10V` stays `future-expansion` / `hardware-pending` | never by default; separate explicit PR |
+
+**Verdict — WebFlash DAC exposure stays blocked; recommended next DAC
+PR is `WEBFLASH-DAC-LIVE-CHECK-001`.** The package / product /
+full-compile / `compile_validation_status` / `voltage`-enum /
+config-posture-hardware / `FanDAC ↔ AirIQ` mutex gates are `CLOSED`
+(this is **stronger** than the FanRelay state — DAC's compile-status
+flag is already set, so there is no compile-flag gap), but the
+non-WebFlash gates are **not** all clean: the `J3` silkscreen
+transposition and the Cloudlift S12 harness / product-bench caveats
+remain `NEEDS-OPERATOR-INPUT`, compliance / safety sign-off remains
+`BLOCKING`, and the WebFlash side cannot be re-verified live this
+session (`NEEDS-TOOLING`, including the still-owed `S360-312`
+module-availability classification, `WEBFLASH-DRIFT-001` row #17). This
+is therefore **not** the "only WebFlash-wrapper / artifact / import
+missing" case that would justify a `WEBFLASH-DAC-002-WRAPPER-PLAN`
+slice. The recommended next step is **`WEBFLASH-DAC-LIVE-CHECK-001`** —
+a re-run of the live WebFlash readiness / drift check
+(`firmware/sources.json`, `manifest.json`,
+`scripts/utils/module-availability.js`, `scripts/data/kit-presets.js`,
+import grammar; record the `S360-312` classification) once read access
+to `sense360store/WebFlash` is restored — which closes the
+`NEEDS-TOOLING` axes (and lets the hardware-bench caveats be discharged
+by `S360-312-BENCH-*` / operator evidence) before any `WEBFLASH-DAC-001`
+wrapper / catalog / build-matrix work is even considered.
+
+**Guardrails honoured.** **No `packages/**`, `products/**`,
+`products/webflash/**`, `config/**` (including
+`config/webflash-builds.json`, `config/product-catalog.json`,
+`config/compile-only-targets.json`, `config/firmware-combination-matrix.json`),
+`scripts/**`, `.github/workflows/**`, `components/**`, `include/**`,
+`tests/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`,
+release-artifact / checksum / build-info, or `sense360store/WebFlash`
+edit.** No WebFlash wrapper added; no `webflash_build_matrix` flip; no
+`artifact_name`; no `webflash_wrapper`; no `config_string` /
+`release_one_required_configs` / `canonical_modules` change; no
+`schematic_status` / `schematic_file` promotion (`S360-312` stays
+`cataloged_unverified`); no `COMPLIANCE-001` movement; the
+`FanDAC ↔ AirIQ` mutex is not relaxed. Release-One stays
+`Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; LED preview stays
+`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays `blocked` /
+`HW-005`. **No WebFlash import-readiness claim, no WebFlash exposure
+claim, no release-readiness claim, no compliance / safety approval
+claim, no hardware-stable readiness claim, and no fabricated WebFlash
+evidence.**
+
 ## TRIAC / S360-320 WebFlash posture
 
 **Current state.** `S360-320 Sense360 TRIAC`,

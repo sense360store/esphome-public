@@ -1481,6 +1481,43 @@ matrix.
 [`product-readiness-matrix.md` §FanDAC / S360-312](product-readiness-matrix.md#fandac--s360-312),
 [`webflash-exposure-readiness-matrix.md` §DAC / S360-312 WebFlash posture](webflash-exposure-readiness-matrix.md#dac--s360-312-webflash-posture).
 
+**2026-05-26 — `WEBFLASH-DAC-001-READINESS` (this PR; docs-only) — note
+on release surface.** Re-evaluated the FanDAC release-layer disposition
+alongside the WebFlash re-evaluation in
+[`webflash-exposure-readiness-matrix.md` §DAC / S360-312 WebFlash posture](webflash-exposure-readiness-matrix.md#dac--s360-312-webflash-posture)
+(which carries the full re-evaluated DAC WebFlash readiness table).
+**The release surface is unchanged and stays `not-release-ready`.** The
+two `BLOCKING` release-side gates — `artifact_name` (absent;
+`webflash_build_matrix: false`) and the firmware release artifact (no
+`.bin` / tag / SHA256 / MD5 / build-info `manifest.json` /
+[`webflash-release-proof.md`](webflash-release-proof.md) row) — remain
+owed to the atomic `RELEASE-DAC-001` slice, which itself stays blocked
+behind the upstream `WEBFLASH-DAC-001` wrapper / catalog / build-matrix
+path that does not yet exist. The FanDAC full-compile evidence (run
+`26364679370`, prior-recorded; `compile_validation_status:
+validated-full-compile`) is `necessary-but-insufficient` and does
+**not** discharge any release gate. **No release artifact is built /
+signed / attached / imported; no release-proof row is added** — a proof
+row would forward-reference a `.bin` that has never been built. **No
+[`products/webflash/`](../products/webflash/), `config/**`,
+`.github/workflows/`, firmware / signing / sources / manifest / checksum,
+`tests/**`, or `sense360store/WebFlash` edit; no `webflash_build_matrix`
+flip; no `artifact_name`; no `webflash_wrapper`; no
+`release_one_required_configs` change; no COMPLIANCE-001 movement; no
+`schematic_status` / `schematic_file` promotion** (`S360-312` stays
+`cataloged_unverified`); the `FanDAC ↔ AirIQ` mutex is not relaxed.
+Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; LED
+preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays
+`blocked` / `HW-005`. **No claim of FanDAC release-readiness,
+stable-channel readiness, `RELEASE-DAC-001` / `WEBFLASH-DAC-001` /
+`WF-IMPORT-DAC-001` unblock, board-level safety certification,
+installation-approval, harness / fan-bench validation, or WebFlash
+import readiness.** The recommended next DAC-chain step is
+`WEBFLASH-DAC-LIVE-CHECK-001` (re-run the live WebFlash readiness / drift
+check once `sense360store/WebFlash` read access is restored; record the
+owed `S360-312` module-availability classification), **not**
+`RELEASE-DAC-001` or `WEBFLASH-DAC-001`.
+
 ## TRIAC / S360-320 release posture
 
 **Current state.** The FanTRIAC reference product
