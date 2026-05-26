@@ -74,17 +74,17 @@ action** · **Next PR**.
 |---|---|---|---|---|---|---|---|
 | PWM-1 | Hardware evidence (schematic / BOM / gerbers / renders) | CLOSED | Committed `schematics/S360-311-R4.pdf`; Drive `12vFan_PWM_PulseCounter` set (PDF / `.xlsx` BOM / gerbers / CPL / STEP / 3 renders) | HW-ASSETS-003; PWM-BLOCKER-REMOVAL-001 / PR #586; Drive re-confirmed this session | Yes | none | — |
 | PWM-2 | Schematic / BOM identity | CLOSED (part-identity) | Drive BOM cross-checks committed R4 schematic 1:1; rename `R07` Done | PWM-BLOCKER-REMOVAL-001 / PR #586; tracker `R07` | Yes | minor: explicit `R4` rev-stamp arrives via fleet silkscreen `G01`/`N01` | — (fab silkscreen) |
-| PWM-3 | Core connector / bus / GPIO mapping (J6/J3 pin-1 order; UART-on-J3-11/12) | NEEDS BENCH | `core_i2c` rebind landed; connector identity + routing direction resolved (D2/D3) | CORE-ABSTRACT-BUS-001B; operator D2/D3; tracker `G01` (no R4 silkscreen yet) | No | silkscreen pin-1 read once R4 silkscreen exists; confirm UART routing on bench | S360-311-BENCH-EVIDENCE-REQUEST-001 |
+| PWM-3 | Core connector / bus / GPIO mapping (J6/J3 pin-1 order; UART-on-J3-11/12) | NEEDS BENCH (board-rev recorded) | `core_i2c` rebind landed; connector identity + routing direction resolved (D2/D3); **board revision tested = `S360-311-R4`** (operator bench) | CORE-ABSTRACT-BUS-001B; operator D2/D3; tracker `G01` (no R4 silkscreen yet); S360-311-BENCH-RESULT-001 (operator `@wifispray`, 2026-05-26) | Partial | silkscreen pin-1 read once R4 silkscreen exists; confirm UART routing on bench (board-rev dimension recorded) | S360-311-CURRENT-THERMAL-001 (silkscreen via fleet `G01`) |
 | PWM-4 | PWM output pin mapping (4-channel; SX1509 ch0..3 / ch4..7; TachIO IO16) | CLOSED (package layer) | Reconciled `fan_pwm.yaml` → `fan_pwm_sx1509.yaml`; pinned by `test_fan_pwm_package.py` | PACKAGE-PWM-001-IMPLEMENT-001 / PR #590; operator D1/D2 | Yes (package) | none at package layer | — |
 | PWM-5 | Controlled load type (≤4× 12 V 4-wire PWM fans on JST-SH SM04B) | CLOSED | Schematic + BOM + render silkscreen | PWM-BLOCKER-REMOVAL-001 / PR #586 | Yes | none | — |
-| PWM-6 | Output electrical characteristics (per-fan current, MT3608 ceiling, aggregate load, inrush, thermal) | NEEDS BENCH | Boost topology known (MT3608 / L1 22 µH / SS34 / 38k:2k); per-fan + aggregate current, ceiling, inrush, thermal **not** specified | PWM-BLOCKER-REMOVAL-001 / PR #586; no Drive bench artifact (re-confirmed) | No | bench: per-fan + aggregate current draw, MT3608 output-current ceiling, locked-rotor / inrush, thermal rise | S360-311-BENCH-EVIDENCE-REQUEST-001 |
+| PWM-6 | Output electrical characteristics (per-fan current, MT3608 ceiling, aggregate load, inrush, thermal) | NEEDS BENCH (fan/load + supply recorded) | Boost topology known (MT3608 / L1 22 µH / SS34 / 38k:2k); **fan/load = Arctic P14 Plus**, **supply = 12 V MT3608 boost (~2 A available)**, qualitative 1+ hour all-four run, no sag reported (operator bench); per-channel + aggregate current, **measured** MT3608 ceiling, inrush **still not** measured | PWM-BLOCKER-REMOVAL-001 / PR #586; S360-311-BENCH-RESULT-001 (operator `@wifispray`, 2026-05-26) | Partial | bench: **measured** per-channel + aggregate current draw, MT3608 measured output-current ceiling / sag under 4-fan load, locked-rotor / inrush | S360-311-CURRENT-THERMAL-001 |
 | PWM-7 | Package YAML (PWM-drive-only scope) | CLOSED | `fan_pwm.yaml` four `fan: platform: speed` controllers on SX1509 PWM-drive outputs | PACKAGE-PWM-001-IMPLEMENT-001 / PR #590 | Yes | none | — |
 | PWM-8 | Product YAML (no-WebFlash slice) | CLOSED | `products/sense360-ceiling-poe-fanpwm.yaml` (`Ceiling-POE-FanPWM`); catalog row `hardware-pending` | PRODUCT-PWM-001 / PR #593; FW-COMPILE-PWM-PRODUCT-001 / PR #594 | Yes | none | — |
 | PWM-9 | Compile-only target / full-compile result | CLOSED | `ceiling-poe-fanpwm-compile-only`; `validated-full-compile`, `rpm_supported: false` | FW-COMPILE-PWM-001 / PR #591; FW-COMPILE-PWM-RESULT-001 / PR #592 (run `26414398902`) | Yes | none | — |
-| PWM-10 | PWM polarity (active-high vs active-low at the low-side N-FET gate) | NEEDS BENCH | Not waveform-confirmed | WEBFLASH-PWM-001-READINESS / PR #598 | No | bench: scope the SX1509 PWM-drive output vs fan PWM input polarity | S360-311-BENCH-EVIDENCE-REQUEST-001 |
-| PWM-11 | Product bench (FanPWM end-to-end) | NEEDS BENCH | Product YAML exists for manual / compile-your-own use only | WEBFLASH-PWM-001-READINESS / PR #598 | No | operator product-bench sign-off | S360-311-BENCH-EVIDENCE-REQUEST-001 |
+| PWM-10 | PWM polarity (active-high vs active-low at the low-side N-FET gate) | CLOSED (observed behaviour) | Operator: increasing commanded duty increased fan speed across low/med/high duty → **non-inverting, no inversion required**; observed behaviour (not scope-traced); exact Hz / min%–max% not recorded | S360-311-BENCH-RESULT-001 (operator `@wifispray`, 2026-05-26) | Yes (observed behaviour) | optional: scope-trace gate waveform / record exact Hz + duty % | — |
+| PWM-11 | Product bench (FanPWM end-to-end) | CLOSED (functional; operator-notes-only) | Operator-attested on `S360-311-R4`: all 4 channels individually speed-controlled, all 4 simultaneous for 1+ hour, restart retained last commanded speed; operator notes only (no photo/video/log) | S360-311-BENCH-RESULT-001 (operator `@wifispray`, 2026-05-26) | Yes (functional) | **measured** current + **measured** thermal carried by PWM-6 / PWM-13 | S360-311-CURRENT-THERMAL-001 (measured rows) |
 | PWM-12 | TachIO / GPIO16 + RPM | NEEDS BENCH / deferred | No `pulse_counter`; per-fan RPM via SX1509 `pulse_counter` is compile-proven unsupported (`[sx1509] is an invalid option for [pin]`) | PWM-SX1509-TACH-PROOF-001 / PR #589; PACKAGE-PWM-TACH-STRATEGY-001 / PR #588 | No (kept false) | keep `rpm_supported: false`; any RPM needs a separate approved tach strategy | COMPONENT-SX1509-TACH-001 (future) |
-| PWM-13 | Board-level thermal / EMI note | NEEDS BENCH | SELV board; not certified | WEBFLASH-PWM-001-READINESS / PR #598 | No | bench thermal / EMI observation (not a compliance approval) | S360-311-BENCH-EVIDENCE-REQUEST-001 |
+| PWM-13 | Board-level thermal / EMI note | NEEDS BENCH (qualitative recorded) | SELV board; not certified; **qualitative: all 4 fans ran 1+ hour, no heat issue noticed** (operator notes); no measured °C / IR / thermocouple / EMI | WEBFLASH-PWM-001-READINESS / PR #598; S360-311-BENCH-RESULT-001 (operator `@wifispray`, 2026-05-26) | Partial | **measured** thermal temp / ambient / hottest-location (IR or thermocouple); EMI observation (not a compliance approval) | S360-311-CURRENT-THERMAL-001 |
 | PWM-14 | Compliance / mains gate | CLOSED (no mains) | SELV (5 V → 12 V boost); no mains path | PWM-BLOCKER-REMOVAL-001 / PR #586 | Yes | none — `COMPLIANCE-001` mains gate does not apply | — |
 | PWM-15 | WebFlash wrapper / build-matrix / artifact / module-availability | NEEDS WEBFLASH ACCESS + OUT OF SCOPE | No wrapper; `S360-311` not in any `module-availability.js` snapshot (drift #16) | WEBFLASH-DRIFT-001 / PR #595; WEBFLASH-PWM-001-READINESS / PR #598 | No | record `S360-311` classification on live re-check; wrapper gated behind bench | WEBFLASH-PWM-LIVE-CHECK-001 |
 
@@ -177,9 +177,9 @@ action** · **Next PR**.
 
 | Class | Count | IDs |
 |---|---|---|
-| CLOSED | 26 | PWM-1/2/4/5/7/8/9/14, DAC-1..8a/10/11/13, RLY-1/2, WF-4/5, SEC-1, REL-3, CMP-2, LED-2 |
+| CLOSED | 28 | PWM-1/2/4/5/7/8/9/10/11/14, DAC-1..8a/10/11/13, RLY-1/2, WF-4/5, SEC-1, REL-3, CMP-2, LED-2 |
 | CAN CLOSE NOW (separate / docs) | 3 | DAC-12 (design), WF-5 (doc), SEC-2 (separate PR) |
-| NEEDS BENCH | 9 | PWM-3/6/10/11/13, DAC-8c/8d, RLY-3, LED-1 |
+| NEEDS BENCH | 7 | PWM-3/6/13 (partial — board-rev / fan-load / qualitative-thermal recorded by S360-311-BENCH-RESULT-001), DAC-8c/8d, RLY-3, LED-1 |
 | NEEDS OPERATOR INPUT | 7 | DAC-8b/14, RLY-4/7, TRI-2, LED-1, (SEC-3 tooling) |
 | NEEDS WEBFLASH ACCESS | 6 | PWM-15, DAC-15, RLY-8, WF-1/2/3, REL-2 |
 | NEEDS DRIVE EVIDENCE | 1 | DAC-8c |
@@ -189,23 +189,47 @@ action** · **Next PR**.
 (IDs may appear under more than one class where a blocker has both a
 bench and an access dimension; the table in §2 is authoritative.)
 
-**Headline.** No remaining hardware / WebFlash / compliance blocker can
-be closed in this docs-only pass without new bench, operator, WebFlash,
-or Drive evidence — none of which appeared this session. The hardware
-lanes (PWM / DAC / Relay) are all package + product + compile complete
-and are now **bench / operator / safety gated**, not repo gated. The one
-non-hardware lane that can advance immediately is
-**`SECURITY-ACTION-PINNING-001`** (SEC-2).
+**Headline (BLOCKER-BURNDOWN-001 pass, 2026-05-26).** No remaining
+hardware / WebFlash / compliance blocker could be closed in that
+docs-only pass without new bench, operator, WebFlash, or Drive evidence —
+none of which appeared in that session. The hardware lanes (PWM / DAC /
+Relay) are all package + product + compile complete and are now **bench /
+operator / safety gated**, not repo gated. The one non-hardware lane that
+can advance immediately is **`SECURITY-ACTION-PINNING-001`** (SEC-2).
+
+**Update — `S360-311-BENCH-RESULT-001` (2026-05-26).** The operator then
+ran the FanPWM bench. On operator-notes-only evidence (no photo/video/log)
+this **closed `PWM-10`** (PWM polarity — increasing duty increased fan
+speed, non-inverting) and **`PWM-11`** (functional product bench — all 4
+channels individually speed-controlled, all 4 simultaneous for 1+ hour,
+restart retained the last commanded speed on `S360-311-R4`), and
+**partially advanced `PWM-3`** (board revision tested = `S360-311-R4`),
+**`PWM-6`** (fan/load = Arctic P14 Plus; supply = 12 V MT3608 boost
+~2 A available; qualitative 1+ hour run) and **`PWM-13`** (qualitative
+1+ hour no-heat observation). The **measured** rows stay open — per-channel
+current, aggregate current + MT3608 measured ceiling / inrush, and
+measured thermal temperature — and feed the recommended next FanPWM PR
+**`S360-311-CURRENT-THERMAL-001`**. RPM (`PWM-12`), WebFlash (`PWM-15`),
+release, import, hardware-stable promotion (`S360-311` stays
+`cataloged_unverified`), and compliance stay exactly as before. See
+[`s360-311-r4-pwm.md` §S360-311-BENCH-RESULT-001](hardware/s360-311-r4-pwm.md#s360-311-bench-result-001--fanpwm-operator-bench-result-2026-05-26)
+and [§5B](#5b-s360-311-bench-result-001--fanpwm-operator-bench-result-2026-05-26).
 
 ## 4. Next-PR recommendations
 
 Applying the burn-down decision rules:
 
-- **FanPWM bench evidence is missing** → **`S360-311-BENCH-EVIDENCE-REQUEST-001`**
-  (request PWM polarity, per-fan + aggregate current, MT3608 ceiling,
-  inrush, thermal, product bench; J6/J3 silkscreen pin order once R4
-  silkscreen exists). *Not* `S360-311-BENCH-RESULT-001` (no results to
-  record).
+- **FanPWM bench result is now recorded** (`S360-311-BENCH-RESULT-001`,
+  2026-05-26): the operator bench closed PWM polarity (`PWM-10`) and the
+  functional product bench (`PWM-11`) and partially advanced `PWM-3` /
+  `PWM-6` / `PWM-13`. The **measured** current / thermal rows remain →
+  **`S360-311-CURRENT-THERMAL-001`** (measured per-channel + aggregate
+  current, MT3608 measured ceiling / inrush, measured thermal temperature
+  or documented thermal method; J6/J3 silkscreen pin order once the R4
+  silkscreen exists). WebFlash stays separate and blocked
+  (`WEBFLASH-PWM-LIVE-CHECK-001` behind access); do **not** recommend a
+  `WEBFLASH-PWM-001` wrapper until measured current/thermal *and* the
+  WebFlash live classification are done.
 - **FanDAC bench evidence is missing** → **`S360-312-BENCH-EVIDENCE-REQUEST-001`**
   (request `J3` `out0`/`out1` transposition confirmation, Cloudlift S12
   harness trace, Cloudlift S12 product bench). *Not*
@@ -346,6 +370,65 @@ stays `cataloged_unverified` unless policy allows); compliance approval
 evidence → **`S360-311-BENCH-RESULT-001`** (record results, close the
 rows it proves); while evidence is missing → `S360-311-BENCH-RESULT-001`
 stays gated. WebFlash wrapper / build PRs stay blocked.
+
+### 5B. S360-311-BENCH-RESULT-001 — FanPWM operator bench result (2026-05-26)
+
+The operator (`@wifispray`) ran the §5A bench and reported a result.
+`S360-311-BENCH-RESULT-001` **records** it (cross-lane index copy; the
+canonical board-side record is
+[`s360-311-r4-pwm.md` §S360-311-BENCH-RESULT-001](hardware/s360-311-r4-pwm.md#s360-311-bench-result-001--fanpwm-operator-bench-result-2026-05-26)).
+Evidence type is **operator notes only** — no photo / video / scope /
+multimeter log / thermal image — recorded as an operator attestation
+(provenance: operator `@wifispray`, 2026-05-26), the same evidence class
+that closed the package-evidence rows in `S360-310-BENCH-EVIDENCE-001`.
+
+**Operator answers (recorded):** board tested = **S360-311-R4**;
+fan/load = **Arctic P14 Plus** (12 V 4-wire PWM); supply = **12 V** from
+the on-board **MT3608 boost** (~**2 A** available); **all 4 channels
+(`J1`/`J2`/`J4`/`J5`) tested individually for speed / control**; **all 4
+ran simultaneously for 1+ hour with no heat issue noticed**; **increasing
+duty increased fan speed** (non-inverting, no inversion required) across
+**low / medium / high** duty (qualitative); **fans stayed on at the last
+commanded speed during restart**; per-channel current **not measured**;
+aggregate current **not measured**; TachIO / GPIO16 **not measured**;
+operator summary **confirms working.**
+
+**Gate dispositions:**
+
+| Gate / blocker | Disposition |
+|---|---|
+| PWM polarity (`PWM-10`) | **CLOSED** — observed behaviour, non-inverting (contract accepts observed behaviour) |
+| Four-channel individual speed/control (`PWM-11`) | **CLOSED** — operator-attested |
+| All-four simultaneous operation (`PWM-11`) | **CLOSED** — operator-attested |
+| Restart retained last commanded speed (`PWM-11`) | **CLOSED** — operator-attested |
+| Product bench end-to-end (`PWM-11`) | **CLOSED** — functional, operator-notes-only (measured current/thermal carried by `PWM-6` / `PWM-13`) |
+| Board revision tested (`PWM-3`) | **PARTIAL** — `S360-311-R4` recorded; silkscreen pin-1 / UART routing still bench |
+| Fan/load model + supply (`PWM-6`) | **PARTIAL** — Arctic P14 Plus + 12 V MT3608 (~2 A) recorded; measured current / ceiling / inrush still open |
+| Qualitative thermal 1+ hour (`PWM-13`) | **PARTIAL** — no-heat note recorded; measured °C / IR / thermocouple / EMI still open |
+| Per-channel + aggregate current (`PWM-6`) | **OPEN** — not measured |
+| Measured thermal temperature (`PWM-13`) | **OPEN** — qualitative only |
+| TachIO / GPIO16 (`PWM-12`) | **OPEN / deferred** — not measured; not an RPM claim |
+| RPM support (`PWM-12`) | **OPEN** — stays unsupported (`rpm_supported: false`) |
+| WebFlash live access / module-availability (`PWM-15`, `WF-1`/`WF-2`) | **OPEN** — `NEEDS WEBFLASH ACCESS` |
+| WebFlash wrapper / build / artifact / import (`PWM-15` / `RELEASE-PWM-001` / `WF-IMPORT-PWM-001`) | **OPEN** — gated |
+| Release readiness (`RELEASE-PWM-001`) | **OPEN** — gated |
+| Hardware-stable promotion | **OUT OF SCOPE** — not promoted; `S360-311` stays `cataloged_unverified` |
+| Compliance approval (`PWM-14` / `CMP-2`) | **N/A** — SELV; `COMPLIANCE-001` does not apply |
+
+**Exact remaining evidence checklist:** (1) measured current per channel;
+(2) measured aggregate current with all 4 active + MT3608 measured
+ceiling / sag + inrush; (3) measured thermal temperature or a documented
+thermal method, **if** policy requires more than the recorded qualitative
+1+ hour observation; (4) optional TachIO / GPIO16 observation **only if**
+RPM / diagnostics ever become in scope (not an RPM claim); (5) photo /
+video / log evidence **if** policy requires more than the operator-notes-
+only attestation recorded here.
+
+**Next PR:** **`S360-311-CURRENT-THERMAL-001`** for the measured current /
+thermal rows. WebFlash stays separate and blocked
+(`WEBFLASH-PWM-LIVE-CHECK-001` behind `sense360store/WebFlash` access);
+**no** `WEBFLASH-PWM-001` wrapper is recommended until measured
+current / thermal *and* the WebFlash live classification are done.
 
 ## 6. Guardrails honoured / non-claims
 

@@ -1173,6 +1173,41 @@ named follow-up.
   flip; no `artifact_name`; no RPM / WebFlash / release / import /
   compliance / hardware-stable claim; `S360-311` stays
   `cataloged_unverified`.
+- **2026-05-26 — `S360-311-BENCH-RESULT-001` (this PR; docs-only).** The
+  operator (`@wifispray`) ran the requested FanPWM bench; this PR
+  **records** the result (operator-notes-only attestation — no photo /
+  video / log) in
+  [`s360-311-r4-pwm.md` §S360-311-BENCH-RESULT-001](hardware/s360-311-r4-pwm.md#s360-311-bench-result-001--fanpwm-operator-bench-result-2026-05-26)
+  and [`blocker-burndown.md` §5B](blocker-burndown.md#5b-s360-311-bench-result-001--fanpwm-operator-bench-result-2026-05-26).
+  **Product-layer disposition is unchanged** — product-YAML-landed +
+  WebFlash-blocked + `validated-full-compile` + `rpm_supported: false` +
+  `hardware-pending`; this PR adds **no** product YAML and changes no
+  status. The bench **closed** PWM polarity (`PWM-10` — increasing duty
+  increased fan speed; non-inverting, no inversion required) and the
+  **functional product bench** (`PWM-11` — all four channels individually
+  speed-controlled, all four simultaneous for 1+ hour, restart retained
+  the last commanded speed on `S360-311-R4`), and **partially advanced**
+  `PWM-3` (board tested = `S360-311-R4`), `PWM-6` (fan/load = Arctic P14
+  Plus; supply = 12 V MT3608 boost, ~2 A available; qualitative 1+ hour
+  run) and `PWM-13` (qualitative 1+ hour no-heat observation). **Still
+  open / unchanged:** measured per-channel + aggregate current and
+  measured thermal temperature (`PWM-6` / `PWM-13`); `TachIO` / `GPIO16`
+  reserved and RPM unsupported (no `pulse_counter`; `PWM-12`); WebFlash
+  exposure (`NEEDS WEBFLASH ACCESS`), release, and import. The SX1509
+  PWM-drive output is supported and is the basis of FanPWM drive, kept
+  distinct from the compile-proven per-fan RPM limitation
+  (`PWM-SX1509-TACH-PROOF-001`; `esphome config` rejects an SX1509-backed
+  `pulse_counter` with `[sx1509] is an invalid option for [pin]`).
+  **Recommended next PWM PR: `S360-311-CURRENT-THERMAL-001`** (measured
+  current / thermal); WebFlash stays separate and blocked
+  (`WEBFLASH-PWM-LIVE-CHECK-001` behind access) and no `WEBFLASH-PWM-001`
+  wrapper is recommended until measured current/thermal *and* the WebFlash
+  live classification are done. No `config/` / `packages/` / `products/` /
+  `products/webflash/` / test / workflow / firmware / `sense360store/WebFlash`
+  edit; no `webflash_build_matrix` flip; no `artifact_name`; no RPM /
+  WebFlash / import / release / compliance / hardware-stable claim;
+  `S360-311` stays `cataloged_unverified`; no fabricated photo / video /
+  log / measurement evidence.
 
 ### FanDAC / S360-312
 

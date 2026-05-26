@@ -1409,6 +1409,41 @@ claim, no release-readiness claim, no RPM-support claim, no compliance /
 safety approval claim, no hardware-stable readiness claim, and no
 fabricated WebFlash evidence.**
 
+**2026-05-26 — `S360-311-BENCH-RESULT-001` (this PR; docs-only) — note on
+WebFlash surface.** The operator (`@wifispray`) ran the requested FanPWM
+bench; the result is recorded (operator-notes-only attestation) in
+[`hardware/s360-311-r4-pwm.md` §S360-311-BENCH-RESULT-001](hardware/s360-311-r4-pwm.md#s360-311-bench-result-001--fanpwm-operator-bench-result-2026-05-26)
+and [`blocker-burndown.md` §5B](blocker-burndown.md#5b-s360-311-bench-result-001--fanpwm-operator-bench-result-2026-05-26).
+**The WebFlash surface is unchanged and stays `not-webflash-ready`.** Two
+of the hardware-evidence rows in the readiness table above move from
+`NEEDS-OPERATOR-INPUT` to satisfied at the **product-bench** level — the
+**PWM polarity** row (operator observed increasing duty → increasing fan
+speed; non-inverting, no inversion required) and the **product bench** row
+(all four channels individually speed-controlled, all four simultaneous
+for 1+ hour, restart retained the last commanded speed on `S360-311-R4`).
+The **per-fan / aggregate current + thermal envelope** row stays
+`NEEDS-OPERATOR-INPUT` (current **not measured**; only a qualitative 1+
+hour no-heat observation, **no** measured °C). **None of this advances
+the WebFlash side:** the WebFlash wrapper, `config/webflash-builds.json`
+row, `artifact_name`, release artifact, and import-source gates stay
+`BLOCKING`; the live `sense360store/WebFlash` re-verification and the
+still-owed `S360-311` module-availability classification stay
+`NEEDS-TOOLING`; `TachIO` / `GPIO16` stays reserved and RPM stays
+unsupported (no `pulse_counter`). Operator notes are enough for the
+product bench but **not** for WebFlash exposure. The recommended next PWM
+PR for the **measured** envelope is **`S360-311-CURRENT-THERMAL-001`**;
+**`WEBFLASH-PWM-LIVE-CHECK-001`** stays blocked behind WebFlash access,
+and **no `WEBFLASH-PWM-001` wrapper is recommended** until measured
+current / thermal *and* the WebFlash live classification are done. No
+`packages/**`, `products/**`, `products/webflash/**`, `config/**`,
+`scripts/**`, `.github/workflows/**`, `components/**`, `include/**`,
+`tests/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`,
+release-artifact / checksum / build-info, or `sense360store/WebFlash`
+edit; no `webflash_build_matrix` flip; no `artifact_name`; no
+`schematic_status` promotion (`S360-311` stays `cataloged_unverified`); no
+WebFlash exposure / import / release / RPM / compliance / hardware-stable
+claim; no fabricated evidence.
+
 ## DAC / S360-312 WebFlash posture
 
 **Current state.** `S360-312 Sense360 DAC`,

@@ -1287,6 +1287,39 @@ owed `S360-311` module-availability classification), with
 thermal envelope + product bench) as the substantive evidence gate —
 **not** `RELEASE-PWM-001` or `WEBFLASH-PWM-001`.
 
+**2026-05-26 — `S360-311-BENCH-RESULT-001` (this PR; docs-only) — note on
+release surface.** The operator (`@wifispray`) ran the requested FanPWM
+bench; the result is recorded (operator-notes-only attestation) in
+[`hardware/s360-311-r4-pwm.md` §S360-311-BENCH-RESULT-001](hardware/s360-311-r4-pwm.md#s360-311-bench-result-001--fanpwm-operator-bench-result-2026-05-26).
+It clarifies the bench-evidence gate — PWM polarity and the **functional**
+product bench are now operator-attested (non-inverting; all four channels
+individually speed-controlled, all four simultaneous for 1+ hour, restart
+retained the last commanded speed) — but **the release surface is
+unchanged and stays `not-release-ready`.** The bench result discharges
+**no** release gate: `artifact_name` is still absent
+(`webflash_build_matrix: false`) and there is still no `.bin` / tag /
+SHA256 / MD5 / build-info `manifest.json` /
+[`webflash-release-proof.md`](webflash-release-proof.md) row — both remain
+owed to `RELEASE-PWM-001`, which stays blocked behind the upstream
+`WEBFLASH-PWM-001` wrapper / catalog / build-matrix path. Notably the
+**measured** per-channel + aggregate current and **measured** thermal
+temperature stay open (operator-notes-only; current not measured, thermal
+qualitative), so even the substantive bench gate is only partially met.
+The recommended next PWM step for the measured envelope is
+**`S360-311-CURRENT-THERMAL-001`**; **`WEBFLASH-PWM-LIVE-CHECK-001`** stays
+blocked behind `sense360store/WebFlash` access, and **no `WEBFLASH-PWM-001`
+wrapper / `RELEASE-PWM-001` artifact is recommended** until measured
+current / thermal *and* the WebFlash live classification are done. No
+`products/webflash/`, `config/**`, `.github/workflows/`, firmware /
+signing / sources / manifest / checksum, `tests/**`, or
+`sense360store/WebFlash` edit; no `webflash_build_matrix` flip; no
+`artifact_name`; no release artifact / proof row added; no RPM /
+WebFlash / import / release / compliance / hardware-stable claim;
+`S360-311` stays `cataloged_unverified`; no fabricated evidence.
+Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; LED
+preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays
+`blocked` / `HW-005`.
+
 ## DAC / S360-312 release posture
 
 **Current state.** No FanDAC product YAML under
