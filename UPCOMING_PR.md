@@ -24,7 +24,47 @@ mirrored here.
 
 ## Current queue summary
 
-- **WEBFLASH-DRIFT-001** delivers, via **this PR** on 2026-05-26, the
+- **WEBFLASH-RELAY-001-READINESS** delivers, via **this PR** on 2026-05-26,
+  a **docs-only** re-evaluation of FanRelay / S360-310 WebFlash-exposure
+  readiness using the latest package / product / full-compile and
+  `WEBFLASH-DRIFT-001` / PR #595 drift-audit evidence — **without exposing
+  FanRelay to WebFlash**. It adds a re-evaluated **Relay WebFlash readiness
+  table** (gate / status / evidence / next action) to
+  [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md)
+  §Relay / S360-310 WebFlash posture and audit-log / pointer notes to
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md), and
+  [`docs/webflash-drift-audit.md`](docs/webflash-drift-audit.md) (§4.1
+  follow-up resolution). Findings: the package / product / full-compile /
+  config-posture-hardware gates are `CLOSED` (product YAML
+  [`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml),
+  package [`packages/expansions/fan_relay.yaml`](packages/expansions/fan_relay.yaml),
+  full compile green in run `26364679370`, prior-recorded); WebFlash wrapper /
+  `config/webflash-builds.json` row / `artifact_name` / release artifact /
+  import-source are `BLOCKING`; live `sense360store/WebFlash` re-verification
+  and the WebFlash-side module-availability / manifest axes are
+  `NEEDS-TOOLING` (read access denied this session); compliance / mains-safety,
+  production-wide `GPIO3` strap-pin characterisation, and competent-person
+  sign-off remain owed (`BLOCKING` / `NEEDS-OPERATOR-INPUT`). The
+  `WEBFLASH-DRIFT-001` row #21 narrative-vs-config compile-flag gap is resolved
+  as a **docs clarification** (the FanRelay compile-only target intentionally
+  carries no `compile_validation_status` per `COMPILE-STATUS-FLAGS-001`; the
+  optional `FW-COMPILE-RELAY-RESULT-001` config-flag add is non-blocking, no
+  config edit made here). **Recommended next Relay PR:
+  `WEBFLASH-RELAY-LIVE-CHECK-001`** (re-run the live WebFlash readiness / drift
+  check once read access is restored) — **not**
+  `WEBFLASH-RELAY-002-WRAPPER-PLAN` (non-WebFlash gates are not all clean) and
+  **not** `WEBFLASH-RELAY-001`. No `config/`, `packages/`, `products/`,
+  `products/webflash/`, `config/webflash-builds.json`, test, workflow,
+  firmware, `manifest.json`, `firmware/sources.json`, or
+  `sense360store/WebFlash` edit; no `webflash_build_matrix` flip; no
+  `artifact_name`; no `schematic_status` promotion (`S360-310` stays
+  `cataloged_unverified`); no COMPLIANCE-001 movement; Release-One
+  (`Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`), LED preview, and
+  FanTRIAC (`blocked` / `HW-005`) unchanged. No WebFlash exposure / import /
+  release / compliance / hardware-stable claim; no fabricated WebFlash
+  evidence. See queue item 29.
+- **WEBFLASH-DRIFT-001** delivers, via PR #595 on 2026-05-26, the
   **docs-only** cross-repo product/import drift audit
   ([`docs/webflash-drift-audit.md`](docs/webflash-drift-audit.md)) requested
   before the Relay/DAC/PWM WebFlash-exposure work. It found **no confirmed
@@ -5973,6 +6013,49 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       hardware-stable / security clean-bill claim; no fabricated WebFlash
       evidence. Release-One + LED preview unchanged.
 
+29. **WEBFLASH-RELAY-001-READINESS — Re-evaluate Relay WebFlash readiness**
+    - Status: **DONE — docs-only (2026-05-26; this PR); no exposure flip**
+    - Purpose: Re-evaluate whether FanRelay / S360-310 is ready for a future
+      WebFlash-exposure PR, using the latest package / product / full-compile
+      and `WEBFLASH-DRIFT-001` / PR #595 drift-audit evidence, **without
+      exposing it to WebFlash**. Added a re-evaluated **Relay WebFlash
+      readiness table** (gate / status / evidence / next action) to
+      [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md)
+      §Relay / S360-310 WebFlash posture, plus audit-log / pointer notes in
+      [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
+      [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+      and [`docs/webflash-drift-audit.md`](docs/webflash-drift-audit.md) (§4.1
+      follow-up resolution).
+    - Findings: **WebFlash Relay exposure stays blocked.** `CLOSED` — product
+      YAML, package layer, full-compile evidence (run `26364679370`,
+      prior-recorded), and package/product config-posture hardware evidence.
+      `BLOCKING` — WebFlash wrapper, `config/webflash-builds.json` row,
+      `artifact_name`, firmware release artifact, import-source path,
+      compliance / mains-safety, advanced / manual-warning WebFlash UX parity.
+      `NEEDS-TOOLING` — live `sense360store/WebFlash` re-verification (read
+      access denied this session). `NEEDS-OPERATOR-INPUT` — production-wide
+      `GPIO3` strap-pin characterisation, competent-person sign-off.
+      `OUT-OF-SCOPE` — the FanRelay `compile_validation_status` config flag
+      (intentionally absent per `COMPILE-STATUS-FLAGS-001`) and
+      REQUIRED_CONFIGS / kit / recommended membership (never by default). The
+      `WEBFLASH-DRIFT-001` row #21 narrative-vs-config compile-flag gap is
+      resolved as a docs clarification — the optional
+      `FW-COMPILE-RELAY-RESULT-001` config-flag add is non-blocking and no
+      config edit is made here.
+    - Recommends next: **`WEBFLASH-RELAY-LIVE-CHECK-001`** (re-run the live
+      WebFlash readiness / drift check once read access is restored) — **not**
+      `WEBFLASH-RELAY-002-WRAPPER-PLAN` (non-WebFlash gates are not all clean)
+      and **not** `WEBFLASH-RELAY-001`.
+    - Guardrails: no `products/**`, `products/webflash/**`,
+      `config/webflash-builds.json`, any other `config/**`, `firmware/**`,
+      `manifest.json`, `firmware/sources.json`, `tests/**`, workflow,
+      component, include, or WebFlash-repo edit; no wrapper, no
+      `webflash_build_matrix` flip, no `artifact_name`, no release artifact, no
+      WebFlash exposure; no import / release / compliance / hardware-stable /
+      security clean-bill claim; no fabricated WebFlash evidence. Release-One +
+      LED preview + FanTRIAC (`blocked` / `HW-005`) unchanged; `S360-310` stays
+      `cataloged_unverified`.
+
 ## Cross-repo dependencies
 
 These items are owned by the WebFlash repository and tracked there in its
@@ -5993,7 +6076,15 @@ visible. Do not implement them from this repo.
   WebFlash UI ships outcome-first naming "Fan relay control" in
   Step 4 (WF-UX-007) and "Sense360 Bathroom Kit — Relay Fan
   Control" in the Stage 1 bundle preset (WF-KIT-PRESETS-001) ahead
-  of any future import.
+  of any future import. **2026-05-26 — `WEBFLASH-RELAY-001-READINESS`
+  (this PR, docs-only): the WebFlash side could NOT be re-verified
+  live** — a read of `sense360store/WebFlash` returned access denied
+  (session GitHub scope is `esphome-public` + `esphome` only), so the
+  WebFlash-side facts above stay **prior-recorded (2026-05-22,
+  PR #565), not re-confirmed this session** (`NEEDS-TOOLING`).
+  `WF-IMPORT-RELAY-001` stays **blocked** behind `RELEASE-RELAY-001`;
+  the recommended next esphome-public step is
+  `WEBFLASH-RELAY-LIVE-CHECK-001` to close the live-verification axis.
 - **WF-IMPORT-PWM-001** — WebFlash-side import of the PWM product
 - **WF-IMPORT-DAC-001** — WebFlash-side import of the DAC product
 - **WF-IMPORT-POWER-400-001** — WebFlash-side import of the S360-400 power

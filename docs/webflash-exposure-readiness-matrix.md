@@ -1055,6 +1055,126 @@ claim.** A green full-compile CI result is **necessary-but-insufficient**
 input to the broader preview-to-stable promotion process; it does **not**
 discharge any of the seven WebFlash gates owned by `WEBFLASH-RELAY-001`.
 
+**2026-05-26 — `WEBFLASH-RELAY-001-READINESS` (this PR; docs-only
+re-evaluation, no exposure flip).** Re-evaluated FanRelay / S360-310
+WebFlash-exposure readiness using the latest package / product /
+full-compile and `WEBFLASH-DRIFT-001` / PR #595 drift-audit evidence,
+**without exposing FanRelay to WebFlash**. Re-verified against the live
+esphome-public files this session:
+
+- **Product YAML exists** —
+  [`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml)
+  (PRODUCT-RELAY-001 / PR #564), confirmed on disk.
+- **Package layer implemented** —
+  [`packages/expansions/fan_relay.yaml`](../packages/expansions/fan_relay.yaml)
+  (PACKAGE-RELAY-001 / PR #562): `fan_relay_switch` `template` switch
+  proxies the Core `main_relay`, single `${relay_pin}` → `GPIO3` owner;
+  no second `switch.gpio`.
+- **Full-compile evidence recorded** — the FanRelay compile-only target
+  full-compiled green in run `26364679370` (`workflow_dispatch` /
+  `compile_mode=full`, 9 targets, conclusion `success`; the lane runs
+  `esphome compile` against every
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+  target and fails on the first failure, so `success` proves all nine
+  including FanRelay; FW-COMPILE-RELAY-FULL-RESULT-001 / PR #579). This is
+  **prior-recorded in-repo evidence**; the GitHub Actions run could not be
+  re-read with the tooling scoped to this session.
+- **No WebFlash wrapper** under
+  [`products/webflash/`](../products/webflash/) — only Release-One, LED
+  preview, and the blocked FanTRIAC reference.
+- **No [`config/webflash-builds.json`](../config/webflash-builds.json)
+  row** — only the 2 existing builds; the `FanRelay` token appears 0
+  times.
+- **No `artifact_name`, no `webflash_wrapper`,
+  `webflash_build_matrix: false`** on the catalog row.
+- **No release artifact** — no `.bin`, tag, checksum, or build-info
+  manifest.
+- **No import readiness** — WebFlash-owned; prior-recorded (2026-05-22,
+  PR #565) has no FanRelay source / build, and `WF-IMPORT-RELAY-001` is
+  blocked behind `RELEASE-RELAY-001`. A **live re-read of
+  `sense360store/WebFlash` was denied this session** (the GitHub scope is
+  `sense360store/esphome-public` + `sense360store/esphome` only), so the
+  WebFlash side stays prior-recorded, not re-verified — `NEEDS-TOOLING`.
+
+**Compile-flag gap (`WEBFLASH-DRIFT-001` row #21) — resolved as a docs
+clarification, no config edit.** The narrative correctly records the
+FanRelay full compile as green (run `26364679370`); the
+[`config/compile-only-targets.json`](../config/compile-only-targets.json)
+FanRelay target deliberately carries **no** `compile_validation_status`
+field — `COMPILE-STATUS-FLAGS-001` (2026-05-24) explicitly left it
+unchanged ("FanRelay carries no `compile_validation_status` field and is
+left unchanged") while flipping only FanDAC. No doc stale-says the
+FanRelay compile is unvalidated, and no test asserts the flag's presence
+or absence, so **no `config/` edit is required or made** by this
+docs-only PR. Adding the explicit flag (to match FanDAC / FanPWM
+`validated-full-compile`) is an **optional, non-blocking**
+config-completeness follow-up (`FW-COMPILE-RELAY-RESULT-001`), not a
+WebFlash gate.
+
+**Relay WebFlash readiness table (re-evaluated 2026-05-26).** Status
+legend: `CLOSED` (gate satisfied); `BLOCKING` (open gate that blocks
+WebFlash exposure); `NEEDS-TOOLING` (cannot be re-verified without live
+WebFlash / CI access); `NEEDS-OPERATOR-INPUT` (requires operator
+evidence / sign-off); `OUT-OF-SCOPE` (not advanced by any WebFlash slice
+and/or never by default).
+
+| Gate | Status | Evidence | Next action |
+|---|---|---|---|
+| Product YAML exists | `CLOSED` | `products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml` (PRODUCT-RELAY-001 / PR #564); verified on disk this session | none — landed |
+| Package layer implemented | `CLOSED` | `packages/expansions/fan_relay.yaml` (PACKAGE-RELAY-001 / PR #562); `fan_relay_switch` proxies Core `main_relay`; single `GPIO3` owner; pinned by `tests/test_fan_relay_package.py` | none — landed |
+| Full-compile evidence recorded | `CLOSED` | run `26364679370` (`compile_mode=full`, 9 targets, `success`); fails-on-first → FanRelay green (FW-COMPILE-RELAY-FULL-RESULT-001 / PR #579); prior-recorded in-repo | optional `FW-COMPILE-RELAY-RESULT-001` config-flag add (non-blocking) |
+| FanRelay `compile_validation_status` config flag | `OUT-OF-SCOPE` | field intentionally absent (COMPILE-STATUS-FLAGS-001 left FanRelay unchanged); no stale "unvalidated" doc; no test pins it | optional config-only `FW-COMPILE-RELAY-RESULT-001`; this docs-only PR does not touch `config/` |
+| Hardware evidence — package/product config posture | `CLOSED` | HW-ASSETS-310 schematic PDF + HW-PINMAP-310-FOLLOWUP; S360-310-BENCH-EVIDENCE-001 / PR #561 (10 rows; operator + BOM + public-reference) | none for config posture |
+| Hardware evidence — production-wide / mains-safety | `NEEDS-OPERATOR-INPUT` | no oscilloscope / photo / continuity artifacts; `S360-310 schematic_status: cataloged_unverified`; production-wide / multi-unit `GPIO3` strap-pin boot characterisation owed | operator-supplied bench + multi-unit evidence |
+| WebFlash wrapper | `BLOCKING` | none under `products/webflash/` (only RoomIQ / LED / blocked FanTRIAC) | `WEBFLASH-RELAY-001` (gated) |
+| `config/webflash-builds.json` row | `BLOCKING` | absent — 2 builds only; 0 FanRelay tokens | `WEBFLASH-RELAY-001` |
+| `artifact_name` | `BLOCKING` | catalog row has none; `webflash_build_matrix: false` | `WEBFLASH-RELAY-001` |
+| Firmware release artifact | `BLOCKING` | no `.bin` / tag / checksum / build-info manifest | `RELEASE-RELAY-001` (behind wrapper / build-matrix) |
+| Import-source path (WebFlash `firmware/sources.json` / `manifest.json`) | `BLOCKING` | WebFlash-owned; prior-recorded no FanRelay source / build; `WF-IMPORT-RELAY-001` blocked behind `RELEASE-RELAY-001` | `WF-IMPORT-RELAY-001` (cross-repo) |
+| WebFlash live repo re-verification | `NEEDS-TOOLING` | `sense360store/WebFlash` read access denied this session; WebFlash facts are prior-recorded 2026-05-22 (PR #565) | `WEBFLASH-RELAY-LIVE-CHECK-001` once access restored |
+| Compliance / mains-safety approval | `BLOCKING` | only public-reference contact rating; no board-level mains-safety / creepage / clearance / thermal / EMI / EMC certification; `COMPLIANCE-001` not signed off | `COMPLIANCE-001` (separate; not a WebFlash slice) |
+| Advanced / manual-warning WebFlash UX parity | `BLOCKING` | Relay-side manual-warning runtime UX not confirmed (analogous `WF-TRIAC-001` UX exists for TRIAC only) | `WEBFLASH-RELAY-001` + WebFlash-side UX |
+| Competent-person / installation sign-off | `NEEDS-OPERATOR-INPUT` | product YAML carries caveat wording only; no independent sign-off | operator-supplied competent-person sign-off |
+| REQUIRED_CONFIGS / kit / recommended membership | `OUT-OF-SCOPE` | `release_one_required_configs = ["Ceiling-POE-VentIQ-RoomIQ"]`; `S360-KIT-BATH-RELAY` stays `future-expansion` / `hardware-pending` | never by default; separate explicit PR |
+
+**Verdict — WebFlash Relay exposure stays blocked; recommended next
+Relay PR is `WEBFLASH-RELAY-LIVE-CHECK-001`.** The package / product /
+full-compile / config-posture-hardware gates are `CLOSED`, but the
+non-WebFlash gates are **not** all clean — compliance / mains-safety
+sign-off, production-wide `GPIO3` strap-pin characterisation, and a
+competent-person sign-off remain owed — and the WebFlash side cannot be
+re-verified live this session (`NEEDS-TOOLING`). This is therefore
+**not** the "only WebFlash-wrapper / artifact / import missing" case that
+would justify a `WEBFLASH-RELAY-002-WRAPPER-PLAN` slice. The recommended
+next step is **`WEBFLASH-RELAY-LIVE-CHECK-001`** — a re-run of the live
+WebFlash readiness / drift check (`firmware/sources.json`,
+`manifest.json`, `scripts/utils/module-availability.js`,
+`scripts/data/kit-presets.js`, import grammar) once read access to
+`sense360store/WebFlash` is restored — which closes the `NEEDS-TOOLING`
+axes before any `WEBFLASH-RELAY-001` wrapper / catalog / build-matrix
+work is even considered. The compile-flag gap (#21) is a docs
+clarification only and is recorded resolved above; the optional
+`FW-COMPILE-RELAY-RESULT-001` config-flag PR is non-blocking.
+
+**Guardrails honoured.** **No `packages/**`, `products/**`,
+`products/webflash/**`, `config/**` (including
+`config/webflash-builds.json`, `config/product-catalog.json`,
+`config/compile-only-targets.json`), `scripts/**`,
+`.github/workflows/**`, `components/**`, `include/**`, `tests/**`,
+`firmware/**`, `manifest.json`, `firmware/sources.json`,
+release-artifact / checksum / build-info, or `sense360store/WebFlash`
+edit.** No WebFlash wrapper added; no `webflash_build_matrix` flip; no
+`artifact_name`; no `webflash_wrapper`; no `config_string` /
+`release_one_required_configs` / `lifecycle_statuses` /
+`canonical_modules` change; no `schematic_status` / `schematic_file`
+promotion (`S360-310` stays `cataloged_unverified`); no `COMPLIANCE-001`
+movement. Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` /
+`stable`; LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`;
+FanTRIAC stays `blocked` / `HW-005`. **No WebFlash import-readiness
+claim, no WebFlash exposure claim, no release-readiness claim, no
+compliance / mains-safety approval claim, no hardware-stable readiness
+claim, and no fabricated WebFlash evidence.**
+
 ## PWM / S360-311 WebFlash posture
 
 **Current state.** `S360-311 Sense360 PWM`,

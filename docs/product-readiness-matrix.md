@@ -843,6 +843,36 @@ named follow-up.
   installation-approval, qualified-electrician sign-off, or
   production-wide / multi-unit hardware characterisation.**
 
+- **2026-05-26 — `WEBFLASH-RELAY-001-READINESS` (this PR; docs-only).**
+  Re-evaluated the FanRelay WebFlash-exposure readiness after the
+  `WEBFLASH-DRIFT-001` / PR #595 audit, **without exposing FanRelay to
+  WebFlash**. The product-layer disposition is **unchanged** —
+  `advanced/manual-warning-only` + product-YAML-landed + WebFlash-blocked.
+  The full re-evaluated Relay WebFlash readiness table (gate / status /
+  evidence / next action) is recorded in
+  [`webflash-exposure-readiness-matrix.md` §Relay / S360-310 WebFlash posture](webflash-exposure-readiness-matrix.md#relay--s360-310-webflash-posture):
+  the package / product / full-compile / config-posture-hardware gates are
+  `CLOSED`; WebFlash wrapper / `config/webflash-builds.json` row /
+  `artifact_name` / release artifact / import-source are `BLOCKING`; live
+  `sense360store/WebFlash` re-verification and the WebFlash-side
+  module-availability / manifest axes are `NEEDS-TOOLING` (read access
+  denied this session); compliance / mains-safety, production-wide `GPIO3`
+  strap-pin characterisation, and competent-person sign-off remain owed
+  (`BLOCKING` / `NEEDS-OPERATOR-INPUT`). The drift-audit row #21
+  narrative-vs-config compile-flag gap is resolved as a docs clarification
+  (the config target intentionally carries no `compile_validation_status`
+  per `COMPILE-STATUS-FLAGS-001`; the optional `FW-COMPILE-RELAY-RESULT-001`
+  config-flag add is non-blocking). **The recommended next Relay PR is
+  `WEBFLASH-RELAY-LIVE-CHECK-001`, not `WEBFLASH-RELAY-002-WRAPPER-PLAN`
+  and not `WEBFLASH-RELAY-001`.** No `config/`, `packages/`, `products/`,
+  `products/webflash/`, test, workflow, firmware, or `sense360store/WebFlash`
+  edit; no `webflash_build_matrix` flip; no `artifact_name`; no
+  `schematic_status` / `schematic_file` promotion (`S360-310` stays
+  `cataloged_unverified`); no COMPLIANCE-001 movement. **No claim of
+  FanRelay WebFlash-readiness, release-readiness, WebFlash import-readiness,
+  compliance-clearance, board-level mains-safety certification, or
+  production-wide / multi-unit hardware characterisation.**
+
 ### FanPWM / S360-311
 
 - **Status.** **`product-yaml-landed`** (PRODUCT-PWM-001 / 2026-05-26;
