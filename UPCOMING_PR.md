@@ -24,7 +24,20 @@ mirrored here.
 
 ## Current queue summary
 
-- **PRODUCT-PWM-001** delivers, via **this PR** on 2026-05-26, the canonical
+- **WEBFLASH-DRIFT-001** delivers, via **this PR** on 2026-05-26, the
+  **docs-only** cross-repo product/import drift audit
+  ([`docs/webflash-drift-audit.md`](docs/webflash-drift-audit.md)) requested
+  before the Relay/DAC/PWM WebFlash-exposure work. It found **no confirmed
+  cross-repo drift** (all Relay/DAC/PWM/TRIAC axes `INTENTIONALLY-BLOCKED` or
+  `NEEDS-OPERATOR-INPUT`; the WebFlash `manifest.json` 3rd build is the
+  WebFlash-owned **Rescue** image, resolving the prior "3-build manifest"
+  signal), fixed one stale intra-repo FanPWM headline, and recommends the
+  `WEBFLASH-RELAY/DAC/PWM-001-READINESS` docs-only re-evaluations next.
+  `sense360store/WebFlash` was not live-accessible (`NEEDS-TOOLING`); WebFlash
+  facts are prior-recorded (PR #565) + Drive provenance. No exposure flip, no
+  wrapper, no `webflash_build_matrix` change, no release/import/compliance
+  claim. See queue item 28.
+- **PRODUCT-PWM-001** delivered, on 2026-05-26, the canonical
   FanPWM **product YAML** as the **product-YAML-only / no-WebFlash-exposure**
   slice, after the PWM-drive-only package (`PACKAGE-PWM-001-IMPLEMENT-001` /
   PR #590), the compile-only target (`FW-COMPILE-PWM-001` / PR #591), and the
@@ -5920,6 +5933,45 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       versions, ESPHome version pinning consistency).
     - Notes: Workflow files are otherwise frozen; this PR scopes only to
       toolchain alignment.
+
+28. **WEBFLASH-DRIFT-001 — Cross-repo product/import drift audit**
+    - Status: **DONE — docs-only (2026-05-26; this PR)**
+    - Purpose: Audit cross-repo drift between `sense360store/esphome-public`
+      and `sense360store/WebFlash` before the Relay/DAC/PWM WebFlash-exposure
+      work begins. Produced the standing drift audit
+      [`docs/webflash-drift-audit.md`](docs/webflash-drift-audit.md) with a
+      drift table across config_string / artifact_name / artifact_pattern /
+      channels / visible products / wrappers / manifest / sources / default
+      posture / module-availability / release-import readiness, and updated
+      `docs/repo-freshness-roadmap-audit.md` §3/§7/§10, the WebFlash exposure
+      + release-artifact matrices (cross-repo notes / See-also), and the
+      `docs/product-readiness-matrix.md` §FanPWM stale headline.
+    - Findings: **No confirmed cross-repo product/import drift.** The 2
+      shippable builds, their artifact names, default-kit posture, and
+      outcome-first naming `MATCH` (prior-recorded PR #565); Relay/DAC/PWM/TRIAC
+      are `INTENTIONALLY-BLOCKED` (absent on both sides); the WebFlash
+      `manifest.json` 3rd build is the WebFlash-owned **Rescue** image (this
+      repo ships 2 product builds, by design — resolves the "3-build manifest"
+      planning signal). Only intra-repo `DRIFT`: a stale FanPWM "no product
+      YAML" headline (fixed here) and a FanRelay narrative-vs-config
+      compile-flag gap (optional follow-up).
+    - Limit: `sense360store/WebFlash` was **not live-accessible** this session
+      (`NEEDS-TOOLING`); WebFlash-side facts are **prior-recorded** (PR #565,
+      2026-05-22) + a Drive planning artifact, cited with provenance. Axes
+      needing a live re-run (`artifact_pattern` source, grammar-validator
+      parity, full channel list, PWM/DAC `module-availability.js`) are recorded
+      `NEEDS-OPERATOR-INPUT`.
+    - Recommends next: **`WEBFLASH-RELAY-001-READINESS`**,
+      **`WEBFLASH-DAC-001-READINESS`**, **`WEBFLASH-PWM-001-READINESS`**
+      (docs-only re-evaluations; **not** exposure flips). No
+      `WEBFLASH-DRIFT-FIX-001` cross-repo prerequisite is required.
+    - Guardrails: no `products/**`, `products/webflash/**`,
+      `config/webflash-builds.json`, `firmware/**`, `manifest.json`,
+      `firmware/sources.json`, workflow, component, include, or WebFlash-repo
+      edit; no wrapper, no `webflash_build_matrix` flip, no `artifact_name`, no
+      release artifact, no WebFlash exposure; no import / release / compliance /
+      hardware-stable / security clean-bill claim; no fabricated WebFlash
+      evidence. Release-One + LED preview unchanged.
 
 ## Cross-repo dependencies
 

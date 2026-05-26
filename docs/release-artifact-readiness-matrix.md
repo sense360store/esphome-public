@@ -2822,6 +2822,11 @@ Expected:
 
 ## See also
 
+- [`docs/webflash-drift-audit.md`](webflash-drift-audit.md) —
+  `WEBFLASH-DRIFT-001` cross-repo drift audit. Confirms no confirmed
+  release/import drift: no release artifact exists for any Fan family on either
+  side, and the WebFlash `manifest.json` carries only the 2 esphome-public
+  builds plus the WebFlash-owned Rescue image. Documentation only.
 - [`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md)
   — WEBFLASH-GAP-001 WebFlash-layer exposure readiness gate.
   Upstream of this matrix: classifies per-family WebFlash exposure

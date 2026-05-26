@@ -110,6 +110,17 @@ The table records the **esphome-public side of the contract** that the WebFlash 
 marks each axis `UNVERIFIED (needs WebFlash access)`. None of these is a confirmed drift — they are the
 checklist `WEBFLASH-DRIFT-001` must run against the WebFlash repo.
 
+> **Update — `WEBFLASH-DRIFT-001` (2026-05-26):** the standing drift audit has now been produced at
+> [`docs/webflash-drift-audit.md`](webflash-drift-audit.md). WebFlash remained **inaccessible** that
+> session too, so the cross-repo axes were resolved against **prior-recorded** WebFlash evidence
+> (the `WEBFLASH-RELAY-001-READINESS-REFRESH` / PR #565 read-only review, 2026-05-22) plus a Drive
+> planning artifact, both cited with provenance. **No confirmed cross-repo product/import drift was
+> found:** every Relay/DAC/PWM/TRIAC axis is `INTENTIONALLY-BLOCKED` (aligned-absent on both sides) or
+> `NEEDS-OPERATOR-INPUT`. The prior "current 3-build manifest" planning signal is resolved as the
+> WebFlash-owned **Rescue** recovery build (esphome-public ships 2 product builds, by design). The only
+> `DRIFT` rows are intra-repo: a stale FanPWM "no product YAML" headline (corrected by that PR) and a
+> FanRelay narrative-vs-config compile-flag gap. See the drift audit for the full table.
+
 | Drift axis | esphome-public source-of-truth value | WebFlash-side status |
 |---|---|---|
 | `config_string` names | `Ceiling-POE-VentIQ-RoomIQ` (stable), `Ceiling-POE-VentIQ-RoomIQ-LED` (preview) — `config/webflash-builds.json` | **UNVERIFIED** |
@@ -200,7 +211,7 @@ secret-scanning **alert** feed was available, so no "no vulnerabilities" claim i
 | PR id | Trigger condition (met?) | Scope | Out-of-scope-here because |
 |---|---|---|---|
 | **`CONFIG-FRESHNESS-001`** | **DONE** (2026-05-24) — closed this stale-active item | Reconciled the FanDAC full-compile narrative in `config/product-catalog.json` (notes) **and** `products/sense360-ceiling-poe-fandac.yaml` (header + inline comment) from `pending-ci`/`owed` → `validated-full-compile` (run `26364679370`), matching #581, and replaced `tests/test_dac_product_readiness.py::test_carries_full_compile_owed_caveat` with `test_carries_full_compile_validated_caveat`. No-WebFlash / no-release / hardware-pending posture and all installation caveats retained; no blocker moved. | — (resolved). |
-| **`WEBFLASH-DRIFT-001`** | **YES (unverifiable here)** | Verify WebFlash repo manifest/build-matrix matches the §3 contract (config_string, artifact_name, artifact_pattern, channels, visible products, default posture). | WebFlash repo not accessible this session. |
+| **`WEBFLASH-DRIFT-001`** | **DONE — docs-only (2026-05-26)** | Produced [`docs/webflash-drift-audit.md`](webflash-drift-audit.md): drift table across config_string / artifact_name / artifact_pattern / channels / visible products / default posture / module-availability / release-import readiness. No confirmed cross-repo drift (all `INTENTIONALLY-BLOCKED` or `NEEDS-OPERATOR-INPUT`); WebFlash side resolved from prior-recorded (PR #565) + Drive provenance. Recommends `WEBFLASH-RELAY/DAC/PWM-001-READINESS` next. A future re-run with **live WebFlash access** is still owed to close the `NEEDS-OPERATOR-INPUT` axes (artifact_pattern source, grammar-validator parity, full channel list, PWM/DAC `module-availability.js`). | Live WebFlash repo still not accessible this session → `NEEDS-TOOLING` for the remaining axes. |
 | **`SECURITY-AUDIT-FIX-001`** | **DONE** (2026-05-25) | Added least-privilege top-level `permissions: contents: read` to all five workflows (the three that lacked it — `validate.yml` / `compile-only.yml` / `ci-validate-configs.yml` — plus narrowed `firmware-build-release.yml` top-level write→read, keeping `contents: write` only on its `release` job). Added regression guard `tests/test_workflow_permissions.py` (explicit top-level `permissions:`, no `pull_request_target`, no `write-all`, no unallowlisted `write`, action pins SHA-or-documented). Inventoried the six mutable-major-tag action pins in `docs/workflow-security-hardening.md`. **No SHA-pin conversion and no security clean-bill claim.** | — (resolved). |
 | **`SECURITY-ACTION-PINNING-001`** | **YES** — carried from `SECURITY-AUDIT-FIX-001` | Convert the six inventoried mutable major-tag action pins to immutable commit SHAs (start with third-party `softprops/action-gh-release@v2`), and tighten `tests/test_workflow_permissions.py` to require SHA pins once converted. | Deliberately deferred: SHA-pinning all six actions (and the renovate/dependabot follow-through to keep SHAs current) is broader than the permissions-hardening scope of `SECURITY-AUDIT-FIX-001`. |
 | **`CI-GATE-HARDENING-001`** | optional | Run generated-matrix sync tests + full `unittest discover` on PR; consider an opt-in PR full-compile gate. | `.github/workflows/**` do-not-edit. |
@@ -263,7 +274,10 @@ The green generated-file sync tests confirm `config/firmware-combination-matrix.
   `validated-full-compile` (run `26364679370`) and updated the pinning test. Everything else is
   ACTIVE-STABLE or GENERATED-CURRENT.
 - **Source-of-truth:** cleanly layered, no conflicting ownership.
-- **Cross-repo drift:** undetermined — WebFlash repo not accessible → `WEBFLASH-DRIFT-001`.
+- **Cross-repo drift:** audited (docs-only) by `WEBFLASH-DRIFT-001` (2026-05-26) →
+  [`docs/webflash-drift-audit.md`](webflash-drift-audit.md). No confirmed cross-repo product/import
+  drift (all `INTENTIONALLY-BLOCKED` or `NEEDS-OPERATOR-INPUT`); WebFlash repo still not live-accessible,
+  so the remaining axes stay `NEEDS-TOOLING` pending a re-run with WebFlash access.
 - **Roadmap:** complete and current; PWM blocker audit done → `PWM-BLOCKER-REMOVAL-001` (2026-05-25) closed the hardware-evidence / controlled-load / BOM-part-identity / no-mains-compliance rows and lifted the `core_i2c` blocker; `PACKAGE-PWM-001-IMPLEMENT-001` then landed the **PWM-drive-only** package at the package layer (2026-05-25; `fan_pwm.yaml` → four SX1509 PWM-drive controllers composing `fan_pwm_sx1509.yaml`; no RPM; `TachIO`/`GPIO16` reserved). Next is the product slice `PRODUCT-PWM-001`, still gated on bench PWM polarity + current/thermal envelope + product YAML + compile-only target/result + WebFlash/release/import/compliance + optional future RPM strategy.
 - **Security:** good hygiene; two hardening follow-ups (workflow permissions, action SHA-pinning) →
   `SECURITY-AUDIT-FIX-001`; **no clean-bill claim** (alert tooling unavailable).
