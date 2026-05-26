@@ -105,14 +105,22 @@ FANDAC_PRODUCT_YAML = "products/sense360-ceiling-poe-fandac.yaml"
 # products/compile-only/ (the only place that avoids the top-level
 # product-catalog enumeration gate). It is the second explicitly-
 # registered fan exception to the otherwise-non-fan products/compile-only/
-# lane. PRODUCT-PWM-001 is not landed, so no top-level products/ YAML and
-# no catalog row is added; the compile-only skeleton is the sole CI
-# validation target. The PWM-drive-only package (PACKAGE-PWM-001-
-# IMPLEMENT-001 / PR #590) exposes four SX1509 PWM-drive fan controllers
-# and NO RPM / NO pulse_counter; this target makes no RPM claim.
+# lane.
+#
+# PRODUCT-PWM-001 has since landed the canonical FanPWM product YAML at
+# the top level of products/ as the product-YAML-only / no-WebFlash-
+# exposure slice (see tests/test_pwm_product_readiness.py for the full
+# non-WebFlash invariants). The top-level product YAML and the
+# compile-only skeleton both reference config string Ceiling-POE-FanPWM
+# but are separate files: the compile-only skeleton is the CI validation
+# target; the product YAML is the consumer-facing deliverable. The
+# PWM-drive-only package (PACKAGE-PWM-001-IMPLEMENT-001 / PR #590) exposes
+# four SX1509 PWM-drive fan controllers and NO RPM / NO pulse_counter;
+# this target makes no RPM claim.
 FANPWM_COMPILE_ONLY_TARGET_ID = "ceiling-poe-fanpwm-compile-only"
 FANPWM_COMPILE_ONLY_CONFIG_STRING = "Ceiling-POE-FanPWM"
 FANPWM_COMPILE_ONLY_PRODUCT_YAML = "products/compile-only/ceiling-poe-fanpwm.yaml"
+FANPWM_PRODUCT_YAML = "products/sense360-ceiling-poe-fanpwm.yaml"
 
 ALLOWED_SHIPMENT_STATUSES = frozenset(
     {"webflash-current", "preview-current", "compile-only"}
@@ -1465,26 +1473,61 @@ class FanPWMCompileOnlyCoverageTests(unittest.TestCase):
         )
 
     def test_fanpwm_skeleton_stays_under_compile_only(self):
+        """The compile-only skeleton is not the top-level product YAML.
+
+        FW-COMPILE-PWM-001 deliberately keeps the FanPWM compile-only
+        skeleton UNDER products/compile-only/. PRODUCT-PWM-001 later
+        landed the canonical product YAML at the top level of products/;
+        the two must remain distinct files (the compile-only target must
+        never silently repoint at the top-level product YAML).
+        """
         self.assertTrue(
             FANPWM_COMPILE_ONLY_PRODUCT_YAML.startswith("products/compile-only/"),
             "FanPWM compile-only skeleton must stay under "
             "products/compile-only/",
         )
+        self.assertNotEqual(
+            FANPWM_COMPILE_ONLY_PRODUCT_YAML,
+            FANPWM_PRODUCT_YAML,
+            "The compile-only skeleton and the PRODUCT-PWM-001 product "
+            "YAML must be distinct files",
+        )
+        self.assertIsNotNone(self.target)
+        self.assertEqual(
+            self.target.get("product_yaml"),
+            FANPWM_COMPILE_ONLY_PRODUCT_YAML,
+            "FanPWM compile-only target must keep pointing at the "
+            "products/compile-only/ skeleton, not the top-level product "
+            "YAML",
+        )
 
-    def test_no_top_level_fanpwm_product_yaml_added(self):
-        """PRODUCT-PWM-001 is not landed: no top-level FanPWM product YAML.
+    def test_product_pwm_001_yaml_landed_at_top_level(self):
+        """PRODUCT-PWM-001 landed the canonical FanPWM product YAML.
 
-        FW-COMPILE-PWM-001 adds only the compile-only skeleton under
-        products/compile-only/. The legacy standalone fan-board product
-        (products/sense360-fan-pwm.yaml) predates this slice and is
-        allowed; no other FanPWM-named YAML may appear outside
-        products/compile-only/.
+        The product-YAML-only / no-WebFlash-exposure slice adds the single
+        canonical FanPWM product YAML at the top level of products/. The
+        detailed non-WebFlash invariants (no webflash_build_matrix flip,
+        no artifact_name, no wrapper, no config/webflash-builds.json row,
+        full-compile + bench caveats, no RPM) are owned by
+        tests/test_pwm_product_readiness.py. The legacy standalone
+        fan-board product (products/sense360-fan-pwm.yaml) predates this
+        slice; the only other FanPWM-named YAML outside
+        products/compile-only/ must be the PRODUCT-PWM-001 product YAML.
         """
+        path = REPO_ROOT / FANPWM_PRODUCT_YAML
+        self.assertTrue(
+            path.is_file(),
+            f"PRODUCT-PWM-001 must add the FanPWM product YAML at "
+            f"{FANPWM_PRODUCT_YAML}",
+        )
         products_dir = REPO_ROOT / "products"
         if not products_dir.is_dir():
             self.skipTest("products/ directory not present")
         compile_only_dir = products_dir / "compile-only"
-        allowed = {"products/sense360-fan-pwm.yaml"}
+        allowed = {
+            "products/sense360-fan-pwm.yaml",
+            FANPWM_PRODUCT_YAML,
+        }
         offenders = []
         for path in products_dir.rglob("*.yaml"):
             if compile_only_dir in path.parents:
@@ -1497,8 +1540,30 @@ class FanPWMCompileOnlyCoverageTests(unittest.TestCase):
         self.assertEqual(
             sorted(offenders),
             [],
-            "FW-COMPILE-PWM-001 must add no top-level FanPWM product YAML "
-            f"(PRODUCT-PWM-001 not landed); unexpected: {sorted(offenders)!r}",
+            "Only the legacy fan-board YAML and the PRODUCT-PWM-001 product "
+            f"YAML may carry a FanPWM name; unexpected: {sorted(offenders)!r}",
+        )
+
+    def test_no_fanpwm_product_yaml_under_webflash_wrapper_dir(self):
+        """No FanPWM YAML may live under products/webflash/.
+
+        PRODUCT-PWM-001 is product-YAML-only / no-WebFlash-exposure: the
+        WebFlash wrapper namespace (products/webflash/) must carry no
+        FanPWM YAML. That work belongs to WEBFLASH-PWM-001 (not landed).
+        """
+        webflash_dir = REPO_ROOT / "products" / "webflash"
+        if not webflash_dir.is_dir():
+            return
+        offenders = []
+        for path in webflash_dir.glob("*.yaml"):
+            name = path.name.lower()
+            if "fanpwm" in name or "fan-pwm" in name or "fan_pwm" in name:
+                offenders.append(path.relative_to(REPO_ROOT).as_posix())
+        self.assertEqual(
+            offenders,
+            [],
+            "PRODUCT-PWM-001 must NOT add a FanPWM WebFlash wrapper under "
+            f"products/webflash/. Offending paths: {offenders!r}",
         )
 
     def test_fanpwm_target_makes_no_rpm_claim(self):
