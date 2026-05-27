@@ -701,6 +701,26 @@ gates close and the named per-family release slice lands.
 > `workflow_dispatch` input is defined in
 > [`room-firmware-release-notes.md` §RELEASE-CI-DRYRUN-001](room-firmware-release-notes.md#release-ci-dryrun-001--recorded-dry-run-of-the-release-pipeline-2026-05-27).
 
+> **Update (`RELEASE-WORKFLOW-DRYRUN-MODE-001`, 2026-05-27):** the dry-run mode
+> the previous note described as "next input defined, not implemented" is now
+> **implemented** in
+> [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml):
+> a `workflow_dispatch` boolean input `dry_run` (**default `true`**, safe /
+> non-publishing) plus a new read-only `release-dry-run` job
+> (`permissions: contents: read`) that runs
+> [`scripts/plan_room_release_notes.py`](../scripts/plan_room_release_notes.py)
+> and the planner contract tests for the two release-eligible builds. **It
+> changes no cell in the candidate release table above and creates no release
+> surface:** the dry-run job has no `softprops/action-gh-release` step, uploads
+> **no** Release asset, writes **no** `firmware/sources.json` / `manifest.json`,
+> and commits **no** `.bin` / checksum. FanRelay / FanPWM / FanDAC stay excluded
+> (manual-candidate-only; every row stays `not-release-ready`) and FanTRIAC stays
+> blocked (HW-005). **Publishing remains gated to a real release event** — the
+> `release` job's `if: github.event_name == 'release'` is unchanged and the
+> `dry_run` input cannot publish, locked in by
+> [`tests/test_release_dry_run_mode.py`](../tests/test_release_dry_run_mode.py)
+> and [`tests/test_workflow_permissions.py`](../tests/test_workflow_permissions.py).
+
 ## Relay / S360-310 release posture
 
 **Current state.** The FanRelay product YAML

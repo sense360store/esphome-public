@@ -318,6 +318,29 @@ Validation re-run clean: `plan_room_release_notes.py`,
 
 ---
 
+## RELEASE-WORKFLOW-DRYRUN-MODE-001 — workflow dry-run mode added (2026-05-27)
+
+The "next input" recorded by RELEASE-CI-DRYRUN-001 is now **implemented**.
+[`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
+gained an explicit, **safe-by-default** dry-run mode. This **changes no row**
+in the release matrix table above and publishes nothing.
+
+| Aspect | Behaviour |
+|---|---|
+| New `workflow_dispatch` input | `dry_run` (boolean, **default `true`** = non-publishing) |
+| New job | `release-dry-run` — read-only (`contents: read`), runs `scripts/plan_room_release_notes.py` + planner contract tests |
+| Dry-run scope | confirms stable `Ceiling-POE-VentIQ-RoomIQ` + preview `Ceiling-POE-VentIQ-RoomIQ-LED` only; FanRelay / FanPWM / FanDAC excluded; FanTRIAC blocked (HW-005) |
+| GitHub Release / assets / `firmware/sources.json` / `manifest.json` | none — the dry-run job has no publish step and writes nothing to the repo |
+| Publish gate | **unchanged** — the `release` job stays `if: github.event_name == 'release'`; the `dry_run` input cannot publish |
+
+Guardrails are locked in by
+[`tests/test_release_dry_run_mode.py`](../tests/test_release_dry_run_mode.py)
+and [`tests/test_workflow_permissions.py`](../tests/test_workflow_permissions.py).
+See
+[`docs/room-firmware-release-notes.md` §Release workflow dry-run mode](room-firmware-release-notes.md#release-workflow-dry-run-mode-implemented-by-release-workflow-dryrun-mode-001).
+
+---
+
 ## Cross-references
 
 - Shipping configuration: [`docs/release-one.md`](release-one.md)

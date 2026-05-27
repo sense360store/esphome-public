@@ -223,33 +223,48 @@ notes to `${{ github.sha }}` and the planner otherwise resolves the current
   committed (`git ls-files '*.bin'` is empty; there is no `firmware/`
   directory).
 
-### Release workflow dry-run mode: none exists — next input defined
+### Release workflow dry-run mode (implemented by RELEASE-WORKFLOW-DRYRUN-MODE-001)
 
+At the time RELEASE-CI-DRYRUN-001 ran,
 [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
-has **no explicit dry-run mode**. Its `workflow_dispatch` trigger compiles the
-matrix and uploads ephemeral CI artifacts via `actions/upload-artifact`, but
+had **no explicit dry-run mode**: its `workflow_dispatch` trigger compiled the
+matrix and uploaded ephemeral CI artifacts via `actions/upload-artifact`, while
 the `release` job — which generates `checksums-*.txt`, builds `manifest.json`,
 runs the release-notes / asset-naming guards, and attaches assets via
-`softprops/action-gh-release` — is gated `if: github.event_name == 'release'`.
-So a `workflow_dispatch` run never publishes, but it also **builds binaries**
-and never exercises the release-notes / asset guards; it is a build-only path,
-not a release-candidate dry-run.
+`softprops/action-gh-release` — was gated `if: github.event_name == 'release'`.
+A `workflow_dispatch` run therefore never published, but it also **built
+binaries** and never exercised the release-notes / asset guards; it was a
+build-only path, not a release-candidate dry-run.
 
-The exact **next workflow input needed** (defined here, **not** implemented by
-this PR) is a boolean `workflow_dispatch` input `dry_run` (default `true`) that:
+`RELEASE-WORKFLOW-DRYRUN-MODE-001` adds that dry-run mode. The change is
+deliberately **non-publishing by construction** — it does **not** relax the
+publish job's gate. Instead:
 
-1. relaxes the `release` job gate to
-   `if: github.event_name == 'release' || inputs.dry_run == 'true'`;
-2. runs that job's **validation** steps — release-notes body validation
-   (`scripts/validate-webflash-release-notes.py`), asset-naming check
-   (`scripts/check-webflash-release-assets.py`), and checksum + `manifest.json`
-   **generation to the job log only**; and
-3. **skips** the `Upload release assets` (`softprops/action-gh-release`) step
-   and writes nothing to the repo, by guarding the publish step with
-   `if: github.event_name == 'release' && inputs.dry_run != 'true'`.
+1. **New `workflow_dispatch` input `dry_run`** (boolean, **default `true`** —
+   safe / non-publishing).
+2. **New read-only `release-dry-run` job**, gated
+   `if: github.event_name == 'workflow_dispatch' && inputs.dry_run`, with
+   `permissions: contents: read` (least privilege). It runs
+   `scripts/plan_room_release_notes.py` (which enumerates the release-eligible
+   builds, runs each draft body through
+   `scripts/validate-webflash-release-notes.py`, and enforces the
+   fan-exclusion guardrail), then the planner contract tests
+   (`tests/test_plan_room_release_notes.py`,
+   `tests/test_release_dry_run_mode.py`), and finally asserts no release
+   side-effect file (`firmware/sources.json`, `manifest.json`, or a root
+   `*.bin`) was produced. It contains **no** `softprops/action-gh-release`
+   step, uploads **no** release asset, and writes nothing to the repo.
+3. **Publishing stays gated to a real release event.** The `release` job's
+   gate is unchanged (`if: github.event_name == 'release'`); it does not
+   reference `workflow_dispatch` or `dry_run`, so the dry-run input **cannot**
+   trigger a publish. `softprops/action-gh-release` appears only inside the
+   `release` job. These invariants are locked in by
+   [`tests/test_release_dry_run_mode.py`](../tests/test_release_dry_run_mode.py)
+   and [`tests/test_workflow_permissions.py`](../tests/test_workflow_permissions.py).
 
-Until that input lands, `scripts/plan_room_release_notes.py` is the supported
-offline release-candidate dry-run and is the artifact this section records.
+`scripts/plan_room_release_notes.py` remains the supported **offline**
+release-candidate dry-run; the new job runs that same planner **in CI** on
+manual dispatch.
 
 ---
 
