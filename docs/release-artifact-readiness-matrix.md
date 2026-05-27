@@ -681,6 +681,26 @@ gates close and the named per-family release slice lands.
 > and are **not** `preview-artifact-candidate`s. See
 > [`product-readiness-matrix.md` §MANUAL-FIRMWARE-CI-ARTIFACTS-RESULT-001](product-readiness-matrix.md#manual-firmware-ci-artifacts-result-001--recorded-non-release-artifact-ci-run-for-the-manual-fan-candidates-2026-05-27).
 
+> **Update (`RELEASE-CI-DRYRUN-001`, 2026-05-27):** a release-candidate
+> **dry-run** was run and recorded for the two release-eligible room firmware
+> builds (`Ceiling-POE-VentIQ-RoomIQ` / `stable`,
+> `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`) via
+> [`scripts/plan_room_release_notes.py`](../scripts/plan_room_release_notes.py)
+> plus the release-note validation helpers; both notes drafts validate `PASSED`.
+> **It changes no cell in the candidate release table above and creates no
+> release surface:** the dry-run published **no** GitHub Release and attached
+> **no** Release asset, wrote **no** `firmware/sources.json` / `manifest.json`,
+> committed **no** `.bin` / checksum / build-info file, set **no** release
+> channel, reused **no** catalog `artifact_name`, added **no** WebFlash wrapper,
+> and flipped **no** `webflash_build_matrix`. FanRelay / FanPWM / FanDAC stay
+> excluded (manual-candidate-only; every row stays `not-release-ready`) and
+> FanTRIAC stays blocked (HW-005). The release workflow
+> [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
+> has **no** explicit dry-run mode (its `release` job is gated
+> `if: github.event_name == 'release'`); the exact next `dry_run`
+> `workflow_dispatch` input is defined in
+> [`room-firmware-release-notes.md` §RELEASE-CI-DRYRUN-001](room-firmware-release-notes.md#release-ci-dryrun-001--recorded-dry-run-of-the-release-pipeline-2026-05-27).
+
 ## Relay / S360-310 release posture
 
 **Current state.** The FanRelay product YAML
