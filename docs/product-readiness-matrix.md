@@ -872,6 +872,40 @@ named follow-up.
   FanRelay WebFlash-readiness, release-readiness, WebFlash import-readiness,
   compliance-clearance, board-level mains-safety certification, or
   production-wide / multi-unit hardware characterisation.**
+- **2026-05-27 — `RELAY-BLOCKER-RECLASSIFY-001` (this PR; docs-only) — scope
+  of the remaining gaps clarified.** The remaining FanRelay production-wide
+  `GPIO3` strap-pin (`RLY-3`) / competent-person sign-off (`RLY-4`) /
+  manual-UX (`RLY-5`) / mains-compliance (`RLY-6`) / TRIAC-merge (`RLY-7`) /
+  WebFlash (`RLY-8`) gaps are **reclassified by release scope**: they are
+  **not** blockers for the **product layer** recorded here (product YAML,
+  compile-only target, `config/` / product-catalog presence, and the
+  no-WebFlash `hardware-pending` posture), nor for future clean repo / YAML /
+  firmware cleanup PRs that do not expose WebFlash / release. They **stay**
+  blockers only for WebFlash exposure, release artifacts, import readiness,
+  hardware-stable promotion, the production safety / install claim, mains /
+  compliance / safety claims, and kit / default / recommended membership.
+  **Product-layer disposition is unchanged** — `advanced/manual-warning-only`
+  + product-YAML-landed + WebFlash-blocked + full-compile-green (run
+  `26364679370`) + `hardware-pending`; this PR adds **no** product YAML and
+  changes no status. The production-wide `GPIO3` strap-pin characterisation is
+  a production / hardware-stable / WebFlash / release blocker only (not a
+  package / product-YAML blocker — the package binds `${relay_pin}` to the
+  schematic-correct `GPIO3` and full-compiles green); competent-person
+  sign-off is a safety / compliance / release blocker only; manual /
+  advanced-warning UX is a WebFlash UX blocker only; mains / compliance
+  approval is a release / compliance blocker only; kit / default /
+  recommended membership stays out of scope unless separately approved. The
+  `RLY-6` mains-switching safety posture stays correct. Canonical table in
+  [`s360-310-r4-relay.md` §RELAY-BLOCKER-RECLASSIFY-001](hardware/s360-310-r4-relay.md#relay-blocker-reclassify-001--fanrelay-remaining-blockers-reclassified-by-release-scope-2026-05-27);
+  cross-lane copy in
+  [`blocker-burndown.md` §2C](blocker-burndown.md#2c-fanrelay--s360-310).
+  **`S360-310-SAFETY-BENCH-RESULT-001`** stays the later safety-evidence PR
+  and WebFlash stays separate and blocked (`WEBFLASH-RELAY-LIVE-CHECK-001`).
+  No `config/` / `packages/` / `products/` / `products/webflash/` / test /
+  workflow / firmware / `sense360store/WebFlash` edit; no
+  `webflash_build_matrix` flip; no `artifact_name`; no WebFlash / import /
+  release / compliance / hardware-stable claim; `S360-310` stays
+  `cataloged_unverified`; no fabricated evidence.
 
 ### FanPWM / S360-311
 
