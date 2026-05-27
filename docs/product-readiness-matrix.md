@@ -1270,6 +1270,35 @@ named follow-up.
   `webflash_build_matrix` flip; no `artifact_name`; no RPM / WebFlash /
   import / release / compliance / hardware-stable claim; `S360-311` stays
   `cataloged_unverified`; no fabricated evidence.
+- **2026-05-27 — `S360-311-CURRENT-THERMAL-EVIDENCE-REQUEST-001` (this PR;
+  docs-only) — measured current / thermal evidence checklist defined.**
+  The product-layer disposition is **unchanged** — `product-YAML-landed` +
+  WebFlash-blocked + `validated-full-compile` + `rpm_supported: false` +
+  `hardware-pending`; this PR adds **no** product YAML and changes no
+  status. It turns the still-open **measured current / thermal** rows
+  (`PWM-6` / `PWM-13`) — which per `PWM-BLOCKER-RECLASSIFY-001` gate **only**
+  WebFlash / release / hardware-stable / electrical-margin, **not** this
+  product layer — into an operator-answerable checklist (board rev; fan
+  model + label current rating; supply voltage + measured supply current;
+  per-channel + aggregate current at full speed; inrush; MT3608 input /
+  output / measured ceiling; thermal method incl. IR / camera /
+  thermocouple / qualitative; duration; ambient; hottest location; measured
+  max temp; all-four-at-full-duty; any voltage-drop / instability / reset;
+  optional `TachIO`/`GPIO16` with **no RPM claim**; photos / videos / logs;
+  operator / date / provenance) + pass/fail evidence contract in
+  [`s360-311-r4-pwm.md` §S360-311-CURRENT-THERMAL-EVIDENCE-REQUEST-001](hardware/s360-311-r4-pwm.md#s360-311-current-thermal-evidence-request-001--fanpwm-current--thermal-evidence-checklist--contract-2026-05-27)
+  and [`blocker-burndown.md` §5D](blocker-burndown.md#5d-s360-311-current-thermal-evidence-request-001--fanpwm-current--thermal-checklist--contract-2026-05-27).
+  A fresh Drive re-search found **no** measured current / thermal artifact
+  — only design / CAD material (recorded for provenance, nothing
+  committed). The measured rows stay `NEEDS-OPERATOR-INPUT`;
+  **`S360-311-CURRENT-THERMAL-001` stays gated until the operator supplies
+  them** — WebFlash wrapper / release / import PRs stay blocked. No
+  `config/` / `packages/` / `products/` / `products/webflash/` / test /
+  workflow / firmware / `sense360store/WebFlash` edit; no
+  `webflash_build_matrix` flip; no `artifact_name`; no measured-current /
+  measured-thermal / RPM / WebFlash / release / import / compliance /
+  hardware-stable claim; `S360-311` stays `cataloged_unverified`; no
+  fabricated evidence.
 
 ### FanDAC / S360-312
 
