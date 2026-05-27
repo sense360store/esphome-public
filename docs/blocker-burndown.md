@@ -470,7 +470,11 @@ Applying the burn-down decision rules:
   **`S360-311-CURRENT-THERMAL-001`** (measured per-channel + aggregate
   current, MT3608 measured ceiling / inrush, measured thermal temperature
   or documented thermal method; J6/J3 silkscreen pin order once the R4
-  silkscreen exists). WebFlash stays separate and blocked
+  silkscreen exists). The exact measured rows needed are now defined as an
+  operator-answerable checklist + pass/fail contract by
+  **`S360-311-CURRENT-THERMAL-EVIDENCE-REQUEST-001`** (2026-05-27; §5C), so
+  **`S360-311-CURRENT-THERMAL-001`** stays **gated until the operator
+  supplies the measured rows**. WebFlash stays separate and blocked
   (`WEBFLASH-PWM-LIVE-CHECK-001` behind access); do **not** recommend a
   `WEBFLASH-PWM-001` wrapper until measured current/thermal *and* the
   WebFlash live classification are done.
@@ -713,6 +717,79 @@ thermal rows. WebFlash stays separate and blocked
 (`WEBFLASH-PWM-LIVE-CHECK-001` behind `sense360store/WebFlash` access);
 **no** `WEBFLASH-PWM-001` wrapper is recommended until measured
 current / thermal *and* the WebFlash live classification are done.
+
+### 5C. S360-311-CURRENT-THERMAL-EVIDENCE-REQUEST-001 — FanPWM current & thermal checklist & contract (2026-05-27)
+
+`S360-311-CURRENT-THERMAL-EVIDENCE-REQUEST-001` expands the brief "exact
+remaining evidence checklist" in §5B into a precise, operator-answerable
+**measured current / thermal** request, so the later result PR
+(`S360-311-CURRENT-THERMAL-001`) is small and evidence-backed. It is
+**documentation only** — it requests evidence, records none, and changes
+no behaviour. The canonical board-side copy lives in
+[`s360-311-r4-pwm.md` §S360-311-CURRENT-THERMAL-EVIDENCE-REQUEST-001](hardware/s360-311-r4-pwm.md#s360-311-current-thermal-evidence-request-001--fanpwm-current--thermal-evidence-checklist--contract-2026-05-27);
+this is the cross-lane index copy. Scope is per
+`PWM-BLOCKER-RECLASSIFY-001` (§2A): measured current (`PWM-6`) / thermal
+(`PWM-13`) gate **only** WebFlash / release / hardware-stable /
+electrical-margin, **not** repo / package / product / config work.
+
+**Drive re-search (2026-05-27).** A fresh search (`S360-311`,
+`S360-311-R4`, `FanPWM`, `PWM`, `current`, `thermal`, `inrush`, `MT3608`,
+`bench`, `fan`, spreadsheets / PDFs / photos) found **no measurement
+artifact** — only **design / CAD** material (the `12vFan_PWM_PulseCounter`
+set incl. `PWM.png`, the canonically-named `S360-311-R4` Drive folder
+owned by `kanyugistash@gmail.com` created 2026-05-16 with KiCad sources /
+gerbers / CPL / STEP / BOM / schematic PDF / renders, and the unchanged
+`Sense360_R4_Tracker`). Same artifact class as the committed
+[`schematics/S360-311-R4.pdf`](hardware/schematics/S360-311-R4.pdf),
+recorded for provenance only, **no Drive file committed**. So
+`S360-311-CURRENT-THERMAL-001` stays gated until the operator supplies the
+measured rows below.
+
+**Operator checklist (fill in; leave `UNANSWERED` rather than guess):**
+
+| # | Item | Feeds |
+|---|---|---|
+| 1 | Board revision tested (start: `S360-311-R4`) | PWM-3 |
+| 2 | Fan model + label current rating (start: Arctic P14 Plus) | PWM-6 |
+| 3 | Supply voltage (start: 12 V MT3608) | PWM-6 |
+| 4 | Measured supply current (total A; method) | PWM-6 |
+| 5 | Per-channel current at full speed (A per `J1`/`J2`/`J4`/`J5`) | PWM-6 |
+| 6 | Aggregate current, all four channels active (total A) | PWM-6 |
+| 7 | Inrush / startup current (peak A; locked-rotor — if measurable) | PWM-6 |
+| 8 | MT3608 input / output current or measured ceiling (sag / dropout) | PWM-6 |
+| 9 | Thermal method (IR / thermal camera / thermocouple / qualitative only) | PWM-13 |
+| 10 | Test duration (start: 1+ hour all-four) | PWM-13 |
+| 11 | Ambient temperature (°C) | PWM-13 |
+| 12 | Hottest component / location | PWM-13 |
+| 13 | Measured max temperature (°C, or `qualitative only`) | PWM-13 |
+| 14 | Did all four channels run at high / full duty? | PWM-6 / PWM-13 |
+| 15 | Any voltage drop, instability, or reset? | PWM-6 |
+| 16 | TachIO / GPIO16 observation (only if tested) — **no RPM claim** | PWM-12 (deferred) |
+| 17 | Photos / videos / logs (if available) | all |
+| 18 | Operator / date / source / provenance | all |
+
+**Pass/fail evidence contract:**
+
+| Blocker | Closes when (PASS) | FAIL |
+|---|---|---|
+| Per-channel current (PWM-6) | Measured A per channel at full speed with meter / method (items 2–5, 14) | Fan-label / datasheet rating only |
+| Aggregate current (PWM-6) | Measured total + supply current + inrush if measurable (items 4, 6–7, 14) | Single-channel × 4; no measured aggregate |
+| MT3608 ceiling (PWM-6) | Measured input / output current or documented ceiling + sag note (items 8, 15) | "~2 A available" quoted as measured ceiling |
+| Electrical margin (PWM-6) | Measured aggregate + inrush vs ceiling + voltage-drop / reset answer (items 6–8, 15) — characterisation, **not** certification | "Looks fine" with no headroom; or a certification claim |
+| Measured thermal (PWM-13) | Method + duration + ambient + hottest location + measured max °C (items 9–13), or explicit `qualitative only` | "No heat issue" with no method / duration / ambient |
+
+**Out of scope (stays blocked regardless of answers):** RPM support
+(`rpm_supported: false`; `TachIO`/`GPIO16` reserved; RPM →
+`COMPONENT-SX1509-TACH-001`, future); WebFlash exposure (`PWM-15`,
+`NEEDS WEBFLASH ACCESS`); release artifact (`RELEASE-PWM-001`); import
+readiness (`WF-IMPORT-PWM-001`); hardware-stable promotion (`S360-311`
+stays `cataloged_unverified`); compliance approval (board is SELV —
+`COMPLIANCE-001` does not apply).
+
+**Next PR:** if the operator supplies the measured rows →
+**`S360-311-CURRENT-THERMAL-001`** (record results, close the rows it
+proves); while evidence is missing → it stays gated. WebFlash wrapper /
+build PRs stay blocked.
 
 ## 6. Guardrails honoured / non-claims
 
