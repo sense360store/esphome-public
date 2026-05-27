@@ -919,7 +919,7 @@ named follow-up.
   contract in
   [`s360-310-r4-relay.md` §S360-310-SAFETY-EVIDENCE-REQUEST-001](hardware/s360-310-r4-relay.md#s360-310-safety-evidence-request-001--fanrelay-safety--gpio3-evidence-checklist--contract-2026-05-27)
   and
-  [`blocker-burndown.md` §5C](blocker-burndown.md#5c-s360-310-safety-evidence-request-001--fanrelay-detailed-safety--gpio3-checklist--evidence-contract-2026-05-27).
+  [`blocker-burndown.md` §5D](blocker-burndown.md#5d-s360-310-safety-evidence-request-001--fanrelay-detailed-safety--gpio3-checklist--evidence-contract-2026-05-27).
   A fresh Drive re-search found **no** new FanRelay safety / `GPIO3` /
   competent-person evidence — only design / CAD material (the legacy
   `RelayBoard-Module` set and a canonically-named `S360-310-R4` Drive set of
@@ -1600,6 +1600,32 @@ named follow-up.
   `webflash_build_matrix` flip; no `artifact_name`; no WebFlash / import /
   release / compliance / hardware-stable / Cloudlift-ready claim; `S360-312`
   stays `cataloged_unverified`; no fabricated evidence.
+- **2026-05-27 — `S360-312-BENCH-EVIDENCE-REQUEST-001` (this PR;
+  docs-only).** The product-layer disposition is **unchanged** —
+  product-YAML-landed + WebFlash-blocked + `validated-full-compile` +
+  `voltage_enum_fixed: true` + `hardware-pending`. This PR adds **no**
+  product YAML and changes no status; it turns the still-open FanDAC bench
+  blockers (`DAC-8b` / `DAC-8c` / `DAC-8d` / `DAC-12`) into an
+  operator-answerable bench checklist + pass/fail evidence contract in
+  [`s360-312-r4-fandac.md` §S360-312-BENCH-EVIDENCE-REQUEST-001](hardware/s360-312-r4-fandac.md#s360-312-bench-evidence-request-001--fandac-bench-evidence-checklist--contract-2026-05-27)
+  and
+  [`blocker-burndown.md` §5C](blocker-burndown.md#5c-s360-312-bench-evidence-request-001--fandac-detailed-bench-checklist--evidence-contract-2026-05-27).
+  A fresh Drive re-search found **no** new FanDAC bench evidence — only
+  design / CAD material (the `Fan_GP8403` KiCad / gerber / CPL snapshot set,
+  the canonical `S360-312-R4.pdf` schematic already committed
+  byte-identical, and the unchanged `Sense360_R4_Tracker`), recorded for
+  provenance only and committing no Drive file. The `J3` silkscreen
+  transposition (`DAC-8b`), Cloudlift S12 harness + product bench
+  (`DAC-8c` / `DAC-8d`), and voltage-mode / output-linearity (`DAC-12`)
+  stay `NEEDS-OPERATOR-INPUT` / `NEEDS BENCH`; the `DAC-7`
+  no-simultaneous-per-output-0–5 V / 0–10 V constraint stays correct.
+  **Recommended next DAC PR: `S360-312-BENCH-RESULT-001`, gated until the
+  operator uploads / answers the checklist** — WebFlash wrapper / release /
+  import PRs stay blocked. No `config/` / `packages/` / `products/` /
+  `products/webflash/` / test / workflow / firmware / `sense360store/WebFlash`
+  edit; no `webflash_build_matrix` flip; no `artifact_name`; no WebFlash /
+  import / release / compliance / hardware-stable / Cloudlift-ready claim;
+  `S360-312` stays `cataloged_unverified`.
 - **Cross-references.**
   [`docs/hardware/s360-312-r4-fandac.md`](hardware/s360-312-r4-fandac.md);
   [`docs/hardware/s360-312-r4-dac.md`](hardware/s360-312-r4-dac.md);
