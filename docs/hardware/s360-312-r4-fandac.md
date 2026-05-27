@@ -1553,3 +1553,124 @@ decision only. Release-One (`Ceiling-POE-VentIQ-RoomIQ` / `stable`), the
 LED preview (`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`), and FanTRIAC
 (`blocked` / `HW-005`) are unchanged. The WebFlash repository
 (`sense360store/WebFlash`) is untouched.
+
+## S360-312-BENCH-EVIDENCE-REQUEST-001 — FanDAC bench evidence checklist & contract (2026-05-27)
+
+This section turns the still-open FanDAC bench blockers
+(`DAC-8b` / `DAC-8c` / `DAC-8d` / `DAC-12` in
+[`blocker-burndown.md` §2B](../blocker-burndown.md#2b-fandac--s360-312))
+into one **operator-answerable checklist** and an explicit **pass/fail
+evidence contract**, so a later `S360-312-BENCH-RESULT-001` is small and
+evidence-backed. It is **documentation only**: it requests evidence, it does
+not record results, change behaviour, or relax any guardrail in
+[§DAC-BLOCKER-RECLASSIFY-001](#dac-blocker-reclassify-001--fandac-remaining-blockers-reclassified-by-release-scope-2026-05-27).
+The lane is **bench / operator / WebFlash-access gated, not repo gated** —
+package, product, and full-compile are complete (`DAC-10` / `DAC-11`
+CLOSED; `compile_validation_status: validated-full-compile`,
+`voltage_enum_fixed: true`, run
+[`26364679370`](https://github.com/sense360store/esphome-public/actions/runs/26364679370)).
+
+### Drive re-search result (2026-05-27)
+
+A fresh Drive search for new FanDAC bench evidence (`S360-312`,
+`S360-312-R4`, `FanDAC`, `GP8403`, `Cloudlift`, `Cloudlift S12`, `0-10V`,
+`VOUT`, `voltage reading`, `DAC bench`, `harness`, photos / videos /
+spreadsheets / logs) found **no bench artifact**. The only FanDAC-bearing
+material is **design / CAD only**:
+
+- the `Fan_GP8403` design set (owner `neilmcrae@googlemail.com`):
+  `Fan_GP8403.kicad_sch` plus the timestamped `Fan_GP8403-*.zip` gerber /
+  CPL snapshot series (2025-08 → 2026-01), and the related `GP8403.zip` /
+  `GP8403-Module` folder — the same BOM/CAD class cross-checked in
+  [§BOM cross-check](#bom-cross-check);
+- the canonical `S360-312-R4.pdf` schematic (owner
+  `kanyugistash@gmail.com`, modified 2026-05-16) — already committed,
+  byte-identical, as
+  [`schematics/S360-312-R4.pdf`](schematics/S360-312-R4.pdf);
+- the unchanged `Sense360_R4_Tracker` (2026-05-18).
+
+None of these is a `J3` `out0`/`out1` silkscreen photo, a Cloudlift S12
+harness conductor trace, a per-channel output-voltage reading, a
+voltage-mode (0–10 V / 0–5 V) sweep, a noise / flicker / thermal
+observation, or a product-bench sign-off. This is **board design /
+manufacturing provenance**, recorded for provenance only; it closes **no**
+bench blocker and **no Drive file is committed by this PR and no bench
+evidence is fabricated.**
+
+### Operator checklist (fill in and attach evidence)
+
+Every row is answerable by the hardware owner at the bench. Leave a row
+`UNANSWERED` rather than guessing. Each row names the blocker it feeds.
+
+| # | Item | Answer (operator fills in) | Feeds |
+|---|---|---|---|
+| 1 | **Board revision tested** (silkscreen P/N + rev; note if blank per tracker `G01`) | | DAC-8b |
+| 2 | **`J3` `out0`/`out1` silkscreen transposition** — confirm the printed text: layout shows `J3` pin-1 net `2vout0` (`IC2` `VOUT0`) silk-labelled `out1`, pin-3 net `2vout1` silk-labelled `out0`. Is the silk **transposed** as the layout suggests? (yes / no; read the actual printed text) | | DAC-8b |
+| 3 | **Actual `J3` channel mapping observed** — drive `IC2` `VOUT0` and `VOUT1` one at a time and record which physical `J3` pin each appears on (pin-1 / pin-2 GND / pin-3) | | DAC-8b |
+| 4a | **Voltage mode tested — 0–10 V?** (`${fan_dac_voltage_mode}` `10V`; did you test it?) | | DAC-12 |
+| 4b | **Voltage mode tested — 0–5 V?** (`5V` alternate; tested or not — leave `NOT TESTED` if untested) | | DAC-12 |
+| 5 | **Both DAC channels tested** (which of `J2` ch0/ch1 + `J3` ch0/ch1 were exercised) | | DAC-8d |
+| 6 | **Both channels tested simultaneously** (were two/four outputs driven at once, or one at a time?) | | DAC-8d |
+| 7 | **Controlled load / device tested** (Cloudlift S12, multimeter / DMM, fan simulator, scope probe, or other — name it) | | DAC-8d |
+| 8 | **Harness used** (Cloudlift S12 harness, custom harness, bare probe / none — describe `J2`/`J3` → load wiring) | | DAC-8c |
+| 9a | **Voltage readings — low / 0 % command** (V at the output) | | DAC-12 |
+| 9b | **Voltage readings — medium / 25–50 % command** (V) | | DAC-12 |
+| 9c | **Voltage readings — high / 75–100 % command** (V) | | DAC-12 |
+| 10 | **Did increasing command increase output voltage?** (monotonic 0 → full; yes / no) | | DAC-12 |
+| 11 | **Do the channel labels match expected UI / product behaviour?** (does the channel the UI calls "out0" / fan-1 drive the physically expected `J3` pin / fan, given the silk in item 2?) | | DAC-8b / DAC-12 |
+| 12 | **Noise / flicker / instability** (output ripple, jitter, audible fan flicker, settling behaviour) | | DAC-8d |
+| 13 | **Thermal observation** (GP8403 / MT3608 boost / board warmth under sustained 4-output drive — duration + qualitative or measured) | | DAC-8d |
+| 14 | **Photos / videos / logs attached** (silk close-ups, DMM shots, scope captures, ESPHome log) | | all |
+| 15 | **Operator / date / source / provenance** (who, when, board serial, Drive path of uploaded evidence) | | all |
+
+### Pass/fail evidence contract
+
+What evidence **closes** each open bench blocker, and what does **not**.
+
+| Blocker | Closes when (PASS) | Does NOT close / FAIL |
+|---|---|---|
+| **`J3` silkscreen transposition (`DAC-8b`)** | A photo / direct reading of the printed `J3` `out0`/`out1` silk **plus** the observed channel-mapping (item 3) confirming which `J3` pin carries `IC2` `VOUT0` vs `VOUT1`, with the transposition answered yes/no (items 1–3, 11). | A layout-only inference with no read of the printed board; or "looks right" with no per-channel drive test. |
+| **Cloudlift S12 harness trace (`DAC-8c`)** | A conductor-by-conductor trace from `J2`/`J3` pins to the physical Cloudlift S12 fan input, identifying the harness used (items 7–8). | Datasheet / assumed pinout with no traced harness; "should map straight through" without verification. |
+| **Cloudlift S12 product bench (`DAC-8d`)** | Operator end-to-end sign-off driving both channels (and ideally simultaneously) into the controlled load, with noise/flicker + thermal observation and operator/date/serial + attached evidence (items 5–7, 12–15). | A compile-pass or package test treated as a product bench; a single-channel spot check called a full bench. |
+| **Voltage-mode / output linearity (`DAC-12`)** | Output-voltage readings at low/medium/high (or 0/25/50/75/100 %) for the mode(s) tested, showing increasing command → increasing output, with the 0–10 V (and 0–5 V if tested) mode recorded (items 4a–4b, 9a–10). | Mode asserted but not measured; no recorded command→output direction; a per-output 0–5 V + 0–10 V mix claim on one GP8403 (forbidden by `DAC-7`). |
+
+### Out of scope (stays blocked regardless of this checklist)
+
+These are **not** unlocked by any answer above and must not be claimed:
+
+- **Per-output range mixing on one GP8403** — register `0x01` is chip-level
+  and each GP8403 has a single `V5V` reference wired to `+12V`; **no**
+  simultaneous per-output 0–5 V + 0–10 V on one chip (`DAC-7`, hard
+  guardrail). Two-range operation needs one channel from each of `IC1` /
+  `IC2`.
+- **WebFlash exposure** — no wrapper, no `config/webflash-builds.json` row,
+  no `webflash_build_matrix` flip, no `artifact_name`; gated and
+  additionally `NEEDS WEBFLASH ACCESS` (`DAC-15`; `S360-312` not in any
+  `module-availability.js` snapshot — drift #17).
+- **Release artifact** — no `.bin` / tag / checksum / build-info
+  (`RELEASE-DAC-001` stays blocked).
+- **Import readiness** — `WF-IMPORT-DAC-001` stays blocked behind
+  `RELEASE-DAC-001` (WebFlash-owned).
+- **Hardware-stable promotion** — `S360-312` `schematic_status` stays
+  `cataloged_unverified` (`schematic_file` unset); promotion is a separate
+  JSON-only PR (`DAC-14`), not this checklist, unless policy explicitly
+  allows.
+- **Cloudlift-ready / production voltage-control product claim** — informed
+  by the rows above but a separate product-layer decision; not claimed here.
+- **Compliance approval** — board is SELV (5 V → 12 V boost, no mains), so
+  `COMPLIANCE-001` does not apply; the thermal item is characterisation,
+  not certification.
+
+### Next-PR recommendation
+
+- **If the operator uploads / answers the checklist and attaches bench
+  evidence** → **`S360-312-BENCH-RESULT-001`** records the results and
+  closes the bench rows it actually proves.
+- **While evidence is still missing** (the case today) →
+  **`S360-312-BENCH-RESULT-001` remains gated** until the operator uploads
+  or answers the checklist above; no FanDAC bench row can close in a
+  docs-only pass.
+- **WebFlash wrapper / build PRs stay blocked**
+  (`WEBFLASH-DAC-001` / `RELEASE-DAC-001` / `WF-IMPORT-DAC-001`); the
+  live-access re-check `WEBFLASH-DAC-LIVE-CHECK-001` stays queued behind
+  `sense360store/WebFlash` access restoration.
