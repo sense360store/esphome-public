@@ -1208,6 +1208,34 @@ named follow-up.
   WebFlash / import / release / compliance / hardware-stable claim;
   `S360-311` stays `cataloged_unverified`; no fabricated photo / video /
   log / measurement evidence.
+- **2026-05-27 — `PWM-BLOCKER-RECLASSIFY-001` (this PR; docs-only) — scope
+  of the remaining gaps clarified.** The remaining FanPWM measured-current /
+  thermal / `TachIO` / WebFlash gaps are **reclassified by release scope**:
+  they are **not** blockers for the **product layer** recorded here
+  (product YAML, compile-only target, `config/` / product-catalog presence,
+  and the no-WebFlash `hardware-pending` posture), nor for future clean
+  repo / YAML / firmware cleanup PRs that do not expose WebFlash / release.
+  They **stay** blockers only for WebFlash exposure, release artifacts,
+  import readiness, hardware-stable promotion, the production
+  electrical-margin claim, RPM / `TachIO` claims, and compliance.
+  **Product-layer disposition is unchanged** —
+  `product-YAML-landed` + WebFlash-blocked + `validated-full-compile` +
+  `rpm_supported: false` + `hardware-pending`; this PR adds **no** product
+  YAML and changes no status. Measured current / thermal is a release /
+  WebFlash / hardware-stable blocker only; `TachIO`/`GPIO16` is an
+  RPM / diagnostics blocker only; RPM is out of scope for the PWM-drive-only
+  product; WebFlash live access is a WebFlash-exposure blocker only.
+  Canonical table in
+  [`s360-311-r4-pwm.md` §PWM-BLOCKER-RECLASSIFY-001](hardware/s360-311-r4-pwm.md#pwm-blocker-reclassify-001--fanpwm-remaining-blockers-reclassified-by-release-scope-2026-05-27);
+  cross-lane copy in
+  [`blocker-burndown.md` §2A](blocker-burndown.md#2a-fanpwm--s360-311).
+  **`S360-311-CURRENT-THERMAL-001`** stays the later measured-evidence PR
+  and WebFlash stays separate and blocked (`WEBFLASH-PWM-LIVE-CHECK-001`).
+  No `config/` / `packages/` / `products/` / `products/webflash/` / test /
+  workflow / firmware / `sense360store/WebFlash` edit; no
+  `webflash_build_matrix` flip; no `artifact_name`; no RPM / WebFlash /
+  import / release / compliance / hardware-stable claim; `S360-311` stays
+  `cataloged_unverified`; no fabricated evidence.
 
 ### FanDAC / S360-312
 

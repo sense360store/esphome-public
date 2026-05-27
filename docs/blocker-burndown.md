@@ -88,6 +88,35 @@ action** · **Next PR**.
 | PWM-14 | Compliance / mains gate | CLOSED (no mains) | SELV (5 V → 12 V boost); no mains path | PWM-BLOCKER-REMOVAL-001 / PR #586 | Yes | none — `COMPLIANCE-001` mains gate does not apply | — |
 | PWM-15 | WebFlash wrapper / build-matrix / artifact / module-availability | NEEDS WEBFLASH ACCESS + OUT OF SCOPE | No wrapper; `S360-311` not in any `module-availability.js` snapshot (drift #16) | WEBFLASH-DRIFT-001 / PR #595; WEBFLASH-PWM-001-READINESS / PR #598 | No | record `S360-311` classification on live re-check; wrapper gated behind bench | WEBFLASH-PWM-LIVE-CHECK-001 |
 
+**Scope reclassification — `PWM-BLOCKER-RECLASSIFY-001` (2026-05-27).**
+The FanPWM package / product / compile chain is complete and PR #599 found
+FanPWM is evidence-gated, not repo-gated. The remaining `PWM-3` / `PWM-6` /
+`PWM-12` / `PWM-13` / `PWM-15` gaps are therefore reclassified by the
+surface each actually gates: they are **not** blockers for package
+implementation, product YAML, the compile-only target, `config/` /
+product-catalog presence, the no-WebFlash product posture, or future clean
+repo / YAML / firmware PRs that do not expose WebFlash / release and do not
+claim hardware-stable / RPM / compliance; they **stay** blockers for
+WebFlash exposure, release artifacts, import readiness, hardware-stable
+promotion, the production electrical-margin claim, RPM / `TachIO` claims,
+and compliance / safety claims. Canonical table:
+[`s360-311-r4-pwm.md` §PWM-BLOCKER-RECLASSIFY-001](hardware/s360-311-r4-pwm.md#pwm-blocker-reclassify-001--fanpwm-remaining-blockers-reclassified-by-release-scope-2026-05-27).
+
+| Blocker | Current evidence | Blocks package / product / config? | Blocks WebFlash / release? | Blocks hardware-stable? | Next evidence needed |
+|---|---|---|---|---|---|
+| Measured per-channel current (`PWM-6`) | Not measured (qualitative 1+ hour run) | **No** | **Yes** | **Yes** | Measured A/channel + method → `S360-311-CURRENT-THERMAL-001` |
+| Measured aggregate current, all 4 (`PWM-6`) | Not measured | **No** | **Yes** | **Yes** | Measured total A + MT3608 ceiling / inrush |
+| Measured thermal temperature (`PWM-13`) | Qualitative no-heat 1+ hour; no °C | **No** | **Yes** | **Yes** | Measured °C or documented method |
+| Production electrical-margin claim | Functional only | **No** | **Yes** | **Yes** | The measured current + thermal rows |
+| `TachIO` / `GPIO16` observation (`PWM-12`) | Not measured | **No** | **No** — RPM / diagnostics blocker only | **No** | Optional, only if RPM / diagnostics in scope |
+| RPM support (`PWM-12`) | Compile-proven unsupported; `rpm_supported: false` | **No** | **No** | **No** | Out of scope for PWM-drive-only product (`COMPONENT-SX1509-TACH-001`, future) |
+| WebFlash live access / module-availability (`PWM-15`, `WF-1`/`WF-2`) | Read denied; not in any snapshot | **No** | **Yes** — WebFlash exposure blocker only | **No** | Restore access → `WEBFLASH-PWM-LIVE-CHECK-001` |
+| WebFlash wrapper / build / artifact / import (`PWM-15`, `RELEASE-PWM-001`, `WF-IMPORT-PWM-001`) | None | **No** | **Yes** | **No** | Wrapper gated behind measured current/thermal + live classification |
+| Release readiness (`RELEASE-PWM-001`) | None | **No** | **Yes** | **No** | Release-proof chain after wrapper |
+| Hardware-stable promotion (`schematic_status`) | `cataloged_unverified`; operator-notes-only bench | **No** | **No** | **Yes** | Measured current/thermal (+ photo/video/log if policy requires), separate JSON PR |
+| Board-rev silkscreen / connector (`PWM-3`) | `S360-311-R4` tested; silkscreen / UART not confirmed | **No** | Informs only | **Yes** | Silkscreen pin-1 once R4 silkscreen exists + UART routing |
+| Compliance / safety (`PWM-14` / `CMP-2`) | SELV; no mains | **No** | **No** | **No** | None — `COMPLIANCE-001` n/a |
+
 ### 2B. FanDAC / S360-312
 
 | ID | Blocker | Status | Evidence found | Provenance | Closed? | Remaining exact action | Next PR |
@@ -215,6 +244,20 @@ release, import, hardware-stable promotion (`S360-311` stays
 [`s360-311-r4-pwm.md` §S360-311-BENCH-RESULT-001](hardware/s360-311-r4-pwm.md#s360-311-bench-result-001--fanpwm-operator-bench-result-2026-05-26)
 and [§5B](#5b-s360-311-bench-result-001--fanpwm-operator-bench-result-2026-05-26).
 
+**Update — `PWM-BLOCKER-RECLASSIFY-001` (2026-05-27).** The remaining
+FanPWM gaps were then **reclassified by release scope** (docs-only; no
+posture flip). The measured-current / thermal / `TachIO` / WebFlash gaps
+are **no longer blockers** for package / product / compile-only / config /
+no-WebFlash-posture work or for future clean repo / YAML / firmware PRs
+that do not expose WebFlash / release; they **stay blockers** only for
+WebFlash exposure, release artifacts, import readiness, hardware-stable
+promotion, the production electrical-margin claim, RPM / `TachIO` claims,
+and compliance. Measured current / thermal = release / WebFlash /
+hardware-stable blocker only; `TachIO`/`GPIO16` = RPM / diagnostics blocker
+only; RPM = out of scope for the PWM-drive-only product; WebFlash live
+access = WebFlash exposure blocker only. See the §2A scope-classification
+table and [`s360-311-r4-pwm.md` §PWM-BLOCKER-RECLASSIFY-001](hardware/s360-311-r4-pwm.md#pwm-blocker-reclassify-001--fanpwm-remaining-blockers-reclassified-by-release-scope-2026-05-27).
+
 ## 4. Next-PR recommendations
 
 Applying the burn-down decision rules:
@@ -230,6 +273,15 @@ Applying the burn-down decision rules:
   (`WEBFLASH-PWM-LIVE-CHECK-001` behind access); do **not** recommend a
   `WEBFLASH-PWM-001` wrapper until measured current/thermal *and* the
   WebFlash live classification are done.
+- **FanPWM remaining gaps are now scope-classified** (`PWM-BLOCKER-RECLASSIFY-001`,
+  2026-05-27): the measured-current / thermal / `TachIO` / WebFlash gaps do
+  **not** block package / product / compile-only / `config` / no-WebFlash
+  work, so **clean repo / YAML / firmware cleanup PRs may proceed** as long
+  as they do not expose WebFlash / release artifacts and do not claim
+  hardware-stable / RPM / compliance. WebFlash wrapper / build / artifact /
+  import PRs **remain blocked**, and **`S360-311-CURRENT-THERMAL-001`**
+  stays a later evidence PR required before WebFlash exposure / release /
+  hardware-stable promotion.
 - **FanDAC bench evidence is missing** → **`S360-312-BENCH-EVIDENCE-REQUEST-001`**
   (request `J3` `out0`/`out1` transposition confirmation, Cloudlift S12
   harness trace, Cloudlift S12 product bench). *Not*
