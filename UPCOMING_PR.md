@@ -24,6 +24,56 @@ mirrored here.
 
 ## Current queue summary
 
+- **RELAY-BLOCKER-RECLASSIFY-001** delivers, via **this PR** on 2026-05-27, a
+  **docs-only** scope reclassification of the remaining S360-310 / FanRelay
+  blockers. The FanRelay package / product / full-compile chain is complete
+  (`PACKAGE-RELAY-001` / PR #562 → `PRODUCT-RELAY-001` / PR #564 →
+  `FW-COMPILE-RELAY-FULL-FIX-001` / PR #578 → `FW-COMPILE-RELAY-FULL-RESULT-001`;
+  the FanRelay product YAML exists and the compile-only target is
+  full-compile-green in run `26364679370`), `WEBFLASH-RELAY-001-READINESS`
+  (PR #596) kept FanRelay off WebFlash, and `BLOCKER-BURNDOWN-001` (PR #599)
+  found no new Relay safety / `GPIO3` / competent-person artifact in Drive.
+  This PR **reclassifies** the remaining production-wide `GPIO3` strap-pin
+  (`RLY-3`) / competent-person sign-off (`RLY-4`) / manual-UX (`RLY-5`) /
+  mains-compliance (`RLY-6`) / TRIAC-merge (`RLY-7`) / WebFlash (`RLY-8`) gaps
+  by the surface each actually gates: they are **no longer blockers** for
+  package implementation, product YAML, the compile-only target, `config/` /
+  product-catalog presence, the no-WebFlash product posture, or future clean
+  repo / YAML / firmware PRs that do not expose WebFlash / release and do not
+  claim hardware-stable / compliance / kit-default; they **stay blockers**
+  only for WebFlash exposure, release artifacts, import readiness,
+  hardware-stable promotion, the production safety / install claim, mains /
+  compliance / safety claims, and kit / default / recommended membership. It
+  adds a **scope-classification table** (blocker · evidence · blocks
+  package/product/config? · blocks WebFlash/release? · blocks hardware-stable?
+  · next evidence) and marks the production-wide `GPIO3` strap-pin
+  characterisation as a **production / hardware-stable / WebFlash / release
+  blocker only**, the competent-person sign-off as a **safety / compliance /
+  release blocker only**, the manual / advanced-warning UX as a **WebFlash UX
+  blocker only**, WebFlash live access as a **WebFlash exposure blocker
+  only**, the mains / compliance approval as a **release / compliance blocker
+  only**, and kit / default / recommended membership as **out of scope unless
+  separately approved**. The `RLY-6` mains-switching safety posture stays
+  correct. Canonical table in
+  [`docs/hardware/s360-310-r4-relay.md`](docs/hardware/s360-310-r4-relay.md)
+  §RELAY-BLOCKER-RECLASSIFY-001; cross-lane copy + updated §3 / §4 in
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §2C; dated addenda in
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+  [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+  and [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md).
+  **Next implementation path:** clean repo / YAML / firmware PRs may proceed
+  if they do not expose WebFlash / release and do not claim hardware-stable /
+  compliance / kit-default; WebFlash wrapper / build / artifact / import PRs
+  remain blocked; **`S360-310-SAFETY-BENCH-RESULT-001`** (requested via
+  `S360-310-SAFETY-EVIDENCE-REQUEST-001`) stays a later evidence PR required
+  before WebFlash exposure / release / hardware-stable or any production
+  safety / install / compliance claim. **No** product / package / config /
+  WebFlash / firmware / workflow / release edit; **no** product YAML, WebFlash
+  wrapper, `webflash_build_matrix` flip, `artifact_name`, or release artifact;
+  **no** WebFlash / import / release / compliance / hardware-stable claim;
+  **no** `schematic_status` change (`S360-310` stays `cataloged_unverified`);
+  **no** fabricated evidence; Release-One + LED preview + FanTRIAC unchanged.
+
 - **DAC-BLOCKER-RECLASSIFY-001** delivers, via **this PR** on 2026-05-27, a
   **docs-only** scope reclassification of the remaining S360-312 / FanDAC
   blockers. The FanDAC package / product / full-compile chain is complete
@@ -6676,6 +6726,63 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       `schematic_status` promotion (`S360-312` stays `cataloged_unverified`);
       no fabricated evidence. Release-One + LED preview + FanTRIAC
       (`blocked` / `HW-005`) unchanged.
+36. **RELAY-BLOCKER-RECLASSIFY-001 — Scope remaining FanRelay blockers by
+    release scope**
+    - Status: **DONE — docs-only (2026-05-27; this PR); no exposure flip,
+      no behaviour change**
+    - Purpose: Stop treating the remaining S360-310 / FanRelay production-wide
+      `GPIO3` strap-pin / competent-person sign-off / manual-UX /
+      mains-compliance / TRIAC-merge / WebFlash gaps as blockers for repo /
+      package / product / config work; reclassify them as blockers only for
+      WebFlash / release / import / hardware-stable / production-safety /
+      mains-compliance / kit-default surfaces, keeping all non-claims intact.
+      Canonical scope-classification table in
+      [`docs/hardware/s360-310-r4-relay.md`](docs/hardware/s360-310-r4-relay.md)
+      §RELAY-BLOCKER-RECLASSIFY-001; cross-lane copy + updated §3 / §4 in
+      [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §2C; dated
+      addenda in
+      [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+      [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+      [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md).
+    - Context: package / product / full-compile chain complete
+      (`PACKAGE-RELAY-001` / PR #562; `PRODUCT-RELAY-001` / PR #564;
+      `FW-COMPILE-RELAY-FULL-FIX-001` / PR #578; full-compile-green in run
+      `26364679370`); PR #596 kept FanRelay off WebFlash; PR #599 found no new
+      Relay safety / `GPIO3` / competent-person artifact in Drive.
+    - Decision — **not** a blocker for: package implementation, product
+      YAML, compile-only target, `config/` / product-catalog presence, the
+      no-WebFlash product-readiness posture, and future clean repo / YAML /
+      firmware cleanup PRs that do not expose WebFlash / release artifacts.
+    - Decision — **still** a blocker for: WebFlash exposure, release
+      artifacts, import readiness, hardware-stable promotion, the production
+      safety / install claim, mains / compliance / safety claims, and kit /
+      default / recommended membership.
+    - Scope markings: production-wide `GPIO3` strap-pin characterisation =
+      **production / hardware-stable / WebFlash / release blocker only**;
+      competent-person sign-off = **safety / compliance / release blocker
+      only**; manual / advanced-warning UX = **WebFlash UX blocker only**;
+      WebFlash live access = **WebFlash exposure blocker only**; mains /
+      compliance approval = **release / compliance blocker only**; kit /
+      default / recommended membership = **out of scope unless separately
+      approved**. The `RLY-6` mains-switching safety posture stays correct.
+    - Next implementation path: clean repo / YAML / firmware PRs may proceed
+      if they do not expose WebFlash / release and do not claim
+      hardware-stable / compliance / kit-default; WebFlash wrapper / build /
+      artifact / import PRs remain blocked;
+      **`S360-310-SAFETY-BENCH-RESULT-001`** (requested via
+      `S360-310-SAFETY-EVIDENCE-REQUEST-001`) remains a later evidence PR
+      before WebFlash / release / hardware-stable or any production safety /
+      install / compliance claim.
+    - Guardrails: no `packages/**`, `products/**`, `products/webflash/**`,
+      `config/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`,
+      release-artifact, checksum, build-info, `tests/**`, `scripts/**`,
+      `.github/workflows/**`, `components/**`, `include/**`, or
+      `sense360store/WebFlash` edit; no FanRelay behaviour change; no product
+      YAML; no WebFlash wrapper; no `webflash_build_matrix` flip; no
+      `artifact_name`; no release artifact; no WebFlash / import / release /
+      compliance / hardware-stable claim; no `schematic_status` promotion
+      (`S360-310` stays `cataloged_unverified`); no fabricated evidence.
+      Release-One + LED preview + FanTRIAC (`blocked` / `HW-005`) unchanged.
 
 ## Cross-repo dependencies
 

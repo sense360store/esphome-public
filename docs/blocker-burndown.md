@@ -184,6 +184,37 @@ compliance / safety claims. The `DAC-7` no-simultaneous-per-output-0–5 V /
 | RLY-7 | Further board work gated on TRIAC merge decision | NEEDS OPERATOR INPUT | Tracker `Y02` **Waiting** on `T02` (TRIAC separate-board-vs-merge, **Doing**); mains-connector tasks `T04`/`Y01`/`Y03` Done | `Sense360_R4_Tracker` (2026-05-18) | No | operator decision on `T02` (TRIAC merge) before more Relay board work | (operator decision) |
 | RLY-8 | WebFlash wrapper / build-matrix / artifact / module-availability | NEEDS WEBFLASH ACCESS + BLOCKED BY POLICY/SAFETY | No wrapper; `S360-310` = `design-pending` (prior-recorded 2026-05-22); `WF-IMPORT-RELAY-001` blocked behind `RELEASE-RELAY-001` | PR #565 (prior-recorded); WEBFLASH-RELAY-001-READINESS / PR #596 | No | re-record classification on live re-check; exposure gated on RLY-3/4/6 | WEBFLASH-RELAY-LIVE-CHECK-001 |
 
+**Scope reclassification — `RELAY-BLOCKER-RECLASSIFY-001` (2026-05-27).**
+The FanRelay package / product / full-compile chain is complete
+(`PACKAGE-RELAY-001` / PR #562, `PRODUCT-RELAY-001` / PR #564,
+`FW-COMPILE-RELAY-FULL-FIX-001` / PR #578; full-compile-green in run
+`26364679370`), PR #596 kept FanRelay off WebFlash, and PR #599 found no
+new Relay safety / `GPIO3` / competent-person artifact in Drive. The
+remaining `RLY-3` / `RLY-4` / `RLY-5` / `RLY-6` / `RLY-7` / `RLY-8` gaps are
+therefore reclassified by the surface each actually gates: they are **not**
+blockers for package implementation, product YAML, the compile-only target,
+`config/` / product-catalog presence, the no-WebFlash product posture, or
+future clean repo / YAML / firmware PRs that do not expose WebFlash / release
+and do not claim hardware-stable / compliance / kit-default; they **stay**
+blockers for WebFlash exposure, release artifacts, import readiness,
+hardware-stable promotion, the production safety / install claim, mains /
+compliance / safety claims, and kit / default / recommended membership. The
+`RLY-6` mains-switching safety posture stays correct. Canonical table:
+[`s360-310-r4-relay.md` §RELAY-BLOCKER-RECLASSIFY-001](hardware/s360-310-r4-relay.md#relay-blocker-reclassify-001--fanrelay-remaining-blockers-reclassified-by-release-scope-2026-05-27).
+
+| Blocker | Current evidence | Blocks package / product / config? | Blocks WebFlash / release? | Blocks hardware-stable? | Next evidence needed |
+|---|---|---|---|---|---|
+| Production-wide / multi-unit `GPIO3` strap-pin characterisation (`RLY-3`) | Pair-scoped only (single pair, 10 cycles × 4 power paths); no scope trace, no multi-unit | **No** | **Yes** — production / hardware-stable / WebFlash / release blocker only | **Yes** | Multi-unit oscilloscope-traced `GPIO3` captures → `S360-310-SAFETY-BENCH-RESULT-001` |
+| Competent-person / qualified-person sign-off (`RLY-4`) | None; operator self-report ≠ independent sign-off; none in Drive (PR #599) | **No** | **Yes** — safety / compliance / release blocker only | **No** | Independent competent-person installation sign-off → `S360-310-SAFETY-EVIDENCE-REQUEST-001` |
+| Manual / advanced-warning UX (`RLY-5`) | Product YAML carries the wording; WebFlash-side UX parity owed | **No** | **Yes** — WebFlash UX blocker only | **No** | WebFlash-side manual-warning UX parity → `WEBFLASH-RELAY-LIVE-CHECK-001` |
+| WebFlash live access / module-availability (`RLY-8`, `WF-1`/`WF-2`) | Read denied; `S360-310` `design-pending`, not in any live snapshot | **No** | **Yes** — WebFlash exposure blocker only | **No** | Restore access → `WEBFLASH-RELAY-LIVE-CHECK-001` |
+| WebFlash wrapper / build / artifact / import (`RLY-8`, `RELEASE-RELAY-001`, `WF-IMPORT-RELAY-001`) | None | **No** | **Yes** | **No** | Wrapper gated behind `GPIO3` + sign-off + live classification |
+| Release readiness (`RELEASE-RELAY-001`) | None; full-compile necessary-but-insufficient | **No** | **Yes** | **No** | Release-proof chain after wrapper |
+| Mains / compliance approval (`RLY-6`) | `K1` contact rating is datasheet-only; no board-level cert | **No** | **Yes** — release / compliance blocker only | **No** | `COMPLIANCE-001`-equivalent mains slice |
+| Hardware-stable promotion (`schematic_status`) | `cataloged_unverified`; `schematic_file` unset | **No** | **No** | **Yes** | Operator decision + bench, separate JSON PR |
+| TRIAC / fan-relay-board merge dependency (`RLY-7`) | `Y02` **Waiting** on `T02` (TRIAC merge, **Doing**) | **No** | Informs only — separate board-decision context | Informs only | Operator decision on `T02` (out of scope here) |
+| Kit / default / recommended membership | Excluded; `S360-KIT-BATH-RELAY` future-expansion; default kit is `S360-KIT-BATH-POE` | **No** | Out of scope unless separately approved | **No** | Separate explicit kit-default PR with UX + compliance sign-off |
+
 ### 2D. WebFlash live access / module availability
 
 | ID | Blocker | Status | Evidence found | Provenance | Closed? | Remaining exact action | Next PR |
@@ -310,6 +341,30 @@ compliance blocker only. The `DAC-7` no-per-output-mix constraint stays
 correct. See the §2B scope-classification table and
 [`s360-312-r4-fandac.md` §DAC-BLOCKER-RECLASSIFY-001](hardware/s360-312-r4-fandac.md#dac-blocker-reclassify-001--fandac-remaining-blockers-reclassified-by-release-scope-2026-05-27).
 
+**Update — `RELAY-BLOCKER-RECLASSIFY-001` (2026-05-27).** The remaining
+FanRelay gaps were likewise **reclassified by release scope** (docs-only; no
+posture flip). The package / product / full-compile chain is complete
+(`PACKAGE-RELAY-001` / PR #562, `PRODUCT-RELAY-001` / PR #564,
+`FW-COMPILE-RELAY-FULL-FIX-001` / PR #578; full-compile-green in run
+`26364679370`), so the production-wide `GPIO3` strap-pin (`RLY-3`) /
+competent-person sign-off (`RLY-4`) / manual-UX (`RLY-5`) / mains-compliance
+(`RLY-6`) / TRIAC-merge (`RLY-7`) / WebFlash (`RLY-8`) gaps are **no longer
+blockers** for package / product / compile-only / config / no-WebFlash-posture
+work or for future clean repo / YAML / firmware PRs that do not expose
+WebFlash / release; they **stay blockers** only for WebFlash exposure,
+release artifacts, import readiness, hardware-stable promotion, the
+production safety / install claim, mains / compliance / safety claims, and
+kit / default / recommended membership. The production-wide `GPIO3` strap-pin
+characterisation is a production / hardware-stable / WebFlash / release
+blocker only; competent-person sign-off is a safety / compliance / release
+blocker only; manual / advanced-warning UX is a WebFlash UX blocker only;
+WebFlash live access is a WebFlash exposure blocker only; mains / compliance
+approval is a release / compliance blocker only; kit / default / recommended
+membership is out of scope unless separately approved. The `RLY-6`
+mains-switching safety posture stays correct. See the §2C
+scope-classification table and
+[`s360-310-r4-relay.md` §RELAY-BLOCKER-RECLASSIFY-001](hardware/s360-310-r4-relay.md#relay-blocker-reclassify-001--fanrelay-remaining-blockers-reclassified-by-release-scope-2026-05-27).
+
 ## 4. Next-PR recommendations
 
 Applying the burn-down decision rules:
@@ -352,6 +407,17 @@ Applying the burn-down decision rules:
 - **FanRelay safety evidence is missing** → **`S360-310-SAFETY-EVIDENCE-REQUEST-001`**
   (request multi-unit oscilloscope-traced GPIO3 strap characterization +
   competent-person sign-off). *Not* `S360-310-SAFETY-BENCH-RESULT-001`.
+- **FanRelay remaining gaps are now scope-classified** (`RELAY-BLOCKER-RECLASSIFY-001`,
+  2026-05-27): the production-wide `GPIO3` strap-pin / competent-person /
+  manual-UX / mains-compliance / TRIAC-merge / WebFlash gaps do **not** block
+  package / product / compile-only / `config` / no-WebFlash work, so **clean
+  repo / YAML / firmware cleanup PRs may proceed** as long as they do not
+  expose WebFlash / release artifacts and do not claim hardware-stable /
+  compliance / kit-default. WebFlash wrapper / build / artifact / import PRs
+  **remain blocked**, and **`S360-310-SAFETY-BENCH-RESULT-001`** (requested
+  via `S360-310-SAFETY-EVIDENCE-REQUEST-001`) stays a later evidence PR
+  required before WebFlash exposure / release / hardware-stable promotion or
+  any production safety / install / compliance claim.
 - **WebFlash live access is unavailable** → keep all live WebFlash PRs
   blocked; record access remediation as an operator / tooling action
   (WF-1). The live checks (`WEBFLASH-{PWM,DAC,RELAY}-LIVE-CHECK-001`,

@@ -1177,6 +1177,44 @@ WebFlash import readiness.** The recommended next Relay-chain step is
 drift check once `sense360store/WebFlash` read access is restored), **not**
 `RELEASE-RELAY-001` or `WEBFLASH-RELAY-001`.
 
+**2026-05-27 — `RELAY-BLOCKER-RECLASSIFY-001` (this PR; docs-only) — note on
+release surface.** The remaining FanRelay production-wide `GPIO3` strap-pin /
+competent-person / manual-UX / mains-compliance / WebFlash gaps are
+**reclassified by release scope**, and that reclassification **confirms — not
+relaxes — the release surface.** The gaps are no longer treated as blockers
+for package / product / compile-only / `config` work, but the **production-wide
+`GPIO3` strap-pin characterisation (`RLY-3`; production / hardware-stable /
+WebFlash / release blocker only), the competent-person sign-off (`RLY-4`;
+safety / compliance / release blocker only), and the mains / compliance
+approval (`RLY-6`; release / compliance blocker only) remain release
+blockers**, so the FanRelay release surface stays **`not-release-ready`**:
+`artifact_name` is still absent (`webflash_build_matrix: false`); there is
+still no `.bin` / tag / SHA256 / MD5 / build-info `manifest.json` /
+[`webflash-release-proof.md`](webflash-release-proof.md) row — all owed to
+`RELEASE-RELAY-001`, which stays blocked behind the upstream
+`WEBFLASH-RELAY-001` wrapper and the safety / `GPIO3` / mains-compliance
+evidence. The FanRelay full-compile evidence (run `26364679370`;
+full-compile-green) is `necessary-but-insufficient` and discharges **no**
+release gate. WebFlash live access stays a WebFlash-exposure blocker only;
+kit / default / recommended membership stays out of scope unless separately
+approved; the `RLY-6` mains-switching safety posture stays correct. The
+recommended safety PR is **`S360-310-SAFETY-BENCH-RESULT-001`** (requested via
+`S360-310-SAFETY-EVIDENCE-REQUEST-001`), and **`WEBFLASH-RELAY-LIVE-CHECK-001`**
+stays blocked behind `sense360store/WebFlash` access; **no `WEBFLASH-RELAY-001`
+wrapper / `RELEASE-RELAY-001` artifact is recommended** until the
+production-wide `GPIO3` + competent-person + mains-compliance evidence *and*
+the WebFlash live classification are done. Canonical table in
+[`hardware/s360-310-r4-relay.md` §RELAY-BLOCKER-RECLASSIFY-001](hardware/s360-310-r4-relay.md#relay-blocker-reclassify-001--fanrelay-remaining-blockers-reclassified-by-release-scope-2026-05-27).
+No [`products/webflash/`](../products/webflash/), `config/**`,
+`.github/workflows/`, firmware / signing / sources / manifest / checksum,
+`tests/**`, or `sense360store/WebFlash` edit; no `webflash_build_matrix`
+flip; no `artifact_name`; no release artifact / proof row added; no WebFlash
+/ import / release / compliance / hardware-stable claim; `S360-310` stays
+`cataloged_unverified`; no fabricated evidence. Release-One stays
+`Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; LED preview stays
+`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays `blocked` /
+`HW-005`.
+
 ## PWM / S360-311 release posture
 
 **Current state.** No non-legacy FanPWM product YAML under
