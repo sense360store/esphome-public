@@ -24,7 +24,61 @@ mirrored here.
 
 ## Current queue summary
 
-- **FW-FULL-COMPILE-NOWEBFLASH-001** delivers, via **this PR** on
+- **TOPLEVEL-FAN-COMPILE-TARGETS-001** delivers, via **this PR** on
+  2026-05-27, a **config / tests / docs** change that closes the
+  **registration** half of the top-level FanPWM / FanDAC gap that
+  `FW-FULL-COMPILE-NOWEBFLASH-001` (below) explicitly left **pending**. It
+  registers the **actual top-level product YAMLs** as compile-only targets
+  in [`config/compile-only-targets.json`](config/compile-only-targets.json):
+  `ceiling-poe-fandac-product-compile-only` →
+  [`sense360-ceiling-poe-fandac.yaml`](products/sense360-ceiling-poe-fandac.yaml)
+  and `ceiling-poe-fanpwm-product-compile-only` →
+  [`sense360-ceiling-poe-fanpwm.yaml`](products/sense360-ceiling-poe-fanpwm.yaml),
+  mirroring the FanRelay precedent (the FanRelay compile-only target is
+  already the top-level product YAML). The compile-only target total moves
+  **10 → 12** (`totals.targets`). The existing
+  `ceiling-poe-fandac-compile-only` / `ceiling-poe-fanpwm-compile-only`
+  `products/compile-only/` **skeletons are preserved unchanged** and stay
+  `compile_validation_status: validated-full-compile`; the distinction is
+  explicit via the `…-product-compile-only` ids + `notes`. **No
+  full-compile success is claimed for the new targets:** both carry
+  `compile_validation_status: pending-ci` (not `validated-full-compile`) —
+  no `esphome --compile` run has executed against the registered top-level
+  targets yet. Their compositions are byte-equivalent to the already-green
+  skeletons (proven by the composition-parity tests in
+  [`tests/test_pwm_product_readiness.py`](tests/test_pwm_product_readiness.py)
+  / [`tests/test_dac_product_readiness.py`](tests/test_dac_product_readiness.py)),
+  but parity is not a recorded compile of the registered target; the real
+  `--compile` result is owed to the recommended next PR
+  **`FW-FULL-COMPILE-TOPLEVEL-FANS-001`**. Adds
+  `TopLevelFanProductCompileTargetTests` (20 cases) to
+  [`tests/test_compile_targets.py`](tests/test_compile_targets.py) pinning
+  registration + skeleton-preserved + no-`webflash_build_matrix` /
+  no-`artifact_name` / no-`webflash_wrapper` (target **and** catalog) +
+  not-in-`config/webflash-builds.json` + `rpm_supported: false` (FanPWM) +
+  `pending-ci` invariants. Updates
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+  (§FanPWM / §FanDAC addenda),
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) (new §3D),
+  [`docs/repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md)
+  §6 (full-lane row 10 → 12), and this file. **Validation:**
+  `validate_configs.py`, `validate_compile_targets.py --metadata-only` (12
+  targets), `test_compile_targets.py` (139), `test_pwm_product_readiness.py`,
+  `test_dac_product_readiness.py`, `test_product_catalog.py`,
+  `test_firmware_combination_matrix.py`, `test_firmware_build_gap_report.py`,
+  `validate_webflash_builds.py`, `test_workflow_permissions.py`, and
+  `python3 -m unittest discover` (779 OK / 3 skipped). Edits confined to
+  `config/compile-only-targets.json`, `tests/**`, `docs/**`, and this file;
+  **no** `packages/**`, `products/**`, `products/webflash/**`,
+  `firmware/**`, `manifest.json`, `firmware/sources.json`, or
+  `.github/workflows/**` edit; **no** WebFlash wrapper,
+  `webflash_build_matrix` flip, `artifact_name`, or release artifact; **no**
+  WebFlash / import / release / compliance / hardware-stable / RPM /
+  Cloudlift-ready claim; **no** fabricated compile evidence. `S360-311` /
+  `S360-312` stay `cataloged_unverified`; Release-One + LED preview +
+  FanTRIAC (`blocked` / `HW-005`) + FanRelay (`hardware-pending`) unchanged.
+
+- **FW-FULL-COMPILE-NOWEBFLASH-001** delivers, via this PR on
   2026-05-27, a **docs-only** record of an **actual** full `esphome
   compile` run of the compile-only lane, closing the top-level
   full-compile gap that `FW-CONFIG-RUN-NOWEBFLASH-001` (below) left
