@@ -1821,6 +1821,41 @@ claim, no release-readiness claim, no compliance / safety approval
 claim, no hardware-stable readiness claim, and no fabricated WebFlash
 evidence.**
 
+**2026-05-27 — `DAC-BLOCKER-RECLASSIFY-001` (this PR; docs-only) — note on
+WebFlash surface.** The remaining FanDAC gaps are **reclassified by release
+scope**, and the reclassification **keeps the WebFlash surface fully
+blocked.** It explicitly names **WebFlash live access / `S360-312`
+module-availability** (drift #17) and the **WebFlash wrapper / build /
+artifact / import** chain as a **WebFlash-exposure blocker only** (they do
+**not** gate the FanDAC package / product / `config` layer, which is already
+complete with `validated-full-compile` + `voltage_enum_fixed: true`), and it
+keeps the **`J3` `out0`/`out1` silkscreen transposition** (product /
+installation-documentation and WebFlash / release blocker only), the
+**Cloudlift S12 harness + product bench** (Cloudlift product-claim /
+WebFlash / release blocker only), and the **voltage-mode UX** (WebFlash /
+product UX blocker only) as WebFlash gates. So the FanDAC WebFlash surface
+stays **`not-webflash-ready`**: the wrapper, `config/webflash-builds.json`
+row, `artifact_name`, release artifact, and import-source gates stay
+`BLOCKING`; the live `sense360store/WebFlash` re-verification and the
+still-owed `S360-312` module-availability classification stay
+`NEEDS-TOOLING`; the `J3` silk transposition and Cloudlift S12 harness /
+product-bench caveats stay `NEEDS-OPERATOR-INPUT`. The `DAC-7`
+no-simultaneous-per-output-0–5 V / 0–10 V constraint stays correct. The
+recommended bench PR is **`S360-312-BENCH-RESULT-001`** (requested via
+`S360-312-BENCH-EVIDENCE-REQUEST-001`); **`WEBFLASH-DAC-LIVE-CHECK-001`**
+stays blocked behind WebFlash access, and **no `WEBFLASH-DAC-001` wrapper is
+recommended** until the Cloudlift S12 bench evidence *and* the WebFlash live
+classification are done. Canonical table in
+[`hardware/s360-312-r4-fandac.md` §DAC-BLOCKER-RECLASSIFY-001](hardware/s360-312-r4-fandac.md#dac-blocker-reclassify-001--fandac-remaining-blockers-reclassified-by-release-scope-2026-05-27).
+No `packages/**`, `products/**`, `products/webflash/**`, `config/**`,
+`scripts/**`, `.github/workflows/**`, `components/**`, `include/**`,
+`tests/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`,
+release-artifact / checksum / build-info, or `sense360store/WebFlash`
+edit; no `webflash_build_matrix` flip; no `artifact_name`; no
+`schematic_status` promotion (`S360-312` stays `cataloged_unverified`); no
+WebFlash exposure / import / release / compliance / hardware-stable /
+Cloudlift-ready claim; no fabricated evidence.
+
 ## TRIAC / S360-320 WebFlash posture
 
 **Current state.** `S360-320 Sense360 TRIAC`,

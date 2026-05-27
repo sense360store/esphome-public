@@ -1502,6 +1502,37 @@ named follow-up.
   **No claim of FanDAC WebFlash-readiness, release-readiness, WebFlash
   import-readiness, compliance-clearance, board-level safety
   certification, or hardware-stable readiness.**
+- **2026-05-27 — `DAC-BLOCKER-RECLASSIFY-001` (this PR; docs-only) — scope
+  of the remaining gaps clarified.** The remaining FanDAC `J3`-silk /
+  Cloudlift S12 harness + product-bench / voltage-UX / `schematic_status` /
+  WebFlash gaps are **reclassified by release scope**: they are **not**
+  blockers for the **product layer** recorded here (product YAML,
+  compile-only target, `config/` / product-catalog presence, and the
+  no-WebFlash `hardware-pending` posture), nor for future clean repo / YAML
+  / firmware cleanup PRs that do not expose WebFlash / release. They
+  **stay** blockers only for WebFlash exposure, release artifacts, import
+  readiness, hardware-stable promotion, the production voltage-control /
+  product claim, the Cloudlift S12 product claim, and compliance.
+  **Product-layer disposition is unchanged** — product-YAML-landed +
+  WebFlash-blocked + `validated-full-compile` + `voltage_enum_fixed: true` +
+  `hardware-pending`; this PR adds **no** product YAML and changes no
+  status. The `J3` `out0`/`out1` silkscreen transposition is a product /
+  installation-documentation and WebFlash / release blocker only (not a
+  package / product-YAML blocker); the Cloudlift S12 harness / product bench
+  is a Cloudlift product-claim / WebFlash / release blocker only;
+  voltage-mode UX is a WebFlash / product UX blocker only; the `DAC-7`
+  no-simultaneous-per-output-0–5 V / 0–10 V constraint stays correct.
+  Canonical table in
+  [`s360-312-r4-fandac.md` §DAC-BLOCKER-RECLASSIFY-001](hardware/s360-312-r4-fandac.md#dac-blocker-reclassify-001--fandac-remaining-blockers-reclassified-by-release-scope-2026-05-27);
+  cross-lane copy in
+  [`blocker-burndown.md` §2B](blocker-burndown.md#2b-fandac--s360-312).
+  **`S360-312-BENCH-RESULT-001`** stays the later bench-evidence PR and
+  WebFlash stays separate and blocked (`WEBFLASH-DAC-LIVE-CHECK-001`). No
+  `config/` / `packages/` / `products/` / `products/webflash/` / test /
+  workflow / firmware / `sense360store/WebFlash` edit; no
+  `webflash_build_matrix` flip; no `artifact_name`; no WebFlash / import /
+  release / compliance / hardware-stable / Cloudlift-ready claim; `S360-312`
+  stays `cataloged_unverified`; no fabricated evidence.
 - **Cross-references.**
   [`docs/hardware/s360-312-r4-fandac.md`](hardware/s360-312-r4-fandac.md);
   [`docs/hardware/s360-312-r4-dac.md`](hardware/s360-312-r4-dac.md);

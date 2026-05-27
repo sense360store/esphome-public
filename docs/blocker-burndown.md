@@ -140,6 +140,37 @@ and compliance / safety claims. Canonical table:
 | DAC-14 | `S360-312` `schematic_status` JSON promotion | NEEDS OPERATOR INPUT | Stays `cataloged_unverified`; `schematic_file` unset | PR #573 | No | operator decision to promote (separate JSON PR) | (config-only follow-up) |
 | DAC-15 | WebFlash wrapper / build-matrix / artifact / module-availability | NEEDS WEBFLASH ACCESS + OUT OF SCOPE | No wrapper; `S360-312` not in any `module-availability.js` snapshot (drift #17) | WEBFLASH-DRIFT-001 / PR #595; WEBFLASH-DAC-001-READINESS / PR #597 | No | record `S360-312` classification on live re-check; wrapper gated | WEBFLASH-DAC-LIVE-CHECK-001 |
 
+**Scope reclassification — `DAC-BLOCKER-RECLASSIFY-001` (2026-05-27).**
+The FanDAC package / product / full-compile chain is complete
+(`compile_validation_status: validated-full-compile`, `voltage_enum_fixed:
+true`, run `26364679370`), PR #597 kept FanDAC off WebFlash, and PR #599
+found no new DAC bench / harness / Cloudlift-S12 artifact in Drive. The
+remaining `DAC-8b` / `DAC-8c` / `DAC-8d` / `DAC-12` / `DAC-14` / `DAC-15`
+gaps are therefore reclassified by the surface each actually gates: they
+are **not** blockers for package implementation, product YAML, the
+compile-only target, `config/` / product-catalog presence, the no-WebFlash
+product posture, or future clean repo / YAML / firmware PRs that do not
+expose WebFlash / release and do not claim Cloudlift-ready / hardware-stable
+/ compliance; they **stay** blockers for WebFlash exposure, release
+artifacts, import readiness, hardware-stable promotion, the production
+voltage-control / product claim, the Cloudlift S12 product claim, and
+compliance / safety claims. The `DAC-7` no-simultaneous-per-output-0–5 V /
+0–10 V constraint stays correct. Canonical table:
+[`s360-312-r4-fandac.md` §DAC-BLOCKER-RECLASSIFY-001](hardware/s360-312-r4-fandac.md#dac-blocker-reclassify-001--fandac-remaining-blockers-reclassified-by-release-scope-2026-05-27).
+
+| Blocker | Current evidence | Blocks package / product / config? | Blocks WebFlash / release? | Blocks hardware-stable? | Next evidence needed |
+|---|---|---|---|---|---|
+| `J3` `out0`/`out1` silkscreen transposition (`DAC-8b`) | Layout transposed; not operator-confirmed | **No** | **Yes** — product / installation-doc and WebFlash / release blocker only | Informs only | Operator / bench confirmation → `S360-312-BENCH-RESULT-001` |
+| Cloudlift S12 harness trace (`DAC-8c`) | No Drive artifact (PR #599) | **No** | **Yes** — Cloudlift product-claim / WebFlash / release blocker only | **No** | Harness trace `J2`/`J3` → fan input → `S360-312-BENCH-RESULT-001` |
+| Cloudlift S12 product bench (`DAC-8d`) | Not captured | **No** | **Yes** — Cloudlift product-claim / WebFlash / release blocker only | **No** | Operator product-bench vs Cloudlift S12 load → `S360-312-BENCH-RESULT-001` |
+| Voltage-mode / product UX (`DAC-12`) | Per-chip range design decided; UX exposure owed | **No** | **Yes** — WebFlash / product UX blocker only | **No** | Product-UX naming / exposure (`PRODUCT-DAC` follow-up); no per-output mix |
+| WebFlash live access / module-availability (`DAC-15`) | Read denied; `S360-312` not in any snapshot (drift #17) | **No** | **Yes** — WebFlash exposure blocker only | **No** | Restore access → `WEBFLASH-DAC-LIVE-CHECK-001` |
+| WebFlash wrapper / build / artifact / import (`DAC-15`, `RELEASE-DAC-001`, `WF-IMPORT-DAC-001`) | None | **No** | **Yes** | **No** | Wrapper gated behind bench + live classification |
+| Release readiness (`RELEASE-DAC-001`) | None; full-compile necessary-but-insufficient | **No** | **Yes** | **No** | Release-proof chain after wrapper |
+| Hardware-stable promotion (`schematic_status`, `DAC-14`) | `cataloged_unverified`; `schematic_file` unset | **No** | **No** | **Yes** | Operator decision + bench, separate JSON PR |
+| Per-output range mixing on one GP8403 (`DAC-7`) | Chip-level register `0x01`; **no** simultaneous 0–5 V + 0–10 V claim | **No (constraint)** | Keep no-mix guardrail | **No** | None — hard guardrail; do not relax |
+| Compliance / safety approval | SELV; no mains path; no sign-off claimed | **No** | **No** | **No** | None — `COMPLIANCE-001` mains gate n/a; release / compliance only |
+
 ### 2C. FanRelay / S360-310
 
 | ID | Blocker | Status | Evidence found | Provenance | Closed? | Remaining exact action | Next PR |
@@ -258,6 +289,27 @@ only; RPM = out of scope for the PWM-drive-only product; WebFlash live
 access = WebFlash exposure blocker only. See the §2A scope-classification
 table and [`s360-311-r4-pwm.md` §PWM-BLOCKER-RECLASSIFY-001](hardware/s360-311-r4-pwm.md#pwm-blocker-reclassify-001--fanpwm-remaining-blockers-reclassified-by-release-scope-2026-05-27).
 
+**Update — `DAC-BLOCKER-RECLASSIFY-001` (2026-05-27).** The remaining
+FanDAC gaps were likewise **reclassified by release scope** (docs-only; no
+posture flip). The package / product / full-compile chain is complete
+(`validated-full-compile`, `voltage_enum_fixed: true`, run `26364679370`),
+so the `J3`-silk (`DAC-8b`) / Cloudlift S12 harness + product-bench
+(`DAC-8c`/`DAC-8d`) / voltage-UX (`DAC-12`) / `schematic_status` (`DAC-14`) /
+WebFlash (`DAC-15`) gaps are **no longer blockers** for package / product /
+compile-only / config / no-WebFlash-posture work or for future clean repo /
+YAML / firmware PRs that do not expose WebFlash / release; they **stay
+blockers** only for WebFlash exposure, release artifacts, import readiness,
+hardware-stable promotion, the production voltage-control / product claim,
+the Cloudlift S12 product claim, and compliance. The `J3` `out0`/`out1`
+silkscreen transposition is a product / installation-documentation and
+WebFlash / release blocker only; the Cloudlift S12 harness / product bench
+is a Cloudlift product-claim / WebFlash / release blocker only; voltage-mode
+UX is a WebFlash / product UX blocker only; WebFlash live access is a
+WebFlash exposure blocker only; compliance / safety approval is a release /
+compliance blocker only. The `DAC-7` no-per-output-mix constraint stays
+correct. See the §2B scope-classification table and
+[`s360-312-r4-fandac.md` §DAC-BLOCKER-RECLASSIFY-001](hardware/s360-312-r4-fandac.md#dac-blocker-reclassify-001--fandac-remaining-blockers-reclassified-by-release-scope-2026-05-27).
+
 ## 4. Next-PR recommendations
 
 Applying the burn-down decision rules:
@@ -286,6 +338,17 @@ Applying the burn-down decision rules:
   (request `J3` `out0`/`out1` transposition confirmation, Cloudlift S12
   harness trace, Cloudlift S12 product bench). *Not*
   `S360-312-BENCH-RESULT-001`.
+- **FanDAC remaining gaps are now scope-classified** (`DAC-BLOCKER-RECLASSIFY-001`,
+  2026-05-27): the `J3`-silk / Cloudlift S12 harness + product-bench /
+  voltage-UX / `schematic_status` / WebFlash gaps do **not** block package /
+  product / compile-only / `config` / no-WebFlash work, so **clean repo /
+  YAML / firmware cleanup PRs may proceed** as long as they do not expose
+  WebFlash / release artifacts and do not claim Cloudlift-ready /
+  hardware-stable / compliance. WebFlash wrapper / build / artifact / import
+  PRs **remain blocked**, and **`S360-312-BENCH-RESULT-001`** (requested via
+  `S360-312-BENCH-EVIDENCE-REQUEST-001`) stays a later evidence PR required
+  before WebFlash exposure / release / hardware-stable promotion or any
+  Cloudlift-ready claim.
 - **FanRelay safety evidence is missing** → **`S360-310-SAFETY-EVIDENCE-REQUEST-001`**
   (request multi-unit oscilloscope-traced GPIO3 strap characterization +
   competent-person sign-off). *Not* `S360-310-SAFETY-BENCH-RESULT-001`.
