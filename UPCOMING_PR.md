@@ -24,6 +24,43 @@ mirrored here.
 
 ## Current queue summary
 
+- **BLOCKER-STATUS-FINALIZE-001** delivers, via **this PR** on 2026-05-27, a
+  **docs-only** finalization of the blocker-removal chain
+  (`BLOCKER-BURNDOWN-001` / PR #599 → `S360-311-BENCH-EVIDENCE-REQUEST-001` /
+  PR #600 → `S360-311-BENCH-RESULT-001` / PR #601 →
+  `PWM-BLOCKER-RECLASSIFY-001` / PR #602 → `DAC-BLOCKER-RECLASSIFY-001` /
+  PR #603 → `RELAY-BLOCKER-RECLASSIFY-001` / PR #604 →
+  `SECURITY-ACTION-PINNING-001` / PR #605). It records that **clean,
+  no-WebFlash repo / YAML / firmware work is now unblocked for FanPWM /
+  FanDAC / FanRelay** — a clean repo PR may proceed provided it does **not**
+  expose WebFlash, add a release artifact, flip `webflash_build_matrix`, add
+  `artifact_name`, claim hardware-stable, claim compliance / safety, claim
+  RPM / `TachIO` for PWM, claim Cloudlift-ready for DAC, or claim production
+  safety / install or kit / default readiness for Relay. The WebFlash
+  wrappers / build matrix / import / module-availability, release artifacts,
+  hardware-stable promotion, compliance / safety, PWM measured
+  current / thermal, DAC `J3` / Cloudlift evidence, Relay `GPIO3` /
+  competent-person evidence, and WebFlash live-access lanes **stay
+  separately gated** exactly as the per-family reclassification PRs left
+  them. Adds the **final blocker-status table** (lane · clean
+  repo / YAML / firmware status · WebFlash / release status ·
+  hardware-stable / compliance status · remaining evidence · next clean PR)
+  to [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §3A and
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+  §BLOCKER-STATUS-FINALIZE-001; confirms `SECURITY-ACTION-PINNING-001`
+  (`SEC-2`) is **CLOSED** everywhere; and recommends the next clean
+  implementation PR **`REPO-CLEANUP-NOWEBFLASH-001`** (stale-reference + 
+  no-WebFlash YAML / firmware cleanup only). Edits are confined to
+  `docs/**` and this file; **no** `packages/**`, `products/**`,
+  `products/webflash/**`, `config/**`, `components/**`, `include/**`,
+  `firmware/**`, `manifest.json`, `firmware/sources.json`, release artifact,
+  checksum, `.github/workflows/**`, test, or `sense360store/WebFlash` edit;
+  **no** product YAML, WebFlash wrapper, `webflash_build_matrix` flip,
+  `artifact_name`, or release artifact; **no** WebFlash / import / release /
+  compliance / hardware-stable / RPM / Cloudlift-ready / kit-default claim;
+  no `schematic_status` promotion; no fabricated evidence. Release-One + LED
+  preview unchanged.
+
 - **SECURITY-ACTION-PINNING-001** delivers, via **this PR** on 2026-05-27,
   the SHA-pinning follow-up carried forward from `SECURITY-AUDIT-FIX-001`
   (the one actionable non-hardware lane kept visible by
@@ -5224,6 +5261,22 @@ Listed in working priority order. WebFlash-owned import PRs are kept out of
 this table; see **Cross-repo dependencies**. The only `WF-`-prefixed entry
 that appears below is **WF-TRIAC-001**, which is the in-repo
 wrapper/catalog/build slice (not a WebFlash-runtime import).
+
+> **Recommended next clean implementation PR (`BLOCKER-STATUS-FINALIZE-001`,
+> 2026-05-27): `REPO-CLEANUP-NOWEBFLASH-001`.** Now that the clean,
+> no-WebFlash repo / YAML / firmware path is finalized as **unblocked** for
+> FanPWM / FanDAC / FanRelay (see the Current queue summary bullet and
+> [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §3A), the next clean
+> PR should be scoped to **(a)** clearing stale docs / config references that
+> still imply clean repo / YAML / firmware work is blocked and **(b)**
+> no-WebFlash YAML / firmware cleanup only. It must make **no** WebFlash /
+> release / import / hardware-stable / compliance / RPM / Cloudlift-ready /
+> kit-default claim, add no WebFlash wrapper, flip no `webflash_build_matrix`,
+> and add no `artifact_name` or release artifact. The measured-evidence PRs
+> (`S360-311-CURRENT-THERMAL-001`, `S360-312-BENCH-RESULT-001`,
+> `S360-310-SAFETY-BENCH-RESULT-001`) and the WebFlash live checks
+> (`WEBFLASH-{PWM,DAC,RELAY}-LIVE-CHECK-001`) stay queued behind their own
+> evidence / access gates.
 
 1. **CORE-ABSTRACT-BUS-001B — Shared-I²C-bus consolidation
    (canonical id `core_i2c`, hard rename only)**

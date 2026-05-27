@@ -394,6 +394,71 @@ self-update, so refreshing them is a manual maintenance action. This does
 **not** change any WebFlash / import / release / compliance / hardware
 posture.
 
+## 3A. Final blocker-status — clean repo / YAML / firmware path unblocked (`BLOCKER-STATUS-FINALIZE-001`, 2026-05-27)
+
+This row finalizes the blocker-removal chain (`BLOCKER-BURNDOWN-001` /
+PR #599 → `S360-311-BENCH-EVIDENCE-REQUEST-001` / PR #600 →
+`S360-311-BENCH-RESULT-001` / PR #601 → `PWM-BLOCKER-RECLASSIFY-001` /
+PR #602 → `DAC-BLOCKER-RECLASSIFY-001` / PR #603 →
+`RELAY-BLOCKER-RECLASSIFY-001` / PR #604 → `SECURITY-ACTION-PINNING-001` /
+PR #605). It is **docs-only** and flips no posture: it simply records the
+decision that **clean, no-WebFlash repo / YAML / firmware work is now
+unblocked for FanPWM / FanDAC / FanRelay**, while the WebFlash / release /
+import / hardware-stable / compliance lanes remain separately gated exactly
+as the per-family reclassification PRs left them.
+
+**Decision recorded.** A clean repo / YAML / firmware PR for PWM / DAC /
+Relay may now proceed **provided it**:
+
+- does **not** expose WebFlash (no wrapper under `products/webflash/`);
+- does **not** add a release artifact (`.bin` / tag / checksum / build-info);
+- does **not** flip `webflash_build_matrix`;
+- does **not** add `artifact_name`;
+- does **not** claim hardware-stable (no `schematic_status` promotion);
+- does **not** claim compliance / safety approval;
+- does **not** claim RPM / `TachIO` for PWM;
+- does **not** claim Cloudlift-ready for DAC;
+- does **not** claim production safety / install or kit / default readiness
+  for Relay.
+
+**Still-blocked lanes (unchanged).** WebFlash wrappers / build matrix /
+import / module availability; release artifacts; hardware-stable promotion;
+compliance / safety claims; PWM measured current / thermal before
+WebFlash / release / hardware-stable; DAC `J3` / Cloudlift evidence before
+WebFlash / release / hardware-stable / Cloudlift-ready; Relay `GPIO3` /
+competent-person evidence before WebFlash / release / hardware-stable /
+safety / install; and WebFlash live-access checks.
+
+**Final blocker-status table.** Columns: **lane** · **clean repo / YAML /
+firmware status** · **WebFlash / release status** · **hardware-stable /
+compliance status** · **remaining evidence** · **next clean PR**.
+
+| Lane | Clean repo / YAML / firmware (no-WebFlash) | WebFlash / release / import | Hardware-stable / compliance | Remaining evidence (before WebFlash / release / hardware-stable) | Next clean PR |
+|---|---|---|---|---|---|
+| FanPWM / S360-311 | **UNBLOCKED** — package + product + compile-only chain complete; clean no-WebFlash repo / YAML / firmware cleanup may proceed (no WebFlash, no release artifact, no `webflash_build_matrix` flip, no `artifact_name`, no hardware-stable / RPM / compliance claim) | **BLOCKED** — wrapper / build-matrix / artifact / import gated (`PWM-15`, `RELEASE-PWM-001`, `WF-IMPORT-PWM-001`) | **BLOCKED** — `cataloged_unverified`; compliance n/a (SELV, `COMPLIANCE-001` does not apply) | Measured per-channel + aggregate current, MT3608 ceiling / inrush, measured thermal → `S360-311-CURRENT-THERMAL-001`; RPM / `TachIO` out of scope | `REPO-CLEANUP-NOWEBFLASH-001` |
+| FanDAC / S360-312 | **UNBLOCKED** — same conditions; no Cloudlift-ready claim; `DAC-7` no-per-output-mix guardrail kept | **BLOCKED** — wrapper / build-matrix / artifact / import gated (`DAC-15`, `RELEASE-DAC-001`, `WF-IMPORT-DAC-001`) | **BLOCKED** — `cataloged_unverified`; compliance n/a (SELV) | `J3` `out0`/`out1` silkscreen confirm, Cloudlift S12 harness trace + product bench → `S360-312-BENCH-RESULT-001` (requested via `S360-312-BENCH-EVIDENCE-REQUEST-001`) | `REPO-CLEANUP-NOWEBFLASH-001` |
+| FanRelay / S360-310 | **UNBLOCKED** — same conditions; no production safety / install or kit / default / recommended readiness claim | **BLOCKED** — wrapper / build-matrix / artifact / import gated (`RLY-8`, `RELEASE-RELAY-001`, `WF-IMPORT-RELAY-001`) | **BLOCKED** — `cataloged_unverified`; mains compliance gated (`RLY-6`, `CMP-1`) | Multi-unit scope-traced `GPIO3` strap characterization + competent-person sign-off → `S360-310-SAFETY-BENCH-RESULT-001` (requested via `S360-310-SAFETY-EVIDENCE-REQUEST-001`) | `REPO-CLEANUP-NOWEBFLASH-001` |
+| WebFlash live access (`WF-1`/`WF-2`/`WF-3`) | n/a — no repo-side clean-path claim | **BLOCKED** — `sense360store/WebFlash` read denied; live checks queued | n/a | Restore `sense360store/WebFlash` read access (or operator-attested snapshot) | `WEBFLASH-{PWM,DAC,RELAY}-LIVE-CHECK-001` (gated) |
+| Security action SHA-pinning (`SEC-2`) | **CLOSED** — `SECURITY-ACTION-PINNING-001` (2026-05-27); all six actions SHA-pinned, guard tightened | n/a — no WebFlash / release posture change | n/a | none — refreshing SHAs is a manual maintenance action | — |
+
+**`SECURITY-ACTION-PINNING-001` (`SEC-2`) is CLOSED.** It is recorded
+closed in §2E, the §3-update note above, §4, §5 item 15,
+[`workflow-security-hardening.md` §2/§3](workflow-security-hardening.md#2-action-pin-inventory-sha-pinned-by-security-action-pinning-001),
+and `repo-freshness-roadmap-audit.md` §5/§7/§10. No row anywhere should
+still show it open.
+
+**Next implementation PR recommended — `REPO-CLEANUP-NOWEBFLASH-001`.**
+A clean repo PR scoped to **(a)** clearing any stale docs / config
+references that still imply clean repo / YAML / firmware work is blocked,
+and **(b)** no-WebFlash YAML / firmware cleanup only. It must make **no**
+WebFlash / release / import / hardware-stable claim, add no WebFlash
+wrapper, flip no `webflash_build_matrix`, add no `artifact_name` or release
+artifact, and claim no compliance / safety / RPM / Cloudlift-ready /
+kit-default readiness. The measured-evidence PRs
+(`S360-311-CURRENT-THERMAL-001`, `S360-312-BENCH-RESULT-001`,
+`S360-310-SAFETY-BENCH-RESULT-001`) and the WebFlash live checks stay
+queued behind their own evidence / access gates.
+
 ## 4. Next-PR recommendations
 
 Applying the burn-down decision rules:
@@ -457,6 +522,16 @@ Applying the burn-down decision rules:
   **Delivered 2026-05-27** (see the update note below); SEC-2 is now
   CLOSED. The remaining open non-hardware items are the three
   bench-evidence-request docs and the WebFlash-access-gated live checks.
+- **Clean repo / YAML / firmware path is now finalized as unblocked**
+  (`BLOCKER-STATUS-FINALIZE-001`, 2026-05-27): see §3A. The actionable
+  clean-repo PR recommended next is **`REPO-CLEANUP-NOWEBFLASH-001`** —
+  clear stale docs / config references and no-WebFlash YAML / firmware
+  cleanup only, with **no** WebFlash / release / import / hardware-stable /
+  compliance / RPM / Cloudlift-ready / kit-default claim. WebFlash wrapper /
+  build / artifact / import PRs stay blocked, and the measured-evidence PRs
+  (`S360-311-CURRENT-THERMAL-001`, `S360-312-BENCH-RESULT-001`,
+  `S360-310-SAFETY-BENCH-RESULT-001`) stay queued behind their evidence
+  gates.
 
 ## 5. Minimum operator checklist
 

@@ -2154,6 +2154,38 @@ operator / safety**, not product-layer:
 No product YAML, catalog, `webflash_build_matrix`, `artifact_name`,
 release, RPM, or readiness claim is made by the consolidation.
 
+## BLOCKER-STATUS-FINALIZE-001 — clean repo / YAML / firmware path unblocked (2026-05-27)
+
+`BLOCKER-STATUS-FINALIZE-001` finalizes the blocker-removal chain
+(PR #599 → #600 → #601 → #602 → #603 → #604 → #605). It is **docs-only**
+and flips no posture. For product-YAML readiness it re-confirms — with no
+product change — that the FanPWM / FanDAC / FanRelay product YAMLs have
+landed and full-compiled, so **clean, no-WebFlash repo / YAML / firmware
+work is now unblocked** for all three lanes, while WebFlash / release /
+import / hardware-stable / compliance lanes stay separately gated exactly
+as the per-family `*-BLOCKER-RECLASSIFY-001` updates left them.
+
+A clean repo / YAML / firmware PR may proceed only if it does **not**:
+expose WebFlash, add a release artifact, flip `webflash_build_matrix`, add
+`artifact_name`, claim hardware-stable, claim compliance / safety approval,
+claim RPM / `TachIO` for PWM, claim Cloudlift-ready for DAC, or claim
+production safety / install or kit / default readiness for Relay.
+
+| Lane | Clean repo / YAML / firmware (no-WebFlash) | WebFlash / release / import | Hardware-stable / compliance | Remaining evidence (before WebFlash / release / hardware-stable) | Next clean PR |
+|---|---|---|---|---|---|
+| FanPWM / S360-311 | **UNBLOCKED** — package + product + compile-only complete; no-WebFlash cleanup may proceed (no WebFlash / release / `webflash_build_matrix` flip / `artifact_name` / hardware-stable / RPM / compliance claim) | **BLOCKED** — wrapper / build-matrix / artifact / import gated | **BLOCKED** — `cataloged_unverified`; compliance n/a (SELV) | Measured per-channel + aggregate current, MT3608 ceiling / inrush, measured thermal → `S360-311-CURRENT-THERMAL-001`; RPM / `TachIO` out of scope | `REPO-CLEANUP-NOWEBFLASH-001` |
+| FanDAC / S360-312 | **UNBLOCKED** — same conditions; no Cloudlift-ready claim; `DAC-7` no-per-output-mix guardrail kept | **BLOCKED** — wrapper / build-matrix / artifact / import gated | **BLOCKED** — `cataloged_unverified`; compliance n/a (SELV) | `J3` `out0`/`out1` silkscreen confirm, Cloudlift S12 harness trace + product bench → `S360-312-BENCH-RESULT-001` | `REPO-CLEANUP-NOWEBFLASH-001` |
+| FanRelay / S360-310 | **UNBLOCKED** — same conditions; no production safety / install or kit / default / recommended readiness claim | **BLOCKED** — wrapper / build-matrix / artifact / import gated | **BLOCKED** — `cataloged_unverified`; mains compliance gated (`RLY-6`, `CMP-1`) | Multi-unit scope-traced `GPIO3` strap characterization + competent-person sign-off → `S360-310-SAFETY-BENCH-RESULT-001` | `REPO-CLEANUP-NOWEBFLASH-001` |
+
+`SECURITY-ACTION-PINNING-001` (`SEC-2`) is **CLOSED** (2026-05-27). The
+recommended next clean implementation PR is **`REPO-CLEANUP-NOWEBFLASH-001`**
+(clear stale docs / config references + no-WebFlash YAML / firmware cleanup
+only). The cross-lane copy of this table is
+[`blocker-burndown.md` §3A](blocker-burndown.md#3a-final-blocker-status--clean-repo--yaml--firmware-path-unblocked-blocker-status-finalize-001-2026-05-27).
+This section adds **no** product YAML, catalog, `webflash_build_matrix`,
+`artifact_name`, release, RPM, or readiness claim, and promotes no
+`schematic_status`.
+
 ## Do-not-change guardrails
 
 PRODUCT-GAP-001 — this matrix — performs **none** of the following.
