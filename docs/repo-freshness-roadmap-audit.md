@@ -2,6 +2,7 @@
 
 **Audit id:** `REPO-FRESHNESS-ROADMAP-AUDIT-001`
 **Date:** 2026-05-24
+**Updated:** 2026-05-27 by `REPO-CLEANUP-NOWEBFLASH-001` (docs-only de-dup of stale §4 / §10 roadmap + security summary lines after `BLOCKER-STATUS-FINALIZE-001`).
 **Scope repo:** `sense360store/esphome-public` (primary)
 **Companion repo:** `sense360store/WebFlash` (read-only target — **not accessible this session**, see Provenance)
 **Type:** Audit / docs only. No product, package, config-behaviour, workflow, firmware, or
@@ -138,8 +139,13 @@ checklist `WEBFLASH-DRIFT-001` must run against the WebFlash repo.
 
 ## 4. Roadmap / feature coverage table
 
-Coverage is **current and complete**; no stale roadmap entries were found. PWM is correctly positioned
-as the next hardware blocker now that Relay (#579) and DAC (#580/#581) full-compile are clean.
+Coverage is **current and complete**; no stale roadmap entries were found. The Relay / DAC / PWM
+package / product / full-compile chains are complete, and `BLOCKER-STATUS-FINALIZE-001` (2026-05-27)
+recorded that the clean, no-WebFlash repo / YAML / firmware path is now **unblocked** for all three —
+their remaining gaps are bench / operator / safety / WebFlash-access gated, not repo-gated. The next
+hardware-evidence PRs are `S360-311-CURRENT-THERMAL-001` (PWM measured current / thermal),
+`S360-312-BENCH-RESULT-001` (DAC J3 / Cloudlift), and `S360-310-SAFETY-BENCH-RESULT-001`
+(Relay GPIO3 / competent-person), each still gating WebFlash / release / hardware-stable promotion.
 
 | Topic | Coverage | Authoritative location | Current posture |
 |---|---|---|---|
@@ -215,7 +221,7 @@ action), and no Dependabot / code-scanning / secret-scanning **alert** feed was 
 | **`WEBFLASH-DRIFT-001`** | **DONE — docs-only (2026-05-26)** | Produced [`docs/webflash-drift-audit.md`](webflash-drift-audit.md): drift table across config_string / artifact_name / artifact_pattern / channels / visible products / default posture / module-availability / release-import readiness. No confirmed cross-repo drift (all `INTENTIONALLY-BLOCKED` or `NEEDS-OPERATOR-INPUT`); WebFlash side resolved from prior-recorded (PR #565) + Drive provenance. Recommends `WEBFLASH-RELAY/DAC/PWM-001-READINESS` next. A future re-run with **live WebFlash access** is still owed to close the `NEEDS-OPERATOR-INPUT` axes (artifact_pattern source, grammar-validator parity, full channel list, PWM/DAC `module-availability.js`). | Live WebFlash repo still not accessible this session → `NEEDS-TOOLING` for the remaining axes. |
 | **`SECURITY-AUDIT-FIX-001`** | **DONE** (2026-05-25) | Added least-privilege top-level `permissions: contents: read` to all five workflows (the three that lacked it — `validate.yml` / `compile-only.yml` / `ci-validate-configs.yml` — plus narrowed `firmware-build-release.yml` top-level write→read, keeping `contents: write` only on its `release` job). Added regression guard `tests/test_workflow_permissions.py` (explicit top-level `permissions:`, no `pull_request_target`, no `write-all`, no unallowlisted `write`, action pins SHA-or-documented). Inventoried the six mutable-major-tag action pins in `docs/workflow-security-hardening.md`. **No SHA-pin conversion and no security clean-bill claim.** | — (resolved). |
 | **`SECURITY-ACTION-PINNING-001`** | **DONE** (2026-05-27) | Converted all six inventoried action pins (`actions/checkout`→`v4.3.1`, `setup-python`→`v5.6.0`, `cache`→`v4.3.0`, `upload-artifact`→`v4.6.2`, `download-artifact`→`v4.3.0`, third-party `softprops/action-gh-release`→`v2.6.2`) from mutable major tags to immutable commit SHAs (resolved via `git ls-remote --tags`), keeping the version in a trailing comment. Tightened `tests/test_workflow_permissions.py` to **require** SHA pins (local composite actions / documented exceptions excepted) and to keep the SHA-pin inventory honest. Per-action table in `docs/workflow-security-hardening.md` §2. Pinning-only: no trigger / permission / job / script / secret / build-logic change. | — (resolved). |
-| **`REPO-CLEANUP-NOWEBFLASH-001`** | recommended next (2026-05-27, `BLOCKER-STATUS-FINALIZE-001`) | Clean stale docs / config references that still imply clean repo / YAML / firmware work is blocked, plus no-WebFlash YAML / firmware cleanup only. **No** WebFlash wrapper, `webflash_build_matrix` flip, `artifact_name`, release artifact, import, or hardware-stable / compliance / RPM / Cloudlift-ready / kit-default claim. Clean repo / YAML / firmware work for PWM / DAC / Relay is now **unblocked** under those conditions (see [`blocker-burndown.md` §3A](blocker-burndown.md#3a-final-blocker-status--clean-repo--yaml--firmware-path-unblocked-blocker-status-finalize-001-2026-05-27) and `product-readiness-matrix.md` §BLOCKER-STATUS-FINALIZE-001). | WebFlash / release / import / hardware-stable / compliance stay separately gated; measured-evidence PRs (`S360-311-CURRENT-THERMAL-001`, `S360-312-BENCH-RESULT-001`, `S360-310-SAFETY-BENCH-RESULT-001`) and WebFlash live checks stay queued behind their own gates. |
+| **`REPO-CLEANUP-NOWEBFLASH-001`** | **DONE — docs-only (2026-05-27, this PR)** | Clean stale docs references that still imply clean repo / YAML / firmware work is blocked. The first pass found the only genuinely stale **current-state** references were in this doc — the duplicated/stale §10 Roadmap + Security summary bullets and the §4 "PWM is the next blocker" intro line — so this PR is **docs-only**: it de-duplicates those bullets and refreshes the intro to the finalized clean-path-unblocked state. **`config/**` / YAML / firmware were inspected and found current** (the old `CORE-ABSTRACT-BUS-001B-not-landed` candidate label was already refreshed; the surviving `*-not-landed` strings live only in correctly-preserved historical changelog rows), so **no** config / YAML / firmware / package edit was warranted and none was fabricated. **No** WebFlash wrapper, `webflash_build_matrix` flip, `artifact_name`, release artifact, import, or hardware-stable / compliance / RPM / Cloudlift-ready / kit-default claim. | — (resolved; this PR). WebFlash / release / import / hardware-stable / compliance stay separately gated; measured-evidence PRs (`S360-311-CURRENT-THERMAL-001`, `S360-312-BENCH-RESULT-001`, `S360-310-SAFETY-BENCH-RESULT-001`) and WebFlash live checks stay queued behind their own gates. |
 | **`CI-GATE-HARDENING-001`** | optional | Run generated-matrix sync tests + full `unittest discover` on PR; consider an opt-in PR full-compile gate. | `.github/workflows/**` do-not-edit. |
 | **`ROADMAP-COVERAGE-001`** | optional / low | Add explicit SX1509 + SEN0609 roadmap/constraint rows (doc-only). | Cosmetic; no material gap. |
 | **`PWM-BLOCKER-REMOVAL-001`** | **DONE** (2026-05-25) | Audited the S360-311 / FanPWM lane against repo + Drive evidence; recorded the Drive `12vFan_PWM_PulseCounter` artifact set (BOM / gerbers / CPL / STEP / renders) with provenance; cross-checked the BOM against the committed `S360-311-R4` schematic 1:1; produced the [blocker table](hardware/s360-311-r4-pwm.md#pwm-blocker-removal-001-readiness--blocker-table) (rows 1/2/5/11 CLOSED, row 6 PARTIAL, rows 3/4/7/8/9/10 still blocking) in `s360-311-r4-pwm.md` + matrix addenda. Docs-only; no `.xlsx`/binary committed; no config/package/product/WebFlash edit. | — (resolved; this PR). |
@@ -280,10 +286,7 @@ The green generated-file sync tests confirm `config/firmware-combination-matrix.
   [`docs/webflash-drift-audit.md`](webflash-drift-audit.md). No confirmed cross-repo product/import
   drift (all `INTENTIONALLY-BLOCKED` or `NEEDS-OPERATOR-INPUT`); WebFlash repo still not live-accessible,
   so the remaining axes stay `NEEDS-TOOLING` pending a re-run with WebFlash access.
-- **Roadmap:** complete and current; PWM blocker audit done → `PWM-BLOCKER-REMOVAL-001` (2026-05-25) closed the hardware-evidence / controlled-load / BOM-part-identity / no-mains-compliance rows and lifted the `core_i2c` blocker; `PACKAGE-PWM-001-IMPLEMENT-001` then landed the **PWM-drive-only** package at the package layer (2026-05-25; `fan_pwm.yaml` → four SX1509 PWM-drive controllers composing `fan_pwm_sx1509.yaml`; no RPM; `TachIO`/`GPIO16` reserved). Next is the product slice `PRODUCT-PWM-001`, still gated on bench PWM polarity + current/thermal envelope + product YAML + compile-only target/result + WebFlash/release/import/compliance + optional future RPM strategy.
-- **Security:** good hygiene; two hardening follow-ups (workflow permissions, action SHA-pinning) →
-  `SECURITY-AUDIT-FIX-001`; **no clean-bill claim** (alert tooling unavailable).
-- **Roadmap:** complete and current; PWM is the next blocker → `PWM-BLOCKER-REMOVAL-001`.
+- **Roadmap:** complete and current. The PWM blocker audit (`PWM-BLOCKER-REMOVAL-001`, 2026-05-25) closed the hardware-evidence / controlled-load / BOM-part-identity / no-mains-compliance rows and lifted the `core_i2c` blocker; `PACKAGE-PWM-001-IMPLEMENT-001` landed the **PWM-drive-only** package (2026-05-25; `fan_pwm.yaml` → four SX1509 PWM-drive controllers composing `fan_pwm_sx1509.yaml`; no RPM; `TachIO`/`GPIO16` reserved); `PRODUCT-PWM-001` then landed the product YAML and `FW-COMPILE-PWM-001`/`-RESULT-001` the compile-only target. With Relay / DAC / PWM all package + product + full-compile complete, `BLOCKER-STATUS-FINALIZE-001` (2026-05-27) recorded the clean, no-WebFlash repo / YAML / firmware path as **unblocked** for all three; the remaining work is bench / operator / safety / WebFlash-access evidence (`S360-311-CURRENT-THERMAL-001`, `S360-312-BENCH-RESULT-001`, `S360-310-SAFETY-BENCH-RESULT-001`, the `WEBFLASH-*-LIVE-CHECK-001` checks), each still gating WebFlash / release / hardware-stable promotion. The recommended clean follow-up is `REPO-CLEANUP-NOWEBFLASH-001` (this PR).
 - **Security:** good hygiene; both workflow hardening follow-ups are **DONE** — workflow-permissions via
   `SECURITY-AUDIT-FIX-001` (2026-05-25 — explicit least-privilege `permissions:` on all five workflows +
   `tests/test_workflow_permissions.py` regression guard + action-pin inventory in
@@ -317,3 +320,18 @@ release, compliance, or security clean-bill readiness. The three readiness matri
 > WebFlash change, no `webflash_build_matrix` flip, no `artifact_name`, no release artifact, and **no**
 > release / WebFlash-import / compliance / hardware-stable / security clean-bill claim. SHA pins are
 > immutable and do not self-update — refreshing them is a manual maintenance action.
+
+> **Update — `REPO-CLEANUP-NOWEBFLASH-001` (2026-05-27):** docs-only cleanup following
+> `BLOCKER-STATUS-FINALIZE-001`. De-duplicated the §10 audit-summary bullets (two **Roadmap**
+> and two **Security** bullets had accreted, one of each stale — the stale Roadmap bullet still read
+> "PWM is the next blocker → `PWM-BLOCKER-REMOVAL-001`", and the stale Security bullet predated the
+> `SECURITY-ACTION-PINNING-001` SHA-pinning closure) down to one current bullet each, and refreshed the
+> §4 roadmap-coverage intro line that still called PWM "the next hardware blocker" to the finalized
+> clean-path-unblocked state. Edits are confined to `docs/**` + `UPCOMING_PR.md`. It makes **no**
+> `config/**` / `packages/**` / `products/**` / `products/webflash/**` / `components/**` / `include/**` /
+> firmware / `.github/workflows/**` / test / `sense360store/WebFlash` change, no product YAML, no WebFlash
+> wrapper, no `webflash_build_matrix` flip, no `artifact_name`, no release artifact, and **no** WebFlash /
+> import / release / compliance / hardware-stable readiness claim; no `schematic_status` promotion; no
+> blocker moved; no fabricated evidence. Historical, dated changelog rows elsewhere (e.g. the
+> `s360-311-r4-pwm.md` per-PR audit log) are **not** rewritten — they are correctly-preserved records,
+> not stale headlines.
