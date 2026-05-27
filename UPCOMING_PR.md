@@ -24,6 +24,47 @@ mirrored here.
 
 ## Current queue summary
 
+- **PWM-BLOCKER-RECLASSIFY-001** delivers, via **this PR** on 2026-05-27, a
+  **docs-only** scope reclassification of the remaining S360-311 / FanPWM
+  blockers. The FanPWM package / product / compile chain is complete
+  (PR #590–#594), `BLOCKER-BURNDOWN-001` (PR #599) found FanPWM is
+  evidence-gated not repo-gated, and `S360-311-BENCH-RESULT-001` (PR #601)
+  recorded the operator functional bench. This PR **reclassifies** the
+  remaining measured-current / thermal / `TachIO` / WebFlash gaps by the
+  surface each actually gates: they are **no longer blockers** for package
+  implementation, product YAML, the compile-only target, `config/` /
+  product-catalog presence, the no-WebFlash product posture, or future
+  clean repo / YAML / firmware PRs that do not expose WebFlash / release
+  and do not claim hardware-stable / RPM / compliance; they **stay
+  blockers** only for WebFlash exposure, release artifacts, import
+  readiness, hardware-stable promotion, the production electrical-margin
+  claim, RPM / `TachIO` claims, and compliance / safety claims. It adds a
+  **scope-classification table** (blocker · evidence · blocks
+  package/product/config? · blocks WebFlash/release? · blocks
+  hardware-stable? · next evidence) and marks measured current / thermal as
+  a **release / WebFlash / hardware-stable blocker only**, `TachIO`/`GPIO16`
+  as an **RPM / diagnostics blocker only**, RPM as **out of scope for the
+  PWM-drive-only product**, and WebFlash live access as a **WebFlash
+  exposure blocker only**. Canonical table in
+  [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md)
+  §PWM-BLOCKER-RECLASSIFY-001; cross-lane copy + updated §3 / §4 in
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §2A; dated addenda
+  in [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+  [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+  and [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md).
+  **Next implementation path:** clean repo / YAML / firmware PRs may
+  proceed if they do not expose WebFlash / release and do not claim
+  hardware-stable / RPM / compliance; WebFlash wrapper / build / artifact /
+  import PRs remain blocked; **`S360-311-CURRENT-THERMAL-001`** stays a
+  later evidence PR required before WebFlash exposure / release /
+  hardware-stable. **No** product / package / config / WebFlash / firmware /
+  workflow / release edit; **no** product YAML, WebFlash wrapper,
+  `webflash_build_matrix` flip, `artifact_name`, or release artifact;
+  **no** measured-current / measured-thermal / RPM / WebFlash / import /
+  release / compliance / hardware-stable claim; **no** `schematic_status`
+  change (`S360-311` stays `cataloged_unverified`); **no** fabricated
+  evidence; Release-One + LED preview unchanged.
+
 - **S360-311-BENCH-RESULT-001** delivers, via **this PR** on 2026-05-26, a
   **docs-only** record of the operator's FanPWM bench result. The operator
   (`@wifispray`) ran the bench requested by
@@ -6486,6 +6527,51 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       promotion (`S360-311` stays `cataloged_unverified`); no fabricated
       photo / video / log / measurement evidence. Release-One + LED
       preview + FanTRIAC (`blocked` / `HW-005`) unchanged.
+34. **PWM-BLOCKER-RECLASSIFY-001 — Scope remaining FanPWM blockers by
+    release scope**
+    - Status: **DONE — docs-only (2026-05-27; this PR); no exposure flip,
+      no behaviour change**
+    - Purpose: Stop treating the remaining S360-311 / FanPWM
+      measured-current / thermal / `TachIO` gaps as blockers for repo /
+      package / product / config work; reclassify them as blockers only for
+      WebFlash / release / hardware-stable promotion, keeping all non-claims
+      intact. Canonical scope-classification table in
+      [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md)
+      §PWM-BLOCKER-RECLASSIFY-001; cross-lane copy + updated §3 / §4 in
+      [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §2A; dated
+      addenda in
+      [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+      [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+      [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md).
+    - Decision — **not** a blocker for: package implementation, product
+      YAML, compile-only target, `config/` / product-catalog presence, the
+      no-WebFlash product-readiness posture, and future clean repo / YAML /
+      firmware cleanup PRs that do not expose WebFlash / release artifacts.
+    - Decision — **still** a blocker for: WebFlash exposure, release
+      artifacts, import readiness, hardware-stable promotion, the production
+      electrical-margin claim, RPM / `TachIO` claims, and compliance /
+      safety claims.
+    - Scope markings: measured current / thermal = **release / WebFlash /
+      hardware-stable blocker only**; `TachIO`/`GPIO16` = **RPM /
+      diagnostics blocker only**; RPM = **out of scope for the current
+      PWM-drive-only product**; WebFlash live access = **WebFlash exposure
+      blocker only**.
+    - Next implementation path: clean repo / YAML / firmware PRs may proceed
+      if they do not expose WebFlash / release and do not claim
+      hardware-stable / RPM / compliance; WebFlash wrapper / build /
+      artifact / import PRs remain blocked; **`S360-311-CURRENT-THERMAL-001`**
+      remains a later evidence PR before WebFlash / release / hardware-stable.
+    - Guardrails: no `packages/**`, `products/**`, `products/webflash/**`,
+      `config/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`,
+      release-artifact, checksum, build-info, `tests/**`, `scripts/**`,
+      `.github/workflows/**`, `components/**`, `include/**`, or
+      `sense360store/WebFlash` edit; no FanPWM behaviour change; no product
+      YAML; no WebFlash wrapper; no `webflash_build_matrix` flip; no
+      `artifact_name`; no release artifact; no measured-current /
+      measured-thermal / RPM / WebFlash / import / release / compliance /
+      hardware-stable claim; no `schematic_status` promotion (`S360-311`
+      stays `cataloged_unverified`); no fabricated evidence. Release-One +
+      LED preview + FanTRIAC (`blocked` / `HW-005`) unchanged.
 
 ## Cross-repo dependencies
 
