@@ -1,0 +1,247 @@
+---
+# ============================================================================
+# MANUAL (NON-RELEASE) FIRMWARE ARTIFACTS — MANUAL-FIRMWARE-CI-ARTIFACTS-001
+# ============================================================================
+# This workflow compiles the FanRelay / FanPWM / FanDAC manual / no-WebFlash
+# firmware candidates (MANUAL-FIRMWARE-CANDIDATE-001 / PR #617) and uploads
+# ONLY temporary, expiring GitHub Actions artifacts for point-to-point
+# operator handoff, exactly as permitted by the non-release rules in
+# MANUAL-FIRMWARE-ARTIFACT-POLICY-001 / PR #619.
+#
+# It is the "explicitly non-release, expiring CI job" referenced by that
+# policy. It is NOT a release lane. By construction this workflow:
+#   - is workflow_dispatch ONLY (never push / pull_request / release);
+#   - requires an explicit `artifact_mode=manual-candidate` input before it
+#     builds anything (the disabled default is a no-op);
+#   - names every artifact `<product-stem>-manual-<short-sha>-nonrelease`
+#     (product/config name + reviewed commit short SHA + non-release marker),
+#     never a release `vX.Y.Z` / `-stable` / `-preview` name;
+#   - uploads ONLY ephemeral actions/upload-artifact outputs (retention-days),
+#     never a GitHub Release asset;
+#   - does NOT create a GitHub Release;
+#   - does NOT write firmware/sources.json;
+#   - does NOT write manifest.json;
+#   - does NOT generate or commit any .bin, checksum, or build-info file;
+#   - does NOT set a release channel, reuse a product-catalog artifact_name,
+#     add a WebFlash wrapper, or flip webflash_build_matrix.
+#
+# The candidate set + the non-release guarantees are validated by
+# scripts/validate_manual_firmware_artifacts.py against
+# config/manual-firmware-artifacts.json, and guarded by
+# tests/test_manual_firmware_artifacts.py. See
+# docs/manual-install-fan-candidates.md.
+# ============================================================================
+
+name: Manual (Non-Release) Firmware Artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_mode:
+        description: >-
+          Must be set to 'manual-candidate' to build non-release manual
+          artifacts. The 'disabled' default builds nothing.
+        required: true
+        default: "disabled"
+        type: choice
+        options:
+          - disabled
+          - manual-candidate
+
+# Least-privilege, read-only token (SECURITY-AUDIT-FIX-001). This lane only
+# reads the repo and exchanges ephemeral CI artifacts via the artifact
+# service (which does not use the `contents` scope). Nothing here writes
+# contents, creates a Release, or touches any other resource, so NO job
+# requests `contents: write`.
+permissions:
+  contents: read
+
+env:
+  ESPHOME_VERSION: "2026.4.5"
+
+jobs:
+  # --------------------------------------------------------------------------
+  # JOB 1: generate the non-release manual-candidate matrix
+  # --------------------------------------------------------------------------
+  # Runs the metadata validator (fails closed on any policy violation) and
+  # emits the build matrix from config/manual-firmware-artifacts.json. Only
+  # runs when artifact_mode=manual-candidate is explicitly selected.
+  # --------------------------------------------------------------------------
+  generate-matrix:
+    name: Manual Artifacts — Generate Matrix
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_mode == 'manual-candidate'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.gen.outputs.matrix }}
+      candidate_count: ${{ steps.gen.outputs.candidate_count }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Validate non-release manual artifact config
+        run: |
+          python3 scripts/validate_manual_firmware_artifacts.py --metadata-only
+
+      - name: Generate manual-candidate matrix
+        id: gen
+        run: |
+          set -euo pipefail
+          MATRIX="$(python3 scripts/validate_manual_firmware_artifacts.py --print-matrix)"
+          COUNT="$(python3 -c 'import json,sys; print(len(json.loads(sys.argv[1])["include"]))' "$MATRIX")"
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "candidate_count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "Non-release manual-candidate matrix ($COUNT entry/entries):"
+          echo "$MATRIX"
+
+  # --------------------------------------------------------------------------
+  # JOB 2: compile each candidate and upload an EXPIRING, NON-RELEASE artifact
+  # --------------------------------------------------------------------------
+  build:
+    name: "Manual Artifact: ${{ matrix.id }}"
+    needs: generate-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: ${{ runner.os }}-pio-${{ env.ESPHOME_VERSION }}-${{ hashFiles(matrix.product_yaml) }}-${{ matrix.id }}
+          restore-keys: |
+            ${{ runner.os }}-pio-${{ env.ESPHOME_VERSION }}-
+            ${{ runner.os }}-pio-
+
+      - name: Install ESPHome
+        run: |
+          pip install "esphome==${{ env.ESPHOME_VERSION }}"
+
+      - name: Provision test secrets
+        run: |
+          # ESPHome resolves `!secret` lookups relative to the top-level YAML
+          # being compiled. The candidates live in products/, so a
+          # secrets.yaml must exist at the repo root and at products/.
+          cat > secrets.yaml << 'EOF'
+          wifi_ssid: "TestNetwork"
+          wifi_password: "TestPassword123"
+          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+          ota_password: "test-ota-password"
+          fallback_ap_password: "fallback123"
+          web_username: "admin"
+          web_password: "test_web_password"
+          EOF
+          rm -f products/secrets.yaml
+          cp secrets.yaml products/secrets.yaml
+
+      - name: Patch external_components to use local checked-out source
+        run: |
+          # CI builds run inside the checked-out repo, so cloning this repo
+          # through external_components is unnecessary and fragile (the ref
+          # may not exist on GitHub yet). Rewrite the shared base include to
+          # point at the local components/ tree. This rewrite happens in the
+          # workspace only and is never committed back.
+          cat > packages/base/external_components.yaml <<'EOF'
+          # CI-only override: use the locally checked-out components/ tree.
+          external_components:
+            - source:
+                type: local
+                path: ../components
+              components: [ld2412, ld2450, ld24xx]
+          EOF
+          echo "Patched packages/base/external_components.yaml to local source."
+
+      - name: Compute non-release artifact name
+        id: name
+        run: |
+          set -euo pipefail
+          SHORT_SHA="${GITHUB_SHA::8}"
+          ARTIFACT_BASENAME="$(python3 scripts/validate_manual_firmware_artifacts.py \
+            --artifact-name "${{ matrix.product_yaml }}" "$SHORT_SHA")"
+          echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+          echo "artifact_basename=$ARTIFACT_BASENAME" >> "$GITHUB_OUTPUT"
+          echo "Non-release manual artifact name: $ARTIFACT_BASENAME"
+
+      - name: Compile firmware (non-release)
+        run: |
+          set -euo pipefail
+          echo "Compiling ${{ matrix.product_yaml }} (manual / non-release candidate)"
+          esphome config "${{ matrix.product_yaml }}"
+          OUTPUT_DIR="manual-artifacts"
+          OUTPUT_FILE="$OUTPUT_DIR/${{ steps.name.outputs.artifact_basename }}.bin"
+          mkdir -p "$OUTPUT_DIR"
+          if esphome compile --help 2>&1 | grep -q -- '--output-file'; then
+            esphome compile "${{ matrix.product_yaml }}" --output-file "$OUTPUT_FILE"
+          else
+            esphome compile "${{ matrix.product_yaml }}"
+          fi
+
+      - name: Locate compiled binary
+        id: bin
+        run: |
+          set -euo pipefail
+          OUTPUT_FILE="manual-artifacts/${{ steps.name.outputs.artifact_basename }}.bin"
+          if [ ! -f "$OUTPUT_FILE" ]; then
+            # Fall back to the default ESPHome output location.
+            FOUND="$(find . -path '*/.esphome/build/*' -name 'firmware*.bin' -type f 2>/dev/null | head -1 || true)"
+            if [ -z "$FOUND" ]; then
+              echo "ERROR: no compiled firmware binary found"
+              exit 1
+            fi
+            mkdir -p manual-artifacts
+            cp "$FOUND" "$OUTPUT_FILE"
+          fi
+          echo "Compiled non-release binary: $OUTPUT_FILE ($(stat -c%s "$OUTPUT_FILE") bytes)"
+          echo "path=$OUTPUT_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload temporary (expiring, non-release) artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          # Ephemeral GitHub Actions artifact ONLY. Not a GitHub Release
+          # asset; expires per retention-days. The -manual-<sha>-nonrelease
+          # name makes it non-confusable with a release artifact.
+          name: ${{ steps.name.outputs.artifact_basename }}
+          path: ${{ steps.bin.outputs.path }}
+          retention-days: 7
+          if-no-files-found: error
+
+  # --------------------------------------------------------------------------
+  # JOB 3: non-release handoff summary
+  # --------------------------------------------------------------------------
+  summary:
+    name: Manual Artifacts — Summary
+    needs: [generate-matrix, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary
+        run: |
+          echo "=============================================="
+          echo "MANUAL (NON-RELEASE) FIRMWARE ARTIFACTS COMPLETE"
+          echo "=============================================="
+          echo "Candidates built: ${{ needs.generate-matrix.outputs.candidate_count }}"
+          echo "Commit: ${{ github.sha }}"
+          echo ""
+          echo "These are temporary, expiring GitHub Actions artifacts for"
+          echo "point-to-point operator handoff only. They are NOT a release:"
+          echo "no GitHub Release was created, no firmware index or release"
+          echo "manifest was written, no .bin / checksum / build-info file was"
+          echo "committed, and no WebFlash exposure was added."
+          echo ""
+          echo "See docs/manual-install-fan-candidates.md and"
+          echo "docs/product-readiness-matrix.md"
+          echo "  §MANUAL-FIRMWARE-ARTIFACT-POLICY-001."
