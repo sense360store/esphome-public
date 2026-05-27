@@ -24,6 +24,62 @@ mirrored here.
 
 ## Current queue summary
 
+- **FW-FULL-COMPILE-TOPLEVEL-FANS-001** delivers, via **this PR** on
+  2026-05-27, a **config / tests / docs** change that closes the
+  **full-compile half** of the top-level FanPWM / FanDAC gap that
+  `TOPLEVEL-FAN-COMPILE-TARGETS-001` / PR #615 (below) left **owed**: that
+  PR registered the top-level product YAMLs as compile-only targets but kept
+  them `compile_validation_status: pending-ci` because no `esphome --compile`
+  run had executed against them. This slice **runs** the full lane and
+  records the real result. **Honest provenance:** this is a **local** run of
+  the lane's own script
+  `python3 scripts/validate_compile_targets.py --compile` (the command
+  `.github/workflows/compile-only.yml` runs in its `workflow_dispatch` +
+  `compile_mode=full` job), **not** a GitHub Actions `workflow_dispatch`
+  run — the Actions dispatch/run API was unavailable this session, so the CI
+  full lane could not be triggered or observed and **no CI run id exists**;
+  none is fabricated. Run with ESPHome `2026.4.5` (the workflow's pinned
+  `ESPHOME_VERSION`), board `esp32-s3-devkitc-1`, framework `espidf`
+  (ESP-IDF 5.5.4), against commit
+  `17caa86f05c7b0ebcc9336b849f621f2d111839c` on this branch. **Result:**
+  `✅ All 12 compile target(s) passed.` — **12/12** registered compile-only
+  targets `rc=0`, each `Successfully compiled program` with a real
+  `firmware.bin`; **0** skipped, **0** failures. The two registered
+  **top-level fan product** targets both compiled clean:
+  `ceiling-poe-fandac-product-compile-only` →
+  [`sense360-ceiling-poe-fandac.yaml`](products/sense360-ceiling-poe-fandac.yaml)
+  (Flash 50.6% / 927815 B) and `ceiling-poe-fanpwm-product-compile-only` →
+  [`sense360-ceiling-poe-fanpwm.yaml`](products/sense360-ceiling-poe-fanpwm.yaml)
+  (Flash 51.1% / 937775 B), so both flip
+  `compile_validation_status: pending-ci → validated-full-compile` in
+  [`config/compile-only-targets.json`](config/compile-only-targets.json); the
+  `products/compile-only/` skeletons stay `validated-full-compile`
+  (unchanged). Updates `TopLevelFanProductCompileTargetTests` in
+  [`tests/test_compile_targets.py`](tests/test_compile_targets.py) — the
+  prior `pending-ci` assertion becomes
+  `test_top_level_targets_are_validated_full_compile`. Records evidence in
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+  (new §FW-FULL-COMPILE-TOPLEVEL-FANS-001 + update note on the PR #615 gap),
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) (new §3E),
+  [`docs/repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md)
+  §6 (full-lane row), and this file. **Validation:**
+  `validate_configs.py`, `validate_compile_targets.py --compile` (12/12
+  `rc=0`) and `--metadata-only` (12 targets), `test_compile_targets.py`
+  (139), `test_pwm_product_readiness.py`, `test_dac_product_readiness.py`,
+  `test_product_catalog.py`, `test_firmware_combination_matrix.py`,
+  `test_firmware_build_gap_report.py`, `validate_webflash_builds.py`,
+  `test_workflow_permissions.py`, and `python3 -m unittest discover`. Edits
+  confined to `config/compile-only-targets.json`, `tests/**`, `docs/**`, and
+  this file; **no** `packages/**`, `products/**`, `products/webflash/**`,
+  `firmware/**`, `manifest.json`, `firmware/sources.json`, or
+  `.github/workflows/**` edit; **no** WebFlash wrapper,
+  `webflash_build_matrix` flip, `artifact_name`, or release artifact; **no**
+  WebFlash / import / release / compliance / hardware-stable / RPM /
+  Cloudlift-ready claim; **no** committed `.bin` / checksum; **no**
+  fabricated compile evidence. `S360-311` / `S360-312` stay
+  `cataloged_unverified`; Release-One + LED preview + FanTRIAC (`blocked` /
+  `HW-005`) + FanRelay (`hardware-pending`) unchanged.
+
 - **TOPLEVEL-FAN-COMPILE-TARGETS-001** delivers, via **this PR** on
   2026-05-27, a **config / tests / docs** change that closes the
   **registration** half of the top-level FanPWM / FanDAC gap that
