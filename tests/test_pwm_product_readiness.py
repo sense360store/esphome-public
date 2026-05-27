@@ -843,5 +843,114 @@ class ReleaseOneRelayDacAndLedUnchangedTests(unittest.TestCase):
         )
 
 
+# MANUAL-FIRMWARE-CANDIDATE-001: the registered TOP-LEVEL FanPWM product
+# compile-only target (distinct from the products/compile-only/ skeleton).
+FANPWM_PRODUCT_COMPILE_ONLY_TARGET_ID = "ceiling-poe-fanpwm-product-compile-only"
+
+
+class FanPwmManualFirmwareCandidateTests(unittest.TestCase):
+    """MANUAL-FIRMWARE-CANDIDATE-001: FanPWM is a manual / no-WebFlash
+    firmware candidate — present, structurally validated, full-compile
+    validated — but no more than that.
+
+    Pins: the top-level product compile-only target is
+    ``validated-full-compile``; the catalog notes record the candidate
+    status and disclaim release / WebFlash / hardware-stable / compliance /
+    RPM readiness; ``webflash_build_matrix`` stays false; no
+    ``artifact_name`` / ``webflash_wrapper`` / WebFlash wrapper file / build
+    entry is added.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.targets = _load_json(COMPILE_ONLY_TARGETS).get("targets", [])
+        cls.by_id = {t["id"]: t for t in cls.targets if t.get("id")}
+        cls.entry = _catalog_entry_for(PWM_PRODUCT_REL)
+
+    def _target(self) -> Dict[str, Any]:
+        target = self.by_id.get(FANPWM_PRODUCT_COMPILE_ONLY_TARGET_ID)
+        self.assertIsNotNone(
+            target,
+            "top-level FanPWM product compile-only target "
+            f"{FANPWM_PRODUCT_COMPILE_ONLY_TARGET_ID!r} must be registered",
+        )
+        return target
+
+    def test_top_level_target_points_at_product_yaml(self) -> None:
+        self.assertEqual(self._target().get("product_yaml"), PWM_PRODUCT_REL)
+
+    def test_top_level_target_is_validated_full_compile(self) -> None:
+        self.assertEqual(
+            self._target().get("compile_validation_status"),
+            "validated-full-compile",
+            "FanPWM top-level product compile-only target must be "
+            "validated-full-compile — the full-compile evidence that makes "
+            "FanPWM a manual / no-WebFlash firmware candidate",
+        )
+
+    def test_top_level_target_makes_no_rpm_claim(self) -> None:
+        self.assertFalse(
+            self._target().get("rpm_supported", False),
+            "FanPWM top-level target must keep rpm_supported false",
+        )
+
+    def test_catalog_notes_record_manual_candidate_status(self) -> None:
+        notes = self.entry.get("notes", "").lower()
+        self.assertIn("manual / no-webflash firmware candidate", notes)
+        self.assertIn("manual-firmware-candidate-001", notes)
+        self.assertIn("full-compile validated", notes)
+
+    def test_catalog_notes_disclaim_readiness(self) -> None:
+        notes = self.entry.get("notes", "").lower()
+        for marker in (
+            "not a release artifact",
+            "not webflash exposure",
+            "not hardware-stable",
+            "not compliance",
+            "not rpm support",
+        ):
+            self.assertIn(
+                marker, notes, f"FanPWM notes must disclaim {marker!r}"
+            )
+
+    def test_catalog_status_stays_hardware_pending(self) -> None:
+        self.assertEqual(self.entry.get("status"), "hardware-pending")
+
+    def test_catalog_webflash_build_matrix_stays_false(self) -> None:
+        self.assertEqual(self.entry.get("webflash_build_matrix"), False)
+
+    def test_catalog_has_no_artifact_name(self) -> None:
+        self.assertNotIn("artifact_name", self.entry)
+
+    def test_catalog_has_no_webflash_wrapper(self) -> None:
+        self.assertNotIn("webflash_wrapper", self.entry)
+
+    def test_no_webflash_wrapper_file(self) -> None:
+        offenders = (
+            [
+                p.name
+                for p in WEBFLASH_WRAPPER_DIR.glob("*.yaml")
+                if "fanpwm" in p.name.lower()
+            ]
+            if WEBFLASH_WRAPPER_DIR.is_dir()
+            else []
+        )
+        self.assertEqual(offenders, [])
+
+    def test_config_string_not_in_webflash_builds(self) -> None:
+        builds = _load_json(WEBFLASH_BUILDS)
+        configs = {
+            b.get("config_string") for b in builds.get("builds", []) or []
+        }
+        self.assertNotIn(PWM_CONFIG_STRING, configs)
+
+    def test_config_string_not_in_release_one_required(self) -> None:
+        compat = _load_json(WEBFLASH_COMPATIBILITY)
+        self.assertNotIn(
+            PWM_CONFIG_STRING,
+            compat.get("release_one_required_configs", []) or [],
+        )
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

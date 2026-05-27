@@ -658,6 +658,35 @@ summarized here for the cross-lane view:
   committed; `S360-311` / `S360-312` stay `cataloged_unverified`. All lanes
   in §3A stay as recorded.
 
+## 3F. FanRelay / FanPWM / FanDAC marked as manual / no-WebFlash firmware candidates (`MANUAL-FIRMWARE-CANDIDATE-001`, 2026-05-27)
+
+`MANUAL-FIRMWARE-CANDIDATE-001` consumes the §3E / §3D compile evidence to
+record a single narrow rollup status for the three fan product families:
+**manual / no-WebFlash firmware candidate** = the top-level product YAML is
+**present**, **structurally validated**, and **full-compile validated**.
+Canonical definition + per-family evidence table live in
+[`product-readiness-matrix.md` §MANUAL-FIRMWARE-CANDIDATE-001](product-readiness-matrix.md#manual-firmware-candidate-001--fanrelay--fanpwm--fandac-marked-as-manual--no-webflash-firmware-candidates-2026-05-27);
+summarized here for the cross-lane view:
+
+- **Scope:** notes-only `config/product-catalog.json` edit (the three fan rows'
+  `notes`), one recorded `compile_validation_status: validated-full-compile`
+  on the FanRelay compile-only target (from the **already-committed** §3E /
+  PR #616 run, target #8, `rc=0` — the field was simply never set), plus tests
+  (`test_product_catalog.py`, `test_relay_product_readiness.py`,
+  `test_pwm_product_readiness.py`, `test_dac_product_readiness.py`) and docs.
+- **No new compile:** the full-compile evidence is the committed §3E run; no
+  `esphome --compile` is re-run and no CI run ID is fabricated.
+- **Proves:** each of FanRelay / FanPWM / FanDAC has a top-level product YAML
+  that exists, passes its structural readiness suite, and full-compiles — i.e.
+  it can be installed manually (local `esphome` or remote-package include).
+  **Does NOT prove / does NOT claim:** any release artifact, WebFlash exposure
+  or import, hardware-stable readiness, compliance / mains-safety approval,
+  Cloudlift-ready (DAC), RPM support (PWM), or kit-default / recommended
+  (Relay). `webflash_build_matrix` stays `false`; no `artifact_name`; no
+  `webflash_wrapper`; no `config/webflash-builds.json` row; lifecycle `status`
+  stays `hardware-pending`; `S360-311` / `S360-312` stay
+  `cataloged_unverified`. All lanes in §3A stay as recorded.
+
 ## 4. Next-PR recommendations
 
 Applying the burn-down decision rules:

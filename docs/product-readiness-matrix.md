@@ -2766,6 +2766,82 @@ all green:
   `cataloged_unverified`; all per-family WebFlash / release / hardware-stable
   / compliance gates stay exactly as the sections above left them.
 
+## MANUAL-FIRMWARE-CANDIDATE-001 — FanRelay / FanPWM / FanDAC marked as manual / no-WebFlash firmware candidates (2026-05-27)
+
+`MANUAL-FIRMWARE-CANDIDATE-001` records a single, narrow rollup status for the
+three fan product families whose top-level product YAMLs now compile:
+**manual / no-WebFlash firmware candidate**. It changes **no** structural
+field — it is a **notes-only** catalog edit plus tests and docs — and it makes
+**no** new readiness claim beyond what the cited compile evidence already
+supports.
+
+### What "manual / no-WebFlash firmware candidate" means
+
+A top-level product YAML is a **manual / no-WebFlash firmware candidate** when,
+and only when, all three of the following already hold:
+
+1. **Present** — the canonical top-level product YAML exists under
+   `products/` (not a `products/compile-only/` skeleton, not a
+   `products/webflash/` wrapper).
+2. **Structurally validated** — the per-product readiness suite
+   (`tests/test_relay_product_readiness.py` /
+   `tests/test_pwm_product_readiness.py` /
+   `tests/test_dac_product_readiness.py`) passes.
+3. **Full-compile validated** — the registered top-level compile-only target
+   carries `compile_validation_status: validated-full-compile`, backed by the
+   committed
+   [`FW-FULL-COMPILE-TOPLEVEL-FANS-001`](#fw-full-compile-toplevel-fans-001--recorded-full-esphome-compile-evidence-for-the-top-level-fanpwm--fandac-product-yamls-2026-05-27)
+   / PR #616 full-lane run (all 12 targets `rc=0`).
+
+The status is exactly "this YAML compiles and can be installed manually" — by
+a local `esphome compile`/upload or a remote-package `!include` of the
+product YAML. Nothing more.
+
+### What it explicitly does NOT mean
+
+`manual / no-WebFlash firmware candidate` is **not** any of the following, and
+this slice claims none of them:
+
+- **not** a release artifact (no `.bin`, checksum, tag, build-info manifest, or
+  release proof is built or committed);
+- **not** WebFlash exposure or WebFlash import (`webflash_build_matrix` stays
+  `false`; no `webflash_wrapper`; no `config/webflash-builds.json` row; no
+  `artifact_name`);
+- **not** hardware-stable / bench / harness proof;
+- **not** compliance / mains-safety / competent-person approval;
+- **not** Cloudlift-ready (FanDAC);
+- **not** RPM support (FanPWM — the PWM-drive-only package wires no
+  `pulse_counter`);
+- **not** kit-default / recommended / Release-One readiness (FanRelay and all
+  three).
+
+The lifecycle `status` stays `hardware-pending`; `S360-311` / `S360-312` stay
+`cataloged_unverified`; every per-family WebFlash / release / hardware-stable /
+compliance gate stays exactly as the sections above left it.
+
+### Per-family candidate evidence
+
+| Family | Top-level product YAML | Registered compile-only target | `compile_validation_status` | Catalog `status` | `webflash_build_matrix` | Product-specific disclaimer |
+|---|---|---|---|---|---|---|
+| **FanRelay / S360-310** | [`sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml) | `ceiling-poe-ventiq-fanrelay-roomiq-compile-only` | `validated-full-compile` (recorded here from the committed PR #616 run, target #8, `rc=0` / Flash 53.8%) | `hardware-pending` | `false` | not kit-default / recommended |
+| **FanPWM / S360-311** | [`sense360-ceiling-poe-fanpwm.yaml`](../products/sense360-ceiling-poe-fanpwm.yaml) | `ceiling-poe-fanpwm-product-compile-only` | `validated-full-compile` (PR #616, `rc=0` / Flash 51.1%) | `hardware-pending` | `false` | not RPM support |
+| **FanDAC / S360-312** | [`sense360-ceiling-poe-fandac.yaml`](../products/sense360-ceiling-poe-fandac.yaml) | `ceiling-poe-fandac-product-compile-only` | `validated-full-compile` (PR #616, `rc=0` / Flash 50.6%) | `hardware-pending` | `false` | not Cloudlift-ready |
+
+The FanRelay compile-only target previously carried **no**
+`compile_validation_status` field even though the committed PR #616 full lane
+compiled its top-level product YAML clean (target #8, `rc=0`); this slice
+records `validated-full-compile` for it from that **already-committed**
+evidence — not from a new compile run, and no run ID is fabricated.
+
+### Honest provenance
+
+This slice runs **no** new compile. The full-compile evidence is the
+already-committed `FW-FULL-COMPILE-TOPLEVEL-FANS-001` / PR #616 local run
+(ESPHome `2026.4.5`, `esp32-s3-devkitc-1`, `espidf`); that run was local and
+carries **no** CI run ID, and none is fabricated here. The only validators
+re-run for this slice are the metadata / unit suites listed under
+[Validation](#validation) — no `esphome --compile` is required.
+
 ## Do-not-change guardrails
 
 PRODUCT-GAP-001 — this matrix — performs **none** of the following.
