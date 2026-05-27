@@ -24,6 +24,39 @@ mirrored here.
 
 ## Current queue summary
 
+- **MANUAL-INSTALL-HANDOFF-001** delivers, via **this PR** on 2026-05-27, a
+  **docs-only** change that publishes an operator / advanced-user handoff for
+  **manually** installing the three no-WebFlash fan firmware candidates marked
+  by `MANUAL-FIRMWARE-CANDIDATE-001` / PR #617 (FanRelay / FanPWM / FanDAC),
+  **without** publishing a release artifact or enabling WebFlash. **Scope:** a
+  new [`docs/manual-install-fan-candidates.md`](docs/manual-install-fan-candidates.md)
+  that records the exact candidate product YAML paths
+  (`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`,
+  `products/sense360-ceiling-poe-fanpwm.yaml`,
+  `products/sense360-ceiling-poe-fandac.yaml`), a remote-package `!include`
+  example for each (correct `sense360store/esphome-public` repo path, pinned to
+  a reviewed commit SHA — **no** release tag, never `main`, never `v1.0.0`),
+  local `esphome config` / `compile` / `upload` examples, and per-family
+  safety / caveat boxes (FanRelay: mains / safety / sign-off still required, not
+  kit / default / recommended; FanPWM: no RPM / TachIO claim, measured current /
+  thermal still required; FanDAC: not Cloudlift-ready, J3 / Cloudlift evidence
+  still required, no compliance claim), linking back to
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+  §MANUAL-FIRMWARE-CANDIDATE-001 and
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §3F; a docs-index row
+  in [`README.md`](README.md); and this file. **Validation:**
+  `validate_configs.py`, `validate_compile_targets.py --metadata-only`,
+  `test_product_catalog.py`, `test_compile_targets.py`, the relay / pwm / dac
+  product-readiness suites, `validate_webflash_builds.py`, and `python3 -m
+  unittest discover`. Edits confined to `docs/manual-install-fan-candidates.md`,
+  `README.md`, and this file; **no** `packages/**`, `products/**`,
+  `products/webflash/**`, `config/**`, `firmware/**`, `manifest.json`, or
+  `firmware/sources.json` edit; **no** WebFlash wrapper, `webflash_build_matrix`
+  flip, `artifact_name`, or release artifact; **no** committed `.bin` /
+  checksum; **no** WebFlash / import / release / hardware-stable / compliance /
+  RPM / Cloudlift-ready / kit-default readiness claim; **no** fabricated
+  evidence.
+
 - **MANUAL-FIRMWARE-CANDIDATE-001** delivers, via **this PR** on 2026-05-27, a
   **notes / tests / docs** change that records a single narrow rollup status
   for the three fan product families whose top-level product YAMLs now

@@ -413,6 +413,7 @@ esphome-public/
 - [Configuration Reference](docs/configuration.md) — Customization options
 - [Development Guide](docs/development.md) — Contributing and testing
 - [Manual / Custom User Walkthrough](docs/manual-user-walkthrough.md) — test plan and findings template for validating the advanced manual ESPHome path.
+- [Manual Install — Fan Firmware Candidates](docs/manual-install-fan-candidates.md) — manual-install-only handoff for the no-WebFlash FanRelay / FanPWM / FanDAC candidates (no release artifact, no WebFlash exposure).
 - [Changelog](CHANGELOG.md) — Version history
 
 ---
