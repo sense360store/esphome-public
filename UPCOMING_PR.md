@@ -24,6 +24,61 @@ mirrored here.
 
 ## Current queue summary
 
+- **FW-FULL-COMPILE-NOWEBFLASH-001** delivers, via **this PR** on
+  2026-05-27, a **docs-only** record of an **actual** full `esphome
+  compile` run of the compile-only lane, closing the top-level
+  full-compile gap that `FW-CONFIG-RUN-NOWEBFLASH-001` (below) left
+  **pending** for FanRelay. **Honest provenance:** this is a **local**
+  run of the lane's own script
+  `python3 scripts/validate_compile_targets.py --compile` (the command
+  `.github/workflows/compile-only.yml` runs in its `workflow_dispatch` +
+  `compile_mode=full` job), **not** a GitHub Actions `workflow_dispatch`
+  run — the Actions dispatch/run API was unavailable this session, so the
+  CI full lane could not be triggered or observed and **no CI run id
+  exists**; none is fabricated. Run with ESPHome `2026.4.5` (the
+  workflow's pinned `ESPHOME_VERSION`), board `esp32-s3-devkitc-1`,
+  framework `espidf`, against commit
+  `449d8c442e92b0562c22af8cbfedc3c0f8f0a4d5` on this branch. **Result:**
+  `✅ All 10 compile target(s) passed.` — **10/10** registered
+  compile-only targets `rc=0`, each `Successfully compiled program` with a
+  real `firmware.bin`; **0** skipped, **0** failures. All three fan targets
+  included and clean: **FanRelay** is the **top-level** product YAML
+  [`sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml)
+  (the #612-fixed file) — top-level gap now **closed**; **FanDAC** /
+  **FanPWM** are the `products/compile-only/` **skeletons**, so the
+  top-level
+  [`sense360-ceiling-poe-fanpwm.yaml`](products/sense360-ceiling-poe-fanpwm.yaml)
+  /
+  [`sense360-ceiling-poe-fandac.yaml`](products/sense360-ceiling-poe-fandac.yaml)
+  full-compile gap stays **pending** (registering those top-level YAMLs is
+  a separate scoped change, **not** made here). After the compile, the
+  `.esphome` build trees + provisioned `secrets.yaml` copies were removed
+  and the validator suite re-run on the clean tree — all green and
+  unchanged: `validate_configs.py` 208 files / 0 failed,
+  `--metadata-only` 10 targets, relay (61) / pwm (62) / dac (44) / catalog
+  (31) / compile-target (119) / matrix (24) / gap-report (27) /
+  webflash-builds / workflow-permission suites, and `python3 -m unittest
+  discover` 759 tests OK (3 skipped). **Proves:** all 10 registered
+  targets compile end-to-end under ESPHome `2026.4.5` and the FanRelay
+  top-level YAML builds clean. **Does NOT prove:** a CI-side
+  `workflow_dispatch` record (no run id), a top-level full-compile of the
+  FanPWM / FanDAC product YAMLs (only skeletons are registered), or any
+  WebFlash / import / release / compliance / hardware-stable / kit-default /
+  recommended / RPM / Cloudlift-ready readiness. Updates
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+  (new §FW-FULL-COMPILE-NOWEBFLASH-001 evidence section + an update note on
+  the prior §FW-CONFIG-RUN-NOWEBFLASH-001 "Next action"),
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) (new §3C),
+  [`docs/repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md)
+  §6 (full-lane row), and this file. Edits are confined to `docs/**` and
+  this file; **no** `products/**`, `products/webflash/**`, `packages/**`,
+  `config/**`, `components/**`, `include/**`, `firmware/**`, `tests/**`, or
+  `.github/workflows/**` edit; **no** WebFlash wrapper,
+  `webflash_build_matrix` flip, `artifact_name`, or release artifact; **no**
+  `.bin` / checksum / build-info / release proof uploaded or committed; no
+  `schematic_status` promotion; no fabricated CI / action evidence.
+  Release-One + LED preview + FanTRIAC (`blocked` / `HW-005`) unchanged.
+
 - **FW-CONFIG-RUN-NOWEBFLASH-001** delivers, via **this PR** on
   2026-05-27, a **docs-only** record of the **actual** config-validation
   status of the safe no-WebFlash product YAML path after

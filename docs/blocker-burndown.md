@@ -513,6 +513,50 @@ summarized here for the cross-lane view:
   hardware-stable / compliance / RPM / Cloudlift-ready / kit-default claim
   is made; all lanes in §3A stay as recorded.
 
+## 3C. Full ESPHome compile evidence recorded for the compile-only lane (`FW-FULL-COMPILE-NOWEBFLASH-001`, 2026-05-27)
+
+`FW-FULL-COMPILE-NOWEBFLASH-001` closes the **full-compile gap** that §3B
+left open: it **runs** the full `esphome compile` lane
+(`scripts/validate_compile_targets.py --compile`, the command
+`.github/workflows/compile-only.yml` runs in its `workflow_dispatch` +
+`compile_mode=full` job) and records the real result. Canonical evidence
+table lives in
+[`product-readiness-matrix.md` §FW-FULL-COMPILE-NOWEBFLASH-001](product-readiness-matrix.md#fw-full-compile-nowebflash-001--recorded-full-esphome-compile-evidence-for-the-compile-only-lane-2026-05-27);
+summarized here for the cross-lane view:
+
+- **Provenance (honest):** this is a **local** full-compile run, **not** a
+  GitHub Actions `workflow_dispatch` run. The Actions dispatch/run API was
+  **unavailable** this session, so the CI full lane could not be triggered
+  or observed and **no CI run ID exists** — none is fabricated. The lane's
+  own script was run locally with ESPHome `2026.4.5` (the workflow's pinned
+  version), board `esp32-s3-devkitc-1`, framework `espidf`, against commit
+  `449d8c442e92b0562c22af8cbfedc3c0f8f0a4d5` on
+  `claude/full-compile-validation-record-byyBY`.
+- **Result:** `✅ All 10 compile target(s) passed.` — **10/10** registered
+  compile-only targets `rc=0`, each `Successfully compiled program` with a
+  real `firmware.bin`; **0** skipped, **0** failures. All three fan targets
+  included: **FanRelay** (#8) is the **top-level** product YAML
+  `products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml` (the
+  #612-fixed file) — its top-level full-compile gap is now **closed**;
+  **FanDAC** (#9) / **FanPWM** (#10) are the `products/compile-only/`
+  **skeletons**, so the top-level FanPWM / FanDAC product-YAML full-compile
+  gap stays **pending** (registering those top-level YAMLs is a separate
+  scoped change, not made here).
+- **Clean-tree validators (re-run after removing `.esphome` build trees):**
+  `validate_configs.py` 208 files / 0 failed; `--metadata-only` 10 targets;
+  relay (61) / pwm (62) / dac (44) / catalog (31) / compile-target (119) /
+  matrix (24) / gap-report (27) / webflash-builds / workflow-permission
+  suites OK; `python3 -m unittest discover` 759 tests OK (3 skipped).
+- **Proves:** all 10 registered targets compile end-to-end under ESPHome
+  `2026.4.5`, and the FanRelay top-level YAML builds clean. **Does NOT
+  prove:** a CI-side `workflow_dispatch` record (no run ID), a top-level
+  full-compile of `sense360-ceiling-poe-fanpwm.yaml` /
+  `sense360-ceiling-poe-fandac.yaml` (only skeletons are registered), or
+  any WebFlash / release / import / hardware-stable / compliance / RPM /
+  Cloudlift-ready / kit-default readiness. Compile success is necessary but
+  not sufficient; no `.bin` / checksum / artifact / release is uploaded or
+  committed. All lanes in §3A stay as recorded.
+
 ## 4. Next-PR recommendations
 
 Applying the burn-down decision rules:

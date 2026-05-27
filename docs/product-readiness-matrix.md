@@ -2397,6 +2397,154 @@ their top-level YAMLs as compile-only targets (a separate scoped change,
 **not** made here). Until that run is recorded, top-level full-compile
 evidence for these products is **pending** and is **not** claimed.
 
+> **Update (`FW-FULL-COMPILE-NOWEBFLASH-001`, 2026-05-27):** the full
+> `esphome compile` lane has now been **run** and its result recorded in
+> the section immediately below. The FanRelay top-level product YAML is
+> itself the registered target `ceiling-poe-ventiq-fanrelay-roomiq-compile-only`,
+> so its top-level full-compile gap is now **closed** (rc=0). The FanPWM /
+> FanDAC registered targets are still the `products/compile-only/`
+> **skeletons**, so the top-level `sense360-ceiling-poe-fanpwm.yaml` /
+> `sense360-ceiling-poe-fandac.yaml` full-compile gap stays **pending**
+> (registering those top-level YAMLs remains the separate scoped change
+> above, **not** made here).
+
+## FW-FULL-COMPILE-NOWEBFLASH-001 — recorded full ESPHome compile evidence for the compile-only lane (2026-05-27)
+
+`FW-FULL-COMPILE-NOWEBFLASH-001` records the **actual** result of running
+the full `esphome compile` lane —
+[`scripts/validate_compile_targets.py --compile`](../scripts/validate_compile_targets.py),
+the same command [`.github/workflows/compile-only.yml`](../.github/workflows/compile-only.yml)
+runs in its `workflow_dispatch` + `compile_mode=full` job — against every
+target in [`config/compile-only-targets.json`](../config/compile-only-targets.json).
+It is **docs-only**, flips no posture, adds no product / catalog /
+`webflash_build_matrix` / `artifact_name` / release / WebFlash change, and
+makes no WebFlash / import / release / compliance / hardware-stable /
+kit-default readiness claim. It records evidence only and fabricates none.
+
+### How this run was produced (honest provenance)
+
+This is a **local** full-compile run, **not** a GitHub Actions
+`workflow_dispatch` run. The GitHub tooling available this session has
+**no Actions dispatch / run API**, so the CI full lane could not be
+triggered or observed from here and **no CI run ID exists for it** — one
+is therefore **not** recorded and **not** fabricated. To produce real
+evidence, the lane's own script was executed locally against the current
+branch tree with the workflow's pinned ESPHome version:
+
+| Field | Value |
+|---|---|
+| Command | `python3 scripts/validate_compile_targets.py --compile` (the full-lane command), plus a per-target `esphome compile <product_yaml>` capture |
+| ESPHome version | `2026.4.5` (matches `compile-only.yml` `env.ESPHOME_VERSION`) |
+| Toolchain | board `esp32-s3-devkitc-1`, framework `espidf` (ESP-IDF 5.5.4 via pioarduino `platform-espressif32` 55.03.38-1) |
+| Trigger | local manual invocation (**not** GitHub Actions `workflow_dispatch`) |
+| `compile_mode` equivalent | `full` (real `esphome compile`, not metadata-only) |
+| CI workflow run ID | **none** — Actions dispatch/run API unavailable this session; not fabricated |
+| Commit / branch | `449d8c442e92b0562c22af8cbfedc3c0f8f0a4d5` on `claude/full-compile-validation-record-byyBY` (= `origin/main` tip after PR #613) |
+| Test secrets | provisioned exactly as the workflow's "Provision test secrets" step (gitignored; removed after the run) |
+| Target count | **10** (all registered compile-only targets) |
+| Conclusion | **success** — `✅ All 10 compile target(s) passed.`; every target `rc=0`, `Successfully compiled program` |
+| Skipped targets | **none** |
+| Failures | **none** |
+
+### Per-target full-compile result
+
+All 10 targets produced a real `firmware.bin`. Sizes are CI-only
+confidence figures, **not** shippable artifacts (no `.bin` / checksum /
+build-info / release proof is uploaded or committed):
+
+| # | Target id | `product_yaml` | rc | RAM | Flash |
+|---|---|---|---|---|---|
+| 1 | `ceiling-poe-ventiq-roomiq-webflash` | `products/webflash/ceiling-poe-ventiq-roomiq.yaml` | 0 | 14.9% (48728 B) | 53.7% (985871 B) |
+| 2 | `ceiling-poe-ventiq-roomiq-led-webflash` | `products/webflash/ceiling-poe-ventiq-roomiq-led.yaml` | 0 | 15.2% (49888 B) | 55.9% (1025139 B) |
+| 3 | `ceiling-poe-compile-only` | `products/compile-only/ceiling-poe.yaml` | 0 | 12.8% (42048 B) | 50.5% (926763 B) |
+| 4 | `ceiling-poe-roomiq-compile-only` | `products/compile-only/ceiling-poe-roomiq.yaml` | 0 | 13.8% (45376 B) | 52.1% (955535 B) |
+| 5 | `ceiling-poe-ventiq-compile-only` | `products/compile-only/ceiling-poe-ventiq.yaml` | 0 | 13.8% (45352 B) | 52.5% (963071 B) |
+| 6 | `ceiling-poe-airiq-compile-only` | `products/compile-only/ceiling-poe-airiq.yaml` | 0 | 14.5% (47400 B) | 57.8% (1060051 B) |
+| 7 | `ceiling-poe-airiq-roomiq-compile-only` | `products/compile-only/ceiling-poe-airiq-roomiq.yaml` | 0 | 16.0% (52520 B) | 59.3% (1088227 B) |
+| 8 | `ceiling-poe-ventiq-fanrelay-roomiq-compile-only` | `products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml` (**top-level FanRelay product YAML**) | 0 | 14.9% (48936 B) | 53.8% (987267 B) |
+| 9 | `ceiling-poe-fandac-compile-only` | `products/compile-only/ceiling-poe-fandac.yaml` (**FanDAC skeleton**) | 0 | 12.9% (42256 B) | 50.6% (928139 B) |
+| 10 | `ceiling-poe-fanpwm-compile-only` | `products/compile-only/ceiling-poe-fanpwm.yaml` (**FanPWM skeleton**) | 0 | 13.1% (43080 B) | 51.1% (938239 B) |
+
+### FanRelay / FanPWM / FanDAC inclusion
+
+All three fan compile-only targets **were included** and all compiled
+clean (`rc=0`):
+
+- **FanRelay** (#8): the registered target `product_yaml` **is** the
+  top-level product YAML
+  [`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml)
+  — the exact file PR #612 corrected. Its top-level full-compile gap,
+  recorded as **pending** by `FW-CONFIG-RUN-NOWEBFLASH-001` above, is now
+  **closed**: the active config (unchanged by #612's comment-only edit)
+  compiles end-to-end.
+- **FanDAC** (#9) / **FanPWM** (#10): the registered targets are the
+  `products/compile-only/` **skeletons**, **not** the top-level
+  [`sense360-ceiling-poe-fandac.yaml`](../products/sense360-ceiling-poe-fandac.yaml)
+  /
+  [`sense360-ceiling-poe-fanpwm.yaml`](../products/sense360-ceiling-poe-fanpwm.yaml)
+  product YAMLs, which compose additional base / API / OTA / time / health
+  packages and product identity on top of the skeletons. A clean skeleton
+  compile is **not** a top-level full-compile of those two products.
+
+### Local (ESPHome-independent) validators re-run on the clean tree
+
+After the compile, the `.esphome` build trees and provisioned
+`secrets.yaml` copies were removed and the full validator suite re-run on
+the clean tree — all green and unchanged from `FW-CONFIG-RUN-NOWEBFLASH-001`:
+
+| Command | Result |
+|---|---|
+| `python3 tests/validate_configs.py` | ✅ 208 files checked, 0 failed |
+| `python3 scripts/validate_compile_targets.py --metadata-only` | ✅ 10 targets, metadata passed |
+| `python3 tests/test_relay_product_readiness.py` | ✅ 61 tests OK |
+| `python3 tests/test_pwm_product_readiness.py` | ✅ 62 tests OK |
+| `python3 tests/test_dac_product_readiness.py` | ✅ 44 tests OK |
+| `python3 tests/test_product_catalog.py` | ✅ 31 tests OK |
+| `python3 tests/test_compile_targets.py` | ✅ 119 tests OK |
+| `python3 tests/test_firmware_combination_matrix.py` | ✅ 24 tests OK |
+| `python3 tests/test_firmware_build_gap_report.py` | ✅ 27 tests OK |
+| `python3 tests/validate_webflash_builds.py` | ✅ 2 builds checked, 0 failed |
+| `python3 tests/test_workflow_permissions.py` | ✅ 7 tests OK |
+| `python3 -m unittest discover -s tests -p "test_*.py"` | ✅ 759 tests OK (3 skipped) |
+
+### What this evidence proves
+
+- A real full `esphome compile` (ESP-IDF, `esp32-s3-devkitc-1`) of **all
+  10 registered compile-only targets** **succeeds** under ESPHome
+  `2026.4.5` — the YAML composes, substitutions resolve, `!include`s
+  resolve, package/component configs match, codegen runs, and the
+  firmware links to a `firmware.bin` for every target.
+- The **FanRelay top-level product YAML** (the #612-fixed file) compiles
+  clean, closing the top-level full-compile gap that was previously
+  `pending` for FanRelay.
+- The compile-only lane script and metadata stay schema-valid and the
+  full guard suite (759 tests) passes on the clean tree.
+
+### What this evidence does NOT prove
+
+- It is **not** a GitHub Actions `workflow_dispatch` CI run and carries
+  **no** CI run ID; the CI full lane in
+  [`compile-only.yml`](../.github/workflows/compile-only.yml) remains the
+  canonical CI path and can still be dispatched to produce a CI-side
+  record.
+- It is **not** a top-level full-compile of
+  [`sense360-ceiling-poe-fanpwm.yaml`](../products/sense360-ceiling-poe-fanpwm.yaml)
+  or
+  [`sense360-ceiling-poe-fandac.yaml`](../products/sense360-ceiling-poe-fandac.yaml):
+  only the `products/compile-only/` skeletons are registered targets.
+  Registering those top-level YAMLs as compile-only targets is a separate
+  scoped change, **not** made here.
+- Compile success is **necessary but not sufficient** for readiness. It is
+  **NOT** WebFlash exposure, **NOT** a release artifact, **NOT** WebFlash
+  import readiness, **NOT** hardware / bench / harness proof, **NOT**
+  compliance / mains-safety approval, **NOT** RPM support for PWM, **NOT**
+  Cloudlift-ready for DAC, and **NOT** production-safety / kit-default /
+  recommended readiness for Relay. No `firmware.bin`, checksum, build-info
+  manifest, or release proof is uploaded or committed; no
+  `webflash_build_matrix` flip, `artifact_name`, or release is added. All
+  per-family WebFlash / release / hardware-stable / compliance gates stay
+  exactly as §BLOCKER-STATUS-FINALIZE-001 (2026-05-27) above left them.
+
 ## Do-not-change guardrails
 
 PRODUCT-GAP-001 — this matrix — performs **none** of the following.
