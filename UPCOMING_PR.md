@@ -24,6 +24,42 @@ mirrored here.
 
 ## Current queue summary
 
+- **MANUAL-FIRMWARE-CI-ARTIFACTS-RESULT-001** delivers, via **this PR** on
+  2026-05-27, a **docs-only** record of the **actual successful run** of the
+  non-release CI lane added by `MANUAL-FIRMWARE-CI-ARTIFACTS-001` / PR #620. A
+  real GitHub Actions `workflow_dispatch` run (run ID `26530245113`,
+  `artifact_mode=manual-candidate`, branch `main`, commit
+  `9683d0ea13aea3814fd5056a18d049e1388d3586`) **succeeded** on every job
+  (Generate Matrix; the three per-family compiles `fanpwm` / `fanrelay` /
+  `fandac`; Summary) and uploaded one ephemeral, expiring artifact per family
+  (`sense360-ceiling-poe-fanpwm-manual-9683d0ea-nonrelease`,
+  `sense360-ceiling-poe-fandac-manual-9683d0ea-nonrelease`,
+  `sense360-ceiling-poe-ventiq-fanrelay-roomiq-manual-9683d0ea-nonrelease`;
+  retention 7 days, **expire 2026-06-03**). **Scope:** a new
+  §MANUAL-FIRMWARE-CI-ARTIFACTS-RESULT-001 in
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md) (the
+  canonical evidence table), an update note in
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md)
+  (changes **no** candidate-release-table cell), a new §3H in
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md), a recorded-run note in
+  [`docs/manual-install-fan-candidates.md`](docs/manual-install-fan-candidates.md),
+  and this file. **Provenance:** the run summary is the operator-supplied handoff
+  (Actions run / log API unavailable this session to re-fetch); recorded as
+  handed off, **not** fabricated. **Proves** the non-release CI artifact lane can
+  build all three fan candidates. **Validation:** `validate_configs.py`,
+  `validate_compile_targets.py --metadata-only`,
+  `validate_manual_firmware_artifacts.py --metadata-only`,
+  `test_manual_firmware_artifacts.py`, `test_product_catalog.py`,
+  `test_compile_targets.py`, `validate_webflash_builds.py`, and
+  `python3 -m unittest discover -s tests -p "test_*.py"`. **Does not** publish a
+  GitHub Release; enable WebFlash; edit `products/**`, `products/webflash/**`,
+  `packages/**`, `config/**`, `firmware/**`, `manifest.json`, or
+  `firmware/sources.json`; flip `webflash_build_matrix`; add an `artifact_name`;
+  commit any `.bin` / checksum; or claim WebFlash / import / release /
+  hardware-stable / compliance / RPM / Cloudlift-ready / kit / default /
+  recommended readiness. The artifacts **expire** and are for point-to-point
+  operator handoff only.
+
 - **MANUAL-FIRMWARE-CI-ARTIFACTS-001** delivers, via **this PR** on 2026-05-27,
   the **explicitly non-release, expiring CI job** permitted by
   `MANUAL-FIRMWARE-ARTIFACT-POLICY-001` / PR #619: a `workflow_dispatch`-only

@@ -3015,6 +3015,89 @@ release / hardware-stable / compliance / RPM / Cloudlift-ready / kit / default /
 recommended readiness. The lifecycle `status` for all three families stays
 `hardware-pending`.
 
+## MANUAL-FIRMWARE-CI-ARTIFACTS-RESULT-001 — Recorded non-release artifact CI run for the manual fan candidates (2026-05-27)
+
+`MANUAL-FIRMWARE-CI-ARTIFACTS-RESULT-001` records the **actual successful
+result** of running the non-release CI lane that §MANUAL-FIRMWARE-CI-ARTIFACTS-001
+(§ above) added:
+[`.github/workflows/manual-firmware-artifacts.yml`](../.github/workflows/manual-firmware-artifacts.yml),
+dispatched with `artifact_mode=manual-candidate`. It records evidence only — it
+fabricates none, builds nothing new in this PR, and adds no product / catalog /
+`webflash_build_matrix` / `artifact_name` / release / WebFlash change. It makes
+**no** WebFlash / import / release / hardware-stable / compliance / RPM /
+Cloudlift-ready / kit-default readiness claim.
+
+### How this run was produced (honest provenance)
+
+This **is** a real GitHub Actions `workflow_dispatch` run of the non-release
+lane — the first recorded run for which a CI run ID exists. The run summary
+below is the operator-supplied handoff of that run; the GitHub Actions run / log
+API is not available from this session to re-fetch it, so the values are
+recorded as handed off (not independently re-derived here, and not fabricated).
+
+| Field | Value |
+|---|---|
+| Workflow | [`.github/workflows/manual-firmware-artifacts.yml`](../.github/workflows/manual-firmware-artifacts.yml) (`Manual (Non-Release) Firmware Artifacts`) |
+| Run ID | `26530245113` |
+| Trigger | `workflow_dispatch` with input `artifact_mode=manual-candidate` |
+| Branch | `main` |
+| Commit SHA | `9683d0ea13aea3814fd5056a18d049e1388d3586` (short `9683d0ea`) |
+| Conclusion | **success** |
+| Artifact retention | `retention-days: 7` → **expires 2026-06-03** |
+| Artifact type | temporary GitHub Actions artifacts **only** (no Release asset, nothing committed) |
+
+### Per-job result
+
+| Job | Result |
+|---|---|
+| Manual Artifacts — Generate Matrix | **success** |
+| Manual Artifact: `fanpwm` | **success** |
+| Manual Artifact: `fanrelay` | **success** |
+| Manual Artifact: `fandac` | **success** |
+| Manual Artifacts — Summary | **success** |
+
+### Artifacts produced (ephemeral, expiring)
+
+Each artifact follows the `<product-stem>-manual-<short-sha>-nonrelease` naming
+rule (no `vX.Y.Z` version, no `-stable` / `-preview` channel suffix), uploaded
+**only** as a temporary `actions/upload-artifact` output that **expires
+2026-06-03**:
+
+| Family | Artifact name |
+|---|---|
+| FanPWM / S360-311 | `sense360-ceiling-poe-fanpwm-manual-9683d0ea-nonrelease` |
+| FanDAC / S360-312 | `sense360-ceiling-poe-fandac-manual-9683d0ea-nonrelease` |
+| FanRelay / S360-310 | `sense360-ceiling-poe-ventiq-fanrelay-roomiq-manual-9683d0ea-nonrelease` |
+
+### What this evidence proves
+
+- The **non-release CI artifact lane builds all three fan candidates**: a real
+  `workflow_dispatch` run (`artifact_mode=manual-candidate`) compiled FanRelay,
+  FanPWM, and FanDAC and uploaded one ephemeral artifact per family — every job
+  (Generate Matrix, the three per-family compiles, and Summary) reported
+  **success**.
+
+### What this evidence does NOT prove (and does NOT claim)
+
+- It does **not** publish release artifacts: the run created **no** GitHub
+  Release and attached **no** Release asset. The three artifacts are temporary
+  GitHub Actions artifacts that **expire 2026-06-03** and are for
+  **point-to-point operator handoff only**.
+- It does **not** enable WebFlash: `webflash_build_matrix` stays `false`; no
+  `webflash_wrapper`; no `config/webflash-builds.json` row.
+- It does **not** update [`firmware/sources.json`](../firmware/sources.json) or
+  `manifest.json`, and commits **no** `.bin`, checksum, or build-info file.
+- It does **not** add an `artifact_name` to the product catalog and flips
+  **no** `webflash_build_matrix`.
+- It does **not** claim hardware-stable, compliance / mains-safety, RPM (FanPWM),
+  Cloudlift-ready (FanDAC), or kit / default / recommended (FanRelay) readiness.
+  Every per-family caveat above is unchanged; the lifecycle `status` for all
+  three families stays `hardware-pending`; `S360-311` / `S360-312` stay
+  `cataloged_unverified`. A passing non-release compile is **necessary but not
+  sufficient** for any release / WebFlash / hardware-stable claim. A live release
+  artifact still requires the named per-family `WEBFLASH-*` / `RELEASE-*` slices
+  and their gates.
+
 ## Do-not-change guardrails
 
 PRODUCT-GAP-001 — this matrix — performs **none** of the following.

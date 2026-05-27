@@ -727,6 +727,48 @@ summarized here for the cross-lane view:
   stays `hardware-pending`; `S360-311` / `S360-312` stay `cataloged_unverified`.
   All lanes in §3A stay as recorded.
 
+## 3H. Non-release artifact CI run recorded for the manual fan candidates (`MANUAL-FIRMWARE-CI-ARTIFACTS-RESULT-001`, 2026-05-27)
+
+`MANUAL-FIRMWARE-CI-ARTIFACTS-RESULT-001` records the **actual successful run**
+of the explicitly non-release, expiring CI lane added by
+`MANUAL-FIRMWARE-CI-ARTIFACTS-001` / PR #620
+([`.github/workflows/manual-firmware-artifacts.yml`](../.github/workflows/manual-firmware-artifacts.yml)).
+Canonical evidence table lives in
+[`product-readiness-matrix.md` §MANUAL-FIRMWARE-CI-ARTIFACTS-RESULT-001](product-readiness-matrix.md#manual-firmware-ci-artifacts-result-001--recorded-non-release-artifact-ci-run-for-the-manual-fan-candidates-2026-05-27);
+summarized here for the cross-lane view:
+
+- **Provenance (honest):** this **is** a real GitHub Actions `workflow_dispatch`
+  run (the first recorded run for which a CI run ID exists). The summary is the
+  operator-supplied handoff; the Actions run / log API is not available from this
+  session to re-fetch it, so the values are recorded as handed off — not
+  fabricated, not independently re-derived here.
+- **Run:** run ID `26530245113`, trigger `workflow_dispatch` with
+  `artifact_mode=manual-candidate`, branch `main`, commit
+  `9683d0ea13aea3814fd5056a18d049e1388d3586` (short `9683d0ea`),
+  conclusion **success**.
+- **Per-job result (all success):** Manual Artifacts — Generate Matrix;
+  Manual Artifact: `fanpwm`; Manual Artifact: `fanrelay`; Manual Artifact:
+  `fandac`; Manual Artifacts — Summary.
+- **Artifacts (ephemeral, expiring):** one per family, named
+  `<product-stem>-manual-9683d0ea-nonrelease` —
+  `sense360-ceiling-poe-fanpwm-manual-9683d0ea-nonrelease`,
+  `sense360-ceiling-poe-fandac-manual-9683d0ea-nonrelease`,
+  `sense360-ceiling-poe-ventiq-fanrelay-roomiq-manual-9683d0ea-nonrelease`;
+  retention 7 days, **expire 2026-06-03**; temporary GitHub Actions artifacts
+  only, for **point-to-point operator handoff**.
+- **Proves:** the **non-release CI artifact lane builds all three fan
+  candidates** (FanRelay / FanPWM / FanDAC) on a real `workflow_dispatch` run.
+  **Does NOT prove / does NOT claim:** any **release** artifact (the run
+  published **no** GitHub Release and attached **no** Release asset), WebFlash
+  exposure or import (`webflash_build_matrix` stays `false`; no
+  `webflash_wrapper`; no `config/webflash-builds.json` row), any
+  `firmware/sources.json` / `manifest.json` write, any committed `.bin` /
+  checksum / build-info file, any `artifact_name`, or any hardware-stable /
+  compliance / RPM (PWM) / Cloudlift-ready (DAC) / kit-default / recommended
+  (Relay) readiness. The artifacts **expire**. Lifecycle `status` stays
+  `hardware-pending`; `S360-311` / `S360-312` stay `cataloged_unverified`. All
+  lanes in §3A stay as recorded.
+
 ## 4. Next-PR recommendations
 
 Applying the burn-down decision rules:
