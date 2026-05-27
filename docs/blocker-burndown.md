@@ -687,6 +687,46 @@ summarized here for the cross-lane view:
   stays `hardware-pending`; `S360-311` / `S360-312` stay
   `cataloged_unverified`. All lanes in §3A stay as recorded.
 
+## 3G. Non-release artifact policy defined for the manual fan candidates (`MANUAL-FIRMWARE-ARTIFACT-POLICY-001`, 2026-05-27)
+
+`MANUAL-FIRMWARE-ARTIFACT-POLICY-001` answers the question raised by §3F /
+PR #617 and PR #618: **may an operator generate a firmware `.bin` for the
+FanRelay / FanPWM / FanDAC manual candidates without it becoming a release
+artifact or WebFlash build?** Canonical definitions + the seven-point
+precondition list live in
+[`product-readiness-matrix.md` §MANUAL-FIRMWARE-ARTIFACT-POLICY-001](product-readiness-matrix.md#manual-firmware-artifact-policy-001--non-release-artifact-rules-for-the-manual-fan-candidates-2026-05-27);
+summarized here for the cross-lane view:
+
+- **Scope:** docs-only policy edit (`product-readiness-matrix.md`,
+  `release-artifact-readiness-matrix.md`, `manual-install-fan-candidates.md`,
+  this file, `UPCOMING_PR.md`). **Generates nothing:** no `.bin`, checksum,
+  build-info `manifest.json`, release upload, WebFlash import, or
+  `firmware/sources.json` update.
+- **Defines:** a **manual / private artifact** (a `.bin` from a local
+  `esphome compile` or an explicitly non-release CI job, handed point-to-point
+  to a named operator; pinned to a reviewed commit SHA; ephemeral; never
+  committed; never published) vs a **release artifact** (channel-labelled,
+  tagged, checksummed, build-info-manifested, GitHub-Release-attached, and/or
+  WebFlash-imported).
+- **Answer:** a manual / private `.bin` **may** be generated locally (already
+  the PR #618 path) or by an explicitly non-release, expiring CI job — but a
+  manual artifact is **not** a release artifact and **not** a
+  `preview-artifact-candidate`.
+- **Preconditions before any artifact-export PR:** (1) full-compile evidence
+  already exists (committed §3E / PR #616 run; nothing fabricated); (2) artifact
+  naming that cannot be confused with a release artifact (`-manual` + short SHA,
+  no `vX.Y.Z`, no channel suffix); (3) any checksum is plain integrity SHA256
+  for handoff only, never committed; (4) non-release storage only (never under
+  `firmware/`, never committed, never a GitHub Release asset, never in
+  `firmware/sources.json`); (5) non-release / expiring labelling; (6) no
+  WebFlash exposure (`webflash_build_matrix` stays `false`); (7) no
+  hardware-stable / compliance / Cloudlift / RPM / kit-default claim.
+- **Proves:** nothing new about hardware or release readiness; it records a
+  policy. `webflash_build_matrix` stays `false`; no `artifact_name`; no
+  `webflash_wrapper`; no `config/webflash-builds.json` row; lifecycle `status`
+  stays `hardware-pending`; `S360-311` / `S360-312` stay `cataloged_unverified`.
+  All lanes in §3A stay as recorded.
+
 ## 4. Next-PR recommendations
 
 Applying the burn-down decision rules:

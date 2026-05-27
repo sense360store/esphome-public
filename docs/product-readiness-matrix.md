@@ -2842,6 +2842,109 @@ carries **no** CI run ID, and none is fabricated here. The only validators
 re-run for this slice are the metadata / unit suites listed under
 [Validation](#validation) — no `esphome --compile` is required.
 
+## MANUAL-FIRMWARE-ARTIFACT-POLICY-001 — Non-release artifact rules for the manual fan candidates (2026-05-27)
+
+`MANUAL-FIRMWARE-ARTIFACT-POLICY-001` answers the next question raised by
+[`MANUAL-FIRMWARE-CANDIDATE-001`](#manual-firmware-candidate-001--fanrelay--fanpwm--fandac-marked-as-manual--no-webflash-firmware-candidates-2026-05-27)
+/ PR #617 and [`MANUAL-INSTALL-HANDOFF-001`](manual-install-fan-candidates.md)
+/ PR #618: **may an operator generate a firmware `.bin` for the
+FanRelay / FanPWM / FanDAC manual candidates without that `.bin` becoming a
+release artifact or a WebFlash build?** This slice is **policy only**: it
+**defines the rules** and **generates nothing**. No `.bin`, checksum,
+build-info manifest, release upload, WebFlash import, or `firmware/sources.json`
+update is produced or committed here.
+
+### Two artifact classes — definitions
+
+| | **Manual / private artifact** | **Release artifact** |
+|---|---|---|
+| **What it is** | A `.bin` produced by a local `esphome compile` (or an explicitly non-release CI job) and handed directly to a **named** operator / advanced user for manual USB / OTA install. | A `.bin` (+ checksums + build-info `manifest.json`) built, channel-labelled (`stable` / `preview`), tagged, and published as a durable download. |
+| **Provenance pin** | A reviewed commit SHA (per [`manual-install-fan-candidates.md`](manual-install-fan-candidates.md#pinning-the-candidate-ref)) — **never** a release tag, never `main`, never `v1.0.0`. | A signed GitHub Release tag (e.g. `v1.0.0`, `v1.0.0-led-preview`). |
+| **Distribution** | Out-of-band, point-to-point operator handoff; ephemeral; expiring; never committed to the repo. | Attached to a GitHub Release, referenced by `firmware/sources.json` / `manifest.json`, and/or imported into WebFlash at [mysense360.com](https://mysense360.com). |
+| **What it claims** | Only "this reviewed commit compiles and can be installed manually" — carrying every per-family candidate disclaimer verbatim. | Hardware-stable + channel + (for stable) compliance posture per the full release gates. |
+| **Catalog footprint** | **None.** `webflash_build_matrix` stays `false`; no `artifact_name`; no `webflash_wrapper`; no `config/webflash-builds.json` row; lifecycle `status` stays `hardware-pending`. | A built / attached / proven row in the [`release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md) candidate release table, gated by a per-family `WEBFLASH-*` / `RELEASE-*` slice. |
+
+A manual / private artifact is **not** a `preview-artifact-candidate` and is
+**not** an `advanced/manual-warning-artifact-only` class — both of those are
+**release** classes that still require their named WebFlash / release slices.
+
+### May a `.bin` be generated?
+
+**Yes — but only as a manual / private artifact, and only via a future,
+separately-scoped artifact-generation PR (or a local operator build) that
+satisfies the preconditions below.** Locally, an operator already may run
+`esphome compile` on a pinned reviewed commit (this is the
+[`MANUAL-INSTALL-HANDOFF-001`](manual-install-fan-candidates.md) path) and use
+the resulting `.bin` for their own USB / OTA install — that `.bin` is private,
+ephemeral, and never enters this repo. A **CI** job may produce the same
+manual / private `.bin` **only** when it is explicitly labelled non-release and
+expiring (see below). **No** path makes the `.bin` a release or WebFlash build.
+
+### This PR generates nothing
+
+`MANUAL-FIRMWARE-ARTIFACT-POLICY-001` itself produces and commits **none** of:
+
+- a `.bin` firmware artifact;
+- a checksum (`checksums-sha256.txt` / `checksums-md5.txt` / any `.sha256`);
+- a build-info `manifest.json`;
+- a GitHub Release or release upload of any asset;
+- a WebFlash import or `config/webflash-builds.json` row;
+- a `firmware/sources.json` or `manifest.json` update;
+- an `artifact_name`, a `webflash_wrapper`, or a `webflash_build_matrix` flip.
+
+It is a docs-only policy edit. The lifecycle `status` for all three families
+stays `hardware-pending`; `S360-311` / `S360-312` stay `cataloged_unverified`.
+
+### Required evidence before any artifact-generation PR
+
+A future PR that actually exports a manual / private `.bin` (rather than
+leaving it as a purely local operator build) MUST satisfy **all** of the
+following, or it is out of scope and must not land:
+
+1. **Full-compile evidence already exists.** The artifact's commit must already
+   carry committed full-compile evidence — the
+   [`FW-FULL-COMPILE-TOPLEVEL-FANS-001`](#fw-full-compile-toplevel-fans-001--recorded-full-esphome-compile-evidence-for-the-top-level-fanpwm--fandac-product-yamls-2026-05-27)
+   / PR #616 run (all three top-level fan targets `rc=0`,
+   `validated-full-compile`). No new compile is invented and no CI run ID is
+   fabricated to justify an artifact.
+2. **Artifact naming rules.** A manual / private `.bin` MUST be named so it
+   **cannot be confused with a release artifact**: it carries an explicit
+   `-manual` (or `-private`) marker plus a short reviewed-commit SHA, and it
+   carries **no** release version (`vX.Y.Z`) and **no** channel suffix
+   (`-stable` / `-preview`). It must not reuse the Release-One artifact name
+   pattern `Sense360-<Product>-vX.Y.Z-<channel>.bin`.
+3. **Checksum rules if artifacts are exported.** If a checksum accompanies an
+   exported manual `.bin`, it is a **plain integrity SHA256 for the handoff
+   only** — explicitly **not** a signed release / build-info manifest, **not**
+   `checksums-sha256.txt` / `checksums-md5.txt` in the release sense — and it is
+   **not committed to this repo**. No checksum is committed by a policy or
+   candidate PR; a checksum exists, if at all, only beside the exported binary
+   at handoff time.
+4. **Storage location rules.** A manual / private artifact lives in a
+   **non-release** location only: a local operator path or an expiring CI job
+   artifact. It is **never** placed under `firmware/`, **never** committed to
+   the repo, **never** attached to a GitHub Release, and **never** referenced by
+   `firmware/sources.json` / `manifest.json`.
+5. **Expiration / non-release labelling.** The artifact and its handoff must be
+   labelled **non-release** and **expiring** (e.g. CI artifact retention; a
+   handoff note stating it is a private manual build of commit `<sha>`, not a
+   release). It is not a durable, published, or recommended download.
+6. **No WebFlash exposure.** `webflash_build_matrix` stays `false`; no
+   `webflash_wrapper` is added; no `config/webflash-builds.json` row is added;
+   the artifact is **never** imported into WebFlash. WebFlash at
+   [mysense360.com](https://mysense360.com) remains the only recommended
+   production path and is untouched.
+7. **No hardware-stable / compliance claims.** The artifact carries the same
+   per-family disclaimers as the candidate status: FanRelay is not mains-safety
+   / competent-person approved and not kit-default / recommended; FanPWM claims
+   no RPM / TachIO support and no measured current / thermal; FanDAC is not
+   Cloudlift-ready and claims no compliance approval. None of these gates is
+   waived by the existence of a manual `.bin`.
+
+Until a separate PR meets all seven, **no** manual artifact is exported and
+**no** artifact-bearing change lands. This section is the policy; it is not an
+authorisation to build.
+
 ## Do-not-change guardrails
 
 PRODUCT-GAP-001 — this matrix — performs **none** of the following.

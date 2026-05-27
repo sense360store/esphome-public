@@ -24,6 +24,42 @@ mirrored here.
 
 ## Current queue summary
 
+- **MANUAL-FIRMWARE-ARTIFACT-POLICY-001** delivers, via **this PR** on
+  2026-05-27, a **docs-only** change that **defines** whether and how a firmware
+  `.bin` may be generated for the FanRelay / FanPWM / FanDAC manual / no-WebFlash
+  candidates (`MANUAL-FIRMWARE-CANDIDATE-001` / PR #617,
+  `MANUAL-INSTALL-HANDOFF-001` / PR #618) **without** turning it into a release
+  artifact or WebFlash build. **Scope:** a new canonical section
+  [§MANUAL-FIRMWARE-ARTIFACT-POLICY-001](docs/product-readiness-matrix.md) in
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md) that
+  defines a **manual / private artifact** (a `.bin` from a local `esphome
+  compile` or an explicitly non-release, expiring CI job, handed point-to-point
+  to a named operator, pinned to a reviewed commit SHA, never committed, never
+  published) vs a **release artifact** (channel-labelled, tagged, checksummed,
+  build-info-manifested, GitHub-Release-attached, and/or WebFlash-imported);
+  states a manual / private `.bin` **may** be generated locally or by an
+  explicitly non-release CI job for operator handoff but is **not** a release
+  artifact; states **no** `.bin`, checksum, build-info manifest, release upload,
+  WebFlash import, or `firmware/sources.json` update is produced in this PR; and
+  lists the **seven preconditions** before any artifact-export PR (full-compile
+  evidence already exists; non-confusable `-manual` + short-SHA naming; checksums,
+  if any, plain integrity SHA256 for handoff only and never committed;
+  non-release storage only; non-release / expiring labelling; no WebFlash
+  exposure; no hardware-stable / compliance claim). Mirrored as an update note in
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
+  §3G in [`docs/blocker-burndown.md`](docs/blocker-burndown.md), a
+  "Generating a `.bin`" section in
+  [`docs/manual-install-fan-candidates.md`](docs/manual-install-fan-candidates.md),
+  and this file. **Validation:** `validate_configs.py`,
+  `validate_compile_targets.py --metadata-only`, `test_product_catalog.py`,
+  `test_compile_targets.py`, `validate_webflash_builds.py`, and `python3 -m
+  unittest discover`. Edits confined to those four `docs/` files and this file;
+  **no** `packages/**`, `products/**`, `products/webflash/**`, `config/**`,
+  `firmware/**`, `manifest.json`, or `firmware/sources.json` edit; **no** WebFlash
+  wrapper, `webflash_build_matrix` flip, `artifact_name`, or release artifact;
+  **no** committed `.bin` / checksum; **no** release / WebFlash / import /
+  hardware-stable / compliance readiness claim; **no** fabricated evidence.
+
 - **MANUAL-INSTALL-HANDOFF-001** delivers, via **this PR** on 2026-05-27, a
   **docs-only** change that publishes an operator / advanced-user handoff for
   **manually** installing the three no-WebFlash fan firmware candidates marked

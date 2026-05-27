@@ -208,8 +208,48 @@ esphome upload products/sense360-ceiling-poe-fandac.yaml
 
 ---
 
+## Generating a `.bin` (manual / private artifact only)
+
+The `esphome compile` step above produces a firmware `.bin` on your own
+machine. That `.bin` is a **manual / private artifact**, governed by
+[`MANUAL-FIRMWARE-ARTIFACT-POLICY-001`](product-readiness-matrix.md#manual-firmware-artifact-policy-001--non-release-artifact-rules-for-the-manual-fan-candidates-2026-05-27):
+
+- **Manual / private artifact** — a `.bin` built from a **pinned reviewed
+  commit SHA** (never `main`, never `v1.0.0`, never a release tag) by your local
+  `esphome compile` (or an explicitly non-release, expiring CI job), used for
+  your **own** USB / OTA install or handed point-to-point to a **named**
+  operator. It is **not** a release: it carries no release version or channel
+  name, is never committed to this repo, never attached to a GitHub Release,
+  never imported into WebFlash, and never referenced by `firmware/sources.json`.
+- **Release artifact** — a channel-labelled (`stable` / `preview`), tagged,
+  checksummed, build-info-manifested `.bin` published as a durable download.
+  The fan candidates have **none**, and this handoff produces none.
+
+> **This doc does not ship a `.bin`.** No firmware artifact, checksum,
+> build-info manifest, release upload, WebFlash import, or `firmware/sources.json`
+> update is published here. Any future PR that **exports** a manual / private
+> `.bin` (rather than leaving it a purely local build) must first satisfy the
+> seven preconditions in
+> [§MANUAL-FIRMWARE-ARTIFACT-POLICY-001](product-readiness-matrix.md#manual-firmware-artifact-policy-001--non-release-artifact-rules-for-the-manual-fan-candidates-2026-05-27):
+> full-compile evidence already exists; non-confusable `-manual` + short-SHA
+> naming (no `vX.Y.Z`, no `-stable` / `-preview` suffix); any checksum is a
+> plain integrity SHA256 for handoff only and is never committed; non-release
+> storage only (never under `firmware/`, never a Release asset); non-release /
+> expiring labelling; no WebFlash exposure; and no hardware-stable / compliance
+> / Cloudlift / RPM / kit-default claim.
+
+If you export a manual `.bin` for another operator, name it so it cannot be
+mistaken for a release — e.g. include `-manual-<short-sha>` and **no** release
+version or channel — and tell the recipient it is a private manual build of a
+specific reviewed commit, not a release.
+
+---
+
 ## References
 
+- [Product Readiness Matrix §MANUAL-FIRMWARE-ARTIFACT-POLICY-001](product-readiness-matrix.md#manual-firmware-artifact-policy-001--non-release-artifact-rules-for-the-manual-fan-candidates-2026-05-27)
+  — canonical manual / private vs release artifact definitions and the
+  seven-point precondition list before any artifact-export PR.
 - [Product Readiness Matrix §MANUAL-FIRMWARE-CANDIDATE-001](product-readiness-matrix.md#manual-firmware-candidate-001--fanrelay--fanpwm--fandac-marked-as-manual--no-webflash-firmware-candidates-2026-05-27)
   — canonical candidate definition, per-family evidence table, and honest
   provenance.
