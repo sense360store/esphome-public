@@ -24,6 +24,58 @@ mirrored here.
 
 ## Current queue summary
 
+- **S360-312-BENCH-EVIDENCE-REQUEST-001** delivers, via **this PR** on
+  2026-05-27, a **docs-only** FanDAC bench **evidence-request**: it turns
+  the still-open S360-312 / FanDAC bench blockers (`DAC-8b` / `DAC-8c` /
+  `DAC-8d` / `DAC-12` from BLOCKER-BURNDOWN-001 / PR #599 and
+  DAC-BLOCKER-RECLASSIFY-001 / PR #603) into one **operator-answerable
+  fill-in checklist** (board rev; **`J3` `out0`/`out1` silkscreen
+  transposition** confirmation; actual observed `J3` channel mapping;
+  voltage mode tested 0–10 V / 0–5 V; both DAC channels; both channels
+  simultaneously; controlled load / device — Cloudlift S12 / meter /
+  simulator / other; harness used — Cloudlift S12 / custom / none; voltage
+  readings at low/medium/high or 0/25/50/75/100 %; whether increasing
+  command increased output voltage; whether channel labels match expected
+  UI / product behaviour; noise / flicker / instability; thermal
+  observation; photos / videos / logs; operator / date / source /
+  provenance) plus a **pass/fail evidence contract** (what closes the `J3`
+  silk `DAC-8b` / Cloudlift harness `DAC-8c` / Cloudlift product bench
+  `DAC-8d` / voltage-mode `DAC-12`, and what stays out-of-scope: the
+  `DAC-7` no-per-output-mix guardrail, WebFlash exposure, release artifact,
+  import readiness, hardware-stable promotion, Cloudlift-ready / production
+  voltage-control claim, compliance) in
+  [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md)
+  (canonical), [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §5C
+  (+ §5 pointer), and a dated addendum in
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+  §FanDAC / S360-312. **Drive re-search (this session):** searched
+  `S360-312` / `S360-312-R4` / `FanDAC` / `GP8403` / `Cloudlift` /
+  `Cloudlift S12` / `0-10V` / `VOUT` / `voltage reading` / `DAC bench` /
+  `harness` / photos / videos / spreadsheets / logs and found **no bench
+  artifact** — only **design / CAD** material (the `Fan_GP8403` KiCad /
+  gerber / CPL snapshot set + `GP8403.zip` / `GP8403-Module`, owner
+  `neilmcrae@googlemail.com`; the canonical `S360-312-R4.pdf` schematic,
+  owner `kanyugistash@gmail.com`, modified 2026-05-16 and already committed
+  byte-identical as `docs/hardware/schematics/S360-312-R4.pdf`; and the
+  unchanged `Sense360_R4_Tracker` 2026-05-18), recorded for provenance only,
+  committing no Drive file. **Recommended next DAC PR:**
+  `S360-312-BENCH-RESULT-001` — **gated until the operator uploads /
+  answers the checklist** (no FanDAC bench row can close in a docs-only
+  pass); WebFlash wrapper / build PRs (`WEBFLASH-DAC-001` /
+  `RELEASE-DAC-001` / `WF-IMPORT-DAC-001`) stay blocked, and
+  `WEBFLASH-DAC-LIVE-CHECK-001` stays queued behind WebFlash access. The
+  FanDAC package/product/full-compile chain is complete: PR #573 package,
+  PR #575 compile-only target, PR #577 product YAML, PR #580 full compile
+  green (run `26364679370`, `compile_mode=full`, conclusion `success`),
+  PR #597 WebFlash kept blocked, PR #603 remaining blockers reclassified by
+  scope. **No** product / package / config / WebFlash / firmware / workflow
+  / release edit; **no** product YAML, WebFlash wrapper,
+  `webflash_build_matrix` flip, `artifact_name`, or release artifact; **no**
+  WebFlash / import / release / compliance / hardware-stable / Cloudlift-ready
+  claim; **no** `schematic_status` change (`S360-312` stays
+  `cataloged_unverified`); **no** fabricated Drive / operator evidence;
+  Release-One + LED preview + FanTRIAC (`blocked` / `HW-005`) unchanged.
+
 - **REPO-CLEANUP-NOWEBFLASH-001** delivers, via **this PR** on 2026-05-27, a
   **docs-only** cleanup recommended by `BLOCKER-STATUS-FINALIZE-001`
   (PR #606). The clean, no-WebFlash repo / YAML / firmware path is now
@@ -6914,6 +6966,68 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       compliance / hardware-stable claim; no `schematic_status` promotion
       (`S360-310` stays `cataloged_unverified`); no fabricated evidence.
       Release-One + LED preview + FanTRIAC (`blocked` / `HW-005`) unchanged.
+37. **S360-312-BENCH-EVIDENCE-REQUEST-001 — Define FanDAC bench evidence
+    checklist**
+    - Status: **DONE — docs-only (2026-05-27; this PR); no exposure flip,
+      no behaviour change**
+    - Purpose: Turn the still-open S360-312 / FanDAC bench blockers
+      (`DAC-8b` / `DAC-8c` / `DAC-8d` / `DAC-12` from BLOCKER-BURNDOWN-001 /
+      PR #599 and DAC-BLOCKER-RECLASSIFY-001 / PR #603) into a precise
+      operator checklist and pass/fail evidence contract so a later
+      `S360-312-BENCH-RESULT-001` is small and evidence-backed. Added the
+      canonical checklist + contract to
+      [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md)
+      §S360-312-BENCH-EVIDENCE-REQUEST-001, the cross-lane copy to
+      [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §5C (+ §5
+      pointer), and a dated addendum to
+      [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+      §FanDAC / S360-312.
+    - Checklist (operator-answerable): board revision tested; **`J3`
+      `out0`/`out1` silkscreen transposition** confirmation; actual observed
+      `J3` channel mapping; voltage mode tested (0–10 V; 0–5 V if tested);
+      both DAC channels tested; both channels tested simultaneously;
+      controlled load / device (Cloudlift S12 / meter / simulator / other);
+      harness used (Cloudlift S12 / custom / none); voltage readings at
+      low/medium/high or 0/25/50/75/100 %; whether increasing command
+      increased output voltage; whether channel labels match expected UI /
+      product behaviour; noise / flicker / instability; thermal observation;
+      photos / videos / logs; operator / date / source / provenance.
+    - Evidence contract: defines what PASS-grade evidence closes the `J3`
+      silkscreen transposition (`DAC-8b`), the Cloudlift S12 harness trace
+      (`DAC-8c`), the Cloudlift S12 product bench (`DAC-8d`), and the
+      voltage-mode / output linearity (`DAC-12`), and what stays
+      out-of-scope — the `DAC-7` no-per-output-mix guardrail, WebFlash
+      exposure, release artifact, import readiness, hardware-stable
+      promotion, the Cloudlift-ready / production voltage-control claim, and
+      compliance approval.
+    - Drive re-search (this session): searched `S360-312` / `S360-312-R4` /
+      `FanDAC` / `GP8403` / `Cloudlift` / `Cloudlift S12` / `0-10V` / `VOUT`
+      / `voltage reading` / `DAC bench` / `harness` / photos / videos /
+      spreadsheets / logs — **no bench artifact found**, only design / CAD
+      material (the `Fan_GP8403` KiCad / gerber / CPL snapshot set +
+      `GP8403.zip` / `GP8403-Module`, owner `neilmcrae@googlemail.com`; the
+      canonical `S360-312-R4.pdf` schematic, owner `kanyugistash@gmail.com`,
+      modified 2026-05-16, already committed byte-identical as
+      `docs/hardware/schematics/S360-312-R4.pdf`; and the unchanged
+      `Sense360_R4_Tracker` 2026-05-18), recorded for provenance only and
+      committing no Drive file.
+    - Recommends next: **`S360-312-BENCH-RESULT-001`** — gated until the
+      operator uploads / answers the checklist; no FanDAC bench row can
+      close in a docs-only pass. WebFlash wrapper / build PRs
+      (`WEBFLASH-DAC-001` / `RELEASE-DAC-001` / `WF-IMPORT-DAC-001`) stay
+      blocked; `WEBFLASH-DAC-LIVE-CHECK-001` stays queued behind WebFlash
+      access restoration.
+    - Guardrails: no `packages/**`, `products/**`, `products/webflash/**`,
+      `config/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`,
+      release-artifact, checksum, build-info, `tests/**`, `scripts/**`,
+      `.github/workflows/**`, `components/**`, `include/**`, or
+      `sense360store/WebFlash` edit; no FanDAC behaviour change; no product
+      YAML; no WebFlash wrapper; no `webflash_build_matrix` flip; no
+      `artifact_name`; no release artifact; no WebFlash / import / release /
+      compliance / hardware-stable / Cloudlift-ready claim; no
+      `schematic_status` promotion (`S360-312` stays `cataloged_unverified`);
+      no fabricated Drive / operator evidence. Release-One + LED preview +
+      FanTRIAC (`blocked` / `HW-005`) unchanged.
 
 ## Cross-repo dependencies
 
@@ -6986,6 +7100,38 @@ visible. Do not implement them from this repo.
 
 ## Recently uploaded evidence
 
+- **2026-05-27 — `S360-312-BENCH-EVIDENCE-REQUEST-001` Drive re-search:
+  no new FanDAC bench evidence (design / CAD only; provenance recorded,
+  nothing committed).** Searched Google Drive for `S360-312`,
+  `S360-312-R4`, `FanDAC`, `GP8403`, `Cloudlift`, `Cloudlift S12`,
+  `0-10V`, `VOUT`, `voltage reading`, `DAC bench`, `harness`, and
+  photos / videos / spreadsheets / logs. **No bench artifact exists** —
+  no `J3` `out0`/`out1` silkscreen photo, no Cloudlift S12 harness
+  conductor trace, no per-channel output-voltage reading, no
+  voltage-mode (0–10 V / 0–5 V) sweep, no noise / flicker / thermal
+  observation, no product-bench sign-off. The only FanDAC-bearing
+  material is **design / CAD**: (a) the `Fan_GP8403` design set —
+  `Fan_GP8403.kicad_sch` plus the timestamped `Fan_GP8403-*.zip`
+  gerber / CPL snapshot series (2025-08 → 2026-01) and the related
+  `GP8403.zip` / `GP8403-Module` folder (owner
+  `neilmcrae@googlemail.com`); (b) the canonical `S360-312-R4.pdf`
+  schematic (owner `kanyugistash@gmail.com`, modified 2026-05-16),
+  which is **already committed byte-identical** as
+  [`docs/hardware/schematics/S360-312-R4.pdf`](docs/hardware/schematics/S360-312-R4.pdf);
+  (c) the unchanged `Sense360_R4_Tracker` (2026-05-18). This is the
+  same artifact class as the committed schematic PDF, is recorded for
+  **provenance only**, closes **no** bench blocker, and **no Drive file
+  is committed by this PR**. The open FanDAC bench rows (`DAC-8b` /
+  `DAC-8c` / `DAC-8d` / `DAC-12`) are converted into the operator
+  checklist + pass/fail evidence contract in
+  [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md)
+  §S360-312-BENCH-EVIDENCE-REQUEST-001 and
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §5C.
+  `S360-312-BENCH-RESULT-001` stays **gated** until the operator uploads
+  / answers the checklist. No claim of FanDAC bench-readiness,
+  Cloudlift-ready, WebFlash / import / release readiness, compliance
+  clearance, or hardware-stable readiness; `S360-312` stays
+  `cataloged_unverified`; no fabricated evidence.
 - **2026-05-26 — `S360-311-BENCH-RESULT-001`: operator FanPWM bench
   result recorded (operator notes only; no photo/video/log; nothing
   fabricated).** The operator (`@wifispray`) ran the FanPWM bench
