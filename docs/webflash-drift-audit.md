@@ -356,6 +356,79 @@ release / compliance / hardware-stable / RPM-support claim, and
 
 ---
 
+## 4.4 Follow-up resolution log (updated 2026-05-27 by `WEBFLASH-LIVE-CHECK-001`)
+
+The docs-only `WEBFLASH-LIVE-CHECK-001` re-check (this follow-up) is the
+consolidated live-WebFlash re-run that drift rows #4, #5, #11, #16, #17 and the
+per-family `WEBFLASH-{RELAY,DAC,PWM}-LIVE-CHECK-001` items all point to. It was
+queued to re-read `sense360store/WebFlash` once access was restored and to
+record the `S360-310` / `S360-311` / `S360-312` `module-availability.js`
+classifications.
+
+- **Live WebFlash read re-attempted this session — again denied.** Three
+  read-only GitHub access methods were tried against `sense360store/WebFlash`
+  this session (2026-05-27): the repo root (`get_file_contents /`),
+  `scripts/utils/module-availability.js` directly, and a branch listing
+  (`list_branches`). **All three returned access denied** — *"repository
+  `sense360store/webflash` is not configured for this session. Allowed
+  repositories: sense360store/esphome-public, sense360store/esphome."* The
+  session GitHub scope is still `sense360store/esphome-public` +
+  `sense360store/esphome` only, and there is no local WebFlash checkout (the
+  second local clone `/home/user/esphome` is the unrelated single-device config
+  repo). **The WebFlash repo could not be re-verified live this session.**
+- **Drift rows #4, #5, #11, #16, #17 stay open (`NEEDS-TOOLING`).** No WebFlash
+  source (`artifact_pattern` generator, grammar/naming validators, full channel
+  list, `scripts/utils/module-availability.js`) could be inspected, so none of
+  these axes can be closed. The `S360-310` classification stays **prior-recorded
+  `design-pending`** (2026-05-22, PR #565), and `S360-311` / `S360-312` stay
+  **not recorded in any module-availability snapshot**. No classification is
+  captured here, because doing so without a live read would fabricate evidence.
+- **esphome-public side re-verified fresh this session — unchanged, no drift.**
+  Direct reads this session confirm the esphome-public WebFlash surface is
+  exactly as recorded in §1: [`config/webflash-builds.json`](../config/webflash-builds.json)
+  carries the same **2** builds (`Ceiling-POE-VentIQ-RoomIQ` / stable,
+  `Ceiling-POE-VentIQ-RoomIQ-LED` / preview); [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+  carries the same grammar (`artifact_pattern`
+  `Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin`; `allowed_channels`
+  `stable, beta, preview, dev, rescue`; `release_one_required_configs`
+  `["Ceiling-POE-VentIQ-RoomIQ"]`; `fandac_conflicts_with_airiq: true`;
+  `canonical_modules` reserves `FanRelay`/`FanPWM`/`FanDAC`/`FanTRIAC`/`LED`);
+  [`config/product-catalog.json`](../config/product-catalog.json) keeps
+  `Ceiling-POE-VentIQ-FanRelay-RoomIQ`, `Ceiling-POE-FanDAC`, and
+  `Ceiling-POE-FanPWM` all `status: hardware-pending`,
+  `webflash_build_matrix: false`, no `artifact_name`; the
+  [`products/webflash/`](../products/webflash/) inventory is still the 3
+  wrappers (RoomIQ, RoomIQ-LED, and the **blocked** FanTRIAC reference); and no
+  `firmware/sources.json`, `manifest.json`, or `firmware/**` exists (these stay
+  WebFlash-owned by the contract). The module-code mapping is confirmed in
+  [`config/hardware-catalog.json`](../config/hardware-catalog.json): `S360-310`
+  Sense360 Relay, `S360-311` Sense360 PWM, `S360-312` Sense360 DAC — all
+  `schematic_status: cataloged_unverified`. **No esphome-public-side drift was
+  introduced or found.**
+- **Nothing flips; visible/hidden product lists unchanged.** WebFlash-visible
+  products stay the 2 shippable builds; Relay/DAC/PWM/TRIAC stay
+  not-exposed/blocked. No stale Relay/DAC/PWM "missing/blocked" reference was
+  found in the configs this session (drift row #20 was already reconciled
+  in-repo; drift row #21 is the unchanged optional config-flag item).
+- **Recommended next step — operator/tooling remediation, then re-run.** The
+  only way to close rows #4/#5/#11/#16/#17 is to grant this session read access
+  to `sense360store/WebFlash` (or supply an operator-attested
+  `module-availability.js` / `manifest.json` / `firmware/sources.json` /
+  `kit-presets.js` snapshot), then re-run `WEBFLASH-LIVE-CHECK-001` (or a
+  `WEBFLASH-DRIFT-001` re-run). This is **not** a wrapper-plan slice — the
+  per-family non-WebFlash gates (Relay `GPIO3` + safety + competent-person;
+  DAC `J3` / Cloudlift S12 bench; PWM polarity + current / thermal + product
+  bench) are not all clean.
+
+This follow-up makes **no** config / product / package / WebFlash / build /
+release / workflow / test edit and **no** WebFlash exposure / import /
+release / compliance / hardware-stable / RPM-support claim, and
+**fabricates no** WebFlash evidence. It only **re-attempts** the live read and
+records the (still-denied) outcome. Release-One and the LED preview are
+unchanged.
+
+---
+
 ## 5. Guardrails honoured / non-claims
 
 This PR does **not** edit `products/**`, `products/webflash/**`,

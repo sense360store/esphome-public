@@ -24,6 +24,47 @@ mirrored here.
 
 ## Current queue summary
 
+- **WEBFLASH-LIVE-CHECK-001** delivers, via **this PR** on 2026-05-27, a
+  **docs-only** consolidated live re-check of `sense360store/WebFlash` — the
+  re-run that `WEBFLASH-DRIFT-001` rows #4/#5/#11/#16/#17 and the per-family
+  `WEBFLASH-{RELAY,DAC,PWM}-LIVE-CHECK-001` items all queue. The live read was
+  re-attempted this session via three read-only GitHub methods (repo root,
+  `scripts/utils/module-availability.js`, and a branch listing) and **all three
+  returned access denied** — the session GitHub scope is still
+  `sense360store/esphome-public` + `sense360store/esphome` only. So the WebFlash
+  side **could not be re-verified live**: `S360-310` stays prior-recorded
+  `design-pending` (2026-05-22, PR #565), `S360-311` / `S360-312` stay **not
+  recorded in any `module-availability.js` snapshot** (drift #16/#17), and the
+  `artifact_pattern` source / grammar / channel-list parity axes stay
+  `NEEDS-TOOLING`. The esphome-public side was re-verified fresh this session
+  and is **unchanged / no drift**: 2 WebFlash builds
+  (`Ceiling-POE-VentIQ-RoomIQ` stable, `Ceiling-POE-VentIQ-RoomIQ-LED`
+  preview); `Ceiling-POE-VentIQ-FanRelay-RoomIQ` / `Ceiling-POE-FanDAC` /
+  `Ceiling-POE-FanPWM` all `hardware-pending` / `webflash_build_matrix: false` /
+  no `artifact_name`; the 3 `products/webflash/` wrappers (RoomIQ, RoomIQ-LED,
+  blocked FanTRIAC reference); grammar / channels / mutex unchanged; no
+  `firmware/sources.json` / `manifest.json` (WebFlash-owned). Updates
+  [`docs/webflash-drift-audit.md`](docs/webflash-drift-audit.md) §4.4
+  (primary record),
+  [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md)
+  (Relay / PWM / DAC posture),
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md)
+  (Relay / PWM / DAC release posture),
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §2D, and this file.
+  Edits are confined to `docs/**` and this file; **no** `packages/**`,
+  `products/**`, `products/webflash/**`, `config/**` (incl.
+  `config/webflash-builds.json`), `components/**`, `include/**`, `firmware/**`,
+  `manifest.json`, `firmware/sources.json`, release artifact, checksum,
+  `.github/workflows/**`, test, or `sense360store/WebFlash` edit; **no** product
+  YAML, WebFlash wrapper, `webflash_build_matrix` flip, `artifact_name`, or
+  release artifact; **no** WebFlash exposure / import / release / compliance /
+  hardware-stable / RPM / Cloudlift-ready / kit-default claim; no
+  `schematic_status` promotion; no blocker moved; no fabricated evidence. The
+  only action is to **re-attempt** the live read and record the (still-denied)
+  outcome; the remediation stays operator/tooling (grant `sense360store/WebFlash`
+  read access, or supply an operator-attested snapshot), then re-run. Release-One
+  + LED preview unchanged.
+
 - **REPO-CLEANUP-NOWEBFLASH-001** delivers, via **this PR** on 2026-05-27, a
   **docs-only** cleanup recommended by `BLOCKER-STATUS-FINALIZE-001`
   (PR #606). The clean, no-WebFlash repo / YAML / firmware path is now
@@ -6944,6 +6985,13 @@ visible. Do not implement them from this repo.
   `WF-IMPORT-RELAY-001` stays **blocked** behind `RELEASE-RELAY-001`;
   the recommended next esphome-public step is
   `WEBFLASH-RELAY-LIVE-CHECK-001` to close the live-verification axis.
+  **2026-05-27 — `WEBFLASH-LIVE-CHECK-001` (this PR, docs-only): the
+  consolidated live re-run was performed and `sense360store/WebFlash`
+  access was again denied** (three read-only methods: repo root,
+  `scripts/utils/module-availability.js`, branch listing; session scope is
+  `esphome-public` + `esphome` only), so the FanRelay WebFlash facts stay
+  prior-recorded (2026-05-22, PR #565) and `S360-310` stays `design-pending`,
+  not re-confirmed. The live-verification axis stays open.
 - **WF-IMPORT-PWM-001** — WebFlash-side import of the PWM product,
   **blocked** behind upstream `RELEASE-PWM-001`. **2026-05-26 —
   `WEBFLASH-PWM-001-READINESS` (this PR, docs-only): the WebFlash side
@@ -6959,6 +7007,13 @@ visible. Do not implement them from this repo.
   record the `S360-311` module-availability classification, with
   `S360-311-BENCH-001` (PWM polarity + current / thermal envelope +
   product bench) as the substantive evidence gate.
+  **2026-05-27 — `WEBFLASH-LIVE-CHECK-001` (this PR, docs-only): the
+  consolidated live re-run was performed and `sense360store/WebFlash`
+  access was again denied** (three read-only methods; session scope is
+  `esphome-public` + `esphome` only), so `S360-311` stays **not recorded**
+  in any `module-availability.js` snapshot (drift #16) and cannot be
+  captured. `WF-IMPORT-PWM-001` stays blocked behind `RELEASE-PWM-001`; the
+  live-verification axis stays open.
 - **WF-IMPORT-DAC-001** — WebFlash-side import of the DAC product,
   **blocked** behind upstream `RELEASE-DAC-001`. **2026-05-26 —
   `WEBFLASH-DAC-001-READINESS` (this PR, docs-only): the WebFlash side
@@ -6972,6 +7027,13 @@ visible. Do not implement them from this repo.
   behind `RELEASE-DAC-001`; the recommended next esphome-public step is
   `WEBFLASH-DAC-LIVE-CHECK-001` to close the live-verification axis and
   record the `S360-312` module-availability classification.
+  **2026-05-27 — `WEBFLASH-LIVE-CHECK-001` (this PR, docs-only): the
+  consolidated live re-run was performed and `sense360store/WebFlash`
+  access was again denied** (three read-only methods; session scope is
+  `esphome-public` + `esphome` only), so `S360-312` stays **not recorded**
+  in any `module-availability.js` snapshot (drift #17) and cannot be
+  captured. `WF-IMPORT-DAC-001` stays blocked behind `RELEASE-DAC-001`; the
+  live-verification axis stays open.
 - **WF-IMPORT-POWER-400-001** — WebFlash-side import of the S360-400 power
   product
 - **WF-IMPORT-POE-410-001** — WebFlash-side import of the S360-410 PoE

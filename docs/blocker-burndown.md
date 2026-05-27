@@ -225,6 +225,28 @@ compliance / safety claims, and kit / default / recommended membership. The
 | WF-4 | Cross-repo product / import drift | CLOSED (no confirmed drift) | Every Relay/DAC/PWM/TRIAC axis `INTENTIONALLY-BLOCKED` or `NEEDS-OPERATOR-INPUT`; no `WEBFLASH-DRIFT-FIX-001` prerequisite | WEBFLASH-DRIFT-001 / PR #595 | Yes | none (re-run only to close `NEEDS WEBFLASH ACCESS` axes) | — |
 | WF-5 | Intra-repo stale "FanPWM product/package missing" headline (drift #20) | CAN CLOSE NOW (doc) | Already reconciled in-repo; re-confirmed | WEBFLASH-DRIFT-001 / PR #595; WEBFLASH-PWM-001-READINESS / PR #598 | Yes | none | — |
 
+**Live re-check — `WEBFLASH-LIVE-CHECK-001` (2026-05-27).** The consolidated
+live-WebFlash re-run that `WF-1` / `WF-2` / `WF-3` queue was performed this
+session: `sense360store/WebFlash` was re-read via three read-only GitHub
+methods (repo root, `scripts/utils/module-availability.js`, and a branch
+listing) and **all three returned access denied** — the session GitHub scope is
+still `esphome-public` + `esphome` only. So `WF-1` (live read access), `WF-2`
+(`S360-311` / `S360-312` classification), and `WF-3` (`artifact_pattern` source
+/ grammar / channel-list parity) **stay `NEEDS WEBFLASH ACCESS`** — none can be
+closed, and `S360-310` stays prior-recorded `design-pending` (2026-05-22,
+PR #565) while `S360-311` / `S360-312` stay not-recorded. The esphome-public
+side was re-verified fresh this session and is unchanged (2 WebFlash builds;
+Relay/DAC/PWM all `hardware-pending` / `webflash_build_matrix: false` / no
+`artifact_name`; 3 wrappers; grammar unchanged), so `WF-4` (no confirmed
+cross-repo drift) and `WF-5` stay closed. The remaining exact action is
+unchanged: operator/tooling must grant read access to `sense360store/WebFlash`
+(or supply an operator-attested snapshot), then re-run `WEBFLASH-LIVE-CHECK-001`
+(or a `WEBFLASH-DRIFT-001` re-run). Full record in
+[`webflash-drift-audit.md` §4.4](webflash-drift-audit.md#44-follow-up-resolution-log-updated-2026-05-27-by-webflash-live-check-001).
+Docs-only; no config / product / WebFlash / workflow / test edit; no
+`webflash_build_matrix` flip; no `artifact_name`; no exposure / import /
+release / compliance / hardware-stable claim; no fabricated evidence.
+
 ### 2E. Security
 
 | ID | Blocker | Status | Evidence found | Provenance | Closed? | Remaining exact action | Next PR |
