@@ -660,6 +660,27 @@ gates close and the named per-family release slice lands.
 > `preview-artifact-candidate`. See
 > [`product-readiness-matrix.md` §MANUAL-FIRMWARE-CI-ARTIFACTS-001](product-readiness-matrix.md#manual-firmware-ci-artifacts-001--non-release-ci-lane-for-the-manual-fan-candidates-2026-05-27).
 
+> **Update (`MANUAL-FIRMWARE-CI-ARTIFACTS-RESULT-001`, 2026-05-27):** that
+> non-release lane has now been **run successfully**. A real GitHub Actions
+> `workflow_dispatch` run (run ID `26530245113`, `artifact_mode=manual-candidate`,
+> branch `main`, commit `9683d0ea13aea3814fd5056a18d049e1388d3586`) **succeeded**
+> on every job and built one ephemeral, expiring artifact for each of FanPWM,
+> FanDAC, and FanRelay
+> (`sense360-ceiling-poe-fanpwm-manual-9683d0ea-nonrelease`,
+> `sense360-ceiling-poe-fandac-manual-9683d0ea-nonrelease`,
+> `sense360-ceiling-poe-ventiq-fanrelay-roomiq-manual-9683d0ea-nonrelease`;
+> retention 7 days, **expires 2026-06-03**). This proves the **non-release** CI
+> artifact lane can build all three fan candidates. **It changes no cell in the
+> candidate release table above:** the run published **no** GitHub Release and
+> attached **no** Release asset, wrote **no** `firmware/sources.json` /
+> `manifest.json`, committed **no** `.bin` / checksum / build-info file, set
+> **no** release channel, reused **no** catalog `artifact_name`, added **no**
+> WebFlash wrapper, and flipped **no** `webflash_build_matrix`. Every FanRelay /
+> FanPWM / FanDAC row stays `not-release-ready`. The three artifacts are
+> temporary GitHub Actions artifacts for **point-to-point operator handoff only**
+> and are **not** `preview-artifact-candidate`s. See
+> [`product-readiness-matrix.md` §MANUAL-FIRMWARE-CI-ARTIFACTS-RESULT-001](product-readiness-matrix.md#manual-firmware-ci-artifacts-result-001--recorded-non-release-artifact-ci-run-for-the-manual-fan-candidates-2026-05-27).
+
 ## Relay / S360-310 release posture
 
 **Current state.** The FanRelay product YAML

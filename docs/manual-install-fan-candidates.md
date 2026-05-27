@@ -269,6 +269,20 @@ expiring CI job** for exactly this handoff:
   and guarded by
   [`tests/test_manual_firmware_artifacts.py`](../tests/test_manual_firmware_artifacts.py).
 
+> **Recorded run (`MANUAL-FIRMWARE-CI-ARTIFACTS-RESULT-001`, 2026-05-27):** this
+> lane has been **run successfully**. A real `workflow_dispatch` run (run ID
+> `26530245113`, `artifact_mode=manual-candidate`, branch `main`, commit
+> `9683d0ea`) **succeeded** on every job and built one ephemeral artifact for
+> each of FanPWM, FanDAC, and FanRelay
+> (`sense360-ceiling-poe-fanpwm-manual-9683d0ea-nonrelease`,
+> `sense360-ceiling-poe-fandac-manual-9683d0ea-nonrelease`,
+> `sense360-ceiling-poe-ventiq-fanrelay-roomiq-manual-9683d0ea-nonrelease`),
+> which **expire 2026-06-03**. This proves the non-release lane can build all
+> three candidates; it published **no** release, enabled **no** WebFlash, wrote
+> **no** `firmware/sources.json` / `manifest.json`, and claims **no**
+> hardware-stable / compliance / RPM / Cloudlift / kit-default readiness. See
+> [Product Readiness Matrix §MANUAL-FIRMWARE-CI-ARTIFACTS-RESULT-001](product-readiness-matrix.md#manual-firmware-ci-artifacts-result-001--recorded-non-release-artifact-ci-run-for-the-manual-fan-candidates-2026-05-27).
+
 A `.bin` from this lane is still a **manual / private artifact** under
 [`MANUAL-FIRMWARE-ARTIFACT-POLICY-001`](product-readiness-matrix.md#manual-firmware-artifact-policy-001--non-release-artifact-rules-for-the-manual-fan-candidates-2026-05-27):
 every per-family caveat above still applies, and it confers no WebFlash /
@@ -284,6 +298,10 @@ release / hardware-stable / compliance readiness.
 - [Product Readiness Matrix §MANUAL-FIRMWARE-CI-ARTIFACTS-001](product-readiness-matrix.md#manual-firmware-ci-artifacts-001--non-release-ci-lane-for-the-manual-fan-candidates-2026-05-27)
   — the non-release, `workflow_dispatch`-only CI lane that produces the
   expiring manual artifacts described above.
+- [Product Readiness Matrix §MANUAL-FIRMWARE-CI-ARTIFACTS-RESULT-001](product-readiness-matrix.md#manual-firmware-ci-artifacts-result-001--recorded-non-release-artifact-ci-run-for-the-manual-fan-candidates-2026-05-27)
+  — the recorded successful `workflow_dispatch` run of that lane (run ID
+  `26530245113`) that proves all three fan candidates build on the non-release
+  lane.
 - [Product Readiness Matrix §MANUAL-FIRMWARE-CANDIDATE-001](product-readiness-matrix.md#manual-firmware-candidate-001--fanrelay--fanpwm--fandac-marked-as-manual--no-webflash-firmware-candidates-2026-05-27)
   — canonical candidate definition, per-family evidence table, and honest
   provenance.
