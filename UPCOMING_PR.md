@@ -24,6 +24,41 @@ mirrored here.
 
 ## Current queue summary
 
+- **SHIP-YAML-FIRMWARE-NOWEBFLASH-001** delivers, via **this PR** on
+  2026-05-27, a **real no-WebFlash / no-release product-YAML correction**
+  (not docs-only): it fixes the broken `Customer usage` remote-package
+  `files:` example path in the FanRelay product YAML
+  [`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml).
+  The example pointed a consumer at the **non-existent** transposed path
+  `products/sense360-ceiling-poe-ventiq-roomiq-fanrelay.yaml`, so anyone
+  copy-pasting the documented `packages: { sense360_firmware: { files: [...] } }`
+  block on the manual / no-WebFlash install path got a 404 remote include.
+  The example now references the product's own real canonical path
+  `products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml` (config-string
+  order `Ceiling-POE-VentIQ-FanRelay-RoomIQ`, matching the filename). A
+  regression guard `RelayProductCustomerUsageExampleTests` is added to
+  [`tests/test_relay_product_readiness.py`](tests/test_relay_product_readiness.py)
+  pinning the customer-usage example to a real, existing product path
+  (verified: it fails on the old transposed path and passes on the fix). A
+  repo-wide scan confirmed this was the **only** product YAML with a broken
+  self-reference; the FanPWM / FanDAC product customer-usage examples already
+  reference their own real paths. Validation: `tests/validate_configs.py`
+  (208 files, 0 failed), `scripts/validate_compile_targets.py
+  --metadata-only`, the PWM / DAC / catalog / compile-target / firmware-matrix
+  / build-gap / webflash-builds / workflow-permission suites, and
+  `python3 -m unittest discover -s tests` (759 tests, OK, +2 new) all green;
+  `esphome config` was not run because ESPHome is not available in this
+  environment (the ESPHome compile runs in the CI compile-only lane). Edits
+  are confined to `products/**`, `tests/**`, and this file; **no**
+  `products/webflash/**`, `config/**`, `components/**`, `include/**`,
+  `firmware/**`, `manifest.json`, `firmware/sources.json`, release artifact,
+  checksum, or `.github/workflows/**` edit; **no** WebFlash wrapper,
+  `webflash_build_matrix` flip, `artifact_name`, or release artifact; **no**
+  WebFlash / import / release / compliance / hardware-stable / kit-default-/
+  recommended claim; **no** RPM claim for PWM; **no** Cloudlift-ready claim
+  for DAC; no `schematic_status` promotion; no fabricated evidence.
+  Release-One + LED preview + FanTRIAC (`blocked` / `HW-005`) unchanged.
+
 - **S360-310-SAFETY-EVIDENCE-REQUEST-001** delivers, via **this PR** on
   2026-05-27, a **docs-only** FanRelay safety / `GPIO3` evidence checklist.
   The FanRelay package / product / full-compile chain is complete

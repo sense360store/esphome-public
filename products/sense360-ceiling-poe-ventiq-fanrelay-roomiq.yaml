@@ -144,7 +144,7 @@
 #       url: https://github.com/sense360store/esphome-public
 #       ref: main
 #       files:
-#         - products/sense360-ceiling-poe-ventiq-roomiq-fanrelay.yaml
+#         - products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml
 #       refresh: 1d
 #
 #   substitutions:

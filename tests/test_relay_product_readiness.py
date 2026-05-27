@@ -798,5 +798,63 @@ class RelayProductCompileOnlyTargetTests(unittest.TestCase):
         self.assertTrue(led.get("webflash_exposure_allowed_now"))
 
 
+class RelayProductCustomerUsageExampleTests(unittest.TestCase):
+    """The ``Customer usage`` example must reference this product's real path.
+
+    The product YAML header carries a copy-paste remote-package
+    ``packages: { sense360_firmware: { files: [...] } }`` example. A
+    consumer pins to this exact ``files:`` path, so it must reference the
+    FanRelay product's own canonical path
+    (``products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml``) and that
+    file must exist. A stale / transposed example path (the config-string
+    order is ``VentIQ-FanRelay-RoomIQ`` but the filename is the same order,
+    not ``VentIQ-RoomIQ-FanRelay``) would hand the customer a 404 remote
+    include on the no-WebFlash manual-install path. This guard pins the
+    example to the real file.
+    """
+
+    # Match the indented ``- products/....yaml`` reference inside the
+    # commented customer-usage ``files:`` example.
+    _FILES_REF = re.compile(r"-\s+(products/[A-Za-z0-9._-]+\.yaml)")
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.text = RELAY_PRODUCT_YAML.read_text()
+
+    def _customer_usage_file_refs(self) -> List[str]:
+        refs: List[str] = []
+        for line in self.text.splitlines():
+            stripped = line.lstrip()
+            if not stripped.startswith("#"):
+                continue
+            match = self._FILES_REF.search(stripped)
+            if match:
+                refs.append(match.group(1))
+        return refs
+
+    def test_customer_usage_example_references_real_product_path(self) -> None:
+        refs = self._customer_usage_file_refs()
+        self.assertIn(
+            RELAY_PRODUCT_REL,
+            refs,
+            f"The customer-usage remote-package example in "
+            f"{RELAY_PRODUCT_REL} must reference the product's own real "
+            f"path {RELAY_PRODUCT_REL!r}; found refs={refs!r}",
+        )
+
+    def test_customer_usage_example_references_only_existing_files(
+        self,
+    ) -> None:
+        for ref in self._customer_usage_file_refs():
+            with self.subTest(ref=ref):
+                self.assertTrue(
+                    (REPO_ROOT / ref).is_file(),
+                    f"customer-usage example in {RELAY_PRODUCT_REL} "
+                    f"references {ref!r}, which does not exist — a "
+                    f"consumer pinning that path gets a broken remote "
+                    f"include on the no-WebFlash manual-install path",
+                )
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
