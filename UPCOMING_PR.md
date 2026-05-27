@@ -24,6 +24,48 @@ mirrored here.
 
 ## Current queue summary
 
+- **SECURITY-ACTION-PINNING-001** delivers, via **this PR** on 2026-05-27,
+  the SHA-pinning follow-up carried forward from `SECURITY-AUDIT-FIX-001`
+  (the one actionable non-hardware lane kept visible by
+  `BLOCKER-BURNDOWN-001` / PR #599, `SEC-2`). All six GitHub Actions
+  referenced under `.github/workflows/` are converted from **mutable major
+  tags** to **immutable commit SHAs** (resolved via `git ls-remote --tags`
+  against each upstream repo), with the resolved upstream version kept in a
+  trailing `# vX.Y.Z` comment for maintainability:
+  `actions/checkout@v4` → `34e114876b0b11c390a56381ad16ebd13914f8d5` (v4.3.1),
+  `actions/setup-python@v5` → `a26af69be951a213d495a4c3e4e4022e16d87065` (v5.6.0),
+  `actions/cache@v4` → `0057852bfaa89a56745cba8c7296529d2fc39830` (v4.3.0),
+  `actions/upload-artifact@v4` → `ea165f8d65b6e75b540449e92b4886f43607fa02` (v4.6.2),
+  `actions/download-artifact@v4` → `d3f86a106a0bac45b974a628896c90dbdf5c8093` (v4.3.0),
+  and third-party `softprops/action-gh-release@v2` →
+  `3bb12739c298aeb8a4eeaf626c5b8d85266b0e65` (v2.6.2). The regression guard
+  [`tests/test_workflow_permissions.py`](tests/test_workflow_permissions.py)
+  is **tightened** from "SHA-pinned **or** documented mutable-tag" to
+  **require** an immutable 40-hex SHA (local `./` composite actions and a
+  now-empty `MUTABLE_TAG_PIN_EXCEPTIONS` allowlist are the only exemptions),
+  and keeps both the exception list and the `SHA_PINNED_ACTION_INVENTORY`
+  honest. The per-action security-pinning table (workflow file · action ·
+  previous ref · pinned SHA · resolves-to · reason · next maintenance
+  action) is the canonical
+  [`docs/workflow-security-hardening.md`](docs/workflow-security-hardening.md)
+  §2; cross-lane copy + `SEC-2` row CLOSED in
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §2E; §5/§7/§10
+  addenda in
+  [`docs/repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md).
+  **Pinning-only — no behaviour change:** no workflow trigger, permission
+  scope, job, run step, environment, secret, or build logic is altered (the
+  `firmware-build-release.yml` `release`-job `contents: write` scope is
+  unchanged); only the action ref changed (SHA instead of tag). Edits are
+  confined to `.github/workflows/**` (pinning only), `tests/**`, `docs/**`,
+  and this file; **no** `packages/**`, `products/**`, `products/webflash/**`,
+  `config/**`, `components/**`, `include/**`, `firmware/**`, `manifest.json`,
+  `firmware/sources.json`, release artifact, checksum, or WebFlash-repo edit;
+  **no** product YAML, WebFlash wrapper, `webflash_build_matrix` flip,
+  `artifact_name`, or release artifact; **no** WebFlash / import / release /
+  compliance / hardware-stable / security clean-bill claim. SHA pins are
+  immutable and do not self-update — refreshing them is a manual maintenance
+  action. Release-One + LED preview unchanged.
+
 - **RELAY-BLOCKER-RECLASSIFY-001** delivers, via **this PR** on 2026-05-27, a
   **docs-only** scope reclassification of the remaining S360-310 / FanRelay
   blockers. The FanRelay package / product / full-compile chain is complete
@@ -234,8 +276,8 @@ mirrored here.
   multi-unit GPIO3 + competent-person sign-off missing); keep the
   `WEBFLASH-{RELAY,DAC,PWM}-LIVE-CHECK-001` / `WEBFLASH-DRIFT-001` re-run
   PRs blocked behind WebFlash access restoration; and the one actionable
-  non-hardware lane is **`SECURITY-ACTION-PINNING-001`** (kept visible
-  and separate — not merged into this PR). **No** product / package /
+  non-hardware lane, **`SECURITY-ACTION-PINNING-001`**, is now **DONE**
+  (delivered 2026-05-27 — see the top queue entry). **No** product / package /
   config / WebFlash / firmware / workflow / release edit; **no** exposure
   / import / release / compliance / hardware-stable / RPM claim; **no**
   fabricated evidence; Release-One + LED preview unchanged.
@@ -799,13 +841,13 @@ mirrored here.
   unallowlisted `write` scope (only the `release` job's `contents: write`
   is allowlisted with a reason), and that every action `uses:` reference
   is SHA-pinned **or** in a documented mutable-major-tag allowlist. **What
-  remains as follow-up:** GitHub Actions are still pinned to **mutable
-  major tags** (`actions/checkout@v4`, `setup-python@v5`, `cache@v4`,
-  `upload/download-artifact@v4`, `softprops/action-gh-release@v2`), **not**
-  immutable commit SHAs; converting them (starting with the third-party
-  `softprops/action-gh-release@v2`) is carried forward as
-  **`SECURITY-ACTION-PINNING-001`**. The six actions are inventoried with
-  the pinning policy in
+  remains as follow-up:** ~~GitHub Actions are still pinned to mutable major
+  tags~~ **RESOLVED by `SECURITY-ACTION-PINNING-001` (2026-05-27):** all six
+  actions (`actions/checkout`, `setup-python`, `cache`,
+  `upload/download-artifact`, third-party `softprops/action-gh-release`) are
+  now pinned to **immutable commit SHAs** (version kept in a trailing
+  comment), and the guard was tightened to **require** SHA pins. The six
+  actions are inventoried with the pinning policy and per-action SHA table in
   [`docs/workflow-security-hardening.md`](docs/workflow-security-hardening.md).
   **No security clean bill of health is claimed** — no Dependabot /
   code-scanning / secret-scanning **alert** feed was available, so no
