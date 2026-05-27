@@ -1214,6 +1214,31 @@ edit; no `webflash_build_matrix` flip; no `artifact_name`; no
 WebFlash exposure / import / release / compliance / hardware-stable claim;
 no fabricated evidence.
 
+**2026-05-27 — `WEBFLASH-LIVE-CHECK-001` (this PR; docs-only live re-check,
+no exposure flip).** Re-attempted the live read of `sense360store/WebFlash`
+this session via three read-only GitHub methods (repo root,
+`scripts/utils/module-availability.js`, and a branch listing) — **all three
+returned access denied** (session scope is `sense360store/esphome-public` +
+`sense360store/esphome` only). The FanRelay WebFlash axes therefore stay
+unchanged: the `WebFlash live repo re-verification` gate stays `NEEDS-TOOLING`,
+the `S360-310` `module-availability.js` classification stays **prior-recorded
+`design-pending`** (2026-05-22, PR #565) — not re-confirmed this session — and
+`WF-IMPORT-RELAY-001` stays blocked behind `RELEASE-RELAY-001`. The
+esphome-public side was re-verified fresh this session and is unchanged
+(catalog `Ceiling-POE-VentIQ-FanRelay-RoomIQ` stays `hardware-pending` /
+`webflash_build_matrix: false` / no `artifact_name`; no Relay wrapper under
+[`products/webflash/`](../products/webflash/)). Full record in
+[`webflash-drift-audit.md` §4.4](webflash-drift-audit.md#44-follow-up-resolution-log-updated-2026-05-27-by-webflash-live-check-001).
+The recommended next Relay live step stays `WEBFLASH-RELAY-LIVE-CHECK-001`
+(or this consolidated re-run) once read access is restored. No
+`packages/**`, `products/**`, `products/webflash/**`, `config/**`,
+`scripts/**`, `.github/workflows/**`, `components/**`, `include/**`,
+`tests/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`,
+release-artifact / checksum / build-info, or `sense360store/WebFlash` edit;
+no `webflash_build_matrix` flip; no `artifact_name`; no `schematic_status`
+promotion; no WebFlash exposure / import / release / compliance /
+hardware-stable claim; no fabricated evidence.
+
 ## PWM / S360-311 WebFlash posture
 
 **Current state.** `S360-311 Sense360 PWM`,
@@ -1513,6 +1538,32 @@ edit; no `webflash_build_matrix` flip; no `artifact_name`; no
 `schematic_status` promotion (`S360-311` stays `cataloged_unverified`); no
 WebFlash exposure / import / release / RPM / compliance / hardware-stable
 claim; no fabricated evidence.
+
+**2026-05-27 — `WEBFLASH-LIVE-CHECK-001` (this PR; docs-only live re-check,
+no exposure flip).** Re-attempted the live read of `sense360store/WebFlash`
+this session via three read-only GitHub methods (repo root,
+`scripts/utils/module-availability.js`, and a branch listing) — **all three
+returned access denied** (session scope is `sense360store/esphome-public` +
+`sense360store/esphome` only). The FanPWM WebFlash axes therefore stay
+unchanged: the `WebFlash live repo re-verification` gate stays `NEEDS-TOOLING`
+and the `S360-311` `module-availability.js` classification stays **not recorded
+in any snapshot** (`WEBFLASH-DRIFT-001` row #16) — it cannot be captured here
+without fabricating evidence. The esphome-public side was re-verified fresh
+this session and is unchanged (catalog `Ceiling-POE-FanPWM` stays
+`hardware-pending` / `webflash_build_matrix: false` / no `artifact_name`; no
+FanPWM wrapper under [`products/webflash/`](../products/webflash/); no RPM
+added or claimed). Full record in
+[`webflash-drift-audit.md` §4.4](webflash-drift-audit.md#44-follow-up-resolution-log-updated-2026-05-27-by-webflash-live-check-001).
+The recommended next PWM live step stays `WEBFLASH-PWM-LIVE-CHECK-001` (or this
+consolidated re-run) once read access is restored, with `S360-311-BENCH-001`
+as the substantive evidence gate. No `packages/**`, `products/**`,
+`products/webflash/**`, `config/**`, `scripts/**`, `.github/workflows/**`,
+`components/**`, `include/**`, `tests/**`, `firmware/**`, `manifest.json`,
+`firmware/sources.json`, release-artifact / checksum / build-info, or
+`sense360store/WebFlash` edit; no `webflash_build_matrix` flip; no
+`artifact_name`; no `schematic_status` promotion; no WebFlash exposure /
+import / release / RPM / compliance / hardware-stable claim; no fabricated
+evidence.
 
 ## DAC / S360-312 WebFlash posture
 
@@ -1894,6 +1945,32 @@ edit; no `webflash_build_matrix` flip; no `artifact_name`; no
 `schematic_status` promotion (`S360-312` stays `cataloged_unverified`); no
 WebFlash exposure / import / release / compliance / hardware-stable /
 Cloudlift-ready claim; no fabricated evidence.
+
+**2026-05-27 — `WEBFLASH-LIVE-CHECK-001` (this PR; docs-only live re-check,
+no exposure flip).** Re-attempted the live read of `sense360store/WebFlash`
+this session via three read-only GitHub methods (repo root,
+`scripts/utils/module-availability.js`, and a branch listing) — **all three
+returned access denied** (session scope is `sense360store/esphome-public` +
+`sense360store/esphome` only). The FanDAC WebFlash axes therefore stay
+unchanged: the `WebFlash live repo re-verification` gate stays `NEEDS-TOOLING`
+and the `S360-312` `module-availability.js` classification stays **not recorded
+in any snapshot** (`WEBFLASH-DRIFT-001` row #17) — it cannot be captured here
+without fabricating evidence. The esphome-public side was re-verified fresh
+this session and is unchanged (catalog `Ceiling-POE-FanDAC` stays
+`hardware-pending` / `webflash_build_matrix: false` / no `artifact_name`; no
+FanDAC wrapper under [`products/webflash/`](../products/webflash/); the
+`fandac_conflicts_with_airiq: true` mutex is unchanged). Full record in
+[`webflash-drift-audit.md` §4.4](webflash-drift-audit.md#44-follow-up-resolution-log-updated-2026-05-27-by-webflash-live-check-001).
+The recommended next DAC live step stays `WEBFLASH-DAC-LIVE-CHECK-001` (or this
+consolidated re-run) once read access is restored, with the Cloudlift S12
+bench as the substantive evidence gate. No `packages/**`, `products/**`,
+`products/webflash/**`, `config/**`, `scripts/**`, `.github/workflows/**`,
+`components/**`, `include/**`, `tests/**`, `firmware/**`, `manifest.json`,
+`firmware/sources.json`, release-artifact / checksum / build-info, or
+`sense360store/WebFlash` edit; no `webflash_build_matrix` flip; no
+`artifact_name`; no `schematic_status` promotion; no WebFlash exposure /
+import / release / compliance / hardware-stable / Cloudlift-ready claim; no
+fabricated evidence.
 
 ## TRIAC / S360-320 WebFlash posture
 

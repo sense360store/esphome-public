@@ -43,7 +43,7 @@ mirrored here.
   later **`S360-310-SAFETY-BENCH-RESULT-001`** is small and evidence-backed.
   Canonical checklist in
   [`docs/hardware/s360-310-r4-relay.md`](docs/hardware/s360-310-r4-relay.md)
-  §S360-310-SAFETY-EVIDENCE-REQUEST-001; cross-lane copy as new §5D + §5
+  §S360-310-SAFETY-EVIDENCE-REQUEST-001; cross-lane copy as new §5E + §5
   pointer in [`docs/blocker-burndown.md`](docs/blocker-burndown.md); dated
   §FanRelay addendum in
   [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md). A
@@ -70,6 +70,99 @@ mirrored here.
   recorded; no `schematic_status` promotion (`S360-310` stays
   `cataloged_unverified`); no fabricated evidence. Release-One + LED preview +
   FanTRIAC (`blocked` / `HW-005`) unchanged.
+
+- **S360-311-CURRENT-THERMAL-EVIDENCE-REQUEST-001** delivers, via **this
+  PR** on 2026-05-27, a **docs-only** FanPWM **current / thermal
+  evidence-request**: it turns the still-open **measured** FanPWM rows
+  (`PWM-6` per-channel + aggregate current, `PWM-13` thermal) — which
+  `PWM-BLOCKER-RECLASSIFY-001` (PR #602) scoped as gating **only** WebFlash
+  exposure / release / hardware-stable / the production electrical-margin
+  claim, **not** clean repo / YAML / firmware work — into one
+  **operator-answerable fill-in checklist** (board rev; fan model + label
+  current rating; supply voltage + **measured supply current**;
+  **per-channel current at full speed**; **aggregate current with all four
+  channels active**; **inrush / startup current** if measurable; **MT3608
+  input / output current or measured ceiling**; **thermal method** — IR
+  thermometer / thermal camera / thermocouple / qualitative only; **test
+  duration**; **ambient temperature**; **hottest component / location**;
+  **measured max temperature**; whether all four channels ran at high / full
+  duty; whether any **voltage drop, instability, or reset** occurred;
+  **`TachIO`/`GPIO16` observation only if tested — no RPM claim unless
+  separately proven**; photos / videos / logs if available; operator / date /
+  source / provenance) plus a **pass/fail evidence contract** (what closes
+  per-channel current / aggregate current / MT3608 ceiling / electrical
+  margin / measured thermal, and what stays out-of-scope: RPM, WebFlash
+  exposure, release artifact, import readiness, hardware-stable promotion,
+  compliance) in
+  [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md)
+  §S360-311-CURRENT-THERMAL-EVIDENCE-REQUEST-001 (canonical),
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §5D + §4 pointer,
+  and a dated addendum in
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+  §FanPWM / S360-311. **Drive re-search (this session):** searched
+  `S360-311` / `S360-311-R4` / `FanPWM` / `PWM` / `current` / `thermal` /
+  `inrush` / `MT3608` / `bench` / `fan` and spreadsheets / PDFs / photos and
+  found **no measurement artifact** — only **design / CAD** material (the
+  `12vFan_PWM_PulseCounter` set incl. `PWM.png`, the canonically-named
+  `S360-311-R4` Drive folder owned by `kanyugistash@gmail.com` created
+  2026-05-16 with KiCad sources / gerbers / CPL / STEP / BOM / schematic PDF /
+  renders, and the unchanged `Sense360_R4_Tracker`), recorded for provenance
+  only, committing no Drive file. **Recommended next PWM PR:**
+  `S360-311-CURRENT-THERMAL-001` — **gated until the operator supplies the
+  measured rows** (no measured-current / thermal row can close in a docs-only
+  pass); WebFlash wrapper / build PRs (`WEBFLASH-PWM-001` / `RELEASE-PWM-001`
+  / `WF-IMPORT-PWM-001`) stay blocked, and `WEBFLASH-PWM-LIVE-CHECK-001`
+  stays queued behind WebFlash access. Edits are confined to `docs/**` and
+  this file; **no** `packages/**`, `products/**`, `products/webflash/**`,
+  `config/**`, `components/**`, `include/**`, `firmware/**`, `manifest.json`,
+  `firmware/sources.json`, release artifact, checksum, `.github/workflows/**`,
+  test, or `sense360store/WebFlash` edit; **no** product YAML, WebFlash
+  wrapper, `webflash_build_matrix` flip, `artifact_name`, or release
+  artifact; **no** measured-current / measured-thermal / RPM / WebFlash /
+  import / release / compliance / hardware-stable claim; no `schematic_status`
+  promotion (`S360-311` stays `cataloged_unverified`); no fabricated
+  evidence. Release-One + LED preview unchanged.
+
+- **WEBFLASH-LIVE-CHECK-001** delivers, via **this PR** on 2026-05-27, a
+  **docs-only** consolidated live re-check of `sense360store/WebFlash` — the
+  re-run that `WEBFLASH-DRIFT-001` rows #4/#5/#11/#16/#17 and the per-family
+  `WEBFLASH-{RELAY,DAC,PWM}-LIVE-CHECK-001` items all queue. The live read was
+  re-attempted this session via three read-only GitHub methods (repo root,
+  `scripts/utils/module-availability.js`, and a branch listing) and **all three
+  returned access denied** — the session GitHub scope is still
+  `sense360store/esphome-public` + `sense360store/esphome` only. So the WebFlash
+  side **could not be re-verified live**: `S360-310` stays prior-recorded
+  `design-pending` (2026-05-22, PR #565), `S360-311` / `S360-312` stay **not
+  recorded in any `module-availability.js` snapshot** (drift #16/#17), and the
+  `artifact_pattern` source / grammar / channel-list parity axes stay
+  `NEEDS-TOOLING`. The esphome-public side was re-verified fresh this session
+  and is **unchanged / no drift**: 2 WebFlash builds
+  (`Ceiling-POE-VentIQ-RoomIQ` stable, `Ceiling-POE-VentIQ-RoomIQ-LED`
+  preview); `Ceiling-POE-VentIQ-FanRelay-RoomIQ` / `Ceiling-POE-FanDAC` /
+  `Ceiling-POE-FanPWM` all `hardware-pending` / `webflash_build_matrix: false` /
+  no `artifact_name`; the 3 `products/webflash/` wrappers (RoomIQ, RoomIQ-LED,
+  blocked FanTRIAC reference); grammar / channels / mutex unchanged; no
+  `firmware/sources.json` / `manifest.json` (WebFlash-owned). Updates
+  [`docs/webflash-drift-audit.md`](docs/webflash-drift-audit.md) §4.4
+  (primary record),
+  [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md)
+  (Relay / PWM / DAC posture),
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md)
+  (Relay / PWM / DAC release posture),
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §2D, and this file.
+  Edits are confined to `docs/**` and this file; **no** `packages/**`,
+  `products/**`, `products/webflash/**`, `config/**` (incl.
+  `config/webflash-builds.json`), `components/**`, `include/**`, `firmware/**`,
+  `manifest.json`, `firmware/sources.json`, release artifact, checksum,
+  `.github/workflows/**`, test, or `sense360store/WebFlash` edit; **no** product
+  YAML, WebFlash wrapper, `webflash_build_matrix` flip, `artifact_name`, or
+  release artifact; **no** WebFlash exposure / import / release / compliance /
+  hardware-stable / RPM / Cloudlift-ready / kit-default claim; no
+  `schematic_status` promotion; no blocker moved; no fabricated evidence. The
+  only action is to **re-attempt** the live read and record the (still-denied)
+  outcome; the remediation stays operator/tooling (grant `sense360store/WebFlash`
+  read access, or supply an operator-attested snapshot), then re-run. Release-One
+  + LED preview unchanged.
 
 - **S360-312-BENCH-EVIDENCE-REQUEST-001** delivers, via **this PR** on
   2026-05-27, a **docs-only** FanDAC bench **evidence-request**: it turns
@@ -7075,7 +7168,68 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       `schematic_status` promotion (`S360-312` stays `cataloged_unverified`);
       no fabricated Drive / operator evidence. Release-One + LED preview +
       FanTRIAC (`blocked` / `HW-005`) unchanged.
-38. **S360-310-SAFETY-EVIDENCE-REQUEST-001 — Define FanRelay safety /
+38. **S360-311-CURRENT-THERMAL-EVIDENCE-REQUEST-001 — Define FanPWM current
+    & thermal evidence checklist**
+    - Status: **DONE — docs-only (2026-05-27; this PR); no exposure flip,
+      no behaviour change**
+    - Purpose: Turn the still-open **measured** FanPWM rows (`PWM-6`
+      per-channel + aggregate current, `PWM-13` thermal) — scoped by
+      `PWM-BLOCKER-RECLASSIFY-001` (PR #602) as gating **only** WebFlash /
+      release / hardware-stable / electrical-margin, not repo / package /
+      product / config work — into a precise operator-answerable checklist
+      and pass/fail evidence contract so a later `S360-311-CURRENT-THERMAL-001`
+      is small and evidence-backed. Canonical checklist + contract in
+      [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md)
+      §S360-311-CURRENT-THERMAL-EVIDENCE-REQUEST-001; cross-lane copy in
+      [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §5D + §4
+      pointer; dated addendum in
+      [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+      §FanPWM / S360-311.
+    - Checklist (operator-answerable): board revision tested; fan model +
+      label current rating; supply voltage + **measured supply current**;
+      **per-channel current at full speed**; **aggregate current with all
+      four channels active**; **inrush / startup current** if measurable;
+      **MT3608 input / output current or measured ceiling**; **thermal
+      method** (IR thermometer / thermal camera / thermocouple / qualitative
+      only); **test duration**; **ambient temperature**; **hottest component
+      / location**; **measured max temperature**; whether all four channels
+      ran at high / full duty; whether any **voltage drop, instability, or
+      reset** occurred; **`TachIO`/`GPIO16` observation only if tested — no
+      RPM claim unless separately proven**; photos / videos / logs if
+      available; operator / date / source / provenance.
+    - Evidence contract: defines what PASS-grade evidence closes per-channel
+      current (`PWM-6`), aggregate current (`PWM-6`), MT3608 ceiling
+      (`PWM-6`), electrical-margin observation (`PWM-6`), and measured
+      thermal (`PWM-13`), and what stays out-of-scope — RPM support, WebFlash
+      exposure, release artifact, import readiness, hardware-stable
+      promotion, and compliance approval.
+    - Drive re-search (this session): searched `S360-311` / `S360-311-R4` /
+      `FanPWM` / `PWM` / `current` / `thermal` / `inrush` / `MT3608` /
+      `bench` / `fan` and spreadsheets / PDFs / photos — **no measurement
+      artifact found**, only design / CAD material (the
+      `12vFan_PWM_PulseCounter` set incl. `PWM.png`, the canonically-named
+      `S360-311-R4` Drive folder owned by `kanyugistash@gmail.com` created
+      2026-05-16 with KiCad sources / gerbers / CPL / STEP / BOM / schematic
+      PDF / renders, and the unchanged `Sense360_R4_Tracker`), recorded for
+      provenance only and committing no Drive file.
+    - Recommends next: **`S360-311-CURRENT-THERMAL-001`** — gated until the
+      operator supplies the measured rows; no measured-current / thermal row
+      can close in a docs-only pass. WebFlash wrapper / build PRs
+      (`WEBFLASH-PWM-001` / `RELEASE-PWM-001` / `WF-IMPORT-PWM-001`) stay
+      blocked; `WEBFLASH-PWM-LIVE-CHECK-001` stays queued behind WebFlash
+      access restoration.
+    - Guardrails: no `packages/**`, `products/**`, `products/webflash/**`,
+      `config/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`,
+      release-artifact, checksum, build-info, `tests/**`, `scripts/**`,
+      `.github/workflows/**`, `components/**`, `include/**`, or
+      `sense360store/WebFlash` edit; no FanPWM behaviour change; no product
+      YAML; no WebFlash wrapper; no `webflash_build_matrix` flip; no
+      `artifact_name`; no release artifact; no measured-current /
+      measured-thermal / RPM / WebFlash / import / release / compliance /
+      hardware-stable claim; no `schematic_status` promotion (`S360-311`
+      stays `cataloged_unverified`); no fabricated evidence. Release-One +
+      LED preview + FanTRIAC (`blocked` / `HW-005`) unchanged.
+39. **S360-310-SAFETY-EVIDENCE-REQUEST-001 — Define FanRelay safety /
     `GPIO3` evidence checklist**
     - Status: **DONE — docs-only (2026-05-27; this PR); no exposure flip,
       no behaviour change**
@@ -7088,7 +7242,7 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       `S360-310-SAFETY-BENCH-RESULT-001` is small and evidence-backed.
       Canonical checklist in
       [`docs/hardware/s360-310-r4-relay.md`](docs/hardware/s360-310-r4-relay.md)
-      §S360-310-SAFETY-EVIDENCE-REQUEST-001; cross-lane copy as new §5D +
+      §S360-310-SAFETY-EVIDENCE-REQUEST-001; cross-lane copy as new §5E +
       §5 pointer in [`docs/blocker-burndown.md`](docs/blocker-burndown.md);
       dated §FanRelay addendum in
       [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md).
@@ -7161,6 +7315,13 @@ visible. Do not implement them from this repo.
   `WF-IMPORT-RELAY-001` stays **blocked** behind `RELEASE-RELAY-001`;
   the recommended next esphome-public step is
   `WEBFLASH-RELAY-LIVE-CHECK-001` to close the live-verification axis.
+  **2026-05-27 — `WEBFLASH-LIVE-CHECK-001` (this PR, docs-only): the
+  consolidated live re-run was performed and `sense360store/WebFlash`
+  access was again denied** (three read-only methods: repo root,
+  `scripts/utils/module-availability.js`, branch listing; session scope is
+  `esphome-public` + `esphome` only), so the FanRelay WebFlash facts stay
+  prior-recorded (2026-05-22, PR #565) and `S360-310` stays `design-pending`,
+  not re-confirmed. The live-verification axis stays open.
 - **WF-IMPORT-PWM-001** — WebFlash-side import of the PWM product,
   **blocked** behind upstream `RELEASE-PWM-001`. **2026-05-26 —
   `WEBFLASH-PWM-001-READINESS` (this PR, docs-only): the WebFlash side
@@ -7176,6 +7337,13 @@ visible. Do not implement them from this repo.
   record the `S360-311` module-availability classification, with
   `S360-311-BENCH-001` (PWM polarity + current / thermal envelope +
   product bench) as the substantive evidence gate.
+  **2026-05-27 — `WEBFLASH-LIVE-CHECK-001` (this PR, docs-only): the
+  consolidated live re-run was performed and `sense360store/WebFlash`
+  access was again denied** (three read-only methods; session scope is
+  `esphome-public` + `esphome` only), so `S360-311` stays **not recorded**
+  in any `module-availability.js` snapshot (drift #16) and cannot be
+  captured. `WF-IMPORT-PWM-001` stays blocked behind `RELEASE-PWM-001`; the
+  live-verification axis stays open.
 - **WF-IMPORT-DAC-001** — WebFlash-side import of the DAC product,
   **blocked** behind upstream `RELEASE-DAC-001`. **2026-05-26 —
   `WEBFLASH-DAC-001-READINESS` (this PR, docs-only): the WebFlash side
@@ -7189,6 +7357,13 @@ visible. Do not implement them from this repo.
   behind `RELEASE-DAC-001`; the recommended next esphome-public step is
   `WEBFLASH-DAC-LIVE-CHECK-001` to close the live-verification axis and
   record the `S360-312` module-availability classification.
+  **2026-05-27 — `WEBFLASH-LIVE-CHECK-001` (this PR, docs-only): the
+  consolidated live re-run was performed and `sense360store/WebFlash`
+  access was again denied** (three read-only methods; session scope is
+  `esphome-public` + `esphome` only), so `S360-312` stays **not recorded**
+  in any `module-availability.js` snapshot (drift #17) and cannot be
+  captured. `WF-IMPORT-DAC-001` stays blocked behind `RELEASE-DAC-001`; the
+  live-verification axis stays open.
 - **WF-IMPORT-POWER-400-001** — WebFlash-side import of the S360-400 power
   product
 - **WF-IMPORT-POE-410-001** — WebFlash-side import of the S360-410 PoE
@@ -7203,6 +7378,39 @@ visible. Do not implement them from this repo.
 
 ## Recently uploaded evidence
 
+- **2026-05-27 — `S360-311-CURRENT-THERMAL-EVIDENCE-REQUEST-001` Drive
+  re-search: no measured FanPWM current / thermal evidence (design / CAD
+  only; provenance recorded, nothing committed).** Searched Google Drive
+  for `S360-311`, `S360-311-R4`, `FanPWM`, `PWM`, `current`, `thermal`,
+  `inrush`, `MT3608`, `bench`, `fan`, and spreadsheets / PDFs / photos.
+  **No measurement artifact exists** — no per-channel or aggregate current
+  log, no measured supply current, no inrush / locked-rotor capture, no
+  MT3608 output-current ceiling note, and no measured thermal / IR /
+  thermocouple reading. The only FanPWM-bearing material is **design /
+  CAD**: the already-recorded `12vFan_PWM_PulseCounter` set (schematic PDF,
+  `.xlsx` BOM, gerbers, CPL, STEP, KiCad sources, renders incl. `PWM.png`);
+  the canonically-named `S360-311-R4` Drive folder (owner
+  `kanyugistash@gmail.com`, folder created 2026-05-16) holding
+  `S360-311-R4.kicad_sch` / `.kicad_pcb` / `.kicad_pro`,
+  `S360-311-R4.step`, `S360-311-R4_GERBERS.zip`,
+  `S360-311-R4_positions.csv` (CPL), `S360-311-R4.pdf` (schematic),
+  `S360-311-R4_BOM.xlsx`, and the board renders; and the unchanged
+  `Sense360_R4_Tracker` (2026-05-18). This is the same artifact class as
+  the committed
+  [`docs/hardware/schematics/S360-311-R4.pdf`](docs/hardware/schematics/S360-311-R4.pdf),
+  is recorded for **provenance only**, closes **no** measurement blocker,
+  and **no Drive file is committed by this PR**. The still-open measured
+  FanPWM rows (`PWM-6` per-channel + aggregate current, `PWM-13` thermal)
+  are converted into the operator checklist + pass/fail evidence contract
+  in
+  [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md)
+  §S360-311-CURRENT-THERMAL-EVIDENCE-REQUEST-001 and
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §5D.
+  `S360-311-CURRENT-THERMAL-001` stays **gated** until the operator
+  supplies the measured rows. No claim of measured FanPWM current /
+  thermal, RPM support, WebFlash / import / release readiness, compliance
+  clearance, or hardware-stable readiness; `S360-311` stays
+  `cataloged_unverified`; no fabricated evidence.
 - **2026-05-27 — `S360-312-BENCH-EVIDENCE-REQUEST-001` Drive re-search:
   no new FanDAC bench evidence (design / CAD only; provenance recorded,
   nothing committed).** Searched Google Drive for `S360-312`,
