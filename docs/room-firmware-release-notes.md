@@ -173,6 +173,86 @@ Tests: [`tests/test_plan_room_release_notes.py`](../tests/test_plan_room_release
 
 ---
 
+## RELEASE-CI-DRYRUN-001 — recorded dry-run of the release pipeline (2026-05-27)
+
+RELEASE-CI-DRYRUN-001 **ran and recorded** a release-candidate dry-run for the
+currently release-eligible room firmware builds. It is a **docs-only record**:
+it publishes **no** GitHub Release, builds / attaches **no** firmware artifact,
+writes **no** [`firmware/sources.json`](../firmware/sources.json) or
+`manifest.json`, commits **no** `.bin` / checksum, edits **no**
+`products/webflash/**`, and adds **no** fan `artifact_name` or
+`webflash_build_matrix` flip.
+
+### What was run
+
+All commands were run read-only against the repo HEAD
+(`cb15cffd6018645c3004bdbaf0f84edb3a8a6eba` at execution time; release CI pins
+notes to `${{ github.sha }}` and the planner otherwise resolves the current
+`git HEAD`):
+
+| Command | Result |
+|---|---|
+| `python3 scripts/plan_room_release_notes.py` | OK — emitted a 2-build plan (no file written) |
+| `python3 tests/test_plan_room_release_notes.py` | OK — 20 tests passed |
+| `python3 tests/validate_configs.py` | OK — 208 files checked, 0 failed |
+| `python3 scripts/validate_compile_targets.py --metadata-only` | OK — 12 compile-only targets, metadata valid |
+| `python3 tests/validate_webflash_builds.py` | OK — 2 build entries checked, 0 failed |
+| `python3 -m unittest discover -s tests -p "test_*.py"` | OK — 871 tests, 3 skipped |
+
+### What the dry-run confirmed
+
+- **Stable RoomIQ is included** — `Ceiling-POE-VentIQ-RoomIQ` (`stable`,
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`); release-notes draft
+  validates `PASSED (structural, channel=stable)`.
+- **Preview LED is included** — `Ceiling-POE-VentIQ-RoomIQ-LED` (`preview`,
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`); draft validates
+  `PASSED (structural, channel=preview)`.
+- **FanRelay / FanPWM / FanDAC are excluded** — none appear in
+  `config/webflash-builds.json`; the planner's fan guardrail passed and they are
+  listed under "Explicitly excluded — not release artifacts".
+- **FanTRIAC is excluded / blocked** — no release build; carried in the stable
+  config's catalog `blocked_modules` (HW-005) and reported as an excluded
+  Known Issue in both draft bodies.
+- **Required release-notes fields are present** for each build — version/tag
+  placeholder, channel, config string, canonical + WebFlash-wrapper YAML path,
+  artifact name, commit SHA, ESPHome version (`2026.4.5`), tag/commit-pinned
+  source YAML URL, `external_components` pin status, validation summary, and
+  catalog-derived known limitations.
+- **No release side effects** — no GitHub Release; no
+  `firmware/sources.json` / `manifest.json` update; no `.bin` / checksum
+  committed (`git ls-files '*.bin'` is empty; there is no `firmware/`
+  directory).
+
+### Release workflow dry-run mode: none exists — next input defined
+
+[`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
+has **no explicit dry-run mode**. Its `workflow_dispatch` trigger compiles the
+matrix and uploads ephemeral CI artifacts via `actions/upload-artifact`, but
+the `release` job — which generates `checksums-*.txt`, builds `manifest.json`,
+runs the release-notes / asset-naming guards, and attaches assets via
+`softprops/action-gh-release` — is gated `if: github.event_name == 'release'`.
+So a `workflow_dispatch` run never publishes, but it also **builds binaries**
+and never exercises the release-notes / asset guards; it is a build-only path,
+not a release-candidate dry-run.
+
+The exact **next workflow input needed** (defined here, **not** implemented by
+this PR) is a boolean `workflow_dispatch` input `dry_run` (default `true`) that:
+
+1. relaxes the `release` job gate to
+   `if: github.event_name == 'release' || inputs.dry_run == 'true'`;
+2. runs that job's **validation** steps — release-notes body validation
+   (`scripts/validate-webflash-release-notes.py`), asset-naming check
+   (`scripts/check-webflash-release-assets.py`), and checksum + `manifest.json`
+   **generation to the job log only**; and
+3. **skips** the `Upload release assets` (`softprops/action-gh-release`) step
+   and writes nothing to the repo, by guarding the publish step with
+   `if: github.event_name == 'release' && inputs.dry_run != 'true'`.
+
+Until that input lands, `scripts/plan_room_release_notes.py` is the supported
+offline release-candidate dry-run and is the artifact this section records.
+
+---
+
 ## Cross-references
 
 - Room firmware release inventory: [`docs/room-firmware-release-matrix.md`](room-firmware-release-matrix.md)

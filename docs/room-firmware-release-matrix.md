@@ -293,6 +293,31 @@ This is recorded for orientation only; **no** action is taken here.
 
 ---
 
+## RELEASE-CI-DRYRUN-001 — dry-run confirmation (2026-05-27)
+
+RELEASE-CI-DRYRUN-001 ran the release-candidate dry-run over this inventory and
+recorded the result (see
+[`docs/room-firmware-release-notes.md` §RELEASE-CI-DRYRUN-001](room-firmware-release-notes.md#release-ci-dryrun-001--recorded-dry-run-of-the-release-pipeline-2026-05-27)).
+It **changes no row** in the release matrix table above and publishes nothing.
+The dry-run confirmed, against the source-of-truth files:
+
+| Check | Result |
+|---|---|
+| Stable RoomIQ in the release matrix | included — `Ceiling-POE-VentIQ-RoomIQ` (`stable`), notes validate `PASSED` |
+| Preview LED in the release matrix | included — `Ceiling-POE-VentIQ-RoomIQ-LED` (`preview`), notes validate `PASSED` |
+| FanRelay / FanPWM / FanDAC | excluded — not in `config/webflash-builds.json`; manual-candidate-only |
+| FanTRIAC | excluded / blocked (HW-005); no release build of any kind |
+| GitHub Release / `.bin` / checksum / `firmware/sources.json` / `manifest.json` | none produced or committed |
+| `firmware-build-release.yml` dry-run mode | none exists; next input defined in the release-notes doc |
+
+Validation re-run clean: `plan_room_release_notes.py`,
+`test_plan_room_release_notes.py`, `validate_configs.py` (208 files),
+`validate_compile_targets.py --metadata-only` (12 targets),
+`validate_webflash_builds.py` (2 builds), and
+`python3 -m unittest discover -s tests -p "test_*.py"` (871 tests, 3 skipped).
+
+---
+
 ## Cross-references
 
 - Shipping configuration: [`docs/release-one.md`](release-one.md)

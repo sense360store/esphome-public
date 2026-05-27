@@ -24,6 +24,43 @@ mirrored here.
 
 ## Current queue summary
 
+- **RELEASE-CI-DRYRUN-001** delivers, via **this PR** on 2026-05-27, a
+  **docs-only** record of a release-candidate **dry-run** of the room firmware
+  release pipeline for the two release-eligible builds confirmed by
+  `RELEASE-PIPELINE-ROOM-MATRIX-001` / PR #621 — `Ceiling-POE-VentIQ-RoomIQ`
+  (`stable`) and `Ceiling-POE-VentIQ-RoomIQ-LED` (`preview`) — building on the
+  release-notes dry-run planner added by `RELEASE-NOTES-PIPELINE-001` / PR #623.
+  **Run (read-only, against HEAD `cb15cffd6018645c3004bdbaf0f84edb3a8a6eba`):**
+  `scripts/plan_room_release_notes.py` (2-build plan, no file written),
+  `tests/test_plan_room_release_notes.py` (20 tests), `tests/validate_configs.py`
+  (208 files), `scripts/validate_compile_targets.py --metadata-only` (12
+  targets), `tests/validate_webflash_builds.py` (2 builds), and
+  `python3 -m unittest discover -s tests -p "test_*.py"` (871 tests, 3 skipped) —
+  all passed. **Confirmed:** stable RoomIQ included, preview LED included,
+  FanRelay / FanPWM / FanDAC excluded (manual-candidate-only), FanTRIAC excluded
+  / blocked (HW-005); each build's notes record version/tag, channel, config
+  string, YAML path, artifact name, commit SHA, ESPHome version (`2026.4.5`),
+  pinned source YAML URL, `external_components` pin, validation summary
+  (`PASSED`), and catalog-derived known limitations. **Workflow finding:**
+  [`.github/workflows/firmware-build-release.yml`](.github/workflows/firmware-build-release.yml)
+  has **no** explicit dry-run mode (its `release` job is gated
+  `if: github.event_name == 'release'`); the exact next `dry_run`
+  `workflow_dispatch` input is **defined, not implemented**, in
+  [`docs/room-firmware-release-notes.md`](docs/room-firmware-release-notes.md).
+  **Scope:** a new §RELEASE-CI-DRYRUN-001 in
+  [`docs/room-firmware-release-notes.md`](docs/room-firmware-release-notes.md), a
+  dry-run confirmation section in
+  [`docs/room-firmware-release-matrix.md`](docs/room-firmware-release-matrix.md),
+  an update note in
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md)
+  (changes **no** candidate-release-table cell), and this file. **Does not**
+  publish a GitHub Release; build / attach any firmware artifact; commit any
+  `.bin` / checksum; edit `products/**` or `products/webflash/**`; add a fan
+  `artifact_name`; flip any fan `webflash_build_matrix`; write
+  `firmware/sources.json` or `manifest.json`; include FanRelay / FanPWM / FanDAC
+  in release notes; or claim fan release / WebFlash / hardware-stable /
+  compliance readiness. **No** fabricated evidence.
+
 - **MANUAL-FIRMWARE-CI-ARTIFACTS-RESULT-001** delivers, via **this PR** on
   2026-05-27, a **docs-only** record of the **actual successful run** of the
   non-release CI lane added by `MANUAL-FIRMWARE-CI-ARTIFACTS-001` / PR #620. A
