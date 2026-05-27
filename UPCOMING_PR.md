@@ -24,6 +24,36 @@ mirrored here.
 
 ## Current queue summary
 
+- **REPO-CLEANUP-NOWEBFLASH-001** delivers, via **this PR** on 2026-05-27, a
+  **docs-only** cleanup recommended by `BLOCKER-STATUS-FINALIZE-001`
+  (PR #606). The clean, no-WebFlash repo / YAML / firmware path is now
+  finalized as **unblocked** for FanPWM / FanDAC / FanRelay, so this PR
+  clears the residual stale **current-state** references that still implied
+  the opposite. The first pass found those references were confined to
+  [`docs/repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md):
+  its §10 audit-summary had accreted **duplicate** Roadmap + Security
+  bullets (one of each stale — a Roadmap bullet still read "PWM is the next
+  blocker → `PWM-BLOCKER-REMOVAL-001`", and a Security bullet predated the
+  `SECURITY-ACTION-PINNING-001` SHA-pinning closure), and the §4
+  roadmap-coverage intro still called PWM "the next hardware blocker". This
+  PR de-duplicates those bullets down to one current bullet each and
+  refreshes the §4 intro to the finalized clean-path-unblocked state.
+  **`config/**` / YAML / firmware / packages were inspected and found
+  current** — the old `CORE-ABSTRACT-BUS-001B-not-landed` compile-only
+  candidate label was already refreshed, and the surviving `*-not-landed`
+  strings live only in correctly-preserved **historical** changelog rows
+  (e.g. `docs/hardware/s360-311-r4-pwm.md`, this file) — so **no** config /
+  YAML / firmware / package edit was warranted and **none was fabricated**.
+  Edits are confined to `docs/**` and this file; **no** `packages/**`,
+  `products/**`, `products/webflash/**`, `config/**`, `components/**`,
+  `include/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`,
+  release artifact, checksum, `.github/workflows/**`, test, or
+  `sense360store/WebFlash` edit; **no** product YAML, WebFlash wrapper,
+  `webflash_build_matrix` flip, `artifact_name`, or release artifact; **no**
+  WebFlash / import / release / compliance / hardware-stable / RPM /
+  Cloudlift-ready / kit-default claim; no `schematic_status` promotion; no
+  blocker moved; no fabricated evidence. Release-One + LED preview unchanged.
+
 - **BLOCKER-STATUS-FINALIZE-001** delivers, via **this PR** on 2026-05-27, a
   **docs-only** finalization of the blocker-removal chain
   (`BLOCKER-BURNDOWN-001` / PR #599 → `S360-311-BENCH-EVIDENCE-REQUEST-001` /
@@ -5262,17 +5292,23 @@ this table; see **Cross-repo dependencies**. The only `WF-`-prefixed entry
 that appears below is **WF-TRIAC-001**, which is the in-repo
 wrapper/catalog/build slice (not a WebFlash-runtime import).
 
-> **Recommended next clean implementation PR (`BLOCKER-STATUS-FINALIZE-001`,
-> 2026-05-27): `REPO-CLEANUP-NOWEBFLASH-001`.** Now that the clean,
-> no-WebFlash repo / YAML / firmware path is finalized as **unblocked** for
-> FanPWM / FanDAC / FanRelay (see the Current queue summary bullet and
-> [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §3A), the next clean
-> PR should be scoped to **(a)** clearing stale docs / config references that
-> still imply clean repo / YAML / firmware work is blocked and **(b)**
-> no-WebFlash YAML / firmware cleanup only. It must make **no** WebFlash /
+> **`REPO-CLEANUP-NOWEBFLASH-001` — delivered docs-only via this PR
+> (2026-05-27), recommended by `BLOCKER-STATUS-FINALIZE-001` / PR #606.**
+> Now that the clean, no-WebFlash repo / YAML / firmware path is finalized as
+> **unblocked** for FanPWM / FanDAC / FanRelay (see the Current queue summary
+> bullet and [`docs/blocker-burndown.md`](docs/blocker-burndown.md) §3A), the
+> first cleanup pass found the only genuinely stale **current-state**
+> references were the duplicated/stale §10 + §4 roadmap / security lines in
+> [`docs/repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md),
+> so the PR is **docs-only**: it de-duplicates those bullets and refreshes the
+> intro to the finalized state. **`config/**` / YAML / firmware / packages
+> were inspected and found current** (the old `CORE-ABSTRACT-BUS-001B-not-landed`
+> compile-only candidate label was already refreshed; surviving `*-not-landed`
+> strings live only in correctly-preserved historical changelog rows), so no
+> such edit was warranted and **none was fabricated**. It makes **no** WebFlash /
 > release / import / hardware-stable / compliance / RPM / Cloudlift-ready /
-> kit-default claim, add no WebFlash wrapper, flip no `webflash_build_matrix`,
-> and add no `artifact_name` or release artifact. The measured-evidence PRs
+> kit-default claim, adds no WebFlash wrapper, flips no `webflash_build_matrix`,
+> and adds no `artifact_name` or release artifact. The measured-evidence PRs
 > (`S360-311-CURRENT-THERMAL-001`, `S360-312-BENCH-RESULT-001`,
 > `S360-310-SAFETY-BENCH-RESULT-001`) and the WebFlash live checks
 > (`WEBFLASH-{PWM,DAC,RELAY}-LIVE-CHECK-001`) stay queued behind their own
