@@ -481,6 +481,38 @@ kit-default readiness. The measured-evidence PRs
 `S360-310-SAFETY-BENCH-RESULT-001`) and the WebFlash live checks stay
 queued behind their own evidence / access gates.
 
+## 3B. Config-validation evidence recorded for the no-WebFlash product YAML path (`FW-CONFIG-RUN-NOWEBFLASH-001`, 2026-05-27)
+
+After `SHIP-YAML-FIRMWARE-NOWEBFLASH-001` / PR #612 corrected the FanRelay
+customer-usage `files:` example path, `FW-CONFIG-RUN-NOWEBFLASH-001`
+records the **actual** config-validation status of the no-WebFlash product
+YAML path. Canonical evidence table lives in
+[`product-readiness-matrix.md` §FW-CONFIG-RUN-NOWEBFLASH-001](product-readiness-matrix.md#fw-config-run-nowebflash-001--recorded-config-validation-evidence-for-the-no-webflash-product-yaml-path-2026-05-27);
+summarized here for the cross-lane view:
+
+- **CI on the #612 commit `1424f074d9940db7164c0a468f39c49f8c74658e`** (merge
+  commit `ed57523`): run `26504904676` **YAML Syntax Check → success**; run
+  `26504904607` **Compile-only Targets — Metadata Validation → success**;
+  run `26504904607` **Compile-only Targets — Full ESPHome Compile →
+  skipped** (full lane is `workflow_dispatch` + `compile_mode=full` only).
+- **Local (ESPHome-independent) validators, 2026-05-27:** `validate_configs.py`
+  208 files / 0 failed; `validate_compile_targets.py --metadata-only` 10
+  targets passed; relay (61) / pwm (62) / dac (44) / catalog (31) /
+  compile-target (119) / matrix (24) / gap-report (27) / webflash-builds /
+  workflow-permission suites OK; `python3 -m unittest discover` 759 tests OK
+  (3 skipped).
+- **Proves:** the three target product YAMLs parse + pass structural
+  validation, target metadata is schema-valid, and the full guard suite
+  (incl. the #612 path guard) passes. **Does NOT prove:** a full
+  `esphome config` / compile of the **top-level** product YAMLs (the #612
+  full lane was skipped; ESPHome unavailable locally). The recorded
+  full-compile runs (`26414398902` PWM, `26364679370` DAC) exercise the
+  `products/compile-only/` **skeletons**, not the top-level FanPWM / FanDAC
+  product YAMLs; the FanRelay top-level target carries no
+  `compile_validation_status` flag. No WebFlash / release / import /
+  hardware-stable / compliance / RPM / Cloudlift-ready / kit-default claim
+  is made; all lanes in §3A stay as recorded.
+
 ## 4. Next-PR recommendations
 
 Applying the burn-down decision rules:
