@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "policy": "MANUAL-FIRMWARE-ARTIFACT-POLICY-001",
+  "ci_lane": "MANUAL-FIRMWARE-CI-ARTIFACTS-001",
+  "description": "Non-release manual / private firmware artifact candidates. Drives the workflow_dispatch-only .github/workflows/manual-firmware-artifacts.yml lane that compiles the FanRelay / FanPWM / FanDAC manual / no-WebFlash candidates and uploads ONLY temporary, expiring GitHub Actions artifacts for point-to-point operator handoff. This lane is explicitly non-release: it never creates a GitHub Release, never writes firmware/sources.json or manifest.json, never commits a .bin / checksum / build-info file, never sets a release channel, never reuses a product-catalog artifact_name, never adds a WebFlash wrapper, and never flips webflash_build_matrix. See docs/manual-install-fan-candidates.md and docs/product-readiness-matrix.md §MANUAL-FIRMWARE-ARTIFACT-POLICY-001.",
+  "artifact_mode": "manual-candidate",
+  "release": false,
+  "webflash": false,
+  "release_channel": null,
+  "naming": {
+    "marker": "manual",
+    "nonrelease_suffix": "nonrelease",
+    "pattern": "{product_stem}-manual-{short_sha}-nonrelease",
+    "forbid_release_version": true,
+    "forbid_release_channel_suffix": true
+  },
+  "retention_days": 7,
+  "candidates": [
+    {
+      "id": "fanrelay",
+      "family": "FanRelay",
+      "sku": "S360-310",
+      "product_yaml": "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+      "compile_only_target_id": "ceiling-poe-ventiq-fanrelay-roomiq-compile-only",
+      "caveat": "mains / safety / competent-person sign-off still required; not kit / default / recommended"
+    },
+    {
+      "id": "fanpwm",
+      "family": "FanPWM",
+      "sku": "S360-311",
+      "product_yaml": "products/sense360-ceiling-poe-fanpwm.yaml",
+      "compile_only_target_id": "ceiling-poe-fanpwm-product-compile-only",
+      "caveat": "no RPM / TachIO claim; measured current / thermal still required"
+    },
+    {
+      "id": "fandac",
+      "family": "FanDAC",
+      "sku": "S360-312",
+      "product_yaml": "products/sense360-ceiling-poe-fandac.yaml",
+      "compile_only_target_id": "ceiling-poe-fandac-product-compile-only",
+      "caveat": "not Cloudlift-ready; J3 / Cloudlift evidence still required; no compliance claim"
+    }
+  ]
+}

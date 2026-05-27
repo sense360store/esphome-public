@@ -24,6 +24,42 @@ mirrored here.
 
 ## Current queue summary
 
+- **MANUAL-FIRMWARE-CI-ARTIFACTS-001** delivers, via **this PR** on 2026-05-27,
+  the **explicitly non-release, expiring CI job** permitted by
+  `MANUAL-FIRMWARE-ARTIFACT-POLICY-001` / PR #619: a `workflow_dispatch`-only
+  lane that compiles the FanRelay / FanPWM / FanDAC manual / no-WebFlash
+  candidates (`MANUAL-FIRMWARE-CANDIDATE-001` / PR #617) and uploads **only**
+  temporary, expiring GitHub Actions artifacts for point-to-point operator
+  handoff. **Scope:** a new
+  [`.github/workflows/manual-firmware-artifacts.yml`](.github/workflows/manual-firmware-artifacts.yml)
+  (`workflow_dispatch` only; required `artifact_mode=manual-candidate` input
+  whose `disabled` default is a no-op; read-only `contents: read` token with
+  **no** `write` scope on any job; each `.bin` uploaded as an ephemeral
+  `actions/upload-artifact` with `retention-days`); a
+  [`config/manual-firmware-artifacts.json`](config/manual-firmware-artifacts.json)
+  candidate set with non-release markers (`release: false`, `webflash: false`,
+  `release_channel: null`); a
+  [`scripts/validate_manual_firmware_artifacts.py`](scripts/validate_manual_firmware_artifacts.py)
+  validator that fails closed on any drift toward a release lane and emits the
+  matrix / `<product-stem>-manual-<short-sha>-nonrelease` artifact names; a
+  [`tests/test_manual_firmware_artifacts.py`](tests/test_manual_firmware_artifacts.py)
+  guard suite; and update notes in
+  [`docs/manual-install-fan-candidates.md`](docs/manual-install-fan-candidates.md),
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
+  a new §MANUAL-FIRMWARE-CI-ARTIFACTS-001 in
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md), and
+  this file. **Validation:** `validate_configs.py`,
+  `validate_compile_targets.py --metadata-only`, `test_product_catalog.py`,
+  `test_compile_targets.py`, `validate_webflash_builds.py`,
+  `test_workflow_permissions.py`, `test_manual_firmware_artifacts.py`, and
+  `python3 -m unittest discover -s tests -p "test_*.py"`. **Does not** publish a
+  GitHub Release; edit `products/webflash/**`; flip `webflash_build_matrix`; add
+  an `artifact_name` to the product catalog; add a release-artifact readiness
+  row; write `firmware/sources.json` or `manifest.json`; commit any `.bin` /
+  checksum / build-info file; or claim WebFlash / import / release /
+  hardware-stable / compliance / RPM / Cloudlift-ready / kit / default /
+  recommended readiness. **No** fabricated evidence.
+
 - **MANUAL-FIRMWARE-ARTIFACT-POLICY-001** delivers, via **this PR** on
   2026-05-27, a **docs-only** change that **defines** whether and how a firmware
   `.bin` may be generated for the FanRelay / FanPWM / FanDAC manual / no-WebFlash

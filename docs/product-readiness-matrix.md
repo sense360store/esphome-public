@@ -2945,6 +2945,76 @@ Until a separate PR meets all seven, **no** manual artifact is exported and
 **no** artifact-bearing change lands. This section is the policy; it is not an
 authorisation to build.
 
+## MANUAL-FIRMWARE-CI-ARTIFACTS-001 — Non-release CI lane for the manual fan candidates (2026-05-27)
+
+`MANUAL-FIRMWARE-CI-ARTIFACTS-001` builds the **explicitly non-release,
+expiring CI job** that
+[§MANUAL-FIRMWARE-ARTIFACT-POLICY-001](#manual-firmware-artifact-policy-001--non-release-artifact-rules-for-the-manual-fan-candidates-2026-05-27)
+permits: a `workflow_dispatch`-only lane that compiles the FanRelay / FanPWM /
+FanDAC manual / no-WebFlash candidates and uploads **only** temporary, expiring
+GitHub Actions artifacts for point-to-point operator handoff. It exports
+**nothing** durable and creates **no** release.
+
+### What this slice adds
+
+- [`.github/workflows/manual-firmware-artifacts.yml`](../.github/workflows/manual-firmware-artifacts.yml)
+  — `workflow_dispatch`-only; requires an explicit `artifact_mode=manual-candidate`
+  input (the `disabled` default is a no-op); read-only token (`contents: read`,
+  no `write` scope on any job); uploads each compiled `.bin` as an **ephemeral**
+  `actions/upload-artifact` output with `retention-days`; **no** GitHub Release,
+  **no** checksum / build-info step, **no** firmware index / release manifest
+  write.
+- [`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json)
+  — the candidate set (the three fan product YAMLs) plus the non-release markers
+  (`release: false`, `webflash: false`, `release_channel: null`).
+- [`scripts/validate_manual_firmware_artifacts.py`](../scripts/validate_manual_firmware_artifacts.py)
+  — fails closed on any drift toward a release lane and emits the build matrix /
+  artifact names the workflow consumes.
+- [`tests/test_manual_firmware_artifacts.py`](../tests/test_manual_firmware_artifacts.py)
+  — regression guards (below).
+
+### Artifact naming
+
+Each artifact is named `<product-stem>-manual-<short-sha>-nonrelease` — carrying
+the **product / config name**, the **reviewed commit short SHA**, and an
+explicit **`manual` / `nonrelease`** marker. It carries **no** release version
+(`vX.Y.Z`) and **no** channel suffix (`-stable` / `-preview`), so it cannot be
+confused with the Release-One artifact pattern
+`Sense360-<Product>-vX.Y.Z-<channel>.bin`, and it never reuses a
+`config/product-catalog.json` `artifact_name`.
+
+### How it satisfies the seven policy preconditions
+
+1. **Full-compile evidence already exists** — all three candidates carry
+   `compile_validation_status: validated-full-compile` in
+   [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+   (`FW-FULL-COMPILE-TOPLEVEL-FANS-001` / PR #616); the validator asserts it.
+2. **Artifact naming** — `-manual-<short-sha>-nonrelease`, no version, no
+   channel (guarded).
+3. **Checksum rules** — the lane generates **no** checksum at all (no
+   `sha256sum` / `md5sum` / `checksums-*` step); nothing is committed.
+4. **Storage location** — ephemeral `actions/upload-artifact` only; never under
+   `firmware/`, never a Release asset, never committed.
+5. **Expiration / non-release labelling** — `retention-days` expiry plus the
+   `nonrelease` name marker and a non-release handoff summary.
+6. **No WebFlash exposure** — `webflash_build_matrix` stays `false`; no
+   `webflash_wrapper`; no `config/webflash-builds.json` row; candidates point at
+   the top-level `products/sense360-*.yaml`, never a `products/webflash/*`
+   wrapper.
+7. **No hardware-stable / compliance claims** — the per-family caveats (FanRelay
+   mains / safety; FanPWM no RPM; FanDAC not Cloudlift-ready) are carried
+   verbatim and waived by nothing here.
+
+### This slice does NOT
+
+It does **not** publish a GitHub Release; edit `products/webflash/**`; flip
+`webflash_build_matrix`; add an `artifact_name` to the product catalog; add a
+release-artifact readiness row; write `firmware/sources.json` or `manifest.json`;
+commit any `.bin`, checksum, or build-info file; or claim WebFlash / import /
+release / hardware-stable / compliance / RPM / Cloudlift-ready / kit / default /
+recommended readiness. The lifecycle `status` for all three families stays
+`hardware-pending`.
+
 ## Do-not-change guardrails
 
 PRODUCT-GAP-001 — this matrix — performs **none** of the following.

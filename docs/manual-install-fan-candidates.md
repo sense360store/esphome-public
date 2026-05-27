@@ -243,6 +243,37 @@ mistaken for a release — e.g. include `-manual-<short-sha>` and **no** release
 version or channel — and tell the recipient it is a private manual build of a
 specific reviewed commit, not a release.
 
+### Generating one via the non-release CI lane
+
+If you would rather not compile locally, there is an **explicitly non-release,
+expiring CI job** for exactly this handoff:
+[`.github/workflows/manual-firmware-artifacts.yml`](../.github/workflows/manual-firmware-artifacts.yml)
+(`MANUAL-FIRMWARE-CI-ARTIFACTS-001`). It is **not** the release workflow.
+
+- **Trigger:** `workflow_dispatch` only. Run it from the Actions tab against the
+  **reviewed commit** you want to hand off, and set the required
+  `artifact_mode` input to **`manual-candidate`** (the `disabled` default builds
+  nothing).
+- **Output:** each of the three fan candidates compiles and its `.bin` is
+  uploaded **only** as a temporary GitHub Actions artifact named
+  `<product-stem>-manual-<short-sha>-nonrelease`. The artifact **expires** (it
+  is retained for a short window only). Download it, hand it point-to-point to
+  the named operator, and tell them it is a private manual build of that commit
+  — **not** a release.
+- **What it deliberately does not do:** it creates **no** GitHub Release, writes
+  **no** `firmware/sources.json` or release manifest, commits **no** `.bin`,
+  checksum, or build-info file, sets **no** release channel, adds **no**
+  WebFlash exposure, and leaves `webflash_build_matrix` `false`. The candidate
+  set and these guarantees are validated by
+  [`scripts/validate_manual_firmware_artifacts.py`](../scripts/validate_manual_firmware_artifacts.py)
+  and guarded by
+  [`tests/test_manual_firmware_artifacts.py`](../tests/test_manual_firmware_artifacts.py).
+
+A `.bin` from this lane is still a **manual / private artifact** under
+[`MANUAL-FIRMWARE-ARTIFACT-POLICY-001`](product-readiness-matrix.md#manual-firmware-artifact-policy-001--non-release-artifact-rules-for-the-manual-fan-candidates-2026-05-27):
+every per-family caveat above still applies, and it confers no WebFlash /
+release / hardware-stable / compliance readiness.
+
 ---
 
 ## References
@@ -250,6 +281,9 @@ specific reviewed commit, not a release.
 - [Product Readiness Matrix §MANUAL-FIRMWARE-ARTIFACT-POLICY-001](product-readiness-matrix.md#manual-firmware-artifact-policy-001--non-release-artifact-rules-for-the-manual-fan-candidates-2026-05-27)
   — canonical manual / private vs release artifact definitions and the
   seven-point precondition list before any artifact-export PR.
+- [Product Readiness Matrix §MANUAL-FIRMWARE-CI-ARTIFACTS-001](product-readiness-matrix.md#manual-firmware-ci-artifacts-001--non-release-ci-lane-for-the-manual-fan-candidates-2026-05-27)
+  — the non-release, `workflow_dispatch`-only CI lane that produces the
+  expiring manual artifacts described above.
 - [Product Readiness Matrix §MANUAL-FIRMWARE-CANDIDATE-001](product-readiness-matrix.md#manual-firmware-candidate-001--fanrelay--fanpwm--fandac-marked-as-manual--no-webflash-firmware-candidates-2026-05-27)
   — canonical candidate definition, per-family evidence table, and honest
   provenance.

@@ -642,6 +642,24 @@ gates close and the named per-family release slice lands.
 > hardware-stable / compliance claim). A live release artifact still requires
 > the named per-family `WEBFLASH-*` / `RELEASE-*` slices and their gates.
 
+> **Update (`MANUAL-FIRMWARE-CI-ARTIFACTS-001`, 2026-05-27):** the
+> **non-release** CI lane permitted by that policy now exists as
+> [`.github/workflows/manual-firmware-artifacts.yml`](../.github/workflows/manual-firmware-artifacts.yml)
+> (driven by [`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json)).
+> It is `workflow_dispatch`-only, requires an explicit
+> `artifact_mode=manual-candidate` input, runs on a read-only token, and uploads
+> each compiled FanRelay / FanPWM / FanDAC `.bin` **only** as a temporary,
+> expiring `actions/upload-artifact` named
+> `<product-stem>-manual-<short-sha>-nonrelease`. **It changes no cell in the
+> candidate release table above:** it creates **no** GitHub Release, writes
+> **no** `firmware/sources.json` / `manifest.json`, commits **no** `.bin` /
+> checksum / build-info file, sets **no** release channel, reuses **no** catalog
+> `artifact_name`, adds **no** WebFlash wrapper, and flips **no**
+> `webflash_build_matrix`. Every FanRelay / FanPWM / FanDAC row stays
+> `not-release-ready`. A manual / private artifact from this lane is **not** a
+> `preview-artifact-candidate`. See
+> [`product-readiness-matrix.md` §MANUAL-FIRMWARE-CI-ARTIFACTS-001](product-readiness-matrix.md#manual-firmware-ci-artifacts-001--non-release-ci-lane-for-the-manual-fan-candidates-2026-05-27).
+
 ## Relay / S360-310 release posture
 
 **Current state.** The FanRelay product YAML
