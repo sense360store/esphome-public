@@ -621,6 +621,27 @@ gates close and the named per-family release slice lands.
 > their gates; a manual / no-WebFlash firmware candidate is **not** a
 > `preview-artifact-candidate`.
 
+> **Update (`MANUAL-FIRMWARE-ARTIFACT-POLICY-001`, 2026-05-27):** the
+> non-release artifact policy for the FanRelay / FanPWM / FanDAC manual
+> candidates is now defined in
+> [`product-readiness-matrix.md` §MANUAL-FIRMWARE-ARTIFACT-POLICY-001](product-readiness-matrix.md#manual-firmware-artifact-policy-001--non-release-artifact-rules-for-the-manual-fan-candidates-2026-05-27).
+> It draws a hard line between a **manual / private artifact** (a `.bin` from a
+> local `esphome compile` or an explicitly non-release, expiring CI job, handed
+> point-to-point to a named operator, pinned to a reviewed commit SHA, never
+> committed and never published) and a **release artifact** (channel-labelled,
+> tagged, checksummed, build-info-manifested, GitHub-Release-attached, and/or
+> WebFlash-imported — i.e. the rows in the table above). **A manual / private
+> artifact is NOT a `preview-artifact-candidate` and changes no cell in the
+> candidate release table above.** The policy itself **generates nothing** — no
+> `.bin`, checksum, build-info `manifest.json`, release upload, WebFlash import,
+> or `firmware/sources.json` update — and any future artifact-export PR must
+> first satisfy the seven preconditions listed in that section (full-compile
+> evidence already exists; non-confusable `-manual` naming; checksums, if any,
+> plain integrity SHA256 for handoff only and never committed; non-release
+> storage only; non-release / expiring labelling; no WebFlash exposure; no
+> hardware-stable / compliance claim). A live release artifact still requires
+> the named per-family `WEBFLASH-*` / `RELEASE-*` slices and their gates.
+
 ## Relay / S360-310 release posture
 
 **Current state.** The FanRelay product YAML
