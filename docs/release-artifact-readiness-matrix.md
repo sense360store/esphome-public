@@ -1215,6 +1215,23 @@ flip; no `artifact_name`; no release artifact / proof row added; no WebFlash
 `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays `blocked` /
 `HW-005`.
 
+**2026-05-27 — `WEBFLASH-LIVE-CHECK-001` (this PR; docs-only live re-check).**
+Re-attempted the live read of `sense360store/WebFlash` this session (repo root,
+`scripts/utils/module-availability.js`, branch listing) — **all denied**
+(session scope is `esphome-public` + `esphome` only). The Relay release posture
+is unchanged: no Relay `.bin` / tag / checksum / build-info exists, none is
+added, and `WF-IMPORT-RELAY-001` stays blocked behind `RELEASE-RELAY-001`. The
+live-verification axis the `WEBFLASH-RELAY-LIVE-CHECK-001` step would close
+stays open (`NEEDS-TOOLING`); `S360-310` `module-availability.js` stays
+prior-recorded `design-pending` (2026-05-22, PR #565). Full record in
+[`webflash-drift-audit.md` §4.4](webflash-drift-audit.md#44-follow-up-resolution-log-updated-2026-05-27-by-webflash-live-check-001).
+No [`products/webflash/`](../products/webflash/), `config/**`,
+`.github/workflows/`, firmware / signing / sources / manifest / checksum,
+`tests/**`, or `sense360store/WebFlash` edit; no `webflash_build_matrix` flip;
+no `artifact_name`; no release artifact / proof row added; no WebFlash / import
+/ release / compliance / hardware-stable claim; `S360-310` stays
+`cataloged_unverified`; no fabricated evidence.
+
 ## PWM / S360-311 release posture
 
 **Current state.** No non-legacy FanPWM product YAML under
@@ -1389,6 +1406,22 @@ import / release / compliance / hardware-stable claim; `S360-311` stays
 `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; LED preview stays
 `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays `blocked` /
 `HW-005`.
+
+**2026-05-27 — `WEBFLASH-LIVE-CHECK-001` (this PR; docs-only live re-check).**
+Re-attempted the live read of `sense360store/WebFlash` this session (repo root,
+`scripts/utils/module-availability.js`, branch listing) — **all denied**
+(session scope is `esphome-public` + `esphome` only). The PWM release posture
+is unchanged: no PWM `.bin` / tag / checksum / build-info exists, none is added,
+and `WF-IMPORT-PWM-001` stays blocked behind `RELEASE-PWM-001`. The
+live-verification axis the `WEBFLASH-PWM-LIVE-CHECK-001` step would close stays
+open (`NEEDS-TOOLING`); `S360-311` `module-availability.js` stays **not recorded
+in any snapshot** (drift #16). Full record in
+[`webflash-drift-audit.md` §4.4](webflash-drift-audit.md#44-follow-up-resolution-log-updated-2026-05-27-by-webflash-live-check-001).
+No `products/webflash/`, `config/**`, `.github/workflows/`, firmware / signing
+/ sources / manifest / checksum, `tests/**`, or `sense360store/WebFlash` edit;
+no `webflash_build_matrix` flip; no `artifact_name`; no release artifact / proof
+row added; no RPM / WebFlash / import / release / compliance / hardware-stable
+claim; `S360-311` stays `cataloged_unverified`; no fabricated evidence.
 
 ## DAC / S360-312 release posture
 
@@ -1696,6 +1729,23 @@ flip; no `artifact_name`; no release artifact / proof row added; no WebFlash
 stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; LED preview stays
 `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays `blocked` /
 `HW-005`.
+
+**2026-05-27 — `WEBFLASH-LIVE-CHECK-001` (this PR; docs-only live re-check).**
+Re-attempted the live read of `sense360store/WebFlash` this session (repo root,
+`scripts/utils/module-availability.js`, branch listing) — **all denied**
+(session scope is `esphome-public` + `esphome` only). The DAC release posture
+is unchanged: no DAC `.bin` / tag / checksum / build-info exists, none is added,
+and `WF-IMPORT-DAC-001` stays blocked behind `RELEASE-DAC-001`. The
+live-verification axis the `WEBFLASH-DAC-LIVE-CHECK-001` step would close stays
+open (`NEEDS-TOOLING`); `S360-312` `module-availability.js` stays **not recorded
+in any snapshot** (drift #17). Full record in
+[`webflash-drift-audit.md` §4.4](webflash-drift-audit.md#44-follow-up-resolution-log-updated-2026-05-27-by-webflash-live-check-001).
+No [`products/webflash/`](../products/webflash/), `config/**`,
+`.github/workflows/`, firmware / signing / sources / manifest / checksum,
+`tests/**`, or `sense360store/WebFlash` edit; no `webflash_build_matrix` flip;
+no `artifact_name`; no release artifact / proof row added; no WebFlash / import
+/ release / compliance / hardware-stable / Cloudlift-ready claim; `S360-312`
+stays `cataloged_unverified`; no fabricated evidence.
 
 ## TRIAC / S360-320 release posture
 
