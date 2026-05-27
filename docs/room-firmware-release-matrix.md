@@ -1,0 +1,304 @@
+# Room Firmware Release Matrix (RELEASE-PIPELINE-ROOM-MATRIX-001)
+
+## Purpose and scope
+
+This document is a **read-only inventory** of the room firmware release
+pipeline. It enumerates every RoomIQ / VentIQ / LED / FanRelay / FanPWM /
+FanDAC / FanTRIAC ceiling-PoE variant that exists as YAML in this repo and
+records, for each, exactly where it sits in the release machinery: the
+release build workflow, the WebFlash build matrix, the product catalog, the
+compile-only validation lane, the manual (non-release) artifact lane, and
+the release-notes generator.
+
+It exists to answer one question — *"which room/product versions should be
+available through release CI?"* — **without changing any of them**. It is
+the room-firmware-family view that cross-cuts the existing layered gates:
+
+- [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md) (PACKAGE-GAP-001)
+- [`docs/product-readiness-matrix.md`](product-readiness-matrix.md) (PRODUCT-GAP-001)
+- [`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md) (WEBFLASH-GAP-001)
+- [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md) (RELEASE-GAP-001)
+- [`docs/release-one.md`](release-one.md) (shipping configuration)
+- [`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md) (availability vocabulary)
+
+### This document is documentation only
+
+RELEASE-PIPELINE-ROOM-MATRIX-001 — this PR — does **not**:
+
+- publish, build, or attach any firmware artifact;
+- add, remove, or modify any product YAML or WebFlash wrapper;
+- add or change any entry in
+  [`config/webflash-builds.json`](../config/webflash-builds.json),
+  [`config/product-catalog.json`](../config/product-catalog.json),
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json),
+  or [`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json);
+- flip any `webflash_build_matrix` value;
+- add an `artifact_name` to any product;
+- add a WebFlash wrapper to any product;
+- claim release readiness for any product that the source-of-truth catalogs
+  do not already mark release-approved.
+
+Every classification below is **read** from the committed catalogs and
+workflows cited inline; nothing is asserted beyond what they already record.
+
+---
+
+## Source-of-truth files
+
+| Layer | File |
+|-------|------|
+| Release build/publish workflow | [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml) |
+| WebFlash build matrix (release driver) | [`config/webflash-builds.json`](../config/webflash-builds.json) |
+| WebFlash grammar / channels | [`config/webflash-compatibility.json`](../config/webflash-compatibility.json) |
+| Product lifecycle catalog | [`config/product-catalog.json`](../config/product-catalog.json) |
+| Compile-only validation lane | [`config/compile-only-targets.json`](../config/compile-only-targets.json) + [`.github/workflows/compile-only.yml`](../.github/workflows/compile-only.yml) |
+| Manual (non-release) artifact lane | [`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json) + [`.github/workflows/manual-firmware-artifacts.yml`](../.github/workflows/manual-firmware-artifacts.yml) |
+| Release-notes draft helper | [`scripts/generate_webflash_release_notes.py`](../scripts/generate_webflash_release_notes.py) + [`.github/workflows/release-notes-draft.yml`](../.github/workflows/release-notes-draft.yml) |
+
+**Key pipeline fact:** the release workflow's build matrix is generated
+**exclusively** from `config/webflash-builds.json`, filtered by `version` +
+`channel` (see `firmware-build-release.yml` job `generate-matrix`). A config
+that is not in `webflash-builds.json` is **not** built or attached when a
+GitHub Release is published, regardless of whether its YAML exists. The
+WebFlash build matrix is the single source of truth for what release
+publishing ships.
+
+---
+
+## Release matrix table
+
+Column legend:
+
+- **Release channel** — `stable` / `preview` / `none` (per catalog).
+- **CI build status** — which workflow compiles it:
+  `release-ci` (in `firmware-build-release.yml` matrix),
+  `compile-only-ci` (in `compile-only.yml` validation lane),
+  `manual-nonrelease-ci` (in `manual-firmware-artifacts.yml`, ephemeral),
+  `no-ci-build`.
+- **WebFlash status** — `webflash-matrix` (wrapper + builds.json row +
+  `webflash_build_matrix: true`), `wrapper-reference-only` (wrapper exists
+  but not in builds matrix), `no-webflash`.
+- **Artifact status** — `release-artifact-name` (catalog/builds
+  `artifact_name`), `ephemeral-manual-only` (expiring CI artifact, no
+  release name), `none`.
+- **Release-notes status** — whether `generate_webflash_release_notes.py`
+  will emit notes: `eligible-stable`, `eligible-preview`, or `refused`.
+
+| Product / config string | YAML path(s) | Release channel | CI build status | WebFlash status | Artifact status | Release-notes status | Blockers |
+|---|---|---|---|---|---|---|---|
+| **Ceiling-POE-VentIQ-RoomIQ** | `products/sense360-ceiling-poe-ventiq-roomiq.yaml` (canonical) + `products/webflash/ceiling-poe-ventiq-roomiq.yaml` (wrapper) | `stable` (production) | `release-ci` + `compile-only-ci` | `webflash-matrix` | `release-artifact-name`: `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` | `eligible-stable` | None (Release-One ships this). FanTRIAC/LED excluded by design, not blockers of this config |
+| **Ceiling-POE-VentIQ-RoomIQ-LED** | `products/sense360-ceiling-poe-ventiq-roomiq-led.yaml` (canonical) + `products/webflash/ceiling-poe-ventiq-roomiq-led.yaml` (wrapper) | `preview` | `release-ci` + `compile-only-ci` | `webflash-matrix` | `release-artifact-name`: `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin` | `eligible-preview` (refused on `stable`) | Preview-stage S360-300 bench Open Questions (harness rail, LED count, harness identity) before any stable promotion; FanTRIAC blocked |
+| **Ceiling-POE-VentIQ-FanTRIAC-RoomIQ** | `products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml` (canonical) + `products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml` (blocked/reference wrapper) | `none` (blocked) | `no-ci-build` | `wrapper-reference-only` (not in builds matrix; `webflash_build_matrix: false`) | `none` | `refused` (status `blocked`) | **HW-005** (S360-320 schematic uncommitted; GPIO5/GPIO6 collide with RoomIQ J10; `ac_dimmer` cannot run across SX1509) + HW-PINMAP-320-FOLLOWUP + PACKAGE-TRIAC-001 + COMPLIANCE-001 + WebFlash manual-warning UX gates |
+| **Ceiling-POE-VentIQ-FanRelay-RoomIQ** | `products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml` (canonical; no wrapper) | `none` (manual-candidate) | `manual-nonrelease-ci` + `compile-only-ci` (`validated-full-compile`) | `no-webflash` (`webflash_build_matrix: false`) | `ephemeral-manual-only` (`{stem}-manual-{short_sha}-nonrelease`, 7-day retention); no `artifact_name` | `refused` (status `hardware-pending`) | GPIO3 strap-pin boot characterisation (production-wide/multi-unit); mains-safety / installation-approval / creepage / clearance / thermal / EMI / EMC evidence; competent-person sign-off. WEBFLASH-RELAY-001 / RELEASE-RELAY-001 / WF-IMPORT-RELAY-001 blocked |
+| **Ceiling-POE-FanPWM** | `products/sense360-ceiling-poe-fanpwm.yaml` (canonical; no wrapper) + `products/compile-only/ceiling-poe-fanpwm.yaml` (CI skeleton) | `none` (manual-candidate) | `manual-nonrelease-ci` + `compile-only-ci` (top-level + skeleton, both `validated-full-compile`) | `no-webflash` (`webflash_build_matrix: false`) | `ephemeral-manual-only`; no `artifact_name` | `refused` (status `hardware-pending`) | PWM polarity bench; per-fan/aggregate current + thermal envelope; product bench incomplete; **no RPM/TachIO** (`rpm_supported: false`); S360-311 `cataloged_unverified`. WEBFLASH-PWM-001 / RELEASE-PWM-001 / WF-IMPORT-PWM-001 blocked |
+| **Ceiling-POE-FanDAC** | `products/sense360-ceiling-poe-fandac.yaml` (canonical; no wrapper) + `products/compile-only/ceiling-poe-fandac.yaml` (CI skeleton) | `none` (manual-candidate) | `manual-nonrelease-ci` + `compile-only-ci` (top-level + skeleton, both `validated-full-compile`) | `no-webflash` (`webflash_build_matrix: false`) | `ephemeral-manual-only`; no `artifact_name` | `refused` (status `hardware-pending`) | Not Cloudlift-ready; J3/Cloudlift S12 harness + product-bench evidence; S360-312 schematic/BOM verification; enforces FanDAC↔AirIQ mutex. WEBFLASH-DAC-001 / RELEASE-DAC-001 / WF-IMPORT-DAC-001 blocked |
+| **Ceiling-POE** | `products/compile-only/ceiling-poe.yaml` | `none` (compile-only) | `compile-only-ci` | `no-webflash` | `none` | `refused` (no catalog row) | CI validation subset only; `hardware_required_for_validation: true`; S360-410 schematic verification / Release-One PoE caveats out of scope |
+| **Ceiling-POE-RoomIQ** | `products/compile-only/ceiling-poe-roomiq.yaml` | `none` (compile-only) | `compile-only-ci` | `no-webflash` | `none` | `refused` (no catalog row) | CI validation subset only; `hardware_required_for_validation: true` |
+| **Ceiling-POE-VentIQ** | `products/compile-only/ceiling-poe-ventiq.yaml` | `none` (compile-only) | `compile-only-ci` | `no-webflash` | `none` | `refused` (no catalog row) | CI validation subset only; `hardware_required_for_validation: true` |
+| **Ceiling-POE-AirIQ** | `products/compile-only/ceiling-poe-airiq.yaml` | `none` (compile-only) | `compile-only-ci` | `no-webflash` | `none` | `refused` (no catalog row) | CI validation subset only; AirIQ↔VentIQ mutex (uses AirIQ); `hardware_required_for_validation: true` |
+| **Ceiling-POE-AirIQ-RoomIQ** | `products/compile-only/ceiling-poe-airiq-roomiq.yaml` | `none` (compile-only) | `compile-only-ci` | `no-webflash` | `none` | `refused` (no catalog row) | CI validation subset only; AirIQ↔VentIQ mutex (uses AirIQ); `hardware_required_for_validation: true` |
+
+---
+
+## Answers to the inventory questions
+
+### 1. Which RoomIQ / VentIQ / LED / Relay / PWM / DAC variants exist as YAML?
+
+**Top-level product YAMLs (`products/`) — 6 room-family products:**
+
+- `products/sense360-ceiling-poe-ventiq-roomiq.yaml` (RoomIQ + VentIQ)
+- `products/sense360-ceiling-poe-ventiq-roomiq-led.yaml` (RoomIQ + VentIQ + LED)
+- `products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml` (RoomIQ + VentIQ + FanTRIAC)
+- `products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml` (RoomIQ + VentIQ + FanRelay)
+- `products/sense360-ceiling-poe-fanpwm.yaml` (FanPWM)
+- `products/sense360-ceiling-poe-fandac.yaml` (FanDAC)
+
+**WebFlash wrappers (`products/webflash/`) — 3 (re-include the canonical YAML, not standalone products):**
+
+- `products/webflash/ceiling-poe-ventiq-roomiq.yaml`
+- `products/webflash/ceiling-poe-ventiq-roomiq-led.yaml`
+- `products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml` (blocked/reference)
+
+**Compile-only skeletons (`products/compile-only/`) — 7 CI validation files:**
+
+- `products/compile-only/ceiling-poe.yaml`
+- `products/compile-only/ceiling-poe-roomiq.yaml`
+- `products/compile-only/ceiling-poe-ventiq.yaml`
+- `products/compile-only/ceiling-poe-airiq.yaml`
+- `products/compile-only/ceiling-poe-airiq-roomiq.yaml`
+- `products/compile-only/ceiling-poe-fanpwm.yaml`
+- `products/compile-only/ceiling-poe-fandac.yaml`
+
+### 2. Which are currently in `firmware-build-release.yml`?
+
+The release workflow does **not** name products directly — its matrix is
+generated from `config/webflash-builds.json` filtered by `version` +
+`channel`. The configs that the workflow will therefore build/attach today:
+
+- **Ceiling-POE-VentIQ-RoomIQ** — v1.0.0 / `stable`
+- **Ceiling-POE-VentIQ-RoomIQ-LED** — v1.0.0 / `preview`
+
+No other room variant is reachable by the release workflow.
+
+### 3. Which are in `config/webflash-builds.json`?
+
+Only the two release-channel configs:
+
+- Ceiling-POE-VentIQ-RoomIQ → `stable`, artifact `…-v1.0.0-stable.bin`
+- Ceiling-POE-VentIQ-RoomIQ-LED → `preview`, artifact `…-v1.0.0-preview.bin`
+
+### 4. Which have product-catalog rows?
+
+The 6 top-level products each have a `config/product-catalog.json` row:
+
+| Config string | Catalog status | `webflash_build_matrix` |
+|---|---|---|
+| Ceiling-POE-VentIQ-RoomIQ | `production` | `true` |
+| Ceiling-POE-VentIQ-RoomIQ-LED | `preview` | `true` |
+| Ceiling-POE-VentIQ-FanTRIAC-RoomIQ | `blocked` | `false` |
+| Ceiling-POE-VentIQ-FanRelay-RoomIQ | `hardware-pending` | `false` |
+| Ceiling-POE-FanPWM | `hardware-pending` | `false` |
+| Ceiling-POE-FanDAC | `hardware-pending` | `false` |
+
+The 7 `products/compile-only/` skeletons have **no** catalog row — that
+subdirectory is deliberately excluded from the catalog enumeration gate, so
+a compile-only target does not require (and does not get) a catalog entry.
+
+### 5. Which have compile-only targets?
+
+All 12 entries in `config/compile-only-targets.json` are room-PoE-family:
+
+| Target id | Config string | `compile_validation_status` |
+|---|---|---|
+| `ceiling-poe-ventiq-roomiq-webflash` | Ceiling-POE-VentIQ-RoomIQ | webflash-current |
+| `ceiling-poe-ventiq-roomiq-led-webflash` | Ceiling-POE-VentIQ-RoomIQ-LED | preview-current |
+| `ceiling-poe-compile-only` | Ceiling-POE | compile-only |
+| `ceiling-poe-roomiq-compile-only` | Ceiling-POE-RoomIQ | compile-only |
+| `ceiling-poe-ventiq-compile-only` | Ceiling-POE-VentIQ | compile-only |
+| `ceiling-poe-airiq-compile-only` | Ceiling-POE-AirIQ | compile-only |
+| `ceiling-poe-airiq-roomiq-compile-only` | Ceiling-POE-AirIQ-RoomIQ | compile-only |
+| `ceiling-poe-ventiq-fanrelay-roomiq-compile-only` | Ceiling-POE-VentIQ-FanRelay-RoomIQ | validated-full-compile |
+| `ceiling-poe-fandac-compile-only` | Ceiling-POE-FanDAC (skeleton) | validated-full-compile |
+| `ceiling-poe-fanpwm-compile-only` | Ceiling-POE-FanPWM (skeleton) | validated-full-compile |
+| `ceiling-poe-fandac-product-compile-only` | Ceiling-POE-FanDAC (top-level) | validated-full-compile |
+| `ceiling-poe-fanpwm-product-compile-only` | Ceiling-POE-FanPWM (top-level) | validated-full-compile |
+
+**FanTRIAC has no compile-only target** (blocked from every lane).
+
+### 6. Which have `artifact_name`?
+
+Only the two release-channel configs, in both `webflash-builds.json` and the
+catalog:
+
+- Ceiling-POE-VentIQ-RoomIQ → `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`
+- Ceiling-POE-VentIQ-RoomIQ-LED → `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin`
+
+FanTRIAC / FanRelay / FanPWM / FanDAC have **no** `artifact_name`. The manual
+lane names its outputs `{stem}-manual-{short_sha}-nonrelease` — explicitly
+**not** an `artifact_name` and never a release `vX.Y.Z`/`-stable`/`-preview`.
+
+### 7. Which have WebFlash wrappers?
+
+Three wrappers under `products/webflash/`:
+
+- Ceiling-POE-VentIQ-RoomIQ — in build matrix (live)
+- Ceiling-POE-VentIQ-RoomIQ-LED — in build matrix (live preview)
+- Ceiling-POE-VentIQ-FanTRIAC-RoomIQ — **reference only**, not in the build
+  matrix while HW-005 is open
+
+FanRelay / FanPWM / FanDAC have **no** WebFlash wrapper.
+
+### 8. Release-channel classification
+
+| Classification | Configs |
+|---|---|
+| **release-ready (stable)** | Ceiling-POE-VentIQ-RoomIQ |
+| **preview-only** | Ceiling-POE-VentIQ-RoomIQ-LED |
+| **manual-candidate-only** | Ceiling-POE-VentIQ-FanRelay-RoomIQ, Ceiling-POE-FanPWM, Ceiling-POE-FanDAC |
+| **blocked** | Ceiling-POE-VentIQ-FanTRIAC-RoomIQ (HW-005) |
+| **compile-only (CI validation subset, no release path)** | Ceiling-POE, Ceiling-POE-RoomIQ, Ceiling-POE-VentIQ, Ceiling-POE-AirIQ, Ceiling-POE-AirIQ-RoomIQ |
+
+### 9. Which YAMLs are available from GitHub for ESPHome remote-package / manual use?
+
+`sense360store/esphome-public` is a public repo, so any committed YAML is
+fetchable as a remote ESPHome package via `url` + `ref` + `files`. The
+**intended entry points** for remote-package / manual install are the
+top-level canonical product YAMLs under `products/`:
+
+- `products/sense360-ceiling-poe-ventiq-roomiq.yaml` — production install path
+- `products/sense360-ceiling-poe-ventiq-roomiq-led.yaml` — preview LED install path
+- `products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml` — manual candidate
+- `products/sense360-ceiling-poe-fanpwm.yaml` — manual candidate
+- `products/sense360-ceiling-poe-fandac.yaml` — manual candidate
+
+Notes:
+
+- The `products/webflash/*` wrappers `!include` the canonical YAML; they are
+  WebFlash-addressing shims, not separate remote-package entry points.
+- The `products/compile-only/*` skeletons are **CI-validation files**, not
+  installable products, and should not be advertised for manual use.
+- The blocked FanTRIAC YAML is retained as a reference; it is installable in
+  the mechanical sense but is **not** approved (HW-005) and carries no
+  release/WebFlash exposure.
+- Manual installation of the FanRelay/FanPWM/FanDAC candidates is documented
+  as manual / no-WebFlash only in
+  [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md);
+  "compiles and can be installed manually" is **not** release readiness,
+  WebFlash exposure, hardware stability, or compliance approval.
+
+### 10. Which YAMLs should be tag-pinned when release notes are generated?
+
+The release-notes generator only emits notes for the two release-channel
+configs (it refuses `blocked` / `hardware-pending` / `compile-only` /
+`legacy-compatible` and `preview`-on-`stable`). When notes are generated for
+a tagged release, the install snippets and shared includes that a consumer
+transitively pulls should be **pinned to the release tag** (e.g.
+`ref: v1.0.0`), never `ref: main`:
+
+- `products/sense360-ceiling-poe-ventiq-roomiq.yaml` (+ its wrapper) — its
+  header install snippet already shows `ref: v1.0.0`.
+- `products/sense360-ceiling-poe-ventiq-roomiq-led.yaml` (+ its wrapper) —
+  pin to the matching preview tag.
+- **`packages/base/external_components.yaml`** — the shared include every
+  product transitively pulls. It currently declares `ref: main` for the
+  `ld2412` / `ld2450` / `ld24xx` git source. For a reproducible tagged
+  release this should be pinned to the release tag at release time. (CI/release
+  builds rewrite this to a local source in-workspace, so the committed
+  `ref: main` only affects end-user remote-package consumers — which is
+  exactly the path release notes point people at.) This matches the guidance
+  in [`packages/README.md`](../packages/README.md): *"Pin to a release tag —
+  never use 'main' in production."*
+
+The manual-candidate YAMLs (FanRelay/FanPWM/FanDAC) currently carry
+`ref: main` in their header comments. They are **not** release-notes-eligible
+and stay at `main` until they are release-approved; no tag-pin action is
+required for them by this inventory.
+
+---
+
+## What would have to change to make a manual/blocked variant release-ready
+
+This is recorded for orientation only; **no** action is taken here.
+
+- **FanRelay / FanPWM / FanDAC** (manual-candidate → preview/stable): clear
+  the per-family hardware/compliance gates in
+  [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+  and [`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md),
+  then — in that order, in separate approved slices — add a WebFlash wrapper,
+  promote the catalog row, set `version`/`channel`/`artifact_name`, flip
+  `webflash_build_matrix: true`, and add the `config/webflash-builds.json`
+  row. Only the last step makes the release workflow build it.
+- **FanTRIAC** (blocked → anything): HW-005 and its dependent gates must
+  clear first; it has no CI build of any kind today.
+
+---
+
+## Cross-references
+
+- Shipping configuration: [`docs/release-one.md`](release-one.md)
+- Release-layer gate: [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+- WebFlash-layer gate: [`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md)
+- Product-layer gate: [`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
+- Manual install path: [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md)
+- Compile-only lane: [`docs/compile-only-firmware-validation.md`](compile-only-firmware-validation.md)
+- Availability vocabulary: [`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
