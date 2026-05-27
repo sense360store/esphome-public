@@ -557,6 +557,59 @@ summarized here for the cross-lane view:
   not sufficient; no `.bin` / checksum / artifact / release is uploaded or
   committed. All lanes in §3A stay as recorded.
 
+## 3D. Top-level FanPWM / FanDAC product YAMLs registered as compile-only targets (`TOPLEVEL-FAN-COMPILE-TARGETS-001`, 2026-05-27)
+
+`TOPLEVEL-FAN-COMPILE-TARGETS-001` closes the **registration** half of the
+top-level FanPWM / FanDAC gap that §3C flagged as pending (lines noting the
+top-level product-YAML full-compile gap "stays pending"). It does **not**
+close the full-compile half — that stays owed to the recommended follow-up
+`FW-FULL-COMPILE-TOPLEVEL-FANS-001`.
+
+- **What changed.** Two new compile-only targets were added to
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json):
+  `ceiling-poe-fandac-product-compile-only` →
+  [`products/sense360-ceiling-poe-fandac.yaml`](../products/sense360-ceiling-poe-fandac.yaml)
+  and `ceiling-poe-fanpwm-product-compile-only` →
+  [`products/sense360-ceiling-poe-fanpwm.yaml`](../products/sense360-ceiling-poe-fanpwm.yaml).
+  These register the **actual top-level product YAMLs** (the
+  consumer-facing PRODUCT-DAC-001 / PRODUCT-PWM-001 deliverables) directly
+  in the compile-only lane, mirroring the FanRelay precedent
+  (`ceiling-poe-ventiq-fanrelay-roomiq-compile-only` already registers the
+  top-level FanRelay product YAML). The compile-only target total moves
+  **10 → 12** (`totals.targets`).
+- **Skeletons preserved.** The existing `ceiling-poe-fandac-compile-only`
+  and `ceiling-poe-fanpwm-compile-only` skeleton targets (under
+  `products/compile-only/`) are **kept unchanged** and stay
+  `compile_validation_status: validated-full-compile`. The skeleton is the
+  historical CI validation file; the new row makes the shipped product YAML
+  a first-class compile-only target. The distinction is explicit via the
+  `…-product-compile-only` ids and the `notes` fields.
+- **No full-compile claim.** Both new targets carry
+  `compile_validation_status: pending-ci` — **not**
+  `validated-full-compile`. No full `esphome compile` run has executed
+  against these registered targets, so **no full-compile success is
+  claimed** for them. (Their package compositions are byte-equivalent to
+  the already-green skeletons — proven by the composition-parity tests in
+  [`tests/test_pwm_product_readiness.py`](../tests/test_pwm_product_readiness.py)
+  / [`tests/test_dac_product_readiness.py`](../tests/test_dac_product_readiness.py)
+  — but parity is not a recorded compile of the registered target.) The
+  real `--compile` result is owed to `FW-FULL-COMPILE-TOPLEVEL-FANS-001`.
+- **Pinned by tests.**
+  [`tests/test_compile_targets.py`](../tests/test_compile_targets.py)
+  `TopLevelFanProductCompileTargetTests` proves both top-level targets are
+  registered, the skeletons remain present + `validated-full-compile`,
+  neither new target nor catalog entry declares `webflash_build_matrix` /
+  `artifact_name` / `webflash_wrapper`, neither config string is in
+  `config/webflash-builds.json`, and the FanPWM target keeps
+  `rpm_supported: false`.
+- **Guardrails.** Config / tests / docs only. No `packages/**` /
+  `products/**` / `products/webflash/**` / `firmware/**` / `manifest.json`
+  / `firmware/sources.json` edit; no WebFlash wrapper; no
+  `webflash_build_matrix` flip; no `artifact_name`; no release artifact; no
+  WebFlash / import / release / hardware-stable / compliance / RPM /
+  Cloudlift-ready claim; no fabricated compile evidence. `S360-311` /
+  `S360-312` stay `cataloged_unverified`; all §3A lanes stay as recorded.
+
 ## 4. Next-PR recommendations
 
 Applying the burn-down decision rules:

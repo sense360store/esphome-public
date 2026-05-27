@@ -1332,6 +1332,40 @@ named follow-up.
   measured-thermal / RPM / WebFlash / release / import / compliance /
   hardware-stable claim; `S360-311` stays `cataloged_unverified`; no
   fabricated evidence.
+- **2026-05-27 — `TOPLEVEL-FAN-COMPILE-TARGETS-001` (this PR; config /
+  tests / docs only) — the top-level FanPWM product YAML is now a
+  registered compile-only target.** Until now the FanPWM compile-only lane
+  only registered the `products/compile-only/ceiling-poe-fanpwm.yaml`
+  **skeleton**; the actual shipped product YAML
+  [`products/sense360-ceiling-poe-fanpwm.yaml`](../products/sense360-ceiling-poe-fanpwm.yaml)
+  (PRODUCT-PWM-001) had no compile-only target of its own. This PR adds a
+  second compile-only target `ceiling-poe-fanpwm-product-compile-only`
+  pointing at that top-level product YAML — mirroring the FanRelay
+  precedent (`ceiling-poe-ventiq-fanrelay-roomiq-compile-only` already
+  registers the top-level FanRelay product YAML) — **without retiring**
+  the skeleton (`ceiling-poe-fanpwm-compile-only` stays present and
+  `validated-full-compile`). The compile-only target total moves **10 →
+  12** (the FanDAC top-level target lands in the same PR). **The new
+  target is registered metadata-only:** it carries
+  `compile_validation_status: pending-ci`, **not** `validated-full-compile`
+  — no full ESPHome `--compile` run has executed against this registered
+  target yet, so **full-compile success for it is not claimed**. (The
+  identical package composition is already full-compile-green via the
+  skeleton in run `26414398902`, proven by the
+  `PwmProductMatchesValidatedCompileOnlyCompositionTests` parity tests, but
+  that does not transfer a compile claim to the new registered target.) The
+  passing `--compile` result is owed to the recommended follow-up
+  **`FW-FULL-COMPILE-TOPLEVEL-FANS-001`**. Pinned by
+  [`tests/test_compile_targets.py`](../tests/test_compile_targets.py)
+  `TopLevelFanProductCompileTargetTests`. **Status stays conservative and
+  unchanged:** `Ceiling-POE-FanPWM` remains `hardware-pending`,
+  PWM-drive-only, **no RPM** (`rpm_supported: false`); no
+  `webflash_build_matrix` flip; no `artifact_name`; no
+  `config/webflash-builds.json` row; no release artifact;
+  `WEBFLASH-PWM-001` / `RELEASE-PWM-001` / `WF-IMPORT-PWM-001` stay blocked;
+  `S360-311` stays `cataloged_unverified`. Not WebFlash / import / release
+  readiness, not compliance approval, not hardware-stable readiness, not
+  Cloudlift-ready; no fabricated compile evidence.
 
 ### FanDAC / S360-312
 
@@ -1655,6 +1689,38 @@ named follow-up.
   edit; no `webflash_build_matrix` flip; no `artifact_name`; no WebFlash /
   import / release / compliance / hardware-stable / Cloudlift-ready claim;
   `S360-312` stays `cataloged_unverified`.
+- **2026-05-27 — `TOPLEVEL-FAN-COMPILE-TARGETS-001` (this PR; config /
+  tests / docs only) — the top-level FanDAC product YAML is now a
+  registered compile-only target.** Until now the FanDAC compile-only lane
+  only registered the `products/compile-only/ceiling-poe-fandac.yaml`
+  **skeleton**; the actual shipped product YAML
+  [`products/sense360-ceiling-poe-fandac.yaml`](../products/sense360-ceiling-poe-fandac.yaml)
+  (PRODUCT-DAC-001) had no compile-only target of its own. This PR adds a
+  second compile-only target `ceiling-poe-fandac-product-compile-only`
+  pointing at that top-level product YAML — mirroring the FanRelay
+  precedent — **without retiring** the skeleton
+  (`ceiling-poe-fandac-compile-only` stays present and
+  `validated-full-compile`). The compile-only target total moves **10 →
+  12** (the FanPWM top-level target lands in the same PR). **The new target
+  is registered metadata-only:** it carries
+  `compile_validation_status: pending-ci`, **not** `validated-full-compile`
+  — no full ESPHome `--compile` run has executed against this registered
+  target yet, so **full-compile success for it is not claimed**. (The
+  identical package composition is already full-compile-green via the
+  skeleton in run `26364679370`, proven by the FanDAC composition-parity
+  tests, but that does not transfer a compile claim to the new registered
+  target.) The passing `--compile` result is owed to the recommended
+  follow-up **`FW-FULL-COMPILE-TOPLEVEL-FANS-001`**. Pinned by
+  [`tests/test_compile_targets.py`](../tests/test_compile_targets.py)
+  `TopLevelFanProductCompileTargetTests`. **Status stays conservative and
+  unchanged:** `Ceiling-POE-FanDAC` remains `hardware-pending`; the
+  FanDAC ↔ AirIQ mutex is preserved; no simultaneous per-output 0-5V +
+  0-10V on a single GP8403 is claimed; no `webflash_build_matrix` flip; no
+  `artifact_name`; no `config/webflash-builds.json` row; no release
+  artifact; `WEBFLASH-DAC-001` / `RELEASE-DAC-001` / `WF-IMPORT-DAC-001`
+  stay blocked; `S360-312` stays `cataloged_unverified`. Not WebFlash /
+  import / release readiness, not compliance approval, not hardware-stable
+  readiness, not Cloudlift-ready; no fabricated compile evidence.
 - **Cross-references.**
   [`docs/hardware/s360-312-r4-fandac.md`](hardware/s360-312-r4-fandac.md);
   [`docs/hardware/s360-312-r4-dac.md`](hardware/s360-312-r4-dac.md);

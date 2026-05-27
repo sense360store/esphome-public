@@ -122,6 +122,19 @@ FANPWM_COMPILE_ONLY_CONFIG_STRING = "Ceiling-POE-FanPWM"
 FANPWM_COMPILE_ONLY_PRODUCT_YAML = "products/compile-only/ceiling-poe-fanpwm.yaml"
 FANPWM_PRODUCT_YAML = "products/sense360-ceiling-poe-fanpwm.yaml"
 
+# TOPLEVEL-FAN-COMPILE-TARGETS-001: register the actual top-level FanPWM /
+# FanDAC product YAMLs (landed by PRODUCT-PWM-001 / PRODUCT-DAC-001) as
+# first-class compile-only targets, ALONGSIDE — not replacing — the
+# products/compile-only/ skeletons. This closes the top-level product-YAML
+# full-compile evidence gap that the skeleton-only registration left open
+# and mirrors the FanRelay precedent, where the registered compile-only
+# target IS the top-level product YAML. These new targets are registered
+# metadata-only; full-compile success is NOT claimed for them until
+# FW-FULL-COMPILE-TOPLEVEL-FANS-001 records a passing --compile run, so they
+# carry compile_validation_status: pending-ci (NOT validated-full-compile).
+FANDAC_PRODUCT_COMPILE_ONLY_TARGET_ID = "ceiling-poe-fandac-product-compile-only"
+FANPWM_PRODUCT_COMPILE_ONLY_TARGET_ID = "ceiling-poe-fanpwm-product-compile-only"
+
 ALLOWED_SHIPMENT_STATUSES = frozenset(
     {"webflash-current", "preview-current", "compile-only"}
 )
@@ -1660,6 +1673,342 @@ class FanPWMCompileOnlyCoverageTests(unittest.TestCase):
             "validated-full-compile",
             "FW-COMPILE-PWM-001 must not change the FanDAC target's "
             "validated-full-compile status",
+        )
+
+
+class TopLevelFanProductCompileTargetTests(unittest.TestCase):
+    """TOPLEVEL-FAN-COMPILE-TARGETS-001: the actual top-level FanPWM /
+    FanDAC product YAMLs are registered as compile-only targets.
+
+    PR #614 recorded a real full ESPHome compile (10/10 registered targets
+    passed), but FanPWM / FanDAC were only registered via their
+    ``products/compile-only/`` skeletons, leaving the top-level product
+    YAMLs (``products/sense360-ceiling-poe-fanpwm.yaml`` /
+    ``products/sense360-ceiling-poe-fandac.yaml``) without their own
+    compile-only coverage. This slice registers those top-level product
+    YAMLs as first-class compile-only targets — mirroring the FanRelay
+    precedent, where the registered compile-only target IS the top-level
+    product YAML — WITHOUT retiring the skeletons.
+
+    Guardrails pinned here: the new targets are compile-only /
+    no-WebFlash-exposure / no-artifact / no-build-matrix-flip; they do NOT
+    claim full compile success (``compile_validation_status: pending-ci``,
+    NOT ``validated-full-compile`` — FW-FULL-COMPILE-TOPLEVEL-FANS-001 owns
+    the real ``--compile`` result); and the existing skeleton targets
+    remain present and unchanged (``validated-full-compile``).
+    """
+
+    # (target_id, product_yaml, config_string, skeleton_id, skeleton_yaml)
+    PARAMS = (
+        (
+            FANDAC_PRODUCT_COMPILE_ONLY_TARGET_ID,
+            FANDAC_PRODUCT_YAML,
+            FANDAC_COMPILE_ONLY_CONFIG_STRING,
+            FANDAC_COMPILE_ONLY_TARGET_ID,
+            FANDAC_COMPILE_ONLY_PRODUCT_YAML,
+        ),
+        (
+            FANPWM_PRODUCT_COMPILE_ONLY_TARGET_ID,
+            FANPWM_PRODUCT_YAML,
+            FANPWM_COMPILE_ONLY_CONFIG_STRING,
+            FANPWM_COMPILE_ONLY_TARGET_ID,
+            FANPWM_COMPILE_ONLY_PRODUCT_YAML,
+        ),
+    )
+
+    @classmethod
+    def setUpClass(cls):
+        cls.doc = _load(TARGETS_PATH)
+        cls.targets = cls.doc["targets"]
+        cls.by_id = {t["id"]: t for t in cls.targets if t.get("id")}
+        cls.builds = _load(BUILDS_PATH)
+        cls.matrix = _load(MATRIX_PATH)
+        cls.catalog = _load(CATALOG_PATH)
+        cls.committed_configs = {
+            entry["config_string"]
+            for entry in (cls.builds.get("builds", []) or [])
+            if entry.get("config_string")
+        }
+        cls.matrix_configs = {
+            row["config_string"]
+            for row in (cls.matrix.get("combinations", []) or [])
+            if row.get("config_string")
+        }
+        cls.catalog_by_config = {
+            entry["config_string"]: entry
+            for entry in (cls.catalog.get("products", []) or [])
+            if entry.get("config_string")
+        }
+
+    def test_top_level_fan_product_targets_exist(self):
+        """FanPWM and FanDAC top-level product YAMLs are registered."""
+        for tid, *_ in self.PARAMS:
+            self.assertIn(
+                tid,
+                self.by_id,
+                f"TOPLEVEL-FAN-COMPILE-TARGETS-001 must register a "
+                f"compile-only target with id {tid!r}",
+            )
+
+    def test_top_level_targets_point_at_top_level_product_yaml(self):
+        for tid, product_yaml, *_ in self.PARAMS:
+            target = self.by_id.get(tid)
+            self.assertIsNotNone(target)
+            self.assertEqual(
+                target.get("product_yaml"),
+                product_yaml,
+                f"target {tid!r} must register the top-level product YAML "
+                f"{product_yaml!r}",
+            )
+            self.assertFalse(
+                product_yaml.startswith("products/compile-only/"),
+                f"target {tid!r}: the whole point is to register the "
+                "TOP-LEVEL product YAML, not a products/compile-only/ "
+                "skeleton",
+            )
+            self.assertFalse(
+                product_yaml.startswith("products/webflash/"),
+                f"target {tid!r}: must not register a products/webflash/ "
+                "wrapper",
+            )
+
+    def test_top_level_product_yaml_exists_on_disk(self):
+        for tid, product_yaml, *_ in self.PARAMS:
+            self.assertTrue(
+                (REPO_ROOT / product_yaml).is_file(),
+                f"target {tid!r}: product_yaml {product_yaml!r} not found "
+                "on disk",
+            )
+
+    def test_top_level_targets_config_string_in_firmware_matrix(self):
+        for tid, _, config_string, *_ in self.PARAMS:
+            self.assertIn(
+                config_string,
+                self.matrix_configs,
+                f"target {tid!r}: config_string {config_string!r} must be "
+                "present in config/firmware-combination-matrix.json",
+            )
+
+    def test_top_level_targets_are_compile_only(self):
+        for tid, *_ in self.PARAMS:
+            target = self.by_id.get(tid)
+            self.assertIsNotNone(target)
+            self.assertEqual(
+                target.get("shipment_status"),
+                "compile-only",
+                f"target {tid!r}: shipment_status must be compile-only",
+            )
+
+    def test_top_level_targets_disallow_webflash_exposure(self):
+        for tid, *_ in self.PARAMS:
+            target = self.by_id.get(tid)
+            self.assertIsNotNone(target)
+            self.assertFalse(
+                target.get("webflash_exposure_allowed_now"),
+                f"target {tid!r}: webflash_exposure_allowed_now must be "
+                "false",
+            )
+
+    def test_top_level_targets_require_hardware_for_validation(self):
+        for tid, *_ in self.PARAMS:
+            target = self.by_id.get(tid)
+            self.assertIsNotNone(target)
+            self.assertTrue(
+                target.get("hardware_required_for_validation"),
+                f"target {tid!r}: hardware_required_for_validation must be "
+                "true — compile-only is pre-hardware confidence",
+            )
+
+    def test_top_level_targets_not_blocked(self):
+        for tid, *_ in self.PARAMS:
+            target = self.by_id.get(tid)
+            self.assertIsNotNone(target)
+            self.assertFalse(
+                target.get("blocked"),
+                f"target {tid!r}: FanPWM / FanDAC are SELV / non-compliance "
+                "lanes, not blocked=true targets",
+            )
+
+    def test_top_level_targets_declare_no_webflash_build_matrix(self):
+        """No webflash_build_matrix flip on the new target rows."""
+        for tid, *_ in self.PARAMS:
+            target = self.by_id.get(tid)
+            self.assertIsNotNone(target)
+            self.assertNotIn(
+                "webflash_build_matrix",
+                target,
+                f"target {tid!r}: must not declare webflash_build_matrix; "
+                "that flag is owned by config/product-catalog.json and is "
+                "not flipped here",
+            )
+
+    def test_top_level_targets_declare_no_artifact_name(self):
+        for tid, *_ in self.PARAMS:
+            target = self.by_id.get(tid)
+            self.assertIsNotNone(target)
+            self.assertNotIn(
+                "artifact_name",
+                target,
+                f"target {tid!r}: must not declare artifact_name; no "
+                "release artifact is added",
+            )
+
+    def test_top_level_targets_declare_no_webflash_wrapper(self):
+        for tid, *_ in self.PARAMS:
+            target = self.by_id.get(tid)
+            self.assertIsNotNone(target)
+            self.assertNotIn(
+                "webflash_wrapper",
+                target,
+                f"target {tid!r}: must not declare webflash_wrapper",
+            )
+
+    def test_top_level_targets_do_not_claim_full_compile_success(self):
+        """Conservative: the new targets must NOT claim a passing full compile.
+
+        Full-compile success for the registered top-level targets is owned
+        by the follow-up FW-FULL-COMPILE-TOPLEVEL-FANS-001 run, not by this
+        registration. compile_validation_status must be pending-ci, never
+        validated-full-compile (that would fabricate compile evidence).
+        """
+        for tid, *_ in self.PARAMS:
+            target = self.by_id.get(tid)
+            self.assertIsNotNone(target)
+            self.assertNotEqual(
+                target.get("compile_validation_status"),
+                "validated-full-compile",
+                f"target {tid!r}: must NOT claim validated-full-compile — "
+                "no full compile has run against this registered target yet",
+            )
+            self.assertEqual(
+                target.get("compile_validation_status"),
+                "pending-ci",
+                f"target {tid!r}: must record compile_validation_status: "
+                "pending-ci until FW-FULL-COMPILE-TOPLEVEL-FANS-001 records "
+                "a passing --compile run",
+            )
+
+    def test_top_level_targets_not_in_webflash_builds(self):
+        for tid, _, config_string, *_ in self.PARAMS:
+            self.assertNotIn(
+                config_string,
+                self.committed_configs,
+                f"target {tid!r}: config_string {config_string!r} must NOT "
+                "be in config/webflash-builds.json",
+            )
+
+    def test_no_fan_token_added_to_webflash_builds(self):
+        """No WebFlash build / release-artifact state change for either fan."""
+        text = BUILDS_PATH.read_text()
+        for token in ("FanPWM", "FanDAC"):
+            self.assertNotIn(
+                token,
+                text,
+                f"config/webflash-builds.json must not contain the {token!r} "
+                "token — TOPLEVEL-FAN-COMPILE-TARGETS-001 adds no WebFlash "
+                "build / release artifact",
+            )
+
+    def test_top_level_targets_not_in_release_one_required_configs(self):
+        compat_path = REPO_ROOT / "config" / "webflash-compatibility.json"
+        compat = _load(compat_path)
+        required = compat.get("release_one_required_configs", []) or []
+        for tid, _, config_string, *_ in self.PARAMS:
+            self.assertNotIn(
+                config_string,
+                required,
+                f"target {tid!r}: {config_string!r} must not be promoted "
+                "into release_one_required_configs",
+            )
+
+    def test_fanpwm_top_level_target_makes_no_rpm_claim(self):
+        target = self.by_id.get(FANPWM_PRODUCT_COMPILE_ONLY_TARGET_ID)
+        self.assertIsNotNone(target)
+        self.assertFalse(
+            target.get("rpm_supported", False),
+            "FanPWM top-level product compile-only target must keep "
+            "rpm_supported false — the PWM-drive-only package exposes no "
+            "RPM",
+        )
+
+    def test_skeleton_targets_remain_present_and_unchanged(self):
+        """Existing skeleton targets are preserved, not retired."""
+        for _, _, _, skeleton_id, skeleton_yaml in self.PARAMS:
+            skeleton = self.by_id.get(skeleton_id)
+            self.assertIsNotNone(
+                skeleton,
+                f"skeleton target {skeleton_id!r} must remain present — "
+                "TOPLEVEL-FAN-COMPILE-TARGETS-001 adds top-level targets "
+                "alongside the skeletons, it does not retire them",
+            )
+            self.assertEqual(
+                skeleton.get("product_yaml"),
+                skeleton_yaml,
+                f"skeleton target {skeleton_id!r} must keep pointing at "
+                f"{skeleton_yaml!r}",
+            )
+            self.assertEqual(
+                skeleton.get("shipment_status"),
+                "compile-only",
+                f"skeleton target {skeleton_id!r} stays compile-only",
+            )
+            self.assertEqual(
+                skeleton.get("compile_validation_status"),
+                "validated-full-compile",
+                f"skeleton target {skeleton_id!r} must stay "
+                "validated-full-compile — its recorded full compile is not "
+                "regressed by this slice",
+            )
+
+    def test_skeleton_and_top_level_targets_are_distinct_files(self):
+        """The top-level target and the skeleton are separate YAML files."""
+        for tid, product_yaml, _, skeleton_id, skeleton_yaml in self.PARAMS:
+            self.assertNotEqual(
+                product_yaml,
+                skeleton_yaml,
+                f"target {tid!r} and skeleton {skeleton_id!r} must register "
+                "distinct files (top-level product YAML vs skeleton)",
+            )
+            self.assertNotEqual(tid, skeleton_id)
+
+    def test_catalog_webflash_build_matrix_not_flipped(self):
+        """No webflash_build_matrix flip / artifact_name add in the catalog."""
+        for _, _, config_string, *_ in self.PARAMS:
+            entry = self.catalog_by_config.get(config_string)
+            self.assertIsNotNone(
+                entry,
+                f"catalog entry for {config_string!r} must exist "
+                "(landed by PRODUCT-PWM-001 / PRODUCT-DAC-001)",
+            )
+            self.assertEqual(
+                entry.get("webflash_build_matrix"),
+                False,
+                f"catalog entry for {config_string!r}: webflash_build_matrix "
+                "must stay false — this slice does not flip it",
+            )
+            self.assertNotIn(
+                "artifact_name",
+                entry,
+                f"catalog entry for {config_string!r}: no artifact_name may "
+                "be added",
+            )
+            self.assertNotIn(
+                "webflash_wrapper",
+                entry,
+                f"catalog entry for {config_string!r}: no webflash_wrapper "
+                "may be added",
+            )
+
+    def test_totals_updated_for_two_new_top_level_targets(self):
+        totals = self.doc.get("totals") or {}
+        self.assertEqual(totals.get("targets"), len(self.targets))
+        # 2 WebFlash + 5 POE non-fan + 1 FanRelay + 2 fan skeletons
+        # (FanDAC, FanPWM) + 2 new top-level fan product targets.
+        self.assertGreaterEqual(
+            len(self.targets),
+            12,
+            "expected at least the prior 10 registered targets plus the two "
+            "new top-level FanPWM / FanDAC product compile-only targets",
         )
 
 
