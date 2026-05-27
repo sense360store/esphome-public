@@ -15,18 +15,16 @@ regress:
   * no workflow uses ``permissions: write-all`` at any scope;
   * no ``write`` permission scope is granted (top-level or job-level)
     unless it is explicitly allowlisted here with a documented reason;
-  * every third-party / first-party action ``uses:`` reference is either
-    pinned to an immutable commit SHA **or** listed in the documented
-    mutable-major-tag allowlist below (the inventory pending
-    ``SECURITY-ACTION-PINNING-001``).
+  * every action ``uses:`` reference is pinned to an immutable 40-hex
+    commit SHA (local ``./`` composite actions and any explicitly
+    documented exception in ``MUTABLE_TAG_PIN_EXCEPTIONS`` are exempt).
 
-Pinning policy note (do not over-claim): this repo currently pins actions
-to **mutable major tags** (e.g. ``actions/checkout@v4``), not immutable
-commit SHAs. Converting to SHA pins is tracked as the follow-up
-``SECURITY-ACTION-PINNING-001``. This test therefore does not assert that
-pins are immutable; it asserts that any action in use is *either*
-SHA-pinned *or* an already-inventoried major tag, so that adding a new,
-undocumented, unpinned action fails until it is consciously reviewed.
+Pinning policy note: ``SECURITY-ACTION-PINNING-001`` converted all six
+referenced actions from mutable major tags (e.g. ``actions/checkout@v4``)
+to immutable commit SHAs, preserving the resolved upstream version in a
+trailing comment for maintainability. This test now asserts immutability:
+any action that is not SHA-pinned, not a local composite action, and not a
+documented exception fails, so a new mutable-tag reference cannot slip in.
 
 Run with:
 
@@ -62,18 +60,26 @@ WRITE_PERMISSION_ALLOWLIST: dict[tuple[str, str, str], str] = {
 }
 
 # ---------------------------------------------------------------------------
-# Allowlist: action references pinned to mutable major tags. Each entry is
-# the documented current inventory pending SECURITY-ACTION-PINNING-001
-# (SHA-pinning). Adding a new action requires either a SHA pin or a
-# conscious addition here with a reason.
+# Allowlist: action references that are deliberately NOT pinned to an
+# immutable commit SHA, each with a documented reason. SECURITY-ACTION-
+# PINNING-001 converted all six referenced actions to commit SHAs, so this
+# is empty. Any future action that genuinely cannot be SHA-pinned must be
+# added here with a reason; otherwise it must be SHA-pinned.
 # ---------------------------------------------------------------------------
-MUTABLE_ACTION_TAG_ALLOWLIST: dict[str, str] = {
-    "actions/checkout@v4": "first-party GitHub action; major-tag pin (SECURITY-ACTION-PINNING-001)",
-    "actions/setup-python@v5": "first-party GitHub action; major-tag pin (SECURITY-ACTION-PINNING-001)",
-    "actions/cache@v4": "first-party GitHub action; major-tag pin (SECURITY-ACTION-PINNING-001)",
-    "actions/upload-artifact@v4": "first-party GitHub action; major-tag pin (SECURITY-ACTION-PINNING-001)",
-    "actions/download-artifact@v4": "first-party GitHub action; major-tag pin (SECURITY-ACTION-PINNING-001)",
-    "softprops/action-gh-release@v2": "third-party action; major-tag pin — highest-value SHA-pin target (SECURITY-ACTION-PINNING-001)",
+MUTABLE_TAG_PIN_EXCEPTIONS: dict[str, str] = {}
+
+# ---------------------------------------------------------------------------
+# Inventory: the SHA-pinned actions and the upstream version each SHA
+# resolves to (mirrors docs/workflow-security-hardening.md §2). Kept honest
+# by test_pinned_action_inventory_is_in_use so the inventory does not rot.
+# ---------------------------------------------------------------------------
+SHA_PINNED_ACTION_INVENTORY: dict[str, str] = {
+    "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5": "v4.3.1",
+    "actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065": "v5.6.0",
+    "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830": "v4.3.0",
+    "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02": "v4.6.2",
+    "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093": "v4.3.0",
+    "softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65": "v2.6.2",
 }
 
 _SHA_PIN_RE = re.compile(r"@[0-9a-f]{40}$")
@@ -217,7 +223,14 @@ class WorkflowPermissionTests(unittest.TestCase):
                         )
         self.assertEqual(offenders, [], "\n".join(offenders))
 
-    def test_action_pins_are_sha_or_documented(self) -> None:
+    def _all_uses_refs(self) -> set[str]:
+        refs: set[str] = set()
+        for raw in self.raw.values():
+            for match in _USES_RE.finditer(raw):
+                refs.add(match.group("ref").strip().strip("'\""))
+        return refs
+
+    def test_action_pins_are_immutable_sha(self) -> None:
         offenders: list[str] = []
         for name, raw in self.raw.items():
             for match in _USES_RE.finditer(raw):
@@ -227,30 +240,38 @@ class WorkflowPermissionTests(unittest.TestCase):
                     continue
                 if _SHA_PIN_RE.search(ref):
                     continue
-                if ref in MUTABLE_ACTION_TAG_ALLOWLIST:
+                if ref in MUTABLE_TAG_PIN_EXCEPTIONS:
                     continue
                 offenders.append(
-                    f"{name}: action '{ref}' is neither SHA-pinned nor in "
-                    "MUTABLE_ACTION_TAG_ALLOWLIST. Pin it to an immutable "
-                    "commit SHA, or add it to the allowlist with a reason "
-                    "(tracked by SECURITY-ACTION-PINNING-001)."
+                    f"{name}: action '{ref}' is not pinned to an immutable "
+                    "40-hex commit SHA. Pin it to a commit SHA (keep the "
+                    "upstream version in a trailing comment), or add it to "
+                    "MUTABLE_TAG_PIN_EXCEPTIONS with a reason "
+                    "(SECURITY-ACTION-PINNING-001)."
                 )
         self.assertEqual(offenders, [], "\n".join(offenders))
 
-    def test_allowlisted_actions_are_all_in_use(self) -> None:
-        # Keep the documented inventory honest: every allowlisted major-tag
-        # entry must still be referenced by some workflow, so the inventory
-        # does not rot as actions are removed.
-        all_refs: set[str] = set()
-        for raw in self.raw.values():
-            for match in _USES_RE.finditer(raw):
-                all_refs.add(match.group("ref").strip().strip("'\""))
-        unused = sorted(set(MUTABLE_ACTION_TAG_ALLOWLIST) - all_refs)
+    def test_pin_exceptions_are_all_in_use(self) -> None:
+        # Keep the exception list honest: every documented not-SHA-pinned
+        # exception must still be referenced by a workflow.
+        unused = sorted(set(MUTABLE_TAG_PIN_EXCEPTIONS) - self._all_uses_refs())
         self.assertEqual(
             unused,
             [],
-            "MUTABLE_ACTION_TAG_ALLOWLIST has entries no longer used by any "
+            "MUTABLE_TAG_PIN_EXCEPTIONS has entries no longer used by any "
             f"workflow (remove them): {unused}",
+        )
+
+    def test_pinned_action_inventory_is_in_use(self) -> None:
+        # Keep the documented SHA-pin inventory honest: every inventoried
+        # SHA pin must still be referenced by a workflow, so the inventory
+        # (and docs/workflow-security-hardening.md §2) does not rot.
+        unused = sorted(set(SHA_PINNED_ACTION_INVENTORY) - self._all_uses_refs())
+        self.assertEqual(
+            unused,
+            [],
+            "SHA_PINNED_ACTION_INVENTORY has entries no longer used by any "
+            f"workflow (update the inventory + docs): {unused}",
         )
 
 

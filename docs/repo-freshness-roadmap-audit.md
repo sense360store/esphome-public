@@ -173,18 +173,19 @@ workflows, dependency pins, and secret-handling. **This is not a clean bill of h
 | Secret hygiene | Root `secrets.yaml` + `*.secret` gitignored; `scripts/check-no-tracked-secrets.py` guards the index; `products/secrets.yaml` is a **symlink** to `secrets.example.yaml`; CI heredocs inject obvious **dummy** values (`TestNetwork` / all-`a` key). No real credentials tracked; no AWS/PEM/`ghp_` patterns found. | **SECURITY-NO-ACTION** |
 | Workflow trigger safety | No `pull_request_target`; no `write-all`. Release workflow uses built-in `GITHUB_TOKEN` (not a PAT). | **SECURITY-NO-ACTION** |
 | Missing explicit `permissions:` blocks | ~~`validate.yml`, `compile-only.yml`, `ci-validate-configs.yml` declare **no** `permissions:`~~ **RESOLVED by `SECURITY-AUDIT-FIX-001`:** all five workflows now declare explicit top-level `permissions: contents: read`; `firmware-build-release.yml` was further narrowed from top-level `contents: write` to `contents: read`, keeping `contents: write` only on its `release` job (which uploads release assets). Guarded by `tests/test_workflow_permissions.py`. | **RESOLVED** |
-| Action version pinning | All actions pinned to **mutable major tags** (`actions/checkout@v4`, `setup-python@v5`, `cache@v4`, `upload/download-artifact@v4`, `softprops/action-gh-release@v2`) rather than full commit SHAs. **Not yet SHA-pinned** — `SECURITY-AUDIT-FIX-001` inventories the six actions and adds a regression guard (`tests/test_workflow_permissions.py`) that requires any *new* action to be SHA-pinned or consciously allowlisted, but does **not** claim immutable pinning. SHA conversion (third-party `softprops/action-gh-release@v2` is the highest-value target) is carried forward as `SECURITY-ACTION-PINNING-001`. See [`docs/workflow-security-hardening.md`](workflow-security-hardening.md). | **SECURITY-FOLLOW-UP** → `SECURITY-ACTION-PINNING-001` |
+| Action version pinning | ~~All actions pinned to **mutable major tags**~~ **RESOLVED by `SECURITY-ACTION-PINNING-001` (2026-05-27):** all six actions (`actions/checkout`, `setup-python`, `cache`, `upload/download-artifact`, third-party `softprops/action-gh-release`) are now pinned to **immutable commit SHAs**, with the resolved version kept in a trailing `# vX.Y.Z` comment. `tests/test_workflow_permissions.py` was tightened to **require** SHA pins (local composite actions / documented exceptions excepted). SHA pins do not self-update, so refreshing them is a manual maintenance action. See the per-action table in [`docs/workflow-security-hardening.md`](workflow-security-hardening.md) §2. | **RESOLVED** |
 | Dependency pins (`requirements-dev.txt`) | Floating lower bounds (`esphome>=2026.4.5`, `black>=26.5.0`, `pyyaml>=6.0.2`, `pytest>=8.0.0`, …). Workflows pin `ESPHOME_VERSION: "2026.4.5"` exactly and consistently. Reproducibility note: dev deps are unbounded-above. | **SECURITY-FOLLOW-UP** (low) |
 | Dependabot / code-scanning alerts | Alert API unavailable this session. | **NEEDS-TOOLING** |
 | npm / WebFlash lockfiles | None in esphome-public (no Node project here); WebFlash repo inaccessible. | **NEEDS-TOOLING** |
 
 No **SECURITY-BLOCKING** items were found in the inspected surface. The two hardening items above were
-batched as `SECURITY-AUDIT-FIX-001`. **Status (resolved by the `SECURITY-AUDIT-FIX-001` PR):** the explicit
-least-privilege `permissions:` gap is **closed** for all five workflows and locked by
-`tests/test_workflow_permissions.py`; the mutable-major-tag action pins are **inventoried, documented, and
-regression-guarded** but **not** converted to immutable SHA pins — that conversion is carried forward as
-`SECURITY-ACTION-PINNING-001`. This remains **not a clean bill of health**: no Dependabot / code-scanning /
-secret-scanning **alert** feed was available, so no "no vulnerabilities" claim is made.
+batched as `SECURITY-AUDIT-FIX-001` (permissions) and `SECURITY-ACTION-PINNING-001` (action SHA-pinning).
+**Status:** the explicit least-privilege `permissions:` gap is **closed** for all five workflows and locked
+by `tests/test_workflow_permissions.py`; and as of 2026-05-27 the six action pins are **converted to
+immutable commit SHAs** by `SECURITY-ACTION-PINNING-001`, with the guard tightened to require SHA pins.
+This remains **not a clean bill of health**: SHA pins do not self-update (refreshing is a manual maintenance
+action), and no Dependabot / code-scanning / secret-scanning **alert** feed was available, so no
+"no vulnerabilities" claim is made.
 
 ---
 
@@ -213,7 +214,7 @@ secret-scanning **alert** feed was available, so no "no vulnerabilities" claim i
 | **`CONFIG-FRESHNESS-001`** | **DONE** (2026-05-24) — closed this stale-active item | Reconciled the FanDAC full-compile narrative in `config/product-catalog.json` (notes) **and** `products/sense360-ceiling-poe-fandac.yaml` (header + inline comment) from `pending-ci`/`owed` → `validated-full-compile` (run `26364679370`), matching #581, and replaced `tests/test_dac_product_readiness.py::test_carries_full_compile_owed_caveat` with `test_carries_full_compile_validated_caveat`. No-WebFlash / no-release / hardware-pending posture and all installation caveats retained; no blocker moved. | — (resolved). |
 | **`WEBFLASH-DRIFT-001`** | **DONE — docs-only (2026-05-26)** | Produced [`docs/webflash-drift-audit.md`](webflash-drift-audit.md): drift table across config_string / artifact_name / artifact_pattern / channels / visible products / default posture / module-availability / release-import readiness. No confirmed cross-repo drift (all `INTENTIONALLY-BLOCKED` or `NEEDS-OPERATOR-INPUT`); WebFlash side resolved from prior-recorded (PR #565) + Drive provenance. Recommends `WEBFLASH-RELAY/DAC/PWM-001-READINESS` next. A future re-run with **live WebFlash access** is still owed to close the `NEEDS-OPERATOR-INPUT` axes (artifact_pattern source, grammar-validator parity, full channel list, PWM/DAC `module-availability.js`). | Live WebFlash repo still not accessible this session → `NEEDS-TOOLING` for the remaining axes. |
 | **`SECURITY-AUDIT-FIX-001`** | **DONE** (2026-05-25) | Added least-privilege top-level `permissions: contents: read` to all five workflows (the three that lacked it — `validate.yml` / `compile-only.yml` / `ci-validate-configs.yml` — plus narrowed `firmware-build-release.yml` top-level write→read, keeping `contents: write` only on its `release` job). Added regression guard `tests/test_workflow_permissions.py` (explicit top-level `permissions:`, no `pull_request_target`, no `write-all`, no unallowlisted `write`, action pins SHA-or-documented). Inventoried the six mutable-major-tag action pins in `docs/workflow-security-hardening.md`. **No SHA-pin conversion and no security clean-bill claim.** | — (resolved). |
-| **`SECURITY-ACTION-PINNING-001`** | **YES** — carried from `SECURITY-AUDIT-FIX-001` | Convert the six inventoried mutable major-tag action pins to immutable commit SHAs (start with third-party `softprops/action-gh-release@v2`), and tighten `tests/test_workflow_permissions.py` to require SHA pins once converted. | Deliberately deferred: SHA-pinning all six actions (and the renovate/dependabot follow-through to keep SHAs current) is broader than the permissions-hardening scope of `SECURITY-AUDIT-FIX-001`. |
+| **`SECURITY-ACTION-PINNING-001`** | **DONE** (2026-05-27) | Converted all six inventoried action pins (`actions/checkout`→`v4.3.1`, `setup-python`→`v5.6.0`, `cache`→`v4.3.0`, `upload-artifact`→`v4.6.2`, `download-artifact`→`v4.3.0`, third-party `softprops/action-gh-release`→`v2.6.2`) from mutable major tags to immutable commit SHAs (resolved via `git ls-remote --tags`), keeping the version in a trailing comment. Tightened `tests/test_workflow_permissions.py` to **require** SHA pins (local composite actions / documented exceptions excepted) and to keep the SHA-pin inventory honest. Per-action table in `docs/workflow-security-hardening.md` §2. Pinning-only: no trigger / permission / job / script / secret / build-logic change. | — (resolved). |
 | **`CI-GATE-HARDENING-001`** | optional | Run generated-matrix sync tests + full `unittest discover` on PR; consider an opt-in PR full-compile gate. | `.github/workflows/**` do-not-edit. |
 | **`ROADMAP-COVERAGE-001`** | optional / low | Add explicit SX1509 + SEN0609 roadmap/constraint rows (doc-only). | Cosmetic; no material gap. |
 | **`PWM-BLOCKER-REMOVAL-001`** | **DONE** (2026-05-25) | Audited the S360-311 / FanPWM lane against repo + Drive evidence; recorded the Drive `12vFan_PWM_PulseCounter` artifact set (BOM / gerbers / CPL / STEP / renders) with provenance; cross-checked the BOM against the committed `S360-311-R4` schematic 1:1; produced the [blocker table](hardware/s360-311-r4-pwm.md#pwm-blocker-removal-001-readiness--blocker-table) (rows 1/2/5/11 CLOSED, row 6 PARTIAL, rows 3/4/7/8/9/10 still blocking) in `s360-311-r4-pwm.md` + matrix addenda. Docs-only; no `.xlsx`/binary committed; no config/package/product/WebFlash edit. | — (resolved; this PR). |
@@ -282,11 +283,12 @@ The green generated-file sync tests confirm `config/firmware-combination-matrix.
 - **Security:** good hygiene; two hardening follow-ups (workflow permissions, action SHA-pinning) →
   `SECURITY-AUDIT-FIX-001`; **no clean-bill claim** (alert tooling unavailable).
 - **Roadmap:** complete and current; PWM is the next blocker → `PWM-BLOCKER-REMOVAL-001`.
-- **Security:** good hygiene; the workflow-permissions hardening follow-up is **DONE** via
+- **Security:** good hygiene; both workflow hardening follow-ups are **DONE** — workflow-permissions via
   `SECURITY-AUDIT-FIX-001` (2026-05-25 — explicit least-privilege `permissions:` on all five workflows +
   `tests/test_workflow_permissions.py` regression guard + action-pin inventory in
-  `docs/workflow-security-hardening.md`); action **SHA-pinning** is carried forward as
-  `SECURITY-ACTION-PINNING-001`. **Still no clean-bill claim** (no Dependabot / code-scanning /
+  `docs/workflow-security-hardening.md`), and action **SHA-pinning** via `SECURITY-ACTION-PINNING-001`
+  (2026-05-27 — all six actions converted to immutable commit SHAs, guard tightened to require SHA pins).
+  **Still no clean-bill claim** (SHA pins do not self-update; no Dependabot / code-scanning /
   secret-scanning alert feed available).
 - **CI:** PR/push proves structure + metadata; full compile, generated-drift, and WebFlash/release checks
   are not auto-gated → `CI-GATE-HARDENING-001`.
@@ -304,3 +306,13 @@ release, compliance, or security clean-bill readiness. The three readiness matri
 > `artifact_name`, no release artifact, and **no** release / WebFlash-import / compliance / security
 > clean-bill claim. Workflow validation behaviour is unchanged (permissions were tightened, never widened or
 > weakened).
+
+> **Update — `SECURITY-ACTION-PINNING-001` (2026-05-27):** the SHA-pinning follow-up PR edits **only**
+> `.github/workflows/**` (replacing each action's mutable major tag with the immutable commit SHA it
+> resolved to, version kept in a trailing `# vX.Y.Z` comment), `tests/**`
+> (`tests/test_workflow_permissions.py` tightened to require SHA pins), and `docs/**` + `UPCOMING_PR.md`.
+> It makes **no** change to any workflow trigger, permission scope, job, run step, environment, secret, or
+> build logic, and **no** product / package / `config/**` / `components/**` / `include/**` / firmware /
+> WebFlash change, no `webflash_build_matrix` flip, no `artifact_name`, no release artifact, and **no**
+> release / WebFlash-import / compliance / hardware-stable / security clean-bill claim. SHA pins are
+> immutable and do not self-update — refreshing them is a manual maintenance action.

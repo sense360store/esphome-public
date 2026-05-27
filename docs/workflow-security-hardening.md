@@ -2,14 +2,17 @@
 
 **Owner id:** `SECURITY-AUDIT-FIX-001`
 **Date:** 2026-05-25
+**Updated:** 2026-05-27 by `SECURITY-ACTION-PINNING-001` (action SHA-pinning).
 **Scope repo:** `sense360store/esphome-public`
 **Source:** concrete hardening follow-up found by `REPO-FRESHNESS-ROADMAP-AUDIT-001` / PR #582.
 
 This document records the security posture of the workflows under
-`.github/workflows/`: the least-privilege token model now applied, the
-action-pin inventory, the pinning policy decision, and the regression
-guard that locks these invariants in. It is **not** a clean bill of
-health — see [Explicitly not claimed](#explicitly-not-claimed).
+`.github/workflows/`: the least-privilege token model applied by
+`SECURITY-AUDIT-FIX-001`, the action-pin inventory (now converted to
+immutable commit SHAs by `SECURITY-ACTION-PINNING-001`), the pinning
+policy decision, and the regression guard that locks these invariants in.
+It is **not** a clean bill of health — see
+[Explicitly not claimed](#explicitly-not-claimed).
 
 ---
 
@@ -47,42 +50,53 @@ Other trigger-safety facts confirmed (and regression-guarded):
 
 ---
 
-## 2. Action-pin inventory
+## 2. Action-pin inventory (SHA-pinned by `SECURITY-ACTION-PINNING-001`)
 
-As of 2026-05-25 the workflows reference six actions, **all pinned to
-mutable major tags** (not immutable commit SHAs):
+As of 2026-05-27 the workflows reference six actions, **all pinned to
+immutable 40-hex commit SHAs** (the resolved upstream version is preserved
+in a trailing `# vX.Y.Z` comment for maintainability). The SHA each major
+tag resolved to on 2026-05-27 was taken directly from `git ls-remote
+--tags` against each upstream repository.
 
-| Action | Pin | First/third party | Notes |
-|---|---|---|---|
-| `actions/checkout` | `@v4` | first-party | repo checkout |
-| `actions/setup-python` | `@v5` | first-party | Python toolchain |
-| `actions/cache` | `@v4` | first-party | PlatformIO / pip cache |
-| `actions/upload-artifact` | `@v4` | first-party | CI artifact upload |
-| `actions/download-artifact` | `@v4` | first-party | CI artifact download |
-| `softprops/action-gh-release` | `@v2` | **third-party** | release asset upload — **highest-value SHA-pin target** |
+| Action | Workflow file(s) | Previous ref | Pinned SHA | Resolves to | First/third party | Next maintenance action |
+|---|---|---|---|---|---|---|
+| `actions/checkout` | `validate.yml`, `compile-only.yml`, `ci-validate-configs.yml`, `release-notes-draft.yml`, `firmware-build-release.yml` | `@v4` | `34e114876b0b11c390a56381ad16ebd13914f8d5` | `v4.3.1` | first-party | bump SHA + comment when adopting a newer `v4.x`/`v5.x` |
+| `actions/setup-python` | `validate.yml`, `compile-only.yml`, `ci-validate-configs.yml`, `release-notes-draft.yml`, `firmware-build-release.yml` | `@v5` | `a26af69be951a213d495a4c3e4e4022e16d87065` | `v5.6.0` | first-party | bump SHA + comment when adopting a newer `v5.x` |
+| `actions/cache` | `compile-only.yml`, `ci-validate-configs.yml`, `firmware-build-release.yml` | `@v4` | `0057852bfaa89a56745cba8c7296529d2fc39830` | `v4.3.0` | first-party | bump SHA + comment when adopting a newer `v4.x` |
+| `actions/upload-artifact` | `release-notes-draft.yml`, `firmware-build-release.yml` | `@v4` | `ea165f8d65b6e75b540449e92b4886f43607fa02` | `v4.6.2` | first-party | bump SHA + comment when adopting a newer `v4.x` |
+| `actions/download-artifact` | `firmware-build-release.yml` | `@v4` | `d3f86a106a0bac45b974a628896c90dbdf5c8093` | `v4.3.0` | first-party | bump SHA + comment when adopting a newer `v4.x` |
+| `softprops/action-gh-release` | `firmware-build-release.yml` | `@v2` | `3bb12739c298aeb8a4eeaf626c5b8d85266b0e65` | `v2.6.2` | **third-party** | bump SHA + comment when adopting a newer `v2.x`; highest-value pin target |
 
-This inventory is mirrored in `MUTABLE_ACTION_TAG_ALLOWLIST` inside
-`tests/test_workflow_permissions.py`, which keeps it from rotting (every
-allowlisted entry must still be referenced by a workflow).
+There are **no exceptions** — every referenced action is SHA-pinned, so
+the documented-exception allowlist is empty. This inventory is mirrored in
+`SHA_PINNED_ACTION_INVENTORY` inside `tests/test_workflow_permissions.py`,
+which keeps it from rotting (every inventoried SHA pin must still be
+referenced by a workflow).
 
 ---
 
 ## 3. Pinning policy decision
 
-**Current policy: documented mutable major-tag pins.** Converting all six
-actions to immutable commit SHAs — and standing up the
-Renovate/Dependabot follow-through needed to keep those SHAs current — is
-broader than the permissions-hardening scope of `SECURITY-AUDIT-FIX-001`.
-It is carried forward as the follow-up **`SECURITY-ACTION-PINNING-001`**
-(start with the third-party `softprops/action-gh-release@v2`).
+**Current policy: immutable commit-SHA pins for every action.**
+`SECURITY-ACTION-PINNING-001` converted all six actions (first- and
+third-party) from mutable major tags to commit SHAs, keeping the upstream
+version visible in a trailing comment. This closes the SHA-pinning
+follow-up carried forward from `SECURITY-AUDIT-FIX-001`.
 
-To prevent silent regression in the meantime,
-`tests/test_workflow_permissions.py` requires every action `uses:`
-reference to be **either** SHA-pinned **or** present in the documented
-major-tag allowlist. A new, undocumented, unpinned action fails the test
-until it is consciously reviewed.
+`tests/test_workflow_permissions.py` now requires every action `uses:`
+reference to be SHA-pinned (a local `./` composite action or an explicitly
+documented `MUTABLE_TAG_PIN_EXCEPTIONS` entry are the only exemptions). A
+new mutable-tag reference fails the test until it is SHA-pinned or
+consciously excepted with a reason.
 
-> This repo does **not** currently claim immutable (SHA) action pinning.
+> **Maintenance note.** SHA pins are immutable, so they do **not** receive
+> upstream patch/security updates automatically. Refreshing them is a
+> deliberate maintenance action: re-resolve the intended version with
+> `git ls-remote --tags <repo>`, update the SHA **and** the trailing
+> `# vX.Y.Z` comment, and update both this table and
+> `SHA_PINNED_ACTION_INVENTORY`. Automating this (Renovate/Dependabot
+> SHA-pin updates) remains an optional future enhancement, not a claim
+> made here.
 
 ---
 
@@ -97,8 +111,11 @@ until it is consciously reviewed.
 4. no `write` scope is granted (top-level or job-level) unless explicitly
    allowlisted with a reason (`WRITE_PERMISSION_ALLOWLIST` — currently only
    the `firmware-build-release.yml` `release` job's `contents: write`);
-5. every action `uses:` reference is SHA-pinned or in the documented
-   major-tag allowlist (`MUTABLE_ACTION_TAG_ALLOWLIST`).
+5. every action `uses:` reference is pinned to an immutable 40-hex commit
+   SHA, except local `./` composite actions and documented
+   `MUTABLE_TAG_PIN_EXCEPTIONS` entries (currently none);
+6. the documented exception list and the `SHA_PINNED_ACTION_INVENTORY`
+   stay honest (no entry that is no longer referenced by a workflow).
 
 ---
 
@@ -107,9 +124,12 @@ until it is consciously reviewed.
 - **No security clean bill of health.** No Dependabot, code-scanning, or
   secret-scanning **alert** feed was available, so no "no vulnerabilities"
   claim is made.
-- **No immutable action pinning** — major-tag pins remain; SHA conversion
-  is the open follow-up `SECURITY-ACTION-PINNING-001`.
+- **No automatic update guarantee.** SHA pins are immutable and do not
+  self-update; keeping them current is a manual maintenance action (§3).
+  No Renovate/Dependabot SHA-bump automation is claimed.
 - No release-readiness, WebFlash-import-readiness, or compliance-approval
   claim is made or affected by this work.
-- No validation workflow was weakened: token scopes were **tightened**,
-  never widened, and no validation step was removed or relaxed.
+- No validation workflow was weakened: token scopes remain **tightened**,
+  no validation step was removed or relaxed, and pinning changed only the
+  action ref (SHA instead of tag) — never the workflow's triggers,
+  permissions, jobs, scripts, environments, secrets, or build logic.

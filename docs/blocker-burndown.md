@@ -230,7 +230,7 @@ compliance / safety claims, and kit / default / recommended membership. The
 | ID | Blocker | Status | Evidence found | Provenance | Closed? | Remaining exact action | Next PR |
 |---|---|---|---|---|---|---|---|
 | SEC-1 | Workflow least-privilege `permissions:` | CLOSED | All five workflows declare top-level `contents: read`; guarded by `test_workflow_permissions.py` | SECURITY-AUDIT-FIX-001 / PR (2026-05-25) | Yes | none | — |
-| SEC-2 | Action SHA pinning (6 mutable major-tag pins) | CAN CLOSE NOW (separate PR) | Inventoried + regression-guarded; **not** converted to immutable SHAs | SECURITY-AUDIT-FIX-001; `workflow-security-hardening.md` | No | convert the 6 pins to commit SHAs (start `softprops/action-gh-release@v2`); tighten the guard | **SECURITY-ACTION-PINNING-001** |
+| SEC-2 | Action SHA pinning (6 mutable major-tag pins) | CLOSED | All six actions converted to immutable commit SHAs (version preserved in trailing comment); guard tightened to require SHA pins | SECURITY-ACTION-PINNING-001 / PR (2026-05-27); `workflow-security-hardening.md` §2 | Yes | none — refreshing SHAs is a manual maintenance action (re-resolve tag → update SHA + comment + inventory) | — |
 | SEC-3 | Dependabot / code-scanning / secret-scanning alert feed | NEEDS TOOLING | No alert feed available this session | repo-freshness-roadmap-audit §5 | No | operator/tooling: enable + review alert feed | (tooling) |
 | SEC-4 | `requirements-dev.txt` floating upper bounds | OUT OF SCOPE (low) | Dev deps unbounded-above; workflows pin ESPHome exactly | repo-freshness-roadmap-audit §5 | No | optional reproducibility pin | (low-pri follow-up) |
 
@@ -268,8 +268,8 @@ compliance / safety claims, and kit / default / recommended membership. The
 
 | Class | Count | IDs |
 |---|---|---|
-| CLOSED | 28 | PWM-1/2/4/5/7/8/9/10/11/14, DAC-1..8a/10/11/13, RLY-1/2, WF-4/5, SEC-1, REL-3, CMP-2, LED-2 |
-| CAN CLOSE NOW (separate / docs) | 3 | DAC-12 (design), WF-5 (doc), SEC-2 (separate PR) |
+| CLOSED | 29 | PWM-1/2/4/5/7/8/9/10/11/14, DAC-1..8a/10/11/13, RLY-1/2, WF-4/5, SEC-1/2, REL-3, CMP-2, LED-2 |
+| CAN CLOSE NOW (separate / docs) | 2 | DAC-12 (design), WF-5 (doc) |
 | NEEDS BENCH | 7 | PWM-3/6/13 (partial — board-rev / fan-load / qualitative-thermal recorded by S360-311-BENCH-RESULT-001), DAC-8c/8d, RLY-3, LED-1 |
 | NEEDS OPERATOR INPUT | 7 | DAC-8b/14, RLY-4/7, TRI-2, LED-1, (SEC-3 tooling) |
 | NEEDS WEBFLASH ACCESS | 6 | PWM-15, DAC-15, RLY-8, WF-1/2/3, REL-2 |
@@ -365,6 +365,35 @@ mains-switching safety posture stays correct. See the §2C
 scope-classification table and
 [`s360-310-r4-relay.md` §RELAY-BLOCKER-RECLASSIFY-001](hardware/s360-310-r4-relay.md#relay-blocker-reclassify-001--fanrelay-remaining-blockers-reclassified-by-release-scope-2026-05-27).
 
+**Update — `SECURITY-ACTION-PINNING-001` (2026-05-27).** The one actionable
+non-hardware lane (`SEC-2`) is now **CLOSED**. All six GitHub Actions
+referenced under `.github/workflows/` were converted from mutable major
+tags to **immutable commit SHAs**, with the resolved upstream version
+preserved in a trailing `# vX.Y.Z` comment, and
+`tests/test_workflow_permissions.py` was tightened to **require** SHA pins
+(local composite actions and documented exceptions — currently none —
+excepted). This is a security-pinning-only change: no workflow trigger,
+permission, job, script, environment, secret, or build-logic edit, and the
+`firmware-build-release.yml` `release`-job `contents: write` scope is
+unchanged. The per-action security-pinning table (workflow file · action ·
+previous ref · pinned SHA · resolves-to · reason · next maintenance action)
+is the canonical
+[`workflow-security-hardening.md` §2](workflow-security-hardening.md#2-action-pin-inventory-sha-pinned-by-security-action-pinning-001):
+
+| Action | Previous ref | Pinned SHA | Resolves to | Next maintenance action |
+|---|---|---|---|---|
+| `actions/checkout` | `@v4` | `34e114876b0b11c390a56381ad16ebd13914f8d5` | `v4.3.1` | re-resolve tag → bump SHA + comment + inventory |
+| `actions/setup-python` | `@v5` | `a26af69be951a213d495a4c3e4e4022e16d87065` | `v5.6.0` | re-resolve tag → bump SHA + comment + inventory |
+| `actions/cache` | `@v4` | `0057852bfaa89a56745cba8c7296529d2fc39830` | `v4.3.0` | re-resolve tag → bump SHA + comment + inventory |
+| `actions/upload-artifact` | `@v4` | `ea165f8d65b6e75b540449e92b4886f43607fa02` | `v4.6.2` | re-resolve tag → bump SHA + comment + inventory |
+| `actions/download-artifact` | `@v4` | `d3f86a106a0bac45b974a628896c90dbdf5c8093` | `v4.3.0` | re-resolve tag → bump SHA + comment + inventory |
+| `softprops/action-gh-release` (third-party) | `@v2` | `3bb12739c298aeb8a4eeaf626c5b8d85266b0e65` | `v2.6.2` | re-resolve tag → bump SHA + comment + inventory |
+
+No exception rows: every referenced action is SHA-pinned. SHA pins do not
+self-update, so refreshing them is a manual maintenance action. This does
+**not** change any WebFlash / import / release / compliance / hardware
+posture.
+
 ## 4. Next-PR recommendations
 
 Applying the burn-down decision rules:
@@ -423,13 +452,11 @@ Applying the burn-down decision rules:
   (WF-1). The live checks (`WEBFLASH-{PWM,DAC,RELAY}-LIVE-CHECK-001`,
   `WEBFLASH-DRIFT-001` re-run) stay queued behind access restoration.
 - **Hardware evidence lanes are blocked** → the actionable non-hardware
-  PR is **`SECURITY-ACTION-PINNING-001`** (SEC-2): convert the six
+  PR was **`SECURITY-ACTION-PINNING-001`** (SEC-2): convert the six
   inventoried mutable major-tag action pins to immutable commit SHAs.
-  It is kept **visible and separate** and is **not** merged into this
-  burn-down PR (the guardrails forbid `.github/workflows/**` edits here,
-  and not all blocker docs point to it as the *only* remaining
-  non-hardware blocker — the three bench-evidence-request docs are also
-  open).
+  **Delivered 2026-05-27** (see the update note below); SEC-2 is now
+  CLOSED. The remaining open non-hardware items are the three
+  bench-evidence-request docs and the WebFlash-access-gated live checks.
 
 ## 5. Minimum operator checklist
 
@@ -473,8 +500,9 @@ and in
     `sources.json` snapshot) so the `LIVE-CHECK` PRs can run? (WF-1/2/3)
 
 **Security:**
-15. Approve **`SECURITY-ACTION-PINNING-001`** as the next non-hardware
-    PR (SHA-pin the six actions)? (SEC-2)
+15. ~~Approve **`SECURITY-ACTION-PINNING-001`** as the next non-hardware
+    PR (SHA-pin the six actions)? (SEC-2)~~ **DONE (2026-05-27)** — the six
+    actions are SHA-pinned and the guard is tightened; SEC-2 is CLOSED.
 
 ### 5A. S360-311-BENCH-EVIDENCE-REQUEST-001 — FanPWM detailed bench checklist & evidence contract (2026-05-26)
 
