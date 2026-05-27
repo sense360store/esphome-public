@@ -24,6 +24,53 @@ mirrored here.
 
 ## Current queue summary
 
+- **S360-310-SAFETY-EVIDENCE-REQUEST-001** delivers, via **this PR** on
+  2026-05-27, a **docs-only** FanRelay safety / `GPIO3` evidence checklist.
+  The FanRelay package / product / full-compile chain is complete
+  (`PACKAGE-RELAY-001` / PR #562 → `PRODUCT-RELAY-001` / PR #564 →
+  `FW-COMPILE-RELAY-FULL-FIX-001` / PR #578; full-compile-green in run
+  `26364679370`) and `RELAY-BLOCKER-RECLASSIFY-001` (PR #604) scope-classified
+  the remaining gaps, so this PR turns the still-open S360-310 / FanRelay
+  safety / access blockers — `RLY-3` (production-wide / multi-unit /
+  oscilloscope-traced `GPIO3` strap-pin characterisation: boot behaviour,
+  reset behaviour, relay state during boot / restart, any strap conflict,
+  multiple-units-checked), `RLY-4` (qualified / competent-person sign-off:
+  who / scope / date / caveats; plus relay-load type / voltage / current /
+  mains-vs-simulator), `RLY-5` (manual / advanced-warning UX: warning text /
+  install disclaimer / WebFlash hidden / advanced-only), and `RLY-6`
+  (thermal / enclosure / spacing characterisation) — into one operator- /
+  qualified-person-answerable checklist + pass/fail evidence contract, so a
+  later **`S360-310-SAFETY-BENCH-RESULT-001`** is small and evidence-backed.
+  Canonical checklist in
+  [`docs/hardware/s360-310-r4-relay.md`](docs/hardware/s360-310-r4-relay.md)
+  §S360-310-SAFETY-EVIDENCE-REQUEST-001; cross-lane copy as new §5E + §5
+  pointer in [`docs/blocker-burndown.md`](docs/blocker-burndown.md); dated
+  §FanRelay addendum in
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md). A
+  fresh Drive re-search found **no** new FanRelay safety / `GPIO3` /
+  competent-person evidence — only design / CAD material (legacy
+  `RelayBoard-Module` set + a canonically-named `S360-310-R4` set of KiCad /
+  gerbers / CPL / STEP / BOM / schematic PDF / renders, plus the unchanged
+  `Sense360_R4_Tracker` and `Current PRs.xlsx`), recorded for provenance only
+  and committing no Drive file (re-confirms `BLOCKER-BURNDOWN-001` / PR #599);
+  today's relay-boot evidence stays **pair-scoped operator-attested only** (10
+  boot cycles × 4 power paths on one pair; no scope trace, no second unit).
+  **`S360-310-SAFETY-BENCH-RESULT-001`** stays gated until the operator /
+  qualified person uploads / answers the checklist; WebFlash wrapper / build /
+  artifact / import PRs stay blocked (`WEBFLASH-RELAY-LIVE-CHECK-001` behind
+  `sense360store/WebFlash` access). Edits are confined to `docs/**` and this
+  file; **no** `packages/**`, `products/**`, `products/webflash/**`,
+  `config/**`, `components/**`, `include/**`, `firmware/**`, `manifest.json`,
+  `firmware/sources.json`, release artifact, checksum, `.github/workflows/**`,
+  test, or `sense360store/WebFlash` edit; **no** product YAML, WebFlash
+  wrapper, `webflash_build_matrix` flip, `artifact_name`, or release artifact;
+  **no** WebFlash / import / release / compliance / production-safety /
+  hardware-stable / kit-default claim; **no** production-wide / multi-unit
+  `GPIO3` characterisation asserted; **no** competent-person sign-off
+  recorded; no `schematic_status` promotion (`S360-310` stays
+  `cataloged_unverified`); no fabricated evidence. Release-One + LED preview +
+  FanTRIAC (`blocked` / `HW-005`) unchanged.
+
 - **S360-311-CURRENT-THERMAL-EVIDENCE-REQUEST-001** delivers, via **this
   PR** on 2026-05-27, a **docs-only** FanPWM **current / thermal
   evidence-request**: it turns the still-open **measured** FanPWM rows
@@ -7182,6 +7229,62 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       hardware-stable claim; no `schematic_status` promotion (`S360-311`
       stays `cataloged_unverified`); no fabricated evidence. Release-One +
       LED preview + FanTRIAC (`blocked` / `HW-005`) unchanged.
+39. **S360-310-SAFETY-EVIDENCE-REQUEST-001 — Define FanRelay safety /
+    `GPIO3` evidence checklist**
+    - Status: **DONE — docs-only (2026-05-27; this PR); no exposure flip,
+      no behaviour change**
+    - Purpose: Turn the still-open S360-310 / FanRelay safety / access
+      blockers (`RLY-3` production-wide / multi-unit / oscilloscope-traced
+      `GPIO3` strap-pin characterisation; `RLY-4` competent-person sign-off;
+      `RLY-5` manual / advanced-warning UX; `RLY-6` thermal / enclosure
+      characterisation) into one operator- / qualified-person-answerable
+      checklist + pass/fail evidence contract, so a later
+      `S360-310-SAFETY-BENCH-RESULT-001` is small and evidence-backed.
+      Canonical checklist in
+      [`docs/hardware/s360-310-r4-relay.md`](docs/hardware/s360-310-r4-relay.md)
+      §S360-310-SAFETY-EVIDENCE-REQUEST-001; cross-lane copy as new §5E +
+      §5 pointer in [`docs/blocker-burndown.md`](docs/blocker-burndown.md);
+      dated §FanRelay addendum in
+      [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md).
+    - Checklist covers (each row feeds a named blocker): board revision
+      tested; `GPIO3` strap-pin characterisation (boot behaviour, reset
+      behaviour, relay state during boot, relay state during restart, any
+      boot / strap conflict, multiple-units-checked); relay load tested
+      (load type, voltage / current, AC-mains vs. low-voltage simulator);
+      qualified / competent-person safety sign-off (who, scope, date,
+      caveats); manual / advanced-warning UX (warning text, install
+      disclaimer, WebFlash hidden / advanced-only); thermal / enclosure /
+      spacing observations; photos / videos / logs; operator / date / source
+      / provenance.
+    - Drive re-search (2026-05-27): **no** new FanRelay safety / `GPIO3` /
+      competent-person evidence — only design / CAD material (legacy
+      `RelayBoard-Module` set + a canonically-named `S360-310-R4` set of
+      KiCad / gerbers / CPL / STEP / BOM / schematic PDF / renders, plus the
+      unchanged `Sense360_R4_Tracker` and `Current PRs.xlsx`), recorded for
+      provenance only and committing no Drive file (re-confirms
+      `BLOCKER-BURNDOWN-001` / PR #599). Today's relay-boot evidence stays
+      **pair-scoped operator-attested only** (10 boot cycles × 4 power paths
+      on one `S360-100-R4` + `S360-310-R4` pair; no scope trace, no second
+      unit).
+    - Next PR: if the operator / qualified person uploads / answers the
+      checklist with evidence → **`S360-310-SAFETY-BENCH-RESULT-001`**
+      (record results, close the rows it proves); while evidence is missing
+      → `S360-310-SAFETY-BENCH-RESULT-001` stays gated. WebFlash wrapper /
+      build / artifact / import PRs stay blocked
+      (`WEBFLASH-RELAY-LIVE-CHECK-001` behind `sense360store/WebFlash`
+      access).
+    - Guardrails: no `packages/**`, `products/**`, `products/webflash/**`,
+      `config/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`,
+      release-artifact, checksum, build-info, `tests/**`, `scripts/**`,
+      `.github/workflows/**`, `components/**`, `include/**`, or
+      `sense360store/WebFlash` edit; no FanRelay behaviour change; no product
+      YAML; no WebFlash wrapper; no `webflash_build_matrix` flip; no
+      `artifact_name`; no release artifact; no WebFlash / import / release /
+      compliance / production-safety / hardware-stable / kit-default claim;
+      no production-wide / multi-unit `GPIO3` characterisation asserted; no
+      competent-person sign-off recorded; no `schematic_status` promotion
+      (`S360-310` stays `cataloged_unverified`); no fabricated evidence.
+      Release-One + LED preview + FanTRIAC (`blocked` / `HW-005`) unchanged.
 
 ## Cross-repo dependencies
 

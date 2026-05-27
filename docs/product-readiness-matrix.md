@@ -906,6 +906,39 @@ named follow-up.
   `webflash_build_matrix` flip; no `artifact_name`; no WebFlash / import /
   release / compliance / hardware-stable claim; `S360-310` stays
   `cataloged_unverified`; no fabricated evidence.
+- **2026-05-27 — `S360-310-SAFETY-EVIDENCE-REQUEST-001` (this PR;
+  docs-only).** The product-layer disposition is **unchanged** —
+  `advanced/manual-warning-only` + product-YAML-landed + WebFlash-blocked +
+  full-compile-green (run `26364679370`) + `hardware-pending`. This PR adds
+  **no** product YAML and changes no status; it turns the still-open FanRelay
+  safety / access blockers (`RLY-3` production-wide / multi-unit /
+  oscilloscope-traced `GPIO3` strap-pin characterisation; `RLY-4`
+  competent-person sign-off; `RLY-5` manual / advanced-warning UX; `RLY-6`
+  thermal / enclosure characterisation) into an operator- /
+  qualified-person-answerable safety / `GPIO3` checklist + pass/fail evidence
+  contract in
+  [`s360-310-r4-relay.md` §S360-310-SAFETY-EVIDENCE-REQUEST-001](hardware/s360-310-r4-relay.md#s360-310-safety-evidence-request-001--fanrelay-safety--gpio3-evidence-checklist--contract-2026-05-27)
+  and
+  [`blocker-burndown.md` §5E](blocker-burndown.md#5e-s360-310-safety-evidence-request-001--fanrelay-detailed-safety--gpio3-checklist--evidence-contract-2026-05-27).
+  A fresh Drive re-search found **no** new FanRelay safety / `GPIO3` /
+  competent-person evidence — only design / CAD material (the legacy
+  `RelayBoard-Module` set and a canonically-named `S360-310-R4` Drive set of
+  KiCad / gerbers / CPL / STEP / BOM / schematic PDF / renders, plus the
+  unchanged `Sense360_R4_Tracker`), recorded for provenance only and
+  committing no Drive file (re-confirms `BLOCKER-BURNDOWN-001` / PR #599).
+  The relay-boot evidence stays **pair-scoped operator-attested only** (10
+  boot cycles × 4 power paths on one pair; no scope trace, no second unit);
+  competent-person sign-off, relay-load voltage / current proof, and
+  thermal / enclosure observation stay `NEEDS OPERATOR INPUT` / `NEEDS
+  BENCH`. **Recommended next FanRelay PR: `S360-310-SAFETY-BENCH-RESULT-001`,
+  gated until the operator / qualified person uploads / answers the
+  checklist** — WebFlash wrapper / release / import PRs stay blocked
+  (`WEBFLASH-RELAY-LIVE-CHECK-001` behind `sense360store/WebFlash` access).
+  No `config/` / `packages/` / `products/` / `products/webflash/` / test /
+  workflow / firmware / `sense360store/WebFlash` edit; no
+  `webflash_build_matrix` flip; no `artifact_name`; no WebFlash / import /
+  release / compliance / production-safety / hardware-stable / kit-default
+  claim; `S360-310` stays `cataloged_unverified`; no fabricated evidence.
 
 ### FanPWM / S360-311
 
