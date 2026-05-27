@@ -561,7 +561,13 @@ and in
 9. Did the Cloudlift S12 product bench pass? (DAC-8d)
 10. Promote `S360-312` `schematic_status` from `cataloged_unverified`? (DAC-14)
 
-**FanRelay / S360-310 (S360-310-SAFETY-EVIDENCE-REQUEST-001):**
+**FanRelay / S360-310 (S360-310-SAFETY-EVIDENCE-REQUEST-001):** the
+short items below are expanded into the full operator- /
+qualified-person-answerable fill-in checklist + pass/fail evidence
+contract in
+[§5C](#5c-s360-310-safety-evidence-request-001--fanrelay-detailed-safety--gpio3-checklist--evidence-contract-2026-05-27)
+and in
+[`s360-310-r4-relay.md` §S360-310-SAFETY-EVIDENCE-REQUEST-001](hardware/s360-310-r4-relay.md#s360-310-safety-evidence-request-001--fanrelay-safety--gpio3-evidence-checklist--contract-2026-05-27).
 11. Multi-unit, oscilloscope-traced ESP32-S3 GPIO3 strap / boot state
     across several `S360-310` + `S360-100` pairs? (RLY-3)
 12. Independent competent-person installation sign-off for mains
@@ -713,6 +719,95 @@ thermal rows. WebFlash stays separate and blocked
 (`WEBFLASH-PWM-LIVE-CHECK-001` behind `sense360store/WebFlash` access);
 **no** `WEBFLASH-PWM-001` wrapper is recommended until measured
 current / thermal *and* the WebFlash live classification are done.
+
+### 5C. S360-310-SAFETY-EVIDENCE-REQUEST-001 — FanRelay detailed safety / `GPIO3` checklist & evidence contract (2026-05-27)
+
+`S360-310-SAFETY-EVIDENCE-REQUEST-001` expands the short FanRelay items in
+§5 into one precise, operator- / qualified-person-answerable evidence
+request. It is **documentation only** — it requests evidence, records none,
+and changes no behaviour. The canonical board-side copy lives in
+[`s360-310-r4-relay.md` §S360-310-SAFETY-EVIDENCE-REQUEST-001](hardware/s360-310-r4-relay.md#s360-310-safety-evidence-request-001--fanrelay-safety--gpio3-evidence-checklist--contract-2026-05-27);
+this is the cross-lane index copy. Package / product / full-compile are
+complete (`PACKAGE-RELAY-001` / PR #562, `PRODUCT-RELAY-001` / PR #564,
+`FW-COMPILE-RELAY-FULL-FIX-001` / PR #578; run `26364679370`), so the lane
+is **safety / operator / qualified-person / WebFlash-access gated, not repo
+gated** (see §2C, scope-classified by `RELAY-BLOCKER-RECLASSIFY-001`).
+
+**Drive re-search (2026-05-27).** A fresh search (`S360-310`, `S360-310-R4`,
+`FanRelay`, `Relay`, `GPIO3`, `competent person`, `relay safety`,
+`sign-off`, `safety`, plus boot / scope / load / thermal / photo / log
+terms) found **no safety / `GPIO3` / competent-person artifact** — only
+**design / CAD** material: the legacy `RelayBoard-Module` set
+(`RelayBoard.pdf` / `.xlsx` BOM / `RelayBoardGerbers.zip` /
+`RelayBoardpositions.csv` / `Relay.png`) and a canonically-named
+`S360-310-R4` set (owner `kanyugistash@gmail.com`, 2026-05-18: KiCad
+sources, `S360-310-R4_GERBERS.zip`, `positions.csv` CPL, STEP,
+`S360-310-R4_BOM.xlsx`, `S360-310-R4.pdf` schematic, `Relay_logo.pretty`,
+renders `_2`–`_6.png`), plus the unchanged `Sense360_R4_Tracker` and
+`Current PRs.xlsx`. This is the same artifact class as the committed
+[`schematics/S360-310-R4.pdf`](hardware/schematics/S360-310-R4.pdf), is
+recorded for provenance only, closes no safety blocker, and **no Drive file
+is committed by this PR** (re-confirms `BLOCKER-BURNDOWN-001` / PR #599). So
+`S360-310-SAFETY-BENCH-RESULT-001` stays gated until the operator /
+qualified person uploads / answers the checklist below.
+
+**Operator / qualified-person checklist (fill in; leave `UNANSWERED` rather
+than guess):** today the relay-boot rows are **pair-scoped operator-attested
+only** (relay de-energised across 10 boot cycles × 4 power paths — USB / PoE
+/ 5 V PSU / 240 V — on a single `S360-100-R4` + `S360-310-R4` pair; no scope
+trace, no second unit; `S360-310-BENCH-EVIDENCE-001`).
+
+| # | Item | Feeds |
+|---|---|---|
+| 1 | Board revision tested (`S360-310-R4` silkscreen P/N + rev; serial / batch) | RLY-3 |
+| 2a | `GPIO3` boot behaviour (scope-traced level during power-on / boot) | RLY-3 |
+| 2b | `GPIO3` reset behaviour (scope-traced level during reset / EN toggle; transient?) | RLY-3 |
+| 2c | Relay state during boot (does `K1` stay de-energised through boot?) | RLY-3 |
+| 2d | Relay state during restart / reboot (glitch / momentary energise?) | RLY-3 |
+| 2e | `GPIO3` boot / strap conflict? (JTAG-select strap issue from relay-drive load — yes / no + evidence) | RLY-3 |
+| 2f | Multiple units checked? (how many distinct pairs / serials; same result?) | RLY-3 |
+| 3a | Relay load tested — load type (fan / resistive dummy / SSR input) | RLY-4 / RLY-6 |
+| 3b | Relay load tested — voltage / current (switched-side V; measured A) | RLY-4 / RLY-6 |
+| 3c | Relay load tested — AC/mains or low-voltage simulator (which) | RLY-4 / RLY-6 |
+| 4a | Competent-person sign-off — who (name / role / qualification; not self-report) | RLY-4 |
+| 4b | Sign-off — scope (install method / mains wiring / contact-rating use / enclosure) | RLY-4 / RLY-6 |
+| 4c | Sign-off — date | RLY-4 |
+| 4d | Sign-off — caveats / conditions | RLY-4 / RLY-6 |
+| 5a | Manual / advanced warning text required (exact warning string) | RLY-5 |
+| 5b | Install disclaimer (mains-safety disclaimer wording) | RLY-5 |
+| 5c | WebFlash hidden / advanced-only? (yes / no; advanced / acknowledge-risk gate?) | RLY-5 |
+| 6a | Thermal — duration / ambient (worst-case load run time; ambient °C) | RLY-6 |
+| 6b | Thermal — `K1` / `Q1` / board observation (measured °C or qualitative; hottest location) | RLY-6 |
+| 6c | Enclosure / spacing observations (creepage / clearance / isolation / mounting) — characterisation, not certification | RLY-6 |
+| 7 | Photos / videos / logs attached | all |
+| 8 | Operator / date / source / provenance (who, when, serial(s), Drive path) | all |
+
+**Pass/fail evidence contract:**
+
+| Blocker | Closes when (PASS) | FAIL |
+|---|---|---|
+| Production-wide `GPIO3` (RLY-3) | Scope-traced `GPIO3` reset / boot / strap captures across **multiple** units showing relay de-energised + no strap conflict (items 1, 2a–2f), serials + method recorded | Existing single-pair, operator-attested 10-cycle observation with no scope trace / no second unit; "boots fine" with no `GPIO3` capture |
+| Competent-person sign-off (RLY-4) | **Independent** qualified person records who / scope / date / caveats for the mains install (items 4a–4d) | Build operator self-attesting; datasheet rating treated as a sign-off |
+| Relay-load proof (RLY-4 / RLY-6) | Load test naming load type, switched V, measured A, and mains vs. low-voltage simulator (items 3a–3c) | "Fan switches" with no V / A and no mains-vs-simulator statement |
+| Manual / advanced-warning UX (RLY-5) | Warning text + install disclaimer + WebFlash hidden / advanced-only decision stated (items 5a–5c) for a later WebFlash surface to implement | A WebFlash exposure shipped without the warning / disclaimer / advanced gate |
+| Thermal / enclosure (RLY-6) | Worst-case-load thermal + enclosure / spacing observation with duration, ambient, hottest location (items 6a–6c) — characterisation, **not** certification | No duration / ambient; or a certification / compliance claim |
+
+**Out of scope (stays blocked regardless of answers):** mains / compliance
+certification (`RLY-6` / `CMP-1` — `K1` contact rating is datasheet
+evidence, not board-level creepage / clearance / EMI / mains-safety cert);
+WebFlash exposure (`RLY-8`, `WEBFLASH-RELAY-001`; `NEEDS WEBFLASH ACCESS`);
+release artifact (`RELEASE-RELAY-001`); import readiness
+(`WF-IMPORT-RELAY-001`); hardware-stable promotion (`S360-310` stays
+`cataloged_unverified` unless policy allows); kit / default / recommended
+membership (`S360-KIT-BATH-RELAY` future-expansion; default kit is
+`S360-KIT-BATH-POE`); TRIAC separate-board-vs-merge (`RLY-7` / `T02`,
+operator board decision).
+
+**Next PR:** if the operator / qualified person uploads / answers the
+checklist with evidence → **`S360-310-SAFETY-BENCH-RESULT-001`** (record
+results, close the rows it proves); while evidence is missing →
+`S360-310-SAFETY-BENCH-RESULT-001` stays gated. WebFlash wrapper / build /
+artifact / import PRs stay blocked.
 
 ## 6. Guardrails honoured / non-claims
 
