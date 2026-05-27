@@ -610,6 +610,54 @@ close the full-compile half — that stays owed to the recommended follow-up
   Cloudlift-ready claim; no fabricated compile evidence. `S360-311` /
   `S360-312` stay `cataloged_unverified`; all §3A lanes stay as recorded.
 
+## 3E. Full ESPHome compile evidence recorded for the top-level FanPWM / FanDAC product YAMLs (`FW-FULL-COMPILE-TOPLEVEL-FANS-001`, 2026-05-27)
+
+`FW-FULL-COMPILE-TOPLEVEL-FANS-001` closes the **full-compile half** that §3D
+left **owed**: §3D registered the top-level FanPWM / FanDAC product YAMLs as
+compile-only targets but kept them `compile_validation_status: pending-ci`
+because no `esphome --compile` run had yet executed against them. This slice
+**runs** the full lane and records the real result. Canonical evidence table
+lives in
+[`product-readiness-matrix.md` §FW-FULL-COMPILE-TOPLEVEL-FANS-001](product-readiness-matrix.md#fw-full-compile-toplevel-fans-001--recorded-full-esphome-compile-evidence-for-the-top-level-fanpwm--fandac-product-yamls-2026-05-27);
+summarized here for the cross-lane view:
+
+- **Provenance (honest):** this is a **local** full-compile run, **not** a
+  GitHub Actions `workflow_dispatch` run. The Actions dispatch/run API was
+  **unavailable** this session, so the CI full lane could not be triggered or
+  observed and **no CI run ID exists** — none is fabricated. The lane's own
+  script (`python3 scripts/validate_compile_targets.py --compile`, the
+  command `.github/workflows/compile-only.yml` runs in its
+  `workflow_dispatch` + `compile_mode=full` job) was run locally with ESPHome
+  `2026.4.5` (the workflow's pinned version), board `esp32-s3-devkitc-1`,
+  framework `espidf` (ESP-IDF 5.5.4), against commit
+  `17caa86f05c7b0ebcc9336b849f621f2d111839c` on
+  `claude/toplevel-fans-compile-validation-n8LRb`.
+- **Result:** `✅ All 12 compile target(s) passed.` — **12/12** registered
+  compile-only targets `rc=0`, each `Successfully compiled program` with a
+  real `firmware.bin`; **0** skipped, **0** failures. The two registered
+  **top-level fan product** targets both compiled clean:
+  `ceiling-poe-fandac-product-compile-only` →
+  [`sense360-ceiling-poe-fandac.yaml`](../products/sense360-ceiling-poe-fandac.yaml)
+  (Flash 50.6% / 927815 B) and `ceiling-poe-fanpwm-product-compile-only` →
+  [`sense360-ceiling-poe-fanpwm.yaml`](../products/sense360-ceiling-poe-fanpwm.yaml)
+  (Flash 51.1% / 937775 B). Both flip
+  `compile_validation_status: pending-ci → validated-full-compile`; the
+  `products/compile-only/` skeletons stay `validated-full-compile`
+  (unchanged).
+- **Clean-tree validators (re-run after removing `.esphome` build trees):**
+  `validate_configs.py` 0 failed; `--metadata-only` 12 targets;
+  `test_compile_targets.py` 139 OK; pwm / dac / catalog / matrix /
+  gap-report / webflash-builds / workflow-permission suites OK;
+  `python3 -m unittest discover` OK.
+- **Proves:** all 12 registered targets compile end-to-end under ESPHome
+  `2026.4.5`, and the top-level FanDAC / FanPWM product YAMLs build clean.
+  **Does NOT prove:** a CI-side `workflow_dispatch` record (no run ID), or
+  any WebFlash / release / import / hardware-stable / compliance / RPM /
+  Cloudlift-ready / kit-default readiness. Compile success is necessary but
+  not sufficient; no `.bin` / checksum / artifact / release is uploaded or
+  committed; `S360-311` / `S360-312` stay `cataloged_unverified`. All lanes
+  in §3A stay as recorded.
+
 ## 4. Next-PR recommendations
 
 Applying the burn-down decision rules:

@@ -128,10 +128,12 @@ FANPWM_PRODUCT_YAML = "products/sense360-ceiling-poe-fanpwm.yaml"
 # products/compile-only/ skeletons. This closes the top-level product-YAML
 # full-compile evidence gap that the skeleton-only registration left open
 # and mirrors the FanRelay precedent, where the registered compile-only
-# target IS the top-level product YAML. These new targets are registered
-# metadata-only; full-compile success is NOT claimed for them until
-# FW-FULL-COMPILE-TOPLEVEL-FANS-001 records a passing --compile run, so they
-# carry compile_validation_status: pending-ci (NOT validated-full-compile).
+# target IS the top-level product YAML. These targets were first registered
+# metadata-only (compile_validation_status: pending-ci); FW-FULL-COMPILE-
+# TOPLEVEL-FANS-001 then ran the full --compile lane against all 12 targets
+# (every target rc=0) and recorded the result, so both top-level targets now
+# carry compile_validation_status: validated-full-compile (local run; no CI
+# run id claimed).
 FANDAC_PRODUCT_COMPILE_ONLY_TARGET_ID = "ceiling-poe-fandac-product-compile-only"
 FANPWM_PRODUCT_COMPILE_ONLY_TARGET_ID = "ceiling-poe-fanpwm-product-compile-only"
 
@@ -1691,11 +1693,16 @@ class TopLevelFanProductCompileTargetTests(unittest.TestCase):
     product YAML — WITHOUT retiring the skeletons.
 
     Guardrails pinned here: the new targets are compile-only /
-    no-WebFlash-exposure / no-artifact / no-build-matrix-flip; they do NOT
-    claim full compile success (``compile_validation_status: pending-ci``,
-    NOT ``validated-full-compile`` — FW-FULL-COMPILE-TOPLEVEL-FANS-001 owns
-    the real ``--compile`` result); and the existing skeleton targets
-    remain present and unchanged (``validated-full-compile``).
+    no-WebFlash-exposure / no-artifact / no-build-matrix-flip; the existing
+    skeleton targets remain present and unchanged (``validated-full-compile``).
+
+    FW-FULL-COMPILE-TOPLEVEL-FANS-001 has since RUN the full
+    ``scripts/validate_compile_targets.py --compile`` lane against all 12
+    registered targets — every target ``rc=0``, including these two top-level
+    product YAMLs — and recorded the result, so both top-level targets now
+    carry ``compile_validation_status: validated-full-compile`` (superseding
+    the prior ``pending-ci`` marker). The run was local; no CI run id is
+    claimed and none is fabricated.
     """
 
     # (target_id, product_yaml, config_string, skeleton_id, skeleton_yaml)
@@ -1863,29 +1870,37 @@ class TopLevelFanProductCompileTargetTests(unittest.TestCase):
                 f"target {tid!r}: must not declare webflash_wrapper",
             )
 
-    def test_top_level_targets_do_not_claim_full_compile_success(self):
-        """Conservative: the new targets must NOT claim a passing full compile.
+    def test_top_level_targets_are_validated_full_compile(self):
+        """FW-FULL-COMPILE-TOPLEVEL-FANS-001: the two registered top-level
+        FanDAC / FanPWM product targets are now validated-full-compile.
 
-        Full-compile success for the registered top-level targets is owned
-        by the follow-up FW-FULL-COMPILE-TOPLEVEL-FANS-001 run, not by this
-        registration. compile_validation_status must be pending-ci, never
-        validated-full-compile (that would fabricate compile evidence).
+        TOPLEVEL-FAN-COMPILE-TARGETS-001 registered these targets with
+        compile_validation_status: pending-ci because no full ESPHome
+        --compile run had yet been recorded against the registered top-level
+        product YAMLs. FW-FULL-COMPILE-TOPLEVEL-FANS-001 then RAN the full
+        lane (scripts/validate_compile_targets.py --compile) against all 12
+        registered targets — every target rc=0, including these two
+        top-level product YAMLs — and recorded the result, so both now carry
+        compile_validation_status: validated-full-compile. This is a recorded
+        compile result, not a fabricated one; the run was local (no CI run id
+        is claimed).
         """
         for tid, *_ in self.PARAMS:
             target = self.by_id.get(tid)
             self.assertIsNotNone(target)
-            self.assertNotEqual(
-                target.get("compile_validation_status"),
-                "validated-full-compile",
-                f"target {tid!r}: must NOT claim validated-full-compile — "
-                "no full compile has run against this registered target yet",
-            )
             self.assertEqual(
                 target.get("compile_validation_status"),
-                "pending-ci",
+                "validated-full-compile",
                 f"target {tid!r}: must record compile_validation_status: "
-                "pending-ci until FW-FULL-COMPILE-TOPLEVEL-FANS-001 records "
-                "a passing --compile run",
+                "validated-full-compile — FW-FULL-COMPILE-TOPLEVEL-FANS-001 "
+                "ran the full esphome --compile lane against this registered "
+                "top-level product YAML and it passed (rc=0)",
+            )
+            self.assertNotEqual(
+                target.get("compile_validation_status"),
+                "pending-ci",
+                f"target {tid!r}: the prior pending-ci marker is superseded "
+                "by the recorded full-compile result",
             )
 
     def test_top_level_targets_not_in_webflash_builds(self):
