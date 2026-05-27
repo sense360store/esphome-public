@@ -1622,6 +1622,43 @@ check once `sense360store/WebFlash` read access is restored; record the
 owed `S360-312` module-availability classification), **not**
 `RELEASE-DAC-001` or `WEBFLASH-DAC-001`.
 
+**2026-05-27 — `DAC-BLOCKER-RECLASSIFY-001` (this PR; docs-only) — note on
+release surface.** The remaining FanDAC `J3`-silk / Cloudlift S12 harness +
+product-bench / voltage-UX / WebFlash gaps are **reclassified by release
+scope**, and that reclassification **confirms — not relaxes — the release
+surface.** The gaps are no longer treated as blockers for package / product
+/ compile-only / `config` work, but the **`J3` `out0`/`out1` silkscreen
+transposition (product / installation-documentation and WebFlash / release
+blocker only), the Cloudlift S12 harness + product bench (Cloudlift
+product-claim / WebFlash / release blocker only), and the compliance / safety
+approval (release / compliance blocker only) remain release blockers**, so
+the FanDAC release surface stays **`not-release-ready`**: `artifact_name` is
+still absent (`webflash_build_matrix: false`); there is still no `.bin` / tag
+/ SHA256 / MD5 / build-info `manifest.json` /
+[`webflash-release-proof.md`](webflash-release-proof.md) row — all owed to
+`RELEASE-DAC-001`, which stays blocked behind the upstream `WEBFLASH-DAC-001`
+wrapper and the Cloudlift S12 bench evidence. The FanDAC full-compile
+evidence (run `26364679370`; `validated-full-compile`) is
+`necessary-but-insufficient` and discharges **no** release gate. WebFlash
+live access stays a WebFlash-exposure blocker only; the `DAC-7`
+no-simultaneous-per-output-0–5 V / 0–10 V constraint stays correct. The
+recommended bench PR is **`S360-312-BENCH-RESULT-001`** (requested via
+`S360-312-BENCH-EVIDENCE-REQUEST-001`), and **`WEBFLASH-DAC-LIVE-CHECK-001`**
+stays blocked behind `sense360store/WebFlash` access; **no `WEBFLASH-DAC-001`
+wrapper / `RELEASE-DAC-001` artifact is recommended** until the Cloudlift S12
+bench evidence *and* the WebFlash live classification are done. Canonical
+table in
+[`hardware/s360-312-r4-fandac.md` §DAC-BLOCKER-RECLASSIFY-001](hardware/s360-312-r4-fandac.md#dac-blocker-reclassify-001--fandac-remaining-blockers-reclassified-by-release-scope-2026-05-27).
+No [`products/webflash/`](../products/webflash/), `config/**`,
+`.github/workflows/`, firmware / signing / sources / manifest / checksum,
+`tests/**`, or `sense360store/WebFlash` edit; no `webflash_build_matrix`
+flip; no `artifact_name`; no release artifact / proof row added; no WebFlash
+/ import / release / compliance / hardware-stable / Cloudlift-ready claim;
+`S360-312` stays `cataloged_unverified`; no fabricated evidence. Release-One
+stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; LED preview stays
+`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays `blocked` /
+`HW-005`.
+
 ## TRIAC / S360-320 release posture
 
 **Current state.** The FanTRIAC reference product
