@@ -24,6 +24,55 @@ mirrored here.
 
 ## Current queue summary
 
+- **MANUAL-FIRMWARE-CANDIDATE-001** delivers, via **this PR** on 2026-05-27, a
+  **notes / tests / docs** change that records a single narrow rollup status
+  for the three fan product families whose top-level product YAMLs now
+  compile: **manual / no-WebFlash firmware candidate** — the product YAML is
+  **present**, **structurally validated**, and **full-compile validated**.
+  Builds directly on PR #612 (FanRelay manual-install path fix), PR #615
+  (`TOPLEVEL-FAN-COMPILE-TARGETS-001`, registered the top-level FanPWM / FanDAC
+  product YAMLs), and PR #616 (`FW-FULL-COMPILE-TOPLEVEL-FANS-001`, recorded
+  full-compile success for all 12 registered targets). **Scope:** a notes-only
+  edit to the three fan rows in
+  [`config/product-catalog.json`](config/product-catalog.json) (FanRelay /
+  FanPWM / FanDAC `notes` record the candidate status and disclaim release /
+  WebFlash / hardware-stable / compliance / Cloudlift (DAC) / RPM (PWM) /
+  kit-default (Relay) readiness); one recorded
+  `compile_validation_status: validated-full-compile` on the FanRelay
+  compile-only target in
+  [`config/compile-only-targets.json`](config/compile-only-targets.json),
+  taken from the **already-committed** PR #616 full-lane run (target #8,
+  `rc=0`, Flash 53.8%) — the field was simply never set, and **no** new
+  compile is run and **no** CI run id is fabricated; new test classes in
+  [`tests/test_product_catalog.py`](tests/test_product_catalog.py),
+  [`tests/test_relay_product_readiness.py`](tests/test_relay_product_readiness.py),
+  [`tests/test_pwm_product_readiness.py`](tests/test_pwm_product_readiness.py),
+  and [`tests/test_dac_product_readiness.py`](tests/test_dac_product_readiness.py);
+  and new sections in
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+  (§MANUAL-FIRMWARE-CANDIDATE-001 + per-family table),
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) (§3F),
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md)
+  (candidate-table update note: candidate ≠ release), and
+  [`docs/repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md).
+  **Validation:** `validate_configs.py`,
+  `validate_compile_targets.py --metadata-only` (12 targets),
+  `test_compile_targets.py`, the relay / pwm / dac product-readiness suites,
+  `test_product_catalog.py`, `test_firmware_combination_matrix.py`,
+  `test_firmware_build_gap_report.py`, `validate_webflash_builds.py`,
+  `test_workflow_permissions.py`, and `python3 -m unittest discover`. Edits
+  confined to `config/product-catalog.json`,
+  `config/compile-only-targets.json`, `tests/**`, `docs/**`, and this file;
+  **no** `packages/**`, `products/**`, `products/webflash/**`, `firmware/**`,
+  `manifest.json`, `firmware/sources.json`, or `.github/workflows/**` edit;
+  **no** WebFlash wrapper, `webflash_build_matrix` flip, `artifact_name`, or
+  release artifact; **no** WebFlash / import / release / compliance /
+  hardware-stable / RPM / Cloudlift-ready / kit-default readiness claim;
+  **no** committed `.bin` / checksum; **no** fabricated compile evidence.
+  Lifecycle `status` stays `hardware-pending`; `S360-311` / `S360-312` stay
+  `cataloged_unverified`; Release-One + LED preview + FanTRIAC (`blocked`)
+  unchanged.
+
 - **FW-FULL-COMPILE-TOPLEVEL-FANS-001** delivers, via **this PR** on
   2026-05-27, a **config / tests / docs** change that closes the
   **full-compile half** of the top-level FanPWM / FanDAC gap that

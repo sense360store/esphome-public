@@ -572,5 +572,186 @@ class ProductCatalogTests(unittest.TestCase):
                 )
 
 
+# MANUAL-FIRMWARE-CANDIDATE-001 — the three top-level fan product YAMLs are
+# recorded in their catalog notes as manual / no-WebFlash firmware candidates
+# (present + structurally validated + full-compile validated). Each maps to
+# the product-specific readiness claim that must stay explicitly disclaimed.
+MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS = {
+    "Ceiling-POE-VentIQ-FanRelay-RoomIQ": {
+        "product_yaml": (
+            "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml"
+        ),
+        # FanRelay must not claim kit-default / recommended readiness.
+        "product_disclaimer": "not kit-default",
+    },
+    "Ceiling-POE-FanDAC": {
+        "product_yaml": "products/sense360-ceiling-poe-fandac.yaml",
+        # FanDAC must not claim Cloudlift-ready.
+        "product_disclaimer": "not cloudlift-ready",
+    },
+    "Ceiling-POE-FanPWM": {
+        "product_yaml": "products/sense360-ceiling-poe-fanpwm.yaml",
+        # FanPWM must not claim RPM support.
+        "product_disclaimer": "not rpm support",
+    },
+}
+
+
+class ManualFirmwareCandidateCatalogTests(unittest.TestCase):
+    """MANUAL-FIRMWARE-CANDIDATE-001: FanRelay / FanPWM / FanDAC catalog rows
+    record manual / no-WebFlash firmware candidate status in notes only.
+
+    The slice records that the three top-level fan product YAMLs are present,
+    structurally validated, and full-compile validated, so each is a manual /
+    no-WebFlash firmware candidate. It does so WITHOUT changing the lifecycle
+    status enum off ``hardware-pending``, flipping ``webflash_build_matrix``,
+    adding an ``artifact_name`` / ``webflash_wrapper``, or claiming any
+    release / WebFlash / hardware-stable / compliance readiness.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.catalog = json.loads(CATALOG_PATH.read_text())
+        cls.by_cs = {
+            e.get("config_string"): e
+            for e in cls.catalog.get("products", [])
+            if e.get("config_string")
+        }
+
+    def _entry(self, cs: str) -> Dict[str, Any]:
+        entry = self.by_cs.get(cs)
+        self.assertIsNotNone(entry, f"catalog must contain {cs!r}")
+        return entry
+
+    def test_fan_candidate_entries_present(self) -> None:
+        for cs, meta in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS.items():
+            with self.subTest(config_string=cs):
+                entry = self._entry(cs)
+                self.assertEqual(
+                    entry.get("product_yaml"),
+                    meta["product_yaml"],
+                    f"{cs!r} must map to its top-level product YAML",
+                )
+
+    def test_notes_record_manual_no_webflash_candidate_status(self) -> None:
+        for cs in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS:
+            with self.subTest(config_string=cs):
+                notes = self._entry(cs).get("notes", "").lower()
+                self.assertIn(
+                    "manual / no-webflash firmware candidate",
+                    notes,
+                    f"{cs!r} notes must record the manual / no-WebFlash "
+                    "firmware candidate status (MANUAL-FIRMWARE-CANDIDATE-001)",
+                )
+                self.assertIn(
+                    "manual-firmware-candidate-001",
+                    notes,
+                    f"{cs!r} notes must reference the slice "
+                    "MANUAL-FIRMWARE-CANDIDATE-001",
+                )
+
+    def test_notes_record_full_compile_validation(self) -> None:
+        for cs in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS:
+            with self.subTest(config_string=cs):
+                notes = self._entry(cs).get("notes", "").lower()
+                self.assertIn(
+                    "full-compile validated",
+                    notes,
+                    f"{cs!r} notes must record that the top-level product "
+                    "YAML is full-compile validated",
+                )
+                self.assertIn(
+                    "validated-full-compile",
+                    notes,
+                    f"{cs!r} notes must cite the compile-only target's "
+                    "validated-full-compile status as the compile evidence",
+                )
+
+    def test_status_stays_hardware_pending(self) -> None:
+        for cs in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS:
+            with self.subTest(config_string=cs):
+                self.assertEqual(
+                    self._entry(cs).get("status"),
+                    "hardware-pending",
+                    f"{cs!r}: MANUAL-FIRMWARE-CANDIDATE-001 is notes-only — "
+                    "the lifecycle status enum must stay hardware-pending, "
+                    "not be promoted to a release-eligible status",
+                )
+
+    def test_webflash_build_matrix_stays_false(self) -> None:
+        for cs in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS:
+            with self.subTest(config_string=cs):
+                entry = self._entry(cs)
+                self.assertIn("webflash_build_matrix", entry)
+                self.assertEqual(
+                    entry.get("webflash_build_matrix"),
+                    False,
+                    f"{cs!r}: webflash_build_matrix must stay false — a "
+                    "manual / no-WebFlash candidate is not WebFlash-exposed",
+                )
+
+    def test_no_artifact_name(self) -> None:
+        for cs in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS:
+            with self.subTest(config_string=cs):
+                self.assertNotIn(
+                    "artifact_name",
+                    self._entry(cs),
+                    f"{cs!r}: no artifact_name may be added — a manual "
+                    "candidate is not a release artifact",
+                )
+
+    def test_no_webflash_wrapper_field(self) -> None:
+        for cs in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS:
+            with self.subTest(config_string=cs):
+                self.assertNotIn(
+                    "webflash_wrapper",
+                    self._entry(cs),
+                    f"{cs!r}: no webflash_wrapper may be added",
+                )
+
+    def test_no_webflash_wrapper_file_on_disk(self) -> None:
+        """No products/webflash/ wrapper exists for any fan candidate."""
+        if not WEBFLASH_WRAPPER_DIR.is_dir():
+            return
+        offenders: List[str] = []
+        for path in WEBFLASH_WRAPPER_DIR.glob("*.yaml"):
+            name = path.name.lower()
+            if any(tok in name for tok in ("fanrelay", "fandac", "fanpwm")):
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            "MANUAL-FIRMWARE-CANDIDATE-001 adds no WebFlash wrapper; found "
+            f"{offenders!r} under products/webflash/",
+        )
+
+    def test_notes_disclaim_release_and_webflash_readiness(self) -> None:
+        for cs in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS:
+            with self.subTest(config_string=cs):
+                notes = self._entry(cs).get("notes", "").lower()
+                for marker in (
+                    "not a release artifact",
+                    "not webflash exposure",
+                    "not hardware-stable",
+                    "not compliance",
+                ):
+                    self.assertIn(
+                        marker,
+                        notes,
+                        f"{cs!r} notes must explicitly disclaim {marker!r}",
+                    )
+
+    def test_notes_disclaim_product_specific_readiness(self) -> None:
+        for cs, meta in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS.items():
+            with self.subTest(config_string=cs):
+                notes = self._entry(cs).get("notes", "").lower()
+                marker = meta["product_disclaimer"]
+                self.assertIn(
+                    marker,
+                    notes,
+                    f"{cs!r} notes must explicitly disclaim {marker!r}",
+                )
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

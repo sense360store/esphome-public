@@ -605,6 +605,22 @@ present moment. The future-class column records the **eventual**
 class each family would reach if and only if the named upstream
 gates close and the named per-family release slice lands.
 
+> **Update (`MANUAL-FIRMWARE-CANDIDATE-001`, 2026-05-27):** FanRelay /
+> FanPWM / FanDAC are now recorded in
+> [`product-catalog.json`](../config/product-catalog.json) notes and in
+> [`product-readiness-matrix.md` §MANUAL-FIRMWARE-CANDIDATE-001](product-readiness-matrix.md#manual-firmware-candidate-001--fanrelay--fanpwm--fandac-marked-as-manual--no-webflash-firmware-candidates-2026-05-27)
+> as **manual / no-WebFlash firmware candidates** (top-level product YAML
+> present, structurally validated, full-compile validated). This is a
+> **compile / manual-install** candidate status and is **explicitly distinct
+> from a release candidate**: it changes **no** cell in the candidate release
+> table above. Every FanRelay / FanPWM / FanDAC row stays `not-release-ready`,
+> `not-stable-by-default`, `not-required-configs`, `not-recommended` +
+> `not-kit-default`, with no `webflash_build_matrix`, no `artifact_name`, no
+> wrapper, and no `.bin` / checksum / release proof. A live release artifact
+> still requires the named per-family `WEBFLASH-*` / `RELEASE-*` slices and
+> their gates; a manual / no-WebFlash firmware candidate is **not** a
+> `preview-artifact-candidate`.
+
 ## Relay / S360-310 release posture
 
 **Current state.** The FanRelay product YAML
