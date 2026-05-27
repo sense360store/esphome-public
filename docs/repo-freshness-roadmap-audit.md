@@ -201,7 +201,7 @@ action), and no Dependabot / code-scanning / secret-scanning **alert** feed was 
 |---|---|---|---|
 | `validate.yml` (Quick Validation) | push / PR | YAML structure; product substitutions; entity-name collisions; WebFlash build-matrix + artifact-naming + catalog consistency | ESPHome compile; generated-matrix sync; full test suite |
 | `compile-only.yml` (metadata lane) | push / PR | `validate_compile_targets.py --metadata-only` + `test_compile_targets.py` (target metadata correct) | actual ESPHome compile |
-| `compile-only.yml` (full lane) | **workflow_dispatch `compile_mode=full` only** | `esphome compile` of all 9 targets (manual) — e.g. run `26364679370` | nothing automatically on PR |
+| `compile-only.yml` (full lane) | **workflow_dispatch `compile_mode=full` only** | `esphome compile` of all 10 targets (manual) — latest e.g. run `26414398902` (10 targets); earlier run `26364679370` (9 targets) | nothing automatically on PR |
 | `ci-validate-configs.yml` | **workflow_dispatch only** | `validate_configs.py` + `esphome config` against products | not run on every PR |
 | `firmware-build-release.yml` | **workflow_dispatch only** | builds `.bin` + GitHub release | nothing on PR; no automatic artifact integrity gate |
 | `release-notes-draft.yml` | workflow_dispatch | drafts release notes | — |

@@ -24,6 +24,52 @@ mirrored here.
 
 ## Current queue summary
 
+- **FW-CONFIG-RUN-NOWEBFLASH-001** delivers, via **this PR** on
+  2026-05-27, a **docs-only** record of the **actual** config-validation
+  status of the safe no-WebFlash product YAML path after
+  `SHIP-YAML-FIRMWARE-NOWEBFLASH-001` / PR #612 fixed the FanRelay
+  customer-usage remote-package `files:` path. It records **real** CI +
+  local evidence, not a success claim: on the merged #612 commit
+  `1424f074d9940db7164c0a468f39c49f8c74658e` (merge commit `ed57523`), CI
+  run `26504904676` **YAML Syntax Check** = `success`, run `26504904607`
+  **Compile-only Targets — Metadata Validation** = `success` (10 targets),
+  and run `26504904607` **Compile-only Targets — Full ESPHome Compile** =
+  `skipped` (the full lane is `workflow_dispatch` + `compile_mode=full`
+  only, so it did not run on the PR). Locally (ESPHome **not** installed,
+  so `esphome config` was **not** run): `python3 tests/validate_configs.py`
+  (208 files, 0 failed — covers all three target product YAMLs
+  [`sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml),
+  [`sense360-ceiling-poe-fanpwm.yaml`](products/sense360-ceiling-poe-fanpwm.yaml),
+  [`sense360-ceiling-poe-fandac.yaml`](products/sense360-ceiling-poe-fandac.yaml)),
+  `python3 scripts/validate_compile_targets.py --metadata-only` (10
+  targets), the relay (61) / pwm (62) / dac (44) / catalog (31) /
+  compile-target (119) / firmware-matrix (24) / build-gap (27) /
+  webflash-builds / workflow-permission suites, and `python3 -m unittest
+  discover -s tests` (759 tests, OK, 3 skipped) all green. **Proves:** the
+  three product YAMLs parse + pass YAML-syntax / structural validation,
+  compile-only metadata is schema-valid, and the full guard suite (incl.
+  the #612 path guard) passes. **Does NOT prove:** a full `esphome config`
+  / compile of the **top-level** product YAMLs — the #612 full lane was
+  **skipped** and ESPHome is unavailable locally; the recorded full-compile
+  runs (`26414398902` PWM / `26364679370` DAC) cover the
+  `products/compile-only/` **skeletons**, not these top-level product
+  YAMLs, and the FanRelay top-level compile-only target carries no
+  `compile_validation_status` flag. Updates
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+  (new §FW-CONFIG-RUN-NOWEBFLASH-001 evidence section),
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) (new §3B), this
+  file, and one stale target-count cell in
+  [`docs/repo-freshness-roadmap-audit.md`](docs/repo-freshness-roadmap-audit.md)
+  §6. Edits are confined to `docs/**` and this file; **no** `products/**`,
+  `products/webflash/**`, `packages/**`, `config/**`, `components/**`,
+  `include/**`, `firmware/**`, `tests/**`, or `.github/workflows/**` edit;
+  **no** WebFlash wrapper, `webflash_build_matrix` flip, `artifact_name`,
+  or release artifact; **no** WebFlash / import / release / compliance /
+  hardware-stable / kit-default / recommended claim; **no** RPM claim for
+  PWM; **no** Cloudlift-ready claim for DAC; no `schematic_status`
+  promotion; no fabricated CI / action evidence. Release-One + LED preview
+  + FanTRIAC (`blocked` / `HW-005`) unchanged.
+
 - **SHIP-YAML-FIRMWARE-NOWEBFLASH-001** delivers, via **this PR** on
   2026-05-27, a **real no-WebFlash / no-release product-YAML correction**
   (not docs-only): it fixes the broken `Customer usage` remote-package

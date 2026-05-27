@@ -2274,6 +2274,129 @@ This section adds **no** product YAML, catalog, `webflash_build_matrix`,
 `artifact_name`, release, RPM, or readiness claim, and promotes no
 `schematic_status`.
 
+## FW-CONFIG-RUN-NOWEBFLASH-001 — recorded config-validation evidence for the no-WebFlash product YAML path (2026-05-27)
+
+`FW-CONFIG-RUN-NOWEBFLASH-001` records the **actual** config-validation
+status of the safe no-WebFlash product YAML path after
+`SHIP-YAML-FIRMWARE-NOWEBFLASH-001` / PR #612 corrected the FanRelay
+customer-usage remote-package `files:` example path. It is **docs-only**,
+flips no posture, adds no product / catalog / `webflash_build_matrix` /
+`artifact_name` / release / WebFlash change, and makes no WebFlash /
+import / release / compliance / hardware-stable / kit-default readiness
+claim. It records evidence only and fabricates none.
+
+### What PR #612 actually changed (compile-relevant scope)
+
+PR #612 edited exactly three files — the FanRelay product YAML
+[`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml),
+[`tests/test_relay_product_readiness.py`](../tests/test_relay_product_readiness.py),
+and `UPCOMING_PR.md`. The product-YAML edit was a **single commented
+line** (the customer-usage example `files:` path, corrected from the
+non-existent transposed `...-ventiq-roomiq-fanrelay.yaml` to the real
+`...-ventiq-fanrelay-roomiq.yaml`). Because it touches only a comment, it
+**cannot change** the resolved `esphome config` / codegen output of the
+FanRelay composition; the active `substitutions:` / `packages:` /
+`text_sensor:` body is byte-identical to the previously-validated form.
+
+### CI evidence on the PR #612 commit
+
+The merged PR #612 head commit `1424f074d9940db7164c0a468f39c49f8c74658e`
+(merged to `main` at merge commit `ed57523`, 2026-05-27) carries these
+GitHub Actions check runs:
+
+| Workflow run | Check / job | Conclusion | What it proves |
+|---|---|---|---|
+| `26504904676` (Quick Validation / `validate.yml`) | YAML Syntax Check | **success** | YAML structure across the product / package tree parses |
+| `26504904607` (Compile-only Targets) | Compile-only Targets — Metadata Validation | **success** | `config/compile-only-targets.json` metadata (10 targets) is schema-valid |
+| `26504904607` (Compile-only Targets) | Compile-only Targets — Full ESPHome Compile | **skipped** | — full ESPHome compile did **not** run on this PR |
+
+The full-compile job is `workflow_dispatch` + `compile_mode=full` only
+(resource-driven; intentional — see
+[`repo-freshness-roadmap-audit.md` §6](repo-freshness-roadmap-audit.md#6-ci--validation-coverage-table)),
+so it was **skipped** on the PR #612 push, as expected. No post-#612
+manual `workflow_dispatch` full-compile run was found via the GitHub
+tooling available this session.
+
+### Local validation evidence (run 2026-05-27 on the merged tree)
+
+ESPHome is **not** installed in this environment, so local
+`esphome config` was **not** run; the commands below are the
+ESPHome-independent validators. All green:
+
+| Command | Result |
+|---|---|
+| `python3 tests/validate_configs.py` | ✅ 208 files checked, 0 failed (covers all three target product YAMLs) |
+| `python3 scripts/validate_compile_targets.py --metadata-only` | ✅ 10 targets, metadata passed |
+| `python3 tests/test_relay_product_readiness.py` | ✅ 61 tests OK (incl. the #612 `RelayProductCustomerUsageExampleTests` guard) |
+| `python3 tests/test_pwm_product_readiness.py` | ✅ 62 tests OK |
+| `python3 tests/test_dac_product_readiness.py` | ✅ 44 tests OK |
+| `python3 tests/test_product_catalog.py` | ✅ 31 tests OK |
+| `python3 tests/test_compile_targets.py` | ✅ 119 tests OK |
+| `python3 tests/test_firmware_combination_matrix.py` | ✅ 24 tests OK |
+| `python3 tests/test_firmware_build_gap_report.py` | ✅ 27 tests OK |
+| `python3 tests/validate_webflash_builds.py` | ✅ 2 builds checked, 0 failed |
+| `python3 tests/test_workflow_permissions.py` | ✅ 7 tests OK |
+| `python3 -m unittest discover -s tests -p "test_*.py"` | ✅ 759 tests OK (3 skipped) |
+
+`validate_configs.py` was confirmed to explicitly enumerate the three
+target product YAMLs
+(`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`,
+`products/sense360-ceiling-poe-fanpwm.yaml`,
+`products/sense360-ceiling-poe-fandac.yaml`).
+
+### What this evidence proves
+
+- The three target product YAMLs **parse and pass YAML-syntax +
+  structural validation** (local `validate_configs.py` + CI YAML Syntax
+  Check on the #612 commit).
+- `config/compile-only-targets.json` **metadata is schema-valid** for all
+  10 targets (local `--metadata-only` + CI Metadata Validation job).
+- The full repo guard suite — including the #612 customer-usage-path
+  regression guard — **passes** (759 tests, 3 skipped).
+
+### What this evidence does NOT prove
+
+- **NOT** a full `esphome config` / codegen / compile of the three
+  **top-level** product YAMLs. `validate_configs.py` is YAML-syntax +
+  structure only (it stubs `!include` rather than resolving the package
+  graph), the CI Full ESPHome Compile job was **skipped** on #612, and
+  ESPHome is unavailable locally.
+- The recorded full-compile runs are **separate and pre-#612**, and they
+  exercise the **compile-only skeletons**, not the top-level product
+  YAMLs: run `26414398902` (`compile_mode=full`, 10 targets, success)
+  covers `products/compile-only/ceiling-poe-fanpwm.yaml`, and run
+  `26364679370` (`compile_mode=full`, 9 targets, success) covers
+  `products/compile-only/ceiling-poe-fandac.yaml`. The top-level
+  `sense360-ceiling-poe-fanpwm.yaml` / `sense360-ceiling-poe-fandac.yaml`
+  compose additional base / API / OTA / time / health packages and
+  product `text_sensor` identity on top of those skeletons, so a clean
+  skeleton compile is **not** a top-level full-compile of these two
+  products. The FanRelay top-level YAML is itself the registered
+  compile-only target `ceiling-poe-ventiq-fanrelay-roomiq-compile-only`,
+  but its `config/compile-only-targets.json` entry carries **no**
+  `compile_validation_status` flag (unlike the FanDAC / FanPWM targets)
+  and #612 did **not** run the full lane, so this file records no
+  full-compile claim for it here.
+- **NOT** WebFlash exposure, **NOT** a release artifact, **NOT** WebFlash
+  import readiness, **NOT** hardware / bench / harness proof, **NOT**
+  compliance / mains-safety approval, **NOT** RPM support for PWM, **NOT**
+  Cloudlift-ready for DAC, and **NOT** production-safety / kit-default /
+  recommended readiness for Relay. All per-family WebFlash / release /
+  hardware-stable / compliance gates stay exactly as
+  §BLOCKER-STATUS-FINALIZE-001 (2026-05-27) above left them.
+
+### Next action to obtain top-level full-compile evidence
+
+To record a real full `esphome config` / compile of the three
+**top-level** product YAMLs, dispatch the full lane manually:
+`.github/workflows/compile-only.yml` via `workflow_dispatch` with
+`compile_mode=full` (runs `scripts/validate_compile_targets.py
+--compile`). That directly compiles the FanRelay top-level target;
+top-level FanPWM / FanDAC coverage additionally requires registering
+their top-level YAMLs as compile-only targets (a separate scoped change,
+**not** made here). Until that run is recorded, top-level full-compile
+evidence for these products is **pending** and is **not** claimed.
+
 ## Do-not-change guardrails
 
 PRODUCT-GAP-001 — this matrix — performs **none** of the following.
