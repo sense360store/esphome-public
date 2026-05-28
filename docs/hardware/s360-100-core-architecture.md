@@ -305,6 +305,12 @@ This document and the tests added with it must not:
 
 ## See also
 
+- [`docs/hardware/s360-100-native-fan-gpio-map.md`](s360-100-native-fan-gpio-map.md)
+  — canonical S360-100 / S360-311 fan GPIO map
+  (S360-100-NATIVE-FAN-GPIO-MAP-001): records the native ESP32-S3
+  GPIO termination of `TachPMW1..4` / `Pul_Cou1..4` / `TachIO`,
+  classifies the SX1509-routed fan path as legacy / superseded, and
+  carries the FanPWM firmware-binding pending status.
 - [`docs/hardware/schematics/S360-100-R4.pdf`](schematics/S360-100-R4.pdf)
   — current canonical S360-100 Core schematic (SHA256
   `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`,

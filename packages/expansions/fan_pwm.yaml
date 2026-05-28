@@ -1,6 +1,33 @@
 # ============================================================================
 # SENSE360 FANPWM PACKAGE — PWM-DRIVE-ONLY (PACKAGE-PWM-001-IMPLEMENT-001)
 # ============================================================================
+# LEGACY / SUPERSEDED SX1509 FAN PATH — see
+# docs/hardware/s360-100-native-fan-gpio-map.md
+# (S360-100-NATIVE-FAN-GPIO-MAP-001):
+#   * The refreshed S360-100-R4 schematic terminates every per-fan FanPWM
+#     control net (`TachPMW1..4`) and every per-fan tach net (`Pul_Cou1..4`)
+#     plus the shared `TachIO` passthrough directly at native ESP32-S3 GPIO.
+#     The SX1509 (`U3`) I/O expander is removed from the S360-100 fan signal
+#     path.
+#   * The bindings in this package and in its included neutral binding layer
+#     `packages/expansions/fan_pwm_sx1509.yaml` are therefore classified
+#     LEGACY / SUPERSEDED relative to the canonical native ESP32-S3 GPIO map.
+#     They are NOT the current hardware path and MUST NOT be presented as a
+#     current FanPWM control / tach implementation.
+#   * S360-100-NATIVE-FAN-GPIO-MAP-001 does NOT re-wire these bindings. The
+#     re-bind to native ESP32-S3 GPIO is owed by a separate firmware PR that
+#     must include an `esphome compile` pass and bench validation; no GPIO
+#     numbers are invented here.
+#   * Compile-only / manual-firmware-candidate readiness recorded by
+#     PRODUCT-PWM-001 / FW-COMPILE-PWM-001 / FW-COMPILE-PWM-RESULT-001 stays
+#     pinned to this legacy SX1509 composition for historical traceability;
+#     it does NOT become release / WebFlash / hardware-stable readiness.
+#   * FanPWM stays release-blocked and WebFlash-blocked: `Ceiling-POE-FanPWM`
+#     remains `status: hardware-pending`, `webflash_build_matrix: false`,
+#     no `artifact_name`, no `config/webflash-builds.json` row,
+#     `rpm_supported: false`. `WEBFLASH-PWM-001` / `RELEASE-PWM-001` /
+#     `WF-IMPORT-PWM-001` stay blocked.
+# ----------------------------------------------------------------------------
 # Canonical FanPWM hardware package for the S360-311 12 V PWM fan driver.
 # This implements the PWM-drive-only initial scope: four independent SX1509
 # PWM-drive fan-speed controllers, no per-fan RPM.

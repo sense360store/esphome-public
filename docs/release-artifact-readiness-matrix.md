@@ -1449,6 +1449,22 @@ no `artifact_name`; no release artifact / proof row added; no WebFlash / import
 
 ## PWM / S360-311 release posture
 
+> **S360-100-NATIVE-FAN-GPIO-MAP-001 (2026-05-28).** The canonical
+> Core-side fan GPIO map is recorded in
+> [`hardware/s360-100-native-fan-gpio-map.md`](hardware/s360-100-native-fan-gpio-map.md):
+> on the refreshed `S360-100-R4` schematic, `TachPMW1..4` (FanPWM
+> control) and `Pul_Cou1..4` + `TachIO` (tach / pulse counter)
+> terminate directly at native ESP32-S3 GPIO; the SX1509 (`U3`) I/O
+> expander is removed from the S360-100 fan signal path. The current
+> FanPWM YAML
+> ([`packages/expansions/fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml)
+> and [`packages/expansions/fan_pwm_sx1509.yaml`](../packages/expansions/fan_pwm_sx1509.yaml))
+> remains wired against the legacy SX1509 routing and is classified
+> legacy / superseded by that PR. The PR does not flip any FanPWM
+> release / WebFlash posture: `Ceiling-POE-FanPWM` stays
+> `not-release-ready`, `webflash_build_matrix: false`, no
+> `artifact_name`, no `config/webflash-builds.json` row.
+
 **Current state.** No non-legacy FanPWM product YAML under
 [`products/`](../products/); no FanPWM WebFlash wrapper; no FanPWM
 catalog entry on the WebFlash track; no FanPWM build-matrix row; no

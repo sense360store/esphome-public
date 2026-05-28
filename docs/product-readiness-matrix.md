@@ -1433,6 +1433,56 @@ named follow-up.
   RPM / tach claim, **no** bench evidence claim — firmware-binding
   and bench-measured RPM stay owned by `S360-311-CURRENT-THERMAL-001`
   / `COMPONENT-NATIVE-TACH-001` (future).
+- **2026-05-28 — `S360-100-NATIVE-FAN-GPIO-MAP-001` (this PR; docs /
+  tests only) — canonical S360-100 / S360-311 fan GPIO map recorded;
+  SX1509-routed fan path classified legacy / superseded.** A new
+  [`docs/hardware/s360-100-native-fan-gpio-map.md`](hardware/s360-100-native-fan-gpio-map.md)
+  records the schematic-printed native ESP32-S3 GPIO terminations for
+  every per-fan FanPWM control signal (`TachPMW1..4` -> `IO10` /
+  `IO11` / `IO12` / `IO39`), every per-fan tach signal (`Pul_Cou1..4`
+  -> `IO17` / `IO18` / `IO46` / `IO9`), and the shared `TachIO`
+  passthrough (`IO16`) on the refreshed canonical `S360-100-R4.pdf`,
+  plus the connector mapping to the Sense360 Core `J6` (13-pin) and
+  the S360-311 module `J3` (13-pin). The SX1509 (`U3`) I/O expander
+  is removed from the S360-100 fan signal path on the canonical
+  schematic; the FanPWM YAML
+  ([`packages/expansions/fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml)
+  and
+  [`packages/expansions/fan_pwm_sx1509.yaml`](../packages/expansions/fan_pwm_sx1509.yaml))
+  remains wired against the legacy SX1509 routing and is classified
+  **legacy / superseded** by this PR; both file headers and the
+  product / compile-only YAMLs
+  ([`products/sense360-ceiling-poe-fanpwm.yaml`](../products/sense360-ceiling-poe-fanpwm.yaml),
+  [`products/compile-only/ceiling-poe-fanpwm.yaml`](../products/compile-only/ceiling-poe-fanpwm.yaml))
+  carry that classification. The historical SX1509 / `pulse_counter`
+  compile/config proof
+  ([`tests/test_sx1509_tach_pulse_counter_proof.py`](../tests/test_sx1509_tach_pulse_counter_proof.py))
+  is unchanged and remains the authoritative evidence for the
+  architectural rule. **Product-layer disposition is unchanged** —
+  `Ceiling-POE-FanPWM` stays `hardware-pending`, PWM-drive-only,
+  `rpm_supported: false`; no `webflash_build_matrix` flip; no
+  `artifact_name`; no `config/webflash-builds.json` row; no release
+  artifact; `WEBFLASH-PWM-001` / `RELEASE-PWM-001` /
+  `WF-IMPORT-PWM-001` stay blocked; `S360-311` stays
+  `cataloged_unverified`; FanTRIAC `HW-005` is unchanged; `S360-410`
+  PoE PSU is unchanged. The map is enforced by a new repo-level
+  guard
+  [`tests/test_native_fan_gpio_map.py`](../tests/test_native_fan_gpio_map.py)
+  that pins (a) the canonical fan GPIO map doc exists and lists
+  every required native ESP32-S3 GPIO for `TachPMW1..4` /
+  `Pul_Cou1..4` / `TachIO`; (b) the FanPWM package / product YAMLs
+  carry the legacy / superseded SX1509 labelling; (c) FanPWM stays
+  out of `config/webflash-builds.json`; (d) the FanPWM catalog row
+  keeps `webflash_build_matrix: false`, no `artifact_name`, status
+  `hardware-pending`; and (e) no current-FanPWM-release positive
+  capability claim for SX1509-backed PWM / tach control. **No**
+  firmware-binding edit, **no** measured PWM / RPM / tach claim,
+  **no** invented GPIO numbers (every native pin is schematic-
+  printed on the canonical R4 sheet), **no** SX1509 deletion (the
+  expander stays in place for historical / superseded context and
+  for non-fan signals), **no** `firmware/sources.json` / `manifest.json`
+  change, **no** S360-410 PoE blocker resolution, **no** FanTRIAC
+  `HW-005` resolution.
 
 ### FanDAC / S360-312
 

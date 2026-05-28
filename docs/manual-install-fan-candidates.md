@@ -131,6 +131,21 @@ esphome upload products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml
 > aggregate RPM sensor. Measured per-channel and aggregate current, MT3608
 > ceiling / inrush, and thermal characterisation are still required before any
 > WebFlash / release / hardware-stable claim.
+>
+> **Legacy / superseded SX1509 fan path** — see
+> [`docs/hardware/s360-100-native-fan-gpio-map.md`](hardware/s360-100-native-fan-gpio-map.md)
+> (S360-100-NATIVE-FAN-GPIO-MAP-001). The current FanPWM YAML
+> ([`packages/expansions/fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml)
+> and [`packages/expansions/fan_pwm_sx1509.yaml`](../packages/expansions/fan_pwm_sx1509.yaml))
+> remains wired against the SX1509 routing, which is now classified
+> legacy / superseded by the canonical native ESP32-S3 GPIO map on the
+> refreshed `S360-100-R4` schematic. The product YAML is retained as a
+> manual / no-WebFlash candidate against the legacy composition; it
+> MUST NOT be presented as the current hardware path. Re-binding the
+> FanPWM YAML against the native map (`TachPMW1..4` -> `IO10` / `IO11`
+> / `IO12` / `IO39`; `Pul_Cou1..4` -> `IO17` / `IO18` / `IO46` / `IO9`;
+> `TachIO` -> `IO16`) is owed by a future firmware PR that must
+> include an `esphome compile` pass and bench validation.
 
 ### Remote-package include
 
