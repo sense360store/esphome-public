@@ -122,6 +122,19 @@ FANPWM_COMPILE_ONLY_CONFIG_STRING = "Ceiling-POE-FanPWM"
 FANPWM_COMPILE_ONLY_PRODUCT_YAML = "products/compile-only/ceiling-poe-fanpwm.yaml"
 FANPWM_PRODUCT_YAML = "products/sense360-ceiling-poe-fanpwm.yaml"
 
+# S360-311-NATIVE-FANPWM-YAML-001: the native ESP32-S3 GPIO FanPWM compile-only
+# skeleton is the third explicitly-registered fan target allowed under
+# products/compile-only/. It is the native-GPIO successor to the legacy SX1509
+# skeleton (preserved unchanged): native ledc PWM-drive outputs + native
+# pulse_counter tach inputs, NO SX1509 for PWM or tach. It is recorded
+# compile_validation_status: pending-ci (no native compile run performed) and
+# rpm_supported: false. Its full invariants are pinned by
+# tests/test_native_fanpwm_yaml.py.
+FANPWM_NATIVE_COMPILE_ONLY_TARGET_ID = "ceiling-poe-fanpwm-native-compile-only"
+FANPWM_NATIVE_COMPILE_ONLY_PRODUCT_YAML = (
+    "products/compile-only/ceiling-poe-fanpwm-native.yaml"
+)
+
 # TOPLEVEL-FAN-COMPILE-TARGETS-001: register the actual top-level FanPWM /
 # FanDAC product YAMLs (landed by PRODUCT-PWM-001 / PRODUCT-DAC-001) as
 # first-class compile-only targets, ALONGSIDE — not replacing — the
@@ -592,6 +605,13 @@ class PoeNonFanCompileOnlyCoverageTests(unittest.TestCase):
             # products/compile-only/ as the only valid home. Its full
             # invariants are pinned by FanPWMCompileOnlyCoverageTests.
             if target.get("id") == FANPWM_COMPILE_ONLY_TARGET_ID:
+                continue
+            # S360-311-NATIVE-FANPWM-YAML-001: the native ESP32-S3 GPIO FanPWM
+            # compile-only skeleton is the third explicitly-registered fan
+            # target allowed under products/compile-only/ — the native-GPIO
+            # successor to the legacy SX1509 skeleton. Its full invariants are
+            # pinned by tests/test_native_fanpwm_yaml.py.
+            if target.get("id") == FANPWM_NATIVE_COMPILE_ONLY_TARGET_ID:
                 continue
             cs = target.get("config_string") or ""
             tokens = set(cs.split("-")) if cs else set()

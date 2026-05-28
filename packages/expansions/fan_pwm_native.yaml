@@ -1,0 +1,181 @@
+# ============================================================================
+# SENSE360 FANPWM NATIVE ESP32-S3 PACKAGE — NATIVE-GPIO CANDIDATE
+# (S360-311-NATIVE-FANPWM-YAML-001)
+# ============================================================================
+# Native ESP32-S3 GPIO FanPWM candidate for the S360-311 12 V PWM fan driver.
+#
+# This package is the NATIVE-GPIO successor to the legacy / superseded SX1509
+# FanPWM path (packages/expansions/fan_pwm.yaml -> fan_pwm_sx1509.yaml). It
+# binds the FanPWM control and tach / pulse-counter nets directly to the
+# native ESP32-S3 GPIOs recorded on the refreshed S360-100-R4 schematic, per
+# the canonical map in
+# docs/hardware/s360-100-native-fan-gpio-map.md
+# (S360-100-NATIVE-FAN-GPIO-MAP-001):
+#   * PR #634 established that tach / pulse-counter inputs MUST terminate on
+#     native ESP32-S3 GPIO and MUST NOT use the SX1509 expander.
+#   * PR #637 made the FanPWM path native ESP32 GPIO based.
+#   * PR #638 / PR #639 recorded the canonical S360-100 connector pin map and
+#     the S360-311 module-side pinmap; PR #639 reconciled S360-311 FanPWM to
+#     `TachPMW1..4` (PWM drive), `Pul_Cou1..4` (tach / pulse), and `TachIO`
+#     (shared tach passthrough) on native ESP32-S3 GPIO.
+#
+# This package does NOT use the SX1509 for FanPWM PWM output and does NOT use
+# the SX1509 for any tach / pulse_counter input. The SX1509-routed bindings
+# stay only in the legacy / superseded packages and remain the authoritative
+# historical compile/config-proof record; they are NOT re-wired here.
+#
+# ----------------------------------------------------------------------------
+# Canonical native ESP32-S3 GPIO map consumed below
+# (schematic-printed on S360-100-R4; NOT bench-verified — no GPIO numbers are
+#  invented here, every value is the value recorded by
+#  S360-100-NATIVE-FAN-GPIO-MAP-001):
+#
+#   FanPWM control (PWM-capable native GPIO):
+#     TachPMW1 -> IO10   TachPMW2 -> IO11   TachPMW3 -> IO12   TachPMW4 -> IO39
+#   Tach / pulse-counter (interrupt-capable native GPIO):
+#     Pul_Cou1 -> IO17   Pul_Cou2 -> IO18   Pul_Cou3 -> IO46   Pul_Cou4 -> IO9
+#   Shared tach passthrough:
+#     TachIO   -> IO16
+#
+# ----------------------------------------------------------------------------
+# Scope of THIS candidate (native, non-release, compile-pending):
+#   * Four native ledc PWM-drive fan-speed controllers (fan_pwm_native_1..4)
+#     on TachPMW1..4 -> IO10 / IO11 / IO12 / IO39. This is the native ESP32
+#     PWM output path; no SX1509 output is declared.
+#   * Three native pulse_counter tach inputs (fan_pwm_native_tach_1 / _2 / _4)
+#     on Pul_Cou1 / Pul_Cou2 / Pul_Cou4 -> IO17 / IO18 / IO9. These are
+#     INTERNAL diagnostic pulse-rate inputs ONLY. They are NOT validated, are
+#     NOT surfaced as RPM, carry no RPM unit/name, and make no RPM claim of
+#     any kind. RPM / tach support stays UNVALIDATED until measured bench
+#     evidence exists (PWM-6 / PWM-13 in docs/blocker-burndown.md §2A).
+#   * Pul_Cou3 (IO46) is DISABLED / TBD on this candidate: the canonical map
+#     assigns Pul_Cou3 to native IO46, but the Core ceiling abstract package
+#     (packages/hardware/sense360_core_ceiling.yaml) already binds IO46 as the
+#     Core-side `fan_status_led_pin` (schematic GP_Fan_Status_Led). That
+#     IO46 reconciliation is unresolved, so this candidate keeps Pul_Cou3
+#     disabled rather than inventing a conflicting binding.
+#   * TachIO (IO16) shared passthrough is RESERVED / PENDING: the schematic
+#     role of the shared `TachIO` net (per docs/hardware/s360-311-r4-pwm.md
+#     §Per-fan-output drive topology) is ambiguous, so no active TachIO
+#     binding is declared here. The pin is recorded as a reserved
+#     substitution only.
+#
+# ----------------------------------------------------------------------------
+# Readiness — what this package is NOT:
+#   * NOT compile-proven. ESPHome is not assumed present; no `esphome compile`
+#     run has been performed against this native composition. Its compile-only
+#     target (config/compile-only-targets.json id
+#     `ceiling-poe-fanpwm-native-compile-only`) is recorded
+#     `compile_validation_status: pending-ci`; full compile is owned by CI.
+#     The legacy SX1509 full-compile run `26414398902` does NOT transfer to
+#     this native composition.
+#   * NOT RPM / tach support. No measured RPM evidence exists.
+#     `rpm_supported` stays false everywhere.
+#   * NOT WebFlash-exposed and NOT a release artifact. The FanPWM token does
+#     not appear in config/webflash-builds.json; no `artifact_name`; no
+#     `webflash_build_matrix` flip; no WebFlash wrapper.
+#   * NOT hardware-stable. S360-311 `schematic_status` stays
+#     `cataloged_unverified`; PWM polarity, per-fan / aggregate current, and
+#     thermal envelope stay bench-pending.
+#
+# Requires a parent Core package that provides a `${friendly_name}`
+# substitution. NOT compatible with the other fan-driver variants
+# (FanRelay / FanDAC / FanTRIAC) — fan-driver variants are firmware-distinct.
+# ============================================================================
+
+substitutions:
+  # Number of discrete speed steps presented per fan (1..100).
+  fan_pwm_native_speed_count: "100"
+
+  # PWM frequency (25 kHz standard PC fan PWM).
+  fan_pwm_native_frequency: "25000"
+
+  # FanPWM control pins — native ESP32-S3 GPIO (TachPMW1..4), schematic-printed.
+  fan_pwm_native_pwm_1_pin: GPIO10
+  fan_pwm_native_pwm_2_pin: GPIO11
+  fan_pwm_native_pwm_3_pin: GPIO12
+  fan_pwm_native_pwm_4_pin: GPIO39
+
+  # Tach / pulse-counter pins — native ESP32-S3 GPIO (Pul_Cou1/2/4),
+  # schematic-printed. Pul_Cou3 (IO46) is intentionally NOT listed: it
+  # collides with the Core `fan_status_led_pin` (GPIO46) and stays TBD.
+  fan_pwm_native_tach_1_pin: GPIO17
+  fan_pwm_native_tach_2_pin: GPIO18
+  fan_pwm_native_tach_4_pin: GPIO9
+
+  # Shared TachIO passthrough — native ESP32-S3 IO16. RESERVED / PENDING:
+  # exposed as a substitution only; no active binding is declared here.
+  fan_pwm_native_tach_io_pin: GPIO16
+
+# Four native ledc PWM-drive outputs (TachPMW1..4 -> IO10 / IO11 / IO12 / IO39).
+output:
+  - platform: ledc
+    id: fan_pwm_native_drive_1
+    pin: ${fan_pwm_native_pwm_1_pin}
+    frequency: ${fan_pwm_native_frequency}Hz
+
+  - platform: ledc
+    id: fan_pwm_native_drive_2
+    pin: ${fan_pwm_native_pwm_2_pin}
+    frequency: ${fan_pwm_native_frequency}Hz
+
+  - platform: ledc
+    id: fan_pwm_native_drive_3
+    pin: ${fan_pwm_native_pwm_3_pin}
+    frequency: ${fan_pwm_native_frequency}Hz
+
+  - platform: ledc
+    id: fan_pwm_native_drive_4
+    pin: ${fan_pwm_native_pwm_4_pin}
+    frequency: ${fan_pwm_native_frequency}Hz
+
+# Four independent native PWM fan-speed controllers, one per ledc output.
+fan:
+  - platform: speed
+    id: fan_pwm_native_1
+    name: "${friendly_name} Fan 1"
+    output: fan_pwm_native_drive_1
+    speed_count: ${fan_pwm_native_speed_count}
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: speed
+    id: fan_pwm_native_2
+    name: "${friendly_name} Fan 2"
+    output: fan_pwm_native_drive_2
+    speed_count: ${fan_pwm_native_speed_count}
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: speed
+    id: fan_pwm_native_3
+    name: "${friendly_name} Fan 3"
+    output: fan_pwm_native_drive_3
+    speed_count: ${fan_pwm_native_speed_count}
+    restore_mode: RESTORE_DEFAULT_OFF
+
+  - platform: speed
+    id: fan_pwm_native_4
+    name: "${friendly_name} Fan 4"
+    output: fan_pwm_native_drive_4
+    speed_count: ${fan_pwm_native_speed_count}
+    restore_mode: RESTORE_DEFAULT_OFF
+
+# Native tach / pulse-counter inputs (Pul_Cou1/2/4 -> IO17 / IO18 / IO9).
+# INTERNAL diagnostic pulse-rate only — UNVALIDATED, no RPM claim, no RPM unit
+# or name. Native ESP32-S3 interrupt-capable GPIO is the only pin family that
+# can back an ESPHome pulse_counter (the SX1509 expander pin is compile-proven
+# invalid under sensor.pulse_counter.pin — PWM-SX1509-TACH-PROOF-001).
+sensor:
+  - platform: pulse_counter
+    id: fan_pwm_native_tach_1
+    internal: true
+    pin: ${fan_pwm_native_tach_1_pin}
+
+  - platform: pulse_counter
+    id: fan_pwm_native_tach_2
+    internal: true
+    pin: ${fan_pwm_native_tach_2_pin}
+
+  - platform: pulse_counter
+    id: fan_pwm_native_tach_4
+    internal: true
+    pin: ${fan_pwm_native_tach_4_pin}

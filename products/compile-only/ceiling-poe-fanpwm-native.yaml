@@ -1,0 +1,150 @@
+# ============================================================================
+# COMPILE-ONLY SKELETON — Ceiling-POE-FanPWM (NATIVE ESP32-S3 CANDIDATE)
+# (S360-311-NATIVE-FANPWM-YAML-001)
+# ============================================================================
+# Native ESP32-S3 GPIO FanPWM compile-only candidate. Exercises the NATIVE
+# FanPWM package composition (four native ledc PWM-drive fan-speed
+# controllers + three native pulse_counter tach inputs) on the proven Core
+# ceiling + PoE PSU + base + health base.
+#
+# This is the native-GPIO successor to the legacy / superseded SX1509
+# compile-only skeleton (products/compile-only/ceiling-poe-fanpwm.yaml), which
+# is preserved unchanged as historical compile proof. This skeleton composes
+# packages/expansions/fan_pwm_native.yaml, which binds:
+#   * FanPWM control (TachPMW1..4) to native ESP32-S3 IO10 / IO11 / IO12 / IO39
+#     via `output: platform: ledc` (NO SX1509 output);
+#   * tach / pulse-counter (Pul_Cou1 / Pul_Cou2 / Pul_Cou4) to native ESP32-S3
+#     IO17 / IO18 / IO9 via `sensor: platform: pulse_counter` (NO SX1509 pin),
+#     as INTERNAL diagnostic pulse-rate inputs only — UNVALIDATED, no RPM
+#     claim;
+#   * Pul_Cou3 (IO46) DISABLED / TBD (collides with the Core
+#     `fan_status_led_pin` GPIO46) and TachIO (IO16) RESERVED / PENDING.
+# See docs/hardware/s360-100-native-fan-gpio-map.md
+# (S360-100-NATIVE-FAN-GPIO-MAP-001) for the canonical map.
+#
+# ----------------------------------------------------------------------------
+# Status — what this YAML is NOT:
+#
+#   * NOT compile-validated until CI proves it. ESPHome is not assumed present
+#     locally; no `esphome compile` run has been performed against this native
+#     composition. The compile-only target
+#     (config/compile-only-targets.json id
+#     `ceiling-poe-fanpwm-native-compile-only`) is recorded
+#     `compile_validation_status: pending-ci`. The legacy SX1509 full-compile
+#     run `26414398902` does NOT transfer to this native composition. Full
+#     compile is pending CI; no compile-proven firmware is claimed.
+#   * NOT a FanPWM product YAML. This skeleton lives under
+#     `products/compile-only/` (a subdirectory excluded from the top-level
+#     product-catalog enumeration gate), so it adds NO
+#     `config/product-catalog.json` entry. The native re-bind does not add a
+#     top-level products/ product YAML.
+#   * NOT a WebFlash exposed build. No entry is added to
+#     `config/webflash-builds.json`; no `webflash_build_matrix: true` flip; no
+#     `webflash_wrapper` under `products/webflash/`; no `artifact_name`. The
+#     `FanPWM` token does not appear in `config/webflash-builds.json`.
+#   * NOT a release artifact. No `.bin`, version, channel, checksum,
+#     build-info manifest, GitHub Release tag, or proof row is created.
+#   * NOT RPM / tach support. The native pulse_counter inputs are INTERNAL
+#     diagnostic pulse-rate inputs only; no per-fan or aggregate RPM is
+#     surfaced and no RPM claim of any kind is made. RPM / tach support stays
+#     UNVALIDATED until measured bench evidence exists.
+#   * NOT hardware proof. Compile success says nothing about bench /
+#     PWM-polarity / current / thermal / silkscreen / schematic evidence.
+#     S360-311 `schematic_status` stays `cataloged_unverified` and the bench
+#     gates (PWM polarity; per-fan / aggregate current + thermal envelope)
+#     remain open.
+#   * NOT a stable / preview promotion. Release-One stays
+#     `Ceiling-POE-VentIQ-RoomIQ` (stable) and the LED preview stays
+#     `Ceiling-POE-VentIQ-RoomIQ-LED` (preview), both unchanged.
+#
+# Compatibility (see docs/release-one.md):
+# - Fan driver variants (FanRelay/FanPWM/FanDAC/FanTRIAC) are
+#   firmware-distinct; this skeleton ships FanPWM only.
+# - This skeleton carries neither AirIQ nor VentIQ nor RoomIQ nor LED
+#   (config string Ceiling-POE-FanPWM).
+#
+# Hardware (canonical friendly names; see docs/hardware-catalog.md):
+# - Core         : Sense360 Core    (S360-100-R4, ESP32-S3, ceiling mount)
+# - Power        : Sense360 PoE PSU (S360-410, IEEE 802.3af) — schematic
+#                  verification pending; this target does NOT close that.
+# - Air Quality  : not included     (no AirIQ / no VentIQ)
+# - Room Sense   : not included     (no RoomIQ token in config string)
+# - Fan Driver   : Sense360 PWM     (S360-311, four NATIVE ESP32 ledc PWM
+#                                    outputs + native pulse_counter tach)
+# - LED          : not included     (no LED token in config string)
+#
+# See: docs/compile-only-firmware-validation.md
+#      docs/hardware/s360-311-r4-pwm.md
+#      docs/hardware/s360-100-native-fan-gpio-map.md
+# ============================================================================
+
+substitutions:
+  device_name: s360-co-ceil-poe-pwmn
+  friendly_name: Sense360 Ceiling POE FanPWM Native (compile-only)
+  device_sku: S360-CORE-C-POE
+  device_version: "0.0.0-compile-only"
+  timezone: "UTC"
+
+  log_level: INFO
+  wifi_fast_connect: "false"
+  fallback_ssid: "S360 CO POE PWMN"
+
+  # === Power configuration (PoE) ===
+  power_source: poe
+  poe_class: "0"
+  poe_standard: "802.3af"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === External Components (radar firmware) ===
+  external_components: !include ../../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../../packages/base/wifi.yaml
+  base_logging: !include ../../packages/base/logging.yaml
+  base_api: !include ../../packages/base/api_encrypted.yaml
+  base_ota: !include ../../packages/base/ota.yaml
+  base_time: !include ../../packages/base/time.yaml
+
+  # === Sense360 Core (Ceiling, S360-100-R4) ===
+  core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
+
+  # === Sense360 PoE PSU (S360-410) ===
+  power_config: !include ../../packages/hardware/power_poe.yaml
+
+  # === Sense360 FanPWM (S360-311, NATIVE ESP32-S3 GPIO) ===
+  # Native ledc PWM-drive outputs (TachPMW1..4 -> IO10/IO11/IO12/IO39) and
+  # native pulse_counter tach inputs (Pul_Cou1/2/4 -> IO17/IO18/IO9, internal
+  # diagnostic only, no RPM claim). Pul_Cou3 (IO46) disabled/TBD; TachIO
+  # (IO16) reserved. NO SX1509 for PWM or tach.
+  fan_pwm_native_module: !include ../../packages/expansions/fan_pwm_native.yaml
+
+  # === Device Health & Diagnostics ===
+  health: !include ../../packages/features/device_health.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} WebFlash Config"
+    lambda: |-
+      return {"Ceiling-POE-FanPWM"};
+    update_interval: never
+    entity_category: diagnostic
