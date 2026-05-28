@@ -343,4 +343,6 @@ firmware build, a GitHub Release, or any `.bin` artifact.
 - Compile-only expansion candidates ledger: [`docs/compile-only-expansion-candidates.md`](compile-only-expansion-candidates.md)
 - Compile-only lane validation: [`docs/compile-only-firmware-validation.md`](compile-only-firmware-validation.md)
 - Manual install path: [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md)
+- **Sense360 PoE room bundle SKU matrix: [`docs/sense360-room-bundles.md`](sense360-room-bundles.md) (BUNDLE-SKU-MATRIX-001) — adds the sellable room bundle SKU layer (`S360-KIT-BATH-P`, `S360-KIT-KITCHEN-P`, `S360-KIT-LIVING-P`, `S360-KIT-BEDROOM-P`, `S360-KIT-CORRIDOR-P`) on top of this expansion plan. Each bundle's `Missing gates` column references the G1–G10 vocabulary defined here. The `STABLE-TARGET-AIRIQ-001` / `STABLE-TARGET-AIRIQ-ROOMIQ-001` follow-ups own the `S360-KIT-KITCHEN-P` likely firmware config target; `STABLE-TARGET-CORE-001` / `STABLE-TARGET-ROOMIQ-001` own `S360-KIT-BEDROOM-P`; `LED-STABLE-PROMOTION-001` (gauntlet-gated) covers the LED-bearing `S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P`. No bundle promotion is approved by either PR.**
+- Kit intent matrix (productized planning): [`docs/kit-intent-matrix.md`](kit-intent-matrix.md) (KIT-MATRIX-001)
 - Shipping configuration: [`docs/release-one.md`](release-one.md)

@@ -415,6 +415,8 @@ This document is reproduced and locked in by:
 - Preview-to-stable gauntlet: [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
 - LED preview decision: [`docs/product-led-preview-decision.md`](product-led-preview-decision.md)
 - **Stable target expansion plan: [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md) (STABLE-TARGET-EXPANSION-PLAN-001)**
+- **Sense360 PoE room bundle SKU matrix: [`docs/sense360-room-bundles.md`](sense360-room-bundles.md) (BUNDLE-SKU-MATRIX-001) — sellable room bundle SKUs (`S360-KIT-BATH-P`, `S360-KIT-KITCHEN-P`, `S360-KIT-LIVING-P`, `S360-KIT-BEDROOM-P`, `S360-KIT-CORRIDOR-P`) mapped onto the release classes this document defines. Bundle SKU is not a firmware config string; promotion of any bundle's likely firmware config target is owned by the named `STABLE-TARGET-*-001` follow-up PR.**
+- Kit intent matrix (productized planning): [`docs/kit-intent-matrix.md`](kit-intent-matrix.md) (KIT-MATRIX-001)
 - Manual install path: [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md)
 - Compile-only lane: [`docs/compile-only-firmware-validation.md`](compile-only-firmware-validation.md)
 - Availability vocabulary: [`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)

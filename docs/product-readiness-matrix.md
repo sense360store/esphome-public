@@ -3324,6 +3324,19 @@ No match outside of those trees is expected.
   Applies to any future product YAML that would target a `stable`
   channel; not bypassed by PRODUCT-GAP-001. Also defines the
   `REQUIRED_CONFIGS policy` and the `Kit policy` referenced here.
+- [`docs/sense360-room-bundles.md`](sense360-room-bundles.md) —
+  BUNDLE-SKU-MATRIX-001 canonical Sense360 PoE room bundle SKU matrix.
+  Sellable customer-facing room bundle SKUs (`S360-KIT-BATH-P`,
+  `S360-KIT-KITCHEN-P`, `S360-KIT-LIVING-P`, `S360-KIT-BEDROOM-P`,
+  `S360-KIT-CORRIDOR-P`) mapped onto the included boards and the
+  likely firmware config target. Bundle SKU is not a board SKU and is
+  not a firmware artifact name; promotion of any bundle's likely
+  firmware config target is owned by the named `STABLE-TARGET-*-001`
+  follow-up PR. Documentation only — adds no product YAML, no catalog
+  row, no WebFlash wrapper, no release artifact.
+- [`docs/kit-intent-matrix.md`](kit-intent-matrix.md) — KIT-MATRIX-001
+  productized kit / bundle intent matrix; sibling planning layer to
+  the room bundle SKU matrix above.
 - [`docs/product-deprecation-removal-policy.md`](product-deprecation-removal-policy.md)
   — PRODUCT-DEP-001 deprecation / removal policy. Owns any future
   retirement of `legacy-compatible` entries (e.g. the legacy
