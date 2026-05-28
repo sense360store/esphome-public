@@ -24,7 +24,104 @@ mirrored here.
 
 ## Current queue summary
 
-- **S360-100-CONNECTOR-PINMAP-001** delivers, via **this PR** on
+- **MODULE-PINMAPS-GDRIVE-001** delivers, via **this PR** on
+  2026-05-28, the per-module **module-side** companion pin maps
+  for every Sense360 R4 module SKU — one document per board
+  recording the module-side view of the pin map and reconciling
+  every pin back to the matching Core connector row in the
+  canonical Core-side pin map landed by
+  **S360-100-CONNECTOR-PINMAP-001** (PR #638). The new docs use
+  Google Drive hardware folders (`PCB 2026 Sense360_r4 / PCB
+  Project Files / Sense360 (Celling) / S360-XXX-R4`) as the
+  per-board source-evidence index (schematic PDF in `sch_pdf` /
+  BOM in `bom` / pick-and-place in `cpl` / Gerbers in `gerbers` /
+  STEP in `step_file` (or `stepfile`) / renders + photos in
+  `images` (or `Images`) / misc. in `assets` (or `Assets`)). Each
+  board's committed module-side schematic PDF under
+  [`docs/hardware/schematics/`](docs/hardware/schematics/) is
+  byte-identical to the Drive copy under `sch_pdf`. Values not
+  proven by the committed module-side schematic PDF or the
+  canonical Core schematic carry `TBD` or `needs silkscreen
+  confirmation`; no connector type, pin order, signal mapping, or
+  ESP32 GPIO allocation is fabricated.
+  **Change:** ten new module-side pinmap docs land under
+  [`docs/hardware/`](docs/hardware/) —
+  [`s360-200-module-pinmap.md`](docs/hardware/s360-200-module-pinmap.md)
+  (RoomIQ ↔ Core `J10`),
+  [`s360-210-module-pinmap.md`](docs/hardware/s360-210-module-pinmap.md)
+  (AirIQ ↔ Core `J9`),
+  [`s360-211-module-pinmap.md`](docs/hardware/s360-211-module-pinmap.md)
+  (VentIQ ↔ Core `J1` or `J9`, both candidate tables recorded),
+  [`s360-300-module-pinmap.md`](docs/hardware/s360-300-module-pinmap.md)
+  (LED ↔ Core `J3`; preview-only),
+  [`s360-310-module-pinmap.md`](docs/hardware/s360-310-module-pinmap.md)
+  (Relay ↔ Core `J4`; historical `IO3` vs `GPIO4` mismatch
+  preserved),
+  [`s360-311-module-pinmap.md`](docs/hardware/s360-311-module-pinmap.md)
+  (PWM ↔ Core `J6`; `TachPMW1..4` PWM-drive and `Pul_Cou1..4` +
+  `TachIO` tach lines explicitly reconciled to native ESP32-S3
+  GPIO with no SX1509 routing),
+  [`s360-312-module-pinmap.md`](docs/hardware/s360-312-module-pinmap.md)
+  (DAC ↔ Core `J7`; no release / WebFlash readiness implied),
+  [`s360-320-module-pinmap.md`](docs/hardware/s360-320-module-pinmap.md)
+  (TRIAC ↔ Core `J15`; FanTRIAC `HW-005` stays blocked),
+  [`s360-400-module-pinmap.md`](docs/hardware/s360-400-module-pinmap.md)
+  (240V PSU; off-board mains AC → +5V; shared Core `J2` inlet
+  semantics with `S360-410`),
+  [`s360-410-module-pinmap.md`](docs/hardware/s360-410-module-pinmap.md)
+  (PoE PSU ↔ Core `J2`; `PACKAGE-POE-410-001` blocker preserved).
+  Cross-links added in
+  [`docs/hardware/s360-100-core-connector-pin-map.md`](docs/hardware/s360-100-core-connector-pin-map.md)
+  (Cross references section),
+  [`docs/hardware/s360-100-r4-core.md`](docs/hardware/s360-100-r4-core.md)
+  (See also section),
+  [`docs/sense360-room-bundles.md`](docs/sense360-room-bundles.md)
+  (Core-as-central-hub framing), and dated entries appended to
+  [`docs/blocker-burndown.md` §2A `PWM-12`](docs/blocker-burndown.md)
+  and
+  [`docs/product-readiness-matrix.md` § FanPWM / S360-311](docs/product-readiness-matrix.md).
+  **Tests:** a new
+  [`tests/test_module_pinmaps.py`](tests/test_module_pinmaps.py)
+  pins (a) every known Sense360 module SKU has a module pinmap
+  doc; (b) every module pinmap doc references the canonical
+  Core-side pin map and the matching companion audit doc; (c) no
+  module pinmap doc maps a tach / pulse-counter line through an
+  SX1509 (or other) I/O expander; (d) no `TBD` row is treated as
+  `verified` (the four allowed Status vocabulary terms are pinned);
+  (e) no module pinmap doc contains release / WebFlash readiness
+  phrasing; (f) the per-board do-not-change guardrails are
+  honoured (`S360-310` / `S360-311` / `S360-312` / `S360-320` /
+  `S360-400` / `S360-410` stay `cataloged_unverified`; FanPWM stays
+  out of `config/webflash-builds.json`; FanPWM products keep
+  `rpm_supported: false` and `webflash_build_matrix: false`); (g)
+  cross-doc linking from the Core pin map, the Core reference doc,
+  the room-bundles doc, the blocker-burndown row, the
+  product-readiness-matrix dated entry, and `UPCOMING_PR.md`.
+  The pre-existing
+  [`tests/test_s360_100_core_connector_pin_map.py`](tests/test_s360_100_core_connector_pin_map.py),
+  [`tests/test_native_fan_gpio_map.py`](tests/test_native_fan_gpio_map.py),
+  [`tests/test_native_tach_pulse_pin_strategy.py`](tests/test_native_tach_pulse_pin_strategy.py),
+  and
+  [`tests/test_sx1509_tach_pulse_counter_proof.py`](tests/test_sx1509_tach_pulse_counter_proof.py)
+  remain the authoritative guards for the Core-side pin map, the
+  fan GPIO map, the tach strategy, and the SX1509 compile/config
+  proof respectively.
+  **No** firmware publish, **no** release artifact, **no**
+  `firmware/sources.json` change, **no** `manifest.json` change,
+  **no** release target promoted, **no** LED promoted from
+  preview to stable, **no** FanRelay / FanPWM / FanDAC release
+  promotion, **no** FanTRIAC `HW-005` resolution claim, **no**
+  `S360-410` PoE PSU `PACKAGE-POE-410-001` resolution claim,
+  **no** measured RPM / tach / PWM / current / thermal claim,
+  **no** WebFlash build / `artifact_name` flip, **no** invented
+  connector type / pin order / signal assignment / GPIO
+  allocation (values that are not proven by the committed
+  module-side schematic PDF or the canonical Core schematic carry
+  `TBD` and `needs silkscreen confirmation`), **no** firmware YAML
+  edit, **no** deletion or weakening of the historical SX1509 +
+  `pulse_counter` compile/config-proof fixture / test.
+
+- **S360-100-CONNECTOR-PINMAP-001** delivers, via **PR #638** on
   2026-05-28, the canonical S360-100 Core-to-module connector pin
   map — a single document that lists every per-module connector on
   the Sense360 Core (`S360-100`) with its connector ref, attached

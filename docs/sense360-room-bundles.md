@@ -132,7 +132,19 @@ per-connector pin tables with `Pin number` / `Core net` / `ESP32
 GPIO` / `Module-side signal` / `Signal type` / `Voltage` /
 `Status` columns) is recorded in
 [`docs/hardware/s360-100-core-connector-pin-map.md`](hardware/s360-100-core-connector-pin-map.md)
-(S360-100-CONNECTOR-PINMAP-001).
+(S360-100-CONNECTOR-PINMAP-001). The per-module **module-side**
+view of the same pin map is recorded in one document per board
+under MODULE-PINMAPS-GDRIVE-001:
+[`s360-200-module-pinmap.md`](hardware/s360-200-module-pinmap.md),
+[`s360-210-module-pinmap.md`](hardware/s360-210-module-pinmap.md),
+[`s360-211-module-pinmap.md`](hardware/s360-211-module-pinmap.md),
+[`s360-300-module-pinmap.md`](hardware/s360-300-module-pinmap.md),
+[`s360-310-module-pinmap.md`](hardware/s360-310-module-pinmap.md),
+[`s360-311-module-pinmap.md`](hardware/s360-311-module-pinmap.md),
+[`s360-312-module-pinmap.md`](hardware/s360-312-module-pinmap.md),
+[`s360-320-module-pinmap.md`](hardware/s360-320-module-pinmap.md),
+[`s360-400-module-pinmap.md`](hardware/s360-400-module-pinmap.md),
+[`s360-410-module-pinmap.md`](hardware/s360-410-module-pinmap.md).
 
 | Bundle SKU | Bundle name | Included boards | Likely firmware config target | Current release status | Missing gates (top of stack) |
 |---|---|---|---|---|---|

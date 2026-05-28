@@ -436,6 +436,19 @@ This document is cross-referenced from / to:
   audit (J15 mating; TRI_GPIO source-pin question).
 - [`s360-410-r4-poe.md`](s360-410-r4-poe.md) — PoE PSU board-side
   audit (J2 inlet; `PACKAGE-POE-410-001` lane).
+- Per-module **module-side pinmap docs** (MODULE-PINMAPS-GDRIVE-001):
+  [`s360-200-module-pinmap.md`](s360-200-module-pinmap.md),
+  [`s360-210-module-pinmap.md`](s360-210-module-pinmap.md),
+  [`s360-211-module-pinmap.md`](s360-211-module-pinmap.md),
+  [`s360-300-module-pinmap.md`](s360-300-module-pinmap.md),
+  [`s360-310-module-pinmap.md`](s360-310-module-pinmap.md),
+  [`s360-311-module-pinmap.md`](s360-311-module-pinmap.md),
+  [`s360-312-module-pinmap.md`](s360-312-module-pinmap.md),
+  [`s360-320-module-pinmap.md`](s360-320-module-pinmap.md),
+  [`s360-400-module-pinmap.md`](s360-400-module-pinmap.md),
+  [`s360-410-module-pinmap.md`](s360-410-module-pinmap.md). Each
+  records the **module-side** view of its board and reconciles
+  every pin back to the matching Core connector row above.
 - [`docs/sense360-room-bundles.md`](../sense360-room-bundles.md) —
   canonical PoE room bundle SKU matrix (Core + room modules + PoE
   PSU).
