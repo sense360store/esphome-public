@@ -1,6 +1,27 @@
 # ============================================================================
 # COMPILE-ONLY SKELETON — Ceiling-POE-FanPWM (FW-COMPILE-PWM-001)
 # ============================================================================
+# LEGACY / SUPERSEDED SX1509 FAN PATH — see
+# docs/hardware/s360-100-native-fan-gpio-map.md
+# (S360-100-NATIVE-FAN-GPIO-MAP-001):
+#   * The S360-100-R4 schematic terminates every per-fan FanPWM control
+#     net (`TachPMW1..4`) and every per-fan tach net (`Pul_Cou1..4`) plus
+#     the shared `TachIO` passthrough directly at native ESP32-S3 GPIO.
+#     The SX1509 (`U3`) I/O expander is removed from the S360-100 fan
+#     signal path.
+#   * The package composition under this skeleton (`fan_pwm.yaml` ->
+#     `fan_pwm_sx1509.yaml`) is therefore LEGACY / SUPERSEDED relative to
+#     the canonical native ESP32-S3 GPIO map. The compile-only target is
+#     retained as historical compile proof against the legacy SX1509
+#     composition.
+#   * The recorded full-compile run (`26414398902`) is historical proof
+#     against the legacy SX1509 binding; it does NOT transfer to the new
+#     native ESP32-S3 GPIO direction. Re-binding the FanPWM YAML against
+#     the native map will require its own `esphome compile` pass.
+#   * FanPWM stays release-blocked and WebFlash-blocked. No
+#     `webflash_build_matrix: true` flip, no `artifact_name`, no
+#     `config/webflash-builds.json` row.
+# ----------------------------------------------------------------------------
 # WebFlash config string : Ceiling-POE-FanPWM
 #
 # Purpose:

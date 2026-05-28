@@ -24,7 +24,106 @@ mirrored here.
 
 ## Current queue summary
 
-- **S360-100-TACH-GPIO-ALLOCATION-001** delivers, via **this PR** on
+- **S360-100-NATIVE-FAN-GPIO-MAP-001** delivers, via **this PR** on
+  2026-05-28, the canonical **S360-100 / S360-311 native ESP32-S3
+  GPIO map** for the Sense360 fan signal path. The new hardware
+  direction recorded by the refreshed canonical `S360-100-R4.pdf`
+  is: (a) **SX1509 is removed from the S360-100 fan signal path**;
+  (b) **FanPWM control (`TachPMW1..4`) and tach / pulse-counter
+  inputs (`Pul_Cou1..4` + `TachIO`) terminate on native ESP32-S3
+  GPIO** (`TachPMW1..4` -> `IO10` / `IO11` / `IO12` / `IO39`;
+  `Pul_Cou1..4` -> `IO17` / `IO18` / `IO46` / `IO9`;
+  `TachIO` -> `IO16`); and (c) the SX1509-routed FanPWM control /
+  tach path is classified **legacy / superseded** for the current
+  hardware path.
+  **Change:** a new
+  [`docs/hardware/s360-100-native-fan-gpio-map.md`](docs/hardware/s360-100-native-fan-gpio-map.md)
+  records (a) the schematic-printed native ESP32-S3 GPIO termination
+  for every per-fan FanPWM control + tach net, plus the Sense360
+  Core `J6` (13-pin) / S360-311 module `J3` (13-pin) connector
+  mapping; (b) the hardware-direction change table (prior SX1509
+  routing -> new native GPIO; SX1509 removed from FanPWM hardware
+  path); (c) the firmware-path classification (`fan_pwm.yaml` /
+  `fan_pwm_sx1509.yaml` / `sense360-ceiling-poe-fanpwm.yaml` /
+  `compile-only/ceiling-poe-fanpwm.yaml` are all **legacy /
+  superseded** against the canonical map; the re-bind to native
+  GPIO is owed by a separate firmware PR that must include an
+  `esphome compile` pass + bench validation); (d) the
+  release / WebFlash posture (unchanged: blocked); (e) the
+  preservation of the historical `PWM-SX1509-TACH-PROOF-001`
+  compile/config proof as evidence for the architectural rule (not
+  the current hardware path); and (f) the do-not-change guardrails.
+  Headers updated in
+  [`packages/expansions/fan_pwm.yaml`](packages/expansions/fan_pwm.yaml),
+  [`packages/expansions/fan_pwm_sx1509.yaml`](packages/expansions/fan_pwm_sx1509.yaml),
+  [`products/sense360-ceiling-poe-fanpwm.yaml`](products/sense360-ceiling-poe-fanpwm.yaml),
+  and
+  [`products/compile-only/ceiling-poe-fanpwm.yaml`](products/compile-only/ceiling-poe-fanpwm.yaml)
+  to carry the LEGACY / SUPERSEDED SX1509 FAN PATH banner referencing
+  the new doc. Cross-links / dated entries added in
+  [`docs/hardware/s360-100-r4-core.md`](docs/hardware/s360-100-r4-core.md)
+  (See also row),
+  [`docs/hardware/s360-100-core-architecture.md`](docs/hardware/s360-100-core-architecture.md)
+  (See also row),
+  [`docs/hardware/s360-100-native-tach-pulse-strategy.md`](docs/hardware/s360-100-native-tach-pulse-strategy.md)
+  (See also row),
+  [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md)
+  (top-level banner under §Status + See also row),
+  [`docs/blocker-burndown.md` §2A `PWM-12`](docs/blocker-burndown.md)
+  (canonical fan GPIO map cross-reference appended to the existing
+  TachIO / GPIO16 + RPM row),
+  [`docs/manual-install-fan-candidates.md`](docs/manual-install-fan-candidates.md)
+  (FanPWM section legacy / superseded notice), a new dated
+  `2026-05-28 — S360-100-NATIVE-FAN-GPIO-MAP-001` subsection in
+  [`docs/product-readiness-matrix.md` §FanPWM / S360-311](docs/product-readiness-matrix.md),
+  and a `S360-100-NATIVE-FAN-GPIO-MAP-001 (2026-05-28)` callout in
+  [`docs/release-artifact-readiness-matrix.md` §PWM / S360-311 release posture](docs/release-artifact-readiness-matrix.md).
+  **Tests:** a new
+  [`tests/test_native_fan_gpio_map.py`](tests/test_native_fan_gpio_map.py)
+  (30 tests) pins (a) the canonical fan GPIO map doc exists and
+  records the schematic-printed native ESP32-S3 GPIO for every per-
+  fan FanPWM control + tach net plus the shared `TachIO`
+  passthrough; (b) the doc carries the documentation-only / no
+  firmware / no release / no WebFlash / no invented-GPIO guardrails;
+  (c) the doc and the Core architecture doc agree on every per-net
+  native pin (no drift); (d) the FanPWM package / SX1509 binding
+  layer / product / compile-only YAMLs all carry the
+  LEGACY / SUPERSEDED SX1509 FAN PATH banner with the
+  S360-100-NATIVE-FAN-GPIO-MAP-001 identifier; (e) the `FanPWM`
+  token does not appear in
+  [`config/webflash-builds.json`](config/webflash-builds.json); (f)
+  the FanPWM catalog row keeps `webflash_build_matrix: false`, no
+  `artifact_name`, no `webflash_wrapper`, a non-release-eligible
+  status, and `rpm_supported` not `True`; (g) the FanPWM product +
+  compile-only YAMLs declare no `pulse_counter` on any active line;
+  (h) the historical SX1509 / `pulse_counter` compile/config proof
+  fixture and test stay in place; and (i) `S360-311`
+  `schematic_status` stays not `verified`. The pre-existing
+  [`tests/test_native_tach_pulse_pin_strategy.py`](tests/test_native_tach_pulse_pin_strategy.py)
+  and
+  [`tests/test_sx1509_tach_pulse_counter_proof.py`](tests/test_sx1509_tach_pulse_counter_proof.py)
+  remain the authoritative architectural-rule and compile/config-proof
+  guards.
+  **No** firmware publish, **no** release artifact, **no**
+  `firmware/sources.json` change, **no** `manifest.json` change,
+  **no** release target promoted, **no** FanPWM `webflash_build_matrix`
+  flip, **no** FanPWM `artifact_name` added, **no** `FanPWM` token in
+  [`config/webflash-builds.json`](config/webflash-builds.json),
+  **no** measured PWM / RPM / tach / current / thermal claim, **no**
+  invented GPIO numbers (every native pin is schematic-printed on
+  the canonical R4 sheet), **no** firmware re-bind of
+  [`packages/expansions/fan_pwm.yaml`](packages/expansions/fan_pwm.yaml)
+  or
+  [`packages/expansions/fan_pwm_sx1509.yaml`](packages/expansions/fan_pwm_sx1509.yaml)
+  from SX1509 channels to native ESP32-S3 GPIO (the re-bind is owed
+  by a separate firmware PR), **no** deletion or weakening of the
+  historical SX1509 + `pulse_counter` compile/config-proof fixture
+  / test, **no** global SX1509 removal (the expander stays for
+  historical / superseded context and for non-fan signals), **no**
+  Release-One change, **no** LED-preview change, **no** FanRelay /
+  FanDAC change, **no** FanTRIAC `HW-005` resolution claim, **no**
+  `S360-410` PoE blocker resolution claim.
+- **S360-100-TACH-GPIO-ALLOCATION-001** delivers, via **PR #636** on
   2026-05-28, the **final** native ESP32-S3 GPIO allocation for the
   FanPWM tach / pulse-counter inputs `Pul_Cou1..4` (and the shared
   `TachIO` passthrough and the `TachPMW1..4` PWM-drive outputs) on

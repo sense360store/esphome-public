@@ -1,6 +1,30 @@
 # ============================================================================
 # CORE ABSTRACT-BUS — FanPWM SX1509 BINDING LAYER (CORE-ABSTRACT-BUS-SX1509-001)
 # ============================================================================
+# LEGACY / SUPERSEDED SX1509 FAN PATH — see
+# docs/hardware/s360-100-native-fan-gpio-map.md
+# (S360-100-NATIVE-FAN-GPIO-MAP-001):
+#   * The refreshed S360-100-R4 schematic terminates every per-fan FanPWM
+#     control net (`TachPMW1..4`) and every per-fan tach net (`Pul_Cou1..4`)
+#     plus the shared `TachIO` passthrough directly at native ESP32-S3 GPIO.
+#     The SX1509 (`U3`) I/O expander is removed from the S360-100 fan signal
+#     path.
+#   * The neutral binding declared in this file (SX1509 hub +
+#     `fan_pwm_drive_1..4` PWM-drive outputs on SX1509 channels 0..3 +
+#     `fan_pwm_tach_1..4` polled binary inputs on SX1509 channels 4..7) is
+#     therefore LEGACY / SUPERSEDED relative to the canonical native
+#     ESP32-S3 GPIO map. It is NOT the current FanPWM control / tach path
+#     and MUST NOT be presented as a current FanPWM implementation.
+#   * S360-100-NATIVE-FAN-GPIO-MAP-001 does NOT re-wire this binding. The
+#     re-bind to native ESP32-S3 GPIO is owed by a separate firmware PR
+#     that must include an `esphome compile` pass and bench validation; no
+#     GPIO numbers are invented here.
+#   * FanPWM stays release-blocked and WebFlash-blocked: `Ceiling-POE-FanPWM`
+#     remains `status: hardware-pending`, `webflash_build_matrix: false`,
+#     no `artifact_name`, no `config/webflash-builds.json` row,
+#     `rpm_supported: false`. `WEBFLASH-PWM-001` / `RELEASE-PWM-001` /
+#     `WF-IMPORT-PWM-001` stay blocked.
+# ----------------------------------------------------------------------------
 # Neutral, product-agnostic Core abstract-bus binding that exposes the four
 # FanPWM PWM-drive channels and four FanPWM tach channels of the S360-311
 # 12 V PWM fan driver on the SX1509 GPIO/PWM expander, plus the direct-ESP32
