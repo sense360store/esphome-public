@@ -24,7 +24,93 @@ mirrored here.
 
 ## Current queue summary
 
-- **S360-100-NATIVE-TACH-PULSE-001** delivers, via **this PR** on
+- **S360-100-NATIVE-TACH-PULSE-001 — R4 refresh** delivers, via
+  **this PR** on 2026-05-28, the canonical S360-100 Core architecture
+  doc, the connector / module matrix, the schematic-printed native-
+  GPIO pin-allocation table for tach / pulse-counter / PWM-drive
+  nets, and the refreshed canonical R4 schematic PDF. The previously
+  committed `docs/hardware/schematics/S360-100-R4.pdf` snapshot is
+  **replaced** with the newly delivered Sense360 R4 export (SHA256
+  `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`,
+  837,443 bytes, KiCad E.D.A. 10.0.3, single sheet `1/1`); the new
+  sheet prints `TachIO` / `Pul_Cou1..4` / `TachPMW1..4` directly
+  against native ESP32-S3 module pins
+  (`IO16` / `IO17` / `IO18` / `IO46` / `IO9` / `IO10` / `IO11` /
+  `IO12` / `IO39` respectively); the SX1509 (`U3`) I/O expander
+  block that previously hosted those nets is no longer printed on
+  the visible sheet — the **schematic side** of the architectural
+  rule is now visibly satisfied. **The firmware-binding and bench-
+  evidence sides are unchanged.**
+  **Change:** a new
+  [`docs/hardware/s360-100-core-architecture.md`](docs/hardware/s360-100-core-architecture.md)
+  records (a) S360-100 as the central Core / backplane controller;
+  (b) the per-connector module SKU mapping (RoomIQ `J10`, AirIQ `J9`,
+  VentIQ `J1`, LED `J3`, Relay `J4`, PWM `J6`, DAC `J7`, TRIAC `J15`,
+  PoE PSU `J2`); (c) the schematic-printed native-GPIO pin-allocation
+  table for each tach / pulse-counter / PWM-drive net; (d) the
+  reconciliation against the prior SX1509-routed snapshot; (e) the
+  bundle SKU ≠ firmware config string ≠ board SKU separation with
+  the Bathroom / Kitchen / Living / Bedroom / Corridor recipes. The
+  refreshed PDF is recorded in
+  [`docs/hardware/artifacts/S360-100-R4.md`](docs/hardware/artifacts/S360-100-R4.md)
+  as the **current canonical** with the prior snapshot marked
+  **superseded**; the
+  [`docs/hardware/s360-100-r4-core.md`](docs/hardware/s360-100-r4-core.md)
+  Schematic source table is updated with the refreshed SHA256 / byte
+  length / KiCad version; the
+  [`docs/hardware/s360-100-native-tach-pulse-strategy.md`](docs/hardware/s360-100-native-tach-pulse-strategy.md)
+  pending pin-allocation table is rewritten to record the
+  schematic-printed native-GPIO terminations alongside the
+  unchanged firmware-binding and bench-evidence statuses; and the
+  R4-refresh subsection (2026-05-28) is added inline. Cross-links
+  added in
+  [`docs/sense360-room-bundles.md`](docs/sense360-room-bundles.md)
+  (Core central-hub framing), in
+  [`docs/blocker-burndown.md` §2A `PWM-12`](docs/blocker-burndown.md)
+  (schematic-side rule-compliance note + `COMPONENT-NATIVE-TACH-001`
+  rename), and in a new dated
+  `2026-05-28 — S360-100-NATIVE-TACH-PULSE-001 — R4 refresh`
+  subsection in
+  [`docs/product-readiness-matrix.md` §FanPWM / S360-311](docs/product-readiness-matrix.md).
+  **Tests:** a new
+  [`tests/test_s360_100_core_architecture.py`](tests/test_s360_100_core_architecture.py)
+  (16 tests) pins (a) the canonical PDF byte length + SHA256 match
+  what the architecture doc records; (b) the Core hub framing and
+  Core + room modules + PoE PSU bundle recipe; (c) the connector /
+  module matrix lists every expected module SKU + friendly name; (d)
+  the pin-allocation table records every tach / pulse-counter /
+  PWM-drive net with its schematic-printed native ESP32-S3 GPIO; (e)
+  the pin-allocation table cannot silently claim bench-verified or
+  firmware-bound; (f) the do-not-change guardrails (S360-311 stays
+  `cataloged_unverified`, S360-410 stays `cataloged_unverified`, no
+  FanPWM in `config/webflash-builds.json`, FanPWM products keep
+  `rpm_supported: false` and `webflash_build_matrix: false`); and
+  (g) cross-doc linking from the strategy doc, Core reference doc,
+  artifact index, room-bundles doc, and blocker-burndown row. The
+  pre-existing
+  [`tests/test_native_tach_pulse_pin_strategy.py`](tests/test_native_tach_pulse_pin_strategy.py)
+  (12 tests) and
+  [`tests/test_sx1509_tach_pulse_counter_proof.py`](tests/test_sx1509_tach_pulse_counter_proof.py)
+  remain the authoritative guards for the architectural rule and the
+  SX1509 / `pulse_counter` compile/config proof, respectively.
+  **No** firmware publish, **no** release artifact, **no**
+  `firmware/sources.json` change, **no** `manifest.json` change,
+  **no** release target promoted, **no** Sense360 LED preview→stable
+  flip, **no** FanRelay / FanPWM / FanDAC promotion, **no** measured
+  RPM / tach support claim, **no** final per-fan firmware GPIO
+  binding claim (no firmware YAML edit performed), **no** S360-410
+  PoE blocker resolution claim, **no** fan WebFlash / release
+  readiness claim, **no** fabricated hardware verification evidence.
+  **Status stays conservative and unchanged:** `Ceiling-POE-FanPWM`
+  remains `hardware-pending`, PWM-drive-only, `rpm_supported: false`;
+  no `webflash_build_matrix` flip; no `artifact_name`; no
+  `config/webflash-builds.json` row; `WEBFLASH-PWM-001` /
+  `RELEASE-PWM-001` / `WF-IMPORT-PWM-001` stay blocked; `S360-311`
+  stays `cataloged_unverified`; FanTRIAC `HW-005` is unchanged;
+  `S360-410` PoE PSU is unchanged; Release-One
+  (`Ceiling-POE-VentIQ-RoomIQ` / stable) and the LED preview
+  (`Ceiling-POE-VentIQ-RoomIQ-LED` / preview) are unchanged.
+- **S360-100-NATIVE-TACH-PULSE-001** delivers, via **PR #634** on
   2026-05-28, the canonical S360-100 Core pin-strategy alignment for
   tach / pulse-counter signals: the Sense360 Core (`S360-100`) is the
   central hub for the room / module stack, and **tach / pulse-counter
