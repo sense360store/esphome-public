@@ -1474,12 +1474,19 @@ no `artifact_name`; no release artifact / proof row added; no WebFlash / import
 > reserved) exercised by the compile-only skeleton
 > [`products/compile-only/ceiling-poe-fanpwm-native.yaml`](../products/compile-only/ceiling-poe-fanpwm-native.yaml)
 > (target `ceiling-poe-fanpwm-native-compile-only`). **This adds no release
-> artifact:** `compile_validation_status: pending-ci` (no native compile run
-> performed; the legacy SX1509 run `26414398902` does not transfer; no
-> compile-proven firmware claimed), `rpm_supported: false`, no `.bin`, no
-> `artifact_name`, no `config/webflash-builds.json` row, no
-> `webflash_build_matrix` flip. `Ceiling-POE-FanPWM` stays
-> `not-release-ready`; bench / current / thermal / RPM evidence stays pending.
+> artifact:** `compile_validation_status: validated-full-compile` records that
+> a full `esphome compile` run against the native composition PASSED
+> (S360-311-NATIVE-FANPWM-COMPILE-001, LOCAL run 2026-05-28, ESPHome 2026.4.5,
+> `esp32-s3-devkitc-1` / espidf / ESP-IDF v5.5.4, commit `643bbd3`; rc=0, Flash
+> 51.7% / 948679 bytes; LOCAL run, no GitHub Actions run id, none fabricated;
+> the legacy SX1509 run `26414398902` does not transfer). The compile produces
+> an ephemeral CI-only `firmware.bin` under `.esphome/` that is **not**
+> published: `rpm_supported: false`, no committed `.bin`, no `artifact_name`,
+> no `config/webflash-builds.json` row, no `webflash_build_matrix` flip, no
+> `firmware/sources.json` or `manifest.json` change. A green compile is compile
+> coverage only — NOT a release artifact and NOT RPM / tach bench validation.
+> `Ceiling-POE-FanPWM` stays `not-release-ready`; bench / current / thermal /
+> RPM evidence stays pending.
 
 **Current state.** No non-legacy FanPWM product YAML under
 [`products/`](../products/); no FanPWM WebFlash wrapper; no FanPWM

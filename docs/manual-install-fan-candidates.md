@@ -164,10 +164,17 @@ esphome upload products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml
 > compile-only skeleton
 > [`products/compile-only/ceiling-poe-fanpwm-native.yaml`](../products/compile-only/ceiling-poe-fanpwm-native.yaml)
 > (target `ceiling-poe-fanpwm-native-compile-only`,
-> `compile_validation_status: pending-ci`). **No native `esphome
-> compile` run has been performed** (the legacy SX1509 full-compile run
-> `26414398902` does not transfer); full compile is pending CI and no
-> compile-proven firmware is claimed. RPM / tach support stays
+> `compile_validation_status: validated-full-compile`). **A full
+> `esphome compile` run against the native composition PASSED**
+> (S360-311-NATIVE-FANPWM-COMPILE-001, LOCAL run 2026-05-28, ESPHome
+> 2026.4.5, board `esp32-s3-devkitc-1` / framework espidf / ESP-IDF
+> v5.5.4, commit `643bbd3`; rc=0, RAM 13.2% / Flash 51.7%
+> / 948679 bytes, real `firmware.bin`). This was a LOCAL run; no GitHub
+> Actions run id exists and none is fabricated. The legacy SX1509
+> full-compile run `26414398902` does not transfer — this is the native
+> composition's own compile proof. A green compile is compile coverage
+> only: it is **not** a release artifact, **not** WebFlash exposure, and
+> **not** RPM / tach bench validation. RPM / tach support stays
 > **unvalidated** (`rpm_supported: false`); the native candidate adds no
 > WebFlash wrapper, no `config/webflash-builds.json` row, no
 > `artifact_name`, and no `webflash_build_matrix` flip. FanPWM stays

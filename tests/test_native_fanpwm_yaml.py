@@ -33,9 +33,11 @@ Pinned invariants:
      (collides with the Core ``fan_status_led_pin``); ``TachIO``
      (``GPIO16``) is reserved / pending — neither is actively bound.
   4. The candidate makes no RPM claim (no ``rpm`` name / unit anywhere)
-     and the compile-only target keeps ``rpm_supported`` false and is NOT
-     ``validated-full-compile`` (no native compile run was performed —
-     it stays ``pending-ci``).
+     and the compile-only target keeps ``rpm_supported`` false. The
+     target is ``validated-full-compile`` (S360-311-NATIVE-FANPWM-COMPILE-001
+     ran a full ``esphome compile`` against the native composition and it
+     PASSED, rc=0); a green compile is compile coverage only and is NOT
+     RPM / tach bench validation.
   5. FanPWM stays absent from ``config/webflash-builds.json``; the native
      compile-only target declares no ``artifact_name`` / no
      ``webflash_build_matrix``.
@@ -379,15 +381,21 @@ class NativeCompileOnlyTargetTests(unittest.TestCase):
             "measured bench evidence exists",
         )
 
-    def test_target_compile_status_is_pending_ci(self) -> None:
-        # Honesty guard: no native compile run was performed, so the native
-        # target must NOT claim validated-full-compile. It stays pending-ci.
+    def test_target_compile_status_is_validated_full_compile(self) -> None:
+        # S360-311-NATIVE-FANPWM-COMPILE-001: a full `esphome compile` run
+        # was performed against the native composition and it PASSED (rc=0;
+        # ESPHome 2026.4.5, esp32-s3-devkitc-1 / espidf ESP-IDF v5.5.4;
+        # commit 643bbd3; RAM 13.2% / Flash 51.7%, real firmware.bin), so
+        # the native target now records validated-full-compile, superseding
+        # the prior pending-ci marker. The legacy SX1509 full-compile run
+        # does not transfer; this is the native composition's own proof.
         self.assertEqual(
             self.target.get("compile_validation_status"),
-            "pending-ci",
-            "native FanPWM target must stay compile_validation_status: "
-            "pending-ci — no native compile run was performed and the "
-            "legacy SX1509 full-compile run does not transfer",
+            "validated-full-compile",
+            "native FanPWM target must record compile_validation_status: "
+            "validated-full-compile — S360-311-NATIVE-FANPWM-COMPILE-001 ran "
+            "a full esphome compile against the native composition and it "
+            "passed (rc=0), superseding the prior pending-ci marker",
         )
 
     def test_target_does_not_declare_webflash_build_matrix(self) -> None:
