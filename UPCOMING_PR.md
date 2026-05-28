@@ -24,6 +24,130 @@ mirrored here.
 
 ## Current queue summary
 
+- **BUNDLE-SKU-MATRIX-001** delivers, via **this PR** on 2026-05-28,
+  the canonical Sense360 PoE room bundle SKU matrix on top of the
+  all-YAML release classification map landed by
+  `STABLE-RELEASE-MATRIX-ALL-YAML-001` / PR #629 and the actionable
+  expansion plan landed by `STABLE-TARGET-EXPANSION-PLAN-001` /
+  PR #630 so that the commercial room-bundle layer — *"which
+  sellable PoE room bundle SKUs ship the Sense360 boards, and which
+  firmware config target / release status does each map onto?"* — is
+  documented explicitly without promoting any firmware config target
+  or release artifact. **Change:** a new
+  [`docs/sense360-room-bundles.md`](docs/sense360-room-bundles.md)
+  and a new
+  [`config/room-bundle-skus.json`](config/room-bundle-skus.json) data
+  file record (a) the four-way identifier separation — board SKU
+  (`S360-100`, `S360-200`, `S360-210`, `S360-211`, `S360-300`,
+  `S360-410`) vs firmware config string (`Ceiling-POE-VentIQ-RoomIQ`,
+  `Ceiling-POE-VentIQ-RoomIQ-LED`) vs release artifact name
+  (`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`) vs room
+  bundle SKU (`S360-KIT-BATH-P` etc.); (b) the canonical PoE room
+  bundle SKU matrix with the bundle SKU, bundle name, included boards,
+  likely firmware config target, current release status, and missing
+  G-gates for each of the five bundles `S360-KIT-BATH-P`
+  (→ `Ceiling-POE-VentIQ-RoomIQ` / `stable-release`, already exists),
+  `S360-KIT-KITCHEN-P` (→ `Ceiling-POE-AirIQ-RoomIQ` /
+  `stable-candidate`, owned by `STABLE-TARGET-AIRIQ-001` →
+  `STABLE-TARGET-AIRIQ-ROOMIQ-001`), `S360-KIT-LIVING-P`
+  (→ `Ceiling-POE-RoomIQ-LED` / `preview-candidate`,
+  gauntlet-gated), `S360-KIT-BEDROOM-P` (→ `Ceiling-POE-RoomIQ` /
+  `stable-candidate`, owned by `STABLE-TARGET-CORE-001` →
+  `STABLE-TARGET-ROOMIQ-001`), and `S360-KIT-CORRIDOR-P`
+  (→ `Ceiling-POE-RoomIQ-LED` / `preview-candidate`, shares the
+  included board set with `S360-KIT-LIVING-P` until a room-specific
+  firmware differentiates them); (c) the missing-gate vocabulary
+  reference pointing at
+  [`docs/stable-target-expansion-plan.md`](docs/stable-target-expansion-plan.md)
+  §Stable-promotion gate checklist (G1–G10) as the source of truth;
+  (d) the promotion ownership mapping from each bundle SKU to the
+  named follow-up PR that owns its firmware config target's promotion
+  to stable / preview; (e) the hard guardrails (bundle SKU is not a
+  board SKU, not a firmware config string, not a release artifact
+  name; every bundle includes Core and PoE PSU; LED bundles are not
+  marked stable; no fan bundles in this PR; bundle SKU names do not
+  become release artifact names automatically; bundle SKUs are
+  unique); and (f) the relationship to the sibling
+  [`docs/kit-intent-matrix.md`](docs/kit-intent-matrix.md) /
+  `config/kit-intent-matrix.json` productized planning layer
+  (KIT-MATRIX-001 / PR #542). The matrix is cross-referenced from
+  [`docs/all-yaml-release-matrix.md`](docs/all-yaml-release-matrix.md),
+  [`docs/stable-target-expansion-plan.md`](docs/stable-target-expansion-plan.md),
+  [`docs/room-firmware-release-matrix.md`](docs/room-firmware-release-matrix.md),
+  and
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+  so the "which boards ship together in this room bundle?" path is
+  obvious from each upstream gate. A new
+  [`tests/test_room_bundle_skus.py`](tests/test_room_bundle_skus.py)
+  (24 stdlib-unittest cases) locks in: bundle SKUs match the
+  `S360-KIT-{ROOM}-P` pattern and are unique; every included board SKU
+  is in [`config/hardware-catalog.json`](config/hardware-catalog.json);
+  every bundle includes Core (`S360-100`) and PoE PSU (`S360-410`);
+  the bundle SKU does not collide with a board SKU, a firmware config
+  string, or a WebFlash release artifact name; the
+  `likely_firmware_config_target`, when set, exists in
+  [`config/firmware-combination-matrix.json`](config/firmware-combination-matrix.json);
+  any `stable-release` row's target is committed in
+  [`config/webflash-builds.json`](config/webflash-builds.json); LED
+  bundles (those containing `S360-300` or the `LED` token) are never
+  `stable-release` or `stable-candidate`; no bundle ships a fan SKU
+  (`S360-310` / `S360-311` / `S360-312` / `S360-320`) and no firmware
+  config target carries `FanRelay` / `FanPWM` / `FanDAC` / `FanTRIAC`;
+  no bundle ships PWR (`S360-400`) or carries the `PWR` token; the
+  five expected bundle SKUs are exactly present; the per-bundle row
+  invariants (`S360-KIT-BATH-P` is stable, `S360-KIT-KITCHEN-P` is
+  AirIQ-stack candidate, `S360-KIT-BEDROOM-P` is the smallest
+  RoomIQ-only PoE bundle, `S360-KIT-LIVING-P` and `S360-KIT-CORRIDOR-P`
+  share the same included board set and are both `preview-candidate`).
+  **Confirmed:** the classifier still emits `stable=1, preview=1,
+  manual=3, compile-only=7, blocked=1, not-a-product-entrypoint=35`
+  (48 YAMLs total); release-selectable still equals the two
+  [`config/webflash-builds.json`](config/webflash-builds.json) entries
+  `{Ceiling-POE-VentIQ-RoomIQ, Ceiling-POE-VentIQ-RoomIQ-LED}`; LED
+  stays `preview`; FanRelay / FanPWM / FanDAC stay
+  `manual-candidate-only`; FanTRIAC stays `blocked` (HW-005); no
+  legacy YAML is approved as a stable-expansion candidate; no
+  `webflash_build_matrix` value flipped; no `artifact_name` added; no
+  WebFlash wrapper added; no product YAML added.
+  **Validation (all passed):**
+  `python3 tests/test_room_bundle_skus.py` (24 tests, all new);
+  `python3 scripts/classify_all_yaml_release_matrix.py --summary`;
+  `python3 scripts/list_release_targets.py`;
+  `python3 tests/test_all_yaml_release_matrix.py` (28 tests);
+  `python3 tests/test_release_product_selection.py` (22 tests);
+  `python3 tests/validate_configs.py` (208 files);
+  `python3 scripts/validate_compile_targets.py --metadata-only`
+  (12 targets); `python3 tests/validate_webflash_builds.py`
+  (2 builds); `python3 tests/test_product_catalog.py` (41 tests);
+  `python3 -m unittest discover -s tests -p "test_*.py"` (978 tests,
+  3 skipped — +24 over the STABLE-TARGET-EXPANSION-PLAN-001 / 954
+  baseline, exactly the count of new contract tests added by
+  BUNDLE-SKU-MATRIX-001). **Scope:** the new planning doc, the new
+  bundle data file, the new contract test, and the cross-reference
+  inserts in `docs/all-yaml-release-matrix.md`,
+  `docs/stable-target-expansion-plan.md`,
+  `docs/room-firmware-release-matrix.md`, and
+  `docs/product-readiness-matrix.md`, plus this `UPCOMING_PR.md`
+  update. **Does not:** publish a GitHub Release; commit any `.bin` /
+  checksum / build-info file; update `firmware/sources.json` or
+  `manifest.json`; edit any YAML under `products/**` or
+  `products/webflash/**` or `products/compile-only/**`; promote LED
+  from `preview` to `stable`; promote FanRelay / FanPWM / FanDAC out
+  of manual-candidate-only; add a fan `artifact_name`; flip any
+  `webflash_build_matrix` value; add or remove any entry in
+  `config/webflash-builds.json` / `config/product-catalog.json` /
+  `config/compile-only-targets.json` /
+  `config/manual-firmware-artifacts.json` /
+  `config/kit-intent-matrix.json` /
+  `config/firmware-combination-matrix.json` /
+  `config/hardware-catalog.json` /
+  `config/webflash-compatibility.json`; invent unsupported firmware
+  configs; treat a bundle SKU as a board SKU; treat a bundle SKU as a
+  firmware artifact name; claim that every bundle already has stable
+  firmware; introduce a fan bundle SKU; or claim WebFlash / import /
+  release / hardware-stable / compliance readiness for any fan /
+  TRIAC / PWR candidate. **No** fabricated evidence.
+
 - **STABLE-TARGET-EXPANSION-PLAN-001** delivers, via **this PR** on
   2026-05-28, an actionable expansion plan on top of the all-YAML
   release classification map landed by
@@ -6373,6 +6497,7 @@ add rows without verifying the PR number.
 | COMPILE-STATUS-FLAGS-001 | (this PR) | esphome-public | Merged — config/status reconciliation of the FanDAC compile-validation flag after the full compile | Reconciled the stale config-layer flag that `FW-COMPILE-DAC-FULL-RESULT-001` / PR #580 deferred as "a separate config-layer change". In [`config/compile-only-targets.json`](config/compile-only-targets.json) the FanDAC compile-only target `ceiling-poe-fandac-compile-only` has `compile_validation_status` flipped `pending-ci` → **`validated-full-compile`** (the state proven green by run `26364679370` — `workflow_dispatch` / `compile_mode=full`, 9 targets, conclusion `success`, recorded by PR #579 / PR #580), with its `reason` / `notes` wording reconciled accordingly. Updated the two tests that pinned `pending-ci` ([`tests/test_compile_targets.py`](tests/test_compile_targets.py) `test_fandac_compile_success_not_claimed_in_target` → `test_fandac_compile_validated_by_full_compile_run`; [`tests/test_dac_product_readiness.py`](tests/test_dac_product_readiness.py) `test_compile_only_target_compile_validation_pending_ci` → `test_compile_only_target_compile_validation_full_compile`). Reconciled the standing stale-flag wording in [`docs/compile-only-firmware-validation.md`](docs/compile-only-firmware-validation.md), [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md), [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md), [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md), [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md) (new audit-log row), and this `UPCOMING_PR.md`. Validation: `python3 tests/validate_configs.py`; `python3 scripts/validate_compile_targets.py --metadata-only`; `python3 tests/test_compile_targets.py`; `python3 tests/test_fandac_package.py`; `python3 tests/test_dac_product_readiness.py`; `python3 tests/validate_webflash_builds.py`; `python3 -m unittest discover -s tests -p "test_*.py"`. | **Narrow status reconciliation.** No `packages/**`, `products/**`, `products/webflash/**`, `.github/workflows/**`, `components/**`, `include/**`, `firmware/**`, `manifest.json`, `firmware/sources.json`, release-artifact, checksum, build-info, or WebFlash-repo edit; no `webflash_build_matrix` flip; no `artifact_name`; no `webflash_wrapper`; no `release_one_required_configs` change; no `schematic_status` / `schematic_file` promotion (`S360-310` / `S360-312` stay `cataloged_unverified`); no COMPLIANCE-001 movement; the compile-only target count stays 9; `config/product-catalog.json` and the product YAML are untouched (their full-compile-owed narrative is a separate follow-up); FanRelay carries no `compile_validation_status` field and is unchanged. Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`; LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays `blocked` / `HW-005`; FanRelay stays `hardware-pending`. **No claim of WebFlash exposure / import / release readiness, compliance or safety certification, or hardware proof.** | FanDAC `compile_validation_status` now reads `validated-full-compile`, matching the green full compile from run `26364679370`. `PRODUCT-DAC-001` stays no-WebFlash / no-release; `WEBFLASH-DAC-001`, `RELEASE-DAC-001`, and `WF-IMPORT-DAC-001` stay **blocked**. Follow-up (separate PR): reconcile the residual full-compile-owed narrative in `config/product-catalog.json` and `products/sense360-ceiling-poe-fandac.yaml`. |
 | RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001 | (this PR) | esphome-public | Merged — isolate release dry-run lane | Followed up `RELEASE-WORKFLOW-DRYRUN-MODE-001` after the first manual dispatch (workflow run `26558131655`, commit `f6fe43366fbf3e70013e8189fbe8f49848fc7a82`) failed at `Generate Build Matrix` / `Generate product build matrix` (unconditional job ran on `workflow_dispatch` against the default `version=0.0.0-dev` / `channel=preview` with no matching [`config/webflash-builds.json`](config/webflash-builds.json) entry) and at `Release Dry-Run` / `Verify dry-run guardrails (planner contract tests)` (`tests/test_release_dry_run_mode.py` couldn't `import yaml` because the dry-run job didn't install PyYAML). Gated `generate-matrix`, `build`, and `summary` in [`.github/workflows/firmware-build-release.yml`](.github/workflows/firmware-build-release.yml) to `github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run)` so a `workflow_dispatch` with `dry_run=true` only exercises the `release-dry-run` job, and added a `pip install pyyaml` step in the `release-dry-run` job before the planner contract tests run. Extended [`tests/test_release_dry_run_mode.py`](tests/test_release_dry_run_mode.py) with `DryRunGatingTests` locking in: `generate-matrix` / `build` / `summary` skip on a `workflow_dispatch` with `dry_run=true` and still allow real release events; the `release` (publish) job gate stays `github.event_name == 'release'` only; and the dry-run job installs PyYAML. Updated [`docs/room-firmware-release-notes.md`](docs/room-firmware-release-notes.md), [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md), and this `UPCOMING_PR.md`. Validation: `python3 scripts/plan_room_release_notes.py`; `python3 tests/test_plan_room_release_notes.py`; `python3 tests/test_release_dry_run_mode.py`; `python3 tests/validate_configs.py`; `python3 scripts/validate_compile_targets.py --metadata-only`; `python3 tests/validate_webflash_builds.py`; `python3 tests/test_workflow_permissions.py`; `python3 -m unittest discover -s tests -p "test_*.py"` (888 tests, 3 skipped). | **Workflow + test + docs only.** The `release` (publish) job gate is **unchanged** (`if: github.event_name == 'release'`); no new `softprops/action-gh-release` step (still only inside the `release` job); no new `contents: write` grant; the dry-run lane stays `permissions: contents: read`. No GitHub Release published; no `.bin` / checksum / build-info committed; no `products/**` or `products/webflash/**` edit; no fan `artifact_name`; no `webflash_build_matrix` flip; no `firmware/sources.json` / `manifest.json` write; no `config/**` or product/package YAML change. FanRelay / FanPWM / FanDAC stay excluded (manual-candidate-only); FanTRIAC stays `blocked` / `HW-005`. Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `stable`; LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`. **No claim of fan release / WebFlash / hardware-stable / compliance readiness.** | The room firmware release dry-run can now be exercised as a clean, isolated lane on manual dispatch: `dry_run=true` runs only the read-only `release-dry-run` job; `dry_run=false` still runs the build path; real release events still publish. No queue-ordering effect on the blocked fan release slices. |
 | STABLE-RELEASE-MATRIX-ALL-YAML-001 | (this PR) | esphome-public | Merged — all-YAML release classification map | Added the canonical, **all-YAML** release classification across every YAML under [`products/`](products/) (top-level canonical product YAMLs, [`products/webflash/`](products/webflash/) wrappers, and [`products/compile-only/`](products/compile-only/) skeletons), filling the gap that `RELEASE-PIPELINE-ROOM-MATRIX-001` / PR #621 and `RELEASE-NOTES-PIPELINE-001` / PR #623 left because both were scoped to the RoomIQ / LED room-firmware family only. New [`docs/all-yaml-release-matrix.md`](docs/all-yaml-release-matrix.md) classifies every YAML into exactly one of six release classes — `stable-release`, `preview-release`, `manual-candidate-only`, `compile-only`, `blocked`, `not-a-product-entrypoint` — with the hardware boards, catalog status, compile / WebFlash-wrapper / `artifact_name` / channel / release-selectability state, blockers, and whether the YAML appears in release-note / product-selection workflows; defines the explicit stable-promotion criteria (product YAML exists, catalog row exists, top-level full compile validated, WebFlash wrapper exists if WebFlash release is required, `artifact_name` exists, release notes can be generated, no blocking hardware / compliance caveat, not currently manual-candidate-only, not currently preview-only); and runs the candidate-stable-additions audit (none approved by this PR; each row records the exact missing evidence). New read-only [`scripts/classify_all_yaml_release_matrix.py`](scripts/classify_all_yaml_release_matrix.py) derives the table from the source-of-truth files ([`config/webflash-builds.json`](config/webflash-builds.json), [`config/product-catalog.json`](config/product-catalog.json), [`config/manual-firmware-artifacts.json`](config/manual-firmware-artifacts.json), [`config/compile-only-targets.json`](config/compile-only-targets.json)) with table / `--summary` / `--json` / `--class` / `--release-selectable` filters and the same FanRelay / FanPWM / FanDAC token guardrail enforced by [`scripts/plan_room_release_notes.py`](scripts/plan_room_release_notes.py) and [`scripts/list_release_targets.py`](scripts/list_release_targets.py). New [`tests/test_all_yaml_release_matrix.py`](tests/test_all_yaml_release_matrix.py) (28 tests) locks in: every YAML in `products/` is classified exactly once into one of the six known classes; the release-selectable set equals `config/webflash-builds.json` (release selection derived from source of truth, not hardcoded); exactly one stable target today (`Ceiling-POE-VentIQ-RoomIQ`); exactly one preview target today (`Ceiling-POE-VentIQ-RoomIQ-LED`); LED is preview-only (artifact carries `-preview`, not `-stable`; not in stable-targets); FanRelay / FanPWM / FanDAC are `manual-candidate-only`, never release-selectable, never carry an `artifact_name`, and no fan family token may leak into the release matrix; FanTRIAC is `blocked`; every `products/compile-only/*.yaml` is `compile-only` and not release-selectable; WebFlash wrappers and `products/secrets.yaml` are `not-a-product-entrypoint`; the generator does not hardcode "Release-One firmware" wording for the LED preview target. Validation: `python3 scripts/classify_all_yaml_release_matrix.py`; `python3 scripts/plan_room_release_notes.py`; `python3 tests/test_all_yaml_release_matrix.py` (28 tests); `python3 tests/test_plan_room_release_notes.py` (20 tests); `python3 tests/test_release_dry_run_mode.py` (17 tests); `python3 tests/test_release_product_selection.py` (22 tests); `python3 tests/validate_configs.py` (208 files); `python3 scripts/validate_compile_targets.py --metadata-only` (12 targets); `python3 tests/validate_webflash_builds.py` (2 builds); `python3 tests/test_product_catalog.py` (41 tests); `python3 tests/test_workflow_permissions.py` (7 tests); `python3 -m unittest discover -s tests -p "test_*.py"` (954 tests, 3 skipped). | **Docs + script + test only.** No GitHub Release published; no `.bin` / checksum / build-info committed; no `products/**` or `products/webflash/**` edit; no LED promotion from `preview` to `stable`; no FanRelay / FanPWM / FanDAC promotion out of `manual-candidate-only`; no fan `artifact_name`; no `webflash_build_matrix` flip; no add / remove on `config/webflash-builds.json` / `config/product-catalog.json` / `config/compile-only-targets.json` / `config/manual-firmware-artifacts.json`; no `firmware/sources.json` / `manifest.json` write; no invented YAML / product combos; no treatment of compile-only skeletons as release products. Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `stable`; LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays `blocked` / `HW-005`; FanRelay / FanPWM / FanDAC stay `manual-candidate-only`. **No claim of WebFlash exposure / import / release / hardware-stable / compliance readiness for any fan family.** | The repo now has a canonical all-YAML release map, not just a room-firmware view. Release selection is provably derived from `config/webflash-builds.json` (not hardcoded to RoomIQ), preview-only stays preview-only, manual candidates stay non-release, and the broader posture is locked in by 28 contract tests so a future regression that re-narrows to a single product is caught. No queue-ordering effect on the blocked fan release slices; the per-family promotion follow-ups (`WEBFLASH-RELAY-001` / `RELEASE-RELAY-001`, `WEBFLASH-PWM-001` / `RELEASE-PWM-001`, `WEBFLASH-DAC-001` / `RELEASE-DAC-001`) stay blocked on their hardware / compliance evidence. |
+| BUNDLE-SKU-MATRIX-001 | (this PR) | esphome-public | Merged — canonical Sense360 PoE room bundle SKU matrix | Added the canonical commercial room-bundle SKU layer that sits above the board SKU / firmware config string / release artifact name identifier spaces. New [`docs/sense360-room-bundles.md`](docs/sense360-room-bundles.md) defines the five-bundle PoE room kit matrix: `S360-KIT-BATH-P` (boards: `S360-100` + `S360-200` + `S360-211` + `S360-410`; likely firmware config target `Ceiling-POE-VentIQ-RoomIQ`; status `stable-release` — already exists), `S360-KIT-KITCHEN-P` (boards: `S360-100` + `S360-200` + `S360-210` + `S360-410`; likely firmware config target `Ceiling-POE-AirIQ-RoomIQ`; status `stable-candidate` — owned by `STABLE-TARGET-AIRIQ-001` / `STABLE-TARGET-AIRIQ-ROOMIQ-001`), `S360-KIT-LIVING-P` (boards: `S360-100` + `S360-200` + `S360-300` + `S360-410`; likely firmware config target `Ceiling-POE-RoomIQ-LED`; status `preview-candidate` — LED remains preview), `S360-KIT-BEDROOM-P` (boards: `S360-100` + `S360-200` + `S360-410`; likely firmware config target `Ceiling-POE-RoomIQ`; status `stable-candidate` — owned by `STABLE-TARGET-CORE-001` / `STABLE-TARGET-ROOMIQ-001`), and `S360-KIT-CORRIDOR-P` (boards: same as `S360-KIT-LIVING-P` until a future room-specific firmware differentiates them; status `preview-candidate`). New [`config/room-bundle-skus.json`](config/room-bundle-skus.json) backs the doc as the source-of-truth data file. New [`tests/test_room_bundle_skus.py`](tests/test_room_bundle_skus.py) (24 stdlib-unittest cases) locks in: bundle SKU pattern `S360-KIT-{ROOM}-P`; bundle SKUs are unique; included board SKUs are present in [`config/hardware-catalog.json`](config/hardware-catalog.json); every bundle includes Core (`S360-100`) and PoE PSU (`S360-410`); bundle SKU does not collide with a board SKU, firmware config string, or WebFlash release `artifact_name`; the `likely_firmware_config_target` exists in [`config/firmware-combination-matrix.json`](config/firmware-combination-matrix.json); any `stable-release` row's target is committed in [`config/webflash-builds.json`](config/webflash-builds.json); LED bundles (containing `S360-300` or the `LED` token) are never `stable-release` or `stable-candidate`; no bundle ships a fan SKU (`S360-310` / `S360-311` / `S360-312` / `S360-320`); no firmware config target carries `FanRelay` / `FanPWM` / `FanDAC` / `FanTRIAC`; no bundle ships PWR (`S360-400`) or carries the `PWR` token; the five expected bundle SKUs are exactly present; per-row invariants for `S360-KIT-BATH-P`, `S360-KIT-KITCHEN-P`, `S360-KIT-BEDROOM-P`, `S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P`. The matrix is cross-referenced from [`docs/all-yaml-release-matrix.md`](docs/all-yaml-release-matrix.md), [`docs/stable-target-expansion-plan.md`](docs/stable-target-expansion-plan.md), [`docs/room-firmware-release-matrix.md`](docs/room-firmware-release-matrix.md), and [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md). Validation: `python3 tests/test_room_bundle_skus.py` (24 tests); `python3 scripts/classify_all_yaml_release_matrix.py --summary`; `python3 scripts/list_release_targets.py`; `python3 tests/test_all_yaml_release_matrix.py` (28 tests); `python3 tests/test_release_product_selection.py` (22 tests); `python3 tests/validate_configs.py` (208 files); `python3 scripts/validate_compile_targets.py --metadata-only` (12 targets); `python3 tests/validate_webflash_builds.py` (2 builds); `python3 tests/test_product_catalog.py` (41 tests); `python3 -m unittest discover -s tests -p "test_*.py"` (978 tests, 3 skipped — +24 over the STABLE-TARGET-EXPANSION-PLAN-001 / 954 baseline). | **Docs + data + test only.** No GitHub Release published; no `.bin` / checksum / build-info committed; no `products/**` or `products/webflash/**` or `products/compile-only/**` edit; no LED promotion from `preview` to `stable`; no FanRelay / FanPWM / FanDAC promotion out of `manual-candidate-only`; no fan `artifact_name`; no `webflash_build_matrix` flip; no add / remove on `config/webflash-builds.json` / `config/product-catalog.json` / `config/compile-only-targets.json` / `config/manual-firmware-artifacts.json` / `config/kit-intent-matrix.json` / `config/firmware-combination-matrix.json` / `config/hardware-catalog.json` / `config/webflash-compatibility.json`; no `firmware/sources.json` / `manifest.json` write; no invented firmware configs; no fan bundle SKU introduced; no treatment of a bundle SKU as a board SKU or as a firmware artifact name; no claim that every bundle already has stable firmware. Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `stable`; LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`; FanTRIAC stays `blocked` / `HW-005`; FanRelay / FanPWM / FanDAC stay `manual-candidate-only`. **No claim of WebFlash exposure / import / release / hardware-stable / compliance readiness for any fan / TRIAC / PWR candidate.** | The repo now has a canonical Sense360 PoE room bundle SKU layer that names the sellable bundles separately from the boards they ship and the firmware they run. Bundle SKU is provably distinct from board SKU, firmware config string, and release artifact name (24 new contract tests). No queue-ordering effect on the blocked fan release slices; the per-family promotion follow-ups (`STABLE-TARGET-AIRIQ-001`, `STABLE-TARGET-AIRIQ-ROOMIQ-001`, `STABLE-TARGET-CORE-001`, `STABLE-TARGET-ROOMIQ-001`, `LED-STABLE-PROMOTION-001`, `WEBFLASH-RELAY-001` / `RELEASE-RELAY-001`, `WEBFLASH-PWM-001` / `RELEASE-PWM-001`, `WEBFLASH-DAC-001` / `RELEASE-DAC-001`) stay blocked on their hardware / compliance evidence. |
 
 ## Active / upcoming esphome-public queue
 

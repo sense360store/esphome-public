@@ -437,6 +437,8 @@ approved or scoped by STABLE-TARGET-EXPANSION-PLAN-001 itself. See
 - Product-layer gate: [`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
 - All-YAML release matrix: [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md)
 - **Stable target expansion plan: [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md) (STABLE-TARGET-EXPANSION-PLAN-001)**
+- **Sense360 PoE room bundle SKU matrix: [`docs/sense360-room-bundles.md`](sense360-room-bundles.md) (BUNDLE-SKU-MATRIX-001) — sellable PoE room bundle SKUs (`S360-KIT-BATH-P` already maps to the stable `Ceiling-POE-VentIQ-RoomIQ` release target in this matrix; `S360-KIT-KITCHEN-P` / `S360-KIT-LIVING-P` / `S360-KIT-BEDROOM-P` / `S360-KIT-CORRIDOR-P` map to non-stable firmware config targets that this matrix already classifies as `compile-only` / `missing-product-yaml`). Bundle SKU is not a firmware config string and is not a release artifact name.**
+- Kit intent matrix (productized planning): [`docs/kit-intent-matrix.md`](kit-intent-matrix.md) (KIT-MATRIX-001)
 - Manual install path: [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md)
 - Compile-only lane: [`docs/compile-only-firmware-validation.md`](compile-only-firmware-validation.md)
 - Availability vocabulary: [`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)

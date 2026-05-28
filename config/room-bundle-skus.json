@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "description": "Canonical Sense360 PoE room bundle SKU matrix (BUNDLE-SKU-MATRIX-001). Sellable customer-facing room kit SKUs, distinct from board SKUs (config/hardware-catalog.json) and from firmware config strings (config/firmware-combination-matrix.json, config/webflash-builds.json). This file is documentation / planning only: it does not add product YAMLs, WebFlash wrappers, firmware builds, artifacts, releases, or stable promotions. See docs/sense360-room-bundles.md.",
+  "sources": {
+    "hardware_catalog": "config/hardware-catalog.json",
+    "firmware_matrix": "config/firmware-combination-matrix.json",
+    "webflash_builds": "config/webflash-builds.json",
+    "product_catalog": "config/product-catalog.json",
+    "kit_intent_matrix": "config/kit-intent-matrix.json"
+  },
+  "rules": {
+    "bundle_sku_is_not_board_sku": true,
+    "bundle_sku_is_not_firmware_artifact_name": true,
+    "bundle_sku_is_not_release_artifact_id": true,
+    "every_bundle_includes_core_and_poe_psu": true,
+    "led_bundles_are_not_stable_until_led_preview_to_stable_gauntlet_closes": true,
+    "fan_bundles_are_not_introduced_in_this_pr": true
+  },
+  "allowed_release_status": [
+    "stable-release",
+    "preview-release",
+    "preview-candidate",
+    "stable-candidate",
+    "compile-only",
+    "blocked",
+    "missing-product-yaml"
+  ],
+  "bundles": [
+    {
+      "bundle_sku": "S360-KIT-BATH-P",
+      "bundle_name": "Sense360 Bathroom Bundle — PoE",
+      "room": "bathroom",
+      "included_board_skus": [
+        "S360-100",
+        "S360-200",
+        "S360-211",
+        "S360-410"
+      ],
+      "likely_firmware_config_target": "Ceiling-POE-VentIQ-RoomIQ",
+      "current_release_status": "stable-release",
+      "missing_gates": [],
+      "notes": "Default stable PoE bathroom bundle. The likely firmware config target Ceiling-POE-VentIQ-RoomIQ is the existing Release-One stable WebFlash build (see config/webflash-builds.json). No LED in this bundle; LED variant is gauntlet-gated."
+    },
+    {
+      "bundle_sku": "S360-KIT-KITCHEN-P",
+      "bundle_name": "Sense360 Kitchen Bundle — PoE",
+      "room": "kitchen",
+      "included_board_skus": [
+        "S360-100",
+        "S360-200",
+        "S360-210",
+        "S360-410"
+      ],
+      "likely_firmware_config_target": "Ceiling-POE-AirIQ-RoomIQ",
+      "current_release_status": "stable-candidate",
+      "missing_gates": [
+        "G1-top-level-canonical-product-yaml",
+        "G2-product-catalog-row",
+        "G3-top-level-full-compile",
+        "G4-webflash-wrapper",
+        "G5-artifact-name",
+        "G6-webflash-builds-row",
+        "G7-release-notes-generation",
+        "G8-AirIQ-stack-hardware-evidence-SPS30-SGP41-SCD41-BMP390",
+        "G8-PRODUCT-POE-410-001",
+        "G8-S360-410-schematic-status-verified"
+      ],
+      "notes": "Kitchen bundle pairs the AirIQ air-quality module (S360-210) with RoomIQ. The compile-only skeleton products/compile-only/ceiling-poe-airiq-roomiq.yaml validates the combination today but no top-level product YAML, catalog row, WebFlash wrapper, or builds row exists. Promotion to stable is owned by STABLE-TARGET-AIRIQ-001 / STABLE-TARGET-AIRIQ-ROOMIQ-001 (see docs/stable-target-expansion-plan.md). Not promoted by this PR."
+    },
+    {
+      "bundle_sku": "S360-KIT-LIVING-P",
+      "bundle_name": "Sense360 Living Room Bundle — PoE",
+      "room": "living-room",
+      "included_board_skus": [
+        "S360-100",
+        "S360-200",
+        "S360-300",
+        "S360-410"
+      ],
+      "likely_firmware_config_target": "Ceiling-POE-RoomIQ-LED",
+      "current_release_status": "preview-candidate",
+      "missing_gates": [
+        "G1-top-level-canonical-product-yaml",
+        "G2-product-catalog-row",
+        "G3-top-level-full-compile",
+        "G4-webflash-wrapper",
+        "G5-artifact-name",
+        "G6-webflash-builds-row",
+        "G7-release-notes-generation",
+        "G8-PRODUCT-POE-410-001",
+        "G8-S360-410-schematic-status-verified",
+        "G10-led-preview-to-stable-gauntlet"
+      ],
+      "notes": "Living-room bundle is RoomIQ + LED status ring (no VentIQ). The likely firmware config target Ceiling-POE-RoomIQ-LED exists in config/firmware-combination-matrix.json with status missing-product-yaml. LED stays preview-only until the preview-to-stable gauntlet closes (S360-300-BENCH-001, WF-HW-TEST-001, WF-HW-TEST-003, RELEASE-007). Not promoted by this PR."
+    },
+    {
+      "bundle_sku": "S360-KIT-BEDROOM-P",
+      "bundle_name": "Sense360 Bedroom Bundle — PoE",
+      "room": "bedroom",
+      "included_board_skus": [
+        "S360-100",
+        "S360-200",
+        "S360-410"
+      ],
+      "likely_firmware_config_target": "Ceiling-POE-RoomIQ",
+      "current_release_status": "stable-candidate",
+      "missing_gates": [
+        "G1-top-level-canonical-product-yaml",
+        "G2-product-catalog-row",
+        "G3-top-level-full-compile",
+        "G4-webflash-wrapper",
+        "G5-artifact-name",
+        "G6-webflash-builds-row",
+        "G7-release-notes-generation",
+        "G8-PRODUCT-POE-410-001",
+        "G8-S360-410-schematic-status-verified"
+      ],
+      "notes": "Bedroom bundle is the smallest RoomIQ-only PoE bundle. The compile-only skeleton products/compile-only/ceiling-poe-roomiq.yaml validates the combination today. Promotion to stable is owned by STABLE-TARGET-ROOMIQ-001 (after STABLE-TARGET-CORE-001's shared PoE-410 closure; see docs/stable-target-expansion-plan.md). Not promoted by this PR."
+    },
+    {
+      "bundle_sku": "S360-KIT-CORRIDOR-P",
+      "bundle_name": "Sense360 Landing / Corridor Bundle — PoE",
+      "room": "corridor",
+      "included_board_skus": [
+        "S360-100",
+        "S360-200",
+        "S360-300",
+        "S360-410"
+      ],
+      "likely_firmware_config_target": "Ceiling-POE-RoomIQ-LED",
+      "current_release_status": "preview-candidate",
+      "missing_gates": [
+        "G1-top-level-canonical-product-yaml",
+        "G2-product-catalog-row",
+        "G3-top-level-full-compile",
+        "G4-webflash-wrapper",
+        "G5-artifact-name",
+        "G6-webflash-builds-row",
+        "G7-release-notes-generation",
+        "G8-PRODUCT-POE-410-001",
+        "G8-S360-410-schematic-status-verified",
+        "G10-led-preview-to-stable-gauntlet"
+      ],
+      "notes": "Landing / corridor bundle shares the included board set with S360-KIT-LIVING-P (RoomIQ + LED on Core + PoE PSU) until a future room-specific default config (for example a corridor-specific LED ring pattern or a corridor presence profile) differentiates them. Same LED preview-gating as S360-KIT-LIVING-P. Not promoted by this PR."
+    }
+  ]
+}
