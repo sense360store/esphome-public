@@ -429,6 +429,37 @@ approved or scoped by STABLE-TARGET-EXPANSION-PLAN-001 itself. See
 
 ---
 
+## STABLE-TARGET-VENTIQ-001 — gate-closure deferral (2026-05-28)
+
+`STABLE-TARGET-VENTIQ-001` is the rank-1 follow-up in
+[`docs/stable-target-expansion-plan.md` §Recommended follow-up PR sequence](stable-target-expansion-plan.md#recommended-follow-up-pr-sequence)
+— the closest stable-expansion delta because the VentIQ subset is
+already exercised by stable Release-One. **This PR investigates that
+slice against the G1–G10 gate checklist and records the result as a
+gate-closure deferral.** It changes no row in the table above and
+publishes nothing.
+
+| Aspect | Result |
+|---|---|
+| New gate-closure record | [`docs/stable-target-ventiq-001-gate-closure.md`](stable-target-ventiq-001-gate-closure.md) |
+| `Ceiling-POE-VentIQ` classification | **stays `compile-only`** (compile-only skeleton only; no top-level product YAML; no catalog row; no WebFlash wrapper; no `artifact_name`; no `config/webflash-builds.json` row) |
+| Gates closed today | 1 of 10 (G9 — not in manual lane) |
+| Gates open today | 9 of 10 (G1, G2, G3, G4, G5, G6, G7, G8, G10) |
+| Upstream blocker | G8 — `PACKAGE-POE-410-001`. `S360-410` `schematic_status: cataloged_unverified` per [`config/hardware-catalog.json`](../config/hardware-catalog.json); Release-One PoE "schematic verification pending" caveat preserved verbatim per HW-PINMAP-410-FOLLOWUP / PR #517 |
+| Promotion outcome | **Not promoted.** No new top-level YAML, catalog row, wrapper, builds row, `artifact_name`, or top-level compile-only target is added by this PR |
+| `config/webflash-builds.json` / `config/product-catalog.json` / `config/compile-only-targets.json` / `config/manual-firmware-artifacts.json` / `config/webflash-compatibility.json` / `config/hardware-catalog.json` | **None edited** — stable target count stays 1, preview target count stays 1, compile-only target count stays 12 |
+| GitHub Release / `.bin` / checksum / `firmware/sources.json` / `manifest.json` | **none produced or committed** |
+| Resume conditions | Listed in [`docs/stable-target-ventiq-001-gate-closure.md` §Resume conditions](stable-target-ventiq-001-gate-closure.md#resume-conditions) — primarily `PACKAGE-POE-410-001` landing, `S360-100-BENCH-001` `J2`-harness closure, `S360-410 schematic_status: verified` JSON PR, board / package readiness matrix flips, and product-onboarding approval. |
+
+The gate-closure record threads the per-gate evidence picture
+(`S360-100` and `S360-211` `verified`; `S360-410`
+`cataloged_unverified` — the same caveat Release-One ships under) and
+records that **no promotion is performed** until the resume
+conditions hold. See
+[`docs/stable-target-ventiq-001-gate-closure.md`](stable-target-ventiq-001-gate-closure.md).
+
+---
+
 ## Cross-references
 
 - Shipping configuration: [`docs/release-one.md`](release-one.md)
@@ -437,6 +468,7 @@ approved or scoped by STABLE-TARGET-EXPANSION-PLAN-001 itself. See
 - Product-layer gate: [`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
 - All-YAML release matrix: [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md)
 - **Stable target expansion plan: [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md) (STABLE-TARGET-EXPANSION-PLAN-001)**
+- **Stable target VentIQ gate-closure record: [`docs/stable-target-ventiq-001-gate-closure.md`](stable-target-ventiq-001-gate-closure.md) (STABLE-TARGET-VENTIQ-001)**
 - **Sense360 PoE room bundle SKU matrix: [`docs/sense360-room-bundles.md`](sense360-room-bundles.md) (BUNDLE-SKU-MATRIX-001) — sellable PoE room bundle SKUs (`S360-KIT-BATH-P` already maps to the stable `Ceiling-POE-VentIQ-RoomIQ` release target in this matrix; `S360-KIT-KITCHEN-P` / `S360-KIT-LIVING-P` / `S360-KIT-BEDROOM-P` / `S360-KIT-CORRIDOR-P` map to non-stable firmware config targets that this matrix already classifies as `compile-only` / `missing-product-yaml`). Bundle SKU is not a firmware config string and is not a release artifact name.**
 - Kit intent matrix (productized planning): [`docs/kit-intent-matrix.md`](kit-intent-matrix.md) (KIT-MATRIX-001)
 - Manual install path: [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md)

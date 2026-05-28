@@ -3127,6 +3127,17 @@ Expected:
   — PRODUCT-GAP-001 product-level readiness gate. Source of truth
   for the "Current product readiness" column on every candidate row
   in this matrix. Documentation only.
+- [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md)
+  — STABLE-TARGET-EXPANSION-PLAN-001 actionable stable-target
+  expansion plan. Per-candidate G1–G10 gate checklist and the
+  recommended `STABLE-TARGET-*-001` PR sequence. Documentation only;
+  promotes nothing.
+- [`docs/stable-target-ventiq-001-gate-closure.md`](stable-target-ventiq-001-gate-closure.md)
+  — STABLE-TARGET-VENTIQ-001 gate-closure record. Per-gate G1–G10
+  audit for `Ceiling-POE-VentIQ`; records option-3 deferral; no
+  WebFlash wrapper added under [`products/webflash/`](../products/webflash/);
+  no `webflash_build_matrix` flip; no `artifact_name`; no
+  `config/webflash-builds.json` row.
 - [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
   — PACKAGE-GAP-001 package-level readiness gate. Source of truth
   for the "Required package status" column on every candidate row

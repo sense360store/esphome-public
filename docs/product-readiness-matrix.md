@@ -3361,6 +3361,19 @@ No match outside of those trees is expected.
 - [`docs/cleanup-audit.md`](cleanup-audit.md) — classification of
   stale / current / blocked-reference / legacy-compatible repo
   content; carries the PRODUCT-GAP-001 registration row.
+- [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md)
+  — STABLE-TARGET-EXPANSION-PLAN-001 actionable stable-target
+  expansion plan. Per-candidate G1–G10 gate checklist and the
+  recommended `STABLE-TARGET-*-001` PR sequence. Documentation only;
+  promotes nothing.
+- [`docs/stable-target-ventiq-001-gate-closure.md`](stable-target-ventiq-001-gate-closure.md)
+  — STABLE-TARGET-VENTIQ-001 gate-closure record. Per-gate G1–G10
+  audit for `Ceiling-POE-VentIQ` (the rank-1 candidate in the
+  expansion plan); records option-3 deferral; no top-level product
+  YAML, WebFlash wrapper, catalog row, `artifact_name`, or
+  `config/webflash-builds.json` row added; upstream blocker is G8
+  (`PACKAGE-POE-410-001`; `S360-410` stays
+  `cataloged_unverified`).
 - [`config/hardware-catalog.json`](../config/hardware-catalog.json)
   — machine-readable hardware catalog. `schematic_status` stays
   `cataloged_unverified` for `S360-310`, `S360-311`, `S360-312`,
