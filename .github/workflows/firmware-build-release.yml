@@ -92,6 +92,14 @@ jobs:
   # ============================================================================
   generate-matrix:
     name: Generate Build Matrix
+    # RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001: skip this job (and the build /
+    # release / summary jobs that depend on it) on a workflow_dispatch run
+    # with dry_run=true, so the dry-run lane is fully isolated from the
+    # release / build artifact path. The dry-run job (release-dry-run) is
+    # the only thing a dispatch with dry_run=true should exercise.
+    if: >-
+      github.event_name == 'release' ||
+      (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.generate.outputs.matrix }}
@@ -269,6 +277,14 @@ jobs:
   build:
     name: "Build: ${{ matrix.product }}"
     needs: generate-matrix
+    # RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001: belt-and-braces gate. The build
+    # job already depends on the gated generate-matrix job (so a dry-run
+    # dispatch will skip it via the `needs` chain), but the explicit `if`
+    # here makes it impossible for a future edit to wire build into the
+    # dry-run lane.
+    if: >-
+      github.event_name == 'release' ||
+      (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
@@ -753,7 +769,11 @@ jobs:
     name: Build Summary
     needs: [generate-matrix, build]
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
+    # RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001: a dry-run dispatch must not
+    # download "all firmware" artifacts (no build job ran). Restrict the
+    # summary to non-dry-run dispatches; the dry-run job emits its own
+    # summary instead.
+    if: github.event_name == 'workflow_dispatch' && !inputs.dry_run
     steps:
       - name: Download all firmware artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
@@ -813,6 +833,17 @@ jobs:
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.11"
+
+      - name: Install dry-run test dependencies
+        # RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001: the planner contract test
+        # tests/test_release_dry_run_mode.py parses the workflow YAML with
+        # PyYAML to enforce the dry-run gating invariants. setup-python
+        # provides a clean interpreter, so PyYAML must be installed before
+        # the test step runs. Without this, the "Verify dry-run guardrails
+        # (planner contract tests)" step fails on `import yaml`, masking the
+        # real dry-run isolation invariants the test is meant to enforce.
+        run: |
+          pip install pyyaml
 
       - name: Plan room release notes (dry-run, no publish)
         run: |

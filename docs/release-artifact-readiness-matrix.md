@@ -721,6 +721,32 @@ gates close and the named per-family release slice lands.
 > [`tests/test_release_dry_run_mode.py`](../tests/test_release_dry_run_mode.py)
 > and [`tests/test_workflow_permissions.py`](../tests/test_workflow_permissions.py).
 
+> **Update (`RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001`, 2026-05-28):** the first
+> manual dispatch of the dry-run mode shipped above (workflow run `26558131655`,
+> commit `f6fe43366fbf3e70013e8189fbe8f49848fc7a82`) revealed that `dry_run=true`
+> did not fully isolate the dry-run lane: `generate-matrix` (the
+> `Generate Build Matrix` job) had no `if:` gate, so it ran on every
+> `workflow_dispatch` and failed at `Generate product build matrix` against the
+> default `version=0.0.0-dev` / `channel=preview` (no matching entry in
+> [`config/webflash-builds.json`](../config/webflash-builds.json)). The
+> `release-dry-run` job's `Verify dry-run guardrails (planner contract tests)`
+> step also failed because the job did not install PyYAML before running
+> [`tests/test_release_dry_run_mode.py`](../tests/test_release_dry_run_mode.py)
+> (which parses the workflow YAML with `import yaml`). **Fix:**
+> [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
+> now gates the `generate-matrix`, `build`, and `summary` jobs to
+> `github.event_name == 'release' || (github.event_name == 'workflow_dispatch'
+> && !inputs.dry_run)` so a dry-run dispatch only exercises the `release-dry-run`
+> job, and the dry-run job installs `pyyaml` before the planner contract tests
+> run. **Publishing remains unchanged** — the `release` job's gate stays
+> `if: github.event_name == 'release'`, no `softprops/action-gh-release` was
+> added outside that job, no `contents: write` was granted to the dry-run lane,
+> and no row in the candidate release table changes. FanRelay / FanPWM / FanDAC
+> stay excluded (manual-candidate-only; every row stays `not-release-ready`) and
+> FanTRIAC stays blocked (HW-005). The new dry-run gate invariants are locked in
+> by `DryRunGatingTests` in
+> [`tests/test_release_dry_run_mode.py`](../tests/test_release_dry_run_mode.py).
+
 ## Relay / S360-310 release posture
 
 **Current state.** The FanRelay product YAML

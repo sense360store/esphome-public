@@ -44,6 +44,9 @@ PLANNER_PATH = REPO_ROOT / "scripts" / "plan_room_release_notes.py"
 PUBLISH_ACTION = "softprops/action-gh-release"
 DRY_RUN_JOB = "release-dry-run"
 PUBLISH_JOB = "release"
+MATRIX_JOB = "generate-matrix"
+BUILD_JOB = "build"
+SUMMARY_JOB = "summary"
 
 STABLE_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
 LED_CONFIG = "Ceiling-POE-VentIQ-RoomIQ-LED"
@@ -219,6 +222,103 @@ class WorkflowDryRunModeTests(unittest.TestCase):
             [],
             f"{PUBLISH_ACTION} must appear only in the '{PUBLISH_JOB}' job; "
             f"found in: {offenders}",
+        )
+
+
+class DryRunGatingTests(unittest.TestCase):
+    """RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001: build/release jobs must not run
+    on a workflow_dispatch with dry_run=true.
+
+    The originally-shipped RELEASE-WORKFLOW-DRYRUN-MODE-001 wired a dedicated
+    dry-run job but did not gate ``generate-matrix`` / ``build`` / ``summary``
+    out of the dry-run lane, so a manual dispatch with the safe default
+    (dry_run=true) still ran the build matrix generator. This locks that gap
+    closed.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.data = yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
+        cls.jobs = cls.data.get("jobs") or {}
+
+    def _gate(self, job_id: str) -> str:
+        self.assertIn(job_id, self.jobs, f"missing job '{job_id}'")
+        gate = self.jobs[job_id].get("if")
+        self.assertIsInstance(
+            gate, str, f"job '{job_id}' must declare an explicit `if:` gate"
+        )
+        return gate
+
+    @staticmethod
+    def _has_dry_run_negation(gate: str) -> bool:
+        # Accept the two idiomatic ways to require dry_run == false.
+        return ("!inputs.dry_run" in gate.replace(" ", "")) or (
+            "inputs.dry_run==false" in gate.replace(" ", "")
+        )
+
+    def test_generate_matrix_skips_on_dry_run_dispatch(self) -> None:
+        gate = self._gate(MATRIX_JOB)
+        # Dispatch must require dry_run to be false (or absent).
+        self.assertIn("workflow_dispatch", gate)
+        self.assertTrue(
+            self._has_dry_run_negation(gate),
+            f"{MATRIX_JOB} gate must require !inputs.dry_run so dry-run "
+            f"dispatches skip it: {gate!r}",
+        )
+        # Real release events must still run it.
+        self.assertIn(
+            "github.event_name == 'release'",
+            gate,
+            f"{MATRIX_JOB} gate must still allow release events: {gate!r}",
+        )
+
+    def test_build_skips_on_dry_run_dispatch(self) -> None:
+        gate = self._gate(BUILD_JOB)
+        self.assertIn("workflow_dispatch", gate)
+        self.assertTrue(
+            self._has_dry_run_negation(gate),
+            f"{BUILD_JOB} gate must require !inputs.dry_run: {gate!r}",
+        )
+        self.assertIn(
+            "github.event_name == 'release'",
+            gate,
+            f"{BUILD_JOB} gate must still allow release events: {gate!r}",
+        )
+
+    def test_summary_skips_on_dry_run_dispatch(self) -> None:
+        gate = self._gate(SUMMARY_JOB)
+        self.assertIn("workflow_dispatch", gate)
+        self.assertTrue(
+            self._has_dry_run_negation(gate),
+            f"{SUMMARY_JOB} gate must require !inputs.dry_run: {gate!r}",
+        )
+
+    def test_release_path_unchanged_on_release_event(self) -> None:
+        # The `release` (publish) job gate must remain pinned to a real
+        # release event, with no reference to workflow_dispatch / dry_run.
+        gate = self._gate(PUBLISH_JOB)
+        self.assertIn("github.event_name == 'release'", gate)
+        self.assertNotIn("workflow_dispatch", gate)
+        self.assertNotIn("dry_run", gate)
+        # And the build chain it depends on must allow the release event.
+        for job_id in (MATRIX_JOB, BUILD_JOB):
+            self.assertIn(
+                "github.event_name == 'release'",
+                self._gate(job_id),
+                f"{job_id} gate must still allow release events",
+            )
+
+    def test_dry_run_job_installs_pyyaml(self) -> None:
+        # tests/test_release_dry_run_mode.py (this file) parses YAML, so the
+        # dry-run CI job must install PyYAML before running the planner
+        # contract tests. Without this, the dry-run guardrail step fails on
+        # `import yaml` in GitHub Actions even though it passes locally.
+        run_text = _job_run_text(self.jobs[DRY_RUN_JOB])
+        self.assertIn(
+            "pyyaml",
+            run_text.lower(),
+            "release-dry-run job must `pip install pyyaml` so the planner "
+            "contract tests can import yaml in GitHub Actions",
         )
 
 
