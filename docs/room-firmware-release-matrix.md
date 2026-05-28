@@ -341,6 +341,35 @@ See
 
 ---
 
+## RELEASE-WORKFLOW-DRYRUN-RESULT-001 — recorded successful dry-run dispatch (2026-05-28)
+
+RELEASE-WORKFLOW-DRYRUN-RESULT-001 records the first **successful** manual
+dispatch of the `dry_run=true` lane added by `RELEASE-WORKFLOW-DRYRUN-MODE-001`
+and isolated end-to-end by `RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001`. **It
+changes no row** in the release matrix table above and publishes nothing.
+
+| Aspect | Result |
+|---|---|
+| Workflow run | [`26558999495`](https://github.com/sense360store/esphome-public/actions/runs/26558999495/job/78237206588) |
+| Workflow | `Build & Release Firmware` ([`firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)) |
+| Trigger | `workflow_dispatch` with `dry_run=true` on `main` |
+| `Release Dry-Run (no publish)` job | **success** — `Install dry-run test dependencies`, `Plan room release notes (dry-run, no publish)`, `Verify dry-run guardrails (planner contract tests)`, `Assert no release side effects were produced` all passed |
+| `Generate Build Matrix` job | **skipped** (gated by `dry_run=false`) |
+| Build jobs (per-product) | **skipped** |
+| `Build Summary` job | **skipped** |
+| `Attach to Release` job | **skipped** (still also gated `if: github.event_name == 'release'`) |
+| GitHub Release / assets / `firmware/sources.json` / `manifest.json` / `.bin` / checksum | **none produced or committed** |
+| FanRelay / FanPWM / FanDAC | excluded — not in `config/webflash-builds.json`; manual-candidate-only; no release lane participation |
+| FanTRIAC | blocked (HW-005); no release build of any kind |
+
+The dispatch proves the gates added by `RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001`
+work in CI: a `workflow_dispatch` with `dry_run=true` only exercises the
+read-only `release-dry-run` job and the matrix / build / summary / release
+jobs are all skipped. See
+[`docs/room-firmware-release-notes.md` §RELEASE-WORKFLOW-DRYRUN-RESULT-001](room-firmware-release-notes.md#release-workflow-dryrun-result-001--recorded-successful-release-dry-run-2026-05-28).
+
+---
+
 ## Cross-references
 
 - Shipping configuration: [`docs/release-one.md`](release-one.md)

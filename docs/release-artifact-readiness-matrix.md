@@ -747,6 +747,37 @@ gates close and the named per-family release slice lands.
 > by `DryRunGatingTests` in
 > [`tests/test_release_dry_run_mode.py`](../tests/test_release_dry_run_mode.py).
 
+> **Update (`RELEASE-WORKFLOW-DRYRUN-RESULT-001`, 2026-05-28):** the dry-run
+> mode (workflow run [`26558999495`](https://github.com/sense360store/esphome-public/actions/runs/26558999495/job/78237206588),
+> `workflow_dispatch` on `main` with `dry_run=true`, after
+> `RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001` / PR #626 merged) **succeeded
+> end-to-end**: the `Release Dry-Run (no publish)` job completed `success`
+> with every step passing (`Install dry-run test dependencies`, `Plan room
+> release notes (dry-run, no publish)`, `Verify dry-run guardrails (planner
+> contract tests)`, `Assert no release side effects were produced`), and the
+> `Generate Build Matrix`, build jobs, `Build Summary`, and `Attach to
+> Release` jobs were all **skipped** by their `dry_run=true` gates — proving
+> the dry-run lane is fully isolated as designed by
+> `RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001`. **It changes no cell in the
+> candidate release table above and creates no release surface:** the
+> dry-run plans / validates the two release-eligible room firmware builds'
+> release notes (stable `Ceiling-POE-VentIQ-RoomIQ`, preview
+> `Ceiling-POE-VentIQ-RoomIQ-LED`) **without publishing**, confirms the
+> build and release jobs are skipped under `dry_run=true`, creates **no**
+> GitHub Release, builds or attaches **no** release artifact, writes **no**
+> [`firmware/sources.json`](../firmware/sources.json) or `manifest.json`,
+> commits **no** `.bin` / checksum / build-info file, edits **no**
+> `products/webflash/**`, adds **no** fan `artifact_name`, flips **no**
+> fan `webflash_build_matrix`, and **does not include** FanRelay / FanPWM /
+> FanDAC in the release lane. FanRelay / FanPWM / FanDAC stay excluded
+> (manual-candidate-only; every row stays `not-release-ready`) and FanTRIAC
+> stays blocked (HW-005). **Publishing remains gated to a real release
+> event** — the `release` job's `if: github.event_name == 'release'` is
+> unchanged, the dry-run input cannot reach `softprops/action-gh-release`
+> (still only inside the `release` job), and the dry-run job grants no
+> `contents: write`. See
+> [`room-firmware-release-notes.md` §RELEASE-WORKFLOW-DRYRUN-RESULT-001](room-firmware-release-notes.md#release-workflow-dryrun-result-001--recorded-successful-release-dry-run-2026-05-28).
+
 ## Relay / S360-310 release posture
 
 **Current state.** The FanRelay product YAML

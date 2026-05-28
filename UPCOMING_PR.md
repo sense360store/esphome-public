@@ -24,6 +24,55 @@ mirrored here.
 
 ## Current queue summary
 
+- **RELEASE-WORKFLOW-DRYRUN-RESULT-001** delivers, via **this PR** on
+  2026-05-28, a **docs-only** record of the **first successful manual
+  dispatch** of the `dry_run=true` lane added by
+  `RELEASE-WORKFLOW-DRYRUN-MODE-001` / PR #625 and isolated end-to-end by
+  `RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001` / PR #626. A real
+  `workflow_dispatch` run on `main` with `dry_run=true` (workflow run
+  [`26558999495`](https://github.com/sense360store/esphome-public/actions/runs/26558999495/job/78237206588))
+  **succeeded**: the `Release Dry-Run (no publish)` job completed `success`
+  with every step passing (`Install dry-run test dependencies`, `Plan room
+  release notes (dry-run, no publish)`, `Verify dry-run guardrails (planner
+  contract tests)`, `Assert no release side effects were produced`), and
+  the `Generate Build Matrix`, per-product build, `Build Summary`, and
+  `Attach to Release` jobs were all **skipped** by their `dry_run=true` /
+  `release`-only gates — proving the dry-run lane is fully isolated as
+  designed. **Confirmed:** the dry-run plans / validates the release notes
+  for the two release-eligible builds (stable `Ceiling-POE-VentIQ-RoomIQ`,
+  preview `Ceiling-POE-VentIQ-RoomIQ-LED`) without publishing; the build
+  and release jobs are skipped under `dry_run=true`; no GitHub Release was
+  created; no `.bin` / checksum / build-info file was committed; no
+  `firmware/sources.json` or `manifest.json` was written; no
+  `products/webflash/**` was edited; no fan `artifact_name` was added; no
+  fan `webflash_build_matrix` was flipped; and FanRelay / FanPWM / FanDAC
+  are **not** in the release lane (manual-candidate-only; FanTRIAC blocked
+  HW-005). **Scope:** a new §RELEASE-WORKFLOW-DRYRUN-RESULT-001 in
+  [`docs/room-firmware-release-notes.md`](docs/room-firmware-release-notes.md),
+  a recorded-dispatch section in
+  [`docs/room-firmware-release-matrix.md`](docs/room-firmware-release-matrix.md),
+  an update note in
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md)
+  (changes **no** candidate-release-table cell), and this file.
+  **Provenance:** the workflow run ID, job URL, job pass/skip status, and
+  per-step results are the operator-supplied handoff (live Actions API
+  unavailable this session); recorded as handed off, **not** fabricated.
+  **Local validation (all passed against the same source-of-truth commit):**
+  `python3 scripts/plan_room_release_notes.py`,
+  `python3 tests/test_plan_room_release_notes.py` (20 tests),
+  `python3 tests/test_release_dry_run_mode.py` (17 tests),
+  `python3 tests/validate_configs.py` (208 files),
+  `python3 scripts/validate_compile_targets.py --metadata-only` (12 targets),
+  `python3 tests/validate_webflash_builds.py` (2 builds),
+  `python3 tests/test_workflow_permissions.py` (7 tests), and
+  `python3 -m unittest discover -s tests -p "test_*.py"` (888 tests, 3
+  skipped). **Does not** publish a GitHub Release; commit any `.bin` /
+  checksum; edit `products/webflash/**`; add a fan `artifact_name`; flip
+  any fan `webflash_build_matrix`; write `firmware/sources.json` or
+  `manifest.json`; include FanRelay / FanPWM / FanDAC in release notes; or
+  claim fan release / WebFlash / hardware-stable / compliance readiness.
+  **No** fabricated evidence.
+
 - **RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001** delivers, via **this PR** on
   2026-05-28, a follow-up fix to `RELEASE-WORKFLOW-DRYRUN-MODE-001` that
   isolates the release dry-run lane end-to-end. The first manual dispatch of
