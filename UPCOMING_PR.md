@@ -24,6 +24,110 @@ mirrored here.
 
 ## Current queue summary
 
+- **STABLE-TARGET-EXPANSION-PLAN-001** delivers, via **this PR** on
+  2026-05-28, an actionable expansion plan on top of the all-YAML
+  release classification map landed by
+  `STABLE-RELEASE-MATRIX-ALL-YAML-001` / PR #629 so that the
+  follow-up question — *"the stable matrix currently has exactly 1
+  stable target (`Ceiling-POE-VentIQ-RoomIQ`) and 1 preview target
+  (`Ceiling-POE-VentIQ-RoomIQ-LED`); which other product / YAML
+  combos are closest to a real stable promotion, what gates each
+  one still needs, and what is the safe next-PR name for each?"* —
+  is answered explicitly without promoting anything in this PR.
+  **Change:** a new
+  [`docs/stable-target-expansion-plan.md`](docs/stable-target-expansion-plan.md)
+  records (a) a stable-promotion gate checklist `G1`–`G10` (top-level
+  canonical product YAML exists, product-catalog row exists, top-level
+  full compile validated, WebFlash wrapper exists, `artifact_name`
+  present in both catalog and `config/webflash-builds.json`,
+  `config/webflash-builds.json` row exists, release notes can be
+  generated without overrides, no blocking hardware / compliance
+  caveat, not currently `manual-candidate-only`, not currently
+  `preview-only`); (b) the per-candidate actionable expansion table
+  with the YAML path, current classification, desired classification,
+  missing G-gates, owner / evidence needed, and the single safe next
+  PR name; (c) the recommended follow-up PR sequence
+  `STABLE-TARGET-VENTIQ-001` → `STABLE-TARGET-CORE-001` →
+  `STABLE-TARGET-ROOMIQ-001` → `STABLE-TARGET-AIRIQ-001` →
+  `STABLE-TARGET-AIRIQ-ROOMIQ-001` → `LED-STABLE-PROMOTION-001` (the
+  last is the long-standing `RELEASE-007` LED stable path,
+  preview-to-stable-gauntlet-gated); (d) a per-PR scope template; and
+  (e) the cross-cutting CI guardrails the existing test suite already
+  enforces (release-selectable equals `config/webflash-builds.json`;
+  no fan tokens in the release matrix; LED preview is `preview`-only;
+  exactly one stable / one preview target today). The plan is
+  cross-referenced from
+  [`docs/all-yaml-release-matrix.md`](docs/all-yaml-release-matrix.md),
+  [`docs/room-firmware-release-matrix.md`](docs/room-firmware-release-matrix.md),
+  and
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md)
+  so the "what's next" path is obvious from each upstream gate.
+  **In-scope expansion candidates (non-fan / non-LED / non-TRIAC
+  room combos)** are the five compile-only skeletons today:
+  `Ceiling-POE` ([`products/compile-only/ceiling-poe.yaml`](products/compile-only/ceiling-poe.yaml)),
+  `Ceiling-POE-RoomIQ` ([`products/compile-only/ceiling-poe-roomiq.yaml`](products/compile-only/ceiling-poe-roomiq.yaml)),
+  `Ceiling-POE-VentIQ` ([`products/compile-only/ceiling-poe-ventiq.yaml`](products/compile-only/ceiling-poe-ventiq.yaml)),
+  `Ceiling-POE-AirIQ` ([`products/compile-only/ceiling-poe-airiq.yaml`](products/compile-only/ceiling-poe-airiq.yaml)),
+  and `Ceiling-POE-AirIQ-RoomIQ` ([`products/compile-only/ceiling-poe-airiq-roomiq.yaml`](products/compile-only/ceiling-poe-airiq-roomiq.yaml)).
+  None of these has a top-level product YAML, a catalog row, a
+  WebFlash wrapper, an `artifact_name`, or a
+  `config/webflash-builds.json` row today; each carries the shared
+  `PRODUCT-POE-410-001` / `S360-410` schematic verification chain
+  (Release-One PoE caveat) plus its own per-stack hardware-evidence
+  axis (`Ceiling-POE-VentIQ` needs `VentIQ-S360-211-schematic-verification`;
+  `Ceiling-POE-AirIQ` and `Ceiling-POE-AirIQ-RoomIQ` need
+  `AirIQ-stack-hardware-evidence-SPS30-SGP41-SCD41-BMP390`).
+  `Ceiling-POE-VentIQ` is the closest stable-expansion delta because
+  the VentIQ subset (`airiq_bathroom_base` + `bathroom_profile`) is
+  already exercised by stable Release-One. **Confirmed:** the
+  classifier still emits `stable=1, preview=1, manual=3,
+  compile-only=7, blocked=1, not-a-product-entrypoint=35` (48 YAMLs
+  total); release-selectable still equals the two
+  [`config/webflash-builds.json`](config/webflash-builds.json)
+  entries `{Ceiling-POE-VentIQ-RoomIQ, Ceiling-POE-VentIQ-RoomIQ-LED}`;
+  LED stays `preview`; FanRelay / FanPWM / FanDAC stay
+  `manual-candidate-only`; FanTRIAC stays `blocked` (HW-005); no
+  legacy YAML is approved as a stable-expansion candidate.
+  **Validation (all passed):**
+  `python3 scripts/classify_all_yaml_release_matrix.py --summary`,
+  `python3 scripts/list_release_targets.py`,
+  `python3 scripts/plan_room_release_notes.py`,
+  `python3 tests/test_all_yaml_release_matrix.py` (28 tests),
+  `python3 tests/test_release_product_selection.py` (22 tests),
+  `python3 tests/validate_configs.py` (208 files),
+  `python3 scripts/validate_compile_targets.py --metadata-only` (12
+  targets), `python3 tests/validate_webflash_builds.py` (2 builds),
+  `python3 tests/test_product_catalog.py` (41 tests), and
+  `python3 -m unittest discover -s tests -p "test_*.py"` (954 tests,
+  3 skipped — unchanged from the
+  STABLE-RELEASE-MATRIX-ALL-YAML-001 baseline because no contract
+  test is added by this PR). **Scope:** the new planning doc, the
+  three cross-reference inserts in
+  `docs/all-yaml-release-matrix.md` (Candidate stable additions
+  pointer + cross-references row),
+  `docs/room-firmware-release-matrix.md` (new dated section +
+  cross-references row), and
+  `docs/release-artifact-readiness-matrix.md` (new dated section +
+  See also entries), and this `UPCOMING_PR.md` update.
+  **Does not:** publish a GitHub Release; commit any `.bin` /
+  checksum / build-info file; edit any YAML under `products/**` or
+  `products/webflash/**` or `products/compile-only/**`; promote LED
+  from `preview` to `stable`; promote FanRelay / FanPWM / FanDAC out
+  of manual-candidate-only; add a fan `artifact_name`; flip any
+  `webflash_build_matrix` value; add or remove any entry in
+  `config/webflash-builds.json` / `config/product-catalog.json` /
+  `config/compile-only-targets.json` /
+  `config/manual-firmware-artifacts.json` /
+  `config/compile-only-candidates.json` /
+  `config/webflash-compatibility.json`; write
+  `firmware/sources.json` or `manifest.json`; edit any workflow under
+  `.github/workflows/`; edit any release-time script under
+  `scripts/`; edit any test under `tests/`; invent unsupported
+  YAML / product combos; treat compile-only skeletons as release
+  products; or claim WebFlash / import / release / hardware-stable /
+  compliance readiness for any fan / TRIAC candidate. **No**
+  fabricated evidence.
+
 - **STABLE-RELEASE-MATRIX-ALL-YAML-001** delivers, via **this PR** on
   2026-05-28, the canonical, **all-YAML** release classification map
   across every YAML under [`products/`](products/) (top-level canonical

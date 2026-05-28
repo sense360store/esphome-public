@@ -3354,8 +3354,54 @@ Expected:
   `products`, `products/webflash`, `packages`, `config`,
   `scripts`, `tests`, or `.github/workflows`.
 
+## STABLE-TARGET-EXPANSION-PLAN-001 — actionable stable-target expansion plan (2026-05-28)
+
+STABLE-TARGET-EXPANSION-PLAN-001 publishes the actionable expansion
+plan that turns this release-artifact readiness gate plus the
+all-YAML matrix
+([`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md) /
+STABLE-RELEASE-MATRIX-ALL-YAML-001 / PR #629) into a per-candidate
+G1–G10 gate checklist and a recommended `STABLE-TARGET-*-001` PR
+sequence. **It changes no row** in this release-artifact readiness
+matrix and publishes nothing.
+
+| Aspect | Result |
+|---|---|
+| New planning doc | [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md) |
+| In-scope expansion candidates (non-fan / non-LED / non-TRIAC) | `Ceiling-POE`, `Ceiling-POE-RoomIQ`, `Ceiling-POE-VentIQ`, `Ceiling-POE-AirIQ`, `Ceiling-POE-AirIQ-RoomIQ` — all currently `compile-only` (skeleton only); none has a top-level product YAML, catalog row, WebFlash wrapper, `artifact_name`, or `config/webflash-builds.json` row today |
+| Recommended follow-up PR sequence | `STABLE-TARGET-VENTIQ-001` → `STABLE-TARGET-CORE-001` → `STABLE-TARGET-ROOMIQ-001` → `STABLE-TARGET-AIRIQ-001` → `STABLE-TARGET-AIRIQ-ROOMIQ-001` → `LED-STABLE-PROMOTION-001` (the last is the long-standing `RELEASE-007` LED stable path, gauntlet-gated) |
+| Closest stable-expansion delta | `Ceiling-POE-VentIQ` — VentIQ (`airiq_bathroom_base` + `bathroom_profile`) is already exercised by stable Release-One; the missing axis is the shared `PRODUCT-POE-410-001` PoE-410 chain plus `VentIQ-S360-211-schematic-verification` |
+| FanRelay / FanPWM / FanDAC | **Not promoted** by this plan; stay `manual-candidate-only` behind `WEBFLASH-RELAY-001` / `RELEASE-RELAY-001`, `WEBFLASH-PWM-001` / `RELEASE-PWM-001`, `WEBFLASH-DAC-001` / `RELEASE-DAC-001` (all blocked). No fan `artifact_name`; no `webflash_build_matrix` flip; no fan WebFlash wrapper. |
+| FanTRIAC | **Not promoted** by this plan; stays `blocked` under `HW-005` + `HW-PINMAP-320-FOLLOWUP` + `PACKAGE-TRIAC-001` + `COMPLIANCE-001` + WebFlash manual-warning UX gates |
+| LED stable promotion | **Not approved** by this plan; stays `preview-release` until the full 17-row [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md) gauntlet closes (`S360-300-BENCH-001`, `WF-HW-TEST-001`, `WF-HW-TEST-003`, `RELEASE-007`) |
+| `config/webflash-builds.json` / `config/product-catalog.json` / `config/compile-only-targets.json` / `config/manual-firmware-artifacts.json` / `config/webflash-compatibility.json` | **None edited** — release-artifact matrix rows above stay verbatim; the Release-One `v1.0.0` release and the LED preview `v1.0.0-led-preview` prerelease both stay verbatim |
+| GitHub Release / `.bin` / checksum / build-info `manifest.json` / `firmware/sources.json` / `manifest.json` | **none produced or committed** |
+| `WEBFLASH-RELAY-001` / `RELEASE-RELAY-001` / `WEBFLASH-PWM-001` / `RELEASE-PWM-001` / `WEBFLASH-DAC-001` / `RELEASE-DAC-001` / `WF-IMPORT-*` | **Unchanged** — all stay blocked behind their own gates documented in [`#Follow-up PR sequence`](#follow-up-pr-sequence) above |
+
+The plan documents the per-candidate G1–G10 gate checklist (top-level
+canonical YAML, catalog row, top-level full compile, WebFlash
+wrapper, `artifact_name`, builds row, release-notes generation,
+hardware / compliance, not-in-manual-lane, preview-to-stable
+gauntlet), the per-PR scope template, and the cross-cutting CI
+guardrails the existing test suite already enforces (release-selectable
+equals `config/webflash-builds.json`; no fan tokens in the release
+matrix; LED preview is `preview`-only; exactly one stable / one
+preview target today). None of the follow-up PRs is approved or
+scoped by STABLE-TARGET-EXPANSION-PLAN-001 itself. See
+[`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md).
+
 ## See also
 
+- [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md)
+  — STABLE-TARGET-EXPANSION-PLAN-001 actionable stable-target
+  expansion plan. Per-candidate G1–G10 gate checklist and the
+  recommended `STABLE-TARGET-*-001` PR sequence built on top of this
+  matrix and the all-YAML matrix. Documentation only; promotes
+  nothing, edits no `config/*.json`.
+- [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md) —
+  STABLE-RELEASE-MATRIX-ALL-YAML-001 all-YAML release classification.
+  Upstream of the expansion plan; classifies every YAML under
+  `products/` into exactly one release class. Documentation only.
 - [`docs/webflash-drift-audit.md`](webflash-drift-audit.md) —
   `WEBFLASH-DRIFT-001` cross-repo drift audit. Confirms no confirmed
   release/import drift: no release artifact exists for any Fan family on either
