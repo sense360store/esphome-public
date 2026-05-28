@@ -266,6 +266,51 @@ publish job's gate. Instead:
 release-candidate dry-run; the new job runs that same planner **in CI** on
 manual dispatch.
 
+### Dry-run lane isolation (implemented by RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001)
+
+The first manual dispatch of the dry-run mode shipped above (workflow run
+`26558131655`, commit `f6fe43366fbf3e70013e8189fbe8f49848fc7a82`) revealed
+that `dry_run=true` was not fully isolating the dry-run lane. Two issues
+surfaced:
+
+1. **`generate-matrix` (Generate Build Matrix) was not gated.** Without an
+   `if:` gate, it ran on every `workflow_dispatch` regardless of the
+   `dry_run` input value, and the dispatch's default `version=0.0.0-dev` /
+   `channel=preview` matched no entry in
+   [`config/webflash-builds.json`](../config/webflash-builds.json) (which
+   only carries `1.0.0/stable` and `1.0.0/preview`), so the
+   `Generate product build matrix` step failed. The `build` and `summary`
+   jobs would have inherited the same exposure if `generate-matrix` had
+   succeeded.
+2. **The `release-dry-run` job did not install PyYAML.** The planner contract
+   test [`tests/test_release_dry_run_mode.py`](../tests/test_release_dry_run_mode.py)
+   parses the workflow YAML (`import yaml`) to enforce the dry-run gating
+   invariants. `actions/setup-python@v5.6.0` provides a clean interpreter,
+   so the test failed with `ModuleNotFoundError: No module named 'yaml'` —
+   masking the real invariants the test exists to enforce.
+
+`RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001` closes both gaps:
+
+- `generate-matrix`, `build`, and `summary` are now gated to
+  `if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch'
+  && !inputs.dry_run)`. A dispatch with `dry_run=true` therefore skips the
+  matrix / build / summary jobs entirely and only exercises the
+  `release-dry-run` job; a dispatch with `dry_run=false` still runs the
+  build path (no Release is attached because the `release` job's gate is
+  unchanged); a real `release` event runs the build matrix and the `release`
+  job as before.
+- The `release-dry-run` job installs `pyyaml` before running the planner
+  contract tests, so `tests/test_release_dry_run_mode.py` now imports
+  successfully in GitHub Actions.
+
+**Publishing remains gated to a real release event** — the `release` job
+still gates on `if: github.event_name == 'release'` only, the dry-run
+input cannot reach `softprops/action-gh-release` (which still appears only
+inside the `release` job), the dry-run job grants no `contents: write`, and
+the FanRelay / FanPWM / FanDAC manual-candidate-only exclusion is unchanged.
+The new gate invariants are locked in by `DryRunGatingTests` in
+[`tests/test_release_dry_run_mode.py`](../tests/test_release_dry_run_mode.py).
+
 ---
 
 ## Cross-references
