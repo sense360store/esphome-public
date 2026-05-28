@@ -778,6 +778,48 @@ gates close and the named per-family release slice lands.
 > `contents: write`. See
 > [`room-firmware-release-notes.md` §RELEASE-WORKFLOW-DRYRUN-RESULT-001](room-firmware-release-notes.md#release-workflow-dryrun-result-001--recorded-successful-release-dry-run-2026-05-28).
 
+> **Update (`RELEASE-PRODUCT-SELECTION-001`, 2026-05-28):** the release-notes
+> draft and the release / dry-run dispatches are now **operator-selectable by
+> release target** instead of silently scoping every run to the stable
+> `Ceiling-POE-VentIQ-RoomIQ`.
+> [`.github/workflows/release-notes-draft.yml`](../.github/workflows/release-notes-draft.yml)
+> converts its `config_string` input to a `type: choice` picker whose options
+> mirror [`config/webflash-builds.json`](../config/webflash-builds.json) (no
+> default — operator must pick), and
+> [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
+> adds a new `release_target` `type: choice` input (default
+> `all-release-eligible`) wired through `generate-matrix` and the
+> `release-dry-run` job (validated by
+> [`scripts/list_release_targets.py`](../scripts/list_release_targets.py) and
+> passed to [`scripts/plan_room_release_notes.py`](../scripts/plan_room_release_notes.py)
+> via `--config-string`). The generator's stale `Release-One firmware`
+> phrasing in the LED `## Known Issues` bullet, and the easy-to-miss
+> `TODO:` `## Changelog` placeholder, are reworded to be product-aware
+> (now name the selected `config_string`, `version`, `channel`, and read
+> as a publish-blocker for an operator).
+> **It changes no cell in the candidate release table above and creates
+> no release surface:** no GitHub Release is published; no `.bin` /
+> checksum / build-info file is committed; no
+> [`firmware/sources.json`](../firmware/sources.json) or `manifest.json`
+> is written; no `products/webflash/**` is edited; no fan `artifact_name`
+> is added; no fan `webflash_build_matrix` is flipped; and FanRelay /
+> FanPWM / FanDAC are **not** selectable (they are manual-candidate-only;
+> the picker, the planner, and `list_release_targets.py` all refuse fan
+> family tokens). FanTRIAC stays blocked (HW-005). **Publishing remains
+> gated to a real release event** — the `release` job's
+> `if: github.event_name == 'release'` is unchanged, the publish gate
+> does **not** reference `release_target`, and `softprops/action-gh-release`
+> still appears only inside the `release` job. The new invariants are
+> locked in by
+> [`tests/test_release_product_selection.py`](../tests/test_release_product_selection.py)
+> (22 tests) and
+> [`tests/test_list_release_targets.py`](../tests/test_list_release_targets.py)
+> (16 tests); the existing dry-run + planner contract tests still pass.
+> See
+> [`room-firmware-release-notes.md` §RELEASE-PRODUCT-SELECTION-001](room-firmware-release-notes.md#release-product-selection-001--selectable-release-targets-2026-05-28)
+> for the operator-facing UX and the tag → product mapping for the
+> publish path.
+
 ## Relay / S360-310 release posture
 
 **Current state.** The FanRelay product YAML

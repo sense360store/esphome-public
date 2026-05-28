@@ -24,6 +24,95 @@ mirrored here.
 
 ## Current queue summary
 
+- **RELEASE-PRODUCT-SELECTION-001** delivers, via **this PR** on 2026-05-28,
+  operator-selectable release targets across the release-notes / dry-run /
+  release dispatch flows so an operator picks the agreed room / product
+  config instead of every dispatch silently scoping to the stable
+  `Ceiling-POE-VentIQ-RoomIQ`. **Change:**
+  [`.github/workflows/release-notes-draft.yml`](.github/workflows/release-notes-draft.yml)
+  converts its `config_string` input to a `type: choice` picker whose
+  options mirror [`config/webflash-builds.json`](config/webflash-builds.json)
+  (`Ceiling-POE-VentIQ-RoomIQ`, `Ceiling-POE-VentIQ-RoomIQ-LED`) with **no
+  default** so the operator must select.
+  [`.github/workflows/firmware-build-release.yml`](.github/workflows/firmware-build-release.yml)
+  adds a new `release_target` `type: choice` input (default
+  `all-release-eligible`; options
+  `all-release-eligible` + the release-eligible config_strings) wired through
+  `generate-matrix` (so a non-dry-run dispatch with a specific target builds
+  only that target) and the `release-dry-run` job (validated via
+  [`scripts/list_release_targets.py`](scripts/list_release_targets.py)
+  `--validate` and passed to
+  [`scripts/plan_room_release_notes.py`](scripts/plan_room_release_notes.py)
+  as `--config-string`). The planner gains a `--config-string` filter
+  (`all-release-eligible` keeps prior behavior; the fan-exclusion
+  guardrail still runs across the full release matrix). A new
+  [`scripts/list_release_targets.py`](scripts/list_release_targets.py)
+  helper enumerates the canonical selectable targets from
+  `config/webflash-builds.json` (with table / JSON / `--validate` modes)
+  and refuses any FanRelay / FanPWM / FanDAC token in the release matrix.
+  [`scripts/generate_webflash_release_notes.py`](scripts/generate_webflash_release_notes.py)
+  reworks two stale strings to be product-aware: the LED Known-Issues
+  bullet no longer says "this Release-One firmware" (now names the
+  selected `config_string` and explains the LED-bearing sibling is on the
+  preview channel), and the `## Changelog` `TODO:` placeholder is rewritten
+  to be operator-actionable (names `config_string` + `version` +
+  `channel`, reads as a publish-blocker). **Confirmed:** stable
+  `Ceiling-POE-VentIQ-RoomIQ` and preview `Ceiling-POE-VentIQ-RoomIQ-LED`
+  are the two selectable targets (mirrored from
+  `config/webflash-builds.json`); `all-release-eligible` covers both;
+  FanRelay / FanPWM / FanDAC are **not** selectable (the picker, the
+  planner, and `list_release_targets.py` all refuse fan family tokens;
+  manual-candidate-only); FanTRIAC stays blocked (HW-005). **Publishing
+  stays gated to a real `release` event** — the `release` job's
+  `if: github.event_name == 'release'` is unchanged, the publish gate
+  does **not** reference `release_target`, and `softprops/action-gh-release`
+  still appears only inside the `release` job; the tag → product mapping
+  (plain `vX.Y.Z` ⇒ stable `(version, channel)` filter; `vX.Y.Z-led-preview`
+  / `vX.Y.Z-preview` ⇒ preview) in
+  [`scripts/derive_release_version_channel.py`](scripts/derive_release_version_channel.py)
+  is unchanged. **Tests added:**
+  [`tests/test_list_release_targets.py`](tests/test_list_release_targets.py)
+  (16 tests — enumeration / validation / fan exclusion / CLI / read-only)
+  and
+  [`tests/test_release_product_selection.py`](tests/test_release_product_selection.py)
+  (22 tests — workflow picker options match `config/webflash-builds.json`,
+  no fan tokens in either picker, default `all-release-eligible` for the
+  dispatch input, no silent default for the draft input, dry-run job
+  validates the target and passes `--config-string` to the planner,
+  publish job gate unchanged and does not reference `release_target`,
+  planner `--config-string` filter scopes and rejects invalid /
+  fan-family targets, generator removes "Release-One firmware" wording
+  and emits product-aware LED Known-Issue + product-aware changelog
+  TODO). **Validation (all passed):**
+  `python3 scripts/plan_room_release_notes.py`,
+  `python3 scripts/generate_webflash_release_notes.py --help`,
+  `python3 tests/test_plan_room_release_notes.py` (20 tests),
+  `python3 tests/test_release_dry_run_mode.py` (17 tests),
+  `python3 tests/test_list_release_targets.py` (16 tests),
+  `python3 tests/test_release_product_selection.py` (22 tests),
+  `python3 tests/validate_configs.py` (208 files),
+  `python3 scripts/validate_compile_targets.py --metadata-only` (12
+  targets), `python3 tests/validate_webflash_builds.py` (2 builds),
+  `python3 tests/test_workflow_permissions.py` (7 tests), and
+  `python3 -m unittest discover -s tests -p "test_*.py"` (926 tests,
+  3 skipped). **Scope:** the two workflow input changes, the new
+  `release_target`-aware matrix filter in `generate-matrix`, the new
+  `release-dry-run` validate + `--config-string` steps,
+  `scripts/list_release_targets.py`, the planner `--config-string`
+  filter, the generator wording reword, the two new test files, and doc
+  updates to
+  [`docs/room-firmware-release-notes.md`](docs/room-firmware-release-notes.md),
+  [`docs/room-firmware-release-matrix.md`](docs/room-firmware-release-matrix.md),
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
+  and this file. **Does not** publish a GitHub Release; commit any `.bin`
+  / checksum; add a fan `artifact_name`; flip any fan
+  `webflash_build_matrix`; add FanRelay / FanPWM / FanDAC to release
+  notes / release build selection; write `firmware/sources.json` or
+  `manifest.json`; update `firmware/sources.json` or `manifest.json`;
+  edit `products/**` or `products/webflash/**`; invent unsupported
+  board/product combos; or claim fan release / WebFlash /
+  hardware-stable / compliance readiness. **No** fabricated evidence.
+
 - **RELEASE-WORKFLOW-DRYRUN-RESULT-001** delivers, via **this PR** on
   2026-05-28, a **docs-only** record of the **first successful manual
   dispatch** of the `dry_run=true` lane added by

@@ -290,8 +290,19 @@ def build_plan(
     external_components_path: Path = DEFAULT_EXTERNAL_COMPONENTS_PATH,
     repo_url: str = DEFAULT_REPO_URL,
     commit: Optional[str] = None,
+    config_string: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Assemble the structured (read-only) release-notes plan."""
+    """Assemble the structured (read-only) release-notes plan.
+
+    When ``config_string`` is ``None`` or ``"all-release-eligible"``, the
+    plan covers every release-eligible build in
+    ``config/webflash-builds.json``. When ``config_string`` names a
+    specific release target, the plan covers only that one build —
+    operator-driven scoping for RELEASE-PRODUCT-SELECTION-001. The
+    fan-exclusion guardrail still runs across the full release matrix so
+    a fan token leaking into ``config/webflash-builds.json`` is caught
+    even when an operator scoped the plan to a single non-fan build.
+    """
     gen = _load_module("generate_webflash_release_notes", GENERATOR_SCRIPT)
     val = _load_module("validate_webflash_release_notes", VALIDATOR_SCRIPT)
 
@@ -302,6 +313,19 @@ def build_plan(
     builds = _release_builds(builds_doc)
     fan_candidates = _fan_candidates(manual_doc)
     _assert_no_fan_in_release(builds, fan_candidates)
+
+    selected = (config_string or "").strip()
+    if selected and selected != "all-release-eligible":
+        matched = [
+            b for b in builds if str(b.get("config_string", "")) == selected
+        ]
+        if not matched:
+            valid = ", ".join(str(b.get("config_string", "")) for b in builds)
+            raise PlanError(
+                f"--config-string {selected!r} is not a release-eligible target; "
+                f"valid options are: all-release-eligible, {valid}"
+            )
+        builds = matched
 
     esphome_version = _esphome_version(workflow_path)
     external_ref = _external_components_ref(external_components_path)
@@ -369,6 +393,7 @@ def build_plan(
         "repo_url": repo_url,
         "builds": plan_builds,
         "fan_candidates": fan_candidates,
+        "selection": selected or "all-release-eligible",
     }
 
 
@@ -443,6 +468,7 @@ def render_markdown(plan: Dict[str, Any]) -> str:
         f"| Commit SHA | `{plan['commit']}` |",
         f"| external_components git ref | `{plan['external_components_ref']}` |",
         f"| Repository | {plan['repo_url']} |",
+        f"| Selected target | `{plan.get('selection', 'all-release-eligible')}` |",
         "",
         f"## Release-eligible builds ({len(builds)})",
         "",
@@ -511,6 +537,15 @@ def _build_parser() -> argparse.ArgumentParser:
         default=DEFAULT_REPO_URL,
         help=f"Repository URL for source-YAML links (default: {DEFAULT_REPO_URL}).",
     )
+    parser.add_argument(
+        "--config-string",
+        default=None,
+        help=(
+            "Plan only the given release target (a config_string in "
+            "config/webflash-builds.json). Defaults to all release-eligible "
+            "builds; pass 'all-release-eligible' for the same effect."
+        ),
+    )
     # Test-only path overrides, hidden from --help.
     parser.add_argument(
         "--builds",
@@ -558,6 +593,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             external_components_path=args.external_components,
             repo_url=args.repo_url,
             commit=args.commit,
+            config_string=args.config_string,
         )
     except PlanError as exc:
         print(f"plan-room-release-notes: {exc}", file=sys.stderr)

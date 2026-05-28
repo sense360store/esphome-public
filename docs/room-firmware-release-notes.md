@@ -153,6 +153,10 @@ no firmware, and never writes `firmware/sources.json` or `manifest.json`.
 # Print the plan for every release-eligible build to stdout:
 python3 scripts/plan_room_release_notes.py
 
+# Plan only one release target (RELEASE-PRODUCT-SELECTION-001):
+python3 scripts/plan_room_release_notes.py \
+    --config-string Ceiling-POE-VentIQ-RoomIQ
+
 # Write the plan to a file and pin to a specific commit:
 python3 scripts/plan_room_release_notes.py \
     --commit "$GITHUB_SHA" \
@@ -168,8 +172,18 @@ python3 scripts/generate_webflash_release_notes.py \
     --version 1.0.0 --channel stable --validate
 ```
 
+To list every selectable release target (RELEASE-PRODUCT-SELECTION-001):
+
+```bash
+python3 scripts/list_release_targets.py
+python3 scripts/list_release_targets.py --json
+python3 scripts/list_release_targets.py --validate Ceiling-POE-VentIQ-RoomIQ
+```
+
 Tests: [`tests/test_plan_room_release_notes.py`](../tests/test_plan_room_release_notes.py)
-(run with `python3 tests/test_plan_room_release_notes.py`).
+(run with `python3 tests/test_plan_room_release_notes.py`) and
+[`tests/test_list_release_targets.py`](../tests/test_list_release_targets.py)
+(run with `python3 tests/test_list_release_targets.py`).
 
 ---
 
@@ -403,6 +417,114 @@ session and is reported verbatim above.
 
 ---
 
+## RELEASE-PRODUCT-SELECTION-001 — selectable release targets (2026-05-28)
+
+RELEASE-PRODUCT-SELECTION-001 makes the release-notes / dry-run / release
+workflows **operator-selectable** by the agreed room / product config rather
+than silently scoping every dispatch to a single hardcoded target. It is a
+behavior + ergonomics change for the workflow inputs and the planner /
+generator; it publishes nothing.
+
+### What the operator sees
+
+| Workflow | Input | Type | Default | Options |
+|---|---|---|---|---|
+| [`release-notes-draft.yml`](../.github/workflows/release-notes-draft.yml) | `config_string` | `choice` | (none — must select) | `Ceiling-POE-VentIQ-RoomIQ`, `Ceiling-POE-VentIQ-RoomIQ-LED` |
+| [`firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml) | `release_target` | `choice` | `all-release-eligible` | `all-release-eligible`, `Ceiling-POE-VentIQ-RoomIQ`, `Ceiling-POE-VentIQ-RoomIQ-LED` |
+
+The picker options are **mirrored from**
+[`config/webflash-builds.json`](../config/webflash-builds.json) — the same
+single source of truth the release workflow's build matrix uses. Adding a
+new release-eligible build to that file requires adding a matching option to
+both pickers; the contract test
+[`tests/test_release_product_selection.py`](../tests/test_release_product_selection.py)
+fails fast if the picker and the release matrix drift apart.
+
+FanRelay / FanPWM / FanDAC are **never** selectable as a release target —
+they are manual-candidate-only
+([`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json),
+[`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md))
+and
+[`scripts/list_release_targets.py`](../scripts/list_release_targets.py)
+refuses to enumerate a fan token in the release matrix. FanTRIAC stays
+blocked (HW-005).
+
+### Where the selection flows
+
+| Layer | Selection consumed by |
+|---|---|
+| Release-notes draft (`release-notes-draft.yml`) | Passes `config_string` straight to `scripts/generate_webflash_release_notes.py`, which already errors on an off-catalog config. |
+| Dry-run lane (`firmware-build-release.yml` → `release-dry-run` job) | Validates the selection via `scripts/list_release_targets.py --validate`, then scopes [`scripts/plan_room_release_notes.py`](../scripts/plan_room_release_notes.py) with `--config-string`. `all-release-eligible` plans every release-eligible build (same behavior as before this PR). |
+| Non-dry-run workflow_dispatch (`firmware-build-release.yml` → `generate-matrix`) | Filters the build matrix to the selected `config_string` when not `all-release-eligible`. A real `release` event ignores this input and continues to derive the matrix from the tag's `version` + `channel` only. |
+| Real release event | **Unchanged.** Tag → `(version, channel)` mapping stays in [`scripts/derive_release_version_channel.py`](../scripts/derive_release_version_channel.py): plain `vX.Y.Z` is stable; `vX.Y.Z-led-preview` / `vX.Y.Z-preview` is preview. The matrix filter on `(version, channel)` then selects every matching row in `config/webflash-builds.json`. The `release_target` input does not (and cannot) reach the publish job. |
+
+### Tag → product mapping (publish path)
+
+For a real `release` event, product selection is implicit in the tag:
+
+| Tag | `prerelease` | `(version, channel)` | Selects (from `config/webflash-builds.json`) |
+|---|---|---|---|
+| `v1.0.0` | `false` | `(1.0.0, stable)` | `Ceiling-POE-VentIQ-RoomIQ` |
+| `v1.0.0-led-preview` | `true` | `(1.0.0, preview)` | `Ceiling-POE-VentIQ-RoomIQ-LED` |
+| `v1.0.0-preview` | `true` | `(1.0.0, preview)` | `Ceiling-POE-VentIQ-RoomIQ-LED` |
+
+A future LED stable release reuses the same `vX.Y.Z` shape on the stable
+channel once the LED-bearing config is promoted; the matrix filter does
+the product selection from `config/webflash-builds.json`, not from the
+tag name.
+
+### Generator wording is now product-aware
+
+Two stale wording bugs surfaced once selection became operator-driven and
+this PR fixes them in [`scripts/generate_webflash_release_notes.py`](../scripts/generate_webflash_release_notes.py):
+
+- The **LED Known-Issues bullet** previously read "Sense360 LED is not
+  included in this Release-One firmware because the config string has no
+  LED token." That implied there is only one fixed product. It is now
+  product-aware: *"Sense360 LED is not included in this firmware: the
+  selected configuration `<config_string>` does not include LED. The
+  LED-bearing sibling lives on the preview channel."* For the LED preview
+  it is still suppressed (LED moves to `## Features`).
+- The **`## Changelog` TODO placeholder** previously read "TODO: Summarize
+  user-visible changes for v1.0.0 …" — easy to mistake for finished notes.
+  It is now operator-actionable and product-aware: *"TODO (operator
+  changelog required): replace this bullet with the user-visible changes
+  shipped in `<config_string>` `v<version>` (`<channel>`). One bullet per
+  change. This placeholder must be replaced before the release notes are
+  attached to a GitHub Release."* The structural validator still passes;
+  the wording is unmistakably a publish blocker.
+
+### What this PR does **not** do
+
+- Publish any GitHub Release.
+- Build, attach, commit, or upload any `.bin`, checksum, or build-info file.
+- Write [`firmware/sources.json`](../firmware/sources.json) or `manifest.json`.
+- Edit any `products/*` or `products/webflash/*` YAML.
+- Add any FanRelay / FanPWM / FanDAC entry to
+  [`config/webflash-builds.json`](../config/webflash-builds.json),
+  flip any fan `webflash_build_matrix`, or add any fan `artifact_name`.
+- Promote FanRelay / FanPWM / FanDAC out of manual-candidate-only.
+- Change the publish job's gate
+  (`if: github.event_name == 'release'` is unchanged) or grant the
+  dry-run lane any `contents: write`. `softprops/action-gh-release`
+  still appears only inside the `release` job and the publish gate does
+  not reference `release_target`.
+
+### Tests added / updated
+
+- [`tests/test_list_release_targets.py`](../tests/test_list_release_targets.py)
+  — release-target enumeration / validation contract (16 tests).
+- [`tests/test_release_product_selection.py`](../tests/test_release_product_selection.py)
+  — workflow picker / planner-scope / generator-wording contract (22 tests).
+- [`tests/test_plan_room_release_notes.py`](../tests/test_plan_room_release_notes.py)
+  — unchanged; still passes with the new `--config-string` filter wired
+  through `build_plan`.
+- [`tests/test_release_dry_run_mode.py`](../tests/test_release_dry_run_mode.py)
+  — unchanged; still passes with the new validate + planner-scope steps in
+  the `release-dry-run` job.
+
+---
+
 ## Cross-references
 
 - Room firmware release inventory: [`docs/room-firmware-release-matrix.md`](room-firmware-release-matrix.md)
@@ -411,3 +533,4 @@ session and is reported verbatim above.
 - Manual (non-release) fan install path: [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md)
 - Manual artifact policy: `config/manual-firmware-artifacts.json` (MANUAL-FIRMWARE-ARTIFACT-POLICY-001)
 - WebFlash release-body contract: [`docs/webflash-contract.md`](webflash-contract.md)
+- Selectable release targets: [`scripts/list_release_targets.py`](../scripts/list_release_targets.py) (RELEASE-PRODUCT-SELECTION-001)

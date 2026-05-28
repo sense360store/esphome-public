@@ -49,6 +49,29 @@ on:
           full product matrix.
         required: false
         default: ''
+      # RELEASE-PRODUCT-SELECTION-001: operator-facing release-target picker.
+      # Scopes the dry-run lane (and is reported in build/publish logs) to a
+      # single release-eligible target from config/webflash-builds.json, or to
+      # every release-eligible target via `all-release-eligible`. The choices
+      # mirror config/webflash-builds.json; when a new release-eligible build
+      # is added, add a matching option here. The contract test
+      # tests/test_release_product_selection.py enforces lock-step with the
+      # release matrix. FanRelay / FanPWM / FanDAC are manual-candidate-only
+      # (config/manual-firmware-artifacts.json) and intentionally absent from
+      # this picker.
+      release_target:
+        description: >-
+          Release target for dry-run planning / scoped dispatch (must match
+          a config_string in config/webflash-builds.json, or
+          all-release-eligible). FanRelay / FanPWM / FanDAC are not
+          release-eligible.
+        required: false
+        default: all-release-eligible
+        type: choice
+        options:
+          - all-release-eligible
+          - Ceiling-POE-VentIQ-RoomIQ
+          - Ceiling-POE-VentIQ-RoomIQ-LED
       # RELEASE-WORKFLOW-DRYRUN-MODE-001: explicit, safe-by-default dry-run
       # mode. When enabled (the default), a manual dispatch only exercises
       # release-note planning, validation, and the release guardrails for the
@@ -145,16 +168,25 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           CHANNEL: ${{ steps.version.outputs.channel }}
           SINGLE_PRODUCT: ${{ github.event.inputs.single_product }}
+          # RELEASE-PRODUCT-SELECTION-001: a workflow_dispatch run may scope
+          # the matrix to a single release target by config_string (the
+          # operator-facing picker mirrored from config/webflash-builds.json).
+          # Empty / unset / 'all-release-eligible' means no extra filter.
+          # Ignored on a real release event (the matrix is derived from the
+          # tag's version + channel, not from this input).
+          RELEASE_TARGET: ${{ github.event.inputs.release_target }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
 
           # ESP-007: the release/build matrix is driven by
           # config/webflash-builds.json, filtered by version + channel (and
-          # optional single_product for manual dispatch). This replaces the
-          # previous broad `find products/` scan, which built every legacy
-          # / reference / blocked product (including FanTRIAC) when a real
-          # Release was published. The WebFlash build matrix is the single
-          # source of truth for what release publishing ships.
+          # optional single_product / release_target for manual dispatch).
+          # This replaces the previous broad `find products/` scan, which
+          # built every legacy / reference / blocked product (including
+          # FanTRIAC) when a real Release was published. The WebFlash build
+          # matrix is the single source of truth for what release publishing
+          # ships.
           #
           # When a JSON entry points at a products/webflash/* wrapper, we
           # compile the canonical products/sense360-<stem>.yaml instead.
@@ -178,6 +210,14 @@ jobs:
           version = os.environ["VERSION"]
           channel = os.environ["CHANNEL"]
           single_product = os.environ.get("SINGLE_PRODUCT", "").strip()
+          # RELEASE-PRODUCT-SELECTION-001: workflow_dispatch-only scoping by
+          # release-target config_string. Ignored on release events.
+          event_name = os.environ.get("EVENT_NAME", "").strip()
+          release_target = os.environ.get("RELEASE_TARGET", "").strip()
+          if event_name != "workflow_dispatch":
+              release_target = ""
+          if release_target in ("", "all-release-eligible"):
+              release_target = ""
 
           if not BUILDS_PATH.is_file():
               sys.exit(f"error: {BUILDS_PATH} does not exist")
@@ -198,6 +238,8 @@ jobs:
               if entry.get("version") != version:
                   continue
               if entry.get("channel") != channel:
+                  continue
+              if release_target and entry.get("config_string") != release_target:
                   continue
 
               product_yaml = entry.get("product_yaml", "")
@@ -238,7 +280,8 @@ jobs:
           if not rows:
               detail = (
                   f"version={version!r} channel={channel!r} "
-                  f"single_product={single_product!r}"
+                  f"single_product={single_product!r} "
+                  f"release_target={release_target!r}"
               )
               sys.exit(
                   f"error: no config/webflash-builds.json entries matched {detail}"
@@ -266,6 +309,11 @@ jobs:
 
           if [ -n "${SINGLE_PRODUCT:-}" ]; then
             echo "single_product filter active: $SINGLE_PRODUCT"
+          fi
+          if [ "${EVENT_NAME:-}" = "workflow_dispatch" ] && \
+             [ -n "${RELEASE_TARGET:-}" ] && \
+             [ "${RELEASE_TARGET}" != "all-release-eligible" ]; then
+            echo "release_target filter active: $RELEASE_TARGET"
           fi
 
   # ============================================================================
@@ -845,7 +893,22 @@ jobs:
         run: |
           pip install pyyaml
 
+      - name: Validate selected release target
+        env:
+          RELEASE_TARGET: ${{ inputs.release_target }}
+        run: |
+          # RELEASE-PRODUCT-SELECTION-001: fail-closed early if the
+          # operator-selected release_target is not a config_string in
+          # config/webflash-builds.json (or the all-release-eligible
+          # sentinel). The picker is a GitHub Actions `type: choice` so
+          # this is belt-and-braces, but it gives the operator a clear
+          # error if config/webflash-builds.json and the workflow options
+          # ever drift apart.
+          python3 scripts/list_release_targets.py --validate "$RELEASE_TARGET"
+
       - name: Plan room release notes (dry-run, no publish)
+        env:
+          RELEASE_TARGET: ${{ inputs.release_target }}
         run: |
           echo "=============================================="
           echo "RELEASE DRY-RUN (RELEASE-WORKFLOW-DRYRUN-MODE-001)"
@@ -853,13 +916,21 @@ jobs:
           echo "This is a non-publishing dry-run. It creates no GitHub"
           echo "Release, uploads no release assets, and writes no"
           echo "firmware/sources.json or manifest.json."
+          echo "Selected release target: $RELEASE_TARGET"
           echo ""
-          # The planner enumerates the release-eligible builds from
-          # config/webflash-builds.json, runs each draft body through the
-          # release-notes validator, and enforces the fan-exclusion guardrail.
-          # It exits non-zero (failing the dry-run) on any guardrail violation
-          # or a build the generator refuses. It writes nothing (no --output).
-          python3 scripts/plan_room_release_notes.py --commit "${{ github.sha }}"
+          # RELEASE-PRODUCT-SELECTION-001: scope the dry-run plan to the
+          # operator-selected release target. `all-release-eligible`
+          # enumerates every entry in config/webflash-builds.json;
+          # a specific config_string scopes to that single build. The
+          # fan-exclusion guardrail still runs across the full release
+          # matrix so a fan token leaking into config/webflash-builds.json
+          # is caught even when the operator scoped to a non-fan build.
+          # The planner exits non-zero (failing the dry-run) on any
+          # guardrail violation or a build the generator refuses. It
+          # writes nothing (no --output).
+          python3 scripts/plan_room_release_notes.py \
+            --commit "${{ github.sha }}" \
+            --config-string "$RELEASE_TARGET"
 
       - name: Verify dry-run guardrails (planner contract tests)
         run: |
