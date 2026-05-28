@@ -2169,6 +2169,58 @@ named follow-up.
   See
   [`docs/cleanup-audit.md` §`PRODUCT-POE-410-001 update (2026-05-20 — docs-only investigation pass)`](cleanup-audit.md#product-poe-410-001-update-2026-05-20--docs-only-investigation-pass).
 
+- **2026-05-28 — `PACKAGE-POE-410-001` per-evidence-class audit
+  (option-4 evidence-request record).** Re-verified the per-
+  evidence-class state for `S360-410` Sense360 PoE PSU and
+  produced the audit record at
+  [`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md).
+  Six evidence classes are on file (E1 board SKU / R4 / naming;
+  E3 schematic-shown discrete topology via HW-PINMAP-410-FOLLOWUP /
+  PR #517; E4 BOM cross-check at the part-identity layer via
+  `HW-BOM-ASSETS-002`; E5 PoE-to-5 V role topology; E6 SELV-side
+  classification; E7 no mains caveat). One is partial (E2 — the
+  schematic PDF is committed under HW-ASSETS-410 / PR #516 but
+  the JSON `schematic_status: verified` / `schematic_file`
+  promotion has not landed and is owed to a separate JSON-only
+  PR). Eight are open (E8 package-header identity reconciliation;
+  E9 `J3` silkscreen pin-1; E10 HW-002 OQ#6 / `S360-100-BENCH-001`
+  J2-harness identity; E11 PoE link-up / load / thermal /
+  EMI / EMC bench evidence; E12 isolation / Hi-pot / leakage /
+  earth-continuity; E13 KiCad PCB source / gerbers; E14
+  `F0505S-2WR2` vs `AM1D-0505S-NZ` primary-vs-alternate intent;
+  E15 Release-One PoE caveat closure). The audit therefore takes
+  **option 4 in the task brief**: it records the precise
+  evidence-request list (exact missing artefact + operator /
+  designer question + stable expansion targets blocked) per
+  open / partial class and keeps `S360-410` `cataloged_unverified`.
+  Path B (documentation cleanup only) is not useful right now
+  because this section already correctly classifies the slice;
+  Path C (promote to `verified` and land
+  `PACKAGE-POE-410-001` implementation) is unsafe because E11
+  (PoE link-up + load + thermal + EMI / EMC) and E12 (isolation /
+  Hi-pot / leakage / earth continuity) are bench evidence and are
+  not on file — promoting `S360-410` to `verified` without them
+  would be a fabricated verification. The Release-One PoE
+  `"schematic verification pending"` caveat at
+  [`release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings)
+  is **preserved verbatim**; the LED preview path
+  (`Ceiling-POE-VentIQ-RoomIQ-LED` `preview`) is unchanged; the
+  FanTRIAC blocked reference is unchanged; FanRelay / FanPWM /
+  FanDAC stay `manual-candidate-only`. `tests/test_hardware_catalog.py`
+  `EXPECTED_STILL_UNVERIFIED_SKUS` now includes `S360-410` and a
+  new `test_s360_410_poe_psu_is_not_verified` regression pin
+  asserts that the row stays unverified until the resume
+  conditions hold. Stable expansion targets still blocked:
+  `Ceiling-POE` (A1), `Ceiling-POE-RoomIQ` (A2),
+  `Ceiling-POE-VentIQ` (A5 — STABLE-TARGET-VENTIQ-001 already
+  deferred per PR #632), `Ceiling-POE-AirIQ` (A3),
+  `Ceiling-POE-AirIQ-RoomIQ` (A4). The next `PACKAGE-POE-410-001`
+  implementation PR must land **the package-header comment
+  cleanup + BOM citation + design-intent decision** in a single
+  coordinated slice, after the resume conditions in
+  [`docs/package-poe-410-001-audit.md` §Resume conditions](package-poe-410-001-audit.md#resume-conditions)
+  hold.
+
 ## Release-One and LED preview safety
 
 PRODUCT-GAP-001 **does not change Release-One product behaviour** and
@@ -3374,6 +3426,19 @@ No match outside of those trees is expected.
   `config/webflash-builds.json` row added; upstream blocker is G8
   (`PACKAGE-POE-410-001`; `S360-410` stays
   `cataloged_unverified`).
+- [`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md)
+  — PACKAGE-POE-410-001 per-evidence-class audit for `S360-410`
+  Sense360 PoE PSU. Upstream G8 blocker for the five A-row stable
+  expansion candidates and for any sibling PoE-410-explicit
+  product entry under the [PoE-410 / S360-410](#poe-410--s360-410)
+  slice. Records the option-4 outcome (evidence insufficient for
+  verification; precise evidence-request record produced).
+  Documentation + test-constant pin only; `S360-410` stays
+  `cataloged_unverified`; `packages/hardware/power_poe.yaml`
+  stays byte-identical; the Release-One PoE caveat is preserved
+  verbatim; no `config/*.json` JSON-status promotion, no
+  `schematic_file` set, no product / WebFlash / build / release /
+  WebFlash-import promotion.
 - [`config/hardware-catalog.json`](../config/hardware-catalog.json)
   — machine-readable hardware catalog. `schematic_status` stays
   `cataloged_unverified` for `S360-310`, `S360-311`, `S360-312`,

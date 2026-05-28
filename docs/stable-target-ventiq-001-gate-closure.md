@@ -280,7 +280,14 @@ stable-candidate or compile-only."*
 `STABLE-TARGET-VENTIQ-001` can resume actual promotion work (G1–G10
 implementation) only when **all** of the following are independently
 recorded by their own committed slice — none can be assumed,
-fabricated, or rolled into the same PR:
+fabricated, or rolled into the same PR. **Resume condition #1
+(`PACKAGE-POE-410-001`) has been audited on 2026-05-28** per
+[`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md)
+(option 4 — evidence insufficient for verification; precise
+evidence-request record produced); see
+[`docs/package-poe-410-001-audit.md` §Resume conditions](package-poe-410-001-audit.md#resume-conditions)
+for the per-evidence-class closure list (E2 + E8 + E9 + E10 + E11 +
+E12 + E14 + design-intent answers) that condition #1 below requires.
 
 1. **`PACKAGE-POE-410-001` lands** with `S360-410 schematic_status:
    verified` JSON promotion, `schematic_file` set, BOM cross-check

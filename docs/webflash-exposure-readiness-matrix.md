@@ -3138,6 +3138,18 @@ Expected:
   WebFlash wrapper added under [`products/webflash/`](../products/webflash/);
   no `webflash_build_matrix` flip; no `artifact_name`; no
   `config/webflash-builds.json` row.
+- [`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md)
+  — PACKAGE-POE-410-001 per-evidence-class audit for `S360-410`
+  Sense360 PoE PSU. Upstream G8 / WebFlash-exposure blocker for
+  any sibling PoE-410-explicit WebFlash wrapper under
+  [`products/webflash/`](../products/webflash/) and for the five
+  A-row stable expansion candidates. Records the option-4 outcome
+  (evidence insufficient for verification; precise
+  evidence-request record produced). Documentation + test-constant
+  pin only; `S360-410` stays `cataloged_unverified`;
+  `packages/hardware/power_poe.yaml` stays byte-identical; no
+  WebFlash wrapper, no `webflash_build_matrix` flip, no
+  `artifact_name`, no `config/webflash-builds.json` row added.
 - [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md)
   — PACKAGE-GAP-001 package-level readiness gate. Source of truth
   for the "Required package status" column on every candidate row
