@@ -117,6 +117,17 @@ SKUs. Every bundle includes the Sense360 Core (`S360-100`) and the
 Sense360 PoE PSU (`S360-410`) — these are the mandatory hub + power
 spine for every PoE room kit.
 
+The Sense360 Core (`S360-100`) is the **central Core / backplane
+controller** for the module stack: every room module (RoomIQ, AirIQ,
+VentIQ, LED, Relay, PWM, DAC, TRIAC) connects through a dedicated
+connector on the Core, and the Core is the only board that carries
+the MCU. Each bundle therefore derives from
+**`S360-100` Core + room modules + `S360-410` PoE PSU**. This
+architectural framing — including the per-connector module SKU
+mapping on the new R4 schematic — is recorded in
+[`docs/hardware/s360-100-core-architecture.md`](hardware/s360-100-core-architecture.md)
+(S360-100-NATIVE-TACH-PULSE-001 — R4 refresh).
+
 | Bundle SKU | Bundle name | Included boards | Likely firmware config target | Current release status | Missing gates (top of stack) |
 |---|---|---|---|---|---|
 | `S360-KIT-BATH-P` | Sense360 Bathroom Bundle — PoE | `S360-100` Sense360 Core; `S360-200` Sense360 RoomIQ; `S360-211` Sense360 VentIQ; `S360-410` Sense360 PoE PSU | `Ceiling-POE-VentIQ-RoomIQ` | **`stable-release`** (already exists) | None — Release-One ships this. |

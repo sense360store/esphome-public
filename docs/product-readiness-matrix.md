@@ -1400,6 +1400,39 @@ named follow-up.
   **no** final per-fan `Pul_Cou1..4` GPIO assignment claim (pending
   hardware-side re-route); **no** S360-410 PoE blocker claim; **no**
   fan WebFlash / release readiness claim.
+- **2026-05-28 — `S360-100-NATIVE-TACH-PULSE-001` — R4 refresh (this
+  PR; docs / tests / canonical schematic refresh) — Core architecture
+  canonicalised and tach / pulse-counter routing recorded on the new
+  R4 sheet.** The newly delivered canonical `S360-100-R4.pdf`
+  (SHA256 `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`,
+  837,443 bytes, KiCad E.D.A. 10.0.3) supersedes the prior R4
+  snapshot at
+  [`docs/hardware/schematics/S360-100-R4.pdf`](../docs/hardware/schematics/S360-100-R4.pdf).
+  The refreshed sheet prints `TachIO` / `Pul_Cou1..4` / `TachPMW1..4`
+  directly against native ESP32-S3 module pins
+  (`IO16` / `IO17` / `IO18` / `IO46` / `IO9` / `IO10` / `IO11` /
+  `IO12` / `IO39` respectively); the SX1509 (`U3`) I/O expander
+  block that previously hosted those nets is no longer printed on
+  the visible sheet. The connector / module matrix, the
+  schematic-printed native-GPIO pin-allocation table, and the
+  reconciliation against the prior snapshot are recorded in
+  [`docs/hardware/s360-100-core-architecture.md`](hardware/s360-100-core-architecture.md)
+  (the canonical Core architecture index). The architectural rule
+  in [`docs/hardware/s360-100-native-tach-pulse-strategy.md`](hardware/s360-100-native-tach-pulse-strategy.md)
+  itself does not change — it still requires native ESP32-S3 GPIO
+  termination and still forbids any expander-routed `pulse_counter`;
+  what changes is that the **schematic side** of the rule is now
+  visibly satisfied. **Product-layer disposition is unchanged** —
+  `Ceiling-POE-FanPWM` stays `hardware-pending`, PWM-drive-only,
+  `rpm_supported: false`; no `webflash_build_matrix` flip; no
+  `artifact_name`; no `config/webflash-builds.json` row; no release
+  artifact; `WEBFLASH-PWM-001` / `RELEASE-PWM-001` /
+  `WF-IMPORT-PWM-001` stay blocked; `S360-311` stays
+  `cataloged_unverified`; FanTRIAC `HW-005` is unchanged; `S360-410`
+  PoE PSU is unchanged. **No** firmware-binding edit, **no** measured
+  RPM / tach claim, **no** bench evidence claim — firmware-binding
+  and bench-measured RPM stay owned by `S360-311-CURRENT-THERMAL-001`
+  / `COMPONENT-NATIVE-TACH-001` (future).
 
 ### FanDAC / S360-312
 

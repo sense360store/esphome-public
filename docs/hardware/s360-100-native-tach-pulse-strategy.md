@@ -106,31 +106,67 @@ limitation here.
 
 ## Pending pin-allocation table (native GPIO constraint)
 
-The pin-allocation table below is **pending** — the per-fan `Pul_Cou1..4`
-lines are still routed through the SX1509 (U3) on the committed
-S360-100-R4 schematic (see
-[`s360-100-r4-core.md` §Fan / driver outputs](s360-100-r4-core.md#fan--driver-outputs)),
-which contradicts this architectural rule. Re-routing to native ESP32
-GPIO is a **future hardware revision / harness change**, owned by the
-hardware lane and not invented here. Until that revision exists, the
-table records the **required constraint** rather than a final pin
-mapping.
+The pin-allocation table below records the **required constraint** and
+the **schematic-printed** native-GPIO termination on the **current
+canonical** [`S360-100-R4.pdf`](schematics/S360-100-R4.pdf) (SHA256
+`4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`,
+837,443 bytes, single sheet `1/1`). The new R4 sheet terminates every
+per-fan tach / pulse-counter line directly at a native ESP32-S3
+GPIO — the **schematic side** of the architectural rule is now
+satisfied. The **firmware-binding side** and the **bench-evidence
+side** are still pending and are **not** advanced by this doc.
 
-| Tach / pulse-counter signal | Required pin family | Current schematic source (S360-100-R4) | Pending native-GPIO assignment | Owner |
-|---|---|---|---|---|
-| `TachIO` (shared 12 V PWM fan tach passthrough) | Native ESP32-S3 GPIO (interrupt-capable) | ESP32 `IO16` — **already native** | `IO16` (already satisfies the rule) | — |
-| `Pul_Cou1` (per-fan tach, channel 1) | Native ESP32-S3 GPIO (interrupt-capable) | SX1509 (U3) channel 4 — **violates rule** | **TBD** — pending hardware revision / harness | Hardware lane |
-| `Pul_Cou2` (per-fan tach, channel 2) | Native ESP32-S3 GPIO (interrupt-capable) | SX1509 (U3) channel 5 — **violates rule** | **TBD** — pending hardware revision / harness | Hardware lane |
-| `Pul_Cou3` (per-fan tach, channel 3) | Native ESP32-S3 GPIO (interrupt-capable) | SX1509 (U3) channel 6 — **violates rule** | **TBD** — pending hardware revision / harness | Hardware lane |
-| `Pul_Cou4` (per-fan tach, channel 4) | Native ESP32-S3 GPIO (interrupt-capable) | SX1509 (U3) channel 7 — **violates rule** | **TBD** — pending hardware revision / harness | Hardware lane |
+| Tach / pulse-counter signal | Required pin family | Schematic-printed source (current S360-100-R4) | Schematic → rule-compliant? | Firmware-binding status | Bench / measured status |
+|---|---|---|---|---|---|
+| `TachIO` (shared 12 V PWM fan tach passthrough) | Native ESP32-S3 GPIO (interrupt-capable) | ESP32 `IO16` (module pin 9) | **Yes** (native pin) | Bound only as a substitution (`tach_io_pin: GPIO16`); no `pulse_counter` consumer in `fan_pwm.yaml` today | **Not measured** — `PWM-12` stays NEEDS BENCH |
+| `Pul_Cou1` (per-fan tach, channel 1) | Native ESP32-S3 GPIO (interrupt-capable) | ESP32 `IO17` (module pin 10) | **Yes** (native pin) | **Not bound as `pulse_counter`** in any `packages/**` / `products/**` YAML by this doc | **Not measured** |
+| `Pul_Cou2` (per-fan tach, channel 2) | Native ESP32-S3 GPIO (interrupt-capable) | ESP32 `IO18` (module pin 11) | **Yes** (native pin) | **Not bound as `pulse_counter`** in any `packages/**` / `products/**` YAML by this doc | **Not measured** |
+| `Pul_Cou3` (per-fan tach, channel 3) | Native ESP32-S3 GPIO (interrupt-capable) | ESP32 `IO46` (module pin 16) | **Yes** (native pin) | **Not bound as `pulse_counter`** in any `packages/**` / `products/**` YAML by this doc | **Not measured** |
+| `Pul_Cou4` (per-fan tach, channel 4) | Native ESP32-S3 GPIO (interrupt-capable) | ESP32 `IO9` (module pin 17) | **Yes** (native pin) | **Not bound as `pulse_counter`** in any `packages/**` / `products/**` YAML by this doc | **Not measured** |
 
-**Until the per-fan `Pul_Cou1..4` lines are re-routed to native ESP32
-GPIO**, the firmware lane MUST NOT bind them as `sensor: platform:
-pulse_counter` inputs and MUST NOT claim per-fan RPM support. The
-existing PWM-drive-only `fan_pwm.yaml` scope (four `fan: platform: speed`
-controllers on `output: platform: sx1509`, no `pulse_counter`,
-`rpm_supported: false`) honours the rule today; that scope must stay
-intact until the hardware-side re-route exists.
+The `TachPMW1..4` PWM-drive outputs are likewise terminated at native
+ESP32-S3 GPIO on the new R4 sheet (`IO10` / `IO11` / `IO12` / `IO39`),
+documented in
+[`docs/hardware/s360-100-core-architecture.md` § Pin allocation
+table](s360-100-core-architecture.md#pin-allocation-table--native-esp32-s3-gpio-termination)
+and reconciled there against the prior SX1509-routed snapshot.
+
+**Until measured native-GPIO tach evidence exists** for `Pul_Cou1..4`
+on a physical `S360-100-R4` + `S360-311-R4` pair, the firmware lane
+MUST NOT bind them as `sensor: platform: pulse_counter` inputs and
+MUST NOT claim per-fan RPM support. The existing PWM-drive-only
+`fan_pwm.yaml` scope (four `fan: platform: speed` controllers on
+`output: platform: sx1509`, no `pulse_counter`, `rpm_supported:
+false`) honours the rule today; that scope must stay intact until a
+separate firmware PR re-binds it against this new R4 evidence and a
+bench session captures measured RPM.
+
+## R4 schematic refresh (2026-05-28)
+
+The newly delivered `S360-100-R4.pdf` (SHA256
+`4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`,
+837,443 bytes) supersedes the previously committed R4 snapshot. The
+new R4 sheet refreshes the Core schematic so that:
+
+- the per-fan `Pul_Cou1..4` and `TachPMW1..4` lines are printed
+  directly against native ESP32-S3 module pins (see the table
+  above);
+- the SX1509 (`U3`) I/O expander block that previously hosted those
+  nets is no longer printed on the visible sheet;
+- the per-module connector legends still carry the historical
+  "*Formerly used as …*" annotations, which the
+  [`docs/hardware/s360-100-core-architecture.md` § Connector / module
+  matrix](s360-100-core-architecture.md#connector--module-matrix)
+  ties to the current Sense360 module SKUs.
+
+The architectural rule above does **not** change — it still requires
+native ESP32-S3 GPIO termination for tach / pulse-counter inputs and
+still forbids any expander-routed `pulse_counter`. What changes is
+that the **schematic side** of the rule is now visibly satisfied by
+the canonical R4 sheet, where it was previously **pending a hardware
+re-route**. The firmware-binding side and the bench-evidence side are
+unchanged and remain owned by `S360-311-CURRENT-THERMAL-001` /
+`COMPONENT-NATIVE-TACH-001` and the downstream readiness gates.
 
 ## Impact on existing firmware / readiness documents
 
@@ -236,6 +272,11 @@ This document, and the tests added with it, must not:
 
 ## See also
 
+- [`docs/hardware/s360-100-core-architecture.md`](s360-100-core-architecture.md)
+  — canonical S360-100 Core architecture index: central-hub framing,
+  connector / module matrix, native-GPIO pin-allocation table from
+  the new R4 schematic, and bundle SKU ≠ firmware config ≠ board SKU
+  separation (S360-100-NATIVE-TACH-PULSE-001 — R4 refresh).
 - [`docs/hardware/s360-100-r4-core.md`](s360-100-r4-core.md) — Core
   schematic reference; source of truth for Core nets and connectors.
 - [`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md) — FanPWM
