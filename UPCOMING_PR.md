@@ -123,6 +123,70 @@ mirrored here.
   Release-One change, **no** LED-preview change, **no** FanRelay /
   FanDAC change, **no** FanTRIAC `HW-005` resolution claim, **no**
   `S360-410` PoE blocker resolution claim.
+- **S360-100-TACH-GPIO-ALLOCATION-001** delivers, via **PR #636** on
+  2026-05-28, the **final** native ESP32-S3 GPIO allocation for the
+  FanPWM tach / pulse-counter inputs `Pul_Cou1..4` (and the shared
+  `TachIO` passthrough and the `TachPMW1..4` PWM-drive outputs) on
+  the Core-side hardware reference and on the FanPWM module audit,
+  closing the next blocker after `S360-100-NATIVE-TACH-PULSE-001`
+  (PR #634) and the `S360-100-NATIVE-TACH-PULSE-001` R4 refresh
+  (PR #635). The allocation is **schematic-proven** by the canonical
+  `S360-100-R4.pdf` sheet (SHA256
+  `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`,
+  837,443 bytes, KiCad E.D.A. 10.0.3, single sheet `1/1`):
+  `TachIO`→`IO16`, `Pul_Cou1`→`IO17`, `Pul_Cou2`→`IO18`,
+  `Pul_Cou3`→`IO46`, `Pul_Cou4`→`IO9`, `TachPMW1`→`IO10`,
+  `TachPMW2`→`IO11`, `TachPMW3`→`IO12`, `TachPMW4`→`IO39`. None of
+  the chosen GPIOs is in the PSRAM / SPI-reserved set
+  (`IO35` / `IO36` / `IO37`); the connector / silkscreen pin-1
+  verification on `J6` and the `IO46` strapping confirmation stay
+  open under [§Open questions #9](docs/hardware/s360-100-r4-core.md)
+  + [§S360-100-BENCH-001 status](docs/hardware/s360-100-r4-core.md)
+  pending bench evidence.
+  **Change:** a new `S360-100-TACH-GPIO-ALLOCATION-001` section is
+  added to
+  [`docs/hardware/s360-100-r4-core.md`](docs/hardware/s360-100-r4-core.md)
+  (the Core hardware reference) and mirrored on the FanPWM module
+  audit
+  [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md);
+  the canonical strategy doc
+  [`docs/hardware/s360-100-native-tach-pulse-strategy.md`](docs/hardware/s360-100-native-tach-pulse-strategy.md)
+  pin-allocation table is annotated with a citation back to the new
+  section and the hardware-decision row records the assignment as
+  "schematic side" assigned (firmware-binding and bench-measured RPM
+  still pending); [`docs/blocker-burndown.md` §2A `PWM-12`](docs/blocker-burndown.md)
+  records the allocation under "native GPIO allocation documented";
+  a new dated `2026-05-28 — S360-100-TACH-GPIO-ALLOCATION-001`
+  subsection is added in
+  [`docs/product-readiness-matrix.md` §FanPWM / S360-311](docs/product-readiness-matrix.md).
+  **Tests:** a new
+  [`tests/test_tach_gpio_allocation.py`](tests/test_tach_gpio_allocation.py)
+  (15 tests) pins (a) every per-fan `Pul_Cou1..4` / `TachIO` /
+  `TachPMW1..4` net is recorded against its native ESP32-S3 GPIO on
+  the Core hardware doc, the FanPWM module audit, and the Core
+  architecture index; (b) the strategy doc, blocker doc, and
+  readiness matrix all cite the S360-100-TACH-GPIO-ALLOCATION-001
+  record; (c) none of the chosen GPIOs is in the PSRAM / SPI-reserved
+  set; (d) the architectural rule from `S360-100-NATIVE-TACH-PULSE-001`
+  (no `pulse_counter` ↔ `sx1509:` binding) still holds; and (e) the
+  GPIO-allocation record does not flip `S360-311`
+  `schematic_status`, does not promote any FanPWM product, does not
+  set `rpm_supported: true`, does not flip `webflash_build_matrix`,
+  does not set `artifact_name`, and does not add FanPWM to
+  [`config/webflash-builds.json`](config/webflash-builds.json). The
+  pre-existing
+  [`tests/test_native_tach_pulse_pin_strategy.py`](tests/test_native_tach_pulse_pin_strategy.py)
+  and
+  [`tests/test_sx1509_tach_pulse_counter_proof.py`](tests/test_sx1509_tach_pulse_counter_proof.py)
+  remain the authoritative guards for the architectural rule and the
+  SX1509 / `pulse_counter` compile/config proof, respectively.
+  **No** firmware publish, **no** release artifact, **no**
+  `firmware/sources.json` change, **no** `manifest.json` change,
+  **no** release target promoted, **no** measured RPM / tach support
+  claim, **no** firmware YAML edit (no `sensor: platform:
+  pulse_counter` is bound against `Pul_Cou1..4`), **no** S360-410
+  PoE blocker resolution claim, **no** fan WebFlash / release
+  readiness claim, **no** fabricated bench / silkscreen evidence.
   **Status stays conservative and unchanged:** `Ceiling-POE-FanPWM`
   remains `hardware-pending`, PWM-drive-only, `rpm_supported: false`;
   no `webflash_build_matrix` flip; no `artifact_name`; no

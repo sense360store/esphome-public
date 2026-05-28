@@ -101,10 +101,24 @@ limitation here.
 | SX1509 (U3) used for PWM-drive output | Permitted (`output: platform: sx1509`); separate capability. |
 | SX1509 (U3) used for polled binary GPIO state | Permitted (`binary_sensor: platform: gpio` — never `pulse_counter`). |
 | Any prior "SX1509 can back fan tach" claim | **Incorrect; corrected by this document.** |
-| Final GPIO assignment for `Pul_Cou1..4` | **Not yet assigned** — pending pin-allocation table below. |
+| Final GPIO assignment for `Pul_Cou1..4` | **Assigned on the schematic side** — `IO17` / `IO18` / `IO46` / `IO9` per the canonical R4 sheet; recorded in [§Pending pin-allocation table (native GPIO constraint)](#pending-pin-allocation-table-native-gpio-constraint) below and pinned by [`docs/hardware/s360-100-r4-core.md` § S360-100-TACH-GPIO-ALLOCATION-001](s360-100-r4-core.md#s360-100-tach-gpio-allocation-001--native-esp32-gpio-allocation-for-fanpwm-tach-inputs). Firmware-binding and bench-measured RPM are still pending. |
 | Final GPIO assignment for `TachIO` (shared) | `IO16` per the committed S360-100-R4 schematic (`s360-100-r4-core.md` table). |
 
 ## Pending pin-allocation table (native GPIO constraint)
+
+> **S360-100-TACH-GPIO-ALLOCATION-001 (2026-05-28).** The
+> schematic-side per-fan native GPIO allocation for `Pul_Cou1..4`
+> (and the shared `TachIO` passthrough and the `TachPMW1..4`
+> PWM-drive outputs) is now **proven** on the canonical R4 sheet and
+> recorded in
+> [`docs/hardware/s360-100-r4-core.md` § S360-100-TACH-GPIO-ALLOCATION-001](s360-100-r4-core.md#s360-100-tach-gpio-allocation-001--native-esp32-gpio-allocation-for-fanpwm-tach-inputs)
+> and (mirrored on the module-audit side) in
+> [`docs/hardware/s360-311-r4-pwm.md` § S360-100-TACH-GPIO-ALLOCATION-001](s360-311-r4-pwm.md#s360-100-tach-gpio-allocation-001--core-side-native-esp32-gpio-allocation-2026-05-28).
+> The table below remains the canonical strategy-doc view of the same
+> allocation. The **firmware-binding side** and the **bench-evidence
+> side** still stay pending — the architectural rule does not by
+> itself bind any pin or claim measured RPM.
+
 
 The pin-allocation table below records the **required constraint** and
 the **schematic-printed** native-GPIO termination on the **current

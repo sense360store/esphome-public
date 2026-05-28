@@ -1483,6 +1483,48 @@ named follow-up.
   for non-fan signals), **no** `firmware/sources.json` / `manifest.json`
   change, **no** S360-410 PoE blocker resolution, **no** FanTRIAC
   `HW-005` resolution.
+- **2026-05-28 — `S360-100-TACH-GPIO-ALLOCATION-001` (PR #636;
+  docs / tests only) — native GPIO allocation documented for FanPWM
+  tach inputs.** Building on the `S360-100-NATIVE-TACH-PULSE-001` R4
+  refresh, this PR records the **final** per-fan native ESP32-S3 GPIO
+  allocation for `Pul_Cou1..4` (and the shared `TachIO` passthrough
+  and the `TachPMW1..4` PWM-drive outputs) as proven on the canonical
+  R4 sheet (SHA256
+  `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`):
+  `TachIO`→`IO16`, `Pul_Cou1`→`IO17`, `Pul_Cou2`→`IO18`,
+  `Pul_Cou3`→`IO46`, `Pul_Cou4`→`IO9`, `TachPMW1`→`IO10`,
+  `TachPMW2`→`IO11`, `TachPMW3`→`IO12`, `TachPMW4`→`IO39`. The
+  allocation is now pinned on the **Core-side hardware reference**
+  ([`s360-100-r4-core.md` § S360-100-TACH-GPIO-ALLOCATION-001](hardware/s360-100-r4-core.md#s360-100-tach-gpio-allocation-001--native-esp32-gpio-allocation-for-fanpwm-tach-inputs)),
+  on the **FanPWM module audit**
+  ([`s360-311-r4-pwm.md` § S360-100-TACH-GPIO-ALLOCATION-001](hardware/s360-311-r4-pwm.md#s360-100-tach-gpio-allocation-001--core-side-native-esp32-gpio-allocation-2026-05-28)),
+  and (still authoritative) on the canonical strategy doc
+  ([`s360-100-native-tach-pulse-strategy.md` § Pending pin-allocation table](hardware/s360-100-native-tach-pulse-strategy.md#pending-pin-allocation-table-native-gpio-constraint)).
+  None of the chosen ESP32-S3 GPIOs is in the PSRAM / SPI-reserved
+  set (`IO35` / `IO36` / `IO37`); strapping and silkscreen / connector
+  pin-1 verification stay open in the existing
+  [`s360-100-r4-core.md` § S360-100-BENCH-001 status](hardware/s360-100-r4-core.md#s360-100-bench-001-status)
+  + [Open questions #9](hardware/s360-100-r4-core.md#open-questions--verification-needed)
+  records. **Tests:** a new
+  [`tests/test_tach_gpio_allocation.py`](../tests/test_tach_gpio_allocation.py)
+  pins the per-fan native GPIO mapping in the Core hardware doc, in
+  the FanPWM module audit, and in the strategy doc + Core architecture
+  doc, and re-asserts that no `packages/**` / `products/**` YAML binds
+  `pulse_counter` through `sx1509:` and that no FanPWM-bearing entry
+  exists in [`config/webflash-builds.json`](../config/webflash-builds.json).
+  **Product-layer disposition is unchanged** — `Ceiling-POE-FanPWM`
+  stays `hardware-pending`, PWM-drive-only, `rpm_supported: false`;
+  no `webflash_build_matrix` flip; no `artifact_name`; no
+  `config/webflash-builds.json` row; no release artifact;
+  `WEBFLASH-PWM-001` / `RELEASE-PWM-001` / `WF-IMPORT-PWM-001` stay
+  blocked; `S360-311` stays `cataloged_unverified`; FanTRIAC
+  `HW-005` is unchanged; `S360-410` PoE PSU is unchanged; Release-One
+  (`Ceiling-POE-VentIQ-RoomIQ` / stable) and the LED preview
+  (`Ceiling-POE-VentIQ-RoomIQ-LED` / preview) are unchanged. **No**
+  measured RPM / tach claim, **no** firmware YAML edit, **no**
+  fabricated bench evidence — firmware-binding and bench-measured
+  RPM stay owned by `S360-311-CURRENT-THERMAL-001` /
+  `COMPONENT-NATIVE-TACH-001` (future).
 
 ### FanDAC / S360-312
 
