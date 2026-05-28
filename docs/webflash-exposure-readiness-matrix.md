@@ -1267,6 +1267,25 @@ catalog entry, no new build-matrix entry, no release artifact, no
 WebFlash import. The existing legacy four-channel YAML stays
 `legacy-compatible` and stays out of the WebFlash build matrix.
 
+**Native ESP32-S3 GPIO FanPWM candidate — `S360-311-NATIVE-FANPWM-YAML-001`
+(this PR).** A native-GPIO FanPWM candidate now exists alongside the legacy
+SX1509 path:
+[`packages/expansions/fan_pwm_native.yaml`](../packages/expansions/fan_pwm_native.yaml)
+binds FanPWM control to native ESP32-S3 GPIO (`TachPMW1..4` ->
+`IO10`/`IO11`/`IO12`/`IO39`, `ledc`) and tach / pulse-counter to native
+ESP32-S3 GPIO (`Pul_Cou1`/`Pul_Cou2`/`Pul_Cou4` -> `IO17`/`IO18`/`IO9`,
+internal-diagnostic `pulse_counter`), with **no SX1509** for PWM or tach;
+`Pul_Cou3`/`IO46` is disabled/TBD (collides with the Core
+`fan_status_led_pin` `GPIO46`) and `TachIO`/`IO16` is reserved/pending. It is
+exercised by the compile-only skeleton
+[`products/compile-only/ceiling-poe-fanpwm-native.yaml`](../products/compile-only/ceiling-poe-fanpwm-native.yaml)
+(target `ceiling-poe-fanpwm-native-compile-only`,
+`compile_validation_status: pending-ci`). **This changes no WebFlash
+posture:** the `FanPWM` token does not appear in
+`config/webflash-builds.json`; no wrapper, no `webflash_build_matrix` flip,
+no `artifact_name`, no release artifact; `rpm_supported: false`. FanPWM stays
+`not-webflash-ready`.
+
 **Future exposure class (intent).** `preview-candidate` as a standard
 exposure, only after: `HW-PINMAP-311-FOLLOWUP` (standalone
 schematic-backed reference doc; Core `J6` 1-to-13 pin-order verify

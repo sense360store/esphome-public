@@ -1465,6 +1465,22 @@ no `artifact_name`; no release artifact / proof row added; no WebFlash / import
 > `not-release-ready`, `webflash_build_matrix: false`, no
 > `artifact_name`, no `config/webflash-builds.json` row.
 
+> **S360-311-NATIVE-FANPWM-YAML-001 (this PR).** A native ESP32-S3 GPIO
+> FanPWM candidate now exists alongside the legacy SX1509 path:
+> [`packages/expansions/fan_pwm_native.yaml`](../packages/expansions/fan_pwm_native.yaml)
+> (native `ledc` PWM on `TachPMW1..4` -> `IO10`/`IO11`/`IO12`/`IO39`; native
+> `pulse_counter` tach on `Pul_Cou1`/`Pul_Cou2`/`Pul_Cou4` ->
+> `IO17`/`IO18`/`IO9`; `Pul_Cou3`/`IO46` disabled/TBD; `TachIO`/`IO16`
+> reserved) exercised by the compile-only skeleton
+> [`products/compile-only/ceiling-poe-fanpwm-native.yaml`](../products/compile-only/ceiling-poe-fanpwm-native.yaml)
+> (target `ceiling-poe-fanpwm-native-compile-only`). **This adds no release
+> artifact:** `compile_validation_status: pending-ci` (no native compile run
+> performed; the legacy SX1509 run `26414398902` does not transfer; no
+> compile-proven firmware claimed), `rpm_supported: false`, no `.bin`, no
+> `artifact_name`, no `config/webflash-builds.json` row, no
+> `webflash_build_matrix` flip. `Ceiling-POE-FanPWM` stays
+> `not-release-ready`; bench / current / thermal / RPM evidence stays pending.
+
 **Current state.** No non-legacy FanPWM product YAML under
 [`products/`](../products/); no FanPWM WebFlash wrapper; no FanPWM
 catalog entry on the WebFlash track; no FanPWM build-matrix row; no

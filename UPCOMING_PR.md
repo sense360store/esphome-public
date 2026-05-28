@@ -24,6 +24,44 @@ mirrored here.
 
 ## Current queue summary
 
+- **S360-311-NATIVE-FANPWM-YAML-001** delivers, via **this PR** on
+  2026-05-28, the **native ESP32-S3 GPIO FanPWM YAML candidate** that
+  replaces the superseded SX1509 fan-control path for the S360-311
+  `Sense360 PWM` board, per the canonical map landed by
+  **S360-100-NATIVE-FAN-GPIO-MAP-001** (PR #637) and the connector /
+  module pin maps from PR #638 / #639. **Change:** a new native package
+  [`packages/expansions/fan_pwm_native.yaml`](packages/expansions/fan_pwm_native.yaml)
+  binds FanPWM control to native ESP32-S3 GPIO (`TachPMW1..4` →
+  `IO10`/`IO11`/`IO12`/`IO39`, four `output: platform: ledc` outputs) and
+  tach / pulse-counter to native ESP32-S3 GPIO (`Pul_Cou1`/`Pul_Cou2`/
+  `Pul_Cou4` → `IO17`/`IO18`/`IO9`, three internal-diagnostic
+  `sensor: platform: pulse_counter` inputs) — **no SX1509** for PWM or
+  tach. `Pul_Cou3` (`IO46`) stays **disabled / TBD** (collides with the
+  Core `fan_status_led_pin` `GPIO46`) and `TachIO` (`IO16`) stays
+  **reserved / pending** rather than inventing a mapping. A new
+  compile-only skeleton
+  [`products/compile-only/ceiling-poe-fanpwm-native.yaml`](products/compile-only/ceiling-poe-fanpwm-native.yaml)
+  and compile-only target `ceiling-poe-fanpwm-native-compile-only`
+  (in [`config/compile-only-targets.json`](config/compile-only-targets.json))
+  exercise the candidate. **Honesty / guardrails:** compile status is
+  `compile_validation_status: pending-ci` (no native `esphome compile`
+  run performed; the legacy SX1509 run `26414398902` does **not**
+  transfer; no compile-proven firmware claimed); bench status stays
+  pending; RPM / tach support stays **unvalidated** (`rpm_supported:
+  false`); current / thermal evidence stays pending. FanPWM stays
+  **excluded from release / WebFlash** — the `FanPWM` token does not
+  appear in `config/webflash-builds.json`, no `artifact_name`, no
+  `webflash_build_matrix` flip, no WebFlash wrapper. The legacy SX1509
+  FanPWM YAMLs and the historical SX1509 / `pulse_counter` proof remain
+  in place (legacy / superseded, manual-only). New guard
+  [`tests/test_native_fanpwm_yaml.py`](tests/test_native_fanpwm_yaml.py)
+  pins the native-path invariants; docs updated across
+  [`docs/manual-install-fan-candidates.md`](docs/manual-install-fan-candidates.md),
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md),
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
+  [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+  and [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md).
 - **MODULE-PINMAPS-GDRIVE-001** delivers, via **this PR** on
   2026-05-28, the per-module **module-side** companion pin maps
   for every Sense360 R4 module SKU — one document per board

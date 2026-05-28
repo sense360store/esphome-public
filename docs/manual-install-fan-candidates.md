@@ -146,6 +146,32 @@ esphome upload products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml
 > / `IO12` / `IO39`; `Pul_Cou1..4` -> `IO17` / `IO18` / `IO46` / `IO9`;
 > `TachIO` -> `IO16`) is owed by a future firmware PR that must
 > include an `esphome compile` pass and bench validation.
+>
+> **Native ESP32-S3 GPIO FanPWM candidate (S360-311-NATIVE-FANPWM-YAML-001).**
+> A native-GPIO FanPWM candidate now exists alongside the legacy SX1509
+> path:
+> [`packages/expansions/fan_pwm_native.yaml`](../packages/expansions/fan_pwm_native.yaml)
+> binds FanPWM control directly to native ESP32-S3 GPIO
+> (`TachPMW1..4` -> `IO10` / `IO11` / `IO12` / `IO39`, four
+> `output: platform: ledc` outputs) and the tach / pulse-counter inputs
+> to native ESP32-S3 GPIO (`Pul_Cou1` / `Pul_Cou2` / `Pul_Cou4` ->
+> `IO17` / `IO18` / `IO9`, three internal-diagnostic
+> `sensor: platform: pulse_counter` inputs). It uses **no SX1509** for
+> PWM output or for tach / `pulse_counter`. `Pul_Cou3` (`IO46`) stays
+> **disabled / TBD** (it collides with the Core `fan_status_led_pin`
+> `GPIO46`); `TachIO` (`IO16`) stays **reserved / pending** (ambiguous
+> shared-passthrough role). The candidate is exercised by the
+> compile-only skeleton
+> [`products/compile-only/ceiling-poe-fanpwm-native.yaml`](../products/compile-only/ceiling-poe-fanpwm-native.yaml)
+> (target `ceiling-poe-fanpwm-native-compile-only`,
+> `compile_validation_status: pending-ci`). **No native `esphome
+> compile` run has been performed** (the legacy SX1509 full-compile run
+> `26414398902` does not transfer); full compile is pending CI and no
+> compile-proven firmware is claimed. RPM / tach support stays
+> **unvalidated** (`rpm_supported: false`); the native candidate adds no
+> WebFlash wrapper, no `config/webflash-builds.json` row, no
+> `artifact_name`, and no `webflash_build_matrix` flip. FanPWM stays
+> excluded from release / WebFlash.
 
 ### Remote-package include
 

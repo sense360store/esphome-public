@@ -959,6 +959,34 @@ named follow-up.
   > (`Ceiling-POE-FanPWM`) **exists** as a product-YAML-only, no-WebFlash-exposure
   > slice; the legacy four-channel YAML stays `legacy-compatible`. The historical
   > prose below is retained for the audit trail only.
+- **Native ESP32-S3 GPIO FanPWM candidate — `S360-311-NATIVE-FANPWM-YAML-001`
+  (this PR).** A native-GPIO FanPWM candidate now exists alongside the
+  legacy / superseded SX1509 path. The native package
+  [`packages/expansions/fan_pwm_native.yaml`](../packages/expansions/fan_pwm_native.yaml)
+  binds FanPWM control directly to native ESP32-S3 GPIO (`TachPMW1..4` ->
+  `IO10` / `IO11` / `IO12` / `IO39`, four `output: platform: ledc` outputs)
+  and the tach / pulse-counter inputs to native ESP32-S3 GPIO (`Pul_Cou1` /
+  `Pul_Cou2` / `Pul_Cou4` -> `IO17` / `IO18` / `IO9`, three internal-diagnostic
+  `sensor: platform: pulse_counter` inputs). It uses **no SX1509** for PWM
+  output or for tach / `pulse_counter`. `Pul_Cou3` (`IO46`) stays
+  **disabled / TBD** (collides with the Core `fan_status_led_pin` `GPIO46`);
+  `TachIO` (`IO16`) stays **reserved / pending** (ambiguous shared-passthrough
+  role). The candidate is exercised by the compile-only skeleton
+  [`products/compile-only/ceiling-poe-fanpwm-native.yaml`](../products/compile-only/ceiling-poe-fanpwm-native.yaml)
+  (target `ceiling-poe-fanpwm-native-compile-only`). **Compile status is
+  recorded honestly: `compile_validation_status: pending-ci`** — no native
+  `esphome compile` run has been performed and the legacy SX1509 full-compile
+  run `26414398902` does **not** transfer; full compile is owned by CI and no
+  compile-proven firmware is claimed. **Bench status stays pending; RPM / tach
+  support stays UNVALIDATED (`rpm_supported: false`); current / thermal
+  evidence stays pending** (carried by `PWM-6` / `PWM-12` / `PWM-13` in
+  [`docs/blocker-burndown.md` §2A](blocker-burndown.md)). The native candidate
+  adds **no** WebFlash wrapper, **no** `config/webflash-builds.json` row,
+  **no** `artifact_name`, and **no** `webflash_build_matrix` flip; FanPWM
+  stays excluded from release / WebFlash. The legacy SX1509 YAMLs and the
+  historical SX1509 / `pulse_counter` proof remain in place
+  (legacy / superseded, manual-only, not release-selectable). Pinned by
+  [`tests/test_native_fanpwm_yaml.py`](../tests/test_native_fanpwm_yaml.py).
 - **Why no product YAML.** *(Historical — superseded; see the reconciliation
   note above.)* The required package
   [`packages/expansions/fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml)
