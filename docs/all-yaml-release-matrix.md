@@ -310,6 +310,18 @@ slice before promotion.
 | Other room combos (`Ceiling-POE-VentIQ` alone, `Ceiling-POE-RoomIQ` alone, `Ceiling-POE-AirIQ`, `Ceiling-POE-AirIQ-RoomIQ`, `Ceiling-POE`) | compile-only | Compile-only skeleton; CI validation row | Top-level product YAML; catalog row; WebFlash wrapper; `artifact_name`; `webflash_build_matrix: true`; `config/webflash-builds.json` row; product / WebFlash / release readiness | Out of scope — no Release-One kit ships these as standalone configs today. **Not a candidate addition.** |
 | Legacy Core / Core-Voice / Mini configs (`products/sense360-core-*.yaml`, `products/sense360-mini-*.yaml`, `products/sense360-poe.yaml`, `products/sense360-fan-pwm.yaml`) | `not-a-product-entrypoint` (legacy-compatible) | Pre-WebFlash YAMLs retained for manual / custom users | Re-onboarding through PRODUCT-GAP-001 / WEBFLASH-GAP-001 / RELEASE-GAP-001; no claim that any of these would map cleanly to a WebFlash `config_string` without further work | Not in any current follow-up. **Not a candidate addition.** |
 
+> **Actionable expansion plan:** the
+> [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md)
+> (STABLE-TARGET-EXPANSION-PLAN-001) document derives the per-candidate
+> stable-promotion gate checklist (G1–G10), the recommended follow-up
+> PR sequence (`STABLE-TARGET-VENTIQ-001`, `STABLE-TARGET-CORE-001`,
+> `STABLE-TARGET-ROOMIQ-001`, `STABLE-TARGET-AIRIQ-001`,
+> `STABLE-TARGET-AIRIQ-ROOMIQ-001`, `LED-STABLE-PROMOTION-001`) and the
+> per-PR scope template directly from the rows above. The plan does
+> **not** promote anything; it records the missing evidence per
+> candidate. Cross-referenced from the all-YAML matrix to keep the
+> "what's next" path obvious.
+
 ---
 
 ## Release-selection design (post-this-PR)
@@ -402,6 +414,7 @@ This document is reproduced and locked in by:
 - Product-layer gate: [`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
 - Preview-to-stable gauntlet: [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
 - LED preview decision: [`docs/product-led-preview-decision.md`](product-led-preview-decision.md)
+- **Stable target expansion plan: [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md) (STABLE-TARGET-EXPANSION-PLAN-001)**
 - Manual install path: [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md)
 - Compile-only lane: [`docs/compile-only-firmware-validation.md`](compile-only-firmware-validation.md)
 - Availability vocabulary: [`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)

@@ -397,12 +397,46 @@ the LED / changelog wording reword (generator now product-aware; the stale
 
 ---
 
+## STABLE-TARGET-EXPANSION-PLAN-001 — actionable stable-target expansion plan (2026-05-28)
+
+STABLE-TARGET-EXPANSION-PLAN-001 turns this room-family inventory and the
+broader all-YAML matrix
+([`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md) /
+STABLE-RELEASE-MATRIX-ALL-YAML-001 / PR #629) into an explicit, actionable
+expansion plan. **It changes no row** in the release matrix table above
+and publishes nothing.
+
+| Aspect | Result |
+|---|---|
+| New planning doc | [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md) |
+| In-scope candidates (non-fan / non-LED / non-TRIAC room combos) | `Ceiling-POE`, `Ceiling-POE-RoomIQ`, `Ceiling-POE-VentIQ`, `Ceiling-POE-AirIQ`, `Ceiling-POE-AirIQ-RoomIQ` — all currently `compile-only` skeleton-only |
+| Closest to stable today | `Ceiling-POE-VentIQ` (already exercised by the stable Release-One build's VentIQ subset, so smallest stable-expansion delta) |
+| Recommended follow-up PR sequence | `STABLE-TARGET-VENTIQ-001` → `STABLE-TARGET-CORE-001` → `STABLE-TARGET-ROOMIQ-001` → `STABLE-TARGET-AIRIQ-001` → `STABLE-TARGET-AIRIQ-ROOMIQ-001` → `LED-STABLE-PROMOTION-001` (LED stable, gauntlet-gated, only if/when LED bench evidence supports it) |
+| LED stable promotion | **Not approved** by this plan; stays `preview` until [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md) closes |
+| FanRelay / FanPWM / FanDAC | **Not approved** by this plan; stay `manual-candidate-only` behind `WEBFLASH-RELAY-001` / `WEBFLASH-PWM-001` / `WEBFLASH-DAC-001` and their `RELEASE-*-001` follow-ups |
+| FanTRIAC | **Not approved** by this plan; stays `blocked` (HW-005) |
+| `config/webflash-builds.json` / `config/product-catalog.json` / `config/compile-only-targets.json` / `config/manual-firmware-artifacts.json` / `config/webflash-compatibility.json` | **None edited** — stable target count stays 1, preview target count stays 1 |
+| GitHub Release / `.bin` / checksum / `firmware/sources.json` / `manifest.json` | **none produced or committed** |
+
+The plan documents the per-candidate stable-promotion gate checklist
+(G1 top-level YAML, G2 catalog row, G3 top-level full compile, G4
+WebFlash wrapper, G5 `artifact_name`, G6 `config/webflash-builds.json`
+row, G7 release-notes generation, G8 hardware / compliance, G9 not in
+manual lane, G10 preview-to-stable gauntlet) and a per-PR scope
+template for the `STABLE-TARGET-*-001` slices. None of these PRs is
+approved or scoped by STABLE-TARGET-EXPANSION-PLAN-001 itself. See
+[`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md).
+
+---
+
 ## Cross-references
 
 - Shipping configuration: [`docs/release-one.md`](release-one.md)
 - Release-layer gate: [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
 - WebFlash-layer gate: [`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md)
 - Product-layer gate: [`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
+- All-YAML release matrix: [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md)
+- **Stable target expansion plan: [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md) (STABLE-TARGET-EXPANSION-PLAN-001)**
 - Manual install path: [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md)
 - Compile-only lane: [`docs/compile-only-firmware-validation.md`](compile-only-firmware-validation.md)
 - Availability vocabulary: [`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
