@@ -3418,6 +3418,38 @@ published.
 | GitHub Release / `.bin` / checksum / build-info `manifest.json` / `firmware/sources.json` / `manifest.json` | **none produced or committed** |
 | Resume conditions | Per [`docs/stable-target-ventiq-001-gate-closure.md` §Resume conditions](stable-target-ventiq-001-gate-closure.md#resume-conditions): `PACKAGE-POE-410-001`, `S360-100-BENCH-001` `J2`-harness closure, `S360-410 schematic_status: verified` JSON PR, board / package readiness matrix flips, product-onboarding approval |
 
+## PACKAGE-POE-410-001 — S360-410 PoE PSU evidence audit (2026-05-28)
+
+`PACKAGE-POE-410-001` is the upstream package-readiness slice for
+`S360-410` Sense360 PoE PSU. It is the G8 hardware-evidence
+upstream block on the five A-row stable expansion candidates and
+on a hypothetical sibling PoE-410-explicit product entry under
+[`product-readiness-matrix.md` §PoE-410 / S360-410](product-readiness-matrix.md#poe-410--s360-410)
+and
+[`webflash-exposure-readiness-matrix.md` §PoE / S360-410 WebFlash posture](webflash-exposure-readiness-matrix.md#poe--s360-410-webflash-posture).
+**This PR audits the slice and records the result as a precise
+evidence-request record** — option 4 in its task brief. **No row
+in this release-artifact readiness matrix changes** and nothing is
+published.
+
+| Aspect | Result |
+|---|---|
+| New audit record | [`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md) |
+| `S360-410` `schematic_status` | **stays `cataloged_unverified`** per [`config/hardware-catalog.json`](../config/hardware-catalog.json); `schematic_file` not set. |
+| `packages/hardware/power_poe.yaml` | **Byte-identical** to PR #517 / PR #526; comment cleanup deferred to a future `PACKAGE-POE-410-001` implementation PR. |
+| Release-One PoE `"schematic verification pending"` caveat | **Preserved verbatim** at [`release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings). |
+| Evidence on file | E1 (board SKU / R4 / naming); E3 (schematic-shown discrete topology via HW-PINMAP-410-FOLLOWUP / PR #517); E4 (BOM at the part-identity layer via `HW-BOM-ASSETS-002`); E5 (PoE-to-5 V role topology); E6 (SELV-side); E7 (no mains caveat). |
+| Evidence partial | E2 (schematic PDF committed under HW-ASSETS-410 / PR #516 but the JSON `schematic_status: verified` / `schematic_file` promotion has not landed). |
+| Evidence missing | E8 (package-header identity reconciliation); E9 (`J3` silkscreen pin-1); E10 (HW-002 OQ#6 / `S360-100-BENCH-001` J2-harness identity); E11 (PoE link-up / load / thermal / EMI / EMC bench); E12 (isolation / Hi-pot / leakage / earth-continuity); E13 (KiCad PCB source / gerbers); E14 (`F0505S-2WR2` vs `AM1D-0505S-NZ` primary-vs-alternate); E15 (Release-One PoE caveat closure). |
+| Stable expansion targets still blocked | `Ceiling-POE` (A1), `Ceiling-POE-RoomIQ` (A2), `Ceiling-POE-VentIQ` (A5 — STABLE-TARGET-VENTIQ-001 already deferred per PR #632), `Ceiling-POE-AirIQ` (A3), `Ceiling-POE-AirIQ-RoomIQ` (A4). |
+| LED stable promotion | **Not approved** by this PR; LED preview stays `preview-release`. |
+| FanRelay / FanPWM / FanDAC | Stay `manual-candidate-only` — no `artifact_name`, no `webflash_build_matrix` flip, no WebFlash wrapper, no release artifact. |
+| FanTRIAC | Stays `blocked` (`HW-005`). |
+| `config/webflash-builds.json` / `config/product-catalog.json` / `config/compile-only-targets.json` / `config/manual-firmware-artifacts.json` / `config/webflash-compatibility.json` / `config/hardware-catalog.json` / `config/room-bundle-skus.json` | **None edited** — release-artifact matrix rows above stay verbatim; the Release-One `v1.0.0` release and the LED preview `v1.0.0-led-preview` prerelease both stay verbatim. |
+| Tests pin | `tests/test_hardware_catalog.py` `EXPECTED_STILL_UNVERIFIED_SKUS` now includes `S360-410`; new `test_s360_410_poe_psu_is_not_verified` regression pin. |
+| GitHub Release / `.bin` / checksum / `firmware/sources.json` / `manifest.json` | **none produced or committed** |
+| Resume conditions | Per [`docs/package-poe-410-001-audit.md` §Resume conditions](package-poe-410-001-audit.md#resume-conditions): E9, E10, E11, E12 close (silkscreen / J2-harness / bench / isolation evidence) and E2 closes (separate JSON-only `schematic_status: verified` PR); E14 closes (`F0505S-2WR2` vs `AM1D-0505S-NZ` decision); the four E8 operator / designer questions are answered. |
+
 ## See also
 
 - [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md)
@@ -3432,6 +3464,15 @@ published.
   deferral; promotes nothing; edits no `config/*.json`; adds no
   top-level product YAML, WebFlash wrapper, `artifact_name`, or
   `config/webflash-builds.json` row.
+- [`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md)
+  — PACKAGE-POE-410-001 per-evidence-class audit for `S360-410`
+  Sense360 PoE PSU. Records option-4 outcome (evidence
+  insufficient for verification; precise evidence-request record
+  produced). Documentation + test-constant pin only; `S360-410`
+  stays `cataloged_unverified`; `packages/hardware/power_poe.yaml`
+  stays byte-identical; Release-One PoE caveat preserved
+  verbatim; adds no product YAML / WebFlash wrapper /
+  `artifact_name` / `config/webflash-builds.json` row.
 - [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md) —
   STABLE-RELEASE-MATRIX-ALL-YAML-001 all-YAML release classification.
   Upstream of the expansion plan; classifies every YAML under

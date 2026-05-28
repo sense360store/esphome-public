@@ -460,6 +460,43 @@ conditions hold. See
 
 ---
 
+## PACKAGE-POE-410-001 — S360-410 PoE PSU evidence audit (2026-05-28)
+
+`PACKAGE-POE-410-001` is the upstream package-readiness slice for
+`S360-410` Sense360 PoE PSU. It is the **G8 blocker** named by
+[`docs/stable-target-ventiq-001-gate-closure.md` §G8.c](stable-target-ventiq-001-gate-closure.md#g8c--sense360-poe-psu-s360-410)
+and is the shared block on all five A-row stable expansion
+candidates in
+[`docs/stable-target-expansion-plan.md` §A. Non-fan / non-LED /
+non-TRIAC room combos](stable-target-expansion-plan.md#a-non-fan--non-led--non-triac-room-combos)
+(`Ceiling-POE`, `Ceiling-POE-RoomIQ`, `Ceiling-POE-VentIQ`,
+`Ceiling-POE-AirIQ`, `Ceiling-POE-AirIQ-RoomIQ`). **This PR audits
+that slice and records the result as a precise evidence-request
+record** — option 4 in its task brief — because the schematic PDF
+and BOM are on file but silkscreen / bench / isolation / J2-harness
+evidence is not. It changes no row in the release matrix table
+above and publishes nothing.
+
+| Aspect | Result |
+|---|---|
+| New audit record | [`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md) |
+| `S360-410` `schematic_status` | **stays `cataloged_unverified`** per [`config/hardware-catalog.json`](../config/hardware-catalog.json); `schematic_file` not set; row at lines 112–121 byte-identical. |
+| `packages/hardware/power_poe.yaml` | **Byte-identical** to PR #517 / PR #526 (header lines 6–11 preserved); comment cleanup deferred to a future `PACKAGE-POE-410-001` implementation PR. |
+| Release-One PoE `"schematic verification pending"` caveat | **Preserved verbatim** at [`release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings). |
+| Evidence on file | E1 (board SKU / R4 / naming); E3 (schematic-shown discrete topology via HW-PINMAP-410-FOLLOWUP / PR #517); E4 (BOM at the part-identity layer via `HW-BOM-ASSETS-002`); E5 (PoE-to-5 V role topology); E6 (SELV-side); E7 (no mains caveat). |
+| Evidence partial | E2 (schematic PDF committed under HW-ASSETS-410 / PR #516 but the JSON `schematic_status: verified` / `schematic_file` promotion has not landed). |
+| Evidence missing | E8 (package-header identity reconciliation); E9 (`J3` silkscreen pin-1); E10 (HW-002 OQ#6 / `S360-100-BENCH-001` J2-harness identity); E11 (PoE link-up / load / thermal / EMI / EMC bench); E12 (isolation / Hi-pot / leakage / earth-continuity); E13 (KiCad PCB source / gerbers); E14 (`F0505S-2WR2` vs `AM1D-0505S-NZ` primary-vs-alternate); E15 (Release-One PoE caveat closure). |
+| Stable expansion targets still blocked | `Ceiling-POE` (A1), `Ceiling-POE-RoomIQ` (A2), `Ceiling-POE-VentIQ` (A5 — STABLE-TARGET-VENTIQ-001 already deferred per PR #632), `Ceiling-POE-AirIQ` (A3), `Ceiling-POE-AirIQ-RoomIQ` (A4). |
+| LED stable promotion | **Not approved** by this PR; LED preview stays `preview-release` until the full 17-row [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md) gauntlet closes. |
+| FanRelay / FanPWM / FanDAC | Stay `manual-candidate-only` — no `artifact_name`, no `webflash_build_matrix` flip, no WebFlash wrapper, no release artifact. |
+| FanTRIAC | Stays `blocked` (`HW-005`). |
+| `config/webflash-builds.json` / `config/product-catalog.json` / `config/compile-only-targets.json` / `config/manual-firmware-artifacts.json` / `config/webflash-compatibility.json` / `config/hardware-catalog.json` / `config/room-bundle-skus.json` | **None edited** — stable target count stays 1, preview target count stays 1, compile-only target count stays 12; `S360-410` row in `config/hardware-catalog.json` stays byte-identical. |
+| Tests pin | `tests/test_hardware_catalog.py` `EXPECTED_STILL_UNVERIFIED_SKUS` now includes `S360-410`; new `test_s360_410_poe_psu_is_not_verified` regression pin. |
+| GitHub Release / `.bin` / checksum / `firmware/sources.json` / `manifest.json` | **none produced or committed** |
+| Resume conditions | Per [`docs/package-poe-410-001-audit.md` §Resume conditions](package-poe-410-001-audit.md#resume-conditions): E9 (silkscreen / KiCad PCB) + E10 (J2-harness identity) + E11 (bench / PoE link-up / load / thermal / EMI / EMC) + E12 (isolation / Hi-pot / leakage) + E2 (separate JSON-only `schematic_status: verified` PR) + E14 (`F0505S-2WR2` vs `AM1D-0505S-NZ` decision) + design-intent answers to the four E8 operator / designer questions. |
+
+---
+
 ## Cross-references
 
 - Shipping configuration: [`docs/release-one.md`](release-one.md)
@@ -468,6 +505,7 @@ conditions hold. See
 - Product-layer gate: [`docs/product-readiness-matrix.md`](product-readiness-matrix.md)
 - All-YAML release matrix: [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md)
 - **Stable target expansion plan: [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md) (STABLE-TARGET-EXPANSION-PLAN-001)**
+- **PACKAGE-POE-410-001 audit: [`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md) (PACKAGE-POE-410-001)** — per-evidence-class audit of `S360-410` Sense360 PoE PSU. Records the option-4 outcome (evidence insufficient for verification today; precise evidence-request record produced) and the upstream G8 blocker for the five A-row stable expansion candidates this matrix references through [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md). `S360-410` stays `cataloged_unverified`; `packages/hardware/power_poe.yaml` stays byte-identical; the Release-One PoE caveat is preserved verbatim; no row in the release matrix table above changes.
 - **Stable target VentIQ gate-closure record: [`docs/stable-target-ventiq-001-gate-closure.md`](stable-target-ventiq-001-gate-closure.md) (STABLE-TARGET-VENTIQ-001)**
 - **Sense360 PoE room bundle SKU matrix: [`docs/sense360-room-bundles.md`](sense360-room-bundles.md) (BUNDLE-SKU-MATRIX-001) — sellable PoE room bundle SKUs (`S360-KIT-BATH-P` already maps to the stable `Ceiling-POE-VentIQ-RoomIQ` release target in this matrix; `S360-KIT-KITCHEN-P` / `S360-KIT-LIVING-P` / `S360-KIT-BEDROOM-P` / `S360-KIT-CORRIDOR-P` map to non-stable firmware config targets that this matrix already classifies as `compile-only` / `missing-product-yaml`). Bundle SKU is not a firmware config string and is not a release artifact name.**
 - Kit intent matrix (productized planning): [`docs/kit-intent-matrix.md`](kit-intent-matrix.md) (KIT-MATRIX-001)

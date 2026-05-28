@@ -50,7 +50,7 @@ EXPECTED_VERIFIED_SKUS = frozenset(
     {"S360-100", "S360-200", "S360-210", "S360-211", "S360-300"}
 )
 
-EXPECTED_STILL_UNVERIFIED_SKUS = frozenset({"S360-320", "S360-400"})
+EXPECTED_STILL_UNVERIFIED_SKUS = frozenset({"S360-320", "S360-400", "S360-410"})
 
 
 def _load_catalog() -> Dict[str, Any]:
@@ -249,6 +249,36 @@ class HW008StillUnverifiedSKUsTests(unittest.TestCase):
             "schematic_file",
             entry,
             "S360-400 must not carry a schematic_file value while it is "
+            "not verified.",
+        )
+
+    def test_s360_410_poe_psu_is_not_verified(self) -> None:
+        """PACKAGE-POE-410-001 / 2026-05-28 evidence audit.
+
+        Locks in the option-4 outcome of
+        docs/package-poe-410-001-audit.md: the S360-410 schematic PDF is
+        committed (HW-ASSETS-410) and the BOM is on file
+        (HW-BOM-ASSETS-002), but silkscreen pin-1, PoE link-up,
+        isolation / Hi-pot / leakage, J2-harness identity
+        (HW-002 OQ#6 / S360-100-BENCH-001), and PCB-level evidence are
+        still missing. The schematic_status: verified JSON-only PR is
+        owed to a separate later PR after those evidence rows close.
+        """
+        entry = _entry_by_sku("S360-410")
+        self.assertNotEqual(
+            entry.get("schematic_status"),
+            "verified",
+            "S360-410 must remain cataloged_unverified; PACKAGE-POE-410-001 "
+            "audit (docs/package-poe-410-001-audit.md) records that "
+            "silkscreen / bench / isolation / J2-harness evidence is not "
+            "yet on file. Promoting to 'verified' requires the separate "
+            "S360-410-SCHEMATIC-STATUS-VERIFIED JSON-only PR after E2 + "
+            "E8-E12 close.",
+        )
+        self.assertNotIn(
+            "schematic_file",
+            entry,
+            "S360-410 must not carry a schematic_file value while it is "
             "not verified.",
         )
 

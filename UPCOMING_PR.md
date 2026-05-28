@@ -24,6 +24,156 @@ mirrored here.
 
 ## Current queue summary
 
+- **PACKAGE-POE-410-001 audit** delivers, via **this PR** on
+  2026-05-28, the per-evidence-class audit of `S360-410` Sense360
+  PoE PSU against the question *"Can `S360-410` move from
+  `cataloged_unverified` to `verified` today, can
+  `PACKAGE-POE-410-001` close today, and what is the precise
+  evidence still missing for each remaining downstream slice and
+  each stable-expansion target that depends on it?"*. The audit
+  takes **option 4 in the task brief** (evidence insufficient for
+  verification; precise evidence-request record produced) because
+  the schematic PDF (HW-ASSETS-410 / PR #516) and the BOM
+  (`HW-BOM-ASSETS-002`) are on file but silkscreen pin-1 (E9),
+  HW-002 OQ#6 / `S360-100-BENCH-001` J2-harness identity (E10),
+  PoE link-up / load / thermal / EMI / EMC bench evidence (E11),
+  and isolation / Hi-pot / leakage / earth-continuity evidence
+  (E12) are not on file.
+  **Change:** a new
+  [`docs/package-poe-410-001-audit.md`](docs/package-poe-410-001-audit.md)
+  records (a) the per-evidence-class audit (15 classes E1–E15;
+  6 closed, 1 partial — E2; 8 open — E8, E9, E10, E11, E12, E13,
+  E14, E15); (b) the precise evidence-request record (exact
+  missing artefact + operator / designer question + stable
+  expansion targets blocked per open / partial class); (c) the
+  option-4 decision (do not promote `S360-410` to `verified`; do
+  not edit
+  [`packages/hardware/power_poe.yaml`](packages/hardware/power_poe.yaml);
+  do not reword the Release-One PoE caveat; do not add a
+  PoE-410-explicit product YAML / WebFlash wrapper / build row /
+  `artifact_name` / WebFlash import); (d) the stable-expansion
+  targets still blocked (`Ceiling-POE`, `Ceiling-POE-RoomIQ`,
+  `Ceiling-POE-VentIQ` — STABLE-TARGET-VENTIQ-001 already deferred
+  per PR #632 — `Ceiling-POE-AirIQ`, `Ceiling-POE-AirIQ-RoomIQ`);
+  and (e) the resume conditions (E9 + E10 + E11 + E12 close + the
+  separate JSON-only `S360-410 schematic_status: verified` PR /
+  E2 + E14 closure + design-intent answers to the four E8
+  operator / designer questions). The audit is cross-referenced
+  from a new dated audit-log subsection
+  `### 2026-05-28 — PACKAGE-POE-410-001 evidence audit` in
+  [`docs/hardware/s360-410-r4-poe.md`](docs/hardware/s360-410-r4-poe.md),
+  from a new dated subsection in
+  [`docs/product-readiness-matrix.md` §PoE-410 / S360-410](docs/product-readiness-matrix.md),
+  from new dated sections in
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md)
+  and
+  [`docs/room-firmware-release-matrix.md`](docs/room-firmware-release-matrix.md),
+  from a new See-also row in
+  [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+  from a new Cross-references row in
+  [`docs/all-yaml-release-matrix.md`](docs/all-yaml-release-matrix.md),
+  from a new Cross-references row + an "Upstream G8 —
+  PACKAGE-POE-410-001" subsection in
+  [`docs/stable-target-expansion-plan.md`](docs/stable-target-expansion-plan.md),
+  and from a Resume-conditions note in
+  [`docs/stable-target-ventiq-001-gate-closure.md`](docs/stable-target-ventiq-001-gate-closure.md).
+  **Test pin:** `EXPECTED_STILL_UNVERIFIED_SKUS` in
+  [`tests/test_hardware_catalog.py`](tests/test_hardware_catalog.py)
+  now includes `S360-410` (in addition to `S360-320` and
+  `S360-400`); a new `test_s360_410_poe_psu_is_not_verified`
+  regression pin asserts that `S360-410` carries
+  `schematic_status != "verified"` and no `schematic_file` until
+  the resume conditions hold. This locks in the option-4 decision
+  so a quiet promotion cannot land without re-opening the audit.
+  **Confirmed:** the classifier still emits `stable=1, preview=1,
+  manual=3, compile-only=7, blocked=1, not-a-product-entrypoint=35`
+  (48 YAMLs total); release-selectable still equals the two
+  [`config/webflash-builds.json`](config/webflash-builds.json)
+  entries `{Ceiling-POE-VentIQ-RoomIQ, Ceiling-POE-VentIQ-RoomIQ-LED}`;
+  [`config/compile-only-targets.json`](config/compile-only-targets.json)
+  still has exactly 12 targets;
+  [`config/product-catalog.json`](config/product-catalog.json)
+  has no new `Ceiling-POE-*` row; no top-level
+  `products/sense360-ceiling-poe*.yaml` is added; no WebFlash
+  wrapper is added; no `artifact_name`; no `webflash_build_matrix`
+  flip; LED stays `preview`; FanRelay / FanPWM / FanDAC stay
+  `manual-candidate-only`; FanTRIAC stays `blocked` (HW-005);
+  Release-One (`Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`)
+  and the LED preview (`Ceiling-POE-VentIQ-RoomIQ-LED` /
+  `preview`) are byte-identical; `S360-410 schematic_status`
+  stays `cataloged_unverified`;
+  [`config/hardware-catalog.json`](config/hardware-catalog.json)
+  `S360-410` row at lines 112–121 stays byte-identical;
+  [`packages/hardware/power_poe.yaml`](packages/hardware/power_poe.yaml)
+  stays byte-identical to PR #517 / PR #526; the Release-One PoE
+  `"schematic verification pending"` caveat at
+  [`docs/release-one-hardware-audit.md` Findings → PoE PSU](docs/release-one-hardware-audit.md)
+  is preserved verbatim; HW-002 Open Question #6 /
+  `S360-100-BENCH-001` stay
+  `pending — bench/manufacturing evidence required`; no hardware
+  / compliance / PoE link-up / isolation / Hi-pot / thermal /
+  EMI / EMC evidence is fabricated.
+  **Validation (all passed):**
+  `python3 tests/validate_configs.py`,
+  `python3 tests/test_hardware_catalog.py` (17 tests including
+  the new `test_s360_410_poe_psu_is_not_verified`),
+  `python3 tests/test_product_catalog.py`,
+  `python3 scripts/classify_all_yaml_release_matrix.py --summary`,
+  `python3 scripts/list_release_targets.py`,
+  `python3 tests/test_all_yaml_release_matrix.py`,
+  `python3 tests/validate_webflash_builds.py`, and
+  `python3 -m unittest discover -s tests -p "test_*.py"` (979
+  tests, 3 skipped — increment of +1 from the prior 978-test
+  baseline driven by the new `test_s360_410_poe_psu_is_not_verified`
+  pin).
+  **Scope:** the new audit doc, the new dated audit-log section
+  in `docs/hardware/s360-410-r4-poe.md`, the new dated subsection
+  in `docs/product-readiness-matrix.md`, the new dated sections
+  in `docs/release-artifact-readiness-matrix.md` and
+  `docs/room-firmware-release-matrix.md`, See-also rows in
+  `docs/release-artifact-readiness-matrix.md`,
+  `docs/product-readiness-matrix.md`, and
+  `docs/webflash-exposure-readiness-matrix.md`,
+  Cross-references rows in `docs/all-yaml-release-matrix.md` and
+  `docs/stable-target-expansion-plan.md`, the new "Upstream G8 —
+  PACKAGE-POE-410-001" subsection in
+  `docs/stable-target-expansion-plan.md`, the resume-conditions
+  note in `docs/stable-target-ventiq-001-gate-closure.md`, the
+  `EXPECTED_STILL_UNVERIFIED_SKUS` constant pin and the new
+  `test_s360_410_poe_psu_is_not_verified` regression pin in
+  `tests/test_hardware_catalog.py`, and this `UPCOMING_PR.md`
+  update.
+  **Does not:** publish a GitHub Release; commit any `.bin` /
+  checksum / build-info file; update
+  [`firmware/sources.json`](firmware/sources.json) or
+  `manifest.json`; promote any firmware release target; add a
+  WebFlash build row; add an `artifact_name`; promote LED to
+  stable; promote FanRelay / FanPWM / FanDAC to release; claim
+  IEEE 802.3af / 802.3at compliance, isolation rating /
+  Hi-pot / insulation resistance / earth-continuity / leakage,
+  thermal / EMI / EMC qualification, or any PoE link-up / bench
+  / load evidence; claim `S360-410` `verified` unless E2 + E8 +
+  E9 + E10 + E11 + E12 close (they have not); edit any YAML
+  under `products/**` or `products/webflash/**` or
+  `products/compile-only/**`; edit
+  [`packages/hardware/power_poe.yaml`](packages/hardware/power_poe.yaml)
+  (stays byte-identical to PR #517 / PR #526); add or remove any
+  entry in `config/webflash-builds.json` /
+  `config/product-catalog.json` /
+  `config/compile-only-targets.json` /
+  `config/manual-firmware-artifacts.json` /
+  `config/compile-only-candidates.json` /
+  `config/webflash-compatibility.json` /
+  `config/hardware-catalog.json` / `config/room-bundle-skus.json`;
+  promote any `schematic_status` (`S360-410` stays
+  `cataloged_unverified`; `schematic_file` not set); edit any
+  workflow under `.github/workflows/`; edit any release-time
+  script under `scripts/`; reword or remove the Release-One PoE
+  `"schematic verification pending"` caveat in
+  `docs/release-one-hardware-audit.md` (preserved verbatim);
+  close HW-002 Open Question #6 or `S360-100-BENCH-001`. **No**
+  fabricated evidence.
+
 - **STABLE-TARGET-VENTIQ-001** delivers, via **this PR** on
   2026-05-28, the gate-closure record for the rank-1 follow-up in
   the STABLE-TARGET-EXPANSION-PLAN-001 (`docs/stable-target-expansion-plan.md`

@@ -250,6 +250,37 @@ stays unchanged and stays classified `compile-only`. The classifier
 counts stay verbatim. Resume conditions are listed in the
 [gate-closure record](stable-target-ventiq-001-gate-closure.md#resume-conditions).
 
+### Upstream G8 — `PACKAGE-POE-410-001` per-evidence-class audit (2026-05-28)
+
+The upstream G8 blocker for **all five A-row candidates** —
+`Ceiling-POE`, `Ceiling-POE-RoomIQ`, `Ceiling-POE-VentIQ`,
+`Ceiling-POE-AirIQ`, `Ceiling-POE-AirIQ-RoomIQ` — has now been
+audited per
+[`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md)
+(PACKAGE-POE-410-001 / 2026-05-28). The audit finds the schematic
+PDF (HW-ASSETS-410 / PR #516) and BOM (`HW-BOM-ASSETS-002`) on
+file but **silkscreen pin-1 (E9), HW-002 OQ#6 /
+`S360-100-BENCH-001` J2-harness identity (E10), PoE link-up / load
+/ thermal / EMI / EMC bench evidence (E11), and isolation /
+Hi-pot / leakage / earth-continuity evidence (E12) are not on
+file**. The audit therefore takes option 4 in the task brief: it
+records the precise evidence-request list per evidence class and
+keeps `S360-410` `schematic_status: cataloged_unverified`. The
+audit does **not** promote `S360-410` to `verified`, does **not**
+edit
+[`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
+(stays byte-identical to PR #517 / PR #526), does **not** reword
+the Release-One PoE caveat at
+[`docs/release-one-hardware-audit.md` Findings → PoE PSU](release-one-hardware-audit.md#findings)
+(preserved verbatim), and does **not** add a sibling
+PoE-410-explicit product YAML / WebFlash wrapper / build row.
+Resume conditions for the eventual `PACKAGE-POE-410-001`
+implementation PR are listed in
+[`docs/package-poe-410-001-audit.md` §Resume conditions](package-poe-410-001-audit.md#resume-conditions);
+they map directly onto every A-row candidate's G8 closure
+prerequisite in the "Recommended follow-up PR sequence" table
+above.
+
 ---
 
 ## What a single `STABLE-TARGET-*-001` PR will look like (template)
@@ -357,6 +388,7 @@ firmware build, a GitHub Release, or any `.bin` artifact.
 ## Cross-references
 
 - Rank 1 gate-closure record: [`docs/stable-target-ventiq-001-gate-closure.md`](stable-target-ventiq-001-gate-closure.md) (STABLE-TARGET-VENTIQ-001) — per-gate G1–G10 audit for `Ceiling-POE-VentIQ`; documents the option-3 deferral and resume conditions; promotes nothing.
+- Upstream G8 PoE-410 evidence audit: [`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md) (PACKAGE-POE-410-001) — per-evidence-class audit for `S360-410` Sense360 PoE PSU. Records the option-4 outcome (evidence insufficient for verification; precise evidence-request record produced). All five A-row candidates above carry G8 open behind this slice until E2 / E8 / E9 / E10 / E11 / E12 / E14 / E15 close; resume conditions are listed in [`docs/package-poe-410-001-audit.md` §Resume conditions](package-poe-410-001-audit.md#resume-conditions). Promotes nothing; `S360-410` stays `cataloged_unverified`; `packages/hardware/power_poe.yaml` stays byte-identical; the Release-One PoE caveat is preserved verbatim.
 - All-YAML release matrix (upstream): [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md)
 - Room-firmware release matrix: [`docs/room-firmware-release-matrix.md`](room-firmware-release-matrix.md)
 - Release-artifact readiness gate: [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
