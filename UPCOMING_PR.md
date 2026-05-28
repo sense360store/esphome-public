@@ -24,6 +24,65 @@ mirrored here.
 
 ## Current queue summary
 
+- **S360-100-NATIVE-TACH-PULSE-001** delivers, via **this PR** on
+  2026-05-28, the canonical S360-100 Core pin-strategy alignment for
+  tach / pulse-counter signals: the Sense360 Core (`S360-100`) is the
+  central hub for the room / module stack, and **tach / pulse-counter
+  inputs must terminate on native ESP32-S3 GPIO** — the SX1509 I/O
+  expander must **not** be used for tach / pulse counter
+  (compile-proven by `PWM-SX1509-TACH-PROOF-001`). SX1509 PWM-drive
+  output stays supported as a separate capability and remains the
+  basis of FanPWM drive.
+  **Change:** a new
+  [`docs/hardware/s360-100-native-tach-pulse-strategy.md`](docs/hardware/s360-100-native-tach-pulse-strategy.md)
+  records (a) the architectural rule and the
+  PWM-drive / tach-input capability separation; (b) the
+  hardware-decision table; (c) the **pending native-GPIO
+  pin-allocation table** for `Pul_Cou1..4` (final per-fan GPIO
+  assignment is **TBD — pending hardware revision / harness**, the
+  required pin family is native ESP32-S3 GPIO); (d) the impact on
+  existing firmware / readiness documents (no status flip — the
+  current PWM-drive-only `fan_pwm.yaml` scope already honours the
+  rule); and (e) the do-not-change guardrails. The rule is
+  cross-referenced from
+  [`docs/hardware/s360-100-r4-core.md`](docs/hardware/s360-100-r4-core.md)
+  (new "Connector / pin strategy — Core is the hub" section + Fan /
+  driver outputs table notes + See also row),
+  [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md)
+  (See also row),
+  [`docs/blocker-burndown.md` §2A `PWM-12`](docs/blocker-burndown.md)
+  (compile-proof + native-GPIO requirement now cited on the
+  TachIO / GPIO16 + RPM row), and a new dated
+  `2026-05-28 — S360-100-NATIVE-TACH-PULSE-001` subsection in
+  [`docs/product-readiness-matrix.md` §FanPWM / S360-311](docs/product-readiness-matrix.md).
+  **Tests:** a new
+  [`tests/test_native_tach_pulse_pin_strategy.py`](tests/test_native_tach_pulse_pin_strategy.py)
+  (12 tests) pins (a) no `packages/**` or `products/**` YAML routes
+  a `pulse_counter` pin through an `sx1509:` key, (b) no doc /
+  `config/product-catalog.json` text asserts expander-backed tach /
+  pulse counter / RPM as a positive capability, (c) the strategy doc
+  separates PWM-drive output from tach support and cites the
+  compile/config proof, and (d) `S360-311` does not claim RPM / tach
+  readiness in `config/product-catalog.json` /
+  `config/hardware-catalog.json` / `config/webflash-builds.json`.
+  The pre-existing
+  [`tests/test_sx1509_tach_pulse_counter_proof.py`](tests/test_sx1509_tach_pulse_counter_proof.py)
+  remains the authoritative compile/config-proof guard.
+  **No** firmware publish, **no** release artifact, **no**
+  `firmware/sources.json` change, **no** `manifest.json` change,
+  **no** release target promoted, **no** measured RPM / tach support
+  claim, **no** final per-fan `Pul_Cou1..4` GPIO assignment claim,
+  **no** S360-410 PoE blocker resolution claim, **no** fan WebFlash /
+  release readiness claim. **Status stays conservative and
+  unchanged:** `Ceiling-POE-FanPWM` remains `hardware-pending`,
+  PWM-drive-only, `rpm_supported: false`; no `webflash_build_matrix`
+  flip; no `artifact_name`; no `config/webflash-builds.json` row;
+  `WEBFLASH-PWM-001` / `RELEASE-PWM-001` / `WF-IMPORT-PWM-001` stay
+  blocked; `S360-311` stays `cataloged_unverified`; FanTRIAC
+  `HW-005` is unchanged; `S360-410` PoE PSU is unchanged;
+  Release-One (`Ceiling-POE-VentIQ-RoomIQ` / stable) and the LED
+  preview (`Ceiling-POE-VentIQ-RoomIQ-LED` / preview) are
+  unchanged.
 - **PACKAGE-POE-410-001 audit** delivers, via **this PR** on
   2026-05-28, the per-evidence-class audit of `S360-410` Sense360
   PoE PSU against the question *"Can `S360-410` move from
