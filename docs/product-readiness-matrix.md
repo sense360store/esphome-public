@@ -1366,6 +1366,40 @@ named follow-up.
   `S360-311` stays `cataloged_unverified`. Not WebFlash / import / release
   readiness, not compliance approval, not hardware-stable readiness, not
   Cloudlift-ready; no fabricated compile evidence.
+- **2026-05-28 — `S360-100-NATIVE-TACH-PULSE-001` (this PR; docs / tests
+  only) — architectural rule pinned: tach / pulse-counter is native ESP32
+  GPIO.** The Sense360 Core (`S360-100`) is the central hub for the
+  room / module stack, and the architectural rule is now canonical in
+  [`docs/hardware/s360-100-native-tach-pulse-strategy.md`](hardware/s360-100-native-tach-pulse-strategy.md):
+  **tach / pulse-counter inputs must terminate on native ESP32-S3 GPIO**;
+  the SX1509 I/O expander **must not** be used for tach / pulse counter
+  (compile-proven by `PWM-SX1509-TACH-PROOF-001`). PWM-drive output via
+  SX1509 (`output: platform: sx1509`) stays supported as a separate
+  capability and remains the basis of FanPWM drive. The current
+  S360-100-R4 schematic still routes `Pul_Cou1..4` through the SX1509,
+  which is **incompatible with per-fan `pulse_counter` RPM**; a pending
+  native-GPIO pin-allocation table records the required constraint, and
+  per-fan RPM stays deferred until a hardware-side re-route exists.
+  **Product-layer disposition is unchanged** — `Ceiling-POE-FanPWM`
+  stays `hardware-pending`, PWM-drive-only, `rpm_supported: false`; no
+  `webflash_build_matrix` flip; no `artifact_name`; no
+  `config/webflash-builds.json` row; no release artifact;
+  `WEBFLASH-PWM-001` / `RELEASE-PWM-001` / `WF-IMPORT-PWM-001` stay
+  blocked; `S360-311` stays `cataloged_unverified`; FanTRIAC `HW-005`
+  is unchanged; `S360-410` PoE PSU is unchanged. The rule is enforced
+  by a new repo-level guard
+  [`tests/test_native_tach_pulse_pin_strategy.py`](../tests/test_native_tach_pulse_pin_strategy.py)
+  that pins (a) no `pulse_counter` / tach binding routes through an
+  `sx1509:` pin in `packages/**` or `products/**`, (b) no docs /
+  `config/product-catalog.json` text asserts expander-backed tach /
+  pulse counter / RPM as a positive capability, (c) the strategy doc
+  separates PWM-drive output from tach support, and (d) `S360-311`
+  does not claim RPM / tach readiness anywhere in `config/`. **No**
+  firmware / release / `manifest.json` / `firmware/sources.json`
+  change; **no** WebFlash exposure; **no** measured RPM / tach claim;
+  **no** final per-fan `Pul_Cou1..4` GPIO assignment claim (pending
+  hardware-side re-route); **no** S360-410 PoE blocker claim; **no**
+  fan WebFlash / release readiness claim.
 
 ### FanDAC / S360-312
 
