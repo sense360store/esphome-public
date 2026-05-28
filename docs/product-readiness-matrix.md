@@ -1525,6 +1525,63 @@ named follow-up.
   fabricated bench evidence — firmware-binding and bench-measured
   RPM stay owned by `S360-311-CURRENT-THERMAL-001` /
   `COMPONENT-NATIVE-TACH-001` (future).
+- **2026-05-28 — `MODULE-PINMAPS-GDRIVE-001` (this PR; docs / tests
+  only) — module-side pin maps recorded for every Sense360 R4
+  module SKU; FanPWM tach / pulse-counter lines explicitly
+  reconciled to native ESP32-S3 GPIO; no SX1509 routing for tach.**
+  A new per-module pinmap doc lands for every Sense360 R4 module
+  SKU
+  ([`s360-200-module-pinmap.md`](hardware/s360-200-module-pinmap.md),
+  [`s360-210-module-pinmap.md`](hardware/s360-210-module-pinmap.md),
+  [`s360-211-module-pinmap.md`](hardware/s360-211-module-pinmap.md),
+  [`s360-300-module-pinmap.md`](hardware/s360-300-module-pinmap.md),
+  [`s360-310-module-pinmap.md`](hardware/s360-310-module-pinmap.md),
+  [`s360-311-module-pinmap.md`](hardware/s360-311-module-pinmap.md),
+  [`s360-312-module-pinmap.md`](hardware/s360-312-module-pinmap.md),
+  [`s360-320-module-pinmap.md`](hardware/s360-320-module-pinmap.md),
+  [`s360-400-module-pinmap.md`](hardware/s360-400-module-pinmap.md),
+  [`s360-410-module-pinmap.md`](hardware/s360-410-module-pinmap.md))
+  recording the **module-side** view of the pin map and reconciling
+  every pin back to the matching Core connector row in
+  [`s360-100-core-connector-pin-map.md`](hardware/s360-100-core-connector-pin-map.md).
+  The `S360-311` doc explicitly reconciles `TachPMW1..4` (FanPWM
+  control), `Pul_Cou1..4` (per-fan tach feedback), and `TachIO`
+  (shared tach passthrough) to native ESP32-S3 GPIOs (`IO10` /
+  `IO11` / `IO12` / `IO39` / `IO17` / `IO18` / `IO46` / `IO9` /
+  `IO16`) and explicitly rejects any SX1509 routing for tach /
+  pulse-counter lines. Each doc records the Google Drive folder
+  reference, the committed module-side schematic PDF (where
+  available), evidence status per artifact class (BOM / Gerbers /
+  STEP / images / silkscreen / bench), the per-pin module-side
+  table with status (verified / schematic-backed / TBD / needs
+  silkscreen confirmation), open questions, and per-board
+  guardrails. **Product-layer disposition is unchanged** —
+  `Ceiling-POE-FanPWM` stays `hardware-pending`, PWM-drive-only,
+  `rpm_supported: false`; no `webflash_build_matrix` flip; no
+  `artifact_name`; no `config/webflash-builds.json` row; no release
+  artifact; `WEBFLASH-PWM-001` / `RELEASE-PWM-001` /
+  `WF-IMPORT-PWM-001` stay blocked; `S360-311` / `S360-310` /
+  `S360-312` / `S360-320` / `S360-410` / `S360-400` stay
+  `cataloged_unverified`; FanTRIAC `HW-005` is unchanged;
+  `S360-410` PoE PSU `PACKAGE-POE-410-001` is unchanged; LED stays
+  `preview`; Release-One (`Ceiling-POE-VentIQ-RoomIQ` / stable)
+  and the LED preview (`Ceiling-POE-VentIQ-RoomIQ-LED` / preview)
+  are unchanged. **Tests:** a new
+  [`tests/test_module_pinmaps.py`](../tests/test_module_pinmaps.py)
+  pins (a) every known Sense360 module SKU has a module pinmap
+  doc; (b) every module pinmap doc references the canonical
+  Core-side pin map; (c) no module pinmap doc maps a tach /
+  pulse-counter line through an SX1509 expander row; (d) no TBD
+  row is treated as `verified`; and (e) no module pinmap doc
+  contains release / WebFlash readiness phrasing. **No** firmware
+  publish, **no** release artifact, **no**
+  `firmware/sources.json` / `manifest.json` change, **no**
+  release-target promotion, **no** LED-to-stable promotion, **no**
+  FanRelay / FanPWM / FanDAC release promotion, **no** FanTRIAC
+  `HW-005` resolution claim, **no** `S360-410` PoE PSU blocker
+  resolution claim, **no** measured RPM / tach / PWM / current /
+  thermal claim, **no** fabricated connector type / pin order /
+  signal mapping / GPIO allocation, **no** firmware YAML edit.
 
 ### FanDAC / S360-312
 
