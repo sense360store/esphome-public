@@ -83,8 +83,11 @@ REFUSED_STATUSES = frozenset(
     }
 )
 
-# Wording for known blocked-module exclusions in ## Known Issues. Mirrors
-# the example in docs/release-one.md and the RELEASE-001 task description.
+# Wording for known blocked-module exclusions in ## Known Issues. Static
+# bullets are used for module names whose wording does not depend on the
+# selected product/config. Product-aware wording (e.g. LED, which must
+# name the selected config rather than a hardcoded shipping label) is
+# produced by ``_product_aware_known_issue_bullet`` below.
 # Unknown blocked-module names fall through to a generic bullet so the
 # generator never silently drops an exclusion.
 BLOCKED_MODULE_BULLETS = {
@@ -92,11 +95,29 @@ BLOCKED_MODULE_BULLETS = {
         "FanTRIAC is not included in this firmware and remains blocked "
         "pending HW-005."
     ),
-    "LED": (
-        "Sense360 LED is not included in this Release-One firmware because "
-        "the config string has no LED token."
-    ),
 }
+
+
+def _product_aware_known_issue_bullet(
+    module: str, config_string: str
+) -> Optional[str]:
+    """Return a product-aware Known-Issues bullet for a blocked module.
+
+    Returns ``None`` if no product-aware wording applies for the module;
+    the caller then falls back to ``BLOCKED_MODULE_BULLETS`` or the
+    generic exclusion sentence. The LED bullet names the selected
+    ``config_string`` so a non-LED stable build (e.g. the RoomIQ stable)
+    reads as a deliberate exclusion for *this* selected configuration,
+    not as a one-size-fits-all "this Release-One firmware" claim — that
+    is the RELEASE-PRODUCT-SELECTION-001 reword.
+    """
+    if module == "LED":
+        return (
+            f"Sense360 LED is not included in this firmware: the selected "
+            f"configuration {config_string!r} does not include LED. The "
+            "LED-bearing sibling lives on the preview channel."
+        )
+    return None
 
 
 class GeneratorError(Exception):
@@ -156,6 +177,7 @@ def _resolve_changelog_bullets(
     *,
     config_string: str,
     version: str,
+    channel: str,
 ) -> List[str]:
     """Parse user-supplied changelog text into a list of bullet strings.
 
@@ -183,9 +205,21 @@ def _resolve_changelog_bullets(
                 "no changelog supplied; pass --changelog TEXT or "
                 "--changelog-file PATH (or drop --require-changelog)"
             )
+        # RELEASE-PRODUCT-SELECTION-001: the placeholder is intentionally
+        # operator-actionable and product-aware. It must name the selected
+        # config_string + version (so a multi-product draft cannot look
+        # like the wrong product), and it must be impossible to mistake
+        # for finished release notes — hence the explicit "operator must
+        # replace" framing and the second sentence that calls out the
+        # publish-blocker.
         return [
-            f"TODO: Summarize user-visible changes for v{version} "
-            f"({config_string}). Replace this line before publishing."
+            (
+                f"TODO (operator changelog required): replace this bullet "
+                f"with the user-visible changes shipped in {config_string} "
+                f"v{version} ({channel}). One bullet per change. This "
+                "placeholder must be replaced before the release notes are "
+                "attached to a GitHub Release."
+            )
         ]
 
     bullets: List[str] = []
@@ -205,16 +239,23 @@ def _resolve_changelog_bullets(
     return bullets
 
 
-def _build_known_issues_bullets(entry: Dict[str, Any]) -> List[str]:
+def _build_known_issues_bullets(
+    entry: Dict[str, Any], config_string: str
+) -> List[str]:
     blocked = entry.get("blocked_modules", []) or []
     bullets: List[str] = []
     for mod in blocked:
-        if isinstance(mod, str) and mod:
-            bullets.append(
-                BLOCKED_MODULE_BULLETS.get(
-                    mod, f"{mod} is excluded from this firmware."
-                )
+        if not isinstance(mod, str) or not mod:
+            continue
+        product_aware = _product_aware_known_issue_bullet(mod, config_string)
+        if product_aware is not None:
+            bullets.append(product_aware)
+            continue
+        bullets.append(
+            BLOCKED_MODULE_BULLETS.get(
+                mod, f"{mod} is excluded from this firmware."
             )
+        )
     if not bullets:
         bullets.append("None.")
     return bullets
@@ -393,13 +434,14 @@ def generate(
     friendly = _hardware_friendly_names(hardware)
     hardware_bullets = _build_hardware_bullets(entry, friendly)
     features_bullets = _build_features_bullets(build_entry)
-    known_issues_bullets = _build_known_issues_bullets(entry)
+    known_issues_bullets = _build_known_issues_bullets(entry, config_string)
     changelog_bullets = _resolve_changelog_bullets(
         changelog,
         changelog_file,
         require_changelog,
         config_string=config_string,
         version=version,
+        channel=channel,
     )
 
     parts = [

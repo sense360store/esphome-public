@@ -370,6 +370,33 @@ jobs are all skipped. See
 
 ---
 
+## RELEASE-PRODUCT-SELECTION-001 — selectable release targets added (2026-05-28)
+
+RELEASE-PRODUCT-SELECTION-001 makes the release-notes / dry-run / release
+workflows **operator-selectable** by the agreed room / product config
+(stable `Ceiling-POE-VentIQ-RoomIQ`, preview
+`Ceiling-POE-VentIQ-RoomIQ-LED`) rather than silently defaulting every
+dispatch to the stable RoomIQ. **It changes no row** in the release matrix
+table above and publishes nothing.
+
+| Aspect | Result |
+|---|---|
+| `release-notes-draft.yml` `config_string` | Now a `type: choice` picker; options mirrored from `config/webflash-builds.json` |
+| `firmware-build-release.yml` `release_target` | New `type: choice` picker (default `all-release-eligible`); same option set |
+| Picker source of truth | `config/webflash-builds.json` (the release matrix); `scripts/list_release_targets.py` enumerates / validates |
+| FanRelay / FanPWM / FanDAC | **Never** selectable; manual-candidate-only (`config/manual-firmware-artifacts.json`) |
+| FanTRIAC | **Never** selectable; blocked (HW-005) |
+| Publish job gate | **Unchanged** — `if: github.event_name == 'release'`; the new input does not (and cannot) reach `softprops/action-gh-release` |
+| `firmware/sources.json` / `manifest.json` / `.bin` / checksum | **None produced or committed** |
+
+See
+[`docs/room-firmware-release-notes.md` §RELEASE-PRODUCT-SELECTION-001](room-firmware-release-notes.md#release-product-selection-001--selectable-release-targets-2026-05-28)
+for the operator-facing UX, tag → product mapping for the publish path, and
+the LED / changelog wording reword (generator now product-aware; the stale
+"Release-One firmware" phrasing is gone).
+
+---
+
 ## Cross-references
 
 - Shipping configuration: [`docs/release-one.md`](release-one.md)

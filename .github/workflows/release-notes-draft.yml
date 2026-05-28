@@ -29,12 +29,24 @@ name: Draft WebFlash Release Notes
 on:
   workflow_dispatch:
     inputs:
+      # RELEASE-PRODUCT-SELECTION-001: operator-facing release-target picker.
+      # The choices mirror the release-eligible entries in
+      # config/webflash-builds.json so the operator never has to type a
+      # free-text product name and the workflow cannot silently default to
+      # only the stable RoomIQ. When a new release-eligible build is added
+      # to config/webflash-builds.json, add a matching option here so the
+      # picker stays in lock-step with the release matrix; the contract
+      # test tests/test_release_product_selection.py enforces that lock-step.
       config_string:
         description: >-
-          WebFlash config string (e.g. Ceiling-POE-VentIQ-RoomIQ). Must
-          match an entry in config/product-catalog.json.
+          Release target. Must match a config_string in
+          config/webflash-builds.json. Listed via
+          `python3 scripts/list_release_targets.py`.
         required: true
-        default: Ceiling-POE-VentIQ-RoomIQ
+        type: choice
+        options:
+          - Ceiling-POE-VentIQ-RoomIQ
+          - Ceiling-POE-VentIQ-RoomIQ-LED
       version:
         description: >-
           Release version, no leading 'v' (e.g. 1.0.0). Must match the
