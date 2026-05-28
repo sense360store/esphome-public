@@ -24,7 +24,94 @@ mirrored here.
 
 ## Current queue summary
 
-- **S360-100-NATIVE-FAN-GPIO-MAP-001** delivers, via **this PR** on
+- **S360-100-CONNECTOR-PINMAP-001** delivers, via **this PR** on
+  2026-05-28, the canonical S360-100 Core-to-module connector pin
+  map — a single document that lists every per-module connector on
+  the Sense360 Core (`S360-100`) with its connector ref, attached
+  module SKU + friendly name, connector type, pin count, pin-1
+  orientation, intended function, and per-pin tables with the
+  columns Pin number / Core net / ESP32 GPIO / Module-side
+  signal / Signal type / Voltage / Status. The canonical R4
+  schematic ([`docs/hardware/schematics/S360-100-R4.pdf`](docs/hardware/schematics/S360-100-R4.pdf),
+  SHA256 `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`,
+  837,443 bytes) is the per-net / per-GPIO source of truth; per-
+  module audit docs are the per-board source of truth; this
+  document sits one level up and consolidates them.
+  **Change:** a new
+  [`docs/hardware/s360-100-core-connector-pin-map.md`](docs/hardware/s360-100-core-connector-pin-map.md)
+  records (a) the canonical connector matrix listing every Core
+  connector (`J1` / `J2` / `J3` / `J4` / `J6` / `J7` / `J9` /
+  `J10` / `J13` / `J15`) against its attached Sense360 module SKU
+  (`S360-200` / `S360-210` / `S360-211` / `S360-300` / `S360-310` /
+  `S360-311` / `S360-312` / `S360-320` / `S360-410`); (b) per-
+  connector pin tables with the seven-column schema above; (c) the
+  status-language rules (`verified` / `schematic-backed` / `TBD` /
+  `needs silkscreen confirmation`) — every row carries one of the
+  four values, with `schematic-backed` dominating where the
+  canonical R4 PDF prints the net but no silkscreen / bench
+  evidence yet, and `TBD` reserved for items the schematic does
+  not unambiguously print; (d) the native-GPIO architectural rule
+  restated for tach / pulse counter (`TachIO`→`IO16`,
+  `Pul_Cou1..4`→`IO17`/`IO18`/`IO46`/`IO9`, no row maps a tach
+  signal through an expander); (e) the historical SX1509 fan-path
+  classification (legacy / superseded) preserved with link-outs to
+  S360-100-NATIVE-FAN-GPIO-MAP-001 and
+  S360-100-NATIVE-TACH-PULSE-001; (f) an Open Questions list for
+  J1-vs-J9 (VentIQ), J6 pins 11/12 (UART or unconnected on Core
+  side), J13 pin count (2-pin vs 3-pin cross-doc tension),
+  `TRI_GPIO1` / `TRI_GPIO2` ESP32-side source pins (FanTRIAC
+  HW-005), and the silkscreen / connector-part-number opens; and
+  (g) the do-not-change guardrails. Cross-links added in
+  [`docs/hardware/s360-100-r4-core.md`](docs/hardware/s360-100-r4-core.md)
+  (See also row),
+  [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md)
+  (See also row),
+  [`docs/sense360-room-bundles.md`](docs/sense360-room-bundles.md)
+  (Core-as-central-hub framing), and
+  [`docs/blocker-burndown.md` §2A `PWM-12`](docs/blocker-burndown.md)
+  (canonical Core-to-module pin map cross-reference appended).
+  **Tests:** a new
+  [`tests/test_s360_100_core_connector_pin_map.py`](tests/test_s360_100_core_connector_pin_map.py)
+  pins (a) the canonical pin-map doc exists and self-identifies
+  as S360-100-CONNECTOR-PINMAP-001; (b) the connector matrix
+  lists every expected module SKU with its friendly name and
+  every expected connector ref (`J1` / `J2` / `J3` / `J4` / `J6` /
+  `J7` / `J9` / `J10` / `J13` / `J15`); (c) connector refs are
+  unique in the matrix; (d) the per-connector pin tables include
+  the seven required columns and every pin-table row ends with one
+  of the four allowed Status values; (e) every tach /
+  pulse-counter / PWM-drive net carries its canonical native
+  ESP32-S3 GPIO termination (`TachIO`→`IO16`, etc.) and no row
+  maps a tach signal through the SX1509 expander; (f) the
+  do-not-change guardrails (`S360-310` / `S360-311` / `S360-312` /
+  `S360-320` / `S360-410` stay `cataloged_unverified`; FanPWM
+  stays out of `config/webflash-builds.json`; FanPWM products
+  keep `rpm_supported: false` and `webflash_build_matrix: false`;
+  the doc contains no release-readiness phrasing and does not
+  claim FanTRIAC HW-005 or PACKAGE-POE-410-001 resolved); and
+  (g) cross-doc linking from the Core reference doc, the PWM
+  module audit, the room-bundles doc, and `UPCOMING_PR.md`. The
+  pre-existing
+  [`tests/test_s360_100_core_architecture.py`](tests/test_s360_100_core_architecture.py)
+  and
+  [`tests/test_native_fan_gpio_map.py`](tests/test_native_fan_gpio_map.py)
+  remain the authoritative guards for the Core architecture index
+  and the FanPWM native GPIO map respectively.
+  **No** firmware publish, **no** release artifact, **no**
+  `firmware/sources.json` change, **no** `manifest.json` change,
+  **no** release target promoted, **no** LED promoted from
+  preview to stable, **no** FanRelay / FanPWM / FanDAC release
+  promotion, **no** FanTRIAC `HW-005` resolution claim, **no**
+  S360-410 PoE PSU blocker resolution claim, **no** measured
+  RPM / tach / PWM / current / thermal claim, **no** WebFlash
+  build / `artifact_name` flip, **no** invented connector type /
+  pin order / signal assignment / GPIO allocation (values that
+  are not proven by the canonical R4 schematic carry `TBD` and
+  `needs silkscreen confirmation`), **no** firmware YAML edit,
+  **no** deletion or weakening of the historical SX1509 +
+  `pulse_counter` compile/config-proof fixture / test.
+
+- **S360-100-NATIVE-FAN-GPIO-MAP-001** delivers, via **PR #637** on
   2026-05-28, the canonical **S360-100 / S360-311 native ESP32-S3
   GPIO map** for the Sense360 fan signal path. The new hardware
   direction recorded by the refreshed canonical `S360-100-R4.pdf`
