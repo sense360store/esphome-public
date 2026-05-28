@@ -24,6 +24,136 @@ mirrored here.
 
 ## Current queue summary
 
+- **STABLE-TARGET-VENTIQ-001** delivers, via **this PR** on
+  2026-05-28, the gate-closure record for the rank-1 follow-up in
+  the STABLE-TARGET-EXPANSION-PLAN-001 (`docs/stable-target-expansion-plan.md`
+  / PR #630) recommended `STABLE-TARGET-*-001` PR sequence. That
+  plan named `STABLE-TARGET-VENTIQ-001` — promoting
+  `Ceiling-POE-VentIQ` from `compile-only` to `stable-release` — as
+  the smallest stable-expansion delta beyond the existing stable
+  Release-One target `Ceiling-POE-VentIQ-RoomIQ` because the VentIQ
+  subset (`airiq_bathroom_base` + `bathroom_profile`) is already
+  exercised by stable Release-One. **This PR investigates that
+  slice against the G1–G10 gate checklist and records the result as
+  a gate-closure deferral (option 3 in the task brief).**
+  **Change:** a new
+  [`docs/stable-target-ventiq-001-gate-closure.md`](docs/stable-target-ventiq-001-gate-closure.md)
+  records (a) the candidate identity (`Ceiling-POE-VentIQ` token
+  grammar already valid under
+  [`config/webflash-compatibility.json`](config/webflash-compatibility.json),
+  compile-only skeleton present at
+  [`products/compile-only/ceiling-poe-ventiq.yaml`](products/compile-only/ceiling-poe-ventiq.yaml)
+  per FW-COMPILE-POE-NONFAN-001, registered in
+  [`config/compile-only-targets.json`](config/compile-only-targets.json)
+  as `ceiling-poe-ventiq-compile-only` with
+  `shipment_status: compile-only`); (b) the per-gate audit (G1
+  top-level YAML, G2 catalog row, G3 top-level full compile, G4
+  WebFlash wrapper, G5 `artifact_name`, G6
+  `config/webflash-builds.json` row, G7 release-notes generation,
+  G8 hardware / compliance, G9 not in manual lane, G10
+  preview-to-stable gauntlet) finding **9 of 10 gates open today**
+  (only G9 closed) with G8 as the upstream blocker
+  (`PACKAGE-POE-410-001`; `S360-410` `schematic_status:
+  cataloged_unverified` per
+  [`config/hardware-catalog.json`](config/hardware-catalog.json)
+  line 120; Release-One PoE "schematic verification pending"
+  caveat preserved verbatim per HW-PINMAP-410-FOLLOWUP / PR #517);
+  (c) the G8 hardware-evidence detail (`S360-100` and `S360-211`
+  `verified` per HW-007 / HW-008, with the `S360-211-R4.pdf`
+  schematic committed; `S360-410` `cataloged_unverified` — the
+  same caveat Release-One inherits; PoE is SELV so
+  `COMPLIANCE-001` does not gate this slice); (d) the option-3
+  decision to **not promote**; (e) the resume conditions
+  (`PACKAGE-POE-410-001` lands; `S360-100-BENCH-001` `J2`-harness
+  closure; `S360-410 schematic_status: verified` JSON PR;
+  board / package readiness matrix flips; product-onboarding
+  approval per [`docs/product-onboarding.md`](docs/product-onboarding.md));
+  and (f) the per-PR scope the eventual implementation PR will
+  follow, mirroring the `STABLE-TARGET-*-001` per-PR scope
+  template in
+  [`docs/stable-target-expansion-plan.md`](docs/stable-target-expansion-plan.md).
+  The gate-closure record is cross-referenced from
+  [`docs/stable-target-expansion-plan.md`](docs/stable-target-expansion-plan.md)
+  (rank-1 status note + Cross-references row),
+  [`docs/all-yaml-release-matrix.md`](docs/all-yaml-release-matrix.md)
+  (Cross-references row),
+  [`docs/room-firmware-release-matrix.md`](docs/room-firmware-release-matrix.md)
+  (new dated section + Cross-references row),
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md)
+  (new dated section + See also row),
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md)
+  (See also row), and
+  [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md)
+  (See also row), so the "what's next" path is obvious from each
+  upstream gate. **Confirmed:** the classifier still emits
+  `stable=1, preview=1, manual=3, compile-only=7, blocked=1,
+  not-a-product-entrypoint=35` (48 YAMLs total); release-selectable
+  still equals the two
+  [`config/webflash-builds.json`](config/webflash-builds.json)
+  entries `{Ceiling-POE-VentIQ-RoomIQ, Ceiling-POE-VentIQ-RoomIQ-LED}`;
+  [`config/compile-only-targets.json`](config/compile-only-targets.json)
+  still has exactly 12 targets (no new `ceiling-poe-ventiq-product-compile-only`
+  registered); [`config/product-catalog.json`](config/product-catalog.json)
+  has no new `Ceiling-POE-VentIQ` row; no top-level
+  `products/sense360-ceiling-poe-ventiq.yaml` is added; no WebFlash
+  wrapper `products/webflash/ceiling-poe-ventiq.yaml` is added; no
+  `artifact_name`; no `webflash_build_matrix` flip; LED stays
+  `preview`; FanRelay / FanPWM / FanDAC stay
+  `manual-candidate-only`; FanTRIAC stays `blocked` (HW-005); the
+  existing `Ceiling-POE-VentIQ-RoomIQ` Release-One stable build and
+  the `Ceiling-POE-VentIQ-RoomIQ-LED` preview build are byte-identical;
+  `S360-410 schematic_status` stays `cataloged_unverified`; no
+  hardware / compliance evidence is fabricated.
+  **Validation (all passed):**
+  `python3 scripts/classify_all_yaml_release_matrix.py --summary`,
+  `python3 scripts/list_release_targets.py`,
+  `python3 scripts/plan_room_release_notes.py`,
+  `python3 tests/test_all_yaml_release_matrix.py` (28 tests),
+  `python3 tests/test_release_product_selection.py`,
+  `python3 tests/test_release_dry_run_mode.py`,
+  `python3 tests/validate_configs.py`,
+  `python3 scripts/validate_compile_targets.py --metadata-only` (12
+  targets), `python3 tests/validate_webflash_builds.py` (2 builds),
+  `python3 tests/test_product_catalog.py`,
+  `python3 tests/test_workflow_permissions.py`, and
+  `python3 -m unittest discover -s tests -p "test_*.py"`
+  (count unchanged from the BUNDLE-SKU-MATRIX-001 / PR #631
+  baseline of 978 tests, 3 skipped, because no contract test is
+  added or modified by this PR). **Scope:** the new gate-closure
+  doc, the rank-1-status note + Cross-references row in
+  `docs/stable-target-expansion-plan.md`, the Cross-references row
+  in `docs/all-yaml-release-matrix.md`, the new dated section +
+  Cross-references row in `docs/room-firmware-release-matrix.md`,
+  the new dated section + See also row in
+  `docs/release-artifact-readiness-matrix.md`, the See also row in
+  `docs/product-readiness-matrix.md`, the See also row in
+  `docs/webflash-exposure-readiness-matrix.md`, and this
+  `UPCOMING_PR.md` update.
+  **Does not:** publish a GitHub Release; commit any `.bin` /
+  checksum / build-info file; edit any YAML under `products/**` or
+  `products/webflash/**` or `products/compile-only/**`; promote
+  `Ceiling-POE-VentIQ` to `stable-candidate-after-promotion`,
+  `preview-release`, or `stable-release`; promote LED from
+  `preview` to `stable`; promote FanRelay / FanPWM / FanDAC out of
+  `manual-candidate-only`; add a fan `artifact_name`; flip any
+  `webflash_build_matrix` value; add or remove any entry in
+  `config/webflash-builds.json` / `config/product-catalog.json` /
+  `config/compile-only-targets.json` /
+  `config/manual-firmware-artifacts.json` /
+  `config/compile-only-candidates.json` /
+  `config/webflash-compatibility.json` /
+  `config/hardware-catalog.json`; promote any
+  `schematic_status` (`S360-410` stays
+  `cataloged_unverified`); write `firmware/sources.json` or
+  `manifest.json`; edit any workflow under `.github/workflows/`;
+  edit any release-time script under `scripts/`; edit any test
+  under `tests/`; invent unsupported YAML / product combos; treat
+  the compile-only skeleton at
+  `products/compile-only/ceiling-poe-ventiq.yaml` as a release
+  product; or claim WebFlash / import / release / hardware-stable /
+  compliance readiness for `Ceiling-POE-VentIQ` or for any fan /
+  TRIAC candidate. **No** fabricated evidence.
+
 - **BUNDLE-SKU-MATRIX-001** delivers, via **this PR** on 2026-05-28,
   the canonical Sense360 PoE room bundle SKU matrix on top of the
   all-YAML release classification map landed by

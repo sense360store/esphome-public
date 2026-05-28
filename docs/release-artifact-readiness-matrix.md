@@ -3390,6 +3390,34 @@ preview target today). None of the follow-up PRs is approved or
 scoped by STABLE-TARGET-EXPANSION-PLAN-001 itself. See
 [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md).
 
+## STABLE-TARGET-VENTIQ-001 — gate-closure deferral (2026-05-28)
+
+`STABLE-TARGET-VENTIQ-001` is the rank-1 follow-up named by
+[`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md).
+It would promote `Ceiling-POE-VentIQ` from `compile-only` to
+`stable-release` if the G1–G10 gate checklist closes. **This PR
+investigates the slice and records the result as a gate-closure
+deferral** — option 3 in its task brief — because G8 (hardware /
+compliance) is still open behind `PACKAGE-POE-410-001`, and G1–G7
+plus G10 are structurally open behind G8's closure. **No row in
+this release-artifact readiness matrix changes** and nothing is
+published.
+
+| Aspect | Result |
+|---|---|
+| New gate-closure record | [`docs/stable-target-ventiq-001-gate-closure.md`](stable-target-ventiq-001-gate-closure.md) |
+| `Ceiling-POE-VentIQ` release posture | **stays `pending-product-onboarding`** — no top-level product YAML, no catalog row, no WebFlash wrapper, no `artifact_name`, no `config/webflash-builds.json` row; classifier still reports `compile-only` for the skeleton at [`products/compile-only/ceiling-poe-ventiq.yaml`](../products/compile-only/ceiling-poe-ventiq.yaml) |
+| Gates closed today | 1 of 10 (G9 — not in manual lane) |
+| Gates open today | 9 of 10 |
+| Upstream blocker | G8 — `PACKAGE-POE-410-001`. `S360-410` `schematic_status: cataloged_unverified` per [`config/hardware-catalog.json`](../config/hardware-catalog.json); Release-One PoE "schematic verification pending" caveat preserved verbatim per HW-PINMAP-410-FOLLOWUP / PR #517 |
+| Hardware evidence available today | `S360-100` `verified`; `S360-211` (VentIQ) `verified` (HW-007 / HW-008, schematic PDF at `docs/hardware/schematics/S360-211-R4.pdf`); `S360-410` (PoE PSU) `cataloged_unverified` — the same caveat Release-One ships under |
+| FanRelay / FanPWM / FanDAC | Stay `manual-candidate-only` — no `artifact_name`, no `webflash_build_matrix` flip, no WebFlash wrapper, no release artifact |
+| FanTRIAC | Stays `blocked` (`HW-005`) |
+| LED stable promotion | **Not approved** by this PR; LED preview stays `preview-release` until the full 17-row [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md) gauntlet closes |
+| `config/webflash-builds.json` / `config/product-catalog.json` / `config/compile-only-targets.json` / `config/manual-firmware-artifacts.json` / `config/webflash-compatibility.json` / `config/hardware-catalog.json` | **None edited** — release-artifact matrix rows above stay verbatim; the Release-One `v1.0.0` release and the LED preview `v1.0.0-led-preview` prerelease both stay verbatim |
+| GitHub Release / `.bin` / checksum / build-info `manifest.json` / `firmware/sources.json` / `manifest.json` | **none produced or committed** |
+| Resume conditions | Per [`docs/stable-target-ventiq-001-gate-closure.md` §Resume conditions](stable-target-ventiq-001-gate-closure.md#resume-conditions): `PACKAGE-POE-410-001`, `S360-100-BENCH-001` `J2`-harness closure, `S360-410 schematic_status: verified` JSON PR, board / package readiness matrix flips, product-onboarding approval |
+
 ## See also
 
 - [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md)
@@ -3398,6 +3426,12 @@ scoped by STABLE-TARGET-EXPANSION-PLAN-001 itself. See
   recommended `STABLE-TARGET-*-001` PR sequence built on top of this
   matrix and the all-YAML matrix. Documentation only; promotes
   nothing, edits no `config/*.json`.
+- [`docs/stable-target-ventiq-001-gate-closure.md`](stable-target-ventiq-001-gate-closure.md)
+  — STABLE-TARGET-VENTIQ-001 gate-closure record. Per-gate
+  G1–G10 audit for `Ceiling-POE-VentIQ`; records option-3
+  deferral; promotes nothing; edits no `config/*.json`; adds no
+  top-level product YAML, WebFlash wrapper, `artifact_name`, or
+  `config/webflash-builds.json` row.
 - [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md) —
   STABLE-RELEASE-MATRIX-ALL-YAML-001 all-YAML release classification.
   Upstream of the expansion plan; classifies every YAML under

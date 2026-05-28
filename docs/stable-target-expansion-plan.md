@@ -227,6 +227,29 @@ Per-family fan / TRIAC follow-up PR sequences live in
 [`docs/release-artifact-readiness-matrix.md` §Follow-up PR sequence](release-artifact-readiness-matrix.md#follow-up-pr-sequence)
 and are not duplicated here.
 
+### Rank 1 status (`STABLE-TARGET-VENTIQ-001`)
+
+Rank 1 — `STABLE-TARGET-VENTIQ-001` — has been investigated against
+the G1–G10 gate checklist on 2026-05-28 and the result is recorded in
+[`docs/stable-target-ventiq-001-gate-closure.md`](stable-target-ventiq-001-gate-closure.md).
+The gate audit finds **9 of 10 gates open today** (only G9 is
+closed); the upstream blocker is G8 (`PACKAGE-POE-410-001` —
+`S360-410` `schematic_status: cataloged_unverified` per
+[`config/hardware-catalog.json`](../config/hardware-catalog.json),
+Release-One PoE "schematic verification pending" caveat preserved
+verbatim per HW-PINMAP-410-FOLLOWUP / PR #517).
+`STABLE-TARGET-VENTIQ-001` therefore takes the gate-closure path
+(option 3 in its task brief): it records the missing evidence per
+gate and the owning follow-up slice; it does **not** promote
+`Ceiling-POE-VentIQ` and it does **not** add a top-level product
+YAML, catalog row, WebFlash wrapper, `artifact_name`,
+`config/webflash-builds.json` row, or top-level compile-only target.
+The compile-only skeleton at
+[`products/compile-only/ceiling-poe-ventiq.yaml`](../products/compile-only/ceiling-poe-ventiq.yaml)
+stays unchanged and stays classified `compile-only`. The classifier
+counts stay verbatim. Resume conditions are listed in the
+[gate-closure record](stable-target-ventiq-001-gate-closure.md#resume-conditions).
+
 ---
 
 ## What a single `STABLE-TARGET-*-001` PR will look like (template)
@@ -333,6 +356,7 @@ firmware build, a GitHub Release, or any `.bin` artifact.
 
 ## Cross-references
 
+- Rank 1 gate-closure record: [`docs/stable-target-ventiq-001-gate-closure.md`](stable-target-ventiq-001-gate-closure.md) (STABLE-TARGET-VENTIQ-001) — per-gate G1–G10 audit for `Ceiling-POE-VentIQ`; documents the option-3 deferral and resume conditions; promotes nothing.
 - All-YAML release matrix (upstream): [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md)
 - Room-firmware release matrix: [`docs/room-firmware-release-matrix.md`](room-firmware-release-matrix.md)
 - Release-artifact readiness gate: [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
