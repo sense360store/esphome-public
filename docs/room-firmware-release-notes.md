@@ -313,6 +313,96 @@ The new gate invariants are locked in by `DryRunGatingTests` in
 
 ---
 
+## RELEASE-WORKFLOW-DRYRUN-RESULT-001 — recorded successful release dry-run (2026-05-28)
+
+RELEASE-WORKFLOW-DRYRUN-RESULT-001 **ran and recorded** the first
+**successful** manual dispatch of the `dry_run=true` lane added by
+`RELEASE-WORKFLOW-DRYRUN-MODE-001` and isolated end-to-end by
+`RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001`. It is a **docs-only record**: it
+publishes **no** GitHub Release, builds / attaches **no** firmware artifact,
+writes **no** [`firmware/sources.json`](../firmware/sources.json) or
+`manifest.json`, commits **no** `.bin` / checksum, edits **no**
+`products/webflash/**`, and adds **no** fan `artifact_name` or
+`webflash_build_matrix` flip.
+
+### What was run
+
+| Aspect | Value |
+|---|---|
+| Workflow run ID | [`26558999495`](https://github.com/sense360store/esphome-public/actions/runs/26558999495/job/78237206588) |
+| Workflow | `Build & Release Firmware` ([`firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)) |
+| Trigger | `workflow_dispatch` with `dry_run=true` |
+| Branch | `main` |
+| Predecessor merged | `RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001` (PR #626, commit `776fb86`) merged as `2b4d214` |
+
+### Job results
+
+| Job | Result | Why |
+|---|---|---|
+| `Release Dry-Run (no publish)` | **success** | All four steps passed (see below) |
+| `Generate Build Matrix` | **skipped** | Gated `release \|\| (workflow_dispatch && !inputs.dry_run)`; `dry_run=true` ⇒ skip |
+| Per-product build jobs | **skipped** | Same gate (depend on `generate-matrix`) |
+| `Build Summary` | **skipped** | Same gate |
+| `Attach to Release` | **skipped** | Still gated `if: github.event_name == 'release'`; a dispatch can never reach it |
+
+### Steps passed in `Release Dry-Run (no publish)`
+
+| Step | Result |
+|---|---|
+| `Install dry-run test dependencies` | passed — installed `pyyaml` so the planner contract tests can `import yaml` (the gap closed by `RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001`) |
+| `Plan room release notes (dry-run, no publish)` | passed — `scripts/plan_room_release_notes.py --commit "${{ github.sha }}"` planned the two release-eligible builds, ran the release-notes validator against each draft body, and enforced the fan-exclusion guardrail; **wrote no file** |
+| `Verify dry-run guardrails (planner contract tests)` | passed — `tests/test_plan_room_release_notes.py` + `tests/test_release_dry_run_mode.py` (the latter parses the workflow YAML to lock in the dry-run gate invariants) |
+| `Assert no release side effects were produced` | passed — no `firmware/sources.json`, no `manifest.json`, and no root-level `*.bin` were produced |
+
+### What the dispatch confirmed
+
+- **The dry-run plans / validates the room release notes without publishing** —
+  the `release-dry-run` job ran `scripts/plan_room_release_notes.py` for the
+  two release-eligible builds and validated each draft body, with **no**
+  `softprops/action-gh-release` step in the dry-run lane.
+- **Build and release jobs are skipped under `dry_run=true`** — the
+  `generate-matrix`, per-product `build`, `summary`, and `release`
+  (`Attach to Release`) jobs were all skipped by their `if:` gates,
+  proving the dry-run lane is isolated end-to-end as designed by
+  `RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001`.
+- **It does not create a GitHub Release** — no Release was created,
+  retitled, restamped, or modified; `softprops/action-gh-release` was
+  not invoked anywhere in this run.
+- **It does not build or attach release artifacts** — no `.bin`, no
+  `checksums-sha256.txt`, no `checksums-md5.txt`, and no
+  `manifest.json` were uploaded as Release assets.
+- **It does not update [`firmware/sources.json`](../firmware/sources.json)
+  or `manifest.json`** — the `Assert no release side effects were produced`
+  step explicitly verifies this in CI; neither file is present in the repo.
+- **It does not include FanRelay / FanPWM / FanDAC in the release lane** —
+  the planner's fan-exclusion guardrail passed; FanRelay / FanPWM / FanDAC
+  remain manual-candidate-only (`config/manual-firmware-artifacts.json`)
+  and are listed under "Explicitly excluded — not release artifacts" in the
+  plan. FanTRIAC remains blocked (HW-005).
+
+### Local validation re-run (against the same commit)
+
+| Command | Result |
+|---|---|
+| `python3 scripts/plan_room_release_notes.py` | OK — emitted a 2-build plan (no file written) |
+| `python3 tests/test_plan_room_release_notes.py` | OK — 20 tests passed |
+| `python3 tests/test_release_dry_run_mode.py` | OK — 17 tests passed (includes `DryRunGatingTests`) |
+| `python3 tests/validate_configs.py` | OK — 208 files checked, 0 failed |
+| `python3 scripts/validate_compile_targets.py --metadata-only` | OK — 12 compile-only targets, metadata valid |
+| `python3 tests/validate_webflash_builds.py` | OK — 2 build entries checked, 0 failed |
+| `python3 tests/test_workflow_permissions.py` | OK — 7 tests passed |
+| `python3 -m unittest discover -s tests -p "test_*.py"` | OK — 888 tests, 3 skipped |
+
+### Provenance
+
+The workflow run ID, job URL, job/step pass-fail status, and skipped-job
+list are the operator-supplied handoff (this session has no live Actions
+API for this run); recorded as handed off, **not** fabricated. Local
+validation against the same source-of-truth commit was re-run by this
+session and is reported verbatim above.
+
+---
+
 ## Cross-references
 
 - Room firmware release inventory: [`docs/room-firmware-release-matrix.md`](room-firmware-release-matrix.md)
