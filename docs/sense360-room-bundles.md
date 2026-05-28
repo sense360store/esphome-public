@@ -126,7 +126,13 @@ the MCU. Each bundle therefore derives from
 architectural framing — including the per-connector module SKU
 mapping on the new R4 schematic — is recorded in
 [`docs/hardware/s360-100-core-architecture.md`](hardware/s360-100-core-architecture.md)
-(S360-100-NATIVE-TACH-PULSE-001 — R4 refresh).
+(S360-100-NATIVE-TACH-PULSE-001 — R4 refresh). The canonical
+per-pin Core-to-module connector pin map (per-connector matrix +
+per-connector pin tables with `Pin number` / `Core net` / `ESP32
+GPIO` / `Module-side signal` / `Signal type` / `Voltage` /
+`Status` columns) is recorded in
+[`docs/hardware/s360-100-core-connector-pin-map.md`](hardware/s360-100-core-connector-pin-map.md)
+(S360-100-CONNECTOR-PINMAP-001).
 
 | Bundle SKU | Bundle name | Included boards | Likely firmware config target | Current release status | Missing gates (top of stack) |
 |---|---|---|---|---|---|
