@@ -1280,8 +1280,13 @@ internal-diagnostic `pulse_counter`), with **no SX1509** for PWM or tach;
 exercised by the compile-only skeleton
 [`products/compile-only/ceiling-poe-fanpwm-native.yaml`](../products/compile-only/ceiling-poe-fanpwm-native.yaml)
 (target `ceiling-poe-fanpwm-native-compile-only`,
-`compile_validation_status: pending-ci`). **This changes no WebFlash
-posture:** the `FanPWM` token does not appear in
+`compile_validation_status: validated-full-compile` — a full `esphome
+compile` run against the native composition PASSED under
+S360-311-NATIVE-FANPWM-COMPILE-001, LOCAL run 2026-05-28, ESPHome 2026.4.5,
+`esp32-s3-devkitc-1` / espidf / ESP-IDF v5.5.4, commit `643bbd3`, rc=0, Flash
+51.7% / 948679 bytes; LOCAL run, no GitHub Actions run id, none fabricated).
+**This changes no WebFlash posture:** a green compile is compile coverage only
+and is NOT WebFlash exposure / readiness; the `FanPWM` token does not appear in
 `config/webflash-builds.json`; no wrapper, no `webflash_build_matrix` flip,
 no `artifact_name`, no release artifact; `rpm_supported: false`. FanPWM stays
 `not-webflash-ready`.

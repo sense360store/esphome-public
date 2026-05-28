@@ -974,10 +974,16 @@ named follow-up.
   role). The candidate is exercised by the compile-only skeleton
   [`products/compile-only/ceiling-poe-fanpwm-native.yaml`](../products/compile-only/ceiling-poe-fanpwm-native.yaml)
   (target `ceiling-poe-fanpwm-native-compile-only`). **Compile status is
-  recorded honestly: `compile_validation_status: pending-ci`** — no native
-  `esphome compile` run has been performed and the legacy SX1509 full-compile
-  run `26414398902` does **not** transfer; full compile is owned by CI and no
-  compile-proven firmware is claimed. **Bench status stays pending; RPM / tach
+  recorded honestly: `compile_validation_status: validated-full-compile`** — a
+  full `esphome compile` run against the native composition PASSED
+  (S360-311-NATIVE-FANPWM-COMPILE-001, LOCAL run 2026-05-28, ESPHome 2026.4.5,
+  board `esp32-s3-devkitc-1` / espidf / ESP-IDF v5.5.4, commit `643bbd3`; rc=0,
+  RAM 13.2% / Flash 51.7% / 948679 bytes). This was a LOCAL run (no GitHub
+  Actions run id; none fabricated); the legacy SX1509 full-compile run
+  `26414398902` does **not** transfer — this is the native composition's own
+  compile proof. A green compile is compile coverage only — **not** a release
+  artifact, **not** WebFlash exposure, **not** RPM / tach bench validation.
+  **Bench status stays pending; RPM / tach
   support stays UNVALIDATED (`rpm_supported: false`); current / thermal
   evidence stays pending** (carried by `PWM-6` / `PWM-12` / `PWM-13` in
   [`docs/blocker-burndown.md` §2A](blocker-burndown.md)). The native candidate

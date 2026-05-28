@@ -43,10 +43,13 @@ mirrored here.
   [`products/compile-only/ceiling-poe-fanpwm-native.yaml`](products/compile-only/ceiling-poe-fanpwm-native.yaml)
   and compile-only target `ceiling-poe-fanpwm-native-compile-only`
   (in [`config/compile-only-targets.json`](config/compile-only-targets.json))
-  exercise the candidate. **Honesty / guardrails:** compile status is
-  `compile_validation_status: pending-ci` (no native `esphome compile`
-  run performed; the legacy SX1509 run `26414398902` does **not**
-  transfer; no compile-proven firmware claimed); bench status stays
+  exercise the candidate. **Honesty / guardrails:** compile status was
+  recorded `compile_validation_status: pending-ci` at YAML-add time (no
+  native `esphome compile` run had been performed; the legacy SX1509 run
+  `26414398902` does **not** transfer) and has since been flipped to
+  `validated-full-compile` by the follow-up
+  **S360-311-NATIVE-FANPWM-COMPILE-001** (see the dedicated entry below),
+  which ran a full native compile that PASSED; bench status stays
   pending; RPM / tach support stays **unvalidated** (`rpm_supported:
   false`); current / thermal evidence stays pending. FanPWM stays
   **excluded from release / WebFlash** — the `FanPWM` token does not
@@ -62,6 +65,39 @@ mirrored here.
   [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
   [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
   and [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md).
+- **S360-311-NATIVE-FANPWM-COMPILE-001** records, via **this PR** on
+  2026-05-28, the **CI / full-compile evidence** for the native ESP32-S3
+  GPIO FanPWM compile-only target added by S360-311-NATIVE-FANPWM-YAML-001
+  (PR #640). **Result: PASS.** A full `esphome compile` run against the
+  native composition
+  [`products/compile-only/ceiling-poe-fanpwm-native.yaml`](products/compile-only/ceiling-poe-fanpwm-native.yaml)
+  (target `ceiling-poe-fanpwm-native-compile-only`) returned `rc=0`
+  (`INFO Successfully compiled program.`): ESPHome 2026.4.5, board
+  `esp32-s3-devkitc-1`, framework espidf / ESP-IDF v5.5.4
+  (framework-espidf 3.50504.0, platform-espressif32 55.03.38-1), commit
+  `643bbd3` on `claude/native-fanpwm-compile-result-hPUwn`, RAM 13.2%
+  (43156 / 327680 bytes) / Flash 51.7% (948679 / 1835008 bytes), real
+  `firmware.bin`. **Validation command:** `esphome compile
+  products/compile-only/ceiling-poe-fanpwm-native.yaml` (the per-target
+  invocation equivalent to `scripts/validate_compile_targets.py --compile`
+  for this single native target — not the full 13-target matrix). **This
+  was a LOCAL run; no GitHub Actions `workflow_dispatch` run id exists and
+  none is fabricated** (the egress-restricted environment cannot trigger
+  `compile-only.yml`). **Change:** `config/compile-only-targets.json`
+  flips `compile_validation_status` `pending-ci → validated-full-compile`
+  for the native target (notes record the run); `tests/test_native_fanpwm_yaml.py`
+  is updated to pin `validated-full-compile`; the readiness docs above are
+  refreshed. **Honesty / guardrails (unchanged):** a green compile is
+  compile coverage only — **not** WebFlash exposure, **not** a release
+  artifact, **not** RPM / tach bench validation, **not** hardware proof.
+  FanPWM stays excluded from release / WebFlash — no `FanPWM` token in
+  `config/webflash-builds.json`, no `artifact_name`, no
+  `webflash_build_matrix` flip, no WebFlash wrapper, no `firmware/sources.json`
+  or `manifest.json` change. `rpm_supported: false`; S360-311
+  `schematic_status` stays `cataloged_unverified`; bench (PWM polarity;
+  current / thermal) gates stay open and carried by `PWM-6` / `PWM-12` /
+  `PWM-13`. The legacy SX1509 full-compile run `26414398902` does **not**
+  transfer; this is the native composition's own compile proof.
 - **MODULE-PINMAPS-GDRIVE-001** delivers, via **this PR** on
   2026-05-28, the per-module **module-side** companion pin maps
   for every Sense360 R4 module SKU — one document per board
