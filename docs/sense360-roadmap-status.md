@@ -31,6 +31,7 @@ disagree, **the source-of-truth file wins** and this doc is the one to fix.
 | Blocker burn-down detail | [`docs/blocker-burndown.md`](blocker-burndown.md) |
 | Detailed PR working queue | [`UPCOMING_PR.md`](../UPCOMING_PR.md) |
 | Reconciled release-matrix / WebFlash / firmware-availability view | [`docs/release-matrix-webflash-alignment.md`](release-matrix-webflash-alignment.md) (WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001) |
+| Whole-system architecture (two-repo pipeline + CI map) | [`docs/system-architecture.md`](system-architecture.md) · [`docs/ci-pipeline.md`](ci-pipeline.md) |
 
 ---
 
