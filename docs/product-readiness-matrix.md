@@ -993,6 +993,35 @@ named follow-up.
   historical SX1509 / `pulse_counter` proof remain in place
   (legacy / superseded, manual-only, not release-selectable). Pinned by
   [`tests/test_native_fanpwm_yaml.py`](../tests/test_native_fanpwm_yaml.py).
+- **Native FanPWM bench evidence — `S360-311-NATIVE-FANPWM-BENCH-001`
+  (this PR; 2026-05-29).** The operator (`@wifispray`) flashed the
+  **native** ESP32-S3 GPIO FanPWM firmware (a local build of
+  `packages/expansions/fan_pwm_native.yaml` via the
+  `ceiling-poe-fanpwm-native` skeleton, compile-proven at commit `643bbd3`
+  under S360-311-NATIVE-FANPWM-COMPILE-001) onto an `S360-100-R4` Core +
+  `S360-311-R4` PWM board and re-ran the FanPWM **functional** bench.
+  **Functional PWM PASSED** (operator-notes-only attestation): all four
+  channels (`J1`/`J2`/`J4`/`J5`) were individually speed-controlled, all
+  four ran simultaneously, low / medium / high commands tracked, and the
+  fans retained the last commanded speed across a restart. This is the
+  native composition's **own** functional bench — the 2026-05-26
+  `S360-311-BENCH-RESULT-001` ran the legacy SX1509 composition and does
+  **not** transfer to the native GPIO mapping (different pins). **Current /
+  thermal were NOT measured** and **tach / RPM were NOT measured**, so both
+  stay **unvalidated**: per-channel + aggregate current and measured thermal
+  stay carried by `PWM-6` / `PWM-13` → `S360-311-CURRENT-THERMAL-001`; RPM
+  stays unsupported (`rpm_supported: false`), with `Pul_Cou3` (`IO46`)
+  disabled / TBD and `TachIO` (`IO16`) reserved / pending. **Outcome:** PWM
+  functional (native) — operator-attested PASS; tach / RPM — not measured
+  (unvalidated); current / thermal — not measured (unvalidated); release /
+  WebFlash remain **blocked**. **Product-layer disposition is unchanged** —
+  `Ceiling-POE-FanPWM` stays `hardware-pending`, PWM-drive-only,
+  `rpm_supported: false`; this PR adds **no** product YAML, **no** WebFlash
+  wrapper, **no** `config/webflash-builds.json` row, **no** `artifact_name`,
+  **no** `webflash_build_matrix` flip, and makes **no** RPM / current /
+  thermal / hardware-stable / release / WebFlash / compliance claim;
+  `S360-311` stays `cataloged_unverified`. Canonical record in
+  [`s360-311-r4-pwm.md` §S360-311-NATIVE-FANPWM-BENCH-001](hardware/s360-311-r4-pwm.md#s360-311-native-fanpwm-bench-001--native-fanpwm-operator-bench-result-2026-05-29).
 - **Why no product YAML.** *(Historical — superseded; see the reconciliation
   note above.)* The required package
   [`packages/expansions/fan_pwm.yaml`](../packages/expansions/fan_pwm.yaml)
@@ -1616,6 +1645,34 @@ named follow-up.
   resolution claim, **no** measured RPM / tach / PWM / current /
   thermal claim, **no** fabricated connector type / pin order /
   signal mapping / GPIO allocation, **no** firmware YAML edit.
+- **2026-05-29 — `S360-311-NATIVE-FANPWM-BENCH-001` (this PR; docs +
+  catalog-notes only) — native FanPWM functional bench recorded.** The
+  operator (`@wifispray`) flashed the **native** ESP32-S3 GPIO FanPWM
+  firmware (compile-proven at `643bbd3`) onto `S360-100-R4` + `S360-311-R4`
+  and re-ran the functional bench; this PR **records** the result
+  (operator-notes-only attestation) in
+  [`s360-311-r4-pwm.md` §S360-311-NATIVE-FANPWM-BENCH-001](hardware/s360-311-r4-pwm.md#s360-311-native-fanpwm-bench-001--native-fanpwm-operator-bench-result-2026-05-29)
+  and [`blocker-burndown.md` §5F](blocker-burndown.md#5f-s360-311-native-fanpwm-bench-001--native-fanpwm-operator-bench-result-2026-05-29).
+  **Functional PWM PASSED** on the native composition (all four channels
+  individual + simultaneous + low/med/high + restart-retention); this is the
+  native composition's own functional bench (the 2026-05-26
+  `S360-311-BENCH-RESULT-001` ran the legacy SX1509 composition and does
+  **not** transfer). **Still open / unchanged:** current / thermal **NOT
+  measured** (`PWM-6` / `PWM-13` → `S360-311-CURRENT-THERMAL-001`) and
+  tach / RPM **NOT measured** (`PWM-12`; `rpm_supported: false`;
+  `Pul_Cou3`/`IO46` disabled/TBD; `TachIO`/`IO16` reserved/pending).
+  **Product-layer disposition is unchanged** — `Ceiling-POE-FanPWM` stays
+  `hardware-pending`, PWM-drive-only, `validated-full-compile`,
+  `rpm_supported: false`; this PR adds **no** product YAML and changes no
+  status. No `packages/` / `products/` / `products/webflash/` /
+  `config/webflash-builds.json` / workflow / firmware /
+  `sense360store/WebFlash` edit; no `webflash_build_matrix` flip; no
+  `artifact_name`; no RPM / current / thermal / WebFlash / import / release /
+  compliance / hardware-stable claim; `S360-311` stays
+  `cataloged_unverified`; no fabricated photo / video / log / measurement
+  evidence. `config/product-catalog.json` is touched only to append an
+  evidence note to the existing FanPWM `notes` field (no status / matrix /
+  artifact change).
 
 ### FanDAC / S360-312
 

@@ -24,6 +24,49 @@ mirrored here.
 
 ## Current queue summary
 
+- **S360-311-NATIVE-FANPWM-BENCH-001** records, via **this PR** on
+  2026-05-29, the **operator hardware bench evidence** for the native
+  ESP32-S3 GPIO FanPWM firmware candidate added by
+  S360-311-NATIVE-FANPWM-YAML-001 (PR #640) and compile-proven by
+  S360-311-NATIVE-FANPWM-COMPILE-001 (PR #641). **Result: functional PWM
+  PASS (native composition).** The operator (`@wifispray`) flashed the
+  native firmware (a local build of
+  [`packages/expansions/fan_pwm_native.yaml`](packages/expansions/fan_pwm_native.yaml)
+  via the
+  [`products/compile-only/ceiling-poe-fanpwm-native.yaml`](products/compile-only/ceiling-poe-fanpwm-native.yaml)
+  skeleton, compile-proven at commit `643bbd3`) onto an `S360-100-R4` Core +
+  `S360-311-R4` PWM board (fan/load Arctic P14 Plus; 12 V MT3608 boost,
+  ~2 A available) and re-ran the **functional** bench: all four channels
+  (`J1`/`J2`/`J4`/`J5`) individually speed-controlled, all four
+  simultaneous, low / medium / high tracked, and restart retained the last
+  commanded speed — recorded as an **operator-notes-only** attestation. This
+  is the native composition's **own** functional bench; the 2026-05-26
+  `S360-311-BENCH-RESULT-001` ran the **legacy SX1509** composition and does
+  **not** transfer (different pins:
+  `TachPMW1..4` → `IO10`/`IO11`/`IO12`/`IO39`), exactly as the legacy
+  full-compile run did not transfer. **Honesty / guardrails:** **current /
+  thermal were NOT measured** and **tach / RPM were NOT measured**, so both
+  stay **unvalidated** — measured per-channel + aggregate current, MT3608
+  ceiling / inrush, and measured thermal stay owed to
+  `S360-311-CURRENT-THERMAL-001` (`PWM-6` / `PWM-13`), and RPM stays
+  unsupported (`rpm_supported: false`, `PWM-12`) with `Pul_Cou3`/`IO46`
+  disabled/TBD and `TachIO`/`IO16` reserved/pending. FanPWM stays
+  **excluded from release / WebFlash**: no `FanPWM` token in
+  `config/webflash-builds.json`, no `artifact_name`, no
+  `webflash_build_matrix` flip, no WebFlash wrapper, no
+  `firmware/sources.json` / `manifest.json` change, no release artifact;
+  `Ceiling-POE-FanPWM` stays `hardware-pending` and `S360-311` stays
+  `cataloged_unverified`; no S360-410 PoE blocker resolution is claimed.
+  **Change:** docs + catalog-notes only — updates
+  [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md),
+  [`docs/manual-install-fan-candidates.md`](docs/manual-install-fan-candidates.md),
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md),
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+  [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
+  and an evidence note appended to the existing FanPWM `notes` field in
+  [`config/product-catalog.json`](config/product-catalog.json) (no status /
+  matrix / artifact change).
 - **S360-311-NATIVE-FANPWM-YAML-001** delivers, via **this PR** on
   2026-05-28, the **native ESP32-S3 GPIO FanPWM YAML candidate** that
   replaces the superseded SX1509 fan-control path for the S360-311

@@ -1291,6 +1291,24 @@ and is NOT WebFlash exposure / readiness; the `FanPWM` token does not appear in
 no `artifact_name`, no release artifact; `rpm_supported: false`. FanPWM stays
 `not-webflash-ready`.
 
+**Native FanPWM bench evidence — `S360-311-NATIVE-FANPWM-BENCH-001`
+(this PR; 2026-05-29).** The operator (`@wifispray`) flashed the **native**
+ESP32-S3 GPIO FanPWM firmware (compile-proven at commit `643bbd3` under
+S360-311-NATIVE-FANPWM-COMPILE-001) onto `S360-100-R4` + `S360-311-R4` and
+re-ran the **functional** bench. **Functional PWM PASSED**
+(operator-notes-only): all four channels individual + simultaneous +
+low/med/high + restart-retention on the native composition (its own
+functional bench — the 2026-05-26 legacy SX1509 bench does not transfer).
+**This changes no WebFlash posture:** an operator functional bench is not
+WebFlash exposure / readiness; the `FanPWM` token does not appear in
+`config/webflash-builds.json`; no wrapper, no `webflash_build_matrix` flip,
+no `artifact_name`, no release artifact. **Current / thermal were NOT
+measured** and **tach / RPM were NOT measured** (`rpm_supported: false`;
+`Pul_Cou3`/`IO46` disabled/TBD; `TachIO`/`IO16` reserved/pending). FanPWM
+stays `not-webflash-ready`; `WEBFLASH-PWM-LIVE-CHECK-001` stays behind
+`sense360store/WebFlash` access and the still-owed
+`S360-311-CURRENT-THERMAL-001` measured envelope.
+
 **Future exposure class (intent).** `preview-candidate` as a standard
 exposure, only after: `HW-PINMAP-311-FOLLOWUP` (standalone
 schematic-backed reference doc; Core `J6` 1-to-13 pin-order verify

@@ -87,7 +87,7 @@ action** · **Next PR**.
 | PWM-13 | Board-level thermal / EMI note | NEEDS BENCH (qualitative recorded) | SELV board; not certified; **qualitative: all 4 fans ran 1+ hour, no heat issue noticed** (operator notes); no measured °C / IR / thermocouple / EMI | WEBFLASH-PWM-001-READINESS / PR #598; S360-311-BENCH-RESULT-001 (operator `@wifispray`, 2026-05-26) | Partial | **measured** thermal temp / ambient / hottest-location (IR or thermocouple); EMI observation (not a compliance approval) | S360-311-CURRENT-THERMAL-001 |
 | PWM-14 | Compliance / mains gate | CLOSED (no mains) | SELV (5 V → 12 V boost); no mains path | PWM-BLOCKER-REMOVAL-001 / PR #586 | Yes | none — `COMPLIANCE-001` mains gate does not apply | — |
 | PWM-15 | WebFlash wrapper / build-matrix / artifact / module-availability | NEEDS WEBFLASH ACCESS + OUT OF SCOPE | No wrapper; `S360-311` not in any `module-availability.js` snapshot (drift #16) | WEBFLASH-DRIFT-001 / PR #595; WEBFLASH-PWM-001-READINESS / PR #598 | No | record `S360-311` classification on live re-check; wrapper gated behind bench | WEBFLASH-PWM-LIVE-CHECK-001 |
-| PWM-16 | Native ESP32-S3 GPIO FanPWM YAML candidate (re-bind off SX1509) | NATIVE CANDIDATE COMPILE-VALIDATED (full compile PASSED) | Native package [`packages/expansions/fan_pwm_native.yaml`](../packages/expansions/fan_pwm_native.yaml) binds `TachPMW1..4`→`IO10`/`IO11`/`IO12`/`IO39` via `output: platform: ledc` (NO SX1509) and `Pul_Cou1`/`Pul_Cou2`/`Pul_Cou4`→`IO17`/`IO18`/`IO9` via internal-diagnostic `sensor: platform: pulse_counter` (NO SX1509); `Pul_Cou3`/`IO46` disabled/TBD (collides with Core `fan_status_led_pin`/`GPIO46`), `TachIO`/`IO16` reserved/pending. Compile-only skeleton [`products/compile-only/ceiling-poe-fanpwm-native.yaml`](../products/compile-only/ceiling-poe-fanpwm-native.yaml) + target `ceiling-poe-fanpwm-native-compile-only` (`compile_validation_status: validated-full-compile`, `rpm_supported: false`). **Full `esphome compile` run against the native composition PASSED** (S360-311-NATIVE-FANPWM-COMPILE-001, LOCAL run 2026-05-28, ESPHome 2026.4.5, `esp32-s3-devkitc-1` / espidf / ESP-IDF v5.5.4, commit `643bbd3`; rc=0, RAM 13.2% / Flash 51.7% / 948679 bytes); LOCAL run, no GitHub Actions run id (none fabricated); legacy SX1509 run `26414398902` does not transfer. A green compile is compile coverage only — NOT a release artifact, NOT WebFlash exposure, NOT RPM/tach bench validation. No WebFlash wrapper / build-matrix / artifact. Pinned by [`test_native_fanpwm_yaml.py`](../tests/test_native_fanpwm_yaml.py). | S360-311-NATIVE-FANPWM-YAML-001; S360-311-NATIVE-FANPWM-COMPILE-001 (this PR) | No (compile-only; candidate) | RPM/tach + current/thermal stay carried by `PWM-6` / `PWM-12` / `PWM-13` (a green compile does not close them) | `S360-311-CURRENT-THERMAL-001` (bench) |
+| PWM-16 | Native ESP32-S3 GPIO FanPWM YAML candidate (re-bind off SX1509) | NATIVE CANDIDATE COMPILE-VALIDATED + FUNCTIONAL BENCH PASS (native, operator-attested) | Native package [`packages/expansions/fan_pwm_native.yaml`](../packages/expansions/fan_pwm_native.yaml) binds `TachPMW1..4`→`IO10`/`IO11`/`IO12`/`IO39` via `output: platform: ledc` (NO SX1509) and `Pul_Cou1`/`Pul_Cou2`/`Pul_Cou4`→`IO17`/`IO18`/`IO9` via internal-diagnostic `sensor: platform: pulse_counter` (NO SX1509); `Pul_Cou3`/`IO46` disabled/TBD (collides with Core `fan_status_led_pin`/`GPIO46`), `TachIO`/`IO16` reserved/pending. Compile-only skeleton [`products/compile-only/ceiling-poe-fanpwm-native.yaml`](../products/compile-only/ceiling-poe-fanpwm-native.yaml) + target `ceiling-poe-fanpwm-native-compile-only` (`compile_validation_status: validated-full-compile`, `rpm_supported: false`). **Full `esphome compile` run against the native composition PASSED** (S360-311-NATIVE-FANPWM-COMPILE-001, LOCAL run 2026-05-28, ESPHome 2026.4.5, `esp32-s3-devkitc-1` / espidf / ESP-IDF v5.5.4, commit `643bbd3`; rc=0, RAM 13.2% / Flash 51.7% / 948679 bytes); LOCAL run, no GitHub Actions run id (none fabricated); legacy SX1509 run `26414398902` does not transfer. A green compile is compile coverage only — NOT a release artifact, NOT WebFlash exposure, NOT RPM/tach bench validation. No WebFlash wrapper / build-matrix / artifact. Pinned by [`test_native_fanpwm_yaml.py`](../tests/test_native_fanpwm_yaml.py). **S360-311-NATIVE-FANPWM-BENCH-001 (this PR, 2026-05-29):** the operator (`@wifispray`) flashed the native firmware (compile-proven at `643bbd3`) onto `S360-100-R4` + `S360-311-R4` and re-ran the **functional** bench — **FUNCTIONAL PWM PASS** (operator-notes-only): all four channels individual + simultaneous + high/med/low + restart-retention. This is the native composition's own functional bench (the 2026-05-26 legacy SX1509 bench does NOT transfer). **Current/thermal NOT measured; tach/RPM NOT measured** (`rpm_supported: false`; `Pul_Cou3`/`IO46` disabled/TBD; `TachIO`/`IO16` reserved/pending) — those stay carried by `PWM-6` / `PWM-12` / `PWM-13`. No WebFlash / release / hardware-stable claim. | S360-311-NATIVE-FANPWM-YAML-001; S360-311-NATIVE-FANPWM-COMPILE-001; S360-311-NATIVE-FANPWM-BENCH-001 (this PR) | No (compile + functional bench; candidate) | RPM/tach + current/thermal stay carried by `PWM-6` / `PWM-12` / `PWM-13` (functional PASS does not close them) | `S360-311-CURRENT-THERMAL-001` (bench) |
 
 **Scope reclassification — `PWM-BLOCKER-RECLASSIFY-001` (2026-05-27).**
 The FanPWM package / product / compile chain is complete and PR #599 found
@@ -342,6 +342,28 @@ hardware-stable blocker only; `TachIO`/`GPIO16` = RPM / diagnostics blocker
 only; RPM = out of scope for the PWM-drive-only product; WebFlash live
 access = WebFlash exposure blocker only. See the §2A scope-classification
 table and [`s360-311-r4-pwm.md` §PWM-BLOCKER-RECLASSIFY-001](hardware/s360-311-r4-pwm.md#pwm-blocker-reclassify-001--fanpwm-remaining-blockers-reclassified-by-release-scope-2026-05-27).
+
+**Update — `S360-311-NATIVE-FANPWM-BENCH-001` (2026-05-29).** The operator
+(`@wifispray`) then flashed the **native** ESP32-S3 GPIO FanPWM firmware
+(`fan_pwm_native.yaml` via the `ceiling-poe-fanpwm-native` skeleton,
+compile-proven at commit `643bbd3` under S360-311-NATIVE-FANPWM-COMPILE-001)
+onto `S360-100-R4` + `S360-311-R4` and re-ran the **functional** bench. On
+operator-notes-only evidence this records a **functional PWM PASS on the
+native composition** (`PWM-16`): all four channels individually
+speed-controlled, all four simultaneous, low/med/high tracked, restart
+retained the last commanded speed. This is the native composition's **own**
+functional bench — the 2026-05-26 `S360-311-BENCH-RESULT-001` ran the
+legacy SX1509 composition and does **not** transfer (different pins).
+**Current / thermal were NOT measured** and **tach / RPM were NOT
+measured**, so those rows stay open and unvalidated: per-channel +
+aggregate current and measured thermal stay carried by `PWM-6` / `PWM-13`
+→ **`S360-311-CURRENT-THERMAL-001`**; RPM stays unsupported
+(`rpm_supported: false`, `PWM-12`), with `Pul_Cou3`/`IO46` disabled/TBD and
+`TachIO`/`IO16` reserved/pending. WebFlash (`PWM-15`), release, import,
+hardware-stable promotion (`S360-311` stays `cataloged_unverified`), and
+compliance stay exactly as before. See
+[`s360-311-r4-pwm.md` §S360-311-NATIVE-FANPWM-BENCH-001](hardware/s360-311-r4-pwm.md#s360-311-native-fanpwm-bench-001--native-fanpwm-operator-bench-result-2026-05-29)
+and [§5F](#5f-s360-311-native-fanpwm-bench-001--native-fanpwm-operator-bench-result-2026-05-29).
 
 **Update — `DAC-BLOCKER-RECLASSIFY-001` (2026-05-27).** The remaining
 FanDAC gaps were likewise **reclassified by release scope** (docs-only; no
@@ -798,6 +820,18 @@ Applying the burn-down decision rules:
   import PRs **remain blocked**, and **`S360-311-CURRENT-THERMAL-001`**
   stays a later evidence PR required before WebFlash exposure / release /
   hardware-stable promotion.
+- **Native FanPWM functional bench is now recorded** (`S360-311-NATIVE-FANPWM-BENCH-001`,
+  2026-05-29): the operator flashed the **native** ESP32-S3 GPIO firmware
+  (compile-proven at `643bbd3`) onto `S360-100-R4` + `S360-311-R4` and
+  re-ran the functional bench — **functional PWM PASS on the native
+  composition** (all four channels individual + simultaneous + high/med/low
+  + restart-retention; operator-notes-only). This is the native
+  composition's **own** functional bench (the 2026-05-26 legacy SX1509 bench
+  does **not** transfer). **Current / thermal and tach / RPM were NOT
+  measured**, so they stay open / unvalidated → **`S360-311-CURRENT-THERMAL-001`**
+  (measured rows) and `PWM-12` (RPM stays `rpm_supported: false`;
+  `Pul_Cou3`/`IO46` disabled/TBD; `TachIO`/`IO16` reserved/pending). No
+  WebFlash / release / hardware-stable claim; gates stay closed.
 - **FanDAC bench evidence is missing** → **`S360-312-BENCH-EVIDENCE-REQUEST-001`**
   (request `J3` `out0`/`out1` transposition confirmation, Cloudlift S12
   harness trace, Cloudlift S12 product bench). *Not*
@@ -1271,6 +1305,81 @@ checklist with evidence → **`S360-310-SAFETY-BENCH-RESULT-001`** (record
 results, close the rows it proves); while evidence is missing →
 `S360-310-SAFETY-BENCH-RESULT-001` stays gated. WebFlash wrapper / build /
 artifact / import PRs stay blocked.
+
+### 5F. S360-311-NATIVE-FANPWM-BENCH-001 — native FanPWM operator bench result (2026-05-29)
+
+The operator (`@wifispray`) flashed the **native** ESP32-S3 GPIO FanPWM
+firmware and re-ran the FanPWM bench. `S360-311-NATIVE-FANPWM-BENCH-001`
+**records** it (cross-lane index copy; the canonical board-side record is
+[`s360-311-r4-pwm.md` §S360-311-NATIVE-FANPWM-BENCH-001](hardware/s360-311-r4-pwm.md#s360-311-native-fanpwm-bench-001--native-fanpwm-operator-bench-result-2026-05-29)).
+Evidence type is **operator notes only** — no photo / video / scope /
+multimeter log / thermal image — recorded as an operator attestation
+(provenance: operator `@wifispray`, 2026-05-29), the same evidence class
+that closed the functional rows in `S360-311-BENCH-RESULT-001`.
+
+This is **distinct** from `S360-311-BENCH-RESULT-001` (2026-05-26), which
+ran the **legacy SX1509** composition. The native candidate re-binds
+FanPWM control to **different pins** (`TachPMW1..4` ->
+`IO10`/`IO11`/`IO12`/`IO39` via `ledc`, no SX1509), so the earlier
+functional bench does **not** transfer — exactly as the legacy SX1509
+full-compile run did not transfer to the native composition. This records
+the native composition's **own** functional bench.
+
+**Hardware setup (recorded):** Core = **S360-100-R4** (native ESP32-S3
+GPIO fan path); PWM board = **S360-311-R4**; fan/load = **Arctic P14
+Plus** (12 V 4-wire PWM), one per channel; supply = **12 V** from the
+on-board **MT3608 boost** (~**2 A** available, capability not a measured
+ceiling); firmware = **native composition** (`fan_pwm_native.yaml` via the
+`ceiling-poe-fanpwm-native` skeleton); build source = native composition
+**compile-proven at commit `643bbd3`** (S360-311-NATIVE-FANPWM-COMPILE-001),
+operator-flashed local build (no published / release artifact).
+
+**Functional PWM (recorded — PASS):** channel 1 (`J1`), channel 2 (`J2`),
+channel 3 (`J4`), channel 4 (`J5`) each individually speed-controlled;
+**all four simultaneous**; **low / medium / high** commands tracked
+(qualitative; exact Hz / min%–max% not recorded); **restart retained the
+last commanded speed**. Operator summary **confirms working on native
+firmware.**
+
+**Tach / RPM (recorded — NOT measured):** tach / RPM **not measured**;
+no per-channel value; `rpm_supported` stays **false**; the native
+pulse-counter inputs (`Pul_Cou1`/`Pul_Cou2`/`Pul_Cou4` ->
+`IO17`/`IO18`/`IO9`) are internal-diagnostic only and were **not** read
+for RPM; **`Pul_Cou3` (`IO46`) stays disabled / TBD** (collides with the
+Core `fan_status_led_pin` `GPIO46`); **`TachIO` (`IO16`) stays reserved /
+pending**.
+
+**Power / current / thermal (recorded — NOT measured):** per-channel
+current **not measured**; aggregate current **not measured**; MT3608
+measured ceiling / inrush **not measured**; thermal observation duration
+**not separately quantified** for the native run; heat / no-heat **not
+measured** (no measured °C); **no instability / reset / brownout reported**
+during the functional run (functional control + restart-retention
+succeeded, indicating stable operation during the test).
+
+**Outcome classification:** PWM functional (native) — **operator-attested
+PASS**; tach / RPM — **not measured (unvalidated)**; current / thermal —
+**not measured (unvalidated)**; release / WebFlash — **remain blocked**.
+
+**Gate dispositions:**
+
+| Gate / blocker | Disposition |
+|---|---|
+| Native FanPWM functional bench (`PWM-16`) | **FUNCTIONAL BENCH — operator-attested PASS (native)** (compile + functional; current/thermal/RPM carried by `PWM-6`/`PWM-12`/`PWM-13`) |
+| Four-channel individual + simultaneous + restart-retention (native) | **PASS** — operator-attested |
+| Per-channel + aggregate current (`PWM-6`) | **OPEN** — not measured |
+| Measured thermal temperature (`PWM-13`) | **OPEN** — not measured |
+| TachIO / GPIO16 + RPM (`PWM-12`) | **OPEN / deferred** — not measured; `rpm_supported: false`; `Pul_Cou3`/`IO46` disabled/TBD |
+| WebFlash / release / import (`PWM-15` / `RELEASE-PWM-001` / `WF-IMPORT-PWM-001`) | **OPEN** — gated |
+| Hardware-stable promotion | **OUT OF SCOPE** — `S360-311` stays `cataloged_unverified` |
+| Compliance (`PWM-14` / `CMP-2`) | **N/A** — SELV; `COMPLIANCE-001` does not apply |
+
+**Next PR:** **`S360-311-CURRENT-THERMAL-001`** for the measured current /
+thermal rows (and a separate firmware-binding + bench PR for any RPM).
+WebFlash stays separate and blocked (`WEBFLASH-PWM-LIVE-CHECK-001` behind
+`sense360store/WebFlash` access); **no** `WEBFLASH-PWM-001` wrapper is
+recommended until measured current / thermal *and* the WebFlash live
+classification are done.
 
 ## 6. Guardrails honoured / non-claims
 

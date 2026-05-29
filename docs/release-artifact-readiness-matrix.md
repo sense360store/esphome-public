@@ -1488,6 +1488,26 @@ no `artifact_name`; no release artifact / proof row added; no WebFlash / import
 > `Ceiling-POE-FanPWM` stays `not-release-ready`; bench / current / thermal /
 > RPM evidence stays pending.
 
+> **S360-311-NATIVE-FANPWM-BENCH-001 (this PR; 2026-05-29).** The operator
+> (`@wifispray`) flashed the **native** ESP32-S3 GPIO FanPWM firmware
+> (compile-proven at commit `643bbd3` under S360-311-NATIVE-FANPWM-COMPILE-001)
+> onto `S360-100-R4` + `S360-311-R4` and re-ran the **functional** bench.
+> **Functional PWM PASSED** (operator-notes-only): all four channels
+> individual + simultaneous + low/med/high + restart-retention on the native
+> composition (its own functional bench — the 2026-05-26 legacy SX1509 bench
+> does not transfer). **This changes no release surface:** the bench
+> discharges **no** release gate — `artifact_name` is still absent
+> (`webflash_build_matrix: false`); there is still no `.bin` / tag / SHA256 /
+> MD5 / build-info `manifest.json` /
+> [`webflash-release-proof.md`](webflash-release-proof.md) row; and no
+> `firmware/sources.json` / `manifest.json` change. **Current / thermal were
+> NOT measured** and **tach / RPM were NOT measured** (`rpm_supported:
+> false`), so even the substantive bench gate is only partially met — the
+> measured envelope stays owed to `S360-311-CURRENT-THERMAL-001`.
+> `Ceiling-POE-FanPWM` stays `not-release-ready`; `RELEASE-PWM-001` stays
+> blocked behind the upstream `WEBFLASH-PWM-001` wrapper and the measured
+> current / thermal evidence.
+
 **Current state.** No non-legacy FanPWM product YAML under
 [`products/`](../products/); no FanPWM WebFlash wrapper; no FanPWM
 catalog entry on the WebFlash track; no FanPWM build-matrix row; no
