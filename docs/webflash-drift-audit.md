@@ -29,6 +29,182 @@ security clean-bill claim.
 
 ---
 
+## WEBFLASH-DRIFT-001 re-run — 2026-05-29 (live WebFlash access available)
+
+**Audit id:** `WEBFLASH-DRIFT-001` (re-run)
+**Date:** 2026-05-29
+**Scope repo:** `sense360store/esphome-public` (primary — verified this session)
+**Companion repo:** `sense360store/WebFlash` (read-only — **directly accessible
+this session** via a local read-only clone; this is the first run that can close
+the rows the 2026-05-26 run left `NEEDS-TOOLING`)
+**Type:** Audit / docs only. This re-run makes **no** product, package,
+config-behaviour, workflow, firmware, or WebFlash edit; flips **no**
+`webflash_build_matrix`; adds **no** `artifact_name`, wrapper, or release
+artifact; closes **no** `PWM-6` / `PWM-13`; marks **nothing** stable / verified;
+and exposes **no** Relay / PWM / DAC / TRIAC to WebFlash.
+
+### Why this re-run exists
+
+The 2026-05-26 run (§0–§7 below, PR #595) could not read `sense360store/WebFlash`
+and left rows #4, #5, #11, #16, #17 open as `NEEDS-TOOLING`, with all
+WebFlash-side facts **prior-recorded** (PR #565, 2026-05-22). **This session has
+a live read-only WebFlash clone**, so those rows are re-checked against the
+actual WebFlash tree. The re-run also confirms the recently-landed PRs are
+mutually consistent across both repos:
+
+- `WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001` (both repos),
+- `DOCS-CI-CLARITY-001` (esphome-public — added `docs/system-architecture.md`),
+- `WEBFLASH-ARCH-DOCS-001` (WebFlash — added `docs/architecture.md` linking up to
+  `docs/system-architecture.md`),
+- `S360-311-CURRENT-THERMAL-001` (esphome-public — recorded a **no-values** run;
+  `PWM-6` / `PWM-13` stay owed).
+
+### Per-check results
+
+| # | Required check | Result | Ownership |
+|---|---|---|---|
+| C1 | Exposed WebFlash surface = Release-One stable + LED preview only; no fan driver (Relay/PWM/DAC/TRIAC) in `manifest.json` or carrying an artifact; matches `config/webflash-builds.json` + `docs/webflash-exposure-readiness-matrix.md` | **PASS** | — |
+| C2 | Bundle SKUs / kit presets reconcile (`config/room-bundle-skus.json` vs WebFlash `scripts/data/kits.json` + `scripts/data/kit-presets.js`) — config string + availability state | **PASS** on config-string + availability; **2 minor non-functional findings** (F1, F2) | F1/F2 WebFlash-owned |
+| C3 | Cross-repo doc link resolves: WebFlash `docs/architecture.md` → esphome-public `docs/system-architecture.md`, target exists | **PASS** (not dangling) | — |
+| C4 | No S360-410 `verified` claim and no FanPWM current/thermal close leaked into either surface | **PASS** (S360-410 stays `cataloged_unverified`; `PWM-6` / `PWM-13` stay owed; `S360-410` stays `cataloged_unverified`) | — |
+
+**C1 — WebFlash exposure surface (was rows #1/#3/#6/#7/#8/#10).**
+The live WebFlash `manifest.json` carries exactly **3 builds**:
+`Ceiling-POE-VentIQ-RoomIQ` (`channel: stable`),
+`Ceiling-POE-VentIQ-RoomIQ-LED` (`channel: preview`), and the WebFlash-owned
+`Rescue` recovery image — **no Relay / PWM / DAC / TRIAC build, no fan
+artifact**. WebFlash `firmware/sources.json` declares exactly the two upstream
+product sources (Release-One stable + LED preview), with
+`block_tokens: ["FanTRIAC", "LED"]` on Release-One and `["FanTRIAC"]` on the LED
+preview — **no fan source**. This `MATCH`es esphome-public
+`config/webflash-builds.json` (the same 2 builds) and
+`docs/webflash-exposure-readiness-matrix.md` (Current WebFlash surface table).
+The 3rd manifest build being the WebFlash-owned Rescue image is a **by-design
+structural difference, not drift** (re-confirmed live, no longer prior-recorded).
+
+**C2 — bundle SKUs / kit presets (closes rows #13/#14, refines #15/#16/#17).**
+Three **distinct, documented SKU namespaces** are in play and must not be naively
+diffed by name:
+
+- esphome-public `config/room-bundle-skus.json` (BUNDLE-SKU-MATRIX-001) — sellable
+  room-kit SKUs `S360-KIT-<ROOM>-P`;
+- esphome-public `config/kit-intent-matrix.json` (KIT-MATRIX-001) — kit-intent
+  SKUs `S360-KIT-BATH-POE`, … (this is the file the WebFlash kit-presets mirror,
+  per the `kit-presets.js` header and its `upstreamRef` fields);
+- WebFlash `scripts/data/kits.json` — config-descriptive SKU
+  `S360-KIT-CEILING-VENTIQ-ROOMIQ-POE`.
+
+Reconciled on the axes that matter (config string + availability state):
+
+- WebFlash `kits.json` → `S360-KIT-CEILING-VENTIQ-ROOMIQ-POE` →
+  `Ceiling-POE-VentIQ-RoomIQ` (`stable`) — matches the Release-One build. **MATCH.**
+- WebFlash `kit-presets.js` → two installable presets
+  (`S360-KIT-BATH-POE` → `Ceiling-POE-VentIQ-RoomIQ` / stable;
+  `S360-KIT-BATH-POE-LED` → `Ceiling-POE-VentIQ-RoomIQ-LED` / preview) plus four
+  **planned, non-installable** fan presets (Relay / TRIAC / PWM / DAC), each with
+  `wizardState: null` and `firmwareConfigString: null`. This `MATCH`es
+  KIT-MATRIX-001 (production / preview / future-expansion / advanced-manual
+  tiers) and the catalog (every fan family `hardware-pending` / `blocked`,
+  `webflash_build_matrix: false`, no `artifact_name`).
+- Module-availability (live read of WebFlash `scripts/data/module-requirements.js`,
+  closing rows #16/#17 and refining #15): `S360-310` Relay = `design-pending`;
+  `S360-311` PWM = `no-firmware`; `S360-312` DAC = `no-firmware`; `S360-320`
+  TRIAC = `advanced-manual-warning`; `S360-210` AirIQ = `no-firmware`. **Every
+  one resolves to not-WebFlash-exposed**, consistent with the catalog. Rows #16
+  and #17 are now **CLOSED — MATCH** (no longer `NEEDS-TOOLING`).
+
+**C3 — cross-repo doc link (new check).**
+WebFlash `docs/architecture.md` links to esphome-public
+`docs/system-architecture.md`
+(`https://github.com/sense360store/esphome-public/blob/main/docs/system-architecture.md`,
+in the *Cross-repo contract* section and the *Related documentation* list). The
+target file **exists in this repo** (added by `DOCS-CI-CLARITY-001`) and itself
+back-references the canonical `docs/sense360-roadmap-status.md`. The link path is
+correct and the target is present, so it is **not dangling**. (The URL pins the
+`main` branch; the file resolves on `main` once `DOCS-CI-CLARITY-001` is merged
+there — a publish-timing matter, not content drift. No fabrication.) **PASS.**
+
+**C4 — no verified / close leakage (was the "must stay unchanged" row #22).**
+`config/hardware-catalog.json` keeps `S360-410` at
+`schematic_status: cataloged_unverified`; `docs/sense360-roadmap-status.md`,
+`docs/release-matrix-webflash-alignment.md`, and the WebFlash
+`docs/sense360-webflash-status.md` all explicitly state S360-410 is **NOT
+verified**. No `S360-410` `verified` claim leaked into either surface. `PWM-6`
+(output electrical) and `PWM-13` (thermal / EMI) stay **Partial / owed**:
+`S360-311-CURRENT-THERMAL-001` recorded a **blank** intake (no values inferred),
+`Ceiling-POE-FanPWM` stays `hardware-pending`, `rpm_supported: false`, there is
+**no** `FanPWM` token in `config/webflash-builds.json` or in the WebFlash
+`manifest.json`, and no FanPWM current/thermal close appears on either side.
+**PASS.**
+
+### Cross-repo findings (WebFlash-owned — recorded, not fixed from this repo)
+
+Both are **non-functional** (neither changes any exposure / installability state;
+the affected fan families stay correctly unexposed) and both live in WebFlash
+files, so per the guardrails they are recorded here for a WebFlash follow-up
+(e.g. a `WEBFLASH-*-LIVE-CHECK-001` / module-availability refresh) and **not**
+edited from esphome-public:
+
+- **F1 — kit-preset id vs upstream kit_id naming mismatch.** WebFlash
+  `scripts/data/kit-presets.js` uses id `S360-KIT-DUCT-DAC` with
+  `upstreamRef: 'KIT-MATRIX-001 (S360-KIT-DUCT-DAC)'`, but the upstream
+  KIT-MATRIX-001 (`config/kit-intent-matrix.json`) kit_id for that 0–10V
+  duct-fan concept is `S360-KIT-DUCT-0-10V`. Both are `planned` /
+  non-installable with a null config string, so the surfaces stay aligned on
+  config string + availability; only the SKU **identifier string** differs.
+- **F2 — stale Relay availability rationale.** WebFlash
+  `scripts/data/module-requirements.js` classifies `S360-310` Relay as
+  `design-pending` with the comment "no S360-310 schematic has been uploaded
+  upstream yet … Distinct from PWM/DAC which DO have upstream schematic
+  evidence." The `S360-310-R4` schematic **is** now committed upstream
+  (`docs/hardware/schematics/S360-310-R4.pdf`, HW-ASSETS-310, consumed by
+  HW-PINMAP-310-FOLLOWUP), so by WebFlash's own `design-pending`-vs-`no-firmware`
+  rubric Relay would now read `no-firmware`. The distinction is cosmetic here —
+  both states keep Relay **not WebFlash-exposed** — so there is no exposure or
+  functional drift.
+
+### esphome-public-owned drift
+
+**None found.** The esphome-public source of record
+(`config/webflash-builds.json`, `config/product-catalog.json`,
+`config/room-bundle-skus.json`, `config/kit-intent-matrix.json`,
+`config/hardware-catalog.json`) and its docs
+(`docs/webflash-exposure-readiness-matrix.md`,
+`docs/release-matrix-webflash-alignment.md`,
+`docs/sense360-roadmap-status.md`, `docs/system-architecture.md`) are internally
+consistent and consistent with the live WebFlash surface. Per the audit rule,
+**consistent is recorded and nothing else is changed** — no doc-drift correction
+is warranted this run, and none is invented.
+
+### Row-status updates vs the 2026-05-26 table (§3)
+
+| Row | 2026-05-26 status | 2026-05-29 re-run | Note |
+|---|---|---|---|
+| #1, #3, #10 | MATCH (prior-recorded) | **MATCH (live-verified)** | manifest re-read directly |
+| #4 `artifact_pattern` | NEEDS-OPERATOR-INPUT | **MATCH** | manifest artifact names conform to `Sense360-{CONFIG}-v{VER}-{CHANNEL}.bin` |
+| #5 grammar / tokens / mutex | NEEDS-OPERATOR-INPUT | **MATCH (observable surface)** | `firmware/sources.json` `block_tokens` enforce FanTRIAC+LED; shipped config strings conform |
+| #11 channels | NEEDS-OPERATOR-INPUT | **MATCH** | manifest channels observed: `stable` / `preview` / `rescue` |
+| #15 Relay availability | MATCH (prior-recorded) | **MATCH (live) + finding F2** | `design-pending`, but rationale stale (schematic now upstream) |
+| #16 PWM availability | NEEDS-OPERATOR-INPUT | **CLOSED — MATCH** | `S360-311` = `no-firmware` |
+| #17 DAC availability | NEEDS-OPERATOR-INPUT | **CLOSED — MATCH** | `S360-312` = `no-firmware` |
+| #22 Release-One + LED unchanged | MATCH | **MATCH (live)** | both builds present, unchanged |
+
+No row moved to `DRIFT`. The only new items are the two non-functional
+WebFlash-owned findings (F1, F2) above.
+
+### Validation evidence (run for this re-run, 2026-05-29)
+
+| Command | Result |
+|---|---|
+| `python3 tests/validate_configs.py` | ✅ all configuration files valid |
+| `python3 tests/validate_webflash_builds.py` | ✅ 2 builds checked, 0 failed |
+| `python3 tests/test_webflash_compatibility.py` | ✅ 19/19 passed |
+| `python3 tests/test_webflash_artifact_naming.py` | ✅ 4 tests OK |
+| `python3 tests/test_roadmap_status_doc.py` | ✅ 15 tests OK |
+| `python3 -m unittest discover -s tests -p "test_*.py"` | ✅ 1155 tests OK (3 skipped) |
+
+---
+
 ## 0. Methodology, provenance, and access limits
 
 **What was verified directly this session (esphome-public):**
