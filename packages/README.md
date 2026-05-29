@@ -7,7 +7,9 @@ This directory contains modular ESPHome configuration packages organized by cate
 > and published as `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`.
 > Most customers should use [WebFlash](https://mysense360.com); this README
 > documents the lower-level package surface used by both Release-One and
-> legacy / Mini-board products. FanTRIAC is blocked pending HW-005; the
+> the remaining legacy products. (The legacy Mini board range was removed by
+> PRODUCT-DEP-MINI-001 — superseded by R4, of which it is not a part.)
+> FanTRIAC is blocked pending HW-005; the
 > Sense360 LED token is excluded from Release-One because the config string
 > has no `LED` slot. See [`docs/release-one.md`](../docs/release-one.md).
 
@@ -93,8 +95,10 @@ packages:
       - products/sense360-ceiling-poe-ventiq-roomiq.yaml  # Release-One
 ```
 
-The `sense360-core-*.yaml` and `sense360-mini-*.yaml` products are
-**legacy-compatible** and remain available for users with older hardware.
+The `sense360-core-*.yaml` products are **legacy-compatible** and remain
+available for users with older hardware. (The `sense360-mini-*.yaml`
+products were removed by PRODUCT-DEP-MINI-001; existing Mini units are served
+by the tag-pinned `v1.0.0` release.)
 
 ### Custom Module Combinations
 

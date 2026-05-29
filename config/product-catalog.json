@@ -305,74 +305,94 @@
       "notes": "Legacy single-purpose 4-channel fan-PWM accessory YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
     },
     {
-      "product_yaml": "products/sense360-mini-airiq.yaml",
       "legacy_config_id": "sense360-mini-airiq",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Mini AirIQ YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-29",
+      "removal_reason": "Superseded by the R4 product line; the Mini range is not part of R4. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement). Was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "The Mini form factor is permanently retired with no R4 equivalent; manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the Mini YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-mini-airiq'. Mini AirIQ YAML products/sense360-mini-airiq.yaml removed under PRODUCT-DEP-MINI-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the Mini files for tag-pinned field units. The core-c / core-v / core-w legacy disposition is a separate follow-up."
     },
     {
-      "product_yaml": "products/sense360-mini-airiq-advanced.yaml",
       "legacy_config_id": "sense360-mini-airiq-advanced",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Mini AirIQ Advanced variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-29",
+      "removal_reason": "Superseded by the R4 product line; the Mini range is not part of R4. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement). Was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "The Mini form factor is permanently retired with no R4 equivalent; manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the Mini YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-mini-airiq-advanced'. Mini AirIQ Advanced YAML products/sense360-mini-airiq-advanced.yaml removed under PRODUCT-DEP-MINI-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the Mini files for tag-pinned field units. The core-c / core-v / core-w legacy disposition is a separate follow-up."
     },
     {
-      "product_yaml": "products/sense360-mini-airiq-basic.yaml",
       "legacy_config_id": "sense360-mini-airiq-basic",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Mini AirIQ Basic variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-29",
+      "removal_reason": "Superseded by the R4 product line; the Mini range is not part of R4. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement). Was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "The Mini form factor is permanently retired with no R4 equivalent; manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the Mini YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-mini-airiq-basic'. Mini AirIQ Basic YAML products/sense360-mini-airiq-basic.yaml removed under PRODUCT-DEP-MINI-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the Mini files for tag-pinned field units. The core-c / core-v / core-w legacy disposition is a separate follow-up."
     },
     {
-      "product_yaml": "products/sense360-mini-airiq-ld2412.yaml",
       "legacy_config_id": "sense360-mini-airiq-ld2412",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Mini AirIQ + LD2412 variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-29",
+      "removal_reason": "Superseded by the R4 product line; the Mini range is not part of R4. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement). Was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "The Mini form factor is permanently retired with no R4 equivalent; manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the Mini YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-mini-airiq-ld2412'. Mini AirIQ + LD2412 YAML products/sense360-mini-airiq-ld2412.yaml removed under PRODUCT-DEP-MINI-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the Mini files for tag-pinned field units. The core-c / core-v / core-w legacy disposition is a separate follow-up."
     },
     {
-      "product_yaml": "products/sense360-mini-full-ld2412.yaml",
       "legacy_config_id": "sense360-mini-full-ld2412",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Mini full (AirIQ + LD2412) variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-29",
+      "removal_reason": "Superseded by the R4 product line; the Mini range is not part of R4. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement). Was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "The Mini form factor is permanently retired with no R4 equivalent; manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the Mini YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-mini-full-ld2412'. Mini full (AirIQ + LD2412) YAML products/sense360-mini-full-ld2412.yaml removed under PRODUCT-DEP-MINI-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the Mini files for tag-pinned field units. The core-c / core-v / core-w legacy disposition is a separate follow-up."
     },
     {
-      "product_yaml": "products/sense360-mini-presence.yaml",
       "legacy_config_id": "sense360-mini-presence",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Mini presence-only YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-29",
+      "removal_reason": "Superseded by the R4 product line; the Mini range is not part of R4. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement). Was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "The Mini form factor is permanently retired with no R4 equivalent; manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the Mini YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-mini-presence'. Mini presence-only YAML products/sense360-mini-presence.yaml removed under PRODUCT-DEP-MINI-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the Mini files for tag-pinned field units. The core-c / core-v / core-w legacy disposition is a separate follow-up."
     },
     {
-      "product_yaml": "products/sense360-mini-presence-advanced.yaml",
       "legacy_config_id": "sense360-mini-presence-advanced",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Mini presence Advanced variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-29",
+      "removal_reason": "Superseded by the R4 product line; the Mini range is not part of R4. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement). Was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "The Mini form factor is permanently retired with no R4 equivalent; manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the Mini YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-mini-presence-advanced'. Mini presence Advanced YAML products/sense360-mini-presence-advanced.yaml removed under PRODUCT-DEP-MINI-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the Mini files for tag-pinned field units. The core-c / core-v / core-w legacy disposition is a separate follow-up."
     },
     {
-      "product_yaml": "products/sense360-mini-presence-advanced-ld2412.yaml",
       "legacy_config_id": "sense360-mini-presence-advanced-ld2412",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Mini presence Advanced + LD2412 variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-29",
+      "removal_reason": "Superseded by the R4 product line; the Mini range is not part of R4. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement). Was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "The Mini form factor is permanently retired with no R4 equivalent; manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the Mini YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-mini-presence-advanced-ld2412'. Mini presence Advanced + LD2412 YAML products/sense360-mini-presence-advanced-ld2412.yaml removed under PRODUCT-DEP-MINI-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the Mini files for tag-pinned field units. The core-c / core-v / core-w legacy disposition is a separate follow-up."
     },
     {
-      "product_yaml": "products/sense360-mini-presence-basic.yaml",
       "legacy_config_id": "sense360-mini-presence-basic",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Mini presence Basic variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-29",
+      "removal_reason": "Superseded by the R4 product line; the Mini range is not part of R4. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement). Was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "The Mini form factor is permanently retired with no R4 equivalent; manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the Mini YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-mini-presence-basic'. Mini presence Basic YAML products/sense360-mini-presence-basic.yaml removed under PRODUCT-DEP-MINI-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the Mini files for tag-pinned field units. The core-c / core-v / core-w legacy disposition is a separate follow-up."
     },
     {
-      "product_yaml": "products/sense360-mini-presence-ld2412.yaml",
       "legacy_config_id": "sense360-mini-presence-ld2412",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Mini presence + LD2412 variant; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-29",
+      "removal_reason": "Superseded by the R4 product line; the Mini range is not part of R4. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement). Was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "The Mini form factor is permanently retired with no R4 equivalent; manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the Mini YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-mini-presence-ld2412'. Mini presence + LD2412 YAML products/sense360-mini-presence-ld2412.yaml removed under PRODUCT-DEP-MINI-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the Mini files for tag-pinned field units. The core-c / core-v / core-w legacy disposition is a separate follow-up."
     },
     {
       "product_yaml": "products/sense360-poe.yaml",

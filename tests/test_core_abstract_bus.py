@@ -669,8 +669,8 @@ SHARED_I2C_BUS_PACKAGES = [
 # Expansion-package consumers whose ``*_i2c_id`` substitution default is
 # rebound to ``core_i2c`` by CORE-ABSTRACT-BUS-001B. Each tuple records the
 # package path and the substitution name. The two S3-variant consumers
-# (``airiq_ceiling_s3.yaml``, ``comfort_ceiling_s3.yaml``) and the Mini
-# helper (``mini_onboard_sensors.yaml``) are deliberately out of scope.
+# (``airiq_ceiling_s3.yaml``, ``comfort_ceiling_s3.yaml``) are deliberately
+# out of scope. (The Mini helper was removed by PRODUCT-DEP-MINI-001.)
 SHARED_I2C_CONSUMER_DEFAULTS = [
     (REPO_ROOT / "packages" / "expansions" / "airiq.yaml", "airiq_i2c_id"),
     (REPO_ROOT / "packages" / "expansions" / "airiq_wall.yaml", "airiq_i2c_id"),
@@ -772,9 +772,9 @@ class SharedI2CBusTests(unittest.TestCase):
     abstract package, every in-scope expansion-package consumer default,
     and the hard-coded literal in
     ``packages/features/ceiling_halo_leds.yaml``. The two S3-variant
-    Core / expansion packages and the Mini family are deliberately
-    out-of-scope and are checked here only to confirm they retain their
-    pre-001B bus ids.
+    Core / expansion packages are deliberately out-of-scope and are
+    checked here only to confirm they retain their pre-001B bus ids.
+    (The Mini family was removed by PRODUCT-DEP-MINI-001.)
     """
 
     def test_every_in_scope_core_package_defines_core_i2c(self) -> None:
@@ -952,32 +952,22 @@ class SharedI2CBusTests(unittest.TestCase):
             "operator decision #10).",
         )
 
-    def test_out_of_scope_mini_keeps_i2c0(self) -> None:
-        # The Mini Core variant has a different board lineage and already
-        # binds i2c0 to the schematic-correct GPIO48/GPIO45 pins. It stays
-        # at `i2c0` on the Mini baseline.
-        mini_core = REPO_ROOT / "packages" / "hardware" / "sense360_core_mini.yaml"
-        fields = _find_i2c_bus_block(mini_core.read_text(), "i2c0")
-        self.assertIsNotNone(
-            fields,
-            "sense360_core_mini.yaml must retain its `i2c0` bus "
-            "definition (out-of-scope for CORE-ABSTRACT-BUS-001B per "
-            "operator decision #10).",
-        )
+    # PRODUCT-DEP-MINI-001 removed the Mini product range and its Mini-only
+    # packages (sense360_core_mini.yaml, mini_onboard_sensors.yaml). The
+    # former ``test_out_of_scope_mini_keeps_i2c0`` guard is dropped because
+    # the file it asserted on no longer exists.
 
     def test_no_legacy_bus_id_in_any_active_consumer_line(self) -> None:
         # Sweep every package YAML under `packages/` for active
         # ``i2c_id: <legacy>`` lines. The two out-of-scope S3 expansion
         # packages (airiq_ceiling_s3.yaml, comfort_ceiling_s3.yaml) are
-        # allowed to keep ``i2c_primary``; the Mini-family helper
-        # (mini_onboard_sensors.yaml) is allowed to keep ``i2c0``. Every
+        # allowed to keep ``i2c_primary``. (The Mini-family helpers were
+        # removed by PRODUCT-DEP-MINI-001 and are no longer on disk.) Every
         # other active reference to a legacy id is a regression.
         out_of_scope_paths = {
             REPO_ROOT / "packages" / "expansions" / "airiq_ceiling_s3.yaml",
             REPO_ROOT / "packages" / "expansions" / "comfort_ceiling_s3.yaml",
             REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling_s3.yaml",
-            REPO_ROOT / "packages" / "hardware" / "sense360_core_mini.yaml",
-            REPO_ROOT / "packages" / "hardware" / "mini_onboard_sensors.yaml",
         }
         for yaml_path in PACKAGES_DIR.rglob("*.yaml"):
             if yaml_path in out_of_scope_paths:

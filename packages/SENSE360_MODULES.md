@@ -5,9 +5,13 @@
 > `Ceiling-POE-VentIQ-RoomIQ`, built from
 > [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
 > and published as `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`.
-> The Sense360 Mini board, AirIQ ceiling module, and the other modules
-> documented here are retained for legacy / advanced / custom builds. They
-> are not Release-One production targets. FanTRIAC is blocked pending
+> The AirIQ ceiling module and the other modules documented here are
+> retained for legacy / advanced / custom builds. They are not Release-One
+> production targets. The legacy Sense360 Mini board range was removed from
+> the active repository surface by PRODUCT-DEP-MINI-001 (superseded by the R4
+> product line; not part of R4); its catalog rows survive only as `removed`
+> tombstones and the tag-pinned `v1.0.0` release still carries the Mini files
+> for existing field units. FanTRIAC is blocked pending
 > HW-005; the Sense360 LED is excluded from Release-One because the config
 > string has no `LED` token. For the Release-One source of truth see
 > [`docs/release-one.md`](../docs/release-one.md). For canonical SKU /
@@ -19,66 +23,22 @@ The Sense360 platform is built on ESP32-S3-WROOM-1-N16R8 and supports modular ex
 
 ---
 
-## Sense360 Mini Board
+## Sense360 Mini Board (removed)
 
-The Mini board is a compact version of the Sense360 platform with integrated sensors directly on the PCB.
+The legacy Sense360 Mini board range was **removed** from the active
+repository surface by **PRODUCT-DEP-MINI-001**. It was a pre-WebFlash,
+`legacy-compatible` range that was never WebFlash-shippable and is not part
+of the R4 product line. The 10 Mini product YAMLs and the Mini-only packages
+(`sense360_core_mini.yaml`, `mini_onboard_sensors.yaml`,
+`mini_four_leds_air_quality.yaml`, `mini_four_leds_addr.yaml`) have been
+deleted; the catalog rows survive only as `removed` tombstones that reserve
+their `legacy_config_id` strings.
 
-### Mini Board Pin Reference
-
-| Function | GPIO | Notes |
-|----------|------|-------|
-| I2C SDA | 48 | Onboard sensors |
-| I2C SCL | 45 | 100kHz (strapping pin) |
-| UART TX | 43 | Radar (via JST3_UART) |
-| UART RX | 44 | Radar (via JST3_UART) |
-| LED Data | 8 | WS2812B (via 74LVC1G07 level shifter) |
-| Boot Button | 0 | Input |
-
-### Onboard Sensors (Integrated on Mini PCB)
-
-| Designator | Sensor | I2C Address | Measurements |
-|------------|--------|-------------|--------------|
-| U4 | LTR-303ALS-01 | 0x29 | Ambient Light (lux) |
-| U3 | SHT30-DIS | 0x44 | Temperature, Humidity |
-| U5 | SCD40-D-R2 | 0x62 | CO2 (ppm) |
-
-These sensors are **included in all Mini board configurations** via the onboard sensors package.
-
-### Mini Board External Connectors
-
-| Connector | Pins | Purpose |
-|-----------|------|---------|
-| JST3_UART | TX/RX | LD2412 radar (115200 baud) |
-| JST4_SEN | SDA/SCL | External sensors (e.g., SEN55 @ 0x69) |
-| JST4_RADAR | GPIO11/12 | TRIG/ECHO (not used with LD2412) |
-
-### Mini Board YAML Packages
-
-```yaml
-# Core Mini hardware (ESP32-S3, I2C, system sensors)
-packages:
-  core: !include packages/hardware/sense360_core_mini.yaml
-
-# Onboard sensors (LTR-303, SHT30, SCD40)
-packages:
-  onboard_sensors: !include packages/hardware/mini_onboard_sensors.yaml
-
-# LD2412 Radar (for presence detection)
-packages:
-  presence: !include packages/hardware/presence_ld2412.yaml
-```
-
-### Mini Product Configurations
-
-| Product | Description | Config File |
-|---------|-------------|-------------|
-| Mini AirIQ Basic | Air quality + presence (basic) | `products/sense360-mini-airiq-basic.yaml` |
-| Mini AirIQ Advanced | Air quality + presence (advanced) | `products/sense360-mini-airiq-advanced.yaml` |
-| Mini AirIQ + LD2412 | Air quality + LD2412 radar | `products/sense360-mini-airiq-ld2412.yaml` |
-| Mini Full LD2412 | Full sensors + LD2412 | `products/sense360-mini-full-ld2412.yaml` |
-| Mini Presence Basic | Presence only (basic) | `products/sense360-mini-presence-basic.yaml` |
-| Mini Presence Advanced | Presence only (advanced) | `products/sense360-mini-presence-advanced.yaml` |
-| Mini Presence LD2412 | Presence with LD2412 | `products/sense360-mini-presence-ld2412.yaml` |
+Existing Mini field units remain served by the tag-pinned `v1.0.0` release,
+which still contains the Mini files. There is no R4 replacement for the Mini
+form factor. See
+[`docs/product-deprecation-removal-policy.md`](../docs/product-deprecation-removal-policy.md)
+(PRODUCT-DEP-001) for the lifecycle policy.
 
 ---
 
@@ -139,7 +99,7 @@ Power budgets:
 - Speed measurement: 0.1-10 m/s
 - Detection angle: 100 degrees horizontal
 
-**For Presence Mini only:**
+**Legacy radar alternative:**
 
 **HLK-LD2450** (presence_ld2450.yaml) - Multi-target radar (see above)
 
@@ -147,6 +107,8 @@ Power budgets:
 - UART: 115200 baud
 - Power: 5V/100mA
 - Better still detection, up to 9m
+- Was the radar used by the now-removed Mini range; the package is retained
+  for legacy / advanced custom builds.
 
 ```yaml
 # For Presence Module (LD2450 default)
@@ -157,7 +119,7 @@ packages:
 packages:
   presence: !include packages/hardware/presence_dfrobot_c4001.yaml
 
-# For Presence Mini (LD2412 alternative)
+# LD2412 single-zone radar alternative (legacy)
 packages:
   presence: !include packages/expansions/presence_ld2412.yaml
 ```
