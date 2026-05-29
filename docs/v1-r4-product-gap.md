@@ -268,7 +268,7 @@ behind the relevant evidence gate.
 
 | Order | Authoring PR | Config string(s) | Required modules | Template source | Target v1 channel |
 |---|---|---|---|---|---|
-| 1 | **V1-R4-CREATE-001** | `Ceiling-POE-RoomIQ` | Core + RoomIQ + PoE | `core-c-poe` + `core-ceiling-presence`; compile-only `ceiling-poe-roomiq.yaml` | `stable-candidate` (`STABLE-TARGET-ROOMIQ-001`; `S360-410`-gated) |
+| 1 | **V1-R4-CREATE-001** ✅ **authored** (2026-05-29) | `Ceiling-POE-RoomIQ` | Core + RoomIQ + PoE | `core-c-poe` + `core-ceiling-presence`; compile-only `ceiling-poe-roomiq.yaml` | `stable-candidate` (`STABLE-TARGET-ROOMIQ-001`; `S360-410`-gated) |
 | 2 | **V1-R4-CREATE-002** | `Ceiling-POE-AirIQ-RoomIQ` | Core + AirIQ + RoomIQ + PoE | `core-c-poe` + `core-ceiling`; compile-only `ceiling-poe-airiq-roomiq.yaml` | `stable-candidate` (`STABLE-TARGET-AIRIQ-ROOMIQ-001`; `S360-410` + AirIQ-stack-gated) |
 | 3 | **V1-R4-CREATE-003** | `Ceiling-POE-RoomIQ-LED` | Core + RoomIQ + LED + PoE | `core-c-poe` + `core-ceiling-presence` (no compile-only skeleton yet) | `preview-candidate` (LED gauntlet; `S360-410`-gated) |
 | 4 | **V1-R4-CREATE-004** | `Ceiling-USB-VentIQ-RoomIQ`, `Ceiling-USB-RoomIQ` | Core + RoomIQ (+ VentIQ) | `core-c-usb` + `core-ceiling-bathroom` / `core-ceiling-presence` | manual / custom (all boards verified; no evidence blocker) |
@@ -282,6 +282,33 @@ the AirIQ and LED stacks build on a validated base. The USB
 power-variants (CREATE-004..006) follow because no sellable USB bundle
 exists; within them the unblocked non-LED pair leads, the AirIQ
 evidence-gated row is next, and the LED preview-gated pair is last.
+
+### Authoring status (updates)
+
+- **2026-05-29 — `V1-R4-CREATE-001` authored.** The `Ceiling-POE-RoomIQ`
+  product (the `S360-KIT-BEDROOM-P` firmware) is now authored as a full,
+  complete product config at
+  [`products/sense360-ceiling-poe-roomiq.yaml`](../products/sense360-ceiling-poe-roomiq.yaml)
+  (Core ceiling `S360-100` + canonical `core_i2c` bus + PoE PSU `S360-410`
+  + RoomIQ `S360-200` = `comfort_ceiling` + `presence_ceiling`; no AirIQ, no
+  VentIQ, no fan, no LED — matching the structure of the working
+  [`sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+  with VentIQ removed). A matching catalog row exists in
+  [`config/product-catalog.json`](../config/product-catalog.json)
+  (`status: blocked`, `blocker: PRODUCT-POE-410-001`,
+  `webflash_build_matrix: false`, no `artifact_name`, no `webflash_wrapper`,
+  `target_channel: stable-candidate`) and the top-level product YAML is
+  registered as the compile-only target `ceiling-poe-roomiq-product-compile-only`
+  in [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+  (`compile_validation_status: pending-ci` — ESPHome was unavailable in the
+  authoring environment, so no full compile was run and none is fabricated; a
+  CI `--compile` run is owed). The product is **authored and release-blocked**,
+  nothing more: it is **not** WebFlash-exposed, **not** production / preview /
+  verified / release-ready; `S360-410` stays `cataloged_unverified` and the
+  Release-One PoE caveat (`PRODUCT-POE-410-001`) is unchanged; stable promotion
+  stays owned by `STABLE-TARGET-ROOMIQ-001` behind the shared `S360-410`
+  evidence gate. **CREATE-002..006 stay queued.** `S360-410` remains the
+  release gate for every PoE author-new row.
 
 ## Out of v1 scope
 

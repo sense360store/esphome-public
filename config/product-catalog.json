@@ -165,6 +165,30 @@
       "notes": "LED-bearing sibling product promoted to a preview build by PRODUCT-009. PRODUCT-006 added the canonical YAML; PRODUCT-008 added the WebFlash wrapper at products/webflash/ceiling-poe-ventiq-roomiq-led.yaml and promoted the catalog entry from compile-only to preview with webflash_build_matrix=false. PRODUCT-009 now flips webflash_build_matrix to true, declares version=1.0.0 / channel=preview / artifact_name=Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin, and adds the matching entry to config/webflash-builds.json on the preview (non-stable) channel. No firmware artifact is built or imported by PRODUCT-009; that build / release proof remains outstanding. Release-One stays Ceiling-POE-VentIQ-RoomIQ on stable (LED-less); FanTRIAC stays blocked under HW-005 and is carried in this entry's blocked_modules. Hardware evidence: S360-300 schematic_status=verified (HW-008); ceiling LED package binds led_data_pin=GPIO38 (HW-010); LED_DATA / Sense360 LED firmware-package mapping is confirmed-ok after HW-010 (HW-009). Bench-verification Open Questions in docs/hardware/s360-300-r4-led.md (harness rail, LED count, harness identity) remain carried as preview-stage caveats and must resolve before any production promotion. See docs/product-led-preview-decision.md."
     },
     {
+      "config_string": "Ceiling-POE-RoomIQ",
+      "status": "blocked",
+      "blocker": "PRODUCT-POE-410-001",
+      "reason": "Release-blocked on the shared S360-410 PoE PSU schematic-verification chain (PRODUCT-POE-410-001 / PACKAGE-POE-410-001). S360-410 schematic_status is cataloged_unverified and the Release-One PoE 'schematic verification pending' caveat remains open; until that evidence lands (BOM cross-check + S360-410 schematic_status: verified JSON PR + Release-One PoE caveat closure), this RoomIQ-only product is authored but must not be promoted to a WebFlash / release channel.",
+      "product_yaml": "products/sense360-ceiling-poe-roomiq.yaml",
+      "webflash_build_matrix": false,
+      "target_channel": "stable-candidate",
+      "modules": {
+        "mount": "Ceiling",
+        "power": "POE",
+        "air_quality": "none",
+        "room_sense": "RoomIQ",
+        "fan": "none",
+        "led": "none"
+      },
+      "hardware": {
+        "core": "S360-100",
+        "roomiq": "S360-200",
+        "poe": "S360-410"
+      },
+      "hardware_status": "authored-blocked-on-s360-410-evidence",
+      "notes": "Ceiling-POE-RoomIQ R4 product (the S360-KIT-BEDROOM-P firmware) authored by V1-R4-CREATE-001 as the smallest RoomIQ-only PoE ceiling stack — the validated base the AirIQ (V1-R4-CREATE-002) and LED (V1-R4-CREATE-003) stacks build on. The top-level product YAML products/sense360-ceiling-poe-roomiq.yaml composes Core ceiling (S360-100, canonical core_i2c bus) + PoE PSU (S360-410) + RoomIQ (S360-200: comfort_ceiling + presence_ceiling) + base/health, with no AirIQ, no VentIQ, no fan, and no LED. The same RoomIQ subset is exercised by the compile-only skeleton products/compile-only/ceiling-poe-roomiq.yaml; the constituent packages are already proven to compose by the WebFlash-shipping Ceiling-POE-VentIQ-RoomIQ build. status: blocked, blocker: PRODUCT-POE-410-001 — release-blocked on the shared S360-410 schematic-verification chain (the Release-One PoE caveat); the Core and RoomIQ boards are verified, only the S360-410 PoE PSU is cataloged_unverified. target_channel: stable-candidate; channel promotion is owned by STABLE-TARGET-ROOMIQ-001 and held behind the S360-410 evidence gate — this authoring slice does NOT promote or unblock. compile_validation_status is pending-ci: ESPHome is not available in the authoring environment, so no full compile was run here; the registered compile-only target ceiling-poe-roomiq-product-compile-only carries compile_validation_status: pending-ci and a CI --compile run is owed. NOT production, NOT preview, NOT verified, NOT release-ready, NOT WebFlash-exposed: webflash_build_matrix is false; no artifact_name; no webflash_wrapper; no config/webflash-builds.json entry; no release artifact; not in release_one_required_configs. S360-410 schematic_status stays cataloged_unverified; packages/hardware/power_poe.yaml stays byte-identical; manifest.json / firmware/sources.json are untouched; Release-One (Ceiling-POE-VentIQ-RoomIQ) and the LED preview are unchanged. See docs/v1-r4-product-gap.md (V1-R4-CREATE-001), docs/product-readiness-matrix.md §PoE-410 / S360-410, docs/all-yaml-release-matrix.md, and docs/package-poe-410-001-audit.md."
+    },
+    {
       "product_yaml": "products/sense360-core-c-poe.yaml",
       "legacy_config_id": "sense360-core-c-poe",
       "status": "legacy-compatible",

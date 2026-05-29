@@ -30,6 +30,25 @@ mirrored here.
 
 ## Current queue summary
 
+- **V1-R4-CREATE-001** delivers, via **this PR** on 2026-05-29, the first
+  authored R4 product gap from `V1-R4-PRODUCT-GAP-001`: the
+  `Ceiling-POE-RoomIQ` product (the `S360-KIT-BEDROOM-P` firmware,
+  RoomIQ-only PoE ceiling stack). Adds the full product config
+  [`products/sense360-ceiling-poe-roomiq.yaml`](products/sense360-ceiling-poe-roomiq.yaml)
+  (Core `S360-100` + canonical `core_i2c` + PoE PSU `S360-410` + RoomIQ
+  `S360-200`; no AirIQ / VentIQ / fan / LED), a `status: blocked` /
+  `blocker: PRODUCT-POE-410-001` catalog row, and a `pending-ci` top-level
+  compile-only target (`ceiling-poe-roomiq-product-compile-only`). The
+  product is **authored and release-blocked on `S360-410`, not shipped**: no
+  WebFlash exposure (`webflash_build_matrix: false`, no `artifact_name`, no
+  wrapper, no `config/webflash-builds.json` row), not production / preview /
+  verified / release-ready, `S360-410` stays `cataloged_unverified`,
+  `power_poe.yaml` / `manifest.json` / `firmware/sources.json` untouched,
+  Release-One + LED preview unchanged, no compile result fabricated (ESPHome
+  unavailable; full compile owed to CI). Stable promotion stays owned by
+  `STABLE-TARGET-ROOMIQ-001` behind the `S360-410` gate. CREATE-002..006
+  (item 42 onward below) stay queued; `S360-410` remains the release gate
+  for every PoE author-new row.
 - **V1-R4-PRODUCT-GAP-001** delivers, via **this PR** on 2026-05-29, a
   **docs-only** definition of the **R4 v1 product matrix and its gap
   analysis** ([`docs/v1-r4-product-gap.md`](docs/v1-r4-product-gap.md)). It
@@ -9469,7 +9488,28 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       changed no status.
 
 42. **V1-R4-CREATE-001 — Author `Ceiling-POE-RoomIQ` (Bedroom stack)**
-    - Status: Planned / follow-up (queued by `V1-R4-PRODUCT-GAP-001`)
+    - Status: **Authored** (delivered by **this PR**, 2026-05-29) — authored
+      and release-blocked on `S360-410`; **not** shipped. The full product
+      config [`products/sense360-ceiling-poe-roomiq.yaml`](products/sense360-ceiling-poe-roomiq.yaml)
+      (Core `S360-100` + canonical `core_i2c` + PoE PSU `S360-410` + RoomIQ
+      `S360-200`; no AirIQ / VentIQ / fan / LED) was added matching the
+      working [`sense360-ceiling-poe-ventiq-roomiq.yaml`](products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+      with VentIQ removed; the catalog row in
+      [`config/product-catalog.json`](config/product-catalog.json) is
+      `status: blocked` / `blocker: PRODUCT-POE-410-001` /
+      `webflash_build_matrix: false` / no `artifact_name` / no
+      `webflash_wrapper` / `target_channel: stable-candidate`; the top-level
+      product YAML is registered as the compile-only target
+      `ceiling-poe-roomiq-product-compile-only` in
+      [`config/compile-only-targets.json`](config/compile-only-targets.json)
+      with `compile_validation_status: pending-ci` (ESPHome unavailable in
+      the authoring environment — no full compile run, none fabricated; a CI
+      `--compile` run is owed). `S360-410` stays `cataloged_unverified`;
+      `power_poe.yaml`, `manifest.json`, and `firmware/sources.json` are
+      untouched; Release-One and the LED preview are unchanged. Channel
+      promotion stays owned by `STABLE-TARGET-ROOMIQ-001` behind the
+      `S360-410` evidence gate. **CREATE-002..006 stay queued; `S360-410`
+      remains the release gate for every PoE author-new row.**
     - Purpose: Author the smallest RoomIQ-only PoE ceiling product — the
       `S360-KIT-BEDROOM-P` target — as the validated base the AirIQ and LED
       stacks build on. Produces the top-level product YAML + catalog row +
