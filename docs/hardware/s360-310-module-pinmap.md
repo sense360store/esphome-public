@@ -152,6 +152,7 @@ load-side connector only. It does **not**:
 - [`s360-100-core-connector-pin-map.md`](s360-100-core-connector-pin-map.md) — canonical Core-to-module connector pin map (S360-100-CONNECTOR-PINMAP-001).
 - [`s360-100-r4-core.md`](s360-100-r4-core.md) — Core per-pin / per-net reference (records `IO3 → Relay`).
 - [`s360-310-r4-relay.md`](s360-310-r4-relay.md) — Relay board-side audit (HW-PINMAP-310 / HW-PINMAP-310-FOLLOWUP).
+- [`s360-310-relay-pinmap-reconcile.md`](s360-310-relay-pinmap-reconcile.md) — Relay GPIO cross-layer reconcile record (S360-310-RELAY-PINMAP-RECONCILE-001).
 - [`schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf) — committed module-side schematic PDF.
 - [`docs/compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md) — COMPLIANCE-001 mains-voltage compliance tracker.
 - [`docs/blocker-burndown.md`](../blocker-burndown.md) — blocker / scope-classification table (PACKAGE-RELAY-001).
