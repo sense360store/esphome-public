@@ -1315,6 +1315,21 @@ stays `not-webflash-ready`; `WEBFLASH-PWM-LIVE-CHECK-001` stays behind
 `sense360store/WebFlash` access and the still-owed
 `S360-311-CURRENT-THERMAL-001` measured envelope.
 
+**Measured current / thermal run — `S360-311-CURRENT-THERMAL-001` (this PR;
+2026-05-29) — NO values recorded.** The measured current / thermal bench
+run owed by `PWM-6` / `PWM-13` was recorded, but the measurement intake
+arrived **blank** — no per-channel / aggregate current, no MT3608 measured
+voltage / sag / output-current ceiling, no inrush, and no thermal method /
+ambient / hottest-location / measured °C / EMI observation; nothing was
+inferred or estimated. **This changes no WebFlash posture:** the `FanPWM`
+token still does not appear in `config/webflash-builds.json`; no wrapper,
+no `webflash_build_matrix` flip, no `artifact_name`, no release artifact;
+FanPWM stays `not-webflash-ready`. The measured envelope stays owed to a
+re-run of `S360-311-CURRENT-THERMAL-001`. A measured PASS, when it lands,
+closes `PWM-6` / `PWM-13` **only** and does **not** by itself enable
+WebFlash — `PWM-15` (`WEBFLASH-PWM-LIVE-CHECK-001`) stays a separate gate
+behind `sense360store/WebFlash` access.
+
 **Future exposure class (intent).** `preview-candidate` as a standard
 exposure, only after: `HW-PINMAP-311-FOLLOWUP` (standalone
 schematic-backed reference doc; Core `J6` 1-to-13 pin-order verify
