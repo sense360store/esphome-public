@@ -1,6 +1,9 @@
 # Sense360 ESPHome Firmware
 
-Official ESPHome firmware repository for [Sense360](https://mysense360.com) environmental monitoring devices.
+ESPHome firmware **source** for [Sense360](https://mysense360.com) environmental
+monitoring devices. This repo holds the product YAML, builds and publishes the
+release `.bin` artifacts, and is the manual/custom firmware path. **[WebFlash](https://mysense360.com)
+is the production path** most customers use — see [Which Path Should I Use?](#which-path-should-i-use) below.
 
 > **Repo status / roadmap / blockers / upcoming PRs:** see the canonical
 > [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md)
@@ -10,8 +13,8 @@ Official ESPHome firmware repository for [Sense360](https://mysense360.com) envi
 [![ESPHome](https://img.shields.io/badge/ESPHome-2025.10%2B-blue)](https://esphome.io/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![GitHub Release](https://img.shields.io/github/v/release/sense360store/esphome-public)](https://github.com/sense360store/esphome-public/releases)
+[![CI - Quick Validation (PR gate)](https://github.com/sense360store/esphome-public/actions/workflows/validate.yml/badge.svg)](https://github.com/sense360store/esphome-public/actions/workflows/validate.yml)
 [![CI - Build & Release Firmware](https://github.com/sense360store/esphome-public/actions/workflows/firmware-build-release.yml/badge.svg)](https://github.com/sense360store/esphome-public/actions/workflows/firmware-build-release.yml)
-[![CI - Validate Firmware Configs](https://github.com/sense360store/esphome-public/actions/workflows/ci-validate-configs.yml/badge.svg)](https://github.com/sense360store/esphome-public/actions/workflows/ci-validate-configs.yml)
 
 ---
 
@@ -403,8 +406,27 @@ esphome-public/
 
 ---
 
+## CI / pipeline
+
+The **per-PR gate** is `validate.yml` (Quick Validation — runs on every push/PR)
+plus `firmware-build-release.yml` (builds and publishes the release `.bin` set on
+release publish). These are the badges above and the checks that block a merge.
+
+`ci-validate-configs.yml`, `compile-only.yml`, `manual-firmware-artifacts.yml`,
+and `release-notes-draft.yml` are **manual or release-time only** (broad legacy
+sweep, pre-hardware compile checks, non-release operator artifacts, and release-note
+drafting) — they do **not** gate day-to-day PRs.
+
+See [docs/ci-pipeline.md](docs/ci-pipeline.md) for the full per-workflow map and
+[docs/system-architecture.md](docs/system-architecture.md) for how this repo and
+WebFlash fit together end to end.
+
+---
+
 ## Documentation
 
+- [System Architecture](docs/system-architecture.md) — whole-pipeline view of how `esphome-public` and WebFlash relate (product YAML → release artifact → WebFlash import → flashed device).
+- [CI/CD Pipeline](docs/ci-pipeline.md) — per-workflow gate-vs-manual classification for all six workflows.
 - [Hardware Catalog](docs/hardware-catalog.md) — canonical Sense360 board/module names, SKUs, revisions, and legacy names.
 - [S360-100-R4 Core Hardware Reference](docs/hardware/s360-100-r4-core.md) — pins, connectors, and schematic net names for the Sense360 Core board.
 - [S360-200-R4 RoomIQ Hardware Reference](docs/hardware/s360-200-r4-roomiq.md) — pins, connectors, sensors, and schematic net names for the Sense360 RoomIQ board.
