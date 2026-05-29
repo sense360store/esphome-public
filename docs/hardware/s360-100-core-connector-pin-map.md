@@ -427,6 +427,9 @@ This document is cross-referenced from / to:
   (J3 mating; +5V vs +3.3V rail-identity Open Question).
 - [`s360-310-r4-relay.md`](s360-310-r4-relay.md) — Relay board-side
   audit (J4 mating).
+- [`s360-310-relay-pinmap-reconcile.md`](s360-310-relay-pinmap-reconcile.md)
+  — Relay GPIO cross-layer reconcile record
+  (S360-310-RELAY-PINMAP-RECONCILE-001; `Relay` = `IO3` = `GPIO3`).
 - [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) — PWM board-side audit
   (module-side `J3` ↔ Core-side `J6` reconciliation; UART pins on
   `J3` pins 11–12).
