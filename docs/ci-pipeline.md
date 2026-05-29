@@ -102,7 +102,23 @@ output:
 
 ## CI Workflows
 
-Three GitHub Actions workflows handle firmware validation:
+The repository has six GitHub Actions workflows. Only `validate.yml` (every
+push/PR) and `firmware-build-release.yml` (release publish) gate; the other
+four are manual or release-time helpers.
+
+| Workflow | `name:` | Trigger | Role |
+|----------|---------|---------|------|
+| `validate.yml` | Quick Validation | push + pull_request | **Per-PR gate** (Release-One / WebFlash) |
+| `firmware-build-release.yml` | Build & Release Firmware | release publish + manual dispatch | **Release-time gate** — builds/publishes `.bin` set |
+| `ci-validate-configs.yml` | CI - Validate Firmware Configs | manual dispatch only | Manual broad legacy/manual sweep — **not a PR gate** |
+| `compile-only.yml` | Compile-only Firmware Validation | push + pull_request (metadata only); manual dispatch for full compile | Pre-hardware compile/codegen check — **not the Release-One/WebFlash gate** |
+| `manual-firmware-artifacts.yml` | Manual (Non-Release) Firmware Artifacts | manual dispatch only | Builds expiring, non-release operator artifacts — **not a PR gate, never a release** |
+| `release-notes-draft.yml` | Draft WebFlash Release Notes | manual dispatch only | Drafts/validates WebFlash release notes — **preflight only, does not gate** |
+
+The first three workflows are described in detail below; the remaining three
+follow in sections 4–6.
+
+The first three workflows handle the core validate/release flow:
 
 ### 1. Quick Validation (`validate.yml`)
 
@@ -184,6 +200,47 @@ This means:
 2. Compile each product with ESPHome
 3. Rename binaries to WebFlash format (e.g., `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`)
 4. Attach to GitHub release with checksums
+
+### 4. Compile-only Firmware Validation (`compile-only.yml`)
+
+**Triggers:** push + pull_request (metadata-only job); manual (`workflow_dispatch`)
+for the full `esphome compile` pass
+**Purpose:** Validate YAML / config / codegen buildability for a curated set of
+product YAMLs (`config/compile-only-targets.json`) **before hardware is
+available**.
+
+> **Not the Release-One/WebFlash PR gate.** On push/PR it runs only the
+> metadata-validation job (no ESPHome, no artifacts). The full ESPHome compile
+> runs only on manual dispatch with `compile_mode=full`. Compile success is
+> necessary but **not** sufficient for preview/stable readiness, and this
+> workflow never uploads `.bin` files, tags a release, or modifies
+> `config/webflash-builds.json`.
+
+### 5. Manual (Non-Release) Firmware Artifacts (`manual-firmware-artifacts.yml`)
+
+**Triggers:** Manual (`workflow_dispatch`) only
+**Purpose:** Compile the FanRelay / FanPWM / FanDAC manual / no-WebFlash
+firmware candidates and upload **only** temporary, expiring GitHub Actions
+artifacts for point-to-point operator handoff.
+
+> **Not a PR gate and never a release.** It requires an explicit
+> `artifact_mode=manual-candidate` input before it builds anything, names every
+> artifact `<product-stem>-manual-<short-sha>-nonrelease`, and never creates a
+> GitHub Release, writes `firmware/sources.json` / `manifest.json`, or produces
+> a `vX.Y.Z` / `-stable` / `-preview` asset.
+
+### 6. Draft WebFlash Release Notes (`release-notes-draft.yml`)
+
+**Triggers:** Manual (`workflow_dispatch`) only
+**Purpose:** Produce a WebFlash release-notes draft from the product catalog,
+validate it against the WebFlash release-body contract, and upload the result as
+a workflow artifact.
+
+> **Preflight only — does not gate.** It does not create a GitHub Release,
+> compile or publish firmware, or commit the generated `release-notes.md`.
+> Publication of the actual release body remains gated separately by
+> `scripts/validate-webflash-release-notes.py` inside `firmware-build-release.yml`
+> at `release.published` time.
 
 ---
 

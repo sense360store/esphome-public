@@ -68,6 +68,30 @@ mirrored here.
   and appends an evidence note to the existing FanPWM `notes` field in
   [`config/product-catalog.json`](config/product-catalog.json) (no status /
   matrix / artifact change).
+- **DOCS-CI-CLARITY-001** clarifies, via **this PR** on 2026-05-29, the
+  **CI gate hierarchy, this repo's role, and the whole-system (two-repo)
+  pipeline** for new contributors. It (1) fixes the README CI badges so the
+  advertised check is the real per-PR gate `validate.yml` (replacing the
+  manual-sweep `ci-validate-configs.yml` badge) alongside the
+  `firmware-build-release.yml` release gate; (2) adds a README **CI / pipeline**
+  section stating that `validate.yml` + `firmware-build-release.yml` gate while
+  `ci-validate-configs.yml` / `compile-only.yml` / `manual-firmware-artifacts.yml`
+  / `release-notes-draft.yml` are manual/release-time only, linking
+  [`docs/ci-pipeline.md`](docs/ci-pipeline.md); (3) lightly adjusts the README
+  headline so it matches the path matrix (this repo = source + manual/custom
+  path; WebFlash = production); (4) extends
+  [`docs/ci-pipeline.md`](docs/ci-pipeline.md) to cover all **six** workflows
+  with a one-line gate-or-manual classification (adds `compile-only.yml`,
+  `manual-firmware-artifacts.yml`, `release-notes-draft.yml`); and (5) adds a new
+  whole-pipeline view at [`docs/system-architecture.md`](docs/system-architecture.md)
+  (two repos + their boundary, the tag-pinning rule, the lifecycle source of
+  record, and a flow diagram from product YAML → release artifact → WebFlash
+  import → flashed device), linked from the README and from the **Sources of
+  truth** section of [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md).
+  **Change:** docs / header-comment / badge-URL only — **no** workflow logic,
+  filename, or `name:` field is touched; **no** `manifest.json` /
+  `firmware/sources.json`, product YAML, package, config JSON, or test logic is
+  modified; **no** firmware or release behaviour changes.
 - **WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001** records, via **this PR** on
   2026-05-29, the **single reconciled release-matrix / WebFlash-exposure /
   firmware-availability / room-bundle / release-note view** across the repo.
