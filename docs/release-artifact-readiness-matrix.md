@@ -1,5 +1,11 @@
 # Release Artifact Readiness Matrix (RELEASE-GAP-001)
 
+> **Reconciled view:** the cross-layer release / WebFlash / firmware
+> availability reconciliation lives in
+> [`docs/release-matrix-webflash-alignment.md`](release-matrix-webflash-alignment.md)
+> (WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001). This matrix remains the canonical
+> release-layer gate.
+
 ## Purpose and scope
 
 This document is the canonical, **release-layer** readiness gate for

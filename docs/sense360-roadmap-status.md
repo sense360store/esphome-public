@@ -30,6 +30,7 @@ disagree, **the source-of-truth file wins** and this doc is the one to fix.
 | Per-board hardware evidence | `docs/hardware/**` (pinmaps, schematics, artifacts — **preserved, not consolidated**) |
 | Blocker burn-down detail | [`docs/blocker-burndown.md`](blocker-burndown.md) |
 | Detailed PR working queue | [`UPCOMING_PR.md`](../UPCOMING_PR.md) |
+| Reconciled release-matrix / WebFlash / firmware-availability view | [`docs/release-matrix-webflash-alignment.md`](release-matrix-webflash-alignment.md) (WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001) |
 
 ---
 
