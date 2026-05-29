@@ -30,6 +30,47 @@ mirrored here.
 
 ## Current queue summary
 
+- **PACKAGE-POE-410-EVIDENCE-RESULT-001** records, via **this PR** on
+  2026-05-29, the **consolidated S360-410 PoE-PSU evidence
+  reconciliation and stable-bundle impact assessment**. **Result:
+  evidence insufficient for verification — `S360-410` stays
+  `cataloged_unverified` (option 4).** A new evidence-result record at
+  [`docs/package-poe-410-evidence-result.md`](docs/package-poe-410-evidence-result.md)
+  collects every piece of S360-410 evidence on file (board SKU / R4,
+  the committed schematic PDF under HW-ASSETS-410, the schematic-shown
+  discrete topology under HW-PINMAP-410-FOLLOWUP, the BOM part-identity
+  cross-check under HW-BOM-ASSETS-002, the PoE-to-5 V role topology, the
+  connector definitions, and the SELV classification), builds the
+  task-brief **verification matrix** (schematic / PCB / connector
+  orientation / J2 harness / PoE link-up / 5 V output / load / thermal /
+  isolation-safety / EMI-EMC / manufacturing-readiness), and records the
+  **stable-bundle impact**: `S360-KIT-BATH-P` **not blocked** (ships as
+  Release-One under the preserved schematic-pending caveat),
+  `S360-KIT-BEDROOM-P` **blocked by S360-410** (sole remaining hardware
+  blocker), and `S360-KIT-KITCHEN-P` / `S360-KIT-LIVING-P` /
+  `S360-KIT-CORRIDOR-P` **partially blocked** (S360-410 plus the AirIQ
+  stack or the LED preview→stable gauntlet). **Honesty / guardrails:**
+  the **bench (PoE link-up vs af/at PSE + load + inrush + thermal +
+  EMI/EMC), isolation/safety (Hi-pot + insulation + leakage + earth
+  continuity), connector-silkscreen pin-1, J2-harness identity (HW-002
+  OQ#6), and PCB-source / gerbers evidence classes are all still
+  missing**, so promoting `S360-410` to `verified` would be a
+  **fabricated verification** and is not done; the precise
+  remaining-evidence list and the operator/designer next-evidence
+  checklist are recorded in the new doc. **No promotion / no exposure:**
+  `config/hardware-catalog.json` (`S360-410` row), `config/webflash-builds.json`,
+  `config/product-catalog.json`, `config/room-bundle-skus.json`, and
+  `packages/hardware/power_poe.yaml` all stay byte-identical; no
+  `firmware/sources.json` / `manifest.json` write; the Release-One PoE
+  caveat is preserved verbatim; HW-002 OQ#6 / `S360-100-BENCH-001` stay
+  `pending`. **Change:** docs-only — adds
+  [`docs/package-poe-410-evidence-result.md`](docs/package-poe-410-evidence-result.md)
+  and updates
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md) (new §2J),
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
+  [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+  and [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md).
 - **S360-311-NATIVE-FANPWM-BENCH-001** records, via **this PR** on
   2026-05-29, the **operator hardware bench evidence** for the native
   ESP32-S3 GPIO FanPWM firmware candidate added by
