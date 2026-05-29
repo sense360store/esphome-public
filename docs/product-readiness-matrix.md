@@ -1679,6 +1679,27 @@ named follow-up.
   evidence. `config/product-catalog.json` is touched only to append an
   evidence note to the existing FanPWM `notes` field (no status / matrix /
   artifact change).
+- **2026-05-29 — `S360-311-CURRENT-THERMAL-001` (docs + catalog-notes only)
+  — measured current / thermal run recorded NO values.** The measured
+  current / thermal bench run owed by `PWM-6` / `PWM-13` was recorded, but
+  the measurement intake arrived **blank** — **no** per-channel current
+  (`J1`/`J2`/`J4`/`J5`), **no** aggregate current, **no** MT3608 measured
+  output voltage / sag / output-current ceiling, **no** inrush /
+  locked-rotor peak, **no** thermal method / ambient / hottest-location /
+  measured °C, and **no** EMI observation; nothing was inferred or
+  estimated. **This is an evidence-gap record, not a promotion:**
+  `Ceiling-POE-FanPWM` stays `hardware-pending`, `PWM-6` / `PWM-13` stay
+  Partial with the measured rows still owed (a re-run of
+  `S360-311-CURRENT-THERMAL-001` with values is the next step), `S360-311`
+  stays `cataloged_unverified`, and there is no `webflash_build_matrix`
+  flip / `artifact_name` / `config/webflash-builds.json` row / release
+  artifact. A measured PASS, when it lands, closes `PWM-6` / `PWM-13`
+  **only** and does **not** by itself enable WebFlash (`PWM-15` live-check
+  gate) or promote the board. Recorded in
+  [`s360-311-r4-pwm.md` §S360-311-CURRENT-THERMAL-001](hardware/s360-311-r4-pwm.md#s360-311-current-thermal-001--measured-current--thermal-bench-run-2026-05-29-no-values-recorded)
+  and [`blocker-burndown.md` §2A](blocker-burndown.md#2a-fanpwm--s360-311).
+  `config/product-catalog.json` touched only to append an evidence note to
+  the FanPWM `notes` field (no status / matrix / artifact change).
 
 ### FanDAC / S360-312
 

@@ -30,6 +30,44 @@ mirrored here.
 
 ## Current queue summary
 
+- **S360-311-CURRENT-THERMAL-001** records, via **this PR** on 2026-05-29,
+  the **measured current / thermal bench run** owed by blocker rows `PWM-6`
+  (output electrical characteristics) and `PWM-13` (board-level thermal /
+  EMI) for the **native** ESP32-S3 GPIO FanPWM composition on
+  `S360-100-R4` Core + `S360-311-R4` PWM board — the measured follow-up to
+  the functional-only native bench (`S360-311-NATIVE-FANPWM-BENCH-001`).
+  **Result: NO measured values were recorded.** The measurement intake
+  arrived **blank** — no per-channel current (`J1`/`J2`/`J4`/`J5`), no
+  aggregate current, no MT3608 measured output voltage / sag /
+  output-current ceiling, no inrush / locked-rotor peak, no thermal method /
+  ambient / hottest-location / measured °C, and no EMI observation; per the
+  no-fabrication rule **nothing was inferred, estimated, or back-filled**.
+  **Honesty / guardrails:** this is an evidence-gap record, **not** a
+  promotion — `PWM-6` and `PWM-13` stay **Partial** with the measured rows
+  still owed (a re-run of `S360-311-CURRENT-THERMAL-001` with values is the
+  next step); no status flips anywhere; `Ceiling-POE-FanPWM` stays
+  `hardware-pending`; `S360-311` stays `cataloged_unverified`; RPM stays
+  unsupported (`rpm_supported: false`, `PWM-12`; `Pul_Cou3`/`IO46`
+  disabled/TBD; `TachIO`/`IO16` reserved/pending); **no** `FanPWM` token in
+  `config/webflash-builds.json`, **no** `artifact_name`, **no**
+  `webflash_build_matrix` flip, **no** WebFlash wrapper, **no**
+  `firmware/sources.json` / `manifest.json` change, **no** release artifact,
+  **no** S360-410 PoE blocker-resolution claim. A measured PASS, when it
+  lands, closes `PWM-6` / `PWM-13` **only** and does **not** by itself
+  enable WebFlash (`PWM-15` live-check gate) or promote the board.
+  **Change:** docs + catalog-notes only — adds the dated
+  `S360-311-CURRENT-THERMAL-001` section to
+  [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md),
+  updates the `PWM-6` / `PWM-11` / `PWM-13` rows + evidence-class table +
+  §3/§4 update note in
+  [`docs/blocker-burndown.md`](docs/blocker-burndown.md), adds dated
+  evidence-recorded (not promotion) notes to
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
+  and [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md),
+  and appends an evidence note to the existing FanPWM `notes` field in
+  [`config/product-catalog.json`](config/product-catalog.json) (no status /
+  matrix / artifact change).
 - **WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001** records, via **this PR** on
   2026-05-29, the **single reconciled release-matrix / WebFlash-exposure /
   firmware-availability / room-bundle / release-note view** across the repo.

@@ -1514,6 +1514,23 @@ no `artifact_name`; no release artifact / proof row added; no WebFlash / import
 > blocked behind the upstream `WEBFLASH-PWM-001` wrapper and the measured
 > current / thermal evidence.
 
+> **S360-311-CURRENT-THERMAL-001 (this PR; 2026-05-29) — measured run
+> recorded NO values.** The measured current / thermal bench run owed by
+> `PWM-6` / `PWM-13` was recorded, but the measurement intake arrived
+> **blank** — no per-channel / aggregate current, no MT3608 measured
+> voltage / sag / output-current ceiling, no inrush, and no thermal
+> method / ambient / hottest-location / measured °C / EMI observation; nothing
+> was inferred or estimated. **This changes no release surface:** the
+> measured envelope stays owed to a re-run of `S360-311-CURRENT-THERMAL-001`;
+> `artifact_name` is still absent (`webflash_build_matrix: false`); there is
+> still no `.bin` / tag / SHA256 / MD5 / build-info `manifest.json` /
+> [`webflash-release-proof.md`](webflash-release-proof.md) row; no
+> `firmware/sources.json` / `manifest.json` change; `Ceiling-POE-FanPWM`
+> stays `not-release-ready` and `RELEASE-PWM-001` stays blocked. A measured
+> PASS, when it lands, would close `PWM-6` / `PWM-13` **only** and would
+> **not** by itself enable WebFlash (`PWM-15` live-check gate) or generate a
+> release artifact.
+
 **Current state.** No non-legacy FanPWM product YAML under
 [`products/`](../products/); no FanPWM WebFlash wrapper; no FanPWM
 catalog entry on the WebFlash track; no FanPWM build-matrix row; no
