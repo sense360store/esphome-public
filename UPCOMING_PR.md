@@ -30,6 +30,36 @@ mirrored here.
 
 ## Current queue summary
 
+- **V1-R4-PRODUCT-GAP-001** delivers, via **this PR** on 2026-05-29, a
+  **docs-only** definition of the **R4 v1 product matrix and its gap
+  analysis** ([`docs/v1-r4-product-gap.md`](docs/v1-r4-product-gap.md)). It
+  derives the target R4 v1 firmware config-string matrix from the sellable-kit
+  sources (`config/room-bundle-skus.json` + `config/kit-intent-matrix.json` +
+  `config/hardware-catalog.json`), enumerated across the **power** axis
+  (`POE` kit-default, `USB` power-variant) × the kit-grounded **sensor**
+  stacks (`VentIQ` / `AirIQ` / `RoomIQ` / `LED`), and gap-analyses each target
+  config string against `config/product-catalog.json` +
+  `config/firmware-combination-matrix.json` + `config/webflash-builds.json`.
+  **Findings:** 10 target rows — **1 already-shipping**
+  (`Ceiling-POE-VentIQ-RoomIQ`, Release-One stable), **1 promote-existing**
+  (`Ceiling-POE-VentIQ-RoomIQ-LED`, LED-gauntlet-owned), and **8 AUTHOR-NEW**
+  (3 PoE sellable-kit gaps + 5 USB power-variants) batched into **6
+  `V1-R4-CREATE-*`** authoring slices (items 42–47 below). Every PoE row is
+  **blocked-by-evidence** on the shared `S360-410` schematic-verification
+  chain (`PRODUCT-POE-410-001`); the AirIQ rows additionally need the
+  AirIQ-stack hardware evidence; LED rows stay preview-gated. The 21 surviving
+  `legacy-compatible` entries get a disposition recommendation: **5
+  keep-as-template** (ceiling Core PoE/USB bases + the three ceiling
+  sensor-stack configs), **14 retire** via **`PRODUCT-DEP-CORE-001`** (item 41:
+  `core-c-pwr` + the 5 wall + 8 voice entries — no ceiling-v1 reuse), and **2
+  outside that scope** (`sense360-fan-pwm` / `sense360-poe` stay
+  `legacy-compatible` per the readiness matrix). **No** status flip, **no**
+  product YAML, **no** catalog / `webflash-builds` / `artifact_name` /
+  `webflash_build_matrix` edit, **no** `schematic_status` change, **no**
+  promotion, **no** `S360-410` verification or fan-blocker close, **no**
+  `manifest.json` / `firmware/sources.json` edit; every config JSON stays
+  byte-identical. The only files written are
+  [`docs/v1-r4-product-gap.md`](docs/v1-r4-product-gap.md) and this queue.
 - **WEBFLASH-DRIFT-001 (re-run)** delivers, via **this PR** on 2026-05-29, a
   **docs-only re-run** of the cross-repo product/import drift audit
   ([`docs/webflash-drift-audit.md`](docs/webflash-drift-audit.md)) confirming
@@ -9422,6 +9452,128 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       never-shipped configs) — it is gated by that policy, not by
       PRODUCT-GAP-001. Must not touch the six R4 configs or the `v1.0.0`
       release.
+    - Disposition input (from `V1-R4-PRODUCT-GAP-001`, 2026-05-29,
+      [`docs/v1-r4-product-gap.md`](docs/v1-r4-product-gap.md) §`core-c` /
+      `core-v` / `core-w` disposition): of the 19 `sense360-core-*` entries in
+      scope, **5 are recommended keep-as-template** (`sense360-core-c-poe`,
+      `sense360-core-c-usb`, `sense360-core-ceiling`,
+      `sense360-core-ceiling-bathroom`, `sense360-core-ceiling-presence` — the
+      ceiling Core PoE/USB bases + the three ceiling sensor-stack configs reused
+      as authoring templates by the `V1-R4-CREATE-*` queue), and **14 are
+      recommended retire** (`sense360-core-c-pwr` + the 5 `sense360-core-w-*`
+      wall entries + the 8 `sense360-core-v-*` / `sense360-core-voice-*` voice
+      entries — no R4 v1 reuse: v1 is ceiling-only and R4 has no voice module).
+      The standalone `sense360-fan-pwm` and `sense360-poe` legacy entries are
+      **outside** this scope (stay `legacy-compatible` per the readiness
+      matrix). This is recommendation input only; `V1-R4-PRODUCT-GAP-001`
+      changed no status.
+
+42. **V1-R4-CREATE-001 — Author `Ceiling-POE-RoomIQ` (Bedroom stack)**
+    - Status: Planned / follow-up (queued by `V1-R4-PRODUCT-GAP-001`)
+    - Purpose: Author the smallest RoomIQ-only PoE ceiling product — the
+      `S360-KIT-BEDROOM-P` target — as the validated base the AirIQ and LED
+      stacks build on. Produces the top-level product YAML + catalog row +
+      compile-only validation only.
+    - Required modules: Core `S360-100` + RoomIQ `S360-200` + PoE PSU
+      `S360-410`.
+    - Template source: [`products/sense360-core-c-poe.yaml`](products/sense360-core-c-poe.yaml)
+      (ceiling + PoE) + [`products/sense360-core-ceiling-presence.yaml`](products/sense360-core-ceiling-presence.yaml)
+      (presence intent, drop LED); R4 compile-only skeleton
+      [`products/compile-only/ceiling-poe-roomiq.yaml`](products/compile-only/ceiling-poe-roomiq.yaml)
+      already exists.
+    - Target channel: `stable-candidate`. Promotion is owned by
+      `STABLE-TARGET-ROOMIQ-001` and **blocked-by-evidence** on the shared
+      `S360-410` schematic-verification chain (`PRODUCT-POE-410-001`); the
+      authoring slice itself does not promote or unblock.
+    - Guardrails: must not flip `S360-410` `schematic_status`, add an
+      `artifact_name`, add a `config/webflash-builds.json` row, flip
+      `webflash_build_matrix`, touch `manifest.json` /
+      `firmware/sources.json`, or promote to a channel.
+
+43. **V1-R4-CREATE-002 — Author `Ceiling-POE-AirIQ-RoomIQ` (Kitchen stack)**
+    - Status: Planned / follow-up (queued by `V1-R4-PRODUCT-GAP-001`)
+    - Purpose: Author the AirIQ + RoomIQ PoE ceiling product — the
+      `S360-KIT-KITCHEN-P` target. Top-level product YAML + catalog row +
+      compile-only validation only.
+    - Required modules: Core `S360-100` + AirIQ `S360-210` + RoomIQ `S360-200`
+      + PoE PSU `S360-410`.
+    - Template source: [`products/sense360-core-c-poe.yaml`](products/sense360-core-c-poe.yaml)
+      (ceiling + PoE) + [`products/sense360-core-ceiling.yaml`](products/sense360-core-ceiling.yaml)
+      (AirIQ stack); R4 compile-only skeleton
+      [`products/compile-only/ceiling-poe-airiq-roomiq.yaml`](products/compile-only/ceiling-poe-airiq-roomiq.yaml)
+      already exists.
+    - Target channel: `stable-candidate`. Promotion owned by
+      `STABLE-TARGET-AIRIQ-ROOMIQ-001` and **blocked-by-evidence** on the
+      `S360-410` chain **and** the AirIQ-stack hardware evidence
+      (SPS30 / SGP41 / SCD41 / BMP390); the authoring slice does not promote
+      or unblock.
+    - Guardrails: as V1-R4-CREATE-001.
+
+44. **V1-R4-CREATE-003 — Author `Ceiling-POE-RoomIQ-LED` (Living / Corridor stack)**
+    - Status: Planned / follow-up (queued by `V1-R4-PRODUCT-GAP-001`)
+    - Purpose: Author the RoomIQ + LED PoE ceiling product — the shared
+      `S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P` target. Top-level product
+      YAML + catalog row + compile-only validation only (a compile-only
+      skeleton must be authored too — none exists yet).
+    - Required modules: Core `S360-100` + RoomIQ `S360-200` + LED `S360-300`
+      + PoE PSU `S360-410`.
+    - Template source: [`products/sense360-core-c-poe.yaml`](products/sense360-core-c-poe.yaml)
+      (ceiling + PoE) + [`products/sense360-core-ceiling-presence.yaml`](products/sense360-core-ceiling-presence.yaml)
+      (presence + LED ring).
+    - Target channel: `preview-candidate`. The `LED` token keeps it
+      preview-gated by the preview-to-stable gauntlet
+      ([`docs/preview-to-stable-promotion-gates.md`](docs/preview-to-stable-promotion-gates.md));
+      also `S360-410`-gated. Stable promotion owned by the LED gauntlet /
+      a `STABLE-TARGET-ROOMIQ-LED-001`-style slice; the authoring slice does
+      not promote.
+    - Guardrails: as V1-R4-CREATE-001; additionally must not promote LED from
+      `preview` toward `stable`.
+
+45. **V1-R4-CREATE-004 — Author `Ceiling-USB-VentIQ-RoomIQ` + `Ceiling-USB-RoomIQ` (USB base pair)**
+    - Status: Planned / follow-up (queued by `V1-R4-PRODUCT-GAP-001`)
+    - Purpose: Author the unblocked, non-LED USB power-variants of the Bath and
+      Bedroom sensor stacks (self-powered over the Core USB-C; no PSU board).
+      Top-level product YAMLs + catalog rows + compile-only validation only.
+    - Required modules: Core `S360-100` + RoomIQ `S360-200` (+ VentIQ `S360-211`
+      for the VentIQ row).
+    - Template source: [`products/sense360-core-c-usb.yaml`](products/sense360-core-c-usb.yaml)
+      (ceiling + USB) + [`products/sense360-core-ceiling-bathroom.yaml`](products/sense360-core-ceiling-bathroom.yaml)
+      (VentIQ intent) / [`products/sense360-core-ceiling-presence.yaml`](products/sense360-core-ceiling-presence.yaml)
+      (RoomIQ).
+    - Target channel: manual / custom — **no USB room bundle exists** (the
+      room-bundle layer is PoE-only); all underlying boards are `verified`, so
+      there is no hardware-evidence blocker.
+    - Guardrails: as V1-R4-CREATE-001; the sensor composition is kit-grounded,
+      the `USB` power token is a power-axis variant (not a sellable-bundle
+      claim).
+
+46. **V1-R4-CREATE-005 — Author `Ceiling-USB-AirIQ-RoomIQ` (USB AirIQ variant)**
+    - Status: Planned / follow-up (queued by `V1-R4-PRODUCT-GAP-001`)
+    - Purpose: Author the USB power-variant of the Kitchen AirIQ stack.
+      Top-level product YAML + catalog row + compile-only validation only.
+    - Required modules: Core `S360-100` + AirIQ `S360-210` + RoomIQ `S360-200`.
+    - Template source: [`products/sense360-core-c-usb.yaml`](products/sense360-core-c-usb.yaml)
+      (ceiling + USB) + [`products/sense360-core-ceiling.yaml`](products/sense360-core-ceiling.yaml)
+      (AirIQ stack).
+    - Target channel: manual / custom (no USB bundle); **blocked-by-evidence**
+      on the AirIQ-stack hardware evidence (not on `S360-410` — there is no PoE
+      PSU on a USB row).
+    - Guardrails: as V1-R4-CREATE-004.
+
+47. **V1-R4-CREATE-006 — Author `Ceiling-USB-VentIQ-RoomIQ-LED` + `Ceiling-USB-RoomIQ-LED` (USB LED pair)**
+    - Status: Planned / follow-up (queued by `V1-R4-PRODUCT-GAP-001`)
+    - Purpose: Author the LED-bearing USB power-variants of the Bath-LED and
+      Living/Corridor stacks. Top-level product YAMLs + catalog rows +
+      compile-only validation only.
+    - Required modules: Core `S360-100` + RoomIQ `S360-200` + LED `S360-300`
+      (+ VentIQ `S360-211` for the VentIQ row).
+    - Template source: [`products/sense360-core-c-usb.yaml`](products/sense360-core-c-usb.yaml)
+      (ceiling + USB) + [`products/sense360-core-ceiling-bathroom.yaml`](products/sense360-core-ceiling-bathroom.yaml)
+      / [`products/sense360-core-ceiling-presence.yaml`](products/sense360-core-ceiling-presence.yaml).
+    - Target channel: manual / custom (no USB bundle); `LED` token keeps it
+      preview-gated by the gauntlet.
+    - Guardrails: as V1-R4-CREATE-004; additionally must not promote LED toward
+      `stable`.
 
 ## Cross-repo dependencies
 
