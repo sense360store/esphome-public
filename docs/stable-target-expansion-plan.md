@@ -1,5 +1,13 @@
 # Stable Target Expansion Plan (STABLE-TARGET-EXPANSION-PLAN-001)
 
+> **⚠️ Superseded for current-state status by [`docs/sense360-roadmap-status.md`](sense360-roadmap-status.md) (DOCS-CONSOLIDATION-ROADMAP-001).**
+> For the canonical, up-to-date repo status / roadmap / blocker / upcoming-PR view —
+> including release targets, bundle SKUs, board SKUs, WebFlash status, the S360-410 PoE
+> blocker, the FanPWM native-path status, and LED preview status — see the canonical doc.
+> The content below is retained as historical / provenance detail and is **not** the
+> current-state source of truth.
+
+
 ## Purpose and scope
 
 This document is an **actionable expansion plan** built on top of the
