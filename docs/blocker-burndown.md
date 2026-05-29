@@ -287,6 +287,42 @@ release / compliance / hardware-stable claim; no fabricated evidence.
 | TRI-2 | TRIAC separate-board-vs-merge decision (`T02`) | NEEDS OPERATOR INPUT | Tracker `T02` **Doing**; design (SSR + MOC3041) `T01` Done; also gates Relay `Y02` | `Sense360_R4_Tracker` (2026-05-18) | No | operator decision on `T02` | (operator decision) |
 | TRI-3 | TRIAC compliance / mains sign-off | BLOCKED BY POLICY / SAFETY | See CMP-1 | — | No | COMPLIANCE-001 | COMPLIANCE-001 |
 
+### 2J. PoE PSU / S360-410
+
+`S360-410` Sense360 PoE PSU is the **largest remaining blocker** to
+expanding stable PoE room bundles beyond the already-shipping
+`S360-KIT-BATH-P`. The full per-evidence-class audit is
+[`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md)
+(E1–E15); the consolidated evidence matrix, stable-bundle impact
+assessment, and next-evidence checklist are
+[`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md)
+(PACKAGE-POE-410-EVIDENCE-RESULT-001). `S360-410` stays
+`cataloged_unverified`.
+
+| ID | Blocker | Status | Evidence found | Provenance | Closed? | Remaining exact action | Next PR |
+|---|---|---|---|---|---|---|---|
+| POE-1 | Board SKU / R4 / canonical naming | CLOSED | `S360-410` row `rev: R4`, `Sense360 PoE PSU`, `Power` / `PSU` | `config/hardware-catalog.json` lines 116–121; `test_hardware_catalog.py` | Yes | none | — |
+| POE-2 | Module-side schematic PDF committed | CLOSED | `schematics/S360-410-R4.pdf` (975,137 B; SHA256 `4a8b7a3b…2414`) | HW-ASSETS-410 / PR #516 | Yes | none (the `schematic_status: verified` JSON flip is POE-9) | — |
+| POE-3 | Schematic-shown discrete topology | CLOSED | `LAN_CON1 RJP-003TC1(LPJ4112CNL)` / `U1 TPS2378DDAR` / `U2 TX4138` / `DCDC1 F0505S-2WR2` / `J3` output / `H1`–`H4` Earth | HW-PINMAP-410-FOLLOWUP / PR #517 | Yes | none | — |
+| POE-4 | BOM cross-check (part identity) | CLOSED (part-identity) | BOM-confirms the discrete stack; `Ag9712M`/`Silvertel Ag9700` disproved; `AM1D-0505S-NZ` not in BOM | HW-BOM-ASSETS-002 / PR #535 | Yes (part identity) | `F0505S-2WR2` vs `AM1D-0505S-NZ` populated-primary intent → POE-8 | — |
+| POE-5 | SELV classification / no mains caveat | CLOSED | PoE 36–57 V DC SELV; post-isolation LV; not in COMPLIANCE-001 mains scope | `docs/compliance/mains-voltage-uk-eu-assessment.md` | Yes | none | — |
+| POE-6 | `J3` silkscreen pin-1 / connector orientation | NEEDS DRIVE EVIDENCE / NEEDS BENCH | Schematic-side `J3` pin 1 = `+5VP`, pin 2 = `GND`; BOM `SM02B-SRSS-TB`; **no as-built silkscreen photo / KiCad PCB** | HW-PINMAP-410-FOLLOWUP; `s360-410-module-pinmap.md` (E9) | No | silkscreen photo or KiCad PCB confirming physical pin-1 | (silkscreen / PCB ingest) |
+| POE-7 | J2 harness identity (HW-002 OQ#6) | NEEDS BENCH / NEEDS OPERATOR INPUT | Core `J2 PoE_ACDC` + module `J3` captured; **as-shipped harness identity not recorded**; `S360-100-BENCH-001` `pending` | `s360-100-r4-core.md` §S360-100-BENCH-001 status (E10) | No | record cable/pigtail identity + wire-colour map + keying on a shipped unit | `S360-100-BENCH-001` update |
+| POE-8 | Package-header reconciliation + DC/DC alternate intent | NEEDS OPERATOR INPUT | Header-cleanup component landed (PR #538, disproved whole-module hint removed); design-intent (af-only vs af/at; 5 V vs 5 V/3.3 V; protection claim; alternate DC/DC) unresolved | PACKAGE-POE-410-001 docs PR #526; PR #538 (E8/E14) | No | designer answers to the four E8/E14 questions → `PACKAGE-POE-410-001` implementation | `PACKAGE-POE-410-001` (impl) |
+| POE-9 | PoE link-up / 5 V load / inrush / thermal / EMI/EMC bench | NEEDS BENCH | **none on file** — no link-up vs af/at PSE, no load regulation, no inrush, no thermal rise of `U1`/`U2`/`DCDC1`, no EMI/EMC | `package-poe-410-001-audit.md` E11 | No | bench record (may be `S360-410-BENCH-001`) covering link-up + load + inrush + thermal + EMI/EMC | `S360-410-BENCH-001` (future) |
+| POE-10 | Isolation / Hi-pot / insulation / leakage / earth continuity | NEEDS BENCH | `F0505S-2WR2` datasheet rating only (not as-built); `H1`–`H4` PCB bonding not recorded | `package-poe-410-001-audit.md` E12 | No | Hi-pot + insulation resistance + leakage + `H1`–`H4`→shield earth continuity | (isolation/safety bench, future) |
+| POE-11 | PCB source / gerbers (manufacturing readiness) | NEEDS DRIVE EVIDENCE | Drive `gerbers` / `kicad` retained-but-not-committed; no committed PCB source; `R4` silkscreen P/N/REV (`G01`) Waiting; PoE rename (`R11`) To do | Hardware Artifact Policy §Future storage decision; tracker `G01`/`R11` (E13) | No | choose storage backend; ingest `S360-410-R4.kicad_pcb` / gerbers | (per-board PCB-evidence, future) |
+| POE-12 | `S360-410 schematic_status: verified` JSON PR | OUT OF SCOPE (gated by POE-6/7/9/10) | `cataloged_unverified`, no `schematic_file` | `config/hardware-catalog.json`; `test_hardware_catalog.py` `EXPECTED_STILL_UNVERIFIED_SKUS` | No | mechanical JSON flip **after** POE-6/7/9/10 close | `S360-410-SCHEMATIC-STATUS-VERIFIED` (JSON) |
+| POE-13 | Release-One PoE caveat closure | OUT OF SCOPE (gated by POE-6/7/9/10/12 + POE-8) | Caveat preserved verbatim | `release-one-hardware-audit.md` Findings → PoE PSU (E15) | No | reword caveat once upstream rows close | Release-One PoE caveat-closure PR |
+
+**Stable-bundle impact (PACKAGE-POE-410-EVIDENCE-RESULT-001).**
+`S360-KIT-BATH-P` ships today (Release-One; **not blocked**, caveat
+preserved). `S360-KIT-BEDROOM-P` is **blocked by S360-410** (sole
+remaining hardware blocker). `S360-KIT-KITCHEN-P` (also AirIQ stack),
+`S360-KIT-LIVING-P` and `S360-KIT-CORRIDOR-P` (also LED gauntlet) are
+**partially blocked** — S360-410 is necessary but not sufficient. See
+[`docs/package-poe-410-evidence-result.md` §3](package-poe-410-evidence-result.md#3-stable-bundle-impact-assessment).
+
 ## 3. Summary by class
 
 | Class | Count | IDs |
@@ -438,6 +474,31 @@ No exception rows: every referenced action is SHA-pinned. SHA pins do not
 self-update, so refreshing them is a manual maintenance action. This does
 **not** change any WebFlash / import / release / compliance / hardware
 posture.
+
+**Update — `PACKAGE-POE-410-EVIDENCE-RESULT-001` (2026-05-29).** The
+S360-410 PoE-PSU evidence was reconciled into a single
+evidence-result record at
+[`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md)
+and the new §2J PoE PSU / S360-410 row block was added above. **No
+posture flip:** `S360-410` stays `cataloged_unverified`, the
+Release-One PoE caveat is preserved verbatim, no WebFlash / release /
+bundle target is promoted, and no `config/**` / `packages/**` /
+`firmware/**` file is edited. The reconciliation confirms five evidence
+classes on file (POE-1 board SKU/R4, POE-2 schematic PDF, POE-3 discrete
+topology, POE-4 BOM part-identity, POE-5 SELV) and the **bench (POE-9
+PoE link-up + load + inrush + thermal + EMI/EMC), isolation/safety
+(POE-10), connector silkscreen (POE-6), J2 harness (POE-7), and PCB
+source (POE-11) classes are all still missing** — so the
+`schematic_status: verified` JSON flip (POE-12) and the Release-One
+caveat closure (POE-13) stay gated. Promoting `S360-410` to `verified`
+without POE-9 + POE-10 would be a fabricated verification.
+**Stable-bundle impact:** `S360-KIT-BATH-P` not blocked (ships under
+preserved caveat); `S360-KIT-BEDROOM-P` blocked by S360-410 (sole
+remaining hardware blocker); `S360-KIT-KITCHEN-P` /
+`S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P` partially blocked
+(S360-410 plus AirIQ-stack or LED-gauntlet respectively). The operator
+/ designer next-evidence checklist is recorded at
+[`docs/package-poe-410-evidence-result.md` §5](package-poe-410-evidence-result.md#5-next-evidence-checklist-operator--designer-requests).
 
 ## 3A. Final blocker-status — clean repo / YAML / firmware path unblocked (`BLOCKER-STATUS-FINALIZE-001`, 2026-05-27)
 

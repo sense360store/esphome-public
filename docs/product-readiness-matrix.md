@@ -2528,6 +2528,35 @@ named follow-up.
   [`docs/package-poe-410-001-audit.md` §Resume conditions](package-poe-410-001-audit.md#resume-conditions)
   hold.
 
+- **2026-05-29 — `PACKAGE-POE-410-EVIDENCE-RESULT-001` evidence
+  reconciliation (no promotion).** Consolidated all S360-410 PoE-PSU
+  evidence into a single evidence-result record at
+  [`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md)
+  — an evidence inventory, a verification matrix (schematic / PCB /
+  connector orientation / J2 harness / PoE link-up / 5 V output / load
+  / thermal / isolation-safety / EMI-EMC / manufacturing-readiness),
+  a stable-bundle impact assessment, the precise remaining-evidence
+  list, and an operator / designer next-evidence checklist.
+  **No status flip:** `power_poe.yaml` stays `reference-only` +
+  `schematic-evidence-pending` + `do-not-change-release-one`,
+  `S360-410` stays `cataloged_unverified`, and no PoE-410-subject
+  product YAML is added. The reconciliation confirms the schematic
+  (HW-ASSETS-410), discrete topology (HW-PINMAP-410-FOLLOWUP), BOM
+  part-identity (HW-BOM-ASSETS-002), PoE-to-5 V topology, and SELV
+  classification are on file, while the **bench (PoE link-up + load +
+  inrush + thermal + EMI/EMC), isolation/safety, connector-silkscreen,
+  J2-harness, and PCB-source classes are all still missing** — so
+  promoting `S360-410` to `verified` would be a fabricated
+  verification and is not done. **Stable-bundle impact:**
+  `S360-KIT-BATH-P` not blocked (ships under the preserved Release-One
+  caveat); `S360-KIT-BEDROOM-P` blocked by S360-410 (sole remaining
+  hardware blocker); `S360-KIT-KITCHEN-P` / `S360-KIT-LIVING-P` /
+  `S360-KIT-CORRIDOR-P` partially blocked (S360-410 plus the AirIQ
+  stack or the LED preview→stable gauntlet). The Release-One product /
+  artifact / tag, the LED preview, and the FanTRIAC blocked reference
+  are all unchanged. See
+  [`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md).
+
 ## Release-One and LED preview safety
 
 PRODUCT-GAP-001 **does not change Release-One product behaviour** and

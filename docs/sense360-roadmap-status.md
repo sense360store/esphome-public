@@ -158,7 +158,17 @@ Per [`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md)
 header today (audit "option 4": evidence-request path). The remaining
 schematic / silkscreen / bench / harness / compliance evidence is enumerated
 there and in [`docs/hardware/s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md)
-(HW-PINMAP-410).
+(HW-PINMAP-410). The consolidated evidence matrix, the per-bundle
+stable-bundle impact assessment, and the operator/designer next-evidence
+checklist are recorded at
+[`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md)
+(PACKAGE-POE-410-EVIDENCE-RESULT-001, 2026-05-29) — which reconfirms the
+bench (PoE link-up / load / inrush / thermal / EMI-EMC), isolation/safety,
+connector-silkscreen, J2-harness, and PCB-source evidence classes are still
+**missing**, and that `S360-KIT-BEDROOM-P` is blocked by S360-410 alone while
+`S360-KIT-KITCHEN-P` / `S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P` are
+partially blocked (S360-410 plus an AirIQ-stack or LED-gauntlet dependency)
+and the already-shipping `S360-KIT-BATH-P` is unaffected.
 
 This blocker gates `PRODUCT-POE-410-001`, `RELEASE-POE-410-001`, the
 Release-One PoE caveat closure, and the stable-candidate room bundles that

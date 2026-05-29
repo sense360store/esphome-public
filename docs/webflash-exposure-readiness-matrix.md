@@ -2482,6 +2482,22 @@ membership decision belongs to `PRODUCT-POE-410-001`.
 [`product-readiness-matrix.md` §PoE-410 / S360-410](product-readiness-matrix.md#poe-410--s360-410),
 [`release-one-hardware-audit.md` §Findings → PoE PSU](release-one-hardware-audit.md#findings).
 
+**2026-05-29 — `PACKAGE-POE-410-EVIDENCE-RESULT-001` evidence
+reconciliation (no WebFlash change).** The S360-410 evidence was
+reconciled into a single evidence-result record at
+[`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md).
+**No WebFlash surface change:** no PoE-410-subject WebFlash wrapper /
+build / catalog row is added, no `webflash_build_matrix` value is
+flipped, and the existing Release-One (`Ceiling-POE-VentIQ-RoomIQ`)
+and LED-preview (`Ceiling-POE-VentIQ-RoomIQ-LED`) wrappers — both of
+which consume `S360-410` logically under Release-One identity — stay
+byte-identical. The reconciliation confirms the bench, isolation /
+safety, connector-silkscreen, J2-harness, and PCB-source evidence
+classes are **still missing**, so `S360-410` stays
+`cataloged_unverified` and any new PoE-410 product entry stays
+`not-webflash-ready`. The PoE room bundles remain gated per
+[`docs/package-poe-410-evidence-result.md` §3](package-poe-410-evidence-result.md#3-stable-bundle-impact-assessment).
+
 **2026-05-20 — `PRODUCT-POE-410-001` investigation pass
 (Path A docs-only deferral).** Re-verified against the live
 files: no S360-410-explicit / `POE`-410-subject

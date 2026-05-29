@@ -2521,6 +2521,29 @@ membership decision belongs to `PRODUCT-POE-410-001`.
 [`webflash-exposure-readiness-matrix.md` §PoE / S360-410 WebFlash posture](webflash-exposure-readiness-matrix.md#poe--s360-410-webflash-posture),
 [`release-one-hardware-audit.md` §Findings → PoE PSU](release-one-hardware-audit.md#findings).
 
+**2026-05-29 — `PACKAGE-POE-410-EVIDENCE-RESULT-001` evidence
+reconciliation (no release change).** The S360-410 evidence was
+reconciled into a single evidence-result record at
+[`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md)
+(evidence inventory + verification matrix + stable-bundle impact +
+next-evidence checklist). **No release surface change:** the
+Release-One stable artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` (tag `v1.0.0`)
+and the LED preview artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin` (tag
+`v1.0.0-led-preview`) are not re-released, requalified, or re-stamped;
+no new PoE-410-explicit artifact is produced; `firmware/sources.json`
+and `manifest.json` are not written. The reconciliation confirms the
+bench (PoE link-up + load + inrush + thermal + EMI/EMC), isolation /
+safety, connector-silkscreen, J2-harness, and PCB-source evidence
+classes are **still missing**, so `S360-410` stays
+`cataloged_unverified` and no `RELEASE-POE-410-001` artifact is
+warranted today. The five PoE room bundles remain gated as in
+[`docs/package-poe-410-evidence-result.md` §3](package-poe-410-evidence-result.md#3-stable-bundle-impact-assessment):
+`S360-KIT-BATH-P` ships (not blocked, caveat preserved),
+`S360-KIT-BEDROOM-P` blocked by S360-410, and Kitchen / Living /
+Corridor partially blocked.
+
 **2026-05-20 — `PRODUCT-POE-410-001` investigation pass
 (Path A docs-only deferral).** Re-verified against the live
 release surface: **no PoE-410-subject release artifact
