@@ -6,6 +6,12 @@ owned by this repository. WebFlash-owned import/runtime work is tracked in
 the WebFlash repository's `UPCOMING_PR.md`; only cross-repo dependencies are
 mirrored here.
 
+> **High-level status snapshot:** the canonical, summarised repo status /
+> roadmap / blocker / next-PR view lives in
+> [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md)
+> (DOCS-CONSOLIDATION-ROADMAP-001). This file remains the **detailed** working
+> queue and the source of truth for per-PR queue state.
+
 ## Maintenance rule
 
 - Update this file in every PR that changes queue state.

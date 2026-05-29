@@ -1,5 +1,13 @@
 # Repo Freshness / Roadmap / Security / Cross-Repo Drift Audit
 
+> **⚠️ Superseded for current-state status by [`docs/sense360-roadmap-status.md`](sense360-roadmap-status.md) (DOCS-CONSOLIDATION-ROADMAP-001).**
+> For the canonical, up-to-date repo status / roadmap / blocker / upcoming-PR view —
+> including release targets, bundle SKUs, board SKUs, WebFlash status, the S360-410 PoE
+> blocker, the FanPWM native-path status, and LED preview status — see the canonical doc.
+> The content below is retained as historical / provenance detail and is **not** the
+> current-state source of truth.
+
+
 **Audit id:** `REPO-FRESHNESS-ROADMAP-AUDIT-001`
 **Date:** 2026-05-24
 **Updated:** 2026-05-27 by `REPO-CLEANUP-NOWEBFLASH-001` (docs-only de-dup of stale §4 / §10 roadmap + security summary lines after `BLOCKER-STATUS-FINALIZE-001`).

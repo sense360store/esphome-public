@@ -2,6 +2,11 @@
 
 Official ESPHome firmware repository for [Sense360](https://mysense360.com) environmental monitoring devices.
 
+> **Repo status / roadmap / blockers / upcoming PRs:** see the canonical
+> [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md)
+> (release targets, bundle SKUs, board SKUs, WebFlash status, S360-410 PoE
+> blocker, FanPWM native-path status, LED preview status, next PR queue).
+
 [![ESPHome](https://img.shields.io/badge/ESPHome-2025.10%2B-blue)](https://esphome.io/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![GitHub Release](https://img.shields.io/github/v/release/sense360store/esphome-public)](https://github.com/sense360store/esphome-public/releases)
