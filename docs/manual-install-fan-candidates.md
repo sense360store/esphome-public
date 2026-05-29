@@ -48,7 +48,7 @@ references below.
 | Family | Product YAML | Product-specific caveat |
 | --- | --- | --- |
 | **FanRelay / S360-310** | [`products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml) | mains / safety / competent-person sign-off still required; not kit / default / recommended |
-| **FanPWM / S360-311** | [`products/sense360-ceiling-poe-fanpwm.yaml`](../products/sense360-ceiling-poe-fanpwm.yaml) | no RPM / TachIO claim; measured current / thermal still required |
+| **FanPWM / S360-311** | [`products/sense360-ceiling-poe-fanpwm.yaml`](../products/sense360-ceiling-poe-fanpwm.yaml) | native functional bench passed (operator-notes-only, S360-311-NATIVE-FANPWM-BENCH-001); no RPM / TachIO claim; measured current / thermal still required |
 | **FanDAC / S360-312** | [`products/sense360-ceiling-poe-fandac.yaml`](../products/sense360-ceiling-poe-fandac.yaml) | not Cloudlift-ready; J3 / Cloudlift evidence still required; no compliance claim |
 
 ---
@@ -179,6 +179,21 @@ esphome upload products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml
 > WebFlash wrapper, no `config/webflash-builds.json` row, no
 > `artifact_name`, and no `webflash_build_matrix` flip. FanPWM stays
 > excluded from release / WebFlash.
+>
+> **Native FanPWM bench evidence (S360-311-NATIVE-FANPWM-BENCH-001,
+> 2026-05-29).** The operator (`@wifispray`) flashed the native firmware
+> (compile-proven at `643bbd3`) onto `S360-100-R4` + `S360-311-R4` and
+> re-ran the **functional** bench: **functional PWM PASSED**
+> (operator-notes-only) — all four channels individual + simultaneous +
+> low/med/high + restart-retention on the native composition (its own
+> functional bench; the 2026-05-26 legacy SX1509 bench does not transfer).
+> **Current / thermal were NOT measured and tach / RPM were NOT measured**,
+> so both stay **unvalidated**: measured per-channel + aggregate current,
+> MT3608 ceiling / inrush, and measured thermal are still required
+> (`S360-311-CURRENT-THERMAL-001`), and RPM stays unsupported
+> (`rpm_supported: false`). This confers **no** WebFlash / release /
+> hardware-stable / compliance / RPM readiness; the manual / no-WebFlash
+> caveats above still apply in full.
 
 ### Remote-package include
 
