@@ -1,5 +1,11 @@
 # WebFlash Exposure Readiness Matrix (WEBFLASH-GAP-001)
 
+> **Reconciled view:** the cross-layer release / WebFlash / firmware
+> availability reconciliation lives in
+> [`docs/release-matrix-webflash-alignment.md`](release-matrix-webflash-alignment.md)
+> (WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001). This matrix remains the canonical
+> WebFlash-layer gate.
+
 ## Purpose and scope
 
 This document is the canonical, **WebFlash-layer** readiness gate for

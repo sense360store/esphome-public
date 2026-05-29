@@ -30,6 +30,37 @@ mirrored here.
 
 ## Current queue summary
 
+- **WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001** records, via **this PR** on
+  2026-05-29, the **single reconciled release-matrix / WebFlash-exposure /
+  firmware-availability / room-bundle / release-note view** across the repo.
+  A new doc at
+  [`docs/release-matrix-webflash-alignment.md`](docs/release-matrix-webflash-alignment.md)
+  produces the canonical one-table release matrix (columns: bundle SKU ·
+  config string · YAML path · release channel · compile status · artifact
+  status · release-note status · WebFlash status · blocker status · notes),
+  verifies the five PoE room bundles (`S360-KIT-BATH-P` stable-release;
+  `S360-KIT-KITCHEN-P` / `S360-KIT-BEDROOM-P` stable-candidate;
+  `S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P` preview-candidate), classifies
+  every target (Stable / Preview / Manual-only / Compile-only / Blocked),
+  confirms release-note generation for the **two** release-capable builds
+  (and correct refusal of every non-release target), maps WebFlash exposure
+  (exposed / intentionally hidden / blocked / future candidate), records YAML
+  availability + tag-pinning, and lays out the Immediate / Near-term /
+  Blocked next-release roadmap. **Honesty / guardrails:** the only
+  release-capable builds remain `Ceiling-POE-VentIQ-RoomIQ` (stable) and
+  `Ceiling-POE-VentIQ-RoomIQ-LED` (preview); **no firmware published, no
+  artifact generated, no `manifest.json` / `firmware/sources.json` write
+  (either repo), no FanPWM / FanDAC / FanRelay WebFlash enablement, no
+  LED-stable claim, no S360-410-verified claim, no fabricated readiness.**
+  **Change:** docs-only — adds
+  [`docs/release-matrix-webflash-alignment.md`](docs/release-matrix-webflash-alignment.md)
+  and adds reconciled-view cross-reference banners to
+  [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md),
+  [`docs/all-yaml-release-matrix.md`](docs/all-yaml-release-matrix.md),
+  [`docs/product-readiness-matrix.md`](docs/product-readiness-matrix.md),
+  [`docs/release-artifact-readiness-matrix.md`](docs/release-artifact-readiness-matrix.md),
+  and [`docs/webflash-exposure-readiness-matrix.md`](docs/webflash-exposure-readiness-matrix.md).
+  All `config/**` / YAML / workflow / firmware files stay byte-identical.
 - **PACKAGE-POE-410-EVIDENCE-RESULT-001** records, via **this PR** on
   2026-05-29, the **consolidated S360-410 PoE-PSU evidence
   reconciliation and stable-bundle impact assessment**. **Result:

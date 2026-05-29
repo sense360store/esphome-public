@@ -422,3 +422,4 @@ This document is reproduced and locked in by:
 - Manual install path: [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md)
 - Compile-only lane: [`docs/compile-only-firmware-validation.md`](compile-only-firmware-validation.md)
 - Availability vocabulary: [`docs/product-availability-taxonomy.md`](product-availability-taxonomy.md)
+- **Reconciled release-matrix / WebFlash / firmware-availability view: [`docs/release-matrix-webflash-alignment.md`](release-matrix-webflash-alignment.md) (WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001)** — one-table canonical release matrix (bundle SKU · config · YAML · channel · compile · artifact · release-note · WebFlash · blocker · notes), bundle verification, target classification, release-note coverage, WebFlash exposure, YAML availability, and the next-release roadmap. Reads from the same source-of-truth files; promotes nothing.
