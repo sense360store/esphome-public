@@ -9370,6 +9370,59 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       (`S360-310` stays `cataloged_unverified`); no fabricated evidence.
       Release-One + LED preview + FanTRIAC (`blocked` / `HW-005`) unchanged.
 
+40. **PRODUCT-DEP-MINI-001 — Remove the legacy Mini product range**
+    - Status: **DONE — this PR (2026-05-29)**
+    - Purpose: Retire the legacy-compatible, never-WebFlash-shipped Sense360
+      Mini range (superseded by the R4 product line; Mini is not part of R4)
+      from the active repository surface, following PRODUCT-DEP-001 exactly.
+    - What changed: removed the 10 `products/sense360-mini-*.yaml` product
+      YAMLs and the 4 Mini-only packages (`sense360_core_mini.yaml`,
+      `mini_onboard_sensors.yaml`, `mini_four_leds_air_quality.yaml`,
+      `mini_four_leds_addr.yaml` — confirmed no surviving non-Mini YAML
+      includes any of them). Converted the 10 Mini `legacy-compatible`
+      catalog rows to `removed` tombstones (drop `product_yaml`; keep
+      `legacy_config_id`; add `removed_since` / `removal_reason` /
+      `no_replacement_reason` / `notes`), via the PRODUCT-DEP-001
+      `legacy-compatible -> removed` (intentional retirement) transition — no
+      `deprecated` step is required because the range was never
+      WebFlash-shippable and the removal gates only govern
+      `deprecated -> removed`. Delisted Mini from
+      `packages/SENSE360_MODULES.md` and `packages/README.md`. Updated the
+      catalog-existence tests (`tests/test_product_catalog.py`), the
+      read-only consistency validator
+      (`scripts/validate_product_catalog_consistency.py`), and removed the
+      Mini bus guard from `tests/test_core_abstract_bus.py`.
+    - Validation: `tests/validate_configs.py`,
+      `tests/test_product_catalog.py`, `tests/test_core_abstract_bus.py`,
+      `tests/test_all_yaml_release_matrix.py`, and the full
+      `python3 -m unittest discover -s tests` all pass with Mini gone.
+    - Guardrails: no change to the six R4 configs (Release-One
+      `Ceiling-POE-VentIQ-RoomIQ`, its LED preview, the four fan variants),
+      no change to the non-Mini legacy `core-c` / `core-v` / `core-w`
+      products, no edit to `manifest.json`, `firmware/sources.json`, or
+      `config/webflash-builds.json` (Mini absent there — confirmed, left
+      byte-identical), no retag / alter of the `v1.0.0` release (it keeps the
+      Mini files for tag-pinned field units), no `schematic_status` change,
+      no promotion, no fabricated PRODUCT-DEP-001 compliance.
+    - Follow-up: the remaining non-Mini legacy disposition is tracked as
+      **PRODUCT-DEP-CORE-001** (below).
+
+41. **PRODUCT-DEP-CORE-001 — Disposition of the non-Mini legacy range
+    (`core-c` / `core-v` / `core-w`)**
+    - Status: Planned / follow-up
+    - Purpose: Decide and apply the lifecycle disposition for the remaining
+      `legacy-compatible` `sense360-core-*` products under PRODUCT-DEP-001,
+      now that PRODUCT-DEP-MINI-001 has retired the Mini range. Scope is the
+      non-Mini core legacy products only.
+    - Notes: This is the product-**deprecation**-series sibling of
+      PRODUCT-DEP-MINI-001 and is intentionally named `PRODUCT-DEP-CORE-001`
+      to avoid colliding with the unrelated toolchain/dependency-alignment
+      item **#26 `PRODUCT-DEP-002`**. Like the Mini work, any retirement runs
+      through the PRODUCT-DEP-001 gates (`legacy-compatible -> removed` for
+      never-shipped configs) — it is gated by that policy, not by
+      PRODUCT-GAP-001. Must not touch the six R4 configs or the `v1.0.0`
+      release.
+
 ## Cross-repo dependencies
 
 These items are owned by the WebFlash repository and tracked there in its

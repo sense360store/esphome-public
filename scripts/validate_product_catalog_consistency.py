@@ -270,11 +270,23 @@ class ProductCatalogConsistencyValidator:
             )
 
         rel = entry.get("product_yaml")
-        if not isinstance(rel, str) or rel == "":
+        if status == "removed":
+            # A ``removed`` tombstone must NOT carry a ``product_yaml`` that
+            # still resolves to an active YAML file (PRODUCT-DEP-001,
+            # "Required metadata for removal"). Absence is the expected shape;
+            # if a path is present it must not resolve (e.g. a retained
+            # legacy-compatible archival relationship would be a different
+            # status, not ``removed``).
+            if isinstance(rel, str) and rel and (self.repo_root / rel).is_file():
+                self._err(
+                    label,
+                    "removed tombstone must not have a product_yaml that "
+                    f"resolves to an active YAML file: {rel}",
+                )
+        elif not isinstance(rel, str) or rel == "":
             self._err(label, "product_yaml must be a non-empty string")
-        else:
-            if not (self.repo_root / rel).is_file():
-                self._err(label, f"product_yaml file does not exist: {rel}")
+        elif not (self.repo_root / rel).is_file():
+            self._err(label, f"product_yaml file does not exist: {rel}")
 
         has_cs = "config_string" in entry and entry["config_string"] not in (None, "")
         has_legacy = "legacy_config_id" in entry and entry["legacy_config_id"] not in (

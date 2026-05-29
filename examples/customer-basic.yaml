@@ -14,9 +14,8 @@
 #   - Firmware artifact:      Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
 #
 # The default option below points at this Release-One product YAML.
-# Legacy-compatible Mini variants are retained as commented-out alternatives.
-# They are NOT part of production Release-One firmware; uncomment one only if
-# you know your hardware matches that variant.
+# (The legacy Sense360 Mini variants were removed by PRODUCT-DEP-MINI-001;
+# existing Mini units are served by the tag-pinned v1.0.0 release.)
 #
 # FanTRIAC is blocked pending HW-005 and must not be treated as production
 # Release-One. See docs/release-one-hardware-audit.md#fantriac-mapping-resolution.
@@ -58,12 +57,7 @@ esphome:
 # CHOOSE YOUR FIRMWARE
 # ----------------------------------------------------------------------------
 # The default (OPTION 0) below is the current production Release-One Ceiling
-# product. Most users should keep that option and ignore the rest.
-#
-# The Mini variants further down (OPTIONS 1–4) are legacy-compatible
-# alternatives kept for advanced users with older Mini-form-factor hardware.
-# They are NOT part of production Release-One firmware. To use one, comment
-# OPTION 0 and uncomment exactly ONE Mini option that matches your device.
+# product. Most users should keep that option.
 # ----------------------------------------------------------------------------
 
 packages:
@@ -84,51 +78,11 @@ packages:
       - products/sense360-ceiling-poe-ventiq-roomiq.yaml
 
       # ───────────────────────────────────────────────────────────────
-      # LEGACY-COMPATIBLE MINI OPTIONS (advanced / custom users only)
+      # The legacy Sense360 Mini product options were removed by
+      # PRODUCT-DEP-MINI-001 (superseded by the R4 product line; the Mini
+      # range is not part of R4). Existing Mini hardware remains served by
+      # the tag-pinned v1.0.0 release, which still contains the Mini files.
       # ───────────────────────────────────────────────────────────────
-      # The Mini variants below are NOT part of production Release-One.
-      # They are retained for users running the older Sense360 Mini
-      # form factor. Uncomment ONE of these only if it matches your
-      # hardware AND comment OPTION 0 above.
-
-      # ═══════════════════════════════════════════════════════════════
-      # OPTION 1 (legacy): Mini Air Quality — Basic
-      # ═══════════════════════════════════════════════════════════════
-      # Shows: Air Quality (Excellent/Good/Fair/Poor)
-      #        Temperature & Humidity
-      #        Simple recommendations
-      # For: legacy Sense360 Mini hardware (not Release-One)
-      # ───────────────────────────────────────────────────────────────
-      # - products/sense360-mini-airiq-basic.yaml
-
-      # ═══════════════════════════════════════════════════════════════
-      # OPTION 2 (legacy): Mini Presence Detection — Basic
-      # ═══════════════════════════════════════════════════════════════
-      # Shows: Room Occupied (Yes/No)
-      #        Activity Level (Still/Moving)
-      # For: legacy Sense360 Mini hardware (not Release-One)
-      # ───────────────────────────────────────────────────────────────
-      # - products/sense360-mini-presence-basic.yaml
-
-      # ═══════════════════════════════════════════════════════════════
-      # OPTION 3 (legacy): Mini Air Quality — Advanced
-      # ═══════════════════════════════════════════════════════════════
-      # Shows: CO₂ (ppm), PM1.0, PM2.5, PM4.0, PM10 (µg/m³)
-      #        VOC & NOx Index, Temperature, Humidity, Pressure
-      #        Light Level, Customizable thresholds, Calibration
-      # For: legacy Sense360 Mini hardware (not Release-One)
-      # ───────────────────────────────────────────────────────────────
-      # - products/sense360-mini-airiq-advanced.yaml
-
-      # ═══════════════════════════════════════════════════════════════
-      # OPTION 4 (legacy): Mini Presence Detection — Advanced
-      # ═══════════════════════════════════════════════════════════════
-      # Shows: Multi-zone tracking, Individual targets (up to 3)
-      #        Distance measurements, Sensitivity controls
-      #        Zone configuration, Full diagnostics
-      # For: legacy Sense360 Mini hardware (not Release-One)
-      # ───────────────────────────────────────────────────────────────
-      # - products/sense360-mini-presence-advanced.yaml
 
     refresh: 1d  # Check for updates daily
 
@@ -249,9 +203,9 @@ ota:
 # STEP 1: Confirm which firmware option you need
 # ────────────────────────────────────────────────
 # - Default (OPTION 0): Production Release-One — Ceiling-POE-VentIQ-RoomIQ.
-#   Use this unless you specifically have legacy Mini hardware.
-# - OPTIONS 1–4: legacy-compatible Mini variants. Uncomment ONE only if
-#   your hardware matches; comment OPTION 0 in that case.
+#   This is the only option in this template; keep it as-is.
+#   (The legacy Mini variants were removed by PRODUCT-DEP-MINI-001; existing
+#   Mini units are served by the tag-pinned v1.0.0 release.)
 #
 # STEP 2: Update device name
 # ────────────────────────────

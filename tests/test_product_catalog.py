@@ -179,6 +179,12 @@ class ProductCatalogTests(unittest.TestCase):
 
     def test_every_entry_has_product_yaml_path(self) -> None:
         for idx, entry in enumerate(self.products):
+            # ``removed`` tombstones intentionally omit product_yaml: the
+            # underlying YAML is deleted and the row survives only to reserve
+            # the legacy_config_id / config_string (PRODUCT-DEP-001 removal
+            # contract). Every other status must carry product_yaml.
+            if entry.get("status") == "removed":
+                continue
             with self.subTest(idx=idx, entry=entry):
                 self.assertIn("product_yaml", entry)
                 self.assertIsInstance(entry["product_yaml"], str)
@@ -194,6 +200,17 @@ class ProductCatalogTests(unittest.TestCase):
 
     def test_every_product_yaml_exists(self) -> None:
         for idx, entry in enumerate(self.products):
+            # ``removed`` tombstones must NOT carry a resolving product_yaml
+            # (PRODUCT-DEP-001 removal contract); they are exempt here and
+            # covered instead by the removed-state checks.
+            if entry.get("status") == "removed":
+                self.assertNotIn(
+                    "product_yaml",
+                    entry,
+                    "removed tombstone must not carry a product_yaml "
+                    "(the underlying YAML is deleted)",
+                )
+                continue
             with self.subTest(idx=idx, entry=entry):
                 rel = entry["product_yaml"]
                 self.assertTrue(
@@ -217,7 +234,11 @@ class ProductCatalogTests(unittest.TestCase):
     # ----- Catalog ↔ products/ enumeration --------------------------------
 
     def test_every_top_level_product_yaml_is_in_catalog(self) -> None:
-        cataloged = {entry["product_yaml"] for entry in self.products}
+        cataloged = {
+            entry["product_yaml"]
+            for entry in self.products
+            if "product_yaml" in entry
+        }
         for rel in _top_level_product_yamls():
             with self.subTest(product_yaml=rel):
                 self.assertIn(
@@ -268,7 +289,11 @@ class ProductCatalogTests(unittest.TestCase):
         )
 
     def test_every_product_yaml_is_unique(self) -> None:
-        paths = [entry["product_yaml"] for entry in self.products]
+        paths = [
+            entry["product_yaml"]
+            for entry in self.products
+            if "product_yaml" in entry
+        ]
         self.assertEqual(
             len(paths),
             len(set(paths)),
