@@ -30,6 +30,30 @@ mirrored here.
 
 ## Current queue summary
 
+- **WEBFLASH-DRIFT-001 (re-run)** delivers, via **this PR** on 2026-05-29, a
+  **docs-only re-run** of the cross-repo product/import drift audit
+  ([`docs/webflash-drift-audit.md`](docs/webflash-drift-audit.md)) confirming
+  the recently-landed `WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001` (both repos),
+  `DOCS-CI-CLARITY-001` (`docs/system-architecture.md`), `WEBFLASH-ARCH-DOCS-001`
+  (WebFlash `docs/architecture.md`), and `S360-311-CURRENT-THERMAL-001` (no-values)
+  landings are mutually consistent. **First run with live WebFlash read access**
+  (read-only clone), so the previously `NEEDS-TOOLING` rows #4 / #5 / #11 / #16 /
+  #17 are re-checked and closed as `MATCH`. **Findings: no confirmed cross-repo
+  drift and no esphome-public-owned doc drift.** WebFlash `manifest.json` carries
+  exactly Release-One stable + LED preview + Rescue (no fan-driver build/artifact),
+  matching `config/webflash-builds.json` + `docs/webflash-exposure-readiness-matrix.md`;
+  kit / preset config-strings + availability states reconcile; the WebFlash
+  `docs/architecture.md` → `docs/system-architecture.md` link is **not dangling**;
+  and `S360-410` stays `cataloged_unverified` with `PWM-6` / `PWM-13` still owed
+  (no verified / current-thermal-close leaked into either surface). Two **minor,
+  non-functional, WebFlash-owned** findings recorded for a WebFlash follow-up
+  (not fixed from this repo): **F1** kit-preset id `S360-KIT-DUCT-DAC` vs upstream
+  KIT-MATRIX-001 `S360-KIT-DUCT-0-10V`; **F2** Relay `module-requirements.js`
+  rationale says "no S360-310 schematic uploaded" but the schematic is now
+  committed upstream (cosmetic; Relay stays unexposed either way). **No** exposure
+  flip, wrapper, `webflash_build_matrix` change, `artifact_name`, release artifact,
+  `PWM-6`/`PWM-13` close, stable/verified promotion, or WebFlash-repo edit; **no**
+  fabricated drift or readiness. Release-One + LED preview unchanged.
 - **S360-311-CURRENT-THERMAL-001** records, via **this PR** on 2026-05-29,
   the **measured current / thermal bench run** owed by blocker rows `PWM-6`
   (output electrical characteristics) and `PWM-13` (board-level thermal /
