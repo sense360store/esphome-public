@@ -30,6 +30,35 @@ mirrored here.
 
 ## Current queue summary
 
+- **ARCH-BOARD-BUNDLE-PLAN-001** delivers, via **this PR** on 2026-05-30, the
+  **docs-only** canonical plan for restructuring the firmware YAML into
+  SKU-aligned **board packages** (`packages/boards/`, one canonical package per
+  board SKU) plus product-named **bundle YAMLs** aligned 1:1 to the catalog
+  config strings
+  ([`docs/arch-board-bundle-plan.md`](docs/arch-board-bundle-plan.md)). It
+  defines the target layout, the package/product → target-name naming map, the
+  three-contract compatibility policy (config strings + artifact names HELD
+  STABLE for the WebFlash contract; renamed product files retain a `v1.0.0`-pinned
+  compat shim at the old path for the customer-include contract; legacy package
+  names retain aliases until their binders are removed), records the
+  `sense360_core.yaml` **8 MB/2 MB vs** `sense360_core_mapping.yaml`
+  **16 MB/8 MB N16R8** flash/PSRAM drift plus the `GPIO4`/`GPIO5`
+  fan-PWM-vs-RoomIQ-SEN0609-UART collision and assigns their resolution to
+  **BOARD-PACKAGE-LAYER-001** as that PR's first act, maps the CI impact across
+  `ci-validate-configs.yml` / `compile-only.yml` / `validate.yml` /
+  `firmware-build-release.yml` (confirming the `validate.yml` and
+  `firmware-build-release.yml` gate behaviour is **preserved** because the
+  release lane is config-string-driven, not glob-driven, and the compat shims
+  keep every `webflash-builds.json` `product_yaml` path resolving), lists the
+  docs impact in both repos, and emits the ordered epic (item 48 onward below).
+  This PR is **docs + queue only**: it renames / moves / creates / deletes **no**
+  package, product, board, or bundle YAML, changes **no** config string,
+  artifact name, or WebFlash build, modifies **no** workflow, `config/*.json`,
+  `manifest.json`, `firmware/sources.json`, or test, and touches **no** WebFlash
+  repo file. Every code, config, and workflow file stays byte-identical. The
+  implementing slices (BOARD-PACKAGE-LAYER-001, BUNDLE-LAYER-001,
+  PACKAGE-RENAME-00x, CI-REFACTOR-VERIFY-001, DOCS-ARCH-REFRESH-001,
+  WEBFLASH-ARCH-SYNC-001) stay queued behind their own gates.
 - **V1-R4-CREATE-001** delivers, via **this PR** on 2026-05-29, the first
   authored R4 product gap from `V1-R4-PRODUCT-GAP-001`: the
   `Ceiling-POE-RoomIQ` product (the `S360-KIT-BEDROOM-P` firmware,
@@ -9614,6 +9643,121 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       preview-gated by the gauntlet.
     - Guardrails: as V1-R4-CREATE-004; additionally must not promote LED toward
       `stable`.
+
+48. **ARCH-BOARD-BUNDLE-PLAN-001 — Plan the board-package and bundle-YAML
+    architecture**
+    - Status: **Implemented 2026-05-30 (this PR) — docs + queue only.**
+      Authored [`docs/arch-board-bundle-plan.md`](docs/arch-board-bundle-plan.md)
+      (target layout, naming map, compatibility policy, core-chip-drift
+      assignment, CI impact, docs impact, ordered PR sequence) and queued the
+      epic (items 49–54 below). `tests/validate_configs.py` (193/193),
+      `tests/test_roadmap_status_doc.py` (15/15), and the full
+      `python3 -m unittest discover -s tests` (1154/1154, 3 skipped) all pass
+      unchanged.
+    - Purpose: Decide the canonical target shape — `packages/boards/` (one
+      canonical package per board SKU: `S360-100`, `200`, `210`, `211`, `300`,
+      `410`, plus the mains `310`/`320`/`400` as open-source-only) owning chip /
+      pin map / `core_i2c` bus, and a product-named bundle layer aligned 1:1 to
+      the catalog config strings assembling boards + expansions + base +
+      profiles.
+    - Guardrails: renames / moves / creates / deletes **no** package, product,
+      board, or bundle YAML; changes **no** config string, artifact name, or
+      WebFlash build; modifies **no** workflow, `config/*.json`,
+      `manifest.json`, `firmware/sources.json`, or test; touches **no** WebFlash
+      repo file. Every code, config, and workflow file stays byte-identical.
+    - Dependency: none. Gates the rest of the epic (items 49–54).
+
+49. **BOARD-PACKAGE-LAYER-001 — Introduce `packages/boards/` (Core first)**
+    - Status: Planned (queued by `ARCH-BOARD-BUNDLE-PLAN-001`)
+    - Purpose: As its **first act**, resolve the core-chip drift recorded in
+      [`docs/arch-board-bundle-plan.md`](docs/arch-board-bundle-plan.md) §4 —
+      the `sense360_core.yaml` 8 MB/2 MB vs `sense360_core_mapping.yaml`
+      16 MB/8 MB N16R8 flash/PSRAM discrepancy and the `GPIO4`/`GPIO5`
+      fan-PWM-vs-RoomIQ-SEN0609-UART collision — against the verified
+      `S360-100-R4` schematic and the canonical pin-map doc
+      [`docs/hardware/s360-100-core-connector-pin-map.md`](docs/hardware/s360-100-core-connector-pin-map.md);
+      then author the board packages (`s360-100-core` + sensor/PSU boards
+      `s360-200`/`210`/`211`/`300`/`410` + open-source-only mains
+      `s360-310`/`320`/`400`), each wrapping the existing functional package(s)
+      so behaviour is byte-identical.
+    - Guardrails: WebFlash contract untouched; no product rebinds yet; legacy
+      packages all still present; `S360-311`/`S360-312` stay expansions (board
+      promotion deferred behind `HW-PINMAP-311/312-FOLLOWUP`). No pin value
+      changed by the planning layer; the drift resolution is an evidence call
+      owned by this PR.
+    - Dependency: `ARCH-BOARD-BUNDLE-PLAN-001`.
+
+50. **BUNDLE-LAYER-001 — Introduce the bundle layer + customer-include compat
+    shims**
+    - Status: Planned (queued by `ARCH-BOARD-BUNDLE-PLAN-001`)
+    - Purpose: Author `bundles/*.yaml` (default `products/bundles/`) 1:1 with
+      the seven catalog config strings, assembling boards + expansions + base +
+      profiles; convert each existing config-string `products/sense360-*.yaml`
+      into a thin **compat shim** that `!include`s its bundle (the customer
+      include contract, `v1.0.0` pinned); keep `products/webflash/*` wrappers
+      pointing where `config/webflash-builds.json` expects.
+    - Guardrails: config strings, artifact names, `config/webflash-builds.json`,
+      `manifest.json`, `firmware/sources.json` byte-identical; customer include
+      paths preserved; `v1.0.0` resolved config diff-proofed via
+      `esphome config`.
+    - Dependency: `BOARD-PACKAGE-LAYER-001`.
+
+51. **PACKAGE-RENAME-001..00N — SKU-aligned package renames in safe slices**
+    - Status: Planned (queued by `ARCH-BOARD-BUNDLE-PLAN-001`)
+    - Purpose: Per board family, rebind consumers onto the board package and
+      retire the legacy functional name into an **alias**; one board family (or
+      a few low-binder packages) per slice. Suggested ordering by blast radius:
+      LED (`led_ring_*`) → AirIQ → VentIQ → RoomIQ (`presence_*`/`comfort_*`,
+      highest binder count — `presence_ceiling.yaml` ×23 — last) → PSU → mains
+      drivers. A later slice promotes `S360-311`/`S360-312` to board packages
+      once `HW-PINMAP-311/312-FOLLOWUP` evidence closes.
+    - Guardrails: an alias is dropped only when its binder count reaches zero;
+      `legacy-compatible` products keep resolving until `PRODUCT-DEP-CORE-001`
+      removes them; the ~19 `packages/`-coupled and ~26 `products/`-coupled
+      tests (and `tests/generate_test_configs.py` generated includes) are
+      updated **in the same slice**.
+    - Dependency: `BUNDLE-LAYER-001` (+ per-driver evidence gates for
+      `S360-311`/`S360-312`).
+
+52. **CI-REFACTOR-VERIFY-001 — Confirm CI / gate parity**
+    - Status: Planned (queued by `ARCH-BOARD-BUNDLE-PLAN-001`)
+    - Purpose: Apply the test updates that travel with each rename slice
+      (directory walkers `validate_configs.py` / `test_product_catalog.py` /
+      `test_all_yaml_release_matrix.py`, generated includes, hard-coded path
+      constants) and prove `validate.yml` and `firmware-build-release.yml` gate
+      behaviour is identical — same config strings build, same artifacts named,
+      same Release-One substitution / entity-name / WebFlash-build / artifact-
+      naming / catalog-consistency checks.
+    - Guardrails: gate semantics unchanged; no new build exposed; no workflow
+      YAML edit unless [`docs/arch-board-bundle-plan.md`](docs/arch-board-bundle-plan.md)
+      §5 identifies one (none required if bundles live under `products/`).
+    - Dependency: runs alongside / after each `PACKAGE-RENAME-00x` slice.
+
+53. **DOCS-ARCH-REFRESH-001 — Refresh esphome-public architecture docs**
+    - Status: Planned (queued by `ARCH-BOARD-BUNDLE-PLAN-001`)
+    - Purpose: Refresh the doc set in
+      [`docs/arch-board-bundle-plan.md`](docs/arch-board-bundle-plan.md) §6.1 —
+      `docs/system-architecture.md`, `docs/ci-pipeline.md`,
+      `packages/SENSE360_MODULES.md`, `packages/README.md`, `README.md`,
+      `docs/hardware-catalog.md`, `docs/product-matrix.md`,
+      `docs/sense360-room-bundles.md`, and the canonical
+      `docs/sense360-roadmap-status.md` — to describe the board-package + bundle
+      model and the SKU→board-package map.
+    - Guardrails: docs-only; no functional / config / workflow change.
+    - Dependency: `PACKAGE-RENAME` slices substantially landed.
+
+54. **WEBFLASH-ARCH-SYNC-001 — Sync WebFlash architecture docs (WebFlash repo)**
+    - Status: Planned (queued by `ARCH-BOARD-BUNDLE-PLAN-001`; **WebFlash-repo
+      owned** — mirrored here under Cross-repo dependencies for visibility)
+    - Purpose: Update `WebFlash/docs/architecture.md` and
+      `WebFlash/docs/firmware-import.md` to record that the esphome-public
+      board/bundle rename is **invisible** to the WebFlash contract (config
+      strings + artifact names + release tags only; no esphome YAML path is
+      consumed).
+    - Guardrails: docs-only; no `firmware/sources.json` / `manifest.json` /
+      importer change. Not owned by this repo; tracked here only for cross-repo
+      coupling.
+    - Dependency: `DOCS-ARCH-REFRESH-001` (so cross-repo wording matches).
 
 ## Cross-repo dependencies
 
