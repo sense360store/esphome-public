@@ -2,6 +2,79 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## HW-PINMAP-311-FOLLOWUP — standalone schematic-backed reference doc for S360-311 PWM
+
+**Status:** docs-only (records, resolves nothing; no gate closed; board package still gated)
+
+### Summary
+
+Authors the standalone schematic-backed hardware reference doc for the
+Sense360 PWM board (`S360-311-R4`) at
+[`docs/hardware/s360-311-r4-fanpwm.md`](docs/hardware/s360-311-r4-fanpwm.md),
+sourced **only** from the already-committed module-side schematic PDF
+[`docs/hardware/schematics/S360-311-R4.pdf`](docs/hardware/schematics/S360-311-R4.pdf)
+(HW-ASSETS-003; SHA256 `c910b3364be1d58fc44d12b5a189dade47efddf6cae158a86577ec7501e48006`).
+It transcribes the connector and pin map exactly as the schematic shows
+(`J3` 13-pin "From Core"; the four fan outputs `J1` / `J2` / `J4` / `J5`;
+the Nextion `J6`; mounting holes `H1..H4`; the MT3608 boost) and records
+every open reconciliation question as **STILL OWED**. Per
+[`docs/cleanup-audit.md`](docs/cleanup-audit.md) the reconciliation itself
+needs silkscreen, harness, and bench evidence plus the systemic Core
+abstract-bus resolution, none of which this PR performs.
+
+### What changed
+
+* New `docs/hardware/s360-311-r4-fanpwm.md` — the standalone reference doc.
+* `docs/hardware/s360-311-r4-pwm.md` — added a See-also cross-link to the
+  new reference doc (no other section rewritten; status row unchanged).
+* `docs/hardware/board-readiness-matrix.md` — replaced the "still no
+  standalone reference doc" note in the `S360-311` subsection with a link
+  to the new doc, and added a See-also entry. `S360-311` classification
+  (`partially-documented`, `not-needed-for-release-one`,
+  `package-yaml-pending`) is unchanged.
+* This `UPCOMING_PR.md` update.
+
+### Open reconciliation questions recorded as STILL OWED (resolved: none)
+
+1. SX1509-expander-vs-direct-ESP32-GPIO mapping disagreement → owned by
+   `CORE-ABSTRACT-BUS-001` /
+   [`docs/release-one-hardware-audit.md` Required follow-ups #2 / #3](docs/release-one-hardware-audit.md).
+2. UART on `J3` pins 11 / 12 (module-side labels not in the Core `J6`
+   capture).
+3. `"NINE 4pin FANs"` section title vs four visible outputs
+   (`J1` / `J2` / `J4` / `J5`).
+4. Single-channel-vs-four-channel canonical abstraction for the `FanPWM`
+   token (`PACKAGE-PWM-001`).
+
+Each records the evidence (silkscreen, harness, bench waveforms) that
+would close it. The reconciliation and the S360-311 board-package
+promotion **remain gated** on that owed evidence.
+
+### Guardrails (explicitly NOT changed)
+
+* No edit to `config/hardware-catalog.json` (`S360-311` stays
+  `cataloged_unverified`, no `schematic_file`),
+  `config/product-catalog.json`, `config/webflash-builds.json`, or
+  `config/webflash-compatibility.json`.
+* No `schematic_status` flip; no `verified` / `pin-map-confirmed` mark.
+* No package YAML edited (`fan_pwm.yaml`, `sense360_fan_pwm.yaml`,
+  `gpio_expander_sx1509.yaml`, `sense360_core*.yaml` all unchanged).
+* No product YAML, WebFlash wrapper, build entry, release, tag, or import
+  added; no firmware regenerated.
+* Release-One, the LED preview path, and FanTRIAC (`blocked` / `HW-005`)
+  are unchanged; `S360-320` / `S360-400` compliance is unchanged.
+* The schematic PDF and the curated artifact index
+  (`docs/hardware/artifacts/S360-311-R4.md`) are not edited.
+* The WebFlash repo (`sense360store/webflash`) is untouched.
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 tests/test_roadmap_status_doc.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"`
+
+---
+
 ## PRODUCT-DEP-CORE-001 — retire non-template legacy core-c/v/w configs
 
 **Status:** retired (14 legacy `sense360-core-*` configs moved to `removed`; 5 kept as live authoring templates)
