@@ -1,46 +1,25 @@
 # ============================================================================
-# SENSE360 RELEASE-ONE PRODUCT (no-TRIAC, production-eligible)
+# SENSE360 RELEASE-ONE PRODUCT (compat shim) — Ceiling-POE-VentIQ-RoomIQ
 # ============================================================================
-# WebFlash config string : Ceiling-POE-VentIQ-RoomIQ
+# BUNDLE-LAYER-001 (docs/arch-board-bundle-plan.md §3.2). This product path is
+# retained as a thin compatibility shim: its composition now lives in the
+# config-string-named bundle `products/bundles/ceiling-poe-ventiq-roomiq.yaml`
+# and this file does nothing but `!include` that bundle.
+#
+# Why this path is preserved (never deleted):
+#   * The customer include contract pins this exact path —
+#     `files: - products/sense360-ceiling-poe-ventiq-roomiq.yaml`, `ref: v1.0.0`.
+#     A customer who pinned v1.0.0 is unaffected (the tag is immutable); a
+#     customer following `main` gets the same resolved config through the shim.
+#   * `config/webflash-builds.json` resolves the WebFlash wrapper
+#     `products/webflash/ceiling-poe-ventiq-roomiq.yaml`, which re-includes this
+#     canonical path. The release gate (firmware-build-release.yml) is unchanged.
+#
+# WebFlash config string : Ceiling-POE-VentIQ-RoomIQ      (byte-identical)
 # WebFlash artifact name  : Sense360-Ceiling-POE-VentIQ-RoomIQ-vX.Y.Z-{channel}.bin
 #
-# Release-One ship configuration (production):
-# - Mount       : Ceiling
-# - Power       : POE  (IEEE 802.3af)
-# - Air Quality : VentIQ (bathroom-focused — replaces AirIQ)
-# - Room Sense  : RoomIQ (comfort + presence)
-#
-# FanTRIAC is intentionally OMITTED from this build. The FanTRIAC slot is
-# blocked per HW-005 (S360-320 schematic uncommitted, GPIO5/GPIO6 collide
-# with RoomIQ J10 nets, and ESPHome's `ac_dimmer` cannot run across the
-# SX1509 expander). This product is the production Release-One target while
-# that blocker is open. See:
-#   docs/release-one-hardware-audit.md#fantriac-mapping-resolution
-#
-# The FanTRIAC product YAML
-# (`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`) is retained
-# in the repo as a blocked/reference configuration but is NOT part of the
-# WebFlash production build matrix while HW-005 is unresolved.
-#
-# Compatibility rules (see docs/release-one.md):
-# - AirIQ and VentIQ are mutually exclusive.
-# - VentIQ is the bathroom-focused air-quality module.
-# - RoomIQ can be combined with either AirIQ or VentIQ.
-# - Fan driver variants (FanRelay/FanPWM/FanDAC/FanTRIAC) are firmware-distinct
-#   and not interchangeable. This build ships no fan-driver firmware.
-#
-# Hardware (canonical friendly names; see docs/hardware-catalog.md):
-# - Core         : Sense360 Core    (S360-100-R4, ESP32-S3, ceiling mount)
-# - Power        : Sense360 PoE PSU (S360-410, IEEE 802.3af)
-# - Air Quality  : Sense360 VentIQ  (S360-211, bathroom-focused) — schematic verification pending
-# - Room Sense   : Sense360 RoomIQ  (S360-200-R4, comfort + presence)
-# - Fan Driver   : not included     (Sense360 TRIAC S360-320 blocked — HW-005)
-# - LED          : not included     (Sense360 LED S360-300 is a separately
-#                                    selectable WebFlash module; config string
-#                                    `Ceiling-POE-VentIQ-RoomIQ` does not
-#                                    carry the `LED` token)
-#
-# Hardware audit: docs/release-one-hardware-audit.md
+# Full composition, substitutions, board assembly, and product identification:
+#   products/bundles/ceiling-poe-ventiq-roomiq.yaml
 #
 # Customer usage in their ESPHome config (pin to a release tag):
 #
@@ -57,128 +36,5 @@
 #     friendly_name: "Bathroom Sense360"
 # ============================================================================
 
-substitutions:
-  # === Device Configuration ===
-  # ESPHome hostnames are limited to 31 chars; this is the shortened hostname
-  # only. WebFlash identity (config string, artifact name, text sensors, build
-  # matrix) remains `Ceiling-POE-VentIQ-RoomIQ` /
-  # `Sense360-Ceiling-POE-VentIQ-RoomIQ`.
-  device_name: s360-ceil-poe-ventiq-roomiq
-  friendly_name: Sense360 Ceiling Bathroom
-  device_sku: S360-CORE-C-POE
-  device_version: "1.0.0"
-  timezone: "America/New_York"
-
-  # === Logging ===
-  log_level: INFO
-
-  # === WiFi Behavior ===
-  wifi_fast_connect: "false"
-
-  # === WiFi AP fallback ===
-  # ESPHome enforces a 32-character maximum on the AP SSID. The base wifi
-  # package (packages/base/wifi.yaml) defaults fallback_ssid to
-  # '${device_name} FB'. Even with the shortened device_name above
-  # ('s360-ceil-poe-ventiq-roomiq', 27 chars), the default would resolve to
-  # 30 chars and a longer device_name (the historical
-  # 'sense360-ceiling-poe-ventiq-roomiq', 33 chars + ' FB' = 37) would
-  # exceed the limit and fail validation. Override with a short,
-  # human-readable label that identifies the production no-TRIAC
-  # Release-One build during AP/setup mode.
-  fallback_ssid: "S360 VentIQ RoomIQ"
-
-  # === Power configuration (PoE) ===
-  power_source: poe
-  poe_class: "0"
-  poe_standard: "802.3af"
-
-  # === VentIQ (bathroom) thresholds ===
-  shower_humidity_threshold: "75"
-  shower_humidity_rate: "5"
-  mold_risk_humidity: "65"
-  mold_risk_duration_minutes: "30"
-
-# ============================================================================
-# PACKAGE INCLUDES
-# ============================================================================
 packages:
-  # === External Components (radar firmware) ===
-  external_components: !include ../packages/base/external_components.yaml
-
-  # === Base System Components ===
-  base_wifi: !include ../packages/base/wifi.yaml
-  base_logging: !include ../packages/base/logging.yaml
-  base_api: !include ../packages/base/api_encrypted.yaml
-  base_ota: !include ../packages/base/ota.yaml
-  base_time: !include ../packages/base/time.yaml
-
-  # === Sense360 Core (Ceiling, S360-100-R4) ===
-  core_hardware: !include ../packages/hardware/sense360_core_ceiling.yaml
-
-  # === Sense360 PoE PSU (S360-410) ===
-  power_config: !include ../packages/hardware/power_poe.yaml
-
-  # === Sense360 LED (S360-300) ===
-  # Intentionally NOT included for Release-One.
-  # WebFlash config string `Ceiling-POE-VentIQ-RoomIQ` does not carry the
-  # `LED` token (LED is a separately selectable module per WebFlash taxonomy
-  # — see docs/webflash-contract.md §3). A future LED-included variant would
-  # use a distinct config string such as `Ceiling-POE-VentIQ-RoomIQ-LED` and
-  # a distinct artifact name.
-
-  # === Sense360 VentIQ (S360-211, bathroom-focused air quality) ===
-  # Package-level expected; schematic verification pending — no committed
-  # S360-211 schematic in this repo. See docs/release-one-hardware-audit.md.
-  # AirIQ and VentIQ are mutually exclusive; Release-One uses VentIQ.
-  ventiq_module: !include ../packages/expansions/airiq_bathroom_base.yaml
-  ventiq_profile: !include ../packages/features/bathroom_profile.yaml
-
-  # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
-  # The package filenames (`comfort_ceiling.yaml`, `presence_ceiling.yaml`)
-  # retain the legacy split-board naming and are kept for backwards
-  # compatibility (see docs/webflash-contract.md §6 footnote).
-  roomiq_comfort: !include ../packages/expansions/comfort_ceiling.yaml
-  roomiq_comfort_profile: !include ../packages/features/comfort_basic_profile.yaml
-  roomiq_presence: !include ../packages/expansions/presence_ceiling.yaml
-  roomiq_presence_profile: !include ../packages/features/presence_basic_profile.yaml
-
-  # === Sense360 TRIAC (S360-320, AC phase-cut fan driver) ===
-  # NOT included. The FanTRIAC slot is blocked per HW-005:
-  #   - S360-320 schematic is not committed.
-  #   - Placeholder GPIO5/GPIO6 collide with RoomIQ J10 nets
-  #     (IO5 = SEN0609_TX, IO6 = out(gpio6)).
-  #   - ESPHome's `ac_dimmer` driver requires direct interrupt-capable
-  #     ESP32 GPIOs; SX1509 expander pins cannot meet the timing.
-  # Production Release-One ships without a fan driver until the blocker is
-  # resolved. The FanTRIAC product YAML
-  # (products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml) is retained
-  # in the repo as a blocked/reference configuration only.
-  # See: docs/release-one-hardware-audit.md#fantriac-mapping-resolution
-
-  # === Device Health & Diagnostics ===
-  health: !include ../packages/features/device_health.yaml
-
-# ============================================================================
-# PRODUCT IDENTIFICATION
-# ============================================================================
-text_sensor:
-  - platform: template
-    name: "${friendly_name} Product SKU"
-    lambda: |-
-      return {"${device_sku}"};
-    update_interval: never
-    entity_category: diagnostic
-
-  - platform: template
-    name: "${friendly_name} Firmware Version"
-    lambda: |-
-      return {"${device_version}"};
-    update_interval: never
-    entity_category: diagnostic
-
-  - platform: template
-    name: "${friendly_name} WebFlash Config"
-    lambda: |-
-      return {"Ceiling-POE-VentIQ-RoomIQ"};
-    update_interval: never
-    entity_category: diagnostic
+  bundle: !include bundles/ceiling-poe-ventiq-roomiq.yaml

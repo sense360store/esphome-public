@@ -136,6 +136,16 @@ sweeps are extended in the same slice. The default proposal is
 discovery in `validate.yml` / `ci-validate-configs.yml` keeps finding them
 without a workflow edit (see §5).
 
+> **Settled (BUNDLE-LAYER-001, 2026-05-30): `products/bundles/`.** The bundle
+> directory is `products/bundles/`, so the recursive `find products/` sweeps and
+> the `PRODUCTS_DIR.rglob` walkers (e.g. `scripts/classify_all_yaml_release_matrix.py`,
+> `tests/validate_configs.py`) discover bundles with **no** workflow or glob
+> edit; the catalog enumeration test stays scoped to top-level files
+> (`tests/test_product_catalog.py` uses `PRODUCTS_DIR.iterdir()`, which skips the
+> `bundles/` subdirectory), so bundles need no catalog row. The first two
+> config-string bundles (the WebFlash-shipping production + preview pair) land in
+> BUNDLE-LAYER-001; the remaining five land in BUNDLE-LAYER-002 (§7 item 3 / 3a).
+
 ### 2.3 What does **not** move
 
 - `packages/base/**` — base system tier is functional, not board-bound. It
@@ -481,17 +491,71 @@ merges and CI is green.
    - Dependency: ARCH-BOARD-BUNDLE-PLAN-001.
 
 3. **BUNDLE-LAYER-001** — introduce the bundle layer + compat shims
-   - Scope: author `bundles/*.yaml` (default `products/bundles/`) 1:1 with the
-     seven config strings (§2.2), each assembling boards + expansions + base +
-     profiles; convert each existing `products/sense360-*.yaml` config-string
-     product into a thin compat shim (§3.2) that `!include`s its bundle. Keep
-     `products/webflash/*` wrappers pointing where `webflash-builds.json`
-     expects.
-   - Guardrails: config strings, artifact names, `webflash-builds.json`,
-     `manifest.json`, `sources.json` byte-identical; customer include paths
-     preserved; v1.0.0 resolved config unchanged (diff-proof via
-     `esphome config`).
-   - Dependency: BOARD-PACKAGE-LAYER-001.
+   - **Status: DONE (2026-05-30), scoped to the two WebFlash-shipping config
+     strings.** Created `products/bundles/` (directory settled to
+     `products/bundles/` per §2.2 / §5 — the unchanged `find products/` sweeps
+     auto-discover it, no workflow edit) and authored the two config-string-named
+     bundles for the live WebFlash builds:
+     `products/bundles/ceiling-poe-ventiq-roomiq.yaml` (production / stable) and
+     `products/bundles/ceiling-poe-ventiq-roomiq-led.yaml` (preview). Each
+     assembles its §2.2 board stack from `packages/boards/`
+     (`s360-100-core-ceiling` + `s360-410-poe-psu` + `s360-211-ventiq` +
+     `s360-200-roomiq` [+ `s360-300-led` for the preview]) plus the base tier and
+     the feature profiles, carrying the same substitutions, entity names, config
+     string, and artifact-name identity as the product it replaces. The two
+     shipping products `products/sense360-ceiling-poe-ventiq-roomiq.yaml` and
+     `products/sense360-ceiling-poe-ventiq-roomiq-led.yaml` were converted into
+     thin compat shims (§3.2) that do nothing but `!include` their bundle, paths
+     preserved. Identical resolution was proven offline (leaf functional
+     packages, merged substitutions, and `text_sensor` identity all byte-equal
+     between the pre-shim product and the shim→bundle→board-package chain); full
+     `esphome compile` is **pending-ci** (ESPHome not available — no compile
+     result claimed).
+   - **Scoped to the shipping pair (open decision, recorded):** the remaining
+     **five non-shipping config strings** (`Ceiling-POE-VentIQ-FanRelay-RoomIQ`,
+     `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`, `Ceiling-POE-FanDAC`,
+     `Ceiling-POE-FanPWM`, `Ceiling-POE-RoomIQ`) are **deferred to
+     BUNDLE-LAYER-002**. Authoring their bundles and/or shimming their products
+     breaks the package-/product-layer guardrail tests that assert on the
+     product-internal content the bundle move relocates
+     (`tests/test_fandac_package.py` "exactly one product may `!include` the
+     FanDAC package"; `tests/test_fan_relay_package.py` "no extra FanRelay
+     product YAML under `products/`"; and the substitutions / include /
+     header-wording assertions in `tests/test_{relay,pwm,dac}_product_readiness.py`).
+     Per §5.5 those tests must travel in the **same** slice that moves the
+     content they assert on, so the fan/blocked/roomiq conversions and their test
+     repoints are pulled into BUNDLE-LAYER-002 rather than weakening tests in this
+     slice. The two shipping products carry no such content-asserting tests, so
+     they convert with **no test edit** here.
+   - Scope (as planned): author `bundles/*.yaml` 1:1 with the config strings
+     (§2.2), each assembling boards + expansions + base + profiles; convert each
+     existing `products/sense360-*.yaml` config-string product into a thin compat
+     shim (§3.2) that `!include`s its bundle. Keep `products/webflash/*` wrappers
+     pointing where `webflash-builds.json` expects.
+   - Guardrails (honoured): config strings, artifact names, `webflash-builds.json`,
+     `manifest.json`, `sources.json` byte-identical; no workflow / `config/*.json`
+     / test edit; customer include paths preserved; no lifecycle / `schematic_status`
+     change; LED not marked stable; `S360-410` not verified; no fan blocker closed;
+     v1.0.0 resolved config unchanged (offline diff-proof; `esphome config`
+     pending-ci).
+   - Dependency: BOARD-PACKAGE-LAYER-001 / -002.
+
+3a. **BUNDLE-LAYER-002** — bundle the five non-shipping config strings + shim
+   conversions (with the §5.5 test repoints)
+   - Scope: author the remaining five config-string bundles under
+     `products/bundles/` (FanRelay / FanTRIAC / FanDAC / FanPWM / RoomIQ-only),
+     each assembling boards + expansions (the fan-driver SKUs
+     `S360-310`/`320`/`311`/`312` stay expansions, not board packages) + base +
+     profiles, and convert each remaining `products/sense360-*.yaml`
+     config-string product into its thin compat shim. Repoint the
+     content-asserting tests (`test_fandac_package`, `test_fan_relay_package`,
+     `test_{relay,pwm,dac}_product_readiness`) onto the bundle (the new home of
+     the moved includes / substitutions / header wording) **in the same slice**
+     per §5.5.
+   - Guardrails: same as BUNDLE-LAYER-001 — config strings + artifact names +
+     `webflash-builds.json` byte-identical; fan blockers stay blocked; FanTRIAC
+     stays blocked under HW-005; resolution proven identical.
+   - Dependency: BUNDLE-LAYER-001.
 
 4. **PACKAGE-RENAME-001 … 00N** — SKU-aligned renames in safe slices
    - Scope: per board family, rebind consumers onto the board package and
