@@ -1,0 +1,24 @@
+# ============================================================================
+# Sense360 AirIQ — Wall/Desk mount variant overlay (S360-210-R4)
+# ============================================================================
+# BOARD-PACKAGE-LAYER-002. SKU-aligned wall-mount variant of the canonical
+# AirIQ board package `packages/boards/s360-210-airiq.yaml`.
+#
+# Where the canonical base composes the ceiling-mount AirIQ stack
+# (airiq_ceiling.yaml), this overlay swaps in the wall/desk mount delta:
+#
+#   - packages/expansions/airiq_wall.yaml
+#     (SPS30 PM + SGP41 VOC/NOx + SCD41 CO2 on `airiq_i2c_id: core_i2c`,
+#      wall form factor)
+#
+# Thin `!include` wrapper over the existing functional package (byte-identical
+# behaviour), mirroring the Core mount-overlay pattern from
+# BOARD-PACKAGE-LAYER-001.
+#
+# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3): the legacy
+# `airiq_wall.yaml` path is preserved unchanged as the source of truth; no
+# product is rebound onto this board package in this slice.
+# ============================================================================
+
+packages:
+  board_airiq: !include ../expansions/airiq_wall.yaml

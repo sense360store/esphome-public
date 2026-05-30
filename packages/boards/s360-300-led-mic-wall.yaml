@@ -1,0 +1,26 @@
+# ============================================================================
+# Sense360 LED — Wall Voice (LED+MIC) variant overlay (S360-300-R4)
+# ============================================================================
+# BOARD-PACKAGE-LAYER-002. SKU-aligned voice (microphone-bearing) wall variant
+# of the canonical LED board package `packages/boards/s360-300-led.yaml` — the
+# mic/voice variant called for by docs/arch-board-bundle-plan.md §2.1.
+#
+# Where the canonical base composes the standard ceiling ring
+# (led_ring_ceiling.yaml), this overlay swaps in the wall voice delta — the
+# wall-form LED ring with integrated I2S MEMS microphone array:
+#
+#   - packages/hardware/led_ring_mic_wall.yaml
+#     (WS2812B ring plus the I2S mic array; pair with Sense360 Core Voice Wall,
+#      S360-CORE-V-W)
+#
+# Thin `!include` wrapper over the existing functional package (byte-identical
+# behaviour), mirroring the Core voice-overlay pattern from
+# BOARD-PACKAGE-LAYER-001 (`s360-100-core-voice-wall.yaml`).
+#
+# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3): the legacy
+# `led_ring_mic_wall.yaml` path is preserved unchanged as the source of truth;
+# no product is rebound onto this board package in this slice.
+# ============================================================================
+
+packages:
+  board_led: !include ../hardware/led_ring_mic_wall.yaml

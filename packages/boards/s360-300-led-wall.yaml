@@ -1,0 +1,24 @@
+# ============================================================================
+# Sense360 LED — Wall/Desk standard mount variant overlay (S360-300-R4)
+# ============================================================================
+# BOARD-PACKAGE-LAYER-002. SKU-aligned wall-mount variant of the canonical LED
+# board package `packages/boards/s360-300-led.yaml`.
+#
+# Where the canonical base composes the ceiling standard ring
+# (led_ring_ceiling.yaml, 12 LEDs on GPIO38), this overlay swaps in the wall/desk
+# mount delta:
+#
+#   - packages/hardware/led_ring_wall.yaml
+#     (8-LED WS2812B ring, smaller wall form factor)
+#
+# Thin `!include` wrapper over the existing functional package (byte-identical
+# behaviour), mirroring the Core mount-overlay pattern from
+# BOARD-PACKAGE-LAYER-001.
+#
+# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3): the legacy
+# `led_ring_wall.yaml` path is preserved unchanged as the source of truth; no
+# product is rebound onto this board package in this slice.
+# ============================================================================
+
+packages:
+  board_led: !include ../hardware/led_ring_wall.yaml

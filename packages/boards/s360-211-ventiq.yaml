@@ -1,0 +1,63 @@
+# ============================================================================
+# Sense360 VentIQ — Canonical Board Package (S360-211-R4)
+# ============================================================================
+# BOARD-PACKAGE-LAYER-002 — the SKU-aligned board layer, sensor boards.
+#
+# SKU-aligned canonical entry for the Sense360 VentIQ bathroom-focused
+# air-quality / ventilation board (SKU `S360-211`, revision R4, friendly name
+# "Sense360 VentIQ"; `schematic_status: verified` per
+# config/hardware-catalog.json). VentIQ is the bathroom IAQ board
+# (docs/arch-board-bundle-plan.md §2.1): temperature/humidity + pressure + VOC
+# sensing tuned for shower-humidity and mould-risk detection, on the shared
+# core_i2c bus (CORE-ABSTRACT-BUS-001B).
+#
+# This canonical base composes the **base** VentIQ hardware stack — exactly the
+# package the Release-One product
+# (`products/sense360-ceiling-poe-ventiq-roomiq.yaml`) binds today as its
+# `ventiq_module`:
+#
+#   - packages/expansions/airiq_bathroom_base.yaml
+#     (SHT4x temp/humidity + BMP390 pressure + SGP41 VOC on
+#      `bathroom_i2c_id: core_i2c`)
+#
+# Mirroring the Core pattern from BOARD-PACKAGE-LAYER-001, this board package is
+# a thin `!include` wrapper over the existing functional package, so the
+# resolved behaviour is byte-identical to the legacy path. The "Pro" hardware
+# variant is the thin overlay `s360-211-ventiq-pro.yaml`.
+#
+# The VentIQ user-facing sensors / automations live in the feature profile
+# `packages/features/bathroom_profile.yaml`, which stays a FEATURE (it is layered
+# on top of this board, not absorbed into it — docs/arch-board-bundle-plan.md
+# §2.3). The compatibility wrapper `packages/expansions/bathroom.yaml`
+# (airiq_bathroom_base + bathroom_profile) and the Phase-2 canonical aliases
+# `ventiq.yaml` (→ airiq_bathroom_base) / `ventiq_extended.yaml`
+# (→ airiq_bathroom_pro) resolve to the same drivers and are cross-referenced,
+# not re-wrapped, here.
+#
+# ----------------------------------------------------------------------------
+# Folded source packages (docs/arch-board-bundle-plan.md §2.1)
+# ----------------------------------------------------------------------------
+#   base VentIQ : airiq_bathroom_base.yaml  (this base)
+#   pro VentIQ  : airiq_bathroom_pro.yaml   (s360-211-ventiq-pro.yaml; adds
+#                                            MLX90614 IR surface temp + SPS30 PM)
+#   compat      : bathroom.yaml             (base + bathroom_profile wrapper)
+#   aliases     : ventiq.yaml, ventiq_extended.yaml (Phase-2 canonical aliases)
+#
+# AirIQ (S360-210) and VentIQ are mutually exclusive air-quality modules per
+# docs/release-one.md. VentIQ has no Core-driven LED line (CORE-ABSTRACT-BUS-001C
+# operator decision #12) — this board package adds none.
+#
+# ----------------------------------------------------------------------------
+# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3, §5.5)
+# ----------------------------------------------------------------------------
+# This package is additive: no product or test references it in this slice. The
+# legacy `packages/expansions/airiq_bathroom_*.yaml` paths are preserved
+# unchanged as the source of truth — they are NOT rewired to one-line includes
+# in this slice because `tests/test_core_abstract_bus.py` asserts on the
+# self-contained text of `airiq_bathroom_base.yaml` / `airiq_bathroom_pro.yaml`
+# (the `bathroom_i2c_id` consumer defaults). The source-of-truth flip + test
+# repoint is owned by a later PACKAGE-RENAME slice / CI-REFACTOR-VERIFY-001 (§5.5).
+# ============================================================================
+
+packages:
+  board_ventiq: !include ../expansions/airiq_bathroom_base.yaml

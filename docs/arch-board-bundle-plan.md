@@ -76,6 +76,24 @@ row. This preserves the existing posture for mains-voltage hardware
 compliance-gated — see
 [`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)).
 
+> **First-cut board layer — COMPLETE (2026-05-30).** The first-cut
+> `packages/boards/` layer is the **six SELV / low-voltage SKUs**: Core
+> (`S360-100`, BOARD-PACKAGE-LAYER-001) plus the five sensor/PSU boards
+> `S360-200` RoomIQ, `S360-210` AirIQ, `S360-211` VentIQ, `S360-300` LED, and
+> `S360-410` PoE PSU (BOARD-PACKAGE-LAYER-002). Each is authored as a thin
+> `!include` wrapper (base package + mount/variant overlays) over the existing
+> functional source package(s), so behaviour is byte-identical and every
+> product / test keeps resolving unchanged; the legacy paths are preserved as
+> source-of-truth aliases (§3.3, §5.5) and are **not** rewired to one-line
+> includes in this slice (the consumer-side flip + test repoint travels with a
+> later PACKAGE-RENAME slice / CI-REFACTOR-VERIFY-001, because
+> `tests/test_core_abstract_bus.py` and `tests/test_led_package_mapping.py`
+> assert on the self-contained text of the folded functional packages). The
+> **mains boards `S360-310` / `S360-320` / `S360-400` remain OUT of the board
+> layer for now** (compliance-gated, deferred to a later slice), and
+> `S360-311` / `S360-312` stay expansions behind their evidence gates (below).
+> The next phase is **BUNDLE-LAYER-001**.
+
 #### Deferred board promotions — `S360-311`, `S360-312`
 
 The task's canonical board enumeration is `S360-100, 200, 210, 211, 300, 410`
@@ -430,6 +448,26 @@ merges and CI is green.
      repoint in a later PACKAGE-RENAME slice). The remaining board SKUs
      (`s360-200/210/211/300/410` and the mains `310/320/400`) are **not** in
      this slice — Core only.
+   - **BOARD-PACKAGE-LAYER-002 — DONE (2026-05-30).** The five first-cut
+     sensor/PSU board packages landed as thin `!include` wrappers mirroring the
+     Core pattern: `packages/boards/s360-200-roomiq.yaml` (+ `-wall` overlay),
+     `s360-210-airiq.yaml` (+ `-wall`, `-ceiling-s3` overlays),
+     `s360-211-ventiq.yaml` (+ `-pro` overlay), `s360-300-led.yaml` (+ `-wall`,
+     `-mic-ceiling`, `-mic-wall` overlays), and `s360-410-poe-psu.yaml`. Each
+     wraps the existing functional source package(s) so behaviour is
+     byte-identical; the legacy expansion/hardware paths are preserved
+     unchanged as source-of-truth aliases (§3.3) and are **not** rewired to
+     one-line includes (the consumer-side flip + test repoint is deferred to a
+     PACKAGE-RENAME slice / CI-REFACTOR-VERIFY-001 per §5.5, because the folded
+     packages are asserted on by text-grep tests). `ceiling_halo_leds.yaml`
+     stays a feature (cross-referenced by the LED board, not absorbed). The
+     production (`Ceiling-POE-VentIQ-RoomIQ`) and LED-preview
+     (`Ceiling-POE-VentIQ-RoomIQ-LED`) products still resolve and validate
+     unchanged through the preserved legacy paths; metadata validators pass and
+     full `esphome compile` is **pending-ci** (ESPHome not available). The
+     mains boards `s360-310/320/400` remain OUT of the board layer (deferred),
+     and `S360-311`/`S360-312` stay expansions. **First-cut board layer is now
+     complete (Core + these five); next phase is BUNDLE-LAYER-001.**
    - Scope: **first act** resolves the §4 chip drift (flash/PSRAM + GPIO4/5
      fan-vs-radar) against `S360-100-R4`; then author
      `packages/boards/s360-100-core.yaml` and the sensor/PSU board packages
