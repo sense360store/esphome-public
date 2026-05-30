@@ -2584,6 +2584,46 @@ named follow-up.
   are all unchanged. See
   [`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md).
 
+- **2026-05-29 — `V1-R4-CREATE-001` authored `Ceiling-POE-RoomIQ`
+  (authored + release-blocked; no promotion).** The smallest RoomIQ-only
+  PoE ceiling product — the `S360-KIT-BEDROOM-P` firmware — is now authored
+  as a full product config at
+  [`products/sense360-ceiling-poe-roomiq.yaml`](../products/sense360-ceiling-poe-roomiq.yaml)
+  (Core ceiling `S360-100` + canonical `core_i2c` bus + PoE PSU `S360-410` +
+  RoomIQ `S360-200` = `comfort_ceiling` + `presence_ceiling`; no AirIQ, no
+  VentIQ, no fan, no LED), structurally matching the working Release-One
+  [`sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
+  with VentIQ removed. A matching catalog row in
+  [`config/product-catalog.json`](../config/product-catalog.json) is
+  `status: blocked` / `blocker: PRODUCT-POE-410-001` /
+  `webflash_build_matrix: false` / no `artifact_name` / no `webflash_wrapper`
+  / `target_channel: stable-candidate`, and the top-level product YAML is
+  registered as the compile-only target
+  `ceiling-poe-roomiq-product-compile-only` in
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json)
+  with `compile_validation_status: pending-ci` (ESPHome was unavailable in
+  the authoring environment; **no full compile was run and none is
+  fabricated** — a CI `--compile` run is owed). **This is an authoring +
+  release-blocked record, NOT a promotion.** It does **not** requalify
+  Release-One, **not** add a S360-410-*subject* (verified-PoE) product,
+  **not** flip `S360-410` `schematic_status` (stays `cataloged_unverified`),
+  **not** change [`power_poe.yaml`](../packages/hardware/power_poe.yaml)
+  (stays byte-identical), and **not** touch `manifest.json` /
+  [`firmware/sources.json`](../firmware/sources.json). The product is
+  release-blocked on the shared `S360-410` schematic-verification chain
+  (`PRODUCT-POE-410-001` / `PACKAGE-POE-410-001`) — exactly the
+  `S360-KIT-BEDROOM-P` "blocked by S360-410 (sole remaining hardware
+  blocker)" finding recorded by `PACKAGE-POE-410-EVIDENCE-RESULT-001` above;
+  the Core and RoomIQ boards are `verified`, only the `S360-410` PoE PSU is
+  `cataloged_unverified`. Stable promotion stays owned by
+  `STABLE-TARGET-ROOMIQ-001` behind that gate; this slice promotes nothing.
+  Not WebFlash-exposed, not production / preview / verified / release-ready;
+  not in `release_one_required_configs`; no `config/webflash-builds.json`
+  row. Release-One, the LED preview, and the FanTRIAC blocked reference are
+  all unchanged. See
+  [`docs/v1-r4-product-gap.md`](v1-r4-product-gap.md) (V1-R4-CREATE-001) and
+  [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md).
+
 ## Release-One and LED preview safety
 
 PRODUCT-GAP-001 **does not change Release-One product behaviour** and

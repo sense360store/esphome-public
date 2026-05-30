@@ -20,8 +20,8 @@
   "totals": {
     "combinations": 168,
     "by_status": {
-      "missing-product-yaml": 127,
-      "blocked-hardware": 39,
+      "missing-product-yaml": 126,
+      "blocked-hardware": 40,
       "webflash-shipping": 1,
       "webflash-preview": 1
     }
@@ -653,8 +653,12 @@
       "room_sense": "RoomIQ",
       "fan": "none",
       "led": "none",
-      "status": "missing-product-yaml",
-      "notes": "No product YAML in config/product-catalog.json and no entry in config/webflash-builds.json."
+      "status": "blocked-hardware",
+      "product_yaml": "products/sense360-ceiling-poe-roomiq.yaml",
+      "blockers": [
+        "PRODUCT-POE-410-001"
+      ],
+      "notes": "Release-blocked on the shared S360-410 PoE PSU schematic-verification chain (PRODUCT-POE-410-001 / PACKAGE-POE-410-001). S360-410 schematic_status is cataloged_unverified and the Release-One PoE 'schematic verification pending' caveat remains open; until that evidence lands (BOM cross-check + S360-410 schematic_status: verified JSON PR + Release-One PoE caveat closure), this RoomIQ-only product is authored but must not be promoted to a WebFlash / release channel."
     },
     {
       "config_string": "Ceiling-POE-RoomIQ-LED",
