@@ -236,133 +236,161 @@
       "legacy_config_id": "sense360-core-c-poe",
       "status": "legacy-compatible",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core ceiling-mount PoE YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "notes": "Pre-WebFlash Core ceiling-mount PoE YAML; retained for manual/custom users. Not Release-One WebFlash firmware. PRODUCT-DEP-CORE-001: retained as the authoring template (ceiling + PoE base) for the PoE AUTHOR-NEW rows V1-R4-CREATE-002 (Ceiling-POE-AirIQ-RoomIQ) and V1-R4-CREATE-003 (Ceiling-POE-RoomIQ-LED); retire after those configs are authored. Retirement is deferred to land with its CREATE config; lifecycle unchanged here."
     },
     {
-      "product_yaml": "products/sense360-core-c-pwr.yaml",
       "legacy_config_id": "sense360-core-c-pwr",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core ceiling-mount AC-power YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-30",
+      "removal_reason": "Superseded by R4 product line; not an R4 config and not a live authoring template. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement) — the same path PRODUCT-DEP-MINI-001 used for the Mini range; no deprecated step is required because the entry was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "Ceiling mains/240V (PWR) has no R4 v1 equivalent: the PWR power token is compliance-blocked, the S360-400 mains PSU is cataloged_unverified, and no v1 room bundle ships mains power (docs/v1-r4-product-gap.md core-c/v/w disposition). Manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the legacy core YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-core-c-pwr'. Pre-WebFlash Core ceiling-mount AC-power (mains/240V) YAML products/sense360-core-c-pwr.yaml removed under PRODUCT-DEP-CORE-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the legacy core files for tag-pinned field units. No shared package under packages/ is deleted — the core/board/expansion packages this YAML referenced are reused by R4 and stay. The five keep-as-template core configs stay legacy-compatible."
     },
     {
       "product_yaml": "products/sense360-core-c-usb.yaml",
       "legacy_config_id": "sense360-core-c-usb",
       "status": "legacy-compatible",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core ceiling-mount USB YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "notes": "Pre-WebFlash Core ceiling-mount USB YAML; retained for manual/custom users. Not Release-One WebFlash firmware. PRODUCT-DEP-CORE-001: retained as the authoring template (ceiling + USB base) for the USB AUTHOR-NEW rows V1-R4-CREATE-005 (Ceiling-USB-AirIQ-RoomIQ) and V1-R4-CREATE-006 (Ceiling-USB-VentIQ-RoomIQ-LED / Ceiling-USB-RoomIQ-LED); retire after those configs are authored. Retirement is deferred to land with its CREATE config; lifecycle unchanged here."
     },
     {
       "product_yaml": "products/sense360-core-ceiling.yaml",
       "legacy_config_id": "sense360-core-ceiling",
       "status": "legacy-compatible",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core ceiling complete config (AirIQ + Comfort + Presence + LED); retained for manual/custom users. Not Release-One WebFlash firmware."
+      "notes": "Pre-WebFlash Core ceiling complete config (AirIQ + Comfort + Presence + LED); retained for manual/custom users. Not Release-One WebFlash firmware. PRODUCT-DEP-CORE-001: retained as the authoring template (full AirIQ ceiling stack) for V1-R4-CREATE-002 (Ceiling-POE-AirIQ-RoomIQ) and V1-R4-CREATE-005 (Ceiling-USB-AirIQ-RoomIQ); retire after those configs are authored. Retirement is deferred to land with its CREATE config; lifecycle unchanged here."
     },
     {
       "product_yaml": "products/sense360-core-ceiling-bathroom.yaml",
       "legacy_config_id": "sense360-core-ceiling-bathroom",
       "status": "legacy-compatible",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash bathroom ceiling config; uses legacy Bathroom module (the bathroom-focused air-quality module is VentIQ in the WebFlash taxonomy). Retained for manual/custom users. Not Release-One WebFlash firmware."
+      "notes": "Pre-WebFlash bathroom ceiling config; uses legacy Bathroom module (the bathroom-focused air-quality module is VentIQ in the WebFlash taxonomy). Retained for manual/custom users. Not Release-One WebFlash firmware. PRODUCT-DEP-CORE-001: retained as the authoring template (bathroom / VentIQ-intent ceiling stack) for V1-R4-CREATE-006 (Ceiling-USB-VentIQ-RoomIQ-LED); the VentIQ pair V1-R4-CREATE-004 is already authored. Retire after the remaining VentIQ config is authored; retirement is deferred to land with its CREATE config; lifecycle unchanged here."
     },
     {
       "product_yaml": "products/sense360-core-ceiling-presence.yaml",
       "legacy_config_id": "sense360-core-ceiling-presence",
       "status": "legacy-compatible",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash presence-only ceiling config; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "notes": "Pre-WebFlash presence-only ceiling config; retained for manual/custom users. Not Release-One WebFlash firmware. PRODUCT-DEP-CORE-001: retained as the authoring template (presence +/- LED ceiling stack) for V1-R4-CREATE-003 (Ceiling-POE-RoomIQ-LED) and V1-R4-CREATE-006 (Ceiling-USB-RoomIQ-LED); the RoomIQ-only pair V1-R4-CREATE-001 / 004 is already authored. Retire after the remaining configs are authored; retirement is deferred to land with its CREATE config; lifecycle unchanged here."
     },
     {
-      "product_yaml": "products/sense360-core-v-c-poe.yaml",
       "legacy_config_id": "sense360-core-v-c-poe",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core Voice ceiling-mount PoE YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-30",
+      "removal_reason": "Superseded by R4 product line; not an R4 config and not a live authoring template. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement) — the same path PRODUCT-DEP-MINI-001 used for the Mini range; no deprecated step is required because the entry was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "R4 has no voice module in the hardware catalog and no voice kit, so this Core Voice config has no R4 v1 reuse (docs/v1-r4-product-gap.md Core Voice family). Manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the legacy core YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-core-v-c-poe'. Pre-WebFlash Core Voice ceiling-mount PoE YAML products/sense360-core-v-c-poe.yaml removed under PRODUCT-DEP-CORE-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the legacy core files for tag-pinned field units. No shared package under packages/ is deleted — the core/board/expansion packages this YAML referenced are reused by R4 and stay. The five keep-as-template core configs stay legacy-compatible."
     },
     {
-      "product_yaml": "products/sense360-core-v-c-pwr.yaml",
       "legacy_config_id": "sense360-core-v-c-pwr",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core Voice ceiling-mount AC-power YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-30",
+      "removal_reason": "Superseded by R4 product line; not an R4 config and not a live authoring template. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement) — the same path PRODUCT-DEP-MINI-001 used for the Mini range; no deprecated step is required because the entry was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "R4 has no voice module in the hardware catalog and no voice kit (and no mains v1 kit; PWR is compliance-blocked and S360-400 is cataloged_unverified), so this Core Voice + mains config has no R4 v1 reuse (docs/v1-r4-product-gap.md Core Voice family). Manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the legacy core YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-core-v-c-pwr'. Pre-WebFlash Core Voice ceiling-mount AC-power (mains/240V) YAML products/sense360-core-v-c-pwr.yaml removed under PRODUCT-DEP-CORE-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the legacy core files for tag-pinned field units. No shared package under packages/ is deleted — the core/board/expansion packages this YAML referenced are reused by R4 and stay. The five keep-as-template core configs stay legacy-compatible."
     },
     {
-      "product_yaml": "products/sense360-core-v-c-usb.yaml",
       "legacy_config_id": "sense360-core-v-c-usb",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core Voice ceiling-mount USB YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-30",
+      "removal_reason": "Superseded by R4 product line; not an R4 config and not a live authoring template. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement) — the same path PRODUCT-DEP-MINI-001 used for the Mini range; no deprecated step is required because the entry was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "R4 has no voice module in the hardware catalog and no voice kit, so this Core Voice config has no R4 v1 reuse (docs/v1-r4-product-gap.md Core Voice family). Manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the legacy core YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-core-v-c-usb'. Pre-WebFlash Core Voice ceiling-mount USB YAML products/sense360-core-v-c-usb.yaml removed under PRODUCT-DEP-CORE-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the legacy core files for tag-pinned field units. No shared package under packages/ is deleted — the core/board/expansion packages this YAML referenced are reused by R4 and stay. The five keep-as-template core configs stay legacy-compatible."
     },
     {
-      "product_yaml": "products/sense360-core-v-w-poe.yaml",
       "legacy_config_id": "sense360-core-v-w-poe",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core Voice wall-mount PoE YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-30",
+      "removal_reason": "Superseded by R4 product line; not an R4 config and not a live authoring template. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement) — the same path PRODUCT-DEP-MINI-001 used for the Mini range; no deprecated step is required because the entry was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "R4 has no voice module in the hardware catalog and no voice kit, and R4 v1 is ceiling-only, so this Core Voice wall config has no R4 v1 reuse on either axis (docs/v1-r4-product-gap.md Core Voice family). Manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the legacy core YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-core-v-w-poe'. Pre-WebFlash Core Voice wall-mount PoE YAML products/sense360-core-v-w-poe.yaml removed under PRODUCT-DEP-CORE-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the legacy core files for tag-pinned field units. No shared package under packages/ is deleted — the core/board/expansion packages this YAML referenced are reused by R4 and stay. The five keep-as-template core configs stay legacy-compatible."
     },
     {
-      "product_yaml": "products/sense360-core-v-w-pwr.yaml",
       "legacy_config_id": "sense360-core-v-w-pwr",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core Voice wall-mount AC-power YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-30",
+      "removal_reason": "Superseded by R4 product line; not an R4 config and not a live authoring template. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement) — the same path PRODUCT-DEP-MINI-001 used for the Mini range; no deprecated step is required because the entry was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "R4 has no voice module in the hardware catalog and no voice kit, R4 v1 is ceiling-only, and no v1 kit ships mains power (PWR is compliance-blocked; S360-400 is cataloged_unverified), so this Core Voice wall + mains config has no R4 v1 reuse on any axis (docs/v1-r4-product-gap.md Core Voice family). Manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the legacy core YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-core-v-w-pwr'. Pre-WebFlash Core Voice wall-mount AC-power (mains/240V) YAML products/sense360-core-v-w-pwr.yaml removed under PRODUCT-DEP-CORE-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the legacy core files for tag-pinned field units. No shared package under packages/ is deleted — the core/board/expansion packages this YAML referenced are reused by R4 and stay. The five keep-as-template core configs stay legacy-compatible."
     },
     {
-      "product_yaml": "products/sense360-core-v-w-usb.yaml",
       "legacy_config_id": "sense360-core-v-w-usb",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core Voice wall-mount USB YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-30",
+      "removal_reason": "Superseded by R4 product line; not an R4 config and not a live authoring template. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement) — the same path PRODUCT-DEP-MINI-001 used for the Mini range; no deprecated step is required because the entry was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "R4 has no voice module in the hardware catalog and no voice kit, and R4 v1 is ceiling-only, so this Core Voice wall config has no R4 v1 reuse on either axis (docs/v1-r4-product-gap.md Core Voice family). Manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the legacy core YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-core-v-w-usb'. Pre-WebFlash Core Voice wall-mount USB YAML products/sense360-core-v-w-usb.yaml removed under PRODUCT-DEP-CORE-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the legacy core files for tag-pinned field units. No shared package under packages/ is deleted — the core/board/expansion packages this YAML referenced are reused by R4 and stay. The five keep-as-template core configs stay legacy-compatible."
     },
     {
-      "product_yaml": "products/sense360-core-voice-ceiling.yaml",
       "legacy_config_id": "sense360-core-voice-ceiling",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core Voice ceiling complete config (LED+MIC ring required); retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-30",
+      "removal_reason": "Superseded by R4 product line; not an R4 config and not a live authoring template. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement) — the same path PRODUCT-DEP-MINI-001 used for the Mini range; no deprecated step is required because the entry was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "R4 has no voice module in the hardware catalog and no voice kit, so this full Core Voice ceiling config has no R4 v1 reuse (docs/v1-r4-product-gap.md Core Voice family). Manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the legacy core YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-core-voice-ceiling'. Pre-WebFlash Core Voice ceiling complete config (LED+MIC ring required) YAML products/sense360-core-voice-ceiling.yaml removed under PRODUCT-DEP-CORE-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the legacy core files for tag-pinned field units. No shared package under packages/ is deleted — the core/board/expansion packages this YAML referenced are reused by R4 and stay. The five keep-as-template core configs stay legacy-compatible."
     },
     {
-      "product_yaml": "products/sense360-core-voice-wall.yaml",
       "legacy_config_id": "sense360-core-voice-wall",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core Voice wall complete config (LED+MIC ring required); retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-30",
+      "removal_reason": "Superseded by R4 product line; not an R4 config and not a live authoring template. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement) — the same path PRODUCT-DEP-MINI-001 used for the Mini range; no deprecated step is required because the entry was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "R4 has no voice module in the hardware catalog and no voice kit, and R4 v1 is ceiling-only, so this full Core Voice wall config has no R4 v1 reuse on either axis (docs/v1-r4-product-gap.md Core Voice family). Manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the legacy core YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-core-voice-wall'. Pre-WebFlash Core Voice wall complete config (LED+MIC ring required) YAML products/sense360-core-voice-wall.yaml removed under PRODUCT-DEP-CORE-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the legacy core files for tag-pinned field units. No shared package under packages/ is deleted — the core/board/expansion packages this YAML referenced are reused by R4 and stay. The five keep-as-template core configs stay legacy-compatible."
     },
     {
-      "product_yaml": "products/sense360-core-w-poe.yaml",
       "legacy_config_id": "sense360-core-w-poe",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core wall-mount PoE YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-30",
+      "removal_reason": "Superseded by R4 product line; not an R4 config and not a live authoring template. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement) — the same path PRODUCT-DEP-MINI-001 used for the Mini range; no deprecated step is required because the entry was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "R4 v1 is ceiling-only (every room bundle mounts the Core on the ceiling; no v1 kit is wall-mounted), so this wall config has no R4 v1 reuse (docs/v1-r4-product-gap.md Wall Core family). If an R4 wall product line is ever scoped these revive as templates; that is a future decision, not a v1 reuse. Manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the legacy core YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-core-w-poe'. Pre-WebFlash Core wall-mount PoE YAML products/sense360-core-w-poe.yaml removed under PRODUCT-DEP-CORE-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the legacy core files for tag-pinned field units. No shared package under packages/ is deleted — the core/board/expansion packages this YAML referenced are reused by R4 and stay. The five keep-as-template core configs stay legacy-compatible."
     },
     {
-      "product_yaml": "products/sense360-core-w-pwr.yaml",
       "legacy_config_id": "sense360-core-w-pwr",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core wall-mount AC-power YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-30",
+      "removal_reason": "Superseded by R4 product line; not an R4 config and not a live authoring template. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement) — the same path PRODUCT-DEP-MINI-001 used for the Mini range; no deprecated step is required because the entry was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "R4 v1 is ceiling-only AND mains-free: no v1 kit is wall-mounted and no v1 kit ships mains power, the PWR token is compliance-blocked, and the S360-400 mains PSU is cataloged_unverified (docs/v1-r4-product-gap.md Wall Core family). This wall + mains config has no R4 v1 reuse on either axis. Manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the legacy core YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-core-w-pwr'. Pre-WebFlash Core wall-mount AC-power (mains/240V) YAML products/sense360-core-w-pwr.yaml removed under PRODUCT-DEP-CORE-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the legacy core files for tag-pinned field units. No shared package under packages/ is deleted — the core/board/expansion packages this YAML referenced are reused by R4 and stay. The five keep-as-template core configs stay legacy-compatible."
     },
     {
-      "product_yaml": "products/sense360-core-w-usb.yaml",
       "legacy_config_id": "sense360-core-w-usb",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core wall-mount USB YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-30",
+      "removal_reason": "Superseded by R4 product line; not an R4 config and not a live authoring template. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement) — the same path PRODUCT-DEP-MINI-001 used for the Mini range; no deprecated step is required because the entry was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "R4 v1 is ceiling-only (every room bundle mounts the Core on the ceiling; no v1 kit is wall-mounted), so this wall config has no R4 v1 reuse (docs/v1-r4-product-gap.md Wall Core family). If an R4 wall product line is ever scoped these revive as templates; that is a future decision, not a v1 reuse. Manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the legacy core YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-core-w-usb'. Pre-WebFlash Core wall-mount USB YAML products/sense360-core-w-usb.yaml removed under PRODUCT-DEP-CORE-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the legacy core files for tag-pinned field units. No shared package under packages/ is deleted — the core/board/expansion packages this YAML referenced are reused by R4 and stay. The five keep-as-template core configs stay legacy-compatible."
     },
     {
-      "product_yaml": "products/sense360-core-wall.yaml",
       "legacy_config_id": "sense360-core-wall",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash Core wall complete config (AirIQ + Comfort + Presence + LED); retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-30",
+      "removal_reason": "Superseded by R4 product line; not an R4 config and not a live authoring template. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement) — the same path PRODUCT-DEP-MINI-001 used for the Mini range; no deprecated step is required because the entry was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "R4 v1 is ceiling-only (every room bundle mounts the Core on the ceiling; no v1 kit is wall-mounted), so this full wall stack has no R4 v1 reuse (docs/v1-r4-product-gap.md Wall Core family). If an R4 wall product line is ever scoped these revive as templates; that is a future decision, not a v1 reuse. Manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the legacy core YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-core-wall'. Pre-WebFlash Core wall complete config (AirIQ + Comfort + Presence + LED) YAML products/sense360-core-wall.yaml removed under PRODUCT-DEP-CORE-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the legacy core files for tag-pinned field units. No shared package under packages/ is deleted — the core/board/expansion packages this YAML referenced are reused by R4 and stay. The five keep-as-template core configs stay legacy-compatible."
     },
     {
-      "product_yaml": "products/sense360-core-wall-presence.yaml",
       "legacy_config_id": "sense360-core-wall-presence",
-      "status": "legacy-compatible",
+      "status": "removed",
       "webflash_build_matrix": false,
-      "notes": "Pre-WebFlash presence-only wall config; retained for manual/custom users. Not Release-One WebFlash firmware."
+      "removed_since": "2026-05-30",
+      "removal_reason": "Superseded by R4 product line; not an R4 config and not a live authoring template. Retired directly from legacy-compatible to removed per the PRODUCT-DEP-001 state-transition model (legacy-compatible -> removed, intentional retirement) — the same path PRODUCT-DEP-MINI-001 used for the Mini range; no deprecated step is required because the entry was never WebFlash-shippable and never appeared in config/webflash-builds.json.",
+      "no_replacement_reason": "R4 v1 is ceiling-only (every room bundle mounts the Core on the ceiling; no v1 kit is wall-mounted), so this presence-only wall config has no R4 v1 reuse (docs/v1-r4-product-gap.md Wall Core family). If an R4 wall product line is ever scoped these revive as templates; that is a future decision, not a v1 reuse. Manual/custom users on existing hardware remain served by the tag-pinned v1.0.0 release, which retains the legacy core YAMLs.",
+      "notes": "Tombstone reserving legacy_config_id 'sense360-core-wall-presence'. Pre-WebFlash presence-only wall config YAML products/sense360-core-wall-presence.yaml removed under PRODUCT-DEP-CORE-001. Not Release-One WebFlash firmware; not WebFlash-shippable; never in config/webflash-builds.json, so there is no manifest / REQUIRED_CONFIGS / kit exposure to unwind. No last-shipped version (never deployed via WebFlash); the v1.0.0 release tag retains the legacy core files for tag-pinned field units. No shared package under packages/ is deleted — the core/board/expansion packages this YAML referenced are reused by R4 and stay. The five keep-as-template core configs stay legacy-compatible."
     },
     {
       "product_yaml": "products/sense360-fan-pwm.yaml",

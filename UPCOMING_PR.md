@@ -2,6 +2,95 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## PRODUCT-DEP-CORE-001 — retire non-template legacy core-c/v/w configs
+
+**Status:** retired (14 legacy `sense360-core-*` configs moved to `removed`; 5 kept as live authoring templates)
+
+### Summary
+
+Executes the `core-c` / `core-v` / `core-w` disposition recommended in
+[`docs/v1-r4-product-gap.md`](docs/v1-r4-product-gap.md) (§"`core-c` / `core-v`
+/ `core-w` disposition"), the deprecation-series sibling of
+`PRODUCT-DEP-MINI-001`. Of the 19 legacy `sense360-core-*` `legacy-compatible`
+entries, the **14** with no R4-v1 reuse are retired through the
+`PRODUCT-DEP-001` `legacy-compatible -> removed` (intentional-retirement)
+transition — the same path the Mini range used; no `deprecated` step is needed
+because these were never WebFlash-shippable and never appeared in
+`config/webflash-builds.json`. The **5** ceiling Core bases / sensor stacks that
+the gap doc flags as authoring templates for not-yet-authored `V1-R4-CREATE-*`
+configs stay `legacy-compatible`; their retirement is **deferred** to land with
+the CREATE config they template.
+
+### KEEP / RETIRE split (from the gap-doc template-source table)
+
+**KEEP-as-template (5, stay `legacy-compatible`, annotated; retirement deferred):**
+
+* `sense360-core-c-poe` — ceiling + PoE base → templates V1-R4-CREATE-002 / 003.
+* `sense360-core-c-usb` — ceiling + USB base → templates V1-R4-CREATE-005 / 006.
+* `sense360-core-ceiling` — full AirIQ stack → templates V1-R4-CREATE-002 / 005.
+* `sense360-core-ceiling-bathroom` — VentIQ-intent stack → templates V1-R4-CREATE-006
+  (V1-R4-CREATE-004 already authored).
+* `sense360-core-ceiling-presence` — presence(+LED) stack → templates
+  V1-R4-CREATE-003 / 006 (V1-R4-CREATE-001 / 004 already authored).
+
+**RETIRE (14, moved to `removed` tombstones; product YAMLs deleted):**
+
+* mains: `sense360-core-c-pwr`.
+* wall (5): `sense360-core-w-poe`, `-w-pwr`, `-w-usb`, `sense360-core-wall`,
+  `sense360-core-wall-presence`.
+* voice (8): `sense360-core-v-c-poe`, `-v-c-pwr`, `-v-c-usb`, `-v-w-poe`,
+  `-v-w-pwr`, `-v-w-usb`, `sense360-core-voice-ceiling`,
+  `sense360-core-voice-wall`.
+
+The two standalone legacy entries (`sense360-fan-pwm`, `sense360-poe`) are
+**outside** `PRODUCT-DEP-CORE-001` scope and stay `legacy-compatible`.
+
+### What changed
+
+* `config/product-catalog.json`: the 14 RETIRE rows flip
+  `legacy-compatible -> removed` with `removed_since: 2026-05-30`,
+  `removal_reason` ("Superseded by R4 product line; not an R4 config and not a
+  live authoring template." + the `legacy-compatible -> removed` transition
+  note), a per-family `no_replacement_reason`, and tombstone `notes`; each drops
+  `product_yaml` (tombstone contract, exactly as the Mini entries). The 5 KEEP
+  rows keep `status: legacy-compatible` and gain a template-retention annotation
+  in `notes`.
+* `products/`: the 14 RETIRE `sense360-core-*.yaml` files are removed.
+
+### Guardrails (explicitly NOT changed)
+
+* No KEEP-as-template config retired; their lifecycle is unchanged.
+* No shared package under `packages/` deleted — the legacy core configs
+  referenced core/board/expansion packages that R4 still uses; only the legacy
+  product YAMLs and their catalog rows are retired.
+* No touch to the 6 R4 configs, the 2 USB configs, or the 10 Mini tombstones.
+* No edits to `config/webflash-builds.json`, `manifest.json`, or
+  `firmware/sources.json`; no board `schematic_status` change; nothing promoted.
+* `v1.0.0` is untouched — it keeps the legacy files for tag-pinned field units.
+* No new tests and no test assertions weakened: the `packages/`-level package
+  tests (`test_core_abstract_bus.py`) and the auto-discovering
+  `test_product_substitutions.py` / `generate_test_configs.py` reference shared
+  packages (which survive) and discover product YAMLs dynamically, so the suite
+  passes with the RETIRE set gone with no test edits.
+
+### Deferred work
+
+The KEEP-as-template set's retirement is **deferred**: each of the 5 retained
+configs is retired in the PR that authors its last templated `V1-R4-CREATE-*`
+config (CREATE-002 / 003 / 005 / 006), through the same
+`legacy-compatible -> removed` transition used here.
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 tests/test_product_catalog.py`
+* `python3 tests/test_product_substitutions.py`
+* `python3 tests/test_core_abstract_bus.py`
+* `python3 tests/test_all_yaml_release_matrix.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"`
+
+---
+
 ## V1-R4-CREATE-004 — author USB sensor variants (Ceiling-USB-VentIQ-RoomIQ, Ceiling-USB-RoomIQ)
 
 **Status:** authored (manual / custom channel; compile-validation pending-ci; no WebFlash promotion)
