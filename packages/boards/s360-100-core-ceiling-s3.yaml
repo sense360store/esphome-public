@@ -1,0 +1,29 @@
+# ============================================================================
+# Sense360 Core — Ceiling S3 (legacy lineage) variant overlay (S360-100)
+# ============================================================================
+# BOARD-PACKAGE-LAYER-001. SKU-aligned wrapper for the legacy "Ceiling S3"
+# Core variant.
+#
+# Thin wrapper over the existing functional package
+# `packages/hardware/sense360_core_ceiling_s3.yaml` (byte-identical
+# behaviour). This variant is a DIFFERENT board lineage from the canonical
+# `s360-100-core.yaml` base: per CORE-ABSTRACT-BUS-001B operator decision #10
+# and the regression in `tests/test_core_abstract_bus.py`
+# (`test_out_of_scope_ceiling_s3_keeps_i2c_primary`), it deliberately retains
+# its own `i2c_primary` bus on GPIO17/GPIO18 and its own presence UART on
+# GPIO38/GPIO39 — it does NOT share the canonical `core_i2c` (GPIO48/GPIO45)
+# bus. It already carries the reconciled ESP32-S3-WROOM-1-N16R8 chip block
+# (16 MB / 8 MB octal PSRAM), so it is unaffected by the flash/PSRAM drift
+# reconciliation.
+#
+# This board package is kept distinct precisely so a future board-layer sweep
+# does not silently fold the S3 lineage into the canonical Core namespace.
+#
+# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3): the legacy
+# `packages/hardware/sense360_core_ceiling_s3.yaml` path is preserved unchanged
+# as the source of truth; no product is rebound onto this board package in this
+# slice.
+# ============================================================================
+
+packages:
+  board_core: !include ../hardware/sense360_core_ceiling_s3.yaml

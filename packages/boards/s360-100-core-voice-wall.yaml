@@ -1,0 +1,23 @@
+# ============================================================================
+# Sense360 Core — Voice Wall variant overlay (S360-100-R4)
+# ============================================================================
+# BOARD-PACKAGE-LAYER-001. SKU-aligned voice mount variant of the canonical
+# Core board package `packages/boards/s360-100-core.yaml`.
+#
+# Thin wrapper over the existing functional package
+# `packages/hardware/sense360_core_voice_wall.yaml` (byte-identical
+# behaviour). The wrapped package already carries the reconciled
+# ESP32-S3-WROOM-1-N16R8 chip block (16 MB / 8 MB octal PSRAM) and the shared
+# `core_i2c` bus the canonical base defines — i.e. base + the voice delta (I2S
+# microphone + speaker, voice assistant, dual user buttons). Note: the voice
+# variants keep `relay_pin: GPIO4` (deliberately out of scope for the
+# CORE-ABSTRACT-BUS-001A relay rebind) per the existing functional package.
+#
+# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3): the legacy
+# `packages/hardware/sense360_core_voice_wall.yaml` path is preserved unchanged
+# as the source of truth; no product is rebound onto this board package in this
+# slice.
+# ============================================================================
+
+packages:
+  board_core: !include ../hardware/sense360_core_voice_wall.yaml

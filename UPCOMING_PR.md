@@ -9668,7 +9668,31 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
     - Dependency: none. Gates the rest of the epic (items 49–54).
 
 49. **BOARD-PACKAGE-LAYER-001 — Introduce `packages/boards/` (Core first)**
-    - Status: Planned (queued by `ARCH-BOARD-BUNDLE-PLAN-001`)
+    - Status: **In progress — Core done (2026-05-30).** This slice ships the
+      **Core only** board layer: the §4 chip drift is resolved (chip variant
+      **AND** GPIO4/GPIO5 ownership — schematic and BOM agree, no conflict, see
+      [`docs/arch-board-bundle-plan.md`](docs/arch-board-bundle-plan.md) §4.3
+      and the note in
+      [`docs/hardware/s360-100-r4-core.md`](docs/hardware/s360-100-r4-core.md)),
+      and the canonical `packages/boards/s360-100-core.yaml` base plus the
+      mount/power/voice variant overlays
+      (`s360-100-core-{ceiling,wall,poe,voice-ceiling,voice-wall,ceiling-s3}.yaml`)
+      are authored as thin `!include` wrappers over the existing functional
+      `packages/hardware/sense360_core*.yaml` packages (behaviour
+      byte-identical). The four drifted Core packages (`sense360_core.yaml`,
+      `sense360_core_ceiling.yaml`, `sense360_core_wall.yaml`,
+      `sense360_core_poe.yaml`) are reconciled from 8 MB/2 MB to N16R8
+      16 MB/8 MB octal. Legacy paths are retained unchanged as source-of-truth
+      aliases (§3.3) — **not** rewired to one-line includes — because
+      `tests/test_core_abstract_bus.py` asserts on the self-contained text of
+      each `sense360_core*.yaml`; the source-of-truth flip + test repoint is
+      owned by a later `PACKAGE-RENAME` slice / CI-REFACTOR-VERIFY-001 (§5.5).
+      The product `products/sense360-ceiling-poe-ventiq-roomiq.yaml` still
+      resolves through the unchanged `sense360_core_ceiling.yaml` alias;
+      metadata validators pass, full `esphome compile` is **pending-ci**
+      (ESPHome not available in this environment). **The remaining board SKUs
+      (`s360-200/210/211/300/410` + mains `310/320/400`) are NOT in this slice
+      — they are queued to a follow-up BOARD-PACKAGE-LAYER-002.**
     - Purpose: As its **first act**, resolve the core-chip drift recorded in
       [`docs/arch-board-bundle-plan.md`](docs/arch-board-bundle-plan.md) §4 —
       the `sense360_core.yaml` 8 MB/2 MB vs `sense360_core_mapping.yaml`
@@ -9686,6 +9710,22 @@ wrapper/catalog/build slice (not a WebFlash-runtime import).
       changed by the planning layer; the drift resolution is an evidence call
       owned by this PR.
     - Dependency: `ARCH-BOARD-BUNDLE-PLAN-001`.
+
+49a. **BOARD-PACKAGE-LAYER-002 — Promote the remaining board SKUs into
+    `packages/boards/`**
+    - Status: Planned (queued by `BOARD-PACKAGE-LAYER-001`, which shipped Core
+      only). Carries the sensor/PSU board packages
+      (`s360-200-roomiq`, `s360-210-airiq`, `s360-211-ventiq`, `s360-300-led`,
+      `s360-410-poe-psu`) plus the open-source-only mains boards
+      (`s360-310-relay`, `s360-320-triac`, `s360-400-mains-psu`), each a thin
+      wrapper over the existing functional package(s) so behaviour is
+      byte-identical, mirroring the Core pattern landed by
+      BOARD-PACKAGE-LAYER-001.
+    - Guardrails: WebFlash contract untouched; no product rebinds yet; legacy
+      packages all still present; `S360-311`/`S360-312` stay expansions until
+      `HW-PINMAP-311/312-FOLLOWUP` evidence closes; no test weakened (any
+      path-constant test repoint travels with CI-REFACTOR-VERIFY-001 / §5.5).
+    - Dependency: `BOARD-PACKAGE-LAYER-001`.
 
 50. **BUNDLE-LAYER-001 — Introduce the bundle layer + customer-include compat
     shims**
