@@ -443,10 +443,13 @@ rather than restate them.
   `partial — schematic evidence available; package reconciliation
   pending`**. The audit doc consumes the artifact index and the
   Core-side `J6` capture; it does **not** rewrite either source of
-  truth and does **not** promote the JSON `schematic_status`. Still
-  no standalone schematic-backed reference doc (the pin-level
-  rewrite belongs to HW-PINMAP-311-FOLLOWUP per
-  [`s360-311-r4-pwm.md` Follow-up PR sequence](s360-311-r4-pwm.md#follow-up-pr-sequence)).
+  truth and does **not** promote the JSON `schematic_status`. The
+  standalone schematic-backed reference doc now exists at
+  [`s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md)
+  (HW-PINMAP-311-FOLLOWUP) — it transcribes the committed module-side
+  schematic connector / pin map and records the four open
+  reconciliation questions as **still owed**; it resolves none of them,
+  closes no gate, and leaves the `S360-311` classification unchanged.
   Core-side J6 13-pin connector capture
   (`+5V` / `GND` / `TachIO` / `TachPMW1..4` / `Pul_Cou1..4`) lives in
   [`s360-100-r4-core.md#j6--12-v-pwm-fan-connector-13-pin`](s360-100-r4-core.md#j6--12-v-pwm-fan-connector-13-pin)
@@ -1410,6 +1413,15 @@ them must use a separate, scoped PR with its own gate evidence.
   `PACKAGE-GAP-001` FanPWM slice and the systemic Core abstract-bus
   rebind owned by
   [`release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups).
+- [`s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md) —
+  HW-PINMAP-311-FOLLOWUP standalone schematic-backed reference doc for
+  `S360-311` Sense360 PWM. Transcribes the committed module-side
+  schematic connector / pin map (`J3` 13-pin "From Core"; fan outputs
+  `J1` / `J2` / `J4` / `J5`; Nextion `J6`; MT3608 boost; mounting holes
+  `H1..H4`) and records the SX1509-vs-direct-GPIO, UART-on-`J3`-pins-11/12,
+  `"NINE 4pin FANs"`, and single-vs-four-channel questions as **still
+  owed** with the closing evidence each needs. Resolves nothing; closes
+  no gate; the `S360-311` classification is unchanged.
 - [`s360-400-r4-power.md`](s360-400-r4-power.md) — HW-PINMAP-400
   pin/package mapping audit for `S360-400` Sense360 240v PSU,
   **status: `pending — schematic/design evidence required`**. Not
