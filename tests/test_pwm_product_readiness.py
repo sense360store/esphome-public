@@ -729,7 +729,9 @@ class PwmProductMatchesValidatedCompileOnlyCompositionTests(unittest.TestCase):
             )
 
     def test_both_yamls_surface_same_config_string(self) -> None:
-        for path in (PWM_PRODUCT_YAML, self.compile_only_yaml):
+        # The product's text_sensor composition (incl. the config-string
+        # template) now lives in the bundle the product shim pulls in.
+        for path in (PWM_BUNDLE, self.compile_only_yaml):
             data = _load_yaml(path)
             sensors = data.get("text_sensor", []) or []
             lambdas = " ".join(
