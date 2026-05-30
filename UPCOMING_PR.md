@@ -30,6 +30,66 @@ mirrored here.
 
 ## Current queue summary
 
+- **PACKAGE-RENAME-004** delivers, via **this PR** on 2026-05-30, the **fourth
+  and largest source-of-truth flip** of the §7-item-4 rename epic: the
+  **S360-200 RoomIQ family** (`presence_*` / `comfort_*`, the highest binder
+  count, last sensor family per the §7 ordering). The SKU-aligned board package
+  [`packages/boards/s360-200-roomiq.yaml`](packages/boards/s360-200-roomiq.yaml)
+  (+ the wall board [`s360-200-roomiq-wall.yaml`](packages/boards/s360-200-roomiq-wall.yaml))
+  is now the **authoritative** production-facing RoomIQ board. **Unlike the 1:1
+  LED / AirIQ / VentIQ families, the RoomIQ board merges TWO drivers that
+  products bind INDEPENDENTLY** (the legacy `sense360-core-ceiling*` / `-wall*`
+  family `!include`s `comfort_*.yaml` and `presence_*.yaml` under separate
+  package keys), so a single merged board file cannot be the alias target of
+  both legacy paths without duplicate-id breakage. The RoomIQ board layer is
+  therefore **authoritative PER DRIVER**: the authoritative, self-contained
+  content lives in four SKU-aligned board halves —
+  [`s360-200-roomiq-climate.yaml`](packages/boards/s360-200-roomiq-climate.yaml) /
+  [`-radar.yaml`](packages/boards/s360-200-roomiq-radar.yaml) (ceiling) and
+  [`-climate-wall.yaml`](packages/boards/s360-200-roomiq-climate-wall.yaml) /
+  [`-radar-wall.yaml`](packages/boards/s360-200-roomiq-radar-wall.yaml) (wall) —
+  and the two production-facing boards COMPOSE their two halves (bundle include
+  path unchanged). The four content-holding legacy paths
+  `packages/expansions/{comfort_ceiling,presence_ceiling,comfort_wall,presence_wall}.yaml`
+  are reduced to thin `!include` **aliases** of the matching half — **paths
+  preserved** per §3.3 (the legacy core ceiling/wall products, the RoomIQ
+  bundles / compile-only targets, and the Phase-2 naming aliases still bind
+  them; no alias dropped while a live binder exists). The shared radar
+  **primitives** `presence_ld2450.yaml` / `presence_ld2412.yaml` are
+  cross-referenced base drivers (documented in `packages/SENSE360_MODULES.md`,
+  no board package holds their content) and stay **authoritative, NOT aliased**,
+  mirroring how `airiq.yaml` (RENAME-002) and `ceiling_halo_leds.yaml`
+  (RENAME-001) stayed authoritative — noted in the board header. The Phase-2
+  naming aliases [`roomiq.yaml`](packages/expansions/roomiq.yaml) /
+  [`roomiq_radar.yaml`](packages/expansions/roomiq_radar.yaml) keep their pinned
+  bare-basename `!include` of `comfort_ceiling.yaml` / `presence_ceiling.yaml`
+  (now themselves board aliases) so `tests/test_roomiq_alias_packages.py` stays
+  green and the chains resolve identically. The three zero-binder S3/module
+  legacy files (`presence_ceiling_s3.yaml`, `comfort_ceiling_s3.yaml`,
+  `presence_module_ceiling.yaml`) are **left authoritative / untouched**: the
+  include graph shows zero live binders, no S3/module RoomIQ board package
+  exists, and their bus/pin content (`i2c_primary`, distinct UART/GPIO pins) is
+  distinct from the `core_i2c` ceiling/wall halves, so aliasing them would be
+  lossy and **not** byte-identical (recorded, not silently resolved). The
+  content-asserting check that travels with the moved RoomIQ content per §5.5 is
+  **repointed** in the same slice — `test_core_abstract_bus.py`'s
+  `COMFORT_CEILING_PACKAGE` constant and the comfort ceiling/wall entries of
+  `SHARED_I2C_CONSUMER_DEFAULTS` now read the board halves — assertions intact,
+  only the path read follows the content. Resolution proven **byte-identical**:
+  each board-half body is character-for-character equal to the pre-flip legacy
+  file body (sha256-matched), and the full include-graph payload is identical
+  HEAD vs working tree for the production product (`Ceiling-POE-VentIQ-RoomIQ`),
+  the legacy core ceiling/wall products, the RoomIQ bundles, and a RoomIQ
+  compile-only target. **No** config-string / artifact / WebFlash
+  (`config/webflash-builds.json`, `manifest.json`, `firmware/sources.json`) /
+  readiness / lifecycle / `schematic_status` change;
+  `test_release_one_entity_names` and `test_product_substitutions` untouched; no
+  workflow edit; WebFlash repo untouched; full `esphome compile` is
+  **pending-ci** (ESPHome unavailable; no compile result claimed). Full suite
+  green (1154 tests, 3 skipped). **The sensor-family renames are now complete**
+  (LED, AirIQ, VentIQ, RoomIQ); remaining in the epic are the **PSU**
+  (`power_poe` → `S360-410`) and the **deferred mains driver** boards
+  (`S360-310` / `320` / `400`, compliance-gated), then **CI-REFACTOR-VERIFY-001**.
 - **PACKAGE-RENAME-003** delivers, via **this PR** on 2026-05-30, the **third
   source-of-truth flip** of the §7-item-4 rename epic: the **S360-211 VentIQ
   family** (`docs/arch-board-bundle-plan.md` §7 item 4 ordering — VentIQ after
