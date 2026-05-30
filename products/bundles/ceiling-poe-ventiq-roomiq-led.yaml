@@ -1,0 +1,141 @@
+# ============================================================================
+# SENSE360 BUNDLE — Ceiling-POE-VentIQ-RoomIQ-LED (preview)
+# ============================================================================
+# BUNDLE-LAYER-001 (docs/arch-board-bundle-plan.md §2.2, §3.2).
+#
+# Config-string-named bundle YAML, aligned 1:1 with the catalog config string
+# `Ceiling-POE-VentIQ-RoomIQ-LED`. This bundle is the canonical composition for
+# the LED-bearing preview sibling; the customer-facing product path
+# `products/sense360-ceiling-poe-ventiq-roomiq-led.yaml` is now a thin compat
+# shim that does nothing but `!include` this bundle (§3.2). The WebFlash
+# contract is unchanged: config string and artifact name stay byte-identical.
+#
+# WebFlash config string : Ceiling-POE-VentIQ-RoomIQ-LED
+# WebFlash artifact name  : Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin
+#
+# Board assembly (docs/arch-board-bundle-plan.md §2.2):
+#   production board stack + S360-300 LED
+#   = S360-100 Core (ceiling) + S360-410 PoE PSU + S360-211 VentIQ
+#     + S360-200 RoomIQ + S360-300 LED (ceiling halo, WS2812B, GPIO38)
+#
+# Each assembled board is composed through the SKU-aligned board package under
+# `packages/boards/`; those packages are thin `!include` wrappers over the same
+# functional source packages this product bound directly before
+# BUNDLE-LAYER-001, so the resolved config is functionally identical (same
+# entities, substitutions, config string, artifact-name identity).
+#
+# This is the LED-bearing sibling of the production bundle
+# `bundles/ceiling-poe-ventiq-roomiq.yaml`; it adds only the LED board on top
+# of that production stack. It is NOT the stable Release-One target — the
+# stable target stays the LED-less `Ceiling-POE-VentIQ-RoomIQ`. FanTRIAC stays
+# blocked (HW-005) and is intentionally omitted.
+# ============================================================================
+
+substitutions:
+  # === Device Configuration ===
+  # ESPHome hostnames are limited to 31 chars; this is the shortened hostname
+  # only. WebFlash identity (config string, artifact name, text sensors) for
+  # this sibling is `Ceiling-POE-VentIQ-RoomIQ-LED`. The production product
+  # keeps its own `Ceiling-POE-VentIQ-RoomIQ` identity untouched.
+  device_name: s360-ceil-poe-ventiq-rm-led
+  friendly_name: Sense360 Ceiling Bathroom LED
+  device_sku: S360-CORE-C-POE
+  device_version: "1.0.0"
+  timezone: "America/New_York"
+
+  # === Logging ===
+  log_level: INFO
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "false"
+
+  # === WiFi AP fallback ===
+  # Explicit literal so the fallback AP SSID is short, human-readable, and
+  # under ESPHome's 32-character AP SSID limit regardless of how
+  # `device_name` is later edited. Distinct from the production
+  # `S360 VentIQ RoomIQ` so two devices on the same network don't collide
+  # at provisioning time.
+  fallback_ssid: "S360 VentIQ RoomIQ LED"
+
+  # === Power configuration (PoE) ===
+  power_source: poe
+  poe_class: "0"
+  poe_standard: "802.3af"
+
+  # === VentIQ (bathroom) thresholds ===
+  shower_humidity_threshold: "75"
+  shower_humidity_rate: "5"
+  mold_risk_humidity: "65"
+  mold_risk_duration_minutes: "30"
+
+# ============================================================================
+# PACKAGE INCLUDES (board layer + base + profiles)
+# ============================================================================
+packages:
+  # === External Components (radar firmware) ===
+  external_components: !include ../../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../../packages/base/wifi.yaml
+  base_logging: !include ../../packages/base/logging.yaml
+  base_api: !include ../../packages/base/api_encrypted.yaml
+  base_ota: !include ../../packages/base/ota.yaml
+  base_time: !include ../../packages/base/time.yaml
+
+  # === Sense360 Core (Ceiling, S360-100-R4) ===
+  # Board package wraps packages/hardware/sense360_core_ceiling.yaml.
+  core_board: !include ../../packages/boards/s360-100-core-ceiling.yaml
+
+  # === Sense360 PoE PSU (S360-410) ===
+  # Board package wraps packages/hardware/power_poe.yaml.
+  power_board: !include ../../packages/boards/s360-410-poe-psu.yaml
+
+  # === Sense360 LED (S360-300, ceiling halo, WS2812B) ===
+  # Included for this LED-bearing preview sibling only. Board package wraps
+  # packages/hardware/led_ring_ceiling.yaml (binds `led_data_pin: GPIO38`
+  # per HW-010 / Core IO38 = LED_DATA). LED stays intentionally omitted from
+  # the production bundle, which carries no `LED` token.
+  led_board: !include ../../packages/boards/s360-300-led.yaml
+
+  # === Sense360 VentIQ (S360-211, bathroom-focused air quality) ===
+  # Board package wraps packages/expansions/airiq_bathroom_base.yaml.
+  ventiq_board: !include ../../packages/boards/s360-211-ventiq.yaml
+  ventiq_profile: !include ../../packages/features/bathroom_profile.yaml
+
+  # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
+  # Board package wraps packages/expansions/comfort_ceiling.yaml +
+  # presence_ceiling.yaml.
+  roomiq_board: !include ../../packages/boards/s360-200-roomiq.yaml
+  roomiq_comfort_profile: !include ../../packages/features/comfort_basic_profile.yaml
+  roomiq_presence_profile: !include ../../packages/features/presence_basic_profile.yaml
+
+  # === Sense360 TRIAC (S360-320, AC phase-cut fan driver) ===
+  # NOT included. FanTRIAC remains blocked per HW-005.
+
+  # === Device Health & Diagnostics ===
+  health: !include ../../packages/features/device_health.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} WebFlash Config"
+    lambda: |-
+      return {"Ceiling-POE-VentIQ-RoomIQ-LED"};
+    update_interval: never
+    entity_category: diagnostic
