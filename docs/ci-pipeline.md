@@ -5,6 +5,7 @@ This document explains how the Continuous Integration (CI) pipeline validates fi
 ## Table of Contents
 
 - [Overview](#overview)
+- [Refactored YAML layout: boards, bundles, aliases, and shims](#refactored-yaml-layout-boards-bundles-aliases-and-shims)
 - [Mini Board Product Configurations](#mini-board-product-configurations)
 - [CI Workflows](#ci-workflows)
 - [Validation Process](#validation-process)
@@ -37,6 +38,90 @@ What this pipeline ensures:
 3. **Module combinations work** - Generated configs test various module
    permutations (manual sweep).
 4. **Code quality** - YAML syntax, C++ formatting, and style checks.
+
+---
+
+## Refactored YAML layout: boards, bundles, aliases, and shims
+
+The firmware YAML has been restructured into SKU-aligned **board packages**
+plus product-named **bundle YAMLs** (the
+[`ARCH-BOARD-BUNDLE-PLAN-001`](arch-board-bundle-plan.md) epic). This section
+records the new directory layout and how each CI workflow handles it. The key
+property for CI is that **every glob, `find`, and `sed` keeps its existing
+semantics** — the refactor was designed to land under the unchanged sweeps, and
+`CI-REFACTOR-VERIFY-001` proved that parity holds with **no workflow edit**.
+
+### The four layers CI walks
+
+| Layer | Location | What it holds | CI relevance |
+|-------|----------|---------------|--------------|
+| **Board packages (authoritative)** | `packages/boards/s360-*.yaml` | One canonical, self-contained package per board SKU (`S360-100` Core, `S360-200` RoomIQ, `S360-210` AirIQ, `S360-211` VentIQ, `S360-300` LED, `S360-410` PoE PSU) plus mount/power/variant overlays | Linted by the recursive `yamllint … packages/`; validated by `validate_configs.py`'s `packages/` walk |
+| **Legacy aliases** | `packages/expansions/*.yaml`, `packages/hardware/*.yaml` (legacy functional names, e.g. `led_ring_ceiling.yaml`, `airiq_ceiling.yaml`, `comfort_ceiling.yaml`, `power_poe.yaml`) | Thin `!include` wrappers of their board package — the **path is preserved** (never deleted) so legacy-compatible products and tests keep resolving. An alias is dropped only when its binder count reaches zero (gated on `PRODUCT-DEP-CORE-001`). | Same recursive lint/walk as boards; their `!include` chain resolves through the board package |
+| **Bundles (config-string-named)** | `products/bundles/*.yaml` | One YAML per WebFlash config string, assembling `boards + expansions + base + profiles`. Carries the substitutions, entity names, config string, and artifact-name identity of the product it backs. | **Auto-discovered** by the recursive `find products/` sweep; linted by `yamllint … products/`; walked by `validate_configs.py` |
+| **Product shims (customer include contract)** | `products/sense360-*.yaml` (the seven config-string products) | Thin `!include` of the matching bundle. The customer-pinned path (`files: - products/sense360-…yaml`) is preserved byte-for-byte. | Discovered by the same `find products/` sweep; resolves shim → bundle → boards |
+
+The base tier (`packages/base/**`) and the feature tier
+(`packages/features/**`) **did not move** — they are functional, not
+board-bound, and bundles include them unchanged. This is why the two `sed`
+substitution targets are untouched (see below).
+
+### How each workflow handles the new layout (verified, no edit required)
+
+- **`yamllint -c .yamllint products/ packages/`** (`validate-yaml` job in
+  `ci-validate-configs.yml`). `yamllint` recurses into directories, so
+  `packages/boards/` and `products/bundles/` are covered automatically. Verified
+  clean across boards, bundles, aliases, and shims.
+
+- **`find products/ -name "*.yaml" -type f ! -name "secrets.yaml" ! -path "products/webflash/*"`**
+  (the `discover-products` sweep in `ci-validate-configs.yml`, mirrored as the
+  informational product count in `validate.yml`). Because `find` is recursive,
+  the new `products/bundles/*.yaml` and the existing `products/compile-only/*.yaml`
+  are enumerated alongside the top-level shims/legacy products; the
+  `products/webflash/*` wrappers remain excluded by the unchanged `! -path`
+  predicate. Every discovered file's `!include` chain resolves (shim → bundle →
+  board package → base/feature tiers).
+
+- **`sed -i "s|ref: main|ref: $BRANCH|g" packages/base/external_components.yaml`**
+  and
+  **`find packages/features -name "*.yaml" -exec sed -i "s|@main|@$BRANCH|g" {} \;`**
+  (the branch-rewrite step in `ci-validate-configs.yml`, and the
+  `external_components` rewrite in `firmware-build-release.yml`). Both targets
+  are in the base/feature tiers, which the refactor left in place, so the paths
+  still exist and the substitutions still apply. Bundles pull
+  `external_components` from the **exact** sed target via
+  `external_components: !include ../../packages/base/external_components.yaml`,
+  so the release-time rewrite reaches them through the include.
+
+- **Compile-only lane** (`compile-only.yml` →
+  `config/compile-only-targets.json` + `scripts/validate_compile_targets.py`).
+  Every compile-only `product_yaml` still points at a real file: the
+  `products/webflash/*` wrapper targets resolve to their canonical product, the
+  `products/compile-only/*` targets are unchanged, and the
+  `products/sense360-*.yaml` product targets now resolve through the shim →
+  bundle chain. Metadata validation passes unchanged.
+
+- **Release gate** (`firmware-build-release.yml`). This workflow is
+  **config-string-driven, not glob-driven**: it enumerates release targets from
+  `config/webflash-builds.json` and, for a `products/webflash/*` wrapper entry,
+  compiles the canonical `products/sense360-<stem>.yaml` (the shim) instead. The
+  shim's config_dir stays `products/`, so the `path: ../components`
+  external-components rewrite still resolves to the repo-root `components/` tree.
+  Config strings, artifact names, and `config/webflash-builds.json` are
+  byte-identical, so the same builds ship under the same names.
+
+### Gate identity (required-status-check names)
+
+Branch protection matches required checks by workflow `name:`. The two gate
+workflow names are **unchanged** by the refactor:
+
+| Gate workflow | `name:` field | Role |
+|---------------|---------------|------|
+| `validate.yml` | `Quick Validation` | Per-PR gate (every push/PR) |
+| `firmware-build-release.yml` | `Build & Release Firmware` | Release-time gate (release publish) |
+
+No required-status-check name moved, so branch-protection configuration needs
+no change. (`CI-REFACTOR-VERIFY-001` confirmed the `.github/workflows/` tree is
+byte-identical to `main`.)
 
 ---
 
@@ -189,6 +274,12 @@ This means:
 - Adding a new product automatically includes it in the manual sweep
 - No workflow changes needed when adding products
 - Every non-wrapper product in `products/` is validated when the sweep is run
+- The recursive `find` also covers the `products/bundles/*.yaml` config-string
+  bundles and the `products/compile-only/*.yaml` lane introduced by the
+  board/bundle refactor — they were designed to land under this unchanged sweep
+  (see [Refactored YAML layout](#refactored-yaml-layout-boards-bundles-aliases-and-shims)).
+  The `products/sense360-*.yaml` files that became thin compat shims still
+  resolve through `shim → bundle → board package`.
 
 ### 3. Build & Release (`firmware-build-release.yml`)
 
@@ -196,8 +287,12 @@ This means:
 **Purpose:** Compile and publish firmware binaries
 
 **Process:**
-1. Generate build matrix from `products/` directory
-2. Compile each product with ESPHome
+1. Generate the build matrix from `config/webflash-builds.json` (filtered by
+   version + channel) — **not** a `find products/` scan. For a
+   `products/webflash/*` wrapper entry the canonical
+   `products/sense360-<stem>.yaml` (now a compat shim → bundle) is compiled
+   instead.
+2. Compile each selected product with ESPHome
 3. Rename binaries to WebFlash format (e.g., `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`)
 4. Attach to GitHub release with checksums
 
