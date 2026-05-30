@@ -30,6 +30,53 @@ mirrored here.
 
 ## Current queue summary
 
+- **PACKAGE-RENAME-003** delivers, via **this PR** on 2026-05-30, the **third
+  source-of-truth flip** of the §7-item-4 rename epic: the **S360-211 VentIQ
+  family** (`docs/arch-board-bundle-plan.md` §7 item 4 ordering — VentIQ after
+  AirIQ; note the `airiq_bathroom_*` pair is VentIQ despite the prefix). The
+  SKU-aligned board package
+  [`packages/boards/s360-211-ventiq.yaml`](packages/boards/s360-211-ventiq.yaml)
+  plus its `-pro` hardware-variant overlay
+  [`s360-211-ventiq-pro.yaml`](packages/boards/s360-211-ventiq-pro.yaml) now hold
+  the **authoritative, self-contained** VentIQ definition (consolidating the
+  content that previously lived in the legacy
+  `packages/expansions/airiq_bathroom_base.yaml` / `airiq_bathroom_pro.yaml`
+  drivers), and those two content-holding legacy paths are reduced to thin
+  `!include` **aliases** of the board packages — **paths preserved** per §3.3
+  (`products/sense360-core-ceiling-bathroom.yaml`, the FanRelay/FanTRIAC bundles,
+  the VentIQ compile-only target, and the Phase-2 naming aliases still bind
+  `airiq_bathroom_base.yaml`; no alias is dropped while a live binder exists,
+  alias removal is a later slice gated on binder count = 0). **Unlike AirIQ,
+  the entire VentIQ driver content is folded** — there is **no** un-folded
+  generic base driver (no VentIQ `airiq.yaml`/`ceiling_halo_leds.yaml`
+  equivalent) to keep authoritative; the whole driver lived in the
+  `airiq_bathroom_*` pair, both folded. The compat wrapper
+  [`packages/expansions/bathroom.yaml`](packages/expansions/bathroom.yaml) is
+  **repointed** to bind the board package directly (board hardware +
+  `bathroom_profile` feature, mirroring the production bundle), while the
+  Phase-2 naming aliases
+  [`ventiq.yaml`](packages/expansions/ventiq.yaml) /
+  [`ventiq_extended.yaml`](packages/expansions/ventiq_extended.yaml) keep their
+  pinned bare-basename `!include` of `airiq_bathroom_base.yaml` /
+  `airiq_bathroom_pro.yaml` (now themselves board aliases) so
+  `tests/test_ventiq_alias_packages.py` stays green and the chains resolve
+  identically. The content-asserting check that travels with the moved VentIQ
+  content per §5.5 is **repointed** in the same slice — the two `bathroom_i2c_id`
+  entries of `test_core_abstract_bus.py`'s `SHARED_I2C_CONSUMER_DEFAULTS` now
+  read the board packages — assertion intact, only the path read follows the
+  content. Resolution proven **byte-identical**: each board-package body is
+  character-for-character equal to the pre-flip legacy file body (sha256-matched),
+  and the full production (`Ceiling-POE-VentIQ-RoomIQ`) include-graph content
+  sequence is identical HEAD vs working tree (also verified for the other live
+  binders). **No** config-string / artifact / WebFlash
+  (`config/webflash-builds.json`, `manifest.json`, `firmware/sources.json`) /
+  readiness / lifecycle / `schematic_status` change;
+  `test_release_one_entity_names` and `test_product_substitutions` untouched; no
+  workflow edit; WebFlash repo untouched; full `esphome compile` is
+  **pending-ci** (ESPHome unavailable; no compile result claimed). Full suite
+  green (1154 tests, 3 skipped). **Next slice: PACKAGE-RENAME-004 (RoomIQ —
+  `presence_*` / `comfort_*`, the highest binder count, last per the §7
+  ordering).**
 - **PACKAGE-RENAME-002** delivers, via **this PR** on 2026-05-30, the **second
   source-of-truth flip** of the §7-item-4 rename epic: the **S360-210 AirIQ
   family** (`docs/arch-board-bundle-plan.md` §7 item 4 ordering — AirIQ after

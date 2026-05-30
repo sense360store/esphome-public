@@ -22,11 +22,19 @@
 # Implementation source of truth:
 #   packages/expansions/airiq_bathroom_pro.yaml
 #
-# The legacy file remains the actual hardware driver. Do not add
-# substitutions, globals, sensors, or any other YAML blocks here —
-# this file must stay a pure include wrapper per the naming-audit
-# Phase 2 contract (docs/package-naming-audit.md §"Phase 2 — Add
-# canonical aliases / wrapper packages").
+# This file stays a pure include wrapper of the legacy
+# `airiq_bathroom_pro.yaml` basename per the naming-audit Phase 2
+# contract (docs/package-naming-audit.md §"Phase 2 — Add canonical
+# aliases / wrapper packages"). As of PACKAGE-RENAME-003
+# (docs/arch-board-bundle-plan.md §7 item 4) that legacy path is itself
+# now a thin alias of the SKU-aligned board package
+# `packages/boards/s360-211-ventiq-pro.yaml` (the authoritative,
+# self-contained definition), so this naming alias chains through to the
+# board package and resolves byte-identically. The `!include` target is
+# intentionally left as the bare `airiq_bathroom_pro.yaml` basename (the
+# Phase-2 naming contract pins it there). Do not add substitutions,
+# globals, sensors, or any other YAML blocks here — this file must stay a
+# pure include wrapper.
 # ============================================================================
 
 packages:
