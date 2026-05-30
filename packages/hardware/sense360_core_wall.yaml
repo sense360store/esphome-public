@@ -4,7 +4,10 @@
 # Designed for standard electrical boxes and wall plates.
 #
 # Hardware Features:
-# - ESP32-S3-WROOM-1 (8MB Flash, 2MB PSRAM)
+# - ESP32-S3-WROOM-1-N16R8 (16MB Flash, 8MB PSRAM)
+#   (flash/PSRAM reconciled to the verified S360-100-R4 value by
+#    BOARD-PACKAGE-LAYER-001; canonical board package:
+#    packages/boards/s360-100-core.yaml)
 # - WiFi 2.4GHz, Bluetooth 5.0 LE
 # - Power: 240V AC / PoE / USB-C (via separate power packages)
 # - Shared Core I²C bus for expansion modules
@@ -106,16 +109,26 @@ esphome:
         # Restore relay state
         - switch.turn_on: restore_relay_state
 
+# Reconciled ESP32-S3-WROOM-1-N16R8 chip block (16 MB flash, 8 MB octal PSRAM)
+# per BOARD-PACKAGE-LAYER-001 (was 8 MB / 2 MB — flash/PSRAM drift, §4.1).
 esp32:
   board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
   framework:
     type: esp-idf
     version: recommended
     sdkconfig_options:
       CONFIG_COMPILER_OPTIMIZATION_SIZE: y
-      # Enable PSRAM
+      # Enable PSRAM (octal-SPI, 80 MHz — ESP32-S3-WROOM-1-N16R8)
       CONFIG_ESP32S3_SPIRAM_SUPPORT: y
       CONFIG_SPIRAM_MODE_OCT: y
+      CONFIG_SPIRAM_SPEED_80M: y
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: y
+
+psram:
+  mode: octal
+  speed: 80MHz
 
 # Shared Core I2C bus (CORE-ABSTRACT-BUS-001B).
 # Schematic IO48 = I2C_SDA, IO45 = I2C_SCL per S360-100-R4; pulled up by

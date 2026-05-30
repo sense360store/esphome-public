@@ -1,0 +1,26 @@
+# ============================================================================
+# Sense360 Core — Ceiling variant overlay (S360-100-R4)
+# ============================================================================
+# BOARD-PACKAGE-LAYER-001. SKU-aligned mount variant of the canonical Core
+# board package `packages/boards/s360-100-core.yaml`.
+#
+# This overlay is a thin wrapper over the existing functional package
+# `packages/hardware/sense360_core_ceiling.yaml`, so the ceiling Core behaviour
+# is byte-identical to the legacy path that products and tests already resolve.
+# The wrapped functional package embeds the same reconciled
+# ESP32-S3-WROOM-1-N16R8 chip block (16 MB / 8 MB octal PSRAM), the schematic
+# pin map, and the single shared `core_i2c` bus that the canonical base
+# (`s360-100-core.yaml`) defines — i.e. base + the ceiling mount delta
+# (`pir_sensor_pin: GPIO15`, `roomiq_sen0609_output_pin: GPIO6`, ceiling
+# identity).
+#
+# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3): the legacy
+# `packages/hardware/sense360_core_ceiling.yaml` path is preserved unchanged as
+# the source of truth; no product is rebound onto this board package in this
+# slice. A later PACKAGE-RENAME slice flips source-of-truth into the board tree
+# (refactoring to a literal base + delta) once the path-constant tests travel
+# with that slice per §5.5.
+# ============================================================================
+
+packages:
+  board_core: !include ../hardware/sense360_core_ceiling.yaml

@@ -251,6 +251,43 @@ schematic, and ensure the board package cannot simultaneously expose both the
 SEN0609 UART and native fan PWM/tach on those pins. No pin value is changed by
 this planning PR.
 
+### 4.3 Resolution (BOARD-PACKAGE-LAYER-001 — Core, 2026-05-30)
+
+**Chip variant — RESOLVED to `ESP32-S3-WROOM-1-N16R8` (16 MB flash / 8 MB
+octal-SPI PSRAM @ 80 MHz).** The schematic and the BOM **agree**, so the
+chip-definition step proceeds (no conflict to flag):
+
+- Schematic [`docs/hardware/schematics/S360-100-R4.pdf`](hardware/schematics/S360-100-R4.pdf)
+  (SHA256 `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`,
+  837,443 bytes, KiCad E.D.A. 10.0.3) — component **U6** is the
+  `ESP32-S3-WROOM-1-N16R8` module; `IO35`/`IO36`/`IO37` reserved for on-module
+  octal-SPI PSRAM (transcribed in
+  [`docs/hardware/s360-100-r4-core.md`](hardware/s360-100-r4-core.md)
+  §"Main components" / §"ESP32-S3 pin and net mapping").
+- BOM `bc386261-S360100R4_BOM.xlsx`
+  (SHA256 `e289f135a2c88dd747689c70075e2f1cf49906f4bda8b4c4abad67d0dad961fc`),
+  U6 module, per
+  [`docs/hardware/artifacts/S360-100-R4.md`](hardware/artifacts/S360-100-R4.md)
+  §"Board identity".
+
+The drifted product-bound packages (`sense360_core.yaml`,
+`sense360_core_ceiling.yaml`, `sense360_core_wall.yaml`,
+`sense360_core_poe.yaml`) are raised from 8 MB / 2 MB to the N16R8 value
+(`flash_size: 16MB` + `psram: { mode: octal, speed: 80MHz }`), matching the
+value already carried by `sense360_core_mapping.yaml` and the voice / S3
+variants, and the canonical value is baked into
+`packages/boards/s360-100-core.yaml`.
+
+**GPIO4/GPIO5 — RESOLVED: RoomIQ SEN0609 radar UART owns IO4/IO5.** Schematic
+`IO4 = SEN0609_RX`, `IO5 = SEN0609_TX`. The canonical Core board package binds
+GPIO4/GPIO5 only to `roomiq_sen0609_uart` and does **not** expose native fan
+PWM/tach on those pins; native fan tach/PWM terminate on dedicated GPIOs
+(`TachIO = IO16`; `Pul_Cou1..4 = IO17/IO18/IO46/IO9`;
+`TachPMW1..4 = IO10/IO11/IO12/IO39`). The legacy `fan_pwm_pin: GPIO4` /
+`fan_tach_pin: GPIO5` in `sense360_core_mapping.yaml` (no product includes it)
+is left untouched as a legacy reference and is not reproduced in the canonical
+board package.
+
 ## 5. CI impact
 
 Every workflow glob, `find`, and `sed` that a rename or new directory touches,
@@ -378,6 +415,21 @@ merges and CI is green.
    - Dependency: none.
 
 2. **BOARD-PACKAGE-LAYER-001** — introduce `packages/boards/` (Core first)
+   - **Status: in progress — Core done (2026-05-30).** The §4 chip drift is
+     resolved (see §4.4) and the canonical Core board layer is authored:
+     `packages/boards/s360-100-core.yaml` (base) plus the mount/power/voice
+     variant overlays `s360-100-core-{ceiling,wall,poe,voice-ceiling,voice-wall,ceiling-s3}.yaml`,
+     each a thin `!include` wrapper over the corresponding existing functional
+     `packages/hardware/sense360_core*.yaml` package (behaviour byte-identical).
+     The legacy paths are retained unchanged as source-of-truth aliases (§3.3
+     "kept filename") so every existing product and test keeps resolving; they
+     are **not** rewired to one-line includes in this slice because
+     `tests/test_core_abstract_bus.py` asserts on the self-contained text of
+     each `sense360_core*.yaml` and the slice keeps every test green
+     (CI-REFACTOR-VERIFY-001 / §5.5 owns the source-of-truth flip + test
+     repoint in a later PACKAGE-RENAME slice). The remaining board SKUs
+     (`s360-200/210/211/300/410` and the mains `310/320/400`) are **not** in
+     this slice — Core only.
    - Scope: **first act** resolves the §4 chip drift (flash/PSRAM + GPIO4/5
      fan-vs-radar) against `S360-100-R4`; then author
      `packages/boards/s360-100-core.yaml` and the sensor/PSU board packages
