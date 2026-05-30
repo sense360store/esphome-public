@@ -1,46 +1,183 @@
 # ============================================================================
 # Sense360 PoE PSU — Canonical Board Package (S360-410-R4)
 # ============================================================================
-# BOARD-PACKAGE-LAYER-002 — the SKU-aligned board layer, power board.
+# PACKAGE-RENAME-005 (docs/arch-board-bundle-plan.md §7 item 4) — the PoE PSU is
+# the FINAL non-deferred source-of-truth flip, after LED (001), AirIQ (002),
+# VentIQ (003), and RoomIQ (004); it completes the sensor/PSU rename epic. This
+# board package is now the AUTHORITATIVE, self-contained definition of the
+# Sense360 PoE PSU power board (SKU `S360-410`, revision R4, friendly name
+# "Sense360 PoE PSU"). It supplies IEEE 802.3af Power-over-Ethernet to the
+# Sense360 Core via the discrete PoE PD topology documented below.
 #
-# SKU-aligned canonical entry for the Sense360 PoE PSU power board (SKU
-# `S360-410`, revision R4, friendly name "Sense360 PoE PSU"). This board
-# supplies IEEE 802.3af Power-over-Ethernet to the Sense360 Core via the
-# discrete PoE PD topology documented in the wrapped functional package.
-#
-# This canonical base composes the single PoE power package (no mount variants):
-#
-#   - packages/hardware/power_poe.yaml
-#     (logical / diagnostic-only PoE power-source config: power-source text
-#      sensors, supply-voltage template, PoE-connected binary sensor)
-#
-# Mirroring the Core pattern from BOARD-PACKAGE-LAYER-001, this board package is
-# a thin `!include` wrapper over the existing functional package, so the
-# resolved behaviour is byte-identical to the legacy path that the Release-One
-# and LED-preview products bind today as their `power_config`.
+# Source-of-truth inversion (docs/arch-board-bundle-plan.md §3.3, §5.5): the
+# content below previously lived in `packages/hardware/power_poe.yaml` and this
+# package was a thin `!include` wrapper over it. That is now inverted — the
+# definition lives here and `packages/hardware/power_poe.yaml` is a thin alias
+# that `!include`s this package, so the resolved behaviour is byte-identical to
+# the legacy path that every PoE product binds today as its `power_config` /
+# `power_board`. There is no PoE "Pro" variant: the single PoE power package is
+# folded here in full (no mount/power sub-variants).
 #
 # ----------------------------------------------------------------------------
 # Status — UNVERIFIED (unchanged by this slice)
 # ----------------------------------------------------------------------------
 # S360-410 is `schematic_status: cataloged_unverified` in
-# config/hardware-catalog.json. This board package is additive and makes NO
-# evidence claim: it does not promote the S360-410 schematic_status, set a
-# schematic_file, close the Release-One PoE "schematic verification pending"
-# caveat, add a product YAML or WebFlash wrapper, flip webflash_build_matrix,
-# add an artifact_name, or build/attach any release artifact. No IEEE 802.3af /
-# 802.3at compliance, isolation, Hi-pot, leakage, thermal, EMI, or EMC claim is
-# made or implied here — exactly as the wrapped `power_poe.yaml` states. The
-# S360-410 release gate (PRODUCT-POE-410-001) is unchanged.
+# config/hardware-catalog.json. This slice is firmware-package authoritative
+# ONLY — it makes NO board-verification or evidence claim: it does not promote
+# the S360-410 schematic_status, set a schematic_file, close the Release-One PoE
+# "schematic verification pending" caveat, add a product YAML or WebFlash
+# wrapper, flip webflash_build_matrix, add an artifact_name, or build/attach any
+# release artifact. No IEEE 802.3af / 802.3at compliance, isolation, Hi-pot,
+# leakage, thermal, EMI, or EMC claim is made or implied here — exactly as the
+# folded body below states. The S360-410 release gate (PRODUCT-POE-410-001) is
+# unchanged.
 #
 # ----------------------------------------------------------------------------
 # Legacy alias policy (docs/arch-board-bundle-plan.md §3.3, §5.5)
 # ----------------------------------------------------------------------------
-# This package is additive: the products keep binding the legacy
-# `packages/hardware/power_poe.yaml` path unchanged in this slice. The legacy
-# path is preserved unchanged as the source of truth; the source-of-truth flip
-# + any consumer rebind is owned by a later PACKAGE-RENAME slice /
-# CI-REFACTOR-VERIFY-001 (§5.5).
-# ============================================================================
+# The legacy `packages/hardware/power_poe.yaml` path is preserved unchanged as a
+# thin alias of this package and is NOT deleted while live binders exist. The
+# production bundles `ceiling-poe-ventiq-roomiq.yaml` (production / stable) and
+# `ceiling-poe-ventiq-roomiq-led.yaml` (LED preview) bind THIS board package
+# directly as `power_board`; every other PoE product/bundle/compile-only target
+# (e.g. `products/sense360-core-*-poe.yaml`, `products/sense360-poe.yaml`,
+# `products/sense360-fan-pwm.yaml`, the FanRelay/FanTRIAC/FanPWM/FanDAC and
+# RoomIQ bundles, and the `products/compile-only/ceiling-poe*.yaml` lane) still
+# binds the legacy `power_poe.yaml` path as `power_config`. Per the alias policy
+# (§3.3), no alias is dropped while a live binder exists; alias removal /
+# consumer rebind is owned by a later slice / CI-REFACTOR-VERIFY-001 (§5.5) once
+# the binder count reaches zero.
+#
+# ----------------------------------------------------------------------------
+# Hardware / scope (folded from the legacy power_poe.yaml body)
+# ----------------------------------------------------------------------------
+# Hardware (BOM-confirmed S360-410-R4 discrete PoE topology):
+# - LAN_CON1: LPJ4112CNL (RJP-003TC1-style) integrated RJ45 + magnetics
+# - U1:       TPS2378DDAR PoE PD controller (HSOIC-8)
+# - U2:       TX4138 buck converter (ESOIC-8)
+# - DCDC1:    F0505S-2WR2 isolated 5V/5V DC/DC (SIP-7)
+#             Note: AM1D-0505S-NZ is a schematic-annotation-only
+#             alternate, NOT the BOM-populated part.
+# - D1:       SMAJ58A TVS
+# - D2:       SS510 Schottky catch diode
+# - D3:       Green status LED on the buck output
+# - L1:       33uH buck inductor
+# - R1..R9, C1..C8, and the J3 +5VP / GND output header are part of
+#   the populated BOM set
+#
+# Vendor-datasheet typicals (NOT BOM-confirmed and NOT compliance evidence):
+# - Standard:   IEEE 802.3af (PoE); schematic-visible R2 1.27k programs
+#               Class 0 (0.44-12.95W) on the TPS2378DDAR
+# - Input:      36-57V DC (from PoE switch/injector)
+# - Output:     5V DC, ~2A (10W) nominal at the Core-side +5VP / GND
+#               header (TX4138 buck + F0505S-2WR2 isolated DC/DC chain)
+# - Protection: overcurrent / overvoltage / short-circuit (vendor claim)
+# Per-component voltage / isolation / Hi-pot / IEEE 802.3af / 802.3at /
+# EMI / EMC ratings remain vendor-datasheet, silkscreen, bench, and
+# compliance evidence and are not asserted by this package.
+#
+# Safety / scope notes:
+# - This package is logical / diagnostic only. It binds no GPIO / I2C /
+#   UART / SPI / DAC at runtime and emits diagnostic-only template sensors.
+# - This package change makes no release, WebFlash, product-catalog, or
+#   schematic-status claim: it does not promote S360-410 schematic_status,
+#   does not set schematic_file, does not close the Release-One PoE
+#   "schematic verification pending" caveat, does not add a product YAML,
+#   does not add a WebFlash wrapper, does not flip webflash_build_matrix,
+#   does not add an artifact_name, and does not build or attach a release
+#   artifact.
+# - No IEEE 802.3af / 802.3at PoE-compliance claim, no isolation / Hi-pot
+#   / earth-continuity / leakage claim, and no thermal / EMI / EMC claim
+#   is made by this package.
+#
+# Benefits:
+# - Most stable power source
+# - Galvanic isolation from mains
+# - Single cable for network + power
+# - Ideal for permanent installations
+#
+# Recommended for:
+# - Professional installations
+# - Ceiling-mounted devices
+# - Wall-mounted devices
+# - Locations with existing network infrastructure
+# - Where maximum reliability is required
+#
+# Note: Requires PoE-capable network switch or PoE injector
 
-packages:
-  board_poe_psu: !include ../hardware/power_poe.yaml
+substitutions:
+  power_source: "poe"
+  poe_class: "0"  # PoE class (0, 1, 2, 3, 4)
+  poe_standard: "802.3af"  # or "802.3at" for PoE+
+
+# Global variable for power source identification
+globals:
+  - id: power_source_type
+    type: std::string
+    restore_value: false
+    initial_value: '"PoE"'
+
+# PoE power monitoring
+sensor:
+  # Supply voltage from PoE module
+  - platform: template
+    name: "${friendly_name} Supply Voltage"
+    id: supply_voltage
+    icon: mdi:lightning-bolt
+    unit_of_measurement: "V"
+    device_class: voltage
+    state_class: measurement
+    accuracy_decimals: 1
+    lambda: |-
+      return 5.0;  // Fixed 5V output from PoE module
+    update_interval: 60s
+
+# Power source indicator
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Power Source"
+    id: power_source_indicator
+    icon: mdi:ethernet
+    lambda: |-
+      return {"PoE (IEEE ${poe_standard})"};
+    update_interval: 60s
+
+  - platform: template
+    name: "${friendly_name} Power Configuration"
+    id: power_config_info
+    icon: mdi:information
+    lambda: |-
+      return {"Power over Ethernet (PoE) Class ${poe_class}, ${poe_standard} standard"};
+    update_interval: never
+    entity_category: diagnostic
+
+# Binary sensors
+binary_sensor:
+  # PoE power status
+  - platform: template
+    name: "${friendly_name} PoE Power Connected"
+    id: poe_power_connected
+    icon: mdi:ethernet
+    device_class: power
+    lambda: |-
+      // Assume always connected for PoE configuration
+      // PoE detection could be implemented with additional circuitry
+      return true;
+
+# Debug logging for PoE configuration
+logger:
+  logs:
+    ethernet: INFO
+
+# Automation: Log PoE status on boot
+esphome:
+  on_boot:
+    - priority: -100
+      then:
+        - logger.log:
+            format: "Power source: PoE (IEEE %s, Class %s)"
+            args: ["${poe_standard}", "${poe_class}"]
+        - delay: 2s
+        - logger.log:
+            level: DEBUG
+            format: "PoE startup sequence complete"

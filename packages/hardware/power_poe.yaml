@@ -1,134 +1,33 @@
-# Sense360 Core - PoE (Power over Ethernet) Configuration
+# ============================================================================
+# Sense360 Core — PoE (Power over Ethernet) Configuration  (legacy alias)
+# ============================================================================
+# PACKAGE-RENAME-005 (docs/arch-board-bundle-plan.md §3.3, §5.5, §7 item 4).
+# The authoritative, self-contained definition of the Sense360 PoE PSU power
+# board (S360-410-R4: discrete TPS2378 PoE PD + TX4138 buck + F0505S isolated
+# DC/DC chain, the diagnostic-only power-source text sensors, supply-voltage
+# template, and PoE-connected binary sensor) now lives in the SKU-aligned board
+# package `packages/boards/s360-410-poe-psu.yaml`. This legacy functional path
+# is retained as a thin alias that `!include`s that board package, so the
+# resolved config is byte-identical to before the source-of-truth flip. This is
+# the FINAL non-deferred rename slice — it completes the sensor/PSU rename epic.
 #
-# This package configures the Sense360 Core board for IEEE 802.3af PoE power.
+# Why this path is preserved (NOT deleted): the production / LED-preview bundles
+# bind the board package directly, but every other PoE product still binds THIS
+# path as `power_config` / `power`, e.g. `products/sense360-core-c-poe.yaml`,
+# `sense360-core-v-c-poe.yaml`, `sense360-core-v-w-poe.yaml`,
+# `sense360-core-w-poe.yaml`, `sense360-poe.yaml`, `sense360-fan-pwm.yaml`, the
+# FanRelay / FanTRIAC / FanPWM / FanDAC and RoomIQ bundles, and the
+# `products/compile-only/ceiling-poe*.yaml` lane. Per the alias policy (§3.3),
+# no alias is dropped while a live binder exists; alias removal / consumer
+# rebind is a separate later slice gated on the binder count reaching zero
+# (CI-REFACTOR-VERIFY-001, §5.5).
 #
-# Hardware (BOM-confirmed S360-410-R4 discrete PoE topology):
-# - LAN_CON1: LPJ4112CNL (RJP-003TC1-style) integrated RJ45 + magnetics
-# - U1:       TPS2378DDAR PoE PD controller (HSOIC-8)
-# - U2:       TX4138 buck converter (ESOIC-8)
-# - DCDC1:    F0505S-2WR2 isolated 5V/5V DC/DC (SIP-7)
-#             Note: AM1D-0505S-NZ is a schematic-annotation-only
-#             alternate, NOT the BOM-populated part.
-# - D1:       SMAJ58A TVS
-# - D2:       SS510 Schottky catch diode
-# - D3:       Green status LED on the buck output
-# - L1:       33uH buck inductor
-# - R1..R9, C1..C8, and the J3 +5VP / GND output header are part of
-#   the populated BOM set
-#
-# Vendor-datasheet typicals (NOT BOM-confirmed and NOT compliance evidence):
-# - Standard:   IEEE 802.3af (PoE); schematic-visible R2 1.27k programs
-#               Class 0 (0.44-12.95W) on the TPS2378DDAR
-# - Input:      36-57V DC (from PoE switch/injector)
-# - Output:     5V DC, ~2A (10W) nominal at the Core-side +5VP / GND
-#               header (TX4138 buck + F0505S-2WR2 isolated DC/DC chain)
-# - Protection: overcurrent / overvoltage / short-circuit (vendor claim)
-# Per-component voltage / isolation / Hi-pot / IEEE 802.3af / 802.3at /
-# EMI / EMC ratings remain vendor-datasheet, silkscreen, bench, and
-# compliance evidence and are not asserted by this package.
-#
-# Safety / scope notes:
-# - This package is logical / diagnostic only. It binds no GPIO / I2C /
-#   UART / SPI / DAC at runtime and emits diagnostic-only template sensors.
-# - This package change makes no release, WebFlash, product-catalog, or
-#   schematic-status claim: it does not promote S360-410 schematic_status,
-#   does not set schematic_file, does not close the Release-One PoE
-#   "schematic verification pending" caveat, does not add a product YAML,
-#   does not add a WebFlash wrapper, does not flip webflash_build_matrix,
-#   does not add an artifact_name, and does not build or attach a release
-#   artifact.
-# - No IEEE 802.3af / 802.3at PoE-compliance claim, no isolation / Hi-pot
-#   / earth-continuity / leakage claim, and no thermal / EMI / EMC claim
-#   is made by this package.
-#
-# Benefits:
-# - Most stable power source
-# - Galvanic isolation from mains
-# - Single cable for network + power
-# - Ideal for permanent installations
-#
-# Recommended for:
-# - Professional installations
-# - Ceiling-mounted devices
-# - Wall-mounted devices
-# - Locations with existing network infrastructure
-# - Where maximum reliability is required
-#
-# Note: Requires PoE-capable network switch or PoE injector
+# This slice is firmware-package authoritative ONLY: it makes no board-
+# verification claim and does not change the S360-410 schematic_status
+# (`cataloged_unverified`). The full hardware BOM, vendor typicals, safety /
+# scope notes, and every config block are documented in the board package this
+# file aliases (packages/boards/s360-410-poe-psu.yaml).
+# ============================================================================
 
-substitutions:
-  power_source: "poe"
-  poe_class: "0"  # PoE class (0, 1, 2, 3, 4)
-  poe_standard: "802.3af"  # or "802.3at" for PoE+
-
-# Global variable for power source identification
-globals:
-  - id: power_source_type
-    type: std::string
-    restore_value: false
-    initial_value: '"PoE"'
-
-# PoE power monitoring
-sensor:
-  # Supply voltage from PoE module
-  - platform: template
-    name: "${friendly_name} Supply Voltage"
-    id: supply_voltage
-    icon: mdi:lightning-bolt
-    unit_of_measurement: "V"
-    device_class: voltage
-    state_class: measurement
-    accuracy_decimals: 1
-    lambda: |-
-      return 5.0;  // Fixed 5V output from PoE module
-    update_interval: 60s
-
-# Power source indicator
-text_sensor:
-  - platform: template
-    name: "${friendly_name} Power Source"
-    id: power_source_indicator
-    icon: mdi:ethernet
-    lambda: |-
-      return {"PoE (IEEE ${poe_standard})"};
-    update_interval: 60s
-
-  - platform: template
-    name: "${friendly_name} Power Configuration"
-    id: power_config_info
-    icon: mdi:information
-    lambda: |-
-      return {"Power over Ethernet (PoE) Class ${poe_class}, ${poe_standard} standard"};
-    update_interval: never
-    entity_category: diagnostic
-
-# Binary sensors
-binary_sensor:
-  # PoE power status
-  - platform: template
-    name: "${friendly_name} PoE Power Connected"
-    id: poe_power_connected
-    icon: mdi:ethernet
-    device_class: power
-    lambda: |-
-      // Assume always connected for PoE configuration
-      // PoE detection could be implemented with additional circuitry
-      return true;
-
-# Debug logging for PoE configuration
-logger:
-  logs:
-    ethernet: INFO
-
-# Automation: Log PoE status on boot
-esphome:
-  on_boot:
-    - priority: -100
-      then:
-        - logger.log:
-            format: "Power source: PoE (IEEE %s, Class %s)"
-            args: ["${poe_standard}", "${poe_class}"]
-        - delay: 2s
-        - logger.log:
-            level: DEBUG
-            format: "PoE startup sequence complete"
+packages:
+  board_poe_psu: !include ../boards/s360-410-poe-psu.yaml
