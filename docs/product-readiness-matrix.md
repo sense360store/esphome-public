@@ -2624,6 +2624,47 @@ named follow-up.
   [`docs/v1-r4-product-gap.md`](v1-r4-product-gap.md) (V1-R4-CREATE-001) and
   [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md).
 
+- **2026-05-30 — `V1-R4-CREATE-004` authored the two USB sensor configs
+  (authored + compile-validation-pending; manual / custom; no promotion).**
+  The two unblocked R4 USB sensor configs are now authored as full, complete
+  product configs, each a config-string-named bundle + thin compat shim composed
+  from the `packages/boards/` layer:
+  `Ceiling-USB-VentIQ-RoomIQ`
+  ([`products/bundles/ceiling-usb-ventiq-roomiq.yaml`](../products/bundles/ceiling-usb-ventiq-roomiq.yaml)
+  via shim
+  [`products/sense360-ceiling-usb-ventiq-roomiq.yaml`](../products/sense360-ceiling-usb-ventiq-roomiq.yaml);
+  Core ceiling `S360-100` + USB-C power + VentIQ `S360-211` + RoomIQ `S360-200`)
+  and `Ceiling-USB-RoomIQ`
+  ([`products/bundles/ceiling-usb-roomiq.yaml`](../products/bundles/ceiling-usb-roomiq.yaml)
+  via shim
+  [`products/sense360-ceiling-usb-roomiq.yaml`](../products/sense360-ceiling-usb-roomiq.yaml);
+  Core ceiling + USB-C power + RoomIQ). Both are the **USB power-axis variants**
+  of their PoE siblings with the PoE PSU board swapped for the USB-C power
+  package [`packages/hardware/power_usb.yaml`](../packages/hardware/power_usb.yaml)
+  — **no `S360-410`**, no other PSU board. **This is an authoring +
+  compile-validation-pending record, NOT a promotion.** Each catalog row in
+  [`config/product-catalog.json`](../config/product-catalog.json) is
+  `status: compile-only` / `target_channel: manual-custom` /
+  `webflash_build_matrix: false` / no `artifact_name` / no `webflash_wrapper` /
+  no kit preset, and each top-level product YAML is registered as the
+  compile-only target `ceiling-usb-ventiq-roomiq-product-compile-only` /
+  `ceiling-usb-roomiq-product-compile-only` in
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json) with
+  `compile_validation_status: pending-ci` (ESPHome was unavailable in the
+  authoring environment; **no full compile was run and none is fabricated** — a
+  CI `--compile` run is owed). All boards (`S360-100`, `S360-211`, `S360-200`)
+  are `verified` and there is **no evidence blocker** — USB rows carry no
+  `S360-410` PoE caveat. The configs are **manual / custom** (available for
+  manual ESPHome / GitHub use), **not** WebFlash-exposed: no
+  `config/webflash-builds.json` row; not production / preview / verified /
+  release-ready; not in `release_one_required_configs`. No board
+  `schematic_status` is changed (LED stays `preview`-gated; `S360-410` stays
+  `cataloged_unverified`); `manifest.json` /
+  [`firmware/sources.json`](../firmware/sources.json) are untouched; Release-One,
+  the LED preview, and the FanTRIAC blocked reference are all unchanged. See
+  [`docs/v1-r4-product-gap.md`](v1-r4-product-gap.md) (V1-R4-CREATE-004) and
+  [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md).
+
 ## Release-One and LED preview safety
 
 PRODUCT-GAP-001 **does not change Release-One product behaviour** and

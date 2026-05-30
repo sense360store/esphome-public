@@ -117,8 +117,8 @@ not-`verified` board in the entire target set is the PoE PSU `S360-410`
 | `Ceiling-POE-AirIQ-RoomIQ` | `S360-KIT-KITCHEN-P` | Core, AirIQ `S360-210`, RoomIQ, PoE `S360-410` | 100✅ 210✅ 200✅ 410⚠️ | SELV | **no** — `missing-product-yaml`; compile-only skeleton [`ceiling-poe-airiq-roomiq.yaml`](../products/compile-only/ceiling-poe-airiq-roomiq.yaml) exists | **AUTHOR-NEW** + **blocked-by-evidence** (`S360-410` schematic / `PRODUCT-POE-410-001`; AirIQ-stack hardware evidence SPS30/SGP41/SCD41/BMP390) | `stable-candidate` (owned `STABLE-TARGET-AIRIQ-ROOMIQ-001`) | **V1-R4-CREATE-002** |
 | `Ceiling-POE-RoomIQ-LED` | `S360-KIT-LIVING-P`, `S360-KIT-CORRIDOR-P` | Core, RoomIQ, LED `S360-300`, PoE `S360-410` | 100✅ 200✅ 300✅ 410⚠️ | SELV | **no** — `missing-product-yaml`; no compile-only skeleton | **AUTHOR-NEW** + **blocked-by-evidence** (`S360-410`); LED preview-gated | `preview-candidate` (LED gauntlet / `STABLE-TARGET-ROOMIQ-LED-001`) | **V1-R4-CREATE-003** |
 | `Ceiling-POE-RoomIQ` | `S360-KIT-BEDROOM-P` | Core, RoomIQ, PoE `S360-410` | 100✅ 200✅ 410⚠️ | SELV | **no** — `missing-product-yaml`; compile-only skeleton [`ceiling-poe-roomiq.yaml`](../products/compile-only/ceiling-poe-roomiq.yaml) exists | **AUTHOR-NEW** + **blocked-by-evidence** (`S360-410`) | `stable-candidate` (owned `STABLE-TARGET-ROOMIQ-001`) | **V1-R4-CREATE-001** |
-| `Ceiling-USB-VentIQ-RoomIQ` | `S360-KIT-BATH-P` (USB power-variant) | Core, VentIQ `S360-211`, RoomIQ | 100✅ 211✅ 200✅ | SELV (USB-C) | **no** — `missing-product-yaml` | **AUTHOR-NEW** (all boards verified; no evidence blocker) | manual / custom (no USB bundle) | **V1-R4-CREATE-004** |
-| `Ceiling-USB-RoomIQ` | `S360-KIT-BEDROOM-P` (USB power-variant) | Core, RoomIQ | 100✅ 200✅ | SELV (USB-C) | **no** — `missing-product-yaml` | **AUTHOR-NEW** (all boards verified) | manual / custom (no USB bundle) | **V1-R4-CREATE-004** |
+| `Ceiling-USB-VentIQ-RoomIQ` | `S360-KIT-BATH-P` (USB power-variant) | Core, VentIQ `S360-211`, RoomIQ | 100✅ 211✅ 200✅ | SELV (USB-C) | **yes** — **authored** by V1-R4-CREATE-004 (`status: compile-only`, `target_channel: manual-custom`) | **AUTHORED** (all boards verified; no evidence blocker) | manual / custom (no USB bundle) | **V1-R4-CREATE-004** ✅ |
+| `Ceiling-USB-RoomIQ` | `S360-KIT-BEDROOM-P` (USB power-variant) | Core, RoomIQ | 100✅ 200✅ | SELV (USB-C) | **yes** — **authored** by V1-R4-CREATE-004 (`status: compile-only`, `target_channel: manual-custom`) | **AUTHORED** (all boards verified) | manual / custom (no USB bundle) | **V1-R4-CREATE-004** ✅ |
 | `Ceiling-USB-AirIQ-RoomIQ` | `S360-KIT-KITCHEN-P` (USB power-variant) | Core, AirIQ `S360-210`, RoomIQ | 100✅ 210✅ 200✅ | SELV (USB-C) | **no** — `missing-product-yaml` | **AUTHOR-NEW** + **blocked-by-evidence** (AirIQ-stack hardware evidence; **not** `S360-410`) | manual / custom (no USB bundle) | **V1-R4-CREATE-005** |
 | `Ceiling-USB-VentIQ-RoomIQ-LED` | `S360-KIT-BATH-POE-LED` (USB power-variant) | Core, VentIQ, RoomIQ, LED `S360-300` | 100✅ 211✅ 200✅ 300✅ | SELV (USB-C) | **no** — `missing-product-yaml` | **AUTHOR-NEW**; LED preview-gated | manual / custom (no USB bundle); LED preview | **V1-R4-CREATE-006** |
 | `Ceiling-USB-RoomIQ-LED` | `S360-KIT-LIVING-P`, `S360-KIT-CORRIDOR-P` (USB power-variant) | Core, RoomIQ, LED `S360-300` | 100✅ 200✅ 300✅ | SELV (USB-C) | **no** — `missing-product-yaml`; no compile-only skeleton | **AUTHOR-NEW**; LED preview-gated | manual / custom (no USB bundle); LED preview | **V1-R4-CREATE-006** |
@@ -271,7 +271,7 @@ behind the relevant evidence gate.
 | 1 | **V1-R4-CREATE-001** ✅ **authored** (2026-05-29) | `Ceiling-POE-RoomIQ` | Core + RoomIQ + PoE | `core-c-poe` + `core-ceiling-presence`; compile-only `ceiling-poe-roomiq.yaml` | `stable-candidate` (`STABLE-TARGET-ROOMIQ-001`; `S360-410`-gated) |
 | 2 | **V1-R4-CREATE-002** | `Ceiling-POE-AirIQ-RoomIQ` | Core + AirIQ + RoomIQ + PoE | `core-c-poe` + `core-ceiling`; compile-only `ceiling-poe-airiq-roomiq.yaml` | `stable-candidate` (`STABLE-TARGET-AIRIQ-ROOMIQ-001`; `S360-410` + AirIQ-stack-gated) |
 | 3 | **V1-R4-CREATE-003** | `Ceiling-POE-RoomIQ-LED` | Core + RoomIQ + LED + PoE | `core-c-poe` + `core-ceiling-presence` (no compile-only skeleton yet) | `preview-candidate` (LED gauntlet; `S360-410`-gated) |
-| 4 | **V1-R4-CREATE-004** | `Ceiling-USB-VentIQ-RoomIQ`, `Ceiling-USB-RoomIQ` | Core + RoomIQ (+ VentIQ) | `core-c-usb` + `core-ceiling-bathroom` / `core-ceiling-presence` | manual / custom (all boards verified; no evidence blocker) |
+| 4 | **V1-R4-CREATE-004** ✅ **authored** (2026-05-30) | `Ceiling-USB-VentIQ-RoomIQ`, `Ceiling-USB-RoomIQ` | Core + RoomIQ (+ VentIQ) | `core-c-usb` + `core-ceiling-bathroom` / `core-ceiling-presence`; board packages + `power_usb` | manual / custom (all boards verified; no evidence blocker) |
 | 5 | **V1-R4-CREATE-005** | `Ceiling-USB-AirIQ-RoomIQ` | Core + AirIQ + RoomIQ | `core-c-usb` + `core-ceiling` | manual / custom (AirIQ-stack-gated) |
 | 6 | **V1-R4-CREATE-006** | `Ceiling-USB-VentIQ-RoomIQ-LED`, `Ceiling-USB-RoomIQ-LED` | Core + RoomIQ + LED (+ VentIQ) | `core-c-usb` + `core-ceiling-bathroom` / `core-ceiling-presence` | manual / custom; LED preview-gated |
 
@@ -309,6 +309,42 @@ evidence-gated row is next, and the LED preview-gated pair is last.
   stays owned by `STABLE-TARGET-ROOMIQ-001` behind the shared `S360-410`
   evidence gate. **CREATE-002..006 stay queued.** `S360-410` remains the
   release gate for every PoE author-new row.
+
+- **2026-05-30 — `V1-R4-CREATE-004` authored the two USB sensor configs.**
+  The two unblocked R4 USB sensor configs — `Ceiling-USB-VentIQ-RoomIQ` (the
+  `S360-KIT-BATH-P` USB power-variant) and `Ceiling-USB-RoomIQ` (the
+  `S360-KIT-BEDROOM-P` USB power-variant) — are now authored as full, complete
+  product configs, each as a config-string-named bundle
+  ([`products/bundles/ceiling-usb-ventiq-roomiq.yaml`](../products/bundles/ceiling-usb-ventiq-roomiq.yaml),
+  [`products/bundles/ceiling-usb-roomiq.yaml`](../products/bundles/ceiling-usb-roomiq.yaml))
+  composed from the `packages/boards/` layer (Core ceiling `S360-100` + VentIQ
+  `S360-211` + RoomIQ `S360-200` board packages) plus the USB-C power package
+  [`packages/hardware/power_usb.yaml`](../packages/hardware/power_usb.yaml) (NOT
+  a PSU board — **no `S360-410`**) plus the base tier and the same behaviour
+  profiles the PoE sensor bundle uses, with a thin compat shim
+  ([`products/sense360-ceiling-usb-ventiq-roomiq.yaml`](../products/sense360-ceiling-usb-ventiq-roomiq.yaml),
+  [`products/sense360-ceiling-usb-roomiq.yaml`](../products/sense360-ceiling-usb-roomiq.yaml))
+  that does nothing but `!include` its bundle. Each carries a
+  [`config/product-catalog.json`](../config/product-catalog.json) row with
+  `status: compile-only` / `target_channel: manual-custom` /
+  `webflash_build_matrix: false` / no `artifact_name` / no `webflash_wrapper` /
+  no kit preset, and is registered as a top-level compile-only target
+  (`ceiling-usb-ventiq-roomiq-product-compile-only`,
+  `ceiling-usb-roomiq-product-compile-only`) in
+  [`config/compile-only-targets.json`](../config/compile-only-targets.json) with
+  `compile_validation_status: pending-ci` (ESPHome was unavailable in the
+  authoring environment, so **no full compile was run and none is fabricated**;
+  a CI `--compile` run is owed). All boards (`S360-100`, `S360-211`, `S360-200`)
+  are `verified` and there is **no evidence blocker** — USB rows carry no
+  `S360-410` PoE caveat. The configs are **manual / custom** (available for
+  manual ESPHome / GitHub use), **not** WebFlash-exposed: no
+  `config/webflash-builds.json` entry; not production / preview / verified /
+  release-ready; not in `release_one_required_configs`. No board
+  `schematic_status` is changed; `manifest.json` / `firmware/sources.json` are
+  untouched; Release-One and the LED preview are unchanged. **CREATE-002 / 003 /
+  005 / 006 stay queued behind their gates.** See
+  [`docs/product-readiness-matrix.md`](product-readiness-matrix.md) and
+  [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md).
 
 ## Out of v1 scope
 

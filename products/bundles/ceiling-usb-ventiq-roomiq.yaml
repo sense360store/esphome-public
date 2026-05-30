@@ -1,0 +1,172 @@
+# ============================================================================
+# SENSE360 BUNDLE — Ceiling-USB-VentIQ-RoomIQ (manual / custom)
+# ============================================================================
+# BUNDLE-LAYER-001 (docs/arch-board-bundle-plan.md §2.2, §3.2).
+#
+# Config-string-named bundle YAML, aligned 1:1 with the catalog config string
+# `Ceiling-USB-VentIQ-RoomIQ`. This is the USB power-axis variant of the
+# WebFlash-shipping `Ceiling-POE-VentIQ-RoomIQ` stable build: the same
+# Core(ceiling) + VentIQ + RoomIQ sensor stack, self-powered over the Core's
+# ESP32-S3 USB-C with NO PoE PSU board. The customer-facing product path
+# `products/sense360-ceiling-usb-ventiq-roomiq.yaml` is a thin compat shim that
+# does nothing but `!include` this bundle (§3.2).
+#
+# Authoring slice : V1-R4-CREATE-004 (the S360-KIT-BATH-P USB power-variant).
+# Source kit      : S360-KIT-BATH-P (PoE Bathroom room bundle), USB power-axis
+#                   variant — sensor composition kit-grounded; the USB power
+#                   token is NOT backed by a sellable bundle SKU (there is no
+#                   USB room bundle). Target channel is therefore manual /
+#                   custom, NOT a kit channel (docs/v1-r4-product-gap.md
+#                   §Power-axis honesty note).
+#
+# Status — what this YAML IS:
+#   A full, complete USB-powered product config available for manual ESPHome /
+#   GitHub use. The package composition is the WebFlash-shipping
+#   `Ceiling-POE-VentIQ-RoomIQ` build with the PoE PSU board swapped for the
+#   USB-C power package (packages/hardware/power_usb.yaml) — no S360-410, no
+#   other PSU board.
+#
+# Status — what this YAML is NOT:
+#   * NOT a WebFlash exposed build. No entry is added to
+#     config/webflash-builds.json; webflash_build_matrix stays false; no
+#     webflash_wrapper is created under products/webflash/; no artifact_name is
+#     declared; no kit preset is added.
+#   * NOT a release artifact. No .bin / version / channel / checksum / GitHub
+#     Release tag / proof row is created.
+#   * NOT production / preview / verified / release-ready. The catalog row
+#     (config/product-catalog.json) is status: compile-only,
+#     target_channel: manual-custom.
+#
+# Board assembly (docs/arch-board-bundle-plan.md §2.2):
+#   S360-100 Core (ceiling) + USB-C power + S360-211 VentIQ + S360-200 RoomIQ
+#
+# Each assembled board is composed through the SKU-aligned board package under
+# `packages/boards/` introduced by BOARD-PACKAGE-LAYER-001/002. The base
+# infrastructure tier and the behaviour profiles stay functional
+# (docs/arch-board-bundle-plan.md §2.3) and are included here unchanged, exactly
+# as the production PoE sibling binds them.
+#
+# Mapping (board package / feature this bundle uses):
+#   core_hardware  (sense360_core_ceiling)    -> packages/boards/s360-100-core-ceiling.yaml
+#   power_config   (USB-C, no PSU board)       -> packages/hardware/power_usb.yaml
+#   ventiq_module  (airiq_bathroom_base)      -> packages/boards/s360-211-ventiq.yaml
+#   roomiq_comfort + roomiq_presence
+#       (comfort_ceiling + presence_ceiling)  -> packages/boards/s360-200-roomiq.yaml
+#   profiles (bathroom / comfort / presence)  -> packages/features/* (unchanged)
+#
+# USB variants include NO PoE PSU board (no S360-410) and NO fan / LED token.
+# LED is intentionally OMITTED — the config string `Ceiling-USB-VentIQ-RoomIQ`
+# carries no `LED` token. FanTRIAC is intentionally OMITTED (no fan token).
+#
+# Customer usage in their ESPHome config (pin to a ref):
+#
+#   packages:
+#     sense360_firmware:
+#       url: https://github.com/sense360store/esphome-public
+#       files:
+#         - products/sense360-ceiling-usb-ventiq-roomiq.yaml
+#       refresh: 1d
+#
+#   substitutions:
+#     device_name: sense360-bathroom-usb
+#     friendly_name: "Bathroom Sense360 USB"
+# ============================================================================
+
+substitutions:
+  # === Device Configuration ===
+  # ESPHome hostnames are limited to 31 chars; this is the shortened hostname
+  # only. WebFlash identity (config string, text sensors) remains
+  # `Ceiling-USB-VentIQ-RoomIQ`.
+  device_name: s360-ceil-usb-ventiq-roomiq
+  friendly_name: Sense360 Ceiling Bathroom
+  device_sku: S360-CORE-C-USB
+  device_version: "0.0.0-manual-custom"
+  timezone: "America/New_York"
+
+  # === Logging ===
+  log_level: INFO
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "false"
+
+  # === WiFi AP fallback ===
+  # ESPHome enforces a 32-character maximum on the AP SSID. Override with a
+  # short, human-readable label that identifies the USB VentIQ+RoomIQ build
+  # during AP/setup mode.
+  fallback_ssid: "S360 USB VentIQ RoomIQ"
+
+  # === VentIQ (bathroom) thresholds ===
+  shower_humidity_threshold: "75"
+  shower_humidity_rate: "5"
+  mold_risk_humidity: "65"
+  mold_risk_duration_minutes: "30"
+
+# ============================================================================
+# PACKAGE INCLUDES (board layer + base + profiles)
+# ============================================================================
+packages:
+  # === External Components (radar firmware) ===
+  external_components: !include ../../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../../packages/base/wifi.yaml
+  base_logging: !include ../../packages/base/logging.yaml
+  base_api: !include ../../packages/base/api_encrypted.yaml
+  base_ota: !include ../../packages/base/ota.yaml
+  base_time: !include ../../packages/base/time.yaml
+
+  # === Sense360 Core (Ceiling, S360-100-R4) ===
+  # Board package wraps packages/hardware/sense360_core_ceiling.yaml.
+  core_board: !include ../../packages/boards/s360-100-core-ceiling.yaml
+
+  # === Power: USB-C (no PSU board) ===
+  # USB-C power package — the Core is self-powered over its ESP32-S3 USB-C
+  # connector. This is NOT a PSU board: there is no S360-410 (PoE) or S360-400
+  # (240V) board in this stack. See packages/hardware/power_usb.yaml.
+  power_usb: !include ../../packages/hardware/power_usb.yaml
+
+  # === Sense360 LED (S360-300) ===
+  # Intentionally NOT included. The config string `Ceiling-USB-VentIQ-RoomIQ`
+  # does not carry the `LED` token; the LED-bearing USB variant is a distinct
+  # config string (`Ceiling-USB-VentIQ-RoomIQ-LED`, V1-R4-CREATE-006).
+
+  # === Sense360 VentIQ (S360-211, bathroom-focused air quality) ===
+  # Board package wraps packages/expansions/airiq_bathroom_base.yaml. The
+  # VentIQ display sensors / automations stay in the feature profile.
+  ventiq_board: !include ../../packages/boards/s360-211-ventiq.yaml
+  ventiq_profile: !include ../../packages/features/bathroom_profile.yaml
+
+  # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
+  # Board package wraps packages/expansions/comfort_ceiling.yaml +
+  # presence_ceiling.yaml. The RoomIQ display sensors stay in the profiles.
+  roomiq_board: !include ../../packages/boards/s360-200-roomiq.yaml
+  roomiq_comfort_profile: !include ../../packages/features/comfort_basic_profile.yaml
+  roomiq_presence_profile: !include ../../packages/features/presence_basic_profile.yaml
+
+  # === Device Health & Diagnostics ===
+  health: !include ../../packages/features/device_health.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} WebFlash Config"
+    lambda: |-
+      return {"Ceiling-USB-VentIQ-RoomIQ"};
+    update_interval: never
+    entity_category: diagnostic

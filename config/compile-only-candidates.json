@@ -73,7 +73,9 @@
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
     "Ceiling-POE-FanDAC",
-    "Ceiling-POE-FanPWM"
+    "Ceiling-POE-FanPWM",
+    "Ceiling-USB-VentIQ-RoomIQ",
+    "Ceiling-USB-RoomIQ"
   ],
   "totals": {
     "candidates": 26,
@@ -315,19 +317,18 @@
       "rank": 12,
       "lane": "usb-non-fan",
       "use_case": "USB-powered Ceiling Core + RoomIQ without VentIQ / AirIQ / fan / LED.",
-      "proposed_product_yaml": "products/compile-only/ceiling-usb-roomiq.yaml",
-      "candidate_status": "needs-product-yaml",
-      "reason": "Sibling of Ceiling-USB plus RoomIQ. Same USB-family chain.",
+      "proposed_product_yaml": "products/sense360-ceiling-usb-roomiq.yaml",
+      "candidate_status": "ready-for-product-yaml",
+      "reason": "Authored as a manual / custom product by V1-R4-CREATE-004 (products/sense360-ceiling-usb-roomiq.yaml shim + products/bundles/ceiling-usb-roomiq.yaml bundle) and registered as the compile-only target ceiling-usb-roomiq-product-compile-only (pending-ci). USB power-axis variant of the authored Ceiling-POE-RoomIQ; Core (S360-100) + RoomIQ (S360-200) boards verified, no USB PSU board (no S360-410), no evidence blocker. The remaining blockers gate WebFlash / release promotion only, not manual authoring.",
       "blockers": [
-        "USB-family-scope-decision-not-recorded",
+        "USB-family-WebFlash-onboarding-not-opened",
         "PACKAGE-USB-001-not-opened",
         "PRODUCT-USB-001-not-opened",
-        "no-USB-PSU-board-in-hardware-catalog",
-        "USB-on-S360-100-is-debug-only"
+        "no-sellable-USB-room-bundle"
       ],
       "would_be_webflash_exposed_now": false,
-      "compile_only_safe": false,
-      "notes": "Same USB-family prerequisites as Ceiling-USB."
+      "compile_only_safe": true,
+      "notes": "Authored manual / custom by V1-R4-CREATE-004 and now listed in currently_compile_only_config_strings; NOT WebFlash-exposed (no artifact_name, no webflash_wrapper, no config/webflash-builds.json row, no kit preset). compile_validation_status of the registered compile-only target is pending-ci; a CI --compile run is owed."
     },
     {
       "config_string": "Ceiling-USB-VentIQ",
@@ -394,20 +395,18 @@
       "rank": 16,
       "lane": "usb-non-fan",
       "use_case": "USB-powered Ceiling Core + VentIQ + RoomIQ without AirIQ / fan / LED. The USB analogue of Release-One.",
-      "proposed_product_yaml": "products/compile-only/ceiling-usb-ventiq-roomiq.yaml",
-      "candidate_status": "needs-product-yaml",
-      "reason": "Sibling of Release-One on USB power. Useful as the canonical USB candidate once the USB-family chain opens.",
+      "proposed_product_yaml": "products/sense360-ceiling-usb-ventiq-roomiq.yaml",
+      "candidate_status": "ready-for-product-yaml",
+      "reason": "Authored as a manual / custom product by V1-R4-CREATE-004 (products/sense360-ceiling-usb-ventiq-roomiq.yaml shim + products/bundles/ceiling-usb-ventiq-roomiq.yaml bundle) and registered as the compile-only target ceiling-usb-ventiq-roomiq-product-compile-only (pending-ci). USB power-axis variant of the WebFlash-shipping Ceiling-POE-VentIQ-RoomIQ; Core (S360-100) + VentIQ (S360-211) + RoomIQ (S360-200) boards verified, no USB PSU board (no S360-410), no evidence blocker. The remaining blockers gate WebFlash / release promotion only, not manual authoring.",
       "blockers": [
-        "USB-family-scope-decision-not-recorded",
+        "USB-family-WebFlash-onboarding-not-opened",
         "PACKAGE-USB-001-not-opened",
         "PRODUCT-USB-001-not-opened",
-        "no-USB-PSU-board-in-hardware-catalog",
-        "USB-on-S360-100-is-debug-only",
-        "VentIQ-S360-211-schematic-verification"
+        "no-sellable-USB-room-bundle"
       ],
       "would_be_webflash_exposed_now": false,
-      "compile_only_safe": false,
-      "notes": "Same USB-family prerequisites as Ceiling-USB."
+      "compile_only_safe": true,
+      "notes": "Authored manual / custom by V1-R4-CREATE-004 and now listed in currently_compile_only_config_strings; NOT WebFlash-exposed (no artifact_name, no webflash_wrapper, no config/webflash-builds.json row, no kit preset). compile_validation_status of the registered compile-only target is pending-ci; a CI --compile run is owed."
     },
     {
       "config_string": "Ceiling-USB-LED",

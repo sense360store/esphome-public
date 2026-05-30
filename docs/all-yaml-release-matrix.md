@@ -100,7 +100,7 @@ Release-selectable in this document means exactly that: present in
 | `manual-candidate-only` | Top-level product YAML that **only** participates in the workflow_dispatch-only manual / non-release artifact lane; no `artifact_name`, no `webflash_build_matrix`, no release. | `config/manual-firmware-artifacts.json` candidate |
 | `compile-only` | CI-validation skeleton under `products/compile-only/`; compiles in CI to prove the combination is valid; never released and never WebFlash-exposed. | location under `products/compile-only/` and entry in `config/compile-only-targets.json` |
 | `blocked` | Top-level product YAML with a catalog `status: blocked` or a `hardware-pending` posture that has no manual lane participation; held until upstream evidence clears. | `config/product-catalog.json` `status: blocked` or `hardware-pending` (with no manual-lane row) |
-| `not-a-product-entrypoint` | Either a WebFlash wrapper under `products/webflash/` (which re-includes a canonical product YAML), a `legacy-compatible` pre-WebFlash YAML retained for manual / custom users, or a repo helper such as `products/secrets.yaml`. | location under `products/webflash/`, catalog `status: legacy-compatible`, or no catalog row at all |
+| `not-a-product-entrypoint` | Either a WebFlash wrapper under `products/webflash/` (which re-includes a canonical product YAML), a `legacy-compatible` pre-WebFlash YAML retained for manual / custom users, an authored **manual / custom** product YAML (catalog `status: compile-only`, `target_channel: manual-custom` — installable manually but not a WebFlash release entry point), a config-string-named bundle under `products/bundles/` (composition source `!include`d by a shim, not a standalone entry point), or a repo helper such as `products/secrets.yaml`. | location under `products/webflash/` or `products/bundles/`, catalog `status: legacy-compatible` or `status: compile-only`, or no catalog row at all |
 
 A YAML belongs to **exactly one** class. The classifier
 [`scripts/classify_all_yaml_release_matrix.py`](../scripts/classify_all_yaml_release_matrix.py)
@@ -248,9 +248,32 @@ that output.
 ### `not-a-product-entrypoint`
 
 This class collects everything that is **not** a standalone release
-entry point. It splits into three groups: WebFlash wrappers, legacy
-pre-WebFlash YAMLs retained for manual / custom users, and helper
-YAMLs. None is release-selectable.
+entry point. It splits into: WebFlash wrappers, legacy pre-WebFlash
+YAMLs retained for manual / custom users, the authored **manual /
+custom** USB sensor product YAMLs (V1-R4-CREATE-004), the
+config-string-named bundles those products and the Release-One product
+`!include`, and helper YAMLs. None is release-selectable.
+
+**Manual / custom product YAMLs and their bundles** (V1-R4-CREATE-004) —
+authored top-level USB sensor products available for manual ESPHome /
+GitHub use, **not** WebFlash-exposed. Each top-level shim carries a
+catalog row with `status: compile-only` / `target_channel: manual-custom`
+/ `webflash_build_matrix: false` / no `artifact_name` / no
+`webflash_wrapper` / no kit preset, and is registered as a compile-only
+target (`compile_validation_status: pending-ci`). USB variants carry **no
+PoE PSU board** (no `S360-410`); all boards are `verified`:
+
+| YAML path | Config string | Composition | Compile-only target | Notes |
+|---|---|---|---|---|
+| `products/sense360-ceiling-usb-ventiq-roomiq.yaml` (shim) | `Ceiling-USB-VentIQ-RoomIQ` | `!include`s `products/bundles/ceiling-usb-ventiq-roomiq.yaml` (S360-100 + USB-C power + S360-211 + S360-200) | `ceiling-usb-ventiq-roomiq-product-compile-only` (`pending-ci`) | USB power-axis variant of Release-One; manual / custom; not WebFlash-exposed. |
+| `products/sense360-ceiling-usb-roomiq.yaml` (shim) | `Ceiling-USB-RoomIQ` | `!include`s `products/bundles/ceiling-usb-roomiq.yaml` (S360-100 + USB-C power + S360-200) | `ceiling-usb-roomiq-product-compile-only` (`pending-ci`) | Smallest RoomIQ-only USB stack; manual / custom; not WebFlash-exposed. |
+| `products/bundles/ceiling-usb-ventiq-roomiq.yaml` (bundle) | (composition source) | board-package composition `!include`d by the shim above | — | Not a standalone entry point. |
+| `products/bundles/ceiling-usb-roomiq.yaml` (bundle) | (composition source) | board-package composition `!include`d by the shim above | — | Not a standalone entry point. |
+
+The seven production / preview / blocked PoE bundles under
+[`products/bundles/`](../products/bundles/) (e.g.
+`ceiling-poe-ventiq-roomiq.yaml`) are likewise `not-a-product-entrypoint`
+composition sources `!include`d by their canonical shims.
 
 **WebFlash wrappers** under [`products/webflash/`](../products/webflash/)
 — each re-includes its canonical product YAML; the canonical YAML
@@ -309,6 +332,7 @@ slice before promotion.
 | `Ceiling-POE-FanDAC` | `manual-candidate-only` | Catalog row (`hardware-pending`); top-level full compile (`validated-full-compile`); manual-lane artifact path | WebFlash wrapper; `artifact_name`; `webflash_build_matrix: true`; `config/webflash-builds.json` row; Cloudlift S12 harness / product-bench evidence; S360-312 schematic / BOM verification; FanDAC↔AirIQ mutex still enforced | `WEBFLASH-DAC-001` / `RELEASE-DAC-001` / `WF-IMPORT-DAC-001` (all blocked). **Not approved by this PR.** |
 | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | `blocked` | Reference-only WebFlash wrapper; catalog row (`blocked`, `HW-005`) | Everything else — HW-005 S360-320 schematic; pin-map resolution; PACKAGE-TRIAC-001; COMPLIANCE-001; WebFlash manual-warning UX | Long chain; remains `blocked` until HW-005 clears. **Not approved by this PR.** |
 | `Ceiling-POE-RoomIQ` | `blocked` (`PRODUCT-POE-410-001`); **authored** by V1-R4-CREATE-001 | Top-level product YAML (`products/sense360-ceiling-poe-roomiq.yaml`); catalog row (`status: blocked`, `target_channel: stable-candidate`); compile-only target registered (`pending-ci`, full compile owed) | `S360-410` schematic-verification chain (`PRODUCT-POE-410-001` / `PACKAGE-POE-410-001`: BOM cross-check, `S360-410 schematic_status: verified` JSON PR, Release-One PoE caveat closure); then WebFlash wrapper; `artifact_name`; `webflash_build_matrix: true`; `config/webflash-builds.json` row | `STABLE-TARGET-ROOMIQ-001` (`S360-410`-gated). **Not approved by this PR** — authored and release-blocked only. |
+| `Ceiling-USB-VentIQ-RoomIQ`, `Ceiling-USB-RoomIQ` | `compile-only` (catalog); **authored** manual / custom by V1-R4-CREATE-004 | Top-level product YAMLs (shims) + board-package bundles; catalog rows (`status: compile-only`, `target_channel: manual-custom`); compile-only targets registered (`pending-ci`, full compile owed); all boards `verified`, no PoE PSU, no evidence blocker | Not a stable candidate — there is **no sellable USB room bundle**, so these stay manual / custom. WebFlash promotion (if ever) would need a deliberate USB-family scope decision + WebFlash wrapper + `artifact_name` + `webflash_build_matrix: true` + `config/webflash-builds.json` row | None — manual / custom only. **Not a candidate addition here.** |
 | Other room combos (`Ceiling-POE-VentIQ` alone, `Ceiling-POE-AirIQ`, `Ceiling-POE-AirIQ-RoomIQ`, `Ceiling-POE`) | compile-only | Compile-only skeleton; CI validation row | Top-level product YAML; catalog row; WebFlash wrapper; `artifact_name`; `webflash_build_matrix: true`; `config/webflash-builds.json` row; product / WebFlash / release readiness | Out of scope — no Release-One kit ships these as standalone configs today (`Ceiling-POE-AirIQ-RoomIQ` is queued for authoring as V1-R4-CREATE-002). **Not a candidate addition here.** |
 | Legacy Core / Core-Voice / Mini configs (`products/sense360-core-*.yaml`, `products/sense360-mini-*.yaml`, `products/sense360-poe.yaml`, `products/sense360-fan-pwm.yaml`) | `not-a-product-entrypoint` (legacy-compatible) | Pre-WebFlash YAMLs retained for manual / custom users | Re-onboarding through PRODUCT-GAP-001 / WEBFLASH-GAP-001 / RELEASE-GAP-001; no claim that any of these would map cleanly to a WebFlash `config_string` without further work | Not in any current follow-up. **Not a candidate addition.** |
 

@@ -20,10 +20,11 @@
   "totals": {
     "combinations": 168,
     "by_status": {
-      "missing-product-yaml": 126,
+      "missing-product-yaml": 124,
       "blocked-hardware": 40,
       "webflash-shipping": 1,
-      "webflash-preview": 1
+      "webflash-preview": 1,
+      "compile-only-candidate": 2
     }
   },
   "combinations": [
@@ -2690,8 +2691,9 @@
       "room_sense": "RoomIQ",
       "fan": "none",
       "led": "none",
-      "status": "missing-product-yaml",
-      "notes": "No product YAML in config/product-catalog.json and no entry in config/webflash-builds.json."
+      "status": "compile-only-candidate",
+      "product_yaml": "products/sense360-ceiling-usb-roomiq.yaml",
+      "notes": "Catalog status=compile-only."
     },
     {
       "config_string": "Ceiling-USB-RoomIQ-LED",
@@ -3057,8 +3059,9 @@
       "room_sense": "RoomIQ",
       "fan": "none",
       "led": "none",
-      "status": "missing-product-yaml",
-      "notes": "No product YAML in config/product-catalog.json and no entry in config/webflash-builds.json."
+      "status": "compile-only-candidate",
+      "product_yaml": "products/sense360-ceiling-usb-ventiq-roomiq.yaml",
+      "notes": "Catalog status=compile-only."
     },
     {
       "config_string": "Ceiling-USB-VentIQ-RoomIQ-LED",
