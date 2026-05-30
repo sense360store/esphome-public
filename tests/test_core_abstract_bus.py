@@ -110,7 +110,13 @@ SENSE360_CORE_MAPPING = REPO_ROOT / "packages" / "hardware" / "sense360_core_map
 # `packages/hardware/led_ring_ceiling.yaml` (now a thin alias) into the
 # SKU-aligned board package; the GPIO38 content-assertion travels with it.
 LED_RING_CEILING_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-300-led.yaml"
-AIRIQ_CEILING_S3_PACKAGE = REPO_ROOT / "packages" / "expansions" / "airiq_ceiling_s3.yaml"
+# PACKAGE-RENAME-002 (docs/arch-board-bundle-plan.md §5.5): the authoritative,
+# self-contained AirIQ Ceiling-S3 definition (incl. `airiq_status_led_pin:
+# GPIO7` and the `i2c_primary` bus binding) moved from
+# `packages/expansions/airiq_ceiling_s3.yaml` (now a thin alias) into the
+# SKU-aligned board overlay below; the GPIO7 / GPIO8 content-assertions travel
+# with it.
+AIRIQ_CEILING_S3_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-210-airiq-ceiling-s3.yaml"
 SENSE360_CORE_CEILING_S3 = REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling_s3.yaml"
 
 PACKAGES_DIR = REPO_ROOT / "packages"
@@ -678,9 +684,17 @@ SHARED_I2C_BUS_PACKAGES = [
 # (``airiq_ceiling_s3.yaml``, ``comfort_ceiling_s3.yaml``) are deliberately
 # out of scope. (The Mini helper was removed by PRODUCT-DEP-MINI-001.)
 SHARED_I2C_CONSUMER_DEFAULTS = [
+    # PACKAGE-RENAME-002 (docs/arch-board-bundle-plan.md §5.5): the
+    # authoritative ceiling / wall AirIQ definitions (incl. their
+    # `airiq_i2c_id: core_i2c` default) moved from
+    # `packages/expansions/airiq_ceiling.yaml` / `airiq_wall.yaml` (now thin
+    # aliases) into the SKU-aligned board package + overlay; the consumer-default
+    # assertion travels with the content. `airiq.yaml` is the generic base
+    # driver (no board package, cross-referenced not folded) and stays
+    # authoritative here.
     (REPO_ROOT / "packages" / "expansions" / "airiq.yaml", "airiq_i2c_id"),
-    (REPO_ROOT / "packages" / "expansions" / "airiq_wall.yaml", "airiq_i2c_id"),
-    (REPO_ROOT / "packages" / "expansions" / "airiq_ceiling.yaml", "airiq_i2c_id"),
+    (REPO_ROOT / "packages" / "boards" / "s360-210-airiq-wall.yaml", "airiq_i2c_id"),
+    (REPO_ROOT / "packages" / "boards" / "s360-210-airiq.yaml", "airiq_i2c_id"),
     (REPO_ROOT / "packages" / "expansions" / "airiq_bathroom_base.yaml", "bathroom_i2c_id"),
     (REPO_ROOT / "packages" / "expansions" / "airiq_bathroom_pro.yaml", "bathroom_i2c_id"),
     (REPO_ROOT / "packages" / "expansions" / "comfort.yaml", "comfort_i2c_id"),
@@ -970,8 +984,15 @@ class SharedI2CBusTests(unittest.TestCase):
         # allowed to keep ``i2c_primary``. (The Mini-family helpers were
         # removed by PRODUCT-DEP-MINI-001 and are no longer on disk.) Every
         # other active reference to a legacy id is a regression.
+        #
+        # PACKAGE-RENAME-002 (§3.3/§5.5): the AirIQ Ceiling-S3 source of truth
+        # moved into `packages/boards/s360-210-airiq-ceiling-s3.yaml` (the
+        # legacy `airiq_ceiling_s3.yaml` is now a thin alias). The board overlay
+        # carries the same out-of-scope `i2c_primary` binding, so it joins the
+        # allow-list alongside the alias.
         out_of_scope_paths = {
             REPO_ROOT / "packages" / "expansions" / "airiq_ceiling_s3.yaml",
+            REPO_ROOT / "packages" / "boards" / "s360-210-airiq-ceiling-s3.yaml",
             REPO_ROOT / "packages" / "expansions" / "comfort_ceiling_s3.yaml",
             REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling_s3.yaml",
         }

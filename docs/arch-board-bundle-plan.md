@@ -92,7 +92,13 @@ compliance-gated — see
 > LED family has since been flipped by **PACKAGE-RENAME-001** (§7 item 4): the
 > `s360-300-led*` board packages are now authoritative and the `led_ring_*`
 > paths are thin aliases, with both named tests repointed onto the board
-> package. The remaining families flip in later PACKAGE-RENAME slices.)* The
+> package. The **AirIQ** family (S360-210) has likewise been flipped by
+> **PACKAGE-RENAME-002**: the `s360-210-airiq` / `-wall` / `-ceiling-s3` board
+> packages are now authoritative and the `airiq_ceiling` / `airiq_wall` /
+> `airiq_ceiling_s3` paths are thin aliases, with the `test_core_abstract_bus.py`
+> AirIQ assertions repointed (the generic base driver `airiq.yaml` stays a
+> cross-referenced, un-folded driver). The remaining families flip in later
+> PACKAGE-RENAME slices.)* The
 > **mains boards `S360-310` / `S360-320` / `S360-400` remain OUT of the board
 > layer for now** (compliance-gated, deferred to a later slice), and
 > `S360-311` / `S360-312` stay expansions behind their evidence gates (below).
@@ -583,7 +589,36 @@ merges and CI is green.
    - Dependency: BUNDLE-LAYER-001.
 
 4. **PACKAGE-RENAME-001 … 00N** — SKU-aligned renames in safe slices
-   - **Status: in progress — PACKAGE-RENAME-001 (LED) done (2026-05-30).**
+   - **Status: in progress — PACKAGE-RENAME-001 (LED) and PACKAGE-RENAME-002
+     (AirIQ) done (2026-05-30).**
+   - **PACKAGE-RENAME-002 (AirIQ) — DONE (2026-05-30).** The S360-210 AirIQ
+     family source-of-truth is flipped: the SKU-aligned board package
+     `packages/boards/s360-210-airiq.yaml` (plus its `-wall` and `-ceiling-s3`
+     overlays) now holds the authoritative, self-contained definition, and the
+     three legacy `packages/expansions/airiq_ceiling.yaml` / `airiq_wall.yaml` /
+     `airiq_ceiling_s3.yaml` paths are reduced to thin `!include` aliases of
+     those board packages (paths preserved per §3.3 — legacy
+     `sense360-core-*` ceiling/wall products and the AirIQ compile-only targets
+     still bind them; no alias dropped while a live binder exists). The generic
+     base driver `packages/expansions/airiq.yaml` is **cross-referenced, not
+     folded** — it has no board package and stays authoritative (mirroring how
+     `ceiling_halo_leds.yaml` stayed a feature in RENAME-001), so its
+     `airiq_i2c_id` consumer-default assertion is unchanged. The
+     content-asserting checks that travel with the moved AirIQ content per §5.5
+     (`test_core_abstract_bus.py`'s `AIRIQ_CEILING_S3_PACKAGE`, the ceiling /
+     wall entries of `SHARED_I2C_CONSUMER_DEFAULTS`, and the `i2c_primary`
+     allow-list in `test_no_legacy_bus_id_in_any_active_consumer_line`) are
+     repointed onto the board packages in the **same** slice, assertions intact.
+     Resolution is proven byte-identical (the board-package bodies are
+     character-for-character equal to the pre-flip legacy file bodies, reached
+     through the preserved `!include` paths); full `esphome compile` is
+     **pending-ci** (esphome not available in this environment — metadata
+     validators run and green, full suite 1154 tests / 3 skipped). No
+     config-string, artifact, WebFlash, readiness, lifecycle, or
+     `schematic_status` change. **Next slice: PACKAGE-RENAME-003 (VentIQ),
+     which also folds the `airiq_bathroom_base.yaml` / `airiq_bathroom_pro.yaml`
+     pair (S360-211 family, deliberately out of scope here).**
+   - **PACKAGE-RENAME-001 (LED) done (2026-05-30).**
      The LED family source-of-truth is flipped: the SKU-aligned board package
      `packages/boards/s360-300-led.yaml` (plus its `-wall` / `-mic-ceiling` /
      `-mic-wall` overlays) now holds the authoritative, self-contained
@@ -600,11 +635,11 @@ merges and CI is green.
      **pending-ci** (esphome not available in this environment — metadata
      validators run and green). LED stays preview-gated (no config-string,
      artifact, WebFlash, readiness, or status change; LED not marked stable).
-     **Next slice: PACKAGE-RENAME-002 (AirIQ).**
    - Scope: per board family, rebind consumers onto the board package and
      retire the legacy functional name into an **alias** (§3.3); one board
      family (or a few low-binder packages) per slice. Suggested ordering by
-     blast radius: LED (`led_ring_*`, done) → AirIQ → VentIQ → RoomIQ
+     blast radius: LED (`led_ring_*`, done) → AirIQ (`airiq_*`, done) → VentIQ
+     (`ventiq*` + `airiq_bathroom_*`) → RoomIQ
      (`presence_*`/`comfort_*`, highest binder count, last) → PSU → mains
      drivers. A later slice promotes `S360-311`/`S360-312` to board packages
      **once** `HW-PINMAP-311/312-FOLLOWUP` evidence closes.

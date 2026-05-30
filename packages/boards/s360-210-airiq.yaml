@@ -1,56 +1,339 @@
 # ============================================================================
 # Sense360 AirIQ — Canonical Board Package (S360-210-R4)
 # ============================================================================
-# BOARD-PACKAGE-LAYER-002 — the SKU-aligned board layer, sensor boards.
-#
-# SKU-aligned canonical entry for the Sense360 AirIQ air-quality board (SKU
-# `S360-210`, revision R4, friendly name "Sense360 AirIQ";
-# `schematic_status: verified` per config/hardware-catalog.json). AirIQ is the
-# comprehensive indoor-air-quality sensor board
-# (docs/arch-board-bundle-plan.md §2.1): particulate matter, CO2, VOC/NOx, and
-# (ceiling variant) barometric pressure + gas detection on the shared core_i2c
+# PACKAGE-RENAME-002 (docs/arch-board-bundle-plan.md §7 item 4) — the AirIQ
+# family is the second source-of-truth flip (after LED). This board package is
+# now the AUTHORITATIVE, self-contained definition of the Sense360 AirIQ
+# air-quality board (SKU `S360-210`, revision R4, friendly name
+# "Sense360 AirIQ"; `schematic_status: verified` per
+# config/hardware-catalog.json). AirIQ is the comprehensive indoor-air-quality
+# sensor board (docs/arch-board-bundle-plan.md §2.1): particulate matter, CO2,
+# VOC/NOx, and (ceiling variant) barometric pressure on the shared core_i2c
 # bus (CORE-ABSTRACT-BUS-001B).
 #
-# This canonical base composes the representative **ceiling-mount** AirIQ
-# stack:
+# This canonical base IS the representative **ceiling-mount** AirIQ stack:
 #
-#   - packages/expansions/airiq_ceiling.yaml
-#     (SPS30 PM @ 0x69, SGP41 VOC/NOx @ 0x59, SCD41 CO2 @ 0x62, BMP390
-#      pressure @ 0x77, MiCS4514 gas — all on `airiq_i2c_id: core_i2c`)
+#   - SPS30 PM @ 0x69, SGP41 VOC/NOx @ 0x59, SCD41 CO2 @ 0x62, BMP390
+#     pressure @ 0x77 — all on `airiq_i2c_id: core_i2c`.
 #
-# Mirroring the Core pattern from BOARD-PACKAGE-LAYER-001, this board package
-# is a thin `!include` wrapper over the existing functional package, so the
-# resolved behaviour is byte-identical to the legacy path. The wall-mount and
-# S3-lineage variants are the thin overlays `s360-210-airiq-wall.yaml` and
+# Source-of-truth inversion (docs/arch-board-bundle-plan.md §3.3, §5.5): the
+# content below previously lived in `packages/expansions/airiq_ceiling.yaml`
+# and this package was a thin `!include` wrapper over it. That is now inverted
+# — the definition lives here and `packages/expansions/airiq_ceiling.yaml` is a
+# thin alias that `!include`s this package, so the resolved behaviour is
+# byte-identical to the legacy path. The wall-mount and S3-lineage variants are
+# the thin overlays `s360-210-airiq-wall.yaml` and
 # `s360-210-airiq-ceiling-s3.yaml`.
 #
 # ----------------------------------------------------------------------------
-# Folded source packages (docs/arch-board-bundle-plan.md §2.1)
+# Variant map (docs/arch-board-bundle-plan.md §2.1)
 # ----------------------------------------------------------------------------
-#   ceiling AirIQ : airiq_ceiling.yaml      (this base; full ceiling suite)
-#   wall AirIQ    : airiq_wall.yaml         (s360-210-airiq-wall.yaml)
-#   base driver   : airiq.yaml              (generic SPS30 + SGP41 + SCD41
-#                                            base hardware driver; ceiling adds
-#                                            BMP390 + MiCS4514 on top —
-#                                            cross-referenced, not double-bound)
-#   S3 lineage    : airiq_ceiling_s3.yaml   (s360-210-airiq-ceiling-s3.yaml;
-#                                            kept a distinct lineage, see that
-#                                            overlay)
+#   ceiling AirIQ : THIS file                     (full ceiling suite, core_i2c)
+#   wall AirIQ    : s360-210-airiq-wall.yaml       (wall form factor, core_i2c)
+#   S3 lineage    : s360-210-airiq-ceiling-s3.yaml (distinct pre-001B lineage,
+#                                                    i2c_primary + status LED)
+#
+# Base driver (NOT folded): `packages/expansions/airiq.yaml` stays the generic
+# SPS30 + SGP41 + SCD41 base hardware driver (ceiling adds BMP390 on top). It is
+# cross-referenced by features (airiq_advanced, fan_dac,
+# ceiling_led_ring_air_quality) and has no board package — it is NOT one of the
+# variant board packages and is left authoritative, mirroring how
+# `ceiling_halo_leds.yaml` stayed a feature in PACKAGE-RENAME-001.
+#
+# Legacy aliases (paths preserved, retained while live binders exist; §3.3):
+#   airiq_ceiling.yaml      -> !include this file
+#   airiq_wall.yaml         -> !include s360-210-airiq-wall.yaml
+#   airiq_ceiling_s3.yaml   -> !include s360-210-airiq-ceiling-s3.yaml
 #
 # AirIQ and VentIQ (S360-211) are mutually exclusive air-quality modules per
 # docs/release-one.md — see the S360-211 VentIQ board package.
-#
-# ----------------------------------------------------------------------------
-# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3, §5.5)
-# ----------------------------------------------------------------------------
-# This package is additive: no product or test references it in this slice. The
-# legacy `packages/expansions/airiq*.yaml` paths are preserved unchanged as the
-# source of truth — they are NOT rewired to one-line includes in this slice
-# because `tests/test_core_abstract_bus.py` asserts on the self-contained text
-# of `airiq_ceiling.yaml` / `airiq_wall.yaml` / `airiq.yaml` (the
-# `airiq_i2c_id` consumer defaults). The source-of-truth flip + test repoint is
-# owned by a later PACKAGE-RENAME slice / CI-REFACTOR-VERIFY-001 (§5.5).
 # ============================================================================
 
-packages:
-  board_airiq: !include ../expansions/airiq_ceiling.yaml
+substitutions:
+  module_sku: S360-AIR-C
+  module_variant: ceiling
+
+  # I2C Configuration (Ceiling reuses the shared core_i2c bus per
+  # CORE-ABSTRACT-BUS-001B).
+  airiq_i2c_sda: GPIO48
+  airiq_i2c_scl: GPIO45
+  # Use the existing shared Core bus defined by the core hardware package
+  # to avoid duplicate I2C declarations when multiple modules are enabled
+  # together.
+  airiq_i2c_id: core_i2c
+
+  # Sensor update intervals
+  airiq_sps30_update: 30s
+  airiq_scd41_update: 30s
+  airiq_sgp41_update: 30s
+  airiq_bmp390_update: 60s
+
+  # SPS30 auto-cleaning interval (7 days default)
+  airiq_sps30_cleaning_interval: "604800s"
+
+  # CO2 calibration settings
+  co2_auto_calibration: "true"
+
+# I2C Bus Configuration
+# The bus itself is declared by the core hardware package; the module only
+# references it to prevent duplicate I2C definitions when combined with other
+# expansions (e.g., LED ring, comfort, presence).
+
+# ============================================================================
+# SENSORS
+# ============================================================================
+sensor:
+  # SPS30 - Particulate Matter Sensor
+  - platform: sps30
+    id: sps30_sensor
+    i2c_id: ${airiq_i2c_id}
+    address: 0x69
+
+    pm_1_0:
+      id: airiq_pm1_0
+      name: "${friendly_name} PM1.0"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pm_2_5:
+      id: airiq_pm2_5
+      name: "${friendly_name} PM2.5"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pm_4_0:
+      id: airiq_pm4_0
+      name: "${friendly_name} PM4.0"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pm_10_0:
+      id: airiq_pm10_0
+      name: "${friendly_name} PM10"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    # Particle counts (number concentration)
+    pmc_0_5:
+      id: airiq_pmc0_5
+      name: "${friendly_name} PMC 0.5"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pmc_1_0:
+      id: airiq_pmc1_0
+      name: "${friendly_name} PMC 1.0"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pmc_2_5:
+      id: airiq_pmc2_5
+      name: "${friendly_name} PMC 2.5"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pmc_4_0:
+      id: airiq_pmc4_0
+      name: "${friendly_name} PMC 4.0"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pmc_10_0:
+      id: airiq_pmc10_0
+      name: "${friendly_name} PMC 10"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pm_size:
+      id: airiq_pm_size
+      name: "${friendly_name} Typical Particle Size"
+      internal: true
+      accuracy_decimals: 2
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    auto_cleaning_interval: ${airiq_sps30_cleaning_interval}
+    update_interval: ${airiq_sps30_update}
+
+  # SGP41 - VOC/NOx Sensor
+  - platform: sgp4x
+    id: sgp41_sensor
+    i2c_id: ${airiq_i2c_id}
+    address: 0x59
+
+    voc:
+      id: airiq_voc_index
+      name: "${friendly_name} VOC Index"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sgp41_update}
+
+    nox:
+      id: airiq_nox_index
+      name: "${friendly_name} NOx Index"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sgp41_update}
+
+    compensation:
+      temperature_source: airiq_scd41_temperature
+      humidity_source: airiq_scd41_humidity
+
+    store_baseline: true
+    update_interval: ${airiq_sgp41_update}
+
+  # SCD41 - CO2 Sensor
+  - platform: scd4x
+    id: scd41_sensor
+    i2c_id: ${airiq_i2c_id}
+    address: 0x62
+
+    co2:
+      id: airiq_co2
+      name: "${friendly_name} CO2"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_scd41_update}
+
+    temperature:
+      id: airiq_scd41_temperature
+      name: "${friendly_name} SCD41 Temperature"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_scd41_update}
+
+    humidity:
+      id: airiq_scd41_humidity
+      name: "${friendly_name} SCD41 Humidity"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_scd41_update}
+
+    automatic_self_calibration: ${co2_auto_calibration}
+    measurement_mode: periodic
+    update_interval: ${airiq_scd41_update}
+
+  # BMP390 - Barometric Pressure
+  - platform: bmp3xx_i2c
+    id: bmp390_sensor
+    i2c_id: ${airiq_i2c_id}
+    address: 0x77
+
+    temperature:
+      id: airiq_bmp390_temperature
+      name: "${friendly_name} BMP390 Temperature"
+      internal: true
+      oversampling: 2x
+
+    pressure:
+      id: airiq_pressure
+      name: "${friendly_name} Pressure"
+      internal: true
+      oversampling: 2x
+
+    update_interval: ${airiq_bmp390_update}
+
+# ============================================================================
+# Globals for Air Quality Calculations
+# ============================================================================
+globals:
+  - id: airiq_aqi_value
+    type: int
+    restore_value: false
+    initial_value: '0'
+
+  - id: airiq_temperature_value
+    type: float
+    restore_value: false
+    initial_value: '20.0'
+
+  - id: airiq_humidity_value
+    type: float
+    restore_value: false
+    initial_value: '50.0'
+
+# ============================================================================
+# Interval for Sensor Data Processing
+# ============================================================================
+interval:
+  - interval: 30s
+    then:
+      - lambda: |-
+          // Temperature from SCD41 (SPS30 doesn't provide temperature)
+          float temp_scd41 = id(airiq_scd41_temperature).state;
+          if (!std::isnan(temp_scd41)) {
+            id(airiq_temperature_value) = temp_scd41;
+          }
+
+          // Humidity from SCD41 (SPS30 doesn't provide humidity)
+          float hum_scd41 = id(airiq_scd41_humidity).state;
+          if (!std::isnan(hum_scd41)) {
+            id(airiq_humidity_value) = hum_scd41;
+          }
+
+          // Calculate AQI based on PM2.5
+          float pm25 = id(airiq_pm2_5).state;
+          int aqi = 0;
+
+          if (!std::isnan(pm25)) {
+            if (pm25 <= 12.0f) {
+              aqi = (int)((50.0f / 12.0f) * pm25);
+            } else if (pm25 <= 35.4f) {
+              aqi = (int)(((100.0f - 51.0f) / (35.4f - 12.1f)) * (pm25 - 12.1f) + 51.0f);
+            } else if (pm25 <= 55.4f) {
+              aqi = (int)(((150.0f - 101.0f) / (55.4f - 35.5f)) * (pm25 - 35.5f) + 101.0f);
+            } else if (pm25 <= 150.4f) {
+              aqi = (int)(((200.0f - 151.0f) / (150.4f - 55.5f)) * (pm25 - 55.5f) + 151.0f);
+            } else {
+              aqi = (int)(((300.0f - 201.0f) / (250.4f - 150.5f)) * (pm25 - 150.5f) + 201.0f);
+            }
+          }
+
+          id(airiq_aqi_value) = aqi;
+
+# ============================================================================
+# Button for Manual SPS30 Fan Cleaning
+# ============================================================================
+button:
+  - platform: template
+    name: "${friendly_name} SPS30 Clean Fan"
+    id: airiq_sps30_clean_button
+    icon: mdi:fan
+    internal: true
+    on_press:
+      then:
+        - sps30.start_fan_autoclean: sps30_sensor
+        - logger.log:
+            level: INFO
+            format: "AirIQ: SPS30 fan cleaning started"
+
+text_sensor:
+  - platform: template
+    name: "${friendly_name} AirIQ Module SKU"
+    lambda: |-
+      return {"${module_sku}"};
+    update_interval: never
+    entity_category: diagnostic
