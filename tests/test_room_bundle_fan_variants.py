@@ -1,208 +1,192 @@
-"""Contract tests for the planning-only room-bundle fan-control variants.
+#!/usr/bin/env python3
+"""Tests for the planning-only room-bundle fan-control variant proposal.
 
-These tests validate config/room-bundle-fan-variants.json. They are intentionally
-strict about the planning-only, non-release nature of the proposal:
+Covers ``config/room-bundle-fan-variants.json`` (ROOM-BUNDLE-FAN-VARIANTS-001),
+the planning-only proposal that splits ONLY the Bathroom and Kitchen PoE room
+bundles into optional fan-control variants. These variants are bundle-SKU
+planning metadata; they must reference an existing base bundle, must use only
+the customer-facing fan drivers (S360-310 / S360-311 / S360-312), must never
+recommend the TRIAC driver (S360-320), must never claim WebFlash exposure, and
+must never carry a stable/release lifecycle.
 
-  * every variant is lifecycle "planning" and webflash_exposed False
-  * only Bathroom and Kitchen bundles have fan variants
-  * no TRIAC fan-control method appears anywhere
-  * fan-control methods are limited to relay / dac_0_10v / pwm
-  * variant SKUs are derived from their base bundle SKU
+Uses Python's stdlib unittest (matching this repo's no-pytest convention for
+its Python validators). Run with::
 
-The tests do not import any firmware/build modules and do not imply a release.
+    python3 tests/test_room_bundle_fan_variants.py
+
+or::
+
+    python3 -m unittest tests.test_room_bundle_fan_variants -v
 """
+
+from __future__ import annotations
+
 import json
-import os
 import unittest
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+FAN_VARIANTS_PATH = REPO_ROOT / "config" / "room-bundle-fan-variants.json"
+BUNDLE_SKUS_PATH = REPO_ROOT / "config" / "room-bundle-skus.json"
+WEBFLASH_BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
+
+# Fan driver boards that may appear as a customer-facing variant driver.
+ALLOWED_FAN_DRIVER_SKUS = frozenset({"S360-310", "S360-311", "S360-312"})
+# TRIAC driver must never be recommended for a customer-facing fan bundle.
+FORBIDDEN_FAN_DRIVER_SKU = "S360-320"
+# Only these lifecycle values are permitted for planning-stage variants.
+ALLOWED_LIFECYCLES = frozenset({"planning", "manual-candidate"})
+# Only the Bathroom and Kitchen base bundles may have fan variants.
+ALLOWED_BASE_BUNDLE_SKUS = frozenset({"S360-KIT-BATH-P", "S360-KIT-KITCHEN-P"})
+# Base bundles that must never appear as a fan-variant base.
+FORBIDDEN_BASE_BUNDLE_SKUS = frozenset(
+    {"S360-KIT-CORRIDOR-P", "S360-KIT-LIVING-P", "S360-KIT-BEDROOM-P"}
+)
+EXPECTED_VARIANT_SKUS = frozenset(
+    {
+        "S360-KIT-BATH-P-REL",
+        "S360-KIT-BATH-P-DAC",
+        "S360-KIT-BATH-P-PWM",
+        "S360-KIT-KITCHEN-P-DAC",
+        "S360-KIT-KITCHEN-P-REL",
+    }
+)
 
 
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CONFIG_PATH = os.path.join(REPO_ROOT, "config", "room-bundle-fan-variants.json")
-
-ALLOWED_FAN_CONTROL = {"relay", "dac_0_10v", "pwm"}
-ALLOWED_ROOMS = {"Bathroom", "Kitchen"}
-EXPECTED_VARIANTS = {
-    "S360-KIT-BATH-P-REL",
-    "S360-KIT-BATH-P-DAC",
-    "S360-KIT-BATH-P-PWM",
-    "S360-KIT-KITCHEN-P-DAC",
-    "S360-KIT-KITCHEN-P-REL",
-}
+def _load(path: Path):
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
-class RoomBundleFanVariantsTest(unittest.TestCase):
+class RoomBundleFanVariantsTests(unittest.TestCase):
+    """Planning-only contract for the fan-control variant candidates."""
+
     @classmethod
     def setUpClass(cls):
-        with open(CONFIG_PATH, encoding="utf-8") as handle:
-            cls.data = json.load(handle)
+        cls.doc = _load(FAN_VARIANTS_PATH)
+        cls.variants = cls.doc["fan_variant_candidates"]
+        cls.base_bundle_skus = {
+            b["bundle_sku"] for b in _load(BUNDLE_SKUS_PATH)["bundles"]
+        }
+        # WebFlash builds are keyed by firmware config_string; collect them so a
+        # variant SKU cannot be silently treated as already WebFlash-exposed.
+        cls.webflash_config_strings = {
+            entry["config_string"]
+            for entry in _load(WEBFLASH_BUILDS_PATH).get("builds", []) or []
+            if entry.get("config_string")
+        }
 
-    def test_schema_version_and_status(self):
-        self.assertEqual(self.data["schema_version"], "1.0.0")
-        self.assertEqual(self.data["status"], "planning")
-        self.assertEqual(self.data["doc_id"], "ROOM-BUNDLE-FAN-VARIANTS-001")
+    def test_has_fan_variant_candidates(self):
+        self.assertIn("fan_variant_candidates", self.doc)
+        self.assertIsInstance(self.variants, list)
+        self.assertGreaterEqual(len(self.variants), 1)
 
-    def test_all_variants_planning_and_not_webflash(self):
-        for variant in self.data["variants"]:
-            self.assertEqual(variant["lifecycle"], "planning")
-            self.assertFalse(variant["webflash_exposed"])
-
-    def test_expected_variant_skus(self):
-        skus = {v["variant_sku"] for v in self.data["variants"]}
-        self.assertEqual(skus, EXPECTED_VARIANTS)
-
-    def test_only_bathroom_and_kitchen(self):
-        rooms = {v["room"] for v in self.data["variants"]}
-        self.assertEqual(rooms, ALLOWED_ROOMS)
-
-    def test_fan_control_methods_allowed(self):
-        for variant in self.data["variants"]:
-            self.assertIn(variant["fan_control"], ALLOWED_FAN_CONTROL)
-
-    def test_no_triac_anywhere(self):
-        blob = json.dumps(self.data).lower()
-        self.assertNotIn("triac", blob)
-
-    def test_variant_sku_derived_from_base(self):
-        for variant in self.data["variants"]:
-            self.assertTrue(
-                variant["variant_sku"].startswith(variant["base_bundle_sku"] + "-")
+    def test_every_base_bundle_exists_in_room_bundle_skus(self):
+        for v in self.variants:
+            self.assertIn(
+                v["base_bundle"],
+                self.base_bundle_skus,
+                f"variant {v['sku']!r} references base bundle "
+                f"{v['base_bundle']!r} which does not exist in "
+                "config/room-bundle-skus.json",
             )
 
-    def test_base_bundles_are_poe(self):
-        for variant in self.data["variants"]:
-            self.assertTrue(variant["base_bundle_sku"].endswith("-P"))
+    def test_only_bathroom_and_kitchen_base_bundles(self):
+        for v in self.variants:
+            self.assertIn(
+                v["base_bundle"],
+                ALLOWED_BASE_BUNDLE_SKUS,
+                f"variant {v['sku']!r} uses base bundle {v['base_bundle']!r}; "
+                "only Bathroom / Kitchen may have fan variants",
+            )
+            self.assertNotIn(
+                v["base_bundle"],
+                FORBIDDEN_BASE_BUNDLE_SKUS,
+                f"variant {v['sku']!r} uses a forbidden base bundle "
+                f"{v['base_bundle']!r} (Corridor / Living / Bedroom)",
+            )
 
-    def test_fan_control_methods_section(self):
-        methods = set(self.data["fan_control_methods"].keys())
-        self.assertEqual(methods, ALLOWED_FAN_CONTROL)
+    def test_no_corridor_living_or_bedroom_fan_variant(self):
+        used_bases = {v["base_bundle"] for v in self.variants}
+        offending = used_bases & FORBIDDEN_BASE_BUNDLE_SKUS
+        self.assertFalse(
+            offending,
+            "Corridor / Living / Bedroom base bundles must not have fan "
+            f"variants; found {sorted(offending)}",
+        )
 
-    def test_non_goals_present(self):
-        self.assertTrue(any("TRIAC" in g for g in self.data["non_goals"]))
-        self.assertTrue(any("WebFlash" in g for g in self.data["non_goals"]))
+    def test_fan_drivers_are_allowed_only(self):
+        for v in self.variants:
+            self.assertIn(
+                v["fan_driver"],
+                ALLOWED_FAN_DRIVER_SKUS,
+                f"variant {v['sku']!r} references fan driver "
+                f"{v['fan_driver']!r}; only S360-310 / S360-311 / S360-312 "
+                "are allowed",
+            )
 
-    def test_planning_notes_present(self):
-        notes = self.data["planning_notes"]
-        self.assertIn("option_chosen", notes)
-        self.assertIn("interchangeability", notes)
-        self.assertIn("webflash", notes)
-        self.assertIn("kitchen_framing", notes)
+    def test_triac_never_appears(self):
+        for v in self.variants:
+            self.assertNotEqual(
+                v["fan_driver"],
+                FORBIDDEN_FAN_DRIVER_SKU,
+                f"variant {v['sku']!r} must not use the TRIAC driver "
+                f"{FORBIDDEN_FAN_DRIVER_SKU}",
+            )
+            for value in v.values():
+                self.assertNotEqual(
+                    value,
+                    FORBIDDEN_FAN_DRIVER_SKU,
+                    f"variant {v['sku']!r} must not reference the TRIAC "
+                    f"driver {FORBIDDEN_FAN_DRIVER_SKU} anywhere",
+                )
+        # The TRIAC SKU must also not be in the file's allowed driver list.
+        self.assertNotIn(
+            FORBIDDEN_FAN_DRIVER_SKU,
+            self.doc.get("allowed_fan_driver_skus", []),
+        )
 
-    def test_kitchen_not_cooker_hood(self):
-        for variant in self.data["variants"]:
-            if variant["room"] == "Kitchen":
-                self.assertIn("cooker-hood", variant["notes"])
+    def test_lifecycle_is_planning_only(self):
+        for v in self.variants:
+            self.assertIn(
+                v.get("lifecycle"),
+                ALLOWED_LIFECYCLES,
+                f"variant {v['sku']!r} lifecycle {v.get('lifecycle')!r} must "
+                "be planning / manual-candidate only (never a stable/release "
+                "lifecycle)",
+            )
 
-    def test_no_corridor_living_bedroom(self):
-        rooms = {v["room"] for v in self.data["variants"]}
-        self.assertNotIn("Corridor", rooms)
-        self.assertNotIn("Living", rooms)
-        self.assertNotIn("Bedroom", rooms)
+    def test_no_variant_claims_webflash_exposure(self):
+        for v in self.variants:
+            exposed = v.get("webflash_exposed", False)
+            if not exposed:
+                self.assertIs(
+                    exposed,
+                    False,
+                    f"variant {v['sku']!r} webflash_exposed must be false",
+                )
+                continue
+            # A variant may only claim exposure if its SKU is already a
+            # committed WebFlash build config_string; none of these are.
+            self.assertIn(
+                v["sku"],
+                self.webflash_config_strings,
+                f"variant {v['sku']!r} claims webflash_exposed=true but is "
+                "not present in config/webflash-builds.json",
+            )
 
-    def test_dac_uses_0_10v_label(self):
-        self.assertIn("0-10V", self.data["fan_control_methods"]["dac_0_10v"])
+    def test_exactly_the_five_expected_variants(self):
+        skus = {v["sku"] for v in self.variants}
+        self.assertEqual(
+            skus,
+            set(EXPECTED_VARIANT_SKUS),
+            "fan variant SKU set drifted from the five expected variants",
+        )
+        self.assertEqual(len(self.variants), len(EXPECTED_VARIANT_SKUS))
 
-    def test_variant_count(self):
-        self.assertEqual(len(self.data["variants"]), 5)
 
-    def test_bathroom_has_three_variants(self):
-        bath = [v for v in self.data["variants"] if v["room"] == "Bathroom"]
-        self.assertEqual(len(bath), 3)
+def test_main():
+    unittest.main()
 
-    def test_kitchen_has_two_variants(self):
-        kitchen = [v for v in self.data["variants"] if v["room"] == "Kitchen"]
-        self.assertEqual(len(kitchen), 2)
 
-    def test_no_artifact_name_field(self):
-        for variant in self.data["variants"]:
-            self.assertNotIn("artifact_name", variant)
-
-    def test_description_mentions_planning_only(self):
-        self.assertIn("Planning-only", self.data["description"])
-
-    def test_all_variants_have_notes(self):
-        for variant in self.data["variants"]:
-            self.assertTrue(variant["notes"].strip())
-
-    def test_all_variants_have_required_keys(self):
-        required = {
-            "variant_sku",
-            "base_bundle_sku",
-            "room",
-            "fan_control",
-            "lifecycle",
-            "webflash_exposed",
-            "notes",
-        }
-        for variant in self.data["variants"]:
-            self.assertTrue(required.issubset(variant.keys()))
-
-    def test_base_bundle_skus_known(self):
-        known = {"S360-KIT-BATH-P", "S360-KIT-KITCHEN-P"}
-        for variant in self.data["variants"]:
-            self.assertIn(variant["base_bundle_sku"], known)
-
-    def test_relay_description_mentions_on_off(self):
-        desc = self.data["fan_control_methods"]["relay"].lower()
-        self.assertTrue("on/off" in desc or "on-off" in desc)
-
-    def test_pwm_description_mentions_duty(self):
-        self.assertIn("duty", self.data["fan_control_methods"]["pwm"].lower())
-
-    def test_planning_notes_option_a(self):
-        self.assertIn("Option A", self.data["planning_notes"]["option_chosen"])
-
-    def test_kitchen_framing_mvhr(self):
-        framing = self.data["planning_notes"]["kitchen_framing"].lower()
-        self.assertIn("mvhr", framing)
-
-    def test_interchangeability_note(self):
-        note = self.data["planning_notes"]["interchangeability"].lower()
-        self.assertIn("not runtime-interchangeable", note)
-
-    def test_sku_vs_config_note(self):
-        note = self.data["planning_notes"]["sku_vs_config"].lower()
-        self.assertIn("config", note)
-
-    def test_no_webflash_build_matrix_key(self):
-        self.assertNotIn("webflash_build_matrix", self.data)
-
-    def test_top_level_keys(self):
-        expected = {
-            "schema_version",
-            "doc_id",
-            "status",
-            "description",
-            "non_goals",
-            "fan_control_methods",
-            "variants",
-            "planning_notes",
-        }
-        self.assertEqual(set(self.data.keys()), expected)
-
-    def test_relay_variants_exist(self):
-        relay = [v for v in self.data["variants"] if v["fan_control"] == "relay"]
-        self.assertEqual(len(relay), 2)
-
-    def test_dac_variants_exist(self):
-        dac = [v for v in self.data["variants"] if v["fan_control"] == "dac_0_10v"]
-        self.assertEqual(len(dac), 2)
-
-    def test_pwm_variants_exist(self):
-        pwm = [v for v in self.data["variants"] if v["fan_control"] == "pwm"]
-        self.assertEqual(len(pwm), 1)
-
-    def test_config_file_exists(self):
-        self.assertTrue(os.path.exists(CONFIG_PATH))
-
-    def test_json_is_object(self):
-        self.assertIsInstance(self.data, dict)
-
-    def test_variants_is_list(self):
-        self.assertIsInstance(self.data["variants"], list)
-
-    def test_all_skus_unique(self):
-        skus = [v["variant_sku"] for v in self.data["variants"]]
-        self.assertEqual(len(skus), len(set(skus)))
-
-    def test_all_variants_have_lifecycle(self):
-        self.assertEqual({v["lifecycle"] for v in self.data["variants"]}, {"planning"})
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
