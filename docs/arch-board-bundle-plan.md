@@ -772,14 +772,64 @@ merges and CI is green.
    - Dependency: BUNDLE-LAYER-001 (+ per-driver evidence gates for 311/312).
 
 5. **CI-REFACTOR-VERIFY-001** — confirm CI/gate parity
-   - Scope: apply the §5 test updates that travel with each rename slice
-     (directory walkers, generated includes, hard-coded path constants); prove
-     `validate.yml` and `firmware-build-release.yml` gate behaviour is
-     identical (same config strings build, same artifacts named, same
-     Release-One entity/substitution checks). No workflow YAML edit unless §5
-     identifies one (none required if bundles live under `products/`).
-   - Guardrails: gate semantics unchanged; no new build exposed.
-   - Dependency: runs alongside / after each PACKAGE-RENAME slice.
+   - **Status: DONE (2026-05-30). Parity proven; NO workflow edit required.**
+     Ran the actual CI sweep commands locally against the post-refactor layout
+     (Core + the five sensor/PSU boards, all seven bundles + shims, and the
+     LED/AirIQ/VentIQ/RoomIQ/PoE-PSU aliases) and showed each passes as-is:
+     - `yamllint -c .yamllint products/ packages/` → **exit 0, clean**;
+       `yamllint` recurses, so `packages/boards/` and `products/bundles/` are
+       linted automatically (boards, bundles, aliases, shims all clean).
+     - `find products/ -name "*.yaml" -type f ! -name "secrets.yaml"
+       ! -path "products/webflash/*"` → **43 files**: 7 `products/bundles/*`,
+       28 top-level (shims + legacy products), 8 `products/compile-only/*`. The
+       new bundles are auto-discovered, the `products/webflash/*` wrappers stay
+       excluded, and **every** discovered file's `!include` chain resolves
+       (shim → bundle → board package → base/feature tiers), verified by a
+       recursive include-graph walk.
+     - The `sed` targets are intact: `packages/base/external_components.yaml`
+       still carries the `ref: main` literal (base tier — untouched), and
+       `packages/features/` (30 YAMLs) still exists for the `@main`
+       `find … -exec sed` step. Bundles reach the same
+       `packages/base/external_components.yaml` via
+       `!include ../../packages/base/external_components.yaml`, so the
+       release-time rewrite still applies.
+     - `python3 scripts/validate_compile_targets.py --metadata-only` → **14
+       targets, pass**; every compile-only and webflash `product_yaml` resolves
+       to a real file through the shims/bundles (the `products/sense360-*`
+       targets through `shim → bundle`, the `products/webflash/*` targets to
+       their canonical product).
+     - `python3 tests/validate_configs.py` → **223 files, 0 failed**;
+       `python3 tests/test_release_one_entity_names.py` → **OK**;
+       `python3 tests/test_product_substitutions.py` → **28 products OK**;
+       `python3 -m unittest discover -s tests -p "test_*.py"` → **1154 tests,
+       3 skipped, OK**. Gate scripts `validate_webflash_builds.py`,
+       `test_webflash_artifact_naming.py`, `test_product_catalog.py`, and
+       `validate_product_catalog_consistency.py` pass. `generate_test_configs.py`
+       emits 28 representative configs whose includes resolve.
+   - **Gate identity confirmed.** `validate.yml` (`name: Quick Validation`) and
+     `firmware-build-release.yml` (`name: Build & Release Firmware`) `name:`
+     fields are unchanged — `git diff` against `main` shows the entire
+     `.github/workflows/` tree is byte-identical — so no branch-protection
+     required-status-check name moved. The release gate stays config-string
+     driven (`config/webflash-builds.json` → wrapper → canonical shim), so the
+     same config strings build under the same artifact names.
+   - **No glob fix applied.** Every sweep passes as-is because the refactor
+     landed bundles under `products/` and left the base/feature tiers in place;
+     per the §5 finding ("none required if bundles live under `products/`"), no
+     workflow YAML was edited. The §5.5 test repoints had already travelled with
+     their respective rename slices (RENAME-001..005), so no outstanding test
+     update remained for this slice.
+   - Scope (as delivered): the parity proof above plus the
+     [`docs/ci-pipeline.md`](ci-pipeline.md) refresh documenting the
+     boards/bundles/aliases/shims layout and per-workflow handling. No workflow,
+     product, package, board, bundle, alias, config-string, artifact, or test
+     change.
+   - Guardrails: gate semantics unchanged; no new build exposed; no workflow
+     `name:` field touched. Full `esphome compile` is **pending-ci** (ESPHome
+     not available in this environment — metadata/structure parity shown, no
+     compile result claimed).
+   - Dependency: ran after the PACKAGE-RENAME-001..005 slices (all merged).
+   - **Next: DOCS-ARCH-REFRESH-001**, then WEBFLASH-ARCH-SYNC-001 (WebFlash repo).
 
 6. **DOCS-ARCH-REFRESH-001** — refresh esphome-public docs
    - Scope: the §6.1 doc set (system-architecture, ci-pipeline,
