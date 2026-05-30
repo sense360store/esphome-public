@@ -30,6 +30,46 @@ mirrored here.
 
 ## Current queue summary
 
+- **PACKAGE-RENAME-005** delivers, via **this PR** on 2026-05-30, the **FINAL
+  non-deferred source-of-truth flip** of the §7-item-4 rename epic: the
+  **S360-410 PoE PSU** (`power_poe` → `S360-410`). The SKU-aligned board package
+  [`packages/boards/s360-410-poe-psu.yaml`](packages/boards/s360-410-poe-psu.yaml)
+  is now the **authoritative, self-contained** PoE PSU definition (the discrete
+  TPS2378 PD + TX4138 buck + F0505S isolated DC/DC topology, plus the
+  diagnostic-only power-source text sensors, supply-voltage template, and
+  PoE-connected binary sensor), and the single content-holding legacy path
+  [`packages/hardware/power_poe.yaml`](packages/hardware/power_poe.yaml) is
+  reduced to a thin `!include` **alias** of that board package — **path
+  preserved** per §3.3 (the production / LED-preview bundles bind the board
+  package directly; every other PoE product/bundle/compile-only target — e.g.
+  `sense360-core-*-poe.yaml`, `sense360-poe.yaml`, `sense360-fan-pwm.yaml`, the
+  FanRelay/FanTRIAC/FanPWM/FanDAC + RoomIQ bundles, and the
+  `compile-only/ceiling-poe*.yaml` lane — still binds the legacy `power_poe.yaml`
+  path; no alias dropped while a live binder exists). Like the 1:1 LED / AirIQ /
+  VentIQ families, the whole PoE driver content folds into one board file — no
+  un-folded base driver, no "Pro" variant. **No power_poe content-asserting test
+  exists to repoint**: the only `power_poe.yaml` test references are the
+  include-**path** assertions in `test_relay_product_readiness.py` /
+  `test_pwm_product_readiness.py` / `test_dac_product_readiness.py`, which assert
+  the product binds the preserved path and stay green untouched (§5.5). This
+  slice is **firmware-package authoritative ONLY** — it makes **no** board-
+  verification or PoE-evidence claim and leaves S360-410 `schematic_status:
+  cataloged_unverified` (PRODUCT-POE-410-001 gate unchanged). Resolution proven
+  **byte-identical**: the board-package functional body is
+  character-for-character equal to the pre-flip `power_poe.yaml` body
+  (sha256-matched), and the flattened resolved config is identical HEAD vs
+  working tree for the production product `Ceiling-POE-VentIQ-RoomIQ` and all 20
+  other PoE binders. No config-string, artifact, WebFlash, readiness, lifecycle,
+  or `schematic_status` change; `test_release_one_entity_names` and
+  `test_product_substitutions` untouched; no workflow edit; WebFlash repo
+  untouched; full `esphome compile` is **pending-ci** (ESPHome unavailable; no
+  compile result claimed). Full suite green (1154 tests, 3 skipped). **This
+  completes the non-deferred rename epic** (LED, AirIQ, VentIQ, RoomIQ, PoE PSU
+  all done); the only board promotions still outstanding are the **deferred,
+  compliance-gated mains driver** boards (`S360-310` / `320` / `400`,
+  `power_240v.yaml`; `power_usb.yaml` / `power_management.yaml` have no SKU), which
+  stay OUT of the board layer by design. **Next: CI-REFACTOR-VERIFY-001** — the
+  alias-removal / consumer-rebind sweep once each binder count reaches zero.
 - **PACKAGE-RENAME-004** delivers, via **this PR** on 2026-05-30, the **fourth
   and largest source-of-truth flip** of the §7-item-4 rename epic: the
   **S360-200 RoomIQ family** (`presence_*` / `comfort_*`, the highest binder

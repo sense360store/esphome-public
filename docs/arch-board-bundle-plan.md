@@ -589,12 +589,49 @@ merges and CI is green.
    - Dependency: BUNDLE-LAYER-001.
 
 4. **PACKAGE-RENAME-001 … 00N** — SKU-aligned renames in safe slices
-   - **Status: in progress — PACKAGE-RENAME-001 (LED), PACKAGE-RENAME-002
-     (AirIQ), PACKAGE-RENAME-003 (VentIQ), and PACKAGE-RENAME-004 (RoomIQ) done
-     (2026-05-30). The sensor-family renames are now COMPLETE (LED, AirIQ,
-     VentIQ, RoomIQ); PSU (`power_poe` → `S360-410`) and the deferred mains
-     driver boards (`S360-310`/`320`/`400`, compliance-gated) remain, then
-     CI-REFACTOR-VERIFY-001.**
+   - **Status: NON-DEFERRED RENAME EPIC COMPLETE (2026-05-30).**
+     PACKAGE-RENAME-001 (LED), -002 (AirIQ), -003 (VentIQ), -004 (RoomIQ), and
+     -005 (PoE PSU) are all done. Every non-deferred board source-of-truth flip
+     has landed: the four sensor families (LED, AirIQ, VentIQ, RoomIQ) **and**
+     the PoE PSU (`power_poe` → `S360-410`). The ONLY board promotions still
+     outstanding are the **deferred, compliance-gated mains driver boards**
+     `S360-310` / `S360-320` / `S360-400` (`power_240v.yaml` and the un-SKU'd
+     `power_usb.yaml` / `power_management.yaml`), which remain OUT of the board
+     layer by design (§2.1, §2.3) and are not part of this epic. **Next:
+     CI-REFACTOR-VERIFY-001** (§5.5) — the alias-removal / consumer-rebind sweep
+     that drops the now-thin legacy aliases once each binder count reaches zero.
+   - **PACKAGE-RENAME-005 (PoE PSU) — DONE (2026-05-30).** The S360-410 PoE PSU
+     source-of-truth is flipped — the FINAL non-deferred slice, completing the
+     rename epic. The SKU-aligned board package
+     `packages/boards/s360-410-poe-psu.yaml` now holds the authoritative,
+     self-contained PoE PSU definition (the discrete TPS2378 PD + TX4138 buck +
+     F0505S isolated DC/DC topology, the diagnostic-only power-source text
+     sensors, supply-voltage template, and PoE-connected binary sensor), and the
+     single content-holding legacy `packages/hardware/power_poe.yaml` path is
+     reduced to a thin `!include` alias of that board package (path preserved per
+     §3.3 — the production / LED-preview bundles bind the board package directly,
+     while every other PoE product/bundle/compile-only target still binds the
+     legacy `power_poe.yaml` path as `power_config` / `power`; no alias dropped
+     while a live binder exists). Like the 1:1 LED / AirIQ / VentIQ families and
+     unlike RoomIQ, the whole PoE driver content is folded into one board file —
+     there is no un-folded base driver and no "Pro" variant to keep
+     authoritative. **No power_poe content-asserting test exists to repoint**:
+     the only test references to `power_poe.yaml` are the include-path assertions
+     in `test_relay_product_readiness.py` / `test_pwm_product_readiness.py` /
+     `test_dac_product_readiness.py`, which assert the product binds the
+     preserved path and therefore stay green untouched (§5.5). This slice is
+     **firmware-package authoritative ONLY** — it makes no board-verification or
+     PoE-evidence claim and leaves S360-410 `schematic_status:
+     cataloged_unverified` (PRODUCT-POE-410-001 gate unchanged). Resolution is
+     proven byte-identical (the board-package functional body is
+     character-for-character equal to the pre-flip `power_poe.yaml` body —
+     sha256-matched — and the flattened resolved config is identical HEAD vs
+     working tree for the production product `Ceiling-POE-VentIQ-RoomIQ` and all
+     20 other PoE binders); full `esphome compile` is **pending-ci** (esphome not
+     available in this environment — metadata validators run and green, full
+     suite 1154 tests / 3 skipped). No config-string, artifact, WebFlash,
+     readiness, lifecycle, or `schematic_status` change;
+     `test_release_one_entity_names` and `test_product_substitutions` untouched.
    - **PACKAGE-RENAME-004 (RoomIQ) — DONE (2026-05-30).** The S360-200 RoomIQ
      family source-of-truth is flipped — the fourth and largest slice (highest
      binder count, last sensor family per the §7 ordering). **Unlike the 1:1
