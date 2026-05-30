@@ -60,6 +60,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 PWM_PRODUCT_YAML = REPO_ROOT / "products" / "sense360-ceiling-poe-fanpwm.yaml"
 PWM_PRODUCT_REL = "products/sense360-ceiling-poe-fanpwm.yaml"
 PWM_CONFIG_STRING = "Ceiling-POE-FanPWM"
+# The product YAML is now a thin compat shim; its full composition/substitution
+# content lives in the bundle. Content reads must target the bundle.
+PWM_BUNDLE = REPO_ROOT / "products" / "bundles" / "ceiling-poe-fanpwm.yaml"
 
 # Existing siblings that PRODUCT-PWM-001 must not disturb.
 RELEASE_ONE_PRODUCT_REL = "products/sense360-ceiling-poe-ventiq-roomiq.yaml"
@@ -168,7 +171,7 @@ class PwmProductYamlExistsTests(unittest.TestCase):
         )
 
     def test_product_yaml_parses_as_yaml(self) -> None:
-        data = _load_yaml(PWM_PRODUCT_YAML)
+        data = _load_yaml(PWM_BUNDLE)
         self.assertIsInstance(
             data,
             dict,
@@ -205,9 +208,9 @@ class PwmProductPackageCompositionTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.data = _load_yaml(PWM_PRODUCT_YAML)
+        cls.data = _load_yaml(PWM_BUNDLE)
         cls.packages = cls.data.get("packages", {}) or {}
-        cls.text = PWM_PRODUCT_YAML.read_text()
+        cls.text = PWM_BUNDLE.read_text()
 
     def test_packages_block_is_a_mapping(self) -> None:
         self.assertIsInstance(
@@ -283,7 +286,7 @@ class PwmProductNoRpmNoPulseCounterTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.text = PWM_PRODUCT_YAML.read_text()
+        cls.text = PWM_BUNDLE.read_text()
 
     def test_no_pulse_counter_on_active_line(self) -> None:
         for line in _active_lines(self.text):
@@ -441,7 +444,7 @@ class PwmProductWebFlashExposureGuardsTests(unittest.TestCase):
     def test_product_yaml_does_not_declare_webflash_build_matrix(
         self,
     ) -> None:
-        for line in _active_lines(PWM_PRODUCT_YAML.read_text()):
+        for line in _active_lines(PWM_BUNDLE.read_text()):
             self.assertNotIn(
                 "webflash_build_matrix",
                 line,
@@ -452,7 +455,7 @@ class PwmProductWebFlashExposureGuardsTests(unittest.TestCase):
             )
 
     def test_product_yaml_does_not_declare_artifact_name(self) -> None:
-        for line in _active_lines(PWM_PRODUCT_YAML.read_text()):
+        for line in _active_lines(PWM_BUNDLE.read_text()):
             self.assertNotIn(
                 "artifact_name",
                 line,
@@ -474,7 +477,7 @@ class PwmProductCaveatWordingTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.text = PWM_PRODUCT_YAML.read_text()
+        cls.text = PWM_BUNDLE.read_text()
         # Normalize so phrase checks survive comment-line wrapping: strip
         # leading comment markers, collapse all whitespace to single
         # spaces, and lower-case.
@@ -688,7 +691,7 @@ class PwmProductMatchesValidatedCompileOnlyCompositionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.compile_only_yaml = REPO_ROOT / FANPWM_COMPILE_ONLY_PRODUCT_YAML
-        cls.product_map = _package_include_map(PWM_PRODUCT_YAML)
+        cls.product_map = _package_include_map(PWM_BUNDLE)
         cls.compile_map = _package_include_map(cls.compile_only_yaml)
 
     def test_compile_only_skeleton_file_exists(self) -> None:

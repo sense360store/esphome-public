@@ -48,6 +48,12 @@ RELAY_PRODUCT_YAML = (
     / "sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml"
 )
 RELAY_PRODUCT_REL = "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml"
+# The product YAML is now a thin compat shim; its full composition/substitution
+# content lives in the bundle. Content reads must target the bundle.
+RELAY_BUNDLE = (
+    REPO_ROOT / "products" / "bundles"
+    / "ceiling-poe-ventiq-fanrelay-roomiq.yaml"
+)
 RELAY_CONFIG_STRING = "Ceiling-POE-VentIQ-FanRelay-RoomIQ"
 
 RELEASE_ONE_PRODUCT_REL = "products/sense360-ceiling-poe-ventiq-roomiq.yaml"
@@ -125,7 +131,7 @@ class RelayProductYamlExistsTests(unittest.TestCase):
         )
 
     def test_product_yaml_parses_as_yaml(self) -> None:
-        data = _load_yaml(RELAY_PRODUCT_YAML)
+        data = _load_yaml(RELAY_BUNDLE)
         self.assertIsInstance(
             data,
             dict,
@@ -149,7 +155,7 @@ class RelayProductPackageCompositionTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.data = _load_yaml(RELAY_PRODUCT_YAML)
+        cls.data = _load_yaml(RELAY_BUNDLE)
         cls.packages = cls.data.get("packages", {}) or {}
 
     def test_packages_block_is_a_mapping(self) -> None:
@@ -160,7 +166,7 @@ class RelayProductPackageCompositionTests(unittest.TestCase):
         )
 
     def test_includes_fan_relay_package(self) -> None:
-        text = RELAY_PRODUCT_YAML.read_text()
+        text = RELAY_BUNDLE.read_text()
         self.assertIn(
             "packages/expansions/fan_relay.yaml",
             text,
@@ -170,7 +176,7 @@ class RelayProductPackageCompositionTests(unittest.TestCase):
         )
 
     def test_includes_core_ceiling_package(self) -> None:
-        text = RELAY_PRODUCT_YAML.read_text()
+        text = RELAY_BUNDLE.read_text()
         self.assertIn(
             "packages/hardware/sense360_core_ceiling.yaml",
             text,
@@ -180,7 +186,7 @@ class RelayProductPackageCompositionTests(unittest.TestCase):
         )
 
     def test_includes_poe_power_package(self) -> None:
-        text = RELAY_PRODUCT_YAML.read_text()
+        text = RELAY_BUNDLE.read_text()
         self.assertIn(
             "packages/hardware/power_poe.yaml",
             text,
@@ -189,7 +195,7 @@ class RelayProductPackageCompositionTests(unittest.TestCase):
         )
 
     def test_includes_ventiq_module(self) -> None:
-        text = RELAY_PRODUCT_YAML.read_text()
+        text = RELAY_BUNDLE.read_text()
         self.assertIn(
             "packages/expansions/airiq_bathroom_base.yaml",
             text,
@@ -199,7 +205,7 @@ class RelayProductPackageCompositionTests(unittest.TestCase):
         )
 
     def test_includes_roomiq_packages(self) -> None:
-        text = RELAY_PRODUCT_YAML.read_text()
+        text = RELAY_BUNDLE.read_text()
         for required in (
             "packages/expansions/comfort_ceiling.yaml",
             "packages/expansions/presence_ceiling.yaml",
@@ -213,7 +219,7 @@ class RelayProductPackageCompositionTests(unittest.TestCase):
             )
 
     def test_does_not_include_led_ring_package(self) -> None:
-        text = RELAY_PRODUCT_YAML.read_text()
+        text = RELAY_BUNDLE.read_text()
         self.assertNotIn(
             "packages/hardware/led_ring_ceiling.yaml",
             text,
@@ -224,7 +230,7 @@ class RelayProductPackageCompositionTests(unittest.TestCase):
         )
 
     def test_does_not_include_fan_triac_package(self) -> None:
-        text = RELAY_PRODUCT_YAML.read_text()
+        text = RELAY_BUNDLE.read_text()
         self.assertNotIn(
             "packages/expansions/fan_triac.yaml",
             text,
@@ -249,7 +255,7 @@ class RelayProductGpio3Tests(unittest.TestCase):
     """
 
     def test_product_yaml_does_not_hardcode_gpio3(self) -> None:
-        text = RELAY_PRODUCT_YAML.read_text()
+        text = RELAY_BUNDLE.read_text()
         for line in _active_lines(text):
             self.assertNotIn(
                 "GPIO3",
@@ -263,7 +269,7 @@ class RelayProductGpio3Tests(unittest.TestCase):
             )
 
     def test_product_yaml_does_not_hardcode_any_gpio(self) -> None:
-        text = RELAY_PRODUCT_YAML.read_text()
+        text = RELAY_BUNDLE.read_text()
         pattern = re.compile(r"\bGPIO\d+\b")
         for line in _active_lines(text):
             match = pattern.search(line)
@@ -370,7 +376,7 @@ class RelayProductWebFlashExposureGuardsTests(unittest.TestCase):
     def test_product_yaml_does_not_declare_webflash_build_matrix_true(
         self,
     ) -> None:
-        text = RELAY_PRODUCT_YAML.read_text()
+        text = RELAY_BUNDLE.read_text()
         for line in _active_lines(text):
             self.assertNotIn(
                 "webflash_build_matrix",
@@ -382,7 +388,7 @@ class RelayProductWebFlashExposureGuardsTests(unittest.TestCase):
             )
 
     def test_product_yaml_does_not_declare_artifact_name(self) -> None:
-        text = RELAY_PRODUCT_YAML.read_text()
+        text = RELAY_BUNDLE.read_text()
         for line in _active_lines(text):
             self.assertNotIn(
                 "artifact_name",
@@ -418,7 +424,7 @@ class RelayProductAdvancedManualWarningWordingTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.text = RELAY_PRODUCT_YAML.read_text()
+        cls.text = RELAY_BUNDLE.read_text()
         cls.lowered = cls.text.lower()
 
     def _assert_phrase(self, phrase: str, hint: str) -> None:
@@ -819,7 +825,7 @@ class RelayProductCustomerUsageExampleTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.text = RELAY_PRODUCT_YAML.read_text()
+        cls.text = RELAY_BUNDLE.read_text()
 
     def _customer_usage_file_refs(self) -> List[str]:
         refs: List[str] = []

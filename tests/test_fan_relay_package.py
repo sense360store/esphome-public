@@ -504,6 +504,10 @@ class PackageRelayDoesNotTouchWebFlashOrProductTests(unittest.TestCase):
     ALLOWED_FAN_RELAY_PRODUCT_YAMLS = frozenset(
         {
             "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+            # The FanRelay composition (the package !include) now lives in the
+            # bundle that the product shim pulls in; the bundle is the one
+            # extra product-layer YAML expected to carry a FanRelay name.
+            "products/bundles/ceiling-poe-ventiq-fanrelay-roomiq.yaml",
         }
     )
 

@@ -56,6 +56,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 DAC_PRODUCT_YAML = REPO_ROOT / "products" / "sense360-ceiling-poe-fandac.yaml"
 DAC_PRODUCT_REL = "products/sense360-ceiling-poe-fandac.yaml"
+# The product YAML is now a thin compat shim; its full composition/substitution
+# content lives in the bundle. Content reads must target the bundle.
+DAC_BUNDLE = REPO_ROOT / "products" / "bundles" / "ceiling-poe-fandac.yaml"
 DAC_CONFIG_STRING = "Ceiling-POE-FanDAC"
 
 # Existing siblings that PRODUCT-DAC-001 must not disturb.
@@ -140,7 +143,7 @@ class DacProductYamlExistsTests(unittest.TestCase):
         )
 
     def test_product_yaml_parses_as_yaml(self) -> None:
-        data = _load_yaml(DAC_PRODUCT_YAML)
+        data = _load_yaml(DAC_BUNDLE)
         self.assertIsInstance(
             data,
             dict,
@@ -163,9 +166,9 @@ class DacProductPackageCompositionTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.data = _load_yaml(DAC_PRODUCT_YAML)
+        cls.data = _load_yaml(DAC_BUNDLE)
         cls.packages = cls.data.get("packages", {}) or {}
-        cls.text = DAC_PRODUCT_YAML.read_text()
+        cls.text = DAC_BUNDLE.read_text()
 
     def test_packages_block_is_a_mapping(self) -> None:
         self.assertIsInstance(
@@ -252,7 +255,7 @@ class DacProductDoesNotLeakChipJargonTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.data = _load_yaml(DAC_PRODUCT_YAML)
+        cls.data = _load_yaml(DAC_BUNDLE)
 
     def test_template_entity_names_are_neutral(self) -> None:
         sensors = self.data.get("text_sensor", []) or []
@@ -378,7 +381,7 @@ class DacProductWebFlashExposureGuardsTests(unittest.TestCase):
     def test_product_yaml_does_not_declare_webflash_build_matrix_true(
         self,
     ) -> None:
-        text = DAC_PRODUCT_YAML.read_text()
+        text = DAC_BUNDLE.read_text()
         for line in _active_lines(text):
             self.assertNotIn(
                 "webflash_build_matrix",
@@ -390,7 +393,7 @@ class DacProductWebFlashExposureGuardsTests(unittest.TestCase):
             )
 
     def test_product_yaml_does_not_declare_artifact_name(self) -> None:
-        text = DAC_PRODUCT_YAML.read_text()
+        text = DAC_BUNDLE.read_text()
         for line in _active_lines(text):
             self.assertNotIn(
                 "artifact_name",
@@ -413,7 +416,7 @@ class DacProductCaveatWordingTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.text = DAC_PRODUCT_YAML.read_text()
+        cls.text = DAC_BUNDLE.read_text()
         # Normalize so phrase checks survive comment-line wrapping: strip
         # leading comment markers, collapse all whitespace to single
         # spaces, and lower-case.

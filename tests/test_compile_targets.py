@@ -1559,9 +1559,12 @@ class FanPWMCompileOnlyCoverageTests(unittest.TestCase):
         if not products_dir.is_dir():
             self.skipTest("products/ directory not present")
         compile_only_dir = products_dir / "compile-only"
+        # The FanPWM composition now lives in the bundle that the product shim
+        # pulls in; the bundle is an additional allowed FanPWM-named YAML.
         allowed = {
             "products/sense360-fan-pwm.yaml",
             FANPWM_PRODUCT_YAML,
+            "products/bundles/ceiling-poe-fanpwm.yaml",
         }
         offenders = []
         for path in products_dir.rglob("*.yaml"):

@@ -426,9 +426,12 @@ class FanPwmNoProductOrWebFlashSurfaceTests(unittest.TestCase):
         # of products/ as the product-YAML-only / no-WebFlash-exposure slice
         # (its full non-WebFlash invariants are pinned by
         # tests/test_pwm_product_readiness.py); it is allowed here too.
+        # The FanPWM composition now lives in the bundle the product shim pulls
+        # in; the bundle is an additional allowed FanPWM-named product YAML.
         allowed = {
             "products/sense360-fan-pwm.yaml",
             "products/sense360-ceiling-poe-fanpwm.yaml",
+            "products/bundles/ceiling-poe-fanpwm.yaml",
         }
         unexpected = sorted(set(offenders) - allowed)
         self.assertEqual(
