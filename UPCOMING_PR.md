@@ -30,6 +30,40 @@ mirrored here.
 
 ## Current queue summary
 
+- **DOCS-ARCH-REFRESH-001** delivers, via **this PR** on 2026-05-30, the
+  **§6.1 doc-prose refresh** for the board/bundle/alias/shim architecture —
+  **docs-only, no functional/config/workflow change**. Refreshed
+  [`docs/system-architecture.md`](docs/system-architecture.md) (new
+  "board / bundle / alias / shim layers" section describing the authoritative
+  `packages/boards/` SKU layer, the legacy aliases, the un-folded cross-referenced
+  base drivers — `airiq.yaml`, `ceiling_halo_leds.yaml`, the radar primitives —
+  the `products/bundles/` config-string layer and the product shims, plus the
+  restated cross-repo contract: config strings + artifact names + tags are the
+  only WebFlash boundary, WebFlash is downstream — with a stable anchor for
+  `WEBFLASH-ARCH-SYNC-001` to link to);
+  [`packages/SENSE360_MODULES.md`](packages/SENSE360_MODULES.md) +
+  [`packages/README.md`](packages/README.md) (SKU→board-package map,
+  authoritative-by-composition note for RoomIQ vs the 1:1 LED/AirIQ/VentIQ/PoE
+  families, the Core pending-flip nuance, and the alias-retention policy);
+  [`README.md`](README.md) (repo-structure tree + compose guidance updated to the
+  board+bundle model, tag-pinning rule and WebFlash-vs-manual matrix kept);
+  [`docs/sense360-room-bundles.md`](docs/sense360-room-bundles.md) (cross-linked
+  the `products/bundles/` YAML layer and kept bundle-SKU ≠ firmware-config-string
+  distinct — **no SKU change, no fan bundle**); and
+  [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md) (added the
+  architecture epic to the snapshot by **link, not duplication**, per its own
+  sources-of-truth rule). [`docs/ci-pipeline.md`](docs/ci-pipeline.md) was already
+  refreshed by CI-REFACTOR-VERIFY-001 and carried **no** inconsistency to fix.
+  Marked DOCS-ARCH-REFRESH-001 done in
+  [`docs/arch-board-bundle-plan.md`](docs/arch-board-bundle-plan.md) §7 item 6.
+  **No** config-string, artifact, WebFlash build, lifecycle, `schematic_status`,
+  readiness, or promotion change; LED stays preview, S360-410 stays
+  `cataloged_unverified`; no YAML/package/board/bundle/alias/product/config/JSON/
+  workflow/manifest/sources edit; WebFlash repo untouched. Validation green:
+  `validate_configs.py` (223 files / 0 failed), `test_roadmap_status_doc.py`,
+  `test_product_catalog.py`, and `python3 -m unittest discover -s tests` (1154
+  tests, 3 skipped). **Next (and last): `WEBFLASH-ARCH-SYNC-001`** (WebFlash
+  repo) — record there that the rename is invisible to the WebFlash contract.
 - **CI-REFACTOR-VERIFY-001** delivers, via **this PR** on 2026-05-30, the
   **CI / gate parity proof** for the board-package / bundle / rename refactor —
   **verification + docs only, with NO workflow edit**. Ran the actual CI sweep

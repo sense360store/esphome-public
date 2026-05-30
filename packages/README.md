@@ -24,11 +24,48 @@ This directory contains modular ESPHome configuration packages organized by cate
 
 ```
 packages/
-├── base/              # Core system components
-├── features/          # Feature profiles (basic & advanced)
-├── hardware/          # Hardware drivers
-└── expansions/        # Sensor module drivers
+├── boards/            # SKU-aligned board packages (AUTHORITATIVE source of truth)
+├── base/              # Core system components (wifi, api, ota, time, …)
+├── features/          # Feature profiles (basic & advanced) + ceiling_halo_leds
+├── hardware/          # Legacy core/LED/power paths — now aliases of packages/boards/
+└── expansions/        # Sensor module drivers — legacy names now aliases of packages/boards/
 ```
+
+### `packages/boards/` — the authoritative board layer
+
+Each catalog board SKU maps to **one canonical, self-contained package** that
+owns the board's chip / pin map / connector nets / I²C addresses:
+
+| Board SKU | Authoritative board package | Authoritative by |
+|-----------|-----------------------------|------------------|
+| `S360-100` Core | `boards/s360-100-core.yaml` (+ mount/power/voice overlays) | 1:1 fold |
+| `S360-200` RoomIQ | `boards/s360-200-roomiq.yaml` (`…-climate` + `…-radar` halves, ceiling & wall) | **composition** (two independently-bound drivers) |
+| `S360-210` AirIQ | `boards/s360-210-airiq.yaml` (+ `-wall`, `-ceiling-s3`) | 1:1 fold |
+| `S360-211` VentIQ | `boards/s360-211-ventiq.yaml` (+ `-pro`) | 1:1 fold |
+| `S360-300` LED | `boards/s360-300-led.yaml` (+ mic/voice variant) | 1:1 fold |
+| `S360-410` PoE PSU | `boards/s360-410-poe-psu.yaml` | 1:1 fold |
+
+The legacy `packages/hardware/*` and `packages/expansions/*` functional names
+for these families are now **thin `!include` aliases** of their board package
+(path preserved, never deleted — see the alias-retention policy in
+[`docs/arch-board-bundle-plan.md`](../docs/arch-board-bundle-plan.md) §3.3).
+The generic base drivers `expansions/airiq.yaml`,
+`expansions/presence_ld2450.yaml`, `expansions/presence_ld2412.yaml`, and
+`features/ceiling_halo_leds.yaml` stay **authoritative and un-folded** —
+cross-referenced from the board layer, not aliased. The mains driver boards
+(`S360-310/320/400`) and the SELV fan-driver SKUs (`S360-311/312`) remain
+expansion packages behind their evidence/compliance gates and are not in the
+board layer yet. Full layout and rationale:
+[`docs/system-architecture.md`](../docs/system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers).
+
+### `products/bundles/` — the config-string bundle layer
+
+Above the board layer, [`products/bundles/`](../products/bundles/) holds one
+YAML per WebFlash **config string**, named 1:1 to it, assembling
+`boards + expansions + base + profiles`. The customer-facing
+`products/sense360-*.yaml` paths are retained as thin compat shims that
+`!include` the matching bundle, so a pinned include resolves
+`shim → bundle → board packages` unchanged.
 
 ## Feature Profiles - Basic vs Advanced
 

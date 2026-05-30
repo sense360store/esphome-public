@@ -829,14 +829,31 @@ merges and CI is green.
      not available in this environment — metadata/structure parity shown, no
      compile result claimed).
    - Dependency: ran after the PACKAGE-RENAME-001..005 slices (all merged).
-   - **Next: DOCS-ARCH-REFRESH-001**, then WEBFLASH-ARCH-SYNC-001 (WebFlash repo).
+   - **Next: DOCS-ARCH-REFRESH-001** (now DONE, item 6 below), then
+     WEBFLASH-ARCH-SYNC-001 (WebFlash repo — the only remaining slice).
 
 6. **DOCS-ARCH-REFRESH-001** — refresh esphome-public docs
-   - Scope: the §6.1 doc set (system-architecture, ci-pipeline,
-     SENSE360_MODULES, packages/README, README, hardware-catalog,
-     product-matrix, room-bundles, roadmap-status).
-   - Guardrails: docs-only; no functional/config/workflow change.
+   - **Status: DONE (2026-05-30).** Refreshed the §6.1 prose to the
+     board/bundle/alias/shim model: `system-architecture.md` gained the
+     four-tier "[board / bundle / alias / shim layers](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers)"
+     section + the restated cross-repo contract (config strings + artifact
+     names + tags only; WebFlash downstream); `packages/SENSE360_MODULES.md`
+     and `packages/README.md` gained the SKU→board-package map, the
+     authoritative-by-composition note (RoomIQ per-driver vs the 1:1 families),
+     the un-folded base-driver call-out (`airiq.yaml`, `ceiling_halo_leds.yaml`,
+     the radar primitives), and the alias-retention policy; `README.md` updated
+     the repo-structure tree + compose guidance to the board+bundle model
+     (tag-pinning and WebFlash-vs-manual matrix kept accurate);
+     `sense360-room-bundles.md` cross-linked the `products/bundles/` YAML layer
+     and kept bundle-SKU ≠ config-string distinct (no SKU change, no fan
+     bundle); `sense360-roadmap-status.md` added the epic to the snapshot by
+     link, not duplication. `ci-pipeline.md` was already refreshed by
+     CI-REFACTOR-VERIFY-001 and needed no inconsistency fix.
+   - Guardrails: docs-only; no functional/config/workflow change. No promotion,
+     readiness, `schematic_status`, config-string, or artifact change; LED stays
+     preview, S360-410 stays `cataloged_unverified`, no fan bundle / new SKU.
    - Dependency: PACKAGE-RENAME slices substantially landed.
+   - **Next (and last): WEBFLASH-ARCH-SYNC-001** (WebFlash repo).
 
 7. **WEBFLASH-ARCH-SYNC-001** — refresh WebFlash architecture docs *(WebFlash repo)*
    - Scope: the §6.2 docs (`architecture.md`, `firmware-import.md`) — record

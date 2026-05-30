@@ -35,6 +35,31 @@ quoting a legacy old-name field that contained the typo.
 | Power   | PSU       | Sense360 240v PSU  | S360-400 | R4  | PWR Module                      | Mains to 5V using HLK-5M05. |
 | Power   | PSU       | Sense360 PoE PSU   | S360-410 | R4  | PoE Module                      | PoE to 5V. |
 
+## SKU → board package
+
+Each catalog SKU maps to a SKU-aligned **board package** under
+[`../packages/boards/`](../packages/boards/) — the authoritative, self-contained
+firmware definition of that board (chip / pin map / connector nets). The legacy
+functional package names are retained as thin `!include` **aliases** of the
+board package (path preserved; see
+[`arch-board-bundle-plan.md`](arch-board-bundle-plan.md) §3.3). Full layout:
+[`system-architecture.md`](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers).
+
+| SKU | Friendly name | Authoritative board package |
+|-----|---------------|-----------------------------|
+| S360-100 | Sense360 Core | [`packages/boards/s360-100-core.yaml`](../packages/boards/s360-100-core.yaml) (+ mount/power/voice overlays; Core mount paths still wrap the legacy `hardware/sense360_core_*.yaml` source until its flip lands) |
+| S360-200 | Sense360 RoomIQ | [`packages/boards/s360-200-roomiq.yaml`](../packages/boards/s360-200-roomiq.yaml) (authoritative per driver: `…-climate` + `…-radar`, ceiling & wall) |
+| S360-210 | Sense360 AirIQ | [`packages/boards/s360-210-airiq.yaml`](../packages/boards/s360-210-airiq.yaml) (+ `-wall`, `-ceiling-s3`) |
+| S360-211 | Sense360 VentIQ | [`packages/boards/s360-211-ventiq.yaml`](../packages/boards/s360-211-ventiq.yaml) (+ `-pro`) |
+| S360-300 | Sense360 LED | [`packages/boards/s360-300-led.yaml`](../packages/boards/s360-300-led.yaml) (+ mic/voice variant) |
+| S360-410 | Sense360 PoE PSU | [`packages/boards/s360-410-poe-psu.yaml`](../packages/boards/s360-410-poe-psu.yaml) |
+| S360-310 / 311 / 312 / 320 / 400 | Relay / PWM / DAC / TRIAC / 240v PSU | *Not in the board layer yet* — remain expansion/hardware packages behind their evidence / compliance gates. |
+
+This mapping is naming/structure only; it changes **no** `schematic_status`,
+config string, artifact name, or shippability — those remain governed by
+[`../config/hardware-catalog.json`](../config/hardware-catalog.json) and the
+release configs.
+
 ## Verified schematics currently available
 
 The following boards have schematic PDFs pinned to this repository under

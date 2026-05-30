@@ -10,6 +10,17 @@ Complete product hierarchy and configuration guide for the Sense360 modular sens
 > legacy terminology (`Comfort`, `Presence`, `Bathroom`, generic `Fan`) is
 > still present below for hardware-level detail — see the mapping table.
 
+> **Board + bundle layout.** Each module/SKU below now has a SKU-aligned
+> **board package** under [`../packages/boards/`](../packages/boards/) as its
+> authoritative firmware definition, and each shipping config string has a
+> matching **bundle** under [`../products/bundles/`](../products/bundles/) that
+> assembles `boards + expansions + base + profiles` (the customer-facing
+> `products/sense360-*.yaml` paths are thin compat shims that `!include` the
+> bundle). The legacy `packages/expansions/*` / `packages/hardware/*` names
+> referenced in this doc are retained as `!include` aliases of their board
+> package. See the [SKU → board package map](hardware-catalog.md#sku--board-package)
+> and the [board / bundle / alias / shim layers](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers).
+
 ## Current WebFlash Taxonomy
 
 WebFlash describes a device as `{Mount}-{Power}-{AirQuality}-{Fan}-{Room}`:

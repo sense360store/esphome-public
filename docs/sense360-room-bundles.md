@@ -54,6 +54,38 @@ derived from the firmware config string per
 [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md) §
 Stable-promotion criteria G5.
 
+### Bundle SKU vs the YAML bundle layer (`products/bundles/`)
+
+A **room bundle SKU** (this document — a sellable kit identifier such as
+`S360-KIT-BATH-P`) must not be confused with the firmware **YAML bundle layer**
+introduced by the board/bundle refactor
+([`docs/arch-board-bundle-plan.md`](arch-board-bundle-plan.md) §2.2). The YAML
+bundle layer lives under [`products/bundles/`](../products/bundles/) and holds
+one YAML file **named 1:1 to a firmware config string** (e.g.
+`products/bundles/ceiling-poe-ventiq-roomiq.yaml` for `Ceiling-POE-VentIQ-RoomIQ`),
+each assembling `boards + expansions + base + profiles`. That YAML bundle is a
+**firmware config string** artefact, not a room bundle SKU:
+
+- A YAML bundle file name matches a **firmware config string**
+  ([`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json) /
+  [`config/webflash-builds.json`](../config/webflash-builds.json)), not a room
+  bundle SKU in
+  [`config/room-bundle-skus.json`](../config/room-bundle-skus.json).
+- A room bundle SKU maps onto a **likely firmware config target** (the
+  `likely_firmware_config_target` field), which in turn is the config string the
+  matching `products/bundles/*.yaml` is named for. The SKU → config-string
+  mapping is the same one tabulated in the canonical matrix below; this PR
+  changes **no** SKU and adds **no** new bundle.
+- The room bundle SKU stays the customer-facing kit identifier; the YAML bundle
+  stays an esphome-public-internal composition file. Neither becomes a release
+  artifact name — that is still derived from the firmware config string per
+  [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md) §
+  Stable-promotion criteria G5.
+
+This document does **not** introduce, rename, or fan-out any
+`products/bundles/*.yaml` file; it only cross-links the existing YAML bundle
+layer so the two "bundle" meanings stay distinct.
+
 ### This document is documentation only
 
 BUNDLE-SKU-MATRIX-001 — this PR — does **not**:

@@ -316,7 +316,19 @@ packages:
 
 ### Approach 2 — Individual packages
 
-Compose your own product from base + hardware + expansion + feature packages:
+Compose your own product from base + board/expansion + feature packages. The
+legacy `packages/hardware/*` and `packages/expansions/*` paths below still
+resolve — for the flipped sensor/PSU families they are now thin `!include`
+**aliases** of the SKU-aligned board package under `packages/boards/` (e.g.
+`packages/expansions/comfort_ceiling.yaml` → `packages/boards/s360-200-roomiq-climate.yaml`,
+`packages/expansions/airiq_ceiling.yaml` → `packages/boards/s360-210-airiq.yaml`,
+`packages/hardware/power_poe.yaml` → `packages/boards/s360-410-poe-psu.yaml`).
+You may reference either the legacy alias path or the board package directly;
+both resolve identically. (The `S360-100` Core mount variants are the inverse
+today — the board overlay wraps the still-authoritative legacy
+`packages/hardware/sense360_core_*.yaml` path — until Core's source-of-truth
+flip lands.) See the
+[board / bundle / alias / shim layers](docs/system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers).
 
 ```yaml
 packages:
@@ -393,16 +405,31 @@ configuration in detail.
 
 ```
 esphome-public/
-├── products/           # Ready-to-use device configurations (start here)
+├── products/
+│   ├── sense360-*.yaml # Customer include paths (compat shims → bundles)
+│   ├── bundles/        # One YAML per WebFlash config string (boards+expansions+base+profiles)
+│   └── webflash/       # Release-gate wrappers consumed by the build matrix
 ├── packages/
+│   ├── boards/         # SKU-aligned board packages (authoritative: S360-100/200/210/211/300/410)
 │   ├── base/           # Core system (WiFi, API, OTA, logging)
-│   ├── hardware/       # Core board, LED ring, power
-│   ├── expansions/     # AirIQ / VentIQ / RoomIQ / Fan drivers
+│   ├── hardware/       # Legacy core/LED/power paths — now aliases of packages/boards/
+│   ├── expansions/     # Legacy AirIQ/VentIQ/RoomIQ/Fan paths — aliases + un-folded base drivers
 │   └── features/       # Feature profiles (logic, automations)
 ├── examples/           # Customer configuration templates
 ├── docs/               # Installation, product matrix, release notes
 └── tests/              # Validation and testing infrastructure
 ```
+
+> **Board + bundle model.** The authoritative definition of each board lives in
+> `packages/boards/` (one canonical package per board SKU). `products/bundles/`
+> assembles those boards into one YAML per WebFlash config string, and the
+> customer-facing `products/sense360-*.yaml` paths are thin compat shims that
+> `!include` the matching bundle — so a pinned include resolves
+> `shim → bundle → board packages` unchanged. Legacy `packages/hardware/*` and
+> `packages/expansions/*` functional names are retained as `!include` aliases of
+> their board package. See
+> [docs/system-architecture.md](docs/system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers)
+> and [docs/arch-board-bundle-plan.md](docs/arch-board-bundle-plan.md).
 
 ---
 

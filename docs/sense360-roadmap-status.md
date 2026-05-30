@@ -32,6 +32,7 @@ disagree, **the source-of-truth file wins** and this doc is the one to fix.
 | Detailed PR working queue | [`UPCOMING_PR.md`](../UPCOMING_PR.md) |
 | Reconciled release-matrix / WebFlash / firmware-availability view | [`docs/release-matrix-webflash-alignment.md`](release-matrix-webflash-alignment.md) (WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001) |
 | Whole-system architecture (two-repo pipeline + CI map) | [`docs/system-architecture.md`](system-architecture.md) · [`docs/ci-pipeline.md`](ci-pipeline.md) |
+| Board / bundle / alias / shim YAML architecture | [`docs/arch-board-bundle-plan.md`](arch-board-bundle-plan.md) · [`docs/system-architecture.md`](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers) |
 
 ---
 
@@ -295,3 +296,33 @@ policy, or actively test-validated reference docs): everything under
 `docs/preview-to-stable-promotion-gates.md`, `docs/blocker-burndown.md`,
 `docs/product-readiness-matrix.md`, the firmware/release matrices, and the
 user/developer guides. These keep their own canonical ownership.
+
+---
+
+## 11. Board / bundle architecture epic
+
+The firmware YAML has been restructured into a SKU-aligned **board-package**
+layer (`packages/boards/`), a config-string-named **bundle** layer
+(`products/bundles/`), legacy **aliases**, and customer **compat shims**. This
+is an internal-composition refactor; it changes **no** config string, artifact
+name, lifecycle, `schematic_status`, WebFlash build, or release. Per the
+sources-of-truth rule above, the detail is **not duplicated here** — it lives in
+its own canonical docs:
+
+| Layer of the epic | Source of truth (do not duplicate) |
+|---|---|
+| Target shape, rename/alias policy, ordered PR sequence | [`docs/arch-board-bundle-plan.md`](arch-board-bundle-plan.md) |
+| Whole-pipeline placement + cross-repo contract | [`docs/system-architecture.md`](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers) |
+| Per-workflow CI/gate parity across the refactor | [`docs/ci-pipeline.md`](ci-pipeline.md) |
+| Per-PR queue state for the epic | [`UPCOMING_PR.md`](../UPCOMING_PR.md) |
+
+Epic status (ownership lives in the plan §7 / `UPCOMING_PR.md`, not here):
+`BOARD-PACKAGE-LAYER-001/002`, `BUNDLE-LAYER-001`,
+`PACKAGE-RENAME-001..005` (LED, AirIQ, VentIQ, RoomIQ, PoE-PSU source-of-truth
+flips), and `CI-REFACTOR-VERIFY-001` are landed; `DOCS-ARCH-REFRESH-001`
+(this doc-refresh slice) is current; `WEBFLASH-ARCH-SYNC-001` (WebFlash repo)
+remains, recording that the rename is invisible to the WebFlash contract.
+The cross-repo contract is unchanged: WebFlash couples only through release
+tags, config strings, and artifact names (§1, §5) — **no** board/bundle/alias
+rename touches `config/webflash-builds.json`, `manifest.json`, or
+`firmware/sources.json`, and the two release targets in §1 are unaffected.
