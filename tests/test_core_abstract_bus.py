@@ -695,8 +695,16 @@ SHARED_I2C_CONSUMER_DEFAULTS = [
     (REPO_ROOT / "packages" / "expansions" / "airiq.yaml", "airiq_i2c_id"),
     (REPO_ROOT / "packages" / "boards" / "s360-210-airiq-wall.yaml", "airiq_i2c_id"),
     (REPO_ROOT / "packages" / "boards" / "s360-210-airiq.yaml", "airiq_i2c_id"),
-    (REPO_ROOT / "packages" / "expansions" / "airiq_bathroom_base.yaml", "bathroom_i2c_id"),
-    (REPO_ROOT / "packages" / "expansions" / "airiq_bathroom_pro.yaml", "bathroom_i2c_id"),
+    # PACKAGE-RENAME-003 (docs/arch-board-bundle-plan.md §5.5): the authoritative
+    # base / Pro VentIQ definitions (incl. their `bathroom_i2c_id: core_i2c`
+    # default) moved from `packages/expansions/airiq_bathroom_base.yaml` /
+    # `airiq_bathroom_pro.yaml` (now thin aliases) into the SKU-aligned VentIQ
+    # board package + Pro overlay; the consumer-default assertion travels with
+    # the content. The entire VentIQ driver content is folded, so — unlike AirIQ
+    # — there is no un-folded generic base driver (no VentIQ `airiq.yaml`
+    # equivalent) to keep authoritative here.
+    (REPO_ROOT / "packages" / "boards" / "s360-211-ventiq.yaml", "bathroom_i2c_id"),
+    (REPO_ROOT / "packages" / "boards" / "s360-211-ventiq-pro.yaml", "bathroom_i2c_id"),
     (REPO_ROOT / "packages" / "expansions" / "comfort.yaml", "comfort_i2c_id"),
     (REPO_ROOT / "packages" / "expansions" / "comfort_wall.yaml", "comfort_i2c_id"),
     (REPO_ROOT / "packages" / "expansions" / "comfort_ceiling.yaml", "comfort_ceiling_i2c_id"),

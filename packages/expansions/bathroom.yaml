@@ -5,11 +5,20 @@
 # current bathroom hardware driver and feature profile so those configs remain
 # valid without modification.
 #
+# PACKAGE-RENAME-003 (docs/arch-board-bundle-plan.md §3.3, §5.5, §7 item 4): the
+# authoritative base VentIQ hardware definition now lives in the SKU-aligned
+# board package `packages/boards/s360-211-ventiq.yaml` (the legacy
+# `airiq_bathroom_base.yaml` path is now itself a thin alias of it). This compat
+# wrapper binds the board package directly for its hardware half, mirroring how
+# the production bundle assembles `s360-211-ventiq` + `bathroom_profile`; the
+# resolved config is byte-identical. The wrapper's own public include path
+# (`packages/expansions/bathroom.yaml`) is preserved.
+#
 # Included packages:
-#   - airiq_bathroom_base.yaml: hardware drivers for the bathroom module
+#   - ../boards/s360-211-ventiq.yaml: VentIQ base hardware board package
 #   - ../features/bathroom_profile.yaml: user-facing sensors and automations
 # ============================================================================
 
 packages:
-  bathroom_hardware: !include airiq_bathroom_base.yaml
+  bathroom_hardware: !include ../boards/s360-211-ventiq.yaml
   bathroom_profile: !include ../features/bathroom_profile.yaml
