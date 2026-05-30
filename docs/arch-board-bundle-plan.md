@@ -88,7 +88,11 @@ compliance-gated — see
 > includes in this slice (the consumer-side flip + test repoint travels with a
 > later PACKAGE-RENAME slice / CI-REFACTOR-VERIFY-001, because
 > `tests/test_core_abstract_bus.py` and `tests/test_led_package_mapping.py`
-> assert on the self-contained text of the folded functional packages). The
+> assert on the self-contained text of the folded functional packages). *(The
+> LED family has since been flipped by **PACKAGE-RENAME-001** (§7 item 4): the
+> `s360-300-led*` board packages are now authoritative and the `led_ring_*`
+> paths are thin aliases, with both named tests repointed onto the board
+> package. The remaining families flip in later PACKAGE-RENAME slices.)* The
 > **mains boards `S360-310` / `S360-320` / `S360-400` remain OUT of the board
 > layer for now** (compliance-gated, deferred to a later slice), and
 > `S360-311` / `S360-312` stay expansions behind their evidence gates (below).
@@ -579,10 +583,28 @@ merges and CI is green.
    - Dependency: BUNDLE-LAYER-001.
 
 4. **PACKAGE-RENAME-001 … 00N** — SKU-aligned renames in safe slices
+   - **Status: in progress — PACKAGE-RENAME-001 (LED) done (2026-05-30).**
+     The LED family source-of-truth is flipped: the SKU-aligned board package
+     `packages/boards/s360-300-led.yaml` (plus its `-wall` / `-mic-ceiling` /
+     `-mic-wall` overlays) now holds the authoritative, self-contained
+     definition, and the four legacy `packages/hardware/led_ring_*.yaml` paths
+     are reduced to thin `!include` aliases of those board packages (paths
+     preserved per §3.3 — legacy `sense360-core-*` products and the LED-bearing
+     preview still bind them; no alias dropped while a live binder exists). The
+     content-asserting tests that travel with the LED content per §5.5
+     (`test_led_package_mapping.py`'s `LED_CEILING_PACKAGE`,
+     `test_core_abstract_bus.py`'s `LED_RING_CEILING_PACKAGE`) are repointed onto
+     the board package in the **same** slice, assertions intact. Resolution is
+     proven byte-identical for the LED preview product (through its bundle +
+     shim) and for the legacy core products; full `esphome compile` is
+     **pending-ci** (esphome not available in this environment — metadata
+     validators run and green). LED stays preview-gated (no config-string,
+     artifact, WebFlash, readiness, or status change; LED not marked stable).
+     **Next slice: PACKAGE-RENAME-002 (AirIQ).**
    - Scope: per board family, rebind consumers onto the board package and
      retire the legacy functional name into an **alias** (§3.3); one board
      family (or a few low-binder packages) per slice. Suggested ordering by
-     blast radius: LED (`led_ring_*`) → AirIQ → VentIQ → RoomIQ
+     blast radius: LED (`led_ring_*`, done) → AirIQ → VentIQ → RoomIQ
      (`presence_*`/`comfort_*`, highest binder count, last) → PSU → mains
      drivers. A later slice promotes `S360-311`/`S360-312` to board packages
      **once** `HW-PINMAP-311/312-FOLLOWUP` evidence closes.

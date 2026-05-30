@@ -59,7 +59,12 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-LED_CEILING_PACKAGE = REPO_ROOT / "packages" / "hardware" / "led_ring_ceiling.yaml"
+# PACKAGE-RENAME-001 (docs/arch-board-bundle-plan.md §5.5): the authoritative,
+# self-contained ceiling LED definition moved from
+# `packages/hardware/led_ring_ceiling.yaml` (now a thin alias) into the
+# SKU-aligned board package below. The content-asserting checks travel with
+# the content, so they now target the board package.
+LED_CEILING_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-300-led.yaml"
 RELEASE_ONE_PRODUCT = REPO_ROOT / "products" / "sense360-ceiling-poe-ventiq-roomiq.yaml"
 WEBFLASH_BUILDS = REPO_ROOT / "config" / "webflash-builds.json"
 PRODUCT_CATALOG = REPO_ROOT / "config" / "product-catalog.json"

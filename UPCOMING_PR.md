@@ -30,6 +30,35 @@ mirrored here.
 
 ## Current queue summary
 
+- **PACKAGE-RENAME-001** delivers, via **this PR** on 2026-05-30, the **first
+  and lowest-blast-radius source-of-truth flip** of the §7-item-4 rename epic:
+  the **LED family** (`docs/arch-board-bundle-plan.md` §7 item 4 ordering — LED
+  first). The SKU-aligned board package
+  [`packages/boards/s360-300-led.yaml`](packages/boards/s360-300-led.yaml) plus
+  its `-wall` / `-mic-ceiling` / `-mic-wall` overlays now hold the
+  **authoritative, self-contained** LED ring definition (consolidating the
+  content that previously lived in the legacy `packages/hardware/led_ring_*.yaml`
+  files), and the four legacy `led_ring_*.yaml` paths are reduced to thin
+  `!include` **aliases** of the board packages — **paths preserved** per §3.3
+  (the ~16 legacy `sense360-core-*` products and the LED-bearing preview product
+  still bind them; no alias is dropped while a live binder exists, alias removal
+  is a later slice gated on binder count = 0). The two content-asserting tests
+  that travel with the moved LED content per §5.5 are **repointed** onto the
+  board package in the same slice — `test_led_package_mapping.py`
+  (`LED_CEILING_PACKAGE`) and `test_core_abstract_bus.py`
+  (`LED_RING_CEILING_PACKAGE`) — assertions intact, only the path read follows
+  the content. Resolution proven **byte-identical**: the LED preview product
+  (through its bundle + shim) and the four representative legacy core products
+  all merge to identical configs (same substitutions, entity names,
+  `led_data_pin`, `text_sensor` identity) pre/post. `ceiling_halo_leds.yaml`
+  stays a feature (cross-referenced, **not** folded). **No** config-string /
+  artifact / WebFlash (`config/webflash-builds.json`, `manifest.json`,
+  `firmware/sources.json`) / readiness / lifecycle / `schematic_status` change;
+  LED **not** marked stable; `test_release_one_entity_names` and
+  `test_product_substitutions` untouched; no workflow edit; WebFlash repo
+  untouched; full `esphome compile` is **pending-ci** (ESPHome unavailable; no
+  compile result claimed). Full suite green (1154 tests, 3 skipped). **Next
+  slice: PACKAGE-RENAME-002 (AirIQ).**
 - **BUNDLE-LAYER-002** delivers, via **this PR** on 2026-05-30, the **rest of
   the bundle layer**: the five remaining config-string bundles under
   `products/bundles/` (`ceiling-poe-roomiq`, `ceiling-poe-fanpwm`,

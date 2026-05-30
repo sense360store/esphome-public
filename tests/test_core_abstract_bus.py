@@ -105,7 +105,11 @@ FAN_DAC_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_dac.yaml"
 FAN_GP8403_PACKAGE_PATH = REPO_ROOT / "packages" / "expansions" / "fan_gp8403.yaml"
 SENSE360_CORE_CEILING = REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml"
 SENSE360_CORE_MAPPING = REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml"
-LED_RING_CEILING_PACKAGE = REPO_ROOT / "packages" / "hardware" / "led_ring_ceiling.yaml"
+# PACKAGE-RENAME-001 (docs/arch-board-bundle-plan.md §5.5): the authoritative
+# ceiling LED definition (incl. `led_data_pin: GPIO38`) moved from
+# `packages/hardware/led_ring_ceiling.yaml` (now a thin alias) into the
+# SKU-aligned board package; the GPIO38 content-assertion travels with it.
+LED_RING_CEILING_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-300-led.yaml"
 AIRIQ_CEILING_S3_PACKAGE = REPO_ROOT / "packages" / "expansions" / "airiq_ceiling_s3.yaml"
 SENSE360_CORE_CEILING_S3 = REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling_s3.yaml"
 
@@ -363,7 +367,7 @@ class StatusLedPinRetiredTests(unittest.TestCase):
 
 
 class LedRingCeilingPinTests(unittest.TestCase):
-    """S360-300 LED ring data remains GPIO38 in led_ring_ceiling.yaml."""
+    """S360-300 LED ring data remains GPIO38 in packages/boards/s360-300-led.yaml."""
 
     def test_led_data_pin_is_gpio38(self) -> None:
         value = _substitution_value(
@@ -374,8 +378,10 @@ class LedRingCeilingPinTests(unittest.TestCase):
             "GPIO38",
             "led_data_pin must remain GPIO38 (S360-300 LED ring data; "
             "schematic IO38 = LED_DATA per S360-100-R4) in "
-            "packages/hardware/led_ring_ceiling.yaml. CORE-ABSTRACT-BUS-001C "
-            "explicitly does NOT change the LED ring data line.",
+            "packages/boards/s360-300-led.yaml (the authoritative LED board "
+            "package after PACKAGE-RENAME-001; led_ring_ceiling.yaml is now a "
+            "thin alias). CORE-ABSTRACT-BUS-001C explicitly does NOT change "
+            "the LED ring data line.",
         )
 
 
