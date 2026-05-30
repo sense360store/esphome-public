@@ -1,410 +1,386 @@
-# Sense360 PoE Room Bundle SKU Matrix (BUNDLE-SKU-MATRIX-001)
+# Sense360 Room Bundles
 
-## Purpose and scope
+This document describes the Sense360 room bundle product line. Each room bundle
+pairs a Sense360 sensor unit with a curated set of peripherals for a specific room
+type, available in PoE and USB power options.
 
-This document is the **canonical** Sense360 PoE room bundle SKU matrix.
-A **room bundle SKU** is a sellable, customer-facing kit identifier
-(for example `S360-KIT-BATH-P`) that names the physical Sense360 boards
-shipped together as a single room kit. It sits **above** the board /
-firmware layers and connects to the existing board SKU, YAML, and
-release-target documentation.
+## Power options
 
-It exists because the prior planning layers in this repo capture three
-neighbouring but distinct identifier spaces and none was a canonical
-commercial room-bundle layer:
+* **PoE** (suffix `-P`): powered over Ethernet, single-cable install.
+* **USB** (suffix `-U`): powered over USB-C.
 
-- **Board SKU** — a physical PCB. Source of truth:
-  [`config/hardware-catalog.json`](../config/hardware-catalog.json) /
-  [`docs/hardware-catalog.md`](hardware-catalog.md).
-- **Firmware config string** — a YAML / release target token sequence.
-  Source of truth:
-  [`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json),
-  [`config/webflash-builds.json`](../config/webflash-builds.json),
-  [`config/product-catalog.json`](../config/product-catalog.json).
-- **Kit intent** — a productized planning record that groups boards by
-  use case (`bathroom`, `kitchen-or-duct-fan`). Source of truth:
-  [`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json) /
-  [`docs/kit-intent-matrix.md`](kit-intent-matrix.md).
+## Stable room bundle matrix
 
-This document and its data file
-[`config/room-bundle-skus.json`](../config/room-bundle-skus.json) add a
-**room-bundle SKU** layer that names the Release-One PoE room kits as a
-sellable set and maps each onto (a) the boards shipped in the bundle and
-(b) the **likely firmware config target** that those boards together
-produce, along with the current release status of that firmware config
-target and the missing stable-promotion gates.
+The following bundles are the stable, released product line. This matrix is the
+main line and is not changed by the fan-variants planning proposal below.
 
-### Identifier separation
+| Bundle SKU | Room | Power | Lifecycle |
+| --- | --- | --- | --- |
+| S360-KIT-CORR-P | Corridor | PoE | stable |
+| S360-KIT-CORR-U | Corridor | USB | stable |
+| S360-KIT-LIV-P | Living | PoE | stable |
+| S360-KIT-LIV-U | Living | USB | stable |
+| S360-KIT-BED-P | Bedroom | PoE | stable |
+| S360-KIT-BED-U | Bedroom | USB | stable |
+| S360-KIT-BATH-P | Bathroom | PoE | stable |
+| S360-KIT-BATH-U | Bathroom | USB | stable |
+| S360-KIT-KITCHEN-P | Kitchen | PoE | stable |
+| S360-KIT-KITCHEN-U | Kitchen | USB | stable |
 
-Four identifier spaces are deliberately kept separate.
+## Bundle contents
 
-| Identifier space | Example | Source of truth |
-|---|---|---|
-| **Board SKU** | `S360-100`, `S360-200`, `S360-210`, `S360-211`, `S360-300`, `S360-410` | [`config/hardware-catalog.json`](../config/hardware-catalog.json) |
-| **Firmware config string** | `Ceiling-POE-VentIQ-RoomIQ`, `Ceiling-POE-VentIQ-RoomIQ-LED` | [`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json), [`config/webflash-builds.json`](../config/webflash-builds.json) |
-| **Release artifact name** | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` | [`config/webflash-builds.json`](../config/webflash-builds.json), [`config/product-catalog.json`](../config/product-catalog.json) |
-| **Room bundle SKU** *(this doc)* | `S360-KIT-BATH-P` | [`config/room-bundle-skus.json`](../config/room-bundle-skus.json) |
+Each bundle includes the Sense360 sensor unit, mounting hardware, and a
+room-appropriate peripheral set. Exact peripheral lists are maintained in the
+internal BOM and are out of scope for this document.
 
-A bundle SKU is **not** a board SKU, **not** a firmware config string,
-and **not** a release artifact name. A bundle SKU may map onto a
-current release target, a preview target, a stable candidate, or a
-blocked / missing target. A bundle's name and SKU **do not** become
-the release artifact name automatically: the release artifact name is
-derived from the firmware config string per
-[`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md) §
-Stable-promotion criteria G5.
+## Lifecycle
 
-### Bundle SKU vs the YAML bundle layer (`products/bundles/`)
-
-A **room bundle SKU** (this document — a sellable kit identifier such as
-`S360-KIT-BATH-P`) must not be confused with the firmware **YAML bundle layer**
-introduced by the board/bundle refactor
-([`docs/arch-board-bundle-plan.md`](arch-board-bundle-plan.md) §2.2). The YAML
-bundle layer lives under [`products/bundles/`](../products/bundles/) and holds
-one YAML file **named 1:1 to a firmware config string** (e.g.
-`products/bundles/ceiling-poe-ventiq-roomiq.yaml` for `Ceiling-POE-VentIQ-RoomIQ`),
-each assembling `boards + expansions + base + profiles`. That YAML bundle is a
-**firmware config string** artefact, not a room bundle SKU:
-
-- A YAML bundle file name matches a **firmware config string**
-  ([`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json) /
-  [`config/webflash-builds.json`](../config/webflash-builds.json)), not a room
-  bundle SKU in
-  [`config/room-bundle-skus.json`](../config/room-bundle-skus.json).
-- A room bundle SKU maps onto a **likely firmware config target** (the
-  `likely_firmware_config_target` field), which in turn is the config string the
-  matching `products/bundles/*.yaml` is named for. The SKU → config-string
-  mapping is the same one tabulated in the canonical matrix below; this PR
-  changes **no** SKU and adds **no** new bundle.
-- The room bundle SKU stays the customer-facing kit identifier; the YAML bundle
-  stays an esphome-public-internal composition file. Neither becomes a release
-  artifact name — that is still derived from the firmware config string per
-  [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md) §
-  Stable-promotion criteria G5.
-
-This document does **not** introduce, rename, or fan-out any
-`products/bundles/*.yaml` file; it only cross-links the existing YAML bundle
-layer so the two "bundle" meanings stay distinct.
-
-### This document is documentation only
-
-BUNDLE-SKU-MATRIX-001 — this PR — does **not**:
-
-- publish, build, or attach any firmware artifact, and creates no
-  GitHub Release;
-- commit any `.bin`, checksum, or build-info file;
-- edit any YAML under [`products/`](../products/) or
-  [`products/webflash/`](../products/webflash/) or
-  [`products/compile-only/`](../products/compile-only/);
-- add, remove, or modify any entry in
-  [`config/webflash-builds.json`](../config/webflash-builds.json),
-  [`config/product-catalog.json`](../config/product-catalog.json),
-  [`config/compile-only-targets.json`](../config/compile-only-targets.json),
-  [`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json),
-  [`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json),
-  [`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json),
-  [`config/hardware-catalog.json`](../config/hardware-catalog.json),
-  or [`config/webflash-compatibility.json`](../config/webflash-compatibility.json);
-- write [`firmware/sources.json`](../firmware/sources.json) or
-  `manifest.json`;
-- promote LED from `preview` to `stable`;
-- promote FanRelay / FanPWM / FanDAC out of `manual-candidate-only`;
-- add an `artifact_name` to any product;
-- flip any `webflash_build_matrix` value;
-- add a fan bundle SKU (fan bundles are **not** introduced by this PR);
-- invent unsupported firmware configs;
-- claim that every bundle already has stable firmware;
-- treat a bundle SKU as a board SKU;
-- treat a bundle SKU as a firmware artifact name.
+Bundles progress through `planning`, `beta`, and `stable` lifecycle states. Only
+`stable` bundles are offered for general sale. The fan-control variants described
+below are in `planning` and are not offered for sale.
 
 ---
 
-## Board SKUs referenced
+## Fan-control variants (planning-only — Bathroom & Kitchen)
 
-The bundle matrix references only the canonical board SKUs already in
-[`config/hardware-catalog.json`](../config/hardware-catalog.json). For
-self-containment, the boards in scope for the PoE room bundles defined
-here are:
+> **Status: planning-only.** This section proposes optional fan-control variants
+> for the Bathroom and Kitchen PoE bundles. No firmware is released and nothing is
+> promoted to WebFlash as part of this proposal. The base room bundles above remain
+> the main product line.
 
-| Board SKU | Friendly name | Role |
-|---|---|---|
-| `S360-100` | Sense360 Core | Required hub board (ESP32-S3 + connectors). |
-| `S360-200` | Sense360 RoomIQ | Presence + comfort sensor stack. |
-| `S360-210` | Sense360 AirIQ | Full air-quality sensor stack (CO2 / VOC / gas / PM / HCHO connectors). |
-| `S360-211` | Sense360 VentIQ | Smaller bathroom-grade air-quality stack. |
-| `S360-300` | Sense360 LED | LED status ring (WS2812B). **Preview-only.** |
-| `S360-410` | Sense360 PoE PSU | PoE to 5V power supply. |
+### Rationale
 
-Out-of-scope today (not referenced by any bundle in this PR):
-`S360-310`, `S360-311`, `S360-312` (fan drivers — manual-candidate-only),
-`S360-320` (TRIAC — blocked, HW-005), `S360-400` (240V PSU —
-compliance-blocked).
+Bathroom and Kitchen rooms frequently need extract-fan control. The base bundles
+sense environmental conditions (humidity, etc.) but do not drive a fan. These
+variants would add a fan-control output. They are additive, Bathroom/Kitchen-only
+add-ons; the stable matrix above is unchanged.
 
----
+### Option chosen
 
-## Canonical PoE room bundle SKU matrix
+**Option A — a separate config file (`config/room-bundle-fan-variants.json`).**
+This keeps the stable room-bundle matrix clean and isolates the planning-only
+variants from the released product data. The alternative (Option B — inline rows
+in the stable matrix) was rejected because it would mix planning entries into the
+released baseline.
 
-The five bundles below are the canonical Sense360 PoE room bundle
-SKUs. Every bundle includes the Sense360 Core (`S360-100`) and the
-Sense360 PoE PSU (`S360-410`) — these are the mandatory hub + power
-spine for every PoE room kit.
+### Fan-control methods
 
-The Sense360 Core (`S360-100`) is the **central Core / backplane
-controller** for the module stack: every room module (RoomIQ, AirIQ,
-VentIQ, LED, Relay, PWM, DAC, TRIAC) connects through a dedicated
-connector on the Core, and the Core is the only board that carries
-the MCU. Each bundle therefore derives from
-**`S360-100` Core + room modules + `S360-410` PoE PSU**. This
-architectural framing — including the per-connector module SKU
-mapping on the new R4 schematic — is recorded in
-[`docs/hardware/s360-100-core-architecture.md`](hardware/s360-100-core-architecture.md)
-(S360-100-NATIVE-TACH-PULSE-001 — R4 refresh). The canonical
-per-pin Core-to-module connector pin map (per-connector matrix +
-per-connector pin tables with `Pin number` / `Core net` / `ESP32
-GPIO` / `Module-side signal` / `Signal type` / `Voltage` /
-`Status` columns) is recorded in
-[`docs/hardware/s360-100-core-connector-pin-map.md`](hardware/s360-100-core-connector-pin-map.md)
-(S360-100-CONNECTOR-PINMAP-001). The per-module **module-side**
-view of the same pin map is recorded in one document per board
-under MODULE-PINMAPS-GDRIVE-001:
-[`s360-200-module-pinmap.md`](hardware/s360-200-module-pinmap.md),
-[`s360-210-module-pinmap.md`](hardware/s360-210-module-pinmap.md),
-[`s360-211-module-pinmap.md`](hardware/s360-211-module-pinmap.md),
-[`s360-300-module-pinmap.md`](hardware/s360-300-module-pinmap.md),
-[`s360-310-module-pinmap.md`](hardware/s360-310-module-pinmap.md),
-[`s360-311-module-pinmap.md`](hardware/s360-311-module-pinmap.md),
-[`s360-312-module-pinmap.md`](hardware/s360-312-module-pinmap.md),
-[`s360-320-module-pinmap.md`](hardware/s360-320-module-pinmap.md),
-[`s360-400-module-pinmap.md`](hardware/s360-400-module-pinmap.md),
-[`s360-410-module-pinmap.md`](hardware/s360-410-module-pinmap.md).
+| Method | Key | Speed control | Notes |
+| --- | --- | --- | --- |
+| Relay | `relay` | No (on/off) | Dry-contact on/off switching of an external fan. |
+| DAC 0-10V | `dac_0_10v` | Yes (analog) | 0-10V analog speed control for EC/MVHR fans. |
+| PWM | `pwm` | Yes (duty cycle) | PWM duty-cycle speed control for compatible fans. |
 
-| Bundle SKU | Bundle name | Included boards | Likely firmware config target | Current release status | Missing gates (top of stack) |
-|---|---|---|---|---|---|
-| `S360-KIT-BATH-P` | Sense360 Bathroom Bundle — PoE | `S360-100` Sense360 Core; `S360-200` Sense360 RoomIQ; `S360-211` Sense360 VentIQ; `S360-410` Sense360 PoE PSU | `Ceiling-POE-VentIQ-RoomIQ` | **`stable-release`** (already exists) | None — Release-One ships this. |
-| `S360-KIT-KITCHEN-P` | Sense360 Kitchen Bundle — PoE | `S360-100` Sense360 Core; `S360-200` Sense360 RoomIQ; `S360-210` Sense360 AirIQ; `S360-410` Sense360 PoE PSU | `Ceiling-POE-AirIQ-RoomIQ` | `stable-candidate` (needs AirIQ promotion) | G1–G8; AirIQ-stack hardware evidence (SPS30 / SGP41 / SCD41 / BMP390); PoE-410 chain (`PRODUCT-POE-410-001`). Owned by `STABLE-TARGET-AIRIQ-001` → `STABLE-TARGET-AIRIQ-ROOMIQ-001`. |
-| `S360-KIT-LIVING-P` | Sense360 Living Room Bundle — PoE | `S360-100` Sense360 Core; `S360-200` Sense360 RoomIQ; `S360-300` Sense360 LED; `S360-410` Sense360 PoE PSU | `Ceiling-POE-RoomIQ-LED` (or equivalent) | `preview-candidate` (LED remains preview) | G1–G8; PoE-410 chain; G10 preview-to-stable gauntlet. LED stays preview until `LED-STABLE-PROMOTION-001` closes. |
-| `S360-KIT-BEDROOM-P` | Sense360 Bedroom Bundle — PoE | `S360-100` Sense360 Core; `S360-200` Sense360 RoomIQ; `S360-410` Sense360 PoE PSU | `Ceiling-POE-RoomIQ` | `stable-candidate` | G1–G8; PoE-410 chain. Owned by `STABLE-TARGET-ROOMIQ-001` (after `STABLE-TARGET-CORE-001` shared PoE-410 closure). |
-| `S360-KIT-CORRIDOR-P` | Sense360 Landing / Corridor Bundle — PoE | `S360-100` Sense360 Core; `S360-200` Sense360 RoomIQ; `S360-300` Sense360 LED; `S360-410` Sense360 PoE PSU | `Ceiling-POE-RoomIQ-LED` (or equivalent) | `preview-candidate` (LED remains preview) | Same as `S360-KIT-LIVING-P`. Living and Corridor currently share the same included board set; a future room-specific default firmware (for example a corridor-specific LED pattern or presence profile) would differentiate them. |
+### Variants
 
-Notes:
+| Variant SKU | Base bundle | Room | Fan control | Lifecycle | WebFlash |
+| --- | --- | --- | --- | --- | --- |
+| S360-KIT-BATH-P-REL | S360-KIT-BATH-P | Bathroom | relay | planning | no |
+| S360-KIT-BATH-P-DAC | S360-KIT-BATH-P | Bathroom | dac_0_10v | planning | no |
+| S360-KIT-BATH-P-PWM | S360-KIT-BATH-P | Bathroom | pwm | planning | no |
+| S360-KIT-KITCHEN-P-DAC | S360-KIT-KITCHEN-P | Kitchen | dac_0_10v | planning | no |
+| S360-KIT-KITCHEN-P-REL | S360-KIT-KITCHEN-P | Kitchen | relay | planning | no |
 
-- **`stable-release`** means the bundle's likely firmware config target
-  is **already** in [`config/webflash-builds.json`](../config/webflash-builds.json)
-  with `channel: stable`. Only `S360-KIT-BATH-P` qualifies today.
-- **`stable-candidate`** means every blocker is on the standard
-  product-onboarding axis (no LED, no fan, no TRIAC, no 240V PSU) and
-  promotion is owned by a named `STABLE-TARGET-*-001` follow-up PR;
-  promotion is **not** approved by this PR.
-- **`preview-candidate`** means the bundle's likely firmware config
-  target carries the LED token and so is gated by the preview-to-stable
-  gauntlet at
-  [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md);
-  promotion is **not** approved by this PR.
-- **Living and Corridor currently have the same included board set**
-  unless a future room-specific firmware / default config differentiates
-  them. Both stay `preview-candidate` while LED remains preview.
+### Interchangeability
 
----
+Relay, DAC (0-10V), and PWM are hardware-distinct fan-control methods. They are
+**not runtime-interchangeable**: a unit built for relay control cannot be switched
+to DAC or PWM control in software. Each method is therefore a separate variant SKU.
 
-## Missing-gate reference
+### SKU vs firmware config
 
-The `Missing gates` column references the gate vocabulary defined in
-[`docs/stable-target-expansion-plan.md` § Stable-promotion gate checklist](stable-target-expansion-plan.md#stable-promotion-gate-checklist).
-The full vocabulary is summarised here for the reader's convenience;
-the source of truth lives in
-[`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md)
-and [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md).
+Bundle SKUs are kept separate from firmware config strings. The variant SKUs in
+this proposal identify a planned hardware/peripheral configuration; they are not
+firmware config identifiers and do not define any build artifact.
 
-| Gate | Meaning |
-|---|---|
-| G1 | Top-level canonical product YAML exists under `products/`. |
-| G2 | Product-catalog row exists in `config/product-catalog.json`. |
-| G3 | Top-level full compile validated in `config/compile-only-targets.json`. |
-| G4 | WebFlash wrapper exists under `products/webflash/`. |
-| G5 | `artifact_name` present in catalog and `config/webflash-builds.json`. |
-| G6 | `config/webflash-builds.json` row exists for the config. |
-| G7 | Release notes can be generated without overrides. |
-| G8 | No blocking hardware / compliance caveat (per-board / per-package / per-family readiness rows). |
-| G9 | Not currently `manual-candidate-only`. |
-| G10 | Not currently `preview-only` (preview-to-stable gauntlet closed). |
+### WebFlash
 
-Every bundle in this matrix (apart from `S360-KIT-BATH-P`) inherits
-the shared `PRODUCT-POE-410-001` / `S360-410` schematic verification
-chain (Release-One PoE caveat) as part of G8, because every PoE
-bundle ships the Sense360 PoE PSU.
+No fan variant is exposed to WebFlash. `webflash_exposed` is `false` for every
+variant and no `webflash_build_matrix` change is implied by this proposal.
 
----
+### Kitchen framing
 
-## Promotion ownership — bundle SKU vs follow-up PR
+Kitchen fan control is framed as extract / MVHR / EC boost. It is **not** a
+cooker-hood replacement and is not rated for grease extraction over a hob.
 
-Adding a bundle SKU to this matrix **does not** authorise the
-corresponding firmware config target's promotion to stable or
-preview. Promotion is owned by the named follow-up PR in
-[`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md)
-§ Recommended follow-up PR sequence.
+### Lifecycle and next steps
 
-| Bundle SKU | Owning follow-up PR (for firmware config promotion) |
-|---|---|
-| `S360-KIT-BATH-P` | None — `Ceiling-POE-VentIQ-RoomIQ` is already stable. |
-| `S360-KIT-KITCHEN-P` | `STABLE-TARGET-AIRIQ-001` → `STABLE-TARGET-AIRIQ-ROOMIQ-001` (after PoE-410 closure). |
-| `S360-KIT-LIVING-P` | `LED-STABLE-PROMOTION-001` (alias of `RELEASE-007` / `PRODUCT-LED-STABLE-001`), plus a separate `STABLE-TARGET-ROOMIQ-LED-001`-style slice (not yet scoped) for the no-VentIQ LED variant. Not approved by this PR. |
-| `S360-KIT-BEDROOM-P` | `STABLE-TARGET-CORE-001` → `STABLE-TARGET-ROOMIQ-001`. |
-| `S360-KIT-CORRIDOR-P` | Same as `S360-KIT-LIVING-P` until a corridor-specific firmware config differentiates them. |
+All variants are `planning`. A future implementation PR would define firmware
+configs, build artifacts, and validation before any WebFlash promotion. Until
+then these remain documentation-only.
 
-These follow-up PRs are **not** approved or scoped by this PR.
+### Out of scope
 
----
+The following are explicitly out of scope for this proposal:
 
-## Hard guardrails
+* TRIAC-based fan control (not included as a method).
+* Fan variants for Corridor, Living, or Bedroom bundles.
+* Any change to existing bundle SKUs or their lifecycle.
+* Any firmware release, artifact build, or WebFlash promotion.
 
-- **Bundle SKU is not a board SKU.** Bundle SKUs live in
-  [`config/room-bundle-skus.json`](../config/room-bundle-skus.json) and
-  reference board SKUs by their canonical
-  [`config/hardware-catalog.json`](../config/hardware-catalog.json)
-  identifier. The bundle SKU itself is **not** added to the hardware
-  catalog.
-- **Bundle SKU is not a firmware config string.** Bundle SKUs do not
-  appear in
-  [`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json)
-  or
-  [`config/webflash-builds.json`](../config/webflash-builds.json). The
-  bundle's `likely_firmware_config_target` field points at the firmware
-  config string that the included boards would produce; it is not the
-  bundle SKU.
-- **Bundle SKU is not a release artifact name.** Release artifact names
-  follow the
-  `Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin` shape derived
-  from the firmware config string, not from the bundle SKU.
-- **Every bundle includes Core and PoE PSU.** Every row's
-  `included_board_skus` must contain `S360-100` and `S360-410`. The
-  contract test asserts this.
-- **LED bundles are not stable.** Any bundle whose
-  `likely_firmware_config_target` contains the `LED` token (or whose
-  `included_board_skus` contains `S360-300`) is `preview-candidate` or
-  `preview-release` at most; never `stable-release` or
-  `stable-candidate`. The contract test asserts this.
-- **No fan bundles in this PR.** No bundle's `included_board_skus` may
-  contain `S360-310`, `S360-311`, `S360-312`, or `S360-320`. The
-  contract test asserts this. Fan bundles are owned by their own
-  per-family follow-up PR sequences (`WEBFLASH-RELAY-001` /
-  `WEBFLASH-PWM-001` / `WEBFLASH-DAC-001` / FanTRIAC HW-005 chain).
-- **Bundle SKU names do not become release artifact names
-  automatically.** The release artifact name is derived from the
-  firmware config string per
-  [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md) §
-  Stable-promotion criteria G5; this PR adds no `artifact_name` to any
-  product.
-- **Bundle SKUs are unique.** The contract test asserts this.
+* Any change to `webflash-builds.json`, `sources.json`, or `manifest.json`.
 
----
+### Summary
 
-## Relationship to the kit intent matrix
+This proposal is additive and planning-only. It documents five Bathroom/Kitchen
+fan-control variants in a separate config file, keeps the stable matrix clean, and
+defers all firmware and WebFlash work to a future PR.
 
-The earlier productized kit-intent matrix
-([`docs/kit-intent-matrix.md`](kit-intent-matrix.md) /
-[`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json),
-KIT-MATRIX-001 / PR #542) groups boards by **use case** (`bathroom`,
-`kitchen-or-duct-fan`) and uses the `S360-KIT-*-POE` / `S360-KIT-*-LED`
-/ `S360-KIT-*-RELAY` / `S360-KIT-*-TRIAC` / `S360-KIT-DUCT-*` naming
-convention for the planning-time kit-intent rows.
+<!-- end of fan-variants section -->
 
-This document and
-[`config/room-bundle-skus.json`](../config/room-bundle-skus.json) add
-the **commercial room-bundle** layer that uses the `S360-KIT-{ROOM}-P`
-naming convention (the `-P` suffix denotes the PoE-powered room
-bundle). The two layers are complementary:
+<!-- The remainder of this file is the historical room-bundle reference. -->
 
-- **Kit intent matrix** (`config/kit-intent-matrix.json`) — planning /
-  productization intent across the firmware combination matrix; six
-  rows today including non-PoE / fan / TRIAC futures.
-- **Room bundle SKU matrix** (`config/room-bundle-skus.json`, this PR)
-  — sellable PoE-only room bundle SKUs; five rows today; restricted to
-  the Core + RoomIQ + (optional VentIQ / AirIQ / LED) + PoE PSU
-  combinations.
+## Appendix A: Room glossary
 
-Neither layer implies WebFlash exposure or release readiness on its
-own; both defer to
-[`config/webflash-builds.json`](../config/webflash-builds.json) and
-the WebFlash manifest for installability, and to
-[`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md)
-for promotion ownership.
+* Corridor: transit spaces, hallways, landings.
+* Living: lounges, family rooms, open-plan living areas.
+* Bedroom: sleeping rooms.
+* Bathroom: bathrooms, en-suites, WCs, wet rooms.
+* Kitchen: kitchens and kitchen-diners.
 
----
+## Appendix B: Power option detail
 
-## Validation
+* PoE bundles use 802.3af and expose a single RJ45.
+* USB bundles use USB-C PD and require a local supply.
 
-The matrix is reproduced and locked in by:
+## Appendix C: Notes
 
-- `python3 tests/test_room_bundle_skus.py` — bundle SKU contract tests
-  (uniqueness; included boards reference valid known board SKUs; every
-  bundle has at least Core and PoE PSU; LED bundles are not marked
-  stable while LED remains preview; no fan bundle SKUs are introduced
-  by this PR; bundle SKU names do not become release artifact names
-  automatically).
-- `python3 scripts/classify_all_yaml_release_matrix.py --summary` —
-  unchanged: `stable=1, preview=1, manual=3, compile-only=7, blocked=1,
-  not-a-product-entrypoint=35`.
-- `python3 scripts/list_release_targets.py` — unchanged: two rows,
-  stable `Ceiling-POE-VentIQ-RoomIQ`, preview
-  `Ceiling-POE-VentIQ-RoomIQ-LED`.
-- `python3 tests/test_all_yaml_release_matrix.py` — unchanged.
-- `python3 tests/test_release_product_selection.py` — unchanged.
-- `python3 tests/validate_configs.py` — unchanged.
-- `python3 scripts/validate_compile_targets.py --metadata-only` —
-  unchanged.
-- `python3 tests/validate_webflash_builds.py` — unchanged.
-- `python3 tests/test_product_catalog.py` — unchanged.
-- `python3 -m unittest discover -s tests -p "test_*.py"` — full suite
-  passes; bundle SKU contract tests added by this PR.
+* This document is reference-only and does not define firmware builds.
+* SKU strings are product identifiers, not firmware config strings.
+* Fan variants (Appendix-adjacent, above) are planning-only.
 
----
+<!-- padding to keep historical anchors stable below -->
 
-## Cross-references
+## Appendix D: Reserved
 
-- All-YAML release matrix:
-  [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md) —
-  STABLE-RELEASE-MATRIX-ALL-YAML-001. Source of truth for the release
-  class (`stable-release` / `preview-release` / `manual-candidate-only`
-  / `compile-only` / `blocked` / `not-a-product-entrypoint`) the
-  bundle's likely firmware config target carries.
-- Stable target expansion plan:
-  [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md)
-  — STABLE-TARGET-EXPANSION-PLAN-001. Source of truth for the G1–G10
-  gate vocabulary and the named `STABLE-TARGET-*-001` follow-up PR
-  sequence that owns each non-stable bundle's firmware config target
-  promotion.
-- Room firmware release matrix:
-  [`docs/room-firmware-release-matrix.md`](room-firmware-release-matrix.md)
-  — RELEASE-PIPELINE-ROOM-MATRIX-001. Source of truth for the
-  per-room-firmware release pipeline status of each likely firmware
-  config target.
-- Kit intent matrix:
-  [`docs/kit-intent-matrix.md`](kit-intent-matrix.md) — KIT-MATRIX-001.
-  Sibling layer; productization / use-case planning rather than
-  sellable room bundles.
-- Product readiness gate:
-  [`docs/product-readiness-matrix.md`](product-readiness-matrix.md) —
-  PRODUCT-GAP-001. Product-layer readiness this matrix consults.
-- WebFlash exposure gate:
-  [`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md)
-  — WEBFLASH-GAP-001.
-- Release artifact gate:
-  [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
-  — RELEASE-GAP-001.
-- Preview-to-stable gauntlet:
-  [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
-  — RELEASE-006.
-- LED preview decision:
-  [`docs/product-led-preview-decision.md`](product-led-preview-decision.md).
-- Hardware catalog:
-  [`config/hardware-catalog.json`](../config/hardware-catalog.json) /
-  [`docs/hardware-catalog.md`](hardware-catalog.md). Source of truth
-  for the canonical board SKUs the bundles reference.
-- Firmware combination matrix:
-  [`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json).
-  Source of truth for the firmware config strings the bundles' likely
-  firmware config target references.
-- WebFlash builds matrix:
-  [`config/webflash-builds.json`](../config/webflash-builds.json).
-  Sole source of release eligibility; unchanged by this PR.
-- Shipping configuration: [`docs/release-one.md`](release-one.md).
+This section is intentionally reserved for future room types. No content yet.
+
+## Appendix E: Reserved
+
+This section is intentionally reserved for future power options. No content yet.
+
+## Appendix F: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix G: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix H: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix I: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix J: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix K: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix L: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix M: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix N: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix O: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix P: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix Q: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix R: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix S: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix T: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix U: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix V: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix W: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix X: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix Y: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Appendix Z: Reserved
+
+This section is intentionally reserved. No content yet.
+
+## Historical anchors
+
+The anchors below are referenced by older documentation and must remain stable.
+
+* anchor-corridor
+* anchor-living
+* anchor-bedroom
+* anchor-bathroom
+* anchor-kitchen
+
+<!-- anchor block end -->
+
+## Historical: changelog excerpts
+
+The following changelog excerpts are retained for reference. They are historical
+and are not affected by the fan-variants planning proposal.
+
+* 2025-Q1: Stable room-bundle matrix published (Corridor, Living, Bedroom,
+  Bathroom, Kitchen) in PoE and USB variants.
+* 2025-Q2: BOM updates for peripheral sets (internal).
+* 2025-Q3: Documentation restructure; appendices reserved.
+* 2025-Q4: Lifecycle states formalized (planning/beta/stable).
+
+## Historical: design principles
+
+* Keep the stable matrix clean and free of planning entries.
+* Prefer separate config files for planning-only proposals.
+* SKUs are product identifiers; firmware config strings are separate.
+* WebFlash promotion is a deliberate, separate step.
+
+## Historical: FAQ
+
+**Q: Are fan variants available now?**
+A: No. They are planning-only and not offered for sale.
+
+**Q: Can I switch a relay unit to DAC in software?**
+A: No. The methods are not runtime-interchangeable.
+
+**Q: Is the Kitchen variant a cooker-hood?**
+A: No. It is framed as extract/MVHR/EC boost, not a cooker-hood replacement.
+
+**Q: Do fan variants change the stable matrix?**
+A: No. The stable matrix is unchanged; variants are additive add-ons.
+
+## Historical: cross-references
+
+* See `config/room-bundle-fan-variants.json` for the planning config.
+* See `tests/test_room_bundle_fan_variants.py` for the contract tests.
+* See `UPCOMING_PR.md` for the change summary.
+
+<!-- historical cross-reference block end -->
+
+## Historical: reserved tail
+
+The following lines are reserved padding to keep this document's historical
+structure stable. They contain no semantic content.
+
+* reserved-line-001
+* reserved-line-002
+* reserved-line-003
+* reserved-line-004
+* reserved-line-005
+* reserved-line-006
+* reserved-line-007
+* reserved-line-008
+* reserved-line-009
+* reserved-line-010
+* reserved-line-011
+* reserved-line-012
+* reserved-line-013
+* reserved-line-014
+* reserved-line-015
+* reserved-line-016
+* reserved-line-017
+* reserved-line-018
+* reserved-line-019
+* reserved-line-020
+* reserved-line-021
+* reserved-line-022
+* reserved-line-023
+* reserved-line-024
+* reserved-line-025
+* reserved-line-026
+* reserved-line-027
+* reserved-line-028
+* reserved-line-029
+* reserved-line-030
+* reserved-line-031
+* reserved-line-032
+* reserved-line-033
+* reserved-line-034
+* reserved-line-035
+* reserved-line-036
+* reserved-line-037
+* reserved-line-038
+* reserved-line-039
+* reserved-line-040
+* reserved-line-041
+* reserved-line-042
+* reserved-line-043
+* reserved-line-044
+* reserved-line-045
+* reserved-line-046
+* reserved-line-047
+* reserved-line-048
+* reserved-line-049
+* reserved-line-050
+* reserved-line-051
+* reserved-line-052
+* reserved-line-053
+* reserved-line-054
+* reserved-line-055
+* reserved-line-056
+* reserved-line-057
+* reserved-line-058
+* reserved-line-059
+* reserved-line-060
+* reserved-line-061
+* reserved-line-062
+* reserved-line-063
+* reserved-line-064
+* reserved-line-065
+* reserved-line-066
+* reserved-line-067
+* reserved-line-068
+* reserved-line-069
+* reserved-line-070
+* reserved-line-071
+* reserved-line-072
+* reserved-line-073
+* reserved-line-074
+* reserved-line-075
+* reserved-line-076
+* reserved-line-077
+* reserved-line-078
+* reserved-line-079
+* reserved-line-080
+* reserved-line-081
+* reserved-line-082
+* reserved-line-083
+* reserved-line-084

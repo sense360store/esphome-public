@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0.0",
+  "doc_id": "ROOM-BUNDLE-FAN-VARIANTS-001",
+  "status": "planning",
+  "description": "Planning-only proposal for optional fan-control variants of the Bathroom and Kitchen PoE room bundles. These are NOT released firmware and are NOT promoted to WebFlash. Base room bundles remain the primary product line; these variants are Bathroom/Kitchen-only add-ons that would be built and validated in a future PR.",
+  "non_goals": [
+    "No firmware release or artifact build is implied by this file.",
+    "No WebFlash promotion or webflash_build_matrix changes.",
+    "No changes to existing room bundle SKUs or their lifecycle.",
+    "No TRIAC-based fan control variant (explicitly out of scope).",
+    "No fan variants for Corridor, Living, or Bedroom bundles."
+  ],
+  "fan_control_methods": {
+    "relay": "On/off switching of an external fan via a dry-contact relay. Simple, robust, not speed-variable.",
+    "dac_0_10v": "Analog 0-10V speed control for EC/MVHR fans via a DAC output. Continuous speed control.",
+    "pwm": "PWM speed control for compatible fans. Continuous speed control via duty cycle."
+  },
+  "variants": [
+    {
+      "variant_sku": "S360-KIT-BATH-P-REL",
+      "base_bundle_sku": "S360-KIT-BATH-P",
+      "room": "Bathroom",
+      "fan_control": "relay",
+      "lifecycle": "planning",
+      "webflash_exposed": false,
+      "notes": "Relay on/off extract fan control for the Bathroom PoE bundle. Not runtime-interchangeable with DAC or PWM variants."
+    },
+    {
+      "variant_sku": "S360-KIT-BATH-P-DAC",
+      "base_bundle_sku": "S360-KIT-BATH-P",
+      "room": "Bathroom",
+      "fan_control": "dac_0_10v",
+      "lifecycle": "planning",
+      "webflash_exposed": false,
+      "notes": "Analog 0-10V speed control for the Bathroom PoE bundle. Not runtime-interchangeable with relay or PWM variants."
+    },
+    {
+      "variant_sku": "S360-KIT-BATH-P-PWM",
+      "base_bundle_sku": "S360-KIT-BATH-P",
+      "room": "Bathroom",
+      "fan_control": "pwm",
+      "lifecycle": "planning",
+      "webflash_exposed": false,
+      "notes": "PWM speed control for the Bathroom PoE bundle. Not runtime-interchangeable with relay or DAC variants."
+    },
+    {
+      "variant_sku": "S360-KIT-KITCHEN-P-DAC",
+      "base_bundle_sku": "S360-KIT-KITCHEN-P",
+      "room": "Kitchen",
+      "fan_control": "dac_0_10v",
+      "lifecycle": "planning",
+      "webflash_exposed": false,
+      "notes": "Analog 0-10V speed control for the Kitchen PoE bundle, framed as extract/MVHR/EC boost (not a cooker-hood replacement). Not runtime-interchangeable with relay or PWM variants."
+    },
+    {
+      "variant_sku": "S360-KIT-KITCHEN-P-REL",
+      "base_bundle_sku": "S360-KIT-KITCHEN-P",
+      "room": "Kitchen",
+      "fan_control": "relay",
+      "lifecycle": "planning",
+      "webflash_exposed": false,
+      "notes": "Relay on/off extract fan control for the Kitchen PoE bundle, framed as extract/MVHR/EC boost (not a cooker-hood replacement). Not runtime-interchangeable with DAC or PWM variants."
+    }
+  ],
+  "planning_notes": {
+    "option_chosen": "Option A — separate config file so the stable room-bundle matrix stays clean.",
+    "interchangeability": "relay vs DAC(0-10V) vs PWM are hardware-distinct and NOT runtime-interchangeable; each is a separate variant SKU.",
+    "sku_vs_config": "Bundle SKUs are kept separate from firmware config strings; this file does not define firmware config identifiers.",
+    "webflash": "No variant is exposed to WebFlash; webflash_exposed is false for all and no webflash_build_matrix change is implied.",
+    "kitchen_framing": "Kitchen fan control is framed as extract/MVHR/EC boost, not a cooker-hood replacement.",
+    "next_steps": "A future implementation PR would define firmware configs, build artifacts, and validation before any WebFlash promotion."
+  }
+}
