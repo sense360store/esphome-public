@@ -206,6 +206,61 @@ Notes:
 
 ---
 
+## Room-bundle fan-control variants (planning only)
+
+The base room bundle SKUs above **remain the main product line**. The
+fan-control variants below are **optional add-ons for the Bathroom and
+Kitchen bundles only** — no other room bundle (Corridor / Landing, Living
+Room, Bedroom) has a fan-control variant. To keep the stable room-bundle
+matrix above clean, these variants live in a separate planning file
+[`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
+(`ROOM-BUNDLE-FAN-VARIANTS-001`, OPTION A — separate file).
+
+This proposal is **planning-only**. It performs **no firmware release and
+no WebFlash promotion**: it adds no product YAML, no firmware config
+string, no `artifact_name`, no `config/webflash-builds.json` row, and
+flips no `webflash_build_matrix`. The variants stay planning-only until
+their fan-driver evidence gates close (see
+[`docs/sense360-roadmap-status.md` §6 Hardware blockers](sense360-roadmap-status.md#6-hardware-blockers)
+and the per-family fan evidence lanes).
+
+| Variant SKU | Base Bundle | Fan Driver Board | Control Type | Lifecycle |
+|---|---|---|---|---|
+| `S360-KIT-BATH-P-REL` | `S360-KIT-BATH-P` | `S360-310` | relay | planning |
+| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | `S360-312` | 0-10V | planning |
+| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | `S360-311` | pwm | planning |
+| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | `S360-312` | 0-10V | planning |
+| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | `S360-310` | relay | planning |
+
+### Control types are not interchangeable
+
+Relay, DAC (0-10V), and PWM fan control are electrically distinct fan-drive
+methods. A variant built for one control type **cannot be switched to
+another at runtime**: the fan-driver board (`S360-310` relay / `S360-311`
+PWM / `S360-312` 0-10V) and the firmware must match the installed fan
+hardware. The TRIAC driver (`S360-320`) is **not** offered as a
+recommended customer-facing fan variant (it remains blocked — HW-005 /
+COMPLIANCE-001).
+
+### Identifiers stay separate
+
+Firmware config strings and bundle SKUs **remain separate identifiers**. A
+fan-variant bundle SKU (for example `S360-KIT-BATH-P-REL`) names what the
+customer buys; it is **not** a firmware config string and does **not**
+imply any promoted firmware config string or release artifact name. The
+manual-install fan firmware candidates remain tracked separately in
+[`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json)
+/ [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md)
+and stay not WebFlash-exposed.
+
+### Kitchen framing
+
+The Kitchen fan variants are framed as **extract / MVHR / EC boost
+control** (continuous-extract, heat-recovery boost, or EC-fan speed
+control), **not** generic cooker-hood control.
+
+---
+
 ## Missing-gate reference
 
 The `Missing gates` column references the gate vocabulary defined in
