@@ -2,6 +2,95 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## V1-R4-CREATE-004 — author USB sensor variants (Ceiling-USB-VentIQ-RoomIQ, Ceiling-USB-RoomIQ)
+
+**Status:** authored (manual / custom channel; compile-validation pending-ci; no WebFlash promotion)
+
+### Summary
+
+This change authors the two unblocked R4 USB sensor configs from
+[`docs/v1-r4-product-gap.md`](docs/v1-r4-product-gap.md) (V1-R4-CREATE-004),
+each as a config-string-named bundle + thin compat shim + catalog row composed
+from the `packages/boards/` layer:
+
+* `Ceiling-USB-VentIQ-RoomIQ` — Core(ceiling) + USB-C power + S360-211 VentIQ +
+  S360-200 RoomIQ (the USB power-axis variant of the WebFlash-shipping
+  `Ceiling-POE-VentIQ-RoomIQ`, PoE PSU board swapped for the USB-C power package).
+* `Ceiling-USB-RoomIQ` — Core(ceiling) + USB-C power + S360-200 RoomIQ (the USB
+  power-axis variant of the authored `Ceiling-POE-RoomIQ`).
+
+These are **manual / custom** firmwares available for manual ESPHome / GitHub
+use, **NOT** WebFlash-exposed. USB variants carry **no PoE PSU board** (no
+S360-410); all three boards (S360-100, S360-211, S360-200) are
+`schematic_status: verified` and there is **no evidence blocker**.
+
+### What changed
+
+* New bundles `products/bundles/ceiling-usb-ventiq-roomiq.yaml` and
+  `products/bundles/ceiling-usb-roomiq.yaml` (full configs composed from the
+  board packages + `packages/hardware/power_usb.yaml` + base tier + the same
+  behaviour profiles the PoE sensor bundle uses).
+* New compat shims `products/sense360-ceiling-usb-ventiq-roomiq.yaml` and
+  `products/sense360-ceiling-usb-roomiq.yaml` (each does nothing but `!include`
+  its bundle, per §3.2).
+* `config/product-catalog.json`: two rows, `status: compile-only`,
+  `target_channel: manual-custom`, `webflash_build_matrix: false`, no
+  `artifact_name`, no `webflash_wrapper`, no kit preset.
+* `config/compile-only-targets.json`: two top-level targets
+  (`ceiling-usb-ventiq-roomiq-product-compile-only`,
+  `ceiling-usb-roomiq-product-compile-only`), `compile_validation_status:
+  pending-ci`.
+* `config/compile-only-candidates.json`,
+  `config/firmware-combination-matrix.json` (regenerated;
+  `compile-only-candidate`), `docs/firmware-build-gap-report.md` (regenerated),
+  `docs/product-readiness-matrix.md`, `docs/all-yaml-release-matrix.md`, and
+  `docs/v1-r4-product-gap.md` (CREATE-004 marked authored) updated to match.
+
+### Guardrails (explicitly NOT changed)
+
+* No edits to `config/webflash-builds.json`, `firmware/sources.json`, or
+  `manifest.json`.
+* No `artifact_name`; no `webflash_build_matrix` flip; no kit preset; no
+  WebFlash wrapper / exposure.
+* No PoE PSU (no S360-410) in these USB variants.
+* No board `schematic_status` change; LED not marked stable; S360-410 not marked
+  verified; nothing preview-promoted or claimed as a kit.
+* No compile result fabricated (ESPHome unavailable in the authoring
+  environment; a CI `--compile` run is owed).
+
+### Queue status (maintenance rule)
+
+`V1-R4-CREATE-004` delivers the unblocked non-LED USB pair. The remaining
+`V1-R4-CREATE-*` slices stay **queued behind their gates**:
+
+* **V1-R4-CREATE-002** — `Ceiling-POE-AirIQ-RoomIQ` (S360-410 + AirIQ-stack
+  evidence-gated).
+* **V1-R4-CREATE-003** — `Ceiling-POE-RoomIQ-LED` (LED preview gauntlet;
+  S360-410-gated).
+* **V1-R4-CREATE-005** — `Ceiling-USB-AirIQ-RoomIQ` (AirIQ-stack evidence-gated).
+* **V1-R4-CREATE-006** — `Ceiling-USB-VentIQ-RoomIQ-LED`,
+  `Ceiling-USB-RoomIQ-LED` (LED preview-gated).
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 scripts/validate_compile_targets.py --metadata-only`
+* `python3 tests/test_product_catalog.py`
+* `python3 tests/test_all_yaml_release_matrix.py`
+* `python3 tests/test_product_substitutions.py`
+* `python3 tests/test_release_one_entity_names.py`
+* `python3 tests/validate_webflash_builds.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"`
+
+### Retained cross-references (maintenance)
+
+The module-side pinmap ledger `MODULE-PINMAPS-GDRIVE-001` and the canonical Core
+connector pin map [`docs/hardware/s360-100-core-connector-pin-map.md`](docs/hardware/s360-100-core-connector-pin-map.md)
+are unchanged by this slice and remain the source of truth for the S360-100
+ceiling Core bus that the USB variants bind.
+
+---
+
 ## ROOM-BUNDLE-FAN-VARIANTS-001 — Planning-only fan-control variants (Bathroom & Kitchen)
 
 **Status:** planning-only (no firmware release, no WebFlash promotion)

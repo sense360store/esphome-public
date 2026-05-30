@@ -1,0 +1,32 @@
+# ============================================================================
+# SENSE360 PRODUCT (compat shim) — Ceiling-USB-VentIQ-RoomIQ (manual / custom)
+# ============================================================================
+# BUNDLE-LAYER-001 (docs/arch-board-bundle-plan.md §3.2). This product path is
+# a thin compatibility shim: its composition lives in the config-string-named
+# bundle `products/bundles/ceiling-usb-ventiq-roomiq.yaml` and this file does
+# nothing but `!include` that bundle.
+#
+# Authoring slice : V1-R4-CREATE-004 (the S360-KIT-BATH-P USB power-variant).
+# Channel         : manual / custom — available for manual ESPHome / GitHub use,
+#                   NOT WebFlash-exposed. No artifact_name, no webflash_wrapper,
+#                   no config/webflash-builds.json row, no kit preset.
+#
+# Full composition, substitutions, board assembly, and product identification:
+#   products/bundles/ceiling-usb-ventiq-roomiq.yaml
+#
+# Customer usage in their ESPHome config:
+#
+#   packages:
+#     sense360_firmware:
+#       url: https://github.com/sense360store/esphome-public
+#       files:
+#         - products/sense360-ceiling-usb-ventiq-roomiq.yaml
+#       refresh: 1d
+#
+#   substitutions:
+#     device_name: sense360-bathroom-usb
+#     friendly_name: "Bathroom Sense360 USB"
+# ============================================================================
+
+packages:
+  bundle: !include bundles/ceiling-usb-ventiq-roomiq.yaml
