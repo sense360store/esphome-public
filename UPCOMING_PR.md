@@ -30,6 +30,41 @@ mirrored here.
 
 ## Current queue summary
 
+- **PACKAGE-RENAME-002** delivers, via **this PR** on 2026-05-30, the **second
+  source-of-truth flip** of the §7-item-4 rename epic: the **S360-210 AirIQ
+  family** (`docs/arch-board-bundle-plan.md` §7 item 4 ordering — AirIQ after
+  LED). The SKU-aligned board package
+  [`packages/boards/s360-210-airiq.yaml`](packages/boards/s360-210-airiq.yaml)
+  plus its `-wall` and `-ceiling-s3` overlays now hold the **authoritative,
+  self-contained** AirIQ definition (consolidating the content that previously
+  lived in the legacy `packages/expansions/airiq_ceiling.yaml` /
+  `airiq_wall.yaml` / `airiq_ceiling_s3.yaml` files), and those three legacy
+  paths are reduced to thin `!include` **aliases** of the board packages —
+  **paths preserved** per §3.3 (the legacy `sense360-core-*` ceiling/wall
+  products and the AirIQ compile-only targets still bind them; no alias is
+  dropped while a live binder exists, alias removal is a later slice gated on
+  binder count = 0). The generic base driver
+  [`packages/expansions/airiq.yaml`](packages/expansions/airiq.yaml) is
+  **cross-referenced, not folded** — it has no board package and stays
+  authoritative (mirroring how `ceiling_halo_leds.yaml` stayed a feature in
+  RENAME-001), so its `airiq_i2c_id` consumer-default assertion is unchanged.
+  The content-asserting checks that travel with the moved AirIQ content per
+  §5.5 are **repointed** in the same slice — `test_core_abstract_bus.py`'s
+  `AIRIQ_CEILING_S3_PACKAGE`, the ceiling/wall entries of
+  `SHARED_I2C_CONSUMER_DEFAULTS`, and the `i2c_primary` allow-list in
+  `test_no_legacy_bus_id_in_any_active_consumer_line` — assertions intact, only
+  the path read follows the content. Resolution proven **byte-identical**: each
+  board-package body is character-for-character equal to the pre-flip legacy
+  file body, reached through the preserved `!include` paths. The
+  `airiq_bathroom_base.yaml` / `airiq_bathroom_pro.yaml` pair is **untouched**
+  (S360-211 VentIQ family, owned by PACKAGE-RENAME-003). **No** config-string /
+  artifact / WebFlash (`config/webflash-builds.json`, `manifest.json`,
+  `firmware/sources.json`) / readiness / lifecycle / `schematic_status` change;
+  `test_release_one_entity_names` and `test_product_substitutions` untouched; no
+  workflow edit; WebFlash repo untouched; full `esphome compile` is
+  **pending-ci** (ESPHome unavailable; no compile result claimed). Full suite
+  green (1154 tests, 3 skipped). **Next slice: PACKAGE-RENAME-003 (VentIQ),
+  including the `airiq_bathroom_*` pair.**
 - **PACKAGE-RENAME-001** delivers, via **this PR** on 2026-05-30, the **first
   and lowest-blast-radius source-of-truth flip** of the §7-item-4 rename epic:
   the **LED family** (`docs/arch-board-bundle-plan.md` §7 item 4 ordering — LED
