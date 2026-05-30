@@ -96,7 +96,15 @@ RELAY_REBIND_PACKAGES = [
 ]
 
 # Per-package substitutions affected by 001C.
-COMFORT_CEILING_PACKAGE = REPO_ROOT / "packages" / "expansions" / "comfort_ceiling.yaml"
+# PACKAGE-RENAME-004 (docs/arch-board-bundle-plan.md §5.5): the authoritative,
+# self-contained ceiling RoomIQ climate/comfort definition (incl.
+# `comfort_ceiling_als_int_pin: GPIO47` and `comfort_ceiling_i2c_id: core_i2c`)
+# moved from `packages/expansions/comfort_ceiling.yaml` (now a thin alias) into
+# the SKU-aligned board half below; the GPIO47 / ALS-int content-assertions
+# travel with the content. RoomIQ is authoritative PER DRIVER (the comfort and
+# presence halves are bound independently), so the comfort half is its own
+# board file rather than a single merged board document.
+COMFORT_CEILING_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-climate.yaml"
 SX1509_PACKAGE = REPO_ROOT / "packages" / "expansions" / "gpio_expander_sx1509.yaml"
 # CORE-ABSTRACT-BUS-SX1509-001: neutral FanPWM SX1509 binding layer.
 FAN_PWM_SX1509_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_pwm_sx1509.yaml"
@@ -706,8 +714,17 @@ SHARED_I2C_CONSUMER_DEFAULTS = [
     (REPO_ROOT / "packages" / "boards" / "s360-211-ventiq.yaml", "bathroom_i2c_id"),
     (REPO_ROOT / "packages" / "boards" / "s360-211-ventiq-pro.yaml", "bathroom_i2c_id"),
     (REPO_ROOT / "packages" / "expansions" / "comfort.yaml", "comfort_i2c_id"),
-    (REPO_ROOT / "packages" / "expansions" / "comfort_wall.yaml", "comfort_i2c_id"),
-    (REPO_ROOT / "packages" / "expansions" / "comfort_ceiling.yaml", "comfort_ceiling_i2c_id"),
+    # PACKAGE-RENAME-004 (docs/arch-board-bundle-plan.md §5.5): the authoritative
+    # ceiling / wall RoomIQ climate (comfort) definitions (incl. their
+    # `comfort_*_i2c_id: core_i2c` default) moved from
+    # `packages/expansions/comfort_wall.yaml` / `comfort_ceiling.yaml` (now thin
+    # aliases) into the SKU-aligned RoomIQ board halves; the consumer-default
+    # assertion travels with the content. RoomIQ is authoritative per driver, so
+    # the climate halves are their own board files. The shared radar primitives
+    # `presence_ld2450.yaml` / `presence_ld2412.yaml` are UART (not I2C) base
+    # drivers and carry no `*_i2c_id` default, so they do not appear here.
+    (REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-climate-wall.yaml", "comfort_i2c_id"),
+    (REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-climate.yaml", "comfort_ceiling_i2c_id"),
     (REPO_ROOT / "packages" / "expansions" / "fan_gp8403.yaml", "fan_dac_i2c_id"),
     (REPO_ROOT / "packages" / "expansions" / "gpio_expander_sx1509.yaml", "sx1509_i2c_id"),
 ]

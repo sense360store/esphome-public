@@ -1,30 +1,28 @@
 # ============================================================================
-# Sense360 RoomIQ — Wall/Desk mount variant overlay (S360-200-R4)
+# Sense360 RoomIQ — Wall/Desk mount board package (S360-200-R4)
 # ============================================================================
-# BOARD-PACKAGE-LAYER-002. SKU-aligned wall-mount variant of the canonical
-# RoomIQ board package `packages/boards/s360-200-roomiq.yaml`.
+# PACKAGE-RENAME-004 (docs/arch-board-bundle-plan.md §7 item 4). SKU-aligned
+# wall/desk-mount RoomIQ board package, the wall sibling of the canonical
+# ceiling board `packages/boards/s360-200-roomiq.yaml`.
 #
-# Where the canonical base composes the ceiling-mount RoomIQ stack
-# (comfort_ceiling + presence_ceiling), this overlay swaps in the wall/desk
-# mount delta — the wall-form-factor comfort and radar source packages:
+# Like the ceiling board, RoomIQ is authoritative PER DRIVER (the legacy
+# `sense360-core-wall*` family binds `comfort_wall.yaml` and `presence_wall.yaml`
+# under separate package keys, so a single merged file cannot be the alias
+# target of both). The authoritative wall content lives in:
 #
-#   - comfort sensing : packages/expansions/comfort_wall.yaml
-#                       (SHT40 temp/humidity @ 0x44 + LTR-303 ALS @ 0x29 on the
-#                        shared core_i2c bus, CORE-ABSTRACT-BUS-001B)
-#   - radar presence  : packages/expansions/presence_wall.yaml
-#                       (HLK-LD2450 24 GHz multi-target radar on the named
-#                        roomiq_hi_link_uart, CORE-ABSTRACT-BUS-001C)
+#   wall climate (comfort) : packages/boards/s360-200-roomiq-climate-wall.yaml
+#                            (SHT40 @ 0x44 + LTR-303 ALS @ 0x29 on core_i2c)
+#   wall radar (presence)  : packages/boards/s360-200-roomiq-radar-wall.yaml
+#                            (HLK-LD2450 on roomiq_hi_link_uart @ 256000)
 #
-# Thin `!include` wrapper over the existing functional packages (byte-identical
-# behaviour), mirroring the Core mount-overlay pattern from
-# BOARD-PACKAGE-LAYER-001.
+# and the legacy `comfort_wall.yaml` / `presence_wall.yaml` paths are now thin
+# aliases that `!include` the matching authoritative half (§3.3, §5.5).
 #
-# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3): the legacy
-# `comfort_wall.yaml` / `presence_wall.yaml` paths are preserved unchanged as
-# the source of truth; no product is rebound onto this board package in this
-# slice.
+# THIS file is the production-facing wall RoomIQ board: it COMPOSES the two
+# authoritative wall halves. The merge is byte-identical to the previous
+# comfort_wall + presence_wall composition.
 # ============================================================================
 
 packages:
-  board_roomiq_comfort: !include ../expansions/comfort_wall.yaml
-  board_roomiq_radar: !include ../expansions/presence_wall.yaml
+  board_roomiq_comfort: !include s360-200-roomiq-climate-wall.yaml
+  board_roomiq_radar: !include s360-200-roomiq-radar-wall.yaml

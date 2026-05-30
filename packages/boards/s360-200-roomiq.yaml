@@ -1,63 +1,71 @@
 # ============================================================================
 # Sense360 RoomIQ — Canonical Board Package (S360-200-R4)
 # ============================================================================
-# BOARD-PACKAGE-LAYER-002 — the SKU-aligned board layer, sensor boards.
-#
-# This is the SKU-aligned canonical entry for the Sense360 RoomIQ room-sensing
-# board (SKU `S360-200`, revision R4, friendly name "Sense360 RoomIQ";
-# `schematic_status: verified` per config/hardware-catalog.json). RoomIQ is the
-# merged comfort + presence room-sensor board (docs/arch-board-bundle-plan.md
-# §2.1): ambient-light + temperature/humidity comfort sensing plus 24 GHz
-# mmWave radar presence/occupancy on the RoomIQ J10 connector.
-#
-# This canonical base composes the representative **ceiling-mount** RoomIQ
-# stack, exactly the pair the Release-One product
-# (`products/sense360-ceiling-poe-ventiq-roomiq.yaml`) binds today:
-#
-#   - comfort sensing : packages/expansions/comfort_ceiling.yaml
-#                       (VEML7700 ALS @ 0x10 + SHT4x temp/humidity @ 0x44 on
-#                        the shared core_i2c bus, CORE-ABSTRACT-BUS-001B)
-#   - radar presence  : packages/expansions/presence_ceiling.yaml
-#                       (HLK-LD2450 24 GHz multi-target radar on the named
-#                        roomiq_hi_link_uart, CORE-ABSTRACT-BUS-001C, 256000 baud)
-#
-# Mirroring the Core pattern proven by BOARD-PACKAGE-LAYER-001 (Core), this
-# board package is a thin `!include` wrapper over the existing functional
-# packages, so the resolved behaviour is byte-identical to the legacy paths
-# that products and tests already resolve. The wall-mount variant is the thin
-# overlay `s360-200-roomiq-wall.yaml`.
+# PACKAGE-RENAME-004 (docs/arch-board-bundle-plan.md §7 item 4) — the S360-200
+# RoomIQ family is the fourth and largest source-of-truth flip (after LED,
+# AirIQ, VentIQ). This is the SKU-aligned canonical entry for the Sense360
+# RoomIQ room-sensing board (SKU `S360-200`, revision R4, friendly name
+# "Sense360 RoomIQ"; `schematic_status: verified` per
+# config/hardware-catalog.json). RoomIQ is the merged comfort + presence
+# room-sensor board (docs/arch-board-bundle-plan.md §2.1): ambient-light +
+# temperature/humidity comfort sensing plus 24 GHz mmWave radar
+# presence/occupancy on the RoomIQ J10 connector.
 #
 # ----------------------------------------------------------------------------
-# Folded source packages (docs/arch-board-bundle-plan.md §2.1)
+# Why RoomIQ is AUTHORITATIVE PER DRIVER (not one merged document)
 # ----------------------------------------------------------------------------
-# The S360-200 RoomIQ SKU folds in the following functional source packages.
-# Each is preserved unchanged (alias policy §3.3) and reached through this
-# board package (base) or its mount overlay:
+# Unlike the 1:1 LED / AirIQ / VentIQ families, the RoomIQ board composes TWO
+# drivers that products bind INDEPENDENTLY (the legacy `sense360-core-ceiling*`
+# family `!include`s `comfort_ceiling.yaml` and `presence_ceiling.yaml` under
+# separate package keys). A single merged board file therefore cannot be the
+# alias target of both legacy paths without duplicate-id breakage. So the
+# authoritative content lives PER DRIVER in the board layer:
 #
-#   ceiling comfort : comfort_ceiling.yaml   (this base)
-#   wall comfort    : comfort_wall.yaml      (s360-200-roomiq-wall.yaml)
-#   ceiling radar   : presence_ceiling.yaml  (this base; HLK-LD2450, default)
-#   wall radar      : presence_wall.yaml     (s360-200-roomiq-wall.yaml)
-#   radar drivers   : presence_ld2450.yaml   (LD2450 base hardware, default)
-#                     presence_ld2412.yaml   (LD2412 single-zone alternative;
-#                                             cross-referenced radar option,
-#                                             not bound by this default stack)
-#   canonical aliases (Phase-2 PACKAGE-NAMING): roomiq.yaml (→ comfort_ceiling),
-#                     roomiq_radar.yaml (→ presence_ceiling) — resolve to the
-#                     same drivers this base composes.
+#   ceiling climate (comfort) : packages/boards/s360-200-roomiq-climate.yaml
+#                               (VEML7700 ALS @ 0x10 + SHT4x @ 0x44 on core_i2c)
+#   ceiling radar (presence)  : packages/boards/s360-200-roomiq-radar.yaml
+#                               (HLK-LD2450 on roomiq_hi_link_uart @ 256000)
+#
+# and the legacy `comfort_ceiling.yaml` / `presence_ceiling.yaml` paths are now
+# thin aliases that `!include` the matching authoritative half (§3.3, §5.5).
+#
+# THIS file is the production-facing ceiling RoomIQ board: it COMPOSES the two
+# authoritative ceiling halves, exactly the pair the Release-One product
+# (`products/sense360-ceiling-poe-ventiq-roomiq.yaml`) binds today. The merge
+# of the two halves is byte-identical to the previous
+# comfort_ceiling + presence_ceiling composition, so the production product
+# resolves unchanged. The wall-mount variant is `s360-200-roomiq-wall.yaml`.
 #
 # ----------------------------------------------------------------------------
-# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3, §5.5)
+# Family map (docs/arch-board-bundle-plan.md §2.1)
 # ----------------------------------------------------------------------------
-# This package is additive: no product or test references it in this slice. The
-# legacy `packages/expansions/{comfort,presence}_*.yaml` paths are preserved
-# unchanged as the source of truth — they are NOT rewired to one-line includes
-# in this slice because `tests/test_core_abstract_bus.py` asserts on the
-# self-contained text of `comfort_ceiling.yaml` (and the other consumer
-# defaults). The source-of-truth flip + test repoint is owned by a later
-# PACKAGE-RENAME slice / CI-REFACTOR-VERIFY-001 (§5.5), exactly as Core did.
+#   ceiling climate : s360-200-roomiq-climate.yaml      (authoritative)
+#   ceiling radar   : s360-200-roomiq-radar.yaml        (authoritative)
+#   wall climate    : s360-200-roomiq-climate-wall.yaml (authoritative)
+#   wall radar      : s360-200-roomiq-radar-wall.yaml   (authoritative)
+#   ceiling board   : THIS file        (composes the two ceiling halves)
+#   wall board      : s360-200-roomiq-wall.yaml (composes the two wall halves)
+#
+# Legacy aliases (paths preserved while live binders exist; §3.3):
+#   comfort_ceiling.yaml  -> !include ../boards/s360-200-roomiq-climate.yaml
+#   presence_ceiling.yaml -> !include ../boards/s360-200-roomiq-radar.yaml
+#   comfort_wall.yaml     -> !include ../boards/s360-200-roomiq-climate-wall.yaml
+#   presence_wall.yaml    -> !include ../boards/s360-200-roomiq-radar-wall.yaml
+#
+# ----------------------------------------------------------------------------
+# Cross-referenced base drivers kept AUTHORITATIVE (NOT aliased)
+# ----------------------------------------------------------------------------
+# The shared radar PRIMITIVES `packages/expansions/presence_ld2450.yaml` and
+# `presence_ld2412.yaml` are documented base drivers (packages/SENSE360_MODULES.md)
+# with no board package holding their content; they stay authoritative and are
+# NOT folded, mirroring how `airiq.yaml` (RENAME-002) and `ceiling_halo_leds.yaml`
+# (RENAME-001) stayed authoritative. The Phase-2 naming aliases `roomiq.yaml` /
+# `roomiq_radar.yaml` keep their pinned bare-basename `!include` of
+# `comfort_ceiling.yaml` / `presence_ceiling.yaml` (now themselves board
+# aliases) so tests/test_roomiq_alias_packages.py stays green and the chains
+# resolve byte-identically.
 # ============================================================================
 
 packages:
-  board_roomiq_comfort: !include ../expansions/comfort_ceiling.yaml
-  board_roomiq_radar: !include ../expansions/presence_ceiling.yaml
+  board_roomiq_comfort: !include s360-200-roomiq-climate.yaml
+  board_roomiq_radar: !include s360-200-roomiq-radar.yaml

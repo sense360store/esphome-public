@@ -1,177 +1,22 @@
 # ============================================================================
-# SENSE360 COMFORT MODULE - WALL/DESK VARIANT
+# COMFORT WALL — RoomIQ legacy alias (S360-200)
 # ============================================================================
-# SKU: S360-CMFT-W
+# PACKAGE-RENAME-004 (docs/arch-board-bundle-plan.md §3.3, §5.5, §7 item 4).
+# The authoritative, self-contained definition of this RoomIQ driver now lives
+# in the SKU-aligned board package
+# `packages/boards/s360-200-roomiq-climate-wall.yaml`. This legacy functional
+# path is retained as a thin alias that `!include`s that board package, so the
+# resolved config is byte-identical to before the source-of-truth flip.
 #
-# Environmental comfort monitoring module for wall-mounted/desk installations.
+# Why this path is preserved (NOT deleted): the legacy `sense360-core-*`
+# ceiling/wall product family and the RoomIQ bundles / compile-only targets
+# still bind this path. Per the alias policy (§3.3), no alias is dropped while a
+# live binder exists; alias removal is a separate later slice gated on the
+# binder count reaching zero.
 #
-# Sensors:
-# - SHT40 (I2C 0x44): High-accuracy Temperature and Humidity
-# - LTR-303 (I2C 0x29): Ambient Light sensor (lux)
-#
-# Expansion Bus Connection (Wall/Desk):
-#   Pin 4 (SDA) → GPIO48 (Core I2C SDA per CORE-ABSTRACT-BUS-001B)
-#   Pin 5 (SCL) → GPIO45 (Core I2C SCL per CORE-ABSTRACT-BUS-001B)
-#   Pin 2 (3.3V) → Power
-#   Pin 1 (GND) → Ground
-#
-# Power Requirements: 3.3V / 100mA max
+# Sensors / pin assignment (SHT40 @ 0x44 + LTR-303 ALS @ 0x29 on core_i2c) are
+# documented in the board package this file aliases.
 # ============================================================================
 
-substitutions:
-  module_sku: S360-CMFT-W
-  module_variant: wall
-
-  # I2C bus ID (uses the shared core_i2c bus from the parent Core abstract
-  # package by default; CORE-ABSTRACT-BUS-001B). Override with the
-  # comfort_i2c_id substitution if a product binds a different bus.
-  comfort_i2c_id: core_i2c
-
-  # Sensor update intervals
-  comfort_sht40_update: 30s
-  comfort_ltr303_update: 10s
-
-# ============================================================================
-# SENSORS
-# ============================================================================
-sensor:
-  # SHT40 - High-Accuracy Temperature/Humidity Sensor
-  - platform: sht4x
-    id: comfort_sht40_sensor
-    i2c_id: ${comfort_i2c_id}
-    address: 0x44
-
-    temperature:
-      id: comfort_temperature
-      name: "${friendly_name} Temperature"
-      internal: true
-      accuracy_decimals: 2
-      filters:
-        - throttle: ${comfort_sht40_update}
-
-    humidity:
-      id: comfort_humidity
-      name: "${friendly_name} Humidity"
-      internal: true
-      accuracy_decimals: 1
-      filters:
-        - throttle: ${comfort_sht40_update}
-
-    precision: High
-    heater_power: "Low"
-    update_interval: ${comfort_sht40_update}
-
-  # LTR-303 - Ambient Light Sensor
-  - platform: ltr_als_ps
-    id: comfort_ltr303_sensor
-    i2c_id: ${comfort_i2c_id}
-    address: 0x29
-
-    ambient_light:
-      id: comfort_light_sensor
-      name: "${friendly_name} Illuminance"
-      internal: true
-      accuracy_decimals: 1
-
-    update_interval: ${comfort_ltr303_update}
-
-# ============================================================================
-# Globals for Comfort Calculations
-# ============================================================================
-globals:
-  - id: comfort_index_value
-    type: float
-    restore_value: false
-    initial_value: '50.0'
-
-  - id: comfort_dew_point_value
-    type: float
-    restore_value: false
-    initial_value: '10.0'
-
-  - id: comfort_heat_index_value
-    type: float
-    restore_value: false
-    initial_value: '20.0'
-
-  - id: comfort_light_level
-    type: int
-    restore_value: false
-    initial_value: '2'
-
-# ============================================================================
-# Interval for Comfort Calculations
-# ============================================================================
-interval:
-  - interval: 30s
-    then:
-      - lambda: |-
-          float temp = id(comfort_temperature).state;
-          float humidity = id(comfort_humidity).state;
-          float lux = id(comfort_light_sensor).state;
-
-          if (std::isnan(temp) || std::isnan(humidity)) {
-            return;
-          }
-
-          // Calculate dew point (Magnus formula)
-          float alpha = ((17.27f * temp) / (237.7f + temp)) + log(humidity / 100.0f);
-          float dew_point = (237.7f * alpha) / (17.27f - alpha);
-          id(comfort_dew_point_value) = dew_point;
-
-          // Calculate heat index
-          float heat_index = temp;
-          if (temp >= 26.7f && humidity >= 40.0f) {
-            float t = temp;
-            float h = humidity;
-            heat_index = -8.784695f + 1.61139411f * t + 2.338549f * h
-                         - 0.14611605f * t * h - 0.012308094f * t * t
-                         - 0.016424828f * h * h + 0.002211732f * t * t * h
-                         + 0.00072546f * t * h * h - 0.000003582f * t * t * h * h;
-          }
-          id(comfort_heat_index_value) = heat_index;
-
-          // Calculate comfort index (0-100)
-          float temp_score = 100.0f;
-          if (temp < 18.0f) {
-            temp_score = 100.0f - (18.0f - temp) * 10.0f;
-          } else if (temp > 26.0f) {
-            temp_score = 100.0f - (temp - 26.0f) * 10.0f;
-          } else if (temp < 20.0f || temp > 24.0f) {
-            temp_score = 90.0f;
-          }
-          if (temp_score < 0.0f) temp_score = 0.0f;
-
-          float hum_score = 100.0f;
-          if (humidity < 30.0f) {
-            hum_score = 100.0f - (30.0f - humidity) * 2.0f;
-          } else if (humidity > 70.0f) {
-            hum_score = 100.0f - (humidity - 70.0f) * 2.0f;
-          } else if (humidity < 40.0f || humidity > 60.0f) {
-            hum_score = 90.0f;
-          }
-          if (hum_score < 0.0f) hum_score = 0.0f;
-
-          float comfort = (temp_score * 0.5f) + (hum_score * 0.5f);
-          id(comfort_index_value) = comfort;
-
-          // Light level categorization
-          if (!std::isnan(lux)) {
-            if (lux < 10.0f) {
-              id(comfort_light_level) = 0;  // Dark
-            } else if (lux < 100.0f) {
-              id(comfort_light_level) = 1;  // Dim
-            } else if (lux < 500.0f) {
-              id(comfort_light_level) = 2;  // Normal
-            } else {
-              id(comfort_light_level) = 3;  // Bright
-            }
-          }
-
-text_sensor:
-  - platform: template
-    name: "${friendly_name} Comfort Module SKU"
-    lambda: |-
-      return {"${module_sku}"};
-    update_interval: never
-    entity_category: diagnostic
+packages:
+  board_roomiq_climate: !include ../boards/s360-200-roomiq-climate-wall.yaml
