@@ -1,0 +1,28 @@
+# ============================================================================
+# Sense360 VentIQ — Pro hardware variant overlay (S360-211-R4)
+# ============================================================================
+# BOARD-PACKAGE-LAYER-002. SKU-aligned "Pro" hardware variant of the canonical
+# VentIQ board package `packages/boards/s360-211-ventiq.yaml`.
+#
+# Where the canonical base composes the base VentIQ stack
+# (airiq_bathroom_base.yaml — SHT4x + BMP390 + SGP41), this overlay swaps in the
+# Pro hardware delta:
+#
+#   - packages/expansions/airiq_bathroom_pro.yaml
+#     (base SHT4x + BMP390 + SGP41 stack plus MLX90614 IR surface temperature
+#      and SPS30 particulate matter, on `bathroom_i2c_id: core_i2c`)
+#
+# Thin `!include` wrapper over the existing functional package (byte-identical
+# behaviour), mirroring the Core variant-overlay pattern from
+# BOARD-PACKAGE-LAYER-001. The `_pro` suffix here names the hardware tier only;
+# it does not imply a productized customer "Pro" SKU (none exists in
+# config/hardware-catalog.json today — this matches the naming-audit Rule 5
+# rationale recorded in `ventiq_extended.yaml`).
+#
+# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3): the legacy
+# `airiq_bathroom_pro.yaml` path is preserved unchanged as the source of truth;
+# no product is rebound onto this board package in this slice.
+# ============================================================================
+
+packages:
+  board_ventiq: !include ../expansions/airiq_bathroom_pro.yaml

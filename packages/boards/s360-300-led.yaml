@@ -1,0 +1,64 @@
+# ============================================================================
+# Sense360 LED — Canonical Board Package (S360-300-R4)
+# ============================================================================
+# BOARD-PACKAGE-LAYER-002 — the SKU-aligned board layer, indicator board.
+#
+# SKU-aligned canonical entry for the Sense360 LED indicator board (SKU
+# `S360-300`, revision R4, friendly name "Sense360 LED";
+# `schematic_status: verified` per config/hardware-catalog.json). LED is the
+# WS2812B addressable RGB halo-ring indicator board
+# (docs/arch-board-bundle-plan.md §2.1), driven over the Core LED_DATA line.
+#
+# This canonical base composes the representative **ceiling standard** LED ring:
+#
+#   - packages/hardware/led_ring_ceiling.yaml
+#     (12-LED WS2812B halo ring; HW-010 binds `led_data_pin: GPIO38` — Core
+#      IO38 = LED_DATA per the verified S360-100-R4 and S360-300-R4 schematics,
+#      buffered through U2A 74LVC1G07 + R8 330 Ω to Core J3 → S360-300 J1)
+#
+# Mirroring the Core pattern from BOARD-PACKAGE-LAYER-001, this board package is
+# a thin `!include` wrapper over the existing functional package, so the
+# resolved behaviour is byte-identical to the legacy path that the LED-preview
+# product (`products/sense360-ceiling-poe-ventiq-roomiq-led.yaml`) binds today.
+# The wall-mount and voice (LED+MIC) variants are the thin overlays
+# `s360-300-led-wall.yaml`, `s360-300-led-mic-ceiling.yaml`, and
+# `s360-300-led-mic-wall.yaml`.
+#
+# ----------------------------------------------------------------------------
+# Folded source packages (docs/arch-board-bundle-plan.md §2.1)
+# ----------------------------------------------------------------------------
+#   ceiling standard : led_ring_ceiling.yaml      (this base; 12 LEDs, GPIO38)
+#   wall standard    : led_ring_wall.yaml          (s360-300-led-wall.yaml)
+#   ceiling voice    : led_ring_mic_ceiling.yaml   (s360-300-led-mic-ceiling.yaml)
+#   wall voice       : led_ring_mic_wall.yaml      (s360-300-led-mic-wall.yaml)
+#
+# Cross-reference (NOT folded): `packages/features/ceiling_halo_leds.yaml`
+# stays a FEATURE (docs/arch-board-bundle-plan.md §2.3) — it is the air-quality
+# halo behaviour layered on top of the LED hardware (PCA9685-driven halo on the
+# shared core_i2c bus), not a board-hardware definition. This board package
+# cross-references it; it does not absorb it.
+#
+# ----------------------------------------------------------------------------
+# Status — preview-gated (unchanged by this slice)
+# ----------------------------------------------------------------------------
+# S360-300 LED is preview-gated for WebFlash, NOT a stable build: the
+# Release-One config string `Ceiling-POE-VentIQ-RoomIQ` carries no `LED` token,
+# and `tests/test_led_package_mapping.py` locks in that the Release-One YAML
+# must NOT `!include` the LED ring package. This board package is additive and
+# changes nothing about that gating — it does not mark LED stable, add any
+# WebFlash build, or alter the preview status.
+#
+# ----------------------------------------------------------------------------
+# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3, §5.5)
+# ----------------------------------------------------------------------------
+# This package is additive: no product or test references it in this slice. The
+# legacy `packages/hardware/led_ring_*.yaml` paths are preserved unchanged as
+# the source of truth — they are NOT rewired to one-line includes in this slice
+# because `tests/test_led_package_mapping.py` and `tests/test_core_abstract_bus.py`
+# assert on the self-contained text of `led_ring_ceiling.yaml` (`led_data_pin:
+# GPIO38`). The source-of-truth flip + test repoint is owned by a later
+# PACKAGE-RENAME slice / CI-REFACTOR-VERIFY-001 (§5.5).
+# ============================================================================
+
+packages:
+  board_led: !include ../hardware/led_ring_ceiling.yaml

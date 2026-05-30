@@ -1,0 +1,46 @@
+# ============================================================================
+# Sense360 PoE PSU — Canonical Board Package (S360-410-R4)
+# ============================================================================
+# BOARD-PACKAGE-LAYER-002 — the SKU-aligned board layer, power board.
+#
+# SKU-aligned canonical entry for the Sense360 PoE PSU power board (SKU
+# `S360-410`, revision R4, friendly name "Sense360 PoE PSU"). This board
+# supplies IEEE 802.3af Power-over-Ethernet to the Sense360 Core via the
+# discrete PoE PD topology documented in the wrapped functional package.
+#
+# This canonical base composes the single PoE power package (no mount variants):
+#
+#   - packages/hardware/power_poe.yaml
+#     (logical / diagnostic-only PoE power-source config: power-source text
+#      sensors, supply-voltage template, PoE-connected binary sensor)
+#
+# Mirroring the Core pattern from BOARD-PACKAGE-LAYER-001, this board package is
+# a thin `!include` wrapper over the existing functional package, so the
+# resolved behaviour is byte-identical to the legacy path that the Release-One
+# and LED-preview products bind today as their `power_config`.
+#
+# ----------------------------------------------------------------------------
+# Status — UNVERIFIED (unchanged by this slice)
+# ----------------------------------------------------------------------------
+# S360-410 is `schematic_status: cataloged_unverified` in
+# config/hardware-catalog.json. This board package is additive and makes NO
+# evidence claim: it does not promote the S360-410 schematic_status, set a
+# schematic_file, close the Release-One PoE "schematic verification pending"
+# caveat, add a product YAML or WebFlash wrapper, flip webflash_build_matrix,
+# add an artifact_name, or build/attach any release artifact. No IEEE 802.3af /
+# 802.3at compliance, isolation, Hi-pot, leakage, thermal, EMI, or EMC claim is
+# made or implied here — exactly as the wrapped `power_poe.yaml` states. The
+# S360-410 release gate (PRODUCT-POE-410-001) is unchanged.
+#
+# ----------------------------------------------------------------------------
+# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3, §5.5)
+# ----------------------------------------------------------------------------
+# This package is additive: the products keep binding the legacy
+# `packages/hardware/power_poe.yaml` path unchanged in this slice. The legacy
+# path is preserved unchanged as the source of truth; the source-of-truth flip
+# + any consumer rebind is owned by a later PACKAGE-RENAME slice /
+# CI-REFACTOR-VERIFY-001 (§5.5).
+# ============================================================================
+
+packages:
+  board_poe_psu: !include ../hardware/power_poe.yaml

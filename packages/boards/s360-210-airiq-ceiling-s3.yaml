@@ -1,0 +1,28 @@
+# ============================================================================
+# Sense360 AirIQ — Ceiling S3 (legacy lineage) variant overlay (S360-210)
+# ============================================================================
+# BOARD-PACKAGE-LAYER-002. SKU-aligned wrapper for the legacy "AirIQ Ceiling
+# S3" variant of the canonical AirIQ board package
+# `packages/boards/s360-210-airiq.yaml`.
+#
+# Thin `!include` wrapper over the existing functional package
+# `packages/expansions/airiq_ceiling_s3.yaml` (byte-identical behaviour). This
+# variant is a DIFFERENT board lineage from the canonical ceiling AirIQ base:
+# per CORE-ABSTRACT-BUS-001B operator decision #10 and the regression in
+# `tests/test_core_abstract_bus.py`, the S3 lineage
+# (`airiq_ceiling_s3.yaml` / `sense360_core_ceiling_s3.yaml`) is deliberately
+# OUT OF SCOPE for the shared `core_i2c` consolidation and retains its own
+# pre-001B bus binding, and it carries the AirIQ-only status-LED lines
+# (`airiq_status_led_pin: GPIO7`, schematic IO7 = AirQ_Status_Led).
+#
+# This board package is kept distinct precisely so a future board-layer sweep
+# does not silently fold the S3 lineage into the canonical AirIQ namespace —
+# mirroring how Core keeps `s360-100-core-ceiling-s3.yaml` distinct.
+#
+# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3): the legacy
+# `airiq_ceiling_s3.yaml` path is preserved unchanged as the source of truth;
+# no product is rebound onto this board package in this slice.
+# ============================================================================
+
+packages:
+  board_airiq: !include ../expansions/airiq_ceiling_s3.yaml
