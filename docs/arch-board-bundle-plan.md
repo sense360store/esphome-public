@@ -542,6 +542,27 @@ merges and CI is green.
 
 3a. **BUNDLE-LAYER-002** — bundle the five non-shipping config strings + shim
    conversions (with the §5.5 test repoints)
+   - **Status: DONE (2026-05-30). The bundle layer is now complete.** Authored
+     the five remaining config-string bundles under `products/bundles/`
+     (`ceiling-poe-roomiq`, `ceiling-poe-fanpwm`, `ceiling-poe-fandac`,
+     `ceiling-poe-ventiq-fanrelay-roomiq`, `ceiling-poe-ventiq-fantriac-roomiq`),
+     each carrying the moved product composition verbatim — same substitutions,
+     entity names, config string, artifact-name identity, and header wording,
+     with the include depth adjusted `../packages` → `../../packages` — and
+     converted the five `products/sense360-*.yaml` config-string products into
+     thin compat shims (§3.2), paths preserved. Repointed the structural /
+     fan-readiness tests that read the now-moved product-internal layout
+     (`test_{pwm,dac,relay}_product_readiness`, `test_native_fan_gpio_map`,
+     `test_fan_pwm_package`, `test_fan_relay_package`, `test_fandac_package`,
+     `test_compile_targets`) onto the bundle files — assertions preserved, only
+     the path read follows the moved content; catalog / compile-only-target
+     path-identity references stay on the product shim. The two
+     shipping-identity tests (`test_release_one_entity_names`,
+     `test_product_substitutions`) are untouched and green, and the two LAYER-001
+     shipping bundles + shims are untouched. Resolution stays byte-identical;
+     full `esphome compile` is **pending-ci**. With BUNDLE-LAYER-001 (the
+     shipping pair) and this slice, **the bundle layer is done** — all seven
+     config strings are bundled + shimmed. Next phase: PACKAGE-RENAME-00x.
    - Scope: author the remaining five config-string bundles under
      `products/bundles/` (FanRelay / FanTRIAC / FanDAC / FanPWM / RoomIQ-only),
      each assembling boards + expansions (the fan-driver SKUs

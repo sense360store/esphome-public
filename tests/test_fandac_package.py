@@ -411,7 +411,10 @@ class FanDACPackageLayerOnlyTests(unittest.TestCase):
         if not PRODUCTS_DIR.is_dir():
             self.skipTest("no products/ directory")
         compile_only_dir = PRODUCTS_DIR / "compile-only"
-        allowed_rel = "products/sense360-ceiling-poe-fandac.yaml"
+        # The FanDAC composition (the `!include` of the package) now lives in
+        # the bundle that the product shim pulls in; the bundle is the single
+        # product-layer YAML that actively composes the FanDAC package.
+        allowed_rel = "products/bundles/ceiling-poe-fandac.yaml"
         includers: list[str] = []
         for path in PRODUCTS_DIR.rglob("*.yaml"):
             # The compile-only skeleton namespace is exempt — it is not a
