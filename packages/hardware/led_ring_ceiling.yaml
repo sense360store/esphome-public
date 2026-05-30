@@ -1,148 +1,23 @@
 # ============================================================================
-# Sense360 LED Ring - Ceiling Standard
+# Sense360 LED Ring - Ceiling Standard  (legacy alias)
 # ============================================================================
 # SKU: S360-LED-C
 #
-# Standard LED ring for ceiling-mounted Sense360 Core (non-voice).
-# Provides visual feedback for air quality, presence, and system status.
+# PACKAGE-RENAME-001 (docs/arch-board-bundle-plan.md §3.3, §5.5, §7 item 4).
+# The authoritative, self-contained definition of the ceiling standard LED
+# ring now lives in the SKU-aligned board package
+# `packages/boards/s360-300-led.yaml`. This legacy functional path is retained
+# as a thin alias that `!include`s that board package, so the resolved config
+# is byte-identical to before the source-of-truth flip.
 #
-# Hardware:
-# - WS2812B addressable RGB LEDs
-# - 12 LEDs in halo ring configuration
-# - 3.3V level shifter for data signal
+# Why this path is preserved (NOT deleted): legacy `products/sense360-core-*`
+# products and the LED-bearing preview product still bind this path. Per the
+# alias policy (§3.3), no alias is dropped while a live binder exists; alias
+# removal is a separate later slice gated on the binder count reaching zero.
 #
-# Pairing:
-# - Use with: Sense360_Core_Ceiling (S360-CORE-C)
-# - Do NOT use with voice cores (use LED+MIC ring instead)
-#
-# Pin Assignment:
-# - LED Data: GPIO38 (ESP32-S3 IO38 → U2A 74LVC1G07 buffer → R8 330 Ω → Core
-#   J3 → S360-300 J1 LED_DATA; per `S360-100-R4` and `S360-300-R4` schematics,
-#   see docs/hardware/s360-100-r4-core.md §LED output and
-#   docs/hardware/s360-300-r4-led.md §J1)
+# Hardware / pin assignment (12-LED WS2812B halo ring, `led_data_pin: GPIO38`)
+# is documented in the board package this file aliases.
 # ============================================================================
 
-substitutions:
-  led_ring_sku: S360-LED-C
-  # HW-010: led_data_pin is GPIO38 (Core IO38 = LED_DATA per S360-100-R4
-  # schematic — buffered through U2A 74LVC1G07 + R8 330 Ω to Core J3).
-  led_data_pin: GPIO38
-  led_count: "12"
-  led_chipset: WS2812
-  led_rgb_order: GRB
-  # Note: rmt_channel removed - ESP-IDF 5+ auto-selects RMT channel
-
-light:
-  - platform: esp32_rmt_led_strip
-    id: led_ring
-    rgb_order: ${led_rgb_order}
-    chipset: ${led_chipset}
-    pin: ${led_data_pin}
-    num_leds: ${led_count}
-    name: "${friendly_name} LED Ring"
-    default_transition_length: 300ms
-    effects:
-      # Status effects
-      - pulse:
-          name: "Pulse"
-          transition_length: 1s
-          update_interval: 1s
-      - strobe:
-          name: "Alert"
-          colors:
-            - state: true
-              brightness: 100%
-              red: 100%
-              green: 0%
-              blue: 0%
-              duration: 500ms
-            - state: false
-              duration: 500ms
-      # Ambient effects
-      - random:
-          name: "Random"
-          transition_length: 2s
-          update_interval: 3s
-      - addressable_rainbow:
-          name: "Rainbow"
-          speed: 10
-          width: 50
-      - addressable_scan:
-          name: "Scan"
-          move_interval: 100ms
-      # Air quality indicator
-      - addressable_color_wipe:
-          name: "Color Wipe"
-          colors:
-            - red: 0%
-              green: 100%
-              blue: 0%
-              num_leds: 4
-            - red: 100%
-              green: 100%
-              blue: 0%
-              num_leds: 4
-            - red: 100%
-              green: 0%
-              blue: 0%
-              num_leds: 4
-          add_led_interval: 100ms
-          reverse: false
-
-# Globals for LED control
-globals:
-  - id: led_ring_brightness
-    type: float
-    restore_value: true
-    initial_value: '0.5'
-
-  - id: led_ring_night_mode
-    type: bool
-    restore_value: true
-    initial_value: 'false'
-
-# LED controls
-number:
-  - platform: template
-    name: "${friendly_name} LED Brightness"
-    id: led_brightness_control
-    icon: mdi:brightness-6
-    min_value: 0
-    max_value: 100
-    step: 5
-    initial_value: 50
-    optimistic: true
-    restore_value: true
-    unit_of_measurement: "%"
-    on_value:
-      then:
-        - lambda: |-
-            id(led_ring_brightness) = x / 100.0;
-
-switch:
-  - platform: template
-    name: "${friendly_name} Night Mode"
-    id: led_night_mode_switch
-    icon: mdi:weather-night
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      - lambda: |-
-          id(led_ring_night_mode) = true;
-      - light.turn_on:
-          id: led_ring
-          brightness: 10%
-    on_turn_off:
-      - lambda: |-
-          id(led_ring_night_mode) = false;
-      - light.turn_on:
-          id: led_ring
-          brightness: !lambda 'return id(led_ring_brightness);'
-
-text_sensor:
-  - platform: template
-    name: "${friendly_name} LED Ring SKU"
-    lambda: |-
-      return {"${led_ring_sku}"};
-    update_interval: never
-    entity_category: diagnostic
+packages:
+  board_led: !include ../boards/s360-300-led.yaml

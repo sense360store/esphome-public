@@ -1,24 +1,142 @@
 # ============================================================================
 # Sense360 LED — Wall/Desk standard mount variant overlay (S360-300-R4)
 # ============================================================================
-# BOARD-PACKAGE-LAYER-002. SKU-aligned wall-mount variant of the canonical LED
-# board package `packages/boards/s360-300-led.yaml`.
+# PACKAGE-RENAME-001. SKU-aligned wall-mount variant of the canonical LED
+# board package `packages/boards/s360-300-led.yaml`. This overlay is now the
+# AUTHORITATIVE, self-contained definition of the wall/desk standard LED ring.
 #
-# Where the canonical base composes the ceiling standard ring
-# (led_ring_ceiling.yaml, 12 LEDs on GPIO38), this overlay swaps in the wall/desk
-# mount delta:
+# Where the canonical base composes the ceiling standard ring (12 LEDs on
+# GPIO38), this overlay is the wall/desk mount delta:
 #
-#   - packages/hardware/led_ring_wall.yaml
-#     (8-LED WS2812B ring, smaller wall form factor)
+#   - 8-LED WS2812B ring, smaller wall form factor, `led_data_pin: GPIO48`.
 #
-# Thin `!include` wrapper over the existing functional package (byte-identical
-# behaviour), mirroring the Core mount-overlay pattern from
-# BOARD-PACKAGE-LAYER-001.
-#
-# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3): the legacy
-# `led_ring_wall.yaml` path is preserved unchanged as the source of truth; no
-# product is rebound onto this board package in this slice.
+# Source-of-truth inversion (docs/arch-board-bundle-plan.md §3.3, §5.5): the
+# content below previously lived in `packages/hardware/led_ring_wall.yaml` and
+# this overlay was a thin `!include` wrapper over it. That is now inverted —
+# the definition lives here and `packages/hardware/led_ring_wall.yaml` is a
+# thin alias that `!include`s this overlay, so the resolved behaviour is
+# byte-identical to the legacy path.
 # ============================================================================
 
-packages:
-  board_led: !include ../hardware/led_ring_wall.yaml
+substitutions:
+  led_ring_sku: S360-LED-C
+  led_data_pin: GPIO48
+  led_count: "8"
+  led_chipset: WS2812
+  led_rgb_order: GRB
+  # Note: rmt_channel removed - ESP-IDF 5+ auto-selects RMT channel
+
+light:
+  - platform: esp32_rmt_led_strip
+    id: led_ring
+    rgb_order: ${led_rgb_order}
+    chipset: ${led_chipset}
+    pin: ${led_data_pin}
+    num_leds: ${led_count}
+    name: "${friendly_name} LED Ring"
+    default_transition_length: 300ms
+    effects:
+      # Status effects
+      - pulse:
+          name: "Pulse"
+          transition_length: 1s
+          update_interval: 1s
+      - strobe:
+          name: "Alert"
+          colors:
+            - state: true
+              brightness: 100%
+              red: 100%
+              green: 0%
+              blue: 0%
+              duration: 500ms
+            - state: false
+              duration: 500ms
+      # Ambient effects
+      - random:
+          name: "Random"
+          transition_length: 2s
+          update_interval: 3s
+      - addressable_rainbow:
+          name: "Rainbow"
+          speed: 10
+          width: 50
+      - addressable_scan:
+          name: "Scan"
+          move_interval: 100ms
+      # Air quality indicator
+      - addressable_color_wipe:
+          name: "Color Wipe"
+          colors:
+            - red: 0%
+              green: 100%
+              blue: 0%
+              num_leds: 3
+            - red: 100%
+              green: 100%
+              blue: 0%
+              num_leds: 2
+            - red: 100%
+              green: 0%
+              blue: 0%
+              num_leds: 3
+          add_led_interval: 100ms
+          reverse: false
+
+# Globals for LED control
+globals:
+  - id: led_ring_brightness
+    type: float
+    restore_value: true
+    initial_value: '0.5'
+
+  - id: led_ring_night_mode
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+# LED controls
+number:
+  - platform: template
+    name: "${friendly_name} LED Brightness"
+    id: led_brightness_control
+    icon: mdi:brightness-6
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 50
+    optimistic: true
+    restore_value: true
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - lambda: |-
+            id(led_ring_brightness) = x / 100.0;
+
+switch:
+  - platform: template
+    name: "${friendly_name} Night Mode"
+    id: led_night_mode_switch
+    icon: mdi:weather-night
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      - lambda: |-
+          id(led_ring_night_mode) = true;
+      - light.turn_on:
+          id: led_ring
+          brightness: 10%
+    on_turn_off:
+      - lambda: |-
+          id(led_ring_night_mode) = false;
+      - light.turn_on:
+          id: led_ring
+          brightness: !lambda 'return id(led_ring_brightness);'
+
+text_sensor:
+  - platform: template
+    name: "${friendly_name} LED Ring SKU"
+    lambda: |-
+      return {"${led_ring_sku}"};
+    update_interval: never
+    entity_category: diagnostic

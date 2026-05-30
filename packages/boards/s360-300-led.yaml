@@ -1,36 +1,42 @@
 # ============================================================================
 # Sense360 LED — Canonical Board Package (S360-300-R4)
 # ============================================================================
-# BOARD-PACKAGE-LAYER-002 — the SKU-aligned board layer, indicator board.
-#
-# SKU-aligned canonical entry for the Sense360 LED indicator board (SKU
-# `S360-300`, revision R4, friendly name "Sense360 LED";
+# PACKAGE-RENAME-001 (docs/arch-board-bundle-plan.md §7 item 4) — the LED
+# family is the first source-of-truth flip. This board package is now the
+# AUTHORITATIVE, self-contained definition of the Sense360 LED indicator board
+# (SKU `S360-300`, revision R4, friendly name "Sense360 LED";
 # `schematic_status: verified` per config/hardware-catalog.json). LED is the
 # WS2812B addressable RGB halo-ring indicator board
 # (docs/arch-board-bundle-plan.md §2.1), driven over the Core LED_DATA line.
 #
-# This canonical base composes the representative **ceiling standard** LED ring:
+# This canonical base IS the representative **ceiling standard** LED ring:
 #
-#   - packages/hardware/led_ring_ceiling.yaml
-#     (12-LED WS2812B halo ring; HW-010 binds `led_data_pin: GPIO38` — Core
-#      IO38 = LED_DATA per the verified S360-100-R4 and S360-300-R4 schematics,
-#      buffered through U2A 74LVC1G07 + R8 330 Ω to Core J3 → S360-300 J1)
+#   - 12-LED WS2812B halo ring; HW-010 binds `led_data_pin: GPIO38` — Core
+#     IO38 = LED_DATA per the verified S360-100-R4 and S360-300-R4 schematics,
+#     buffered through U2A 74LVC1G07 + R8 330 Ω to Core J3 → S360-300 J1.
 #
-# Mirroring the Core pattern from BOARD-PACKAGE-LAYER-001, this board package is
-# a thin `!include` wrapper over the existing functional package, so the
-# resolved behaviour is byte-identical to the legacy path that the LED-preview
-# product (`products/sense360-ceiling-poe-ventiq-roomiq-led.yaml`) binds today.
-# The wall-mount and voice (LED+MIC) variants are the thin overlays
-# `s360-300-led-wall.yaml`, `s360-300-led-mic-ceiling.yaml`, and
-# `s360-300-led-mic-wall.yaml`.
+# Source-of-truth inversion (docs/arch-board-bundle-plan.md §3.3, §5.5): the
+# content below previously lived in `packages/hardware/led_ring_ceiling.yaml`
+# and this package was a thin `!include` wrapper over it. That is now inverted
+# — the definition lives here and `packages/hardware/led_ring_ceiling.yaml` is
+# a thin alias that `!include`s this package, so the resolved behaviour is
+# byte-identical to the legacy path. The wall-mount and voice (LED+MIC)
+# variants are the thin overlays `s360-300-led-wall.yaml`,
+# `s360-300-led-mic-ceiling.yaml`, and `s360-300-led-mic-wall.yaml`.
 #
 # ----------------------------------------------------------------------------
-# Folded source packages (docs/arch-board-bundle-plan.md §2.1)
+# Variant map (docs/arch-board-bundle-plan.md §2.1)
 # ----------------------------------------------------------------------------
-#   ceiling standard : led_ring_ceiling.yaml      (this base; 12 LEDs, GPIO38)
-#   wall standard    : led_ring_wall.yaml          (s360-300-led-wall.yaml)
-#   ceiling voice    : led_ring_mic_ceiling.yaml   (s360-300-led-mic-ceiling.yaml)
-#   wall voice       : led_ring_mic_wall.yaml      (s360-300-led-mic-wall.yaml)
+#   ceiling standard : THIS file                    (12 LEDs, GPIO38)
+#   wall standard    : s360-300-led-wall.yaml        (8 LEDs, GPIO48)
+#   ceiling voice    : s360-300-led-mic-ceiling.yaml (12 LEDs + I2S mic, GPIO9)
+#   wall voice       : s360-300-led-mic-wall.yaml    (8 LEDs + I2S mic, GPIO48)
+#
+# Legacy aliases (paths preserved, retained while live binders exist; §3.3):
+#   led_ring_ceiling.yaml      -> !include this file
+#   led_ring_wall.yaml         -> !include s360-300-led-wall.yaml
+#   led_ring_mic_ceiling.yaml  -> !include s360-300-led-mic-ceiling.yaml
+#   led_ring_mic_wall.yaml     -> !include s360-300-led-mic-wall.yaml
 #
 # Cross-reference (NOT folded): `packages/features/ceiling_halo_leds.yaml`
 # stays a FEATURE (docs/arch-board-bundle-plan.md §2.3) — it is the air-quality
@@ -44,21 +50,132 @@
 # S360-300 LED is preview-gated for WebFlash, NOT a stable build: the
 # Release-One config string `Ceiling-POE-VentIQ-RoomIQ` carries no `LED` token,
 # and `tests/test_led_package_mapping.py` locks in that the Release-One YAML
-# must NOT `!include` the LED ring package. This board package is additive and
-# changes nothing about that gating — it does not mark LED stable, add any
+# must NOT `!include` the LED ring package. This inversion is behaviour-neutral
+# and changes nothing about that gating — it does not mark LED stable, add any
 # WebFlash build, or alter the preview status.
-#
-# ----------------------------------------------------------------------------
-# Legacy alias policy (docs/arch-board-bundle-plan.md §3.3, §5.5)
-# ----------------------------------------------------------------------------
-# This package is additive: no product or test references it in this slice. The
-# legacy `packages/hardware/led_ring_*.yaml` paths are preserved unchanged as
-# the source of truth — they are NOT rewired to one-line includes in this slice
-# because `tests/test_led_package_mapping.py` and `tests/test_core_abstract_bus.py`
-# assert on the self-contained text of `led_ring_ceiling.yaml` (`led_data_pin:
-# GPIO38`). The source-of-truth flip + test repoint is owned by a later
-# PACKAGE-RENAME slice / CI-REFACTOR-VERIFY-001 (§5.5).
 # ============================================================================
 
-packages:
-  board_led: !include ../hardware/led_ring_ceiling.yaml
+substitutions:
+  led_ring_sku: S360-LED-C
+  # HW-010: led_data_pin is GPIO38 (Core IO38 = LED_DATA per S360-100-R4
+  # schematic — buffered through U2A 74LVC1G07 + R8 330 Ω to Core J3).
+  led_data_pin: GPIO38
+  led_count: "12"
+  led_chipset: WS2812
+  led_rgb_order: GRB
+  # Note: rmt_channel removed - ESP-IDF 5+ auto-selects RMT channel
+
+light:
+  - platform: esp32_rmt_led_strip
+    id: led_ring
+    rgb_order: ${led_rgb_order}
+    chipset: ${led_chipset}
+    pin: ${led_data_pin}
+    num_leds: ${led_count}
+    name: "${friendly_name} LED Ring"
+    default_transition_length: 300ms
+    effects:
+      # Status effects
+      - pulse:
+          name: "Pulse"
+          transition_length: 1s
+          update_interval: 1s
+      - strobe:
+          name: "Alert"
+          colors:
+            - state: true
+              brightness: 100%
+              red: 100%
+              green: 0%
+              blue: 0%
+              duration: 500ms
+            - state: false
+              duration: 500ms
+      # Ambient effects
+      - random:
+          name: "Random"
+          transition_length: 2s
+          update_interval: 3s
+      - addressable_rainbow:
+          name: "Rainbow"
+          speed: 10
+          width: 50
+      - addressable_scan:
+          name: "Scan"
+          move_interval: 100ms
+      # Air quality indicator
+      - addressable_color_wipe:
+          name: "Color Wipe"
+          colors:
+            - red: 0%
+              green: 100%
+              blue: 0%
+              num_leds: 4
+            - red: 100%
+              green: 100%
+              blue: 0%
+              num_leds: 4
+            - red: 100%
+              green: 0%
+              blue: 0%
+              num_leds: 4
+          add_led_interval: 100ms
+          reverse: false
+
+# Globals for LED control
+globals:
+  - id: led_ring_brightness
+    type: float
+    restore_value: true
+    initial_value: '0.5'
+
+  - id: led_ring_night_mode
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+# LED controls
+number:
+  - platform: template
+    name: "${friendly_name} LED Brightness"
+    id: led_brightness_control
+    icon: mdi:brightness-6
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 50
+    optimistic: true
+    restore_value: true
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - lambda: |-
+            id(led_ring_brightness) = x / 100.0;
+
+switch:
+  - platform: template
+    name: "${friendly_name} Night Mode"
+    id: led_night_mode_switch
+    icon: mdi:weather-night
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      - lambda: |-
+          id(led_ring_night_mode) = true;
+      - light.turn_on:
+          id: led_ring
+          brightness: 10%
+    on_turn_off:
+      - lambda: |-
+          id(led_ring_night_mode) = false;
+      - light.turn_on:
+          id: led_ring
+          brightness: !lambda 'return id(led_ring_brightness);'
+
+text_sensor:
+  - platform: template
+    name: "${friendly_name} LED Ring SKU"
+    lambda: |-
+      return {"${led_ring_sku}"};
+    update_interval: never
+    entity_category: diagnostic
