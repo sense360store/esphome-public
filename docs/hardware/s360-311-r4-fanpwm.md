@@ -508,6 +508,35 @@ Filling this matrix is owed to the hardware session; this slice
 resolves none of it. The `S360-311` board stays
 `schematic_status: cataloged_unverified`.
 
+### D6 bench-session result so far (`S360-311-CURRENT-THERMAL-001`)
+
+The queued `S360-311-CURRENT-THERMAL` bench session has been **run twice**
+(2026-05-29 and re-run 2026-05-31) by the operator (`@wifispray`). Both
+passes **re-confirmed the functional PWM rows** (operator-notes-only:
+channels `J1`/`J2`/`J4`/`J5` individually + all-four-simultaneous +
+low/medium/high + restart-retention all PASS) but **captured no measured
+current, thermal, or tach/RPM values**. Against the matrix above, that
+leaves:
+
+- **T3 (native PWM drive)** — functional drive **PASS** (operator-notes);
+  PWM polarity via scope (`PWM-6`) **still owed** (not scoped).
+- **T4 (per-fan current)** — **NOT measured; owed.**
+- **T5 (aggregate current + MT3608 ceiling)** — **NOT measured; owed.**
+- **T6 (thermal envelope)** — **NOT measured; owed.**
+- **T7 (per-fan RPM via `pulse_counter`)** — **explicitly NOT measured;
+  owed.** `rpm_supported` stays **false**.
+- **T8 (`Pul_Cou3`/`IO46`)** — **unresolved; owed.** Stays disabled / TBD.
+- **T1 / T2 / T9 / T10 / T11** (`J3` silkscreen order, `J6`↔`J3` harness,
+  `"NINE 4pin FANs"` label, `J3` 11/12 UART routing, `TachIO`/`IO16`
+  role) — **remain OWED;** none was proven on either run.
+
+Per the project no-fabrication rule, no current / thermal / RPM value is
+inferred or back-filled. The full dated record (including the 2026-05-31
+re-run) is in
+[`s360-311-r4-pwm.md` §S360-311-CURRENT-THERMAL-001](s360-311-r4-pwm.md#s360-311-current-thermal-001--measured-current--thermal-bench-run-2026-05-29--2026-05-31-no-values-recorded).
+The `Measured` / `Pass?` columns above stay empty by design until the
+measured rows are actually captured.
+
 ## See also
 
 - [`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md) — HW-PINMAP-311

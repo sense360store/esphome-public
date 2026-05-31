@@ -2,6 +2,89 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## S360-311-CURRENT-THERMAL-001 — record FanPWM current and thermal evidence
+
+**Status:** documentation-only bench-evidence record (promotes nothing, verifies
+nothing, resolves no owed hardware item). Records the `S360-311-CURRENT-THERMAL-001`
+bench pass (2026-05-29 first pass + **2026-05-31 re-run**) on the **native**
+ESP32-S3 GPIO FanPWM composition (`S360-100-R4` Core + `S360-311-R4` PWM board),
+following `PRE-HW-PREP-FW-311-001`.
+
+### Summary
+
+The operator (`@wifispray`) re-ran the queued current / thermal / tach bench pass.
+The result is recorded **honestly**: **functional PWM re-confirmed PASS**
+(operator-notes-only — no photo / video / scope / multimeter log / thermal image),
+but **current, thermal, and tach/RPM were all NOT measured**. Per the project
+no-fabrication rule, **no current / thermal / RPM value is inferred, estimated, or
+back-filled** from the fan label, the MT3608 datasheet, or the supply capability.
+`PWM-6` / `PWM-13` (current / thermal) and `PWM-12` (per-fan RPM) **stay owed**;
+`rpm_supported` stays **false**. The board is **not** claimed hardware-stable.
+
+### Recorded result (per the required evidence list)
+
+* **PWM channel 1–4** — individually speed-controlled, **PASS** (operator-notes).
+* **All-four simultaneous** — **PASS**.
+* **High / medium / low command** — tracked commanded duty, **PASS**.
+* **Restart retention** — last commanded speed retained across a restart, **PASS**.
+* **Fan model / load** — **not re-specified** this pass; the established rig on
+  file (Arctic P14 Plus, one per channel) is carried for provenance only, not
+  re-attested as a 2026-05-31 measurement.
+* **Supply used** — **not re-specified**; rig on file is the on-board MT3608 12 V
+  boost (~2 A available capability, **not** a measured ceiling).
+* **Per-channel current** — **NOT measured.**
+* **Aggregate current** — **NOT measured** (no measured MT3608 ceiling / sag / inrush).
+* **Thermal duration / result** — **NOT measured** (no sustained thermal run; no
+  method / ambient / hottest-location / measured °C).
+* **Tach / RPM** — **explicitly NOT measured**; `rpm_supported` stays false.
+* **`Pul_Cou3` / `IO46`** — stays **disabled / TBD** (collides with the Core
+  `fan_status_led_pin` `GPIO46`); `TachIO` / `IO16` stays reserved / pending.
+* **`J3` silkscreen order / `J6`↔`J3` harness / `"NINE 4pin FANs"` label / `J3`
+  11/12 UART routing** — **remain OWED;** none proven on this run.
+
+### What changed
+
+* [`docs/hardware/s360-311-r4-pwm.md`](docs/hardware/s360-311-r4-pwm.md) — new
+  top-of-file `S360-311-CURRENT-THERMAL-001` re-run callout (2026-05-31); the
+  existing `§S360-311-CURRENT-THERMAL-001` section header dated for both passes
+  and a **2026-05-31 re-run** subsection added (functional re-confirmed;
+  current / thermal / tach again not measured; every owed item restated).
+* [`docs/hardware/s360-311-r4-fanpwm.md`](docs/hardware/s360-311-r4-fanpwm.md) —
+  new **D6 bench-session result so far** subsection recording the two-pass outcome
+  against the D6 matrix (T3 functional PASS; T4/T5/T6/T7/T8 + T1/T2/T9/T10/T11
+  owed); the `Measured` / `Pass?` columns stay empty by design.
+* [`docs/hardware/board-readiness-matrix.md`](docs/hardware/board-readiness-matrix.md)
+  — new **Bench evidence (`S360-311-CURRENT-THERMAL-001`)** bullet under the
+  `S360-311` subsection; `schematic_status` / lifecycle classifications unchanged.
+* This `UPCOMING_PR.md` entry.
+
+### Guardrails (explicitly NOT changed)
+
+* **No WebFlash enabled** — no wrapper, no `config/webflash-builds.json` row, no
+  WebFlash repo (`sense360store/webflash`) edit; the `FanPWM` token stays absent.
+* **No `artifact_name` added**, **no `webflash_build_matrix` flip**, **no firmware
+  published** — no release / tag / `.bin`, no `manifest.json` /
+  [`firmware/sources.json`](firmware/sources.json) change.
+* **No hardware-stable claim** — current / thermal / RPM stay unvalidated; the
+  evidence does not support it, so it is not claimed.
+* No `config/*.json` changed — `S360-311` stays `cataloged_unverified`, no
+  `schematic_status` flip, no lifecycle change; nothing marked `verified`.
+* No `packages/**` / `products/**` behaviour change; no compile re-run or compile
+  result fabricated; no measurement / photo / video / log fabricated — the intake
+  was blank and is recorded as such. Release-One (`Ceiling-POE-VentIQ-RoomIQ` /
+  stable) and the LED preview are untouched.
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 scripts/validate_compile_targets.py --metadata-only`
+* `python3 tests/test_native_fanpwm_yaml.py`
+* `python3 tests/test_pwm_product_readiness.py`
+* `python3 tests/test_product_catalog.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"`
+
+---
+
 ## PRE-HW-PREP-FW-311-001 — bring the S360-311 PWM firmware to design-complete
 
 **Status:** design-complete annotation + firmware finalisation (promotes

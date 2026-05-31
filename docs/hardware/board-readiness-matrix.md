@@ -448,6 +448,20 @@ rather than restate them.
   was reconciled (marked legacy/superseded) without touching the production
   radar-UART binding. See
   [`s360-311-r4-fanpwm.md` §Design-complete status](s360-311-r4-fanpwm.md#design-complete-status-pre-hw-prep-fw-311-001).
+- **Bench evidence (`S360-311-CURRENT-THERMAL-001`).** The current /
+  thermal / tach bench pass has been **run twice** (2026-05-29 and re-run
+  2026-05-31, operator `@wifispray`). Both passes **re-confirmed
+  functional PWM** (operator-notes-only: all four channels individual +
+  simultaneous + low/medium/high + restart-retention PASS) but **measured
+  no current, no thermal, and no tach/RPM values** — current / thermal
+  (`PWM-6` / `PWM-13`) and per-fan RPM (`PWM-12`) **stay owed**, and
+  `rpm_supported` stays **false**. `Pul_Cou3`/`IO46` stays disabled/TBD
+  (collides with the Core `fan_status_led_pin` `GPIO46`); `TachIO`/`IO16`
+  stays reserved/pending; the `J3` silkscreen order, `J6`↔`J3` harness,
+  `"NINE 4pin FANs"` label, and `J3` 11/12 UART routing **remain owed**.
+  No `schematic_status` / lifecycle / WebFlash / release change; the board
+  stays `cataloged_unverified` and **not** hardware-stable. Full record in
+  [`s360-311-r4-pwm.md` §S360-311-CURRENT-THERMAL-001](s360-311-r4-pwm.md#s360-311-current-thermal-001--measured-current--thermal-bench-run-2026-05-29--2026-05-31-no-values-recorded).
 - **Hardware evidence.** Catalog row at
   [`config/hardware-catalog.json`](../../config/hardware-catalog.json)
   lines 72–81; `schematic_status: cataloged_unverified` (unchanged
