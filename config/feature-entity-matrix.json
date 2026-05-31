@@ -1,0 +1,612 @@
+{
+  "schema_version": 1,
+  "work_item": "FEATURE-ENTITY-MATRIX-001",
+  "parent_plan": "PRE-HARDWARE-PREP-PLAN-001 — Workstream C (feature and entity completeness)",
+  "description": "Per-board / per-module feature and entity matrix. This is the NEW source of truth for which Home Assistant sensor entities and product HA features each Sense360 board/module YAML is supposed to expose, and the present-vs-required audit against the YAML that exists today. It complements config/kit-intent-matrix.json (which is MODULE COMPOSITION only and says nothing about per-product entities/features). This file is PLANNING / AUDIT only: it does not add, remove, or change any entity or feature in any board, feature, expansion, hardware, or product YAML, and it does not imply WebFlash exposure, stable promotion, firmware builds, or release artifacts. The actual addition of any missing entity or feature happens in the per-board implementation slices named in `queued_fill_slice`, never in the PR that introduces this matrix. See docs/feature-entity-matrix.md.",
+  "sources": {
+    "hardware_catalog": "config/hardware-catalog.json",
+    "kit_intent_matrix": "config/kit-intent-matrix.json",
+    "board_packages": "packages/boards/",
+    "feature_packages": "packages/features/",
+    "expansion_packages": "packages/expansions/",
+    "power_packages": "packages/hardware/power_240v.yaml, packages/hardware/power_poe.yaml",
+    "module_pinmaps": "docs/hardware/s360-2xx-module-pinmap.md, docs/hardware/s360-100-core-connector-pin-map.md",
+    "board_readiness": "docs/hardware/board-readiness-matrix.md",
+    "package_readiness": "docs/hardware/package-readiness-matrix.md"
+  },
+  "guardrails": {
+    "matrix_is_planning_and_audit_only": true,
+    "matrix_does_not_change_any_board_or_feature_yaml": true,
+    "matrix_does_not_change_any_product_or_webflash_yaml": true,
+    "matrix_does_not_add_webflash_builds_or_artifacts": true,
+    "matrix_does_not_promote_any_module_to_stable": true,
+    "entity_and_feature_fills_happen_only_in_named_queued_slices": true,
+    "intended_feature_set_is_never_fabricated": true,
+    "unknown_product_intent_is_recorded_as_needs_operator_confirm": true
+  },
+  "row_status_legend": {
+    "present": "An entity / feature that satisfies the required row exists in the current YAML for this board/module (canonical base or, where noted, a named overlay variant).",
+    "partial": "Some but not all of the required row is satisfied: e.g. the entity exists only in an overlay variant and not the canonical base, the driver part differs from the schematic BOM, the entity is declared but unvalidated/compile-pending, or only the package-layer output exists with no user-facing entity.",
+    "missing": "No entity / feature satisfying the required row exists in any current YAML for this board/module."
+  },
+  "derivation_legend": {
+    "design-derived": "Row is derived from the board BOM / schematic / pin-map. It can be filled now from the schematic and fully pinned once the BOM/gerbers land. It is NOT product intent — a populated sensor is expected to surface an entity.",
+    "product-intent": "Row is product intent (modes, presets, dedicated night-light, fan speed/preset UX, exposed comfort indices, etc.). It is NOT derivable from the schematic and MUST be marked needs-operator-confirm wherever the intended behaviour is not already obvious from existing YAML or product docs. The matrix never invents a feature set."
+  },
+  "confirm_flags": {
+    "none": "No operator confirmation required to fill: the requirement is unambiguous from the schematic BOM (design-derived) or already evidenced in existing YAML/product docs.",
+    "needs-operator-confirm": "Product intent is not established. The operator must specify whether this feature/entity is intended before any fill slice may proceed. Do not fabricate it.",
+    "needs-schematic-reconcile": "A design-derived row whose final part/driver/pin is not yet locked (schematic cataloged_unverified, BOM/gerbers not landed, or the live YAML driver differs from the catalog BOM). Fill is blocked on the schematic/BOM, not on the operator."
+  },
+  "boards": [
+    {
+      "sku": "S360-100",
+      "friendly_name": "Sense360 Core",
+      "schematic_status": "verified",
+      "canonical_board_package": "packages/boards/s360-100-core.yaml",
+      "composed_of": [],
+      "notes": "ESP32-S3-WROOM-1 hub. Owns the on-board relay K1 (GPIO3) and the shared core_i2c / RoomIQ UART buses. Device-health and diagnostics entities (uptime, WiFi, restart/safe-mode, internal temperature, CPU duty) are defined in the hardware core config and the device_health.yaml / diagnostics.yaml feature packages, not duplicated per board.",
+      "rows": [
+        {
+          "row": "On-board relay K1 control (GPIO3)",
+          "kind": "ha-feature",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "switch main_relay",
+          "defined_in": "packages/hardware/sense360_core.yaml",
+          "confirm": "none",
+          "queued_fill_slice": null,
+          "notes": "Core owns the GPIO output; the FanRelay expansion proxies it via a template switch to avoid double-binding GPIO3."
+        },
+        {
+          "row": "Device health entities (uptime, WiFi signal, restart, safe mode, internal temperature)",
+          "kind": "ha-feature",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "device_health.yaml + hardware core config",
+          "defined_in": "packages/features/device_health.yaml, packages/features/diagnostics.yaml",
+          "confirm": "none",
+          "queued_fill_slice": null,
+          "notes": "Intentionally centralised in the hardware core config to avoid duplicate-id breakage across profiles."
+        }
+      ]
+    },
+    {
+      "sku": "S360-200",
+      "friendly_name": "Sense360 RoomIQ",
+      "schematic_status": "verified",
+      "canonical_board_package": "packages/boards/s360-200-roomiq.yaml",
+      "composed_of": [
+        "packages/boards/s360-200-roomiq-climate.yaml",
+        "packages/boards/s360-200-roomiq-radar.yaml"
+      ],
+      "notes": "Merged comfort + presence room-sensor board. Catalog BOM (config/hardware-catalog.json): PIR (EKMC1601111), LD2450, SEN0609/C4001, LTR-303ALS light, SHT4x temp/humidity, BMP581 pressure. The current canonical YAML composes a VEML7700 ALS + SHT4x climate half and an LD2450 radar half only — three BOM sensors (SEN0609 second radar, EKMC PIR, BMP581 pressure) surface NO entity today, and the ambient-light part in YAML (VEML7700) differs from the catalog BOM part (LTR-303ALS-01).",
+      "rows": [
+        {
+          "row": "Temperature (SHT4x @0x44)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "sensor comfort_ceiling_temperature (\"${friendly_name} Temperature\")",
+          "defined_in": "packages/boards/s360-200-roomiq-climate.yaml",
+          "confirm": "none",
+          "queued_fill_slice": null,
+          "notes": ""
+        },
+        {
+          "row": "Humidity (SHT4x @0x44)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "sensor comfort_ceiling_humidity (\"${friendly_name} Humidity\")",
+          "defined_in": "packages/boards/s360-200-roomiq-climate.yaml",
+          "confirm": "none",
+          "queued_fill_slice": null,
+          "notes": ""
+        },
+        {
+          "row": "Ambient light / illuminance",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "partial",
+          "present_as": "sensor comfort_ceiling_illuminance + ALS counts / full spectrum (via VEML7700 @0x10)",
+          "defined_in": "packages/boards/s360-200-roomiq-climate.yaml",
+          "confirm": "needs-schematic-reconcile",
+          "queued_fill_slice": "ENTITY-RECONCILE-200-ALS-001",
+          "notes": "An illuminance entity exists, but the live driver (VEML7700 @0x10) differs from the catalog BOM part (LTR-303ALS-01). Reconcile the part against the landed schematic/BOM before locking."
+        },
+        {
+          "row": "mmWave presence / occupancy (LD2450)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "binary_sensor ld2450_occupancy + target sensors (Radar Presence, Moving/Still Target, Target 1-3 X/Y/Speed/Distance/Angle)",
+          "defined_in": "packages/boards/s360-200-roomiq-radar.yaml",
+          "confirm": "none",
+          "queued_fill_slice": null,
+          "notes": ""
+        },
+        {
+          "row": "Second radar (DFRobot SEN0609 / C4001) presence",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "missing",
+          "present_as": null,
+          "defined_in": null,
+          "confirm": "none",
+          "queued_fill_slice": "ENTITY-FILL-200-SEN0609-001",
+          "notes": "BOM lists SEN0609 on RoomIQ J3; Core declares roomiq_sen0609_uart and roomiq_sen0609_output_pin (GPIO6) but no sensor/binary_sensor entity is exposed."
+        },
+        {
+          "row": "PIR motion (EKMC1601111, IO15)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "missing",
+          "present_as": null,
+          "defined_in": null,
+          "confirm": "none",
+          "queued_fill_slice": "ENTITY-FILL-200-PIR-001",
+          "notes": "BOM lists EKMC1601111 PIR; pir_sensor_pin GPIO15 is declared as a substitution only, the binary_sensor is not exposed in any canonical board package."
+        },
+        {
+          "row": "Barometric pressure (BMP581, U4)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "missing",
+          "present_as": null,
+          "defined_in": null,
+          "confirm": "none",
+          "queued_fill_slice": "ENTITY-FILL-200-PRESSURE-001",
+          "notes": "BOM lists BMP581 pressure on the RoomIQ +3.3V rail; no pressure entity exists in the RoomIQ YAML today."
+        },
+        {
+          "row": "Comfort indices exposed as HA entities (dew point, heat index, comfort index)",
+          "kind": "ha-feature",
+          "derivation": "product-intent",
+          "required": null,
+          "status": "missing",
+          "present_as": "globals only (comfort_ceiling_dew_point, comfort_ceiling_heat_index, comfort_ceiling_index_value)",
+          "defined_in": "packages/boards/s360-200-roomiq-climate.yaml",
+          "confirm": "needs-operator-confirm",
+          "queued_fill_slice": "FEATURE-CONFIRM-200-COMFORT-INDICES-001",
+          "notes": "Dew point / heat index / comfort index are computed into globals but not surfaced as HA sensor entities. Whether they should be exposed is product intent — operator must confirm."
+        }
+      ]
+    },
+    {
+      "sku": "S360-210",
+      "friendly_name": "Sense360 AirIQ",
+      "schematic_status": "verified",
+      "canonical_board_package": "packages/boards/s360-210-airiq.yaml",
+      "composed_of": [],
+      "notes": "Comprehensive air-quality board. Catalog BOM: CO2 SCD41, VOC SGP41, gas MICS-4514 with STM8, connectors for SPS30 PM and SFA30 HCHO. The YAML exposes SCD41, SGP41, SPS30 and BMP390 fully; the MICS-4514 gas sensor and the SFA30 HCHO connector surface NO entity today.",
+      "rows": [
+        {
+          "row": "CO2 (SCD41 @0x62)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "sensor airiq_co2 (+ SCD41 temperature/humidity)",
+          "defined_in": "packages/boards/s360-210-airiq.yaml",
+          "confirm": "none",
+          "queued_fill_slice": null,
+          "notes": ""
+        },
+        {
+          "row": "VOC / NOx index (SGP41 @0x59)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "sensor airiq_voc_index, airiq_nox_index",
+          "defined_in": "packages/boards/s360-210-airiq.yaml",
+          "confirm": "none",
+          "queued_fill_slice": null,
+          "notes": ""
+        },
+        {
+          "row": "Particulate matter (SPS30 @0x69, connector)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "sensor airiq_pm1_0/pm2_5/pm4_0/pm10_0 + PMC counts + particle size + SPS30 clean button",
+          "defined_in": "packages/boards/s360-210-airiq.yaml",
+          "confirm": "none",
+          "queued_fill_slice": null,
+          "notes": "Connector-attached sensor but live in the canonical ceiling base."
+        },
+        {
+          "row": "Barometric pressure (BMP390 @0x77)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "sensor airiq_pressure (+ BMP390 temperature)",
+          "defined_in": "packages/boards/s360-210-airiq.yaml",
+          "confirm": "needs-schematic-reconcile",
+          "queued_fill_slice": null,
+          "notes": "Live in YAML (ceiling only). The catalog BOM line for AirIQ does not call out a pressure part by name; confirm BMP390 against the landed BOM."
+        },
+        {
+          "row": "Gas (MICS-4514 + STM8 co-processor)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "missing",
+          "present_as": null,
+          "defined_in": null,
+          "confirm": "needs-schematic-reconcile",
+          "queued_fill_slice": "ENTITY-FILL-210-MICS-001",
+          "notes": "BOM lists MICS-4514 gas sensor with an STM8 co-processor; no gas entity exists today. Interface (STM8 readout path) must be confirmed from the schematic before filling."
+        },
+        {
+          "row": "Formaldehyde / HCHO (SFA30, connector)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "missing",
+          "present_as": null,
+          "defined_in": null,
+          "confirm": "needs-schematic-reconcile",
+          "queued_fill_slice": "ENTITY-FILL-210-HCHO-001",
+          "notes": "BOM/pin-map lists an SFA30/SFA40 HCHO connector; no HCHO entity exists. Connector interface/address is verify-pending in the AirIQ pin-map."
+        }
+      ]
+    },
+    {
+      "sku": "S360-211",
+      "friendly_name": "Sense360 VentIQ",
+      "schematic_status": "verified",
+      "canonical_board_package": "packages/boards/s360-211-ventiq.yaml",
+      "composed_of": [],
+      "notes": "Bathroom air-quality + ventilation-intent board. Catalog BOM: SGP41 on board, connectors for IR temp and SPS30. Base YAML adds SHT4x + BMP390 and derived bathroom logic (humidity rate, dew point, shower/mold/odor). The IR-temp (MLX90614) and PM (SPS30) connector sensors are exposed ONLY in the s360-211-ventiq-pro.yaml overlay, not the canonical base.",
+      "rows": [
+        {
+          "row": "VOC / NOx index (SGP41 @0x59)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "sensor bathroom_voc_index, bathroom_nox_index",
+          "defined_in": "packages/boards/s360-211-ventiq.yaml",
+          "confirm": "none",
+          "queued_fill_slice": null,
+          "notes": ""
+        },
+        {
+          "row": "Temperature / humidity (SHT4x @0x44)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "sensor bathroom_temperature, bathroom_humidity",
+          "defined_in": "packages/boards/s360-211-ventiq.yaml",
+          "confirm": "needs-schematic-reconcile",
+          "queued_fill_slice": null,
+          "notes": "SHT4x is live in YAML but is not called out on the VentIQ catalog BOM line; confirm against the landed BOM."
+        },
+        {
+          "row": "Barometric pressure (BMP390 @0x77)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "sensor bathroom_pressure (+ BMP390 temperature)",
+          "defined_in": "packages/boards/s360-211-ventiq.yaml",
+          "confirm": "needs-schematic-reconcile",
+          "queued_fill_slice": null,
+          "notes": "Live in YAML; not named on the VentIQ catalog BOM line. Confirm against the landed BOM."
+        },
+        {
+          "row": "IR surface temperature (MLX90614 @0x5A, connector)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "partial",
+          "present_as": "sensor bathroom_surface_temperature, bathroom_ir_ambient (PRO overlay only)",
+          "defined_in": "packages/boards/s360-211-ventiq-pro.yaml",
+          "confirm": "none",
+          "queued_fill_slice": "ENTITY-FILL-211-IRTEMP-001",
+          "notes": "BOM lists an IR-temp connector. The MLX90614 entities exist only in the -pro overlay, not the canonical s360-211-ventiq.yaml base. Decide whether the base should carry it."
+        },
+        {
+          "row": "Particulate matter (SPS30 @0x69, connector)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "partial",
+          "present_as": "sensor bathroom_pm1_0/pm2_5/... (PRO overlay only)",
+          "defined_in": "packages/boards/s360-211-ventiq-pro.yaml",
+          "confirm": "none",
+          "queued_fill_slice": "ENTITY-FILL-211-PM-001",
+          "notes": "BOM lists an SPS30 connector. PM entities exist only in the -pro overlay, not the canonical base."
+        },
+        {
+          "row": "Bathroom logic features (shower active, mold risk, odor, condensation, fan recommendation)",
+          "kind": "ha-feature",
+          "derivation": "product-intent",
+          "required": null,
+          "status": "partial",
+          "present_as": "binary_sensor bathroom_shower_sensor, bathroom_mold_warning, bathroom_odor_sensor (+ condensation in pro); global bathroom_fan_recommendation",
+          "defined_in": "packages/boards/s360-211-ventiq.yaml, packages/boards/s360-211-ventiq-pro.yaml",
+          "confirm": "needs-operator-confirm",
+          "queued_fill_slice": "FEATURE-CONFIRM-211-VENT-INTENT-001",
+          "notes": "Shower/mold/odor/condensation binary sensors exist; the fan-recommendation is a global, not an entity, and no fan-control surface is bound on VentIQ itself. Confirm the intended ventilation feature set (and whether bathroom_fan_recommendation should drive an HA control)."
+        }
+      ]
+    },
+    {
+      "sku": "S360-300",
+      "friendly_name": "Sense360 LED",
+      "schematic_status": "verified",
+      "canonical_board_package": "packages/boards/s360-300-led.yaml",
+      "composed_of": [],
+      "notes": "WS2812B addressable halo-ring indicator board (preview-gated for WebFlash). WORKED EXAMPLE for Workstream C (C3): the board currently has a Night Mode switch + LED Brightness number but NO dedicated HA night-light light entity.",
+      "rows": [
+        {
+          "row": "LED ring light + effects (Pulse/Alert/Random/Rainbow/Scan/Color Wipe)",
+          "kind": "ha-feature",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "light led_ring (\"${friendly_name} LED Ring\")",
+          "defined_in": "packages/boards/s360-300-led.yaml",
+          "confirm": "none",
+          "queued_fill_slice": null,
+          "notes": "12-LED WS2812B on GPIO38 (ceiling base); 8-LED/GPIO48 on the wall overlay."
+        },
+        {
+          "row": "LED brightness control",
+          "kind": "ha-feature",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "number led_brightness_control (\"${friendly_name} LED Brightness\")",
+          "defined_in": "packages/boards/s360-300-led.yaml",
+          "confirm": "none",
+          "queued_fill_slice": null,
+          "notes": ""
+        },
+        {
+          "row": "Night mode",
+          "kind": "ha-feature",
+          "derivation": "product-intent",
+          "required": true,
+          "status": "present",
+          "present_as": "switch led_night_mode_switch (\"${friendly_name} Night Mode\")",
+          "defined_in": "packages/boards/s360-300-led.yaml",
+          "confirm": "none",
+          "queued_fill_slice": null,
+          "notes": "Implemented as a template switch that dims led_ring to 10%; restores brightness on turn-off."
+        },
+        {
+          "row": "Dedicated HA night-light light entity (distinct from the status ring)",
+          "kind": "ha-feature",
+          "derivation": "product-intent",
+          "required": null,
+          "status": "missing",
+          "present_as": null,
+          "defined_in": null,
+          "confirm": "needs-operator-confirm",
+          "queued_fill_slice": "FEATURE-CONFIRM-300-NIGHTLIGHT-001",
+          "notes": "C3 WORKED EXAMPLE: s360-300-led.yaml has a Night Mode switch (dims the status ring) and a brightness number, but NO separate HA `light` entity acting as a night-light. Whether a distinct night-light light is intended is product intent — operator must confirm before any fill. Do not fabricate it."
+        },
+        {
+          "row": "Air-quality halo behaviour (LED colour mapped to AQI)",
+          "kind": "ha-feature",
+          "derivation": "product-intent",
+          "required": null,
+          "status": "partial",
+          "present_as": "feature packages ceiling_led_ring_air_quality.yaml / ceiling_halo_leds.yaml (layered, not bound by the board base)",
+          "defined_in": "packages/features/ceiling_led_ring_air_quality.yaml, packages/features/ceiling_halo_leds.yaml",
+          "confirm": "needs-operator-confirm",
+          "queued_fill_slice": "FEATURE-CONFIRM-300-AQ-HALO-001",
+          "notes": "Air-quality halo is a FEATURE layered on top of the LED hardware (needs an AirIQ source). The board base cross-references it but does not bind it. Confirm whether the LED product should ship the AQ halo by default."
+        }
+      ]
+    },
+    {
+      "sku": "S360-310",
+      "friendly_name": "Sense360 Relay",
+      "schematic_status": "cataloged_unverified",
+      "canonical_board_package": null,
+      "composed_of": [],
+      "notes": "On/off relay driver for bathroom fans. NO board-layer package exists (packages/boards/). Entities live only in the expansion packages/expansions/fan_relay.yaml, which proxies the Core main_relay. Board package + product surface are owned by the PACKAGE-RELAY-001 / PRODUCT-RELAY-001 chain (see config/kit-intent-matrix.json and docs/hardware/package-readiness-matrix.md).",
+      "rows": [
+        {
+          "row": "Relay on/off control",
+          "kind": "ha-feature",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "partial",
+          "present_as": "switch fan_relay_switch (proxies Core main_relay)",
+          "defined_in": "packages/expansions/fan_relay.yaml",
+          "confirm": "needs-schematic-reconcile",
+          "queued_fill_slice": "ENTITY-FILL-310-RELAY-BOARD-001",
+          "notes": "A relay switch exists in the expansion layer, but there is no canonical S360-310 board package. Schematic is cataloged_unverified; board-layer ownership is blocked on PACKAGE-RELAY-001."
+        },
+        {
+          "row": "Fan on/off + speed/preset HA control surface",
+          "kind": "ha-feature",
+          "derivation": "product-intent",
+          "required": null,
+          "status": "missing",
+          "present_as": "fan_control_profile.yaml exists but is not bound to a relay board",
+          "defined_in": "packages/features/fan_control_profile.yaml",
+          "confirm": "needs-operator-confirm",
+          "queued_fill_slice": "FEATURE-CONFIRM-310-FAN-UX-001",
+          "notes": "A relay is on/off, not variable-speed; confirm the intended HA fan UX (simple switch vs fan entity) for the relay product."
+        }
+      ]
+    },
+    {
+      "sku": "S360-311",
+      "friendly_name": "Sense360 PWM",
+      "schematic_status": "cataloged_unverified",
+      "canonical_board_package": null,
+      "composed_of": [],
+      "notes": "12V PWM fan driver, up to 4 fans with tach feedback. NO board-layer package. Driver lives in packages/expansions/fan_pwm_native.yaml (native ESP32-S3 GPIO; legacy SX1509 variants superseded). Compile/validation pending per the PWM lane.",
+      "rows": [
+        {
+          "row": "PWM fan drive outputs + fan entities (up to 4)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "partial",
+          "present_as": "output fan_pwm_native_drive_1..4 (ledc) + fan fan_pwm_native_1..4",
+          "defined_in": "packages/expansions/fan_pwm_native.yaml",
+          "confirm": "needs-schematic-reconcile",
+          "queued_fill_slice": "ENTITY-FILL-311-PWM-BOARD-001",
+          "notes": "Fan outputs/entities exist in the expansion but compile validation is pending and there is no canonical board package. Pin map is partial; schematic cataloged_unverified."
+        },
+        {
+          "row": "Tachometer / RPM feedback (up to 4)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "partial",
+          "present_as": "sensor fan_pwm_native_tach_1/2/4 (pulse_counter)",
+          "defined_in": "packages/expansions/fan_pwm_native.yaml",
+          "confirm": "needs-schematic-reconcile",
+          "queued_fill_slice": "ENTITY-FILL-311-TACH-001",
+          "notes": "Tach 1/2/4 exist but RPM is unvalidated; Pul_Cou3 (GPIO46) is disabled (collision with fan_status_led_pin) and TachIO (GPIO16) role is ambiguous. Reconcile against the landed schematic."
+        },
+        {
+          "row": "Fan speed / preset HA control surface",
+          "kind": "ha-feature",
+          "derivation": "product-intent",
+          "required": null,
+          "status": "partial",
+          "present_as": "fan_control_profile.yaml / fan_control_advanced_profile.yaml (quiet mode, auto mode, RPM display, link mode)",
+          "defined_in": "packages/features/fan_control_profile.yaml, packages/features/fan_control_advanced_profile.yaml",
+          "confirm": "needs-operator-confirm",
+          "queued_fill_slice": "FEATURE-CONFIRM-311-FAN-UX-001",
+          "notes": "Basic/advanced fan-control profiles exist but are not bound to a PWM board product. Confirm which preset/speed/quiet/auto features the PWM product should expose."
+        }
+      ]
+    },
+    {
+      "sku": "S360-312",
+      "friendly_name": "Sense360 DAC",
+      "schematic_status": "cataloged_unverified",
+      "canonical_board_package": null,
+      "composed_of": [],
+      "notes": "0-10V analog fan driver (GP8403 I2C DAC). NO board-layer package. Driver lives in packages/expansions/fan_gp8403.yaml as neutral package-layer outputs only (no user-facing fan entity in the driver).",
+      "rows": [
+        {
+          "row": "0-10V DAC outputs (dual GP8403, 4 channels)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "partial",
+          "present_as": "gp8403 fan_dac_1/2 + output fan_dac_1/2_vout0/1 (package-layer, no user entity)",
+          "defined_in": "packages/expansions/fan_gp8403.yaml",
+          "confirm": "needs-schematic-reconcile",
+          "queued_fill_slice": "ENTITY-FILL-312-DAC-BOARD-001",
+          "notes": "DAC outputs exist at the package layer with no user-facing fan/voltage entity, and no canonical board package. Schematic cataloged_unverified."
+        },
+        {
+          "row": "Fan speed / voltage HA control surface",
+          "kind": "ha-feature",
+          "derivation": "product-intent",
+          "required": null,
+          "status": "missing",
+          "present_as": "fan_control_advanced_profile.yaml exists (dual-channel, voltage display) but is not bound",
+          "defined_in": "packages/features/fan_control_advanced_profile.yaml",
+          "confirm": "needs-operator-confirm",
+          "queued_fill_slice": "FEATURE-CONFIRM-312-FAN-UX-001",
+          "notes": "Confirm the intended 0-10V fan UX (fan entity, output voltage display, dual-channel link) for the DAC product. webflash-compatibility grammar forbids FanDAC+AirIQ, so the duct-fan context applies."
+        }
+      ]
+    },
+    {
+      "sku": "S360-320",
+      "friendly_name": "Sense360 TRIAC",
+      "schematic_status": "cataloged_unverified",
+      "canonical_board_package": null,
+      "composed_of": [],
+      "notes": "Phase-dimmer for mains fan or lamp. NO board-layer package. Driver lives in packages/expansions/fan_triac.yaml but is BLOCKED: placeholder pins, ac_dimmer cannot run across the SX1509 expander, and mains-voltage compliance sign-off (COMPLIANCE-001) is open.",
+      "rows": [
+        {
+          "row": "AC phase-cut dimmer output + fan entity",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "partial",
+          "present_as": "output fan_triac_output (ac_dimmer) + fan fan_controller + sensor fan_speed_percent",
+          "defined_in": "packages/expansions/fan_triac.yaml",
+          "confirm": "needs-schematic-reconcile",
+          "queued_fill_slice": "ENTITY-FILL-320-TRIAC-BOARD-001",
+          "notes": "Entities exist in the expansion but pins are unresolved/BLOCKED (HW-005, HW-PINMAP-320-FOLLOWUP) and there is no board package. Mains-voltage compliance is open."
+        },
+        {
+          "row": "Fan speed / preset HA control surface",
+          "kind": "ha-feature",
+          "derivation": "product-intent",
+          "required": null,
+          "status": "missing",
+          "present_as": null,
+          "defined_in": "packages/features/fan_control_profile.yaml",
+          "confirm": "needs-operator-confirm",
+          "queued_fill_slice": "FEATURE-CONFIRM-320-FAN-UX-001",
+          "notes": "Confirm intended TRIAC fan UX; product stays advanced/manual or blocked until HW + compliance clear."
+        }
+      ]
+    },
+    {
+      "sku": "S360-400",
+      "friendly_name": "Sense360 240v PSU",
+      "schematic_status": "cataloged_unverified",
+      "canonical_board_package": null,
+      "composed_of": [],
+      "notes": "Mains-to-5V PSU (HLK-5M05). NO board-layer package. Diagnostic-only entities live in packages/hardware/power_240v.yaml. Compliance-blocked (pwr_is_compliance_blocked per config/kit-intent-matrix.json).",
+      "rows": [
+        {
+          "row": "Power diagnostics (supply voltage, power source, AC connected)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "partial",
+          "present_as": "sensor supply_voltage + text_sensor power_source_indicator/power_config_info + binary_sensor ac_power_connected",
+          "defined_in": "packages/hardware/power_240v.yaml",
+          "confirm": "needs-schematic-reconcile",
+          "queued_fill_slice": "ENTITY-FILL-400-PSU-BOARD-001",
+          "notes": "Diagnostic entities exist in the hardware power package but there is no canonical board package and the schematic is cataloged_unverified. Compliance-blocked."
+        }
+      ]
+    },
+    {
+      "sku": "S360-410",
+      "friendly_name": "Sense360 PoE PSU",
+      "schematic_status": "cataloged_unverified",
+      "canonical_board_package": "packages/boards/s360-410-poe-psu.yaml",
+      "composed_of": [],
+      "notes": "PoE-to-5V supply (IEEE 802.3af). Diagnostic-only board package; no GPIO/I2C/UART hardware control.",
+      "rows": [
+        {
+          "row": "Power diagnostics (supply voltage, power source, PoE connected)",
+          "kind": "sensor-entity",
+          "derivation": "design-derived",
+          "required": true,
+          "status": "present",
+          "present_as": "sensor supply_voltage + text_sensor power_source_indicator/power_config_info + binary_sensor poe_power_connected",
+          "defined_in": "packages/boards/s360-410-poe-psu.yaml",
+          "confirm": "needs-schematic-reconcile",
+          "queued_fill_slice": null,
+          "notes": "Diagnostic entities present. Schematic cataloged_unverified (HW-PINMAP-410 pending); values are fixed/synthetic, not measured."
+        }
+      ]
+    }
+  ]
+}
