@@ -2,6 +2,75 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## PRE-HARDWARE-PREP-PLAN-001 — plan the design-derived readiness program
+
+**Status:** docs-only / planning (promotes nothing, verifies nothing, resolves
+nothing; no gate closed; no `schematic_status` flipped)
+
+### Summary
+
+Authors [`docs/pre-hardware-prep-plan.md`](docs/pre-hardware-prep-plan.md), the
+design-derived readiness program that brings the six driver / PSU boards
+(`S360-310` / `S360-311` / `S360-312` / `S360-320` / `S360-400` / `S360-410`)
+to a **design-complete** state from the schematic PDFs the repo already holds,
+**ahead of hardware**, so the eventual bench session is pure test-and-record.
+The plan defines a `design-complete` status concept that is explicitly distinct
+from `verified` (firmware authored + compile-validated from design artifacts,
+recorded as a doc/metadata annotation — never a `config/*.json` field — and
+which **never flips `schematic_status` on its own**), enumerates the six
+per-board deliverables, flags every gerber/BOM-dependent item as
+**ARTIFACT-BLOCKED**, captures the operator-stated **SX1509 deprecation** as
+its own early reconcile slice, fixes the per-board hardware-verification
+handoff, and emits the ordered slice sequence.
+
+### What changed
+
+* New [`docs/pre-hardware-prep-plan.md`](docs/pre-hardware-prep-plan.md) —
+  the program: `design-complete` policy + non-flip rule, per-board D1–D6
+  deliverable tables, ARTIFACT-BLOCKED flags (clearance/creepage for the
+  PoE `S360-410` and mains `S360-310`/`S360-320`/`S360-400` boards), the
+  SX1509 reference inventory + native-GPIO resolution targets, the
+  `design-complete → verified` bench handoff per board, and the ordered
+  slice sequence.
+* This `UPCOMING_PR.md` entry.
+
+### Ordered slice sequence (queued; this PR authors none of them)
+
+1. `PRE-HW-PREP-SX1509-RECONCILE-001` — re-bind the fan path to native
+   ESP32-S3 GPIO; mark residual SX1509 fan refs legacy/superseded
+   (coordinates with `CORE-ABSTRACT-BUS-001` + the native fan GPIO map).
+2. `PRE-HW-PREP-FW-312-001` — `S360-312` DAC (native I²C, no SX1509 dep).
+3. `PRE-HW-PREP-FW-311-001` — `S360-311` PWM (native re-bind; `PACKAGE-PWM-001`).
+4. `PRE-HW-PREP-FW-310-001` — `S360-310` Relay (SELV logic side).
+5. `PRE-HW-PREP-TESTMATRIX-SELV-001` — finalise the SELV bench matrices.
+6. `PRE-HW-PREP-GERBER-REVIEW-001` *(ARTIFACT-BLOCKED)* — clearance/creepage
+   reviews; **gated on gerbers + BOM being committed**.
+7. `PRE-HW-PREP-TRIAC-320-001` *(HW-005 / COMPLIANCE-001)*.
+8. `PRE-HW-PREP-MAINS-400-001` *(COMPLIANCE-001)*.
+9. `PRE-HW-PREP-POE-410-001` *(isolation / Hi-pot; `PACKAGE-POE-410-001`)*.
+
+### Guardrails (explicitly NOT changed)
+
+* No YAML, package, board, bundle, expansion, or product file edited.
+* No `config/*.json` changed — `S360-310/311/312/320/400/410` stay
+  `cataloged_unverified`, no `schematic_file`, no config string, artifact
+  name, or lifecycle touched.
+* No `schematic_status` flip; nothing marked `verified` or
+  design-complete-as-verified; nothing promoted.
+* No WebFlash exposure / release; no edit to
+  [`firmware/sources.json`](firmware/sources.json) or `manifest.json`.
+* The SX1509 reconciliation is **planned only**, not performed; no GPIO
+  numbers invented beyond schematic-printed values.
+* No gerbers / BOM / measurement fabricated; the WebFlash repo is untouched.
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 tests/test_roadmap_status_doc.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"`
+
+---
+
 ## HW-PINMAP-311-FOLLOWUP — standalone schematic-backed reference doc for S360-311 PWM
 
 **Status:** docs-only (records, resolves nothing; no gate closed; board package still gated)
