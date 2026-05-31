@@ -519,6 +519,15 @@ rather than restate them.
 ### `S360-312` Sense360 DAC
 
 - **Role.** 0–10 V analog fan driver (GP8403), for example Cloudlift S12.
+- **`design_status`.** **`design-complete`** — prose annotation recorded by
+  `PRE-HW-PREP-FW-312-001` (2026-05-31), slice 2 of
+  [`../pre-hardware-prep-plan.md`](../pre-hardware-prep-plan.md), with the
+  compile proven green in run
+  [`26364679370`](https://github.com/sense360store/esphome-public/actions/runs/26364679370).
+  This is **not** `verified`: it does not flip `schematic_status` (stays
+  `cataloged_unverified`), does not change the lifecycle, and does not enable
+  any WebFlash / release surface. See
+  [`s360-312-r4-fandac.md` §Design-complete status](s360-312-r4-fandac.md#design-complete-status-pre-hw-prep-fw-312-001).
 - **Hardware evidence.** Catalog row at
   [`config/hardware-catalog.json`](../../config/hardware-catalog.json)
   lines 82–90; `schematic_status: cataloged_unverified` (unchanged
