@@ -155,18 +155,44 @@ assertion), and the artifact-name assertion all **passed**. Expected artifact:
 `manifest.json` are publish-time only and were **not** produced; **no** release,
 tag, `.bin`, `firmware/sources.json`, or `manifest.json` was created.
 
-- **Outcome:** `dry-run partial`. Every local dry-run lane passed; the only
-  unmet item is the hosted GitHub Actions **run URL / run ID**, because this
-  session cannot dispatch Actions (no `gh` CLI / Actions tool).
+- **Outcome:** `dry-run passed` (upgraded from `partial`). Every local dry-run
+  lane passed, and the hosted GitHub Actions **run URL / run ID** has since been
+  captured and **passed** — see §5.2.
 - The `Build & Release Firmware` workflow **already has a safe-by-default
   dry-run mode** (`RELEASE-WORKFLOW-DRYRUN-MODE-001`), so the conditional
-  `FIRST-RELEASE-WORKFLOW-DRYRUN-MODE-001` is **not** opened. The residual
-  operator step (dispatch the dry-run on hosted CI and record the run URL/ID) is
-  tracked as `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001`.
+  `FIRST-RELEASE-WORKFLOW-DRYRUN-MODE-001` is **not** opened.
 - Full record + reproduction commands:
   [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md)
-  §11 (`FIRST-RELEASE-WORKFLOW-DRYRUN-001`). This is a status snapshot; it
-  promotes nothing and flips no gate.
+  §11 (`FIRST-RELEASE-WORKFLOW-DRYRUN-001`; §11.8 for the hosted pass). This is a
+  status snapshot; it promotes nothing and flips no gate.
+
+### 5.2 Hosted CI dry-run result — passed (FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001)
+
+The hosted GitHub Actions dry-run for the only eligible stable path has been
+dispatched on hosted CI by an operator and **passed**, upgrading the
+first-release dry-run from `partial` to **`passed`** (hosted CI dry-run:
+**passed**). Record only — nothing published, no `.bin`, no promotion, no
+hardware verified.
+
+| Field | Value |
+|---|---|
+| Workflow / job | `Build & Release Firmware` → `Release Dry-Run (no publish)` |
+| Run URL | <https://github.com/sense360store/esphome-public/actions/runs/26723839261/job/78755574773> |
+| Run ID / Job ID | `26723839261` / `78755574773` |
+| Commit SHA | `b2cc9fd5054f62c18b63230c2b380bc749abf2f0` |
+| Path | `S360-KIT-BATH-P` / `Ceiling-POE-VentIQ-RoomIQ` / `stable` / `1.0.0` |
+| Expected artifact | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` |
+| Result | **`passed`** — all dry-run guardrail steps passed |
+| Artifacts | **none** (expected for a no-publish dry-run) |
+
+All dry-run guardrail steps passed; **no** release, tag, asset, committed `.bin`,
+`firmware/sources.json`, or `manifest.json` was created. **Publish readiness is
+still pending human review** and a real changelog/publish decision: real
+changelog bullets, any required external-component ref/tag pin, publish-time
+checksums, and WebFlash import/handoff all remain owed until a real release
+artifact exists. Full record:
+[`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md) §11.8
+(`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001`).
 
 ---
 
