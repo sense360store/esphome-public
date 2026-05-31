@@ -66,6 +66,23 @@ source-of-truth file wins** and this doc is the one to fix.
 > (`FIRST-RELEASE-DRYRUN-CHECKLIST-001`). This gates doc says **what** ships; the
 > dry-run checklist says **how to rehearse** it safely.
 
+> **Dry-run executed (`FIRST-RELEASE-WORKFLOW-DRYRUN-001`, 2026-05-31).** The
+> non-publishing dry-run lanes were run against the only eligible stable path
+> (`S360-KIT-BATH-P` / `Ceiling-POE-VentIQ-RoomIQ` / `stable` / `1.0.0`):
+> release-note generation + validation, the build workflow's `release-dry-run`
+> job steps (planner + guardrail contract tests + no-side-effects assertion),
+> and artifact-name assertion all **passed**, expected artifact
+> `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, **no** publish / tag /
+> `.bin` / checksum / `manifest.json` / `firmware/sources.json`. Outcome:
+> **`dry-run partial`** — the only gap is the hosted GitHub Actions
+> **run URL / run ID** (this environment cannot dispatch Actions). The safe
+> dry-run mode **already exists** (`RELEASE-WORKFLOW-DRYRUN-MODE-001`), so the
+> conditional `FIRST-RELEASE-WORKFLOW-DRYRUN-MODE-001` is **not** opened; the
+> residual operator step is tracked as
+> `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001`. Full record:
+> [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md) §11.
+> This changes **no gate** in this doc.
+
 ---
 
 ## 1. Current shippable release (first-release path)
