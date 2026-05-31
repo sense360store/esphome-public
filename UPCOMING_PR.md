@@ -2,6 +2,76 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## FIRST-RELEASE-PUBLISH-READINESS-001 — assess first stable release publish readiness
+
+**Status:** assessment / documentation only (publishes nothing, builds no
+`.bin`, creates no GitHub Release, pushes no tag, promotes nothing, verifies no
+hardware; no `artifact_name` added, no `webflash_build_matrix` flip, no
+`firmware/sources.json` / `manifest.json` change, no `config/*.json` /
+`packages/**` / `products/**` edit, no WebFlash repo change). Records the
+publish-readiness assessment for the only eligible first-release stable path.
+
+### Outcome — **ALREADY PUBLISHED / NO ACTION REQUIRED**
+
+The current first-release stable path (`S360-KIT-BATH-P` /
+`Ceiling-POE-VentIQ-RoomIQ` / `stable` / `1.0.0`) is **already published and
+live**. GitHub Release **`v1.0.0`** was published on **2026-05-12** (not draft,
+not prerelease) with the exact expected artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` (≈1.04 MB, sha256
+`9169f2ce…ceffcc`), a **real human-authored changelog** (not a TODO/filler
+placeholder), `checksums-sha256.txt` + `checksums-md5.txt`, and a build-info
+`manifest.json`; and it is already **imported/live in WebFlash**
+(`firmware/sources.json` pins `release_tag: v1.0.0`, plus `manifest.json` and a
+per-artifact sidecar). All nine publish-readiness gates are satisfied by the live
+release.
+
+### Decision — `FIRST-RELEASE-PUBLISH-001` is NOT opened
+
+The publish has already happened, which is terminal — not "ready to publish."
+Opening a publish item would risk a **double-publish / re-tag of an existing live
+release**, which the hard guardrails forbid. The only legitimate future publish
+is a **new version** (`1.0.1` / `1.1.0`), out of scope here.
+
+### Note — documentation drift (flagged, not fixed here)
+
+The recent dry-run / gates / roadmap docs describe publishing as "still pending /
+future" and say "no release/tag exists." That framing is **stale**: it describes
+the dry-run *rehearsal* of a path that already shipped on 2026-05-12 (see
+[`docs/webflash-release-proof.md`](docs/webflash-release-proof.md), ESP-006/ESP-007).
+This assessment flags the drift for a possible follow-up docs refresh but does
+**not** rewrite those gate docs (assessment-only; no gate state changed).
+
+### What changed
+
+* New [`docs/first-release-publish-readiness.md`](docs/first-release-publish-readiness.md)
+  — `FIRST-RELEASE-PUBLISH-READINESS-001`: the live-release evidence
+  (release/tag/commit/assets/changelog + WebFlash import), the nine-gate
+  publish-readiness checklist (all met), the doc-drift reconciliation, and the
+  decision not to open `FIRST-RELEASE-PUBLISH-001`.
+* This `UPCOMING_PR.md` entry.
+
+### Validation
+
+* `python3 tests/validate_configs.py` — 213 files, 0 failed.
+* `python3 tests/test_roadmap_status_doc.py` — 17 tests OK.
+* `python3 tests/test_product_catalog.py` — 41 tests OK.
+* `python3 tests/validate_webflash_builds.py` — 2 builds, 0 failed.
+* `python3 -m unittest discover -s tests -p "test_*.py"` — 1177 tests OK (3 skipped).
+
+### Guardrails (explicitly NOT changed)
+
+* **No publish** — no GitHub Release, no tag, no release asset; publishing stays
+  gated to a real `release: published` event.
+* **No artifacts** — no `.bin`, no checksum file, no build-info `manifest.json`.
+* **No source-of-record change** — no `firmware/sources.json` (WebFlash-owned),
+  no `manifest.json`.
+* **No WebFlash exposure change** — no `config/webflash-builds.json` row, no
+  `artifact_name` added, no `webflash_build_matrix` flip, no new WebFlash target;
+  the `sense360store/WebFlash` repo is untouched.
+* **No promotion** — no other bundle promoted; `S360-410` stays
+  `cataloged_unverified`; LED stays `preview`; no fan variant marked
+  release-ready.
+
 ## FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001 — record hosted first-release dry-run pass
 
 **Status:** documentation/record only (publishes nothing, builds no committed
