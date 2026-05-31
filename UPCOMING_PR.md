@@ -2,6 +2,88 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## PRE-HW-PREP-FW-312-001 — bring the S360-312 DAC firmware to design-complete
+
+**Status:** design-complete annotation (docs-only; promotes nothing, verifies
+nothing, resolves no owed hardware item; no `schematic_status` flipped, no
+lifecycle change, no WebFlash exposure, no `artifact_name` set, no release, no
+compile result fabricated). Executes slice #2
+(`PRE-HW-PREP-FW-312-001`) of
+[`docs/pre-hardware-prep-plan.md`](docs/pre-hardware-prep-plan.md).
+
+### Summary
+
+Records the `Sense360 DAC` board (`S360-312-R4`, FanDAC) as **design-complete**
+— a prose / documentation annotation that is explicitly **not** `verified`
+(per [`docs/pre-hardware-prep-plan.md` §1.2 / §1.4](docs/pre-hardware-prep-plan.md)).
+The dual-GP8403 driver (D2), the FanDAC bundle (D3), and the compile-only
+targets (D4) were already landed by the earlier FanDAC slices
+(`PACKAGE-DAC-001` / `PRODUCT-DAC-001` / `FW-COMPILE-DAC-001`; the
+[`packages/expansions/fan_gp8403.yaml`](packages/expansions/fan_gp8403.yaml)
+driver already exposes both DACs `IC1`/`IC2` on the shared `core_i2c` bus as
+four neutral outputs, with the stale `GPIO39`/`GPIO40` header comment already
+corrected to the Core `IO48`/`IO45` bus), and D1 by `HW-PINMAP-312` /
+`HW-PINMAP-312-FOLLOWUP`. This slice adds the missing design-complete pieces
+(D5 + D6) and the design-complete prose annotation, all from the committed
+schematic; it edits no YAML and no `config/*.json`.
+
+### What changed
+
+* [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md)
+  — new **Design-complete status** section (the four-condition §1.1 checklist
+  with the compile-run link), new **D5** release-note template + artifact-naming
+  scheme (template only — no artifact, no release), new **D6** pre-written
+  bench / evidence test matrix (the fill-in checklist covering the verify-pending
+  D1 items plus per-channel output linearity/range, Cloudlift drive, and the
+  voltage-mode jumper), and a reconciliation-log row.
+* [`docs/hardware/board-readiness-matrix.md`](docs/hardware/board-readiness-matrix.md)
+  — added a `design_status: design-complete` prose row to the `S360-312`
+  subsection with a link to the compile run; `Readiness`, `schematic_status`,
+  and `Package status` are unchanged.
+* [`docs/pre-hardware-prep-plan.md`](docs/pre-hardware-prep-plan.md) — §3.2
+  Executed note + §7 ordered-slice-sequence row 2 marked **DONE**.
+* This `UPCOMING_PR.md` entry.
+
+### Owed (recorded, not resolved)
+
+The hardware-only items stay **OWED** to `HW-PINMAP-312-FOLLOWUP` and are
+captured in the D6 matrix, not resolved here: the Core-`J7`-`+5V`-vs-module-
+`J1`-`+3.3V` rail question, the `SW1`/`SW2` DIP-switch → I²C-address mapping,
+the `J2`/`J3` Cloudlift output silkscreen pin order (incl. the `J3` out0/out1
+transposition), and the `5V`/`10V` voltage-mode jumper identification.
+
+### Guardrails (explicitly NOT changed)
+
+* No `packages/boards/` board package for `S360-312` (that promotion is gated
+  on HW-PINMAP-312 evidence); the driver package and bundle are finalised only.
+* No YAML edited — [`packages/expansions/fan_gp8403.yaml`](packages/expansions/fan_gp8403.yaml),
+  [`packages/expansions/fan_dac.yaml`](packages/expansions/fan_dac.yaml), and
+  [`products/bundles/ceiling-poe-fandac.yaml`](products/bundles/ceiling-poe-fandac.yaml)
+  are byte-identical (config string `Ceiling-POE-FanDAC` and the artifact-name
+  scheme unchanged).
+* No `config/*.json` changed — `S360-312` stays `cataloged_unverified`, no
+  `schematic_file`, no lifecycle / `webflash_build_matrix` / `artifact_name`
+  change. `design-complete` is a doc annotation, never a JSON field.
+* No `schematic_status` flip; nothing marked `verified` or
+  design-complete-as-verified; no DAC bench / hardware evidence claimed; no
+  compile result fabricated (ESPHome unavailable here; the recorded compile is
+  the already-committed run `26364679370`).
+* No WebFlash exposure, no `artifact_name`, no `webflash_build_matrix` flip, no
+  `config/webflash-builds.json` row, no release / tag / artifact.
+* FanDAC ↔ AirIQ mutex and the fan-driver `max-one-of` rule unchanged; the
+  production product and `tests/test_release_one_entity_names.py` untouched.
+* No edit to `manifest.json` / [`firmware/sources.json`](firmware/sources.json);
+  the WebFlash repo (`sense360store/webflash`) is untouched.
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 scripts/validate_compile_targets.py`
+* `python3 tests/test_release_one_entity_names.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"` (1175 tests, 3 skipped)
+
+---
+
 ## SX1509-RECONCILE-001 — migrate fan PWM path off SX1509 to native GPIO
 
 **Status:** design-complete fan-path migration (NOT verified, NOT released; no

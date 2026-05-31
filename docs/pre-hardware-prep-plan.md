@@ -237,6 +237,31 @@ reference docs
 | D5 release-note template + artifact name | AUTHORABLE NOW | |
 | D6 bench test matrix | AUTHORABLE NOW | 0–10 V output linearity per channel, the +5V-vs-+3.3V rail confirmation, I²C address-collision check against Core devices, blocking-diode behaviour. |
 
+> **Executed (`PRE-HW-PREP-FW-312-001`, 2026-05-31).** `S360-312` is
+> **design-complete** (prose annotation; not `verified`). D1–D4 were
+> already landed by the earlier FanDAC slices — D1 by `HW-PINMAP-312` /
+> `HW-PINMAP-312-FOLLOWUP`
+> ([`s360-312-r4-dac.md`](hardware/s360-312-r4-dac.md) /
+> [`s360-312-r4-fandac.md`](hardware/s360-312-r4-fandac.md)), D2 by
+> `PACKAGE-DAC-001` (the dual-`GP8403`
+> [`fan_gp8403.yaml`](../packages/expansions/fan_gp8403.yaml): two DACs
+> on `core_i2c`, four neutral outputs, per-chip address + `voltage:`
+> substitutions, stale `GPIO39`/`GPIO40` header already corrected to the
+> Core `IO48`/`IO45` bus), D3 by `PRODUCT-DAC-001`
+> ([`products/bundles/ceiling-poe-fandac.yaml`](../products/bundles/ceiling-poe-fandac.yaml),
+> config string `Ceiling-POE-FanDAC`), and D4 by `FW-COMPILE-DAC-001`
+> (compile-only targets, full compile green in run
+> [`26364679370`](https://github.com/sense360store/esphome-public/actions/runs/26364679370)).
+> This slice adds **D5** (release-note template + artifact-naming
+> scheme) and **D6** (the pre-written bench / evidence test matrix), and
+> records the design-complete checklist
+> ([`s360-312-r4-fandac.md` §Design-complete status](hardware/s360-312-r4-fandac.md#design-complete-status-pre-hw-prep-fw-312-001)).
+> The owed items — the Core-`J7`-`+5V`-vs-module-`J1`-`+3.3V` rail, the
+> `SW1`/`SW2` DIP→I²C-address mapping, the `J2`/`J3` Cloudlift
+> silkscreen pin order, and the `5V`/`10V` voltage-mode jumper — stay
+> **OWED** to `HW-PINMAP-312-FOLLOWUP` and are captured in the D6 matrix,
+> not resolved here. No `schematic_status` / lifecycle / WebFlash flip.
+
 ### 3.3 `S360-310` Sense360 Relay (mains-switching)
 
 Source artifacts:
@@ -459,7 +484,7 @@ artifact arrival, mains/PoE safety review last.
 | # | Slice ID | Scope | Gate / precondition |
 |---|---|---|---|
 | 1 | `PRE-HW-PREP-SX1509-RECONCILE-001` — **DONE** (landed as `SX1509-RECONCILE-001`) | Re-bind the fan path to native ESP32-S3 GPIO; mark residual SX1509 fan refs legacy/superseded ([§5](#5-sx1509-deprecation-reconciliation-slice)). Firmware + the config retarget. **Executed:** the FanPWM bundle (`products/bundles/ceiling-poe-fanpwm.yaml`) now composes `packages/expansions/fan_pwm_native.yaml` instead of the deprecated `fan_pwm.yaml` -> `fan_pwm_sx1509.yaml` chain (config string + entity names byte-identical); the stale SX1509 Core I²C-device comment + the FanPWM config rows (`product-catalog`, `compile-only-targets`) are retargeted to native; the legacy SX1509 packages + compile-only skeleton + historical proof are kept-with-reason. Fan boards stay hardware-pending/unverified; TRIAC stays HW-005-blocked. | None beyond this plan. Ran **first** so the SELV firmware slices build on the native map, not the deprecated expander. |
-| 2 | `PRE-HW-PREP-FW-312-001` | `S360-312` DAC: D1–D6 (native I²C, **no SX1509 dependency** — cleanest lead). | Slice 1 not strictly required (no SX1509 in DAC path); may run in parallel with 1. |
+| 2 | `PRE-HW-PREP-FW-312-001` — **DONE** (2026-05-31) | `S360-312` DAC: D1–D6 (native I²C, **no SX1509 dependency** — cleanest lead). **Executed:** `S360-312` recorded **design-complete** (prose; not `verified`). D1–D4 carried from the earlier FanDAC slices (`HW-PINMAP-312` / `PACKAGE-DAC-001` / `PRODUCT-DAC-001` / `FW-COMPILE-DAC-001`, full compile green in run [`26364679370`](https://github.com/sense360store/esphome-public/actions/runs/26364679370)); this slice added D5 (release-note template + artifact-naming) + D6 (bench / evidence test matrix) and the design-complete checklist in [`s360-312-r4-fandac.md`](hardware/s360-312-r4-fandac.md). Rail / DIP→address / Cloudlift pin-order / voltage-mode-jumper stay OWED to `HW-PINMAP-312-FOLLOWUP`. No `schematic_status` / lifecycle / WebFlash flip. | Slice 1 not strictly required (no SX1509 in DAC path); may run in parallel with 1. |
 | 3 | `PRE-HW-PREP-FW-311-001` | `S360-311` PWM: D1–D6 re-bound to native GPIO; resolve single- vs four-channel abstraction (with `PACKAGE-PWM-001`). | Slice 1 (native re-bind). |
 | 4 | `PRE-HW-PREP-FW-310-001` | `S360-310` Relay: D1–D6 SELV logic side (relay control). Load-side review deferred to slice 7. | — |
 | 5 | `PRE-HW-PREP-TESTMATRIX-SELV-001` | Consolidate / finalise the D6 bench test matrices for 310/311/312 as the bench checklist. | Slices 2–4. |
