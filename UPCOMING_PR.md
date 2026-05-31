@@ -2,6 +2,93 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## PRE-HW-PREP-FW-312-CLOSEOUT-001 — close out S360-312 DAC pre-hardware prep gaps
+
+**Status:** documentation / CI closeout (promotes nothing, verifies nothing,
+resolves no owed hardware item; no `schematic_status` flipped, no lifecycle
+change, no WebFlash exposure, no `artifact_name` set, no release, no compile
+or measurement fabricated). Closes the remaining narrative / forward-pointer
+pre-hardware gaps for the S360-312 DAC (FanDAC) board.
+
+### Summary
+
+Audited the merged S360-312 design-complete work (PR #674) and **confirmed all
+six deliverables D1–D6 are complete**:
+
+* D1 pinmap — [`docs/hardware/s360-312-r4-dac.md`](docs/hardware/s360-312-r4-dac.md)
+  + [`docs/hardware/s360-312-module-pinmap.md`](docs/hardware/s360-312-module-pinmap.md).
+* D2 firmware — [`packages/expansions/fan_gp8403.yaml`](packages/expansions/fan_gp8403.yaml)
+  (+ alias [`packages/expansions/fan_dac.yaml`](packages/expansions/fan_dac.yaml)).
+* D3 bundle — [`products/bundles/ceiling-poe-fandac.yaml`](products/bundles/ceiling-poe-fandac.yaml)
+  (config string `Ceiling-POE-FanDAC`).
+* D4 compile-only — `config/compile-only-targets.json` (`validated-full-compile`,
+  run `26364679370`).
+* D5 release-note template + D6 bench/evidence matrix —
+  [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md).
+
+This closeout records **`S360-312-DAC-BENCH-001`** as the next **real hardware**
+task — to be run **only when physical hardware exists**. It is a forward pointer
+only: nothing is promoted, no bench evidence is claimed, and no gate is flipped.
+
+### What changed
+
+* [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md) — new
+  **Next Hardware Tasks (Blocked on Physical Hardware)** section recording the
+  `S360-312-DAC-BENCH-001` task (board, blocking, evidence owed), and an empty
+  **Evidence & Bench Logs** `(no bench logs yet)` placeholder. The WebFlash /
+  release sections are unchanged (FanDAC stays Disabled / unexposed).
+* [`docs/pre-hardware-prep-plan.md`](docs/pre-hardware-prep-plan.md) — §6
+  S360-312 bench row names the queued task `S360-312-DAC-BENCH-001` (blocked on
+  hardware); §7 ordered slice sequence gains a row for the bench task.
+* [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md) —
+  D6 bench/evidence matrix names the bench session id `S360-312-DAC-BENCH-001`
+  (to be run only when physical hardware exists; all rows stay unfilled / owed).
+* [`tests/test_roadmap_status_doc.py`](tests/test_roadmap_status_doc.py) — a new
+  guard asserting the Next Hardware Tasks section names `S360-312-DAC-BENCH-001`
+  and the Evidence & Bench Logs section stays an empty placeholder.
+* This `UPCOMING_PR.md` entry.
+
+### Owed (recorded, not resolved)
+
+The seven S360-312 hardware-evidence items stay **OWED** to
+`S360-312-DAC-BENCH-001` (no physical board exists yet); none is resolved here:
+
+1. Measured voltage output (per channel).
+2. GP8403 detection / I²C address.
+3. Output range / calibration.
+4. Fan / controller response.
+5. Current draw under load.
+6. Thermal under sustained load.
+7. Harness / silkscreen confirmation.
+
+### Guardrails (explicitly NOT changed)
+
+* **No S360-312 bench evidence claimed** — no GP8403 detection, no voltage,
+  current, thermal, or calibration measurement is fabricated; every D6 row stays
+  unfilled / owed.
+* **No WebFlash enabled** — no `config/webflash-builds.json` row, the `FanDAC`
+  token stays absent, the WebFlash repo (`sense360store/webflash`) is untouched.
+* **No `artifact_name` added**, **no `webflash_build_matrix` flip**, **no
+  firmware published** — no release / tag / `.bin`, no `manifest.json` /
+  [`firmware/sources.json`](firmware/sources.json) change.
+* No `config/*.json` changed (`config/product-catalog.json`,
+  `config/compile-only-targets.json`, `config/manual-firmware-artifacts.json`
+  untouched); no `schematic_status` / lifecycle flip; nothing marked
+  hardware-stable or verified; `S360-312` stays `cataloged_unverified`.
+* No `packages/**` / `products/**` change; this PR is docs + tests only.
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 scripts/validate_compile_targets.py --metadata-only`
+* `python3 tests/test_product_catalog.py`
+* `python3 tests/test_module_pinmaps.py`
+* `python3 tests/test_compile_expansion_candidates.py`
+* `python3 tests/test_roadmap_status_doc.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"`
+
+---
+
 ## S360-311-CURRENT-THERMAL-001 — record FanPWM current and thermal evidence
 
 **Status:** documentation-only bench-evidence record (promotes nothing, verifies

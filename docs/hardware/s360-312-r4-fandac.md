@@ -1400,6 +1400,9 @@ and the
 [§Open evidence (not resolved by this PR)](#open-evidence-not-resolved-by-this-pr)
 table (same owed set, expressed as a fill-in matrix).
 
+**Bench session id:** `S360-312-DAC-BENCH-001` — to be run only when physical
+hardware exists; all rows below are unfilled / owed.
+
 | # | Test | Method | Expected (from design) | Measured | Pass? | Owed item |
 |---|---|---|---|---|---|---|
 | T1 | Core `J7` pin-1 vs module `J1` pin-1 supply rail | Silkscreen read + DMM on the assembled Core+module stack | Resolve `+5V` (Core capture) vs `+3.3V` (module `J1` / MT3608 `IN`) to a single confirmed rail | | | rail |

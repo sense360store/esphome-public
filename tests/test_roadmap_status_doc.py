@@ -234,5 +234,50 @@ class ReleaseTargetsMatchConfigTests(unittest.TestCase):
         self.assertTrue(known)
 
 
+class NextHardwareTaskTests(unittest.TestCase):
+    """PRE-HW-PREP-FW-312-CLOSEOUT-001 — the S360-312 DAC bench task is recorded
+    as the next real hardware task (forward pointer only), and no DAC bench
+    evidence is claimed in the Evidence & Bench Logs section."""
+
+    BENCH_ID = "S360-312-DAC-BENCH-001"
+
+    def setUp(self) -> None:
+        self.text = CANONICAL.read_text(encoding="utf-8")
+
+    def _section(self, heading_substr: str, text: str) -> str:
+        idx = text.index(heading_substr)
+        rest = text[idx + len(heading_substr):]
+        nxt = rest.find("\n## ")
+        return rest if nxt == -1 else rest[:nxt]
+
+    def test_next_hardware_tasks_names_dac_bench(self) -> None:
+        # (a) The Next Hardware Tasks section must name the canonical bench task.
+        self.assertIn("## Next Hardware Tasks", self.text)
+        section = self._section("## Next Hardware Tasks", self.text)
+        self.assertIn(
+            self.BENCH_ID,
+            section,
+            "Next Hardware Tasks section must name the DAC bench task "
+            f"{self.BENCH_ID}.",
+        )
+
+    def test_evidence_and_bench_logs_stays_empty(self) -> None:
+        # (b) The Evidence & Bench Logs section must remain the empty
+        # placeholder — no measured DAC bench-log row may appear there.
+        self.assertIn("## Evidence & Bench Logs", self.text)
+        section = self._section("## Evidence & Bench Logs", self.text)
+        self.assertIn(
+            "(no bench logs yet)",
+            section,
+            "Evidence & Bench Logs must stay the empty placeholder.",
+        )
+        self.assertNotIn(
+            self.BENCH_ID,
+            section,
+            "No filled S360-312 DAC bench-log row may appear in "
+            "Evidence & Bench Logs (no hardware evidence exists).",
+        )
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
