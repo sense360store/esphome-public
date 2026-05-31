@@ -263,7 +263,7 @@ rather than restate them.
 ### `S360-210` Sense360 AirIQ
 
 - **Role.** Air-quality module (SCD41 CO₂, SGP41 VOC, MICS-4514 + STM8
-  I²C bridge, SPS30 PM connector, SFA30 HCHO connector). Mutually
+  I²C bridge, SPS30 PM connector, SFA40 HCHO connector). Mutually
   exclusive with VentIQ in WebFlash compatibility rules.
 - **Hardware evidence.** Catalog row at
   [`config/hardware-catalog.json`](../../config/hardware-catalog.json)

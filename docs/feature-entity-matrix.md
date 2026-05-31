@@ -94,7 +94,7 @@ Headline gaps per module:
 |--------|-----|---------------------|------------------------------------|
 | Core | S360-100 | ✅ `s360-100-core.yaml` | — (relay + health entities present) |
 | RoomIQ | S360-200 | ✅ `s360-200-roomiq.yaml` | **missing**: SEN0609 2nd radar, EKMC PIR, BMP581 pressure; **partial**: ALS part (VEML7700 in YAML vs LTR-303ALS in BOM); comfort indices are globals not entities |
-| AirIQ | S360-210 | ✅ `s360-210-airiq.yaml` | **missing**: MICS-4514 gas, SFA30 HCHO |
+| AirIQ | S360-210 | ✅ `s360-210-airiq.yaml` | **missing**: MICS-4514 gas, SFA40 HCHO (SFA40 is the newer Sensirion HCHO module superseding the SFA30; connector interface/address verify-pending) |
 | VentIQ | S360-211 | ✅ `s360-211-ventiq.yaml` | **partial**: IR temp (MLX90614) and PM (SPS30) live only in the `-pro` overlay, not the base |
 | LED | S360-300 | ✅ `s360-300-led.yaml` | **missing**: dedicated HA night-light light entity (worked example, C3); AQ halo is a layered feature |
 | Relay | S360-310 | ❌ none | **partial**: relay proxy only in expansion; no board package |

@@ -2,6 +2,64 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## HW-SENSOR-SFA40-CORRECTION-001 — correct AirIQ HCHO sensor from SFA30 to SFA40
+
+**Status:** metadata / docs-only (corrects a recorded part identity; promotes
+nothing, verifies nothing, no gate closed, no `schematic_status` or lifecycle
+flipped, no entity added)
+
+### Summary
+
+Corrects the formaldehyde / HCHO sensor identity on the `S360-210` AirIQ from
+**SFA30** to **SFA40** — the newer Sensirion HCHO module the operator confirms
+is the fitted / intended part — across the catalog, the feature/entity matrix
+(JSON + MD), and the AirIQ board / readiness docs. The HCHO entity still does
+**not** exist and stays gated; the SFA40 connector interface/address (bus, I²C
+address, ESPHome driver) remains **verify-pending** in the AirIQ pin-map and is
+not asserted here. This part-identity fix re-points the queued
+`ENTITY-FILL-210-HCHO-001` fill slice at the correct sensor.
+
+### What changed
+
+* [`config/hardware-catalog.json`](config/hardware-catalog.json) — `S360-210`
+  description connector list now reads `SFA40 HCHO`.
+* [`config/feature-entity-matrix.json`](config/feature-entity-matrix.json) —
+  AirIQ board note and the HCHO row label now read `SFA40`; the HCHO row note
+  records that SFA40 is the newer module superseding the SFA30, that its
+  connector interface/address is verify-pending, and that
+  `ENTITY-FILL-210-HCHO-001` now targets the SFA40 and still depends on
+  interface confirmation.
+* [`docs/feature-entity-matrix.md`](docs/feature-entity-matrix.md) — AirIQ
+  headline-gaps row now reads `SFA40 HCHO` with the newer-module /
+  verify-pending note.
+* [`docs/hardware-catalog.md`](docs/hardware-catalog.md) — `S360-210` row
+  connector list now reads `SFA40 HCHO`.
+* [`docs/hardware/board-readiness-matrix.md`](docs/hardware/board-readiness-matrix.md)
+  — `S360-210` Role bullet now reads `SFA40 HCHO connector`.
+* This `UPCOMING_PR.md` update.
+
+### Guardrails (explicitly NOT changed)
+
+* No HCHO (or any) sensor entity added; no package / board / product / bundle /
+  expansion YAML edited. The HCHO entity stays absent and gated.
+* SFA40 bus, I²C address, and ESPHome driver are **not** asserted — marked
+  verify-pending.
+* No `schematic_status` flip; no lifecycle / status promotion on `S360-210` or
+  any board.
+* No other board's sensor labels changed.
+* No edit to [`config/webflash-builds.json`](config/webflash-builds.json),
+  `manifest.json`, or [`firmware/sources.json`](firmware/sources.json).
+* The WebFlash repo (`sense360store/webflash`) is untouched.
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 tests/test_product_catalog.py`
+* `python3 tests/test_roadmap_status_doc.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"`
+
+---
+
 ## PRE-HARDWARE-PREP-PLAN-001 — plan the design-derived readiness program
 
 **Status:** docs-only / planning (promotes nothing, verifies nothing, resolves
