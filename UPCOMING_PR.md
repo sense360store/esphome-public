@@ -2,6 +2,79 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## PRE-HW-PREP-ROOM-BUNDLES-001 — prepare room bundles for first-release evidence handoff
+
+**Status:** documentation-only audit (promotes nothing, enables nothing,
+verifies nothing; no `schematic_status` flipped, no lifecycle change, no
+WebFlash exposure, no `artifact_name` set, no release, no artifact, no
+config/`packages`/`products` edit). Audits the five canonical PoE room
+bundles against current board readiness and emits a pre-hardware
+release-handoff matrix.
+
+### Summary
+
+Cross-walked the five room bundles (Bathroom, Kitchen, Living, Bedroom,
+Corridor) in [`config/room-bundle-skus.json`](config/room-bundle-skus.json)
+against [`config/firmware-combination-matrix.json`](config/firmware-combination-matrix.json),
+[`config/webflash-builds.json`](config/webflash-builds.json),
+[`docs/hardware/board-readiness-matrix.md`](docs/hardware/board-readiness-matrix.md),
+and the room firmware release matrix / release-notes docs, and threaded
+the result into a single matrix with, per bundle: bundle SKU, included
+boards, firmware config target, release channel/status, WebFlash status,
+blocking hardware evidence, release-note status, bench task pointer, and
+first-release eligibility.
+
+**Result: 1 of 5 bundles (`S360-KIT-BATH-P`) is first-release eligible
+today** — it is already the Release-One stable build. The other four are
+candidates owned by named follow-up PRs, none approved here.
+
+### What changed
+
+* [`docs/pre-hardware-room-bundle-release-handoff.md`](docs/pre-hardware-room-bundle-release-handoff.md)
+  — new `PRE-HW-PREP-ROOM-BUNDLES-001` doc: the pre-hardware
+  release-handoff matrix, column legend, audit findings, bench/evidence
+  forward pointers, guardrails, validation, and cross-references.
+* This `UPCOMING_PR.md` entry.
+
+### Audit findings (recorded, not resolved)
+
+1. Only `Ceiling-POE-VentIQ-RoomIQ` (Bathroom) is WebFlash-exposed; the
+   four other bundles' config targets have no `webflash-builds` row.
+2. Bedroom's config target `Ceiling-POE-RoomIQ` is `blocked-hardware`
+   (top-level product YAML exists, blocked on `PRODUCT-POE-410-001`) in
+   the firmware-combination-matrix, a nuance over the `stable-candidate`
+   label in `room-bundle-skus.json`. Flagged, not reconciled.
+3. The S360-410 PoE schematic-verification chain is the shared blocker
+   under every non-Bathroom bundle; caveat preserved, not cleared.
+4. Fan-control variants stay planning-only, not release-ready.
+
+### Guardrails (explicitly NOT changed)
+
+* **No bundle promoted** — no `current_release_status` change; nothing
+  moved to `preview` / `stable` / `production`.
+* **No WebFlash enabled** — no `config/webflash-builds.json` row, no
+  `artifact_name`, no `webflash_build_matrix` flip; WebFlash repo
+  untouched.
+* **No artifacts** — no `.bin` / checksum / build-info, no
+  `firmware/sources.json` / `manifest.json`, no release / tag.
+* **S360-410 not marked verified** — `schematic_status` stays
+  `cataloged_unverified`; Release-One PoE caveat preserved verbatim.
+* **LED not marked stable** — `S360-300` stays `preview`.
+* **Fan variants not release-ready** — `room-bundle-fan-variants.json`
+  stays `planning` / `webflash_exposed: false`; no fan bundle SKU added.
+* No `config/*.json` / `packages/**` / `products/**` change; docs only.
+
+### Validation
+
+* `python3 tests/test_room_bundle_skus.py`
+* `python3 tests/test_room_bundle_fan_variants.py`
+* `python3 tests/validate_configs.py`
+* `python3 tests/validate_webflash_builds.py`
+* `python3 tests/test_product_catalog.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"`
+
+---
+
 ## PRE-HW-PREP-FW-312-CLOSEOUT-001 — close out S360-312 DAC pre-hardware prep gaps
 
 **Status:** documentation / CI closeout (promotes nothing, verifies nothing,
