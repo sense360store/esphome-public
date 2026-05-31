@@ -599,6 +599,84 @@ python3 scripts/product_name_mapper.py ceiling-poe-ventiq-roomiq 1.0.0 stable
 
 ---
 
+### 11.7 Hosted CI dry-run dispatch attempt (FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001)
+
+`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001` is the residual follow-up from §11.4:
+dispatch the hosted dry-run on GitHub Actions and capture the **run URL / run
+ID** so the first-release dry-run can move `partial → passed`. This subsection
+records that attempt.
+
+**Result: the hosted dry-run could not be dispatched from this environment — the
+first-release dry-run stays `partial` (hosted CI dry-run blocked, not passed).**
+
+#### 11.7.1 Intended dispatch (what would have been run)
+
+| Field | Value |
+|---|---|
+| Workflow name | `Build & Release Firmware` ([`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)) |
+| Job that would run | `release-dry-run` (the only job a `workflow_dispatch` with `dry_run=true` runs) |
+| Trigger | `workflow_dispatch` (non-publishing dry-run mode, `RELEASE-WORKFLOW-DRYRUN-MODE-001`) |
+| Input `version` | `1.0.0` |
+| Input `channel` | `stable` |
+| Input `release_target` | `Ceiling-POE-VentIQ-RoomIQ` |
+| Input `dry_run` | `true` (safe default; non-publishing) |
+| Commit SHA (branch HEAD at attempt) | `ee1726b39c1e391d4d9a8f8da5dc4e1c82e8c2c2` |
+
+#### 11.7.2 Recorded run results
+
+| Item | Result |
+|---|---|
+| Workflow run URL | **None — not dispatched** (access/tooling blocker, §11.7.3) |
+| Run ID | **None — not dispatched** |
+| Release-note generation result | **N/A for a hosted run** (not dispatched). Re-verified only via the local lanes in §11.2 (stages 1–4 PASS). |
+| Artifact naming result | **N/A for a hosted run.** Expected name unchanged: `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` (locally re-asserted in §11.2 stage 8, byte-for-byte vs [`config/webflash-builds.json`](../config/webflash-builds.json)). |
+| Checksum behavior | **None produced.** `checksums-sha256.txt` / `checksums-md5.txt` and the build-info `manifest.json` are publish-time only (§5b); a dry-run never produces them and no run occurred. |
+| Artifact published | **None.** Nothing was dispatched, built, or uploaded. |
+
+#### 11.7.3 Access / tooling blocker (exact)
+
+The hosted `Build & Release Firmware` and `Draft WebFlash Release Notes`
+workflows are `workflow_dispatch`-driven, and **this automation environment has
+no path to dispatch a GitHub Actions workflow**:
+
+- **No `gh` CLI** — not installed (`gh: command not found`).
+- **No GitHub token** — `GH_TOKEN` and `GITHUB_TOKEN` are both unset.
+- **No Actions / run-workflow tool** — the available GitHub MCP tools cover
+  files, branches, commits, PRs, issues, releases, tags and search, but expose
+  **no** workflow-dispatch / workflow-run / job-log capability.
+- **No GitHub API egress** — the only outbound network path is the git
+  `local_proxy` remote (`http://local_proxy@127.0.0.1:.../git/...`) used for
+  clone / fetch / push to the two allowed repos; `api.github.com` is not
+  reachable.
+- A branch push / PR **cannot** substitute: the dry-run job runs only on
+  `workflow_dispatch` (not on `push` / `pull_request`), so opening this PR does
+  **not** produce a `release-dry-run` run.
+
+#### 11.7.4 Guardrail confirmations (all hold trivially — nothing was dispatched)
+
+- ✅ **No GitHub Release created.**
+- ✅ **No tag created.**
+- ✅ **No release asset published.**
+- ✅ **No committed `.bin`.**
+- ✅ **No `firmware/sources.json` change** (file still absent).
+- ✅ **No `manifest.json` change** (none committed / produced).
+- ✅ **No `config/*.json`, `packages/**`, or `products/**` change**; no WebFlash
+  repo change; no new WebFlash target.
+
+#### 11.7.5 Disposition
+
+`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001` is **blocked on GitHub Actions
+access**, not on any repo defect: the safe dry-run mode already exists
+(`RELEASE-WORKFLOW-DRYRUN-MODE-001`) and the local lanes all pass (§11.2). To
+clear it, an operator — or a CI runner with Actions dispatch (a token + API
+egress, or the `gh` CLI) — must dispatch the workflow with the §11.7.1 inputs and
+paste the resulting **run URL / run ID** into §11.7.2 here and into
+[`docs/first-release-gates.md`](first-release-gates.md) §0.1 and
+[`docs/sense360-roadmap-status.md`](sense360-roadmap-status.md) §5. Only then
+does the first-release dry-run become `passed`.
+
+---
+
 ## 12. Guardrails (explicitly NOT changed)
 
 This PR adds this checklist doc plus pointer rows / an `UPCOMING_PR.md` entry. It
@@ -660,5 +738,5 @@ This PR adds docs only; the existing suite is unchanged:
   [`docs/webflash-release-proof.md`](webflash-release-proof.md).
 - Dry-run execution record: §11 above — `FIRST-RELEASE-WORKFLOW-DRYRUN-001`
   (outcome: `dry-run partial`).
-- Residual follow-up (capture hosted run URL / run ID):
+- Hosted CI dispatch attempt — **blocked** (access/tooling): §11.7 above —
   `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001` (see [`UPCOMING_PR.md`](../UPCOMING_PR.md)).
