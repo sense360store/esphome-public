@@ -2,6 +2,123 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## PRE-HW-PREP-FW-311-001 — bring the S360-311 PWM firmware to design-complete
+
+**Status:** design-complete annotation + firmware finalisation (promotes
+nothing, verifies nothing, resolves no owed hardware item; no `schematic_status`
+flipped, no lifecycle change, no WebFlash exposure, no `artifact_name` set, no
+release, no compile result fabricated). Executes slice #3
+(`PRE-HW-PREP-FW-311-001`) of
+[`docs/pre-hardware-prep-plan.md`](docs/pre-hardware-prep-plan.md).
+
+### Summary
+
+Records the `Sense360 PWM` board (`S360-311-R4`, FanPWM) as **design-complete**
+— a prose / documentation annotation that is explicitly **not** `verified`
+(per [`docs/pre-hardware-prep-plan.md` §1.2 / §1.4](docs/pre-hardware-prep-plan.md)).
+Builds on the completed `SX1509-RECONCILE-001` + `PACKAGE-PWM-001`: finalises
+[`packages/expansions/fan_pwm_native.yaml`](packages/expansions/fan_pwm_native.yaml)
+as the design-complete **four-channel** native PWM+tach driver (four `ledc`
+PWM-drive outputs `TachPMW1..4` -> `IO10`/`IO11`/`IO12`/`IO39` feeding four
+`fan: speed` controllers; three native `pulse_counter` tach inputs
+`Pul_Cou1`/`2`/`4` -> `IO17`/`IO18`/`IO9` as the per-fan-RPM mechanism, internal
+diagnostic / no RPM claim), and reconciles the stale single-channel
+`fan_pwm_pin: GPIO4` / `fan_tach_pin: GPIO5` placeholder in
+[`packages/hardware/sense360_core_mapping.yaml`](packages/hardware/sense360_core_mapping.yaml)
+to the four-channel native map (marked legacy/superseded). The FanPWM bundle
+(D3) and the native compile-only targets (D4, `validated-full-compile` by
+`S360-311-NATIVE-FANPWM-COMPILE-001`, local run 2026-05-28, commit `643bbd3`,
+rc=0) were already landed by `SX1509-RECONCILE-001`. This slice adds the missing
+design-complete pieces (D5 + D6) and the prose annotation, all from the
+committed schematic.
+
+### What changed
+
+* [`packages/expansions/fan_pwm_native.yaml`](packages/expansions/fan_pwm_native.yaml)
+  — header finalised from "NATIVE-GPIO CANDIDATE / NOT compile-proven /
+  pending-ci" to "FINALISED / DESIGN-COMPLETE / compile-proven
+  (validated-full-compile)", with the four-channel framing and the
+  `Pul_Cou3`/`IO46` + `TachIO`/`IO16` owed notes made explicit. The
+  `substitutions:` / `output:` / `fan:` / `sensor:` body is byte-identical (no
+  pin / entity-name change; the recorded compile still holds).
+* [`packages/hardware/sense360_core_mapping.yaml`](packages/hardware/sense360_core_mapping.yaml)
+  — the stale single-channel `fan_pwm_pin: GPIO4` / `fan_tach_pin: GPIO5`
+  placeholder marked **legacy / superseded** against the four-channel native
+  map (header pin-map note, substitution banner, the `fan_pwm_output` /
+  `fan_tach_sensor` blocks, and the SX1509 I²C address-table comment). The
+  `GPIO4`/`GPIO5` values are retained as the legacy source-of-truth alias
+  (consumed by `fan_control_advanced_profile.yaml`); the production
+  `roomiq_sen0609_uart` radar binding (GPIO5/GPIO4) is untouched.
+* [`docs/hardware/s360-311-r4-fanpwm.md`](docs/hardware/s360-311-r4-fanpwm.md)
+  — new **Design-complete status** section (the four-condition §1.1 checklist
+  with the compile-run reference), new **D5** release-note template +
+  artifact-naming scheme (template only — no artifact, no release), new **D6**
+  pre-written bench / evidence test matrix (silkscreen `J3` order, `J6`↔`J3`
+  harness, native PWM drive on `IO10/11/12/39`, per-fan + aggregate current,
+  thermal envelope, per-fan RPM via native `pulse_counter`, `Pul_Cou3`/`IO46`
+  collision, `"NINE 4pin FANs"` label, `J3` 11/12 UART routing, `TachIO` role).
+* [`docs/hardware/board-readiness-matrix.md`](docs/hardware/board-readiness-matrix.md)
+  — added a `design_status: design-complete` prose bullet to the `S360-311`
+  subsection; `Hardware evidence`, `schematic_status`, and `Package YAML`
+  classifications unchanged.
+* [`docs/pre-hardware-prep-plan.md`](docs/pre-hardware-prep-plan.md) — §3.1
+  Executed note + §7 ordered-slice-sequence row 3 marked **DONE**.
+* This `UPCOMING_PR.md` entry.
+
+### Owed (recorded, not resolved)
+
+The hardware-only items stay **OWED** to `HW-PINMAP-311` and are captured in the
+D6 matrix, not resolved here: the `"NINE 4pin FANs"` label vs four-connector
+question, the `J3` pins 11/12 UART-routing question, the `J3` 1-to-13
+silkscreen order, the `J6`↔`J3` 13-pin harness, the `Pul_Cou3`/`IO46`
+fourth-tach collision with the Core `fan_status_led_pin`, the `TachIO`/`IO16`
+shared-net role, PWM polarity (`PWM-6`), per-fan + aggregate fan current, the
+thermal envelope, and per-fan RPM via native `pulse_counter` (`PWM-13`).
+`PWM-6` / `PWM-13` stay owed; `S360-311-CURRENT-THERMAL` is the queued bench
+session that fills the D6 checklist.
+
+### Guardrails (explicitly NOT changed)
+
+* No `packages/boards/` board package for `S360-311` (that promotion is gated
+  on HW-PINMAP-311 evidence per the plan); the driver package and bundle are
+  finalised only.
+* The native driver's `substitutions:` / `output:` / `fan:` / `sensor:` body is
+  byte-identical (only comments/header changed); the bundle
+  [`products/bundles/ceiling-poe-fanpwm.yaml`](products/bundles/ceiling-poe-fanpwm.yaml)
+  is untouched (config string `Ceiling-POE-FanPWM` and entity names
+  `${friendly_name} Fan 1..4` byte-identical, no `artifact_name`).
+* Production `GPIO4`/`GPIO5` radar-UART binding in
+  [`packages/boards/s360-100-core.yaml`](packages/boards/s360-100-core.yaml) is
+  unchanged; the legacy SX1509 packages (`fan_pwm.yaml` / `fan_pwm_sx1509.yaml`)
+  and the historical SX1509 proof are not revived.
+* No `config/*.json` changed — `S360-311` stays `cataloged_unverified`, no
+  `schematic_file`, no lifecycle / `webflash_build_matrix` / `artifact_name`
+  change. `design-complete` is a doc annotation, never a JSON field.
+* No `schematic_status` flip; nothing marked `verified` or
+  design-complete-as-verified; no PWM current / thermal / RPM bench evidence
+  claimed; `PWM-6` / `PWM-13` not closed; `rpm_supported` stays false; no
+  compile result fabricated (ESPHome unavailable here; the recorded compile is
+  the already-committed local run `643bbd3`).
+* No WebFlash exposure, no `artifact_name`, no `webflash_build_matrix` flip, no
+  `config/webflash-builds.json` row, no release / tag / artifact; the `FanPWM`
+  token stays absent from `config/webflash-builds.json`.
+* The production product and `tests/test_release_one_entity_names.py` are
+  untouched; no edit to `manifest.json` / [`firmware/sources.json`](firmware/sources.json);
+  the WebFlash repo (`sense360store/webflash`) is untouched.
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 scripts/validate_compile_targets.py --metadata-only`
+* `python3 tests/test_native_fanpwm_yaml.py`
+* `python3 tests/test_pwm_product_readiness.py`
+* `python3 tests/test_product_catalog.py`
+* `python3 tests/test_release_one_entity_names.py`
+* `python3 tests/test_product_substitutions.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"`
+
+---
+
 ## PRE-HW-PREP-FW-312-001 — bring the S360-312 DAC firmware to design-complete
 
 **Status:** design-complete annotation (docs-only; promotes nothing, verifies

@@ -1,8 +1,29 @@
 # ============================================================================
-# SENSE360 FANPWM NATIVE ESP32-S3 PACKAGE — NATIVE-GPIO CANDIDATE
-# (S360-311-NATIVE-FANPWM-YAML-001)
+# SENSE360 FANPWM NATIVE ESP32-S3 PACKAGE — FINALISED / DESIGN-COMPLETE
+# (S360-311-NATIVE-FANPWM-YAML-001 / PRE-HW-PREP-FW-311-001)
 # ============================================================================
-# Native ESP32-S3 GPIO FanPWM candidate for the S360-311 12 V PWM fan driver.
+# Native ESP32-S3 GPIO FanPWM driver for the S360-311 12 V PWM fan board.
+#
+# DESIGN-COMPLETE (PRE-HW-PREP-FW-311-001, slice 3 of
+# docs/pre-hardware-prep-plan.md). This is the finalised four-channel native
+# FanPWM driver: it is no longer a "candidate" — its native composition has
+# been compile-proven end-to-end (see the Readiness block below) and it is the
+# canonical FanPWM driver the Ceiling-POE-FanPWM bundle composes. "design-
+# complete" is a prose / design-readiness annotation only; it is NOT
+# `verified`, does NOT flip S360-311 `schematic_status` (stays
+# `cataloged_unverified`), does NOT change lifecycle, and does NOT enable any
+# WebFlash / release surface (per pre-hardware-prep-plan.md §1.2 / §1.4).
+#
+# FOUR-CHANNEL abstraction: four fan connectors (J1 / J2 / J4 / J5 on the
+# S360-311 module), four PWM drive + tach pairs. Four native `ledc` PWM-drive
+# outputs (TachPMW1..4) feed four `fan: platform: speed` controllers; the
+# per-fan tach nets (Pul_Cou1..4) terminate on native interrupt-capable GPIO
+# as the per-fan-RPM mechanism via native `pulse_counter`. Three of the four
+# tach inputs (Pul_Cou1 / Pul_Cou2 / Pul_Cou4) are actively bound; the fourth
+# (Pul_Cou3 -> IO46) stays OWED, not invented away, because IO46 collides with
+# the Core `fan_status_led_pin` (see the scope note below). Per-fan RPM stays
+# UNVALIDATED (PWM-13) until measured bench evidence exists — the pulse_counter
+# inputs are internal diagnostic pulse-rate only and make no RPM claim.
 #
 # This package is the NATIVE-GPIO successor to the legacy / superseded SX1509
 # FanPWM path (packages/expansions/fan_pwm.yaml -> fan_pwm_sx1509.yaml). It
@@ -61,14 +82,19 @@
 #     substitution only.
 #
 # ----------------------------------------------------------------------------
-# Readiness — what this package is NOT:
-#   * NOT compile-proven. ESPHome is not assumed present; no `esphome compile`
-#     run has been performed against this native composition. Its compile-only
-#     target (config/compile-only-targets.json id
-#     `ceiling-poe-fanpwm-native-compile-only`) is recorded
-#     `compile_validation_status: pending-ci`; full compile is owned by CI.
-#     The legacy SX1509 full-compile run `26414398902` does NOT transfer to
-#     this native composition.
+# Readiness — compile-proven; what this package is NOT:
+#   * Compile-proven (validated-full-compile). A full `esphome compile` run
+#     was performed against this native composition and PASSED:
+#     S360-311-NATIVE-FANPWM-COMPILE-001 (local run 2026-05-28, ESPHome
+#     2026.4.5, board esp32-s3-devkitc-1 / framework espidf, commit 643bbd3,
+#     rc=0, real firmware.bin). Its compile-only target
+#     (config/compile-only-targets.json id
+#     `ceiling-poe-fanpwm-native-compile-only`) therefore records
+#     `compile_validation_status: validated-full-compile`. The legacy SX1509
+#     full-compile run `26414398902` does NOT transfer to this native
+#     composition; it stays the historical proof for the SX1509 skeleton only.
+#     A clean compile is compile coverage ONLY — NOT WebFlash exposure, NOT a
+#     release artifact, and NOT bench / hardware / RPM proof.
 #   * NOT RPM / tach support. No measured RPM evidence exists.
 #     `rpm_supported` stays false everywhere.
 #   * NOT WebFlash-exposed and NOT a release artifact. The FanPWM token does

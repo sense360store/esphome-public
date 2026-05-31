@@ -430,6 +430,24 @@ rather than restate them.
 ### `S360-311` Sense360 PWM
 
 - **Role.** 12V PWM fan driver, up to 4 fans with tach feedback.
+- **`design_status`.** **`design-complete`** — prose annotation recorded by
+  `PRE-HW-PREP-FW-311-001` (2026-05-31), slice 3 of
+  [`../pre-hardware-prep-plan.md`](../pre-hardware-prep-plan.md), with the
+  native four-channel composition compile-proven green by
+  `S360-311-NATIVE-FANPWM-COMPILE-001` (local run 2026-05-28, ESPHome
+  2026.4.5, commit `643bbd3`, rc=0; targets
+  `ceiling-poe-fanpwm-native-compile-only` /
+  `ceiling-poe-fanpwm-product-compile-only` carry
+  `compile_validation_status: validated-full-compile`). This is **not**
+  `verified`: it does not flip `schematic_status` (stays
+  `cataloged_unverified`), does not change the lifecycle, and does not enable
+  any WebFlash / release surface. The finalised four-channel driver is
+  [`fan_pwm_native.yaml`](../../packages/expansions/fan_pwm_native.yaml); the
+  stale single-channel `GPIO4`/`GPIO5` placeholder in
+  [`sense360_core_mapping.yaml`](../../packages/hardware/sense360_core_mapping.yaml)
+  was reconciled (marked legacy/superseded) without touching the production
+  radar-UART binding. See
+  [`s360-311-r4-fanpwm.md` §Design-complete status](s360-311-r4-fanpwm.md#design-complete-status-pre-hw-prep-fw-311-001).
 - **Hardware evidence.** Catalog row at
   [`config/hardware-catalog.json`](../../config/hardware-catalog.json)
   lines 72–81; `schematic_status: cataloged_unverified` (unchanged

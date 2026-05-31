@@ -219,6 +219,38 @@ native fan GPIO map
 | D5 release-note template + artifact name | AUTHORABLE NOW | Template + `Sense360-…-FanPWM-…` naming draftable now. |
 | D6 bench test matrix | AUTHORABLE NOW | PWM polarity, per-fan + aggregate current, thermal, per-fan RPM via native `pulse_counter` (the SX1509 pulse-counter path is compile-proven unsupported — see `fan_pwm_sx1509.yaml` capability note). |
 
+> **Executed (`PRE-HW-PREP-FW-311-001`, 2026-05-31).** `S360-311` is
+> **design-complete** (prose annotation; not `verified`). D1 (pinmap from
+> the committed schematic — `J3` 13-pin, four fan outputs `J1`/`J2`/`J4`/`J5`,
+> Nextion `J6`, MT3608 boost) and D2 (firmware) build on the completed
+> `SX1509-RECONCILE-001` + `PACKAGE-PWM-001`: D2 finalises
+> [`packages/expansions/fan_pwm_native.yaml`](../packages/expansions/fan_pwm_native.yaml)
+> as the **four-channel** native PWM+tach driver (four `ledc` PWM-drive
+> outputs `TachPMW1..4` -> `IO10`/`IO11`/`IO12`/`IO39` feeding four
+> `fan: speed` controllers; three native `pulse_counter` tach inputs
+> `Pul_Cou1`/`2`/`4` -> `IO17`/`IO18`/`IO9` as the per-fan-RPM mechanism,
+> internal/no-RPM-claim), and reconciles the stale single-channel
+> `fan_pwm_pin: GPIO4` / `fan_tach_pin: GPIO5` placeholder in
+> [`packages/hardware/sense360_core_mapping.yaml`](../packages/hardware/sense360_core_mapping.yaml)
+> to the four-channel native map (marked legacy/superseded) **without**
+> changing the production `GPIO4`/`GPIO5` radar-UART binding in the Core
+> board package and **without** adding a `packages/boards/` package for
+> `S360-311`. D3 (the `Ceiling-POE-FanPWM` bundle composing the native
+> driver, config string + entity names byte-identical) and D4 (compile-only
+> targets `validated-full-compile` by `S360-311-NATIVE-FANPWM-COMPILE-001`,
+> local run 2026-05-28, commit `643bbd3`, rc=0) were landed by
+> `SX1509-RECONCILE-001`; ESPHome is unavailable here so no new compile is
+> run or fabricated. This slice adds **D5** (release-note template +
+> artifact-naming scheme) and **D6** (the pre-written bench / evidence test
+> matrix), and records the design-complete checklist
+> ([`s360-311-r4-fanpwm.md` §Design-complete status](hardware/s360-311-r4-fanpwm.md#design-complete-status-pre-hw-prep-fw-311-001)).
+> The owed items — the `"NINE 4pin FANs"` label, the `J3` 11/12 UART
+> routing, the `J3` 1-to-13 silkscreen order, the `J6`↔`J3` harness, the
+> `Pul_Cou3`/`IO46` fourth-tach collision, PWM polarity (`PWM-6`), per-fan +
+> aggregate current, the thermal envelope, and per-fan RPM (`PWM-13`) — stay
+> **OWED** to `HW-PINMAP-311` and are captured in the D6 matrix, resolved
+> none. No `schematic_status` / lifecycle / WebFlash flip.
+
 ### 3.2 `S360-312` Sense360 DAC (SELV, 0–10 V) — lead SELV board
 
 Source artifacts:
@@ -485,7 +517,7 @@ artifact arrival, mains/PoE safety review last.
 |---|---|---|---|
 | 1 | `PRE-HW-PREP-SX1509-RECONCILE-001` — **DONE** (landed as `SX1509-RECONCILE-001`) | Re-bind the fan path to native ESP32-S3 GPIO; mark residual SX1509 fan refs legacy/superseded ([§5](#5-sx1509-deprecation-reconciliation-slice)). Firmware + the config retarget. **Executed:** the FanPWM bundle (`products/bundles/ceiling-poe-fanpwm.yaml`) now composes `packages/expansions/fan_pwm_native.yaml` instead of the deprecated `fan_pwm.yaml` -> `fan_pwm_sx1509.yaml` chain (config string + entity names byte-identical); the stale SX1509 Core I²C-device comment + the FanPWM config rows (`product-catalog`, `compile-only-targets`) are retargeted to native; the legacy SX1509 packages + compile-only skeleton + historical proof are kept-with-reason. Fan boards stay hardware-pending/unverified; TRIAC stays HW-005-blocked. | None beyond this plan. Ran **first** so the SELV firmware slices build on the native map, not the deprecated expander. |
 | 2 | `PRE-HW-PREP-FW-312-001` — **DONE** (2026-05-31) | `S360-312` DAC: D1–D6 (native I²C, **no SX1509 dependency** — cleanest lead). **Executed:** `S360-312` recorded **design-complete** (prose; not `verified`). D1–D4 carried from the earlier FanDAC slices (`HW-PINMAP-312` / `PACKAGE-DAC-001` / `PRODUCT-DAC-001` / `FW-COMPILE-DAC-001`, full compile green in run [`26364679370`](https://github.com/sense360store/esphome-public/actions/runs/26364679370)); this slice added D5 (release-note template + artifact-naming) + D6 (bench / evidence test matrix) and the design-complete checklist in [`s360-312-r4-fandac.md`](hardware/s360-312-r4-fandac.md). Rail / DIP→address / Cloudlift pin-order / voltage-mode-jumper stay OWED to `HW-PINMAP-312-FOLLOWUP`. No `schematic_status` / lifecycle / WebFlash flip. | Slice 1 not strictly required (no SX1509 in DAC path); may run in parallel with 1. |
-| 3 | `PRE-HW-PREP-FW-311-001` | `S360-311` PWM: D1–D6 re-bound to native GPIO; resolve single- vs four-channel abstraction (with `PACKAGE-PWM-001`). | Slice 1 (native re-bind). |
+| 3 | `PRE-HW-PREP-FW-311-001` — **DONE** (2026-05-31) | `S360-311` PWM: D1–D6 re-bound to native GPIO; resolve single- vs four-channel abstraction (with `PACKAGE-PWM-001`). **Executed:** `S360-311` recorded **design-complete** (prose; not `verified`). D1–D4 build on `SX1509-RECONCILE-001` / `PACKAGE-PWM-001` — D2 finalised the **four-channel** native driver [`fan_pwm_native.yaml`](../packages/expansions/fan_pwm_native.yaml) and reconciled the stale single-channel `GPIO4`/`GPIO5` placeholder in [`sense360_core_mapping.yaml`](../packages/hardware/sense360_core_mapping.yaml) (legacy/superseded; production radar-UART binding untouched; no `packages/boards/` package added); D3/D4 carried from slice 1 (native bundle + `validated-full-compile` by `S360-311-NATIVE-FANPWM-COMPILE-001`, local run 2026-05-28, commit `643bbd3`). This slice added D5 (release-note template + artifact-naming) + D6 (bench / evidence test matrix) and the design-complete checklist in [`s360-311-r4-fanpwm.md`](hardware/s360-311-r4-fanpwm.md). The `"NINE 4pin FANs"` label, `J3` 11/12 UART routing, `J3` silkscreen order, `J6`↔`J3` harness, `Pul_Cou3`/`IO46` collision, PWM polarity, current/thermal, and per-fan RPM (`PWM-6`/`PWM-13`) stay OWED to `HW-PINMAP-311`. No `schematic_status` / lifecycle / WebFlash flip. | Slice 1 (native re-bind). |
 | 4 | `PRE-HW-PREP-FW-310-001` | `S360-310` Relay: D1–D6 SELV logic side (relay control). Load-side review deferred to slice 7. | — |
 | 5 | `PRE-HW-PREP-TESTMATRIX-SELV-001` | Consolidate / finalise the D6 bench test matrices for 310/311/312 as the bench checklist. | Slices 2–4. |
 | 6 | `PRE-HW-PREP-GERBER-REVIEW-001` *(blocked)* | Clearance/creepage + load-side reviews for `S360-310`/`S360-320`/`S360-400`/`S360-410` — the ARTIFACT-BLOCKED D-Review items ([§4](#4-artifact-blocked-deliverables)). | **Gerbers + BOM committed** for the relevant boards. Cannot start before artifacts land. |

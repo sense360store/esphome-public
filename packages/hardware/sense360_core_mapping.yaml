@@ -18,7 +18,15 @@
 #   UART Hi-Link:  TX=GPIO2, RX=GPIO1, baud=256000 (RoomIQ J10 Hi-Link radar)
 #   UART SEN0609:  TX=GPIO5, RX=GPIO4, baud=115200 (RoomIQ J10 DFRobot radar)
 #   UART Aux:      TX=GPIO43, RX=GPIO44
-#   Fan PWM:       GPIO4 (output), GPIO5 (tach)
+#   Fan PWM:       GPIO4 (output), GPIO5 (tach) — LEGACY / SUPERSEDED single-
+#                  channel placeholder. The canonical FanPWM path is the
+#                  FOUR-CHANNEL native ESP32-S3 GPIO map (TachPMW1..4 =
+#                  IO10/IO11/IO12/IO39, Pul_Cou1..4 = IO17/IO18/IO46/IO9,
+#                  TachIO = IO16) owned by packages/expansions/fan_pwm_native.yaml
+#                  per docs/hardware/s360-100-native-fan-gpio-map.md. GPIO4/GPIO5
+#                  are the RoomIQ SEN0609 radar UART pins on the production Core
+#                  board package (packages/boards/s360-100-core.yaml §4.2); this
+#                  single-channel GPIO4/5 fan placeholder MUST NOT be revived.
 #   Relay:         GPIO3 (schematic Relay net; CORE-ABSTRACT-BUS-001A)
 #   Fan Status LED: GPIO46 (GP_Fan_Status_Led per Core schematic IO46)
 #   User Button:   GPIO9
@@ -35,7 +43,21 @@ substitutions:
   uart_aux_rx_pin: GPIO44
   uart_aux_baud: "115200"
 
-  # Fan control
+  # Fan control — LEGACY / SUPERSEDED single-channel placeholder
+  # (PRE-HW-PREP-FW-311-001 / SX1509-RECONCILE-001 / S360-100-NATIVE-FAN-GPIO-MAP-001).
+  # This single-channel `fan_pwm_pin: GPIO4` / `fan_tach_pin: GPIO5` placeholder
+  # is RECONCILED-OUT and SUPERSEDED by the canonical FOUR-CHANNEL native
+  # ESP32-S3 GPIO fan map (TachPMW1..4 = IO10/IO11/IO12/IO39 drive, Pul_Cou1..4 =
+  # IO17/IO18/IO46/IO9 tach, TachIO = IO16 shared) owned by the dedicated driver
+  # packages/expansions/fan_pwm_native.yaml, per
+  # docs/hardware/s360-100-native-fan-gpio-map.md. It contradicts the native map
+  # AND collides with the RoomIQ SEN0609 radar UART (`roomiq_sen0609_uart` below
+  # binds GPIO5/GPIO4): the production Core board package
+  # packages/boards/s360-100-core.yaml binds GPIO4/GPIO5 to the radar UART and
+  # does NOT expose native fan PWM/tach on those pins (its §4.2 reconciliation).
+  # The GPIO4/5 values are retained ONLY as the legacy alias these substitutions
+  # historically carried so existing reads resolve unchanged; they MUST NOT be
+  # revived as the FanPWM path. The production radar-UART binding is unchanged.
   fan_pwm_pin: GPIO4
   fan_tach_pin: GPIO5
   fan_pwm_frequency: "25000"
@@ -132,6 +154,10 @@ uart:
     stop_bits: 1
 
 output:
+  # LEGACY / SUPERSEDED single-channel fan PWM output (see the `fan_pwm_pin`
+  # note above). Retained as a source-of-truth alias (consumed by
+  # packages/features/fan_control_advanced_profile.yaml); the canonical FanPWM
+  # path is the four-channel native driver packages/expansions/fan_pwm_native.yaml.
   - platform: ledc
     id: fan_pwm_output
     pin: ${fan_pwm_pin}
@@ -241,6 +267,11 @@ sensor:
     id: mcu_temperature
     update_interval: 60s
 
+  # LEGACY / SUPERSEDED single-channel fan tach (see the `fan_tach_pin` note
+  # above). Retained as a source-of-truth alias (consumed by
+  # packages/features/fan_control_advanced_profile.yaml); the canonical per-fan
+  # tach path is the four-channel native driver
+  # packages/expansions/fan_pwm_native.yaml (Pul_Cou1..4 native pulse_counter).
   - platform: pulse_counter
     id: fan_tach_sensor
     pin:
@@ -322,8 +353,11 @@ globals:
 # 0x59    | GP8403 alt/SGP40 | Fan DAC/Bath    | Address conflict possible
 # 0x62    | SCD41            | AirIQ           | CO2 sensor
 # 0x69    | SEN55            | AirIQ           | PM/VOC/NOx sensor
-# 0x3E    | SX1509           | GPIO Expander   | Default address
-# 0x3F    | SX1509 alt       | GPIO Expander   | Alternate address
+# 0x3E    | SX1509 (LEGACY)  | GPIO Expander   | DEPRECATED — removed from the
+#         |                  |                 | S360-100 fan signal path; the
+#         |                  |                 | fan path is native ESP32-S3 GPIO
+#         |                  |                 | (S360-100-NATIVE-FAN-GPIO-MAP-001)
+# 0x3F    | SX1509 alt (LEG.)| GPIO Expander   | DEPRECATED (legacy alt address)
 # 0x70    | TCA9548A         | I2C Mux         | For multi-module support
 # 0x76    | BME680           | Comfort         | Pressure/Gas sensor
 # ============================================================================
