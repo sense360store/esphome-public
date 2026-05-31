@@ -2,6 +2,98 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## SX1509-RECONCILE-001 — migrate fan PWM path off SX1509 to native GPIO
+
+**Status:** design-complete fan-path migration (NOT verified, NOT released; no
+board promoted, no `schematic_status` flipped, no WebFlash exposure, no
+`artifact_name`, no compile result fabricated). Executes slice #1
+(`PRE-HW-PREP-SX1509-RECONCILE-001`) of
+[`docs/pre-hardware-prep-plan.md`](docs/pre-hardware-prep-plan.md).
+
+### Summary
+
+Reconciles the deprecated SX1509 I/O expander out of the fan PWM path per the
+operator confirmation that the SX1509 is no longer used and the schematic-printed
+native fan GPIO map ([`docs/hardware/s360-100-native-fan-gpio-map.md`](docs/hardware/s360-100-native-fan-gpio-map.md):
+`TachPMW1..4` -> IO10/IO11/IO12/IO39, `Pul_Cou1/2/4` -> IO17/IO18/IO9, `TachIO`
+= IO16). The FanPWM bundle is migrated to compose the native
+`packages/expansions/fan_pwm_native.yaml` driver instead of the deprecated
+`fan_pwm.yaml` -> `fan_pwm_sx1509.yaml` chain; the per-fan entity names
+(`${friendly_name} Fan 1..4`) and the `Ceiling-POE-FanPWM` config string are
+kept **byte-identical**, and no `artifact_name` is added. The native
+composition is full-compile validated by structural parity to the native
+compile-only skeleton (`S360-311-NATIVE-FANPWM-COMPILE-001`, commit `643bbd3`,
+rc=0); the legacy SX1509 full-compile run `26414398902` is preserved as the
+historical proof for the SX1509 skeleton only and does not transfer.
+
+### What changed
+
+* [`products/bundles/ceiling-poe-fanpwm.yaml`](products/bundles/ceiling-poe-fanpwm.yaml)
+  — composes `packages/expansions/fan_pwm_native.yaml` (key
+  `fan_pwm_native_module`) instead of the SX1509 `fan_pwm.yaml`; header /
+  binding comments rewritten to the native path. Substitutions, config string,
+  and entity names byte-identical.
+* [`packages/boards/s360-100-core.yaml`](packages/boards/s360-100-core.yaml) —
+  removed the stale `SX1509 expander` entry from the Core I²C-device comment
+  (the SX1509 is no longer a current Core I²C device on the fan path).
+* [`config/product-catalog.json`](config/product-catalog.json) /
+  [`config/compile-only-targets.json`](config/compile-only-targets.json) — the
+  current FanPWM product / product-compile-only rows retargeted to the native
+  composition + native compile evidence; the legacy SX1509 compile-only
+  skeleton row + run `26414398902` preserved unchanged as historical proof.
+* [`packages/expansions/gpio_expander_sx1509.yaml`](packages/expansions/gpio_expander_sx1509.yaml)
+  and [`packages/expansions/fan_12v_pwm.yaml`](packages/expansions/fan_12v_pwm.yaml)
+  — added LEGACY / SUPERSEDED banners recording the **kept-with-reason**
+  retirement disposition (no live binder, but read by tests and forbidden from
+  global removal by `S360-100-NATIVE-FAN-GPIO-MAP-001`).
+* [`tests/test_pwm_product_readiness.py`](tests/test_pwm_product_readiness.py)
+  and [`tests/test_native_fan_gpio_map.py`](tests/test_native_fan_gpio_map.py)
+  — updated to assert the migrated native composition (the bundle composes the
+  native package, mirrors the native validated-full-compile skeleton, and no
+  longer carries the legacy SX1509 banner).
+* [`docs/pre-hardware-prep-plan.md`](docs/pre-hardware-prep-plan.md) — slice #1
+  marked **DONE** (§5.3 executed-note + §7 table).
+* This `UPCOMING_PR.md` entry.
+
+### Retirement disposition (PRODUCT-DEP-001)
+
+No SX1509 package is deleted. `fan_pwm.yaml` / `fan_pwm_sx1509.yaml` stay bound
+by the preserved legacy compile-only skeleton (historical SX1509 compile proof,
+required by `tests/test_native_fanpwm_yaml.py`); `gpio_expander_sx1509.yaml` and
+`fan_12v_pwm.yaml` have no live `!include` binder but are read directly by
+`tests/test_core_abstract_bus.py` / `tests/test_dac_product_readiness.py` and
+may not be removed globally per `S360-100-NATIVE-FAN-GPIO-MAP-001`. All four are
+therefore **kept-with-reason** with legacy/superseded banners; a hard delete is
+left to a future cleanup PR once the doc/test references are also retired.
+
+### Guardrails (explicitly NOT changed)
+
+* Release-One (`Ceiling-POE-VentIQ-RoomIQ`) byte-identical — it uses no SX1509
+  and no fan package; `tests/test_release_one_entity_names.py` passes untouched.
+* No fan board verified / promoted; all stay `hardware-pending` / unverified
+  (design-complete only). `S360-311` `schematic_status` stays
+  `cataloged_unverified`.
+* No WebFlash exposure, no `artifact_name`, no `webflash_build_matrix` flip, no
+  `config/webflash-builds.json` row; FanPWM token stays absent.
+* No PWM current/thermal evidence claimed; `PWM-6` / `PWM-13` stay owed;
+  `rpm_supported` stays false.
+* FanTRIAC stays `blocked` / `HW-005`; its SX1509 blocker-explanation comments
+  are factual and left intact.
+* No edit to `manifest.json` / `firmware/sources.json` (absent here); the
+  WebFlash repo is untouched; no compile result fabricated.
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 scripts/validate_compile_targets.py --metadata-only`
+* `python3 tests/test_native_fanpwm_yaml.py`
+* `python3 tests/test_pwm_product_readiness.py`
+* `python3 tests/test_release_one_entity_names.py`
+* `python3 tests/test_product_substitutions.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"` (1175 tests, 3 skipped)
+
+---
+
 ## HW-SENSOR-SFA40-CORRECTION-001 — correct AirIQ HCHO sensor from SFA30 to SFA40
 
 **Status:** metadata / docs-only (corrects a recorded part identity; promotes

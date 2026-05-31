@@ -301,10 +301,35 @@ class FanPwmYamlLegacySupersededLabellingTests(unittest.TestCase):
     def test_fan_pwm_sx1509_binding_carries_legacy_banner(self) -> None:
         self._assert_carries_banners(FAN_PWM_SX1509_BINDING)
 
-    def test_fan_pwm_product_carries_legacy_banner(self) -> None:
-        self._assert_carries_banners(FAN_PWM_PRODUCT_BUNDLE)
+    def test_fan_pwm_product_bundle_migrated_to_native(self) -> None:
+        # SX1509-RECONCILE-001 migrated the FanPWM bundle off the deprecated
+        # SX1509 path: it now composes the native ESP32-S3 GPIO package and
+        # MUST NOT carry the legacy / superseded SX1509 banner (which would
+        # mislabel the current native composition). It still cross-references
+        # the canonical native fan GPIO map.
+        text = FAN_PWM_PRODUCT_BUNDLE.read_text()
+        self.assertNotIn(
+            "LEGACY / SUPERSEDED SX1509 FAN PATH",
+            text,
+            "the migrated FanPWM bundle must not carry the legacy / "
+            "superseded SX1509 banner — it now composes the native path.",
+        )
+        self.assertIn(
+            "S360-100-NATIVE-FAN-GPIO-MAP-001",
+            text,
+            "the migrated FanPWM bundle must cross-reference the canonical "
+            "native fan GPIO map.",
+        )
+        self.assertIn(
+            "packages/expansions/fan_pwm_native.yaml",
+            text,
+            "the migrated FanPWM bundle must compose the native FanPWM "
+            "package packages/expansions/fan_pwm_native.yaml.",
+        )
 
     def test_fan_pwm_compile_only_carries_legacy_banner(self) -> None:
+        # The legacy SX1509 compile-only skeleton is preserved unchanged as
+        # historical / superseded compile proof and keeps the banner.
         self._assert_carries_banners(FAN_PWM_COMPILE_ONLY)
 
 

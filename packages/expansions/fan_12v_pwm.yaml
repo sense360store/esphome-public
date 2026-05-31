@@ -1,3 +1,21 @@
+# ============================================================================
+# LEGACY / SUPERSEDED SX1509 FAN PATH (SX1509-RECONCILE-001)
+# ============================================================================
+# This 12V PWM fan-control module composes the SX1509-expander fan path
+# (Requires: gpio_expander_sx1509.yaml). Per
+# docs/hardware/s360-100-native-fan-gpio-map.md
+# (S360-100-NATIVE-FAN-GPIO-MAP-001) the SX1509 is REMOVED from the S360-100
+# fan signal path; the fan PWM / tach nets terminate on native ESP32-S3 GPIO.
+# This module is therefore LEGACY / SUPERSEDED for the fan path. The native
+# successor is packages/expansions/fan_pwm_native.yaml.
+#
+# RETIREMENT DISPOSITION (SX1509-RECONCILE-001): kept-with-reason, NOT deleted.
+#   * No surviving product / bundle / package `!include`s this file (verified).
+#   * Retained because tests/test_dac_product_readiness.py references it (the
+#     FanDAC mutual-exclusion guard) and S360-100-NATIVE-FAN-GPIO-MAP-001
+#     forbids removing the SX1509 globally. A hard delete is left to a future
+#     cleanup PR under docs/product-deprecation-removal-policy.md.
+# ----------------------------------------------------------------------------
 # 12V PWM Fan Control Module
 # Multi-channel fan control via SX1509 GPIO expander
 #

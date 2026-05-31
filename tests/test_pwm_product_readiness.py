@@ -80,13 +80,31 @@ WEBFLASH_BUILDS = REPO_ROOT / "config" / "webflash-builds.json"
 WEBFLASH_COMPATIBILITY = REPO_ROOT / "config" / "webflash-compatibility.json"
 WEBFLASH_WRAPPER_DIR = REPO_ROOT / "products" / "webflash"
 
-# The FW-COMPILE-PWM-001 compile-only skeleton must remain unchanged.
+# The FW-COMPILE-PWM-001 legacy SX1509 compile-only skeleton must remain
+# unchanged (historical / superseded compile proof; SX1509-RECONCILE-001 does
+# not touch it).
 COMPILE_ONLY_TARGETS = REPO_ROOT / "config" / "compile-only-targets.json"
 FANPWM_COMPILE_ONLY_TARGET_ID = "ceiling-poe-fanpwm-compile-only"
 FANPWM_COMPILE_ONLY_PRODUCT_YAML = "products/compile-only/ceiling-poe-fanpwm.yaml"
 
-# Full-compile evidence the FanPWM lane references.
+# SX1509-RECONCILE-001: the bundle is now migrated off the deprecated SX1509
+# path to the NATIVE ESP32-S3 GPIO FanPWM package
+# (packages/expansions/fan_pwm_native.yaml). The bundle composes the IDENTICAL
+# package set as the native compile-only skeleton, whose full `esphome compile`
+# is recorded green by S360-311-NATIVE-FANPWM-COMPILE-001 (commit 643bbd3).
+FANPWM_NATIVE_COMPILE_ONLY_TARGET_ID = "ceiling-poe-fanpwm-native-compile-only"
+FANPWM_NATIVE_COMPILE_ONLY_PRODUCT_YAML = (
+    "products/compile-only/ceiling-poe-fanpwm-native.yaml"
+)
+FANPWM_NATIVE_PACKAGE_REL = "packages/expansions/fan_pwm_native.yaml"
+
+# Legacy SX1509 full-compile evidence (run 26414398902) — still recorded for
+# the preserved legacy skeleton/target, but it does NOT transfer to the native
+# composition this bundle now composes.
 FANPWM_FULL_COMPILE_RUN_ID = "26414398902"
+# Native full-compile evidence the migrated bundle/product lane references.
+FANPWM_NATIVE_COMPILE_EVIDENCE = "S360-311-NATIVE-FANPWM-COMPILE-001"
+FANPWM_NATIVE_COMPILE_COMMIT = "643bbd3"
 
 
 # Register the same minimal set of ESPHome custom tags used by
@@ -220,13 +238,28 @@ class PwmProductPackageCompositionTests(unittest.TestCase):
         )
 
     def test_includes_fan_pwm_package(self) -> None:
+        # SX1509-RECONCILE-001: the bundle now composes the NATIVE ESP32-S3
+        # GPIO FanPWM package instead of the deprecated SX1509 chain.
         self.assertIn(
-            "packages/expansions/fan_pwm.yaml",
+            FANPWM_NATIVE_PACKAGE_REL,
             self.text,
-            "FanPWM product YAML must !include "
-            "packages/expansions/fan_pwm.yaml so the PWM-drive outputs are "
-            "composed through the canonical PWM-drive-only FanPWM package.",
+            "FanPWM bundle must !include packages/expansions/fan_pwm_native.yaml "
+            "so the PWM-drive outputs are composed through the native ESP32-S3 "
+            "GPIO FanPWM package (SX1509-RECONCILE-001 migrated it off the "
+            "deprecated SX1509 fan_pwm.yaml -> fan_pwm_sx1509.yaml chain).",
         )
+
+    def test_does_not_compose_legacy_sx1509_fan_pwm_package(self) -> None:
+        # The migrated bundle must NOT compose the legacy SX1509 driver on an
+        # active (non-comment) line; the legacy packages are preserved only as
+        # historical / superseded compile proof, not composed here.
+        for line in _active_lines(self.text):
+            self.assertNotIn(
+                "packages/expansions/fan_pwm.yaml",
+                line,
+                "FanPWM bundle must not compose the legacy SX1509 "
+                f"packages/expansions/fan_pwm.yaml on an active line: {line!r}",
+            )
 
     def test_includes_core_ceiling_package(self) -> None:
         self.assertIn(
@@ -323,14 +356,33 @@ class PwmProductNoRpmNoPulseCounterTests(unittest.TestCase):
                 f"active line — it is reserved/pending. Line: {line!r}",
             )
 
-    def test_underlying_package_has_no_pulse_counter(self) -> None:
-        pkg = REPO_ROOT / "packages" / "expansions" / "fan_pwm.yaml"
-        for line in _active_lines(pkg.read_text()):
+    def test_underlying_native_package_tach_is_internal_no_rpm(self) -> None:
+        # SX1509-RECONCILE-001: the native FanPWM package DOES wire native
+        # pulse_counter tach inputs (a native interrupt-capable ESP32 GPIO can
+        # back one, unlike an SX1509 expander pin). They must stay INTERNAL
+        # diagnostic inputs with no RPM name / unit — no surfaced RPM.
+        pkg = REPO_ROOT / "packages" / "expansions" / "fan_pwm_native.yaml"
+        data = _load_yaml(pkg)
+        sensors = [s for s in (data.get("sensor") or []) if isinstance(s, dict)]
+        pulse_counters = [
+            s for s in sensors if s.get("platform") == "pulse_counter"
+        ]
+        self.assertTrue(
+            pulse_counters,
+            "fan_pwm_native.yaml is expected to declare native pulse_counter "
+            "tach inputs (internal diagnostic only).",
+        )
+        for s in pulse_counters:
+            self.assertTrue(
+                s.get("internal") is True,
+                f"native pulse_counter {s.get('id')!r} must be internal: true "
+                "(diagnostic only, never surfaced).",
+            )
+            self.assertNotIn("name", s, "native tach must carry no entity name")
             self.assertNotIn(
-                "pulse_counter",
-                line,
-                "packages/expansions/fan_pwm.yaml must not use pulse_counter "
-                f"on any active line. Line: {line!r}",
+                "unit_of_measurement",
+                s,
+                "native tach must carry no unit (no RPM claim)",
             )
 
 
@@ -495,28 +547,38 @@ class PwmProductCaveatWordingTests(unittest.TestCase):
             f"bench caveat text.",
         )
 
-    def test_carries_pwm_drive_only_wording(self) -> None:
+    def test_carries_native_gpio_wording(self) -> None:
+        # SX1509-RECONCILE-001: the migrated bundle drives the fans on native
+        # ESP32-S3 GPIO via ledc, not the SX1509 expander.
         self._assert_phrase(
-            "pwm-drive-only",
-            "PWM-drive-only scope naming",
+            "native esp32-s3",
+            "native ESP32-S3 GPIO fan path naming",
+        )
+        self._assert_phrase(
+            "ledc",
+            "native ledc PWM-drive output naming",
         )
 
     def test_carries_full_compile_validated_caveat(self) -> None:
+        # The bundle now composes the native composition, whose full
+        # `esphome compile` is recorded green by the native compile evidence
+        # (the legacy SX1509 run does not transfer).
         self._assert_phrase(
-            "full esphome compile",
+            "esphome compile",
             "full ESPHome compile caveat",
-        )
-        self._assert_phrase(
-            "compile_mode=full",
-            "the compile_mode=full run that validated it",
         )
         self._assert_phrase(
             "validated-full-compile",
             "compile_validation_status: validated-full-compile now stands",
         )
         self._assert_phrase(
-            FANPWM_FULL_COMPILE_RUN_ID,
-            "the full-compile run id that validated the FanPWM target",
+            FANPWM_NATIVE_COMPILE_EVIDENCE.lower(),
+            "the native full-compile evidence id that validated the "
+            "native FanPWM composition",
+        )
+        self._assert_phrase(
+            FANPWM_NATIVE_COMPILE_COMMIT,
+            "the commit the native full compile ran against",
         )
 
     def test_states_no_rpm_support(self) -> None:
@@ -531,10 +593,16 @@ class PwmProductCaveatWordingTests(unittest.TestCase):
             "supported / no RPM claim is made.",
         )
 
-    def test_states_no_pulse_counter(self) -> None:
+    def test_states_native_tach_internal_no_rpm(self) -> None:
+        # SX1509-RECONCILE-001: the native path wires native pulse_counter
+        # tach inputs, but only as INTERNAL diagnostic inputs with no RPM.
         self._assert_phrase(
             "pulse_counter",
-            "no-pulse_counter caveat (SX1509 pin cannot back one)",
+            "native pulse_counter tach reference",
+        )
+        self._assert_phrase(
+            "internal diagnostic",
+            "native tach is internal diagnostic only (no RPM)",
         )
 
     def test_states_tachio_gpio16_reserved(self) -> None:
@@ -667,39 +735,35 @@ class PwmProductCompileOnlyTargetUnchangedTests(unittest.TestCase):
 
 
 class PwmProductMatchesValidatedCompileOnlyCompositionTests(unittest.TestCase):
-    """FW-COMPILE-PWM-PRODUCT-001: the product YAML composes the SAME
-    validated package set as the full-compile-validated compile-only target.
+    """SX1509-RECONCILE-001: the migrated bundle composes the SAME validated
+    package set as the NATIVE full-compile-validated compile-only skeleton.
 
-    ``products/compile-only/ceiling-poe-fanpwm.yaml`` is the skeleton whose
-    FULL ESPHome compile passed in run 26414398902 (``compile_mode=full``;
-    FW-COMPILE-PWM-RESULT-001 / PR #592). PRODUCT-PWM-001 then added the
-    normal product YAML. These tests pin that the two YAMLs compose the
-    identical Core ceiling + PoE PSU + base/health + FanPWM package set (same
-    package keys, same repo-relative ``!include`` targets), so the recorded
-    full compile transfers to the product YAML's composition. The two differ
-    only in substitutions / identification ``text_sensor`` wording, never in
-    which packages are composed.
-
-    Live ``esphome config products/sense360-ceiling-poe-fanpwm.yaml`` is NOT
-    asserted here (ESPHome is not assumed present); the structural parity to
-    the already-validated compile-only skeleton is what these tests pin. See
-    docs/product-readiness-matrix.md §FanPWM / S360-311
-    FW-COMPILE-PWM-PRODUCT-001 addendum for the conservative status and the
-    exact manual / CI command that still owns the live product-config run.
+    ``products/compile-only/ceiling-poe-fanpwm-native.yaml`` is the native
+    skeleton whose FULL ``esphome compile`` passed under
+    S360-311-NATIVE-FANPWM-COMPILE-001 (commit 643bbd3, rc=0). The bundle now
+    composes the native FanPWM package; these tests pin that the bundle and
+    the native skeleton compose the identical Core ceiling + PoE PSU +
+    base/health + native FanPWM package set (same package keys, same
+    repo-relative ``!include`` targets), so the recorded native full compile
+    transfers to the bundle's composition. The two differ only in
+    substitutions / identification ``text_sensor`` wording, never in which
+    packages are composed. The legacy SX1509 skeleton + run 26414398902 are
+    preserved separately as historical / superseded proof and are NOT what the
+    migrated bundle mirrors.
     """
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.compile_only_yaml = REPO_ROOT / FANPWM_COMPILE_ONLY_PRODUCT_YAML
+        cls.compile_only_yaml = REPO_ROOT / FANPWM_NATIVE_COMPILE_ONLY_PRODUCT_YAML
         cls.product_map = _package_include_map(PWM_BUNDLE)
         cls.compile_map = _package_include_map(cls.compile_only_yaml)
 
     def test_compile_only_skeleton_file_exists(self) -> None:
         self.assertTrue(
             self.compile_only_yaml.is_file(),
-            f"the full-compile-validated compile-only skeleton "
-            f"{FANPWM_COMPILE_ONLY_PRODUCT_YAML} must exist for the product "
-            "YAML to inherit its validated composition",
+            f"the native full-compile-validated compile-only skeleton "
+            f"{FANPWM_NATIVE_COMPILE_ONLY_PRODUCT_YAML} must exist for the "
+            "migrated bundle to inherit its validated composition",
         )
 
     def test_product_and_compile_only_compose_identical_package_set(
@@ -708,24 +772,24 @@ class PwmProductMatchesValidatedCompileOnlyCompositionTests(unittest.TestCase):
         self.assertEqual(
             self.product_map,
             self.compile_map,
-            "FanPWM product YAML must compose the IDENTICAL package set "
+            "FanPWM bundle must compose the IDENTICAL package set "
             "(same package keys, same repo-relative !include targets) as the "
-            "full-compile-validated compile-only skeleton "
-            f"{FANPWM_COMPILE_ONLY_PRODUCT_YAML} (run "
-            f"{FANPWM_FULL_COMPILE_RUN_ID}); otherwise the recorded full "
-            "compile does not transfer to the product composition.",
+            "native full-compile-validated compile-only skeleton "
+            f"{FANPWM_NATIVE_COMPILE_ONLY_PRODUCT_YAML} "
+            f"({FANPWM_NATIVE_COMPILE_EVIDENCE}); otherwise the recorded "
+            "native full compile does not transfer to the bundle composition.",
         )
 
     def test_both_compose_canonical_fan_pwm_package(self) -> None:
         for label, mapping in (
-            ("product", self.product_map),
-            ("compile-only", self.compile_map),
+            ("bundle", self.product_map),
+            ("native compile-only", self.compile_map),
         ):
             self.assertIn(
-                "packages/expansions/fan_pwm.yaml",
+                FANPWM_NATIVE_PACKAGE_REL,
                 set(mapping.values()),
-                f"the {label} FanPWM YAML must compose the canonical "
-                "PWM-drive-only package packages/expansions/fan_pwm.yaml",
+                f"the {label} FanPWM YAML must compose the native ESP32-S3 "
+                f"GPIO package {FANPWM_NATIVE_PACKAGE_REL}",
             )
 
     def test_both_yamls_surface_same_config_string(self) -> None:
@@ -751,7 +815,7 @@ class PwmProductMatchesValidatedCompileOnlyCompositionTests(unittest.TestCase):
             (
                 t
                 for t in doc.get("targets", [])
-                if t.get("id") == FANPWM_COMPILE_ONLY_TARGET_ID
+                if t.get("id") == FANPWM_NATIVE_COMPILE_ONLY_TARGET_ID
             ),
             None,
         )
@@ -759,13 +823,13 @@ class PwmProductMatchesValidatedCompileOnlyCompositionTests(unittest.TestCase):
         self.assertEqual(
             target.get("compile_validation_status"),
             "validated-full-compile",
-            "the composition the product YAML mirrors must remain "
-            f"validated-full-compile (run {FANPWM_FULL_COMPILE_RUN_ID}); "
-            "FW-COMPILE-PWM-PRODUCT-001 relies on that recorded full compile.",
+            "the native composition the migrated bundle mirrors must remain "
+            f"validated-full-compile ({FANPWM_NATIVE_COMPILE_EVIDENCE}); "
+            "SX1509-RECONCILE-001 relies on that recorded native full compile.",
         )
         self.assertFalse(
             target.get("rpm_supported", False),
-            "the validated composition must keep rpm_supported false.",
+            "the validated native composition must keep rpm_supported false.",
         )
 
 
