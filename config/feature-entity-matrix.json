@@ -188,7 +188,7 @@
       "schematic_status": "verified",
       "canonical_board_package": "packages/boards/s360-210-airiq.yaml",
       "composed_of": [],
-      "notes": "Comprehensive air-quality board. Catalog BOM: CO2 SCD41, VOC SGP41, gas MICS-4514 with STM8, connectors for SPS30 PM and SFA30 HCHO. The YAML exposes SCD41, SGP41, SPS30 and BMP390 fully; the MICS-4514 gas sensor and the SFA30 HCHO connector surface NO entity today.",
+      "notes": "Comprehensive air-quality board. Catalog BOM: CO2 SCD41, VOC SGP41, gas MICS-4514 with STM8, connectors for SPS30 PM and SFA40 HCHO. The YAML exposes SCD41, SGP41, SPS30 and BMP390 fully; the MICS-4514 gas sensor and the SFA40 HCHO connector surface NO entity today.",
       "rows": [
         {
           "row": "CO2 (SCD41 @0x62)",
@@ -251,7 +251,7 @@
           "notes": "BOM lists MICS-4514 gas sensor with an STM8 co-processor; no gas entity exists today. Interface (STM8 readout path) must be confirmed from the schematic before filling."
         },
         {
-          "row": "Formaldehyde / HCHO (SFA30, connector)",
+          "row": "Formaldehyde / HCHO (SFA40, connector)",
           "kind": "sensor-entity",
           "derivation": "design-derived",
           "required": true,
@@ -260,7 +260,7 @@
           "defined_in": null,
           "confirm": "needs-schematic-reconcile",
           "queued_fill_slice": "ENTITY-FILL-210-HCHO-001",
-          "notes": "BOM/pin-map lists an SFA30/SFA40 HCHO connector; no HCHO entity exists. Connector interface/address is verify-pending in the AirIQ pin-map."
+          "notes": "BOM/pin-map lists an SFA40 HCHO connector; no HCHO entity exists. SFA40 is the newer Sensirion HCHO module (supersedes the SFA30 originally recorded here); its connector interface/address is verify-pending in the AirIQ pin-map (bus, I2C address, and ESPHome driver remain unconfirmed). The queued ENTITY-FILL-210-HCHO-001 fill slice now targets the SFA40 and still depends on interface confirmation."
         }
       ]
     },
