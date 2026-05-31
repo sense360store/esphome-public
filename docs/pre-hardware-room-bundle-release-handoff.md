@@ -1,5 +1,13 @@
 # Pre-Hardware Room-Bundle Release-Handoff Matrix (PRE-HW-PREP-ROOM-BUNDLES-001)
 
+> **See also:** the per-bundle first-release view here is rolled up into the
+> consolidated **first-release / expansion gate checklist**
+> [`docs/first-release-gates.md`](first-release-gates.md)
+> (`PRE-HW-PREP-FIRST-RELEASE-GATES-001`) — the canonical "what can ship now /
+> what is blocked / what evidence is required" doc. This handoff matrix remains
+> the detailed per-bundle source for the room-bundle column legend and audit
+> findings.
+
 ## Purpose and scope
 
 This document is the **pre-hardware release-handoff matrix** for the five
