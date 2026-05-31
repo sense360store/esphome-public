@@ -56,7 +56,15 @@ source-of-truth file wins** and this doc is the one to fix.
 | Board readiness / hardware evidence | [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md) (`HW-GAP-001`) |
 | Promotion gates (preview→stable gauntlet) | [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md) (`RELEASE-006`) |
 | S360-410 PoE evidence audit | [`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md) · [`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md) |
+| Operator dry-run checklist (first stable release) | [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md) (`FIRST-RELEASE-DRYRUN-CHECKLIST-001`) |
 | Detailed PR working queue | [`UPCOMING_PR.md`](../UPCOMING_PR.md) |
+
+> **Operator dry-run.** To *rehearse* this first-release path end to end
+> (release notes → build workflow → artifact naming → checksums) without
+> publishing or changing WebFlash exposure, follow
+> [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md)
+> (`FIRST-RELEASE-DRYRUN-CHECKLIST-001`). This gates doc says **what** ships; the
+> dry-run checklist says **how to rehearse** it safely.
 
 ---
 
@@ -332,6 +340,9 @@ This PR adds no new config or code, so the existing suite is unchanged:
 
 ## 13. Cross-references
 
+- Operator dry-run checklist for the first stable release:
+  [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md) —
+  `FIRST-RELEASE-DRYRUN-CHECKLIST-001`.
 - Roadmap / status / blocker view:
   [`docs/sense360-roadmap-status.md`](sense360-roadmap-status.md) —
   `DOCS-CONSOLIDATION-ROADMAP-001`.

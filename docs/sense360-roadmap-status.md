@@ -32,6 +32,7 @@ disagree, **the source-of-truth file wins** and this doc is the one to fix.
 | Detailed PR working queue | [`UPCOMING_PR.md`](../UPCOMING_PR.md) |
 | Reconciled release-matrix / WebFlash / firmware-availability view | [`docs/release-matrix-webflash-alignment.md`](release-matrix-webflash-alignment.md) (WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001) |
 | Consolidated first-release / expansion gate checklist | [`docs/first-release-gates.md`](first-release-gates.md) (PRE-HW-PREP-FIRST-RELEASE-GATES-001) |
+| Operator dry-run checklist for the first stable release | [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md) (FIRST-RELEASE-DRYRUN-CHECKLIST-001) |
 | Whole-system architecture (two-repo pipeline + CI map) | [`docs/system-architecture.md`](system-architecture.md) · [`docs/ci-pipeline.md`](ci-pipeline.md) |
 | Board / bundle / alias / shim YAML architecture | [`docs/arch-board-bundle-plan.md`](arch-board-bundle-plan.md) · [`docs/system-architecture.md`](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers) |
 

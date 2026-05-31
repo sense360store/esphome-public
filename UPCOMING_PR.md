@@ -2,6 +2,89 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## FIRST-RELEASE-DRYRUN-CHECKLIST-001 — document first stable release dry-run
+
+**Status:** documentation/planning only (publishes nothing, builds no `.bin`,
+promotes nothing, verifies no hardware; no GitHub Release, no `artifact_name`, no
+`webflash_build_matrix` flip, no `firmware/sources.json` / `manifest.json`
+change, no `config/*.json` / `packages/**` / `products/**` edit, no WebFlash repo
+change). Adds one concrete operator checklist for **dry-running** the current
+first-release path without publishing new firmware or changing WebFlash
+exposure.
+
+### Summary
+
+`PRE-HW-PREP-FIRST-RELEASE-GATES-001` confirmed the only first-release-eligible
+stable path: bundle `S360-KIT-BATH-P`, config `Ceiling-POE-VentIQ-RoomIQ`,
+channel `stable`, and the WebFlash first-release gate sync has run/merged. This
+PR adds the **operator dry-run checklist** that rehearses that path end to end —
+release-note generation, release-note validation, the build workflow's
+safe-by-default dry-run mode, artifact naming, checksum expectations, the future
+`firmware/sources.json` record, the later WebFlash mirror, and rollback/no-publish
+safety checks — plus an explicit publish-readiness checklist (human review,
+artifact/checksum review, GitHub release-note review, WebFlash handoff, and
+post-publish verification).
+
+Every command and workflow it names already exists:
+`scripts/generate_webflash_release_notes.py`,
+`scripts/validate-webflash-release-notes.py`, `scripts/list_release_targets.py`,
+the `Draft WebFlash Release Notes` workflow (RELEASE-002), and the
+`Build & Release Firmware` workflow's `dry_run` mode
+(`RELEASE-WORKFLOW-DRYRUN-MODE-001`). The checklist threads them; it changes none
+of them.
+
+### What changed
+
+* New [`docs/first-release-dryrun-checklist.md`](docs/first-release-dryrun-checklist.md)
+  — `FIRST-RELEASE-DRYRUN-CHECKLIST-001`: the one eligible path
+  (`S360-KIT-BATH-P` / `Ceiling-POE-VentIQ-RoomIQ` / `stable` /
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v<x.y.z>-stable.bin`), the release-note
+  generation command + RELEASE-002 workflow, changelog expectations, the build
+  workflow + its dry-run mode, where expiring CI artifacts appear, checksum
+  expectations, what goes into `firmware/sources.json` later, what WebFlash must
+  mirror later, rollback/no-publish safety checks, the operator **dry-run
+  checklist**, and the **publish-readiness checklist**.
+* [`docs/first-release-gates.md`](docs/first-release-gates.md) — added a
+  sources-of-truth row, a See-also note, and a §13 cross-reference pointing at
+  the new dry-run checklist; gate tables unchanged.
+* [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md) — added a
+  sources-of-truth row pointing at the dry-run checklist; status/blocker sections
+  unchanged.
+* This `UPCOMING_PR.md` entry.
+
+### Guardrails (explicitly NOT changed)
+
+* **No publish** — no GitHub Release, no tag, no release asset; the dry-run lanes
+  are non-publishing and publishing stays gated to a real `release: published`
+  event.
+* **No artifacts** — no `.bin` created/committed, no checksum file, no build-info
+  added.
+* **No source-of-record change** — no `firmware/sources.json` (still absent) and
+  no `manifest.json` change.
+* **No WebFlash exposure** — no `config/webflash-builds.json` row, no
+  `artifact_name`, no `webflash_build_matrix` flip, no new WebFlash target, and
+  the `sense360store/webflash` repo is untouched.
+* **No bundle promoted** — `S360-KIT-KITCHEN-P` / `-LIVING-P` / `-BEDROOM-P` /
+  `-CORRIDOR-P` stay candidates; no `current_release_status` change.
+* **S360-410 not marked verified** — `schematic_status` stays
+  `cataloged_unverified`; the Release-One PoE caveat preserved.
+* **LED not marked stable** — `S360-300` firmware stays `preview`; no LED-stable
+  claim.
+* **Fan variants not release-ready** — no fan driver
+  (`S360-310`/`311`/`312`/`320`) is promoted.
+* **No bench evidence claimed** — no hardware measurement run or fabricated.
+* No `config/*.json` / `packages/**` / `products/**` change; docs only.
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 tests/test_roadmap_status_doc.py`
+* `python3 tests/test_product_catalog.py`
+* `python3 tests/validate_webflash_builds.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"`
+
+---
+
 ## PRE-HW-PREP-FIRST-RELEASE-GATES-001 — consolidate first-release and expansion gates
 
 **Status:** documentation-only consolidation (promotes nothing, enables nothing,
