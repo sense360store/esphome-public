@@ -402,6 +402,22 @@ status change; and (f) does **not** by itself promote, verify, or
 WebFlash-expose anything. The TRIAC TRI_GPIO routing stays HW-005-blocked
 regardless.
 
+> **Executed (`SX1509-RECONCILE-001`).** This slice has landed. The
+> FanPWM bundle now composes the native `fan_pwm_native.yaml` driver
+> (the native composition is full-compile validated by
+> `S360-311-NATIVE-FANPWM-COMPILE-001` / commit `643bbd3`); the stale
+> SX1509 Core I²C-device comment and the current FanPWM config rows are
+> retargeted to native; the legacy SX1509 packages
+> (`fan_pwm.yaml`, `fan_pwm_sx1509.yaml`, `gpio_expander_sx1509.yaml`,
+> `fan_12v_pwm.yaml`) and the legacy compile-only skeleton are
+> **kept-with-reason** (no live binder remains, but tests / the
+> historical compile proof read them and
+> `S360-100-NATIVE-FAN-GPIO-MAP-001` forbids removing the SX1509
+> globally), each carrying a legacy/superseded banner. The fan boards
+> stay `hardware-pending` / unverified (design-complete only); the
+> native path's current/thermal evidence (`PWM-6` / `PWM-13`) stays
+> owed; TRIAC stays HW-005-blocked.
+
 ---
 
 ## 6. Hardware-verification handoff per board
@@ -442,7 +458,7 @@ artifact arrival, mains/PoE safety review last.
 
 | # | Slice ID | Scope | Gate / precondition |
 |---|---|---|---|
-| 1 | `PRE-HW-PREP-SX1509-RECONCILE-001` | Re-bind the fan path to native ESP32-S3 GPIO; mark residual SX1509 fan refs legacy/superseded ([§5](#5-sx1509-deprecation-reconciliation-slice)). Firmware + a follow-on config retarget. | None beyond this plan. Runs **first** so the SELV firmware slices build on the native map, not the deprecated expander. |
+| 1 | `PRE-HW-PREP-SX1509-RECONCILE-001` — **DONE** (landed as `SX1509-RECONCILE-001`) | Re-bind the fan path to native ESP32-S3 GPIO; mark residual SX1509 fan refs legacy/superseded ([§5](#5-sx1509-deprecation-reconciliation-slice)). Firmware + the config retarget. **Executed:** the FanPWM bundle (`products/bundles/ceiling-poe-fanpwm.yaml`) now composes `packages/expansions/fan_pwm_native.yaml` instead of the deprecated `fan_pwm.yaml` -> `fan_pwm_sx1509.yaml` chain (config string + entity names byte-identical); the stale SX1509 Core I²C-device comment + the FanPWM config rows (`product-catalog`, `compile-only-targets`) are retargeted to native; the legacy SX1509 packages + compile-only skeleton + historical proof are kept-with-reason. Fan boards stay hardware-pending/unverified; TRIAC stays HW-005-blocked. | None beyond this plan. Ran **first** so the SELV firmware slices build on the native map, not the deprecated expander. |
 | 2 | `PRE-HW-PREP-FW-312-001` | `S360-312` DAC: D1–D6 (native I²C, **no SX1509 dependency** — cleanest lead). | Slice 1 not strictly required (no SX1509 in DAC path); may run in parallel with 1. |
 | 3 | `PRE-HW-PREP-FW-311-001` | `S360-311` PWM: D1–D6 re-bound to native GPIO; resolve single- vs four-channel abstraction (with `PACKAGE-PWM-001`). | Slice 1 (native re-bind). |
 | 4 | `PRE-HW-PREP-FW-310-001` | `S360-310` Relay: D1–D6 SELV logic side (relay control). Load-side review deferred to slice 7. | — |

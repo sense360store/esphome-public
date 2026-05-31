@@ -121,7 +121,10 @@ psram:
 # Shared Core I2C bus (CORE-ABSTRACT-BUS-001B).
 # Schematic IO48 = I2C_SDA, IO45 = I2C_SCL per S360-100-R4; pulled up by
 # R22/R21 10 kΩ. Single bus serves every Core-side I²C consumer (sensors,
-# SX1509 expander, GP8403 DAC, halo LED PCA9685).
+# GP8403 DAC, halo LED PCA9685). The SX1509 expander has been removed from
+# the Core fan signal path per docs/hardware/s360-100-native-fan-gpio-map.md
+# (S360-100-NATIVE-FAN-GPIO-MAP-001); the fan PWM / tach nets terminate on
+# native ESP32-S3 GPIO, so the SX1509 is no longer a current Core I²C device.
 i2c:
   - id: core_i2c
     sda: GPIO48

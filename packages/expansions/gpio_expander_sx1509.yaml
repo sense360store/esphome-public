@@ -1,3 +1,28 @@
+# ============================================================================
+# LEGACY / SUPERSEDED SX1509 FAN PATH (SX1509-RECONCILE-001)
+# ============================================================================
+# This SX1509 GPIO/PWM expander module declares a fan PWM + tach path on the
+# SX1509 (`U3`) expander. Per docs/hardware/s360-100-native-fan-gpio-map.md
+# (S360-100-NATIVE-FAN-GPIO-MAP-001) the refreshed S360-100-R4 schematic
+# REMOVES the SX1509 from the fan signal path: every per-fan PWM-drive net
+# (`TachPMW1..4`) and tach net (`Pul_Cou1..4`) plus the shared `TachIO`
+# passthrough now terminate on native ESP32-S3 GPIO. This package is therefore
+# LEGACY / SUPERSEDED for the fan path and is NOT the current FanPWM
+# implementation. The native successor is
+# packages/expansions/fan_pwm_native.yaml.
+#
+# RETIREMENT DISPOSITION (SX1509-RECONCILE-001): kept-with-reason, NOT deleted.
+#   * No surviving product / bundle / package `!include`s this file (verified:
+#     only doc / comment references remain).
+#   * It is retained because tests/test_core_abstract_bus.py reads its
+#     `sx1509_interrupt_pin` / `sx1509_i2c_id` substitutions directly (the
+#     CORE-ABSTRACT-BUS-001C interrupt-pin guard), and because
+#     S360-100-NATIVE-FAN-GPIO-MAP-001 forbids removing the SX1509 globally —
+#     the expander may still appear as historical / superseded context. A
+#     hard delete is therefore out of scope for this fan-path slice and is
+#     left to a future cleanup PR under docs/product-deprecation-removal-policy.md
+#     if the doc/test references are also retired.
+# ----------------------------------------------------------------------------
 # SX1509 GPIO/PWM Expander Module
 # 16-channel I2C GPIO expander with PWM support
 #
