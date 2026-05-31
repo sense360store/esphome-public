@@ -494,7 +494,7 @@ flip is gated per
 | Board | Bench must measure / confirm to reach `verified` | Safety evidence the design review CANNOT substitute |
 |---|---|---|
 | `S360-311` PWM | Silkscreen confirms `J3` 1-to-13 order + the `J6`↔`J3` harness; native PWM drive on `IO10/11/12/39`; per-fan + aggregate fan current; thermal envelope; per-fan RPM via native `pulse_counter`; resolve `"NINE 4pin FANs"` label + `J3` 11/12 UART routing. | — (SELV; no mains/PoE safety gate) |
-| `S360-312` DAC | Resolve the **+5V vs +3.3V rail** discrepancy on silkscreen; 0–10 V linearity per channel; dual-DAC I²C addresses (`SW1`/`SW2`) + collision check against Core devices; blocking-diode behaviour; Cloudlift output pin order. | — (SELV) |
+| `S360-312` DAC | Resolve the **+5V vs +3.3V rail** discrepancy on silkscreen; 0–10 V linearity per channel; dual-DAC I²C addresses (`SW1`/`SW2`) + collision check against Core devices; blocking-diode behaviour; Cloudlift output pin order. (queued as `S360-312-DAC-BENCH-001`, blocked on hardware) | — (SELV) |
 | `S360-310` Relay | Relay logic + contact switching of a real mains fan load; contact bounce; SELV/mains domain separation on silkscreen. | **Mains contact-rating + clearance**: switched-load current rating and load-side clearance are layout/BOM + bench evidence; not provable from schematic. |
 | `S360-320` TRIAC | Direct-ESP32 gate/zero-cross mapping confirmed; zero-cross detection; phase-angle timing into a real mains load; opto isolation. | **COMPLIANCE-001 UK/EU mains sign-off** + creepage/clearance review (gerbers) + EMC. The design review **cannot** clear COMPLIANCE-001; a schematic is not a compliance artefact. |
 | `S360-400` 240v PSU | Output rail under load; ripple; inrush; thermal; converter identity (`HLK-?`) confirmed against the populated part. | **COMPLIANCE-001 mains sign-off** + creepage/clearance (gerbers) + Hi-pot/insulation resistance + X/Y-cap safety-class confirmation. None substitutable by design review. |
@@ -524,6 +524,7 @@ artifact arrival, mains/PoE safety review last.
 | 7 | `PRE-HW-PREP-TRIAC-320-001` *(HW-005 / safety)* | `S360-320` TRIAC: resolve direct-ESP32 gate/zero-cross mapping; D1–D6; **COMPLIANCE-001** mains sign-off. | Slice 6 (gerbers) + `S360-320` schematic trace + COMPLIANCE-001. |
 | 8 | `PRE-HW-PREP-MAINS-400-001` *(safety)* | `S360-400` 240v PSU: D1 + D6 + creepage/clearance review; **COMPLIANCE-001** sign-off. | Slice 6 + COMPLIANCE-001. |
 | 9 | `PRE-HW-PREP-POE-410-001` *(safety)* | `S360-410` PoE PSU: D1 + D6 + isolation-boundary creepage/clearance review; Hi-pot/isolation evidence framed (bench/cert). | Slice 6 + `PACKAGE-POE-410-001` preconditions. |
+| 10 | `S360-312-DAC-BENCH-001` *(next hardware task)* | `S360-312` DAC: run the D6 bench / evidence matrix once a physical board exists; fill the owed measurements (0–10 V output per channel; GP8403 detection + I²C address; range/calibration; fan/controller response; current; thermal; harness/silkscreen). | A physical `S360-312` board in hand (pre-hardware; blocked). |
 
 Rationale: SELV boards (312, 311, 310) carry no mains/PoE safety gate
 and are fully or mostly authorable from the schematics now, so they go
