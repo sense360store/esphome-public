@@ -2,6 +2,84 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## PRE-HW-PREP-FIRST-RELEASE-GATES-001 — consolidate first-release and expansion gates
+
+**Status:** documentation-only consolidation (promotes nothing, enables nothing,
+verifies nothing; no `schematic_status` flipped, no lifecycle change, no
+WebFlash exposure, no `artifact_name` set, no `webflash_build_matrix` flip, no
+release, no artifact, no `firmware/sources.json` / `manifest.json` change, no
+`config/*.json` / `packages/**` / `products/**` edit). Creates one canonical
+first-release gate checklist showing what can ship now, what is blocked, and the
+exact evidence required for each blocked path.
+
+### Summary
+
+Threads the existing first-release / expansion gate facts from the sources of
+truth ([`config/webflash-builds.json`](config/webflash-builds.json),
+[`config/room-bundle-skus.json`](config/room-bundle-skus.json),
+[`config/room-bundle-fan-variants.json`](config/room-bundle-fan-variants.json),
+[`config/hardware-catalog.json`](config/hardware-catalog.json),
+[`config/firmware-combination-matrix.json`](config/firmware-combination-matrix.json),
+the room-bundle handoff matrix, the roadmap/status doc, the pre-hardware prep
+plan, and the board readiness / promotion-gate docs) into a single canonical
+checklist.
+
+**Result:** `S360-KIT-BATH-P` (Bathroom, `Ceiling-POE-VentIQ-RoomIQ`, stable)
+**can ship today** as the current first-release path. Kitchen / Bedroom / Living
+/ Corridor are **not** first-release eligible yet. Fan variants are
+**planning-only**. Hardware bench tasks are **future-only** until physical
+hardware/equipment exists.
+
+### What changed
+
+* New [`docs/first-release-gates.md`](docs/first-release-gates.md) —
+  `PRE-HW-PREP-FIRST-RELEASE-GATES-001`: current-shippable-release, blocked
+  bundle-expansion, hardware-blocker, firmware-blocker, WebFlash-blocker,
+  release-note/artifact-blocker, exact-evidence-required, and next-PR-owner
+  tables; covers `S360-KIT-BATH-P` / `-KITCHEN-P` / `-LIVING-P` / `-BEDROOM-P` /
+  `-CORRIDOR-P`, the Bathroom/Kitchen fan variants, `S360-410` PoE PSU,
+  `S360-300` LED, `S360-310` Relay, `S360-311` PWM, `S360-312` DAC, and
+  `S360-320` TRIAC.
+* [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md) — added a
+  sources-of-truth row pointing at the new consolidated gates doc.
+* [`docs/pre-hardware-room-bundle-release-handoff.md`](docs/pre-hardware-room-bundle-release-handoff.md)
+  — added a See-also banner pointing at the consolidated gates doc; matrix
+  unchanged.
+* [`docs/pre-hardware-prep-plan.md`](docs/pre-hardware-prep-plan.md) — added a
+  See-also link to the gates doc (and removed two stray trailing markup lines).
+* This `UPCOMING_PR.md` entry.
+
+### Guardrails (explicitly NOT changed)
+
+* **No bundle promoted** — no `current_release_status` change; nothing moved to
+  `preview` / `stable` / `production`.
+* **No WebFlash enabled** — no `config/webflash-builds.json` row, no
+  `artifact_name`, no `webflash_build_matrix` flip; the WebFlash repo
+  (`sense360store/webflash`) is untouched.
+* **No artifacts / firmware** — no `.bin` / checksum / build-info, no
+  `firmware/sources.json` / `manifest.json` change, no release / tag.
+* **S360-410 not marked verified** — `schematic_status` stays
+  `cataloged_unverified`; the Release-One PoE caveat preserved verbatim.
+* **LED not marked stable** — `S360-300` firmware stays `preview`; no LED-stable
+  claim.
+* **Fan variants not release-ready** — `room-bundle-fan-variants.json` stays
+  `planning` / `webflash_exposed: false`; no fan bundle SKU added.
+* **No bench evidence claimed** — every bench task is a future-only forward
+  pointer; no measurement is run or fabricated.
+* No `config/*.json` / `packages/**` / `products/**` change; docs only.
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 tests/test_roadmap_status_doc.py`
+* `python3 tests/test_product_catalog.py`
+* `python3 tests/test_room_bundle_skus.py`
+* `python3 tests/test_room_bundle_fan_variants.py`
+* `python3 tests/validate_webflash_builds.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"`
+
+---
+
 ## PRE-HW-PREP-ROOM-BUNDLES-001 — prepare room bundles for first-release evidence handoff
 
 **Status:** documentation-only audit (promotes nothing, enables nothing,

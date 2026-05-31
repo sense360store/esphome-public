@@ -557,6 +557,5 @@ This PR is docs-only; the commands below confirm it breaks nothing:
 - [Product Deprecation and Removal Policy (PRODUCT-DEP-001)](product-deprecation-removal-policy.md)
 - [Mains-Voltage UK/EU Assessment (COMPLIANCE-001)](compliance/mains-voltage-uk-eu-assessment.md)
 - [Board Readiness Matrix (HW-GAP-001)](hardware/board-readiness-matrix.md)
+- [First-Release Gates (PRE-HW-PREP-FIRST-RELEASE-GATES-001)](first-release-gates.md) — consolidated "what can ship now / what is blocked / what evidence is required" checklist
 - [`UPCOMING_PR.md`](../UPCOMING_PR.md)
-</content>
-</invoke>
