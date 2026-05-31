@@ -170,6 +170,26 @@ tag, `.bin`, `firmware/sources.json`, or `manifest.json` was created.
 
 ---
 
+### 5.2 Hosted CI dispatch attempt (FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001) — blocked
+
+`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001` attempted to dispatch the hosted
+`Build & Release Firmware` workflow (`dry_run=true`,
+`release_target=Ceiling-POE-VentIQ-RoomIQ`, `version=1.0.0`, `channel=stable`)
+to capture the run URL / run ID and move the first-release dry-run
+`partial → passed`.
+
+- **Outcome:** **blocked (access/tooling); classification stays `partial`.** This
+  environment has no GitHub Actions dispatch path — no `gh` CLI, `GH_TOKEN` /
+  `GITHUB_TOKEN` unset, no Actions / run-workflow tool, and the only network
+  egress is the git `local_proxy` (no `api.github.com`). No hosted run URL / run
+  ID exists, so the hosted CI dry-run could **not** be marked `passed`.
+- **Nothing dispatched:** no Release, tag, release asset, `firmware/sources.json`,
+  `manifest.json`, or committed `.bin` was produced.
+- **Deferred to:** an operator / CI runner with GitHub Actions access. Full
+  record: [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md) §11.7.
+
+---
+
 ## 6. Hardware blockers
 
 | Blocker | Status | Source |

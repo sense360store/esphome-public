@@ -2,6 +2,43 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001 — record hosted dry-run dispatch (blocked: no Actions access)
+
+**Status:** ⚠️ blocked — hosted dispatch unavailable in this env; this entry
+records the access/tooling blocker (the dry-run is **not** `passed`) · **Type:**
+docs-only (record) · **Depends on:** GitHub Actions dispatch access.
+
+**Outcome:** the hosted dispatch was **attempted and blocked**. The
+`Build & Release Firmware` workflow (`firmware-build-release.yml`) is
+`workflow_dispatch`-driven, and this environment has no Actions dispatch path:
+no `gh` CLI (`gh: command not found`), `GH_TOKEN` / `GITHUB_TOKEN` unset, no
+Actions / run-workflow tool, and the only network egress is the git
+`local_proxy` remote (no `api.github.com`). A branch push / PR can't substitute
+(the `release-dry-run` job runs only on `workflow_dispatch`). So **no run URL /
+run ID exists** and the first-release dry-run stays `partial` (hosted CI dry-run
+blocked, **not** `passed`).
+
+**Intended (non-publishing) dispatch, recorded for the operator:** workflow
+`Build & Release Firmware`, job `release-dry-run`, inputs `version=1.0.0`,
+`channel=stable`, `release_target=Ceiling-POE-VentIQ-RoomIQ`, `dry_run=true`;
+commit `ee1726b`. Expected artifact (locally re-asserted, not produced):
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`. Checksums are
+publish-time only — none produced; nothing published.
+
+**Recorded in:** `docs/first-release-dryrun-checklist.md` §11.7,
+`docs/first-release-gates.md` (dry-run note), and
+`docs/sense360-roadmap-status.md` §5.2.
+
+**To clear:** an operator / CI runner with GitHub Actions access dispatches the
+workflow with the inputs above and pastes the run URL / run ID into §11.7.2, the
+gates dry-run note, and roadmap §5.2 — only then does the dry-run become
+`passed`.
+
+**Guardrails:** non-publishing only; no Release / tag / asset; no
+`firmware/sources.json` / `manifest.json`; no `config/*.json`; no WebFlash change.
+
+---
+
 ## FIRST-RELEASE-WORKFLOW-DRYRUN-001 — dry-run first stable release workflow
 
 **Status:** documentation/record only (publishes nothing, builds no committed

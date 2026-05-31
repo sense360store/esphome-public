@@ -83,6 +83,23 @@ source-of-truth file wins** and this doc is the one to fix.
 > [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md) §11.
 > This changes **no gate** in this doc.
 
+> **Hosted CI dispatch attempted (`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001`,
+> 2026-05-31) → blocked; dry-run stays `partial`.** The follow-up above tried to
+> dispatch `Build & Release Firmware`
+> ([`firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml))
+> in non-publishing `dry_run=true` mode (`release_target=Ceiling-POE-VentIQ-RoomIQ`,
+> `version=1.0.0`, `channel=stable`) to capture the **run URL / run ID**. It
+> **could not be dispatched** from this environment: no `gh` CLI, `GH_TOKEN` /
+> `GITHUB_TOKEN` unset, no Actions / run-workflow tool, and the only network
+> egress is the git `local_proxy` (no `api.github.com`). So no hosted run URL /
+> run ID exists, the first-release dry-run **remains `partial` (hosted CI dry-run
+> blocked, not passed)**, and the hosted run is deferred to an operator / CI
+> runner with GitHub Actions access. Nothing was dispatched, so no Release, tag,
+> asset, `firmware/sources.json`, `manifest.json`, or committed `.bin` was
+> produced. Full record:
+> [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md) §11.7.
+> This changes **no gate** in this doc.
+
 ---
 
 ## 1. Current shippable release (first-release path)
