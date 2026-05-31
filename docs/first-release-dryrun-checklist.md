@@ -488,7 +488,7 @@ state; it threads the real command output captured during the run.
 | Channel | `stable` |
 | Version | `1.0.0` |
 | ESPHome version (from the build workflow) | `2026.4.5` |
-| Hosted **workflow run URL / run ID** | **Not captured** — see §11.4 |
+| Hosted **workflow run URL / run ID** | **Not captured in this local run** — the hosted run was captured later in §11.8 (`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001`, run `26723839261`) |
 
 > **How this was run.** The hosted `Build & Release Firmware`
 > (`firmware-build-release.yml`) and `Draft WebFlash Release Notes`
@@ -525,17 +525,23 @@ state; it threads the real command output captured during the run.
   no `firmware/sources.json`, no `manifest.json`, no committed `.bin`. The repo
   working tree was clean after the run.
 
-### 11.4 Outcome classification — `dry-run partial`
+### 11.4 Outcome classification — `dry-run passed` (upgraded from `partial`; hosted run captured in §11.8)
 
 **Local dry-run lanes: all PASS.** Every lane that *can* be exercised from this
 environment passed end to end, with no publish and no side effects. The pipeline
 logic is ready.
 
-The classification is **`dry-run partial`** (not `dry-run passed`) for one
-honest reason: the task asks to record a hosted **workflow run URL / run ID**,
-and this environment cannot dispatch GitHub Actions, so that hosted-run evidence
-could not be captured. It is **not** the case that *"no safe dry-run mode
-exists"* — the opposite is true:
+**Hosted run now captured — outcome upgraded to `dry-run passed`.** As of
+`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001` (§11.8), an operator with GitHub
+Actions access dispatched the hosted `Build & Release Firmware` →
+`Release Dry-Run (no publish)` job and it **passed**
+([run 26723839261](https://github.com/sense360store/esphome-public/actions/runs/26723839261/job/78755574773),
+commit `b2cc9fd5054f62c18b63230c2b380bc749abf2f0`, no artifacts — expected). That
+closes the single gap that had held this record at **`dry-run partial`**: the
+task asked to record a hosted **workflow run URL / run ID**, and earlier this
+environment could not dispatch GitHub Actions (§11.7). Publishing remains a
+separate human decision (§11.8.4). It is **not** the case that *"no safe dry-run
+mode exists"* — the opposite is true:
 
 - The `Build & Release Firmware` workflow already has a **safe-by-default
   dry-run mode** (`RELEASE-WORKFLOW-DRYRUN-MODE-001`): the `release-dry-run` job
@@ -553,12 +559,15 @@ exists"* — the opposite is true:
 Recorded, not resolved — these are the exact gaps between this dry-run and a
 real first publish:
 
-1. **Hosted dry-run run evidence not captured.** An operator with GitHub Actions
-   access must dispatch `Build & Release Firmware` with `dry_run=true`,
-   `release_target=Ceiling-POE-VentIQ-RoomIQ` and record the **run URL / run
-   ID** (and, optionally, dispatch RELEASE-002 to capture the expiring
-   release-notes artifact). Tracked as
-   **`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001`** (§14 / `UPCOMING_PR.md`).
+1. **Hosted dry-run run evidence — now captured (passed).** ✅ **Resolved** by
+   `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001` (§11.8): an operator with GitHub
+   Actions access dispatched `Build & Release Firmware` →
+   `Release Dry-Run (no publish)` and it **passed**
+   ([run 26723839261](https://github.com/sense360store/esphome-public/actions/runs/26723839261/job/78755574773),
+   commit `b2cc9fd5054f62c18b63230c2b380bc749abf2f0`). No artifacts were produced
+   (expected for a no-publish dry-run); no release / tag / asset /
+   `firmware/sources.json` / `manifest.json`. Originally tracked as
+   `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001`.
 2. **Changelog still a placeholder.** The default `## Changelog` is the TODO
    placeholder; it must be replaced with real, user-visible bullets before a
    real `stable` publish (filler is rejected — see Stage 4 above).
@@ -599,15 +608,22 @@ python3 scripts/product_name_mapper.py ceiling-poe-ventiq-roomiq 1.0.0 stable
 
 ---
 
-### 11.7 Hosted CI dry-run dispatch attempt (FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001)
+### 11.7 Hosted CI dry-run dispatch attempt — sandbox-blocked, since superseded by §11.8 (FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001)
 
 `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001` is the residual follow-up from §11.4:
 dispatch the hosted dry-run on GitHub Actions and capture the **run URL / run
 ID** so the first-release dry-run can move `partial → passed`. This subsection
 records that attempt.
 
-**Result: the hosted dry-run could not be dispatched from this environment — the
-first-release dry-run stays `partial` (hosted CI dry-run blocked, not passed).**
+> **⚠️ Historical (superseded).** This subsection records that *this sandbox*
+> could not dispatch the hosted run. It has since been **resolved**: an operator
+> with GitHub Actions access dispatched the hosted dry-run and it **passed** —
+> see §11.8 (`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001`). The first-release
+> dry-run is now **`passed`**, not `partial`.
+
+**Result at the time: the hosted dry-run could not be dispatched from this
+sandbox — the first-release dry-run stayed `partial` (hosted CI dry-run blocked,
+not passed) until §11.8.**
 
 #### 11.7.1 Intended dispatch (what would have been run)
 
@@ -665,8 +681,15 @@ no path to dispatch a GitHub Actions workflow**:
 
 #### 11.7.5 Disposition
 
-`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001` is **blocked on GitHub Actions
-access**, not on any repo defect: the safe dry-run mode already exists
+> **Update — resolved by `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001` (§11.8).**
+> An operator with GitHub Actions access has since dispatched the hosted dry-run
+> and it **passed** (run `26723839261`, job `78755574773`, commit
+> `b2cc9fd5054f62c18b63230c2b380bc749abf2f0`). The blocker described below was
+> specific to *this sandbox*; it is retained as the historical record of why the
+> sandbox could not self-dispatch. The first-release dry-run is now `passed`.
+
+`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001` was **blocked on GitHub Actions
+access** from this sandbox, not on any repo defect: the safe dry-run mode already exists
 (`RELEASE-WORKFLOW-DRYRUN-MODE-001`) and the local lanes all pass (§11.2). To
 clear it, an operator — or a CI runner with Actions dispatch (a token + API
 egress, or the `gh` CLI) — must dispatch the workflow with the §11.7.1 inputs and
@@ -674,6 +697,83 @@ paste the resulting **run URL / run ID** into §11.7.2 here and into
 [`docs/first-release-gates.md`](first-release-gates.md) §0.1 and
 [`docs/sense360-roadmap-status.md`](sense360-roadmap-status.md) §5. Only then
 does the first-release dry-run become `passed`.
+
+---
+
+### 11.8 Hosted CI dry-run result — PASSED (FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001)
+
+`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001` records the **hosted GitHub Actions
+dry-run result** that §11.7 deferred to an operator with Actions access. That run
+has now been dispatched on hosted CI and **passed**, so the first-release dry-run
+moves **`partial` → `passed`** (hosted CI dry-run: **passed**). This is a
+**record only** — it publishes nothing, builds no `.bin`, promotes nothing, and
+verifies no hardware.
+
+#### 11.8.1 Recorded hosted run (passed)
+
+| Field | Value |
+|---|---|
+| Workflow | `Build & Release Firmware` ([`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)) |
+| Job | `Release Dry-Run (no publish)` (the read-only `release-dry-run` job; `workflow_dispatch` + `dry_run=true`) |
+| Run URL | <https://github.com/sense360store/esphome-public/actions/runs/26723839261/job/78755574773> |
+| Run ID | `26723839261` |
+| Job ID | `78755574773` |
+| Commit SHA | `b2cc9fd5054f62c18b63230c2b380bc749abf2f0` |
+| Bundle SKU | `S360-KIT-BATH-P` |
+| Config string | `Ceiling-POE-VentIQ-RoomIQ` |
+| Channel | `stable` |
+| Version | `1.0.0` |
+| Expected artifact | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` |
+| **Result** | **`passed`** — all dry-run guardrail steps passed |
+| Artifacts | **none** (expected for a no-publish dry-run) |
+
+#### 11.8.2 What the passing run confirms
+
+- **All dry-run guardrail steps passed** on hosted CI: the read-only
+  `release-dry-run` job (target validation against
+  [`config/webflash-builds.json`](../config/webflash-builds.json), the
+  release-note planner `scripts/plan_room_release_notes.py`, the
+  `tests/test_plan_room_release_notes.py` + `tests/test_release_dry_run_mode.py`
+  contract tests, and the no-side-effects assertion) completed green.
+- **No artifacts were produced** — expected: a `dry_run=true` /
+  `Release Dry-Run (no publish)` run never compiles or uploads a `.bin`.
+- The expected artifact name is unchanged and was **not** produced:
+  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`.
+
+#### 11.8.3 Guardrail confirmations (hosted run — all hold)
+
+- ✅ **No GitHub Release created.**
+- ✅ **No tag created.**
+- ✅ **No release asset / `.bin` produced or committed** (no artifacts — expected
+  for a no-publish dry-run).
+- ✅ **No `firmware/sources.json` change** (file still absent).
+- ✅ **No `manifest.json` change** (none produced — checksums + build-info
+  manifest are publish-time only, §5b).
+- ✅ **No `config/*.json`, `packages/**`, or `products/**` change**; no WebFlash
+  repo change; no new WebFlash target.
+
+#### 11.8.4 Disposition — dry-run passed; publish still pending human review
+
+The **first-release workflow dry-run** and the **hosted CI dry-run** are both now
+**`passed`**. **Publish readiness is still pending** human review and a real
+changelog/publish decision — a passing dry-run does **not** authorise a publish.
+The following gaps remain open (they are **not** closed by a passing dry-run):
+
+- **Real changelog bullets still required** — the `## Changelog` is still the
+  TODO placeholder; real, user-visible bullets must replace it before a `stable`
+  publish (filler is rejected at publish time, §2c / Stage 4).
+- **External-component ref/tag pinning still required if release policy requires
+  it** — `packages/base/external_components.yaml` uses git `ref: main`; pin it to
+  the release tag for a reproducible tagged build.
+- **Checksums are publish-time only** — `checksums-sha256.txt` /
+  `checksums-md5.txt` and the build-info `manifest.json` only exist on a real
+  `release: published` run (§5b); the dry-run produced none (correct/expected).
+- **WebFlash import / handoff happens only after a real release artifact exists**
+  — no WebFlash change is triggered by this dry-run (§7).
+
+A real publish must still clear every §10 publish-readiness gate (human review,
+artifact/checksum review, GitHub release-note review, WebFlash handoff,
+post-publish verification).
 
 ---
 
@@ -737,6 +837,10 @@ This PR adds docs only; the existing suite is unchanged:
 - Recorded repo-side release proof:
   [`docs/webflash-release-proof.md`](webflash-release-proof.md).
 - Dry-run execution record: §11 above — `FIRST-RELEASE-WORKFLOW-DRYRUN-001`
-  (outcome: `dry-run partial`).
-- Hosted CI dispatch attempt — **blocked** (access/tooling): §11.7 above —
-  `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001` (see [`UPCOMING_PR.md`](../UPCOMING_PR.md)).
+  (outcome: `dry-run passed`, upgraded once the hosted run was captured — §11.8).
+- Hosted CI dispatch attempt — originally **blocked** in this sandbox
+  (access/tooling): §11.7 above — `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001`.
+- Hosted CI dry-run result — **passed**: §11.8 above —
+  `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001`
+  ([run 26723839261](https://github.com/sense360store/esphome-public/actions/runs/26723839261/job/78755574773),
+  commit `b2cc9fd5054f62c18b63230c2b380bc749abf2f0`; see [`UPCOMING_PR.md`](../UPCOMING_PR.md)).

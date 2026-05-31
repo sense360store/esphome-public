@@ -2,6 +2,101 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001 — record hosted first-release dry-run pass
+
+**Status:** documentation/record only (publishes nothing, builds no committed
+`.bin`, promotes nothing, verifies no hardware; no GitHub Release, no tag, no
+`artifact_name` added, no `webflash_build_matrix` flip, no
+`firmware/sources.json` / `manifest.json` change, no `config/*.json` /
+`packages/**` / `products/**` edit, no WebFlash repo change). Records the
+**hosted GitHub Actions dry-run result** (passed) for the only eligible
+first-release stable path and upgrades the first-release dry-run from
+`partial` → `passed`.
+
+### Summary
+
+`FIRST-RELEASE-WORKFLOW-DRYRUN-001` (PR #681) ran the non-publishing dry-run
+lanes locally and classified the outcome `dry-run partial` because this sandbox
+cannot dispatch GitHub Actions; `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001`
+(PR #682) recorded that dispatch blocker. An operator with GitHub Actions access
+has since dispatched the hosted dry-run and it **passed**. This PR records that
+result and reclassifies the dry-run as **passed**.
+
+### Recorded hosted run (passed)
+
+* **Workflow / job:** `Build & Release Firmware` → `Release Dry-Run (no publish)`
+  (the read-only `release-dry-run` job; `workflow_dispatch` + `dry_run=true`).
+* **Run URL:** https://github.com/sense360store/esphome-public/actions/runs/26723839261/job/78755574773
+* **Run ID / Job ID:** `26723839261` / `78755574773`
+* **Commit SHA:** `b2cc9fd5054f62c18b63230c2b380bc749abf2f0`
+* **Path:** `S360-KIT-BATH-P` / `Ceiling-POE-VentIQ-RoomIQ` / `stable` / `1.0.0`.
+* **Expected artifact:** `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`.
+* **Result:** **`passed`** — all dry-run guardrail steps passed.
+* **Artifacts:** **none** — expected for a no-publish dry-run; no release, tag,
+  asset, committed `.bin`, `firmware/sources.json`, or `manifest.json`.
+
+### Reclassification
+
+* **First-release workflow dry-run:** **`passed`** (was `partial`).
+* **Hosted CI dry-run:** **`passed`** (was blocked / not-captured).
+* **Publish readiness:** **still pending** human review and a real
+  changelog/publish decision (a passing dry-run does not authorise a publish).
+
+### Publish-readiness gaps still open (explicit)
+
+* Real `## Changelog` bullets still required before a `stable` publish (filler is
+  rejected at publish time).
+* External-component `ref`/tag pinning still required if release policy requires
+  it (`packages/base/external_components.yaml` uses git `ref: main`).
+* Checksums (`checksums-sha256.txt` / `checksums-md5.txt`) and the build-info
+  `manifest.json` are **publish-time only** — none produced by the dry-run.
+* WebFlash import / handoff happens **only after** a real release artifact
+  exists; no WebFlash change is triggered here.
+
+### What changed
+
+* [`docs/first-release-dryrun-checklist.md`](docs/first-release-dryrun-checklist.md)
+  — new **§11.8** recording the hosted dry-run pass; §11.4 outcome upgraded to
+  `dry-run passed`, §11.5 gap #1 marked resolved, and the §11.1 / §11.7.5 / §14
+  pointers updated.
+* [`docs/first-release-gates.md`](docs/first-release-gates.md) — Headline
+  dry-run callout updated to `dry-run passed` (hosted run captured); **gate
+  tables unchanged**.
+* [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md) — §5.1
+  outcome upgraded to `passed`; new **§5.2** recording the hosted run; status /
+  blocker sections, Next Hardware Tasks, and Evidence & Bench Logs unchanged.
+* This `UPCOMING_PR.md` entry.
+
+### Guardrails (explicitly NOT changed)
+
+* **No publish** — no GitHub Release, no tag, no release asset; publishing stays
+  gated to a real `release: published` event.
+* **No artifacts** — no `.bin` created/committed, no checksum file, no build-info
+  `manifest.json` (the hosted dry-run produced none — expected).
+* **No source-of-record change** — no `firmware/sources.json` (still absent), no
+  `manifest.json`.
+* **No WebFlash exposure** — no `config/webflash-builds.json` row, no
+  `artifact_name` added, no `webflash_build_matrix` flip, no new WebFlash target;
+  the `sense360store/webflash` repo is untouched.
+* **No bundle promoted** — `S360-KIT-KITCHEN-P` / `-LIVING-P` / `-BEDROOM-P` /
+  `-CORRIDOR-P` stay candidates; no `current_release_status` change.
+* **S360-410 not marked verified** — `schematic_status` stays
+  `cataloged_unverified`; the Release-One PoE caveat preserved.
+* **LED not marked stable** — `S360-300` firmware stays `preview`; no LED-stable
+  claim.
+* **Fan variants not release-ready** — no fan driver
+  (`S360-310`/`311`/`312`/`320`) is promoted.
+* **No bench evidence claimed** — no hardware measurement run or fabricated.
+* No `config/*.json` / `packages/**` / `products/**` change; docs only.
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 tests/test_roadmap_status_doc.py`
+* `python3 tests/test_product_catalog.py`
+* `python3 tests/validate_webflash_builds.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"`
+
 ## FIRST-RELEASE-WORKFLOW-DRYRUN-001 — dry-run first stable release workflow
 
 **Status:** documentation/record only (publishes nothing, builds no committed
@@ -46,9 +141,11 @@ RELEASE-002 draft workflow run**, locally, pinned to that commit.
   `artifact_name` == `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`.
 * **Checksums:** publish-time only — **none** produced (expected). **Artifact
   published:** **none**; working tree clean after the run.
-* **Outcome classification: `dry-run partial`.** All local lanes pass; the one
-  unmet item is the hosted **workflow run URL / run ID** (this environment
-  cannot dispatch GitHub Actions).
+* **Outcome classification: `dry-run partial`** *(later upgraded to `dry-run
+  passed` once the hosted run was captured — see
+  `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001` above).* All local lanes pass;
+  the one unmet item at the time was the hosted **workflow run URL / run ID**
+  (this environment cannot dispatch GitHub Actions).
 
 ### No-safe-dry-run-mode follow-up: NOT opened (and why)
 
@@ -78,12 +175,12 @@ dry-run on hosted CI and recording the run URL/ID — is tracked instead as
 
 ### Follow-up queued
 
-* **`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001`** — an operator with GitHub
-  Actions access dispatches `Build & Release Firmware` with `dry_run=true` and
-  `release_target=Ceiling-POE-VentIQ-RoomIQ` (and optionally the RELEASE-002
-  draft workflow), then records the hosted **run URL / run ID** to upgrade this
-  dry-run from `partial` to `passed`. No code change is expected; the safe
-  dry-run mode already exists.
+* **`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001`** ✅ **done** — the hosted dry-run
+  was dispatched and **passed**
+  ([run 26723839261](https://github.com/sense360store/esphome-public/actions/runs/26723839261/job/78755574773),
+  commit `b2cc9fd5054f62c18b63230c2b380bc749abf2f0`); the result is recorded by
+  `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001` (entry above) and the dry-run is
+  now `passed`. No code change was needed; the safe dry-run mode already exists.
 
 ### Guardrails (explicitly NOT changed)
 
