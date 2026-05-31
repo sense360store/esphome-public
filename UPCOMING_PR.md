@@ -2,6 +2,119 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## FIRST-RELEASE-WORKFLOW-DRYRUN-001 — dry-run first stable release workflow
+
+**Status:** documentation/record only (publishes nothing, builds no committed
+`.bin`, promotes nothing, verifies no hardware; no GitHub Release, no tag, no
+`artifact_name` added, no `webflash_build_matrix` flip, no
+`firmware/sources.json` / `manifest.json` change, no `config/*.json` /
+`packages/**` / `products/**` edit, no WebFlash repo change). Records an
+**actual execution** of the existing non-publishing dry-run lanes for the only
+eligible first-release path.
+
+### Summary
+
+`FIRST-RELEASE-DRYRUN-CHECKLIST-001` (PR #680) documented *how* to rehearse the
+first stable release; this PR *runs* that rehearsal and records the result. The
+dry-run targeted the only first-release-eligible stable path: bundle
+`S360-KIT-BATH-P`, config `Ceiling-POE-VentIQ-RoomIQ`, channel `stable`, version
+`1.0.0`, expected artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, pinned to commit
+`6f4b7f748302d8cb600e2dd368076df548ed5f81`.
+
+Because the hosted `Build & Release Firmware` / `Draft WebFlash Release Notes`
+workflows are `workflow_dispatch`-driven and this environment has no GitHub
+Actions dispatch capability, the dry-run was executed by running the **same
+non-publishing scripts and contract tests the `release-dry-run` job and the
+RELEASE-002 draft workflow run**, locally, pinned to that commit.
+
+### Dry-run result (recorded, nothing published)
+
+* **Stage 1–2 (release notes + validation):** `list_release_targets.py
+  --validate Ceiling-POE-VentIQ-RoomIQ` → OK; generator (TODO placeholder)
+  validates on `stable` (placeholder survives as a human-review signal);
+  generator with realistic bullets `--validate` → pass; pure filler
+  (`Initial release`) is correctly **rejected** on `stable` (gate works).
+* **Stage 3 (build workflow dry-run, run locally):** target validation OK,
+  `plan_room_release_notes.py --config-string Ceiling-POE-VentIQ-RoomIQ` → exit
+  0 with `Validation summary: PASSED (structural, channel=stable)`,
+  `tests/test_plan_room_release_notes.py` (20) + `tests/test_release_dry_run_mode.py`
+  (17) → **37 tests OK**, and no `firmware/sources.json` / `manifest.json` /
+  root `*.bin` produced.
+* **Stage 4 (artifact naming):** `product_name_mapper.py
+  ceiling-poe-ventiq-roomiq 1.0.0 stable` == `config/webflash-builds.json`
+  `artifact_name` == `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`.
+* **Checksums:** publish-time only — **none** produced (expected). **Artifact
+  published:** **none**; working tree clean after the run.
+* **Outcome classification: `dry-run partial`.** All local lanes pass; the one
+  unmet item is the hosted **workflow run URL / run ID** (this environment
+  cannot dispatch GitHub Actions).
+
+### No-safe-dry-run-mode follow-up: NOT opened (and why)
+
+The task says to open `FIRST-RELEASE-WORKFLOW-DRYRUN-MODE-001` **only if** the
+workflow has no safe dry-run mode. It already has one
+(`RELEASE-WORKFLOW-DRYRUN-MODE-001`: the read-only `release-dry-run` job gated on
+`workflow_dispatch && inputs.dry_run`, with publishing gated separately on the
+`release` event). Opening that follow-up would fabricate a non-existent gap, so
+it is **not** created. The genuine residual step — an operator dispatching the
+dry-run on hosted CI and recording the run URL/ID — is tracked instead as
+**`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001`** (queued below).
+
+### What changed
+
+* [`docs/first-release-dryrun-checklist.md`](docs/first-release-dryrun-checklist.md)
+  — new **§11 Dry-run execution record** (`FIRST-RELEASE-WORKFLOW-DRYRUN-001`):
+  run metadata, per-stage results, recorded artifact/checksum expectations,
+  outcome `dry-run partial`, publish-readiness gaps, and reproduction commands;
+  trailing sections renumbered (Guardrails §12, Validation §13,
+  Cross-references §14).
+* [`docs/first-release-gates.md`](docs/first-release-gates.md) — added a dry-run
+  executed note under the Operator dry-run callout; **gate tables unchanged**.
+* [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md) — added
+  **§5.1** recording the dry-run result; status/blocker sections, Next Hardware
+  Tasks, and Evidence & Bench Logs unchanged.
+* This `UPCOMING_PR.md` entry (plus the queued follow-up below).
+
+### Follow-up queued
+
+* **`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001`** — an operator with GitHub
+  Actions access dispatches `Build & Release Firmware` with `dry_run=true` and
+  `release_target=Ceiling-POE-VentIQ-RoomIQ` (and optionally the RELEASE-002
+  draft workflow), then records the hosted **run URL / run ID** to upgrade this
+  dry-run from `partial` to `passed`. No code change is expected; the safe
+  dry-run mode already exists.
+
+### Guardrails (explicitly NOT changed)
+
+* **No publish** — no GitHub Release, no tag, no release asset; publishing stays
+  gated to a real `release: published` event.
+* **No artifacts** — no `.bin` created/committed, no checksum file, no build-info
+  `manifest.json`.
+* **No source-of-record change** — no `firmware/sources.json` (still absent), no
+  `manifest.json`.
+* **No WebFlash exposure** — no `config/webflash-builds.json` row, no
+  `artifact_name` added, no `webflash_build_matrix` flip, no new WebFlash target;
+  the `sense360store/webflash` repo is untouched.
+* **No bundle promoted** — `S360-KIT-KITCHEN-P` / `-LIVING-P` / `-BEDROOM-P` /
+  `-CORRIDOR-P` stay candidates; no `current_release_status` change.
+* **S360-410 not marked verified** — `schematic_status` stays
+  `cataloged_unverified`; the Release-One PoE caveat preserved.
+* **LED not marked stable** — `S360-300` firmware stays `preview`; no LED-stable
+  claim.
+* **Fan variants not release-ready** — no fan driver
+  (`S360-310`/`311`/`312`/`320`) is promoted.
+* **No bench evidence claimed** — no hardware measurement run or fabricated.
+* No `config/*.json` / `packages/**` / `products/**` change; docs only.
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 tests/test_roadmap_status_doc.py`
+* `python3 tests/test_product_catalog.py`
+* `python3 tests/validate_webflash_builds.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"`
+
 ## FIRST-RELEASE-DRYRUN-CHECKLIST-001 — document first stable release dry-run
 
 **Status:** documentation/planning only (publishes nothing, builds no `.bin`,

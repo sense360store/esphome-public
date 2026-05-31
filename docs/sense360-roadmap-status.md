@@ -141,6 +141,33 @@ the LED gauntlet; none is promoted here.
 - Cross-repo WebFlash import/runtime work is owned by `sense360store/WebFlash`
   and tracked there; see §9.
 
+### 5.1 First-release workflow dry-run (FIRST-RELEASE-WORKFLOW-DRYRUN-001)
+
+The non-publishing first-release dry-run was executed on 2026-05-31 against the
+only eligible stable path (`Ceiling-POE-VentIQ-RoomIQ` / `stable` / `1.0.0`,
+bundle `S360-KIT-BATH-P`). It threads the existing dry-run lanes only and
+**publishes nothing**: release-note generation + validation, the
+`Build & Release Firmware` `release-dry-run` job steps (target validation,
+`scripts/plan_room_release_notes.py`, the `tests/test_plan_room_release_notes.py`
++ `tests/test_release_dry_run_mode.py` guardrails, and the no-side-effects
+assertion), and the artifact-name assertion all **passed**. Expected artifact:
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`. Checksums + build-info
+`manifest.json` are publish-time only and were **not** produced; **no** release,
+tag, `.bin`, `firmware/sources.json`, or `manifest.json` was created.
+
+- **Outcome:** `dry-run partial`. Every local dry-run lane passed; the only
+  unmet item is the hosted GitHub Actions **run URL / run ID**, because this
+  session cannot dispatch Actions (no `gh` CLI / Actions tool).
+- The `Build & Release Firmware` workflow **already has a safe-by-default
+  dry-run mode** (`RELEASE-WORKFLOW-DRYRUN-MODE-001`), so the conditional
+  `FIRST-RELEASE-WORKFLOW-DRYRUN-MODE-001` is **not** opened. The residual
+  operator step (dispatch the dry-run on hosted CI and record the run URL/ID) is
+  tracked as `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RUN-001`.
+- Full record + reproduction commands:
+  [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md)
+  §11 (`FIRST-RELEASE-WORKFLOW-DRYRUN-001`). This is a status snapshot; it
+  promotes nothing and flips no gate.
+
 ---
 
 ## 6. Hardware blockers
