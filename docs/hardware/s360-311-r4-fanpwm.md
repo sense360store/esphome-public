@@ -377,6 +377,137 @@ Which cardinality is canonical for the `FanPWM` token is **undecided**.
   **gated** on the owed silkscreen / harness / bench evidence and the
   systemic Core abstract-bus resolution.
 
+## Design-complete status (PRE-HW-PREP-FW-311-001)
+
+`S360-311` is **design-complete** as of `PRE-HW-PREP-FW-311-001`
+(2026-05-31), slice 3 of
+[`docs/pre-hardware-prep-plan.md`](../pre-hardware-prep-plan.md).
+
+**`design-complete` is a prose / documentation annotation only.** It is
+deliberately **not** `verified`: it does **not** flip `schematic_status`
+(which stays `cataloged_unverified`), does **not** change `S360-311`'s
+lifecycle (`hardware-pending`), does **not** set `schematic_file`, and
+does **not** enable any WebFlash exposure or release surface (per
+[`pre-hardware-prep-plan.md` §1.2 / §1.4](../pre-hardware-prep-plan.md#12-what-design-complete-is-explicitly-not)).
+A `design-complete` board stays `cataloged_unverified` until its bench
+session fills the D6 matrix below and a separate JSON-catalog PR makes
+the `cataloged_unverified -> verified` flip.
+
+Two of the four open reconciliation questions above are no longer the
+blockers they were when this reference first landed: question #1 (the
+SX1509-vs-direct-GPIO disagreement) was resolved to the **native
+ESP32-S3 GPIO** path by `SX1509-RECONCILE-001`
+([`s360-100-native-fan-gpio-map.md`](s360-100-native-fan-gpio-map.md)),
+and question #4 (single- vs four-channel) was decided **four-channel**
+by `PACKAGE-PWM-001` ([`fan_pwm_native.yaml`](../../packages/expansions/fan_pwm_native.yaml)).
+The remaining hardware questions — `"NINE 4pin FANs"` label (#3), the
+`J3` pins 11/12 UART routing (#2), the `J3` 1-to-13 silkscreen order,
+and the `J6`↔`J3` harness — stay **OWED** to `HW-PINMAP-311` and are
+carried into the D6 matrix, not resolved here.
+
+Checklist against the four `design-complete` conditions
+([`pre-hardware-prep-plan.md` §1.1](../pre-hardware-prep-plan.md#11-definition)):
+
+| # | Condition | State | Evidence |
+|---|---|---|---|
+| 1 | Firmware driver finalised to the current design artifacts | met | [`packages/expansions/fan_pwm_native.yaml`](../../packages/expansions/fan_pwm_native.yaml) — the finalised **four-channel** native driver: four `output: platform: ledc` PWM-drive outputs (`TachPMW1..4` -> `IO10`/`IO11`/`IO12`/`IO39`) feeding four `fan: platform: speed` controllers, plus three native `sensor: platform: pulse_counter` tach inputs (`Pul_Cou1`/`Pul_Cou2`/`Pul_Cou4` -> `IO17`/`IO18`/`IO9`, internal diagnostic, no RPM claim). Re-bound off the deprecated SX1509 path by `SX1509-RECONCILE-001`; cardinality decided four-channel by `PACKAGE-PWM-001`. This slice also reconciled the stale single-channel `fan_pwm_pin: GPIO4` / `fan_tach_pin: GPIO5` placeholder in [`packages/hardware/sense360_core_mapping.yaml`](../../packages/hardware/sense360_core_mapping.yaml) — marked **legacy / superseded** against the four-channel native map, with the production GPIO4/5 radar-UART binding in the Core board package left untouched. |
+| 2 | Firmware compiles end-to-end in a compile-only CI target | met | Full `esphome compile` of the native composition recorded **green** by `S360-311-NATIVE-FANPWM-COMPILE-001` (local run 2026-05-28, ESPHome 2026.4.5, board `esp32-s3-devkitc-1` / framework `espidf`, commit `643bbd3`, rc=0, real `firmware.bin`). Targets `ceiling-poe-fanpwm-native-compile-only` and `ceiling-poe-fanpwm-product-compile-only` in [`config/compile-only-targets.json`](../../config/compile-only-targets.json) carry `compile_validation_status: validated-full-compile`. The legacy SX1509 full-compile run `26414398902` does **not** transfer to the native composition (it stays the historical proof for the superseded SX1509 skeleton). ESPHome is not available in this slice's authoring environment, so no new compile is run or fabricated here. |
+| 3 | Every binding traceable to a schematic-printed value (no invented GPIOs / addresses) | met (schematic-only values carried as such) | Every native GPIO (`IO10`/`IO11`/`IO12`/`IO39` drive; `IO17`/`IO18`/`IO46`/`IO9` tach; `IO16` shared) is **schematic-printed** on `S360-100-R4` per [`s360-100-native-fan-gpio-map.md`](s360-100-native-fan-gpio-map.md); none is bench-verified (carried as such). The fourth tach `Pul_Cou3` -> `IO46` is **owed-not-invented**: `IO46` collides with the Core `fan_status_led_pin` (`GP_Fan_Status_Led`), so it stays disabled rather than inventing a conflicting binding (D6 item T8). `TachIO` -> `IO16` stays reserved (its shared-net role is ambiguous on the sheet — D6 item T11). |
+| 4 | Release-note template + artifact-naming + pre-written bench test matrix exist | met | D5 template + artifact-naming scheme and the D6 bench / evidence test matrix below. |
+
+Owed to the bench (carried, **not** resolved by reaching
+`design-complete`): the `J3` 1-to-13 silkscreen order, the `J6`↔`J3`
+13-pin harness conductor mapping, the `"NINE 4pin FANs"` label, the
+`J3` pins 11/12 UART routing, the fourth-tach `Pul_Cou3`/`IO46`
+collision, PWM polarity (`PWM-6`), per-fan + aggregate current, the
+thermal envelope, and per-fan RPM via native `pulse_counter` (`PWM-13`).
+All are listed in the D6 matrix below and owned by `HW-PINMAP-311`; the
+operator-facing form is the existing
+[§S360-311-BENCH-EVIDENCE-REQUEST-001 checklist](s360-311-r4-pwm.md#s360-311-bench-evidence-request-001--fanpwm-bench-evidence-checklist--contract-2026-05-26)
+in the HW-PINMAP-311 audit.
+
+## D5 — Release-note template and artifact-naming (template only)
+
+This is a **pre-written template only**: `PRE-HW-PREP-FW-311-001`
+publishes no artifact, tags no release, authors no release notes for a
+real build, and sets no `artifact_name` field in any `config/*.json`.
+`WEBFLASH-PWM-001` / `RELEASE-PWM-001` / `WF-IMPORT-PWM-001` stay
+blocked. The template follows the house convention in
+[`docs/room-firmware-release-notes.md`](../room-firmware-release-notes.md).
+
+Artifact-naming scheme (for the eventual build, once verified +
+released — **not** produced here), mirroring the Release-One scheme
+(`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`):
+
+```
+Sense360-Ceiling-POE-FanPWM-v<MAJOR.MINOR.PATCH>-<channel>.bin
+```
+
+config string `Ceiling-POE-FanPWM`, product
+[`products/sense360-ceiling-poe-fanpwm.yaml`](../../products/sense360-ceiling-poe-fanpwm.yaml).
+
+Release-note template:
+
+```
+### Ceiling-POE-FanPWM v<MAJOR.MINOR.PATCH> (<channel>)
+
+Artifact: Sense360-Ceiling-POE-FanPWM-v<MAJOR.MINOR.PATCH>-<channel>.bin
+
+Summary: four-channel 12 V PWM fan-speed control on the Sense360 Core
+ceiling + PoE stack, via four native ESP32-S3 ledc PWM-drive outputs
+(S360-311 FanPWM, fans on J1/J2/J4/J5). 5 V in -> 12 V boost (MT3608);
+SELV, no mains path.
+
+Entity surface: four package-layer fan-speed controllers
+(${friendly_name} Fan 1..4) plus the standard device-identity / health
+diagnostic entities. Per-fan tach inputs are INTERNAL diagnostic
+pulse-rate only — no RPM entity is surfaced and no RPM is claimed.
+
+Compatibility: fan-driver variants (FanRelay/FanPWM/FanDAC/FanTRIAC)
+are firmware-distinct and max-one-of. Ships FanPWM only.
+
+Owed / pending before stable: the D6 bench / evidence test matrix must
+be filled and S360-311 flipped cataloged_unverified -> verified; the
+J3 silkscreen order, J6<->J3 harness, "NINE 4pin FANs" label, J3 11/12
+UART routing, Pul_Cou3/IO46 fourth-tach collision, PWM polarity,
+per-fan + aggregate current, thermal envelope, and per-fan RPM remain
+owed (see D6). No release artifact is published until then.
+```
+
+## D6 — Bench / evidence test matrix (pre-written; to be filled at the bench)
+
+This is the pre-written checklist the hardware session fills to move
+`S360-311` from `design-complete` to `verified`. It covers the
+verify-pending D1 items (silkscreen `J3` 1-to-13 order, `J6`↔`J3`
+harness, `"NINE 4pin FANs"` label, `J3` 11/12 UART routing) plus the
+native PWM drive, per-fan + aggregate current, thermal envelope, and
+per-fan RPM via native `pulse_counter`. The `Measured` / `Pass?`
+columns are **empty by design** — they are filled at the bench, not
+here. This is the structured-matrix companion to the operator-facing
+[§S360-311-BENCH-EVIDENCE-REQUEST-001 checklist](s360-311-r4-pwm.md#s360-311-bench-evidence-request-001--fanpwm-bench-evidence-checklist--contract-2026-05-26)
+in the HW-PINMAP-311 audit (same owed set, expressed as a fill-in
+matrix). It is the slice the queued `S360-311-CURRENT-THERMAL` bench
+session fills; `PWM-6` (PWM polarity) and `PWM-13` (per-fan RPM) stay
+**owed**.
+
+| # | Test | Method | Expected (from design) | Measured | Pass? | Owed item |
+|---|---|---|---|---|---|---|
+| T1 | `J3` 1-to-13 silkscreen pin order | Silkscreen photo + DMM continuity on the assembled module | Pin order matches the schematic `J3` capture (`+5V`/`TachIO`/`TachPMW1`/`Pul_Cou1`/…/`UART_RX`/`UART_TX`/`GND`) | | | J3 silkscreen order |
+| T2 | `J6`↔`J3` 13-pin harness conductor mapping | Conductor-by-conductor continuity on the physical Core `J6` ↔ module `J3` cable | Each Core `J6` net lands on the matching module `J3` pin | | | J6↔J3 harness |
+| T3 | Native PWM drive on `IO10`/`IO11`/`IO12`/`IO39` (per fan) | Scope each `TachPMW*` gate node while commanding each `fan_pwm_native_1..4` 0–100 % | Each channel drives its fan; PWM polarity (active-high vs active-low low-side gate) confirmed against the fan | | | PWM polarity (PWM-6) |
+| T4 | Per-fan fan current | DMM / current probe per fan output under load across the speed range | Per-fan current budget characterised within MOSFET / connector rating | | | per-fan current |
+| T5 | Aggregate fan current + MT3608 boost ceiling | Sum all four channels at full load; measure the 12 V boost rail | Aggregate load within the MT3608 output-current ceiling; rail holds 12 V | | | aggregate current |
+| T6 | Thermal envelope | Thermal camera / probe on `Q1..Q4`, MT3608, `L1`/`D1` at sustained full load | Steady-state temperatures within part ratings; locked-rotor / inrush envelope characterised | | | thermal envelope |
+| T7 | Per-fan RPM via native `pulse_counter` (`Pul_Cou1`/`Pul_Cou2`/`Pul_Cou4`) | Compare each native pulse_counter rate against a reference tach / scope on `IO17`/`IO18`/`IO9` | Pulses-per-revolution established; per-fan RPM validated before any RPM entity is surfaced | | | per-fan RPM (PWM-13) |
+| T8 | Fourth tach `Pul_Cou3` -> `IO46` vs Core `fan_status_led_pin` | Silkscreen + bench: resolve whether `IO46` carries `Pul_Cou3`, the fan-status LED, or both | A non-colliding binding for the fourth tach channel (or a confirmed shared use) | | | Pul_Cou3/IO46 collision |
+| T9 | `"NINE 4pin FANs"` label vs four connectors | Design-provenance note / KiCad title block / board image | Four populated fan connectors (`J1`/`J2`/`J4`/`J5`) confirmed; the `"NINE"` label explained | | | NINE-fans label |
+| T10 | `J3` pins 11/12 UART routing | Silkscreen read of Core `J6` 11/12 + harness trace + ESP32 UART identification | Confirm whether the Nextion `UART_RX`/`UART_TX` pair arrives over the 13-pin Core cable or a separate harness | | | J3 11/12 UART routing |
+| T11 | Shared `TachIO` (`IO16`) role | Scope `TachIO` net (MOSFET drains) under per-fan drive | The shared-passthrough role of `TachIO` characterised; binding decision recorded | | | TachIO/IO16 role |
+
+Filling this matrix is owed to the hardware session; this slice
+resolves none of it. The `S360-311` board stays
+`schematic_status: cataloged_unverified`.
+
 ## See also
 
 - [`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md) — HW-PINMAP-311
