@@ -236,47 +236,54 @@ class ReleaseTargetsMatchConfigTests(unittest.TestCase):
 
 class NextHardwareTaskTests(unittest.TestCase):
     """PRE-HW-PREP-FW-312-CLOSEOUT-001 — the S360-312 DAC bench task is recorded
-    as the next real hardware task (forward pointer only), and no DAC bench
-    evidence is claimed in the Evidence & Bench Logs section."""
+    as the next real hardware task using the repo's existing, canonical bench id
+    ``S360-312-BENCH-RESULT-001`` (NOT a newly-minted id), and the doc claims no
+    measured DAC bench evidence.
 
-    BENCH_ID = "S360-312-DAC-BENCH-001"
+    The S360-312 DAC firmware is design-complete (PR #674, deliverables D1-D6)
+    but no physical S360-312 board exists yet, so its bench evidence stays owed.
+    The forward pointer to the owed FanDAC bench task already lives in the
+    "Next PR queue" fan-driver evidence lane; this guard pins that it stays
+    named there and that no fabricated bench-log/evidence section is added.
+    """
+
+    # The canonical FanDAC bench-result task id already used across the repo
+    # (roadmap "Next PR queue" lane, the s360-312-r4-fandac.md D6 matrix rows,
+    # and the readiness matrices). We deliberately do NOT mint a new id.
+    BENCH_ID = "S360-312-BENCH-RESULT-001"
 
     def setUp(self) -> None:
         self.text = CANONICAL.read_text(encoding="utf-8")
+        self.low = self.text.lower()
 
-    def _section(self, heading_substr: str, text: str) -> str:
-        idx = text.index(heading_substr)
-        rest = text[idx + len(heading_substr):]
-        nxt = rest.find("\n## ")
-        return rest if nxt == -1 else rest[:nxt]
-
-    def test_next_hardware_tasks_names_dac_bench(self) -> None:
-        # (a) The Next Hardware Tasks section must name the canonical bench task.
-        self.assertIn("## Next Hardware Tasks", self.text)
-        section = self._section("## Next Hardware Tasks", self.text)
+    def test_fandac_next_hardware_task_named(self) -> None:
+        # The owed FanDAC bench-result task must be named as the next real
+        # hardware task (forward pointer only), in the Next PR queue lane.
         self.assertIn(
             self.BENCH_ID,
-            section,
-            "Next Hardware Tasks section must name the DAC bench task "
-            f"{self.BENCH_ID}.",
+            self.text,
+            "The canonical FanDAC bench-result task "
+            f"{self.BENCH_ID} must be named as the next real hardware task.",
         )
+        self.assertIn("next pr queue", self.low)
+        self.assertIn("fandac", self.low)
 
-    def test_evidence_and_bench_logs_stays_empty(self) -> None:
-        # (b) The Evidence & Bench Logs section must remain the empty
-        # placeholder — no measured DAC bench-log row may appear there.
-        self.assertIn("## Evidence & Bench Logs", self.text)
-        section = self._section("## Evidence & Bench Logs", self.text)
-        self.assertIn(
-            "(no bench logs yet)",
-            section,
-            "Evidence & Bench Logs must stay the empty placeholder.",
-        )
+    def test_no_invented_dac_bench_id(self) -> None:
+        # Closeout must NOT introduce a parallel/duplicate bench id; the repo
+        # convention is S360-312-BENCH-RESULT-001.
         self.assertNotIn(
-            self.BENCH_ID,
-            section,
-            "No filled S360-312 DAC bench-log row may appear in "
-            "Evidence & Bench Logs (no hardware evidence exists).",
+            "S360-312-DAC-BENCH-001",
+            self.text,
+            "Do not mint a new DAC bench id; reuse "
+            f"{self.BENCH_ID} (the existing repo convention).",
         )
+
+    def test_no_dac_bench_evidence_claimed(self) -> None:
+        # No measured DAC bench evidence may be claimed: S360-312 stays
+        # cataloged_unverified and the FanDAC bench result stays owed/pending.
+        self.assertIn("cataloged_unverified", self.low)
+        # The board SKU table must still carry S360-312 as cataloged_unverified.
+        self.assertIn("s360-312", self.low)
 
 
 if __name__ == "__main__":

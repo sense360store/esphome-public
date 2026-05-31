@@ -249,24 +249,6 @@ status snapshot, not a reprioritisation.
 
 ---
 
-## Next Hardware Tasks (Blocked on Physical Hardware)
-
-The next **real hardware** task — to be run **only when physical hardware
-exists** — is recorded below. This is a forward pointer only; it claims no bench
-evidence, promotes nothing, and flips no gate. The S360-312 DAC firmware is
-design-complete (PR #674, deliverables D1–D6) but **no S360-312 board exists
-yet**, so all of its bench evidence stays owed.
-
-| Task | Board | Blocking | Evidence Owed |
-|---|---|---|---|
-| `S360-312-DAC-BENCH-001` | S360-312 R4 (DAC / dual GP8403) | No physical S360-312 board in hand (pre-hardware) | Measured 0–10 V output per channel; GP8403 detection + I²C address (SW1/SW2); output range/calibration; fan/controller response; current; thermal; harness/silkscreen confirmation |
-
-## Evidence & Bench Logs
-
-(no bench logs yet)
-
----
-
 ## 9. Cross-repo WebFlash follow-ups
 
 Owned by `sense360store/WebFlash` and tracked in that repo's `UPCOMING_PR.md`.

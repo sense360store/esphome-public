@@ -26,32 +26,38 @@ six deliverables D1–D6 are complete**:
 * D5 release-note template + D6 bench/evidence matrix —
   [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md).
 
-This closeout records **`S360-312-DAC-BENCH-001`** as the next **real hardware**
-task — to be run **only when physical hardware exists**. It is a forward pointer
-only: nothing is promoted, no bench evidence is claimed, and no gate is flipped.
+The audit also confirmed that the repo **already records** the next FanDAC
+hardware task under its established naming convention —
+**`S360-312-BENCH-RESULT-001`** — in the §8 "Next PR queue" fan-driver evidence
+lane (alongside the sibling `S360-311-CURRENT-THERMAL-001` and
+`S360-310-SAFETY-BENCH-RESULT-001`), with the pre-written owed-evidence contract
+`S360-312-BENCH-EVIDENCE-REQUEST-001` and the D6 fill-in matrix in
+[`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md).
+The remaining "gap" was therefore not a missing forward pointer but the absence
+of a regression guard: nothing pinned that the FanDAC bench task stays named and
+that no fabricated DAC bench evidence is introduced. This closeout adds that
+guard. It is a forward pointer only: nothing is promoted, no bench evidence is
+claimed, no new task id is minted, and no gate is flipped.
 
 ### What changed
 
-* [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md) — new
-  **Next Hardware Tasks (Blocked on Physical Hardware)** section recording the
-  `S360-312-DAC-BENCH-001` task (board, blocking, evidence owed), and an empty
-  **Evidence & Bench Logs** `(no bench logs yet)` placeholder. The WebFlash /
-  release sections are unchanged (FanDAC stays Disabled / unexposed).
-* [`docs/pre-hardware-prep-plan.md`](docs/pre-hardware-prep-plan.md) — §6
-  S360-312 bench row names the queued task `S360-312-DAC-BENCH-001` (blocked on
-  hardware); §7 ordered slice sequence gains a row for the bench task.
-* [`docs/hardware/s360-312-r4-fandac.md`](docs/hardware/s360-312-r4-fandac.md) —
-  D6 bench/evidence matrix names the bench session id `S360-312-DAC-BENCH-001`
-  (to be run only when physical hardware exists; all rows stay unfilled / owed).
 * [`tests/test_roadmap_status_doc.py`](tests/test_roadmap_status_doc.py) — a new
-  guard asserting the Next Hardware Tasks section names `S360-312-DAC-BENCH-001`
-  and the Evidence & Bench Logs section stays an empty placeholder.
+  guard (`NextHardwareTaskTests`) asserting (a) the canonical FanDAC bench task
+  `S360-312-BENCH-RESULT-001` stays named as the next real hardware task in the
+  "Next PR queue" lane, (b) no parallel/duplicate bench id is introduced, and
+  (c) no measured DAC bench evidence is claimed (`S360-312` stays
+  `cataloged_unverified`).
 * This `UPCOMING_PR.md` entry.
+
+No `docs/sense360-roadmap-status.md`, `docs/pre-hardware-prep-plan.md`, or
+`docs/hardware/s360-312-r4-fandac.md` content change was needed: the next-task
+forward pointer (§8 "Next PR queue"), the §6 bench handoff row, and the D6
+matrix already reference `S360-312-BENCH-RESULT-001`.
 
 ### Owed (recorded, not resolved)
 
 The seven S360-312 hardware-evidence items stay **OWED** to
-`S360-312-DAC-BENCH-001` (no physical board exists yet); none is resolved here:
+`S360-312-BENCH-RESULT-001` (no physical board exists yet); none is resolved here:
 
 1. Measured voltage output (per channel).
 2. GP8403 detection / I²C address.
