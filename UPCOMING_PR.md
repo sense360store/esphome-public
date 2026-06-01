@@ -2,9 +2,111 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
-## FIRST-RELEASE-PUBLISH-READINESS-001 — assess first stable release publish readiness
+## FIRST-RELEASE-DOCS-DRIFT-RECONCILE-001 — reconcile first-release docs with live v1.0.0
 
-**Status:** assessment / documentation only (publishes nothing, builds no
+**Status:** documentation reconciliation only (publishes nothing, builds no
+`.bin`, creates no GitHub Release, pushes no tag, promotes nothing, verifies no
+hardware; no `artifact_name` added, no `webflash_build_matrix` flip, no
+`firmware/sources.json` / `manifest.json` change, no `config/*.json` /
+`packages/**` / `products/**` edit, no WebFlash repo change). Reconciles the
+first-release / dry-run / roadmap / gate docs so they no longer frame the first
+stable release as pending/future.
+
+### Summary
+
+`FIRST-RELEASE-PUBLISH-READINESS-001` (PR #684, **done**) confirmed the stable
+first release is **already published and live**: GitHub Release **`v1.0.0`**
+(2026-05-12) carries the expected stable artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, real human-authored
+release notes, checksums, and a build-info `manifest.json`, and WebFlash has
+imported it (live). This PR removes the stale "first release pending / no
+release-or-tag exists / publish is future" framing from the remaining docs while
+**preserving the hosted dry-run pass as workflow-confidence evidence** and all
+hardware/expansion guardrails.
+
+Because `v1.0.0` is already published, **`FIRST-RELEASE-PUBLISH-001` is not
+opened** (opening it would risk a double-publish / re-tag of a live release). The
+only legitimate future publish is a **new version** — queued below as
+`FIRST-MAINTENANCE-RELEASE-PLAN-001`.
+
+### What changed
+
+* [`docs/first-release-dryrun-checklist.md`](docs/first-release-dryrun-checklist.md)
+  — status-reconciliation banner; stages 5–6 marked "already done for `v1.0.0`";
+  §6 `firmware/sources.json` reframed as WebFlash-owned and already recording
+  `v1.0.0`; §8 rollback, §9 checklist, §10 publish-readiness, and §11.4 / §11.5 /
+  §11.8.4 reframed so they describe a **future new-version** publish rather than
+  an unpublished `v1.0.0`. The dry-run is preserved as workflow-confidence
+  evidence; no gate changed.
+* [`docs/first-release-gates.md`](docs/first-release-gates.md) — Headline, §1
+  table, and the dry-run callout reframed to "published / live (`v1.0.0`)"; gate
+  tables otherwise unchanged.
+* [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md) — §1 gains
+  a release-status table (first stable release **published/live**; current
+  release path **`v1.0.0`**; next publish action **none unless a new version is
+  planned**; next meaningful release task **maintenance-release planning /
+  next stable-bundle expansion gates**); §5.2 reframed; hardware/blocker
+  sections, Next Hardware Tasks, and Evidence & Bench Logs unchanged.
+* [`docs/pre-hardware-room-bundle-release-handoff.md`](docs/pre-hardware-room-bundle-release-handoff.md)
+  — release-status banner + Bathroom row reframed to "published / live (`v1.0.0`)".
+* This `UPCOMING_PR.md` entry (and the queued `FIRST-MAINTENANCE-RELEASE-PLAN-001`
+  future task below).
+
+### Guardrails (explicitly NOT changed)
+
+* **No publish** — no GitHub Release, no tag, no release asset; `v1.0.0` is **not**
+  re-published or re-tagged; publishing stays gated to a real `release: published`
+  event.
+* **No artifacts** — no `.bin` created/committed, no checksum file, no build-info
+  `manifest.json`.
+* **No source-of-record change** — no repo-local `firmware/sources.json` (still
+  absent; the live one is WebFlash-owned), no `manifest.json`.
+* **No WebFlash exposure / repo change** — no `config/webflash-builds.json` row,
+  no `artifact_name` added, no `webflash_build_matrix` flip, no new WebFlash
+  target; the `sense360store/WebFlash` repo is untouched; no bundle promoted.
+* **S360-410 not marked verified** — `schematic_status` stays
+  `cataloged_unverified`; the Release-One PoE caveat preserved.
+* **LED not marked stable** — `S360-300` firmware stays `preview`; no LED-stable
+  claim. **Fan variants not release-ready.** **No bench evidence claimed.**
+* No `config/*.json` / `packages/**` / `products/**` change; docs only.
+
+### Validation
+
+* `python3 tests/validate_configs.py`
+* `python3 tests/test_roadmap_status_doc.py`
+* `python3 tests/test_product_catalog.py`
+* `python3 tests/validate_webflash_builds.py`
+* `python3 -m unittest discover -s tests -p "test_*.py"`
+
+---
+
+## FIRST-MAINTENANCE-RELEASE-PLAN-001 — plan a future maintenance release (new version) — FUTURE / NOT STARTED
+
+**Status:** future / not started — placeholder only. The stable first release
+`v1.0.0` is published and live; there is **no pending publish action** for it.
+The only legitimate future publish is a **new version** (e.g. `1.0.1` for a
+maintenance/patch release or `1.1.0` for a feature release), which would have its
+own real changelog, tag, build, checksums, and WebFlash handoff. This entry
+exists so the next *meaningful* release task is named; it is **not** scoped or
+approved here and creates nothing. It supersedes any notion of a
+`FIRST-RELEASE-PUBLISH-001` (which is **not** opened — `v1.0.0` is already
+published).
+
+### When this would run
+
+* A real, user-visible change worth shipping has merged to `main`.
+* A new semantic version is chosen (`1.0.1` / `1.1.0`); `v1.0.0` is never
+  re-published or re-tagged.
+* The §10 publish-readiness gates in
+  [`docs/first-release-dryrun-checklist.md`](docs/first-release-dryrun-checklist.md)
+  are re-cleared for the new version (real changelog, artifact/checksum review,
+  release-note review, WebFlash handoff, post-publish verification).
+
+---
+
+## FIRST-RELEASE-PUBLISH-READINESS-001 — assess first stable release publish readiness — DONE (PR #684)
+
+**Status:** **DONE** (PR #684) — assessment / documentation only (publishes nothing, builds no
 `.bin`, creates no GitHub Release, pushes no tag, promotes nothing, verifies no
 hardware; no `artifact_name` added, no `webflash_build_matrix` flip, no
 `firmware/sources.json` / `manifest.json` change, no `config/*.json` /

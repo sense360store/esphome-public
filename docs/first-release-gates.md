@@ -29,9 +29,14 @@ source-of-truth file wins** and this doc is the one to fix.
 
 ### Headline
 
-> **`S360-KIT-BATH-P` (Bathroom, stable) can ship today** as the current
-> first-release path — it is already the Release-One stable WebFlash build
-> `Ceiling-POE-VentIQ-RoomIQ`.
+> **`S360-KIT-BATH-P` (Bathroom, stable) is published and live** as the current
+> first-release path — it is the Release-One stable WebFlash build
+> `Ceiling-POE-VentIQ-RoomIQ`, shipped as GitHub Release **`v1.0.0`**
+> (2026-05-12) and imported/live in WebFlash. **The first stable release is no
+> longer pending — `v1.0.0` is the current release path.** Any future publish
+> must use a **new version** (e.g. `1.0.1` / `1.1.0`); `v1.0.0` is not
+> re-published. See
+> [`docs/first-release-publish-readiness.md`](first-release-publish-readiness.md).
 >
 > **Kitchen / Bedroom / Living / Corridor are not first-release eligible yet.**
 > Each is a candidate behind named gates (S360-410 PoE evidence and/or the LED
@@ -80,12 +85,16 @@ source-of-truth file wins** and this doc is the one to fix.
 > [run 26723839261](https://github.com/sense360store/esphome-public/actions/runs/26723839261/job/78755574773),
 > commit `b2cc9fd5054f62c18b63230c2b380bc749abf2f0`, **no artifacts** (expected).
 > Outcome: **`dry-run passed`** (first-release workflow dry-run: passed; hosted
-> CI dry-run: passed). **Publishing is still a separate human decision** — real
-> changelog bullets, any required external-component tag pin, publish-time
-> checksums, and WebFlash handoff all remain **pending** a real release. The safe
-> dry-run mode **already exists** (`RELEASE-WORKFLOW-DRYRUN-MODE-001`), so the
-> conditional `FIRST-RELEASE-WORKFLOW-DRYRUN-MODE-001` is **not** opened. Full
-> record: [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md)
+> CI dry-run: passed) — this is **workflow confidence evidence**, a rehearsal of
+> the release *workflow*, not a sign that `v1.0.0` is unpublished. The stable
+> first release **`v1.0.0` is already published and live**; there is **no pending
+> publish action** for it, and a *future* publish would be a separate human
+> decision on a **new version** (e.g. `1.0.1` / `1.1.0`) with its own real
+> changelog, optional external-component tag pin, publish-time checksums, and
+> WebFlash handoff. The safe dry-run mode **already exists**
+> (`RELEASE-WORKFLOW-DRYRUN-MODE-001`), so the conditional
+> `FIRST-RELEASE-WORKFLOW-DRYRUN-MODE-001` is **not** opened. Full record:
+> [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md)
 > §11 (§11.8 for the hosted pass). This changes **no gate** in this doc.
 
 ---
@@ -98,14 +107,16 @@ WebFlash-exposed builds; only the **stable** one is the first-release path.
 
 | Config string | Channel | Version | Artifact | Bundle | First-release? |
 |---|---|---|---|---|---|
-| `Ceiling-POE-VentIQ-RoomIQ` | **stable** | 1.0.0 | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` | `S360-KIT-BATH-P` (Bathroom) | **YES — ships today** |
+| `Ceiling-POE-VentIQ-RoomIQ` | **stable** | 1.0.0 | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` | `S360-KIT-BATH-P` (Bathroom) | **YES — published/live (`v1.0.0`)** |
 | `Ceiling-POE-VentIQ-RoomIQ-LED` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin` | (none — LED variant) | No (preview channel only; LED preview-gated, §3 / §7) |
 
 Release-One required configs (`config/webflash-compatibility.json` →
 `release_one_required_configs`): **`Ceiling-POE-VentIQ-RoomIQ`** only.
 
-**Bathroom stable release can ship today as the current first-release path.**
-No other config string is release-eligible today; nothing here is promoted.
+**The Bathroom stable release is already published and live** as the current
+first-release path (GitHub Release `v1.0.0`, 2026-05-12; imported/live in
+WebFlash). No other config string is release-eligible today; nothing here is
+promoted. A future publish would use a **new version**, not `v1.0.0`.
 
 ---
 
@@ -117,7 +128,7 @@ are blocked candidates owned by named follow-ups.
 
 | Bundle SKU | Room | Boards | Firmware config target | Status | First-release eligibility | Blocking gate(s) |
 |---|---|---|---|---|---|---|
-| `S360-KIT-BATH-P` | bathroom | S360-100/200/211/410 | `Ceiling-POE-VentIQ-RoomIQ` | `stable-release` (shipping) | **ELIGIBLE — ships today** | None (already the stable build; ships under the preserved S360-410 PoE "schematic verification pending" caveat) |
+| `S360-KIT-BATH-P` | bathroom | S360-100/200/211/410 | `Ceiling-POE-VentIQ-RoomIQ` | `stable-release` (published/live, `v1.0.0`) | **ELIGIBLE — published/live** | None (the live stable build; ships under the preserved S360-410 PoE "schematic verification pending" caveat) |
 | `S360-KIT-KITCHEN-P` | kitchen | S360-100/200/210/410 | `Ceiling-POE-AirIQ-RoomIQ` | `stable-candidate` (missing-product-yaml) | **NOT eligible** | AirIQ sensor-stack evidence (SPS30 / SGP41 / SCD41 / BMP390) **plus** the shared S360-410 PoE chain (§4) |
 | `S360-KIT-LIVING-P` | living-room | S360-100/200/300/410 | `Ceiling-POE-RoomIQ-LED` | `preview-candidate` (missing-product-yaml) | **NOT eligible** | LED preview→stable gauntlet (§7) **plus** the shared S360-410 PoE chain (§4) |
 | `S360-KIT-BEDROOM-P` | bedroom | S360-100/200/410 | `Ceiling-POE-RoomIQ` | `stable-candidate` (`blocked-hardware`) | **NOT eligible** | Shared S360-410 PoE chain alone (§4); RoomIQ-only top-level YAML is `blocked-hardware` on `PRODUCT-POE-410-001` |

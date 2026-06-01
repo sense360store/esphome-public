@@ -56,6 +56,21 @@ No other config string is release-eligible today. FanRelay / FanPWM / FanDAC /
 FanTRIAC are **not** in `webflash-builds.json`, have no `artifact_name`, and do
 not set `webflash_build_matrix`.
 
+| Release status field | Value |
+|---|---|
+| First stable release | **published / live** |
+| Current release path | **`v1.0.0`** (GitHub Release, 2026-05-12; imported/live in WebFlash) |
+| Next publish action | **none** unless a new version is planned |
+| Next meaningful release task | maintenance-release planning (`FIRST-MAINTENANCE-RELEASE-PLAN-001`) or the next stable-bundle expansion gates (§6 / §8) |
+
+The stable first release is **no longer pending**: the stable build above shipped
+as GitHub Release **`v1.0.0`** and is imported/live in WebFlash — see
+[`docs/first-release-publish-readiness.md`](first-release-publish-readiness.md)
+(`FIRST-RELEASE-PUBLISH-READINESS-001`) and
+[`docs/webflash-release-proof.md`](webflash-release-proof.md) (ESP-006/ESP-007).
+Any future publish must use a **new version** (e.g. `1.0.1` / `1.1.0`); `v1.0.0`
+is not re-published or re-tagged.
+
 ---
 
 ## 2. Bundle SKUs
@@ -185,14 +200,19 @@ hardware verified.
 | Result | **`passed`** — all dry-run guardrail steps passed |
 | Artifacts | **none** (expected for a no-publish dry-run) |
 
-All dry-run guardrail steps passed; **no** release, tag, asset, committed `.bin`,
-`firmware/sources.json`, or `manifest.json` was created. **Publish readiness is
-still pending human review** and a real changelog/publish decision: real
-changelog bullets, any required external-component ref/tag pin, publish-time
-checksums, and WebFlash import/handoff all remain owed until a real release
-artifact exists. Full record:
+All dry-run guardrail steps passed; the dry-run created **no** release, tag,
+asset, committed `.bin`, `firmware/sources.json`, or `manifest.json`. This is
+**workflow confidence evidence** (a rehearsal of the release *workflow*), not a
+sign that `v1.0.0` is unpublished. The stable first release **`v1.0.0` is already
+published and live** (§1) with real changelog bullets, checksums, build-info
+`manifest.json`, and a WebFlash import — there is **no pending publish action**
+for it. A *future* publish would be a separate human decision on a **new
+version** (e.g. `1.0.1` / `1.1.0`) with its own changelog, optional
+external-component ref/tag pin, publish-time checksums, and WebFlash handoff.
+Full record:
 [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md) §11.8
-(`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001`).
+(`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001`) and
+[`docs/first-release-publish-readiness.md`](first-release-publish-readiness.md).
 
 ---
 
