@@ -1,5 +1,13 @@
 # Pre-Hardware Room-Bundle Release-Handoff Matrix (PRE-HW-PREP-ROOM-BUNDLES-001)
 
+> **Release status (`FIRST-RELEASE-DOCS-DRIFT-RECONCILE-001`).** The Bathroom
+> first-release path (`S360-KIT-BATH-P` / `Ceiling-POE-VentIQ-RoomIQ` / stable)
+> is **published and live** as GitHub Release **`v1.0.0`** (2026-05-12),
+> imported/live in WebFlash — it is not pending. The other four bundles remain
+> pre-hardware candidates as described below. Any future publish uses a **new
+> version** (e.g. `1.0.1` / `1.1.0`); `v1.0.0` is not re-published. See
+> [`docs/first-release-publish-readiness.md`](first-release-publish-readiness.md).
+
 > **See also:** the per-bundle first-release view here is rolled up into the
 > consolidated **first-release / expansion gate checklist**
 > [`docs/first-release-gates.md`](first-release-gates.md)
@@ -104,14 +112,14 @@ edits is [`UPCOMING_PR.md`](../UPCOMING_PR.md).
 
 | Bundle SKU | Included boards | Firmware config target | Release channel / status | WebFlash status | Blocking hardware evidence | Release-note status | Bench task pointer | First-release eligibility |
 |---|---|---|---|---|---|---|---|---|
-| `S360-KIT-BATH-P`<br>(Bathroom) | `S360-100` Core; `S360-200` RoomIQ; `S360-211` VentIQ; `S360-410` PoE PSU | `Ceiling-POE-VentIQ-RoomIQ` | `webflash-shipping` (`stable-release`) | **exposed (stable)** — `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` | S360-410 PoE "schematic verification pending" caveat **preserved** (Release-One ships under this caveat; not cleared here); Core J2 PoE-harness identity (HW-002 OQ#6) open under `S360-100-BENCH-001`. Neither blocks the existing stable build. | `eligible-stable` | `S360-100-BENCH-001` (Core / J2 PoE harness); `PRE-HW-PREP-POE-410-001` (PoE isolation / Hi-pot, downstream) | **ELIGIBLE** — already the Release-One stable build; **not promoted by this PR** (already stable). |
+| `S360-KIT-BATH-P`<br>(Bathroom) | `S360-100` Core; `S360-200` RoomIQ; `S360-211` VentIQ; `S360-410` PoE PSU | `Ceiling-POE-VentIQ-RoomIQ` | `webflash-published` (`stable-release`, `v1.0.0` live) | **exposed (stable)** — `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` | S360-410 PoE "schematic verification pending" caveat **preserved** (Release-One ships under this caveat; not cleared here); Core J2 PoE-harness identity (HW-002 OQ#6) open under `S360-100-BENCH-001`. Neither blocks the existing stable build. | `eligible-stable` | `S360-100-BENCH-001` (Core / J2 PoE harness); `PRE-HW-PREP-POE-410-001` (PoE isolation / Hi-pot, downstream) | **PUBLISHED / LIVE** — the Release-One stable build, shipped as `v1.0.0`; **not promoted by this PR** (already published). |
 | `S360-KIT-KITCHEN-P`<br>(Kitchen) | `S360-100` Core; `S360-200` RoomIQ; `S360-210` AirIQ; `S360-410` PoE PSU | `Ceiling-POE-AirIQ-RoomIQ` | `missing-product-yaml` (`stable-candidate`) | not-exposed — no `webflash-builds` row; compile-only skeleton [`products/compile-only/ceiling-poe-airiq-roomiq.yaml`](../products/compile-only/ceiling-poe-airiq-roomiq.yaml) validates the combination only | AirIQ-stack hardware evidence (SPS30 / SGP41 / SCD41 / BMP390) — `S360-210` is `hardware-evidenced / firmware-missing` with no active product YAML; shared S360-410 PoE-410 chain (`PRODUCT-POE-410-001` / `PACKAGE-POE-410-001`). | `not-generable` (no catalog row) | AirIQ sensor-stack bench under `STABLE-TARGET-AIRIQ-001`; `S360-100-BENCH-001`; `PRE-HW-PREP-POE-410-001` | **NOT eligible** — owned by `STABLE-TARGET-AIRIQ-001` → `STABLE-TARGET-AIRIQ-ROOMIQ-001` (after PoE-410 closure). |
 | `S360-KIT-LIVING-P`<br>(Living Room) | `S360-100` Core; `S360-200` RoomIQ; `S360-300` LED; `S360-410` PoE PSU | `Ceiling-POE-RoomIQ-LED` | `missing-product-yaml` (`preview-candidate`) | not-exposed — no `webflash-builds` row. (The only exposed `preview` LED build is `Ceiling-POE-VentIQ-RoomIQ-LED`, a **different** config string with VentIQ.) | LED (`S360-300`) stays `preview` — bench evidence owed; operator flash proof `WF-HW-TEST-001` / `WF-HW-TEST-003`; shared S360-410 PoE-410 chain. | `not-generable` (no catalog row) | `S360-300-BENCH-001` (LED bench); `WF-HW-TEST-001` / `WF-HW-TEST-003`; `PRE-HW-PREP-POE-410-001` | **NOT eligible** — LED preview-gated; promotion owned by `LED-STABLE-PROMOTION-001` (alias `RELEASE-007`) + an unscoped no-VentIQ LED slice. |
 | `S360-KIT-BEDROOM-P`<br>(Bedroom) | `S360-100` Core; `S360-200` RoomIQ; `S360-410` PoE PSU | `Ceiling-POE-RoomIQ` | `blocked-hardware` (`stable-candidate`) — see [audit finding](#audit-findings) | not-exposed — no `webflash-builds` row | Shared S360-410 PoE-410 chain (`PRODUCT-POE-410-001` / `PACKAGE-POE-410-001`); `S360-410` `schematic_status: cataloged_unverified`; Core review under `S360-100-BENCH-001`. | `not-generable` (no catalog row) | `S360-100-BENCH-001`; `PRE-HW-PREP-POE-410-001` | **NOT eligible** — owned by `STABLE-TARGET-CORE-001` → `STABLE-TARGET-ROOMIQ-001`. |
 | `S360-KIT-CORRIDOR-P`<br>(Landing / Corridor) | `S360-100` Core; `S360-200` RoomIQ; `S360-300` LED; `S360-410` PoE PSU | `Ceiling-POE-RoomIQ-LED` | `missing-product-yaml` (`preview-candidate`) | not-exposed — no `webflash-builds` row | Same as `S360-KIT-LIVING-P` (shares board set + config target): LED stays `preview`; `WF-HW-TEST-001` / `WF-HW-TEST-003`; shared S360-410 PoE-410 chain. | `not-generable` (no catalog row) | `S360-300-BENCH-001`; `WF-HW-TEST-001` / `WF-HW-TEST-003`; `PRE-HW-PREP-POE-410-001` | **NOT eligible** — same as `S360-KIT-LIVING-P` until a corridor-specific config differentiates them. |
 
-**Summary: 1 of 5 room bundles is first-release eligible today**
-(`S360-KIT-BATH-P`, already the Release-One stable build). The other
+**Summary: 1 of 5 room bundles is published/live today**
+(`S360-KIT-BATH-P`, the Release-One stable build, shipped as `v1.0.0`). The other
 four remain candidates whose promotion is owned by named follow-up PRs,
 none of which is approved or scoped here.
 

@@ -10,6 +10,21 @@ nothing, builds no `.bin`, promotes nothing, and verifies no hardware.** It does
 new WebFlash target, touch the `sense360store/webflash` repo, mark `S360-410`
 verified, mark LED stable, or mark any fan variant release-ready.
 
+> **Status reconciliation (`FIRST-RELEASE-DOCS-DRIFT-RECONCILE-001`).** The first
+> stable release is **already published and live** — GitHub Release **`v1.0.0`**
+> for `sense360store/esphome-public` shipped on **2026-05-12** with the expected
+> stable artifact `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, real
+> human-authored release notes, checksums, and a build-info `manifest.json`, and
+> it is **imported/live in WebFlash** (see
+> [`docs/first-release-publish-readiness.md`](first-release-publish-readiness.md)
+> and [`docs/webflash-release-proof.md`](webflash-release-proof.md), ESP-006/ESP-007).
+> **This checklist is a workflow rehearsal/proof, not evidence that `v1.0.0` is
+> unpublished.** It documents and exercises the *release workflow* end to end
+> using only non-publishing lanes, so that a **future** release can be run with
+> confidence. Any future publish must use a **new version** (e.g. `1.0.1` or
+> `1.1.0`) — `v1.0.0` is done and must not be re-published or re-tagged. Where
+> this doc still says "future real publish", read it as that **next** version.
+
 ## Purpose and scope
 
 This is the **single concrete operator checklist for dry-running the current
@@ -55,9 +70,11 @@ for a stable first release.** The preview LED build
 and is **not** part of this first-release stable dry-run except where it rides
 along automatically in the `all-release-eligible` planner scope.
 
-> **WebFlash first-release gate sync has already run/merged.** This checklist is
-> the dry-run rehearsal that precedes any future real publish. It enables no new
-> WebFlash target and mirrors nothing into the WebFlash repo.
+> **The stable first release (`v1.0.0`) is already published and live in
+> WebFlash.** This checklist is the dry-run rehearsal of the release *workflow* —
+> it is reusable evidence for the **next** (new-version) publish, not a sign that
+> `v1.0.0` is unpublished. It enables no new WebFlash target and mirrors nothing
+> into the WebFlash repo.
 
 ### Sources of truth (do not duplicate, link instead)
 
@@ -88,9 +105,11 @@ first four with **non-publishing** lanes and only *describes* the last two
 | 2 | Validate release notes | `scripts/validate-webflash-release-notes.py` | No |
 | 3 | Plan / rehearse the build | `Build & Release Firmware` workflow with `dry_run=true` (the safe default) | No |
 | 4 | Inspect artifact naming + (optional) compile | `config/webflash-builds.json` assertion; optional non-publishing manual build (`dry_run=false`, dev version) | No |
-| 5 | Publish GitHub Release + checksums + build-info manifest | **NOT exercised** — real `release: published` event only | Yes (future) |
-| 6 | WebFlash import / sign / manifest / deploy | **NOT exercised** — WebFlash-owned, separate repo | Yes (future) |
+| 5 | Publish GitHub Release + checksums + build-info manifest | **NOT exercised** — real `release: published` event only (already done for `v1.0.0`) | Yes (next version) |
+| 6 | WebFlash import / sign / manifest / deploy | **NOT exercised** — WebFlash-owned, separate repo (already done for `v1.0.0`) | Yes (next version) |
 
+Stages 5–6 **already ran for `v1.0.0`** (the live stable release); the dry-run
+only rehearses stages 1–4 so the **next** version can publish with confidence.
 **Publishing is gated to a real `release: published` GitHub event.** The
 `dry_run` input **cannot** publish: the `release` job in
 [`firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml)
@@ -289,13 +308,19 @@ The build-info `manifest.json` is **not** the WebFlash production manifest
 
 ## 6. What goes into `firmware/sources.json` *later*
 
-[`firmware/sources.json`](../firmware/sources.json) is the (future) published
-firmware **source-of-record** that downstream consumers read. **It does not
-exist in this repo today, and this dry-run must not create or change it** — the
+The published firmware **source-of-record** that downstream consumers read is
+`firmware/sources.json`. **That file is owned by WebFlash**
+(`sense360store/WebFlash/firmware/sources.json`) and **already records the live
+`v1.0.0`** (release tag, URL, version `1.0.0`, channel `stable`, config string,
+and asset name) — see
+[`docs/first-release-publish-readiness.md`](first-release-publish-readiness.md)
+§1.4. A repo-local [`firmware/sources.json`](../firmware/sources.json) **does not
+exist in this repo, and this dry-run must not create or change one** — the
 dry-run job explicitly fails if it appears.
 
-When a *real* first release is eventually published, the entry for this path
-would record (illustrative shape only — **not** written here):
+The live WebFlash-side entry for this path records (this is the **published**
+`v1.0.0` shape; a **future** new version would add its own analogous entry —
+nothing is written here):
 
 - `config_string`: `Ceiling-POE-VentIQ-RoomIQ`
 - `channel`: `stable`
@@ -305,8 +330,8 @@ would record (illustrative shape only — **not** written here):
 - `size`: the artifact byte size
 - the GitHub release tag / asset URL the binary is attached to.
 
-Writing that entry is a **future, real-publish** action, not part of any
-dry-run.
+For `v1.0.0` that entry is **already written** (WebFlash-side). Writing a new
+entry is a **future, new-version publish** action, not part of any dry-run.
 
 ---
 
@@ -345,8 +370,10 @@ target.**
 
 The dry-run is **inherently reversible** because it produces nothing persistent:
 
-- **No tag is pushed.** A GitHub Release (and therefore the publish path) only
-  starts when a maintainer publishes a release/tag. The dry-run never does this.
+- **The dry-run pushes no new tag.** The live `v1.0.0` release/tag already
+  exists; a *new* GitHub Release (and therefore a new publish path) only starts
+  when a maintainer publishes a new release/tag for a new version. The dry-run
+  never does this and never touches `v1.0.0`.
 - **`dry_run` cannot publish.** The `release` job is gated on
   `github.event_name == 'release'` and ignores the `dry_run` input
   (`RELEASE-WORKFLOW-DRYRUN-MODE-001`).
@@ -355,10 +382,11 @@ The dry-run is **inherently reversible** because it produces nothing persistent:
   root `*.bin` were produced.
 - **Manual artifacts expire.** Any §2b / §4b CI artifact is a temporary GitHub
   Actions artifact (14-day / 7-day retention) — not a release asset.
-- **If a real release is ever published by mistake** (out of dry-run scope), the
-  rollback is to delete the GitHub Release **and** its tag and re-run the
-  WebFlash sync; WebFlash will not import an absent release. That recovery path
-  belongs to the real-publish runbook, not to this dry-run.
+- **If a *new* release is ever published by mistake** (out of dry-run scope; a
+  re-publish/re-tag of `v1.0.0` is explicitly forbidden), the rollback is to
+  delete that GitHub Release **and** its tag and re-run the WebFlash sync;
+  WebFlash will not import an absent release. That recovery path belongs to the
+  real-publish runbook, not to this dry-run.
 
 ---
 
@@ -385,8 +413,9 @@ Run top to bottom. Every box is a **non-publishing** action.
 - [ ] **Inspect checksums.** Understand that the canonical `checksums-sha256.txt`
       is **publish-time only** (§5b); if you compiled in §4b, you may `sha256sum`
       the expiring CI artifact locally as a preview.
-- [ ] **Confirm no publish occurred.** The repo **Releases** page is unchanged;
-      no new tag exists; the `release` job did not run.
+- [ ] **Confirm no *new* publish occurred.** The dry-run added **no new**
+      release or tag (the live `v1.0.0` release/tag is untouched); the `release`
+      job did not run.
 - [ ] **Confirm no manifest update occurred.** No `manifest.json` was committed
       or left in the tree (the build-info manifest only exists transiently in a
       real `release` run).
@@ -399,10 +428,13 @@ Run top to bottom. Every box is a **non-publishing** action.
 
 ---
 
-## 10. Publish-readiness checklist (for the *future* real release)
+## 10. Publish-readiness checklist (cleared by `v1.0.0`; reusable for the next version)
 
-This is the gate a real publish must clear. It is recorded here for planning; no
-box is ticked by this dry-run.
+These gates were **already cleared by the live `v1.0.0` publish** (assessed in
+[`docs/first-release-publish-readiness.md`](first-release-publish-readiness.md)
+§2, all nine gates met). The checklist is retained as the gate a **future,
+new-version** publish (e.g. `1.0.1` / `1.1.0`) must clear; no box is re-ticked by
+this dry-run, and `v1.0.0` is **not** re-published.
 
 ### 10.1 Human review requirements
 
@@ -539,9 +571,10 @@ Actions access dispatched the hosted `Build & Release Firmware` →
 commit `b2cc9fd5054f62c18b63230c2b380bc749abf2f0`, no artifacts — expected). That
 closes the single gap that had held this record at **`dry-run partial`**: the
 task asked to record a hosted **workflow run URL / run ID**, and earlier this
-environment could not dispatch GitHub Actions (§11.7). Publishing remains a
-separate human decision (§11.8.4). It is **not** the case that *"no safe dry-run
-mode exists"* — the opposite is true:
+environment could not dispatch GitHub Actions (§11.7). The stable first release
+`v1.0.0` is **already published and live** (§11.8.4); a *new-version* publish
+would be a separate human decision. It is **not** the case that *"no safe
+dry-run mode exists"* — the opposite is true:
 
 - The `Build & Release Firmware` workflow already has a **safe-by-default
   dry-run mode** (`RELEASE-WORKFLOW-DRYRUN-MODE-001`): the `release-dry-run` job
@@ -554,10 +587,16 @@ mode exists"* — the opposite is true:
   no safe dry-run mode exists) is **not created** — opening it would fabricate a
   gap that the repo does not have.
 
-### 11.5 Publish-readiness gaps (what a real publish still needs)
+### 11.5 Publish-readiness gaps (resolved for `v1.0.0`; what a *new-version* publish would re-check)
 
-Recorded, not resolved — these are the exact gaps between this dry-run and a
-real first publish:
+> **Reconciled.** These were written as the gap between the *rehearsal* and a
+> real first publish. The first publish has since/already happened: **`v1.0.0`
+> is live** with real human-authored changelog bullets, checksums, build-info
+> `manifest.json`, and a WebFlash import (see
+> [`docs/first-release-publish-readiness.md`](first-release-publish-readiness.md)
+> §1–§2). The items below therefore describe what a **future new-version**
+> publish (e.g. `1.0.1` / `1.1.0`) would re-satisfy — **not** an open gap for
+> `v1.0.0`.
 
 1. **Hosted dry-run run evidence — now captured (passed).** ✅ **Resolved** by
    `FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001` (§11.8): an operator with GitHub
@@ -752,28 +791,38 @@ verifies no hardware.
 - ✅ **No `config/*.json`, `packages/**`, or `products/**` change**; no WebFlash
   repo change; no new WebFlash target.
 
-#### 11.8.4 Disposition — dry-run passed; publish still pending human review
+#### 11.8.4 Disposition — dry-run passed; `v1.0.0` already published
 
-The **first-release workflow dry-run** and the **hosted CI dry-run** are both now
-**`passed`**. **Publish readiness is still pending** human review and a real
-changelog/publish decision — a passing dry-run does **not** authorise a publish.
-The following gaps remain open (they are **not** closed by a passing dry-run):
+The **first-release workflow dry-run** and the **hosted CI dry-run** are both
+**`passed`**, confirming the release *workflow* works. Separately, the **stable
+first release `v1.0.0` is already published and live** (it shipped 2026-05-12,
+ahead of this rehearsal) with real human-authored changelog bullets, checksums, a
+build-info `manifest.json`, and a WebFlash import — all nine publish-readiness
+gates were met (see
+[`docs/first-release-publish-readiness.md`](first-release-publish-readiness.md)).
+There is **no pending publish action for `v1.0.0`**.
 
-- **Real changelog bullets still required** — the `## Changelog` is still the
-  TODO placeholder; real, user-visible bullets must replace it before a `stable`
-  publish (filler is rejected at publish time, §2c / Stage 4).
-- **External-component ref/tag pinning still required if release policy requires
-  it** — `packages/base/external_components.yaml` uses git `ref: main`; pin it to
-  the release tag for a reproducible tagged build.
+The points below are therefore **not open gaps for `v1.0.0`** — they are what a
+**future new-version** publish (e.g. `1.0.1` / `1.1.0`) would re-satisfy:
+
+- **Real changelog bullets** — the generator default `## Changelog` is a TODO
+  placeholder; a new version must replace it with real, user-visible bullets
+  before a `stable` publish (filler is rejected at publish time, §2c / Stage 4).
+  `v1.0.0` already shipped real bullets.
+- **External-component ref/tag pinning if release policy requires it** —
+  `packages/base/external_components.yaml` uses git `ref: main` for remote
+  consumers; the published `.bin` builds from local checked-out source so it is
+  effectively pinned (an optional reproducibility nicety for a new tag).
 - **Checksums are publish-time only** — `checksums-sha256.txt` /
-  `checksums-md5.txt` and the build-info `manifest.json` only exist on a real
-  `release: published` run (§5b); the dry-run produced none (correct/expected).
+  `checksums-md5.txt` and the build-info `manifest.json` exist on a real
+  `release: published` run (§5b); they exist for `v1.0.0` and the dry-run
+  produced none (correct/expected).
 - **WebFlash import / handoff happens only after a real release artifact exists**
-  — no WebFlash change is triggered by this dry-run (§7).
+  — done for `v1.0.0`; no WebFlash change is triggered by this dry-run (§7).
 
-A real publish must still clear every §10 publish-readiness gate (human review,
-artifact/checksum review, GitHub release-note review, WebFlash handoff,
-post-publish verification).
+A **future new-version** publish must still clear every §10 publish-readiness
+gate (human review, artifact/checksum review, GitHub release-note review,
+WebFlash handoff, post-publish verification); `v1.0.0` already cleared them.
 
 ---
 
