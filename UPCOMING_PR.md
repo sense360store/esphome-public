@@ -2,6 +2,69 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## RELEASE-PREVIEW-ALL-PRODUCTS-001 — allow preview releases for buildable products
+
+**Status:** docs + config policy only (publishes nothing, builds no `.bin`,
+creates no GitHub Release, pushes no tag, promotes nothing, verifies no
+hardware; adds **no** `config/webflash-builds.json` row, adds no `artifact_name`,
+no `webflash_build_matrix` flip, no `config/product-catalog.json` status flip, no
+`firmware/sources.json` / `manifest.json` change, no `packages/**` / `products/**`
+edit, no WebFlash repo change). Records the channel-tier **policy** and
+preview-release **eligibility** only.
+
+### Summary
+
+The previous guardrails treated "no hardware proof" as a blocker for every
+channel, which blocked meaningful tester-facing progress. This change opens the
+gate so **every buildable Sense360 firmware target is eligible for a preview
+release**, including the fan-control and TRIAC targets, while keeping **stable /
+production promotion evidence-gated**.
+
+Driving rule: **lack of hardware proof blocks _stable only_** — it does **not**
+block preview artifact publication. Preview means buildable + installable for
+testers; it does not mean hardware verified, stable, recommended, production, or
+a customer default. TRIAC may be preview only as **advanced-preview** (mains-risk
+warning required; never stable, recommended, or default).
+
+### What changed
+
+* [`config/release-channel-policy.json`](config/release-channel-policy.json)
+  (new) — machine-readable channel-tier policy (stable / preview /
+  advanced-preview), per-tier rules, `FanTRIAC` advanced-preview ceiling,
+  required warning copy, guardrail flags, and the preview-release eligibility
+  matrix for every buildable target.
+* [`docs/release-channel-policy.md`](docs/release-channel-policy.md) (new) —
+  canonical `RELEASE-PREVIEW-ALL-PRODUCTS-001` narrative: tier definitions,
+  policy rules, the full preview-release matrix (Bathroom stable; Kitchen/AirIQ,
+  Bedroom/RoomIQ, Living/Corridor LED, LED, FanRelay, FanPWM, FanDAC preview;
+  FanTRIAC advanced-preview), warning copy, and hard guardrails.
+* [`tests/test_release_channel_policy.py`](tests/test_release_channel_policy.py)
+  (new) — 32 guards: preview allowed without hardware proof; stable still
+  evidence-gated; TRIAC never stable/recommended/default; TRIAC preview requires
+  the advanced/mains-risk warning; fan previews are not stable; preview targets
+  require warning text; WebFlash matrix may include preview without stable
+  promotion; no fake hardware evidence / verified-schematic / production claim.
+* [`docs/release-matrix-webflash-alignment.md`](docs/release-matrix-webflash-alignment.md),
+  [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md),
+  [`docs/first-release-gates.md`](docs/first-release-gates.md),
+  [`docs/pre-hardware-prep-plan.md`](docs/pre-hardware-prep-plan.md) — additive
+  cross-reference sections pointing at the new policy (existing content and gate
+  tables unchanged). Also removed two stray `</content>` / `</invoke>` artifact
+  lines accidentally committed at the tail of `first-release-gates.md`.
+
+### Guardrails (explicitly NOT changed / NOT done)
+
+* **No publish / no artifacts** — no GitHub Release, tag, `.bin`, checksum, or
+  build-info; `config/webflash-builds.json` is unchanged and remains the sole
+  release-eligibility source of truth.
+* **Nothing marked stable** — no product flipped to `production`/`stable`, no
+  `schematic_status: verified`, no bench-evidence or compliance claim.
+* **TRIAC** stays advanced-preview only — not stable, not recommended, not a
+  default, never a `REQUIRED_CONFIGS` entry.
+* **WebFlash repo untouched.**
+
+---
+
 ## FIRST-RELEASE-DOCS-DRIFT-RECONCILE-001 — reconcile first-release docs with live v1.0.0
 
 **Status:** documentation reconciliation only (publishes nothing, builds no
