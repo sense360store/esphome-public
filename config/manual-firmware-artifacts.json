@@ -15,6 +15,13 @@
     "forbid_release_channel_suffix": true
   },
   "retention_days": 7,
+  "preview_policy": {
+    "id": "RELEASE-PREVIEW-TARGETS-ALL-PRODUCTS-001",
+    "channel_tier": "preview",
+    "manifest": "config/preview-release-targets.json",
+    "webflash_importable": false,
+    "note": "These three fan-driver candidates are the FanRelay / FanPWM / FanDAC PREVIEW-tier buildable targets enumerated in config/preview-release-targets.json. WebFlash import is barred by the fan-driver guardrail (scripts/list_release_targets.py refuses a fan token in the release matrix; the catalog keeps webflash_build_matrix=false), so their preview builds are delivered ONLY as the temporary, expiring artifacts this non-release lane produces. They remain not stable, not recommended, not a default, not WebFlash, and carry no compliance claim."
+  },
   "candidates": [
     {
       "id": "fanrelay",
@@ -22,6 +29,9 @@
       "sku": "S360-310",
       "product_yaml": "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
       "compile_only_target_id": "ceiling-poe-ventiq-fanrelay-roomiq-compile-only",
+      "preview_channel": "preview",
+      "webflash_importable": false,
+      "stable_blocker": "Mains-safety / installation-approval / creepage / clearance evidence + competent-person sign-off + GPIO3 strap-pin boot characterisation.",
       "caveat": "mains / safety / competent-person sign-off still required; not kit / default / recommended"
     },
     {
@@ -30,6 +40,9 @@
       "sku": "S360-311",
       "product_yaml": "products/sense360-ceiling-poe-fanpwm.yaml",
       "compile_only_target_id": "ceiling-poe-fanpwm-product-compile-only",
+      "preview_channel": "preview",
+      "webflash_importable": false,
+      "stable_blocker": "Measured current / thermal evidence (S360-311-CURRENT-THERMAL-001); RPM / TachIO not claimed.",
       "caveat": "no RPM / TachIO claim; measured current / thermal still required"
     },
     {
@@ -38,6 +51,9 @@
       "sku": "S360-312",
       "product_yaml": "products/sense360-ceiling-poe-fandac.yaml",
       "compile_only_target_id": "ceiling-poe-fandac-product-compile-only",
+      "preview_channel": "preview",
+      "webflash_importable": false,
+      "stable_blocker": "Cloudlift S12 / J3 harness + product-bench evidence; S360-312 schematic / BOM.",
       "caveat": "not Cloudlift-ready; J3 / Cloudlift evidence still required; no compliance claim"
     }
   ]
