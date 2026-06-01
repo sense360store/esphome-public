@@ -419,3 +419,18 @@ The cross-repo contract is unchanged: WebFlash couples only through release
 tags, config strings, and artifact names (§1, §5) — **no** board/bundle/alias
 rename touches `config/webflash-builds.json`, `manifest.json`, or
 `firmware/sources.json`, and the two release targets in §1 are unaffected.
+
+---
+
+## Channel-tier policy (RELEASE-PREVIEW-ALL-PRODUCTS-001)
+
+Preview eligibility is now open to **every buildable target**. The channel-tier
+policy (stable / preview / advanced-preview), its guardrails, and the
+preview-release eligibility matrix live in
+[`docs/release-channel-policy.md`](release-channel-policy.md) +
+[`config/release-channel-policy.json`](../config/release-channel-policy.json).
+Key rule: lack of hardware proof blocks **stable only** — it does not block
+preview artifact publication. LED stays preview (no LED-stable claim) and
+FanTRIAC is advanced-preview only (never stable, never recommended, never
+default, mains-risk warning required). This is docs/config only: it adds no
+`config/webflash-builds.json` rows and publishes no artifacts.

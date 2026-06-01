@@ -204,3 +204,18 @@ config, YAML, workflow, or build entry.
 - Manual install path: [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md)
 - S360-410 evidence: [`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md)
 - Detailed PR queue: [`UPCOMING_PR.md`](../UPCOMING_PR.md)
+
+---
+
+## Channel-tier policy (RELEASE-PREVIEW-ALL-PRODUCTS-001)
+
+The explicit stable / preview / advanced-preview channel-tier policy — and the
+rule that **lack of hardware proof blocks stable only, not preview** — now
+lives in [`docs/release-channel-policy.md`](release-channel-policy.md), backed
+by [`config/release-channel-policy.json`](../config/release-channel-policy.json)
+and [`tests/test_release_channel_policy.py`](../tests/test_release_channel_policy.py).
+That doc carries the preview-release eligibility matrix for every buildable
+target (Kitchen/AirIQ, Bedroom/RoomIQ, Living/Corridor LED, LED, FanRelay,
+FanPWM, FanDAC, and FanTRIAC as advanced-preview only). It records eligibility
+and warning copy only; it adds no `config/webflash-builds.json` rows and
+publishes no artifacts.

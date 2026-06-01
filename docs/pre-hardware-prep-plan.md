@@ -559,3 +559,15 @@ This PR is docs-only; the commands below confirm it breaks nothing:
 - [Board Readiness Matrix (HW-GAP-001)](hardware/board-readiness-matrix.md)
 - [First-Release Gates (PRE-HW-PREP-FIRST-RELEASE-GATES-001)](first-release-gates.md) — consolidated "what can ship now / what is blocked / what evidence is required" checklist
 - [`UPCOMING_PR.md`](../UPCOMING_PR.md)
+
+---
+
+## Channel-tier policy (RELEASE-PREVIEW-ALL-PRODUCTS-001)
+
+Preview releases do not require hardware proof. The explicit channel-tier
+policy (stable / preview / advanced-preview) and the preview-release
+eligibility matrix for every buildable target are defined in
+[`docs/release-channel-policy.md`](release-channel-policy.md) +
+[`config/release-channel-policy.json`](../config/release-channel-policy.json).
+Lack of hardware proof blocks **stable only**. FanTRIAC is advanced-preview
+only and carries the mains-risk warning.

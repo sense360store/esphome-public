@@ -397,5 +397,14 @@ This PR adds no new config or code, so the existing suite is unchanged:
 - S360-410 PoE evidence:
   [`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md) ·
   [`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md).
-</content>
-</invoke>
+
+---
+
+## Channel-tier policy (RELEASE-PREVIEW-ALL-PRODUCTS-001)
+
+These first-release gates remain the **stable** evidence gauntlet and are
+unchanged. Preview eligibility for all buildable targets — and the rule that
+lack of hardware proof blocks **stable only, not preview** — is defined in
+[`docs/release-channel-policy.md`](release-channel-policy.md) +
+[`config/release-channel-policy.json`](../config/release-channel-policy.json).
+Reaching preview never satisfies any stable gate below.
