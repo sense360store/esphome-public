@@ -19,9 +19,11 @@ Invariants asserted (matching the task contract):
     import eligibility, and a stable blocker;
   * preview is allowed without hardware proof and is never stable / recommended
     / a default / a REQUIRED_CONFIG / a customer-kit default;
-  * TRIAC is advanced-preview only, with the mains-risk warning, not
-    WebFlash-importable, and recorded as a build blocker;
-  * fan-driver previews are manual-candidate-only (never WebFlash-importable);
+  * TRIAC is advanced-preview only, with the mains-risk warning, delivered on the
+    ``advanced-manual-preview`` lane (no longer ``blocked``), not (yet)
+    WebFlash-importable, and recorded with an HW-005 build blocker;
+  * fan-driver previews are PREVIEW release targets on the ``manual-preview``
+    lane (releasable preview artifact; WebFlash import gated as a follow-up);
   * no target claims bench evidence, a verified schematic, hardware proof, or
     build proof, and no target is promoted to stable;
   * the manifest agrees with the policy matrix, the manual lane, and the live
@@ -230,10 +232,16 @@ class TriacTargetTests(unittest.TestCase):
         self.assertFalse(t["required_config"])
         self.assertFalse(t["customer_kit_default"])
 
-    def test_triac_is_not_webflash_importable_and_is_blocked(self) -> None:
+    def test_triac_is_not_webflash_importable_and_is_advanced_manual_preview(
+        self,
+    ) -> None:
         t = self.triac[0]
         self.assertFalse(t["webflash_import_eligibility"]["eligible"])
-        self.assertEqual(t["delivery_lane"], "blocked")
+        # No longer the "blocked" lane: TRIAC is preview-allowed in principle and
+        # delivered on the advanced-manual-preview lane; only the HW-005
+        # buildability blocker prevents an actual cut.
+        self.assertEqual(t["delivery_lane"], "advanced-manual-preview")
+        self.assertNotEqual(t["delivery_lane"], "blocked")
         self.assertTrue(t["build_blocker"])
         self.assertNotEqual(t["channel_tier"], "stable")
 
@@ -262,13 +270,26 @@ class FanTargetTests(unittest.TestCase):
         families = {t["family"] for t in self.fans}
         self.assertEqual(families, {"FanRelay", "FanPWM", "FanDAC"})
 
-    def test_fans_are_manual_candidate_only(self) -> None:
+    def test_fans_are_manual_preview_lane(self) -> None:
+        # Fan drivers are real PREVIEW release targets delivered on the
+        # manual-preview lane. WebFlash one-click import stays gated (so
+        # eligible=false here), but the preview artifact itself is releasable.
         for t in self.fans:
             with self.subTest(target=t["target_id"]):
-                self.assertEqual(t["delivery_lane"], "manual-candidate")
+                self.assertEqual(t["delivery_lane"], "manual-preview")
+                self.assertNotEqual(t["delivery_lane"], "manual-candidate")
                 self.assertFalse(t["webflash_import_eligibility"]["eligible"])
                 self.assertIn(t["yaml_path"], self.manual_yamls)
                 self.assertNotEqual(t["channel_tier"], "stable")
+
+    def test_fans_are_preview_release_targets_not_passive_candidates(self) -> None:
+        # The whole point of RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001: fan
+        # previews are releasable preview targets, not "manual-lane-only".
+        for t in self.fans:
+            with self.subTest(target=t["target_id"]):
+                self.assertEqual(t["channel_tier"], "preview")
+                self.assertTrue(t["is_preview_target"])
+                self.assertEqual(t["publication_status"], "manual-preview-eligible")
 
     def test_fan_catalog_entries_stay_off_the_build_matrix(self) -> None:
         for t in self.fans:
@@ -395,6 +416,48 @@ class NoStablePromotionTests(unittest.TestCase):
             with self.subTest(target=t["target_id"]):
                 self.assertFalse(t["bench_evidence_claimed"])
                 self.assertFalse(t["schematic_status_verified_claim"])
+
+
+class AllBuildableReleasableTests(unittest.TestCase):
+    """RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001: every buildable product is a
+    preview / advanced-preview release target, and nothing is 'blocked from
+    preview' merely for lacking stable evidence."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.manifest = _load(MANIFEST_PATH)
+        cls.targets = cls.manifest["targets"]
+
+    def test_delivery_lanes_are_the_three_releasable_lanes(self) -> None:
+        allowed = {"webflash", "manual-preview", "advanced-manual-preview"}
+        for t in self.targets:
+            with self.subTest(target=t["target_id"]):
+                self.assertIn(t["delivery_lane"], allowed)
+
+    def test_no_target_uses_a_blocked_delivery_lane(self) -> None:
+        # "blocked" as a delivery lane is gone: stable can be blocked, preview
+        # is not.
+        lanes = {t["delivery_lane"] for t in self.targets}
+        self.assertNotIn("blocked", lanes)
+        self.assertNotIn("manual-candidate", lanes)
+
+    def test_every_preview_target_has_a_releasable_lane(self) -> None:
+        for t in self.targets:
+            if t["channel_tier"] == "stable":
+                continue
+            with self.subTest(target=t["target_id"]):
+                self.assertIn(
+                    t["delivery_lane"],
+                    {"webflash", "manual-preview", "advanced-manual-preview"},
+                )
+
+    def test_no_publication_status_blocks_preview(self) -> None:
+        # No target may be recorded as "blocked-unpublished" / "manual-lane-only"
+        # any more: those framed buildable previews as not-releasable.
+        for t in self.targets:
+            with self.subTest(target=t["target_id"]):
+                self.assertNotEqual(t["publication_status"], "blocked-unpublished")
+                self.assertNotEqual(t["publication_status"], "manual-lane-only")
 
 
 if __name__ == "__main__":

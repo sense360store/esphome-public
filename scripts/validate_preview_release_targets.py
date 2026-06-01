@@ -22,11 +22,14 @@ Cross-references enforced (metadata only):
   * preview / advanced-preview targets carry the policy warning copy and are
     never recommended / customer-default / REQUIRED_CONFIG / customer-kit
     default, and never claim bench evidence or a verified schematic;
-  * TRIAC is advanced-preview only, with the mains-risk warning, not
-    WebFlash-importable, and carries a build blocker;
-  * fan-driver targets are manual-candidate-only (never WebFlash-importable),
-    map to the manual lane in ``config/manual-firmware-artifacts.json``, and
-    keep ``webflash_build_matrix=false`` in the catalog;
+  * TRIAC is advanced-preview only, with the mains-risk warning, not (yet)
+    WebFlash-importable, delivered on the ``advanced-manual-preview`` lane, and
+    carries a build blocker (HW-005 buildability, not a preview-policy block);
+  * fan-driver targets are PREVIEW release targets delivered on the
+    ``manual-preview`` lane (WebFlash import gated until the WebFlash warning UX
+    is ready), map to the manual lane in
+    ``config/manual-firmware-artifacts.json``, and keep
+    ``webflash_build_matrix=false`` in the catalog;
   * published targets agree with ``config/webflash-builds.json`` and unpublished
     targets are absent from it and carry a build blocker;
   * every committed ``config/webflash-builds.json`` build is represented;
@@ -90,7 +93,7 @@ REQUIRED_TARGET_FIELDS = (
     "schematic_status_verified_claim",
 )
 
-DELIVERY_LANES = frozenset({"webflash", "manual-candidate", "blocked"})
+DELIVERY_LANES = frozenset({"webflash", "manual-preview", "advanced-manual-preview"})
 FAN_DRIVER_TOKENS = ("FanRelay", "FanPWM", "FanDAC", "FanTRIAC")
 PUBLISHED_STATUSES = frozenset({"published-stable", "published-preview"})
 
@@ -350,19 +353,22 @@ def validate(
                 )
             if elig.get("eligible") is not False:
                 terr.append(f"target {tid!r}: TRIAC must not be WebFlash-importable")
-            if lane != "blocked":
+            if lane != "advanced-manual-preview":
                 terr.append(
-                    f"target {tid!r}: TRIAC delivery_lane must be 'blocked' "
-                    "while HW-005 is open"
+                    f"target {tid!r}: TRIAC delivery_lane must be "
+                    "'advanced-manual-preview' (no longer 'blocked'; preview is "
+                    "allowed, only the HW-005 buildability blocker stops a cut)"
                 )
             if not target.get("build_blocker"):
                 terr.append(f"target {tid!r}: TRIAC must record a build_blocker")
         elif target.get("is_fan"):
-            # Non-TRIAC fan driver: manual-candidate lane only.
-            if lane != "manual-candidate":
+            # Non-TRIAC fan driver: manual-preview lane (releasable preview
+            # artifact; WebFlash import gated until the WebFlash warning UX is
+            # ready, so still not WebFlash-importable here).
+            if lane != "manual-preview":
                 terr.append(
                     f"target {tid!r}: fan-driver delivery_lane must be "
-                    "'manual-candidate'"
+                    "'manual-preview'"
                 )
             if elig.get("eligible") is not False:
                 terr.append(
@@ -387,7 +393,8 @@ def validate(
             if has_fan_token:
                 terr.append(
                     f"target {tid!r}: webflash lane target must not carry a fan "
-                    "token (fan drivers are manual-candidate-only)"
+                    "token (fan drivers use the manual-preview / "
+                    "advanced-manual-preview lanes, not webflash)"
                 )
             if pub in PUBLISHED_STATUSES:
                 if not in_builds:
@@ -422,7 +429,10 @@ def validate(
                         "a build_blocker"
                     )
         else:
-            # manual-candidate / blocked lanes must never be in the build ledger.
+            # manual-preview / advanced-manual-preview lanes are non-WebFlash
+            # preview delivery lanes and must never be in the WebFlash build
+            # ledger (config/webflash-builds.json stays the sole WebFlash
+            # release-eligibility source of truth).
             if in_builds:
                 terr.append(
                     f"target {tid!r}: delivery_lane {lane!r} but config_string is "
