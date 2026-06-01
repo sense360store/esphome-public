@@ -4,6 +4,8 @@
   "title": "Release-channel policy: preview eligibility for all buildable products",
   "date": "2026-06-01",
   "canonical_doc": "docs/release-channel-policy.md",
+  "revised_by": "RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001",
+  "revision_note": "RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001 aligns the concrete targets (config/preview-release-targets.json) with this policy: every buildable product is a preview / advanced-preview RELEASE target. It records the concrete delivery lanes (see delivery_lanes): SELV WebFlash targets use the 'webflash' lane; FanRelay / FanPWM / FanDAC use the 'manual-preview' lane; FanTRIAC uses the 'advanced-manual-preview' lane. The acknowledgement-gated / acknowledgement-gated-advanced webflash_exposure_class values on the fan / TRIAC matrix rows are the EVENTUAL WebFlash import target, not current state: WebFlash one-click import stays a separate, controlled follow-up until the WebFlash warning UX supports fan / TRIAC preview exposure. No product is promoted to stable and no new evidence is claimed.",
   "description": "Machine-readable release-channel policy. Defines the stable / preview / advanced-preview channel tiers and the rules that gate each tier, plus the preview-release eligibility matrix for every buildable Sense360 firmware target. Lack of hardware proof blocks STABLE only; it does not block PREVIEW artifact eligibility. This file is policy + eligibility metadata. It is read by tests/test_release_channel_policy.py.",
   "scope": {
     "publishes_artifacts": false,
@@ -72,6 +74,11 @@
     "preview": "preview",
     "advanced-preview": "preview"
   },
+  "delivery_lanes": {
+    "webflash": "Preview / advanced-preview artifact published as a WebFlash-importable build (config/webflash-builds.json row + products/webflash wrapper + recorded build proof) behind the acknowledgement gate. config/webflash-builds.json is the sole WebFlash release-eligibility source of truth.",
+    "manual-preview": "Buildable PREVIEW artifact for FanRelay / FanPWM / FanDAC, released to testers via the manual-preview lane (config/manual-firmware-artifacts.json). A real preview release target, not a passive candidate. WebFlash one-click import stays gated by the fan-token guardrail until the WebFlash warning UX supports fan preview exposure (separate follow-up); the preview artifact itself is releasable.",
+    "advanced-manual-preview": "Advanced (mains-risk) PREVIEW artifact lane for FanTRIAC: manual-preview plus the mandatory mains-risk warning and competent-person manual install. Preview is allowed in principle; only an explicit build blocker (HW-005 buildability) prevents an actual cut. NOT a 'blocked-from-preview' lane. WebFlash import stays gated behind the advanced acknowledgement UX (separate follow-up)."
+  },
   "module_channel_ceiling": {
     "FanTRIAC": "advanced-preview"
   },
@@ -93,8 +100,13 @@
     "triac_must_not_be_stable": true,
     "triac_must_not_be_recommended": true,
     "triac_must_not_be_customer_default": true,
+    "triac_must_not_be_required_config": true,
     "triac_preview_requires_advanced_warning": true,
     "fan_previews_must_not_be_stable": true,
+    "buildable_products_are_preview_releasable": true,
+    "preview_artifact_release_allowed_without_webflash_import": true,
+    "fan_and_triac_previews_use_manual_preview_lane_until_webflash_ux_ready": true,
+    "no_target_blocked_from_preview_for_lacking_stable_evidence": true,
     "webflash_build_matrix_may_include_preview_without_stable_promotion": true,
     "no_fake_hardware_evidence_claimed": true
   },

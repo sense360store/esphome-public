@@ -108,6 +108,15 @@ The full per-YAML enumeration (48 YAMLs incl. legacy / wrapper / helper) lives
 in [`docs/all-yaml-release-matrix.md`](all-yaml-release-matrix.md) and is
 reproduced by `scripts/classify_all_yaml_release_matrix.py`.
 
+> **Class is a *WebFlash* classification, not a preview-release verdict.** The
+> "Manual-only" (`FanRelay` / `FanPWM` / `FanDAC`) and "Blocked" (`FanTRIAC`)
+> classes describe **WebFlash / `webflash-builds.json` eligibility**. Under
+> `RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001` those same targets are still
+> **preview / advanced-preview release targets** delivered on the
+> `manual-preview` / `advanced-manual-preview` lanes (see the channel-tier policy
+> section below). "Manual-only" / "Blocked" here means "not WebFlash-importable
+> yet", not "not preview-releasable".
+
 ---
 
 ## 4. Release-note coverage matrix
@@ -219,3 +228,33 @@ target (Kitchen/AirIQ, Bedroom/RoomIQ, Living/Corridor LED, LED, FanRelay,
 FanPWM, FanDAC, and FanTRIAC as advanced-preview only). It records eligibility
 and warning copy only; it adds no `config/webflash-builds.json` rows and
 publishes no artifacts.
+
+### Concrete preview release targets + delivery lanes (RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001)
+
+The concrete, CI-consumable target manifest is
+[`config/preview-release-targets.json`](../config/preview-release-targets.json)
+(canonical doc [`docs/preview-release-targets.md`](preview-release-targets.md)).
+`RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001` aligns those concrete targets with
+the policy: **every buildable product is a preview / advanced-preview release
+target**, with three delivery lanes —
+
+- **`webflash`** — the SELV PoE targets (the two live builds plus the
+  Kitchen/AirIQ, Bedroom/RoomIQ, Living/Corridor LED candidates). Only these can
+  ever enter `config/webflash-builds.json`, which remains the **sole WebFlash
+  release-eligibility source of truth**.
+- **`manual-preview`** — FanRelay / FanPWM / FanDAC. Their tester-facing preview
+  artifact is produced by the manual lane
+  ([`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json));
+  they are real preview release targets, no longer "manual-only / not
+  releasable". WebFlash one-click import stays gated by the fan-token guardrail
+  (`scripts/list_release_targets.py`) until the WebFlash warning UX supports fan
+  preview exposure — a separate follow-up (`WEBFLASH-{RELAY,PWM,DAC}-001`).
+- **`advanced-manual-preview`** — FanTRIAC. No longer "blocked from preview":
+  preview is allowed in principle and only the `HW-005` *buildability* blocker
+  prevents a cut. WebFlash import is the `WF-IMPORT-TRIAC-001` follow-up.
+
+**This does not move any WebFlash cell above:** no fan / TRIAC token enters
+`config/webflash-builds.json`, the catalog `webflash_build_matrix` stays `false`
+for every fan driver, and WebFlash exposure is unchanged. The manual-preview /
+advanced-manual-preview lanes are **non-WebFlash** preview delivery lanes; the
+"not exposed" WebFlash cells in §1 / §5 remain correct.

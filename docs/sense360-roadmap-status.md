@@ -434,3 +434,28 @@ preview artifact publication. LED stays preview (no LED-stable claim) and
 FanTRIAC is advanced-preview only (never stable, never recommended, never
 default, mains-risk warning required). This is docs/config only: it adds no
 `config/webflash-builds.json` rows and publishes no artifacts.
+
+### Concrete preview targets + delivery lanes (RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001)
+
+The concrete preview target manifest
+([`config/preview-release-targets.json`](../config/preview-release-targets.json),
+doc [`docs/preview-release-targets.md`](preview-release-targets.md)) now aligns
+with the policy so that **every buildable product is a preview /
+advanced-preview release target**, via three delivery lanes:
+
+- **`webflash`** — SELV PoE targets only; the sole lane that can enter
+  `config/webflash-builds.json` (unchanged: still just the two builds in §1,
+  `Ceiling-POE-VentIQ-RoomIQ` stable + `Ceiling-POE-VentIQ-RoomIQ-LED` preview).
+- **`manual-preview`** — `FanRelay` / `FanPWM` / `FanDAC`: releasable preview
+  artifacts via the manual lane (§5.x). They stay `hardware-pending`, excluded
+  from WebFlash / `config/webflash-builds.json` (fan-token guardrail), with no
+  measured current/thermal and `rpm_supported: false` for FanPWM — but they are
+  no longer framed as "not releasable". WebFlash import is a gated follow-up.
+- **`advanced-manual-preview`** — `FanTRIAC`: advanced-preview only, no longer
+  "blocked from preview"; only the `HW-005` buildability blocker stops a cut.
+
+This is docs/config only. It flips no catalog status, marks nothing stable
+(LED stays preview — **no LED-stable claim**), claims no hardware / bench /
+compliance / verified-schematic evidence, adds no `config/webflash-builds.json`
+row, and does not touch the WebFlash repo. S360-410 remains unresolved /
+`cataloged_unverified` (**not verified**).

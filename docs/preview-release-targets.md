@@ -69,17 +69,28 @@ a separate, proof-bearing, per-target step.
 
 ## Delivery lanes
 
+> **`RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001`:** every buildable product is a
+> preview / advanced-preview **release** target. The fan and TRIAC targets are no
+> longer framed as passive `manual-candidate-only` / `blocked` — they are real
+> preview release targets delivered on the `manual-preview` /
+> `advanced-manual-preview` lanes. **WebFlash one-click import** stays a separate,
+> controlled follow-up; the preview **artifact** is releasable now.
+
 | Lane | Meaning |
 |---|---|
-| `webflash` | Permitted into `config/webflash-builds.json` (acknowledgement-gated WebFlash import) once a wrapper + recorded build proof exist. |
-| `manual-candidate` | Buildable preview delivered **only** via the non-release manual lane (`config/manual-firmware-artifacts.json`); never WebFlash-exposed. |
-| `blocked` | Buildable in principle, but no preview artifact may be cut until the recorded hardware / compliance build blocker clears. |
+| `webflash` | Preview / advanced-preview artifact published as a WebFlash-importable build (`config/webflash-builds.json` row + `products/webflash` wrapper + recorded build proof) behind the acknowledgement gate. `config/webflash-builds.json` stays the sole WebFlash release-eligibility source of truth. |
+| `manual-preview` | Buildable **preview** artifact released to testers via the manual-preview lane (`config/manual-firmware-artifacts.json`). A real preview release target, **not** a passive candidate. WebFlash import stays gated until the WebFlash warning UX supports fan preview exposure (separate follow-up); the preview artifact itself is releasable. |
+| `advanced-manual-preview` | Advanced (mains-risk) preview lane for TRIAC: `manual-preview` plus the mandatory mains-risk warning and competent-person manual install. Preview is allowed in principle; only an explicit **build blocker** (HW-005 buildability) prevents an actual cut. WebFlash import gated behind the advanced acknowledgement UX (separate follow-up). |
 
-Fan-driver firmware (FanRelay / FanPWM / FanDAC) is **manual-candidate-only** by
-existing repo guardrails: `scripts/list_release_targets.py` refuses a fan token
-in the release matrix and the catalog keeps `webflash_build_matrix=false`.
-FanTRIAC is **advanced-preview** and **blocked** under `HW-005`. Neither family
-is WebFlash-importable, so neither appears in `config/webflash-builds.json`.
+Fan-driver firmware (FanRelay / FanPWM / FanDAC) is a **`manual-preview`** release
+target. WebFlash one-click import is still gated by existing repo guardrails:
+`scripts/list_release_targets.py` refuses a fan token in the release matrix and
+the catalog keeps `webflash_build_matrix=false`, so fan drivers do **not** appear
+in `config/webflash-builds.json` until the WebFlash warning UX is ready. FanTRIAC
+is **advanced-preview** on the **`advanced-manual-preview`** lane — no longer
+`blocked` from preview; only the `HW-005` *buildability* blocker prevents a cut.
+Neither family is WebFlash-importable **yet**, so neither appears in
+`config/webflash-builds.json`.
 
 ---
 
@@ -90,32 +101,46 @@ is WebFlash-importable, so neither appears in `config/webflash-builds.json`.
 | `Ceiling-POE-VentIQ-RoomIQ` | stable | webflash | yes | published-stable (baseline; unchanged) |
 | `Ceiling-POE-VentIQ-RoomIQ-LED` | preview | webflash | yes | published-preview |
 | `Ceiling-POE-AirIQ-RoomIQ` | preview | webflash | yes | eligible-unpublished |
-| `Ceiling-POE-RoomIQ` | preview | webflash | yes | blocked-unpublished (S360-410) |
-| `Ceiling-POE-RoomIQ-LED` | preview | webflash | yes | eligible-needs-product-yaml |
-| `Ceiling-POE-VentIQ-FanRelay-RoomIQ` | preview | manual-candidate | no | manual-lane-only |
-| `Ceiling-POE-FanPWM` | preview | manual-candidate | no | manual-lane-only |
-| `Ceiling-POE-FanDAC` | preview | manual-candidate | no | manual-lane-only |
-| `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | advanced-preview | blocked | no | blocked-unpublished (HW-005) |
+| `Ceiling-POE-RoomIQ` | preview | webflash | yes | eligible-unpublished (preview allowed; **stable** blocked by S360-410) |
+| `Ceiling-POE-RoomIQ-LED` | preview | webflash | yes once product YAML exists | eligible-needs-product-yaml |
+| `Ceiling-POE-VentIQ-FanRelay-RoomIQ` | preview | manual-preview | gated follow-up | manual-preview-eligible |
+| `Ceiling-POE-FanPWM` | preview | manual-preview | gated follow-up | manual-preview-eligible |
+| `Ceiling-POE-FanDAC` | preview | manual-preview | gated follow-up | manual-preview-eligible |
+| `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | advanced-preview | advanced-manual-preview | gated follow-up | advanced-manual-preview-build-blocked (HW-005 buildability) |
 
-Only the LED preview is published today; it proves the WebFlash build matrix may
-carry a preview target without stable promotion. Every other preview target is
-recorded with an explicit `build_blocker` (see the JSON).
+Every buildable target is a preview / advanced-preview release target:
+
+- The **WebFlash** lane targets are import-eligible; the LED preview is already
+  published (proving the WebFlash matrix may carry a preview without stable
+  promotion), and the others need a wrapper / product YAML before a row is cut.
+- The **`manual-preview`** fan targets are releasable preview artifacts via the
+  manual lane now; only their WebFlash one-click import is a gated follow-up.
+- The **`advanced-manual-preview`** TRIAC target is preview-allowed; only the
+  `HW-005` *buildability* blocker (not a lack of stable evidence) stops a cut.
+
+No target is `blocked from preview`, and none claims hardware / bench /
+compliance / verified-schematic evidence (see the JSON).
 
 ---
 
 ## TRIAC (advanced-preview)
 
-`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is **advanced-preview only**:
+`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is **advanced-preview only**, on the
+**`advanced-manual-preview`** lane:
 
 - it carries the mandatory **mains-risk** warning copy
   (`warning_copy.advanced-preview`);
 - it is **not recommended**, **not a default**, **not a REQUIRED_CONFIG**, and
   **not a customer-kit default**;
-- it is **not stable** and **not WebFlash-importable**; and
-- it is recorded as a **build blocker** under `HW-005` (S360-320 schematic;
-  GPIO5/GPIO6 collision; `ac_dimmer` cannot run across the SX1509 expander) plus
-  `PACKAGE-TRIAC-001` and `COMPLIANCE-001`. No preview artifact may be cut until
-  those clear.
+- it is **not stable** and **not (yet) WebFlash-importable** (WebFlash import is
+  a gated follow-up, `WF-IMPORT-TRIAC-001`);
+- it is **no longer `blocked` from preview** — preview is allowed in principle.
+  The only thing preventing a cut is the **`HW-005` buildability blocker**
+  (S360-320 schematic uncommitted; GPIO5/GPIO6 collision; `ac_dimmer` cannot run
+  across the SX1509 expander), **not** a lack of stable evidence. Stable is
+  additionally gated by `PACKAGE-TRIAC-001` and `COMPLIANCE-001`. An
+  advanced-preview artifact can be cut on the advanced-manual-preview lane once
+  `HW-005` resolves.
 
 ---
 
@@ -141,8 +166,10 @@ can never drift.
   release-eligibility source of truth**; carries only the published stable +
   preview builds. A top-level pointer references this manifest.
 - [`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json)
-  — the non-release lane that actually builds the FanRelay / FanPWM / FanDAC
-  preview targets; cross-referenced from this manifest.
+  — the **`manual-preview`** delivery lane that produces the FanRelay / FanPWM /
+  FanDAC tester-facing preview artifacts; cross-referenced from this manifest. It
+  stays non-release in the durable sense (no GitHub Release / WebFlash row), but
+  the preview artifact it produces is the releasable fan preview.
 - [`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json)
   — the generated readiness view; regenerated and unchanged by this slice
   (no build/catalog status flipped).

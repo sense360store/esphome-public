@@ -69,6 +69,25 @@ assert either falsely.
 FanTRIAC can be **advanced-preview only**: never stable, never recommended,
 never default.
 
+### Delivery lanes (RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001)
+
+Every buildable product is a preview / advanced-preview **release** target. The
+concrete lane each target uses (recorded in
+[`config/preview-release-targets.json`](../config/preview-release-targets.json)):
+
+| Lane | Targets | Meaning |
+|---|---|---|
+| `webflash` | SELV PoE targets (Bathroom stable, LED preview, Kitchen/AirIQ, Bedroom/RoomIQ, Living/Corridor LED) | WebFlash-importable build behind the acknowledgement gate; a `config/webflash-builds.json` row + wrapper + recorded build proof. |
+| `manual-preview` | FanRelay, FanPWM, FanDAC | Releasable preview artifact via the manual lane (`config/manual-firmware-artifacts.json`). **Not** a passive candidate. WebFlash one-click import gated until the WebFlash warning UX is ready (separate follow-up). |
+| `advanced-manual-preview` | FanTRIAC | `manual-preview` + mandatory mains-risk warning + competent-person manual install. Preview-allowed; only the `HW-005` buildability blocker prevents a cut. WebFlash import gated behind the advanced acknowledgement UX. |
+
+The fan / TRIAC matrix rows below carry `acknowledgement-gated` /
+`acknowledgement-gated-advanced` as their **eventual** WebFlash exposure class.
+That is the import *target*, not current state: WebFlash one-click import for fan
+and TRIAC previews stays a separate, controlled follow-up. **No target is blocked
+from preview for lacking stable evidence** — "blocked" only ever applies to
+stable promotion, or (for TRIAC) to a genuine *buildability* blocker.
+
 ---
 
 ## 2. Policy rules (what this opens, what it keeps closed)
@@ -88,8 +107,12 @@ This policy updates the doc + config posture so that:
    is *already* production (i.e. preview never promotes a product to
    production as a side effect).
 7. **Preview releases must not be `REQUIRED_CONFIGS`.**
-8. **WebFlash import is allowed for preview artifacts** behind acknowledgement
-   gates (advanced acknowledgement gate for advanced-preview / TRIAC).
+8. **Preview artifact release is allowed without WebFlash import.** SELV targets
+   release via the `webflash` lane (acknowledgement-gated import). Fan drivers
+   release via the `manual-preview` lane and TRIAC via the
+   `advanced-manual-preview` lane; their WebFlash one-click import is a separate,
+   controlled follow-up behind the (advanced) acknowledgement UX. Lack of WebFlash
+   import never blocks a preview artifact.
 
 Stable promotion is unchanged: it still requires the full evidence /
 hardware-proof gauntlet (see [`docs/first-release-gates.md`](first-release-gates.md)
@@ -133,9 +156,11 @@ Notes:
   tier but is not published here.
 - **Living / Corridor** share the `Ceiling-POE-RoomIQ-LED` firmware and still
   need a dedicated product/wrapper YAML before a preview artifact can be cut.
-- **FanTRIAC** still has open hardware routing (HW-005); the policy records its
-  advanced-preview *ceiling*, but a preview artifact cannot be cut until the
-  build is buildable end-to-end.
+- **FanTRIAC** is advanced-preview on the `advanced-manual-preview` lane — no
+  longer "blocked from preview". It still has open hardware routing (HW-005); the
+  policy records its advanced-preview *ceiling*, and a preview artifact can be cut
+  on that lane once the build is buildable end-to-end. The remaining stopper is a
+  *buildability* blocker (HW-005), not a lack of stable evidence.
 
 ---
 
