@@ -2,6 +2,76 @@
 
 This file tracks the next planned change set for the esphome-public repository.
 
+## RELEASE-PREVIEW-TARGETS-ALL-PRODUCTS-001 — concrete preview targets for all buildable products
+
+**Status:** config + docs only (publishes nothing, builds no `.bin`, creates no
+GitHub Release, pushes no tag, promotes nothing to stable, verifies no hardware,
+claims no build/bench/compliance evidence; adds **no** `config/webflash-builds.json`
+build row, flips no `config/product-catalog.json` status, makes no
+`firmware/sources.json` / `manifest.json` change, edits no `packages/**` /
+`products/**`, makes no WebFlash repo change). Records concrete preview
+release-**target** metadata only.
+
+### Summary
+
+`RELEASE-PREVIEW-ALL-PRODUCTS-001` recorded the channel-tier **policy** and
+preview **eligibility** but published nothing CI-consumable. This follow-up makes
+it **concrete**: it enumerates **every buildable Sense360 product** as a preview /
+advanced-preview release target carrying its config string, buildable YAML path,
+channel tier + build channel, expected artifact name, release-note warning text,
+WebFlash import eligibility, stable blocker, and any **build blocker** that
+prevents cutting a preview artifact now.
+
+Hard repo invariants are respected: fan-driver firmware (FanRelay / FanPWM /
+FanDAC) is manual-candidate-only (WebFlash import barred by the existing
+fan-token guardrail) and FanTRIAC is advanced-preview and **blocked** under
+`HW-005`; none of them enter `config/webflash-builds.json`. No `esphome` CLI was
+available, so **no build proof is claimed** — unbuildable/uncuttable targets each
+record an explicit `build_blocker`. `config/webflash-builds.json` remains the
+sole release-eligibility source of truth.
+
+### What changed
+
+* [`config/preview-release-targets.json`](config/preview-release-targets.json)
+  (new) — the concrete preview / advanced-preview release-target manifest for all
+  9 buildable products (1 stable baseline + 8 preview targets; reuses the policy's
+  `build_channel_mapping` and `warning_copy` verbatim).
+* [`scripts/validate_preview_release_targets.py`](scripts/validate_preview_release_targets.py)
+  (new) — metadata validator + cross-checks against the policy, compatibility,
+  build ledger, catalog, and manual lane.
+* [`tests/test_preview_release_targets.py`](tests/test_preview_release_targets.py)
+  (new) — 31 guards over every manifest invariant (TRIAC advanced-preview + mains
+  warning + not default/stable; fan = manual-lane-only; no stable promotion; no
+  fake evidence; policy + ledger correspondence).
+* [`docs/preview-release-targets.md`](docs/preview-release-targets.md) (new) —
+  canonical narrative + target matrix.
+* [`config/webflash-builds.json`](config/webflash-builds.json) — top-level pointer
+  to the manifest + preview metadata (`channel_tier`, `webflash_exposure_class`,
+  `warning_copy_key`, `stable_blocker`) added to the existing LED preview entry.
+  No build row added; stable entry untouched.
+* [`config/manual-firmware-artifacts.json`](config/manual-firmware-artifacts.json)
+  — `preview_policy` cross-reference + per-candidate `preview_channel` /
+  `stable_blocker` / `webflash_importable:false`. Lane stays non-release
+  (`release:false`, `webflash:false`, `release_channel:null`, exactly 3 fan
+  candidates, `webflash_build_matrix` untouched).
+* [`config/compile-only-targets.json`](config/compile-only-targets.json) —
+  `preview_release_targets` source cross-reference. No target changed.
+* `config/firmware-combination-matrix.json` — regenerated; unchanged (no build /
+  catalog status flipped).
+* `config/product-catalog.json` — intentionally **not** modified.
+
+### Validation
+
+`python3 tests/validate_configs.py`,
+`python3 scripts/validate_compile_targets.py --metadata-only`,
+`python3 scripts/validate_preview_release_targets.py --metadata-only`,
+`python3 tests/test_product_catalog.py`,
+`python3 tests/validate_webflash_builds.py`, and
+`python3 -m unittest discover -s tests -p "test_*.py"` (1240 tests, 3 skipped)
+all pass. Real `esphome compile` is unavailable in this environment, so the
+compile lane is metadata-only and the no-compile-proof gap is recorded as a build
+blocker rather than worked around.
+
 ## RELEASE-PREVIEW-ALL-PRODUCTS-001 — allow preview releases for buildable products
 
 **Status:** docs + config policy only (publishes nothing, builds no `.bin`,

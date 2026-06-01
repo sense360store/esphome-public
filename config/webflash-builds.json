@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
-  "description": "WebFlash-compatible firmware build matrix. Each entry is validated by tests/validate_webflash_builds.py against config/webflash-compatibility.json.",
+  "description": "WebFlash-compatible firmware build matrix and the sole release-eligibility source of truth. Each entry is validated by tests/validate_webflash_builds.py against config/webflash-compatibility.json. Concrete preview / advanced-preview release targets for every buildable product (including the fan-driver and TRIAC targets that are NOT WebFlash-importable) are enumerated in config/preview-release-targets.json (RELEASE-PREVIEW-TARGETS-ALL-PRODUCTS-001); a row is added here only with recorded build proof.",
+  "preview_release_targets": "config/preview-release-targets.json",
   "builds": [
     {
       "config_string": "Ceiling-POE-VentIQ-RoomIQ",
@@ -26,6 +27,10 @@
       "product_yaml": "products/webflash/ceiling-poe-ventiq-roomiq-led.yaml",
       "artifact_name": "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin",
       "channel": "preview",
+      "channel_tier": "preview",
+      "webflash_exposure_class": "acknowledgement-gated",
+      "warning_copy_key": "preview",
+      "stable_blocker": "LED preview-to-stable gauntlet (operator flash proof, bench verification, stable promotion).",
       "version": "1.0.0",
       "chip_family": "ESP32-S3",
       "hardware_requirements": [

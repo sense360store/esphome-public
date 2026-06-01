@@ -4,7 +4,8 @@
   "sources": {
     "webflash_builds": "config/webflash-builds.json",
     "firmware_combination_matrix": "config/firmware-combination-matrix.json",
-    "product_catalog": "config/product-catalog.json"
+    "product_catalog": "config/product-catalog.json",
+    "preview_release_targets": "config/preview-release-targets.json"
   },
   "rules": {
     "compile_only_is_not_webflash_exposure": true,
