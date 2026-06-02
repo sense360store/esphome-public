@@ -42,10 +42,13 @@ Where the preview-release program actually stands today:
   follow-up that only begins once importable upstream preview artifacts exist.
 
 So **policy, target manifest, releasable metadata, and the metadata build/release
-dry-run are done**; the open work is to **fix the build blockers the dry-run
-found**, run a **real `esphome` compile dry-run** (the local environment had no
-ESPHome CLI), and then **plan + produce the actual preview artifacts** and the
-**WebFlash import** — captured as the next queue items below.
+dry-run are done**, and the three `blocked-by-missing-yaml` preview targets now
+have **concrete product YAMLs** (`RELEASE-PREVIEW-BUILD-FIXES-001`, this PR —
+missing-YAML items only). The remaining open work is to run a **real `esphome`
+compile dry-run** for the new YAMLs and the manual-preview fans (the local
+environment had no ESPHome CLI), resolve FanTRIAC `HW-005`, and then **plan +
+produce the actual preview artifacts** and the **WebFlash import** — captured as
+the next queue items below.
 
 ---
 
@@ -57,18 +60,40 @@ ESPHome CLI), and then **plan + produce the actual preview artifacts** and the
 > targets (compile pending an ESPHome-capable environment) and seeded the two
 > follow-ups below.
 
-### RELEASE-PREVIEW-BUILD-FIXES-001 — fix the build blockers the dry-run found
+### RELEASE-PREVIEW-BUILD-FIXES-001 — fix the build blockers the dry-run found — missing-YAML items DONE (this PR)
 
-`RELEASE-PREVIEW-BUILD-DRYRUN-001` found build blockers on 4 targets. Convert each
-recorded `build_blocker` into an exact, scoped build-fix and re-run the dry-run:
-FanTRIAC `HW-005` buildability (`blocked-by-build`); `Ceiling-POE-AirIQ-RoomIQ`
-catalog entry + `products/webflash` wrapper; `Ceiling-POE-RoomIQ` wrapper;
-`Ceiling-POE-RoomIQ-LED` dedicated product + wrapper YAML (the three
-`blocked-by-missing-yaml`). Also run a real `esphome compile` dry-run for the
-manual-preview fan targets — the dry-run could **not** (no ESPHome CLI), so no
-build proof exists yet. Subsumes the planning-only intent of the former
-`RELEASE-PREVIEW-BUILD-BLOCKERS-001`. Promotes nothing, flips no status, claims no
-evidence, publishes no artifact.
+**Status:** the three `blocked-by-missing-yaml` items are **DONE in this PR**;
+FanTRIAC `HW-005` and the real `esphome compile` dry-run remain open (see below).
+
+`RELEASE-PREVIEW-BUILD-DRYRUN-001` found build blockers on 4 targets. This PR
+converts the three **`blocked-by-missing-yaml`** targets into concrete preview
+product YAMLs composed from existing packages only:
+
+* `Ceiling-POE-AirIQ-RoomIQ` — new `products/bundles/ceiling-poe-airiq-roomiq.yaml`
+  (Core + PoE + AirIQ + RoomIQ) + `products/sense360-ceiling-poe-airiq-roomiq.yaml`
+  shim + catalog entry (`status: blocked` on `PRODUCT-POE-410-001`).
+* `Ceiling-POE-RoomIQ` — bundle/shim/catalog already existed; the preview
+  manifest `yaml_path` is repointed from the compile-only skeleton to the
+  product YAML.
+* `Ceiling-POE-RoomIQ-LED` — new `products/bundles/ceiling-poe-roomiq-led.yaml`
+  (Core + PoE + RoomIQ + LED) + `products/sense360-ceiling-poe-roomiq-led.yaml`
+  shim + catalog entry (`status: blocked`, `target_channel: preview-candidate`).
+  **LED stays preview.**
+
+Each new product YAML is registered as a product-level compile-only target
+(`compile_validation_status: pending-ci`); the firmware combination matrix +
+gap report are regenerated (the two rows move `missing-product-yaml` →
+`blocked-hardware`). Channel/status stay honest: preview-only, not stable, not
+recommended, not production, not hardware-verified, no bench evidence claimed.
+Promotes nothing, flips no existing status, publishes no artifact, adds no
+`config/webflash-builds.json` row, no `products/webflash` wrapper, no `.bin`.
+
+**Still open (NOT in this PR):** a **real `esphome compile` dry-run** for the
+three new YAMLs and the manual-preview fan targets (the authoring environment
+had no ESPHome CLI, so no build proof exists yet — none was faked); the
+`products/webflash` wrappers; and FanTRIAC `HW-005` buildability
+(`blocked-by-build`, TRIAC policy unchanged). Subsumes the planning-only intent
+of the former `RELEASE-PREVIEW-BUILD-BLOCKERS-001`.
 
 ### RELEASE-PREVIEW-PUBLISH-PLAN-001 — plan the publish path for the dry-run-clean previews
 

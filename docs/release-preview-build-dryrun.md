@@ -55,6 +55,16 @@ Inputs inspected (read-only):
   > a delivery lane present** — they do **not** claim a fresh compile. A real
   > compile dry-run (ESPHome available) is still owed before any artifact is cut.
 
+  > **Update (RELEASE-PREVIEW-BUILD-FIXES-001):** the three
+  > `blocked-by-missing-yaml` rows above now have concrete preview product YAMLs
+  > (Core/PoE/AirIQ/RoomIQ/LED compositions from existing packages), catalog
+  > entries (`status: blocked` on `PRODUCT-POE-410-001`), and product-level
+  > compile-only targets. The **missing-YAML** sub-blocker is cleared; each row
+  > still owes a `products/webflash` wrapper **and a real ESPHome compile
+  > dry-run** before an artifact can be cut, so none is published here. See the
+  > per-target Update notes in §3–§5 and the Follow-ups section. FanTRIAC stays
+  > `blocked-by-build` (HW-005, TRIAC policy unchanged).
+
 ---
 
 ## Method & environment
@@ -232,6 +242,16 @@ here and not repeated per row.
 * **Stable blocker:** S360-410 PoE-PSU schematic verification + AirIQ sensor-stack
   bench evidence.
 * **Classification:** `blocked-by-missing-yaml`
+* **Update (RELEASE-PREVIEW-BUILD-FIXES-001):** missing-YAML blocker **resolved**.
+  A concrete product YAML (`products/sense360-ceiling-poe-airiq-roomiq.yaml`,
+  shim over `products/bundles/ceiling-poe-airiq-roomiq.yaml`), a
+  `config/product-catalog.json` entry (`status: blocked`, blocker
+  `PRODUCT-POE-410-001`), and a product-level compile-only target
+  (`ceiling-poe-airiq-roomiq-product-compile-only`,
+  `compile_validation_status: pending-ci`) were added. Still owed before a cut:
+  a `products/webflash` wrapper and a **real ESPHome compile dry-run** (ESPHome
+  still unavailable here — no compile was run or faked). No
+  `config/webflash-builds.json` row, no artifact. Stable stays evidence-gated.
 
 ### 4 — `Ceiling-POE-RoomIQ` (Bedroom / RoomIQ preview)
 
@@ -255,6 +275,16 @@ here and not repeated per row.
 * **Stable blocker:** S360-410 PoE-PSU schematic verification
   (PRODUCT-POE-410-001 / PACKAGE-POE-410-001).
 * **Classification:** `blocked-by-missing-yaml`
+* **Update (RELEASE-PREVIEW-BUILD-FIXES-001):** the concrete product YAML
+  (`products/sense360-ceiling-poe-roomiq.yaml`, shim over
+  `products/bundles/ceiling-poe-roomiq.yaml`) and its catalog entry already
+  existed; the preview manifest's `yaml_path` is now **repointed** from the
+  compile-only skeleton to that product YAML, and a product-level compile-only
+  target (`ceiling-poe-roomiq-product-compile-only`,
+  `compile_validation_status: pending-ci`) covers it. Still owed before a cut:
+  a `products/webflash` wrapper and a **real ESPHome compile dry-run** (ESPHome
+  still unavailable here). No `config/webflash-builds.json` row, no artifact.
+  Stable stays evidence-gated.
 
 ### 5 — `Ceiling-POE-RoomIQ-LED` (Living / Corridor preview)
 
@@ -276,6 +306,18 @@ here and not repeated per row.
 * **Stable blocker:** S360-410 PoE-PSU schematic verification + LED
   preview-to-stable gauntlet.
 * **Classification:** `blocked-by-missing-yaml`
+* **Update (RELEASE-PREVIEW-BUILD-FIXES-001):** missing-YAML blocker **resolved**.
+  A **dedicated** product YAML now encodes the LED token
+  (`products/sense360-ceiling-poe-roomiq-led.yaml`, shim over
+  `products/bundles/ceiling-poe-roomiq-led.yaml`) — no longer sharing the
+  LED-less RoomIQ skeleton — plus a `config/product-catalog.json` entry
+  (`status: blocked`, blocker `PRODUCT-POE-410-001`, `target_channel:
+  preview-candidate`) and a product-level compile-only target
+  (`ceiling-poe-roomiq-led-product-compile-only`,
+  `compile_validation_status: pending-ci`). **LED stays preview.** Still owed
+  before a cut: a `products/webflash` wrapper and a **real ESPHome compile
+  dry-run** (ESPHome still unavailable here). No `config/webflash-builds.json`
+  row, no artifact. Stable stays evidence-gated.
 
 ### 6 — `Ceiling-POE-VentIQ-FanRelay-RoomIQ` (FanRelay preview)
 
@@ -421,10 +463,22 @@ for any future cut:
 
 ## Follow-ups (queued in `UPCOMING_PR.md`)
 
-* **`RELEASE-PREVIEW-BUILD-FIXES-001`** — *queued (build blockers found).* Convert
-  each recorded blocker into a scoped build-fix: FanTRIAC HW-005 buildability;
-  AirIQ-RoomIQ catalog entry + wrapper; RoomIQ wrapper; RoomIQ-LED product +
-  wrapper. Planning / decomposition only.
+* **`RELEASE-PREVIEW-BUILD-FIXES-001`** — *landed (this PR), for the
+  `blocked-by-missing-yaml` items only.* The three missing-YAML preview targets
+  now have concrete product YAMLs composed from existing packages
+  (`products/bundles/ceiling-poe-airiq-roomiq.yaml`,
+  `products/bundles/ceiling-poe-roomiq.yaml` (pre-existing), and
+  `products/bundles/ceiling-poe-roomiq-led.yaml`) behind thin
+  `products/sense360-*.yaml` shims, with matching `config/product-catalog.json`
+  entries (all `status: blocked` on `PRODUCT-POE-410-001`; AirIQ-RoomIQ
+  `stable-candidate`, RoomIQ-LED `preview-candidate`) and product-level
+  compile-only targets (`compile_validation_status: pending-ci`). The preview
+  manifest now references the concrete product YAMLs. **Still owed per target:**
+  a `products/webflash` wrapper and a recorded ESPHome compile dry-run (the
+  hosted-compile follow-up). **Out of scope / unchanged:** FanTRIAC HW-005
+  buildability stays a `blocked-by-build` item (TRIAC policy untouched); nothing
+  is published; no `config/webflash-builds.json` row is added; nothing is
+  promoted to stable.
 * **`RELEASE-PREVIEW-PUBLISH-PLAN-001`** — *queued (enough targets metadata-clean),
   gated.* Plan the publish path for the metadata-clean previews (3 manual-preview
   fan targets + the live LED preview). **Blocked** until a real ESPHome compile
