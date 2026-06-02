@@ -71,16 +71,27 @@ Where the preview-release program actually stands today:
   three reviewed `config/webflash-builds.json` **preview** rows were cut
   (`RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`, #698; ledger 2 → 5), and their
   **release-note drafts** were generated + validated against the WebFlash
-  release-body contract (`RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001`, this PR) under
+  release-body contract (`RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001`, #699) under
   [`docs/release-notes/preview/`](docs/release-notes/preview/). Metadata /
   dry-run only: rows stay `metadata-ready-unpublished`, drafts are attached to no
   Release, nothing is promoted to stable, and the consuming candidate bundles stay
   hidden / not buyable. Firmware-build proof only (run `26821900127`).
-* **Actual preview artifacts — NOT YET PUBLISHED.** No preview `.bin` has been
-  built, released, or attached; non-buildable targets still carry explicit build
-  blockers (e.g. FanTRIAC `HW-005`). No `esphome` build proof is claimed and
-  [`config/webflash-builds.json`](config/webflash-builds.json) has no preview
-  build row.
+* **Publish plan — DONE (this PR).** `RELEASE-PREVIEW-PUBLISH-PLAN-001` plans the
+  actual publication of the three metadata-ready preview artifacts
+  ([`docs/release-preview-publish-plan.md`](docs/release-preview-publish-plan.md)):
+  per-artifact config string / build row / wrapper / draft / compile evidence /
+  commercial posture / channel / workflow selector / output filename, plus a
+  verified workflow scope (the picker selects exactly the three; stable Bathroom,
+  TRIAC, and the fan manual-preview targets stay out; WebFlash repo untouched).
+  Planning only — publishes nothing, runs no workflow, adds no `.bin` / Release /
+  tag / `manifest.json` / `firmware/sources.json`. Guard:
+  [`tests/test_preview_publish_plan.py`](tests/test_preview_publish_plan.py).
+* **Actual preview artifacts — NOT YET PUBLISHED.** The three reviewed preview
+  rows exist in [`config/webflash-builds.json`](config/webflash-builds.json) with
+  green firmware-build compile proof (run `26821900127`), but no preview `.bin`
+  has been built, released, or attached; the publish plan above is verified and
+  the actual run is queued as `RELEASE-PREVIEW-PUBLISH-RUN-001`. Non-buildable
+  targets still carry explicit build blockers (e.g. FanTRIAC `HW-005`).
 * **WebFlash import — WAITS FOR ARTIFACTS.** One-click import stays a gated
   follow-up that only begins once importable upstream preview artifacts exist.
 
@@ -88,18 +99,20 @@ So **policy, target manifest, releasable metadata, the metadata build/release
 dry-run + re-run, and now the hosted compile dry-run are done**. The three former
 `blocked-by-missing-yaml` preview targets gained **concrete product YAMLs**
 (`RELEASE-PREVIEW-BUILD-FIXES-001`, #691); the hosted compile dry-run (run
-`26821900127`, `RELEASE-PREVIEW-COMPILE-RESULTS-001`, this PR) then **compiled
+`26821900127`, `RELEASE-PREVIEW-COMPILE-RESULTS-001`, #695) then **compiled
 them GREEN** and flipped their `compile_validation_status` to
 `validated-full-compile`, so their **only** residual WebFlash prerequisite was the
 `products/webflash` wrapper — now **authored** by
 `RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001` (#696). The reviewed
 `config/webflash-builds.json` **preview build rows** for the three wrapped
-previews then landed (`RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`, #698), and their
-**release-note drafts** have now been generated + validated
-(`RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001`, this PR) — release-note dry-run only,
-nothing published. The remaining open work: resolve FanTRIAC `HW-005`, and then
-**plan + produce the actual preview artifacts** and the **WebFlash import** —
-captured as the next queue items below.
+previews then landed (`RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`, #698), their
+**release-note drafts** were generated + validated
+(`RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001`, #699) — release-note dry-run only,
+nothing published — and the **publish plan** for the three metadata-ready preview
+artifacts is now verified (`RELEASE-PREVIEW-PUBLISH-PLAN-001`, this PR). The
+remaining open work: **run the actual publish** (`RELEASE-PREVIEW-PUBLISH-RUN-001`,
+queued below), then the **WebFlash import** (after upstream artifacts exist), plus
+resolving FanTRIAC `HW-005` — captured as the next queue items below.
 
 ---
 
@@ -266,11 +279,11 @@ stable promotion; **no** TRIAC / fan row; launch SKU stays `S360-KIT-BATH-P`;
 candidate bundles stay hidden / not buyable; WebFlash one-click customer import
 remains a separate, gated follow-up.
 
-### RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001 — generate preview release-note drafts — DONE (this PR)
+### RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001 — generate preview release-note drafts — DONE (#699)
 
-**Status: DONE in this PR.** With the three reviewed preview build rows in place
-(`RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`, above), this PR generates and
-validates **release-note drafts** for them, completing the release-note coverage
+**Status: DONE (#699).** With the three reviewed preview build rows in place
+(`RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`, #698), #699 generated and
+validated **release-note drafts** for them, completing the release-note coverage
 matrix so **every** preview WebFlash build row is covered. It adds the three
 drafts under
 [`docs/release-notes/preview/`](docs/release-notes/preview/)
@@ -296,25 +309,60 @@ or `firmware/sources.json`; no stable promotion; no TRIAC / fan draft; launch SK
 stays `S360-KIT-BATH-P`; candidate bundles stay hidden / not buyable; WebFlash
 repo untouched.
 
-### RELEASE-PREVIEW-PUBLISH-PLAN-001 — plan the publish path for the dry-run-clean previews
+### RELEASE-PREVIEW-PUBLISH-PLAN-001 — plan preview artifact publication for the metadata-ready WebFlash builds — DONE (this PR)
 
-The dry-run left enough targets metadata-clean to plan a publish path: the 3
-manual-preview fan targets (`Ceiling-POE-VentIQ-FanRelay-RoomIQ`,
-`Ceiling-POE-FanPWM`, `Ceiling-POE-FanDAC`) plus the already-published LED
-preview. Plan their publish path (release-note + acknowledgement-gate warning
-copy, artifact naming, manual-preview vs webflash lane, ordering). **Blocked**
-until `RELEASE-PREVIEW-BUILD-FIXES-001` records a **real** `esphome` compile
-dry-run / build proof for the manual-preview targets. Planning / decomposition
-only — publishes nothing, builds no `.bin`, adds no `config/webflash-builds.json`
-row, touches no WebFlash repo.
+**Status: DONE in this PR.** With the three reviewed preview build rows
+(`RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`, #698), their validated release-note
+drafts (`RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001`, #699), and green firmware-build
+compile proof (run `26821900127`, #695) all in place, this PR writes the **publish
+plan** for the three **metadata-ready** preview WebFlash artifacts —
+`Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.0-preview.bin`,
+`Sense360-Ceiling-POE-RoomIQ-v1.0.0-preview.bin`, and
+`Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin` —
+[`docs/release-preview-publish-plan.md`](docs/release-preview-publish-plan.md).
+For each artifact it records the config string, WebFlash build row, product YAML /
+wrapper, release-note draft, compile evidence (run `26821900127`,
+firmware-build-only), commercial posture (hidden / candidate / not buyable / not
+recommended / not default / not stable), channel (`preview`), the
+no-hardware/compliance-proof disclaimer, the expected workflow selector
+(`release_target` = the config string, `channel: preview`, `version: 1.0.0`), and
+the expected output filename. It **verifies workflow scope** by replaying the
+release workflow's matrix filter: the picker can select **exactly** each of the
+three; the stable Bathroom build (`Ceiling-POE-VentIQ-RoomIQ`) is never included
+unless `channel: stable` is explicitly selected; TRIAC and the fan manual-preview
+targets (`FanRelay` / `FanPWM` / `FanDAC`) are not in the matrix or the picker; and
+the workflow never touches the WebFlash repo. Guard:
+[`tests/test_preview_publish_plan.py`](tests/test_preview_publish_plan.py) (30
+tests). **Planning only** — publishes no firmware, runs no release workflow,
+creates no GitHub Release / tag / checksum, commits no `.bin`, writes no
+`manifest.json` / `firmware/sources.json`, touches no WebFlash repo, marks nothing
+stable, makes no preview build recommended / default, exposes no candidate bundle
+as buyable, adds no TRIAC row, adds no fan manual-preview row, keeps the launch SKU
+`S360-KIT-BATH-P`, and claims no hardware / bench / compliance / commercial proof.
+
+### RELEASE-PREVIEW-PUBLISH-RUN-001 — run the actual preview artifact publication (QUEUED — actionable)
+
+The verified publish plan (`RELEASE-PREVIEW-PUBLISH-PLAN-001`, above) is ready to
+execute. This queued item is the **actual manual workflow run** that publishes the
+three metadata-ready preview artifacts via
+[`.github/workflows/firmware-build-release.yml`](.github/workflows/firmware-build-release.yml)
+on `channel: preview`, `version: 1.0.0`, per the per-artifact selectors and the
+§2.1 scoping note in the plan. It will publish **only** the three preview
+artifacts; it must **not** publish the stable Bathroom build, TRIAC, or any fan
+manual-preview target, must keep the consuming candidate bundles hidden / not
+buyable and the launch SKU `S360-KIT-BATH-P` unchanged, and must claim no hardware
+/ compliance proof. This is the first item that actually produces a `.bin` /
+GitHub Release / checksum — everything before it (rows, drafts, plan) was
+metadata / dry-run only.
 
 ### WEBFLASH-PREVIEW-IMPORT-HANDOFF-001 — hand off importable preview artifacts to WebFlash
 
-Once real importable preview artifacts exist upstream (from
-`RELEASE-PREVIEW-BUILD-DRYRUN-001` graduating to actual cuts), hand them off to
-WebFlash: add the `config/webflash-builds.json` row(s) + `products/webflash`
-wrapper behind the acknowledgement gate. **Blocked until upstream artifacts
-exist** — strictly a follow-up; no WebFlash change before then.
+**WebFlash import comes after upstream artifacts exist.** Once
+`RELEASE-PREVIEW-PUBLISH-RUN-001` has actually published the importable preview
+artifacts upstream, hand them off to WebFlash: add the
+`config/webflash-builds.json` row(s) + `products/webflash` wrapper on the WebFlash
+repo, behind the acknowledgement gate. **Blocked until upstream artifacts exist**
+— strictly a follow-up; no WebFlash change before then.
 
 > Also queued (future, not started): **`FIRST-MAINTENANCE-RELEASE-PLAN-001`** —
 > plan a future maintenance release (new version); see its entry below.
