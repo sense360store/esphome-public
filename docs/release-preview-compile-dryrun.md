@@ -152,8 +152,12 @@ status, **no** WebFlash row, **no** stable status is flipped.
 * The three formerly **`pending-ci` + no-wrapper** webflash previews
   (AirIQ-RoomIQ, RoomIQ, RoomIQ-LED) are now **compile-validated**; their
   [`config/preview-release-targets.json`](../config/preview-release-targets.json)
-  `build_blocker` now records **only `no products/webflash wrapper`** as the
-  residual prerequisite before a WebFlash build row can be prepared.
+  `build_blocker` at the time recorded **only `no products/webflash wrapper`** as
+  the residual prerequisite before a WebFlash build row can be prepared. That
+  wrapper has since been added by `RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001` (see
+  [`docs/release-preview-webflash-wrappers.md`](release-preview-webflash-wrappers.md)),
+  so the residual prerequisite is now a reviewed `config/webflash-builds.json`
+  build row.
 * The three **manual-preview fans** are **compile-validated** (now hosted-CI
   corroborated as well as the prior local/CI proof).
 * **TRIAC remains blocked-by-build / `HW-005`** and is absent from every
@@ -231,11 +235,14 @@ product YAML, and no WebFlash build).
 
 ## Follow-ups (queued in `UPCOMING_PR.md`)
 
-* **`RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001` (next):** author the three
-  `products/webflash/*.yaml` wrappers (AirIQ-RoomIQ, RoomIQ, RoomIQ-LED). The
-  compile gate is **now satisfied** by run `26821900127`; the **only** residual
-  prerequisite is the wrapper. Still no `config/webflash-builds.json` row until
-  the wrappers + metadata are reviewed.
+* **`RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001` (DONE):** the three
+  `products/webflash/*.yaml` wrappers (AirIQ-RoomIQ, RoomIQ, RoomIQ-LED) have now
+  been authored — see
+  [`docs/release-preview-webflash-wrappers.md`](release-preview-webflash-wrappers.md).
+  The compile gate was satisfied by run `26821900127`; the wrapper was the only
+  residual prerequisite, and each wrapper is now recorded in the per-target
+  `webflash_wrapper` field of `config/preview-release-targets.json`. Still no
+  `config/webflash-builds.json` row until a reviewed build-row PR.
 * **`RELEASE-PREVIEW-PUBLISH-PLAN-001`** — plan the publish path; remains
   **gated** behind the wrappers + a reviewed metadata pass.
 * **FanTRIAC `HW-005`** — unchanged buildability defect; remains excluded /
