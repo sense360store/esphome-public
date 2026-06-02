@@ -118,14 +118,28 @@ class PreviewCompileScopeTests(unittest.TestCase):
         # The matrix must be JSON-serializable (consumed via fromJson in CI).
         self.assertIsInstance(json.dumps(matrix), str)
 
-    def test_prior_compile_status_is_cited_not_invented(self) -> None:
-        # The three webflash previews must still be pending-ci (no proof flipped
-        # by this dry-run lane); the fans cite their prior validated-full-compile.
+    def test_compile_status_is_cited_not_invented(self) -> None:
+        # The helper CITES compile_validation_status from
+        # config/compile-only-targets.json; it never invents one. After the
+        # hosted Preview Compile Dry-Run recorded green (run 26821900127,
+        # workflow_dispatch / compile_mode=full, 2026-06-02),
+        # RELEASE-PREVIEW-COMPILE-RESULTS-001 flipped the three webflash
+        # previews pending-ci -> validated-full-compile and recorded the same
+        # run as hosted corroboration for the three fans (already
+        # validated-full-compile), so every target carrying a product-level
+        # compile-only row now cites validated-full-compile.
         status = {t["config_string"]: t["prior_compile_validation_status"]
                   for t in self.targets}
         for cs in ("Ceiling-POE-AirIQ-RoomIQ", "Ceiling-POE-RoomIQ",
-                   "Ceiling-POE-RoomIQ-LED"):
-            self.assertEqual(status[cs], "pending-ci")
+                   "Ceiling-POE-RoomIQ-LED",
+                   "Ceiling-POE-VentIQ-FanRelay-RoomIQ", "Ceiling-POE-FanPWM",
+                   "Ceiling-POE-FanDAC"):
+            self.assertEqual(status[cs], "validated-full-compile")
+        # The published LED preview has no product-level compile-only row, so
+        # the cited status is honestly "none" (not invented).
+        self.assertEqual(
+            status["Ceiling-POE-VentIQ-RoomIQ-LED"], "none"
+        )
 
 
 class PreviewCompileWorkflowTests(unittest.TestCase):

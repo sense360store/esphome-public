@@ -49,21 +49,24 @@ Where the preview-release program actually stands today:
   `blocked-by-missing-yaml`, 0 `blocked-by-policy`. Removed nothing
   (`components/` + `products/` intact), promoted nothing, added no
   `config/webflash-builds.json` row.
-* **Hosted compile dry-run PATH — ADDED (this PR); compile not yet executed**
-  (`RELEASE-PREVIEW-COMPILE-DRYRUN-001`). Added a scoped `workflow_dispatch`-only
-  lane [`.github/workflows/preview-compile-dryrun.yml`](.github/workflows/preview-compile-dryrun.yml)
-  (name `Preview Compile Dry-Run`) + the read-only helper
-  [`scripts/list_preview_compile_targets.py`](scripts/list_preview_compile_targets.py)
-  that compile **only** the seven preview / manual-preview targets (TRIAC
-  excluded by `HW-005`, reported not compiled). **No hosted compile was run in
-  this PR** — the local environment has no ESPHome CLI, and a brand-new
-  `workflow_dispatch` lane is not dispatchable until it lands on the default
-  branch — so **no compile proof is claimed** and every target stays `pending`
-  (the three webflash previews stay `pending-ci`; the fans cite a prior
-  `validated-full-compile`). See
+* **Hosted compile dry-run — DONE (GREEN)** (`RELEASE-PREVIEW-COMPILE-DRYRUN-001`
+  added the lane, #694; `RELEASE-PREVIEW-COMPILE-RESULTS-001`, this PR, records the
+  run). The scoped `workflow_dispatch`-only lane
+  [`.github/workflows/preview-compile-dryrun.yml`](.github/workflows/preview-compile-dryrun.yml)
+  (name `Preview Compile Dry-Run`) was dispatched on the default branch with
+  `compile_mode=full` —
+  [run `26821900127`](https://github.com/sense360store/esphome-public/actions/runs/26821900127)
+  (2026-06-02, ESPHome 2026.4.5) — and **all 9 jobs (scope + 7 compile +
+  summary) finished `success`**. **All seven** preview / manual-preview targets
+  compiled **PASS**; **TRIAC is excluded** (`HW-005`, reported not compiled).
+  Metadata recorded: the three webflash previews flip `compile_validation_status`
+  **`pending-ci` → `validated-full-compile`** (citing the run in a
+  `compile_evidence` block); the three fans keep `validated-full-compile` with the
+  run as hosted corroboration. **Logs only** — no `.bin`, no Release/tag, no
+  `config/webflash-builds.json` row, no `firmware/sources.json` / `manifest.json`,
+  no stable / TRIAC change. Firmware-build proof only (not hardware / bench /
+  compliance). See
   [`docs/release-preview-compile-dryrun.md`](docs/release-preview-compile-dryrun.md).
-  Published nothing; added no `config/webflash-builds.json` row; flipped no
-  `compile_validation_status`.
 * **Actual preview artifacts — NOT YET PUBLISHED.** No preview `.bin` has been
   built, released, or attached; non-buildable targets still carry explicit build
   blockers (e.g. FanTRIAC `HW-005`). No `esphome` build proof is claimed and
@@ -73,17 +76,16 @@ Where the preview-release program actually stands today:
   follow-up that only begins once importable upstream preview artifacts exist.
 
 So **policy, target manifest, releasable metadata, the metadata build/release
-dry-run, and its re-run are done**. The three former `blocked-by-missing-yaml`
-preview targets now have **concrete product YAMLs** (`RELEASE-PREVIEW-BUILD-FIXES-001`,
-#691) and the re-run (`RELEASE-PREVIEW-BUILD-DRYRUN-002`, this PR) **confirms the
-missing-YAML blocker is cleared** and reclassifies them to **`blocked-by-build`**
-(buildable composition resolves; `compile_validation_status: pending-ci` and no
-`products/webflash` wrapper yet). The remaining open work is unchanged in
-substance: run a **real `esphome` compile dry-run** for those three YAMLs and the
-manual-preview fans (the environment still has no ESPHome CLI), author the three
-`products/webflash` wrappers, resolve FanTRIAC `HW-005`, and then **plan +
-produce the actual preview artifacts** and the **WebFlash import** — captured as
-the next queue items below.
+dry-run + re-run, and now the hosted compile dry-run are done**. The three former
+`blocked-by-missing-yaml` preview targets gained **concrete product YAMLs**
+(`RELEASE-PREVIEW-BUILD-FIXES-001`, #691); the hosted compile dry-run (run
+`26821900127`, `RELEASE-PREVIEW-COMPILE-RESULTS-001`, this PR) then **compiled
+them GREEN** and flipped their `compile_validation_status` to
+`validated-full-compile`, so their **only** residual WebFlash prerequisite is the
+`products/webflash` wrapper. The remaining open work: author the three
+`products/webflash` wrappers (`RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001`, **next**),
+resolve FanTRIAC `HW-005`, and then **plan + produce the actual preview
+artifacts** and the **WebFlash import** — captured as the next queue items below.
 
 ---
 
@@ -152,45 +154,46 @@ had no ESPHome CLI, so no build proof exists yet — none was faked); the
 (`blocked-by-build`, TRIAC policy unchanged). Subsumes the planning-only intent
 of the former `RELEASE-PREVIEW-BUILD-BLOCKERS-001`.
 
-### RELEASE-PREVIEW-COMPILE-DRYRUN-001 — hosted preview compile dry-run — PATH ADDED (this PR); run pending
+### RELEASE-PREVIEW-COMPILE-DRYRUN-001 / RELEASE-PREVIEW-COMPILE-RESULTS-001 — hosted preview compile dry-run — DONE (GREEN)
 
-**Status:** the **hosted compile dry-run path is DONE in this PR**; the actual
-`compile_mode=full` run (and recording its per-target pass/fail) remains open,
-because the new `workflow_dispatch` lane is only dispatchable once it lands on the
-default branch and the local environment has no ESPHome CLI (so no compile proof
-is claimed or faked).
+**Status:** **DONE.** `RELEASE-PREVIEW-COMPILE-DRYRUN-001` (#694) added the scoped
+lane; `RELEASE-PREVIEW-COMPILE-RESULTS-001` (this PR) **records the green hosted
+run**. The lane was dispatched on the default branch with `compile_mode=full` —
+[run `26821900127`](https://github.com/sense360store/esphome-public/actions/runs/26821900127)
+(2026-06-02, ESPHome 2026.4.5) — and **all 9 jobs (scope + 7 compile + summary)
+finished `success`**.
 
-Seeded by `RELEASE-PREVIEW-BUILD-DRYRUN-002`. This PR adds a **scoped**,
-manual-only hosted compile dry-run lane —
+The lane —
 [`.github/workflows/preview-compile-dryrun.yml`](.github/workflows/preview-compile-dryrun.yml)
 (name `Preview Compile Dry-Run`, `workflow_dispatch`, `compile_mode=full`) driven
 by [`scripts/list_preview_compile_targets.py`](scripts/list_preview_compile_targets.py)
-— that compiles **only** the seven preview / manual-preview targets
+— compiled **only** the seven preview / manual-preview targets
 (`Ceiling-POE-VentIQ-RoomIQ-LED`, `Ceiling-POE-AirIQ-RoomIQ`, `Ceiling-POE-RoomIQ`,
 `Ceiling-POE-RoomIQ-LED`, `Ceiling-POE-VentIQ-FanRelay-RoomIQ`,
-`Ceiling-POE-FanPWM`, `Ceiling-POE-FanDAC`) and **excludes**
-`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` (`HW-005`, reported not compiled). It uploads
-only the compile log, publishes nothing, creates no Release / tag, writes no
-`firmware/sources.json` / `manifest.json`, and adds no
-`config/webflash-builds.json` row. **Still open:** dispatch the lane post-merge
-(`gh workflow run "Preview Compile Dry-Run" -f compile_mode=full`), record exact
-per-target pass/fail in
-[`docs/release-preview-compile-dryrun.md`](docs/release-preview-compile-dryrun.md),
-and flip `compile_validation_status: pending-ci` → `validated-full-compile` in a
-separate reviewed metadata PR **only** on a real green. This run is the **gate**
-for every `blocked-by-build` (compile-unproven) → buildable transition and for any
-artifact cut. No `.bin` is published by the dry-run itself.
+`Ceiling-POE-FanPWM`, `Ceiling-POE-FanDAC`) — **all seven PASS** — and **excluded**
+`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` (`HW-005`, reported not compiled). It uploaded
+only the compile log; published nothing; created no Release / tag; wrote no
+`firmware/sources.json` / `manifest.json`; added no `config/webflash-builds.json`
+row. Per-target pass/fail + evidence recorded in
+[`docs/release-preview-compile-dryrun.md`](docs/release-preview-compile-dryrun.md).
+The sanctioned metadata flip is recorded: the three webflash previews
+`compile_validation_status: pending-ci` → `validated-full-compile` (citing the run
+in a `compile_evidence` block in
+[`config/compile-only-targets.json`](config/compile-only-targets.json)); the three
+fans keep `validated-full-compile` with the run as hosted corroboration. Firmware-build
+proof only — not hardware / bench / compliance; no stable / TRIAC change.
 
-### RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001 — author the three `products/webflash` wrappers
+### RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001 — author the three `products/webflash` wrappers — NEXT (compile gate satisfied)
 
-Seeded by `RELEASE-PREVIEW-BUILD-DRYRUN-002`. Once a real compile is recorded,
-add the thin `products/webflash/ceiling-poe-airiq-roomiq.yaml`,
-`…/ceiling-poe-roomiq.yaml`, and `…/ceiling-poe-roomiq-led.yaml` wrappers (the
-last residual missing-YAML for the WebFlash lane). The hosted compile lane that
-records that proof now exists (`RELEASE-PREVIEW-COMPILE-DRYRUN-001` —
-`Preview Compile Dry-Run` / `compile_mode=full`); this item stays **gated on a
-real green** from it. **Still** no `config/webflash-builds.json` row until the
-compile proof exists; promotes nothing, publishes nothing.
+**Now the next actionable item.** The compile gate is **satisfied** by run
+`26821900127` (above): `Ceiling-POE-AirIQ-RoomIQ`, `Ceiling-POE-RoomIQ`, and
+`Ceiling-POE-RoomIQ-LED` are now `validated-full-compile`, so the **only**
+residual WebFlash prerequisite is the wrapper YAML. Add the thin
+`products/webflash/ceiling-poe-airiq-roomiq.yaml`, `…/ceiling-poe-roomiq.yaml`,
+and `…/ceiling-poe-roomiq-led.yaml` wrappers, then a reviewed metadata pass can
+prepare the WebFlash build rows. **Still** no `config/webflash-builds.json` row
+until the wrappers + metadata are reviewed; promotes nothing, publishes nothing,
+adds no `.bin`. TRIAC stays out (`HW-005`).
 
 ### RELEASE-PREVIEW-PUBLISH-PLAN-001 — plan the publish path for the dry-run-clean previews
 
@@ -241,7 +244,69 @@ and PR #684) are retained below as historical detail.
 
 ---
 
-## RELEASE-PREVIEW-COMPILE-DRYRUN-001 — add hosted preview compile dry-run — PATH ADDED (this PR; compile not yet run)
+## RELEASE-PREVIEW-COMPILE-RESULTS-001 — record green hosted preview compile (this PR)
+
+**Status:** **DONE.** Records the **successful** hosted `Preview Compile Dry-Run`
+([run `26821900127`](https://github.com/sense360store/esphome-public/actions/runs/26821900127),
+`workflow_dispatch` / `compile_mode=full`, 2026-06-02, ESPHome 2026.4.5) that the
+lane added by `RELEASE-PREVIEW-COMPILE-DRYRUN-001` (#694) became dispatchable for
+once it merged to the default branch. **All 9 jobs (scope + 7 compile + summary)
+finished `success`.**
+
+### What was recorded
+
+* **Per-target ledger (all seven PASS):** `Ceiling-POE-VentIQ-RoomIQ-LED`,
+  `Ceiling-POE-AirIQ-RoomIQ`, `Ceiling-POE-RoomIQ`, `Ceiling-POE-RoomIQ-LED`,
+  `Ceiling-POE-VentIQ-FanRelay-RoomIQ`, `Ceiling-POE-FanPWM`, `Ceiling-POE-FanDAC`.
+  `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is **excluded** (`HW-005`, reported by the
+  Scope job, not compiled). Full evidence (run/job ids, durations) in
+  [`docs/release-preview-compile-dryrun.md`](docs/release-preview-compile-dryrun.md).
+* **Metadata flip (`config/compile-only-targets.json`):** the three webflash
+  previews `ceiling-poe-airiq-roomiq-product-compile-only`,
+  `ceiling-poe-roomiq-product-compile-only`, and
+  `ceiling-poe-roomiq-led-product-compile-only` move
+  `compile_validation_status: pending-ci` → **`validated-full-compile`**, each
+  with a structured `compile_evidence` block citing run `26821900127`. The three
+  fan product targets keep `validated-full-compile` and record the same run as
+  **hosted corroboration**. The two USB targets stay `pending-ci` (not in scope);
+  the published LED preview has no product-level row (cited `none`).
+* **Reclassification (`config/preview-release-targets.json`):** the three webflash
+  previews' `build_blocker` now records **only `no products/webflash wrapper`**
+  as the residual prerequisite (compile recorded green); the fan
+  `preview_artifact_release` prose cites the hosted run.
+* **Regression test:** `tests/test_preview_compile_dryrun.py` updated — the cited
+  compile status for the six targets carrying a compile-only row is now
+  `validated-full-compile` (still cited from the manifest, never invented).
+
+### Guardrails (unchanged posture)
+
+Firmware-build proof only. **No** firmware published, **no** GitHub Release / tag
+/ checksum, **no** `.bin` committed, **no** `firmware/sources.json` /
+`manifest.json`, **no** `config/webflash-builds.json` row, **no** WebFlash-repo
+change, **nothing** marked stable, **TRIAC not touched / not unblocked / not added
+to any release surface**, and **no** hardware / bench / compliance claim.
+
+### Validation
+
+* `python3 tests/validate_configs.py` — 217 files, 0 failed (exit 0).
+* `python3 scripts/validate_compile_targets.py --metadata-only` — 18 targets,
+  passed (exit 0).
+* `python3 scripts/validate_preview_release_targets.py --metadata-only` — 9
+  targets, passed (exit 0).
+* `python3 tests/test_product_catalog.py` — OK (exit 0).
+* `python3 tests/validate_webflash_builds.py` — 2 builds, 0 failed (exit 0).
+* `python3 -m unittest discover -s tests -p "test_*.py"` — OK (exit 0).
+
+### Next
+
+`RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001` (author the three `products/webflash`
+wrappers) — the compile gate is satisfied, the wrapper is the sole residual
+prerequisite. Publish / import work stays gated until the wrappers + metadata are
+reviewed.
+
+---
+
+## RELEASE-PREVIEW-COMPILE-DRYRUN-001 — add hosted preview compile dry-run — PATH ADDED (#694; compile not yet run at that time)
 
 **Status:** the **hosted compile dry-run path is DONE in this PR** (scoped lane +
 scoping helper + regression test + honest record). The **actual hosted compile
