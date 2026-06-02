@@ -60,6 +60,16 @@ the next queue items below.
 > targets (compile pending an ESPHome-capable environment) and seeded the two
 > follow-ups below.
 
+> **Precursor cleared — `REPO-STRUCTURE-AUDIT-001` is DONE (this PR; audit only).**
+> Before the preview build-fix work adds files under `products/bundles/`, this PR
+> audited the top-level `components/` and `products/` directories. **Result:
+> `products/` active / KEEP** (release/build backbone; `products/bundles/**`
+> active because preview targets resolve there — the next PR's expected home);
+> **`components/` active / KEEP** (ESPHome external components `ld2412`/`ld2450`/
+> `ld24xx`; build dependency + public remote-package surface — **not** legacy, no
+> `REMOVE-LEGACY-COMPONENTS-001` follow-up). Nothing removed. Full reference map:
+> [`docs/repo-structure.md`](docs/repo-structure.md) and the write-up below.
+
 ### RELEASE-PREVIEW-BUILD-FIXES-001 — fix the build blockers the dry-run found — missing-YAML items DONE (this PR)
 
 **Status:** the three `blocked-by-missing-yaml` items are **DONE in this PR**;
@@ -141,6 +151,92 @@ Recently landed; kept as one-line history (full write-ups preserved below).
 
 Earlier completed / queued entries (including `FIRST-MAINTENANCE-RELEASE-PLAN-001`
 and PR #684) are retained below as historical detail.
+
+---
+
+## REPO-STRUCTURE-AUDIT-001 — audit components and products directories — DONE (this PR; audit only)
+
+**Status:** **DONE in this PR** as an **audit / classification only** (deletes,
+renames, and restructures nothing; removes no `products/` path, no
+`products/bundles/**` path, no `components/`; changes no release policy;
+publishes no firmware; touches no WebFlash repo; claims no compile/build proof).
+Audits whether the top-level `components/` and `products/` directories are
+active, legacy, or removable before the preview build-fix PR adds files under
+`products/bundles/`.
+
+### Outcome — both directories ACTIVE / KEEP; nothing removable
+
+* **`products/` — active / KEEP.** It is the release/build/test/config backbone:
+  18 top-level `sense360-*.yaml` customer-pinned compat shims, 11
+  `products/bundles/` canonical compositions, 8 `products/compile-only/`
+  validation skeletons, 3 `products/webflash/` release wrappers, and the
+  `products/secrets.yaml` compile/test symlink. No obsolete subfolders; no
+  removal. The expected policy holds: `products/` stays because it contains
+  active product/bundle YAMLs.
+* **`products/bundles/**` — active / KEEP.** Preview targets resolve here.
+  `config/preview-release-targets.json` names
+  `products/bundles/ceiling-poe-airiq-roomiq.yaml`,
+  `…/ceiling-poe-roomiq.yaml`, and `…/ceiling-poe-roomiq-led.yaml` in its
+  blocker notes, and **all 11** bundles are `!include`d by their top-level shim
+  (`webflash/ → sense360-*.yaml → bundles/` 3-layer `BUNDLE-LAYER-001` chain).
+  This is the next functional PR's expected home — explicitly **not** removed.
+* **`components/` — active / KEEP (not legacy).** The ESPHome external
+  components `ld2412` / `ld2450` / `ld24xx` (62 files) are a hard build
+  dependency **and** the public remote-package surface:
+  `packages/base/external_components.yaml` declares
+  `components: [ld2412, ld2450, ld24xx]` via a `git` source (external consumers
+  pinned to a tag fetch from this repo); **three** workflows wire it locally —
+  `firmware-build-release.yml` and `manual-firmware-artifacts.yml` rewrite to
+  `path: ../components`, and `ci-validate-configs.yml` rewrites the git `ref` to
+  the build branch; `tests/generate_test_configs.py` inlines `path: ../../components`;
+  and 7 package files instantiate `ld2412:` / `ld2450:` platforms
+  (`boards/s360-200-roomiq-radar*`, `expansions/presence_ld24{12,50}`,
+  `features/presence_advanced_ld2412`, `hardware/presence_ld24{12,50}`).
+  A reference search proves it is **not** unused, so it is **not** removed and
+  **no `REMOVE-LEGACY-COMPONENTS-001` follow-up is opened.**
+
+No file under `components/` or `products/` classified as historical-only or
+dead; on top of explicit references, every `products/**/*.yaml` is also consumed
+by enumeration (`ci-validate-configs.yml` `find products/` and
+`tests/test_all_yaml_release_matrix.py` `rglob`).
+
+### What changed
+
+* New [`docs/repo-structure.md`](docs/repo-structure.md) —
+  `REPO-STRUCTURE-AUDIT-001`: the canonical structural reference + full reference
+  map (the 3-layer include chain, per-subfolder classification, the `components/`
+  active-dependency proof table, the bundle→shim map, audit method, and
+  guardrails). Cross-links the canonical status doc
+  [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md) and the
+  historical [`docs/repo-structure-audit.md`](docs/repo-structure-audit.md)
+  (ESP-009 / ESP-010), which this refreshes for the current subfolder layout.
+* This `UPCOMING_PR.md`: recorded the result (products active/keep; components
+  active/keep, no removal follow-up) in the queue-state precursor note and this
+  write-up.
+
+No config, package, product YAML, component, workflow, or WebFlash file was
+modified (docs + queue only).
+
+### Validation
+
+* `python3 tests/validate_configs.py` — 217 files, 0 failed (exit 0).
+* `python3 scripts/validate_compile_targets.py --metadata-only` — 18 targets,
+  metadata passed (exit 0).
+* `python3 scripts/validate_preview_release_targets.py --metadata-only` — 9
+  targets, passed (exit 0).
+* `python3 tests/test_product_catalog.py` — 41 tests OK (exit 0).
+* `python3 tests/validate_webflash_builds.py` — 2 builds, 0 failed (exit 0).
+* `python3 -m unittest discover -s tests -p "test_*.py"` — 1245 tests OK
+  (3 skipped) (exit 0).
+* `esphome` compile — **not run; audit is docs-only; no build proof claimed.**
+
+### Guardrails (explicitly NOT done)
+
+No `products/` path removed; no `products/bundles/**` path removed; no
+`components/` removal; no release policy change; no firmware published; no GitHub
+Release / tag / checksum; no WebFlash repo change; no `config/webflash-builds.json`
+row; nothing promoted to stable; no `config/product-catalog.json` status flip; no
+compile / build / hardware / compliance proof claimed or faked.
 
 ---
 
