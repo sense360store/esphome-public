@@ -74,13 +74,36 @@
       "id": "ceiling-poe-roomiq-product-compile-only",
       "product_yaml": "products/sense360-ceiling-poe-roomiq.yaml",
       "config_string": "Ceiling-POE-RoomIQ",
-      "reason": "Ceiling-POE-RoomIQ TOP-LEVEL product-YAML compile-only validation target (V1-R4-CREATE-001). Registers the canonical RoomIQ-only PoE ceiling product YAML authored by V1-R4-CREATE-001 (products/sense360-ceiling-poe-roomiq.yaml; the S360-KIT-BEDROOM-P firmware deliverable, NOT the products/compile-only/ceiling-poe-roomiq.yaml skeleton) directly into the compile-only validation lane so the actual top-level product YAML carries its own compile-only coverage. This mirrors the FanDAC / FanPWM top-level precedent (ceiling-poe-fandac-product-compile-only / ceiling-poe-fanpwm-product-compile-only register their top-level product YAMLs alongside their skeletons). The product YAML composes the IDENTICAL Core ceiling + PoE PSU (S360-410) + base/health + RoomIQ (comfort_ceiling + presence_ceiling) package set as the already-registered skeleton target ceiling-poe-roomiq-compile-only; the same RoomIQ subset is exercised by the WebFlash-shipping Ceiling-POE-VentIQ-RoomIQ build. compile_validation_status is pending-ci: ESPHome is not available in the authoring environment, so no full esphome compile was run for this target and none is fabricated; a CI --compile run (scripts/validate_compile_targets.py --compile via the compile-only.yml workflow_dispatch / compile_mode=full lane) is owed before any validated-full-compile claim. Compile success is NOT WebFlash exposure, NOT a release artifact, NOT WebFlash import readiness, NOT a PRODUCT-POE-410-001 / WEBFLASH-POE-410-001 / RELEASE-POE-410-001 unblock, NOT S360-410 schematic / BOM verification, NOT hardware proof, NOT compliance approval, and NOT stable / preview promotion.",
+      "reason": "Ceiling-POE-RoomIQ TOP-LEVEL product-YAML compile-only validation target (V1-R4-CREATE-001). Registers the canonical RoomIQ-only PoE ceiling product YAML authored by V1-R4-CREATE-001 (products/sense360-ceiling-poe-roomiq.yaml; the S360-KIT-BEDROOM-P firmware deliverable, NOT the products/compile-only/ceiling-poe-roomiq.yaml skeleton) directly into the compile-only validation lane so the actual top-level product YAML carries its own compile-only coverage. This mirrors the FanDAC / FanPWM top-level precedent (ceiling-poe-fandac-product-compile-only / ceiling-poe-fanpwm-product-compile-only register their top-level product YAMLs alongside their skeletons). The product YAML composes the IDENTICAL Core ceiling + PoE PSU (S360-410) + base/health + RoomIQ (comfort_ceiling + presence_ceiling) package set as the already-registered skeleton target ceiling-poe-roomiq-compile-only; the same RoomIQ subset is exercised by the WebFlash-shipping Ceiling-POE-VentIQ-RoomIQ build. compile_validation_status is validated-full-compile: the hosted Preview Compile Dry-Run (.github/workflows/preview-compile-dryrun.yml; workflow_dispatch / compile_mode=full; run 26821900127; 2026-06-02; ESPHome 2026.4.5) ran a real esphome compile dry-run against this product YAML and it passed (job 'Compile Dry-Run: Ceiling-POE-RoomIQ', conclusion success), superseding the prior pending-ci marker; no compile is fabricated. Compile success is NOT WebFlash exposure, NOT a release artifact, NOT WebFlash import readiness, NOT a PRODUCT-POE-410-001 / WEBFLASH-POE-410-001 / RELEASE-POE-410-001 unblock, NOT S360-410 schematic / BOM verification, NOT hardware proof, NOT compliance approval, and NOT stable / preview promotion.",
       "shipment_status": "compile-only",
       "hardware_required_for_validation": true,
       "webflash_exposure_allowed_now": false,
       "blocked": false,
-      "compile_validation_status": "pending-ci",
-      "notes": "Top-level Ceiling-POE-RoomIQ product-YAML compile-only target. product_yaml is products/sense360-ceiling-poe-roomiq.yaml (a top-level products/ product YAML with a config/product-catalog.json row from V1-R4-CREATE-001, status: blocked, blocker: PRODUCT-POE-410-001, webflash_build_matrix: false, no artifact_name, no webflash_wrapper). This is a SEPARATE registration from the ceiling-poe-roomiq-compile-only skeleton (products/compile-only/ceiling-poe-roomiq.yaml), which is preserved unchanged; both target the Ceiling-POE-RoomIQ config string but are distinct files with distinct ids. compile_validation_status: pending-ci records that NO full ESPHome --compile run was performed for this target (ESPHome unavailable in the authoring environment) and none is fabricated; a CI full-compile run is owed. No WebFlash exposure, no webflash_build_matrix flip, no artifact_name, no release artifact, no Ceiling-POE-RoomIQ entry in config/webflash-builds.json, not in release_one_required_configs. S360-410 schematic_status stays cataloged_unverified and the Release-One PoE caveat (PRODUCT-POE-410-001) remains open."
+      "compile_validation_status": "validated-full-compile",
+      "notes": "Top-level Ceiling-POE-RoomIQ product-YAML compile-only target. product_yaml is products/sense360-ceiling-poe-roomiq.yaml (a top-level products/ product YAML with a config/product-catalog.json row from V1-R4-CREATE-001, status: blocked, blocker: PRODUCT-POE-410-001, webflash_build_matrix: false, no artifact_name, no webflash_wrapper). This is a SEPARATE registration from the ceiling-poe-roomiq-compile-only skeleton (products/compile-only/ceiling-poe-roomiq.yaml), which is preserved unchanged; both target the Ceiling-POE-RoomIQ config string but are distinct files with distinct ids. compile_validation_status: validated-full-compile records that the hosted Preview Compile Dry-Run (run 26821900127; workflow_dispatch / compile_mode=full; 2026-06-02; ESPHome 2026.4.5) ran a real esphome compile dry-run against this product YAML and it passed (conclusion success), superseding the prior pending-ci marker; no compile is fabricated. This is firmware-build proof only: NOT WebFlash exposure, NOT a release artifact, NOT a PRODUCT-POE-410-001 unblock, NOT S360-410 schematic / BOM verification, NOT hardware proof, NOT compliance, and NOT stable / preview promotion. No WebFlash exposure, no webflash_build_matrix flip, no artifact_name, no release artifact, no Ceiling-POE-RoomIQ entry in config/webflash-builds.json, not in release_one_required_configs. S360-410 schematic_status stays cataloged_unverified and the Release-One PoE caveat (PRODUCT-POE-410-001) remains open.",
+      "compile_evidence": {
+        "workflow": "Preview Compile Dry-Run",
+        "workflow_file": ".github/workflows/preview-compile-dryrun.yml",
+        "run_id": 26821900127,
+        "run_url": "https://github.com/sense360store/esphome-public/actions/runs/26821900127",
+        "compile_mode": "full",
+        "event": "workflow_dispatch",
+        "date": "2026-06-02",
+        "esphome_version": "2026.4.5",
+        "job": "Compile Dry-Run: Ceiling-POE-RoomIQ",
+        "result": "success",
+        "role": "primary-hosted-compile-proof",
+        "proof_class": "firmware-build-only",
+        "canonical_id": "RELEASE-PREVIEW-COMPILE-RESULTS-001",
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "compliance",
+          "stable-promotion",
+          "webflash-exposure",
+          "release-artifact"
+        ]
+      }
     },
     {
       "id": "ceiling-poe-ventiq-compile-only",
@@ -119,25 +142,71 @@
       "id": "ceiling-poe-airiq-roomiq-product-compile-only",
       "product_yaml": "products/sense360-ceiling-poe-airiq-roomiq.yaml",
       "config_string": "Ceiling-POE-AirIQ-RoomIQ",
-      "reason": "Ceiling-POE-AirIQ-RoomIQ TOP-LEVEL product-YAML compile-only validation target (RELEASE-PREVIEW-BUILD-FIXES-001). Registers the AirIQ + RoomIQ PoE ceiling product YAML authored by RELEASE-PREVIEW-BUILD-FIXES-001 (products/sense360-ceiling-poe-airiq-roomiq.yaml, a thin compat shim that !includes the bundle products/bundles/ceiling-poe-airiq-roomiq.yaml) into the compile-only validation lane so the metadata validator covers the concrete product YAML, not just the products/compile-only/ceiling-poe-airiq-roomiq.yaml skeleton. This mirrors the ceiling-poe-roomiq-product-compile-only / ceiling-usb-roomiq-product-compile-only precedent. The bundle composes Core ceiling (S360-100 board package) + PoE PSU (S360-410 board package) + AirIQ (S360-210 board package + airiq_basic_profile) + RoomIQ (S360-200 board package: comfort_ceiling + presence_ceiling + profiles) + base/health, with no VentIQ, no fan, and no LED; the identical composition is exercised by the skeleton target ceiling-poe-airiq-roomiq-compile-only. compile_validation_status is pending-ci: ESPHome was not available in the authoring environment, so no full esphome compile was run for this target and none is fabricated; a CI --compile run (scripts/validate_compile_targets.py --compile via the compile-only.yml workflow_dispatch / compile_mode=full lane) is owed before any validated-full-compile claim. Compile success is NOT WebFlash exposure, NOT a release artifact, NOT a PRODUCT-POE-410-001 unblock, NOT S360-410 schematic / BOM verification, NOT AirIQ sensor-stack bench evidence, NOT hardware proof, and NOT stable / preview promotion.",
+      "reason": "Ceiling-POE-AirIQ-RoomIQ TOP-LEVEL product-YAML compile-only validation target (RELEASE-PREVIEW-BUILD-FIXES-001). Registers the AirIQ + RoomIQ PoE ceiling product YAML authored by RELEASE-PREVIEW-BUILD-FIXES-001 (products/sense360-ceiling-poe-airiq-roomiq.yaml, a thin compat shim that !includes the bundle products/bundles/ceiling-poe-airiq-roomiq.yaml) into the compile-only validation lane so the metadata validator covers the concrete product YAML, not just the products/compile-only/ceiling-poe-airiq-roomiq.yaml skeleton. This mirrors the ceiling-poe-roomiq-product-compile-only / ceiling-usb-roomiq-product-compile-only precedent. The bundle composes Core ceiling (S360-100 board package) + PoE PSU (S360-410 board package) + AirIQ (S360-210 board package + airiq_basic_profile) + RoomIQ (S360-200 board package: comfort_ceiling + presence_ceiling + profiles) + base/health, with no VentIQ, no fan, and no LED; the identical composition is exercised by the skeleton target ceiling-poe-airiq-roomiq-compile-only. compile_validation_status is validated-full-compile: the hosted Preview Compile Dry-Run (.github/workflows/preview-compile-dryrun.yml; workflow_dispatch / compile_mode=full; run 26821900127; 2026-06-02; ESPHome 2026.4.5) ran a real esphome compile dry-run against this product YAML and it passed (job 'Compile Dry-Run: Ceiling-POE-AirIQ-RoomIQ', conclusion success), superseding the prior pending-ci marker; no compile is fabricated. Compile success is NOT WebFlash exposure, NOT a release artifact, NOT a PRODUCT-POE-410-001 unblock, NOT S360-410 schematic / BOM verification, NOT AirIQ sensor-stack bench evidence, NOT hardware proof, and NOT stable / preview promotion.",
       "shipment_status": "compile-only",
       "hardware_required_for_validation": true,
       "webflash_exposure_allowed_now": false,
       "blocked": false,
-      "compile_validation_status": "pending-ci",
-      "notes": "Top-level Ceiling-POE-AirIQ-RoomIQ product-YAML compile-only target (RELEASE-PREVIEW-BUILD-FIXES-001). product_yaml is products/sense360-ceiling-poe-airiq-roomiq.yaml (a top-level products/ product YAML with a config/product-catalog.json row, status: blocked, blocker: PRODUCT-POE-410-001, target_channel: stable-candidate, webflash_build_matrix: false, no artifact_name, no webflash_wrapper). This is a SEPARATE registration from the ceiling-poe-airiq-roomiq-compile-only skeleton (products/compile-only/ceiling-poe-airiq-roomiq.yaml), which is preserved unchanged; both target the Ceiling-POE-AirIQ-RoomIQ config string but are distinct files with distinct ids. compile_validation_status: pending-ci records that NO full ESPHome --compile run was performed for this target (ESPHome unavailable in the authoring environment) and none is fabricated; a CI full-compile run is owed. No WebFlash exposure, no webflash_build_matrix flip, no artifact_name, no release artifact, no Ceiling-POE-AirIQ-RoomIQ entry in config/webflash-builds.json, not in release_one_required_configs. S360-410 schematic_status stays cataloged_unverified and the Release-One PoE caveat (PRODUCT-POE-410-001) remains open."
+      "compile_validation_status": "validated-full-compile",
+      "notes": "Top-level Ceiling-POE-AirIQ-RoomIQ product-YAML compile-only target (RELEASE-PREVIEW-BUILD-FIXES-001). product_yaml is products/sense360-ceiling-poe-airiq-roomiq.yaml (a top-level products/ product YAML with a config/product-catalog.json row, status: blocked, blocker: PRODUCT-POE-410-001, target_channel: stable-candidate, webflash_build_matrix: false, no artifact_name, no webflash_wrapper). This is a SEPARATE registration from the ceiling-poe-airiq-roomiq-compile-only skeleton (products/compile-only/ceiling-poe-airiq-roomiq.yaml), which is preserved unchanged; both target the Ceiling-POE-AirIQ-RoomIQ config string but are distinct files with distinct ids. compile_validation_status: validated-full-compile records that the hosted Preview Compile Dry-Run (run 26821900127; workflow_dispatch / compile_mode=full; 2026-06-02; ESPHome 2026.4.5) ran a real esphome compile dry-run against this product YAML and it passed (conclusion success), superseding the prior pending-ci marker; no compile is fabricated. This is firmware-build proof only: NOT WebFlash exposure, NOT a release artifact, NOT a PRODUCT-POE-410-001 unblock, NOT S360-410 schematic / BOM verification, NOT hardware proof, NOT compliance, and NOT stable / preview promotion. No WebFlash exposure, no webflash_build_matrix flip, no artifact_name, no release artifact, no Ceiling-POE-AirIQ-RoomIQ entry in config/webflash-builds.json, not in release_one_required_configs. S360-410 schematic_status stays cataloged_unverified and the Release-One PoE caveat (PRODUCT-POE-410-001) remains open.",
+      "compile_evidence": {
+        "workflow": "Preview Compile Dry-Run",
+        "workflow_file": ".github/workflows/preview-compile-dryrun.yml",
+        "run_id": 26821900127,
+        "run_url": "https://github.com/sense360store/esphome-public/actions/runs/26821900127",
+        "compile_mode": "full",
+        "event": "workflow_dispatch",
+        "date": "2026-06-02",
+        "esphome_version": "2026.4.5",
+        "job": "Compile Dry-Run: Ceiling-POE-AirIQ-RoomIQ",
+        "result": "success",
+        "role": "primary-hosted-compile-proof",
+        "proof_class": "firmware-build-only",
+        "canonical_id": "RELEASE-PREVIEW-COMPILE-RESULTS-001",
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "compliance",
+          "stable-promotion",
+          "webflash-exposure",
+          "release-artifact"
+        ]
+      }
     },
     {
       "id": "ceiling-poe-roomiq-led-product-compile-only",
       "product_yaml": "products/sense360-ceiling-poe-roomiq-led.yaml",
       "config_string": "Ceiling-POE-RoomIQ-LED",
-      "reason": "Ceiling-POE-RoomIQ-LED TOP-LEVEL product-YAML compile-only validation target (RELEASE-PREVIEW-BUILD-FIXES-001). Registers the RoomIQ + LED PoE ceiling product YAML authored by RELEASE-PREVIEW-BUILD-FIXES-001 (products/sense360-ceiling-poe-roomiq-led.yaml, a thin compat shim that !includes the bundle products/bundles/ceiling-poe-roomiq-led.yaml) into the compile-only validation lane so the metadata validator covers the concrete product YAML. Before this slice there was no dedicated YAML for the LED token — the preview manifest pointed at the products/compile-only/ceiling-poe-roomiq.yaml skeleton, which does not encode LED. The bundle composes Core ceiling (S360-100 board package) + PoE PSU (S360-410 board package) + RoomIQ (S360-200 board package: comfort_ceiling + presence_ceiling + profiles) + LED (S360-300 board package, WS2812B ceiling halo on GPIO38 per HW-010) + base/health, with no AirIQ, no VentIQ, and no fan. It is the LED-bearing sibling of the authored Ceiling-POE-RoomIQ build; the S360-300 LED board is the same ring the published Ceiling-POE-VentIQ-RoomIQ-LED preview ships. compile_validation_status is pending-ci: ESPHome was not available in the authoring environment, so no full esphome compile was run for this target and none is fabricated; a CI --compile run is owed before any validated-full-compile claim. Compile success is NOT WebFlash exposure, NOT a release artifact, NOT a PRODUCT-POE-410-001 unblock, NOT S360-410 schematic / BOM verification, NOT an LED stable promotion (LED stays preview), NOT hardware proof, and NOT stable / preview promotion.",
+      "reason": "Ceiling-POE-RoomIQ-LED TOP-LEVEL product-YAML compile-only validation target (RELEASE-PREVIEW-BUILD-FIXES-001). Registers the RoomIQ + LED PoE ceiling product YAML authored by RELEASE-PREVIEW-BUILD-FIXES-001 (products/sense360-ceiling-poe-roomiq-led.yaml, a thin compat shim that !includes the bundle products/bundles/ceiling-poe-roomiq-led.yaml) into the compile-only validation lane so the metadata validator covers the concrete product YAML. Before this slice there was no dedicated YAML for the LED token — the preview manifest pointed at the products/compile-only/ceiling-poe-roomiq.yaml skeleton, which does not encode LED. The bundle composes Core ceiling (S360-100 board package) + PoE PSU (S360-410 board package) + RoomIQ (S360-200 board package: comfort_ceiling + presence_ceiling + profiles) + LED (S360-300 board package, WS2812B ceiling halo on GPIO38 per HW-010) + base/health, with no AirIQ, no VentIQ, and no fan. It is the LED-bearing sibling of the authored Ceiling-POE-RoomIQ build; the S360-300 LED board is the same ring the published Ceiling-POE-VentIQ-RoomIQ-LED preview ships. compile_validation_status is validated-full-compile: the hosted Preview Compile Dry-Run (.github/workflows/preview-compile-dryrun.yml; workflow_dispatch / compile_mode=full; run 26821900127; 2026-06-02; ESPHome 2026.4.5) ran a real esphome compile dry-run against this product YAML and it passed (job 'Compile Dry-Run: Ceiling-POE-RoomIQ-LED', conclusion success), superseding the prior pending-ci marker; no compile is fabricated. Compile success is NOT WebFlash exposure, NOT a release artifact, NOT a PRODUCT-POE-410-001 unblock, NOT S360-410 schematic / BOM verification, NOT an LED stable promotion (LED stays preview), NOT hardware proof, and NOT stable / preview promotion.",
       "shipment_status": "compile-only",
       "hardware_required_for_validation": true,
       "webflash_exposure_allowed_now": false,
       "blocked": false,
-      "compile_validation_status": "pending-ci",
-      "notes": "Top-level Ceiling-POE-RoomIQ-LED product-YAML compile-only target (RELEASE-PREVIEW-BUILD-FIXES-001). product_yaml is products/sense360-ceiling-poe-roomiq-led.yaml (a top-level products/ product YAML with a config/product-catalog.json row, status: blocked, blocker: PRODUCT-POE-410-001, target_channel: preview-candidate, webflash_build_matrix: false, no artifact_name, no webflash_wrapper). compile_validation_status: pending-ci records that NO full ESPHome --compile run was performed for this target (ESPHome unavailable in the authoring environment) and none is fabricated; a CI full-compile run is owed. LED stays preview. No WebFlash exposure, no webflash_build_matrix flip, no artifact_name, no release artifact, no Ceiling-POE-RoomIQ-LED entry in config/webflash-builds.json, not in release_one_required_configs. S360-410 schematic_status stays cataloged_unverified and the Release-One PoE caveat (PRODUCT-POE-410-001) remains open."
+      "compile_validation_status": "validated-full-compile",
+      "notes": "Top-level Ceiling-POE-RoomIQ-LED product-YAML compile-only target (RELEASE-PREVIEW-BUILD-FIXES-001). product_yaml is products/sense360-ceiling-poe-roomiq-led.yaml (a top-level products/ product YAML with a config/product-catalog.json row, status: blocked, blocker: PRODUCT-POE-410-001, target_channel: preview-candidate, webflash_build_matrix: false, no artifact_name, no webflash_wrapper). compile_validation_status: validated-full-compile records that the hosted Preview Compile Dry-Run (run 26821900127; workflow_dispatch / compile_mode=full; 2026-06-02; ESPHome 2026.4.5) ran a real esphome compile dry-run against this product YAML and it passed (conclusion success), superseding the prior pending-ci marker; no compile is fabricated. This is firmware-build proof only: NOT WebFlash exposure, NOT a release artifact, NOT a PRODUCT-POE-410-001 unblock, NOT S360-410 schematic / BOM verification, NOT hardware proof, NOT compliance, and NOT stable / preview promotion. LED stays preview. No WebFlash exposure, no webflash_build_matrix flip, no artifact_name, no release artifact, no Ceiling-POE-RoomIQ-LED entry in config/webflash-builds.json, not in release_one_required_configs. S360-410 schematic_status stays cataloged_unverified and the Release-One PoE caveat (PRODUCT-POE-410-001) remains open.",
+      "compile_evidence": {
+        "workflow": "Preview Compile Dry-Run",
+        "workflow_file": ".github/workflows/preview-compile-dryrun.yml",
+        "run_id": 26821900127,
+        "run_url": "https://github.com/sense360store/esphome-public/actions/runs/26821900127",
+        "compile_mode": "full",
+        "event": "workflow_dispatch",
+        "date": "2026-06-02",
+        "esphome_version": "2026.4.5",
+        "job": "Compile Dry-Run: Ceiling-POE-RoomIQ-LED",
+        "result": "success",
+        "role": "primary-hosted-compile-proof",
+        "proof_class": "firmware-build-only",
+        "canonical_id": "RELEASE-PREVIEW-COMPILE-RESULTS-001",
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "compliance",
+          "stable-promotion",
+          "webflash-exposure",
+          "release-artifact"
+        ]
+      }
     },
     {
       "id": "ceiling-poe-ventiq-fanrelay-roomiq-compile-only",
@@ -151,7 +220,30 @@
       "advanced_manual_warning_only": true,
       "hardware_pending": true,
       "compile_validation_status": "validated-full-compile",
-      "notes": "FanRelay product YAML lives at products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml (NOT under products/webflash/, NOT under products/compile-only/). The matching catalog row in config/product-catalog.json (config_string: Ceiling-POE-VentIQ-FanRelay-RoomIQ, status: hardware-pending, webflash_build_matrix: false, no artifact_name, no webflash_wrapper) was landed by PRODUCT-RELAY-001 / PR #564. The FanRelay token is NOT in config/webflash-builds.json (no FanRelay build entry exists). The FanRelay config string is NOT in release_one_required_configs. No WebFlash wrapper exists under products/webflash/. The S360-KIT-BATH-RELAY kit stays future-expansion / hardware-pending / webflash_exposure_allowed_now: false / stable_ready_now: false. WEBFLASH-RELAY-001, RELEASE-RELAY-001, and WF-IMPORT-RELAY-001 stay blocked behind their own gates. MANUAL-FIRMWARE-CANDIDATE-001 (2026-05-27) records compile_validation_status: validated-full-compile for this top-level FanRelay product compile-only target from the already-committed FW-FULL-COMPILE-TOPLEVEL-FANS-001 / PR #616 full-lane run (this product YAML was target #8, rc=0, Flash 53.8% / 987219 bytes); it is recorded from that committed evidence, not a new compile run, and none is fabricated. This makes the FanRelay top-level product YAML a manual / no-WebFlash firmware candidate alongside FanPWM / FanDAC. It stays compile-only: NOT WebFlash exposure, NOT a release artifact, NOT hardware-stable, NOT compliance / competent-person approval, NOT kit-default / recommended."
+      "notes": "FanRelay product YAML lives at products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml (NOT under products/webflash/, NOT under products/compile-only/). The matching catalog row in config/product-catalog.json (config_string: Ceiling-POE-VentIQ-FanRelay-RoomIQ, status: hardware-pending, webflash_build_matrix: false, no artifact_name, no webflash_wrapper) was landed by PRODUCT-RELAY-001 / PR #564. The FanRelay token is NOT in config/webflash-builds.json (no FanRelay build entry exists). The FanRelay config string is NOT in release_one_required_configs. No WebFlash wrapper exists under products/webflash/. The S360-KIT-BATH-RELAY kit stays future-expansion / hardware-pending / webflash_exposure_allowed_now: false / stable_ready_now: false. WEBFLASH-RELAY-001, RELEASE-RELAY-001, and WF-IMPORT-RELAY-001 stay blocked behind their own gates. MANUAL-FIRMWARE-CANDIDATE-001 (2026-05-27) records compile_validation_status: validated-full-compile for this top-level FanRelay product compile-only target from the already-committed FW-FULL-COMPILE-TOPLEVEL-FANS-001 / PR #616 full-lane run (this product YAML was target #8, rc=0, Flash 53.8% / 987219 bytes); it is recorded from that committed evidence, not a new compile run, and none is fabricated. This makes the FanRelay top-level product YAML a manual / no-WebFlash firmware candidate alongside FanPWM / FanDAC. It stays compile-only: NOT WebFlash exposure, NOT a release artifact, NOT hardware-stable, NOT compliance / competent-person approval, NOT kit-default / recommended. HOSTED-CI CORROBORATION (RELEASE-PREVIEW-COMPILE-RESULTS-001): the hosted Preview Compile Dry-Run (run 26821900127; workflow_dispatch / compile_mode=full; 2026-06-02; ESPHome 2026.4.5; job 'Compile Dry-Run: Ceiling-POE-VentIQ-FanRelay-RoomIQ') re-compiled this product YAML on a hosted GitHub Actions runner and it passed (conclusion success), corroborating the existing validated-full-compile status on hosted CI. The compile_validation_status value is unchanged; this is firmware-build proof only and adds no hardware / bench / compliance / stable claim and no WebFlash exposure / release artifact.",
+      "compile_evidence": {
+        "workflow": "Preview Compile Dry-Run",
+        "workflow_file": ".github/workflows/preview-compile-dryrun.yml",
+        "run_id": 26821900127,
+        "run_url": "https://github.com/sense360store/esphome-public/actions/runs/26821900127",
+        "compile_mode": "full",
+        "event": "workflow_dispatch",
+        "date": "2026-06-02",
+        "esphome_version": "2026.4.5",
+        "job": "Compile Dry-Run: Ceiling-POE-VentIQ-FanRelay-RoomIQ",
+        "result": "success",
+        "role": "hosted-corroboration-of-prior-validated-full-compile",
+        "proof_class": "firmware-build-only",
+        "canonical_id": "RELEASE-PREVIEW-COMPILE-RESULTS-001",
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "compliance",
+          "stable-promotion",
+          "webflash-exposure",
+          "release-artifact"
+        ]
+      }
     },
     {
       "id": "ceiling-poe-fandac-compile-only",
@@ -189,7 +281,30 @@
       "webflash_exposure_allowed_now": false,
       "blocked": false,
       "compile_validation_status": "validated-full-compile",
-      "notes": "Top-level FanDAC product-YAML compile-only target. product_yaml is products/sense360-ceiling-poe-fandac.yaml (a top-level products/ product YAML with a config/product-catalog.json row from PRODUCT-DAC-001, status: hardware-pending, webflash_build_matrix: false, no artifact_name, no webflash_wrapper). This is a SEPARATE registration from the ceiling-poe-fandac-compile-only skeleton (products/compile-only/ceiling-poe-fandac.yaml), which is preserved unchanged and stays compile_validation_status: validated-full-compile; both target the Ceiling-POE-FanDAC config string but are distinct files with distinct ids. The skeleton is the historical CI validation file; this row makes the actual shipped product YAML a first-class compile-only target. compile_validation_status: validated-full-compile records that THIS registered top-level target was compiled by a full ESPHome --compile run and passed: FW-FULL-COMPILE-TOPLEVEL-FANS-001 ran scripts/validate_compile_targets.py --compile (the compile-only.yml workflow_dispatch / compile_mode=full command) LOCALLY on 2026-05-27 with ESPHome 2026.4.5 (board esp32-s3-devkitc-1, framework espidf / ESP-IDF 5.5.4) against commit 17caa86 on claude/toplevel-fans-compile-validation-n8LRb; all 12 registered targets passed (rc=0, 0 skipped, 0 failures) and this target produced a real firmware.bin (Flash 50.6% / 927815 bytes), superseding the prior pending-ci marker. This was a LOCAL run; no GitHub Actions run id exists and none is fabricated. (The skeleton ceiling-poe-fandac-compile-only stays separately validated-full-compile via run 26364679370.) No WebFlash exposure, no webflash_build_matrix flip, no artifact_name, no release artifact, no FanDAC entry in config/webflash-builds.json, not in release_one_required_configs. Enforces the FanDAC <-> AirIQ mutex inherited from the product YAML; no simultaneous per-output 0-5V + 0-10V on a single GP8403 is claimed."
+      "notes": "Top-level FanDAC product-YAML compile-only target. product_yaml is products/sense360-ceiling-poe-fandac.yaml (a top-level products/ product YAML with a config/product-catalog.json row from PRODUCT-DAC-001, status: hardware-pending, webflash_build_matrix: false, no artifact_name, no webflash_wrapper). This is a SEPARATE registration from the ceiling-poe-fandac-compile-only skeleton (products/compile-only/ceiling-poe-fandac.yaml), which is preserved unchanged and stays compile_validation_status: validated-full-compile; both target the Ceiling-POE-FanDAC config string but are distinct files with distinct ids. The skeleton is the historical CI validation file; this row makes the actual shipped product YAML a first-class compile-only target. compile_validation_status: validated-full-compile records that THIS registered top-level target was compiled by a full ESPHome --compile run and passed: FW-FULL-COMPILE-TOPLEVEL-FANS-001 ran scripts/validate_compile_targets.py --compile (the compile-only.yml workflow_dispatch / compile_mode=full command) LOCALLY on 2026-05-27 with ESPHome 2026.4.5 (board esp32-s3-devkitc-1, framework espidf / ESP-IDF 5.5.4) against commit 17caa86 on claude/toplevel-fans-compile-validation-n8LRb; all 12 registered targets passed (rc=0, 0 skipped, 0 failures) and this target produced a real firmware.bin (Flash 50.6% / 927815 bytes), superseding the prior pending-ci marker. This was a LOCAL run; no GitHub Actions run id exists and none is fabricated. (The skeleton ceiling-poe-fandac-compile-only stays separately validated-full-compile via run 26364679370.) No WebFlash exposure, no webflash_build_matrix flip, no artifact_name, no release artifact, no FanDAC entry in config/webflash-builds.json, not in release_one_required_configs. Enforces the FanDAC <-> AirIQ mutex inherited from the product YAML; no simultaneous per-output 0-5V + 0-10V on a single GP8403 is claimed. HOSTED-CI CORROBORATION (RELEASE-PREVIEW-COMPILE-RESULTS-001): the hosted Preview Compile Dry-Run (run 26821900127; workflow_dispatch / compile_mode=full; 2026-06-02; ESPHome 2026.4.5; job 'Compile Dry-Run: Ceiling-POE-FanDAC') re-compiled this product YAML on a hosted GitHub Actions runner and it passed (conclusion success), corroborating the existing validated-full-compile status on hosted CI. The compile_validation_status value is unchanged; this is firmware-build proof only and adds no hardware / bench / compliance / stable claim and no WebFlash exposure / release artifact.",
+      "compile_evidence": {
+        "workflow": "Preview Compile Dry-Run",
+        "workflow_file": ".github/workflows/preview-compile-dryrun.yml",
+        "run_id": 26821900127,
+        "run_url": "https://github.com/sense360store/esphome-public/actions/runs/26821900127",
+        "compile_mode": "full",
+        "event": "workflow_dispatch",
+        "date": "2026-06-02",
+        "esphome_version": "2026.4.5",
+        "job": "Compile Dry-Run: Ceiling-POE-FanDAC",
+        "result": "success",
+        "role": "hosted-corroboration-of-prior-validated-full-compile",
+        "proof_class": "firmware-build-only",
+        "canonical_id": "RELEASE-PREVIEW-COMPILE-RESULTS-001",
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "compliance",
+          "stable-promotion",
+          "webflash-exposure",
+          "release-artifact"
+        ]
+      }
     },
     {
       "id": "ceiling-poe-fanpwm-product-compile-only",
@@ -202,7 +317,30 @@
       "blocked": false,
       "compile_validation_status": "validated-full-compile",
       "rpm_supported": false,
-      "notes": "Top-level FanPWM product-YAML compile-only target. product_yaml is products/sense360-ceiling-poe-fanpwm.yaml (a top-level products/ product YAML with a config/product-catalog.json row from PRODUCT-PWM-001, status: hardware-pending, webflash_build_matrix: false, no artifact_name, no webflash_wrapper). SX1509-RECONCILE-001 migrated this bundle/product off the deprecated SX1509 path; it now composes the native packages/expansions/fan_pwm_native.yaml driver. This is a SEPARATE registration from the legacy SX1509 ceiling-poe-fanpwm-compile-only skeleton (products/compile-only/ceiling-poe-fanpwm.yaml), which is preserved unchanged as historical / superseded SX1509 compile proof and stays compile_validation_status: validated-full-compile against the legacy SX1509 composition (run 26414398902); both target the Ceiling-POE-FanPWM config string but are distinct files with distinct ids. compile_validation_status: validated-full-compile now stands by structural parity to the native compile-only skeleton products/compile-only/ceiling-poe-fanpwm-native.yaml, which composes the IDENTICAL package set as this product YAML and whose full esphome compile is recorded green by S360-311-NATIVE-FANPWM-COMPILE-001 (LOCAL run 2026-05-28, ESPHome 2026.4.5, board esp32-s3-devkitc-1 / framework espidf, commit 643bbd3, rc=0, real firmware.bin). The earlier FW-FULL-COMPILE-TOPLEVEL-FANS-001 local run (2026-05-27, commit 17caa86) compiled the prior SX1509 composition and does NOT transfer to the native composition; no new compile is fabricated. rpm_supported: false records that the native pulse_counter tach inputs are internal diagnostic pulse-rate inputs only — no per-fan or aggregate RPM is surfaced; this target makes no RPM claim. No WebFlash exposure, no webflash_build_matrix flip, no artifact_name, no release artifact, no FanPWM entry in config/webflash-builds.json, not in release_one_required_configs."
+      "notes": "Top-level FanPWM product-YAML compile-only target. product_yaml is products/sense360-ceiling-poe-fanpwm.yaml (a top-level products/ product YAML with a config/product-catalog.json row from PRODUCT-PWM-001, status: hardware-pending, webflash_build_matrix: false, no artifact_name, no webflash_wrapper). SX1509-RECONCILE-001 migrated this bundle/product off the deprecated SX1509 path; it now composes the native packages/expansions/fan_pwm_native.yaml driver. This is a SEPARATE registration from the legacy SX1509 ceiling-poe-fanpwm-compile-only skeleton (products/compile-only/ceiling-poe-fanpwm.yaml), which is preserved unchanged as historical / superseded SX1509 compile proof and stays compile_validation_status: validated-full-compile against the legacy SX1509 composition (run 26414398902); both target the Ceiling-POE-FanPWM config string but are distinct files with distinct ids. compile_validation_status: validated-full-compile now stands by structural parity to the native compile-only skeleton products/compile-only/ceiling-poe-fanpwm-native.yaml, which composes the IDENTICAL package set as this product YAML and whose full esphome compile is recorded green by S360-311-NATIVE-FANPWM-COMPILE-001 (LOCAL run 2026-05-28, ESPHome 2026.4.5, board esp32-s3-devkitc-1 / framework espidf, commit 643bbd3, rc=0, real firmware.bin). The earlier FW-FULL-COMPILE-TOPLEVEL-FANS-001 local run (2026-05-27, commit 17caa86) compiled the prior SX1509 composition and does NOT transfer to the native composition; no new compile is fabricated. rpm_supported: false records that the native pulse_counter tach inputs are internal diagnostic pulse-rate inputs only — no per-fan or aggregate RPM is surfaced; this target makes no RPM claim. No WebFlash exposure, no webflash_build_matrix flip, no artifact_name, no release artifact, no FanPWM entry in config/webflash-builds.json, not in release_one_required_configs. HOSTED-CI CORROBORATION (RELEASE-PREVIEW-COMPILE-RESULTS-001): the hosted Preview Compile Dry-Run (run 26821900127; workflow_dispatch / compile_mode=full; 2026-06-02; ESPHome 2026.4.5; job 'Compile Dry-Run: Ceiling-POE-FanPWM') re-compiled this product YAML on a hosted GitHub Actions runner and it passed (conclusion success), corroborating the existing validated-full-compile status on hosted CI. The compile_validation_status value is unchanged; this is firmware-build proof only and adds no hardware / bench / compliance / stable claim and no WebFlash exposure / release artifact.",
+      "compile_evidence": {
+        "workflow": "Preview Compile Dry-Run",
+        "workflow_file": ".github/workflows/preview-compile-dryrun.yml",
+        "run_id": 26821900127,
+        "run_url": "https://github.com/sense360store/esphome-public/actions/runs/26821900127",
+        "compile_mode": "full",
+        "event": "workflow_dispatch",
+        "date": "2026-06-02",
+        "esphome_version": "2026.4.5",
+        "job": "Compile Dry-Run: Ceiling-POE-FanPWM",
+        "result": "success",
+        "role": "hosted-corroboration-of-prior-validated-full-compile",
+        "proof_class": "firmware-build-only",
+        "canonical_id": "RELEASE-PREVIEW-COMPILE-RESULTS-001",
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "compliance",
+          "stable-promotion",
+          "webflash-exposure",
+          "release-artifact"
+        ]
+      }
     },
     {
       "id": "ceiling-poe-fanpwm-native-compile-only",
