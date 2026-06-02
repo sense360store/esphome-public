@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "canonical_id": "SHOP-COMMERCIAL-SOURCE-OF-TRUTH-001",
+  "description": "Repo-level commercial source of truth for the first Sense360 shop launch. Pins the customer-facing launch SKU, shop title, shop posture, candidate-bundle visibility, customer WebFlash URL, and the approved / forbidden ecommerce claims so product naming, shop copy, and WebFlash links stay consistent before customer-facing pages are published. This file is documentation / commercial-policy only: it adds no product YAMLs, firmware builds, artifacts, releases, WebFlash rows, or stable promotions, and it flips no hardware schematic_status or product-catalog lifecycle. See docs/shop-commercial-source-of-truth.md.",
+  "doc": "docs/shop-commercial-source-of-truth.md",
+  "sources": {
+    "room_bundle_skus": "config/room-bundle-skus.json",
+    "product_catalog": "config/product-catalog.json",
+    "hardware_catalog": "config/hardware-catalog.json",
+    "webflash_builds": "config/webflash-builds.json",
+    "kit_intent_matrix": "config/kit-intent-matrix.json"
+  },
+  "launch_product": {
+    "shop_sku": "S360-KIT-BATH-P",
+    "shop_title": "Sense360 Bathroom Bundle — PoE",
+    "firmware_config": "Ceiling-POE-VentIQ-RoomIQ",
+    "artifact_name": "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin",
+    "boards": [
+      "S360-100",
+      "S360-200",
+      "S360-211",
+      "S360-410"
+    ],
+    "shop_posture": "sellable-complete-room-bundle",
+    "individual_boards_public_sale": false,
+    "readiness_wording": {
+      "allowed": [
+        "stable firmware available",
+        "Release-One firmware target",
+        "WebFlash install supported",
+        "complete room kit"
+      ],
+      "not_allowed": [
+        "hardware certified",
+        "compliance certified",
+        "verified PoE hardware",
+        "safety certified",
+        "bench-proven for every installation",
+        "prevents mold",
+        "detects mold",
+        "guarantees condensation prevention"
+      ]
+    },
+    "notes": "Canonical launch shop product is the complete Bathroom PoE room bundle only. The firmware_config and artifact_name are the existing Release-One stable WebFlash build (config/webflash-builds.json) and the production catalog entry (config/product-catalog.json). S360-410 (PoE PSU) remains cataloged_unverified in config/hardware-catalog.json, so commercial copy must not overclaim hardware certification, compliance, or broad verification."
+  },
+  "aliases": {
+    "S360-KIT-BATH-POE": {
+      "canonical": "S360-KIT-BATH-P",
+      "status": "legacy-alias",
+      "notes": "Kit-intent spelling used in config/kit-intent-matrix.json (kit_id) and mirrored by the WebFlash kit presets. Treated as a legacy/alias spelling of the canonical room-bundle SKU; resolve any external reference to S360-KIT-BATH-P. Not renamed by this file."
+    }
+  },
+  "rejected_shop_skus": {
+    "S360-KIT-CEILING-VENTIQ-ROOMIQ-POE": {
+      "reason": "too-close-to-firmware-config-naming",
+      "status": "not-customer-facing",
+      "notes": "Appears as a WebFlash kits.json kit id; it mirrors the firmware config string (Ceiling-POE-VentIQ-RoomIQ) too closely to use as a customer-facing shop SKU. Do not use it as the shop SKU; the customer-facing SKU is S360-KIT-BATH-P."
+    }
+  },
+  "webflash": {
+    "customer_url": "https://flash.sense360.com",
+    "technical_fallback_url": "https://sense360store.github.io/WebFlash/",
+    "reserved_portal_url": "https://mysense360.com",
+    "reserved_portal_purpose": "Reserved for a future customer portal / account / setup / support experience. It is NOT the firmware flashing URL unless a future decision changes this.",
+    "notes": "Customer-facing browser flashing points at https://flash.sense360.com. The GitHub Pages origin https://sense360store.github.io/WebFlash/ is the deployment origin / technical fallback only. WebFlash repo, manifest.json, firmware/sources.json, and config/webflash-builds.json are unchanged by this file."
+  },
+  "candidate_bundle_visibility": {
+    "default": "hidden-from-shop-navigation",
+    "waitlist_allowed": true,
+    "buy_button_allowed": false,
+    "required_labels_if_shown": [
+      "coming soon",
+      "not available to buy",
+      "firmware preview / stable-candidate where applicable",
+      "hardware gates not closed"
+    ],
+    "must_not_imply": [
+      "availability",
+      "delivery date",
+      "production readiness"
+    ],
+    "candidate_bundles": [
+      "S360-KIT-KITCHEN-P",
+      "S360-KIT-LIVING-P",
+      "S360-KIT-BEDROOM-P",
+      "S360-KIT-CORRIDOR-P"
+    ],
+    "notes": "Candidate room bundles are planning / preview / stable-candidate records in config/room-bundle-skus.json, not public sale commitments. Hidden from normal shop navigation by default. Optional waitlist / coming-soon pages may exist only if explicitly labelled as above; never with a buy button."
+  },
+  "claims": {
+    "allowed": [
+      "Monitors bathroom environment",
+      "Tracks humidity, temperature, presence, and bathroom air-quality signals",
+      "Designed for Home Assistant / ESPHome users",
+      "Supports browser-based firmware installation with WebFlash",
+      "Can help inform automations such as ventilation reminders or alerts",
+      "PoE-powered room sensing kit",
+      "Includes Sense360 Core, RoomIQ, VentIQ, and PoE PSU"
+    ],
+    "not_allowed": [
+      "Prevents mold",
+      "Detects mold",
+      "Eliminates condensation",
+      "Prevents condensation",
+      "Certified air-quality monitor",
+      "Medical-grade",
+      "Safety certified",
+      "Controls extractor fans",
+      "Mains fan control",
+      "TRIAC fan control",
+      "Guaranteed ventilation compliance"
+    ],
+    "not_allowed_principle": "No claim may imply a certified life-safety, building-code, medical, or compliance function. Forbidden claims require separate legal/commercial approval and evidence before use.",
+    "notes": "\"Controls extractor fans\", \"Mains fan control\", and \"TRIAC fan control\" are forbidden for the base Bathroom PoE kit; the base kit ships no fan driver. Mold / condensation claims and any certified-function claim are forbidden without separate legal/commercial approval and evidence."
+  },
+  "fan_control_copy": {
+    "base_kit_includes_fan_control": false,
+    "allowed_framing": [
+      "future",
+      "preview",
+      "installer",
+      "manual-candidate"
+    ],
+    "triac_customer_facing": false,
+    "triac_recommended_or_default": false,
+    "triac_blocker": "HW-005",
+    "notes": "Fan-control products may be mentioned only as future / preview / installer / manual-candidate where already recorded (config/manual-firmware-artifacts.json, docs/manual-install-fan-candidates.md, config/room-bundle-fan-variants.json). Fan control is NOT part of the base Bathroom PoE kit. TRIAC (S360-320) is not added as recommended, default, stable, or customer-facing; it remains blocked by HW-005."
+  },
+  "guardrails": {
+    "canonical_room_bundle_sku": "S360-KIT-BATH-P",
+    "canonical_room_bundle_sku_unchanged": true,
+    "s360_410_schematic_verified": false,
+    "hardware_compliance_certified": false,
+    "candidate_bundles_buyable": false,
+    "individual_boards_primary_launch_product": false,
+    "publishes_firmware": false,
+    "touches_webflash_repo": false,
+    "notes": "Hard guardrails this file must never break. The canonical room-bundle SKU stays S360-KIT-BATH-P; S360-410 is not claimed schematic-verified; no hardware/compliance certification, mold prevention/detection, or condensation prevention/elimination is claimed; fan control is not claimed for the base kit; candidate bundles are not exposed as buyable; individual boards are not sold as primary launch products; TRIAC is not added to any customer-facing recommendation; no firmware is published; the WebFlash repo is untouched."
+  }
+}

@@ -25,6 +25,7 @@ disagree, **the source-of-truth file wins** and this doc is the one to fix.
 | Firmware combination matrix | [`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json) |
 | Product catalog | [`config/product-catalog.json`](../config/product-catalog.json) |
 | Room bundle SKUs | [`config/room-bundle-skus.json`](../config/room-bundle-skus.json) · [`docs/sense360-room-bundles.md`](sense360-room-bundles.md) |
+| Commercial / shop launch posture | [`config/shop-commercial-source-of-truth.json`](../config/shop-commercial-source-of-truth.json) · [`docs/shop-commercial-source-of-truth.md`](shop-commercial-source-of-truth.md) (SHOP-COMMERCIAL-SOURCE-OF-TRUTH-001) |
 | Manual (non-release) fan artifacts | [`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json) · [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md) |
 | Promotion gates | [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md) |
 | Per-board hardware evidence | `docs/hardware/**` (pinmaps, schematics, artifacts — **preserved, not consolidated**) |
@@ -92,6 +93,15 @@ wrappers, builds, or releases.
 Only `S360-KIT-BATH-P` maps to a shipped stable build. All other bundles are
 candidates gated behind their own promotion gates (LED gauntlet and/or the
 S360-410 PoE evidence gate — see §6 / §7). No bundle is promoted by this doc.
+
+**Shop posture:** for the first shop launch, `S360-KIT-BATH-P` (shop title
+*Sense360 Bathroom Bundle — PoE*) is the **only** publicly buyable product. The
+four candidate bundles above are **not publicly buyable**: they stay hidden from
+shop navigation (waitlist / coming-soon only, never a buy button) until their
+gates close. The customer-facing posture, claims, and WebFlash URL are pinned in
+[`docs/shop-commercial-source-of-truth.md`](shop-commercial-source-of-truth.md)
+(`SHOP-COMMERCIAL-SOURCE-OF-TRUTH-001`); this doc neither sells nor lists any
+bundle.
 
 ---
 
