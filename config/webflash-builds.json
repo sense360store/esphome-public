@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "WebFlash-compatible firmware build matrix and the sole release-eligibility source of truth. Each entry is validated by tests/validate_webflash_builds.py against config/webflash-compatibility.json. Concrete preview / advanced-preview release targets for every buildable product (including the fan-driver and TRIAC targets that are NOT WebFlash-importable) are enumerated in config/preview-release-targets.json (RELEASE-PREVIEW-TARGETS-ALL-PRODUCTS-001); a row is added here only with recorded build proof.",
+  "description": "WebFlash-compatible firmware build matrix and the sole release-eligibility source of truth. Each entry is validated by tests/validate_webflash_builds.py against config/webflash-compatibility.json. Concrete preview / advanced-preview release targets for every buildable product (including the fan-driver and TRIAC targets that are NOT WebFlash-importable) are enumerated in config/preview-release-targets.json (RELEASE-PREVIEW-TARGETS-ALL-PRODUCTS-001); a row is added here only with recorded build proof. RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added the three preview rows for the compile-validated room-bundle preview targets (Ceiling-POE-AirIQ-RoomIQ, Ceiling-POE-RoomIQ, Ceiling-POE-RoomIQ-LED), each addressed via its products/webflash wrapper, on the preview (non-stable) channel with hosted-compile evidence (run 26821900127); those rows are release-eligibility METADATA only (release_state: metadata-ready-unpublished) — no firmware binary, GitHub Release, tag, manifest.json, or firmware/sources.json is produced, and the consuming candidate bundles stay hidden / not buyable. The stable Release-One row (Ceiling-POE-VentIQ-RoomIQ) and the published VentIQ LED preview row are unchanged.",
   "preview_release_targets": "config/preview-release-targets.json",
   "builds": [
     {
@@ -46,6 +46,182 @@
         "RoomIQ room sensing",
         "Sense360 LED ring (preview)"
       ]
+    },
+    {
+      "config_string": "Ceiling-POE-AirIQ-RoomIQ",
+      "product_yaml": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.0-preview.bin",
+      "channel": "preview",
+      "channel_tier": "preview",
+      "webflash_exposure_class": "acknowledgement-gated",
+      "warning_copy_key": "preview",
+      "release_note_warning": "PREVIEW FIRMWARE — buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
+      "release_state": "metadata-ready-unpublished",
+      "stable_blocker": "S360-410 PoE-PSU schematic verification (PRODUCT-POE-410-001 / PACKAGE-POE-410-001) + AirIQ sensor-stack bench evidence.",
+      "version": "1.0.0",
+      "chip_family": "ESP32-S3",
+      "hardware_requirements": [
+        "Sense360 Core R4 or newer",
+        "Sense360 PoE PSU",
+        "Sense360 AirIQ module",
+        "Sense360 RoomIQ module"
+      ],
+      "features": [
+        "PoE-powered Sense360 Core configuration",
+        "AirIQ air-quality sensing",
+        "RoomIQ room sensing"
+      ],
+      "consuming_bundles": [
+        "S360-KIT-KITCHEN-P"
+      ],
+      "commercial_posture": {
+        "visibility": "hidden",
+        "lifecycle": "candidate",
+        "buyable": false,
+        "recommended": false,
+        "customer_default": false,
+        "stable": false,
+        "release_one_required_config": false
+      },
+      "compile_evidence": {
+        "workflow": "Preview Compile Dry-Run",
+        "workflow_file": ".github/workflows/preview-compile-dryrun.yml",
+        "run_id": 26821900127,
+        "run_url": "https://github.com/sense360store/esphome-public/actions/runs/26821900127",
+        "compile_mode": "full",
+        "event": "workflow_dispatch",
+        "date": "2026-06-02",
+        "esphome_version": "2026.4.5",
+        "job": "Compile Dry-Run: Ceiling-POE-AirIQ-RoomIQ",
+        "result": "success",
+        "proof_class": "firmware-build-only",
+        "canonical_id": "RELEASE-PREVIEW-COMPILE-RESULTS-001",
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "compliance",
+          "stable-promotion",
+          "customer-availability"
+        ]
+      },
+      "notes": "Kitchen PoE AirIQ + RoomIQ preview build row added by RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001. Release-eligibility METADATA only: no firmware binary, GitHub Release, tag, manifest.json, or firmware/sources.json is produced by this PR; the S360-KIT-KITCHEN-P candidate bundle stays hidden / not buyable. NOT stable, NOT recommended, NOT a customer default, NOT in release_one_required_configs. Stable stays blocked by S360-410 (PRODUCT-POE-410-001) + AirIQ sensor-stack bench evidence; no hardware / bench / compliance proof is claimed."
+    },
+    {
+      "config_string": "Ceiling-POE-RoomIQ",
+      "product_yaml": "products/webflash/ceiling-poe-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-RoomIQ-v1.0.0-preview.bin",
+      "channel": "preview",
+      "channel_tier": "preview",
+      "webflash_exposure_class": "acknowledgement-gated",
+      "warning_copy_key": "preview",
+      "release_note_warning": "PREVIEW FIRMWARE — buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
+      "release_state": "metadata-ready-unpublished",
+      "stable_blocker": "S360-410 PoE-PSU schematic verification (PRODUCT-POE-410-001 / PACKAGE-POE-410-001).",
+      "version": "1.0.0",
+      "chip_family": "ESP32-S3",
+      "hardware_requirements": [
+        "Sense360 Core R4 or newer",
+        "Sense360 PoE PSU",
+        "Sense360 RoomIQ module"
+      ],
+      "features": [
+        "PoE-powered Sense360 Core configuration",
+        "RoomIQ room sensing"
+      ],
+      "consuming_bundles": [
+        "S360-KIT-BEDROOM-P"
+      ],
+      "commercial_posture": {
+        "visibility": "hidden",
+        "lifecycle": "candidate",
+        "buyable": false,
+        "recommended": false,
+        "customer_default": false,
+        "stable": false,
+        "release_one_required_config": false
+      },
+      "compile_evidence": {
+        "workflow": "Preview Compile Dry-Run",
+        "workflow_file": ".github/workflows/preview-compile-dryrun.yml",
+        "run_id": 26821900127,
+        "run_url": "https://github.com/sense360store/esphome-public/actions/runs/26821900127",
+        "compile_mode": "full",
+        "event": "workflow_dispatch",
+        "date": "2026-06-02",
+        "esphome_version": "2026.4.5",
+        "job": "Compile Dry-Run: Ceiling-POE-RoomIQ",
+        "result": "success",
+        "proof_class": "firmware-build-only",
+        "canonical_id": "RELEASE-PREVIEW-COMPILE-RESULTS-001",
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "compliance",
+          "stable-promotion",
+          "customer-availability"
+        ]
+      },
+      "notes": "Bedroom PoE RoomIQ-only preview build row added by RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 (the smallest SELV RoomIQ-only PoE bundle). Release-eligibility METADATA only: no firmware binary, GitHub Release, tag, manifest.json, or firmware/sources.json is produced by this PR; the S360-KIT-BEDROOM-P candidate bundle stays hidden / not buyable. NOT stable, NOT recommended, NOT a customer default, NOT in release_one_required_configs. Stable stays blocked by S360-410 (PRODUCT-POE-410-001); no hardware / bench / compliance proof is claimed."
+    },
+    {
+      "config_string": "Ceiling-POE-RoomIQ-LED",
+      "product_yaml": "products/webflash/ceiling-poe-roomiq-led.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin",
+      "channel": "preview",
+      "channel_tier": "preview",
+      "webflash_exposure_class": "acknowledgement-gated",
+      "warning_copy_key": "preview",
+      "release_note_warning": "PREVIEW FIRMWARE — buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
+      "release_state": "metadata-ready-unpublished",
+      "stable_blocker": "S360-410 PoE-PSU schematic verification (PRODUCT-POE-410-001 / PACKAGE-POE-410-001) + LED preview-to-stable gauntlet. LED stays preview.",
+      "version": "1.0.0",
+      "chip_family": "ESP32-S3",
+      "hardware_requirements": [
+        "Sense360 Core R4 or newer",
+        "Sense360 PoE PSU",
+        "Sense360 RoomIQ module",
+        "Sense360 LED ring (S360-300)"
+      ],
+      "features": [
+        "PoE-powered Sense360 Core configuration",
+        "RoomIQ room sensing",
+        "Sense360 LED ring (preview)"
+      ],
+      "consuming_bundles": [
+        "S360-KIT-LIVING-P",
+        "S360-KIT-CORRIDOR-P"
+      ],
+      "commercial_posture": {
+        "visibility": "hidden",
+        "lifecycle": "candidate",
+        "buyable": false,
+        "recommended": false,
+        "customer_default": false,
+        "stable": false,
+        "release_one_required_config": false
+      },
+      "compile_evidence": {
+        "workflow": "Preview Compile Dry-Run",
+        "workflow_file": ".github/workflows/preview-compile-dryrun.yml",
+        "run_id": 26821900127,
+        "run_url": "https://github.com/sense360store/esphome-public/actions/runs/26821900127",
+        "compile_mode": "full",
+        "event": "workflow_dispatch",
+        "date": "2026-06-02",
+        "esphome_version": "2026.4.5",
+        "job": "Compile Dry-Run: Ceiling-POE-RoomIQ-LED",
+        "result": "success",
+        "proof_class": "firmware-build-only",
+        "canonical_id": "RELEASE-PREVIEW-COMPILE-RESULTS-001",
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "compliance",
+          "stable-promotion",
+          "customer-availability"
+        ]
+      },
+      "notes": "Living-room / Corridor PoE RoomIQ + LED preview build row added by RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 (one buildable firmware shared by the S360-KIT-LIVING-P and S360-KIT-CORRIDOR-P bundles). This is the RoomIQ + LED sibling and is DISTINCT from the published VentIQ LED preview Ceiling-POE-VentIQ-RoomIQ-LED, which is unchanged. Release-eligibility METADATA only: no firmware binary, GitHub Release, tag, manifest.json, or firmware/sources.json is produced by this PR; the consuming candidate bundles stay hidden / not buyable. LED remains preview, never auto-stable. NOT stable, NOT recommended, NOT a customer default, NOT in release_one_required_configs. Stable stays blocked by S360-410 (PRODUCT-POE-410-001) + the LED preview-to-stable gauntlet; no hardware / bench / compliance proof is claimed."
     }
   ]
 }

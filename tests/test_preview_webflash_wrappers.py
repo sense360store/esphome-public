@@ -15,15 +15,24 @@ the compile-validated webflash-lane preview candidates
     no ``version`` / ``channel`` / ``artifact_name`` publication metadata and
     makes no stable / hardware-verification claim;
   * the preview target manifest (``config/preview-release-targets.json``)
-    records each wrapper in a ``webflash_wrapper`` field, keeps the target
-    ``preview`` / ``eligible-unpublished``, and keeps a non-empty build blocker;
+    records each wrapper in a ``webflash_wrapper`` field and keeps the target
+    ``preview`` / ``webflash``-lane / not recommended / not default;
   * the stable baseline (``Ceiling-POE-VentIQ-RoomIQ``) and the published LED
     preview (``Ceiling-POE-VentIQ-RoomIQ-LED``) target rows are unchanged;
   * NO TRIAC wrapper was added (FanTRIAC stays advanced-manual-preview, blocked
     by HW-005, with no ``webflash_wrapper``);
   * NO fan manual-preview wrapper was added (FanRelay / FanPWM / FanDAC stay on
-    the manual-preview lane, off the WebFlash lane, with no wrapper on disk);
-  * NO ``config/webflash-builds.json`` build row was added by this PR.
+    the manual-preview lane, off the WebFlash lane, with no wrapper on disk).
+
+RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 has since cut the reviewed
+``config/webflash-builds.json`` PREVIEW build rows for the three wrapped
+candidates (each addressed via its ``products/webflash`` wrapper, on the preview
+channel, citing hosted-compile run ``26821900127``) and flipped their
+``config/product-catalog.json`` rows ``blocked`` -> ``preview``. This guard now
+also locks that those three rows are present, preview-only, evidence-bearing,
+and never stable / recommended / default / a ``release_one_required_config`` —
+while still keeping the TRIAC and fan-driver lanes off the WebFlash build matrix
+and publishing no firmware binary.
 
 Uses Python's stdlib unittest (matching the no-pytest convention the other
 validators in this repo use). Run with::
@@ -235,24 +244,26 @@ class ManifestReferencesWrappersTests(unittest.TestCase):
                     f"{cs}: webflash_wrapper path does not exist",
                 )
 
-    def test_wrapped_targets_stay_preview_and_unpublished(self) -> None:
+    def test_wrapped_targets_stay_preview_metadata_ready(self) -> None:
         for cs in NEW_WRAPPERS:
             with self.subTest(config_string=cs):
                 t = self.by_cs[cs]
                 self.assertEqual(t["channel_tier"], "preview")
                 self.assertTrue(t["is_preview_target"])
                 self.assertEqual(t["delivery_lane"], "webflash")
-                self.assertEqual(t["publication_status"], "eligible-unpublished")
+                # RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001: the reviewed build row
+                # now exists, so the target is metadata-ready (not the prior
+                # eligible-unpublished) and its build_blocker is resolved.
+                self.assertEqual(
+                    t["publication_status"], "webflash-preview-metadata-ready"
+                )
+                self.assertIsNone(t["build_blocker"])
                 self.assertFalse(t["recommended"])
                 self.assertFalse(t["customer_default"])
                 self.assertFalse(t["required_config"])
                 self.assertFalse(t["customer_kit_default"])
-                # Import/publish stays gated: a non-empty build blocker remains.
-                self.assertTrue(
-                    t["build_blocker"],
-                    f"{cs}: must keep a non-empty build_blocker (gated on the "
-                    "later build-row PR)",
-                )
+                # Stable stays gated; no published binary is claimed.
+                self.assertTrue(t["stable_blocker"])
 
     def test_manifest_still_validates_clean(self) -> None:
         errors = validate(
@@ -295,10 +306,12 @@ class StableAndLedPreviewUnchangedTests(unittest.TestCase):
 
     def test_new_roomiq_led_is_distinct_from_published_ventiq_led(self) -> None:
         # The new RoomIQ+LED preview must not collide with the published
-        # VentIQ+RoomIQ+LED preview.
+        # VentIQ+RoomIQ+LED preview. RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001
+        # added the RoomIQ+LED row, so it is now IN the ledger as its own
+        # distinct config string.
         self.assertIn("Ceiling-POE-RoomIQ-LED", self.by_cs)
         self.assertNotEqual("Ceiling-POE-RoomIQ-LED", LED_PREVIEW_CONFIG)
-        self.assertNotIn("Ceiling-POE-RoomIQ-LED", self.builds)
+        self.assertIn("Ceiling-POE-RoomIQ-LED", self.builds)
 
 
 class NoTriacWrapperTests(unittest.TestCase):
@@ -368,30 +381,100 @@ class NoFanWrapperTests(unittest.TestCase):
                 self.assertFalse(t["webflash_import_eligibility"]["eligible"])
 
 
-class NoWebflashBuildRowsAddedTests(unittest.TestCase):
-    """Hard guardrail: no config/webflash-builds.json row added by this PR."""
+class WebflashBuildRowsPresentTests(unittest.TestCase):
+    """RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001: the reviewed preview build rows
+    are present, evidence-bearing, preview-only, and never stable."""
+
+    COMPILE_RUN_ID = 26821900127
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.builds_doc = _load_json(BUILDS_PATH)
         cls.builds = cls.builds_doc["builds"]
-        cls.by_cs = {b["config_string"] for b in cls.builds}
+        cls.by_cs = {b["config_string"]: b for b in cls.builds}
+        cls.required = set(
+            _load_json(COMPAT_PATH).get("release_one_required_configs", [])
+        )
 
-    def test_build_ledger_is_exactly_the_two_live_builds(self) -> None:
-        # This PR is wrappers-only: the ledger stays the pre-existing stable +
-        # LED preview rows. A build row for a wrapped preview is a later PR.
-        self.assertEqual(self.by_cs, {STABLE_CONFIG, LED_PREVIEW_CONFIG})
+    def test_build_ledger_is_exactly_the_five_live_builds(self) -> None:
+        # Stable RoomIQ + published VentIQ LED preview + the three room-bundle
+        # preview rows this PR adds. No TRIAC, no fan-driver rows.
+        self.assertEqual(
+            set(self.by_cs),
+            {STABLE_CONFIG, LED_PREVIEW_CONFIG, *NEW_WRAPPERS},
+        )
 
-    def test_new_wrapped_config_strings_absent_from_ledger(self) -> None:
+    def test_new_config_strings_present_in_ledger(self) -> None:
         for cs in NEW_WRAPPERS:
             with self.subTest(config_string=cs):
-                self.assertNotIn(cs, self.by_cs)
+                self.assertIn(cs, self.by_cs)
 
-    def test_new_wrappers_not_referenced_as_a_build_product_yaml(self) -> None:
-        product_yamls = {b.get("product_yaml") for b in self.builds}
-        for rel in NEW_WRAPPERS.values():
-            with self.subTest(wrapper=rel):
-                self.assertNotIn(rel, product_yamls)
+    def test_new_rows_point_to_their_products_webflash_wrapper(self) -> None:
+        # Task item: new preview rows point to the existing wrappers.
+        for cs, rel in NEW_WRAPPERS.items():
+            with self.subTest(config_string=cs):
+                self.assertEqual(self.by_cs[cs]["product_yaml"], rel)
+                self.assertTrue((REPO_ROOT / rel).is_file())
+
+    def test_new_rows_are_preview_channel_only(self) -> None:
+        # Task items: preview channel only; not stable.
+        for cs in NEW_WRAPPERS:
+            with self.subTest(config_string=cs):
+                row = self.by_cs[cs]
+                self.assertEqual(row["channel"], "preview")
+                self.assertTrue(row["artifact_name"].endswith("-preview.bin"))
+                self.assertNotIn("-stable.bin", row["artifact_name"])
+
+    def test_new_rows_are_not_release_one_required(self) -> None:
+        # Task item: not REQUIRED_CONFIGS.
+        for cs in NEW_WRAPPERS:
+            with self.subTest(config_string=cs):
+                self.assertNotIn(cs, self.required)
+
+    def test_new_rows_cite_hosted_compile_evidence(self) -> None:
+        # Task item: new preview rows cite compile evidence (run 26821900127).
+        for cs in NEW_WRAPPERS:
+            with self.subTest(config_string=cs):
+                evidence = self.by_cs[cs].get("compile_evidence")
+                self.assertIsInstance(evidence, dict)
+                self.assertEqual(evidence.get("run_id"), self.COMPILE_RUN_ID)
+                self.assertEqual(evidence.get("proof_class"), "firmware-build-only")
+
+    def test_new_rows_carry_release_note_warning(self) -> None:
+        # Task item: include release-note warning text.
+        for cs in NEW_WRAPPERS:
+            with self.subTest(config_string=cs):
+                row = self.by_cs[cs]
+                self.assertEqual(row.get("warning_copy_key"), "preview")
+                self.assertIn("PREVIEW FIRMWARE", row.get("release_note_warning", ""))
+
+    def test_new_rows_commercial_posture_is_hidden_not_buyable(self) -> None:
+        # Task items: candidate / hidden / not buyable; not recommended/default.
+        for cs in NEW_WRAPPERS:
+            with self.subTest(config_string=cs):
+                posture = self.by_cs[cs].get("commercial_posture", {})
+                self.assertEqual(posture.get("visibility"), "hidden")
+                self.assertFalse(posture.get("buyable"))
+                self.assertFalse(posture.get("recommended"))
+                self.assertFalse(posture.get("customer_default"))
+                self.assertFalse(posture.get("stable"))
+
+    def test_no_triac_or_fan_row_in_ledger(self) -> None:
+        # Hard guardrails: no TRIAC row, no fan manual-preview rows.
+        for cs in self.by_cs:
+            for token in (*FAN_DRIVER_TOKENS, TRIAC_TOKEN):
+                self.assertNotIn(token, cs.split("-"), f"{token} leaked into ledger")
+
+    def test_no_firmware_publish_side_effects_committed(self) -> None:
+        # Hard guardrail: no firmware publish files changed (this PR is
+        # metadata only). manifest.json / firmware/sources.json must not exist
+        # and no .bin may be committed under config/ or products/.
+        self.assertFalse((REPO_ROOT / "manifest.json").exists())
+        self.assertFalse((REPO_ROOT / "firmware" / "sources.json").exists())
+        bins = list((REPO_ROOT / "config").rglob("*.bin")) + list(
+            (REPO_ROOT / "products").rglob("*.bin")
+        )
+        self.assertEqual(bins, [], f"no .bin may be committed; found {bins}")
 
 
 if __name__ == "__main__":

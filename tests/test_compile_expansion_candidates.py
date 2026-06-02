@@ -32,14 +32,20 @@ BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 MATRIX_PATH = REPO_ROOT / "config" / "firmware-combination-matrix.json"
 DOC_PATH = REPO_ROOT / "docs" / "compile-only-expansion-candidates.md"
 
-# The two currently-shipping WebFlash builds. A candidate row whose
+# The currently release-eligible WebFlash builds. A candidate row whose
 # ``would_be_webflash_exposed_now=false`` flag is true is allowed to
 # share a config_string with one of these only because they are
 # already-shipping (and this candidate ledger never adds them).
+# RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added the three room-bundle preview
+# build rows (Ceiling-POE-AirIQ-RoomIQ, Ceiling-POE-RoomIQ,
+# Ceiling-POE-RoomIQ-LED) alongside the stable RoomIQ and the VentIQ LED preview.
 CURRENTLY_SHIPPING_CONFIG_STRINGS = frozenset(
     {
         "Ceiling-POE-VentIQ-RoomIQ",
         "Ceiling-POE-VentIQ-RoomIQ-LED",
+        "Ceiling-POE-AirIQ-RoomIQ",
+        "Ceiling-POE-RoomIQ",
+        "Ceiling-POE-RoomIQ-LED",
     }
 )
 
@@ -599,8 +605,7 @@ class CandidatesRankingTests(unittest.TestCase):
         self.assertGreater(
             len(blocked_ranks),
             0,
-            "expected at least one blocked-lane candidate "
-            "(PWR / fan deferral)",
+            "expected at least one blocked-lane candidate " "(PWR / fan deferral)",
         )
         self.assertLess(
             max(non_blocked_ranks),

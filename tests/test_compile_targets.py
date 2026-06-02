@@ -50,6 +50,19 @@ POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS = frozenset(
     }
 )
 
+# RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001: these POE non-fan config strings
+# keep their compile-only SKELETON target (validated above) but ALSO now carry
+# a reviewed PREVIEW build row in config/webflash-builds.json (addressed via a
+# products/webflash wrapper, a distinct file from the skeleton). So they are
+# legitimately present in the build ledger; only the pure compile-only
+# skeletons (Ceiling-POE, Ceiling-POE-VentIQ, Ceiling-POE-AirIQ) must stay out.
+POE_NONFAN_NOW_PREVIEW_BUILDS = frozenset(
+    {
+        "Ceiling-POE-RoomIQ",
+        "Ceiling-POE-AirIQ-RoomIQ",
+    }
+)
+
 POE_NONFAN_COMPILE_ONLY_PRODUCT_YAMLS = frozenset(
     {
         "products/compile-only/ceiling-poe.yaml",
@@ -491,13 +504,20 @@ class PoeNonFanCompileOnlyCoverageTests(unittest.TestCase):
                 "config/firmware-combination-matrix.json",
             )
 
-    def test_no_poe_nonfan_config_string_is_in_webflash_builds(self):
-        for cs in POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS:
+    def test_no_poe_nonfan_compile_only_skeleton_is_in_webflash_builds(self):
+        # The pure compile-only skeleton config strings stay out of the
+        # WebFlash build matrix. The two that RELEASE-PREVIEW-WEBFLASH-BUILD-
+        # ROWS-001 promoted to a preview build row (via a products/webflash
+        # wrapper) are excluded here; they keep their skeleton target but are
+        # legitimately release-eligible as preview builds.
+        for cs in (
+            POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS - POE_NONFAN_NOW_PREVIEW_BUILDS
+        ):
             self.assertNotIn(
                 cs,
                 self.committed_configs,
-                f"POE non-fan compile-only target {cs!r} must NOT be "
-                "present in config/webflash-builds.json (compile-only "
+                f"POE non-fan compile-only skeleton {cs!r} must NOT be "
+                "present in config/webflash-builds.json (pure compile-only "
                 "targets are not WebFlash exposed)",
             )
 
@@ -688,9 +708,7 @@ class FanRelayCompileOnlyCoverageTests(unittest.TestCase):
         cls.targets = cls.doc["targets"]
         cls.by_id = {t["id"]: t for t in cls.targets if t.get("id")}
         cls.by_config = {
-            t["config_string"]: t
-            for t in cls.targets
-            if t.get("config_string")
+            t["config_string"]: t for t in cls.targets if t.get("config_string")
         }
         cls.builds = _load(BUILDS_PATH)
         cls.matrix = _load(MATRIX_PATH)
@@ -944,9 +962,7 @@ class FanRelayCompileOnlyCoverageTests(unittest.TestCase):
         """Totals must match the targets array length after the FanRelay add."""
         totals = self.doc.get("totals") or {}
         self.assertEqual(totals.get("targets"), len(self.targets))
-        expected_min_targets = (
-            2 + len(POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS) + 1
-        )
+        expected_min_targets = 2 + len(POE_NONFAN_COMPILE_ONLY_CONFIG_STRINGS) + 1
         self.assertGreaterEqual(
             len(self.targets),
             expected_min_targets,
@@ -1170,8 +1186,7 @@ class FanDACCompileOnlyCoverageTests(unittest.TestCase):
         """
         self.assertTrue(
             FANDAC_COMPILE_ONLY_PRODUCT_YAML.startswith("products/compile-only/"),
-            "FanDAC compile-only skeleton must stay under "
-            "products/compile-only/",
+            "FanDAC compile-only skeleton must stay under " "products/compile-only/",
         )
         self.assertNotEqual(
             FANDAC_COMPILE_ONLY_PRODUCT_YAML,
@@ -1518,8 +1533,7 @@ class FanPWMCompileOnlyCoverageTests(unittest.TestCase):
         """
         self.assertTrue(
             FANPWM_COMPILE_ONLY_PRODUCT_YAML.startswith("products/compile-only/"),
-            "FanPWM compile-only skeleton must stay under "
-            "products/compile-only/",
+            "FanPWM compile-only skeleton must stay under " "products/compile-only/",
         )
         self.assertNotEqual(
             FANPWM_COMPILE_ONLY_PRODUCT_YAML,
@@ -1692,9 +1706,7 @@ class FanPWMCompileOnlyCoverageTests(unittest.TestCase):
         )
         self.assertIn(FANDAC_COMPILE_ONLY_TARGET_ID, self.by_id)
         self.assertEqual(
-            self.by_id[FANDAC_COMPILE_ONLY_TARGET_ID].get(
-                "compile_validation_status"
-            ),
+            self.by_id[FANDAC_COMPILE_ONLY_TARGET_ID].get("compile_validation_status"),
             "validated-full-compile",
             "FW-COMPILE-PWM-001 must not change the FanDAC target's "
             "validated-full-compile status",
@@ -1798,16 +1810,14 @@ class TopLevelFanProductCompileTargetTests(unittest.TestCase):
             )
             self.assertFalse(
                 product_yaml.startswith("products/webflash/"),
-                f"target {tid!r}: must not register a products/webflash/ "
-                "wrapper",
+                f"target {tid!r}: must not register a products/webflash/ " "wrapper",
             )
 
     def test_top_level_product_yaml_exists_on_disk(self):
         for tid, product_yaml, *_ in self.PARAMS:
             self.assertTrue(
                 (REPO_ROOT / product_yaml).is_file(),
-                f"target {tid!r}: product_yaml {product_yaml!r} not found "
-                "on disk",
+                f"target {tid!r}: product_yaml {product_yaml!r} not found " "on disk",
             )
 
     def test_top_level_targets_config_string_in_firmware_matrix(self):
@@ -1835,8 +1845,7 @@ class TopLevelFanProductCompileTargetTests(unittest.TestCase):
             self.assertIsNotNone(target)
             self.assertFalse(
                 target.get("webflash_exposure_allowed_now"),
-                f"target {tid!r}: webflash_exposure_allowed_now must be "
-                "false",
+                f"target {tid!r}: webflash_exposure_allowed_now must be " "false",
             )
 
     def test_top_level_targets_require_hardware_for_validation(self):

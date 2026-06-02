@@ -328,11 +328,24 @@ class WebflashCoverageTests(unittest.TestCase):
         self.assertEqual(t["channel_tier"], "preview")
         self.assertIn(LED_PREVIEW_CONFIG, self.builds)
 
+    # Ledger-present statuses: the WebFlash release-eligibility row exists in
+    # config/webflash-builds.json. "published-*" means an actual published /
+    # exposed artifact; "webflash-preview-metadata-ready"
+    # (RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001) means the reviewed preview build
+    # row exists but no binary / GitHub Release is published yet.
+    LEDGER_PRESENT_STATUSES = (
+        "published-stable",
+        "published-preview",
+        "webflash-preview-metadata-ready",
+    )
+
     def test_unpublished_webflash_targets_are_absent_from_ledger(self) -> None:
         for t in self.manifest["targets"]:
             if t["delivery_lane"] != "webflash":
                 continue
-            if t["publication_status"] in ("published-stable", "published-preview"):
+            if t["publication_status"] in self.LEDGER_PRESENT_STATUSES:
+                # Ledger-present targets are covered by
+                # test_ledger_present_webflash_targets_agree_with_ledger.
                 continue
             with self.subTest(target=t["target_id"]):
                 self.assertNotIn(t["config_string"], self.builds)
@@ -340,6 +353,57 @@ class WebflashCoverageTests(unittest.TestCase):
                     t["build_blocker"],
                     "an unpublished webflash target must record a build blocker",
                 )
+
+    def test_ledger_present_webflash_targets_agree_with_ledger(self) -> None:
+        # Every webflash target whose publication_status says its build row
+        # exists must actually be in config/webflash-builds.json and agree on
+        # channel + artifact name.
+        for t in self.manifest["targets"]:
+            if t["delivery_lane"] != "webflash":
+                continue
+            if t["publication_status"] not in self.LEDGER_PRESENT_STATUSES:
+                continue
+            with self.subTest(target=t["target_id"]):
+                self.assertIn(t["config_string"], self.builds)
+                build = self.builds[t["config_string"]]
+                self.assertEqual(build["channel"], t["build_channel"])
+                self.assertEqual(build["artifact_name"], t["expected_artifact_name"])
+
+    def test_metadata_ready_targets_are_the_three_room_bundle_previews(self) -> None:
+        # RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001: the three compile-validated
+        # room-bundle previews now carry a reviewed build row and are recorded
+        # webflash-preview-metadata-ready (build-row prerequisite resolved, so
+        # no build_blocker), while staying preview / not recommended / not
+        # customer-default / not required-config.
+        metadata_ready = {
+            t["config_string"]
+            for t in self.manifest["targets"]
+            if t["publication_status"] == "webflash-preview-metadata-ready"
+        }
+        self.assertEqual(
+            metadata_ready,
+            {
+                "Ceiling-POE-AirIQ-RoomIQ",
+                "Ceiling-POE-RoomIQ",
+                "Ceiling-POE-RoomIQ-LED",
+            },
+        )
+        by_cs = {t["config_string"]: t for t in self.manifest["targets"]}
+        for cs in metadata_ready:
+            with self.subTest(config_string=cs):
+                t = by_cs[cs]
+                self.assertEqual(t["channel_tier"], "preview")
+                self.assertEqual(t["delivery_lane"], "webflash")
+                self.assertIsNone(t["build_blocker"])
+                self.assertIn(cs, self.builds)
+                self.assertFalse(t["recommended"])
+                self.assertFalse(t["customer_default"])
+                self.assertFalse(t["required_config"])
+                self.assertFalse(t["customer_kit_default"])
+                # Stable stays gated; no evidence is claimed.
+                self.assertTrue(t["stable_blocker"])
+                self.assertFalse(t["bench_evidence_claimed"])
+                self.assertFalse(t["schematic_status_verified_claim"])
 
     def test_published_targets_match_product_name_mapper(self) -> None:
         # The mapper is the authority the release workflow uses; published

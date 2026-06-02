@@ -236,3 +236,14 @@ The commercial source of truth is locked in by:
 - Repo status / roadmap:
   [`docs/sense360-roadmap-status.md`](sense360-roadmap-status.md) —
   DOCS-CONSOLIDATION-ROADMAP-001.
+- Preview WebFlash build rows:
+  [`docs/release-preview-webflash-build-rows.md`](release-preview-webflash-build-rows.md)
+  — RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001. Added preview
+  `config/webflash-builds.json` rows for the Kitchen / Bedroom / Living /
+  Corridor candidate-bundle firmware (`Ceiling-POE-AirIQ-RoomIQ`,
+  `Ceiling-POE-RoomIQ`, `Ceiling-POE-RoomIQ-LED`). This **does not** change the
+  commercial posture pinned here: the launch SKU stays `S360-KIT-BATH-P`, the
+  candidate bundles (`S360-KIT-KITCHEN-P`, `S360-KIT-BEDROOM-P`,
+  `S360-KIT-LIVING-P`, `S360-KIT-CORRIDOR-P`) stay hidden / not buyable, the
+  customer WebFlash URL stays `https://flash.sense360.com`, and no firmware is
+  published. The rows are release-eligibility metadata only.

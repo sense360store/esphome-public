@@ -30,8 +30,10 @@ Cross-references enforced (metadata only):
     is ready), map to the manual lane in
     ``config/manual-firmware-artifacts.json``, and keep
     ``webflash_build_matrix=false`` in the catalog;
-  * published targets agree with ``config/webflash-builds.json`` and unpublished
-    targets are absent from it and carry a build blocker;
+  * ledger-present targets (``published-stable`` / ``published-preview`` /
+    ``webflash-preview-metadata-ready``) agree with ``config/webflash-builds.json``
+    on channel + artifact name, and unpublished targets are absent from it and
+    carry a build blocker;
   * every committed ``config/webflash-builds.json`` build is represented;
   * every non-stable row of the policy ``preview_release_matrix`` is represented
     with the same intended channel and artifact name.
@@ -96,6 +98,17 @@ REQUIRED_TARGET_FIELDS = (
 DELIVERY_LANES = frozenset({"webflash", "manual-preview", "advanced-manual-preview"})
 FAN_DRIVER_TOKENS = ("FanRelay", "FanPWM", "FanDAC", "FanTRIAC")
 PUBLISHED_STATUSES = frozenset({"published-stable", "published-preview"})
+
+# RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001: a webflash-lane target whose reviewed
+# config/webflash-builds.json row exists but whose firmware artifact is not yet
+# published (no binary / GitHub Release / tag / manifest.json) is recorded as
+# "webflash-preview-metadata-ready". Like the "published-*" statuses, the build
+# ledger row must exist and agree on channel + artifact name; unlike them, no
+# published/exposed artifact is claimed.
+WEBFLASH_PREVIEW_METADATA_READY = "webflash-preview-metadata-ready"
+LEDGER_PRESENT_STATUSES = PUBLISHED_STATUSES | frozenset(
+    {WEBFLASH_PREVIEW_METADATA_READY}
+)
 
 _ARTIFACT_RE = re.compile(r"^Sense360-(.+)-v(\d+\.\d+\.\d+)-([a-z]+)\.bin$")
 
@@ -396,7 +409,7 @@ def validate(
                     "token (fan drivers use the manual-preview / "
                     "advanced-manual-preview lanes, not webflash)"
                 )
-            if pub in PUBLISHED_STATUSES:
+            if pub in LEDGER_PRESENT_STATUSES:
                 if not in_builds:
                     terr.append(
                         f"target {tid!r}: publication_status {pub!r} but "
