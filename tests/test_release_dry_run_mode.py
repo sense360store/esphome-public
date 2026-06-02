@@ -36,9 +36,7 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-WORKFLOW_PATH = (
-    REPO_ROOT / ".github" / "workflows" / "firmware-build-release.yml"
-)
+WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "firmware-build-release.yml"
 PLANNER_PATH = REPO_ROOT / "scripts" / "plan_room_release_notes.py"
 
 PUBLISH_ACTION = "softprops/action-gh-release"
@@ -132,9 +130,7 @@ class WorkflowDryRunModeTests(unittest.TestCase):
     # -- dry-run job -------------------------------------------------------
 
     def test_dry_run_job_exists_and_is_gated(self) -> None:
-        self.assertIn(
-            DRY_RUN_JOB, self.jobs, f"missing '{DRY_RUN_JOB}' job"
-        )
+        self.assertIn(DRY_RUN_JOB, self.jobs, f"missing '{DRY_RUN_JOB}' job")
         gate = str(self.jobs[DRY_RUN_JOB].get("if", ""))
         self.assertIn("workflow_dispatch", gate)
         self.assertIn("dry_run", gate)
@@ -329,10 +325,22 @@ class DryRunScopeTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.plan = _load_module("plan_room_release_notes", PLANNER_PATH)
 
-    def test_plans_only_the_two_release_eligible_builds(self) -> None:
+    def test_plans_only_the_release_eligible_builds(self) -> None:
+        # RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added three room-bundle
+        # preview build rows; the dry-run plan now covers all five
+        # release-eligible builds (still excluding the fan / TRIAC lanes).
         builds = self.plan.build_plan(commit="deadbeef")["builds"]
         configs = {b["config_string"] for b in builds}
-        self.assertEqual(configs, {STABLE_CONFIG, LED_CONFIG})
+        self.assertEqual(
+            configs,
+            {
+                STABLE_CONFIG,
+                LED_CONFIG,
+                "Ceiling-POE-AirIQ-RoomIQ",
+                "Ceiling-POE-RoomIQ",
+                "Ceiling-POE-RoomIQ-LED",
+            },
+        )
 
     def test_fans_excluded_from_release_plan(self) -> None:
         builds = self.plan.build_plan(commit="deadbeef")["builds"]

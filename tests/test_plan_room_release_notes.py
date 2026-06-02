@@ -69,10 +69,22 @@ def _render(commit: str = "deadbeef") -> str:
 
 
 class ReleaseEligibleBuildsTests(unittest.TestCase):
-    def test_plan_has_exactly_the_two_release_builds(self) -> None:
+    def test_plan_has_exactly_the_release_eligible_builds(self) -> None:
+        # RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added three room-bundle
+        # preview build rows, so the plan now covers five release-eligible
+        # builds (stable RoomIQ + VentIQ LED preview + the three previews).
         builds = _plan()["builds"]
         configs = {b["config_string"] for b in builds}
-        self.assertEqual(configs, {STABLE_CONFIG, LED_CONFIG})
+        self.assertEqual(
+            configs,
+            {
+                STABLE_CONFIG,
+                LED_CONFIG,
+                "Ceiling-POE-AirIQ-RoomIQ",
+                "Ceiling-POE-RoomIQ",
+                "Ceiling-POE-RoomIQ-LED",
+            },
+        )
 
     def test_includes_stable_roomiq(self) -> None:
         builds = {b["config_string"]: b for b in _plan()["builds"]}
@@ -104,9 +116,7 @@ class ReleaseEligibleBuildsTests(unittest.TestCase):
     def test_render_includes_artifact_names(self) -> None:
         text = _render()
         self.assertIn("Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin", text)
-        self.assertIn(
-            "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin", text
-        )
+        self.assertIn("Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin", text)
 
     def test_render_includes_pinned_source_yaml_urls(self) -> None:
         text = _render(commit="abc123")

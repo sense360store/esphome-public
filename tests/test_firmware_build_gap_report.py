@@ -50,15 +50,21 @@ EXPECTED_LANE_IDS = [
     "missing-product-yaml",
 ]
 
+# RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added three room-bundle preview build
+# rows, moving them from the candidate lanes into current-webflash:
+#   current-webflash 2 -> 5 (the two pre-existing builds + the three previews);
+#   poe-non-fan-candidates 5 -> 3 (Ceiling-POE-RoomIQ, Ceiling-POE-AirIQ-RoomIQ
+#     are now shipping); led-preview-and-stable-candidates 11 -> 10
+#     (Ceiling-POE-RoomIQ-LED is now shipping). Total stays 168.
 EXPECTED_LANE_COUNTS = {
-    "current-webflash": 2,
+    "current-webflash": 5,
     "fantriac-blocked-hardware-compliance": 36,
     "fanrelay-blocked-package-or-core-bus": 36,
     "fanpwm-blocked-package-or-core-bus": 36,
     "fandac-blocked-package-or-core-bus": 24,
     "pwr-blocked-compliance": 12,
-    "led-preview-and-stable-candidates": 11,
-    "poe-non-fan-candidates": 5,
+    "led-preview-and-stable-candidates": 10,
+    "poe-non-fan-candidates": 3,
     "usb-non-fan-candidates": 6,
     "missing-product-yaml": 0,
 }

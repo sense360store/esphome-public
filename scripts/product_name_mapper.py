@@ -17,7 +17,6 @@ Example:
 """
 
 import sys
-import re
 
 # ============================================================================
 # PRODUCT NAME MAPPING
@@ -47,6 +46,22 @@ PRODUCT_MAPPINGS = {
     # -------------------------------------------------------------------------
     "sense360-ceiling-poe-ventiq-roomiq-led": "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED",
     "ceiling-poe-ventiq-roomiq-led": "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED",
+    # -------------------------------------------------------------------------
+    # Compile-validated room-bundle PREVIEW siblings — WebFlash configs:
+    #   Ceiling-POE-AirIQ-RoomIQ  (Kitchen / S360-KIT-KITCHEN-P)
+    #   Ceiling-POE-RoomIQ        (Bedroom / S360-KIT-BEDROOM-P)
+    #   Ceiling-POE-RoomIQ-LED    (Living / Corridor; LED stays preview)
+    # Build rows added on the preview (non-stable) channel by
+    # RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001. Each is addressed via its
+    # products/webflash wrapper; the wrapper basename equals the canonical
+    # sense360-<stem>, so both forms map to the same WebFlash display name.
+    # -------------------------------------------------------------------------
+    "sense360-ceiling-poe-airiq-roomiq": "Sense360-Ceiling-POE-AirIQ-RoomIQ",
+    "ceiling-poe-airiq-roomiq": "Sense360-Ceiling-POE-AirIQ-RoomIQ",
+    "sense360-ceiling-poe-roomiq": "Sense360-Ceiling-POE-RoomIQ",
+    "ceiling-poe-roomiq": "Sense360-Ceiling-POE-RoomIQ",
+    "sense360-ceiling-poe-roomiq-led": "Sense360-Ceiling-POE-RoomIQ-LED",
+    "ceiling-poe-roomiq-led": "Sense360-Ceiling-POE-RoomIQ-LED",
     # -------------------------------------------------------------------------
     # Core Series - Ceiling Mount with Power Types
     # -------------------------------------------------------------------------
@@ -169,6 +184,7 @@ def _intelligent_convert(product_name: str) -> str:
         "pwm": "PWM",
         "triac": "TRIAC",
         "dac": "DAC",
+        "led": "LED",
     }
 
     # Remove sense360- prefix

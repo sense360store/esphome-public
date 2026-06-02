@@ -57,9 +57,9 @@ config is intentionally **not** release-eligible today.
 |---|---|---|---|---|---|---|---|---|---|
 | `S360-KIT-BATH-P` | `Ceiling-POE-VentIQ-RoomIQ` | `products/sense360-ceiling-poe-ventiq-roomiq.yaml` | **stable** | release-ci + compile-only-ci | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` | generated (stable) | **exposed (stable)** | none | Release-One stable build; the only `release_one_required_configs` entry. |
 | — (LED variant) | `Ceiling-POE-VentIQ-RoomIQ-LED` | `products/sense360-ceiling-poe-ventiq-roomiq-led.yaml` | **preview** | release-ci + compile-only-ci | `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin` | generated (preview) | **exposed (preview, manifest-only)** | LED preview→stable gauntlet (for stable promotion only) | Preview channel only. No LED-stable claim. |
-| `S360-KIT-KITCHEN-P` | `Ceiling-POE-AirIQ-RoomIQ` | `products/compile-only/ceiling-poe-airiq-roomiq.yaml` (skeleton) | — | compile-only | — | not generated | not exposed | S360-410 + AirIQ-stack evidence | Compile-only skeleton validates the combination; no top-level YAML / catalog row / wrapper / builds row. Owned by `STABLE-TARGET-AIRIQ-ROOMIQ-001`. |
-| `S360-KIT-BEDROOM-P` | `Ceiling-POE-RoomIQ` | `products/compile-only/ceiling-poe-roomiq.yaml` (skeleton) | — | compile-only | — | not generated | not exposed | S360-410 (sole hardware blocker) | Smallest RoomIQ-only PoE bundle. Owned by `STABLE-TARGET-ROOMIQ-001`. |
-| `S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P` | `Ceiling-POE-RoomIQ-LED` | _missing-product-yaml_ (see `config/firmware-combination-matrix.json`) | — | not built | — | not generated | not exposed | S360-410 + LED preview→stable gauntlet | Living-room / corridor target; no product YAML yet. |
+| `S360-KIT-KITCHEN-P` | `Ceiling-POE-AirIQ-RoomIQ` | `products/sense360-ceiling-poe-airiq-roomiq.yaml` (wrapper `products/webflash/ceiling-poe-airiq-roomiq.yaml`) | **preview** | compile-only-ci (`validated-full-compile`, run `26821900127`) | `Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.0-preview.bin` | generated (preview) | **build row (preview); metadata-ready / unpublished, not customer-exposed** | S360-410 + AirIQ-stack evidence (stable only) | Preview build row added by `RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`; catalog `preview`. No binary / Release / `manifest.json`; bundle hidden / not buyable. |
+| `S360-KIT-BEDROOM-P` | `Ceiling-POE-RoomIQ` | `products/sense360-ceiling-poe-roomiq.yaml` (wrapper `products/webflash/ceiling-poe-roomiq.yaml`) | **preview** | compile-only-ci (`validated-full-compile`, run `26821900127`) | `Sense360-Ceiling-POE-RoomIQ-v1.0.0-preview.bin` | generated (preview) | **build row (preview); metadata-ready / unpublished, not customer-exposed** | S360-410 (stable only) | Preview build row added by `RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`; catalog `preview`. No binary / Release / `manifest.json`; bundle hidden / not buyable. |
+| `S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P` | `Ceiling-POE-RoomIQ-LED` | `products/sense360-ceiling-poe-roomiq-led.yaml` (wrapper `products/webflash/ceiling-poe-roomiq-led.yaml`) | **preview** | compile-only-ci (`validated-full-compile`, run `26821900127`) | `Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin` | generated (preview) | **build row (preview); metadata-ready / unpublished, not customer-exposed** | S360-410 + LED preview→stable gauntlet (stable only) | Preview build row added by `RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`; LED stays preview. Distinct from the VentIQ LED preview. No binary / Release / `manifest.json`; bundles hidden / not buyable. |
 | — | `Ceiling-POE-VentIQ-FanRelay-RoomIQ` | `products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml` | — | manual-nonrelease-ci + compile-only-ci (`validated-full-compile`) | manual (`{stem}-manual-{sha}-nonrelease`, expiring) | not generated | not exposed | mains-safety / competent-person sign-off; GPIO3 strap-pin boot characterisation | Manual-only candidate. `WEBFLASH-RELAY-001` / `RELEASE-RELAY-001` blocked. |
 | — | `Ceiling-POE-FanPWM` | `products/sense360-ceiling-poe-fanpwm.yaml` | — | manual-nonrelease-ci + compile-only-ci (`validated-full-compile`, **native + skeleton**) | manual (expiring) | not generated | not exposed | measured current / thermal (`S360-311-CURRENT-THERMAL-001`); `rpm_supported: false` | Native ESP32-S3 GPIO path compile-proven + functional bench PASS; current / thermal **not measured**, RPM **not measured**. Legacy SX1509 path superseded. `WEBFLASH-PWM-001` / `RELEASE-PWM-001` blocked. |
 | — | `Ceiling-POE-FanDAC` | `products/sense360-ceiling-poe-fandac.yaml` | — | manual-nonrelease-ci + compile-only-ci (`validated-full-compile`) | manual (expiring) | not generated | not exposed | Cloudlift S12 / J3 harness + product-bench; S360-312 schematic / BOM | Manual-only candidate; enforces FanDAC↔AirIQ mutex. `WEBFLASH-DAC-001` / `RELEASE-DAC-001` blocked. |
@@ -147,10 +147,16 @@ Verified locally via `python3 scripts/plan_room_release_notes.py` (2 release
 | `Ceiling-POE-FanDAC` | **intentionally hidden** | Manual-only; FanDAC WebFlash not enabled (guardrail). Future candidate behind `WEBFLASH-DAC-001`. |
 | `Ceiling-POE-VentIQ-FanRelay-RoomIQ` | **intentionally hidden** | Manual-only; FanRelay WebFlash not enabled (guardrail). Future candidate behind `WEBFLASH-RELAY-001`. |
 | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | **blocked** | Reference-only wrapper exists but is not in the builds matrix; HW-005 gates everything downstream. |
-| `Ceiling-POE-AirIQ-RoomIQ` / `Ceiling-POE-RoomIQ` / `Ceiling-POE-RoomIQ-LED` | **future candidate** | Compile-only / missing-product-yaml; exposure owned by the `STABLE-TARGET-*` lanes after S360-410 (and, for LED, the gauntlet). |
+| `Ceiling-POE-AirIQ-RoomIQ` / `Ceiling-POE-RoomIQ` / `Ceiling-POE-RoomIQ-LED` | **preview build row; not customer-exposed** | `RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001` added a preview row to `config/webflash-builds.json` (metadata-ready / unpublished). NOT in WebFlash `manifest.json`, NOT in `REQUIRED_CONFIGS`; no binary / GitHub Release; candidate bundles hidden / not buyable. Customer exposure stays owned by the `STABLE-TARGET-*` lanes after S360-410 (and, for LED, the gauntlet). |
 
-WebFlash exposure matches actual readiness: exactly the two builds in
-`config/webflash-builds.json` are exposed; no fan driver is exposed. The
+WebFlash exposure matches actual readiness: the build matrix
+(`config/webflash-builds.json`) now holds **five** rows — the stable
+Release-One build, the published VentIQ LED preview, and the three
+metadata-ready room-bundle previews added by
+`RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001` — but only the first two are
+**customer-exposed** via the WebFlash `manifest.json`; the three new preview
+rows are release-eligibility metadata only (no binary, no Release, no
+`manifest.json`, bundles hidden / not buyable). No fan driver is exposed. The
 WebFlash-side canonical view is
 `docs/sense360-webflash-status.md` in `sense360store/WebFlash`.
 
@@ -275,6 +281,23 @@ row is added (it stays the two live builds), no `config/product-catalog.json`
 status is flipped, and WebFlash exposure is unchanged. The wrapper is a
 build-prep artifact only; cutting an actual `config/webflash-builds.json` row —
 with recorded firmware-build proof — remains a separate, later, reviewed PR, and
-those three targets stay **not exposed** in the WebFlash matrix (their §5 cells
-remain **future candidate**) until then. No TRIAC wrapper and no fan
-manual-preview wrapper were added.
+those three targets stay **not exposed** in the WebFlash matrix until then. No
+TRIAC wrapper and no fan manual-preview wrapper were added.
+
+### Preview WebFlash build rows cut (RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001)
+
+The reviewed `config/webflash-builds.json` **preview** build rows for the three
+wrapped candidates — `Ceiling-POE-AirIQ-RoomIQ`, `Ceiling-POE-RoomIQ`, and
+`Ceiling-POE-RoomIQ-LED` — have now been cut (each addressed via its
+`products/webflash` wrapper, on the preview channel, citing hosted-compile run
+`26821900127`), and their `config/product-catalog.json` rows were flipped
+`blocked` → `preview` (with `webflash_build_matrix: true`). The §1 / §5 cells
+above are updated accordingly: those three configs are now **preview build
+rows** in the matrix. This is **release-eligibility metadata only** — no
+firmware binary, GitHub Release, tag, `manifest.json`, or
+`firmware/sources.json` is published; the three rows are **not customer-exposed**
+via the WebFlash `manifest.json`; nothing is promoted to stable; the launch SKU
+stays `S360-KIT-BATH-P`; and the consuming candidate bundles stay hidden / not
+buyable. See
+[`docs/release-preview-webflash-build-rows.md`](release-preview-webflash-build-rows.md).
+No TRIAC row and no fan manual-preview row were added.

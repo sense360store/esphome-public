@@ -1,5 +1,21 @@
 # All-YAML Release Matrix (STABLE-RELEASE-MATRIX-ALL-YAML-001)
 
+> **Status update (`RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`, 2026-06-02):**
+> three configs previously enumerated below as `blocked` / compile-only —
+> `Ceiling-POE-AirIQ-RoomIQ`, `Ceiling-POE-RoomIQ`, and `Ceiling-POE-RoomIQ-LED`
+> — now carry a reviewed **preview** `config/webflash-builds.json` build row
+> (addressed via their `products/webflash` wrappers) and a `config/product-catalog.json`
+> entry flipped `blocked` → `preview`. The classifier
+> (`scripts/classify_all_yaml_release_matrix.py`) therefore now classifies them
+> **`preview-release`**, and the release-selectable set is the stable RoomIQ
+> build plus **four** preview builds. This is release-eligibility metadata only
+> (no binary / GitHub Release / `manifest.json`; candidate bundles hidden / not
+> buyable; nothing promoted to stable). Some per-config cells in §"Release-eligible"
+> and the candidate tables below still describe the prior `blocked` state; the
+> machine-readable source of truth is `config/webflash-builds.json` +
+> `scripts/classify_all_yaml_release_matrix.py`. See
+> [`docs/release-preview-webflash-build-rows.md`](release-preview-webflash-build-rows.md).
+
 ## Purpose and scope
 
 This document is the canonical, **all-YAML** release classification.

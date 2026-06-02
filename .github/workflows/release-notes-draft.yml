@@ -47,6 +47,9 @@ on:
         options:
           - Ceiling-POE-VentIQ-RoomIQ
           - Ceiling-POE-VentIQ-RoomIQ-LED
+          - Ceiling-POE-AirIQ-RoomIQ
+          - Ceiling-POE-RoomIQ
+          - Ceiling-POE-RoomIQ-LED
       version:
         description: >-
           Release version, no leading 'v' (e.g. 1.0.0). Must match the

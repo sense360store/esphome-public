@@ -18,8 +18,11 @@ The invariants enforced here:
     equals the entries in ``config/webflash-builds.json`` — release
     selection is derived from the source of truth, not hardcoded.
   * Exactly one stable target today (``Ceiling-POE-VentIQ-RoomIQ``).
-  * Exactly one preview target today (``Ceiling-POE-VentIQ-RoomIQ-LED``);
-    LED stays preview-only and is **not** selectable as stable.
+  * The preview targets today are the published VentIQ LED preview plus the
+    three room-bundle preview build rows added by
+    RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 (``Ceiling-POE-AirIQ-RoomIQ``,
+    ``Ceiling-POE-RoomIQ``, ``Ceiling-POE-RoomIQ-LED``); LED stays preview-only
+    and is **not** selectable as stable.
   * FanRelay / FanPWM / FanDAC are ``manual-candidate-only`` and are
     **not** release-selectable (and never carry an ``artifact_name``).
   * FanTRIAC is ``blocked``.
@@ -62,6 +65,15 @@ LED_CONFIG = "Ceiling-POE-VentIQ-RoomIQ-LED"
 BLOCKED_CONFIG = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
 FAN_TOKENS = ("FanRelay", "FanPWM", "FanDAC")
 
+# RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 preview build rows (room-bundle
+# previews) added alongside the published VentIQ LED preview.
+ROOM_BUNDLE_PREVIEW_CONFIGS = (
+    "Ceiling-POE-AirIQ-RoomIQ",
+    "Ceiling-POE-RoomIQ",
+    "Ceiling-POE-RoomIQ-LED",
+)
+PREVIEW_CONFIGS_TODAY = {LED_CONFIG, *ROOM_BUNDLE_PREVIEW_CONFIGS}
+
 ALL_CLASSES = {
     "stable-release",
     "preview-release",
@@ -99,11 +111,13 @@ class ClassifierShapeTests(unittest.TestCase):
         cls.plan = cls.classifier.classify()
 
     def test_every_yaml_is_classified_exactly_once(self) -> None:
-        on_disk = sorted(p.relative_to(REPO_ROOT).as_posix()
-                         for p in PRODUCTS_DIR.rglob("*.yaml"))
+        on_disk = sorted(
+            p.relative_to(REPO_ROOT).as_posix() for p in PRODUCTS_DIR.rglob("*.yaml")
+        )
         recorded = [r["yaml_path"] for r in self.plan["records"]]
         self.assertEqual(
-            sorted(recorded), on_disk,
+            sorted(recorded),
+            on_disk,
             "classifier must enumerate every YAML under products/ exactly once",
         )
         # No duplicates.
@@ -112,7 +126,8 @@ class ClassifierShapeTests(unittest.TestCase):
     def test_every_record_has_a_known_class(self) -> None:
         for r in self.plan["records"]:
             self.assertIn(
-                r["release_class"], ALL_CLASSES,
+                r["release_class"],
+                ALL_CLASSES,
                 f"{r['yaml_path']} has unknown release_class {r['release_class']!r}",
             )
 
@@ -134,7 +149,8 @@ class ReleaseSelectableTests(unittest.TestCase):
         from_builds = set(_release_eligible_config_strings())
         from_classifier = set(self.plan["release_selectable"])
         self.assertEqual(
-            from_builds, from_classifier,
+            from_builds,
+            from_classifier,
             "release-selectable set must equal config/webflash-builds.json — "
             "release selection must be derived from source of truth, not "
             "hardcoded to one config",
@@ -144,28 +160,38 @@ class ReleaseSelectableTests(unittest.TestCase):
         for r in self.plan["records"]:
             if r["is_release_selectable"]:
                 self.assertIn(
-                    r["release_class"], RELEASE_SELECTABLE_CLASSES,
+                    r["release_class"],
+                    RELEASE_SELECTABLE_CLASSES,
                     f"{r['yaml_path']} is_release_selectable but release_class "
                     f"is {r['release_class']!r}",
                 )
             else:
                 self.assertNotIn(
-                    r["release_class"], RELEASE_SELECTABLE_CLASSES,
+                    r["release_class"],
+                    RELEASE_SELECTABLE_CLASSES,
                     f"{r['yaml_path']} marked not selectable but its class "
                     f"is {r['release_class']!r}",
                 )
 
     def test_exactly_one_stable_target_today(self) -> None:
         self.assertEqual(
-            self.plan["stable_targets"], [STABLE_CONFIG],
+            self.plan["stable_targets"],
+            [STABLE_CONFIG],
             "today only Ceiling-POE-VentIQ-RoomIQ is on stable",
         )
 
-    def test_exactly_one_preview_target_today(self) -> None:
+    def test_preview_targets_today(self) -> None:
+        # The published VentIQ LED preview plus the three room-bundle preview
+        # build rows added by RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001. Compared
+        # as a set so the YAML-sorted order of the classifier is not asserted.
         self.assertEqual(
-            self.plan["preview_targets"], [LED_CONFIG],
-            "today only the LED sibling is on preview",
+            set(self.plan["preview_targets"]),
+            PREVIEW_CONFIGS_TODAY,
+            "preview targets must be the VentIQ LED preview plus the three "
+            "room-bundle preview build rows",
         )
+        # The stable Release-One target must never appear on the preview list.
+        self.assertNotIn(STABLE_CONFIG, self.plan["preview_targets"])
 
 
 class LedPreviewOnlyTests(unittest.TestCase):
@@ -178,12 +204,14 @@ class LedPreviewOnlyTests(unittest.TestCase):
 
     def _canonical_led(self) -> dict:
         canonical = [
-            r for r in self.plan["records"]
+            r
+            for r in self.plan["records"]
             if r["config_string"] == LED_CONFIG
             and not r["yaml_path"].startswith("products/webflash/")
         ]
         self.assertEqual(
-            len(canonical), 1,
+            len(canonical),
+            1,
             "exactly one canonical (non-wrapper) LED entry expected",
         )
         return canonical[0]
@@ -212,8 +240,11 @@ class FanCandidatesNotReleaseSelectableTests(unittest.TestCase):
         cls.plan = cls.classifier.classify()
 
     def test_three_manual_candidates(self) -> None:
-        manual = [r for r in self.plan["records"]
-                  if r["release_class"] == "manual-candidate-only"]
+        manual = [
+            r
+            for r in self.plan["records"]
+            if r["release_class"] == "manual-candidate-only"
+        ]
         self.assertEqual(len(manual), 3, f"expected 3 manual candidates, got {manual}")
 
     def test_fan_candidates_are_manual_class(self) -> None:
@@ -222,7 +253,8 @@ class FanCandidatesNotReleaseSelectableTests(unittest.TestCase):
             for token in FAN_TOKENS:
                 if token.lower() in cs.lower():
                     self.assertEqual(
-                        r["release_class"], "manual-candidate-only",
+                        r["release_class"],
+                        "manual-candidate-only",
                         f"{cs} carries {token}; must be manual-candidate-only",
                     )
 
@@ -250,7 +282,8 @@ class FanCandidatesNotReleaseSelectableTests(unittest.TestCase):
         for cs in _release_eligible_config_strings():
             for token in FAN_TOKENS:
                 self.assertNotIn(
-                    token.lower(), cs.lower(),
+                    token.lower(),
+                    cs.lower(),
                     f"release-matrix config {cs!r} carries fan token {token!r}",
                 )
 
@@ -258,7 +291,8 @@ class FanCandidatesNotReleaseSelectableTests(unittest.TestCase):
         for cs in self.plan["release_selectable"]:
             for token in FAN_TOKENS:
                 self.assertNotIn(
-                    token.lower(), cs.lower(),
+                    token.lower(),
+                    cs.lower(),
                     f"release-selectable {cs!r} carries fan token {token!r}",
                 )
 
@@ -273,12 +307,14 @@ class FanTriacBlockedTests(unittest.TestCase):
 
     def test_fantriac_blocked(self) -> None:
         canonical = [
-            r for r in self.plan["records"]
+            r
+            for r in self.plan["records"]
             if r["config_string"] == BLOCKED_CONFIG
             and not r["yaml_path"].startswith("products/webflash/")
         ]
         self.assertEqual(
-            len(canonical), 1,
+            len(canonical),
+            1,
             "exactly one canonical FanTRIAC entry expected",
         )
         self.assertEqual(canonical[0]["release_class"], "blocked")
@@ -301,7 +337,8 @@ class CompileOnlyTests(unittest.TestCase):
         for r in self.plan["records"]:
             if r["yaml_path"].startswith("products/compile-only/"):
                 self.assertEqual(
-                    r["release_class"], "compile-only",
+                    r["release_class"],
+                    "compile-only",
                     f"{r['yaml_path']} under products/compile-only/ must be "
                     "classified compile-only",
                 )
@@ -338,8 +375,9 @@ class HelperYamlsAreNotEntrypointsTests(unittest.TestCase):
         cls.plan = cls.classifier.classify()
 
     def test_secrets_yaml_is_not_entrypoint(self) -> None:
-        secrets = [r for r in self.plan["records"]
-                   if r["yaml_path"] == "products/secrets.yaml"]
+        secrets = [
+            r for r in self.plan["records"] if r["yaml_path"] == "products/secrets.yaml"
+        ]
         self.assertEqual(len(secrets), 1)
         self.assertEqual(secrets[0]["release_class"], "not-a-product-entrypoint")
         self.assertFalse(secrets[0]["is_release_selectable"])
@@ -354,9 +392,9 @@ class HelperYamlsAreNotEntrypointsTests(unittest.TestCase):
         for r in self.plan["records"]:
             if r["yaml_path"] in legacy_yamls:
                 self.assertEqual(
-                    r["release_class"], "not-a-product-entrypoint",
-                    f"legacy YAML {r['yaml_path']} must be "
+                    r["release_class"],
                     "not-a-product-entrypoint",
+                    f"legacy YAML {r['yaml_path']} must be " "not-a-product-entrypoint",
                 )
                 self.assertFalse(r["is_release_selectable"])
 
@@ -376,7 +414,7 @@ class FanGuardrailTests(unittest.TestCase):
             {
                 "config_string": "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
                 "product_yaml": "products/webflash/ceiling-poe-ventiq-"
-                                "fanrelay-roomiq.yaml",
+                "fanrelay-roomiq.yaml",
                 "channel": "stable",
                 "version": "1.0.0",
                 "artifact_name": "Sense360-fake.bin",
@@ -386,6 +424,7 @@ class FanGuardrailTests(unittest.TestCase):
             }
         ]
         import tempfile
+
         with tempfile.TemporaryDirectory() as tmpdir:
             builds_path = Path(tmpdir) / "webflash-builds.json"
             manual_path = Path(tmpdir) / "manual-firmware-artifacts.json"
@@ -437,7 +476,9 @@ class DocCoversAllSixClassesTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.doc_text = DOC_PATH.read_text(encoding="utf-8") if DOC_PATH.is_file() else ""
+        cls.doc_text = (
+            DOC_PATH.read_text(encoding="utf-8") if DOC_PATH.is_file() else ""
+        )
 
     def test_doc_exists(self) -> None:
         self.assertTrue(
@@ -448,9 +489,9 @@ class DocCoversAllSixClassesTests(unittest.TestCase):
     def test_doc_names_every_release_class(self) -> None:
         for cls in ALL_CLASSES:
             self.assertIn(
-                cls, self.doc_text,
-                f"docs/all-yaml-release-matrix.md must name release class "
-                f"{cls!r}",
+                cls,
+                self.doc_text,
+                f"docs/all-yaml-release-matrix.md must name release class " f"{cls!r}",
             )
 
 

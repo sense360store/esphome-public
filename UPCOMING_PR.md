@@ -225,6 +225,35 @@ regression guard [`tests/test_preview_webflash_wrappers.py`](tests/test_preview_
 no Release / tag, no WebFlash-repo change — WebFlash import/publish stays gated
 for a later reviewed build-row PR. TRIAC stays out (`HW-005`); no fan wrapper added.
 
+### RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 — add the three reviewed preview build rows — DONE (this PR)
+
+**Status: DONE in this PR.** The wrapper prerequisite from
+`RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001` (above) is satisfied, so this PR cuts the
+three reviewed **preview** rows in
+[`config/webflash-builds.json`](config/webflash-builds.json) — taking the ledger
+from **2 → 5** builds (one stable, four preview). Each new row uses its
+`products/webflash` wrapper as `product_yaml`, is on the **preview** channel
+(`Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.0-preview.bin`,
+`Sense360-Ceiling-POE-RoomIQ-v1.0.0-preview.bin`,
+`Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin`), carries the preview
+release-note warning, a `commercial_posture` (hidden / candidate / not buyable /
+not recommended / not default / not stable), and a `compile_evidence` block
+citing hosted run `26821900127` (`firmware-build-only`). The matching
+[`config/product-catalog.json`](config/product-catalog.json) rows flip
+`blocked` → `preview` (`webflash_build_matrix: true`, wrapper + `artifact_name`;
+required by the build-matrix ↔ catalog cross-check), and the three targets in
+[`config/preview-release-targets.json`](config/preview-release-targets.json) move
+from `eligible-unpublished` to **`webflash-preview-metadata-ready`** with their
+build blocker resolved. Derived artifacts regenerated
+(`config/firmware-combination-matrix.json`, `docs/firmware-build-gap-report.md`),
+workflow pickers + `scripts/product_name_mapper.py` updated, and the affected
+tests refreshed. Readiness write-up:
+[`docs/release-preview-webflash-build-rows.md`](docs/release-preview-webflash-build-rows.md).
+**No** `.bin`, Release, tag, `manifest.json`, or `firmware/sources.json`; **no**
+stable promotion; **no** TRIAC / fan row; launch SKU stays `S360-KIT-BATH-P`;
+candidate bundles stay hidden / not buyable; WebFlash one-click customer import
+remains a separate, gated follow-up.
+
 ### RELEASE-PREVIEW-PUBLISH-PLAN-001 — plan the publish path for the dry-run-clean previews
 
 The dry-run left enough targets metadata-clean to plan a publish path: the 3

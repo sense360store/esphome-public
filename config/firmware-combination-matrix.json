@@ -21,9 +21,9 @@
     "combinations": 168,
     "by_status": {
       "missing-product-yaml": 122,
-      "blocked-hardware": 42,
+      "blocked-hardware": 39,
+      "webflash-preview": 4,
       "webflash-shipping": 1,
-      "webflash-preview": 1,
       "compile-only-candidate": 2
     }
   },
@@ -318,12 +318,11 @@
       "room_sense": "RoomIQ",
       "fan": "none",
       "led": "none",
-      "status": "blocked-hardware",
-      "product_yaml": "products/sense360-ceiling-poe-airiq-roomiq.yaml",
-      "blockers": [
-        "PRODUCT-POE-410-001"
-      ],
-      "notes": "Release-blocked on the shared S360-410 PoE PSU schematic-verification chain (PRODUCT-POE-410-001 / PACKAGE-POE-410-001). S360-410 schematic_status is cataloged_unverified and the Release-One PoE 'schematic verification pending' caveat remains open; until that evidence lands (BOM cross-check + S360-410 schematic_status: verified JSON PR + Release-One PoE caveat closure) and the AirIQ sensor-stack bench evidence lands, this AirIQ + RoomIQ product is authored but must not be promoted to a stable / release channel. Preview eligibility (lack of hardware proof blocks STABLE only) is tracked in config/preview-release-targets.json; this blocked catalog status is a STABLE/lifecycle gate, not a preview prohibition."
+      "status": "webflash-preview",
+      "product_yaml": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.0-preview.bin",
+      "webflash_wrapper": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
+      "notes": "In config/webflash-builds.json on the preview channel."
     },
     {
       "config_string": "Ceiling-POE-AirIQ-RoomIQ-LED",
@@ -658,12 +657,11 @@
       "room_sense": "RoomIQ",
       "fan": "none",
       "led": "none",
-      "status": "blocked-hardware",
-      "product_yaml": "products/sense360-ceiling-poe-roomiq.yaml",
-      "blockers": [
-        "PRODUCT-POE-410-001"
-      ],
-      "notes": "Release-blocked on the shared S360-410 PoE PSU schematic-verification chain (PRODUCT-POE-410-001 / PACKAGE-POE-410-001). S360-410 schematic_status is cataloged_unverified and the Release-One PoE 'schematic verification pending' caveat remains open; until that evidence lands (BOM cross-check + S360-410 schematic_status: verified JSON PR + Release-One PoE caveat closure), this RoomIQ-only product is authored but must not be promoted to a WebFlash / release channel."
+      "status": "webflash-preview",
+      "product_yaml": "products/webflash/ceiling-poe-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-RoomIQ-v1.0.0-preview.bin",
+      "webflash_wrapper": "products/webflash/ceiling-poe-roomiq.yaml",
+      "notes": "In config/webflash-builds.json on the preview channel."
     },
     {
       "config_string": "Ceiling-POE-RoomIQ-LED",
@@ -679,12 +677,11 @@
       "room_sense": "RoomIQ",
       "fan": "none",
       "led": "LED",
-      "status": "blocked-hardware",
-      "product_yaml": "products/sense360-ceiling-poe-roomiq-led.yaml",
-      "blockers": [
-        "PRODUCT-POE-410-001"
-      ],
-      "notes": "Release-blocked on the shared S360-410 PoE PSU schematic-verification chain (PRODUCT-POE-410-001 / PACKAGE-POE-410-001). S360-410 schematic_status is cataloged_unverified and the Release-One PoE 'schematic verification pending' caveat remains open; until that evidence lands and the LED preview-to-stable gauntlet (operator flash proof, S360-300 bench verification) clears, this RoomIQ + LED product is authored but must not be promoted to a stable / release channel. LED stays PREVIEW. Preview eligibility (lack of hardware proof blocks STABLE only) is tracked in config/preview-release-targets.json; this blocked catalog status is a STABLE/lifecycle gate, not a preview prohibition."
+      "status": "webflash-preview",
+      "product_yaml": "products/webflash/ceiling-poe-roomiq-led.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin",
+      "webflash_wrapper": "products/webflash/ceiling-poe-roomiq-led.yaml",
+      "notes": "In config/webflash-builds.json on the preview channel."
     },
     {
       "config_string": "Ceiling-POE-VentIQ",

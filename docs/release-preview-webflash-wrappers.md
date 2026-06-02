@@ -20,6 +20,21 @@ flipped the three webflash previews to `validated-full-compile` and recorded
 that their **only** residual WebFlash prerequisite was the `products/webflash`
 wrapper. This PR authors those wrappers.
 
+> **Status update (`RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`, 2026-06-02):** the
+> follow-up build-row PR has since **landed**. The reviewed
+> `config/webflash-builds.json` **preview** rows for all three wrapped
+> candidates now exist (each addressed via its `products/webflash` wrapper,
+> citing hosted-compile run `26821900127`), their `config/product-catalog.json`
+> rows were flipped `blocked` → `preview`, and the three preview targets in
+> `config/preview-release-targets.json` moved from `eligible-unpublished` to
+> `webflash-preview-metadata-ready` with their build blocker resolved. Still
+> **no** firmware binary / GitHub Release / tag / `manifest.json` /
+> `firmware/sources.json` is published, and the candidate bundles stay hidden /
+> not buyable. The §2 / §6 wording below describes the **wrappers-only** state
+> as of this (wrappers) PR; see
+> [`docs/release-preview-webflash-build-rows.md`](release-preview-webflash-build-rows.md)
+> for the build-row state.
+
 ---
 
 ## TL;DR
@@ -148,10 +163,13 @@ targets are unchanged, no TRIAC or fan wrapper was added, and no
 
 ## 6. Follow-ups
 
-* **Reviewed `config/webflash-builds.json` build-row PR (next):** prepare the
-  WebFlash build rows for the three wrapped previews on a non-stable channel,
-  with recorded firmware-build proof. WebFlash one-click import remains a
-  separate, gated step after that.
+* **Reviewed `config/webflash-builds.json` build-row PR — LANDED**
+  (`RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`): the WebFlash build rows for the
+  three wrapped previews were cut on the preview (non-stable) channel with
+  recorded firmware-build proof (run `26821900127`); see
+  [`docs/release-preview-webflash-build-rows.md`](release-preview-webflash-build-rows.md).
+  WebFlash one-click customer import / exposure remains a separate, gated step
+  after that (no `manifest.json` / WebFlash-repo change here).
 * **FanTRIAC `HW-005`** — unchanged buildability defect; remains excluded;
   TRIAC policy untouched.
 

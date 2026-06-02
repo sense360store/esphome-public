@@ -234,16 +234,27 @@ class WebflashBuildsLedExclusionTests(unittest.TestCase):
                 )
 
     def test_led_preview_build_uses_led_wrapper(self) -> None:
+        # Each LED-bearing build must point at its OWN products/webflash LED
+        # wrapper (basename == lowercased config string). RELEASE-PREVIEW-
+        # WEBFLASH-BUILD-ROWS-001 added Ceiling-POE-RoomIQ-LED alongside the
+        # published Ceiling-POE-VentIQ-RoomIQ-LED, so there is no longer a
+        # single shared LED wrapper.
         for build in self.doc["builds"]:
             config_string = build.get("config_string", "")
             if "LED" not in config_string.split("-"):
                 continue
             with self.subTest(config_string=config_string):
+                product_yaml = build.get("product_yaml", "")
+                expected = f"products/webflash/{config_string.lower()}.yaml"
                 self.assertEqual(
-                    build.get("product_yaml"),
-                    LED_PREVIEW_WRAPPER,
-                    f"LED-bearing build {config_string!r} must point at "
-                    f"the LED WebFlash wrapper {LED_PREVIEW_WRAPPER!r}.",
+                    product_yaml,
+                    expected,
+                    f"LED-bearing build {config_string!r} must point at its "
+                    f"LED WebFlash wrapper {expected!r}.",
+                )
+                self.assertTrue(
+                    (REPO_ROOT / product_yaml).is_file(),
+                    f"LED wrapper {product_yaml!r} must exist on disk.",
                 )
 
 

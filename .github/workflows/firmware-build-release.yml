@@ -72,6 +72,9 @@ on:
           - all-release-eligible
           - Ceiling-POE-VentIQ-RoomIQ
           - Ceiling-POE-VentIQ-RoomIQ-LED
+          - Ceiling-POE-AirIQ-RoomIQ
+          - Ceiling-POE-RoomIQ
+          - Ceiling-POE-RoomIQ-LED
       # RELEASE-WORKFLOW-DRYRUN-MODE-001: explicit, safe-by-default dry-run
       # mode. When enabled (the default), a manual dispatch only exercises
       # release-note planning, validation, and the release guardrails for the
