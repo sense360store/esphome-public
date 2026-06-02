@@ -67,6 +67,15 @@ Where the preview-release program actually stands today:
   no stable / TRIAC change. Firmware-build proof only (not hardware / bench /
   compliance). See
   [`docs/release-preview-compile-dryrun.md`](docs/release-preview-compile-dryrun.md).
+* **Preview build rows + release-note drafts — DONE (metadata / dry-run).** The
+  three reviewed `config/webflash-builds.json` **preview** rows were cut
+  (`RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`, #698; ledger 2 → 5), and their
+  **release-note drafts** were generated + validated against the WebFlash
+  release-body contract (`RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001`, this PR) under
+  [`docs/release-notes/preview/`](docs/release-notes/preview/). Metadata /
+  dry-run only: rows stay `metadata-ready-unpublished`, drafts are attached to no
+  Release, nothing is promoted to stable, and the consuming candidate bundles stay
+  hidden / not buyable. Firmware-build proof only (run `26821900127`).
 * **Actual preview artifacts — NOT YET PUBLISHED.** No preview `.bin` has been
   built, released, or attached; non-buildable targets still carry explicit build
   blockers (e.g. FanTRIAC `HW-005`). No `esphome` build proof is claimed and
@@ -83,11 +92,14 @@ dry-run + re-run, and now the hosted compile dry-run are done**. The three forme
 them GREEN** and flipped their `compile_validation_status` to
 `validated-full-compile`, so their **only** residual WebFlash prerequisite was the
 `products/webflash` wrapper — now **authored** by
-`RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001` (this PR). The remaining open work:
-prepare a reviewed `config/webflash-builds.json` build-row PR for the three
-wrapped previews, resolve FanTRIAC `HW-005`, and then **plan + produce the actual
-preview artifacts** and the **WebFlash import** — captured as the next queue items
-below.
+`RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001` (#696). The reviewed
+`config/webflash-builds.json` **preview build rows** for the three wrapped
+previews then landed (`RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`, #698), and their
+**release-note drafts** have now been generated + validated
+(`RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001`, this PR) — release-note dry-run only,
+nothing published. The remaining open work: resolve FanTRIAC `HW-005`, and then
+**plan + produce the actual preview artifacts** and the **WebFlash import** —
+captured as the next queue items below.
 
 ---
 
@@ -253,6 +265,36 @@ tests refreshed. Readiness write-up:
 stable promotion; **no** TRIAC / fan row; launch SKU stays `S360-KIT-BATH-P`;
 candidate bundles stay hidden / not buyable; WebFlash one-click customer import
 remains a separate, gated follow-up.
+
+### RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001 — generate preview release-note drafts — DONE (this PR)
+
+**Status: DONE in this PR.** With the three reviewed preview build rows in place
+(`RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`, above), this PR generates and
+validates **release-note drafts** for them, completing the release-note coverage
+matrix so **every** preview WebFlash build row is covered. It adds the three
+drafts under
+[`docs/release-notes/preview/`](docs/release-notes/preview/)
+(`ceiling-poe-airiq-roomiq.md`, `ceiling-poe-roomiq.md`,
+`ceiling-poe-roomiq-led.md`) — each carrying the four required H2 sections
+(`## Changelog`, `## Known Issues`, `## Features`, `## Hardware Requirements`)
+plus a prominent PREVIEW warning banner — and a regression guard
+[`tests/test_preview_release_notes_drafts.py`](tests/test_preview_release_notes_drafts.py)
+(27 tests). Each draft **validates** against the WebFlash release-body contract
+([`scripts/validate-webflash-release-notes.py`](scripts/validate-webflash-release-notes.py),
+`channel=preview`) and states the posture in plain words: PREVIEW firmware, NOT
+stable, NOT recommended, NOT a customer default, NOT hardware verified, NOT
+buyable as a public shop product; **firmware-build proof only** citing hosted
+compile run `26821900127`; **no** hardware / bench / compliance /
+commercial-availability proof; and points normal customers at the **stable
+Bathroom PoE release** (`S360-KIT-BATH-P` / `Ceiling-POE-VentIQ-RoomIQ`). The
+published stable Bathroom release and the published VentIQ LED preview are **not**
+re-drafted (covered by [`docs/webflash-release-proof.md`](docs/webflash-release-proof.md)).
+Readiness write-up:
+[`docs/release-preview-webflash-release-notes-dryrun.md`](docs/release-preview-webflash-release-notes-dryrun.md).
+**Release-note dry-run only** — no `.bin`, GitHub Release, tag, `manifest.json`,
+or `firmware/sources.json`; no stable promotion; no TRIAC / fan draft; launch SKU
+stays `S360-KIT-BATH-P`; candidate bundles stay hidden / not buyable; WebFlash
+repo untouched.
 
 ### RELEASE-PREVIEW-PUBLISH-PLAN-001 — plan the publish path for the dry-run-clean previews
 

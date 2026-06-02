@@ -157,8 +157,27 @@ All commands run from the repo root and pass:
 
 ---
 
+## 7. Follow-up — release-note drafts (dry-run)
+
+`RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001` (follow-up) generates and validates
+**release-note drafts** for the three preview build rows added here, under
+[`docs/release-notes/preview/`](release-notes/preview/). That work is
+**release-note dry-run only**: it publishes no firmware, creates no GitHub
+Release / tag, commits no `.bin`, writes no `manifest.json` /
+`firmware/sources.json`, and keeps these rows preview / hidden / not buyable.
+Each draft validates against the WebFlash release-body contract
+([`scripts/validate-webflash-release-notes.py`](../scripts/validate-webflash-release-notes.py))
+and states the PREVIEW posture in plain words — not stable, not recommended,
+not a customer default, not hardware verified, not buyable as a public shop
+product, firmware-build proof only (run `26821900127`), with normal customers
+pointed at the stable Bathroom PoE release. See
+[`docs/release-preview-webflash-release-notes-dryrun.md`](release-preview-webflash-release-notes-dryrun.md).
+
+---
+
 ## Cross-references
 
+- Preview release-note drafts (dry-run): [`docs/release-preview-webflash-release-notes-dryrun.md`](release-preview-webflash-release-notes-dryrun.md) · [`docs/release-notes/preview/`](release-notes/preview/)
 - Preview WebFlash wrappers: [`docs/release-preview-webflash-wrappers.md`](release-preview-webflash-wrappers.md)
 - Compile dry-run record: [`docs/release-preview-compile-dryrun.md`](release-preview-compile-dryrun.md)
 - Release-eligibility source of truth: [`config/webflash-builds.json`](../config/webflash-builds.json)
