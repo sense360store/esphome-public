@@ -81,11 +81,13 @@ dry-run + re-run, and now the hosted compile dry-run are done**. The three forme
 (`RELEASE-PREVIEW-BUILD-FIXES-001`, #691); the hosted compile dry-run (run
 `26821900127`, `RELEASE-PREVIEW-COMPILE-RESULTS-001`, this PR) then **compiled
 them GREEN** and flipped their `compile_validation_status` to
-`validated-full-compile`, so their **only** residual WebFlash prerequisite is the
-`products/webflash` wrapper. The remaining open work: author the three
-`products/webflash` wrappers (`RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001`, **next**),
-resolve FanTRIAC `HW-005`, and then **plan + produce the actual preview
-artifacts** and the **WebFlash import** — captured as the next queue items below.
+`validated-full-compile`, so their **only** residual WebFlash prerequisite was the
+`products/webflash` wrapper — now **authored** by
+`RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001` (this PR). The remaining open work:
+prepare a reviewed `config/webflash-builds.json` build-row PR for the three
+wrapped previews, resolve FanTRIAC `HW-005`, and then **plan + produce the actual
+preview artifacts** and the **WebFlash import** — captured as the next queue items
+below.
 
 ---
 
@@ -183,17 +185,26 @@ in a `compile_evidence` block in
 fans keep `validated-full-compile` with the run as hosted corroboration. Firmware-build
 proof only — not hardware / bench / compliance; no stable / TRIAC change.
 
-### RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001 — author the three `products/webflash` wrappers — NEXT (compile gate satisfied)
+### RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001 — author the three `products/webflash` wrappers — DONE (this PR)
 
-**Now the next actionable item.** The compile gate is **satisfied** by run
+**Status: DONE in this PR.** The compile gate was **satisfied** by run
 `26821900127` (above): `Ceiling-POE-AirIQ-RoomIQ`, `Ceiling-POE-RoomIQ`, and
-`Ceiling-POE-RoomIQ-LED` are now `validated-full-compile`, so the **only**
-residual WebFlash prerequisite is the wrapper YAML. Add the thin
-`products/webflash/ceiling-poe-airiq-roomiq.yaml`, `…/ceiling-poe-roomiq.yaml`,
-and `…/ceiling-poe-roomiq-led.yaml` wrappers, then a reviewed metadata pass can
-prepare the WebFlash build rows. **Still** no `config/webflash-builds.json` row
-until the wrappers + metadata are reviewed; promotes nothing, publishes nothing,
-adds no `.bin`. TRIAC stays out (`HW-005`).
+`Ceiling-POE-RoomIQ-LED` are `validated-full-compile`, so the **only** residual
+WebFlash prerequisite was the wrapper YAML. This PR adds the three thin
+preview-only wrappers
+[`products/webflash/ceiling-poe-airiq-roomiq.yaml`](products/webflash/ceiling-poe-airiq-roomiq.yaml),
+[`…/ceiling-poe-roomiq.yaml`](products/webflash/ceiling-poe-roomiq.yaml), and
+[`…/ceiling-poe-roomiq-led.yaml`](products/webflash/ceiling-poe-roomiq-led.yaml)
+(each re-includes its canonical `products/sense360-*.yaml` shim; no version /
+channel / artifact_name), records each in the per-target `webflash_wrapper` field
+of [`config/preview-release-targets.json`](config/preview-release-targets.json),
+and reclassifies the residual `build_blocker` from "no wrapper" to "needs a
+reviewed `config/webflash-builds.json` build row". Readiness write-up:
+[`docs/release-preview-webflash-wrappers.md`](docs/release-preview-webflash-wrappers.md);
+regression guard [`tests/test_preview_webflash_wrappers.py`](tests/test_preview_webflash_wrappers.py).
+**Still** no `config/webflash-builds.json` row, no catalog status flip, no `.bin`,
+no Release / tag, no WebFlash-repo change — WebFlash import/publish stays gated
+for a later reviewed build-row PR. TRIAC stays out (`HW-005`); no fan wrapper added.
 
 ### RELEASE-PREVIEW-PUBLISH-PLAN-001 — plan the publish path for the dry-run-clean previews
 

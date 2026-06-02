@@ -258,3 +258,23 @@ target**, with three delivery lanes —
 for every fan driver, and WebFlash exposure is unchanged. The manual-preview /
 advanced-manual-preview lanes are **non-WebFlash** preview delivery lanes; the
 "not exposed" WebFlash cells in §1 / §5 remain correct.
+
+### Preview WebFlash wrappers authored (RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001)
+
+The three compile-validated `webflash`-lane preview candidates —
+`Ceiling-POE-AirIQ-RoomIQ`, `Ceiling-POE-RoomIQ`, and `Ceiling-POE-RoomIQ-LED` —
+now have thin `products/webflash/*.yaml` wrappers, each re-including its
+canonical `products/sense360-*.yaml` shim (preview-only; no `version`,
+`channel`, or `artifact_name`). See
+[`docs/release-preview-webflash-wrappers.md`](release-preview-webflash-wrappers.md);
+each wrapper is recorded in the per-target `webflash_wrapper` field of
+[`config/preview-release-targets.json`](../config/preview-release-targets.json).
+
+**This still moves no WebFlash cell in §1 / §5.** No `config/webflash-builds.json`
+row is added (it stays the two live builds), no `config/product-catalog.json`
+status is flipped, and WebFlash exposure is unchanged. The wrapper is a
+build-prep artifact only; cutting an actual `config/webflash-builds.json` row —
+with recorded firmware-build proof — remains a separate, later, reviewed PR, and
+those three targets stay **not exposed** in the WebFlash matrix (their §5 cells
+remain **future candidate**) until then. No TRIAC wrapper and no fan
+manual-preview wrapper were added.
