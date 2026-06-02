@@ -34,6 +34,18 @@ sellable set and maps each onto (a) the boards shipped in the bundle and
 produce, along with the current release status of that firmware config
 target and the missing stable-promotion gates.
 
+> **Commercial / shop layer.** Which of these bundle SKUs is sellable at the
+> first shop launch, the customer-facing shop title, candidate-bundle
+> visibility, the customer WebFlash URL, and the approved / forbidden ecommerce
+> claims are decided in the commercial source of truth
+> [`docs/shop-commercial-source-of-truth.md`](shop-commercial-source-of-truth.md)
+> / [`config/shop-commercial-source-of-truth.json`](../config/shop-commercial-source-of-truth.json)
+> (`SHOP-COMMERCIAL-SOURCE-OF-TRUTH-001`). The launch shop product is the
+> complete `S360-KIT-BATH-P` Bathroom PoE bundle **only**; the other bundles in
+> this matrix are candidates that stay hidden from shop navigation and are
+> **not** buyable. This matrix remains the canonical SKU layer; the commercial
+> doc adds the shop-posture / claims layer on top of it.
+
 ### Identifier separation
 
 Four identifier spaces are deliberately kept separate.
@@ -463,3 +475,8 @@ The matrix is reproduced and locked in by:
   [`config/webflash-builds.json`](../config/webflash-builds.json).
   Sole source of release eligibility; unchanged by this PR.
 - Shipping configuration: [`docs/release-one.md`](release-one.md).
+- Commercial / shop source of truth:
+  [`docs/shop-commercial-source-of-truth.md`](shop-commercial-source-of-truth.md)
+  / [`config/shop-commercial-source-of-truth.json`](../config/shop-commercial-source-of-truth.json)
+  — SHOP-COMMERCIAL-SOURCE-OF-TRUTH-001. Launch SKU, shop posture,
+  candidate-bundle visibility, customer WebFlash URL, and approved claims.

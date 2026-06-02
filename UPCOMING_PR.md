@@ -93,6 +93,25 @@ below.
 
 ## Next queue (actionable)
 
+> **`SHOP-COMMERCIAL-SOURCE-OF-TRUTH-001` is DONE (this PR; commercial / docs +
+> config only).** Records the first-shop-launch **commercial naming and shop
+> posture decision** so product naming, ecommerce copy, WebFlash links,
+> candidate-bundle visibility, and claims are consistent before customer-facing
+> pages publish. Canonical shop SKU **`S360-KIT-BATH-P`** (title *Sense360
+> Bathroom Bundle — PoE*); `S360-KIT-BATH-POE` is a legacy alias and
+> `S360-KIT-CEILING-VENTIQ-ROOMIQ-POE` is rejected (too close to firmware
+> naming). Launch sells the **complete Bathroom PoE bundle only** (no individual
+> boards); candidate bundles stay **hidden / not buyable**; customer WebFlash URL
+> is **`https://flash.sense360.com`** (GitHub Pages = fallback, `mysense360.com`
+> reserved for a future portal). Approved vs forbidden claims are pinned (no
+> mold / condensation / safety-certified / base-kit fan-control / TRIAC claims).
+> Adds [`config/shop-commercial-source-of-truth.json`](config/shop-commercial-source-of-truth.json),
+> [`docs/shop-commercial-source-of-truth.md`](docs/shop-commercial-source-of-truth.md),
+> and [`tests/test_shop_commercial_source_of_truth.py`](tests/test_shop_commercial_source_of_truth.py).
+> See the write-up below. Publishes nothing, builds no `.bin`, adds no
+> `config/webflash-builds.json` row, flips no `schematic_status` / lifecycle, and
+> does not touch the WebFlash repo.
+
 > `RELEASE-PREVIEW-BUILD-DRYRUN-001` is **DONE** — see
 > [`docs/release-preview-build-dryrun.md`](docs/release-preview-build-dryrun.md)
 > and the detailed write-up below. It recorded the metadata dry-run for all 9
@@ -252,6 +271,102 @@ Recently landed; kept as one-line history (full write-ups preserved below).
 
 Earlier completed / queued entries (including `FIRST-MAINTENANCE-RELEASE-PLAN-001`
 and PR #684) are retained below as historical detail.
+
+---
+
+## SHOP-COMMERCIAL-SOURCE-OF-TRUTH-001 — define launch SKU, shop posture, and approved claims — DONE (this PR)
+
+**Status:** **DONE.** Commercial / docs + config only. Records the commercial
+naming and shop-posture decision for the **first shop launch** so product
+naming, ecommerce copy, WebFlash links, candidate-bundle visibility, and claims
+are consistent before any customer-facing page is published. It promotes
+nothing, publishes no firmware, builds no `.bin`, adds no
+`config/webflash-builds.json` row, flips no `schematic_status` or product-catalog
+lifecycle, and does not touch the WebFlash repo.
+
+### Decisions encoded
+
+* **Canonical shop SKU** — `S360-KIT-BATH-P`, shop title **Sense360 Bathroom
+  Bundle — PoE**. `S360-KIT-BATH-POE` (the kit-intent `kit_id` in
+  [`config/kit-intent-matrix.json`](config/kit-intent-matrix.json)) is recorded
+  as a **legacy alias** of `S360-KIT-BATH-P`. `S360-KIT-CEILING-VENTIQ-ROOMIQ-POE`
+  (a WebFlash `kits.json` kit id) is **rejected** as a customer-facing SKU
+  because it mirrors the firmware config string too closely. The canonical
+  room-bundle SKU is **not renamed**.
+* **Launch sale posture** — the first shop product is the **complete Bathroom
+  PoE room bundle only** (`sellable-complete-room-bundle`). Individual boards
+  are **not** sold publicly at launch (`individual_boards_public_sale: false`);
+  they may be documented as internal / service / developer / future-add-on
+  parts only.
+* **Bathroom PoE readiness wording** — allowed: stable firmware available,
+  Release-One firmware target, WebFlash install supported, complete room kit.
+  Not allowed: hardware/compliance/safety certified, verified PoE hardware,
+  bench-proven for every installation, mold prevention/detection, condensation
+  guarantees (S360-410 stays `cataloged_unverified`).
+* **Candidate bundle visibility** — `S360-KIT-KITCHEN-P`, `S360-KIT-LIVING-P`,
+  `S360-KIT-BEDROOM-P`, `S360-KIT-CORRIDOR-P` are **hidden from shop navigation**
+  by default and **not buyable** (no buy button). Optional waitlist / coming-soon
+  pages allowed only if explicitly labelled (coming soon / not available to buy /
+  firmware preview / hardware gates not closed) and may not imply availability,
+  delivery date, or production readiness.
+* **Customer WebFlash URL** — `https://flash.sense360.com`. GitHub Pages
+  (`https://sense360store.github.io/WebFlash/`) is the technical fallback /
+  deployment origin only; `https://mysense360.com` is reserved for a future
+  customer portal, not the flashing URL.
+* **Approved claims** — the allowed / not-allowed ecommerce claim lists are
+  pinned. Forbidden: mold prevention/detection, condensation prevention/
+  elimination, certified air-quality / medical-grade / safety-certified, base-kit
+  extractor-fan / mains-fan / TRIAC fan control, guaranteed ventilation
+  compliance, and any certified life-safety / building-code / medical /
+  compliance claim.
+* **Fan-control copy** — fan control may be framed only as future / preview /
+  installer / manual-candidate; never as part of the base Bathroom PoE kit.
+  TRIAC is not added as recommended / default / stable / customer-facing
+  (blocked by `HW-005`).
+
+### What changed
+
+* Added [`config/shop-commercial-source-of-truth.json`](config/shop-commercial-source-of-truth.json)
+  — the machine-readable commercial source of truth (launch product, aliases,
+  rejected SKUs, WebFlash URLs, candidate-bundle visibility, allowed / forbidden
+  claims, fan-control copy, hard guardrails) cross-linked to the existing
+  sources of truth.
+* Added [`docs/shop-commercial-source-of-truth.md`](docs/shop-commercial-source-of-truth.md)
+  — the human-readable commercial launch source-of-truth doc.
+* Added [`tests/test_shop_commercial_source_of_truth.py`](tests/test_shop_commercial_source_of_truth.py)
+  — contract tests cross-referencing `config/room-bundle-skus.json`,
+  `config/webflash-builds.json`, `config/product-catalog.json`, and
+  `config/hardware-catalog.json`.
+* Updated [`docs/sense360-room-bundles.md`](docs/sense360-room-bundles.md) to
+  point at the commercial source of truth.
+* Updated [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md)
+  §2 so non-launch bundles are explicitly **not publicly buyable**, plus a new
+  sources-of-truth row.
+
+### Validation
+
+* `python3 tests/test_shop_commercial_source_of_truth.py` — **PASS** (new).
+* `python3 tests/validate_configs.py` — PASS (unchanged).
+* `python3 tests/test_product_catalog.py` — PASS (unchanged).
+* `python3 tests/validate_webflash_builds.py` — PASS (unchanged).
+* `python3 scripts/validate_preview_release_targets.py --metadata-only` — PASS
+  (unchanged).
+* `python3 tests/test_room_bundle_skus.py` / `tests/test_roadmap_status_doc.py`
+  — PASS (unchanged by the doc edits).
+* `python3 -m unittest discover -s tests -p "test_*.py"` — full suite PASS.
+
+### Guardrails (explicitly NOT done)
+
+Did **not** rename the canonical room-bundle SKU `S360-KIT-BATH-P`; did **not**
+claim the `S360-410` schematic is verified or any hardware / compliance
+certification; did **not** claim mold prevention/detection or condensation
+prevention/elimination; did **not** claim fan control for the base Bathroom PoE
+kit; did **not** expose candidate bundles as buyable; did **not** sell
+individual boards as primary launch products; did **not** add TRIAC to any
+customer-facing recommendation; did **not** publish firmware, build a `.bin`,
+add a `config/webflash-builds.json` row, edit `manifest.json` /
+`firmware/sources.json`, change stable/preview channel policy, change hardware
+schematic status, or touch the WebFlash repo.
 
 ---
 
