@@ -129,11 +129,27 @@ refusal is the correct behaviour, not a gap.
 | Config string | Release-note template/generator | Workflow supports target | Artifact naming documented | Changelog expectation | Result |
 |---|---|---|---|---|---|
 | `Ceiling-POE-VentIQ-RoomIQ` (stable) | `scripts/generate_webflash_release_notes.py` + `scripts/plan_room_release_notes.py` | `release-notes-draft.yml` (`config_string` choice mirrors `webflash-builds.json`) | `Sense360-{CONFIG}-v{VERSION}-{CHANNEL}.bin` per `scripts/validate-webflash-release-notes.py` | `## Changelog` section requires human review before any real release | ✅ generated, validates structurally (channel=stable) |
-| `Ceiling-POE-VentIQ-RoomIQ-LED` (preview) | same generator/planner | same workflow | same naming convention | `## Changelog` + preview-channel caveat | ✅ generated, validates structurally (channel=preview) |
+| `Ceiling-POE-VentIQ-RoomIQ-LED` (preview) | same generator/planner | same workflow | same naming convention | `## Changelog` + preview-channel caveat | ✅ published preview; release proof in `docs/webflash-release-proof.md` |
+| `Ceiling-POE-AirIQ-RoomIQ` (preview) | dry-run draft `docs/release-notes/preview/ceiling-poe-airiq-roomiq.md` | `release-notes-draft.yml` (`config_string` choice mirrors `webflash-builds.json`) | `Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.0-preview.bin` | `## Changelog` + PREVIEW warning banner | ✅ draft validates structurally (channel=preview) — `RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001`, metadata-ready / unpublished |
+| `Ceiling-POE-RoomIQ` (preview) | dry-run draft `docs/release-notes/preview/ceiling-poe-roomiq.md` | same workflow | `Sense360-Ceiling-POE-RoomIQ-v1.0.0-preview.bin` | `## Changelog` + PREVIEW warning banner | ✅ draft validates structurally (channel=preview) — `RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001`, metadata-ready / unpublished |
+| `Ceiling-POE-RoomIQ-LED` (preview) | dry-run draft `docs/release-notes/preview/ceiling-poe-roomiq-led.md` | same workflow | `Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin` | `## Changelog` + PREVIEW warning banner | ✅ draft validates structurally (channel=preview) — `RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001`, metadata-ready / unpublished |
 | Fan / blocked / compile-only configs | — | **refused** (not in `webflash-builds.json`) | n/a (no `artifact_name`) | n/a | ✅ correctly refused — `list_release_targets.py --validate`, the planner, and the classifier all reject fan tokens / non-matrix configs |
 
-Verified locally via `python3 scripts/plan_room_release_notes.py` (2 release
--eligible builds) and `python3 scripts/list_release_targets.py`.
+Every preview build row now has **release-note coverage**: the published VentIQ
+LED preview by its recorded release proof
+([`docs/webflash-release-proof.md`](webflash-release-proof.md)), and the three
+metadata-ready room-bundle previews by validated **dry-run drafts**
+([`docs/release-notes/preview/`](release-notes/preview/),
+`RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001`). The drafts are **not** attached to
+any GitHub Release; they validate against the release-body contract and are
+locked by
+[`tests/test_preview_release_notes_drafts.py`](../tests/test_preview_release_notes_drafts.py).
+Each draft states the PREVIEW posture (not stable / not recommended / not a
+customer default / not hardware verified / not buyable), cites firmware-build
+proof only (run `26821900127`), and points normal customers to the stable
+Bathroom PoE release. Verified locally via `python3 scripts/list_release_targets.py`,
+`for f in docs/release-notes/preview/ceiling-poe-*.md; do python3 scripts/validate-webflash-release-notes.py "$f" --channel preview; done`,
+and `python3 tests/test_preview_release_notes_drafts.py`.
 
 ---
 
@@ -301,3 +317,24 @@ stays `S360-KIT-BATH-P`; and the consuming candidate bundles stay hidden / not
 buyable. See
 [`docs/release-preview-webflash-build-rows.md`](release-preview-webflash-build-rows.md).
 No TRIAC row and no fan manual-preview row were added.
+
+### Preview release-note drafts generated (RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001)
+
+Validated **release-note drafts** for the three metadata-ready preview build
+rows now live under
+[`docs/release-notes/preview/`](release-notes/preview/) (one per config string),
+completing the §4 release-note coverage matrix above so **every** preview build
+row has coverage. This is **release-note dry-run only**: each draft passes the
+WebFlash release-body contract
+([`scripts/validate-webflash-release-notes.py`](../scripts/validate-webflash-release-notes.py),
+`channel=preview`) and is locked by
+[`tests/test_preview_release_notes_drafts.py`](../tests/test_preview_release_notes_drafts.py),
+but **no** draft is attached to a GitHub Release and **no** firmware binary,
+Release, tag, `manifest.json`, or `firmware/sources.json` is produced. The
+drafts mark the builds PREVIEW (not stable / not recommended / not a customer
+default / not hardware verified / not buyable as a public shop product), cite
+firmware-build proof only (run `26821900127`), claim no hardware / bench /
+compliance / commercial-availability proof, and point normal customers to the
+stable Bathroom PoE release. The published stable Bathroom release and the
+published VentIQ LED preview are **not** re-drafted. See
+[`docs/release-preview-webflash-release-notes-dryrun.md`](release-preview-webflash-release-notes-dryrun.md).
