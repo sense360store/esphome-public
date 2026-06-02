@@ -33,6 +33,22 @@ Where the preview-release program actually stands today:
   preview are metadata-clean; 3 targets are `blocked-by-missing-yaml` and FanTRIAC
   is `blocked-by-build` (HW-005). Published nothing, built no `.bin`, added no
   `config/webflash-builds.json` row.
+* **Build/release dry-run RE-RUN — DONE (metadata; compile still pending)**
+  (`RELEASE-PREVIEW-BUILD-DRYRUN-002`, this PR). Re-ran the dry-run after #691 +
+  #692 in
+  [`docs/release-preview-build-dryrun-002.md`](docs/release-preview-build-dryrun-002.md):
+  metadata clean again (6/6 commands, now **217 files / 18 compile-only / 9
+  preview / 1245 tests, 0 failures**); ESPHome still unavailable so **no compile
+  proof is claimed**. **The 3 `blocked-by-missing-yaml` targets are resolved →
+  `blocked-by-missing-yaml` 3 → 0.** `Ceiling-POE-AirIQ-RoomIQ`,
+  `Ceiling-POE-RoomIQ`, `Ceiling-POE-RoomIQ-LED` reclassify to **`blocked-by-build`**
+  (buildable composition resolves, but `compile_validation_status: pending-ci` and
+  no `products/webflash` wrapper yet). Counts now: 1 `stable-only-existing`, 1
+  `ready-for-preview-build`, 3 `ready-for-manual-preview-build`, **4
+  `blocked-by-build`** (FanTRIAC HW-005 + the 3 reclassified), 0
+  `blocked-by-missing-yaml`, 0 `blocked-by-policy`. Removed nothing
+  (`components/` + `products/` intact), promoted nothing, added no
+  `config/webflash-builds.json` row.
 * **Actual preview artifacts — NOT YET PUBLISHED.** No preview `.bin` has been
   built, released, or attached; non-buildable targets still carry explicit build
   blockers (e.g. FanTRIAC `HW-005`). No `esphome` build proof is claimed and
@@ -41,12 +57,16 @@ Where the preview-release program actually stands today:
 * **WebFlash import — WAITS FOR ARTIFACTS.** One-click import stays a gated
   follow-up that only begins once importable upstream preview artifacts exist.
 
-So **policy, target manifest, releasable metadata, and the metadata build/release
-dry-run are done**, and the three `blocked-by-missing-yaml` preview targets now
-have **concrete product YAMLs** (`RELEASE-PREVIEW-BUILD-FIXES-001`, this PR —
-missing-YAML items only). The remaining open work is to run a **real `esphome`
-compile dry-run** for the new YAMLs and the manual-preview fans (the local
-environment had no ESPHome CLI), resolve FanTRIAC `HW-005`, and then **plan +
+So **policy, target manifest, releasable metadata, the metadata build/release
+dry-run, and its re-run are done**. The three former `blocked-by-missing-yaml`
+preview targets now have **concrete product YAMLs** (`RELEASE-PREVIEW-BUILD-FIXES-001`,
+#691) and the re-run (`RELEASE-PREVIEW-BUILD-DRYRUN-002`, this PR) **confirms the
+missing-YAML blocker is cleared** and reclassifies them to **`blocked-by-build`**
+(buildable composition resolves; `compile_validation_status: pending-ci` and no
+`products/webflash` wrapper yet). The remaining open work is unchanged in
+substance: run a **real `esphome` compile dry-run** for those three YAMLs and the
+manual-preview fans (the environment still has no ESPHome CLI), author the three
+`products/webflash` wrappers, resolve FanTRIAC `HW-005`, and then **plan +
 produce the actual preview artifacts** and the **WebFlash import** — captured as
 the next queue items below.
 
@@ -60,8 +80,8 @@ the next queue items below.
 > targets (compile pending an ESPHome-capable environment) and seeded the two
 > follow-ups below.
 
-> **Precursor cleared — `REPO-STRUCTURE-AUDIT-001` is DONE (this PR; audit only).**
-> Before the preview build-fix work adds files under `products/bundles/`, this PR
+> **Precursor cleared — `REPO-STRUCTURE-AUDIT-001` is DONE (#692; audit only).**
+> Before the preview build-fix work adds files under `products/bundles/`, this
 > audited the top-level `components/` and `products/` directories. **Result:
 > `products/` active / KEEP** (release/build backbone; `products/bundles/**`
 > active because preview targets resolve there — the next PR's expected home);
@@ -69,6 +89,18 @@ the next queue items below.
 > `ld24xx`; build dependency + public remote-package surface — **not** legacy, no
 > `REMOVE-LEGACY-COMPONENTS-001` follow-up). Nothing removed. Full reference map:
 > [`docs/repo-structure.md`](docs/repo-structure.md) and the write-up below.
+
+> **`RELEASE-PREVIEW-BUILD-DRYRUN-002` is DONE (this PR; metadata re-run).** Re-ran
+> the dry-run after #691 + #692 — see
+> [`docs/release-preview-build-dryrun-002.md`](docs/release-preview-build-dryrun-002.md)
+> and the write-up below. **Confirmed the missing-YAML blocker is cleared on all
+> three targets** (`yaml_path`s resolve; 217 files parse) → **`blocked-by-missing-yaml`
+> 3 → 0**, with `Ceiling-POE-AirIQ-RoomIQ` / `Ceiling-POE-RoomIQ` /
+> `Ceiling-POE-RoomIQ-LED` reclassified **`blocked-by-build`** (the recorded new
+> blocker: `compile_validation_status: pending-ci` + no `products/webflash`
+> wrapper). ESPHome still unavailable → **no compile proof claimed**. The two
+> concrete follow-ups it seeds (a real compile dry-run, then the wrappers) are
+> below.
 
 ### RELEASE-PREVIEW-BUILD-FIXES-001 — fix the build blockers the dry-run found — missing-YAML items DONE (this PR)
 
@@ -104,6 +136,27 @@ had no ESPHome CLI, so no build proof exists yet — none was faked); the
 `products/webflash` wrappers; and FanTRIAC `HW-005` buildability
 (`blocked-by-build`, TRIAC policy unchanged). Subsumes the planning-only intent
 of the former `RELEASE-PREVIEW-BUILD-BLOCKERS-001`.
+
+### RELEASE-PREVIEW-COMPILE-DRYRUN-001 — run the real ESPHome compile dry-run (ESPHome required)
+
+Seeded by `RELEASE-PREVIEW-BUILD-DRYRUN-002`. Run a **real** ESPHome compile
+(`scripts/validate_compile_targets.py --compile`, or the `compile-only.yml`
+`workflow_dispatch` / `compile_mode=full` lane) for the three reclassified
+webflash previews (`Ceiling-POE-AirIQ-RoomIQ`, `Ceiling-POE-RoomIQ`,
+`Ceiling-POE-RoomIQ-LED`) **and** the three manual-preview fans. Record exact
+pass/fail and flip `compile_validation_status: pending-ci` →
+`validated-full-compile` **only** on a real green. This is the **gate** for every
+`blocked-by-build` (compile-unproven) → buildable transition and for any artifact
+cut. No `.bin` is published by the dry-run itself.
+
+### RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001 — author the three `products/webflash` wrappers
+
+Seeded by `RELEASE-PREVIEW-BUILD-DRYRUN-002`. Once a real compile is recorded,
+add the thin `products/webflash/ceiling-poe-airiq-roomiq.yaml`,
+`…/ceiling-poe-roomiq.yaml`, and `…/ceiling-poe-roomiq-led.yaml` wrappers (the
+last residual missing-YAML for the WebFlash lane). **Still** no
+`config/webflash-builds.json` row until the compile proof exists; promotes
+nothing, publishes nothing.
 
 ### RELEASE-PREVIEW-PUBLISH-PLAN-001 — plan the publish path for the dry-run-clean previews
 
@@ -314,6 +367,99 @@ WebFlash repo change; no `firmware/sources.json` / `manifest.json`; no
 `webflash_build_matrix` flip; nothing marked stable; TRIAC not marked
 recommended/default/stable; no hardware / compliance / compile proof claimed or
 faked.
+
+---
+
+## RELEASE-PREVIEW-BUILD-DRYRUN-002 — re-run preview dry-run after YAML fixes — DONE (this PR; metadata re-run, compile still pending)
+
+**Status:** **DONE in this PR** as a **metadata re-run** (publishes nothing,
+builds no `.bin`, creates no GitHub Release / tag / checksum, adds no
+`config/webflash-builds.json` row, touches no WebFlash repo, writes no
+`firmware/sources.json` / `manifest.json`, promotes nothing to stable, removes
+neither `components/` nor `products/`, marks no TRIAC recommended/default/stable,
+claims no hardware / compliance / build proof). Re-ran the preview /
+manual-preview / advanced-manual-preview dry-run **after**
+`RELEASE-PREVIEW-BUILD-FIXES-001` (#691) and `REPO-STRUCTURE-AUDIT-001` (#692) to
+confirm whether the previously missing-YAML blockers are resolved and to record
+the remaining blockers.
+
+### Outcome — missing-YAML cleared (3 → 0); compile still NOT attempted (ESPHome CLI unavailable)
+
+* **Metadata / config validation: PASS.** All six required commands exit `0`; the
+  suite is now **217 files / 18 compile-only / 9 preview / 1245 tests, 0 failures**
+  (the `+4` files and `+2` compile-only targets vs DRYRUN-001 are the #691 product
+  YAMLs and their product-level compile-only registrations).
+* **ESPHome compile dry-run: NOT ATTEMPTED — `esphome` CLI unavailable.** No
+  `esphome` binary and no `esphome` module exist here, so **no fresh compile pass
+  was run and none is claimed or faked.** `compile_validation_status` values are
+  cited from `config/compile-only-targets.json`, not re-proven.
+* **The three previously missing YAML target paths now exist and resolve.** Each
+  manifest `yaml_path` points to a real `products/sense360-*.yaml` shim that
+  `!include`s a `products/bundles/*.yaml` composed only from existing packages;
+  `validate_configs.py` parses all of them (217/0), and
+  `validate_preview_release_targets.py` (which asserts each `yaml_path`
+  `is_file()`) passes 9/9.
+* **Per-target re-classification** (all 9 targets):
+  * `stable-only-existing` (1): `Ceiling-POE-VentIQ-RoomIQ` — unchanged.
+  * `ready-for-preview-build` (1): `Ceiling-POE-VentIQ-RoomIQ-LED` — unchanged.
+  * `ready-for-manual-preview-build` (3): `Ceiling-POE-VentIQ-FanRelay-RoomIQ`,
+    `Ceiling-POE-FanPWM`, `Ceiling-POE-FanDAC` — unchanged; **a real compile
+    dry-run is still owed**.
+  * `blocked-by-missing-yaml` (**0**, was 3): all three resolved. ✅
+  * `blocked-by-build` (**4**, was 1): `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
+    (HW-005 buildability **defect**, unchanged) **+** `Ceiling-POE-AirIQ-RoomIQ`,
+    `Ceiling-POE-RoomIQ`, `Ceiling-POE-RoomIQ-LED` (buildable composition resolves
+    but **compile-unproven `pending-ci` + `products/webflash` wrapper owed**).
+  * `blocked-by-policy` (0): none.
+* **Exact new blocker recorded for the three reclassified targets:** no recorded
+  ESPHome compile (`compile_validation_status: pending-ci`; none produced this
+  run) **and** no `products/webflash/<sku>.yaml` wrapper, so no
+  `config/webflash-builds.json` preview row can be cut yet.
+* **No stable / product status promoted:** catalog entries stay `status: blocked`
+  / `webflash_build_matrix: false` / `blocker: PRODUCT-POE-410-001`;
+  `config/webflash-builds.json` still has exactly the 2 published rows.
+  `components/` (`ld2412`/`ld2450`/`ld24xx`) and `products/{bundles,compile-only,webflash}/`
+  + the 18 shims are intact.
+
+### What changed
+
+* New [`docs/release-preview-build-dryrun-002.md`](docs/release-preview-build-dryrun-002.md)
+  — `RELEASE-PREVIEW-BUILD-DRYRUN-002`: the verification of the #691 fixes
+  (path-resolution + compile-only + catalog + no-promotion + directories-intact
+  checks), the exact validation results, the DRYRUN-001 → -002 reclassification
+  table with the recorded new blocker per target, the rationale for
+  `blocked-by-build` (incl. an honest caveat on the residual wrapper YAML), the
+  outcome classification, and the seeded follow-ups. DRYRUN-001's doc is retained
+  unchanged as the first-run record.
+* This `UPCOMING_PR.md`: recorded the re-run **DONE** in the queue-state section
+  and this write-up; seeded `RELEASE-PREVIEW-COMPILE-DRYRUN-001` (the real compile
+  dry-run) and `RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001` (the three wrappers).
+
+No config, package, product YAML, component, workflow, or WebFlash file was
+modified (docs + queue only).
+
+### Validation
+
+* `python3 tests/validate_configs.py` — 217 files, 0 failed (exit 0).
+* `python3 scripts/validate_compile_targets.py --metadata-only` — 18 targets,
+  metadata passed (exit 0).
+* `python3 scripts/validate_preview_release_targets.py --metadata-only` — 9
+  targets, passed (exit 0).
+* `python3 tests/test_product_catalog.py` — 41 tests OK (exit 0).
+* `python3 tests/validate_webflash_builds.py` — 2 builds, 0 failed (exit 0).
+* `python3 -m unittest discover -s tests -p "test_*.py"` — 1245 tests OK
+  (3 skipped) (exit 0).
+* `esphome` compile — **not run; CLI unavailable (`which esphome` not found,
+  `import esphome` → ModuleNotFoundError); no build proof claimed.**
+
+### Guardrails (explicitly NOT done)
+
+No firmware published; no GitHub Release / tag / checksum; no committed `.bin`; no
+WebFlash repo change; no `firmware/sources.json` / `manifest.json`; no
+`config/webflash-builds.json` row; no `config/product-catalog.json` status or
+`webflash_build_matrix` flip; nothing marked stable; TRIAC not marked
+recommended/default/stable; `components/` not removed; `products/` not removed; no
+hardware / compliance / compile proof claimed or faked.
 
 ---
 
