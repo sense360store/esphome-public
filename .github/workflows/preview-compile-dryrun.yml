@@ -1,0 +1,255 @@
+---
+# ============================================================================
+# PREVIEW / MANUAL-PREVIEW COMPILE DRY-RUN — RELEASE-PREVIEW-COMPILE-DRYRUN-001
+# ============================================================================
+# Hosted ESPHome compile DRY-RUN for the preview / manual-preview release
+# target matrix. It exists to replace the `pending-ci`
+# `compile_validation_status` on the preview targets with a REAL, hosted
+# `esphome compile` result BEFORE any preview artifact is published or any
+# WebFlash import is added — without ever cutting a release.
+#
+# Scope (preview targets ONLY, derived from
+# config/preview-release-targets.json via
+# scripts/list_preview_compile_targets.py):
+#   - Ceiling-POE-VentIQ-RoomIQ-LED        (webflash preview, published)
+#   - Ceiling-POE-AirIQ-RoomIQ             (webflash preview)
+#   - Ceiling-POE-RoomIQ                   (webflash preview)
+#   - Ceiling-POE-RoomIQ-LED               (webflash preview)
+#   - Ceiling-POE-VentIQ-FanRelay-RoomIQ   (manual-preview)
+#   - Ceiling-POE-FanPWM                   (manual-preview)
+#   - Ceiling-POE-FanDAC                   (manual-preview)
+# EXCLUDED: Ceiling-POE-VentIQ-FanTRIAC-RoomIQ — the HW-005 buildability
+# blocker means it is not buildable end-to-end; it is reported (not compiled)
+# by the scope job. The stable baseline Ceiling-POE-VentIQ-RoomIQ is not a
+# preview target and is never in scope.
+#
+# A green compile here is FIRMWARE-BUILD proof only. It is NOT hardware proof,
+# NOT bench evidence, NOT a compliance claim, and NOT a stable-promotion gate.
+#
+# This workflow, by construction:
+#   - is workflow_dispatch ONLY (never push / pull_request / release);
+#   - is read-only (`permissions: contents: read`);
+#   - publishes NO firmware and creates NO GitHub Release;
+#   - creates NO tag and generates NO checksum for publication;
+#   - uploads ONLY the ephemeral compile LOG (never a `.bin`, checksum, or
+#     build-info file) and only as an expiring actions/upload-artifact output;
+#   - does NOT write firmware/sources.json;
+#   - does NOT write manifest.json;
+#   - does NOT add or modify any config/webflash-builds.json row;
+#   - does NOT flip any config/product-catalog.json status or
+#     webflash_build_matrix;
+#   - does NOT add a WebFlash wrapper and does NOT touch the WebFlash repo.
+#
+# Flipping a target's `compile_validation_status` from `pending-ci` to
+# `validated-full-compile` remains a separate, reviewed metadata PR that cites
+# a specific green run of this lane.
+# ============================================================================
+
+name: Preview Compile Dry-Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      compile_mode:
+        description: >-
+          'metadata' validates the scope only (no ESPHome). 'full' runs the
+          real hosted `esphome compile` dry-run for the preview targets.
+        required: true
+        default: "metadata"
+        type: choice
+        options:
+          - metadata
+          - full
+
+# Least-privilege, read-only token (SECURITY-AUDIT-FIX-001). This lane only
+# reads the repo and exchanges an ephemeral compile LOG via the artifact
+# service (which does not use the `contents` scope). Nothing here writes
+# contents, creates a Release, or touches any other resource.
+permissions:
+  contents: read
+
+env:
+  ESPHOME_VERSION: "2026.4.5"
+
+jobs:
+  # --------------------------------------------------------------------------
+  # JOB 1: derive + validate the preview compile scope (always runs)
+  # --------------------------------------------------------------------------
+  # Validates the preview / compile-only target metadata and emits the compile
+  # matrix (preview targets only, TRIAC excluded). Runs in both modes; needs no
+  # ESPHome runtime and produces no build artifact.
+  # --------------------------------------------------------------------------
+  scope:
+    name: Preview Compile Dry-Run — Scope
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.gen.outputs.matrix }}
+      target_count: ${{ steps.gen.outputs.target_count }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Validate preview + compile-only target metadata
+        run: |
+          python3 scripts/validate_preview_release_targets.py --metadata-only
+          python3 scripts/validate_compile_targets.py --metadata-only
+
+      - name: Report TRIAC target excluded from the compile scope (HW-005)
+        run: |
+          echo "Excluded from the compile dry-run (reported, not compiled):"
+          python3 scripts/list_preview_compile_targets.py --report-excluded
+
+      - name: Generate preview compile matrix (preview targets only)
+        id: gen
+        run: |
+          set -euo pipefail
+          MATRIX="$(python3 scripts/list_preview_compile_targets.py --matrix)"
+          COUNT="$(python3 -c 'import json,sys; print(len(json.loads(sys.argv[1])["include"]))' "$MATRIX")"
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "target_count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "Preview compile dry-run scope ($COUNT target(s)):"
+          python3 scripts/list_preview_compile_targets.py
+
+  # --------------------------------------------------------------------------
+  # JOB 2: real hosted compile dry-run (workflow_dispatch compile_mode=full)
+  # --------------------------------------------------------------------------
+  # Invokes `esphome compile` against each in-scope preview product YAML and
+  # uploads ONLY the compile log. fail-fast: false so every target's pass/fail
+  # is recorded even if one fails.
+  #
+  # IMPORTANT:
+  #   - uploads NO firmware binary, checksum, build-info, or release proof;
+  #   - creates NO GitHub Release and NO tag;
+  #   - writes NO config/webflash-builds.json / firmware/sources.json /
+  #     manifest.json;
+  #   - the compiled `.bin` is left in the ephemeral build tree and is NOT
+  #     uploaded — only the log is kept, as dry-run evidence.
+  # --------------------------------------------------------------------------
+  compile-dryrun:
+    name: "Compile Dry-Run: ${{ matrix.config_string }}"
+    needs: scope
+    if: github.event.inputs.compile_mode == 'full'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.scope.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: ${{ runner.os }}-pio-${{ env.ESPHOME_VERSION }}-${{ hashFiles(matrix.product_yaml) }}-${{ matrix.id }}
+          restore-keys: |
+            ${{ runner.os }}-pio-${{ env.ESPHOME_VERSION }}-
+            ${{ runner.os }}-pio-
+
+      - name: Install ESPHome
+        run: |
+          pip install "esphome==${{ env.ESPHOME_VERSION }}"
+
+      - name: Provision test secrets
+        run: |
+          # ESPHome resolves `!secret` lookups relative to the top-level YAML
+          # being compiled. The in-scope products live in products/, so a
+          # secrets.yaml must exist at the repo root and at products/. The
+          # extra copies match the compile-only lane so includes resolve.
+          cat > secrets.yaml << 'EOF'
+          wifi_ssid: "TestNetwork"
+          wifi_password: "TestPassword123"
+          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+          ota_password: "test-ota-password"
+          fallback_ap_password: "fallback123"
+          web_username: "admin"
+          web_password: "test_web_password"
+          EOF
+          rm -f products/secrets.yaml
+          cp secrets.yaml products/secrets.yaml
+          mkdir -p products/webflash products/compile-only
+          cp secrets.yaml products/webflash/secrets.yaml
+          cp secrets.yaml products/compile-only/secrets.yaml
+
+      - name: Patch external_components to use local checked-out source
+        run: |
+          # CI builds run inside the checked-out repo, so cloning this repo
+          # through external_components (git source, ref: main) is unnecessary
+          # and fragile on a feature branch. Rewrite the shared base include to
+          # point at the local components/ tree. Workspace-only; never committed.
+          cat > packages/base/external_components.yaml <<'EOF'
+          # CI-only override: use the locally checked-out components/ tree.
+          external_components:
+            - source:
+                type: local
+                path: ../components
+              components: [ld2412, ld2450, ld24xx]
+          EOF
+          echo "Patched packages/base/external_components.yaml to local source."
+
+      - name: ESPHome config check (dry-run)
+        run: |
+          set -euo pipefail
+          echo "DRY-RUN config check for ${{ matrix.product_yaml }}"
+          esphome config "${{ matrix.product_yaml }}"
+
+      - name: ESPHome compile dry-run (firmware-build proof only)
+        run: |
+          set -euo pipefail
+          mkdir -p compile-logs
+          LOG="compile-logs/${{ matrix.id }}-dryrun.log"
+          echo "DRY-RUN compile for ${{ matrix.config_string }} (${{ matrix.product_yaml }})" | tee "$LOG"
+          echo "Firmware-build proof only — NOT hardware proof, NOT a release." | tee -a "$LOG"
+          # Compile to exercise codegen + toolchain. The resulting .bin stays in
+          # the ephemeral build tree and is intentionally NOT uploaded.
+          esphome compile "${{ matrix.product_yaml }}" 2>&1 | tee -a "$LOG"
+
+      - name: Upload compile log (dry-run evidence; no firmware)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          # Ephemeral log ONLY — no firmware binary, checksum, or release proof.
+          name: preview-compile-dryrun-log-${{ matrix.id }}
+          path: compile-logs/${{ matrix.id }}-dryrun.log
+          retention-days: 7
+          if-no-files-found: warn
+
+  # --------------------------------------------------------------------------
+  # JOB 3: dry-run summary
+  # --------------------------------------------------------------------------
+  summary:
+    name: Preview Compile Dry-Run — Summary
+    needs: [scope, compile-dryrun]
+    if: always() && github.event.inputs.compile_mode == 'full'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary
+        run: |
+          echo "=================================================="
+          echo "PREVIEW COMPILE DRY-RUN COMPLETE"
+          echo "=================================================="
+          echo "Targets in scope: ${{ needs.scope.outputs.target_count }}"
+          echo "Compile-dryrun job result: ${{ needs.compile-dryrun.result }}"
+          echo ""
+          echo "This is a DRY-RUN. A green compile is FIRMWARE-BUILD proof only:"
+          echo "NOT hardware proof, NOT bench evidence, NOT a compliance claim,"
+          echo "and NOT a stable-promotion gate. No firmware was published, no"
+          echo "GitHub Release or tag was created, no .bin / checksum was"
+          echo "uploaded, and no config/webflash-builds.json, firmware/"
+          echo "sources.json, or manifest.json was written."
+          echo ""
+          echo "To record proof, open a separate reviewed metadata PR that flips"
+          echo "the cited target's compile_validation_status pending-ci ->"
+          echo "validated-full-compile, referencing this run."
