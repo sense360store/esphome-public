@@ -1,0 +1,36 @@
+# ============================================================================
+# SENSE360 PRODUCT (compat shim) — Ceiling-POE-AirIQ-RoomIQ (preview candidate)
+# ============================================================================
+# BUNDLE-LAYER-001 (docs/arch-board-bundle-plan.md §3.2). This product path is
+# a thin compatibility shim: its composition lives in the config-string-named
+# bundle `products/bundles/ceiling-poe-airiq-roomiq.yaml` and this file does
+# nothing but `!include` that bundle.
+#
+# Authoring slice : RELEASE-PREVIEW-BUILD-FIXES-001 (turn the YAML-less preview
+#                   candidate into a concrete product YAML).
+# Channel         : PREVIEW candidate — NOT stable, NOT production, NOT
+#                   recommended, NOT hardware verified. Release-blocked on the
+#                   shared S360-410 PoE PSU schematic-verification gate
+#                   (PRODUCT-POE-410-001). NOT WebFlash-exposed: no
+#                   artifact_name, no webflash_wrapper, no
+#                   config/webflash-builds.json row.
+#
+# Full composition, substitutions, board assembly, and product identification:
+#   products/bundles/ceiling-poe-airiq-roomiq.yaml
+#
+# Customer usage in their ESPHome config:
+#
+#   packages:
+#     sense360_firmware:
+#       url: https://github.com/sense360store/esphome-public
+#       files:
+#         - products/sense360-ceiling-poe-airiq-roomiq.yaml
+#       refresh: 1d
+#
+#   substitutions:
+#     device_name: sense360-kitchen
+#     friendly_name: "Kitchen Sense360"
+# ============================================================================
+
+packages:
+  bundle: !include bundles/ceiling-poe-airiq-roomiq.yaml

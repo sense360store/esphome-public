@@ -135,7 +135,7 @@
       "product": "Kitchen PoE / AirIQ (AirIQ + RoomIQ)",
       "family": "Kitchen",
       "config_string": "Ceiling-POE-AirIQ-RoomIQ",
-      "yaml_path": "products/compile-only/ceiling-poe-airiq-roomiq.yaml",
+      "yaml_path": "products/sense360-ceiling-poe-airiq-roomiq.yaml",
       "channel_tier": "preview",
       "build_channel": "preview",
       "version": "1.0.0",
@@ -154,7 +154,7 @@
       "warning_copy_key": "preview",
       "release_note_warning": "PREVIEW FIRMWARE \u2014 buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
       "stable_blocker": "S360-410 PoE-PSU schematic verification + AirIQ sensor-stack bench evidence.",
-      "build_blocker": "No top-level product/catalog entry and no products/webflash wrapper yet; buildable today only as the compile-only skeleton products/compile-only/ceiling-poe-airiq-roomiq.yaml. No esphome CLI was available to record build proof. A catalog preview entry + products/webflash wrapper + recorded build proof are required before a config/webflash-builds.json row is cut.",
+      "build_blocker": "Missing-YAML blocker RESOLVED by RELEASE-PREVIEW-BUILD-FIXES-001: the concrete product YAML products/sense360-ceiling-poe-airiq-roomiq.yaml (a shim over the bundle products/bundles/ceiling-poe-airiq-roomiq.yaml) and a config/product-catalog.json entry (status: blocked, blocker: PRODUCT-POE-410-001) now exist, and a product-level compile-only target (ceiling-poe-airiq-roomiq-product-compile-only) is registered. What still blocks an actual WebFlash row: no products/webflash wrapper YAML exists yet, and no esphome CLI was available to record a real compile (compile_validation_status: pending-ci). A products/webflash wrapper + a recorded ESPHome compile dry-run are required before a config/webflash-builds.json row is cut. Stable additionally remains blocked by S360-410 PoE-PSU schematic verification + AirIQ sensor-stack bench evidence.",
       "recommended": false,
       "customer_default": false,
       "required_config": false,
@@ -164,14 +164,14 @@
       "consuming_bundles": [
         "S360-KIT-KITCHEN-P"
       ],
-      "notes": "Preview-eligible; not hardware verified. Recorded as a buildable preview target with an explicit build blocker."
+      "notes": "Preview-eligible; not hardware verified. Concrete product YAML + catalog entry added by RELEASE-PREVIEW-BUILD-FIXES-001 (catalog status stays blocked on S360-410, a stable/lifecycle gate). Remaining steps before a WebFlash preview row: products/webflash wrapper + a recorded ESPHome compile dry-run."
     },
     {
       "target_id": "ceiling-poe-roomiq-preview",
       "product": "Bedroom PoE / RoomIQ (RoomIQ only)",
       "family": "Bedroom",
       "config_string": "Ceiling-POE-RoomIQ",
-      "yaml_path": "products/compile-only/ceiling-poe-roomiq.yaml",
+      "yaml_path": "products/sense360-ceiling-poe-roomiq.yaml",
       "channel_tier": "preview",
       "build_channel": "preview",
       "version": "1.0.0",
@@ -190,7 +190,7 @@
       "warning_copy_key": "preview",
       "release_note_warning": "PREVIEW FIRMWARE \u2014 buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
       "stable_blocker": "S360-410 PoE-PSU schematic verification (PRODUCT-POE-410-001 / PACKAGE-POE-410-001).",
-      "build_blocker": "Preview is ALLOWED: lack of S360-410 hardware proof blocks STABLE only, not preview (the catalog status=blocked is a stable/lifecycle gate, not a preview prohibition). What still blocks an actual WebFlash row today: no products/webflash wrapper YAML exists yet (buildable today only as the compile-only skeleton products/compile-only/ceiling-poe-roomiq.yaml) and no esphome CLI was available to record build proof. A products/webflash wrapper + recorded build proof are required before a config/webflash-builds.json row is cut. Stable remains blocked by S360-410 PoE-PSU schematic verification.",
+      "build_blocker": "Preview is ALLOWED: lack of S360-410 hardware proof blocks STABLE only, not preview (the catalog status=blocked is a stable/lifecycle gate, not a preview prohibition). The concrete product YAML products/sense360-ceiling-poe-roomiq.yaml (shim over the bundle products/bundles/ceiling-poe-roomiq.yaml) and its catalog entry already exist; the preview manifest now references that product YAML (RELEASE-PREVIEW-BUILD-FIXES-001) instead of the compile-only skeleton. What still blocks an actual WebFlash row today: no products/webflash wrapper YAML exists yet and no esphome CLI was available to record a real compile (compile-only target ceiling-poe-roomiq-product-compile-only is compile_validation_status: pending-ci). A products/webflash wrapper + a recorded ESPHome compile dry-run are required before a config/webflash-builds.json row is cut. Stable remains blocked by S360-410 PoE-PSU schematic verification.",
       "recommended": false,
       "customer_default": false,
       "required_config": false,
@@ -200,14 +200,14 @@
       "consuming_bundles": [
         "S360-KIT-BEDROOM-P"
       ],
-      "notes": "Preview-allowed by policy. The catalog status=blocked is a STABLE/lifecycle gate (S360-410), NOT a preview prohibition, so this is no longer recorded as 'blocked-from-preview'. Catalog status is intentionally NOT flipped here; a products/webflash wrapper + build proof are the remaining steps before a WebFlash preview row is cut."
+      "notes": "Preview-allowed by policy. The catalog status=blocked is a STABLE/lifecycle gate (S360-410), NOT a preview prohibition, so this is no longer recorded as 'blocked-from-preview'. Catalog status is intentionally NOT flipped here; RELEASE-PREVIEW-BUILD-FIXES-001 repoints yaml_path to the concrete product YAML. A products/webflash wrapper + a recorded ESPHome compile dry-run are the remaining steps before a WebFlash preview row is cut."
     },
     {
       "target_id": "ceiling-poe-roomiq-led-preview",
       "product": "Living / Corridor PoE / LED (RoomIQ + LED)",
       "family": "Living",
       "config_string": "Ceiling-POE-RoomIQ-LED",
-      "yaml_path": "products/compile-only/ceiling-poe-roomiq.yaml",
+      "yaml_path": "products/sense360-ceiling-poe-roomiq-led.yaml",
       "channel_tier": "preview",
       "build_channel": "preview",
       "version": "1.0.0",
@@ -221,12 +221,12 @@
         "exposure_class": "acknowledgement-gated",
         "reason": "SELV RoomIQ + LED ring; preview-eligible per RELEASE-PREVIEW-ALL-PRODUCTS-001. Shared firmware for the Living-room and Corridor bundles."
       },
-      "publication_status": "eligible-needs-product-yaml",
+      "publication_status": "eligible-unpublished",
       "warning_copy_required": true,
       "warning_copy_key": "preview",
       "release_note_warning": "PREVIEW FIRMWARE \u2014 buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
       "stable_blocker": "S360-410 PoE-PSU schematic verification + LED preview-to-stable gauntlet.",
-      "build_blocker": "No dedicated product or products/webflash wrapper YAML yet (shares the compile-only RoomIQ skeleton, which does not encode the LED token). A product + wrapper YAML and recorded build proof are required before a config/webflash-builds.json row is cut.",
+      "build_blocker": "Missing-YAML blocker RESOLVED by RELEASE-PREVIEW-BUILD-FIXES-001: a dedicated product YAML products/sense360-ceiling-poe-roomiq-led.yaml (a shim over the bundle products/bundles/ceiling-poe-roomiq-led.yaml, which DOES encode the LED token) and a config/product-catalog.json entry (status: blocked, blocker: PRODUCT-POE-410-001, target_channel: preview-candidate) now exist, and a product-level compile-only target (ceiling-poe-roomiq-led-product-compile-only) is registered; the preview manifest no longer shares the LED-less RoomIQ skeleton. What still blocks an actual WebFlash row: no products/webflash wrapper YAML exists yet, and no esphome CLI was available to record a real compile (compile_validation_status: pending-ci). A products/webflash wrapper + a recorded ESPHome compile dry-run are required before a config/webflash-builds.json row is cut. LED stays preview; stable additionally remains blocked by S360-410 PoE-PSU schematic verification + the LED preview-to-stable gauntlet.",
       "recommended": false,
       "customer_default": false,
       "required_config": false,
@@ -237,7 +237,7 @@
         "S360-KIT-LIVING-P",
         "S360-KIT-CORRIDOR-P"
       ],
-      "notes": "One buildable firmware (Ceiling-POE-RoomIQ-LED) consumed by both the Living-room and Corridor room bundles."
+      "notes": "One buildable firmware (Ceiling-POE-RoomIQ-LED) consumed by both the Living-room and Corridor room bundles. Dedicated product YAML + catalog entry added by RELEASE-PREVIEW-BUILD-FIXES-001; LED stays preview (target_channel: preview-candidate). Remaining steps before a WebFlash preview row: products/webflash wrapper + a recorded ESPHome compile dry-run."
     },
     {
       "target_id": "ceiling-poe-ventiq-fanrelay-roomiq-preview",

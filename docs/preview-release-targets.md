@@ -102,7 +102,7 @@ Neither family is WebFlash-importable **yet**, so neither appears in
 | `Ceiling-POE-VentIQ-RoomIQ-LED` | preview | webflash | yes | published-preview |
 | `Ceiling-POE-AirIQ-RoomIQ` | preview | webflash | yes | eligible-unpublished |
 | `Ceiling-POE-RoomIQ` | preview | webflash | yes | eligible-unpublished (preview allowed; **stable** blocked by S360-410) |
-| `Ceiling-POE-RoomIQ-LED` | preview | webflash | yes once product YAML exists | eligible-needs-product-yaml |
+| `Ceiling-POE-RoomIQ-LED` | preview | webflash | yes | eligible-unpublished (dedicated product YAML added by RELEASE-PREVIEW-BUILD-FIXES-001; LED stays preview) |
 | `Ceiling-POE-VentIQ-FanRelay-RoomIQ` | preview | manual-preview | gated follow-up | manual-preview-eligible |
 | `Ceiling-POE-FanPWM` | preview | manual-preview | gated follow-up | manual-preview-eligible |
 | `Ceiling-POE-FanDAC` | preview | manual-preview | gated follow-up | manual-preview-eligible |
@@ -112,7 +112,11 @@ Every buildable target is a preview / advanced-preview release target:
 
 - The **WebFlash** lane targets are import-eligible; the LED preview is already
   published (proving the WebFlash matrix may carry a preview without stable
-  promotion), and the others need a wrapper / product YAML before a row is cut.
+  promotion). `Ceiling-POE-AirIQ-RoomIQ`, `Ceiling-POE-RoomIQ`, and
+  `Ceiling-POE-RoomIQ-LED` now have concrete product YAMLs (added /
+  repointed by `RELEASE-PREVIEW-BUILD-FIXES-001`); each still needs a
+  `products/webflash` wrapper **and a recorded ESPHome compile dry-run** before a
+  `config/webflash-builds.json` row is cut.
 - The **`manual-preview`** fan targets are releasable preview artifacts via the
   manual lane now; only their WebFlash one-click import is a gated follow-up.
 - The **`advanced-manual-preview`** TRIAC target is preview-allowed; only the
