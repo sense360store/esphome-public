@@ -1,296 +1,93 @@
 # Upcoming PR
 
-This file tracks the next planned change set for the esphome-public repository.
+This file is the source-of-truth queue for the next planned change set in the
+esphome-public repository. The **Next queue (actionable)** section lists the only
+true open work; the **Completed / merged** section keeps a one-line history of
+recently landed PRs. Full historical PR write-ups are retained below.
 
-## RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001 — make all buildable preview targets releasable
+## Preview-release queue state (source of truth)
 
-**Status:** config + docs only (publishes nothing, builds no `.bin`, creates no
-GitHub Release, pushes no tag, promotes nothing to stable, verifies no hardware,
-claims no build / bench / compliance / mains-safety evidence; adds **no**
-`config/webflash-builds.json` row, flips **no** `config/product-catalog.json`
-status, marks **no** `schematic_status` verified, makes no
-`firmware/sources.json` / `manifest.json` change, edits no `packages/**` /
-`products/**`, and makes **no** WebFlash repo change). It realigns the concrete
-preview-target metadata with the already-landed policy.
+Where the preview-release program actually stands today:
 
-### Summary
+* **Channel-tier policy — DONE** (`RELEASE-PREVIEW-ALL-PRODUCTS-001`, #686).
+  [`config/release-channel-policy.json`](config/release-channel-policy.json) opens
+  **preview** eligibility to every buildable product; lack of hardware proof
+  blocks **stable only**.
+* **Preview target manifest — DONE**
+  (`RELEASE-PREVIEW-TARGETS-ALL-PRODUCTS-001`, #687).
+  [`config/preview-release-targets.json`](config/preview-release-targets.json)
+  enumerates every buildable product as a concrete preview / advanced-preview
+  release target (config string, YAML path, channel, artifact name, warning copy,
+  WebFlash import eligibility, stable blocker, build blocker).
+* **All-buildable releasable metadata — DONE**
+  (`RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001`, #688). Fan targets are
+  `manual-preview`, FanTRIAC is `advanced-manual-preview`; **no** buildable target
+  is "blocked from preview" for lacking stable evidence.
+* **Actual preview artifacts — NOT YET PUBLISHED.** No preview `.bin` has been
+  built, released, or attached; non-buildable targets still carry explicit build
+  blockers (e.g. FanTRIAC `HW-005`). No `esphome` build proof is claimed and
+  [`config/webflash-builds.json`](config/webflash-builds.json) has no preview
+  build row.
+* **WebFlash import — WAITS FOR ARTIFACTS.** One-click import stays a gated
+  follow-up that only begins once importable upstream preview artifacts exist.
 
-After `RELEASE-PREVIEW-ALL-PRODUCTS-001` (#686, policy) and
-`RELEASE-PREVIEW-TARGETS-ALL-PRODUCTS-001` (#687, manifest), the **policy** said
-every buildable product can release as preview without hardware proof, but the
-**target manifest** stayed conservative: fan targets were `manual-candidate-only`
-(framed as not releasable) and FanTRIAC was `blocked`. This PR fixes that
-mismatch so **every buildable product is a preview / advanced-preview release
-target**:
-
-- Driving rule (unchanged): **lack of hardware proof blocks _stable only_** — it
-  never blocks a preview artifact.
-- `FanRelay` / `FanPWM` / `FanDAC` become **preview** release targets on the new
-  **`manual-preview`** lane (releasable preview artifact via the manual lane), not
-  passive candidates.
-- `FanTRIAC` becomes an **advanced-preview** target on the new
-  **`advanced-manual-preview`** lane — no longer `blocked` from preview. Only the
-  `HW-005` *buildability* blocker (not a lack of stable evidence) prevents a cut;
-  it stays never-stable, never-recommended, never-default, never-`REQUIRED_CONFIG`,
-  mains-risk-warning-gated.
-- `Ceiling-POE-RoomIQ` (Bedroom) is reframed from `blocked-unpublished` to
-  `eligible-unpublished` (preview allowed; **stable** blocked by S360-410).
-- **WebFlash one-click import stays a separate, controlled follow-up** for fan /
-  TRIAC previews (the fan-token guardrail and catalog `webflash_build_matrix=false`
-  are untouched), so no fan / TRIAC token enters `config/webflash-builds.json`.
-
-### What changed
-
-* [`config/preview-release-targets.json`](config/preview-release-targets.json) —
-  fan targets → `manual-preview` (`manual-preview-eligible`); FanTRIAC →
-  `advanced-manual-preview`; Bedroom → `eligible-unpublished`; new `delivery_lanes`
-  (`webflash` / `manual-preview` / `advanced-manual-preview`); "blocked-from-preview"
-  language removed. No artifact, no `webflash-builds.json` row, no catalog flip.
-* [`scripts/validate_preview_release_targets.py`](scripts/validate_preview_release_targets.py)
-  — `DELIVERY_LANES` and the fan / TRIAC lane rules updated to the three releasable
-  lanes; non-WebFlash lanes still barred from `config/webflash-builds.json`.
-* [`tests/test_preview_release_targets.py`](tests/test_preview_release_targets.py)
-  — fan / TRIAC lane guards updated; added `AllBuildableReleasableTests` (no
-  `blocked` / `manual-candidate` lane; no `blocked-from-preview` status) — 36 pass.
-* [`config/manual-firmware-artifacts.json`](config/manual-firmware-artifacts.json)
-  — `preview_policy` reframed as the `manual-preview` lane
-  (`preview_artifact_releasable: true`); per-candidate `delivery_lane` /
-  `preview_release_target`. Locked non-release fields untouched
-  (`artifact_mode: manual-candidate`, `release:false`, `webflash:false`,
-  `release_channel:null`).
-* [`config/release-channel-policy.json`](config/release-channel-policy.json) —
-  additive `delivery_lanes` block + guardrail flags
-  (`triac_must_not_be_required_config`,
-  `buildable_products_are_preview_releasable`,
-  `preview_artifact_release_allowed_without_webflash_import`,
-  `no_target_blocked_from_preview_for_lacking_stable_evidence`). `build_channel_mapping`
-  and `warning_copy` unchanged (manifest cross-check).
-* Docs — [`docs/preview-release-targets.md`](docs/preview-release-targets.md),
-  [`docs/release-channel-policy.md`](docs/release-channel-policy.md),
-  [`docs/release-matrix-webflash-alignment.md`](docs/release-matrix-webflash-alignment.md),
-  [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md) updated for
-  the three lanes and the "preview allowed; stable blocked" framing.
-
-### Validation
-
-`python3 tests/validate_configs.py`,
-`python3 scripts/validate_compile_targets.py --metadata-only`,
-`python3 scripts/validate_preview_release_targets.py --metadata-only`,
-`python3 tests/test_product_catalog.py`,
-`python3 tests/validate_webflash_builds.py`, and
-`python3 -m unittest discover -s tests -p "test_*.py"` all pass. No `esphome`
-CLI is available in this environment, so no new build proof is claimed; the fan
-targets reuse the existing `validated-full-compile` compile-only proof and
-FanTRIAC keeps its explicit `HW-005` build blocker.
-
-## RELEASE-PREVIEW-TARGETS-ALL-PRODUCTS-001 — concrete preview targets for all buildable products
-
-**Status:** config + docs only (publishes nothing, builds no `.bin`, creates no
-GitHub Release, pushes no tag, promotes nothing to stable, verifies no hardware,
-claims no build/bench/compliance evidence; adds **no** `config/webflash-builds.json`
-build row, flips no `config/product-catalog.json` status, makes no
-`firmware/sources.json` / `manifest.json` change, edits no `packages/**` /
-`products/**`, makes no WebFlash repo change). Records concrete preview
-release-**target** metadata only.
-
-### Summary
-
-`RELEASE-PREVIEW-ALL-PRODUCTS-001` recorded the channel-tier **policy** and
-preview **eligibility** but published nothing CI-consumable. This follow-up makes
-it **concrete**: it enumerates **every buildable Sense360 product** as a preview /
-advanced-preview release target carrying its config string, buildable YAML path,
-channel tier + build channel, expected artifact name, release-note warning text,
-WebFlash import eligibility, stable blocker, and any **build blocker** that
-prevents cutting a preview artifact now.
-
-Hard repo invariants are respected: fan-driver firmware (FanRelay / FanPWM /
-FanDAC) is manual-candidate-only (WebFlash import barred by the existing
-fan-token guardrail) and FanTRIAC is advanced-preview and **blocked** under
-`HW-005`; none of them enter `config/webflash-builds.json`. No `esphome` CLI was
-available, so **no build proof is claimed** — unbuildable/uncuttable targets each
-record an explicit `build_blocker`. `config/webflash-builds.json` remains the
-sole release-eligibility source of truth.
-
-### What changed
-
-* [`config/preview-release-targets.json`](config/preview-release-targets.json)
-  (new) — the concrete preview / advanced-preview release-target manifest for all
-  9 buildable products (1 stable baseline + 8 preview targets; reuses the policy's
-  `build_channel_mapping` and `warning_copy` verbatim).
-* [`scripts/validate_preview_release_targets.py`](scripts/validate_preview_release_targets.py)
-  (new) — metadata validator + cross-checks against the policy, compatibility,
-  build ledger, catalog, and manual lane.
-* [`tests/test_preview_release_targets.py`](tests/test_preview_release_targets.py)
-  (new) — 31 guards over every manifest invariant (TRIAC advanced-preview + mains
-  warning + not default/stable; fan = manual-lane-only; no stable promotion; no
-  fake evidence; policy + ledger correspondence).
-* [`docs/preview-release-targets.md`](docs/preview-release-targets.md) (new) —
-  canonical narrative + target matrix.
-* [`config/webflash-builds.json`](config/webflash-builds.json) — top-level pointer
-  to the manifest + preview metadata (`channel_tier`, `webflash_exposure_class`,
-  `warning_copy_key`, `stable_blocker`) added to the existing LED preview entry.
-  No build row added; stable entry untouched.
-* [`config/manual-firmware-artifacts.json`](config/manual-firmware-artifacts.json)
-  — `preview_policy` cross-reference + per-candidate `preview_channel` /
-  `stable_blocker` / `webflash_importable:false`. Lane stays non-release
-  (`release:false`, `webflash:false`, `release_channel:null`, exactly 3 fan
-  candidates, `webflash_build_matrix` untouched).
-* [`config/compile-only-targets.json`](config/compile-only-targets.json) —
-  `preview_release_targets` source cross-reference. No target changed.
-* `config/firmware-combination-matrix.json` — regenerated; unchanged (no build /
-  catalog status flipped).
-* `config/product-catalog.json` — intentionally **not** modified.
-
-### Validation
-
-`python3 tests/validate_configs.py`,
-`python3 scripts/validate_compile_targets.py --metadata-only`,
-`python3 scripts/validate_preview_release_targets.py --metadata-only`,
-`python3 tests/test_product_catalog.py`,
-`python3 tests/validate_webflash_builds.py`, and
-`python3 -m unittest discover -s tests -p "test_*.py"` (1240 tests, 3 skipped)
-all pass. Real `esphome compile` is unavailable in this environment, so the
-compile lane is metadata-only and the no-compile-proof gap is recorded as a build
-blocker rather than worked around.
-
-## RELEASE-PREVIEW-ALL-PRODUCTS-001 — allow preview releases for buildable products
-
-**Status:** docs + config policy only (publishes nothing, builds no `.bin`,
-creates no GitHub Release, pushes no tag, promotes nothing, verifies no
-hardware; adds **no** `config/webflash-builds.json` row, adds no `artifact_name`,
-no `webflash_build_matrix` flip, no `config/product-catalog.json` status flip, no
-`firmware/sources.json` / `manifest.json` change, no `packages/**` / `products/**`
-edit, no WebFlash repo change). Records the channel-tier **policy** and
-preview-release **eligibility** only.
-
-### Summary
-
-The previous guardrails treated "no hardware proof" as a blocker for every
-channel, which blocked meaningful tester-facing progress. This change opens the
-gate so **every buildable Sense360 firmware target is eligible for a preview
-release**, including the fan-control and TRIAC targets, while keeping **stable /
-production promotion evidence-gated**.
-
-Driving rule: **lack of hardware proof blocks _stable only_** — it does **not**
-block preview artifact publication. Preview means buildable + installable for
-testers; it does not mean hardware verified, stable, recommended, production, or
-a customer default. TRIAC may be preview only as **advanced-preview** (mains-risk
-warning required; never stable, recommended, or default).
-
-### What changed
-
-* [`config/release-channel-policy.json`](config/release-channel-policy.json)
-  (new) — machine-readable channel-tier policy (stable / preview /
-  advanced-preview), per-tier rules, `FanTRIAC` advanced-preview ceiling,
-  required warning copy, guardrail flags, and the preview-release eligibility
-  matrix for every buildable target.
-* [`docs/release-channel-policy.md`](docs/release-channel-policy.md) (new) —
-  canonical `RELEASE-PREVIEW-ALL-PRODUCTS-001` narrative: tier definitions,
-  policy rules, the full preview-release matrix (Bathroom stable; Kitchen/AirIQ,
-  Bedroom/RoomIQ, Living/Corridor LED, LED, FanRelay, FanPWM, FanDAC preview;
-  FanTRIAC advanced-preview), warning copy, and hard guardrails.
-* [`tests/test_release_channel_policy.py`](tests/test_release_channel_policy.py)
-  (new) — 32 guards: preview allowed without hardware proof; stable still
-  evidence-gated; TRIAC never stable/recommended/default; TRIAC preview requires
-  the advanced/mains-risk warning; fan previews are not stable; preview targets
-  require warning text; WebFlash matrix may include preview without stable
-  promotion; no fake hardware evidence / verified-schematic / production claim.
-* [`docs/release-matrix-webflash-alignment.md`](docs/release-matrix-webflash-alignment.md),
-  [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md),
-  [`docs/first-release-gates.md`](docs/first-release-gates.md),
-  [`docs/pre-hardware-prep-plan.md`](docs/pre-hardware-prep-plan.md) — additive
-  cross-reference sections pointing at the new policy (existing content and gate
-  tables unchanged). Also removed two stray `</content>` / `</invoke>` artifact
-  lines accidentally committed at the tail of `first-release-gates.md`.
-
-### Guardrails (explicitly NOT changed / NOT done)
-
-* **No publish / no artifacts** — no GitHub Release, tag, `.bin`, checksum, or
-  build-info; `config/webflash-builds.json` is unchanged and remains the sole
-  release-eligibility source of truth.
-* **Nothing marked stable** — no product flipped to `production`/`stable`, no
-  `schematic_status: verified`, no bench-evidence or compliance claim.
-* **TRIAC** stays advanced-preview only — not stable, not recommended, not a
-  default, never a `REQUIRED_CONFIGS` entry.
-* **WebFlash repo untouched.**
+So **policy, target manifest, and releasable metadata are done**; producing the
+**actual preview artifacts** and the **WebFlash import** are the open work —
+captured as the next queue items below.
 
 ---
 
-## FIRST-RELEASE-DOCS-DRIFT-RECONCILE-001 — reconcile first-release docs with live v1.0.0
+## Next queue (actionable)
 
-**Status:** documentation reconciliation only (publishes nothing, builds no
-`.bin`, creates no GitHub Release, pushes no tag, promotes nothing, verifies no
-hardware; no `artifact_name` added, no `webflash_build_matrix` flip, no
-`firmware/sources.json` / `manifest.json` change, no `config/*.json` /
-`packages/**` / `products/**` edit, no WebFlash repo change). Reconciles the
-first-release / dry-run / roadmap / gate docs so they no longer frame the first
-stable release as pending/future.
+### RELEASE-PREVIEW-BUILD-DRYRUN-001 — dry-run the preview build/release for buildable targets
 
-### Summary
+Run the hosted CI / release workflow in dry-run (no-publish) mode for every
+`preview` / `manual-preview` / `advanced-manual-preview` target that is currently
+buildable, proving the build + artifact-naming + release lanes end-to-end before
+any real cut. Records run URLs / IDs; publishes nothing, builds no committed
+`.bin`, adds no `config/webflash-builds.json` row.
 
-`FIRST-RELEASE-PUBLISH-READINESS-001` (PR #684, **done**) confirmed the stable
-first release is **already published and live**: GitHub Release **`v1.0.0`**
-(2026-05-12) carries the expected stable artifact
-`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, real human-authored
-release notes, checksums, and a build-info `manifest.json`, and WebFlash has
-imported it (live). This PR removes the stale "first release pending / no
-release-or-tag exists / publish is future" framing from the remaining docs while
-**preserving the hosted dry-run pass as workflow-confidence evidence** and all
-hardware/expansion guardrails.
+### RELEASE-PREVIEW-BUILD-BLOCKERS-001 — convert non-buildable preview targets into build-fix tasks
 
-Because `v1.0.0` is already published, **`FIRST-RELEASE-PUBLISH-001` is not
-opened** (opening it would risk a double-publish / re-tag of a live release). The
-only legitimate future publish is a **new version** — queued below as
-`FIRST-MAINTENANCE-RELEASE-PLAN-001`.
+Take each preview target that cannot be cut today (e.g. FanTRIAC `HW-005`
+buildability; targets that still need a product YAML / WebFlash wrapper) and turn
+its recorded `build_blocker` into an exact, scoped build-fix task. Planning /
+decomposition only — promotes nothing, flips no status, claims no evidence.
 
-### What changed
+### WEBFLASH-PREVIEW-IMPORT-HANDOFF-001 — hand off importable preview artifacts to WebFlash
 
-* [`docs/first-release-dryrun-checklist.md`](docs/first-release-dryrun-checklist.md)
-  — status-reconciliation banner; stages 5–6 marked "already done for `v1.0.0`";
-  §6 `firmware/sources.json` reframed as WebFlash-owned and already recording
-  `v1.0.0`; §8 rollback, §9 checklist, §10 publish-readiness, and §11.4 / §11.5 /
-  §11.8.4 reframed so they describe a **future new-version** publish rather than
-  an unpublished `v1.0.0`. The dry-run is preserved as workflow-confidence
-  evidence; no gate changed.
-* [`docs/first-release-gates.md`](docs/first-release-gates.md) — Headline, §1
-  table, and the dry-run callout reframed to "published / live (`v1.0.0`)"; gate
-  tables otherwise unchanged.
-* [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md) — §1 gains
-  a release-status table (first stable release **published/live**; current
-  release path **`v1.0.0`**; next publish action **none unless a new version is
-  planned**; next meaningful release task **maintenance-release planning /
-  next stable-bundle expansion gates**); §5.2 reframed; hardware/blocker
-  sections, Next Hardware Tasks, and Evidence & Bench Logs unchanged.
-* [`docs/pre-hardware-room-bundle-release-handoff.md`](docs/pre-hardware-room-bundle-release-handoff.md)
-  — release-status banner + Bathroom row reframed to "published / live (`v1.0.0`)".
-* This `UPCOMING_PR.md` entry (and the queued `FIRST-MAINTENANCE-RELEASE-PLAN-001`
-  future task below).
+Once real importable preview artifacts exist upstream (from
+`RELEASE-PREVIEW-BUILD-DRYRUN-001` graduating to actual cuts), hand them off to
+WebFlash: add the `config/webflash-builds.json` row(s) + `products/webflash`
+wrapper behind the acknowledgement gate. **Blocked until upstream artifacts
+exist** — strictly a follow-up; no WebFlash change before then.
 
-### Guardrails (explicitly NOT changed)
+> Also queued (future, not started): **`FIRST-MAINTENANCE-RELEASE-PLAN-001`** —
+> plan a future maintenance release (new version); see its entry below.
 
-* **No publish** — no GitHub Release, no tag, no release asset; `v1.0.0` is **not**
-  re-published or re-tagged; publishing stays gated to a real `release: published`
-  event.
-* **No artifacts** — no `.bin` created/committed, no checksum file, no build-info
-  `manifest.json`.
-* **No source-of-record change** — no repo-local `firmware/sources.json` (still
-  absent; the live one is WebFlash-owned), no `manifest.json`.
-* **No WebFlash exposure / repo change** — no `config/webflash-builds.json` row,
-  no `artifact_name` added, no `webflash_build_matrix` flip, no new WebFlash
-  target; the `sense360store/WebFlash` repo is untouched; no bundle promoted.
-* **S360-410 not marked verified** — `schematic_status` stays
-  `cataloged_unverified`; the Release-One PoE caveat preserved.
-* **LED not marked stable** — `S360-300` firmware stays `preview`; no LED-stable
-  claim. **Fan variants not release-ready.** **No bench evidence claimed.**
-* No `config/*.json` / `packages/**` / `products/**` change; docs only.
+---
 
-### Validation
+## Completed / merged
 
-* `python3 tests/validate_configs.py`
-* `python3 tests/test_roadmap_status_doc.py`
-* `python3 tests/test_product_catalog.py`
-* `python3 tests/validate_webflash_builds.py`
-* `python3 -m unittest discover -s tests -p "test_*.py"`
+Recently landed; kept as one-line history (full write-ups preserved below).
+
+* **#688 — `RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001`**: made every buildable
+  preview target releasable — fan targets → `manual-preview`, FanTRIAC →
+  `advanced-manual-preview`; removed the "blocked-from-preview" framing. Config +
+  docs only; no artifact, no WebFlash row.
+* **#687 — `RELEASE-PREVIEW-TARGETS-ALL-PRODUCTS-001`**: added
+  `config/preview-release-targets.json`, the concrete preview / advanced-preview
+  target manifest for all buildable products. Config + docs only; published
+  nothing.
+* **#686 — `RELEASE-PREVIEW-ALL-PRODUCTS-001`**: added the channel-tier policy
+  (`config/release-channel-policy.json`) opening preview eligibility to every
+  buildable product while keeping stable evidence-gated. Policy + docs only.
+* **#685 — `FIRST-RELEASE-DOCS-DRIFT-RECONCILE-001`**: reconciled the
+  first-release / dry-run / roadmap / gate docs with the already-published, live
+  `v1.0.0` stable release. Docs only.
+
+Earlier completed / queued entries (including `FIRST-MAINTENANCE-RELEASE-PLAN-001`
+and PR #684) are retained below as historical detail.
 
 ---
 
