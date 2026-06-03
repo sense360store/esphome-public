@@ -233,6 +233,36 @@ plus resolving FanTRIAC `HW-005` — captured as the next queue items below.
 
 ## Next queue (actionable)
 
+> **`COMPILE-VALIDATOR-PROGRESS-LOGGING-001` is DONE (this PR; tooling + tests +
+> docs only).** Makes the hosted compile validator debuggable after
+> [run `26909088571`](https://github.com/sense360store/esphome-public/actions/runs/26909088571/job/79381989029)
+> stalled inside `python3 scripts/validate_compile_targets.py --compile` with **no
+> target-level progress**. `scripts/validate_compile_targets.py` `--compile` now
+> (a) prints the total target count, then a before-each block per target
+> (`index/total`, `config_string`, `product_yaml`, `channel/status`) and an
+> after-each line (`PASS` / `FAIL` / `TIMEOUT` + duration), flushing immediately
+> so GitHub Actions shows live progress; (b) enforces a **per-target wall-clock
+> timeout** (default **20 min**, `--timeout-minutes`) that terminates a single
+> hung ESPHome/PlatformIO compile and records it `TIMEOUT`, continuing the run so
+> one stuck target cannot silently stall the whole job; and (c) ends with a
+> summary of passed / failed / timed-out / skipped counts + total duration,
+> itemising every non-passing target. Exit is non-zero on any FAIL **or**
+> TIMEOUT — failures are never hidden. Adds `CompileRunnerLoggingTimeoutSummaryTests`
+> to [`tests/test_compile_targets.py`](tests/test_compile_targets.py) (logging
+> includes config string + YAML path, timeout produces a clear error, summary
+> includes the timed-out + skipped targets, real-`subprocess` timeout
+> enforcement, metadata-only path unaffected) and documents the contract in
+> [`docs/compile-only-firmware-validation.md`](docs/compile-only-firmware-validation.md).
+> **`.github/workflows/compile-only.yml` keeps the same inputs and the same
+> `--compile` command** (inherits the 20-min default; comments only). Does **not**
+> change the compile target set, mark any compile status validated, publish
+> firmware, create a release/tag, change product metadata, relax any validation
+> rule, or touch the WebFlash repo. This is the debuggability prerequisite before
+> re-running the five `ROOM-BUNDLE-FAN-CONFIGS-001` full-composition fan-bundle
+> configs (#713) under `--compile`. Validation: `tests/validate_configs.py`,
+> `validate_compile_targets.py --metadata-only`, and the full `tests/` suite all
+> green.
+
 > **`ROOM-BUNDLE-FAN-CONFIGS-001` is DONE (this PR; config + product YAML + docs
 > + tests only).** Builds the five previously-missing full-composition
 > room-bundle fan-control preview configs where the firmware packages already

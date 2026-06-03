@@ -177,6 +177,9 @@ python3 scripts/validate_compile_targets.py --metadata-only
 
 # full compile pass (requires the `esphome` CLI on PATH)
 python3 scripts/validate_compile_targets.py --compile
+
+# full compile pass with a custom per-target timeout (default 20 minutes)
+python3 scripts/validate_compile_targets.py --compile --timeout-minutes 30
 ```
 
 Metadata-only mode asserts:
@@ -198,6 +201,33 @@ Metadata-only mode asserts:
 `--compile` mode requires the `esphome` CLI to be available. If it is
 not, the script exits non-zero with an explicit error — it **does
 not** fake a compile pass.
+
+### Per-target progress logging and timeout (COMPILE-VALIDATOR-PROGRESS-LOGGING-001)
+
+`--compile` mode is debuggable in hosted CI rather than going dark
+inside one long step:
+
+- It prints the total target count before the loop begins.
+- Before each target it prints the `index/total`, the `config_string`,
+  the `product_yaml` path, and the `channel/status`.
+- After each target it prints `PASS` / `FAIL` / `TIMEOUT` and the
+  duration in seconds.
+- Output is flushed immediately so GitHub Actions surfaces the
+  per-target progress live, which is how you tell *which* target is
+  currently compiling (or hanging).
+
+Each target is bounded by a per-target wall-clock timeout (default **20
+minutes**, override with `--timeout-minutes`). A target that exceeds the
+limit is **terminated** and recorded as a `TIMEOUT` failure with a clear
+message; the run then **continues** to the remaining targets (matching
+the existing "run every target, fail at the end" behaviour) so a single
+hung ESPHome / PlatformIO compile cannot silently stall the whole job.
+
+The run ends with a summary that lists the **passed**, **failed**,
+**timed-out**, and **skipped** counts plus the total duration, and
+itemises every failed / timed-out / skipped target by id and config
+string. The script exits non-zero if any target failed **or** timed
+out — timeouts are never hidden.
 
 ### Test secrets must sit next to the target YAML
 
@@ -1643,6 +1673,43 @@ claim; `WEBFLASH-PWM-001` / `RELEASE-PWM-001` / `WF-IMPORT-PWM-001` stay
 blocked, the S360-311 bench gates stay open, and `S360-311`
 `schematic_status` stays `cataloged_unverified`. Pinned by
 [`tests/test_pwm_product_readiness.py`](../tests/test_pwm_product_readiness.py).
+
+### 2026-06-03 — COMPILE-VALIDATOR-PROGRESS-LOGGING-001 per-target logging + timeout
+
+A hosted full-compile run
+([run `26909088571`](https://github.com/sense360store/esphome-public/actions/runs/26909088571/job/79381989029))
+stalled inside `python3 scripts/validate_compile_targets.py --compile`
+with **no target-level progress** after entering the full compile step,
+so it was impossible to tell which target was compiling or hung. This
+slice makes the `--compile` lane debuggable and bounded — **tooling
+only; the compile target set is unchanged**.
+
+- **Per-target progress.** `run_compile()` now prints the total target
+  count up front, a before-each block (`index/total`, `config_string`,
+  `product_yaml`, `channel/status`) for every target, and an after-each
+  line (`PASS` / `FAIL` / `TIMEOUT` + duration). Output is flushed
+  immediately so GitHub Actions shows live progress.
+- **Per-target timeout.** A wall-clock timeout (default **20 minutes**,
+  `--timeout-minutes`) terminates a single hung ESPHome / PlatformIO
+  compile and records it as `TIMEOUT`; the loop continues so one stuck
+  target cannot silently stall the whole job.
+- **Final summary.** Passed / failed / timed-out / skipped counts +
+  total duration, itemising each non-passing target. The script exits
+  non-zero if any target failed **or** timed out — failures and
+  timeouts are never hidden.
+- **Workflow unchanged.** `.github/workflows/compile-only.yml` keeps the
+  same inputs and the same `--compile` command (it inherits the 20-min
+  default); only explanatory comments were added.
+- **Tests.**
+  [`tests/test_compile_targets.py`](../tests/test_compile_targets.py)
+  gains `CompileRunnerLoggingTimeoutSummaryTests` (logging includes the
+  config string + YAML path, timeout produces a clear error, the summary
+  includes the timed-out and skipped targets, real-`subprocess` timeout
+  enforcement, and the metadata-only path is unaffected).
+
+No firmware is built or published, no compile status is marked
+validated, no release / tag is created, no product metadata changes, no
+validation rule is relaxed, and the WebFlash repo is untouched.
 
 ## See also
 
