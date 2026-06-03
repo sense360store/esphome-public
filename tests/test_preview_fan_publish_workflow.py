@@ -100,6 +100,26 @@ class WorkflowShapeTests(unittest.TestCase):
         text = _workflow_text()
         self.assertNotIn(f'default: "{RETIRED_DEDICATED_TAG}"', text)
 
+    def test_confirm_tag_override_input_present(self) -> None:
+        # RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001: a non-shared tag needs
+        # explicit confirmation.
+        text = _workflow_text()
+        self.assertRegex(
+            text,
+            r"confirm_tag_override:\n(?:[^\n]*\n)*?\s+default: false\n"
+            r"\s+type: boolean",
+        )
+
+    def test_guard_release_tag_step_confirm_gates_non_shared_tag(self) -> None:
+        # RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001: a dedicated guard step fails
+        # fast (before any build) on an unconfirmed non-shared tag.
+        text = _workflow_text()
+        self.assertIn("Guard release tag", text)
+        self.assertIn("--validate-release-tag", text)
+        self.assertIn(
+            '--confirm-tag-override "${{ inputs.confirm_tag_override }}"', text
+        )
+
     def test_permissions_are_read_only_except_publish_job(self) -> None:
         text = _workflow_text()
         self.assertRegex(text, r"(?m)^permissions:\n  contents: read$")

@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
 """Validate and plan the manual-preview fan publish workflow.
 
-RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001.
+RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001 (tag confirm-gate added by
+RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001).
 
 This helper is intentionally metadata-only unless called by the GitHub Actions
-workflow to print a matrix, release body, or validate an output directory. It
-reads the non-WebFlash fan ledger in
+workflow to print a matrix, release body, validate an output directory, or
+validate the release tag. It reads the non-WebFlash fan ledger in
 ``config/preview-fan-triac-build-rows.json`` plus
 ``config/manual-firmware-artifacts.json`` and never reads
 ``config/webflash-builds.json`` as a matrix source.
+
+Release-tag confirm-gate (``--validate-release-tag`` / enforced in every mode):
+the fan artifacts publish to the shared ``v1.0.0-preview`` preview release by
+default (RELEASE-PREVIEW-FAN-SHARED-TAG-001), and that default is frictionless.
+Targeting any other tag requires ``--confirm-tag-override true`` so an accidental
+dispatch to the wrong tag fails fast. This does not reintroduce a dedicated fan
+tag — the shared release stays the intended vehicle.
 """
 
 from __future__ import annotations
@@ -37,6 +45,14 @@ EXPECTED_RELEASE_TAG = "v1.0.0-preview"
 WORKFLOW_ID = "RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001"
 RUN_ID = "RELEASE-PREVIEW-FAN-PUBLISH-RUN-001"
 PLAN_ID = "RELEASE-PREVIEW-FAN-PUBLISH-PLAN-001"
+TAG_GUARD_ID = "RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001"
+
+# The shared preview release tag is the frictionless default (per
+# RELEASE-PREVIEW-FAN-SHARED-TAG-001). Targeting any OTHER tag is allowed only
+# with an explicit confirmation, so an accidental dispatch to the wrong tag (a
+# typo, the stable release, or a stray new release) fails fast instead of
+# creating / overwriting the wrong release (TAG_GUARD_ID).
+SHARED_PREVIEW_RELEASE_TAG = EXPECTED_RELEASE_TAG
 
 FAN_CONFIGS = (
     "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
@@ -57,6 +73,43 @@ POSTURE_FALSE_FIELDS = (
 
 def _load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _is_truthy(value: Any) -> bool:
+    return str(value).strip().lower() in {"true", "1", "yes", "on"}
+
+
+def _validate_release_tag(
+    release_tag: str, *, confirm_override: bool = False
+) -> List[str]:
+    """Confirm-gate any release tag other than the shared preview release.
+
+    RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001 (complements
+    RELEASE-PREVIEW-FAN-SHARED-TAG-001). The fan artifacts publish to the shared
+    ``v1.0.0-preview`` preview release by default, and that default is
+    frictionless. Targeting any OTHER tag is allowed only with ``confirm_override``
+    so an accidental dispatch to the wrong tag (a typo, the stable release, or a
+    stray new release) fails fast instead of creating / overwriting the wrong
+    release. This does not reintroduce a dedicated fan tag — the shared release
+    stays the intended vehicle.
+
+    Returns a list of error strings (empty == the tag is allowed).
+    """
+    errors: List[str] = []
+    tag = (release_tag or "").strip()
+    if not tag:
+        errors.append("release_tag must not be empty")
+        return errors
+    if tag == EXPECTED_RELEASE_TAG:
+        return errors
+    if not confirm_override:
+        errors.append(
+            f"release_tag {tag!r} is not the shared preview release "
+            f"{EXPECTED_RELEASE_TAG!r}; set confirm_tag_override=true to publish "
+            f"the manual-preview fan artifacts to a different release tag "
+            f"({TAG_GUARD_ID})"
+        )
+    return errors
 
 
 def _artifact_name(config_string: str, version: str, channel: str) -> str:
@@ -327,9 +380,19 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--version", default=DEFAULT_VERSION)
     parser.add_argument("--release-tag", default=EXPECTED_RELEASE_TAG)
+    parser.add_argument(
+        "--confirm-tag-override",
+        default="false",
+        help=(
+            "Confirm a non-shared release tag (true/false). Required to publish to "
+            "any tag other than the shared preview release. "
+            "RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001."
+        ),
+    )
     parser.add_argument("--release-target", default=ALL_TARGETS)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--metadata-only", action="store_true")
+    mode.add_argument("--validate-release-tag", action="store_true")
     mode.add_argument("--print-matrix", action="store_true")
     mode.add_argument("--release-body", action="store_true")
     mode.add_argument("--validate-output-dir")
@@ -339,6 +402,23 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Optional[List[str]] = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+
+    # Tag confirm-gate (RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001) is enforced in
+    # every mode; the shared preview release default passes silently.
+    tag_errors = _validate_release_tag(
+        args.release_tag, confirm_override=_is_truthy(args.confirm_tag_override)
+    )
+
+    if args.validate_release_tag:
+        if tag_errors:
+            print(
+                "Manual-preview fan release-tag validation FAILED:", file=sys.stderr
+            )
+            for error in tag_errors:
+                print(f"  - {error}", file=sys.stderr)
+            return 1
+        print(f"Release tag {args.release_tag!r} accepted for the fan publish.")
+        return 0
 
     ledger = _load_json(LEDGER_PATH)
     manual = _load_json(MANUAL_PATH)
@@ -351,6 +431,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         version=args.version,
         release_target=args.release_target,
     )
+    errors = tag_errors + errors
     if errors:
         print("Manual-preview fan publish validation FAILED:", file=sys.stderr)
         for error in errors:

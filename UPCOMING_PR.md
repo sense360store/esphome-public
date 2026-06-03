@@ -630,6 +630,43 @@ into WebFlash, marks no fan product stable / recommended / default, includes no
 TRIAC, claims no hardware / compliance proof, and leaves Simple install, the launch
 SKU `S360-KIT-BATH-P`, and the candidate-bundle posture unchanged.
 
+#### RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001 — confirm-gate non-shared release tags on the fan publish — DONE (this PR)
+
+**Status: DONE in this PR (workflow + validator + docs + tests; no firmware, no
+release run).** Complements `RELEASE-PREVIEW-FAN-SHARED-TAG-001` (which adopted the
+shared `v1.0.0-preview` preview release as the single vehicle for every preview
+artifact). It **does not reintroduce a dedicated fan tag** and does not revive the
+withdrawn `RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001` re-cut idea; it only hardens the
+publish path so an accidental dispatch to the wrong tag fails fast:
+
+* **Workflow guardrail.**
+  [`.github/workflows/manual-preview-fan-publish.yml`](.github/workflows/manual-preview-fan-publish.yml)
+  adds a **"Guard release tag"** step (and a new `confirm_tag_override` input) that
+  runs `scripts/validate_manual_preview_fan_publish.py --validate-release-tag` and
+  **fails the run before any build** if the tag is not the shared `v1.0.0-preview`
+  and `confirm_tag_override=true` was not set. The shared tag stays the frictionless
+  default.
+* **Validator.**
+  [`scripts/validate_manual_preview_fan_publish.py`](scripts/validate_manual_preview_fan_publish.py)
+  adds `_validate_release_tag()`, a `--validate-release-tag` mode, and
+  `--confirm-tag-override`, enforced in every mode. The shared `v1.0.0-preview`
+  passes silently; any other tag (a typo, the stable `v1.0.0`, the retired
+  `v1.0.0-manual-preview-fans`, or a stray new release) needs explicit
+  confirmation.
+
+Docs:
+[`docs/release-preview-fan-publish-workflow.md`](docs/release-preview-fan-publish-workflow.md)
+(new confirm-gate section) and
+[`docs/release-preview-fan-publish-plan.md`](docs/release-preview-fan-publish-plan.md)
+§6. Guard
+[`tests/test_preview_fan_publish_tag_guard.py`](tests/test_preview_fan_publish_tag_guard.py)
+(plus extended
+[`tests/test_preview_fan_publish_workflow.py`](tests/test_preview_fan_publish_workflow.py)).
+**TRIAC stays excluded** (`HW-005`); no fan row is added to
+`config/webflash-builds.json`; the shared-tag model, WebFlash repo, Simple install,
+and the launch SKU `S360-KIT-BATH-P` are unchanged; nothing is marked stable /
+recommended / default / buyable; no hardware / bench / compliance proof is claimed.
+
 #### RELEASE-PREVIEW-COMBINED-RELEASE-NOTES-001 — regenerate a combined preview release body / manifest (queued — not started)
 
 **Queued follow-up.** The shared `v1.0.0-preview` release's name / body /

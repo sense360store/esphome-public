@@ -19,6 +19,13 @@
 # separately by WebFlash import policy, so attaching a fan artifact here does
 # NOT imply WebFlash one-click import, Simple-install exposure, stable status,
 # recommendation, default selection, or commercial availability.
+#
+# RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001 (tag confirm-gate): the shared
+# v1.0.0-preview release is the frictionless default. The "Guard release tag"
+# step fails fast — before any build — if a dispatch targets any OTHER tag
+# without confirm_tag_override=true, so an accidental wrong tag (a typo, the
+# stable release, or a stray new release) cannot create / overwrite the wrong
+# release. This does not reintroduce a dedicated fan tag.
 # ============================================================================
 
 name: Manual-Preview Fan Firmware Publish
@@ -34,6 +41,14 @@ on:
         description: "Shared preview release tag for all preview artifacts (room + fan)"
         required: true
         default: "v1.0.0-preview"
+      confirm_tag_override:
+        description: >-
+          Confirm a non-shared release tag. The default is the shared
+          v1.0.0-preview preview release; set this to true only to deliberately
+          publish to a different tag (guards against an accidental wrong tag).
+        required: true
+        default: false
+        type: boolean
       release_target:
         description: "Manual-preview fan target to publish"
         required: true
@@ -76,11 +91,23 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Guard release tag (confirm a non-shared release tag)
+        # RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001: the shared v1.0.0-preview
+        # release is the frictionless default; any other tag must be confirmed,
+        # so an accidental dispatch to the wrong tag fails fast before any build.
+        run: |
+          python3 scripts/validate_manual_preview_fan_publish.py \
+            --validate-release-tag \
+            --release-tag "${{ inputs.release_tag }}" \
+            --confirm-tag-override "${{ inputs.confirm_tag_override }}"
+
       - name: Validate manual-preview fan metadata
         run: |
           python3 scripts/validate_manual_preview_fan_publish.py \
             --metadata-only \
             --version "${{ inputs.version }}" \
+            --release-tag "${{ inputs.release_tag }}" \
+            --confirm-tag-override "${{ inputs.confirm_tag_override }}" \
             --release-target "${{ inputs.release_target }}"
 
       - name: Generate manual-preview fan matrix
@@ -120,6 +147,7 @@ jobs:
             --release-body \
             --version "${{ inputs.version }}" \
             --release-tag "${{ inputs.release_tag }}" \
+            --confirm-tag-override "${{ inputs.confirm_tag_override }}" \
             --release-target "${{ inputs.release_target }}" \
             > release-notes.md
           python3 scripts/validate-webflash-release-notes.py \
@@ -320,6 +348,7 @@ jobs:
             --release-body \
             --version "${{ inputs.version }}" \
             --release-tag "${{ inputs.release_tag }}" \
+            --confirm-tag-override "${{ inputs.confirm_tag_override }}" \
             --release-target "${{ inputs.release_target }}" \
             > all-firmware/release-notes.md
           python3 scripts/validate-webflash-release-notes.py \
