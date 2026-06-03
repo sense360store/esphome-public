@@ -378,7 +378,9 @@ class NoFanWrapperTests(unittest.TestCase):
             with self.subTest(config_string=t["config_string"]):
                 self.assertNotIn("webflash_wrapper", t)
                 self.assertEqual(t["delivery_lane"], "manual-preview")
-                self.assertFalse(t["webflash_import_eligibility"]["eligible"])
+                # RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001: import-eligible now,
+                # but still no committed webflash wrapper / build row (manual-preview).
+                self.assertTrue(t["webflash_import_eligibility"]["eligible"])
 
 
 class WebflashBuildRowsPresentTests(unittest.TestCase):

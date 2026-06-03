@@ -272,13 +272,19 @@ class FanTargetTests(unittest.TestCase):
 
     def test_fans_are_manual_preview_lane(self) -> None:
         # Fan drivers are real PREVIEW release targets delivered on the
-        # manual-preview lane. WebFlash one-click import stays gated (so
-        # eligible=false here), but the preview artifact itself is releasable.
+        # manual-preview lane. The preview / manual-preview WebFlash import is now
+        # ELIGIBLE (RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001) as an
+        # Advanced-install-only, acknowledgement-gated preview import; the lane
+        # stays manual-preview and no committed webflash-builds.json row is added.
         for t in self.fans:
             with self.subTest(target=t["target_id"]):
                 self.assertEqual(t["delivery_lane"], "manual-preview")
                 self.assertNotEqual(t["delivery_lane"], "manual-candidate")
-                self.assertFalse(t["webflash_import_eligibility"]["eligible"])
+                self.assertTrue(t["webflash_import_eligibility"]["eligible"])
+                self.assertEqual(
+                    t["webflash_import_eligibility"]["exposure_class"],
+                    "acknowledgement-gated",
+                )
                 self.assertIn(t["yaml_path"], self.manual_yamls)
                 self.assertNotEqual(t["channel_tier"], "stable")
 
@@ -289,7 +295,7 @@ class FanTargetTests(unittest.TestCase):
             with self.subTest(target=t["target_id"]):
                 self.assertEqual(t["channel_tier"], "preview")
                 self.assertTrue(t["is_preview_target"])
-                self.assertEqual(t["publication_status"], "manual-preview-eligible")
+                self.assertEqual(t["publication_status"], "preview-import-eligible")
 
     def test_fan_catalog_entries_stay_off_the_build_matrix(self) -> None:
         for t in self.fans:

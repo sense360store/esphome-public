@@ -4,7 +4,23 @@
   "title": "Concrete preview / advanced-preview release targets for all buildable products",
   "date": "2026-06-01",
   "canonical_doc": "docs/preview-release-targets.md",
-  "revised_by": "RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001; RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001; RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001; RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001",
+  "revised_by": "RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001; RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001; RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001; RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001; RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001",
+  "fan_webflash_eligibility_decision": {
+    "id": "RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001",
+    "date": "2026-06-03",
+    "rule": "FanRelay / FanPWM / FanDAC are now preview / manual-preview WebFlash-import ELIGIBLE: each carries webflash_import_eligibility.eligible=true with exposure_class=acknowledgement-gated, so downstream WebFlash no longer treats the catalog webflash_build_matrix=false or the prior WEBFLASH-RELAY-001/PWM/DAC 'blocked' framing as a preview-import blocker. Eligibility authorises an Advanced-install-only preview import only; it does NOT promote anything to stable / full release and does NOT add a committed config/webflash-builds.json row. The fan-token guardrail (scripts/list_release_targets.py) and catalog webflash_build_matrix=false stand, so fans stay on the manual-preview lane and the actual WebFlash-side one-click committed import is the separately queued downstream WF-IMPORT-RELAY-001 / WF-IMPORT-PWM-001 / WF-IMPORT-DAC-001 follow-up. FanTRIAC stays excluded (eligible=false, advanced-manual-preview, HW-005 build blocker) and is handled by its own separate TRIAC-specific PR.",
+    "guarantees": {
+      "nothing_becomes_stable": true,
+      "nothing_becomes_recommended_or_default": true,
+      "nothing_becomes_buyable": true,
+      "no_fan_row_added_to_webflash_builds": true,
+      "catalog_webflash_build_matrix_stays_false": true,
+      "stable_full_release_blockers_remain": true,
+      "triac_stays_excluded_and_separate": true,
+      "publishes_no_firmware": true,
+      "touches_no_webflash_repo": true
+    }
+  },
   "unblock_all_bundles_decision": {
     "id": "RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001",
     "date": "2026-06-03",
@@ -56,7 +72,7 @@
   },
   "delivery_lanes": {
     "webflash": "Preview / advanced-preview artifact published as a WebFlash-importable build: a config/webflash-builds.json row + products/webflash wrapper + recorded build proof, exposed behind the acknowledgement gate. config/webflash-builds.json stays the sole WebFlash release-eligibility source of truth.",
-    "manual-preview": "Buildable PREVIEW artifact released to testers via the manual-preview lane (config/manual-firmware-artifacts.json). The lane produces the tester-facing preview .bin -- these are real preview RELEASE targets, not passive candidates. WebFlash one-click import stays gated (the fan-token guardrail keeps fan drivers out of config/webflash-builds.json) until the WebFlash warning UX supports fan preview exposure; that import is a separate, controlled follow-up. The preview artifact itself is releasable now; no durable GitHub Release / WebFlash row is cut in this PR.",
+    "manual-preview": "Buildable PREVIEW artifact released to testers via the manual-preview lane (config/manual-firmware-artifacts.json). The lane produces the tester-facing preview .bin -- these are real preview RELEASE targets, not passive candidates. WebFlash preview / manual-preview IMPORT is now ELIGIBLE for these fan drivers (RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001) as an Advanced-install-only, acknowledgement-gated preview import; the committed config/webflash-builds.json one-click import row still stays out (the fan-token guardrail keeps fan drivers off the WebFlash build matrix) and is the separately queued downstream WF-IMPORT-RELAY-001 / WF-IMPORT-PWM-001 / WF-IMPORT-DAC-001 follow-up. The preview artifact itself is releasable now; no durable GitHub Release / committed WebFlash row is cut in this PR.",
     "advanced-manual-preview": "Advanced (mains-risk) PREVIEW artifact lane for TRIAC. Same as manual-preview but requires the advanced mains-risk warning copy and competent-person manual install. Releasable as advanced-preview once the target is buildable end-to-end; WebFlash import stays gated behind the advanced acknowledgement UX (separate follow-up). NOT a 'blocked-from-preview' lane: a target here is preview-allowed in principle and only an explicit build_blocker (e.g. HW-005 buildability) can stop an actual cut."
   },
   "warning_copy": {
@@ -69,10 +85,10 @@
     "advanced_preview_targets": 1,
     "releasable_preview_artifacts": 8,
     "webflash_lane": 5,
-    "webflash_import_eligible_now": 5,
+    "webflash_import_eligible_now": 8,
     "manual_preview_lane": 3,
     "advanced_manual_preview_lane": 1,
-    "webflash_import_gated_followup": 4,
+    "webflash_import_gated_followup": 1,
     "blocked_from_preview": 0
   },
   "targets": [
@@ -291,11 +307,11 @@
       "is_triac": false,
       "delivery_lane": "manual-preview",
       "webflash_import_eligibility": {
-        "eligible": false,
-        "exposure_class": null,
-        "reason": "Preview ARTIFACT is releasable now via the manual-preview lane (config/manual-firmware-artifacts.json) -- this is a real preview release target, not a passive candidate. WebFlash one-click import stays gated: the fan-token guardrail (scripts/list_release_targets.py refuses fan tokens; catalog webflash_build_matrix locked false) keeps fan drivers out of config/webflash-builds.json until the WebFlash warning UX supports fan preview exposure. That WebFlash import is a separate, controlled follow-up (WEBFLASH-RELAY-001 / WEBFLASH-PWM-001 / WEBFLASH-DAC-001), not a preview block."
+        "eligible": true,
+        "exposure_class": "acknowledgement-gated",
+        "reason": "Preview / manual-preview WebFlash import is ELIGIBLE (RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001 removes the upstream import block): WebFlash may import this fan-driver preview as an Advanced-install-only, acknowledgement-gated preview build -- missing hardware / bench / compliance evidence blocks stable / full release only, never the preview import. Eligibility is NOT a committed build row: no fan row is added to config/webflash-builds.json (the fan-token guardrail in scripts/list_release_targets.py and the catalog webflash_build_matrix=false both stand), so the preview artifact stays on the manual-preview lane (config/manual-firmware-artifacts.json) and the actual WebFlash-side one-click committed import is the separately queued downstream follow-up (WEBFLASH-RELAY-001 / WEBFLASH-PWM-001 / WEBFLASH-DAC-001, imported by WF-IMPORT-RELAY-001 / WF-IMPORT-PWM-001 / WF-IMPORT-DAC-001). Not stable, not recommended, not a default, not buyable."
       },
-      "publication_status": "manual-preview-eligible",
+      "publication_status": "preview-import-eligible",
       "warning_copy_required": true,
       "warning_copy_key": "preview",
       "release_note_warning": "PREVIEW FIRMWARE \u2014 buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
@@ -329,11 +345,11 @@
       "is_triac": false,
       "delivery_lane": "manual-preview",
       "webflash_import_eligibility": {
-        "eligible": false,
-        "exposure_class": null,
-        "reason": "Preview ARTIFACT is releasable now via the manual-preview lane (config/manual-firmware-artifacts.json) -- this is a real preview release target, not a passive candidate. WebFlash one-click import stays gated: the fan-token guardrail (scripts/list_release_targets.py refuses fan tokens; catalog webflash_build_matrix locked false) keeps fan drivers out of config/webflash-builds.json until the WebFlash warning UX supports fan preview exposure. That WebFlash import is a separate, controlled follow-up (WEBFLASH-RELAY-001 / WEBFLASH-PWM-001 / WEBFLASH-DAC-001), not a preview block."
+        "eligible": true,
+        "exposure_class": "acknowledgement-gated",
+        "reason": "Preview / manual-preview WebFlash import is ELIGIBLE (RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001 removes the upstream import block): WebFlash may import this fan-driver preview as an Advanced-install-only, acknowledgement-gated preview build -- missing hardware / bench / compliance evidence blocks stable / full release only, never the preview import. Eligibility is NOT a committed build row: no fan row is added to config/webflash-builds.json (the fan-token guardrail in scripts/list_release_targets.py and the catalog webflash_build_matrix=false both stand), so the preview artifact stays on the manual-preview lane (config/manual-firmware-artifacts.json) and the actual WebFlash-side one-click committed import is the separately queued downstream follow-up (WEBFLASH-RELAY-001 / WEBFLASH-PWM-001 / WEBFLASH-DAC-001, imported by WF-IMPORT-RELAY-001 / WF-IMPORT-PWM-001 / WF-IMPORT-DAC-001). Not stable, not recommended, not a default, not buyable."
       },
-      "publication_status": "manual-preview-eligible",
+      "publication_status": "preview-import-eligible",
       "warning_copy_required": true,
       "warning_copy_key": "preview",
       "release_note_warning": "PREVIEW FIRMWARE \u2014 buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
@@ -367,11 +383,11 @@
       "is_triac": false,
       "delivery_lane": "manual-preview",
       "webflash_import_eligibility": {
-        "eligible": false,
-        "exposure_class": null,
-        "reason": "Preview ARTIFACT is releasable now via the manual-preview lane (config/manual-firmware-artifacts.json) -- this is a real preview release target, not a passive candidate. WebFlash one-click import stays gated: the fan-token guardrail (scripts/list_release_targets.py refuses fan tokens; catalog webflash_build_matrix locked false) keeps fan drivers out of config/webflash-builds.json until the WebFlash warning UX supports fan preview exposure. That WebFlash import is a separate, controlled follow-up (WEBFLASH-RELAY-001 / WEBFLASH-PWM-001 / WEBFLASH-DAC-001), not a preview block."
+        "eligible": true,
+        "exposure_class": "acknowledgement-gated",
+        "reason": "Preview / manual-preview WebFlash import is ELIGIBLE (RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001 removes the upstream import block): WebFlash may import this fan-driver preview as an Advanced-install-only, acknowledgement-gated preview build -- missing hardware / bench / compliance evidence blocks stable / full release only, never the preview import. Eligibility is NOT a committed build row: no fan row is added to config/webflash-builds.json (the fan-token guardrail in scripts/list_release_targets.py and the catalog webflash_build_matrix=false both stand), so the preview artifact stays on the manual-preview lane (config/manual-firmware-artifacts.json) and the actual WebFlash-side one-click committed import is the separately queued downstream follow-up (WEBFLASH-RELAY-001 / WEBFLASH-PWM-001 / WEBFLASH-DAC-001, imported by WF-IMPORT-RELAY-001 / WF-IMPORT-PWM-001 / WF-IMPORT-DAC-001). Not stable, not recommended, not a default, not buyable."
       },
-      "publication_status": "manual-preview-eligible",
+      "publication_status": "preview-import-eligible",
       "warning_copy_required": true,
       "warning_copy_key": "preview",
       "release_note_warning": "PREVIEW FIRMWARE \u2014 buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",

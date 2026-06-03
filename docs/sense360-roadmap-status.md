@@ -164,9 +164,19 @@ the LED gauntlet; none is promoted here.
 
 - WebFlash exposes exactly the two builds in §1: one **stable**
   (`Ceiling-POE-VentIQ-RoomIQ`) and one **preview** (`...-LED`).
-- No fan-driver firmware (Relay / PWM / DAC / TRIAC) is WebFlash-exposed:
-  none appears in `config/webflash-builds.json`, none has an `artifact_name`,
-  and none flips `webflash_build_matrix`.
+- No fan-driver firmware (Relay / PWM / DAC / TRIAC) is in the **committed**
+  WebFlash build matrix: none appears in `config/webflash-builds.json`, none has
+  an `artifact_name`, and none flips `webflash_build_matrix`.
+- FanRelay / FanPWM / FanDAC are now **preview / manual-preview WebFlash-import
+  eligible** (Advanced-install-only, acknowledgement-gated) under
+  `RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001` — this removes the upstream
+  import block (`webflash_build_matrix: false` is no longer a preview-import
+  blocker) but is **not** a committed build row, so the actual WebFlash one-click
+  import stays the separately queued downstream `WF-IMPORT-RELAY-001` /
+  `WF-IMPORT-PWM-001` / `WF-IMPORT-DAC-001` slice. Fan drivers stay **not stable,
+  not recommended, not default, not buyable**; `RELEASE-{RELAY,PWM,DAC}-001`
+  stable/full release stays blocked. **FanTRIAC stays excluded** (`HW-005`,
+  separate TRIAC-specific PR).
 - The `workflow_dispatch`-only manual-firmware-artifacts lane
   ([`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json),
   [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md))

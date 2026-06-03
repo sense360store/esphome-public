@@ -78,15 +78,22 @@ concrete lane each target uses (recorded in
 | Lane | Targets | Meaning |
 |---|---|---|
 | `webflash` | SELV PoE targets (Bathroom stable, LED preview, Kitchen/AirIQ, Bedroom/RoomIQ, Living/Corridor LED) | WebFlash-importable build behind the acknowledgement gate; a `config/webflash-builds.json` row + wrapper + recorded build proof. |
-| `manual-preview` | FanRelay, FanPWM, FanDAC | Releasable preview artifact via the manual lane (`config/manual-firmware-artifacts.json`). **Not** a passive candidate. WebFlash one-click import gated until the WebFlash warning UX is ready (separate follow-up). |
+| `manual-preview` | FanRelay, FanPWM, FanDAC | Releasable preview artifact via the manual lane (`config/manual-firmware-artifacts.json`). **Not** a passive candidate. **Preview / manual-preview WebFlash-import eligible** (Advanced-install-only, acknowledgement-gated); the *committed* one-click import row stays out of `config/webflash-builds.json` (separately queued `WF-IMPORT-*` follow-up). |
 | `advanced-manual-preview` | FanTRIAC | `manual-preview` + mandatory mains-risk warning + competent-person manual install. Preview-allowed; only the `HW-005` buildability blocker prevents a cut. WebFlash import gated behind the advanced acknowledgement UX. |
 
-The fan / TRIAC matrix rows below carry `acknowledgement-gated` /
-`acknowledgement-gated-advanced` as their **eventual** WebFlash exposure class.
-That is the import *target*, not current state: WebFlash one-click import for fan
-and TRIAC previews stays a separate, controlled follow-up. **No target is blocked
-from preview for lacking stable evidence** — "blocked" only ever applies to
-stable promotion, or (for TRIAC) to a genuine *buildability* blocker.
+The fan matrix rows below carry `acknowledgement-gated` as their WebFlash exposure
+class. Under `RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001` the FanRelay / FanPWM /
+FanDAC previews are now **preview / manual-preview WebFlash-import eligible**
+(Advanced-install-only, acknowledgement-gated) — `webflash_build_matrix=false` is
+**no longer** a preview-import blocker. Eligibility is **not** a committed build
+row: no fan row is added to `config/webflash-builds.json` (the fan-token guardrail
+stands), so the actual WebFlash one-click *committed* import is the separately
+queued downstream `WF-IMPORT-RELAY-001` / `WF-IMPORT-PWM-001` / `WF-IMPORT-DAC-001`
+follow-up. FanTRIAC keeps `acknowledgement-gated-advanced` as its **eventual**
+exposure class and is **not** WebFlash-import eligible here (handled by a separate
+TRIAC-specific PR; `HW-005` buildability + `COMPLIANCE-001`). **No target is
+blocked from preview for lacking stable evidence** — "blocked" only ever applies
+to stable promotion, or (for TRIAC) to a genuine *buildability* blocker.
 
 ---
 
@@ -107,12 +114,14 @@ This policy updates the doc + config posture so that:
    is *already* production (i.e. preview never promotes a product to
    production as a side effect).
 7. **Preview releases must not be `REQUIRED_CONFIGS`.**
-8. **Preview artifact release is allowed without WebFlash import.** SELV targets
-   release via the `webflash` lane (acknowledgement-gated import). Fan drivers
-   release via the `manual-preview` lane and TRIAC via the
-   `advanced-manual-preview` lane; their WebFlash one-click import is a separate,
-   controlled follow-up behind the (advanced) acknowledgement UX. Lack of WebFlash
-   import never blocks a preview artifact.
+8. **Preview artifact release is allowed without a committed WebFlash build row.**
+   SELV targets release via the `webflash` lane (acknowledgement-gated import). Fan
+   drivers release via the `manual-preview` lane (now **preview / manual-preview
+   WebFlash-import eligible**, Advanced-install-only) and TRIAC via the
+   `advanced-manual-preview` lane (not eligible here); the *committed* WebFlash
+   one-click import row is a separate, controlled follow-up behind the (advanced)
+   acknowledgement UX. Lack of a committed import row never blocks a preview
+   artifact.
 
 Stable promotion is unchanged: it still requires the full evidence /
 hardware-proof gauntlet (see [`docs/first-release-gates.md`](first-release-gates.md)

@@ -335,10 +335,20 @@ def validate(
                         f"row {rid!r}: preview-release-targets target must have "
                         f"{flag}=false"
                     )
-            if target.get("webflash_import_eligibility", {}).get("eligible") is not False:
+            # Fans are preview / manual-preview WebFlash-import ELIGIBLE
+            # (RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001); TRIAC stays gated.
+            # This is the import-eligibility dimension only -- the ledger row's own
+            # webflash_importable stays false (no committed webflash-builds.json row;
+            # checked above).
+            expected_eligible = False if is_triac else True
+            target_eligible = target.get("webflash_import_eligibility", {}).get(
+                "eligible"
+            )
+            if target_eligible is not expected_eligible:
                 rerr.append(
-                    f"row {rid!r}: preview-release-targets target must not be "
-                    "WebFlash-importable"
+                    f"row {rid!r}: preview-release-targets target "
+                    f"webflash_import_eligibility.eligible must be {expected_eligible} "
+                    f"({'TRIAC stays gated' if is_triac else 'fans are preview / manual-preview WebFlash-import eligible'})"
                 )
 
         # Lane-specific rules.

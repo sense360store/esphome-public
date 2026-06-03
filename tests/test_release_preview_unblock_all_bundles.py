@@ -288,10 +288,18 @@ class FanDriversManualPreviewOnlyTests(unittest.TestCase):
         families = {t["family"] for t in self.fan_targets}
         self.assertEqual(families, {"FanRelay", "FanPWM", "FanDAC"})
 
-    def test_fans_use_manual_preview_lane_and_are_not_webflash_importable(self):
+    def test_fans_use_manual_preview_lane_and_are_webflash_import_eligible(self):
+        # RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001: fans stay on the
+        # manual-preview lane but are now preview / manual-preview
+        # WebFlash-import eligible (Advanced-install-only, acknowledgement-gated).
+        # No committed webflash-builds.json row is added (asserted separately).
         for t in self.fan_targets:
             self.assertEqual(t["delivery_lane"], "manual-preview")
-            self.assertFalse(t["webflash_import_eligibility"]["eligible"])
+            self.assertTrue(t["webflash_import_eligibility"]["eligible"])
+            self.assertEqual(
+                t["webflash_import_eligibility"]["exposure_class"],
+                "acknowledgement-gated",
+            )
             self.assertTrue(t["preview_allowed"])
 
     def test_fans_absent_from_webflash_ledger(self):
