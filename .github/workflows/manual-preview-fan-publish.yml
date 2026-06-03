@@ -1,0 +1,347 @@
+---
+# ============================================================================
+# MANUAL-PREVIEW FAN FIRMWARE PUBLISH WORKFLOW
+# ============================================================================
+# RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001.
+#
+# This workflow publishes the three buildable manual-preview fan-control
+# firmware artifacts from config/preview-fan-triac-build-rows.json:
+#   - Ceiling-POE-VentIQ-FanRelay-RoomIQ
+#   - Ceiling-POE-FanPWM
+#   - Ceiling-POE-FanDAC
+#
+# It deliberately does NOT read config/webflash-builds.json as a release matrix,
+# does NOT add fan rows to the WebFlash build ledger, and does NOT touch
+# firmware/sources.json or repo-root manifest.json. The dedicated release
+# vehicle is separate from the WebFlash v1.0.0-preview release.
+# ============================================================================
+
+name: Manual-Preview Fan Firmware Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Manual-preview fan firmware version"
+        required: true
+        default: "1.0.0"
+      release_tag:
+        description: "Dedicated manual-preview fan release tag"
+        required: true
+        default: "v1.0.0-manual-preview-fans"
+      release_target:
+        description: "Manual-preview fan target to publish"
+        required: true
+        default: "all-manual-preview-fans"
+        type: choice
+        options:
+          - all-manual-preview-fans
+          - Ceiling-POE-VentIQ-FanRelay-RoomIQ
+          - Ceiling-POE-FanPWM
+          - Ceiling-POE-FanDAC
+      dry_run:
+        description: "Dry-run only (default true; validates scope and release body, publishes nothing)"
+        required: true
+        default: true
+        type: boolean
+
+concurrency:
+  group: manual-preview-fan-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  ESPHOME_VERSION: "2026.4.5"
+
+jobs:
+  generate-matrix:
+    name: Manual-preview fan matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      target_count: ${{ steps.matrix.outputs.target_count }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Validate manual-preview fan metadata
+        run: |
+          python3 scripts/validate_manual_preview_fan_publish.py \
+            --metadata-only \
+            --version "${{ inputs.version }}" \
+            --release-target "${{ inputs.release_target }}"
+
+      - name: Generate manual-preview fan matrix
+        id: matrix
+        run: |
+          set -euo pipefail
+          MATRIX="$(python3 scripts/validate_manual_preview_fan_publish.py \
+            --print-matrix \
+            --version "${{ inputs.version }}" \
+            --release-target "${{ inputs.release_target }}")"
+          COUNT="$(python3 -c 'import json,sys; print(len(json.loads(sys.argv[1])["include"]))' "$MATRIX")"
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "target_count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "Manual-preview fan publish matrix ($COUNT target(s)):"
+          echo "$MATRIX"
+
+  dry-run:
+    name: Manual-preview fan publish dry-run
+    needs: generate-matrix
+    if: github.event_name == 'workflow_dispatch' && inputs.dry_run
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Build and validate release body
+        run: |
+          set -euo pipefail
+          python3 scripts/validate_manual_preview_fan_publish.py \
+            --release-body \
+            --version "${{ inputs.version }}" \
+            --release-tag "${{ inputs.release_tag }}" \
+            --release-target "${{ inputs.release_target }}" \
+            > release-notes.md
+          python3 scripts/validate-webflash-release-notes.py \
+            release-notes.md \
+            --channel preview
+
+      - name: Confirm dry-run side effects are absent
+        run: |
+          set -euo pipefail
+          fail=0
+          if [ -f firmware/sources.json ]; then
+            echo "::error::dry-run produced firmware/sources.json"; fail=1
+          fi
+          if [ -f manifest.json ]; then
+            echo "::error::dry-run produced repo-root manifest.json"; fail=1
+          fi
+          if ls ./*.bin >/dev/null 2>&1; then
+            echo "::error::dry-run produced repo-root .bin artifact(s)"; fail=1
+          fi
+          if [ "$fail" -ne 0 ]; then
+            exit 1
+          fi
+          echo "Dry-run complete: target_count=${{ needs.generate-matrix.outputs.target_count }}"
+          echo "No firmware was built, no Release/tag was created, and no WebFlash state changed."
+
+  build:
+    name: "Build manual-preview fan: ${{ matrix.config_string }}"
+    needs: generate-matrix
+    if: github.event_name == 'workflow_dispatch' && !inputs.dry_run
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: ${{ runner.os }}-pio-${{ env.ESPHOME_VERSION }}-${{ hashFiles(matrix.product_yaml) }}-${{ matrix.config_string }}
+          restore-keys: |
+            ${{ runner.os }}-pio-${{ env.ESPHOME_VERSION }}-
+            ${{ runner.os }}-pio-
+
+      - name: Install ESPHome
+        run: |
+          pip install "esphome==${{ env.ESPHOME_VERSION }}"
+
+      - name: Provision test secrets
+        run: |
+          cat > secrets.yaml << 'EOF'
+          wifi_ssid: "TestNetwork"
+          wifi_password: "TestPassword123"
+          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+          ota_password: "test-ota-password"
+          fallback_ap_password: "fallback123"
+          web_username: "admin"
+          web_password: "test_web_password"
+          EOF
+          rm -f products/secrets.yaml
+          cp secrets.yaml products/secrets.yaml
+
+      - name: Patch external_components to local checked-out source
+        run: |
+          cat > packages/base/external_components.yaml <<'EOF'
+          # CI-only override: use the locally checked-out components/ tree.
+          external_components:
+            - source:
+                type: local
+                path: ../components
+              components: [ld2412, ld2450, ld24xx]
+          EOF
+          echo "Patched packages/base/external_components.yaml to local source."
+
+      - name: Compile manual-preview firmware
+        run: |
+          set -euo pipefail
+          echo "Compiling ${{ matrix.product_yaml }}"
+          esphome config "${{ matrix.product_yaml }}"
+          OUTPUT_DIR="manual-preview-firmware"
+          OUTPUT_FILE="$OUTPUT_DIR/${{ matrix.artifact_name }}"
+          mkdir -p "$OUTPUT_DIR"
+          if esphome compile --help 2>&1 | grep -q -- '--output-file'; then
+            esphome compile "${{ matrix.product_yaml }}" --output-file "$OUTPUT_FILE"
+          else
+            esphome compile "${{ matrix.product_yaml }}"
+          fi
+
+      - name: Locate compiled binary
+        id: bin
+        run: |
+          set -euo pipefail
+          OUTPUT_FILE="manual-preview-firmware/${{ matrix.artifact_name }}"
+          if [ ! -f "$OUTPUT_FILE" ]; then
+            FOUND="$(find . -path '*/.esphome/build/*' -name 'firmware*.bin' -type f 2>/dev/null | head -1 || true)"
+            if [ -z "$FOUND" ]; then
+              echo "ERROR: no compiled firmware binary found"
+              exit 1
+            fi
+            mkdir -p manual-preview-firmware
+            cp "$FOUND" "$OUTPUT_FILE"
+          fi
+          SIZE="$(stat -c%s "$OUTPUT_FILE")"
+          if [ "$SIZE" -lt 102400 ]; then
+            echo "ERROR: compiled binary is suspiciously small: $SIZE bytes"
+            exit 1
+          fi
+          echo "Compiled manual-preview binary: $OUTPUT_FILE ($SIZE bytes)"
+          echo "path=$OUTPUT_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload manual-preview firmware artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: manual-preview-firmware-${{ matrix.candidate_id }}
+          path: ${{ steps.bin.outputs.path }}
+          retention-days: 7
+          if-no-files-found: error
+
+  publish:
+    name: Attach manual-preview fan release assets
+    needs: [generate-matrix, build]
+    if: github.event_name == 'workflow_dispatch' && !inputs.dry_run
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Download manual-preview firmware artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: manual-preview-firmware-*
+          path: all-firmware
+          merge-multiple: true
+
+      - name: Validate manual-preview output set
+        run: |
+          python3 scripts/validate_manual_preview_fan_publish.py \
+            --validate-output-dir all-firmware \
+            --version "${{ inputs.version }}" \
+            --release-target "${{ inputs.release_target }}"
+
+      - name: Generate checksums and build-info manifest
+        run: |
+          set -euo pipefail
+          cd all-firmware
+          echo "# SHA256 Checksums" > checksums-sha256.txt
+          echo "# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> checksums-sha256.txt
+          echo "# Version: ${{ inputs.version }}" >> checksums-sha256.txt
+          echo "# Channel: preview" >> checksums-sha256.txt
+          echo "# Delivery lane: manual-preview" >> checksums-sha256.txt
+          echo "" >> checksums-sha256.txt
+          sha256sum *.bin >> checksums-sha256.txt
+
+          echo "# MD5 Checksums" > checksums-md5.txt
+          echo "# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> checksums-md5.txt
+          echo "" >> checksums-md5.txt
+          md5sum *.bin >> checksums-md5.txt
+
+          cat > manifest.json << EOF
+          {
+            "version": "${{ inputs.version }}",
+            "channel": "preview",
+            "delivery_lane": "manual-preview",
+            "build_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "git_sha": "${{ github.sha }}",
+            "esphome_version": "${{ env.ESPHOME_VERSION }}",
+            "target_count": ${{ needs.generate-matrix.outputs.target_count }},
+            "webflash_importable": false,
+            "files": [
+          $(ls -1 *.bin | while read f; do
+            SHA256=$(sha256sum "$f" | cut -d' ' -f1)
+            SIZE=$(stat -c%s "$f")
+            echo "    {\"name\": \"$f\", \"sha256\": \"$SHA256\", \"size\": $SIZE},"
+          done | sed '$ s/,$//')
+            ]
+          }
+          EOF
+
+      - name: Generate and validate release notes
+        run: |
+          python3 scripts/validate_manual_preview_fan_publish.py \
+            --release-body \
+            --version "${{ inputs.version }}" \
+            --release-tag "${{ inputs.release_tag }}" \
+            --release-target "${{ inputs.release_target }}" \
+            > all-firmware/release-notes.md
+          python3 scripts/validate-webflash-release-notes.py \
+            all-firmware/release-notes.md \
+            --channel preview
+
+      - name: Upload manual-preview release assets
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          target_commitish: ${{ github.sha }}
+          name: Sense360 manual-preview fan firmware ${{ inputs.version }}
+          body_path: all-firmware/release-notes.md
+          prerelease: true
+          draft: false
+          files: |
+            all-firmware/*.bin
+            all-firmware/checksums-sha256.txt
+            all-firmware/checksums-md5.txt
+            all-firmware/manifest.json
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fail_on_unmatched_files: true
+
+      - name: Publish summary
+        run: |
+          echo "Manual-preview fan release complete."
+          echo "Tag: ${{ inputs.release_tag }}"
+          echo "Version: ${{ inputs.version }}"
+          echo "Targets: ${{ needs.generate-matrix.outputs.target_count }}"
+          echo "No WebFlash build rows, firmware/sources.json, or repo manifest were written."
