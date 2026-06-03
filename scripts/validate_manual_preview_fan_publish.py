@@ -28,7 +28,11 @@ WEBFLASH_BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 DEFAULT_VERSION = "1.0.0"
 DEFAULT_CHANNEL = "preview"
 ALL_TARGETS = "all-manual-preview-fans"
-EXPECTED_RELEASE_TAG = "v1.0.0-manual-preview-fans"
+# RELEASE-PREVIEW-FAN-SHARED-TAG-001: the manual-preview fan artifacts are
+# published to the shared v1.0.0-preview preview release — the single preview
+# release for every preview artifact (room-bundle + LED + fan). There is no
+# dedicated v1.0.0-manual-preview-fans vehicle.
+EXPECTED_RELEASE_TAG = "v1.0.0-preview"
 
 WORKFLOW_ID = "RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001"
 RUN_ID = "RELEASE-PREVIEW-FAN-PUBLISH-RUN-001"
@@ -244,7 +248,10 @@ def _release_body(rows: List[Dict[str, Any]], *, version: str, release_tag: str)
         "- Hardware, bench, mains-safety, and compliance evidence remain stable-only "
         "blockers; no such proof is claimed by this release.",
         f"- `{TRIAC_CONFIG}` is excluded because `HW-005` still blocks buildability.",
-        "- These artifacts are not WebFlash one-click imports and are not added to "
+        "- These fan artifacts share the `v1.0.0-preview` preview release with the "
+        "room-bundle preview artifacts. WebFlash import eligibility is controlled "
+        "separately by WebFlash import policy; presence in this shared release does "
+        "not make them WebFlash one-click imports, and no fan row is added to "
         "`config/webflash-builds.json`.",
     ]
     feature_lines = [
@@ -267,10 +274,12 @@ def _release_body(rows: List[Dict[str, Any]], *, version: str, release_tag: str)
             f"Canonical workflow: `{WORKFLOW_ID}`.",
             f"Release tag: `{release_tag}`.",
             "",
-            "This dedicated manual-preview release vehicle is separate from the "
-            "WebFlash `v1.0.0-preview` release. It publishes only the buildable "
-            "manual-preview fan artifacts and does not imply stable, recommended, "
-            "default, buyable, certified, or WebFlash-importable status.",
+            "These buildable manual-preview fan artifacts are published to the "
+            "shared `v1.0.0-preview` preview release — the single preview release "
+            "that also carries the room-bundle preview artifacts. Publishing here "
+            "does not imply stable, recommended, default, buyable, certified, or "
+            "WebFlash-importable status; WebFlash import eligibility is controlled "
+            "separately by WebFlash import policy.",
             "",
             "Artifacts:",
             bullets(artifact_lines),

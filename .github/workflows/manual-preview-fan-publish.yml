@@ -12,8 +12,13 @@
 #
 # It deliberately does NOT read config/webflash-builds.json as a release matrix,
 # does NOT add fan rows to the WebFlash build ledger, and does NOT touch
-# firmware/sources.json or repo-root manifest.json. The dedicated release
-# vehicle is separate from the WebFlash v1.0.0-preview release.
+# firmware/sources.json or repo-root manifest.json. The fan artifacts are
+# published to the shared v1.0.0-preview preview release (RELEASE-PREVIEW-FAN-
+# SHARED-TAG-001) — the single preview release for every preview artifact
+# (room-bundle + LED + fan). WebFlash import eligibility is controlled
+# separately by WebFlash import policy, so attaching a fan artifact here does
+# NOT imply WebFlash one-click import, Simple-install exposure, stable status,
+# recommendation, default selection, or commercial availability.
 # ============================================================================
 
 name: Manual-Preview Fan Firmware Publish
@@ -26,9 +31,9 @@ on:
         required: true
         default: "1.0.0"
       release_tag:
-        description: "Dedicated manual-preview fan release tag"
+        description: "Shared preview release tag for all preview artifacts (room + fan)"
         required: true
-        default: "v1.0.0-manual-preview-fans"
+        default: "v1.0.0-preview"
       release_target:
         description: "Manual-preview fan target to publish"
         required: true
@@ -321,6 +326,12 @@ jobs:
             all-firmware/release-notes.md \
             --channel preview
 
+      # Publishes to the shared v1.0.0-preview preview release. softprops/action-
+      # gh-release upserts the release, so the name / body / checksums are a
+      # metadata refresh, not a release error; the room-bundle preview .bin
+      # assets already attached keep their SHA256 intact. Regenerating a combined
+      # room + fan release body is tracked as
+      # RELEASE-PREVIEW-COMBINED-RELEASE-NOTES-001.
       - name: Upload manual-preview release assets
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:

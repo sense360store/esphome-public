@@ -27,8 +27,14 @@ cannot silently regress:
     not a customer default / fan products hidden / not buyable, Simple install +
     the launch SKU ``S360-KIT-BATH-P`` unchanged, TRIAC excluded (``HW-005``),
     and no hardware / compliance proof claimed (task item 5);
-  * the recorded tag deviation is captured — the run targeted ``v1.0.0-preview``
-    rather than the dedicated ``v1.0.0-manual-preview-fans`` vehicle;
+  * the shared preview release is adopted — ``v1.0.0-preview`` is the single
+    preview release for both the room-bundle previews and the fan manual-preview
+    artifacts, framed as the intended shared release (not a deviation), with the
+    dedicated ``v1.0.0-manual-preview-fans`` tag concept retired
+    (``RELEASE-PREVIEW-FAN-SHARED-TAG-001``);
+  * shared-release presence never implies WebFlash import — WebFlash import
+    eligibility stays separately gated and the three fan rows stay
+    ``webflash_importable: false``;
   * the hard guardrails hold — no ``manifest.json`` / ``firmware/sources.json`` /
     ``.bin`` is committed, and no fan / TRIAC row enters
     ``config/webflash-builds.json``; and
@@ -67,7 +73,10 @@ WORKFLOW_NAME = "Manual-Preview Fan Firmware Publish"
 RUN_ID = "26878032103"
 COMMIT_SHA = "0963afb"
 RELEASE_TAG_USED = "v1.0.0-preview"
-DEDICATED_TAG = "v1.0.0-manual-preview-fans"
+# RELEASE-PREVIEW-FAN-SHARED-TAG-001: v1.0.0-preview is the single shared preview
+# release for every preview artifact (room-bundle + LED + fan). The dedicated
+# v1.0.0-manual-preview-fans tag concept is retired; tests must NOT expect it.
+RETIRED_DEDICATED_TAG = "v1.0.0-manual-preview-fans"
 LAUNCH_SKU = "S360-KIT-BATH-P"
 VERSION = "1.0.0"
 
@@ -261,21 +270,59 @@ class LedgerPublishEvidenceTests(unittest.TestCase):
         self.assertEqual(errors, [], "\n".join(errors))
 
 
-class TagDeviationRecordedTests(unittest.TestCase):
-    """The recorded run targeted v1.0.0-preview, not the dedicated vehicle."""
+class SharedTagAdoptedTests(unittest.TestCase):
+    """RELEASE-PREVIEW-FAN-SHARED-TAG-001: v1.0.0-preview is the intended shared
+    preview release for room + fan preview artifacts — not a deviation, and no
+    dedicated fan tag is expected."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.text = RESULTS_DOC.read_text(encoding="utf-8")
+        cls.norm = _normalise(cls.text)
+
+    def test_shared_preview_tag_is_the_named_release(self) -> None:
+        self.assertIn(RELEASE_TAG_USED, self.norm)
+        self.assertIn("shared", self.norm)
+
+    def test_shared_tag_not_framed_as_a_deviation(self) -> None:
+        # The shared tag is the intended single preview release, not an error /
+        # override / deviation.
+        for forbidden in ("deviation", "deviates", "operator override"):
+            with self.subTest(phrase=forbidden):
+                self.assertNotIn(forbidden, self.norm)
+
+    def test_dedicated_fan_tag_is_retired(self) -> None:
+        # The dedicated vehicle is named only as retired historical context.
+        self.assertIn("retired", self.norm)
+
+    def test_shared_release_holds_room_and_fan_previews(self) -> None:
+        # The shared release intentionally co-hosts the four room-bundle previews
+        # and the three fan previews.
+        self.assertIn("shared", self.norm)
+        self.assertIn("room", self.norm)
+        self.assertIn("fan", self.norm)
+        # The pre-existing room-bundle previews stay attached with SHA256 intact.
+        self.assertIn("intact", self.norm)
+
+
+class SharedReleaseDoesNotImplyWebflashImportTests(unittest.TestCase):
+    """Presence in the shared preview release must never imply WebFlash import."""
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.norm = _normalise(RESULTS_DOC.read_text(encoding="utf-8"))
+        cls.rows = _rows_by_cs()
 
-    def test_both_tags_named(self) -> None:
-        self.assertIn(RELEASE_TAG_USED, self.norm)
-        self.assertIn(DEDICATED_TAG, self.norm)
+    def test_doc_states_webflash_import_is_controlled_separately(self) -> None:
+        self.assertIn("webflash import", self.norm)
+        self.assertIn("controlled separately", self.norm)
 
-    def test_deviation_is_flagged_without_correction(self) -> None:
-        self.assertIn("overwritten", self.norm)
-        # The four pre-existing room-bundle previews are recorded as intact.
-        self.assertIn("intact", self.norm)
+    def test_fan_rows_stay_not_webflash_importable_on_shared_release(self) -> None:
+        for cs in FAN_CONFIGS:
+            with self.subTest(config_string=cs):
+                ev = self.rows[cs]["publish_evidence"]
+                self.assertIs(ev["webflash_importable"], False)
+                self.assertEqual(ev["release_tag"], RELEASE_TAG_USED)
 
 
 class PosturePreservedTests(unittest.TestCase):
