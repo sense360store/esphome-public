@@ -2,15 +2,35 @@
 
 **Canonical id:** `RELEASE-PREVIEW-RELEASE-NOTES-DRYRUN-001`
 
-This directory holds **dry-run** release-note **drafts** for the three
-metadata-ready preview WebFlash build rows added by
-`RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001` (#698):
+This directory holds the preview release-note sources:
+
+- **Dry-run** release-note **drafts** for the three metadata-ready preview
+  WebFlash build rows added by `RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001` (#698).
+- The combined shared-release source
+  [`v1.0.0-preview.md`](v1.0.0-preview.md) for
+  `RELEASE-PREVIEW-COMBINED-RELEASE-NOTES-001`, covering the co-hosted
+  `v1.0.0-preview` room preview, LED preview, and FanRelay / FanPWM / FanDAC
+  manual-preview artifacts while keeping fan WebFlash import, Simple install,
+  stable, recommended, default, buyable, and hardware / bench / compliance /
+  commercial-availability proof claims out of scope.
+
+The original dry-run draft coverage remains:
 
 | Config string | Draft | Consuming candidate bundle(s) |
 |---|---|---|
 | `Ceiling-POE-AirIQ-RoomIQ` | [`ceiling-poe-airiq-roomiq.md`](ceiling-poe-airiq-roomiq.md) | `S360-KIT-KITCHEN-P` |
 | `Ceiling-POE-RoomIQ` | [`ceiling-poe-roomiq.md`](ceiling-poe-roomiq.md) | `S360-KIT-BEDROOM-P` |
 | `Ceiling-POE-RoomIQ-LED` | [`ceiling-poe-roomiq-led.md`](ceiling-poe-roomiq-led.md) | `S360-KIT-LIVING-P`, `S360-KIT-CORRIDOR-P` |
+
+## Shared preview release source
+
+[`v1.0.0-preview.md`](v1.0.0-preview.md) is the combined release-note source for
+the shared `v1.0.0-preview` prerelease after the manual-preview fan artifacts
+were co-hosted there. It is **source text only**: it does not publish, rebuild,
+retag, upload assets, update `manifest.json`, update `firmware/sources.json`,
+touch WebFlash, import fan artifacts into WebFlash, change Simple install, mark
+anything stable / recommended / default / buyable, include TRIAC, or claim
+hardware / bench / compliance / commercial-availability proof.
 
 ## These are drafts, not releases
 
