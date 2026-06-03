@@ -126,6 +126,57 @@ and [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-ga
 
 ---
 
+## 2a. RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001 — hardware blockers are stable-only
+
+`RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001` formalises the split above into
+machine-checkable, per-row metadata. The decision:
+
+> A blocker that rests **only** on missing hardware proof, missing bench
+> evidence, missing compliance evidence, or missing commercial availability
+> gates **stable / full release only**. It does **not** block a preview artifact
+> for a buildable target. The **only** thing that can stop an actual preview cut
+> is a genuine **buildability** blocker (e.g. `HW-005` GPIO routing for TRIAC).
+
+To make this checkable, every row of the preview-release matrix (and every
+target in [`config/preview-release-targets.json`](../config/preview-release-targets.json))
+now carries three explicit flags alongside its existing `stable_blocker`:
+
+| Flag | Meaning |
+|---|---|
+| `preview_allowed` | The target is preview-eligible. **`true` for every buildable product**, including the fan-control and TRIAC paths. |
+| `preview_warning_required` | A preview / advanced-preview cut of this target must carry the relevant warning copy. `true` everywhere. |
+| `blocker_is_stable_only` | The recorded `stable_blocker` gates stable only and does **not** block preview. `true` for every hardware / bench / compliance / commercial blocker. (TRIAC is the lone `false`, because `HW-005` is a real *buildability* blocker — see below.) |
+
+The decision block lives in `config/release-channel-policy.json` →
+`unblock_all_bundles_decision`, with the classes spelled out:
+
+- **stable-only blocker classes:** `hardware-proof`, `bench-evidence`,
+  `compliance`, `commercial-availability`.
+- **preview blocker class:** `buildability` (the only thing that can stop a
+  preview cut).
+
+What the decision explicitly does **not** do: nothing becomes stable,
+recommended, default, or buyable; **Simple install stays the stable Bathroom
+PoE build only** (`Ceiling-POE-VentIQ-RoomIQ`); the **advanced / manual preview
+lane is the only exposure path** for the risky / unverified TRIAC build; and the
+candidate room bundles stay hidden / not buyable. These are asserted by
+[`tests/test_release_preview_unblock_all_bundles.py`](../tests/test_release_preview_unblock_all_bundles.py).
+
+### TRIAC under this decision
+
+TRIAC is `preview_allowed: true` and `preview_warning_required: true` with its
+`stable_blocker` keeping `HW-005` + `PACKAGE-TRIAC-001` + `COMPLIANCE-001`. It is
+the **only** target with `blocker_is_stable_only: false`, because `HW-005`
+carries a genuine *buildability* component (S360-320 schematic uncommitted,
+GPIO5/GPIO6 collision, `ac_dimmer` cannot run across the SX1509 expander). That
+buildability blocker — **not** a lack of hardware proof — is what currently
+prevents an actual advanced-preview cut (`hardware_proof_blocks_preview: false`,
+`preview_cut_gated_by_buildability: true`). TRIAC stays **advanced-manual-preview
+only**: never stable, never recommended, never default, never a customer-kit
+default, and no safety / compliance certification is claimed.
+
+---
+
 ## 3. Preview-release matrix (every buildable target)
 
 One row per buildable target. `Intended channel` is the channel this policy

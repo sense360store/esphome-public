@@ -480,3 +480,24 @@ This is docs/config only. It flips no catalog status, marks nothing stable
 compliance / verified-schematic evidence, adds no `config/webflash-builds.json`
 row, and does not touch the WebFlash repo. S360-410 remains unresolved /
 `cataloged_unverified` (**not verified**).
+
+### Hardware blockers are stable-only for preview (RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001)
+
+`RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001` makes the "lack of hardware proof
+blocks **stable only**" rule machine-checkable per target. Every row of the
+preview-release matrix and every concrete target now carries explicit
+`preview_allowed` / `preview_warning_required` / `blocker_is_stable_only` flags:
+`preview_allowed` is `true` for **every buildable product** (fan-control and
+TRIAC included), and `blocker_is_stable_only` is `true` for every hardware /
+bench / compliance / commercial blocker. **TRIAC** is the lone exception
+(`blocker_is_stable_only: false`) because `HW-005` is a genuine *buildability*
+blocker — `hardware_proof_blocks_preview: false`,
+`preview_cut_gated_by_buildability: true` — and it stays **advanced-manual-preview
+only** (never stable / recommended / default, mains-risk warning required, no
+compliance claim). Fan drivers stay `manual-preview` only. **Simple install
+stays the stable Bathroom PoE build only** (`Ceiling-POE-VentIQ-RoomIQ`), the
+candidate room bundles stay **hidden / not buyable**, and **no stable / full
+release unblock happens**. Docs/config only: publishes no firmware, adds no
+`config/webflash-builds.json` row, flips no catalog status, and does not touch
+the WebFlash repo. Guarded by
+[`tests/test_release_preview_unblock_all_bundles.py`](../tests/test_release_preview_unblock_all_bundles.py).

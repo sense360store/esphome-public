@@ -46,6 +46,17 @@ The driving rule is unchanged from the policy:
 > **Lack of hardware proof blocks _stable only_. It does _not_ block preview
 > artifact publication.**
 
+> **`RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001`:** every target in this manifest
+> now carries explicit `preview_allowed` / `preview_warning_required` /
+> `blocker_is_stable_only` flags so the stable-only nature of each recorded
+> `stable_blocker` is machine-checkable. `preview_allowed` is `true` for every
+> buildable product (fan-control and TRIAC included); `blocker_is_stable_only` is
+> `true` for every hardware / bench / compliance / commercial blocker. TRIAC is
+> the lone `false` because `HW-005` is a real *buildability* blocker
+> (`hardware_proof_blocks_preview: false`, `preview_cut_gated_by_buildability:
+> true`). See [`docs/release-channel-policy.md`](release-channel-policy.md) §2a and
+> [`tests/test_release_preview_unblock_all_bundles.py`](../tests/test_release_preview_unblock_all_bundles.py).
+
 `config/webflash-builds.json` remains the **sole release-eligibility source of
 truth**. This manifest never adds a row to it; cutting an actual build row stays
 a separate, proof-bearing, per-target step.

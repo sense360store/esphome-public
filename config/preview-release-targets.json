@@ -4,7 +4,23 @@
   "title": "Concrete preview / advanced-preview release targets for all buildable products",
   "date": "2026-06-01",
   "canonical_doc": "docs/preview-release-targets.md",
-  "revised_by": "RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001; RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001; RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001",
+  "revised_by": "RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001; RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001; RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001; RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001",
+  "unblock_all_bundles_decision": {
+    "id": "RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001",
+    "date": "2026-06-03",
+    "policy_source": "config/release-channel-policy.json",
+    "rule": "Hardware-proof / bench-evidence / compliance / commercial-availability blockers gate STABLE / full release ONLY and never block a preview artifact for a buildable target. Each target below carries explicit preview_allowed / preview_warning_required / blocker_is_stable_only flags so the stable-only nature of every recorded stable_blocker is machine-checkable. The only thing that can stop an actual preview cut is a genuine buildability blocker (recorded as build_blocker; today only FanTRIAC carries one, under HW-005). No target is promoted to stable / recommended / default / buyable; Simple install stays the stable Bathroom PoE build only; the advanced-manual-preview lane is the only exposure path for the risky / unverified TRIAC build.",
+    "guarantees": {
+      "nothing_becomes_stable": true,
+      "nothing_becomes_recommended_or_default": true,
+      "nothing_becomes_buyable": true,
+      "simple_install_remains_stable_bathroom_poe_only": true,
+      "candidate_bundles_stay_hidden_not_buyable": true,
+      "publishes_no_firmware": true,
+      "touches_no_webflash_repo": true,
+      "touches_no_firmware_sources_or_manifest": true
+    }
+  },
   "revision_note": "RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001 aligns the concrete targets with the RELEASE-PREVIEW-ALL-PRODUCTS-001 policy decision: EVERY buildable product is a preview (or advanced-preview) RELEASE target. Lack of hardware proof blocks STABLE only and never blocks a preview artifact. FanRelay / FanPWM / FanDAC move from passive 'manual-candidate-only / not releasable' to PREVIEW release targets delivered via the 'manual-preview' lane; FanTRIAC moves from the 'blocked' lane to the 'advanced-manual-preview' lane (no longer blocked-from-preview; only the HW-005 buildability blocker prevents an actual cut). WebFlash one-click import stays a separate, controlled follow-up (gated by the fan-token guardrail + WebFlash warning UX); the preview ARTIFACT is releasable now. No target is promoted to stable, marked recommended/default/REQUIRED_CONFIG, or allowed to claim hardware / bench / compliance / verified-schematic evidence. RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 has since added the reviewed config/webflash-builds.json PREVIEW build rows for the three compile-validated webflash-lane candidates (Ceiling-POE-AirIQ-RoomIQ, Ceiling-POE-RoomIQ, Ceiling-POE-RoomIQ-LED), each addressed via its products/webflash wrapper on the preview (non-stable) channel with hosted-compile evidence (run 26821900127), and flipped their config/product-catalog.json rows blocked->preview. Those three targets move from publication_status eligible-unpublished to webflash-preview-metadata-ready (the WebFlash release-eligibility row now exists), their build_blocker for 'needs a reviewed config/webflash-builds.json row' is resolved (build_blocker null), and their consuming candidate bundles stay hidden / not buyable. No firmware binary, GitHub Release, tag, manifest.json, or firmware/sources.json is published; nothing is promoted to stable.",
   "description": "Concrete, CI-consumable preview / advanced-preview release-target manifest for every buildable Sense360 firmware target. Makes the eligibility policy in config/release-channel-policy.json (RELEASE-PREVIEW-ALL-PRODUCTS-001) actionable by recording, per target, the config string, buildable YAML path, channel tier + build channel, expected artifact name, the release-note warning text, WebFlash import eligibility, the delivery lane (webflash / manual-preview / advanced-manual-preview), the stable blocker, and any build blocker that prevents cutting a preview artifact now. This file is target metadata only: it publishes no firmware, adds no config/webflash-builds.json row, flips no config/product-catalog.json status, promotes nothing to stable, claims no bench evidence / compliance / hardware or build proof, and does not touch the WebFlash repo. config/webflash-builds.json remains the sole WebFlash release-eligibility source of truth; the manual-preview / advanced-manual-preview lanes are non-WebFlash preview delivery lanes for the fan / TRIAC targets. Read by tests/test_preview_release_targets.py and scripts/validate_preview_release_targets.py.",
   "policy_source": "config/release-channel-policy.json",
@@ -62,6 +78,9 @@
   "targets": [
     {
       "target_id": "ceiling-poe-ventiq-roomiq-stable",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": false,
       "product": "Bathroom PoE (VentIQ + RoomIQ) \u2014 Release-One stable baseline",
       "family": "Bathroom",
       "config_string": "Ceiling-POE-VentIQ-RoomIQ",
@@ -98,6 +117,9 @@
     },
     {
       "target_id": "ceiling-poe-ventiq-roomiq-led-preview",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "product": "LED preview (VentIQ + RoomIQ + LED)",
       "family": "LED",
       "config_string": "Ceiling-POE-VentIQ-RoomIQ-LED",
@@ -132,6 +154,9 @@
     },
     {
       "target_id": "ceiling-poe-airiq-roomiq-preview",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "product": "Kitchen PoE / AirIQ (AirIQ + RoomIQ)",
       "family": "Kitchen",
       "config_string": "Ceiling-POE-AirIQ-RoomIQ",
@@ -169,6 +194,9 @@
     },
     {
       "target_id": "ceiling-poe-roomiq-preview",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "product": "Bedroom PoE / RoomIQ (RoomIQ only)",
       "family": "Bedroom",
       "config_string": "Ceiling-POE-RoomIQ",
@@ -206,6 +234,9 @@
     },
     {
       "target_id": "ceiling-poe-roomiq-led-preview",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "product": "Living / Corridor PoE / LED (RoomIQ + LED)",
       "family": "Living",
       "config_string": "Ceiling-POE-RoomIQ-LED",
@@ -244,6 +275,9 @@
     },
     {
       "target_id": "ceiling-poe-ventiq-fanrelay-roomiq-preview",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "product": "FanRelay preview (VentIQ + FanRelay + RoomIQ)",
       "family": "FanRelay",
       "config_string": "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
@@ -279,6 +313,9 @@
     },
     {
       "target_id": "ceiling-poe-fanpwm-preview",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "product": "FanPWM preview (PWM fan, native GPIO)",
       "family": "FanPWM",
       "config_string": "Ceiling-POE-FanPWM",
@@ -314,6 +351,9 @@
     },
     {
       "target_id": "ceiling-poe-fandac-preview",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "product": "FanDAC preview (0-10V DAC fan)",
       "family": "FanDAC",
       "config_string": "Ceiling-POE-FanDAC",
@@ -349,6 +389,11 @@
     },
     {
       "target_id": "ceiling-poe-ventiq-fantriac-roomiq-advanced-preview",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": false,
+      "preview_cut_gated_by_buildability": true,
+      "hardware_proof_blocks_preview": false,
       "product": "FanTRIAC advanced-preview (mains TRIAC dimming)",
       "family": "FanTRIAC",
       "config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
