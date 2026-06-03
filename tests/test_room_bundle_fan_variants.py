@@ -69,12 +69,34 @@ EXPECTED_VARIANT_SKUS = frozenset(
 ALLOWED_FIRMWARE_CONFIG_STATUS = frozenset(
     {
         "buildable-preview-published",
+        "buildable-preview-compile-pending",
         "defined-build-blocked",
         "preview-planned-missing-config",
     }
 )
 ALLOWED_PREVIEW_STATUS = frozenset(
-    {"preview", "advanced-preview-build-blocked", "preview-planned-missing-config"}
+    {
+        "preview",
+        "preview-compile-pending",
+        "advanced-preview-build-blocked",
+        "preview-planned-missing-config",
+    }
+)
+# ROOM-BUNDLE-FAN-CONFIGS-001 built the five missing full-composition configs;
+# they move from preview-planned-missing-config to buildable-preview-compile-pending.
+EXPECTED_COMPILE_PENDING_SKUS = frozenset(
+    {
+        "S360-KIT-BATH-P-PWM",
+        "S360-KIT-BATH-P-DAC",
+        "S360-KIT-KITCHEN-P-REL",
+        "S360-KIT-KITCHEN-P-DAC",
+        "S360-KIT-KITCHEN-P-PWM",
+    }
+)
+# The two FanDAC room-bundle variants require the GP8403 IC2 address override
+# (0x5A) so it does not collide with the air-quality SGP41 at 0x59.
+EXPECTED_DAC_VARIANT_SKUS = frozenset(
+    {"S360-KIT-BATH-P-DAC", "S360-KIT-KITCHEN-P-DAC"}
 )
 # Bare fan-only config strings that must NEVER be mapped to a room-bundle SKU
 # (they omit the bundle's room-sensing modules).
@@ -284,40 +306,94 @@ class RoomBundleFanVariantsTests(unittest.TestCase):
             self.assertIn(v["firmware_config_status"], ALLOWED_FIRMWARE_CONFIG_STATUS)
             self.assertIn(v["preview_status"], ALLOWED_PREVIEW_STATUS)
 
-    def test_missing_configs_are_marked_not_exposed(self):
+    def test_no_variant_remains_planning_missing_config(self):
+        # ROOM-BUNDLE-FAN-CONFIGS-001 built the five buildable full-composition
+        # configs, so no variant is left as preview-planned-missing-config.
         missing = [
             v
             for v in self.variants
             if v["firmware_config_status"] == "preview-planned-missing-config"
         ]
-        # Five of the seven variants are missing-config today.
-        self.assertEqual(len(missing), 5)
-        for v in missing:
-            self.assertFalse(
+        self.assertEqual(
+            [v["sku"] for v in missing],
+            [],
+            "ROOM-BUNDLE-FAN-CONFIGS-001 should have built every buildable "
+            f"full-composition config; still missing: {[v['sku'] for v in missing]!r}",
+        )
+
+    def test_compile_pending_configs_built_but_not_exposed(self):
+        # The five buildable variants are now buildable-preview-compile-pending:
+        # the full-composition config EXISTS, but it is NOT published, NOT
+        # WebFlash-exposed, NOT a preview target, and NOT easy-mode eligible.
+        compile_pending = [
+            v
+            for v in self.variants
+            if v["firmware_config_status"] == "buildable-preview-compile-pending"
+        ]
+        self.assertEqual(
+            {v["sku"] for v in compile_pending},
+            set(EXPECTED_COMPILE_PENDING_SKUS),
+        )
+        for v in compile_pending:
+            self.assertTrue(
                 v["firmware_config_exists"],
-                f"{v['sku']}: missing-config but firmware_config_exists true",
+                f"{v['sku']}: compile-pending but firmware_config_exists false",
             )
+            self.assertEqual(v["preview_status"], "preview-compile-pending")
             self.assertFalse(
                 v["webflash_easy_mode_eligible"],
-                f"{v['sku']}: missing-config must not be easy-mode eligible",
+                f"{v['sku']}: compile-pending must not be easy-mode eligible "
+                "(no published build)",
             )
             self.assertFalse(
                 v["webflash_exposed"],
-                f"{v['sku']}: missing-config must not be exposed",
+                f"{v['sku']}: compile-pending must not be a committed WebFlash build",
             )
-            self.assertEqual(v["preview_status"], "preview-planned-missing-config")
-            # The intended config must genuinely be absent from the release sources.
+            # Evidence must point at a real product YAML + compile-only target,
+            # and the compile must be honestly recorded as pending (not faked).
+            ev = v["firmware_config_evidence"]
+            self.assertTrue(ev["product_yaml"].startswith("products/"))
+            self.assertTrue((REPO_ROOT / ev["product_yaml"]).is_file())
+            self.assertTrue((REPO_ROOT / ev["bundle_yaml"]).is_file())
+            self.assertEqual(ev["compile_validation_status"], "pending-ci")
+            # Still absent from the committed release sources.
             cfg = v["intended_firmware_config_string"]
-            self.assertNotIn(
-                cfg,
-                self.webflash_config_strings,
-                f"{v['sku']}: marked missing but {cfg!r} is a WebFlash build",
-            )
-            self.assertNotIn(
-                cfg,
-                self.preview_config_strings,
-                f"{v['sku']}: marked missing but {cfg!r} is a preview target",
-            )
+            self.assertNotIn(cfg, self.webflash_config_strings)
+            self.assertNotIn(cfg, self.preview_config_strings)
+
+    def test_dac_variants_carry_required_address_override(self):
+        # The FanDAC default IC2 address (0x59) collides with the air-quality
+        # SGP41 (0x59); the two FanDAC room-bundle variants must relocate IC2 to
+        # 0x5A and document the required hardware switch + bench follow-up.
+        policy = self.doc["fan_dac_i2c_address_policy"]
+        self.assertEqual(
+            policy["required_addresses_with_air_quality_module"]["gp8403_ic2"],
+            "0x5A",
+        )
+        self.assertEqual(
+            policy["required_addresses_with_air_quality_module"][
+                "forbidden_gp8403_address"
+            ],
+            "0x59",
+        )
+        self.assertEqual(policy["bench_verification_followup"], "FANDAC-I2C-ADDR-001")
+        self.assertEqual(policy["bench_verification_status"], "pending")
+        dac = [v for v in self.variants if v["control_type"] == "0-10V"]
+        self.assertEqual({v["sku"] for v in dac}, set(EXPECTED_DAC_VARIANT_SKUS))
+        for v in dac:
+            req = v["fan_dac_address_requirement"]
+            self.assertEqual(req["gp8403_ic1"], "0x58")
+            self.assertEqual(req["gp8403_ic2"], "0x5A")
+            self.assertEqual(req["forbidden_gp8403_address"], "0x59")
+            self.assertIn('fan_dac_2_i2c_address: "0x5A"', req["firmware_override"])
+            self.assertEqual(req["bench_verification_followup"], "FANDAC-I2C-ADDR-001")
+            self.assertTrue(v.get("requires_manual_hardware_switch"))
+            # The bundle YAML must actually carry the 0x5A override (reject if
+            # the required address switch setting is missing).
+            bundle = REPO_ROOT / v["firmware_config_evidence"]["bundle_yaml"]
+            text = bundle.read_text(encoding="utf-8")
+            self.assertIn('fan_dac_2_i2c_address: "0x5A"', text)
+            self.assertNotIn('fan_dac_2_i2c_address: "0x59"', text)
 
     def test_no_fan_only_config_mapped_to_a_room_bundle(self):
         for v in self.variants:

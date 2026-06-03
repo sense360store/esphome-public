@@ -20,8 +20,8 @@
   "totals": {
     "combinations": 168,
     "by_status": {
-      "missing-product-yaml": 122,
-      "blocked-hardware": 39,
+      "missing-product-yaml": 118,
+      "blocked-hardware": 43,
       "webflash-preview": 4,
       "webflash-shipping": 1,
       "compile-only-candidate": 2
@@ -109,8 +109,9 @@
       "room_sense": "RoomIQ",
       "fan": "FanPWM",
       "led": "none",
-      "status": "missing-product-yaml",
-      "notes": "No product YAML in config/product-catalog.json and no entry in config/webflash-builds.json."
+      "status": "blocked-hardware",
+      "product_yaml": "products/sense360-ceiling-poe-airiq-fanpwm-roomiq.yaml",
+      "notes": "Catalog status=hardware-pending."
     },
     {
       "config_string": "Ceiling-POE-AirIQ-FanPWM-RoomIQ-LED",
@@ -181,8 +182,9 @@
       "room_sense": "RoomIQ",
       "fan": "FanRelay",
       "led": "none",
-      "status": "missing-product-yaml",
-      "notes": "No product YAML in config/product-catalog.json and no entry in config/webflash-builds.json."
+      "status": "blocked-hardware",
+      "product_yaml": "products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml",
+      "notes": "Catalog status=hardware-pending."
     },
     {
       "config_string": "Ceiling-POE-AirIQ-FanRelay-RoomIQ-LED",
@@ -749,8 +751,9 @@
       "room_sense": "RoomIQ",
       "fan": "FanDAC",
       "led": "none",
-      "status": "missing-product-yaml",
-      "notes": "No product YAML in config/product-catalog.json and no entry in config/webflash-builds.json."
+      "status": "blocked-hardware",
+      "product_yaml": "products/sense360-ceiling-poe-ventiq-fandac-roomiq.yaml",
+      "notes": "Catalog status=hardware-pending."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanDAC-RoomIQ-LED",
@@ -821,8 +824,9 @@
       "room_sense": "RoomIQ",
       "fan": "FanPWM",
       "led": "none",
-      "status": "missing-product-yaml",
-      "notes": "No product YAML in config/product-catalog.json and no entry in config/webflash-builds.json."
+      "status": "blocked-hardware",
+      "product_yaml": "products/sense360-ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+      "notes": "Catalog status=hardware-pending."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanPWM-RoomIQ-LED",

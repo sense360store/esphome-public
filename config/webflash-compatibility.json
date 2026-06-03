@@ -29,6 +29,20 @@
     "generic_fan_token_forbidden": true,
     "fandac_conflicts_with_airiq": true
   },
+  "fandac_air_quality_address_policy": {
+    "note": "Address-precise refinement of the fandac_conflicts_with_airiq mutex (ROOM-BUNDLE-FAN-CONFIGS-001). The mutex boolean above stays TRUE and is NOT relaxed: it keeps AirIQ+FanDAC out of the one-click WebFlash firmware-combination grammar, which cannot set the FanDAC DIP switch. This object documents the underlying hardware-address reason and the manual exception.",
+    "rationale": "The S360-312 FanDAC board carries two GP8403 DACs (package defaults IC1 @ 0x58, IC2 @ 0x59). Both air-quality modules (AirIQ S360-210 and VentIQ S360-211) carry an SGP41 VOC/NOx sensor at I2C 0x59 on the shared core_i2c bus, so the FanDAC default IC2 @ 0x59 collides with the SGP41.",
+    "precise_rule": "AirIQ/VentIQ conflict with FanDAC ONLY when the FanDAC GP8403 uses 0x59. With IC2 relocated to 0x5A (firmware override fan_dac_2_i2c_address plus the matching IC2 DIP switch), AirIQ/VentIQ + FanDAC can coexist.",
+    "required_addresses_with_air_quality_module": {
+      "gp8403_ic1": "0x58",
+      "gp8403_ic2": "0x5A",
+      "forbidden_gp8403_address": "0x59",
+      "sgp41": "0x59"
+    },
+    "webflash_one_click_posture": "Not exposed in WebFlash one-click: the one-click surface cannot set the DIP switch, so AirIQ+FanDAC stays out of the grammar (fandac_conflicts_with_airiq). The address-overridden AirIQ/VentIQ + FanDAC room-bundle configs are advanced/manual previews only (config/room-bundle-fan-variants.json fan_dac_i2c_address_policy).",
+    "bench_verification_followup": "FANDAC-I2C-ADDR-001",
+    "bench_verification_status": "pending"
+  },
   "release_one_required_configs": [
     "Ceiling-POE-VentIQ-RoomIQ"
   ],

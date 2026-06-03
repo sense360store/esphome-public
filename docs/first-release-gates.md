@@ -154,11 +154,11 @@ compliance gate (§4 / §5 / §8); preview eligibility does not weaken that gate
 |---|---|---|---|---|---|---|
 | `S360-KIT-BATH-P-REL` | `S360-KIT-BATH-P` | S360-310 | relay | built + published preview | preview-eligible (ack-gated) | blocked |
 | `S360-KIT-BATH-P-TRIAC` | `S360-KIT-BATH-P` | S360-320 | triac | build-blocked (HW-005) | advanced / manual only; not yet exposable | blocked |
-| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | S360-311 | pwm | preview-planned-missing-config | not eligible (no config) | blocked |
-| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | S360-312 | 0-10V | preview-planned-missing-config | not eligible (no config) | blocked |
-| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | S360-310 | relay | preview-planned-missing-config | not eligible (no config) | blocked |
-| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | S360-312 | 0-10V | preview-planned-missing-config | not eligible (no config) | blocked |
-| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | S360-311 | pwm | preview-planned-missing-config (policy-gated) | not eligible (no config) | blocked |
+| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | S360-311 | pwm | buildable-preview-compile-pending (ROOM-BUNDLE-FAN-CONFIGS-001) | not eligible (compile-pending, not published) | blocked |
+| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | S360-312 | 0-10V | buildable-preview-compile-pending; requires FanDAC IC2 → 0x5A | not eligible (compile-pending; advanced / manual switch) | blocked |
+| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | S360-310 | relay | buildable-preview-compile-pending | not eligible (compile-pending, not published) | blocked |
+| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | S360-312 | 0-10V | buildable-preview-compile-pending; requires FanDAC IC2 → 0x5A; WebFlash-grammar-excluded | not eligible (compile-pending; mutex) | blocked |
+| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | S360-311 | pwm | buildable-preview-compile-pending (policy-gated) | not eligible (compile-pending, not published) | blocked |
 
 Bathroom TRIAC (S360-320) is an **advanced / manual-warning** preview only,
 build-blocked by `HW-005`, never recommended / default / stable, with no

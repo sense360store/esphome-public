@@ -247,15 +247,21 @@ class FanCandidatesNotReleaseSelectableTests(unittest.TestCase):
         ]
         self.assertEqual(len(manual), 3, f"expected 3 manual candidates, got {manual}")
 
-    def test_fan_candidates_are_manual_class(self) -> None:
+    def test_fan_candidates_are_manual_or_blocked_class(self) -> None:
+        # FanRelay / FanPWM / FanDAC product configs are never release-selectable.
+        # The published / manual-lane fan previews are manual-candidate-only; the
+        # ROOM-BUNDLE-FAN-CONFIGS-001 compile-pending room-bundle fan previews are
+        # catalog hardware-pending with no release path yet -> blocked. Neither is
+        # ever stable-release / preview-release.
         for r in self.plan["records"]:
             cs = r.get("config_string") or ""
             for token in FAN_TOKENS:
                 if token.lower() in cs.lower():
-                    self.assertEqual(
+                    self.assertIn(
                         r["release_class"],
-                        "manual-candidate-only",
-                        f"{cs} carries {token}; must be manual-candidate-only",
+                        {"manual-candidate-only", "blocked"},
+                        f"{cs} carries {token}; must be manual-candidate-only or "
+                        "blocked (never release-selectable)",
                     )
 
     def test_fan_candidates_are_not_release_selectable(self) -> None:

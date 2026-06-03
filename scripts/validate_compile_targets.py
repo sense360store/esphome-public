@@ -151,10 +151,26 @@ def validate_metadata(
         config_string = target.get("config_string")
         if config_string:
             if config_string not in matrix_index:
-                target_errors.append(
-                    f"target {target_id!r}: config_string {config_string!r} "
-                    "not present in config/firmware-combination-matrix.json"
-                )
+                if target.get("webflash_grammar_excluded") is True:
+                    # The config string is intentionally absent from the
+                    # WebFlash one-click firmware-combination grammar — e.g.
+                    # the fandac_conflicts_with_airiq mutex keeps AirIQ+FanDAC
+                    # out of the token grammar, which cannot encode the
+                    # required FanDAC DIP-switch address override (IC2 -> 0x5A).
+                    # Such a target is still compile-validated, but it must
+                    # document why it is grammar-excluded.
+                    if not target.get("webflash_grammar_excluded_reason"):
+                        target_errors.append(
+                            f"target {target_id!r}: "
+                            "webflash_grammar_excluded=true requires a "
+                            "non-empty webflash_grammar_excluded_reason"
+                        )
+                else:
+                    target_errors.append(
+                        f"target {target_id!r}: config_string "
+                        f"{config_string!r} not present in "
+                        "config/firmware-combination-matrix.json"
+                    )
 
         if shipment_status in WEBFLASH_EXPOSED_SHIPMENT_STATUSES:
             if not config_string:

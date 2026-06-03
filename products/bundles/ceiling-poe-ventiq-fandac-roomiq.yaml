@@ -1,0 +1,229 @@
+# ============================================================================
+# SENSE360 0-10V (DAC) FAN-CONTROL ROOM-BUNDLE PRODUCT (ROOM-BUNDLE-FAN-CONFIGS-001)
+# ============================================================================
+# Bathroom room-bundle sibling of the Release-One product
+# `products/sense360-ceiling-poe-ventiq-roomiq.yaml` that additionally composes
+# the FanDAC package `packages/expansions/fan_dac.yaml` -> `fan_gp8403.yaml`
+# (S360-312 Sense360 DAC) so the full Bathroom bundle (VentIQ + RoomIQ) gains
+# 0-10V analog fan control (e.g. EC fan / MVHR boost).
+#
+# This is the full-composition firmware config for the
+# `S360-KIT-BATH-P-DAC` preview bundle variant defined in
+# `config/room-bundle-fan-variants.json` (ROOM-BUNDLE-FAN-VARIANTS-002). It
+# carries the Bathroom room-sensing modules (VentIQ + RoomIQ) PLUS the FanDAC
+# driver; it is NOT the fan-only `Ceiling-POE-FanDAC` config (which omits the
+# room modules and is deliberately NOT substituted for a room-bundle SKU).
+#
+# ----------------------------------------------------------------------------
+# *** REQUIRED FanDAC I2C ADDRESS SWITCH SETTING — READ BEFORE INSTALLING ***
+# ----------------------------------------------------------------------------
+# The S360-312 FanDAC board carries TWO GP8403 DACs whose package defaults are
+# IC1 @ 0x58 and IC2 @ 0x59. The Sense360 air-quality modules (VentIQ AND
+# AirIQ) carry an SGP41 VOC/NOx sensor at I2C 0x59 on the SAME shared `core_i2c`
+# bus. So the FanDAC default (IC2 @ 0x59) WOULD COLLIDE with SGP41 in any
+# VentIQ/AirIQ + FanDAC bundle.
+#
+# This bundle therefore OVERRIDES the second GP8403 to 0x5A
+# (`fan_dac_2_i2c_address: "0x5A"`, see substitutions below). GP8403 supports
+# the address span 0x58-0x5F via its A0/A1/A2 hardware address pins, selected by
+# the on-board DIP switch (SW2 for IC2). For this firmware to match the
+# hardware, the installer MUST set the S360-312 IC2 DIP switch (SW2) so IC2
+# reports 0x5A (A1 = 1; A0 = A2 = 0), NOT the 0x59 default. IC1 (SW1) stays at
+# 0x58.
+#
+# Required FanDAC address map when a VentIQ/AirIQ air-quality module is present:
+#   - GP8403 IC1 (SW1): 0x58   (unchanged; no SGP41 collision)
+#   - GP8403 IC2 (SW2): 0x5A   (REQUIRED override; 0x59 is FORBIDDEN here)
+#   - SGP41 (VentIQ):   0x59   (fixed; owned by the air-quality module)
+#
+# This required DIP-switch mapping is NOT yet bench-verified: the
+# DIP-position -> 7-bit address truth table for S360-312 is still owed by the
+# `FANDAC-I2C-ADDR-001` hardware follow-up (physically confirm SW1=0x58 + SW2=0x5A
+# on the shared `core_i2c` bus with VentIQ/AirIQ present). Until then this config
+# is preview / advanced-manual only and is gated behind that documented switch
+# requirement; see docs/hardware/s360-312-r4-fandac.md §FANDAC-I2C-ADDR-001.
+#
+# Status — what this YAML is NOT:
+#
+#   * NOT Release-One stable. Release-One stays `Ceiling-POE-VentIQ-RoomIQ`
+#     (no fan-driver firmware) on the `stable` channel. This is a preview
+#     sibling and does NOT change Release-One.
+#   * NOT compile-validated yet. ROOM-BUNDLE-FAN-CONFIGS-001 authored this
+#     full-composition YAML and registered the matching compile-only target
+#     `ceiling-poe-ventiq-fandac-roomiq-compile-only`
+#     (`compile_validation_status: pending-ci`); the hosted ESPHome compile
+#     dry-run is queued, not yet run (ESPHome CLI was unavailable in the
+#     authoring environment and no compile is fabricated).
+#   * NOT WebFlash-exposed. No `products/webflash/` wrapper, no
+#     `config/webflash-builds.json` row, no `webflash_build_matrix: true`, no
+#     `artifact_name`, no release artifact. WebFlash easy-mode cannot set DIP
+#     switches, so the `fandac_conflicts_with_airiq` WebFlash-token mutex
+#     stays in force for the one-click surface; this advanced/manual room-bundle
+#     preview is the documented address-overridden exception.
+#   * NOT a default / recommended kit / not in `release_one_required_configs`.
+#     The `S360-KIT-BATH-P-DAC` variant stays `waitlist-only` (hidden / not
+#     buyable). The default sellable bathroom kit remains `S360-KIT-BATH-POE`
+#     mapped to Release-One.
+#   * NOT compliance-certified, NOT hardware verified. The 0-10V analog output
+#     path is SELV control signalling, not a mains path, but no compliance
+#     approval and no bench evidence is claimed. S360-312 stays
+#     `schematic_status: cataloged_unverified`.
+#   * NO per-output range mixing on one GP8403 (one V5V reference / one range
+#     register per chip). FanTRIAC stays blocked under HW-005; LED is omitted.
+#
+# ----------------------------------------------------------------------------
+# Bundle configuration (this YAML):
+# - Mount       : Ceiling
+# - Power       : POE  (IEEE 802.3af)
+# - Air Quality : VentIQ (bathroom-focused — replaces AirIQ)
+# - Room Sense  : RoomIQ (comfort + presence)
+# - Fan Driver  : FanDAC (S360-312, two GP8403 DACs / four 0-10V outputs)
+# - LED         : not included
+#
+# Compatibility rules (see docs/release-one.md):
+# - AirIQ and VentIQ are mutually exclusive; this bundle uses VentIQ.
+# - RoomIQ can be combined with either AirIQ or VentIQ.
+# - Fan driver variants (FanRelay/FanPWM/FanDAC/FanTRIAC) are firmware-distinct
+#   and not interchangeable. This sibling ships FanDAC.
+# - FanDAC IC2 must NOT sit at 0x59 alongside the VentIQ SGP41 (see the
+#   REQUIRED address switch section above).
+#
+# Hardware (canonical friendly names; see docs/hardware-catalog.md):
+# - Core         : Sense360 Core    (S360-100-R4, ESP32-S3, ceiling mount)
+# - Power        : Sense360 PoE PSU (S360-410, IEEE 802.3af) — schematic
+#                  verification pending (PRODUCT-POE-410-001).
+# - Air Quality  : Sense360 VentIQ  (S360-211, bathroom-focused) — schematic
+#                  verification pending.
+# - Room Sense   : Sense360 RoomIQ  (S360-200-R4, comfort + presence)
+# - Fan Driver   : Sense360 DAC     (S360-312, two GP8403 DACs / four 0-10V
+#                                    outputs; IC2 relocated to 0x5A)
+# - LED          : not included
+#
+# Customer usage in their ESPHome config (pin to a release tag):
+#
+#   packages:
+#     sense360_firmware:
+#       url: https://github.com/sense360store/esphome-public
+#       ref: main
+#       files:
+#         - products/sense360-ceiling-poe-ventiq-fandac-roomiq.yaml
+#       refresh: 1d
+#
+#   substitutions:
+#     device_name: sense360-bath-dac
+#     friendly_name: "Bathroom Sense360 0-10V"
+# ============================================================================
+
+substitutions:
+  # === Device Configuration ===
+  device_name: s360-ceil-poe-ventiq-rm-dac
+  friendly_name: Sense360 Ceiling Bathroom 0-10V
+  device_sku: S360-CORE-C-POE
+  device_version: "1.0.0"
+  timezone: "America/New_York"
+
+  # === Logging ===
+  log_level: INFO
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "false"
+
+  # === WiFi AP fallback ===
+  fallback_ssid: "S360 VentIQ RoomIQ DAC"
+
+  # === Power configuration (PoE) ===
+  power_source: poe
+  poe_class: "0"
+  poe_standard: "802.3af"
+
+  # === VentIQ (bathroom) thresholds ===
+  shower_humidity_threshold: "75"
+  shower_humidity_rate: "5"
+  mold_risk_humidity: "65"
+  mold_risk_duration_minutes: "30"
+
+  # === FanDAC binding — REQUIRED I2C address override ===
+  # The FanDAC package (packages/expansions/fan_dac.yaml -> fan_gp8403.yaml)
+  # defaults the second GP8403 (IC2) to 0x59, which collides with the VentIQ
+  # SGP41 at 0x59 on the shared core_i2c bus. This bundle relocates IC2 to 0x5A
+  # so VentIQ + FanDAC can coexist. The installer MUST set the S360-312 IC2 DIP
+  # switch (SW2) to 0x5A to match (see the REQUIRED address switch section in
+  # the header). IC1 stays at the package default 0x58. Bench verification of
+  # the DIP-position -> address mapping is owed by FANDAC-I2C-ADDR-001.
+  fan_dac_2_i2c_address: "0x5A"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === External Components (radar firmware) ===
+  external_components: !include ../../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../../packages/base/wifi.yaml
+  base_logging: !include ../../packages/base/logging.yaml
+  base_api: !include ../../packages/base/api_encrypted.yaml
+  base_ota: !include ../../packages/base/ota.yaml
+  base_time: !include ../../packages/base/time.yaml
+
+  # === Sense360 Core (Ceiling, S360-100-R4) ===
+  # Provides the shared `core_i2c` bus VentIQ + RoomIQ + the GP8403 DACs bind.
+  core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
+
+  # === Sense360 PoE PSU (S360-410) ===
+  power_config: !include ../../packages/hardware/power_poe.yaml
+
+  # === Sense360 LED (S360-300) ===
+  # Intentionally NOT included.
+
+  # === Sense360 VentIQ (S360-211, bathroom-focused air quality) ===
+  # SGP41 sits at 0x59 on core_i2c; the FanDAC IC2 is relocated to 0x5A above
+  # so the two do not collide. AirIQ and VentIQ are mutually exclusive; this
+  # bundle uses VentIQ.
+  ventiq_module: !include ../../packages/expansions/airiq_bathroom_base.yaml
+  ventiq_profile: !include ../../packages/features/bathroom_profile.yaml
+
+  # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
+  roomiq_comfort: !include ../../packages/expansions/comfort_ceiling.yaml
+  roomiq_comfort_profile: !include ../../packages/features/comfort_basic_profile.yaml
+  roomiq_presence: !include ../../packages/expansions/presence_ceiling.yaml
+  roomiq_presence_profile: !include ../../packages/features/presence_basic_profile.yaml
+
+  # === Sense360 DAC (S360-312, two GP8403 DACs / four 0-10V outputs) ===
+  # Canonical FanDAC alias -> packages/expansions/fan_gp8403.yaml. IC1 @ 0x58,
+  # IC2 relocated to 0x5A (see the REQUIRED address override above) so it does
+  # not collide with the VentIQ SGP41 @ 0x59. PACKAGE-DAC-001 implemented the
+  # package; this room-bundle product adds NO WebFlash exposure / release
+  # artifact / build-matrix row.
+  fan_dac_module: !include ../../packages/expansions/fan_dac.yaml
+
+  # === Sense360 TRIAC (S360-320, AC phase-cut fan driver) ===
+  # NOT included. The FanTRIAC slot remains blocked per HW-005.
+
+  # === Device Health & Diagnostics ===
+  health: !include ../../packages/features/device_health.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Product Config"
+    lambda: |-
+      return {"Ceiling-POE-VentIQ-FanDAC-RoomIQ"};
+    update_interval: never
+    entity_category: diagnostic
