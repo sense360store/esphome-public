@@ -304,6 +304,12 @@ land, the publish must use:
    preview exposure. Not started; not implied by this plan.
 4. **FanTRIAC `HW-005`** — unchanged buildability defect; FanTRIAC stays
    `advanced-manual-preview`, build-blocked, excluded from every publish surface.
+5. **`RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001` — DONE.** Complements the shared
+   release vehicle (`RELEASE-PREVIEW-FAN-SHARED-TAG-001`): the publish workflow
+   keeps the shared `v1.0.0-preview` release as the frictionless default and
+   confirm-gates any other tag (`confirm_tag_override=true`), so an accidental
+   dispatch to the wrong tag fails fast before any build. It does **not**
+   reintroduce a dedicated fan tag.
 
 ---
 

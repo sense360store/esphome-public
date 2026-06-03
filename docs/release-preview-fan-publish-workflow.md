@@ -63,6 +63,22 @@ WebFlash release-eligibility ledger.
   attaching a fan artifact to the shared release does not imply WebFlash import,
   Simple-install exposure, stable status, recommendation, default, or buyability.
 
+## Release-tag confirmation guard (`RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001`)
+
+The shared `v1.0.0-preview` preview release is the **frictionless default**. To
+prevent an accidental dispatch to the wrong tag (a typo, the stable release, or a
+stray new release) from creating or overwriting the wrong release, the workflow
+confirm-gates any non-shared tag:
+
+- A **"Guard release tag"** step in the `generate-matrix` job runs
+  `scripts/validate_manual_preview_fan_publish.py --validate-release-tag` and
+  **fails the whole run before any build** when the tag is not allowed.
+- `release_tag` defaults to the shared `v1.0.0-preview`; that default needs no
+  confirmation.
+- Any **other** tag requires `confirm_tag_override=true`. This is a deliberate
+  "are you sure?" gate, **not** a reintroduction of a dedicated fan tag — the
+  shared release stays the intended vehicle.
+
 ## Guardrails
 
 This PR does **not** publish firmware, run the workflow, create a GitHub Release
@@ -76,7 +92,10 @@ The eventual run remains queued as `RELEASE-PREVIEW-FAN-PUBLISH-RUN-001`.
 ## Validation
 
 - `python3 scripts/validate_manual_preview_fan_publish.py --metadata-only`
+- `python3 scripts/validate_manual_preview_fan_publish.py --validate-release-tag --release-tag v1.0.0-preview` (accepts)
+- `python3 scripts/validate_manual_preview_fan_publish.py --validate-release-tag --release-tag v1.0.0` (rejects — exit 1; needs `--confirm-tag-override true`)
 - `python3 scripts/validate_manual_preview_fan_publish.py --print-matrix`
 - `python3 scripts/validate_manual_preview_fan_publish.py --release-body > /tmp/manual-preview-fan-release-notes.md`
 - `python3 scripts/validate-webflash-release-notes.py /tmp/manual-preview-fan-release-notes.md --channel preview`
 - `python3 tests/test_preview_fan_publish_workflow.py`
+- `python3 tests/test_preview_fan_publish_tag_guard.py`
