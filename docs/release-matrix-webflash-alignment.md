@@ -151,6 +151,22 @@ Bathroom PoE release. Verified locally via `python3 scripts/list_release_targets
 `for f in docs/release-notes/preview/ceiling-poe-*.md; do python3 scripts/validate-webflash-release-notes.py "$f" --channel preview; done`,
 and `python3 tests/test_preview_release_notes_drafts.py`.
 
+The **non-WebFlash** fan-control / TRIAC preview targets (refused by the WebFlash
+release-note pipeline above, correctly, because they are not in
+`config/webflash-builds.json`) get their own preview release-note coverage under
+`RELEASE-PREVIEW-FAN-TRIAC-BUILD-ROWS-001`: validated dry-run drafts under
+[`docs/release-notes/manual-preview/`](release-notes/manual-preview/) and a
+build-row ledger at
+[`config/preview-fan-triac-build-rows.json`](../config/preview-fan-triac-build-rows.json)
+(the manual / advanced-manual analog of `config/webflash-builds.json`).
+FanRelay / FanPWM / FanDAC are `manual-preview` (firmware-build proof only, run
+`26821900127`); FanTRIAC is `advanced-manual-preview`, **build-blocked by
+`HW-005`** with **no compile proof claimed** and the mandatory mains-risk
+warning. No `config/webflash-builds.json` row is added. Locked by
+[`tests/test_preview_fan_triac_build_rows.py`](../tests/test_preview_fan_triac_build_rows.py);
+full record in
+[`docs/release-preview-fan-triac-build-rows.md`](release-preview-fan-triac-build-rows.md).
+
 ---
 
 ## 5. WebFlash exposure verification

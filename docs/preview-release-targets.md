@@ -185,6 +185,19 @@ can never drift.
   FanDAC tester-facing preview artifacts; cross-referenced from this manifest. It
   stays non-release in the durable sense (no GitHub Release / WebFlash row), but
   the preview artifact it produces is the releasable fan preview.
+- [`config/preview-fan-triac-build-rows.json`](../config/preview-fan-triac-build-rows.json)
+  — the **fan-control / TRIAC preview build-row ledger**
+  (`RELEASE-PREVIEW-FAN-TRIAC-BUILD-ROWS-001`): the manual / advanced-manual
+  analog of `config/webflash-builds.json` for the four non-WebFlash fan / TRIAC
+  targets. Each row cross-references a target here (by `preview_release_target_id`)
+  and records the lane, preview channel, expected artifact, warning copy,
+  release-note draft, stable blocker, and either firmware-build compile evidence
+  (FanRelay / FanPWM / FanDAC, run `26821900127`) or the `HW-005` build-blocked
+  status with **no compile proof** (FanTRIAC). Release-note drafts live under
+  [`docs/release-notes/manual-preview/`](release-notes/manual-preview/); the full
+  record is
+  [`docs/release-preview-fan-triac-build-rows.md`](release-preview-fan-triac-build-rows.md).
+  Adds **no** `config/webflash-builds.json` row.
 - [`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json)
   — the generated readiness view; regenerated and unchanged by this slice
   (no build/catalog status flipped).

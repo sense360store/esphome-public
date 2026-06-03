@@ -17,10 +17,12 @@
   "retention_days": 7,
   "preview_policy": {
     "id": "RELEASE-PREVIEW-TARGETS-ALL-PRODUCTS-001",
-    "revised_by": "RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001",
+    "revised_by": "RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001; RELEASE-PREVIEW-FAN-TRIAC-BUILD-ROWS-001",
     "channel_tier": "preview",
     "delivery_lane": "manual-preview",
     "manifest": "config/preview-release-targets.json",
+    "build_rows_ledger": "config/preview-fan-triac-build-rows.json",
+    "release_note_drafts_dir": "docs/release-notes/manual-preview/",
     "webflash_importable": false,
     "preview_artifact_releasable": true,
     "note": "These three fan-driver candidates are the FanRelay / FanPWM / FanDAC PREVIEW-tier RELEASE targets enumerated in config/preview-release-targets.json. Under RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001 they are the 'manual-preview' delivery lane: this lane IS how their tester-facing preview .bin is produced and handed over, so they are real preview release targets, not passive 'manual-candidate-only / not releasable' candidates. WebFlash one-click import stays gated -- the fan-token guardrail (scripts/list_release_targets.py refuses a fan token in the release matrix; the catalog keeps webflash_build_matrix=false) keeps fan drivers out of config/webflash-builds.json until the WebFlash warning UX supports fan preview exposure (separate follow-up: WEBFLASH-RELAY-001 / WEBFLASH-PWM-001 / WEBFLASH-DAC-001). This CI lane stays non-release in the durable sense (release:false / webflash:false / release_channel:null): no GitHub Release, no firmware/sources.json, no manifest.json, no committed .bin, no WebFlash wrapper, no webflash_build_matrix flip. The targets remain not stable, not recommended, not a default, and carry no compliance claim."
@@ -37,7 +39,8 @@
       "preview_release_target": true,
       "webflash_importable": false,
       "stable_blocker": "Mains-safety / installation-approval / creepage / clearance evidence + competent-person sign-off + GPIO3 strap-pin boot characterisation.",
-      "caveat": "mains / safety / competent-person sign-off still required; not kit / default / recommended"
+      "caveat": "mains / safety / competent-person sign-off still required; not kit / default / recommended",
+      "release_note_draft": "docs/release-notes/manual-preview/ceiling-poe-ventiq-fanrelay-roomiq.md"
     },
     {
       "id": "fanpwm",
@@ -50,7 +53,8 @@
       "preview_release_target": true,
       "webflash_importable": false,
       "stable_blocker": "Measured current / thermal evidence (S360-311-CURRENT-THERMAL-001); RPM / TachIO not claimed.",
-      "caveat": "no RPM / TachIO claim; measured current / thermal still required"
+      "caveat": "no RPM / TachIO claim; measured current / thermal still required",
+      "release_note_draft": "docs/release-notes/manual-preview/ceiling-poe-fanpwm.md"
     },
     {
       "id": "fandac",
@@ -63,7 +67,8 @@
       "preview_release_target": true,
       "webflash_importable": false,
       "stable_blocker": "Cloudlift S12 / J3 harness + product-bench evidence; S360-312 schematic / BOM.",
-      "caveat": "not Cloudlift-ready; J3 / Cloudlift evidence still required; no compliance claim"
+      "caveat": "not Cloudlift-ready; J3 / Cloudlift evidence still required; no compliance claim",
+      "release_note_draft": "docs/release-notes/manual-preview/ceiling-poe-fandac.md"
     }
   ]
 }

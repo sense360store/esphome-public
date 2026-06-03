@@ -175,6 +175,22 @@ prevents an actual advanced-preview cut (`hardware_proof_blocks_preview: false`,
 only**: never stable, never recommended, never default, never a customer-kit
 default, and no safety / compliance certification is claimed.
 
+### Concrete build rows (RELEASE-PREVIEW-FAN-TRIAC-BUILD-ROWS-001)
+
+`RELEASE-PREVIEW-FAN-TRIAC-BUILD-ROWS-001` makes this decision concrete for the
+four fan-control / TRIAC targets by adding a build-row ledger at
+[`config/preview-fan-triac-build-rows.json`](../config/preview-fan-triac-build-rows.json)
+— the **manual / advanced-manual analog of `config/webflash-builds.json`** — plus
+release-note drafts under
+[`docs/release-notes/manual-preview/`](release-notes/manual-preview/). FanRelay /
+FanPWM / FanDAC are `manual-preview` build rows citing **firmware-build proof
+only** (run `26821900127`); FanTRIAC is the `advanced-manual-preview` row,
+**build-blocked by `HW-005`** with **no compile proof claimed**. It adds **no**
+`config/webflash-builds.json` row (the fan-token guardrail is unchanged), flips
+no catalog status, and promotes nothing to stable / recommended / default /
+buyable. See
+[`docs/release-preview-fan-triac-build-rows.md`](release-preview-fan-triac-build-rows.md).
+
 ---
 
 ## 3. Preview-release matrix (every buildable target)
