@@ -1,0 +1,6 @@
+# Compat shim — see products/bundles/ceiling-poe-airiq-fanpwm-roomiq.yaml for the composition.
+# Retained so external references to this product path keep resolving.
+# Authored by ROOM-BUNDLE-FAN-CONFIGS-001 (preview / compile-pending room-bundle
+# fan-control variant; not stable, not WebFlash-exposed, not buyable).
+packages:
+  bundle: !include bundles/ceiling-poe-airiq-fanpwm-roomiq.yaml

@@ -659,6 +659,47 @@ spreadsheet)_` rather than fabricated.
   the BOM level.
 - Any address-resistor selection (no jumper-strap addressing).
 
+## FANDAC-I2C-ADDR-001 — room-bundle FanDAC + air-quality address requirement
+
+`ROOM-BUNDLE-FAN-CONFIGS-001` builds full-composition room-bundle preview
+configs that compose the FanDAC package **alongside an air-quality module**
+(`Ceiling-POE-VentIQ-FanDAC-RoomIQ`, `Ceiling-POE-AirIQ-FanDAC-RoomIQ`). That
+exposes a hard I²C-address collision on the shared `core_i2c` bus:
+
+| Device | Default I²C address |
+|---|---|
+| GP8403 IC1 (FanDAC, `SW1`) | `0x58` |
+| GP8403 IC2 (FanDAC, `SW2`) | `0x59` |
+| SGP41 VOC/NOx (VentIQ **and** AirIQ) | `0x59` |
+
+The FanDAC second DAC (IC2) and the air-quality SGP41 both default to `0x59`,
+so they cannot coexist unmodified. The `fandac_conflicts_with_airiq` rule in
+[`config/webflash-compatibility.json`](../../config/webflash-compatibility.json)
+records this for AirIQ and keeps AirIQ+FanDAC out of the WebFlash one-click
+grammar (the one-click surface cannot set a DIP switch).
+
+**Resolution (firmware side, landed):** the room-bundle FanDAC bundles
+override `fan_dac_2_i2c_address: "0x5A"` so IC2 moves off `0x59`. GP8403
+supports the `0x58`–`0x5F` span via its `A0`/`A1`/`A2` address pins, selected
+by the on-board DIP switch. The required map when an air-quality module is
+present is:
+
+- GP8403 IC1 (`SW1`): `0x58` (unchanged)
+- GP8403 IC2 (`SW2`): `0x5A` (**required**; `0x59` is **forbidden** here)
+- SGP41: `0x59` (fixed; owned by the air-quality module)
+
+**FANDAC-I2C-ADDR-001 (hardware follow-up — PENDING):** physically verify, on
+a populated `S360-100-R4` + `S360-312-R4` pair with a VentIQ/AirIQ module
+present, that the IC2 DIP switch (`SW2`) position selected for these bundles
+actually yields `0x5A` (and IC1/`SW1` yields `0x58`) on `core_i2c`, with the
+SGP41 still answering at `0x59` and no bus contention. This requires a
+GP8403 datasheet DIP-position → 7-bit-address citation **or** a logic-analyser
+bench capture recorded with operator / date. Until it lands, the two room-bundle
+FanDAC configs stay **advanced / manual preview, compile-pending** behind the
+documented switch requirement — no hardware / bench / compliance proof is
+claimed. (This is a superset of Open-evidence item 1 below, scoped to the
+specific `0x5A` requirement the room-bundle DAC configs depend on.)
+
 ## Open evidence (not resolved by this PR)
 
 These items remain **pending** before `PACKAGE-DAC-001` can land.

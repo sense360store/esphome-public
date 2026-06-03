@@ -508,6 +508,10 @@ class PackageRelayDoesNotTouchWebFlashOrProductTests(unittest.TestCase):
             # bundle that the product shim pulls in; the bundle is the one
             # extra product-layer YAML expected to carry a FanRelay name.
             "products/bundles/ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+            # ROOM-BUNDLE-FAN-CONFIGS-001 adds the Kitchen FanRelay room-bundle
+            # preview (shim + bundle); compile-pending, not WebFlash-exposed.
+            "products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml",
+            "products/bundles/ceiling-poe-airiq-fanrelay-roomiq.yaml",
         }
     )
 

@@ -85,6 +85,141 @@
       "notes": "FanRelay product YAML added by PRODUCT-RELAY-001 as an advanced/manual-warning-only sibling of Release-One. PACKAGE-RELAY-001 / PR #562 implemented the FanRelay package at the package layer only; product-layer blockers remain open (production-wide / multi-unit ESP32-S3 GPIO3 strap-pin boot-behaviour characterisation; board-level mains-safety / installation-approval / creepage / clearance / thermal / EMI / EMC evidence; competent-person caveat sign-off). NOT release-one, NOT REQUIRED_CONFIGS, NOT recommended, NOT kit-default, NOT compliance-certified, NOT WebFlash-exposed. webflash_build_matrix is false; no artifact_name; no webflash_wrapper; no config/webflash-builds.json entry; no release artifact. WebFlash exposure (if and when appropriate) is owned by a separate WEBFLASH-RELAY-001 slice gated additionally on production-wide hardware characterisation + installation / competent-person sign-off + WebFlash-side manual-warning UX parity. The default sellable bathroom kit remains S360-KIT-BATH-POE (Release-One); S360-KIT-BATH-RELAY stays future-expansion / hardware-pending. See docs/product-readiness-matrix.md §FanRelay / S360-310, docs/webflash-exposure-readiness-matrix.md §Relay / S360-310 WebFlash posture, docs/release-artifact-readiness-matrix.md §Relay / S360-310 release posture. MANUAL-FIRMWARE-CANDIDATE-001 (2026-05-27): the top-level product YAML products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml is now recorded as a manual / no-WebFlash firmware candidate — the product YAML is present, structurally validated (tests/test_relay_product_readiness.py), and full-compile validated (its registered compile-only target ceiling-poe-ventiq-fanrelay-roomiq-compile-only carries compile_validation_status validated-full-compile, recorded from the committed FW-FULL-COMPILE-TOPLEVEL-FANS-001 / PR #616 full-lane run in which this top-level product YAML was target #8, rc=0, Flash 53.8% / 987219 bytes). Manual / no-WebFlash firmware candidate means only that the YAML compiles and can be installed manually (local esphome compile/upload or a remote-package include): it is NOT a release artifact, NOT WebFlash exposure or import, NOT hardware-stable, NOT compliance / mains-safety / competent-person approval, and NOT kit-default / recommended / Release-One readiness. status stays hardware-pending; webflash_build_matrix stays false; no artifact_name; no webflash_wrapper; no release artifact; no .bin / checksum. RELEASE-RELAY-001 (stable / full release) stays blocked on the production-wide hardware / mains-safety / competent-person evidence above. WEBFLASH-RELAY-001 preview / manual-preview WebFlash import is now ELIGIBLE (RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001) as an Advanced-install-only, acknowledgement-gated preview import; webflash_build_matrix=false is no longer a preview-import blocker, it only records that no committed config/webflash-builds.json one-click import row is added here (the fan-token guardrail stands), which is the separately queued downstream WF-IMPORT-RELAY-001 follow-up."
     },
     {
+      "config_string": "Ceiling-POE-VentIQ-FanPWM-RoomIQ",
+      "status": "hardware-pending",
+      "product_yaml": "products/sense360-ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+      "webflash_build_matrix": false,
+      "modules": {
+        "mount": "Ceiling",
+        "power": "POE",
+        "air_quality": "VentIQ",
+        "room_sense": "RoomIQ",
+        "fan": "FanPWM",
+        "led": "none"
+      },
+      "blocked_modules": [
+        "FanTRIAC",
+        "LED"
+      ],
+      "hardware": {
+        "core": "S360-100",
+        "ventiq": "S360-211",
+        "roomiq": "S360-200",
+        "pwm": "S360-311",
+        "poe": "S360-410"
+      },
+      "hardware_status": "product-yaml-authored-compile-pending",
+      "notes": "Full-composition room-bundle fan-control firmware config authored by ROOM-BUNDLE-FAN-CONFIGS-001 as a preview / compile-pending sibling. The product YAML exists (thin compat shim over its products/bundles/ composition); its matching compile-only target carries compile_validation_status pending-ci (ESPHome CLI was unavailable in the authoring environment; the hosted compile dry-run is queued, not yet run, and no compile is fabricated). Native ESP32-S3 ledc PWM-drive path (S360-311); no RPM surfaced. RELEASE-PWM-001 stable / full release stays blocked on measured current / thermal / bench evidence; S360-311 is SELV (no mains, COMPLIANCE-001 does not gate FanPWM). webflash_build_matrix is false; no artifact_name; no webflash_wrapper; no config/webflash-builds.json entry; no release artifact. NOT release-one, NOT REQUIRED_CONFIGS, NOT recommended, NOT kit-default, NOT buyable, NOT compliance-certified, NOT hardware-verified, NOT WebFlash-exposed. See config/room-bundle-fan-variants.json (ROOM-BUNDLE-FAN-VARIANTS-002) and docs/sense360-room-bundles.md."
+    },
+    {
+      "config_string": "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
+      "status": "hardware-pending",
+      "product_yaml": "products/sense360-ceiling-poe-ventiq-fandac-roomiq.yaml",
+      "webflash_build_matrix": false,
+      "modules": {
+        "mount": "Ceiling",
+        "power": "POE",
+        "air_quality": "VentIQ",
+        "room_sense": "RoomIQ",
+        "fan": "FanDAC",
+        "led": "none"
+      },
+      "blocked_modules": [
+        "FanTRIAC",
+        "LED"
+      ],
+      "hardware": {
+        "core": "S360-100",
+        "ventiq": "S360-211",
+        "roomiq": "S360-200",
+        "dac": "S360-312",
+        "poe": "S360-410"
+      },
+      "hardware_status": "product-yaml-authored-compile-pending",
+      "notes": "Full-composition room-bundle fan-control firmware config authored by ROOM-BUNDLE-FAN-CONFIGS-001 as a preview / compile-pending sibling. The product YAML exists (thin compat shim over its products/bundles/ composition); its matching compile-only target carries compile_validation_status pending-ci (ESPHome CLI was unavailable in the authoring environment; the hosted compile dry-run is queued, not yet run, and no compile is fabricated). REQUIRED FanDAC I2C address switch setting: the S360-312 second GP8403 (IC2) is relocated from its 0x59 package default to 0x5A (fan_dac_2_i2c_address override in the bundle) so it does not collide with the air-quality module SGP41 at 0x59 on the shared core_i2c bus; the installer must set the IC2 DIP switch (SW2) to 0x5A to match. Bench verification of the DIP-position -> address mapping is owed by FANDAC-I2C-ADDR-001. RELEASE-DAC-001 stable / full release stays blocked on Cloudlift / J3 harness / product-bench / S360-312 schematic evidence AND FANDAC-I2C-ADDR-001. webflash_build_matrix is false; no artifact_name; no webflash_wrapper; no config/webflash-builds.json entry; no release artifact. NOT release-one, NOT REQUIRED_CONFIGS, NOT recommended, NOT kit-default, NOT buyable, NOT compliance-certified, NOT hardware-verified, NOT WebFlash-exposed. See config/room-bundle-fan-variants.json (ROOM-BUNDLE-FAN-VARIANTS-002) and docs/sense360-room-bundles.md."
+    },
+    {
+      "config_string": "Ceiling-POE-AirIQ-FanRelay-RoomIQ",
+      "status": "hardware-pending",
+      "product_yaml": "products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml",
+      "webflash_build_matrix": false,
+      "modules": {
+        "mount": "Ceiling",
+        "power": "POE",
+        "air_quality": "AirIQ",
+        "room_sense": "RoomIQ",
+        "fan": "FanRelay",
+        "led": "none"
+      },
+      "blocked_modules": [
+        "FanTRIAC",
+        "LED"
+      ],
+      "hardware": {
+        "core": "S360-100",
+        "airiq": "S360-210",
+        "roomiq": "S360-200",
+        "relay": "S360-310",
+        "poe": "S360-410"
+      },
+      "hardware_status": "product-yaml-authored-compile-pending",
+      "notes": "Full-composition room-bundle fan-control firmware config authored by ROOM-BUNDLE-FAN-CONFIGS-001 as a preview / compile-pending sibling. The product YAML exists (thin compat shim over its products/bundles/ composition); its matching compile-only target carries compile_validation_status pending-ci (ESPHome CLI was unavailable in the authoring environment; the hosted compile dry-run is queued, not yet run, and no compile is fabricated). Kitchen extract / boost via on-board relay K1 (S360-310). The published FanRelay artifact is the Bathroom config (VentIQ), which is NOT substituted for this AirIQ Kitchen SKU. Where mains AC switching is in scope, installation must be by a competent person; RELEASE-RELAY-001 + the base Kitchen bundle (S360-410 + AirIQ sensor-stack) blockers apply. webflash_build_matrix is false; no artifact_name; no webflash_wrapper; no config/webflash-builds.json entry; no release artifact. NOT release-one, NOT REQUIRED_CONFIGS, NOT recommended, NOT kit-default, NOT buyable, NOT compliance-certified, NOT hardware-verified, NOT WebFlash-exposed. See config/room-bundle-fan-variants.json (ROOM-BUNDLE-FAN-VARIANTS-002) and docs/sense360-room-bundles.md."
+    },
+    {
+      "config_string": "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
+      "status": "hardware-pending",
+      "product_yaml": "products/sense360-ceiling-poe-airiq-fandac-roomiq.yaml",
+      "webflash_build_matrix": false,
+      "modules": {
+        "mount": "Ceiling",
+        "power": "POE",
+        "air_quality": "AirIQ",
+        "room_sense": "RoomIQ",
+        "fan": "FanDAC",
+        "led": "none"
+      },
+      "blocked_modules": [
+        "FanTRIAC",
+        "LED"
+      ],
+      "hardware": {
+        "core": "S360-100",
+        "airiq": "S360-210",
+        "roomiq": "S360-200",
+        "dac": "S360-312",
+        "poe": "S360-410"
+      },
+      "hardware_status": "product-yaml-authored-compile-pending",
+      "notes": "Full-composition room-bundle fan-control firmware config authored by ROOM-BUNDLE-FAN-CONFIGS-001 as a preview / compile-pending sibling. The product YAML exists (thin compat shim over its products/bundles/ composition); its matching compile-only target carries compile_validation_status pending-ci (ESPHome CLI was unavailable in the authoring environment; the hosted compile dry-run is queued, not yet run, and no compile is fabricated). REQUIRED FanDAC I2C address switch setting: the S360-312 second GP8403 (IC2) is relocated from its 0x59 package default to 0x5A (fan_dac_2_i2c_address override in the bundle) so it does not collide with the air-quality module SGP41 at 0x59 on the shared core_i2c bus; the installer must set the IC2 DIP switch (SW2) to 0x5A to match. Bench verification of the DIP-position -> address mapping is owed by FANDAC-I2C-ADDR-001. This AirIQ + FanDAC config stays OUT of the one-click WebFlash firmware-combination matrix: the fandac_conflicts_with_airiq token mutex keeps AirIQ + FanDAC out of the WebFlash easy-mode grammar (which cannot encode the DIP-switch override); this advanced / manual room-bundle preview is the documented address-overridden exception. RELEASE-DAC-001 + the base Kitchen bundle (S360-410 + AirIQ sensor-stack) blockers AND FANDAC-I2C-ADDR-001 apply. webflash_build_matrix is false; no artifact_name; no webflash_wrapper; no config/webflash-builds.json entry; no release artifact. NOT release-one, NOT REQUIRED_CONFIGS, NOT recommended, NOT kit-default, NOT buyable, NOT compliance-certified, NOT hardware-verified, NOT WebFlash-exposed. See config/room-bundle-fan-variants.json (ROOM-BUNDLE-FAN-VARIANTS-002) and docs/sense360-room-bundles.md."
+    },
+    {
+      "config_string": "Ceiling-POE-AirIQ-FanPWM-RoomIQ",
+      "status": "hardware-pending",
+      "product_yaml": "products/sense360-ceiling-poe-airiq-fanpwm-roomiq.yaml",
+      "webflash_build_matrix": false,
+      "modules": {
+        "mount": "Ceiling",
+        "power": "POE",
+        "air_quality": "AirIQ",
+        "room_sense": "RoomIQ",
+        "fan": "FanPWM",
+        "led": "none"
+      },
+      "blocked_modules": [
+        "FanTRIAC",
+        "LED"
+      ],
+      "hardware": {
+        "core": "S360-100",
+        "airiq": "S360-210",
+        "roomiq": "S360-200",
+        "pwm": "S360-311",
+        "poe": "S360-410"
+      },
+      "hardware_status": "product-yaml-authored-compile-pending",
+      "notes": "Full-composition room-bundle fan-control firmware config authored by ROOM-BUNDLE-FAN-CONFIGS-001 as a preview / compile-pending sibling. The product YAML exists (thin compat shim over its products/bundles/ composition); its matching compile-only target carries compile_validation_status pending-ci (ESPHome CLI was unavailable in the authoring environment; the hosted compile dry-run is queued, not yet run, and no compile is fabricated). OPTIONAL, policy-gated Kitchen variant for low-voltage / custom extract / MVHR boost (NOT generic cooker-hood control); may be dropped if not policy-approved. Native ESP32-S3 ledc PWM-drive path (S360-311); no RPM surfaced; SELV (no mains). RELEASE-PWM-001 + the base Kitchen bundle (S360-410 + AirIQ sensor-stack) blockers apply. webflash_build_matrix is false; no artifact_name; no webflash_wrapper; no config/webflash-builds.json entry; no release artifact. NOT release-one, NOT REQUIRED_CONFIGS, NOT recommended, NOT kit-default, NOT buyable, NOT compliance-certified, NOT hardware-verified, NOT WebFlash-exposed. See config/room-bundle-fan-variants.json (ROOM-BUNDLE-FAN-VARIANTS-002) and docs/sense360-room-bundles.md."
+    },
+    {
       "config_string": "Ceiling-POE-FanDAC",
       "status": "hardware-pending",
       "product_yaml": "products/sense360-ceiling-poe-fandac.yaml",

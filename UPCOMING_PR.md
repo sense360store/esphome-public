@@ -233,6 +233,37 @@ plus resolving FanTRIAC `HW-005` — captured as the next queue items below.
 
 ## Next queue (actionable)
 
+> **`ROOM-BUNDLE-FAN-CONFIGS-001` is DONE (this PR; config + product YAML + docs
+> + tests only).** Builds the five previously-missing full-composition
+> room-bundle fan-control preview configs where the firmware packages already
+> exist — Bathroom `Ceiling-POE-VentIQ-FanPWM-RoomIQ` /
+> `Ceiling-POE-VentIQ-FanDAC-RoomIQ` and Kitchen
+> `Ceiling-POE-AirIQ-FanRelay-RoomIQ` / `Ceiling-POE-AirIQ-FanDAC-RoomIQ` /
+> `Ceiling-POE-AirIQ-FanPWM-RoomIQ` — each as a `products/` shim + a
+> `products/bundles/` composition (Core + PoE + room modules + fan driver),
+> with a `config/product-catalog.json` `hardware-pending` row and a
+> `config/compile-only-targets.json` target. In
+> [`config/room-bundle-fan-variants.json`](config/room-bundle-fan-variants.json)
+> the five variants move from `preview-planned-missing-config` to
+> **`buildable-preview-compile-pending`** (ESPHome CLI unavailable →
+> `compile_validation_status: pending-ci`, hosted compile dry-run **queued**, no
+> compile fabricated). The two **FanDAC** configs carry a **required hardware
+> address fix**: the GP8403 IC2 default `0x59` collides with the VentIQ/AirIQ
+> **SGP41 @ 0x59**, so both bundles override `fan_dac_2_i2c_address: "0x5A"` and
+> document the required IC2 DIP-switch setting; the `fandac_conflicts_with_airiq`
+> mutex is **not relaxed** but refined to a documented hardware-address
+> requirement (`fan_dac_i2c_address_policy`), AirIQ+FanDAC stays out of the
+> WebFlash one-click grammar (`webflash_grammar_excluded`), and the bench
+> follow-up is `FANDAC-I2C-ADDR-001` (PENDING). **TRIAC stays build-blocked
+> (`HW-005`); Bathroom Relay is unchanged.** Publishes no firmware, no `.bin`,
+> no release/tag, no `config/webflash-builds.json` row; nothing stable /
+> recommended / default / buyable; no hardware / bench / compliance proof; does
+> not touch the WebFlash repo. Validation: `tests/validate_configs.py`,
+> `validate_compile_targets.py --metadata-only`,
+> `validate_preview_release_targets.py --metadata-only`,
+> `validate_preview_fan_triac_build_rows.py --metadata-only`,
+> `generate_firmware_matrix.py --check`, and the full `tests/` suite all green.
+
 > **`SHOP-COMMERCIAL-SOURCE-OF-TRUTH-001` is DONE (this PR; commercial / docs +
 > config only).** Records the first-shop-launch **commercial naming and shop
 > posture decision** so product naming, ecommerce copy, WebFlash links,

@@ -277,6 +277,18 @@ class CompileTargetsCrossRefTests(unittest.TestCase):
             cs = target.get("config_string")
             if not cs:
                 continue
+            if target.get("webflash_grammar_excluded") is True:
+                # Intentionally absent from the WebFlash one-click grammar
+                # (e.g. AirIQ+FanDAC under the fandac_conflicts_with_airiq
+                # mutex, which the one-click surface cannot satisfy because it
+                # cannot set the required FanDAC IC2 DIP switch to 0x5A). Such a
+                # target is still compile-validated but must document why.
+                self.assertTrue(
+                    target.get("webflash_grammar_excluded_reason"),
+                    f"target {target['id']!r}: webflash_grammar_excluded=true "
+                    "requires a non-empty webflash_grammar_excluded_reason",
+                )
+                continue
             self.assertIn(
                 cs,
                 self.matrix_configs,
@@ -1579,6 +1591,13 @@ class FanPWMCompileOnlyCoverageTests(unittest.TestCase):
             "products/sense360-fan-pwm.yaml",
             FANPWM_PRODUCT_YAML,
             "products/bundles/ceiling-poe-fanpwm.yaml",
+            # ROOM-BUNDLE-FAN-CONFIGS-001 room-bundle FanPWM previews
+            # (shim + bundle, Bathroom + Kitchen); compile-pending, not
+            # WebFlash-exposed.
+            "products/sense360-ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+            "products/bundles/ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+            "products/sense360-ceiling-poe-airiq-fanpwm-roomiq.yaml",
+            "products/bundles/ceiling-poe-airiq-fanpwm-roomiq.yaml",
         }
         offenders = []
         for path in products_dir.rglob("*.yaml"):

@@ -82,12 +82,13 @@ nothing, and verifies nothing**. It does **not**:
 - mark LED (`S360-300`) stable; LED stays `preview`;
 - mark any fan variant (`S360-310` / `S360-311` / `S360-312` /
   `S360-320`) release-ready or stable; the fan-control variants are a
-  **preview bundle plan at most** (preview-eligible only where a
-  full-composition config is built, advanced / manual only for TRIAC,
-  `preview-planned-missing-config` otherwise) per
+  **preview bundle plan at most** (the five buildable configs are
+  `buildable-preview-compile-pending` after `ROOM-BUNDLE-FAN-CONFIGS-001`,
+  advanced / manual only for TRIAC which stays build-blocked under `HW-005`)
+  per
   [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
-  (`ROOM-BUNDLE-FAN-VARIANTS-002`), and stable / full release stays
-  hardware / evidence / compliance gated;
+  (`ROOM-BUNDLE-FAN-VARIANTS-002`, revised by `ROOM-BUNDLE-FAN-CONFIGS-001`),
+  and stable / full release stays hardware / evidence / compliance gated;
 - add a fan bundle SKU, or treat a bundle SKU as a board SKU, firmware
   config string, or release artifact name.
 
@@ -175,13 +176,16 @@ PR):
    bundle in the **base matrix** includes a fan driver. The Bathroom /
    Kitchen fan-control variants in
    [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
-   (`ROOM-BUNDLE-FAN-VARIANTS-002`) are preview-eligible only where a
-   full-composition firmware config is built (today: Bathroom Relay only),
-   advanced / manual-warning-only and build-blocked for TRIAC, and
-   `preview-planned-missing-config` otherwise. Every variant keeps
-   `webflash_exposed: false` (no committed `config/webflash-builds.json`
-   row) and `stable_status: blocked`, and none is marked release-ready or
-   buyable by this audit.
+   (`ROOM-BUNDLE-FAN-VARIANTS-002`, revised by `ROOM-BUNDLE-FAN-CONFIGS-001`)
+   carry built full-composition configs for the five buildable variants
+   (Bathroom PWM/DAC, Kitchen Relay/DAC/PWM are now
+   `buildable-preview-compile-pending`; Bathroom Relay stays the one built +
+   **published** preview); TRIAC stays advanced / manual-warning-only and
+   build-blocked under `HW-005`. The two FanDAC configs additionally require
+   the GP8403 IC2 `0x5A` address override + DIP switch (bench follow-up
+   `FANDAC-I2C-ADDR-001`). Every variant keeps `webflash_exposed: false` (no
+   committed `config/webflash-builds.json` row) and `stable_status: blocked`,
+   and none is marked release-ready or buyable by this audit.
 
 ---
 

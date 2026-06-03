@@ -1,0 +1,188 @@
+# ============================================================================
+# SENSE360 RELAY FAN-CONTROL ROOM-BUNDLE PRODUCT (ROOM-BUNDLE-FAN-CONFIGS-001)
+# ============================================================================
+# Kitchen room-bundle sibling of the preview product
+# `products/sense360-ceiling-poe-airiq-roomiq.yaml` that additionally composes
+# the FanRelay package `packages/expansions/fan_relay.yaml` (S360-310 Sense360
+# Relay) so the full Kitchen bundle (AirIQ + RoomIQ) gains single-speed (on/off)
+# extract / boost control via the on-board relay K1.
+#
+# This is the full-composition firmware config for the
+# `S360-KIT-KITCHEN-P-REL` preview bundle variant defined in
+# `config/room-bundle-fan-variants.json` (ROOM-BUNDLE-FAN-VARIANTS-002). It
+# carries the Kitchen room-sensing modules (AirIQ + RoomIQ) PLUS the FanRelay
+# driver; the published FanRelay artifact is the Bathroom config
+# `Ceiling-POE-VentIQ-FanRelay-RoomIQ` (VentIQ, not AirIQ) and is deliberately
+# NOT substituted for this Kitchen SKU.
+#
+# Status — what this YAML is NOT:
+#
+#   * NOT Release-One stable. Release-One stays `Ceiling-POE-VentIQ-RoomIQ` on
+#     the `stable` channel. This is a preview sibling and does NOT change it.
+#   * NOT compile-validated yet. ROOM-BUNDLE-FAN-CONFIGS-001 authored this
+#     full-composition YAML and registered the matching compile-only target
+#     `ceiling-poe-airiq-fanrelay-roomiq-compile-only`
+#     (`compile_validation_status: pending-ci`); the hosted ESPHome compile
+#     dry-run is queued, not yet run (ESPHome CLI was unavailable in the
+#     authoring environment and no compile is fabricated). The proven
+#     `Ceiling-POE-VentIQ-FanRelay-RoomIQ` sibling shows the FanRelay package
+#     composes cleanly on the same Core; AirIQ swaps in for VentIQ (both
+#     I2C-only on `core_i2c`).
+#   * NOT WebFlash-exposed. No `products/webflash/` wrapper, no
+#     `config/webflash-builds.json` row, no `webflash_build_matrix: true`, no
+#     `artifact_name`, no release artifact.
+#   * NOT a default / recommended kit / not in `release_one_required_configs`.
+#     The `S360-KIT-KITCHEN-P-REL` variant stays `waitlist-only` (hidden / not
+#     buyable). The default sellable bathroom kit remains `S360-KIT-BATH-POE`
+#     mapped to Release-One.
+#   * NOT compliance-certified, NOT hardware verified. Where mains AC switching
+#     is in scope, installation MUST be performed by a competent person per the
+#     applicable jurisdiction; no board-level mains-safety / installation-approval
+#     / creepage / clearance / thermal / EMI / EMC certification is claimed.
+#   * The base Kitchen bundle `Ceiling-POE-AirIQ-RoomIQ` is itself a preview /
+#     stable-candidate (release-blocked on S360-410 + AirIQ sensor-stack bench
+#     evidence); this fan sibling inherits those blockers and adds the relay /
+#     mains-safety blockers on top.
+#   * FanTRIAC stays blocked under HW-005; LED is intentionally omitted.
+#
+# ----------------------------------------------------------------------------
+# Bundle configuration (this YAML):
+# - Mount       : Ceiling
+# - Power       : POE  (IEEE 802.3af)
+# - Air Quality : AirIQ (full indoor air-quality stack)
+# - Room Sense  : RoomIQ (comfort + presence)
+# - Fan Driver  : FanRelay (S360-310, on/off via on-board K1)
+# - LED         : not included
+#
+# Compatibility rules (see docs/release-one.md):
+# - AirIQ and VentIQ are mutually exclusive; this bundle uses AirIQ.
+# - RoomIQ can be combined with either AirIQ or VentIQ.
+# - Fan driver variants (FanRelay/FanPWM/FanDAC/FanTRIAC) are firmware-distinct
+#   and not interchangeable. This sibling ships FanRelay.
+#
+# Hardware (canonical friendly names; see docs/hardware-catalog.md):
+# - Core         : Sense360 Core    (S360-100-R4, ESP32-S3, ceiling mount)
+# - Power        : Sense360 PoE PSU (S360-410, IEEE 802.3af) — schematic
+#                  verification pending (PRODUCT-POE-410-001).
+# - Air Quality  : Sense360 AirIQ   (S360-210-R4, full ceiling air-quality stack)
+# - Room Sense   : Sense360 RoomIQ  (S360-200-R4, comfort + presence)
+# - Fan Driver   : Sense360 Relay   (S360-310, on-board K1; mains-switching contact)
+# - LED          : not included
+#
+# Customer usage in their ESPHome config (pin to a release tag):
+#
+#   packages:
+#     sense360_firmware:
+#       url: https://github.com/sense360store/esphome-public
+#       ref: main
+#       files:
+#         - products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml
+#       refresh: 1d
+#
+#   substitutions:
+#     device_name: sense360-kitchen-relay
+#     friendly_name: "Kitchen Sense360 Relay"
+# ============================================================================
+
+substitutions:
+  # === Device Configuration ===
+  device_name: s360-ceil-poe-airiq-rm-fr
+  friendly_name: Sense360 Ceiling Kitchen Relay
+  device_sku: S360-CORE-C-POE
+  device_version: "1.0.0"
+  timezone: "America/New_York"
+
+  # === Logging ===
+  log_level: INFO
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "false"
+
+  # === WiFi AP fallback ===
+  fallback_ssid: "S360 AirIQ RoomIQ Relay"
+
+  # === Power configuration (PoE) ===
+  power_source: poe
+  poe_class: "0"
+  poe_standard: "802.3af"
+
+  # === FanRelay binding ===
+  # The relay GPIO output is owned by the Core abstract package (the
+  # `main_relay` `switch.gpio` on `${relay_pin}` -> GPIO3 per S360-100-R4 IO3).
+  # The FanRelay package proxies that single owner via a `fan_relay_switch`
+  # template switch; do NOT re-bind the GPIO here.
+
+# ============================================================================
+# PACKAGE INCLUDES (board layer + base + profiles)
+# ============================================================================
+packages:
+  # === External Components (radar firmware) ===
+  external_components: !include ../../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../../packages/base/wifi.yaml
+  base_logging: !include ../../packages/base/logging.yaml
+  base_api: !include ../../packages/base/api_encrypted.yaml
+  base_ota: !include ../../packages/base/ota.yaml
+  base_time: !include ../../packages/base/time.yaml
+
+  # === Sense360 Core (Ceiling, S360-100-R4) ===
+  # Board package wraps packages/hardware/sense360_core_ceiling.yaml; defines
+  # the shared `core_i2c` bus AirIQ + RoomIQ bind and owns the `main_relay`
+  # GPIO the FanRelay package proxies.
+  core_board: !include ../../packages/boards/s360-100-core-ceiling.yaml
+
+  # === Sense360 PoE PSU (S360-410) ===
+  power_board: !include ../../packages/boards/s360-410-poe-psu.yaml
+
+  # === Sense360 LED (S360-300) ===
+  # Intentionally NOT included.
+
+  # === Sense360 AirIQ (S360-210, full indoor air-quality stack) ===
+  # Board package wraps packages/expansions/airiq_ceiling.yaml on the shared
+  # core_i2c bus. AirIQ and VentIQ are mutually exclusive; this bundle ships AirIQ.
+  airiq_board: !include ../../packages/boards/s360-210-airiq.yaml
+  airiq_profile: !include ../../packages/features/airiq_basic_profile.yaml
+
+  # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
+  roomiq_board: !include ../../packages/boards/s360-200-roomiq.yaml
+  roomiq_comfort_profile: !include ../../packages/features/comfort_basic_profile.yaml
+  roomiq_presence_profile: !include ../../packages/features/presence_basic_profile.yaml
+
+  # === Sense360 Relay (S360-310, on-board K1, on/off fan-control) ===
+  # The Core board package owns the relay GPIO as the `main_relay` switch; the
+  # FanRelay package exposes it as the `fan_relay_switch` template switch.
+  # PACKAGE-RELAY-001 implemented the package; this room-bundle product adds NO
+  # WebFlash exposure / release artifact / build-matrix row.
+  fan_relay_module: !include ../../packages/expansions/fan_relay.yaml
+
+  # === Sense360 TRIAC (S360-320, AC phase-cut fan driver) ===
+  # NOT included. The FanTRIAC slot remains blocked per HW-005.
+
+  # === Device Health & Diagnostics ===
+  health: !include ../../packages/features/device_health.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Product Config"
+    lambda: |-
+      return {"Ceiling-POE-AirIQ-FanRelay-RoomIQ"};
+    update_interval: never
+    entity_category: diagnostic

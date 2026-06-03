@@ -432,6 +432,13 @@ class FanPwmNoProductOrWebFlashSurfaceTests(unittest.TestCase):
             "products/sense360-fan-pwm.yaml",
             "products/sense360-ceiling-poe-fanpwm.yaml",
             "products/bundles/ceiling-poe-fanpwm.yaml",
+            # ROOM-BUNDLE-FAN-CONFIGS-001 room-bundle FanPWM previews
+            # (shim + bundle, Bathroom + Kitchen); compile-pending, not
+            # WebFlash-exposed.
+            "products/sense360-ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+            "products/bundles/ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+            "products/sense360-ceiling-poe-airiq-fanpwm-roomiq.yaml",
+            "products/bundles/ceiling-poe-airiq-fanpwm-roomiq.yaml",
         }
         unexpected = sorted(set(offenders) - allowed)
         self.assertEqual(

@@ -79,7 +79,12 @@
     "Ceiling-POE-FanDAC",
     "Ceiling-POE-FanPWM",
     "Ceiling-USB-VentIQ-RoomIQ",
-    "Ceiling-USB-RoomIQ"
+    "Ceiling-USB-RoomIQ",
+    "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
+    "Ceiling-POE-AirIQ-FanPWM-RoomIQ",
+    "Ceiling-POE-AirIQ-FanRelay-RoomIQ",
+    "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
+    "Ceiling-POE-VentIQ-FanPWM-RoomIQ"
   ],
   "totals": {
     "candidates": 26,

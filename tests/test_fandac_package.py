@@ -414,7 +414,16 @@ class FanDACPackageLayerOnlyTests(unittest.TestCase):
         # The FanDAC composition (the `!include` of the package) now lives in
         # the bundle that the product shim pulls in; the bundle is the single
         # product-layer YAML that actively composes the FanDAC package.
-        allowed_rel = "products/bundles/ceiling-poe-fandac.yaml"
+        # The canonical PRODUCT-DAC-001 fan-only bundle plus the two
+        # ROOM-BUNDLE-FAN-CONFIGS-001 room-bundle FanDAC previews (Bathroom +
+        # Kitchen) actively compose the FanDAC package. The room-bundle previews
+        # additionally relocate the GP8403 IC2 to 0x5A (see fan_dac_2_i2c_address)
+        # so it does not collide with the air-quality SGP41 at 0x59.
+        allowed_rel = {
+            "products/bundles/ceiling-poe-fandac.yaml",
+            "products/bundles/ceiling-poe-ventiq-fandac-roomiq.yaml",
+            "products/bundles/ceiling-poe-airiq-fandac-roomiq.yaml",
+        }
         includers: list[str] = []
         for path in PRODUCTS_DIR.rglob("*.yaml"):
             # The compile-only skeleton namespace is exempt — it is not a
@@ -431,11 +440,11 @@ class FanDACPackageLayerOnlyTests(unittest.TestCase):
                     includers.append(path.relative_to(REPO_ROOT).as_posix())
                     break
         self.assertEqual(
-            sorted(includers),
-            [allowed_rel],
-            "Exactly one top-level product YAML — the canonical "
-            f"PRODUCT-DAC-001 product {allowed_rel!r} — may actively "
-            f"!include the FanDAC package; found: {sorted(includers)!r}.",
+            set(includers),
+            allowed_rel,
+            "Only the canonical PRODUCT-DAC-001 fan-only bundle and the two "
+            "ROOM-BUNDLE-FAN-CONFIGS-001 room-bundle FanDAC bundles may "
+            f"actively !include the FanDAC package; found: {sorted(includers)!r}.",
         )
 
 

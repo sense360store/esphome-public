@@ -265,13 +265,13 @@ when it is preview-eligible.
 |---|---|---|---|---|---|---|---|
 | `S360-KIT-BATH-P-REL` | `S360-KIT-BATH-P` | `S360-310` | relay | `Ceiling-POE-VentIQ-FanRelay-RoomIQ` | **Yes** — built + published preview | **Preview-eligible** (Advanced-install-only, acknowledgement-gated) | preview / stable **blocked** |
 | `S360-KIT-BATH-P-TRIAC` | `S360-KIT-BATH-P` | `S360-320` | triac | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | Defined but **build-blocked** (`HW-005`) | **Advanced / manual only**, not easy-mode; build-blocked → not exposable yet | advanced-preview (blocked) / stable **blocked** |
-| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | `S360-311` | pwm | `Ceiling-POE-VentIQ-FanPWM-RoomIQ` | **No** — `preview-planned-missing-config` | Not eligible (no config) | missing-config / stable **blocked** |
-| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | `S360-312` | 0-10V | `Ceiling-POE-VentIQ-FanDAC-RoomIQ` | **No** — `preview-planned-missing-config` | Not eligible (no config) | missing-config / stable **blocked** |
-| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | `S360-310` | relay | `Ceiling-POE-AirIQ-FanRelay-RoomIQ` | **No** — `preview-planned-missing-config` | Not eligible (no config) | missing-config / stable **blocked** |
-| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | `S360-312` | 0-10V | `Ceiling-POE-AirIQ-FanDAC-RoomIQ` | **No** — `preview-planned-missing-config` | Not eligible (no config) | missing-config / stable **blocked** |
-| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | `S360-311` | pwm | `Ceiling-POE-AirIQ-FanPWM-RoomIQ` | **No** — `preview-planned-missing-config` (policy-gated) | Not eligible (no config) | missing-config / stable **blocked** |
+| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | `S360-311` | pwm | `Ceiling-POE-VentIQ-FanPWM-RoomIQ` | **Yes** — built, `buildable-preview-compile-pending` (`ROOM-BUNDLE-FAN-CONFIGS-001`) | Not eligible (compile-pending, not published) | compile-pending preview / stable **blocked** |
+| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | `S360-312` | 0-10V | `Ceiling-POE-VentIQ-FanDAC-RoomIQ` | **Yes** — built, `buildable-preview-compile-pending`; **requires FanDAC IC2 → 0x5A** (see below) | Not eligible (compile-pending; advanced / manual switch) | compile-pending preview / stable **blocked** |
+| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | `S360-310` | relay | `Ceiling-POE-AirIQ-FanRelay-RoomIQ` | **Yes** — built, `buildable-preview-compile-pending` | Not eligible (compile-pending, not published) | compile-pending preview / stable **blocked** |
+| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | `S360-312` | 0-10V | `Ceiling-POE-AirIQ-FanDAC-RoomIQ` | **Yes** — built, `buildable-preview-compile-pending`; **requires FanDAC IC2 → 0x5A**; WebFlash-grammar-excluded (`fandac_conflicts_with_airiq`) | Not eligible (compile-pending; advanced / manual switch; mutex) | compile-pending preview / stable **blocked** |
+| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | `S360-311` | pwm | `Ceiling-POE-AirIQ-FanPWM-RoomIQ` | **Yes** — built, `buildable-preview-compile-pending` (policy-gated) | Not eligible (compile-pending, not published) | compile-pending preview / stable **blocked** |
 
-Only **`S360-KIT-BATH-P-REL`** has a built, published full-composition
+Only **`S360-KIT-BATH-P-REL`** has a built **and published** full-composition
 preview firmware config today (`Ceiling-POE-VentIQ-FanRelay-RoomIQ`, on the
 manual-preview lane — see
 [`config/preview-release-targets.json`](../config/preview-release-targets.json)
@@ -279,18 +279,60 @@ and
 [`config/preview-fan-triac-build-rows.json`](../config/preview-fan-triac-build-rows.json)).
 It is the one variant that is WebFlash-easy-mode preview-eligible now.
 
-### Missing configs are marked, not faked
+### Full configs now exist (compile-pending) — `ROOM-BUNDLE-FAN-CONFIGS-001`
 
-The four Bathroom / Kitchen PWM / DAC and Kitchen Relay variants have **no
-full-bundle firmware config built** (no product YAML, no compile-only
-target, no catalog row, no preview target, no artifact). They are marked
-`preview-planned-missing-config` and are **not** exposed. A **fan-only**
-firmware config (for example `Ceiling-POE-FanPWM` / `Ceiling-POE-FanDAC`,
-which omit the room-sensing modules) is **deliberately not substituted** for
-a room-bundle variant: a variant config must include the bundle's room
-modules (Bathroom = VentIQ + RoomIQ; Kitchen = AirIQ + RoomIQ) plus the fan
-driver. Each missing variant becomes a preview only after its
-full-composition config is built and imported.
+`ROOM-BUNDLE-FAN-CONFIGS-001` builds the **five** previously-missing
+full-composition firmware configs — Bathroom PWM / DAC and Kitchen Relay /
+DAC / PWM — where the firmware packages already exist. Each now has a real
+`products/` shim + `products/bundles/` composition + a
+[`config/product-catalog.json`](../config/product-catalog.json)
+`hardware-pending` row + a
+[`config/compile-only-targets.json`](../config/compile-only-targets.json)
+target, and moves from `preview-planned-missing-config` to
+**`buildable-preview-compile-pending`**. Because the ESPHome CLI was
+unavailable in the authoring environment, each target's
+`compile_validation_status` is **`pending-ci`** (metadata validated; a hosted
+compile dry-run is queued, not yet run — no compile is fabricated). A
+**fan-only** firmware config (for example `Ceiling-POE-FanPWM` /
+`Ceiling-POE-FanDAC`, which omit the room-sensing modules) is still
+**deliberately not substituted**: every variant config carries the bundle's
+room modules (Bathroom = VentIQ + RoomIQ; Kitchen = AirIQ + RoomIQ) **plus**
+the fan driver.
+
+These five configs are **compile-pending previews only**: not published, no
+`.bin`, no `config/webflash-builds.json` row, **not** WebFlash-exposed, not
+stable, not recommended, not a customer default, not buyable. **TRIAC stays
+build-blocked (`HW-005`)** and **Bathroom Relay is unchanged.** No hardware /
+bench / compliance proof is claimed.
+
+### FanDAC ↔ air-quality I²C address requirement (the two DAC variants)
+
+The S360-312 FanDAC board carries two GP8403 DACs (package defaults IC1 @
+`0x58`, IC2 @ `0x59`). Both air-quality modules — **VentIQ (S360-211)** and
+**AirIQ (S360-210)** — carry an **SGP41** VOC/NOx sensor at I²C **`0x59`** on
+the shared `core_i2c` bus, so the FanDAC default IC2 @ `0x59` **collides**
+with the SGP41 in any VentIQ/AirIQ + FanDAC bundle. The
+`fandac_conflicts_with_airiq` rule in
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+records that collision for AirIQ.
+
+The conflict is **not relaxed** — it is refined to a documented
+hardware-address requirement (see `fan_dac_i2c_address_policy` in
+[`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)):
+
+- **Precise rule:** AirIQ/VentIQ conflict with FanDAC **only** when the
+  GP8403 uses `0x59`. With IC2 relocated to `0x5A`, they coexist.
+- Both DAC room-bundle bundles set the firmware override
+  `fan_dac_2_i2c_address: "0x5A"` (IC1 stays `0x58`). The installer **must**
+  set the S360-312 IC2 DIP switch (SW2) so IC2 reports `0x5A` to match.
+- **WebFlash one-click stays excluded:** the one-click surface cannot set the
+  DIP switch, so AirIQ + FanDAC stays out of the WebFlash
+  firmware-combination grammar (`Ceiling-POE-AirIQ-FanDAC-RoomIQ` is
+  `webflash_grammar_excluded`); these DAC configs are advanced / manual
+  previews only.
+- The DIP-position → I²C-address mapping is **not yet bench-verified**;
+  `FANDAC-I2C-ADDR-001` owns that follow-up (see
+  [`docs/hardware/s360-312-r4-fandac.md`](hardware/s360-312-r4-fandac.md)).
 
 ### TRIAC: Bathroom advanced / manual only; no Kitchen TRIAC
 

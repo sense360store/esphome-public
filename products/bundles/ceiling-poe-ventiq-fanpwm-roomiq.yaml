@@ -1,0 +1,200 @@
+# ============================================================================
+# SENSE360 PWM FAN-CONTROL ROOM-BUNDLE PRODUCT (ROOM-BUNDLE-FAN-CONFIGS-001)
+# ============================================================================
+# Bathroom room-bundle sibling of the Release-One product
+# `products/sense360-ceiling-poe-ventiq-roomiq.yaml` that additionally composes
+# the native FanPWM package `packages/expansions/fan_pwm_native.yaml`
+# (S360-311 Sense360 PWM) so the full Bathroom bundle (VentIQ + RoomIQ) gains
+# four-channel low-voltage / DC PWM fan-speed control.
+#
+# This is the full-composition firmware config for the
+# `S360-KIT-BATH-P-PWM` preview bundle variant defined in
+# `config/room-bundle-fan-variants.json` (ROOM-BUNDLE-FAN-VARIANTS-002). It
+# carries the Bathroom room-sensing modules (VentIQ + RoomIQ) PLUS the FanPWM
+# driver; it is NOT the fan-only `Ceiling-POE-FanPWM` config (which omits the
+# room modules and is deliberately NOT substituted for a room-bundle SKU).
+#
+# Status — what this YAML is NOT:
+#
+#   * NOT Release-One stable. Release-One stays `Ceiling-POE-VentIQ-RoomIQ`
+#     (no fan-driver firmware) on the `stable` channel. This is a preview
+#     sibling and does NOT change Release-One.
+#   * NOT compile-validated yet. ROOM-BUNDLE-FAN-CONFIGS-001 authored this
+#     full-composition YAML and registered the matching compile-only target
+#     `ceiling-poe-ventiq-fanpwm-roomiq-compile-only`
+#     (`compile_validation_status: pending-ci`); the hosted ESPHome compile
+#     dry-run is queued, not yet run (ESPHome CLI was unavailable in the
+#     authoring environment and no compile is fabricated). GPIO compatibility
+#     is structurally verified: the native FanPWM pins
+#     (IO9/IO10/IO11/IO12/IO16/IO17/IO18/IO39) do not collide with RoomIQ,
+#     VentIQ (both I2C-only on `core_i2c`), or the Core relay/UART pins.
+#   * NOT WebFlash-exposed. No `products/webflash/` wrapper, no
+#     `config/webflash-builds.json` row, no `config/product-catalog.json`
+#     `webflash_build_matrix: true`, no `artifact_name`, no release artifact.
+#   * NOT a default / recommended kit / not in `release_one_required_configs`.
+#     The `S360-KIT-BATH-P-PWM` variant stays `waitlist-only` (hidden / not
+#     buyable). The default sellable bathroom kit remains `S360-KIT-BATH-POE`
+#     mapped to Release-One.
+#   * NOT compliance-certified, NOT hardware verified. S360-311 is a SELV
+#     low-voltage / DC board (5V -> 12V boost; no mains, so COMPLIANCE-001 does
+#     not gate FanPWM), but no bench / current / thermal evidence is claimed.
+#   * NO RPM. The native FanPWM package exposes no per-fan or aggregate RPM and
+#     no surfaced pulse_counter; this YAML makes no RPM claim.
+#   * FanTRIAC stays blocked under HW-005, and LED is intentionally omitted.
+#
+# ----------------------------------------------------------------------------
+# Bundle configuration (this YAML):
+# - Mount       : Ceiling
+# - Power       : POE  (IEEE 802.3af)
+# - Air Quality : VentIQ (bathroom-focused — replaces AirIQ)
+# - Room Sense  : RoomIQ (comfort + presence)
+# - Fan Driver  : FanPWM (S360-311, four native ESP32-S3 ledc PWM-drive outputs)
+# - LED         : not included
+#
+# Compatibility rules (see docs/release-one.md):
+# - AirIQ and VentIQ are mutually exclusive; this bundle uses VentIQ.
+# - RoomIQ can be combined with either AirIQ or VentIQ.
+# - Fan driver variants (FanRelay/FanPWM/FanDAC/FanTRIAC) are firmware-distinct
+#   and not interchangeable. This sibling ships FanPWM.
+#
+# Hardware (canonical friendly names; see docs/hardware-catalog.md):
+# - Core         : Sense360 Core    (S360-100-R4, ESP32-S3, ceiling mount)
+# - Power        : Sense360 PoE PSU (S360-410, IEEE 802.3af) — schematic
+#                  verification pending (PRODUCT-POE-410-001).
+# - Air Quality  : Sense360 VentIQ  (S360-211, bathroom-focused) — schematic
+#                  verification pending.
+# - Room Sense   : Sense360 RoomIQ  (S360-200-R4, comfort + presence)
+# - Fan Driver   : Sense360 PWM     (S360-311, four native ledc PWM outputs)
+# - LED          : not included
+#
+# Customer usage in their ESPHome config (pin to a release tag):
+#
+#   packages:
+#     sense360_firmware:
+#       url: https://github.com/sense360store/esphome-public
+#       ref: main
+#       files:
+#         - products/sense360-ceiling-poe-ventiq-fanpwm-roomiq.yaml
+#       refresh: 1d
+#
+#   substitutions:
+#     device_name: sense360-bath-pwm
+#     friendly_name: "Bathroom Sense360 PWM"
+# ============================================================================
+
+substitutions:
+  # === Device Configuration ===
+  # ESPHome hostnames are limited to 31 chars; this is the shortened hostname
+  # only. WebFlash identity (config string, text sensors) stays
+  # `Ceiling-POE-VentIQ-FanPWM-RoomIQ`.
+  device_name: s360-ceil-poe-ventiq-rm-pwm
+  friendly_name: Sense360 Ceiling Bathroom PWM
+  device_sku: S360-CORE-C-POE
+  device_version: "1.0.0"
+  timezone: "America/New_York"
+
+  # === Logging ===
+  log_level: INFO
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "false"
+
+  # === WiFi AP fallback ===
+  # Explicit literal so the fallback AP SSID is short, human-readable, and
+  # under ESPHome's 32-character AP SSID limit. Distinct from Release-One and
+  # the FanRelay / FanDAC siblings so devices on the same network don't collide
+  # at provisioning time.
+  fallback_ssid: "S360 VentIQ RoomIQ PWM"
+
+  # === Power configuration (PoE) ===
+  power_source: poe
+  poe_class: "0"
+  poe_standard: "802.3af"
+
+  # === VentIQ (bathroom) thresholds ===
+  shower_humidity_threshold: "75"
+  shower_humidity_rate: "5"
+  mold_risk_humidity: "65"
+  mold_risk_duration_minutes: "30"
+
+  # === FanPWM binding ===
+  # The native FanPWM package (packages/expansions/fan_pwm_native.yaml) binds
+  # four ESP32-S3 ledc PWM-drive outputs (IO10/IO11/IO12/IO39) and three
+  # internal diagnostic pulse_counter tach inputs (IO17/IO18/IO9). None of
+  # these pins collide with VentIQ / RoomIQ (I2C-only on core_i2c) or the Core
+  # relay/UART pins; do NOT re-bind them here.
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === External Components (radar firmware) ===
+  external_components: !include ../../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../../packages/base/wifi.yaml
+  base_logging: !include ../../packages/base/logging.yaml
+  base_api: !include ../../packages/base/api_encrypted.yaml
+  base_ota: !include ../../packages/base/ota.yaml
+  base_time: !include ../../packages/base/time.yaml
+
+  # === Sense360 Core (Ceiling, S360-100-R4) ===
+  # Provides the shared `core_i2c` bus VentIQ + RoomIQ bind.
+  core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
+
+  # === Sense360 PoE PSU (S360-410) ===
+  power_config: !include ../../packages/hardware/power_poe.yaml
+
+  # === Sense360 LED (S360-300) ===
+  # Intentionally NOT included. The LED-bearing sibling is a separate scoped
+  # slice with a distinct config string.
+
+  # === Sense360 VentIQ (S360-211, bathroom-focused air quality) ===
+  # Package-level expected; schematic verification pending. AirIQ and VentIQ
+  # are mutually exclusive; this bundle uses VentIQ.
+  ventiq_module: !include ../../packages/expansions/airiq_bathroom_base.yaml
+  ventiq_profile: !include ../../packages/features/bathroom_profile.yaml
+
+  # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
+  roomiq_comfort: !include ../../packages/expansions/comfort_ceiling.yaml
+  roomiq_comfort_profile: !include ../../packages/features/comfort_basic_profile.yaml
+  roomiq_presence: !include ../../packages/expansions/presence_ceiling.yaml
+  roomiq_presence_profile: !include ../../packages/features/presence_basic_profile.yaml
+
+  # === Sense360 PWM (S360-311, four native ledc PWM-drive fan outputs) ===
+  # Native ESP32-S3 GPIO PWM path (SX1509-RECONCILE-001); the legacy SX1509
+  # path is deprecated. No RPM is surfaced. PACKAGE-PWM-001 implemented the
+  # package; this room-bundle product adds NO WebFlash exposure / release
+  # artifact / build-matrix row.
+  fan_pwm_module: !include ../../packages/expansions/fan_pwm_native.yaml
+
+  # === Sense360 TRIAC (S360-320, AC phase-cut fan driver) ===
+  # NOT included. The FanTRIAC slot remains blocked per HW-005.
+
+  # === Device Health & Diagnostics ===
+  health: !include ../../packages/features/device_health.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Product Config"
+    lambda: |-
+      return {"Ceiling-POE-VentIQ-FanPWM-RoomIQ"};
+    update_interval: never
+    entity_category: diagnostic

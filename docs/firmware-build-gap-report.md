@@ -40,9 +40,9 @@ python3 scripts/report_firmware_build_gaps.py --check    # CI-style freshness ch
 ## Source matrix totals
 
 - Total valid combinations: **168**
-- `blocked-hardware`: 39
+- `blocked-hardware`: 43
 - `compile-only-candidate`: 2
-- `missing-product-yaml`: 122
+- `missing-product-yaml`: 118
 - `webflash-preview`: 4
 - `webflash-shipping`: 1
 
