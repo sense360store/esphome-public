@@ -81,9 +81,13 @@ nothing, and verifies nothing**. It does **not**:
   "schematic verification pending" caveat are preserved verbatim;
 - mark LED (`S360-300`) stable; LED stays `preview`;
 - mark any fan variant (`S360-310` / `S360-311` / `S360-312` /
-  `S360-320`) release-ready; the fan-control variants remain
-  planning-only per
-  [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json);
+  `S360-320`) release-ready or stable; the fan-control variants are a
+  **preview bundle plan at most** (preview-eligible only where a
+  full-composition config is built, advanced / manual only for TRIAC,
+  `preview-planned-missing-config` otherwise) per
+  [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
+  (`ROOM-BUNDLE-FAN-VARIANTS-002`), and stable / full release stays
+  hardware / evidence / compliance gated;
 - add a fan bundle SKU, or treat a bundle SKU as a board SKU, firmware
   config string, or release artifact name.
 
@@ -167,11 +171,17 @@ PR):
    sensors for Kitchen, LED bench for Living / Corridor). The caveat is
    **not** cleared here and `S360-410` is **not** marked `verified`.
 
-4. **Fan variants stay planning-only.** No room bundle in the matrix
-   includes a fan driver. The optional fan-control variants in
+4. **Fan variants are a preview bundle plan, not release-ready.** No room
+   bundle in the **base matrix** includes a fan driver. The Bathroom /
+   Kitchen fan-control variants in
    [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
-   (Bathroom / Kitchen only) remain `planning` / `webflash_exposed:
-   false` and are **not** marked release-ready by this audit.
+   (`ROOM-BUNDLE-FAN-VARIANTS-002`) are preview-eligible only where a
+   full-composition firmware config is built (today: Bathroom Relay only),
+   advanced / manual-warning-only and build-blocked for TRIAC, and
+   `preview-planned-missing-config` otherwise. Every variant keeps
+   `webflash_exposed: false` (no committed `config/webflash-builds.json`
+   row) and `stable_status: blocked`, and none is marked release-ready or
+   buyable by this audit.
 
 ---
 
@@ -211,8 +221,10 @@ until physical hardware exists.
   Corridor bundles stay `preview-candidate`.
 - **Fan variants not release-ready.** The
   [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
-  variants stay `planning` / `webflash_exposed: false`; no fan bundle SKU
-  is introduced.
+  variants stay not release-ready and not WebFlash-exposed
+  (`webflash_exposed: false`); no fan bundle SKU is introduced into the base
+  matrix. (Later promoted to a preview bundle plan by
+  `ROOM-BUNDLE-FAN-VARIANTS-002`, still non-stable / non-buyable.)
 - **No `config/*.json` / `packages/**` / `products/**` edits.** This PR
   is a single new doc plus the `UPCOMING_PR.md` entry.
 
@@ -244,7 +256,8 @@ This PR adds no new config or code, so the existing suite is unchanged:
   boards, and likely firmware config targets audited here.
 - Room-bundle fan variants:
   [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
-  — `ROOM-BUNDLE-FAN-VARIANTS-001`. Planning-only; not release-ready.
+  — `ROOM-BUNDLE-FAN-VARIANTS-002`. Preview bundle plan; not release-ready,
+  non-stable, non-buyable.
 - Board readiness matrix:
   [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md)
   — `HW-GAP-001`. Source of truth for the per-board hardware-evidence and

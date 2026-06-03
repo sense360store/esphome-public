@@ -1,83 +1,490 @@
 {
-  "schema_version": 1,
-  "description": "Planning-only Sense360 room-bundle fan-control variant candidates (ROOM-BUNDLE-FAN-VARIANTS-001). This file proposes optional fan-control add-on variants for the Bathroom and Kitchen PoE room bundles ONLY (OPTION A: kept in a separate file so the stable room-bundle matrix in config/room-bundle-skus.json stays clean). It is documentation / planning metadata, not firmware: it adds no product YAMLs, firmware config strings, WebFlash wrappers, firmware builds, artifacts, releases, or stable promotions, and it does NOT imply WebFlash exposure. Base room bundles in config/room-bundle-skus.json remain the main product line; these variants are optional add-ons. Relay, 0-10V (DAC), and PWM control are NOT interchangeable at runtime. Bundle SKUs remain separate identifiers from firmware config strings. No fan variants are proposed for Corridor/Landing, Living Room, or Bedroom, and no TRIAC (S360-320) customer-facing fan variant is proposed. The variants stay planning-only until their fan-driver evidence gates close. See docs/sense360-room-bundles.md.",
+  "schema_version": 2,
+  "id": "ROOM-BUNDLE-FAN-VARIANTS-002",
+  "supersedes": "ROOM-BUNDLE-FAN-VARIANTS-001",
+  "title": "Bathroom & Kitchen fan-control PREVIEW bundle variants",
+  "date": "2026-06-03",
+  "canonical_doc": "docs/sense360-room-bundles.md",
+  "description": "Source-of-truth promotion of the Bathroom and Kitchen PoE room-bundle fan-control variants from planning-only (ROOM-BUNDLE-FAN-VARIANTS-001) to an explicit PREVIEW bundle plan (ROOM-BUNDLE-FAN-VARIANTS-002). The plan is that WebFlash easy mode becomes a bundle picker in which these fan-control variants MAY appear as Advanced-install-only, acknowledgement-gated PREVIEW bundle products (with warnings); the stable / full release of every fan-control variant stays gated behind hardware / bench-evidence / compliance gates. This file remains documentation / source-of-truth metadata only: it adds no product YAML, no firmware config string, no artifact_name, no config/webflash-builds.json row, flips no webflash_build_matrix, publishes no firmware, and does NOT touch the WebFlash repo. Per-variant fields record the real firmware-config status verified against config/preview-release-targets.json, config/preview-fan-triac-build-rows.json, config/manual-firmware-artifacts.json, config/product-catalog.json, and config/webflash-builds.json. Missing full-bundle firmware configs are marked preview-planned-missing-config and are NOT silently exposed; a fan-only config (e.g. Ceiling-POE-FanPWM / Ceiling-POE-FanDAC) is deliberately NOT substituted for a room-bundle variant because it omits the bundle's room-sensing modules. Relay / PWM / 0-10V (DAC) / TRIAC control are NOT interchangeable at runtime. Only Bathroom and Kitchen have fan variants; Corridor / Landing, Living Room, and Bedroom remain sensing / status bundles. Bathroom TRIAC is an ADVANCED / manual-warning preview only and is currently build-blocked (HW-005); Kitchen has NO TRIAC variant. See docs/sense360-room-bundles.md.",
   "sources": {
     "room_bundle_skus": "config/room-bundle-skus.json",
     "hardware_catalog": "config/hardware-catalog.json",
+    "preview_release_targets": "config/preview-release-targets.json",
+    "preview_fan_triac_build_rows": "config/preview-fan-triac-build-rows.json",
+    "manual_firmware_artifacts": "config/manual-firmware-artifacts.json",
+    "product_catalog": "config/product-catalog.json",
     "webflash_builds": "config/webflash-builds.json"
   },
-  "rules": {
-    "fan_variants_only_for_bathroom_and_kitchen": true,
+  "policy": {
+    "preview_bundles_allowed_in_webflash_easy_mode": true,
+    "webflash_easy_mode_becomes_a_bundle_picker": true,
+    "preview_variants_shown_with_warnings": true,
+    "preview_requires_hardware_proof": false,
+    "stable_full_release_remains_hardware_gated": true,
+    "stable_requires_hardware_evidence_and_compliance": true,
+    "stable_bathroom_sensing_only_remains_default": true,
     "control_types_not_interchangeable_at_runtime": true,
+    "fan_variants_only_for_bathroom_and_kitchen": true,
+    "kitchen_triac_variant_not_offered": true,
+    "bathroom_triac_advanced_manual_warning_only": true,
     "bundle_sku_is_not_firmware_config_string": true,
-    "no_triac_customer_facing_fan_variant": true,
-    "no_firmware_release_or_webflash_promotion": true,
-    "lifecycle_is_planning_only": true
+    "no_fan_variant_is_buyable": true,
+    "no_fan_variant_is_recommended_or_customer_default": true,
+    "missing_configs_marked_not_faked": true,
+    "fan_only_config_not_mapped_to_room_bundle": true,
+    "webflash_exposure_is_a_downstream_webflash_repo_followup": true,
+    "no_firmware_release_or_webflash_repo_change": true
   },
+  "scope": {
+    "publishes_firmware": false,
+    "creates_github_release": false,
+    "creates_tag": false,
+    "commits_bin": false,
+    "touches_webflash_repo": false,
+    "writes_firmware_sources_or_manifest": false,
+    "adds_product_yaml": false,
+    "adds_firmware_config_string": false,
+    "adds_artifact_name": false,
+    "adds_webflash_builds_entries": false,
+    "flips_webflash_build_matrix": false,
+    "flips_product_catalog_status": false,
+    "marks_any_variant_stable": false,
+    "marks_any_variant_recommended_or_default": false,
+    "exposes_any_variant_buyable": false,
+    "changes_simple_install": false,
+    "changes_launch_sku": false,
+    "exposes_kitchen_triac": false,
+    "maps_fan_only_config_to_room_bundle": false,
+    "claims_hardware_proof": false,
+    "claims_bench_evidence": false,
+    "claims_compliance": false,
+    "claims_triac_safety_or_compliance_proof": false
+  },
+  "allowed_base_bundles": [
+    "S360-KIT-BATH-P",
+    "S360-KIT-KITCHEN-P"
+  ],
+  "forbidden_base_bundles": [
+    "S360-KIT-CORRIDOR-P",
+    "S360-KIT-LIVING-P",
+    "S360-KIT-BEDROOM-P"
+  ],
   "allowed_fan_driver_skus": [
     "S360-310",
     "S360-311",
-    "S360-312"
+    "S360-312",
+    "S360-320"
+  ],
+  "advanced_only_fan_driver_skus": [
+    "S360-320"
   ],
   "allowed_control_types": [
     "relay",
+    "pwm",
     "0-10V",
-    "pwm"
+    "triac"
   ],
-  "allowed_lifecycle": [
-    "planning",
-    "manual-candidate"
+  "control_type_to_fan_token": {
+    "relay": "FanRelay",
+    "pwm": "FanPWM",
+    "0-10V": "FanDAC",
+    "triac": "FanTRIAC"
+  },
+  "base_bundle_room_module_tokens": {
+    "S360-KIT-BATH-P": [
+      "VentIQ",
+      "RoomIQ"
+    ],
+    "S360-KIT-KITCHEN-P": [
+      "AirIQ",
+      "RoomIQ"
+    ]
+  },
+  "allowed_firmware_config_status": [
+    "buildable-preview-published",
+    "defined-build-blocked",
+    "preview-planned-missing-config"
   ],
+  "allowed_preview_status": [
+    "preview",
+    "advanced-preview-build-blocked",
+    "preview-planned-missing-config"
+  ],
+  "allowed_stable_status": [
+    "blocked"
+  ],
+  "allowed_webflash_exposure_class": [
+    "acknowledgement-gated-preview",
+    "acknowledgement-gated-advanced",
+    "not-exposed-missing-config"
+  ],
+  "allowed_commercial_availability": [
+    "waitlist-only"
+  ],
+  "warning_copy": {
+    "preview": "PREVIEW FIRMWARE — buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
+    "advanced-preview": "ADVANCED PREVIEW — MAINS-VOLTAGE RISK. This firmware drives mains-voltage hardware (e.g. TRIAC phase-control dimming) and is for competent persons performing a manual installation only. It is NOT hardware verified, NOT stable, NOT recommended, and is NEVER a default. No bench evidence and no electrical-safety / compliance certification is claimed. Incorrect installation can cause fire, electric shock, or death. Do not install unless you are qualified to work on mains wiring.",
+    "preview-planned-missing-config": "PLANNED PREVIEW — NO FIRMWARE BUILT YET. The full room-bundle firmware config for this fan-control variant has not been built or published, so it is NOT installable, NOT released, NOT buyable, and NOT exposed in WebFlash. A fan-only firmware config (e.g. Ceiling-POE-FanPWM / Ceiling-POE-FanDAC) is deliberately NOT substituted because it omits the bundle's room-sensing modules. This variant becomes an Advanced-install-only preview only after its full-composition firmware config is built and imported; stable / full release additionally requires hardware, bench evidence, and compliance sign-off."
+  },
+  "totals": {
+    "variants": 7,
+    "bathroom": 4,
+    "kitchen": 3,
+    "webflash_easy_mode_eligible_now": 1,
+    "advanced_preview_build_blocked": 1,
+    "preview_planned_missing_config": 5,
+    "buyable": 0,
+    "recommended_or_default": 0,
+    "stable": 0,
+    "webflash_builds_rows_added": 0
+  },
   "fan_variant_candidates": [
     {
       "sku": "S360-KIT-BATH-P-REL",
       "name": "Bathroom Bundle, PoE + Relay Fan Control",
+      "room": "bathroom",
       "base_bundle": "S360-KIT-BATH-P",
       "fan_driver": "S360-310",
       "control_type": "relay",
-      "lifecycle": "planning",
+      "intended_firmware_config_string": "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
+      "firmware_config_exists": true,
+      "firmware_config_status": "buildable-preview-published",
+      "firmware_config_evidence": {
+        "preview_release_target_id": "ceiling-poe-ventiq-fanrelay-roomiq-preview",
+        "manual_lane_candidate_id": "fanrelay",
+        "product_yaml": "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+        "delivery_lane": "manual-preview",
+        "published_artifact_name": "Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.0-preview.bin",
+        "asset_sha256": "f9600a6b7891b520eff28314a001ff3b0d566224d3ab7d82de2e15242d026ca4",
+        "asset_size_bytes": 989840,
+        "release_tag": "v1.0.0-preview",
+        "catalog_status": "hardware-pending"
+      },
+      "composition_check": {
+        "includes_base_room_modules": true,
+        "required_room_module_tokens": [
+          "VentIQ",
+          "RoomIQ"
+        ],
+        "fan_only_config_substituted": false,
+        "note": "Ceiling-POE-VentIQ-FanRelay-RoomIQ carries the Bathroom room modules (VentIQ + RoomIQ) plus the FanRelay driver; it is a correct full-bundle composition, not a fan-only config."
+      },
+      "webflash_easy_mode_eligible": true,
+      "webflash_advanced_mode_only": false,
+      "webflash_exposure_class": "acknowledgement-gated-preview",
       "webflash_exposed": false,
-      "notes": "Optional add-on to the stable Bathroom PoE bundle. Relay on/off fan control (S360-310). Planning-only; no firmware/WebFlash promotion."
+      "preview_status": "preview",
+      "stable_status": "blocked",
+      "stable_blockers": [
+        "Mains-safety / installation-approval / creepage / clearance evidence + competent-person sign-off + GPIO3 strap-pin boot characterisation (S360-310).",
+        "Shared S360-410 PoE PSU schematic verification (PRODUCT-POE-410-001)."
+      ],
+      "warning_copy_key": "preview",
+      "warning_copy": "PREVIEW FIRMWARE — buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
+      "recommended": false,
+      "customer_default": false,
+      "buyable": false,
+      "commercial_availability": "waitlist-only",
+      "bench_evidence_claimed": false,
+      "compliance_claimed": false,
+      "notes": "Relay on/off extractor control (S360-310) on top of the stable Bathroom PoE bundle. This is the ONLY fan-control room-bundle variant whose full-composition firmware config is built and published today: it is a real PREVIEW target on the manual-preview lane (config/preview-release-targets.json target 'ceiling-poe-ventiq-fanrelay-roomiq-preview'; config/preview-fan-triac-build-rows.json). It is therefore WebFlash-easy-mode preview-eligible as an Advanced-install-only, acknowledgement-gated preview bundle. webflash_exposed stays false because no fan row is added to config/webflash-builds.json; the actual WebFlash one-click exposure is the separately queued downstream WebFlash-repo follow-up (WF-IMPORT-RELAY-001). Not stable, not recommended, not a default, not buyable."
     },
     {
-      "sku": "S360-KIT-BATH-P-DAC",
-      "name": "Bathroom Bundle, PoE + 0-10V Fan Control",
+      "sku": "S360-KIT-BATH-P-TRIAC",
+      "name": "Bathroom Bundle, PoE + TRIAC AC Fan Control (Advanced / manual)",
+      "room": "bathroom",
       "base_bundle": "S360-KIT-BATH-P",
-      "fan_driver": "S360-312",
-      "control_type": "0-10V",
-      "lifecycle": "planning",
+      "fan_driver": "S360-320",
+      "control_type": "triac",
+      "intended_firmware_config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
+      "firmware_config_exists": false,
+      "firmware_config_status": "defined-build-blocked",
+      "firmware_config_evidence": {
+        "preview_release_target_id": "ceiling-poe-ventiq-fantriac-roomiq-advanced-preview",
+        "manual_lane_candidate_id": null,
+        "product_yaml": "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
+        "delivery_lane": "advanced-manual-preview",
+        "product_yaml_exists": true,
+        "buildable_now": false,
+        "build_blocker": "HW-005 BUILDABILITY blocker: S360-320 schematic uncommitted; placeholder GPIO5/GPIO6 collide with RoomIQ J10 nets; ESPHome ac_dimmer cannot run across the SX1509 expander. No advanced-preview artifact can be cut until HW-005 resolves.",
+        "expected_artifact_name": "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-preview.bin",
+        "catalog_status": "blocked"
+      },
+      "composition_check": {
+        "includes_base_room_modules": true,
+        "required_room_module_tokens": [
+          "VentIQ",
+          "RoomIQ"
+        ],
+        "fan_only_config_substituted": false,
+        "note": "The intended config Ceiling-POE-VentIQ-FanTRIAC-RoomIQ is a correct full-bundle composition (VentIQ + RoomIQ + FanTRIAC), but it is build-blocked (HW-005) so no installable artifact exists."
+      },
+      "webflash_easy_mode_eligible": false,
+      "webflash_advanced_mode_only": true,
+      "webflash_exposure_class": "acknowledgement-gated-advanced",
       "webflash_exposed": false,
-      "notes": "Optional add-on to the stable Bathroom PoE bundle. 0-10V (GP8403 DAC) fan control (S360-312). Planning-only; no firmware/WebFlash promotion."
+      "preview_status": "advanced-preview-build-blocked",
+      "stable_status": "blocked",
+      "stable_blockers": [
+        "HW-005 (S360-320 schematic uncommitted; GPIO5/GPIO6 collision with RoomIQ J10 nets; ac_dimmer cannot run across the SX1509 expander).",
+        "PACKAGE-TRIAC-001 + COMPLIANCE-001 mains-voltage electrical-safety review.",
+        "Shared S360-410 PoE PSU schematic verification (PRODUCT-POE-410-001)."
+      ],
+      "warning_copy_key": "advanced-preview",
+      "warning_copy": "ADVANCED PREVIEW — MAINS-VOLTAGE RISK. This firmware drives mains-voltage hardware (e.g. TRIAC phase-control dimming) and is for competent persons performing a manual installation only. It is NOT hardware verified, NOT stable, NOT recommended, and is NEVER a default. No bench evidence and no electrical-safety / compliance certification is claimed. Incorrect installation can cause fire, electric shock, or death. Do not install unless you are qualified to work on mains wiring.",
+      "recommended": false,
+      "customer_default": false,
+      "buyable": false,
+      "commercial_availability": "waitlist-only",
+      "bench_evidence_claimed": false,
+      "compliance_claimed": false,
+      "notes": "TRIAC AC (mains phase-cut) fan control (S360-320) for the Bathroom bundle. Offered ONLY as an ADVANCED / manual-warning preview — never a normal recommended / easy / default option. It is currently BUILD-BLOCKED by HW-005, so no preview artifact can be cut and it is NOT WebFlash-easy-mode eligible today; when HW-005 resolves it would be delivered ONLY on the advanced-manual-preview lane behind an explicit advanced (mains-risk) acknowledgement gate. Stable additionally requires PACKAGE-TRIAC-001 + COMPLIANCE-001. No safety / compliance proof is claimed. Kitchen has no TRIAC variant by policy."
     },
     {
       "sku": "S360-KIT-BATH-P-PWM",
-      "name": "Bathroom Bundle, PoE + PWM Fan Control",
+      "name": "Bathroom Bundle, PoE + PWM (low-voltage / DC) Fan Control",
+      "room": "bathroom",
       "base_bundle": "S360-KIT-BATH-P",
       "fan_driver": "S360-311",
       "control_type": "pwm",
-      "lifecycle": "planning",
+      "intended_firmware_config_string": "Ceiling-POE-VentIQ-FanPWM-RoomIQ",
+      "firmware_config_exists": false,
+      "firmware_config_status": "preview-planned-missing-config",
+      "firmware_config_evidence": {
+        "preview_release_target_id": null,
+        "manual_lane_candidate_id": null,
+        "product_yaml": null,
+        "delivery_lane": null,
+        "note": "No product YAML, compile-only target, product-catalog row, preview-release target, or published artifact exists for Ceiling-POE-VentIQ-FanPWM-RoomIQ. The only PWM artifact today is the fan-only Ceiling-POE-FanPWM, which omits the Bathroom room modules and is deliberately NOT substituted here.",
+        "fan_only_config_available_but_not_substituted": "Ceiling-POE-FanPWM"
+      },
+      "composition_check": {
+        "includes_base_room_modules": true,
+        "required_room_module_tokens": [
+          "VentIQ",
+          "RoomIQ"
+        ],
+        "fan_only_config_substituted": false,
+        "note": "Intended full-bundle composition is VentIQ + RoomIQ + FanPWM; that config string is not built. The fan-only Ceiling-POE-FanPWM is NOT mapped to this room-bundle SKU."
+      },
+      "webflash_easy_mode_eligible": false,
+      "webflash_advanced_mode_only": false,
+      "webflash_exposure_class": "not-exposed-missing-config",
       "webflash_exposed": false,
-      "notes": "Optional add-on to the stable Bathroom PoE bundle. 12V PWM fan control (S360-311). Planning-only; no firmware/WebFlash promotion."
+      "preview_status": "preview-planned-missing-config",
+      "stable_status": "blocked",
+      "stable_blockers": [
+        "Full-bundle firmware config Ceiling-POE-VentIQ-FanPWM-RoomIQ not yet built (preview prerequisite).",
+        "Measured current / thermal evidence (S360-311-CURRENT-THERMAL-001); RPM / TachIO not claimed.",
+        "Shared S360-410 PoE PSU schematic verification (PRODUCT-POE-410-001)."
+      ],
+      "warning_copy_key": "preview-planned-missing-config",
+      "warning_copy": "PLANNED PREVIEW — NO FIRMWARE BUILT YET. The full room-bundle firmware config for this fan-control variant has not been built or published, so it is NOT installable, NOT released, NOT buyable, and NOT exposed in WebFlash. A fan-only firmware config (e.g. Ceiling-POE-FanPWM / Ceiling-POE-FanDAC) is deliberately NOT substituted because it omits the bundle's room-sensing modules. This variant becomes an Advanced-install-only preview only after its full-composition firmware config is built and imported; stable / full release additionally requires hardware, bench evidence, and compliance sign-off.",
+      "recommended": false,
+      "customer_default": false,
+      "buyable": false,
+      "commercial_availability": "waitlist-only",
+      "bench_evidence_claimed": false,
+      "compliance_claimed": false,
+      "notes": "12V PWM low-voltage / DC fan control (S360-311) for the Bathroom bundle. PLANNING-MISSING-CONFIG: the full-composition firmware config Ceiling-POE-VentIQ-FanPWM-RoomIQ does not exist, so this variant is explicitly marked missing and is NOT exposed. It is recorded so the bundle picker plan is complete and honest. A future preview requires building the full-bundle config; the fan-only Ceiling-POE-FanPWM is not a valid substitute."
     },
     {
-      "sku": "S360-KIT-KITCHEN-P-DAC",
-      "name": "Kitchen Bundle, PoE + 0-10V Extract Control",
-      "base_bundle": "S360-KIT-KITCHEN-P",
+      "sku": "S360-KIT-BATH-P-DAC",
+      "name": "Bathroom Bundle, PoE + 0-10V (DAC) Fan Control",
+      "room": "bathroom",
+      "base_bundle": "S360-KIT-BATH-P",
       "fan_driver": "S360-312",
       "control_type": "0-10V",
-      "lifecycle": "planning",
+      "intended_firmware_config_string": "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
+      "firmware_config_exists": false,
+      "firmware_config_status": "preview-planned-missing-config",
+      "firmware_config_evidence": {
+        "preview_release_target_id": null,
+        "manual_lane_candidate_id": null,
+        "product_yaml": null,
+        "delivery_lane": null,
+        "note": "No product YAML, compile-only target, product-catalog row, preview-release target, or published artifact exists for Ceiling-POE-VentIQ-FanDAC-RoomIQ. The only DAC artifact today is the fan-only Ceiling-POE-FanDAC, which omits the Bathroom room modules and is deliberately NOT substituted here.",
+        "fan_only_config_available_but_not_substituted": "Ceiling-POE-FanDAC"
+      },
+      "composition_check": {
+        "includes_base_room_modules": true,
+        "required_room_module_tokens": [
+          "VentIQ",
+          "RoomIQ"
+        ],
+        "fan_only_config_substituted": false,
+        "note": "Intended full-bundle composition is VentIQ + RoomIQ + FanDAC; that config string is not built. The fan-only Ceiling-POE-FanDAC is NOT mapped to this room-bundle SKU."
+      },
+      "webflash_easy_mode_eligible": false,
+      "webflash_advanced_mode_only": false,
+      "webflash_exposure_class": "not-exposed-missing-config",
       "webflash_exposed": false,
-      "notes": "Optional add-on to the Kitchen PoE bundle. 0-10V (GP8403 DAC) extract / MVHR / EC boost control (S360-312), NOT generic cooker-hood control. Planning-only; no firmware/WebFlash promotion."
+      "preview_status": "preview-planned-missing-config",
+      "stable_status": "blocked",
+      "stable_blockers": [
+        "Full-bundle firmware config Ceiling-POE-VentIQ-FanDAC-RoomIQ not yet built (preview prerequisite).",
+        "Cloudlift S12 / J3 harness + product-bench evidence; S360-312 schematic / BOM.",
+        "Shared S360-410 PoE PSU schematic verification (PRODUCT-POE-410-001)."
+      ],
+      "warning_copy_key": "preview-planned-missing-config",
+      "warning_copy": "PLANNED PREVIEW — NO FIRMWARE BUILT YET. The full room-bundle firmware config for this fan-control variant has not been built or published, so it is NOT installable, NOT released, NOT buyable, and NOT exposed in WebFlash. A fan-only firmware config (e.g. Ceiling-POE-FanPWM / Ceiling-POE-FanDAC) is deliberately NOT substituted because it omits the bundle's room-sensing modules. This variant becomes an Advanced-install-only preview only after its full-composition firmware config is built and imported; stable / full release additionally requires hardware, bench evidence, and compliance sign-off.",
+      "recommended": false,
+      "customer_default": false,
+      "buyable": false,
+      "commercial_availability": "waitlist-only",
+      "bench_evidence_claimed": false,
+      "compliance_claimed": false,
+      "notes": "0-10V (GP8403 DAC) fan control (S360-312) for the Bathroom bundle, e.g. EC fan or MVHR boost. PLANNING-MISSING-CONFIG: the full-composition firmware config Ceiling-POE-VentIQ-FanDAC-RoomIQ does not exist, so this variant is explicitly marked missing and is NOT exposed. The fan-only Ceiling-POE-FanDAC is not a valid substitute."
     },
     {
       "sku": "S360-KIT-KITCHEN-P-REL",
-      "name": "Kitchen Bundle, PoE + Extract Relay",
+      "name": "Kitchen Bundle, PoE + Relay Extract Control",
+      "room": "kitchen",
       "base_bundle": "S360-KIT-KITCHEN-P",
       "fan_driver": "S360-310",
       "control_type": "relay",
-      "lifecycle": "planning",
+      "intended_firmware_config_string": "Ceiling-POE-AirIQ-FanRelay-RoomIQ",
+      "firmware_config_exists": false,
+      "firmware_config_status": "preview-planned-missing-config",
+      "firmware_config_evidence": {
+        "preview_release_target_id": null,
+        "manual_lane_candidate_id": null,
+        "product_yaml": null,
+        "delivery_lane": null,
+        "note": "No product YAML, compile-only target, product-catalog row, preview-release target, or published artifact exists for Ceiling-POE-AirIQ-FanRelay-RoomIQ. The published FanRelay artifact is the Bathroom config Ceiling-POE-VentIQ-FanRelay-RoomIQ (VentIQ, not AirIQ) and is NOT substituted for the Kitchen bundle.",
+        "fan_only_config_available_but_not_substituted": null
+      },
+      "composition_check": {
+        "includes_base_room_modules": true,
+        "required_room_module_tokens": [
+          "AirIQ",
+          "RoomIQ"
+        ],
+        "fan_only_config_substituted": false,
+        "note": "Intended full-bundle composition is AirIQ + RoomIQ + FanRelay; that config string is not built. The Bathroom FanRelay config (VentIQ-bearing) is NOT mapped to this Kitchen SKU."
+      },
+      "webflash_easy_mode_eligible": false,
+      "webflash_advanced_mode_only": false,
+      "webflash_exposure_class": "not-exposed-missing-config",
       "webflash_exposed": false,
-      "notes": "Optional add-on to the Kitchen PoE bundle. Relay extract / MVHR / EC boost control (S360-310), NOT generic cooker-hood control. Planning-only; no firmware/WebFlash promotion."
+      "preview_status": "preview-planned-missing-config",
+      "stable_status": "blocked",
+      "stable_blockers": [
+        "Full-bundle firmware config Ceiling-POE-AirIQ-FanRelay-RoomIQ not yet built (preview prerequisite).",
+        "Base Kitchen bundle (Ceiling-POE-AirIQ-RoomIQ) is preview / stable-candidate, not yet stable: AirIQ-stack hardware evidence (SPS30 / SGP41 / SCD41 / BMP390).",
+        "Mains-safety / installation-approval / creepage / clearance evidence + competent-person sign-off (S360-310).",
+        "Shared S360-410 PoE PSU schematic verification (PRODUCT-POE-410-001)."
+      ],
+      "warning_copy_key": "preview-planned-missing-config",
+      "warning_copy": "PLANNED PREVIEW — NO FIRMWARE BUILT YET. The full room-bundle firmware config for this fan-control variant has not been built or published, so it is NOT installable, NOT released, NOT buyable, and NOT exposed in WebFlash. A fan-only firmware config (e.g. Ceiling-POE-FanPWM / Ceiling-POE-FanDAC) is deliberately NOT substituted because it omits the bundle's room-sensing modules. This variant becomes an Advanced-install-only preview only after its full-composition firmware config is built and imported; stable / full release additionally requires hardware, bench evidence, and compliance sign-off.",
+      "recommended": false,
+      "customer_default": false,
+      "buyable": false,
+      "commercial_availability": "waitlist-only",
+      "bench_evidence_claimed": false,
+      "compliance_claimed": false,
+      "notes": "Relay extract boost / on-off control (S360-310) for the Kitchen bundle, framed as extract / MVHR / EC boost — NOT generic cooker-hood control. PLANNING-MISSING-CONFIG: the full-composition firmware config Ceiling-POE-AirIQ-FanRelay-RoomIQ does not exist, so this variant is explicitly marked missing and is NOT exposed."
+    },
+    {
+      "sku": "S360-KIT-KITCHEN-P-DAC",
+      "name": "Kitchen Bundle, PoE + 0-10V (DAC) Extract Control",
+      "room": "kitchen",
+      "base_bundle": "S360-KIT-KITCHEN-P",
+      "fan_driver": "S360-312",
+      "control_type": "0-10V",
+      "intended_firmware_config_string": "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
+      "firmware_config_exists": false,
+      "firmware_config_status": "preview-planned-missing-config",
+      "firmware_config_evidence": {
+        "preview_release_target_id": null,
+        "manual_lane_candidate_id": null,
+        "product_yaml": null,
+        "delivery_lane": null,
+        "note": "No product YAML, compile-only target, product-catalog row, preview-release target, or published artifact exists for Ceiling-POE-AirIQ-FanDAC-RoomIQ. The only DAC artifact today is the fan-only Ceiling-POE-FanDAC, which omits the Kitchen room modules and is deliberately NOT substituted here.",
+        "fan_only_config_available_but_not_substituted": "Ceiling-POE-FanDAC"
+      },
+      "composition_check": {
+        "includes_base_room_modules": true,
+        "required_room_module_tokens": [
+          "AirIQ",
+          "RoomIQ"
+        ],
+        "fan_only_config_substituted": false,
+        "note": "Intended full-bundle composition is AirIQ + RoomIQ + FanDAC; that config string is not built. The fan-only Ceiling-POE-FanDAC is NOT mapped to this Kitchen SKU."
+      },
+      "webflash_easy_mode_eligible": false,
+      "webflash_advanced_mode_only": false,
+      "webflash_exposure_class": "not-exposed-missing-config",
+      "webflash_exposed": false,
+      "preview_status": "preview-planned-missing-config",
+      "stable_status": "blocked",
+      "stable_blockers": [
+        "Full-bundle firmware config Ceiling-POE-AirIQ-FanDAC-RoomIQ not yet built (preview prerequisite).",
+        "Base Kitchen bundle (Ceiling-POE-AirIQ-RoomIQ) is preview / stable-candidate, not yet stable: AirIQ-stack hardware evidence (SPS30 / SGP41 / SCD41 / BMP390).",
+        "Cloudlift S12 / J3 harness + product-bench evidence; S360-312 schematic / BOM.",
+        "Shared S360-410 PoE PSU schematic verification (PRODUCT-POE-410-001)."
+      ],
+      "warning_copy_key": "preview-planned-missing-config",
+      "warning_copy": "PLANNED PREVIEW — NO FIRMWARE BUILT YET. The full room-bundle firmware config for this fan-control variant has not been built or published, so it is NOT installable, NOT released, NOT buyable, and NOT exposed in WebFlash. A fan-only firmware config (e.g. Ceiling-POE-FanPWM / Ceiling-POE-FanDAC) is deliberately NOT substituted because it omits the bundle's room-sensing modules. This variant becomes an Advanced-install-only preview only after its full-composition firmware config is built and imported; stable / full release additionally requires hardware, bench evidence, and compliance sign-off.",
+      "recommended": false,
+      "customer_default": false,
+      "buyable": false,
+      "commercial_availability": "waitlist-only",
+      "bench_evidence_claimed": false,
+      "compliance_claimed": false,
+      "notes": "0-10V (GP8403 DAC) extract / MVHR / EC fan boost control (S360-312) for the Kitchen bundle — NOT generic cooker-hood control. PLANNING-MISSING-CONFIG: the full-composition firmware config Ceiling-POE-AirIQ-FanDAC-RoomIQ does not exist, so this variant is explicitly marked missing and is NOT exposed. The fan-only Ceiling-POE-FanDAC is not a valid substitute."
+    },
+    {
+      "sku": "S360-KIT-KITCHEN-P-PWM",
+      "name": "Kitchen Bundle, PoE + PWM (low-voltage / custom) Extract Control",
+      "room": "kitchen",
+      "base_bundle": "S360-KIT-KITCHEN-P",
+      "fan_driver": "S360-311",
+      "control_type": "pwm",
+      "policy_gated": true,
+      "policy_note": "Kitchen PWM is an OPTIONAL, policy-gated variant for low-voltage / custom kitchen extract use only (not a typical mains kitchen-extract control). It is recorded as a planning-missing-config record so the plan is explicit; it makes no firmware, exposure, commercial, or recommendation claim and can be dropped if policy does not approve low-voltage / custom kitchen extract use.",
+      "intended_firmware_config_string": "Ceiling-POE-AirIQ-FanPWM-RoomIQ",
+      "firmware_config_exists": false,
+      "firmware_config_status": "preview-planned-missing-config",
+      "firmware_config_evidence": {
+        "preview_release_target_id": null,
+        "manual_lane_candidate_id": null,
+        "product_yaml": null,
+        "delivery_lane": null,
+        "note": "No product YAML, compile-only target, product-catalog row, preview-release target, or published artifact exists for Ceiling-POE-AirIQ-FanPWM-RoomIQ. The only PWM artifact today is the fan-only Ceiling-POE-FanPWM, which omits the Kitchen room modules and is deliberately NOT substituted here.",
+        "fan_only_config_available_but_not_substituted": "Ceiling-POE-FanPWM"
+      },
+      "composition_check": {
+        "includes_base_room_modules": true,
+        "required_room_module_tokens": [
+          "AirIQ",
+          "RoomIQ"
+        ],
+        "fan_only_config_substituted": false,
+        "note": "Intended full-bundle composition is AirIQ + RoomIQ + FanPWM; that config string is not built. The fan-only Ceiling-POE-FanPWM is NOT mapped to this Kitchen SKU."
+      },
+      "webflash_easy_mode_eligible": false,
+      "webflash_advanced_mode_only": false,
+      "webflash_exposure_class": "not-exposed-missing-config",
+      "webflash_exposed": false,
+      "preview_status": "preview-planned-missing-config",
+      "stable_status": "blocked",
+      "stable_blockers": [
+        "Policy approval for low-voltage / custom kitchen extract use (policy_gated).",
+        "Full-bundle firmware config Ceiling-POE-AirIQ-FanPWM-RoomIQ not yet built (preview prerequisite).",
+        "Base Kitchen bundle (Ceiling-POE-AirIQ-RoomIQ) is preview / stable-candidate, not yet stable: AirIQ-stack hardware evidence (SPS30 / SGP41 / SCD41 / BMP390).",
+        "Measured current / thermal evidence (S360-311-CURRENT-THERMAL-001); RPM / TachIO not claimed.",
+        "Shared S360-410 PoE PSU schematic verification (PRODUCT-POE-410-001)."
+      ],
+      "warning_copy_key": "preview-planned-missing-config",
+      "warning_copy": "PLANNED PREVIEW — NO FIRMWARE BUILT YET. The full room-bundle firmware config for this fan-control variant has not been built or published, so it is NOT installable, NOT released, NOT buyable, and NOT exposed in WebFlash. A fan-only firmware config (e.g. Ceiling-POE-FanPWM / Ceiling-POE-FanDAC) is deliberately NOT substituted because it omits the bundle's room-sensing modules. This variant becomes an Advanced-install-only preview only after its full-composition firmware config is built and imported; stable / full release additionally requires hardware, bench evidence, and compliance sign-off.",
+      "recommended": false,
+      "customer_default": false,
+      "buyable": false,
+      "commercial_availability": "waitlist-only",
+      "bench_evidence_claimed": false,
+      "compliance_claimed": false,
+      "notes": "OPTIONAL, policy-gated PWM (low-voltage / DC, S360-311) extract control for the Kitchen bundle, framed as low-voltage / custom extract / MVHR boost — NOT generic cooker-hood control. PLANNING-MISSING-CONFIG: the full-composition firmware config Ceiling-POE-AirIQ-FanPWM-RoomIQ does not exist, so this variant is explicitly marked missing and is NOT exposed. Drop this row if policy does not approve low-voltage / custom kitchen extract use."
     }
   ]
 }
