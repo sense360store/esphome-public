@@ -4,7 +4,44 @@
   "title": "Release-channel policy: preview eligibility for all buildable products",
   "date": "2026-06-01",
   "canonical_doc": "docs/release-channel-policy.md",
-  "revised_by": "RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001",
+  "revised_by": "RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001; RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001",
+  "unblock_all_bundles_decision": {
+    "id": "RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001",
+    "date": "2026-06-03",
+    "title": "Hardware/bench/compliance/commercial blockers are STABLE-only; they never block PREVIEW.",
+    "summary": "Formalises the decision that every bundle / product firmware target which is buildable (or can be made buildable) is preview-eligible, including the fan-control and TRIAC paths. A blocker that rests only on missing hardware proof, missing bench evidence, missing compliance evidence, or missing commercial availability gates STABLE / full release ONLY. It must NOT block a preview artifact for a buildable target. The only thing that can stop an actual preview cut is a genuine BUILDABILITY blocker (e.g. HW-005 GPIO routing for TRIAC). Nothing here becomes stable, recommended, default, buyable, or compliance-certified; Simple install stays the stable Bathroom PoE build only; the advanced / manual preview lane is the only allowed exposure path for risky or unverified builds.",
+    "rule": "lack_of_hardware_proof_blocks_stable_only",
+    "stable_only_blocker_classes": [
+      "hardware-proof",
+      "bench-evidence",
+      "compliance",
+      "commercial-availability"
+    ],
+    "preview_blocker_classes": [
+      "buildability"
+    ],
+    "guarantees": {
+      "nothing_becomes_stable": true,
+      "nothing_becomes_recommended_or_default": true,
+      "nothing_becomes_buyable": true,
+      "simple_install_remains_stable_bathroom_poe_only": true,
+      "advanced_manual_preview_is_only_exposure_for_risky_or_unverified_builds": true,
+      "triac_stays_advanced_manual_warning_only": true,
+      "fan_drivers_stay_manual_preview_only": true,
+      "candidate_bundles_stay_hidden_not_buyable": true,
+      "stable_full_release_gates_unchanged": true,
+      "publishes_no_firmware": true,
+      "touches_no_webflash_repo": true,
+      "touches_no_firmware_sources_or_manifest": true
+    },
+    "explicit_warning_families": [
+      "FanRelay",
+      "FanPWM",
+      "FanDAC",
+      "FanTRIAC",
+      "LED"
+    ]
+  },
   "revision_note": "RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001 aligns the concrete targets (config/preview-release-targets.json) with this policy: every buildable product is a preview / advanced-preview RELEASE target. It records the concrete delivery lanes (see delivery_lanes): SELV WebFlash targets use the 'webflash' lane; FanRelay / FanPWM / FanDAC use the 'manual-preview' lane; FanTRIAC uses the 'advanced-manual-preview' lane. The acknowledgement-gated / acknowledgement-gated-advanced webflash_exposure_class values on the fan / TRIAC matrix rows are the EVENTUAL WebFlash import target, not current state: WebFlash one-click import stays a separate, controlled follow-up until the WebFlash warning UX supports fan / TRIAC preview exposure. No product is promoted to stable and no new evidence is claimed.",
   "description": "Machine-readable release-channel policy. Defines the stable / preview / advanced-preview channel tiers and the rules that gate each tier, plus the preview-release eligibility matrix for every buildable Sense360 firmware target. Lack of hardware proof blocks STABLE only; it does not block PREVIEW artifact eligibility. This file is policy + eligibility metadata. It is read by tests/test_release_channel_policy.py.",
   "scope": {
@@ -108,11 +145,24 @@
     "fan_and_triac_previews_use_manual_preview_lane_until_webflash_ux_ready": true,
     "no_target_blocked_from_preview_for_lacking_stable_evidence": true,
     "webflash_build_matrix_may_include_preview_without_stable_promotion": true,
-    "no_fake_hardware_evidence_claimed": true
+    "no_fake_hardware_evidence_claimed": true,
+    "hardware_proof_blocker_is_stable_only": true,
+    "bench_evidence_blocker_is_stable_only": true,
+    "compliance_blocker_is_stable_only": true,
+    "commercial_availability_blocker_is_stable_only": true,
+    "only_buildability_blocker_can_block_preview": true,
+    "every_buildable_target_is_preview_eligible": true,
+    "simple_install_remains_stable_bathroom_poe_only": true,
+    "advanced_manual_preview_is_only_risky_build_exposure_path": true,
+    "candidate_bundles_stay_hidden_and_not_buyable": true,
+    "no_stable_or_full_release_unblock": true
   },
   "preview_release_matrix": [
     {
       "product": "Bathroom PoE (VentIQ + RoomIQ)",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": false,
       "family": "Bathroom",
       "bundle": "S360-KIT-BATH-P",
       "config_string": "Ceiling-POE-VentIQ-RoomIQ",
@@ -133,6 +183,9 @@
     },
     {
       "product": "Kitchen PoE / AirIQ (AirIQ + RoomIQ)",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "family": "Kitchen",
       "bundle": "S360-KIT-KITCHEN-P",
       "config_string": "Ceiling-POE-AirIQ-RoomIQ",
@@ -153,6 +206,9 @@
     },
     {
       "product": "Bedroom PoE / RoomIQ (RoomIQ only)",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "family": "Bedroom",
       "bundle": "S360-KIT-BEDROOM-P",
       "config_string": "Ceiling-POE-RoomIQ",
@@ -173,6 +229,9 @@
     },
     {
       "product": "Living PoE / LED (RoomIQ + LED)",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "family": "Living",
       "bundle": "S360-KIT-LIVING-P",
       "config_string": "Ceiling-POE-RoomIQ-LED",
@@ -193,6 +252,9 @@
     },
     {
       "product": "Corridor PoE / LED (RoomIQ + LED)",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "family": "Corridor",
       "bundle": "S360-KIT-CORRIDOR-P",
       "config_string": "Ceiling-POE-RoomIQ-LED",
@@ -213,6 +275,9 @@
     },
     {
       "product": "LED preview (VentIQ + RoomIQ + LED)",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "family": "LED",
       "bundle": null,
       "config_string": "Ceiling-POE-VentIQ-RoomIQ-LED",
@@ -233,6 +298,9 @@
     },
     {
       "product": "FanRelay preview (VentIQ + FanRelay + RoomIQ)",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "family": "FanRelay",
       "bundle": null,
       "config_string": "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
@@ -253,6 +321,9 @@
     },
     {
       "product": "FanPWM preview (PWM fan, native GPIO)",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "family": "FanPWM",
       "bundle": null,
       "config_string": "Ceiling-POE-FanPWM",
@@ -273,6 +344,9 @@
     },
     {
       "product": "FanDAC preview (0-10V DAC fan)",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": true,
       "family": "FanDAC",
       "bundle": null,
       "config_string": "Ceiling-POE-FanDAC",
@@ -293,6 +367,11 @@
     },
     {
       "product": "FanTRIAC advanced-preview (mains TRIAC dimming)",
+      "preview_allowed": true,
+      "preview_warning_required": true,
+      "blocker_is_stable_only": false,
+      "preview_cut_gated_by_buildability": true,
+      "hardware_proof_blocks_preview": false,
       "family": "FanTRIAC",
       "bundle": null,
       "config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",

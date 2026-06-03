@@ -23,6 +23,27 @@ Where the preview-release program actually stands today:
   (`RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001`, #688). Fan targets are
   `manual-preview`, FanTRIAC is `advanced-manual-preview`; **no** buildable target
   is "blocked from preview" for lacking stable evidence.
+* **Hardware blockers are stable-only for preview — DONE**
+  (`RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001`, this PR). Formalises the decision
+  into machine-checkable per-target flags. Every row of
+  [`config/release-channel-policy.json`](config/release-channel-policy.json)
+  `preview_release_matrix` and every target of
+  [`config/preview-release-targets.json`](config/preview-release-targets.json)
+  now carries explicit `preview_allowed` / `preview_warning_required` /
+  `blocker_is_stable_only` flags, plus a top-level `unblock_all_bundles_decision`
+  block classifying every hardware / bench / compliance / commercial blocker as
+  **stable-only** and `buildability` as the only preview blocker. `preview_allowed`
+  is `true` for **every buildable product** (fan-control + TRIAC included). **TRIAC**
+  stays `advanced-manual-preview` only (`blocker_is_stable_only: false`,
+  `hardware_proof_blocks_preview: false`, `preview_cut_gated_by_buildability: true`
+  under `HW-005`; mains-risk warning + `COMPLIANCE-001` kept; never stable /
+  recommended / default / safe / certified). Fan drivers stay `manual-preview`
+  only. **Simple install stays stable Bathroom PoE only**; candidate bundles stay
+  **hidden / not buyable**; **no stable / full release unblock**. Adds
+  [`tests/test_release_preview_unblock_all_bundles.py`](tests/test_release_preview_unblock_all_bundles.py).
+  Docs/config + test only: publishes no firmware, adds no
+  `config/webflash-builds.json` row, flips no catalog status, does not touch the
+  WebFlash repo, and does not update `firmware/sources.json` / `manifest.json`.
 * **Build/release dry-run — DONE (metadata; compile pending)**
   (`RELEASE-PREVIEW-BUILD-DRYRUN-001`). Recorded a per-target dry-run for all 9
   targets in
