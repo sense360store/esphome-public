@@ -214,10 +214,13 @@ nothing published — and the **publish plan** for the three metadata-ready prev
 artifacts was verified (`RELEASE-PREVIEW-PUBLISH-PLAN-001`, #700) and the **actual
 publish then ran GREEN** (`RELEASE-PREVIEW-PUBLISH-RUN-001`, recorded by
 `RELEASE-PREVIEW-PUBLISH-RESULTS-001`, this PR; run `26847702410`, four preview
-artifacts on `v1.0.0-preview`). The remaining open work: the **WebFlash import**
-of the now-published preview artifacts (`WF-PREVIEW-IMPORT-FIRST-BATCH-001`, a
-WebFlash-repo follow-up), the **manual-preview fan publish run**
-(`RELEASE-PREVIEW-FAN-PUBLISH-RUN-001`, now queued behind the new workflow), plus
+artifacts on `v1.0.0-preview`). The **manual-preview fan publish run**
+(`RELEASE-PREVIEW-FAN-PUBLISH-RUN-001`) then ran GREEN and is now **DONE /
+success** (run `26878032103`, recorded by `RELEASE-PREVIEW-FAN-PUBLISH-RESULTS-001`,
+this PR; three fan preview artifacts attached, TRIAC excluded under `HW-005`). The
+remaining open work: the **WebFlash import** of the now-published preview
+artifacts (`WF-PREVIEW-IMPORT-FIRST-BATCH-001`, a WebFlash-repo follow-up;
+manual-preview fan one-click import stays intentionally out of scope), plus
 resolving FanTRIAC `HW-005` — captured as the next queue items below.
 
 ---
@@ -536,20 +539,64 @@ attaches the durable `-v1.0.0-preview.bin` artifacts to the dedicated
 [`tests/test_preview_fan_publish_workflow.py`](tests/test_preview_fan_publish_workflow.py).
 This PR runs no workflow and publishes nothing.
 
-### RELEASE-PREVIEW-FAN-PUBLISH-RUN-001 — execute the manual-preview fan publish workflow (QUEUED — actionable)
+### RELEASE-PREVIEW-FAN-PUBLISH-RUN-001 — execute the manual-preview fan publish workflow — DONE (success)
 
-**Now actionable after `RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001` lands.** Dispatch
-`Manual-Preview Fan Firmware Publish` with `version=1.0.0`,
-`release_tag=v1.0.0-manual-preview-fans`,
-`release_target=all-manual-preview-fans`, and `dry_run=false`; then record the
-run URL, release URL, attached artifact names, checksums, build-info manifest,
-and unchanged guardrails. Expected artifacts:
+**Status: DONE / success.** The `Manual-Preview Fan Firmware Publish` workflow was
+dispatched (`workflow_dispatch`, `dry_run=false`,
+`release_target=all-manual-preview-fans`, `version=1.0.0`) and ran GREEN —
+[run `26878032103`](https://github.com/sense360store/esphome-public/actions/runs/26878032103)
+(2026-06-03, commit `0963afb`), **conclusion `success`**. All three buildable fan
+targets compiled (`Ceiling-POE-VentIQ-FanRelay-RoomIQ`, `Ceiling-POE-FanPWM`,
+`Ceiling-POE-FanDAC`); the output-set validation, checksums + build-info manifest,
+release-notes generation/validation, and asset upload all succeeded. The three
+durable artifacts —
 `Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.0-preview.bin`,
 `Sense360-Ceiling-POE-FanPWM-v1.0.0-preview.bin`, and
-`Sense360-Ceiling-POE-FanDAC-v1.0.0-preview.bin`. TRIAC remains excluded
-(`HW-005`); WebFlash one-click import (`WEBFLASH-RELAY-001` /
-`WEBFLASH-PWM-001` / `WEBFLASH-DAC-001`) remains a strictly later, separately
-gated follow-up.
+`Sense360-Ceiling-POE-FanDAC-v1.0.0-preview.bin` — were attached (workflow
+artifacts `manual-preview-firmware-fanrelay` / `-fanpwm` / `-fandac`). **TRIAC
+stayed excluded** (`HW-005`; no build job). **Deviation recorded:** the operator
+targeted `release_tag=v1.0.0-preview` rather than the dedicated default
+`v1.0.0-manual-preview-fans`, so the existing `v1.0.0-preview` release's
+name / body / checksums were overwritten and the fan assets now co-mingle with the
+four WebFlash room-bundle preview `.bin` (whose SHA256 values stay intact, so the
+WebFlash preview import is not broken). Recorded — not corrected — by the results
+PR below.
+
+### RELEASE-PREVIEW-FAN-PUBLISH-RESULTS-001 — record manual-preview fan publication — DONE (this PR)
+
+**Status: DONE in this PR.** Documentation / config-evidence only. Records run
+`26878032103` (above) in
+[`docs/release-preview-fan-publish-results.md`](docs/release-preview-fan-publish-results.md):
+workflow name, run id, `workflow_dispatch` event + `dry_run=false` input mode,
+commit `0963afb`, per-target build success (FanRelay / FanPWM / FanDAC), output
+validation, checksums / build-info manifest, release-notes generation/validation,
+asset upload (all `success`), the published artifact names + sizes + SHA256, the
+workflow artifact names (`manual-preview-firmware-fanrelay` / `-fanpwm` /
+`-fandac`), and the `v1.0.0-preview` tag deviation. Adds `publish_evidence` (run
+id / conclusion / artifact / SHA256 / `webflash_importable: false`) to the three
+fan rows of
+[`config/preview-fan-triac-build-rows.json`](config/preview-fan-triac-build-rows.json)
+— **TRIAC untouched** (stays build-blocked, no compile / publish evidence) and
+**nothing marked stable**. Guard
+[`tests/test_preview_fan_publish_results.py`](tests/test_preview_fan_publish_results.py).
+**WebFlash import is intentionally out of scope** — no fan row is added to
+`config/webflash-builds.json`, the WebFlash repo is untouched, and one-click fan
+import stays the separately gated `WEBFLASH-RELAY-001` / `WEBFLASH-PWM-001` /
+`WEBFLASH-DAC-001` follow-up (a deliberate WebFlash policy decision, not taken
+here). Records only: re-runs no workflow, creates no release, commits no `.bin`,
+writes no `manifest.json` / `firmware/sources.json`, makes nothing recommended /
+default / buyable, keeps the launch SKU `S360-KIT-BATH-P` + Simple install
+unchanged, and claims no hardware / bench / compliance proof.
+
+#### RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001 — re-cut fan artifacts onto the dedicated tag (OPTIONAL — not started)
+
+**Recommended follow-up, not actioned here.** Because run `26878032103` targeted
+`v1.0.0-preview` instead of the dedicated `v1.0.0-manual-preview-fans` vehicle,
+either re-cut the three fan artifacts onto the dedicated tag (`dry_run=false`,
+`release_tag=v1.0.0-manual-preview-fans`) and restore the WebFlash preview
+release's name / body / checksums, or formally accept the shared tag.
+Release-hygiene only — no artifact was deleted, no SHA256 changed, and no WebFlash
+import broke; TRIAC stays excluded (`HW-005`).
 
 > Also queued (future, not started): **`FIRST-MAINTENANCE-RELEASE-PLAN-001`** —
 > plan a future maintenance release (new version); see its entry below.
