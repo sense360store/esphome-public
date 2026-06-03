@@ -20,10 +20,17 @@ or::
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
+import shutil
+import stat
 import sys
+import tempfile
+import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
@@ -2248,6 +2255,392 @@ class ValidatorScriptTests(unittest.TestCase):
             any("duplicate id" in e for e in errors),
             f"expected duplicate id error in {errors!r}",
         )
+
+
+class CompileRunnerLoggingTimeoutSummaryTests(unittest.TestCase):
+    """COMPILE-VALIDATOR-PROGRESS-LOGGING-001.
+
+    Pin the per-target progress logging, the per-target timeout, and the
+    final summary added to the ``--compile`` lane of
+    ``scripts/validate_compile_targets.py``. These drive the validator
+    via its module API with an injected ``compile_runner`` so no real
+    ESPHome / PlatformIO compile is needed; a couple of tests also drive
+    the real ``subprocess`` timeout path through
+    ``_make_esphome_compile_runner``.
+    """
+
+    # Real product YAMLs on disk (distinct basenames so the injected
+    # runner can key behaviour off ``Path.name``) so run_compile's
+    # is_file() guard passes without invoking ESPHome.
+    PASS_YAML = "products/compile-only/ceiling-poe.yaml"
+    FAIL_YAML = "products/compile-only/ceiling-poe-roomiq.yaml"
+    TIMEOUT_YAML = "products/compile-only/ceiling-poe-ventiq.yaml"
+    SECOND_PASS_YAML = "products/compile-only/ceiling-poe-airiq.yaml"
+
+    def _doc(self, targets):
+        return {"schema_version": 1, "targets": targets}
+
+    def _pass_target(self):
+        return {
+            "id": "pass-target",
+            "product_yaml": self.PASS_YAML,
+            "config_string": "Ceiling-POE",
+            "shipment_status": "compile-only",
+        }
+
+    def _fail_target(self):
+        return {
+            "id": "fail-target",
+            "product_yaml": self.FAIL_YAML,
+            "config_string": "Ceiling-POE-RoomIQ",
+            "shipment_status": "compile-only",
+        }
+
+    def _timeout_target(self):
+        return {
+            "id": "timeout-target",
+            "product_yaml": self.TIMEOUT_YAML,
+            "config_string": "Ceiling-POE-VentIQ",
+            "shipment_status": "compile-only",
+        }
+
+    @staticmethod
+    def _runner_for(behaviours):
+        """Return a compile_runner keyed by YAML basename.
+
+        ``behaviours`` maps a product-YAML basename to the
+        ``(returncode, output, timed_out)`` triple the runner returns;
+        anything not listed compiles cleanly (rc 0).
+        """
+
+        def _runner(path, timeout_seconds):
+            result = behaviours.get(Path(path).name)
+            if result is not None:
+                return result
+            return (0, "INFO Successfully compiled program.\n", False)
+
+        return _runner
+
+    @contextlib.contextmanager
+    def _patched_cli(self, runner):
+        """Make main()'s --compile path use ``runner`` (no real ESPHome)."""
+        with mock.patch.object(
+            vct, "find_esphome_cli", return_value="esphome"
+        ), mock.patch.object(vct, "_make_esphome_compile_runner", return_value=runner):
+            yield
+
+    @staticmethod
+    def _write_fake_esphome(directory, body):
+        path = Path(directory) / "esphome"
+        path.write_text("#!/bin/sh\n" + body)
+        path.chmod(path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        return path
+
+    # -- logging -----------------------------------------------------------
+
+    def test_logging_includes_index_config_string_and_yaml_path(self):
+        targets = [
+            self._pass_target(),
+            self._fail_target(),
+            self._timeout_target(),
+        ]
+        runner = self._runner_for(
+            {
+                "ceiling-poe-roomiq.yaml": (
+                    1,
+                    "compile broke\nerror tail line\n",
+                    False,
+                ),
+                "ceiling-poe-ventiq.yaml": (None, "partial output\n", True),
+            }
+        )
+        stream = io.StringIO()
+        vct.run_compile(
+            self._doc(targets),
+            timeout_seconds=1200,
+            compile_runner=runner,
+            stream=stream,
+        )
+        out = stream.getvalue()
+
+        # Total count announced before the loop.
+        self.assertIn("Compiling 3 target(s)", out)
+
+        # Before-each block: index/total + id + config string + yaml path
+        # + channel/status, for every target.
+        self.assertIn("[1/3] ▶ START pass-target", out)
+        self.assertIn("[2/3] ▶ START fail-target", out)
+        self.assertIn("[3/3] ▶ START timeout-target", out)
+        for config_string in (
+            "Ceiling-POE",
+            "Ceiling-POE-RoomIQ",
+            "Ceiling-POE-VentIQ",
+        ):
+            self.assertIn(config_string, out)
+        for yaml_path in (self.PASS_YAML, self.FAIL_YAML, self.TIMEOUT_YAML):
+            self.assertIn(yaml_path, out)
+        self.assertIn("channel/status", out)
+
+        # After-each result lines name the outcome per target.
+        self.assertIn("PASS pass-target", out)
+        self.assertIn("FAIL fail-target", out)
+        self.assertIn("TIMEOUT timeout-target", out)
+
+    def test_logging_reports_duration_after_each_target(self):
+        stream = io.StringIO()
+        vct.run_compile(
+            self._doc([self._pass_target()]),
+            compile_runner=self._runner_for({}),
+            stream=stream,
+        )
+        out = stream.getvalue()
+        # Each result line carries a duration in seconds, e.g. "(0.0s)".
+        self.assertRegex(out, r"PASS pass-target \(\d+\.\d+s\)")
+
+    # -- timeout -----------------------------------------------------------
+
+    def test_timeout_outcome_has_clear_message(self):
+        runner = self._runner_for(
+            {"ceiling-poe.yaml": (None, "hung mid-compile\n", True)}
+        )
+        stream = io.StringIO()
+        results = vct.run_compile(
+            self._doc([self._pass_target()]),
+            timeout_seconds=600,
+            compile_runner=runner,
+            stream=stream,
+        )
+        self.assertEqual(len(results), 1)
+        result = results[0]
+        self.assertEqual(result.outcome, vct.OUTCOME_TIMEOUT)
+        self.assertIsNone(result.returncode)
+        # The message must be unambiguous about what happened.
+        self.assertIn("timeout", result.message.lower())
+        self.assertIn("terminated", result.message.lower())
+        # The live log line for this (timed-out) target names the outcome.
+        self.assertIn("TIMEOUT pass-target", stream.getvalue())
+
+    def test_run_compile_continues_after_failure_and_timeout(self):
+        # Order: pass, timeout, fail, pass — the trailing pass proves the
+        # loop did not stop at the timeout or the failure.
+        targets = [
+            self._pass_target(),
+            self._timeout_target(),
+            self._fail_target(),
+            {
+                "id": "second-pass-target",
+                "product_yaml": self.SECOND_PASS_YAML,
+                "config_string": "Ceiling-POE-AirIQ",
+                "shipment_status": "compile-only",
+            },
+        ]
+        runner = self._runner_for(
+            {
+                "ceiling-poe-ventiq.yaml": (None, "", True),
+                "ceiling-poe-roomiq.yaml": (2, "boom\n", False),
+            }
+        )
+        results = vct.run_compile(
+            self._doc(targets),
+            compile_runner=runner,
+            stream=io.StringIO(),
+        )
+        self.assertEqual(
+            [r.outcome for r in results],
+            [
+                vct.OUTCOME_PASS,
+                vct.OUTCOME_TIMEOUT,
+                vct.OUTCOME_FAIL,
+                vct.OUTCOME_PASS,
+            ],
+        )
+
+    def test_real_subprocess_compile_is_killed_at_timeout(self):
+        directory = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, directory, ignore_errors=True)
+        fake = self._write_fake_esphome(
+            directory, "echo starting\nsleep 5\necho done\n"
+        )
+        runner = vct._make_esphome_compile_runner(str(fake))
+        start = time.monotonic()
+        returncode, output, timed_out = runner(Path(self.PASS_YAML), 0.5)
+        elapsed = time.monotonic() - start
+        self.assertTrue(timed_out)
+        self.assertIsNone(returncode)
+        self.assertLess(
+            elapsed,
+            4.0,
+            "the compile should be terminated at the 0.5s timeout, "
+            "not allowed to run to its 5s completion",
+        )
+
+    def test_real_subprocess_runner_returns_rc_and_output(self):
+        directory = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, directory, ignore_errors=True)
+        fake = self._write_fake_esphome(
+            directory, "echo 'INFO Successfully compiled program.'\nexit 0\n"
+        )
+        runner = vct._make_esphome_compile_runner(str(fake))
+        returncode, output, timed_out = runner(Path(self.PASS_YAML), 30)
+        self.assertEqual(returncode, 0)
+        self.assertFalse(timed_out)
+        self.assertIn("Successfully compiled", output)
+
+    def test_run_compile_raises_when_esphome_missing(self):
+        with mock.patch.object(vct, "find_esphome_cli", return_value=None):
+            with self.assertRaises(vct.TargetValidationError):
+                vct.run_compile(self._doc([self._pass_target()]), stream=io.StringIO())
+
+    # -- failures are never hidden ----------------------------------------
+
+    def test_missing_product_yaml_field_is_failure_not_skip(self):
+        target = {
+            "id": "no-yaml",
+            "config_string": "Ceiling-POE",
+            "shipment_status": "compile-only",
+        }
+        results = vct.run_compile(
+            self._doc([target]),
+            compile_runner=self._runner_for({}),
+            stream=io.StringIO(),
+        )
+        self.assertEqual(results[0].outcome, vct.OUTCOME_FAIL)
+        self.assertNotEqual(results[0].outcome, vct.OUTCOME_SKIP)
+        self.assertIn("missing product_yaml", results[0].message)
+
+    def test_nonexistent_product_yaml_is_failure(self):
+        target = {
+            "id": "ghost-yaml",
+            "product_yaml": "products/does-not-exist.yaml",
+            "config_string": "Ceiling-POE",
+            "shipment_status": "compile-only",
+        }
+        results = vct.run_compile(
+            self._doc([target]),
+            compile_runner=self._runner_for({}),
+            stream=io.StringIO(),
+        )
+        self.assertEqual(results[0].outcome, vct.OUTCOME_FAIL)
+        self.assertIn("not found", results[0].message)
+
+    # -- summary -----------------------------------------------------------
+
+    def test_summarize_results_has_all_outcome_buckets(self):
+        buckets = vct.summarize_results([])
+        for outcome in vct.OUTCOME_ORDER:
+            self.assertIn(outcome, buckets)
+            self.assertEqual(buckets[outcome], [])
+
+    def test_render_summary_includes_counts_timed_out_and_skipped(self):
+        results = [
+            vct.CompileTargetResult(
+                target_id="p",
+                config_string="Ceiling-POE",
+                product_yaml="products/compile-only/ceiling-poe.yaml",
+                channel="-",
+                shipment_status="compile-only",
+                outcome=vct.OUTCOME_PASS,
+                returncode=0,
+                duration_seconds=12.0,
+            ),
+            vct.CompileTargetResult(
+                target_id="f",
+                config_string="Ceiling-POE-RoomIQ",
+                product_yaml="products/compile-only/ceiling-poe-roomiq.yaml",
+                channel="-",
+                shipment_status="compile-only",
+                outcome=vct.OUTCOME_FAIL,
+                returncode=1,
+                duration_seconds=8.0,
+                message="esphome compile exited with rc=1",
+            ),
+            vct.CompileTargetResult(
+                target_id="t",
+                config_string="Ceiling-POE-VentIQ",
+                product_yaml="products/compile-only/ceiling-poe-ventiq.yaml",
+                channel="-",
+                shipment_status="compile-only",
+                outcome=vct.OUTCOME_TIMEOUT,
+                returncode=None,
+                duration_seconds=1200.0,
+                message="exceeded the per-target timeout and was terminated",
+            ),
+            vct.CompileTargetResult(
+                target_id="s",
+                config_string="Ceiling-POE-AirIQ",
+                product_yaml="products/compile-only/ceiling-poe-airiq.yaml",
+                channel="-",
+                shipment_status="compile-only",
+                outcome=vct.OUTCOME_SKIP,
+                returncode=None,
+                duration_seconds=0.0,
+                message="not attempted",
+            ),
+        ]
+        summary = vct.render_summary(results, total_duration_seconds=42.5)
+
+        self.assertIn("Total targets : 4", summary)
+        self.assertIn("Passed        : 1", summary)
+        self.assertIn("Failed        : 1", summary)
+        self.assertIn("Timed out     : 1", summary)
+        self.assertIn("Skipped       : 1", summary)
+        self.assertIn("Total duration: 42.5s", summary)
+
+        # The timed-out target must be itemised by id + config string.
+        self.assertIn("Timed-out targets:", summary)
+        self.assertIn("t (Ceiling-POE-VentIQ)", summary)
+        # As must the failed and skipped targets.
+        self.assertIn("Failed targets:", summary)
+        self.assertIn("f (Ceiling-POE-RoomIQ)", summary)
+        self.assertIn("Skipped targets:", summary)
+        self.assertIn("s (Ceiling-POE-AirIQ)", summary)
+
+    # -- exit codes via main() --------------------------------------------
+
+    def test_main_compile_all_pass_returns_zero(self):
+        buf = io.StringIO()
+        with self._patched_cli(self._runner_for({})), contextlib.redirect_stdout(buf):
+            rc = vct.main(["--compile", "--timeout-minutes", "20"])
+        out = buf.getvalue()
+        self.assertEqual(rc, 0, out)
+        self.assertIn("Compile-only validation summary", out)
+        self.assertIn("compile target(s) passed", out)
+
+    def test_main_compile_with_failure_returns_one(self):
+        runner = self._runner_for(
+            {"ceiling-poe-ventiq-roomiq.yaml": (1, "compile failed\n", False)}
+        )
+        buf = io.StringIO()
+        with self._patched_cli(runner), contextlib.redirect_stdout(buf):
+            rc = vct.main(["--compile"])
+        out = buf.getvalue()
+        self.assertEqual(rc, 1, out)
+        self.assertIn("did not pass", out)
+
+    def test_main_compile_with_timeout_returns_one_and_names_it(self):
+        runner = self._runner_for(
+            {"ceiling-poe-ventiq-roomiq.yaml": (None, "stuck\n", True)}
+        )
+        buf = io.StringIO()
+        with self._patched_cli(runner), contextlib.redirect_stdout(buf):
+            rc = vct.main(["--compile"])
+        out = buf.getvalue()
+        self.assertEqual(rc, 1, out)
+        self.assertIn("timed out", out)
+        self.assertIn("Timed-out targets:", out)
+
+    # -- metadata-only path unaffected + flag plumbing --------------------
+
+    def test_metadata_only_modes_still_pass(self):
+        self.assertEqual(vct.main(["--metadata-only"]), 0)
+        self.assertEqual(vct.main([]), 0)
+
+    def test_timeout_minutes_flag_is_accepted_with_metadata(self):
+        self.assertEqual(vct.main(["--metadata-only", "--timeout-minutes", "5"]), 0)
+
+    def test_timeout_minutes_flag_rejects_non_positive(self):
+        with self.assertRaises(SystemExit):
+            vct.main(["--compile", "--timeout-minutes", "0"])
 
 
 if __name__ == "__main__":

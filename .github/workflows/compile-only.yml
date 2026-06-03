@@ -102,6 +102,17 @@ jobs:
   #   - This job does NOT write to config/webflash-builds.json or any
   #     other shipment manifest.
   #   - ESPHome compile output is ephemeral CI confidence only.
+  #
+  # PROGRESS / TIMEOUT (COMPILE-VALIDATOR-PROGRESS-LOGGING-001):
+  #   scripts/validate_compile_targets.py --compile logs each target
+  #   before it starts (index/total, config string, YAML path,
+  #   channel/status) and after it finishes (PASS / FAIL / TIMEOUT +
+  #   duration), flushing immediately so this step shows live progress
+  #   instead of going dark. It enforces a per-target timeout (default
+  #   20 min) so one hung ESPHome / PlatformIO compile is terminated and
+  #   recorded as TIMEOUT rather than silently stalling the whole job;
+  #   the run continues and the final summary lists every target. The
+  #   command and inputs below are unchanged.
   # --------------------------------------------------------------------------
   full-compile:
     name: Compile-only Targets — Full ESPHome Compile
@@ -155,5 +166,9 @@ jobs:
           cp secrets.yaml products/compile-only/secrets.yaml
 
       - name: Run compile-only validator (full compile)
+        # Per-target progress + a 20-minute-per-target timeout are built
+        # into the validator (COMPILE-VALIDATOR-PROGRESS-LOGGING-001); the
+        # default applies here. Override locally with --timeout-minutes if
+        # ever needed — left at the default so behaviour is unchanged.
         run: |
           python3 scripts/validate_compile_targets.py --compile
