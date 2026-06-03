@@ -150,6 +150,30 @@ Where the preview-release program actually stands today:
   + [`tests/test_preview_fan_triac_build_rows.py`](tests/test_preview_fan_triac_build_rows.py);
   full record
   [`docs/release-preview-fan-triac-build-rows.md`](docs/release-preview-fan-triac-build-rows.md).
+* **Manual-preview fan publish plan — DONE (this PR,
+  `RELEASE-PREVIEW-FAN-PUBLISH-PLAN-001`).** Plans the actual publication of the
+  three **buildable** manual-preview fan artifacts (`Ceiling-POE-VentIQ-FanRelay-RoomIQ`,
+  `Ceiling-POE-FanPWM`, `Ceiling-POE-FanDAC`) — per-target config string / lane
+  (`manual-preview`) / channel (`preview`) / artifact name / product YAML / manual
+  artifact row / release-note draft / compile evidence (run `26821900127`) /
+  warning copy / stable blocker / hidden-not-buyable posture / no-hardware-proof
+  disclaimer — in
+  [`docs/release-preview-fan-publish-plan.md`](docs/release-preview-fan-publish-plan.md).
+  **TRIAC is out of scope** (`HW-005`, build-blocked, no compile proof). The
+  workflow/publish-path check found a **gap**: the release workflow
+  [`firmware-build-release.yml`](.github/workflows/firmware-build-release.yml)
+  publishes **only** `config/webflash-builds.json` rows (fan-token guardrail keeps
+  fans out) and the manual lane
+  [`manual-firmware-artifacts.yml`](.github/workflows/manual-firmware-artifacts.yml)
+  is non-release / expiring, so **neither** can durably publish these artifacts.
+  The plan therefore **queues** `RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001` (add the
+  manual-preview publish path) then `RELEASE-PREVIEW-FAN-PUBLISH-RUN-001` (execute
+  it) — **without** adding any fan row to `config/webflash-builds.json`. Planning
+  only: publishes nothing, runs no workflow, no `.bin` / Release / tag /
+  `manifest.json` / `firmware/sources.json`, no WebFlash repo change, launch SKU
+  `S360-KIT-BATH-P` + Simple install unchanged, no hardware / bench / compliance
+  proof. Guard
+  [`tests/test_preview_fan_publish_plan.py`](tests/test_preview_fan_publish_plan.py).
 
 So **policy, target manifest, releasable metadata, the metadata build/release
 dry-run + re-run, and now the hosted compile dry-run are done**. The three former
@@ -436,6 +460,55 @@ the existing acknowledgement gate, consuming each release asset's
 `browser_download_url`, tag, and recorded SHA256. **WebFlash-repo follow-up only**
 — no change in this repo, no stable promotion, candidate bundles stay hidden / not
 buyable, and no hardware / compliance proof is implied by import.
+
+### RELEASE-PREVIEW-FAN-PUBLISH-PLAN-001 — plan manual-preview fan firmware publication — DONE (this PR)
+
+**Status: DONE in this PR.** With the fan / TRIAC build-row ledger + validated
+release-note drafts in place (`RELEASE-PREVIEW-FAN-TRIAC-BUILD-ROWS-001`, #703)
+and green firmware-build compile proof (run `26821900127`, #695), this PR writes
+the **publish plan** for the three **buildable manual-preview fan artifacts** —
+`Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.0-preview.bin`,
+`Sense360-Ceiling-POE-FanPWM-v1.0.0-preview.bin`, and
+`Sense360-Ceiling-POE-FanDAC-v1.0.0-preview.bin` —
+[`docs/release-preview-fan-publish-plan.md`](docs/release-preview-fan-publish-plan.md).
+For each it records the config string, lane (`manual-preview`), channel
+(`preview`), artifact name, product YAML, manual-lane candidate, release-note
+draft, compile evidence (run `26821900127`, firmware-build-only), warning copy,
+stable blocker, commercial posture (hidden / candidate / not buyable / not
+recommended / not default / not stable), and the no-hardware/compliance-proof
+disclaimer. **TRIAC (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`) is out of scope**
+(`HW-005`, build-blocked, no compile proof, no `.bin`). The plan **verifies the
+publish path** and documents a **gap**: the release workflow publishes only
+`config/webflash-builds.json` rows (the fan-token guardrail keeps fans out) and
+the manual lane is non-release / expiring, so neither can durably publish these
+artifacts. It therefore **queues** the workflow follow-up below **without**
+hacking fans into `config/webflash-builds.json`. Guard
+[`tests/test_preview_fan_publish_plan.py`](tests/test_preview_fan_publish_plan.py)
+(32 tests). **Planning only** — publishes no firmware, runs no workflow, creates
+no GitHub Release / tag / checksum, commits no `.bin`, writes no `manifest.json`
+/ `firmware/sources.json`, touches no WebFlash repo, marks nothing stable /
+recommended / default / buyable, adds no `config/webflash-builds.json` row, keeps
+Simple install + the launch SKU `S360-KIT-BATH-P` unchanged, and claims no
+hardware / bench / compliance proof.
+
+### RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001 — add the manual-preview fan publication workflow path (QUEUED — actionable)
+
+**Now actionable — gap identified by `RELEASE-PREVIEW-FAN-PUBLISH-PLAN-001`.** The
+existing release workflow cannot publish the three manual-preview fan artifacts
+(it reads only `config/webflash-builds.json`, which the fan-token guardrail keeps
+fans out of), and the manual lane only emits expiring non-release CI artifacts.
+This item adds a **manual-preview publication path** that reads the manual-preview
+rows from
+[`config/preview-fan-triac-build-rows.json`](config/preview-fan-triac-build-rows.json)
+/ [`config/manual-firmware-artifacts.json`](config/manual-firmware-artifacts.json)
+(**not** `config/webflash-builds.json`), builds the three fan product YAMLs,
+renames each output to its `expected_preview_artifact_name`, and attaches the
+durable `-v1.0.0-preview.bin` artifacts to a **dedicated manual-preview release
+vehicle** kept separate from the WebFlash `v1.0.0-preview` release. TRIAC stays
+excluded (`HW-005`); no fan row is added to `config/webflash-builds.json`; no
+stable promotion. **Then** `RELEASE-PREVIEW-FAN-PUBLISH-RUN-001` executes it. The
+WebFlash one-click import (`WEBFLASH-RELAY-001` / `WEBFLASH-PWM-001` /
+`WEBFLASH-DAC-001`) remains a strictly later, separately gated follow-up.
 
 > Also queued (future, not started): **`FIRST-MAINTENANCE-RELEASE-PLAN-001`** —
 > plan a future maintenance release (new version); see its entry below.
