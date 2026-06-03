@@ -131,6 +131,25 @@ Where the preview-release program actually stands today:
   exist, so the WebFlash-side one-click import is unblocked and queued as
   `WF-PREVIEW-IMPORT-FIRST-BATCH-001` (a WebFlash-repo follow-up, behind the
   existing acknowledgement gate). No WebFlash change is in this repo.
+* **Fan-control / TRIAC preview build rows + release-note drafts — DONE (this PR,
+  `RELEASE-PREVIEW-FAN-TRIAC-BUILD-ROWS-001`).** Adds the non-WebFlash build-row
+  ledger
+  [`config/preview-fan-triac-build-rows.json`](config/preview-fan-triac-build-rows.json)
+  (the manual / advanced-manual analog of `config/webflash-builds.json`) plus
+  validated preview release-note drafts under
+  [`docs/release-notes/manual-preview/`](docs/release-notes/manual-preview/) for
+  the four fan / TRIAC targets. FanRelay / FanPWM / FanDAC are `manual-preview`
+  rows citing **firmware-build proof only** (run `26821900127`); FanTRIAC is
+  `advanced-manual-preview`, **build-blocked by `HW-005`** with **no compile proof
+  claimed** and the mandatory mains-risk warning. Adds **no**
+  `config/webflash-builds.json` row, flips no catalog status, promotes nothing to
+  stable / recommended / default / buyable, leaves **Simple install + launch SKU
+  `S360-KIT-BATH-P` unchanged**, and makes **no** TRIAC safety / compliance claim.
+  Guards
+  [`scripts/validate_preview_fan_triac_build_rows.py`](scripts/validate_preview_fan_triac_build_rows.py)
+  + [`tests/test_preview_fan_triac_build_rows.py`](tests/test_preview_fan_triac_build_rows.py);
+  full record
+  [`docs/release-preview-fan-triac-build-rows.md`](docs/release-preview-fan-triac-build-rows.md).
 
 So **policy, target manifest, releasable metadata, the metadata build/release
 dry-run + re-run, and now the hosted compile dry-run are done**. The three former
