@@ -166,8 +166,23 @@ All commands run from the repo root and pass:
 
 ---
 
+## Follow-up — publish plan
+
+The actual publication of the three **buildable** manual-preview fan artifacts
+(FanRelay / FanPWM / FanDAC; TRIAC stays out under `HW-005`) is planned in
+[`docs/release-preview-fan-publish-plan.md`](release-preview-fan-publish-plan.md)
+(`RELEASE-PREVIEW-FAN-PUBLISH-PLAN-001`). That plan records the per-target
+publish fields and finds that **no existing workflow can durably publish these
+manual-preview artifacts** (the release workflow reads only
+`config/webflash-builds.json`, which the fan-token guardrail keeps fans out of;
+the manual lane is non-release / expiring), so it queues
+`RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001` (add the publish path) and
+`RELEASE-PREVIEW-FAN-PUBLISH-RUN-001` (execute it) — **without** adding any fan
+row to `config/webflash-builds.json`.
+
 ## Cross-references
 
+- Publish plan: [`docs/release-preview-fan-publish-plan.md`](release-preview-fan-publish-plan.md) (`RELEASE-PREVIEW-FAN-PUBLISH-PLAN-001`)
 - Build-row ledger: [`config/preview-fan-triac-build-rows.json`](../config/preview-fan-triac-build-rows.json)
 - Release-note drafts: [`docs/release-notes/manual-preview/`](release-notes/manual-preview/)
 - Preview target manifest: [`config/preview-release-targets.json`](../config/preview-release-targets.json) · [`docs/preview-release-targets.md`](preview-release-targets.md)
