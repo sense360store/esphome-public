@@ -244,6 +244,19 @@ land, the publish must use:
 | Release vehicle | a dedicated manual-preview tag/Release, separate from `v1.0.0-preview`; **must not** reuse the WebFlash matrix or imply WebFlash import |
 | Excluded | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` (`HW-005`); the stable Bathroom build; every WebFlash one-click import |
 
+> **Tag isolation now enforced (`RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001`).** The
+> "dedicated, separate release vehicle" expectation in the table above is no
+> longer advisory: the workflow defaults to and is pinned to
+> `v1.0.0-manual-preview-fans`, and a **"Guard release tag"** step fails the run
+> before any build if a dispatch targets `v1.0.0-preview` (or any reserved
+> WebFlash room/preview tag), rejecting those tags unconditionally and requiring
+> `confirm_tag_override=true` for any non-default tag. The
+> `RELEASE-PREVIEW-FAN-PUBLISH-RUN-001` dispatch (run `26878032103`) **deviated**
+> from this expectation before the guard existed (it targeted `v1.0.0-preview`);
+> the retag PR closed that gap. See
+> [`docs/release-preview-fan-publish-results.md`](release-preview-fan-publish-results.md)
+> §4.1.
+
 ---
 
 ## 4. What is proven (and what is not)
@@ -289,6 +302,13 @@ land, the publish must use:
    preview exposure. Not started; not implied by this plan.
 4. **FanTRIAC `HW-005`** — unchanged buildability defect; FanTRIAC stays
    `advanced-manual-preview`, build-blocked, excluded from every publish surface.
+5. **`RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001` — DONE.** After the run targeted
+   `v1.0.0-preview` instead of the dedicated `v1.0.0-manual-preview-fans` vehicle,
+   the retag PR isolated the fan release tag (workflow guard + validator + tests),
+   formally accepted the shared-tag state of the completed run (room assets and
+   their pinned SHA256s untouched), and reserved `v1.0.0-manual-preview-fans` for a
+   safe future operator re-cut. The WebFlash room preview release stays the source
+   of truth for the room preview import.
 
 ---
 

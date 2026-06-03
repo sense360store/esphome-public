@@ -211,6 +211,39 @@ WebFlash preview release's name / body / checksums) is noted in `UPCOMING_PR.md`
 it is **not** performed here (re-running the workflow and creating another release
 are out of scope for this recording PR).
 
+### 4.1 Correction — `RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001`
+
+The follow-up flagged above has since been **actioned** by
+`RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001` (a separate code + docs + tests PR). It
+**isolates the manual-preview fan release tag** so this deviation cannot recur,
+and records the formal decision for the already-published run:
+
+* **Recurrence is prevented in the workflow.** The `Manual-Preview Fan Firmware
+  Publish` workflow defaults to and is pinned to the dedicated
+  `v1.0.0-manual-preview-fans` vehicle. A new **"Guard release tag"** step (backed
+  by `scripts/validate_manual_preview_fan_publish.py --validate-release-tag`)
+  **fails the run before any build** if a dispatch targets `v1.0.0-preview` (or any
+  reserved WebFlash room/preview tag such as `v1.0.0-led-preview`), and requires an
+  explicit `confirm_tag_override=true` for any non-default tag (which must still
+  stay on the dedicated fan vehicle). The WebFlash room/preview tags are rejected
+  **unconditionally** — even with the override.
+* **The shared-tag state of the completed run is formally accepted.** The three
+  fan assets stay attached to `v1.0.0-preview`; **no artifact is deleted, no SHA256
+  is changed, and no WebFlash import breaks**. Restoring this release's name / body
+  / checksums is **not** performed: it would require live asset surgery on a
+  release that also holds the four WebFlash-pinned room-bundle preview `.bin`, and
+  the safest action is to leave those room assets untouched.
+* **The dedicated vehicle is reserved for the re-cut.** Now that the workflow can
+  no longer target `v1.0.0-preview`, an operator may re-cut the three fan artifacts
+  onto `v1.0.0-manual-preview-fans` with a normal dispatch (`dry_run=false`,
+  `release_tag=v1.0.0-manual-preview-fans`) at any time; the
+  `v1.0.0-manual-preview-fans` release does not exist yet and is created by that
+  dispatch. The retag PR itself **runs no workflow and creates no release / tag**.
+
+TRIAC stays excluded (`HW-005`); the four WebFlash room-bundle preview assets and
+their pinned SHA256 values remain the source of truth for the WebFlash room preview
+import.
+
 ---
 
 ## 5. Posture preserved
@@ -278,11 +311,13 @@ row, no product YAML, and no firmware, so the existing counts are unchanged):
   `WEBFLASH-DAC-001` follow-ups (WebFlash repo, behind a fan preview warning UX),
   contingent on a deliberate WebFlash policy decision. No fan row is added to
   `config/webflash-builds.json`; the fan-token guardrail stays intact.
-* **Release-tag hygiene (recommended).** Because the run targeted `v1.0.0-preview`
-  instead of the dedicated `v1.0.0-manual-preview-fans` vehicle (see §4), a
-  follow-up should either re-cut the three fan artifacts onto the dedicated tag
-  and restore the WebFlash preview release's name / body / checksums, or formally
-  accept the shared tag. Queued in `UPCOMING_PR.md`; not actioned here.
+* **Release-tag hygiene — ACTIONED by `RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001`.**
+  Because the run targeted `v1.0.0-preview` instead of the dedicated
+  `v1.0.0-manual-preview-fans` vehicle (see §4), the retag PR **isolated the fan
+  release tag** (workflow guard + validator + tests) so a fan publish can never
+  again target `v1.0.0-preview`, **formally accepted** the shared-tag state of the
+  completed run (room assets / SHA256s untouched), and left the dedicated vehicle
+  reserved for a safe future operator re-cut. See §4.1.
 * **FanTRIAC `HW-005`** — unchanged buildability defect; FanTRIAC stays
   `advanced-manual-preview`, build-blocked, excluded from every publish surface.
 

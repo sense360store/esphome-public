@@ -1,14 +1,23 @@
 #!/usr/bin/env python3
 """Validate and plan the manual-preview fan publish workflow.
 
-RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001.
+RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001 (tag isolation added by
+RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001).
 
 This helper is intentionally metadata-only unless called by the GitHub Actions
-workflow to print a matrix, release body, or validate an output directory. It
-reads the non-WebFlash fan ledger in
+workflow to print a matrix, release body, validate an output directory, or
+validate the release tag. It reads the non-WebFlash fan ledger in
 ``config/preview-fan-triac-build-rows.json`` plus
 ``config/manual-firmware-artifacts.json`` and never reads
 ``config/webflash-builds.json`` as a matrix source.
+
+Release-tag isolation (``--validate-release-tag`` / enforced in every mode):
+the manual-preview fan publish must target the dedicated
+``v1.0.0-manual-preview-fans`` vehicle and must NEVER reuse a WebFlash
+room/preview tag (``v1.0.0-preview`` / ``v1.0.0-led-preview``). Reusing
+``v1.0.0-preview`` is the exact release-hygiene defect this guard prevents from
+recurring; any non-default tag requires ``--confirm-tag-override true`` and
+must still stay on the dedicated fan vehicle.
 """
 
 from __future__ import annotations
@@ -29,10 +38,21 @@ DEFAULT_VERSION = "1.0.0"
 DEFAULT_CHANNEL = "preview"
 ALL_TARGETS = "all-manual-preview-fans"
 EXPECTED_RELEASE_TAG = "v1.0.0-manual-preview-fans"
+# Marker every legitimate manual-preview fan tag must carry so an override can
+# never wander off the dedicated vehicle onto an unrelated tag.
+MANUAL_PREVIEW_FANS_MARKER = "manual-preview-fans"
+# Tags owned by the WebFlash room/preview release vehicle. The manual-preview
+# fan publish must NEVER reuse these: reusing v1.0.0-preview is exactly the
+# release-hygiene defect RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001 fixes (the fan
+# assets overwrote that release's name/body/checksums and co-mingled with the
+# four WebFlash room-bundle preview .bin). These are rejected unconditionally,
+# even with confirm_tag_override.
+RESERVED_WEBFLASH_RELEASE_TAGS = ("v1.0.0-preview", "v1.0.0-led-preview")
 
 WORKFLOW_ID = "RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001"
 RUN_ID = "RELEASE-PREVIEW-FAN-PUBLISH-RUN-001"
 PLAN_ID = "RELEASE-PREVIEW-FAN-PUBLISH-PLAN-001"
+RETAG_ID = "RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001"
 
 FAN_CONFIGS = (
     "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
@@ -53,6 +73,57 @@ POSTURE_FALSE_FIELDS = (
 
 def _load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _is_truthy(value: Any) -> bool:
+    return str(value).strip().lower() in {"true", "1", "yes", "on"}
+
+
+def _validate_release_tag(
+    release_tag: str, *, confirm_override: bool = False
+) -> List[str]:
+    """Enforce manual-preview fan release-tag isolation.
+
+    RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001. Rules, in priority order:
+
+      * the WebFlash room/preview tags (``RESERVED_WEBFLASH_RELEASE_TAGS``,
+        e.g. ``v1.0.0-preview``) are rejected unconditionally — even with
+        ``confirm_override`` — because those belong to the WebFlash room
+        preview release and must never carry fan assets;
+      * the dedicated default ``EXPECTED_RELEASE_TAG`` is always accepted;
+      * any other tag is an override: it requires ``confirm_override`` and must
+        still stay on the dedicated vehicle (carry ``MANUAL_PREVIEW_FANS_MARKER``).
+
+    Returns a list of error strings (empty == the tag is allowed).
+    """
+    errors: List[str] = []
+    tag = (release_tag or "").strip()
+    if not tag:
+        errors.append("release_tag must not be empty")
+        return errors
+    if tag in RESERVED_WEBFLASH_RELEASE_TAGS:
+        errors.append(
+            f"release_tag {tag!r} is reserved for the WebFlash room/preview "
+            f"release vehicle and must never be reused by the manual-preview "
+            f"fan publish; use the dedicated tag {EXPECTED_RELEASE_TAG!r} "
+            f"({RETAG_ID})"
+        )
+        return errors
+    if tag == EXPECTED_RELEASE_TAG:
+        return errors
+    if not confirm_override:
+        errors.append(
+            f"release_tag {tag!r} differs from the dedicated default "
+            f"{EXPECTED_RELEASE_TAG!r}; set confirm_tag_override=true to publish "
+            f"to a non-default manual-preview fan tag ({RETAG_ID})"
+        )
+    if MANUAL_PREVIEW_FANS_MARKER not in tag:
+        errors.append(
+            f"release_tag {tag!r} must stay on the dedicated manual-preview fan "
+            f"vehicle (the tag must contain {MANUAL_PREVIEW_FANS_MARKER!r}); "
+            f"{RETAG_ID}"
+        )
+    return errors
 
 
 def _artifact_name(config_string: str, version: str, channel: str) -> str:
@@ -318,9 +389,19 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--version", default=DEFAULT_VERSION)
     parser.add_argument("--release-tag", default=EXPECTED_RELEASE_TAG)
+    parser.add_argument(
+        "--confirm-tag-override",
+        default="false",
+        help=(
+            "Confirm a non-default release tag (true/false). Required to use any "
+            "tag other than the dedicated default; the WebFlash room/preview tags "
+            "are rejected regardless. RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001."
+        ),
+    )
     parser.add_argument("--release-target", default=ALL_TARGETS)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--metadata-only", action="store_true")
+    mode.add_argument("--validate-release-tag", action="store_true")
     mode.add_argument("--print-matrix", action="store_true")
     mode.add_argument("--release-body", action="store_true")
     mode.add_argument("--validate-output-dir")
@@ -330,6 +411,27 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Optional[List[str]] = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+
+    # Tag isolation guard (RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001) is enforced in
+    # every mode so the dedicated vehicle cannot be bypassed; the default tag
+    # passes silently.
+    tag_errors = _validate_release_tag(
+        args.release_tag, confirm_override=_is_truthy(args.confirm_tag_override)
+    )
+
+    if args.validate_release_tag:
+        if tag_errors:
+            print(
+                "Manual-preview fan release-tag validation FAILED:", file=sys.stderr
+            )
+            for error in tag_errors:
+                print(f"  - {error}", file=sys.stderr)
+            return 1
+        print(
+            f"Release tag {args.release_tag!r} accepted for the dedicated "
+            "manual-preview fan vehicle."
+        )
+        return 0
 
     ledger = _load_json(LEDGER_PATH)
     manual = _load_json(MANUAL_PATH)
@@ -342,6 +444,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         version=args.version,
         release_target=args.release_target,
     )
+    errors = tag_errors + errors
     if errors:
         print("Manual-preview fan publish validation FAILED:", file=sys.stderr)
         for error in errors:

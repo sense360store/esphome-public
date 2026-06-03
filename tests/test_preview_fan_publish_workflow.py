@@ -91,6 +91,26 @@ class WorkflowShapeTests(unittest.TestCase):
             rf"release_tag:\n(?:[^\n]*\n)*?\s+default: \"{re.escape(DEFAULT_TAG)}\"",
         )
 
+    def test_confirm_tag_override_input_present(self) -> None:
+        # RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001: a non-default tag needs explicit
+        # confirmation.
+        text = _workflow_text()
+        self.assertRegex(
+            text,
+            r"confirm_tag_override:\n(?:[^\n]*\n)*?\s+default: false\n"
+            r"\s+type: boolean",
+        )
+
+    def test_guard_release_tag_step_isolates_webflash_preview(self) -> None:
+        # RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001: the run must fail fast (before any
+        # build) on the WebFlash room preview tag.
+        text = _workflow_text()
+        self.assertIn("Guard release tag", text)
+        self.assertIn("--validate-release-tag", text)
+        self.assertIn(
+            '--confirm-tag-override "${{ inputs.confirm_tag_override }}"', text
+        )
+
     def test_permissions_are_read_only_except_publish_job(self) -> None:
         text = _workflow_text()
         self.assertRegex(text, r"(?m)^permissions:\n  contents: read$")

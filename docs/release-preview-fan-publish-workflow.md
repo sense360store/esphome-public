@@ -51,6 +51,27 @@ WebFlash release-eligibility ledger.
 - The release vehicle is separate from the WebFlash `v1.0.0-preview` release, so
   these artifacts are not implied to be WebFlash-importable.
 
+## Release-tag isolation (`RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001`)
+
+The first run (`RELEASE-PREVIEW-FAN-PUBLISH-RUN-001`, run `26878032103`) was
+dispatched with `release_tag=v1.0.0-preview`, which overwrote the WebFlash room
+preview release's name / body / checksums and co-mingled the fan assets with the
+four room-bundle preview `.bin`. To prevent a recurrence, the workflow now isolates
+the fan release tag:
+
+- A **"Guard release tag"** step in the `generate-matrix` job runs
+  `scripts/validate_manual_preview_fan_publish.py --validate-release-tag` and
+  **fails the whole run before any build** on a bad tag.
+- `release_tag` defaults to and is pinned to `v1.0.0-manual-preview-fans`.
+- The WebFlash room/preview tags (`v1.0.0-preview`, `v1.0.0-led-preview`) are
+  **rejected unconditionally** — even with `confirm_tag_override=true`.
+- Any other (non-default) tag requires `confirm_tag_override=true` and must still
+  carry the `manual-preview-fans` marker, so an override can never wander onto an
+  unrelated tag.
+
+This keeps fan artifacts off the WebFlash room preview release; that release stays
+the source of truth for the WebFlash room preview import.
+
 ## Guardrails
 
 This PR does **not** publish firmware, run the workflow, create a GitHub Release
@@ -64,7 +85,10 @@ The eventual run remains queued as `RELEASE-PREVIEW-FAN-PUBLISH-RUN-001`.
 ## Validation
 
 - `python3 scripts/validate_manual_preview_fan_publish.py --metadata-only`
+- `python3 scripts/validate_manual_preview_fan_publish.py --validate-release-tag --release-tag v1.0.0-manual-preview-fans` (accepts)
+- `python3 scripts/validate_manual_preview_fan_publish.py --validate-release-tag --release-tag v1.0.0-preview` (rejects — exit 1)
 - `python3 scripts/validate_manual_preview_fan_publish.py --print-matrix`
 - `python3 scripts/validate_manual_preview_fan_publish.py --release-body > /tmp/manual-preview-fan-release-notes.md`
 - `python3 scripts/validate-webflash-release-notes.py /tmp/manual-preview-fan-release-notes.md --channel preview`
 - `python3 tests/test_preview_fan_publish_workflow.py`
+- `python3 tests/test_preview_fan_publish_retag.py`

@@ -588,15 +588,48 @@ writes no `manifest.json` / `firmware/sources.json`, makes nothing recommended /
 default / buyable, keeps the launch SKU `S360-KIT-BATH-P` + Simple install
 unchanged, and claims no hardware / bench / compliance proof.
 
-#### RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001 — re-cut fan artifacts onto the dedicated tag (OPTIONAL — not started)
+#### RELEASE-PREVIEW-FAN-PUBLISH-RETAG-001 — isolate the manual-preview fan release tag — DONE (this PR)
 
-**Recommended follow-up, not actioned here.** Because run `26878032103` targeted
-`v1.0.0-preview` instead of the dedicated `v1.0.0-manual-preview-fans` vehicle,
-either re-cut the three fan artifacts onto the dedicated tag (`dry_run=false`,
-`release_tag=v1.0.0-manual-preview-fans`) and restore the WebFlash preview
-release's name / body / checksums, or formally accept the shared tag.
-Release-hygiene only — no artifact was deleted, no SHA256 changed, and no WebFlash
-import broke; TRIAC stays excluded (`HW-005`).
+**Status: DONE in this PR (workflow + validator + docs + tests; no firmware, no
+release run).** Because `RELEASE-PREVIEW-FAN-PUBLISH-RUN-001` (run `26878032103`)
+targeted `release_tag=v1.0.0-preview` instead of the dedicated
+`v1.0.0-manual-preview-fans` vehicle — overwriting the WebFlash room preview
+release's name / body / checksums and co-mingling the three fan `.bin` with the four
+room-bundle preview `.bin` — this PR **isolates the fan release tag so the deviation
+cannot recur**, and records the formal decision for the completed run:
+
+* **Workflow guardrail.**
+  [`.github/workflows/manual-preview-fan-publish.yml`](.github/workflows/manual-preview-fan-publish.yml)
+  adds a **"Guard release tag"** step (and a new `confirm_tag_override` input) that
+  runs `scripts/validate_manual_preview_fan_publish.py --validate-release-tag` and
+  **fails the run before any build** if the dispatch targets `v1.0.0-preview` (or any
+  reserved WebFlash room/preview tag such as `v1.0.0-led-preview`). The reserved tags
+  are rejected **unconditionally** (even with the override); any non-default tag
+  requires `confirm_tag_override=true` and must still carry the `manual-preview-fans`
+  marker. The dedicated `v1.0.0-manual-preview-fans` stays the default.
+* **Formal acceptance of the completed run.** The three fan assets stay attached to
+  `v1.0.0-preview`; **no artifact is deleted, no SHA256 is changed, and no WebFlash
+  import breaks**. Restoring that release's name / body / checksums is intentionally
+  **not** done — it would be live asset surgery on a release that also holds the four
+  WebFlash-pinned room-bundle preview `.bin`, and the safe action is to leave the room
+  assets untouched. The four room SHA256s remain the source of truth for the WebFlash
+  room preview import.
+* **Re-cut reserved for a safe operator dispatch.** Now that the workflow can no
+  longer target `v1.0.0-preview`, the three fan artifacts can be re-cut onto
+  `v1.0.0-manual-preview-fans` with a normal `dry_run=false` dispatch whenever desired;
+  the `v1.0.0-manual-preview-fans` release does not exist yet and is created by that
+  dispatch. **This PR runs no workflow and creates no release / tag.**
+
+Docs: [`docs/release-preview-fan-publish-results.md`](docs/release-preview-fan-publish-results.md)
+§4.1, [`docs/release-preview-fan-publish-plan.md`](docs/release-preview-fan-publish-plan.md)
+§3.4/§6, [`docs/release-preview-fan-publish-workflow.md`](docs/release-preview-fan-publish-workflow.md).
+Guard [`tests/test_preview_fan_publish_retag.py`](tests/test_preview_fan_publish_retag.py)
+(plus extended
+[`tests/test_preview_fan_publish_workflow.py`](tests/test_preview_fan_publish_workflow.py)).
+**TRIAC stays excluded** (`HW-005`); no fan row is added to
+`config/webflash-builds.json`; the WebFlash repo, Simple install, and the launch SKU
+`S360-KIT-BATH-P` are unchanged; nothing is marked stable / recommended / default /
+buyable; no hardware / bench / compliance proof is claimed.
 
 > Also queued (future, not started): **`FIRST-MAINTENANCE-RELEASE-PLAN-001`** —
 > plan a future maintenance release (new version); see its entry below.
