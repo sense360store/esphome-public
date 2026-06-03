@@ -63,6 +63,7 @@ SHOP_PATH = REPO_ROOT / "config" / "shop-commercial-source-of-truth.json"
 DRAFT_DIR = REPO_ROOT / "docs" / "release-notes" / "preview"
 RELEASE_PROOF_DOC = REPO_ROOT / "docs" / "webflash-release-proof.md"
 VALIDATOR_PATH = REPO_ROOT / "scripts" / "validate-webflash-release-notes.py"
+SHARED_PREVIEW_NOTES = "v1.0.0-preview.md"
 
 COMPILE_RUN_ID = 26821900127
 
@@ -427,7 +428,8 @@ class GuardrailTests(unittest.TestCase):
     def test_draft_directory_holds_only_the_three_drafts_and_readme(self) -> None:
         present = sorted(p.name for p in DRAFT_DIR.glob("*.md"))
         expected = sorted(
-            ["README.md"] + [f"{cs.lower()}.md" for cs in METADATA_READY_CONFIGS]
+            ["README.md", SHARED_PREVIEW_NOTES]
+            + [f"{cs.lower()}.md" for cs in METADATA_READY_CONFIGS]
         )
         self.assertEqual(present, expected)
 
