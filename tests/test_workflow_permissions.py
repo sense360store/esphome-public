@@ -57,6 +57,16 @@ WRITE_PERMISSION_ALLOWLIST: dict[tuple[str, str, str], str] = {
         "to the GitHub Release via softprops/action-gh-release, which "
         "requires contents: write. Scoped to this job only."
     ),
+    (
+        "manual-preview-fan-publish.yml",
+        "publish",
+        "contents",
+    ): (
+        "The publish job attaches the manual-preview fan binaries, checksums, "
+        "and build-info manifest to the dedicated manual-preview fan GitHub "
+        "Release via softprops/action-gh-release. Scoped to this job only and "
+        "gated behind workflow_dispatch with dry_run=false."
+    ),
 }
 
 # ---------------------------------------------------------------------------
@@ -155,7 +165,7 @@ class WorkflowPermissionTests(unittest.TestCase):
                 "permissions",
                 data,
                 f"{name}: missing explicit top-level 'permissions:' block. "
-                "Add least-privilege 'permissions:\\n  contents: read' "
+                "Add least-privilege 'permissions:\n  contents: read' "
                 "(SECURITY-AUDIT-FIX-001) so the workflow does not inherit "
                 "the repo-default (potentially read-write) token scope.",
             )
