@@ -218,58 +218,120 @@ Notes:
 
 ---
 
-## Room-bundle fan-control variants (planning only)
+## Room-bundle fan-control PREVIEW variants (`ROOM-BUNDLE-FAN-VARIANTS-002`)
 
-The base room bundle SKUs above **remain the main product line**. The
-fan-control variants below are **optional add-ons for the Bathroom and
-Kitchen bundles only** — no other room bundle (Corridor / Landing, Living
-Room, Bedroom) has a fan-control variant. To keep the stable room-bundle
-matrix above clean, these variants live in a separate planning file
+The base room bundle SKUs above **remain the main product line**, and the
+**stable Bathroom sensing-only bundle (`S360-KIT-BATH-P` →
+`Ceiling-POE-VentIQ-RoomIQ`) stays the default product**. The fan-control
+variants below are **optional add-ons for the Bathroom and Kitchen bundles
+only** — no other room bundle (Corridor / Landing, Living Room, Bedroom)
+has a fan-control variant. To keep the stable room-bundle matrix above
+clean, these variants live in a separate file
 [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
-(`ROOM-BUNDLE-FAN-VARIANTS-001`, OPTION A — separate file).
+(`ROOM-BUNDLE-FAN-VARIANTS-002`, OPTION A — separate file). `-002`
+**promotes** the `-001` planning rows into an explicit **preview bundle
+plan**.
 
-This proposal is **planning-only**. It performs **no firmware release and
-no WebFlash promotion**: it adds no product YAML, no firmware config
-string, no `artifact_name`, no `config/webflash-builds.json` row, and
-flips no `webflash_build_matrix`. The variants stay planning-only until
-their fan-driver evidence gates close (see
-[`docs/sense360-roadmap-status.md` §6 Hardware blockers](sense360-roadmap-status.md#6-hardware-blockers)
-and the per-family fan evidence lanes).
+### Easy mode becomes a bundle picker
 
-| Variant SKU | Base Bundle | Fan Driver Board | Control Type | Lifecycle |
-|---|---|---|---|---|
-| `S360-KIT-BATH-P-REL` | `S360-KIT-BATH-P` | `S360-310` | relay | planning |
-| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | `S360-312` | 0-10V | planning |
-| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | `S360-311` | pwm | planning |
-| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | `S360-312` | 0-10V | planning |
-| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | `S360-310` | relay | planning |
+The plan is that **WebFlash easy mode becomes a bundle picker**. In that
+picker a fan-control variant **may appear as an Advanced-install-only,
+acknowledgement-gated PREVIEW bundle product, shown with a warning** — but
+only when its full-composition firmware config is actually built. The
+stable Bathroom sensing-only bundle remains the recommended default; a
+preview fan variant is never auto-selected, never recommended, and never a
+customer default.
+
+This document and its data file are still **source-of-truth metadata
+only**. They perform **no firmware release and no WebFlash promotion**:
+they add no product YAML, no firmware config string, no `artifact_name`, no
+`config/webflash-builds.json` row, flip no `webflash_build_matrix`, and
+**do not touch the WebFlash repo**. Actual WebFlash exposure of any
+preview-eligible variant is a separately queued downstream WebFlash-repo
+follow-up (for example `WF-IMPORT-RELAY-001`).
+
+### Preview is allowed; stable stays hardware-gated
+
+Per `RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001`, **a preview artifact does
+not require hardware proof** — missing hardware / bench-evidence /
+compliance evidence gates **stable / full release only**, never the preview
+of a buildable target. The **only** thing that can stop a preview is a
+genuine buildability blocker (today only the TRIAC target carries one,
+under `HW-005`). Every variant below therefore keeps `stable_status:
+blocked` with its hardware / evidence / compliance blockers recorded, even
+when it is preview-eligible.
+
+| Variant SKU | Base Bundle | Driver | Control | Intended firmware config | Config exists today? | WebFlash easy-mode | Preview / stable |
+|---|---|---|---|---|---|---|---|
+| `S360-KIT-BATH-P-REL` | `S360-KIT-BATH-P` | `S360-310` | relay | `Ceiling-POE-VentIQ-FanRelay-RoomIQ` | **Yes** — built + published preview | **Preview-eligible** (Advanced-install-only, acknowledgement-gated) | preview / stable **blocked** |
+| `S360-KIT-BATH-P-TRIAC` | `S360-KIT-BATH-P` | `S360-320` | triac | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | Defined but **build-blocked** (`HW-005`) | **Advanced / manual only**, not easy-mode; build-blocked → not exposable yet | advanced-preview (blocked) / stable **blocked** |
+| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | `S360-311` | pwm | `Ceiling-POE-VentIQ-FanPWM-RoomIQ` | **No** — `preview-planned-missing-config` | Not eligible (no config) | missing-config / stable **blocked** |
+| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | `S360-312` | 0-10V | `Ceiling-POE-VentIQ-FanDAC-RoomIQ` | **No** — `preview-planned-missing-config` | Not eligible (no config) | missing-config / stable **blocked** |
+| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | `S360-310` | relay | `Ceiling-POE-AirIQ-FanRelay-RoomIQ` | **No** — `preview-planned-missing-config` | Not eligible (no config) | missing-config / stable **blocked** |
+| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | `S360-312` | 0-10V | `Ceiling-POE-AirIQ-FanDAC-RoomIQ` | **No** — `preview-planned-missing-config` | Not eligible (no config) | missing-config / stable **blocked** |
+| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | `S360-311` | pwm | `Ceiling-POE-AirIQ-FanPWM-RoomIQ` | **No** — `preview-planned-missing-config` (policy-gated) | Not eligible (no config) | missing-config / stable **blocked** |
+
+Only **`S360-KIT-BATH-P-REL`** has a built, published full-composition
+preview firmware config today (`Ceiling-POE-VentIQ-FanRelay-RoomIQ`, on the
+manual-preview lane — see
+[`config/preview-release-targets.json`](../config/preview-release-targets.json)
+and
+[`config/preview-fan-triac-build-rows.json`](../config/preview-fan-triac-build-rows.json)).
+It is the one variant that is WebFlash-easy-mode preview-eligible now.
+
+### Missing configs are marked, not faked
+
+The four Bathroom / Kitchen PWM / DAC and Kitchen Relay variants have **no
+full-bundle firmware config built** (no product YAML, no compile-only
+target, no catalog row, no preview target, no artifact). They are marked
+`preview-planned-missing-config` and are **not** exposed. A **fan-only**
+firmware config (for example `Ceiling-POE-FanPWM` / `Ceiling-POE-FanDAC`,
+which omit the room-sensing modules) is **deliberately not substituted** for
+a room-bundle variant: a variant config must include the bundle's room
+modules (Bathroom = VentIQ + RoomIQ; Kitchen = AirIQ + RoomIQ) plus the fan
+driver. Each missing variant becomes a preview only after its
+full-composition config is built and imported.
+
+### TRIAC: Bathroom advanced / manual only; no Kitchen TRIAC
+
+`S360-KIT-BATH-P-TRIAC` (`S360-320`, mains phase-cut control) is offered
+**only** as an **advanced / manual-warning** preview — never a normal easy /
+recommended / default option. It is currently **build-blocked** by `HW-005`
+(S360-320 schematic uncommitted; GPIO5/GPIO6 collide with RoomIQ J10 nets;
+`ac_dimmer` cannot run across the SX1509 expander), so no preview artifact
+can be cut and it is not WebFlash-easy-mode-eligible today. When `HW-005`
+resolves it would be delivered only on the advanced-manual-preview lane
+behind an explicit mains-risk acknowledgement gate. Stable additionally
+requires `PACKAGE-TRIAC-001` + `COMPLIANCE-001`. **No safety / compliance
+proof is claimed.** **Kitchen has no TRIAC variant** — kitchen extract
+TRIAC is not offered as a recommended / easy option by policy.
 
 ### Control types are not interchangeable
 
-Relay, DAC (0-10V), and PWM fan control are electrically distinct fan-drive
-methods. A variant built for one control type **cannot be switched to
-another at runtime**: the fan-driver board (`S360-310` relay / `S360-311`
-PWM / `S360-312` 0-10V) and the firmware must match the installed fan
-hardware. The TRIAC driver (`S360-320`) is **not** offered as a
-recommended customer-facing fan variant (it remains blocked — HW-005 /
-COMPLIANCE-001).
+Relay, PWM, DAC (0-10V), and TRIAC fan control are electrically distinct
+fan-drive methods. A variant built for one control type **cannot be
+switched to another at runtime**: the fan-driver board (`S360-310` relay /
+`S360-311` PWM / `S360-312` 0-10V / `S360-320` TRIAC) and the firmware must
+match the installed fan hardware.
 
 ### Identifiers stay separate
 
 Firmware config strings and bundle SKUs **remain separate identifiers**. A
 fan-variant bundle SKU (for example `S360-KIT-BATH-P-REL`) names what the
-customer buys; it is **not** a firmware config string and does **not**
-imply any promoted firmware config string or release artifact name. The
-manual-install fan firmware candidates remain tracked separately in
+customer would buy; it is **not** a firmware config string and does **not**
+imply a committed `config/webflash-builds.json` row. No fan variant is
+buyable — every variant is `waitlist-only` (hidden / not buyable), per
+[`docs/shop-commercial-source-of-truth.md`](shop-commercial-source-of-truth.md)
+§4. The manual-install fan firmware candidates remain tracked in
 [`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json)
-/ [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md)
-and stay not WebFlash-exposed.
+/ [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md).
 
 ### Kitchen framing
 
 The Kitchen fan variants are framed as **extract / MVHR / EC boost
 control** (continuous-extract, heat-recovery boost, or EC-fan speed
-control), **not** generic cooker-hood control.
+control), **not** generic cooker-hood control. The optional Kitchen PWM
+variant is policy-gated for **low-voltage / custom** extract use only.
 
 ---
 

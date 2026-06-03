@@ -55,7 +55,7 @@ source-of-truth file wins** and this doc is the one to fix.
 | Pre-hardware design-readiness program | [`docs/pre-hardware-prep-plan.md`](pre-hardware-prep-plan.md) (`PRE-HARDWARE-PREP-PLAN-001`) |
 | Shippable WebFlash builds | [`config/webflash-builds.json`](../config/webflash-builds.json) (validated by `tests/validate_webflash_builds.py`) |
 | Room bundle SKUs | [`config/room-bundle-skus.json`](../config/room-bundle-skus.json) · [`docs/sense360-room-bundles.md`](sense360-room-bundles.md) |
-| Room-bundle fan variants (planning) | [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json) (`ROOM-BUNDLE-FAN-VARIANTS-001`) |
+| Room-bundle fan variants (preview bundle plan) | [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json) (`ROOM-BUNDLE-FAN-VARIANTS-002`) |
 | Board / module catalog | [`config/hardware-catalog.json`](../config/hardware-catalog.json) · [`docs/hardware-catalog.md`](hardware-catalog.md) |
 | Firmware combination matrix | [`config/firmware-combination-matrix.json`](../config/firmware-combination-matrix.json) |
 | Board readiness / hardware evidence | [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md) (`HW-GAP-001`) |
@@ -137,24 +137,33 @@ are blocked candidates owned by named follow-ups.
 **Kitchen / Bedroom / Living / Corridor are not first-release eligible yet.**
 No `current_release_status` is changed; no candidate is promoted by this doc.
 
-### 2.1 Fan-control variants (planning-only)
+### 2.1 Fan-control variants (preview bundle plan — not first-release)
 
-The optional fan-control variants in [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
-(`ROOM-BUNDLE-FAN-VARIANTS-001`) are **Bathroom / Kitchen add-ons only** and stay
-`planning` / `webflash_exposed: false`. **Fan variants are planning-only** — not
-first-release, not WebFlash-exposed, no fan bundle SKU is introduced, and each
-stays blocked until its fan-driver evidence gate closes (§4 / §5 / §8).
+The fan-control variants in [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
+(`ROOM-BUNDLE-FAN-VARIANTS-002`) are **Bathroom / Kitchen add-ons only**.
+`-002` promotes them from planning to a **preview bundle plan**: a variant
+**may** appear in the future WebFlash easy-mode bundle picker as an
+Advanced-install-only, acknowledgement-gated **preview** (with a warning)
+**only** when its full-composition firmware config is built. **None is
+first-release**, none is stable, none is recommended / default, none is
+buyable, and no fan bundle SKU is added to the base matrix. **Stable / full
+release of every variant stays blocked** behind its hardware / bench-evidence /
+compliance gate (§4 / §5 / §8); preview eligibility does not weaken that gate.
 
-| Variant SKU | Base bundle | Fan driver | Control | Lifecycle | WebFlash |
-|---|---|---|---|---|---|
-| `S360-KIT-BATH-P-REL` | `S360-KIT-BATH-P` | S360-310 | relay | planning | not-exposed |
-| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | S360-312 | 0-10V | planning | not-exposed |
-| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | S360-311 | pwm | planning | not-exposed |
-| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | S360-312 | 0-10V | planning | not-exposed |
-| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | S360-310 | relay | planning | not-exposed |
+| Variant SKU | Base bundle | Fan driver | Control | Firmware config today | WebFlash easy-mode | Stable |
+|---|---|---|---|---|---|---|
+| `S360-KIT-BATH-P-REL` | `S360-KIT-BATH-P` | S360-310 | relay | built + published preview | preview-eligible (ack-gated) | blocked |
+| `S360-KIT-BATH-P-TRIAC` | `S360-KIT-BATH-P` | S360-320 | triac | build-blocked (HW-005) | advanced / manual only; not yet exposable | blocked |
+| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | S360-311 | pwm | preview-planned-missing-config | not eligible (no config) | blocked |
+| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | S360-312 | 0-10V | preview-planned-missing-config | not eligible (no config) | blocked |
+| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | S360-310 | relay | preview-planned-missing-config | not eligible (no config) | blocked |
+| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | S360-312 | 0-10V | preview-planned-missing-config | not eligible (no config) | blocked |
+| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | S360-311 | pwm | preview-planned-missing-config (policy-gated) | not eligible (no config) | blocked |
 
-No TRIAC (S360-320) customer-facing fan variant is proposed; no Corridor /
-Living / Bedroom fan variant exists.
+Bathroom TRIAC (S360-320) is an **advanced / manual-warning** preview only,
+build-blocked by `HW-005`, never recommended / default / stable, with no
+safety / compliance proof claimed. **Kitchen has no TRIAC variant.** No
+Corridor / Living / Bedroom fan variant exists.
 
 ---
 
@@ -309,7 +318,7 @@ unblocked here):
 | S360-310 Relay | `PRE-HW-PREP-FW-310-001`, `PRE-HW-PREP-GERBER-REVIEW-001` | SELV logic now; mains review ARTIFACT-gated |
 | S360-320 TRIAC | `PRE-HW-PREP-TRIAC-320-001` | HW-005 + COMPLIANCE-001 |
 | S360-400 PSU | `PRE-HW-PREP-MAINS-400-001` | COMPLIANCE-001 + gerber review |
-| Fan variants | future implementation PR (per `ROOM-BUNDLE-FAN-VARIANTS-001` next-steps) | Each fan-driver evidence gate above |
+| Fan variants | preview bundle plan `ROOM-BUNDLE-FAN-VARIANTS-002`; stable owned by each fan-driver evidence gate | Each fan-driver evidence gate above |
 
 ---
 

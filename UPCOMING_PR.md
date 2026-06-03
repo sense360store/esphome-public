@@ -2736,6 +2736,83 @@ ceiling Core bus that the USB variants bind.
 
 ---
 
+## ROOM-BUNDLE-FAN-VARIANTS-002 — Bathroom & Kitchen fan-control PREVIEW bundles — DONE (this PR)
+
+**Status:** DONE. Source-of-truth / docs / test only. No firmware published, no
+WebFlash repo change, nothing marked stable, nothing buyable.
+
+### Summary
+
+Promotes the Bathroom and Kitchen room-bundle fan-control variants from
+planning-only (`ROOM-BUNDLE-FAN-VARIANTS-001`) to an explicit **preview bundle
+plan**. The plan: WebFlash easy mode becomes a bundle picker in which a
+fan-control variant **may** appear as an Advanced-install-only,
+acknowledgement-gated **preview** bundle (with a warning) — but only where its
+full-composition firmware config is actually built. The stable Bathroom
+sensing-only bundle (`Ceiling-POE-VentIQ-RoomIQ`) stays the default, and
+stable / full release of every fan variant stays hardware / evidence /
+compliance gated.
+
+### What changed
+
+* `config/room-bundle-fan-variants.json` rewritten to schema 2
+  (`ROOM-BUNDLE-FAN-VARIANTS-002`): **seven** variants — Bathroom REL / TRIAC /
+  PWM / DAC and Kitchen REL / DAC / PWM — each recording base bundle, added
+  driver SKU, intended firmware config string, whether that config exists today,
+  WebFlash easy-mode eligibility, preview / stable status, stable blockers,
+  warning copy, and buyable-vs-waitlist posture.
+* `tests/test_room_bundle_fan_variants.py` rewritten to the 002 contract
+  (23 tests).
+* `docs/sense360-room-bundles.md` fan-variants section rewritten (bundle-picker
+  plan, preview-with-warnings, stable default preserved, not runtime
+  interchangeable).
+* Stale `-001` / "planning-only" wording reconciled in
+  `docs/first-release-gates.md` and
+  `docs/pre-hardware-room-bundle-release-handoff.md`.
+
+### Firmware-config honesty (verified against the release source-of-truth)
+
+| Variant | Intended config | Status today |
+| --- | --- | --- |
+| `S360-KIT-BATH-P-REL` | `Ceiling-POE-VentIQ-FanRelay-RoomIQ` | **built + published preview** → WebFlash easy-mode preview-eligible (ack-gated) |
+| `S360-KIT-BATH-P-TRIAC` | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | **defined but build-blocked** (`HW-005`) → advanced / manual only, not exposable yet |
+| `S360-KIT-BATH-P-PWM` | `Ceiling-POE-VentIQ-FanPWM-RoomIQ` | `preview-planned-missing-config` |
+| `S360-KIT-BATH-P-DAC` | `Ceiling-POE-VentIQ-FanDAC-RoomIQ` | `preview-planned-missing-config` |
+| `S360-KIT-KITCHEN-P-REL` | `Ceiling-POE-AirIQ-FanRelay-RoomIQ` | `preview-planned-missing-config` |
+| `S360-KIT-KITCHEN-P-DAC` | `Ceiling-POE-AirIQ-FanDAC-RoomIQ` | `preview-planned-missing-config` |
+| `S360-KIT-KITCHEN-P-PWM` | `Ceiling-POE-AirIQ-FanPWM-RoomIQ` | `preview-planned-missing-config` (policy-gated, optional) |
+
+Only Bathroom Relay has a real built full-composition preview config. The five
+missing variants are explicitly marked `preview-planned-missing-config` and are
+not exposed; a **fan-only** config (`Ceiling-POE-FanPWM` / `Ceiling-POE-FanDAC`)
+is deliberately **not** substituted because it omits the bundle's room modules.
+
+### Guardrails (explicitly NOT changed)
+
+* No firmware published; no `.bin` / checksum / build-info; no GitHub Release / tag.
+* No edits to `config/webflash-builds.json`, `config/product-catalog.json`,
+  `config/preview-release-targets.json`, `firmware/sources.json`, or `manifest.json`.
+* No `artifact_name`; no `webflash_build_matrix` flip; no fan bundle SKU added to
+  the base matrix (`config/room-bundle-skus.json` untouched).
+* Nothing marked stable; nothing recommended / default; nothing buyable
+  (every variant `waitlist-only`).
+* Kitchen has **no** TRIAC variant; Bathroom TRIAC is advanced / manual-warning
+  only and build-blocked; no safety / compliance proof claimed.
+* WebFlash repo untouched (actual exposure is the downstream
+  `WF-IMPORT-RELAY-001` follow-up).
+
+### Validation
+
+* `python3 tests/test_room_bundle_fan_variants.py` — 23 tests, green.
+* `python3 tests/test_room_bundle_skus.py` /
+  `tests/test_shop_commercial_source_of_truth.py` /
+  `tests/test_preview_release_targets.py` /
+  `tests/test_preview_fan_triac_build_rows.py` — unchanged, green.
+* `python3 tests/validate_configs.py` — unchanged.
+* `python3 -m unittest discover -s tests -p "test_*.py"` — full suite green.
+
+---
+
 ## ROOM-BUNDLE-FAN-VARIANTS-001 — Planning-only fan-control variants (Bathroom & Kitchen)
 
 **Status:** planning-only (no firmware release, no WebFlash promotion)
