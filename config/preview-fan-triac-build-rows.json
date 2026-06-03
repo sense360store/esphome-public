@@ -99,6 +99,35 @@
         "job_run_id": 79078546242,
         "job": "Compile Dry-Run: Ceiling-POE-VentIQ-FanRelay-RoomIQ"
       },
+      "publish_evidence": {
+        "workflow": "Manual-Preview Fan Firmware Publish",
+        "workflow_file": ".github/workflows/manual-preview-fan-publish.yml",
+        "run_id": 26878032103,
+        "run_url": "https://github.com/sense360store/esphome-public/actions/runs/26878032103",
+        "event": "workflow_dispatch",
+        "dry_run": false,
+        "date": "2026-06-03",
+        "esphome_version": "2026.4.5",
+        "commit_sha": "0963afb9c9582f5021019d1635421e41c9dd10f6",
+        "conclusion": "success",
+        "release_tag": "v1.0.0-preview",
+        "release_url": "https://github.com/sense360store/esphome-public/releases/tag/v1.0.0-preview",
+        "release_tag_note": "Operator override; the workflow's dedicated default release tag is v1.0.0-manual-preview-fans. Reusing v1.0.0-preview overwrote that release's name/body/checksums. See docs/release-preview-fan-publish-results.md section 4.",
+        "published_artifact_name": "Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.0-preview.bin",
+        "workflow_artifact_name": "manual-preview-firmware-fanrelay",
+        "asset_size_bytes": 989840,
+        "asset_sha256": "f9600a6b7891b520eff28314a001ff3b0d566224d3ab7d82de2e15242d026ca4",
+        "proof_class": "firmware-build-release-only",
+        "webflash_importable": false,
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "compliance",
+          "stable-promotion",
+          "customer-availability"
+        ],
+        "record_doc": "docs/release-preview-fan-publish-results.md"
+      },
       "commercial_posture": {
         "visibility": "hidden",
         "lifecycle": "candidate",
@@ -152,6 +181,35 @@
         "job_run_id": 79078546303,
         "job": "Compile Dry-Run: Ceiling-POE-FanPWM"
       },
+      "publish_evidence": {
+        "workflow": "Manual-Preview Fan Firmware Publish",
+        "workflow_file": ".github/workflows/manual-preview-fan-publish.yml",
+        "run_id": 26878032103,
+        "run_url": "https://github.com/sense360store/esphome-public/actions/runs/26878032103",
+        "event": "workflow_dispatch",
+        "dry_run": false,
+        "date": "2026-06-03",
+        "esphome_version": "2026.4.5",
+        "commit_sha": "0963afb9c9582f5021019d1635421e41c9dd10f6",
+        "conclusion": "success",
+        "release_tag": "v1.0.0-preview",
+        "release_url": "https://github.com/sense360store/esphome-public/releases/tag/v1.0.0-preview",
+        "release_tag_note": "Operator override; the workflow's dedicated default release tag is v1.0.0-manual-preview-fans. Reusing v1.0.0-preview overwrote that release's name/body/checksums. See docs/release-preview-fan-publish-results.md section 4.",
+        "published_artifact_name": "Sense360-Ceiling-POE-FanPWM-v1.0.0-preview.bin",
+        "workflow_artifact_name": "manual-preview-firmware-fanpwm",
+        "asset_size_bytes": 950720,
+        "asset_sha256": "4ef9f35346b38be05d270d07b6baa46eae139e7a440af95e80f97c3b91c59926",
+        "proof_class": "firmware-build-release-only",
+        "webflash_importable": false,
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "compliance",
+          "stable-promotion",
+          "customer-availability"
+        ],
+        "record_doc": "docs/release-preview-fan-publish-results.md"
+      },
       "commercial_posture": {
         "visibility": "hidden",
         "lifecycle": "candidate",
@@ -204,6 +262,35 @@
         ],
         "job_run_id": 79078546268,
         "job": "Compile Dry-Run: Ceiling-POE-FanDAC"
+      },
+      "publish_evidence": {
+        "workflow": "Manual-Preview Fan Firmware Publish",
+        "workflow_file": ".github/workflows/manual-preview-fan-publish.yml",
+        "run_id": 26878032103,
+        "run_url": "https://github.com/sense360store/esphome-public/actions/runs/26878032103",
+        "event": "workflow_dispatch",
+        "dry_run": false,
+        "date": "2026-06-03",
+        "esphome_version": "2026.4.5",
+        "commit_sha": "0963afb9c9582f5021019d1635421e41c9dd10f6",
+        "conclusion": "success",
+        "release_tag": "v1.0.0-preview",
+        "release_url": "https://github.com/sense360store/esphome-public/releases/tag/v1.0.0-preview",
+        "release_tag_note": "Operator override; the workflow's dedicated default release tag is v1.0.0-manual-preview-fans. Reusing v1.0.0-preview overwrote that release's name/body/checksums. See docs/release-preview-fan-publish-results.md section 4.",
+        "published_artifact_name": "Sense360-Ceiling-POE-FanDAC-v1.0.0-preview.bin",
+        "workflow_artifact_name": "manual-preview-firmware-fandac",
+        "asset_size_bytes": 930400,
+        "asset_sha256": "151894c1408c5ae9d45f56382e392a82539a87d2882f443fa9bc78cdb6a39b9f",
+        "proof_class": "firmware-build-release-only",
+        "webflash_importable": false,
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "compliance",
+          "stable-promotion",
+          "customer-availability"
+        ],
+        "record_doc": "docs/release-preview-fan-publish-results.md"
       },
       "commercial_posture": {
         "visibility": "hidden",
