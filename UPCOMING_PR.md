@@ -174,6 +174,28 @@ Where the preview-release program actually stands today:
   `S360-KIT-BATH-P` + Simple install unchanged, no hardware / bench / compliance
   proof. Guard
   [`tests/test_preview_fan_publish_plan.py`](tests/test_preview_fan_publish_plan.py).
+* **Manual-preview fan publish workflow — DONE (this PR,
+  `RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001`).** Adds the dispatch-only,
+  dry-run-default workflow
+  [`.github/workflows/manual-preview-fan-publish.yml`](.github/workflows/manual-preview-fan-publish.yml)
+  plus
+  [`scripts/validate_manual_preview_fan_publish.py`](scripts/validate_manual_preview_fan_publish.py)
+  so the three buildable manual-preview fan targets can be durably published
+  from
+  [`config/preview-fan-triac-build-rows.json`](config/preview-fan-triac-build-rows.json)
+  / [`config/manual-firmware-artifacts.json`](config/manual-firmware-artifacts.json)
+  without adding any fan row to
+  [`config/webflash-builds.json`](config/webflash-builds.json). `dry_run: true`
+  validates only; `dry_run: false` compiles the selected fan target(s), renames
+  outputs to the ledger's `expected_preview_artifact_name`, validates the exact
+  non-TRIAC output set, and attaches the `.bin` files plus checksums and a
+  build-info `manifest.json` to the dedicated
+  `v1.0.0-manual-preview-fans` prerelease. **TRIAC stays excluded** (`HW-005`).
+  No workflow is run by this PR; no `.bin` / Release / tag is created; no
+  repo-root `manifest.json` / `firmware/sources.json`, WebFlash repo,
+  Simple-install, stable, recommended, default, buyable, hardware, bench, or
+  compliance state changes. Guard:
+  [`tests/test_preview_fan_publish_workflow.py`](tests/test_preview_fan_publish_workflow.py).
 
 So **policy, target manifest, releasable metadata, the metadata build/release
 dry-run + re-run, and now the hosted compile dry-run are done**. The three former
@@ -194,8 +216,9 @@ publish then ran GREEN** (`RELEASE-PREVIEW-PUBLISH-RUN-001`, recorded by
 `RELEASE-PREVIEW-PUBLISH-RESULTS-001`, this PR; run `26847702410`, four preview
 artifacts on `v1.0.0-preview`). The remaining open work: the **WebFlash import**
 of the now-published preview artifacts (`WF-PREVIEW-IMPORT-FIRST-BATCH-001`, a
-WebFlash-repo follow-up), plus resolving FanTRIAC `HW-005` — captured as the next
-queue items below.
+WebFlash-repo follow-up), the **manual-preview fan publish run**
+(`RELEASE-PREVIEW-FAN-PUBLISH-RUN-001`, now queued behind the new workflow), plus
+resolving FanTRIAC `HW-005` — captured as the next queue items below.
 
 ---
 
@@ -491,24 +514,42 @@ recommended / default / buyable, adds no `config/webflash-builds.json` row, keep
 Simple install + the launch SKU `S360-KIT-BATH-P` unchanged, and claims no
 hardware / bench / compliance proof.
 
-### RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001 — add the manual-preview fan publication workflow path (QUEUED — actionable)
+### RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001 — add the manual-preview fan publication workflow path — DONE (this PR)
 
-**Now actionable — gap identified by `RELEASE-PREVIEW-FAN-PUBLISH-PLAN-001`.** The
-existing release workflow cannot publish the three manual-preview fan artifacts
-(it reads only `config/webflash-builds.json`, which the fan-token guardrail keeps
-fans out of), and the manual lane only emits expiring non-release CI artifacts.
-This item adds a **manual-preview publication path** that reads the manual-preview
-rows from
+**Status: DONE in this PR.** Adds the manual-preview publication path identified
+by `RELEASE-PREVIEW-FAN-PUBLISH-PLAN-001`:
+[`.github/workflows/manual-preview-fan-publish.yml`](.github/workflows/manual-preview-fan-publish.yml)
+plus
+[`scripts/validate_manual_preview_fan_publish.py`](scripts/validate_manual_preview_fan_publish.py).
+The workflow is `workflow_dispatch` only, defaults to `dry_run: true`, and reads
+the manual-preview rows from
 [`config/preview-fan-triac-build-rows.json`](config/preview-fan-triac-build-rows.json)
 / [`config/manual-firmware-artifacts.json`](config/manual-firmware-artifacts.json)
-(**not** `config/webflash-builds.json`), builds the three fan product YAMLs,
-renames each output to its `expected_preview_artifact_name`, and attaches the
-durable `-v1.0.0-preview.bin` artifacts to a **dedicated manual-preview release
-vehicle** kept separate from the WebFlash `v1.0.0-preview` release. TRIAC stays
-excluded (`HW-005`); no fan row is added to `config/webflash-builds.json`; no
-stable promotion. **Then** `RELEASE-PREVIEW-FAN-PUBLISH-RUN-001` executes it. The
-WebFlash one-click import (`WEBFLASH-RELAY-001` / `WEBFLASH-PWM-001` /
-`WEBFLASH-DAC-001`) remains a strictly later, separately gated follow-up.
+(**not** `config/webflash-builds.json`). A deliberate `dry_run: false` dispatch
+builds `Ceiling-POE-VentIQ-FanRelay-RoomIQ`, `Ceiling-POE-FanPWM`, and/or
+`Ceiling-POE-FanDAC`, renames outputs to the ledger's
+`expected_preview_artifact_name`, validates the exact non-TRIAC artifact set, and
+attaches the durable `-v1.0.0-preview.bin` artifacts to the dedicated
+`v1.0.0-manual-preview-fans` prerelease, separate from the WebFlash
+`v1.0.0-preview` release. TRIAC stays excluded (`HW-005`); no fan row is added to
+`config/webflash-builds.json`; no stable promotion. Guard:
+[`tests/test_preview_fan_publish_workflow.py`](tests/test_preview_fan_publish_workflow.py).
+This PR runs no workflow and publishes nothing.
+
+### RELEASE-PREVIEW-FAN-PUBLISH-RUN-001 — execute the manual-preview fan publish workflow (QUEUED — actionable)
+
+**Now actionable after `RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001` lands.** Dispatch
+`Manual-Preview Fan Firmware Publish` with `version=1.0.0`,
+`release_tag=v1.0.0-manual-preview-fans`,
+`release_target=all-manual-preview-fans`, and `dry_run=false`; then record the
+run URL, release URL, attached artifact names, checksums, build-info manifest,
+and unchanged guardrails. Expected artifacts:
+`Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.0-preview.bin`,
+`Sense360-Ceiling-POE-FanPWM-v1.0.0-preview.bin`, and
+`Sense360-Ceiling-POE-FanDAC-v1.0.0-preview.bin`. TRIAC remains excluded
+(`HW-005`); WebFlash one-click import (`WEBFLASH-RELAY-001` /
+`WEBFLASH-PWM-001` / `WEBFLASH-DAC-001`) remains a strictly later, separately
+gated follow-up.
 
 > Also queued (future, not started): **`FIRST-MAINTENANCE-RELEASE-PLAN-001`** —
 > plan a future maintenance release (new version); see its entry below.
