@@ -331,8 +331,10 @@ hardware-address requirement (see `fan_dac_i2c_address_policy` in
   `webflash_grammar_excluded`); these DAC configs are advanced / manual
   previews only.
 - The DIP-position → I²C-address mapping is **not yet bench-verified**;
-  `FANDAC-I2C-ADDR-001` owns that follow-up (see
-  [`docs/hardware/s360-312-r4-fandac.md`](hardware/s360-312-r4-fandac.md)).
+  `FANDAC-I2C-ADDR-001` owns that follow-up. Its bench verification checklist
+  and evidence template live at
+  [`docs/hardware/fandac-i2c-address-verification.md`](hardware/fandac-i2c-address-verification.md)
+  (see also [`docs/hardware/s360-312-r4-fandac.md`](hardware/s360-312-r4-fandac.md)).
 
 ### TRIAC: Bathroom advanced / manual only; no Kitchen TRIAC
 
