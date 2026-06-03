@@ -299,13 +299,17 @@ class ManualPreviewOnlyTests(unittest.TestCase):
                 self.assertIsNone(row["webflash_exposure_class"])
                 self.assertEqual(row["warning_copy_key"], "preview")
 
-    def test_preview_target_is_not_webflash_eligible(self) -> None:
+    def test_preview_target_is_webflash_import_eligible(self) -> None:
+        # RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001: the preview-release target
+        # is now preview / manual-preview WebFlash-import eligible. The ledger row's
+        # own webflash_importable stays false (no committed build row); that is
+        # asserted in test_rows_are_manual_preview_and_not_webflash_importable.
         for cs in FAN_CONFIGS:
             with self.subTest(config_string=cs):
                 tid = self.rows[cs]["preview_release_target_id"]
                 target = self.targets[tid]
                 self.assertEqual(target["delivery_lane"], "manual-preview")
-                self.assertFalse(
+                self.assertTrue(
                     target["webflash_import_eligibility"]["eligible"]
                 )
 

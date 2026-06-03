@@ -375,18 +375,28 @@ def validate(
             if not target.get("build_blocker"):
                 terr.append(f"target {tid!r}: TRIAC must record a build_blocker")
         elif target.get("is_fan"):
-            # Non-TRIAC fan driver: manual-preview lane (releasable preview
-            # artifact; WebFlash import gated until the WebFlash warning UX is
-            # ready, so still not WebFlash-importable here).
+            # Non-TRIAC fan driver: manual-preview lane. The preview /
+            # manual-preview WebFlash import is ELIGIBLE
+            # (RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001) as an
+            # Advanced-install-only, acknowledgement-gated preview import, but the
+            # committed config/webflash-builds.json row still stays out (the
+            # fan-token guardrail + catalog webflash_build_matrix=false stand), so
+            # the actual one-click committed import is the separately queued
+            # downstream WF-IMPORT-* follow-up.
             if lane != "manual-preview":
                 terr.append(
                     f"target {tid!r}: fan-driver delivery_lane must be "
                     "'manual-preview'"
                 )
-            if elig.get("eligible") is not False:
+            if elig.get("eligible") is not True:
                 terr.append(
-                    f"target {tid!r}: fan-driver target must not be "
-                    "WebFlash-importable"
+                    f"target {tid!r}: fan-driver target must be WebFlash-import "
+                    "eligible (preview / manual-preview)"
+                )
+            if elig.get("exposure_class") != "acknowledgement-gated":
+                terr.append(
+                    f"target {tid!r}: fan-driver exposure_class must be "
+                    "'acknowledgement-gated'"
                 )
             if yaml_path not in manual_yamls:
                 terr.append(

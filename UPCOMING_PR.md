@@ -599,7 +599,7 @@ writes no `manifest.json` / `firmware/sources.json`, makes nothing recommended /
 default / buyable, keeps the launch SKU `S360-KIT-BATH-P` + Simple install
 unchanged, and claims no hardware / bench / compliance proof.
 
-### RELEASE-PREVIEW-FAN-SHARED-TAG-001 — adopt the shared v1.0.0-preview tag for fan manual-preview artifacts — DONE (this PR)
+### RELEASE-PREVIEW-FAN-SHARED-TAG-001 — adopt the shared v1.0.0-preview tag for fan manual-preview artifacts — DONE (#708)
 
 **Status: DONE in this PR.** Formally adopts `v1.0.0-preview` as the **single
 shared preview release** for every preview firmware artifact — room-bundle, LED,
@@ -630,7 +630,7 @@ into WebFlash, marks no fan product stable / recommended / default, includes no
 TRIAC, claims no hardware / compliance proof, and leaves Simple install, the launch
 SKU `S360-KIT-BATH-P`, and the candidate-bundle posture unchanged.
 
-#### RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001 — confirm-gate non-shared release tags on the fan publish — DONE (this PR)
+#### RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001 — confirm-gate non-shared release tags on the fan publish — DONE (#709)
 
 **Status: DONE in this PR (workflow + validator + docs + tests; no firmware, no
 release run).** Complements `RELEASE-PREVIEW-FAN-SHARED-TAG-001` (which adopted the
@@ -667,26 +667,75 @@ Docs:
 and the launch SKU `S360-KIT-BATH-P` are unchanged; nothing is marked stable /
 recommended / default / buyable; no hardware / bench / compliance proof is claimed.
 
-#### RELEASE-PREVIEW-COMBINED-RELEASE-NOTES-001 — regenerate a combined preview release body / manifest (queued — not started)
+#### RELEASE-PREVIEW-COMBINED-RELEASE-NOTES-001 — regenerate a combined preview release body / manifest — DONE (#710)
 
-**Queued follow-up.** The shared `v1.0.0-preview` release's name / body /
-checksums / build-info `manifest.json` currently describe only the most recent
-(fan) publish. Regenerate a **combined** preview release body + manifest that
-covers **both** the four room-bundle preview artifacts and the three fan
-manual-preview artifacts now co-hosted on the shared release. Release-metadata /
-docs only — does not re-cut firmware, change any SHA256, promote anything to
-stable, or alter WebFlash import eligibility; TRIAC stays excluded (`HW-005`).
+**Status: DONE (#710).** The combined preview release body now lives at
+[`docs/release-notes/preview/v1.0.0-preview.md`](docs/release-notes/preview/v1.0.0-preview.md)
+and covers **both** the four room-bundle preview artifacts and the three fan
+manual-preview artifacts co-hosted on the shared `v1.0.0-preview` release.
+Release-metadata / docs only — re-cut no firmware, changed no SHA256, promoted
+nothing to stable; TRIAC stays excluded (`HW-005`).
 
-#### WebFlash fan import decision — separate and separately gated (not started)
+### RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001 — mark fan previews WebFlash-import eligible — DONE (this PR)
 
-**Queued in the WebFlash repo, not here.** Whether to expose any fan
-manual-preview artifact in WebFlash is a **separate WebFlash / import-policy
-decision** — `WEBFLASH-RELAY-001` / `WEBFLASH-PWM-001` / `WEBFLASH-DAC-001` (behind
-a fan-preview warning UX). Presence of the fan artifacts in the shared
-`v1.0.0-preview` release does **not** imply WebFlash import, Simple-install
-exposure, stable status, recommendation, default selection, or commercial
-availability; no fan row is added to `config/webflash-builds.json`, and the
-fan-token guardrail stays intact.
+**Status: DONE in this PR.** Upstream product / catalog / release metadata only.
+Marks FanRelay (`Ceiling-POE-VentIQ-FanRelay-RoomIQ`), FanPWM
+(`Ceiling-POE-FanPWM`), and FanDAC (`Ceiling-POE-FanDAC`) **preview /
+manual-preview WebFlash-import eligible** (Advanced-install-only,
+acknowledgement-gated) so downstream WebFlash no longer treats
+`webflash_build_matrix: false` or the prior `WEBFLASH-RELAY-001 BLOCKED` framing
+as a preview-import blocker. Flips `webflash_import_eligibility.eligible` true
+(+ `exposure_class: acknowledgement-gated`, `publication_status:
+preview-import-eligible`) on the three fan targets in
+[`config/preview-release-targets.json`](config/preview-release-targets.json),
+reframes the [`config/product-catalog.json`](config/product-catalog.json) +
+[`config/manual-firmware-artifacts.json`](config/manual-firmware-artifacts.json)
+notes from "blocked" to "preview-import-eligible", and updates the two preview
+validators + their guards
+([`tests/test_release_preview_fan_webflash_eligibility.py`](tests/test_release_preview_fan_webflash_eligibility.py)).
+**Stable / full release stays blocked** (`RELEASE-RELAY-001` / `RELEASE-PWM-001`
+/ `RELEASE-DAC-001`); catalog `status` stays `hardware-pending`,
+`webflash_build_matrix` stays `false`; **no fan row is added to
+`config/webflash-builds.json`** (fan-token guardrail intact); nothing is made
+stable / recommended / default / buyable; no firmware is published, no tag is
+cut, the WebFlash repo is untouched, and the launch SKU `S360-KIT-BATH-P` +
+Simple install are unchanged. **TRIAC stays excluded** (`HW-005`). The actual
+one-click committed imports are the separately queued downstream slices below.
+
+#### WebFlash fan import decisions — queued separately (WebFlash repo)
+
+Each fan-driver *committed* WebFlash import is its **own** separately gated
+WebFlash-repo slice (behind the fan-preview acknowledgement / warning UX). Upstream
+preview-import eligibility and presence on the shared `v1.0.0-preview` release do
+**not** imply a committed WebFlash build row, Simple-install exposure, stable
+status, recommendation, default selection, or commercial availability; no fan row
+is added to `config/webflash-builds.json` and the fan-token guardrail stays intact.
+
+#### WEBFLASH-RELAY-001 — import the FanRelay manual-preview artifact into WebFlash (queued — WebFlash repo)
+
+Queued downstream slice (imported by `WF-IMPORT-RELAY-001`). Adds the FanRelay
+preview build behind the WebFlash acknowledgement / fan-warning UX. Relay
+fan-control preview; installer / developer judgement required. Not started here.
+
+#### WEBFLASH-PWM-001 — import the FanPWM manual-preview artifact into WebFlash (queued — WebFlash repo)
+
+Queued downstream slice (imported by `WF-IMPORT-PWM-001`). Adds the FanPWM preview
+build behind the WebFlash acknowledgement / fan-warning UX. PWM fan-control
+preview; installer / developer judgement required. Not started here.
+
+#### WEBFLASH-DAC-001 — import the FanDAC manual-preview artifact into WebFlash (queued — WebFlash repo)
+
+Queued downstream slice (imported by `WF-IMPORT-DAC-001`). Adds the FanDAC preview
+build behind the WebFlash acknowledgement / fan-warning UX. 0–10V fan-control
+preview; installer / developer judgement required. Not started here.
+
+#### FanTRIAC preview work — stays separate (not started)
+
+**FanTRIAC preview work must remain its own** separate track and is **not** made
+WebFlash-import eligible by this PR: it stays build-blocked under `HW-005`
+(advanced-manual-preview, mains-voltage) plus `COMPLIANCE-001`, and is owned by a
+dedicated TRIAC-specific PR. No TRIAC row is added to
+`config/webflash-builds.json`.
 
 > Also queued (future, not started): **`FIRST-MAINTENANCE-RELEASE-PLAN-001`** —
 > plan a future maintenance release (new version); see its entry below.
@@ -697,6 +746,14 @@ fan-token guardrail stays intact.
 
 Recently landed; kept as one-line history (full write-ups preserved below).
 
+* **#710 — `RELEASE-PREVIEW-COMBINED-RELEASE-NOTES-001`**: regenerated the combined
+  `v1.0.0-preview` preview release body (room + fan manual-preview artifacts).
+  Docs / notes only; TRIAC excluded (`HW-005`).
+* **#709 — `RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001`**: confirm-gated non-shared
+  release tags on the fan publish workflow. Workflow / validator / docs / tests only.
+* **#708 — `RELEASE-PREVIEW-FAN-SHARED-TAG-001`**: adopted the shared `v1.0.0-preview`
+  release for the FanRelay / FanPWM / FanDAC manual-preview artifacts. Config / docs /
+  workflow / tests only; no WebFlash import.
 * **#688 — `RELEASE-PREVIEW-WEBFLASH-ALL-BUILDABLE-001`**: made every buildable
   preview target releasable — fan targets → `manual-preview`, FanTRIAC →
   `advanced-manual-preview`; removed the "blocked-from-preview" framing. Config +
