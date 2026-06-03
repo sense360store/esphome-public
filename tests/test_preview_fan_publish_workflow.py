@@ -17,7 +17,11 @@ WEBFLASH_BUILDS = REPO_ROOT / "config" / "webflash-builds.json"
 
 WORKFLOW_ID = "RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001"
 RUN_ID = "RELEASE-PREVIEW-FAN-PUBLISH-RUN-001"
-DEFAULT_TAG = "v1.0.0-manual-preview-fans"
+# RELEASE-PREVIEW-FAN-SHARED-TAG-001: the manual-preview fan publish workflow
+# defaults to the shared v1.0.0-preview preview release (the single preview
+# release for all preview artifacts). There is no dedicated fan tag.
+DEFAULT_TAG = "v1.0.0-preview"
+RETIRED_DEDICATED_TAG = "v1.0.0-manual-preview-fans"
 VERSION = "1.0.0"
 
 FAN_CONFIGS = (
@@ -84,12 +88,17 @@ class WorkflowShapeTests(unittest.TestCase):
         )
         self.assertNotIn(TRIAC_CONFIG, options)
 
-    def test_default_release_tag_is_dedicated_manual_preview_vehicle(self) -> None:
+    def test_default_release_tag_is_shared_preview_release(self) -> None:
         text = _workflow_text()
         self.assertRegex(
             text,
             rf"release_tag:\n(?:[^\n]*\n)*?\s+default: \"{re.escape(DEFAULT_TAG)}\"",
         )
+
+    def test_default_release_tag_is_not_a_dedicated_fan_tag(self) -> None:
+        # The retired dedicated vehicle must not be the workflow default.
+        text = _workflow_text()
+        self.assertNotIn(f'default: "{RETIRED_DEDICATED_TAG}"', text)
 
     def test_permissions_are_read_only_except_publish_job(self) -> None:
         text = _workflow_text()
@@ -109,7 +118,7 @@ class WorkflowShapeTests(unittest.TestCase):
         self.assertRegex(text, r"publish:\n(?:.|\n)*?if: github\.event_name == 'workflow_dispatch' && !inputs\.dry_run")
         self.assertRegex(text, r"dry-run:\n(?:.|\n)*?if: github\.event_name == 'workflow_dispatch' && inputs\.dry_run")
 
-    def test_publish_job_uses_dedicated_release_not_webflash_release_event(self) -> None:
+    def test_publish_job_attaches_to_shared_release_via_gh_release(self) -> None:
         text = _workflow_text()
         self.assertIn("softprops/action-gh-release", text)
         self.assertIn("tag_name: ${{ inputs.release_tag }}", text)
@@ -175,6 +184,47 @@ class HelperScriptTests(unittest.TestCase):
             self.assertIn(artifact, body)
         self.assertIn(TRIAC_CONFIG, body)
         self.assertIn("HW-005", body)
+
+    def test_selected_rows_are_never_stable_recommended_default_buyable(self) -> None:
+        rows, errors = _SCRIPT._select_rows(*self._docs(), version=VERSION)
+        self.assertEqual(errors, [])
+        for row in rows:
+            posture = row["commercial_posture"]
+            with self.subTest(config_string=row["config_string"]):
+                self.assertEqual(posture["visibility"], "hidden")
+                for flag in (
+                    "stable",
+                    "recommended",
+                    "customer_default",
+                    "buyable",
+                    "release_one_required_config",
+                ):
+                    self.assertFalse(
+                        posture[flag], f"{row['config_string']}: posture.{flag} must be false"
+                    )
+
+    def test_shared_release_body_does_not_imply_webflash_import(self) -> None:
+        # A fan artifact living in the shared v1.0.0-preview release must never
+        # imply WebFlash import; eligibility stays controlled by import policy.
+        rows, errors = _SCRIPT._select_rows(*self._docs(), version=VERSION)
+        self.assertEqual(errors, [])
+        body = _SCRIPT._release_body(
+            rows, version=VERSION, release_tag=DEFAULT_TAG
+        ).lower()
+        self.assertIn("shared", body)
+        self.assertIn("webflash import eligibility is controlled", body)
+        self.assertIn("does not make them webflash one-click imports", body)
+
+    def test_shared_release_body_records_room_and_fan_previews(self) -> None:
+        # The shared preview release may legitimately contain both room-bundle
+        # and fan preview artifacts.
+        rows, errors = _SCRIPT._select_rows(*self._docs(), version=VERSION)
+        self.assertEqual(errors, [])
+        body = _SCRIPT._release_body(
+            rows, version=VERSION, release_tag=DEFAULT_TAG
+        ).lower()
+        self.assertIn(DEFAULT_TAG, body)
+        self.assertIn("room-bundle preview", body)
 
     def test_output_validation_accepts_only_expected_artifacts(self) -> None:
         rows, errors = _SCRIPT._select_rows(*self._docs(), version=VERSION)

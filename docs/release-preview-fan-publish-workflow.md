@@ -24,7 +24,17 @@ without building firmware or publishing anything. A deliberate dispatch with
 `dry_run: false` builds the selected fan target(s), renames each output to the
 ledger's `expected_preview_artifact_name`, validates the exact output set, and
 attaches the `.bin` files plus checksums and a build-info `manifest.json` to the
-dedicated manual-preview release tag `v1.0.0-manual-preview-fans`.
+shared `v1.0.0-preview` preview release — the single preview release for every
+preview artifact (room-bundle + LED + fan), per
+[`RELEASE-PREVIEW-FAN-SHARED-TAG-001`](release-preview-fan-publish-results.md).
+
+> **Shared-tag note (`RELEASE-PREVIEW-FAN-SHARED-TAG-001`).** There is no
+> dedicated `v1.0.0-manual-preview-fans` vehicle. All preview firmware artifacts
+> live under the shared `v1.0.0-preview` release; `softprops/action-gh-release`
+> upserts that release, so the name / body / checksums are a metadata refresh,
+> not a release error, and the room-bundle preview `.bin` already attached keep
+> their SHA256 intact. WebFlash import eligibility is controlled separately by
+> WebFlash import policy and is never implied by presence in this shared release.
 
 ## Source of truth
 
@@ -48,8 +58,10 @@ WebFlash release-eligibility ledger.
   no compile proof.
 - The top-level workflow token scope is `contents: read`; only the publish job
   requests `contents: write`, and only behind `dry_run: false`.
-- The release vehicle is separate from the WebFlash `v1.0.0-preview` release, so
-  these artifacts are not implied to be WebFlash-importable.
+- The release vehicle is the shared `v1.0.0-preview` preview release. WebFlash
+  import eligibility is controlled separately by WebFlash import policy, so
+  attaching a fan artifact to the shared release does not imply WebFlash import,
+  Simple-install exposure, stable status, recommendation, default, or buyability.
 
 ## Guardrails
 

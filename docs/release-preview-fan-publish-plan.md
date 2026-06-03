@@ -16,6 +16,18 @@ Release / tag / checksum, commits **no** `.bin`, writes **no** `manifest.json` /
 default / buyable, changes Simple install / the launch SKU **`S360-KIT-BATH-P`**
 **not at all**, and claims **no** hardware / bench / compliance proof.
 
+> **Superseded release vehicle — shared preview tag
+> (`RELEASE-PREVIEW-FAN-SHARED-TAG-001`).** This plan originally anticipated a
+> *dedicated* `v1.0.0-manual-preview-fans` release vehicle kept separate from the
+> WebFlash `v1.0.0-preview` release (§3.3 / §3.4). That dedicated-tag concept has
+> since been **retired**: `v1.0.0-preview` is now the single **shared** preview
+> release for **all** preview firmware artifacts — room-bundle, LED, and the
+> FanRelay / FanPWM / FanDAC manual-preview artifacts. The workflow / publish-path
+> gap analysis below still stands; only the release-vehicle expectation changed,
+> and §3.3 / §3.4 are updated to the shared tag. WebFlash import eligibility stays
+> controlled separately by WebFlash import policy and is never implied by presence
+> in the shared release.
+
 **Predecessors:**
 
 - `#702` `RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001` made hardware / bench /
@@ -224,9 +236,12 @@ fan targets into `config/webflash-builds.json` unless policy explicitly changes.
   `config/manual-firmware-artifacts.json` (NOT `config/webflash-builds.json`),
   builds the three fan product YAMLs, renames each output to its
   `expected_preview_artifact_name`, and attaches the three durable
-  `-v1.0.0-preview.bin` artifacts to a **dedicated manual-preview release vehicle**
-  kept separate from the WebFlash `v1.0.0-preview` release (so a fan artifact is
-  never implied to be WebFlash-importable). TRIAC must stay excluded (`HW-005`).
+  `-v1.0.0-preview.bin` artifacts to the **shared `v1.0.0-preview` preview
+  release** — the single preview release for all preview artifacts
+  (`RELEASE-PREVIEW-FAN-SHARED-TAG-001`). WebFlash import eligibility stays
+  controlled separately by WebFlash import policy, so a fan artifact in the shared
+  release is never implied to be WebFlash-importable. TRIAC must stay excluded
+  (`HW-005`).
 * **Then `RELEASE-PREVIEW-FAN-PUBLISH-RUN-001`** executes that workflow.
 
 ### 3.4 Tag / channel / version expectations for the future workflow
@@ -241,7 +256,7 @@ land, the publish must use:
 | Delivery lane | `manual-preview` (FanRelay / FanPWM / FanDAC) |
 | Artifact names | the three `expected_preview_artifact_name` values in §1 / §2 |
 | Source of truth for the matrix | `config/preview-fan-triac-build-rows.json` (+ `config/manual-firmware-artifacts.json`), **not** `config/webflash-builds.json` |
-| Release vehicle | a dedicated manual-preview tag/Release, separate from `v1.0.0-preview`; **must not** reuse the WebFlash matrix or imply WebFlash import |
+| Release vehicle | the shared `v1.0.0-preview` preview release (`RELEASE-PREVIEW-FAN-SHARED-TAG-001`); **must not** reuse the WebFlash build matrix or imply WebFlash import — import eligibility stays controlled separately by WebFlash import policy |
 | Excluded | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` (`HW-005`); the stable Bathroom build; every WebFlash one-click import |
 
 ---

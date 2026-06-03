@@ -52,15 +52,18 @@ hardware / bench / compliance / commercial-availability proof.
   `checksums-md5.txt`, and a build-info `manifest.json`.
 * **TRIAC was excluded.** `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is **build-blocked
   by `HW-005`**; no TRIAC build job ran and no TRIAC artifact exists.
-* **Heads-up — the operator targeted the `v1.0.0-preview` tag, not the dedicated
-  `v1.0.0-manual-preview-fans` default.** The three fan `.bin` were attached to the
-  **existing `v1.0.0-preview`** GitHub Release (see §4). This **deviates from** the
-  plan's "dedicated, separate release vehicle" intent: the release's name + body
-  were overwritten with the fan content and the three checksum/manifest helper
-  files were replaced. The four pre-existing WebFlash room-bundle preview `.bin`
-  remain attached with their **original SHA256 values intact** (so the WebFlash
-  preview import is not broken), but the release now co-mingles fan and
-  room-bundle assets. This is recorded faithfully below, not corrected here.
+* **Shared preview release — `v1.0.0-preview` is the single preview release for
+  every preview artifact.** The three fan `.bin` were attached to the shared
+  `v1.0.0-preview` GitHub Release (see §4), which also carries the four
+  room-bundle preview `.bin`. Under `RELEASE-PREVIEW-FAN-SHARED-TAG-001` this is
+  the **intended** model — there is no separate fan release tag; room-bundle, LED,
+  and FanRelay/FanPWM/FanDAC manual-preview artifacts all live under one shared
+  preview release. `softprops/action-gh-release` upserted the release, so its name
+  + body + checksum/manifest helper files were **refreshed** (a release-metadata
+  refresh, **not a release error**). The four room-bundle preview `.bin` remain
+  attached with their **SHA256 values intact**, so the WebFlash preview import is
+  unaffected, and the shared release now intentionally co-hosts the room-bundle
+  and fan preview artifacts.
 * **Posture is unchanged.** All three fan artifacts are **preview** — not stable,
   not recommended, not a customer default; the fan products stay **hidden / not
   buyable**; the **stable Bathroom PoE release** (`S360-KIT-BATH-P` /
@@ -88,7 +91,7 @@ hardware / bench / compliance / commercial-availability proof.
 | Input — `dry_run` | **`false`** (the `dry-run` job was **skipped**, confirming a real publish dispatch) |
 | Input — `release_target` | `all-manual-preview-fans` (matrix resolved to the three fan rows) |
 | Input — `version` | `1.0.0` |
-| Input — `release_tag` | **`v1.0.0-preview`** (operator override; the workflow's dedicated default is `v1.0.0-manual-preview-fans` — see §4) |
+| Input — `release_tag` | **`v1.0.0-preview`** (the shared preview release for all preview artifacts; the workflow default is now `v1.0.0-preview` — see §4) |
 | Triggered by | `sense360store` |
 | Head branch | `main` |
 | Commit (`head_sha`) | `0963afb9c9582f5021019d1635421e41c9dd10f6` (`0963afb`, merge of #705, `RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001`) |
@@ -167,49 +170,51 @@ three fan `.bin` — it is **not** the WebFlash production-signed manifest.
 
 ---
 
-## 4. Release vehicle — recorded as run, and the tag deviation
+## 4. Release vehicle — the shared `v1.0.0-preview` preview release
 
-The plan (`RELEASE-PREVIEW-FAN-PUBLISH-PLAN-001` §3.4) and the workflow default
-both call for a **dedicated** manual-preview tag — `v1.0.0-manual-preview-fans` —
-kept **separate** from the WebFlash `v1.0.0-preview` release. The actual dispatch
-overrode `release_tag` to **`v1.0.0-preview`**, so `softprops/action-gh-release`
-**updated the existing `v1.0.0-preview` Release** rather than creating a dedicated
-one. Recorded faithfully:
+Under `RELEASE-PREVIEW-FAN-SHARED-TAG-001`, `v1.0.0-preview` is the **single,
+shared preview release** for every preview firmware artifact — the room-bundle
+previews, the LED preview, and the FanRelay / FanPWM / FanDAC manual-preview
+artifacts. There is **no** dedicated fan release tag. The run attached the three
+fan `.bin` to that shared release via `softprops/action-gh-release`, which
+upserts (creates-or-updates) the release. Recorded:
 
 | Field | Value |
 |---|---|
-| Release tag used | **`v1.0.0-preview`** (no `v1.0.0-manual-preview-fans` release exists) |
+| Release tag used | **`v1.0.0-preview`** (the shared preview release for all preview artifacts) |
 | Release id | `333373906` |
-| Release name (now) | `Sense360 manual-preview fan firmware 1.0.0` (**overwritten** from `Sense360 Preview Firmware v1.0.0`) |
-| Release body (now) | the manual-preview fan release notes (overwritten) |
+| Release name (now) | `Sense360 manual-preview fan firmware 1.0.0` (refreshed from `Sense360 Preview Firmware v1.0.0`) |
+| Release body (now) | the manual-preview fan release notes (refreshed) |
 | Prerelease / draft | `true` / `false` |
 | `target_commitish` (now) | `0963afb9c9582f5021019d1635421e41c9dd10f6` |
 | Release URL | <https://github.com/sense360store/esphome-public/releases/tag/v1.0.0-preview> |
 
-**Effects of reusing the tag (recorded, not corrected here):**
+**Effect of the upsert (a release-metadata refresh, not a release error):**
 
 * The three fan `.bin` (created `2026-06-03T10:13:54Z`) were **added** as new
   assets; `checksums-sha256.txt` / `checksums-md5.txt` / `manifest.json` were
-  **overwritten** and now describe only the three fan binaries.
+  **refreshed** by the upsert. Regenerating these — and the release name / body —
+  so they describe the room **and** fan preview artifacts together is the queued
+  `RELEASE-PREVIEW-COMBINED-RELEASE-NOTES-001` follow-up (see §8); it is a
+  metadata refresh, not a correction of an error.
 * The **four** pre-existing WebFlash room-bundle preview assets (created
-  `2026-06-02T21:04:35Z`) **remain attached** with their **original SHA256 values
-  intact** — `Ceiling-POE-AirIQ-RoomIQ` (`16565de6…`), `Ceiling-POE-RoomIQ`
-  (`2c7d691c…`), `Ceiling-POE-RoomIQ-LED` (`d4f18824…`), and
-  `Ceiling-POE-VentIQ-RoomIQ-LED` (`9e513b47…`). These match the SHA256 values
-  WebFlash pinned in `WF-PREVIEW-IMPORT-FIRST-BATCH-001`, so the published preview
-  artifacts WebFlash already imported are **not broken** by this run.
-* The release therefore now **co-mingles** seven `.bin` (four room-bundle preview
-  + three fan preview), while its replaced name / body / checksums describe only
-  the three fan artifacts. The templated body still asserts it is "separate from
-  the WebFlash `v1.0.0-preview` release", which is now self-contradictory because
-  it *is* on `v1.0.0-preview`.
+  `2026-06-02T21:04:35Z`) **remain attached** with their **SHA256 values intact**
+  — `Ceiling-POE-AirIQ-RoomIQ` (`16565de6…`), `Ceiling-POE-RoomIQ` (`2c7d691c…`),
+  `Ceiling-POE-RoomIQ-LED` (`d4f18824…`), and `Ceiling-POE-VentIQ-RoomIQ-LED`
+  (`9e513b47…`). These match the SHA256 values WebFlash pinned in
+  `WF-PREVIEW-IMPORT-FIRST-BATCH-001`, so the preview artifacts WebFlash already
+  imported are **unaffected** by this run.
+* The shared release therefore now **intentionally co-hosts** seven `.bin` — four
+  room-bundle preview + three fan preview — exactly as the shared-tag model
+  intends.
 
-This deviation is **metadata / release-hygiene only** — no artifact was deleted,
-no SHA256 changed, and no WebFlash import broke. A follow-up to re-cut the fan
-artifacts onto the dedicated `v1.0.0-manual-preview-fans` vehicle (and restore the
-WebFlash preview release's name / body / checksums) is noted in `UPCOMING_PR.md`;
-it is **not** performed here (re-running the workflow and creating another release
-are out of scope for this recording PR).
+This is a **release-metadata refresh only** — no artifact was deleted, no SHA256
+changed, and no WebFlash import broke. Presence of a fan artifact in the shared
+release does **not** make it WebFlash-importable: WebFlash import eligibility is
+controlled separately by WebFlash import policy (the fan-token guardrail keeps fan
+rows out of `config/webflash-builds.json`), so a fan preview in the shared release
+is never implied to be a WebFlash one-click import, a Simple-install build, or
+stable / recommended / default / buyable.
 
 ---
 
@@ -278,11 +283,16 @@ row, no product YAML, and no firmware, so the existing counts are unchanged):
   `WEBFLASH-DAC-001` follow-ups (WebFlash repo, behind a fan preview warning UX),
   contingent on a deliberate WebFlash policy decision. No fan row is added to
   `config/webflash-builds.json`; the fan-token guardrail stays intact.
-* **Release-tag hygiene (recommended).** Because the run targeted `v1.0.0-preview`
-  instead of the dedicated `v1.0.0-manual-preview-fans` vehicle (see §4), a
-  follow-up should either re-cut the three fan artifacts onto the dedicated tag
-  and restore the WebFlash preview release's name / body / checksums, or formally
-  accept the shared tag. Queued in `UPCOMING_PR.md`; not actioned here.
+* **Shared preview release — accepted.** `RELEASE-PREVIEW-FAN-SHARED-TAG-001`
+  formally adopts `v1.0.0-preview` as the single shared preview release for all
+  preview artifacts (room-bundle + LED + fan). The dedicated
+  `v1.0.0-manual-preview-fans` tag concept is retired; no re-cut onto a separate
+  fan tag is wanted, and none is performed.
+* **Combined release body / manifest (queued).** The shared release's name / body
+  / checksums currently describe only the fan content. Regenerating a combined
+  preview release body + manifest that covers both the room-bundle previews and
+  the fan previews is queued as `RELEASE-PREVIEW-COMBINED-RELEASE-NOTES-001` in
+  `UPCOMING_PR.md`; it is a release-metadata refresh, not actioned here.
 * **FanTRIAC `HW-005`** — unchanged buildability defect; FanTRIAC stays
   `advanced-manual-preview`, build-blocked, excluded from every publish surface.
 
