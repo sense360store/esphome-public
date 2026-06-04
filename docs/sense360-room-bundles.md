@@ -265,11 +265,11 @@ when it is preview-eligible.
 |---|---|---|---|---|---|---|---|
 | `S360-KIT-BATH-P-REL` | `S360-KIT-BATH-P` | `S360-310` | relay | `Ceiling-POE-VentIQ-FanRelay-RoomIQ` | **Yes** — built + published preview | **Preview-eligible** (Advanced-install-only, acknowledgement-gated) | preview / stable **blocked** |
 | `S360-KIT-BATH-P-TRIAC` | `S360-KIT-BATH-P` | `S360-320` | triac | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | Defined but **build-blocked** (`HW-005`) | **Advanced / manual only**, not easy-mode; build-blocked → not exposable yet | advanced-preview (blocked) / stable **blocked** |
-| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | `S360-311` | pwm | `Ceiling-POE-VentIQ-FanPWM-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` (`ROOM-BUNDLE-FAN-CONFIGS-001`; compile recorded by `ROOM-BUNDLE-FAN-COMPILE-RESULTS-001`) | Not eligible (compile-validated, not published) | compile-validated preview / stable **blocked** |
+| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | `S360-311` | pwm | `Ceiling-POE-VentIQ-FanPWM-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` (`ROOM-BUNDLE-FAN-CONFIGS-001`; compile recorded by `ROOM-BUNDLE-FAN-COMPILE-RESULTS-001`) | Not eligible (preview `.bin` published; not WebFlash-exposed) | compile-validated preview / stable **blocked** |
 | `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | `S360-312` | 0-10V | `Ceiling-POE-VentIQ-FanDAC-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated`; **requires FanDAC IC2 → 0x5A** (see below) | Not eligible (compile-validated; advanced / manual switch) | compile-validated preview / stable **blocked** |
-| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | `S360-310` | relay | `Ceiling-POE-AirIQ-FanRelay-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` | Not eligible (compile-validated, not published) | compile-validated preview / stable **blocked** |
+| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | `S360-310` | relay | `Ceiling-POE-AirIQ-FanRelay-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` | Not eligible (preview `.bin` published; not WebFlash-exposed) | compile-validated preview / stable **blocked** |
 | `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | `S360-312` | 0-10V | `Ceiling-POE-AirIQ-FanDAC-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated`; **requires FanDAC IC2 → 0x5A**; WebFlash-grammar-excluded (`fandac_conflicts_with_airiq`) | Not eligible (compile-validated; advanced / manual switch; mutex) | compile-validated preview / stable **blocked** |
-| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | `S360-311` | pwm | `Ceiling-POE-AirIQ-FanPWM-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` (policy-gated) | Not eligible (compile-validated, not published) | compile-validated preview / stable **blocked** |
+| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | `S360-311` | pwm | `Ceiling-POE-AirIQ-FanPWM-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` (policy-gated) | Not eligible (preview `.bin` published; not WebFlash-exposed) | compile-validated preview / stable **blocked** |
 
 Only **`S360-KIT-BATH-P-REL`** has a built **and published** full-composition
 preview firmware config today (`Ceiling-POE-VentIQ-FanRelay-RoomIQ`, on the
@@ -308,13 +308,44 @@ modules) is still **deliberately not substituted**: every variant config
 carries the bundle's room modules (Bathroom = VentIQ + RoomIQ; Kitchen =
 AirIQ + RoomIQ) **plus** the fan driver.
 
-A green compile is **firmware-build proof only**. These five configs stay
-**compile-validated previews only**: not published, no `.bin`, no
+A green compile is **firmware-build proof only**. Each of these five configs
+is now also published as an Advanced-install-only **preview `.bin`** (see the
+next section), but they stay otherwise gated: no
 `config/webflash-builds.json` row, **not** WebFlash-exposed, not stable, not
 recommended, not a customer default, not buyable. **TRIAC stays build-blocked
 (`HW-005`)**, **Bathroom Relay is unchanged**, the FanDAC IC2 DIP-switch
 mapping stays **bench-pending under `FANDAC-I2C-ADDR-001`**, and **no
 hardware / bench / compliance / safety proof is claimed.**
+
+### Preview `.bin` now published — `ROOM-BUNDLE-FAN-PUBLISH-RESULTS-001`
+
+`ROOM-BUNDLE-FAN-PUBLISH-RESULTS-001` records the **successful** `Room-Bundle
+Fan Firmware Publish` run
+([run `26947595936`](https://github.com/sense360store/esphome-public/actions/runs/26947595936),
+`workflow_dispatch` / `dry_run=false`, ref `main`, commit `ad1d957`,
+2026-06-04; conclusion **`success`**) that built and attached the five
+full-composition room-bundle fan **preview** artifacts —
+`Sense360-Ceiling-POE-VentIQ-FanPWM-RoomIQ-v1.0.0-preview.bin`,
+`Sense360-Ceiling-POE-VentIQ-FanDAC-RoomIQ-v1.0.0-preview.bin`,
+`Sense360-Ceiling-POE-AirIQ-FanRelay-RoomIQ-v1.0.0-preview.bin`,
+`Sense360-Ceiling-POE-AirIQ-FanDAC-RoomIQ-v1.0.0-preview.bin`, and
+`Sense360-Ceiling-POE-AirIQ-FanPWM-RoomIQ-v1.0.0-preview.bin` — to the shared
+`v1.0.0-preview` prerelease (the single preview release for every preview
+artifact). See
+[`docs/room-bundle-fan-publish-results.md`](room-bundle-fan-publish-results.md)
+for the full record (per-asset SHA256 + size, job/step results).
+
+This is **firmware-build / release proof only**. The two FanDAC artifacts were
+built **with the IC2 `0x5A` override** — a compile-time configuration only; the
+physical S360-312 DIP-switch → I²C address mapping is **not bench verified** and
+`FANDAC-I2C-ADDR-001` stays **pending** (see the verification gate
+[`docs/hardware/fandac-i2c-address-verification.md`](hardware/fandac-i2c-address-verification.md)).
+Publishing a preview `.bin` does **not** make any of the five WebFlash-exposed,
+WebFlash-importable, stable, recommended, a customer default, or buyable;
+**TRIAC stays excluded under `HW-005`** (no build, no artifact); the stable
+Bathroom PoE build (`Ceiling-POE-VentIQ-RoomIQ`) and Simple install are
+unchanged; and **no hardware / bench / compliance / safety / commercial proof
+is claimed.**
 
 ### FanDAC ↔ air-quality I²C address requirement (the two DAC variants)
 
