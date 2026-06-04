@@ -233,6 +233,48 @@ plus resolving FanTRIAC `HW-005` — captured as the next queue items below.
 
 ## Next queue (actionable)
 
+> **`ROOM-BUNDLE-FAN-PUBLISH-RESULTS-001` is DONE (this PR; results doc + publish
+> evidence + tests only).** Marks `ROOM-BUNDLE-FAN-PUBLISH-RUN-001` DONE — records
+> the **successful** `Room-Bundle Fan Firmware Publish`
+> run ([run `26947595936`](https://github.com/sense360store/esphome-public/actions/runs/26947595936),
+> run #2 / attempt 1, `workflow_dispatch` / `dry_run=false`, ref `main`, commit
+> `ad1d957`, 2026-06-04; conclusion **`success`**) that published the five
+> full-composition Bathroom / Kitchen fan-control room-bundle **preview** artifacts
+> — `Sense360-Ceiling-POE-VentIQ-FanPWM-RoomIQ-v1.0.0-preview.bin`,
+> `Sense360-Ceiling-POE-VentIQ-FanDAC-RoomIQ-v1.0.0-preview.bin`,
+> `Sense360-Ceiling-POE-AirIQ-FanRelay-RoomIQ-v1.0.0-preview.bin`,
+> `Sense360-Ceiling-POE-AirIQ-FanDAC-RoomIQ-v1.0.0-preview.bin`,
+> `Sense360-Ceiling-POE-AirIQ-FanPWM-RoomIQ-v1.0.0-preview.bin` — to the shared
+> `v1.0.0-preview` prerelease (release id `333373906`). Five build jobs `success`;
+> the dry-run job **skipped** (`dry_run=false`, confirming a real publish);
+> `Attach room-bundle fan release assets` `success` (output-set validation,
+> checksums + build-info manifest, release-note validation, and asset upload all
+> `success`); five workflow artifacts + five durable `.bin` (artifact count 5).
+> Adds [`docs/room-bundle-fan-publish-results.md`](docs/room-bundle-fan-publish-results.md)
+> + guard [`tests/test_room_bundle_fan_publish_results.py`](tests/test_room_bundle_fan_publish_results.py);
+> records per-variant `publish_evidence` + a document-level `publish_results` (real
+> asset SHA256 + size, read back from the release) in
+> [`config/room-bundle-fan-variants.json`](config/room-bundle-fan-variants.json)
+> (TRIAC untouched — no publish evidence, stays `HW-005` build-blocked); updates
+> `docs/sense360-room-bundles.md`, `docs/pre-hardware-room-bundle-release-handoff.md`,
+> `docs/first-release-gates.md`. The two **FanDAC** artifacts were built **with the
+> GP8403 IC2 `0x5A` override** (compile-time only — the DIP-switch mapping is
+> **not** bench verified; `FANDAC-I2C-ADDR-001` stays **PENDING**). **Records
+> only** — re-runs no workflow, creates no Release / tag / checksum, commits no
+> `.bin`, writes no `manifest.json` / `firmware/sources.json`, touches no WebFlash
+> repo, adds no `config/webflash-builds.json` row, includes no TRIAC, marks nothing
+> stable / recommended / default / buyable, keeps Simple install + the launch SKU
+> `S360-KIT-BATH-P` unchanged, and claims no hardware / bench / compliance / safety
+> / commercial proof. All five stay **preview only** (`webflash_exposed: false`,
+> `preview-compile-validated`); **WebFlash import remains not done** (fan-token
+> guardrail intact). Validation: `tests/validate_configs.py`,
+> `validate_compile_targets.py --metadata-only`,
+> `validate_preview_release_targets.py --metadata-only`,
+> `validate_room_bundle_fan_publish.py --metadata-only` (5 targets),
+> `tests/test_room_bundle_fan_variants.py`, `tests/test_product_catalog.py`,
+> `tests/test_room_bundle_fan_publish_results.py`, and the full `tests/` suite all
+> green.
+
 > **`ROOM-BUNDLE-FAN-PUBLISH-WORKFLOW-001` is DONE (this PR; workflow + validator
 > + docs + tests only — publishes no firmware).** Adds the small **additive**
 > publish lane queued by `ROOM-BUNDLE-FAN-PUBLISH-PLAN-001` (#717) for the five

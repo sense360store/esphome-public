@@ -85,7 +85,10 @@ nothing, and verifies nothing**. It does **not**:
   **preview bundle plan at most** (the five buildable configs are
   `buildable-preview-compile-validated` after `ROOM-BUNDLE-FAN-CONFIGS-001` +
   `ROOM-BUNDLE-FAN-COMPILE-RESULTS-001` recorded the hosted full ESPHome
-  compile, run `26913592989` — firmware-build proof only;
+  compile, run `26913592989` — firmware-build proof only — and now also carry a
+  published Advanced-install-only preview `.bin` after
+  `ROOM-BUNDLE-FAN-PUBLISH-RESULTS-001` (run `26947595936`, firmware-build /
+  release proof only; still not WebFlash-exposed, not stable, not buyable);
   advanced / manual only for TRIAC which stays build-blocked under `HW-005`)
   per
   [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
@@ -184,10 +187,15 @@ PR):
    `buildable-preview-compile-validated` — `ROOM-BUNDLE-FAN-COMPILE-RESULTS-001`
    recorded a successful hosted full ESPHome compile, run `26913592989`,
    firmware-build proof only; see
-   [`docs/room-bundle-fan-compile-results.md`](room-bundle-fan-compile-results.md);
-   Bathroom Relay stays the one built +
-   **published** preview); TRIAC stays advanced / manual-warning-only and
-   build-blocked under `HW-005`. The two FanDAC configs additionally require
+   [`docs/room-bundle-fan-compile-results.md`](room-bundle-fan-compile-results.md));
+   all five now **also carry a published Advanced-install-only preview `.bin`**
+   after `ROOM-BUNDLE-FAN-PUBLISH-RESULTS-001` (`Room-Bundle Fan Firmware
+   Publish`, run `26947595936`, ref `main`, 2026-06-04; conclusion `success`) to
+   the shared `v1.0.0-preview` prerelease — firmware-build / release proof only,
+   see
+   [`docs/room-bundle-fan-publish-results.md`](room-bundle-fan-publish-results.md);
+   TRIAC stays advanced / manual-warning-only and
+   build-blocked under `HW-005` (no build, no artifact). The two FanDAC configs additionally require
    the GP8403 IC2 `0x5A` address override + DIP switch — compiled with the
    `0x5A` override (compile-time only; **not** bench-verified, bench follow-up
    `FANDAC-I2C-ADDR-001` stays pending, checklist + evidence template at

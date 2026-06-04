@@ -154,11 +154,11 @@ compliance gate (§4 / §5 / §8); preview eligibility does not weaken that gate
 |---|---|---|---|---|---|---|
 | `S360-KIT-BATH-P-REL` | `S360-KIT-BATH-P` | S360-310 | relay | built + published preview | preview-eligible (ack-gated) | blocked |
 | `S360-KIT-BATH-P-TRIAC` | `S360-KIT-BATH-P` | S360-320 | triac | build-blocked (HW-005) | advanced / manual only; not yet exposable | blocked |
-| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | S360-311 | pwm | buildable-preview-compile-validated (ROOM-BUNDLE-FAN-CONFIGS-001; compile recorded by ROOM-BUNDLE-FAN-COMPILE-RESULTS-001, run 26913592989) | not eligible (compile-validated, not published) | blocked |
+| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | S360-311 | pwm | buildable-preview-compile-validated (ROOM-BUNDLE-FAN-CONFIGS-001; compile recorded by ROOM-BUNDLE-FAN-COMPILE-RESULTS-001, run 26913592989) | not eligible (preview `.bin` published; not WebFlash-exposed) | blocked |
 | `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | S360-312 | 0-10V | buildable-preview-compile-validated; requires FanDAC IC2 → 0x5A | not eligible (compile-validated; advanced / manual switch) | blocked |
-| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | S360-310 | relay | buildable-preview-compile-validated | not eligible (compile-validated, not published) | blocked |
+| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | S360-310 | relay | buildable-preview-compile-validated | not eligible (preview `.bin` published; not WebFlash-exposed) | blocked |
 | `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | S360-312 | 0-10V | buildable-preview-compile-validated; requires FanDAC IC2 → 0x5A; WebFlash-grammar-excluded | not eligible (compile-validated; mutex) | blocked |
-| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | S360-311 | pwm | buildable-preview-compile-validated (policy-gated) | not eligible (compile-validated, not published) | blocked |
+| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | S360-311 | pwm | buildable-preview-compile-validated (policy-gated) | not eligible (preview `.bin` published; not WebFlash-exposed) | blocked |
 
 Bathroom TRIAC (S360-320) is an **advanced / manual-warning** preview only,
 build-blocked by `HW-005`, never recommended / default / stable, with no
@@ -183,6 +183,20 @@ ref `main`, 2026-06-04, ESPHome `2026.4.5`). A green compile is **firmware-build
 proof only** — it does not change any first-release / stable / preview-exposure /
 hardware / bench / compliance gate above. See
 [`docs/room-bundle-fan-compile-results.md`](room-bundle-fan-compile-results.md).
+
+All five fan-bundle configs above were then **published as Advanced-install-only
+preview `.bin`** by `ROOM-BUNDLE-FAN-PUBLISH-RESULTS-001` (the `Room-Bundle Fan
+Firmware Publish` workflow, run
+[`26947595936`](https://github.com/sense360store/esphome-public/actions/runs/26947595936),
+ref `main`, 2026-06-04; conclusion `success`) to the shared `v1.0.0-preview`
+prerelease — firmware-build / release proof only. Publishing a preview `.bin`
+does **not** change any first-release / stable / WebFlash-exposure / hardware /
+bench / compliance gate above: the five stay `webflash_exposed: false` and
+`stable_status: blocked`, TRIAC stays excluded (`HW-005`, no build / no
+artifact), the two FanDAC artifacts were built with the `0x5A` override only
+(`FANDAC-I2C-ADDR-001` stays **pending**), and **no hardware / bench / compliance
+/ safety proof is claimed**. See
+[`docs/room-bundle-fan-publish-results.md`](room-bundle-fan-publish-results.md).
 
 ---
 
