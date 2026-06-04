@@ -233,6 +233,40 @@ plus resolving FanTRIAC `HW-005` — captured as the next queue items below.
 
 ## Next queue (actionable)
 
+> **`ROOM-BUNDLE-FAN-COMPILE-RESULTS-001` is DONE (this PR; compile-proof metadata
+> + docs + tests only).** Records the successful **hosted full ESPHome compile**
+> validation for the five full-composition Bathroom / Kitchen fan-control preview
+> configs added by `ROOM-BUNDLE-FAN-CONFIGS-001` (#713) —
+> `Ceiling-POE-VentIQ-FanPWM-RoomIQ`, `Ceiling-POE-VentIQ-FanDAC-RoomIQ`,
+> `Ceiling-POE-AirIQ-FanRelay-RoomIQ`, `Ceiling-POE-AirIQ-FanDAC-RoomIQ`,
+> `Ceiling-POE-AirIQ-FanPWM-RoomIQ`. The **Compile-only Firmware Validation**
+> workflow ([run `26913592989`](https://github.com/sense360store/esphome-public/actions/runs/26913592989),
+> `workflow_dispatch` / `compile_mode=full`, ref `main`, 2026-06-04, ESPHome
+> `2026.4.5`) passed **Metadata Validation** and the **Full ESPHome Compile**.
+> In [`config/compile-only-targets.json`](config/compile-only-targets.json) the
+> five targets move `compile_validation_status` `pending-ci → validated-full-compile`
+> and each gains a `compile_evidence` block (run `26913592989`,
+> `evidence_type: hosted-full-compile`, `proof_scope: firmware-build-only`); in
+> [`config/room-bundle-fan-variants.json`](config/room-bundle-fan-variants.json)
+> the five variants move `buildable-preview-compile-pending →
+> buildable-preview-compile-validated` with matching evidence + a document-level
+> `compile_results` record. Adds the result doc
+> [`docs/room-bundle-fan-compile-results.md`](docs/room-bundle-fan-compile-results.md)
+> and updates `docs/sense360-room-bundles.md`, `docs/first-release-gates.md`,
+> `docs/pre-hardware-room-bundle-release-handoff.md`. The two FanDAC configs
+> compiled **with the `0x5A` IC2 override** (compile-time only — **not**
+> bench-verified; `FANDAC-I2C-ADDR-001` stays **PENDING**; GP8403 `0x59` must not
+> be used with VentIQ/AirIQ). **Compile proof is firmware-build proof only:**
+> publishes no firmware, no `.bin`, no release/tag, no
+> `config/webflash-builds.json` row; does **not** touch the WebFlash repo; marks
+> nothing stable / recommended / default / buyable; claims no hardware / bench /
+> compliance / safety proof; **TRIAC stays build-blocked (`HW-005`)**; the stable
+> Bathroom PoE build is unchanged; no WebFlash import is implied. Validation:
+> `tests/validate_configs.py`, `validate_compile_targets.py --metadata-only`,
+> `validate_preview_release_targets.py --metadata-only`,
+> `tests/test_room_bundle_fan_variants.py`, `tests/test_product_catalog.py`, and
+> the full `tests/` suite all green.
+
 > **`FANDAC-I2C-ADDR-001` is DONE (this PR; docs / evidence-gate + test only).**
 > Adds the dedicated FanDAC I²C address hardware verification checklist and
 > evidence template at

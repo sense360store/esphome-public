@@ -70,6 +70,7 @@ ALLOWED_FIRMWARE_CONFIG_STATUS = frozenset(
     {
         "buildable-preview-published",
         "buildable-preview-compile-pending",
+        "buildable-preview-compile-validated",
         "defined-build-blocked",
         "preview-planned-missing-config",
     }
@@ -78,13 +79,17 @@ ALLOWED_PREVIEW_STATUS = frozenset(
     {
         "preview",
         "preview-compile-pending",
+        "preview-compile-validated",
         "advanced-preview-build-blocked",
         "preview-planned-missing-config",
     }
 )
-# ROOM-BUNDLE-FAN-CONFIGS-001 built the five missing full-composition configs;
-# they move from preview-planned-missing-config to buildable-preview-compile-pending.
-EXPECTED_COMPILE_PENDING_SKUS = frozenset(
+# ROOM-BUNDLE-FAN-CONFIGS-001 built the five missing full-composition configs
+# (preview-planned-missing-config -> buildable-preview-compile-pending), and
+# ROOM-BUNDLE-FAN-COMPILE-RESULTS-001 then recorded the hosted full ESPHome
+# compile result (run 26913592989) and promoted them from
+# buildable-preview-compile-pending to buildable-preview-compile-validated.
+EXPECTED_COMPILE_VALIDATED_SKUS = frozenset(
     {
         "S360-KIT-BATH-P-PWM",
         "S360-KIT-BATH-P-DAC",
@@ -93,6 +98,9 @@ EXPECTED_COMPILE_PENDING_SKUS = frozenset(
         "S360-KIT-KITCHEN-P-PWM",
     }
 )
+# ROOM-BUNDLE-FAN-COMPILE-RESULTS-001 hosted compile run that validated the five
+# full-composition fan-bundle configs (Compile-only Firmware Validation).
+COMPILE_RESULTS_RUN_ID = 26913592989
 # The two FanDAC room-bundle variants require the GP8403 IC2 address override
 # (0x5A) so it does not collide with the air-quality SGP41 at 0x59.
 EXPECTED_DAC_VARIANT_SKUS = frozenset(
@@ -321,45 +329,129 @@ class RoomBundleFanVariantsTests(unittest.TestCase):
             f"full-composition config; still missing: {[v['sku'] for v in missing]!r}",
         )
 
-    def test_compile_pending_configs_built_but_not_exposed(self):
-        # The five buildable variants are now buildable-preview-compile-pending:
-        # the full-composition config EXISTS, but it is NOT published, NOT
-        # WebFlash-exposed, NOT a preview target, and NOT easy-mode eligible.
-        compile_pending = [
+    def test_compile_validated_configs_built_but_not_exposed(self):
+        # ROOM-BUNDLE-FAN-COMPILE-RESULTS-001: the five buildable variants are
+        # now buildable-preview-compile-validated — the full-composition config
+        # EXISTS and its hosted full ESPHome compile PASSED — but it is still
+        # NOT published, NOT WebFlash-exposed, NOT a preview target, and NOT
+        # easy-mode eligible. Compile validation is firmware-build proof only.
+        compile_validated = [
             v
             for v in self.variants
-            if v["firmware_config_status"] == "buildable-preview-compile-pending"
+            if v["firmware_config_status"] == "buildable-preview-compile-validated"
         ]
         self.assertEqual(
-            {v["sku"] for v in compile_pending},
-            set(EXPECTED_COMPILE_PENDING_SKUS),
+            {v["sku"] for v in compile_validated},
+            set(EXPECTED_COMPILE_VALIDATED_SKUS),
         )
-        for v in compile_pending:
+        # No variant is left in the superseded compile-pending state.
+        self.assertEqual(
+            [
+                v["sku"]
+                for v in self.variants
+                if v["firmware_config_status"] == "buildable-preview-compile-pending"
+                or v["preview_status"] == "preview-compile-pending"
+            ],
+            [],
+            "ROOM-BUNDLE-FAN-COMPILE-RESULTS-001 must supersede every "
+            "compile-pending marker once the hosted compile is recorded",
+        )
+        for v in compile_validated:
             self.assertTrue(
                 v["firmware_config_exists"],
-                f"{v['sku']}: compile-pending but firmware_config_exists false",
+                f"{v['sku']}: compile-validated but firmware_config_exists false",
             )
-            self.assertEqual(v["preview_status"], "preview-compile-pending")
+            self.assertEqual(v["preview_status"], "preview-compile-validated")
             self.assertFalse(
                 v["webflash_easy_mode_eligible"],
-                f"{v['sku']}: compile-pending must not be easy-mode eligible "
+                f"{v['sku']}: compile-validated must not be easy-mode eligible "
                 "(no published build)",
             )
             self.assertFalse(
                 v["webflash_exposed"],
-                f"{v['sku']}: compile-pending must not be a committed WebFlash build",
+                f"{v['sku']}: compile-validated must not be a committed WebFlash build",
             )
             # Evidence must point at a real product YAML + compile-only target,
-            # and the compile must be honestly recorded as pending (not faked).
+            # and the compile must be honestly recorded as validated-full-compile.
             ev = v["firmware_config_evidence"]
             self.assertTrue(ev["product_yaml"].startswith("products/"))
             self.assertTrue((REPO_ROOT / ev["product_yaml"]).is_file())
             self.assertTrue((REPO_ROOT / ev["bundle_yaml"]).is_file())
-            self.assertEqual(ev["compile_validation_status"], "pending-ci")
+            self.assertEqual(
+                ev["compile_validation_status"],
+                "validated-full-compile",
+                f"{v['sku']}: must record validated-full-compile",
+            )
+            # The compile evidence must cite the real hosted run (firmware-build
+            # proof only — never hardware / bench / compliance / exposure).
+            ce = ev["compile_evidence"]
+            self.assertEqual(ce["run_id"], COMPILE_RESULTS_RUN_ID)
+            self.assertEqual(ce["workflow"], "Compile-only Firmware Validation")
+            self.assertEqual(ce["result"], "success")
+            self.assertEqual(ce["full_esphome_compile_result"], "success")
+            self.assertEqual(ce["metadata_validation_result"], "success")
+            self.assertEqual(ce["evidence_type"], "hosted-full-compile")
+            self.assertEqual(ce["proof_scope"], "firmware-build-only")
+            self.assertFalse(
+                ce["artifacts_produced"],
+                f"{v['sku']}: compile-only proof must produce no artifacts",
+            )
+            for forbidden in (
+                "hardware",
+                "bench-evidence",
+                "compliance",
+                "stable-promotion",
+                "webflash-exposure",
+                "release-artifact",
+            ):
+                self.assertIn(forbidden, ce["not_proof_of"])
             # Still absent from the committed release sources.
             cfg = v["intended_firmware_config_string"]
             self.assertNotIn(cfg, self.webflash_config_strings)
             self.assertNotIn(cfg, self.preview_config_strings)
+
+    def test_compile_results_record_is_consistent(self):
+        # ROOM-BUNDLE-FAN-COMPILE-RESULTS-001 records the hosted compile result
+        # at the document level; it must be firmware-build proof only and must
+        # list exactly the five validated fan-bundle config strings.
+        cr = self.doc["compile_results"]
+        self.assertEqual(cr["id"], "ROOM-BUNDLE-FAN-COMPILE-RESULTS-001")
+        self.assertEqual(cr["run_id"], COMPILE_RESULTS_RUN_ID)
+        self.assertEqual(cr["workflow"], "Compile-only Firmware Validation")
+        self.assertEqual(cr["ref"], "main")
+        self.assertEqual(cr["result"], "success")
+        self.assertEqual(cr["metadata_validation_result"], "success")
+        self.assertEqual(cr["full_esphome_compile_result"], "success")
+        self.assertEqual(cr["proof_scope"], "firmware-build-only")
+        self.assertFalse(cr["artifacts_produced"])
+        expected_cfgs = {
+            v["intended_firmware_config_string"]
+            for v in self.variants
+            if v["sku"] in EXPECTED_COMPILE_VALIDATED_SKUS
+        }
+        self.assertEqual(set(cr["validated_config_strings"]), expected_cfgs)
+        # FanDAC IC2 address is a compile-time override only — the physical
+        # DIP-switch mapping stays bench-pending under FANDAC-I2C-ADDR-001.
+        self.assertIn("FANDAC-I2C-ADDR-001", cr["fandac_address_note"])
+        self.assertIn("0x5A", cr["fandac_address_note"])
+        self.assertIn("0x59", cr["fandac_address_note"])
+
+    def test_compile_validation_does_not_change_stable_or_exposure(self):
+        # Recording the compile result must NOT promote anything to stable,
+        # recommended, default, or buyable, and must keep FanDAC bench
+        # verification pending and TRIAC build-blocked.
+        for v in self.variants:
+            self.assertEqual(v["stable_status"], "blocked")
+            self.assertFalse(v["recommended"])
+            self.assertFalse(v["customer_default"])
+            self.assertFalse(v["buyable"])
+        self.assertEqual(
+            self.doc["fan_dac_i2c_address_policy"]["bench_verification_status"],
+            "pending",
+        )
+        triac = next(v for v in self.variants if v["control_type"] == "triac")
+        self.assertEqual(triac["firmware_config_status"], "defined-build-blocked")
+        self.assertFalse(triac["firmware_config_exists"])
 
     def test_dac_variants_carry_required_address_override(self):
         # The FanDAC default IC2 address (0x59) collides with the air-quality

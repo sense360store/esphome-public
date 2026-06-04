@@ -265,11 +265,11 @@ when it is preview-eligible.
 |---|---|---|---|---|---|---|---|
 | `S360-KIT-BATH-P-REL` | `S360-KIT-BATH-P` | `S360-310` | relay | `Ceiling-POE-VentIQ-FanRelay-RoomIQ` | **Yes** — built + published preview | **Preview-eligible** (Advanced-install-only, acknowledgement-gated) | preview / stable **blocked** |
 | `S360-KIT-BATH-P-TRIAC` | `S360-KIT-BATH-P` | `S360-320` | triac | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | Defined but **build-blocked** (`HW-005`) | **Advanced / manual only**, not easy-mode; build-blocked → not exposable yet | advanced-preview (blocked) / stable **blocked** |
-| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | `S360-311` | pwm | `Ceiling-POE-VentIQ-FanPWM-RoomIQ` | **Yes** — built, `buildable-preview-compile-pending` (`ROOM-BUNDLE-FAN-CONFIGS-001`) | Not eligible (compile-pending, not published) | compile-pending preview / stable **blocked** |
-| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | `S360-312` | 0-10V | `Ceiling-POE-VentIQ-FanDAC-RoomIQ` | **Yes** — built, `buildable-preview-compile-pending`; **requires FanDAC IC2 → 0x5A** (see below) | Not eligible (compile-pending; advanced / manual switch) | compile-pending preview / stable **blocked** |
-| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | `S360-310` | relay | `Ceiling-POE-AirIQ-FanRelay-RoomIQ` | **Yes** — built, `buildable-preview-compile-pending` | Not eligible (compile-pending, not published) | compile-pending preview / stable **blocked** |
-| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | `S360-312` | 0-10V | `Ceiling-POE-AirIQ-FanDAC-RoomIQ` | **Yes** — built, `buildable-preview-compile-pending`; **requires FanDAC IC2 → 0x5A**; WebFlash-grammar-excluded (`fandac_conflicts_with_airiq`) | Not eligible (compile-pending; advanced / manual switch; mutex) | compile-pending preview / stable **blocked** |
-| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | `S360-311` | pwm | `Ceiling-POE-AirIQ-FanPWM-RoomIQ` | **Yes** — built, `buildable-preview-compile-pending` (policy-gated) | Not eligible (compile-pending, not published) | compile-pending preview / stable **blocked** |
+| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | `S360-311` | pwm | `Ceiling-POE-VentIQ-FanPWM-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` (`ROOM-BUNDLE-FAN-CONFIGS-001`; compile recorded by `ROOM-BUNDLE-FAN-COMPILE-RESULTS-001`) | Not eligible (compile-validated, not published) | compile-validated preview / stable **blocked** |
+| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | `S360-312` | 0-10V | `Ceiling-POE-VentIQ-FanDAC-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated`; **requires FanDAC IC2 → 0x5A** (see below) | Not eligible (compile-validated; advanced / manual switch) | compile-validated preview / stable **blocked** |
+| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | `S360-310` | relay | `Ceiling-POE-AirIQ-FanRelay-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` | Not eligible (compile-validated, not published) | compile-validated preview / stable **blocked** |
+| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | `S360-312` | 0-10V | `Ceiling-POE-AirIQ-FanDAC-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated`; **requires FanDAC IC2 → 0x5A**; WebFlash-grammar-excluded (`fandac_conflicts_with_airiq`) | Not eligible (compile-validated; advanced / manual switch; mutex) | compile-validated preview / stable **blocked** |
+| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | `S360-311` | pwm | `Ceiling-POE-AirIQ-FanPWM-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` (policy-gated) | Not eligible (compile-validated, not published) | compile-validated preview / stable **blocked** |
 
 Only **`S360-KIT-BATH-P-REL`** has a built **and published** full-composition
 preview firmware config today (`Ceiling-POE-VentIQ-FanRelay-RoomIQ`, on the
@@ -279,31 +279,42 @@ and
 [`config/preview-fan-triac-build-rows.json`](../config/preview-fan-triac-build-rows.json)).
 It is the one variant that is WebFlash-easy-mode preview-eligible now.
 
-### Full configs now exist (compile-pending) — `ROOM-BUNDLE-FAN-CONFIGS-001`
+### Full configs now exist and are compile-validated — `ROOM-BUNDLE-FAN-CONFIGS-001` + `ROOM-BUNDLE-FAN-COMPILE-RESULTS-001`
 
-`ROOM-BUNDLE-FAN-CONFIGS-001` builds the **five** previously-missing
+`ROOM-BUNDLE-FAN-CONFIGS-001` built the **five** previously-missing
 full-composition firmware configs — Bathroom PWM / DAC and Kitchen Relay /
-DAC / PWM — where the firmware packages already exist. Each now has a real
+DAC / PWM — where the firmware packages already exist. Each has a real
 `products/` shim + `products/bundles/` composition + a
 [`config/product-catalog.json`](../config/product-catalog.json)
 `hardware-pending` row + a
 [`config/compile-only-targets.json`](../config/compile-only-targets.json)
-target, and moves from `preview-planned-missing-config` to
-**`buildable-preview-compile-pending`**. Because the ESPHome CLI was
-unavailable in the authoring environment, each target's
-`compile_validation_status` is **`pending-ci`** (metadata validated; a hosted
-compile dry-run is queued, not yet run — no compile is fabricated). A
-**fan-only** firmware config (for example `Ceiling-POE-FanPWM` /
-`Ceiling-POE-FanDAC`, which omit the room-sensing modules) is still
-**deliberately not substituted**: every variant config carries the bundle's
-room modules (Bathroom = VentIQ + RoomIQ; Kitchen = AirIQ + RoomIQ) **plus**
-the fan driver.
+target.
 
-These five configs are **compile-pending previews only**: not published, no
-`.bin`, no `config/webflash-builds.json` row, **not** WebFlash-exposed, not
-stable, not recommended, not a customer default, not buyable. **TRIAC stays
-build-blocked (`HW-005`)** and **Bathroom Relay is unchanged.** No hardware /
-bench / compliance proof is claimed.
+`ROOM-BUNDLE-FAN-COMPILE-RESULTS-001` then **recorded the hosted full ESPHome
+compile result** for all five and promoted them from
+`buildable-preview-compile-pending` to
+**`buildable-preview-compile-validated`**. The **Compile-only Firmware
+Validation** workflow (run
+[`26913592989`](https://github.com/sense360store/esphome-public/actions/runs/26913592989),
+`workflow_dispatch` / `compile_mode=full`, ref `main`, 2026-06-04, ESPHome
+`2026.4.5`) passed both **Metadata Validation** and the **Full ESPHome
+Compile**, so each target's `compile_validation_status` is now
+**`validated-full-compile`** with a `compile_evidence` block (no compile is
+fabricated). See
+[`docs/room-bundle-fan-compile-results.md`](room-bundle-fan-compile-results.md)
+for the full result record. A **fan-only** firmware config (for example
+`Ceiling-POE-FanPWM` / `Ceiling-POE-FanDAC`, which omit the room-sensing
+modules) is still **deliberately not substituted**: every variant config
+carries the bundle's room modules (Bathroom = VentIQ + RoomIQ; Kitchen =
+AirIQ + RoomIQ) **plus** the fan driver.
+
+A green compile is **firmware-build proof only**. These five configs stay
+**compile-validated previews only**: not published, no `.bin`, no
+`config/webflash-builds.json` row, **not** WebFlash-exposed, not stable, not
+recommended, not a customer default, not buyable. **TRIAC stays build-blocked
+(`HW-005`)**, **Bathroom Relay is unchanged**, the FanDAC IC2 DIP-switch
+mapping stays **bench-pending under `FANDAC-I2C-ADDR-001`**, and **no
+hardware / bench / compliance / safety proof is claimed.**
 
 ### FanDAC ↔ air-quality I²C address requirement (the two DAC variants)
 
