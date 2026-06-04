@@ -15,6 +15,21 @@ metadata only**: it **publishes no firmware**, runs **no** workflow, creates
 commercial proof, does **not** mark FanDAC hardware-verified, and **excludes
 TRIAC**.
 
+> **Update — the queued workflow has now landed (`ROOM-BUNDLE-FAN-PUBLISH-WORKFLOW-001`).**
+> The additive publish path planned in §4.3 / §8 is now in the tree as
+> [`.github/workflows/room-bundle-fan-publish.yml`](../.github/workflows/room-bundle-fan-publish.yml)
+> + [`scripts/validate_room_bundle_fan_publish.py`](../scripts/validate_room_bundle_fan_publish.py),
+> documented at
+> [`docs/room-bundle-fan-publish-workflow.md`](room-bundle-fan-publish-workflow.md).
+> It is `workflow_dispatch` only, defaults to `dry_run: true`, reads
+> `config/room-bundle-fan-variants.json` + `config/compile-only-targets.json`
+> (never `config/webflash-builds.json`), excludes TRIAC, reuses the shared
+> `v1.0.0-preview` release + the `RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001`
+> confirm-gate, and leaves the single-driver
+> `scripts/validate_manual_preview_fan_publish.py` lane untouched. **The workflow
+> PR still publishes no firmware** — the actual run stays queued as
+> `ROOM-BUNDLE-FAN-PUBLISH-RUN-001` (§8).
+
 > **Sibling of `RELEASE-PREVIEW-FAN-PUBLISH-PLAN-001`.** That plan covered the
 > **three single-driver** manual-preview fan artifacts
 > (`Ceiling-POE-VentIQ-FanRelay-RoomIQ`, `Ceiling-POE-FanPWM`,
@@ -392,11 +407,16 @@ queued publish run.
 
 ## 8. Queued follow-ups
 
-1. **`ROOM-BUNDLE-FAN-PUBLISH-WORKFLOW-001`** — add the additive room-bundle
-   preview target group to the manual-preview fan publish family (reads
-   `config/room-bundle-fan-variants.json` + `config/compile-only-targets.json`,
-   **not** `config/webflash-builds.json`; excludes TRIAC; cites run
-   `26913592989`; publishes to the shared `v1.0.0-preview` release). See §4.3 / §4.4.
+1. **`ROOM-BUNDLE-FAN-PUBLISH-WORKFLOW-001`** — **DONE** (the additive room-bundle
+   preview publish lane is now in the tree:
+   [`.github/workflows/room-bundle-fan-publish.yml`](../.github/workflows/room-bundle-fan-publish.yml)
+   + [`scripts/validate_room_bundle_fan_publish.py`](../scripts/validate_room_bundle_fan_publish.py)
+   + [`docs/room-bundle-fan-publish-workflow.md`](room-bundle-fan-publish-workflow.md)).
+   It reads `config/room-bundle-fan-variants.json` +
+   `config/compile-only-targets.json` (**not** `config/webflash-builds.json`),
+   excludes TRIAC, cites run `26913592989`, and publishes to the shared
+   `v1.0.0-preview` release. See §4.3 / §4.4. **Publishes no firmware** — the run
+   stays queued below.
 2. **`ROOM-BUNDLE-FAN-PUBLISH-RUN-001`** — run the room-bundle preview publication
    for the five artifacts named in §1 / §2, on `version=1.0.0`, `channel=preview`,
    keeping the stable Bathroom build, TRIAC, and every WebFlash one-click import out.
