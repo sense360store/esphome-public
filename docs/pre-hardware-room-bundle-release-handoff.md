@@ -200,9 +200,19 @@ PR):
    `0x5A` override (compile-time only; **not** bench-verified, bench follow-up
    `FANDAC-I2C-ADDR-001` stays pending, checklist + evidence template at
    [`docs/hardware/fandac-i2c-address-verification.md`](hardware/fandac-i2c-address-verification.md)).
-   Every variant keeps `webflash_exposed: false` (no
-   committed `config/webflash-builds.json` row) and `stable_status: blocked`,
-   and none is marked release-ready or buyable by this audit.
+   The five published previews are now **preview WebFlash-import eligible**
+   under `ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001` (each carries a
+   `webflash_import_eligibility.eligible: true` block in
+   [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
+   and on its [`config/product-catalog.json`](../config/product-catalog.json)
+   row), authorising an Advanced-install-only, acknowledgement-gated **preview
+   import only** — the downstream WebFlash import / easy-mode exposure stays the
+   separately queued `WF-IMPORT-FAN-BUNDLES-001` follow-up. Every variant still
+   keeps `webflash_exposed: false` (no committed `config/webflash-builds.json`
+   row), `webflash_easy_mode_eligible: false`, and `stable_status: blocked`,
+   catalog `status` stays `hardware-pending` / `webflash_build_matrix: false`,
+   and none is marked release-ready, stable, recommended, default, or buyable by
+   this audit.
 
 ---
 

@@ -154,11 +154,11 @@ compliance gate (§4 / §5 / §8); preview eligibility does not weaken that gate
 |---|---|---|---|---|---|---|
 | `S360-KIT-BATH-P-REL` | `S360-KIT-BATH-P` | S360-310 | relay | built + published preview | preview-eligible (ack-gated) | blocked |
 | `S360-KIT-BATH-P-TRIAC` | `S360-KIT-BATH-P` | S360-320 | triac | build-blocked (HW-005) | advanced / manual only; not yet exposable | blocked |
-| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | S360-311 | pwm | buildable-preview-compile-validated (ROOM-BUNDLE-FAN-CONFIGS-001; compile recorded by ROOM-BUNDLE-FAN-COMPILE-RESULTS-001, run 26913592989) | not eligible (preview `.bin` published; not WebFlash-exposed) | blocked |
-| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | S360-312 | 0-10V | buildable-preview-compile-validated; requires FanDAC IC2 → 0x5A | not eligible (compile-validated; advanced / manual switch) | blocked |
-| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | S360-310 | relay | buildable-preview-compile-validated | not eligible (preview `.bin` published; not WebFlash-exposed) | blocked |
-| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | S360-312 | 0-10V | buildable-preview-compile-validated; requires FanDAC IC2 → 0x5A; WebFlash-grammar-excluded | not eligible (compile-validated; mutex) | blocked |
-| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | S360-311 | pwm | buildable-preview-compile-validated (policy-gated) | not eligible (preview `.bin` published; not WebFlash-exposed) | blocked |
+| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | S360-311 | pwm | buildable-preview-compile-validated (ROOM-BUNDLE-FAN-CONFIGS-001; compile recorded by ROOM-BUNDLE-FAN-COMPILE-RESULTS-001, run 26913592989) | preview-import-eligible (ack-gated, ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001); easy-mode gated on downstream import | blocked |
+| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | S360-312 | 0-10V | buildable-preview-compile-validated; requires FanDAC IC2 → 0x5A | preview-import-eligible (ack-gated; advanced / manual switch); easy-mode gated on downstream import | blocked |
+| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | S360-310 | relay | buildable-preview-compile-validated | preview-import-eligible (ack-gated, ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001); easy-mode gated on downstream import | blocked |
+| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | S360-312 | 0-10V | buildable-preview-compile-validated; requires FanDAC IC2 → 0x5A; WebFlash-grammar-excluded | preview-import-eligible (ack-gated; advanced / manual switch; mutex); easy-mode gated on downstream import | blocked |
+| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | S360-311 | pwm | buildable-preview-compile-validated (policy-gated) | preview-import-eligible (ack-gated, ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001); easy-mode gated on downstream import | blocked |
 
 Bathroom TRIAC (S360-320) is an **advanced / manual-warning** preview only,
 build-blocked by `HW-005`, never recommended / default / stable, with no
@@ -197,6 +197,21 @@ artifact), the two FanDAC artifacts were built with the `0x5A` override only
 (`FANDAC-I2C-ADDR-001` stays **pending**), and **no hardware / bench / compliance
 / safety proof is claimed**. See
 [`docs/room-bundle-fan-publish-results.md`](room-bundle-fan-publish-results.md).
+
+All five published fan-bundle previews are now **preview WebFlash-import
+eligible** under `ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001` (each carries a
+`webflash_import_eligibility.eligible: true` block in
+[`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
+and on its [`config/product-catalog.json`](../config/product-catalog.json)
+row). Eligibility authorises an Advanced-install-only, acknowledgement-gated
+**preview import only** — it does **not** change any first-release / stable /
+hardware / bench / compliance gate above, adds no `config/webflash-builds.json`
+row (catalog `status` stays `hardware-pending`, `webflash_build_matrix` stays
+`false`), and grants no Simple / easy-mode exposure (that stays gated behind the
+downstream `WF-IMPORT-FAN-BUNDLES-001` import). TRIAC stays excluded (`HW-005`,
+not eligible); the two FanDAC previews keep the IC2 `0x5A` policy and the pending
+`FANDAC-I2C-ADDR-001` bench verification; nothing is made stable / recommended /
+default / buyable.
 
 ---
 

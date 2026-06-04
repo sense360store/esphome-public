@@ -265,11 +265,11 @@ when it is preview-eligible.
 |---|---|---|---|---|---|---|---|
 | `S360-KIT-BATH-P-REL` | `S360-KIT-BATH-P` | `S360-310` | relay | `Ceiling-POE-VentIQ-FanRelay-RoomIQ` | **Yes** — built + published preview | **Preview-eligible** (Advanced-install-only, acknowledgement-gated) | preview / stable **blocked** |
 | `S360-KIT-BATH-P-TRIAC` | `S360-KIT-BATH-P` | `S360-320` | triac | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | Defined but **build-blocked** (`HW-005`) | **Advanced / manual only**, not easy-mode; build-blocked → not exposable yet | advanced-preview (blocked) / stable **blocked** |
-| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | `S360-311` | pwm | `Ceiling-POE-VentIQ-FanPWM-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` (`ROOM-BUNDLE-FAN-CONFIGS-001`; compile recorded by `ROOM-BUNDLE-FAN-COMPILE-RESULTS-001`) | Not eligible (preview `.bin` published; not WebFlash-exposed) | compile-validated preview / stable **blocked** |
-| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | `S360-312` | 0-10V | `Ceiling-POE-VentIQ-FanDAC-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated`; **requires FanDAC IC2 → 0x5A** (see below) | Not eligible (compile-validated; advanced / manual switch) | compile-validated preview / stable **blocked** |
-| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | `S360-310` | relay | `Ceiling-POE-AirIQ-FanRelay-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` | Not eligible (preview `.bin` published; not WebFlash-exposed) | compile-validated preview / stable **blocked** |
-| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | `S360-312` | 0-10V | `Ceiling-POE-AirIQ-FanDAC-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated`; **requires FanDAC IC2 → 0x5A**; WebFlash-grammar-excluded (`fandac_conflicts_with_airiq`) | Not eligible (compile-validated; advanced / manual switch; mutex) | compile-validated preview / stable **blocked** |
-| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | `S360-311` | pwm | `Ceiling-POE-AirIQ-FanPWM-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` (policy-gated) | Not eligible (preview `.bin` published; not WebFlash-exposed) | compile-validated preview / stable **blocked** |
+| `S360-KIT-BATH-P-PWM` | `S360-KIT-BATH-P` | `S360-311` | pwm | `Ceiling-POE-VentIQ-FanPWM-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` (`ROOM-BUNDLE-FAN-CONFIGS-001`; compile recorded by `ROOM-BUNDLE-FAN-COMPILE-RESULTS-001`) | **Preview-import-eligible** (ack-gated; `ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001`); easy-mode gated on the downstream import | compile-validated preview / stable **blocked** |
+| `S360-KIT-BATH-P-DAC` | `S360-KIT-BATH-P` | `S360-312` | 0-10V | `Ceiling-POE-VentIQ-FanDAC-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated`; **requires FanDAC IC2 → 0x5A** (see below) | **Preview-import-eligible** (ack-gated; advanced / manual switch); easy-mode gated on the downstream import | compile-validated preview / stable **blocked** |
+| `S360-KIT-KITCHEN-P-REL` | `S360-KIT-KITCHEN-P` | `S360-310` | relay | `Ceiling-POE-AirIQ-FanRelay-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` | **Preview-import-eligible** (ack-gated; `ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001`); easy-mode gated on the downstream import | compile-validated preview / stable **blocked** |
+| `S360-KIT-KITCHEN-P-DAC` | `S360-KIT-KITCHEN-P` | `S360-312` | 0-10V | `Ceiling-POE-AirIQ-FanDAC-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated`; **requires FanDAC IC2 → 0x5A**; WebFlash-grammar-excluded (`fandac_conflicts_with_airiq`) | **Preview-import-eligible** (ack-gated; advanced / manual switch; mutex); easy-mode gated on the downstream import | compile-validated preview / stable **blocked** |
+| `S360-KIT-KITCHEN-P-PWM` | `S360-KIT-KITCHEN-P` | `S360-311` | pwm | `Ceiling-POE-AirIQ-FanPWM-RoomIQ` | **Yes** — built + `buildable-preview-compile-validated` (policy-gated) | **Preview-import-eligible** (ack-gated; `ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001`); easy-mode gated on the downstream import | compile-validated preview / stable **blocked** |
 
 Only **`S360-KIT-BATH-P-REL`** has a built **and published** full-composition
 preview firmware config today (`Ceiling-POE-VentIQ-FanRelay-RoomIQ`, on the
@@ -346,6 +346,44 @@ WebFlash-importable, stable, recommended, a customer default, or buyable;
 Bathroom PoE build (`Ceiling-POE-VentIQ-RoomIQ`) and Simple install are
 unchanged; and **no hardware / bench / compliance / safety / commercial proof
 is claimed.**
+
+### WebFlash-import eligible — `ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001`
+
+`ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001` marks the five published
+room-bundle fan previews **preview WebFlash-import eligible** — the room-bundle
+sibling of `RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001` (which marked the
+single-driver FanRelay / FanPWM / FanDAC standalone previews eligible). Each of
+the five variants in
+[`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
+gains a `webflash_import_eligibility` block (`eligible: true`,
+`exposure_class: acknowledgement-gated`, `channel: preview`, the
+`v1.0.0-preview` source release tag, and the recorded asset name + SHA256 +
+size), and the matching
+[`config/product-catalog.json`](../config/product-catalog.json) rows gain the
+same eligibility block on the downstream contract surface (their lifecycle
+`status` stays `hardware-pending` and `webflash_build_matrix` stays `false`).
+
+Eligibility authorises an **Advanced-install-only preview import only**. It is
+not a lifecycle promotion and explicitly does **not**:
+
+- make any config stable, recommended, a customer default, or buyable;
+- add a `config/webflash-builds.json` row (the fan-token guardrail and the
+  catalog `webflash_build_matrix: false` both stand);
+- grant Simple / easy-mode exposure — that stays gated behind the **downstream
+  WebFlash import plus the fan-preview acknowledgement / warning UX**
+  (`WF-IMPORT-FAN-BUNDLES-001`), which is the separately queued WebFlash-repo
+  follow-up. `webflash_easy_mode_eligible` stays `false` for all five.
+
+Stable / full release of every variant stays blocked on its hardware /
+bench-evidence / compliance gate; missing evidence blocks stable only, never the
+preview import. **FanTRIAC stays excluded** (build-blocked under `HW-005`, no
+artifact, `eligible` is not set true) and is handled by its own separate TRIAC
+track. The two **FanDAC** variants keep the GP8403 IC1 `0x58` / IC2 `0x5A`
+address policy (`0x59` forbidden — the SGP41 collision) and the **pending**
+`FANDAC-I2C-ADDR-001` bench verification; eligibility does not bench-verify the
+DIP-switch mapping and **no FanDAC hardware proof is claimed**. This decision
+publishes no firmware, cuts no tag, commits no `.bin`, and does not touch the
+WebFlash repo.
 
 ### FanDAC ↔ air-quality I²C address requirement (the two DAC variants)
 
