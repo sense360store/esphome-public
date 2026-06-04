@@ -233,6 +233,57 @@ plus resolving FanTRIAC `HW-005` — captured as the next queue items below.
 
 ## Next queue (actionable)
 
+> **`ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001` is DONE (this PR; upstream
+> metadata + test + docs only).** Marks the five published full-composition
+> Bathroom / Kitchen fan-control room-bundle **preview** artifacts from
+> `ROOM-BUNDLE-FAN-PUBLISH-RESULTS-001` (#719) **preview WebFlash-import
+> eligible** — the room-bundle sibling of `RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001`
+> (#711). Adds a `webflash_import_eligibility` block (`eligible: true`,
+> `exposure_class: acknowledgement-gated`, `channel: preview`, the
+> `v1.0.0-preview` source release tag + recorded asset name / SHA256 / size,
+> pulled from each variant's `publish_evidence` so they can never disagree) to
+> the five variants in
+> [`config/room-bundle-fan-variants.json`](config/room-bundle-fan-variants.json)
+> (`Ceiling-POE-VentIQ-FanPWM-RoomIQ`, `Ceiling-POE-VentIQ-FanDAC-RoomIQ`,
+> `Ceiling-POE-AirIQ-FanRelay-RoomIQ`, `Ceiling-POE-AirIQ-FanDAC-RoomIQ`,
+> `Ceiling-POE-AirIQ-FanPWM-RoomIQ`) plus a document-level
+> `webflash_import_eligibility_decision` block + `webflash_import_eligible_now: 5`
+> total, and the same eligibility block on the matching
+> [`config/product-catalog.json`](config/product-catalog.json) rows (the
+> downstream contract surface; `status` stays `hardware-pending`,
+> `webflash_build_matrix` stays `false`). New guard
+> [`tests/test_room_bundle_fan_webflash_eligibility.py`](tests/test_room_bundle_fan_webflash_eligibility.py);
+> updated `docs/sense360-room-bundles.md`,
+> `docs/pre-hardware-room-bundle-release-handoff.md`,
+> `docs/first-release-gates.md`. **Eligibility authorises an
+> Advanced-install-only preview import only** — it adds **no**
+> `config/webflash-builds.json` row (fan-token guardrail intact), grants **no**
+> Simple / easy-mode exposure (`webflash_easy_mode_eligible` stays `false`; the
+> one-click committed import is the separately queued downstream
+> `WF-IMPORT-FAN-BUNDLES-001`), and marks nothing stable / recommended / default
+> / buyable. **TRIAC stays excluded** (`HW-005`, no artifact, not eligible); the
+> two **FanDAC** previews keep the IC2 `0x58`/`0x5A` (`0x59` forbidden) policy and
+> the **pending** `FANDAC-I2C-ADDR-001` bench verification (no FanDAC hardware
+> proof claimed); the stable Bathroom PoE build (`Ceiling-POE-VentIQ-RoomIQ`) +
+> launch SKU `S360-KIT-BATH-P` + Simple install are unchanged. Publishes no
+> firmware, cuts no tag, commits no `.bin`, writes no `manifest.json` /
+> `firmware/sources.json`, and **does not touch the WebFlash repo**. Validation:
+> `tests/validate_configs.py`, `validate_preview_release_targets.py
+> --metadata-only`, `validate_room_bundle_fan_publish.py --metadata-only` (5
+> targets), `validate_product_catalog_consistency.py`,
+> `tests/test_room_bundle_fan_variants.py`, `tests/test_product_catalog.py`,
+> `tests/test_room_bundle_fan_webflash_eligibility.py`, and the full `tests/`
+> suite all green.
+
+#### WF-IMPORT-FAN-BUNDLES-001 — import the five room-bundle fan previews into WebFlash (queued — WebFlash repo)
+
+Queued downstream WebFlash-repo slice. The five room-bundle fan previews are now
+upstream preview WebFlash-import eligible (`ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001`);
+the actual committed import + Simple / easy-mode exposure happens behind the
+WebFlash fan-preview acknowledgement / warning UX. Not started here; no fan row is
+added to `config/webflash-builds.json` upstream, and the fan-token guardrail stays
+intact.
+
 > **`ROOM-BUNDLE-FAN-PUBLISH-RESULTS-001` is DONE (this PR; results doc + publish
 > evidence + tests only).** Marks `ROOM-BUNDLE-FAN-PUBLISH-RUN-001` DONE — records
 > the **successful** `Room-Bundle Fan Firmware Publish`
