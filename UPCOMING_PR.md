@@ -233,6 +233,47 @@ plus resolving FanTRIAC `HW-005` — captured as the next queue items below.
 
 ## Next queue (actionable)
 
+> **`ROOM-BUNDLE-FAN-PUBLISH-WORKFLOW-001` is DONE (this PR; workflow + validator
+> + docs + tests only — publishes no firmware).** Adds the small **additive**
+> publish lane queued by `ROOM-BUNDLE-FAN-PUBLISH-PLAN-001` (#717) for the five
+> full-composition Bathroom / Kitchen fan-control room-bundle preview configs that
+> carry hosted full compile proof (run
+> [`26913592989`](https://github.com/sense360store/esphome-public/actions/runs/26913592989)):
+> `Ceiling-POE-VentIQ-FanPWM-RoomIQ`, `Ceiling-POE-VentIQ-FanDAC-RoomIQ`,
+> `Ceiling-POE-AirIQ-FanRelay-RoomIQ`, `Ceiling-POE-AirIQ-FanDAC-RoomIQ`,
+> `Ceiling-POE-AirIQ-FanPWM-RoomIQ`. New
+> [`.github/workflows/room-bundle-fan-publish.yml`](.github/workflows/room-bundle-fan-publish.yml)
+> (`workflow_dispatch` only, `dry_run: true` default, publish gated behind explicit
+> `dry_run: false`) + [`scripts/validate_room_bundle_fan_publish.py`](scripts/validate_room_bundle_fan_publish.py)
+> generate the matrix / release body from
+> [`config/room-bundle-fan-variants.json`](config/room-bundle-fan-variants.json) +
+> [`config/compile-only-targets.json`](config/compile-only-targets.json) (**never**
+> `config/webflash-builds.json`), enforce the scoped five, reject TRIAC
+> (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`, `HW-005`), enforce the FanDAC GP8403
+> **IC1 `0x58` / IC2 `0x5A`** policy (`0x59` forbidden; `FANDAC-I2C-ADDR-001`
+> **pending** — no hardware verification claimed), and publish only to the shared
+> `v1.0.0-preview` release (reusing the `RELEASE-PREVIEW-FAN-PUBLISH-TAG-GUARD-001`
+> confirm-gate; the publish job **attaches assets only**, creating no new release /
+> tag). Docs [`docs/room-bundle-fan-publish-workflow.md`](docs/room-bundle-fan-publish-workflow.md);
+> updated [`docs/room-bundle-fan-publish-plan.md`](docs/room-bundle-fan-publish-plan.md)
+> §8 item 1 → DONE. Guard
+> [`tests/test_room_bundle_fan_publish_workflow.py`](tests/test_room_bundle_fan_publish_workflow.py);
+> [`tests/test_workflow_permissions.py`](tests/test_workflow_permissions.py)
+> allowlists the new `publish` job's `contents: write`. The existing single-driver
+> `scripts/validate_manual_preview_fan_publish.py` lane (run `26821900127`) is
+> **unchanged**. **Workflow / validator / docs / tests only** — publishes no
+> firmware, runs no workflow, creates no Release / tag / checksum, commits no
+> `.bin`, writes no `manifest.json` / `firmware/sources.json`, touches no WebFlash
+> repo, adds no `config/webflash-builds.json` row, includes no TRIAC, marks nothing
+> stable / recommended / default / buyable, does not mark FanDAC hardware-verified,
+> and claims no hardware / bench / compliance / safety / commercial proof. The run
+> stays queued as `ROOM-BUNDLE-FAN-PUBLISH-RUN-001`. Validation:
+> `tests/validate_configs.py`, `validate_compile_targets.py --metadata-only`,
+> `validate_preview_release_targets.py --metadata-only`,
+> `validate_manual_preview_fan_publish.py --metadata-only` (still 3 single-driver
+> targets), `validate_room_bundle_fan_publish.py --metadata-only` (5 targets), and
+> the full `tests/` suite all green.
+
 > **`ROOM-BUNDLE-FAN-PUBLISH-PLAN-001` is DONE (this PR; publish-plan doc + test
 > only).** Plans the **preview-artifact publication** of the five full-composition
 > Bathroom / Kitchen fan-control room-bundle configs that now carry hosted full

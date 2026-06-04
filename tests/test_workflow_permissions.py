@@ -67,6 +67,17 @@ WRITE_PERMISSION_ALLOWLIST: dict[tuple[str, str, str], str] = {
         "Release via softprops/action-gh-release. Scoped to this job only and "
         "gated behind workflow_dispatch with dry_run=false."
     ),
+    (
+        "room-bundle-fan-publish.yml",
+        "publish",
+        "contents",
+    ): (
+        "ROOM-BUNDLE-FAN-PUBLISH-WORKFLOW-001: the publish job attaches the five "
+        "compiled room-bundle fan preview binaries, checksums, and build-info "
+        "manifest to the shared v1.0.0-preview preview release via "
+        "softprops/action-gh-release. Scoped to this job only and gated behind "
+        "workflow_dispatch with dry_run=false."
+    ),
 }
 
 # ---------------------------------------------------------------------------
