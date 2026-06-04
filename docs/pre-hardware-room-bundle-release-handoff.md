@@ -183,7 +183,9 @@ PR):
    **published** preview); TRIAC stays advanced / manual-warning-only and
    build-blocked under `HW-005`. The two FanDAC configs additionally require
    the GP8403 IC2 `0x5A` address override + DIP switch (bench follow-up
-   `FANDAC-I2C-ADDR-001`). Every variant keeps `webflash_exposed: false` (no
+   `FANDAC-I2C-ADDR-001`, checklist + evidence template at
+   [`docs/hardware/fandac-i2c-address-verification.md`](hardware/fandac-i2c-address-verification.md)).
+   Every variant keeps `webflash_exposed: false` (no
    committed `config/webflash-builds.json` row) and `stable_status: blocked`,
    and none is marked release-ready or buyable by this audit.
 
@@ -203,6 +205,7 @@ until physical hardware exists.
 | `WF-HW-TEST-001` / `WF-HW-TEST-003` | LED operator flash proof — Living / Corridor | preview-to-stable gauntlet rows ([preview-to-stable-promotion-gates.md](preview-to-stable-promotion-gates.md)) |
 | AirIQ sensor-stack bench (under `STABLE-TARGET-AIRIQ-001`) | SPS30 / SGP41 / SCD41 / BMP390 evidence — Kitchen | owed ([stable-target-expansion-plan.md](stable-target-expansion-plan.md)) |
 | `PRE-HW-PREP-POE-410-001` | S360-410 PoE isolation / Hi-pot / `PACKAGE-POE-410-001` — every PoE bundle | queued, ARTIFACT-gated ([pre-hardware-prep-plan.md](pre-hardware-prep-plan.md) §7) |
+| `FANDAC-I2C-ADDR-001` | FanDAC GP8403 IC2 → `0x5A` I²C-address mapping vs VentIQ/AirIQ SGP41 @ `0x59` — Bathroom / Kitchen DAC variants | `pending — bench hardware evidence required` ([fandac-i2c-address-verification.md](hardware/fandac-i2c-address-verification.md)) |
 
 ---
 

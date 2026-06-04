@@ -233,6 +233,34 @@ plus resolving FanTRIAC `HW-005` — captured as the next queue items below.
 
 ## Next queue (actionable)
 
+> **`FANDAC-I2C-ADDR-001` is DONE (this PR; docs / evidence-gate + test only).**
+> Adds the dedicated FanDAC I²C address hardware verification checklist and
+> evidence template at
+> [`docs/hardware/fandac-i2c-address-verification.md`](docs/hardware/fandac-i2c-address-verification.md)
+> for the GP8403 IC2 → `0x5A` requirement introduced by
+> `ROOM-BUNDLE-FAN-CONFIGS-001` (#713) on the two full-composition FanDAC
+> room-bundle configs (`Ceiling-POE-VentIQ-FanDAC-RoomIQ` /
+> `Ceiling-POE-AirIQ-FanDAC-RoomIQ`). The doc pins the address policy (GP8403
+> IC1 `0x58`, IC2 `0x5A`, SGP41 `0x59`, `0x59` forbidden for the FanDAC when
+> VentIQ/AirIQ is present), the required IC2 DIP-switch / strap action, a bench
+> checklist (visual inspection, board-rev + serial capture, IC1/IC2 switch
+> reading, three I²C scans — FanDAC-only / VentIQ+FanDAC / AirIQ+FanDAC — with
+> expected addresses, no-duplicate-`0x59` confirmation, log capture, pass/fail +
+> tester/date), and a fill-in evidence template. The existing FanDAC /
+> room-bundle / first-release-gates / handoff docs and this file now point to it.
+> Until the bench scan is run and recorded, the mapping stays **required but not
+> bench-verified** and `FANDAC-I2C-ADDR-001` stays **PENDING**. Adds
+> [`tests/test_fandac_i2c_address_verification.py`](tests/test_fandac_i2c_address_verification.py).
+> Docs / evidence + test only: changes **no** YAML firmware config, no
+> `config/compile-only-targets.json`, no `config/preview-release-targets.json`,
+> no `config/webflash-builds.json`, no manual-firmware-artifacts; publishes no
+> firmware; runs no workflows; creates no release/tag; does **not** touch the
+> WebFlash repo; marks nothing stable / recommended / default; does **not** mark
+> FanDAC hardware verified; claims no safety / compliance proof; does **not**
+> change TRIAC status or the stable Bathroom PoE bundle. Validation:
+> `tests/validate_configs.py`, `tests/test_room_bundle_fan_variants.py`,
+> `tests/test_product_catalog.py`, and the full `tests/` suite all green.
+
 > **`COMPILE-VALIDATOR-PROGRESS-LOGGING-001` is DONE (this PR; tooling + tests +
 > docs only).** Makes the hosted compile validator debuggable after
 > [run `26909088571`](https://github.com/sense360store/esphome-public/actions/runs/26909088571/job/79381989029)

@@ -700,6 +700,12 @@ documented switch requirement — no hardware / bench / compliance proof is
 claimed. (This is a superset of Open-evidence item 1 below, scoped to the
 specific `0x5A` requirement the room-bundle DAC configs depend on.)
 
+The dedicated bench verification checklist and evidence template for this
+follow-up live at
+[`docs/hardware/fandac-i2c-address-verification.md`](fandac-i2c-address-verification.md).
+Until that checklist is run and recorded, the FanDAC address mapping remains
+**required but not bench-verified**.
+
 ## Open evidence (not resolved by this PR)
 
 These items remain **pending** before `PACKAGE-DAC-001` can land.

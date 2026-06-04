@@ -165,6 +165,13 @@ build-blocked by `HW-005`, never recommended / default / stable, with no
 safety / compliance proof claimed. **Kitchen has no TRIAC variant.** No
 Corridor / Living / Bedroom fan variant exists.
 
+The two FanDAC variants (`S360-KIT-BATH-P-DAC` / `S360-KIT-KITCHEN-P-DAC`)
+additionally require the FanDAC IC2 GP8403 to be relocated to `0x5A` (off the
+`0x59` default that collides with the VentIQ/AirIQ SGP41). That DIP-switch →
+I²C-address mapping is **required but not bench-verified**; the
+`FANDAC-I2C-ADDR-001` bench checklist and evidence template own that gate at
+[`docs/hardware/fandac-i2c-address-verification.md`](hardware/fandac-i2c-address-verification.md).
+
 ---
 
 ## 3. Hardware blockers
