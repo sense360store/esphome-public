@@ -233,6 +233,49 @@ plus resolving FanTRIAC `HW-005` — captured as the next queue items below.
 
 ## Next queue (actionable)
 
+> **`ROOM-BUNDLE-FAN-PUBLISH-PLAN-001` is DONE (this PR; publish-plan doc + test
+> only).** Plans the **preview-artifact publication** of the five full-composition
+> Bathroom / Kitchen fan-control room-bundle configs that now carry hosted full
+> compile proof (`ROOM-BUNDLE-FAN-COMPILE-RESULTS-001`, #716, run
+> [`26913592989`](https://github.com/sense360store/esphome-public/actions/runs/26913592989))
+> — `Ceiling-POE-VentIQ-FanPWM-RoomIQ`, `Ceiling-POE-VentIQ-FanDAC-RoomIQ`,
+> `Ceiling-POE-AirIQ-FanRelay-RoomIQ`, `Ceiling-POE-AirIQ-FanDAC-RoomIQ`,
+> `Ceiling-POE-AirIQ-FanPWM-RoomIQ`. Adds
+> [`docs/room-bundle-fan-publish-plan.md`](docs/room-bundle-fan-publish-plan.md):
+> per-artifact config string, product / bundle YAML, compile evidence (run
+> `26913592989`, firmware-build-only), build channel `preview` / publish lane
+> `manual-preview`, expected `Sense360-…-v1.0.0-preview.bin` name, release-target /
+> workflow selector, warning copy, stable blockers, and the
+> WebFlash-import-only-after-publication ordering. The two **FanDAC** configs
+> record the GP8403 **IC1 `0x58` / IC2 `0x5A`** requirement (`0x59` **forbidden**
+> with VentIQ/AirIQ — SGP41 collision) and `FANDAC-I2C-ADDR-001` **pending**
+> hardware verification (no FanDAC bench proof claimed). **Publish-lane decision:**
+> the existing manual-preview fan publish workflow
+> ([`.github/workflows/manual-preview-fan-publish.yml`](.github/workflows/manual-preview-fan-publish.yml)
+> + [`scripts/validate_manual_preview_fan_publish.py`](scripts/validate_manual_preview_fan_publish.py))
+> **cannot** publish these five as-is — it is hard-scoped to the three single-driver
+> manual-preview rows and cites the other compile run (`26821900127`) — so the plan
+> **queues a small additive extension** (`ROOM-BUNDLE-FAN-PUBLISH-WORKFLOW-001`,
+> reading `config/room-bundle-fan-variants.json` + `config/compile-only-targets.json`,
+> publishing to the shared `v1.0.0-preview` release) then the run
+> (`ROOM-BUNDLE-FAN-PUBLISH-RUN-001`), **without** overloading the existing
+> validator or hacking fans into `config/webflash-builds.json`. **TRIAC**
+> (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`) stays **out of scope** (`HW-005`,
+> build-blocked, no compile proof, no `.bin`). Guard
+> [`tests/test_room_bundle_fan_publish_plan.py`](tests/test_room_bundle_fan_publish_plan.py)
+> (32 tests). **Planning only** — publishes no firmware, runs no workflow, creates
+> no Release / tag / checksum, commits no `.bin`, writes no `manifest.json` /
+> `firmware/sources.json`, modifies no workflow or the existing manual-preview
+> validator, touches no WebFlash repo, adds no `config/webflash-builds.json` row,
+> marks nothing stable / recommended / default / buyable, does not mark FanDAC
+> hardware-verified, keeps Simple install + the launch SKU `S360-KIT-BATH-P`
+> unchanged, and claims no hardware / bench / compliance / safety / commercial
+> proof. Validation: `tests/validate_configs.py`,
+> `validate_compile_targets.py --metadata-only`,
+> `validate_preview_release_targets.py --metadata-only`,
+> `validate_manual_preview_fan_publish.py --metadata-only` (still 3 single-driver
+> targets, unchanged), and the full `tests/` suite all green.
+
 > **`ROOM-BUNDLE-FAN-COMPILE-RESULTS-001` is DONE (this PR; compile-proof metadata
 > + docs + tests only).** Records the successful **hosted full ESPHome compile**
 > validation for the five full-composition Bathroom / Kitchen fan-control preview
