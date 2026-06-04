@@ -2085,6 +2085,163 @@ class TopLevelFanProductCompileTargetTests(unittest.TestCase):
         )
 
 
+class RoomBundleFanCompileResultsTests(unittest.TestCase):
+    """ROOM-BUNDLE-FAN-COMPILE-RESULTS-001: record the hosted full ESPHome
+    compile result for the five full-composition room-bundle fan-control
+    preview configs added by ROOM-BUNDLE-FAN-CONFIGS-001 (#713).
+
+    The five compile-only targets move from ``compile_validation_status:
+    pending-ci`` to ``validated-full-compile``, each carrying a
+    ``compile_evidence`` block that cites the hosted Compile-only Firmware
+    Validation run ``26913592989`` (compile_mode=full, ref main, conclusion
+    success). This is firmware-build proof ONLY: it is not WebFlash exposure,
+    not a release artifact, not hardware / bench / compliance / safety proof,
+    and not stable / preview / kit / buyable promotion. TRIAC stays
+    build-blocked and the FanDAC IC2 DIP-switch mapping stays bench-pending
+    under FANDAC-I2C-ADDR-001.
+    """
+
+    RUN_ID = 26913592989
+    WORKFLOW = "Compile-only Firmware Validation"
+    TARGET_IDS = (
+        "ceiling-poe-ventiq-fanpwm-roomiq-compile-only",
+        "ceiling-poe-ventiq-fandac-roomiq-compile-only",
+        "ceiling-poe-airiq-fanrelay-roomiq-compile-only",
+        "ceiling-poe-airiq-fandac-roomiq-compile-only",
+        "ceiling-poe-airiq-fanpwm-roomiq-compile-only",
+    )
+    CONFIG_STRINGS = {
+        "ceiling-poe-ventiq-fanpwm-roomiq-compile-only": "Ceiling-POE-VentIQ-FanPWM-RoomIQ",
+        "ceiling-poe-ventiq-fandac-roomiq-compile-only": "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
+        "ceiling-poe-airiq-fanrelay-roomiq-compile-only": "Ceiling-POE-AirIQ-FanRelay-RoomIQ",
+        "ceiling-poe-airiq-fandac-roomiq-compile-only": "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
+        "ceiling-poe-airiq-fanpwm-roomiq-compile-only": "Ceiling-POE-AirIQ-FanPWM-RoomIQ",
+    }
+    DAC_TARGET_IDS = (
+        "ceiling-poe-ventiq-fandac-roomiq-compile-only",
+        "ceiling-poe-airiq-fandac-roomiq-compile-only",
+    )
+
+    @classmethod
+    def setUpClass(cls):
+        cls.doc = _load(TARGETS_PATH)
+        cls.by_id = {t["id"]: t for t in cls.doc["targets"] if t.get("id")}
+        cls.builds = _load(BUILDS_PATH)
+        cls.committed_configs = {
+            entry["config_string"]
+            for entry in (cls.builds.get("builds", []) or [])
+            if entry.get("config_string")
+        }
+
+    def _target(self, tid):
+        target = self.by_id.get(tid)
+        self.assertIsNotNone(target, f"missing compile-only target {tid!r}")
+        return target
+
+    def test_all_five_targets_present_with_expected_config_string(self):
+        for tid in self.TARGET_IDS:
+            target = self._target(tid)
+            self.assertEqual(target.get("config_string"), self.CONFIG_STRINGS[tid])
+
+    def test_all_five_targets_are_validated_full_compile(self):
+        for tid in self.TARGET_IDS:
+            target = self._target(tid)
+            self.assertEqual(
+                target.get("compile_validation_status"),
+                "validated-full-compile",
+                f"{tid}: must record validated-full-compile (ROOM-BUNDLE-FAN-"
+                "COMPILE-RESULTS-001 recorded the hosted compile)",
+            )
+
+    def test_each_target_cites_run_26913592989_evidence(self):
+        for tid in self.TARGET_IDS:
+            ce = self._target(tid).get("compile_evidence")
+            self.assertIsInstance(ce, dict, f"{tid}: missing compile_evidence")
+            self.assertEqual(ce.get("run_id"), self.RUN_ID)
+            self.assertEqual(
+                ce.get("run_url"),
+                f"https://github.com/sense360store/esphome-public/actions/runs/{self.RUN_ID}",
+            )
+            self.assertEqual(ce.get("workflow"), self.WORKFLOW)
+            self.assertEqual(ce.get("ref"), "main")
+            self.assertEqual(ce.get("result"), "success")
+            self.assertEqual(ce.get("metadata_validation_result"), "success")
+            self.assertEqual(ce.get("full_esphome_compile_result"), "success")
+            self.assertEqual(ce.get("evidence_type"), "hosted-full-compile")
+            self.assertEqual(ce.get("proof_scope"), "firmware-build-only")
+            self.assertEqual(ce.get("esphome_version"), "2026.4.5")
+
+    def test_compile_proof_is_not_more_than_a_compile(self):
+        for tid in self.TARGET_IDS:
+            ce = self._target(tid)["compile_evidence"]
+            self.assertFalse(ce.get("artifacts_produced", True))
+            for forbidden in (
+                "hardware",
+                "bench-evidence",
+                "compliance",
+                "stable-promotion",
+                "webflash-exposure",
+                "release-artifact",
+            ):
+                self.assertIn(forbidden, ce.get("not_proof_of", []))
+
+    def test_targets_stay_compile_only_and_unexposed(self):
+        for tid in self.TARGET_IDS:
+            target = self._target(tid)
+            self.assertEqual(target.get("shipment_status"), "compile-only")
+            self.assertFalse(target.get("webflash_exposure_allowed_now"))
+            self.assertFalse(target.get("blocked"))
+            self.assertNotIn("webflash_build_matrix", target)
+            self.assertNotIn("artifact_name", target)
+            # None of the five fan-bundle configs is a committed WebFlash build.
+            self.assertNotIn(
+                target.get("config_string"),
+                self.committed_configs,
+                f"{tid}: must NOT be a committed WebFlash build",
+            )
+
+    def test_no_webflash_import_implied_and_no_publish_metadata(self):
+        # No release artifact name or WebFlash build row is introduced for any
+        # of the five fan-bundle config strings.
+        builds_text = BUILDS_PATH.read_text()
+        for cfg in self.CONFIG_STRINGS.values():
+            self.assertNotIn(
+                cfg,
+                builds_text,
+                f"{cfg!r} must not appear in config/webflash-builds.json",
+            )
+
+    def test_triac_room_bundle_config_is_never_compile_validated(self):
+        # FanTRIAC stays build-blocked; no FanTRIAC-bearing config may appear as
+        # a validated compile-only target.
+        for target in self.doc["targets"]:
+            cs = target.get("config_string") or ""
+            if "FanTRIAC" in cs.split("-"):
+                self.assertNotEqual(
+                    target.get("compile_validation_status"),
+                    "validated-full-compile",
+                    f"{target.get('id')!r}: FanTRIAC config must not be "
+                    "compile-validated (HW-005 build block)",
+                )
+
+    def test_usb_targets_remain_pending_ci(self):
+        # ROOM-BUNDLE-FAN-COMPILE-RESULTS-001 only records the five fan-bundle
+        # configs; the unrelated USB compile-only targets stay pending-ci.
+        for tid in (
+            "ceiling-usb-ventiq-roomiq-product-compile-only",
+            "ceiling-usb-roomiq-product-compile-only",
+        ):
+            target = self.by_id.get(tid)
+            if target is None:
+                continue
+            self.assertEqual(
+                target.get("compile_validation_status"),
+                "pending-ci",
+                f"{tid}: must stay pending-ci (out of scope for "
+                "ROOM-BUNDLE-FAN-COMPILE-RESULTS-001)",
+            )
+
+
 class ValidatorScriptTests(unittest.TestCase):
     """The validator script behaves correctly via its module API."""
 

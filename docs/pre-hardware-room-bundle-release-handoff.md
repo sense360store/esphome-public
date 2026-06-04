@@ -83,7 +83,9 @@ nothing, and verifies nothing**. It does **not**:
 - mark any fan variant (`S360-310` / `S360-311` / `S360-312` /
   `S360-320`) release-ready or stable; the fan-control variants are a
   **preview bundle plan at most** (the five buildable configs are
-  `buildable-preview-compile-pending` after `ROOM-BUNDLE-FAN-CONFIGS-001`,
+  `buildable-preview-compile-validated` after `ROOM-BUNDLE-FAN-CONFIGS-001` +
+  `ROOM-BUNDLE-FAN-COMPILE-RESULTS-001` recorded the hosted full ESPHome
+  compile, run `26913592989` — firmware-build proof only;
   advanced / manual only for TRIAC which stays build-blocked under `HW-005`)
   per
   [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)
@@ -179,11 +181,16 @@ PR):
    (`ROOM-BUNDLE-FAN-VARIANTS-002`, revised by `ROOM-BUNDLE-FAN-CONFIGS-001`)
    carry built full-composition configs for the five buildable variants
    (Bathroom PWM/DAC, Kitchen Relay/DAC/PWM are now
-   `buildable-preview-compile-pending`; Bathroom Relay stays the one built +
+   `buildable-preview-compile-validated` — `ROOM-BUNDLE-FAN-COMPILE-RESULTS-001`
+   recorded a successful hosted full ESPHome compile, run `26913592989`,
+   firmware-build proof only; see
+   [`docs/room-bundle-fan-compile-results.md`](room-bundle-fan-compile-results.md);
+   Bathroom Relay stays the one built +
    **published** preview); TRIAC stays advanced / manual-warning-only and
    build-blocked under `HW-005`. The two FanDAC configs additionally require
-   the GP8403 IC2 `0x5A` address override + DIP switch (bench follow-up
-   `FANDAC-I2C-ADDR-001`, checklist + evidence template at
+   the GP8403 IC2 `0x5A` address override + DIP switch — compiled with the
+   `0x5A` override (compile-time only; **not** bench-verified, bench follow-up
+   `FANDAC-I2C-ADDR-001` stays pending, checklist + evidence template at
    [`docs/hardware/fandac-i2c-address-verification.md`](hardware/fandac-i2c-address-verification.md)).
    Every variant keeps `webflash_exposed: false` (no
    committed `config/webflash-builds.json` row) and `stable_status: blocked`,
