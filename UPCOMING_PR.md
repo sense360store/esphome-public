@@ -1074,6 +1074,21 @@ dedicated TRIAC-specific PR. No TRIAC row is added to
 
 Recently landed; kept as one-line history (full write-ups preserved below).
 
+* **#725 — `TRIAC-PINMAP-CORRECT-001` buildability follow-up**: completes the
+  pin-correction slice that #724 left non-compiling. #724 corrected the pins and
+  kept FanTRIAC blocked, but retained `fan_profile: !include
+  packages/features/fan_control_profile.yaml` in the FanTRIAC bundle — that
+  profile binds `id(comfort_temperature)`, which the RoomIQ `comfort_ceiling`
+  package exposes as `comfort_ceiling_temperature`, so the composition fails
+  `esphome config` / compile — and carried over #722's stale compile numbers
+  (RAM 49680 / Flash 1002679 / ESPHome 2026.4.5) while marking
+  `validated-full-compile`. This follow-up drops `fan_control_profile.yaml` from
+  the bundle (matching the sibling FanRelay / FanPWM / FanDAC bundles + the
+  original #722) so the composition actually compiles, and replaces the
+  carried-over `compile_evidence` with a fresh local full `esphome compile`
+  (rc=0, ESPHome 2026.5.3, RAM 58208 B / Flash 1004019 B). FanTRIAC stays
+  `status: blocked` (PACKAGE-TRIAC-001 + COMPLIANCE-001); no other surface
+  changed. Next: `PACKAGE-TRIAC-001` (operator bench, local firmware).
 * **#724 — `TRIAC-PINMAP-CORRECT-001`**: corrected the FanTRIAC gate/zero-cross
   pin transposition to the schematic-verified mapping and reconciled the repo
   after `TRIAC-REBLOCK-PINMAP-001` (#723). The mapping is **gate `GPIO14` =

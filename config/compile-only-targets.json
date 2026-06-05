@@ -596,21 +596,20 @@
       "compile_validation_status": "validated-full-compile",
       "compile_evidence": {
         "method": "local-full-compile",
-        "tool": "esphome compile (scripts/validate_compile_targets.py --compile equivalent, single target)",
+        "tool": "esphome compile (single target)",
         "command": "esphome compile products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
-        "esphome_version": "2026.4.5",
+        "esphome_version": "2026.5.3",
         "date": "2026-06-05",
         "result": "success",
-        "ram_used_bytes": 49680,
-        "flash_used_bytes": 1002679,
-        "compiled_pin_mapping": "gate IO13 / zero-cross IO14 (role-swapped; the recorded ram/flash are from this initial TRIAC-UNBLOCK-BUILD-001 run)",
-        "corrected_pin_mapping": "gate IO14 / zero-cross IO13 (schematic-verified; TRIAC-PINMAP-CORRECT-001)",
-        "pin_correction_note": "TRIAC-PINMAP-CORRECT-001 swapped gate<->zero-cross to the schematic-verified IO14/IO13. The swap reuses the identical interrupt-capable GPIO pair (IO13/IO14) on the same ac_dimmer output component, so buildability is unchanged by the swap; a fresh local full compile at the corrected mapping is owed and will be exercised by the operator bench (PACKAGE-TRIAC-001, local firmware) and corroborated by a maintainer compile-only.yml dispatch. No corrected-mapping compile is fabricated; esphome was not available to the authoring integration of this slice.",
+        "ram_used_bytes": 58208,
+        "flash_used_bytes": 1004019,
+        "compiled_pin_mapping": "gate IO14 / zero-cross IO13 (schematic-verified; TRIAC-PINMAP-CORRECT-001) -- a fresh local full compile at the corrected mapping",
+        "buildability_note": "The FanTRIAC bundle does NOT layer fan_control_profile.yaml: that profile binds id(comfort_temperature), which the RoomIQ comfort_ceiling package exposes as comfort_ceiling_temperature, so layering it breaks ESPHome config / the compile. Dropping it (matching the sibling FanRelay/FanPWM/FanDAC bundles) is what makes this composition buildable; these ram/flash figures are a fresh local full compile of that corrected, buildable composition (superseding the prior carried-over TRIAC-UNBLOCK-BUILD-001 numbers).",
         "evidence_type": "local-full-compile",
         "ci_run_id": null,
-        "ci_dispatch_note": "Hosted compile-only.yml (compile_mode=full) is the canonical corroboration lane; workflow_dispatch was not available to the authoring integration, so no hosted CI run id is claimed (mirrors the FW-FULL-COMPILE-TOPLEVEL-FANS-001 local-run precedent). A maintainer dispatch of compile-only.yml corroborates on hosted CI. No compile is fabricated.",
+        "ci_dispatch_note": "Local full esphome compile only; workflow_dispatch was not available to the authoring integration, so no hosted CI run id is claimed (mirrors the FW-FULL-COMPILE-TOPLEVEL-FANS-001 local-run precedent). A maintainer dispatch of compile-only.yml corroborates on hosted CI. No compile is fabricated.",
         "proof_class": "firmware-build-only",
-        "canonical_id": "TRIAC-UNBLOCK-BUILD-001 (initial compile); TRIAC-PINMAP-CORRECT-001 (gate/zero-cross transposition fix)",
+        "canonical_id": "TRIAC-PINMAP-CORRECT-001 (gate/zero-cross transposition fix + buildability follow-up: drop fan_control_profile.yaml and record a fresh corrected-mapping compile)",
         "not_proof_of": [
           "hardware",
           "bench-evidence",
@@ -620,7 +619,7 @@
           "release-artifact"
         ]
       },
-      "notes": "FanTRIAC product YAML lives at products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml (top-level; NOT under products/webflash/ or products/compile-only/). blocked: true marks that the FanTRIAC token stays OFF the WebFlash build matrix and out of one-click exposure (the FanTRIAC guardrail in scripts/validate_compile_targets.py + tests/test_compile_targets.py); it does NOT mean the YAML is unbuildable. TRIAC-UNBLOCK-BUILD-001 proves it compiles after the SX1509-free Core respin routes TRI_GPIO1/TRI_GPIO2 direct to IO14/IO13 (gate IO14 -> MOC3023M, zero-cross IO13 -> EL814 -- the schematic-verified mapping; TRIAC-PINMAP-CORRECT-001 corrected the earlier transposition and resolves HW-005 BUILDABILITY + HW-PINMAP-320-FOLLOWUP). The matching catalog row in config/product-catalog.json (config_string: Ceiling-POE-VentIQ-FanTRIAC-RoomIQ) is status: blocked with the HW-005 buildability blocker cleared and blocker = PACKAGE-TRIAC-001 + COMPLIANCE-001 (this compile-only target validates buildability only; the product stays blocked pending bench + compliance). No config/webflash-builds.json row, no webflash_build_matrix flip, no artifact_name, no webflash_wrapper exposure. FanTRIAC stays not stable, not recommended, not default, not buyable, not auto-imported; WF-IMPORT-TRIAC-001 (downstream WebFlash import behind the advanced acknowledgement) stays a separate follow-up. compile_validation_status: validated-full-compile records the local full esphome compile (ESPHome 2026.4.5; success); no hosted CI run id is claimed."
+      "notes": "FanTRIAC product YAML lives at products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml (top-level; NOT under products/webflash/ or products/compile-only/). blocked: true marks that the FanTRIAC token stays OFF the WebFlash build matrix and out of one-click exposure (the FanTRIAC guardrail in scripts/validate_compile_targets.py + tests/test_compile_targets.py); it does NOT mean the YAML is unbuildable. TRIAC-UNBLOCK-BUILD-001 proves it compiles after the SX1509-free Core respin routes TRI_GPIO1/TRI_GPIO2 direct to IO14/IO13 (gate IO14 -> MOC3023M, zero-cross IO13 -> EL814 -- the schematic-verified mapping; TRIAC-PINMAP-CORRECT-001 corrected the earlier transposition and resolves HW-005 BUILDABILITY + HW-PINMAP-320-FOLLOWUP). The matching catalog row in config/product-catalog.json (config_string: Ceiling-POE-VentIQ-FanTRIAC-RoomIQ) is status: blocked with the HW-005 buildability blocker cleared and blocker = PACKAGE-TRIAC-001 + COMPLIANCE-001 (this compile-only target validates buildability only; the product stays blocked pending bench + compliance). No config/webflash-builds.json row, no webflash_build_matrix flip, no artifact_name, no webflash_wrapper exposure. FanTRIAC stays not stable, not recommended, not default, not buyable, not auto-imported; WF-IMPORT-TRIAC-001 (downstream WebFlash import behind the advanced acknowledgement) stays a separate follow-up. The FanTRIAC bundle does NOT layer fan_control_profile.yaml (its id(comfort_temperature) binding is unsatisfiable with the RoomIQ comfort_ceiling package, matching the sibling FanRelay/FanPWM/FanDAC bundles), which is what makes the composition buildable. compile_validation_status: validated-full-compile records a fresh local full esphome compile of that corrected, buildable composition (ESPHome 2026.5.3; success; RAM 58208 B / Flash 1004019 B); no hosted CI run id is claimed."
     }
   ]
 }
