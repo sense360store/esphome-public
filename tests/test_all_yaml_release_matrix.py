@@ -304,7 +304,7 @@ class FanCandidatesNotReleaseSelectableTests(unittest.TestCase):
 
 
 class FanTriacBlockedTests(unittest.TestCase):
-    """FanTRIAC is compile-only, never release-selectable."""
+    """FanTRIAC is blocked, never release-selectable."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -323,14 +323,13 @@ class FanTriacBlockedTests(unittest.TestCase):
             1,
             "exactly one canonical FanTRIAC entry expected",
         )
-        # TRIAC-UNBLOCK-BUILD-001 moved FanTRIAC to catalog status compile-only.
-        # A top-level YAML with catalog status compile-only classifies as
-        # not-a-product-entrypoint in the release matrix (same as the
-        # ceiling-usb-roomiq compile-only precedent). The preserved invariants:
-        # never release-selectable and no artifact_name.
-        self.assertEqual(
-            canonical[0]["release_class"], "not-a-product-entrypoint"
-        )
+        # TRIAC-REBLOCK-PINMAP-001 + TRIAC-PINMAP-CORRECT-001 keep FanTRIAC at
+        # catalog status blocked (the pins are corrected/schematic-verified but
+        # bench PACKAGE-TRIAC-001 + mains COMPLIANCE-001 keep it blocked). A
+        # top-level YAML with catalog status blocked classifies as `blocked` in
+        # the release matrix. The preserved invariants: never release-selectable
+        # and no artifact_name.
+        self.assertEqual(canonical[0]["release_class"], "blocked")
         self.assertFalse(canonical[0]["is_release_selectable"])
         self.assertIsNone(canonical[0]["artifact_name"])
 

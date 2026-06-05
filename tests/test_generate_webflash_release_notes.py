@@ -274,15 +274,16 @@ class LedPreviewGenerationTests(unittest.TestCase):
 
 
 class RefusalTests(unittest.TestCase):
-    def test_refuses_compile_only_fantriac_config(self) -> None:
-        # FanTRIAC moved from status: blocked to status: compile-only under
-        # TRIAC-UNBLOCK-BUILD-001; both statuses are refused by the generator
-        # (compile-only is not WebFlash-shippable), so generation still fails.
+    def test_refuses_blocked_fantriac_config(self) -> None:
+        # FanTRIAC is status: blocked (TRIAC-REBLOCK-PINMAP-001 +
+        # TRIAC-PINMAP-CORRECT-001 keep it blocked); the generator refuses
+        # blocked entries (not WebFlash-shippable), so generation fails citing
+        # the status.
         with self.assertRaises(gen.GeneratorError) as ctx:
             _generate_release_one(
                 config_string=FANTRIAC_BLOCKED_CONFIG, channel="stable"
             )
-        self.assertIn("compile-only", str(ctx.exception).lower())
+        self.assertIn("blocked", str(ctx.exception).lower())
 
     def test_refuses_legacy_compatible_product(self) -> None:
         with self.assertRaises(gen.GeneratorError) as ctx:

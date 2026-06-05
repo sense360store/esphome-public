@@ -39,7 +39,11 @@ It is **documentation only**. It does **not**:
   R4 schematic itself prints;
 - claim the `S360-410` PoE PSU blocker is solved (`PACKAGE-POE-410-001`
   lane is unchanged);
-- claim the FanTRIAC `HW-005` blocker is solved;
+- clear the FanTRIAC bench (`PACKAGE-TRIAC-001`) or mains-voltage
+  compliance (`COMPLIANCE-001`) blockers, or promote FanTRIAC beyond
+  `status: blocked` — the `J15` `HW-005` BUILDABILITY +
+  `HW-PINMAP-320-FOLLOWUP` pin resolution recorded below is buildability
+  only;
 - claim WebFlash / release readiness for any module that is not
   already shipping in a Release-One artifact;
 - fabricate connector types, pin orders, signal assignments, or GPIO
@@ -118,7 +122,7 @@ authoritative pending-silkscreen list is
 | `J9` | Sense360 AirIQ | `S360-210` | TBD (7-pin header — type not annotated on the visible sheet) | 7 | TBD — needs silkscreen confirmation | Air-quality module (SPS30 / SGP41 / SCD41 / BMP390 stack on the AirIQ board) — see [§ J9 — AirIQ module connector (7-pin)](#j9--airiq-module-connector-7-pin) | Schematic legacy label: *"Formerly used as AirIQ Module connector"*. VentIQ (`S360-211`) audit ([`s360-211-r4-ventiq.md` § Module connector mating](s360-211-r4-ventiq.md#module-connector-mating)) also records VentIQ plugging into this connector — see [Open questions](#open-questions--verification-needed) #1. |
 | `J10` | Sense360 RoomIQ | `S360-200` | TBD (12-pin header — type not annotated on the visible sheet) | 12 | TBD — needs silkscreen confirmation | Presence / comfort module (mmWave radar + PIR + ambient-light sensor) — see [§ J10 — RoomIQ module connector (12-pin)](#j10--roomiq-module-connector-12-pin) | Schematic legacy label: *"Formerly used as Presence Comfort Module Connector"*. Core-side `J10` 1-to-12 silkscreen pin order and the Core `J10` vs RoomIQ `J6` pin-order reconciliation are pending — see [`s360-100-r4-core.md` Open Question #9](s360-100-r4-core.md#open-questions--verification-needed) and [`firmware-package-mapping-audit.md` Core J10 vs RoomIQ J6](firmware-package-mapping-audit.md#core-j10-vs-roomiq-j6-pin-order). |
 | `J13` | (Generic on-board fan output) | N/A | TBD (2-pin / 3-pin — needs silkscreen confirmation) | 2–3 | TBD — needs silkscreen confirmation | Single on-board PWM-style fan drive (`FAN` net from `IO21`) — see [§ J13 — Generic FAN connector](#j13--generic-fan-connector) | Not a Sense360 module SKU connector. `s360-100-core-architecture.md` records `J13` as 2-pin; `s360-100-r4-core.md` § J13 records 3 pins (`+5V`, `FAN`, `GND`). Cross-doc pin-count reconciliation is preserved as **TBD** — see [Open questions](#open-questions--verification-needed) #3. |
-| `J15` | Sense360 TRIAC | `S360-320` | TBD (4-pin header — type not annotated on the visible sheet) | 4 | TBD — needs silkscreen confirmation | TRIAC fan-module gate / zero-cross control — see [§ J15 — TRIAC module connector (4-pin)](#j15--triac-module-connector-4-pin) | Schematic legacy label: *"Formerly used as a TRIAC Fan Module connector"*. FanTRIAC `HW-005` stays **blocked**; ESP32-side source pins for `TRI_GPIO1` / `TRI_GPIO2` are pending per [`s360-100-r4-core.md` Open Questions #1 / #2](s360-100-r4-core.md#open-questions--verification-needed). |
+| `J15` | Sense360 TRIAC | `S360-320` | TBD (4-pin header — type not annotated on the visible sheet) | 4 | TBD — needs silkscreen confirmation | TRIAC fan-module gate / zero-cross control — see [§ J15 — TRIAC module connector (4-pin)](#j15--triac-module-connector-4-pin) | Schematic legacy label: *"Formerly used as a TRIAC Fan Module connector"*. FanTRIAC `HW-005` BUILDABILITY + `HW-PINMAP-320-FOLLOWUP` resolved (TRIAC-PINMAP-CORRECT-001): `TRI_GPIO1` = `IO14` (`GPIO14`, gate), `TRI_GPIO2` = `IO13` (`GPIO13`, zero-cross), schematic-verified per S360-100-R4 + S360-320-R4. Product stays `status: blocked` (bench `PACKAGE-TRIAC-001` + `COMPLIANCE-001`). |
 
 `TP10` / `TP13` / `TP14` (JTAG test pads), `SW3` (boot button — `IO_0`
 strap), and `SW4` (reset button) are intentionally **not** included
@@ -369,21 +373,35 @@ as **TBD** — see [Open questions](#open-questions--verification-needed)
 | Pin | Core net / signal | ESP32 GPIO | Module-side signal / function | Signal type | Voltage / domain | Status |
 |---|---|---|---|---|---|---|
 | 1 | `+3.3V` | N/A | TRIAC-module sensor / opto supply (Core side; mains domain is module-side, opto-isolated) | power | `+3.3V` | needs silkscreen confirmation |
-| 2 | `TRI_GPIO1` | TBD — see [Open questions](#open-questions--verification-needed) #4 | TRIAC gate / opto-driver input (module-side opto-isolation provides mains isolation; the Core-side line is `Logic 3.3V (ESP32-S3)`) | digital output | `Logic 3.3V (ESP32-S3)` (Core side); module side opto-isolates to `Mains-domain` | TBD |
-| 3 | `TRI_GPIO2` | TBD — see [Open questions](#open-questions--verification-needed) #4 | TRIAC zero-cross sense / second control line (mains-domain detail is module-side) | digital input (interrupt-capable) | `Logic 3.3V (ESP32-S3)` (Core side); module side opto-isolates to `Mains-domain` | TBD |
+| 2 | `TRI_GPIO1` | `IO14` (`GPIO14`) | TRIAC gate drive — drives the `U1` MOC3023M opto-triac LED side (module-side opto-isolation provides mains isolation; the Core-side line is `Logic 3.3V (ESP32-S3)`). Net→pin per S360-100-R4; gate role per S360-320-R4. | digital output | `Logic 3.3V (ESP32-S3)` (Core side); module side opto-isolates to `Mains-domain` | schematic-backed |
+| 3 | `TRI_GPIO2` | `IO13` (`GPIO13`) | Zero-cross sense, interrupt-capable input — reads the `OK1` EL814 collector (`R4` 10 kΩ pull-up to `+3V3`). Net→pin per S360-100-R4; zero-cross role per S360-320-R4. | digital input (interrupt-capable) | `Logic 3.3V (ESP32-S3)` (Core side); module side opto-isolates to `Mains-domain` | schematic-backed |
 | 4 | `GND` | N/A | TRIAC-module ground reference (Core side) | ground | `GND` | needs silkscreen confirmation |
 
-> **FanTRIAC `HW-005` stays blocked.** The ESP32-side source pins
-> for `TRI_GPIO1` / `TRI_GPIO2` are pending per
-> [`s360-100-r4-core.md` Open Questions #1 / #2](s360-100-r4-core.md#open-questions--verification-needed):
-> the prior R4 snapshot routed those nets via the SX1509 (`U3`) I/O
-> expander, while the Release-One product YAML
-> [`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml)
-> binds `GPIO5` / `GPIO6` (which are `SEN0609_TX` / `out(gpio6)` on
-> the RoomIQ `J10` connector, not TRIAC drive). This document
-> records the ESP32-side source as **TBD** until a follow-up audit
-> resolves it; no firmware YAML edit is performed here, and the
-> FanTRIAC blocker is **not** advanced.
+> **FanTRIAC `HW-005` BUILDABILITY and `HW-PINMAP-320-FOLLOWUP`
+> resolved; the product stays blocked (TRIAC-PINMAP-CORRECT-001).** The
+> ESP32-side source pins for `TRI_GPIO1` / `TRI_GPIO2` are now
+> schematic-verified: the SX1509-free `S360-100-R4` Core routes both nets
+> DIRECT to interrupt-capable ESP32-S3 GPIOs — **`TRI_GPIO1` = `IO14`
+> (`GPIO14`), TRIAC gate drive** (drives the `U1` MOC3023M opto-triac) and
+> **`TRI_GPIO2` = `IO13` (`GPIO13`), zero-cross sense** (reads the `OK1`
+> EL814 collector). The net→pin assignment is taken from
+> [`S360-100-R4.pdf`](schematics/S360-100-R4.pdf); the gate-vs-zero-cross
+> roles are taken from [`S360-320-R4.pdf`](schematics/S360-320-R4.pdf)
+> (`TRI_GPIO1` drives the MOC3023M gate opto-driver; `TRI_GPIO2` is the
+> EL814 zero-cross phototransistor collector, `R4` 10 kΩ pull-up). The
+> Release-One bundle
+> [`products/bundles/ceiling-poe-ventiq-fantriac-roomiq.yaml`](../../products/bundles/ceiling-poe-ventiq-fantriac-roomiq.yaml)
+> binds `fan_triac_gate_pin: GPIO14` / `fan_triac_zc_pin: GPIO13`
+> accordingly — this corrected the earlier gate/zero-cross transposition
+> and the placeholder `GPIO5` / `GPIO6` that collided with RoomIQ
+> `SEN0609` on `J10`. `IO13` / `IO14` also carry the shared connector
+> bus's `SCS` / `SCLK` labels, but no SPI peripheral is active in this
+> composition, so both pins are free for the TRIAC. This is a
+> **buildability** resolution only: the product **stays `status:
+> blocked`**, gated by bench (`PACKAGE-TRIAC-001`) and mains-voltage
+> compliance (`COMPLIANCE-001`); it is never stable / recommended /
+> default / buyable / WebFlash-exposed, and the 1-to-4 silkscreen pin
+> order is still owed.
 
 ## Voltage / domain summary
 
@@ -490,13 +508,21 @@ confirmation` to `verified` once the listed evidence exists.
    this header are not unambiguously fixed on the canonical R4
    schematic — both `+5V` / `FAN` / `GND` are present at this
    connector but the pin numbering is `verify`.
-4. **`J15` `TRI_GPIO1` / `TRI_GPIO2` ESP32-side source pins.** The
-   prior R4 snapshot routed these nets via the SX1509 (`U3`) I/O
-   expander; the Release-One product YAML binds `GPIO5` / `GPIO6`,
-   which are `SEN0609_TX` / `out(gpio6)` on the RoomIQ `J10`
-   connector (not TRIAC drive). The canonical R4 sheet does not
-   unambiguously print a direct ESP32 route to `TRI_GPIO1` /
-   `TRI_GPIO2`. FanTRIAC `HW-005` stays blocked.
+4. **`J15` `TRI_GPIO1` / `TRI_GPIO2` ESP32-side source pins —
+   RESOLVED (HW-PINMAP-320-FOLLOWUP; TRIAC-PINMAP-CORRECT-001).** The
+   SX1509-free `S360-100-R4` Core routes these nets DIRECT to
+   interrupt-capable ESP32-S3 GPIOs: `TRI_GPIO1` = `IO14` (`GPIO14`,
+   TRIAC gate drive → MOC3023M) and `TRI_GPIO2` = `IO13` (`GPIO13`,
+   zero-cross sense ← EL814), schematic-verified per S360-100-R4
+   (net→pin) + S360-320-R4 (gate-vs-zero-cross roles). The old
+   `GPIO5` / `GPIO6` placeholders are gone (the bundle binds `GPIO14` /
+   `GPIO13`, correcting the earlier transposition). The `SCS` / `SCLK`
+   shared-bus labels on `IO13` / `IO14` are inactive in this
+   composition. This closes FanTRIAC `HW-005` BUILDABILITY and the
+   `HW-PINMAP-320-FOLLOWUP` source-pin question; the product stays
+   `status: blocked`, gated by bench (`PACKAGE-TRIAC-001`) and mains
+   compliance (`COMPLIANCE-001`), and the 1-to-4 silkscreen pin order
+   is still owed.
 5. **All multi-pin headers — 1-to-N silkscreen pin order.** The
    per-pin tables above record `needs silkscreen confirmation` on
    every pin number where the schematic prints the net list but
@@ -527,8 +553,12 @@ This document and the tests added with it must not:
 - promote `S360-300` (LED) from `preview` to `stable`;
 - promote `S360-310` / `S360-311` / `S360-312` `schematic_status`
   (each stays `cataloged_unverified`);
-- promote `S360-320` (TRIAC) or claim the FanTRIAC `HW-005`
-  blocker is solved;
+- promote `S360-320` (TRIAC) beyond `schematic-backed`, or claim the
+  FanTRIAC bench (`PACKAGE-TRIAC-001`) or mains-voltage compliance
+  (`COMPLIANCE-001`) blockers are solved, or promote FanTRIAC beyond
+  `status: blocked` — the `J15` `HW-005` BUILDABILITY +
+  `HW-PINMAP-320-FOLLOWUP` pin resolution recorded here is buildability
+  only (NOT bench, NOT compliance, NOT stable);
 - promote `S360-410` (PoE PSU) `schematic_status` (stays
   `cataloged_unverified`) or claim the `PACKAGE-POE-410-001`
   blocker chain is solved;

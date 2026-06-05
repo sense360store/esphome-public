@@ -897,12 +897,12 @@ class ReleaseOneRelayDacAndLedUnchangedTests(unittest.TestCase):
         self.assertEqual(entry["product_yaml"], DAC_PRODUCT_REL)
 
     def test_fantriac_catalog_entry_remains_blocked(self) -> None:
-        # TRIAC-UNBLOCK-BUILD-001 moved FanTRIAC to status: compile-only
-        # (HW-005 BUILDABILITY resolved). This PR (FanPWM readiness) does not
-        # change FanTRIAC; the preserved invariant is that it stays off the
-        # WebFlash build matrix.
+        # TRIAC-PINMAP-CORRECT-001 corrected the FanTRIAC pins but the product
+        # STAYS status: blocked. This PR (FanPWM readiness) does not change
+        # FanTRIAC; the preserved invariant is that it stays off the WebFlash
+        # build matrix.
         entry = self._find(FANTRIAC_BLOCKED_CONFIG_STRING)
-        self.assertEqual(entry["status"], "compile-only")
+        self.assertEqual(entry["status"], "blocked")
         self.assertFalse(entry["webflash_build_matrix"])
 
     def test_release_one_required_configs_unchanged(self) -> None:

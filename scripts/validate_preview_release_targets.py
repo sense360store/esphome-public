@@ -372,7 +372,7 @@ def validate(
                     "'advanced-manual-preview' (no longer 'blocked')"
                 )
             # TRIAC-UNBLOCK-BUILD-001: the HW-005 BUILDABILITY blocker is
-            # resolved (SX1509-free Core respin; TRI_GPIO1/2 -> IO13/IO14), so
+            # resolved (SX1509-free Core respin; TRI_GPIO1/2 -> IO14/IO13), so
             # the TRIAC target's build_blocker is now cleared (null). Stable
             # stays gated by COMPLIANCE-001 (+ PACKAGE-TRIAC-001) in
             # stable_blocker; the preview cut is deferred to

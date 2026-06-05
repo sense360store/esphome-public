@@ -284,14 +284,15 @@ class FanTRIACStatusUnaffectedTests(unittest.TestCase):
         entry = self._entry(FANTRIAC_CONFIG_STRING)
         self.assertEqual(
             entry.get("status"),
-            "compile-only",
-            "FanTRIAC is status=compile-only after TRIAC-UNBLOCK-BUILD-001; "
-            "HW-010 (LED) does not change the FanTRIAC posture.",
+            "blocked",
+            "FanTRIAC is status=blocked (TRIAC-PINMAP-CORRECT-001 corrected "
+            "the pins but the product stays blocked); HW-010 (LED) does not "
+            "change the FanTRIAC posture.",
         )
         self.assertIn(
             "COMPLIANCE-001",
-            entry.get("stable_blocker", ""),
-            "FanTRIAC stable must stay gated by COMPLIANCE-001; HW-010 does "
+            entry.get("blocker", ""),
+            "FanTRIAC must stay gated by COMPLIANCE-001; HW-010 does "
             "not clear the mains-voltage compliance gate.",
         )
         self.assertEqual(

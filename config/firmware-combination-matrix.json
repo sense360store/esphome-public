@@ -23,8 +23,9 @@
       "missing-product-yaml": 118,
       "blocked-hardware": 42,
       "webflash-preview": 4,
-      "compile-only-candidate": 3,
-      "webflash-shipping": 1
+      "blocked-package": 1,
+      "webflash-shipping": 1,
+      "compile-only-candidate": 2
     }
   },
   "combinations": [
@@ -223,7 +224,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-POE-AirIQ-FanTRIAC-LED",
@@ -244,7 +245,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-POE-AirIQ-FanTRIAC-RoomIQ",
@@ -265,7 +266,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-POE-AirIQ-FanTRIAC-RoomIQ-LED",
@@ -287,7 +288,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-POE-AirIQ-LED",
@@ -567,7 +568,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-POE-FanTRIAC-LED",
@@ -587,7 +588,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-POE-FanTRIAC-RoomIQ",
@@ -607,7 +608,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-POE-FanTRIAC-RoomIQ-LED",
@@ -628,7 +629,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-POE-LED",
@@ -938,7 +939,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanTRIAC-LED",
@@ -959,7 +960,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
@@ -976,10 +977,13 @@
       "room_sense": "RoomIQ",
       "fan": "FanTRIAC",
       "led": "none",
-      "status": "compile-only-candidate",
+      "status": "blocked-package",
       "product_yaml": "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
       "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml",
-      "notes": "Catalog status=compile-only."
+      "blockers": [
+        "PACKAGE-TRIAC-001 (operator bench, local firmware) + COMPLIANCE-001 (mains-voltage electrical-safety sign-off)"
+      ],
+      "notes": "FanTRIAC stays blocked, but the J15 gate/zero-cross pin mapping is now schematic-verified (TRIAC-PINMAP-CORRECT-001): the SX1509-free S360-100-R4 Core routes the J15 TRIAC nets TRI_GPIO1/TRI_GPIO2 direct to interrupt-capable ESP32-S3 GPIOs -- gate IO14 (TRI_GPIO1 -> U1 MOC3023M opto-triac) and zero-cross IO13 (TRI_GPIO2 -> OK1 EL814 zero-cross opto-coupler) -- traced from S360-100-R4 (net->pin) and S360-320-R4 (gate-vs-zero-cross roles). This corrects the earlier transposition (TRIAC-UNBLOCK-BUILD-001 had set gate IO13/zero-cross IO14) and resolves HW-005 BUILDABILITY + the HW-PINMAP-320-FOLLOWUP source-pin question; schematic_status is schematic-backed (NOT bench-verified). The product STAYS blocked: the remaining gates are PACKAGE-TRIAC-001 (operator bench on locally compiled/flashed firmware) + COMPLIANCE-001 (mains-voltage electrical-safety sign-off)."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-LED",
@@ -1001,7 +1005,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-LED",
@@ -1254,7 +1258,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-PWR-AirIQ-FanTRIAC-LED",
@@ -1275,7 +1279,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-PWR-AirIQ-FanTRIAC-RoomIQ",
@@ -1296,7 +1300,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-PWR-AirIQ-FanTRIAC-RoomIQ-LED",
@@ -1318,7 +1322,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-PWR-AirIQ-LED",
@@ -1593,7 +1597,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-PWR-FanTRIAC-LED",
@@ -1613,7 +1617,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-PWR-FanTRIAC-RoomIQ",
@@ -1633,7 +1637,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-PWR-FanTRIAC-RoomIQ-LED",
@@ -1654,7 +1658,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-PWR-LED",
@@ -1955,7 +1959,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-PWR-VentIQ-FanTRIAC-LED",
@@ -1976,7 +1980,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-PWR-VentIQ-FanTRIAC-RoomIQ",
@@ -1997,7 +2001,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-PWR-VentIQ-FanTRIAC-RoomIQ-LED",
@@ -2019,7 +2023,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-PWR-VentIQ-LED",
@@ -2266,7 +2270,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-USB-AirIQ-FanTRIAC-LED",
@@ -2287,7 +2291,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-USB-AirIQ-FanTRIAC-RoomIQ",
@@ -2308,7 +2312,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-USB-AirIQ-FanTRIAC-RoomIQ-LED",
@@ -2330,7 +2334,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-USB-AirIQ-LED",
@@ -2605,7 +2609,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-USB-FanTRIAC-LED",
@@ -2625,7 +2629,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-USB-FanTRIAC-RoomIQ",
@@ -2645,7 +2649,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-USB-FanTRIAC-RoomIQ-LED",
@@ -2666,7 +2670,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-USB-LED",
@@ -2968,7 +2972,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-USB-VentIQ-FanTRIAC-LED",
@@ -2989,7 +2993,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-USB-VentIQ-FanTRIAC-RoomIQ",
@@ -3010,7 +3014,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-USB-VentIQ-FanTRIAC-RoomIQ-LED",
@@ -3032,7 +3036,7 @@
       "blockers": [
         "HW-005"
       ],
-      "notes": "FanTRIAC family blocked under HW-005 per the catalog's existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+      "notes": "FanTRIAC family combination with no catalog/product entry; blocked-hardware as a conservative default (HW-005)."
     },
     {
       "config_string": "Ceiling-USB-VentIQ-LED",

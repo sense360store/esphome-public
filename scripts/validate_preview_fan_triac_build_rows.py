@@ -374,7 +374,8 @@ def validate(
                 )
             # TRIAC-UNBLOCK-BUILD-001: the HW-005 BUILDABILITY blocker is
             # resolved (SX1509-free Core respin routes TRI_GPIO1/2 direct to
-            # IO13/IO14). build_blocker is cleared, the target is buildable, and
+            # IO14/IO13, corrected by TRIAC-PINMAP-CORRECT-001). build_blocker
+            # is cleared, the target is buildable, and
             # it carries firmware-build compile evidence. Stable stays gated by
             # COMPLIANCE-001 (+ PACKAGE-TRIAC-001), recorded in stable_blocker.
             if row.get("build_blocker") is not None:

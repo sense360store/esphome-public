@@ -233,62 +233,33 @@ plus resolving FanTRIAC `HW-005` — captured as the next queue items below.
 
 ## Next queue (actionable)
 
-> **`TRIAC-REBLOCK-PINMAP-001` — revert the FanTRIAC compile-only unblock to
-> match the committed Core pin-map (THIS PR; minimal 3-file corrective slice).**
-> `TRIAC-UNBLOCK-BUILD-001` (#721 + #722) flipped
-> `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` to `status: compile-only` /
-> `schematic_status: schematic-backed` and routed the J15 TRIAC nets
-> `TRI_GPIO1` / `TRI_GPIO2` to **IO13 / IO14** on the strength of a prose
-> "SX1509-free Core respin" — but **no respun schematic was committed**, and the
-> committed Core pin-map
-> [`docs/hardware/s360-100-core-connector-pin-map.md`](docs/hardware/s360-100-core-connector-pin-map.md)
-> (J15) still marks the `TRI_GPIO1` / `TRI_GPIO2` ESP32 source pins **TBD** and
-> keeps **HW-005 blocked**. The R4 Core uses **native ESP32-S3 GPIO with no
-> SX1509**, but **`GPIO14` is the Core WS2812B LED-ring data line**
-> (`led_data_pin` in
-> [`packages/hardware/sense360_core_ceiling_s3.yaml`](packages/hardware/sense360_core_ceiling_s3.yaml)),
-> so it is not free for the TRIAC zero-cross, and no FanTRIAC pin assignment is
-> schematic-backed. (There is **no W5500** on the S360-100 / S360-410 schematics;
-> this bundle networks over WiFi with power-only PoE.) This slice reverts the two
-> product surfaces to the blocked / placeholder state to match the committed
-> pin-map:
+> **`PACKAGE-TRIAC-001` — FanTRIAC operator bench on local firmware (NEXT;
+> unblocked by `TRIAC-PINMAP-CORRECT-001`).** The FanTRIAC gate/zero-cross
+> mapping is now schematic-verified — **gate `GPIO14` = `TRI_GPIO1` → U1
+> MOC3023M; zero-cross `GPIO13` = `TRI_GPIO2` → OK1 EL814** (`TRIAC-PINMAP-CORRECT-001`
+> reconciled the IO13/IO14 transposition from `TRIAC-UNBLOCK-BUILD-001` and the
+> placeholder `GPIO5`/`GPIO6` from `TRIAC-REBLOCK-PINMAP-001`, traced from
+> `S360-100-R4` (net→pin) + `S360-320-R4` (gate-vs-zero-cross roles)).
+> `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` **stays `status: blocked`**
+> (`schematic_status: schematic-backed`, blocker = `PACKAGE-TRIAC-001` +
+> `COMPLIANCE-001`), but the buildable composition is ready for the operator
+> bench. **No WebFlash publish is required to run it:** compile and flash the
+> composition locally (`esphome run`) onto `S360-100-R4` + `S360-320-R4` and
+> scope the gate firing + zero-cross detection on a real mains TRIAC load —
+> exactly how the FanPWM operator bench was run (locally flashed firmware, no
+> WebFlash artifact). This is the bench-validation gate (real-load timing /
+> waveform / thermal + operator attestation). It does **not** clear
+> `COMPLIANCE-001`. FanTRIAC stays blocked / reference-only throughout — never
+> stable, recommended, default, buyable, or WebFlash-exposed.
 >
-> * [`config/product-catalog.json`](config/product-catalog.json) — FanTRIAC entry
->   back to `status: blocked` / `blocker: HW-005` /
->   `schematic_status: cataloged_unverified`; the unverified IO13/IO14
->   "schematic-backed" claim removed; reason cites the committed pin-map (TBD
->   source pins) + the `GPIO14` LED-ring fact.
-> * [`products/bundles/ceiling-poe-ventiq-fantriac-roomiq.yaml`](products/bundles/ceiling-poe-ventiq-fantriac-roomiq.yaml)
->   — `fan_triac_gate_pin` / `fan_triac_zc_pin` returned to parse-only
->   placeholders (GPIO5 / GPIO6) with the BLOCKED / UNVERIFIED comment corrected.
->
-> **HW-005 stays blocked pending a KiCad-confirmed `TRI_GPIO1` / `TRI_GPIO2`
-> source-pin assignment.** This is a **deliberately minimal slice** (by request):
-> it does **not** touch the other files `TRIAC-UNBLOCK-BUILD-001` also flipped, so
-> they still assert the IO13/IO14 / compile-only / schematic-backed posture, the
-> repo is **temporarily self-contradictory**, and the Python unit suite is **RED**
-> until they are reverted in a follow-up. **Contradicting files left for a
-> follow-up revert:** `config/hardware-catalog.json` (S360-320 `schematic-backed`),
-> `config/compile-only-targets.json` (FanTRIAC target), `config/preview-fan-triac-build-rows.json`
-> (`buildable_now: true`, `build_blocker: null`), `config/preview-release-targets.json`,
-> `config/firmware-combination-matrix.json`, `config/compile-only-candidates.json`,
-> `docs/firmware-build-gap-report.md`, `packages/expansions/fan_triac.yaml` (banner),
-> `products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml`,
-> `products/bundles/ceiling-poe-ventiq-fanrelay-roomiq.yaml` (sibling comment),
-> `docs/hardware/s360-320-r4-triac.md` + `docs/hardware/s360-100-r4-core.md`
-> (Update banners), `docs/release-notes/manual-preview/ceiling-poe-ventiq-fantriac-roomiq.md`,
-> the 5 `scripts/` validators, and ~21 `tests/` files. **Do NOT auto-merge.**
-
-> **`TRIAC-PUBLISH-ADVANCED-PREVIEW-001` — BLOCKED / DO NOT PUBLISH.** The
-> advanced-manual-preview FanTRIAC artifact
-> (`Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-preview.bin`) must **not**
-> be published. Its precondition — the `TRIAC-UNBLOCK-BUILD-001` buildability
-> unblock — rested on an unverified IO13/IO14 mapping with **no committed
-> schematic** (see `TRIAC-REBLOCK-PINMAP-001` above), and the mains-voltage build
-> stays gated by **`COMPLIANCE-001`** + **`PACKAGE-TRIAC-001`**. Publishing would
-> bake an unverified hardware mapping into a mains-voltage `.bin`. Stays blocked
-> pending a KiCad-confirmed pin map and human compliance review. Downstream
-> `WF-IMPORT-TRIAC-001` stays blocked behind it.
+> **`TRIAC-PUBLISH-ADVANCED-PREVIEW-001` — BLOCKED behind the `PACKAGE-TRIAC-001`
+> bench + `COMPLIANCE-001`.** Publishing the advanced-manual-preview FanTRIAC
+> artifact (`Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-preview.bin`)
+> stays blocked: the mains-voltage build is gated by **`PACKAGE-TRIAC-001`**
+> (operator bench) + **`COMPLIANCE-001`** (mains-voltage electrical-safety
+> sign-off), and must not happen before both clear. Downstream
+> `WF-IMPORT-TRIAC-001` stays blocked behind it. **Do NOT auto-merge** FanTRIAC
+> pin / blocker / status changes — they are human-review only.
 
 > **`ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001` is DONE (this PR; upstream
 > metadata + test + docs only).** Marks the five published full-composition
@@ -1103,6 +1074,27 @@ dedicated TRIAC-specific PR. No TRIAC row is added to
 
 Recently landed; kept as one-line history (full write-ups preserved below).
 
+* **#724 — `TRIAC-PINMAP-CORRECT-001`**: corrected the FanTRIAC gate/zero-cross
+  pin transposition to the schematic-verified mapping and reconciled the repo
+  after `TRIAC-REBLOCK-PINMAP-001` (#723). The mapping is **gate `GPIO14` =
+  `TRI_GPIO1` → U1 MOC3023M** and **zero-cross `GPIO13` = `TRI_GPIO2` → OK1
+  EL814**, traced from S360-100-R4 (net→pin) + S360-320-R4 (roles) — fixing both
+  #722's IO13/IO14 transposition and #723's placeholder GPIO5/GPIO6. The product
+  **stays `status: blocked`** with `schematic_status: schematic-backed` and the
+  blocker moved off HW-005 to **PACKAGE-TRIAC-001 + COMPLIANCE-001** (HW-005
+  BUILDABILITY + HW-PINMAP-320-FOLLOWUP resolved). Applied the corrected pins to
+  every file on the transposed mapping (bundle / wrapper / package / catalog /
+  compile-only target / preview rows / docs), rewrote the 11 FanTRIAC tests, and
+  regenerated `config/firmware-combination-matrix.json` (FanTRIAC →
+  `blocked-package`) + `docs/firmware-build-gap-report.md` — no weakened tests;
+  full `tests/` suite green (1851). No publish / WebFlash / preview / eligibility
+  / manifest / signed-artifact / module-availability change. Next:
+  `PACKAGE-TRIAC-001` (operator bench, local firmware).
+* **#723 — `TRIAC-REBLOCK-PINMAP-001`**: reverted #722's compile-only unblock —
+  `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` back to `status: blocked` (3-file slice
+  that left the tests/matrix/docs contradictory). #724 above then reconciled the
+  pins/blocker/schematic_status to the schematic-verified mapping and restored
+  the suite to green.
 * **#722 — `TRIAC-UNBLOCK-BUILD-001`**: unblocked the S360-320 FanTRIAC build
   (buildability only). The SX1509-free S360-100-R4 Core respin routes the J15
   nets `TRI_GPIO1`/`TRI_GPIO2` direct to IO13 (gate) / IO14 (zero-cross);

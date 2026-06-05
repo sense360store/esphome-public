@@ -254,7 +254,8 @@ class TriacAdvancedManualOnlyTests(unittest.TestCase):
 
     def test_triac_is_buildable_with_compile_proof(self) -> None:
         # TRIAC-UNBLOCK-BUILD-001: HW-005 BUILDABILITY resolved (SX1509-free
-        # Core respin; TRI_GPIO1/2 -> IO13/IO14). build_blocker cleared,
+        # Core respin; TRI_GPIO1/2 -> IO14/IO13, corrected by
+        # TRIAC-PINMAP-CORRECT-001). build_blocker cleared,
         # buildable, with firmware-build compile evidence. Still NOT a
         # manual-firmware-artifacts candidate (advanced-manual-preview lane).
         self.assertTrue(self.triac["buildable_now"])

@@ -136,15 +136,21 @@ class FirmwareMatrixGeneratorTests(unittest.TestCase):
                 f"webflash-builds entry {cs!r} missing from matrix",
             )
 
-    def test_fantriac_catalog_entry_is_classified_compile_only(self):
-        # TRIAC-UNBLOCK-BUILD-001 moved the Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
-        # catalog entry to status: compile-only, so the matrix classifier
-        # derives compile-only-candidate (was blocked-hardware / HW-005). The
-        # other FanTRIAC family combinations (no catalog entry) stay
-        # blocked-hardware.
+    def test_fantriac_catalog_entry_is_classified_blocked_package(self):
+        # TRIAC-REBLOCK-PINMAP-001 + TRIAC-PINMAP-CORRECT-001 keep the
+        # Ceiling-POE-VentIQ-FanTRIAC-RoomIQ catalog entry at status: blocked
+        # with the blocker moved off HW-005 to PACKAGE-TRIAC-001 +
+        # COMPLIANCE-001, so the matrix classifier derives blocked-package
+        # (the blocker string is PACKAGE--prefixed; no longer HW-005 /
+        # blocked-hardware). The catalog row's blockers must NOT cite HW-005.
+        # (Other FanTRIAC family combinations with no catalog entry stay
+        # blocked-hardware via the family fallback.)
         row = self.by_config[FANTRIAC_BLOCKED_CONFIG_STRING]
-        self.assertEqual(row["status"], "compile-only-candidate")
+        self.assertEqual(row["status"], "blocked-package")
         self.assertNotIn("HW-005", row.get("blockers", []))
+        blockers_text = " ".join(row.get("blockers", []))
+        self.assertIn("PACKAGE-TRIAC-001", blockers_text)
+        self.assertIn("COMPLIANCE-001", blockers_text)
         self.assertEqual(
             row.get("product_yaml"),
             "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",

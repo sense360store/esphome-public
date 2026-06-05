@@ -270,15 +270,17 @@ def classify(
             row["artifact_name"] = catalog_entry["artifact_name"]
     else:
         # No catalog entry and no build entry. Infer from tokens:
-        # FanTRIAC is explicitly blocked under HW-005 in the catalog's
-        # existing FanTRIAC entry; treat every FanTRIAC combination as
-        # blocked-hardware until that gate clears.
+        # FanTRIAC family combinations with no catalog/product entry are
+        # treated as blocked-hardware (the historical FanTRIAC HW-005
+        # buildability gate) as a conservative default. The one catalog
+        # bundle (Ceiling-POE-VentIQ-FanTRIAC-RoomIQ) is classified via its
+        # own catalog blocker above (PACKAGE-TRIAC-001 + COMPLIANCE-001).
         if "FanTRIAC" in tokens:
             row["status"] = STATUS_BLOCKED_HARDWARE
             blockers.append("HW-005")
             notes_parts.append(
-                "FanTRIAC family blocked under HW-005 per the catalog's "
-                "existing Ceiling-POE-VentIQ-FanTRIAC-RoomIQ entry."
+                "FanTRIAC family combination with no catalog/product entry; "
+                "blocked-hardware as a conservative default (HW-005)."
             )
         else:
             row["status"] = STATUS_MISSING_PRODUCT_YAML

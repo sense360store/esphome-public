@@ -20,15 +20,16 @@
 # for either pin.
 #
 # Sense360 Core (S360-100-R4) FanTRIAC mapping status: SCHEMATIC-BACKED,
-# COMPILE-ONLY, ADVANCED-PREVIEW; bench + COMPLIANCE-001 pending.
-# The SX1509-free S360-100-R4 Core respin routes the J15 TRIAC connector nets
+# BUILD BLOCKED; bench (PACKAGE-TRIAC-001) + COMPLIANCE-001 pending.
+# The SX1509-free S360-100-R4 Core routes the J15 TRIAC connector nets
 # TRI_GPIO1 / TRI_GPIO2 DIRECT to interrupt-capable ESP32-S3 GPIOs, so this
-# ac_dimmer driver works: the parent bundle maps fan_triac_gate_pin -> IO13
-# (gate, MOC3023M) and fan_triac_zc_pin -> IO14 (zero-cross, EL814). This
-# resolves the HW-005 BUILDABILITY blocker only; it is NOT bench verification
-# and NOT COMPLIANCE-001 mains-voltage sign-off, so the config stays
-# compile-only / advanced-preview (never stable / recommended / default /
-# buyable / WebFlash-exposed).
+# ac_dimmer driver works: the parent bundle maps fan_triac_gate_pin -> IO14
+# (gate, MOC3023M) and fan_triac_zc_pin -> IO13 (zero-cross, EL814) -- the
+# schematic-verified mapping (TRIAC-PINMAP-CORRECT-001 corrected the earlier
+# gate/zero-cross transposition). This resolves the HW-005 BUILDABILITY
+# blocker only; it is NOT bench verification and NOT COMPLIANCE-001
+# mains-voltage sign-off, so the product stays BLOCKED / reference-only
+# (never stable / recommended / default / buyable / WebFlash-exposed).
 # See: docs/hardware/s360-320-r4-triac.md and docs/hardware/s360-100-r4-core.md
 #
 # IMPORTANT:

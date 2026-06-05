@@ -1,4 +1,4 @@
-# COMPILE-ONLY / ADVANCED-PREVIEW REFERENCE — not a production Release-One
+# BLOCKED / REFERENCE-ONLY — not a production Release-One
 # WebFlash entry.
 #
 # As of REL-001, production Release-One ships from the no-TRIAC build at
@@ -10,12 +10,13 @@
 # TRIAC-UNBLOCK-BUILD-001 resolved the HW-005 BUILDABILITY blocker:
 #   - The SX1509-free S360-100-R4 Core respin routes the J15 TRIAC nets
 #     TRI_GPIO1/TRI_GPIO2 direct to interrupt-capable ESP32-S3 GPIOs
-#     (gate IO13, zero-cross IO14), replacing the placeholder pins that
-#     collided with the RoomIQ J10 / SEN0609 nets. ESPHome `ac_dimmer` needs
-#     direct interrupt-capable GPIOs, which the old SX1509 routing could not
-#     provide; the respin satisfies that.
-#   - `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is now status: compile-only and
-#     firmware-build compile-validated. It stays OFF WebFlash:
+#     (gate IO14, zero-cross IO13 — schematic-verified, TRIAC-PINMAP-CORRECT-001),
+#     replacing the placeholder pins that collided with the RoomIQ J10 / SEN0609
+#     nets. ESPHome `ac_dimmer` needs direct interrupt-capable GPIOs, which the
+#     old SX1509 routing could not provide; the respin satisfies that.
+#   - `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is status: blocked (pins corrected,
+#     schematic-backed; bench + COMPLIANCE-001 pending) and firmware-build
+#     compile-validated. It stays OFF WebFlash:
 #     webflash_build_matrix is false and there is no config/webflash-builds.json
 #     row. Stable stays gated by COMPLIANCE-001 (+ PACKAGE-TRIAC-001).
 # See: docs/hardware/s360-320-r4-triac.md and docs/hardware/s360-100-r4-core.md
