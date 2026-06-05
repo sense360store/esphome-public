@@ -9,8 +9,12 @@ targets the hosted compile dry-run lane
 **scoped to preview targets only**. The scope is read from
 ``config/preview-release-targets.json``: every ``preview`` /
 ``advanced-preview`` target EXCEPT the mains-voltage TRIAC target, which is
-excluded because it is not buildable end-to-end (the ``HW-005`` buildability
-blocker) and is reported separately rather than compiled.
+excluded because it is delivered on the ``advanced-manual-preview`` lane and is
+compile-validated via the compile-only lane
+(``config/compile-only-targets.json`` / ``compile-only.yml``), not this
+preview-compile-dryrun lane. (Its ``HW-005`` buildability blocker is resolved
+by TRIAC-UNBLOCK-BUILD-001; it is reported separately rather than compiled
+here.)
 
 The current in-scope set is the seven preview / manual-preview targets:
 
@@ -78,15 +82,18 @@ def _is_triac(target: Dict[str, Any]) -> bool:
 
 
 def in_compile_scope(target: Dict[str, Any]) -> bool:
-    """A target is compiled by the dry-run iff it is a preview target that is
-    not the mains-voltage TRIAC target (excluded by the HW-005 buildability
-    blocker)."""
+    """A target is compiled by this dry-run iff it is a preview target that is
+    not the mains-voltage TRIAC target. TRIAC is excluded here because it is
+    delivered on the advanced-manual-preview lane and is compile-validated via
+    the compile-only lane (config/compile-only-targets.json), not this preview
+    lane (TRIAC-UNBLOCK-BUILD-001 resolved its HW-005 buildability blocker)."""
     return _is_preview(target) and not _is_triac(target)
 
 
 def is_excluded_preview(target: Dict[str, Any]) -> bool:
-    """A preview target deliberately excluded from the compile scope (currently
-    only the TRIAC target, reported separately rather than compiled)."""
+    """A preview target deliberately excluded from this compile scope (currently
+    only the TRIAC target, compile-validated via the compile-only lane and
+    reported separately rather than compiled here)."""
     return _is_preview(target) and _is_triac(target)
 
 
@@ -155,7 +162,20 @@ def excluded_targets(
                 "product_yaml": target.get("yaml_path", ""),
                 "channel_tier": target.get("channel_tier", ""),
                 "delivery_lane": target.get("delivery_lane", ""),
-                "build_blocker": target.get("build_blocker", ""),
+                # TRIAC-UNBLOCK-BUILD-001: the HW-005 buildability blocker is
+                # resolved (build_blocker is now null), so the exclusion reason is
+                # no longer "not buildable". TRIAC is excluded from THIS
+                # preview-compile-dryrun lane because it is delivered on the
+                # advanced-manual-preview lane and is compile-validated via the
+                # compile-only lane (config/compile-only-targets.json /
+                # compile-only.yml), not this preview lane.
+                "reason": (
+                    "advanced-manual-preview lane; compile-validated via the "
+                    "compile-only lane (config/compile-only-targets.json), not "
+                    "this preview-compile-dryrun lane; HW-005 buildability "
+                    "resolved (TRIAC-UNBLOCK-BUILD-001)"
+                ),
+                "build_blocker": target.get("build_blocker"),
             }
         )
     return out
@@ -250,7 +270,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             for t in excluded:
                 print(
                     f"EXCLUDED {t['config_string']} ({t['delivery_lane']}): "
-                    f"{t['build_blocker']}"
+                    f"{t['reason']}"
                 )
             return 0
 

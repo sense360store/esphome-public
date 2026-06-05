@@ -2212,16 +2212,19 @@ class RoomBundleFanCompileResultsTests(unittest.TestCase):
             )
 
     def test_triac_room_bundle_config_is_never_compile_validated(self):
-        # FanTRIAC stays build-blocked; no FanTRIAC-bearing config may appear as
-        # a validated compile-only target.
+        # TRIAC-UNBLOCK-BUILD-001 compile-validated exactly ONE FanTRIAC config
+        # (Ceiling-POE-VentIQ-FanTRIAC-RoomIQ, status compile-only, still
+        # blocked from WebFlash exposure). No OTHER FanTRIAC-bearing config
+        # (e.g. a room-bundle fan-control expansion) may be compile-validated.
+        unblocked_triac = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
         for target in self.doc["targets"]:
             cs = target.get("config_string") or ""
-            if "FanTRIAC" in cs.split("-"):
+            if "FanTRIAC" in cs.split("-") and cs != unblocked_triac:
                 self.assertNotEqual(
                     target.get("compile_validation_status"),
                     "validated-full-compile",
-                    f"{target.get('id')!r}: FanTRIAC config must not be "
-                    "compile-validated (HW-005 build block)",
+                    f"{target.get('id')!r}: only the TRIAC-UNBLOCK-BUILD-001 "
+                    "FanTRIAC config may be compile-validated",
                 )
 
     def test_usb_targets_remain_pending_ci(self):

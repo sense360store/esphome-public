@@ -304,7 +304,7 @@ class FanCandidatesNotReleaseSelectableTests(unittest.TestCase):
 
 
 class FanTriacBlockedTests(unittest.TestCase):
-    """FanTRIAC is blocked, never selectable."""
+    """FanTRIAC is compile-only, never release-selectable."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -323,7 +323,14 @@ class FanTriacBlockedTests(unittest.TestCase):
             1,
             "exactly one canonical FanTRIAC entry expected",
         )
-        self.assertEqual(canonical[0]["release_class"], "blocked")
+        # TRIAC-UNBLOCK-BUILD-001 moved FanTRIAC to catalog status compile-only.
+        # A top-level YAML with catalog status compile-only classifies as
+        # not-a-product-entrypoint in the release matrix (same as the
+        # ceiling-usb-roomiq compile-only precedent). The preserved invariants:
+        # never release-selectable and no artifact_name.
+        self.assertEqual(
+            canonical[0]["release_class"], "not-a-product-entrypoint"
+        )
         self.assertFalse(canonical[0]["is_release_selectable"])
         self.assertIsNone(canonical[0]["artifact_name"])
 

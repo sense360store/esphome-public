@@ -96,10 +96,9 @@ substitutions:
   # TRIAC connector nets TRI_GPIO1 / TRI_GPIO2 now route DIRECT to
   # interrupt-capable ESP32-S3 GPIOs, so ESPHome's `ac_dimmer` (used by
   # packages/expansions/fan_triac.yaml) can attach its hardware interrupt and
-  # gate-firing ISR as required. This resolves the HW-005 BUILDABILITY blocker
-  # (the old GPIO5/GPIO6 placeholders collided with RoomIQ SEN0609 on J10, and
-  # the connector previously routed through the SX1509, which ac_dimmer cannot
-  # use).
+  # gate-firing ISR as required. This resolves the HW-005 BUILDABILITY blocker:
+  # the old placeholder pins collided with RoomIQ SEN0609 on J10, and the
+  # connector previously routed through the SX1509, which ac_dimmer cannot use.
   #
   #   - TRI_GPIO1 -> IO13 (gate output, drives the MOC3023M opto-triac)
   #   - TRI_GPIO2 -> IO14 (zero-cross input, reads the EL814 opto-coupler)
@@ -166,8 +165,14 @@ packages:
   # === Sense360 TRIAC (S360-320, AC phase-cut fan driver) ===
   # Schematic-backed direct GPIO mapping (TRI_GPIO1/2 -> IO13/IO14); see the
   # substitutions block above and docs/hardware/s360-320-r4-triac.md.
+  # The ac_dimmer fan_triac package exposes the speed-mapped `fan` entity plus
+  # the fan control scripts directly. Like the sibling FanRelay / FanPWM /
+  # FanDAC bundles, this product does NOT layer fan_control_profile.yaml on
+  # top: that profile's temperature auto-mode binds `id(comfort_temperature)`,
+  # which the RoomIQ comfort_ceiling package exposes as
+  # `comfort_ceiling_temperature` (the comfort_temperature id only exists in
+  # the comfort.yaml composition used by sense360-core-ceiling-bathroom).
   fan_module: !include ../../packages/expansions/fan_triac.yaml
-  fan_profile: !include ../../packages/features/fan_control_profile.yaml
 
   # === Device Health & Diagnostics ===
   health: !include ../../packages/features/device_health.yaml

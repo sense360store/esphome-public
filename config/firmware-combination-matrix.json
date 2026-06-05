@@ -21,10 +21,10 @@
     "combinations": 168,
     "by_status": {
       "missing-product-yaml": 118,
-      "blocked-hardware": 43,
+      "blocked-hardware": 42,
       "webflash-preview": 4,
-      "webflash-shipping": 1,
-      "compile-only-candidate": 2
+      "compile-only-candidate": 3,
+      "webflash-shipping": 1
     }
   },
   "combinations": [
@@ -976,13 +976,10 @@
       "room_sense": "RoomIQ",
       "fan": "FanTRIAC",
       "led": "none",
-      "status": "blocked-hardware",
+      "status": "compile-only-candidate",
       "product_yaml": "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
       "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml",
-      "blockers": [
-        "HW-005"
-      ],
-      "notes": "FanTRIAC hardware mapping unresolved: S360-320 schematic uncommitted; placeholder GPIO5/GPIO6 collide with RoomIQ J10 nets; ESPHome ac_dimmer cannot run across the SX1509 expander."
+      "notes": "Catalog status=compile-only."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-LED",

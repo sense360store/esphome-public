@@ -218,16 +218,22 @@ class PublishScopeTests(unittest.TestCase):
 
 
 class TriacExcludedTests(unittest.TestCase):
-    """Task item 6: TRIAC excluded due to HW-005."""
+    """Task item 6: TRIAC excluded from the manual-preview publish lane.
+
+    TRIAC-UNBLOCK-BUILD-001 resolved the HW-005 BUILDABILITY blocker, so TRIAC
+    is buildable (compile-only); it still stays off the manual-preview publish
+    lane (advanced-manual-preview; published separately).
+    """
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.triac = _rows_by_cs()[TRIAC_CONFIG]
 
-    def test_triac_is_build_blocked_by_hw005_with_no_compile_proof(self) -> None:
-        self.assertFalse(self.triac["buildable_now"])
-        self.assertIn("HW-005", self.triac["build_blocker"])
-        self.assertIsNone(self.triac["compile_evidence"])
+    def test_triac_is_buildable_and_on_advanced_manual_preview_lane(self) -> None:
+        self.assertTrue(self.triac["buildable_now"])
+        self.assertIsNone(self.triac["build_blocker"])
+        self.assertIsInstance(self.triac["compile_evidence"], dict)
+        self.assertIn("COMPLIANCE-001", self.triac["stable_blocker"])
         self.assertEqual(self.triac["delivery_lane"], "advanced-manual-preview")
 
     def test_triac_is_not_a_manual_preview_publish_target(self) -> None:

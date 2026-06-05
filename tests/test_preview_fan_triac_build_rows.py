@@ -89,8 +89,7 @@ TRIAC_PHRASES = (
     "mains",
     "competent person",
     "manual install",
-    "hw-005",
-    "not yet buildable",
+    "compliance-001",
     "fire, electric shock, or death",
 )
 FORBIDDEN_AFFIRMATIVE = (
@@ -164,12 +163,26 @@ class ValidatorTests(unittest.TestCase):
         )
         self.assertNotEqual(errors, [])
 
-    def test_validator_rejects_triac_compile_proof(self) -> None:
-        # TRIAC must never claim compile evidence (it is build-blocked).
+    def test_validator_rejects_malformed_triac_compile_proof(self) -> None:
+        # After TRIAC-UNBLOCK-BUILD-001 the TRIAC row carries compile evidence,
+        # but the validator still rejects a MALFORMED / non-success evidence
+        # object (e.g. a bare run_id with no successful result).
         ledger = _load(LEDGER_PATH)
         for row in ledger["rows"]:
             if row["config_string"] == TRIAC_CONFIG:
                 row["compile_evidence"] = {"run_id": COMPILE_RUN_ID}
+        errors = _VALIDATOR.validate(
+            ledger, _load(TARGETS_PATH), _load(POLICY_PATH), _load(BUILDS_PATH),
+            _load(MANUAL_PATH),
+        )
+        self.assertNotEqual(errors, [])
+
+    def test_validator_rejects_triac_build_blocker_reintroduction(self) -> None:
+        # The HW-005 build_blocker must stay cleared; reintroducing it fails.
+        ledger = _load(LEDGER_PATH)
+        for row in ledger["rows"]:
+            if row["config_string"] == TRIAC_CONFIG:
+                row["build_blocker"] = "HW-005 (reintroduced)"
         errors = _VALIDATOR.validate(
             ledger, _load(TARGETS_PATH), _load(POLICY_PATH), _load(BUILDS_PATH),
             _load(MANUAL_PATH),
@@ -223,7 +236,8 @@ class StableBlockersRemainTests(unittest.TestCase):
 
 
 class TriacAdvancedManualOnlyTests(unittest.TestCase):
-    """Item 9: TRIAC is advanced / manual-warning only and build-blocked."""
+    """Item 9: TRIAC is advanced / manual-warning only; buildable (compile-only)
+    after TRIAC-UNBLOCK-BUILD-001 cleared the HW-005 BUILDABILITY blocker."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -238,11 +252,20 @@ class TriacAdvancedManualOnlyTests(unittest.TestCase):
         )
         self.assertFalse(self.triac["webflash_importable"])
 
-    def test_triac_is_build_blocked_with_no_compile_proof(self) -> None:
-        self.assertFalse(self.triac["buildable_now"])
-        self.assertIn("HW-005", self.triac["build_blocker"])
-        self.assertIsNone(self.triac["compile_evidence"])
+    def test_triac_is_buildable_with_compile_proof(self) -> None:
+        # TRIAC-UNBLOCK-BUILD-001: HW-005 BUILDABILITY resolved (SX1509-free
+        # Core respin; TRI_GPIO1/2 -> IO13/IO14). build_blocker cleared,
+        # buildable, with firmware-build compile evidence. Still NOT a
+        # manual-firmware-artifacts candidate (advanced-manual-preview lane).
+        self.assertTrue(self.triac["buildable_now"])
+        self.assertIsNone(self.triac["build_blocker"])
+        self.assertIsInstance(self.triac["compile_evidence"], dict)
+        self.assertEqual(self.triac["compile_evidence"]["result"], "success")
         self.assertIsNone(self.triac["manual_lane_candidate_id"])
+
+    def test_triac_stable_blocker_keeps_compliance_001(self) -> None:
+        # Buildability resolved, but stable stays gated by COMPLIANCE-001.
+        self.assertIn("COMPLIANCE-001", self.triac["stable_blocker"])
 
     def test_triac_warning_copy_is_mains_risk(self) -> None:
         self.assertIn("MAINS", self.triac["release_note_warning"].upper())
@@ -360,14 +383,17 @@ class ReleaseNoteDraftsTests(unittest.TestCase):
                 with self.subTest(config_string=cs, phrase=phrase):
                     self.assertIn(phrase, norm, f"{cs}: missing {phrase!r}")
 
-    def test_triac_draft_states_mains_risk_and_claims_no_compile_proof(self) -> None:
+    def test_triac_draft_states_mains_risk_and_compile_only(self) -> None:
         norm = _normalise(_draft_path(TRIAC_CONFIG).read_text(encoding="utf-8"))
         for phrase in TRIAC_PHRASES:
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, norm, f"TRIAC: missing {phrase!r}")
-        # Build-blocked TRIAC must NOT claim firmware-build proof.
-        self.assertNotIn("firmware-build proof only", norm)
+        # TRIAC-UNBLOCK-BUILD-001 used a LOCAL full compile, not the shared
+        # hosted fan dry-run run; the TRIAC draft must NOT cite that fan run id.
         self.assertNotIn(str(COMPILE_RUN_ID), norm)
+        # Firmware-build compile proof only — no hardware / bench / compliance.
+        self.assertIn("compile proof only", norm)
+        self.assertIn("not compliance certified", norm)
 
     def test_no_affirmative_stable_recommended_default_claim(self) -> None:
         for cs in ALL_CONFIGS:

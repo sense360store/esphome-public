@@ -252,11 +252,15 @@ class WebFlashSourceOfTruthTests(unittest.TestCase):
 
 class TriacExcludedTests(unittest.TestCase):
     def test_triac_selection_fails_closed(self) -> None:
+        # TRIAC is buildable after TRIAC-UNBLOCK-BUILD-001, but it stays on the
+        # advanced-manual-preview lane and must NOT be published by this
+        # manual-preview fan publish workflow (publish is the separate
+        # TRIAC-PUBLISH-ADVANCED-PREVIEW-001 follow-up).
         rows, errors = _SCRIPT._select_rows(
             *_docs(), version="1.0.0", release_target=TRIAC_CONFIG
         )
         self.assertEqual(rows, [])
-        self.assertTrue(any("HW-005" in e for e in errors))
+        self.assertTrue(any("advanced-manual-preview" in e for e in errors))
 
     def test_default_matrix_contains_no_triac(self) -> None:
         rows, errors = _SCRIPT._select_rows(*_docs(), version="1.0.0")
@@ -264,13 +268,14 @@ class TriacExcludedTests(unittest.TestCase):
         for row in rows:
             self.assertNotIn("TRIAC", row["config_string"])
 
-    def test_release_body_excludes_triac_bin_but_notes_hw005(self) -> None:
+    def test_release_body_excludes_triac_bin_and_notes_advanced_lane(self) -> None:
         rows, errors = _SCRIPT._select_rows(*_docs(), version="1.0.0")
         self.assertEqual(errors, [])
         body = _SCRIPT._release_body(rows, version="1.0.0", release_tag=SHARED_TAG)
         for token in BIN_TOKEN_RE.findall(body):
             self.assertNotIn("triac", token.lower())
-        self.assertIn("HW-005", body)
+        self.assertIn("advanced-manual-preview", body)
+        self.assertIn("COMPLIANCE-001", body)
 
 
 class DocsAndQueueTests(unittest.TestCase):

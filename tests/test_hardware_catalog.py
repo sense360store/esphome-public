@@ -15,14 +15,15 @@ What this file checks:
   * Every hardware entry has non-empty 'sku', 'friendly_name', and
     'schematic_status' fields.
   * Every 'schematic_status' value is one of the approved enum
-    ('verified', 'cataloged_unverified').
+    ('verified', 'schematic-backed', 'cataloged_unverified').
   * Every entry with 'schematic_status: verified' has a non-empty
     'schematic_file' string.
   * Every 'schematic_file' path resolves to a real file under the repo root.
   * S360-100, S360-200, S360-210, S360-211, and S360-300 are 'verified'
     (HW-007 committed schematic evidence; HW-008 flips the JSON status).
-  * S360-320 (Sense360 TRIAC) remains not 'verified' — HW-005 is still
-    blocked and the S360-320 schematic is not committed.
+  * S360-320 (Sense360 TRIAC) is 'schematic-backed' (not 'verified') after
+    TRIAC-UNBLOCK-BUILD-001 resolved the HW-005 BUILDABILITY blocker; this is
+    not bench verification and COMPLIANCE-001 still gates stable.
   * S360-400 (Sense360 240v PSU) remains not 'verified' — the mains-voltage
     compliance review tracked in COMPLIANCE-001 still applies and the
     S360-400 schematic is not committed.
@@ -44,13 +45,18 @@ from typing import Any, Dict, List
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CATALOG_PATH = REPO_ROOT / "config" / "hardware-catalog.json"
 
-APPROVED_SCHEMATIC_STATUSES = frozenset({"verified", "cataloged_unverified"})
+APPROVED_SCHEMATIC_STATUSES = frozenset(
+    {"verified", "schematic-backed", "cataloged_unverified"}
+)
 
 EXPECTED_VERIFIED_SKUS = frozenset(
     {"S360-100", "S360-200", "S360-210", "S360-211", "S360-300"}
 )
 
-EXPECTED_STILL_UNVERIFIED_SKUS = frozenset({"S360-320", "S360-400", "S360-410"})
+# S360-320 moved from cataloged_unverified to schematic-backed under
+# TRIAC-UNBLOCK-BUILD-001 (HW-005 BUILDABILITY resolved; NOT verified, NOT
+# bench-verified). S360-400 / S360-410 remain cataloged_unverified.
+EXPECTED_STILL_UNVERIFIED_SKUS = frozenset({"S360-400", "S360-410"})
 
 
 def _load_catalog() -> Dict[str, Any]:
@@ -221,19 +227,20 @@ class HW008StillUnverifiedSKUsTests(unittest.TestCase):
     pin those statuses so HW-008 cannot quietly upgrade them.
     """
 
-    def test_s360_320_triac_is_not_verified(self) -> None:
+    def test_s360_320_triac_is_schematic_backed_not_verified(self) -> None:
         entry = _entry_by_sku("S360-320")
+        self.assertEqual(
+            entry.get("schematic_status"),
+            "schematic-backed",
+            "S360-320 must be schematic-backed after TRIAC-UNBLOCK-BUILD-001 "
+            "(HW-005 BUILDABILITY resolved by the SX1509-free Core respin; "
+            "TRI_GPIO1/2 -> IO13/IO14).",
+        )
         self.assertNotEqual(
             entry.get("schematic_status"),
             "verified",
-            "S360-320 must remain cataloged_unverified; HW-005 blocks "
-            "FanTRIAC and the S360-320 schematic is not committed.",
-        )
-        self.assertNotIn(
-            "schematic_file",
-            entry,
-            "S360-320 must not carry a schematic_file value while it is "
-            "not verified.",
+            "S360-320 is schematic-backed, NOT verified: this is not bench "
+            "verification and COMPLIANCE-001 still gates stable.",
         )
 
     def test_s360_400_psu_is_not_verified(self) -> None:

@@ -243,11 +243,15 @@ class TriacAdvancedManualWarningOnlyTests(unittest.TestCase):
         triac = self.triac_targets[0]
         self.assertTrue(triac["preview_allowed"])
         self.assertTrue(triac["preview_warning_required"])
-        # Hardware PROOF does not block TRIAC preview; only buildability does.
+        # Hardware PROOF does not block TRIAC preview. TRIAC-UNBLOCK-BUILD-001
+        # resolved the HW-005 buildability blocker (build_blocker now null), so
+        # the preview cut is no longer gated by buildability; publishing is the
+        # separate TRIAC-PUBLISH-ADVANCED-PREVIEW-001 follow-up and stable stays
+        # gated by COMPLIANCE-001.
         self.assertFalse(triac["hardware_proof_blocks_preview"])
-        self.assertTrue(triac["preview_cut_gated_by_buildability"])
-        self.assertTrue(triac["build_blocker"])
-        self.assertIn("HW-005", triac["build_blocker"])
+        self.assertFalse(triac["preview_cut_gated_by_buildability"])
+        self.assertIsNone(triac["build_blocker"])
+        self.assertIn("COMPLIANCE-001", triac["stable_blocker"])
 
     def test_triac_never_stable_recommended_default_required(self):
         triac = self.triac_targets[0]

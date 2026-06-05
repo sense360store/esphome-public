@@ -408,7 +408,7 @@
       "preview_allowed": true,
       "preview_warning_required": true,
       "blocker_is_stable_only": false,
-      "preview_cut_gated_by_buildability": true,
+      "preview_cut_gated_by_buildability": false,
       "hardware_proof_blocks_preview": false,
       "product": "FanTRIAC advanced-preview (mains TRIAC dimming)",
       "family": "FanTRIAC",
@@ -425,14 +425,14 @@
       "webflash_import_eligibility": {
         "eligible": false,
         "exposure_class": "acknowledgement-gated-advanced",
-        "reason": "Mains-voltage TRIAC phase control. Advanced-manual-preview lane: the advanced (mains-risk) preview artifact is delivered via the advanced-manual-preview lane once the target is buildable end-to-end. NOT blocked-from-preview by a lack of stable evidence -- the ONLY thing preventing a cut is the HW-005 buildability blocker (see build_blocker). WebFlash one-click import stays gated behind the advanced acknowledgement UX (separate follow-up: WF-IMPORT-TRIAC-001) and is not enabled here. Advanced-preview ceiling: never stable, never recommended, never a default, never a REQUIRED_CONFIG, never a customer-kit default."
+        "reason": "Mains-voltage TRIAC phase control. Advanced-manual-preview lane: the advanced (mains-risk) preview artifact is delivered via the advanced-manual-preview lane. The HW-005 buildability blocker is resolved (TRIAC-UNBLOCK-BUILD-001; SX1509-free Core respin routes TRI_GPIO1/TRI_GPIO2 direct to IO13/IO14; local full compile recorded), so the target is buildable; publishing the artifact is the follow-up TRIAC-PUBLISH-ADVANCED-PREVIEW-001. WebFlash one-click import stays gated behind the advanced acknowledgement UX (separate follow-up: WF-IMPORT-TRIAC-001) and is not enabled here. Advanced-preview ceiling: never stable, never recommended, never a default, never a REQUIRED_CONFIG, never a customer-kit default."
       },
-      "publication_status": "advanced-manual-preview-build-blocked",
+      "publication_status": "advanced-manual-preview-buildable-not-published",
       "warning_copy_required": true,
       "warning_copy_key": "advanced-preview",
       "release_note_warning": "ADVANCED PREVIEW \u2014 MAINS-VOLTAGE RISK. This firmware drives mains-voltage hardware (e.g. TRIAC phase-control dimming) and is for competent persons performing a manual installation only. It is NOT hardware verified, NOT stable, NOT recommended, and is NEVER a default. No bench evidence and no electrical-safety / compliance certification is claimed. Incorrect installation can cause fire, electric shock, or death. Do not install unless you are qualified to work on mains wiring.",
-      "stable_blocker": "HW-005 (S360-320 schematic; GPIO5/GPIO6 collision; ac_dimmer cannot run across SX1509) + PACKAGE-TRIAC-001 + COMPLIANCE-001 mains-voltage review.",
-      "build_blocker": "HW-005 BUILDABILITY blocker (NOT a stable-evidence gate and NOT a preview-policy block): S360-320 schematic uncommitted; placeholder GPIO5/GPIO6 collide with RoomIQ J10 nets; ESPHome ac_dimmer cannot run across the SX1509 expander. The target is therefore not yet buildable end-to-end, so no advanced-preview artifact can be cut on the advanced-manual-preview lane until HW-005 resolves. Stable is additionally gated by PACKAGE-TRIAC-001 + COMPLIANCE-001 mains-voltage review.",
+      "stable_blocker": "COMPLIANCE-001 (mains-voltage electrical-safety review) + PACKAGE-TRIAC-001 (package reconciliation).",
+      "build_blocker": null,
       "recommended": false,
       "customer_default": false,
       "required_config": false,
@@ -440,7 +440,7 @@
       "bench_evidence_claimed": false,
       "schematic_status_verified_claim": false,
       "consuming_bundles": [],
-      "notes": "Mains-voltage TRIAC. Advanced-preview ONLY, with mandatory mains-risk warning copy, delivered (once buildable) via the advanced-manual-preview lane. No longer classed as a 'blocked' delivery lane: it is preview-allowed in principle and only the HW-005 buildability blocker prevents an actual cut. Never stable, recommended, default, REQUIRED_CONFIG, or WebFlash-exposed in this PR."
+      "notes": "Mains-voltage TRIAC. Advanced-preview ONLY, with mandatory mains-risk warning copy, delivered via the advanced-manual-preview lane. TRIAC-UNBLOCK-BUILD-001 resolved the HW-005 BUILDABILITY blocker (SX1509-free Core respin routes TRI_GPIO1/TRI_GPIO2 direct to IO13/IO14; build_blocker cleared; local full compile recorded in config/preview-fan-triac-build-rows.json). The artifact is buildable but is NOT published here: publishing the advanced-manual-preview .bin is the follow-up TRIAC-PUBLISH-ADVANCED-PREVIEW-001. Stable stays gated by COMPLIANCE-001 + PACKAGE-TRIAC-001. Never stable, recommended, default, REQUIRED_CONFIG, or WebFlash-exposed in this PR."
     }
   ]
 }
