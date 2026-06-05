@@ -49,14 +49,14 @@
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
-      "status": "compile-only",
-      "stable_blocker": "COMPLIANCE-001 (mains-voltage electrical-safety review) + PACKAGE-TRIAC-001 (package reconciliation).",
-      "schematic_status": "schematic-backed",
-      "reason": "HW-005 BUILDABILITY resolved: the S360-100-R4 Core respin removed the SX1509 expander and routes the J15 TRIAC connector nets TRI_GPIO1/TRI_GPIO2 direct to interrupt-capable ESP32-S3 GPIOs (gate IO13 -> MOC3023M, zero-cross IO14 -> EL814), so ESPHome ac_dimmer can attach its hardware interrupt and gate-firing ISR. The placeholder GPIO5/GPIO6 (which collided with RoomIQ SEN0609 on J10) are replaced by GPIO13/GPIO14. schematic_status is schematic-backed (NOT bench-verified). Stable stays gated by COMPLIANCE-001 (mains-voltage electrical-safety review) + PACKAGE-TRIAC-001.",
+      "status": "blocked",
+      "blocker": "HW-005",
+      "schematic_status": "cataloged_unverified",
+      "reason": "FanTRIAC HW-005 BUILDABILITY stays blocked. The S360-100-R4 Core uses native ESP32-S3 GPIO with no SX1509 expander, but the committed Core pin-map (docs/hardware/s360-100-core-connector-pin-map.md, J15) marks the ESP32-side source pins for the J15 TRIAC nets TRI_GPIO1/TRI_GPIO2 as TBD, pending a KiCad/silkscreen-confirmed assignment. The prior 'gate IO13 / zero-cross IO14, schematic-backed' mapping is not backed by a committed schematic and is removed; note GPIO14 is the Core WS2812B LED-ring data line (led_data_pin in packages/hardware/sense360_core_ceiling_s3.yaml), so it is not free for the TRIAC. No FanTRIAC pin assignment is confirmed. Stable additionally gated by COMPLIANCE-001 (mains-voltage electrical-safety review) + PACKAGE-TRIAC-001.",
       "product_yaml": "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
       "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml",
       "webflash_build_matrix": false,
-      "notes": "Compile-only / advanced-preview candidate (TRIAC-UNBLOCK-BUILD-001). The HW-005 BUILDABILITY blocker is cleared (SX1509-free Core respin; TRI_GPIO1/2 -> IO13/IO14) and the config is registered in the compile-only validation lane (config/compile-only-targets.json). NOT Release-One, NOT REQUIRED_CONFIGS, NOT recommended, NOT kit/default, NOT buyable, NOT compliance-certified, NOT in config/webflash-builds.json; webflash_build_matrix stays false and there is no artifact_name. Stable stays gated by COMPLIANCE-001 (mains-voltage electrical-safety review) + PACKAGE-TRIAC-001; no bench / EMI / thermal / compliance proof is claimed. Publishing the advanced-manual-preview artifact is the follow-up TRIAC-PUBLISH-ADVANCED-PREVIEW-001; downstream WebFlash exposure behind the advanced acknowledgement is WF-IMPORT-TRIAC-001. See docs/hardware/s360-320-r4-triac.md#fantriac-mapping-resolution and docs/release-one-hardware-audit.md."
+      "notes": "Advanced/manual-warning candidate; blocked under HW-005 pending a KiCad-confirmed TRI_GPIO1/TRI_GPIO2 pin assignment, then HW-PINMAP-320-FOLLOWUP, PACKAGE-TRIAC-001, and COMPLIANCE-001 (mains-voltage) sign-off. NOT Release-One, NOT REQUIRED_CONFIGS, NOT recommended, NOT kit/default, NOT buyable, NOT compliance-certified, NOT in config/webflash-builds.json; webflash_build_matrix stays false and there is no artifact_name. The TRIAC-UNBLOCK-BUILD-001 compile-only unblock was reverted (TRIAC-REBLOCK-PINMAP-001) because its IO13/IO14 routing was not backed by a committed schematic. See docs/hardware/s360-100-core-connector-pin-map.md (J15) and docs/hardware/s360-320-r4-triac.md."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
