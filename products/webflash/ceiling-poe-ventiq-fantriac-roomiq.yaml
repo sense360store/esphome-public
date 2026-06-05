@@ -1,4 +1,5 @@
-# BLOCKED / REFERENCE — not a production Release-One WebFlash entry.
+# COMPILE-ONLY / ADVANCED-PREVIEW REFERENCE — not a production Release-One
+# WebFlash entry.
 #
 # As of REL-001, production Release-One ships from the no-TRIAC build at
 #   products/webflash/ceiling-poe-ventiq-roomiq.yaml
@@ -6,17 +7,22 @@
 # This FanTRIAC wrapper is retained in the repo for future use only and is
 # NOT in the WebFlash build matrix at config/webflash-builds.json.
 #
-# The FanTRIAC slot is blocked per HW-005:
-#   - S360-320 Sense360 TRIAC schematic is not committed.
-#   - Placeholder GPIO5/GPIO6 substitutions in the canonical YAML collide
-#     with RoomIQ J10 nets (IO5 = SEN0609_TX, IO6 = out(gpio6)).
-#   - ESPHome's `ac_dimmer` requires direct interrupt-capable ESP32 GPIOs;
-#     SX1509 expander pins cannot meet the timing.
-# See: docs/release-one-hardware-audit.md#fantriac-mapping-resolution
+# TRIAC-UNBLOCK-BUILD-001 resolved the HW-005 BUILDABILITY blocker:
+#   - The SX1509-free S360-100-R4 Core respin routes the J15 TRIAC nets
+#     TRI_GPIO1/TRI_GPIO2 direct to interrupt-capable ESP32-S3 GPIOs
+#     (gate IO13, zero-cross IO14), replacing the placeholder pins that
+#     collided with the RoomIQ J10 / SEN0609 nets. ESPHome `ac_dimmer` needs
+#     direct interrupt-capable GPIOs, which the old SX1509 routing could not
+#     provide; the respin satisfies that.
+#   - `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is now status: compile-only and
+#     firmware-build compile-validated. It stays OFF WebFlash:
+#     webflash_build_matrix is false and there is no config/webflash-builds.json
+#     row. Stable stays gated by COMPLIANCE-001 (+ PACKAGE-TRIAC-001).
+# See: docs/hardware/s360-320-r4-triac.md and docs/hardware/s360-100-r4-core.md
 #
-# When HW-005 is resolved, this wrapper plus the canonical FanTRIAC product
-# YAML may be re-introduced into config/webflash-builds.json as a
-# distinct WebFlash entry; do not promote them to production silently.
+# WebFlash exposure (if/when appropriate) is the separate WF-IMPORT-TRIAC-001
+# slice behind the advanced acknowledgement UX; do not add a
+# config/webflash-builds.json row or promote to production silently.
 #
 # Pre-REL-001 metadata (preserved for historical context):
 #   WebFlash config string : Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
