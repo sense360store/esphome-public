@@ -21,7 +21,7 @@
     "compile-only"
   ],
   "totals": {
-    "targets": 23
+    "targets": 24
   },
   "targets": [
     {
@@ -582,6 +582,19 @@
       "blocked": false,
       "compile_validation_status": "pending-ci",
       "notes": "Top-level Ceiling-USB-RoomIQ product-YAML compile-only target (V1-R4-CREATE-004). product_yaml is products/sense360-ceiling-usb-roomiq.yaml (a top-level products/ product YAML with a config/product-catalog.json row, status: compile-only, target_channel: manual-custom, webflash_build_matrix: false, no artifact_name, no webflash_wrapper). This USB variant carries NO PoE PSU board (no S360-410). compile_validation_status: pending-ci records that NO full ESPHome --compile run was performed for this target (ESPHome unavailable in the authoring environment) and none is fabricated; a CI full-compile run is owed. No WebFlash exposure, no webflash_build_matrix flip, no artifact_name, no release artifact, no kit preset, no Ceiling-USB-RoomIQ entry in config/webflash-builds.json, not in release_one_required_configs. No board schematic_status is changed; manifest.json / firmware/sources.json are untouched; Release-One and the LED preview are unchanged."
+    },
+    {
+      "id": "ceiling-poe-ventiq-fantriac-roomiq-compile-only",
+      "product_yaml": "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
+      "config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
+      "reason": "FanTRIAC (S360-320) compile-only validation target (TRIAC-UNBLOCK-BUILD-001). The S360-100-R4 Core respin removed the SX1509 expander and routes the J15 TRIAC connector nets TRI_GPIO1/TRI_GPIO2 DIRECT to interrupt-capable ESP32-S3 GPIOs (gate IO13, zero-cross IO14), resolving the HW-005 BUILDABILITY blocker (the old GPIO5/GPIO6 placeholders collided with RoomIQ SEN0609 on J10, and the connector previously routed via the SX1509, which ESPHome ac_dimmer cannot use). This target validates that the FanTRIAC product YAML composes / substitutes / includes / generates code cleanly with the real ac_dimmer pin mapping. Compile success is firmware-build proof of BUILDABILITY ONLY: NOT bench verification, NOT WebFlash exposure, NOT a release artifact, NOT a default kit / recommended, and NOT COMPLIANCE-001 mains-voltage sign-off. Stable stays gated by COMPLIANCE-001 (+ PACKAGE-TRIAC-001).",
+      "shipment_status": "compile-only",
+      "hardware_required_for_validation": true,
+      "webflash_exposure_allowed_now": false,
+      "blocked": true,
+      "advanced_manual_warning_only": true,
+      "compile_validation_status": "pending-ci",
+      "notes": "FanTRIAC product YAML lives at products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml (top-level; NOT under products/webflash/ or products/compile-only/). blocked: true marks that the FanTRIAC token stays OFF the WebFlash build matrix and out of one-click exposure (the FanTRIAC guardrail in scripts/validate_compile_targets.py + tests/test_compile_targets.py); it does NOT mean the YAML is unbuildable. TRIAC-UNBLOCK-BUILD-001 proves it compiles after the SX1509-free Core respin routes TRI_GPIO1/TRI_GPIO2 direct to IO13/IO14. The matching catalog row in config/product-catalog.json (config_string: Ceiling-POE-VentIQ-FanTRIAC-RoomIQ) moves from status: blocked / HW-005 to status: compile-only with the build_blocker cleared and stable_blocker = COMPLIANCE-001 + PACKAGE-TRIAC-001. No config/webflash-builds.json row, no webflash_build_matrix flip, no artifact_name, no webflash_wrapper exposure. FanTRIAC stays not stable, not recommended, not default, not buyable, not auto-imported; WF-IMPORT-TRIAC-001 (downstream WebFlash import behind the advanced acknowledgement) stays a separate follow-up. compile_validation_status: pending-ci until the compile-only.yml workflow_dispatch / compile_mode=full run records a real green esphome compile for this target."
     }
   ]
 }
