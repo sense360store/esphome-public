@@ -233,6 +233,21 @@ plus resolving FanTRIAC `HW-005` — captured as the next queue items below.
 
 ## Next queue (actionable)
 
+> **`TRIAC-PUBLISH-ADVANCED-PREVIEW-001` — publish the advanced-manual-preview
+> FanTRIAC artifact (NEXT; gated on the green compile from
+> `TRIAC-UNBLOCK-BUILD-001` / #722).** Now that
+> `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is buildable (`status: compile-only`,
+> green local full compile, build_blocker cleared), publish the
+> `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-preview.bin` advanced
+> (mains-risk) preview artifact on the **advanced-manual-preview** lane, behind
+> the mandatory mains-risk warning copy and an explicit acknowledgement gate.
+> It must **not** enter `config/webflash-builds.json`, **not** flip
+> `webflash_build_matrix`, and **not** become stable / recommended / default /
+> buyable. Downstream `WF-IMPORT-TRIAC-001` (WebFlash import behind the advanced
+> acknowledgement UX) follows. **Stable stays gated by `COMPLIANCE-001`** (plus
+> `PACKAGE-TRIAC-001`); no bench / EMI / thermal / safety / compliance proof is
+> implied by the compile.
+
 > **`ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001` is DONE (this PR; upstream
 > metadata + test + docs only).** Marks the five published full-composition
 > Bathroom / Kitchen fan-control room-bundle **preview** artifacts from
@@ -1046,6 +1061,17 @@ dedicated TRIAC-specific PR. No TRIAC row is added to
 
 Recently landed; kept as one-line history (full write-ups preserved below).
 
+* **#722 — `TRIAC-UNBLOCK-BUILD-001`**: unblocked the S360-320 FanTRIAC build
+  (buildability only). The SX1509-free S360-100-R4 Core respin routes the J15
+  nets `TRI_GPIO1`/`TRI_GPIO2` direct to IO13 (gate) / IO14 (zero-cross);
+  bundle pins GPIO5/GPIO6 → GPIO13/GPIO14, `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
+  moves to `status: compile-only` with a green local full compile (ESPHome
+  2026.4.5) recorded in the compile-only lane + build rows. Hardware evidence
+  (HW-PINMAP-320 + Core doc) records SX1509 removal, the IO13/IO14 routing, and
+  the `TRI_GPIO*`/`ESP_GPIO*` reconciliation. `webflash_build_matrix` stays
+  false, no artifact, not in `config/webflash-builds.json`; stable stays gated
+  by `COMPLIANCE-001` + `PACKAGE-TRIAC-001`. Resolves HW-005 BUILDABILITY only
+  (not bench, not compliance). Next: `TRIAC-PUBLISH-ADVANCED-PREVIEW-001`.
 * **#710 — `RELEASE-PREVIEW-COMBINED-RELEASE-NOTES-001`**: regenerated the combined
   `v1.0.0-preview` preview release body (room + fan manual-preview artifacts).
   Docs / notes only; TRIAC excluded (`HW-005`).
