@@ -24,8 +24,9 @@ This test file pins:
 6. No module pinmap doc contains release / WebFlash readiness
    phrasing.
 7. The per-board do-not-change guardrails (`S360-310` / `S360-311`
-   / `S360-312` / `S360-320` / `S360-400` / `S360-410` stay
-   `cataloged_unverified`; FanPWM stays out of
+   / `S360-312` / `S360-400` / `S360-410` stay
+   `cataloged_unverified` — `S360-320` is now `schematic-backed` under
+   TRIAC-UNBLOCK-BUILD-001; FanPWM stays out of
    `config/webflash-builds.json`; FanPWM products keep
    `rpm_supported: false` and `webflash_build_matrix: false`).
 8. Cross-doc linking from the canonical Core-side pin map, the
@@ -113,11 +114,12 @@ FORBIDDEN_RELEASE_PHRASES = [
 
 # Per-board do-not-change guardrails. SKUs that must stay
 # `cataloged_unverified` after MODULE-PINMAPS-GDRIVE-001.
+# S360-320 moved to `schematic-backed` under TRIAC-UNBLOCK-BUILD-001
+# (HW-005 BUILDABILITY resolved; NOT verified), so it is no longer in this list.
 SKUS_STAYING_CATALOGED_UNVERIFIED = [
     "S360-310",
     "S360-311",
     "S360-312",
-    "S360-320",
     "S360-400",
     "S360-410",
 ]

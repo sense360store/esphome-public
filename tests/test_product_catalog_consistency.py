@@ -158,22 +158,32 @@ class ReleaseOneProductionTests(unittest.TestCase):
 
 
 class FanTriacBlockedTests(unittest.TestCase):
-    """Targeted checks on the FanTRIAC blocked entry."""
+    """Targeted checks on the FanTRIAC compile-only entry.
+
+    TRIAC-UNBLOCK-BUILD-001 moved FanTRIAC from status: blocked / HW-005 to
+    status: compile-only (HW-005 BUILDABILITY resolved by the SX1509-free Core
+    respin). The preserved invariants are pinned here: NOT in the WebFlash
+    build matrix, no artifact_name, NOT in config/webflash-builds.json, and
+    stable still gated by COMPLIANCE-001 (+ PACKAGE-TRIAC-001).
+    """
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.entry = _entry_by_config_string(FANTRIAC_CONFIG_STRING)
         cls.builds = _build_config_strings()
 
-    def test_status_is_blocked(self) -> None:
-        self.assertEqual(self.entry["status"], "blocked")
+    def test_status_is_compile_only(self) -> None:
+        self.assertEqual(self.entry["status"], "compile-only")
 
-    def test_required_blocked_fields_present(self) -> None:
-        for field in ("blocker", "reason"):
-            with self.subTest(field=field):
-                self.assertIn(field, self.entry)
-                self.assertIsInstance(self.entry[field], str)
-                self.assertNotEqual(self.entry[field], "")
+    def test_stable_blocker_cites_compliance_001(self) -> None:
+        self.assertIn("stable_blocker", self.entry)
+        self.assertIsInstance(self.entry["stable_blocker"], str)
+        self.assertIn("COMPLIANCE-001", self.entry["stable_blocker"])
+
+    def test_reason_present(self) -> None:
+        self.assertIn("reason", self.entry)
+        self.assertIsInstance(self.entry["reason"], str)
+        self.assertNotEqual(self.entry["reason"], "")
 
     def test_webflash_build_matrix_is_false(self) -> None:
         self.assertIs(self.entry["webflash_build_matrix"], False)

@@ -97,7 +97,7 @@
       "rev": "R4",
       "old_name": "TRIAC_Board",
       "description": "Phase dimmer for mains fan or lamp.",
-      "schematic_status": "cataloged_unverified"
+      "schematic_status": "schematic-backed"
     },
     {
       "group": "Power",

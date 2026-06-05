@@ -19,10 +19,11 @@ human-review intent is obvious from the text.
 
 Refuses to generate notes for:
 
-- ``blocked`` catalog entries (e.g. FanTRIAC pending HW-005)
+- ``blocked`` catalog entries
 - ``legacy-compatible`` catalog entries (manual / custom users only)
 - ``deprecated`` / ``removed`` entries
-- ``compile-only`` / ``hardware-pending`` entries
+- ``compile-only`` / ``hardware-pending`` entries (e.g. FanTRIAC, now
+  compile-only and gated by COMPLIANCE-001)
 - ``preview`` entries on the ``stable`` channel
 - ``production`` entries on a non-``stable`` channel
 - unknown / mistyped config strings
@@ -92,8 +93,10 @@ REFUSED_STATUSES = frozenset(
 # generator never silently drops an exclusion.
 BLOCKED_MODULE_BULLETS = {
     "FanTRIAC": (
-        "FanTRIAC is not included in this firmware and remains blocked "
-        "pending HW-005."
+        "FanTRIAC is not included in this firmware. It is a separate "
+        "compile-only / advanced-preview build (mains-voltage TRIAC dimming), "
+        "not stable, and remains gated by COMPLIANCE-001 (mains-voltage "
+        "electrical-safety review)."
     ),
 }
 

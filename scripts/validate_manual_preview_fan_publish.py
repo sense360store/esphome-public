@@ -166,7 +166,11 @@ def _select_rows(
     elif release_target in FAN_CONFIGS:
         selected_configs = (release_target,)
     elif release_target == TRIAC_CONFIG:
-        errors.append(f"{TRIAC_CONFIG} is build-blocked by HW-005 and cannot be published")
+        errors.append(
+            f"{TRIAC_CONFIG} is delivered on the advanced-manual-preview lane and "
+            "cannot be published by this manual-preview fan publish workflow "
+            "(publish is the separate TRIAC-PUBLISH-ADVANCED-PREVIEW-001 follow-up)"
+        )
         selected_configs = ()
     else:
         errors.append(
@@ -175,14 +179,23 @@ def _select_rows(
         )
         selected_configs = ()
 
+    # TRIAC-UNBLOCK-BUILD-001: the HW-005 BUILDABILITY blocker is resolved, so
+    # TRIAC is buildable and carries compile evidence. This manual-preview fan
+    # publish workflow still must NOT publish it: TRIAC stays on the
+    # advanced-manual-preview lane (published separately under
+    # TRIAC-PUBLISH-ADVANCED-PREVIEW-001), so it is never one of the selected
+    # manual-preview rows.
     triac = rows_by_config.get(TRIAC_CONFIG)
     if triac:
-        if triac.get("buildable_now") is not False:
-            errors.append("TRIAC must remain buildable_now=false")
-        if not triac.get("build_blocker") or "HW-005" not in triac.get("build_blocker", ""):
-            errors.append("TRIAC must carry the HW-005 build blocker")
-        if triac.get("compile_evidence") is not None:
-            errors.append("TRIAC must not claim compile evidence")
+        if triac.get("delivery_lane") != "advanced-manual-preview":
+            errors.append(
+                "TRIAC must stay on the advanced-manual-preview lane "
+                "(excluded from the manual-preview fan publish set)"
+            )
+        if triac.get("channel_tier") != "advanced-preview":
+            errors.append("TRIAC channel_tier must remain advanced-preview")
+        if triac.get("webflash_importable") is not False:
+            errors.append("TRIAC must remain not WebFlash-importable")
 
     selected: List[Dict[str, Any]] = []
     for config_string in selected_configs:
@@ -300,7 +313,10 @@ def _release_body(rows: List[Dict[str, Any]], *, version: str, release_tag: str)
         "not hardware verified, and not buyable.",
         "- Hardware, bench, mains-safety, and compliance evidence remain stable-only "
         "blockers; no such proof is claimed by this release.",
-        f"- `{TRIAC_CONFIG}` is excluded because `HW-005` still blocks buildability.",
+        f"- `{TRIAC_CONFIG}` is excluded from this manual-preview fan publish: it "
+        "is delivered on the advanced-manual-preview lane and published separately "
+        "(its `HW-005` buildability blocker is resolved, but it stays gated by "
+        "`COMPLIANCE-001` mains-voltage review).",
         "- These fan artifacts share the `v1.0.0-preview` preview release with the "
         "room-bundle preview artifacts. WebFlash import eligibility is controlled "
         "separately by WebFlash import policy; presence in this shared release does "

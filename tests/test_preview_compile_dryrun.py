@@ -88,12 +88,21 @@ class PreviewCompileScopeTests(unittest.TestCase):
             STABLE_BASELINE, [t["config_string"] for t in self.targets]
         )
 
-    def test_triac_excluded_and_reported_with_hw005(self) -> None:
+    def test_triac_excluded_from_preview_dryrun_scope(self) -> None:
+        # TRIAC stays excluded from THIS preview-compile-dryrun lane, but the
+        # rationale shifted under TRIAC-UNBLOCK-BUILD-001: its HW-005
+        # buildability blocker is resolved (build_blocker is now null) and it is
+        # compile-validated via the compile-only lane, not this preview lane.
         in_scope = [t["config_string"] for t in self.targets]
         self.assertNotIn(EXCLUDED_TRIAC, in_scope)
         excluded_cs = [t["config_string"] for t in self.excluded]
         self.assertEqual(excluded_cs, [EXCLUDED_TRIAC])
-        self.assertIn("HW-005", self.excluded[0]["build_blocker"])
+        reason = self.excluded[0]["reason"]
+        self.assertIn("advanced-manual-preview", reason)
+        self.assertIn("compile-only lane", reason)
+        # The HW-005 buildability blocker is resolved, so it is no longer the
+        # reported reason (build_blocker is cleared).
+        self.assertIsNone(self.excluded[0]["build_blocker"])
 
     def test_in_scope_product_yamls_exist_and_match_manifest(self) -> None:
         manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))

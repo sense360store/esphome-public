@@ -406,7 +406,7 @@ class DoNotChangeGuardrailsTests(unittest.TestCase):
             "across S360-100-CONNECTOR-PINMAP-001.",
         )
 
-    def test_s360_320_stays_cataloged_unverified(self) -> None:
+    def test_s360_320_is_schematic_backed(self) -> None:
         data = self._load_json(HARDWARE_CATALOG_JSON)
         s320 = next(
             (e for e in data.get("items", []) if e.get("sku") == "S360-320"),
@@ -415,9 +415,10 @@ class DoNotChangeGuardrailsTests(unittest.TestCase):
         self.assertIsNotNone(s320, "S360-320 row must exist in hardware catalog.")
         self.assertEqual(
             s320.get("schematic_status"),
-            "cataloged_unverified",
-            "S360-320 schematic_status must stay `cataloged_unverified` "
-            "across S360-100-CONNECTOR-PINMAP-001.",
+            "schematic-backed",
+            "S360-320 schematic_status is `schematic-backed` after "
+            "TRIAC-UNBLOCK-BUILD-001 (HW-005 BUILDABILITY resolved; NOT "
+            "verified, NOT bench-verified).",
         )
 
     def test_s360_410_stays_cataloged_unverified(self) -> None:

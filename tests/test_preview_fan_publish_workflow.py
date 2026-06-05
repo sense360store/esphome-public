@@ -171,13 +171,16 @@ class HelperScriptTests(unittest.TestCase):
                 self.assertEqual([row["config_string"] for row in rows], [config])
 
     def test_triac_selection_fails_closed(self) -> None:
+        # TRIAC stays excluded from the manual-preview fan publish lane after
+        # TRIAC-UNBLOCK-BUILD-001: it is buildable but delivered on the
+        # advanced-manual-preview lane (published separately).
         rows, errors = _SCRIPT._select_rows(
             *self._docs(),
             version=VERSION,
             release_target=TRIAC_CONFIG,
         )
         self.assertEqual(rows, [])
-        self.assertTrue(any("HW-005" in error for error in errors))
+        self.assertTrue(any("advanced-manual-preview" in error for error in errors))
 
     def test_matrix_artifact_names_match_contract(self) -> None:
         rows, errors = _SCRIPT._select_rows(*self._docs(), version=VERSION)
@@ -203,7 +206,7 @@ class HelperScriptTests(unittest.TestCase):
         for artifact in EXPECTED_ARTIFACTS:
             self.assertIn(artifact, body)
         self.assertIn(TRIAC_CONFIG, body)
-        self.assertIn("HW-005", body)
+        self.assertIn("advanced-manual-preview", body)
 
     def test_selected_rows_are_never_stable_recommended_default_buyable(self) -> None:
         rows, errors = _SCRIPT._select_rows(*self._docs(), version=VERSION)

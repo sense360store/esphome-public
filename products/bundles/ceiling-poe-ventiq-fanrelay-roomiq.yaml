@@ -262,12 +262,14 @@ packages:
   fan_relay_module: !include ../../packages/expansions/fan_relay.yaml
 
   # === Sense360 TRIAC (S360-320, AC phase-cut fan driver) ===
-  # NOT included. The FanTRIAC slot remains blocked per HW-005:
-  #   - S360-320 schematic uncommitted at the time of writing.
-  #   - Placeholder GPIO5/GPIO6 collide with RoomIQ J10 nets.
-  #   - ESPHome's `ac_dimmer` driver requires direct interrupt-capable
-  #     ESP32 GPIOs; SX1509 expander pins cannot meet the timing.
-  # See: docs/release-one-hardware-audit.md#fantriac-mapping-resolution
+  # NOT included (this is the FanRelay bundle). TRIAC-UNBLOCK-BUILD-001 resolved
+  # the FanTRIAC HW-005 BUILDABILITY blocker: the SX1509-free S360-100-R4 Core
+  # respin routes the J15 TRIAC nets TRI_GPIO1/TRI_GPIO2 direct to
+  # interrupt-capable ESP32-S3 GPIOs (gate IO13, zero-cross IO14), so ESPHome
+  # ac_dimmer compiles. FanTRIAC is now status: compile-only / advanced-preview
+  # in its own bundle (products/bundles/ceiling-poe-ventiq-fantriac-roomiq.yaml);
+  # it stays off WebFlash and gated by COMPLIANCE-001 + PACKAGE-TRIAC-001.
+  # See: docs/hardware/s360-320-r4-triac.md
 
   # === Device Health & Diagnostics ===
   health: !include ../../packages/features/device_health.yaml

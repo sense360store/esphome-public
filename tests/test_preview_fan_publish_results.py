@@ -251,12 +251,16 @@ class LedgerPublishEvidenceTests(unittest.TestCase):
                 self.assertIn(ev["published_artifact_name"], self.doc)
                 self.assertIn(ev["asset_sha256"], self.doc)
 
-    def test_triac_carries_no_publish_evidence_and_stays_blocked(self) -> None:
+    def test_triac_carries_no_publish_evidence_and_stays_unpublished(self) -> None:
+        # TRIAC-UNBLOCK-BUILD-001 made TRIAC buildable (compile-only), but this
+        # manual-preview fan PUBLISH run does NOT publish it: TRIAC carries no
+        # publish_evidence and stays on the advanced-manual-preview lane.
         triac = self.rows[TRIAC_CONFIG]
         self.assertNotIn("publish_evidence", triac)
-        self.assertFalse(triac["buildable_now"])
-        self.assertIn("HW-005", triac["build_blocker"])
-        self.assertIsNone(triac["compile_evidence"])
+        self.assertTrue(triac["buildable_now"])
+        self.assertIsNone(triac["build_blocker"])
+        self.assertIsInstance(triac["compile_evidence"], dict)
+        self.assertEqual(triac["delivery_lane"], "advanced-manual-preview")
 
     def test_ledger_still_validates_clean(self) -> None:
         validator = _load_module(VALIDATOR_PATH, "validate_preview_fan_triac_build_rows")

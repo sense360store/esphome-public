@@ -160,12 +160,15 @@ class FanTRIACAndLEDExclusionTests(unittest.TestCase):
             f"LED must not appear in Features: {features}",
         )
 
-    def test_fantriac_known_issue_references_hw_005(self) -> None:
+    def test_fantriac_known_issue_references_compliance_001(self) -> None:
+        # TRIAC-UNBLOCK-BUILD-001 cleared the HW-005 buildability blocker; the
+        # FanTRIAC Known-Issues bullet now cites the remaining stable gate
+        # (COMPLIANCE-001 mains-voltage review).
         body = _generate_release_one()
         known_issues = _section_bullets(body, "Known Issues")
         fantriac_bullet = next((b for b in known_issues if "FanTRIAC" in b), None)
         self.assertIsNotNone(fantriac_bullet)
-        self.assertIn("HW-005", fantriac_bullet or "")
+        self.assertIn("COMPLIANCE-001", fantriac_bullet or "")
 
 
 # ----------------------------------------------------------------------
@@ -249,8 +252,10 @@ class LedPreviewGenerationTests(unittest.TestCase):
             f"FanTRIAC missing from Known Issues for LED preview: " f"{known_issues}",
         )
         self.assertTrue(
-            any("HW-005" in b for b in known_issues),
-            f"FanTRIAC Known-Issues bullet must reference HW-005: " f"{known_issues}",
+            any("COMPLIANCE-001" in b for b in known_issues),
+            f"FanTRIAC Known-Issues bullet must reference COMPLIANCE-001 "
+            f"(HW-005 buildability resolved by TRIAC-UNBLOCK-BUILD-001): "
+            f"{known_issues}",
         )
         self.assertFalse(
             any("FanTRIAC" in b for b in features),
@@ -269,12 +274,15 @@ class LedPreviewGenerationTests(unittest.TestCase):
 
 
 class RefusalTests(unittest.TestCase):
-    def test_refuses_blocked_fantriac_config(self) -> None:
+    def test_refuses_compile_only_fantriac_config(self) -> None:
+        # FanTRIAC moved from status: blocked to status: compile-only under
+        # TRIAC-UNBLOCK-BUILD-001; both statuses are refused by the generator
+        # (compile-only is not WebFlash-shippable), so generation still fails.
         with self.assertRaises(gen.GeneratorError) as ctx:
             _generate_release_one(
                 config_string=FANTRIAC_BLOCKED_CONFIG, channel="stable"
             )
-        self.assertIn("blocked", str(ctx.exception).lower())
+        self.assertIn("compile-only", str(ctx.exception).lower())
 
     def test_refuses_legacy_compatible_product(self) -> None:
         with self.assertRaises(gen.GeneratorError) as ctx:

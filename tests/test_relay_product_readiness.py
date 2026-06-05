@@ -584,9 +584,15 @@ class ReleaseOneAndLedPreviewUnchangedTests(unittest.TestCase):
         self.assertEqual(entry["product_yaml"], LED_PREVIEW_PRODUCT_REL)
 
     def test_fantriac_catalog_entry_remains_blocked(self) -> None:
+        # TRIAC-UNBLOCK-BUILD-001 moved FanTRIAC to status: compile-only and
+        # cleared the HW-005 build blocker (HW-005 BUILDABILITY resolved). This
+        # PR (FanRelay readiness) does not change FanTRIAC; the preserved
+        # invariant is that it stays off the WebFlash build matrix and stable
+        # stays gated by COMPLIANCE-001.
         entry = self._find(FANTRIAC_BLOCKED_CONFIG_STRING)
-        self.assertEqual(entry["status"], "blocked")
-        self.assertEqual(entry["blocker"], "HW-005")
+        self.assertEqual(entry["status"], "compile-only")
+        self.assertNotIn("blocker", entry)
+        self.assertIn("COMPLIANCE-001", entry.get("stable_blocker", ""))
         self.assertFalse(entry["webflash_build_matrix"])
 
     def test_release_one_required_configs_unchanged(self) -> None:

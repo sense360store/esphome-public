@@ -237,12 +237,14 @@ class TriacTargetTests(unittest.TestCase):
     ) -> None:
         t = self.triac[0]
         self.assertFalse(t["webflash_import_eligibility"]["eligible"])
-        # No longer the "blocked" lane: TRIAC is preview-allowed in principle and
-        # delivered on the advanced-manual-preview lane; only the HW-005
-        # buildability blocker prevents an actual cut.
+        # Delivered on the advanced-manual-preview lane. TRIAC-UNBLOCK-BUILD-001
+        # cleared the HW-005 buildability blocker (build_blocker now null); the
+        # target is buildable and stable stays gated by COMPLIANCE-001. Publish
+        # is the separate TRIAC-PUBLISH-ADVANCED-PREVIEW-001 follow-up.
         self.assertEqual(t["delivery_lane"], "advanced-manual-preview")
         self.assertNotEqual(t["delivery_lane"], "blocked")
-        self.assertTrue(t["build_blocker"])
+        self.assertIsNone(t["build_blocker"])
+        self.assertIn("COMPLIANCE-001", t["stable_blocker"])
         self.assertNotEqual(t["channel_tier"], "stable")
 
     def test_triac_absent_from_webflash_builds(self) -> None:

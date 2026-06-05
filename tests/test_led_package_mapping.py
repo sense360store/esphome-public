@@ -259,7 +259,14 @@ class WebflashBuildsLedExclusionTests(unittest.TestCase):
 
 
 class FanTRIACStatusUnaffectedTests(unittest.TestCase):
-    """HW-010 does not change FanTRIAC's HW-005 blocker."""
+    """HW-010 does not change FanTRIAC's exposure posture.
+
+    TRIAC-UNBLOCK-BUILD-001 (a separate PR) moved FanTRIAC from status: blocked
+    / HW-005 to status: compile-only (HW-005 BUILDABILITY resolved by the
+    SX1509-free Core respin). HW-010 (LED) does not touch FanTRIAC; the
+    preserved invariant is that FanTRIAC stays off the WebFlash build matrix and
+    stable stays gated by COMPLIANCE-001.
+    """
 
     def setUp(self) -> None:
         self.doc = json.loads(PRODUCT_CATALOG.read_text())
@@ -277,15 +284,15 @@ class FanTRIACStatusUnaffectedTests(unittest.TestCase):
         entry = self._entry(FANTRIAC_CONFIG_STRING)
         self.assertEqual(
             entry.get("status"),
-            "blocked",
-            "FanTRIAC must remain status=blocked; HW-010 does not unblock "
-            "FanTRIAC (HW-005 is a separate, still-open blocker).",
+            "compile-only",
+            "FanTRIAC is status=compile-only after TRIAC-UNBLOCK-BUILD-001; "
+            "HW-010 (LED) does not change the FanTRIAC posture.",
         )
-        self.assertEqual(
-            entry.get("blocker"),
-            "HW-005",
-            "FanTRIAC blocker must remain HW-005; HW-010 does not change "
-            "the FanTRIAC blocker identity.",
+        self.assertIn(
+            "COMPLIANCE-001",
+            entry.get("stable_blocker", ""),
+            "FanTRIAC stable must stay gated by COMPLIANCE-001; HW-010 does "
+            "not clear the mains-voltage compliance gate.",
         )
         self.assertEqual(
             entry.get("webflash_build_matrix"),

@@ -11,8 +11,9 @@ preview lanes (``manual-preview`` for FanRelay / FanPWM / FanDAC,
 consistent with the canonical sources without ever publishing a preview
 artifact, adding a ``config/webflash-builds.json`` row, flipping a
 ``config/product-catalog.json`` status, promoting anything to stable, or
-claiming any bench / compliance / hardware / build proof (and, for the
-build-blocked FanTRIAC target, without claiming any compile proof).
+claiming any bench / compliance / hardware proof. FanTRIAC carries
+firmware-build compile proof only (TRIAC-UNBLOCK-BUILD-001 cleared its HW-005
+buildability blocker); no row claims bench / compliance / hardware proof.
 
 Cross-references enforced (metadata only):
 
@@ -34,9 +35,11 @@ Cross-references enforced (metadata only):
     ``config/manual-firmware-artifacts.json`` whose ``product_yaml`` matches,
     carry no build blocker, are buildable now, and cite firmware-build compile
     evidence (run ``26821900127``);
-  * FanTRIAC (advanced-manual-preview) records the HW-005 build blocker, is not
-    buildable now, claims no compile evidence, and uses the
-    ``acknowledgement-gated-advanced`` exposure class;
+  * FanTRIAC (advanced-manual-preview) has its HW-005 build blocker cleared
+    (TRIAC-UNBLOCK-BUILD-001; build_blocker null), is buildable now, carries a
+    firmware-build compile_evidence object (result success), keeps COMPLIANCE-001
+    in its stable_blocker, and uses the ``acknowledgement-gated-advanced``
+    exposure class;
   * every manual-firmware-artifacts candidate is represented here as a
     manual-preview row.
 
@@ -125,7 +128,6 @@ SCOPE_MUST_BE_FALSE = (
     "claims_bench_evidence",
     "claims_compliance",
     "claims_triac_safety_or_compliance_proof",
-    "claims_compile_proof_for_triac",
 )
 
 POSTURE_MUST_BE_FALSE = (
@@ -367,15 +369,40 @@ def validate(
             if row.get("manual_lane_candidate_id") is not None:
                 rerr.append(
                     f"row {rid!r}: TRIAC must not be a manual-firmware-artifacts "
-                    "candidate (it is build-blocked, not a CI build target)"
+                    "candidate (it is delivered on the advanced-manual-preview "
+                    "lane, not the manual-preview CI build lane)"
                 )
-            if not row.get("build_blocker") or "HW-005" not in str(row.get("build_blocker")):
-                rerr.append(f"row {rid!r}: TRIAC must record the HW-005 build_blocker")
-            if row.get("buildable_now") is not False:
-                rerr.append(f"row {rid!r}: TRIAC buildable_now must be false (HW-005)")
-            if row.get("compile_evidence") is not None:
+            # TRIAC-UNBLOCK-BUILD-001: the HW-005 BUILDABILITY blocker is
+            # resolved (SX1509-free Core respin routes TRI_GPIO1/2 direct to
+            # IO13/IO14). build_blocker is cleared, the target is buildable, and
+            # it carries firmware-build compile evidence. Stable stays gated by
+            # COMPLIANCE-001 (+ PACKAGE-TRIAC-001), recorded in stable_blocker.
+            if row.get("build_blocker") is not None:
                 rerr.append(
-                    f"row {rid!r}: TRIAC must claim no compile_evidence (build-blocked)"
+                    f"row {rid!r}: TRIAC build_blocker must be null "
+                    "(HW-005 buildability resolved by TRIAC-UNBLOCK-BUILD-001)"
+                )
+            if row.get("buildable_now") is not True:
+                rerr.append(f"row {rid!r}: TRIAC buildable_now must be true")
+            ev = row.get("compile_evidence")
+            if not isinstance(ev, dict):
+                rerr.append(
+                    f"row {rid!r}: TRIAC must carry a compile_evidence object "
+                    "(buildable, compile-validated)"
+                )
+            else:
+                if ev.get("result") != "success":
+                    rerr.append(
+                        f"row {rid!r}: TRIAC compile_evidence.result must be success"
+                    )
+                if ev.get("proof_class") != "firmware-build-only":
+                    rerr.append(
+                        f"row {rid!r}: TRIAC compile_evidence.proof_class must be "
+                        "firmware-build-only"
+                    )
+            if "COMPLIANCE-001" not in str(row.get("stable_blocker") or ""):
+                rerr.append(
+                    f"row {rid!r}: TRIAC stable_blocker must still cite COMPLIANCE-001"
                 )
         else:
             if lane != "manual-preview":

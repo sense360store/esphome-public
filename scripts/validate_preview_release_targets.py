@@ -369,11 +369,24 @@ def validate(
             if lane != "advanced-manual-preview":
                 terr.append(
                     f"target {tid!r}: TRIAC delivery_lane must be "
-                    "'advanced-manual-preview' (no longer 'blocked'; preview is "
-                    "allowed, only the HW-005 buildability blocker stops a cut)"
+                    "'advanced-manual-preview' (no longer 'blocked')"
                 )
-            if not target.get("build_blocker"):
-                terr.append(f"target {tid!r}: TRIAC must record a build_blocker")
+            # TRIAC-UNBLOCK-BUILD-001: the HW-005 BUILDABILITY blocker is
+            # resolved (SX1509-free Core respin; TRI_GPIO1/2 -> IO13/IO14), so
+            # the TRIAC target's build_blocker is now cleared (null). Stable
+            # stays gated by COMPLIANCE-001 (+ PACKAGE-TRIAC-001) in
+            # stable_blocker; the preview cut is deferred to
+            # TRIAC-PUBLISH-ADVANCED-PREVIEW-001 (publish), not blocked.
+            if target.get("build_blocker") is not None:
+                terr.append(
+                    f"target {tid!r}: TRIAC build_blocker must be null "
+                    "(HW-005 buildability resolved by TRIAC-UNBLOCK-BUILD-001)"
+                )
+            if "COMPLIANCE-001" not in str(target.get("stable_blocker") or ""):
+                terr.append(
+                    f"target {tid!r}: TRIAC stable_blocker must still cite "
+                    "COMPLIANCE-001"
+                )
         elif target.get("is_fan"):
             # Non-TRIAC fan driver: manual-preview lane. The preview /
             # manual-preview WebFlash import is ELIGIBLE

@@ -4,7 +4,7 @@
   "title": "Preview / advanced-preview build rows for the fan-control and TRIAC targets (manual-preview / advanced-manual-preview lanes)",
   "date": "2026-06-03",
   "canonical_doc": "docs/release-preview-fan-triac-build-rows.md",
-  "description": "Concrete, CI-consumable build-row ledger for the four buildable fan-control and TRIAC PREVIEW / advanced-preview release targets that are delivered on the NON-WebFlash preview lanes. This is the manual-preview / advanced-manual-preview analog of config/webflash-builds.json: it records, per target, the config string, product YAML, delivery lane, preview channel, expected preview artifact name, the policy warning copy + key, the release-note draft path, the stable blocker, the build blocker (only FanTRIAC carries one, under HW-005), the firmware-build compile evidence (FanRelay/FanPWM/FanDAC; run 26821900127) or build-blocked status (FanTRIAC), and the commercial posture (hidden / not buyable / not recommended / not customer-default / not stable). It cross-references config/preview-release-targets.json (per target_id) and config/manual-firmware-artifacts.json (per candidate id). This file is build-row METADATA only: it publishes no firmware, adds no config/webflash-builds.json row, flips no config/product-catalog.json status, promotes nothing to stable, claims no bench / compliance / hardware proof (and claims no compile proof for FanTRIAC, which is build-blocked), and does not touch the WebFlash repo. config/webflash-builds.json remains the sole WebFlash release-eligibility source of truth. Read by tests/test_preview_fan_triac_build_rows.py and scripts/validate_preview_fan_triac_build_rows.py.",
+  "description": "Concrete, CI-consumable build-row ledger for the four buildable fan-control and TRIAC PREVIEW / advanced-preview release targets that are delivered on the NON-WebFlash preview lanes. This is the manual-preview / advanced-manual-preview analog of config/webflash-builds.json: it records, per target, the config string, product YAML, delivery lane, preview channel, expected preview artifact name, the policy warning copy + key, the release-note draft path, the stable blocker, the build blocker (now null for all four rows — TRIAC-UNBLOCK-BUILD-001 cleared the FanTRIAC HW-005 BUILDABILITY blocker via the SX1509-free Core respin that routes TRI_GPIO1/TRI_GPIO2 direct to IO13/IO14), the firmware-build compile evidence (FanRelay/FanPWM/FanDAC run 26821900127; FanTRIAC local full compile under TRIAC-UNBLOCK-BUILD-001), and the commercial posture (hidden / not buyable / not recommended / not customer-default / not stable). It cross-references config/preview-release-targets.json (per target_id) and config/manual-firmware-artifacts.json (per candidate id). This file is build-row METADATA only: it publishes no firmware, adds no config/webflash-builds.json row, promotes nothing to stable, claims no bench / compliance / hardware proof (FanTRIAC now carries firmware-build compile proof only), and does not touch the WebFlash repo. config/webflash-builds.json remains the sole WebFlash release-eligibility source of truth. Read by tests/test_preview_fan_triac_build_rows.py and scripts/validate_preview_fan_triac_build_rows.py.",
   "policy_source": "config/release-channel-policy.json",
   "preview_targets_source": "config/preview-release-targets.json",
   "manual_lane_source": "config/manual-firmware-artifacts.json",
@@ -34,8 +34,7 @@
     "claims_hardware_proof": false,
     "claims_bench_evidence": false,
     "claims_compliance": false,
-    "claims_triac_safety_or_compliance_proof": false,
-    "claims_compile_proof_for_triac": false
+    "claims_triac_safety_or_compliance_proof": false
   },
   "guarantees": {
     "nothing_becomes_stable": true,
@@ -53,8 +52,8 @@
     "rows": 4,
     "manual_preview": 3,
     "advanced_manual_preview": 1,
-    "buildable_now": 3,
-    "build_blocked": 1,
+    "buildable_now": 4,
+    "build_blocked": 0,
     "webflash_builds_rows_added": 0
   },
   "rows": [
@@ -321,11 +320,32 @@
       "warning_copy_key": "advanced-preview",
       "release_note_warning": "ADVANCED PREVIEW — MAINS-VOLTAGE RISK. This firmware drives mains-voltage hardware (e.g. TRIAC phase-control dimming) and is for competent persons performing a manual installation only. It is NOT hardware verified, NOT stable, NOT recommended, and is NEVER a default. No bench evidence and no electrical-safety / compliance certification is claimed. Incorrect installation can cause fire, electric shock, or death. Do not install unless you are qualified to work on mains wiring.",
       "release_note_draft": "docs/release-notes/manual-preview/ceiling-poe-ventiq-fantriac-roomiq.md",
-      "stable_blocker": "HW-005 (S360-320 schematic; GPIO5/GPIO6 collision; ac_dimmer cannot run across SX1509) + PACKAGE-TRIAC-001 + COMPLIANCE-001 mains-voltage review.",
-      "build_blocker": "HW-005 BUILDABILITY blocker (NOT a stable-evidence gate and NOT a preview-policy block): S360-320 schematic uncommitted; placeholder GPIO5/GPIO6 collide with RoomIQ J10 nets; ESPHome ac_dimmer cannot run across the SX1509 expander. The target is therefore not yet buildable end-to-end, so no advanced-preview artifact can be cut on the advanced-manual-preview lane until HW-005 resolves. Stable is additionally gated by PACKAGE-TRIAC-001 + COMPLIANCE-001 mains-voltage review.",
-      "buildable_now": false,
-      "compile_evidence": null,
-      "compile_status": "build-blocked-no-compile-proof",
+      "stable_blocker": "COMPLIANCE-001 (mains-voltage electrical-safety review) + PACKAGE-TRIAC-001 (package reconciliation).",
+      "build_blocker": null,
+      "buildable_now": true,
+      "compile_evidence": {
+        "method": "local-full-compile",
+        "tool": "esphome compile (scripts/validate_compile_targets.py --compile equivalent, single target)",
+        "command": "esphome compile products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
+        "esphome_version": "2026.4.5",
+        "date": "2026-06-05",
+        "result": "success",
+        "ram_used_bytes": 49680,
+        "flash_used_bytes": 1002679,
+        "evidence_type": "local-full-compile",
+        "ci_run_id": null,
+        "ci_dispatch_note": "Hosted compile-only.yml (compile_mode=full) is the canonical corroboration lane; workflow_dispatch was not available to the authoring integration, so no hosted CI run id is claimed. A maintainer dispatch of compile-only.yml (or scripts/validate_compile_targets.py --compile) corroborates on hosted CI. No compile is fabricated.",
+        "proof_class": "firmware-build-only",
+        "canonical_id": "TRIAC-UNBLOCK-BUILD-001",
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "compliance",
+          "stable-promotion",
+          "customer-availability"
+        ]
+      },
+      "compile_status": "validated-full-compile",
       "commercial_posture": {
         "visibility": "hidden",
         "lifecycle": "candidate",
@@ -336,7 +356,7 @@
         "release_one_required_config": false
       },
       "consuming_bundles": [],
-      "notes": "Mains-voltage TRIAC phase-cut dimming. ADVANCED-PREVIEW only, on the advanced-manual-preview lane, behind an explicit advanced acknowledgement gate. BUILD-BLOCKED by HW-005 (S360-320 schematic uncommitted; GPIO5/GPIO6 collide with RoomIQ J10 nets; ac_dimmer cannot run across the SX1509 expander), so no compile/firmware artifact exists and none is cut here. Not forced into the normal WebFlash preview path. Never stable, recommended, default, required-config, buyable, or WebFlash-importable. No safety/compliance proof is claimed."
+      "notes": "Mains-voltage TRIAC phase-cut dimming. ADVANCED-PREVIEW only, on the advanced-manual-preview lane, behind an explicit advanced acknowledgement gate. TRIAC-UNBLOCK-BUILD-001 resolved the HW-005 BUILDABILITY blocker: the SX1509-free S360-100-R4 Core respin routes TRI_GPIO1/TRI_GPIO2 direct to interrupt-capable ESP32-S3 GPIOs (gate IO13, zero-cross IO14), replacing the placeholder GPIO5/GPIO6 that collided with RoomIQ SEN0609 on J10, so ESPHome ac_dimmer can attach its interrupt/ISR. buildable_now is true and the target carries a real local full-compile (ESPHome 2026.4.5; success). Still NOT forced into the normal WebFlash preview path; never stable, recommended, default, required-config, buyable, or WebFlash-importable. Stable stays gated by COMPLIANCE-001 (mains-voltage review) + PACKAGE-TRIAC-001; no bench / EMI / thermal / safety / compliance proof is claimed. Publishing the advanced-manual-preview artifact is the follow-up TRIAC-PUBLISH-ADVANCED-PREVIEW-001."
     }
   ]
 }

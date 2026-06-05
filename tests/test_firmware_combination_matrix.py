@@ -136,10 +136,15 @@ class FirmwareMatrixGeneratorTests(unittest.TestCase):
                 f"webflash-builds entry {cs!r} missing from matrix",
             )
 
-    def test_fantriac_catalog_entry_is_classified_blocked_hardware(self):
+    def test_fantriac_catalog_entry_is_classified_compile_only(self):
+        # TRIAC-UNBLOCK-BUILD-001 moved the Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
+        # catalog entry to status: compile-only, so the matrix classifier
+        # derives compile-only-candidate (was blocked-hardware / HW-005). The
+        # other FanTRIAC family combinations (no catalog entry) stay
+        # blocked-hardware.
         row = self.by_config[FANTRIAC_BLOCKED_CONFIG_STRING]
-        self.assertEqual(row["status"], "blocked-hardware")
-        self.assertIn("HW-005", row.get("blockers", []))
+        self.assertEqual(row["status"], "compile-only-candidate")
+        self.assertNotIn("HW-005", row.get("blockers", []))
         self.assertEqual(
             row.get("product_yaml"),
             "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
