@@ -41,7 +41,8 @@ python3 scripts/report_firmware_build_gaps.py --check    # CI-style freshness ch
 
 - Total valid combinations: **168**
 - `blocked-hardware`: 42
-- `compile-only-candidate`: 3
+- `blocked-package`: 1
+- `compile-only-candidate`: 2
 - `missing-product-yaml`: 118
 - `webflash-preview`: 4
 - `webflash-shipping`: 1

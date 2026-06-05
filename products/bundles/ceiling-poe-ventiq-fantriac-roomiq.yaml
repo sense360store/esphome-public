@@ -22,7 +22,7 @@
 # - Core         : Sense360 Core    (S360-100-R4, ESP32-S3, ceiling mount)
 # - Power        : Sense360 PoE PSU (S360-410, IEEE 802.3af)
 # - Air Quality  : Sense360 VentIQ  (S360-211, bathroom-focused) — schematic verification pending
-# - Fan Driver   : Sense360 TRIAC   (S360-320, AC phase-cut) — pin mapping unverified, see audit
+# - Fan Driver   : Sense360 TRIAC   (S360-320, AC phase-cut) — TRI_GPIO1/2 -> IO14/IO13 (schematic-verified); blocked pending bench, see audit
 # - Room Sense   : Sense360 RoomIQ  (S360-200-R4, comfort + presence)
 # - LED          : not included     (Sense360 LED S360-300 is an optional add-on;
 #                                    config string `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
@@ -63,9 +63,12 @@ substitutions:
   wifi_fast_connect: "false"
 
   # === WiFi AP fallback ===
-  # NOTE: This product is BLOCKED / REFERENCE-ONLY (HW-005) and MUST NOT
-  # ship as TRIAC-capable. See the FanTRIAC pins comment block below and
-  # docs/release-one-hardware-audit.md#fantriac-mapping-resolution.
+  # NOTE: This product is BLOCKED / REFERENCE-ONLY (pending the
+  # PACKAGE-TRIAC-001 operator bench + COMPLIANCE-001 mains sign-off) and
+  # MUST NOT ship as TRIAC-capable. The J15 pin mapping is schematic-verified
+  # (gate IO14 / zero-cross IO13, HW-005 BUILDABILITY resolved); what remains
+  # is bench + compliance. See the FanTRIAC pins comment block below and
+  # docs/hardware/s360-100-core-connector-pin-map.md (J15).
   #
   # The base wifi package (packages/base/wifi.yaml) defaults fallback_ssid
   # to '${device_name} FB'. The historical device_name
@@ -91,28 +94,33 @@ substitutions:
   mold_risk_duration_minutes: "30"
 
   # === FanTRIAC pins ===
-  # BLOCKED / UNVERIFIED (HW-005) — must not ship as FanTRIAC-capable.
+  # SCHEMATIC-VERIFIED MAPPING, BUILD BLOCKED (bench + COMPLIANCE-001 pending).
   # See: docs/hardware/s360-100-core-connector-pin-map.md (J15, authoritative)
   #      and docs/hardware/s360-320-r4-triac.md (HW-PINMAP-320 audit).
   #
-  # The S360-100-R4 Core uses native ESP32-S3 GPIO (no SX1509 expander), but
-  # the committed Core pin-map marks the ESP32-side source pins for the J15
-  # TRIAC nets TRI_GPIO1 / TRI_GPIO2 as TBD, pending a KiCad/silkscreen-
-  # confirmed assignment. No FanTRIAC pin mapping is schematic-backed.
+  # The SX1509-free S360-100-R4 Core routes the J15 TRIAC connector nets
+  # TRI_GPIO1 / TRI_GPIO2 DIRECT to interrupt-capable ESP32-S3 GPIOs. The
+  # schematic-verified mapping, traced from S360-100-R4 (net->pin) and
+  # S360-320-R4 (gate-vs-zero-cross roles), is:
   #
-  # A prior change (TRIAC-UNBLOCK-BUILD-001) assigned TRI_GPIO1 -> IO13 and
-  # TRI_GPIO2 -> IO14 and flipped this build to compile-only; that mapping was
-  # NOT backed by a committed schematic and has been reverted
-  # (TRIAC-REBLOCK-PINMAP-001). Note GPIO14 is the Core WS2812B LED-ring data
-  # line (led_data_pin in packages/hardware/sense360_core_ceiling_s3.yaml), so
-  # it is not free for the TRIAC zero-cross.
+  #   - TRI_GPIO1 -> IO14 (gate output, drives the U1 MOC3023M opto-triac)
+  #   - TRI_GPIO2 -> IO13 (zero-cross input, reads the OK1 EL814 opto-coupler)
   #
-  # Do NOT invent GPIOs to "fix" this. Resolution requires a KiCad-confirmed
-  # TRI_GPIO1 / TRI_GPIO2 source-pin assignment. The placeholder values below
-  # are parse-only so this reference YAML still parses; firmware compiled from
-  # this YAML must NOT be published as TRIAC-capable.
-  fan_triac_gate_pin: GPIO5
-  fan_triac_zc_pin: GPIO6
+  # This corrects the earlier gate/zero-cross transposition (TRIAC-UNBLOCK-
+  # BUILD-001 had gate IO13 / zero-cross IO14) and replaces the placeholder
+  # GPIO5/GPIO6 left by TRIAC-REBLOCK-PINMAP-001. It resolves HW-005
+  # BUILDABILITY and the HW-PINMAP-320-FOLLOWUP source-pin question
+  # (schematic-backed). No LED package is composed in this bundle and the Core
+  # ceiling package does not drive the LED ring, so the pins carry no
+  # conflicting net here.
+  #
+  # The product STAYS BLOCKED / reference-only: this is NOT bench verification
+  # and NOT COMPLIANCE-001 mains-voltage sign-off. It must NOT ship as
+  # TRIAC-capable until PACKAGE-TRIAC-001 (operator bench) + COMPLIANCE-001
+  # are cleared, and is never stable / recommended / default / buyable /
+  # WebFlash-exposed.
+  fan_triac_gate_pin: GPIO14
+  fan_triac_zc_pin: GPIO13
   fan_triac_line_frequency: "50"
 
 # ============================================================================
@@ -162,8 +170,9 @@ packages:
   roomiq_presence_profile: !include ../../packages/features/presence_basic_profile.yaml
 
   # === Sense360 TRIAC (S360-320, AC phase-cut fan driver) ===
-  # Pin mapping unverified; see substitutions block above and
-  # docs/release-one-hardware-audit.md (FanTRIAC row).
+  # Schematic-verified mapping (TRI_GPIO1/2 -> IO14/IO13); build blocked
+  # pending PACKAGE-TRIAC-001 bench + COMPLIANCE-001. See the substitutions
+  # block above and docs/hardware/s360-100-core-connector-pin-map.md (J15).
   fan_module: !include ../../packages/expansions/fan_triac.yaml
   fan_profile: !include ../../packages/features/fan_control_profile.yaml
 

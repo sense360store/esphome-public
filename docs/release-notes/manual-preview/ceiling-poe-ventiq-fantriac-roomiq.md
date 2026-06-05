@@ -39,7 +39,7 @@ separate TRIAC-PUBLISH-ADVANCED-PREVIEW-001 follow-up).
 > delivered via the **advanced-manual-preview** lane only and is **not**
 > WebFlash-importable. The `HW-005` buildability blocker is **resolved**
 > (TRIAC-UNBLOCK-BUILD-001: the SX1509-free Core respin routes TRI_GPIO1/TRI_GPIO2
-> direct to interrupt-capable ESP32-S3 GPIOs — gate IO13, zero-cross IO14), so
+> direct to interrupt-capable ESP32-S3 GPIOs — gate IO14, zero-cross IO13), so
 > the target now compiles; this is **firmware-build compile proof only** and
 > **no hardware, bench, or compliance proof exists or is claimed.** The artifact
 > is buildable but **not yet published** (publish is a separate follow-up).
@@ -57,8 +57,8 @@ separate TRIAC-PUBLISH-ADVANCED-PREVIEW-001 follow-up).
 - **Buildability resolved (firmware-build compile proof only).**
   TRIAC-UNBLOCK-BUILD-001 cleared the `HW-005` buildability blocker: the
   SX1509-free S360-100-R4 Core respin routes the J15 TRIAC nets
-  TRI_GPIO1/TRI_GPIO2 direct to interrupt-capable ESP32-S3 GPIOs (gate IO13,
-  zero-cross IO14), replacing the placeholder GPIO5/GPIO6 that collided with
+  TRI_GPIO1/TRI_GPIO2 direct to interrupt-capable ESP32-S3 GPIOs (gate IO14,
+  zero-cross IO13), replacing the placeholder GPIO5/GPIO6 that collided with
   RoomIQ on J10, so ESPHome `ac_dimmer` compiles. The target is registered in
   the compile-only validation lane. No hardware, bench, compliance, or
   commercial-availability proof is claimed.
@@ -95,4 +95,4 @@ separate TRIAC-PUBLISH-ADVANCED-PREVIEW-001 follow-up).
 - Sense360 PoE PSU (`S360-410`)
 - Sense360 VentIQ (`S360-211`)
 - Sense360 RoomIQ (`S360-200`)
-- Sense360 TRIAC (`S360-320`) — mains phase-cut dimmer; schematic-backed pin mapping (TRI_GPIO1/2 → IO13/IO14), bench verification + `COMPLIANCE-001` pending
+- Sense360 TRIAC (`S360-320`) — mains phase-cut dimmer; schematic-backed pin mapping (TRI_GPIO1/2 → IO14/IO13), bench verification + `COMPLIANCE-001` pending

@@ -158,13 +158,16 @@ class ReleaseOneProductionTests(unittest.TestCase):
 
 
 class FanTriacBlockedTests(unittest.TestCase):
-    """Targeted checks on the FanTRIAC compile-only entry.
+    """Targeted checks on the FanTRIAC blocked entry.
 
-    TRIAC-UNBLOCK-BUILD-001 moved FanTRIAC from status: blocked / HW-005 to
-    status: compile-only (HW-005 BUILDABILITY resolved by the SX1509-free Core
-    respin). The preserved invariants are pinned here: NOT in the WebFlash
-    build matrix, no artifact_name, NOT in config/webflash-builds.json, and
-    stable still gated by COMPLIANCE-001 (+ PACKAGE-TRIAC-001).
+    TRIAC-PINMAP-CORRECT-001 corrected the gate/zero-cross pin mapping to the
+    schematic-verified GPIO14/GPIO13 and reconciled the entry: the product
+    STAYS status: blocked (HW-005 BUILDABILITY + HW-PINMAP-320-FOLLOWUP are
+    resolved, but bench PACKAGE-TRIAC-001 + mains COMPLIANCE-001 keep it
+    blocked), schematic_status is schematic-backed, and the blocker is moved
+    off HW-005 to PACKAGE-TRIAC-001 + COMPLIANCE-001. The preserved invariants
+    are pinned here: NOT in the WebFlash build matrix, no artifact_name, NOT in
+    config/webflash-builds.json.
     """
 
     @classmethod
@@ -172,13 +175,19 @@ class FanTriacBlockedTests(unittest.TestCase):
         cls.entry = _entry_by_config_string(FANTRIAC_CONFIG_STRING)
         cls.builds = _build_config_strings()
 
-    def test_status_is_compile_only(self) -> None:
-        self.assertEqual(self.entry["status"], "compile-only")
+    def test_status_is_blocked(self) -> None:
+        self.assertEqual(self.entry["status"], "blocked")
 
-    def test_stable_blocker_cites_compliance_001(self) -> None:
-        self.assertIn("stable_blocker", self.entry)
-        self.assertIsInstance(self.entry["stable_blocker"], str)
-        self.assertIn("COMPLIANCE-001", self.entry["stable_blocker"])
+    def test_schematic_status_is_schematic_backed(self) -> None:
+        self.assertEqual(self.entry.get("schematic_status"), "schematic-backed")
+
+    def test_blocker_cites_package_triac_and_compliance(self) -> None:
+        self.assertIn("blocker", self.entry)
+        self.assertIsInstance(self.entry["blocker"], str)
+        self.assertIn("PACKAGE-TRIAC-001", self.entry["blocker"])
+        self.assertIn("COMPLIANCE-001", self.entry["blocker"])
+        # HW-005 buildability is resolved; it must no longer be the blocker.
+        self.assertNotEqual(self.entry["blocker"], "HW-005")
 
     def test_reason_present(self) -> None:
         self.assertIn("reason", self.entry)

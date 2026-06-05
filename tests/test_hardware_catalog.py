@@ -234,7 +234,7 @@ class HW008StillUnverifiedSKUsTests(unittest.TestCase):
             "schematic-backed",
             "S360-320 must be schematic-backed after TRIAC-UNBLOCK-BUILD-001 "
             "(HW-005 BUILDABILITY resolved by the SX1509-free Core respin; "
-            "TRI_GPIO1/2 -> IO13/IO14).",
+            "TRI_GPIO1/2 -> IO14/IO13, corrected by TRIAC-PINMAP-CORRECT-001).",
         )
         self.assertNotEqual(
             entry.get("schematic_status"),

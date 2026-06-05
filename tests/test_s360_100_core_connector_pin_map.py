@@ -491,25 +491,45 @@ class DoNotChangeGuardrailsTests(unittest.TestCase):
             f"{violations}",
         )
 
-    def test_doc_does_not_advance_fan_triac_blocker(self) -> None:
-        text = PINMAP_DOC.read_text().lower()
-        # The doc must keep FanTRIAC HW-005 blocked; it may say
-        # 'blocked' / 'unchanged' / 'not advanced' but must not flip
-        # it to resolved / closed / unblocked.
+    def test_doc_records_pin_resolution_but_not_bench_or_compliance(self) -> None:
+        # TRIAC-PINMAP-CORRECT-001: the pin map now records the J15
+        # HW-005 BUILDABILITY + HW-PINMAP-320-FOLLOWUP pin resolution
+        # (gate TRI_GPIO1 = IO14 / GPIO14; zero-cross TRI_GPIO2 = IO13 /
+        # GPIO13). It must record the corrected pins and keep the bench
+        # (PACKAGE-TRIAC-001) + mains-compliance (COMPLIANCE-001) gates
+        # cited as still-open; it must NOT over-claim those gates as
+        # resolved/cleared, and the product stays status: blocked.
+        # (Stable / release / WebFlash readiness is separately guarded by
+        # test_doc_does_not_claim_release_readiness.)
+        lower = PINMAP_DOC.read_text().lower()
+        for needle in ("hw-pinmap-320-followup", "gpio14", "gpio13"):
+            with self.subTest(present=needle):
+                self.assertIn(
+                    needle,
+                    lower,
+                    f"Pin map must record the corrected J15 resolution "
+                    f"(missing {needle!r}).",
+                )
+        for needle in ("package-triac-001", "compliance-001"):
+            with self.subTest(open_gate=needle):
+                self.assertIn(
+                    needle,
+                    lower,
+                    f"Pin map must keep the FanTRIAC {needle!r} gate cited "
+                    "as still-open.",
+                )
         for forbidden in (
-            "hw-005 resolved",
-            "hw-005 closed",
-            "fan triac unblocked",
-            "fan triac resolved",
-            "fantriac resolved",
-            "fantriac unblocked",
+            "package-triac-001 resolved",
+            "package-triac-001 cleared",
+            "compliance-001 resolved",
+            "compliance-001 cleared",
         ):
             with self.subTest(phrase=forbidden):
                 self.assertNotIn(
                     forbidden,
-                    text,
-                    f"Pin map must not advance FanTRIAC HW-005 (phrase: "
-                    f"{forbidden!r}).",
+                    lower,
+                    f"Pin map must not over-claim FanTRIAC bench/compliance "
+                    f"readiness (phrase: {forbidden!r}).",
                 )
 
     def test_doc_does_not_advance_poe_410_blocker(self) -> None:
