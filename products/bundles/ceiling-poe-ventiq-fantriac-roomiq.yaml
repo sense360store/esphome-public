@@ -22,7 +22,7 @@
 # - Core         : Sense360 Core    (S360-100-R4, ESP32-S3, ceiling mount)
 # - Power        : Sense360 PoE PSU (S360-410, IEEE 802.3af)
 # - Air Quality  : Sense360 VentIQ  (S360-211, bathroom-focused) — schematic verification pending
-# - Fan Driver   : Sense360 TRIAC   (S360-320, AC phase-cut) — pin mapping unverified, see audit
+# - Fan Driver   : Sense360 TRIAC   (S360-320, AC phase-cut) — TRI_GPIO1/2 -> IO13/IO14, see audit
 # - Room Sense   : Sense360 RoomIQ  (S360-200-R4, comfort + presence)
 # - LED          : not included     (Sense360 LED S360-300 is an optional add-on;
 #                                    config string `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
@@ -47,9 +47,10 @@
 
 substitutions:
   # === Device Configuration ===
-  # BLOCKED / REFERENCE ONLY — this product is NOT in the WebFlash build
-  # matrix (see header). Shortened hostname so the YAML still parses past
-  # ESPHome's 31-char hostname check; this does not unblock FanTRIAC.
+  # COMPILE-ONLY / ADVANCED-PREVIEW — this product is NOT in the WebFlash
+  # build matrix (see header) and is never stable / recommended / default.
+  # Shortened hostname so the YAML stays inside ESPHome's 31-char hostname
+  # check.
   device_name: s360-ceil-poe-ventiq-triac
   friendly_name: Sense360 Ceiling Bathroom
   device_sku: S360-CORE-C-POE
@@ -63,21 +64,17 @@ substitutions:
   wifi_fast_connect: "false"
 
   # === WiFi AP fallback ===
-  # NOTE: This product is BLOCKED / REFERENCE-ONLY (HW-005) and MUST NOT
-  # ship as TRIAC-capable. See the FanTRIAC pins comment block below and
-  # docs/release-one-hardware-audit.md#fantriac-mapping-resolution.
+  # NOTE: This product is COMPILE-ONLY / ADVANCED-PREVIEW. The HW-005
+  # buildability blocker is resolved (TRI_GPIO1/2 -> IO13/IO14, see the
+  # FanTRIAC pins comment block below and docs/hardware/s360-320-r4-triac.md),
+  # but stable remains gated by COMPLIANCE-001 (+ PACKAGE-TRIAC-001), so this
+  # build is never stable / recommended / default and is not in the WebFlash
+  # build matrix.
   #
   # The base wifi package (packages/base/wifi.yaml) defaults fallback_ssid
-  # to '${device_name} FB'. The historical device_name
-  # ('sense360-ceiling-poe-ventiq-fantriac-roomiq') made that resolve to
-  # 46 chars; even the shortened device_name above
-  # ('s360-ceil-poe-ventiq-triac', 26 chars) still benefits from an
-  # explicit literal so this blocked/reference YAML continues to parse
-  # past ESPHome's 32-character AP SSID limit. The override exists ONLY
-  # so that ESPHome config validation in tests/CI can parse this YAML
-  # while the FanTRIAC blocker remains open; it does not make this build
-  # production-eligible.
-  fallback_ssid: "S360 TRIAC BLOCKED"
+  # to '${device_name} FB'. An explicit literal keeps the AP SSID inside
+  # ESPHome's 32-character limit regardless of the device_name above.
+  fallback_ssid: "S360 TRIAC Preview"
 
   # === Power configuration (PoE) ===
   power_source: poe
@@ -91,29 +88,33 @@ substitutions:
   mold_risk_duration_minutes: "30"
 
   # === FanTRIAC pins ===
-  # BLOCKED / UNVERIFIED — must not ship as FanTRIAC-capable.
-  # See: docs/release-one-hardware-audit.md#fantriac-mapping-resolution
+  # SCHEMATIC-BACKED, COMPILE-ONLY, ADVANCED-PREVIEW.
+  # See: docs/hardware/s360-320-r4-triac.md (HW-PINMAP-320 audit) and
+  #      docs/hardware/s360-100-r4-core.md (J15 TRIAC connector).
   #
-  # Summary of the blocker (full evidence and ship verdict in the audit doc):
+  # The S360-100-R4 Core was respun WITHOUT the SX1509 expander. The J15
+  # TRIAC connector nets TRI_GPIO1 / TRI_GPIO2 now route DIRECT to
+  # interrupt-capable ESP32-S3 GPIOs, so ESPHome's `ac_dimmer` (used by
+  # packages/expansions/fan_triac.yaml) can attach its hardware interrupt and
+  # gate-firing ISR as required. This resolves the HW-005 BUILDABILITY blocker
+  # (the old GPIO5/GPIO6 placeholders collided with RoomIQ SEN0609 on J10, and
+  # the connector previously routed through the SX1509, which ac_dimmer cannot
+  # use).
   #
-  #   - S360-100-R4 IO5 = SEN0609_TX (RoomIQ radar UART) — already used by RoomIQ
-  #   - S360-100-R4 IO6 = out(gpio6) (RoomIQ aux)        — already used by RoomIQ
-  #   - J15 TRIAC connector carries TRI_GPIO1 / TRI_GPIO2; on the Core sheet
-  #     these nets are visible only at the SX1509 (U3) side. The S360-320
-  #     Sense360 TRIAC schematic is not yet committed to this repo, so the
-  #     end-to-end ESP32 ↔ J15 path cannot be confirmed.
-  #   - Even if the routing were known, ESPHome's `ac_dimmer` (used by
-  #     packages/expansions/fan_triac.yaml) requires direct interrupt-capable
-  #     ESP32 GPIOs for both the gate and the zero-cross input. SX1509
-  #     expander pins cannot satisfy the required sub-millisecond timing.
+  #   - TRI_GPIO1 -> IO13 (gate output, drives the MOC3023M opto-triac)
+  #   - TRI_GPIO2 -> IO14 (zero-cross input, reads the EL814 opto-coupler)
   #
-  # Do NOT change these values to "fix" the conflict by inventing GPIOs.
-  # Resolution requires the S360-320 schematic plus a verified direct-ESP32
-  # mapping (or a different driver entirely). The placeholder values below
-  # are kept only so the YAML still parses; firmware compiled from this YAML
-  # must not be published as TRIAC-capable.
-  fan_triac_gate_pin: GPIO5
-  fan_triac_zc_pin: GPIO6
+  # Both pins are direct, interrupt-capable ESP32-S3 GPIOs: not strapping
+  # pins, not PSRAM-reserved, and free of the RoomIQ J10 / SEN0609 nets.
+  # TRI_GPIO1 / TRI_GPIO2 are the canonical (Core-side) net names; the
+  # S360-320 module schematic labels the same two nets ESP_GPIO1 / ESP_GPIO2.
+  #
+  # This resolves HW-005 BUILDABILITY ONLY. It is NOT bench verification and
+  # NOT COMPLIANCE-001 mains-voltage sign-off: this build stays compile-only /
+  # advanced-manual-preview, never stable, recommended, default, or buyable,
+  # and is never auto-imported into WebFlash.
+  fan_triac_gate_pin: GPIO13
+  fan_triac_zc_pin: GPIO14
   fan_triac_line_frequency: "50"
 
 # ============================================================================
@@ -163,8 +164,8 @@ packages:
   roomiq_presence_profile: !include ../../packages/features/presence_basic_profile.yaml
 
   # === Sense360 TRIAC (S360-320, AC phase-cut fan driver) ===
-  # Pin mapping unverified; see substitutions block above and
-  # docs/release-one-hardware-audit.md (FanTRIAC row).
+  # Schematic-backed direct GPIO mapping (TRI_GPIO1/2 -> IO13/IO14); see the
+  # substitutions block above and docs/hardware/s360-320-r4-triac.md.
   fan_module: !include ../../packages/expansions/fan_triac.yaml
   fan_profile: !include ../../packages/features/fan_control_profile.yaml
 
