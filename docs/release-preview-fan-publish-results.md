@@ -1,5 +1,10 @@
 # Manual-preview fan firmware publish — recorded successful run
 
+> **Workflow since merged:** this run was executed by the standalone
+> `Manual-Preview Fan Firmware Publish` workflow, which has since been merged into
+> [`preview-fan-publish.yml`](../.github/workflows/preview-fan-publish.yml)
+> (`fan_set: single-driver`). This historical run record is unchanged.
+
 **Canonical id:** `RELEASE-PREVIEW-FAN-PUBLISH-RESULTS-001`
 **Date:** 2026-06-03
 **Type:** Records the **successful** `Manual-Preview Fan Firmware Publish`
