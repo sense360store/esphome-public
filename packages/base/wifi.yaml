@@ -1,7 +1,5 @@
 substitutions:
   fallback_ssid: "${device_name} FB"
-  # Default fallback AP password - can be overridden in product files
-  fallback_ap_password: "Sense360Fallback"
 
 wifi:
   networks:
@@ -13,6 +11,12 @@ wifi:
   power_save_mode: light
   ap:
     ssid: "${fallback_ssid}"
-    password: "${fallback_ap_password}"
+    # SEC-ESP-FALLBACK-AP-001: the fallback access-point password is a real
+    # credential (the AP + captive_portal activates whenever the device cannot
+    # join WiFi), so it must come from secrets.yaml — never a committed literal
+    # baked identically into every shipped unit. Mirror the main WiFi block
+    # above. Provide a unique, strong value per build in secrets.yaml
+    # (see secrets.example.yaml).
+    password: !secret fallback_ap_password
 
 captive_portal:

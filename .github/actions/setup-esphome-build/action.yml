@@ -101,6 +101,20 @@ runs:
           cp secrets.yaml "$d/secrets.yaml"
         done
 
+    - name: Reject known fallback-AP password literals (SEC-ESP-FALLBACK-AP-001)
+      shell: bash
+      run: |
+        # security.md finding #1: the historical hardcoded fallback-AP
+        # passwords ("Sense360Fallback" / "sense360poe") must never compile
+        # into firmware. packages/base/wifi.yaml now reads the value from
+        # `!secret fallback_ap_password`; this guard fails the build if either
+        # banned literal reappears in the provisioned secrets.yaml or in
+        # committed packages/ or products/ YAML. The disposable CI/build
+        # credentials provisioned above ("fallback123" / "sense360fallback")
+        # are intentionally NOT banned, so every compile / preview / release
+        # lane stays green.
+        python3 scripts/check_fallback_ap_password.py --secrets secrets.yaml
+
     - name: Patch external_components to local checked-out source
       if: inputs.patch-external-components == 'true'
       shell: bash
