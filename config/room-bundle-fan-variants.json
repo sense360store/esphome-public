@@ -5,7 +5,7 @@
   "title": "Bathroom & Kitchen fan-control PREVIEW bundle variants",
   "date": "2026-06-03",
   "canonical_doc": "docs/sense360-room-bundles.md",
-  "description": "Source-of-truth promotion of the Bathroom and Kitchen PoE room-bundle fan-control variants from planning-only (ROOM-BUNDLE-FAN-VARIANTS-001) to an explicit PREVIEW bundle plan (ROOM-BUNDLE-FAN-VARIANTS-002). The plan is that WebFlash easy mode becomes a bundle picker in which these fan-control variants MAY appear as Advanced-install-only, acknowledgement-gated PREVIEW bundle products (with warnings); the stable / full release of every fan-control variant stays gated behind hardware / bench-evidence / compliance gates. This file remains documentation / source-of-truth metadata only: it adds no product YAML, no firmware config string, no artifact_name, no config/webflash-builds.json row, flips no webflash_build_matrix, publishes no firmware, and does NOT touch the WebFlash repo. Per-variant fields record the real firmware-config status verified against config/preview-release-targets.json, config/preview-fan-triac-build-rows.json, config/manual-firmware-artifacts.json, config/product-catalog.json, and config/webflash-builds.json. Missing full-bundle firmware configs are marked preview-planned-missing-config and are NOT silently exposed; a fan-only config (e.g. Ceiling-POE-FanPWM / Ceiling-POE-FanDAC) is deliberately NOT substituted for a room-bundle variant because it omits the bundle's room-sensing modules. Relay / PWM / 0-10V (DAC) / TRIAC control are NOT interchangeable at runtime. Only Bathroom and Kitchen have fan variants; Corridor / Landing, Living Room, and Bedroom remain sensing / status bundles. Bathroom TRIAC is an ADVANCED / manual-warning preview only and is currently build-blocked (HW-005); Kitchen has NO TRIAC variant. See docs/sense360-room-bundles.md.",
+  "description": "Source-of-truth promotion of the Bathroom and Kitchen PoE room-bundle fan-control variants from planning-only (ROOM-BUNDLE-FAN-VARIANTS-001) to an explicit PREVIEW bundle plan (ROOM-BUNDLE-FAN-VARIANTS-002). The plan is that WebFlash easy mode becomes a bundle picker in which these fan-control variants MAY appear as Advanced-install-only, acknowledgement-gated PREVIEW bundle products (with warnings); the stable / full release of every fan-control variant stays gated behind hardware / bench-evidence / compliance gates. This file remains documentation / source-of-truth metadata only: it adds no product YAML, no firmware config string, no artifact_name, no config/webflash-builds.json row, flips no webflash_build_matrix, publishes no firmware, and does NOT touch the WebFlash repo. Per-variant fields record the real firmware-config status verified against config/preview-release-targets.json, config/preview-fan-triac-build-rows.json, config/manual-firmware-artifacts.json, config/product-catalog.json, and config/webflash-builds.json. Missing full-bundle firmware configs are marked preview-planned-missing-config and are NOT silently exposed; a fan-only config (e.g. Ceiling-POE-FanPWM / Ceiling-POE-FanDAC) is deliberately NOT substituted for a room-bundle variant because it omits the bundle's room-sensing modules. Relay / PWM / 0-10V (DAC) / TRIAC control are NOT interchangeable at runtime. Only Bathroom and Kitchen have fan variants; Corridor / Landing, Living Room, and Bedroom remain sensing / status bundles. Bathroom TRIAC is an ADVANCED / manual-warning preview only; its HW-005 buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001) but the advanced-manual-preview PUBLISH (TRIAC-PUBLISH-ADVANCED-PREVIEW-001) stays gated by PACKAGE-TRIAC-001 + COMPLIANCE-001 — no artifact is cut and no preview / advanced-preview row is added until both land, and the acknowledgement gate is an additional UX warning on top of those publish gates, never a substitute. Kitchen has NO TRIAC variant. See docs/sense360-room-bundles.md.",
   "sources": {
     "room_bundle_skus": "config/room-bundle-skus.json",
     "hardware_catalog": "config/hardware-catalog.json",
@@ -216,10 +216,27 @@
         "product_yaml": "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
         "delivery_lane": "advanced-manual-preview",
         "product_yaml_exists": true,
-        "buildable_now": false,
-        "build_blocker": "HW-005 BUILDABILITY blocker: S360-320 schematic uncommitted; placeholder GPIO5/GPIO6 collide with RoomIQ J10 nets; ESPHome ac_dimmer cannot run across the SX1509 expander. No advanced-preview artifact can be cut until HW-005 resolves.",
+        "buildable_now": true,
+        "build_blocker": null,
+        "build_blocker_history": "HW-005 BUILDABILITY is RESOLVED (TRIAC-PINMAP-CORRECT-001): the SX1509-free S360-100-R4 Core routes the J15 TRIAC nets TRI_GPIO1/TRI_GPIO2 direct to interrupt-capable ESP32-S3 GPIOs (gate IO14 -> U1 MOC3023M opto-triac; zero-cross IO13 -> OK1 EL814 zero-cross opto-coupler), replacing the placeholder GPIO5/GPIO6 that collided with RoomIQ on J10, so ESPHome ac_dimmer attaches its interrupt/ISR. The full composition compiles (local full ESPHome compile, success); schematic_status is schematic-backed, NOT bench-verified. No buildability blocker remains. The remaining blocker is the advanced-manual-preview PUBLISH gate (PACKAGE-TRIAC-001 + COMPLIANCE-001) recorded in advanced_preview_publish_gate below.",
         "expected_artifact_name": "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-preview.bin",
         "catalog_status": "blocked"
+      },
+      "advanced_preview_publish_gate": {
+        "id": "TRIAC-PUBLISH-ADVANCED-PREVIEW-001",
+        "status": "blocked",
+        "gate_type": "publish-gate",
+        "gated_by": [
+          "PACKAGE-TRIAC-001",
+          "COMPLIANCE-001"
+        ],
+        "is_acknowledgement_gate": false,
+        "acknowledgement_gate_is_additional_ux_warning_not_a_substitute": true,
+        "artifact_cut": false,
+        "preview_or_advanced_preview_row_added": false,
+        "requires_operator_bench": "PACKAGE-TRIAC-001",
+        "requires_mains_voltage_signoff": "COMPLIANCE-001",
+        "note": "The advanced-manual-preview PUBLISH (TRIAC-PUBLISH-ADVANCED-PREVIEW-001) is gated by PACKAGE-TRIAC-001 (operator bench) AND COMPLIANCE-001 (mains-voltage electrical-safety sign-off), NOT by an acknowledgement gate. No TRIAC firmware artifact is cut, and no preview / advanced-preview row is added, until BOTH the operator bench and the mains-voltage sign-off land. The advanced (mains-risk) acknowledgement gate is an additional UX warning layered on top of these publish gates, never a substitute for them."
       },
       "composition_check": {
         "includes_base_room_modules": true,
@@ -228,7 +245,7 @@
           "RoomIQ"
         ],
         "fan_only_config_substituted": false,
-        "note": "The intended config Ceiling-POE-VentIQ-FanTRIAC-RoomIQ is a correct full-bundle composition (VentIQ + RoomIQ + FanTRIAC), but it is build-blocked (HW-005) so no installable artifact exists."
+        "note": "The intended config Ceiling-POE-VentIQ-FanTRIAC-RoomIQ is a correct full-bundle composition (VentIQ + RoomIQ + FanTRIAC). HW-005 buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001) and it compiles, but no installable artifact exists because the advanced-manual-preview PUBLISH stays gated by PACKAGE-TRIAC-001 + COMPLIANCE-001 — no .bin is cut and no preview / advanced-preview row is added until both land."
       },
       "webflash_easy_mode_eligible": false,
       "webflash_advanced_mode_only": true,
@@ -237,9 +254,10 @@
       "preview_status": "advanced-preview-build-blocked",
       "stable_status": "blocked",
       "stable_blockers": [
-        "HW-005 (S360-320 schematic uncommitted; GPIO5/GPIO6 collision with RoomIQ J10 nets; ac_dimmer cannot run across the SX1509 expander).",
-        "PACKAGE-TRIAC-001 + COMPLIANCE-001 mains-voltage electrical-safety review.",
-        "Shared S360-410 PoE PSU schematic verification (PRODUCT-POE-410-001)."
+        "PACKAGE-TRIAC-001 (operator bench on locally compiled / flashed firmware).",
+        "COMPLIANCE-001 (mains-voltage electrical-safety sign-off).",
+        "Shared S360-410 PoE PSU schematic verification (PRODUCT-POE-410-001).",
+        "HW-005 buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001) and is no longer a blocker; it is listed here only as history."
       ],
       "warning_copy_key": "advanced-preview",
       "warning_copy": "ADVANCED PREVIEW — MAINS-VOLTAGE RISK. This firmware drives mains-voltage hardware (e.g. TRIAC phase-control dimming) and is for competent persons performing a manual installation only. It is NOT hardware verified, NOT stable, NOT recommended, and is NEVER a default. No bench evidence and no electrical-safety / compliance certification is claimed. Incorrect installation can cause fire, electric shock, or death. Do not install unless you are qualified to work on mains wiring.",
@@ -249,7 +267,7 @@
       "commercial_availability": "waitlist-only",
       "bench_evidence_claimed": false,
       "compliance_claimed": false,
-      "notes": "TRIAC AC (mains phase-cut) fan control (S360-320) for the Bathroom bundle. Offered ONLY as an ADVANCED / manual-warning preview — never a normal recommended / easy / default option. It is currently BUILD-BLOCKED by HW-005, so no preview artifact can be cut and it is NOT WebFlash-easy-mode eligible today; when HW-005 resolves it would be delivered ONLY on the advanced-manual-preview lane behind an explicit advanced (mains-risk) acknowledgement gate. Stable additionally requires PACKAGE-TRIAC-001 + COMPLIANCE-001. No safety / compliance proof is claimed. Kitchen has no TRIAC variant by policy."
+      "notes": "TRIAC AC (mains phase-cut) fan control (S360-320) for the Bathroom bundle. Offered ONLY as an ADVANCED / manual-warning preview — never a normal recommended / easy / default option. HW-005 buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001) and the full-composition config compiles, but no preview artifact is cut today because the advanced-manual-preview PUBLISH (TRIAC-PUBLISH-ADVANCED-PREVIEW-001) is gated by PACKAGE-TRIAC-001 (operator bench) AND COMPLIANCE-001 (mains-voltage electrical-safety sign-off) — NOT by an acknowledgement gate. No TRIAC firmware artifact is cut and no preview / advanced-preview row is added until BOTH the operator bench and the mains-voltage sign-off land; the advanced (mains-risk) acknowledgement gate is an additional UX warning on top of those publish gates, never a substitute. It is NOT WebFlash-easy-mode eligible. Stable additionally requires the shared S360-410 PoE PSU verification (PRODUCT-POE-410-001). No bench / safety / compliance proof is claimed. Kitchen has no TRIAC variant by policy."
     },
     {
       "sku": "S360-KIT-BATH-P-PWM",
@@ -1019,7 +1037,7 @@
     }
   ],
   "revised_by": "ROOM-BUNDLE-FAN-COMPILE-RESULTS-001",
-  "revision_note": "ROOM-BUNDLE-FAN-CONFIGS-001 built the missing full-composition product YAMLs for the five buildable fan-control variants (Bathroom PWM/DAC, Kitchen Relay/DAC/PWM): each has a real products/ shim + products/bundles/ composition + a config/product-catalog.json hardware-pending row + a config/compile-only-targets.json target. ROOM-BUNDLE-FAN-COMPILE-RESULTS-001 then recorded the hosted full ESPHome compile result for those five configs and promoted them from buildable-preview-compile-pending to buildable-preview-compile-validated: the Compile-only Firmware Validation workflow (run 26913592989, ref main, compile_mode=full, 2026-06-04, ESPHome 2026.4.5) passed Metadata Validation and the Full ESPHome Compile, so each variant's firmware_config_evidence.compile_validation_status is now validated-full-compile with a compile_evidence block. The two FanDAC configs compiled with the REQUIRED 0x5A IC2 address override (see fan_dac_i2c_address_policy); the physical DIP-switch -> address mapping stays bench-pending under FANDAC-I2C-ADDR-001. This is firmware-build proof only: TRIAC stays build-blocked (HW-005); Bathroom Relay is unchanged. No firmware published, no .bin, no release/tag, no WebFlash repo change, no config/webflash-builds.json row, nothing stable / recommended / default / buyable, no hardware / bench / compliance / safety proof.",
+  "revision_note": "ROOM-BUNDLE-FAN-CONFIGS-001 built the missing full-composition product YAMLs for the five buildable fan-control variants (Bathroom PWM/DAC, Kitchen Relay/DAC/PWM): each has a real products/ shim + products/bundles/ composition + a config/product-catalog.json hardware-pending row + a config/compile-only-targets.json target. ROOM-BUNDLE-FAN-COMPILE-RESULTS-001 then recorded the hosted full ESPHome compile result for those five configs and promoted them from buildable-preview-compile-pending to buildable-preview-compile-validated: the Compile-only Firmware Validation workflow (run 26913592989, ref main, compile_mode=full, 2026-06-04, ESPHome 2026.4.5) passed Metadata Validation and the Full ESPHome Compile, so each variant's firmware_config_evidence.compile_validation_status is now validated-full-compile with a compile_evidence block. The two FanDAC configs compiled with the REQUIRED 0x5A IC2 address override (see fan_dac_i2c_address_policy); the physical DIP-switch -> address mapping stays bench-pending under FANDAC-I2C-ADDR-001. This is firmware-build proof only: TRIAC's HW-005 buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001) but its advanced-manual-preview publish stays gated by PACKAGE-TRIAC-001 + COMPLIANCE-001; Bathroom Relay is unchanged. No firmware published, no .bin, no release/tag, no WebFlash repo change, no config/webflash-builds.json row, nothing stable / recommended / default / buyable, no hardware / bench / compliance / safety proof.",
   "published_by": "ROOM-BUNDLE-FAN-PUBLISH-RESULTS-001",
   "marked_webflash_import_eligible_by": "ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001",
   "compile_results": {
@@ -1161,7 +1179,7 @@
     "fandac_address_note": "The two FanDAC room-bundle artifacts (Ceiling-POE-VentIQ-FanDAC-RoomIQ, Ceiling-POE-AirIQ-FanDAC-RoomIQ) were built WITH the FanDAC GP8403 IC2 address override fan_dac_2_i2c_address: \"0x5A\" (IC1 0x58; 0x59 forbidden — SGP41 collision). This is a compile-time / firmware configuration only; the physical S360-312 IC2 DIP-switch (SW2) -> I2C address mapping is NOT bench verified and stays pending under FANDAC-I2C-ADDR-001.",
     "fandac_bench_verification_followup": "FANDAC-I2C-ADDR-001",
     "fandac_bench_verification_status": "pending",
-    "triac": "excluded — Ceiling-POE-VentIQ-FanTRIAC-RoomIQ stays build-blocked under HW-005; no build job, no artifact, off the room-bundle fan matrix.",
+    "triac": "excluded from the room-bundle fan publish matrix — Ceiling-POE-VentIQ-FanTRIAC-RoomIQ has its HW-005 buildability RESOLVED (TRIAC-PINMAP-CORRECT-001) but its advanced-manual-preview PUBLISH (TRIAC-PUBLISH-ADVANCED-PREVIEW-001) stays gated by PACKAGE-TRIAC-001 + COMPLIANCE-001; no build job in this workflow, no artifact, no preview / advanced-preview row, off the room-bundle fan matrix.",
     "webflash_import": "not-done — no config/webflash-builds.json row added; the fan-token guardrail stands; WebFlash exposure stays the separately gated downstream follow-up.",
     "not_proof_of": [
       "hardware",
@@ -1177,7 +1195,7 @@
     "date": "2026-06-04",
     "sibling_of": "RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001",
     "builds_on": "ROOM-BUNDLE-FAN-PUBLISH-RESULTS-001",
-    "rule": "The five published full-composition Bathroom / Kitchen fan-control preview bundle artifacts (Bathroom PWM / DAC, Kitchen Relay / DAC / PWM) are now preview WebFlash-import ELIGIBLE: each variant carries webflash_import_eligibility.eligible=true with exposure_class=acknowledgement-gated and channel=preview, so downstream WebFlash no longer treats the catalog webflash_build_matrix=false as a preview-import blocker. Eligibility authorises an Advanced-install-only preview import only. It does NOT promote anything to stable / full release, adds NO config/webflash-builds.json row (the fan-token guardrail and catalog webflash_build_matrix=false both stand), and grants NO Simple / easy-mode exposure -- that stays gated behind the downstream WebFlash import plus the fan-preview acknowledgement / warning UX (WF-IMPORT-FAN-BUNDLES-001). FanTRIAC (Ceiling-POE-VentIQ-FanTRIAC-RoomIQ) stays excluded (build-blocked under HW-005, no artifact, not eligible) and is handled by its own separate TRIAC-specific track. The stable Bathroom PoE build (Ceiling-POE-VentIQ-RoomIQ) and Simple install are unchanged.",
+    "rule": "The five published full-composition Bathroom / Kitchen fan-control preview bundle artifacts (Bathroom PWM / DAC, Kitchen Relay / DAC / PWM) are now preview WebFlash-import ELIGIBLE: each variant carries webflash_import_eligibility.eligible=true with exposure_class=acknowledgement-gated and channel=preview, so downstream WebFlash no longer treats the catalog webflash_build_matrix=false as a preview-import blocker. Eligibility authorises an Advanced-install-only preview import only. It does NOT promote anything to stable / full release, adds NO config/webflash-builds.json row (the fan-token guardrail and catalog webflash_build_matrix=false both stand), and grants NO Simple / easy-mode exposure -- that stays gated behind the downstream WebFlash import plus the fan-preview acknowledgement / warning UX (WF-IMPORT-FAN-BUNDLES-001). FanTRIAC (Ceiling-POE-VentIQ-FanTRIAC-RoomIQ) stays excluded (not WebFlash-import eligible, no artifact; HW-005 buildability RESOLVED by TRIAC-PINMAP-CORRECT-001 but the advanced-manual-preview PUBLISH gated by PACKAGE-TRIAC-001 + COMPLIANCE-001) and is handled by its own separate TRIAC-specific track. The stable Bathroom PoE build (Ceiling-POE-VentIQ-RoomIQ) and Simple install are unchanged.",
     "targets": [
       "Ceiling-POE-VentIQ-FanPWM-RoomIQ",
       "Ceiling-POE-VentIQ-FanDAC-RoomIQ",

@@ -281,16 +281,24 @@ class VariantPublishEvidenceTests(unittest.TestCase):
 
     def test_triac_carries_no_publish_evidence_and_stays_blocked(self) -> None:
         triac = self.variants[TRIAC_CONFIG]
-        self.assertNotIn(
-            "publish_evidence", triac["firmware_config_evidence"]
-        )
+        ev = triac["firmware_config_evidence"]
+        self.assertNotIn("publish_evidence", ev)
         self.assertEqual(
             triac["firmware_config_status"], "defined-build-blocked"
         )
-        self.assertFalse(triac["firmware_config_evidence"]["buildable_now"])
-        self.assertIn(
-            "HW-005", triac["firmware_config_evidence"]["build_blocker"]
+        # HW-005 buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001): buildable
+        # now, no build_blocker; HW-005 survives only in build_blocker_history.
+        self.assertTrue(ev["buildable_now"])
+        self.assertIsNone(ev["build_blocker"])
+        self.assertIn("HW-005", ev["build_blocker_history"])
+        # The remaining blocker is the advanced-manual-preview PUBLISH gate.
+        gate = triac["advanced_preview_publish_gate"]
+        self.assertEqual(gate["id"], "TRIAC-PUBLISH-ADVANCED-PREVIEW-001")
+        self.assertEqual(
+            set(gate["gated_by"]), {"PACKAGE-TRIAC-001", "COMPLIANCE-001"}
         )
+        self.assertFalse(gate["is_acknowledgement_gate"])
+        self.assertFalse(gate["artifact_cut"])
 
 
 class PreviewOnlyPostureTests(unittest.TestCase):

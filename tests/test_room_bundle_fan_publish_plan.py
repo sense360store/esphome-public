@@ -293,12 +293,20 @@ class TriacExcludedTests(unittest.TestCase):
     def test_triac_not_in_publish_set(self) -> None:
         self.assertNotIn(TRIAC_CONFIG, ROOM_BUNDLE_CONFIGS)
 
-    def test_source_triac_is_build_blocked_by_hw005(self) -> None:
+    def test_source_triac_is_publish_blocked_not_build_blocked(self) -> None:
         triac = self.variants[TRIAC_CONFIG]
         self.assertEqual(triac["firmware_config_status"], "defined-build-blocked")
         ev = triac["firmware_config_evidence"]
-        self.assertFalse(ev["buildable_now"])
-        self.assertIn("HW-005", ev["build_blocker"])
+        # HW-005 buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001); the
+        # remaining blocker is the advanced-manual-preview PUBLISH gate
+        # (PACKAGE-TRIAC-001 + COMPLIANCE-001), recorded out of the publish set.
+        self.assertTrue(ev["buildable_now"])
+        self.assertIsNone(ev["build_blocker"])
+        self.assertIn("HW-005", ev["build_blocker_history"])
+        gate = triac["advanced_preview_publish_gate"]
+        self.assertEqual(
+            set(gate["gated_by"]), {"PACKAGE-TRIAC-001", "COMPLIANCE-001"}
+        )
 
     def test_plan_doc_marks_triac_out_of_scope_under_hw005(self) -> None:
         self.assertIn(TRIAC_CONFIG, self.text)

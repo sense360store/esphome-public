@@ -35,7 +35,9 @@ Hard invariants enforced here:
   * the two FanDAC configs carry the GP8403 IC1 ``0x58`` / IC2 ``0x5A`` requirement
     (``0x59`` forbidden — SGP41 collision) and the pending ``FANDAC-I2C-ADDR-001``
     bench verification;
-  * TRIAC (``Ceiling-POE-VentIQ-FanTRIAC-RoomIQ``) is excluded (``HW-005``);
+  * TRIAC (``Ceiling-POE-VentIQ-FanTRIAC-RoomIQ``) is excluded: ``HW-005``
+    buildability is resolved (``TRIAC-PINMAP-CORRECT-001``) but its advanced-
+    manual-preview publish stays gated by ``PACKAGE-TRIAC-001`` + ``COMPLIANCE-001``;
   * nothing is stable / recommended / customer-default / buyable; and
   * no WebFlash build row is added for any of the five (fan-token guardrail).
 
@@ -103,7 +105,9 @@ FANDAC_CONFIGS = (
     "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
     "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
 )
-# TRIAC is out of scope (HW-005, build-blocked, no compile proof, no .bin).
+# TRIAC is out of scope of this room-bundle-fan publish workflow: HW-005
+# buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001) but the advanced-manual-
+# preview publish stays gated by PACKAGE-TRIAC-001 + COMPLIANCE-001; no .bin.
 TRIAC_CONFIG = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
 FAN_TOKENS = ("FanRelay", "FanPWM", "FanDAC", "FanTRIAC")
 
@@ -278,7 +282,10 @@ def _select_rows(
     if required.get("forbidden_gp8403_address") != FANDAC_FORBIDDEN:
         errors.append("fan_dac_i2c_address_policy forbidden address must be 0x59")
 
-    # TRIAC exclusion must be real: the variant exists and is build-blocked.
+    # TRIAC exclusion must be real: the variant exists and stays publish-blocked.
+    # HW-005 buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001); the remaining
+    # blocker is the advanced-manual-preview PUBLISH gate (PACKAGE-TRIAC-001 +
+    # COMPLIANCE-001), not a buildability blocker and not an acknowledgement gate.
     triac = variants.get(TRIAC_CONFIG)
     if not triac:
         errors.append(f"TRIAC variant {TRIAC_CONFIG!r} missing; exclusion cannot be checked")
@@ -286,10 +293,19 @@ def _select_rows(
         if triac.get("firmware_config_status") != "defined-build-blocked":
             errors.append("TRIAC must stay firmware_config_status=defined-build-blocked")
         ev = triac.get("firmware_config_evidence", {})
-        if ev.get("buildable_now") is not False:
-            errors.append("TRIAC must stay buildable_now=false")
-        if "HW-005" not in (ev.get("build_blocker") or ""):
-            errors.append("TRIAC must carry the HW-005 build blocker")
+        if ev.get("buildable_now") is not True:
+            errors.append("TRIAC buildable_now must be true (HW-005 buildability resolved)")
+        if ev.get("build_blocker") is not None:
+            errors.append("TRIAC build_blocker must be null (HW-005 buildability resolved)")
+        gate = triac.get("advanced_preview_publish_gate", {})
+        if gate.get("id") != "TRIAC-PUBLISH-ADVANCED-PREVIEW-001":
+            errors.append("TRIAC must record advanced_preview_publish_gate id TRIAC-PUBLISH-ADVANCED-PREVIEW-001")
+        if set(gate.get("gated_by") or []) != {"PACKAGE-TRIAC-001", "COMPLIANCE-001"}:
+            errors.append("TRIAC publish gate must be PACKAGE-TRIAC-001 + COMPLIANCE-001")
+        if gate.get("is_acknowledgement_gate") is not False:
+            errors.append("TRIAC publish gate must not be an acknowledgement gate")
+        if gate.get("artifact_cut") is not False:
+            errors.append("TRIAC must not have an artifact cut")
 
     # Selection.
     selected_configs: Iterable[str]
@@ -299,7 +315,9 @@ def _select_rows(
         selected_configs = (release_target,)
     elif release_target == TRIAC_CONFIG:
         errors.append(
-            f"{TRIAC_CONFIG} is build-blocked by HW-005 and cannot be published"
+            f"{TRIAC_CONFIG} advanced-manual-preview publish is gated by "
+            "PACKAGE-TRIAC-001 + COMPLIANCE-001 (TRIAC-PUBLISH-ADVANCED-PREVIEW-001) "
+            "and is not published by this room-bundle-fan workflow"
         )
         selected_configs = ()
     else:
@@ -482,8 +500,11 @@ def _release_body(rows: List[Dict[str, Any]], *, version: str, release_tag: str)
         )
     known_issue_lines.extend(
         [
-            f"- `{TRIAC_CONFIG}` is excluded because `HW-005` still blocks "
-            "buildability.",
+            f"- `{TRIAC_CONFIG}` is excluded: `HW-005` buildability is resolved "
+            "(`TRIAC-PINMAP-CORRECT-001`) but its advanced-manual-preview publish "
+            "stays gated by `PACKAGE-TRIAC-001` (operator bench) + `COMPLIANCE-001` "
+            "(mains-voltage sign-off), not by an acknowledgement gate, so no "
+            "artifact is cut and no preview row is added.",
             "- These room-bundle fan artifacts share the `v1.0.0-preview` preview "
             "release with the room-bundle and LED preview artifacts. WebFlash "
             "import eligibility is controlled separately by WebFlash import "

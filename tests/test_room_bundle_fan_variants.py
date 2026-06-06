@@ -16,7 +16,8 @@ contract this file locks in (task ROOM-BUNDLE-FAN-VARIANTS-002 §7):
 * all fan variants reference a valid base bundle;
 * only Bathroom / Kitchen may have fan variants;
 * TRIAC is never stable / recommended / default (Bathroom-only, advanced-only,
-  build-blocked, never normal "easy" exposure; Kitchen has no TRIAC variant);
+  publish-blocked behind PACKAGE-TRIAC-001 + COMPLIANCE-001, never normal "easy"
+  exposure; Kitchen has no TRIAC variant);
 * preview does NOT require hardware proof;
 * stable STILL requires hardware / evidence / compliance;
 * missing full-bundle configs are explicitly marked missing, never silently
@@ -45,7 +46,8 @@ PREVIEW_TARGETS_PATH = REPO_ROOT / "config" / "preview-release-targets.json"
 
 # Fan-driver boards that may appear as a variant driver. TRIAC (S360-320) is
 # now ALLOWED, but only for the Bathroom, only as an advanced / manual-warning
-# variant, and only as the (currently build-blocked) advanced-preview tier.
+# variant, and only as the (publish-blocked behind PACKAGE-TRIAC-001 +
+# COMPLIANCE-001) advanced-preview tier.
 ALLOWED_FAN_DRIVER_SKUS = frozenset({"S360-310", "S360-311", "S360-312", "S360-320"})
 ADVANCED_ONLY_FAN_DRIVER_SKUS = frozenset({"S360-320"})
 # Only the Bathroom and Kitchen base bundles may have fan variants.
@@ -439,7 +441,9 @@ class RoomBundleFanVariantsTests(unittest.TestCase):
     def test_compile_validation_does_not_change_stable_or_exposure(self):
         # Recording the compile result must NOT promote anything to stable,
         # recommended, default, or buyable, and must keep FanDAC bench
-        # verification pending and TRIAC build-blocked.
+        # verification pending and TRIAC publish-blocked (defined-build-blocked
+        # status; HW-005 buildability resolved, publish gated by PACKAGE-TRIAC-001
+        # + COMPLIANCE-001).
         for v in self.variants:
             self.assertEqual(v["stable_status"], "blocked")
             self.assertFalse(v["recommended"])
