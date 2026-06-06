@@ -361,15 +361,31 @@ jobs:
           patch-external-components: "true"
           # Release builds bake their own default secrets into the firmware, so
           # this lane overrides the throwaway test secrets used by the compile /
-          # validate lanes. Keep these bytes unchanged.
+          # validate lanes. The preview / beta firmware bytes are unchanged.
+          # SEC-ESP-BUILD-GATES-001 (security.md finding #4): a STABLE
+          # (production) release must bake a real per-release api_encryption_key
+          # supplied via the API_ENCRYPTION_KEY secret. Preview / beta keep the
+          # all-"a" placeholder (so their firmware bytes are byte-identical);
+          # stable with no secret resolves to the placeholder and is then
+          # rejected by the gate step below (fail-closed).
           secrets-content: |
             wifi_ssid: "Sense360_Setup"
             wifi_password: "sense360setup"
-            api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+            api_encryption_key: "${{ (needs.generate-matrix.outputs.channel == 'stable' && secrets.API_ENCRYPTION_KEY) || 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=' }}"
             ota_password: "sense360-ota-default"
             fallback_ap_password: "sense360fallback"
             web_username: "admin"
             web_password: "sense360admin"
+
+      - name: Reject placeholder api_encryption_key on stable builds (SEC-ESP-BUILD-GATES-001)
+        run: |
+          # security.md finding #4: a stable/production release must not ship
+          # the public placeholder native-API key. Preview / beta / compile-only
+          # are intentionally allowed to use it. To publish a stable release,
+          # set a unique API_ENCRYPTION_KEY repository secret.
+          python3 scripts/check_api_encryption_key.py \
+            --secrets secrets.yaml \
+            --channel "${{ needs.generate-matrix.outputs.channel }}"
 
       - name: Patch inline external_components in product YAMLs
         run: |
@@ -708,6 +724,14 @@ jobs:
 
           echo "Manifest created:"
           cat all-firmware/manifest.json
+
+      - name: Validate manifest JSON (SEC-ESP-BUILD-GATES-001)
+        run: |
+          # security.md finding #5: manifest.json is assembled by shell
+          # interpolation; parse-check it before upload so a malformed field
+          # fails the release here instead of silently breaking downstream
+          # consumers (WebFlash).
+          python3 -m json.tool all-firmware/manifest.json > /dev/null
 
       - name: Validate WebFlash release notes
         env:

@@ -258,6 +258,7 @@ wifi_ssid: "YourNetworkName"
 wifi_password: "YourWiFiPassword"
 api_encryption_key: "GENERATE_WITH_ESPHOME_WIZARD"
 ota_password: "your-secure-ota-password"
+fallback_ap_password: "GENERATE_A_UNIQUE_VALUE"
 web_username: "admin"
 web_password: "your-secure-web-password"
 ```
@@ -265,8 +266,24 @@ web_password: "your-secure-web-password"
 > `secrets.yaml` is gitignored — never commit it. CI generates its own
 > placeholder secrets for validation/builds, so you do not need to commit
 > anything for CI to pass.
->
-> Generate an API key with `esphome wizard` or `openssl rand -base64 32`.
+
+**Regenerate the secret keys per device / per build — never reuse one value
+across units:**
+
+- `api_encryption_key` — the native-API encryption key. Generate with
+  `esphome wizard` or `openssl rand -base64 32`. The all-"a" value in
+  `secrets.example.yaml` is an obvious placeholder; a real build must replace
+  it (SEC-ESP-BUILD-GATES-001).
+- `fallback_ap_password` — the fallback access-point password (the AP +
+  captive portal comes up whenever the device cannot join WiFi). Generate a
+  unique strong value, e.g. `openssl rand -base64 18`. The build rejects the
+  historical literals `Sense360Fallback` / `sense360poe`
+  (SEC-ESP-FALLBACK-AP-001).
+
+> **Publishing a stable release.** The release workflow fails closed if a
+> `stable` build would bake the placeholder `api_encryption_key`. Set a unique
+> `API_ENCRYPTION_KEY` repository secret before publishing a stable release;
+> `preview` / `beta` builds keep using the placeholder for validation.
 
 ### 3. Reference the product from your device YAML
 
