@@ -33,7 +33,7 @@
 # workflow.
 # ============================================================================
 
-name: CI - Validate Firmware Configs
+name: "CI: Validate Configs"
 
 on:
   workflow_dispatch:

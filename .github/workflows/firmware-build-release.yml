@@ -21,7 +21,7 @@
 #
 # ============================================================================
 
-name: Build & Release Firmware
+name: "Release 3: Build & Release"
 
 on:
   release:

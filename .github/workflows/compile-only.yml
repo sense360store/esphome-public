@@ -33,7 +33,7 @@
 #     `esphome compile` pass when `compile_mode=full` is selected.
 # ============================================================================
 
-name: Compile-only Firmware Validation
+name: "CI: Compile-Only"
 
 on:
   push:

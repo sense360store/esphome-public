@@ -112,16 +112,19 @@ substitution targets are untouched (see below).
 ### Gate identity (required-status-check names)
 
 Branch protection matches required checks by workflow `name:`. The two gate
-workflow names are **unchanged** by the refactor:
+workflow `name:` fields are:
 
 | Gate workflow | `name:` field | Role |
 |---------------|---------------|------|
-| `validate.yml` | `Quick Validation` | Per-PR gate (every push/PR) |
-| `firmware-build-release.yml` | `Build & Release Firmware` | Release-time gate (release publish) |
+| `validate.yml` | `CI: Quick Validation` | Per-PR gate (every push/PR) |
+| `firmware-build-release.yml` | `Release 3: Build & Release` | Release-time gate (release publish) |
 
-No required-status-check name moved, so branch-protection configuration needs
-no change. (`CI-REFACTOR-VERIFY-001` confirmed the `.github/workflows/` tree is
-byte-identical to `main`.)
+These `name:` fields were renamed to the role-and-step scheme (from
+`Quick Validation` and `Build & Release Firmware`). The workflow **file** names
+are unchanged, so dispatch URLs and badge paths still resolve. Because branch
+protection matches required checks by workflow `name:`, the required-status-check
+contexts must be updated from the old names to the new ones, or they report as
+"expected, never reported" and block merges.
 
 ---
 
@@ -193,19 +196,19 @@ four are manual or release-time helpers.
 
 | Workflow | `name:` | Trigger | Role |
 |----------|---------|---------|------|
-| `validate.yml` | Quick Validation | push + pull_request | **Per-PR gate** (Release-One / WebFlash) |
-| `firmware-build-release.yml` | Build & Release Firmware | release publish + manual dispatch | **Release-time gate** — builds/publishes `.bin` set |
-| `ci-validate-configs.yml` | CI - Validate Firmware Configs | manual dispatch only | Manual broad legacy/manual sweep — **not a PR gate** |
-| `compile-only.yml` | Compile-only Firmware Validation | push + pull_request (metadata only); manual dispatch for full compile | Pre-hardware compile/codegen check — **not the Release-One/WebFlash gate** |
-| `manual-firmware-artifacts.yml` | Manual (Non-Release) Firmware Artifacts | manual dispatch only | Builds expiring, non-release operator artifacts — **not a PR gate, never a release** |
-| `release-notes-draft.yml` | Draft WebFlash Release Notes | manual dispatch only | Drafts/validates WebFlash release notes — **preflight only, does not gate** |
+| `validate.yml` | CI: Quick Validation | push + pull_request | **Per-PR gate** (Release-One / WebFlash) |
+| `firmware-build-release.yml` | Release 3: Build & Release | release publish + manual dispatch | **Release-time gate** — builds/publishes `.bin` set |
+| `ci-validate-configs.yml` | CI: Validate Configs | manual dispatch only | Manual broad legacy/manual sweep — **not a PR gate** |
+| `compile-only.yml` | CI: Compile-Only | push + pull_request (metadata only); manual dispatch for full compile | Pre-hardware compile/codegen check — **not the Release-One/WebFlash gate** |
+| `manual-firmware-artifacts.yml` | Tools: Manual Firmware Artifacts | manual dispatch only | Builds expiring, non-release operator artifacts — **not a PR gate, never a release** |
+| `release-notes-draft.yml` | Release 2: Draft Notes | manual dispatch only | Drafts/validates WebFlash release notes — **preflight only, does not gate** |
 
 The first three workflows are described in detail below; the remaining three
 follow in sections 4–6.
 
 The first three workflows handle the core validate/release flow:
 
-### 1. Quick Validation (`validate.yml`)
+### 1. CI: Quick Validation (`validate.yml`)
 
 **Triggers:** Every push and PR
 **Duration:** ~30 seconds
@@ -296,7 +299,7 @@ This means:
 3. Rename binaries to WebFlash format (e.g., `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`)
 4. Attach to GitHub release with checksums
 
-### 4. Compile-only Firmware Validation (`compile-only.yml`)
+### 4. CI: Compile-Only (`compile-only.yml`)
 
 **Triggers:** push + pull_request (metadata-only job); manual (`workflow_dispatch`)
 for the full `esphome compile` pass
@@ -311,7 +314,7 @@ available**.
 > workflow never uploads `.bin` files, tags a release, or modifies
 > `config/webflash-builds.json`.
 
-### 5. Manual (Non-Release) Firmware Artifacts (`manual-firmware-artifacts.yml`)
+### 5. Tools: Manual Firmware Artifacts (`manual-firmware-artifacts.yml`)
 
 **Triggers:** Manual (`workflow_dispatch`) only
 **Purpose:** Compile the FanRelay / FanPWM / FanDAC manual / no-WebFlash
@@ -324,7 +327,7 @@ artifacts for point-to-point operator handoff.
 > GitHub Release, writes `firmware/sources.json` / `manifest.json`, or produces
 > a `vX.Y.Z` / `-stable` / `-preview` asset.
 
-### 6. Draft WebFlash Release Notes (`release-notes-draft.yml`)
+### 6. Release 2: Draft Notes (`release-notes-draft.yml`)
 
 **Triggers:** Manual (`workflow_dispatch`) only
 **Purpose:** Produce a WebFlash release-notes draft from the product catalog,
@@ -365,7 +368,7 @@ both modes are reached by manually dispatching the workflow.
 | `full` | All possible module combinations |
 
 To run the broad legacy/manual sweep:
-1. Go to Actions → "CI - Validate Firmware Configs"
+1. Go to Actions → "CI: Validate Configs"
 2. Click "Run workflow"
 3. Select `test_mode: quick` (representative) or `full` (all combinations)
 

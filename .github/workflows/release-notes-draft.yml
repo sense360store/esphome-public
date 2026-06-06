@@ -24,7 +24,7 @@
 # the release author must replace before tagging.
 # ============================================================================
 
-name: Draft WebFlash Release Notes
+name: "Release 2: Draft Notes"
 
 on:
   workflow_dispatch:
