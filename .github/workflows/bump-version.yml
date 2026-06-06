@@ -1,0 +1,165 @@
+---
+# ============================================================================
+# RELEASE 1: BUMP VERSION (RELEASE-BUMP-001)
+# ============================================================================
+# Manual operator helper: bumps the release version of one WebFlash-shippable
+# config in lock-step across config/product-catalog.json and
+# config/webflash-builds.json, proves the two files stay coherent, and opens
+# a pull request with the change.
+#
+# This is the metadata step that must merge BEFORE the rest of the release
+# chain runs for that config and version:
+#   Release 1: Bump Version  ->  Release 2: Draft Notes  ->  Release 3: Build & Release
+#
+# What the bump does:
+#   - Rewrites only the `version` and the version-bearing `artifact_name`
+#     (Sense360-{config_string}-v{version}-{channel}.bin) for the chosen
+#     config in BOTH files. Nothing else changes.
+#   - Reuses the existing channel read from the catalog entry. A version bump
+#     never changes the channel and this workflow never accepts a channel
+#     input.
+#
+# It does NOT create a GitHub Release, compile or publish firmware, upload any
+# release asset, or touch any other config. Publication stays gated by
+# Release 3: Build & Release. This workflow only opens a PR; it never merges.
+# ============================================================================
+
+name: "Release 1: Bump Version"
+
+on:
+  workflow_dispatch:
+    inputs:
+      # The choices mirror the release-eligible config_string values in
+      # config/webflash-builds.json so the operator picks from the canonical
+      # list rather than typing a free-text product name. When a new
+      # release-eligible build is added to config/webflash-builds.json, add a
+      # matching option here.
+      config_string:
+        description: >-
+          Config to bump. Must match a config_string in
+          config/webflash-builds.json.
+        required: true
+        type: choice
+        options:
+          - Ceiling-POE-VentIQ-RoomIQ
+          - Ceiling-POE-VentIQ-RoomIQ-LED
+          - Ceiling-POE-AirIQ-RoomIQ
+          - Ceiling-POE-RoomIQ
+          - Ceiling-POE-RoomIQ-LED
+      version:
+        description: >-
+          New release version, no leading 'v', MAJOR.MINOR.PATCH (e.g. 2.0.0).
+        required: true
+        type: string
+
+# RELEASE-BUMP-001: this workflow edits two tracked config files, pushes a
+# branch, and opens a PR, so it needs contents: write (push) and
+# pull-requests: write (open the PR). Both are allowlisted in
+# tests/test_workflow_permissions.py with this reason. Scoped to the single
+# job below; the workflow runs on manual dispatch only.
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    name: Bump release version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Install validation dependencies
+        run: |
+          pip install pyyaml
+
+      - name: Apply version bump
+        env:
+          CONFIG_STRING: ${{ inputs.config_string }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          # Inputs flow through env to keep them off the command line.
+          python3 scripts/bump_release_version.py \
+            --config "$CONFIG_STRING" \
+            --version "$VERSION" \
+            --write
+
+      - name: Prove catalog / build-matrix coherence
+        run: |
+          set -euo pipefail
+          # The version + artifact_name must stay coherent in both files.
+          python3 scripts/validate_product_catalog_consistency.py
+          python3 tests/validate_configs.py
+          python3 tests/test_product_catalog_consistency.py
+
+      - name: Stop cleanly if nothing changed
+        id: diff
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- config/product-catalog.json config/webflash-builds.json; then
+            echo "No change: the files are already at the requested version. Nothing to open."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create branch and commit
+        if: steps.diff.outputs.changed == 'true'
+        id: commit
+        env:
+          CONFIG_STRING: ${{ inputs.config_string }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          BRANCH="ci/bump-${CONFIG_STRING}-v${VERSION}-${{ github.run_id }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add config/product-catalog.json config/webflash-builds.json
+          git commit -m "release: bump ${CONFIG_STRING} to v${VERSION}"
+          git push -u origin "$BRANCH"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Open pull request
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CONFIG_STRING: ${{ inputs.config_string }}
+          VERSION: ${{ inputs.version }}
+          BRANCH: ${{ steps.commit.outputs.branch }}
+        run: |
+          set -euo pipefail
+          BODY_FILE="${RUNNER_TEMP}/pr-body.md"
+          cat > "$BODY_FILE" <<EOF
+          Automated version bump produced by the "Release 1: Bump Version" workflow.
+
+          Config string: ${CONFIG_STRING}
+          New version: v${VERSION}
+          Channel: unchanged (read from the catalog entry and reused).
+
+          This bump rewrote only the version and the version-bearing
+          artifact_name for the config above in both
+          config/product-catalog.json and config/webflash-builds.json.
+          No other fields, entries, or files changed.
+
+          Coherence was proven in CI before this PR was opened:
+            - scripts/validate_product_catalog_consistency.py
+            - tests/validate_configs.py
+            - tests/test_product_catalog_consistency.py
+
+          This is the metadata step (Phase 0). Merge this PR first, then run
+          "Release 2: Draft Notes" and "Release 3: Build & Release" for the
+          same config and version.
+          EOF
+
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "Release 1: bump ${CONFIG_STRING} to v${VERSION}" \
+            --body-file "$BODY_FILE"

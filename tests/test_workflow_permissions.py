@@ -70,6 +70,25 @@ WRITE_PERMISSION_ALLOWLIST: dict[tuple[str, str, str], str] = {
         "release via softprops/action-gh-release. Scoped to this job only and "
         "gated behind workflow_dispatch with dry_run=false."
     ),
+    (
+        "bump-version.yml",
+        "<top-level>",
+        "contents",
+    ): (
+        "RELEASE-BUMP-001 Release 1: Bump Version. The single bump job edits "
+        "config/product-catalog.json + config/webflash-builds.json, then "
+        "pushes a unique branch with that commit, which requires "
+        "contents: write. workflow_dispatch only."
+    ),
+    (
+        "bump-version.yml",
+        "<top-level>",
+        "pull-requests",
+    ): (
+        "RELEASE-BUMP-001 Release 1: Bump Version opens the bump PR with the "
+        "gh CLI (no third-party action), which requires pull-requests: write. "
+        "workflow_dispatch only; the workflow never merges."
+    ),
 }
 
 # ---------------------------------------------------------------------------
