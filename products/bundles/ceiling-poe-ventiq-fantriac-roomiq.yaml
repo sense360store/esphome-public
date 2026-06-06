@@ -173,8 +173,13 @@ packages:
   # Schematic-verified mapping (TRI_GPIO1/2 -> IO14/IO13); build blocked
   # pending PACKAGE-TRIAC-001 bench + COMPLIANCE-001. See the substitutions
   # block above and docs/hardware/s360-100-core-connector-pin-map.md (J15).
+  # Like the sibling FanRelay / FanPWM / FanDAC bundles, this product does NOT
+  # layer fan_control_profile.yaml on top: that profile's temperature auto-mode
+  # binds id(comfort_temperature), which the RoomIQ comfort_ceiling package
+  # exposes as comfort_ceiling_temperature (the comfort_temperature id only
+  # exists in the comfort.yaml composition used by sense360-core-ceiling-bathroom),
+  # so layering it here would break ESPHome config validation / the compile.
   fan_module: !include ../../packages/expansions/fan_triac.yaml
-  fan_profile: !include ../../packages/features/fan_control_profile.yaml
 
   # === Device Health & Diagnostics ===
   health: !include ../../packages/features/device_health.yaml
