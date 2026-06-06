@@ -43,7 +43,7 @@ from pathlib import Path
 from typing import List
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-WORKFLOW = REPO_ROOT / ".github" / "workflows" / "room-bundle-fan-publish.yml"
+WORKFLOW = REPO_ROOT / ".github" / "workflows" / "preview-fan-publish.yml"
 SCRIPT_PATH = REPO_ROOT / "scripts" / "validate_room_bundle_fan_publish.py"
 MANUAL_SCRIPT_PATH = REPO_ROOT / "scripts" / "validate_manual_preview_fan_publish.py"
 VARIANTS_PATH = REPO_ROOT / "config" / "room-bundle-fan-variants.json"
@@ -102,9 +102,9 @@ def _workflow_text() -> str:
     return WORKFLOW.read_text(encoding="utf-8")
 
 
-def _release_target_options(text: str) -> list[str]:
+def _choice_options(text: str, input_name: str) -> list[str]:
     match = re.search(
-        r"release_target:\n(?:[^\n]*\n)*?\s+options:\n(?P<options>(?:\s+- .+\n)+)",
+        rf"{re.escape(input_name)}:\n(?:[^\n]*\n)*?\s+options:\n(?P<options>(?:\s+- .+\n)+)",
         text,
     )
     if not match:
@@ -152,10 +152,13 @@ class WorkflowShapeTests(unittest.TestCase):
             r"dry_run:\n(?:[^\n]*\n)*?\s+default: true\n\s+type: boolean",
         )
 
-    def test_release_target_picker_is_room_bundle_fans_only(self) -> None:
-        options = _release_target_options(self.text)
-        self.assertEqual(options, [ALL_TARGETS, *ROOM_BUNDLE_FAN_CONFIGS])
+    def test_fan_set_picker_offers_single_room_and_all(self) -> None:
+        # The merged preview-fan-publish.yml replaces the per-set release_target
+        # picker with a fan_set selector (single-driver / room-bundle / all).
+        options = _choice_options(self.text, "fan_set")
+        self.assertEqual(options, ["single-driver", "room-bundle", "all"])
         self.assertNotIn(TRIAC_CONFIG, options)
+        self.assertNotIn("release_target:", self.text)
 
     def test_default_release_tag_is_shared_preview_release(self) -> None:
         self.assertRegex(
@@ -514,10 +517,12 @@ class ExistingLaneUnchangedTests(unittest.TestCase):
         for cs in ROOM_BUNDLE_FAN_CONFIGS:
             self.assertNotIn(cs, selected)
 
-    def test_single_driver_workflow_still_present(self) -> None:
-        manual_wf = REPO_ROOT / ".github" / "workflows" / "manual-preview-fan-publish.yml"
-        self.assertTrue(manual_wf.is_file())
-        wf_text = manual_wf.read_text(encoding="utf-8")
+    def test_single_driver_lane_present_in_merged_workflow(self) -> None:
+        # The single-driver lane is now part of the merged preview-fan-publish.yml
+        # (selected via fan_set), not a separate workflow file.
+        merged_wf = REPO_ROOT / ".github" / "workflows" / "preview-fan-publish.yml"
+        self.assertTrue(merged_wf.is_file())
+        wf_text = merged_wf.read_text(encoding="utf-8")
         self.assertIn("RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001", wf_text)
         self.assertIn("validate_manual_preview_fan_publish.py", wf_text)
         # The single-driver lane keeps citing its OWN compile run (26821900127),

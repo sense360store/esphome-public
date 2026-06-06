@@ -1,5 +1,10 @@
 # Room-bundle fan firmware publish — recorded successful run
 
+> **Workflow since merged:** this run was executed by the standalone
+> `Room-Bundle Fan Firmware Publish` workflow, which has since been merged into
+> [`preview-fan-publish.yml`](../.github/workflows/preview-fan-publish.yml)
+> (`fan_set: room-bundle`). This historical run record is unchanged.
+
 **Canonical id:** `ROOM-BUNDLE-FAN-PUBLISH-RESULTS-001`
 **Date:** 2026-06-04
 **Type:** Records the **successful** `Room-Bundle Fan Firmware Publish` workflow run

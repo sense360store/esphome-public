@@ -1,5 +1,11 @@
 # Manual-preview fan publish workflow
 
+> **Merged into [`preview-fan-publish.yml`](../.github/workflows/preview-fan-publish.yml).**
+> The two fan-publish workflows were merged into one with a `fan_set` selector;
+> the standalone `manual-preview-fan-publish.yml` file was removed. Select this
+> single-driver lane with `fan_set: single-driver`. The lane contract, validator,
+> tag confirm-gate, and compile-run citation (26821900127) below are unchanged.
+
 **Canonical id:** `RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001`
 **Date:** 2026-06-03
 **Type:** Workflow / script / docs / tests only. Adds the durable

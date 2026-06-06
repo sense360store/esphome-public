@@ -1,5 +1,12 @@
 # Room-bundle fan-control preview publish workflow
 
+> **Merged into [`preview-fan-publish.yml`](../.github/workflows/preview-fan-publish.yml).**
+> The two fan-publish workflows were merged into one with a `fan_set` selector;
+> the standalone `room-bundle-fan-publish.yml` file was removed. Select this
+> room-bundle lane with `fan_set: room-bundle` (or `all` for the union with the
+> single-driver lane). The lane contract, validator, and compile-run citation
+> (26913592989) below are unchanged.
+
 **Canonical id:** `ROOM-BUNDLE-FAN-PUBLISH-WORKFLOW-001`
 **Date:** 2026-06-04
 **Type:** Workflow / script / docs / tests only. Adds the additive durable

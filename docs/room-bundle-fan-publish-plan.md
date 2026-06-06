@@ -1,5 +1,11 @@
 # Room-bundle fan-control preview publish plan — pre-run record
 
+> **Workflow merged:** the publication path planned here is now part of the
+> merged [`preview-fan-publish.yml`](../.github/workflows/preview-fan-publish.yml)
+> workflow (`fan_set: room-bundle`); the standalone `room-bundle-fan-publish.yml`
+> file was removed when the two fan-publish workflows were merged. This pre-run
+> record is unchanged.
+
 **Canonical id:** `ROOM-BUNDLE-FAN-PUBLISH-PLAN-001`
 **Date:** 2026-06-04
 **Type:** Plans the preview-artifact publication of the **five full-composition

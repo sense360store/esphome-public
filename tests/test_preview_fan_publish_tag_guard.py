@@ -39,7 +39,7 @@ from typing import List
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_PATH = REPO_ROOT / "scripts" / "validate_manual_preview_fan_publish.py"
-WORKFLOW = REPO_ROOT / ".github" / "workflows" / "manual-preview-fan-publish.yml"
+WORKFLOW = REPO_ROOT / ".github" / "workflows" / "preview-fan-publish.yml"
 WEBFLASH_BUILDS = REPO_ROOT / "config" / "webflash-builds.json"
 PLAN_DOC = REPO_ROOT / "docs" / "release-preview-fan-publish-plan.md"
 WORKFLOW_DOC = REPO_ROOT / "docs" / "release-preview-fan-publish-workflow.md"

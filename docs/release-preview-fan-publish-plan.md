@@ -1,5 +1,11 @@
 # Manual-preview fan firmware publish plan — pre-run record
 
+> **Workflow merged:** the publication path planned here is now part of the
+> merged [`preview-fan-publish.yml`](../.github/workflows/preview-fan-publish.yml)
+> workflow (`fan_set: single-driver`); the standalone
+> `manual-preview-fan-publish.yml` file was removed when the two fan-publish
+> workflows were merged. This pre-run record is unchanged.
+
 **Canonical id:** `RELEASE-PREVIEW-FAN-PUBLISH-PLAN-001`
 **Date:** 2026-06-03
 **Type:** Plans the actual publication of the **three buildable manual-preview
