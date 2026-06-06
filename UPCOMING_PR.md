@@ -250,7 +250,13 @@ plus resolving FanTRIAC `HW-005` — captured as the next queue items below.
 > WebFlash artifact). This is the bench-validation gate (real-load timing /
 > waveform / thermal + operator attestation). It does **not** clear
 > `COMPLIANCE-001`. FanTRIAC stays blocked / reference-only throughout — never
-> stable, recommended, default, buyable, or WebFlash-exposed.
+> stable, recommended, default, buyable, or WebFlash-exposed. The operator bench
+> **proof container** (procedure, safety preconditions, per-step capture tables,
+> attestation) is now authored at
+> [`docs/package-triac-001-operator-bench-proof.md`](docs/package-triac-001-operator-bench-proof.md)
+> (**PENDING** — operator hardware required); running the bench and recording the
+> attestation stays the open operator step, and a PASS clears only the
+> `PACKAGE-TRIAC-001` half (human-reviewed), leaving `COMPLIANCE-001`.
 >
 > **`TRIAC-PUBLISH-ADVANCED-PREVIEW-001` — BLOCKED behind the `PACKAGE-TRIAC-001`
 > bench + `COMPLIANCE-001`.** Publishing the advanced-manual-preview FanTRIAC
@@ -1074,6 +1080,33 @@ dedicated TRIAC-specific PR. No TRIAC row is added to
 
 Recently landed; kept as one-line history (full write-ups preserved below).
 
+* **`PACKAGE-TRIAC-001` — FanTRIAC operator bench proof container (this PR; docs +
+  guard test only)**: authored
+  [`docs/package-triac-001-operator-bench-proof.md`](docs/package-triac-001-operator-bench-proof.md),
+  the operator-evidence record for the blocked `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
+  product — safety preconditions (isolation transformer, differential / isolated
+  mains-side probe, current-limited bring-up, resistive bulb before the real fan),
+  minimal `ac_dimmer` bench firmware on the schematic-verified production pins
+  (gate `GPIO14` = `TRI_GPIO1` → U1 MOC3023M; zero-cross `GPIO13` = `TRI_GPIO2` →
+  OK1 EL814, traced from `S360-100-R4` + `S360-320-R4`), the per-step capture
+  tables (Step A zero-cross, Step B gate firing, Step C real-load waveform on bulb
+  then fan, Step D locked params, Step E thermal soak, Step F stability / boot,
+  full-composition re-confirm) and the operator attestation block. **Status:
+  PENDING — operator bench not yet run; every evidence row stays `PENDING` until
+  filled from a real run.** Added the standalone guard
+  [`tests/test_package_triac_001_operator_bench_proof.py`](tests/test_package_triac_001_operator_bench_proof.py)
+  pinning the PENDING template, the schematic-verified pin mapping, and the coupling
+  that the proof cannot record a PASS while the catalog still blocks the product.
+  **Docs + test only**: no firmware / manifest / release / WebFlash change; the proof
+  makes **no** isolation / creepage / clearance / EMI / thermal / waveform /
+  compliance claim (those stay with `COMPLIANCE-001`). FanTRIAC stays
+  `status: blocked` (`blocker: PACKAGE-TRIAC-001 + COMPLIANCE-001`,
+  `webflash_build_matrix: false`); [`config/product-catalog.json`](config/product-catalog.json)
+  and [`config/room-bundle-fan-variants.json`](config/room-bundle-fan-variants.json)
+  are untouched. Running the bench and clearing the `PACKAGE-TRIAC-001` half on a
+  PASS is a separate human-reviewed PR; the publish
+  (`TRIAC-PUBLISH-ADVANCED-PREVIEW-001`) still does not proceed until
+  `COMPLIANCE-001` also clears.
 * **`TRIAC-PUBLISH-GATE-HARDEN-001` — docs / guardrail only (this PR)**: reconciled
   the stale sibling [`config/room-bundle-fan-variants.json`](config/room-bundle-fan-variants.json)
   (the only file still saying FanTRIAC is "BUILD-BLOCKED by HW-005"; `config/webflash-builds.json`
