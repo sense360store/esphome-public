@@ -5,6 +5,25 @@ esphome-public repository. The **Next queue (actionable)** section lists the onl
 true open work; the **Completed / merged** section keeps a one-line history of
 recently landed PRs. Full historical PR write-ups are retained below.
 
+## Security remediation (SEC-ESP-REMEDIATION) — in review
+
+Four stacked PRs remediate every open finding in [`security.md`](security.md),
+in the audit's fix order. PR1 and PR4 are firmware / signing and are opened as
+**drafts for human review (do not auto-merge)**; PR2 and PR3 are ready for a
+human to merge. Each PR is based on the previous branch, so they are merged in
+order (GitHub auto-retargets to `main` on each merge).
+
+| PR | Task / finding(s) | Severity | Branch (base) | Status |
+|---|---|---|---|---|
+| [#733](https://github.com/sense360store/esphome-public/pull/733) | SEC-ESP-FALLBACK-AP-001 — finding #1: fallback-AP password literal → `!secret` + build-time guard | Medium-High | `claude/sec-esp-fallback-ap-001` (`main`) | **draft — human review (firmware-affecting)** |
+| [#734](https://github.com/sense360store/esphome-public/pull/734) | SEC-ESP-SECRET-GUARD-001 — findings #2 (untrack `products/secrets.yaml`, broaden guard) + #6 (`--unsafe` rationale) | Medium / accepted | `claude/sec-esp-secret-guard-001` (#733) | open — human merge |
+| [#735](https://github.com/sense360store/esphome-public/pull/735) | SEC-ESP-BUILD-GATES-001 — findings #4 (reject placeholder `api_encryption_key` on stable) + #5 (manifest JSON gate) | Low | `claude/sec-esp-build-gates-001` (#734) | open — human merge |
+| [#736](https://github.com/sense360store/esphome-public/pull/736) | SEC-ESP-CHECKSUM-SIGNING-001 — finding #3: keyless-cosign-sign `checksums-sha256.txt` | Medium | `claude/sec-esp-checksum-signing-001` (#735) | **draft — human review (supply-chain signing)** |
+
+Guardrails held: every compile lane and the TRIAC fail-closed publish-gate tests
+(`test_preview_fan_triac_build_rows.py` + siblings) stay green and untouched; no
+existing control was weakened.
+
 ## Preview-release queue state (source of truth)
 
 Where the preview-release program actually stands today:
