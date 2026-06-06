@@ -13,8 +13,8 @@ is the production path** most customers use — see [Which Path Should I Use?](#
 [![ESPHome](https://img.shields.io/badge/ESPHome-2025.10%2B-blue)](https://esphome.io/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![GitHub Release](https://img.shields.io/github/v/release/sense360store/esphome-public)](https://github.com/sense360store/esphome-public/releases)
-[![CI - Quick Validation (PR gate)](https://github.com/sense360store/esphome-public/actions/workflows/validate.yml/badge.svg)](https://github.com/sense360store/esphome-public/actions/workflows/validate.yml)
-[![CI - Build & Release Firmware](https://github.com/sense360store/esphome-public/actions/workflows/firmware-build-release.yml/badge.svg)](https://github.com/sense360store/esphome-public/actions/workflows/firmware-build-release.yml)
+[![CI: Quick Validation (PR gate)](https://github.com/sense360store/esphome-public/actions/workflows/validate.yml/badge.svg)](https://github.com/sense360store/esphome-public/actions/workflows/validate.yml)
+[![Release 3: Build & Release](https://github.com/sense360store/esphome-public/actions/workflows/firmware-build-release.yml/badge.svg)](https://github.com/sense360store/esphome-public/actions/workflows/firmware-build-release.yml)
 
 ---
 
@@ -435,7 +435,7 @@ esphome-public/
 
 ## CI / pipeline
 
-The **per-PR gate** is `validate.yml` (Quick Validation — runs on every push/PR)
+The **per-PR gate** is `validate.yml` (CI: Quick Validation — runs on every push/PR)
 plus `firmware-build-release.yml` (builds and publishes the release `.bin` set on
 release publish). These are the badges above and the checks that block a merge.
 

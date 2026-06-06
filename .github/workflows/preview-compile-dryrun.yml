@@ -45,7 +45,7 @@
 # a specific green run of this lane.
 # ============================================================================
 
-name: Preview Compile Dry-Run
+name: "CI: Preview Compile Dry-Run"
 
 on:
   workflow_dispatch:

@@ -14,7 +14,7 @@
 # workflow ci-validate-configs.yml (workflow_dispatch only).
 # ============================================================================
 
-name: Quick Validation
+name: "CI: Quick Validation"
 
 on:
   push:

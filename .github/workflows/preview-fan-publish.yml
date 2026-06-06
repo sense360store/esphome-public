@@ -56,7 +56,7 @@
 # release. This does not reintroduce a dedicated fan tag.
 # ============================================================================
 
-name: Preview Fan Firmware Publish
+name: "Publish: Fan Firmware (preview)"
 
 on:
   workflow_dispatch:
