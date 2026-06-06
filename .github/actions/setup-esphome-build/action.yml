@@ -90,8 +90,10 @@ runs:
         # being compiled, so a secrets.yaml must sit at the repo root, next to
         # products/, and next to every extra target directory a lane supplies.
         printf '%s\n' "$SECRETS_CONTENT" > secrets.yaml
-        # products/secrets.yaml is a committed symlink to ../secrets.example.yaml;
-        # remove it first so the copy is a real file (matches the inline steps).
+        # products/secrets.yaml is gitignored (SEC-ESP-SECRET-GUARD-001 removed
+        # the tracked symlink; the tracked template is products/secrets.example.yaml).
+        # Create a real per-build copy here so ESPHome resolves `!secret` for the
+        # product configs under products/. rm -f is a harmless no-op when absent.
         rm -f products/secrets.yaml
         cp secrets.yaml products/secrets.yaml
         read -ra extra_dirs <<< "$EXTRA_SECRETS_DIRS"

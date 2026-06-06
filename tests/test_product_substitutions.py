@@ -76,7 +76,9 @@ def _discover_products():
     """Return the list of product YAML files to check."""
     files = []
     for path in sorted(PRODUCTS_DIR.glob("*.yaml")):
-        if path.name == "secrets.yaml":
+        # SEC-ESP-SECRET-GUARD-001: skip secrets.yaml and the tracked
+        # secrets.example.yaml template — they are not product configs.
+        if path.name in ("secrets.yaml", "secrets.example.yaml"):
             continue
         files.append(path)
     return files

@@ -387,8 +387,13 @@ class HelperYamlsAreNotEntrypointsTests(unittest.TestCase):
         cls.plan = cls.classifier.classify()
 
     def test_secrets_yaml_is_not_entrypoint(self) -> None:
+        # SEC-ESP-SECRET-GUARD-001: products/secrets.yaml (the tracked symlink)
+        # was replaced by the tracked products/secrets.example.yaml template.
+        # The helper template is still not a release product entrypoint.
         secrets = [
-            r for r in self.plan["records"] if r["yaml_path"] == "products/secrets.yaml"
+            r
+            for r in self.plan["records"]
+            if r["yaml_path"] == "products/secrets.example.yaml"
         ]
         self.assertEqual(len(secrets), 1)
         self.assertEqual(secrets[0]["release_class"], "not-a-product-entrypoint")
