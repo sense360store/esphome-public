@@ -223,9 +223,13 @@ the contract snapshot at
 [`config/webflash-compatibility.json`](config/webflash-compatibility.json) by
 [`tests/validate_webflash_builds.py`](tests/validate_webflash_builds.py).
 
-> **Signing:** This repo does **not** sign firmware. WebFlash remains the
-> production signing/deployment authority and consumes the unsigned `.bin`
-> assets attached to GitHub releases.
+> **Signing.** The release workflow signs `checksums-sha256.txt` with keyless
+> Sigstore cosign (the release's authenticity anchor) — see
+> [`docs/release-signing.md`](docs/release-signing.md) for the consumer
+> `cosign verify-blob` command. The `.bin` firmware files themselves are not
+> individually signed here; WebFlash remains the production
+> firmware-signing / deployment authority and consumes the `.bin` assets
+> attached to GitHub releases.
 
 ---
 
