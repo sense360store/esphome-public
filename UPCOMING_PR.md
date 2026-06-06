@@ -1074,6 +1074,28 @@ dedicated TRIAC-specific PR. No TRIAC row is added to
 
 Recently landed; kept as one-line history (full write-ups preserved below).
 
+* **`TRIAC-PUBLISH-GATE-HARDEN-001` — docs / guardrail only (this PR)**: reconciled
+  the stale sibling [`config/room-bundle-fan-variants.json`](config/room-bundle-fan-variants.json)
+  (the only file still saying FanTRIAC is "BUILD-BLOCKED by HW-005"; `config/webflash-builds.json`
+  carries no FanTRIAC row) to the corrected catalog framing that `TRIAC-PINMAP-CORRECT-001`
+  already landed elsewhere: **HW-005 buildability RESOLVED**, so the TRIAC variant
+  now reads `buildable_now: true` / `build_blocker: null` (HW-005 survives in a new
+  `build_blocker_history` field), and the remaining blocker is the advanced-manual-
+  preview **PUBLISH** gate. Added a machine-readable `advanced_preview_publish_gate`
+  object (`id: TRIAC-PUBLISH-ADVANCED-PREVIEW-001`, `gated_by: [PACKAGE-TRIAC-001,
+  COMPLIANCE-001]`, `is_acknowledgement_gate: false`, `artifact_cut: false`) plus prose
+  stating explicitly that the publish is gated by **`PACKAGE-TRIAC-001` AND
+  `COMPLIANCE-001`, NOT an acknowledgement gate** — no `.bin` is cut and no preview /
+  advanced-preview row is added until the operator bench and the mains-voltage sign-off
+  both land, and the acknowledgement gate is an additional UX warning on top, never a
+  substitute. Updated `scripts/validate_room_bundle_fan_publish.py` and the four
+  pinning tests to assert the corrected publish-gate model (TRIAC still fails closed on
+  selection). **No publish, no `.bin`, no `config/webflash-builds.json` row, no
+  eligibility flip** (`firmware_config_status` stays `defined-build-blocked`,
+  `webflash_exposed` / import-eligibility unchanged, catalog untouched); **no
+  bench / timing / isolation / compliance assertion** (the build stays
+  schematic-backed, NOT bench-verified). Full `tests/` suite green (1851). Human-review
+  only.
 * **#725 — `TRIAC-PINMAP-CORRECT-001` buildability follow-up**: completes the
   pin-correction slice that #724 left non-compiling. #724 corrected the pins and
   kept FanTRIAC blocked, but retained `fan_profile: !include

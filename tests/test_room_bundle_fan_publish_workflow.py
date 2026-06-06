@@ -255,11 +255,19 @@ class HelperScriptScopeTests(unittest.TestCase):
                 self.assertEqual([row["config_string"] for row in rows], [config])
 
     def test_triac_selection_fails_closed(self) -> None:
+        # TRIAC must still fail closed: HW-005 buildability is resolved, but the
+        # advanced-manual-preview publish stays gated by PACKAGE-TRIAC-001 +
+        # COMPLIANCE-001 and is not published by this workflow.
         rows, errors = _SCRIPT._select_rows(
             *_docs(), version=VERSION, release_target=TRIAC_CONFIG
         )
         self.assertEqual(rows, [])
-        self.assertTrue(any("HW-005" in error for error in errors))
+        self.assertTrue(
+            any(
+                "PACKAGE-TRIAC-001" in error and "COMPLIANCE-001" in error
+                for error in errors
+            )
+        )
 
     def test_unknown_target_fails_closed(self) -> None:
         rows, errors = _SCRIPT._select_rows(
@@ -308,6 +316,10 @@ class CompileEvidenceTests(unittest.TestCase):
         self.assertIn(str(COMPILE_RUN_ID), body)
         self.assertIn(TRIAC_CONFIG, body)
         self.assertIn("HW-005", body)
+        # The TRIAC exclusion reason is now the advanced-manual-preview publish
+        # gate, not a buildability blocker.
+        self.assertIn("PACKAGE-TRIAC-001", body)
+        self.assertIn("COMPLIANCE-001", body)
 
     def test_release_body_does_not_imply_webflash_import(self) -> None:
         rows, errors = _SCRIPT._select_rows(*_docs(), version=VERSION)

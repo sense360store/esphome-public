@@ -25,7 +25,9 @@ is deliberately NOT:
   * a Simple / easy-mode exposure (webflash_easy_mode_eligible stays false until
     the downstream WebFlash import + warning gates land).
 
-FanTRIAC stays excluded (build-blocked under HW-005, no artifact, not eligible).
+FanTRIAC stays excluded (not import eligible, no artifact; HW-005 buildability
+resolved by TRIAC-PINMAP-CORRECT-001 but advanced-manual-preview publish gated
+by PACKAGE-TRIAC-001 + COMPLIANCE-001, never by an acknowledgement gate).
 The two FanDAC artifacts keep the GP8403 IC1 0x58 / IC2 0x5A address policy
 (0x59 forbidden) and the pending FANDAC-I2C-ADDR-001 bench verification — no
 FanDAC hardware proof is claimed. The stable Bathroom PoE build
@@ -348,13 +350,26 @@ class TriacStaysExcludedTests(unittest.TestCase):
         )
         self.assertNotIn(TRIAC_CONFIG, EXPECTED)
 
-    def test_triac_stays_build_blocked(self) -> None:
+    def test_triac_stays_publish_blocked(self) -> None:
         triac = self.variants[TRIAC_CONFIG]
         self.assertEqual(triac["firmware_config_status"], "defined-build-blocked")
         ev = triac["firmware_config_evidence"]
-        self.assertFalse(ev["buildable_now"])
-        self.assertIn("HW-005", ev["build_blocker"])
+        # HW-005 buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001): buildable
+        # now, no build_blocker. The history field still names HW-005.
+        self.assertTrue(ev["buildable_now"])
+        self.assertIsNone(ev["build_blocker"])
+        self.assertIn("HW-005", ev["build_blocker_history"])
         self.assertNotIn("publish_evidence", ev)
+        # The remaining blocker is the advanced-manual-preview PUBLISH gate
+        # (PACKAGE-TRIAC-001 + COMPLIANCE-001), never an acknowledgement gate.
+        gate = triac["advanced_preview_publish_gate"]
+        self.assertEqual(gate["id"], "TRIAC-PUBLISH-ADVANCED-PREVIEW-001")
+        self.assertEqual(
+            set(gate["gated_by"]), {"PACKAGE-TRIAC-001", "COMPLIANCE-001"}
+        )
+        self.assertFalse(gate["is_acknowledgement_gate"])
+        self.assertFalse(gate["artifact_cut"])
+        self.assertFalse(gate["preview_or_advanced_preview_row_added"])
 
     def test_triac_absent_from_catalog_eligibility(self) -> None:
         entry = self.catalog.get(TRIAC_CONFIG)
