@@ -1,0 +1,121 @@
+---
+# ============================================================================
+# COMPOSITE ACTION: Set up ESPHome build environment
+# ============================================================================
+# Extracted from the duplicated setup blocks in firmware-build-release.yml,
+# compile-only.yml, preview-compile-dryrun.yml, and ci-validate-configs.yml
+# (per the CI/CD workflow audit: "Extract shared boilerplate; one source for
+# the ESPHome version"). It installs Python and the pinned ESPHome,
+# restores the PlatformIO cache, provisions the throwaway secrets.yaml, and
+# optionally rewrites packages/base/external_components.yaml to the locally
+# checked-out components/ tree. Call this right after actions/checkout.
+#
+# ESPHOME_VERSION single source: the esphome-version default below is the one
+# place the pinned ESPHome version lives for the converted workflows. It stays
+# exactly "2026.4.5".
+# ============================================================================
+name: Set up ESPHome build environment
+description: >-
+  Installs Python and the pinned ESPHome, restores the PlatformIO cache,
+  provisions a throwaway secrets.yaml, and optionally rewrites
+  external_components to the locally checked-out components/ tree. Call this
+  after actions/checkout.
+
+inputs:
+  esphome-version:
+    description: ESPHome version to install.
+    required: false
+    default: "2026.4.5"
+  extra-secrets-dirs:
+    description: >-
+      Space-separated extra directories that each need a copy of secrets.yaml
+      next to the top-level YAML being compiled (in addition to the repo root
+      and products/). Empty by default.
+    required: false
+    default: ""
+  patch-external-components:
+    description: >-
+      When "true", rewrite packages/base/external_components.yaml to use the
+      local components/ tree (CI-only override; never committed). Defaults to
+      "false".
+    required: false
+    default: "false"
+  secrets-content:
+    description: >-
+      Body of the throwaway secrets.yaml. Defaults to the test secrets used by
+      the compile / validate lanes. firmware-build-release.yml overrides it
+      with its own build secrets so the bytes baked into release firmware are
+      unchanged.
+    required: false
+    default: |
+      wifi_ssid: "TestNetwork"
+      wifi_password: "TestPassword123"
+      api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+      ota_password: "test-ota-password"
+      fallback_ap_password: "fallback123"
+      web_username: "admin"
+      web_password: "test_web_password"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      with:
+        python-version: "3.11"
+
+    - name: Cache PlatformIO
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      with:
+        path: |
+          ~/.platformio
+          ~/.cache/pip
+        key: ${{ runner.os }}-pio-${{ inputs.esphome-version }}-${{ hashFiles('**/platformio.ini') }}
+        restore-keys: |
+          ${{ runner.os }}-pio-${{ inputs.esphome-version }}-
+          ${{ runner.os }}-pio-
+
+    - name: Install ESPHome
+      shell: bash
+      run: pip install "esphome==${{ inputs.esphome-version }}"
+
+    - name: Provision test secrets
+      shell: bash
+      env:
+        SECRETS_CONTENT: ${{ inputs.secrets-content }}
+        EXTRA_SECRETS_DIRS: ${{ inputs.extra-secrets-dirs }}
+      run: |
+        set -euo pipefail
+        # ESPHome resolves `!secret` lookups relative to the top-level YAML
+        # being compiled, so a secrets.yaml must sit at the repo root, next to
+        # products/, and next to every extra target directory a lane supplies.
+        printf '%s\n' "$SECRETS_CONTENT" > secrets.yaml
+        # products/secrets.yaml is a committed symlink to ../secrets.example.yaml;
+        # remove it first so the copy is a real file (matches the inline steps).
+        rm -f products/secrets.yaml
+        cp secrets.yaml products/secrets.yaml
+        read -ra extra_dirs <<< "$EXTRA_SECRETS_DIRS"
+        for d in "${extra_dirs[@]}"; do
+          mkdir -p "$d"
+          rm -f "$d/secrets.yaml"
+          cp secrets.yaml "$d/secrets.yaml"
+        done
+
+    - name: Patch external_components to local checked-out source
+      if: inputs.patch-external-components == 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        # CI builds run inside the checked-out repo, so cloning this repo
+        # through external_components (git source, ref: main) is unnecessary
+        # and fragile on a feature branch. Rewrite the shared base include to
+        # point at the local components/ tree. Workspace-only; never committed.
+        cat > packages/base/external_components.yaml <<'EOF'
+        # CI-only override: use the locally checked-out components/ tree.
+        external_components:
+          - source:
+              type: local
+              path: ../components
+            components: [ld2412, ld2450, ld24xx]
+        EOF
+        echo "Patched packages/base/external_components.yaml to local source."
