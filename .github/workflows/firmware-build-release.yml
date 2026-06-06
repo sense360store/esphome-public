@@ -344,89 +344,47 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      - name: Set up ESPHome build environment
+        uses: ./.github/actions/setup-esphome-build
         with:
-          python-version: "3.11"
+          # ESPHOME_VERSION is sourced from the workflow env so the value baked
+          # into the firmware manifest (esphome_version) and the compile log
+          # below stays the single pinned version.
+          esphome-version: ${{ env.ESPHOME_VERSION }}
+          # The build also writes generated configs under tests/generated/, so
+          # secrets are provisioned there and in tests/ as well as at the repo
+          # root and products/.
+          extra-secrets-dirs: "tests tests/generated"
+          # Rewrite packages/base/external_components.yaml to the local
+          # components/ tree; the inline product-YAML rewrite below handles any
+          # product-level external_components blocks.
+          patch-external-components: "true"
+          # Release builds bake their own default secrets into the firmware, so
+          # this lane overrides the throwaway test secrets used by the compile /
+          # validate lanes. Keep these bytes unchanged.
+          secrets-content: |
+            wifi_ssid: "Sense360_Setup"
+            wifi_password: "sense360setup"
+            api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
+            ota_password: "sense360-ota-default"
+            fallback_ap_password: "sense360fallback"
+            web_username: "admin"
+            web_password: "sense360admin"
 
-      - name: Cache PlatformIO
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: |
-            ~/.platformio
-            ~/.cache/pip
-          key: ${{ runner.os }}-pio-${{ env.ESPHOME_VERSION }}-${{ hashFiles(matrix.file) }}-${{ matrix.product }}
-          restore-keys: |
-            ${{ runner.os }}-pio-${{ env.ESPHOME_VERSION }}-
-            ${{ runner.os }}-pio-
-
-      - name: Install ESPHome
+      - name: Patch inline external_components in product YAMLs
         run: |
-          pip install esphome==${{ env.ESPHOME_VERSION }}
-
-      - name: Create secrets.yaml for build
-        run: |
-          cat > secrets.yaml << 'EOF'
-          wifi_ssid: "Sense360_Setup"
-          wifi_password: "sense360setup"
-          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
-          ota_password: "sense360-ota-default"
-          fallback_ap_password: "sense360fallback"
-          web_username: "admin"
-          web_password: "sense360admin"
-          EOF
-          # Copy secrets to all locations where configs might look for them
-          # Remove symlinks first (products/secrets.yaml may be a symlink to ../secrets.yaml)
-          rm -f products/secrets.yaml
-          rm -f tests/secrets.yaml
-          cp secrets.yaml products/secrets.yaml
-          mkdir -p tests/generated
-          cp secrets.yaml tests/secrets.yaml
-          cp secrets.yaml tests/generated/secrets.yaml
-
-      - name: Patch external_components to use local checked-out source
-        run: |
-          # CI/release builds run inside the checked-out repo, so cloning
-          # https://github.com/sense360store/esphome-public@<ref> through
-          # external_components is both unnecessary and fragile (the requested
-          # ref may not yet exist on GitHub, e.g. when proving a fix on a
-          # working branch). Override the shared external_components include
-          # and any inline external_components blocks in product YAMLs to
-          # point at the local components/ directory.
+          # The composite action above already rewrote
+          # packages/base/external_components.yaml to the local components/
+          # tree. Some product YAMLs (e.g.
+          # products/sense360-mini-full-ld2412.yaml) declare their own inline
+          # external_components block; rewrite any such block to also use the
+          # local components/ directory. Path is ../components because product
+          # YAMLs live in products/.
           #
           # IMPORTANT: this rewrite happens in the workflow workspace only.
           # It is never committed back to the repo, so end-users consuming
           # this repo as a remote ESPHome package continue to get the
           # git-source version checked into git.
-
-          echo "Rewriting packages/base/external_components.yaml -> local source"
-          cat > packages/base/external_components.yaml <<'EOF'
-          # CI-only override: use the locally checked-out components/ tree
-          # instead of cloning this repo from GitHub. The committed version
-          # of this file (with type: git) is intentionally unchanged.
-          #
-          # NOTE on the relative path: ESPHome resolves
-          # external_components.source.path relative to the directory of
-          # the main YAML being compiled (the config_dir), NOT relative
-          # to the file in which the external_components block appears.
-          # Every product YAML in the build matrix lives under products/,
-          # so ../components points at the repo-root components/ tree.
-          # Using `path: components` would make ESPHome look for
-          # products/components, which does not exist.
-          external_components:
-            - source:
-                type: local
-                path: ../components
-              components: [ld2412, ld2450, ld24xx]
-          EOF
-          echo "Patched packages/base/external_components.yaml:"
-          cat packages/base/external_components.yaml
-
-          # Some product YAMLs declare their own inline external_components
-          # block (e.g. products/sense360-mini-full-ld2412.yaml). Rewrite any
-          # such block to also use the local components/ directory. Path is
-          # ../components because product YAMLs live in products/.
-          echo ""
           echo "Searching products/ for inline external_components blocks..."
           python3 - <<'PY'
           import pathlib

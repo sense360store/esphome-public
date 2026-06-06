@@ -54,9 +54,6 @@ on:
 permissions:
   contents: read
 
-env:
-  ESPHOME_VERSION: "2026.4.5"
-
 jobs:
   # ============================================================================
   # JOB 1: YAML VALIDATION
@@ -158,37 +155,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
-        with:
-          python-version: "3.11"
-
-      - name: Cache ESPHome
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: ~/.platformio
-          key: ${{ runner.os }}-platformio-${{ hashFiles('**/platformio.ini') }}
-          restore-keys: |
-            ${{ runner.os }}-platformio-
-
-      - name: Install ESPHome
-        run: |
-          pip install esphome==${{ env.ESPHOME_VERSION }}
-
-      - name: Create secrets.yaml for testing
-        run: |
-          cat > secrets.yaml << 'EOF'
-          wifi_ssid: "TestNetwork"
-          wifi_password: "TestPassword123"
-          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
-          ota_password: "test-ota-password"
-          fallback_ap_password: "fallback123"
-          web_username: "admin"
-          web_password: "test_web_password"
-          EOF
-          # Remove symlink if it exists (products/secrets.yaml may be a symlink to ../secrets.yaml)
-          rm -f products/secrets.yaml
-          cp secrets.yaml products/secrets.yaml
+      - name: Set up ESPHome build environment
+        # This lane keeps its own external_components rewrite (sed ref: main ->
+        # current branch + feature-package @main -> branch) in the step below,
+        # so patch-external-components stays false (the default). Secrets only
+        # need the repo root and products/, so no extra-secrets-dirs.
+        uses: ./.github/actions/setup-esphome-build
 
       - name: Update external_components and includes to use current branch
         run: |
@@ -265,41 +237,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      - name: Set up ESPHome build environment
+        uses: ./.github/actions/setup-esphome-build
         with:
-          python-version: "3.11"
-
-      - name: Cache ESPHome
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: ~/.platformio
-          key: ${{ runner.os }}-platformio-${{ hashFiles('**/platformio.ini') }}
-          restore-keys: |
-            ${{ runner.os }}-platformio-
-
-      - name: Install ESPHome
-        run: |
-          pip install esphome==${{ env.ESPHOME_VERSION }}
-
-      - name: Create secrets.yaml for testing
-        run: |
-          cat > secrets.yaml << 'EOF'
-          wifi_ssid: "TestNetwork"
-          wifi_password: "TestPassword123"
-          api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
-          ota_password: "test-ota-password"
-          fallback_ap_password: "fallback123"
-          web_username: "admin"
-          web_password: "test_web_password"
-          EOF
-          # Remove symlinks if they exist (may be symlinks to ../secrets.yaml)
-          rm -f products/secrets.yaml
-          rm -f tests/secrets.yaml
-          cp secrets.yaml products/secrets.yaml
-          cp secrets.yaml tests/secrets.yaml
-          mkdir -p tests/generated
-          cp secrets.yaml tests/generated/secrets.yaml
+          # The generated configs are written to tests/generated/, so secrets
+          # are provisioned there and in tests/ as well as the repo root and
+          # products/. This lane keeps its own external_components rewrite (the
+          # step below), so patch-external-components stays false (the default).
+          extra-secrets-dirs: "tests tests/generated"
 
       - name: Update external_components and includes to use current branch
         run: |
