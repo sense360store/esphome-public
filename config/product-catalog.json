@@ -20,11 +20,11 @@
     {
       "config_string": "Ceiling-POE-VentIQ-RoomIQ",
       "status": "production",
-      "version": "1.0.2",
+      "version": "1.0.4",
       "channel": "stable",
       "product_yaml": "products/sense360-ceiling-poe-ventiq-roomiq.yaml",
       "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-roomiq.yaml",
-      "artifact_name": "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.2-stable.bin",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.4-stable.bin",
       "webflash_build_matrix": true,
       "modules": {
         "mount": "Ceiling",
