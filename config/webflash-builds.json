@@ -25,13 +25,13 @@
     {
       "config_string": "Ceiling-POE-VentIQ-RoomIQ-LED",
       "product_yaml": "products/webflash/ceiling-poe-ventiq-roomiq-led.yaml",
-      "artifact_name": "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.3-preview.bin",
       "channel": "preview",
       "channel_tier": "preview",
       "webflash_exposure_class": "acknowledgement-gated",
       "warning_copy_key": "preview",
       "stable_blocker": "LED preview-to-stable gauntlet (operator flash proof, bench verification, stable promotion).",
-      "version": "1.0.0",
+      "version": "1.0.3",
       "chip_family": "ESP32-S3",
       "hardware_requirements": [
         "Sense360 Core R4 or newer",
