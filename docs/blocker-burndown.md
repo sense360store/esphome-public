@@ -17,8 +17,8 @@ classification + next-action** view that points back at them.
 - **Repo evidence.** Read directly from the committed tree on
   `claude/blocker-burndown-consolidation-fpZyu` (HEAD at the
   `origin/main` tip, PR #598 merged).
-- **Drive evidence.** Re-searched Google Drive this session (owner
-  `neilmcrae@googlemail.com`, R4 shared drive) for any **new** bench /
+- **Drive evidence.** Re-searched the shared hardware design drive this
+  session for any **new** bench /
   sign-off / harness / polarity / current / thermal / compliance
   artifact that could close an open blocker. **None was found.** The
   only artifacts present are the already-recorded CAD / manufacturing
@@ -26,15 +26,14 @@ classification + next-action** view that points back at them.
   `RelayBoard-Module`, `TRIAC.png` / `Relay.png` / `LED.png` design
   renders) plus the project trackers. No artifact is committed by this
   PR; provenance only.
-- **Project tracker.** Re-read `Sense360_R4_Tracker`
-  (Google Sheet, owner `neilmcrae@googlemail.com`, last modified
-  **2026-05-18**) for status corroboration. New, blocker-relevant
+- **Project tracker.** Re-read the `Sense360_R4_Tracker` project tracker
+  (from the hardware design source) for status corroboration. New, blocker-relevant
   facts captured below: the Fan Relay board's further work (`Y02`) is
   **Waiting** on the TRIAC merge decision (`T02`, still **Doing**);
   the TRIAC mechanism is SSR + MOC3041 optocoupler (`T01` Done);
   mains connector tasks (`T04` / `Y01` / `Y03` / `Z01`) are Done but
   carry **no** compliance certification; the fleet-wide silkscreen
-  P/N / REV / date-code task (`G01`) stays **Waiting** on Neil's logo
+  P/N / REV / date-code task (`G01`) stays **Waiting** on the design owner's logo
   SVG (`N01`); and the PoE PSU rename (`R11`) is still **To do**.
 - **WebFlash access.** A live read of `sense360store/WebFlash` was
   **denied** this session — the GitHub tool scope is
@@ -1034,8 +1033,8 @@ this is the cross-lane index copy.
 `TachIO`, `GPIO16`, `fan test`, `product bench`, photos / videos /
 spreadsheets / logs) found **no bench artifact** — only **design / CAD**
 material: the already-recorded `12vFan_PWM_PulseCounter` set, a
-canonically-named `S360-311-R4` Drive folder (owner
-`kanyugistash@gmail.com`, created 2026-05-16: KiCad sources, gerbers,
+canonically-named `S360-311-R4` Drive folder (from the PCB design owner:
+KiCad sources, gerbers,
 `positions.csv` CPL, STEP, `S360-311-R4_BOM.xlsx`, `S360-311-R4.pdf`
 schematic, three renders), and the unchanged `Sense360_R4_Tracker`
 (2026-05-18). This is the same artifact class as the committed
@@ -1170,9 +1169,9 @@ this is the cross-lane index copy.
 spreadsheets / logs) found **no bench artifact** — only **design / CAD**
 material: the `Fan_GP8403` design set (`Fan_GP8403.kicad_sch` + the
 timestamped `Fan_GP8403-*.zip` gerber/CPL snapshot series + the related
-`GP8403.zip` / `GP8403-Module`, owner `neilmcrae@googlemail.com`), the
-canonical `S360-312-R4.pdf` schematic (owner `kanyugistash@gmail.com`,
-modified 2026-05-16 — already committed byte-identical as
+`GP8403.zip` / `GP8403-Module`, from the hardware design source), the
+canonical `S360-312-R4.pdf` schematic (from the PCB design owner —
+already committed byte-identical as
 [`schematics/S360-312-R4.pdf`](hardware/schematics/S360-312-R4.pdf)), and
 the unchanged `Sense360_R4_Tracker` (2026-05-18). This is recorded for
 provenance only, closes no bench blocker, and **no Drive file is committed
@@ -1244,7 +1243,7 @@ electrical-margin, **not** repo / package / product / config work.
 `bench`, `fan`, spreadsheets / PDFs / photos) found **no measurement
 artifact** — only **design / CAD** material (the `12vFan_PWM_PulseCounter`
 set incl. `PWM.png`, the canonically-named `S360-311-R4` Drive folder
-owned by `kanyugistash@gmail.com` created 2026-05-16 with KiCad sources /
+owned by the PCB design owner with KiCad sources /
 gerbers / CPL / STEP / BOM / schematic PDF / renders, and the unchanged
 `Sense360_R4_Tracker`). Same artifact class as the committed
 [`schematics/S360-311-R4.pdf`](hardware/schematics/S360-311-R4.pdf),
@@ -1318,7 +1317,7 @@ terms) found **no safety / `GPIO3` / competent-person artifact** — only
 **design / CAD** material: the legacy `RelayBoard-Module` set
 (`RelayBoard.pdf` / `.xlsx` BOM / `RelayBoardGerbers.zip` /
 `RelayBoardpositions.csv` / `Relay.png`) and a canonically-named
-`S360-310-R4` set (owner `kanyugistash@gmail.com`, 2026-05-18: KiCad
+`S360-310-R4` set (from the PCB design owner: KiCad
 sources, `S360-310-R4_GERBERS.zip`, `positions.csv` CPL, STEP,
 `S360-310-R4_BOM.xlsx`, `S360-310-R4.pdf` schematic, `Relay_logo.pretty`,
 renders `_2`–`_6.png`), plus the unchanged `Sense360_R4_Tracker` and

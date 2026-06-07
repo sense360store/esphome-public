@@ -1747,13 +1747,13 @@ A fresh Drive search for new FanDAC bench evidence (`S360-312`,
 spreadsheets / logs) found **no bench artifact**. The only FanDAC-bearing
 material is **design / CAD only**:
 
-- the `Fan_GP8403` design set (owner `neilmcrae@googlemail.com`):
+- the `Fan_GP8403` design set (from the hardware design source):
   `Fan_GP8403.kicad_sch` plus the timestamped `Fan_GP8403-*.zip` gerber /
   CPL snapshot series (2025-08 → 2026-01), and the related `GP8403.zip` /
   `GP8403-Module` folder — the same BOM/CAD class cross-checked in
   [§BOM cross-check](#bom-cross-check);
-- the canonical `S360-312-R4.pdf` schematic (owner
-  `kanyugistash@gmail.com`, modified 2026-05-16) — already committed,
+- the canonical `S360-312-R4.pdf` schematic (from the PCB design
+  owner) — already committed,
   byte-identical, as
   [`schematics/S360-312-R4.pdf`](schematics/S360-312-R4.pdf);
 - the unchanged `Sense360_R4_Tracker` (2026-05-18).
