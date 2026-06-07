@@ -128,7 +128,11 @@ jobs:
 
       - name: Preflight - tag normalizes back to the planned (version, channel)
         env:
-          GITHUB_REF_NAME: ${{ steps.plan.outputs.tag }}
+          # GITHUB_REF_NAME is a runner-provided default variable; GitHub
+          # ignores any attempt to override it through an env: block, so the
+          # planned tag is exposed here under a non-reserved name and assigned
+          # inline on the python invocation below.
+          PLANNED_TAG: ${{ steps.plan.outputs.tag }}
           PRERELEASE: ${{ steps.plan.outputs.prerelease }}
           EXPECTED_VERSION: ${{ inputs.version }}
           EXPECTED_CHANNEL: ${{ steps.plan.outputs.channel }}
@@ -138,18 +142,23 @@ jobs:
           # runs on the release event. Prove the planned tag + prerelease flag
           # round-trip back to the planned (version, channel) before the tag is
           # cut, so the tag cannot mismatch the channel Release 3 filters on.
-          python3 scripts/derive_release_version_channel.py > derive.out
+          # GITHUB_REF_NAME is assigned inline (not via env:) because GitHub
+          # ignores env: overrides of reserved GITHUB_-prefixed variables; an
+          # inline assignment scopes the planned tag to this child process only
+          # and wins over the runner-inherited branch ref (e.g. main).
+          GITHUB_REF_NAME="${PLANNED_TAG}" PRERELEASE="${PRERELEASE}" \
+            python3 scripts/derive_release_version_channel.py > derive.out
           cat derive.out
           GOT_VERSION="$(grep '^version=' derive.out | cut -d= -f2-)"
           GOT_CHANNEL="$(grep '^channel=' derive.out | cut -d= -f2-)"
           if [ "$GOT_VERSION" != "$EXPECTED_VERSION" ] \
             || [ "$GOT_CHANNEL" != "$EXPECTED_CHANNEL" ]; then
-            echo "::error::tag ${GITHUB_REF_NAME} resolves to" \
+            echo "::error::tag ${PLANNED_TAG} resolves to" \
               "(${GOT_VERSION}, ${GOT_CHANNEL}) but the plan expected" \
               "(${EXPECTED_VERSION}, ${EXPECTED_CHANNEL})"
             exit 1
           fi
-          echo "OK: ${GITHUB_REF_NAME} -> version=${GOT_VERSION} channel=${GOT_CHANNEL}"
+          echo "OK: ${PLANNED_TAG} -> version=${GOT_VERSION} channel=${GOT_CHANNEL}"
 
       - name: Preflight - non-empty build matrix for (version, channel)
         env:
