@@ -1,0 +1,305 @@
+---
+# ============================================================================
+# RELEASE: CREATE GITHUB RELEASE (RELEASE-CREATE-001)
+# ============================================================================
+# One-button operator helper that turns a merged version bump into a tagged
+# GitHub Release. It generates and validates the WebFlash release notes, then
+# (when dry_run=false) creates the GitHub Release. Creating the Release is the
+# event that fires "Release 3: Build & Release", which is what actually
+# builds, signs, attaches, and deploys the firmware.
+#
+# This removes the previously manual "open the Releases page and create a
+# Release" step. It deliberately does NOT:
+#   - build, compile, sign, or attach any firmware artifact
+#   - deploy anything
+#   - merge any pull request (it never pushes a branch and never merges)
+#   - choose a channel (the channel is read from config/product-catalog.json)
+#
+# Order of operations matters. Run this only AFTER "Release 1: Bump Version"
+# has MERGED the version bump for this config. plan_release.py fails closed if
+# the catalog version does not equal the requested version, so a forgotten
+# merge is caught here with a clear message instead of producing a broken
+# release. "Release 2: Draft Notes" is now optional (a preview-only check):
+# this workflow generates and validates the same notes inline.
+#
+# Token note: a GitHub Release created with the default GITHUB_TOKEN does NOT
+# trigger other workflows (GitHub's recursion guard), so Release 3 would not
+# auto-run. To get the one-button auto-trigger, set a repo/org secret
+# RELEASE_PAT (a fine-grained PAT or GitHub App token with contents: write);
+# this workflow uses it when present and falls back to GITHUB_TOKEN otherwise.
+# With only GITHUB_TOKEN the Release is still created, but you must run
+# "Release 3: Build & Release" once via its existing workflow_dispatch.
+# ============================================================================
+
+name: "Release: Create GitHub Release"
+
+on:
+  workflow_dispatch:
+    inputs:
+      config_string:
+        description: >-
+          Release target. Must match a config_string in
+          config/webflash-builds.json (mirrors the Release 1 / Release 2
+          pickers). The channel is read from the catalog, not chosen here.
+        required: true
+        type: choice
+        options:
+          - Ceiling-POE-VentIQ-RoomIQ
+          - Ceiling-POE-VentIQ-RoomIQ-LED
+          - Ceiling-POE-AirIQ-RoomIQ
+          - Ceiling-POE-RoomIQ
+          - Ceiling-POE-RoomIQ-LED
+      version:
+        description: >-
+          Release version, no leading 'v' (e.g. 1.0.1). Must equal the
+          catalog version for this config (merge Release 1 first).
+        required: true
+        type: string
+      changelog:
+        description: >-
+          Changelog text. One bullet per line; leading -/*/+ is stripped.
+          Required: a real publish (dry_run=false) is refused if this is
+          empty or left as the generator's TODO placeholder.
+        required: true
+        type: string
+      tag_suffix:
+        description: >-
+          Optional tag suffix for non-stable channels only (e.g. preview,
+          led-preview). Leave blank to use the channel name. Rejected for
+          stable configs.
+        required: false
+        type: string
+        default: ''
+      dry_run:
+        description: >-
+          Dry run (default true): plan, validate, and print only; create
+          nothing. Set to false to actually create the GitHub Release.
+        required: false
+        type: boolean
+        default: true
+
+# RELEASE-CREATE-001: the publish step creates the tagged GitHub Release via
+# the gh CLI (gh release create), which requires contents: write. Allowlisted
+# in tests/test_workflow_permissions.py with this reason. workflow_dispatch
+# only; the workflow never pushes a branch and never merges.
+permissions:
+  contents: write
+
+# Serialize runs that resolve to the same release tag. The resolved tag is a
+# deterministic function of (config_string -> channel) + version + tag_suffix,
+# none of which are job outputs, so the group is keyed on those inputs.
+concurrency:
+  group: create-release-${{ inputs.config_string }}-${{ inputs.version }}-${{ inputs.tag_suffix }}
+  cancel-in-progress: false
+
+jobs:
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    env:
+      # Prefer a PAT / App token so the published release fires Release 3;
+      # fall back to GITHUB_TOKEN (release still created, Release 3 manual).
+      GH_TOKEN: ${{ secrets.RELEASE_PAT || secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Plan release (resolve tag, channel, prerelease)
+        id: plan
+        env:
+          CONFIG_STRING: ${{ inputs.config_string }}
+          VERSION: ${{ inputs.version }}
+          TAG_SUFFIX: ${{ inputs.tag_suffix }}
+        run: |
+          set -euo pipefail
+          # Fails closed (with the "Run Release 1 and MERGE" message) if the
+          # catalog version does not equal VERSION. Writes tag=, channel=,
+          # prerelease= to $GITHUB_OUTPUT, exposed as steps.plan.outputs.*.
+          ARGS=( --config "$CONFIG_STRING" --version "$VERSION" )
+          if [ -n "${TAG_SUFFIX:-}" ]; then
+            ARGS+=( --tag-suffix "$TAG_SUFFIX" )
+          fi
+          python3 scripts/plan_release.py "${ARGS[@]}"
+
+      - name: Preflight - tag normalizes back to the planned (version, channel)
+        env:
+          GITHUB_REF_NAME: ${{ steps.plan.outputs.tag }}
+          PRERELEASE: ${{ steps.plan.outputs.prerelease }}
+          EXPECTED_VERSION: ${{ inputs.version }}
+          EXPECTED_CHANNEL: ${{ steps.plan.outputs.channel }}
+        run: |
+          set -euo pipefail
+          # derive_release_version_channel.py is the SAME normalizer Release 3
+          # runs on the release event. Prove the planned tag + prerelease flag
+          # round-trip back to the planned (version, channel) before the tag is
+          # cut, so the tag cannot mismatch the channel Release 3 filters on.
+          python3 scripts/derive_release_version_channel.py > derive.out
+          cat derive.out
+          GOT_VERSION="$(grep '^version=' derive.out | cut -d= -f2-)"
+          GOT_CHANNEL="$(grep '^channel=' derive.out | cut -d= -f2-)"
+          if [ "$GOT_VERSION" != "$EXPECTED_VERSION" ] \
+            || [ "$GOT_CHANNEL" != "$EXPECTED_CHANNEL" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} resolves to" \
+              "(${GOT_VERSION}, ${GOT_CHANNEL}) but the plan expected" \
+              "(${EXPECTED_VERSION}, ${EXPECTED_CHANNEL})"
+            exit 1
+          fi
+          echo "OK: ${GITHUB_REF_NAME} -> version=${GOT_VERSION} channel=${GOT_CHANNEL}"
+
+      - name: Preflight - non-empty build matrix for (version, channel)
+        env:
+          VERSION: ${{ inputs.version }}
+          CHANNEL: ${{ steps.plan.outputs.channel }}
+          CONFIG_STRING: ${{ inputs.config_string }}
+        run: |
+          set -euo pipefail
+          # Confirm the selection is a real release target (catches typos and
+          # fan tokens) using the existing helper ...
+          python3 scripts/list_release_targets.py --validate "$CONFIG_STRING"
+          # ... then replicate the version+channel filter Release 3 uses on a
+          # release event, so an empty matrix is caught HERE (before the tag is
+          # cut) rather than failing later inside Release 3.
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          version = os.environ["VERSION"]
+          channel = os.environ["CHANNEL"]
+          selected = os.environ["CONFIG_STRING"]
+          builds = json.loads(
+              Path("config/webflash-builds.json").read_text(encoding="utf-8")
+          )
+          matches = [
+              e
+              for e in builds.get("builds", [])
+              if isinstance(e, dict)
+              and e.get("version") == version
+              and e.get("channel") == channel
+          ]
+          cfgs = [e.get("config_string") for e in matches]
+          if not matches:
+              sys.exit(
+                  f"error: no config/webflash-builds.json entry matches "
+                  f"version={version!r} channel={channel!r}; Release 3 would "
+                  f"build an empty matrix. Merge Release 1: Bump Version first, "
+                  f"or pick a config whose declared channel matches the tag."
+              )
+          if selected not in cfgs:
+              sys.exit(
+                  f"error: selected config {selected!r} is not among the "
+                  f"version={version!r} channel={channel!r} builds {cfgs}; the "
+                  f"bump may not be merged yet."
+              )
+          print(
+              f"OK: {len(matches)} build(s) match version={version} "
+              f"channel={channel}: {cfgs}"
+          )
+          print("Release 3 will build these on the release event.")
+          PY
+
+      - name: Generate and validate release notes
+        env:
+          CONFIG_STRING: ${{ inputs.config_string }}
+          VERSION: ${{ inputs.version }}
+          CHANNEL: ${{ steps.plan.outputs.channel }}
+          CHANGELOG: ${{ inputs.changelog }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          # Channel is the catalog-derived channel, not an input, so the
+          # generator's channel/version self-checks always agree with the tag.
+          python3 scripts/generate_webflash_release_notes.py \
+            --config-string "$CONFIG_STRING" \
+            --version "$VERSION" \
+            --channel "$CHANNEL" \
+            --changelog "$CHANGELOG" \
+            --output release-notes.md
+          python3 scripts/validate-webflash-release-notes.py \
+            release-notes.md --channel "$CHANNEL"
+          # A real publish must carry a human changelog, never the placeholder.
+          if [ "${DRY_RUN}" != "true" ]; then
+            if [ -z "$(printf '%s' "${CHANGELOG}" | tr -d '[:space:]')" ]; then
+              echo "::error::changelog is empty; refusing to publish"
+              exit 1
+            fi
+            if grep -q "TODO (operator changelog required)" release-notes.md; then
+              echo "::error::release notes still carry the TODO placeholder; write a real changelog"
+              exit 1
+            fi
+          fi
+          echo "----- release-notes.md -----"
+          cat release-notes.md
+          echo "----------------------------"
+
+      - name: Preflight - tag / release does not already exist
+        env:
+          TAG: ${{ steps.plan.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::a GitHub Release for tag ${TAG} already exists"
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "::error::git tag ${TAG} already exists on origin"
+            exit 1
+          fi
+          echo "OK: ${TAG} is free (no existing release or tag)"
+
+      - name: Dry run summary (creates nothing)
+        if: ${{ inputs.dry_run }}
+        env:
+          TAG: ${{ steps.plan.outputs.tag }}
+          CHANNEL: ${{ steps.plan.outputs.channel }}
+          PRERELEASE: ${{ steps.plan.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+          {
+            echo "## Dry run - no GitHub Release created"
+            echo ""
+            echo "- Planned tag: \`${TAG}\`"
+            echo "- Channel: ${CHANNEL}"
+            echo "- Prerelease: ${PRERELEASE}"
+            echo ""
+            echo "### Generated release body"
+            echo ""
+            echo '```markdown'
+            cat release-notes.md
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "Dry run complete. Re-run with dry_run=false to publish ${TAG}."
+
+      - name: Create GitHub Release (fires Release 3)
+        if: ${{ !inputs.dry_run }}
+        env:
+          TAG: ${{ steps.plan.outputs.tag }}
+          PRERELEASE: ${{ steps.plan.outputs.prerelease }}
+          TARGET_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # Creating the Release is the ONLY external action this workflow
+          # takes. It builds / signs / attaches / deploys NOTHING — that is
+          # Release 3's job, fired by this release event.
+          ARGS=( "$TAG" --target "$TARGET_SHA" --title "$TAG" --notes-file release-notes.md )
+          if [ "$PRERELEASE" = "true" ]; then
+            ARGS+=( --prerelease )
+          fi
+          gh release create "${ARGS[@]}"
+          URL="$(gh release view "$TAG" --json url --jq .url)"
+          echo "Created release ${TAG}: ${URL}"
+          {
+            echo "## Created GitHub Release ${TAG}"
+            echo ""
+            echo "- URL: ${URL}"
+            echo "- Prerelease: ${PRERELEASE}"
+            echo ""
+            echo "This release event triggers \"Release 3: Build & Release\"."
+            echo "(Auto-trigger needs a PAT/App token; with GITHUB_TOKEN run Release 3 manually.)"
+          } >> "$GITHUB_STEP_SUMMARY"

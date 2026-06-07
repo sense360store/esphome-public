@@ -101,6 +101,10 @@ jobs:
         run: |
           python3 tests/test_bump_release_version.py
 
+      - name: Plan-release unit tests
+        run: |
+          python3 tests/test_plan_release.py
+
       - name: Count products
         run: |
           PRODUCT_COUNT=$(find products/ -name "*.yaml" -type f ! -name "secrets.yaml" | wc -l)

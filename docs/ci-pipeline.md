@@ -190,9 +190,9 @@ output:
 
 ## CI Workflows
 
-The repository has six GitHub Actions workflows. Only `validate.yml` (every
+The repository has seven GitHub Actions workflows. Only `validate.yml` (every
 push/PR) and `firmware-build-release.yml` (release publish) gate; the other
-four are manual or release-time helpers.
+five are manual or release-time helpers.
 
 | Workflow | `name:` | Trigger | Role |
 |----------|---------|---------|------|
@@ -202,9 +202,10 @@ four are manual or release-time helpers.
 | `compile-only.yml` | CI: Compile-Only | push + pull_request (metadata only); manual dispatch for full compile | Pre-hardware compile/codegen check — **not the Release-One/WebFlash gate** |
 | `manual-firmware-artifacts.yml` | Tools: Manual Firmware Artifacts | manual dispatch only | Builds expiring, non-release operator artifacts — **not a PR gate, never a release** |
 | `release-notes-draft.yml` | Release 2: Draft Notes | manual dispatch only | Drafts/validates WebFlash release notes — **preflight only, does not gate** |
+| `create-release.yml` | Release: Create GitHub Release | manual dispatch only | Generates/validates notes and creates the tagged Release that fires Release 3 — **does not build/sign/attach/deploy** |
 
-The first three workflows are described in detail below; the remaining three
-follow in sections 4–6.
+The first three workflows are described in detail below; the remaining four
+follow in sections 4–7.
 
 The first three workflows handle the core validate/release flow:
 
@@ -347,6 +348,45 @@ a workflow artifact.
 > prints an actionable message naming the pending bump PR and exits 3 (a
 > distinct code from the generator's exit 2). This preflight is additive
 > guidance only; the generator's own validation is unchanged.
+
+### 7. Release: Create GitHub Release (`create-release.yml`)
+
+**Triggers:** Manual (`workflow_dispatch`) only
+**Purpose:** One-button release cutter. It resolves the tag, channel, and
+prerelease flag from the catalog (`scripts/plan_release.py`), generates and
+validates the WebFlash release notes inline, and — when `dry_run=false` —
+creates the tagged GitHub Release. Creating the Release is the `release`
+event that fires **Release 3: Build & Release**.
+
+> **Creates the Release only — does not build, sign, attach, or deploy.** All
+> of that is Release 3's job, fired by the release event. This workflow never
+> merges anything and never pushes a branch. `dry_run` defaults to `true`: a
+> dry run plans, validates, and prints the generated body but creates nothing;
+> set `dry_run=false` to actually publish.
+
+> **Release chain — this replaces the manual "create a Release" step.** After
+> "Release 1: Bump Version" has MERGED the version bump for the config, run
+> "Release: Create GitHub Release". It fails closed with an actionable message
+> if the catalog version does not match the requested version (the same
+> pending-bump case "Release 2: Draft Notes" guards), generates + validates the
+> notes, and creates the Release that triggers Release 3. Standalone "Release 2:
+> Draft Notes" is now **optional** — a preview-only check, since this workflow
+> generates and validates the same notes inline.
+
+> **Channel is read, not chosen.** Release 3 filters the build matrix on
+> `version` AND `channel` and exits non-zero on an empty match, so a stable
+> config cut as a preview tag (or vice versa) would build an empty matrix.
+> `plan_release.py` takes the channel from `config/product-catalog.json`
+> (stable → `vX.Y.Z`, prerelease=false; preview → `vX.Y.Z-preview`,
+> prerelease=true), and a preflight re-runs `scripts/derive_release_version_channel.py`
+> (Release 3's own tag normalizer) to prove the tag round-trips to the same
+> `(version, channel)` before the tag is cut.
+
+> **Auto-trigger note.** A Release created with the default `GITHUB_TOKEN` does
+> not fire `on: release` (GitHub's recursion guard). Set a `RELEASE_PAT` repo or
+> org secret (a PAT or App token with `contents: write`) for the one-button
+> auto-trigger; otherwise the Release is still created and you run "Release 3:
+> Build & Release" once via its existing `workflow_dispatch`.
 
 ---
 

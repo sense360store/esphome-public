@@ -89,6 +89,18 @@ WRITE_PERMISSION_ALLOWLIST: dict[tuple[str, str, str], str] = {
         "gh CLI (no third-party action), which requires pull-requests: write. "
         "workflow_dispatch only; the workflow never merges."
     ),
+    (
+        "create-release.yml",
+        "<top-level>",
+        "contents",
+    ): (
+        "RELEASE-CREATE-001 Release: Create GitHub Release. The single job "
+        "creates the tagged GitHub Release with the gh CLI (gh release "
+        "create), which requires contents: write. workflow_dispatch only; "
+        "dry_run defaults to true; the workflow never pushes a branch and "
+        "never merges (it does not build, sign, attach, or deploy — that is "
+        "Release 3, fired by the release event)."
+    ),
 }
 
 # ---------------------------------------------------------------------------
