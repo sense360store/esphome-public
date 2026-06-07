@@ -24,6 +24,12 @@ The tests lock in:
     would have produced.
   * ``--validate`` shells out to the existing release-notes validator
     and returns 0 for Release-One.
+
+Version-bearing fixtures (version, channel, artifact_name) are read from
+``config/product-catalog.json`` rather than hardcoded, so this test tracks
+the catalog and never goes stale when "Release 1: Bump Version" bumps a
+config's version and version-bearing artifact_name. The behavioural
+assertions are unchanged.
 """
 
 from __future__ import annotations
@@ -39,6 +45,7 @@ from typing import Any, Dict, List
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_PATH = REPO_ROOT / "scripts" / "generate_webflash_release_notes.py"
 VALIDATOR_SCRIPT = REPO_ROOT / "scripts" / "validate-webflash-release-notes.py"
+CATALOG_PATH = REPO_ROOT / "config" / "product-catalog.json"
 
 
 def _load_module(name: str, path: Path):
@@ -53,18 +60,39 @@ gen = _load_module("generate_webflash_release_notes", SCRIPT_PATH)
 val = _load_module("validate_webflash_release_notes", VALIDATOR_SCRIPT)
 
 
+def _catalog_entry(config_string: str) -> Dict[str, Any]:
+    """Return the ``config/product-catalog.json`` entry for ``config_string``.
+
+    The version-bearing fixtures below (version, channel, artifact_name) are
+    read from this entry rather than hardcoded, so the test follows the
+    catalog and never goes stale when "Release 1: Bump Version" bumps a
+    config's version + version-bearing artifact_name. The config_string,
+    expected hardware SKUs, and every behavioural assertion stay explicit.
+    """
+    catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
+    for entry in catalog.get("products", []) or []:
+        if isinstance(entry, dict) and entry.get("config_string") == config_string:
+            return entry
+    raise AssertionError(
+        f"{config_string!r} not found in {CATALOG_PATH}; this test fixture "
+        "requires the config to exist in the product catalog"
+    )
+
+
 RELEASE_ONE_CONFIG_STRING = "Ceiling-POE-VentIQ-RoomIQ"
-RELEASE_ONE_VERSION = "1.0.0"
-RELEASE_ONE_CHANNEL = "stable"
-RELEASE_ONE_ARTIFACT = "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin"
+_RELEASE_ONE_ENTRY = _catalog_entry(RELEASE_ONE_CONFIG_STRING)
+RELEASE_ONE_VERSION = _RELEASE_ONE_ENTRY["version"]
+RELEASE_ONE_CHANNEL = _RELEASE_ONE_ENTRY["channel"]
+RELEASE_ONE_ARTIFACT = _RELEASE_ONE_ENTRY["artifact_name"]
 RELEASE_ONE_SKUS = ("S360-100", "S360-211", "S360-200", "S360-410")
 FANTRIAC_BLOCKED_CONFIG = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
 LEGACY_CONFIG_ID = "sense360-poe"
 
 LED_PREVIEW_CONFIG_STRING = "Ceiling-POE-VentIQ-RoomIQ-LED"
-LED_PREVIEW_VERSION = "1.0.0"
-LED_PREVIEW_CHANNEL = "preview"
-LED_PREVIEW_ARTIFACT = "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin"
+_LED_PREVIEW_ENTRY = _catalog_entry(LED_PREVIEW_CONFIG_STRING)
+LED_PREVIEW_VERSION = _LED_PREVIEW_ENTRY["version"]
+LED_PREVIEW_CHANNEL = _LED_PREVIEW_ENTRY["channel"]
+LED_PREVIEW_ARTIFACT = _LED_PREVIEW_ENTRY["artifact_name"]
 LED_PREVIEW_SKUS = (
     "S360-100",
     "S360-211",
