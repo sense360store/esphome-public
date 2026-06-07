@@ -19,17 +19,29 @@
 # Sense360 Core) cannot meet that timing and are NOT supported as a source
 # for either pin.
 #
-# Sense360 Core (S360-100-R4) FanTRIAC mapping status: SCHEMATIC-BACKED,
-# BUILD BLOCKED; bench (PACKAGE-TRIAC-001) + COMPLIANCE-001 pending.
+# Sense360 Core (S360-100-R4) FanTRIAC mapping status: SCHEMATIC-BACKED.
 # The SX1509-free S360-100-R4 Core routes the J15 TRIAC connector nets
 # TRI_GPIO1 / TRI_GPIO2 DIRECT to interrupt-capable ESP32-S3 GPIOs, so this
 # ac_dimmer driver works: the parent bundle maps fan_triac_gate_pin -> IO14
 # (gate, MOC3023M) and fan_triac_zc_pin -> IO13 (zero-cross, EL814) -- the
 # schematic-verified mapping (TRIAC-PINMAP-CORRECT-001 corrected the earlier
-# gate/zero-cross transposition). This resolves the HW-005 BUILDABILITY
-# blocker only; it is NOT bench verification and NOT COMPLIANCE-001
-# mains-voltage sign-off, so the product stays BLOCKED / reference-only
-# (never stable / recommended / default / buyable / WebFlash-exposed).
+# gate/zero-cross transposition), which resolved the HW-005 BUILDABILITY
+# blocker.
+#
+# Operator bench (PACKAGE-TRIAC-001) has functionally PASSED on the real
+# Manrose fan motor load: zero-cross 100 Hz lock, speed control across the
+# full range down to off, mains-side waveform symmetric with no net DC
+# (Step C), and thermal soak with no runaway (Step E). The output parameters
+# set below -- zero_cross_pin inverted: true, method: leading, and
+# fan_triac_min_power: 15% -- are the bench-confirmed values. Step F
+# (boot/stability) and the signed operator attestation still finalize the
+# PACKAGE-TRIAC-001 record; see
+# docs/package-triac-001-operator-bench-proof.md.
+#
+# This functional bench PASS is NOT COMPLIANCE-001 mains-voltage
+# electrical-safety sign-off, so the board STILL stays BLOCKED /
+# reference-only on COMPLIANCE-001 (never stable / recommended / default /
+# buyable / WebFlash-exposed).
 # See: docs/hardware/s360-320-r4-triac.md and docs/hardware/s360-100-r4-core.md
 #
 # IMPORTANT:
@@ -57,8 +69,11 @@ substitutions:
   fan_max_speed: "100"
   fan_default_speed: "50"
 
-  # Minimum dimmer brightness floor (some fans stall below this)
-  fan_triac_min_power: "10"
+  # Minimum dimmer brightness floor (some fans stall below this).
+  # Bench-measured stall floor on the real Manrose fan motor: below ~15%
+  # the motor hums without spinning, so the floor is set to 15%
+  # (PACKAGE-TRIAC-001 operator bench).
+  fan_triac_min_power: "15"
 
 # ============================================================================
 # AC Dimmer (TRIAC + zero-cross detection)
@@ -71,7 +86,7 @@ output:
       number: ${fan_triac_zc_pin}
       mode:
         input: true
-      inverted: false
+      inverted: true
     method: leading
     min_power: ${fan_triac_min_power}%
     init_with_half_cycle: true

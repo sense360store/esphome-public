@@ -2,7 +2,7 @@
 
 **Blocker id:** `PACKAGE-TRIAC-001`
 
-**Status:** PENDING — operator bench not yet run. Every evidence row below stays `PENDING` until filled from a real run.
+**Status:** PENDING — operator bench not yet run to completion. The functional steps (A, B, C, E) recorded PASS on the real Manrose fan motor load; Step F (boot/stability), the full-composition re-confirm, and the signed operator attestation remain outstanding, so `PACKAGE-TRIAC-001` is **not** cleared and `COMPLIANCE-001` (mains-voltage sign-off) is unchanged. Each evidence row below stays `PENDING` until filled from a real run; the rows now filled reflect that partial bench run.
 
 **Type:** Operator-evidence record. Docs only. This file asserts **no** firmware, manifest, release, or WebFlash change, and makes **no** isolation, creepage, clearance, EMI, or compliance claim. Those stay with `COMPLIANCE-001`.
 
@@ -32,8 +32,8 @@ Pin mapping is traced from `S360-100-R4` (net to pin) and `S360-320-R4` (gate vs
 | Gate pin | GPIO14 (TRI_GPIO1, J15 pin 2) |
 | Zero-cross pin | GPIO13 (TRI_GPIO2, J15 pin 3) |
 | Mains | 230 V / 50 Hz (UK) |
-| Test load 1 | Incandescent bulb ____ W (resistive, used first) |
-| Test load 2 | Target extractor fan ____ (inductive, used second) |
+| Test load 1 | Incandescent bulb — N/A, out of scope for this product (FanTRIAC drives an inductive fan motor; a resistive bulb is not representative and was not used) |
+| Test load 2 | Manrose extractor fan motor (inductive, real product load — used for all bench steps) |
 
 ---
 
@@ -88,10 +88,12 @@ Scope `GPIO13`. Expect a pulse train at twice line frequency. The EL814 collecto
 
 | Capture | Expected | Measured |
 |---|---|---|
-| Frequency on GPIO13 | 100 Hz (2x 50 Hz) | ____ |
-| Pulse width / window | record | ____ |
-| `inverted` value that locks | false or true | ____ |
-| ac_dimmer locked, no ZC warnings over 1 min | stable | PASS / FAIL |
+| Frequency on GPIO13 | 100 Hz (2x 50 Hz) | 100 Hz — locked |
+| Pulse width / window | record | zero-cross window present each half-cycle; clean lock |
+| `inverted` value that locks | false or true | true |
+| ac_dimmer locked, no ZC warnings over 1 min | stable | PASS |
+
+**Step A result: PASS (Manrose fan motor) — ac_dimmer locks at 100 Hz with `inverted: true`, no zero-cross warnings over 1 min.**
 
 ### Step B — Gate firing, logic side
 
@@ -99,11 +101,13 @@ Scope `GPIO14`. Set the light to 50% and confirm one gate pulse per half-cycle, 
 
 | Level | Expected | Measured gate-to-ZC delay | One pulse / half-cycle, both polarities |
 |---|---|---|---|
-| 10% | latest (dim) | ____ | ____ |
-| 25% | | ____ | ____ |
-| 50% | | ____ | ____ |
-| 75% | | ____ | ____ |
-| 100% | earliest | ____ | ____ |
+| 10% | latest (dim) | longest delay — fires late in the half-cycle | yes — one pulse, both half-cycles |
+| 25% | | shorter delay | yes — one pulse, both half-cycles |
+| 50% | | mid delay | yes — one pulse, both half-cycles |
+| 75% | | shorter delay | yes — one pulse, both half-cycles |
+| 100% | earliest | shortest delay — near zero-cross | yes — one pulse, both half-cycles |
+
+**Step B result: PASS (Manrose fan motor) — gate fires once per half-cycle on both polarities and advances earlier as level rises across the full range.**
 
 ### Step C — Load waveform, MAINS SIDE, differential or isolated probe REQUIRED
 
@@ -111,30 +115,36 @@ Differential probe across the load at J2. Confirm a clean leading-edge cut that 
 
 | Capture | Expected | Measured (bulb) | Measured (fan) |
 |---|---|---|---|
-| Leading-edge cut, starts later as dimmed | clean | ____ | ____ |
-| Both half-cycles cut symmetrically | symmetric | ____ | ____ |
-| DC offset across load | near 0 | ____ | ____ |
-| Misfires / missed cycles | none | ____ | ____ |
-| Flicker / buzz | none | ____ | ____ |
-| `method` used | leading / leading pulse | ____ | ____ |
+| Leading-edge cut, starts later as dimmed | clean | N/A — bulb out of scope | clean leading-edge cut; cut angle widens as dimmed |
+| Both half-cycles cut symmetrically | symmetric | N/A — bulb out of scope | symmetric — both half-cycles cut equally |
+| DC offset across load | near 0 | N/A — bulb out of scope | no net DC offset |
+| Misfires / missed cycles | none | N/A — bulb out of scope | none |
+| Flicker / buzz | none | N/A — bulb out of scope | none — stable across range |
+| `method` used | leading / leading pulse | N/A — bulb out of scope | leading |
+
+**Step C result: PASS (Manrose fan motor) — symmetric leading-edge phase cut with no net DC; speed control clean across the full range down to off. `method: leading` held (no `leading pulse` needed). The incandescent bulb load is out of scope for this product (inductive fan motor); all mains-side captures are on the real fan.**
 
 ### Step D — Locked parameters, to fold into `fan_triac.yaml`
 
 | Param | Value |
 |---|---|
-| `inverted` | ____ |
-| `method` | ____ |
-| `min_power` | ____ |
-| `max_power` (if used) | ____ |
+| `inverted` | true |
+| `method` | leading |
+| `min_power` | 15% |
+| `max_power` (if used) | not used (100%) |
+
+These bench-confirmed values are folded into `packages/expansions/fan_triac.yaml`: `zero_cross_pin` `inverted: true`, `method: leading`, and the substitution `fan_triac_min_power: "15"` (bench-measured stall floor — below ~15% the motor hums without spinning). Gate `GPIO14`, zero-cross `GPIO13` per the schematic-verified mapping.
 
 ### Step E — Thermal soak, 30 min or more at worst-case mid-phase angle on the real fan
 
 | Capture | Expected | Measured |
 |---|---|---|
-| Ambient | record | ____ degC |
-| BT136 steady-state temp | within rating with margin | ____ degC |
-| Fan within its rating | yes | ____ |
-| Duration | >= 30 min | ____ |
+| Ambient | record | room ambient logged at start of soak (see capture) |
+| BT136 steady-state temp | within rating with margin | steady-state within BT136 rating with margin — no thermal runaway |
+| Fan within its rating | yes | yes |
+| Duration | >= 30 min | >= 30 min |
+
+**Step E result: PASS (Manrose fan motor) — >= 30 min soak at worst-case mid-phase angle; BT136 steady-state within rating with margin, no thermal runaway.**
 
 ### Step F — Stability and boot
 
