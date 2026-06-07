@@ -237,8 +237,7 @@ and in [`UPCOMING_PR.md`](../UPCOMING_PR.md) (Cross-repo dependencies →
 re-verified 2026-05-26**.
 
 **Drive planning evidence (provenance).** A Drive planning spreadsheet
-**"Current PRs.xlsx"** (file id `13Ed_JUlmIX5prHdVyoYoVr6Y3i1EOyX5`, owner
-`neilmcrae@googlemail.com`, modified 2026-05-16) enumerates the WebFlash + 
+**"Current PRs.xlsx"** (from the hardware design source) enumerates the WebFlash +
 esphome-public PR roadmap and references WebFlash-side concepts
 (`firmware/sources.json`, a "current 3-build manifest", product-catalog fixture,
 import-readiness validator, the `WEBFLASH-GAP-001 → RELEASE-GAP-001 →
