@@ -48,8 +48,10 @@ substitutions:
   # Timezone
   timezone: "America/Los_Angeles"
 
-  # Fallback AP password (for emergency access if needed)
-  fallback_ap_password: "sense360poe"
+  # SEC-ESP-FALLBACK-AP-001: the fallback AP password is no longer a committed
+  # per-product literal. packages/base/wifi.yaml now reads it from
+  # `!secret fallback_ap_password`; supply a unique value per build in
+  # secrets.yaml (see secrets.example.yaml).
 
   # PoE configuration
   poe_class: "0"  # PoE class (0 = 0.44-12.95W)

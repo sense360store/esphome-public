@@ -39,7 +39,10 @@ BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 COMPAT_PATH = REPO_ROOT / "config" / "webflash-compatibility.json"
 PRODUCTS_DIR = REPO_ROOT / "products"
 WEBFLASH_WRAPPER_DIR = PRODUCTS_DIR / "webflash"
-EXCLUDED_TOP_LEVEL_YAMLS = {"secrets.yaml"}
+# SEC-ESP-SECRET-GUARD-001: products/secrets.yaml (the tracked symlink) was
+# removed and replaced by the tracked products/secrets.example.yaml template.
+# Neither is a product config, so both are excluded from catalog enumeration.
+EXCLUDED_TOP_LEVEL_YAMLS = {"secrets.yaml", "secrets.example.yaml"}
 
 # Substrings that mark a ``legacy-compatible`` entry's ``notes`` field as
 # explicitly non-WebFlash / non-Release-One / manual. Matched case-insensitively

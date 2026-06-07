@@ -11,7 +11,16 @@ repos:
         exclude: ^(.*\.md)$
       - id: end-of-file-fixer
       - id: check-yaml
-        args: ['--unsafe']  # Allow custom YAML tags from ESPHome
+        # SEC-ESP-SECRET-GUARD-001 (security.md finding #6, accepted): --unsafe
+        # is REQUIRED, not a shortcut. ESPHome configs use custom YAML tags
+        # (!secret, !include, !lambda, !extend, !remove) that PyYAML's safe
+        # loader rejects, so without --unsafe check-yaml fails on valid configs.
+        # --unsafe only relaxes this pre-commit *lint* (it switches check-yaml
+        # to a syntax-only parse); it does NOT affect runtime parsing. Do NOT
+        # remove it, and do NOT mirror --unsafe / yaml.unsafe_load into real
+        # config-loading code (use yaml.safe_load with registered tag
+        # constructors there, as tests/validate_configs.py does).
+        args: ['--unsafe']
       - id: check-added-large-files
         args: ['--maxkb=500']
       - id: check-merge-conflict

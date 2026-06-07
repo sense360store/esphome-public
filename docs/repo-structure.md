@@ -26,7 +26,7 @@ preview build-fix PR adds files under `products/bundles/`, whether the top-level
 | `products/bundles/` | **active** (canonical composition layer; preview targets resolve here) | **KEEP.** This is where the next functional PR adds files. |
 | `products/compile-only/` | **active** (compile-only CI validation lane) | **KEEP.** |
 | `products/webflash/` | **active** (WebFlash release namespace) | **KEEP.** |
-| `products/secrets.yaml` | **active** (symlink → `../secrets.example.yaml`, used by CI compile + tests) | **KEEP.** |
+| `products/secrets.example.yaml` | **active** (tracked placeholder template; SEC-ESP-SECRET-GUARD-001 replaced the `products/secrets.yaml` symlink). `products/secrets.yaml` is gitignored and created locally / by CI. | **KEEP.** |
 
 No directory or file under `components/` or `products/` qualifies as
 `legacy-unreferenced`, `empty/scaffold`, or `unknown`. **There is nothing to
@@ -42,7 +42,7 @@ esphome-public/
 │   ├── compile-only/    Compile-only CI validation skeletons (not release products)
 │   ├── webflash/        Thin WebFlash-namespace wrappers (config/webflash-builds.json targets)
 │   ├── sense360-*.yaml  Customer-pinned compat shims that !include a bundle
-│   └── secrets.yaml     Symlink → ../secrets.example.yaml (compile/test only)
+│   └── secrets.example.yaml  Tracked placeholder template (secrets.yaml is gitignored, created locally/CI)
 ├── packages/            Reusable YAML: base/, boards/, expansions/, features/, hardware/
 ├── config/              JSON sources of truth (catalog, matrices, release targets, policy)
 ├── scripts/             Validators / generators / release tooling
@@ -167,7 +167,7 @@ the `ld2412` / `ld2450` entities.
 | `products/bundles/` | 11 | **active** — canonical compositions; **all 11** are `!include`d by their top-level shim | shim include chain; preview-release-targets notes; product-catalog; compile-only-targets (USB) |
 | `products/compile-only/` | 8 | **active** — compile-only CI validation skeletons | compile-only-targets.json; `test_compile_targets.py`; `test_all_yaml_release_matrix.py` |
 | `products/webflash/` | 3 | **active** — WebFlash-namespace wrappers (release targets) | webflash-builds.json (2 live rows); firmware-combination-matrix; webflash tests |
-| `products/secrets.yaml` | symlink | **active** — `→ ../secrets.example.yaml` | CI compile step; ESPHome config validation; tests |
+| `products/secrets.example.yaml` | template | **active** — tracked placeholder template (SEC-ESP-SECRET-GUARD-001; `products/secrets.yaml` is gitignored, created locally/CI) | CI compile step; ESPHome config validation; tests |
 
 ### `products/bundles/` — every file is included by a shim
 
