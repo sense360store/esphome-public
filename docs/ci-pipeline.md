@@ -340,6 +340,14 @@ a workflow artifact.
 > `scripts/validate-webflash-release-notes.py` inside `firmware-build-release.yml`
 > at `release.published` time.
 
+> **Release order — merge the bump PR first.** "Release 1: Bump Version" opens a
+> PR; merge that PR before running "Release 2: Draft Notes". Until then, `main`
+> still carries the old catalog version and Draft Notes fails fast: its
+> "Check version is declared" preflight (`scripts/check_pending_version_bump.py`)
+> prints an actionable message naming the pending bump PR and exits 3 (a
+> distinct code from the generator's exit 2). This preflight is additive
+> guidance only; the generator's own validation is unchanged.
+
 ---
 
 ## Validation Process
