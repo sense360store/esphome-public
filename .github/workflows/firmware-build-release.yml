@@ -8,7 +8,12 @@
 #
 # Triggers:
 #   - Release creation (published)
-#   - Manual dispatch (for testing/preview releases)
+#
+# This workflow is automatic only: it fires on the GitHub `release`
+# (published) event and derives version + channel from the release tag.
+# There is no manual trigger. Test builds are covered by compile-only.yml
+# and preview-compile-dryrun.yml; release-plan preview is covered by
+# create-release.yml.
 #
 # Process:
 #   1. Generate build matrix from products directory
@@ -21,76 +26,11 @@
 #
 # ============================================================================
 
-name: "Release 3: Build & Release"
+name: "Release 3: Build & Release (auto on publish)"
 
 on:
   release:
     types: [published]
-
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version number (e.g., 3.0.0)'
-        required: true
-        default: '0.0.0-dev'
-      channel:
-        description: 'Release channel'
-        required: true
-        default: 'preview'
-        type: choice
-        options:
-          - stable
-          - preview
-          - beta
-      single_product:
-        description: >-
-          Optional: build only this single product (matrix.product basename,
-          e.g. sense360-ceiling-poe-ventiq-roomiq). Leave blank to build the
-          full product matrix.
-        required: false
-        default: ''
-      # RELEASE-PRODUCT-SELECTION-001: operator-facing release-target picker.
-      # Scopes the dry-run lane (and is reported in build/publish logs) to a
-      # single release-eligible target from config/webflash-builds.json, or to
-      # every release-eligible target via `all-release-eligible`. The choices
-      # mirror config/webflash-builds.json; when a new release-eligible build
-      # is added, add a matching option here. The contract test
-      # tests/test_release_product_selection.py enforces lock-step with the
-      # release matrix. FanRelay / FanPWM / FanDAC are manual-candidate-only
-      # (config/manual-firmware-artifacts.json) and intentionally absent from
-      # this picker.
-      release_target:
-        description: >-
-          Release target for dry-run planning / scoped dispatch (must match
-          a config_string in config/webflash-builds.json, or
-          all-release-eligible). FanRelay / FanPWM / FanDAC are not
-          release-eligible.
-        required: false
-        default: all-release-eligible
-        type: choice
-        options:
-          - all-release-eligible
-          - Ceiling-POE-VentIQ-RoomIQ
-          - Ceiling-POE-VentIQ-RoomIQ-LED
-          - Ceiling-POE-AirIQ-RoomIQ
-          - Ceiling-POE-RoomIQ
-          - Ceiling-POE-RoomIQ-LED
-      # RELEASE-WORKFLOW-DRYRUN-MODE-001: explicit, safe-by-default dry-run
-      # mode. When enabled (the default), a manual dispatch only exercises
-      # release-note planning, validation, and the release guardrails for the
-      # release-eligible builds (stable Ceiling-POE-VentIQ-RoomIQ + preview
-      # Ceiling-POE-VentIQ-RoomIQ-LED). Dry-run creates NO GitHub Release,
-      # uploads NO release assets, and writes NO firmware/sources.json or
-      # manifest.json. Publishing remains gated to a real `release` event:
-      # this input cannot publish (the `release` job's gate ignores it).
-      dry_run:
-        description: >-
-          Dry-run release mode (default ON / safe; non-publishing). Validates
-          release-note planning + guardrails for the release-eligible builds
-          without creating a GitHub Release or uploading any release asset.
-        required: false
-        default: true
-        type: boolean
 
 # Ensure only one release workflow runs at a time
 concurrency:
@@ -118,14 +58,9 @@ jobs:
   # ============================================================================
   generate-matrix:
     name: Generate Build Matrix
-    # RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001: skip this job (and the build /
-    # release / summary jobs that depend on it) on a workflow_dispatch run
-    # with dry_run=true, so the dry-run lane is fully isolated from the
-    # release / build artifact path. The dry-run job (release-dry-run) is
-    # the only thing a dispatch with dry_run=true should exercise.
-    if: >-
-      github.event_name == 'release' ||
-      (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
+    # Automatic only: the build chain runs exclusively on the published
+    # release event.
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.generate.outputs.matrix }}
@@ -141,27 +76,17 @@ jobs:
         env:
           GITHUB_REF_NAME: ${{ github.event.release.tag_name }}
           PRERELEASE: ${{ github.event.release.prerelease }}
-          DISPATCH_VERSION: ${{ github.event.inputs.version }}
-          DISPATCH_CHANNEL: ${{ github.event.inputs.channel }}
         run: |
           set -euo pipefail
 
-          if [ "${{ github.event_name }}" = "release" ]; then
-            # RELEASE-004: tag normalization is delegated to a tested
-            # script so preview tags can carry a suffix
-            # (e.g. v1.0.0-led-preview) while still resolving to the
-            # semver in config/webflash-builds.json. The script writes
-            # version= and channel= to $GITHUB_OUTPUT.
-            python3 scripts/derive_release_version_channel.py
-            VERSION="$(grep '^version=' "$GITHUB_OUTPUT" | tail -n 1 | cut -d= -f2-)"
-            CHANNEL="$(grep '^channel=' "$GITHUB_OUTPUT" | tail -n 1 | cut -d= -f2-)"
-          else
-            # Manual dispatch
-            VERSION="$DISPATCH_VERSION"
-            CHANNEL="$DISPATCH_CHANNEL"
-            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-            echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
-          fi
+          # RELEASE-004: tag normalization is delegated to a tested
+          # script so preview tags can carry a suffix
+          # (e.g. v1.0.0-led-preview) while still resolving to the
+          # semver in config/webflash-builds.json. The script writes
+          # version= and channel= to $GITHUB_OUTPUT.
+          python3 scripts/derive_release_version_channel.py
+          VERSION="$(grep '^version=' "$GITHUB_OUTPUT" | tail -n 1 | cut -d= -f2-)"
+          CHANNEL="$(grep '^channel=' "$GITHUB_OUTPUT" | tail -n 1 | cut -d= -f2-)"
 
           echo "Building version: $VERSION (channel: $CHANNEL)"
 
@@ -170,26 +95,16 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
           CHANNEL: ${{ steps.version.outputs.channel }}
-          SINGLE_PRODUCT: ${{ github.event.inputs.single_product }}
-          # RELEASE-PRODUCT-SELECTION-001: a workflow_dispatch run may scope
-          # the matrix to a single release target by config_string (the
-          # operator-facing picker mirrored from config/webflash-builds.json).
-          # Empty / unset / 'all-release-eligible' means no extra filter.
-          # Ignored on a real release event (the matrix is derived from the
-          # tag's version + channel, not from this input).
-          RELEASE_TARGET: ${{ github.event.inputs.release_target }}
-          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
 
           # ESP-007: the release/build matrix is driven by
-          # config/webflash-builds.json, filtered by version + channel (and
-          # optional single_product / release_target for manual dispatch).
-          # This replaces the previous broad `find products/` scan, which
-          # built every legacy / reference / blocked product (including
-          # FanTRIAC) when a real Release was published. The WebFlash build
-          # matrix is the single source of truth for what release publishing
-          # ships.
+          # config/webflash-builds.json, filtered by the version + channel
+          # derived from the release tag. This replaces the previous broad
+          # `find products/` scan, which built every legacy / reference /
+          # blocked product (including FanTRIAC) when a real Release was
+          # published. The WebFlash build matrix is the single source of
+          # truth for what release publishing ships.
           #
           # When a JSON entry points at a products/webflash/* wrapper, we
           # compile the canonical products/sense360-<stem>.yaml instead.
@@ -212,15 +127,6 @@ jobs:
 
           version = os.environ["VERSION"]
           channel = os.environ["CHANNEL"]
-          single_product = os.environ.get("SINGLE_PRODUCT", "").strip()
-          # RELEASE-PRODUCT-SELECTION-001: workflow_dispatch-only scoping by
-          # release-target config_string. Ignored on release events.
-          event_name = os.environ.get("EVENT_NAME", "").strip()
-          release_target = os.environ.get("RELEASE_TARGET", "").strip()
-          if event_name != "workflow_dispatch":
-              release_target = ""
-          if release_target in ("", "all-release-eligible"):
-              release_target = ""
 
           if not BUILDS_PATH.is_file():
               sys.exit(f"error: {BUILDS_PATH} does not exist")
@@ -241,8 +147,6 @@ jobs:
               if entry.get("version") != version:
                   continue
               if entry.get("channel") != channel:
-                  continue
-              if release_target and entry.get("config_string") != release_target:
                   continue
 
               product_yaml = entry.get("product_yaml", "")
@@ -269,11 +173,6 @@ jobs:
                       )
                   build_file = product_yaml
 
-              if single_product:
-                  allowed = {wrapper_stem, canonical_stem}
-                  if single_product not in allowed:
-                      continue
-
               rows.append({
                   "product": wrapper_stem,
                   "file": build_file,
@@ -281,11 +180,7 @@ jobs:
               })
 
           if not rows:
-              detail = (
-                  f"version={version!r} channel={channel!r} "
-                  f"single_product={single_product!r} "
-                  f"release_target={release_target!r}"
-              )
+              detail = f"version={version!r} channel={channel!r}"
               sys.exit(
                   f"error: no config/webflash-builds.json entries matched {detail}"
               )
@@ -310,15 +205,6 @@ jobs:
           print(f"Matrix JSON: {matrix_json}")
           PY
 
-          if [ -n "${SINGLE_PRODUCT:-}" ]; then
-            echo "single_product filter active: $SINGLE_PRODUCT"
-          fi
-          if [ "${EVENT_NAME:-}" = "workflow_dispatch" ] && \
-             [ -n "${RELEASE_TARGET:-}" ] && \
-             [ "${RELEASE_TARGET}" != "all-release-eligible" ]; then
-            echo "release_target filter active: $RELEASE_TARGET"
-          fi
-
   # ============================================================================
   # JOB 2: BUILD FIRMWARE
   # ============================================================================
@@ -328,14 +214,8 @@ jobs:
   build:
     name: "Build: ${{ matrix.product }}"
     needs: generate-matrix
-    # RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001: belt-and-braces gate. The build
-    # job already depends on the gated generate-matrix job (so a dry-run
-    # dispatch will skip it via the `needs` chain), but the explicit `if`
-    # here makes it impossible for a future edit to wire build into the
-    # dry-run lane.
-    if: >-
-      github.event_name == 'release' ||
-      (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
+    # Automatic only: runs on the published release event.
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
@@ -609,8 +489,7 @@ jobs:
           # Fail the build if config/webflash-builds.json declares an
           # artifact for this product at this version+channel and the
           # renamed file's basename does not match. Skipped (exit 0) when
-          # no entry matches — e.g. dev/preview dispatches with version
-          # values that aren't in the published WebFlash matrix.
+          # no entry matches the product at this version+channel.
           python3 tests/check_webflash_build_output.py \
             --product "${{ matrix.product }}" \
             --version "${{ needs.generate-matrix.outputs.version }}" \
@@ -770,19 +649,16 @@ jobs:
           echo "sync-from-releases.py script."
 
   # ============================================================================
-  # JOB 4: BUILD SUMMARY (for manual dispatch)
+  # JOB 4: BUILD SUMMARY
   # ============================================================================
-  # Provides a summary when manually triggered (no release attachment)
+  # Emits a non-publishing build summary for the release run, in parallel
+  # with the release-attachment job above.
   # ============================================================================
   summary:
     name: Build Summary
     needs: [generate-matrix, build]
     runs-on: ubuntu-latest
-    # RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001: a dry-run dispatch must not
-    # download "all firmware" artifacts (no build job ran). Restrict the
-    # summary to non-dry-run dispatches; the dry-run job emits its own
-    # summary instead.
-    if: github.event_name == 'workflow_dispatch' && !inputs.dry_run
+    if: github.event_name == 'release'
     steps:
       - name: Download all firmware artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
@@ -794,7 +670,7 @@ jobs:
       - name: Build summary
         run: |
           echo "=============================================="
-          echo "FIRMWARE BUILD COMPLETE (Preview)"
+          echo "FIRMWARE BUILD COMPLETE"
           echo "=============================================="
           echo ""
           echo "Version: ${{ needs.generate-matrix.outputs.version }}"
@@ -804,120 +680,5 @@ jobs:
           echo "Built firmware files:"
           ls -la all-firmware/
           echo ""
-          echo "Note: This was a manual dispatch. To attach firmware"
-          echo "to a release, create a GitHub release instead."
-
-  # ============================================================================
-  # JOB 5: RELEASE DRY-RUN (RELEASE-WORKFLOW-DRYRUN-MODE-001)
-  # ============================================================================
-  # Safe, non-publishing dry-run of the release pipeline. Runs ONLY on a manual
-  # workflow_dispatch with dry_run enabled (the default). It exercises
-  # release-note planning, validation, and the release guardrails for the
-  # release-eligible builds in config/webflash-builds.json — confirming the
-  # stable Ceiling-POE-VentIQ-RoomIQ and preview Ceiling-POE-VentIQ-RoomIQ-LED
-  # builds while asserting FanRelay / FanPWM / FanDAC are excluded.
-  #
-  # This job intentionally:
-  #   * does NOT create a GitHub Release (no softprops/action-gh-release);
-  #   * does NOT upload any release asset;
-  #   * does NOT write firmware/sources.json or manifest.json (the planner is
-  #     read-only and writes nothing to the repo);
-  #   * runs read-only (no `contents: write`) — least privilege.
-  #
-  # Publishing is unaffected by this job and by the dry_run input: it stays
-  # gated on the `release` job's `if: github.event_name == 'release'`.
-  # ============================================================================
-  release-dry-run:
-    name: Release Dry-Run (no publish)
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && inputs.dry_run
-    # Least-privilege: read-only. This job must never publish.
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-
-      - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
-        with:
-          python-version: "3.11"
-
-      - name: Install dry-run test dependencies
-        # RELEASE-WORKFLOW-DRYRUN-GATE-FIX-001: the planner contract test
-        # tests/test_release_dry_run_mode.py parses the workflow YAML with
-        # PyYAML to enforce the dry-run gating invariants. setup-python
-        # provides a clean interpreter, so PyYAML must be installed before
-        # the test step runs. Without this, the "Verify dry-run guardrails
-        # (planner contract tests)" step fails on `import yaml`, masking the
-        # real dry-run isolation invariants the test is meant to enforce.
-        run: |
-          pip install pyyaml
-
-      - name: Validate selected release target
-        env:
-          RELEASE_TARGET: ${{ inputs.release_target }}
-        run: |
-          # RELEASE-PRODUCT-SELECTION-001: fail-closed early if the
-          # operator-selected release_target is not a config_string in
-          # config/webflash-builds.json (or the all-release-eligible
-          # sentinel). The picker is a GitHub Actions `type: choice` so
-          # this is belt-and-braces, but it gives the operator a clear
-          # error if config/webflash-builds.json and the workflow options
-          # ever drift apart.
-          python3 scripts/list_release_targets.py --validate "$RELEASE_TARGET"
-
-      - name: Plan room release notes (dry-run, no publish)
-        env:
-          RELEASE_TARGET: ${{ inputs.release_target }}
-        run: |
-          echo "=============================================="
-          echo "RELEASE DRY-RUN (RELEASE-WORKFLOW-DRYRUN-MODE-001)"
-          echo "=============================================="
-          echo "This is a non-publishing dry-run. It creates no GitHub"
-          echo "Release, uploads no release assets, and writes no"
-          echo "firmware/sources.json or manifest.json."
-          echo "Selected release target: $RELEASE_TARGET"
-          echo ""
-          # RELEASE-PRODUCT-SELECTION-001: scope the dry-run plan to the
-          # operator-selected release target. `all-release-eligible`
-          # enumerates every entry in config/webflash-builds.json;
-          # a specific config_string scopes to that single build. The
-          # fan-exclusion guardrail still runs across the full release
-          # matrix so a fan token leaking into config/webflash-builds.json
-          # is caught even when the operator scoped to a non-fan build.
-          # The planner exits non-zero (failing the dry-run) on any
-          # guardrail violation or a build the generator refuses. It
-          # writes nothing (no --output).
-          python3 scripts/plan_room_release_notes.py \
-            --commit "${{ github.sha }}" \
-            --config-string "$RELEASE_TARGET"
-
-      - name: Verify dry-run guardrails (planner contract tests)
-        run: |
-          # Locks in: only the two release-eligible builds are planned (stable
-          # RoomIQ + preview LED); FanRelay / FanPWM / FanDAC are excluded; and
-          # the planner never writes firmware/sources.json or manifest.json.
-          python3 tests/test_plan_room_release_notes.py
-          python3 tests/test_release_dry_run_mode.py
-
-      - name: Assert no release side effects were produced
-        run: |
-          set -euo pipefail
-          # Belt-and-braces: the dry-run must not have produced any release
-          # publish side-effect file in the workspace.
-          fail=0
-          if [ -f firmware/sources.json ]; then
-            echo "::error::dry-run produced firmware/sources.json"; fail=1
-          fi
-          if [ -f manifest.json ]; then
-            echo "::error::dry-run produced manifest.json"; fail=1
-          fi
-          if ls ./*.bin >/dev/null 2>&1; then
-            echo "::error::dry-run produced .bin artifact(s) in the repo root"; fail=1
-          fi
-          if [ "$fail" -ne 0 ]; then
-            exit 1
-          fi
-          echo "Dry-run confirmed: stable RoomIQ + preview LED planned, fans"
-          echo "excluded, and no release was published."
+          echo "These binaries are attached to the GitHub release by the"
+          echo "release-attachment job."
