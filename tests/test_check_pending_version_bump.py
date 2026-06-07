@@ -11,15 +11,20 @@ Run with::
 
     python3 tests/test_check_pending_version_bump.py
 
-The tests lock in:
+The preflight is a **version-declaration gate only**: the pass/fail decision
+depends solely on whether the catalog declares the requested version. Channel
+and status are deferred to the generator. The tests lock in:
 
-  * exact match (catalog == requested for version and channel) -> ok, no message;
-  * mismatch with a matching candidate bump PR -> not ok, and the message names
-    that PR's number and url and tells the operator to merge it;
-  * mismatch with no candidates -> not ok, and the message directs the operator
-    to run "Release 1: Bump Version";
-  * mismatch with only a non-matching candidate -> still not ok, and the message
-    mentions the candidate's (different) version;
+  * version match -> ok, no message (regardless of channel);
+  * version match but channel differs -> ok (deferred to the generator), the
+    Codex P2 case where a preview entry is left on the default stable channel;
+  * version mismatch with a matching candidate bump PR (one that introduces the
+    requested version, regardless of its channel) -> not ok, and the message
+    names that PR's number and url and tells the operator to merge it;
+  * version mismatch with no candidates -> not ok, and the message directs the
+    operator to run "Release 1: Bump Version";
+  * version mismatch with only a non-matching candidate -> still not ok, and the
+    message mentions the candidate's (different) version;
   * the decision never depends on the candidate list (it is derivable from the
     local catalog alone).
 """
@@ -83,17 +88,43 @@ class DecideExactMatchTests(unittest.TestCase):
         self.assertTrue(ok)
         self.assertIsNone(message)
 
-    def test_channel_mismatch_is_not_a_match(self) -> None:
+    def test_channel_mismatch_with_matching_version_is_ok(self) -> None:
+        # Version-declaration gate only: when the catalog already declares the
+        # requested version, a channel-only mismatch is deferred to the
+        # generator (which owns channel/status). decide() passes rather than
+        # printing a misleading "run Release 1: Bump Version" message for a bump
+        # that does not exist. This is the Codex P2 case (preview entry left on
+        # the default stable channel).
         ok, message = decide(
             config=CONFIG,
-            requested_version="1.0.1",
-            requested_channel="preview",
-            catalog_version="1.0.1",
-            catalog_channel="stable",
+            requested_version="1.0.0",
+            requested_channel="stable",
+            catalog_version="1.0.0",
+            catalog_channel="preview",
             candidate_bumps=[],
         )
-        self.assertFalse(ok)
-        self.assertIsNotNone(message)
+        self.assertTrue(ok)
+        self.assertIsNone(message)
+
+    def test_channel_mismatch_is_ok_even_with_candidates(self) -> None:
+        # Version matches, so ok regardless of channel or any candidate PRs.
+        ok, message = decide(
+            config=CONFIG,
+            requested_version="1.0.0",
+            requested_channel="stable",
+            catalog_version="1.0.0",
+            catalog_channel="preview",
+            candidate_bumps=[
+                {
+                    "pr_number": 99,
+                    "pr_url": "https://github.com/o/r/pull/99",
+                    "proposed_version": "2.0.0",
+                    "proposed_channel": "stable",
+                }
+            ],
+        )
+        self.assertTrue(ok)
+        self.assertIsNone(message)
 
 
 class DecideMatchingCandidateTests(unittest.TestCase):
@@ -130,10 +161,11 @@ class DecideMatchingCandidateTests(unittest.TestCase):
         # exists as an open PR.
         self.assertNotIn("Run Release 1", message)
 
-    def test_matching_requires_both_version_and_channel(self) -> None:
-        # A candidate with the right version but the wrong channel is NOT the
-        # matching bump; the operator is routed to Release 1 instead, and the
-        # mismatched candidate (same version) is not listed as a different one.
+    def test_candidate_matches_on_version_regardless_of_channel(self) -> None:
+        # Channel is not part of the gate: a candidate that introduces the
+        # requested version is the matching bump even if its proposed channel
+        # differs from the requested channel (a version bump never changes
+        # channel). The operator is pointed at that PR, not routed to Release 1.
         ok, message = decide(
             config=CONFIG,
             requested_version="1.0.2",
@@ -151,8 +183,9 @@ class DecideMatchingCandidateTests(unittest.TestCase):
         )
         self.assertFalse(ok)
         assert message is not None
-        self.assertIn("Run Release 1: Bump Version", message)
-        self.assertNotIn("#7", message)
+        self.assertIn("#7", message)
+        self.assertIn("Merge that PR", message)
+        self.assertNotIn("Run Release 1", message)
 
     def test_first_matching_candidate_is_used(self) -> None:
         ok, message = decide(

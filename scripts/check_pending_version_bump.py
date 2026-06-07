@@ -51,12 +51,19 @@ Inputs:
   * ``GITHUB_TOKEN`` (env) auth for the best-effort ``gh`` calls. Optional;
     absence only disables enrichment.
 
+This is a version-declaration gate only: the pass/fail decision depends solely
+on whether the catalog declares the requested ``--version``. Channel and status
+are intentionally left to the generator, which has precise channel/status
+errors of its own, so a channel-only mismatch (version already declared) is
+deferred to the generator rather than blocked here. ``--channel`` is still
+accepted and echoed in messages.
+
 Exit codes:
 
-  * ``0`` the requested version + channel are declared in the catalog; the
-    generator may proceed.
-  * ``3`` the requested version + channel are **not** declared; the printed
-    message explains whether a bump PR is already open (merge it) or whether
+  * ``0`` the requested version is declared in the catalog; the generator may
+    proceed (it then validates channel/status).
+  * ``3`` the requested version is **not** declared; the printed message
+    explains whether a bump PR is already open (merge it) or whether
     "Release 1: Bump Version" still needs to be run. Distinct from the
     generator's ``exit 2`` on purpose.
 """
@@ -110,9 +117,20 @@ def decide(
 ) -> Tuple[bool, Optional[str]]:
     """Decide whether "Release 2: Draft Notes" may proceed.
 
-    The decision (``ok``) depends only on the **local catalog**: it is ``True``
-    iff the catalog already declares exactly the requested ``version`` and
-    ``channel`` for ``config``. ``candidate_bumps`` (open PRs that change
+    This is a **version-declaration gate only**. The decision (``ok``) depends
+    solely on whether the local catalog already declares the requested
+    ``version`` for ``config``; channel is intentionally **not** part of the
+    pass/fail decision. Channel and status stay owned by the generator
+    (``generate_webflash_release_notes.py``), which emits precise channel/status
+    errors of its own. So when the version matches but the requested channel
+    differs (e.g. a preview entry dispatched on the default ``stable`` channel),
+    this preflight passes and defers to the generator instead of printing a
+    misleading "run Release 1: Bump Version" message for a bump that does not
+    exist (Release 1 never changes channel).
+
+    ``requested_channel`` is still echoed in the failure messages, and
+    ``catalog_channel`` is accepted for signature stability, but neither affects
+    ``ok``. ``candidate_bumps`` (open PRs that change
     ``config/product-catalog.json`` for this config, each a dict with
     ``pr_number`` / ``pr_url`` / ``proposed_version`` / ``proposed_channel``)
     only **enriches** the failure message; it never flips ``ok``.
@@ -120,25 +138,29 @@ def decide(
     Returns ``(True, None)`` when the version is declared, otherwise
     ``(False, message)`` with an actionable message:
 
-      * a matching open PR exists -> point the operator at it to merge;
+      * a matching open PR exists (one that introduces the requested version)
+        -> point the operator at it to merge;
       * no matching PR -> direct the operator to run "Release 1: Bump Version",
         and (if any catalog-touching PR proposes a *different* version) list
         those PRs so the operator can spot a wrong-version dispatch.
     """
-    # Exact match against the local catalog: nothing to do, generator proceeds.
-    if catalog_version == requested_version and catalog_channel == requested_channel:
+    # Version-declaration gate: if the catalog already declares the requested
+    # version, the generator may proceed. It owns channel/status validation, so
+    # a channel-only mismatch is deliberately deferred to it rather than blocked
+    # here (channel is not part of this decision).
+    if catalog_version == requested_version:
         return True, None
 
     candidates = candidate_bumps or []
 
-    # Is the requested bump already in flight? A "matching" candidate sets this
-    # config to *exactly* the requested version AND channel.
+    # Is the requested bump already in flight? A "matching" candidate is one that
+    # introduces the requested version for this config. Channel is not part of
+    # the gate, so the match is on version (a bump never changes channel).
     matching = next(
         (
             cand
             for cand in candidates
             if cand.get("proposed_version") == requested_version
-            and cand.get("proposed_channel") == requested_channel
         ),
         None,
     )
@@ -424,15 +446,16 @@ def main(argv: Optional[List[str]] = None) -> int:
     catalog_version = entry.get("version")
     catalog_channel = entry.get("channel")
 
-    is_match = (
-        catalog_version == args.version and catalog_channel == args.channel
-    )
+    # Version-declaration gate: the pass/fail decision depends only on whether
+    # the catalog already declares the requested version. Channel/status stays
+    # the generator's responsibility.
+    version_declared = catalog_version == args.version
 
     candidate_bumps: List[Dict[str, Any]] = []
-    if not is_match:
-        # Only reach out to GitHub when we already know there is a mismatch.
-        # The candidates only enrich the message; the decision is already made
-        # from the local catalog.
+    if not version_declared:
+        # Only reach out to GitHub when the version does not match. The
+        # candidates only enrich the message; the decision is already made from
+        # the local catalog.
         repo = os.environ.get("GITHUB_REPOSITORY", "").strip()
         candidate_bumps = _collect_candidate_bumps(args.config, repo, _gh_env(), log)
 
@@ -447,9 +470,10 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     if ok:
         print(
-            "check-pending-version-bump: catalog declares "
-            f"{catalog_version} ({catalog_channel}) for {args.config}; matches "
-            f"the requested {args.version} ({args.channel}). Proceeding."
+            "check-pending-version-bump: catalog declares version "
+            f"{catalog_version} for {args.config}; matches the requested "
+            f"{args.version}. Proceeding (channel/status is validated by the "
+            "release-notes generator)."
         )
         return EXIT_OK
 
