@@ -2,6 +2,11 @@
 # ============================================================================
 # RELEASE 1: BUMP VERSION (RELEASE-BUMP-001)
 # ============================================================================
+# RELEASE ORDER: Release 1: Bump Version opens a PR; merge that PR before
+# running Release 2: Draft Notes. Until the bump PR is merged, main still
+# carries the old catalog version and Release 2 fails by design (its
+# "Check version is declared" preflight explains how to recover).
+#
 # Manual operator helper: bumps the release version of one WebFlash-shippable
 # config in lock-step across config/product-catalog.json and
 # config/webflash-builds.json, proves the two files stay coherent, and opens

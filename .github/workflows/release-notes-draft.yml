@@ -2,6 +2,12 @@
 # ============================================================================
 # DRAFT WEBFLASH RELEASE NOTES (RELEASE-002)
 # ============================================================================
+# RELEASE ORDER: Release 1: Bump Version opens a PR; merge that PR before
+# running Release 2: Draft Notes. Otherwise this workflow reads main, sees the
+# old catalog version, and fails. The "Check version is declared" preflight
+# step below detects exactly that case and prints an actionable message
+# (exit code 3, distinct from the generator's exit 2).
+#
 # Manual operator helper: produces a WebFlash release-notes draft from the
 # product catalog, validates it against the WebFlash release-body contract,
 # and uploads the result as a workflow artifact.
@@ -74,6 +80,10 @@ on:
 
 permissions:
   contents: read
+  # DRAFT-NOTES-PREFLIGHT-001: the "Check version is declared" step lists open
+  # PRs (best-effort, via gh) so its failure message can link the pending
+  # "Release 1: Bump Version" PR. Read-only; the workflow still never writes.
+  pull-requests: read
 
 jobs:
   draft:
@@ -87,6 +97,30 @@ jobs:
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.11"
+
+      - name: Check version is declared
+        env:
+          CONFIG_STRING: ${{ inputs.config_string }}
+          VERSION: ${{ inputs.version }}
+          CHANNEL: ${{ inputs.channel }}
+          # Best-effort enrichment only: the pass/fail decision comes from the
+          # local catalog. The token lets the preflight name the pending
+          # "Release 1: Bump Version" PR in its failure message.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # DRAFT-NOTES-PREFLIGHT-001: fail fast with a specific, actionable
+          # message when the requested version is not yet declared in the
+          # catalog because "Release 1: Bump Version" opened a PR that has not
+          # been merged yet. A non-zero exit (3, distinct from the generator's
+          # exit 2) fails the job here so the generator step never runs on a
+          # mismatch. This is additive guidance only; the generator's own
+          # validation is unchanged.
+          python3 scripts/check_pending_version_bump.py \
+            --config "$CONFIG_STRING" \
+            --version "$VERSION" \
+            --channel "$CHANNEL"
 
       - name: Generate release-notes draft
         env:
