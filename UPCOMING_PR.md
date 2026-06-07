@@ -28,7 +28,8 @@ from [`security.md`](security.md).
    attestation), run by flashing the composition locally onto `S360-100-R4` +
    `S360-320-R4` — **no WebFlash publish is required to run it**. The proof
    container is [`docs/package-triac-001-operator-bench-proof.md`](docs/package-triac-001-operator-bench-proof.md).
-   `PACKAGE-TRIAC-001-PARAMS` folded the bench-confirmed output parameters into
+   `PACKAGE-TRIAC-001-PARAMS` (#738, open, human-review) folded the
+   bench-confirmed output parameters into
    [`packages/expansions/fan_triac.yaml`](packages/expansions/fan_triac.yaml)
    (`zero_cross_pin` `inverted: true`, `method: leading`,
    `fan_triac_min_power: "15"`) and recorded Steps A, B, C, E as **PASS** on the
