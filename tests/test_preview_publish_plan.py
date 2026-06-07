@@ -47,7 +47,6 @@ from __future__ import annotations
 import importlib.util
 import json
 import re
-import sys
 import unittest
 from pathlib import Path
 from typing import Any, Dict, List
@@ -63,9 +62,6 @@ DRAFT_DIR = REPO_ROOT / "docs" / "release-notes" / "preview"
 VALIDATOR_PATH = REPO_ROOT / "scripts" / "validate-webflash-release-notes.py"
 MAPPER_PATH = REPO_ROOT / "scripts" / "product_name_mapper.py"
 LIST_TARGETS_PATH = REPO_ROOT / "scripts" / "list_release_targets.py"
-BUILD_RELEASE_WORKFLOW = (
-    REPO_ROOT / ".github" / "workflows" / "firmware-build-release.yml"
-)
 RELEASE_NOTES_WORKFLOW = (
     REPO_ROOT / ".github" / "workflows" / "release-notes-draft.yml"
 )
@@ -75,7 +71,6 @@ PLAN_ID = "RELEASE-PREVIEW-PUBLISH-PLAN-001"
 RUN_ID = "RELEASE-PREVIEW-PUBLISH-RUN-001"
 LAUNCH_SKU = "S360-KIT-BATH-P"
 VERSION = "1.0.0"
-ALL_TARGETS_SENTINEL = "all-release-eligible"
 
 # The three metadata-ready preview rows this plan publishes, by config string.
 PUBLISH_CONFIGS = (
@@ -160,26 +155,20 @@ def _wrapper_stem(product_yaml: str) -> str:
     return Path(product_yaml).stem
 
 
-def _matrix(version: str, channel: str, release_target: str, event: str) -> List[str]:
+def _matrix(version: str, channel: str) -> List[str]:
     """Replay the generate-matrix filter from firmware-build-release.yml.
 
     Mirrors the embedded Python in the workflow: filter
-    config/webflash-builds.json by version + channel, and (only on a
-    workflow_dispatch) optionally scope to a single release_target. The
-    `all-release-eligible` sentinel and a non-dispatch event clear the scope.
+    config/webflash-builds.json by the version + channel derived from the
+    release tag. The workflow is release-event only (it has no
+    workflow_dispatch / scoped release_target lane), so version + channel
+    is the entire filter.
     """
-    rt = release_target
-    if event != "workflow_dispatch":
-        rt = ""
-    if rt in ("", ALL_TARGETS_SENTINEL):
-        rt = ""
     rows: List[str] = []
     for entry in _builds():
         if entry.get("version") != version:
             continue
         if entry.get("channel") != channel:
-            continue
-        if rt and entry.get("config_string") != rt:
             continue
         rows.append(entry["config_string"])
     return rows
@@ -304,17 +293,14 @@ class ReleaseNoteDraftCoverageTests(unittest.TestCase):
 
 
 class WorkflowPickerTests(unittest.TestCase):
-    """Task item 6: each publish config is selectable in both workflow pickers."""
+    """Task item 6: each publish config is selectable in the release-notes
+    picker and accepted by the release-target validator.
 
-    def test_build_release_release_target_contains_each_publish_config(self) -> None:
-        inputs = _dispatch_inputs(BUILD_RELEASE_WORKFLOW)
-        rt = inputs.get("release_target") or {}
-        self.assertEqual(rt.get("type"), "choice")
-        options = list(rt.get("options") or [])
-        self.assertIn(ALL_TARGETS_SENTINEL, options)
-        for cs in PUBLISH_CONFIGS:
-            with self.subTest(config_string=cs):
-                self.assertIn(cs, options)
+    firmware-build-release.yml no longer has a workflow_dispatch
+    release_target picker (it fires only on the published release event),
+    so the operator picker that remains is release-notes-draft.yml's
+    config_string input.
+    """
 
     def test_release_notes_config_string_contains_each_publish_config(self) -> None:
         inputs = _dispatch_inputs(RELEASE_NOTES_WORKFLOW)
@@ -325,16 +311,13 @@ class WorkflowPickerTests(unittest.TestCase):
             with self.subTest(config_string=cs):
                 self.assertIn(cs, options)
 
-    def test_pickers_carry_no_fan_token(self) -> None:
-        for wf in (BUILD_RELEASE_WORKFLOW, RELEASE_NOTES_WORKFLOW):
-            inputs = _dispatch_inputs(wf)
-            options: List[str] = []
-            for key in ("release_target", "config_string"):
-                options += list((inputs.get(key) or {}).get("options") or [])
-            for opt in options:
-                for token in ("FanRelay", "FanPWM", "FanDAC"):
-                    with self.subTest(workflow=wf.name, option=opt, token=token):
-                        self.assertNotIn(token.lower(), opt.lower())
+    def test_release_notes_picker_carries_no_fan_token(self) -> None:
+        inputs = _dispatch_inputs(RELEASE_NOTES_WORKFLOW)
+        options = list((inputs.get("config_string") or {}).get("options") or [])
+        for opt in options:
+            for token in ("FanRelay", "FanPWM", "FanDAC"):
+                with self.subTest(option=opt, token=token):
+                    self.assertNotIn(token.lower(), opt.lower())
 
     def test_list_release_targets_validates_each_publish_config(self) -> None:
         for cs in PUBLISH_CONFIGS:
@@ -355,24 +338,15 @@ class WorkflowPickerTests(unittest.TestCase):
 class WorkflowMatrixScopeTests(unittest.TestCase):
     """Task item 6: replay the release workflow matrix filter for scope."""
 
-    def test_scoped_dispatch_selects_exactly_one_publish_config(self) -> None:
-        for cs in PUBLISH_CONFIGS:
-            with self.subTest(config_string=cs):
-                got = _matrix(VERSION, "preview", cs, "workflow_dispatch")
-                self.assertEqual(got, [cs])
-
     def test_preview_run_never_includes_stable_bathroom(self) -> None:
-        # An unscoped preview run (release event or all-release-eligible) must
-        # not include the stable Bathroom build.
-        for event, rt in (("release", ""), ("workflow_dispatch", ALL_TARGETS_SENTINEL)):
-            with self.subTest(event=event):
-                got = _matrix(VERSION, "preview", rt, event)
-                self.assertNotIn(STABLE_CONFIG, got)
-                for cs in PUBLISH_CONFIGS:
-                    self.assertIn(cs, got)
+        # A preview release run must not include the stable Bathroom build.
+        got = _matrix(VERSION, "preview")
+        self.assertNotIn(STABLE_CONFIG, got)
+        for cs in PUBLISH_CONFIGS:
+            self.assertIn(cs, got)
 
     def test_stable_run_includes_only_the_stable_bathroom_build(self) -> None:
-        got = _matrix(VERSION, "stable", "", "release")
+        got = _matrix(VERSION, "stable")
         self.assertEqual(got, [STABLE_CONFIG])
 
     def test_no_fan_or_triac_token_in_any_build_row(self) -> None:

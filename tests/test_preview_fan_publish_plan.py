@@ -48,8 +48,6 @@ import unittest
 from pathlib import Path
 from typing import Any, Dict, List
 
-import yaml
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 LEDGER_PATH = REPO_ROOT / "config" / "preview-fan-triac-build-rows.json"
 TARGETS_PATH = REPO_ROOT / "config" / "preview-release-targets.json"
@@ -64,9 +62,6 @@ LEDGER_VALIDATOR_PATH = (
     REPO_ROOT / "scripts" / "validate_preview_fan_triac_build_rows.py"
 )
 LIST_TARGETS_PATH = REPO_ROOT / "scripts" / "list_release_targets.py"
-BUILD_RELEASE_WORKFLOW = (
-    REPO_ROOT / ".github" / "workflows" / "firmware-build-release.yml"
-)
 MANUAL_WORKFLOW = (
     REPO_ROOT / ".github" / "workflows" / "manual-firmware-artifacts.yml"
 )
@@ -77,7 +72,6 @@ RUN_FOLLOWUP_ID = "RELEASE-PREVIEW-FAN-PUBLISH-RUN-001"
 COMPILE_RUN_ID = 26821900127
 VERSION = "1.0.0"
 LAUNCH_SKU = "S360-KIT-BATH-P"
-ALL_TARGETS_SENTINEL = "all-release-eligible"
 
 SIMPLE_INSTALL_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
 SIMPLE_INSTALL_ARTIFACT = "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin"
@@ -157,38 +151,19 @@ def _normalise(text: str) -> str:
     return re.sub(r"\s+", " ", joined).lower()
 
 
-def _matrix(version: str, channel: str, release_target: str, event: str) -> List[str]:
-    """Replay the generate-matrix filter from firmware-build-release.yml against
-    config/webflash-builds.json (version + channel, optional dispatch scope)."""
-    rt = release_target
-    if event != "workflow_dispatch":
-        rt = ""
-    if rt in ("", ALL_TARGETS_SENTINEL):
-        rt = ""
+def _matrix(version: str, channel: str) -> List[str]:
+    """Replay the generate-matrix filter from firmware-build-release.yml
+    against config/webflash-builds.json. The workflow is release-event only
+    (no workflow_dispatch / scoped release_target lane), so it filters by the
+    version + channel derived from the release tag."""
     rows: List[str] = []
     for entry in _builds():
         if entry.get("version") != version:
             continue
         if entry.get("channel") != channel:
             continue
-        if rt and entry.get("config_string") != rt:
-            continue
         rows.append(entry["config_string"])
     return rows
-
-
-def _triggers(data: dict) -> dict:
-    # PyYAML parses the bare key ``on:`` as boolean True (YAML 1.1 truthy key).
-    raw = data.get("on")
-    if raw is None:
-        raw = data.get(True)
-    return raw if isinstance(raw, dict) else {}
-
-
-def _dispatch_inputs(workflow_path: Path) -> Dict[str, Any]:
-    data = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
-    wd = _triggers(data).get("workflow_dispatch") or {}
-    return wd.get("inputs") or {}
 
 
 class PublishScopeTests(unittest.TestCase):
@@ -406,22 +381,13 @@ class WorkflowGapTests(unittest.TestCase):
                 )
 
     def test_release_matrix_never_yields_a_fan_artifact(self) -> None:
-        for event, rt in (
-            ("release", ""),
-            ("workflow_dispatch", ALL_TARGETS_SENTINEL),
-        ):
-            got = _matrix(VERSION, "preview", rt, event)
-            for cs in FAN_CONFIGS:
-                with self.subTest(event=event, config_string=cs):
-                    self.assertNotIn(cs, got)
-
-    def test_build_release_picker_carries_no_fan_token(self) -> None:
-        inputs = _dispatch_inputs(BUILD_RELEASE_WORKFLOW)
-        options = list((inputs.get("release_target") or {}).get("options") or [])
-        for opt in options:
-            for token in FAN_FAMILY_TOKENS:
-                with self.subTest(option=opt, token=token):
-                    self.assertNotIn(token.lower(), opt.lower())
+        # The release workflow filters config/webflash-builds.json by the
+        # version + channel derived from the release tag; a fan config must
+        # never appear in the resulting preview matrix.
+        got = _matrix(VERSION, "preview")
+        for cs in FAN_CONFIGS:
+            with self.subTest(config_string=cs):
+                self.assertNotIn(cs, got)
 
     def test_manual_lane_is_non_release(self) -> None:
         manual = _load_json(MANUAL_PATH)

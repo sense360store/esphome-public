@@ -2,11 +2,10 @@
 """RELEASE-PRODUCT-SELECTION-001 contract tests.
 
 Locks in the operator-facing release-target selection added to the
-release-notes draft workflow and the firmware build/release workflow so
-they cannot silently regress (e.g. by quietly defaulting back to a
-single hardcoded product, by accepting an off-catalog free-text value,
-or by letting a FanRelay / FanPWM / FanDAC token become selectable for
-release).
+release-notes draft workflow so it cannot silently regress (e.g. by
+quietly defaulting back to a single hardcoded product, by accepting an
+off-catalog free-text value, or by letting a FanRelay / FanPWM / FanDAC
+token become selectable for release).
 
 The invariants:
 
@@ -15,20 +14,16 @@ The invariants:
     release-eligible ``config_string`` values in
     ``config/webflash-builds.json`` — no free-text default that
     silently scopes to one product.
-  * ``firmware-build-release.yml`` exposes ``release_target`` as a
-    ``type: choice`` input with options =
-    ``['all-release-eligible', ...release-eligible config_strings]``,
-    defaulting to ``all-release-eligible``.
-  * Neither input lists a FanRelay / FanPWM / FanDAC token (those are
-    manual-candidate-only).
-  * The ``release-dry-run`` job passes the selected ``release_target``
-    to ``scripts/plan_room_release_notes.py`` via ``--config-string``.
-  * The ``release-dry-run`` job calls
-    ``scripts/list_release_targets.py --validate`` so the picker and
-    ``config/webflash-builds.json`` can't drift apart silently.
-  * Publishing semantics are unchanged — the publish job (``release``)
-    stays gated on a real release event and does **not** reference the
-    new ``release_target`` input.
+  * The ``config_string`` picker lists no FanRelay / FanPWM / FanDAC
+    token (those are manual-candidate-only).
+  * The release-note planner (``scripts/plan_room_release_notes.py``)
+    scopes correctly by ``config_string`` and refuses any fan-family
+    token.
+
+``firmware-build-release.yml`` no longer carries a ``workflow_dispatch``
+lane (it fires only on the published ``release`` event), so its former
+``release_target`` picker and ``release-dry-run`` job invariants were
+removed together with that lane.
 
 Run with::
 
@@ -49,17 +44,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 RELEASE_NOTES_WORKFLOW = (
     REPO_ROOT / ".github" / "workflows" / "release-notes-draft.yml"
 )
-BUILD_RELEASE_WORKFLOW = (
-    REPO_ROOT / ".github" / "workflows" / "firmware-build-release.yml"
-)
 BUILDS_JSON = REPO_ROOT / "config" / "webflash-builds.json"
-LIST_TARGETS_SCRIPT = REPO_ROOT / "scripts" / "list_release_targets.py"
 
 FAN_TOKENS = ("FanRelay", "FanPWM", "FanDAC")
-ALL_TARGETS_SENTINEL = "all-release-eligible"
-PUBLISH_JOB = "release"
-DRY_RUN_JOB = "release-dry-run"
-MATRIX_JOB = "generate-matrix"
 
 
 def _load_module(name: str, path: Path):
@@ -91,14 +78,6 @@ def _release_eligible_config_strings() -> list[str]:
         for e in doc.get("builds", [])
         if isinstance(e, dict) and isinstance(e.get("config_string"), str)
     ]
-
-
-def _job_run_text(job: dict) -> str:
-    chunks: list[str] = []
-    for step in job.get("steps", []) or []:
-        if isinstance(step, dict) and isinstance(step.get("run"), str):
-            chunks.append(step["run"])
-    return "\n".join(chunks)
 
 
 class ReleaseNotesDraftPickerTests(unittest.TestCase):
@@ -152,113 +131,6 @@ class ReleaseNotesDraftPickerTests(unittest.TestCase):
             "`default:`; forcing operator selection prevents the workflow "
             "from silently scoping every dispatch to a single product "
             "(RELEASE-PRODUCT-SELECTION-001)",
-        )
-
-
-class FirmwareBuildReleasePickerTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.data = yaml.safe_load(BUILD_RELEASE_WORKFLOW.read_text(encoding="utf-8"))
-        wd = _triggers(cls.data).get("workflow_dispatch") or {}
-        cls.inputs = wd.get("inputs") or {}
-        cls.jobs = cls.data.get("jobs") or {}
-
-    def test_release_target_input_exists_as_choice(self) -> None:
-        rt = self.inputs.get("release_target") or {}
-        self.assertEqual(
-            rt.get("type"),
-            "choice",
-            "firmware-build-release.yml must declare `release_target` as a "
-            "`type: choice` picker (RELEASE-PRODUCT-SELECTION-001)",
-        )
-
-    def test_release_target_default_is_all_release_eligible(self) -> None:
-        rt = self.inputs.get("release_target") or {}
-        self.assertEqual(
-            rt.get("default"),
-            ALL_TARGETS_SENTINEL,
-            "release_target must default to 'all-release-eligible' so a "
-            "default dispatch covers every release-eligible build",
-        )
-
-    def test_release_target_options_include_all_and_each_target(self) -> None:
-        rt = self.inputs.get("release_target") or {}
-        options = list(rt.get("options") or [])
-        expected = [ALL_TARGETS_SENTINEL] + _release_eligible_config_strings()
-        self.assertEqual(
-            set(options),
-            set(expected),
-            f"release_target options {options!r} must equal "
-            f"['all-release-eligible'] + config/webflash-builds.json "
-            f"config_strings {expected!r}",
-        )
-
-    def test_release_target_options_exclude_fan_tokens(self) -> None:
-        options = list((self.inputs.get("release_target") or {}).get("options") or [])
-        for token in FAN_TOKENS:
-            self.assertFalse(
-                any(token.lower() in str(opt).lower() for opt in options),
-                f"release_target options must not include {token} "
-                "(manual-candidate-only; never release-eligible)",
-            )
-
-    def test_dry_run_job_validates_release_target(self) -> None:
-        job = self.jobs.get(DRY_RUN_JOB) or {}
-        run_text = _job_run_text(job)
-        self.assertIn(
-            "scripts/list_release_targets.py",
-            run_text,
-            "release-dry-run job must call list_release_targets.py --validate "
-            "to fail-closed if release_target and config/webflash-builds.json "
-            "ever drift apart",
-        )
-        self.assertIn("--validate", run_text)
-
-    def test_dry_run_job_passes_release_target_to_planner(self) -> None:
-        job = self.jobs.get(DRY_RUN_JOB) or {}
-        run_text = _job_run_text(job)
-        self.assertIn(
-            "--config-string",
-            run_text,
-            "release-dry-run job must pass --config-string to "
-            "plan_room_release_notes.py so the operator's release_target "
-            "scopes the dry-run plan",
-        )
-        # The env var the dry-run job uses must carry the selection.
-        # Either the literal env-var reference or the input expression is fine.
-        for step in job.get("steps", []) or []:
-            if not isinstance(step, dict):
-                continue
-            env = step.get("env") or {}
-            if env.get("RELEASE_TARGET") is not None:
-                self.assertIn(
-                    "inputs.release_target",
-                    str(env["RELEASE_TARGET"]),
-                    "release-dry-run job's RELEASE_TARGET env var must "
-                    "reference inputs.release_target",
-                )
-
-    def test_publish_job_does_not_reference_release_target(self) -> None:
-        publish = self.jobs.get(PUBLISH_JOB) or {}
-        gate = str(publish.get("if", ""))
-        self.assertNotIn(
-            "release_target",
-            gate,
-            "publish job gate must not reference release_target; publishing "
-            "stays gated to a real release event",
-        )
-
-    def test_matrix_job_filters_on_release_target_in_dispatch(self) -> None:
-        # The generate-matrix job (which only runs on release / non-dry-run
-        # dispatch) must honor release_target so a manual dispatch with a
-        # specific target builds only that target.
-        job = self.jobs.get(MATRIX_JOB) or {}
-        run_text = _job_run_text(job)
-        self.assertIn(
-            "RELEASE_TARGET",
-            run_text,
-            "generate-matrix must honor the release_target input on "
-            "workflow_dispatch (RELEASE-PRODUCT-SELECTION-001)",
         )
 
 
