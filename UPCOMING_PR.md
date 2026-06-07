@@ -27,10 +27,17 @@ from [`security.md`](security.md).
    bench (gate firing / zero-cross detection / timing / waveform / thermal +
    attestation), run by flashing the composition locally onto `S360-100-R4` +
    `S360-320-R4` — **no WebFlash publish is required to run it**. The proof
-   container is [`docs/package-triac-001-operator-bench-proof.md`](docs/package-triac-001-operator-bench-proof.md)
-   (**PENDING** — every evidence row stays `PENDING` until filled from a real
-   run). A PASS clears only the `PACKAGE-TRIAC-001` half (human-reviewed);
-   `COMPLIANCE-001` stays separate. `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays
+   container is [`docs/package-triac-001-operator-bench-proof.md`](docs/package-triac-001-operator-bench-proof.md).
+   `PACKAGE-TRIAC-001-PARAMS` (#738, open, human-review) folded the
+   bench-confirmed output parameters into
+   [`packages/expansions/fan_triac.yaml`](packages/expansions/fan_triac.yaml)
+   (`zero_cross_pin` `inverted: true`, `method: leading`,
+   `fan_triac_min_power: "15"`) and recorded Steps A, B, C, E as **PASS** on the
+   real Manrose fan motor; **Step F (boot/stability), the full-composition
+   re-confirm, and the signed operator attestation are still outstanding**, so
+   `PACKAGE-TRIAC-001` is **not** cleared and the proof stays **PENDING**. A PASS
+   clears only the `PACKAGE-TRIAC-001` half (human-reviewed); `COMPLIANCE-001`
+   stays separate. `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays
    `status: blocked` throughout — never stable, recommended, default, buyable, or
    WebFlash-exposed.
    - **`TRIAC-PUBLISH-ADVANCED-PREVIEW-001` stays BLOCKED** behind
