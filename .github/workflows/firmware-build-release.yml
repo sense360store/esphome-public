@@ -659,6 +659,11 @@ jobs:
     # stays read-only.
     permissions:
       contents: write
+      # SEC-ESP-CHECKSUM-SIGNING-001 (security.md finding #3): keyless cosign
+      # mints a short-lived signing certificate from this workflow's OIDC
+      # identity, which requires id-token: write. Scoped to this release job
+      # only; the top-level token stays contents: read.
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -689,14 +694,47 @@ jobs:
           echo "" >> checksums-sha256.txt
           sha256sum *.bin >> checksums-sha256.txt
 
-          # Generate MD5 checksums (for compatibility)
-          echo "# MD5 Checksums" > checksums-md5.txt
+          # MD5 checksums — NON-SECURITY, legacy compatibility only.
+          # SEC-ESP-CHECKSUM-SIGNING-001 (security.md finding #3): MD5 is
+          # cryptographically broken and must NOT be used for integrity or
+          # authenticity. Verify the cosign-signed checksums-sha256.txt instead
+          # (see docs/release-signing.md). The file is kept only so existing
+          # consumers do not break.
+          echo "# MD5 checksums - NON-SECURITY (legacy compatibility only)." > checksums-md5.txt
+          echo "# MD5 is broken; do NOT use it for integrity or authenticity." >> checksums-md5.txt
+          echo "# Verify the cosign-signed checksums-sha256.txt (docs/release-signing.md)." >> checksums-md5.txt
           echo "# Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> checksums-md5.txt
           echo "" >> checksums-md5.txt
           md5sum *.bin >> checksums-md5.txt
 
           echo "Checksums generated:"
           cat checksums-sha256.txt
+
+      - name: Install cosign (keyless signing)
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
+
+      - name: Sign SHA-256 checksums with cosign (keyless)
+        run: |
+          # SEC-ESP-CHECKSUM-SIGNING-001 (security.md finding #3): plaintext
+          # checksums prove integrity against corruption but NOT authenticity
+          # against tampering (a party who can rewrite a release asset can
+          # rewrite the checksum file too). Sign checksums-sha256.txt with
+          # keyless Sigstore cosign using this workflow's OIDC identity (no
+          # long-lived key). Publish the self-contained signature bundle plus
+          # the detached signature and signing certificate as release assets.
+          # Consumers verify with `cosign verify-blob` (see
+          # docs/release-signing.md). This step runs only on a real release
+          # event (this job is gated to github.event_name == 'release').
+          cd all-firmware
+          cosign sign-blob --yes \
+            --bundle checksums-sha256.txt.cosign.bundle \
+            --output-signature checksums-sha256.txt.sig \
+            --output-certificate checksums-sha256.txt.pem \
+            checksums-sha256.txt
+          echo "Signed checksums-sha256.txt; signing material:"
+          ls -la checksums-sha256.txt.cosign.bundle \
+                 checksums-sha256.txt.sig \
+                 checksums-sha256.txt.pem
 
       - name: Create firmware manifest
         run: |
@@ -771,6 +809,9 @@ jobs:
           files: |
             all-firmware/*.bin
             all-firmware/checksums-sha256.txt
+            all-firmware/checksums-sha256.txt.cosign.bundle
+            all-firmware/checksums-sha256.txt.sig
+            all-firmware/checksums-sha256.txt.pem
             all-firmware/checksums-md5.txt
             all-firmware/manifest.json
           token: ${{ secrets.GITHUB_TOKEN }}

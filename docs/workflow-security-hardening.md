@@ -28,7 +28,7 @@ inherited token scope is no longer relied on anywhere.
 | `compile-only.yml` | push / PR / dispatch | `contents: read` | — | metadata + (manual) compile validation; no writes |
 | `ci-validate-configs.yml` | dispatch | `contents: read` | — | manual broad/legacy `esphome config` + lint sweep; no writes |
 | `release-notes-draft.yml` | dispatch | `contents: read` | — | drafts notes + uploads a CI artifact only |
-| `firmware-build-release.yml` | release / dispatch | `contents: read` | `release` job: `contents: write` | only the `release` job attaches assets to the GitHub Release |
+| `firmware-build-release.yml` | release / dispatch | `contents: read` | `release` job: `contents: write` + `id-token: write` | only the `release` job attaches assets to the GitHub Release and keyless-signs the checksums |
 
 **Least-privilege detail for `firmware-build-release.yml`:** the
 top-level scope was narrowed from `contents: write` to `contents: read`.
@@ -38,6 +38,12 @@ firmware binaries + checksums + manifest via
 The `generate-matrix`, `build`, and `summary` jobs only read the repo and
 exchange CI artifacts through the artifact service (which does not use the
 `contents` scope), so they run read-only.
+
+`SEC-ESP-CHECKSUM-SIGNING-001` (security.md finding #3) additionally grants
+the `release` job `id-token: write` so keyless Sigstore cosign can mint a
+short-lived signing certificate from the workflow's OIDC identity and sign
+`checksums-sha256.txt`. This is scoped to the `release` job only; the
+top-level token stays `contents: read`.
 
 Other trigger-safety facts confirmed (and regression-guarded):
 
@@ -52,11 +58,11 @@ Other trigger-safety facts confirmed (and regression-guarded):
 
 ## 2. Action-pin inventory (SHA-pinned by `SECURITY-ACTION-PINNING-001`)
 
-As of 2026-05-27 the workflows reference six actions, **all pinned to
-immutable 40-hex commit SHAs** (the resolved upstream version is preserved
-in a trailing `# vX.Y.Z` comment for maintainability). The SHA each major
-tag resolved to on 2026-05-27 was taken directly from `git ls-remote
---tags` against each upstream repository.
+The workflows reference seven actions, **all pinned to immutable 40-hex
+commit SHAs** (the resolved upstream version is preserved in a trailing
+`# vX.Y.Z` comment for maintainability). The original six SHAs (taken from
+`git ls-remote --tags` on 2026-05-27) plus `sigstore/cosign-installer`
+(added by `SEC-ESP-CHECKSUM-SIGNING-001`) are inventoried below.
 
 | Action | Workflow file(s) | Previous ref | Pinned SHA | Resolves to | First/third party | Next maintenance action |
 |---|---|---|---|---|---|---|
@@ -66,6 +72,7 @@ tag resolved to on 2026-05-27 was taken directly from `git ls-remote
 | `actions/upload-artifact` | `release-notes-draft.yml`, `firmware-build-release.yml` | `@v4` | `ea165f8d65b6e75b540449e92b4886f43607fa02` | `v4.6.2` | first-party | bump SHA + comment when adopting a newer `v4.x` |
 | `actions/download-artifact` | `firmware-build-release.yml` | `@v4` | `d3f86a106a0bac45b974a628896c90dbdf5c8093` | `v4.3.0` | first-party | bump SHA + comment when adopting a newer `v4.x` |
 | `softprops/action-gh-release` | `firmware-build-release.yml` | `@v2` | `3bb12739c298aeb8a4eeaf626c5b8d85266b0e65` | `v2.6.2` | **third-party** | bump SHA + comment when adopting a newer `v2.x`; highest-value pin target |
+| `sigstore/cosign-installer` | `firmware-build-release.yml` | n/a (added by `SEC-ESP-CHECKSUM-SIGNING-001`) | `dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da` | `v3.7.0` | **third-party** | bump SHA + comment when adopting a newer `v3.x`/`v4.x` |
 
 There are **no exceptions** — every referenced action is SHA-pinned, so
 the documented-exception allowlist is empty. This inventory is mirrored in

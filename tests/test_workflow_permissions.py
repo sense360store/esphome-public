@@ -58,6 +58,17 @@ WRITE_PERMISSION_ALLOWLIST: dict[tuple[str, str, str], str] = {
         "requires contents: write. Scoped to this job only."
     ),
     (
+        "firmware-build-release.yml",
+        "release",
+        "id-token",
+    ): (
+        "SEC-ESP-CHECKSUM-SIGNING-001 (security.md finding #3): the release "
+        "job signs checksums-sha256.txt with keyless Sigstore cosign, which "
+        "mints a short-lived certificate from the workflow OIDC identity and "
+        "requires id-token: write. Scoped to this release job only; the "
+        "top-level token stays contents: read."
+    ),
+    (
         "preview-fan-publish.yml",
         "publish",
         "contents",
@@ -112,6 +123,9 @@ SHA_PINNED_ACTION_INVENTORY: dict[str, str] = {
     "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02": "v4.6.2",
     "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093": "v4.3.0",
     "softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65": "v2.6.2",
+    # SEC-ESP-CHECKSUM-SIGNING-001: keyless cosign installer for signing
+    # checksums-sha256.txt in the firmware-build-release.yml release job.
+    "sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da": "v3.7.0",
 }
 
 _SHA_PIN_RE = re.compile(r"@[0-9a-f]{40}$")
