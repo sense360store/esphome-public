@@ -183,8 +183,12 @@ class ConfigValidator:
                     failed_files += 1
                     continue
 
-                # Product-specific validation (skip secrets.yaml as it's an include file)
-                if "products" in str(yaml_file) and yaml_file.name != "secrets.yaml":
+                # Product-specific validation (skip secrets.yaml / the tracked
+                # secrets.example.yaml template — they are not product configs)
+                if "products" in str(yaml_file) and yaml_file.name not in (
+                    "secrets.yaml",
+                    "secrets.example.yaml",
+                ):
                     if not self.validate_product_config(yaml_file):
                         failed_files += 1
                         continue
