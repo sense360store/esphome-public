@@ -38,10 +38,12 @@ Usage:
 Optional:
 
     --output PATH           Write the draft to PATH (default: stdout).
-    --changelog TEXT        Provide changelog bullets directly. Newlines
-                            separate bullets; a leading ``-``/``*``/``+``
-                            is stripped so input may be plain or
-                            already in bullet form.
+    --changelog TEXT        Provide changelog bullets directly. A
+                            semicolon ``;`` or a newline separates
+                            bullets; a leading ``-``/``*``/``+`` is
+                            stripped so input may be plain or already in
+                            bullet form. The semicolon separator exists
+                            for the single-line workflow_dispatch UI.
     --changelog-file PATH   Read changelog bullets from PATH (same
                             shape as --changelog).
     --require-changelog     Exit non-zero if no changelog text/file was
@@ -226,12 +228,24 @@ def _resolve_changelog_bullets(
         ]
 
     bullets: List[str] = []
+    # Split on newlines AND a ';' separator. The --changelog-file (newline)
+    # path keeps working exactly as before; the semicolon split is additive
+    # for the single-line workflow_dispatch UI, where GitHub renders the
+    # type:string input on one line and collapses pasted newlines into
+    # spaces. Without the ';' split, a pasted multi-bullet changelog would
+    # become one run-on bullet with embedded "- " text.
+    segments: List[str] = []
     for raw_line in raw.splitlines():
-        line = raw_line.strip()
+        segments.extend(raw_line.split(";"))
+    for segment in segments:
+        line = segment.strip()
         if not line:
             continue
-        if line.startswith(("- ", "* ", "+ ")):
-            line = line[2:].strip()
+        # Strip a single leading bullet marker ('-', '*', '+') plus any
+        # surrounding whitespace so input may be plain or already in bullet
+        # form (e.g. "- A; - B" or "A; B").
+        if line[0] in "-*+":
+            line = line[1:].strip()
         if line:
             bullets.append(line)
     if not bullets:
@@ -531,7 +545,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--changelog",
         default=None,
-        help="Changelog content (newlines separate bullets)",
+        help="Changelog content (a semicolon ';' or newline separates bullets)",
     )
     parser.add_argument(
         "--changelog-file",

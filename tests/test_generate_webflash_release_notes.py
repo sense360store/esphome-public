@@ -474,6 +474,71 @@ class CustomChangelogTests(unittest.TestCase):
 
 
 # ----------------------------------------------------------------------
+# Semicolon / newline bullet splitting (single-line workflow_dispatch UI)
+# ----------------------------------------------------------------------
+
+
+class ChangelogBulletSplitTests(unittest.TestCase):
+    """The GitHub workflow_dispatch ``changelog`` input is type:string,
+    rendered single-line, so pasted newlines collapse into spaces. The
+    generator must therefore split on a ';' separator as well as newlines
+    so a single-line operator input still yields multiple bullets."""
+
+    def test_semicolon_separated_single_line_yields_multiple_bullets(self) -> None:
+        body = _generate_release_one(changelog="A; B; C")
+        bullets = _section_bullets(body, "Changelog")
+        self.assertEqual(bullets, ["A", "B", "C"])
+
+    def test_newline_separated_yields_same_bullets(self) -> None:
+        body = _generate_release_one(changelog="A\nB\nC")
+        bullets = _section_bullets(body, "Changelog")
+        self.assertEqual(bullets, ["A", "B", "C"])
+
+    def test_semicolon_separated_strips_leading_markers(self) -> None:
+        body = _generate_release_one(changelog="- A; * B; + C")
+        bullets = _section_bullets(body, "Changelog")
+        self.assertEqual(bullets, ["A", "B", "C"])
+
+    def test_mixed_semicolon_and_newline_separators(self) -> None:
+        body = _generate_release_one(changelog="- A; B\nC; - D")
+        bullets = _section_bullets(body, "Changelog")
+        self.assertEqual(bullets, ["A", "B", "C", "D"])
+
+    def test_leading_trailing_and_blank_segments_dropped(self) -> None:
+        body = _generate_release_one(changelog="; A ;; B ; ")
+        bullets = _section_bullets(body, "Changelog")
+        self.assertEqual(bullets, ["A", "B"])
+
+    def test_realistic_single_line_operator_input(self) -> None:
+        body = _generate_release_one(
+            changelog="First stable release; No functional changes since 1.0.0"
+        )
+        bullets = _section_bullets(body, "Changelog")
+        self.assertEqual(
+            bullets,
+            ["First stable release", "No functional changes since 1.0.0"],
+        )
+
+    def test_changelog_file_semicolon_split_still_applies(self) -> None:
+        # The semicolon split is additive for the file path too; a newline
+        # file with no semicolons keeps its existing per-line behaviour.
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".md", delete=False, encoding="utf-8"
+        ) as f:
+            f.write("- Bullet one\n- Bullet two\n")
+            f_path = Path(f.name)
+        try:
+            body = _generate_release_one(changelog_file=f_path)
+            bullets = _section_bullets(body, "Changelog")
+            self.assertEqual(bullets, ["Bullet one", "Bullet two"])
+        finally:
+            try:
+                f_path.unlink()
+            except OSError:
+                pass
+
+
+# ----------------------------------------------------------------------
 # --output writes a file
 # ----------------------------------------------------------------------
 

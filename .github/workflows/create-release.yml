@@ -57,9 +57,11 @@ on:
         type: string
       changelog:
         description: >-
-          Changelog text. One bullet per line; leading -/*/+ is stripped.
-          Required: a real publish (dry_run=false) is refused if this is
-          empty or left as the generator's TODO placeholder.
+          Changelog text. Bullets are separated by a semicolon or newline
+          (this field is single-line, so use ';'), e.g. "First stable
+          release; No functional changes since 1.0.0". A leading -/*/+ is
+          stripped. Required: a real publish (dry_run=false) is refused if
+          this is empty or left as the generator's TODO placeholder.
         required: true
         type: string
       tag_suffix:
