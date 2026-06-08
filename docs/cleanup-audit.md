@@ -11727,3 +11727,54 @@ checksums / manifest / proof / handoff edit. Until then,
 the next audit-log entry should report the same
 `RELEASE-POE-410-001 investigation pass — preconditions
 still open` outcome with the new inspection date.
+
+## CLEANUP-007 update (workflow audit refresh — 2026-06)
+
+This section **corrects the workflow / CI verdicts above**, which predate six
+workflows added since CLEANUP-001 and are out of date. The authoritative,
+evidence-backed refresh (per-workflow triggers, real Actions run-history dates,
+and verdicts) now lives in
+[`workflow-audit-2026-06.md`](workflow-audit-2026-06.md). Corrections:
+
+- **The workflow set is now 10, not 4.** Added since CLEANUP-001:
+  `bump-version.yml` (Release 1), `create-release.yml` (Release: Create GitHub
+  Release), `firmware-build-release.yml` is now Release 3, plus
+  `preview-fan-publish.yml`, `manual-firmware-artifacts.yml`, and
+  `preview-compile-dryrun.yml`. The "Findings summary" and "Workflow/CI wording"
+  tables above only cover the original four and should be read through this note.
+
+- **Release order is `Release 1 → Release: Create GitHub Release → Release 3`,
+  not `R1 → R2 → R3`.** `create-release.yml` generates and validates the
+  WebFlash release notes inline and creates the tagged Release that fires
+  Release 3. The stale `R1 → R2 → R3` comments in `bump-version.yml` (and
+  `docs/ci-pipeline.md` §6) are corrected in a dedicated PR.
+
+- **`release-notes-draft.yml` (Release 2):** verdict refined from *"Keep —
+  current"* to **"Keep, but redundant in the release path."** It is now
+  optional / preview-only (Create Release covers note generation + validation
+  inline); it last ran 2026-06-07 and is kept because it is reachable, recently
+  green, uniquely uploads a downloadable notes artifact, and is wired into the
+  Quick Validation gate. Only its stale order comments were fixed.
+
+- **`ci-validate-configs.yml`:** the CLEANUP-002 follow-up here ("reword the
+  stale header / badge; do not touch logic") is **superseded**. The workflow was
+  in fact `workflow_dispatch`-only and had failed **every** recent run (last run
+  2026-05-23, failure) on a non-interactive `external_components` git clone plus
+  missing subdirectory secrets. A dedicated PR fixes both (local `components/`
+  tree via the shared action + provisioned secrets) and scopes the **default**
+  matrix to the maintained Ceiling-POE shipping set, with the broad sweep + full
+  combinatorial walk as an opt-in `full` deep check.
+
+- **`preview-fan-publish.yml`:** **review item — needs Neil's decision.** It has
+  **never run** (0 runs) and was created 2026-06-06, after the live
+  `v1.0.0-preview` fan builds were already published (2026-06-02) by Release 3 —
+  so it was never the publish path. It is heavily referenced (four contract
+  tests + two validators + docs) and looks like the intended publisher for the
+  not-yet-published room-bundle fan set, so it is **not** removed.
+
+- **Legacy product YAMLs (rows at "Legacy product YAMLs"):** the
+  `sense360-core-*` 15-file set that enumerated voice / wall boards
+  (`v-c-poe`, `v-w-pwr`, `voice-ceiling`, `voice-wall`, `wall`, …) and the
+  `sense360-mini-*` 10-file set have since been **deleted from the tree**. Those
+  rows are obsolete; the current `products/sense360-core-*` set is `c-poe`,
+  `c-usb`, `ceiling`, `ceiling-bathroom`, `ceiling-presence` only.
