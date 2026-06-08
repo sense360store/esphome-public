@@ -50,6 +50,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from dataclasses import dataclass
@@ -86,23 +87,28 @@ def compute_artifact_name(config_string: str, version: str, channel: str) -> str
     return f"Sense360-{config_string}-v{version}-{channel}.bin"
 
 
-def validate_version(version: str) -> None:
-    """Fail closed unless ``version`` is a bare MAJOR.MINOR.PATCH triple."""
-    if not isinstance(version, str) or version == "":
+def validate_version(version: str) -> str:
+    """Return the bare MAJOR.MINOR.PATCH version, tolerating a leading ``v``.
+
+    Trims surrounding whitespace and strips a single leading ``v`` or
+    ``V`` so ``2.0.0``, ``v2.0.0``, and ``V2.0.0`` all normalize to the
+    bare ``2.0.0`` (the 'v' is re-added when building artifact_name). A
+    pre-release or build suffix is NOT stripped: ``v2.0.0-rc.1``
+    normalizes to ``2.0.0-rc.1``, which then fails the bare-semver check,
+    so the fail-closed behaviour for non-bare versions is preserved.
+    """
+    if not isinstance(version, str) or version.strip() == "":
         raise BumpError("version is required and must be a non-empty string")
-    if version != version.strip():
-        raise BumpError(f"version {version!r} has leading/trailing whitespace")
-    if version[:1] in ("v", "V"):
-        raise BumpError(
-            f"version {version!r} must not have a leading 'v'; pass the bare "
-            "version, e.g. 2.0.0 (the 'v' is added when building artifact_name)"
-        )
-    if not _SEMVER_CORE_RE.match(version):
+    candidate = version.strip()
+    if candidate[:1] in ("v", "V"):
+        candidate = candidate[1:]
+    if not _SEMVER_CORE_RE.match(candidate):
         raise BumpError(
             f"version {version!r} is not semver-shaped; expected a plain "
-            "MAJOR.MINOR.PATCH triple with no leading 'v' and no pre-release "
-            "or build suffix, e.g. 2.0.0"
+            "MAJOR.MINOR.PATCH triple (an optional leading 'v' is allowed) "
+            "with no pre-release or build suffix, e.g. 2.0.0 or v2.0.0"
         )
+    return candidate
 
 
 def find_entry(
@@ -203,7 +209,9 @@ def build_plan(
     version: str,
 ) -> BumpPlan:
     """Validate inputs and resolve a :class:`BumpPlan` without mutating anything."""
-    validate_version(version)
+    # Tolerate a leading 'v' (any case) and surrounding whitespace; the bare
+    # version is what gets written to both files and embedded in artifact_name.
+    version = validate_version(version)
 
     catalog_entry = find_entry(_catalog_entries(catalog), config_string)
     if catalog_entry is None:
@@ -329,7 +337,7 @@ def _parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         "--version",
         required=True,
         metavar="VERSION",
-        help="new version, no leading 'v', MAJOR.MINOR.PATCH (e.g. 2.0.0)",
+        help="new version, leading 'v' optional, MAJOR.MINOR.PATCH (e.g. 2.0.0 or v2.0.0)",
     )
     parser.add_argument(
         "--catalog",
@@ -351,6 +359,18 @@ def _parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _emit_normalized_version(version: str) -> None:
+    """Append ``normalized_version=`` to ``$GITHUB_OUTPUT`` when running in CI.
+
+    No-op outside GitHub Actions (the env var is unset), so unit tests that
+    call :func:`main` directly are unaffected.
+    """
+    github_output = os.environ.get("GITHUB_OUTPUT")
+    if github_output:
+        with open(github_output, "a", encoding="utf-8") as fh:
+            fh.write(f"normalized_version={version}\n")
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     args = _parse_args(argv)
     try:
@@ -360,6 +380,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     except BumpError as exc:
         print(f"bump-release-version: {exc}", file=sys.stderr)
         return 1
+
+    # Expose the bare (leading-'v'-stripped) version so the workflow uses the
+    # normalized value in the branch name, commit message, and PR title.
+    _emit_normalized_version(plan.new_version)
 
     print(_format_plan(plan, args.catalog, args.builds))
 

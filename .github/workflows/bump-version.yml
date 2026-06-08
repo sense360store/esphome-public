@@ -57,7 +57,8 @@ on:
           - Ceiling-POE-RoomIQ-LED
       version:
         description: >-
-          New release version, no leading 'v', MAJOR.MINOR.PATCH (e.g. 2.0.0).
+          New release version, leading 'v' optional (e.g. 1.0.5 or v1.0.5),
+          MAJOR.MINOR.PATCH.
         required: true
         type: string
 
@@ -88,12 +89,15 @@ jobs:
           pip install pyyaml
 
       - name: Apply version bump
+        id: bump
         env:
           CONFIG_STRING: ${{ inputs.config_string }}
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          # Inputs flow through env to keep them off the command line.
+          # Inputs flow through env to keep them off the command line. A
+          # leading 'v' (any case) is tolerated and normalized away by the
+          # script, which also writes normalized_version= to $GITHUB_OUTPUT.
           python3 scripts/bump_release_version.py \
             --config "$CONFIG_STRING" \
             --version "$VERSION" \
@@ -123,7 +127,7 @@ jobs:
         id: commit
         env:
           CONFIG_STRING: ${{ inputs.config_string }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ steps.bump.outputs.normalized_version }}
         run: |
           set -euo pipefail
           BRANCH="ci/bump-${CONFIG_STRING}-v${VERSION}-${{ github.run_id }}"
@@ -140,7 +144,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CONFIG_STRING: ${{ inputs.config_string }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ steps.bump.outputs.normalized_version }}
           BRANCH: ${{ steps.commit.outputs.branch }}
         run: |
           set -euo pipefail
