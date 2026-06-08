@@ -2463,6 +2463,25 @@ closure; no `verified` claim; `S360-410` stays `cataloged_unverified`, no
 `schematic_file`). The E11 bench remainder and E12 isolation stay missing,
 so no new PoE-410 WebFlash exposure is unblocked.
 
+**2026-06-08 owner waiver (HW-S360-410-WAIVER-2026-06).** The owner decided to
+release S360-410 **without** completing the remaining E11 bench (load regulation
+/ cold-start inrush / thermal rise / EMI-EMC) and E12 isolation (Hi-pot /
+insulation resistance / leakage / earth continuity) evidence, and **accepted the
+risk**. Those measurements were **NOT measured, NOT tested, and NOT passed** —
+this is a **risk-acceptance waiver, not verification**: `S360-410` stays
+`cataloged_unverified` (no `schematic_status` flip, no `schematic_file`; the
+catalog records the waiver in a new `release_disposition` field only) and **no
+`verified` claim is made**. The waiver lifts the S360-410 hardware-verification
+**block**, so the dependent PoE room bundles (`S360-KIT-BEDROOM-P`,
+`S360-KIT-KITCHEN-P`, `S360-KIT-LIVING-P`, `S360-KIT-CORRIDOR-P`) **no longer
+block on the S360-410 hardware-verification basis**. It lifts the hardware block
+**only** and changes **no** WebFlash surface: it adds no new PoE-410 WebFlash
+wrapper / catalog / build-matrix entry, flips no `config/webflash-builds.json`
+channel, and leaves the existing Release-One stable and LED preview WebFlash
+surfaces byte-identical. Any WebFlash exposure / productization remains a
+separate, explicit step. Full record:
+[`docs/package-poe-410-evidence-result.md` §0.1](package-poe-410-evidence-result.md).
+
 **Allowed WebFlash action now.** `not-webflash-ready` for any
 **new** PoE-410 product entry. The existing Release-One and LED
 preview WebFlash surface that consumes S360-410 is **not**

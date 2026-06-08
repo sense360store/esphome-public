@@ -296,7 +296,10 @@ expanding stable PoE room bundles beyond the already-shipping
 assessment, and next-evidence checklist are
 [`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md)
 (PACKAGE-POE-410-EVIDENCE-RESULT-001). `S360-410` stays
-`cataloged_unverified`.
+`cataloged_unverified`; the hardware-verification block is now **lifted under
+owner waiver `HW-S360-410-WAIVER-2026-06`** (2026-06-08, risk accepted — the
+remaining E11/E12 evidence was **not measured**; see the dated waiver update at
+the end of this section).
 
 | ID | Blocker | Status | Evidence found | Provenance | Closed? | Remaining exact action | Next PR |
 |---|---|---|---|---|---|---|---|
@@ -308,8 +311,8 @@ assessment, and next-evidence checklist are
 | POE-6 | `J3` connector pin-1 polarity / orientation | ON FILE (render basis, 2026-06) | Schematic-side `J3` pin 1 = `+5VP`, pin 2 = `GND`; BOM `SM02B-SRSS-TB`; **on-header signal-name silkscreen `5V` / `GND`** + KiCad 3D CAD renders (six views); **no physical as-built pin-1 photo / no `.kicad_pcb` net-map** (polarity assured by the on-header labels rather than pin number) | HW-S360-410-EVIDENCE-2026-06; `s360-410-module-pinmap.md` (E9) | Yes (E9, render basis) | physical as-built pin-1 photo still nice-to-have for the full `verified` path | (covered by E9 record) |
 | POE-7 | J2 harness identity (HW-002 OQ#6) | ON FILE (spec, 2026-06) | 2-conductor lead PSU `J3` (`SM02B-SRSS-TB`, 1×2) → Core `J2 PoE_ACDC`, `+5VP`→`+5VP` / `GND`→`GND`; polarized JST housing prevents reversed mating; both ends silkscreen-labeled; JST-latch retention. As-shipped **wire-colour map not documented — informational-only, not a safety gate** (keyed connector). `S360-100-BENCH-001` stays `pending` for any measured row | HW-S360-410-EVIDENCE-2026-06 (E10) | Yes (E10, spec) | measured as-shipped harness still owed for `verified` (not for the E15 caveat) | `S360-100-BENCH-001` update |
 | POE-8 | Package-header reconciliation + DC/DC alternate intent | NEEDS OPERATOR INPUT | Header-cleanup component landed (PR #538, disproved whole-module hint removed); design-intent (af-only vs af/at; 5 V vs 5 V/3.3 V; protection claim; alternate DC/DC) unresolved | PACKAGE-POE-410-001 docs PR #526; PR #538 (E8/E14) | No | designer answers to the four E8/E14 questions → `PACKAGE-POE-410-001` implementation | `PACKAGE-POE-410-001` (impl) |
-| POE-9 | PoE link-up / 5 V load / inrush / thermal / EMI/EMC bench | PARTIAL (2026-06) | **link-up confirmed** (board negotiated and powered from a PSE) + **5 V conversion confirmed** (output measured at 5 V with a multimeter); **load regulation, cold-start inrush, thermal rise of `U1`/`U2`/`DCDC1`, and EMI/EMC NOT measured**; PSE class (af vs at) not recorded | HW-S360-410-EVIDENCE-2026-06 (E11) | No (PARTIAL) | bench record (may be `S360-410-BENCH-001`) covering load + inrush + thermal + EMI/EMC + a recorded link-up class | `S360-410-BENCH-001` (future) |
-| POE-10 | Isolation / Hi-pot / insulation / leakage / earth continuity | NEEDS BENCH | `F0505S-2WR2` datasheet rating only (not as-built); `H1`–`H4` PCB bonding not recorded | `package-poe-410-001-audit.md` E12 | No | Hi-pot + insulation resistance + leakage + `H1`–`H4`→shield earth continuity | (isolation/safety bench, future) |
+| POE-9 | PoE link-up / 5 V load / inrush / thermal / EMI/EMC bench | PARTIAL (2026-06); remainder **WAIVED** (HW-S360-410-WAIVER-2026-06, 2026-06-08) | **link-up confirmed** (board negotiated and powered from a PSE) + **5 V conversion confirmed** (output measured at 5 V with a multimeter); **load regulation, cold-start inrush, thermal rise of `U1`/`U2`/`DCDC1`, and EMI/EMC NOT measured** (owner-waived, risk accepted — not tested, not passed); PSE class (af vs at) not recorded | HW-S360-410-EVIDENCE-2026-06 (E11); HW-S360-410-WAIVER-2026-06 (waiver) | WAIVED (not measured) | none required under the waiver; a future `S360-410-BENCH-001` may still record load + inrush + thermal + EMI/EMC + a link-up class | `S360-410-BENCH-001` (optional, future) |
+| POE-10 | Isolation / Hi-pot / insulation / leakage / earth continuity | **WAIVED** (HW-S360-410-WAIVER-2026-06, 2026-06-08) — NOT measured | `F0505S-2WR2` datasheet rating only (not as-built); `H1`–`H4` PCB bonding not recorded; Hi-pot / insulation resistance / leakage / earth continuity **NOT measured** (owner-waived, risk accepted — not tested, not passed) | `package-poe-410-001-audit.md` E12; HW-S360-410-WAIVER-2026-06 (waiver) | WAIVED (not measured) | none required under the waiver; an optional future isolation/safety bench may still record Hi-pot + insulation resistance + leakage + earth continuity | (owner-waived; optional future isolation/safety bench) |
 | POE-11 | PCB source / gerbers (manufacturing readiness) | ON FILE (E13, 2026-06-08) | Complete 2-layer KiCad gerber set (13 files) committed at `docs/hardware/gerbers/S360-410-R4/` (archive SHA256 `e2fb70bb…3ac8`); editable `*.kicad_pcb` not committed (not required); `R4` silkscreen P/N/REV (`G01`) Waiting; PoE rename (`R11`) To do | HW-S360-410-GERBERS-E13 (E13) | Yes (E13 PCB-source line) | manufacturing silkscreen P/N-REV stamp (`G01`) still owed; does not block E15 | (per-board PCB-evidence, future) |
 | POE-12 | `S360-410 schematic_status: verified` JSON PR | OUT OF SCOPE (POE-6/7 on file; still gated by the POE-9 bench remainder + POE-10) | `cataloged_unverified`, no `schematic_file` | `config/hardware-catalog.json`; `test_hardware_catalog.py` `EXPECTED_STILL_UNVERIFIED_SKUS` | No | mechanical JSON flip **after** the POE-9 bench remainder + POE-10 isolation close | `S360-410-SCHEMATIC-STATUS-VERIFIED` (JSON) |
 | POE-13 | Release-One PoE caveat closure | CLOSED (2026-06-08, on POE-6 + POE-7 / E9 + E10 basis) | Flagship PoE `"schematic verification pending"` caveat reworded to record closure; documentation-caveat closure only, **no** S360-410 `verified` claim, Release-One stable status unchanged | HW-S360-410-EVIDENCE-2026-06; `release-one-hardware-audit.md` Findings → PoE PSU (E15) | Yes (E15) | none — the board `verified` path is the separate POE-9 remainder + POE-10 + POE-12 chain | — |
@@ -322,6 +325,11 @@ stable status unchanged). `S360-KIT-BEDROOM-P` is **blocked by S360-410**
 `S360-KIT-LIVING-P` and `S360-KIT-CORRIDOR-P` (also LED gauntlet) are
 **partially blocked** — S360-410 is necessary but not sufficient. See
 [`docs/package-poe-410-evidence-result.md` §3](package-poe-410-evidence-result.md#3-stable-bundle-impact-assessment).
+*(That is the pre-waiver assessment. Under owner waiver
+`HW-S360-410-WAIVER-2026-06` (2026-06-08, see the dated update below) these
+bundles **no longer block on the S360-410 hardware-verification basis** and
+proceed under the waiver; their non-S360-410 gates — AirIQ stack; LED gauntlet —
+stay in force.)*
 
 ## 3. Summary by class
 
@@ -545,6 +553,27 @@ POE-9 remainder + POE-10 would still be a fabricated verification.
 **Stable-bundle impact unchanged:** `S360-KIT-BEDROOM-P` stays blocked by
 S360-410; `S360-KIT-KITCHEN-P` / `S360-KIT-LIVING-P` /
 `S360-KIT-CORRIDOR-P` stay partially blocked.
+
+**Update — `HW-S360-410-WAIVER-2026-06` (2026-06-08) — owner release waiver,
+block lifted on risk-acceptance basis.** The owner decided to release S360-410
+**without** completing the remaining bench (POE-9 / E11 load regulation +
+cold-start inrush + thermal rise + EMI/EMC) and isolation (POE-10 / E12 Hi-pot +
+insulation resistance + leakage + earth continuity) evidence, and **accepted the
+risk**. **Recorded as a WAIVER, not as completed or passed tests:** those
+measurements were **NOT measured, NOT performed, and NOT passed** — see the
+updated POE-9 / POE-10 rows above and
+[`docs/package-poe-410-evidence-result.md` §0.1](package-poe-410-evidence-result.md).
+**No verification claim:** `S360-410` stays `cataloged_unverified` (no
+`config/hardware-catalog.json` `schematic_status` flip, no `schematic_file`); the
+catalog records the waiver in a new `release_disposition` field only, and **no
+`S360-410 verified` claim is made anywhere in this repo**. **Effect:** the
+S360-410 hardware-verification **blocker is lifted** for release purposes, so
+`S360-KIT-BEDROOM-P` / `S360-KIT-KITCHEN-P` / `S360-KIT-LIVING-P` /
+`S360-KIT-CORRIDOR-P` **no longer block on the S360-410 hardware-verification
+basis** and proceed under this waiver; their non-S360-410 gates (the AirIQ stack;
+the LED preview→stable gauntlet) are unaffected. The waiver lifts the block
+**only** — it does **not** flip any `config/webflash-builds.json` channel,
+promote any bundle to stable, or productize Bedroom (separate, explicit steps).
 
 ## 3A. Final blocker-status — clean repo / YAML / firmware path unblocked (`BLOCKER-STATUS-FINALIZE-001`, 2026-05-27)
 

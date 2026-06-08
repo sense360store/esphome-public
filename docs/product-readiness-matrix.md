@@ -2357,7 +2357,27 @@ named follow-up.
   pending"` caveat (E15) is **closed** (flagship documentation closure
   only; stable status unchanged; no `verified` claim). Still owed for
   `verified`: the E11 bench remainder and E12 isolation / safety.
-  `S360-KIT-BEDROOM-P` stays blocked by S360-410.
+  `S360-KIT-BEDROOM-P` stays blocked by S360-410 *(pre-waiver; superseded by the
+  owner waiver below)*.
+- **2026-06-08 owner waiver (HW-S360-410-WAIVER-2026-06) — block lifted on a
+  risk-acceptance basis.** The owner decided to release S360-410 **without**
+  completing the remaining E11 bench (load regulation / cold-start inrush /
+  thermal rise / EMI-EMC) and E12 isolation (Hi-pot / insulation resistance /
+  leakage / earth continuity) evidence, and **accepted the risk**. Those
+  measurements were **NOT measured, NOT tested, and NOT passed** — this is a
+  **risk-acceptance waiver, not verification**. `S360-410` stays
+  `cataloged_unverified` (no `schematic_status` flip, no `schematic_file`); the
+  catalog records the waiver in a new `release_disposition` field only, and **no
+  `verified` claim is made**. The S360-410 hardware-verification **block is
+  lifted** for release purposes, so `S360-KIT-BEDROOM-P` (and the
+  partially-blocked `S360-KIT-KITCHEN-P` / `S360-KIT-LIVING-P` /
+  `S360-KIT-CORRIDOR-P`) **no longer block on the S360-410 hardware-verification
+  basis** and proceed under the waiver; their non-S360-410 gates (AirIQ stack;
+  LED preview→stable gauntlet) are unaffected. The waiver lifts the block
+  **only** — it does **not** add a PoE-410 product YAML, flip any
+  `config/webflash-builds.json` channel, promote any bundle to stable, or
+  productize Bedroom. Full record:
+  [`docs/package-poe-410-evidence-result.md` §0.1](package-poe-410-evidence-result.md).
 - **Why no product YAML.** The required package
   [`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
   is `reference-only` (logical PoE-power package; emits diagnostic
