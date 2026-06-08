@@ -188,6 +188,19 @@ legacy `sense360-core-v-*` voice/wall boards that the older audit flagged have
 already been deleted from the tree; the remaining non-shipping configs — USB
 variants, bundles, FanTRIAC, core-only boards — are exercised in `full` only.)
 
+**Update (2026-06-08, `ci/validate-configs-drop-generated`):** the generated
+module-combination half — the `generate-test-matrix` + `test-generated-configs`
+jobs that emitted 148 ephemeral `core-*` test configs — has since been
+**removed** from `ci-validate-configs.yml`. It gated nothing and was the source
+of the recurring `Generated: core-*` failures, so dropping it loses no real
+coverage. The `test_mode` input stays because it still scopes the real-product
+sweep (`quick` = maintained shipping set, `full` = every product YAML), and the
+`discover-products` / `test-all-products` real-product half is unchanged. The
+`config/firmware-combination-matrix.json` readiness artifact (168 rows, 118
+`missing-product-yaml`) and its generator `scripts/generate_firmware_matrix.py`
+are untouched; `tests/generate_test_configs.py` also stays — it is still used by
+`tests/test_core_abstract_bus.py`, not exclusive to the removed jobs.
+
 ## Items left untouched because they could not be proven dead
 
 | Item | Last run | Why left |
