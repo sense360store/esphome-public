@@ -205,6 +205,20 @@ changed the stable production release or the invariants above.
 Newest first. Full detail lives in the referenced docs / tests and the merged
 PRs.
 
+* **CI — remove `preview-fan-publish.yml`** (`ci/remove-preview-fan-publish`,
+  2026-06-08): retired the never-run (0 runs) fan-publish workflow, superseded by
+  Create Release + Release 3 (which published the live `v1.0.0-preview` fan builds
+  on the release event) per the `WORKFLOW-AUDIT-2026-06` resolution. Deleted the
+  workflow and its **dedicated-only** machinery — the
+  `validate_manual_preview_fan_publish.py` / `validate_room_bundle_fan_publish.py`
+  validators, the four `test_preview_fan_publish_*` + three
+  `test_room_bundle_fan_publish_*` contract tests, and the six
+  `release-preview-fan-publish-*.md` / `room-bundle-fan-publish-*.md` docs — and
+  dropped the workflow's `tests/test_workflow_permissions.py` allowlist entry.
+  Shared config (`preview-release-targets.json`, `room-bundle-fan-variants.json`,
+  `webflash-builds.json`), the `preview-fan-triac-build-rows.json` ledger (kept
+  validator/test/doc), the `preview-compile-dryrun.yml` lane, and the live
+  `v1.0.0-preview` fan preview product are untouched.
 * **#734 — `SEC-ESP-SECRET-GUARD-001`**: untracked `products/secrets.yaml` and
   broadened the secret guard (security finding #2).
 * **#733 — `SEC-ESP-FALLBACK-AP-001`**: moved the fallback-AP password to

@@ -331,9 +331,9 @@ full-composition room-bundle fan **preview** artifacts —
 `Sense360-Ceiling-POE-AirIQ-FanDAC-RoomIQ-v1.0.0-preview.bin`, and
 `Sense360-Ceiling-POE-AirIQ-FanPWM-RoomIQ-v1.0.0-preview.bin` — to the shared
 `v1.0.0-preview` prerelease (the single preview release for every preview
-artifact). See
-[`docs/room-bundle-fan-publish-results.md`](room-bundle-fan-publish-results.md)
-for the full record (per-asset SHA256 + size, job/step results).
+artifact). The published assets (per-asset SHA256 + size) live on that shared
+prerelease, and the per-variant publish evidence is recorded in
+[`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json).
 
 This is **firmware-build / release proof only**. The two FanDAC artifacts were
 built **with the IC2 `0x5A` override** — a compile-time configuration only; the

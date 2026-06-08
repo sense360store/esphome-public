@@ -11765,12 +11765,24 @@ and verdicts) now lives in
   matrix to the maintained Ceiling-POE shipping set, with the broad sweep + full
   combinatorial walk as an opt-in `full` deep check.
 
-- **`preview-fan-publish.yml`:** **review item — needs Neil's decision.** It has
-  **never run** (0 runs) and was created 2026-06-06, after the live
-  `v1.0.0-preview` fan builds were already published (2026-06-02) by Release 3 —
-  so it was never the publish path. It is heavily referenced (four contract
-  tests + two validators + docs) and looks like the intended publisher for the
-  not-yet-published room-bundle fan set, so it is **not** removed.
+- **`preview-fan-publish.yml`:** **removed 2026-06-08** (was: review item —
+  needs Neil's decision). It had **never run** (0 runs) and was created
+  2026-06-06, after the live `v1.0.0-preview` fan builds were already published
+  (2026-06-02) by Release 3 — so it was never the publish path and is superseded
+  by the generic Create Release + Release 3 flow. Neil confirmed the retirement;
+  the `ci/remove-preview-fan-publish` PR deleted the workflow plus its
+  **dedicated-only** machinery (the `validate_manual_preview_fan_publish.py` /
+  `validate_room_bundle_fan_publish.py` validators, the four
+  `test_preview_fan_publish_*` + three `test_room_bundle_fan_publish_*` contract
+  tests, and the six `release-preview-fan-publish-*.md` /
+  `room-bundle-fan-publish-*.md` docs) and dropped the
+  `preview-fan-publish.yml` allowlist entry in
+  `tests/test_workflow_permissions.py`. Shared config
+  (`preview-release-targets.json`, `room-bundle-fan-variants.json`,
+  `webflash-builds.json`, the `preview-fan-triac-build-rows.json` ledger and its
+  kept validator/test/doc), the kept `preview-compile-dryrun.yml` lane, and the
+  live `v1.0.0-preview` fan preview product are untouched. See
+  [`workflow-audit-2026-06.md`](workflow-audit-2026-06.md) for the resolution.
 
 - **Legacy product YAMLs (rows at "Legacy product YAMLs"):** the
   `sense360-core-*` 15-file set that enumerated voice / wall boards

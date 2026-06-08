@@ -39,7 +39,7 @@ to that file.
 | 7 | `preview-compile-dryrun.yml` | CI: Preview Compile Dry-Run | `workflow_dispatch` | 1 | 2026-06-02 13:10 | success | **Keep** — distinct (hosted preview compile proof) |
 | 8 | `manual-firmware-artifacts.yml` | Tools: Manual Firmware Artifacts | `workflow_dispatch` | 2 | 2026-05-27 18:20 | success | **Keep** — distinct (non-release artifact handoff) |
 | 9 | `ci-validate-configs.yml` | CI: Validate Configs | `workflow_dispatch` | 238 | 2026-05-23 12:24 | **failure** | **Fix + scope** (separate PR); keep the workflow |
-| 10 | `preview-fan-publish.yml` | Publish: Fan Firmware (preview) | `workflow_dispatch` | **0** | **never ran** | — | **Review — needs Neil** (never ran, likely superseded; not removed) |
+| 10 | ~~`preview-fan-publish.yml`~~ **(removed 2026-06-08)** | Publish: Fan Firmware (preview) | `workflow_dispatch` | **0** | **never ran** | — | **Removed 2026-06-08** — 0 runs / never executed; superseded by Create Release + Release 3 (which published the live `v1.0.0-preview` fan builds on the release event). Resolved from the "needs Neil" review item below. |
 
 ### Roles and overlaps
 
@@ -94,7 +94,7 @@ arrow chain, and the PR body it opens), clarify `release-notes-draft.yml`'s
 header as optional/preview-only, and align `docs/ci-pipeline.md` §6 with §7.
 (Done in the "release order comments" PR.)
 
-### `preview-fan-publish.yml` may be redundant with Create Release + Release 3 — NEEDS NEIL (not removed)
+### `preview-fan-publish.yml` may be redundant with Create Release + Release 3 — RESOLVED 2026-06-08: REMOVED
 
 **What the evidence shows.**
 
@@ -112,11 +112,28 @@ header as optional/preview-only, and align `docs/ci-pipeline.md` §6 with §7.
   `room-bundle` set targets five full-composition fan configs that are not yet
   published — i.e. it looks like a forward-looking publish tool awaiting first use.
 
-**Conclusion.** Likely superseded by the generic Create Release + Release 3 flow,
-but **cannot be proven dead and unreferenced**, so it is **not removed**.
-*Review item — confirm with Neil.* Never ran; either retire it in favour of the
-generic flow, or keep it as the intended publisher for the unpublished
-room-bundle fan set.
+**Conclusion (original audit).** Likely superseded by the generic Create Release
++ Release 3 flow, but **cannot be proven dead and unreferenced**, so it was **not
+removed** at audit time. *Review item — confirm with Neil.*
+
+**Resolution — 2026-06-08 (removed).** Neil confirmed the retirement. The
+workflow was removed in the `ci/remove-preview-fan-publish` PR together with its
+**dedicated-only** machinery: the two matrix/validator scripts
+(`validate_manual_preview_fan_publish.py`, `validate_room_bundle_fan_publish.py`,
+invoked by nothing but this workflow), the four `test_preview_fan_publish_*` and
+three `test_room_bundle_fan_publish_*` contract tests (run by nothing but this
+workflow's docs/scripts; not in the Quick Validation gate), and the six
+`release-preview-fan-publish-*.md` / `room-bundle-fan-publish-*.md` lifecycle
+docs. The `preview-fan-publish.yml` write-permission allowlist entry in
+`tests/test_workflow_permissions.py` was dropped. The live `v1.0.0-preview` fan
+preview product is **untouched**: the published `.bin` assets stay on the shared
+release, and the shared/parked-track surfaces stay in place —
+`config/preview-fan-triac-build-rows.json` (the build-row ledger, with its kept
+validator `validate_preview_fan_triac_build_rows.py` + test
+`test_preview_fan_triac_build_rows.py` and doc
+`release-preview-fan-triac-build-rows.md`), `config/room-bundle-fan-variants.json`,
+`config/preview-release-targets.json`, `config/webflash-builds.json`, and the
+kept `preview-compile-dryrun.yml` lane (which still validates its target set).
 
 ### `manual-firmware-artifacts.yml` and `preview-compile-dryrun.yml` are distinct — CONFIRMED → keep
 
@@ -175,7 +192,7 @@ variants, bundles, FanTRIAC, core-only boards — are exercised in `full` only.)
 
 | Item | Last run | Why left |
 |------|----------|----------|
-| `preview-fan-publish.yml` | **never (0 runs)** | Likely superseded by Create Release + Release 3, but heavily referenced (4 contract tests + 2 validators + docs), recently added (2026-06-06), and apparently the intended publisher for the not-yet-published room-bundle fan set. **Needs Neil's decision.** |
+| `preview-fan-publish.yml` | **never (0 runs)** | ~~Needs Neil's decision.~~ **Resolved 2026-06-08 — removed** (Neil confirmed). Superseded by Create Release + Release 3. Removed with its dedicated-only validators/tests/docs in the `ci/remove-preview-fan-publish` PR; see the resolution note above. |
 | `release-notes-draft.yml` | 2026-06-07 | Superseded in the release path but reachable, recently green, uniquely uploads an artifact, and deliberately kept as "optional preview-only" by Create Release; wired into the Quick Validation gate. Kept; only comments fixed. |
 | Core release path (`bump-version` / `create-release` / `firmware-build-release`) | 2026-06-07 | Healthy and current; out of scope except stale comments (only `bump-version.yml`'s order comments were stale and are fixed). |
 
@@ -205,6 +222,14 @@ a separate fix.
   `release-notes-draft.yml`, `docs/ci-pipeline.md` §6). Release 2 kept.
 - **This findings report** + the `CLEANUP-007` correction note appended to
   `cleanup-audit.md`.
+- **Remove `preview-fan-publish.yml`** (`ci/remove-preview-fan-publish`,
+  2026-06-08) — retire the never-run, superseded fan-publish workflow and its
+  dedicated-only validators, contract tests, and lifecycle docs; update this
+  audit, `cleanup-audit.md`, `UPCOMING_PR.md`, and the workflow-permissions
+  allowlist. Shared config (`preview-release-targets.json`,
+  `room-bundle-fan-variants.json`, `webflash-builds.json`,
+  `preview-fan-triac-build-rows.json`) and the live `v1.0.0-preview` fan preview
+  product are untouched.
 
 Acceptance per PR: `actionlint` on the changed workflows (with shellcheck) and
 the full Quick Validation test set green.

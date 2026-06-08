@@ -195,8 +195,8 @@ bench / compliance gate above: the five stay `webflash_exposed: false` and
 `stable_status: blocked`, TRIAC stays excluded (`HW-005`, no build / no
 artifact), the two FanDAC artifacts were built with the `0x5A` override only
 (`FANDAC-I2C-ADDR-001` stays **pending**), and **no hardware / bench / compliance
-/ safety proof is claimed**. See
-[`docs/room-bundle-fan-publish-results.md`](room-bundle-fan-publish-results.md).
+/ safety proof is claimed**. The per-variant publish evidence is recorded in
+[`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json).
 
 All five published fan-bundle previews are now **preview WebFlash-import
 eligible** under `ROOM-BUNDLE-FAN-WEBFLASH-ELIGIBILITY-001` (each carries a
