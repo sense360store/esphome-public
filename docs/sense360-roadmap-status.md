@@ -272,22 +272,29 @@ stable-bundle impact assessment, and the operator/designer next-evidence
 checklist are recorded at
 [`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md)
 (PACKAGE-POE-410-EVIDENCE-RESULT-001, 2026-05-29; E13 PCB-source line moved
-to on-file by HW-S360-410-GERBERS-E13, 2026-06-08) — which reconfirms the
-bench (PoE link-up / load / inrush / thermal / EMI-EMC), isolation/safety,
-connector-silkscreen, and J2-harness evidence classes are still
-**missing** (the PCB-source / gerbers class E13 is now on file — the
-`S360-410-R4` gerber set is committed at
-`docs/hardware/gerbers/S360-410-R4/` — which does **not** by itself verify
-the board), and that `S360-KIT-BEDROOM-P` is blocked by S360-410 alone while
+to on-file by HW-S360-410-GERBERS-E13, 2026-06-08; connector pin-1 polarity
+E9 + J2-harness E10 recorded on file and the Release-One PoE caveat E15
+closed by HW-S360-410-EVIDENCE-2026-06, 2026-06-08) — which records the
+connector pin-1 polarity (E9, CAD-render + as-labeled-connector basis), the
+J2-harness spec (E10), and the PCB-source / gerbers class (E13, gerber set
+committed at `docs/hardware/gerbers/S360-410-R4/`) **on file**, and the PoE
+bench (E11) as **partial** (link-up + 5 V confirmed; load / cold-start
+inrush / thermal / EMI-EMC **not measured**) — while the **bench remainder
+(E11) and the isolation / safety class (E12) stay missing**, none of which,
+individually or together, verifies the board. It also records that
+`S360-KIT-BEDROOM-P` is blocked by S360-410 alone while
 `S360-KIT-KITCHEN-P` / `S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P` are
 partially blocked (S360-410 plus an AirIQ-stack or LED-gauntlet dependency)
 and the already-shipping `S360-KIT-BATH-P` is unaffected.
 
-This blocker gates `PRODUCT-POE-410-001`, `RELEASE-POE-410-001`, the
-Release-One PoE caveat closure, and the stable-candidate room bundles that
-include S360-410 (`S360-KIT-KITCHEN-P`, `S360-KIT-BEDROOM-P`, and the
-preview LED bundles). It is **not** resolved by this doc and **no S360-410
-verified claim is made anywhere in this repo.**
+This blocker gates `PRODUCT-POE-410-001`, `RELEASE-POE-410-001`, and the
+stable-candidate room bundles that include S360-410 (`S360-KIT-KITCHEN-P`,
+`S360-KIT-BEDROOM-P`, and the preview LED bundles). The Release-One PoE
+**documentation** caveat (E15) is **closed** (2026-06,
+HW-S360-410-EVIDENCE-2026-06, on the E9 + E10 basis); that flagship caveat
+closure does **not** resolve this board blocker. The S360-410 board blocker
+is **not** resolved by this doc and **no S360-410 verified claim is made
+anywhere in this repo.**
 
 ### 6.2 FanPWM native path status
 
