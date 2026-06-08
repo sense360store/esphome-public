@@ -247,7 +247,7 @@ Push/PR → YAML + WebFlash gate checks → Pass/Fail (~30 sec)
 **Triggers:** Manual (`workflow_dispatch`) only
 **Duration:** ~5-10 minutes
 **Purpose:** Broad ESPHome validation of legacy/manual/reference product
-configurations and generated module combinations.
+configurations.
 
 > **Not a PR gate.** This workflow does **not** run on push or pull request.
 > Release-One/WebFlash gating lives in `validate.yml` (every push/PR) and
@@ -262,7 +262,6 @@ configurations and generated module combinations.
 | `validate-yaml` | YAML syntax + yamllint checks |
 | `discover-products` | Dynamically finds product YAML files (excludes WebFlash wrappers) |
 | `test-all-products` | Runs `esphome config` on every discovered legacy/manual product |
-| `test-generated-configs` | Tests module combination permutations |
 | `lint-cpp` | Checks C++ header formatting |
 | `test-summary` | Reports overall results |
 
@@ -419,13 +418,13 @@ takes a `test_mode` input.
 
 | Mode | Description |
 |------|-------------|
-| `quick` (default) | The maintained Ceiling-POE shipping set only (`config/webflash-builds.json`). The generated module-combination walk is skipped. |
-| `full` | The broad legacy/manual product sweep plus the full generated module-combination space. |
+| `quick` (default) | The maintained Ceiling-POE shipping set only (`config/webflash-builds.json`). |
+| `full` | The broad legacy/manual product sweep — every product YAML under `products/` (webflash wrappers excluded). |
 
 To run the broad legacy/manual sweep:
 1. Go to Actions → "CI: Validate Configs"
 2. Click "Run workflow"
-3. Select `test_mode: quick` (the shipping set, default) or `full` (broad sweep + all combinations)
+3. Select `test_mode: quick` (the shipping set, default) or `full` (every product YAML)
 
 ---
 
