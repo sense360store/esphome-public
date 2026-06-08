@@ -251,7 +251,7 @@ Full record:
 
 | Blocker | Status | Source |
 |---|---|---|
-| **S360-410 PoE PSU** `cataloged_unverified` | **UNRESOLVED** | [§6.1](#61-poe--s360-410-blocker) |
+| **S360-410 PoE PSU** `cataloged_unverified` | **Released under owner waiver** `HW-S360-410-WAIVER-2026-06` (block lifted; remaining E11/E12 evidence not performed, risk accepted) | [§6.1](#61-poe--s360-410-blocker) |
 | Inline fan drivers (S360-310/311/312/320) `cataloged_unverified` | open | `config/hardware-catalog.json` |
 | S360-400 240v PSU `cataloged_unverified` | open | `config/hardware-catalog.json` |
 | Fan-driver current / thermal / safety bench | pending | [`docs/blocker-burndown.md`](blocker-burndown.md) |
@@ -259,7 +259,26 @@ Full record:
 
 ### 6.1 PoE / S360-410 blocker
 
-**S360-410 remains `cataloged_unverified` — NOT verified, UNRESOLVED.**
+**S360-410 remains `cataloged_unverified` — NOT verified.** It is now
+**released under owner waiver `HW-S360-410-WAIVER-2026-06`** (2026-06-08): the
+hardware-verification block is lifted on an owner **risk-acceptance** basis,
+while the remaining E11/E12 bench and isolation evidence stays **unresolved
+(not performed)** and the risk is **accepted**.
+
+**Owner waiver (HW-S360-410-WAIVER-2026-06, 2026-06-08).** The owner decided to
+release S360-410 **without** completing the remaining bench (E11 load / cold-start
+inrush / thermal rise) and isolation (E12 Hi-pot / insulation resistance /
+leakage / earth continuity) evidence, and **accepted the risk**. Those
+measurements were **NOT performed, NOT tested, and NOT passed** — this is a
+**risk-acceptance waiver, not verification**. `S360-410` keeps
+`schematic_status: cataloged_unverified` (no `verified` flip, no `schematic_file`);
+[`config/hardware-catalog.json`](../config/hardware-catalog.json) records the
+waiver in a new `release_disposition` field only. The dependent PoE room bundles
+(`S360-KIT-BEDROOM-P`, `S360-KIT-KITCHEN-P`, `S360-KIT-LIVING-P`,
+`S360-KIT-CORRIDOR-P`) **no longer block on the S360-410 hardware-verification
+basis** and proceed under this waiver; their non-S360-410 gates (the AirIQ stack;
+the LED preview→stable gauntlet) are unaffected. The full waiver record is
+[`docs/package-poe-410-evidence-result.md` §0.1](package-poe-410-evidence-result.md).
 
 Per [`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md)
 (PACKAGE-POE-410-001), the evidence is **insufficient** to move S360-410 from
@@ -285,16 +304,23 @@ individually or together, verifies the board. It also records that
 `S360-KIT-BEDROOM-P` is blocked by S360-410 alone while
 `S360-KIT-KITCHEN-P` / `S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P` are
 partially blocked (S360-410 plus an AirIQ-stack or LED-gauntlet dependency)
-and the already-shipping `S360-KIT-BATH-P` is unaffected.
+and the already-shipping `S360-KIT-BATH-P` is unaffected. *(That is the
+pre-waiver evidence assessment; the bundle-blocking disposition is superseded
+by the owner waiver recorded above.)*
 
-This blocker gates `PRODUCT-POE-410-001`, `RELEASE-POE-410-001`, and the
-stable-candidate room bundles that include S360-410 (`S360-KIT-KITCHEN-P`,
-`S360-KIT-BEDROOM-P`, and the preview LED bundles). The Release-One PoE
-**documentation** caveat (E15) is **closed** (2026-06,
-HW-S360-410-EVIDENCE-2026-06, on the E9 + E10 basis); that flagship caveat
-closure does **not** resolve this board blocker. The S360-410 board blocker
-is **not** resolved by this doc and **no S360-410 verified claim is made
-anywhere in this repo.**
+This blocker **previously** gated `PRODUCT-POE-410-001`, `RELEASE-POE-410-001`,
+and the stable-candidate room bundles that include S360-410
+(`S360-KIT-KITCHEN-P`, `S360-KIT-BEDROOM-P`, and the preview LED bundles). Under
+owner waiver `HW-S360-410-WAIVER-2026-06` the **hardware-verification block is
+lifted** on a risk-acceptance basis, so those bundles no longer block on the
+S360-410 hardware-verification basis. The waiver lifts the block **only**: it
+does **not** flip any `config/webflash-builds.json` channel, promote any bundle
+to stable, or productize Bedroom (those stay separate, explicit steps), and it
+makes **no S360-410 verified claim** — the board stays `cataloged_unverified`,
+the E11/E12 evidence was **not measured**, and **no S360-410 verified claim is
+made anywhere in this repo.** The Release-One PoE **documentation** caveat (E15)
+remains **closed** (2026-06, HW-S360-410-EVIDENCE-2026-06, on the E9 + E10
+basis).
 
 ### 6.2 FanPWM native path status
 

@@ -143,6 +143,75 @@ caveat; it does **not** verify the board.
 The §1–§7 rows below are updated in place to reflect this follow-up; the
 historical PACKAGE-POE-410-EVIDENCE-RESULT-001 framing is retained.
 
+*(Superseded for the bundle-blocking disposition by §0.1 below: the owner
+waiver HW-S360-410-WAIVER-2026-06 lifts the S360-410 hardware-verification
+block on a risk-acceptance basis. The §0 evidence record itself — including
+that E11's remainder and E12 were **not measured** — is unchanged; the waiver
+does not add, perform, or pass any measurement.)*
+
+---
+
+## 0.1 Owner release waiver — remaining E11/E12 evidence WAIVED, NOT measured (HW-S360-410-WAIVER-2026-06, 2026-06-08)
+
+> **This is an owner risk-acceptance WAIVER, not verification.** The remaining
+> S360-410 bench and isolation evidence was **NOT measured, NOT performed, and
+> NOT tested**. The owner reviewed the evidence state recorded in §0 / §2 and
+> **decided to release S360-410 without completing that remaining evidence,
+> explicitly accepting the associated risk**. The hardware-verification blocker
+> is lifted **on the basis of that risk-acceptance waiver only** — it is **not**
+> a verification, a bench result, or a pass.
+
+| Field | Value |
+|---|---|
+| Waiver id | `HW-S360-410-WAIVER-2026-06` |
+| Date | 2026-06-08 |
+| Decided by | owner (risk accepted) |
+| Basis | owner risk-acceptance, **not** hardware verification |
+| Effect | lifts the S360-410 hardware-verification **block** for release purposes |
+
+**Recorded as WAIVED (NOT measured, NOT performed, NOT passed):**
+
+- **E11 bench remainder — WAIVED.** Load regulation across the rated 5 V
+  `+5VP`, cold-start inrush, and thermal rise of `U1` / `U2` / `DCDC1` under
+  sustained load were **NOT measured** (EMI/EMC was likewise not captured).
+  These are **waived** by owner decision with risk accepted; they were **not**
+  tested and are **not** claimed to pass.
+- **E12 isolation / safety — WAIVED.** Hi-pot through the `F0505S-2WR2`
+  isolation barrier, insulation resistance, leakage current, and `H1`–`H4` →
+  RJ45-shield earth continuity were **NOT measured**. These are **waived** by
+  owner decision with risk accepted; they were **not** tested and are **not**
+  claimed to pass.
+
+**Prior factual evidence is unchanged (NOT part of the waiver, NOT re-tested).**
+The §0 bench note stands verbatim: PoE link-up was confirmed (the board
+negotiated and powered from a PSE) and 5 V conversion was confirmed (output
+measured at 5 V with a multimeter). The waiver records only that the
+**still-missing** E11 remainder and E12 are waived rather than gathered; it adds
+no new measurement.
+
+**Effect of the waiver:**
+
+- S360-410 is **released under owner waiver `HW-S360-410-WAIVER-2026-06`**; the
+  remaining E11/E12 evidence was **not performed** and the risk is **accepted**.
+  The hardware-verification **blocker is lifted** for release purposes on the
+  owner-waiver basis.
+- The dependent PoE room bundles (`S360-KIT-BEDROOM-P`, `S360-KIT-KITCHEN-P`,
+  `S360-KIT-LIVING-P`, `S360-KIT-CORRIDOR-P`) **no longer block on the S360-410
+  hardware-verification basis**; they proceed under this waiver. Their other,
+  non-S360-410 gates are unaffected and stay in force — the AirIQ-stack chain
+  for `S360-KIT-KITCHEN-P` and the LED preview→stable gauntlet for
+  `S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P`.
+
+**What the waiver does NOT do (truth guardrails):**
+
+- It does **not** verify S360-410. `config/hardware-catalog.json` keeps
+  `schematic_status: cataloged_unverified` and sets **no** `schematic_file`; a
+  new `release_disposition` field records the waiver only.
+- It does **not** claim E11 or E12 were measured, performed, tested, or passed.
+- It does **not** flip any `config/webflash-builds.json` channel, promote any
+  bundle to stable, or productize Bedroom. Those remain separate, explicit
+  steps; **this waiver lifts the hardware block only.**
+
 ---
 
 ## 1. Evidence inventory (what is on file today)
@@ -253,6 +322,16 @@ flagship `S360-KIT-BATH-P` but promotes, reclassifies, or builds **no**
 bundle: `S360-KIT-BEDROOM-P` stays **blocked by S360-410** and
 `S360-KIT-KITCHEN-P` stays **partially blocked / stable-candidate**,
 because the E11 remainder and E12 keep S360-410 `cataloged_unverified`.
+
+**Waiver update (HW-S360-410-WAIVER-2026-06, 2026-06-08).** The owner has since
+**waived** the remaining E11/E12 evidence and **accepted the risk** (§0.1). On
+that basis `S360-KIT-BEDROOM-P`, `S360-KIT-KITCHEN-P`, `S360-KIT-LIVING-P`, and
+`S360-KIT-CORRIDOR-P` **no longer block on the S360-410 hardware-verification
+basis** and may proceed under the waiver; their non-S360-410 gates (the AirIQ
+stack for Kitchen, the LED preview→stable gauntlet for Living / Corridor) are
+unaffected. The waiver does **not** measure E11/E12, does **not** verify
+S360-410 (it stays `cataloged_unverified`), and does **not** by itself promote
+any bundle to stable.
 
 ---
 
@@ -371,13 +450,28 @@ evidence is insufficient for verification, so **no verification is
 fabricated** — only the documentation caveat that E9 + E10 actually
 discharge is closed, and a precise remaining-evidence record is kept.
 
+**Update — owner waiver (HW-S360-410-WAIVER-2026-06, 2026-06-08).** The owner
+has since **waived** the remaining E11 (load / cold-start inrush / thermal) and
+E12 (isolation / Hi-pot / insulation resistance / leakage / earth continuity)
+evidence and **accepted the risk**, lifting the S360-410 hardware-verification
+**block** for release purposes (see §0.1). This does **not** change the
+verification facts above: E11's remainder and E12 were **not measured, not
+tested, and not passed**; `S360-410` stays `cataloged_unverified` (no `verified`
+flip, no `schematic_file`); and **no verification is fabricated**. The waiver
+also does **not** by itself flip any `config/webflash-builds.json` channel or
+promote any bundle to stable — Bedroom productization and stable promotion
+remain separate, explicit steps. The "do not promote to `verified`" decision
+above therefore still holds; what changed is only that the **block** is now
+lifted on an owner risk-acceptance basis rather than waiting on the missing
+E11/E12 measurements.
+
 ---
 
 ## 7. What stays exactly the same
 
 | Artifact | State after this PR |
 |---|---|
-| [`config/hardware-catalog.json`](../config/hardware-catalog.json) | `S360-410` row byte-identical (`cataloged_unverified`, no `schematic_file`). |
+| [`config/hardware-catalog.json`](../config/hardware-catalog.json) | `S360-410` `schematic_status` stays `cataloged_unverified`, no `schematic_file`, no `verified` claim. (HW-S360-410-WAIVER-2026-06 adds a `release_disposition` waiver field recording the owner risk-acceptance — see §0.1 — but makes no verification claim and changes neither `schematic_status` nor `schematic_file`.) |
 | [`config/webflash-builds.json`](../config/webflash-builds.json) | Exactly 2 builds (`Ceiling-POE-VentIQ-RoomIQ` stable, `Ceiling-POE-VentIQ-RoomIQ-LED` preview). |
 | [`config/product-catalog.json`](../config/product-catalog.json), [`config/room-bundle-skus.json`](../config/room-bundle-skus.json) | Unchanged. |
 | [`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml) | Byte-identical. |

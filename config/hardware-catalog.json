@@ -117,7 +117,21 @@
       "rev": "R4",
       "old_name": "PoE Module",
       "description": "PoE to 5V.",
-      "schematic_status": "cataloged_unverified"
+      "schematic_status": "cataloged_unverified",
+      "release_disposition": {
+        "status": "released-under-owner-waiver",
+        "waiver_id": "HW-S360-410-WAIVER-2026-06",
+        "date": "2026-06-08",
+        "decided_by": "owner",
+        "basis": "owner risk-acceptance, not hardware verification",
+        "block_lifted": true,
+        "remaining_evidence_waived": [
+          "E11 load regulation / cold-start inrush / thermal rise (NOT measured)",
+          "E12 isolation: Hi-pot / insulation resistance / leakage / earth continuity (NOT measured)"
+        ],
+        "evidence_state": "not measured, not tested, not verified",
+        "note": "Owner accepted the risk of releasing S360-410 without the remaining E11 bench (load/inrush/thermal) and E12 isolation evidence. Those measurements were NOT performed. This is a release risk-acceptance waiver, NOT verification: schematic_status stays cataloged_unverified and no schematic_file is set. Prior factual bench evidence (PoE link-up and 5V conversion confirmed) is unchanged. See docs/package-poe-410-evidence-result.md."
+      }
     }
   ]
 }
