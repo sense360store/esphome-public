@@ -191,9 +191,9 @@ PR):
    all five now **also carry a published Advanced-install-only preview `.bin`**
    after `ROOM-BUNDLE-FAN-PUBLISH-RESULTS-001` (`Room-Bundle Fan Firmware
    Publish`, run `26947595936`, ref `main`, 2026-06-04; conclusion `success`) to
-   the shared `v1.0.0-preview` prerelease — firmware-build / release proof only,
-   see
-   [`docs/room-bundle-fan-publish-results.md`](room-bundle-fan-publish-results.md);
+   the shared `v1.0.0-preview` prerelease — firmware-build / release proof only
+   (per-variant publish evidence recorded in
+   [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json));
    TRIAC stays advanced / manual-warning-only and
    build-blocked under `HW-005` (no build, no artifact). The two FanDAC configs additionally require
    the GP8403 IC2 `0x5A` address override + DIP switch — compiled with the

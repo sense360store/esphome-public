@@ -58,19 +58,6 @@ WRITE_PERMISSION_ALLOWLIST: dict[tuple[str, str, str], str] = {
         "requires contents: write. Scoped to this job only."
     ),
     (
-        "preview-fan-publish.yml",
-        "publish",
-        "contents",
-    ): (
-        "Merged fan-publish workflow (formerly manual-preview-fan-publish.yml "
-        "RELEASE-PREVIEW-FAN-PUBLISH-WORKFLOW-001 + room-bundle-fan-publish.yml "
-        "ROOM-BUNDLE-FAN-PUBLISH-WORKFLOW-001). The publish job attaches the "
-        "compiled single-driver and/or room-bundle fan preview binaries, "
-        "checksums, and build-info manifest to the shared v1.0.0-preview "
-        "release via softprops/action-gh-release. Scoped to this job only and "
-        "gated behind workflow_dispatch with dry_run=false."
-    ),
-    (
         "bump-version.yml",
         "<top-level>",
         "contents",
