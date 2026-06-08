@@ -271,10 +271,14 @@ there and in [`docs/hardware/s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md)
 stable-bundle impact assessment, and the operator/designer next-evidence
 checklist are recorded at
 [`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md)
-(PACKAGE-POE-410-EVIDENCE-RESULT-001, 2026-05-29) — which reconfirms the
+(PACKAGE-POE-410-EVIDENCE-RESULT-001, 2026-05-29; E13 PCB-source line moved
+to on-file by HW-S360-410-GERBERS-E13, 2026-06-08) — which reconfirms the
 bench (PoE link-up / load / inrush / thermal / EMI-EMC), isolation/safety,
-connector-silkscreen, J2-harness, and PCB-source evidence classes are still
-**missing**, and that `S360-KIT-BEDROOM-P` is blocked by S360-410 alone while
+connector-silkscreen, and J2-harness evidence classes are still
+**missing** (the PCB-source / gerbers class E13 is now on file — the
+`S360-410-R4` gerber set is committed at
+`docs/hardware/gerbers/S360-410-R4/` — which does **not** by itself verify
+the board), and that `S360-KIT-BEDROOM-P` is blocked by S360-410 alone while
 `S360-KIT-KITCHEN-P` / `S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P` are
 partially blocked (S360-410 plus an AirIQ-stack or LED-gauntlet dependency)
 and the already-shipping `S360-KIT-BATH-P` is unaffected.
