@@ -270,7 +270,7 @@
       "schematic_status": "verified",
       "canonical_board_package": "packages/boards/s360-211-ventiq.yaml",
       "composed_of": [],
-      "notes": "Bathroom air-quality + ventilation-intent board. Catalog BOM: SGP41 on board, connectors for IR temp and SPS30. Base YAML adds SHT4x + BMP390 and derived bathroom logic (humidity rate, dew point, shower/mold/odor). The IR-temp (MLX90614) and PM (SPS30) connector sensors are exposed ONLY in the s360-211-ventiq-pro.yaml overlay, not the canonical base.",
+      "notes": "Bathroom air-quality + ventilation-intent board. Catalog BOM: SGP41 on board, connectors for IR temp and SPS30. Base YAML adds SHT4x + BMP390 and derived bathroom logic (humidity rate, dew point, shower/mold/odor). The IR-temp (MLX90614) and PM (SPS30) connector sensors are not exposed in the canonical base.",
       "rows": [
         {
           "row": "VOC / NOx index (SGP41 @0x59)",
@@ -313,24 +313,24 @@
           "kind": "sensor-entity",
           "derivation": "design-derived",
           "required": true,
-          "status": "partial",
-          "present_as": "sensor bathroom_surface_temperature, bathroom_ir_ambient (PRO overlay only)",
-          "defined_in": "packages/boards/s360-211-ventiq-pro.yaml",
+          "status": "missing",
+          "present_as": null,
+          "defined_in": null,
           "confirm": "none",
           "queued_fill_slice": "ENTITY-FILL-211-IRTEMP-001",
-          "notes": "BOM lists an IR-temp connector. The MLX90614 entities exist only in the -pro overlay, not the canonical s360-211-ventiq.yaml base. Decide whether the base should carry it."
+          "notes": "BOM lists an IR-temp connector. The MLX90614 entities are not present in the canonical s360-211-ventiq.yaml base. Decide whether the base should carry it."
         },
         {
           "row": "Particulate matter (SPS30 @0x69, connector)",
           "kind": "sensor-entity",
           "derivation": "design-derived",
           "required": true,
-          "status": "partial",
-          "present_as": "sensor bathroom_pm1_0/pm2_5/... (PRO overlay only)",
-          "defined_in": "packages/boards/s360-211-ventiq-pro.yaml",
+          "status": "missing",
+          "present_as": null,
+          "defined_in": null,
           "confirm": "none",
           "queued_fill_slice": "ENTITY-FILL-211-PM-001",
-          "notes": "BOM lists an SPS30 connector. PM entities exist only in the -pro overlay, not the canonical base."
+          "notes": "BOM lists an SPS30 connector. PM entities are not present in the canonical base."
         },
         {
           "row": "Bathroom logic features (shower active, mold risk, odor, condensation, fan recommendation)",
@@ -338,8 +338,8 @@
           "derivation": "product-intent",
           "required": null,
           "status": "partial",
-          "present_as": "binary_sensor bathroom_shower_sensor, bathroom_mold_warning, bathroom_odor_sensor (+ condensation in pro); global bathroom_fan_recommendation",
-          "defined_in": "packages/boards/s360-211-ventiq.yaml, packages/boards/s360-211-ventiq-pro.yaml",
+          "present_as": "binary_sensor bathroom_shower_sensor, bathroom_mold_warning, bathroom_odor_sensor; global bathroom_fan_recommendation",
+          "defined_in": "packages/boards/s360-211-ventiq.yaml",
           "confirm": "needs-operator-confirm",
           "queued_fill_slice": "FEATURE-CONFIRM-211-VENT-INTENT-001",
           "notes": "Shower/mold/odor/condensation binary sensors exist; the fan-recommendation is a global, not an entity, and no fan-control surface is bound on VentIQ itself. Confirm the intended ventilation feature set (and whether bathroom_fan_recommendation should drive an HA control)."
@@ -364,7 +364,7 @@
           "defined_in": "packages/boards/s360-300-led.yaml",
           "confirm": "none",
           "queued_fill_slice": null,
-          "notes": "12-LED WS2812B on GPIO38 (ceiling base); 8-LED/GPIO48 on the wall overlay."
+          "notes": "12-LED WS2812B on GPIO38 (ceiling base)."
         },
         {
           "row": "LED brightness control",

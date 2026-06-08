@@ -39,14 +39,10 @@ from enum import Enum
 
 class FormFactor(Enum):
     CEILING = "ceiling"
-    WALL = "wall"
 
 
 class CoreType(Enum):
     CORE_C = ("sense360_core_ceiling", FormFactor.CEILING, False)
-    CORE_V_C = ("sense360_core_voice_ceiling", FormFactor.CEILING, True)
-    CORE_W = ("sense360_core_wall", FormFactor.WALL, False)
-    CORE_V_W = ("sense360_core_voice_wall", FormFactor.WALL, True)
 
     def __init__(self, package_name: str, form_factor: FormFactor, has_voice: bool):
         self.package_name = package_name
@@ -63,9 +59,7 @@ class PowerType(Enum):
 class LEDType(Enum):
     NONE = None
     LED_CEILING = "led_ring_ceiling"
-    LED_WALL = "led_ring_wall"
     LED_MIC_CEILING = "led_ring_mic_ceiling"
-    LED_MIC_WALL = "led_ring_mic_wall"
 
 
 class ModuleType(Enum):
@@ -74,13 +68,8 @@ class ModuleType(Enum):
     BATHROOM_C = ("airiq_bathroom_base", FormFactor.CEILING, "bathroom")
     COMFORT_C = ("comfort_ceiling", FormFactor.CEILING, "comfort")
     PRESENCE_C = ("presence_ceiling", FormFactor.CEILING, "presence")
-    FAN_PWM = ("fan_pwm", None, "fan_pwm")  # Works with both form factors
+    FAN_PWM = ("fan_pwm", None, "fan_pwm")
     FAN_GP8403 = ("fan_gp8403", None, "fan_gp8403")
-
-    # Wall modules
-    AIRIQ_W = ("airiq_wall", FormFactor.WALL, "airiq")
-    COMFORT_W = ("comfort_wall", FormFactor.WALL, "comfort")
-    PRESENCE_W = ("presence_wall", FormFactor.WALL, "presence")
 
     def __init__(
         self, package_name: str, form_factor: Optional[FormFactor], category: str
@@ -259,53 +248,12 @@ class ConfigGenerator:
         {"bathroom", "comfort", "presence", "fan_gp8403"},
     ]
 
-    # Wall module combinations (no bathroom)
-    WALL_MODULE_SETS: List[Set[str]] = [
-        # Empty
-        set(),
-        # Single modules
-        {"comfort"},
-        {"presence"},
-        {"fan_pwm"},
-        {"fan_gp8403"},
-        {"airiq"},
-        # Two-module builds
-        {"comfort", "presence"},
-        {"comfort", "fan_pwm"},
-        {"comfort", "fan_gp8403"},
-        {"presence", "fan_pwm"},
-        {"presence", "fan_gp8403"},
-        {"airiq", "comfort"},
-        {"airiq", "presence"},
-        {"airiq", "fan_pwm"},
-        {"airiq", "fan_gp8403"},
-        # Three-module builds
-        {"comfort", "presence", "fan_pwm"},
-        {"comfort", "presence", "fan_gp8403"},
-        {"airiq", "comfort", "presence"},
-        {"airiq", "comfort", "fan_pwm"},
-        {"airiq", "comfort", "fan_gp8403"},
-        {"airiq", "presence", "fan_pwm"},
-        {"airiq", "presence", "fan_gp8403"},
-        # Four-module builds
-        {"airiq", "comfort", "presence", "fan_pwm"},
-        {"airiq", "comfort", "presence", "fan_gp8403"},
-    ]
-
-    # Map category to module type for each form factor
+    # Map category to module type
     CEILING_MODULES = {
         "airiq": ModuleType.AIRIQ_C,
         "bathroom": ModuleType.BATHROOM_C,
         "comfort": ModuleType.COMFORT_C,
         "presence": ModuleType.PRESENCE_C,
-        "fan_pwm": ModuleType.FAN_PWM,
-        "fan_gp8403": ModuleType.FAN_GP8403,
-    }
-
-    WALL_MODULES = {
-        "airiq": ModuleType.AIRIQ_W,
-        "comfort": ModuleType.COMFORT_W,
-        "presence": ModuleType.PRESENCE_W,
         "fan_pwm": ModuleType.FAN_PWM,
         "fan_gp8403": ModuleType.FAN_GP8403,
     }
@@ -317,30 +265,18 @@ class ConfigGenerator:
         Args:
             include_all_power: If True, generate configs for all power types.
                               If False, only use USB for reduced test count.
-            include_all_led: If True, generate configs with/without LED for non-voice.
-                            If False, include LED for all (voice requires it anyway).
+            include_all_led: If True, generate configs with/without LED.
+                            If False, include LED for all.
         """
         self.include_all_power = include_all_power
         self.include_all_led = include_all_led
 
     def get_led_options(self, core: CoreType) -> List[LEDType]:
         """Get valid LED options for a core type."""
-        if core.has_voice:
-            # Voice cores require LED+MIC
-            if core.form_factor == FormFactor.CEILING:
-                return [LEDType.LED_MIC_CEILING]
-            else:
-                return [LEDType.LED_MIC_WALL]
-        else:
-            # Non-voice cores: LED optional
-            if core.form_factor == FormFactor.CEILING:
-                if self.include_all_led:
-                    return [LEDType.NONE, LEDType.LED_CEILING]
-                return [LEDType.LED_CEILING]  # Default to having LED
-            else:
-                if self.include_all_led:
-                    return [LEDType.NONE, LEDType.LED_WALL]
-                return [LEDType.LED_WALL]  # Default to having LED
+        # Ceiling cores: LED optional
+        if self.include_all_led:
+            return [LEDType.NONE, LEDType.LED_CEILING]
+        return [LEDType.LED_CEILING]  # Default to having LED
 
     def get_power_options(self) -> List[PowerType]:
         """Get power type options based on config."""
@@ -350,28 +286,15 @@ class ConfigGenerator:
 
     def get_module_sets(self, form_factor: FormFactor) -> List[Set[str]]:
         """Get valid module sets for a form factor."""
-        if form_factor == FormFactor.CEILING:
-            return self.CEILING_MODULE_SETS
-        return self.WALL_MODULE_SETS
+        return self.CEILING_MODULE_SETS
 
     def get_module_map(self, form_factor: FormFactor) -> dict:
         """Get module category to type mapping for a form factor."""
-        if form_factor == FormFactor.CEILING:
-            return self.CEILING_MODULES
-        return self.WALL_MODULES
+        return self.CEILING_MODULES
 
     def get_default_led(self, core: CoreType) -> LEDType:
         """Get the default (non-NONE) LED type for a core."""
-        if core.has_voice:
-            if core.form_factor == FormFactor.CEILING:
-                return LEDType.LED_MIC_CEILING
-            else:
-                return LEDType.LED_MIC_WALL
-        else:
-            if core.form_factor == FormFactor.CEILING:
-                return LEDType.LED_CEILING
-            else:
-                return LEDType.LED_WALL
+        return LEDType.LED_CEILING
 
     def generate_all_configs(self) -> List[TestConfig]:
         """

@@ -57,16 +57,13 @@ CORE_REFERENCE_DOC = HARDWARE_DIR / "s360-100-r4-core.md"
 MODULE_PINMAP_DOC = HARDWARE_DIR / "s360-310-module-pinmap.md"
 RECONCILE_DOC = HARDWARE_DIR / "s360-310-relay-pinmap-reconcile.md"
 
-# Five non-voice Core abstract packages rebound by CORE-ABSTRACT-BUS-001A
-# to the schematic-correct ``relay_pin: GPIO3``. Voice-variant Core
-# packages are deliberately out of scope (they stay at the pre-001A
-# ``GPIO4`` value) and are not asserted here.
+# Four non-voice Core abstract packages rebound by CORE-ABSTRACT-BUS-001A
+# to the schematic-correct ``relay_pin: GPIO3``.
 NON_VOICE_CORE_PACKAGES = [
     REPO_ROOT / "packages" / "hardware" / "sense360_core.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_poe.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_wall.yaml",
 ]
 
 FAN_RELAY_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_relay.yaml"

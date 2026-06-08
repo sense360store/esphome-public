@@ -9,10 +9,9 @@ substitution-layer slices closed at the package-evidence layer:
   ``comfort_ceiling_als_int_pin`` / ``expander_int_pin`` /
   ``sx1509_interrupt_pin`` substitutions off ``GPIO3``.
 * ``CORE-ABSTRACT-BUS-001A`` / PR #558 rebound ``relay_pin`` to
-  ``GPIO3`` in the five non-voice Core abstract packages
+  ``GPIO3`` in the four non-voice Core abstract packages
   (``sense360_core.yaml``, ``sense360_core_ceiling.yaml``,
-  ``sense360_core_mapping.yaml``, ``sense360_core_poe.yaml``,
-  ``sense360_core_wall.yaml``).
+  ``sense360_core_mapping.yaml``, ``sense360_core_poe.yaml``).
 
 FW-COMPILE-RELAY-FULL-FIX-001 corrects the package after the full
 compile lane (run 26334334727) failed on the FanRelay target with a
@@ -45,14 +44,9 @@ What this file checks:
     relay GPIO: the Core ``main_relay`` ``switch.gpio`` on
     ``${relay_pin}``.
   * The FanDAC compile-only target is left unchanged.
-  * The five non-voice Core abstract packages bind
+  * The four non-voice Core abstract packages bind
     ``relay_pin: GPIO3`` (cross-check against the schematic-correct
     value pinned by ``tests/test_core_abstract_bus.py``).
-  * The voice-variant Core packages
-    (``sense360_core_voice_ceiling.yaml`` /
-    ``sense360_core_voice_wall.yaml``) remain at the pre-001A
-    ``relay_pin: GPIO4`` — they are deliberately out of scope for
-    the 001A / PACKAGE-RELAY-001 reconciliation.
   * No WebFlash / product / release / firmware / catalog file is
     touched by PACKAGE-RELAY-001 (the YAML package layer is the only
     place where the FanRelay reconciliation is allowed).
@@ -83,22 +77,14 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 FAN_RELAY_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_relay.yaml"
 
-# Five non-voice Core abstract packages rebound by CORE-ABSTRACT-BUS-001A
+# Four non-voice Core abstract packages rebound by CORE-ABSTRACT-BUS-001A
 # to the schematic-correct ``relay_pin: GPIO3`` (per ``S360-100-R4``
-# ``IO3 = Relay``). Voice-variant Core packages are deliberately out of
-# scope for the 001A slice and for PACKAGE-RELAY-001; they remain at
-# the pre-001A ``relay_pin: GPIO4`` value.
+# ``IO3 = Relay``).
 NON_VOICE_CORE_PACKAGES = [
     REPO_ROOT / "packages" / "hardware" / "sense360_core.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_poe.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_wall.yaml",
-]
-
-VOICE_CORE_PACKAGES = [
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_voice_ceiling.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_voice_wall.yaml",
 ]
 
 
@@ -410,7 +396,7 @@ class FanDacCompileOnlyTargetUnchangedTests(unittest.TestCase):
 
 
 class CoreAbstractRelayPinCrossCheckTests(unittest.TestCase):
-    """Five non-voice Core abstract packages bind ``relay_pin: GPIO3``.
+    """Four non-voice Core abstract packages bind ``relay_pin: GPIO3``.
 
     Cross-check against the schematic-correct value pinned by
     ``tests/test_core_abstract_bus.py`` ``RelayPinRebindTests``. The
@@ -439,34 +425,6 @@ class CoreAbstractRelayPinCrossCheckTests(unittest.TestCase):
                     f"resolves to the schematic-correct pin if every "
                     f"non-voice Core abstract package binds GPIO3; got "
                     f"{relay!r}.",
-                )
-
-
-class VoiceCoreOutOfScopeTests(unittest.TestCase):
-    """Voice-variant Core packages stay at pre-001A ``relay_pin: GPIO4``.
-
-    Voice variants are deliberately out of scope for CORE-ABSTRACT-BUS-
-    001A and for PACKAGE-RELAY-001. Their ``relay_pin`` rebind is owed
-    to a later, separately-evidenced slice. This test pins the
-    out-of-scope decision so the voice variants are not accidentally
-    rebound under PACKAGE-RELAY-001.
-    """
-
-    def test_voice_core_relay_pin_stays_at_gpio4(self) -> None:
-        for pkg in VOICE_CORE_PACKAGES:
-            with self.subTest(package=pkg.name):
-                if not pkg.is_file():
-                    self.skipTest(f"{pkg.name} not present in repo")
-                relay = _substitution_value(pkg.read_text(), "relay_pin")
-                self.assertEqual(
-                    relay,
-                    "GPIO4",
-                    f"relay_pin in {pkg.name} must remain at the "
-                    f"pre-CORE-ABSTRACT-BUS-001A value GPIO4. Voice "
-                    f"variants are deliberately out of scope for the "
-                    f"001A rebind and for PACKAGE-RELAY-001; their "
-                    f"rebind is owed to a later, separately-evidenced "
-                    f"slice. Got {relay!r}.",
                 )
 
 
