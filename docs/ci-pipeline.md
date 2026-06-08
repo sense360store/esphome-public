@@ -72,25 +72,27 @@ substitution targets are untouched (see below).
   `packages/boards/` and `products/bundles/` are covered automatically. Verified
   clean across boards, bundles, aliases, and shims.
 
-- **`find products/ -name "*.yaml" -type f ! -name "secrets.yaml" ! -path "products/webflash/*"`**
-  (the `discover-products` sweep in `ci-validate-configs.yml`, mirrored as the
-  informational product count in `validate.yml`). Because `find` is recursive,
-  the new `products/bundles/*.yaml` and the existing `products/compile-only/*.yaml`
-  are enumerated alongside the top-level shims/legacy products; the
-  `products/webflash/*` wrappers remain excluded by the unchanged `! -path`
-  predicate. Every discovered file's `!include` chain resolves (shim → bundle →
-  board package → base/feature tiers).
+- **`discover-products`** in `ci-validate-configs.yml` is mode-aware. In the
+  default `quick` mode it validates only the maintained Ceiling-POE shipping
+  set (the config-string product YAMLs in `config/webflash-builds.json`). In
+  the opt-in `full` mode it walks every product YAML under `products/`
+  (recursive), enumerating `products/bundles/*.yaml` and
+  `products/compile-only/*.yaml` alongside the top-level shims/legacy products
+  and excluding only the `products/webflash/*` wrappers. Every discovered
+  file's `!include` chain resolves (shim → bundle → board package →
+  base/feature tiers).
 
-- **`sed -i "s|ref: main|ref: $BRANCH|g" packages/base/external_components.yaml`**
-  and
-  **`find packages/features -name "*.yaml" -exec sed -i "s|@main|@$BRANCH|g" {} \;`**
-  (the branch-rewrite step in `ci-validate-configs.yml`, and the
-  `external_components` rewrite in `firmware-build-release.yml`). Both targets
-  are in the base/feature tiers, which the refactor left in place, so the paths
-  still exist and the substitutions still apply. Bundles pull
-  `external_components` from the **exact** sed target via
+- **`external_components` → local `components/` tree.** The CI lanes no longer
+  clone this repo through the `external_components` git source. The shared
+  `setup-esphome-build` action's `patch-external-components: true` rewrites
+  `packages/base/external_components.yaml` to `type: local, path: ../components`
+  (the checked-out tree). `ci-validate-configs.yml`, `preview-compile-dryrun.yml`,
+  and `firmware-build-release.yml` all use this local patch; bundles pull
+  `external_components` from that same base include via
   `external_components: !include ../../packages/base/external_components.yaml`,
-  so the release-time rewrite reaches them through the include.
+  so the patch reaches them through the include. (The earlier per-lane
+  `sed "ref: main" → "ref: $BRANCH"` branch-rewrite has been removed; it failed
+  non-interactively when the rewritten ref was not fetchable on GitHub.)
 
 - **Compile-only lane** (`compile-only.yml` →
   `config/compile-only-targets.json` + `scripts/validate_compile_targets.py`).
@@ -264,26 +266,28 @@ configurations and generated module combinations.
 | `lint-cpp` | Checks C++ header formatting |
 | `test-summary` | Reports overall results |
 
-**Dynamic Product Discovery:**
+**Dynamic Product Discovery (mode-aware):**
+
+- **`quick` (default):** the maintained Ceiling-POE shipping set only — the
+  canonical product YAML for each config string in
+  `config/webflash-builds.json`. Drift-free: a new shipping build is picked up
+  automatically.
+- **`full` (opt-in):** every product YAML under `products/` (recursive),
+  excluding `secrets.yaml` and the `products/webflash/*` wrappers (thin mappers
+  the release workflow short-circuits via `config/webflash-builds.json`):
+
 ```bash
-# The sweep automatically discovers product YAMLs. The WebFlash wrappers in
-# products/webflash/ are intentionally excluded: they are not standalone
-# product configs but thin mappers from WebFlash config strings to canonical
-# products/sense360-*.yaml files (see firmware-build-release.yml and
-# config/webflash-builds.json).
 PRODUCTS=$(find products/ -name "*.yaml" -type f ! -name "secrets.yaml" ! -path "products/webflash/*" | sort)
 ```
 
 This means:
-- Adding a new product automatically includes it in the manual sweep
-- No workflow changes needed when adding products
-- Every non-wrapper product in `products/` is validated when the sweep is run
-- The recursive `find` also covers the `products/bundles/*.yaml` config-string
-  bundles and the `products/compile-only/*.yaml` lane introduced by the
-  board/bundle refactor — they were designed to land under this unchanged sweep
-  (see [Refactored YAML layout](#refactored-yaml-layout-boards-bundles-aliases-and-shims)).
-  The `products/sense360-*.yaml` files that became thin compat shims still
-  resolve through `shim → bundle → board package`.
+- The default sweep stays fast and focused on what the repo actually ships.
+- The `full` mode is the broad deep check: it covers `products/bundles/*.yaml`,
+  `products/compile-only/*.yaml`, and the legacy/reference boards alongside the
+  top-level shims (see
+  [Refactored YAML layout](#refactored-yaml-layout-boards-bundles-aliases-and-shims)).
+  The `products/sense360-*.yaml` compat shims resolve through
+  `shim → bundle → board package`.
 
 ### 3. Build & Release (`firmware-build-release.yml`)
 
@@ -406,19 +410,18 @@ event that fires **Release 3: Build & Release**.
 
 ### Test Modes
 
-The `ci-validate-configs.yml` workflow supports two modes for the generated
-module combinations job. The workflow is manual-only (`workflow_dispatch`), so
-both modes are reached by manually dispatching the workflow.
+The `ci-validate-configs.yml` workflow is manual-only (`workflow_dispatch`) and
+takes a `test_mode` input.
 
 | Mode | Description |
 |------|-------------|
-| `quick` | Representative subset of module combinations (default) |
-| `full` | All possible module combinations |
+| `quick` (default) | The maintained Ceiling-POE shipping set only (`config/webflash-builds.json`). The generated module-combination walk is skipped. |
+| `full` | The broad legacy/manual product sweep plus the full generated module-combination space. |
 
 To run the broad legacy/manual sweep:
 1. Go to Actions → "CI: Validate Configs"
 2. Click "Run workflow"
-3. Select `test_mode: quick` (representative) or `full` (all combinations)
+3. Select `test_mode: quick` (the shipping set, default) or `full` (broad sweep + all combinations)
 
 ---
 
@@ -529,7 +532,12 @@ ERROR: ID 'i2c0' already exists
 ```
 ERROR: Could not fetch external component from branch 'main'
 ```
-**Note:** CI automatically updates `external_components.yaml` to use the current branch. This error usually means the branch hasn't been pushed yet.
+**Note:** The CI validate/compile lanes no longer clone the `external_components`
+git source — they patch `packages/base/external_components.yaml` to the local
+`components/` tree (`patch-external-components: true` in the
+`setup-esphome-build` action). If you still hit a fetch error, you are running a
+lane (or a local command) that did not apply that patch; point
+`external_components` at the local `components/` tree.
 
 ### Viewing CI Logs
 
@@ -545,7 +553,7 @@ Common causes:
 - **Missing secrets.yaml:** Copy the tracked template to a local file —
   `cp secrets.example.yaml secrets.yaml`. CI writes its own placeholder
   `secrets.yaml` at runtime, so the tracked template is not used by CI.
-- **External components:** CI patches `external_components.yaml` to use the current branch
+- **External components:** CI patches `external_components.yaml` to the local `components/` tree (not a branch fetch)
 
 ---
 
