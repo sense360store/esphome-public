@@ -2451,6 +2451,18 @@ No **new** PoE-410 product YAML exists; no new WebFlash wrapper /
 catalog entry / build-matrix entry / release artifact / WebFlash
 import is created for PoE-410 specifically by this matrix.
 
+**2026-06 evidence narrowing (HW-S360-410-EVIDENCE-2026-06).** WebFlash
+posture unchanged — `not-webflash-ready` for any new PoE-410 entry; no new
+wrapper / catalog / build-matrix / artifact. Narrowed: the `J3` connector
+pin-1 polarity (E9, render basis), the J2-harness spec (E10), and the
+gerber set (E13) are now **on file**, and the PoE bench (E11) is **partial**
+(link-up + 5 V confirmed; load / cold-start inrush / thermal / EMI-EMC not
+measured). On the E9 + E10 basis the Release-One PoE `"schematic
+verification pending"` caveat (E15) is **closed** (flagship documentation
+closure; no `verified` claim; `S360-410` stays `cataloged_unverified`, no
+`schematic_file`). The E11 bench remainder and E12 isolation stay missing,
+so no new PoE-410 WebFlash exposure is unblocked.
+
 **Allowed WebFlash action now.** `not-webflash-ready` for any
 **new** PoE-410 product entry. The existing Release-One and LED
 preview WebFlash surface that consumes S360-410 is **not**

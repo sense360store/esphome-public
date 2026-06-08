@@ -2346,6 +2346,18 @@ named follow-up.
   (schematic landed under HW-ASSETS-410 / PR #516 and was consumed
   by HW-PINMAP-410-FOLLOWUP; package-header reconciliation still
   owed) + `do-not-change-release-one`.
+- **2026-06 evidence narrowing (HW-S360-410-EVIDENCE-2026-06).** Status
+  unchanged — `S360-410` stays `cataloged_unverified` and no new PoE-410
+  product YAML / WebFlash exposure is added. Narrowed: the `J3` connector
+  pin-1 polarity (E9, CAD-render + as-labeled-connector basis), the
+  J2-harness spec (E10), and the PCB-source / gerbers class (E13) are now
+  **on file**, and the PoE bench (E11) is **partial** (link-up + 5 V
+  confirmed; load / cold-start inrush / thermal / EMI-EMC not measured).
+  On the E9 + E10 basis the Release-One PoE `"schematic verification
+  pending"` caveat (E15) is **closed** (flagship documentation closure
+  only; stable status unchanged; no `verified` claim). Still owed for
+  `verified`: the E11 bench remainder and E12 isolation / safety.
+  `S360-KIT-BEDROOM-P` stays blocked by S360-410.
 - **Why no product YAML.** The required package
   [`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml)
   is `reference-only` (logical PoE-power package; emits diagnostic
