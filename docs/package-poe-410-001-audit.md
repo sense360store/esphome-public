@@ -201,6 +201,40 @@ file).
 **Evidence-classes closed today:** 6 of 15 (E1, E3, E4, E5, E6, E7).
 **Evidence-classes open today:** 7 of 15 (E2 partial pending JSON PR; E8, E9, E10, E11, E12, E13, E14, E15 open).
 
+> **Update — `HW-S360-410-EVIDENCE-2026-06` (2026-06-08).** The two counts
+> above are the original 2026-05-28 audit snapshot. The S360-410 PoE
+> evidence gathered in 2026-06 (recorded in
+> [`docs/package-poe-410-evidence-result.md` §0](package-poe-410-evidence-result.md))
+> moves several rows **without promoting the board**:
+> - **E13** PCB source / gerbers → **on file** (HW-S360-410-GERBERS-E13:
+>   complete 2-layer KiCad gerber set committed at
+>   [`docs/hardware/gerbers/S360-410-R4/`](hardware/gerbers/S360-410-R4/),
+>   archive SHA256
+>   `e2fb70bbeaf635cce8b36e84abefa558a496e241256500d63d2686559ae93ac8`).
+> - **E9** `J3` connector pin-1 polarity → **on file** on a CAD-render +
+>   as-labeled-connector basis (on-header signal-name silkscreen `5V` /
+>   `GND` plus KiCad 3D CAD renders, six views). No physical as-built pin-1
+>   photograph and no `.kicad_pcb` net-map were provided; pin-1 polarity is
+>   assured by the on-header signal labels rather than by pin number.
+> - **E10** J2 harness identity → **on file (spec)**: 2-conductor lead PSU
+>   `J3` (`SM02B-SRSS-TB`, 1×2) → Core `J2 PoE_ACDC`, `+5VP`→`+5VP` /
+>   `GND`→`GND`, polarized JST housing, both ends silkscreen-labeled,
+>   JST-latch retention; the as-shipped wire-colour map is
+>   informational-only, not a safety gate (keyed connector).
+> - **E11** bench → **PARTIAL**: PoE link-up confirmed and 5 V conversion
+>   confirmed (multimeter); load regulation, cold-start inrush, thermal
+>   rise, and EMI/EMC **not measured**.
+> - **E15** Release-One PoE caveat → **CLOSED** on the E9 + E10 basis — a
+>   flagship documentation-caveat closure that changes no stable status and
+>   makes no S360-410 `verified` claim.
+>
+> Still open / missing: **E2** (`verified` JSON flip), the **E11 bench
+> remainder** (load + inrush + thermal + EMI/EMC), **E12** isolation /
+> safety (Hi-pot / insulation / leakage / earth continuity, untouched), and
+> **E8 / E14** package-header reconciliation. `S360-410` therefore **stays
+> `cataloged_unverified`**; the row narratives below remain the 2026-05-28
+> historical record.
+
 Because E2 is still partial (the JSON `schematic_status: verified`
 promotion has not landed), and because E8–E15 are open, **`S360-410`
 cannot be promoted to `verified` today** and the `PACKAGE-POE-410-001`
@@ -216,6 +250,14 @@ keeps `S360-410` `cataloged_unverified`.
 For each open / partial row above, the following is the precise
 evidence request, the operator / designer question that drives it,
 and the stable expansion targets that remain blocked behind it.
+
+> **2026-06 status.** Several of these classes have since moved — E9 / E10
+> are on file, E11 is partial, E13 is on file, and E15 is closed; see the
+> `HW-S360-410-EVIDENCE-2026-06` update above and
+> [`docs/package-poe-410-evidence-result.md` §0](package-poe-410-evidence-result.md).
+> The per-class prose below is the 2026-05-28 snapshot kept for the
+> historical evidence-request record. `S360-410` stays
+> `cataloged_unverified` (E2 + the E11 bench remainder + E12 still open).
 
 ### E2 — `S360-410` `schematic_status: verified` JSON-only PR
 

@@ -2491,6 +2491,18 @@ The Release-One stable artifact
 `v1.0.0-led-preview`) remain unchanged; this matrix does **not**
 re-release, requalify, or re-stamp either artifact.
 
+**2026-06 evidence narrowing (HW-S360-410-EVIDENCE-2026-06).** Release
+posture unchanged — no new PoE-410 release artifact; the Release-One stable
+and LED preview artifacts are byte-identical. Narrowed: the `J3` connector
+pin-1 polarity (E9, render basis), the J2-harness spec (E10), and the
+gerber set (E13) are now **on file**, and the PoE bench (E11) is **partial**
+(link-up + 5 V confirmed; load / cold-start inrush / thermal / EMI-EMC not
+measured). On the E9 + E10 basis the Release-One PoE `"schematic
+verification pending"` caveat (E15) is **closed** (flagship documentation
+closure; no `verified` claim; `S360-410` stays `cataloged_unverified`). The
+E11 bench remainder and E12 isolation stay missing, so no PoE-410 release
+artifact is unblocked.
+
 **Allowed release action now.** `not-release-ready` for any **new**
 PoE-410 product entry. The existing Release-One and LED preview
 release surface that consumes S360-410 is **not** affected:

@@ -150,7 +150,7 @@ What this audit therefore does:
 | Sense360 LED             | **policy decision (removed)**           | WebFlash config string `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` (see [`webflash-contract.md`](webflash-contract.md)) does **not** contain the `LED` token. The `LED` token (`S360-300`) is a separate selectable module. Release-One YAML currently `!include`s both `packages/hardware/led_ring_ceiling.yaml` (WS2812B on `GPIO14`) and `packages/features/ceiling_halo_leds.yaml` (PCA9685 monochromatic halo segments on `halo_i2c`), which are two different LED systems anyway. S360-100-R4 schematic shows `IO14 = SCS` (peripheral SPI chip-select), with `LED_DATA` actually on `IO38`. | **Option A applied**: remove both LED package includes from Release-One YAML so the binary built from this YAML matches the LED-less WebFlash config string. LED packages remain in the repo for other products and for a future `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-LED` config. Update comment block to drop "Halo LED ring" legacy name. |
 | RoomIQ                   | **partial — abstraction mismatch**      | `packages/expansions/comfort_ceiling.yaml` and `packages/expansions/presence_ceiling.yaml` reference firmware-abstraction substitutions (`expansion_i2c`, `uart_bus`, `comfort_ceiling_als_int_pin: GPIO3`) that do **not** match S360-200-R4 / S360-100-R4 J10/J6 nets. Schematic-required signals (`PIR` on `IO15`, `ALS_INT` on `IO47`, `I2C_SDA` on `IO48`, `I2C_SCL` on `IO45`, `Hi-Link_RX/TX` on `IO1`/`IO2`, `SEN0609_RX/TX` on `IO4`/`IO5`, `out(gpio6)` on `IO6`) are not directly bound in the package YAML. The packages function as logical sensor wrappers but the underlying pin map is wrong. | Keep package includes in place (the *logical* RoomIQ composition is correct). Do **not** rename or move package files. Track the full pin-map rework as **HW follow-up** outside this audit. |
 | VentIQ                   | **schematic pending**                   | Release-One YAML `!include`s `packages/expansions/airiq_bathroom_base.yaml` and `packages/features/bathroom_profile.yaml`. These represent the `S360-211` (Sense360 VentIQ) module. There is no committed schematic for `S360-211` in this repository yet, so no pin-by-pin verification is possible. The package targets `expansion_i2c` (the same abstract bus as RoomIQ), which is also unverified against S360-100-R4 J9 (AirIQ Module Connector). | Mark VentIQ as **package-level expected / schematic verification pending** in YAML comments. Do **not** claim the J9 pinout is verified. Drop the legacy "Bathroom Pro" name from any user-facing comments. |
-| PoE PSU                  | **cataloged, schematic pending**        | `packages/hardware/power_poe.yaml` is a logical PoE-power package that emits diagnostic sensors only; it does not bind to any specific GPIO. The `S360-410` PoE PSU module schematic is not committed to this repo. `S360-100-R4` shows `J2 = PoE_ACDC` (2-pin power inlet to the Core). The exact harness between the off-board PoE PSU and the Core's `J2` is unverified. | No code change. Comment update only — refer to the module as **Sense360 PoE PSU** (`S360-410`), not "PoE module". The J2 PoE harness identity is the bench-side / manufacturing-side companion question tracked under [**S360-100-BENCH-001**](hardware/s360-100-r4-core.md#s360-100-bench-001-status), currently `pending — bench/manufacturing evidence required`. |
+| PoE PSU                  | **schematic + connector + harness on file — PoE caveat closed (2026-06)** | `packages/hardware/power_poe.yaml` is a logical PoE-power package that emits diagnostic sensors only; it does not bind to any specific GPIO. The `S360-410` PoE PSU module schematic **is committed** at [`hardware/schematics/S360-410-R4.pdf`](hardware/schematics/S360-410-R4.pdf) (HW-ASSETS-410) with PCB gerbers at [`hardware/gerbers/S360-410-R4/`](hardware/gerbers/S360-410-R4/) (E13). `S360-100-R4` shows `J2 = PoE_ACDC` (2-pin power inlet to the Core). The `J3` connector **pin-1 polarity is on file** (E9 — on-header signal-name silkscreen `5V` / `GND` + KiCad 3D CAD renders, six views) and the Core `J2` ↔ module `J3` **harness is on file as a spec** (E10 — 2-conductor `+5VP`→`+5VP` / `GND`→`GND`, polarized JST housing prevents reversed mating). | **PoE caveat closed (HW-S360-410-EVIDENCE-2026-06, 2026-06-08).** Refer to the module as **Sense360 PoE PSU** (`S360-410`), not "PoE module". The PoE `"schematic verification pending"` caveat is **closed** on the E9 + E10 basis — a documentation closure on the already-shipping flagship; it does **not** change Release-One's stable status and makes **no** `S360-410` `verified` claim. `S360-410` stays `cataloged_unverified`; the board-`verified` path still owes the E11 bench remainder (load / cold-start inrush / thermal / EMI-EMC) and E12 isolation. The *measured* J2-harness bench row stays tracked under [**S360-100-BENCH-001**](hardware/s360-100-r4-core.md#s360-100-bench-001-status), still `pending — bench/manufacturing evidence required`. |
 | Core / RoomIQ connector  | **discrepancy**                         | `s360-100-r4-core.md` J10 table puts `+3.3V` at pin 1, `+5V` at pin 2 (signal nets at pins 3–11, `GND` at pin 12). `s360-200-r4-roomiq.md` J6 table puts `+5V` at pin 1, `+3.3V` at pin 7 (signal nets at pins 2–6, 8–11, `GND` at pin 12). These connectors are nominally a mating pair. One of the two tables is wrong. | Capture the discrepancy here only (already flagged in both hardware docs). Do **not** edit either hardware reference doc in this audit PR. Resolve in a follow-up by checking both schematics and the physical silkscreen on `S360-100-R4` and `S360-200-R4` boards. Bench-side / manufacturing-side silkscreen observation tracked under [**S360-100-BENCH-001**](hardware/s360-100-r4-core.md#s360-100-bench-001-status), currently `pending — bench/manufacturing evidence required`. |
 
 > **S360-100-BENCH-001 re-check (2026-05-18).** A documentation-only
@@ -166,6 +166,31 @@ What this audit therefore does:
 > Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`;
 > FanTRIAC stays `status: blocked` / `blocker: HW-005`. None of the
 > Required follow-ups below is closed by this re-check.
+
+> **PoE PSU caveat closure (HW-S360-410-EVIDENCE-2026-06, 2026-06-08).**
+> The S360-410 PoE-PSU evidence gathered in 2026-06 closes the PoE
+> `"schematic verification pending"` caveat above. Its blockers are now on
+> file: the `J3` connector **pin-1 polarity (E9)** via the on-header
+> signal-name silkscreen `5V` / `GND` plus KiCad 3D CAD renders (six
+> views) — a CAD-render + as-labeled-connector basis, with no physical
+> as-built pin-1 photograph and no `.kicad_pcb` net-map provided, polarity
+> assured by the on-header signal labels rather than by pin number — and
+> the Core `J2` ↔ module `J3` **harness (E10)** on file as a spec
+> (2-conductor `+5VP`→`+5VP` / `GND`→`GND`, polarized JST housing, both
+> ends silkscreen-labeled, JST-latch retention; the as-shipped wire-colour
+> map is informational-only, not a safety gate, because the keyed
+> connector enforces correct mating). The module schematic (HW-ASSETS-410)
+> and PCB gerbers (E13) are committed. This is a **documentation-caveat
+> closure on the already-shipping flagship only.** Release-One stays
+> `Ceiling-POE-VentIQ-RoomIQ` / `stable` (its existing stable status is
+> unchanged) and **no** new S360-410 hardware claim is made: `S360-410`
+> stays `cataloged_unverified` with no `schematic_file`, the PoE **bench
+> remainder (E11 — load / cold-start inrush / thermal / EMI-EMC) is still
+> not measured**, and the **isolation / safety class (E12 — Hi-pot /
+> insulation / leakage / earth continuity) is still missing**, so the
+> board-`verified` path (E2) stays open and `S360-100-BENCH-001` stays
+> `pending` for the measured-harness row. FanTRIAC, COMPLIANCE-001, and
+> every other Required follow-up are unchanged by this closure.
 
 > **HW-PINMAP-320-FOLLOWUP re-check (2026-05-18).** A documentation-only
 > HW-005 / HW-PINMAP-320-FOLLOWUP evidence-pass investigation on
@@ -406,8 +431,20 @@ here so they are not silently lost when later HW PRs land.
    shipping config string (e.g. `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-LED`).
    Update `config/webflash-builds.json` and the artifact name in the same
    PR.
-6. **PoE PSU schematic.** Commit `S360-410` schematic and confirm the J2
-   harness between PSU and Core. No firmware change is expected.
+6. **PoE PSU schematic — done; PoE caveat closed (2026-06).** The
+   `S360-410` schematic is committed at
+   [`hardware/schematics/S360-410-R4.pdf`](hardware/schematics/S360-410-R4.pdf)
+   (HW-ASSETS-410) with PCB gerbers at
+   [`hardware/gerbers/S360-410-R4/`](hardware/gerbers/S360-410-R4/) (E13);
+   the `J3` connector pin-1 polarity is on file (E9, on-header `5V` / `GND`
+   silkscreen + CAD renders) and the Core `J2` ↔ PSU `J3` harness is on
+   file as a spec (E10). On that E9 + E10 basis the PoE
+   `"schematic verification pending"` caveat is **closed**
+   (HW-S360-410-EVIDENCE-2026-06). No firmware change. `S360-410` stays
+   `cataloged_unverified` — the board-`verified` path still owes the E11
+   bench remainder (load / inrush / thermal / EMI-EMC) and E12 isolation;
+   the measured J2-harness bench row stays tracked under
+   `S360-100-BENCH-001`.
 7. **TRIAC PCB.** Commit `S360-320` schematic. Without it FanTRIAC cannot be
    marked verified.
 8. **Connector pin-order reconciliation.** Confirm S360-100-R4 J10 vs
