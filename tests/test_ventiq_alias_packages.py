@@ -67,19 +67,9 @@ VENTIQ_ALIASES = [
         "legacy_basename": "airiq_bathroom_base.yaml",
     },
     {
-        "alias_path": PACKAGES_EXPANSIONS / "ventiq_extended.yaml",
-        "legacy_path": PACKAGES_EXPANSIONS / "airiq_bathroom_pro.yaml",
-        "legacy_basename": "airiq_bathroom_pro.yaml",
-    },
-    {
         "alias_path": PACKAGES_FEATURES / "ventiq_profile.yaml",
         "legacy_path": PACKAGES_FEATURES / "bathroom_profile.yaml",
         "legacy_basename": "bathroom_profile.yaml",
-    },
-    {
-        "alias_path": PACKAGES_FEATURES / "ventiq_extended_profile.yaml",
-        "legacy_path": PACKAGES_FEATURES / "bathroom_pro_profile.yaml",
-        "legacy_basename": "bathroom_pro_profile.yaml",
     },
 ]
 
@@ -260,15 +250,16 @@ class VentIQAliasLegacyFilePreservedTests(unittest.TestCase):
 
 
 class VentIQAliasInventoryCoverageTests(unittest.TestCase):
-    """Belt-and-braces: pin the four-alias inventory shape."""
+    """Belt-and-braces: pin the two-alias inventory shape."""
 
-    def test_inventory_has_four_entries(self) -> None:
+    def test_inventory_has_two_entries(self) -> None:
         self.assertEqual(
             len(VENTIQ_ALIASES),
-            4,
-            "Expected exactly four VentIQ Phase-2 alias entries "
-            "(ventiq.yaml, ventiq_extended.yaml, ventiq_profile.yaml, "
-            "ventiq_extended_profile.yaml). If a new alias is added, "
+            2,
+            "Expected exactly two VentIQ canonical alias entries "
+            "(ventiq.yaml, ventiq_profile.yaml). The abandoned pro/extended "
+            "tier aliases (ventiq_extended.yaml, ventiq_extended_profile.yaml) "
+            "and their legacy targets were removed. If a new alias is added, "
             "extend the inventory and the assertion together so the "
             "test count cannot silently drift.",
         )

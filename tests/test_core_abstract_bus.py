@@ -47,11 +47,7 @@ Schematic ground truth references (S360-100-R4, the Core schematic):
 Hi-Link baud is 256000 and SEN0609 baud is 115200 per operator decision #7.
 
 The Core abstract packages affected by CORE-ABSTRACT-BUS-001A are listed
-in ``RELAY_REBIND_PACKAGES`` below. Voice-variant Core packages
-(``sense360_core_voice_ceiling.yaml`` / ``sense360_core_voice_wall.yaml``)
-are deliberately out of scope for the 001A rebind; their ``relay_pin``
-substitutions remain at their pre-001A values until a later slice
-addresses them.
+in ``RELAY_REBIND_PACKAGES`` below.
 
 Run with::
 
@@ -76,15 +72,11 @@ AFFECTED_CORE_PACKAGES = [
     REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_poe.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_wall.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_voice_ceiling.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_voice_wall.yaml",
 ]
 
 # Core abstract packages whose ``relay_pin`` substitution is rebound to
-# the schematic-correct ``GPIO3`` by CORE-ABSTRACT-BUS-001A. Voice-
-# variant Core packages are deliberately not in this list; the 001A
-# scope is restricted to the five non-voice Core packages enumerated
+# the schematic-correct ``GPIO3`` by CORE-ABSTRACT-BUS-001A. The 001A
+# scope is restricted to the four non-voice Core packages enumerated
 # below. Each must drop the pre-001A ``GPIO4`` / ``GPIO10`` value and
 # adopt ``GPIO3`` (schematic Relay net per S360-100-R4 IO3).
 RELAY_REBIND_PACKAGES = [
@@ -92,7 +84,6 @@ RELAY_REBIND_PACKAGES = [
     REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_poe.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_wall.yaml",
 ]
 
 # Per-package substitutions affected by 001C.
@@ -593,11 +584,6 @@ class RelayPinRebindTests(unittest.TestCase):
     S360-100-R4). The GPIO3 collision was resolved by CORE-ABSTRACT-
     BUS-001C (#557) which moved ALS_INT off GPIO3 to GPIO47 and the
     expander interrupt off GPIO3 to GPIO17.
-
-    Voice-variant Core packages (``sense360_core_voice_ceiling.yaml``
-    and ``sense360_core_voice_wall.yaml``) are out-of-scope for the
-    001A rebind; their ``relay_pin`` substitutions are not asserted by
-    this class.
     """
 
     def test_relay_pin_is_gpio3_in_every_affected_core_package(self) -> None:
@@ -681,9 +667,6 @@ SHARED_I2C_BUS_PACKAGES = [
     REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_poe.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_wall.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_voice_ceiling.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_voice_wall.yaml",
 ]
 
 # Expansion-package consumers whose ``*_i2c_id`` substitution default is
@@ -693,37 +676,33 @@ SHARED_I2C_BUS_PACKAGES = [
 # out of scope. (The Mini helper was removed by PRODUCT-DEP-MINI-001.)
 SHARED_I2C_CONSUMER_DEFAULTS = [
     # PACKAGE-RENAME-002 (docs/arch-board-bundle-plan.md §5.5): the
-    # authoritative ceiling / wall AirIQ definitions (incl. their
+    # authoritative ceiling AirIQ definition (incl. its
     # `airiq_i2c_id: core_i2c` default) moved from
-    # `packages/expansions/airiq_ceiling.yaml` / `airiq_wall.yaml` (now thin
-    # aliases) into the SKU-aligned board package + overlay; the consumer-default
-    # assertion travels with the content. `airiq.yaml` is the generic base
-    # driver (no board package, cross-referenced not folded) and stays
-    # authoritative here.
+    # `packages/expansions/airiq_ceiling.yaml` (now a thin alias) into the
+    # SKU-aligned board package; the consumer-default assertion travels with
+    # the content. `airiq.yaml` is the generic base driver (no board package,
+    # cross-referenced not folded) and stays authoritative here.
     (REPO_ROOT / "packages" / "expansions" / "airiq.yaml", "airiq_i2c_id"),
-    (REPO_ROOT / "packages" / "boards" / "s360-210-airiq-wall.yaml", "airiq_i2c_id"),
     (REPO_ROOT / "packages" / "boards" / "s360-210-airiq.yaml", "airiq_i2c_id"),
     # PACKAGE-RENAME-003 (docs/arch-board-bundle-plan.md §5.5): the authoritative
-    # base / Pro VentIQ definitions (incl. their `bathroom_i2c_id: core_i2c`
-    # default) moved from `packages/expansions/airiq_bathroom_base.yaml` /
-    # `airiq_bathroom_pro.yaml` (now thin aliases) into the SKU-aligned VentIQ
-    # board package + Pro overlay; the consumer-default assertion travels with
-    # the content. The entire VentIQ driver content is folded, so — unlike AirIQ
-    # — there is no un-folded generic base driver (no VentIQ `airiq.yaml`
-    # equivalent) to keep authoritative here.
+    # base VentIQ definition (incl. its `bathroom_i2c_id: core_i2c`
+    # default) moved from `packages/expansions/airiq_bathroom_base.yaml`
+    # (now a thin alias) into the SKU-aligned VentIQ board package; the
+    # consumer-default assertion travels with the content. The entire VentIQ
+    # driver content is folded, so — unlike AirIQ — there is no un-folded
+    # generic base driver (no VentIQ `airiq.yaml` equivalent) to keep
+    # authoritative here.
     (REPO_ROOT / "packages" / "boards" / "s360-211-ventiq.yaml", "bathroom_i2c_id"),
-    (REPO_ROOT / "packages" / "boards" / "s360-211-ventiq-pro.yaml", "bathroom_i2c_id"),
     (REPO_ROOT / "packages" / "expansions" / "comfort.yaml", "comfort_i2c_id"),
     # PACKAGE-RENAME-004 (docs/arch-board-bundle-plan.md §5.5): the authoritative
-    # ceiling / wall RoomIQ climate (comfort) definitions (incl. their
+    # ceiling RoomIQ climate (comfort) definition (incl. its
     # `comfort_*_i2c_id: core_i2c` default) moved from
-    # `packages/expansions/comfort_wall.yaml` / `comfort_ceiling.yaml` (now thin
-    # aliases) into the SKU-aligned RoomIQ board halves; the consumer-default
-    # assertion travels with the content. RoomIQ is authoritative per driver, so
-    # the climate halves are their own board files. The shared radar primitives
+    # `packages/expansions/comfort_ceiling.yaml` (now a thin alias) into the
+    # SKU-aligned RoomIQ board half; the consumer-default assertion travels with
+    # the content. RoomIQ is authoritative per driver, so the climate half is
+    # its own board file. The shared radar primitives
     # `presence_ld2450.yaml` / `presence_ld2412.yaml` are UART (not I2C) base
     # drivers and carry no `*_i2c_id` default, so they do not appear here.
-    (REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-climate-wall.yaml", "comfort_i2c_id"),
     (REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-climate.yaml", "comfort_ceiling_i2c_id"),
     (REPO_ROOT / "packages" / "expansions" / "fan_gp8403.yaml", "fan_dac_i2c_id"),
     (REPO_ROOT / "packages" / "expansions" / "gpio_expander_sx1509.yaml", "sx1509_i2c_id"),

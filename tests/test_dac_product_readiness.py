@@ -216,8 +216,6 @@ class DacProductPackageCompositionTests(unittest.TestCase):
             "packages/expansions/airiq.yaml",
             "packages/expansions/airiq_ceiling.yaml",
             "packages/expansions/airiq_bathroom_base.yaml",
-            "packages/expansions/airiq_bathroom_pro.yaml",
-            "packages/expansions/airiq_wall.yaml",
         ):
             self.assertNotIn(
                 forbidden,
