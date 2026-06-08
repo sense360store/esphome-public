@@ -3,9 +3,11 @@
 # RELEASE 1: BUMP VERSION (RELEASE-BUMP-001)
 # ============================================================================
 # RELEASE ORDER: Release 1: Bump Version opens a PR; merge that PR before
-# running Release 2: Draft Notes. Until the bump PR is merged, main still
-# carries the old catalog version and Release 2 fails by design (its
-# "Check version is declared" preflight explains how to recover).
+# running Release: Create GitHub Release. Until the bump PR is merged, main
+# still carries the old catalog version and the next step fails by design
+# (plan_release.py fails closed and the "Check version is declared" preflight
+# explains how to recover). "Release 2: Draft Notes" is an optional
+# preview-only check, not a required step in the chain.
 #
 # Manual operator helper: bumps the release version of one WebFlash-shippable
 # config in lock-step across config/product-catalog.json and
@@ -14,7 +16,9 @@
 #
 # This is the metadata step that must merge BEFORE the rest of the release
 # chain runs for that config and version:
-#   Release 1: Bump Version  ->  Release 2: Draft Notes  ->  Release 3: Build & Release
+#   Release 1: Bump Version  ->  Release: Create GitHub Release  ->  Release 3: Build & Release
+# ("Release 2: Draft Notes" is an optional preview-only check off to the side;
+# Create Release generates and validates the same notes inline.)
 #
 # What the bump does:
 #   - Rewrites only the `version` and the version-bearing `artifact_name`
@@ -159,8 +163,10 @@ jobs:
             - tests/test_product_catalog_consistency.py
 
           This is the metadata step (Phase 0). Merge this PR first, then run
-          "Release 2: Draft Notes" and "Release 3: Build & Release" for the
-          same config and version.
+          "Release: Create GitHub Release" for the same config and version; it
+          generates and validates the release notes and creates the tagged
+          Release, which fires "Release 3: Build & Release". "Release 2: Draft
+          Notes" is an optional preview-only check.
           EOF
 
           gh pr create \

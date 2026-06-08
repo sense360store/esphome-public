@@ -341,9 +341,13 @@ a workflow artifact.
 > `scripts/validate-webflash-release-notes.py` inside `firmware-build-release.yml`
 > at `release.published` time.
 
-> **Release order — merge the bump PR first.** "Release 1: Bump Version" opens a
-> PR; merge that PR before running "Release 2: Draft Notes". Until then, `main`
-> still carries the old catalog version and Draft Notes fails fast: its
+> **Optional — preview-only; not a required step.** The primary release path is
+> Release 1: Bump Version → "Release: Create GitHub Release" → Release 3 (see
+> §7), and Create Release generates and validates the same notes inline. Draft
+> Notes is a standalone way to preview and download a notes draft before
+> tagging. As with Create Release, merge the "Release 1: Bump Version" PR first;
+> until then, `main` still carries the old catalog version and Draft Notes
+> fails fast: its
 > "Check version is declared" preflight (`scripts/check_pending_version_bump.py`)
 > prints an actionable message naming the pending bump PR and exits 3 (a
 > distinct code from the generator's exit 2). This preflight is additive

@@ -2,11 +2,18 @@
 # ============================================================================
 # DRAFT WEBFLASH RELEASE NOTES (RELEASE-002)
 # ============================================================================
-# RELEASE ORDER: Release 1: Bump Version opens a PR; merge that PR before
-# running Release 2: Draft Notes. Otherwise this workflow reads main, sees the
-# old catalog version, and fails. The "Check version is declared" preflight
-# step below detects exactly that case and prints an actionable message
-# (exit code 3, distinct from the generator's exit 2).
+# OPTIONAL / PREVIEW-ONLY. The primary release path is
+#   Release 1: Bump Version  ->  Release: Create GitHub Release  ->  Release 3
+# and "Release: Create GitHub Release" generates and validates the same notes
+# inline (via the same generator + validator scripts). This workflow remains a
+# standalone helper for previewing and downloading a release-notes draft (as a
+# workflow artifact) before tagging; it is NOT a required step in the chain.
+#
+# RELEASE ORDER (when you do run it): Release 1: Bump Version opens a PR; merge
+# that PR before running Release 2: Draft Notes. Otherwise this workflow reads
+# main, sees the old catalog version, and fails. The "Check version is
+# declared" preflight step below detects exactly that case and prints an
+# actionable message (exit code 3, distinct from the generator's exit 2).
 #
 # Manual operator helper: produces a WebFlash release-notes draft from the
 # product catalog, validates it against the WebFlash release-body contract,
