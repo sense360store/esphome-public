@@ -24,13 +24,27 @@
 #   - Lint C++ headers.
 #
 # Test Modes:
-#   - quick: Fast representative subset of generated module combinations.
-#   - full:  All generated module combinations.
+#   - quick (default): the maintained Ceiling-POE shipping set ONLY — the
+#     canonical product YAML for each config_string declared in
+#     config/webflash-builds.json. Fast, focused, and the set this repo
+#     actually ships. The generated module-combination walk is NOT run in
+#     quick mode.
+#   - full:  the broad legacy/manual deep check (opt-in) — every product YAML
+#     in the repo (legacy / manual / reference configs; webflash wrappers
+#     excluded) PLUS the entire generated module-combination space. This is
+#     where legacy boards outside the shipping set are exercised.
 #
 # Failures here indicate legacy/manual compatibility issues. They do NOT
 # block normal PRs and do NOT indicate a Release-One/WebFlash regression
 # unless the same failure also surfaces in validate.yml or the release
 # workflow.
+#
+# external_components: both ESPHome lanes below patch the shared base include
+# (packages/base/external_components.yaml) to the locally checked-out
+# components/ tree via the setup-esphome-build action. Cloning this repo
+# through the git source is unnecessary inside the checked-out repo and fails
+# non-interactively when the rewritten ref is not fetchable on GitHub, which
+# is what made this manual sweep fail across the matrix.
 # ============================================================================
 
 name: "CI: Validate Configs"
@@ -85,13 +99,16 @@ jobs:
           yamllint -c .yamllint products/ packages/
 
   # ============================================================================
-  # JOB 2: DISCOVER ALL PRODUCTS
+  # JOB 2: DISCOVER PRODUCTS (mode-aware)
   # ============================================================================
-  # Dynamically discovers all product YAML files for the broad legacy/manual
-  # sweep. WebFlash wrappers in products/webflash/ are intentionally excluded:
-  # they are not standalone product configs but thin mappers from WebFlash
-  # config strings to canonical products/sense360-*.yaml files, and the
-  # release workflow short-circuits them via config/webflash-builds.json.
+  # quick (default): the maintained Ceiling-POE shipping set — the canonical
+  #   product YAML for each config_string in config/webflash-builds.json. This
+  #   is drift-free: a new shipping build appears here automatically.
+  # full: the broad legacy/manual sweep — every product YAML in the repo,
+  #   excluding secrets.yaml and the WebFlash wrappers in products/webflash/
+  #   (thin mappers the release workflow short-circuits via
+  #   config/webflash-builds.json), so legacy boards outside the shipping set
+  #   are exercised only in this opt-in deep check.
   # ============================================================================
   discover-products:
     name: Discover Products
@@ -103,37 +120,66 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
       - name: Discover product configurations
         id: discover
+        env:
+          TEST_MODE: ${{ github.event.inputs.test_mode || 'quick' }}
         run: |
-          # Find all product YAML files (excluding secrets.yaml and the
-          # WebFlash wrapper directory, which is not a standalone product).
-          PRODUCTS=$(find products/ -name "*.yaml" -type f ! -name "secrets.yaml" ! -path "products/webflash/*" | sort)
+          set -euo pipefail
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import glob
+          import json
+          import os
+          import sys
 
-          # Build JSON matrix
-          MATRIX='{"include":['
-          FIRST=true
-          COUNT=0
+          mode = os.environ.get("TEST_MODE", "quick")
+          include = []
 
-          for PRODUCT_FILE in $PRODUCTS; do
-            PRODUCT_NAME=$(basename "$PRODUCT_FILE" .yaml)
+          if mode == "full":
+              # Broad legacy/manual sweep: every product YAML in the repo,
+              # excluding secrets.yaml and the webflash wrappers (thin mappers
+              # the release workflow short-circuits via webflash-builds.json).
+              for path in sorted(glob.glob("products/**/*.yaml", recursive=True)):
+                  if os.path.basename(path) == "secrets.yaml":
+                      continue
+                  if path.startswith("products/webflash/"):
+                      continue
+                  include.append(
+                      {"product": os.path.splitext(os.path.basename(path))[0], "file": path}
+                  )
+          else:
+              # Default (quick): the maintained Ceiling-POE shipping set only —
+              # the canonical product YAML for each config_string declared in
+              # config/webflash-builds.json.
+              with open("config/webflash-builds.json", encoding="utf-8") as handle:
+                  builds = json.load(handle)["builds"]
+              seen = set()
+              for build in builds:
+                  config_string = build["config_string"]
+                  path = "products/sense360-{}.yaml".format(config_string.lower())
+                  if path in seen or not os.path.exists(path):
+                      continue
+                  seen.add(path)
+                  include.append(
+                      {"product": os.path.splitext(os.path.basename(path))[0], "file": path}
+                  )
 
-            if [ "$FIRST" = true ]; then
-              FIRST=false
-            else
-              MATRIX+=','
-            fi
+          print("matrix=" + json.dumps({"include": include}))
+          print("product_count=" + str(len(include)))
 
-            MATRIX+="{\"product\":\"$PRODUCT_NAME\",\"file\":\"$PRODUCT_FILE\"}"
-            COUNT=$((COUNT + 1))
-          done
-
-          MATRIX+=']}'
-
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
-          echo "product_count=$COUNT" >> $GITHUB_OUTPUT
-          echo "Discovered $COUNT products to test"
-          echo "Products: $(echo $PRODUCTS | tr '\n' ' ')"
+          # Human-readable log to stderr so it stays out of $GITHUB_OUTPUT.
+          print(
+              "mode={}: {} product(s) to validate".format(mode, len(include)),
+              file=sys.stderr,
+          )
+          for entry in include:
+              print("  " + entry["file"], file=sys.stderr)
+          PY
 
   # ============================================================================
   # JOB 3: BROAD LEGACY/MANUAL PRODUCT SWEEP
@@ -156,34 +202,22 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up ESPHome build environment
-        # This lane keeps its own external_components rewrite (sed ref: main ->
-        # current branch + feature-package @main -> branch) in the step below,
-        # so patch-external-components stays false (the default). Secrets only
-        # need the repo root and products/, so no extra-secrets-dirs.
         uses: ./.github/actions/setup-esphome-build
-
-      - name: Update external_components and includes to use current branch
-        run: |
-          # For CI testing, we need to use the current branch's components instead of 'main'
-          # This prevents CI failures when component changes haven't been merged to main yet
-          # The checked-in files use 'ref: main' or '@main' which is correct for end-users
-          BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
-          echo "Updating external_components.yaml to use branch: $BRANCH_NAME"
-          sed -i "s|ref: main|ref: $BRANCH_NAME|g" packages/base/external_components.yaml
-          echo "Updated external_components.yaml:"
-          cat packages/base/external_components.yaml
-
-          # Also update github:// includes in feature packages to use current branch
-          echo ""
-          echo "Updating github:// includes in feature packages to use branch: $BRANCH_NAME"
-          find packages/features -name "*.yaml" -exec sed -i "s|@main|@$BRANCH_NAME|g" {} \;
-          echo "Updated feature packages with github:// includes:"
-          grep -r "github://" packages/features/ || echo "No github:// URLs found"
+        with:
+          # Use the locally checked-out components/ tree instead of cloning
+          # this repo through external_components (git source). The remote
+          # clone is unnecessary inside the checked-out repo and fails
+          # non-interactively when the rewritten ref is not fetchable on
+          # GitHub. The full sweep also reaches configs under
+          # products/compile-only/ and products/bundles/, so each needs a
+          # secrets.yaml beside it (the quick shipping set lives in products/).
+          patch-external-components: "true"
+          extra-secrets-dirs: "products/compile-only products/bundles"
 
       - name: Validate ESPHome config - ${{ matrix.product }}
         run: |
           echo "Validating: ${{ matrix.file }}"
-          esphome config ${{ matrix.file }}
+          esphome config "${{ matrix.file }}"
 
   # ============================================================================
   # JOB 4: GENERATED CONFIG TESTS (Module Combinations)
@@ -193,6 +227,10 @@ jobs:
   # ============================================================================
   generate-test-matrix:
     name: Generate Test Matrix
+    # The generated module-combination walk is the opt-in deep check: it runs
+    # only in full mode. Quick (default) validates the maintained shipping set
+    # in test-all-products and skips this combinatorial space.
+    if: github.event.inputs.test_mode == 'full'
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.generate.outputs.matrix }}
@@ -209,26 +247,21 @@ jobs:
       - name: Generate test matrix
         id: generate
         run: |
-          # Determine test mode
-          TEST_MODE="${{ github.event.inputs.test_mode || 'quick' }}"
-
-          if [ "$TEST_MODE" = "full" ]; then
-            echo "Running FULL test matrix (all combinations)"
-            MATRIX=$(python3 tests/generate_test_configs.py --mode matrix --full)
-            COUNT=$(python3 tests/generate_test_configs.py --mode list --full --json | jq '.total')
-          else
-            echo "Running QUICK test matrix (representative subset)"
-            MATRIX=$(python3 tests/generate_test_configs.py --mode matrix --representative)
-            COUNT=$(python3 tests/generate_test_configs.py --mode list --representative --json | jq '.total')
-          fi
-
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
-          echo "config_count=$COUNT" >> $GITHUB_OUTPUT
-          echo "Generated $COUNT test configurations"
+          set -euo pipefail
+          # Full module-combination space (this job runs in full mode only).
+          MATRIX=$(python3 tests/generate_test_configs.py --mode matrix --full)
+          COUNT=$(python3 tests/generate_test_configs.py --mode list --full --json | jq '.total')
+          {
+            echo "matrix=$MATRIX"
+            echo "config_count=$COUNT"
+          } >> "$GITHUB_OUTPUT"
+          echo "Generated $COUNT test configurations (full combinatorial walk)"
 
   test-generated-configs:
     name: "Generated: ${{ matrix.name }}"
     needs: generate-test-matrix
+    # Opt-in deep check: the generated combinations run in full mode only.
+    if: github.event.inputs.test_mode == 'full'
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.generate-test-matrix.outputs.matrix) }}
@@ -242,37 +275,18 @@ jobs:
         with:
           # The generated configs are written to tests/generated/, so secrets
           # are provisioned there and in tests/ as well as the repo root and
-          # products/. This lane keeps its own external_components rewrite (the
-          # step below), so patch-external-components stays false (the default).
+          # products/. Use the locally checked-out components/ tree instead of
+          # the external_components git clone (unnecessary in the checked-out
+          # repo and fragile on a feature branch).
           extra-secrets-dirs: "tests tests/generated"
-
-      - name: Update external_components and includes to use current branch
-        run: |
-          # For CI testing, we need to use the current branch's components instead of 'main'
-          # This prevents CI failures when component changes haven't been merged to main yet
-          # The checked-in files use 'ref: main' or '@main' which is correct for end-users
-          BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
-          echo "Updating external_components.yaml to use branch: $BRANCH_NAME"
-          sed -i "s|ref: main|ref: $BRANCH_NAME|g" packages/base/external_components.yaml
-          echo "Updated external_components.yaml:"
-          cat packages/base/external_components.yaml
-
-          # Also update github:// includes in feature packages to use current branch
-          echo ""
-          echo "Updating github:// includes in feature packages to use branch: $BRANCH_NAME"
-          find packages/features -name "*.yaml" -exec sed -i "s|@main|@$BRANCH_NAME|g" {} \;
-          echo "Updated feature packages with github:// includes:"
-          grep -r "github://" packages/features/ || echo "No github:// URLs found"
+          patch-external-components: "true"
 
       - name: Generate test config
         run: |
+          set -euo pipefail
+          # Full combinatorial space (this job runs in full mode only).
           mkdir -p tests/generated
-          TEST_MODE="${{ github.event.inputs.test_mode || 'quick' }}"
-          if [ "$TEST_MODE" = "full" ]; then
-            python3 tests/generate_test_configs.py --mode generate --full --output-dir tests/generated
-          else
-            python3 tests/generate_test_configs.py --mode generate --representative --output-dir tests/generated
-          fi
+          python3 tests/generate_test_configs.py --mode generate --full --output-dir tests/generated
 
       - name: Validate ESPHome config - ${{ matrix.name }}
         run: |
@@ -307,7 +321,7 @@ jobs:
         run: |
           echo "Checking C++ header formatting..."
           if [ -d "include/" ]; then
-            find include/ -name "*.h" -o -name "*.cpp" | while read file; do
+            find include/ -name "*.h" -o -name "*.cpp" | while read -r file; do
               echo "Checking: $file"
               clang-format --dry-run --Werror "$file" || echo "Warning: $file needs formatting"
             done
@@ -325,19 +339,22 @@ jobs:
     if: always()
     steps:
       - name: Check test results
+        env:
+          TEST_MODE: ${{ github.event.inputs.test_mode || 'quick' }}
         run: |
           echo "=============================================="
-          echo "BROAD LEGACY/MANUAL CONFIG SWEEP SUMMARY"
+          echo "CONFIG SWEEP SUMMARY (mode: ${TEST_MODE})"
           echo "=============================================="
           echo ""
-          echo "This is a MANUAL broad/legacy compatibility sweep."
-          echo "It is NOT the Release-One/WebFlash PR gate."
+          echo "quick (default) = maintained Ceiling-POE shipping set only."
+          echo "full            = broad legacy/manual sweep + full module-combination walk."
+          echo "This is a MANUAL workflow; it is NOT the Release-One/WebFlash PR gate."
           echo "Release-One/WebFlash gating lives in:"
           echo "  - .github/workflows/validate.yml"
           echo "  - .github/workflows/firmware-build-release.yml"
           echo ""
-          echo "Products Swept (legacy/manual, webflash wrappers excluded): ${{ needs.discover-products.outputs.product_count }}"
-          echo "Generated Configs: ${{ needs.generate-test-matrix.outputs.config_count }}"
+          echo "Products validated: ${{ needs.discover-products.outputs.product_count }}"
+          echo "Generated configs (full mode only): ${{ needs.generate-test-matrix.outputs.config_count }}"
           echo ""
           echo "Job Results:"
           echo "  - YAML Validation:        ${{ needs.validate-yaml.result }}"
