@@ -105,24 +105,31 @@ def compute_tag(version: str, channel: str, suffix: Optional[str] = None) -> str
     return f"v{version}-{chosen}"
 
 
-def validate_version(version: str) -> None:
-    """Raise ``PlanReleaseError`` unless ``version`` is bare semver.
+def normalize_version(version: str) -> str:
+    """Return the bare semver for ``version``, tolerating a leading ``v``.
 
-    Rejects an empty value, a leading ``v`` (with a targeted message), and
-    anything that is not MAJOR.MINOR.PATCH.
+    Trims surrounding whitespace and strips a single leading ``v`` or
+    ``V`` so ``1.0.5``, ``v1.0.5``, and ``V1.0.5`` all normalize to the
+    bare ``1.0.5`` (which equals the bare catalog version). A pre-release
+    or build suffix is NOT stripped: ``v1.0.5-preview`` normalizes to
+    ``1.0.5-preview``, which then fails the bare-semver check, so the
+    fail-closed behaviour for non-bare versions is preserved.
+
+    Raises ``PlanReleaseError`` for an empty value or anything that is not
+    MAJOR.MINOR.PATCH after the leading ``v`` is stripped.
     """
-    if not version or version != version.strip():
-        raise PlanReleaseError("--version must be a non-empty, untrimmed value")
-    if version[:1] in ("v", "V"):
-        raise PlanReleaseError(
-            f"--version must not have a leading 'v'; got {version!r} "
-            "(use e.g. 1.0.0)"
-        )
-    if not SEMVER_RE.match(version):
+    if not version or not version.strip():
+        raise PlanReleaseError("--version must be a non-empty value")
+    candidate = version.strip()
+    if candidate[:1] in ("v", "V"):
+        candidate = candidate[1:]
+    if not SEMVER_RE.match(candidate):
         raise PlanReleaseError(
             f"--version {version!r} is not semver-shaped; expected "
-            "MAJOR.MINOR.PATCH (e.g. 1.0.0)"
+            "MAJOR.MINOR.PATCH with an optional leading 'v' "
+            "(e.g. 1.0.0 or v1.0.0)"
         )
+    return candidate
 
 
 def find_entry(catalog: Dict[str, Any], config_string: str) -> Optional[Dict[str, Any]]:
@@ -152,7 +159,9 @@ def plan_release(
     """
     if not config_string:
         raise PlanReleaseError("--config is empty")
-    validate_version(version)
+    # Tolerate a leading 'v' (any case) and surrounding whitespace, then
+    # compare the resulting bare version against the bare catalog version.
+    version = normalize_version(version)
 
     entry = find_entry(catalog, config_string)
     if entry is None:
@@ -206,6 +215,10 @@ def _emit(plan: Dict[str, Any]) -> None:
         f"tag={plan['tag']}",
         f"channel={plan['channel']}",
         f"prerelease={'true' if plan['prerelease'] else 'false'}",
+        # Normalized (bare, leading-'v'-stripped) version so downstream
+        # workflow steps that compare against the bare catalog/derived
+        # version use the same value the plan validated.
+        f"version={plan['version']}",
     ]
     for line in lines:
         sys.stdout.write(line + "\n")
@@ -232,7 +245,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--version",
         required=True,
-        help="Release version, no leading 'v' (e.g. 1.0.1)",
+        help="Release version, leading 'v' optional (e.g. 1.0.1 or v1.0.1)",
     )
     parser.add_argument(
         "--tag-suffix",

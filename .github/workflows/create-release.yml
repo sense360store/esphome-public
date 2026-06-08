@@ -51,8 +51,8 @@ on:
           - Ceiling-POE-RoomIQ-LED
       version:
         description: >-
-          Release version, no leading 'v' (e.g. 1.0.1). Must equal the
-          catalog version for this config (merge Release 1 first).
+          Release version, leading 'v' optional (e.g. 1.0.1 or v1.0.1). Must
+          equal the catalog version for this config (merge Release 1 first).
         required: true
         type: string
       changelog:
@@ -136,7 +136,9 @@ jobs:
           # inline on the python invocation below.
           PLANNED_TAG: ${{ steps.plan.outputs.tag }}
           PRERELEASE: ${{ steps.plan.outputs.prerelease }}
-          EXPECTED_VERSION: ${{ inputs.version }}
+          # Normalized (bare, leading-'v'-stripped) version from the plan step,
+          # so this round-trip compares bare-to-bare against the derived tag.
+          EXPECTED_VERSION: ${{ steps.plan.outputs.version }}
           EXPECTED_CHANNEL: ${{ steps.plan.outputs.channel }}
         run: |
           set -euo pipefail
@@ -164,7 +166,9 @@ jobs:
 
       - name: Preflight - non-empty build matrix for (version, channel)
         env:
-          VERSION: ${{ inputs.version }}
+          # Normalized version so the bare value matches the bare 'version'
+          # field in config/webflash-builds.json.
+          VERSION: ${{ steps.plan.outputs.version }}
           CHANNEL: ${{ steps.plan.outputs.channel }}
           CONFIG_STRING: ${{ inputs.config_string }}
         run: |
@@ -218,7 +222,9 @@ jobs:
       - name: Generate and validate release notes
         env:
           CONFIG_STRING: ${{ inputs.config_string }}
-          VERSION: ${{ inputs.version }}
+          # Normalized version so it equals the catalog 'version' the notes
+          # generator cross-checks against.
+          VERSION: ${{ steps.plan.outputs.version }}
           CHANNEL: ${{ steps.plan.outputs.channel }}
           CHANGELOG: ${{ inputs.changelog }}
           DRY_RUN: ${{ inputs.dry_run }}

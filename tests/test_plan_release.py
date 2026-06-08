@@ -130,14 +130,40 @@ class PlanReleaseRulesTests(unittest.TestCase):
             )
         self.assertIn("non-stable", str(ctx.exception))
 
-    def test_leading_v_version_is_rejected(self) -> None:
-        with self.assertRaises(pr.PlanReleaseError) as ctx:
-            pr.plan_release(
-                config_string=STABLE_CFG,
-                version="v1.0.1",
-                catalog=_catalog(STABLE_ROW),
-            )
-        self.assertIn("leading 'v'", str(ctx.exception))
+    def test_leading_v_version_is_accepted_and_equals_bare_catalog(self) -> None:
+        # A leading 'v' (any case) and surrounding whitespace are tolerated:
+        # 1.0.1, v1.0.1, and V1.0.1 all normalize to the bare 1.0.1 that
+        # equals the catalog's bare version and produce the same plan.
+        for raw in ("1.0.1", "v1.0.1", "V1.0.1", "  v1.0.1  "):
+            with self.subTest(version=raw):
+                plan = pr.plan_release(
+                    config_string=STABLE_CFG,
+                    version=raw,
+                    catalog=_catalog(STABLE_ROW),
+                )
+                self.assertEqual(plan["version"], "1.0.1")
+                self.assertEqual(plan["tag"], "v1.0.1")
+                self.assertEqual(plan["channel"], "stable")
+                self.assertFalse(plan["prerelease"])
+
+    def test_normalize_version_helper(self) -> None:
+        self.assertEqual(pr.normalize_version("1.0.5"), "1.0.5")
+        self.assertEqual(pr.normalize_version("v1.0.5"), "1.0.5")
+        self.assertEqual(pr.normalize_version("V1.0.5"), "1.0.5")
+        self.assertEqual(pr.normalize_version("  v1.0.5  "), "1.0.5")
+
+    def test_prerelease_suffix_is_still_rejected_even_with_leading_v(self) -> None:
+        # The leading 'v' is stripped but the pre-release suffix is NOT, so
+        # both forms still fail the bare-semver check (fail closed).
+        for raw in ("1.0.5-preview", "v1.0.5-preview", "vv1.0.5", "1.0.5+build"):
+            with self.subTest(version=raw):
+                with self.assertRaises(pr.PlanReleaseError) as ctx:
+                    pr.plan_release(
+                        config_string=STABLE_CFG,
+                        version=raw,
+                        catalog=_catalog(STABLE_ROW),
+                    )
+                self.assertIn("semver", str(ctx.exception))
 
     def test_non_semver_version_is_rejected(self) -> None:
         with self.assertRaises(pr.PlanReleaseError) as ctx:
@@ -219,6 +245,31 @@ class CliTests(unittest.TestCase):
             self.assertIn("tag=v1.0.0-preview", written)
             self.assertIn("channel=preview", written)
             self.assertIn("prerelease=true", written)
+
+    def test_cli_leading_v_accepted_and_emits_normalized_version(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            cat = self._write_catalog(d, _catalog(STABLE_ROW))
+            out_path = Path(d) / "out.txt"
+            res = self._run(
+                cat,
+                "--config",
+                STABLE_CFG,
+                "--version",
+                "V1.0.1",
+                github_output=str(out_path),
+            )
+            self.assertEqual(res.returncode, 0, res.stderr)
+            self.assertIn("tag=v1.0.1", res.stdout)
+            # The normalized (bare) version is exposed for downstream steps.
+            self.assertIn("version=1.0.1", res.stdout)
+            self.assertIn("version=1.0.1", out_path.read_text(encoding="utf-8"))
+
+    def test_cli_prerelease_suffix_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            cat = self._write_catalog(d, _catalog(STABLE_ROW))
+            res = self._run(cat, "--config", STABLE_CFG, "--version", "v1.0.1-preview")
+            self.assertNotEqual(res.returncode, 0)
+            self.assertIn("semver", res.stderr)
 
     def test_cli_version_mismatch_exits_nonzero_with_bump_message(self) -> None:
         with tempfile.TemporaryDirectory() as d:

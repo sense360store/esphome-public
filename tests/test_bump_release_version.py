@@ -23,10 +23,12 @@ convention used by the other validators in this repo. Run with::
 from __future__ import annotations
 
 import copy
+import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
@@ -122,24 +124,41 @@ class ComputeArtifactNameTests(unittest.TestCase):
 
 
 class ValidateVersionTests(unittest.TestCase):
-    def test_accepts_plain_triples(self) -> None:
+    def test_accepts_plain_triples_and_returns_bare(self) -> None:
         for good in ("2.0.0", "1.0.0", "0.0.1", "10.20.30"):
             with self.subTest(version=good):
-                validate_version(good)  # must not raise
+                self.assertEqual(validate_version(good), good)
 
-    def test_rejects_leading_v(self) -> None:
-        with self.assertRaises(BumpError) as ctx:
-            validate_version("v2.0.0")
-        self.assertIn("leading 'v'", str(ctx.exception))
+    def test_accepts_leading_v_any_case_and_normalizes(self) -> None:
+        # A leading 'v'/'V' is tolerated and stripped to the bare triple.
+        self.assertEqual(validate_version("v2.0.0"), "2.0.0")
+        self.assertEqual(validate_version("V2.0.0"), "2.0.0")
+        self.assertEqual(validate_version("v1.0.5"), "1.0.5")
+
+    def test_trims_surrounding_whitespace(self) -> None:
+        self.assertEqual(validate_version(" 2.0.0 "), "2.0.0")
+        self.assertEqual(validate_version("  v2.0.0  "), "2.0.0")
 
     def test_rejects_non_semver(self) -> None:
-        for bad in ("2.0", "1", "1.2.3.4", "1.0.0-rc.1", "01.0.0", "abc"):
+        # Pre-release / build suffixes are NOT stripped, so they still fail
+        # even with a leading 'v' (fail closed). A doubled 'v' also fails.
+        for bad in (
+            "2.0",
+            "1",
+            "1.2.3.4",
+            "1.0.0-rc.1",
+            "v1.0.0-rc.1",
+            "01.0.0",
+            "abc",
+            "vv2.0.0",
+            "1.0.0+build",
+        ):
             with self.subTest(version=bad):
                 with self.assertRaises(BumpError):
                     validate_version(bad)
 
-    def test_rejects_empty_and_whitespace(self) -> None:
-        for bad in ("", "  ", " 2.0.0", "2.0.0 "):
+    def test_rejects_empty_and_whitespace_only(self) -> None:
+        for bad in ("", "  ", "v", "  v  "):
             with self.subTest(version=repr(bad)):
                 with self.assertRaises(BumpError):
                     validate_version(bad)
@@ -253,12 +272,27 @@ class BuildPlanTests(unittest.TestCase):
             build_plan(_synthetic_catalog(), builds, STABLE_CONFIG, "2.0.0")
         self.assertIn("build matrix", str(ctx.exception))
 
-    def test_leading_v_fails_closed(self) -> None:
-        with self.assertRaises(BumpError) as ctx:
-            build_plan(
-                _synthetic_catalog(), _synthetic_builds(), STABLE_CONFIG, "v2.0.0"
-            )
-        self.assertIn("leading 'v'", str(ctx.exception))
+    def test_leading_v_is_normalized_not_rejected(self) -> None:
+        # A leading 'v' (any case) is tolerated; the plan carries the bare
+        # version and a bare-version artifact name.
+        for raw in ("v2.0.0", "V2.0.0", "  v2.0.0  "):
+            with self.subTest(version=raw):
+                plan = build_plan(
+                    _synthetic_catalog(), _synthetic_builds(), STABLE_CONFIG, raw
+                )
+                self.assertEqual(plan.new_version, "2.0.0")
+                self.assertEqual(
+                    plan.new_artifact_name,
+                    "Sense360-Ceiling-POE-VentIQ-RoomIQ-v2.0.0-stable.bin",
+                )
+
+    def test_prerelease_suffix_still_fails_closed(self) -> None:
+        for raw in ("v2.0.0-rc.1", "2.0.0-rc.1", "vv2.0.0"):
+            with self.subTest(version=raw):
+                with self.assertRaises(BumpError):
+                    build_plan(
+                        _synthetic_catalog(), _synthetic_builds(), STABLE_CONFIG, raw
+                    )
 
     def test_channel_disagreement_fails_closed(self) -> None:
         catalog = _synthetic_catalog()
@@ -329,19 +363,23 @@ class MinimalDiffSerializationTests(unittest.TestCase):
             before_cat = cat_path.read_text(encoding="utf-8").splitlines()
             before_bld = bld_path.read_text(encoding="utf-8").splitlines()
 
-            rc = main(
-                [
-                    "--config",
-                    STABLE_CONFIG,
-                    "--version",
-                    "2.0.0",
-                    "--catalog",
-                    str(cat_path),
-                    "--builds",
-                    str(bld_path),
-                    "--write",
-                ]
-            )
+            # Isolate the GITHUB_OUTPUT side effect to a temp file so this
+            # in-process call never appends to a real runner $GITHUB_OUTPUT.
+            env_patch = {"GITHUB_OUTPUT": str(Path(tmp) / "gh-output.txt")}
+            with mock.patch.dict(os.environ, env_patch):
+                rc = main(
+                    [
+                        "--config",
+                        STABLE_CONFIG,
+                        "--version",
+                        "2.0.0",
+                        "--catalog",
+                        str(cat_path),
+                        "--builds",
+                        str(bld_path),
+                        "--write",
+                    ]
+                )
             self.assertEqual(rc, 0)
 
             after_cat = cat_path.read_text(encoding="utf-8").splitlines()
@@ -358,6 +396,38 @@ class MinimalDiffSerializationTests(unittest.TestCase):
         self.assertIn('"version": "2.0.0"', joined)
         self.assertIn("-v2.0.0-", joined)
         self.assertIn('"version": "1.0.0"', "\n".join(b for b, _ in changed))
+
+
+class GithubOutputTests(unittest.TestCase):
+    """main() exposes the normalized (bare) version for the workflow."""
+
+    def test_leading_v_input_writes_bare_normalized_version(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            cat_path = Path(tmp) / "product-catalog.json"
+            bld_path = Path(tmp) / "webflash-builds.json"
+            dump_document(cat_path, _synthetic_catalog())
+            dump_document(bld_path, _synthetic_builds())
+            out_path = Path(tmp) / "gh-output.txt"
+
+            with mock.patch.dict(os.environ, {"GITHUB_OUTPUT": str(out_path)}):
+                rc = main(
+                    [
+                        "--config",
+                        STABLE_CONFIG,
+                        "--version",
+                        "v2.0.0",
+                        "--catalog",
+                        str(cat_path),
+                        "--builds",
+                        str(bld_path),
+                        "--write",
+                    ]
+                )
+            self.assertEqual(rc, 0)
+            self.assertIn(
+                "normalized_version=2.0.0",
+                out_path.read_text(encoding="utf-8"),
+            )
 
 
 class DocumentIoTests(unittest.TestCase):
