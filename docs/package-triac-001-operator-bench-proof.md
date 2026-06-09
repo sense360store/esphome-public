@@ -2,19 +2,19 @@
 
 **Blocker id:** `PACKAGE-TRIAC-001`
 
-**Status:** PENDING — operator bench not yet run to completion. The functional steps (A, B, C, E) recorded PASS on the real Manrose fan motor load; Step F (boot/stability), the full-composition re-confirm, and the signed operator attestation remain outstanding, so `PACKAGE-TRIAC-001` is **not** cleared and `COMPLIANCE-001` (mains-voltage sign-off) is unchanged. Each evidence row below stays `PENDING` until filled from a real run; the rows now filled reflect that partial bench run.
+**Status:** PENDING — operator bench not yet run to completion in this committed record. The functional steps (A, B, C, E) recorded PASS on the real Manrose fan motor load; Step F (boot/stability), the full-composition re-confirm, and the signed operator attestation remain outstanding in this container, so `PACKAGE-TRIAC-001` is **not** cleared. `COMPLIANCE-001` is CLOSED, resolved by market posture per [`decisions/COMPLIANCE-001-RESOLUTION-001.md`](decisions/COMPLIANCE-001-RESOLUTION-001.md) (S360-320 is never placed on the market); completing this protocol **with the signed attestation committed** is the experimental-lane entry precondition that record defines. Each evidence row below stays `PENDING` until filled from a real run; the rows now filled reflect that partial bench run.
 
-**Type:** Operator-evidence record. Docs only. This file asserts **no** firmware, manifest, release, or WebFlash change, and makes **no** isolation, creepage, clearance, EMI, or compliance claim. Those stay with `COMPLIANCE-001`.
+**Type:** Operator-evidence record. Docs only. This file asserts **no** firmware, manifest, release, or WebFlash change, and makes **no** isolation, creepage, clearance, EMI, or compliance claim. Those topics sit outside this bench entirely: COMPLIANCE-001 was closed by posture, and they become assessable obligations only via its reopen trigger (any placing on the market requires external safety and EMC assessment BEFORE that act — see `COMPLIANCE-001-RESOLUTION-001`).
 
-**Product under test:** `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` (`status: blocked`, `schematic_status: schematic-backed`, blocker = `PACKAGE-TRIAC-001` + `COMPLIANCE-001`).
+**Product under test:** `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` (`status: blocked`, `schematic_status: schematic-backed`, blocker = `PACKAGE-TRIAC-001` + the `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions).
 
 ---
 
 ## What this proves, and what it does not
 
-**Proves, when complete:** the S360-320 TRIAC module, driven by the FanTRIAC firmware on the schematic-verified pins (gate `GPIO14`, zero-cross `GPIO13`), performs correct leading-edge phase-cut on a real mains load, with attested zero-cross detection, gate-firing timing across the dimming range, a clean load waveform on resistive and inductive loads, and bounded thermal behaviour. This is the bench-validation gate that, together with `COMPLIANCE-001`, `TRIAC-PUBLISH-ADVANCED-PREVIEW-001` is gated on.
+**Proves, when complete:** the S360-320 TRIAC module, driven by the FanTRIAC firmware on the schematic-verified pins (gate `GPIO14`, zero-cross `GPIO13`), performs correct leading-edge phase-cut on a real mains load, with attested zero-cross detection, gate-firing timing across the dimming range, a clean load waveform on resistive and inductive loads, and bounded thermal behaviour. This is the bench-validation gate that, together with the `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions, `TRIAC-PUBLISH-ADVANCED-PREVIEW-001` is gated on.
 
-**Does NOT prove, out of scope:** mains-voltage electrical safety. Isolation-barrier adequacy, creepage and clearance, fusing, EMC, and any CE or UKCA conformity all sit with `COMPLIANCE-001` and require a competent assessment. A PASS here does not unblock stable and does not authorise a publish on its own.
+**Does NOT prove, out of scope:** mains-voltage electrical safety. Isolation-barrier adequacy, creepage and clearance, fusing, EMC, and any CE or UKCA conformity are out of this bench's scope and require a competent assessment; under `COMPLIANCE-001-RESOLUTION-001` (COMPLIANCE-001 closed by posture — never placed on the market) that assessment is owed only via the reopen trigger, BEFORE any future market placement. A PASS here does not unblock stable, does not authorise a publish on its own, and is never a safety or compliance claim.
 
 Pin mapping is traced from `S360-100-R4` (net to pin) and `S360-320-R4` (gate vs zero-cross roles): gate `GPIO14` = `TRI_GPIO1` to U1 MOC3023M; zero-cross `GPIO13` = `TRI_GPIO2` to OK1 EL814.
 
@@ -46,7 +46,7 @@ Steps A and B are on the logic side, which the MOC3023M and EL814 isolate from m
 - First power-up through a current limiter, a variac brought up slowly or a series incandescent bulb, so a wiring fault trips gently. RCD on the supply, fuse the AC input.
 - Use the incandescent bulb as the first load, not the fan. It is resistive, tolerates phase-cut, and shows the dimming and waveform cleanly. Move to the real fan only after the bulb validates.
 - Power down and let the board discharge before rewiring. Do not touch the board live.
-- If any of this is outside what you are equipped for, that is the signal `COMPLIANCE-001` should be a competent third party and this bench waits for that.
+- If any of this is outside what you are equipped for, that is the signal this bench should be run by a competent third party, and it waits for that.
 
 **Equipment:** isolation transformer; variac or series-bulb limiter; oscilloscope with a differential or isolated probe for the mains side plus an ordinary probe for the logic side; IR thermometer or thermocouple; incandescent bulb; the actual target fan.
 
@@ -176,6 +176,6 @@ These bench-confirmed values are folded into `packages/expansions/fan_triac.yaml
 | Overall result | PASS / FAIL |
 | Scope captures attached | filenames / links |
 
-**On a PASS:** record the result here, then the `PACKAGE-TRIAC-001` half of the FanTRIAC blocker may be cleared in `config/product-catalog.json` and `config/room-bundle-fan-variants.json`, leaving `COMPLIANCE-001` as the sole remaining gate. That edit touches a blocker, so it is human-reviewed, not auto-merged. The publish (`TRIAC-PUBLISH-ADVANCED-PREVIEW-001`) still does not proceed until `COMPLIANCE-001` also clears.
+**On a PASS:** record the result here (including the signed attestation above), then the `PACKAGE-TRIAC-001` half of the FanTRIAC blocker may be cleared in `config/product-catalog.json` and `config/room-bundle-fan-variants.json`, leaving the `COMPLIANCE-001-RESOLUTION-001` experimental-lane entry as the sole remaining gate. That edit touches a blocker, so it is human-reviewed, not auto-merged — it is the commissioning PR. The publish (`TRIAC-PUBLISH-ADVANCED-PREVIEW-001`) still does not proceed until that commissioning PR deliberately moves FanTRIAC into the experimental lane with its own reviewed gate and test changes.
 
 **On a FAIL:** leave `PACKAGE-TRIAC-001` blocked, record the failure mode and the conditions, and make no pin, blocker, or status change.

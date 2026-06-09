@@ -277,7 +277,9 @@ class TriacStaysExcludedTests(unittest.TestCase):
     def test_triac_is_advanced_manual_preview_and_build_blocked(self) -> None:
         # TRIAC-UNBLOCK-BUILD-001 cleared the HW-005 build_blocker (buildable
         # now); TRIAC stays on the advanced-manual-preview lane, not
-        # WebFlash-importable, with stable gated by COMPLIANCE-001.
+        # WebFlash-importable, with the stable_blocker citing the
+        # COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions
+        # (COMPLIANCE-001 closed by posture; behaviour unchanged).
         t = self.by_cs[TRIAC_CONFIG]
         self.assertEqual(t["delivery_lane"], "advanced-manual-preview")
         self.assertIsNone(t.get("build_blocker"))

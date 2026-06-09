@@ -37,9 +37,11 @@ Cross-references enforced (metadata only):
     evidence (run ``26821900127``);
   * FanTRIAC (advanced-manual-preview) has its HW-005 build blocker cleared
     (TRIAC-UNBLOCK-BUILD-001; build_blocker null), is buildable now, carries a
-    firmware-build compile_evidence object (result success), keeps COMPLIANCE-001
-    in its stable_blocker, and uses the ``acknowledgement-gated-advanced``
-    exposure class;
+    firmware-build compile_evidence object (result success), keeps the
+    COMPLIANCE-001 citation in its stable_blocker (per
+    COMPLIANCE-001-RESOLUTION-001 it cites the experimental-lane
+    preconditions; the substring check is unchanged), and uses the
+    ``acknowledgement-gated-advanced`` exposure class;
   * every manual-firmware-artifacts candidate is represented here as a
     manual-preview row.
 
@@ -375,9 +377,11 @@ def validate(
             # TRIAC-UNBLOCK-BUILD-001: the HW-005 BUILDABILITY blocker is
             # resolved (SX1509-free Core respin routes TRI_GPIO1/2 direct to
             # IO14/IO13, corrected by TRIAC-PINMAP-CORRECT-001). build_blocker
-            # is cleared, the target is buildable, and
-            # it carries firmware-build compile evidence. Stable stays gated by
-            # COMPLIANCE-001 (+ PACKAGE-TRIAC-001), recorded in stable_blocker.
+            # is cleared, the target is buildable, and it carries
+            # firmware-build compile evidence. The stable_blocker keeps the
+            # COMPLIANCE-001 citation (per COMPLIANCE-001-RESOLUTION-001 it
+            # cites the experimental-lane preconditions + PACKAGE-TRIAC-001;
+            # the check below is a substring check and is unchanged).
             if row.get("build_blocker") is not None:
                 rerr.append(
                     f"row {rid!r}: TRIAC build_blocker must be null "

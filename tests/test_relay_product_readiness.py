@@ -586,10 +586,11 @@ class ReleaseOneAndLedPreviewUnchangedTests(unittest.TestCase):
 
     def test_fantriac_catalog_entry_remains_blocked(self) -> None:
         # TRIAC-PINMAP-CORRECT-001 corrected the FanTRIAC pins but the product
-        # STAYS status: blocked (gated by PACKAGE-TRIAC-001 + COMPLIANCE-001).
-        # This PR (FanRelay readiness) does not change FanTRIAC; the preserved
-        # invariant is that it stays off the WebFlash build matrix and stays
-        # gated by COMPLIANCE-001.
+        # STAYS status: blocked (gated by PACKAGE-TRIAC-001 + the
+        # COMPLIANCE-001 gate element, which COMPLIANCE-001-RESOLUTION-001
+        # re-pointed at the experimental-lane preconditions — behaviour
+        # unchanged). The preserved invariant is that it stays off the
+        # WebFlash build matrix with the COMPLIANCE-001 citation intact.
         entry = self._find(FANTRIAC_BLOCKED_CONFIG_STRING)
         self.assertEqual(entry["status"], "blocked")
         self.assertIn("blocker", entry)

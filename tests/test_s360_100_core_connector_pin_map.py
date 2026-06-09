@@ -495,10 +495,13 @@ class DoNotChangeGuardrailsTests(unittest.TestCase):
         # TRIAC-PINMAP-CORRECT-001: the pin map now records the J15
         # HW-005 BUILDABILITY + HW-PINMAP-320-FOLLOWUP pin resolution
         # (gate TRI_GPIO1 = IO14 / GPIO14; zero-cross TRI_GPIO2 = IO13 /
-        # GPIO13). It must record the corrected pins and keep the bench
-        # (PACKAGE-TRIAC-001) + mains-compliance (COMPLIANCE-001) gates
-        # cited as still-open; it must NOT over-claim those gates as
-        # resolved/cleared, and the product stays status: blocked.
+        # GPIO13). It must record the corrected pins and keep both gate
+        # citations present — PACKAGE-TRIAC-001 (bench attestation still
+        # owed) and the COMPLIANCE-001 element (per
+        # COMPLIANCE-001-RESOLUTION-001 it now cites the experimental-lane
+        # preconditions; COMPLIANCE-001 closed by market posture, never by
+        # evidence) — and it must NOT over-claim either gate as
+        # evidence-resolved/cleared; the product stays status: blocked.
         # (Stable / release / WebFlash readiness is separately guarded by
         # test_doc_does_not_claim_release_readiness.)
         lower = PINMAP_DOC.read_text().lower()

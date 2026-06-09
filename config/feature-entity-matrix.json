@@ -536,7 +536,7 @@
       "schematic_status": "cataloged_unverified",
       "canonical_board_package": null,
       "composed_of": [],
-      "notes": "Phase-dimmer for mains fan or lamp. NO board-layer package. Driver lives in packages/expansions/fan_triac.yaml but is BLOCKED: placeholder pins, ac_dimmer cannot run across the SX1509 expander, and mains-voltage compliance sign-off (COMPLIANCE-001) is open.",
+      "notes": "Phase-dimmer for mains fan or lamp. NO board-layer package. Driver lives in packages/expansions/fan_triac.yaml and stays BLOCKED from exposure: publish is gated by PACKAGE-TRIAC-001 (signed attestation) + the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions (COMPLIANCE-001 closed by market posture — S360-320 is never placed on the market; see docs/decisions/COMPLIANCE-001-RESOLUTION-001.md). Historical note: the placeholder-pin / SX1509 buildability blocker (HW-005) was resolved by TRIAC-PINMAP-CORRECT-001.",
       "rows": [
         {
           "row": "AC phase-cut dimmer output + fan entity",

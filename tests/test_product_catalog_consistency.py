@@ -163,11 +163,15 @@ class FanTriacBlockedTests(unittest.TestCase):
     TRIAC-PINMAP-CORRECT-001 corrected the gate/zero-cross pin mapping to the
     schematic-verified GPIO14/GPIO13 and reconciled the entry: the product
     STAYS status: blocked (HW-005 BUILDABILITY + HW-PINMAP-320-FOLLOWUP are
-    resolved, but bench PACKAGE-TRIAC-001 + mains COMPLIANCE-001 keep it
-    blocked), schematic_status is schematic-backed, and the blocker is moved
-    off HW-005 to PACKAGE-TRIAC-001 + COMPLIANCE-001. The preserved invariants
-    are pinned here: NOT in the WebFlash build matrix, no artifact_name, NOT in
-    config/webflash-builds.json.
+    resolved, but bench PACKAGE-TRIAC-001 plus the COMPLIANCE-001 gate element
+    keep it blocked), schematic_status is schematic-backed, and the blocker is
+    moved off HW-005 to PACKAGE-TRIAC-001 + COMPLIANCE-001. Per
+    COMPLIANCE-001-RESOLUTION-001 (COMPLIANCE-001 closed by market posture)
+    the blocker text now cites the resolution record's experimental-lane
+    preconditions — the COMPLIANCE-001 substring assertion below is satisfied
+    by the resolution id, and the enforced behaviour is unchanged until the
+    commissioning PR. The preserved invariants are pinned here: NOT in the
+    WebFlash build matrix, no artifact_name, NOT in config/webflash-builds.json.
     """
 
     @classmethod

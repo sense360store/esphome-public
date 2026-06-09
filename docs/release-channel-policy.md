@@ -91,9 +91,49 @@ stands), so the actual WebFlash one-click *committed* import is the separately
 queued downstream `WF-IMPORT-RELAY-001` / `WF-IMPORT-PWM-001` / `WF-IMPORT-DAC-001`
 follow-up. FanTRIAC keeps `acknowledgement-gated-advanced` as its **eventual**
 exposure class and is **not** WebFlash-import eligible here (handled by a separate
-TRIAC-specific PR; `HW-005` buildability + `COMPLIANCE-001`). **No target is
+TRIAC-specific PR; publish gated by `PACKAGE-TRIAC-001` + the
+`COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions — `HW-005`
+buildability is resolved and `COMPLIANCE-001` is closed by posture). **No target is
 blocked from preview for lacking stable evidence** — "blocked" only ever applies
 to stable promotion, or (for TRIAC) to a genuine *buildability* blocker.
+
+### Experimental lane — defined by COMPLIANCE-001-RESOLUTION-001 (no targets assigned)
+
+The owner decision record
+[`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`](decisions/COMPLIANCE-001-RESOLUTION-001.md)
+(2026-06-09) closed `COMPLIANCE-001` **by posture** — the mains-touching boards
+(`S360-320` TRIAC, `S360-310` Fan Relay, `S360-400` 240v PSU) are **never
+placed on the market by Sense360**; design files and firmware publish
+open-source under CERN-OHL-P for self-builders of their own devices, at their
+own risk — and defined an **EXPERIMENTAL publish lane** for self-build mains
+board firmware. The lane lives as policy metadata at
+[`config/release-channel-policy.json`](../config/release-channel-policy.json) →
+`experimental_lane`. Its binding constraints:
+
+- **hard-warned at every surface** (the experimental self-build mains warning
+  copy is mandatory everywhere an experimental build is named, listed, linked,
+  or installed);
+- **never stable-recommended**, **never a default**;
+- **never in the kit picker** (no kit / bundle-picker / easy-mode /
+  Simple-install surface);
+- **never in `REQUIRED_CONFIGS`**;
+- **never presented as verified for purchase** (self-build only; no
+  market-placement implication).
+
+**Lane-entry precondition:** completion of the functional bench protocol for
+the target board (`PACKAGE-TRIAC-001` class) **with a signed operator
+attestation committed** to the bench-proof container. Bench completion proves
+function only — it is **not** a safety, EMC, or compliance claim.
+
+**No target is assigned to the experimental lane yet.** It is deliberately
+**not** a `channel_tiers` entry, so no `preview_release_matrix` row can name it
+as an `intended_channel` in this PR. Moving the first target (FanTRIAC) into
+the lane — `channel_tiers` integration, build-channel suffix, build row,
+wrapper, release tag, catalogue status, WebFlash surface — is the separate,
+human-reviewed **commissioning PR** queued in
+[`UPCOMING_PR.md`](../UPCOMING_PR.md). Any future act of placing a
+mains-touching board on the market **reopens `COMPLIANCE-001`** and requires an
+external safety and EMC assessment before that act.
 
 ---
 
@@ -173,16 +213,21 @@ candidate room bundles stay hidden / not buyable. These are asserted by
 
 ### TRIAC under this decision
 
-TRIAC is `preview_allowed: true` and `preview_warning_required: true` with its
-`stable_blocker` keeping `HW-005` + `PACKAGE-TRIAC-001` + `COMPLIANCE-001`. It is
-the **only** target with `blocker_is_stable_only: false`, because `HW-005`
-carries a genuine *buildability* component (S360-320 schematic uncommitted,
-GPIO5/GPIO6 collision, `ac_dimmer` cannot run across the SX1509 expander). That
-buildability blocker — **not** a lack of hardware proof — is what currently
-prevents an actual advanced-preview cut (`hardware_proof_blocks_preview: false`,
-`preview_cut_gated_by_buildability: true`). TRIAC stays **advanced-manual-preview
-only**: never stable, never recommended, never default, never a customer-kit
-default, and no safety / compliance certification is claimed.
+TRIAC is `preview_allowed: true` and `preview_warning_required: true`. At
+decision time its `stable_blocker` kept `HW-005` + `PACKAGE-TRIAC-001` +
+`COMPLIANCE-001`, and it was the **only** target with
+`blocker_is_stable_only: false`, because `HW-005` carried a genuine
+*buildability* component (S360-320 schematic uncommitted, GPIO5/GPIO6
+collision, `ac_dimmer` cannot run across the SX1509 expander). Since then
+`HW-005` buildability was resolved (`TRIAC-PINMAP-CORRECT-001`) and
+`COMPLIANCE-001` was **closed by posture**
+(`COMPLIANCE-001-RESOLUTION-001`); the publish citation is now
+`PACKAGE-TRIAC-001` + the `COMPLIANCE-001-RESOLUTION-001` experimental-lane
+preconditions (see the Experimental-lane section above), with the enforced
+behaviour unchanged until the commissioning PR. TRIAC stays
+**advanced-manual-preview only**: never stable, never recommended, never
+default, never a customer-kit default, and no safety / compliance
+certification is claimed.
 
 ### Concrete build rows (RELEASE-PREVIEW-FAN-TRIAC-BUILD-ROWS-001)
 

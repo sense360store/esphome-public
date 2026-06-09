@@ -401,8 +401,10 @@ class CandidatesGuardrailTests(unittest.TestCase):
             self.assertFalse(
                 cand["compile_only_safe"],
                 f"candidate {cand['config_string']!r}: PWR-bearing "
-                "candidate must NOT claim compile_only_safe=true; "
-                "COMPLIANCE-001 (mains-voltage UK / EU assessment) is open",
+                "candidate must NOT claim compile_only_safe=true; the "
+                "COMPLIANCE-001-RESOLUTION-001 experimental-lane "
+                "preconditions for S360-400 are not met (COMPLIANCE-001 "
+                "closed by posture; deferral behaviour unchanged)",
             )
 
     def test_every_pwr_candidate_carries_compliance_blocker(self):
@@ -425,8 +427,10 @@ class CandidatesGuardrailTests(unittest.TestCase):
             self.assertFalse(
                 cand["compile_only_safe"],
                 f"candidate {cand['config_string']!r}: FanTRIAC-bearing "
-                "candidate must NOT claim compile_only_safe=true; "
-                "HW-005 / PACKAGE-TRIAC-001 / COMPLIANCE-001 are all open",
+                "candidate must NOT claim compile_only_safe=true; the "
+                "PACKAGE-TRIAC-001 attestation and the "
+                "COMPLIANCE-001-RESOLUTION-001 experimental-lane move "
+                "(commissioning PR) have not landed",
             )
 
     def test_every_fantriac_candidate_carries_hw005_and_compliance_blockers(self):
