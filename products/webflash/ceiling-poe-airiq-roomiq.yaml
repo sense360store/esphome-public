@@ -1,52 +1,42 @@
 # ============================================================================
-# Sense360 WebFlash wrapper — compile-validated PREVIEW CANDIDATE.
+# Sense360 WebFlash wrapper — Kitchen PoE AirIQ + RoomIQ (STABLE, owner waiver).
 # ============================================================================
-# RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001. This file is the WebFlash-namespaced
-# wrapper for the Kitchen PoE AirIQ + RoomIQ preview candidate. It mirrors the
-# pattern of the LED preview wrapper
-#   products/webflash/ceiling-poe-ventiq-roomiq-led.yaml
-# so that, when a later reviewed build-row PR adds this preview build to
-# config/webflash-builds.json, the build matrix can address this YAML via the
-# products/webflash/ namespace without duplicating package wiring.
+# This file is the WebFlash-namespaced wrapper for the Kitchen PoE AirIQ +
+# RoomIQ bundle. It is a thin wrapper that re-exports the canonical product
+# YAML so the WebFlash build matrix (config/webflash-builds.json) can address
+# it via the products/webflash/ namespace without duplicating package wiring.
 #
 # Canonical YAML (full substitutions, packages, board config):
 #   products/sense360-ceiling-poe-airiq-roomiq.yaml
 #   (a compat shim over products/bundles/ceiling-poe-airiq-roomiq.yaml)
 #
 # WebFlash config string : Ceiling-POE-AirIQ-RoomIQ
+# Channel / version      : stable; the live version + artifact name are
+#                          declared in config/webflash-builds.json (the sole
+#                          release-eligibility source of truth).
 #
 # ============================================================================
-# STATUS — WHAT THIS WRAPPER IS NOT
+# STATUS
 # ============================================================================
-#   * NOT stable, NOT production, NOT recommended, NOT a customer default.
-#     The only stable Release-One target stays Ceiling-POE-VentIQ-RoomIQ; that
-#     wrapper (products/webflash/ceiling-poe-ventiq-roomiq.yaml) is unchanged.
-#   * NOT in the WebFlash build matrix. This PR adds NO row to
-#     config/webflash-builds.json. The product-catalog status stays `blocked`
-#     (the S360-410 PoE-PSU stable/lifecycle gate, PRODUCT-POE-410-001) with
-#     webflash_build_matrix=false; this wrapper does not flip it.
-#   * NO firmware artifact. No `.bin` exists for Ceiling-POE-AirIQ-RoomIQ.
-#     This wrapper declares NO version, NO channel, and NO artifact_name —
-#     artifact publication metadata lands only with the later, reviewed
-#     build-row PR on a non-stable channel.
-#   * NOT hardware verified. No bench evidence, no verified schematic, and no
-#     electrical / compliance certification is claimed.
+#   * STABLE under an owner risk-acceptance waiver (HW-AIRIQ-WAIVER-2026-06),
+#     promoted from preview at v1.0.6 (2026-06-09). The waiver records risk
+#     acceptance, NOT hardware verification: AirIQ sensor-stack bench accuracy
+#     (SPS30, SGP41, SCD41, BMP390) is not verified, and the S360-410 PoE PSU
+#     is covered by HW-S360-410-WAIVER-2026-06.
+#   * NOT recommended, NOT a customer default, NOT buyable. The Release-One
+#     customer baseline stays Ceiling-POE-VentIQ-RoomIQ; the S360-KIT-KITCHEN-P
+#     bundle stays hidden / not buyable.
+#   * This wrapper declares NO version, NO channel, and NO artifact_name —
+#     publication metadata lives only in config/webflash-builds.json and
+#     config/product-catalog.json.
 #
-# ============================================================================
-# WHAT IS PROVEN
-# ============================================================================
-# Firmware-build proof only: the hosted Preview Compile Dry-Run (run
-# 26821900127, workflow_dispatch / compile_mode=full, 2026-06-02, ESPHome
-# 2026.4.5) compiled the canonical product YAML GREEN on hosted CI. A green
-# compile means the !include chain resolves and ESPHome codegen + the
-# PlatformIO/ESP-IDF toolchain build succeed for the ESP32-S3 target — NOT
-# hardware proof, NOT bench evidence, NOT a compliance claim, and NOT a
-# stable-promotion gate.
-#
-# Readiness record and remaining step (a reviewed config/webflash-builds.json
-# build row): docs/release-preview-webflash-wrappers.md.
+# History: authored as a preview candidate by
+# RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001 (hosted compile proof: run
+# 26821900127); the reviewed preview build row was added by
+# RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001; promoted to stable v1.0.6 under the
+# owner waiver (see config/product-catalog.json stable_blocker text).
 # See docs/webflash-contract.md for the WebFlash artifact / grammar / token
-# contract this wrapper would satisfy once that build-row PR lands.
+# contract this wrapper satisfies.
 # ============================================================================
 
 packages:
