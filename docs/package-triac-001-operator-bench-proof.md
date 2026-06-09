@@ -2,7 +2,7 @@
 
 **Blocker id:** `PACKAGE-TRIAC-001`
 
-**Status:** BENCH PROTOCOL COMPLETE — PENDING OPERATOR ATTESTATION. Steps A through F all recorded PASS on the real Manrose fan motor load (bench runs of 2026-06-08 and 2026-06-09; evidence class for every Step F row: operator observation, no log capture). The signed operator attestation below is intentionally empty and is added by the operator himself before merge. Closing the bench protocol does **not** clear `PACKAGE-TRIAC-001` — the blocker edit in `config/product-catalog.json` / `config/room-bundle-fan-variants.json` is a separate human-reviewed change after attestation — and `COMPLIANCE-001` (mains-voltage sign-off) is unchanged, so the S360-320 TRIAC stays BLOCKED / reference-only.
+**Status:** STEPS A–F COMPLETE, ALL PASS — PENDING FULL-COMPOSITION RE-CONFIRM AND OPERATOR ATTESTATION. Steps A through F all recorded PASS on the real Manrose fan motor load (bench runs of 2026-06-08 and 2026-06-09; evidence class for every Step F row: operator observation, no log capture). The full-composition re-confirm is NOT RECORDED: the operator report for Step F did not state which firmware image was flashed, and production parameters alone cannot prove the full composition (see the re-confirm row for what closes it). The signed operator attestation below is intentionally empty and is added by the operator himself before merge. Closing the lettered bench steps does **not** clear `PACKAGE-TRIAC-001` — the blocker edit in `config/product-catalog.json` / `config/room-bundle-fan-variants.json` is a separate human-reviewed change after the re-confirm and the attestation land — and `COMPLIANCE-001` (mains-voltage sign-off) is unchanged, so the S360-320 TRIAC stays BLOCKED / reference-only.
 
 **Type:** Operator-evidence record. Docs only. This file asserts **no** firmware, manifest, release, or WebFlash change, and makes **no** isolation, creepage, clearance, EMI, or compliance claim. Those stay with `COMPLIANCE-001`.
 
@@ -161,15 +161,17 @@ Run by the operator on the production parameter set — `inverted: true`, `metho
 
 ### Full-composition re-confirm
 
+This row exists to check that the full product firmware — the sensor stack's I²C traffic, the LD2450 UART, and WiFi activity all running — does not perturb the dimmer timing. Parameters cannot prove that; only flashing the full composition can. The operator report for Step F did not state which firmware image was flashed: the production parameter set (`restore_mode: RESTORE_DEFAULT_OFF`, `min_power: 15%`) proves the production fan component was in the image, but production parameters are not the full composition, so this row is **not** marked from the Step F results.
+
 | Capture | Expected | Result |
 |---|---|---|
-| Re-flash `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`, dimmer behaves identically to the minimal bench | identical | PASS — covered by the Step F runs: the boot/reboot cycles and the 2026-06-08 soak ran on the production parameter set (`inverted: true`, `method: leading`, `min_power: 15%`, `init_with_half_cycle: true`, `restore_mode: RESTORE_DEFAULT_OFF` — the production fan component, not the minimal bench config), and behaviour matched the minimal-bench results recorded in Steps A–C and E, with speed control verified at 25% / 50% / 75% (operator observation, no log capture) |
+| Re-flash `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`, dimmer behaves identically to the minimal bench | identical | NOT RECORDED — closes on either (a) an explicit operator statement that the Step F image was the full `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` composition, or (b) a re-flash of the full composition and a re-check that the dimmer behaves identically (evidence class: operator observation acceptable) |
 
 ---
 
-## Close-out — bench protocol COMPLETE, pending operator attestation
+## Close-out — Steps A–F complete, pending full-composition re-confirm and operator attestation
 
-**`PACKAGE-TRIAC-001` bench protocol COMPLETE (2026-06-09): Steps A through F all PASS. Pending operator attestation.**
+**`PACKAGE-TRIAC-001` Steps A through F all PASS (2026-06-09). Outstanding before the protocol fully closes: the full-composition re-confirm and the signed operator attestation.**
 
 | Step | Result |
 |---|---|
@@ -179,7 +181,7 @@ Run by the operator on the production parameter set — `inverted: true`, `metho
 | D — locked parameters | PASS — folded into `packages/expansions/fan_triac.yaml` |
 | E — thermal soak | PASS |
 | F — stability and boot | PASS (operator observation, no log capture) |
-| Full-composition re-confirm | PASS — covered by the Step F production-parameter runs |
+| Full-composition re-confirm | NOT RECORDED — closes on an explicit operator statement that the Step F image was the full composition, or on a re-flash re-check (see the re-confirm row) |
 
 **Hardware under test:** S360-100-R4 Core + S360-320-R4 TRIAC module, Manrose fan motor (real inductive load).
 
@@ -189,9 +191,10 @@ Run by the operator on the production parameter set — `inverted: true`, `metho
 
 **Next steps, in order:**
 
-1. The operator completes the **Operator attestation** block below before merge. This close-out PR carries it empty by design.
-2. After attestation, a separate human-reviewed PR may clear the `PACKAGE-TRIAC-001` half of the FanTRIAC blocker in `config/product-catalog.json` and `config/room-bundle-fan-variants.json`, leaving `COMPLIANCE-001` as the sole remaining gate. That edit touches a blocker, so it is human-reviewed, not auto-merged.
-3. The publish (`TRIAC-PUBLISH-ADVANCED-PREVIEW-001`) still does not proceed until `COMPLIANCE-001` also clears.
+1. The operator resolves the **full-composition re-confirm**: either states that the Step F image was the full `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` composition, or re-flashes the full composition and re-checks that the dimmer behaves identically.
+2. The operator completes the **Operator attestation** block below before merge. This close-out PR carries it empty by design.
+3. After the re-confirm and the attestation, a separate human-reviewed PR may clear the `PACKAGE-TRIAC-001` half of the FanTRIAC blocker in `config/product-catalog.json` and `config/room-bundle-fan-variants.json`, leaving `COMPLIANCE-001` as the sole remaining gate. That edit touches a blocker, so it is human-reviewed, not auto-merged.
+4. The publish (`TRIAC-PUBLISH-ADVANCED-PREVIEW-001`) still does not proceed until `COMPLIANCE-001` also clears.
 
 ---
 

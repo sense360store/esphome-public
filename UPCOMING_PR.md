@@ -19,8 +19,8 @@ Four items are genuinely open. The first two are **off-agent** gates (bench
 attestation / mains sign-off); the last two are the remaining security-audit
 findings from [`security.md`](security.md).
 
-1. **`PACKAGE-TRIAC-001` — FanTRIAC operator bench (off-agent; bench protocol
-   COMPLETE — pending operator attestation).**
+1. **`PACKAGE-TRIAC-001` — FanTRIAC operator bench (off-agent; Steps A–F PASS
+   — pending full-composition re-confirm + operator attestation).**
    The FanTRIAC gate/zero-cross mapping is schematic-verified — gate `GPIO14`
    = `TRI_GPIO1` → U1 MOC3023M; zero-cross `GPIO13` = `TRI_GPIO2` → OK1 EL814
    (`TRIAC-PINMAP-CORRECT-001`, traced from `S360-100-R4` + `S360-320-R4`), and
@@ -34,14 +34,17 @@ findings from [`security.md`](security.md).
    real Manrose fan motor. `PACKAGE-TRIAC-001-CLOSE`
    (`bench/package-triac-001-step-f-close`, human-review) then recorded the
    operator-reported Step F results — cold boots, warm reboots, stability soak,
-   all PASS; evidence class: operator observation, no log capture — and closed
-   the functional bench protocol: **Steps A–F all PASS** on the real Manrose
-   motor load (2026-06-08/09). **Still outstanding: the signed operator
-   attestation** (the operator completes the intentionally empty attestation
-   block on the close-out branch before merge), then the separate human-reviewed
-   blocker-clear edit. Closure of the bench protocol does **not** clear
-   `PACKAGE-TRIAC-001` and does **not** change the publish posture; a PASS +
-   attestation clears only the `PACKAGE-TRIAC-001` half (human-reviewed);
+   all PASS; evidence class: operator observation, no log capture — marking
+   **Steps A–F all PASS** on the real Manrose motor load (2026-06-08/09).
+   **Still outstanding:** (a) the **full-composition re-confirm** — NOT
+   RECORDED, because the Step F report did not state which firmware image was
+   flashed and production parameters alone cannot prove the full composition;
+   it closes on an explicit operator statement or a re-flash re-check — and
+   (b) the **signed operator attestation** (the operator completes the
+   intentionally empty attestation block on the close-out branch before
+   merge), then the separate human-reviewed blocker-clear edit. None of this
+   clears `PACKAGE-TRIAC-001` or changes the publish posture; the re-confirm +
+   attestation clear only the `PACKAGE-TRIAC-001` half (human-reviewed);
    `COMPLIANCE-001` stays separate. `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays
    `status: blocked` throughout — never stable, recommended, default, buyable, or
    WebFlash-exposed.
@@ -219,13 +222,15 @@ PRs.
 * **`PACKAGE-TRIAC-001-CLOSE`** (`bench/package-triac-001-step-f-close`,
   2026-06-09, human-review): recorded the operator-reported Step F results
   (cold boots / warm reboots / stability soak — PASS; evidence class: operator
-  observation, no log capture), marked Steps A–F all PASS on the real Manrose
-  motor load, and closed the functional bench protocol pending operator
-  attestation (empty attestation block added; the operator completes it before
-  merge). Docs + the `fan_triac.yaml` status comment + the #728 guard-test
-  rebaseline only. Publish posture unchanged: FanTRIAC stays BLOCKED /
-  reference-only on `COMPLIANCE-001` — never stable, recommended, default,
-  buyable, or WebFlash-exposed.
+  observation, no log capture) and marked Steps A–F all PASS on the real
+  Manrose motor load. The full-composition re-confirm stays NOT RECORDED (the
+  Step F report did not state which image was flashed; parameters alone cannot
+  prove the full composition; closes on operator statement or re-flash
+  re-check), and the empty attestation block was added for the operator to
+  complete before merge. Docs + the `fan_triac.yaml` status comment + the #728
+  guard-test rebaseline only. Publish posture unchanged: FanTRIAC stays
+  BLOCKED / reference-only on `COMPLIANCE-001` — never stable, recommended,
+  default, buyable, or WebFlash-exposed.
 * **CI — remove `preview-fan-publish.yml`** (`ci/remove-preview-fan-publish`,
   2026-06-08): retired the never-run (0 runs) fan-publish workflow, superseded by
   Create Release + Release 3 (which published the live `v1.0.0-preview` fan builds
