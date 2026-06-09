@@ -1,0 +1,548 @@
+diff --git a/tests/test_preview_release_notes_drafts.py b/tests/test_preview_release_notes_drafts.py
+index 317c99d..e8b840c 100644
+--- a/tests/test_preview_release_notes_drafts.py
++++ b/tests/test_preview_release_notes_drafts.py
+@@ -67,14 +67,30 @@ SHARED_PREVIEW_NOTES = "v1.0.0-preview.md"
+ 
+ COMPILE_RUN_ID = 26821900127
+ 
+-# The three metadata-ready preview rows this dry-run drafts, by config string.
+-METADATA_READY_CONFIGS = (
++# The three rows this dry-run drafted, by config string. The committed drafts
++# are HISTORICAL dry-run records of the v1.0.0-preview cut.
++# STABLE-PROMOTION-RECONCILE-001: two of the three have since been promoted to
++# the stable channel (Ceiling-POE-RoomIQ v1.0.5 on 2026-06-08,
++# Ceiling-POE-AirIQ-RoomIQ v1.0.6 on 2026-06-09, owner-waiver promotions), so
++# only the LED room bundle is still metadata-ready on the preview channel.
++DRAFTED_CONFIGS = (
+     "Ceiling-POE-AirIQ-RoomIQ",
+     "Ceiling-POE-RoomIQ",
+     "Ceiling-POE-RoomIQ-LED",
+ )
++STILL_METADATA_READY_CONFIGS = ("Ceiling-POE-RoomIQ-LED",)
++PROMOTED_CONFIGS = (
++    "Ceiling-POE-AirIQ-RoomIQ",
++    "Ceiling-POE-RoomIQ",
++)
++# The preview artifact each draft named at drafting time (historical, static).
++DRAFTED_ARTIFACTS = {
++    cs: f"Sense360-{cs}-v1.0.0-preview.bin" for cs in DRAFTED_CONFIGS
++}
+ STABLE_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
+ PUBLISHED_LED_PREVIEW_CONFIG = "Ceiling-POE-VentIQ-RoomIQ-LED"
++# The stable Bathroom artifact the drafts cross-referenced at drafting time
++# (historical text pin; the live ledger artifact has since been bumped).
+ STABLE_BATHROOM_ARTIFACT = "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin"
+ LAUNCH_SKU = "S360-KIT-BATH-P"
+ 
+@@ -161,23 +177,31 @@ def _metadata_ready_rows() -> List[Dict[str, Any]]:
+ 
+ 
+ class MetadataReadySelectionTests(unittest.TestCase):
+-    """The dry-run scope is exactly the three metadata-ready preview rows."""
++    """The dry-run drafted the three then-metadata-ready preview rows; after
++    the promotions only the LED room bundle is still metadata-ready."""
+ 
+-    def test_metadata_ready_rows_are_the_three_expected_configs(self) -> None:
++    def test_metadata_ready_rows_are_the_unpromoted_configs(self) -> None:
+         got = sorted(b["config_string"] for b in _metadata_ready_rows())
+-        self.assertEqual(got, sorted(METADATA_READY_CONFIGS))
++        self.assertEqual(got, sorted(STILL_METADATA_READY_CONFIGS))
+ 
+     def test_metadata_ready_rows_are_preview_channel(self) -> None:
+         for b in _metadata_ready_rows():
+             with self.subTest(config_string=b["config_string"]):
+                 self.assertEqual(b["channel"], "preview")
+ 
++    def test_promoted_rows_left_the_preview_channel(self) -> None:
++        by_cs = _by_cs()
++        for cs in PROMOTED_CONFIGS:
++            with self.subTest(config_string=cs):
++                self.assertEqual(by_cs[cs]["channel"], "stable")
++                self.assertNotIn("release_state", by_cs[cs])
++
+ 
+ class DraftFilesExistTests(unittest.TestCase):
+-    """Task item 2 / 6: each metadata-ready preview row has draft coverage."""
++    """Task item 2 / 6: each drafted row keeps its committed dry-run draft."""
+ 
+-    def test_each_metadata_ready_row_has_a_draft(self) -> None:
+-        for cs in METADATA_READY_CONFIGS:
++    def test_each_drafted_row_has_a_draft(self) -> None:
++        for cs in DRAFTED_CONFIGS:
+             with self.subTest(config_string=cs):
+                 self.assertTrue(
+                     _draft_path(cs).is_file(),
+@@ -185,7 +209,7 @@ class DraftFilesExistTests(unittest.TestCase):
+                 )
+ 
+     def test_draft_basename_follows_lowercase_config_convention(self) -> None:
+-        for cs in METADATA_READY_CONFIGS:
++        for cs in DRAFTED_CONFIGS:
+             with self.subTest(config_string=cs):
+                 self.assertEqual(_draft_path(cs).name, f"{cs.lower()}.md")
+ 
+@@ -194,7 +218,7 @@ class DraftStructuralContractTests(unittest.TestCase):
+     """Task item 6: drafts validate against the WebFlash release-body contract."""
+ 
+     def test_each_draft_passes_release_notes_validator_on_preview(self) -> None:
+-        for cs in METADATA_READY_CONFIGS:
++        for cs in DRAFTED_CONFIGS:
+             with self.subTest(config_string=cs):
+                 body = _draft_path(cs).read_text(encoding="utf-8")
+                 errors = _VALIDATOR.validate_body(body, channel="preview")
+@@ -202,7 +226,7 @@ class DraftStructuralContractTests(unittest.TestCase):
+ 
+     def test_each_draft_has_the_four_required_h2_sections(self) -> None:
+         required = {"Changelog", "Known Issues", "Features", "Hardware Requirements"}
+-        for cs in METADATA_READY_CONFIGS:
++        for cs in DRAFTED_CONFIGS:
+             with self.subTest(config_string=cs):
+                 body = _draft_path(cs).read_text(encoding="utf-8")
+                 sections = _VALIDATOR._parse_sections(body)
+@@ -216,7 +240,7 @@ class DraftWarningCopyTests(unittest.TestCase):
+     """Task item 3: every draft clearly states the preview warning copy."""
+ 
+     def test_each_draft_states_every_required_phrase(self) -> None:
+-        for cs in METADATA_READY_CONFIGS:
++        for cs in DRAFTED_CONFIGS:
+             norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
+             for phrase in REQUIRED_PHRASES:
+                 with self.subTest(config_string=cs, phrase=phrase):
+@@ -228,14 +252,14 @@ class DraftWarningCopyTests(unittest.TestCase):
+                     )
+ 
+     def test_each_draft_cites_hosted_compile_run(self) -> None:
+-        for cs in METADATA_READY_CONFIGS:
++        for cs in DRAFTED_CONFIGS:
+             with self.subTest(config_string=cs):
+                 norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
+                 self.assertIn("compile run", norm)
+                 self.assertIn(str(COMPILE_RUN_ID), norm)
+ 
+     def test_each_draft_points_customers_to_stable_bathroom_release(self) -> None:
+-        for cs in METADATA_READY_CONFIGS:
++        for cs in DRAFTED_CONFIGS:
+             with self.subTest(config_string=cs):
+                 norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
+                 self.assertIn("stable bathroom poe release", norm)
+@@ -243,7 +267,7 @@ class DraftWarningCopyTests(unittest.TestCase):
+                 self.assertIn(LAUNCH_SKU.lower(), norm)
+ 
+     def test_each_draft_marks_itself_a_dry_run_draft(self) -> None:
+-        for cs in METADATA_READY_CONFIGS:
++        for cs in DRAFTED_CONFIGS:
+             with self.subTest(config_string=cs):
+                 norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
+                 self.assertIn("dry-run draft only", norm)
+@@ -254,7 +278,7 @@ class DraftNoStableRecommendedDefaultLanguageTests(unittest.TestCase):
+     """Task item 6: no stable / recommended / default language for the build."""
+ 
+     def test_recommended_is_always_negated(self) -> None:
+-        for cs in METADATA_READY_CONFIGS:
++        for cs in DRAFTED_CONFIGS:
+             with self.subTest(config_string=cs):
+                 norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
+                 self.assertEqual(
+@@ -264,7 +288,7 @@ class DraftNoStableRecommendedDefaultLanguageTests(unittest.TestCase):
+                 )
+ 
+     def test_default_is_always_negated(self) -> None:
+-        for cs in METADATA_READY_CONFIGS:
++        for cs in DRAFTED_CONFIGS:
+             with self.subTest(config_string=cs):
+                 norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
+                 self.assertEqual(
+@@ -275,7 +299,7 @@ class DraftNoStableRecommendedDefaultLanguageTests(unittest.TestCase):
+                 )
+ 
+     def test_no_affirmative_stable_recommended_default_claim(self) -> None:
+-        for cs in METADATA_READY_CONFIGS:
++        for cs in DRAFTED_CONFIGS:
+             norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
+             for bad in FORBIDDEN_AFFIRMATIVE:
+                 with self.subTest(config_string=cs, phrase=bad):
+@@ -286,13 +310,13 @@ class DraftNoStableRecommendedDefaultLanguageTests(unittest.TestCase):
+                     )
+ 
+     def test_draft_self_artifact_is_preview_only(self) -> None:
+-        # The draft's own artifact is the -preview.bin; the only -stable.bin it
+-        # names is the Bathroom stable cross-reference.
+-        by_cs = _by_cs()
+-        for cs in METADATA_READY_CONFIGS:
++        # The draft's own artifact is the -preview.bin it was drafted with
++        # (historical pin — the promoted rows' live artifacts are stable now);
++        # the only -stable.bin it names is the Bathroom stable cross-reference.
++        for cs in DRAFTED_CONFIGS:
+             with self.subTest(config_string=cs):
+                 norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
+-                own = by_cs[cs]["artifact_name"]
++                own = DRAFTED_ARTIFACTS[cs]
+                 self.assertTrue(own.endswith("-preview.bin"))
+                 self.assertIn(own.lower(), norm)
+                 self.assertEqual(
+@@ -305,16 +329,17 @@ class DraftNoStableRecommendedDefaultLanguageTests(unittest.TestCase):
+ 
+ 
+ class MetadataReadyRowPostureTests(unittest.TestCase):
+-    """Task item 6: each metadata-ready build row carries the compile-evidence
+-    reference, the hidden / not-buyable posture, the preview warning copy, and
+-    no stable promotion."""
++    """Task item 6: each drafted build row carries the compile-evidence
++    reference and the hidden / not-buyable posture; the unpromoted row keeps
++    the preview warning copy while the promoted rows dropped the preview-only
++    fields on promotion."""
+ 
+     @classmethod
+     def setUpClass(cls) -> None:
+         cls.by_cs = _by_cs()
+ 
+     def test_rows_cite_firmware_build_compile_evidence(self) -> None:
+-        for cs in METADATA_READY_CONFIGS:
++        for cs in DRAFTED_CONFIGS:
+             with self.subTest(config_string=cs):
+                 ev = self.by_cs[cs].get("compile_evidence")
+                 self.assertIsInstance(ev, dict)
+@@ -322,27 +347,33 @@ class MetadataReadyRowPostureTests(unittest.TestCase):
+                 self.assertEqual(ev.get("proof_class"), "firmware-build-only")
+                 self.assertEqual(ev.get("result"), "success")
+ 
+-    def test_rows_carry_preview_warning_copy(self) -> None:
+-        for cs in METADATA_READY_CONFIGS:
++    def test_rows_carry_warning_copy_matching_promotion_state(self) -> None:
++        for cs in STILL_METADATA_READY_CONFIGS:
+             with self.subTest(config_string=cs):
+                 row = self.by_cs[cs]
+                 self.assertEqual(row.get("warning_copy_key"), "preview")
+                 self.assertIn(
+                     "PREVIEW FIRMWARE", row.get("release_note_warning", "")
+                 )
++        for cs in PROMOTED_CONFIGS:
++            with self.subTest(config_string=cs):
++                row = self.by_cs[cs]
++                self.assertNotIn("warning_copy_key", row)
++                self.assertNotIn("release_note_warning", row)
+ 
+-    def test_rows_are_hidden_not_buyable_not_stable(self) -> None:
+-        for cs in METADATA_READY_CONFIGS:
++    def test_rows_are_hidden_not_buyable(self) -> None:
++        # posture.stable mirrors the channel after the promotions.
++        for cs in DRAFTED_CONFIGS:
+             with self.subTest(config_string=cs):
+                 posture = self.by_cs[cs].get("commercial_posture", {})
+                 self.assertEqual(posture.get("visibility"), "hidden")
+                 self.assertFalse(posture.get("buyable"))
+                 self.assertFalse(posture.get("recommended"))
+                 self.assertFalse(posture.get("customer_default"))
+-                self.assertFalse(posture.get("stable"))
++                self.assertEqual(posture.get("stable"), cs in PROMOTED_CONFIGS)
+ 
+-    def test_rows_are_preview_channel_metadata_only(self) -> None:
+-        for cs in METADATA_READY_CONFIGS:
++    def test_rows_channels_match_promotion_state(self) -> None:
++        for cs in STILL_METADATA_READY_CONFIGS:
+             with self.subTest(config_string=cs):
+                 row = self.by_cs[cs]
+                 self.assertEqual(row["channel"], "preview")
+@@ -350,7 +381,11 @@ class MetadataReadyRowPostureTests(unittest.TestCase):
+                     row.get("release_state"), "metadata-ready-unpublished"
+                 )
+                 self.assertTrue(row["artifact_name"].endswith("-preview.bin"))
+-                self.assertNotIn("-stable.bin", row["artifact_name"])
++        for cs in PROMOTED_CONFIGS:
++            with self.subTest(config_string=cs):
++                row = self.by_cs[cs]
++                self.assertEqual(row["channel"], "stable")
++                self.assertTrue(row["artifact_name"].endswith("-stable.bin"))
+ 
+ 
+ class EveryPreviewRowHasCoverageTests(unittest.TestCase):
+@@ -402,15 +437,22 @@ class StableBathroomCrossReferenceTests(unittest.TestCase):
+     source of truth (launch SKU unchanged)."""
+ 
+     def test_launch_sku_and_artifact_match_shop_source_of_truth(self) -> None:
++        # The shop artifact mirrors the LIVE stable Bathroom build (the ledger
++        # version moves with release bumps; the drafts' v1.0.0 cross-reference
++        # stays a historical text pin checked separately above).
+         shop = _load_json(SHOP_PATH)["launch_product"]
++        row = _by_cs()[STABLE_CONFIG]
+         self.assertEqual(shop["shop_sku"], LAUNCH_SKU)
+         self.assertEqual(shop["firmware_config"], STABLE_CONFIG)
+-        self.assertEqual(shop["artifact_name"], STABLE_BATHROOM_ARTIFACT)
++        self.assertEqual(shop["artifact_name"], row["artifact_name"])
+ 
+-    def test_stable_row_unchanged_in_build_ledger(self) -> None:
++    def test_stable_row_still_stable_in_build_ledger(self) -> None:
+         row = _by_cs()[STABLE_CONFIG]
+         self.assertEqual(row["channel"], "stable")
+-        self.assertEqual(row["artifact_name"], STABLE_BATHROOM_ARTIFACT)
++        self.assertEqual(
++            row["artifact_name"],
++            f"Sense360-{STABLE_CONFIG}-v{row['version']}-stable.bin",
++        )
+ 
+ 
+ class GuardrailTests(unittest.TestCase):
+@@ -429,7 +471,7 @@ class GuardrailTests(unittest.TestCase):
+         present = sorted(p.name for p in DRAFT_DIR.glob("*.md"))
+         expected = sorted(
+             ["README.md", SHARED_PREVIEW_NOTES]
+-            + [f"{cs.lower()}.md" for cs in METADATA_READY_CONFIGS]
++            + [f"{cs.lower()}.md" for cs in DRAFTED_CONFIGS]
+         )
+         self.assertEqual(present, expected)
+ 
+diff --git a/tests/test_preview_release_targets.py b/tests/test_preview_release_targets.py
+index bd94203..f29958f 100644
+--- a/tests/test_preview_release_targets.py
++++ b/tests/test_preview_release_targets.py
+@@ -377,12 +377,14 @@ class WebflashCoverageTests(unittest.TestCase):
+                 self.assertEqual(build["channel"], t["build_channel"])
+                 self.assertEqual(build["artifact_name"], t["expected_artifact_name"])
+ 
+-    def test_metadata_ready_targets_are_the_three_room_bundle_previews(self) -> None:
+-        # RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001: the three compile-validated
+-        # room-bundle previews now carry a reviewed build row and are recorded
+-        # webflash-preview-metadata-ready (build-row prerequisite resolved, so
+-        # no build_blocker), while staying preview / not recommended / not
+-        # customer-default / not required-config.
++    def test_metadata_ready_targets_are_the_remaining_room_bundle_previews(self) -> None:
++        # RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 recorded three room-bundle
++        # previews as webflash-preview-metadata-ready. STABLE-PROMOTION-
++        # RECONCILE-001: two of them have since been promoted and published
++        # stable (Ceiling-POE-RoomIQ v1.0.5 on 2026-06-08, Ceiling-POE-AirIQ-
++        # RoomIQ v1.0.6 on 2026-06-09, both owner-waiver promotions), so only
++        # the Living/Corridor LED bundle still sits metadata-ready on the
++        # preview channel (no binary published for it yet).
+         metadata_ready = {
+             t["config_string"]
+             for t in self.manifest["targets"]
+@@ -391,8 +393,6 @@ class WebflashCoverageTests(unittest.TestCase):
+         self.assertEqual(
+             metadata_ready,
+             {
+-                "Ceiling-POE-AirIQ-RoomIQ",
+-                "Ceiling-POE-RoomIQ",
+                 "Ceiling-POE-RoomIQ-LED",
+             },
+         )
+@@ -470,12 +470,22 @@ class NoStablePromotionTests(unittest.TestCase):
+     def setUpClass(cls) -> None:
+         cls.manifest = _load(MANIFEST_PATH)
+ 
+-    def test_only_the_release_one_baseline_is_stable(self) -> None:
++    def test_stable_targets_mirror_the_ledger_and_baseline_stays_unique(self) -> None:
++        # STABLE-PROMOTION-RECONCILE-001: the stable tier now carries the
++        # Release-One baseline plus the two owner-waiver promotions (Bedroom
++        # v1.0.5, Kitchen v1.0.6). The stable targets must mirror the stable
++        # rows of config/webflash-builds.json, and the Release-One baseline
++        # must remain the ONLY required-config / customer-default target.
+         stable = [t for t in self.manifest["targets"] if t["channel_tier"] == "stable"]
+-        self.assertEqual(len(stable), 1)
+-        self.assertEqual(stable[0]["config_string"], RELEASE_ONE_CONFIG)
+-        # The stable baseline is the only required-config / kit-default target.
+-        self.assertTrue(stable[0]["required_config"])
++        ledger_stable = {
++            b["config_string"]
++            for b in _load(BUILDS_PATH)["builds"]
++            if b.get("channel") == "stable"
++        }
++        self.assertEqual({t["config_string"] for t in stable}, ledger_stable)
++        required = [t for t in stable if t["required_config"]]
++        self.assertEqual(len(required), 1)
++        self.assertEqual(required[0]["config_string"], RELEASE_ONE_CONFIG)
+ 
+     def test_required_config_implies_stable(self) -> None:
+         for t in self.manifest["targets"]:
+diff --git a/tests/test_preview_webflash_wrappers.py b/tests/test_preview_webflash_wrappers.py
+index 2c9e96a..fb14092 100644
+--- a/tests/test_preview_webflash_wrappers.py
++++ b/tests/test_preview_webflash_wrappers.py
+@@ -28,11 +28,16 @@ RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 has since cut the reviewed
+ ``config/webflash-builds.json`` PREVIEW build rows for the three wrapped
+ candidates (each addressed via its ``products/webflash`` wrapper, on the preview
+ channel, citing hosted-compile run ``26821900127``) and flipped their
+-``config/product-catalog.json`` rows ``blocked`` -> ``preview``. This guard now
+-also locks that those three rows are present, preview-only, evidence-bearing,
+-and never stable / recommended / default / a ``release_one_required_config`` —
+-while still keeping the TRIAC and fan-driver lanes off the WebFlash build matrix
+-and publishing no firmware binary.
++``config/product-catalog.json`` rows ``blocked`` -> ``preview``.
++
++STABLE-PROMOTION-RECONCILE-001: Bedroom (``Ceiling-POE-RoomIQ``, v1.0.5,
++2026-06-08) and Kitchen (``Ceiling-POE-AirIQ-RoomIQ``, v1.0.6, 2026-06-09) have
++since been promoted to the stable channel under owner risk-acceptance waivers
++and their stable binaries are published. This guard therefore distinguishes the
++PROMOTED wrappers (stable, waiver-based, still never recommended / default /
++``release_one_required_config``) from the remaining PREVIEW wrapper
++(``Ceiling-POE-RoomIQ-LED``) — while still keeping the TRIAC and fan-driver
++lanes off the WebFlash build matrix.
+ 
+ Uses Python's stdlib unittest (matching the no-pytest convention the other
+ validators in this repo use). Run with::
+@@ -70,6 +75,18 @@ NEW_WRAPPERS = {
+     "Ceiling-POE-RoomIQ": "products/webflash/ceiling-poe-roomiq.yaml",
+     "Ceiling-POE-RoomIQ-LED": "products/webflash/ceiling-poe-roomiq-led.yaml",
+ }
++# STABLE-PROMOTION-RECONCILE-001: two of the three wrapped bundles have since
++# been promoted to the stable channel (Bedroom v1.0.5 on 2026-06-08, Kitchen
++# v1.0.6 on 2026-06-09, both owner-waiver promotions; binaries are published).
++# Their wrappers are now STABLE wrappers; only the Living/Corridor LED bundle
++# remains a preview candidate.
++PROMOTED_WRAPPERS = {
++    "Ceiling-POE-AirIQ-RoomIQ": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
++    "Ceiling-POE-RoomIQ": "products/webflash/ceiling-poe-roomiq.yaml",
++}
++PREVIEW_WRAPPERS = {
++    "Ceiling-POE-RoomIQ-LED": "products/webflash/ceiling-poe-roomiq-led.yaml",
++}
+ EXPECTED_SHIM = {
+     "Ceiling-POE-AirIQ-RoomIQ": "products/sense360-ceiling-poe-airiq-roomiq.yaml",
+     "Ceiling-POE-RoomIQ": "products/sense360-ceiling-poe-roomiq.yaml",
+@@ -205,9 +222,9 @@ class WrapperContentTests(unittest.TestCase):
+                         f"{cs}: preview wrapper must not declare {key!r}",
+                     )
+ 
+-    def test_wrappers_do_not_name_a_stable_artifact(self) -> None:
++    def test_preview_wrappers_do_not_name_a_stable_artifact(self) -> None:
+         # A preview wrapper must not embed a stable artifact name / channel.
+-        for cs, rel in NEW_WRAPPERS.items():
++        for cs, rel in PREVIEW_WRAPPERS.items():
+             with self.subTest(config_string=cs):
+                 text = (REPO_ROOT / rel).read_text(encoding="utf-8")
+                 self.assertNotIn(
+@@ -216,14 +233,31 @@ class WrapperContentTests(unittest.TestCase):
+                     f"{cs}: preview wrapper must not reference a stable artifact",
+                 )
+ 
+-    def test_wrappers_disclaim_stable_and_preview_status(self) -> None:
++    def test_preview_wrappers_disclaim_stable_and_preview_status(self) -> None:
+         # The header must positively mark the wrapper preview and NOT stable.
+-        for cs, rel in NEW_WRAPPERS.items():
++        for cs, rel in PREVIEW_WRAPPERS.items():
+             with self.subTest(config_string=cs):
+                 lower = (REPO_ROOT / rel).read_text(encoding="utf-8").lower()
+                 self.assertIn("preview", lower)
+                 self.assertIn("not stable", lower)
+ 
++    def test_promoted_wrappers_identify_as_stable_under_waiver(self) -> None:
++        # STABLE-PROMOTION-RECONCILE-001: the promoted wrappers must say they
++        # are stable, cite the owner waiver basis, and no longer carry the
++        # preview-candidate "not stable" disclaimer (the binary IS stable now).
++        for cs, rel in PROMOTED_WRAPPERS.items():
++            with self.subTest(config_string=cs):
++                lower = (REPO_ROOT / rel).read_text(encoding="utf-8").lower()
++                self.assertIn("stable", lower)
++                self.assertIn("waiver", lower)
++                self.assertNotIn(
++                    "not stable",
++                    lower,
++                    f"{cs}: promoted wrapper must not still claim it is not stable",
++                )
++                # Never recommended / a customer default by the promotion alone.
++                self.assertIn("not recommended", lower)
++
+ 
+ class ManifestReferencesWrappersTests(unittest.TestCase):
+     """Task item: preview target manifest references valid wrappers."""
+@@ -244,8 +278,8 @@ class ManifestReferencesWrappersTests(unittest.TestCase):
+                     f"{cs}: webflash_wrapper path does not exist",
+                 )
+ 
+-    def test_wrapped_targets_stay_preview_metadata_ready(self) -> None:
+-        for cs in NEW_WRAPPERS:
++    def test_preview_wrapped_target_stays_metadata_ready(self) -> None:
++        for cs in PREVIEW_WRAPPERS:
+             with self.subTest(config_string=cs):
+                 t = self.by_cs[cs]
+                 self.assertEqual(t["channel_tier"], "preview")
+@@ -265,6 +299,26 @@ class ManifestReferencesWrappersTests(unittest.TestCase):
+                 # Stable stays gated; no published binary is claimed.
+                 self.assertTrue(t["stable_blocker"])
+ 
++    def test_promoted_wrapped_targets_are_published_stable(self) -> None:
++        # STABLE-PROMOTION-RECONCILE-001: Bedroom (v1.0.5) and Kitchen (v1.0.6)
++        # were promoted and their stable binaries are published. Their targets
++        # are stable-tier / published-stable but still NOT recommended / NOT a
++        # customer default / NOT required-config (the promotions ride owner
++        # waivers; only Release-One is the customer baseline).
++        for cs in PROMOTED_WRAPPERS:
++            with self.subTest(config_string=cs):
++                t = self.by_cs[cs]
++                self.assertEqual(t["channel_tier"], "stable")
++                self.assertFalse(t["is_preview_target"])
++                self.assertEqual(t["delivery_lane"], "webflash")
++                self.assertEqual(t["publication_status"], "published-stable")
++                self.assertIsNone(t["build_blocker"])
++                self.assertFalse(t["recommended"])
++                self.assertFalse(t["customer_default"])
++                self.assertFalse(t["required_config"])
++                self.assertFalse(t["customer_kit_default"])
++                self.assertTrue(t["expected_artifact_name"].endswith("-stable.bin"))
++
+     def test_manifest_still_validates_clean(self) -> None:
+         errors = validate(
+             self.manifest,
+@@ -418,14 +472,20 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
+                 self.assertEqual(self.by_cs[cs]["product_yaml"], rel)
+                 self.assertTrue((REPO_ROOT / rel).is_file())
+ 
+-    def test_new_rows_are_preview_channel_only(self) -> None:
+-        # Task items: preview channel only; not stable.
+-        for cs in NEW_WRAPPERS:
++    def test_row_channels_match_their_promotion_state(self) -> None:
++        # STABLE-PROMOTION-RECONCILE-001: the LED row stays preview; the two
++        # promoted rows are stable with stable artifact names.
++        for cs in PREVIEW_WRAPPERS:
+             with self.subTest(config_string=cs):
+                 row = self.by_cs[cs]
+                 self.assertEqual(row["channel"], "preview")
+                 self.assertTrue(row["artifact_name"].endswith("-preview.bin"))
+                 self.assertNotIn("-stable.bin", row["artifact_name"])
++        for cs in PROMOTED_WRAPPERS:
++            with self.subTest(config_string=cs):
++                row = self.by_cs[cs]
++                self.assertEqual(row["channel"], "stable")
++                self.assertTrue(row["artifact_name"].endswith("-stable.bin"))
+ 
+     def test_new_rows_are_not_release_one_required(self) -> None:
+         # Task item: not REQUIRED_CONFIGS.
+@@ -442,16 +502,26 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
+                 self.assertEqual(evidence.get("run_id"), self.COMPILE_RUN_ID)
+                 self.assertEqual(evidence.get("proof_class"), "firmware-build-only")
+ 
+-    def test_new_rows_carry_release_note_warning(self) -> None:
+-        # Task item: include release-note warning text.
+-        for cs in NEW_WRAPPERS:
++    def test_preview_rows_carry_release_note_warning(self) -> None:
++        # Task item: preview rows include release-note warning text. The
++        # promoted stable rows had their preview-only warning fields stripped
++        # by the promotions (matching the stable Release-One row shape).
++        for cs in PREVIEW_WRAPPERS:
+             with self.subTest(config_string=cs):
+                 row = self.by_cs[cs]
+                 self.assertEqual(row.get("warning_copy_key"), "preview")
+                 self.assertIn("PREVIEW FIRMWARE", row.get("release_note_warning", ""))
++        for cs in PROMOTED_WRAPPERS:
++            with self.subTest(config_string=cs):
++                row = self.by_cs[cs]
++                self.assertNotIn("warning_copy_key", row)
++                self.assertNotIn("release_note_warning", row)
++                self.assertNotIn("release_state", row)
+ 
+     def test_new_rows_commercial_posture_is_hidden_not_buyable(self) -> None:
+         # Task items: candidate / hidden / not buyable; not recommended/default.
++        # posture.stable mirrors the channel: false for the preview row, true
++        # for the two promoted stable rows.
+         for cs in NEW_WRAPPERS:
+             with self.subTest(config_string=cs):
+                 posture = self.by_cs[cs].get("commercial_posture", {})
+@@ -459,7 +529,7 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
+                 self.assertFalse(posture.get("buyable"))
+                 self.assertFalse(posture.get("recommended"))
+                 self.assertFalse(posture.get("customer_default"))
+-                self.assertFalse(posture.get("stable"))
++                self.assertEqual(posture.get("stable"), cs in PROMOTED_WRAPPERS)
+ 
+     def test_no_triac_or_fan_row_in_ledger(self) -> None:
+         # Hard guardrails: no TRIAC row, no fan manual-preview rows.
