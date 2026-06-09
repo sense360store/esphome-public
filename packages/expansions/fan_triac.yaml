@@ -28,17 +28,18 @@
 # gate/zero-cross transposition), which resolved the HW-005 BUILDABILITY
 # blocker.
 #
-# Operator bench (PACKAGE-TRIAC-001) has functionally PASSED on the real
-# Manrose fan motor load: zero-cross 100 Hz lock, speed control across the
-# full range down to off, mains-side waveform symmetric with no net DC
-# (Step C), and thermal soak with no runaway (Step E). The output parameters
-# set below -- zero_cross_pin inverted: true, method: leading, and
-# fan_triac_min_power: 15% -- are the bench-confirmed values. Step F
-# (boot/stability) and the signed operator attestation still finalize the
-# PACKAGE-TRIAC-001 record; see
+# Operator bench (PACKAGE-TRIAC-001) is COMPLETE: Steps A-F all passed on
+# the real Manrose fan motor load (2026-06-08/09) -- zero-cross 100 Hz
+# lock, gate timing across the range, symmetric mains-side waveform with
+# no net DC, thermal soak with no runaway, and boot/stability (cold boots,
+# warm reboots, ~1 h soak at 50%; fan returns OFF on every boot, no
+# spurious gate firing). The output parameters set below --
+# zero_cross_pin inverted: true, method: leading, and
+# fan_triac_min_power: 15% -- are the bench-confirmed values. The signed
+# operator attestation is being recorded in
 # docs/package-triac-001-operator-bench-proof.md.
 #
-# This functional bench PASS is NOT COMPLIANCE-001 mains-voltage
+# This functional bench COMPLETE is NOT COMPLIANCE-001 mains-voltage
 # electrical-safety sign-off, so the board STILL stays BLOCKED /
 # reference-only on COMPLIANCE-001 (never stable / recommended / default /
 # buyable / WebFlash-exposed).
