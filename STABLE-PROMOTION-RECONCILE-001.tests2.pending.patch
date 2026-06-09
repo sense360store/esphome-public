@@ -1,0 +1,198 @@
+diff --git a/tests/test_release_preview_unblock_all_bundles.py b/tests/test_release_preview_unblock_all_bundles.py
+index c15bbc3..f3672b9 100644
+--- a/tests/test_release_preview_unblock_all_bundles.py
++++ b/tests/test_release_preview_unblock_all_bundles.py
+@@ -43,7 +43,6 @@ SHOP_PATH = REPO_ROOT / "config" / "shop-commercial-source-of-truth.json"
+ 
+ DECISION_ID = "RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001"
+ SIMPLE_INSTALL_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
+-SIMPLE_INSTALL_ARTIFACT = "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin"
+ FAN_DRIVER_TOKENS = ("FanRelay", "FanPWM", "FanDAC", "FanTRIAC")
+ EXPLICIT_WARNING_FAMILIES = {"FanRelay", "FanPWM", "FanDAC", "FanTRIAC", "LED"}
+ 
+@@ -377,10 +376,18 @@ class NoPreviewBuildIsStableOrDefaultTests(unittest.TestCase):
+             ):
+                 self.assertFalse(t[flag], f"{t['target_id']} {flag} must be false")
+ 
+-    def test_exactly_one_stable_target(self):
+-        stable = [t for t in self.targets["targets"] if t["channel_tier"] == "stable"]
+-        self.assertEqual(len(stable), 1)
+-        self.assertEqual(stable[0]["config_string"], SIMPLE_INSTALL_CONFIG)
++    def test_exactly_one_required_stable_baseline_target(self):
++        # STABLE-PROMOTION-RECONCILE-001: Bedroom (v1.0.5) and Kitchen (v1.0.6)
++        # were since promoted to stable under owner waivers, so the stable tier
++        # may carry more than one target — but the REQUIRED customer baseline
++        # stays exactly the Bathroom PoE build.
++        required_stable = [
++            t
++            for t in self.targets["targets"]
++            if t["channel_tier"] == "stable" and t["required_config"]
++        ]
++        self.assertEqual(len(required_stable), 1)
++        self.assertEqual(required_stable[0]["config_string"], SIMPLE_INSTALL_CONFIG)
+ 
+ 
+ class SimpleInstallUnchangedTests(unittest.TestCase):
+@@ -392,22 +399,31 @@ class SimpleInstallUnchangedTests(unittest.TestCase):
+         cls.builds = _load(BUILDS_PATH)
+         cls.shop = _load(SHOP_PATH)
+ 
+-    def test_single_stable_build_is_bathroom_poe(self):
+-        stable_builds = [
+-            b for b in self.builds["builds"] if b["channel"] == "stable"
+-        ]
+-        self.assertEqual(len(stable_builds), 1)
+-        self.assertEqual(stable_builds[0]["config_string"], SIMPLE_INSTALL_CONFIG)
+-        self.assertEqual(stable_builds[0]["artifact_name"], SIMPLE_INSTALL_ARTIFACT)
++    def test_stable_bathroom_build_backs_simple_install(self):
++        # The ledger may now carry promoted stable rows too; Simple install
++        # still resolves to the stable Bathroom build, whose artifact the shop
++        # source of truth mirrors.
++        stable_builds = {
++            b["config_string"]: b
++            for b in self.builds["builds"]
++            if b["channel"] == "stable"
++        }
++        self.assertIn(SIMPLE_INSTALL_CONFIG, stable_builds)
++        self.assertEqual(
++            stable_builds[SIMPLE_INSTALL_CONFIG]["artifact_name"],
++            self.shop["launch_product"]["artifact_name"],
++        )
+ 
+     def test_shop_launch_product_is_the_stable_bathroom_build(self):
+         launch = self.shop["launch_product"]
+         self.assertEqual(launch["firmware_config"], SIMPLE_INSTALL_CONFIG)
+-        self.assertEqual(launch["artifact_name"], SIMPLE_INSTALL_ARTIFACT)
++        self.assertTrue(launch["artifact_name"].endswith("-stable.bin"))
+ 
+     def test_stable_baseline_target_unchanged_flags(self):
+         stable = next(
+-            t for t in self.targets["targets"] if t["channel_tier"] == "stable"
++            t
++            for t in self.targets["targets"]
++            if t["channel_tier"] == "stable" and t["required_config"]
+         )
+         self.assertTrue(stable["recommended"])
+         self.assertTrue(stable["customer_default"])
+diff --git a/tests/test_release_product_selection.py b/tests/test_release_product_selection.py
+index 484db55..ca16521 100644
+--- a/tests/test_release_product_selection.py
++++ b/tests/test_release_product_selection.py
+@@ -209,11 +209,27 @@ class GeneratorProductAwareLedTests(unittest.TestCase):
+             "generate_webflash_release_notes",
+             REPO_ROOT / "scripts" / "generate_webflash_release_notes.py",
+         )
++        catalog = json.loads(
++            (REPO_ROOT / "config" / "product-catalog.json").read_text(
++                encoding="utf-8"
++            )
++        )
++        cls.catalog_versions = {
++            p.get("config_string"): p.get("version")
++            for p in catalog.get("products", [])
++            if isinstance(p, dict) and p.get("config_string")
++        }
++
++    def _live_version(self, config_string: str) -> str:
++        # The generator fails closed when --version disagrees with the
++        # catalog, so derive the live version instead of pinning one that
++        # rots on every release bump.
++        return self.catalog_versions[config_string]
+ 
+     def test_led_known_issue_does_not_mention_release_one(self) -> None:
+         body = self.gen.generate(
+             config_string="Ceiling-POE-VentIQ-RoomIQ",
+-            version="1.0.0",
++            version=self._live_version("Ceiling-POE-VentIQ-RoomIQ"),
+             channel="stable",
+         )
+         # The LED exclusion bullet appears under ## Known Issues. The full
+@@ -228,7 +244,7 @@ class GeneratorProductAwareLedTests(unittest.TestCase):
+     def test_led_known_issue_names_selected_config(self) -> None:
+         body = self.gen.generate(
+             config_string="Ceiling-POE-VentIQ-RoomIQ",
+-            version="1.0.0",
++            version=self._live_version("Ceiling-POE-VentIQ-RoomIQ"),
+             channel="stable",
+         )
+         # The LED bullet should make it clear *this selected config* does
+diff --git a/tests/test_shop_commercial_source_of_truth.py b/tests/test_shop_commercial_source_of_truth.py
+index 6101969..036e14e 100644
+--- a/tests/test_shop_commercial_source_of_truth.py
++++ b/tests/test_shop_commercial_source_of_truth.py
+@@ -52,7 +52,6 @@ HARDWARE_CATALOG_PATH = REPO_ROOT / "config" / "hardware-catalog.json"
+ 
+ LAUNCH_SKU = "S360-KIT-BATH-P"
+ LAUNCH_FIRMWARE_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
+-LAUNCH_ARTIFACT = "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin"
+ LAUNCH_BOARDS = ["S360-100", "S360-200", "S360-211", "S360-410"]
+ CUSTOMER_WEBFLASH_URL = "https://flash.sense360.com"
+ GITHUB_PAGES_URL = "https://sense360store.github.io/WebFlash/"
+@@ -63,6 +62,27 @@ def _load(path: Path):
+     return json.loads(path.read_text(encoding="utf-8"))
+ 
+ 
++def _launch_artifact() -> str:
++    """The live stable artifact for the launch config, from the build ledger.
++
++    Derived (not pinned) so release version bumps do not rot this test: the
++    invariant is that the shop source of truth mirrors the stable WebFlash
++    build for ``Ceiling-POE-VentIQ-RoomIQ``, whatever version that is today.
++    """
++    for entry in _load(WEBFLASH_BUILDS_PATH).get("builds", []) or []:
++        if (
++            entry.get("config_string") == LAUNCH_FIRMWARE_CONFIG
++            and entry.get("channel") == "stable"
++        ):
++            return entry["artifact_name"]
++    raise AssertionError(
++        f"no stable build for {LAUNCH_FIRMWARE_CONFIG!r} in webflash-builds.json"
++    )
++
++
++LAUNCH_ARTIFACT = _launch_artifact()
++
++
+ class ShopSotShapeTests(unittest.TestCase):
+     """Shape / schema invariants of the on-disk commercial source of truth."""
+ 
+@@ -215,16 +235,33 @@ class LaunchProductCrossReferenceTests(unittest.TestCase):
+         )
+ 
+     def test_launch_artifact_matches_stable_webflash_build(self):
+-        stable = [b for b in self.builds if b.get("channel") == "stable"]
+-        self.assertEqual(
+-            len(stable), 1, "exactly one stable WebFlash build is expected"
+-        )
+-        self.assertEqual(stable[0]["config_string"], LAUNCH_FIRMWARE_CONFIG)
++        # STABLE-PROMOTION-RECONCILE-001: the ledger now carries three stable
++        # rows (Release-One plus the promoted Bedroom v1.0.5 and Kitchen
++        # v1.0.6 bundles). The LAUNCH product must still map to the
++        # Release-One stable build, and remains the only stable row whose
++        # commercial posture is release_one_required_config.
++        stable = {
++            b["config_string"]: b for b in self.builds if b.get("channel") == "stable"
++        }
++        self.assertIn(LAUNCH_FIRMWARE_CONFIG, stable)
+         self.assertEqual(
+-            stable[0]["artifact_name"],
++            stable[LAUNCH_FIRMWARE_CONFIG]["artifact_name"],
+             self.launch["artifact_name"],
+             "launch artifact must equal the stable WebFlash build artifact",
+         )
++        for cs, b in stable.items():
++            if cs == LAUNCH_FIRMWARE_CONFIG:
++                continue
++            posture = b.get("commercial_posture") or {}
++            self.assertFalse(
++                posture.get("release_one_required_config"),
++                f"{cs}: a promoted stable row must never claim "
++                "release_one_required_config",
++            )
++            self.assertFalse(
++                posture.get("customer_default"),
++                f"{cs}: a promoted stable row must never claim customer_default",
++            )
+ 
+     def test_launch_config_is_production_in_product_catalog(self):
+         production = [
