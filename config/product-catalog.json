@@ -394,8 +394,6 @@
       "webflash_wrapper": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
       "artifact_name": "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.6-stable.bin",
       "webflash_build_matrix": true,
-      "target_channel": "stable-candidate",
-      "stable_blocker": "Released under owner risk-acceptance HW-AIRIQ-WAIVER-2026-06. AirIQ sensor-stack bench accuracy (SPS30, SGP41, SCD41, BMP390) not verified. Owner risk-acceptance, not hardware verification. S360-410 PoE PSU covered by HW-S360-410-WAIVER-2026-06.",
       "modules": {
         "mount": "Ceiling",
         "power": "POE",
