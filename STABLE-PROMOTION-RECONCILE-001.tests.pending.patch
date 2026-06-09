@@ -1,0 +1,400 @@
+diff --git a/tests/test_all_yaml_release_matrix.py b/tests/test_all_yaml_release_matrix.py
+index 95489e9..2b5d235 100644
+--- a/tests/test_all_yaml_release_matrix.py
++++ b/tests/test_all_yaml_release_matrix.py
+@@ -65,14 +65,18 @@ LED_CONFIG = "Ceiling-POE-VentIQ-RoomIQ-LED"
+ BLOCKED_CONFIG = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
+ FAN_TOKENS = ("FanRelay", "FanPWM", "FanDAC")
+ 
+-# RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 preview build rows (room-bundle
+-# previews) added alongside the published VentIQ LED preview.
+-ROOM_BUNDLE_PREVIEW_CONFIGS = (
++# RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added three room-bundle preview
++# build rows alongside the published VentIQ LED preview. STABLE-PROMOTION-
++# RECONCILE-001: Ceiling-POE-RoomIQ (Bedroom, v1.0.5, 2026-06-08) and
++# Ceiling-POE-AirIQ-RoomIQ (Kitchen, v1.0.6, 2026-06-09) have since been
++# promoted to the stable channel under owner waivers, so today's channel split
++# is three stable targets and two preview targets.
++STABLE_CONFIGS_TODAY = {
++    STABLE_CONFIG,
+     "Ceiling-POE-AirIQ-RoomIQ",
+     "Ceiling-POE-RoomIQ",
+-    "Ceiling-POE-RoomIQ-LED",
+-)
+-PREVIEW_CONFIGS_TODAY = {LED_CONFIG, *ROOM_BUNDLE_PREVIEW_CONFIGS}
++}
++PREVIEW_CONFIGS_TODAY = {LED_CONFIG, "Ceiling-POE-RoomIQ-LED"}
+ 
+ ALL_CLASSES = {
+     "stable-release",
+@@ -173,22 +177,25 @@ class ReleaseSelectableTests(unittest.TestCase):
+                     f"is {r['release_class']!r}",
+                 )
+ 
+-    def test_exactly_one_stable_target_today(self) -> None:
++    def test_stable_targets_today(self) -> None:
++        # Release-One plus the two owner-waiver promotions (Bedroom v1.0.5,
++        # Kitchen v1.0.6). Compared as a set so the YAML-sorted order of the
++        # classifier is not asserted.
+         self.assertEqual(
+-            self.plan["stable_targets"],
+-            [STABLE_CONFIG],
+-            "today only Ceiling-POE-VentIQ-RoomIQ is on stable",
++            set(self.plan["stable_targets"]),
++            STABLE_CONFIGS_TODAY,
++            "stable targets must be Release-One plus the two promoted bundles",
+         )
+ 
+     def test_preview_targets_today(self) -> None:
+-        # The published VentIQ LED preview plus the three room-bundle preview
+-        # build rows added by RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001. Compared
+-        # as a set so the YAML-sorted order of the classifier is not asserted.
++        # The published VentIQ LED preview plus the remaining (unpromoted)
++        # room-bundle preview build row. Compared as a set so the YAML-sorted
++        # order of the classifier is not asserted.
+         self.assertEqual(
+             set(self.plan["preview_targets"]),
+             PREVIEW_CONFIGS_TODAY,
+-            "preview targets must be the VentIQ LED preview plus the three "
+-            "room-bundle preview build rows",
++            "preview targets must be the VentIQ LED preview plus the "
++            "Ceiling-POE-RoomIQ-LED room-bundle preview build row",
+         )
+         # The stable Release-One target must never appear on the preview list.
+         self.assertNotIn(STABLE_CONFIG, self.plan["preview_targets"])
+@@ -461,11 +468,22 @@ class GeneratorWordingTests(unittest.TestCase):
+     @classmethod
+     def setUpClass(cls) -> None:
+         cls.gen = _load_module("generate_webflash_release_notes", GENERATOR_PATH)
++        cls.catalog_by_cs = {
++            p.get("config_string"): p
++            for p in json.loads(CATALOG_JSON.read_text(encoding="utf-8"))["products"]
++            if isinstance(p, dict) and p.get("config_string")
++        }
++
++    def _live_version(self, config_string: str) -> str:
++        # The generator fails closed when --version disagrees with the catalog,
++        # so derive the live version instead of pinning one that rots on every
++        # release bump.
++        return self.catalog_by_cs[config_string]["version"]
+ 
+     def test_stable_body_does_not_call_every_target_release_one(self) -> None:
+         body = self.gen.generate(
+             config_string=STABLE_CONFIG,
+-            version="1.0.0",
++            version=self._live_version(STABLE_CONFIG),
+             channel="stable",
+         )
+         # Verify the body is product-aware: it must name the config string
+@@ -477,7 +495,7 @@ class GeneratorWordingTests(unittest.TestCase):
+     def test_preview_body_is_not_titled_release_one_firmware(self) -> None:
+         body = self.gen.generate(
+             config_string=LED_CONFIG,
+-            version="1.0.0",
++            version=self._live_version(LED_CONFIG),
+             channel="preview",
+         )
+         # The wording reword from RELEASE-PRODUCT-SELECTION-001 makes the
+diff --git a/tests/test_combined_preview_release_notes.py b/tests/test_combined_preview_release_notes.py
+index eaf19ca..ef67fdd 100644
+--- a/tests/test_combined_preview_release_notes.py
++++ b/tests/test_combined_preview_release_notes.py
+@@ -24,9 +24,14 @@ RELEASE_TAG = "v1.0.0-preview"
+ VERSION = "1.0.0"
+ CHANNEL = "preview"
+ 
++# The (version=1.0.0, channel=preview) rows still in config/webflash-builds.json
++# TODAY. The v1.0.0-preview release originally also carried Ceiling-POE-RoomIQ
++# and Ceiling-POE-AirIQ-RoomIQ, but those were since promoted to stable
++# (v1.0.5 on 2026-06-08 and v1.0.6 on 2026-06-09, owner-waiver promotions), so
++# they are no longer preview-channel rows in the live ledger. The historical
++# notes doc still names them; the live-derivation check below covers only the
++# rows that remain on the preview channel.
+ EXPECTED_ROOM_PREVIEW_CONFIGS = {
+-    "Ceiling-POE-AirIQ-RoomIQ",
+-    "Ceiling-POE-RoomIQ",
+     "Ceiling-POE-RoomIQ-LED",
+     "Ceiling-POE-VentIQ-RoomIQ-LED",
+ }
+diff --git a/tests/test_dac_product_readiness.py b/tests/test_dac_product_readiness.py
+index 449c7aa..9e45b41 100644
+--- a/tests/test_dac_product_readiness.py
++++ b/tests/test_dac_product_readiness.py
+@@ -607,13 +607,14 @@ class ReleaseOneRelayAndLedUnchangedTests(unittest.TestCase):
+         self.assertTrue(path.is_file(), f"missing {RELAY_PRODUCT_REL}")
+ 
+     def test_release_one_catalog_entry_is_unchanged_production(self) -> None:
++        # Version-agnostic: release bumps move version + artifact_name in
++        # lock-step, so assert the invariant shape instead of pinning v1.0.0.
+         entry = self._find(RELEASE_ONE_CONFIG_STRING)
+         self.assertEqual(entry["status"], "production")
+         self.assertEqual(entry["channel"], "stable")
+-        self.assertEqual(entry["version"], "1.0.0")
+         self.assertEqual(
+             entry["artifact_name"],
+-            "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin",
++            f"Sense360-{RELEASE_ONE_CONFIG_STRING}-v{entry['version']}-stable.bin",
+         )
+         self.assertTrue(entry["webflash_build_matrix"])
+         self.assertEqual(entry["product_yaml"], RELEASE_ONE_PRODUCT_REL)
+diff --git a/tests/test_firmware_combination_matrix.py b/tests/test_firmware_combination_matrix.py
+index 6f417c7..82d78ca 100644
+--- a/tests/test_firmware_combination_matrix.py
++++ b/tests/test_firmware_combination_matrix.py
+@@ -110,21 +110,44 @@ class FirmwareMatrixGeneratorTests(unittest.TestCase):
+     # Existing WebFlash builds
+     # ------------------------------------------------------------------
+ 
++    def _builds_artifact(self, config_string):
++        # The matrix mirrors config/webflash-builds.json; derive the expected
++        # artifact from the ledger so version bumps do not rot this test.
++        for entry in self.builds.get("builds", []) or []:
++            if entry.get("config_string") == config_string:
++                return entry.get("artifact_name")
++        self.fail(f"{config_string!r} not in config/webflash-builds.json")
++
+     def test_release_one_stable_is_webflash_shipping(self):
+         row = self.by_config[RELEASE_ONE_CONFIG_STRING]
+         self.assertEqual(row["status"], "webflash-shipping")
+         self.assertEqual(
+             row.get("artifact_name"),
+-            "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin",
++            self._builds_artifact(RELEASE_ONE_CONFIG_STRING),
+         )
++        self.assertTrue(row.get("artifact_name", "").endswith("-stable.bin"))
+ 
+     def test_led_preview_is_webflash_preview(self):
+         row = self.by_config[LED_PREVIEW_CONFIG_STRING]
+         self.assertEqual(row["status"], "webflash-preview")
+         self.assertEqual(
+             row.get("artifact_name"),
+-            "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin",
++            self._builds_artifact(LED_PREVIEW_CONFIG_STRING),
+         )
++        self.assertTrue(row.get("artifact_name", "").endswith("-preview.bin"))
++
++    def test_promoted_room_bundles_are_webflash_shipping(self):
++        # STABLE-PROMOTION-RECONCILE-001: Bedroom (v1.0.5) and Kitchen (v1.0.6)
++        # were promoted to the stable channel under owner waivers, so the
++        # matrix must classify both webflash-shipping with stable artifacts.
++        for cs in ("Ceiling-POE-AirIQ-RoomIQ", "Ceiling-POE-RoomIQ"):
++            with self.subTest(config_string=cs):
++                row = self.by_config[cs]
++                self.assertEqual(row["status"], "webflash-shipping")
++                self.assertEqual(
++                    row.get("artifact_name"), self._builds_artifact(cs)
++                )
++                self.assertTrue(row.get("artifact_name", "").endswith("-stable.bin"))
+ 
+     def test_every_webflash_build_appears_in_matrix(self):
+         builds = self.builds.get("builds", []) or []
+diff --git a/tests/test_list_release_targets.py b/tests/test_list_release_targets.py
+index 623a942..30be84d 100644
+--- a/tests/test_list_release_targets.py
++++ b/tests/test_list_release_targets.py
+@@ -77,22 +77,25 @@ class CanonicalTargetListTests(unittest.TestCase):
+         self.assertIn(LED_CONFIG, config_strings)
+ 
+     def test_target_records_channel_and_version(self) -> None:
++        # Channels are pinned; versions move with release bumps, so assert the
++        # version is carried through rather than pinning a value that rots.
+         by_cfg = {t["config_string"]: t for t in lrt.list_targets()}
+         self.assertEqual(by_cfg[STABLE_CONFIG]["channel"], "stable")
+-        self.assertEqual(by_cfg[STABLE_CONFIG]["version"], "1.0.0")
++        self.assertTrue(by_cfg[STABLE_CONFIG]["version"])
+         self.assertEqual(by_cfg[LED_CONFIG]["channel"], "preview")
+         self.assertEqual(by_cfg[LED_CONFIG]["version"], "1.0.0")
+ 
+     def test_target_records_artifact_name(self) -> None:
++        # The artifact name must agree with the target's own config string,
++        # version, and channel (version-agnostic so bumps do not rot this).
+         by_cfg = {t["config_string"]: t for t in lrt.list_targets()}
+-        self.assertEqual(
+-            by_cfg[STABLE_CONFIG]["artifact_name"],
+-            "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin",
+-        )
+-        self.assertEqual(
+-            by_cfg[LED_CONFIG]["artifact_name"],
+-            "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin",
+-        )
++        for cs in (STABLE_CONFIG, LED_CONFIG):
++            with self.subTest(config_string=cs):
++                t = by_cfg[cs]
++                self.assertEqual(
++                    t["artifact_name"],
++                    f"Sense360-{cs}-v{t['version']}-{t['channel']}.bin",
++                )
+ 
+ 
+ class FanExclusionTests(unittest.TestCase):
+diff --git a/tests/test_plan_room_release_notes.py b/tests/test_plan_room_release_notes.py
+index d4a2bae..216bf62 100644
+--- a/tests/test_plan_room_release_notes.py
++++ b/tests/test_plan_room_release_notes.py
+@@ -114,13 +114,20 @@ class ReleaseEligibleBuildsTests(unittest.TestCase):
+         self.assertIn(LED_CONFIG, text)
+ 
+     def test_render_includes_artifact_names(self) -> None:
++        # Derive the expected artifact names from the plan rows so release
++        # version bumps do not rot this test.
++        builds = {b["config_string"]: b for b in _plan()["builds"]}
+         text = _render()
+-        self.assertIn("Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin", text)
+-        self.assertIn("Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin", text)
++        self.assertIn(builds[STABLE_CONFIG]["artifact_name"], text)
++        self.assertIn(builds[LED_CONFIG]["artifact_name"], text)
++        self.assertTrue(builds[STABLE_CONFIG]["artifact_name"].endswith("-stable.bin"))
++        self.assertTrue(builds[LED_CONFIG]["artifact_name"].endswith("-preview.bin"))
+ 
+     def test_render_includes_pinned_source_yaml_urls(self) -> None:
++        builds = {b["config_string"]: b for b in _plan(commit="abc123")["builds"]}
++        stable_version = builds[STABLE_CONFIG]["version"]
+         text = _render(commit="abc123")
+-        self.assertIn("/blob/v1.0.0/" + STABLE_YAML, text)
++        self.assertIn(f"/blob/v{stable_version}/" + STABLE_YAML, text)
+         self.assertIn("/blob/abc123/" + STABLE_YAML, text)
+ 
+     def test_render_records_esphome_and_commit(self) -> None:
+diff --git a/tests/test_preview_compile_dryrun.py b/tests/test_preview_compile_dryrun.py
+index 3565cae..292ab35 100644
+--- a/tests/test_preview_compile_dryrun.py
++++ b/tests/test_preview_compile_dryrun.py
+@@ -35,10 +35,12 @@ WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "preview-compile-dryrun.ym
+ MANIFEST_PATH = REPO_ROOT / "config" / "preview-release-targets.json"
+ 
+ # The exact in-scope set required by RELEASE-PREVIEW-COMPILE-DRYRUN-001.
++# STABLE-PROMOTION-RECONCILE-001: Ceiling-POE-RoomIQ (stable v1.0.5) and
++# Ceiling-POE-AirIQ-RoomIQ (stable v1.0.6) were promoted off the preview tier,
++# so they left this preview-compile scope (stable targets are built by the
++# release workflow, not this dry-run lane).
+ EXPECTED_IN_SCOPE = [
+     "Ceiling-POE-VentIQ-RoomIQ-LED",
+-    "Ceiling-POE-AirIQ-RoomIQ",
+-    "Ceiling-POE-RoomIQ",
+     "Ceiling-POE-RoomIQ-LED",
+     "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
+     "Ceiling-POE-FanPWM",
+@@ -46,6 +48,7 @@ EXPECTED_IN_SCOPE = [
+ ]
+ EXCLUDED_TRIAC = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
+ STABLE_BASELINE = "Ceiling-POE-VentIQ-RoomIQ"
++PROMOTED_STABLE = ("Ceiling-POE-AirIQ-RoomIQ", "Ceiling-POE-RoomIQ")
+ 
+ 
+ def _load_script():
+@@ -78,15 +81,16 @@ class PreviewCompileScopeTests(unittest.TestCase):
+         cls.targets = cls.mod.scope_targets()
+         cls.excluded = cls.mod.excluded_targets()
+ 
+-    def test_scope_is_exactly_the_seven_preview_targets(self) -> None:
++    def test_scope_is_exactly_the_five_preview_targets(self) -> None:
+         self.assertEqual(
+             [t["config_string"] for t in self.targets], EXPECTED_IN_SCOPE
+         )
+ 
+-    def test_stable_baseline_never_in_scope(self) -> None:
+-        self.assertNotIn(
+-            STABLE_BASELINE, [t["config_string"] for t in self.targets]
+-        )
++    def test_stable_targets_never_in_scope(self) -> None:
++        in_scope = [t["config_string"] for t in self.targets]
++        self.assertNotIn(STABLE_BASELINE, in_scope)
++        for cs in PROMOTED_STABLE:
++            self.assertNotIn(cs, in_scope)
+ 
+     def test_triac_excluded_from_preview_dryrun_scope(self) -> None:
+         # TRIAC stays excluded from THIS preview-compile-dryrun lane, but the
+@@ -139,8 +143,7 @@ class PreviewCompileScopeTests(unittest.TestCase):
+         # compile-only row now cites validated-full-compile.
+         status = {t["config_string"]: t["prior_compile_validation_status"]
+                   for t in self.targets}
+-        for cs in ("Ceiling-POE-AirIQ-RoomIQ", "Ceiling-POE-RoomIQ",
+-                   "Ceiling-POE-RoomIQ-LED",
++        for cs in ("Ceiling-POE-RoomIQ-LED",
+                    "Ceiling-POE-VentIQ-FanRelay-RoomIQ", "Ceiling-POE-FanPWM",
+                    "Ceiling-POE-FanDAC"):
+             self.assertEqual(status[cs], "validated-full-compile")
+diff --git a/tests/test_preview_fan_triac_build_rows.py b/tests/test_preview_fan_triac_build_rows.py
+index 5e2d1c4..5ddc334 100644
+--- a/tests/test_preview_fan_triac_build_rows.py
++++ b/tests/test_preview_fan_triac_build_rows.py
+@@ -316,17 +316,31 @@ class SimpleInstallUnchangedTests(unittest.TestCase):
+         for cs in self.rows:
+             self.assertNotEqual(cs, SIMPLE_INSTALL_CONFIG)
+ 
+-    def test_single_stable_webflash_build_is_bathroom(self) -> None:
+-        stable = [b for b in self.builds["builds"] if b["channel"] == "stable"]
+-        self.assertEqual(len(stable), 1)
+-        self.assertEqual(stable[0]["config_string"], SIMPLE_INSTALL_CONFIG)
+-        self.assertEqual(stable[0]["artifact_name"], SIMPLE_INSTALL_ARTIFACT)
++    def test_simple_install_stable_build_is_bathroom(self) -> None:
++        # STABLE-PROMOTION-RECONCILE-001: the ledger now carries three stable
++        # rows (Release-One + the promoted Bedroom/Kitchen bundles), but
++        # Simple install still resolves to the stable Bathroom build only and
++        # no fan/TRIAC row is ever stable.
++        stable = {
++            b["config_string"]: b
++            for b in self.builds["builds"]
++            if b["channel"] == "stable"
++        }
++        self.assertIn(SIMPLE_INSTALL_CONFIG, stable)
++        for cs in stable:
++            for token in (*FAN_CONFIGS, TRIAC_CONFIG):
++                self.assertNotEqual(cs, token)
++        self.assertEqual(
++            stable[SIMPLE_INSTALL_CONFIG]["artifact_name"],
++            self.shop["launch_product"]["artifact_name"],
++            "the shop launch artifact must mirror the stable Bathroom build",
++        )
+ 
+     def test_launch_sku_unchanged(self) -> None:
+         launch = self.shop["launch_product"]
+         self.assertEqual(launch["shop_sku"], LAUNCH_SKU)
+         self.assertEqual(launch["firmware_config"], SIMPLE_INSTALL_CONFIG)
+-        self.assertEqual(launch["artifact_name"], SIMPLE_INSTALL_ARTIFACT)
++        self.assertTrue(launch["artifact_name"].endswith("-stable.bin"))
+ 
+ 
+ class CandidateBundlesHiddenNotBuyableTests(unittest.TestCase):
+diff --git a/tests/test_pwm_product_readiness.py b/tests/test_pwm_product_readiness.py
+index 27538e4..7809195 100644
+--- a/tests/test_pwm_product_readiness.py
++++ b/tests/test_pwm_product_readiness.py
+@@ -864,13 +864,14 @@ class ReleaseOneRelayDacAndLedUnchangedTests(unittest.TestCase):
+         self.assertTrue(path.is_file(), f"missing {DAC_PRODUCT_REL}")
+ 
+     def test_release_one_catalog_entry_is_unchanged_production(self) -> None:
++        # Version-agnostic: release bumps move version + artifact_name in
++        # lock-step, so assert the invariant shape instead of pinning v1.0.0.
+         entry = self._find(RELEASE_ONE_CONFIG_STRING)
+         self.assertEqual(entry["status"], "production")
+         self.assertEqual(entry["channel"], "stable")
+-        self.assertEqual(entry["version"], "1.0.0")
+         self.assertEqual(
+             entry["artifact_name"],
+-            "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin",
++            f"Sense360-{RELEASE_ONE_CONFIG_STRING}-v{entry['version']}-stable.bin",
+         )
+         self.assertTrue(entry["webflash_build_matrix"])
+         self.assertEqual(entry["product_yaml"], RELEASE_ONE_PRODUCT_REL)
+diff --git a/tests/test_relay_product_readiness.py b/tests/test_relay_product_readiness.py
+index 702be66..16bfd6e 100644
+--- a/tests/test_relay_product_readiness.py
++++ b/tests/test_relay_product_readiness.py
+@@ -560,13 +560,14 @@ class ReleaseOneAndLedPreviewUnchangedTests(unittest.TestCase):
+         raise AssertionError(f"no catalog entry for {cs!r}")
+ 
+     def test_release_one_catalog_entry_is_unchanged_production(self) -> None:
++        # Version-agnostic: release bumps move version + artifact_name in
++        # lock-step, so assert the invariant shape instead of pinning v1.0.0.
+         entry = self._find(RELEASE_ONE_CONFIG_STRING)
+         self.assertEqual(entry["status"], "production")
+         self.assertEqual(entry["channel"], "stable")
+-        self.assertEqual(entry["version"], "1.0.0")
+         self.assertEqual(
+             entry["artifact_name"],
+-            "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin",
++            f"Sense360-{RELEASE_ONE_CONFIG_STRING}-v{entry['version']}-stable.bin",
+         )
+         self.assertTrue(entry["webflash_build_matrix"])
+         self.assertEqual(entry["product_yaml"], RELEASE_ONE_PRODUCT_REL)
