@@ -114,13 +114,20 @@ class ReleaseEligibleBuildsTests(unittest.TestCase):
         self.assertIn(LED_CONFIG, text)
 
     def test_render_includes_artifact_names(self) -> None:
+        # Derive the expected artifact names from the plan rows so release
+        # version bumps do not rot this test.
+        builds = {b["config_string"]: b for b in _plan()["builds"]}
         text = _render()
-        self.assertIn("Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin", text)
-        self.assertIn("Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin", text)
+        self.assertIn(builds[STABLE_CONFIG]["artifact_name"], text)
+        self.assertIn(builds[LED_CONFIG]["artifact_name"], text)
+        self.assertTrue(builds[STABLE_CONFIG]["artifact_name"].endswith("-stable.bin"))
+        self.assertTrue(builds[LED_CONFIG]["artifact_name"].endswith("-preview.bin"))
 
     def test_render_includes_pinned_source_yaml_urls(self) -> None:
+        builds = {b["config_string"]: b for b in _plan(commit="abc123")["builds"]}
+        stable_version = builds[STABLE_CONFIG]["version"]
         text = _render(commit="abc123")
-        self.assertIn("/blob/v1.0.0/" + STABLE_YAML, text)
+        self.assertIn(f"/blob/v{stable_version}/" + STABLE_YAML, text)
         self.assertIn("/blob/abc123/" + STABLE_YAML, text)
 
     def test_render_records_esphome_and_commit(self) -> None:

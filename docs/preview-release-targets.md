@@ -115,25 +115,26 @@ missing hardware / bench / compliance evidence blocks stable / full release only
 
 | Config string | Tier | Lane | WebFlash import | Status |
 |---|---|---|---|---|
-| `Ceiling-POE-VentIQ-RoomIQ` | stable | webflash | yes | published-stable (baseline; unchanged) |
+| `Ceiling-POE-VentIQ-RoomIQ` | stable | webflash | yes | published-stable (baseline; customer default / required config) |
 | `Ceiling-POE-VentIQ-RoomIQ-LED` | preview | webflash | yes | published-preview |
-| `Ceiling-POE-AirIQ-RoomIQ` | preview | webflash | yes | eligible-unpublished |
-| `Ceiling-POE-RoomIQ` | preview | webflash | yes | eligible-unpublished (preview allowed; **stable** blocked by S360-410) |
-| `Ceiling-POE-RoomIQ-LED` | preview | webflash | yes | eligible-unpublished (dedicated product YAML added by RELEASE-PREVIEW-BUILD-FIXES-001; LED stays preview) |
+| `Ceiling-POE-AirIQ-RoomIQ` | stable | webflash | yes | published-stable (promoted to v1.0.6 on 2026-06-09 under owner waiver `HW-AIRIQ-WAIVER-2026-06`; STABLE-PROMOTION-RECONCILE-001) |
+| `Ceiling-POE-RoomIQ` | stable | webflash | yes | published-stable (promoted to v1.0.5 on 2026-06-08 under owner waiver `HW-S360-410-WAIVER-2026-06`; STABLE-PROMOTION-RECONCILE-001) |
+| `Ceiling-POE-RoomIQ-LED` | preview | webflash | yes | webflash-preview-metadata-ready (reviewed build row exists; no binary published; LED stays preview) |
 | `Ceiling-POE-VentIQ-FanRelay-RoomIQ` | preview | manual-preview | eligible (Advanced-install-only) | preview-import-eligible |
 | `Ceiling-POE-FanPWM` | preview | manual-preview | eligible (Advanced-install-only) | preview-import-eligible |
 | `Ceiling-POE-FanDAC` | preview | manual-preview | eligible (Advanced-install-only) | preview-import-eligible |
-| `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | advanced-preview | advanced-manual-preview | gated follow-up | advanced-manual-preview-build-blocked (HW-005 buildability) |
+| `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | advanced-preview | advanced-manual-preview | gated follow-up | advanced-manual-preview (HW-005 buildability resolved; publish deferred to TRIAC-PUBLISH-ADVANCED-PREVIEW-001) |
 
-Every buildable target is a preview / advanced-preview release target:
+Every buildable target is a release target on its recorded tier:
 
-- The **WebFlash** lane targets are import-eligible; the LED preview is already
+- The **WebFlash** lane targets are import-eligible; the VentIQ LED preview is
   published (proving the WebFlash matrix may carry a preview without stable
-  promotion). `Ceiling-POE-AirIQ-RoomIQ`, `Ceiling-POE-RoomIQ`, and
-  `Ceiling-POE-RoomIQ-LED` now have concrete product YAMLs (added /
-  repointed by `RELEASE-PREVIEW-BUILD-FIXES-001`); each still needs a
-  `products/webflash` wrapper **and a recorded ESPHome compile dry-run** before a
-  `config/webflash-builds.json` row is cut.
+  promotion). `Ceiling-POE-AirIQ-RoomIQ` and `Ceiling-POE-RoomIQ` have since
+  been **promoted to the stable channel and published** under owner
+  risk-acceptance waivers (owner waivers, not hardware verification; their
+  bundles stay hidden / not buyable / never the customer default).
+  `Ceiling-POE-RoomIQ-LED` keeps its reviewed preview build row
+  (`webflash-preview-metadata-ready`; no binary published).
 - The **`manual-preview`** fan targets are releasable preview artifacts via the
   manual lane now and are **preview / manual-preview WebFlash-import eligible**
   (Advanced-install-only); only their *committed* WebFlash one-click import row is

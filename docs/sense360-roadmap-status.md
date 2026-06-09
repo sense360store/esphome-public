@@ -43,22 +43,24 @@ disagree, **the source-of-truth file wins** and this doc is the one to fix.
 
 The shippable WebFlash build matrix is [`config/webflash-builds.json`](../config/webflash-builds.json)
 (validated by `tests/validate_webflash_builds.py`). There are exactly **five**
-builds — one stable, four preview:
+builds — three stable, two preview:
 
 | Config string | Channel | Version | Artifact | Notes |
 |---|---|---|---|---|
-| `Ceiling-POE-VentIQ-RoomIQ` | **stable** | 1.0.0 | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin` | Release-One stable build. |
+| `Ceiling-POE-VentIQ-RoomIQ` | **stable** | 1.0.4 | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.4-stable.bin` | Release-One stable build (customer baseline / required config). |
 | `Ceiling-POE-VentIQ-RoomIQ-LED` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin` | LED variant is **preview only** (see §7). |
-| `Ceiling-POE-AirIQ-RoomIQ` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.0-preview.bin` | Kitchen candidate firmware (`S360-KIT-KITCHEN-P`). Preview build row added by `RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`; metadata-ready / unpublished, bundle hidden / not buyable. |
-| `Ceiling-POE-RoomIQ` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-RoomIQ-v1.0.0-preview.bin` | Bedroom candidate firmware (`S360-KIT-BEDROOM-P`). Preview build row added by `RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`; metadata-ready / unpublished, bundle hidden / not buyable. |
+| `Ceiling-POE-AirIQ-RoomIQ` | **stable** | 1.0.6 | `Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.6-stable.bin` | Kitchen firmware (`S360-KIT-KITCHEN-P`). Promoted to stable v1.0.6 (2026-06-09) under owner risk-acceptance waiver `HW-AIRIQ-WAIVER-2026-06` (AirIQ sensor stack not bench-verified; owner waiver, not hardware verification). Bundle stays hidden / not buyable. |
+| `Ceiling-POE-RoomIQ` | **stable** | 1.0.5 | `Sense360-Ceiling-POE-RoomIQ-v1.0.5-stable.bin` | Bedroom firmware (`S360-KIT-BEDROOM-P`). Promoted to stable v1.0.5 (2026-06-08) under owner risk-acceptance waiver `HW-S360-410-WAIVER-2026-06` (S360-410 stays cataloged_unverified; owner waiver, not hardware verification). Bundle stays hidden / not buyable. |
 | `Ceiling-POE-RoomIQ-LED` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin` | Living / Corridor candidate firmware (`S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P`); LED stays preview. Build row added by `RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`; metadata-ready / unpublished, bundles hidden / not buyable. Distinct from the VentIQ LED preview above. |
 
-The four preview rows are **release-eligibility metadata only**: no firmware
-binary, GitHub Release, tag, `manifest.json`, or `firmware/sources.json` is
-published, nothing is promoted to stable, and the consuming candidate bundles
-stay hidden / not buyable. Firmware-build proof for the three room-bundle
-previews is the hosted Preview Compile Dry-Run (run `26821900127`); no hardware,
-bench, or compliance proof is claimed.
+The two LED preview rows remain preview: the VentIQ LED preview is published
+(release `v1.0.0-led-preview`); the Living/Corridor LED row is
+**release-eligibility metadata only** (no binary / GitHub Release published).
+The Kitchen and Bedroom stable promotions ride owner risk-acceptance waivers,
+not hardware verification: no hardware, bench, or compliance proof is claimed,
+and the consuming candidate bundles stay hidden / not buyable / not customer
+defaults. Firmware-build proof for the room-bundle rows is the hosted Preview
+Compile Dry-Run (run `26821900127`).
 
 Release-One required configs (`config/webflash-compatibility.json` →
 `release_one_required_configs`): **`Ceiling-POE-VentIQ-RoomIQ`** only — the four

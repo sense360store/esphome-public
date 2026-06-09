@@ -209,11 +209,27 @@ class GeneratorProductAwareLedTests(unittest.TestCase):
             "generate_webflash_release_notes",
             REPO_ROOT / "scripts" / "generate_webflash_release_notes.py",
         )
+        catalog = json.loads(
+            (REPO_ROOT / "config" / "product-catalog.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        cls.catalog_versions = {
+            p.get("config_string"): p.get("version")
+            for p in catalog.get("products", [])
+            if isinstance(p, dict) and p.get("config_string")
+        }
+
+    def _live_version(self, config_string: str) -> str:
+        # The generator fails closed when --version disagrees with the
+        # catalog, so derive the live version instead of pinning one that
+        # rots on every release bump.
+        return self.catalog_versions[config_string]
 
     def test_led_known_issue_does_not_mention_release_one(self) -> None:
         body = self.gen.generate(
             config_string="Ceiling-POE-VentIQ-RoomIQ",
-            version="1.0.0",
+            version=self._live_version("Ceiling-POE-VentIQ-RoomIQ"),
             channel="stable",
         )
         # The LED exclusion bullet appears under ## Known Issues. The full
@@ -228,7 +244,7 @@ class GeneratorProductAwareLedTests(unittest.TestCase):
     def test_led_known_issue_names_selected_config(self) -> None:
         body = self.gen.generate(
             config_string="Ceiling-POE-VentIQ-RoomIQ",
-            version="1.0.0",
+            version=self._live_version("Ceiling-POE-VentIQ-RoomIQ"),
             channel="stable",
         )
         # The LED bullet should make it clear *this selected config* does

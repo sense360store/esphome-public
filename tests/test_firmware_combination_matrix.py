@@ -110,21 +110,44 @@ class FirmwareMatrixGeneratorTests(unittest.TestCase):
     # Existing WebFlash builds
     # ------------------------------------------------------------------
 
+    def _builds_artifact(self, config_string):
+        # The matrix mirrors config/webflash-builds.json; derive the expected
+        # artifact from the ledger so version bumps do not rot this test.
+        for entry in self.builds.get("builds", []) or []:
+            if entry.get("config_string") == config_string:
+                return entry.get("artifact_name")
+        self.fail(f"{config_string!r} not in config/webflash-builds.json")
+
     def test_release_one_stable_is_webflash_shipping(self):
         row = self.by_config[RELEASE_ONE_CONFIG_STRING]
         self.assertEqual(row["status"], "webflash-shipping")
         self.assertEqual(
             row.get("artifact_name"),
-            "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin",
+            self._builds_artifact(RELEASE_ONE_CONFIG_STRING),
         )
+        self.assertTrue(row.get("artifact_name", "").endswith("-stable.bin"))
 
     def test_led_preview_is_webflash_preview(self):
         row = self.by_config[LED_PREVIEW_CONFIG_STRING]
         self.assertEqual(row["status"], "webflash-preview")
         self.assertEqual(
             row.get("artifact_name"),
-            "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin",
+            self._builds_artifact(LED_PREVIEW_CONFIG_STRING),
         )
+        self.assertTrue(row.get("artifact_name", "").endswith("-preview.bin"))
+
+    def test_promoted_room_bundles_are_webflash_shipping(self):
+        # STABLE-PROMOTION-RECONCILE-001: Bedroom (v1.0.5) and Kitchen (v1.0.6)
+        # were promoted to the stable channel under owner waivers, so the
+        # matrix must classify both webflash-shipping with stable artifacts.
+        for cs in ("Ceiling-POE-AirIQ-RoomIQ", "Ceiling-POE-RoomIQ"):
+            with self.subTest(config_string=cs):
+                row = self.by_config[cs]
+                self.assertEqual(row["status"], "webflash-shipping")
+                self.assertEqual(
+                    row.get("artifact_name"), self._builds_artifact(cs)
+                )
+                self.assertTrue(row.get("artifact_name", "").endswith("-stable.bin"))
 
     def test_every_webflash_build_appears_in_matrix(self):
         builds = self.builds.get("builds", []) or []

@@ -43,7 +43,6 @@ SHOP_PATH = REPO_ROOT / "config" / "shop-commercial-source-of-truth.json"
 
 DECISION_ID = "RELEASE-PREVIEW-UNBLOCK-ALL-BUNDLES-001"
 SIMPLE_INSTALL_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
-SIMPLE_INSTALL_ARTIFACT = "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin"
 FAN_DRIVER_TOKENS = ("FanRelay", "FanPWM", "FanDAC", "FanTRIAC")
 EXPLICIT_WARNING_FAMILIES = {"FanRelay", "FanPWM", "FanDAC", "FanTRIAC", "LED"}
 
@@ -377,10 +376,18 @@ class NoPreviewBuildIsStableOrDefaultTests(unittest.TestCase):
             ):
                 self.assertFalse(t[flag], f"{t['target_id']} {flag} must be false")
 
-    def test_exactly_one_stable_target(self):
-        stable = [t for t in self.targets["targets"] if t["channel_tier"] == "stable"]
-        self.assertEqual(len(stable), 1)
-        self.assertEqual(stable[0]["config_string"], SIMPLE_INSTALL_CONFIG)
+    def test_exactly_one_required_stable_baseline_target(self):
+        # STABLE-PROMOTION-RECONCILE-001: Bedroom (v1.0.5) and Kitchen (v1.0.6)
+        # were since promoted to stable under owner waivers, so the stable tier
+        # may carry more than one target — but the REQUIRED customer baseline
+        # stays exactly the Bathroom PoE build.
+        required_stable = [
+            t
+            for t in self.targets["targets"]
+            if t["channel_tier"] == "stable" and t["required_config"]
+        ]
+        self.assertEqual(len(required_stable), 1)
+        self.assertEqual(required_stable[0]["config_string"], SIMPLE_INSTALL_CONFIG)
 
 
 class SimpleInstallUnchangedTests(unittest.TestCase):
@@ -392,22 +399,31 @@ class SimpleInstallUnchangedTests(unittest.TestCase):
         cls.builds = _load(BUILDS_PATH)
         cls.shop = _load(SHOP_PATH)
 
-    def test_single_stable_build_is_bathroom_poe(self):
-        stable_builds = [
-            b for b in self.builds["builds"] if b["channel"] == "stable"
-        ]
-        self.assertEqual(len(stable_builds), 1)
-        self.assertEqual(stable_builds[0]["config_string"], SIMPLE_INSTALL_CONFIG)
-        self.assertEqual(stable_builds[0]["artifact_name"], SIMPLE_INSTALL_ARTIFACT)
+    def test_stable_bathroom_build_backs_simple_install(self):
+        # The ledger may now carry promoted stable rows too; Simple install
+        # still resolves to the stable Bathroom build, whose artifact the shop
+        # source of truth mirrors.
+        stable_builds = {
+            b["config_string"]: b
+            for b in self.builds["builds"]
+            if b["channel"] == "stable"
+        }
+        self.assertIn(SIMPLE_INSTALL_CONFIG, stable_builds)
+        self.assertEqual(
+            stable_builds[SIMPLE_INSTALL_CONFIG]["artifact_name"],
+            self.shop["launch_product"]["artifact_name"],
+        )
 
     def test_shop_launch_product_is_the_stable_bathroom_build(self):
         launch = self.shop["launch_product"]
         self.assertEqual(launch["firmware_config"], SIMPLE_INSTALL_CONFIG)
-        self.assertEqual(launch["artifact_name"], SIMPLE_INSTALL_ARTIFACT)
+        self.assertTrue(launch["artifact_name"].endswith("-stable.bin"))
 
     def test_stable_baseline_target_unchanged_flags(self):
         stable = next(
-            t for t in self.targets["targets"] if t["channel_tier"] == "stable"
+            t
+            for t in self.targets["targets"]
+            if t["channel_tier"] == "stable" and t["required_config"]
         )
         self.assertTrue(stable["recommended"])
         self.assertTrue(stable["customer_default"])
@@ -471,9 +487,22 @@ class NoStableOrFullReleaseUnblockTests(unittest.TestCase):
         self.assertFalse(scope["flips_product_catalog_status"])
         self.assertFalse(scope["marks_any_product_stable"])
 
-    def test_no_target_was_promoted_to_stable(self):
+    def test_stable_targets_only_mirror_the_build_ledger(self):
+        # The unblock decision itself promoted nothing. STABLE-PROMOTION-
+        # RECONCILE-001: Bedroom (v1.0.5) and Kitchen (v1.0.6) were later
+        # promoted via the build ledger by their own owner-waiver PRs, so the
+        # manifest's stable tier must mirror config/webflash-builds.json
+        # exactly — it can never put a target on stable that the ledger
+        # does not carry.
+        builds = _load(BUILDS_PATH)
+        ledger_stable = {
+            b["config_string"]
+            for b in builds["builds"]
+            if b.get("channel") == "stable"
+        }
         stable = [t for t in self.targets["targets"] if t["channel_tier"] == "stable"]
-        self.assertEqual([t["config_string"] for t in stable], [SIMPLE_INSTALL_CONFIG])
+        self.assertEqual({t["config_string"] for t in stable}, ledger_stable)
+        self.assertIn(SIMPLE_INSTALL_CONFIG, ledger_stable)
 
 
 if __name__ == "__main__":

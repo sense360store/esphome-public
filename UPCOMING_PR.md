@@ -72,11 +72,17 @@ pre-commit), is **accepted** — no action queued.
 These hold across every PR; the preview-release program below did **not** change
 any of them.
 
-* **Production stable Release-One is unchanged.** Config string
-  `Ceiling-POE-VentIQ-RoomIQ`, artifact
-  `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`, launch shop SKU
-  **`S360-KIT-BATH-P`**. Simple install resolves to the stable Bathroom PoE
-  build only; candidate / room bundles stay **hidden / not buyable**.
+* **Production stable Release-One is the customer baseline.** Config string
+  `Ceiling-POE-VentIQ-RoomIQ` (current stable version per
+  [`config/webflash-builds.json`](config/webflash-builds.json); v1.0.4 as of
+  2026-06-07), launch shop SKU **`S360-KIT-BATH-P`**. Simple install resolves
+  to the stable Bathroom PoE build only. The Bedroom (`Ceiling-POE-RoomIQ`,
+  stable v1.0.5, 2026-06-08) and Kitchen (`Ceiling-POE-AirIQ-RoomIQ`, stable
+  v1.0.6, 2026-06-09) bundles were later promoted to stable under owner
+  risk-acceptance waivers (`HW-S360-410-WAIVER-2026-06`,
+  `HW-AIRIQ-WAIVER-2026-06`) — owner waivers, not hardware verification — and
+  their candidate / room bundles stay **hidden / not buyable / never the
+  customer default**.
 * **FanTRIAC stays blocked.** `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is
   `status: blocked` (`blocker: PACKAGE-TRIAC-001 + COMPLIANCE-001`,
   `webflash_build_matrix: false`). HW-005 buildability was resolved by

@@ -77,22 +77,25 @@ class CanonicalTargetListTests(unittest.TestCase):
         self.assertIn(LED_CONFIG, config_strings)
 
     def test_target_records_channel_and_version(self) -> None:
+        # Channels are pinned; versions move with release bumps, so assert the
+        # version is carried through rather than pinning a value that rots.
         by_cfg = {t["config_string"]: t for t in lrt.list_targets()}
         self.assertEqual(by_cfg[STABLE_CONFIG]["channel"], "stable")
-        self.assertEqual(by_cfg[STABLE_CONFIG]["version"], "1.0.0")
+        self.assertTrue(by_cfg[STABLE_CONFIG]["version"])
         self.assertEqual(by_cfg[LED_CONFIG]["channel"], "preview")
         self.assertEqual(by_cfg[LED_CONFIG]["version"], "1.0.0")
 
     def test_target_records_artifact_name(self) -> None:
+        # The artifact name must agree with the target's own config string,
+        # version, and channel (version-agnostic so bumps do not rot this).
         by_cfg = {t["config_string"]: t for t in lrt.list_targets()}
-        self.assertEqual(
-            by_cfg[STABLE_CONFIG]["artifact_name"],
-            "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin",
-        )
-        self.assertEqual(
-            by_cfg[LED_CONFIG]["artifact_name"],
-            "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin",
-        )
+        for cs in (STABLE_CONFIG, LED_CONFIG):
+            with self.subTest(config_string=cs):
+                t = by_cfg[cs]
+                self.assertEqual(
+                    t["artifact_name"],
+                    f"Sense360-{cs}-v{t['version']}-{t['channel']}.bin",
+                )
 
 
 class FanExclusionTests(unittest.TestCase):

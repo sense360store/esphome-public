@@ -560,13 +560,14 @@ class ReleaseOneAndLedPreviewUnchangedTests(unittest.TestCase):
         raise AssertionError(f"no catalog entry for {cs!r}")
 
     def test_release_one_catalog_entry_is_unchanged_production(self) -> None:
+        # Version-agnostic: release bumps move version + artifact_name in
+        # lock-step, so assert the invariant shape instead of pinning v1.0.0.
         entry = self._find(RELEASE_ONE_CONFIG_STRING)
         self.assertEqual(entry["status"], "production")
         self.assertEqual(entry["channel"], "stable")
-        self.assertEqual(entry["version"], "1.0.0")
         self.assertEqual(
             entry["artifact_name"],
-            "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin",
+            f"Sense360-{RELEASE_ONE_CONFIG_STRING}-v{entry['version']}-stable.bin",
         )
         self.assertTrue(entry["webflash_build_matrix"])
         self.assertEqual(entry["product_yaml"], RELEASE_ONE_PRODUCT_REL)

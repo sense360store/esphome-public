@@ -114,6 +114,28 @@ jobs:
       # not re-add this as a per-PR/per-push hard step. The unit tests above keep
       # the guard's detection logic covered on every PR.
 
+      # FW-MATRIX-001 / FW-MATRIX-002 freshness. Both files are generated:
+      # a catalog / build-matrix edit (e.g. a version bump or a promote-to-
+      # stable PR) that does not regenerate them leaves the repo internally
+      # inconsistent. The Kitchen (v1.0.6) and Bedroom (v1.0.5) promotions
+      # both merged with a stale matrix because this gate was missing.
+      - name: Firmware combination matrix freshness (FW-MATRIX-001)
+        run: |
+          python3 scripts/generate_firmware_matrix.py --check
+
+      - name: Firmware build-gap report freshness (FW-MATRIX-002)
+        run: |
+          python3 scripts/report_firmware_build_gaps.py --check
+
+      # The preview/stable release-target manifest must track the live build
+      # ledger (channel + artifact per target). The Kitchen / Bedroom stable
+      # promotions left it stale, which broke the manual Preview Compile
+      # Dry-Run workflow's preflight; gating it here keeps catalog edits and
+      # the manifest in lock-step.
+      - name: Release-target manifest consistency (preview-release-targets)
+        run: |
+          python3 scripts/validate_preview_release_targets.py --metadata-only
+
       - name: Bump-release-version unit tests
         run: |
           python3 tests/test_bump_release_version.py

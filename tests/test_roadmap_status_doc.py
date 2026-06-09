@@ -224,13 +224,20 @@ class ReleaseTargetsMatchConfigTests(unittest.TestCase):
         doc_artifacts = {b["artifact_name"] for b in self.builds}
         for art in doc_artifacts:
             self.assertIn(art, self.text)
-        # The stable Release-One build must be exactly the required config.
-        stable = [b for b in self.builds if b["channel"] == "stable"]
+        # The stable channel carries Release-One plus the two owner-waiver
+        # promotions (STABLE-PROMOTION-RECONCILE-001: Bedroom v1.0.5,
+        # Kitchen v1.0.6); Release-One stays the required customer baseline.
+        stable = {b["config_string"] for b in self.builds if b["channel"] == "stable"}
         self.assertEqual(
-            [b["config_string"] for b in stable],
-            ["Ceiling-POE-VentIQ-RoomIQ"],
-            "Stable release target drifted from config/webflash-builds.json.",
+            stable,
+            {
+                "Ceiling-POE-VentIQ-RoomIQ",
+                "Ceiling-POE-AirIQ-RoomIQ",
+                "Ceiling-POE-RoomIQ",
+            },
+            "Stable release targets drifted from config/webflash-builds.json.",
         )
+        self.assertIn("Ceiling-POE-VentIQ-RoomIQ", stable)
         self.assertTrue(known)
 
 

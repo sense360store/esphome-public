@@ -65,14 +65,18 @@ LED_CONFIG = "Ceiling-POE-VentIQ-RoomIQ-LED"
 BLOCKED_CONFIG = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
 FAN_TOKENS = ("FanRelay", "FanPWM", "FanDAC")
 
-# RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 preview build rows (room-bundle
-# previews) added alongside the published VentIQ LED preview.
-ROOM_BUNDLE_PREVIEW_CONFIGS = (
+# RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added three room-bundle preview
+# build rows alongside the published VentIQ LED preview. STABLE-PROMOTION-
+# RECONCILE-001: Ceiling-POE-RoomIQ (Bedroom, v1.0.5, 2026-06-08) and
+# Ceiling-POE-AirIQ-RoomIQ (Kitchen, v1.0.6, 2026-06-09) have since been
+# promoted to the stable channel under owner waivers, so today's channel split
+# is three stable targets and two preview targets.
+STABLE_CONFIGS_TODAY = {
+    STABLE_CONFIG,
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
-    "Ceiling-POE-RoomIQ-LED",
-)
-PREVIEW_CONFIGS_TODAY = {LED_CONFIG, *ROOM_BUNDLE_PREVIEW_CONFIGS}
+}
+PREVIEW_CONFIGS_TODAY = {LED_CONFIG, "Ceiling-POE-RoomIQ-LED"}
 
 ALL_CLASSES = {
     "stable-release",
@@ -173,22 +177,25 @@ class ReleaseSelectableTests(unittest.TestCase):
                     f"is {r['release_class']!r}",
                 )
 
-    def test_exactly_one_stable_target_today(self) -> None:
+    def test_stable_targets_today(self) -> None:
+        # Release-One plus the two owner-waiver promotions (Bedroom v1.0.5,
+        # Kitchen v1.0.6). Compared as a set so the YAML-sorted order of the
+        # classifier is not asserted.
         self.assertEqual(
-            self.plan["stable_targets"],
-            [STABLE_CONFIG],
-            "today only Ceiling-POE-VentIQ-RoomIQ is on stable",
+            set(self.plan["stable_targets"]),
+            STABLE_CONFIGS_TODAY,
+            "stable targets must be Release-One plus the two promoted bundles",
         )
 
     def test_preview_targets_today(self) -> None:
-        # The published VentIQ LED preview plus the three room-bundle preview
-        # build rows added by RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001. Compared
-        # as a set so the YAML-sorted order of the classifier is not asserted.
+        # The published VentIQ LED preview plus the remaining (unpromoted)
+        # room-bundle preview build row. Compared as a set so the YAML-sorted
+        # order of the classifier is not asserted.
         self.assertEqual(
             set(self.plan["preview_targets"]),
             PREVIEW_CONFIGS_TODAY,
-            "preview targets must be the VentIQ LED preview plus the three "
-            "room-bundle preview build rows",
+            "preview targets must be the VentIQ LED preview plus the "
+            "Ceiling-POE-RoomIQ-LED room-bundle preview build row",
         )
         # The stable Release-One target must never appear on the preview list.
         self.assertNotIn(STABLE_CONFIG, self.plan["preview_targets"])
@@ -461,11 +468,22 @@ class GeneratorWordingTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.gen = _load_module("generate_webflash_release_notes", GENERATOR_PATH)
+        cls.catalog_by_cs = {
+            p.get("config_string"): p
+            for p in json.loads(CATALOG_JSON.read_text(encoding="utf-8"))["products"]
+            if isinstance(p, dict) and p.get("config_string")
+        }
+
+    def _live_version(self, config_string: str) -> str:
+        # The generator fails closed when --version disagrees with the catalog,
+        # so derive the live version instead of pinning one that rots on every
+        # release bump.
+        return self.catalog_by_cs[config_string]["version"]
 
     def test_stable_body_does_not_call_every_target_release_one(self) -> None:
         body = self.gen.generate(
             config_string=STABLE_CONFIG,
-            version="1.0.0",
+            version=self._live_version(STABLE_CONFIG),
             channel="stable",
         )
         # Verify the body is product-aware: it must name the config string
@@ -477,7 +495,7 @@ class GeneratorWordingTests(unittest.TestCase):
     def test_preview_body_is_not_titled_release_one_firmware(self) -> None:
         body = self.gen.generate(
             config_string=LED_CONFIG,
-            version="1.0.0",
+            version=self._live_version(LED_CONFIG),
             channel="preview",
         )
         # The wording reword from RELEASE-PRODUCT-SELECTION-001 makes the

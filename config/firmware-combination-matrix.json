@@ -22,9 +22,9 @@
     "by_status": {
       "missing-product-yaml": 118,
       "blocked-hardware": 42,
-      "webflash-preview": 4,
+      "webflash-shipping": 3,
+      "webflash-preview": 2,
       "blocked-package": 1,
-      "webflash-shipping": 1,
       "compile-only-candidate": 2
     }
   },
@@ -321,11 +321,11 @@
       "room_sense": "RoomIQ",
       "fan": "none",
       "led": "none",
-      "status": "webflash-preview",
+      "status": "webflash-shipping",
       "product_yaml": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
-      "artifact_name": "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.0-preview.bin",
+      "artifact_name": "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.6-stable.bin",
       "webflash_wrapper": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
-      "notes": "In config/webflash-builds.json on the preview channel."
+      "notes": "In config/webflash-builds.json on the stable channel."
     },
     {
       "config_string": "Ceiling-POE-AirIQ-RoomIQ-LED",
@@ -660,11 +660,11 @@
       "room_sense": "RoomIQ",
       "fan": "none",
       "led": "none",
-      "status": "webflash-preview",
+      "status": "webflash-shipping",
       "product_yaml": "products/webflash/ceiling-poe-roomiq.yaml",
-      "artifact_name": "Sense360-Ceiling-POE-RoomIQ-v1.0.0-preview.bin",
+      "artifact_name": "Sense360-Ceiling-POE-RoomIQ-v1.0.5-stable.bin",
       "webflash_wrapper": "products/webflash/ceiling-poe-roomiq.yaml",
-      "notes": "In config/webflash-builds.json on the preview channel."
+      "notes": "In config/webflash-builds.json on the stable channel."
     },
     {
       "config_string": "Ceiling-POE-RoomIQ-LED",
@@ -1040,7 +1040,7 @@
       "led": "none",
       "status": "webflash-shipping",
       "product_yaml": "products/webflash/ceiling-poe-ventiq-roomiq.yaml",
-      "artifact_name": "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.4-stable.bin",
       "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-roomiq.yaml",
       "notes": "In config/webflash-builds.json on the stable channel."
     },

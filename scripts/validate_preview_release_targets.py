@@ -203,7 +203,6 @@ def validate(
         )
 
     seen_ids: Dict[str, int] = {}
-    stable_count = 0
 
     for idx, target in enumerate(targets, start=1):
         if not isinstance(target, dict):
@@ -304,7 +303,6 @@ def validate(
             )
 
         if tier == "stable":
-            stable_count += 1
             if target.get("warning_copy_required") is not False:
                 terr.append(
                     f"target {tid!r}: stable target must not require warning copy"
@@ -478,9 +476,39 @@ def validate(
         if terr:
             errors.extend(terr)
 
-    if stable_count != 1:
+    # STABLE-PROMOTION-RECONCILE-001: promotions (Bedroom v1.0.5, Kitchen
+    # v1.0.6) mean more than one target may legitimately sit on the stable
+    # tier now. The invariants that remain:
+    #   * the manifest's stable targets are exactly the stable-channel rows of
+    #     config/webflash-builds.json (the manifest mirrors the ledger), and
+    #   * exactly one stable target is the REQUIRED_CONFIG customer baseline
+    #     (Release-One); a promotion never silently adds a second default.
+    manifest_stable_cs = {
+        t.get("config_string")
+        for t in targets
+        if isinstance(t, dict) and t.get("channel_tier") == "stable"
+    }
+    ledger_stable_cs = {
+        cs for cs, b in builds_by_cs.items() if b.get("channel") == "stable"
+    }
+    if manifest_stable_cs != ledger_stable_cs:
         errors.append(
-            f"exactly one stable baseline target is expected; found {stable_count}"
+            "stable-tier targets must be exactly the stable-channel rows of "
+            f"config/webflash-builds.json; manifest has "
+            f"{sorted(manifest_stable_cs)} but the ledger has "
+            f"{sorted(ledger_stable_cs)}"
+        )
+    required_stable = [
+        t
+        for t in targets
+        if isinstance(t, dict)
+        and t.get("channel_tier") == "stable"
+        and t.get("required_config") is True
+    ]
+    if len(required_stable) != 1:
+        errors.append(
+            "exactly one stable target must carry required_config=true (the "
+            f"Release-One customer baseline); found {len(required_stable)}"
         )
 
     # Coverage: every committed build is represented.
