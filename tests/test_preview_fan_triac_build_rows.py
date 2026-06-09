@@ -316,17 +316,31 @@ class SimpleInstallUnchangedTests(unittest.TestCase):
         for cs in self.rows:
             self.assertNotEqual(cs, SIMPLE_INSTALL_CONFIG)
 
-    def test_single_stable_webflash_build_is_bathroom(self) -> None:
-        stable = [b for b in self.builds["builds"] if b["channel"] == "stable"]
-        self.assertEqual(len(stable), 1)
-        self.assertEqual(stable[0]["config_string"], SIMPLE_INSTALL_CONFIG)
-        self.assertEqual(stable[0]["artifact_name"], SIMPLE_INSTALL_ARTIFACT)
+    def test_simple_install_stable_build_is_bathroom(self) -> None:
+        # STABLE-PROMOTION-RECONCILE-001: the ledger now carries three stable
+        # rows (Release-One + the promoted Bedroom/Kitchen bundles), but
+        # Simple install still resolves to the stable Bathroom build only and
+        # no fan/TRIAC row is ever stable.
+        stable = {
+            b["config_string"]: b
+            for b in self.builds["builds"]
+            if b["channel"] == "stable"
+        }
+        self.assertIn(SIMPLE_INSTALL_CONFIG, stable)
+        for cs in stable:
+            for token in (*FAN_CONFIGS, TRIAC_CONFIG):
+                self.assertNotEqual(cs, token)
+        self.assertEqual(
+            stable[SIMPLE_INSTALL_CONFIG]["artifact_name"],
+            self.shop["launch_product"]["artifact_name"],
+            "the shop launch artifact must mirror the stable Bathroom build",
+        )
 
     def test_launch_sku_unchanged(self) -> None:
         launch = self.shop["launch_product"]
         self.assertEqual(launch["shop_sku"], LAUNCH_SKU)
         self.assertEqual(launch["firmware_config"], SIMPLE_INSTALL_CONFIG)
-        self.assertEqual(launch["artifact_name"], SIMPLE_INSTALL_ARTIFACT)
+        self.assertTrue(launch["artifact_name"].endswith("-stable.bin"))
 
 
 class CandidateBundlesHiddenNotBuyableTests(unittest.TestCase):

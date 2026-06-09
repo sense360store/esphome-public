@@ -24,9 +24,14 @@ RELEASE_TAG = "v1.0.0-preview"
 VERSION = "1.0.0"
 CHANNEL = "preview"
 
+# The (version=1.0.0, channel=preview) rows still in config/webflash-builds.json
+# TODAY. The v1.0.0-preview release originally also carried Ceiling-POE-RoomIQ
+# and Ceiling-POE-AirIQ-RoomIQ, but those were since promoted to stable
+# (v1.0.5 on 2026-06-08 and v1.0.6 on 2026-06-09, owner-waiver promotions), so
+# they are no longer preview-channel rows in the live ledger. The historical
+# notes doc still names them; the live-derivation check below covers only the
+# rows that remain on the preview channel.
 EXPECTED_ROOM_PREVIEW_CONFIGS = {
-    "Ceiling-POE-AirIQ-RoomIQ",
-    "Ceiling-POE-RoomIQ",
     "Ceiling-POE-RoomIQ-LED",
     "Ceiling-POE-VentIQ-RoomIQ-LED",
 }

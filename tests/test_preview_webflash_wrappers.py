@@ -28,11 +28,16 @@ RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 has since cut the reviewed
 ``config/webflash-builds.json`` PREVIEW build rows for the three wrapped
 candidates (each addressed via its ``products/webflash`` wrapper, on the preview
 channel, citing hosted-compile run ``26821900127``) and flipped their
-``config/product-catalog.json`` rows ``blocked`` -> ``preview``. This guard now
-also locks that those three rows are present, preview-only, evidence-bearing,
-and never stable / recommended / default / a ``release_one_required_config`` —
-while still keeping the TRIAC and fan-driver lanes off the WebFlash build matrix
-and publishing no firmware binary.
+``config/product-catalog.json`` rows ``blocked`` -> ``preview``.
+
+STABLE-PROMOTION-RECONCILE-001: Bedroom (``Ceiling-POE-RoomIQ``, v1.0.5,
+2026-06-08) and Kitchen (``Ceiling-POE-AirIQ-RoomIQ``, v1.0.6, 2026-06-09) have
+since been promoted to the stable channel under owner risk-acceptance waivers
+and their stable binaries are published. This guard therefore distinguishes the
+PROMOTED wrappers (stable, waiver-based, still never recommended / default /
+``release_one_required_config``) from the remaining PREVIEW wrapper
+(``Ceiling-POE-RoomIQ-LED``) — while still keeping the TRIAC and fan-driver
+lanes off the WebFlash build matrix.
 
 Uses Python's stdlib unittest (matching the no-pytest convention the other
 validators in this repo use). Run with::
@@ -68,6 +73,18 @@ MANUAL_PATH = REPO_ROOT / "config" / "manual-firmware-artifacts.json"
 NEW_WRAPPERS = {
     "Ceiling-POE-AirIQ-RoomIQ": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
     "Ceiling-POE-RoomIQ": "products/webflash/ceiling-poe-roomiq.yaml",
+    "Ceiling-POE-RoomIQ-LED": "products/webflash/ceiling-poe-roomiq-led.yaml",
+}
+# STABLE-PROMOTION-RECONCILE-001: two of the three wrapped bundles have since
+# been promoted to the stable channel (Bedroom v1.0.5 on 2026-06-08, Kitchen
+# v1.0.6 on 2026-06-09, both owner-waiver promotions; binaries are published).
+# Their wrappers are now STABLE wrappers; only the Living/Corridor LED bundle
+# remains a preview candidate.
+PROMOTED_WRAPPERS = {
+    "Ceiling-POE-AirIQ-RoomIQ": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
+    "Ceiling-POE-RoomIQ": "products/webflash/ceiling-poe-roomiq.yaml",
+}
+PREVIEW_WRAPPERS = {
     "Ceiling-POE-RoomIQ-LED": "products/webflash/ceiling-poe-roomiq-led.yaml",
 }
 EXPECTED_SHIM = {
@@ -205,9 +222,9 @@ class WrapperContentTests(unittest.TestCase):
                         f"{cs}: preview wrapper must not declare {key!r}",
                     )
 
-    def test_wrappers_do_not_name_a_stable_artifact(self) -> None:
+    def test_preview_wrappers_do_not_name_a_stable_artifact(self) -> None:
         # A preview wrapper must not embed a stable artifact name / channel.
-        for cs, rel in NEW_WRAPPERS.items():
+        for cs, rel in PREVIEW_WRAPPERS.items():
             with self.subTest(config_string=cs):
                 text = (REPO_ROOT / rel).read_text(encoding="utf-8")
                 self.assertNotIn(
@@ -216,13 +233,30 @@ class WrapperContentTests(unittest.TestCase):
                     f"{cs}: preview wrapper must not reference a stable artifact",
                 )
 
-    def test_wrappers_disclaim_stable_and_preview_status(self) -> None:
+    def test_preview_wrappers_disclaim_stable_and_preview_status(self) -> None:
         # The header must positively mark the wrapper preview and NOT stable.
-        for cs, rel in NEW_WRAPPERS.items():
+        for cs, rel in PREVIEW_WRAPPERS.items():
             with self.subTest(config_string=cs):
                 lower = (REPO_ROOT / rel).read_text(encoding="utf-8").lower()
                 self.assertIn("preview", lower)
                 self.assertIn("not stable", lower)
+
+    def test_promoted_wrappers_identify_as_stable_under_waiver(self) -> None:
+        # STABLE-PROMOTION-RECONCILE-001: the promoted wrappers must say they
+        # are stable, cite the owner waiver basis, and no longer carry the
+        # preview-candidate "not stable" disclaimer (the binary IS stable now).
+        for cs, rel in PROMOTED_WRAPPERS.items():
+            with self.subTest(config_string=cs):
+                lower = (REPO_ROOT / rel).read_text(encoding="utf-8").lower()
+                self.assertIn("stable", lower)
+                self.assertIn("waiver", lower)
+                self.assertNotIn(
+                    "not stable",
+                    lower,
+                    f"{cs}: promoted wrapper must not still claim it is not stable",
+                )
+                # Never recommended / a customer default by the promotion alone.
+                self.assertIn("not recommended", lower)
 
 
 class ManifestReferencesWrappersTests(unittest.TestCase):
@@ -244,8 +278,8 @@ class ManifestReferencesWrappersTests(unittest.TestCase):
                     f"{cs}: webflash_wrapper path does not exist",
                 )
 
-    def test_wrapped_targets_stay_preview_metadata_ready(self) -> None:
-        for cs in NEW_WRAPPERS:
+    def test_preview_wrapped_target_stays_metadata_ready(self) -> None:
+        for cs in PREVIEW_WRAPPERS:
             with self.subTest(config_string=cs):
                 t = self.by_cs[cs]
                 self.assertEqual(t["channel_tier"], "preview")
@@ -264,6 +298,26 @@ class ManifestReferencesWrappersTests(unittest.TestCase):
                 self.assertFalse(t["customer_kit_default"])
                 # Stable stays gated; no published binary is claimed.
                 self.assertTrue(t["stable_blocker"])
+
+    def test_promoted_wrapped_targets_are_published_stable(self) -> None:
+        # STABLE-PROMOTION-RECONCILE-001: Bedroom (v1.0.5) and Kitchen (v1.0.6)
+        # were promoted and their stable binaries are published. Their targets
+        # are stable-tier / published-stable but still NOT recommended / NOT a
+        # customer default / NOT required-config (the promotions ride owner
+        # waivers; only Release-One is the customer baseline).
+        for cs in PROMOTED_WRAPPERS:
+            with self.subTest(config_string=cs):
+                t = self.by_cs[cs]
+                self.assertEqual(t["channel_tier"], "stable")
+                self.assertFalse(t["is_preview_target"])
+                self.assertEqual(t["delivery_lane"], "webflash")
+                self.assertEqual(t["publication_status"], "published-stable")
+                self.assertIsNone(t["build_blocker"])
+                self.assertFalse(t["recommended"])
+                self.assertFalse(t["customer_default"])
+                self.assertFalse(t["required_config"])
+                self.assertFalse(t["customer_kit_default"])
+                self.assertTrue(t["expected_artifact_name"].endswith("-stable.bin"))
 
     def test_manifest_still_validates_clean(self) -> None:
         errors = validate(
@@ -418,14 +472,20 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
                 self.assertEqual(self.by_cs[cs]["product_yaml"], rel)
                 self.assertTrue((REPO_ROOT / rel).is_file())
 
-    def test_new_rows_are_preview_channel_only(self) -> None:
-        # Task items: preview channel only; not stable.
-        for cs in NEW_WRAPPERS:
+    def test_row_channels_match_their_promotion_state(self) -> None:
+        # STABLE-PROMOTION-RECONCILE-001: the LED row stays preview; the two
+        # promoted rows are stable with stable artifact names.
+        for cs in PREVIEW_WRAPPERS:
             with self.subTest(config_string=cs):
                 row = self.by_cs[cs]
                 self.assertEqual(row["channel"], "preview")
                 self.assertTrue(row["artifact_name"].endswith("-preview.bin"))
                 self.assertNotIn("-stable.bin", row["artifact_name"])
+        for cs in PROMOTED_WRAPPERS:
+            with self.subTest(config_string=cs):
+                row = self.by_cs[cs]
+                self.assertEqual(row["channel"], "stable")
+                self.assertTrue(row["artifact_name"].endswith("-stable.bin"))
 
     def test_new_rows_are_not_release_one_required(self) -> None:
         # Task item: not REQUIRED_CONFIGS.
@@ -442,16 +502,26 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
                 self.assertEqual(evidence.get("run_id"), self.COMPILE_RUN_ID)
                 self.assertEqual(evidence.get("proof_class"), "firmware-build-only")
 
-    def test_new_rows_carry_release_note_warning(self) -> None:
-        # Task item: include release-note warning text.
-        for cs in NEW_WRAPPERS:
+    def test_preview_rows_carry_release_note_warning(self) -> None:
+        # Task item: preview rows include release-note warning text. The
+        # promoted stable rows had their preview-only warning fields stripped
+        # by the promotions (matching the stable Release-One row shape).
+        for cs in PREVIEW_WRAPPERS:
             with self.subTest(config_string=cs):
                 row = self.by_cs[cs]
                 self.assertEqual(row.get("warning_copy_key"), "preview")
                 self.assertIn("PREVIEW FIRMWARE", row.get("release_note_warning", ""))
+        for cs in PROMOTED_WRAPPERS:
+            with self.subTest(config_string=cs):
+                row = self.by_cs[cs]
+                self.assertNotIn("warning_copy_key", row)
+                self.assertNotIn("release_note_warning", row)
+                self.assertNotIn("release_state", row)
 
     def test_new_rows_commercial_posture_is_hidden_not_buyable(self) -> None:
         # Task items: candidate / hidden / not buyable; not recommended/default.
+        # posture.stable mirrors the channel: false for the preview row, true
+        # for the two promoted stable rows.
         for cs in NEW_WRAPPERS:
             with self.subTest(config_string=cs):
                 posture = self.by_cs[cs].get("commercial_posture", {})
@@ -459,7 +529,7 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
                 self.assertFalse(posture.get("buyable"))
                 self.assertFalse(posture.get("recommended"))
                 self.assertFalse(posture.get("customer_default"))
-                self.assertFalse(posture.get("stable"))
+                self.assertEqual(posture.get("stable"), cs in PROMOTED_WRAPPERS)
 
     def test_no_triac_or_fan_row_in_ledger(self) -> None:
         # Hard guardrails: no TRIAC row, no fan manual-preview rows.

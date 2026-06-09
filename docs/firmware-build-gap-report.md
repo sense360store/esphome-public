@@ -44,8 +44,8 @@ python3 scripts/report_firmware_build_gaps.py --check    # CI-style freshness ch
 - `blocked-package`: 1
 - `compile-only-candidate`: 2
 - `missing-product-yaml`: 118
-- `webflash-preview`: 4
-- `webflash-shipping`: 1
+- `webflash-preview`: 2
+- `webflash-shipping`: 3
 
 ## Currently committed WebFlash builds
 

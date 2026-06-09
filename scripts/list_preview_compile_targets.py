@@ -16,19 +16,21 @@ preview-compile-dryrun lane. (Its ``HW-005`` buildability blocker is resolved
 by TRIAC-UNBLOCK-BUILD-001; it is reported separately rather than compiled
 here.)
 
-The current in-scope set is the seven preview / manual-preview targets:
+The current in-scope set is the five preview / manual-preview targets:
 
   * ``Ceiling-POE-VentIQ-RoomIQ-LED``   (webflash preview, already published)
-  * ``Ceiling-POE-AirIQ-RoomIQ``        (webflash preview)
-  * ``Ceiling-POE-RoomIQ``              (webflash preview)
   * ``Ceiling-POE-RoomIQ-LED``          (webflash preview)
   * ``Ceiling-POE-VentIQ-FanRelay-RoomIQ`` (manual-preview)
   * ``Ceiling-POE-FanPWM``              (manual-preview)
   * ``Ceiling-POE-FanDAC``              (manual-preview)
 
 ``Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`` (advanced-manual-preview) is excluded
-(``HW-005``) and surfaced by ``--report-excluded``. The stable baseline
-``Ceiling-POE-VentIQ-RoomIQ`` is not a preview target and is never in scope.
+(``HW-005``) and surfaced by ``--report-excluded``. Stable targets are never
+in scope: the baseline ``Ceiling-POE-VentIQ-RoomIQ`` plus the two owner-waiver
+promotions ``Ceiling-POE-RoomIQ`` (stable v1.0.5, 2026-06-08) and
+``Ceiling-POE-AirIQ-RoomIQ`` (stable v1.0.6, 2026-06-09;
+STABLE-PROMOTION-RECONCILE-001) are built by the release workflow, not this
+preview dry-run lane.
 
 This script is read-only metadata only. It does **not** publish, build, or
 attach any firmware artifact; it does not write ``firmware/sources.json`` or

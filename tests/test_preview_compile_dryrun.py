@@ -35,10 +35,12 @@ WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "preview-compile-dryrun.ym
 MANIFEST_PATH = REPO_ROOT / "config" / "preview-release-targets.json"
 
 # The exact in-scope set required by RELEASE-PREVIEW-COMPILE-DRYRUN-001.
+# STABLE-PROMOTION-RECONCILE-001: Ceiling-POE-RoomIQ (stable v1.0.5) and
+# Ceiling-POE-AirIQ-RoomIQ (stable v1.0.6) were promoted off the preview tier,
+# so they left this preview-compile scope (stable targets are built by the
+# release workflow, not this dry-run lane).
 EXPECTED_IN_SCOPE = [
     "Ceiling-POE-VentIQ-RoomIQ-LED",
-    "Ceiling-POE-AirIQ-RoomIQ",
-    "Ceiling-POE-RoomIQ",
     "Ceiling-POE-RoomIQ-LED",
     "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
     "Ceiling-POE-FanPWM",
@@ -46,6 +48,7 @@ EXPECTED_IN_SCOPE = [
 ]
 EXCLUDED_TRIAC = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
 STABLE_BASELINE = "Ceiling-POE-VentIQ-RoomIQ"
+PROMOTED_STABLE = ("Ceiling-POE-AirIQ-RoomIQ", "Ceiling-POE-RoomIQ")
 
 
 def _load_script():
@@ -78,15 +81,16 @@ class PreviewCompileScopeTests(unittest.TestCase):
         cls.targets = cls.mod.scope_targets()
         cls.excluded = cls.mod.excluded_targets()
 
-    def test_scope_is_exactly_the_seven_preview_targets(self) -> None:
+    def test_scope_is_exactly_the_five_preview_targets(self) -> None:
         self.assertEqual(
             [t["config_string"] for t in self.targets], EXPECTED_IN_SCOPE
         )
 
-    def test_stable_baseline_never_in_scope(self) -> None:
-        self.assertNotIn(
-            STABLE_BASELINE, [t["config_string"] for t in self.targets]
-        )
+    def test_stable_targets_never_in_scope(self) -> None:
+        in_scope = [t["config_string"] for t in self.targets]
+        self.assertNotIn(STABLE_BASELINE, in_scope)
+        for cs in PROMOTED_STABLE:
+            self.assertNotIn(cs, in_scope)
 
     def test_triac_excluded_from_preview_dryrun_scope(self) -> None:
         # TRIAC stays excluded from THIS preview-compile-dryrun lane, but the
@@ -139,8 +143,7 @@ class PreviewCompileScopeTests(unittest.TestCase):
         # compile-only row now cites validated-full-compile.
         status = {t["config_string"]: t["prior_compile_validation_status"]
                   for t in self.targets}
-        for cs in ("Ceiling-POE-AirIQ-RoomIQ", "Ceiling-POE-RoomIQ",
-                   "Ceiling-POE-RoomIQ-LED",
+        for cs in ("Ceiling-POE-RoomIQ-LED",
                    "Ceiling-POE-VentIQ-FanRelay-RoomIQ", "Ceiling-POE-FanPWM",
                    "Ceiling-POE-FanDAC"):
             self.assertEqual(status[cs], "validated-full-compile")

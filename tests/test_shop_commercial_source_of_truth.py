@@ -52,7 +52,6 @@ HARDWARE_CATALOG_PATH = REPO_ROOT / "config" / "hardware-catalog.json"
 
 LAUNCH_SKU = "S360-KIT-BATH-P"
 LAUNCH_FIRMWARE_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
-LAUNCH_ARTIFACT = "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin"
 LAUNCH_BOARDS = ["S360-100", "S360-200", "S360-211", "S360-410"]
 CUSTOMER_WEBFLASH_URL = "https://flash.sense360.com"
 GITHUB_PAGES_URL = "https://sense360store.github.io/WebFlash/"
@@ -61,6 +60,27 @@ RESERVED_PORTAL_URL = "https://mysense360.com"
 
 def _load(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _launch_artifact() -> str:
+    """The live stable artifact for the launch config, from the build ledger.
+
+    Derived (not pinned) so release version bumps do not rot this test: the
+    invariant is that the shop source of truth mirrors the stable WebFlash
+    build for ``Ceiling-POE-VentIQ-RoomIQ``, whatever version that is today.
+    """
+    for entry in _load(WEBFLASH_BUILDS_PATH).get("builds", []) or []:
+        if (
+            entry.get("config_string") == LAUNCH_FIRMWARE_CONFIG
+            and entry.get("channel") == "stable"
+        ):
+            return entry["artifact_name"]
+    raise AssertionError(
+        f"no stable build for {LAUNCH_FIRMWARE_CONFIG!r} in webflash-builds.json"
+    )
+
+
+LAUNCH_ARTIFACT = _launch_artifact()
 
 
 class ShopSotShapeTests(unittest.TestCase):
@@ -215,16 +235,33 @@ class LaunchProductCrossReferenceTests(unittest.TestCase):
         )
 
     def test_launch_artifact_matches_stable_webflash_build(self):
-        stable = [b for b in self.builds if b.get("channel") == "stable"]
+        # STABLE-PROMOTION-RECONCILE-001: the ledger now carries three stable
+        # rows (Release-One plus the promoted Bedroom v1.0.5 and Kitchen
+        # v1.0.6 bundles). The LAUNCH product must still map to the
+        # Release-One stable build, and remains the only stable row whose
+        # commercial posture is release_one_required_config.
+        stable = {
+            b["config_string"]: b for b in self.builds if b.get("channel") == "stable"
+        }
+        self.assertIn(LAUNCH_FIRMWARE_CONFIG, stable)
         self.assertEqual(
-            len(stable), 1, "exactly one stable WebFlash build is expected"
-        )
-        self.assertEqual(stable[0]["config_string"], LAUNCH_FIRMWARE_CONFIG)
-        self.assertEqual(
-            stable[0]["artifact_name"],
+            stable[LAUNCH_FIRMWARE_CONFIG]["artifact_name"],
             self.launch["artifact_name"],
             "launch artifact must equal the stable WebFlash build artifact",
         )
+        for cs, b in stable.items():
+            if cs == LAUNCH_FIRMWARE_CONFIG:
+                continue
+            posture = b.get("commercial_posture") or {}
+            self.assertFalse(
+                posture.get("release_one_required_config"),
+                f"{cs}: a promoted stable row must never claim "
+                "release_one_required_config",
+            )
+            self.assertFalse(
+                posture.get("customer_default"),
+                f"{cs}: a promoted stable row must never claim customer_default",
+            )
 
     def test_launch_config_is_production_in_product_catalog(self):
         production = [

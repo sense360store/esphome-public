@@ -67,14 +67,30 @@ SHARED_PREVIEW_NOTES = "v1.0.0-preview.md"
 
 COMPILE_RUN_ID = 26821900127
 
-# The three metadata-ready preview rows this dry-run drafts, by config string.
-METADATA_READY_CONFIGS = (
+# The three rows this dry-run drafted, by config string. The committed drafts
+# are HISTORICAL dry-run records of the v1.0.0-preview cut.
+# STABLE-PROMOTION-RECONCILE-001: two of the three have since been promoted to
+# the stable channel (Ceiling-POE-RoomIQ v1.0.5 on 2026-06-08,
+# Ceiling-POE-AirIQ-RoomIQ v1.0.6 on 2026-06-09, owner-waiver promotions), so
+# only the LED room bundle is still metadata-ready on the preview channel.
+DRAFTED_CONFIGS = (
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
     "Ceiling-POE-RoomIQ-LED",
 )
+STILL_METADATA_READY_CONFIGS = ("Ceiling-POE-RoomIQ-LED",)
+PROMOTED_CONFIGS = (
+    "Ceiling-POE-AirIQ-RoomIQ",
+    "Ceiling-POE-RoomIQ",
+)
+# The preview artifact each draft named at drafting time (historical, static).
+DRAFTED_ARTIFACTS = {
+    cs: f"Sense360-{cs}-v1.0.0-preview.bin" for cs in DRAFTED_CONFIGS
+}
 STABLE_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
 PUBLISHED_LED_PREVIEW_CONFIG = "Ceiling-POE-VentIQ-RoomIQ-LED"
+# The stable Bathroom artifact the drafts cross-referenced at drafting time
+# (historical text pin; the live ledger artifact has since been bumped).
 STABLE_BATHROOM_ARTIFACT = "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin"
 LAUNCH_SKU = "S360-KIT-BATH-P"
 
@@ -161,23 +177,31 @@ def _metadata_ready_rows() -> List[Dict[str, Any]]:
 
 
 class MetadataReadySelectionTests(unittest.TestCase):
-    """The dry-run scope is exactly the three metadata-ready preview rows."""
+    """The dry-run drafted the three then-metadata-ready preview rows; after
+    the promotions only the LED room bundle is still metadata-ready."""
 
-    def test_metadata_ready_rows_are_the_three_expected_configs(self) -> None:
+    def test_metadata_ready_rows_are_the_unpromoted_configs(self) -> None:
         got = sorted(b["config_string"] for b in _metadata_ready_rows())
-        self.assertEqual(got, sorted(METADATA_READY_CONFIGS))
+        self.assertEqual(got, sorted(STILL_METADATA_READY_CONFIGS))
 
     def test_metadata_ready_rows_are_preview_channel(self) -> None:
         for b in _metadata_ready_rows():
             with self.subTest(config_string=b["config_string"]):
                 self.assertEqual(b["channel"], "preview")
 
+    def test_promoted_rows_left_the_preview_channel(self) -> None:
+        by_cs = _by_cs()
+        for cs in PROMOTED_CONFIGS:
+            with self.subTest(config_string=cs):
+                self.assertEqual(by_cs[cs]["channel"], "stable")
+                self.assertNotIn("release_state", by_cs[cs])
+
 
 class DraftFilesExistTests(unittest.TestCase):
-    """Task item 2 / 6: each metadata-ready preview row has draft coverage."""
+    """Task item 2 / 6: each drafted row keeps its committed dry-run draft."""
 
-    def test_each_metadata_ready_row_has_a_draft(self) -> None:
-        for cs in METADATA_READY_CONFIGS:
+    def test_each_drafted_row_has_a_draft(self) -> None:
+        for cs in DRAFTED_CONFIGS:
             with self.subTest(config_string=cs):
                 self.assertTrue(
                     _draft_path(cs).is_file(),
@@ -185,7 +209,7 @@ class DraftFilesExistTests(unittest.TestCase):
                 )
 
     def test_draft_basename_follows_lowercase_config_convention(self) -> None:
-        for cs in METADATA_READY_CONFIGS:
+        for cs in DRAFTED_CONFIGS:
             with self.subTest(config_string=cs):
                 self.assertEqual(_draft_path(cs).name, f"{cs.lower()}.md")
 
@@ -194,7 +218,7 @@ class DraftStructuralContractTests(unittest.TestCase):
     """Task item 6: drafts validate against the WebFlash release-body contract."""
 
     def test_each_draft_passes_release_notes_validator_on_preview(self) -> None:
-        for cs in METADATA_READY_CONFIGS:
+        for cs in DRAFTED_CONFIGS:
             with self.subTest(config_string=cs):
                 body = _draft_path(cs).read_text(encoding="utf-8")
                 errors = _VALIDATOR.validate_body(body, channel="preview")
@@ -202,7 +226,7 @@ class DraftStructuralContractTests(unittest.TestCase):
 
     def test_each_draft_has_the_four_required_h2_sections(self) -> None:
         required = {"Changelog", "Known Issues", "Features", "Hardware Requirements"}
-        for cs in METADATA_READY_CONFIGS:
+        for cs in DRAFTED_CONFIGS:
             with self.subTest(config_string=cs):
                 body = _draft_path(cs).read_text(encoding="utf-8")
                 sections = _VALIDATOR._parse_sections(body)
@@ -216,7 +240,7 @@ class DraftWarningCopyTests(unittest.TestCase):
     """Task item 3: every draft clearly states the preview warning copy."""
 
     def test_each_draft_states_every_required_phrase(self) -> None:
-        for cs in METADATA_READY_CONFIGS:
+        for cs in DRAFTED_CONFIGS:
             norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
             for phrase in REQUIRED_PHRASES:
                 with self.subTest(config_string=cs, phrase=phrase):
@@ -228,14 +252,14 @@ class DraftWarningCopyTests(unittest.TestCase):
                     )
 
     def test_each_draft_cites_hosted_compile_run(self) -> None:
-        for cs in METADATA_READY_CONFIGS:
+        for cs in DRAFTED_CONFIGS:
             with self.subTest(config_string=cs):
                 norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
                 self.assertIn("compile run", norm)
                 self.assertIn(str(COMPILE_RUN_ID), norm)
 
     def test_each_draft_points_customers_to_stable_bathroom_release(self) -> None:
-        for cs in METADATA_READY_CONFIGS:
+        for cs in DRAFTED_CONFIGS:
             with self.subTest(config_string=cs):
                 norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
                 self.assertIn("stable bathroom poe release", norm)
@@ -243,7 +267,7 @@ class DraftWarningCopyTests(unittest.TestCase):
                 self.assertIn(LAUNCH_SKU.lower(), norm)
 
     def test_each_draft_marks_itself_a_dry_run_draft(self) -> None:
-        for cs in METADATA_READY_CONFIGS:
+        for cs in DRAFTED_CONFIGS:
             with self.subTest(config_string=cs):
                 norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
                 self.assertIn("dry-run draft only", norm)
@@ -254,7 +278,7 @@ class DraftNoStableRecommendedDefaultLanguageTests(unittest.TestCase):
     """Task item 6: no stable / recommended / default language for the build."""
 
     def test_recommended_is_always_negated(self) -> None:
-        for cs in METADATA_READY_CONFIGS:
+        for cs in DRAFTED_CONFIGS:
             with self.subTest(config_string=cs):
                 norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
                 self.assertEqual(
@@ -264,7 +288,7 @@ class DraftNoStableRecommendedDefaultLanguageTests(unittest.TestCase):
                 )
 
     def test_default_is_always_negated(self) -> None:
-        for cs in METADATA_READY_CONFIGS:
+        for cs in DRAFTED_CONFIGS:
             with self.subTest(config_string=cs):
                 norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
                 self.assertEqual(
@@ -275,7 +299,7 @@ class DraftNoStableRecommendedDefaultLanguageTests(unittest.TestCase):
                 )
 
     def test_no_affirmative_stable_recommended_default_claim(self) -> None:
-        for cs in METADATA_READY_CONFIGS:
+        for cs in DRAFTED_CONFIGS:
             norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
             for bad in FORBIDDEN_AFFIRMATIVE:
                 with self.subTest(config_string=cs, phrase=bad):
@@ -286,13 +310,13 @@ class DraftNoStableRecommendedDefaultLanguageTests(unittest.TestCase):
                     )
 
     def test_draft_self_artifact_is_preview_only(self) -> None:
-        # The draft's own artifact is the -preview.bin; the only -stable.bin it
-        # names is the Bathroom stable cross-reference.
-        by_cs = _by_cs()
-        for cs in METADATA_READY_CONFIGS:
+        # The draft's own artifact is the -preview.bin it was drafted with
+        # (historical pin — the promoted rows' live artifacts are stable now);
+        # the only -stable.bin it names is the Bathroom stable cross-reference.
+        for cs in DRAFTED_CONFIGS:
             with self.subTest(config_string=cs):
                 norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
-                own = by_cs[cs]["artifact_name"]
+                own = DRAFTED_ARTIFACTS[cs]
                 self.assertTrue(own.endswith("-preview.bin"))
                 self.assertIn(own.lower(), norm)
                 self.assertEqual(
@@ -305,16 +329,17 @@ class DraftNoStableRecommendedDefaultLanguageTests(unittest.TestCase):
 
 
 class MetadataReadyRowPostureTests(unittest.TestCase):
-    """Task item 6: each metadata-ready build row carries the compile-evidence
-    reference, the hidden / not-buyable posture, the preview warning copy, and
-    no stable promotion."""
+    """Task item 6: each drafted build row carries the compile-evidence
+    reference and the hidden / not-buyable posture; the unpromoted row keeps
+    the preview warning copy while the promoted rows dropped the preview-only
+    fields on promotion."""
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.by_cs = _by_cs()
 
     def test_rows_cite_firmware_build_compile_evidence(self) -> None:
-        for cs in METADATA_READY_CONFIGS:
+        for cs in DRAFTED_CONFIGS:
             with self.subTest(config_string=cs):
                 ev = self.by_cs[cs].get("compile_evidence")
                 self.assertIsInstance(ev, dict)
@@ -322,27 +347,33 @@ class MetadataReadyRowPostureTests(unittest.TestCase):
                 self.assertEqual(ev.get("proof_class"), "firmware-build-only")
                 self.assertEqual(ev.get("result"), "success")
 
-    def test_rows_carry_preview_warning_copy(self) -> None:
-        for cs in METADATA_READY_CONFIGS:
+    def test_rows_carry_warning_copy_matching_promotion_state(self) -> None:
+        for cs in STILL_METADATA_READY_CONFIGS:
             with self.subTest(config_string=cs):
                 row = self.by_cs[cs]
                 self.assertEqual(row.get("warning_copy_key"), "preview")
                 self.assertIn(
                     "PREVIEW FIRMWARE", row.get("release_note_warning", "")
                 )
+        for cs in PROMOTED_CONFIGS:
+            with self.subTest(config_string=cs):
+                row = self.by_cs[cs]
+                self.assertNotIn("warning_copy_key", row)
+                self.assertNotIn("release_note_warning", row)
 
-    def test_rows_are_hidden_not_buyable_not_stable(self) -> None:
-        for cs in METADATA_READY_CONFIGS:
+    def test_rows_are_hidden_not_buyable(self) -> None:
+        # posture.stable mirrors the channel after the promotions.
+        for cs in DRAFTED_CONFIGS:
             with self.subTest(config_string=cs):
                 posture = self.by_cs[cs].get("commercial_posture", {})
                 self.assertEqual(posture.get("visibility"), "hidden")
                 self.assertFalse(posture.get("buyable"))
                 self.assertFalse(posture.get("recommended"))
                 self.assertFalse(posture.get("customer_default"))
-                self.assertFalse(posture.get("stable"))
+                self.assertEqual(posture.get("stable"), cs in PROMOTED_CONFIGS)
 
-    def test_rows_are_preview_channel_metadata_only(self) -> None:
-        for cs in METADATA_READY_CONFIGS:
+    def test_rows_channels_match_promotion_state(self) -> None:
+        for cs in STILL_METADATA_READY_CONFIGS:
             with self.subTest(config_string=cs):
                 row = self.by_cs[cs]
                 self.assertEqual(row["channel"], "preview")
@@ -350,7 +381,11 @@ class MetadataReadyRowPostureTests(unittest.TestCase):
                     row.get("release_state"), "metadata-ready-unpublished"
                 )
                 self.assertTrue(row["artifact_name"].endswith("-preview.bin"))
-                self.assertNotIn("-stable.bin", row["artifact_name"])
+        for cs in PROMOTED_CONFIGS:
+            with self.subTest(config_string=cs):
+                row = self.by_cs[cs]
+                self.assertEqual(row["channel"], "stable")
+                self.assertTrue(row["artifact_name"].endswith("-stable.bin"))
 
 
 class EveryPreviewRowHasCoverageTests(unittest.TestCase):
@@ -402,15 +437,22 @@ class StableBathroomCrossReferenceTests(unittest.TestCase):
     source of truth (launch SKU unchanged)."""
 
     def test_launch_sku_and_artifact_match_shop_source_of_truth(self) -> None:
+        # The shop artifact mirrors the LIVE stable Bathroom build (the ledger
+        # version moves with release bumps; the drafts' v1.0.0 cross-reference
+        # stays a historical text pin checked separately above).
         shop = _load_json(SHOP_PATH)["launch_product"]
+        row = _by_cs()[STABLE_CONFIG]
         self.assertEqual(shop["shop_sku"], LAUNCH_SKU)
         self.assertEqual(shop["firmware_config"], STABLE_CONFIG)
-        self.assertEqual(shop["artifact_name"], STABLE_BATHROOM_ARTIFACT)
+        self.assertEqual(shop["artifact_name"], row["artifact_name"])
 
-    def test_stable_row_unchanged_in_build_ledger(self) -> None:
+    def test_stable_row_still_stable_in_build_ledger(self) -> None:
         row = _by_cs()[STABLE_CONFIG]
         self.assertEqual(row["channel"], "stable")
-        self.assertEqual(row["artifact_name"], STABLE_BATHROOM_ARTIFACT)
+        self.assertEqual(
+            row["artifact_name"],
+            f"Sense360-{STABLE_CONFIG}-v{row['version']}-stable.bin",
+        )
 
 
 class GuardrailTests(unittest.TestCase):
@@ -429,7 +471,7 @@ class GuardrailTests(unittest.TestCase):
         present = sorted(p.name for p in DRAFT_DIR.glob("*.md"))
         expected = sorted(
             ["README.md", SHARED_PREVIEW_NOTES]
-            + [f"{cs.lower()}.md" for cs in METADATA_READY_CONFIGS]
+            + [f"{cs.lower()}.md" for cs in DRAFTED_CONFIGS]
         )
         self.assertEqual(present, expected)
 

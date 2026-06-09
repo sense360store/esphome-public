@@ -377,12 +377,14 @@ class WebflashCoverageTests(unittest.TestCase):
                 self.assertEqual(build["channel"], t["build_channel"])
                 self.assertEqual(build["artifact_name"], t["expected_artifact_name"])
 
-    def test_metadata_ready_targets_are_the_three_room_bundle_previews(self) -> None:
-        # RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001: the three compile-validated
-        # room-bundle previews now carry a reviewed build row and are recorded
-        # webflash-preview-metadata-ready (build-row prerequisite resolved, so
-        # no build_blocker), while staying preview / not recommended / not
-        # customer-default / not required-config.
+    def test_metadata_ready_targets_are_the_remaining_room_bundle_previews(self) -> None:
+        # RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 recorded three room-bundle
+        # previews as webflash-preview-metadata-ready. STABLE-PROMOTION-
+        # RECONCILE-001: two of them have since been promoted and published
+        # stable (Ceiling-POE-RoomIQ v1.0.5 on 2026-06-08, Ceiling-POE-AirIQ-
+        # RoomIQ v1.0.6 on 2026-06-09, both owner-waiver promotions), so only
+        # the Living/Corridor LED bundle still sits metadata-ready on the
+        # preview channel (no binary published for it yet).
         metadata_ready = {
             t["config_string"]
             for t in self.manifest["targets"]
@@ -391,8 +393,6 @@ class WebflashCoverageTests(unittest.TestCase):
         self.assertEqual(
             metadata_ready,
             {
-                "Ceiling-POE-AirIQ-RoomIQ",
-                "Ceiling-POE-RoomIQ",
                 "Ceiling-POE-RoomIQ-LED",
             },
         )
@@ -470,12 +470,22 @@ class NoStablePromotionTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.manifest = _load(MANIFEST_PATH)
 
-    def test_only_the_release_one_baseline_is_stable(self) -> None:
+    def test_stable_targets_mirror_the_ledger_and_baseline_stays_unique(self) -> None:
+        # STABLE-PROMOTION-RECONCILE-001: the stable tier now carries the
+        # Release-One baseline plus the two owner-waiver promotions (Bedroom
+        # v1.0.5, Kitchen v1.0.6). The stable targets must mirror the stable
+        # rows of config/webflash-builds.json, and the Release-One baseline
+        # must remain the ONLY required-config / customer-default target.
         stable = [t for t in self.manifest["targets"] if t["channel_tier"] == "stable"]
-        self.assertEqual(len(stable), 1)
-        self.assertEqual(stable[0]["config_string"], RELEASE_ONE_CONFIG)
-        # The stable baseline is the only required-config / kit-default target.
-        self.assertTrue(stable[0]["required_config"])
+        ledger_stable = {
+            b["config_string"]
+            for b in _load(BUILDS_PATH)["builds"]
+            if b.get("channel") == "stable"
+        }
+        self.assertEqual({t["config_string"] for t in stable}, ledger_stable)
+        required = [t for t in stable if t["required_config"]]
+        self.assertEqual(len(required), 1)
+        self.assertEqual(required[0]["config_string"], RELEASE_ONE_CONFIG)
 
     def test_required_config_implies_stable(self) -> None:
         for t in self.manifest["targets"]:
