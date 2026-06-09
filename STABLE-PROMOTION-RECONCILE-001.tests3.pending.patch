@@ -1,0 +1,340 @@
+diff --git a/tests/test_preview_publish_plan.py b/tests/test_preview_publish_plan.py
+index be2d82a..4d08d2d 100644
+--- a/tests/test_preview_publish_plan.py
++++ b/tests/test_preview_publish_plan.py
+@@ -72,12 +72,29 @@ RUN_ID = "RELEASE-PREVIEW-PUBLISH-RUN-001"
+ LAUNCH_SKU = "S360-KIT-BATH-P"
+ VERSION = "1.0.0"
+ 
+-# The three metadata-ready preview rows this plan publishes, by config string.
++# The three metadata-ready preview rows this plan published, by config string.
++# HISTORICAL: the plan was executed (run 26847702410, release v1.0.0-preview).
++# STABLE-PROMOTION-RECONCILE-001 has since promoted two of the three to the
++# stable channel (Ceiling-POE-RoomIQ v1.0.5 on 2026-06-08,
++# Ceiling-POE-AirIQ-RoomIQ v1.0.6 on 2026-06-09, owner-waiver promotions), so
++# live-ledger assertions below distinguish the promoted rows from the one
++# still on the preview channel.
+ PUBLISH_CONFIGS = (
+     "Ceiling-POE-AirIQ-RoomIQ",
+     "Ceiling-POE-RoomIQ",
+     "Ceiling-POE-RoomIQ-LED",
+ )
++PROMOTED_CONFIGS = (
++    "Ceiling-POE-AirIQ-RoomIQ",
++    "Ceiling-POE-RoomIQ",
++)
++STILL_PREVIEW_CONFIGS = ("Ceiling-POE-RoomIQ-LED",)
++# The artifact names the plan recorded (historical, static).
++PLAN_ARTIFACTS = {
++    "Ceiling-POE-AirIQ-RoomIQ": "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.0-preview.bin",
++    "Ceiling-POE-RoomIQ": "Sense360-Ceiling-POE-RoomIQ-v1.0.0-preview.bin",
++    "Ceiling-POE-RoomIQ-LED": "Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin",
++}
+ 
+ # The stable Bathroom baseline + already-published VentIQ LED preview are
+ # explicitly out of the publish set (the stable build is only built when
+@@ -189,15 +206,16 @@ def _dispatch_inputs(workflow_path: Path) -> Dict[str, Any]:
+ 
+ 
+ class PublishScopeTests(unittest.TestCase):
+-    """The publish scope is exactly the three metadata-ready preview rows."""
++    """The publish scope was the three metadata-ready preview rows; after the
++    promotions only the LED room bundle is still metadata-ready."""
+ 
+-    def test_metadata_ready_rows_are_the_three_publish_configs(self) -> None:
++    def test_metadata_ready_rows_are_the_unpromoted_publish_configs(self) -> None:
+         got = sorted(b["config_string"] for b in _metadata_ready_rows())
+-        self.assertEqual(got, sorted(PUBLISH_CONFIGS))
++        self.assertEqual(got, sorted(STILL_PREVIEW_CONFIGS))
+ 
+-    def test_publish_rows_are_preview_channel_at_expected_version(self) -> None:
++    def test_publish_rows_match_their_promotion_state(self) -> None:
+         by_cs = _by_cs()
+-        for cs in PUBLISH_CONFIGS:
++        for cs in STILL_PREVIEW_CONFIGS:
+             with self.subTest(config_string=cs):
+                 row = by_cs[cs]
+                 self.assertEqual(row["channel"], "preview")
+@@ -205,6 +223,12 @@ class PublishScopeTests(unittest.TestCase):
+                 self.assertEqual(
+                     row.get("release_state"), "metadata-ready-unpublished"
+                 )
++        for cs in PROMOTED_CONFIGS:
++            with self.subTest(config_string=cs):
++                row = by_cs[cs]
++                self.assertEqual(row["channel"], "stable")
++                self.assertNotIn("release_state", row)
++                self.assertTrue(row["artifact_name"].endswith("-stable.bin"))
+ 
+     def test_stable_baseline_is_not_in_publish_scope(self) -> None:
+         # The stable Bathroom build is channel=stable, never metadata-ready.
+@@ -214,26 +238,31 @@ class PublishScopeTests(unittest.TestCase):
+ 
+ 
+ class ArtifactNameContractTests(unittest.TestCase):
+-    """Preview artifact names match the build-row contract + the mapper."""
++    """Artifact names match the build-row contract + the mapper (the preview
++    contract for the unpromoted row; the stable contract for the promoted)."""
+ 
+-    def test_artifact_names_follow_preview_contract(self) -> None:
++    def test_artifact_names_follow_channel_contract(self) -> None:
+         by_cs = _by_cs()
+-        for cs in PUBLISH_CONFIGS:
++        for cs in STILL_PREVIEW_CONFIGS:
+             with self.subTest(config_string=cs):
+                 expected = f"Sense360-{cs}-v{VERSION}-preview.bin"
+                 self.assertEqual(by_cs[cs]["artifact_name"], expected)
+-                self.assertTrue(expected.endswith("-preview.bin"))
+-                self.assertNotIn("-stable.bin", expected)
++        for cs in PROMOTED_CONFIGS:
++            with self.subTest(config_string=cs):
++                row = by_cs[cs]
++                expected = f"Sense360-{cs}-v{row['version']}-stable.bin"
++                self.assertEqual(row["artifact_name"], expected)
+ 
+     def test_artifact_names_round_trip_through_mapper(self) -> None:
+         by_cs = _by_cs()
+         for cs in PUBLISH_CONFIGS:
+             with self.subTest(config_string=cs):
+-                stem = _wrapper_stem(by_cs[cs]["product_yaml"])
++                row = by_cs[cs]
++                stem = _wrapper_stem(row["product_yaml"])
+                 produced = _MAPPER.generate_webflash_filename(
+-                    stem, VERSION, "preview"
++                    stem, row["version"], row["channel"]
+                 )
+-                self.assertEqual(produced, by_cs[cs]["artifact_name"])
++                self.assertEqual(produced, row["artifact_name"])
+ 
+     def test_no_forbidden_token_in_publish_artifact_names(self) -> None:
+         by_cs = _by_cs()
+@@ -264,7 +293,11 @@ class CompileEvidenceTests(unittest.TestCase):
+ class CommercialPostureTests(unittest.TestCase):
+     """Task item 4: hidden / candidate / not buyable / not stable posture."""
+ 
+-    def test_rows_are_hidden_candidate_not_buyable_not_stable(self) -> None:
++    def test_rows_are_hidden_candidate_not_buyable(self) -> None:
++        # posture.stable mirrors the channel after the promotions: true for
++        # the two promoted rows, false for the unpromoted LED room bundle.
++        # Everything else (hidden / candidate / not buyable / not recommended /
++        # not default / not required-config) is unchanged by promotion.
+         by_cs = _by_cs()
+         for cs in PUBLISH_CONFIGS:
+             with self.subTest(config_string=cs):
+@@ -274,7 +307,7 @@ class CommercialPostureTests(unittest.TestCase):
+                 self.assertFalse(posture.get("buyable"))
+                 self.assertFalse(posture.get("recommended"))
+                 self.assertFalse(posture.get("customer_default"))
+-                self.assertFalse(posture.get("stable"))
++                self.assertEqual(posture.get("stable"), cs in PROMOTED_CONFIGS)
+                 self.assertFalse(posture.get("release_one_required_config"))
+ 
+ 
+@@ -339,15 +372,25 @@ class WorkflowMatrixScopeTests(unittest.TestCase):
+     """Task item 6: replay the release workflow matrix filter for scope."""
+ 
+     def test_preview_run_never_includes_stable_bathroom(self) -> None:
+-        # A preview release run must not include the stable Bathroom build.
++        # A preview release run must not include the stable Bathroom build,
++        # and (post-promotion) no longer includes the two promoted rows.
+         got = _matrix(VERSION, "preview")
+         self.assertNotIn(STABLE_CONFIG, got)
+-        for cs in PUBLISH_CONFIGS:
++        for cs in STILL_PREVIEW_CONFIGS:
+             self.assertIn(cs, got)
++        for cs in PROMOTED_CONFIGS:
++            self.assertNotIn(cs, got)
+ 
+-    def test_stable_run_includes_only_the_stable_bathroom_build(self) -> None:
+-        got = _matrix(VERSION, "stable")
+-        self.assertEqual(got, [STABLE_CONFIG])
++    def test_each_stable_version_builds_exactly_one_row(self) -> None:
++        # Stable rows carry distinct versions (the bump/promote flow moves one
++        # config at a time), so a stable release run at a given version builds
++        # exactly that config — never a second stable row by accident.
++        for entry in _builds():
++            if entry.get("channel") != "stable":
++                continue
++            with self.subTest(config_string=entry["config_string"]):
++                got = _matrix(entry["version"], "stable")
++                self.assertEqual(got, [entry["config_string"]])
+ 
+     def test_no_fan_or_triac_token_in_any_build_row(self) -> None:
+         for entry in _builds():
+@@ -374,7 +417,10 @@ class PublishPlanDocTests(unittest.TestCase):
+     def test_plan_doc_records_every_required_field_per_artifact(self) -> None:
+         for cs in PUBLISH_CONFIGS:
+             row = self.by_cs[cs]
+-            artifact = row["artifact_name"]
++            # The plan doc is a historical record of the v1.0.0-preview cut:
++            # it names the preview artifacts as planned at the time, not the
++            # later promoted stable names.
++            artifact = PLAN_ARTIFACTS[cs]
+             wrapper = row["product_yaml"]
+             draft_rel = f"release-notes/preview/{cs.lower()}.md"
+             with self.subTest(config_string=cs):
+diff --git a/tests/test_preview_publish_results.py b/tests/test_preview_publish_results.py
+index 2ee757c..da7973f 100644
+--- a/tests/test_preview_publish_results.py
++++ b/tests/test_preview_publish_results.py
+@@ -12,9 +12,13 @@ regress:
+   * the results doc records the run id ``26847702410``, the workflow name
+     ``Build & Release Firmware``, the ``release`` event (not a manual dispatch),
+     conclusion ``success``, and a build count of four (task items 3 / 5);
+-  * the four published artifacts are EXACTLY the ``(version=1.0.0,
+-    channel=preview)`` rows in ``config/webflash-builds.json`` (derived, not
+-    hardcoded), each a ``-preview.bin`` (task item 4);
++  * the four published artifacts are the HISTORICAL ``(version=1.0.0,
++    channel=preview)`` publish set, pinned statically (task item 4). They were
++    originally derived from ``config/webflash-builds.json``, but
++    STABLE-PROMOTION-RECONCILE-001 promoted two of the four to stable
++    (Bedroom v1.0.5, Kitchen v1.0.6), so the live ledger now legitimately
++    carries only a subset on the preview channel — the guard checks that
++    subset relationship instead;
+   * the doc explains the four-artifact scope — the ``release`` event ignores the
+     ``workflow_dispatch``-only ``release_target`` picker and builds every
+     ``version`` + ``channel`` row (task item 5);
+@@ -63,20 +67,35 @@ CHANNEL = "preview"
+ BUILD_COUNT = 4
+ 
+ # The exact four config strings the v1.0.0-preview release published (the three
+-# new room-bundle previews + the re-attached VentIQ LED preview). The test also
+-# derives this set from config/webflash-builds.json so the doc cannot drift.
++# new room-bundle previews + the re-attached VentIQ LED preview). This is a
++# HISTORICAL record of that release run, pinned statically: the live ledger has
++# since legitimately moved on (STABLE-PROMOTION-RECONCILE-001 promoted
++# Ceiling-POE-RoomIQ to stable v1.0.5 on 2026-06-08 and Ceiling-POE-AirIQ-RoomIQ
++# to stable v1.0.6 on 2026-06-09), so the historical publish set can no longer
++# be derived from config/webflash-builds.json.
+ EXPECTED_PUBLISHED_CONFIGS = {
+     "Ceiling-POE-AirIQ-RoomIQ",
+     "Ceiling-POE-RoomIQ",
+     "Ceiling-POE-RoomIQ-LED",
+     "Ceiling-POE-VentIQ-RoomIQ-LED",
+ }
+-# The three rows added by RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 that must stay
+-# metadata-ready-unpublished (this PR records results; it edits no build row).
+-NEW_METADATA_ROWS = {
++# The artifact names that release run attached (historical, static).
++EXPECTED_PUBLISHED_ARTIFACTS = {
++    "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.0-preview.bin",
++    "Sense360-Ceiling-POE-RoomIQ-v1.0.0-preview.bin",
++    "Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin",
++    "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin",
++}
++# Of the three rows added by RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001, only the
++# unpromoted LED room bundle still carries release_state
++# metadata-ready-unpublished; the two promoted rows dropped the preview-only
++# release_state field on promotion.
++UNPROMOTED_METADATA_ROWS = {
++    "Ceiling-POE-RoomIQ-LED",
++}
++PROMOTED_ROWS = {
+     "Ceiling-POE-AirIQ-RoomIQ",
+     "Ceiling-POE-RoomIQ",
+-    "Ceiling-POE-RoomIQ-LED",
+ }
+ STABLE_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
+ 
+@@ -107,10 +126,11 @@ def _by_cs() -> Dict[str, Dict[str, Any]]:
+     return {b["config_string"]: b for b in _builds()}
+ 
+ 
+-def _published_rows() -> List[Dict[str, Any]]:
+-    """Replay the release-event matrix filter: every webflash-builds.json row at
+-    (version=1.0.0, channel=preview). release_target is ignored on a release
+-    event, so the scope is purely the version + channel match."""
++def _preview_rows_today() -> List[Dict[str, Any]]:
++    """Every webflash-builds.json row still at (version=1.0.0, channel=preview)
++    TODAY. Historically the v1.0.0-preview release-event filter matched four
++    rows; two have since been promoted to stable, so today's preview rows are a
++    strict subset of the historical publish set."""
+     return [
+         b
+         for b in _builds()
+@@ -151,8 +171,9 @@ class RunEvidenceTests(unittest.TestCase):
+     def test_records_success_conclusion_and_four_artifacts(self) -> None:
+         self.assertIn("success", self.norm)
+         self.assertIn("four", self.norm)
+-        # The recorded build count matches the derived matrix size.
+-        self.assertEqual(len(_published_rows()), BUILD_COUNT)
++        # The recorded build count matches the (historical, static) publish set.
++        self.assertEqual(len(EXPECTED_PUBLISHED_CONFIGS), BUILD_COUNT)
++        self.assertEqual(len(EXPECTED_PUBLISHED_ARTIFACTS), BUILD_COUNT)
+ 
+     def test_records_attach_and_gate_steps(self) -> None:
+         for needle in (
+@@ -172,19 +193,31 @@ class PublishedArtifactTests(unittest.TestCase):
+     def setUpClass(cls) -> None:
+         cls.text = RESULTS_DOC.read_text(encoding="utf-8")
+ 
+-    def test_published_set_is_the_four_preview_rows(self) -> None:
+-        got = {b["config_string"] for b in _published_rows()}
+-        self.assertEqual(got, EXPECTED_PUBLISHED_CONFIGS)
++    def test_published_set_covers_todays_preview_rows(self) -> None:
++        # Today's preview rows are a strict subset of the historical publish
++        # set (two of the four were promoted to stable after the run), and
++        # every historically published config still exists in the ledger.
++        got = {b["config_string"] for b in _preview_rows_today()}
++        self.assertTrue(
++            got.issubset(EXPECTED_PUBLISHED_CONFIGS),
++            f"unexpected preview rows: {sorted(got - EXPECTED_PUBLISHED_CONFIGS)}",
++        )
++        ledger = set(_by_cs())
++        self.assertTrue(EXPECTED_PUBLISHED_CONFIGS.issubset(ledger))
++        self.assertEqual(
++            EXPECTED_PUBLISHED_CONFIGS - got,
++            PROMOTED_ROWS,
++            "only the two promoted rows may have left the preview channel",
++        )
+ 
+     def test_stable_row_is_not_in_the_preview_publish_set(self) -> None:
+-        got = {b["config_string"] for b in _published_rows()}
++        self.assertNotIn(STABLE_CONFIG, EXPECTED_PUBLISHED_CONFIGS)
++        got = {b["config_string"] for b in _preview_rows_today()}
+         self.assertNotIn(STABLE_CONFIG, got)
+ 
+     def test_doc_names_each_published_artifact(self) -> None:
+-        by_cs = _by_cs()
+-        for cs in EXPECTED_PUBLISHED_CONFIGS:
+-            with self.subTest(config_string=cs):
+-                artifact = by_cs[cs]["artifact_name"]
++        for artifact in EXPECTED_PUBLISHED_ARTIFACTS:
++            with self.subTest(artifact=artifact):
+                 self.assertTrue(artifact.endswith("-preview.bin"))
+                 self.assertIn(artifact, self.text)
+ 
+@@ -195,9 +228,8 @@ class PublishedArtifactTests(unittest.TestCase):
+             f"doc names unexpected .bin artifact(s): "
+             f"{sorted(tokens - ALLOWED_BIN_ARTIFACTS)}",
+         )
+-        by_cs = _by_cs()
+-        for cs in EXPECTED_PUBLISHED_CONFIGS:
+-            self.assertIn(by_cs[cs]["artifact_name"], tokens)
++        for artifact in EXPECTED_PUBLISHED_ARTIFACTS:
++            self.assertIn(artifact, tokens)
+ 
+     def test_no_forbidden_token_in_any_named_bin(self) -> None:
+         for token in BIN_TOKEN_RE.findall(self.text):
+@@ -274,13 +306,19 @@ class GuardrailTests(unittest.TestCase):
+         bins = [p for p in REPO_ROOT.rglob("*.bin") if ".git" not in p.parts]
+         self.assertEqual(bins, [], f"no .bin may be committed; found {bins}")
+ 
+-    def test_new_build_rows_stay_metadata_ready_unpublished(self) -> None:
++    def test_release_state_matches_promotion_state(self) -> None:
++        # The unpromoted LED room bundle still carries the preview-only
++        # release_state; the two promoted rows dropped it on promotion
++        # (matching the stable Release-One row shape).
+         by_cs = _by_cs()
+-        for cs in NEW_METADATA_ROWS:
++        for cs in UNPROMOTED_METADATA_ROWS:
+             with self.subTest(config_string=cs):
+                 self.assertEqual(
+                     by_cs[cs].get("release_state"), "metadata-ready-unpublished"
+                 )
++        for cs in PROMOTED_ROWS:
++            with self.subTest(config_string=cs):
++                self.assertNotIn("release_state", by_cs[cs])
+ 
+     def test_builds_ledger_still_has_five_entries(self) -> None:
+         self.assertEqual(len(_builds()), 5)
