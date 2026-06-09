@@ -97,6 +97,23 @@ jobs:
         run: |
           python3 tests/test_product_catalog_consistency.py
 
+      - name: Catalog release-artifact guard unit tests
+        run: |
+          python3 tests/test_check_catalog_release_artifacts.py
+
+      # Phantom-version guard: every catalog config that declares an
+      # artifact_name and is marked webflash_build_matrix=true must map to a
+      # real published release asset. Catches a catalog version/artifact bump
+      # for a build that was never released (e.g. the LED 1.0.3 drift that
+      # broke the downstream WebFlash deploy gate). Queries published releases
+      # via the gh CLI; GH_TOKEN keeps the call authenticated. contents:read
+      # is sufficient for reading releases.
+      - name: Catalog versions must have a real released artifact (no phantom versions)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/check-catalog-release-artifacts.py --repo "${{ github.repository }}"
+
       - name: Bump-release-version unit tests
         run: |
           python3 tests/test_bump_release_version.py
