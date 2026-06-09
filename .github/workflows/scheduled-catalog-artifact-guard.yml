@@ -1,0 +1,67 @@
+---
+# ============================================================================
+# SCHEDULED: Catalog Phantom-Version Guard
+# ============================================================================
+# Asserts that every WebFlash-build catalog config that declares an
+# artifact_name maps to a REAL published GitHub release asset. This is the
+# out-of-band home for the phantom-version guard that used to run as a hard
+# step in .github/workflows/validate.yml on every push and pull_request.
+#
+# Why it runs on a schedule instead of per-PR
+# -------------------------------------------
+# A legitimate promotion sets config/product-catalog.json to the new stable
+# version BEFORE the release that produces that asset is cut. A hard per-PR
+# check cannot tell that pending state apart from a real phantom, so it would
+# red-flag or block every promote PR and leave main red until the release
+# lands. The release-time asset check (scripts/check-webflash-release-assets.py,
+# run in firmware-build-release.yml) already fails closed if a build is
+# released without its declared artifact.
+#
+# What this guard uniquely catches is a phantom that LINGERS in the catalog
+# after the promotion window (the Ceiling-POE-VentIQ-RoomIQ-LED 1.0.3 case,
+# where the catalog named a 1.0.3 artifact that was never built). A daily
+# scheduled run surfaces that loudly, out of band, without blocking any PR.
+#
+# The detection logic is unchanged: this runs the exact same script the
+# per-PR step used to run. The matching unit tests still run on every PR via
+# the "Catalog release-artifact guard unit tests" step in validate.yml.
+# ============================================================================
+
+name: "Scheduled: Catalog Phantom-Version Guard"
+
+on:
+  schedule:
+    # Daily at 07:37 UTC. Off the hour to avoid GitHub's top-of-hour cron
+    # congestion. A few hours of detection latency is fine for a guard whose
+    # target is a lingering catalog phantom, not a per-commit gate.
+    - cron: "37 7 * * *"
+  workflow_dispatch:
+
+# Least-privilege, read-only token. This guard only reads the repo and queries
+# published releases; contents:read is sufficient for the gh CLI releases call.
+permissions:
+  contents: read
+
+jobs:
+  phantom-version-guard:
+    name: Catalog versions must have a real released artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      # Hard check. Every catalog config that declares an artifact_name and is
+      # marked webflash_build_matrix=true must map to a real published release
+      # asset. Queries published releases via the gh CLI (preinstalled on the
+      # runner); GH_TOKEN keeps the call authenticated. A failure here means a
+      # phantom version is lingering in config/product-catalog.json.
+      - name: Catalog versions must have a real released artifact (no phantom versions)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/check-catalog-release-artifacts.py --repo "${{ github.repository }}"

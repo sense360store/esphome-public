@@ -101,18 +101,18 @@ jobs:
         run: |
           python3 tests/test_check_catalog_release_artifacts.py
 
-      # Phantom-version guard: every catalog config that declares an
-      # artifact_name and is marked webflash_build_matrix=true must map to a
-      # real published release asset. Catches a catalog version/artifact bump
-      # for a build that was never released (e.g. the LED 1.0.3 drift that
-      # broke the downstream WebFlash deploy gate). Queries published releases
-      # via the gh CLI; GH_TOKEN keeps the call authenticated. contents:read
-      # is sufficient for reading releases.
-      - name: Catalog versions must have a real released artifact (no phantom versions)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python3 scripts/check-catalog-release-artifacts.py --repo "${{ github.repository }}"
+      # The phantom-version guard (scripts/check-catalog-release-artifacts.py)
+      # used to run here as a hard per-push/PR step. It was moved to the
+      # scheduled workflow .github/workflows/scheduled-catalog-artifact-guard.yml
+      # because a legitimate promotion sets the catalog to the new stable version
+      # BEFORE the release that produces that asset is cut, so a per-PR hard check
+      # cannot tell a pending release from a real phantom and would red-flag or
+      # block every promote PR until the release lands. The release-time asset
+      # check (scripts/check-webflash-release-assets.py in firmware-build-release
+      # .yml) still fails closed at build time; the scheduled run catches a
+      # phantom that LINGERS in the catalog (the LED 1.0.3 case) out of band. Do
+      # not re-add this as a per-PR/per-push hard step. The unit tests above keep
+      # the guard's detection logic covered on every PR.
 
       - name: Bump-release-version unit tests
         run: |
