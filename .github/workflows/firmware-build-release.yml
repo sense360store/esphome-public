@@ -239,17 +239,36 @@ jobs:
           # components/ tree; the inline product-YAML rewrite below handles any
           # product-level external_components blocks.
           patch-external-components: "true"
-          # Release builds bake their own default secrets into the firmware, so
-          # this lane overrides the throwaway test secrets used by the compile /
-          # validate lanes. Keep these bytes unchanged.
+          # SEC-ESP-BUILD-GATES-001 (SECURITY-AUDIT-2026-06 H1): release
+          # builds no longer bake the shared default API / OTA / web /
+          # fallback-AP credentials that used to live here. The posture step
+          # below strips those config blocks from packages/base/, so the only
+          # secret keys a release product may resolve are the two
+          # intentionally-public setup-network credentials (they grant no
+          # control over the device's API / OTA / web surfaces — see
+          # docs/security/release-firmware-credential-posture.md). If a
+          # product YAML still references any other !secret key, ESPHome
+          # fails the compile on the missing secret instead of baking a
+          # shared value, and the default-credential gate scans every
+          # produced binary as the final backstop before publish.
           secrets-content: |
             wifi_ssid: "Sense360_Setup"
             wifi_password: "sense360setup"
-            api_encryption_key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa="
-            ota_password: "sense360-ota-default"
-            fallback_ap_password: "sense360fallback"
-            web_username: "admin"
-            web_password: "sense360admin"
+
+      - name: Apply release credential posture (SEC-ESP-BUILD-GATES-001)
+        run: |
+          # SECURITY-AUDIT-2026-06 H1: released firmware must not carry the
+          # shared default API / OTA / web / fallback-AP credentials. This
+          # workspace-only patch (never committed — same pattern as the
+          # external_components rewrite below) strips api.encryption, the OTA
+          # password, the web_server auth block, and the fallback-AP password
+          # from packages/base/, so the compiled binaries ship UNPROVISIONED
+          # instead of falsely secured with publicly known values.
+          # Self-builders are unaffected: the committed YAML keeps !secret and
+          # resolves their own secrets.yaml. Fails closed if any base package
+          # no longer has the expected shape.
+          # See docs/security/release-firmware-credential-posture.md.
+          python3 scripts/apply_release_secret_posture.py
 
       - name: Patch inline external_components in product YAMLs
         run: |
@@ -484,6 +503,17 @@ jobs:
             echo "firmware_path=$DEST"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Scan firmware for default credentials (SEC-ESP-BUILD-GATES-001)
+        env:
+          FIRMWARE_PATH: ${{ steps.rename.outputs.firmware_path }}
+        run: |
+          # SECURITY-AUDIT-2026-06 H1 + H2 (forward half): fail this product's
+          # build immediately if the compiled binary carries any denylisted
+          # default / placeholder / burned credential. The release job re-runs
+          # the same gate over the full downloaded artifact set as the
+          # authoritative pre-publish backstop.
+          python3 scripts/check_firmware_default_credentials.py "$FIRMWARE_PATH"
+
       - name: Assert renamed binary matches WebFlash build matrix
         run: |
           # Fail the build if config/webflash-builds.json declares an
@@ -540,6 +570,15 @@ jobs:
           echo ""
           echo "Total files: $(ls -1 all-firmware/*.bin 2>/dev/null | wc -l)"
 
+      - name: Gate release on default-credential scan (SEC-ESP-BUILD-GATES-001)
+        run: |
+          # SECURITY-AUDIT-2026-06 H1 + H2 (forward half): the permanent
+          # pre-publish backstop. Refuse to attach ANY artifact set to the
+          # release if any binary carries a denylisted default / placeholder /
+          # burned credential, regardless of how build secrets were sourced.
+          # Fails closed when there is nothing to scan.
+          python3 scripts/check_firmware_default_credentials.py --dir all-firmware
+
       - name: Generate checksums
         run: |
           cd all-firmware
@@ -587,6 +626,14 @@ jobs:
 
           echo "Manifest created:"
           cat all-firmware/manifest.json
+
+      - name: Validate manifest JSON before upload (SEC-ESP-BUILD-GATES-001)
+        run: |
+          # security.md finding #5 / SECURITY-AUDIT-2026-06 L3: the manifest
+          # above is assembled by shell interpolation; refuse to upload it
+          # unless it parses as valid JSON.
+          python3 -m json.tool all-firmware/manifest.json > /dev/null
+          echo "manifest.json parses as valid JSON"
 
       - name: Validate WebFlash release notes
         env:

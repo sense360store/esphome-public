@@ -57,6 +57,21 @@ jobs:
         run: |
           python3 scripts/check_fallback_ap_password.py
 
+      # SEC-ESP-BUILD-GATES-001 (SECURITY-AUDIT-2026-06 H1/H2): the release
+      # pipeline refuses to publish a binary carrying a default / placeholder /
+      # burned credential, and release builds strip the shared compile-time
+      # credentials from packages/base/. These two test files pin the gate's
+      # denylist behaviour and prove the posture patch still applies cleanly
+      # to the live committed packages/base/ shapes on every PR — a reshape
+      # that would make the release lane fail closed is caught here first.
+      - name: Default-credential firmware gate unit tests (SEC-ESP-BUILD-GATES-001)
+        run: |
+          python3 tests/test_check_firmware_default_credentials.py
+
+      - name: Release credential-posture patch unit tests (SEC-ESP-BUILD-GATES-001)
+        run: |
+          python3 tests/test_apply_release_secret_posture.py
+
       - name: Preflight Release-One profile entity-name collisions
         run: |
           python3 tests/test_release_one_entity_names.py
