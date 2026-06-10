@@ -266,6 +266,21 @@ changed the stable production release or the invariants above.
 Newest first. Full detail lives in the referenced docs / tests and the merged
 PRs.
 
+* **`ESP-HYGIENE-001` (this PR)**: repo hygiene — docs and test harness only.
+  Added the root [`CLAUDE.md`](CLAUDE.md) agent guide (derived from the tree:
+  project overview, canonical SKU catalog, repo layout, ESPHome conventions,
+  commands, the standing gates quoted from this file's invariants plus the
+  human-review-only / attestation / ESP-007 rules, and this file's
+  maintenance rule). Downgraded [`docs/release-one.md`](docs/release-one.md)
+  from "source of truth" to an explicit historical record of the first
+  release, pointing at `config/` as the live catalog (content otherwise
+  preserved). Fixed the `tests/test_room_bundle_fan_variants.py` harness
+  quirk — the module-level `test_main()` invoking a nested `unittest.main()`
+  raised `SystemExit: 1` under plain pytest; removed it (the
+  `if __name__ == "__main__"` runner stays; what the tests validate is
+  unchanged) so the full suite is green under plain pytest. No `config/`,
+  workflow, `packages/`, or `products/` change; no gate, blocker, or queue
+  item changed.
 * **`PACKAGE-TRIAC-001-CLOSE`** (#771,
   `bench/package-triac-001-step-f-close`, 2026-06-10, human-review): recorded
   the operator-reported Step F results (cold boots / warm reboots / stability
