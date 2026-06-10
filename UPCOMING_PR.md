@@ -24,8 +24,9 @@ by posture** per
 [`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`](docs/decisions/COMPLIANCE-001-RESOLUTION-001.md)
 (see the closed item recorded below the queue).
 
-1. **`PACKAGE-TRIAC-001` — FanTRIAC operator bench (off-agent; Steps A–F PASS
-   recorded — pending full-composition re-confirm + signed attestation).**
+1. **`PACKAGE-TRIAC-001` — FanTRIAC operator bench (off-agent; Steps A–F +
+   full-composition re-confirm PASS recorded — pending signed attestation
+   only).**
    The FanTRIAC gate/zero-cross mapping is schematic-verified — gate `GPIO14`
    = `TRI_GPIO1` → U1 MOC3023M; zero-cross `GPIO13` = `TRI_GPIO2` → OK1 EL814
    (`TRIAC-PINMAP-CORRECT-001`, traced from `S360-100-R4` + `S360-320-R4`), and
@@ -41,14 +42,16 @@ by posture** per
    operator-reported Step F results — cold boots, warm reboots, stability soak,
    all PASS; evidence class: operator observation, no log capture — marking
    **Steps A–F all PASS** on the real Manrose motor load (2026-06-08/09).
-   **Still outstanding in the committed record:** (a) the **full-composition
-   re-confirm** — NOT RECORDED, because the Step F report did not state which
-   firmware image was flashed and production parameters alone cannot prove the
-   full composition; it closes on an explicit operator statement or a re-flash
-   re-check — and (b) the **signed operator attestation** (the operator
-   completes the intentionally empty attestation block on the close-out branch
-   before merge). So `PACKAGE-TRIAC-001` is **not** cleared and the publish
-   posture is unchanged. A committed PASS + attestation clears only the
+   `PACKAGE-TRIAC-001-RECONFIRM-001`
+   (`bench/package-triac-001-reconfirm-close`, human-review) then recorded the
+   operator's closure of the **full-composition re-confirm** via closure path
+   (a) — his explicit statement, 2026-06-10, that the Step F image was the
+   full `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` composition (no re-flash re-check
+   needed). **Still outstanding in the committed record: the signed operator
+   attestation only** (the operator completes the intentionally empty
+   attestation block on the re-confirm close-out branch before merge). So
+   `PACKAGE-TRIAC-001` is **not** cleared and the publish posture is
+   unchanged. A committed PASS + attestation clears only the
    `PACKAGE-TRIAC-001` half (human-reviewed, via `TRIAC-COMMISSIONING-001`
    below); the `COMPLIANCE-001-RESOLUTION-001` experimental-lane entry stays
    separate. `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status: blocked`
@@ -266,6 +269,20 @@ changed the stable production release or the invariants above.
 Newest first. Full detail lives in the referenced docs / tests and the merged
 PRs.
 
+* **`PACKAGE-TRIAC-001-RECONFIRM-001`**
+  (`bench/package-triac-001-reconfirm-close`, 2026-06-10, human-review):
+  recorded the operator's closure of the full-composition re-confirm via
+  closure path (a) — his explicit statement, 2026-06-10, that "the Step F
+  image was the full Ceiling-POE-VentIQ-FanTRIAC-RoomIQ composition." The
+  re-confirm row, close-out summary row, status line, and next steps moved to
+  PASS / pending-attestation-only; the operator attestation block stays
+  intentionally empty for the operator to complete on the branch before
+  merge. Proof doc + guard-test rebaseline only (the NOT RECORDED pins moved
+  to the recorded closure; blocked posture, never-published sentence, and
+  attestation-structure pins untouched). Publish posture unchanged: FanTRIAC
+  stays BLOCKED / reference-only pending `TRIAC-COMMISSIONING-001` and the
+  `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions — never
+  stable, recommended, default, buyable, or WebFlash-exposed.
 * **`PACKAGE-TRIAC-001-CLOSE`** (#771,
   `bench/package-triac-001-step-f-close`, 2026-06-10, human-review): recorded
   the operator-reported Step F results (cold boots / warm reboots / stability
