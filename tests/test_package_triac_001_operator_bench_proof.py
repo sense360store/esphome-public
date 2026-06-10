@@ -1,20 +1,40 @@
 #!/usr/bin/env python3
 """PACKAGE-TRIAC-001 invariants for the FanTRIAC operator bench proof doc.
 
-PACKAGE-TRIAC-001 authors the operator bench *proof container* for the
+PACKAGE-TRIAC-001 authored the operator bench *proof container* for the
 blocked ``Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`` product:
-``docs/package-triac-001-operator-bench-proof.md``. It is an
-operator-evidence record (template + procedure) that stays ``PENDING``
-until a real bench run fills it in. Creating the container is docs-only:
-it must not clear the blocker, publish firmware, or claim any bench /
-compliance / hardware proof.
+``docs/package-triac-001-operator-bench-proof.md``. The container started
+``PENDING`` (#728), ``PACKAGE-TRIAC-001-PARAMS`` (#738) recorded the
+partial bench (Steps A, B, C, E PASS on the real Manrose fan motor) and
+folded the bench-confirmed parameters into
+``packages/expansions/fan_triac.yaml``, and ``PACKAGE-TRIAC-001-CLOSE``
+recorded the operator-reported Step F results (cold boots / warm reboots /
+stability soak — PASS; evidence class: operator observation, no log
+capture): Steps A–F all PASS, **pending the full-composition re-confirm
+and the operator attestation**. The full-composition re-confirm is NOT
+RECORDED — the Step F report did not state which firmware image was
+flashed, and production parameters alone cannot prove the full
+composition (the re-confirm exists to check that the sensor stack's I2C
+traffic, the LD2450 UART, and WiFi activity do not perturb the dimmer
+timing); it closes on an explicit operator statement or a re-flash
+re-check. The operator completes the intentionally empty attestation
+block himself before merge.
 
-These tests pin the structural invariants so a future regression cannot:
+These tests pin the close-out invariants so a regression cannot:
 
-  * fabricate a recorded operator PASS while the catalog still blocks the
-    product (the proof's ``PENDING`` state is coupled to the catalog
-    blocker staying ``blocked``);
-  * drift the schematic-verified pin mapping the bench depends on
+  * fabricate a *cleared blocker* out of the lettered-steps close — the
+    catalog keeps ``status: blocked`` and the doc must keep saying the
+    close-out does not clear ``PACKAGE-TRIAC-001``;
+  * drop the publish-posture statement — BLOCKED / reference-only, never
+    stable / recommended / default / buyable / WebFlash-exposed, pending
+    the commissioning PR and the COMPLIANCE-001-RESOLUTION-001
+    experimental-lane preconditions;
+  * launder the Step F evidence class — every Step F row is operator
+    observation with no log capture, and must say so;
+  * mark the full-composition re-confirm PASS by inference — the row
+    stays NOT RECORDED until an explicit operator statement or a
+    re-flash re-check, recorded by a deliberate doc + test edit;
+  * drift the schematic-verified pin mapping the bench depended on
     (gate ``GPIO14`` = ``TRI_GPIO1`` -> U1 MOC3023M; zero-cross
     ``GPIO13`` = ``TRI_GPIO2`` -> OK1 EL814);
   * silently promote the FanTRIAC product off its ``status: blocked``
@@ -24,11 +44,11 @@ These tests pin the structural invariants so a future regression cannot:
     posture per docs/decisions/COMPLIANCE-001-RESOLUTION-001.md; the
     cited reason changed, the enforced behaviour did not).
 
-When the operator bench is committed complete (signed attestation), the
-human-reviewed commissioning PR that clears the PACKAGE-TRIAC-001 half of
-the blocker updates the catalog, the doc, and this test together (the
-COMPLIANCE-001-RESOLUTION-001 experimental-lane entry still gates the
-publish).
+After the operator resolves the full-composition re-confirm and attests,
+the human-reviewed commissioning PR that clears the PACKAGE-TRIAC-001
+half of the blocker updates the catalog, the doc, and this test together
+(the COMPLIANCE-001-RESOLUTION-001 experimental-lane entry still gates
+the publish).
 
 Run with::
 
@@ -52,6 +72,8 @@ CATALOG_PATH = REPO_ROOT / "config" / "product-catalog.json"
 VARIANTS_PATH = REPO_ROOT / "config" / "room-bundle-fan-variants.json"
 
 FANTRIAC_CONFIG = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
+
+STEP_F_EVIDENCE_CLASS = "operator observation, no log capture"
 
 
 def _walk(obj: Any) -> Iterator[Any]:
@@ -92,11 +114,21 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
         self.assertIn("PACKAGE-TRIAC-001", first_line)
         self.assertIn("Operator Bench Proof", first_line)
 
-    def test_status_is_pending(self) -> None:
-        self.assertIn("**Status:** PENDING", self.text)
-        self.assertIn("operator bench not yet run", self.text)
-        # No row may be flipped to a recorded verdict while PENDING.
-        self.assertIn("stays `PENDING` until filled from a real run", self.text)
+    def test_status_steps_complete_pending_reconfirm_and_attestation(self) -> None:
+        self.assertIn(
+            "**Status:** STEPS A–F COMPLETE, ALL PASS — PENDING "
+            "FULL-COMPOSITION RE-CONFIRM AND OPERATOR ATTESTATION",
+            self.text,
+        )
+        self.assertIn("Steps A through F all recorded PASS", self.text)
+        # The close-out must say, in the status line itself, that it does
+        # not clear the blocker.
+        self.assertIn(
+            "does **not** clear `PACKAGE-TRIAC-001`",
+            self.text,
+        )
+        # The stale pre-close claim must be gone.
+        self.assertNotIn("operator bench not yet run", self.text)
 
     def test_docs_only_scope_declared(self) -> None:
         self.assertIn("Operator-evidence record. Docs only.", self.text)
@@ -139,12 +171,121 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
         # Leading-edge phase cut for a latching TRIAC.
         self.assertIn("method: leading", self.text)
 
-    def test_attestation_template_is_unfilled(self) -> None:
-        # Placeholder operator/date and the unresolved PASS / FAIL verdict
-        # guard against a fabricated, "completed" attestation being committed.
-        self.assertIn("| Operator | ____ |", self.text)
-        self.assertIn("| Date | ____ |", self.text)
-        self.assertIn("| Overall result | PASS / FAIL |", self.text)
+    # --- the Step F close-out record ------------------------------------
+
+    def test_step_f_rows_carry_operator_evidence_class(self) -> None:
+        # Every Step F capture row is operator-reported with no log capture,
+        # and the table must say so on each row.
+        step_f = self.text.split("### Step F", 1)[1].split(
+            "### Full-composition re-confirm", 1
+        )[0]
+        capture_rows = [
+            line
+            for line in step_f.splitlines()
+            if line.startswith("| ")
+            and not line.startswith("| Capture")
+            and "---" not in line
+        ]
+        self.assertEqual(
+            len(capture_rows),
+            4,
+            "Step F records the four operator-reported result groups "
+            "(cold boots, warm reboots, stability soak, supplementary speed "
+            f"check); found {len(capture_rows)} rows",
+        )
+        for row in capture_rows:
+            self.assertIn(
+                STEP_F_EVIDENCE_CLASS,
+                row,
+                f"Step F row missing its evidence class: {row}",
+            )
+        self.assertIn("**Step F result: PASS (Manrose fan motor)", self.text)
+
+    def test_close_out_marks_all_steps_pass(self) -> None:
+        self.assertIn(
+            "## Close-out — Steps A–F complete, pending full-composition "
+            "re-confirm and operator attestation",
+            self.text,
+        )
+        for needle in (
+            "| A — zero-cross detection | PASS |",
+            "| B — gate firing | PASS |",
+            "| C — load waveform (mains side, real fan) | PASS |",
+            "| D — locked parameters | PASS",
+            "| E — thermal soak | PASS |",
+            "| F — stability and boot | PASS (operator observation, no log capture) |",
+        ):
+            self.assertIn(needle, self.text, f"close-out step row missing: {needle}")
+        # Hardware and locked parameters travel with the close-out.
+        self.assertIn("S360-100-R4 Core + S360-320-R4 TRIAC", self.text)
+        self.assertIn("Manrose fan motor (real inductive load)", self.text)
+        self.assertIn("`restore_mode: RESTORE_DEFAULT_OFF`", self.text)
+        self.assertIn("`init_with_half_cycle: true`", self.text)
+        self.assertIn("`min_power: 15%`", self.text)
+
+    def test_close_out_keeps_publish_posture_blocked(self) -> None:
+        self.assertIn(
+            "Closure of `PACKAGE-TRIAC-001` does not change the publish posture.",
+            self.text,
+        )
+        self.assertIn(
+            "remains BLOCKED / reference-only: never stable, "
+            "never recommended, never default, never buyable, never "
+            "WebFlash-exposed",
+            self.text,
+        )
+        # The gate framing is the resolution record, not an open
+        # COMPLIANCE-001 assessment.
+        self.assertIn(
+            "pending the commissioning PR and the "
+            "`COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions",
+            self.text,
+        )
+
+    def test_full_composition_reconfirm_not_marked_by_inference(self) -> None:
+        # The re-confirm exists to check that the full product firmware
+        # (sensor-stack I2C traffic, LD2450 UART, WiFi activity) does not
+        # perturb the dimmer timing. Production parameters cannot prove
+        # that; only flashing the full composition can. The row therefore
+        # stays NOT RECORDED until an explicit operator statement or a
+        # re-flash re-check — flipping it is a deliberate, human-reviewed
+        # doc + test edit, never an inference.
+        self.assertIn("### Full-composition re-confirm", self.text)
+        reconfirm = self.text.split("### Full-composition re-confirm", 1)[1].split(
+            "## Close-out", 1
+        )[0]
+        self.assertIn("NOT RECORDED", reconfirm)
+        self.assertIn(
+            "production parameters are not the full composition", reconfirm
+        )
+        self.assertIn("explicit operator statement", reconfirm)
+        self.assertIn("re-flash of the full composition", reconfirm)
+        # The close-out summary row must mirror the open state.
+        self.assertIn("| Full-composition re-confirm | NOT RECORDED", self.text)
+        # The rejected PASS-by-inference wording must never come back.
+        self.assertNotIn("covered by the Step F", self.text)
+
+    def test_operator_attestation_block_present(self) -> None:
+        # The close-out PR inserts the attestation block empty; the operator
+        # completes it himself before merge. Pin the structure (heading +
+        # the six fields), not the emptiness, so the operator's fill does
+        # not break the suite.
+        self.assertIn("## Operator attestation", self.text)
+        self.assertIn("To be completed by the operator himself before merge", self.text)
+        attestation = self.text.split("## Operator attestation", 1)[1]
+        for field in (
+            "| Operator |",
+            "| Date |",
+            "| Units under test |",
+            "| Safety setup |",
+            "| Statement |",
+            "| Signature |",
+        ):
+            self.assertIn(
+                field,
+                attestation,
+                f"operator attestation field missing: {field}",
+            )
 
     # --- coupling to the live source-of-truth config -------------------
 
@@ -168,20 +309,27 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
             "requires_operator_bench == PACKAGE-TRIAC-001",
         )
 
-    def test_pending_proof_is_coupled_to_blocked_catalog(self) -> None:
-        # While the catalog blocks FanTRIAC, the proof must stay a PENDING
-        # template (no recorded overall PASS). A real bench PASS is a
-        # separate human-reviewed PR that clears the blocker and updates
-        # the doc and this test together.
-        catalog_blocked = self.fantriac.get("status") == "blocked"
-        doc_pending = (
-            "**Status:** PENDING" in self.text
-            and "| Overall result | PASS / FAIL |" in self.text
+    def test_closed_protocol_is_coupled_to_blocked_catalog(self) -> None:
+        # Closing the bench protocol is NOT clearing the blocker. While the
+        # catalog blocks FanTRIAC, the doc must keep stating that the
+        # close-out does not clear PACKAGE-TRIAC-001 and that COMPLIANCE-001
+        # is unchanged. The blocker-clear edit is a separate human-reviewed
+        # PR (after attestation) that updates the catalog, the doc, and this
+        # test together.
+        self.assertEqual(
+            self.fantriac.get("status"),
+            "blocked",
+            "FanTRIAC must currently stay blocked",
         )
-        self.assertTrue(catalog_blocked, "FanTRIAC must currently stay blocked")
-        self.assertTrue(
-            doc_pending,
-            "proof must stay PENDING while the catalog blocker is unresolved",
+        self.assertIn(
+            "does **not** clear `PACKAGE-TRIAC-001`",
+            self.text,
+            "doc must keep saying the close-out does not clear the blocker "
+            "while the catalog still blocks FanTRIAC",
+        )
+        self.assertIn(
+            "`COMPLIANCE-001` is CLOSED, resolved by market posture",
+            self.text,
         )
 
 

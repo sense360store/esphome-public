@@ -15,39 +15,45 @@ merged PRs.
 
 ## Next queue (actionable)
 
-Four items are genuinely open. The first is the bench-attestation gate, the
-second is the queued FanTRIAC commissioning PR (gated on this resolution PR
-merging and ordered behind two prerequisite slices); the last two are the
-remaining security-audit findings from [`security.md`](security.md).
-`COMPLIANCE-001` itself is **CLOSED — resolved by posture** per
+Four items are genuinely open. The first is the bench re-confirm +
+attestation gate, the second is the queued FanTRIAC commissioning PR (gated
+on the resolution PR merging and ordered behind two prerequisite slices); the
+last two are the remaining security-audit findings from
+[`security.md`](security.md). `COMPLIANCE-001` itself is **CLOSED — resolved
+by posture** per
 [`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`](docs/decisions/COMPLIANCE-001-RESOLUTION-001.md)
 (see the closed item recorded below the queue).
 
-1. **`PACKAGE-TRIAC-001` — FanTRIAC operator bench (off-agent; PENDING in the
-   committed record).**
+1. **`PACKAGE-TRIAC-001` — FanTRIAC operator bench (off-agent; Steps A–F PASS
+   recorded — pending full-composition re-confirm + signed attestation).**
    The FanTRIAC gate/zero-cross mapping is schematic-verified — gate `GPIO14`
    = `TRI_GPIO1` → U1 MOC3023M; zero-cross `GPIO13` = `TRI_GPIO2` → OK1 EL814
    (`TRIAC-PINMAP-CORRECT-001`, traced from `S360-100-R4` + `S360-320-R4`), and
-   the composition compiles. The remaining step is committing the completed
-   real-mains-load operator bench record (gate firing / zero-cross detection /
-   timing / waveform / thermal + **signed attestation**), run by flashing the
-   composition locally onto `S360-100-R4` + `S360-320-R4` — **no WebFlash
-   publish is required to run it**. The proof container is
+   the composition compiles. The proof container is
    [`docs/package-triac-001-operator-bench-proof.md`](docs/package-triac-001-operator-bench-proof.md).
-   `PACKAGE-TRIAC-001-PARAMS` (#738, open, human-review) folded the
-   bench-confirmed output parameters into
+   `PACKAGE-TRIAC-001-PARAMS` (#738, merged) folded the bench-confirmed output
+   parameters into
    [`packages/expansions/fan_triac.yaml`](packages/expansions/fan_triac.yaml)
    (`zero_cross_pin` `inverted: true`, `method: leading`,
    `fan_triac_min_power: "15"`) and recorded Steps A, B, C, E as **PASS** on the
-   real Manrose fan motor; **Step F (boot/stability), the full-composition
-   re-confirm, and the signed operator attestation are still outstanding in the
-   committed container** (the owner reports the bench complete as of
-   2026-06-09; the signed record lands with the commissioning PR), so
-   `PACKAGE-TRIAC-001` is **not** cleared and the proof stays **PENDING**. A
-   committed PASS clears only the `PACKAGE-TRIAC-001` half (human-reviewed);
-   the `COMPLIANCE-001-RESOLUTION-001` experimental-lane entry stays separate.
-   `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status: blocked` throughout —
-   never stable, recommended, default, buyable, or WebFlash-exposed.
+   real Manrose fan motor. `PACKAGE-TRIAC-001-CLOSE` (#771,
+   `bench/package-triac-001-step-f-close`, human-review) then recorded the
+   operator-reported Step F results — cold boots, warm reboots, stability soak,
+   all PASS; evidence class: operator observation, no log capture — marking
+   **Steps A–F all PASS** on the real Manrose motor load (2026-06-08/09).
+   **Still outstanding in the committed record:** (a) the **full-composition
+   re-confirm** — NOT RECORDED, because the Step F report did not state which
+   firmware image was flashed and production parameters alone cannot prove the
+   full composition; it closes on an explicit operator statement or a re-flash
+   re-check — and (b) the **signed operator attestation** (the operator
+   completes the intentionally empty attestation block on the close-out branch
+   before merge). So `PACKAGE-TRIAC-001` is **not** cleared and the publish
+   posture is unchanged. A committed PASS + attestation clears only the
+   `PACKAGE-TRIAC-001` half (human-reviewed, via `TRIAC-COMMISSIONING-001`
+   below); the `COMPLIANCE-001-RESOLUTION-001` experimental-lane entry stays
+   separate. `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status: blocked`
+   throughout — never stable, recommended, default, buyable, or
+   WebFlash-exposed.
    - **`TRIAC-PUBLISH-ADVANCED-PREVIEW-001` stays BLOCKED** behind
      `PACKAGE-TRIAC-001` **and** the `COMPLIANCE-001` gate element (which now
      resolves to the `COMPLIANCE-001-RESOLUTION-001` experimental-lane
@@ -260,6 +266,20 @@ changed the stable production release or the invariants above.
 Newest first. Full detail lives in the referenced docs / tests and the merged
 PRs.
 
+* **`PACKAGE-TRIAC-001-CLOSE`** (#771,
+  `bench/package-triac-001-step-f-close`, 2026-06-10, human-review): recorded
+  the operator-reported Step F results (cold boots / warm reboots / stability
+  soak — PASS; evidence class: operator observation, no log capture) and
+  marked Steps A–F all PASS on the real Manrose motor load (2026-06-08/09).
+  The full-composition re-confirm stays NOT RECORDED (the Step F report did
+  not state which image was flashed; parameters alone cannot prove the full
+  composition; closes on operator statement or re-flash re-check), and the
+  empty attestation block was added for the operator to complete before
+  merge. Docs + the `fan_triac.yaml` status comment + the #728 guard-test
+  rebaseline only. Publish posture unchanged: FanTRIAC stays BLOCKED /
+  reference-only pending `TRIAC-COMMISSIONING-001` and the
+  `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions — never
+  stable, recommended, default, buyable, or WebFlash-exposed.
 * **`COMPLIANCE-001-RESOLUTION-001`** (`governance/compliance-001-resolution`,
   2026-06-09, human-review): closed `COMPLIANCE-001` by owner decision on
   market posture (mains-touching boards never placed on the market;
