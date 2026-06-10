@@ -163,7 +163,10 @@ compliance / verified-schematic evidence (see the JSON).
   The only thing preventing a cut is the **`HW-005` buildability blocker**
   (S360-320 schematic uncommitted; GPIO5/GPIO6 collision; `ac_dimmer` cannot run
   across the SX1509 expander), **not** a lack of stable evidence. Stable is
-  additionally gated by `PACKAGE-TRIAC-001` and `COMPLIANCE-001`. An
+  additionally gated by `PACKAGE-TRIAC-001` (signed attestation) and the
+  `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions
+  (`COMPLIANCE-001` closed by market posture — see
+  [`decisions/COMPLIANCE-001-RESOLUTION-001.md`](decisions/COMPLIANCE-001-RESOLUTION-001.md)). An
   advanced-preview artifact can be cut on the advanced-manual-preview lane once
   `HW-005` resolves.
 

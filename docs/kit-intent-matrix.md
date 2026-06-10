@@ -105,10 +105,16 @@ The matrix enforces the following productization rules:
 - **PWM and 0–10V are advanced duct-fan / kitchen-style concepts**, not
   default bathroom options. They live under `use_case:
   kitchen-or-duct-fan`. PWM uses S360-311; 0–10V uses S360-312 (FanDAC).
-- **`PWR` / `S360-400` remains compliance-blocked.** No kit currently
-  ships with the 240V mains PSU; `COMPLIANCE-001` must close first.
-- **TRIAC remains advanced / manual or blocked** until HW-005 +
-  HW-PINMAP-320-FOLLOWUP + PACKAGE-TRIAC-001 + COMPLIANCE-001 all close.
+- **`PWR` / `S360-400` remains blocked from kits.** No kit currently
+  ships with the 240V mains PSU; under `COMPLIANCE-001-RESOLUTION-001`
+  (COMPLIANCE-001 closed by market posture) S360-400 is never placed on
+  the market, so at most a kit may be designated expansion-ready for the
+  self-build board under that record's two binding conditions.
+- **TRIAC remains advanced / manual or blocked.** HW-005 +
+  HW-PINMAP-320-FOLLOWUP are resolved; PACKAGE-TRIAC-001 (signed
+  attestation) + the COMPLIANCE-001-RESOLUTION-001 experimental-lane
+  preconditions remain, and an experimental build is never in the kit
+  picker by that record's constraints.
 - **Kit intent is not product YAML.** A row in this file is not a
   request to add a YAML under `products/**`.
 - **Kit intent is not WebFlash exposure.** A row in this file does not
@@ -342,13 +348,15 @@ either side of the cross-repo boundary.
   `PACKAGE-TRIAC-001`, `COMPLIANCE-001`
 
 Advanced / manual bathroom bundle using the FanTRIAC driver
-(S360-320) for mains-voltage fan dimming. Blocked under
-**HW-005** (S360-320 schematic uncommitted; placeholder GPIO5 / GPIO6
-collide with RoomIQ J10 nets; ESPHome `ac_dimmer` cannot run across
-the SX1509 expander), **HW-PINMAP-320-FOLLOWUP** (audit partial),
-**PACKAGE-TRIAC-001** (package deferred), and **COMPLIANCE-001**
-(mains-voltage advanced / manual-warning sign-off open). FanTRIAC
-stays advanced / manual or blocked until all four gates clear.
+(S360-320) for mains-voltage fan dimming. Of the four blocker tokens
+kept for history: **HW-005** and **HW-PINMAP-320-FOLLOWUP** are
+resolved (TRIAC-PINMAP-CORRECT-001); **PACKAGE-TRIAC-001** remains
+open until the signed operator attestation is committed; and
+**COMPLIANCE-001** is CLOSED by market posture per
+`COMPLIANCE-001-RESOLUTION-001` (S360-320 is never placed on the
+market), so its element now denotes that record's experimental-lane
+preconditions. FanTRIAC stays advanced / manual or blocked, and per
+the resolution an experimental build is never in the kit picker.
 
 ### S360-KIT-DUCT-PWM — Sense360 Duct Fan Kit — PWM Fan Control
 

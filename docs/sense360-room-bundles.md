@@ -426,8 +426,10 @@ recommended / default option. It is currently **build-blocked** by `HW-005`
 can be cut and it is not WebFlash-easy-mode-eligible today. When `HW-005`
 resolves it would be delivered only on the advanced-manual-preview lane
 behind an explicit mains-risk acknowledgement gate. Stable additionally
-requires `PACKAGE-TRIAC-001` + `COMPLIANCE-001`. **No safety / compliance
-proof is claimed.** **Kitchen has no TRIAC variant** — kitchen extract
+requires `PACKAGE-TRIAC-001` (signed attestation) + the
+`COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions
+(`COMPLIANCE-001` closed by market posture — S360-320 is never placed on
+the market). **No safety / compliance proof is claimed.** **Kitchen has no TRIAC variant** — kitchen extract
 TRIAC is not offered as a recommended / easy option by policy.
 
 ### Control types are not interchangeable

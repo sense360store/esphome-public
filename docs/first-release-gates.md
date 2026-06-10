@@ -229,8 +229,8 @@ is a **prose annotation, never a JSON field**, and is explicitly **NOT**
 | S360-310 | Sense360 Relay | `cataloged_unverified` | SELV logic authorable; mains load-side **ARTIFACT-BLOCKED** | Mains contact-rating + load-side clearance/creepage review (needs gerbers + BOM); SELV switching bench |
 | S360-311 | Sense360 PWM | `cataloged_unverified` | **design-complete** (compile-proven, bench-pending) | Current / thermal **not measured**; per-fan RPM not measured (`rpm_supported` stays `false`); `J3` silkscreen / `J6`↔`J3` harness owed to `HW-PINMAP-311` |
 | S360-312 | Sense360 DAC | `cataloged_unverified` | **design-complete** (compile green, bench-pending) | 0-10 V output, GP8403 detection / I²C address, range/calibration, current, thermal, harness/silkscreen all owed to `S360-312-DAC-BENCH-001` (no physical board exists) |
-| S360-320 | Sense360 TRIAC | `cataloged_unverified` | **BLOCKED (HW-005)** | `ac_dimmer` needs direct interrupt-capable ESP32 gate/zero-cross GPIO (placeholders provably wrong; I²C/SX1509 cannot meet timing); mains review + COMPLIANCE-001 |
-| S360-400 | Sense360 240v PSU | `cataloged_unverified` | passive PSU; design-readiness reduces to D1 + D6 + D-Review | Mains isolation creepage/clearance (gerbers + BOM); Hi-pot / X-Y-cap class; COMPLIANCE-001; converter identity (`HLK-?`) |
+| S360-320 | Sense360 TRIAC | `cataloged_unverified` | **BLOCKED (HW-005)** | `ac_dimmer` needs direct interrupt-capable ESP32 gate/zero-cross GPIO (placeholders provably wrong; I²C/SX1509 cannot meet timing); mains review per the COMPLIANCE-001-RESOLUTION-001 reopen path (COMPLIANCE-001 closed by posture — never placed on the market; experimental-lane preconditions gate any publish) |
+| S360-400 | Sense360 240v PSU | `cataloged_unverified` | passive PSU; design-readiness reduces to D1 + D6 + D-Review | Mains isolation creepage/clearance (gerbers + BOM); Hi-pot / X-Y-cap class; COMPLIANCE-001-RESOLUTION-001 reopen path (COMPLIANCE-001 closed by posture — never placed on the market); converter identity (`HLK-?`) |
 | S360-410 | Sense360 PoE PSU | `cataloged_unverified` | passive PSU; design-readiness reduces to D1 + D6 + D-Review | **UNRESOLVED** — PoE link-up / load / inrush / thermal / EMI-EMC bench; isolation Hi-pot; isolation creepage/clearance (gerbers + BOM); J2-harness / silkscreen; PCB source. **S360-410 is NOT verified.** |
 
 ### 3.1 S360-410 PoE PSU — the shared blocker
@@ -336,8 +336,8 @@ equipment exists).**
 | **S360-311 PWM** | Silkscreen `J3` 1-to-13 order + `J6`↔`J3` harness; native PWM drive on `IO10/11/12/39`; per-fan + aggregate current; thermal envelope; per-fan RPM via native `pulse_counter`; resolve `"NINE 4pin FANs"` label + `J3` 11/12 UART routing | `S360-311-CURRENT-THERMAL-001` (current/thermal), `HW-PINMAP-311` |
 | **S360-312 DAC** | 0-10 V output per channel; GP8403 detection + I²C address (`SW1`/`SW2`); output range/calibration; fan/controller response; current; thermal; harness/silkscreen; +5V-vs-+3.3V rail | `S360-312-DAC-BENCH-001` (blocked on physical board) |
 | **S360-310 Relay** | SELV switching logic bench; contact bounce; mains contact-rating + load-side clearance (gerbers + BOM); SELV/mains domain separation on silkscreen | `PRE-HW-PREP-FW-310-001` (SELV) + `PRE-HW-PREP-GERBER-REVIEW-001` (load side) |
-| **S360-320 TRIAC** | Direct-ESP32 gate/zero-cross mapping; zero-cross detection; phase-angle timing into mains load; opto isolation; **COMPLIANCE-001** UK/EU sign-off; creepage/clearance (gerbers) + EMC | `PRE-HW-PREP-TRIAC-320-001` (HW-005 / COMPLIANCE-001) |
-| **S360-400 240v PSU** | Output rail under load; ripple; inrush; thermal; converter identity; **COMPLIANCE-001** sign-off; creepage/clearance (gerbers) + Hi-pot/insulation + X/Y-cap class | `PRE-HW-PREP-MAINS-400-001` (COMPLIANCE-001) |
+| **S360-320 TRIAC** | Direct-ESP32 gate/zero-cross mapping; zero-cross detection; phase-angle timing into mains load; opto isolation; **COMPLIANCE-001-RESOLUTION-001** experimental-lane preconditions (PACKAGE-TRIAC-001-class bench with signed attestation; COMPLIANCE-001 closed by posture — UK/EU assessment owed only via the reopen trigger before any market placement); creepage/clearance (gerbers) + EMC | `PRE-HW-PREP-TRIAC-320-001` (HW-005 / COMPLIANCE-001-RESOLUTION-001) |
+| **S360-400 240v PSU** | Output rail under load; ripple; inrush; thermal; converter identity; **COMPLIANCE-001-RESOLUTION-001** experimental-lane preconditions (COMPLIANCE-001 closed by posture — assessment owed only via the reopen trigger before any market placement); creepage/clearance (gerbers) + Hi-pot/insulation + X/Y-cap class | `PRE-HW-PREP-MAINS-400-001` (COMPLIANCE-001-RESOLUTION-001) |
 
 > For the PoE board (S360-410) and the three mains boards (S360-310 / S360-320 /
 > S360-400), **no design-derived artifact — including fully compiled
@@ -364,8 +364,8 @@ unblocked here):
 | S360-311 PWM | `S360-311-CURRENT-THERMAL-001`, `HW-PINMAP-311` | Current/thermal/RPM bench (future-only) |
 | S360-312 DAC | `S360-312-DAC-BENCH-001` | Physical board in hand (future-only) |
 | S360-310 Relay | `PRE-HW-PREP-FW-310-001`, `PRE-HW-PREP-GERBER-REVIEW-001` | SELV logic now; mains review ARTIFACT-gated |
-| S360-320 TRIAC | `PRE-HW-PREP-TRIAC-320-001` | HW-005 + COMPLIANCE-001 |
-| S360-400 PSU | `PRE-HW-PREP-MAINS-400-001` | COMPLIANCE-001 + gerber review |
+| S360-320 TRIAC | `PRE-HW-PREP-TRIAC-320-001` | HW-005 + COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions |
+| S360-400 PSU | `PRE-HW-PREP-MAINS-400-001` | COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions + gerber review |
 | Fan variants | preview bundle plan `ROOM-BUNDLE-FAN-VARIANTS-002`; stable owned by each fan-driver evidence gate | Each fan-driver evidence gate above |
 
 ---

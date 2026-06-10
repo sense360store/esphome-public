@@ -245,8 +245,9 @@ class TriacAdvancedManualWarningOnlyTests(unittest.TestCase):
         # Hardware PROOF does not block TRIAC preview. TRIAC-UNBLOCK-BUILD-001
         # resolved the HW-005 buildability blocker (build_blocker now null), so
         # the preview cut is no longer gated by buildability; publishing is the
-        # separate TRIAC-PUBLISH-ADVANCED-PREVIEW-001 follow-up and stable stays
-        # gated by COMPLIANCE-001.
+        # separate TRIAC-PUBLISH-ADVANCED-PREVIEW-001 follow-up (commissioning
+        # PR) and the stable_blocker cites the COMPLIANCE-001-RESOLUTION-001
+        # experimental-lane preconditions (COMPLIANCE-001 closed by posture).
         self.assertFalse(triac["hardware_proof_blocks_preview"])
         self.assertFalse(triac["preview_cut_gated_by_buildability"])
         self.assertIsNone(triac["build_blocker"])
@@ -268,7 +269,9 @@ class TriacAdvancedManualWarningOnlyTests(unittest.TestCase):
         triac = self.triac_targets[0]
         self.assertFalse(triac["bench_evidence_claimed"])
         self.assertFalse(triac["schematic_status_verified_claim"])
-        # Stable blocker keeps the compliance / mains-voltage review.
+        # Stable blocker keeps the COMPLIANCE-001 citation (now resolving to
+        # the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions;
+        # behaviour unchanged).
         self.assertIn("COMPLIANCE-001", triac["stable_blocker"])
 
 

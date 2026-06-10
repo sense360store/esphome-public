@@ -186,7 +186,7 @@
         "PACKAGE-TRIAC-001",
         "COMPLIANCE-001"
       ],
-      "notes": "Advanced / manual bathroom bundle using the FanTRIAC driver (S360-320) for mains-voltage fan control. Currently blocked: HW-005 (S360-320 schematic uncommitted; placeholder GPIO5/GPIO6 collide with RoomIQ J10 nets; ESPHome ac_dimmer cannot run across the SX1509 expander), HW-PINMAP-320-FOLLOWUP (audit partial), PACKAGE-TRIAC-001 (package deferred), and COMPLIANCE-001 (mains-voltage advanced/manual-warning sign-off open). FanTRIAC stays advanced/manual or blocked until all four gates clear."
+      "notes": "Advanced / manual bathroom bundle using the FanTRIAC driver (S360-320) for mains-voltage fan control. Still blocked from kit exposure. Of the four blocker tokens kept above for history: HW-005 and HW-PINMAP-320-FOLLOWUP are RESOLVED (TRIAC-PINMAP-CORRECT-001 — schematic-verified gate IO14 / zero-cross IO13); PACKAGE-TRIAC-001 remains open until the signed operator attestation is committed; and COMPLIANCE-001 is CLOSED by market posture per COMPLIANCE-001-RESOLUTION-001 (S360-320 is never placed on the market — not sold, not bundled, not buyable; docs/decisions/COMPLIANCE-001-RESOLUTION-001.md), so its element now denotes that record's experimental-lane preconditions. Per the resolution, an experimental self-build build is NEVER in the kit picker: this kit row stays non-exposable regardless of the commissioning PR, and at most a sellable kit may be designated expansion-ready for the self-build board under the resolution's two binding conditions."
     },
     {
       "kit_id": "S360-KIT-DUCT-PWM",

@@ -116,6 +116,34 @@
     "manual-preview": "Buildable PREVIEW artifact for FanRelay / FanPWM / FanDAC, released to testers via the manual-preview lane (config/manual-firmware-artifacts.json). A real preview release target, not a passive candidate. WebFlash one-click import stays gated by the fan-token guardrail until the WebFlash warning UX supports fan preview exposure (separate follow-up); the preview artifact itself is releasable.",
     "advanced-manual-preview": "Advanced (mains-risk) PREVIEW artifact lane for FanTRIAC: manual-preview plus the mandatory mains-risk warning and competent-person manual install. Preview is allowed in principle; only an explicit build blocker (HW-005 buildability) prevents an actual cut. NOT a 'blocked-from-preview' lane. WebFlash import stays gated behind the advanced acknowledgement UX (separate follow-up)."
   },
+  "experimental_lane": {
+    "id": "EXPERIMENTAL-SELF-BUILD-MAINS-LANE",
+    "defined_by": "COMPLIANCE-001-RESOLUTION-001",
+    "decision_record": "docs/decisions/COMPLIANCE-001-RESOLUTION-001.md",
+    "date": "2026-06-09",
+    "status": "defined-no-targets-assigned",
+    "label": "Experimental (self-build mains boards)",
+    "meaning": "Publish lane for firmware whose target hardware is a mains-touching board (S360-320 TRIAC, S360-310 Fan Relay, S360-400 240v PSU) that Sense360 NEVER places on the market: not sold assembled, not sold as a kit of parts, not sold as a populated PCB, not physically bundled in any kit, order, or promotion. Design files and firmware are published open-source under CERN-OHL-P; customers who build these boards do so entirely from their own sourcing, as self-builders of their own devices, at their own risk.",
+    "constraints": {
+      "hard_warning_required_at_every_surface": true,
+      "never_stable_recommended": true,
+      "never_customer_default": true,
+      "never_in_kit_picker": true,
+      "never_in_required_configs": true,
+      "never_presented_as_verified_for_purchase": true,
+      "self_build_only_no_market_placement": true
+    },
+    "preconditions": {
+      "functional_bench_protocol_complete": "PACKAGE-TRIAC-001-class operator bench protocol completed on the real load for the target board",
+      "signed_operator_attestation_committed": "the signed operator attestation must be committed to the bench-proof container (e.g. docs/package-triac-001-operator-bench-proof.md) before lane entry",
+      "note": "Bench protocol completion proves function only (zero-cross lock, gate timing, load waveform, thermal soak, boot/stability, full-composition re-confirm). It is NOT a safety, EMC, CE / UKCA, or compliance claim of any kind."
+    },
+    "warning_copy": "EXPERIMENTAL — SELF-BUILD MAINS HARDWARE. This firmware targets an open-source mains-voltage board design that Sense360 does not sell, supply, or place on the market in any form. If you build this board you are the manufacturer of your own device and act entirely at your own risk. Functional bench completion is NOT a safety, EMC, or compliance certification. Mains wiring must only be performed by a competent person. Incorrect installation can cause fire, electric shock, or death.",
+    "build_channel": null,
+    "targets": [],
+    "target_assignment": "No target is assigned to this lane by COMPLIANCE-001-RESOLUTION-001. Moving the first target (FanTRIAC / Ceiling-POE-VentIQ-FanTRIAC-RoomIQ) into this lane — including any channel_tiers integration, build-channel suffix decision, build row, wrapper, release tag, catalogue status change, or WebFlash surface change — is the separate, human-reviewed commissioning PR (queued in UPCOMING_PR.md behind the SSOT refactor and the WebFlash add-source checksum guard). The TRIAC-PUBLISH-ADVANCED-PREVIEW-001 publish gate in config/room-bundle-fan-variants.json stays mechanically unchanged until that PR.",
+    "reopen_trigger": "Any future act of placing any mains-touching board on the market reopens COMPLIANCE-001 and requires an external safety and EMC assessment BEFORE that act (indicative path: pre-compliance scan, then test-house safety + EMC). See docs/decisions/COMPLIANCE-001-RESOLUTION-001.md."
+  },
   "module_channel_ceiling": {
     "FanTRIAC": "advanced-preview"
   },
@@ -381,14 +409,14 @@
       "expected_artifact_name": "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-preview.bin",
       "webflash_exposure_class": "acknowledgement-gated-advanced",
       "warning_copy_required": true,
-      "stable_blocker": "HW-005 (S360-320 schematic; GPIO5/6 collision; ac_dimmer cannot run across SX1509) + PACKAGE-TRIAC-001 + COMPLIANCE-001 mains-voltage review",
+      "stable_blocker": "PACKAGE-TRIAC-001 (operator bench protocol with signed attestation) + experimental-lane preconditions per COMPLIANCE-001-RESOLUTION-001 (COMPLIANCE-001 CLOSED by market posture — never placed on the market; any future market placement reopens it and requires external safety + EMC assessment first; see docs/decisions/COMPLIANCE-001-RESOLUTION-001.md). HW-005 buildability was resolved by TRIAC-PINMAP-CORRECT-001.",
       "publication_status": "eligible-unpublished",
       "is_fan": true,
       "is_triac": true,
       "bench_evidence_claimed": false,
       "schematic_status_verified_claim": false,
       "required_config": false,
-      "notes": "Mains-voltage TRIAC phase control. Advanced-preview ONLY: never stable, never recommended, never default. Requires the advanced mains-risk warning copy. Built (when published) on the preview build channel with the advanced acknowledgement gate. HW-005 / GPIO routing must still be resolved before a preview artifact is cut."
+      "notes": "Mains-voltage TRIAC phase control. Advanced-preview ONLY: never stable, never recommended, never default. Requires the advanced mains-risk warning copy. Built (when published) on the preview build channel with the advanced acknowledgement gate. HW-005 buildability is resolved (TRIAC-PINMAP-CORRECT-001); publishing stays gated by PACKAGE-TRIAC-001 + the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions (COMPLIANCE-001 closed by posture — S360-320 is never placed on the market; self-build open-source only). Moving FanTRIAC into the experimental_lane is the separate, human-reviewed commissioning PR."
     }
   ],
   "rescue_ownership": {

@@ -239,8 +239,12 @@ class TriacTargetTests(unittest.TestCase):
         self.assertFalse(t["webflash_import_eligibility"]["eligible"])
         # Delivered on the advanced-manual-preview lane. TRIAC-UNBLOCK-BUILD-001
         # cleared the HW-005 buildability blocker (build_blocker now null); the
-        # target is buildable and stable stays gated by COMPLIANCE-001. Publish
-        # is the separate TRIAC-PUBLISH-ADVANCED-PREVIEW-001 follow-up.
+        # target is buildable and the stable_blocker cites PACKAGE-TRIAC-001 +
+        # the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions
+        # (COMPLIANCE-001 closed by posture; the assertion below checks the
+        # COMPLIANCE-001 citation substring, which the resolution id carries).
+        # Publish is the separate TRIAC-PUBLISH-ADVANCED-PREVIEW-001 follow-up,
+        # owned by the commissioning PR.
         self.assertEqual(t["delivery_lane"], "advanced-manual-preview")
         self.assertNotEqual(t["delivery_lane"], "blocked")
         self.assertIsNone(t["build_blocker"])

@@ -23,9 +23,10 @@ What this file checks:
     (HW-007 committed schematic evidence; HW-008 flips the JSON status).
   * S360-320 (Sense360 TRIAC) is 'schematic-backed' (not 'verified') after
     TRIAC-UNBLOCK-BUILD-001 resolved the HW-005 BUILDABILITY blocker; this is
-    not bench verification and COMPLIANCE-001 still gates stable.
+    not bench verification; the COMPLIANCE-001-RESOLUTION-001
+    experimental-lane preconditions still gate any publish.
   * S360-400 (Sense360 240v PSU) remains not 'verified' — the mains-voltage
-    compliance review tracked in COMPLIANCE-001 still applies and the
+    compliance posture is governed by COMPLIANCE-001-RESOLUTION-001 and the
     S360-400 schematic is not committed.
   * Entries that are not 'verified' may legitimately omit 'schematic_file';
     HW-008 does not require every catalog entry to point at a PDF.
@@ -222,9 +223,12 @@ class HW008VerifiedSKUsTests(unittest.TestCase):
 class HW008StillUnverifiedSKUsTests(unittest.TestCase):
     """SKUs whose schematic_status must NOT be 'verified' after HW-008.
 
-    HW-008 does not by itself unblock FanTRIAC (HW-005) or clear the
-    mains-voltage compliance gate for S360-400 (COMPLIANCE-001). These tests
-    pin those statuses so HW-008 cannot quietly upgrade them.
+    HW-008 does not by itself unblock FanTRIAC (HW-005) or verify S360-400.
+    COMPLIANCE-001 was later closed by market posture
+    (COMPLIANCE-001-RESOLUTION-001) -- a posture closure, not hardware
+    verification -- so neither SKU may become 'verified' without its own
+    bench/evidence PR. These tests pin those statuses so nothing quietly
+    upgrades them.
     """
 
     def test_s360_320_triac_is_schematic_backed_not_verified(self) -> None:
@@ -240,7 +244,9 @@ class HW008StillUnverifiedSKUsTests(unittest.TestCase):
             entry.get("schematic_status"),
             "verified",
             "S360-320 is schematic-backed, NOT verified: this is not bench "
-            "verification and COMPLIANCE-001 still gates stable.",
+            "verification, and the COMPLIANCE-001-RESOLUTION-001 "
+            "experimental-lane preconditions still gate any publish "
+            "(COMPLIANCE-001 closed by posture, not by evidence).",
         )
 
     def test_s360_400_psu_is_not_verified(self) -> None:
@@ -248,9 +254,10 @@ class HW008StillUnverifiedSKUsTests(unittest.TestCase):
         self.assertNotEqual(
             entry.get("schematic_status"),
             "verified",
-            "S360-400 must remain cataloged_unverified; the mains-voltage "
-            "compliance review (COMPLIANCE-001) still applies and the "
-            "S360-400 schematic is not committed.",
+            "S360-400 must remain cataloged_unverified; COMPLIANCE-001 was "
+            "closed by posture (COMPLIANCE-001-RESOLUTION-001), which is not "
+            "hardware verification, and the S360-400 schematic is not "
+            "committed.",
         )
         self.assertNotIn(
             "schematic_file",

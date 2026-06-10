@@ -16,8 +16,11 @@ contract this file locks in (task ROOM-BUNDLE-FAN-VARIANTS-002 §7):
 * all fan variants reference a valid base bundle;
 * only Bathroom / Kitchen may have fan variants;
 * TRIAC is never stable / recommended / default (Bathroom-only, advanced-only,
-  publish-blocked behind PACKAGE-TRIAC-001 + COMPLIANCE-001, never normal "easy"
-  exposure; Kitchen has no TRIAC variant);
+  publish-blocked behind PACKAGE-TRIAC-001 + the COMPLIANCE-001 gate element —
+  which, since COMPLIANCE-001-RESOLUTION-001 closed COMPLIANCE-001 by market
+  posture, resolves to that record's experimental-lane preconditions with the
+  enforced behaviour unchanged — never normal "easy" exposure; Kitchen has no
+  TRIAC variant);
 * preview does NOT require hardware proof;
 * stable STILL requires hardware / evidence / compliance;
 * missing full-bundle configs are explicitly marked missing, never silently
@@ -46,8 +49,9 @@ PREVIEW_TARGETS_PATH = REPO_ROOT / "config" / "preview-release-targets.json"
 
 # Fan-driver boards that may appear as a variant driver. TRIAC (S360-320) is
 # now ALLOWED, but only for the Bathroom, only as an advanced / manual-warning
-# variant, and only as the (publish-blocked behind PACKAGE-TRIAC-001 +
-# COMPLIANCE-001) advanced-preview tier.
+# variant, and only as the (publish-blocked behind PACKAGE-TRIAC-001 + the
+# COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions)
+# advanced-preview tier.
 ALLOWED_FAN_DRIVER_SKUS = frozenset({"S360-310", "S360-311", "S360-312", "S360-320"})
 ADVANCED_ONLY_FAN_DRIVER_SKUS = frozenset({"S360-320"})
 # Only the Bathroom and Kitchen base bundles may have fan variants.
@@ -443,7 +447,7 @@ class RoomBundleFanVariantsTests(unittest.TestCase):
         # recommended, default, or buyable, and must keep FanDAC bench
         # verification pending and TRIAC publish-blocked (defined-build-blocked
         # status; HW-005 buildability resolved, publish gated by PACKAGE-TRIAC-001
-        # + COMPLIANCE-001).
+        # + the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions).
         for v in self.variants:
             self.assertEqual(v["stable_status"], "blocked")
             self.assertFalse(v["recommended"])

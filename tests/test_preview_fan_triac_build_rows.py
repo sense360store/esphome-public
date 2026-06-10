@@ -265,7 +265,11 @@ class TriacAdvancedManualOnlyTests(unittest.TestCase):
         self.assertIsNone(self.triac["manual_lane_candidate_id"])
 
     def test_triac_stable_blocker_keeps_compliance_001(self) -> None:
-        # Buildability resolved, but stable stays gated by COMPLIANCE-001.
+        # Buildability resolved; the stable_blocker must keep citing the
+        # COMPLIANCE-001 gate element. Per COMPLIANCE-001-RESOLUTION-001 the
+        # citation now points at the experimental-lane preconditions
+        # (COMPLIANCE-001 closed by posture) — the resolution id carries the
+        # COMPLIANCE-001 substring, and the enforced behaviour is unchanged.
         self.assertIn("COMPLIANCE-001", self.triac["stable_blocker"])
 
     def test_triac_warning_copy_is_mains_risk(self) -> None:

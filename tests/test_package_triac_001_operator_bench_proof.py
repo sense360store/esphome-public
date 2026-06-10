@@ -19,11 +19,15 @@ These tests pin the structural invariants so a future regression cannot:
     ``GPIO13`` = ``TRI_GPIO2`` -> OK1 EL814);
   * silently promote the FanTRIAC product off its ``status: blocked``
     posture or flip ``webflash_build_matrix`` while PACKAGE-TRIAC-001 and
-    COMPLIANCE-001 are still the recorded gates.
+    the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions are
+    still the recorded gates (COMPLIANCE-001 itself is CLOSED by market
+    posture per docs/decisions/COMPLIANCE-001-RESOLUTION-001.md; the
+    cited reason changed, the enforced behaviour did not).
 
-When the operator bench is actually run and PASSes, the human-reviewed
-PR that clears the PACKAGE-TRIAC-001 half of the blocker updates the
-catalog, the doc, and this test together (COMPLIANCE-001 still gates the
+When the operator bench is committed complete (signed attestation), the
+human-reviewed commissioning PR that clears the PACKAGE-TRIAC-001 half of
+the blocker updates the catalog, the doc, and this test together (the
+COMPLIANCE-001-RESOLUTION-001 experimental-lane entry still gates the
 publish).
 
 Run with::
@@ -103,9 +107,19 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
 
     def test_no_compliance_claim_and_compliance_remains_gate(self) -> None:
         # The bench proves timing/waveform/thermal, never electrical safety.
+        # COMPLIANCE-001 is CLOSED by posture (COMPLIANCE-001-RESOLUTION-001);
+        # the doc must cite the resolution record and keep the safety topics
+        # out of the bench's scope, with the experimental-lane entry as the
+        # remaining publish gate. Behaviour is unchanged: still not published,
+        # not buyable, not kit-exposed.
         self.assertIn("makes **no** isolation, creepage, clearance, EMI", self.text)
-        self.assertIn("Those stay with `COMPLIANCE-001`.", self.text)
-        self.assertIn("`COMPLIANCE-001` as the sole remaining gate", self.text)
+        self.assertIn("COMPLIANCE-001 was closed by posture", self.text)
+        self.assertIn(
+            "`COMPLIANCE-001-RESOLUTION-001` experimental-lane entry as the "
+            "sole remaining gate",
+            self.text,
+        )
+        self.assertIn("never a safety or compliance claim", self.text)
 
     def test_schematic_verified_pin_mapping(self) -> None:
         for needle in (

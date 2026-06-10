@@ -264,8 +264,10 @@ class FanTRIACStatusUnaffectedTests(unittest.TestCase):
     TRIAC-UNBLOCK-BUILD-001 (a separate PR) moved FanTRIAC from status: blocked
     / HW-005 to status: compile-only (HW-005 BUILDABILITY resolved by the
     SX1509-free Core respin). HW-010 (LED) does not touch FanTRIAC; the
-    preserved invariant is that FanTRIAC stays off the WebFlash build matrix and
-    stable stays gated by COMPLIANCE-001.
+    preserved invariant is that FanTRIAC stays off the WebFlash build matrix
+    with the COMPLIANCE-001 citation intact (per COMPLIANCE-001-RESOLUTION-001
+    the blocker cites the experimental-lane preconditions; behaviour
+    unchanged).
     """
 
     def setUp(self) -> None:
@@ -292,8 +294,9 @@ class FanTRIACStatusUnaffectedTests(unittest.TestCase):
         self.assertIn(
             "COMPLIANCE-001",
             entry.get("blocker", ""),
-            "FanTRIAC must stay gated by COMPLIANCE-001; HW-010 does "
-            "not clear the mains-voltage compliance gate.",
+            "FanTRIAC must keep its COMPLIANCE-001 gate citation (per "
+            "COMPLIANCE-001-RESOLUTION-001, the experimental-lane "
+            "preconditions); HW-010 does not clear that gate.",
         )
         self.assertEqual(
             entry.get("webflash_build_matrix"),

@@ -371,10 +371,13 @@ def validate(
                 )
             # TRIAC-UNBLOCK-BUILD-001: the HW-005 BUILDABILITY blocker is
             # resolved (SX1509-free Core respin; TRI_GPIO1/2 -> IO14/IO13), so
-            # the TRIAC target's build_blocker is now cleared (null). Stable
-            # stays gated by COMPLIANCE-001 (+ PACKAGE-TRIAC-001) in
-            # stable_blocker; the preview cut is deferred to
-            # TRIAC-PUBLISH-ADVANCED-PREVIEW-001 (publish), not blocked.
+            # the TRIAC target's build_blocker is now cleared (null). The
+            # stable_blocker keeps the COMPLIANCE-001 citation (per
+            # COMPLIANCE-001-RESOLUTION-001 it cites PACKAGE-TRIAC-001 + the
+            # experimental-lane preconditions; substring check unchanged);
+            # the preview cut is deferred to
+            # TRIAC-PUBLISH-ADVANCED-PREVIEW-001 (publish, owned by the
+            # commissioning PR), not blocked.
             if target.get("build_blocker") is not None:
                 terr.append(
                     f"target {tid!r}: TRIAC build_blocker must be null "
