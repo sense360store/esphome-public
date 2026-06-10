@@ -24,9 +24,9 @@ by posture** per
 [`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`](docs/decisions/COMPLIANCE-001-RESOLUTION-001.md)
 (see the closed item recorded below the queue).
 
-1. **`PACKAGE-TRIAC-001` — FanTRIAC operator bench (off-agent; Steps A–F +
-   full-composition re-confirm PASS recorded — pending signed attestation
-   only).**
+1. **`PACKAGE-TRIAC-001` — FanTRIAC operator bench (off-agent; record staged
+   complete — pending the operator's attestation fill; suite red by design
+   until it lands).**
    The FanTRIAC gate/zero-cross mapping is schematic-verified — gate `GPIO14`
    = `TRI_GPIO1` → U1 MOC3023M; zero-cross `GPIO13` = `TRI_GPIO2` → OK1 EL814
    (`TRIAC-PINMAP-CORRECT-001`, traced from `S360-100-R4` + `S360-320-R4`), and
@@ -47,9 +47,19 @@ by posture** per
    operator's closure of the **full-composition re-confirm** via closure path
    (a) — his explicit statement, 2026-06-10, that the Step F image was the
    full `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` composition (no re-flash re-check
-   needed). **Still outstanding in the committed record: the signed operator
-   attestation only** (the operator completes the intentionally empty
-   attestation block on the re-confirm close-out branch before merge). So
+   needed). `PACKAGE-TRIAC-001-ATTEST-CLOSE` (#775,
+   `bench/package-triac-001-attestation-close`, human-review) then recorded
+   the operator-reported bench-fact corrections — every bench run (including
+   the Step F boot/reboot cycles previously dated 2026-06-09) ran on
+   2026-06-08, and local logs WERE captured on the bench laptop but are not
+   attached to the record — and staged the final close-out: the proof-doc
+   status flips to OPERATOR ATTESTATION RECORDED BELOW and a designed-to-fail
+   guard in the #728 guard test holds the suite red (on `main` too, since
+   #775 merged with the cells staged empty) until the operator himself fills
+   the Operator and Signature entry cells. **Still outstanding: the
+   operator's attestation fill only** — he completes the intentionally empty
+   cells on the open fill branch (`bench/package-triac-001-attestation-fill`),
+   which turns the suite green and merges human-reviewed. So
    `PACKAGE-TRIAC-001` is **not** cleared and the publish posture is
    unchanged. A committed PASS + attestation clears only the
    `PACKAGE-TRIAC-001` half (human-reviewed, via `TRIAC-COMMISSIONING-001`
@@ -269,6 +279,21 @@ changed the stable production release or the invariants above.
 Newest first. Full detail lives in the referenced docs / tests and the merged
 PRs.
 
+* **`PACKAGE-TRIAC-001-ATTEST-CLOSE`** (#775,
+  `bench/package-triac-001-attestation-close`, 2026-06-10, human-review):
+  recorded the operator-reported bench-fact corrections — every bench run
+  (including the Step F boot/reboot cycles previously dated 2026-06-09) ran
+  on 2026-06-08; local logs WERE captured on the bench laptop but are not
+  attached to the record (nothing implies they were reviewed or attached;
+  the Step F evidence class re-worded accordingly) — and staged the final
+  close-out: proof-doc status OPERATOR ATTESTATION RECORDED BELOW, next
+  steps pointing solely at the commissioning PR
+  (`TRIAC-COMMISSIONING-001`), and the designed-to-fail guard
+  `test_attestation_operator_and_signature_cells_filled`, which holds the
+  suite red until the operator himself fills the Operator and Signature
+  cells (staged EMPTY; presence-only check; no attestation content
+  machine-written). Doc + #728 guard test only. Suite at merge: 1726
+  passed, 3 skipped, exactly the 1 designed failure.
 * **`PACKAGE-TRIAC-001-RECONFIRM-001`** (#774,
   `bench/package-triac-001-reconfirm-close`, 2026-06-10, human-review):
   recorded the operator's closure of the full-composition re-confirm via
