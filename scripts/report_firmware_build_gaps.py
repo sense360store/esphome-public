@@ -113,20 +113,25 @@ LANE_POLICIES: List[Dict[str, Any]] = [
         "title": "FanTRIAC — blocked on hardware + compliance",
         "matches": lambda r: _row_has_fan(r, "FanTRIAC"),
         "blocker_summary": (
-            "FanTRIAC (S360-320) blocked under **HW-005**: S360-320 "
-            "schematic is uncommitted; placeholder GPIO5 / GPIO6 collide "
-            "with RoomIQ J10 nets; ESPHome `ac_dimmer` cannot run across "
-            "the SX1509 expander. Also blocked under **HW-PINMAP-320-FOLLOWUP** "
-            "(audit partial), **PACKAGE-TRIAC-001** (package deferred), "
-            "and **COMPLIANCE-001** (mains-voltage advanced / manual-warning "
-            "sign-off open)."
+            "FanTRIAC (S360-320) lane stays blocked from build / exposure. "
+            "**HW-005** buildability and **HW-PINMAP-320-FOLLOWUP** are "
+            "RESOLVED (TRIAC-PINMAP-CORRECT-001: schematic-verified gate "
+            "GPIO14 / zero-cross GPIO13); the remaining gates are "
+            "**PACKAGE-TRIAC-001** (operator bench protocol with signed "
+            "attestation, still uncommitted) and the "
+            "**COMPLIANCE-001-RESOLUTION-001** experimental-lane "
+            "preconditions (COMPLIANCE-001 itself is CLOSED by market "
+            "posture: S360-320 is never placed on the market; see "
+            "`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`)."
         ),
         "recommended_next_pr": (
-            "No FanTRIAC build, package, or product PR. The catalog entry "
-            "for `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays "
-            "`status: blocked` / `blocker: HW-005`. Subsequent PRs are "
-            "evidence-pass investigations only until HW-005 + "
-            "COMPLIANCE-001 close. See "
+            "No FanTRIAC build, package, or product PR outside the "
+            "commissioning PR. The catalog entry for "
+            "`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status: blocked`. "
+            "The next change is the human-reviewed commissioning PR: commit "
+            "the signed PACKAGE-TRIAC-001 attestation and deliberately move "
+            "FanTRIAC into the experimental lane. See "
+            "`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md` and "
             "`docs/release-one-hardware-audit.md#fantriac-mapping-resolution`."
         ),
         "compile_only_safe_now": False,
@@ -232,21 +237,25 @@ LANE_POLICIES: List[Dict[str, Any]] = [
         "title": "PWR-240V — blocked on compliance",
         "matches": lambda r: _row_power_is(r, "PWR"),
         "blocker_summary": (
-            "PWR-240V (S360-400) blocked under **COMPLIANCE-001** "
-            "(mains-voltage UK / EU advanced / manual-warning sign-off "
-            "open) and behind **PACKAGE-POWER-400-001** / "
-            "**PRODUCT-POWER-400-001** / **WEBFLASH-POWER-400-001** / "
-            "**RELEASE-POWER-400-001**. `S360-400` is "
-            "`schematic_status: cataloged_unverified` "
+            "PWR-240V (S360-400) lane stays blocked from build / exposure "
+            "under the **COMPLIANCE-001-RESOLUTION-001** experimental-lane "
+            "preconditions (COMPLIANCE-001 is CLOSED by market posture: "
+            "S360-400 is never placed on the market; see "
+            "`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`) and behind "
+            "**PACKAGE-POWER-400-001** / **PRODUCT-POWER-400-001** / "
+            "**WEBFLASH-POWER-400-001** / **RELEASE-POWER-400-001**. "
+            "`S360-400` is `schematic_status: cataloged_unverified` "
             "(HW-PINMAP-400-FOLLOWUP partial; the schematic PDF's "
             "`PS1 = HLK-10M05` value-field discrepancy still unresolved)."
         ),
         "recommended_next_pr": (
             "No PWR build, package, or product PR. Subsequent PRs are "
-            "docs-only investigation passes until COMPLIANCE-001 closes "
-            "and `S360-400` is `schematic_status: verified`. WebFlash "
-            "exposure for mains-voltage power is **not** allowed under "
-            "any channel without a qualified electrical-safety review."
+            "docs-only investigation passes until a deliberate, "
+            "human-reviewed PR satisfies the COMPLIANCE-001-RESOLUTION-001 "
+            "experimental-lane preconditions for S360-400 and `S360-400` "
+            "is `schematic_status: verified`. WebFlash exposure for "
+            "mains-voltage power is **not** allowed under any channel "
+            "without a qualified electrical-safety review."
         ),
         "compile_only_safe_now": False,
         "webflash_exposure_allowed_now": False,
@@ -643,9 +652,12 @@ def render_report(
     )
     lines.append(
         "- The FanTRIAC lane references **HW-005** verbatim. The PWR "
-        "lane references **COMPLIANCE-001** verbatim. Removing those "
-        "references is a deliberate evidence-pass PR, not a side-effect "
-        "of this report."
+        "lane references **COMPLIANCE-001** verbatim (now via the "
+        "COMPLIANCE-001-RESOLUTION-001 citation; the closure-by-posture "
+        "re-pointing was the deliberate "
+        "`governance/compliance-001-resolution` PR). Any further change "
+        "to those references is a deliberate evidence-pass PR, not a "
+        "side-effect of this report."
     )
     lines.append(
         "- The `missing-product-yaml` lane is a sentinel: it should be "

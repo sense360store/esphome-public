@@ -15,12 +15,17 @@ merged PRs.
 
 ## Next queue (actionable)
 
-Four items are genuinely open. The first two are **off-agent** gates (bench
-attestation / mains sign-off); the last two are the remaining security-audit
-findings from [`security.md`](security.md).
+Four items are genuinely open. The first is the bench re-confirm +
+attestation gate, the second is the queued FanTRIAC commissioning PR (gated
+on the resolution PR merging and ordered behind two prerequisite slices); the
+last two are the remaining security-audit findings from
+[`security.md`](security.md). `COMPLIANCE-001` itself is **CLOSED — resolved
+by posture** per
+[`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`](docs/decisions/COMPLIANCE-001-RESOLUTION-001.md)
+(see the closed item recorded below the queue).
 
 1. **`PACKAGE-TRIAC-001` — FanTRIAC operator bench (off-agent; Steps A–F PASS
-   — pending full-composition re-confirm + operator attestation).**
+   recorded — pending full-composition re-confirm + signed attestation).**
    The FanTRIAC gate/zero-cross mapping is schematic-verified — gate `GPIO14`
    = `TRI_GPIO1` → U1 MOC3023M; zero-cross `GPIO13` = `TRI_GPIO2` → OK1 EL814
    (`TRIAC-PINMAP-CORRECT-001`, traced from `S360-100-R4` + `S360-320-R4`), and
@@ -31,34 +36,49 @@ findings from [`security.md`](security.md).
    [`packages/expansions/fan_triac.yaml`](packages/expansions/fan_triac.yaml)
    (`zero_cross_pin` `inverted: true`, `method: leading`,
    `fan_triac_min_power: "15"`) and recorded Steps A, B, C, E as **PASS** on the
-   real Manrose fan motor. `PACKAGE-TRIAC-001-CLOSE`
-   (`bench/package-triac-001-step-f-close`, human-review) then recorded the
+   real Manrose fan motor. `PACKAGE-TRIAC-001-CLOSE` (#771,
+   `bench/package-triac-001-step-f-close`, human-review) then recorded the
    operator-reported Step F results — cold boots, warm reboots, stability soak,
    all PASS; evidence class: operator observation, no log capture — marking
    **Steps A–F all PASS** on the real Manrose motor load (2026-06-08/09).
-   **Still outstanding:** (a) the **full-composition re-confirm** — NOT
-   RECORDED, because the Step F report did not state which firmware image was
-   flashed and production parameters alone cannot prove the full composition;
-   it closes on an explicit operator statement or a re-flash re-check — and
-   (b) the **signed operator attestation** (the operator completes the
-   intentionally empty attestation block on the close-out branch before
-   merge), then the separate human-reviewed blocker-clear edit. None of this
-   clears `PACKAGE-TRIAC-001` or changes the publish posture; the re-confirm +
-   attestation clear only the `PACKAGE-TRIAC-001` half (human-reviewed);
-   `COMPLIANCE-001` stays separate. `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays
-   `status: blocked` throughout — never stable, recommended, default, buyable, or
+   **Still outstanding in the committed record:** (a) the **full-composition
+   re-confirm** — NOT RECORDED, because the Step F report did not state which
+   firmware image was flashed and production parameters alone cannot prove the
+   full composition; it closes on an explicit operator statement or a re-flash
+   re-check — and (b) the **signed operator attestation** (the operator
+   completes the intentionally empty attestation block on the close-out branch
+   before merge). So `PACKAGE-TRIAC-001` is **not** cleared and the publish
+   posture is unchanged. A committed PASS + attestation clears only the
+   `PACKAGE-TRIAC-001` half (human-reviewed, via `TRIAC-COMMISSIONING-001`
+   below); the `COMPLIANCE-001-RESOLUTION-001` experimental-lane entry stays
+   separate. `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status: blocked`
+   throughout — never stable, recommended, default, buyable, or
    WebFlash-exposed.
    - **`TRIAC-PUBLISH-ADVANCED-PREVIEW-001` stays BLOCKED** behind
-     `PACKAGE-TRIAC-001` **and** `COMPLIANCE-001`. No FanTRIAC `.bin` is cut and
-     no preview / advanced-preview row is added until both clear. Downstream
-     `WF-IMPORT-TRIAC-001` stays blocked behind it. **Do NOT auto-merge** any
-     FanTRIAC pin / blocker / status change — human-review only.
+     `PACKAGE-TRIAC-001` **and** the `COMPLIANCE-001` gate element (which now
+     resolves to the `COMPLIANCE-001-RESOLUTION-001` experimental-lane
+     preconditions; the `gated_by` tokens in
+     `config/room-bundle-fan-variants.json` are mechanically unchanged). No
+     FanTRIAC `.bin` is cut and no preview / advanced-preview row is added
+     until the commissioning PR. Downstream `WF-IMPORT-TRIAC-001` stays
+     blocked behind it. **Do NOT auto-merge** any FanTRIAC pin / blocker /
+     status change — human-review only.
 
-2. **`COMPLIANCE-001` — mains-voltage electrical-safety sign-off (off-agent).**
-   The mains-voltage sign-off for the S360-320 TRIAC path (isolation / creepage
-   / clearance / EMI / thermal). Independent of the bench; both must clear before
-   any FanTRIAC publish. No code or config change is owed in this repo to "do"
-   this — it is an external sign-off gate.
+2. **`TRIAC-COMMISSIONING-001` — the FanTRIAC commissioning PR (queued;
+   human-review).** Gated on the `COMPLIANCE-001-RESOLUTION-001` resolution PR
+   merging, and **ordered behind two prerequisite slices: (1) the SSOT
+   refactor, and (2) the WebFlash add-source checksum guard** (WebFlash-repo
+   slice) — do not start it before both land. Scope when it runs: commit the
+   completed `PACKAGE-TRIAC-001` bench record with the signed operator
+   attestation; deliberately move `FanTRIAC` /
+   `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` into the experimental lane defined by
+   [`config/release-channel-policy.json`](config/release-channel-policy.json)
+   (`experimental_lane` — hard-warned everywhere, never stable-recommended /
+   default / kit-picker / `REQUIRED_CONFIGS` / verified-for-purchase), with
+   its own reviewed publish-gate and test changes; and only then cut the
+   experimental artifact / wrapper / release surface it authorises. Until it
+   merges, every publish-gate behaviour stays identical (not published, not
+   buyable, not kit-exposed).
 
 3. **`SEC-ESP-CHECKSUM-SIGNING-001` (security audit finding #3).** Release
    checksums are not signed. Sign them (cosign keyless preferred) so the
@@ -72,6 +92,27 @@ findings from [`security.md`](security.md).
 
 The remaining security-audit item, finding #6 (`check-yaml --unsafe` in
 pre-commit), is **accepted** — no action queued.
+
+**Closed by resolution (no longer queue items):**
+
+* **`COMPLIANCE-001` — CLOSED, resolved by posture
+  (`COMPLIANCE-001-RESOLUTION-001`, 2026-06-09).** The owner decision record
+  [`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`](docs/decisions/COMPLIANCE-001-RESOLUTION-001.md)
+  closed the mains-voltage UK/EU assessment gate by market posture: the
+  mains-touching boards (S360-320 TRIAC, S360-310 Fan Relay, S360-400 240v
+  PSU) are **never placed on the market by Sense360** (not sold assembled,
+  not a kit of parts, not a populated PCB, never physically bundled); design
+  files and firmware publish open-source under CERN-OHL-P for self-builders
+  of their own devices at their own risk. Kits may be designated
+  **expansion-ready** under the record's two binding conditions. An
+  **experimental publish lane** is defined as policy metadata in
+  [`config/release-channel-policy.json`](config/release-channel-policy.json)
+  (no target assigned). **Reopen trigger:** any future market-placement act
+  reopens `COMPLIANCE-001` and requires external safety + EMC assessment
+  BEFORE that act (indicative path: pre-compliance scan, then test-house
+  safety + EMC). No conformity is claimed; no checklist row of the tracker
+  is promoted; no catalogue status, build row, wrapper, release artifact, or
+  WebFlash surface changed.
 
 ---
 
@@ -92,12 +133,16 @@ any of them.
   their candidate / room bundles stay **hidden / not buyable / never the
   customer default**.
 * **FanTRIAC stays blocked.** `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is
-  `status: blocked` (`blocker: PACKAGE-TRIAC-001 + COMPLIANCE-001`,
-  `webflash_build_matrix: false`). HW-005 buildability was resolved by
-  `TRIAC-PINMAP-CORRECT-001`, but no `.bin` is cut, it is not in
-  `config/webflash-builds.json`, and it is never stable / recommended / default /
-  buyable / WebFlash-exposed. The publish gate is a `PACKAGE-TRIAC-001` **AND**
-  `COMPLIANCE-001` gate, **not** an acknowledgement gate.
+  `status: blocked` (blocker: `PACKAGE-TRIAC-001` + the
+  `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions;
+  `COMPLIANCE-001` itself is closed by posture and reopens only on a
+  market-placement act; `webflash_build_matrix: false`). HW-005 buildability
+  was resolved by `TRIAC-PINMAP-CORRECT-001`, but no `.bin` is cut, it is not
+  in `config/webflash-builds.json`, and it is never stable / recommended /
+  default / buyable / WebFlash-exposed. The publish gate is a
+  `PACKAGE-TRIAC-001` **AND** `COMPLIANCE-001`-element gate (`gated_by`
+  tokens mechanically unchanged), **not** an acknowledgement gate; only the
+  commissioning PR may re-key it.
 * **Fans are preview-only.** FanRelay / FanPWM / FanDAC (and the five
   full-composition fan room-bundle configs) are `manual-preview`, published only
   on the shared `v1.0.0-preview` prerelease, and are preview WebFlash-import
@@ -151,9 +196,11 @@ The five full-composition fan room-bundle preview imports, behind the same
 acknowledgement / warning UX. Not open work here.
 
 **FanTRIAC preview work** must remain its own separate track and is **not**
-WebFlash-import eligible: it stays build-blocked under `HW-005`
-(advanced-manual-preview, mains-voltage) plus `COMPLIANCE-001`, owned by the
-dedicated TRIAC track above. No TRIAC row is added to `config/webflash-builds.json`.
+WebFlash-import eligible: it stays publish-blocked behind `PACKAGE-TRIAC-001`
+plus the `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions
+(advanced-manual-preview, mains-voltage; HW-005 buildability resolved), owned
+by the dedicated TRIAC track above and executed only by the commissioning PR.
+No TRIAC row is added to `config/webflash-builds.json`.
 
 Upstream preview-import eligibility and presence on the shared `v1.0.0-preview`
 release do **not** imply a committed WebFlash build row, Simple-install exposure,
@@ -219,18 +266,33 @@ changed the stable production release or the invariants above.
 Newest first. Full detail lives in the referenced docs / tests and the merged
 PRs.
 
-* **`PACKAGE-TRIAC-001-CLOSE`** (`bench/package-triac-001-step-f-close`,
-  2026-06-09, human-review): recorded the operator-reported Step F results
-  (cold boots / warm reboots / stability soak — PASS; evidence class: operator
-  observation, no log capture) and marked Steps A–F all PASS on the real
-  Manrose motor load. The full-composition re-confirm stays NOT RECORDED (the
-  Step F report did not state which image was flashed; parameters alone cannot
-  prove the full composition; closes on operator statement or re-flash
-  re-check), and the empty attestation block was added for the operator to
-  complete before merge. Docs + the `fan_triac.yaml` status comment + the #728
-  guard-test rebaseline only. Publish posture unchanged: FanTRIAC stays
-  BLOCKED / reference-only on `COMPLIANCE-001` — never stable, recommended,
-  default, buyable, or WebFlash-exposed.
+* **`PACKAGE-TRIAC-001-CLOSE`** (#771,
+  `bench/package-triac-001-step-f-close`, 2026-06-10, human-review): recorded
+  the operator-reported Step F results (cold boots / warm reboots / stability
+  soak — PASS; evidence class: operator observation, no log capture) and
+  marked Steps A–F all PASS on the real Manrose motor load (2026-06-08/09).
+  The full-composition re-confirm stays NOT RECORDED (the Step F report did
+  not state which image was flashed; parameters alone cannot prove the full
+  composition; closes on operator statement or re-flash re-check), and the
+  empty attestation block was added for the operator to complete before
+  merge. Docs + the `fan_triac.yaml` status comment + the #728 guard-test
+  rebaseline only. Publish posture unchanged: FanTRIAC stays BLOCKED /
+  reference-only pending `TRIAC-COMMISSIONING-001` and the
+  `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions — never
+  stable, recommended, default, buyable, or WebFlash-exposed.
+* **`COMPLIANCE-001-RESOLUTION-001`** (`governance/compliance-001-resolution`,
+  2026-06-09, human-review): closed `COMPLIANCE-001` by owner decision on
+  market posture (mains-touching boards never placed on the market;
+  open-source under CERN-OHL-P; expansion-ready kit rules; explicit reopen
+  trigger requiring external safety + EMC assessment before any market
+  placement), defined the experimental publish lane as policy metadata
+  (`config/release-channel-policy.json` → `experimental_lane`, no target
+  assigned), and re-pointed every current-state `COMPLIANCE-001`
+  open-gate citation to the resolution record. Docs + policy/config metadata
+  only — publish-gate behaviour identical; no catalogue status, build row,
+  wrapper, release tag, or WebFlash surface changed. Commissioning PR
+  (`TRIAC-COMMISSIONING-001`) queued behind the SSOT refactor and the
+  WebFlash add-source checksum guard.
 * **CI — remove `preview-fan-publish.yml`** (`ci/remove-preview-fan-publish`,
   2026-06-08): retired the never-run (0 runs) fan-publish workflow, superseded by
   Create Release + Release 3 (which published the live `v1.0.0-preview` fan builds

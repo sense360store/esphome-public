@@ -127,8 +127,10 @@ hardware, bench, or compliance proof**.
   stable-promotion readiness. Stable stays gated per target — mains-safety /
   installation-approval + competent-person sign-off + GPIO3 strap-pin
   characterisation (FanRelay); measured current / thermal (FanPWM); Cloudlift
-  S12 / J3 harness + S360-312 schematic (FanDAC); `HW-005` + `PACKAGE-TRIAC-001`
-  + `COMPLIANCE-001` mains-voltage review (FanTRIAC).
+  S12 / J3 harness + S360-312 schematic (FanDAC); `PACKAGE-TRIAC-001` (signed
+  attestation) + the `COMPLIANCE-001-RESOLUTION-001` experimental-lane
+  preconditions (FanTRIAC; `COMPLIANCE-001` closed by market posture, `HW-005`
+  buildability resolved).
 
 ---
 

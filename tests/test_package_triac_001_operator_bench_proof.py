@@ -25,9 +25,10 @@ These tests pin the close-out invariants so a regression cannot:
   * fabricate a *cleared blocker* out of the lettered-steps close — the
     catalog keeps ``status: blocked`` and the doc must keep saying the
     close-out does not clear ``PACKAGE-TRIAC-001``;
-  * drop the publish-posture statement — BLOCKED / reference-only on
-    ``COMPLIANCE-001``, never stable / recommended / default / buyable /
-    WebFlash-exposed;
+  * drop the publish-posture statement — BLOCKED / reference-only, never
+    stable / recommended / default / buyable / WebFlash-exposed, pending
+    the commissioning PR and the COMPLIANCE-001-RESOLUTION-001
+    experimental-lane preconditions;
   * launder the Step F evidence class — every Step F row is operator
     observation with no log capture, and must say so;
   * mark the full-composition re-confirm PASS by inference — the row
@@ -37,12 +38,17 @@ These tests pin the close-out invariants so a regression cannot:
     (gate ``GPIO14`` = ``TRI_GPIO1`` -> U1 MOC3023M; zero-cross
     ``GPIO13`` = ``TRI_GPIO2`` -> OK1 EL814);
   * silently promote the FanTRIAC product off its ``status: blocked``
-    posture or flip ``webflash_build_matrix`` while COMPLIANCE-001 (and
-    the PACKAGE-TRIAC-001 attestation + blocker-clear edit) still gate it.
+    posture or flip ``webflash_build_matrix`` while PACKAGE-TRIAC-001 and
+    the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions are
+    still the recorded gates (COMPLIANCE-001 itself is CLOSED by market
+    posture per docs/decisions/COMPLIANCE-001-RESOLUTION-001.md; the
+    cited reason changed, the enforced behaviour did not).
 
-After the operator attests, the human-reviewed PR that clears the
-PACKAGE-TRIAC-001 half of the blocker updates the catalog, the doc, and
-this test together (COMPLIANCE-001 still gates the publish).
+After the operator resolves the full-composition re-confirm and attests,
+the human-reviewed commissioning PR that clears the PACKAGE-TRIAC-001
+half of the blocker updates the catalog, the doc, and this test together
+(the COMPLIANCE-001-RESOLUTION-001 experimental-lane entry still gates
+the publish).
 
 Run with::
 
@@ -133,9 +139,19 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
 
     def test_no_compliance_claim_and_compliance_remains_gate(self) -> None:
         # The bench proves timing/waveform/thermal, never electrical safety.
+        # COMPLIANCE-001 is CLOSED by posture (COMPLIANCE-001-RESOLUTION-001);
+        # the doc must cite the resolution record and keep the safety topics
+        # out of the bench's scope, with the experimental-lane entry as the
+        # remaining publish gate. Behaviour is unchanged: still not published,
+        # not buyable, not kit-exposed.
         self.assertIn("makes **no** isolation, creepage, clearance, EMI", self.text)
-        self.assertIn("Those stay with `COMPLIANCE-001`.", self.text)
-        self.assertIn("`COMPLIANCE-001` as the sole remaining gate", self.text)
+        self.assertIn("COMPLIANCE-001 was closed by posture", self.text)
+        self.assertIn(
+            "`COMPLIANCE-001-RESOLUTION-001` experimental-lane entry as the "
+            "sole remaining gate",
+            self.text,
+        )
+        self.assertIn("never a safety or compliance claim", self.text)
 
     def test_schematic_verified_pin_mapping(self) -> None:
         for needle in (
@@ -213,9 +229,16 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
             self.text,
         )
         self.assertIn(
-            "remains BLOCKED / reference-only on `COMPLIANCE-001`: never stable, "
+            "remains BLOCKED / reference-only: never stable, "
             "never recommended, never default, never buyable, never "
-            "WebFlash-exposed.",
+            "WebFlash-exposed",
+            self.text,
+        )
+        # The gate framing is the resolution record, not an open
+        # COMPLIANCE-001 assessment.
+        self.assertIn(
+            "pending the commissioning PR and the "
+            "`COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions",
             self.text,
         )
 
@@ -305,7 +328,7 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
             "while the catalog still blocks FanTRIAC",
         )
         self.assertIn(
-            "`COMPLIANCE-001` (mains-voltage sign-off) is unchanged",
+            "`COMPLIANCE-001` is CLOSED, resolved by market posture",
             self.text,
         )
 

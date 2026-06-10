@@ -73,9 +73,11 @@ separate TRIAC-PUBLISH-ADVANCED-PREVIEW-001 follow-up).
   mains-connected (AC) load. Installation is for a competent person performing a
   manual install only; incorrect installation can cause fire, electric shock, or
   death.
-- NOT hardware verified and NOT compliance certified: stable / full release
-  stays blocked by `PACKAGE-TRIAC-001` and the `COMPLIANCE-001` mains-voltage
-  review. This target never auto-promotes to stable, is **not buyable as a public
+- NOT hardware verified and NOT compliance certified: publication stays
+  blocked by `PACKAGE-TRIAC-001` (signed attestation) and the
+  `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions
+  (`COMPLIANCE-001` closed by market posture — the S360-320 board is never
+  placed on the market by Sense360; self-build open-source only). This target never auto-promotes to stable, is **not buyable as a public
   shop product**, and is **not a customer default**; the launch shop product
   stays the stable Bathroom PoE kit (`S360-KIT-BATH-P`).
 - Buildability is firmware-build compile proof only; bench validation of the
@@ -95,4 +97,4 @@ separate TRIAC-PUBLISH-ADVANCED-PREVIEW-001 follow-up).
 - Sense360 PoE PSU (`S360-410`)
 - Sense360 VentIQ (`S360-211`)
 - Sense360 RoomIQ (`S360-200`)
-- Sense360 TRIAC (`S360-320`) — mains phase-cut dimmer; schematic-backed pin mapping (TRI_GPIO1/2 → IO14/IO13), bench verification + `COMPLIANCE-001` pending
+- Sense360 TRIAC (`S360-320`) — mains phase-cut dimmer; schematic-backed pin mapping (TRI_GPIO1/2 → IO14/IO13), bench attestation pending; self-build board under `COMPLIANCE-001-RESOLUTION-001` (never placed on the market)

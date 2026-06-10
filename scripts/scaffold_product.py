@@ -114,9 +114,11 @@ DO_NOT_CHANGE_GUARDRAILS = (
     "Sense360 LED stays excluded from Release-One. The LED-bearing "
     "preview entry `Ceiling-POE-VentIQ-RoomIQ-LED` stays `status: "
     "preview`, `channel: preview`.",
-    "Mains-voltage compliance gate stays open: `S360-400` Sense360 240v "
-    "PSU and `S360-320` Sense360 TRIAC remain `cataloged_unverified` "
-    "under COMPLIANCE-001.",
+    "Mains-voltage posture per COMPLIANCE-001-RESOLUTION-001 (COMPLIANCE-001 "
+    "closed by market posture — never placed on the market): `S360-400` "
+    "Sense360 240v PSU and `S360-320` Sense360 TRIAC remain "
+    "`cataloged_unverified`; the experimental-lane preconditions gate any "
+    "publish, and a market-placement act would reopen COMPLIANCE-001.",
     "No firmware build, no GitHub Release, no WebFlash import, no "
     "production promotion. Those are owned by the promotion gates in "
     "`docs/preview-to-stable-promotion-gates.md`.",

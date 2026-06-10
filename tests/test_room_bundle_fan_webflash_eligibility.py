@@ -27,7 +27,10 @@ is deliberately NOT:
 
 FanTRIAC stays excluded (not import eligible, no artifact; HW-005 buildability
 resolved by TRIAC-PINMAP-CORRECT-001 but advanced-manual-preview publish gated
-by PACKAGE-TRIAC-001 + COMPLIANCE-001, never by an acknowledgement gate).
+by PACKAGE-TRIAC-001 + the COMPLIANCE-001 gate element — per
+COMPLIANCE-001-RESOLUTION-001 that element now resolves to the
+experimental-lane preconditions, with the gated_by tokens and the enforced
+behaviour unchanged — never by an acknowledgement gate).
 The two FanDAC artifacts keep the GP8403 IC1 0x58 / IC2 0x5A address policy
 (0x59 forbidden) and the pending FANDAC-I2C-ADDR-001 bench verification — no
 FanDAC hardware proof is claimed. The stable Bathroom PoE build
@@ -361,7 +364,10 @@ class TriacStaysExcludedTests(unittest.TestCase):
         self.assertIn("HW-005", ev["build_blocker_history"])
         self.assertNotIn("publish_evidence", ev)
         # The remaining blocker is the advanced-manual-preview PUBLISH gate
-        # (PACKAGE-TRIAC-001 + COMPLIANCE-001), never an acknowledgement gate.
+        # (PACKAGE-TRIAC-001 + the COMPLIANCE-001 gate element, which per
+        # COMPLIANCE-001-RESOLUTION-001 resolves to the experimental-lane
+        # preconditions; tokens unchanged until the commissioning PR), never
+        # an acknowledgement gate.
         gate = triac["advanced_preview_publish_gate"]
         self.assertEqual(gate["id"], "TRIAC-PUBLISH-ADVANCED-PREVIEW-001")
         self.assertEqual(

@@ -332,7 +332,8 @@ class FanTriacBlockedTests(unittest.TestCase):
         )
         # TRIAC-REBLOCK-PINMAP-001 + TRIAC-PINMAP-CORRECT-001 keep FanTRIAC at
         # catalog status blocked (the pins are corrected/schematic-verified but
-        # bench PACKAGE-TRIAC-001 + mains COMPLIANCE-001 keep it blocked). A
+        # bench PACKAGE-TRIAC-001 + the COMPLIANCE-001-RESOLUTION-001
+        # experimental-lane preconditions keep it blocked). A
         # top-level YAML with catalog status blocked classifies as `blocked` in
         # the release matrix. The preserved invariants: never release-selectable
         # and no artifact_name.

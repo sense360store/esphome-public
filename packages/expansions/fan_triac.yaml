@@ -40,10 +40,14 @@
 # signed operator attestation are being recorded in
 # docs/package-triac-001-operator-bench-proof.md.
 #
-# This functional bench result is NOT COMPLIANCE-001 mains-voltage
-# electrical-safety sign-off, so the board STILL stays BLOCKED /
-# reference-only on COMPLIANCE-001 (never stable / recommended / default /
-# buyable / WebFlash-exposed).
+# This functional bench result is NOT an electrical-safety or compliance
+# claim. COMPLIANCE-001 is CLOSED, resolved by market posture
+# (docs/decisions/COMPLIANCE-001-RESOLUTION-001.md: S360-320 is never
+# placed on the market; reopen trigger on any market-placement act). The
+# board STILL stays BLOCKED / reference-only pending the commissioning PR
+# (TRIAC-COMMISSIONING-001) and the resolution record's experimental-lane
+# preconditions (never stable / recommended / default / buyable /
+# WebFlash-exposed).
 # See: docs/hardware/s360-320-r4-triac.md and docs/hardware/s360-100-r4-core.md
 #
 # IMPORTANT:

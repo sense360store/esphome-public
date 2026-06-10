@@ -2,19 +2,19 @@
 
 **Blocker id:** `PACKAGE-TRIAC-001`
 
-**Status:** STEPS A–F COMPLETE, ALL PASS — PENDING FULL-COMPOSITION RE-CONFIRM AND OPERATOR ATTESTATION. Steps A through F all recorded PASS on the real Manrose fan motor load (bench runs of 2026-06-08 and 2026-06-09; evidence class for every Step F row: operator observation, no log capture). The full-composition re-confirm is NOT RECORDED: the operator report for Step F did not state which firmware image was flashed, and production parameters alone cannot prove the full composition (see the re-confirm row for what closes it). The signed operator attestation below is intentionally empty and is added by the operator himself before merge. Closing the lettered bench steps does **not** clear `PACKAGE-TRIAC-001` — the blocker edit in `config/product-catalog.json` / `config/room-bundle-fan-variants.json` is a separate human-reviewed change after the re-confirm and the attestation land — and `COMPLIANCE-001` (mains-voltage sign-off) is unchanged, so the S360-320 TRIAC stays BLOCKED / reference-only.
+**Status:** STEPS A–F COMPLETE, ALL PASS — PENDING FULL-COMPOSITION RE-CONFIRM AND OPERATOR ATTESTATION. Steps A through F all recorded PASS on the real Manrose fan motor load (bench runs of 2026-06-08 and 2026-06-09; evidence class for every Step F row: operator observation, no log capture). The full-composition re-confirm is NOT RECORDED: the operator report for Step F did not state which firmware image was flashed, and production parameters alone cannot prove the full composition (see the re-confirm row for what closes it). The signed operator attestation below is intentionally empty and is added by the operator himself before merge. Closing the lettered bench steps does **not** clear `PACKAGE-TRIAC-001` — the blocker edit in `config/product-catalog.json` / `config/room-bundle-fan-variants.json` belongs to the commissioning PR (`TRIAC-COMMISSIONING-001`), a separate human-reviewed change after the re-confirm and the attestation land. `COMPLIANCE-001` is CLOSED, resolved by market posture per [`decisions/COMPLIANCE-001-RESOLUTION-001.md`](decisions/COMPLIANCE-001-RESOLUTION-001.md) (S360-320 is never placed on the market); completing this protocol **with the signed attestation committed** is the experimental-lane entry precondition that record defines, so the S360-320 TRIAC stays BLOCKED / reference-only pending the commissioning PR.
 
-**Type:** Operator-evidence record. Docs only. This file asserts **no** firmware, manifest, release, or WebFlash change, and makes **no** isolation, creepage, clearance, EMI, or compliance claim. Those stay with `COMPLIANCE-001`.
+**Type:** Operator-evidence record. Docs only. This file asserts **no** firmware, manifest, release, or WebFlash change, and makes **no** isolation, creepage, clearance, EMI, or compliance claim. Those topics sit outside this bench entirely: COMPLIANCE-001 was closed by posture, and they become assessable obligations only via its reopen trigger (any placing on the market requires external safety and EMC assessment BEFORE that act — see `COMPLIANCE-001-RESOLUTION-001`).
 
-**Product under test:** `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` (`status: blocked`, `schematic_status: schematic-backed`, blocker = `PACKAGE-TRIAC-001` + `COMPLIANCE-001`).
+**Product under test:** `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` (`status: blocked`, `schematic_status: schematic-backed`, blocker = `PACKAGE-TRIAC-001` + the `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions).
 
 ---
 
 ## What this proves, and what it does not
 
-**Proves (bench protocol complete; operator attestation pending):** the S360-320 TRIAC module, driven by the FanTRIAC firmware on the schematic-verified pins (gate `GPIO14`, zero-cross `GPIO13`), performs correct leading-edge phase-cut on a real mains load, with attested zero-cross detection, gate-firing timing across the dimming range, a clean load waveform on the real inductive fan load, and bounded thermal behaviour. This is the bench-validation gate that, together with `COMPLIANCE-001`, `TRIAC-PUBLISH-ADVANCED-PREVIEW-001` is gated on.
+**Proves (Steps A–F complete; full-composition re-confirm and operator attestation pending):** the S360-320 TRIAC module, driven by the FanTRIAC firmware on the schematic-verified pins (gate `GPIO14`, zero-cross `GPIO13`), performs correct leading-edge phase-cut on a real mains load, with attested zero-cross detection, gate-firing timing across the dimming range, a clean load waveform on the real inductive fan load, and bounded thermal behaviour. This is the bench-validation gate that, together with the `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions, `TRIAC-PUBLISH-ADVANCED-PREVIEW-001` is gated on.
 
-**Does NOT prove, out of scope:** mains-voltage electrical safety. Isolation-barrier adequacy, creepage and clearance, fusing, EMC, and any CE or UKCA conformity all sit with `COMPLIANCE-001` and require a competent assessment. A PASS here does not unblock stable and does not authorise a publish on its own.
+**Does NOT prove, out of scope:** mains-voltage electrical safety. Isolation-barrier adequacy, creepage and clearance, fusing, EMC, and any CE or UKCA conformity are out of this bench's scope and require a competent assessment; under `COMPLIANCE-001-RESOLUTION-001` (COMPLIANCE-001 closed by posture — never placed on the market) that assessment is owed only via the reopen trigger, BEFORE any future market placement. A PASS here does not unblock stable, does not authorise a publish on its own, and is never a safety or compliance claim.
 
 Pin mapping is traced from `S360-100-R4` (net to pin) and `S360-320-R4` (gate vs zero-cross roles): gate `GPIO14` = `TRI_GPIO1` to U1 MOC3023M; zero-cross `GPIO13` = `TRI_GPIO2` to OK1 EL814.
 
@@ -46,7 +46,7 @@ Steps A and B are on the logic side, which the MOC3023M and EL814 isolate from m
 - First power-up through a current limiter, a variac brought up slowly or a series incandescent bulb, so a wiring fault trips gently. RCD on the supply, fuse the AC input.
 - Use the incandescent bulb as the first load, not the fan. It is resistive, tolerates phase-cut, and shows the dimming and waveform cleanly. Move to the real fan only after the bulb validates.
 - Power down and let the board discharge before rewiring. Do not touch the board live.
-- If any of this is outside what you are equipped for, that is the signal `COMPLIANCE-001` should be a competent third party and this bench waits for that.
+- If any of this is outside what you are equipped for, that is the signal this bench should be run by a competent third party, and it waits for that.
 
 **Equipment:** isolation transformer; variac or series-bulb limiter; oscilloscope with a differential or isolated probe for the mains side plus an ordinary probe for the logic side; IR thermometer or thermocouple; incandescent bulb; the actual target fan.
 
@@ -187,14 +187,14 @@ This row exists to check that the full product firmware — the sensor stack's I
 
 **Parameters:** `inverted: true`, `method: leading`, `min_power: 15%`, gate `GPIO14`, zero-cross `GPIO13`, `init_with_half_cycle: true`, `restore_mode: RESTORE_DEFAULT_OFF`.
 
-**Publish posture — unchanged.** Closure of `PACKAGE-TRIAC-001` does not change the publish posture. The S360-320 TRIAC remains BLOCKED / reference-only on `COMPLIANCE-001`: never stable, never recommended, never default, never buyable, never WebFlash-exposed. This close-out records bench evidence only — it makes no isolation, creepage, clearance, EMI, or compliance claim (those stay with `COMPLIANCE-001`), it edits no catalog, eligibility, publish, or WebFlash surface, and every publish gate stays exactly as it is.
+**Publish posture — unchanged.** Closure of `PACKAGE-TRIAC-001` does not change the publish posture. The S360-320 TRIAC remains BLOCKED / reference-only: never stable, never recommended, never default, never buyable, never WebFlash-exposed — pending the commissioning PR and the `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions (`COMPLIANCE-001` itself is closed by market posture and reopens only on a market-placement act). This close-out records bench evidence only — it makes no isolation, creepage, clearance, EMI, or compliance claim (those topics sit outside this bench; see the `COMPLIANCE-001-RESOLUTION-001` reopen trigger), it edits no catalog, eligibility, publish, or WebFlash surface, and every publish gate stays exactly as it is.
 
 **Next steps, in order:**
 
 1. The operator resolves the **full-composition re-confirm**: either states that the Step F image was the full `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` composition, or re-flashes the full composition and re-checks that the dimmer behaves identically.
 2. The operator completes the **Operator attestation** block below before merge. This close-out PR carries it empty by design.
-3. After the re-confirm and the attestation, a separate human-reviewed PR may clear the `PACKAGE-TRIAC-001` half of the FanTRIAC blocker in `config/product-catalog.json` and `config/room-bundle-fan-variants.json`, leaving `COMPLIANCE-001` as the sole remaining gate. That edit touches a blocker, so it is human-reviewed, not auto-merged.
-4. The publish (`TRIAC-PUBLISH-ADVANCED-PREVIEW-001`) still does not proceed until `COMPLIANCE-001` also clears.
+3. After the re-confirm and the attestation, the commissioning PR (`TRIAC-COMMISSIONING-001`, queued behind the SSOT refactor and the WebFlash add-source checksum guard) may clear the `PACKAGE-TRIAC-001` half of the FanTRIAC blocker in `config/product-catalog.json` and `config/room-bundle-fan-variants.json`, leaving the `COMPLIANCE-001-RESOLUTION-001` experimental-lane entry as the sole remaining gate. That edit touches a blocker, so it is human-reviewed, not auto-merged.
+4. The publish (`TRIAC-PUBLISH-ADVANCED-PREVIEW-001`) still does not proceed until the commissioning PR deliberately moves FanTRIAC into the experimental lane with its own reviewed gate and test changes.
 
 ---
 

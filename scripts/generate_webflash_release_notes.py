@@ -23,7 +23,8 @@ Refuses to generate notes for:
 - ``legacy-compatible`` catalog entries (manual / custom users only)
 - ``deprecated`` / ``removed`` entries
 - ``compile-only`` / ``hardware-pending`` entries (e.g. FanTRIAC, now
-  compile-only and gated by COMPLIANCE-001)
+  compile-only and gated by the COMPLIANCE-001-RESOLUTION-001
+  experimental-lane preconditions)
 - ``preview`` entries on the ``stable`` channel
 - ``production`` entries on a non-``stable`` channel
 - unknown / mistyped config strings
@@ -97,8 +98,10 @@ BLOCKED_MODULE_BULLETS = {
     "FanTRIAC": (
         "FanTRIAC is not included in this firmware. It is a separate "
         "compile-only / advanced-preview build (mains-voltage TRIAC dimming), "
-        "not stable, and remains gated by COMPLIANCE-001 (mains-voltage "
-        "electrical-safety review)."
+        "not stable, and remains gated by PACKAGE-TRIAC-001 plus the "
+        "COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions "
+        "(COMPLIANCE-001 closed by market posture: the S360-320 board is "
+        "never placed on the market; self-build open-source only)."
     ),
 }
 
