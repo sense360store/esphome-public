@@ -274,10 +274,38 @@ def validate(
         if row.get("webflash_importable") is not False:
             rerr.append(f"row {rid!r}: webflash_importable must be false")
         if cs in builds_cs:
-            rerr.append(
-                f"row {rid!r}: config_string is in config/webflash-builds.json; "
-                "fan / TRIAC tokens must stay off the WebFlash build matrix"
-            )
+            if not is_triac:
+                # The standalone manual-preview fan drivers (FanRelay / FanPWM /
+                # FanDAC) stay off the WebFlash build matrix (fan-token guardrail).
+                rerr.append(
+                    f"row {rid!r}: config_string is in config/webflash-builds.json; "
+                    "fan tokens must stay off the WebFlash build matrix"
+                )
+            else:
+                # FanTRIAC: TRIAC-COMMISSIONING-001 admitted it via the
+                # experimental self-build mains lane (the experimental_lane in
+                # config/release-channel-policy.json, defined by
+                # COMPLIANCE-001-RESOLUTION-001). It may appear in
+                # config/webflash-builds.json ONLY on the 'experimental' channel,
+                # never on a customer (stable / preview) channel.
+                triac_builds = [
+                    b
+                    for b in builds_doc.get("builds", []) or []
+                    if isinstance(b, dict) and b.get("config_string") == cs
+                ]
+                non_experimental = [
+                    b for b in triac_builds if b.get("channel") != "experimental"
+                ]
+                if non_experimental:
+                    bad_channels = sorted(
+                        {str(b.get("channel")) for b in non_experimental}
+                    )
+                    rerr.append(
+                        f"row {rid!r}: FanTRIAC may be committed to "
+                        "config/webflash-builds.json only on the 'experimental' "
+                        "channel (experimental self-build mains lane); found "
+                        f"non-experimental channel(s) {bad_channels}"
+                    )
 
         # Commercial posture locked.
         posture = row.get("commercial_posture", {})

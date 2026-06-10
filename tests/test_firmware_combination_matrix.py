@@ -159,24 +159,26 @@ class FirmwareMatrixGeneratorTests(unittest.TestCase):
                 f"webflash-builds entry {cs!r} missing from matrix",
             )
 
-    def test_fantriac_catalog_entry_is_classified_blocked_package(self):
-        # TRIAC-REBLOCK-PINMAP-001 + TRIAC-PINMAP-CORRECT-001 keep the
-        # Ceiling-POE-VentIQ-FanTRIAC-RoomIQ catalog entry at status: blocked
-        # with the blocker moved off HW-005 to PACKAGE-TRIAC-001 +
-        # COMPLIANCE-001, so the matrix classifier derives blocked-package
-        # (the blocker string is PACKAGE--prefixed; no longer HW-005 /
-        # blocked-hardware). The catalog row's blockers must NOT cite HW-005.
-        # (Other FanTRIAC family combinations with no catalog entry stay
+    def test_fantriac_full_composition_is_classified_webflash_experimental(self):
+        # TRIAC-COMMISSIONING-001 moved the full-composition
+        # Ceiling-POE-VentIQ-FanTRIAC-RoomIQ catalog entry into the experimental
+        # self-build mains lane (status preview, channel experimental, with a
+        # config/webflash-builds.json row). The coarse matrix classifier maps
+        # the experimental channel to the webflash-preview class ("never invents
+        # new statuses"); the row's notes + artifact name carry the real
+        # experimental channel and the row resolves through the products/webflash
+        # wrapper. (Other FanTRIAC family combinations with no catalog entry stay
         # blocked-hardware via the family fallback.)
         row = self.by_config[FANTRIAC_BLOCKED_CONFIG_STRING]
-        self.assertEqual(row["status"], "blocked-package")
-        self.assertNotIn("HW-005", row.get("blockers", []))
-        blockers_text = " ".join(row.get("blockers", []))
-        self.assertIn("PACKAGE-TRIAC-001", blockers_text)
-        self.assertIn("COMPLIANCE-001", blockers_text)
+        self.assertEqual(row["status"], "webflash-preview")
+        self.assertIn("experimental", row.get("notes", ""))
+        self.assertEqual(
+            row.get("artifact_name"),
+            "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin",
+        )
         self.assertEqual(
             row.get("product_yaml"),
-            "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
+            "products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml",
         )
 
     # ------------------------------------------------------------------

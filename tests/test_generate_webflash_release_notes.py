@@ -302,16 +302,18 @@ class LedPreviewGenerationTests(unittest.TestCase):
 
 
 class RefusalTests(unittest.TestCase):
-    def test_refuses_blocked_fantriac_config(self) -> None:
-        # FanTRIAC is status: blocked (TRIAC-REBLOCK-PINMAP-001 +
-        # TRIAC-PINMAP-CORRECT-001 keep it blocked); the generator refuses
-        # blocked entries (not WebFlash-shippable), so generation fails citing
-        # the status.
+    def test_refuses_fantriac_experimental_on_stable_channel(self) -> None:
+        # TRIAC-COMMISSIONING-001 moved FanTRIAC to status: preview on the
+        # experimental self-build mains channel. It is NEVER a stable customer
+        # build, so the WebFlash stable-channel notes generator still REFUSES it
+        # (a preview entry cannot generate stable-channel notes).
         with self.assertRaises(gen.GeneratorError) as ctx:
             _generate_release_one(
                 config_string=FANTRIAC_BLOCKED_CONFIG, channel="stable"
             )
-        self.assertIn("blocked", str(ctx.exception).lower())
+        msg = str(ctx.exception).lower()
+        self.assertIn("preview", msg)
+        self.assertIn("stable", msg)
 
     def test_refuses_legacy_compatible_product(self) -> None:
         with self.assertRaises(gen.GeneratorError) as ctx:

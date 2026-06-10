@@ -41,10 +41,9 @@ python3 scripts/report_firmware_build_gaps.py --check    # CI-style freshness ch
 
 - Total valid combinations: **168**
 - `blocked-hardware`: 42
-- `blocked-package`: 1
 - `compile-only-candidate`: 2
 - `missing-product-yaml`: 118
-- `webflash-preview`: 2
+- `webflash-preview`: 3
 - `webflash-shipping`: 3
 
 ## Currently committed WebFlash builds
@@ -54,6 +53,7 @@ These are the only combinations in [`config/webflash-builds.json`](../config/web
 - `Ceiling-POE-AirIQ-RoomIQ`
 - `Ceiling-POE-RoomIQ`
 - `Ceiling-POE-RoomIQ-LED`
+- `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
 - `Ceiling-POE-VentIQ-RoomIQ`
 - `Ceiling-POE-VentIQ-RoomIQ-LED`
 
@@ -61,8 +61,8 @@ These are the only combinations in [`config/webflash-builds.json`](../config/web
 
 | Lane | Rows | Compile-only safe now? | WebFlash exposure allowed now? | Stable-ready now? |
 |------|-----:|------------------------|--------------------------------|--------------------|
-| `current-webflash` | 5 | no | yes | no |
-| `fantriac-blocked-hardware-compliance` | 36 | no | no | no |
+| `current-webflash` | 6 | no | yes | no |
+| `fantriac-blocked-hardware-compliance` | 35 | no | no | no |
 | `fanrelay-blocked-package-or-core-bus` | 36 | no | no | no |
 | `fanpwm-blocked-package-or-core-bus` | 36 | no | no | no |
 | `fandac-blocked-package-or-core-bus` | 24 | no | no | no |
@@ -76,7 +76,7 @@ All 168 lane-assigned rows must equal the 168 matrix combinations. The test [`te
 
 ## Lanes
 
-### `current-webflash` — Current WebFlash builds (5 rows)
+### `current-webflash` — Current WebFlash builds (6 rows)
 
 - **Compile-only coverage safe now:** no
 - **WebFlash exposure allowed now:** yes
@@ -93,20 +93,21 @@ All 168 lane-assigned rows must equal the 168 matrix combinations. The test [`te
 - `Ceiling-POE-AirIQ-RoomIQ`
 - `Ceiling-POE-RoomIQ`
 - `Ceiling-POE-RoomIQ-LED`
+- `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
 - `Ceiling-POE-VentIQ-RoomIQ`
-- `Ceiling-POE-VentIQ-RoomIQ-LED`
+- … and 1 more (see `config/firmware-combination-matrix.json` for the full list)
 
-### `fantriac-blocked-hardware-compliance` — FanTRIAC — blocked on hardware + compliance (36 rows)
+### `fantriac-blocked-hardware-compliance` — FanTRIAC family — blocked on hardware + compliance (35 rows)
 
 - **Compile-only coverage safe now:** no
 - **WebFlash exposure allowed now:** no
 - **Stable-ready now:** no
 
-**Blocker summary.** FanTRIAC (S360-320) lane stays blocked from build / exposure. **HW-005** buildability and **HW-PINMAP-320-FOLLOWUP** are RESOLVED (TRIAC-PINMAP-CORRECT-001: schematic-verified gate GPIO14 / zero-cross GPIO13); the remaining gates are **PACKAGE-TRIAC-001** (operator bench protocol with signed attestation, still uncommitted) and the **COMPLIANCE-001-RESOLUTION-001** experimental-lane preconditions (COMPLIANCE-001 itself is CLOSED by market posture: S360-320 is never placed on the market; see `docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`).
+**Blocker summary.** The FanTRIAC (S360-320) family combinations in this lane stay blocked from build / exposure. The single full-composition config `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is NOT in this lane any more: `TRIAC-COMMISSIONING-001` moved it into the experimental self-build mains lane (it now appears under `current-webflash` on the experimental channel). **HW-005** buildability and **HW-PINMAP-320-FOLLOWUP** are RESOLVED (TRIAC-PINMAP-CORRECT-001: schematic-verified gate GPIO14 / zero-cross GPIO13); for the full-composition config **PACKAGE-TRIAC-001** is satisfied (operator-attested bench proof) and **COMPLIANCE-001** is CLOSED by market posture (S360-320 is never placed on the market; see `docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`). The remaining family combinations here have no catalog entry and inherit the conservative blocked classification.
 
-**Recommended next PR type.** No FanTRIAC build, package, or product PR outside the commissioning PR. The catalog entry for `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status: blocked`. The next change is the human-reviewed commissioning PR: commit the signed PACKAGE-TRIAC-001 attestation and deliberately move FanTRIAC into the experimental lane. See `docs/decisions/COMPLIANCE-001-RESOLUTION-001.md` and `docs/release-one-hardware-audit.md#fantriac-mapping-resolution`.
+**Recommended next PR type.** No FanTRIAC build, package, or product PR for these blocked family combinations. The full-composition config `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` was commissioned to the experimental self-build mains lane by `TRIAC-COMMISSIONING-001` (status preview, channel experimental); it stays NEVER stable / recommended / default / buyable / kit-exposed, and downstream WebFlash one-click import remains gated by `WF-IMPORT-TRIAC-001`. See `docs/decisions/COMPLIANCE-001-RESOLUTION-001.md` and `docs/release-one-hardware-audit.md#fantriac-mapping-resolution`.
 
-**Notes.** All 36 FanTRIAC rows inherit the same HW-005 blocker via the token-level inference in `scripts/generate_firmware_matrix.py`. Mains-voltage handling means FanTRIAC additionally needs compliance sign-off before any preview-class WebFlash exposure can even be considered.
+**Notes.** The FanTRIAC family combinations in this lane inherit the conservative blocked classification via the token-level inference in `scripts/generate_firmware_matrix.py`. The full-composition `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` has left this lane for `current-webflash` (experimental channel). Mains-voltage handling means the family combinations still need compliance sign-off before any non-experimental WebFlash exposure could be considered; the experimental lane is self-build-only and never stable.
 
 **Representative config strings.**
 
@@ -115,7 +116,7 @@ All 168 lane-assigned rows must equal the 168 matrix combinations. The test [`te
 - `Ceiling-POE-AirIQ-FanTRIAC-RoomIQ`
 - `Ceiling-POE-AirIQ-FanTRIAC-RoomIQ-LED`
 - `Ceiling-POE-FanTRIAC`
-- … and 31 more (see `config/firmware-combination-matrix.json` for the full list)
+- … and 30 more (see `config/firmware-combination-matrix.json` for the full list)
 
 ### `fanrelay-blocked-package-or-core-bus` — FanRelay — blocked on package + Core abstract bus (36 rows)
 
@@ -279,8 +280,8 @@ All 168 lane-assigned rows must equal the 168 matrix combinations. The test [`te
 
 All 168 matrix rows are accounted for by exactly one lane. Subtotals:
 
-- `current-webflash`: 5
-- `fantriac-blocked-hardware-compliance`: 36
+- `current-webflash`: 6
+- `fantriac-blocked-hardware-compliance`: 35
 - `fanrelay-blocked-package-or-core-bus`: 36
 - `fanpwm-blocked-package-or-core-bus`: 36
 - `fandac-blocked-package-or-core-bus`: 24

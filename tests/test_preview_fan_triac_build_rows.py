@@ -310,11 +310,17 @@ class SimpleInstallUnchangedTests(unittest.TestCase):
         cls.builds = _load(BUILDS_PATH)
         cls.shop = _load(SHOP_PATH)
 
-    def test_no_fan_or_triac_in_webflash_builds(self) -> None:
-        ledger_cs = {b["config_string"] for b in self.builds["builds"]}
-        for cs in ALL_CONFIGS:
+    def test_no_fan_in_webflash_builds_triac_experimental_only(self) -> None:
+        # The three manual-preview fan drivers (FanRelay / FanPWM / FanDAC) stay
+        # entirely off the WebFlash build matrix. FanTRIAC is admitted only on
+        # the experimental self-build mains channel (TRIAC-COMMISSIONING-001),
+        # never on a customer (stable / preview) channel.
+        ledger_cs = {b["config_string"]: b for b in self.builds["builds"]}
+        for cs in FAN_CONFIGS:
             with self.subTest(config_string=cs):
                 self.assertNotIn(cs, ledger_cs)
+        self.assertIn(TRIAC_CONFIG, ledger_cs)
+        self.assertEqual(ledger_cs[TRIAC_CONFIG]["channel"], "experimental")
 
     def test_no_row_is_the_simple_install_config(self) -> None:
         for cs in self.rows:

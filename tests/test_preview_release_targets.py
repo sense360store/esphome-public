@@ -251,9 +251,14 @@ class TriacTargetTests(unittest.TestCase):
         self.assertIn("COMPLIANCE-001", t["stable_blocker"])
         self.assertNotEqual(t["channel_tier"], "stable")
 
-    def test_triac_absent_from_webflash_builds(self) -> None:
-        builds = {b["config_string"] for b in _load(BUILDS_PATH)["builds"]}
-        self.assertNotIn(FANTRIAC_CONFIG, builds)
+    def test_triac_committed_on_experimental_channel_only(self) -> None:
+        # TRIAC-COMMISSIONING-001 added FanTRIAC to config/webflash-builds.json
+        # on the experimental self-build mains channel only. Its preview-release
+        # eligibility target stays advanced-manual-preview (not WebFlash-import
+        # eligible); the committed build is the separate experimental lane.
+        builds = {b["config_string"]: b for b in _load(BUILDS_PATH)["builds"]}
+        self.assertIn(FANTRIAC_CONFIG, builds)
+        self.assertEqual(builds[FANTRIAC_CONFIG]["channel"], "experimental")
 
 
 class FanTargetTests(unittest.TestCase):
@@ -329,6 +334,15 @@ class WebflashCoverageTests(unittest.TestCase):
             with self.subTest(config_string=cs):
                 self.assertIn(cs, self.by_cs)
                 target = self.by_cs[cs]
+                if build.get("channel") == "experimental":
+                    # FanTRIAC experimental self-build commissioning
+                    # (TRIAC-COMMISSIONING-001): the committed build is on the
+                    # experimental lane, intentionally a SEPARATE lane from this
+                    # advanced-manual-preview eligibility target, so its channel /
+                    # artifact differ from the target. It is still represented
+                    # (its config has a target) and committed only on experimental.
+                    self.assertTrue(target.get("is_triac"))
+                    continue
                 self.assertEqual(target["build_channel"], build["channel"])
                 self.assertEqual(
                     target["expected_artifact_name"], build["artifact_name"]

@@ -246,10 +246,15 @@ class UpcomingPrQueueTests(unittest.TestCase):
                 self.assertRegex(self.text, heading)
         self.assertIn("queued separately", self.norm)
 
-    def test_triac_preview_work_stays_separate(self) -> None:
-        self.assertIn("fantriac preview work", self.norm)
-        self.assertIn("hw-005", self.norm)
-        self.assertIn("must remain its own", self.norm)
+    def test_triac_is_a_separate_experimental_track(self) -> None:
+        # TRIAC-COMMISSIONING-001 moved FanTRIAC into the experimental self-build
+        # mains lane — still its own separate track (never lumped with the
+        # manual-preview fans), NOT one-click WebFlash-import eligible (the
+        # downstream WF-IMPORT-TRIAC-001 slice), and never stable / buyable /
+        # kit-exposed.
+        self.assertIn("experimental self-build mains lane", self.norm)
+        self.assertIn("wf-import-triac-001", self.norm)
+        self.assertIn("never stable", self.norm)
 
 
 if __name__ == "__main__":

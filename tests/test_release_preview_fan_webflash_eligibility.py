@@ -212,9 +212,12 @@ class NoCommittedWebflashRowTests(unittest.TestCase):
             with self.subTest(config_string=cs):
                 self.assertNotIn(cs, self.builds)
 
-    def test_no_fan_token_in_webflash_builds(self) -> None:
+    def test_no_standalone_fan_token_in_webflash_builds(self) -> None:
+        # The standalone manual-preview fan drivers stay off the WebFlash build
+        # matrix. FanTRIAC is the sole admitted fan/TRIAC token, and only via the
+        # experimental self-build mains lane (TRIAC-COMMISSIONING-001).
         raw = BUILDS_PATH.read_text(encoding="utf-8")
-        for token in ("FanRelay", "FanPWM", "FanDAC", "FanTRIAC"):
+        for token in ("FanRelay", "FanPWM", "FanDAC"):
             with self.subTest(token=token):
                 self.assertNotIn(token, raw)
 
@@ -286,9 +289,14 @@ class TriacStaysExcludedTests(unittest.TestCase):
         self.assertIn("COMPLIANCE-001", str(t.get("stable_blocker")))
         self.assertFalse(t["webflash_import_eligibility"]["eligible"])
 
-    def test_triac_absent_from_webflash_builds(self) -> None:
-        builds = {b["config_string"] for b in _load(BUILDS_PATH)["builds"]}
-        self.assertNotIn(TRIAC_CONFIG, builds)
+    def test_triac_committed_on_experimental_channel_only(self) -> None:
+        # FanTRIAC is committed in config/webflash-builds.json only on the
+        # experimental self-build mains channel (TRIAC-COMMISSIONING-001); its
+        # preview-eligibility target stays advanced-manual-preview and
+        # NOT WebFlash-import eligible (asserted above).
+        builds = {b["config_string"]: b for b in _load(BUILDS_PATH)["builds"]}
+        self.assertIn(TRIAC_CONFIG, builds)
+        self.assertEqual(builds[TRIAC_CONFIG]["channel"], "experimental")
 
 
 class StableBathroomPoeUnchangedTests(unittest.TestCase):

@@ -214,6 +214,66 @@
         ]
       },
       "notes": "Living-room / Corridor PoE RoomIQ + LED preview build row added by RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 (one buildable firmware shared by the S360-KIT-LIVING-P and S360-KIT-CORRIDOR-P bundles). This is the RoomIQ + LED sibling and is DISTINCT from the published VentIQ LED preview Ceiling-POE-VentIQ-RoomIQ-LED, which is unchanged. Release-eligibility METADATA only: no firmware binary, GitHub Release, tag, manifest.json, or firmware/sources.json is produced by this PR; the consuming candidate bundles stay hidden / not buyable. LED remains preview, never auto-stable. NOT stable, NOT recommended, NOT a customer default, NOT in release_one_required_configs. Stable stays blocked by S360-410 (PRODUCT-POE-410-001) + the LED preview-to-stable gauntlet; no hardware / bench / compliance proof is claimed."
+    },
+    {
+      "config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
+      "product_yaml": "products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin",
+      "channel": "experimental",
+      "channel_tier": "advanced-preview",
+      "experimental_lane": "EXPERIMENTAL-SELF-BUILD-MAINS-LANE",
+      "governing_decision": "docs/decisions/COMPLIANCE-001-RESOLUTION-001.md",
+      "bench_proof": "docs/package-triac-001-operator-bench-proof.md",
+      "webflash_exposure_class": "acknowledgement-gated-advanced",
+      "warning_copy_key": "experimental",
+      "release_note_warning": "EXPERIMENTAL — SELF-BUILD MAINS HARDWARE. This firmware targets an open-source mains-voltage board design that Sense360 does not sell, supply, or place on the market in any form. If you build this board you are the manufacturer of your own device and act entirely at your own risk. Functional bench completion is NOT a safety, EMC, or compliance certification. Mains wiring must only be performed by a competent person. Incorrect installation can cause fire, electric shock, or death.",
+      "release_note_draft": "docs/release-notes/experimental/ceiling-poe-ventiq-fantriac-roomiq.md",
+      "release_state": "metadata-ready-unpublished",
+      "stable_blocker": "Stable / full release stays gated: a stable customer release would be a placing-on-the-market act, which reopens COMPLIANCE-001 and requires an external safety + EMC assessment BEFORE that act (docs/decisions/COMPLIANCE-001-RESOLUTION-001.md section 4). Never promoted to stable by this row.",
+      "version": "1.0.0",
+      "chip_family": "ESP32-S3",
+      "hardware_requirements": [
+        "Sense360 Core R4 or newer",
+        "Sense360 PoE PSU",
+        "Sense360 VentIQ module",
+        "Sense360 RoomIQ module",
+        "Sense360 TRIAC module (S360-320, self-build open-source CERN-OHL-P board; never sold or supplied by Sense360)"
+      ],
+      "features": [
+        "PoE-powered Sense360 Core configuration",
+        "VentIQ bathroom air-quality sensing",
+        "RoomIQ room sensing",
+        "Mains TRIAC phase-cut fan/lamp dimming on the S360-320 Sense360 TRIAC (experimental self-build; competent-person manual install only)"
+      ],
+      "commercial_posture": {
+        "visibility": "hidden",
+        "lifecycle": "experimental",
+        "buyable": false,
+        "recommended": false,
+        "customer_default": false,
+        "stable": false,
+        "release_one_required_config": false,
+        "in_kit_or_kit_picker": false,
+        "webflash_one_click_import_eligible": false
+      },
+      "bench_evidence": {
+        "proof_doc": "docs/package-triac-001-operator-bench-proof.md",
+        "blocker_id": "PACKAGE-TRIAC-001",
+        "operator_attested": true,
+        "proof_class": "firmware-build-plus-functional-bench",
+        "not_proof_of": [
+          "electrical-safety",
+          "isolation",
+          "creepage",
+          "clearance",
+          "EMC",
+          "CE-UKCA-conformity",
+          "compliance",
+          "stable-promotion",
+          "commercial-availability"
+        ]
+      },
+      "notes": "TRIAC-COMMISSIONING-001 experimental self-build mains build row for the S360-320 Sense360 TRIAC, published on the experimental channel (build channel 'experimental'; artifact suffix -experimental) via the experimental lane defined by COMPLIANCE-001-RESOLUTION-001 (config/release-channel-policy.json experimental_lane). It compiles the canonical product YAML products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml via the products/webflash wrapper (no YAML functional change). The PACKAGE-TRIAC-001 half of the former blocker is cleared (operator-attested bench proof docs/package-triac-001-operator-bench-proof.md); COMPLIANCE-001 is closed by market posture. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this PR adds the row but does NOT cut a release tag, build a .bin, or write a manifest. NEVER stable, NEVER recommended, NEVER a customer default, NEVER buyable, NEVER in any kit or kit picker, NEVER in release_one_required_configs. The S360-320 is an open-source CERN-OHL-P design Sense360 never places on the market; builders self-source and self-build at their own risk. Functional bench completion is firmware-build + bench proof only and is NOT an electrical-safety, EMC, or compliance certification. Downstream WebFlash one-click import stays gated by WF-IMPORT-TRIAC-001 (webflash_one_click_import_eligible false), unblocked only once the experimental release is cut. TRIAC blocker/status changes are human-review only, never auto-merged."
     }
   ]
 }

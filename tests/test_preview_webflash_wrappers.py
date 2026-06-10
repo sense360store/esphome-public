@@ -399,7 +399,15 @@ class NoTriacWrapperTests(unittest.TestCase):
         self.assertNotIn("webflash_wrapper", t)
         self.assertEqual(t["delivery_lane"], "advanced-manual-preview")
         self.assertFalse(t["webflash_import_eligibility"]["eligible"])
-        self.assertNotIn(FANTRIAC_CONFIG, self.builds)
+        # The advanced-manual-preview eligibility target stays gated (no wrapper,
+        # never WebFlash-import eligible). The committed config/webflash-builds.json
+        # row is the SEPARATE FanTRIAC experimental self-build commissioning
+        # (TRIAC-COMMISSIONING-001), admitted on the experimental channel only.
+        self.assertIn(FANTRIAC_CONFIG, self.builds)
+        builds_by_cs = {
+            b["config_string"]: b for b in _load_json(BUILDS_PATH)["builds"]
+        }
+        self.assertEqual(builds_by_cs[FANTRIAC_CONFIG]["channel"], "experimental")
 
 
 class NoFanWrapperTests(unittest.TestCase):
@@ -452,13 +460,16 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
             _load_json(COMPAT_PATH).get("release_one_required_configs", [])
         )
 
-    def test_build_ledger_is_exactly_the_five_live_builds(self) -> None:
+    def test_build_ledger_is_the_six_live_builds(self) -> None:
         # Stable RoomIQ + published VentIQ LED preview + the three room-bundle
-        # preview rows this PR adds. No TRIAC, no fan-driver rows.
+        # preview rows + the FanTRIAC experimental self-build mains build added
+        # by TRIAC-COMMISSIONING-001 (experimental channel). No standalone
+        # fan-driver rows.
         self.assertEqual(
             set(self.by_cs),
-            {STABLE_CONFIG, LED_PREVIEW_CONFIG, *NEW_WRAPPERS},
+            {STABLE_CONFIG, LED_PREVIEW_CONFIG, *NEW_WRAPPERS, FANTRIAC_CONFIG},
         )
+        self.assertEqual(self.by_cs[FANTRIAC_CONFIG]["channel"], "experimental")
 
     def test_new_config_strings_present_in_ledger(self) -> None:
         for cs in NEW_WRAPPERS:
@@ -531,11 +542,20 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
                 self.assertFalse(posture.get("customer_default"))
                 self.assertEqual(posture.get("stable"), cs in PROMOTED_WRAPPERS)
 
-    def test_no_triac_or_fan_row_in_ledger(self) -> None:
-        # Hard guardrails: no TRIAC row, no fan manual-preview rows.
-        for cs in self.by_cs:
-            for token in (*FAN_DRIVER_TOKENS, TRIAC_TOKEN):
+    def test_no_standalone_fan_row_triac_experimental_only(self) -> None:
+        # Hard guardrail: the standalone manual-preview fan drivers (FanRelay /
+        # FanPWM / FanDAC) never appear in the WebFlash build ledger. The single
+        # exception is the FanTRIAC experimental self-build mains build
+        # (TRIAC-COMMISSIONING-001), admitted on the experimental channel only.
+        for cs, build in self.by_cs.items():
+            for token in FAN_DRIVER_TOKENS:
                 self.assertNotIn(token, cs.split("-"), f"{token} leaked into ledger")
+            if TRIAC_TOKEN in cs.split("-"):
+                self.assertEqual(
+                    build["channel"],
+                    "experimental",
+                    "FanTRIAC may only be committed on the experimental channel",
+                )
 
     def test_no_firmware_publish_side_effects_committed(self) -> None:
         # Hard guardrail: no firmware publish files changed (this PR is

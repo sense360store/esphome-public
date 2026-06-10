@@ -584,18 +584,23 @@ class ReleaseOneAndLedPreviewUnchangedTests(unittest.TestCase):
         self.assertTrue(entry["webflash_build_matrix"])
         self.assertEqual(entry["product_yaml"], LED_PREVIEW_PRODUCT_REL)
 
-    def test_fantriac_catalog_entry_remains_blocked(self) -> None:
-        # TRIAC-PINMAP-CORRECT-001 corrected the FanTRIAC pins but the product
-        # STAYS status: blocked (gated by PACKAGE-TRIAC-001 + the
-        # COMPLIANCE-001 gate element, which COMPLIANCE-001-RESOLUTION-001
-        # re-pointed at the experimental-lane preconditions — behaviour
-        # unchanged). The preserved invariant is that it stays off the
-        # WebFlash build matrix with the COMPLIANCE-001 citation intact.
+    def test_fantriac_catalog_entry_is_experimental_self_build(self) -> None:
+        # TRIAC-COMMISSIONING-001 moved FanTRIAC into the experimental
+        # self-build mains lane (status preview, channel experimental). This PR
+        # (FanRelay readiness) does not change FanTRIAC; the preserved invariant
+        # is that FanTRIAC is never a normal customer build — it stays on the
+        # experimental channel, never stable, with the COMPLIANCE-001 stable
+        # gate citation intact.
         entry = self._find(FANTRIAC_BLOCKED_CONFIG_STRING)
-        self.assertEqual(entry["status"], "blocked")
-        self.assertIn("blocker", entry)
-        self.assertIn("COMPLIANCE-001", entry.get("blocker", ""))
-        self.assertFalse(entry["webflash_build_matrix"])
+        self.assertEqual(entry["status"], "preview")
+        self.assertEqual(entry.get("channel"), "experimental")
+        self.assertIn(
+            "COMPLIANCE-001",
+            entry.get("stable_blocker", "") + " " + entry.get("reason", ""),
+        )
+        self.assertIs(
+            entry.get("experimental_lane_posture", {}).get("never_stable"), True
+        )
 
     def test_release_one_required_configs_unchanged(self) -> None:
         compat = _load_json(WEBFLASH_COMPATIBILITY)

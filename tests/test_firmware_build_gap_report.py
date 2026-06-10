@@ -57,8 +57,11 @@ EXPECTED_LANE_IDS = [
 #     are now shipping); led-preview-and-stable-candidates 11 -> 10
 #     (Ceiling-POE-RoomIQ-LED is now shipping). Total stays 168.
 EXPECTED_LANE_COUNTS = {
-    "current-webflash": 5,
-    "fantriac-blocked-hardware-compliance": 36,
+    # TRIAC-COMMISSIONING-001 moved the full-composition FanTRIAC config into
+    # current-webflash (experimental channel), so current-webflash gains one
+    # row (5 -> 6) and the blocked FanTRIAC family lane loses it (36 -> 35).
+    "current-webflash": 6,
+    "fantriac-blocked-hardware-compliance": 35,
     "fanrelay-blocked-package-or-core-bus": 36,
     "fanpwm-blocked-package-or-core-bus": 36,
     "fandac-blocked-package-or-core-bus": 24,
@@ -206,9 +209,18 @@ class BuildGapReportTests(unittest.TestCase):
             "FanTRIAC lane blocker summary must reference HW-005",
         )
 
-    def test_fantriac_blocked_row_lives_in_fantriac_lane(self):
-        lane = self.by_lane["fantriac-blocked-hardware-compliance"]
-        self.assertIn(FANTRIAC_BLOCKED_CONFIG_STRING, lane["config_strings"])
+    def test_fantriac_full_composition_commissioned_out_of_blocked_lane(self):
+        # TRIAC-COMMISSIONING-001 moved the full-composition FanTRIAC config out
+        # of the blocked family lane into current-webflash (experimental
+        # channel). The remaining FanTRIAC family combinations stay blocked.
+        blocked_lane = self.by_lane["fantriac-blocked-hardware-compliance"]
+        self.assertNotIn(
+            FANTRIAC_BLOCKED_CONFIG_STRING, blocked_lane["config_strings"]
+        )
+        webflash_lane = self.by_lane["current-webflash"]
+        self.assertIn(
+            FANTRIAC_BLOCKED_CONFIG_STRING, webflash_lane["config_strings"]
+        )
 
     # ------------------------------------------------------------------
     # PWR lane: not WebFlash-exposable

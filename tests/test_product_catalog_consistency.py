@@ -157,21 +157,22 @@ class ReleaseOneProductionTests(unittest.TestCase):
                 self.assertIn(sku, known)
 
 
-class FanTriacBlockedTests(unittest.TestCase):
-    """Targeted checks on the FanTRIAC blocked entry.
+class FanTriacExperimentalLaneTests(unittest.TestCase):
+    """Targeted checks on the FanTRIAC entry after TRIAC-COMMISSIONING-001.
 
-    TRIAC-PINMAP-CORRECT-001 corrected the gate/zero-cross pin mapping to the
-    schematic-verified GPIO14/GPIO13 and reconciled the entry: the product
-    STAYS status: blocked (HW-005 BUILDABILITY + HW-PINMAP-320-FOLLOWUP are
-    resolved, but bench PACKAGE-TRIAC-001 plus the COMPLIANCE-001 gate element
-    keep it blocked), schematic_status is schematic-backed, and the blocker is
-    moved off HW-005 to PACKAGE-TRIAC-001 + COMPLIANCE-001. Per
-    COMPLIANCE-001-RESOLUTION-001 (COMPLIANCE-001 closed by market posture)
-    the blocker text now cites the resolution record's experimental-lane
-    preconditions — the COMPLIANCE-001 substring assertion below is satisfied
-    by the resolution id, and the enforced behaviour is unchanged until the
-    commissioning PR. The preserved invariants are pinned here: NOT in the
-    WebFlash build matrix, no artifact_name, NOT in config/webflash-builds.json.
+    TRIAC-COMMISSIONING-001 moved Ceiling-POE-VentIQ-FanTRIAC-RoomIQ OUT of
+    status: blocked into the experimental self-build mains lane defined by
+    docs/decisions/COMPLIANCE-001-RESOLUTION-001.md. The PACKAGE-TRIAC-001 half
+    of the former blocker is CLEARED (operator bench complete + signed
+    attestation committed to docs/package-triac-001-operator-bench-proof.md) and
+    COMPLIANCE-001 is closed by market posture, so the entry is now status:
+    preview on the experimental build channel with a config/webflash-builds.json
+    row (artifact ...-v1.0.0-experimental.bin). The PERMANENT teeth are pinned
+    here: FanTRIAC stays NEVER stable / recommended / default / buyable /
+    kit-exposed, it is a self-build board Sense360 never places on the market,
+    and downstream WebFlash one-click import stays gated
+    (webflash_one_click_import_eligible false). The entry must cite both the
+    governing resolution record and the attested PACKAGE-TRIAC-001 proof.
     """
 
     @classmethod
@@ -179,33 +180,66 @@ class FanTriacBlockedTests(unittest.TestCase):
         cls.entry = _entry_by_config_string(FANTRIAC_CONFIG_STRING)
         cls.builds = _build_config_strings()
 
-    def test_status_is_blocked(self) -> None:
-        self.assertEqual(self.entry["status"], "blocked")
+    def test_status_is_preview_on_experimental_lane(self) -> None:
+        # Moved out of blocked into the experimental self-build mains lane.
+        self.assertEqual(self.entry["status"], "preview")
+        self.assertEqual(self.entry.get("channel"), "experimental")
+        self.assertEqual(
+            self.entry.get("experimental_lane"), "EXPERIMENTAL-SELF-BUILD-MAINS-LANE"
+        )
 
     def test_schematic_status_is_schematic_backed(self) -> None:
         self.assertEqual(self.entry.get("schematic_status"), "schematic-backed")
 
-    def test_blocker_cites_package_triac_and_compliance(self) -> None:
-        self.assertIn("blocker", self.entry)
-        self.assertIsInstance(self.entry["blocker"], str)
-        self.assertIn("PACKAGE-TRIAC-001", self.entry["blocker"])
-        self.assertIn("COMPLIANCE-001", self.entry["blocker"])
-        # HW-005 buildability is resolved; it must no longer be the blocker.
-        self.assertNotEqual(self.entry["blocker"], "HW-005")
+    def test_cites_resolution_record_and_attested_proof(self) -> None:
+        # The contract change requires the catalog to cite BOTH the governing
+        # resolution record and the attested PACKAGE-TRIAC-001 proof container.
+        self.assertEqual(
+            self.entry.get("governing_decision"),
+            "docs/decisions/COMPLIANCE-001-RESOLUTION-001.md",
+        )
+        self.assertEqual(
+            self.entry.get("bench_proof"),
+            "docs/package-triac-001-operator-bench-proof.md",
+        )
+        reason = self.entry.get("reason", "")
+        self.assertIn("PACKAGE-TRIAC-001", reason)
+        self.assertIn("COMPLIANCE-001", reason)
+        # HW-005 buildability is resolved; it must not be reintroduced as a blocker.
+        self.assertNotIn("blocker", self.entry)
 
     def test_reason_present(self) -> None:
         self.assertIn("reason", self.entry)
         self.assertIsInstance(self.entry["reason"], str)
         self.assertNotEqual(self.entry["reason"], "")
 
-    def test_webflash_build_matrix_is_false(self) -> None:
-        self.assertIs(self.entry["webflash_build_matrix"], False)
+    def test_webflash_build_matrix_is_true(self) -> None:
+        self.assertIs(self.entry["webflash_build_matrix"], True)
 
-    def test_no_artifact_name(self) -> None:
-        self.assertNotIn("artifact_name", self.entry)
+    def test_artifact_name_is_experimental(self) -> None:
+        self.assertEqual(
+            self.entry.get("artifact_name"),
+            "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin",
+        )
 
-    def test_not_in_webflash_builds(self) -> None:
-        self.assertNotIn(self.entry["config_string"], self.builds)
+    def test_in_webflash_builds_on_experimental_channel(self) -> None:
+        self.assertIn(self.entry["config_string"], self.builds)
+
+    def test_permanent_teeth_never_stable_recommended_default_buyable_kit(self) -> None:
+        # These teeth survive the commissioning unchanged.
+        posture = self.entry.get("experimental_lane_posture", {})
+        for flag in (
+            "never_stable",
+            "never_recommended",
+            "never_customer_default",
+            "never_buyable",
+            "never_in_kit_or_kit_picker",
+            "never_in_release_one_required_configs",
+            "self_build_board_never_placed_on_market_by_sense360",
+        ):
+            self.assertIs(posture.get(flag), True, f"{flag} tooth must stay true")
+        # WebFlash one-click import stays the gated downstream follow-up.
+        self.assertIs(posture.get("webflash_one_click_import_eligible"), False)
 
 
 class LegacyCompatibleSweepTests(unittest.TestCase):

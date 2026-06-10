@@ -78,7 +78,12 @@ DRAFTED_CONFIGS = (
     "Ceiling-POE-RoomIQ",
     "Ceiling-POE-RoomIQ-LED",
 )
+# The LED room bundle is the only PREVIEW-channel metadata-ready row (these
+# configs are pinned to the preview-channel contract below). The FanTRIAC
+# experimental self-build mains build (TRIAC-COMMISSIONING-001) is also
+# metadata-ready, but on the EXPERIMENTAL channel, so it is tracked separately.
 STILL_METADATA_READY_CONFIGS = ("Ceiling-POE-RoomIQ-LED",)
+EXPERIMENTAL_METADATA_READY_CONFIGS = ("Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",)
 PROMOTED_CONFIGS = (
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
@@ -181,13 +186,23 @@ class MetadataReadySelectionTests(unittest.TestCase):
     the promotions only the LED room bundle is still metadata-ready."""
 
     def test_metadata_ready_rows_are_the_unpromoted_configs(self) -> None:
+        # The unpromoted preview LED room bundle plus the FanTRIAC experimental
+        # self-build mains build (TRIAC-COMMISSIONING-001), which is on the
+        # experimental channel (its channel/warning contract is asserted
+        # separately, not under the preview-channel rows above).
         got = sorted(b["config_string"] for b in _metadata_ready_rows())
-        self.assertEqual(got, sorted(STILL_METADATA_READY_CONFIGS))
+        self.assertEqual(
+            got,
+            sorted(STILL_METADATA_READY_CONFIGS + EXPERIMENTAL_METADATA_READY_CONFIGS),
+        )
 
-    def test_metadata_ready_rows_are_preview_channel(self) -> None:
+    def test_metadata_ready_rows_are_non_stable_channel(self) -> None:
+        # Metadata-ready rows are never stable: the LED room bundle is on the
+        # preview channel; the FanTRIAC experimental self-build mains build
+        # (TRIAC-COMMISSIONING-001) is on the experimental channel.
         for b in _metadata_ready_rows():
             with self.subTest(config_string=b["config_string"]):
-                self.assertEqual(b["channel"], "preview")
+                self.assertIn(b["channel"], ("preview", "experimental"))
 
     def test_promoted_rows_left_the_preview_channel(self) -> None:
         by_cs = _by_cs()

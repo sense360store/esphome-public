@@ -320,8 +320,10 @@ class GuardrailTests(unittest.TestCase):
             with self.subTest(config_string=cs):
                 self.assertNotIn("release_state", by_cs[cs])
 
-    def test_builds_ledger_still_has_five_entries(self) -> None:
-        self.assertEqual(len(_builds()), 5)
+    def test_builds_ledger_has_six_entries(self) -> None:
+        # Five customer (stable / preview) builds plus the experimental
+        # self-build mains FanTRIAC build added by TRIAC-COMMISSIONING-001.
+        self.assertEqual(len(_builds()), 6)
 
 
 class UpcomingPrTests(unittest.TestCase):

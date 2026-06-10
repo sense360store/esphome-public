@@ -194,17 +194,30 @@ If they drift, `UPCOMING_PR.md` wins.
 >   `HW-AIRIQ-WAIVER-2026-06`) — owner waivers, not hardware verification — and
 >   their candidate / room bundles stay **hidden / not buyable / never the
 >   customer default**.
-> * **FanTRIAC stays blocked.** `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is
->   `status: blocked` (blocker: `PACKAGE-TRIAC-001` + the
->   `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions;
->   `COMPLIANCE-001` itself is closed by posture and reopens only on a
->   market-placement act; `webflash_build_matrix: false`). HW-005 buildability
->   was resolved by `TRIAC-PINMAP-CORRECT-001`, but no `.bin` is cut, it is not
->   in `config/webflash-builds.json`, and it is never stable / recommended /
->   default / buyable / WebFlash-exposed. The publish gate is a
->   `PACKAGE-TRIAC-001` **AND** `COMPLIANCE-001`-element gate (`gated_by`
->   tokens mechanically unchanged), **not** an acknowledgement gate; only the
->   commissioning PR may re-key it.
+> * **FanTRIAC is commissioned to the experimental self-build mains lane —
+>   never stable / recommended / default / buyable / kit-exposed.**
+>   `TRIAC-COMMISSIONING-001` (human-review only) cleared the `PACKAGE-TRIAC-001`
+>   half of the former blocker (operator-attested bench proof
+>   `docs/package-triac-001-operator-bench-proof.md`), with `COMPLIANCE-001`
+>   closed by market posture (`COMPLIANCE-001-RESOLUTION-001`), and moved
+>   `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` into the `experimental_lane`. It is now
+>   `status: preview` / `channel: experimental` / `webflash_build_matrix: true`
+>   with a `config/webflash-builds.json` row on the new **experimental** build
+>   channel (artifact `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin`;
+>   `experimental` is also in `config/webflash-compatibility.json`
+>   `allowed_channels` and emitted by `scripts/derive_release_version_channel.py`).
+>   The permanent teeth stand: **never stable, never recommended, never a
+>   customer default, never buyable, never in any kit or kit picker, never in
+>   `release_one_required_configs`** — the S360-320 is a self-build, open-source
+>   (CERN-OHL-P) board Sense360 **never places on the market**, and the
+>   commissioning makes **no electrical-safety / EMC / compliance claim** and
+>   cuts **no release tag**. `TRIAC-PUBLISH-ADVANCED-PREVIEW-001` is **executed**;
+>   downstream one-click WebFlash import (`WF-IMPORT-TRIAC-001`) stays gated,
+>   unblocked only once the experimental release is cut. The standalone
+>   manual-preview fan drivers (FanRelay / FanPWM / FanDAC) stay off
+>   `config/webflash-builds.json` (the fan-token guardrail holds for them). Any
+>   further FanTRIAC blocker / status change is **human-review only — do NOT
+>   auto-merge**.
 > * **Fans are preview-only.** FanRelay / FanPWM / FanDAC (and the five
 >   full-composition fan room-bundle configs) are `manual-preview`, published only
 >   on the shared `v1.0.0-preview` prerelease, and are preview WebFlash-import

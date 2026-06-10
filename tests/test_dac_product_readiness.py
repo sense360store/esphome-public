@@ -633,14 +633,18 @@ class ReleaseOneRelayAndLedUnchangedTests(unittest.TestCase):
         self.assertNotIn("artifact_name", entry)
         self.assertEqual(entry["product_yaml"], RELAY_PRODUCT_REL)
 
-    def test_fantriac_catalog_entry_remains_blocked(self) -> None:
-        # TRIAC-PINMAP-CORRECT-001 corrected the FanTRIAC pins but the product
-        # STAYS status: blocked. This PR (FanDAC readiness) does not change
-        # FanTRIAC; the preserved invariant is that it stays off the WebFlash
-        # build matrix.
+    def test_fantriac_catalog_entry_is_experimental_self_build(self) -> None:
+        # TRIAC-COMMISSIONING-001 moved FanTRIAC into the experimental
+        # self-build mains lane (status preview, channel experimental). This PR
+        # (FanDAC readiness) does not change FanTRIAC; the preserved invariant
+        # is that FanTRIAC is never a normal customer build — it stays on the
+        # experimental channel and never stable.
         entry = self._find(FANTRIAC_BLOCKED_CONFIG_STRING)
-        self.assertEqual(entry["status"], "blocked")
-        self.assertFalse(entry["webflash_build_matrix"])
+        self.assertEqual(entry["status"], "preview")
+        self.assertEqual(entry.get("channel"), "experimental")
+        self.assertIs(
+            entry.get("experimental_lane_posture", {}).get("never_stable"), True
+        )
 
     def test_release_one_required_configs_unchanged(self) -> None:
         compat = _load_json(WEBFLASH_COMPATIBILITY)

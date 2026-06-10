@@ -88,7 +88,13 @@ PROMOTED_CONFIGS = (
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
 )
+# The LED room bundle is the only PREVIEW-channel metadata-ready config (these
+# are pinned to the preview-channel contract: preview channel, -preview.bin,
+# preview warning). The FanTRIAC experimental self-build mains build
+# (TRIAC-COMMISSIONING-001) is also metadata-ready but on the EXPERIMENTAL
+# channel, so it is tracked separately.
 STILL_PREVIEW_CONFIGS = ("Ceiling-POE-RoomIQ-LED",)
+EXPERIMENTAL_METADATA_READY_CONFIGS = ("Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",)
 # The artifact names the plan recorded (historical, static).
 PLAN_ARTIFACTS = {
     "Ceiling-POE-AirIQ-RoomIQ": "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.0-preview.bin",
@@ -105,8 +111,10 @@ PUBLISHED_LED_PREVIEW_CONFIG = "Ceiling-POE-VentIQ-RoomIQ-LED"
 # Forbidden tokens that must never appear as a preview publish artifact.
 FORBIDDEN_ARTIFACT_TOKENS = ("FanTRIAC", "FanRelay", "FanPWM", "FanDAC", "TRIAC")
 # Off-matrix configs that must be rejected by the release-target picker.
+# (FanTRIAC is no longer here: TRIAC-COMMISSIONING-001 made it a release target
+# on the experimental channel, so the picker accepts it. The standalone
+# manual-preview fan drivers stay off-matrix and rejected.)
 FORBIDDEN_TARGETS = (
-    "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
     "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
     "Ceiling-POE-FanPWM",
     "Ceiling-POE-FanDAC",
@@ -210,8 +218,13 @@ class PublishScopeTests(unittest.TestCase):
     promotions only the LED room bundle is still metadata-ready."""
 
     def test_metadata_ready_rows_are_the_unpromoted_publish_configs(self) -> None:
+        # The unpromoted preview LED room bundle plus the FanTRIAC experimental
+        # self-build mains build (TRIAC-COMMISSIONING-001, experimental channel).
         got = sorted(b["config_string"] for b in _metadata_ready_rows())
-        self.assertEqual(got, sorted(STILL_PREVIEW_CONFIGS))
+        self.assertEqual(
+            got,
+            sorted(STILL_PREVIEW_CONFIGS + EXPERIMENTAL_METADATA_READY_CONFIGS),
+        )
 
     def test_publish_rows_match_their_promotion_state(self) -> None:
         by_cs = _by_cs()
@@ -395,6 +408,12 @@ class WorkflowMatrixScopeTests(unittest.TestCase):
     def test_no_fan_or_triac_token_in_any_build_row(self) -> None:
         for entry in _builds():
             cs = entry["config_string"]
+            # The FanTRIAC experimental self-build mains commissioning
+            # (TRIAC-COMMISSIONING-001) is the one allowed fan/TRIAC build row,
+            # and only on the experimental channel.
+            if "FanTRIAC" in cs.split("-"):
+                self.assertEqual(entry.get("channel"), "experimental")
+                continue
             for token in FORBIDDEN_ARTIFACT_TOKENS:
                 with self.subTest(config_string=cs, token=token):
                     self.assertNotIn(token.lower(), cs.lower())
