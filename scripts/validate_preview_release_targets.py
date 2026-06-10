@@ -469,12 +469,24 @@ def validate(
             # manual-preview / advanced-manual-preview lanes are non-WebFlash
             # preview delivery lanes and must never be in the WebFlash build
             # ledger (config/webflash-builds.json stays the sole WebFlash
-            # release-eligibility source of truth).
+            # release-eligibility source of truth). The single exception is the
+            # FanTRIAC experimental self-build commissioning: TRIAC-COMMISSIONING-
+            # 001 added the FanTRIAC config to config/webflash-builds.json on the
+            # 'experimental' channel (the experimental self-build mains lane,
+            # config/release-channel-policy.json experimental_lane), which is a
+            # separate publish lane layered on top of this advanced-manual-preview
+            # eligibility record. That committed row must be on the experimental
+            # channel only.
             if in_builds:
-                terr.append(
-                    f"target {tid!r}: delivery_lane {lane!r} but config_string is "
-                    "in config/webflash-builds.json"
-                )
+                committed = builds_by_cs.get(cs) or {}
+                is_triac_target = "FanTRIAC" in cs.split("-")
+                if is_triac_target and committed.get("channel") == "experimental":
+                    pass  # experimental self-build commissioning (allowed)
+                else:
+                    terr.append(
+                        f"target {tid!r}: delivery_lane {lane!r} but config_string is "
+                        "in config/webflash-builds.json"
+                    )
 
         if terr:
             errors.extend(terr)

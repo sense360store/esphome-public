@@ -353,29 +353,49 @@ class TriacStaysExcludedTests(unittest.TestCase):
         )
         self.assertNotIn(TRIAC_CONFIG, EXPECTED)
 
-    def test_triac_stays_publish_blocked(self) -> None:
+    def test_triac_commissioned_to_experimental_lane(self) -> None:
+        # TRIAC-COMMISSIONING-001 EXECUTED the advanced-manual-preview PUBLISH
+        # gate and moved FanTRIAC into the experimental self-build mains lane.
         triac = self.variants[TRIAC_CONFIG]
-        self.assertEqual(triac["firmware_config_status"], "defined-build-blocked")
+        self.assertEqual(
+            triac["firmware_config_status"], "experimental-lane-commissioned"
+        )
         ev = triac["firmware_config_evidence"]
         # HW-005 buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001): buildable
         # now, no build_blocker. The history field still names HW-005.
         self.assertTrue(ev["buildable_now"])
         self.assertIsNone(ev["build_blocker"])
         self.assertIn("HW-005", ev["build_blocker_history"])
+        # The commissioning does NOT cut a release tag, so no publish_evidence.
         self.assertNotIn("publish_evidence", ev)
-        # The remaining blocker is the advanced-manual-preview PUBLISH gate
-        # (PACKAGE-TRIAC-001 + the COMPLIANCE-001 gate element, which per
-        # COMPLIANCE-001-RESOLUTION-001 resolves to the experimental-lane
-        # preconditions; tokens unchanged until the commissioning PR), never
-        # an acknowledgement gate.
+        # The publish gate was the PACKAGE-TRIAC-001 + COMPLIANCE-001-element
+        # gate (never an acknowledgement gate); the gated_by tokens are
+        # preserved for traceability and the gate is now executed, citing the
+        # attested proof + the governing resolution record.
         gate = triac["advanced_preview_publish_gate"]
         self.assertEqual(gate["id"], "TRIAC-PUBLISH-ADVANCED-PREVIEW-001")
         self.assertEqual(
             set(gate["gated_by"]), {"PACKAGE-TRIAC-001", "COMPLIANCE-001"}
         )
         self.assertFalse(gate["is_acknowledgement_gate"])
+        self.assertEqual(gate["status"], "executed-experimental-lane")
+        self.assertEqual(
+            gate["bench_proof"], "docs/package-triac-001-operator-bench-proof.md"
+        )
+        self.assertEqual(
+            gate["governing_decision"],
+            "docs/decisions/COMPLIANCE-001-RESOLUTION-001.md",
+        )
+        # No release tag cut (artifact_cut false); the row is on the experimental
+        # channel, NOT the preview / advanced-preview channel.
         self.assertFalse(gate["artifact_cut"])
         self.assertFalse(gate["preview_or_advanced_preview_row_added"])
+        self.assertTrue(gate["experimental_row_added"])
+        # Permanent teeth: never stable / recommended / default / buyable.
+        self.assertEqual(triac["stable_status"], "blocked")
+        self.assertFalse(triac["recommended"])
+        self.assertFalse(triac["customer_default"])
+        self.assertFalse(triac["buyable"])
 
     def test_triac_absent_from_catalog_eligibility(self) -> None:
         entry = self.catalog.get(TRIAC_CONFIG)
@@ -389,15 +409,25 @@ class TriacStaysExcludedTests(unittest.TestCase):
 class WebflashRepoUntouchedTests(unittest.TestCase):
     """No committed WebFlash build row / .bin / manifest; fan-token guardrail."""
 
-    def test_five_and_triac_absent_from_webflash_builds(self) -> None:
-        builds = {b["config_string"] for b in _load(BUILDS_PATH)["builds"]}
-        for cs in FIVE + (TRIAC_CONFIG,):
+    def test_five_absent_and_triac_experimental_only_in_webflash_builds(self) -> None:
+        builds = {b["config_string"]: b for b in _load(BUILDS_PATH)["builds"]}
+        # The five room-bundle fan previews stay entirely off the build matrix.
+        for cs in FIVE:
             with self.subTest(config_string=cs):
                 self.assertNotIn(cs, builds)
+        # FanTRIAC: TRIAC-COMMISSIONING-001 committed it on the EXPERIMENTAL
+        # channel only (the experimental self-build mains lane), never on a
+        # customer (stable / preview) channel. One-click import stays gated by
+        # WF-IMPORT-TRIAC-001.
+        self.assertIn(TRIAC_CONFIG, builds)
+        self.assertEqual(builds[TRIAC_CONFIG]["channel"], "experimental")
 
-    def test_no_fan_token_in_webflash_builds(self) -> None:
+    def test_no_manual_preview_fan_token_in_webflash_builds(self) -> None:
+        # The standalone manual-preview fan drivers stay entirely off the build
+        # matrix (the fan-token guardrail holds for them). FanTRIAC is the sole
+        # admitted token, and only via the experimental self-build mains lane.
         raw = BUILDS_PATH.read_text(encoding="utf-8")
-        for token in FAN_FAMILY_TOKENS:
+        for token in ("FanRelay", "FanPWM", "FanDAC"):
             with self.subTest(token=token):
                 self.assertNotIn(token, raw)
 

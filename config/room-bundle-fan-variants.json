@@ -105,14 +105,16 @@
     "defined-build-blocked",
     "preview-planned-missing-config",
     "buildable-preview-compile-pending",
-    "buildable-preview-compile-validated"
+    "buildable-preview-compile-validated",
+    "experimental-lane-commissioned"
   ],
   "allowed_preview_status": [
     "preview",
     "advanced-preview-build-blocked",
     "preview-planned-missing-config",
     "preview-compile-pending",
-    "preview-compile-validated"
+    "preview-compile-validated",
+    "experimental-lane-commissioned"
   ],
   "allowed_stable_status": [
     "blocked"
@@ -139,7 +141,8 @@
     "kitchen": 3,
     "webflash_easy_mode_eligible_now": 1,
     "webflash_import_eligible_now": 5,
-    "advanced_preview_build_blocked": 1,
+    "advanced_preview_build_blocked": 0,
+    "experimental_lane_commissioned": 1,
     "preview_planned_missing_config": 0,
     "buyable": 0,
     "recommended_or_default": 0,
@@ -209,34 +212,44 @@
       "control_type": "triac",
       "intended_firmware_config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
       "firmware_config_exists": false,
-      "firmware_config_status": "defined-build-blocked",
+      "firmware_config_status": "experimental-lane-commissioned",
       "firmware_config_evidence": {
         "preview_release_target_id": "ceiling-poe-ventiq-fantriac-roomiq-advanced-preview",
         "manual_lane_candidate_id": null,
         "product_yaml": "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
-        "delivery_lane": "advanced-manual-preview",
+        "delivery_lane": "experimental-self-build-mains",
         "product_yaml_exists": true,
         "buildable_now": true,
         "build_blocker": null,
-        "build_blocker_history": "HW-005 BUILDABILITY is RESOLVED (TRIAC-PINMAP-CORRECT-001): the SX1509-free S360-100-R4 Core routes the J15 TRIAC nets TRI_GPIO1/TRI_GPIO2 direct to interrupt-capable ESP32-S3 GPIOs (gate IO14 -> U1 MOC3023M opto-triac; zero-cross IO13 -> OK1 EL814 zero-cross opto-coupler), replacing the placeholder GPIO5/GPIO6 that collided with RoomIQ on J10, so ESPHome ac_dimmer attaches its interrupt/ISR. The full composition compiles (local full ESPHome compile, success); schematic_status is schematic-backed, NOT bench-verified. No buildability blocker remains. The remaining blocker is the advanced-manual-preview PUBLISH gate (PACKAGE-TRIAC-001 + the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions; COMPLIANCE-001 itself is CLOSED by market posture — see docs/decisions/COMPLIANCE-001-RESOLUTION-001.md) recorded in advanced_preview_publish_gate below.",
-        "expected_artifact_name": "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-preview.bin",
-        "catalog_status": "blocked"
+        "build_blocker_history": "HW-005 BUILDABILITY is RESOLVED (TRIAC-PINMAP-CORRECT-001): the SX1509-free S360-100-R4 Core routes the J15 TRIAC nets TRI_GPIO1/TRI_GPIO2 direct to interrupt-capable ESP32-S3 GPIOs (gate IO14 -> U1 MOC3023M opto-triac; zero-cross IO13 -> OK1 EL814 zero-cross opto-coupler), replacing the placeholder GPIO5/GPIO6 that collided with RoomIQ on J10, so ESPHome ac_dimmer attaches its interrupt/ISR. The full composition compiles (local full ESPHome compile, success); schematic_status is schematic-backed, NOT bench-verified. No buildability blocker remains. The former advanced-manual-preview PUBLISH gate (PACKAGE-TRIAC-001 + the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions) is now EXECUTED by TRIAC-COMMISSIONING-001 (see advanced_preview_publish_gate below).",
+        "expected_artifact_name": "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin",
+        "catalog_status": "preview"
       },
       "advanced_preview_publish_gate": {
         "id": "TRIAC-PUBLISH-ADVANCED-PREVIEW-001",
-        "status": "blocked",
+        "status": "executed-experimental-lane",
+        "executed_by": "TRIAC-COMMISSIONING-001",
+        "executed_date": "2026-06-10",
         "gate_type": "publish-gate",
         "gated_by": [
           "PACKAGE-TRIAC-001",
           "COMPLIANCE-001"
         ],
+        "gate_resolution": {
+          "PACKAGE-TRIAC-001": "satisfied — operator bench protocol complete and signed attestation committed (docs/package-triac-001-operator-bench-proof.md): Steps A-F PASS on the real Manrose fan-motor load, full-composition re-confirm PASS via closure path (a), six-cell operator attestation recorded.",
+          "COMPLIANCE-001": "closed by market posture (docs/decisions/COMPLIANCE-001-RESOLUTION-001.md): the S360-320 is never placed on the market, so the conformity-assessment obligation does not arise; this gate element resolves to that record's experimental-lane preconditions, which are met."
+        },
         "is_acknowledgement_gate": false,
         "acknowledgement_gate_is_additional_ux_warning_not_a_substitute": true,
         "artifact_cut": false,
         "preview_or_advanced_preview_row_added": false,
+        "experimental_row_added": true,
+        "experimental_build_row": "config/webflash-builds.json (channel experimental; artifact Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin)",
         "requires_operator_bench": "PACKAGE-TRIAC-001",
         "requires_mains_voltage_signoff": "COMPLIANCE-001",
-        "note": "The advanced-manual-preview PUBLISH (TRIAC-PUBLISH-ADVANCED-PREVIEW-001) is gated by PACKAGE-TRIAC-001 (operator bench protocol with signed attestation) AND the COMPLIANCE-001 gate element, NOT by an acknowledgement gate. COMPLIANCE-001 is CLOSED, resolved by market posture per COMPLIANCE-001-RESOLUTION-001 (S360-320 is never placed on the market; docs/decisions/COMPLIANCE-001-RESOLUTION-001.md); its element of this gate now resolves to that record's experimental-lane preconditions. The gated_by tokens and the enforced behaviour are deliberately unchanged in the resolution PR — still no TRIAC firmware artifact cut, still no preview / advanced-preview row added, still not buyable, still not kit-exposed — until the separate, human-reviewed commissioning PR moves FanTRIAC into the experimental lane (committing the signed attestation) with its own reviewed gate and test changes. The advanced (mains-risk) acknowledgement gate is an additional UX warning layered on top of this publish gate, never a substitute for it."
+        "bench_proof": "docs/package-triac-001-operator-bench-proof.md",
+        "governing_decision": "docs/decisions/COMPLIANCE-001-RESOLUTION-001.md",
+        "note": "TRIAC-PUBLISH-ADVANCED-PREVIEW-001 was the PACKAGE-TRIAC-001 AND COMPLIANCE-001-element publish gate, NOT an acknowledgement gate. TRIAC-COMMISSIONING-001 (the only PR permitted to re-key it) EXECUTED it: PACKAGE-TRIAC-001 is satisfied (operator-attested bench proof) and COMPLIANCE-001 is closed by market posture, so FanTRIAC moved into the experimental self-build mains lane (EXPERIMENTAL-SELF-BUILD-MAINS-LANE) and gained a config/webflash-builds.json row on the new experimental build channel. The gated_by tokens are preserved for traceability. artifact_cut stays false (this commissioning does NOT cut a release tag) and preview_or_advanced_preview_row_added stays false (the row is on the experimental channel, not the preview / advanced-preview channel); experimental_row_added is true. Despite executing the gate, FanTRIAC stays NEVER stable, NEVER recommended, NEVER a customer default, NEVER buyable, NEVER in any kit or kit picker; the S360-320 is a self-build CERN-OHL-P board Sense360 never places on the market. The advanced (mains-risk) acknowledgement gate remains an additional UX warning on top of this publish gate, never a substitute. Downstream WebFlash one-click import stays the separate WF-IMPORT-TRIAC-001 follow-up."
       },
       "composition_check": {
         "includes_base_room_modules": true,
@@ -245,17 +258,17 @@
           "RoomIQ"
         ],
         "fan_only_config_substituted": false,
-        "note": "The intended config Ceiling-POE-VentIQ-FanTRIAC-RoomIQ is a correct full-bundle composition (VentIQ + RoomIQ + FanTRIAC). HW-005 buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001) and it compiles, but no installable artifact exists because the advanced-manual-preview PUBLISH stays gated by PACKAGE-TRIAC-001 + the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions (COMPLIANCE-001 closed by posture) — no .bin is cut and no preview / advanced-preview row is added until the commissioning PR lands the signed attestation and deliberately moves FanTRIAC into the experimental lane."
+        "note": "The intended config Ceiling-POE-VentIQ-FanTRIAC-RoomIQ is a correct full-bundle composition (VentIQ + RoomIQ + FanTRIAC). HW-005 buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001) and it compiles. TRIAC-COMMISSIONING-001 moved it into the experimental self-build mains lane: it now has a config/webflash-builds.json row on the experimental build channel, so the release matrix can build the .bin on a v1.0.0-experimental tag (no tag is cut by the commissioning itself). It stays NEVER stable / recommended / default / buyable / kit-exposed; the S360-320 is a self-build CERN-OHL-P board Sense360 never places on the market."
       },
       "webflash_easy_mode_eligible": false,
       "webflash_advanced_mode_only": true,
       "webflash_exposure_class": "acknowledgement-gated-advanced",
       "webflash_exposed": false,
-      "preview_status": "advanced-preview-build-blocked",
+      "preview_status": "experimental-lane-commissioned",
       "stable_status": "blocked",
       "stable_blockers": [
-        "PACKAGE-TRIAC-001 (operator bench on locally compiled / flashed firmware, with the signed attestation committed).",
-        "COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions (COMPLIANCE-001 is CLOSED by market posture — never placed on the market; any future market placement reopens it and requires external safety + EMC assessment first).",
+        "PACKAGE-TRIAC-001 is SATISFIED (operator bench complete + signed attestation committed, docs/package-triac-001-operator-bench-proof.md) and is NO LONGER a blocker; cleared by TRIAC-COMMISSIONING-001. It is listed here only as history of the experimental-lane entry precondition.",
+        "STABLE remains gated (experimental-lane commissioning unblocks the experimental publish only, never stable): a stable customer release would be a placing-on-the-market act, which reopens COMPLIANCE-001 and requires an external safety + EMC assessment BEFORE that act (docs/decisions/COMPLIANCE-001-RESOLUTION-001.md section 4). The S360-320 is a self-build CERN-OHL-P board Sense360 never places on the market.",
         "Shared S360-410 PoE PSU schematic verification (PRODUCT-POE-410-001).",
         "HW-005 buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001) and is no longer a blocker; it is listed here only as history."
       ],
@@ -267,7 +280,7 @@
       "commercial_availability": "waitlist-only",
       "bench_evidence_claimed": false,
       "compliance_claimed": false,
-      "notes": "TRIAC AC (mains phase-cut) fan control (S360-320) for the Bathroom bundle. Offered ONLY as an ADVANCED / manual-warning preview — never a normal recommended / easy / default option. HW-005 buildability is RESOLVED (TRIAC-PINMAP-CORRECT-001) and the full-composition config compiles, but no preview artifact is cut today because the advanced-manual-preview PUBLISH (TRIAC-PUBLISH-ADVANCED-PREVIEW-001) is gated by PACKAGE-TRIAC-001 (operator bench) AND COMPLIANCE-001 (mains-voltage electrical-safety sign-off) — NOT by an acknowledgement gate. No TRIAC firmware artifact is cut and no preview / advanced-preview row is added until BOTH the operator bench and the mains-voltage sign-off land; the advanced (mains-risk) acknowledgement gate is an additional UX warning on top of those publish gates, never a substitute. It is NOT WebFlash-easy-mode eligible. Stable additionally requires the shared S360-410 PoE PSU verification (PRODUCT-POE-410-001). No bench / safety / compliance proof is claimed. Kitchen has no TRIAC variant by policy."
+      "notes": "TRIAC AC (mains phase-cut) fan control (S360-320) for the Bathroom bundle. Offered ONLY via the experimental self-build mains lane — never a normal recommended / easy / default option. TRIAC-COMMISSIONING-001 EXECUTED the advanced-manual-preview PUBLISH gate (TRIAC-PUBLISH-ADVANCED-PREVIEW-001): PACKAGE-TRIAC-001 is satisfied (operator-attested bench proof docs/package-triac-001-operator-bench-proof.md) and COMPLIANCE-001 is closed by market posture (docs/decisions/COMPLIANCE-001-RESOLUTION-001.md), so FanTRIAC moved into the experimental lane and gained a config/webflash-builds.json row on the new experimental build channel (artifact Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin). This commissioning does NOT cut a release tag; it is release-eligibility metadata only. It is NOT WebFlash-easy-mode eligible and stays out of every kit / kit picker; downstream WebFlash one-click import is the separate WF-IMPORT-TRIAC-001 follow-up. NEVER stable, NEVER recommended, NEVER a customer default, NEVER buyable. Stable additionally remains gated by the COMPLIANCE-001 reopen trigger (a future market-placement act requires external safety + EMC assessment first) and the shared S360-410 PoE PSU verification (PRODUCT-POE-410-001). The bench proof is firmware-build + functional bench evidence (operator-attested) only — NO electrical-safety / EMC / compliance proof is claimed. The advanced (mains-risk) acknowledgement gate is an additional UX warning on top of the publish gate, never a substitute. Kitchen has no TRIAC variant by policy."
     },
     {
       "sku": "S360-KIT-BATH-P-PWM",

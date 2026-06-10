@@ -282,27 +282,33 @@ class FanTRIACStatusUnaffectedTests(unittest.TestCase):
             f"{config_string!r}"
         )
 
-    def test_fantriac_entry_remains_blocked(self) -> None:
+    def test_fantriac_entry_is_experimental_self_build(self) -> None:
+        # TRIAC-COMMISSIONING-001 moved FanTRIAC into the experimental
+        # self-build mains lane; HW-010 (LED) does not change that posture.
         entry = self._entry(FANTRIAC_CONFIG_STRING)
         self.assertEqual(
             entry.get("status"),
-            "blocked",
-            "FanTRIAC is status=blocked (TRIAC-PINMAP-CORRECT-001 corrected "
-            "the pins but the product stays blocked); HW-010 (LED) does not "
-            "change the FanTRIAC posture.",
+            "preview",
+            "FanTRIAC is status=preview on the experimental self-build mains "
+            "lane (TRIAC-COMMISSIONING-001); HW-010 (LED) does not change the "
+            "FanTRIAC posture.",
+        )
+        self.assertEqual(
+            entry.get("channel"),
+            "experimental",
+            "FanTRIAC stays on the experimental build channel; HW-010 does not "
+            "promote it to a customer (stable/preview) channel.",
         )
         self.assertIn(
             "COMPLIANCE-001",
-            entry.get("blocker", ""),
-            "FanTRIAC must keep its COMPLIANCE-001 gate citation (per "
-            "COMPLIANCE-001-RESOLUTION-001, the experimental-lane "
-            "preconditions); HW-010 does not clear that gate.",
+            entry.get("stable_blocker", "") + " " + entry.get("reason", ""),
+            "FanTRIAC must keep its COMPLIANCE-001 stable-gate citation (per "
+            "COMPLIANCE-001-RESOLUTION-001); HW-010 does not clear that gate.",
         )
-        self.assertEqual(
-            entry.get("webflash_build_matrix"),
-            False,
-            "FanTRIAC must remain webflash_build_matrix=false; HW-010 does "
-            "not promote FanTRIAC into the WebFlash build matrix.",
+        self.assertIs(
+            entry.get("experimental_lane_posture", {}).get("never_stable"),
+            True,
+            "FanTRIAC must stay never-stable; HW-010 does not promote it.",
         )
 
     def test_release_one_entry_unchanged(self) -> None:

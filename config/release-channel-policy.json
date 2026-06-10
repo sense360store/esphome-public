@@ -121,7 +121,9 @@
     "defined_by": "COMPLIANCE-001-RESOLUTION-001",
     "decision_record": "docs/decisions/COMPLIANCE-001-RESOLUTION-001.md",
     "date": "2026-06-09",
-    "status": "defined-no-targets-assigned",
+    "status": "target-assigned-fantriac-commissioned",
+    "commissioned_by": "TRIAC-COMMISSIONING-001",
+    "commissioned_date": "2026-06-10",
     "label": "Experimental (self-build mains boards)",
     "meaning": "Publish lane for firmware whose target hardware is a mains-touching board (S360-320 TRIAC, S360-310 Fan Relay, S360-400 240v PSU) that Sense360 NEVER places on the market: not sold assembled, not sold as a kit of parts, not sold as a populated PCB, not physically bundled in any kit, order, or promotion. Design files and firmware are published open-source under CERN-OHL-P; customers who build these boards do so entirely from their own sourcing, as self-builders of their own devices, at their own risk.",
     "constraints": {
@@ -139,9 +141,11 @@
       "note": "Bench protocol completion proves function only (zero-cross lock, gate timing, load waveform, thermal soak, boot/stability, full-composition re-confirm). It is NOT a safety, EMC, CE / UKCA, or compliance claim of any kind."
     },
     "warning_copy": "EXPERIMENTAL — SELF-BUILD MAINS HARDWARE. This firmware targets an open-source mains-voltage board design that Sense360 does not sell, supply, or place on the market in any form. If you build this board you are the manufacturer of your own device and act entirely at your own risk. Functional bench completion is NOT a safety, EMC, or compliance certification. Mains wiring must only be performed by a competent person. Incorrect installation can cause fire, electric shock, or death.",
-    "build_channel": null,
-    "targets": [],
-    "target_assignment": "No target is assigned to this lane by COMPLIANCE-001-RESOLUTION-001. Moving the first target (FanTRIAC / Ceiling-POE-VentIQ-FanTRIAC-RoomIQ) into this lane — including any channel_tiers integration, build-channel suffix decision, build row, wrapper, release tag, catalogue status change, or WebFlash surface change — is the separate, human-reviewed commissioning PR (queued in UPCOMING_PR.md behind the SSOT refactor and the WebFlash add-source checksum guard). The TRIAC-PUBLISH-ADVANCED-PREVIEW-001 publish gate in config/room-bundle-fan-variants.json stays mechanically unchanged until that PR.",
+    "build_channel": "experimental",
+    "targets": [
+      "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
+    ],
+    "target_assignment": "TRIAC-COMMISSIONING-001 (the human-reviewed commissioning PR) assigned the first target — FanTRIAC / Ceiling-POE-VentIQ-FanTRIAC-RoomIQ — into this lane and made the build-channel suffix decision: build_channel is 'experimental' (artifact suffix -experimental, e.g. Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin), emitted by scripts/derive_release_version_channel.py for a v{VERSION}-experimental prerelease tag and admitted in config/webflash-compatibility.json allowed_channels. The channel_tiers map is intentionally NOT extended (it stays stable / preview / advanced-preview); FanTRIAC keeps channel_tier advanced-preview while building on the experimental channel. The commissioning added the config/webflash-builds.json experimental row + kept the products/webflash wrapper and flipped config/product-catalog.json to status preview (channel experimental, webflash_build_matrix true), citing the attested PACKAGE-TRIAC-001 proof (docs/package-triac-001-operator-bench-proof.md) and this resolution record; it did NOT cut a release tag. The TRIAC-PUBLISH-ADVANCED-PREVIEW-001 publish gate in config/room-bundle-fan-variants.json is re-keyed by this same commissioning PR (its only permitted editor) to executed-via-experimental-lane, keeping every never-stable / never-recommended / never-default / never-buyable / never-kit tooth. Downstream WebFlash one-click import stays the separate WF-IMPORT-TRIAC-001 follow-up, unblocked only once the experimental release is cut.",
     "reopen_trigger": "Any future act of placing any mains-touching board on the market reopens COMPLIANCE-001 and requires an external safety and EMC assessment BEFORE that act (indicative path: pre-compliance scan, then test-house safety + EMC). See docs/decisions/COMPLIANCE-001-RESOLUTION-001.md."
   },
   "module_channel_ceiling": {

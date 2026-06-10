@@ -52,8 +52,10 @@
     "beta",
     "preview",
     "dev",
+    "experimental",
     "rescue"
   ],
+  "experimental_channel_note": "TRIAC-COMMISSIONING-001 added 'experimental' as the build channel for the self-build mains experimental lane defined by docs/decisions/COMPLIANCE-001-RESOLUTION-001.md (config/release-channel-policy.json experimental_lane). It is the publish channel for firmware whose target hardware is a mains-touching board Sense360 never places on the market (e.g. the S360-320 TRIAC). An experimental-channel build is never stable, never recommended, never a customer default, never buyable, never in a kit picker, and never enters release_one_required_configs. Admitting the channel here lets the esphome-public release matrix build the .bin on an experimental tag; downstream WebFlash one-click import stays gated by WF-IMPORT-TRIAC-001, which admits the channel together with its warning UI in one reviewed PR.",
   "production_channel": "stable",
   "rescue_config_string": "Rescue"
 }

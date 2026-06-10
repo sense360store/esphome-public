@@ -1,37 +1,61 @@
-# BLOCKED / REFERENCE-ONLY — not a production Release-One
-# WebFlash entry.
+# ============================================================================
+# Sense360 WebFlash wrapper — EXPERIMENTAL SELF-BUILD MAINS lane (FanTRIAC).
+# ============================================================================
+# TRIAC-COMMISSIONING-001. This is the WebFlash-namespaced release-gate wrapper
+# for the experimental self-build mains build of the S360-320 Sense360 TRIAC.
+# It re-exports the canonical product YAML so the declaration-driven release
+# matrix (config/webflash-builds.json, ESP-007) can address the build via the
+# products/webflash/ namespace; the release workflow compiles the canonical
+# products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml, not this wrapper.
 #
-# As of REL-001, production Release-One ships from the no-TRIAC build at
-#   products/webflash/ceiling-poe-ventiq-roomiq.yaml
-#       (config string: Ceiling-POE-VentIQ-RoomIQ)
-# This FanTRIAC wrapper is retained in the repo for future use only and is
-# NOT in the WebFlash build matrix at config/webflash-builds.json.
+# Canonical YAML (full substitutions, packages, board config — UNCHANGED by
+# this commissioning; no YAML functional change):
+#   products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
 #
-# TRIAC-UNBLOCK-BUILD-001 resolved the HW-005 BUILDABILITY blocker:
-#   - The SX1509-free S360-100-R4 Core respin routes the J15 TRIAC nets
-#     TRI_GPIO1/TRI_GPIO2 direct to interrupt-capable ESP32-S3 GPIOs
-#     (gate IO14, zero-cross IO13 — schematic-verified, TRIAC-PINMAP-CORRECT-001),
-#     replacing the placeholder pins that collided with the RoomIQ J10 / SEN0609
-#     nets. ESPHome `ac_dimmer` needs direct interrupt-capable GPIOs, which the
-#     old SX1509 routing could not provide; the respin satisfies that.
-#   - `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is status: blocked (pins corrected,
-#     schematic-backed; bench + COMPLIANCE-001 pending) and firmware-build
-#     compile-validated. It stays OFF WebFlash:
-#     webflash_build_matrix is false and there is no config/webflash-builds.json
-#     row. Stable stays gated by COMPLIANCE-001 (+ PACKAGE-TRIAC-001).
-# See: docs/hardware/s360-320-r4-triac.md and docs/hardware/s360-100-r4-core.md
-#
-# WebFlash exposure (if/when appropriate) is the separate WF-IMPORT-TRIAC-001
-# slice behind the advanced acknowledgement UX; do not add a
-# config/webflash-builds.json row or promote to production silently.
-#
-# Pre-REL-001 metadata (preserved for historical context):
 #   WebFlash config string : Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
-#   WebFlash artifact name : Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-stable.bin
-#   Canonical YAML         : products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+#   Build channel          : experimental
+#   Artifact name          : Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin
+#   Governing decision     : docs/decisions/COMPLIANCE-001-RESOLUTION-001.md (experimental_lane)
+#   Bench proof (attested) : docs/package-triac-001-operator-bench-proof.md
 #
-# See docs/webflash-contract.md for the contract this file would satisfy
-# once the FanTRIAC blocker is cleared.
+# ============================================================================
+# EXPERIMENTAL SELF-BUILD MAINS — what this wrapper is, and is NOT
+# ============================================================================
+#   * EXPERIMENTAL self-build mains firmware. The S360-320 is an open-source
+#     CERN-OHL-P board that Sense360 never sells, supplies, or places on the
+#     market. Builders self-source and self-assemble the board, as
+#     self-builders of their own devices, ENTIRELY AT THEIR OWN RISK. Mains
+#     wiring must only be performed by a competent person. Incorrect
+#     installation can cause fire, electric shock, or death.
+#   * NEVER stable, NEVER recommended, NEVER a customer default, NEVER buyable,
+#     NEVER in any kit or kit picker, NEVER in release_one_required_configs.
+#     The stable Release-One target stays Ceiling-POE-VentIQ-RoomIQ; that
+#     wrapper (products/webflash/ceiling-poe-ventiq-roomiq.yaml) is unchanged.
+#   * NOT a safety / EMC / compliance certification. The PACKAGE-TRIAC-001
+#     bench proof is firmware-build + functional bench evidence (operator-
+#     attested) ONLY. Electrical safety, isolation, creepage, clearance, EMC,
+#     and CE / UKCA conformity sit outside that bench and become assessable
+#     obligations only via the COMPLIANCE-001 reopen trigger (a market-
+#     placement act, which Sense360 never performs for this board).
+#   * Downstream WebFlash one-click import stays gated by WF-IMPORT-TRIAC-001;
+#     it is unblocked only once the experimental release is cut, and is admitted
+#     in the WebFlash repo together with its advanced acknowledgement / warning
+#     UI in one reviewed PR.
+#
+# ============================================================================
+# WHAT IS PROVEN
+# ============================================================================
+#   * PACKAGE-TRIAC-001 operator bench protocol COMPLETE and operator-attested
+#     (docs/package-triac-001-operator-bench-proof.md): zero-cross lock, gate
+#     timing, leading-edge load waveform on the real Manrose inductive fan
+#     motor, thermal soak, boot/stability, and the full-composition re-confirm
+#     (closure path (a)) all PASS; the six-cell operator attestation is
+#     recorded. Gate IO14 / zero-cross IO13 are the schematic-verified pins
+#     (TRIAC-PINMAP-CORRECT-001); HW-005 buildability is resolved.
+#   * This is functional bench + firmware-build proof only — NOT a safety, EMC,
+#     or compliance claim of any kind.
+# See docs/hardware/s360-320-r4-triac.md and docs/hardware/s360-100-r4-core.md.
+# ============================================================================
 
 packages:
-  release_one_fantriac_blocked: !include ../sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml
+  fantriac_experimental_self_build: !include ../sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml

@@ -71,8 +71,9 @@ def _render(commit: str = "deadbeef") -> str:
 class ReleaseEligibleBuildsTests(unittest.TestCase):
     def test_plan_has_exactly_the_release_eligible_builds(self) -> None:
         # RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added three room-bundle
-        # preview build rows, so the plan now covers five release-eligible
-        # builds (stable RoomIQ + VentIQ LED preview + the three previews).
+        # preview build rows; TRIAC-COMMISSIONING-001 then added the experimental
+        # self-build mains FanTRIAC build (channel experimental). The plan now
+        # covers six release-eligible builds.
         builds = _plan()["builds"]
         configs = {b["config_string"] for b in builds}
         self.assertEqual(
@@ -83,6 +84,7 @@ class ReleaseEligibleBuildsTests(unittest.TestCase):
                 "Ceiling-POE-AirIQ-RoomIQ",
                 "Ceiling-POE-RoomIQ",
                 "Ceiling-POE-RoomIQ-LED",
+                "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
             },
         )
 

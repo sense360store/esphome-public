@@ -359,12 +359,35 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
 
     # --- coupling to the live source-of-truth config -------------------
 
-    def test_catalog_fantriac_stays_blocked(self) -> None:
-        self.assertEqual(self.fantriac.get("status"), "blocked")
-        self.assertIs(self.fantriac.get("webflash_build_matrix"), False)
-        blocker = self.fantriac.get("blocker", "")
-        self.assertIn("PACKAGE-TRIAC-001", blocker)
-        self.assertIn("COMPLIANCE-001", blocker)
+    def test_catalog_fantriac_commissioned_to_experimental_lane(self) -> None:
+        # TRIAC-COMMISSIONING-001 (this commissioning PR) cleared the
+        # PACKAGE-TRIAC-001 half of the blocker and moved FanTRIAC into the
+        # experimental self-build mains lane: the catalog flips to status
+        # preview on the experimental channel with a webflash-builds row, while
+        # the bench-proof doc keeps its historical close-out statements (this PR
+        # does not edit the doc). The catalog cites the attested proof and the
+        # governing resolution record, and every permanent tooth survives.
+        self.assertEqual(self.fantriac.get("status"), "preview")
+        self.assertEqual(self.fantriac.get("channel"), "experimental")
+        self.assertIs(self.fantriac.get("webflash_build_matrix"), True)
+        self.assertEqual(
+            self.fantriac.get("bench_proof"),
+            "docs/package-triac-001-operator-bench-proof.md",
+        )
+        self.assertEqual(
+            self.fantriac.get("governing_decision"),
+            "docs/decisions/COMPLIANCE-001-RESOLUTION-001.md",
+        )
+        reason = self.fantriac.get("reason", "")
+        self.assertIn("PACKAGE-TRIAC-001", reason)
+        self.assertIn("COMPLIANCE-001", reason)
+        posture = self.fantriac.get("experimental_lane_posture", {})
+        self.assertIs(posture.get("never_stable"), True)
+        self.assertIs(posture.get("never_buyable"), True)
+        self.assertIs(posture.get("never_in_kit_or_kit_picker"), True)
+        self.assertIs(
+            posture.get("self_build_board_never_placed_on_market_by_sense360"), True
+        )
 
     def test_variants_still_record_operator_bench_gate(self) -> None:
         gates = []
@@ -379,23 +402,25 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
             "requires_operator_bench == PACKAGE-TRIAC-001",
         )
 
-    def test_closed_protocol_is_coupled_to_blocked_catalog(self) -> None:
-        # Closing the bench protocol is NOT clearing the blocker. While the
-        # catalog blocks FanTRIAC, the doc must keep stating that the
-        # close-out does not clear PACKAGE-TRIAC-001 and that COMPLIANCE-001
-        # is unchanged. The blocker-clear edit is a separate human-reviewed
-        # PR (after attestation) that updates the catalog, the doc, and this
-        # test together.
+    def test_bench_proof_doc_retains_historical_close_out_decoupling(self) -> None:
+        # Closing the bench protocol was NOT clearing the blocker — only the
+        # commissioning PR (TRIAC-COMMISSIONING-001) did that, and it has now
+        # landed, so the catalog has moved to status preview (experimental
+        # lane). This commissioning PR does NOT edit the bench-proof doc, so the
+        # doc RETAINS its historical close-out statements verbatim: the close-out
+        # itself does not clear PACKAGE-TRIAC-001, and COMPLIANCE-001 is closed
+        # by market posture. The bench proof (evidence) and the catalog (lane
+        # move) stay decoupled.
         self.assertEqual(
             self.fantriac.get("status"),
-            "blocked",
-            "FanTRIAC must currently stay blocked",
+            "preview",
+            "the commissioning PR moved FanTRIAC into the experimental lane",
         )
         self.assertIn(
             "does **not** clear `PACKAGE-TRIAC-001`",
             self.text,
-            "doc must keep saying the close-out does not clear the blocker "
-            "while the catalog still blocks FanTRIAC",
+            "the bench-proof doc must retain its historical statement that the "
+            "close-out (not the bench proof itself) does not clear the blocker",
         )
         self.assertIn(
             "`COMPLIANCE-001` is CLOSED, resolved by market posture",

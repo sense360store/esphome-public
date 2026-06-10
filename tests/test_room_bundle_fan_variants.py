@@ -79,6 +79,12 @@ ALLOWED_FIRMWARE_CONFIG_STATUS = frozenset(
         "buildable-preview-compile-validated",
         "defined-build-blocked",
         "preview-planned-missing-config",
+        # TRIAC-COMMISSIONING-001: FanTRIAC moved into the experimental
+        # self-build mains lane (config/release-channel-policy.json
+        # experimental_lane); the advanced-manual-preview PUBLISH gate was
+        # executed, never weakening any never-stable / never-buyable / never-kit
+        # tooth.
+        "experimental-lane-commissioned",
     }
 )
 ALLOWED_PREVIEW_STATUS = frozenset(
@@ -88,6 +94,7 @@ ALLOWED_PREVIEW_STATUS = frozenset(
         "preview-compile-validated",
         "advanced-preview-build-blocked",
         "preview-planned-missing-config",
+        "experimental-lane-commissioned",
     }
 )
 # ROOM-BUNDLE-FAN-CONFIGS-001 built the five missing full-composition configs
@@ -148,6 +155,11 @@ class RoomBundleFanVariantsTests(unittest.TestCase):
         # never be silently treated as already a committed WebFlash build.
         cls.webflash_config_strings = {
             entry["config_string"]
+            for entry in _load(WEBFLASH_BUILDS_PATH).get("builds", []) or []
+            if entry.get("config_string")
+        }
+        cls.webflash_builds_by_cs = {
+            entry["config_string"]: entry
             for entry in _load(WEBFLASH_BUILDS_PATH).get("builds", []) or []
             if entry.get("config_string")
         }
@@ -240,8 +252,13 @@ class RoomBundleFanVariantsTests(unittest.TestCase):
                 v["webflash_easy_mode_eligible"],
                 "Bathroom TRIAC must not be a normal easy-mode option",
             )
-            self.assertEqual(v["preview_status"], "advanced-preview-build-blocked")
-            self.assertEqual(v["firmware_config_status"], "defined-build-blocked")
+            # TRIAC-COMMISSIONING-001 executed the advanced-manual-preview PUBLISH
+            # gate and moved FanTRIAC into the experimental self-build mains lane.
+            # It stays advanced-mode-only / never easy-mode (asserted above).
+            self.assertEqual(v["preview_status"], "experimental-lane-commissioned")
+            self.assertEqual(
+                v["firmware_config_status"], "experimental-lane-commissioned"
+            )
 
     def test_no_kitchen_triac_variant(self):
         for v in self.variants:
@@ -445,9 +462,10 @@ class RoomBundleFanVariantsTests(unittest.TestCase):
     def test_compile_validation_does_not_change_stable_or_exposure(self):
         # Recording the compile result must NOT promote anything to stable,
         # recommended, default, or buyable, and must keep FanDAC bench
-        # verification pending and TRIAC publish-blocked (defined-build-blocked
-        # status; HW-005 buildability resolved, publish gated by PACKAGE-TRIAC-001
-        # + the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions).
+        # verification pending. TRIAC-COMMISSIONING-001 executed the
+        # advanced-manual-preview PUBLISH gate (experimental-lane-commissioned),
+        # but every never-stable / never-recommended / never-default /
+        # never-buyable tooth below is preserved, and stable stays blocked.
         for v in self.variants:
             self.assertEqual(v["stable_status"], "blocked")
             self.assertFalse(v["recommended"])
@@ -458,7 +476,11 @@ class RoomBundleFanVariantsTests(unittest.TestCase):
             "pending",
         )
         triac = next(v for v in self.variants if v["control_type"] == "triac")
-        self.assertEqual(triac["firmware_config_status"], "defined-build-blocked")
+        self.assertEqual(
+            triac["firmware_config_status"], "experimental-lane-commissioned"
+        )
+        # No .bin is cut by the commissioning itself (release-eligibility
+        # metadata only; no release tag).
         self.assertFalse(triac["firmware_config_exists"])
 
     def test_dac_variants_carry_required_address_override(self):
@@ -539,18 +561,34 @@ class RoomBundleFanVariantsTests(unittest.TestCase):
 
     # -- no committed WebFlash exposure / no firmware release -------------
 
-    def test_no_variant_is_a_committed_webflash_build(self):
-        # webflash_exposed means "a committed config/webflash-builds.json row".
-        # No fan row is added by this PR, so it is false for every variant.
+    def test_no_variant_is_a_committed_customer_webflash_build(self):
+        # No fan room-bundle variant is one-click WebFlash exposed
+        # (webflash_exposed stays False for every variant) and none is a
+        # committed CUSTOMER (stable / preview) WebFlash build. The single
+        # exception is FanTRIAC: TRIAC-COMMISSIONING-001 added its config to
+        # config/webflash-builds.json on the EXPERIMENTAL channel only (the
+        # experimental self-build mains lane). It is still never one-click
+        # exposed (gated by WF-IMPORT-TRIAC-001) and never on a customer channel.
         for v in self.variants:
             self.assertFalse(
                 v["webflash_exposed"], f"{v['sku']}: webflash_exposed must be False"
             )
-            self.assertNotIn(
-                v["intended_firmware_config_string"],
-                self.webflash_config_strings,
-                f"{v['sku']}: intended config must not be a committed WebFlash build",
-            )
+            cfg = v["intended_firmware_config_string"]
+            if v["control_type"] == "triac":
+                # FanTRIAC: committed only on the experimental build channel.
+                self.assertIn(cfg, self.webflash_config_strings)
+                self.assertEqual(
+                    self.webflash_builds_by_cs[cfg]["channel"],
+                    "experimental",
+                    f"{v['sku']}: FanTRIAC must be committed only on the "
+                    "experimental channel, never stable/preview",
+                )
+            else:
+                self.assertNotIn(
+                    cfg,
+                    self.webflash_config_strings,
+                    f"{v['sku']}: intended config must not be a committed WebFlash build",
+                )
 
     def test_no_variant_is_buyable(self):
         for v in self.variants:

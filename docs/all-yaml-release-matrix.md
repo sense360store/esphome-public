@@ -23,10 +23,15 @@ It enumerates every YAML under [`products/`](../products/) (top-level
 canonical YAMLs, [`products/webflash/`](../products/webflash/)
 wrappers, and [`products/compile-only/`](../products/compile-only/)
 skeletons) and records, for each, exactly one release class out of
-six:
+seven:
 
   * `stable-release`
   * `preview-release`
+  * `experimental-release` — the experimental self-build mains channel
+    (`config/release-channel-policy.json` `experimental_lane`); release-selectable
+    on the `experimental` channel only, never stable / recommended / default /
+    buyable / kit-exposed. `TRIAC-COMMISSIONING-001` assigned the first target,
+    `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`.
   * `manual-candidate-only`
   * `compile-only`
   * `blocked`

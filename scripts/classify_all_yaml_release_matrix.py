@@ -70,6 +70,11 @@ DEFAULT_COMPILE_PATH = REPO_ROOT / "config" / "compile-only-targets.json"
 
 CLASS_STABLE = "stable-release"
 CLASS_PREVIEW = "preview-release"
+# TRIAC-COMMISSIONING-001: the experimental self-build mains channel
+# (config/release-channel-policy.json experimental_lane). Release-selectable on
+# the 'experimental' build channel, but NEVER stable / recommended / default /
+# buyable / kit-exposed.
+CLASS_EXPERIMENTAL = "experimental-release"
 CLASS_MANUAL = "manual-candidate-only"
 CLASS_COMPILE_ONLY = "compile-only"
 CLASS_BLOCKED = "blocked"
@@ -78,13 +83,14 @@ CLASS_NOT_ENTRYPOINT = "not-a-product-entrypoint"
 ALL_CLASSES = (
     CLASS_STABLE,
     CLASS_PREVIEW,
+    CLASS_EXPERIMENTAL,
     CLASS_MANUAL,
     CLASS_COMPILE_ONLY,
     CLASS_BLOCKED,
     CLASS_NOT_ENTRYPOINT,
 )
 
-RELEASE_SELECTABLE_CLASSES = (CLASS_STABLE, CLASS_PREVIEW)
+RELEASE_SELECTABLE_CLASSES = (CLASS_STABLE, CLASS_PREVIEW, CLASS_EXPERIMENTAL)
 
 # Fan family tokens that are manual-candidate-only and must never appear
 # in the release matrix (mirrors plan_room_release_notes.py and
@@ -325,6 +331,12 @@ def classify_yaml(
         elif channel == "preview":
             record["release_class"] = CLASS_PREVIEW
             record["is_release_selectable"] = True
+        elif channel == "experimental":
+            # TRIAC-COMMISSIONING-001 experimental self-build mains lane.
+            # Release-selectable (the matrix builds it on an experimental tag)
+            # but never stable / recommended / default / buyable / kit-exposed.
+            record["release_class"] = CLASS_EXPERIMENTAL
+            record["is_release_selectable"] = True
         else:
             raise ClassifyError(
                 f"unknown channel {channel!r} in config/webflash-builds.json "
@@ -406,6 +418,9 @@ def classify(
     selectable = [r for r in records if r["is_release_selectable"]]
     selectable_stable = [r for r in selectable if r["release_class"] == CLASS_STABLE]
     selectable_preview = [r for r in selectable if r["release_class"] == CLASS_PREVIEW]
+    selectable_experimental = [
+        r for r in selectable if r["release_class"] == CLASS_EXPERIMENTAL
+    ]
 
     return {
         "yaml_total": len(records),
@@ -414,6 +429,7 @@ def classify(
         "release_selectable": [r["config_string"] for r in selectable],
         "stable_targets": [r["config_string"] for r in selectable_stable],
         "preview_targets": [r["config_string"] for r in selectable_preview],
+        "experimental_targets": [r["config_string"] for r in selectable_experimental],
     }
 
 

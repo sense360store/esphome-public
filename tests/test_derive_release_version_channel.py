@@ -44,6 +44,19 @@ class DeriveFunctionTests(unittest.TestCase):
     def test_preview_generic_preview_suffix(self) -> None:
         self.assertEqual(derive("v1.0.0-preview", True), ("1.0.0", "preview"))
 
+    def test_experimental_suffix(self) -> None:
+        # TRIAC-COMMISSIONING-001: the -experimental prerelease suffix maps to
+        # the experimental self-build mains channel (COMPLIANCE-001-RESOLUTION-001
+        # experimental_lane), distinct from preview.
+        self.assertEqual(derive("v1.0.0-experimental", True), ("1.0.0", "experimental"))
+
+    def test_experimental_suffix_rejected_on_stable(self) -> None:
+        # An experimental build is a prerelease; a non-prerelease tag must stay
+        # a plain semantic tag.
+        with self.assertRaises(DeriveError) as ctx:
+            derive("v1.0.0-experimental", False)
+        self.assertIn("plain semantic tag", str(ctx.exception))
+
     def test_prerelease_plain_tag_is_preview(self) -> None:
         # A prerelease tagged with a plain semver string (no suffix) is
         # still a preview release per the prerelease flag. This preserves
@@ -124,6 +137,12 @@ class DeriveCLITests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("version=1.0.0", result.stdout)
         self.assertIn("channel=preview", result.stdout)
+
+    def test_cli_experimental_tag(self) -> None:
+        result = self._run("v1.0.0-experimental", "true")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("version=1.0.0", result.stdout)
+        self.assertIn("channel=experimental", result.stdout)
 
     def test_cli_rejects_stable_suffix(self) -> None:
         result = self._run("v1.0.0-led-preview", "false")

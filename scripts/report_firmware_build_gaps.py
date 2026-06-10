@@ -110,39 +110,47 @@ LANE_POLICIES: List[Dict[str, Any]] = [
     },
     {
         "id": "fantriac-blocked-hardware-compliance",
-        "title": "FanTRIAC — blocked on hardware + compliance",
+        "title": "FanTRIAC family — blocked on hardware + compliance",
         "matches": lambda r: _row_has_fan(r, "FanTRIAC"),
         "blocker_summary": (
-            "FanTRIAC (S360-320) lane stays blocked from build / exposure. "
-            "**HW-005** buildability and **HW-PINMAP-320-FOLLOWUP** are "
-            "RESOLVED (TRIAC-PINMAP-CORRECT-001: schematic-verified gate "
-            "GPIO14 / zero-cross GPIO13); the remaining gates are "
-            "**PACKAGE-TRIAC-001** (operator bench protocol with signed "
-            "attestation, still uncommitted) and the "
-            "**COMPLIANCE-001-RESOLUTION-001** experimental-lane "
-            "preconditions (COMPLIANCE-001 itself is CLOSED by market "
-            "posture: S360-320 is never placed on the market; see "
-            "`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`)."
+            "The FanTRIAC (S360-320) family combinations in this lane stay "
+            "blocked from build / exposure. The single full-composition config "
+            "`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is NOT in this lane any more: "
+            "`TRIAC-COMMISSIONING-001` moved it into the experimental "
+            "self-build mains lane (it now appears under `current-webflash` on "
+            "the experimental channel). **HW-005** buildability and "
+            "**HW-PINMAP-320-FOLLOWUP** are RESOLVED (TRIAC-PINMAP-CORRECT-001: "
+            "schematic-verified gate GPIO14 / zero-cross GPIO13); for the "
+            "full-composition config **PACKAGE-TRIAC-001** is satisfied "
+            "(operator-attested bench proof) and **COMPLIANCE-001** is CLOSED "
+            "by market posture (S360-320 is never placed on the market; see "
+            "`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`). The remaining "
+            "family combinations here have no catalog entry and inherit the "
+            "conservative blocked classification."
         ),
         "recommended_next_pr": (
-            "No FanTRIAC build, package, or product PR outside the "
-            "commissioning PR. The catalog entry for "
-            "`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` stays `status: blocked`. "
-            "The next change is the human-reviewed commissioning PR: commit "
-            "the signed PACKAGE-TRIAC-001 attestation and deliberately move "
-            "FanTRIAC into the experimental lane. See "
-            "`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md` and "
+            "No FanTRIAC build, package, or product PR for these blocked family "
+            "combinations. The full-composition config "
+            "`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` was commissioned to the "
+            "experimental self-build mains lane by `TRIAC-COMMISSIONING-001` "
+            "(status preview, channel experimental); it stays NEVER stable / "
+            "recommended / default / buyable / kit-exposed, and downstream "
+            "WebFlash one-click import remains gated by `WF-IMPORT-TRIAC-001`. "
+            "See `docs/decisions/COMPLIANCE-001-RESOLUTION-001.md` and "
             "`docs/release-one-hardware-audit.md#fantriac-mapping-resolution`."
         ),
         "compile_only_safe_now": False,
         "webflash_exposure_allowed_now": False,
         "stable_ready_now": False,
         "notes": (
-            "All 36 FanTRIAC rows inherit the same HW-005 blocker via the "
-            "token-level inference in `scripts/generate_firmware_matrix.py`. "
-            "Mains-voltage handling means FanTRIAC additionally needs "
-            "compliance sign-off before any preview-class WebFlash "
-            "exposure can even be considered."
+            "The FanTRIAC family combinations in this lane inherit the "
+            "conservative blocked classification via the token-level inference "
+            "in `scripts/generate_firmware_matrix.py`. The full-composition "
+            "`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` has left this lane for "
+            "`current-webflash` (experimental channel). Mains-voltage handling "
+            "means the family combinations still need compliance sign-off "
+            "before any non-experimental WebFlash exposure could be considered; "
+            "the experimental lane is self-build-only and never stable."
         ),
     },
     {

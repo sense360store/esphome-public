@@ -81,12 +81,21 @@ PREVIEW_CONFIGS_TODAY = {LED_CONFIG, "Ceiling-POE-RoomIQ-LED"}
 ALL_CLASSES = {
     "stable-release",
     "preview-release",
+    # TRIAC-COMMISSIONING-001: experimental self-build mains channel
+    # (config/release-channel-policy.json experimental_lane). Release-selectable
+    # on the experimental channel, but never stable / recommended / default /
+    # buyable / kit-exposed.
+    "experimental-release",
     "manual-candidate-only",
     "compile-only",
     "blocked",
     "not-a-product-entrypoint",
 }
-RELEASE_SELECTABLE_CLASSES = {"stable-release", "preview-release"}
+RELEASE_SELECTABLE_CLASSES = {
+    "stable-release",
+    "preview-release",
+    "experimental-release",
+}
 
 
 def _load_module(name: str, path: Path):
@@ -318,7 +327,7 @@ class FanTriacBlockedTests(unittest.TestCase):
         cls.classifier = _load_module("classify_all_yaml", CLASSIFIER_PATH)
         cls.plan = cls.classifier.classify()
 
-    def test_fantriac_blocked(self) -> None:
+    def test_fantriac_experimental_self_build(self) -> None:
         canonical = [
             r
             for r in self.plan["records"]
@@ -330,19 +339,28 @@ class FanTriacBlockedTests(unittest.TestCase):
             1,
             "exactly one canonical FanTRIAC entry expected",
         )
-        # TRIAC-REBLOCK-PINMAP-001 + TRIAC-PINMAP-CORRECT-001 keep FanTRIAC at
-        # catalog status blocked (the pins are corrected/schematic-verified but
-        # bench PACKAGE-TRIAC-001 + the COMPLIANCE-001-RESOLUTION-001
-        # experimental-lane preconditions keep it blocked). A
-        # top-level YAML with catalog status blocked classifies as `blocked` in
-        # the release matrix. The preserved invariants: never release-selectable
-        # and no artifact_name.
-        self.assertEqual(canonical[0]["release_class"], "blocked")
-        self.assertFalse(canonical[0]["is_release_selectable"])
-        self.assertIsNone(canonical[0]["artifact_name"])
+        # TRIAC-COMMISSIONING-001 moved FanTRIAC into the experimental self-build
+        # mains lane (config/release-channel-policy.json experimental_lane). The
+        # canonical YAML now classifies as experimental-release: release-selectable
+        # on the experimental channel, with the -experimental artifact. It is
+        # never a stable / preview customer build (asserted below).
+        self.assertEqual(canonical[0]["release_class"], "experimental-release")
+        self.assertTrue(canonical[0]["is_release_selectable"])
+        self.assertEqual(canonical[0]["channel"], "experimental")
+        self.assertEqual(
+            canonical[0]["artifact_name"],
+            "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin",
+        )
 
-    def test_fantriac_not_in_release_matrix(self) -> None:
-        self.assertNotIn(BLOCKED_CONFIG, _release_eligible_config_strings())
+    def test_fantriac_release_eligible_experimental_only(self) -> None:
+        # FanTRIAC is now release-eligible, but ONLY on the experimental channel
+        # (TRIAC-COMMISSIONING-001); it is never a stable / preview customer build.
+        self.assertIn(BLOCKED_CONFIG, _release_eligible_config_strings())
+        builds = json.loads(BUILDS_JSON.read_text(encoding="utf-8"))["builds"]
+        triac = next(b for b in builds if b["config_string"] == BLOCKED_CONFIG)
+        self.assertEqual(triac["channel"], "experimental")
+        self.assertNotIn(BLOCKED_CONFIG, STABLE_CONFIGS_TODAY)
+        self.assertNotIn(BLOCKED_CONFIG, PREVIEW_CONFIGS_TODAY)
 
 
 class CompileOnlyTests(unittest.TestCase):

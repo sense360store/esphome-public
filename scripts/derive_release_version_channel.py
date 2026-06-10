@@ -10,9 +10,10 @@ LED preview cannot reuse that tag).
 
 This script encodes the agreed mapping:
 
-    v1.0.0              + prerelease=false -> version=1.0.0, channel=stable
-    v1.0.0-led-preview  + prerelease=true  -> version=1.0.0, channel=preview
-    v1.0.0-preview      + prerelease=true  -> version=1.0.0, channel=preview
+    v1.0.0               + prerelease=false -> version=1.0.0, channel=stable
+    v1.0.0-led-preview   + prerelease=true  -> version=1.0.0, channel=preview
+    v1.0.0-preview       + prerelease=true  -> version=1.0.0, channel=preview
+    v1.0.0-experimental  + prerelease=true  -> version=1.0.0, channel=experimental
 
 Fail-closed:
 
@@ -43,9 +44,30 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Tuple
+from typing import Dict, Tuple
 
-ALLOWED_PREVIEW_SUFFIXES: Tuple[str, ...] = ("-led-preview", "-preview")
+# RELEASE-004 + TRIAC-COMMISSIONING-001: prerelease tag suffix -> build channel.
+# ``-led-preview`` / ``-preview`` map to the ``preview`` channel; ``-experimental``
+# maps to the ``experimental`` self-build mains channel (the experimental_lane
+# defined by docs/decisions/COMPLIANCE-001-RESOLUTION-001.md and recorded in
+# config/release-channel-policy.json). A bare prerelease tag (no suffix) stays
+# ``preview``. Insertion order matters: ``-led-preview`` must be tested before
+# ``-preview`` because the longer suffix also ends with ``-preview``.
+PRERELEASE_SUFFIX_TO_CHANNEL: Dict[str, str] = {
+    "-led-preview": "preview",
+    "-preview": "preview",
+    "-experimental": "experimental",
+}
+
+# Back-compat alias: the preview-only subset of the suffix map. Retained for any
+# importer that referenced the original tuple.
+ALLOWED_PREVIEW_SUFFIXES: Tuple[str, ...] = tuple(
+    suffix for suffix, channel in PRERELEASE_SUFFIX_TO_CHANNEL.items() if channel == "preview"
+)
+
+# Every recognised prerelease suffix (preview + experimental), used in the
+# unrecognised-suffix error message.
+ALLOWED_PRERELEASE_SUFFIXES: Tuple[str, ...] = tuple(PRERELEASE_SUFFIX_TO_CHANNEL)
 
 
 class DeriveError(Exception):
@@ -67,7 +89,7 @@ def derive(tag: str, prerelease: bool) -> Tuple[str, str]:
         raise DeriveError(f"release tag {tag!r} is empty after stripping 'v'")
 
     if prerelease:
-        for suffix in ALLOWED_PREVIEW_SUFFIXES:
+        for suffix, channel in PRERELEASE_SUFFIX_TO_CHANNEL.items():
             if raw.endswith(suffix):
                 version = raw[: -len(suffix)]
                 if not version:
@@ -82,10 +104,10 @@ def derive(tag: str, prerelease: bool) -> Tuple[str, str]:
                         f"version part {version!r}; expected a plain "
                         f"semantic version before {suffix!r}"
                     )
-                return version, "preview"
+                return version, channel
 
         if "-" in raw:
-            allowed = ", ".join(ALLOWED_PREVIEW_SUFFIXES)
+            allowed = ", ".join(ALLOWED_PRERELEASE_SUFFIXES)
             raise DeriveError(
                 f"prerelease tag {tag!r} has an unrecognized suffix; "
                 f"allowed prerelease suffixes are: {allowed}"

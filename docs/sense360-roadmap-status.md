@@ -43,7 +43,7 @@ disagree, **the source-of-truth file wins** and this doc is the one to fix.
 
 The shippable WebFlash build matrix is [`config/webflash-builds.json`](../config/webflash-builds.json)
 (validated by `tests/validate_webflash_builds.py`). There are exactly **five**
-builds — three stable, two preview:
+builds — three stable, two preview, one experimental:
 
 | Config string | Channel | Version | Artifact | Notes |
 |---|---|---|---|---|
@@ -52,6 +52,7 @@ builds — three stable, two preview:
 | `Ceiling-POE-AirIQ-RoomIQ` | **stable** | 1.0.6 | `Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.6-stable.bin` | Kitchen firmware (`S360-KIT-KITCHEN-P`). Promoted to stable v1.0.6 (2026-06-09) under owner risk-acceptance waiver `HW-AIRIQ-WAIVER-2026-06` (AirIQ sensor stack not bench-verified; owner waiver, not hardware verification). Bundle stays hidden / not buyable. |
 | `Ceiling-POE-RoomIQ` | **stable** | 1.0.5 | `Sense360-Ceiling-POE-RoomIQ-v1.0.5-stable.bin` | Bedroom firmware (`S360-KIT-BEDROOM-P`). Promoted to stable v1.0.5 (2026-06-08) under owner risk-acceptance waiver `HW-S360-410-WAIVER-2026-06` (S360-410 stays cataloged_unverified; owner waiver, not hardware verification). Bundle stays hidden / not buyable. |
 | `Ceiling-POE-RoomIQ-LED` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin` | Living / Corridor candidate firmware (`S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P`); LED stays preview. Build row added by `RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`; metadata-ready / unpublished, bundles hidden / not buyable. Distinct from the VentIQ LED preview above. |
+| `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | **experimental** | 1.0.0 | `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin` | **Experimental self-build mains** firmware (S360-320 TRIAC). Commissioned by `TRIAC-COMMISSIONING-001` into the experimental lane (`COMPLIANCE-001-RESOLUTION-001`); PACKAGE-TRIAC-001 operator-attested bench proof. **Never stable / recommended / default / buyable / kit-exposed**; self-build CERN-OHL-P board Sense360 never places on the market. Metadata-ready / unpublished (no tag cut); one-click WebFlash import gated by `WF-IMPORT-TRIAC-001`. |
 
 The two LED preview rows remain preview: the VentIQ LED preview is published
 (release `v1.0.0-led-preview`); the Living/Corridor LED row is
@@ -61,6 +62,16 @@ not hardware verification: no hardware, bench, or compliance proof is claimed,
 and the consuming candidate bundles stay hidden / not buyable / not customer
 defaults. Firmware-build proof for the room-bundle rows is the hosted Preview
 Compile Dry-Run (run `26821900127`).
+
+The single **experimental** row (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`) is the
+self-build mains TRIAC firmware, commissioned by `TRIAC-COMMISSIONING-001` into
+the experimental lane defined by
+[`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`](decisions/COMPLIANCE-001-RESOLUTION-001.md).
+It is **release-eligibility metadata only** (no tag cut, no binary published),
+backed by the operator-attested `PACKAGE-TRIAC-001` bench proof, and stays
+**never stable / recommended / default / buyable / kit-exposed**: the S360-320
+is an open-source CERN-OHL-P board Sense360 never places on the market.
+One-click WebFlash import remains gated by `WF-IMPORT-TRIAC-001`.
 
 Release-One required configs (`config/webflash-compatibility.json` →
 `release_one_required_configs`): **`Ceiling-POE-VentIQ-RoomIQ`** only — the four

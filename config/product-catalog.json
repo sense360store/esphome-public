@@ -49,14 +49,47 @@
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
-      "status": "blocked",
-      "blocker": "PACKAGE-TRIAC-001 (operator bench protocol with signed attestation) + experimental-lane preconditions per COMPLIANCE-001-RESOLUTION-001 (COMPLIANCE-001 CLOSED by market posture — S360-320 is never placed on the market; see docs/decisions/COMPLIANCE-001-RESOLUTION-001.md)",
+      "status": "preview",
+      "version": "1.0.0",
+      "channel": "experimental",
+      "lane": "experimental-self-build-mains",
+      "experimental_lane": "EXPERIMENTAL-SELF-BUILD-MAINS-LANE",
+      "governing_decision": "docs/decisions/COMPLIANCE-001-RESOLUTION-001.md",
+      "bench_proof": "docs/package-triac-001-operator-bench-proof.md",
       "schematic_status": "schematic-backed",
-      "reason": "FanTRIAC stays blocked, but the J15 gate/zero-cross pin mapping is now schematic-verified (TRIAC-PINMAP-CORRECT-001): the SX1509-free S360-100-R4 Core routes the J15 TRIAC nets TRI_GPIO1/TRI_GPIO2 direct to interrupt-capable ESP32-S3 GPIOs -- gate IO14 (TRI_GPIO1 -> U1 MOC3023M opto-triac) and zero-cross IO13 (TRI_GPIO2 -> OK1 EL814 zero-cross opto-coupler) -- traced from S360-100-R4 (net->pin) and S360-320-R4 (gate-vs-zero-cross roles). This corrects the earlier transposition (TRIAC-UNBLOCK-BUILD-001 had set gate IO13/zero-cross IO14) and resolves HW-005 BUILDABILITY + the HW-PINMAP-320-FOLLOWUP source-pin question; schematic_status is schematic-backed (NOT bench-verified). The product STAYS blocked: the remaining gates are PACKAGE-TRIAC-001 (operator bench protocol with signed attestation committed to docs/package-triac-001-operator-bench-proof.md) + the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions. COMPLIANCE-001 itself is CLOSED, resolved by posture (S360-320 is never placed on the market; self-build open-source under CERN-OHL-P; any future market placement reopens COMPLIANCE-001 and requires external safety + EMC assessment BEFORE that act — see docs/decisions/COMPLIANCE-001-RESOLUTION-001.md). Moving this entry into the experimental lane is the separate, human-reviewed commissioning PR.",
+      "stable_blocker": "Stable / full release stays gated and is NOT unblocked by this commissioning: a stable customer release would be a placing-on-the-market act, which reopens COMPLIANCE-001 and requires an external safety + EMC assessment BEFORE that act (docs/decisions/COMPLIANCE-001-RESOLUTION-001.md section 4). The S360-320 is a self-build, open-source (CERN-OHL-P) board that Sense360 never sells, supplies, or places on the market; the experimental lane publishes firmware for self-builders of their own devices only.",
+      "reason": "TRIAC-COMMISSIONING-001 moved this entry out of status: blocked into the experimental self-build mains lane (EXPERIMENTAL-SELF-BUILD-MAINS-LANE) defined by docs/decisions/COMPLIANCE-001-RESOLUTION-001.md section 3. The PACKAGE-TRIAC-001 half of the former blocker is CLEARED, citing the attested proof container docs/package-triac-001-operator-bench-proof.md: the operator bench protocol is complete (Steps A-F PASS on the real Manrose fan-motor load), the full-composition re-confirm is PASS via closure path (a), and the six-cell operator attestation is recorded. The COMPLIANCE-001 half is resolved by market posture: COMPLIANCE-001 is CLOSED (S360-320 is never placed on the market), so the experimental-lane preconditions that record defines (completed PACKAGE-TRIAC-001-class bench protocol + committed signed operator attestation) are met. Gate/zero-cross pins are the schematic-verified IO14/IO13 (TRIAC-PINMAP-CORRECT-001; HW-005 buildability resolved); schematic_status stays schematic-backed (NOT a verified-schematic, safety, or compliance claim). This is a blocker/status change on a mains board: human-review only, never auto-merged.",
       "product_yaml": "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
       "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-fantriac-roomiq.yaml",
-      "webflash_build_matrix": false,
-      "notes": "Advanced/manual-warning candidate; BLOCKED. Gate/zero-cross mapping corrected to the schematic-verified pins by TRIAC-PINMAP-CORRECT-001 (gate IO14 = TRI_GPIO1 -> MOC3023M; zero-cross IO13 = TRI_GPIO2 -> EL814), reconciling the IO13/IO14 transposition recorded under TRIAC-UNBLOCK-BUILD-001 and the placeholder GPIO5/GPIO6 left by TRIAC-REBLOCK-PINMAP-001. HW-005 BUILDABILITY + HW-PINMAP-320-FOLLOWUP are resolved (schematic-backed per S360-100-R4 + S360-320-R4); the product STAYS blocked, gated by PACKAGE-TRIAC-001 (operator bench protocol with signed attestation) + the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions (COMPLIANCE-001 closed by posture: never placed on the market; reopened only by a future market-placement act, which requires external safety + EMC assessment first). NOT Release-One, NOT REQUIRED_CONFIGS, NOT recommended, NOT kit/default, NOT buyable, NOT compliance-certified, NOT in config/webflash-builds.json; webflash_build_matrix stays false and there is no artifact_name. No bench / EMI / thermal / waveform / real-load / isolation / creepage / clearance / compliance proof is claimed; no publish / WebFlash exposure / eligibility / manifest / signed-artifact change. The immediate next step is the commissioning PR: commit the signed PACKAGE-TRIAC-001 attestation and deliberately move this entry into the experimental lane (no WebFlash publish is required to run the bench). See docs/decisions/COMPLIANCE-001-RESOLUTION-001.md, docs/hardware/s360-100-core-connector-pin-map.md (J15) and docs/hardware/s360-320-r4-triac.md."
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin",
+      "webflash_build_matrix": true,
+      "modules": {
+        "mount": "Ceiling",
+        "power": "POE",
+        "air_quality": "VentIQ",
+        "room_sense": "RoomIQ",
+        "fan": "FanTRIAC",
+        "led": "none"
+      },
+      "hardware": {
+        "core": "S360-100",
+        "ventiq": "S360-211",
+        "roomiq": "S360-200",
+        "triac": "S360-320",
+        "poe": "S360-410"
+      },
+      "hardware_status": "schematic-backed-bench-attested",
+      "experimental_lane_posture": {
+        "never_stable": true,
+        "never_recommended": true,
+        "never_customer_default": true,
+        "never_buyable": true,
+        "never_in_kit_or_kit_picker": true,
+        "never_in_release_one_required_configs": true,
+        "self_build_board_never_placed_on_market_by_sense360": true,
+        "webflash_one_click_import_eligible": false
+      },
+      "notes": "Experimental self-build mains firmware (S360-320 Sense360 TRIAC), published on the experimental channel via the experimental lane (config/release-channel-policy.json experimental_lane). NEVER stable, NEVER recommended, NEVER a customer default, NEVER buyable, NEVER in any kit or kit picker, NEVER in release_one_required_configs. The S360-320 is an open-source CERN-OHL-P design that Sense360 never sells, supplies, or places on the market; builders source and assemble the board themselves, as self-builders of their own devices, entirely at their own risk. The bench proof (docs/package-triac-001-operator-bench-proof.md) is firmware-build + functional bench evidence (operator-attested) only -- it makes NO electrical-safety, isolation, creepage, clearance, EMC, CE/UKCA, or compliance claim; those become assessable obligations only via the COMPLIANCE-001 reopen trigger (a market-placement act, which Sense360 never performs for this board). This catalog flip adds the config/webflash-builds.json experimental row + keeps the products/webflash wrapper so the esphome-public release matrix can build the .bin on a v1.0.0-experimental tag; it does NOT cut a release tag here. Downstream WebFlash one-click import stays gated by WF-IMPORT-TRIAC-001 (webflash_one_click_import_eligible: false), unblocked only once the release is cut. TRIAC blocker/status changes are human-review only, never auto-merged. See docs/decisions/COMPLIANCE-001-RESOLUTION-001.md, docs/package-triac-001-operator-bench-proof.md, docs/hardware/s360-100-core-connector-pin-map.md (J15) and docs/hardware/s360-320-r4-triac.md."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
