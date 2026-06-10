@@ -58,6 +58,18 @@ WRITE_PERMISSION_ALLOWLIST: dict[tuple[str, str, str], str] = {
         "requires contents: write. Scoped to this job only."
     ),
     (
+        "firmware-build-release.yml",
+        "release",
+        "id-token",
+    ): (
+        "SEC-ESP-CHECKSUM-SIGNING-001 (SECURITY-AUDIT-2026-06 M1): the "
+        "release job signs checksums-sha256.txt with keyless cosign "
+        "(sign-blob), which exchanges the job's GitHub OIDC token for a "
+        "short-lived Fulcio signing certificate bound to this workflow's "
+        "identity. Scoped to this job only; no other job or workflow in "
+        "this repo requests id-token."
+    ),
+    (
         "bump-version.yml",
         "<top-level>",
         "contents",
@@ -111,6 +123,10 @@ SHA_PINNED_ACTION_INVENTORY: dict[str, str] = {
     "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02": "v4.6.2",
     "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093": "v4.3.0",
     "softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65": "v2.6.2",
+    # SEC-ESP-CHECKSUM-SIGNING-001: keyless cosign signing of the release
+    # checksums file (the pinned installer also pins cosign-release v2.6.3
+    # in the workflow `with:` block).
+    "sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159": "v3.9.2",
 }
 
 _SHA_PIN_RE = re.compile(r"@[0-9a-f]{40}$")

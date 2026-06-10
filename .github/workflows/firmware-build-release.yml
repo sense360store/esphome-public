@@ -19,7 +19,11 @@
 #   1. Generate build matrix from products directory
 #   2. Build all product configurations using ESPHome
 #   3. Rename binaries to WebFlash-compatible format
-#   4. Attach binaries to GitHub release with checksums
+#   4. Generate checksums and sign checksums-sha256.txt with keyless
+#      cosign (SEC-ESP-CHECKSUM-SIGNING-001; consumer verification recipe
+#      in docs/security/checksums-verification.md)
+#   5. Attach binaries, checksums, signature + signing certificate to the
+#      GitHub release
 #
 # Output Format:
 #   Sense360-[Product]-[Variant]-v[Version]-[Channel].bin
@@ -550,8 +554,16 @@ jobs:
     # Release via softprops/action-gh-release, which requires
     # `contents: write`. Scoped to this job so the rest of the workflow
     # stays read-only.
+    #
+    # SEC-ESP-CHECKSUM-SIGNING-001 (SECURITY-AUDIT-2026-06 M1):
+    # `id-token: write` lets keyless cosign exchange this job's GitHub
+    # OIDC token for a short-lived Fulcio signing certificate bound to
+    # this workflow's identity, to sign checksums-sha256.txt below.
+    # Job-scoped least privilege on purpose: no other job in this
+    # workflow (and no other workflow in this repo) requests `id-token`.
     permissions:
       contents: write
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -599,6 +611,62 @@ jobs:
 
           echo "Checksums generated:"
           cat checksums-sha256.txt
+
+      # SEC-ESP-CHECKSUM-SIGNING-001 (SECURITY-AUDIT-2026-06 M1): keyless
+      # cosign signing of the release checksums. Ordering contract: this
+      # runs only AFTER the default-credential gate above has passed and
+      # AFTER checksums-sha256.txt has been generated; the upload step
+      # below then publishes checksums + .sig + certificate together. A
+      # signing failure fails this job before the upload step is reached,
+      # so an unsigned checksums file is never published.
+      - name: Install cosign (SEC-ESP-CHECKSUM-SIGNING-001)
+        uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 # v3.9.2
+        with:
+          # Pin the cosign CLI itself, not just the installer action, so
+          # signing/verification semantics are deterministic across runs.
+          cosign-release: "v2.6.3"
+
+      - name: Sign checksums with keyless cosign (SEC-ESP-CHECKSUM-SIGNING-001)
+        env:
+          # Audit I1 hygiene: bind expansion-context values to env and
+          # reference them as quoted shell variables in the script.
+          GH_REPOSITORY: ${{ github.repository }}
+          GH_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+
+          # Keyless flow: cosign exchanges this job's OIDC token (the
+          # job-scoped `id-token: write` permission) for a short-lived
+          # Fulcio certificate bound to this workflow's identity, signs
+          # checksums-sha256.txt, and records the signature in the Rekor
+          # transparency log. --yes acknowledges the tlog upload
+          # non-interactively. Both outputs are base64-encoded (cosign's
+          # sign-blob output format); `cosign verify-blob` consumes them
+          # as published.
+          cosign sign-blob \
+            --yes \
+            --output-signature all-firmware/checksums-sha256.txt.sig \
+            --output-certificate all-firmware/checksums-sha256.txt.pem \
+            all-firmware/checksums-sha256.txt
+
+          # Fail closed if either signing output is missing or empty.
+          test -s all-firmware/checksums-sha256.txt.sig
+          test -s all-firmware/checksums-sha256.txt.pem
+
+          # Self-check with the exact consumer recipe from
+          # docs/security/checksums-verification.md: pins WHO signed (this
+          # repo + workflow file + release tag ref, via the Fulcio
+          # certificate identity) and the OIDC issuer — not merely that
+          # something produced a valid signature.
+          WORKFLOW_PATH=".github/workflows/firmware-build-release.yml"
+          EXPECTED_IDENTITY="https://github.com/${GH_REPOSITORY}/${WORKFLOW_PATH}@${GH_REF}"
+          cosign verify-blob \
+            --certificate all-firmware/checksums-sha256.txt.pem \
+            --signature all-firmware/checksums-sha256.txt.sig \
+            --certificate-identity "$EXPECTED_IDENTITY" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            all-firmware/checksums-sha256.txt
+          echo "checksums-sha256.txt signed; identity verified: $EXPECTED_IDENTITY"
 
       - name: Create firmware manifest
         run: |
@@ -673,9 +741,14 @@ jobs:
           files: |
             all-firmware/*.bin
             all-firmware/checksums-sha256.txt
+            all-firmware/checksums-sha256.txt.sig
+            all-firmware/checksums-sha256.txt.pem
             all-firmware/checksums-md5.txt
             all-firmware/manifest.json
           token: ${{ secrets.GITHUB_TOKEN }}
+          # fail_on_unmatched_files also backstops SEC-ESP-CHECKSUM-SIGNING-001:
+          # if the .sig / .pem are ever missing here, the upload fails rather
+          # than publishing an unsigned checksums file.
           fail_on_unmatched_files: true
 
       - name: Release summary
@@ -691,6 +764,9 @@ jobs:
           echo ""
           echo "Firmware files attached to release:"
           ls -1 all-firmware/*.bin
+          echo ""
+          echo "checksums-sha256.txt signed (keyless cosign):"
+          ls -1 all-firmware/checksums-sha256.txt.sig all-firmware/checksums-sha256.txt.pem
           echo ""
           echo "WebFlash can now sync these binaries via the"
           echo "sync-from-releases.py script."
