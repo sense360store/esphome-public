@@ -17,9 +17,17 @@ image was the full composition. The re-confirm exists to check that the
 sensor stack's I2C traffic, the LD2450 UART, and WiFi activity do not
 perturb the dimmer timing; production parameters alone cannot prove
 that, which is why the row waited for the explicit statement instead of
-being inferred. **Pending: the operator attestation only** — the
-operator completes the intentionally empty attestation block himself
-before merge.
+being inferred. ``PACKAGE-TRIAC-001-ATTEST-CLOSE`` then recorded the
+operator-reported bench-fact corrections — every bench run (including
+the Step F boot/reboot cycles previously dated 2026-06-09) ran on
+2026-06-08, and local logs WERE captured on the bench laptop but are
+not attached to the record (nothing implies they were reviewed or
+attached) — and staged the final close-out: the status flips to
+OPERATOR ATTESTATION RECORDED BELOW, next steps point solely at the
+commissioning PR (``TRIAC-COMMISSIONING-001``), and a designed-to-fail
+guard below holds the close-out branch red until the operator himself
+fills the Operator and Signature cells (the cells are staged EMPTY; no
+attestation content is ever machine-written).
 
 These tests pin the close-out invariants so a regression cannot:
 
@@ -31,7 +39,10 @@ These tests pin the close-out invariants so a regression cannot:
     the commissioning PR and the COMPLIANCE-001-RESOLUTION-001
     experimental-lane preconditions;
   * launder the Step F evidence class — every Step F row is operator
-    observation with no log capture, and must say so;
+    observation with local logs captured on the bench but not attached
+    to this record, and must say so (the superseded no-log-capture
+    wording must not come back, and nothing may imply the logs were
+    reviewed or attached);
   * launder the full-composition re-confirm closure — the row records
     PASS via closure path (a), the operator's explicit, dated statement
     (never an inference from production parameters), and the rejected
@@ -75,7 +86,12 @@ VARIANTS_PATH = REPO_ROOT / "config" / "room-bundle-fan-variants.json"
 
 FANTRIAC_CONFIG = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
 
-STEP_F_EVIDENCE_CLASS = "operator observation, no log capture"
+STEP_F_EVIDENCE_CLASS = (
+    "operator observation; local logs captured, not attached to this record"
+)
+# The wording PACKAGE-TRIAC-001-ATTEST-CLOSE superseded (operator-reported
+# correction: local logs WERE captured on the bench laptop, not attached).
+STEP_F_EVIDENCE_CLASS_SUPERSEDED = "operator observation, no log capture"
 
 
 def _walk(obj: Any) -> Iterator[Any]:
@@ -116,21 +132,28 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
         self.assertIn("PACKAGE-TRIAC-001", first_line)
         self.assertIn("Operator Bench Proof", first_line)
 
-    def test_status_steps_and_reconfirm_complete_pending_attestation_only(self) -> None:
+    def test_status_steps_and_reconfirm_complete_attestation_recorded(self) -> None:
         self.assertIn(
             "**Status:** STEPS A–F AND FULL-COMPOSITION RE-CONFIRM COMPLETE "
-            "— PENDING OPERATOR ATTESTATION ONLY",
+            "— OPERATOR ATTESTATION RECORDED BELOW",
             self.text,
         )
         self.assertIn("Steps A through F all recorded PASS", self.text)
+        # Operator-reported dating correction (ATTEST-CLOSE): every bench
+        # run was 2026-06-08; only the re-confirm statement and the signing
+        # are dated 2026-06-10. The superseded 2026-06-09 run dating must
+        # not come back anywhere in the record.
+        self.assertIn("bench runs of 2026-06-08", self.text)
+        self.assertNotIn("2026-06-09", self.text)
         # The close-out must say, in the status line itself, that it does
         # not clear the blocker.
         self.assertIn(
             "does **not** clear `PACKAGE-TRIAC-001`",
             self.text,
         )
-        # The stale pre-close claim must be gone.
+        # The stale pre-close and pre-attestation claims must be gone.
         self.assertNotIn("operator bench not yet run", self.text)
+        self.assertNotIn("PENDING OPERATOR ATTESTATION ONLY", self.text)
 
     def test_docs_only_scope_declared(self) -> None:
         self.assertIn("Operator-evidence record. Docs only.", self.text)
@@ -176,8 +199,9 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
     # --- the Step F close-out record ------------------------------------
 
     def test_step_f_rows_carry_operator_evidence_class(self) -> None:
-        # Every Step F capture row is operator-reported with no log capture,
-        # and the table must say so on each row.
+        # Every Step F capture row is operator-reported, with local logs
+        # captured on the bench laptop but not attached to this record, and
+        # the table must say so on each row.
         step_f = self.text.split("### Step F", 1)[1].split(
             "### Full-composition re-confirm", 1
         )[0]
@@ -201,12 +225,14 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
                 row,
                 f"Step F row missing its evidence class: {row}",
             )
+        # The superseded no-log-capture wording must not come back anywhere.
+        self.assertNotIn(STEP_F_EVIDENCE_CLASS_SUPERSEDED, self.text)
         self.assertIn("**Step F result: PASS (Manrose fan motor)", self.text)
 
     def test_close_out_marks_all_steps_pass(self) -> None:
         self.assertIn(
             "## Close-out — Steps A–F and full-composition re-confirm "
-            "complete, pending operator attestation",
+            "complete, operator attestation recorded below",
             self.text,
         )
         for needle in (
@@ -215,7 +241,8 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
             "| C — load waveform (mains side, real fan) | PASS |",
             "| D — locked parameters | PASS",
             "| E — thermal soak | PASS |",
-            "| F — stability and boot | PASS (operator observation, no log capture) |",
+            "| F — stability and boot | PASS (operator observation; "
+            "local logs captured, not attached to this record) |",
         ):
             self.assertIn(needle, self.text, f"close-out step row missing: {needle}")
         # Hardware and locked parameters travel with the close-out.
@@ -302,6 +329,33 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
                 attestation,
                 f"operator attestation field missing: {field}",
             )
+
+    def test_attestation_operator_and_signature_cells_filled(self) -> None:
+        # Final close-out merge guard (PACKAGE-TRIAC-001-ATTEST-CLOSE): the
+        # close-out branch must NOT merge green while the attestation table
+        # is unfilled. This is DESIGNED TO FAIL on the staging commits —
+        # the entry cells are deliberately empty there — and clears only
+        # when the operator commits his own fill. It asserts presence only,
+        # never wording: no attestation content is machine-written or
+        # machine-checked beyond non-emptiness.
+        attestation = self.text.split("## Operator attestation", 1)[1]
+        entries = {}
+        for line in attestation.splitlines():
+            stripped = line.strip()
+            if not stripped.startswith("|"):
+                continue
+            cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+            if len(cells) >= 2 and cells[0] in ("Operator", "Signature"):
+                entries[cells[0]] = cells[1]
+        self.assertTrue(
+            entries.get("Operator") and entries.get("Signature"),
+            "operator attestation is unsigned: the Operator and Signature "
+            "entry cells must be filled by the operator himself on this "
+            "branch before merge (this guard is designed to fail until "
+            "that fill lands; found "
+            f"Operator={entries.get('Operator')!r}, "
+            f"Signature={entries.get('Signature')!r})",
+        )
 
     # --- coupling to the live source-of-truth config -------------------
 

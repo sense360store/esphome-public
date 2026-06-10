@@ -2,7 +2,7 @@
 
 **Blocker id:** `PACKAGE-TRIAC-001`
 
-**Status:** STEPS A–F AND FULL-COMPOSITION RE-CONFIRM COMPLETE — PENDING OPERATOR ATTESTATION ONLY. Steps A through F all recorded PASS on the real Manrose fan motor load (bench runs of 2026-06-08 and 2026-06-09; evidence class for every Step F row: operator observation, no log capture). The full-composition re-confirm is PASS — closed on 2026-06-10 via closure path (a), the operator's explicit statement, recorded in the re-confirm row: "the Step F image was the full Ceiling-POE-VentIQ-FanTRIAC-RoomIQ composition." The signed operator attestation below is intentionally empty and is added by the operator himself before merge. Closing the lettered bench steps and the re-confirm does **not** clear `PACKAGE-TRIAC-001` — the blocker edit in `config/product-catalog.json` / `config/room-bundle-fan-variants.json` belongs to the commissioning PR (`TRIAC-COMMISSIONING-001`), a separate human-reviewed change after the attestation lands. `COMPLIANCE-001` is CLOSED, resolved by market posture per [`decisions/COMPLIANCE-001-RESOLUTION-001.md`](decisions/COMPLIANCE-001-RESOLUTION-001.md) (S360-320 is never placed on the market); completing this protocol **with the signed attestation committed** is the experimental-lane entry precondition that record defines, so the S360-320 TRIAC stays BLOCKED / reference-only pending the commissioning PR.
+**Status:** STEPS A–F AND FULL-COMPOSITION RE-CONFIRM COMPLETE — OPERATOR ATTESTATION RECORDED BELOW. Steps A through F all recorded PASS on the real Manrose fan motor load (bench runs of 2026-06-08; evidence class for every Step F row: operator observation; local logs captured, not attached to this record). The full-composition re-confirm is PASS — closed on 2026-06-10 via closure path (a), the operator's explicit statement, recorded in the re-confirm row: "the Step F image was the full Ceiling-POE-VentIQ-FanTRIAC-RoomIQ composition." The signed operator attestation is recorded below, completed by the operator himself on this branch — no attestation content is machine-written, and the close-out guard test fails while the Operator and Signature entry cells are empty, so this branch cannot merge green with the table unfilled. Closing the lettered bench steps, the re-confirm, and the attestation does **not** clear `PACKAGE-TRIAC-001` — the blocker edit in `config/product-catalog.json` / `config/room-bundle-fan-variants.json` belongs to the commissioning PR (`TRIAC-COMMISSIONING-001`), a separate human-reviewed change after the attestation lands. `COMPLIANCE-001` is CLOSED, resolved by market posture per [`decisions/COMPLIANCE-001-RESOLUTION-001.md`](decisions/COMPLIANCE-001-RESOLUTION-001.md) (S360-320 is never placed on the market); completing this protocol **with the signed attestation committed** is the experimental-lane entry precondition that record defines, so the S360-320 TRIAC stays BLOCKED / reference-only pending the commissioning PR.
 
 **Type:** Operator-evidence record. Docs only. This file asserts **no** firmware, manifest, release, or WebFlash change, and makes **no** isolation, creepage, clearance, EMI, or compliance claim. Those topics sit outside this bench entirely: COMPLIANCE-001 was closed by posture, and they become assessable obligations only via its reopen trigger (any placing on the market requires external safety and EMC assessment BEFORE that act — see `COMPLIANCE-001-RESOLUTION-001`).
 
@@ -12,7 +12,7 @@
 
 ## What this proves, and what it does not
 
-**Proves (Steps A–F and full-composition re-confirm complete; operator attestation pending):** the S360-320 TRIAC module, driven by the FanTRIAC firmware on the schematic-verified pins (gate `GPIO14`, zero-cross `GPIO13`), performs correct leading-edge phase-cut on a real mains load, with attested zero-cross detection, gate-firing timing across the dimming range, a clean load waveform on the real inductive fan load, and bounded thermal behaviour. This is the bench-validation gate that, together with the `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions, `TRIAC-PUBLISH-ADVANCED-PREVIEW-001` is gated on.
+**Proves (Steps A–F and full-composition re-confirm complete; operator attestation recorded below):** the S360-320 TRIAC module, driven by the FanTRIAC firmware on the schematic-verified pins (gate `GPIO14`, zero-cross `GPIO13`), performs correct leading-edge phase-cut on a real mains load, with attested zero-cross detection, gate-firing timing across the dimming range, a clean load waveform on the real inductive fan load, and bounded thermal behaviour. This is the bench-validation gate that, together with the `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions, `TRIAC-PUBLISH-ADVANCED-PREVIEW-001` is gated on.
 
 **Does NOT prove, out of scope:** mains-voltage electrical safety. Isolation-barrier adequacy, creepage and clearance, fusing, EMC, and any CE or UKCA conformity are out of this bench's scope and require a competent assessment; under `COMPLIANCE-001-RESOLUTION-001` (COMPLIANCE-001 closed by posture — never placed on the market) that assessment is owed only via the reopen trigger, BEFORE any future market placement. A PASS here does not unblock stable, does not authorise a publish on its own, and is never a safety or compliance claim.
 
@@ -148,14 +148,14 @@ These bench-confirmed values are folded into `packages/expansions/fan_triac.yaml
 
 ### Step F — Stability and boot
 
-Run by the operator on the production parameter set — `inverted: true`, `method: leading`, `min_power: 15%`, gate `GPIO14`, zero-cross `GPIO13`, `init_with_half_cycle: true`, `restore_mode: RESTORE_DEFAULT_OFF` — on the S360-100-R4 Core + S360-320-R4 TRIAC driving the Manrose fan motor (real inductive load). Evidence class for every Step F row: **operator observation, no log capture**. The 0% / 100% range checks from the original template were already captured on the gate side in Step B (10%–100% sweep) and on the mains side in Step C (speed control clean across the full range down to off).
+Run by the operator on the production parameter set — `inverted: true`, `method: leading`, `min_power: 15%`, gate `GPIO14`, zero-cross `GPIO13`, `init_with_half_cycle: true`, `restore_mode: RESTORE_DEFAULT_OFF` — on the S360-100-R4 Core + S360-320-R4 TRIAC driving the Manrose fan motor (real inductive load). Evidence class for every Step F row: **operator observation; local logs captured, not attached to this record**. The 0% / 100% range checks from the original template were already captured on the gate side in Step B (10%–100% sweep) and on the mains side in Step C (speed control clean across the full range down to off).
 
 | Capture | Expected | Result | Evidence class |
 |---|---|---|---|
-| Cold boots — 5 mains power cycles on 2026-06-09, off-durations varied from 5 s to 2 min, including at least one cycle with the fan RUNNING at speed when mains was killed | safe: no firing through the boot window, load returns to a safe state | PASS — fan returned OFF on every cycle; no spurious gate firing, twitch, pulse, or hum through the ESP boot window | operator observation, no log capture |
-| Warm reboots — 3 cycles via software restart, including with the fan running at 50% | safe: no gate misfire across the restart | PASS — clean reboot, no gate misfire during restart, fan returned OFF each time | operator observation, no log capture |
-| Stability soak — 4 runs on 2026-06-08, longest approximately 1 hour continuous at 50% | stable: no resets, no drift | PASS — no resets, no audible speed change, no hum or noise developing | operator observation, no log capture |
-| Supplementary — speed control on the Manrose inductive motor load | speed steps track the setpoint | Verified functioning at 25%, 50%, and 75% | operator observation, no log capture |
+| Cold boots — 5 mains power cycles on 2026-06-08, off-durations varied from 5 s to 2 min, including at least one cycle with the fan RUNNING at speed when mains was killed | safe: no firing through the boot window, load returns to a safe state | PASS — fan returned OFF on every cycle; no spurious gate firing, twitch, pulse, or hum through the ESP boot window | operator observation; local logs captured, not attached to this record |
+| Warm reboots — 3 cycles via software restart, including with the fan running at 50% | safe: no gate misfire across the restart | PASS — clean reboot, no gate misfire during restart, fan returned OFF each time | operator observation; local logs captured, not attached to this record |
+| Stability soak — 4 runs on 2026-06-08, longest approximately 1 hour continuous at 50% | stable: no resets, no drift | PASS — no resets, no audible speed change, no hum or noise developing | operator observation; local logs captured, not attached to this record |
+| Supplementary — speed control on the Manrose inductive motor load | speed steps track the setpoint | Verified functioning at 25%, 50%, and 75% | operator observation; local logs captured, not attached to this record |
 
 **Step F result: PASS (Manrose fan motor) — boot and reboot behaviour is safe (fan returns OFF on every cycle, no spurious gate activity through the boot window) and extended running is stable with no drift, hum, or resets.**
 
@@ -165,13 +165,13 @@ This row exists to check that the full product firmware — the sensor stack's I
 
 | Capture | Expected | Result |
 |---|---|---|
-| Re-flash `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`, dimmer behaves identically to the minimal bench | identical | PASS — closed via closure path (a) on 2026-06-10: the operator's explicit statement that "the Step F image was the full Ceiling-POE-VentIQ-FanTRIAC-RoomIQ composition." The Step F boot, reboot, stability-soak, and speed-control runs therefore stand as full-composition runs, with the dimmer behaving per the minimal bench (evidence class: explicit operator statement; underlying runs: operator observation, no log capture) |
+| Re-flash `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`, dimmer behaves identically to the minimal bench | identical | PASS — closed via closure path (a) on 2026-06-10: the operator's explicit statement that "the Step F image was the full Ceiling-POE-VentIQ-FanTRIAC-RoomIQ composition." The Step F boot, reboot, stability-soak, and speed-control runs therefore stand as full-composition runs, with the dimmer behaving per the minimal bench (evidence class: explicit operator statement; underlying runs: operator observation; local logs captured, not attached to this record) |
 
 ---
 
-## Close-out — Steps A–F and full-composition re-confirm complete, pending operator attestation
+## Close-out — Steps A–F and full-composition re-confirm complete, operator attestation recorded below
 
-**`PACKAGE-TRIAC-001` Steps A through F all PASS (2026-06-09); full-composition re-confirm PASS via closure path (a) (2026-06-10). Outstanding before the protocol fully closes: the signed operator attestation.**
+**`PACKAGE-TRIAC-001` Steps A through F all PASS (2026-06-08); full-composition re-confirm PASS via closure path (a) (2026-06-10). The signed operator attestation is recorded below; with it, nothing is outstanding before the protocol closes.**
 
 | Step | Result |
 |---|---|
@@ -180,7 +180,7 @@ This row exists to check that the full product firmware — the sensor stack's I
 | C — load waveform (mains side, real fan) | PASS |
 | D — locked parameters | PASS — folded into `packages/expansions/fan_triac.yaml` |
 | E — thermal soak | PASS |
-| F — stability and boot | PASS (operator observation, no log capture) |
+| F — stability and boot | PASS (operator observation; local logs captured, not attached to this record) |
 | Full-composition re-confirm | PASS — closed via closure path (a): the operator's explicit statement of 2026-06-10 that the Step F image was the full composition (see the re-confirm row) |
 
 **Hardware under test:** S360-100-R4 Core + S360-320-R4 TRIAC module, Manrose fan motor (real inductive load).
@@ -189,11 +189,7 @@ This row exists to check that the full product firmware — the sensor stack's I
 
 **Publish posture — unchanged.** Closure of `PACKAGE-TRIAC-001` does not change the publish posture. The S360-320 TRIAC remains BLOCKED / reference-only: never stable, never recommended, never default, never buyable, never WebFlash-exposed — pending the commissioning PR and the `COMPLIANCE-001-RESOLUTION-001` experimental-lane preconditions (`COMPLIANCE-001` itself is closed by market posture and reopens only on a market-placement act). This close-out records bench evidence only — it makes no isolation, creepage, clearance, EMI, or compliance claim (those topics sit outside this bench; see the `COMPLIANCE-001-RESOLUTION-001` reopen trigger), it edits no catalog, eligibility, publish, or WebFlash surface, and every publish gate stays exactly as it is.
 
-**Next steps, in order:**
-
-1. The operator completes the **Operator attestation** block below on this branch before merge. It is carried empty by design. The full-composition re-confirm is already resolved (closure path (a), operator statement of 2026-06-10) and needs no further bench work.
-2. After the attestation, the commissioning PR (`TRIAC-COMMISSIONING-001`, queued behind the SSOT refactor and the WebFlash add-source checksum guard) may clear the `PACKAGE-TRIAC-001` half of the FanTRIAC blocker in `config/product-catalog.json` and `config/room-bundle-fan-variants.json`, leaving the `COMPLIANCE-001-RESOLUTION-001` experimental-lane entry as the sole remaining gate. That edit touches a blocker, so it is human-reviewed, not auto-merged.
-3. The publish (`TRIAC-PUBLISH-ADVANCED-PREVIEW-001`) still does not proceed until the commissioning PR deliberately moves FanTRIAC into the experimental lane with its own reviewed gate and test changes.
+**Next steps:** solely the commissioning PR (`TRIAC-COMMISSIONING-001`, queued behind the SSOT refactor and the WebFlash add-source checksum guard). It may clear the `PACKAGE-TRIAC-001` half of the FanTRIAC blocker in `config/product-catalog.json` and `config/room-bundle-fan-variants.json`, leaving the `COMPLIANCE-001-RESOLUTION-001` experimental-lane entry as the sole remaining gate. That edit touches a blocker, so it is human-reviewed, not auto-merged.
 
 ---
 
