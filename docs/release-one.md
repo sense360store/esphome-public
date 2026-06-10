@@ -1,8 +1,20 @@
-# Release-One Configuration
+# Release-One Configuration (historical record)
 
-This page is the source of truth for the **Release-One** Sense360 shipping
-configuration. It pins the WebFlash config string, the product YAML, and the
-firmware artifact name together so that all three stay aligned.
+> **Status: historical record — no longer the live source of truth.** This
+> page documents the **first Sense360 release** (Release-One, `v1.0.0`) as it
+> was specified and proven at the time. The live, declaration-driven catalog
+> now lives under [`config/`](../config/): product lifecycle in
+> [`config/product-catalog.json`](../config/product-catalog.json), the
+> release/build matrix in
+> [`config/webflash-builds.json`](../config/webflash-builds.json) (per
+> ESP-007, the single source of truth for what release publishing ships),
+> and the companion `config/*.json` declarations. Where this page and
+> `config/` disagree, `config/` wins. The content below is preserved
+> unchanged as the record of the first release.
+
+This page pins the WebFlash config string, the product YAML, and the
+firmware artifact name of the first release together so that all three stay
+aligned.
 
 > **Production Release-One excludes Sense360 TRIAC.** The FanTRIAC slot is
 > blocked per HW-005 — the `S360-320` schematic is not committed, the
