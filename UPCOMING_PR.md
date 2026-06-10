@@ -15,8 +15,9 @@ merged PRs.
 
 ## Next queue (actionable)
 
-Two items are genuinely open — the remaining security-audit findings from
-[`security.md`](security.md). The FanTRIAC bench gate (`PACKAGE-TRIAC-001`) is
+Two items are genuinely open — the remaining checksum-signing finding from
+[`security.md`](security.md) and the per-device provisioning follow-up opened
+by `SEC-ESP-BUILD-GATES-001`. The FanTRIAC bench gate (`PACKAGE-TRIAC-001`) is
 **complete and operator-attested**, and the FanTRIAC commissioning PR
 (`TRIAC-COMMISSIONING-001`) is **implemented on its human-review branch** (both
 recorded in the closed items below the queue and in the condensed history);
@@ -30,15 +31,57 @@ by posture** per
    published `checksums-sha256.txt` is verifiable. See
    [`security.md`](security.md) §3.
 
-2. **`SEC-ESP-BUILD-GATES-001` (security audit findings #4 + #5).** Add two
-   build gates: (#4) fail the build if the placeholder `api_encryption_key` would
-   ship, and (#5) validate the generated `manifest.json` JSON before upload. See
-   [`security.md`](security.md) §4–§5.
+2. **`SEC-ESP-PROVISIONING-001` (follow-up opened by `SEC-ESP-BUILD-GATES-001`).**
+   Design and implement a real per-device provisioning flow for released
+   firmware: set unique `api_encryption_key` / `ota_password` /
+   `fallback_ap_password` / `web_password` on the user's own install
+   (first-boot / WebFlash-assisted / Improv-extension — to be designed; no
+   such flow exists in the tree today, and Improv-style provisioning covers
+   WiFi only). Until this lands, released binaries ship UNPROVISIONED
+   (unencrypted API, unauthenticated OTA/web, open setup AP) per
+   [`docs/security/release-firmware-credential-posture.md`](docs/security/release-firmware-credential-posture.md);
+   the self-build path with a private `secrets.yaml` remains the fully
+   secured option. Must not weaken the `SEC-ESP-BUILD-GATES-001` denylist
+   gate, which stays the permanent backstop regardless of mechanism.
 
 The remaining security-audit item, finding #6 (`check-yaml --unsafe` in
 pre-commit), is **accepted** — no action queued.
 
 **Closed by resolution (no longer queue items):**
+
+* **`SEC-ESP-BUILD-GATES-001` — IMPLEMENTED (review branch, human merges;
+  widened to close `SECURITY-AUDIT-2026-06` H1 + the forward half of H2).**
+  Originally queued as security.md findings #4 + #5; widened after
+  [`docs/security/SECURITY-AUDIT-2026-06.md`](docs/security/SECURITY-AUDIT-2026-06.md)
+  confirmed the five fixed credentials actually ship in released binaries.
+  Delivered: (1) the permanent artifact-level default-credential gate
+  ([`scripts/check_firmware_default_credentials.py`](scripts/check_firmware_default_credentials.py))
+  runs in `firmware-build-release.yml` after each product compile and again
+  over the full downloaded artifact set before release attachment — it
+  denylists the placeholder `api_encryption_key` (base64 literal AND decoded
+  32-byte material), the shipped + CI-lane `ota_password` / `web_password` /
+  `fallback_ap_password` defaults, the two burned historical fallback-AP
+  literals (the H2 forward half), and the CI-lane test WiFi values, failing
+  closed on an empty artifact set; the two intentionally-public
+  setup-network values are the only documented exclusion. (2) Released
+  builds no longer bake shared secrets: the workflow's fixed secrets-content
+  override is reduced to the setup-network pair, and
+  [`scripts/apply_release_secret_posture.py`](scripts/apply_release_secret_posture.py)
+  strips `api.encryption`, the OTA password, the `web_server` auth block,
+  and the fallback-AP password in the release workspace (fail-closed,
+  one-shot, never committed) — fresh-flash devices are unprovisioned rather
+  than falsely secured (posture + first-boot doc:
+  [`docs/security/release-firmware-credential-posture.md`](docs/security/release-firmware-credential-posture.md)).
+  (3) `manifest.json` is JSON-validated before upload (security.md #5 /
+  audit L3). Unit tests
+  ([`tests/test_check_firmware_default_credentials.py`](tests/test_check_firmware_default_credentials.py),
+  [`tests/test_apply_release_secret_posture.py`](tests/test_apply_release_secret_posture.py))
+  run per-PR in `validate.yml`. No product YAML functional behaviour changed;
+  self-builders still compile fully secured firmware from their own
+  `secrets.yaml`. H2's history dimension stays OPEN (the burned literals
+  remain world-readable in public git history; rotate already-shipped
+  units). Follow-up opened: `SEC-ESP-PROVISIONING-001` (queued above). This
+  gate precedes any FanTRIAC experimental release cut.
 
 * **`PACKAGE-TRIAC-001` — COMPLETE and operator-attested.** The FanTRIAC
   operator bench protocol is finished and the signed operator attestation is
