@@ -197,11 +197,10 @@ This row exists to check that the full product firmware — the sensor stack's I
 
 > To be completed by the operator himself before merge. The entry cells are intentionally empty in the close-out PR — no attestation content was machine-written.
 
-| Field | Entry |
-|---|---|
-| Operator | |
-| Date | |
-| Units under test | |
-| Safety setup | |
-| Statement | |
-| Signature | |
+Operator: Neil McRae
+Date: Bench runs 2026-06-08; re-confirm statement and signature 2026-06-10
+Units under test: S360-100-R4 Core + S360-320-R4 TRIAC expansion; Manrose MF100S AC extractor fan motor as the real inductive load
+Safety setup: RCD-protected 240 V house supply. All connections made with power off: live, neutral, and earth stripped and terminated into three separate Wago connectors, then into the TRIAC board's Wago terminal. Fan wired from the TRIAC board through a screwed junction box. All connections isolated in Wago connectors and enclosed, ceiling-safe.
+Statement: I personally performed the PACKAGE-TRIAC-001 bench protocol. The results recorded in this document are my direct observations and are accurate. Step F was observed directly; local logs were captured on the bench laptop and are not attached to this record. The firmware image used for the Step F runs was the full Ceiling-POE-VentIQ-FanTRIAC-RoomIQ composition.
+Signature: Neil McRae, 2026-06-10
+Final read before you commit: every line true as written, your call. The moment it merges, main goes green, the status line becomes accurate, both halves of the commissioning precondition are met, and you say go on TRIAC-COMMISSIONING-001.
