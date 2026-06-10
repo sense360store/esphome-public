@@ -15,9 +15,11 @@ merged PRs.
 
 ## Next queue (actionable)
 
-Two items are genuinely open — the remaining checksum-signing finding from
-[`security.md`](security.md) and the per-device provisioning follow-up opened
-by `SEC-ESP-BUILD-GATES-001`. The FanTRIAC bench gate (`PACKAGE-TRIAC-001`) is
+One item is genuinely open — the per-device provisioning follow-up opened
+by `SEC-ESP-BUILD-GATES-001`. The checksum-signing finding
+(`SEC-ESP-CHECKSUM-SIGNING-001`, security.md §3 / audit M1) is **implemented
+on its review branch** (recorded in the closed items below the queue). The
+FanTRIAC bench gate (`PACKAGE-TRIAC-001`) is
 **complete and operator-attested**, and the FanTRIAC commissioning PR
 (`TRIAC-COMMISSIONING-001`) is **implemented on its human-review branch** (both
 recorded in the closed items below the queue and in the condensed history);
@@ -26,12 +28,7 @@ by posture** per
 [`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`](docs/decisions/COMPLIANCE-001-RESOLUTION-001.md)
 (see the closed item recorded below the queue).
 
-1. **`SEC-ESP-CHECKSUM-SIGNING-001` (security audit finding #3).** Release
-   checksums are not signed. Sign them (cosign keyless preferred) so the
-   published `checksums-sha256.txt` is verifiable. See
-   [`security.md`](security.md) §3.
-
-2. **`SEC-ESP-PROVISIONING-001` (follow-up opened by `SEC-ESP-BUILD-GATES-001`).**
+1. **`SEC-ESP-PROVISIONING-001` (follow-up opened by `SEC-ESP-BUILD-GATES-001`).**
    Design and implement a real per-device provisioning flow for released
    firmware: set unique `api_encryption_key` / `ota_password` /
    `fallback_ap_password` / `web_password` on the user's own install
@@ -48,6 +45,40 @@ The remaining security-audit item, finding #6 (`check-yaml --unsafe` in
 pre-commit), is **accepted** — no action queued.
 
 **Closed by resolution (no longer queue items):**
+
+* **`SEC-ESP-CHECKSUM-SIGNING-001` — IMPLEMENTED (review branch, human
+  merges; closes `SECURITY-AUDIT-2026-06` M1 / security.md §3, signing
+  half).** The release job of
+  [`firmware-build-release.yml`](.github/workflows/firmware-build-release.yml)
+  now signs `checksums-sha256.txt` with **keyless cosign**
+  (`sigstore/cosign-installer` SHA-pinned at v3.9.2, cosign CLI pinned at
+  v2.6.3; `cosign sign-blob --yes` via the job's GitHub OIDC identity →
+  Fulcio short-lived certificate + Rekor transparency-log entry) and
+  publishes `checksums-sha256.txt.sig` + `checksums-sha256.txt.pem` as
+  release assets alongside the checksums file. Ordering enforced in-job:
+  the `SEC-ESP-BUILD-GATES-001` default-credential gate passes → checksums
+  generate → cosign signs and self-verifies with the exact consumer recipe
+  (pinning certificate identity
+  `https://github.com/sense360store/esphome-public/.github/workflows/firmware-build-release.yml@refs/tags/<TAG>`
+  and issuer `https://token.actions.githubusercontent.com`) → all assets
+  upload (`fail_on_unmatched_files` backstops the `.sig`/`.pem`); any
+  signing failure fails the release before upload, so an unsigned
+  checksums file is never published. `id-token: write` is granted to the
+  `release` job **only** (the repo's single OIDC grant; allowlisted with
+  reason in
+  [`tests/test_workflow_permissions.py`](tests/test_workflow_permissions.py),
+  which also gained the cosign-installer SHA-pin inventory row). Consumer
+  verification recipe documented at
+  [`docs/security/checksums-verification.md`](docs/security/checksums-verification.md);
+  audit M1 marked remediated (signing half) in
+  [`docs/security/SECURITY-AUDIT-2026-06.md`](docs/security/SECURITY-AUDIT-2026-06.md).
+  Platform-level asset mutability stays with the owner checklist (audit
+  Item 7 line 9: immutable releases + artifact attestations).
+  `checksums-md5.txt` stays legacy-compatibility-only and unsigned. In
+  place **before** the FanTRIAC experimental release cut, so that release
+  ships signed from day one. CI-validated by yamllint + the
+  workflow-permissions guard suite; the signing path itself runs only on a
+  real release event (not exercisable per-PR).
 
 * **`SEC-ESP-BUILD-GATES-001` — IMPLEMENTED (review branch, human merges;
   widened to close `SECURITY-AUDIT-2026-06` H1 + the forward half of H2).**

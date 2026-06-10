@@ -3,6 +3,7 @@
 **Owner id:** `SECURITY-AUDIT-FIX-001`
 **Date:** 2026-05-25
 **Updated:** 2026-05-27 by `SECURITY-ACTION-PINNING-001` (action SHA-pinning).
+**Updated:** 2026-06-10 by `SEC-ESP-CHECKSUM-SIGNING-001` (keyless cosign signing of release checksums; job-scoped `id-token: write`; seventh pinned action).
 **Scope repo:** `sense360store/esphome-public`
 **Source:** concrete hardening follow-up found by `REPO-FRESHNESS-ROADMAP-AUDIT-001` / PR #582.
 
@@ -28,7 +29,7 @@ inherited token scope is no longer relied on anywhere.
 | `compile-only.yml` | push / PR / dispatch | `contents: read` | — | metadata + (manual) compile validation; no writes |
 | `ci-validate-configs.yml` | dispatch | `contents: read` | — | manual broad/legacy `esphome config` + lint sweep; no writes |
 | `release-notes-draft.yml` | dispatch | `contents: read` | — | drafts notes + uploads a CI artifact only |
-| `firmware-build-release.yml` | release / dispatch | `contents: read` | `release` job: `contents: write` | only the `release` job attaches assets to the GitHub Release |
+| `firmware-build-release.yml` | release / dispatch | `contents: read` | `release` job: `contents: write` + `id-token: write` | only the `release` job attaches assets to the GitHub Release and signs the checksums file |
 
 **Least-privilege detail for `firmware-build-release.yml`:** the
 top-level scope was narrowed from `contents: write` to `contents: read`.
@@ -37,7 +38,13 @@ firmware binaries + checksums + manifest via
 `softprops/action-gh-release` (this genuinely needs `contents: write`).
 The `generate-matrix`, `build`, and `summary` jobs only read the repo and
 exchange CI artifacts through the artifact service (which does not use the
-`contents` scope), so they run read-only.
+`contents` scope), so they run read-only. `SEC-ESP-CHECKSUM-SIGNING-001`
+(2026-06-10) additionally granted the `release` job — and only that job —
+`id-token: write`, which keyless cosign exchanges for a short-lived Fulcio
+certificate to sign `checksums-sha256.txt`
+(closes `SECURITY-AUDIT-2026-06` M1; consumer recipe in
+[`docs/security/checksums-verification.md`](security/checksums-verification.md)).
+It is the repo's only `id-token` grant.
 
 Other trigger-safety facts confirmed (and regression-guarded):
 
@@ -52,11 +59,13 @@ Other trigger-safety facts confirmed (and regression-guarded):
 
 ## 2. Action-pin inventory (SHA-pinned by `SECURITY-ACTION-PINNING-001`)
 
-As of 2026-05-27 the workflows reference six actions, **all pinned to
+As of 2026-05-27 the workflows referenced six actions, **all pinned to
 immutable 40-hex commit SHAs** (the resolved upstream version is preserved
 in a trailing `# vX.Y.Z` comment for maintainability). The SHA each major
 tag resolved to on 2026-05-27 was taken directly from `git ls-remote
---tags` against each upstream repository.
+--tags` against each upstream repository. `SEC-ESP-CHECKSUM-SIGNING-001`
+(2026-06-10) added a seventh, `sigstore/cosign-installer`, SHA-pinned on
+arrival (resolved the same way on 2026-06-10).
 
 | Action | Workflow file(s) | Previous ref | Pinned SHA | Resolves to | First/third party | Next maintenance action |
 |---|---|---|---|---|---|---|
@@ -66,6 +75,7 @@ tag resolved to on 2026-05-27 was taken directly from `git ls-remote
 | `actions/upload-artifact` | `release-notes-draft.yml`, `firmware-build-release.yml` | `@v4` | `ea165f8d65b6e75b540449e92b4886f43607fa02` | `v4.6.2` | first-party | bump SHA + comment when adopting a newer `v4.x` |
 | `actions/download-artifact` | `firmware-build-release.yml` | `@v4` | `d3f86a106a0bac45b974a628896c90dbdf5c8093` | `v4.3.0` | first-party | bump SHA + comment when adopting a newer `v4.x` |
 | `softprops/action-gh-release` | `firmware-build-release.yml` | `@v2` | `3bb12739c298aeb8a4eeaf626c5b8d85266b0e65` | `v2.6.2` | **third-party** | bump SHA + comment when adopting a newer `v2.x`; highest-value pin target |
+| `sigstore/cosign-installer` | `firmware-build-release.yml` | — (new, SHA-pinned on arrival) | `d58896d6a1865668819e1d91763c7751a165e159` | `v3.9.2` | **third-party** | bump SHA + comment when adopting a newer `v3.x`; also bump the workflow's pinned `cosign-release` (`v2.6.3`) deliberately, never implicitly |
 
 There are **no exceptions** — every referenced action is SHA-pinned, so
 the documented-exception allowlist is empty. This inventory is mirrored in
@@ -109,8 +119,11 @@ consciously excepted with a reason.
 2. no workflow uses the `pull_request_target` trigger;
 3. no workflow uses `permissions: write-all` (top-level or job-level);
 4. no `write` scope is granted (top-level or job-level) unless explicitly
-   allowlisted with a reason (`WRITE_PERMISSION_ALLOWLIST` — currently only
-   the `firmware-build-release.yml` `release` job's `contents: write`);
+   allowlisted with a reason (`WRITE_PERMISSION_ALLOWLIST` — the
+   `firmware-build-release.yml` `release` job's `contents: write` +
+   `id-token: write`, plus the later-added `bump-version.yml` /
+   `create-release.yml` top-level grants documented in the allowlist
+   itself);
 5. every action `uses:` reference is pinned to an immutable 40-hex commit
    SHA, except local `./` composite actions and documented
    `MUTABLE_TAG_PIN_EXCEPTIONS` entries (currently none);
