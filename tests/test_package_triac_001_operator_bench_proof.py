@@ -10,15 +10,16 @@ folded the bench-confirmed parameters into
 ``packages/expansions/fan_triac.yaml``, and ``PACKAGE-TRIAC-001-CLOSE``
 recorded the operator-reported Step F results (cold boots / warm reboots /
 stability soak — PASS; evidence class: operator observation, no log
-capture): Steps A–F all PASS, **pending the full-composition re-confirm
-and the operator attestation**. The full-composition re-confirm is NOT
-RECORDED — the Step F report did not state which firmware image was
-flashed, and production parameters alone cannot prove the full
-composition (the re-confirm exists to check that the sensor stack's I2C
-traffic, the LD2450 UART, and WiFi activity do not perturb the dimmer
-timing); it closes on an explicit operator statement or a re-flash
-re-check. The operator completes the intentionally empty attestation
-block himself before merge.
+capture): Steps A–F all PASS. ``PACKAGE-TRIAC-001-RECONFIRM-001`` then
+recorded the operator's closure of the full-composition re-confirm via
+closure path (a) — his explicit statement, 2026-06-10, that the Step F
+image was the full composition. The re-confirm exists to check that the
+sensor stack's I2C traffic, the LD2450 UART, and WiFi activity do not
+perturb the dimmer timing; production parameters alone cannot prove
+that, which is why the row waited for the explicit statement instead of
+being inferred. **Pending: the operator attestation only** — the
+operator completes the intentionally empty attestation block himself
+before merge.
 
 These tests pin the close-out invariants so a regression cannot:
 
@@ -31,9 +32,10 @@ These tests pin the close-out invariants so a regression cannot:
     experimental-lane preconditions;
   * launder the Step F evidence class — every Step F row is operator
     observation with no log capture, and must say so;
-  * mark the full-composition re-confirm PASS by inference — the row
-    stays NOT RECORDED until an explicit operator statement or a
-    re-flash re-check, recorded by a deliberate doc + test edit;
+  * launder the full-composition re-confirm closure — the row records
+    PASS via closure path (a), the operator's explicit, dated statement
+    (never an inference from production parameters), and the rejected
+    covered-by-Step-F wording must never come back;
   * drift the schematic-verified pin mapping the bench depended on
     (gate ``GPIO14`` = ``TRI_GPIO1`` -> U1 MOC3023M; zero-cross
     ``GPIO13`` = ``TRI_GPIO2`` -> OK1 EL814);
@@ -44,9 +46,9 @@ These tests pin the close-out invariants so a regression cannot:
     posture per docs/decisions/COMPLIANCE-001-RESOLUTION-001.md; the
     cited reason changed, the enforced behaviour did not).
 
-After the operator resolves the full-composition re-confirm and attests,
-the human-reviewed commissioning PR that clears the PACKAGE-TRIAC-001
-half of the blocker updates the catalog, the doc, and this test together
+After the operator attests, the human-reviewed commissioning PR that
+clears the PACKAGE-TRIAC-001 half of the blocker updates the catalog,
+the doc, and this test together
 (the COMPLIANCE-001-RESOLUTION-001 experimental-lane entry still gates
 the publish).
 
@@ -114,10 +116,10 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
         self.assertIn("PACKAGE-TRIAC-001", first_line)
         self.assertIn("Operator Bench Proof", first_line)
 
-    def test_status_steps_complete_pending_reconfirm_and_attestation(self) -> None:
+    def test_status_steps_and_reconfirm_complete_pending_attestation_only(self) -> None:
         self.assertIn(
-            "**Status:** STEPS A–F COMPLETE, ALL PASS — PENDING "
-            "FULL-COMPOSITION RE-CONFIRM AND OPERATOR ATTESTATION",
+            "**Status:** STEPS A–F AND FULL-COMPOSITION RE-CONFIRM COMPLETE "
+            "— PENDING OPERATOR ATTESTATION ONLY",
             self.text,
         )
         self.assertIn("Steps A through F all recorded PASS", self.text)
@@ -203,8 +205,8 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
 
     def test_close_out_marks_all_steps_pass(self) -> None:
         self.assertIn(
-            "## Close-out — Steps A–F complete, pending full-composition "
-            "re-confirm and operator attestation",
+            "## Close-out — Steps A–F and full-composition re-confirm "
+            "complete, pending operator attestation",
             self.text,
         )
         for needle in (
@@ -246,22 +248,36 @@ class TestPackageTriac001OperatorBenchProofDoc(unittest.TestCase):
         # The re-confirm exists to check that the full product firmware
         # (sensor-stack I2C traffic, LD2450 UART, WiFi activity) does not
         # perturb the dimmer timing. Production parameters cannot prove
-        # that; only flashing the full composition can. The row therefore
-        # stays NOT RECORDED until an explicit operator statement or a
-        # re-flash re-check — flipping it is a deliberate, human-reviewed
-        # doc + test edit, never an inference.
+        # that; only the image identity can. The row closed via closure
+        # path (a) — the operator's explicit, dated statement that the
+        # Step F image was the full composition
+        # (PACKAGE-TRIAC-001-RECONFIRM-001, 2026-06-10) — a deliberate,
+        # human-reviewed doc + test edit, never an inference. Pin the
+        # recorded closure: the path, the quoted statement, the date, and
+        # the absence of both the stale open state and the rejected
+        # PASS-by-inference wording.
         self.assertIn("### Full-composition re-confirm", self.text)
         reconfirm = self.text.split("### Full-composition re-confirm", 1)[1].split(
             "## Close-out", 1
         )[0]
-        self.assertIn("NOT RECORDED", reconfirm)
+        self.assertIn("PASS — closed via closure path (a) on 2026-06-10", reconfirm)
+        self.assertIn(
+            '"the Step F image was the full '
+            'Ceiling-POE-VentIQ-FanTRIAC-RoomIQ composition."',
+            reconfirm,
+        )
         self.assertIn(
             "production parameters are not the full composition", reconfirm
         )
         self.assertIn("explicit operator statement", reconfirm)
         self.assertIn("re-flash of the full composition", reconfirm)
-        # The close-out summary row must mirror the open state.
-        self.assertIn("| Full-composition re-confirm | NOT RECORDED", self.text)
+        # The close-out summary row must mirror the recorded closure.
+        self.assertIn(
+            "| Full-composition re-confirm | PASS — closed via closure path (a)",
+            self.text,
+        )
+        # The stale open state must not linger anywhere in the record.
+        self.assertNotIn("NOT RECORDED", self.text)
         # The rejected PASS-by-inference wording must never come back.
         self.assertNotIn("covered by the Step F", self.text)
 
