@@ -15,8 +15,10 @@ merged PRs.
 
 ## Next queue (actionable)
 
-One item is genuinely open — the per-device provisioning follow-up opened
-by `SEC-ESP-BUILD-GATES-001`. The checksum-signing finding
+Two items are genuinely open — the per-device provisioning follow-up opened
+by `SEC-ESP-BUILD-GATES-001`, and `REBUILD-CLEAN-CREDENTIALS-001` (the
+field-distribution half of audit H1: re-cut the live cred-bearing releases
+clean on the post-#779 pipeline). The checksum-signing finding
 (`SEC-ESP-CHECKSUM-SIGNING-001`, security.md §3 / audit M1) is **implemented
 on its review branch** (recorded in the closed items below the queue). The
 FanTRIAC bench gate (`PACKAGE-TRIAC-001`) is
@@ -40,6 +42,36 @@ by posture** per
    the self-build path with a private `secrets.yaml` remains the fully
    secured option. Must not weaken the `SEC-ESP-BUILD-GATES-001` denylist
    gate, which stays the permanent backstop regardless of mechanism.
+
+2. **`REBUILD-CLEAN-CREDENTIALS-001` (field-distribution half of audit H1).**
+   `SEC-ESP-BUILD-GATES-001` (#779) fixed the pipeline forward, but the
+   binaries already published and already served by the WebFlash installer
+   were built before #779 and still embed the four shared control
+   credentials. The plan PR (`release/rebuild-clean-credentials-001`, review
+   branch, human merges, target base `main`) stages the re-release: policy is
+   an **append-only version bump** (never re-cut a tag — that would mutate a
+   published asset and silently break WebFlash's pinned `expected_sha256`).
+   The four pipeline-eligible configs are re-cut clean on the post-#779
+   pipeline (which applies the posture strip + default-credential gate +
+   cosign automatically): `Ceiling-POE-VentIQ-RoomIQ` → `v1.0.7`,
+   `Ceiling-POE-RoomIQ` → `v1.0.8`, `Ceiling-POE-AirIQ-RoomIQ` → `v1.0.9`,
+   `Ceiling-POE-VentIQ-RoomIQ-LED` → `v1.0.1-led-preview`. The five fan
+   room-bundle previews (`Ceiling-POE-VentIQ-FanPWM-RoomIQ`,
+   `Ceiling-POE-VentIQ-FanDAC-RoomIQ`, `Ceiling-POE-AirIQ-FanRelay-RoomIQ`,
+   `Ceiling-POE-AirIQ-FanPWM-RoomIQ`, `Ceiling-POE-AirIQ-FanDAC-RoomIQ`) are
+   **de-listed downstream**, not rebuilt — the fan-token guardrail keeps them
+   off `config/webflash-builds.json`, so they cannot enter the
+   declaration-driven matrix. The plan PR cuts no tag, builds no `.bin`, and
+   changes no product YAML, `config/webflash-builds.json`, or
+   `config/product-catalog.json`; the actual rebuild is the manual owner
+   dispatch in the runbook
+   ([`docs/security/rebuild-clean-credentials-001.md`](docs/security/rebuild-clean-credentials-001.md)).
+   The distribution half closes only once those clean releases are cut **and**
+   the paired WebFlash re-import (`WF-REIMPORT-CLEAN-001`, below) re-pins to
+   the new tags + hashes and de-lists the fan previews; until then the live
+   installer still serves the old cred-bearing binaries. Touches no FanTRIAC
+   posture, no `release_one_required_configs`, no kit, and makes no
+   hardware / bench / compliance claim.
 
 The remaining security-audit item, finding #6 (`check-yaml --unsafe` in
 pre-commit), is **accepted** — no action queued.
@@ -231,6 +263,21 @@ imports themselves live in the [`sense360store/WebFlash`](https://github.com/sen
 repo and are **queued separately** in **its** queue — they are not open work in
 this repo and add no `config/webflash-builds.json` row here. Each fan-driver
 committed WebFlash import is its own gated WebFlash-repo slice.
+
+#### WF-REIMPORT-CLEAN-001 — re-import the clean rebuilt firmware + de-list the fan previews (queued — WebFlash repo)
+
+The downstream half of `REBUILD-CLEAN-CREDENTIALS-001` (queue item 2 above).
+Once the four clean releases are cut (`v1.0.7` / `v1.0.8` / `v1.0.9` /
+`v1.0.1-led-preview`), WebFlash re-pins `firmware/sources.json` to the new
+tags, asset names, and `expected_sha256` values (handoff table in
+[`docs/security/rebuild-clean-credentials-001.md`](docs/security/rebuild-clean-credentials-001.md)),
+**de-lists** the five cred-bearing fan room-bundle previews (`FanRelay` /
+`FanPWM` / `FanDAC` × `VentIQ` / `AirIQ` on `v1.0.0-preview`), regenerates its
+manifest + sidecars, and deploys. This is the step that actually removes the
+default-credential firmware from the live installer; until it deploys, the
+installer still serves the old binaries. WebFlash-repo slice — no change in
+this repo. Should also verify the in-tree Rescue firmware carries no default
+control credential.
 
 #### WF-PREVIEW-IMPORT-FIRST-BATCH-001 — first batch of room-bundle preview artifacts (queued — WebFlash repo)
 
