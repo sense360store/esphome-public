@@ -30,7 +30,11 @@ Nothing under `dev/` is ever release-eligible; see
    `dev/<name>.local.yaml`). Set `ref:` to the feature branch and `files:`
    to the entry point config under test — a real `products/*.yaml` path,
    e.g. `products/sense360-ceiling-poe-ventiq-roomiq.yaml` (Release-One,
-   the default in the template). Copy the keys from
+   the default in the template). The template includes the scratch overlay
+   with a relative `!include dev-overlay.yaml`, so also create a
+   `dev-overlay.yaml` next to the device YAML in the dashboard (paste the
+   committed `dev/dev-overlay.yaml`; it is empty apart from comments).
+   Copy the keys from
    `dev/secrets.yaml.example` into the dashboard secrets editor and fill in
    real bench values. All seven keys are required: `wifi_ssid`,
    `wifi_password`, `fallback_ap_password`, `api_encryption_key`,

@@ -13,7 +13,9 @@
 # Usage — one copy per bench unit:
 #   1. Copy this file to dev/<name>.local.yaml (gitignored), or paste it as
 #      the device YAML of a manually created device in the Home Assistant
-#      ESPHome dashboard.
+#      ESPHome dashboard. The overlay include below is relative, so when
+#      pasting into the dashboard also create a dev-overlay.yaml next to the
+#      device YAML (paste the committed dev/dev-overlay.yaml).
 #   2. Set `ref:` below to your feature branch.
 #   3. Point `files:` at the entry point config under test (a real
 #      products/*.yaml path — see docs/DEV_WORKFLOW.md).
