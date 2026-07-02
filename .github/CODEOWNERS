@@ -1,0 +1,5 @@
+# Governance surfaces: agent-guidance, the source-of-truth queue, and CI
+# definitions require owner review.
+/CLAUDE.md @sense360store
+/UPCOMING_PR.md @sense360store
+/.github/ @sense360store
