@@ -57,6 +57,23 @@ jobs:
         run: |
           python3 scripts/check_fallback_ap_password.py
 
+      # DEV-HARNESS-001: dev/ is the bench-only development harness
+      # (docs/DEV_WORKFLOW.md). The guard fails the PR if (a) the committed
+      # scratch overlay dev/dev-overlay.yaml contains anything other than
+      # comments and blank lines — promote overlay content into a package
+      # layer before merge — or (b) any config/*.json build/release
+      # declaration references a path under dev/. Every build, compile, and
+      # release matrix is declaration-driven from config/*.json (ESP-007) or
+      # enumerates products/ only, so this pins the guarantee that nothing
+      # under dev/ is ever built or released.
+      - name: Dev harness guard (DEV-HARNESS-001)
+        run: |
+          python3 scripts/check_dev_harness_guard.py
+
+      - name: Dev harness guard unit tests (DEV-HARNESS-001)
+        run: |
+          python3 tests/test_check_dev_harness_guard.py
+
       # SEC-ESP-BUILD-GATES-001 (SECURITY-AUDIT-2026-06 H1/H2): the release
       # pipeline refuses to publish a binary carrying a default / placeholder /
       # burned credential, and release builds strip the shared compile-time

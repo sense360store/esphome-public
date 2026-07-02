@@ -382,6 +382,18 @@ changed the stable production release or the invariants above.
 Newest first. Full detail lives in the referenced docs / tests and the merged
 PRs.
 
+* **`DEV-HARNESS-001`** (`claude/dev-harness-esphome-3wt8hf`, 2026-07-02):
+  bench dev harness so the YAML flashed on the bench is the literal repo
+  source on a feature branch — `dev/` (device template targeting a
+  `products/` entry point via remote git packages with `refresh: 0s`, empty
+  scratch overlay, placeholder secrets template), `docs/DEV_WORKFLOW.md`
+  (branch → dashboard device → USB-then-OTA → push → Install loop, plus the
+  local-clone variant), gitignore rules for bench-local files, and the
+  fail-closed CI guard `scripts/check_dev_harness_guard.py` in
+  `validate.yml` (overlay must stay comments-only; no `config/*.json`
+  declaration may reference `dev/`). No release / publish logic touched; no
+  `config/webflash-builds.json` change; nothing under `dev/` is
+  release-eligible.
 * **`TRIAC-COMMISSIONING-001`** (`release/triac-commissioning-001`, 2026-06-10,
   human-review only — do NOT auto-merge): cleared the `PACKAGE-TRIAC-001` half
   of the FanTRIAC blocker (citing the operator-attested proof) and moved
