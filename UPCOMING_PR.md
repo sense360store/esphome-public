@@ -382,6 +382,18 @@ changed the stable production release or the invariants above.
 Newest first. Full detail lives in the referenced docs / tests and the merged
 PRs.
 
+* **`DEV-HARNESS-001`** (`claude/dev-harness-esphome-3wt8hf`, 2026-07-02):
+  bench dev harness so the YAML flashed on the bench is the literal repo
+  source on a feature branch — `dev/` (device template targeting a
+  `products/` entry point via remote git packages with `refresh: 0s`, empty
+  scratch overlay, placeholder secrets template), `docs/DEV_WORKFLOW.md`
+  (branch → dashboard device → USB-then-OTA → push → Install loop, plus the
+  local-clone variant), gitignore rules for bench-local files, and the
+  fail-closed CI guard `scripts/check_dev_harness_guard.py` in
+  `validate.yml` (overlay must stay comments-only; no `config/*.json`
+  declaration may reference `dev/`). No release / publish logic touched; no
+  `config/webflash-builds.json` change; nothing under `dev/` is
+  release-eligible.
 * **`CLAUDE-MD-LEAN-001`** (`claude/claude-md-lean-restructure-kd93z5`,
   2026-07-02, human-review): made `CLAUDE.md` lean and drift-proof — replaced
   the *Standing gates* verbatim blockquote snapshot of this file's standing

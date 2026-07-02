@@ -84,3 +84,14 @@ private/
 # Local environment files
 .env
 .env.local
+
+# Dev harness (dev/) — bench-local files, never committed
+# (see docs/DEV_WORKFLOW.md). dev/secrets.yaml and dev/.esphome/ are already
+# covered by the bare `secrets.yaml` / `.esphome/` rules above; listed
+# explicitly so the dev-harness contract is visible in one place.
+dev/secrets.yaml
+dev/*.local.yaml
+dev/.esphome/
+dev/.pioenvs/
+dev/.piolibdeps/
+dev/build/

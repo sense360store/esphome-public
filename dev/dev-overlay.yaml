@@ -1,0 +1,17 @@
+# ============================================================================
+# SENSE360 DEV HARNESS — SCRATCH OVERLAY (committed empty on purpose)
+# ============================================================================
+# This file is the bench scratch layer: a place to try out experimental
+# sensors, switches, automations, and tweaks during bench work when the
+# correct package-layer home for a change is not yet clear. It is merged into
+# the bench device by `dev/device-template.yaml`
+# (`overlay: !include dev-overlay.yaml`).
+#
+# CI (scripts/check_dev_harness_guard.py, run by validate.yml) BLOCKS merging
+# while this file contains anything other than comments and blank lines.
+# Before opening a PR, promote finished changes into the proper layer under
+# packages/ (boards / base / features) or products/, and return this file to
+# its empty committed state.
+#
+# See docs/DEV_WORKFLOW.md for the full bench loop.
+# ============================================================================

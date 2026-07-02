@@ -1,0 +1,97 @@
+# ============================================================================
+# SENSE360 DEV HARNESS — BENCH DEVICE TEMPLATE
+# ============================================================================
+# BENCH BUILDS ONLY. Firmware built from this file is a development build of
+# an unreviewed feature branch:
+#   * NEVER flash a dev build on a device outside the bench.
+#   * NEVER commit real secrets. dev/secrets.yaml and dev/*.local.yaml are
+#     gitignored; this template ships obviously-fake placeholders only.
+#   * Nothing under dev/ is ever release-eligible: no build or release matrix
+#     selects this directory, and CI enforces that
+#     (scripts/check_dev_harness_guard.py).
+#
+# Usage — one copy per bench unit:
+#   1. Copy this file to dev/<name>.local.yaml (gitignored), or paste it as
+#      the device YAML of a manually created device in the Home Assistant
+#      ESPHome dashboard. The overlay include below is relative, so when
+#      pasting into the dashboard also create a dev-overlay.yaml next to the
+#      device YAML (paste the committed dev/dev-overlay.yaml).
+#   2. Set `ref:` below to your feature branch.
+#   3. Point `files:` at the entry point config under test (a real
+#      products/*.yaml path — see docs/DEV_WORKFLOW.md).
+#   4. Copy dev/secrets.yaml.example to dev/secrets.yaml (or into the
+#      dashboard secrets editor) and fill in real bench values.
+#
+# Full loop: docs/DEV_WORKFLOW.md
+# ============================================================================
+
+substitutions:
+  # Bench device hostname. ESPHome limit: 31 characters, DNS-safe
+  # ([a-z0-9-]). Every entry point defaults this; override it per bench unit
+  # so each device is unique on the network.
+  device_name: s360-dev-bench-1
+  # Human-readable name shown in Home Assistant entity names.
+  friendly_name: "S360 Dev Bench 1"
+  # All other substitutions (timezone, thresholds, fallback_ssid, ...) have
+  # working defaults in the bundle the entry point resolves to; override here
+  # only when the change under test needs it. Example:
+  # log_level: DEBUG
+
+packages:
+  # --------------------------------------------------------------------------
+  # PRIMARY METHOD — remote git package. The ESPHome add-on pulls the branch
+  # source on every compile (`refresh: 0s` forces a re-pull), so pushing the
+  # branch and hitting Install always builds the literal repo source at the
+  # branch head — no translation step between bench and PR.
+  # --------------------------------------------------------------------------
+  sense360_source:
+    url: https://github.com/sense360store/esphome-public
+    ref: REPLACE_ME_BRANCH  # your feature branch, e.g. feat/my-change
+    files:
+      # Entry point under test. Default: Release-One, the production stable
+      # customer baseline (config string Ceiling-POE-VentIQ-RoomIQ).
+      - products/sense360-ceiling-poe-ventiq-roomiq.yaml
+    refresh: 0s
+
+  # --------------------------------------------------------------------------
+  # ALTERNATIVE METHOD — local clone, for fast iteration without pushing.
+  # Clone the repo next to this file's directory (so the device file lives in
+  # the clone's dev/ directory, or adjust the relative path) and swap the
+  # sense360_source block above for a direct !include of the same entry
+  # point. Edits compile immediately; the bench diverges from the pushed
+  # branch until you push. See docs/DEV_WORKFLOW.md for when to use which.
+  # --------------------------------------------------------------------------
+  # sense360_source: !include ../products/sense360-ceiling-poe-ventiq-roomiq.yaml
+
+  # Scratch layer for bench experiments. Committed empty; CI blocks merging
+  # while it contains functional content — promote finished changes into the
+  # proper package layer before PR (docs/DEV_WORKFLOW.md step 6).
+  overlay: !include dev-overlay.yaml
+
+# ----------------------------------------------------------------------------
+# CONNECTIVITY — wired to !secret. Values come from dev/secrets.yaml
+# (gitignored) or the dashboard secrets editor; template values live in
+# dev/secrets.yaml.example. The entry point's base packages already declare
+# these same blocks against the same secret keys, so the blocks below are
+# redundant-by-design: they document exactly which keys the bench build
+# resolves and keep the device flashable even if the entry point under test
+# drops a base package. Note the base packages resolve THREE further keys
+# (fallback_ap_password, web_username, web_password) — all seven keys in
+# dev/secrets.yaml.example must be present.
+# ----------------------------------------------------------------------------
+wifi:
+  networks:
+    # Bench WiFi network the device joins.
+    - ssid: !secret wifi_ssid
+      password: !secret wifi_password
+
+api:
+  encryption:
+    # Home Assistant native-API encryption key: 32 random bytes, base64.
+    # Generate per bench unit: openssl rand -base64 32
+    key: !secret api_encryption_key
+
+ota:
+  # Password required for every OTA reflash after the first USB flash.
+  - platform: esphome
+    password: !secret ota_password
