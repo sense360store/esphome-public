@@ -180,84 +180,44 @@ pre-commit run --all-files
 ## Standing gates (do not regress)
 
 [`UPCOMING_PR.md`](UPCOMING_PR.md) → *Standing invariants (do not regress)* is
-the live source for these; the quotes below are verbatim as of this commit.
-If they drift, `UPCOMING_PR.md` wins.
+the **live, authoritative text** for every gate below — read it before
+touching anything a gate covers. The lines here are one-line operative
+summaries only; on any difference, `UPCOMING_PR.md` wins.
 
-> * **Production stable Release-One is the customer baseline.** Config string
->   `Ceiling-POE-VentIQ-RoomIQ` (current stable version per
->   [`config/webflash-builds.json`](config/webflash-builds.json); v1.0.4 as of
->   2026-06-07), launch shop SKU **`S360-KIT-BATH-P`**. Simple install resolves
->   to the stable Bathroom PoE build only. The Bedroom (`Ceiling-POE-RoomIQ`,
->   stable v1.0.5, 2026-06-08) and Kitchen (`Ceiling-POE-AirIQ-RoomIQ`, stable
->   v1.0.6, 2026-06-09) bundles were later promoted to stable under owner
->   risk-acceptance waivers (`HW-S360-410-WAIVER-2026-06`,
->   `HW-AIRIQ-WAIVER-2026-06`) — owner waivers, not hardware verification — and
->   their candidate / room bundles stay **hidden / not buyable / never the
->   customer default**.
-> * **FanTRIAC is commissioned to the experimental self-build mains lane —
->   never stable / recommended / default / buyable / kit-exposed.**
->   `TRIAC-COMMISSIONING-001` (human-review only) cleared the `PACKAGE-TRIAC-001`
->   half of the former blocker (operator-attested bench proof
->   `docs/package-triac-001-operator-bench-proof.md`), with `COMPLIANCE-001`
->   closed by market posture (`COMPLIANCE-001-RESOLUTION-001`), and moved
->   `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` into the `experimental_lane`. It is now
->   `status: preview` / `channel: experimental` / `webflash_build_matrix: true`
->   with a `config/webflash-builds.json` row on the new **experimental** build
->   channel (artifact `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin`;
->   `experimental` is also in `config/webflash-compatibility.json`
->   `allowed_channels` and emitted by `scripts/derive_release_version_channel.py`).
->   The permanent teeth stand: **never stable, never recommended, never a
->   customer default, never buyable, never in any kit or kit picker, never in
->   `release_one_required_configs`** — the S360-320 is a self-build, open-source
->   (CERN-OHL-P) board Sense360 **never places on the market**, and the
->   commissioning makes **no electrical-safety / EMC / compliance claim** and
->   cuts **no release tag**. `TRIAC-PUBLISH-ADVANCED-PREVIEW-001` is **executed**;
->   downstream one-click WebFlash import (`WF-IMPORT-TRIAC-001`) stays gated,
->   unblocked only once the experimental release is cut. The standalone
->   manual-preview fan drivers (FanRelay / FanPWM / FanDAC) stay off
->   `config/webflash-builds.json` (the fan-token guardrail holds for them). Any
->   further FanTRIAC blocker / status change is **human-review only — do NOT
->   auto-merge**.
-> * **Fans are preview-only.** FanRelay / FanPWM / FanDAC (and the five
->   full-composition fan room-bundle configs) are `manual-preview`, published only
->   on the shared `v1.0.0-preview` prerelease, and are preview WebFlash-import
->   eligible (Advanced-install-only, acknowledgement-gated). **No fan row is added
->   to `config/webflash-builds.json`** — the fan-token guardrail stays intact.
->   Stable / full release stays blocked (`RELEASE-RELAY-001` / `RELEASE-PWM-001` /
->   `RELEASE-DAC-001`); catalog `status` stays `hardware-pending`.
-> * **FanDAC I²C address requirement is pending bench.** GP8403 IC1 `0x58` /
->   IC2 `0x5A`; `0x59` is forbidden when VentIQ/AirIQ is present (SGP41 collision).
->   The DIP-switch mapping is compile-time only — `FANDAC-I2C-ADDR-001` stays
->   **PENDING** (no FanDAC hardware verification claimed). See
->   [`docs/hardware/fandac-i2c-address-verification.md`](docs/hardware/fandac-i2c-address-verification.md).
-> * **No false proof.** Preview / compile work is **firmware-build proof only** —
->   no hardware / bench / compliance / safety / commercial-availability proof is
->   claimed for any preview artifact.
+- **Release-One is the customer baseline** — production stable is
+  `Ceiling-POE-VentIQ-RoomIQ` (kit `S360-KIT-BATH-P`); Simple install resolves
+  to it alone, and the waiver-promoted Bedroom / Kitchen bundles stay hidden /
+  not buyable / never the customer default
+  ([live text](UPCOMING_PR.md#standing-invariants-do-not-regress)).
+- **FanTRIAC is experimental-lane only** — never stable / recommended /
+  default / buyable / kit-exposed / in `release_one_required_configs`; no
+  electrical-safety / EMC / compliance claim
+  ([live text](UPCOMING_PR.md#standing-invariants-do-not-regress)).
+- **Fans are preview-only** — FanRelay / FanPWM / FanDAC publish only on the
+  shared `v1.0.0-preview` prerelease; **no fan row in
+  `config/webflash-builds.json`** (the fan-token guardrail); stable release
+  stays blocked ([live text](UPCOMING_PR.md#standing-invariants-do-not-regress)).
+- **FanDAC I²C addressing is pending bench** — `FANDAC-I2C-ADDR-001` stays
+  PENDING; `0x59` is forbidden when VentIQ/AirIQ is present
+  ([live text](UPCOMING_PR.md#standing-invariants-do-not-regress)).
+- **No false proof** — preview / compile work is firmware-build proof only;
+  never claim hardware / bench / compliance / safety /
+  commercial-availability proof for a preview artifact
+  ([live text](UPCOMING_PR.md#standing-invariants-do-not-regress)).
 
-Three further standing rules travel with the invariants:
+Three standing rules travel with the gates:
 
-- **TRIAC changes are human-review only.** Verbatim from the
-  `PACKAGE-TRIAC-001` queue item in [`UPCOMING_PR.md`](UPCOMING_PR.md):
-  "**Do NOT auto-merge** any FanTRIAC pin / blocker / status change —
-  human-review only."
+- **FanTRIAC changes are human-review only.** Do NOT auto-merge any FanTRIAC
+  pin / blocker / status change.
 - **Attestations are never machine-written.** Operator attestation /
   bench-evidence blocks are completed by the human operator only; agents may
   scaffold an intentionally empty block but must never fill in attestation
-  content, dates, signatures, or evidence claims. Verbatim from
-  [`docs/package-triac-001-operator-bench-proof.md`](docs/package-triac-001-operator-bench-proof.md):
-  "To be completed by the operator himself before merge. The entry cells are
-  intentionally empty in the close-out PR — no attestation content was
-  machine-written."
-- **The release matrix is declaration-driven (ESP-007).** Verbatim from
-  [`.github/workflows/firmware-build-release.yml`](.github/workflows/firmware-build-release.yml):
-  "ESP-007: the release/build matrix is driven by
-  config/webflash-builds.json, filtered by the version + channel derived from
-  the release tag. This replaces the previous broad `find products/` scan,
-  which built every legacy / reference / blocked product (including FanTRIAC)
-  when a real Release was published. The WebFlash build matrix is the single
-  source of truth for what release publishing ships." Never reintroduce a
-  broad scan of `products/`; releases ship only what
-  `config/webflash-builds.json` declares.
+  content, dates, signatures, or evidence claims (source:
+  [`docs/package-triac-001-operator-bench-proof.md`](docs/package-triac-001-operator-bench-proof.md)).
+- **The release matrix is declaration-driven (ESP-007).** Releases ship only
+  what [`config/webflash-builds.json`](config/webflash-builds.json) declares;
+  never reintroduce a broad `products/` scan in
+  [`.github/workflows/firmware-build-release.yml`](.github/workflows/firmware-build-release.yml).
 
 ## UPCOMING_PR.md maintenance rule
 

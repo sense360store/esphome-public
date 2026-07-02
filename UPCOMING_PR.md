@@ -394,6 +394,21 @@ PRs.
   declaration may reference `dev/`). No release / publish logic touched; no
   `config/webflash-builds.json` change; nothing under `dev/` is
   release-eligible.
+* **`CLAUDE-MD-LEAN-001`** (`claude/claude-md-lean-restructure-kd93z5`,
+  2026-07-02, human-review): made `CLAUDE.md` lean and drift-proof — replaced
+  the *Standing gates* verbatim blockquote snapshot of this file's standing
+  invariants (a drift liability; the file itself says `UPCOMING_PR.md` wins
+  on drift, and the `PACKAGE-TRIAC-001` queue-item quote had already drifted)
+  with one-line operative summaries per gate, each linking to *Standing
+  invariants (do not regress)* here as the live authoritative text. Content-
+  loss audit first confirmed every snapshot fact already lives here or in
+  `docs/`; the three travel rules (FanTRIAC human-review only / never
+  auto-merge, attestations never machine-written, ESP-007 declaration-driven
+  release matrix — never a broad `products/` scan) stay in `CLAUDE.md` as
+  short operative statements. Added `.github/CODEOWNERS` (`/CLAUDE.md`,
+  `/UPCOMING_PR.md`, `/.github/` → `@sense360store`). Docs plus one additive
+  governance file only — no code, config, workflow-logic, firmware, or test
+  change; no gate's status, blocker, channel, or eligibility meaning changed.
 * **`TRIAC-COMMISSIONING-001`** (`release/triac-commissioning-001`, 2026-06-10,
   human-review only — do NOT auto-merge): cleared the `PACKAGE-TRIAC-001` half
   of the FanTRIAC blocker (citing the operator-attested proof) and moved
