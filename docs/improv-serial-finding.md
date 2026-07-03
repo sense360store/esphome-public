@@ -72,7 +72,9 @@ Two caveats for same firmware detection in WebFlash:
 
 ## Compile validation
 
-`esphome compile` could not complete in the sandboxed environment where this branch was authored: PlatformIO's pinned platform download (`github.com/pioarduino/platform-espressif32` release asset) is blocked by the session's egress policy (HTTP 403 at the proxy). Config validation, code generation entry, and every repo validator (`tests/validate_configs.py`, `tests/test_product_substitutions.py`, `scripts/check_dev_harness_guard.py`, yamllint) pass locally. Full compile proof runs through the repository's own hosted compile lane, `.github/workflows/compile-only.yml` dispatched with `compile_mode=full` on this branch, which compiles every target in `config/compile-only-targets.json` including all WebFlash shipped targets. The dispatch result is recorded in the PR for this branch.
+`esphome compile` on the Release-One entry point (through the dev harness bench device) passed config validation and completed C++ code generation ("Generating C++ source..." then "Compiling app..."), and failed only at PlatformIO's pinned platform download (`github.com/pioarduino/platform-espressif32` release asset, HTTP 403), which the egress policy of the sandboxed environment that authored this branch blocks. Every repo validator (`tests/validate_configs.py`, `tests/test_product_substitutions.py`, `scripts/check_dev_harness_guard.py`, yamllint) passes locally.
+
+Full toolchain compile proof runs through the repository's own hosted compile lane, `.github/workflows/compile-only.yml` dispatched with `compile_mode=full` on this branch, which compiles every target in `config/compile-only-targets.json` including all WebFlash shipped targets. That workflow is `workflow_dispatch` only and the authoring session's GitHub integration has no Actions write permission, so the dispatch is an owner step; it is listed as a pre-merge requirement in the PR for this branch.
 
 ## Conclusion
 
@@ -82,6 +84,7 @@ Handoff to Part 2 (WebFlash manifest correctness): firmware now reports device i
 
 ## Outstanding, owner gated
 
-* Hardware bench validation (Phase 3 of the loop): flash a bench device from this branch through the dev harness and confirm a Web Serial browser session (web.esphome.io or a local WebFlash serve) reads the device information fields above. No physical device was reachable from the environment that produced this branch. Until an owner records that proof, browser identification is compile validated only.
+* Full toolchain compile proof: dispatch `.github/workflows/compile-only.yml` with `compile_mode=full` on this branch and confirm every target passes.
+* Hardware bench validation (Phase 3 of the loop): flash a bench device from this branch through the dev harness and confirm a Web Serial browser session (web.esphome.io or a local WebFlash serve) reads the device information fields above. No physical device was reachable from the environment that produced this branch. Until an owner records that proof, browser identification is validation and codegen proven only.
 * A PoE hardware confirmation specifically (a Ceiling-POE assembled unit, S360-410 powered) remains outstanding for the same reason.
 * New signed binaries require the normal release process before WebFlash can rely on any of this. This branch changes source only.
