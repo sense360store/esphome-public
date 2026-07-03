@@ -20,3 +20,15 @@ wifi:
     password: !secret fallback_ap_password
 
 captive_portal:
+
+# Improv Serial (feat/improv-serial): lets a Web Serial browser session
+# (WebFlash, web.esphome.io) identify a running device over the USB serial
+# link — firmware name, version, chip family — and provision WiFi credentials
+# without reflashing. This lives in the wifi base package because ESPHome's
+# improv_serial component declares DEPENDENCIES = ["logger", "wifi"]; it must
+# never be included by an ethernet-only config (see
+# docs/improv-serial-finding.md). On the ESP32-S3 Core the logger defaults to
+# USB_SERIAL_JTAG, the same native USB interface the browser flashes through,
+# which improv_serial supports (only USB_CDC on S3 is rejected by its
+# validator).
+improv_serial:
