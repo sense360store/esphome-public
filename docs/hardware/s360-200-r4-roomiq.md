@@ -341,7 +341,7 @@ The BOM confirms the on-board sensor identities described in
 `SHT45-AD1B-R3`, `EKMC1601111`, `BMP581`) and the 12-pin JST SH
 `SM12B-SRSS-TB` identity of `J6`. The BOM `.xlsx` itself is
 **retained-but-not-committed** per the current
-[Hardware Artifact Policy](hardware-artifact-policy.md). The
+[Hardware Artifact Policy (archived)](../archive-index.md). The
 Core J10 vs RoomIQ J6 pin-order discrepancy, the `JP1`
 jumper-vs-BOM gap, the `R1` / `R2` / `R4` exact-role `verify`
 flags, and the `AirQ_Led` reuse question remain

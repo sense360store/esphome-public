@@ -155,5 +155,5 @@ python3 tests/test_feature_entity_matrix.py
 - [`config/feature-entity-matrix.json`](../config/feature-entity-matrix.json) — the source of truth this document describes.
 - [`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json) / [`docs/kit-intent-matrix.md`](kit-intent-matrix.md) — module **composition** matrix (deliberately separate).
 - [`config/hardware-catalog.json`](../config/hardware-catalog.json) / [`docs/hardware-catalog.md`](hardware-catalog.md) — canonical SKU / BOM source.
-- [`docs/hardware/board-readiness-matrix.md`](hardware/board-readiness-matrix.md) and [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md) — pin-map / package readiness gates feeding the `needs-schematic-reconcile` rows.
+- [`docs/hardware/board-readiness-matrix.md` (archived)](archive-index.md) and [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md) — pin-map / package readiness gates feeding the `needs-schematic-reconcile` rows.
 - Module pin-maps: [`docs/hardware/s360-200-module-pinmap.md`](hardware/s360-200-module-pinmap.md), [`docs/hardware/s360-210-module-pinmap.md`](hardware/s360-210-module-pinmap.md), [`docs/hardware/s360-211-module-pinmap.md`](hardware/s360-211-module-pinmap.md).

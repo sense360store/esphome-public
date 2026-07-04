@@ -109,7 +109,7 @@ module-side schematics have not been pinned to this repo yet.
 
 - [`../config/hardware-catalog.json`](../config/hardware-catalog.json) —
   machine-readable mirror of this catalog with `schematic_status` per entry.
-- [`hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md)
+- [`hardware/remaining-board-documentation-audit.md` (archived)](archive-index.md)
   — HW-004 / HW-006 audit that classifies every catalog row's documentation
   state (`documented` / `partially-documented` / `cataloged-unverified` /
   `blocked` / `not-needed-for-release-one`) and records the evidence

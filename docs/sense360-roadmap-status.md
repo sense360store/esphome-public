@@ -90,7 +90,7 @@ not set `webflash_build_matrix`.
 
 The stable first release is **no longer pending**: the stable build above shipped
 as GitHub Release **`v1.0.0`** and is imported/live in WebFlash — see
-[`docs/first-release-publish-readiness.md`](first-release-publish-readiness.md)
+[`docs/first-release-publish-readiness.md` (archived)](archive-index.md)
 (`FIRST-RELEASE-PUBLISH-READINESS-001`) and
 [`docs/webflash-release-proof.md`](webflash-release-proof.md) (ESP-006/ESP-007).
 Any future publish must use a **new version** (e.g. `1.0.1` / `1.1.0`); `v1.0.0`
@@ -256,7 +256,7 @@ external-component ref/tag pin, publish-time checksums, and WebFlash handoff.
 Full record:
 [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md) §11.8
 (`FIRST-RELEASE-WORKFLOW-DRYRUN-CI-RESULT-001`) and
-[`docs/first-release-publish-readiness.md`](first-release-publish-readiness.md).
+[`docs/first-release-publish-readiness.md` (archived)](archive-index.md).
 
 ---
 
@@ -291,7 +291,7 @@ waiver in a new `release_disposition` field only. The dependent PoE room bundles
 `S360-KIT-CORRIDOR-P`) **no longer block on the S360-410 hardware-verification
 basis** and proceed under this waiver; their non-S360-410 gates (the AirIQ stack;
 the LED preview→stable gauntlet) are unaffected. The full waiver record is
-[`docs/package-poe-410-evidence-result.md` §0.1](package-poe-410-evidence-result.md).
+[`docs/package-poe-410-evidence-result.md` §0.1 (archived)](archive-index.md).
 
 Per [`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md)
 (PACKAGE-POE-410-001), the evidence is **insufficient** to move S360-410 from
@@ -302,7 +302,7 @@ there and in [`docs/hardware/s360-410-r4-poe.md`](hardware/s360-410-r4-poe.md)
 (HW-PINMAP-410). The consolidated evidence matrix, the per-bundle
 stable-bundle impact assessment, and the operator/designer next-evidence
 checklist are recorded at
-[`docs/package-poe-410-evidence-result.md`](package-poe-410-evidence-result.md)
+[`docs/package-poe-410-evidence-result.md` (archived)](archive-index.md)
 (PACKAGE-POE-410-EVIDENCE-RESULT-001, 2026-05-29; E13 PCB-source line moved
 to on-file by HW-S360-410-GERBERS-E13, 2026-06-08; connector pin-1 polarity
 E9 + J2-harness E10 recorded on file and the Release-One PoE caveat E15
@@ -376,7 +376,7 @@ are `preview-candidate`.
 
 LED stays preview until the preview→stable gauntlet closes
 ([`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md),
-[`docs/product-led-preview-decision.md`](product-led-preview-decision.md)):
+[`docs/product-led-preview-decision.md` (archived)](archive-index.md)):
 `S360-300-BENCH-001`, `WF-HW-TEST-001`, `WF-HW-TEST-003`, `RELEASE-007`.
 **No LED-stable claim is made anywhere in this repo.**
 
@@ -520,7 +520,7 @@ default, mains-risk warning required). This is docs/config only: it adds no
 
 The concrete preview target manifest
 ([`config/preview-release-targets.json`](../config/preview-release-targets.json),
-doc [`docs/preview-release-targets.md`](preview-release-targets.md)) now aligns
+doc [`docs/preview-release-targets.md` (archived)](archive-index.md)) now aligns
 with the policy so that **every buildable product is a preview /
 advanced-preview release target**, via three delivery lanes:
 
