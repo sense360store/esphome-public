@@ -25,16 +25,14 @@ asserts so they cannot silently regress:
   * no forbidden target (stable Bathroom unless explicitly selected, TRIAC,
     or any fan manual-preview target) is in the preview publish scope, verified
     by replaying the release workflow's matrix-generation filter (task item 6);
-  * the plan doc records, for each artifact, the config string, build row,
-    wrapper path, release-note draft path, compile run, hidden / candidate /
-    not-buyable posture, ``preview`` channel, not-stable / not-recommended /
-    not-default posture, no hardware/compliance proof, the workflow selector,
-    and the output filename (task items 3 / 4);
-  * the plan queues ``RELEASE-PREVIEW-PUBLISH-RUN-001`` and states WebFlash
-    import comes after upstream artifacts exist (task item 7); and
+    and
   * the hard guardrails hold — no ``manifest.json`` / ``firmware/sources.json``
-    / ``.bin`` produced, launch SKU unchanged, and no fan / TRIAC ``.bin``
-    appears in the publish set.
+    / ``.bin`` produced, and no fan / TRIAC token appears in the publish set.
+
+The plan record doc (``docs/release-preview-publish-plan.md``) was archived
+under DOCS-DISPOSITION-001 (see ``docs/archive-index.md``); the tests that
+pinned that doc's prose were retired with it. The live-ledger / workflow
+guards above remain.
 
 Uses Python's stdlib unittest (matching the no-pytest convention the other
 validators in this repo use). Run with::
@@ -46,7 +44,6 @@ from __future__ import annotations
 
 import importlib.util
 import json
-import re
 import unittest
 from pathlib import Path
 from typing import Any, Dict, List
@@ -56,8 +53,6 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 CATALOG_PATH = REPO_ROOT / "config" / "product-catalog.json"
-SHOP_PATH = REPO_ROOT / "config" / "shop-commercial-source-of-truth.json"
-PLAN_DOC = REPO_ROOT / "docs" / "release-preview-publish-plan.md"
 DRAFT_DIR = REPO_ROOT / "docs" / "release-notes" / "preview"
 VALIDATOR_PATH = REPO_ROOT / "scripts" / "validate-webflash-release-notes.py"
 MAPPER_PATH = REPO_ROOT / "scripts" / "product_name_mapper.py"
@@ -67,9 +62,6 @@ RELEASE_NOTES_WORKFLOW = (
 )
 
 COMPILE_RUN_ID = 26821900127
-PLAN_ID = "RELEASE-PREVIEW-PUBLISH-PLAN-001"
-RUN_ID = "RELEASE-PREVIEW-PUBLISH-RUN-001"
-LAUNCH_SKU = "S360-KIT-BATH-P"
 VERSION = "1.0.0"
 
 # The three metadata-ready preview rows this plan published, by config string.
@@ -95,12 +87,6 @@ PROMOTED_CONFIGS = (
 # channel, so it is tracked separately.
 STILL_PREVIEW_CONFIGS = ("Ceiling-POE-RoomIQ-LED",)
 EXPERIMENTAL_METADATA_READY_CONFIGS = ("Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",)
-# The artifact names the plan recorded (historical, static).
-PLAN_ARTIFACTS = {
-    "Ceiling-POE-AirIQ-RoomIQ": "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.0-preview.bin",
-    "Ceiling-POE-RoomIQ": "Sense360-Ceiling-POE-RoomIQ-v1.0.0-preview.bin",
-    "Ceiling-POE-RoomIQ-LED": "Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin",
-}
 
 # The stable Bathroom baseline + already-published VentIQ LED preview are
 # explicitly out of the publish set (the stable build is only built when
@@ -119,20 +105,6 @@ FORBIDDEN_TARGETS = (
     "Ceiling-POE-FanPWM",
     "Ceiling-POE-FanDAC",
 )
-
-# Allow-list of every Sense360-*.bin token the plan doc may name: the three
-# preview artifacts (the publish set) plus the stable Bathroom + published
-# VentIQ LED preview cross-references (named by config string today, allowed by
-# name if a future edit adds them).
-ALLOWED_BIN_ARTIFACTS = {
-    "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.0-preview.bin",
-    "Sense360-Ceiling-POE-RoomIQ-v1.0.0-preview.bin",
-    "Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin",
-    "Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin",
-    "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin",
-}
-
-BIN_TOKEN_RE = re.compile(r"Sense360-[A-Za-z0-9.\-]+\.bin")
 
 
 def _load_module(name: str, path: Path):
@@ -165,15 +137,6 @@ def _metadata_ready_rows() -> List[Dict[str, Any]]:
         for b in _builds()
         if b.get("release_state") == "metadata-ready-unpublished"
     ]
-
-
-def _normalise(text: str) -> str:
-    """Lowercase, drop blockquote markers / backticks / table pipes / markdown
-    emphasis markers, collapse whitespace runs to single spaces so wrapped prose
-    still matches regardless of bold / italic styling."""
-    lines = [re.sub(r"^\s*>\s?", "", ln) for ln in text.splitlines()]
-    joined = " ".join(lines).replace("`", "").replace("|", " ").replace("*", "")
-    return re.sub(r"\s+", " ", joined).lower()
 
 
 def _wrapper_stem(product_yaml: str) -> str:
@@ -417,93 +380,6 @@ class WorkflowMatrixScopeTests(unittest.TestCase):
             for token in FORBIDDEN_ARTIFACT_TOKENS:
                 with self.subTest(config_string=cs, token=token):
                     self.assertNotIn(token.lower(), cs.lower())
-
-
-class PublishPlanDocTests(unittest.TestCase):
-    """Task items 3 / 4 / 7: the plan doc records the required per-artifact
-    fields, queues the run, and honours the publish-set guardrails."""
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.text = PLAN_DOC.read_text(encoding="utf-8")
-        cls.norm = _normalise(cls.text)
-        cls.by_cs = _by_cs()
-
-    def test_plan_doc_exists_and_is_self_identified(self) -> None:
-        self.assertTrue(PLAN_DOC.is_file())
-        self.assertIn(PLAN_ID, self.text)
-
-    def test_plan_doc_records_every_required_field_per_artifact(self) -> None:
-        for cs in PUBLISH_CONFIGS:
-            row = self.by_cs[cs]
-            # The plan doc is a historical record of the v1.0.0-preview cut:
-            # it names the preview artifacts as planned at the time, not the
-            # later promoted stable names.
-            artifact = PLAN_ARTIFACTS[cs]
-            wrapper = row["product_yaml"]
-            draft_rel = f"release-notes/preview/{cs.lower()}.md"
-            with self.subTest(config_string=cs):
-                # config string, build row config, expected output filename
-                self.assertIn(cs, self.text)
-                self.assertIn(artifact, self.text)
-                # product YAML / wrapper path
-                self.assertIn(wrapper, self.text)
-                # release-note draft path
-                self.assertIn(draft_rel, self.text)
-                # compile evidence run
-                self.assertIn(str(COMPILE_RUN_ID), self.text)
-                # channel preview + not stable/recommended/default + posture
-                norm = self.norm
-                self.assertIn("preview", norm)
-                self.assertIn("hidden", norm)
-                self.assertIn("candidate", norm)
-                self.assertIn("not buyable", norm)
-                self.assertIn("not stable", norm)
-                self.assertIn("not recommended", norm)
-                self.assertIn("not a customer default", norm)
-
-    def test_plan_doc_states_no_hardware_or_compliance_proof(self) -> None:
-        self.assertIn("firmware-build proof only", self.norm)
-        self.assertIn("no hardware / bench / compliance", self.norm)
-
-    def test_plan_doc_records_workflow_selector_per_artifact(self) -> None:
-        for cs in PUBLISH_CONFIGS:
-            with self.subTest(config_string=cs):
-                # The release_target selector value is the config string itself.
-                self.assertIn(f"release_target: {cs}", self.text)
-
-    def test_plan_doc_queues_the_run_and_defers_webflash_import(self) -> None:
-        self.assertIn(RUN_ID, self.text)
-        self.assertIn("webflash import comes after", self.norm)
-
-    def test_plan_doc_keeps_launch_sku_unchanged(self) -> None:
-        self.assertIn(LAUNCH_SKU, self.text)
-        shop = _load_json(SHOP_PATH)["launch_product"]
-        self.assertEqual(shop["shop_sku"], LAUNCH_SKU)
-
-    def test_plan_doc_marks_triac_and_fans_out_of_scope(self) -> None:
-        self.assertIn("triac", self.norm)
-        self.assertIn("manual-preview", self.norm)
-        self.assertIn("hw-005", self.norm)
-
-    def test_plan_doc_bin_tokens_are_exactly_the_publish_set(self) -> None:
-        tokens = set(BIN_TOKEN_RE.findall(self.text))
-        # Every .bin named in the plan is on the allow-list ...
-        self.assertTrue(
-            tokens.issubset(ALLOWED_BIN_ARTIFACTS),
-            f"plan names unexpected .bin artifact(s): "
-            f"{sorted(tokens - ALLOWED_BIN_ARTIFACTS)}",
-        )
-        # ... and all three artifacts the plan named (historical preview
-        # names; the promoted rows' live ledger artifacts are stable now).
-        for cs in PUBLISH_CONFIGS:
-            self.assertIn(PLAN_ARTIFACTS[cs], tokens)
-
-    def test_plan_doc_names_no_fan_or_triac_bin_artifact(self) -> None:
-        for token in BIN_TOKEN_RE.findall(self.text):
-            for forbidden in FORBIDDEN_ARTIFACT_TOKENS:
-                with self.subTest(artifact=token, token=forbidden):
-                    self.assertNotIn(forbidden.lower(), token.lower())
 
 
 class GuardrailTests(unittest.TestCase):

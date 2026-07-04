@@ -58,7 +58,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 | Drive item | Type | Notes |
 |---|---|---|
 | `S360-410-R4 / sch_pdf / S360-410-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-410-R4.pdf`](schematics/S360-410-R4.pdf) (975,137 bytes; SHA256 `4a8b7a3b2a89006a9332eaa486743f687aaedc4b6bb807c6b25670f742ac2414`). |
-| `S360-410-R4 / bom` | BOM artifacts | Retained-but-not-committed per [`hardware-artifact-policy.md`](hardware-artifact-policy.md). |
+| `S360-410-R4 / bom` | BOM artifacts | Retained-but-not-committed per [`hardware-artifact-policy.md` (archived)](../archive-index.md). |
 | `S360-410-R4 / cpl` | Pick-and-place | Retained-but-not-committed. |
 | `S360-410-R4 / gerbers` | Gerbers | Retained-but-not-committed. |
 | `S360-410-R4 / step_file` | 3D STEP | Retained-but-not-committed. |

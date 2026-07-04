@@ -22,7 +22,7 @@ It is **documentation only**. It does **not**:
   beyond its current value;
 - resolve the Core `J10` vs RoomIQ `J6` pin-order discrepancy
   recorded as
-  [`firmware-package-mapping-audit.md` Core J10 vs RoomIQ J6](firmware-package-mapping-audit.md#core-j10-vs-roomiq-j6-pin-order)
+  [`firmware-package-mapping-audit.md` Core J10 vs RoomIQ J6 (archived)](../archive-index.md)
   and
   [`s360-200-r4-roomiq.md` Open Questions](s360-200-r4-roomiq.md#open-questions--verification-needed)
   #1;
@@ -54,7 +54,7 @@ images, and assets are organized under per-type subfolders
 | Drive item | Type | Notes |
 |---|---|---|
 | `S360-200-R4 / sch_pdf / S360-200-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-200-R4.pdf`](schematics/S360-200-R4.pdf). |
-| `S360-200-R4 / bom` | BOM artifacts | Retained-but-not-committed per [`hardware-artifact-policy.md`](hardware-artifact-policy.md). |
+| `S360-200-R4 / bom` | BOM artifacts | Retained-but-not-committed per [`hardware-artifact-policy.md` (archived)](../archive-index.md). |
 | `S360-200-R4 / cpl` | Pick-and-place | Retained-but-not-committed. |
 | `S360-200-R4 / gerbers` | Gerbers | Retained-but-not-committed. |
 | `S360-200-R4 / step_file` | 3D STEP | Retained-but-not-committed. |
@@ -126,7 +126,7 @@ capture below follows the
    prints `+3.3V` at pin 1 and `+5V` at pin 2. Both connectors are
    nominally a mating pair, so one of the two tables disagrees with
    the silkscreen. The reconciliation is owed to
-   [`firmware-package-mapping-audit.md` Core J10 vs RoomIQ J6](firmware-package-mapping-audit.md#core-j10-vs-roomiq-j6-pin-order)
+   [`firmware-package-mapping-audit.md` Core J10 vs RoomIQ J6 (archived)](../archive-index.md)
    and to
    [`s360-100-r4-core.md` § S360-100-BENCH-001 status](s360-100-r4-core.md#s360-100-bench-001-status);
    it is **not** resolved by this PR.

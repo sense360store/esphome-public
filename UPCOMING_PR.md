@@ -85,8 +85,18 @@ by posture** per
    amendments moved `docs/firmware-combination-matrix.md`,
    `docs/firmware-build-gap-report.md` (CI-generated, freshness-gated;
    generators stay) and `docs/webflash-contract.md` (inter-repo interface
-   contract) to KEEP. Remaining execution is one step per PR — Steps 2–8:
-   archive batches A/B, the S360-311/S360-312 duplicate merges, the five
+   contract) to KEEP. Step 2 (archive batch A) is **EXECUTED**: the 35
+   unmarked ARCHIVE rows are deleted with `docs/archive-index.md` rows
+   (index created), the three cross-repo stubs are in place
+   (`first-release-dryrun-checklist`, `release-matrix-webflash-alignment`,
+   `kit-intent-matrix`), inbound links from kept docs are retargeted at the
+   archive index, and the drifted test references
+   (`tests/test_preview_publish_plan.py`,
+   `tests/test_preview_publish_results.py`,
+   `tests/test_relay_pinmap_reconcile.py`,
+   `tests/test_preview_release_targets.py`) are updated in the same PR.
+   Remaining execution is one step per PR — Steps 3–8:
+   archive batch B, the S360-311/S360-312 duplicate merges, the five
    KEEP-SLIM board docs, MOVE-PRIVATE, the `CLAUDE.md` sanitise +
    `UPCOMING_PR.md` retirement (with `docs/standing-invariants.md`), and the
    link sweep / Phase 2 WebFlash handoff — tracked in the manifest's

@@ -193,7 +193,7 @@ hand.
 ## Where the scaffold fits in onboarding
 
 1. Hardware evidence first (per
-   [`docs/hardware/remaining-board-documentation-audit.md`](hardware/remaining-board-documentation-audit.md#decision-table)).
+   [`docs/hardware/remaining-board-documentation-audit.md` (archived)](archive-index.md)).
 2. Mains-voltage compliance review if `S360-400` or `S360-320` is
    involved (per
    [`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md)).
@@ -239,7 +239,7 @@ before opening a PR.
 - [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
   — RELEASE-006 promotion gates. Production is reached via these
   gates, not via a scaffold.
-- [`docs/product-led-preview-decision.md`](product-led-preview-decision.md)
+- [`docs/product-led-preview-decision.md` (archived)](archive-index.md)
   — PRODUCT-005 worked example of a preview product path (Sense360 LED).
 - [`docs/webflash-contract.md`](webflash-contract.md) — canonical
   WebFlash artifact / grammar / token contract.
@@ -250,7 +250,7 @@ before opening a PR.
 - [`docs/cleanup-audit.md`](cleanup-audit.md) — classification of
   stale / current / blocked-reference / legacy-compatible repo
   content; carries PRODUCT-010 entries.
-- [`docs/product-deprecation-removal-policy.md`](product-deprecation-removal-policy.md)
+- [`docs/product-deprecation-removal-policy.md` (archived)](archive-index.md)
   — PRODUCT-DEP-001 canonical deprecation / removal policy. The
   scaffold tool already rejects `deprecated` and `removed` via
   `REJECTED_STATUSES`; the policy doc records the reasoning and

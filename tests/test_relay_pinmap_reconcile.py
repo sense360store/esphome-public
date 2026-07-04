@@ -55,7 +55,9 @@ HARDWARE_DIR = REPO_ROOT / "docs" / "hardware"
 CORE_CONNECTOR_PINMAP_DOC = HARDWARE_DIR / "s360-100-core-connector-pin-map.md"
 CORE_REFERENCE_DOC = HARDWARE_DIR / "s360-100-r4-core.md"
 MODULE_PINMAP_DOC = HARDWARE_DIR / "s360-310-module-pinmap.md"
-RECONCILE_DOC = HARDWARE_DIR / "s360-310-relay-pinmap-reconcile.md"
+# The S360-310-RELAY-PINMAP-RECONCILE-001 record doc was archived under
+# DOCS-DISPOSITION-001 (see docs/archive-index.md); the doc-pinning tests
+# went with it. The cross-layer drift guards below remain live.
 
 # Four non-voice Core abstract packages rebound by CORE-ABSTRACT-BUS-001A
 # to the schematic-correct ``relay_pin: GPIO3``.
@@ -271,67 +273,6 @@ class FanRelayPackageStaysAbstractTests(unittest.TestCase):
                 f"fan_relay.yaml must not name any GPIO on an active line; "
                 f"the relay output is owned by the Core `main_relay` on "
                 f"${{relay_pin}}. Offending line: {line!r}",
-            )
-
-
-class ReconcileDocTests(unittest.TestCase):
-    """The S360-310-RELAY-PINMAP-RECONCILE-001 record doc exists and is honest."""
-
-    def test_reconcile_doc_exists(self) -> None:
-        self.assertTrue(
-            RECONCILE_DOC.is_file(),
-            f"S360-310-RELAY-PINMAP-RECONCILE-001 must add the reconcile "
-            f"record at {RECONCILE_DOC.relative_to(REPO_ROOT)}.",
-        )
-
-    def test_reconcile_doc_self_identifies(self) -> None:
-        self.assertIn(
-            "S360-310-RELAY-PINMAP-RECONCILE-001",
-            RECONCILE_DOC.read_text(),
-            "The reconcile doc must self-identify with its ticket id.",
-        )
-
-    def test_reconcile_doc_records_canonical_pin(self) -> None:
-        text = RECONCILE_DOC.read_text()
-        for token in ("IO3", "GPIO3"):
-            self.assertIn(
-                token,
-                text,
-                f"The reconcile doc must record the canonical relay pin "
-                f"({token}).",
-            )
-
-    def test_reconcile_doc_keeps_release_blocked(self) -> None:
-        lower = RECONCILE_DOC.read_text().lower()
-        # The doc must positively state that release / WebFlash stay
-        # disabled and that S360-310 stays cataloged_unverified. (A
-        # forbidden-substring scan is unsuitable here: the doc legitimately
-        # enumerates the readiness claims it does NOT make.)
-        self.assertIn(
-            "stay disabled",
-            lower,
-            "The reconcile doc must state that release / WebFlash stay "
-            "disabled — the slice is package/doc/tests only.",
-        )
-        self.assertIn(
-            "cataloged_unverified",
-            lower,
-            "The reconcile doc must state that S360-310 stays "
-            "cataloged_unverified.",
-        )
-        # The doc must not make an *affirmative* readiness claim. These
-        # patterns only match a positive assertion (the doc's disclaimers
-        # are phrased as 'does not claim ... hardware-stable').
-        for affirmative in (
-            r"\bis (?:now )?hardware-stable\b",
-            r"\bis (?:now )?release-ready\b",
-            r"\bis (?:now )?webflash-ready\b",
-            r"\bnow webflash-exposed\b",
-        ):
-            self.assertIsNone(
-                re.search(affirmative, lower),
-                f"The reconcile doc must not affirmatively claim "
-                f"readiness (pattern {affirmative!r}).",
             )
 
 

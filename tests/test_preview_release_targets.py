@@ -88,9 +88,16 @@ class ManifestStructureTests(unittest.TestCase):
         self.assertEqual(
             self.manifest["id"], "RELEASE-PREVIEW-TARGETS-ALL-PRODUCTS-001"
         )
-        self.assertTrue(
-            (REPO_ROOT / self.manifest["canonical_doc"]).is_file(),
-            "canonical doc must exist",
+        # The canonical doc was archived under DOCS-DISPOSITION-001; its
+        # content stays recoverable via its docs/archive-index.md row, which
+        # must keep recording the exact path this manifest names.
+        archive_index = (REPO_ROOT / "docs" / "archive-index.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            self.manifest["canonical_doc"],
+            archive_index,
+            "canonical doc must be recorded in docs/archive-index.md",
         )
 
     def test_scope_is_metadata_only(self) -> None:

@@ -54,7 +54,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 | Drive item | Type | Notes |
 |---|---|---|
 | `S360-320-R4 / sch_pdf / S360-320-R4.pdf` | Schematic PDF | Module-side schematic. Byte-identical copy committed in-repo at [`schematics/S360-320-R4.pdf`](schematics/S360-320-R4.pdf). |
-| `S360-320-R4 / bom` | BOM artifacts | Retained-but-not-committed per [`hardware-artifact-policy.md`](hardware-artifact-policy.md). |
+| `S360-320-R4 / bom` | BOM artifacts | Retained-but-not-committed per [`hardware-artifact-policy.md` (archived)](../archive-index.md). |
 | `S360-320-R4 / cpl` | Pick-and-place | Retained-but-not-committed. |
 | `S360-320-R4 / gerbers` | Gerbers | Retained-but-not-committed. |
 | `S360-320-R4 / stepfile` | 3D STEP | Retained-but-not-committed. |

@@ -195,7 +195,7 @@ symbol is `Q_NMOS_GSD`, not a populated part number), PWM polarity, tach
 pull-up source, or any electrical / timing claim — is **unknown** and
 would require the retained-but-not-committed KiCad source / PCB / BOM /
 CPL / Gerbers / drill / STEP / board images or bench evidence per
-[`hardware-artifact-policy.md`](hardware-artifact-policy.md).
+[`hardware-artifact-policy.md` (archived)](../archive-index.md).
 
 ## Pin / connector reference
 
@@ -381,14 +381,14 @@ Which cardinality is canonical for the `FanPWM` token is **undecided**.
 
 `S360-311` is **design-complete** as of `PRE-HW-PREP-FW-311-001`
 (2026-05-31), slice 3 of
-[`docs/pre-hardware-prep-plan.md`](../pre-hardware-prep-plan.md).
+[`docs/pre-hardware-prep-plan.md` (archived)](../archive-index.md).
 
 **`design-complete` is a prose / documentation annotation only.** It is
 deliberately **not** `verified`: it does **not** flip `schematic_status`
 (which stays `cataloged_unverified`), does **not** change `S360-311`'s
 lifecycle (`hardware-pending`), does **not** set `schematic_file`, and
 does **not** enable any WebFlash exposure or release surface (per
-[`pre-hardware-prep-plan.md` §1.2 / §1.4](../pre-hardware-prep-plan.md#12-what-design-complete-is-explicitly-not)).
+[`pre-hardware-prep-plan.md` §1.2 / §1.4 (archived)](../archive-index.md)).
 A `design-complete` board stays `cataloged_unverified` until its bench
 session fills the D6 matrix below and a separate JSON-catalog PR makes
 the `cataloged_unverified -> verified` flip.
@@ -406,7 +406,7 @@ and the `J6`↔`J3` harness — stay **OWED** to `HW-PINMAP-311` and are
 carried into the D6 matrix, not resolved here.
 
 Checklist against the four `design-complete` conditions
-([`pre-hardware-prep-plan.md` §1.1](../pre-hardware-prep-plan.md#11-definition)):
+([`pre-hardware-prep-plan.md` §1.1 (archived)](../archive-index.md)):
 
 | # | Condition | State | Evidence |
 |---|---|---|---|
@@ -433,7 +433,7 @@ publishes no artifact, tags no release, authors no release notes for a
 real build, and sets no `artifact_name` field in any `config/*.json`.
 `WEBFLASH-PWM-001` / `RELEASE-PWM-001` / `WF-IMPORT-PWM-001` stay
 blocked. The template follows the house convention in
-[`docs/room-firmware-release-notes.md`](../room-firmware-release-notes.md).
+[`docs/room-firmware-release-notes.md` (archived)](../archive-index.md).
 
 Artifact-naming scheme (for the eventual build, once verified +
 released — **not** produced here), mirroring the Release-One scheme
@@ -559,10 +559,10 @@ measured rows are actually captured.
 - [`docs/release-one-hardware-audit.md`](../release-one-hardware-audit.md)
   — Required follow-ups #2 / #3, the owner (`CORE-ABSTRACT-BUS-001`) of the
   systemic Core abstract-bus rebind this reference defers question #1 to.
-- [`docs/hardware/board-readiness-matrix.md`](board-readiness-matrix.md)
+- [`docs/hardware/board-readiness-matrix.md` (archived)](../archive-index.md)
   — per-board readiness; the `S360-311` row (classification unchanged by
   this PR).
-- [Hardware Artifact Policy (HW-ASSETS-001)](hardware-artifact-policy.md)
+- [Hardware Artifact Policy (HW-ASSETS-001) (archived)](../archive-index.md)
   — the retained-but-not-committed policy this reference respects.
 - [`docs/cleanup-audit.md`](../cleanup-audit.md) — CLEANUP-001
   classification; carries the HW-PINMAP-311 / HW-PINMAP-311-FOLLOWUP

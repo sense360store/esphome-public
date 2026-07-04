@@ -323,7 +323,7 @@ This document and the tests added with it must not:
   allocation table).
 - [`docs/hardware/artifacts/S360-100-R4.md`](artifacts/S360-100-R4.md)
   — curated artifact index (HW-ASSETS-002).
-- [`docs/hardware/hardware-artifact-policy.md`](hardware-artifact-policy.md)
+- [`docs/hardware/hardware-artifact-policy.md` (archived)](../archive-index.md)
   — hardware source / manufacturing artifact policy
   (HW-ASSETS-001).
 - [`docs/sense360-room-bundles.md`](../sense360-room-bundles.md) —

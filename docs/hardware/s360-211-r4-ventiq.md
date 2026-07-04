@@ -227,7 +227,7 @@ What this doc does **not** do:
 - [S360-210-R4 AirIQ Hardware Reference](s360-210-r4-airiq.md) —
   sibling air-quality module on the same `J9` connector; mutually
   exclusive with VentIQ.
-- [Remaining-board documentation audit (HW-004 / HW-006)](remaining-board-documentation-audit.md)
+- [Remaining-board documentation audit (HW-004 / HW-006) (archived)](../archive-index.md)
   — classifies VentIQ's current documentation state.
 - [Release-One Hardware Audit](../release-one-hardware-audit.md) — VentIQ
   schematic-pending caveat retained until HW-008 flips the JSON status.
