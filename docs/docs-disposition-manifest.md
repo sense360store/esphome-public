@@ -408,7 +408,7 @@ that performs it.
 | Step | Scope | PR | Date | Status |
 |---|---|---|---|---|
 | 1 | Ratify the manifest (owner decisions + amendments applied; WebFlash guard-test notes folded in; this log added) | #786 | 2026-07-04 | EXECUTED |
-| 2 | Archive batch A (ARCHIVE rows without [code-ref]) | — | 2026-07-04 | EXECUTED |
+| 2 | Archive batch A (ARCHIVE rows without [code-ref]) | #787 | 2026-07-04 | EXECUTED |
 | 3 | Archive batch B (ARCHIVE rows with [code-ref], reference updates in-PR) | — | — | PENDING |
 | 4 | Merge the duplicate pairs (S360-311, S360-312) | — | — | PENDING |
 | 5 | Slim the five KEEP-SLIM board docs | — | — | PENDING |
