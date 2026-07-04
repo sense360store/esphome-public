@@ -76,19 +76,26 @@ by posture** per
 
 3. **`DOCS-DISPOSITION-001` (docs disposition execution).**
    [`docs/docs-disposition-manifest.md`](docs/docs-disposition-manifest.md)
-   (added 2026-07-04) inventories every Markdown doc in this repo and
-   WebFlash with a proposed disposition (KEEP / KEEP-SLIM / MERGE / ARCHIVE /
-   REMOVE / DECIDE). The manifest is a proposal only — nothing has been
-   moved or deleted yet. Execution is follow-up work in disposition-sized
-   PRs, subject to the manifest's *Execution constraints* section: rows
-   referenced from `scripts/` / `tests/` / `.github/workflows/` must update
-   those references in the same PR (two ARCHIVE rows are CI-freshness-gated
-   generator output), the `UPCOMING_PR.md` REMOVE row cannot execute without
-   a `CLAUDE.md` rewrite and queue/invariant migration, and every DECIDE row
-   (including `docs/sense360-roadmap-status.md`, `CLAUDE.md`, and
-   `docs/shop-commercial-source-of-truth.md`) needs an explicit owner call
-   first. WebFlash rows execute in the WebFlash repo. Touches no product
-   YAML, no `config/`, no release posture.
+   is now **approved** (ratified 2026-07-04; Step 1 of the 8-step execution
+   loop). All former DECIDE rows are resolved by the owner decisions of
+   record applied in the manifest: `docs/sense360-roadmap-status.md` KEEP,
+   `CLAUDE.md` KEEP-SANITISE (Step 7),
+   `docs/shop-commercial-source-of-truth.md` MOVE-PRIVATE (Step 6, retiring
+   its guard test in the same PR), `include/README.md` KEEP; ratified
+   amendments moved `docs/firmware-combination-matrix.md`,
+   `docs/firmware-build-gap-report.md` (CI-generated, freshness-gated;
+   generators stay) and `docs/webflash-contract.md` (inter-repo interface
+   contract) to KEEP. Remaining execution is one step per PR — Steps 2–8:
+   archive batches A/B, the S360-311/S360-312 duplicate merges, the five
+   KEEP-SLIM board docs, MOVE-PRIVATE, the `CLAUDE.md` sanitise +
+   `UPCOMING_PR.md` retirement (with `docs/standing-invariants.md`), and the
+   link sweep / Phase 2 WebFlash handoff — tracked in the manifest's
+   *Execution log*, subject to its *Execution constraints* (code-referenced
+   rows update `scripts/` / `tests/` / `.github/workflows/` references in
+   the same PR; archived files get `docs/archive-index.md` rows and
+   cross-repo stubs where required). WebFlash rows execute in the WebFlash
+   repo (Phase 2). Touches no product YAML, no `config/`, no release
+   posture.
 
 The remaining security-audit item, finding #6 (`check-yaml --unsafe` in
 pre-commit), is **accepted** — no action queued.
