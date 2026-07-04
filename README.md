@@ -67,7 +67,7 @@ Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
 > ([`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml))
 > remains in the repo as a blocked / reference file but is NOT in the
 > WebFlash build matrix. See
-> [`docs/release-one-hardware-audit.md#fantriac-mapping-resolution`](docs/release-one-hardware-audit.md#fantriac-mapping-resolution).
+> [`docs/release-one-hardware-audit.md#fantriac-mapping-resolution` (archived)](docs/archive-index.md).
 
 See [Build Output Contract](#build-output-contract) below.
 
@@ -347,6 +347,7 @@ packages:
       # packages/features/fan_control_profile.yaml) is intentionally
       # omitted from production Release-One while HW-005 is open. See
       # docs/release-one-hardware-audit.md#fantriac-mapping-resolution
+      # (archived; see docs/archive-index.md)
       - packages/features/bathroom_profile.yaml
       - packages/features/presence_basic_profile.yaml
     refresh: 1d
@@ -396,7 +397,7 @@ external_components:
 | | `packages/features/fan_control_profile.yaml` | Fan automation |
 
 See [docs/product-matrix.md](docs/product-matrix.md) for the complete module
-reference, and [docs/release-one.md](docs/release-one.md) for the Release-One
+reference, and [docs/release-one.md (archived)](docs/archive-index.md) for the Release-One
 configuration in detail.
 
 ---
@@ -429,7 +430,7 @@ esphome-public/
 > `packages/expansions/*` functional names are retained as `!include` aliases of
 > their board package. See
 > [docs/system-architecture.md](docs/system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers)
-> and [docs/arch-board-bundle-plan.md](docs/arch-board-bundle-plan.md).
+> and [docs/arch-board-bundle-plan.md (archived)](docs/archive-index.md).
 
 ---
 
@@ -459,15 +460,15 @@ WebFlash fit together end to end.
 - [S360-200-R4 RoomIQ Hardware Reference](docs/hardware/s360-200-r4-roomiq.md) — pins, connectors, sensors, and schematic net names for the Sense360 RoomIQ board.
 - [WebFlash Compatibility Contract](docs/webflash-contract.md) — Artifact naming, config-string grammar, release-body format
 - [WebFlash Compatibility Snapshot](config/webflash-compatibility.json) — Machine-readable local mirror of the contract for validators and CI
-- [WebFlash Release Handoff](docs/webflash-release-handoff.md) — Operational source-to-installer flow, troubleshooting, and release proof checklist
-- [Release-One Configuration](docs/release-one.md) — Ceiling-POE-VentIQ-RoomIQ (FanTRIAC excluded while HW-005 is open)
-- [Product Onboarding Guide](docs/product-onboarding.md) — Ordered safe sequence for adding a new product / config (PRODUCT-004)
+- [WebFlash Release Handoff (archived)](docs/archive-index.md) — Operational source-to-installer flow, troubleshooting, and release proof checklist
+- [Release-One Configuration (archived)](docs/archive-index.md) — Ceiling-POE-VentIQ-RoomIQ (FanTRIAC excluded while HW-005 is open)
+- [Product Onboarding Guide (archived)](docs/archive-index.md) — Ordered safe sequence for adding a new product / config (PRODUCT-004)
 - [Product Matrix](docs/product-matrix.md) — Slot/module reference
 - [Installation Guide](docs/installation.md) — Step-by-step setup
 - [Configuration Reference](docs/configuration.md) — Customization options
 - [Development Guide](docs/development.md) — Contributing and testing
 - [Manual / Custom User Walkthrough (archived)](docs/archive-index.md) — test plan and findings template for validating the advanced manual ESPHome path.
-- [Manual Install — Fan Firmware Candidates](docs/manual-install-fan-candidates.md) — manual-install-only handoff for the no-WebFlash FanRelay / FanPWM / FanDAC candidates (no release artifact, no WebFlash exposure).
+- [Manual Install — Fan Firmware Candidates (archived)](docs/archive-index.md) — manual-install-only handoff for the no-WebFlash FanRelay / FanPWM / FanDAC candidates (no release artifact, no WebFlash exposure).
 - [Changelog](CHANGELOG.md) — Version history
 
 ---

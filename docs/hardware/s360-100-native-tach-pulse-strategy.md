@@ -19,8 +19,8 @@ or claim fan WebFlash / release readiness. Downstream gates
 `WF-IMPORT-PWM-001`, `S360-311-CURRENT-THERMAL-001`, FanTRIAC
 `HW-005`) remain exactly as recorded in
 [`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md),
-[`docs/blocker-burndown.md`](../blocker-burndown.md), and
-[`docs/product-readiness-matrix.md`](../product-readiness-matrix.md).
+[`docs/blocker-burndown.md` (archived)](../archive-index.md), and
+[`docs/product-readiness-matrix.md` (archived)](../archive-index.md).
 
 ## Context — S360-100 Core is the central hub
 
@@ -211,14 +211,18 @@ architectural rule and the corrections that follow from it.
 - **`docs/hardware/s360-311-r4-pwm.md`** — already records the
   PWM-drive-only scope and the compile-proven SX1509 + `pulse_counter`
   rejection. **No status flip.** A cross-reference back here is added.
-- **`docs/blocker-burndown.md`** — `PWM-12` (TachIO / GPIO16 + RPM)
-  stays **NEEDS BENCH / deferred**, `rpm_supported: false` stays the
-  posture, and the FanPWM WebFlash / release / hardware-stable gates
-  stay blocked. **No status flip.** A cross-reference back here is
-  added.
-- **`docs/product-readiness-matrix.md`** — `Ceiling-POE-FanPWM` stays
-  `hardware-pending`, `rpm_supported: false`, `webflash_build_matrix:
-  false`. **No status flip.** A cross-reference back here is added.
+- **`docs/blocker-burndown.md`** (archived under DOCS-DISPOSITION-001;
+  see [`docs/archive-index.md`](../archive-index.md)) — `PWM-12`
+  (TachIO / GPIO16 + RPM) stays **NEEDS BENCH / deferred**,
+  `rpm_supported: false` stays the posture, and the FanPWM WebFlash /
+  release / hardware-stable gates stay blocked. **No status flip.** A
+  cross-reference back here is added.
+- **`docs/product-readiness-matrix.md`** (archived under
+  DOCS-DISPOSITION-001; see
+  [`docs/archive-index.md`](../archive-index.md)) — `Ceiling-POE-FanPWM`
+  stays `hardware-pending`, `rpm_supported: false`,
+  `webflash_build_matrix: false`. **No status flip.** A cross-reference
+  back here is added.
 - **`config/hardware-catalog.json`** — `S360-100` `schematic_status:
   verified` is **not** changed (separate axis; bench/manufacturing
   evidence is unaffected by this architectural rule). `S360-311`
@@ -310,8 +314,8 @@ This document, and the tests added with it, must not:
   — compile/config proof of the SX1509 + `pulse_counter` rejection.
 - [`tests/test_native_tach_pulse_pin_strategy.py`](../../tests/test_native_tach_pulse_pin_strategy.py)
   — guard pinning the architectural rule recorded here.
-- [`docs/blocker-burndown.md`](../blocker-burndown.md) `§2A FanPWM /
+- [`docs/blocker-burndown.md` (archived)](../archive-index.md) `§2A FanPWM /
   S360-311` — blocker / scope-classification table for FanPWM.
-- [`docs/product-readiness-matrix.md`](../product-readiness-matrix.md)
+- [`docs/product-readiness-matrix.md` (archived)](../archive-index.md)
   `§FanPWM / S360-311` — product-readiness view; stays
   `hardware-pending`, `rpm_supported: false`.

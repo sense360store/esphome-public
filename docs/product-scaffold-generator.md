@@ -41,7 +41,7 @@ On a single invocation, the tool:
    (see [Allowed statuses](#allowed-statuses)).
 6. Refuses to scaffold `production`, `deprecated`, `removed`, or
    `legacy-compatible`. Production is reached via the gates documented
-   in [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md),
+   in [`docs/preview-to-stable-promotion-gates.md` (archived)](archive-index.md),
    not by a scaffold.
 7. Enforces the FanTRIAC HW-005 policy: any config string containing
    `FanTRIAC` is forced to `--status blocked --blocker HW-005`. The
@@ -208,7 +208,7 @@ hand.
    hand-edit
    [`config/webflash-builds.json`](../config/webflash-builds.json).
 7. Production promotion is a separate process; see
-   [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md).
+   [`docs/preview-to-stable-promotion-gates.md` (archived)](archive-index.md).
 
 ## Tests and validation
 
@@ -229,14 +229,14 @@ python3 tests/test_scaffold_product.py
 
 After scaffolding a future product entry by hand, run the full
 validation surface listed in
-[`docs/product-onboarding.md`](product-onboarding.md#commands-to-run)
+[`docs/product-onboarding.md` (archived)](archive-index.md)
 before opening a PR.
 
 ## See also
 
-- [`docs/product-onboarding.md`](product-onboarding.md) — PRODUCT-004
+- [`docs/product-onboarding.md` (archived)](archive-index.md) — PRODUCT-004
   ordered onboarding sequence.
-- [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md)
+- [`docs/preview-to-stable-promotion-gates.md` (archived)](archive-index.md)
   — RELEASE-006 promotion gates. Production is reached via these
   gates, not via a scaffold.
 - [`docs/product-led-preview-decision.md` (archived)](archive-index.md)
@@ -247,7 +247,7 @@ before opening a PR.
   — PRODUCT-003 read-only cross-file catalog validator. The scaffold
   tool complements this validator: the scaffold tool runs *before*
   editing the catalog; the validator runs *after*.
-- [`docs/cleanup-audit.md`](cleanup-audit.md) — classification of
+- [`docs/cleanup-audit.md` (archived)](archive-index.md) — classification of
   stale / current / blocked-reference / legacy-compatible repo
   content; carries PRODUCT-010 entries.
 - [`docs/product-deprecation-removal-policy.md` (archived)](archive-index.md)

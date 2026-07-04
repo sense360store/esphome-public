@@ -416,7 +416,8 @@ class RelayProductAdvancedManualWarningWordingTests(unittest.TestCase):
     """The FanRelay product YAML carries advanced / manual-warning wording.
 
     The PRODUCT-RELAY-001 readiness refresh
-    (``docs/product-readiness-matrix.md`` §FanRelay / S360-310)
+    (``docs/product-readiness-matrix.md`` §FanRelay / S360-310; archived
+    under DOCS-DISPOSITION-001, see ``docs/archive-index.md``)
     requires explicit advanced / manual-warning + installation / safety
     + competent-person caveat wording in the product YAML itself. These
     tests pin that wording so a later refactor cannot silently strip it.

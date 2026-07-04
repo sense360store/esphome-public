@@ -26,16 +26,16 @@ disagree, **the source-of-truth file wins** and this doc is the one to fix.
 | Product catalog | [`config/product-catalog.json`](../config/product-catalog.json) |
 | Room bundle SKUs | [`config/room-bundle-skus.json`](../config/room-bundle-skus.json) · [`docs/sense360-room-bundles.md`](sense360-room-bundles.md) |
 | Commercial / shop launch posture | [`config/shop-commercial-source-of-truth.json`](../config/shop-commercial-source-of-truth.json) · [`docs/shop-commercial-source-of-truth.md`](shop-commercial-source-of-truth.md) (SHOP-COMMERCIAL-SOURCE-OF-TRUTH-001) |
-| Manual (non-release) fan artifacts | [`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json) · [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md) |
-| Promotion gates | [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md) |
+| Manual (non-release) fan artifacts | [`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json) · [`docs/manual-install-fan-candidates.md` (archived)](archive-index.md) |
+| Promotion gates | [`docs/preview-to-stable-promotion-gates.md` (archived)](archive-index.md) |
 | Per-board hardware evidence | `docs/hardware/**` (pinmaps, schematics, artifacts — **preserved, not consolidated**) |
-| Blocker burn-down detail | [`docs/blocker-burndown.md`](blocker-burndown.md) |
+| Blocker burn-down detail | [`docs/blocker-burndown.md` (archived)](archive-index.md) |
 | Detailed PR working queue | [`UPCOMING_PR.md`](../UPCOMING_PR.md) |
 | Reconciled release-matrix / WebFlash / firmware-availability view | [`docs/release-matrix-webflash-alignment.md`](release-matrix-webflash-alignment.md) (WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001) |
 | Consolidated first-release / expansion gate checklist | [`docs/first-release-gates.md`](first-release-gates.md) (PRE-HW-PREP-FIRST-RELEASE-GATES-001) |
 | Operator dry-run checklist for the first stable release | [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md) (FIRST-RELEASE-DRYRUN-CHECKLIST-001) |
 | Whole-system architecture (two-repo pipeline + CI map) | [`docs/system-architecture.md`](system-architecture.md) · [`docs/ci-pipeline.md`](ci-pipeline.md) |
-| Board / bundle / alias / shim YAML architecture | [`docs/arch-board-bundle-plan.md`](arch-board-bundle-plan.md) · [`docs/system-architecture.md`](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers) |
+| Board / bundle / alias / shim YAML architecture | [`docs/arch-board-bundle-plan.md` (archived)](archive-index.md) · [`docs/system-architecture.md`](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers) |
 
 ---
 
@@ -92,7 +92,7 @@ The stable first release is **no longer pending**: the stable build above shippe
 as GitHub Release **`v1.0.0`** and is imported/live in WebFlash — see
 [`docs/first-release-publish-readiness.md` (archived)](archive-index.md)
 (`FIRST-RELEASE-PUBLISH-READINESS-001`) and
-[`docs/webflash-release-proof.md`](webflash-release-proof.md) (ESP-006/ESP-007).
+[`docs/webflash-release-proof.md` (archived)](archive-index.md) (ESP-006/ESP-007).
 Any future publish must use a **new version** (e.g. `1.0.1` / `1.1.0`); `v1.0.0`
 is not re-published or re-tagged.
 
@@ -192,7 +192,7 @@ the LED gauntlet; none is promoted here.
   separate TRIAC-specific PR).
 - The `workflow_dispatch`-only manual-firmware-artifacts lane
   ([`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json),
-  [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md))
+  [`docs/manual-install-fan-candidates.md` (archived)](archive-index.md))
   compiles the FanRelay / FanPWM / FanDAC manual candidates and uploads only
   **temporary, expiring, non-release** GitHub Actions artifacts. It never
   creates a release, never writes `firmware/sources.json` / `manifest.json`,
@@ -267,7 +267,7 @@ Full record:
 | **S360-410 PoE PSU** `cataloged_unverified` | **Released under owner waiver** `HW-S360-410-WAIVER-2026-06` (block lifted; remaining E11/E12 evidence not performed, risk accepted) | [§6.1](#61-poe--s360-410-blocker) |
 | Inline fan drivers (S360-310/311/312/320) `cataloged_unverified` | open | `config/hardware-catalog.json` |
 | S360-400 240v PSU `cataloged_unverified` | open | `config/hardware-catalog.json` |
-| Fan-driver current / thermal / safety bench | pending | [`docs/blocker-burndown.md`](blocker-burndown.md) |
+| Fan-driver current / thermal / safety bench | pending | [`docs/blocker-burndown.md` (archived)](archive-index.md) |
 | Mains / compliance sign-off (Relay / TRIAC / 240v PSU) | pending | [`docs/compliance/mains-voltage-uk-eu-assessment.md`](compliance/mains-voltage-uk-eu-assessment.md) |
 
 ### 6.1 PoE / S360-410 blocker
@@ -293,7 +293,7 @@ basis** and proceed under this waiver; their non-S360-410 gates (the AirIQ stack
 the LED preview→stable gauntlet) are unaffected. The full waiver record is
 [`docs/package-poe-410-evidence-result.md` §0.1 (archived)](archive-index.md).
 
-Per [`docs/package-poe-410-001-audit.md`](package-poe-410-001-audit.md)
+Per [`docs/package-poe-410-001-audit.md` (archived)](archive-index.md)
 (PACKAGE-POE-410-001), the evidence is **insufficient** to move S360-410 from
 `cataloged_unverified` to `verified` and insufficient to close the package
 header today (audit "option 4": evidence-request path). The remaining
@@ -375,7 +375,7 @@ The Sense360 LED ring (S360-300) is **preview only — not stable.** The
 are `preview-candidate`.
 
 LED stays preview until the preview→stable gauntlet closes
-([`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md),
+([`docs/preview-to-stable-promotion-gates.md` (archived)](archive-index.md),
 [`docs/product-led-preview-decision.md` (archived)](archive-index.md)):
 `S360-300-BENCH-001`, `WF-HW-TEST-001`, `WF-HW-TEST-003`, `RELEASE-007`.
 **No LED-stable claim is made anywhere in this repo.**
@@ -453,23 +453,25 @@ The following roadmap / status / audit / handoff docs are **superseded for
 current-state status** by this canonical doc and now carry a redirect banner
 at the top (their historical bodies are preserved for provenance):
 
-- [`docs/repo-freshness-roadmap-audit.md`](repo-freshness-roadmap-audit.md)
-- [`docs/repo-structure-audit.md`](repo-structure-audit.md)
-- [`docs/cleanup-audit.md`](cleanup-audit.md)
-- [`docs/webflash-drift-audit.md`](webflash-drift-audit.md)
-- [`docs/webflash-ci-alignment.md`](webflash-ci-alignment.md)
-- [`docs/webflash-release-handoff.md`](webflash-release-handoff.md)
-- [`docs/stable-target-expansion-plan.md`](stable-target-expansion-plan.md)
-- [`docs/stable-target-ventiq-001-gate-closure.md`](stable-target-ventiq-001-gate-closure.md)
+- [`docs/repo-freshness-roadmap-audit.md` (archived)](archive-index.md)
+- [`docs/repo-structure-audit.md` (archived)](archive-index.md)
+- [`docs/cleanup-audit.md` (archived)](archive-index.md)
+- [`docs/webflash-drift-audit.md` (archived)](archive-index.md)
+- [`docs/webflash-ci-alignment.md` (archived)](archive-index.md)
+- [`docs/webflash-release-handoff.md` (archived)](archive-index.md)
+- [`docs/stable-target-expansion-plan.md` (archived)](archive-index.md)
+- [`docs/stable-target-ventiq-001-gate-closure.md` (archived)](archive-index.md)
 
 **Preserved, not consolidated** (source-of-truth, evidence, pinmap, catalog,
 policy, or actively test-validated reference docs): everything under
-`docs/hardware/**` (pinmaps, schematics, artifacts, readiness matrices),
-`docs/compliance/**`, `docs/hardware-catalog.md`, `docs/webflash-contract.md`,
-`docs/release-one.md`, `docs/sense360-room-bundles.md`,
-`docs/preview-to-stable-promotion-gates.md`, `docs/blocker-burndown.md`,
-`docs/product-readiness-matrix.md`, the firmware/release matrices, and the
-user/developer guides. These keep their own canonical ownership.
+`docs/hardware/**` (pinmaps, schematics, artifacts), `docs/compliance/**`,
+`docs/hardware-catalog.md`, `docs/webflash-contract.md`, the
+firmware/release matrices, and the user/developer guides. These keep their
+own canonical ownership. (`docs/release-one.md`,
+`docs/sense360-room-bundles.md`, `docs/preview-to-stable-promotion-gates.md`,
+`docs/blocker-burndown.md`, `docs/product-readiness-matrix.md`, and the
+readiness matrices were later archived under `DOCS-DISPOSITION-001`; see
+[`docs/archive-index.md`](archive-index.md).)
 
 ---
 
@@ -485,7 +487,7 @@ its own canonical docs:
 
 | Layer of the epic | Source of truth (do not duplicate) |
 |---|---|
-| Target shape, rename/alias policy, ordered PR sequence | [`docs/arch-board-bundle-plan.md`](arch-board-bundle-plan.md) |
+| Target shape, rename/alias policy, ordered PR sequence | [`docs/arch-board-bundle-plan.md` (archived)](archive-index.md) |
 | Whole-pipeline placement + cross-repo contract | [`docs/system-architecture.md`](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers) |
 | Per-workflow CI/gate parity across the refactor | [`docs/ci-pipeline.md`](ci-pipeline.md) |
 | Per-PR queue state for the epic | [`UPCOMING_PR.md`](../UPCOMING_PR.md) |
@@ -508,7 +510,7 @@ rename touches `config/webflash-builds.json`, `manifest.json`, or
 Preview eligibility is now open to **every buildable target**. The channel-tier
 policy (stable / preview / advanced-preview), its guardrails, and the
 preview-release eligibility matrix live in
-[`docs/release-channel-policy.md`](release-channel-policy.md) +
+[`docs/release-channel-policy.md` (archived)](archive-index.md) +
 [`config/release-channel-policy.json`](../config/release-channel-policy.json).
 Key rule: lack of hardware proof blocks **stable only** — it does not block
 preview artifact publication. LED stays preview (no LED-stable claim) and

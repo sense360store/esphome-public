@@ -47,7 +47,7 @@ pinmap records the Core-side `Relay` net as `IO3` per the
 canonical schematic (the only schematic-backed source); the
 firmware-side reconciliation is owed under
 `CORE-ABSTRACT-BUS-001` per
-[`docs/release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups)
+[`docs/release-one-hardware-audit.md` Required follow-ups #2 / #3 (archived)](../archive-index.md)
 and is **not** resolved by this PR.
 
 ## Board identity
@@ -155,7 +155,7 @@ load-side connector only. It does **not**:
 - [`s360-310-relay-pinmap-reconcile.md` (archived)](../archive-index.md) — Relay GPIO cross-layer reconcile record (S360-310-RELAY-PINMAP-RECONCILE-001).
 - [`schematics/S360-310-R4.pdf`](schematics/S360-310-R4.pdf) — committed module-side schematic PDF.
 - [`docs/compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md) — COMPLIANCE-001 mains-voltage compliance tracker.
-- [`docs/blocker-burndown.md`](../blocker-burndown.md) — blocker / scope-classification table (PACKAGE-RELAY-001).
+- [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table (PACKAGE-RELAY-001).
 
 ## Do-not-change guardrails
 

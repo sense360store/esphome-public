@@ -19,7 +19,8 @@ Plus three explicit Release-One assertions so the canonical
 name cannot drift silently.
 
 FanTRIAC is intentionally excluded from production Release-One while HW-005
-is open (see docs/release-one-hardware-audit.md#fantriac-mapping-resolution).
+is open (see docs/release-one-hardware-audit.md#fantriac-mapping-resolution,
+archived under DOCS-DISPOSITION-001 — docs/archive-index.md).
 The FanTRIAC product YAML is retained as a blocked/reference file but is not
 in the WebFlash build matrix.
 

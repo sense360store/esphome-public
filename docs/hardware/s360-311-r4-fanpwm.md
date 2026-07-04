@@ -18,7 +18,7 @@ This reference transcribes the connector and pin map **exactly as the
 committed module-side schematic shows** and records every open
 reconciliation question as **STILL OWED**. It is **documentation only**.
 It resolves nothing: per
-[`docs/cleanup-audit.md`](../cleanup-audit.md) the reconciliation itself
+[`docs/cleanup-audit.md` (archived)](../archive-index.md) the reconciliation itself
 needs silkscreen, harness, and bench evidence plus the systemic Core
 abstract-bus resolution, none of which this reference performs.
 
@@ -289,7 +289,7 @@ do not agree.
 
 - **Owner.** The systemic Core abstract-bus rebind, `CORE-ABSTRACT-BUS-001`,
   aliased to
-  [`docs/release-one-hardware-audit.md` Required follow-ups #2 / #3](../release-one-hardware-audit.md#required-follow-ups).
+  [`docs/release-one-hardware-audit.md` Required follow-ups #2 / #3 (archived)](../archive-index.md).
   **Not** this reference, and **not** HW-PINMAP-311-FOLLOWUP.
 - **Evidence that would close it.** Operator-attested silkscreen reading of
   the Core-side fan-signal origins, a documented Core abstract-bus rebind
@@ -556,7 +556,7 @@ measured rows are actually captured.
 - [`docs/hardware/s360-312-r4-fandac.md`](s360-312-r4-fandac.md) — the
   FanDAC sibling standalone reference (HW-PINMAP-312-FOLLOWUP); the pattern
   this doc follows.
-- [`docs/release-one-hardware-audit.md`](../release-one-hardware-audit.md)
+- [`docs/release-one-hardware-audit.md` (archived)](../archive-index.md)
   — Required follow-ups #2 / #3, the owner (`CORE-ABSTRACT-BUS-001`) of the
   systemic Core abstract-bus rebind this reference defers question #1 to.
 - [`docs/hardware/board-readiness-matrix.md` (archived)](../archive-index.md)
@@ -564,6 +564,6 @@ measured rows are actually captured.
   this PR).
 - [Hardware Artifact Policy (HW-ASSETS-001) (archived)](../archive-index.md)
   — the retained-but-not-committed policy this reference respects.
-- [`docs/cleanup-audit.md`](../cleanup-audit.md) — CLEANUP-001
+- [`docs/cleanup-audit.md` (archived)](../archive-index.md) — CLEANUP-001
   classification; carries the HW-PINMAP-311 / HW-PINMAP-311-FOLLOWUP
   registration rows and the explicit do-not list this PR honours.

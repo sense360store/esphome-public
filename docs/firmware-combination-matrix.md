@@ -56,7 +56,7 @@ promotion mechanism:
   that is exactly `Ceiling-POE-VentIQ-RoomIQ-LED` (preview). Preview
   is **not** `REQUIRED_CONFIGS` and stable promotion still requires
   the hardware-evidence, bench-verification, and release gates
-  documented in [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md).
+  documented in [`docs/preview-to-stable-promotion-gates.md` (archived)](archive-index.md).
 - **`compile-only-candidate`** does not mean shippable. It means the
   product catalog records a `compile-only` status; firmware may build,
   but the product is not WebFlash-eligible.
@@ -71,7 +71,7 @@ promotion mechanism:
   hardware-evidence, compliance, or package-readiness gates. They
   carry the `blockers` list from the source-of-truth audit (for
   example `HW-005` for FanTRIAC; see
-  [`docs/release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution)).
+  [`docs/release-one-hardware-audit.md#fantriac-mapping-resolution` (archived)](archive-index.md)).
 - **`invalid-by-grammar`** is reserved for future drift detection; the
   generator never emits combinations that violate the grammar in
   [`config/webflash-compatibility.json`](../config/webflash-compatibility.json),
@@ -244,9 +244,9 @@ This matrix is intentionally narrow. It is **not**:
   [WebFlash repository](https://github.com/sense360store/WebFlash) for
   the import side,
 - a stable promotion of any preview or blocked combination — see
-  [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md),
+  [`docs/preview-to-stable-promotion-gates.md` (archived)](archive-index.md),
 - a hardware-proof claim — see
-  [`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md)
+  [`docs/release-one-hardware-audit.md` (archived)](archive-index.md)
   and the per-board audits under
   [`docs/hardware/`](hardware/),
 - a `REQUIRED_CONFIGS` change — Release-One stays
@@ -257,8 +257,8 @@ This matrix is intentionally narrow. It is **not**:
 
 Future work that depends on this matrix (e.g. surfacing per-row gating
 status in CI, cross-referencing the
-[`docs/product-readiness-matrix.md`](product-readiness-matrix.md) and
-[`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md)
+[`docs/product-readiness-matrix.md` (archived)](archive-index.md) and
+[`docs/release-artifact-readiness-matrix.md` (archived)](archive-index.md)
 gate columns) is out of scope for FW-MATRIX-001.
 
 ## See also

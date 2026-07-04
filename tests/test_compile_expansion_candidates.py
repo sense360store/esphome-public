@@ -2,7 +2,8 @@
 """Tests for the compile-only expansion candidate ledger (FW-COMPILE-EXPAND-001).
 
 Covers the candidate list at ``config/compile-only-candidates.json``
-and the documentation at ``docs/compile-only-expansion-candidates.md``.
+(formerly also documented at ``docs/compile-only-expansion-candidates.md``,
+archived under DOCS-DISPOSITION-001; see ``docs/archive-index.md``).
 The candidate ledger is a planning document only; these tests pin the
 structural invariants and the guardrails that no candidate implies a
 compile-only target add, WebFlash exposure, stable promotion, hardware
@@ -30,7 +31,7 @@ CANDIDATES_PATH = REPO_ROOT / "config" / "compile-only-candidates.json"
 COMPILE_ONLY_TARGETS_PATH = REPO_ROOT / "config" / "compile-only-targets.json"
 BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 MATRIX_PATH = REPO_ROOT / "config" / "firmware-combination-matrix.json"
-DOC_PATH = REPO_ROOT / "docs" / "compile-only-expansion-candidates.md"
+ARCHIVE_INDEX = REPO_ROOT / "docs" / "archive-index.md"
 
 # The currently release-eligible WebFlash builds. A candidate row whose
 # ``would_be_webflash_exposed_now=false`` flag is true is allowed to
@@ -640,38 +641,21 @@ class CandidatesRankingTests(unittest.TestCase):
         )
 
 
-class CandidatesDocConsistencyTests(unittest.TestCase):
-    """docs/compile-only-expansion-candidates.md must point at the ledger."""
+class CandidatesDocArchivedTests(unittest.TestCase):
+    """The companion doc was archived under DOCS-DISPOSITION-001.
 
-    def test_doc_exists(self):
-        self.assertTrue(
-            DOC_PATH.is_file(),
-            f"docs/compile-only-expansion-candidates.md must exist at {DOC_PATH}",
+    ``docs/compile-only-expansion-candidates.md`` was deleted with an
+    index row (content recoverable from the indexed SHA); its doc-pinning
+    tests went with it. The ledger guardrails above remain the live
+    contract.
+    """
+
+    def test_doc_recorded_in_archive_index(self):
+        self.assertIn(
+            "docs/compile-only-expansion-candidates.md",
+            ARCHIVE_INDEX.read_text(encoding="utf-8"),
+            "the archived candidates doc must be recorded in " "docs/archive-index.md",
         )
-
-    def test_doc_references_candidate_json_and_test_file(self):
-        text = DOC_PATH.read_text()
-        self.assertIn("config/compile-only-candidates.json", text)
-        self.assertIn("tests/test_compile_expansion_candidates.py", text)
-
-    def test_doc_disclaims_release_readiness_and_hardware_proof(self):
-        """The doc must affirmatively disclaim release / hardware-proof readiness.
-
-        Rather than ban substrings that legitimately appear inside
-        negated text ("does not claim hardware proof exists"), assert
-        that the disclaimer phrases are actually present.
-        """
-        text = DOC_PATH.read_text().lower()
-        for required_disclaimer in (
-            "claim hardware proof exists",
-            "claim `release-007` is unblocked",
-        ):
-            self.assertIn(
-                required_disclaimer,
-                text,
-                f"docs/compile-only-expansion-candidates.md must "
-                f"affirmatively disclaim {required_disclaimer!r}",
-            )
 
 
 if __name__ == "__main__":

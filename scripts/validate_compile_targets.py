@@ -30,7 +30,8 @@ of two validation modes against the listed product YAMLs:
 This script is a CI validation lane only. It does not expose new
 WebFlash builds, create release artifacts, import firmware, promote
 any product, or add any product YAML. See
-``docs/compile-only-firmware-validation.md``.
+``docs/compile-only-firmware-validation.md`` (archived under
+DOCS-DISPOSITION-001; see ``docs/archive-index.md``).
 
 Run with::
 

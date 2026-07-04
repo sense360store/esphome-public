@@ -161,7 +161,7 @@ stays `status: blocked`, `blocker: HW-005`,
 - [`s360-320-r4-triac.md`](s360-320-r4-triac.md) — TRIAC board-side audit (HW-PINMAP-320 / HW-005).
 - [`schematics/S360-320-R4.pdf`](schematics/S360-320-R4.pdf) — committed module-side schematic PDF.
 - [`docs/compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md) — COMPLIANCE-001 mains-voltage compliance tracker.
-- [`docs/blocker-burndown.md`](../blocker-burndown.md) — blocker / scope-classification table (HW-005).
+- [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table (HW-005).
 
 ## Do-not-change guardrails
 

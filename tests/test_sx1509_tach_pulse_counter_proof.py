@@ -50,8 +50,6 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 PROOF_FIXTURE = REPO_ROOT / "tests" / "esphome" / "sx1509_pulse_counter_proof.yaml"
 FAN_PWM_SX1509_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_pwm_sx1509.yaml"
 PWM_DOC = REPO_ROOT / "docs" / "hardware" / "s360-311-r4-pwm.md"
-PACKAGE_MATRIX = REPO_ROOT / "docs" / "hardware" / "package-readiness-matrix.md"
-PRODUCT_MATRIX = REPO_ROOT / "docs" / "product-readiness-matrix.md"
 
 # The exact ESPHome `esphome config` rejection captured by the proof
 # (ESPHome 2026.5.1). This string is the evidence.
@@ -59,11 +57,12 @@ CAPTURED_ERROR = "[sx1509] is an invalid option for [pin]"
 PROOF_MARKER = "PWM-SX1509-TACH-PROOF-001"
 
 # Docs/packages that carry the proof finding and must stay consistent.
+# docs/hardware/package-readiness-matrix.md and
+# docs/product-readiness-matrix.md were archived under DOCS-DISPOSITION-001
+# (see docs/archive-index.md) and dropped out of this consistency set.
 PROOF_BEARING_FILES = [
     FAN_PWM_SX1509_PACKAGE,
     PWM_DOC,
-    PACKAGE_MATRIX,
-    PRODUCT_MATRIX,
 ]
 
 # Phrasings that would wrongly claim the SX1509 cannot do PWM. SX1509

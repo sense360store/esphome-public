@@ -94,7 +94,8 @@ def test_airiq_and_ventiq_are_mutually_exclusive():
 # COMPAT-001 drift-protection tests.
 #
 # These tests lock the current taxonomy invariants documented in
-# docs/webflash-compatibility-taxonomy-audit.md. They pass against the
+# docs/webflash-compatibility-taxonomy-audit.md (archived under
+# DOCS-DISPOSITION-001; see docs/archive-index.md). They pass against the
 # current config/webflash-compatibility.json without any change to that
 # file; they only prevent silent drift in a later PR.
 # ---------------------------------------------------------------------------
@@ -103,7 +104,8 @@ def test_airiq_and_ventiq_are_mutually_exclusive():
 def test_led_is_canonical_module():
     """LED stays in canonical_modules as a reserved future token.
 
-    See docs/webflash-compatibility-taxonomy-audit.md: LED is a known
+    See docs/webflash-compatibility-taxonomy-audit.md (archived; see
+    docs/archive-index.md): LED is a known
     WebFlash module but is excluded from Release-One because the
     Ceiling-POE-VentIQ-RoomIQ config string carries no LED token. The
     token must remain in the taxonomy so future LED-bearing configs
@@ -118,7 +120,8 @@ def test_all_four_fan_driver_tokens_are_canonical_modules():
 
     Dropping any of FanRelay / FanPWM / FanDAC / FanTRIAC would break the
     fan-driver "max one of" policy and Sense360 driver coverage. See
-    docs/webflash-contract.md §5 and docs/webflash-compatibility-taxonomy-audit.md.
+    docs/webflash-contract.md §5 and the archived
+    docs/webflash-compatibility-taxonomy-audit.md (docs/archive-index.md).
     """
     data = _load_snapshot()
     for token in ("FanRelay", "FanPWM", "FanDAC", "FanTRIAC"):

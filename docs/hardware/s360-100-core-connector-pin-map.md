@@ -290,7 +290,7 @@ Core-side and module-side rows can be lined up 1-to-13.
 > Firmware-binding (the current FanPWM YAML is still wired against
 > the prior SX1509 routing, classified **legacy / superseded** per
 > the same doc) and bench evidence (`PWM-12` in
-> [`docs/blocker-burndown.md`](../blocker-burndown.md) stays
+> [`docs/blocker-burndown.md` (archived)](../archive-index.md) stays
 > NEEDS BENCH) are **out of scope** for this document.
 
 ### J7 — DAC module connector (6-pin)
@@ -473,7 +473,7 @@ This document is cross-referenced from / to:
 - [`docs/sense360-room-bundles.md`](../sense360-room-bundles.md) —
   canonical PoE room bundle SKU matrix (Core + room modules + PoE
   PSU).
-- [`docs/blocker-burndown.md`](../blocker-burndown.md) — blocker /
+- [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker /
   scope-classification table (PWM-12 / HW-005 / PACKAGE-POE-410-001).
 
 ## Open questions / verification needed
@@ -603,7 +603,7 @@ This document and the tests added with it must not:
   837,443 bytes, KiCad E.D.A. 10.0.3, single sheet `1/1`).
 - [`docs/sense360-room-bundles.md`](../sense360-room-bundles.md) —
   canonical PoE room bundle SKU matrix.
-- [`docs/blocker-burndown.md`](../blocker-burndown.md) — blocker /
+- [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker /
   scope-classification table (PWM-12 / HW-005 /
   PACKAGE-POE-410-001).
 - [`tests/test_s360_100_core_connector_pin_map.py`](../../tests/test_s360_100_core_connector_pin_map.py) —

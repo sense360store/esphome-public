@@ -31,8 +31,9 @@ CORE_HW_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-r4-core.md"
 PWM_HW_DOC = REPO_ROOT / "docs" / "hardware" / "s360-311-r4-pwm.md"
 STRATEGY_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-native-tach-pulse-strategy.md"
 ARCHITECTURE_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-core-architecture.md"
-BLOCKER_DOC = REPO_ROOT / "docs" / "blocker-burndown.md"
-READINESS_DOC = REPO_ROOT / "docs" / "product-readiness-matrix.md"
+# docs/blocker-burndown.md and docs/product-readiness-matrix.md were
+# archived under DOCS-DISPOSITION-001 (see docs/archive-index.md); their
+# citation tests went with them.
 
 PACKAGES_DIR = REPO_ROOT / "packages"
 PRODUCTS_DIR = REPO_ROOT / "products"
@@ -205,30 +206,6 @@ class TachGpioAllocationCrossReferencedTests(unittest.TestCase):
             f"{ARCHITECTURE_DOC.name} (the Core architecture index) must "
             f"keep the per-net native GPIO pin-allocation table "
             f"(missing pairs: {missing}).",
-        )
-
-    def test_blocker_doc_records_native_gpio_allocation_status(self) -> None:
-        text = BLOCKER_DOC.read_text()
-        self.assertIn(
-            "S360-100-TACH-GPIO-ALLOCATION-001",
-            text,
-            f"{BLOCKER_DOC.name} (PWM-12 row) must cite "
-            "S360-100-TACH-GPIO-ALLOCATION-001.",
-        )
-        self.assertIn(
-            "native GPIO allocation documented",
-            text,
-            f"{BLOCKER_DOC.name} PWM-12 row status text must reflect "
-            "that the native GPIO allocation is documented.",
-        )
-
-    def test_readiness_doc_cites_the_allocation(self) -> None:
-        text = READINESS_DOC.read_text()
-        self.assertIn(
-            "S360-100-TACH-GPIO-ALLOCATION-001",
-            text,
-            f"{READINESS_DOC.name} must carry a dated FanPWM / S360-311 "
-            "subsection for S360-100-TACH-GPIO-ALLOCATION-001.",
         )
 
 

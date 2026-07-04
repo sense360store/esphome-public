@@ -131,7 +131,7 @@ Firmware re-binding against the native ESP32-S3 GPIO map above is
    `esphome compile` run before any release / WebFlash flip;
 5. bench-validate PWM polarity, per-fan and aggregate current,
    thermal envelope, and per-fan RPM (`PWM-6` / `PWM-10` / `PWM-12` /
-   `PWM-13` in [`docs/blocker-burndown.md` §2A](../blocker-burndown.md))
+   `PWM-13` in [`docs/blocker-burndown.md` §2A (archived)](../archive-index.md))
    before any release / WebFlash / hardware-stable promotion.
 
 None of those five steps is performed by this PR.
@@ -231,14 +231,14 @@ This document and the tests added with it must not:
 - [`docs/hardware/schematics/S360-100-R4.pdf`](schematics/S360-100-R4.pdf)
   — current canonical S360-100 Core schematic (SHA256
   `4c9e8b06d129fbb55f61e143b648e03762d06cb4dc67fe3120c268cd3a4bdf16`).
-- [`docs/blocker-burndown.md` §2A FanPWM / S360-311](../blocker-burndown.md)
+- [`docs/blocker-burndown.md` §2A FanPWM / S360-311 (archived)](../archive-index.md)
   — blocker / scope-classification table for FanPWM.
-- [`docs/product-readiness-matrix.md` §FanPWM / S360-311](../product-readiness-matrix.md)
+- [`docs/product-readiness-matrix.md` §FanPWM / S360-311 (archived)](../archive-index.md)
   — product-readiness view; stays `hardware-pending`,
   `rpm_supported: false`.
-- [`docs/manual-install-fan-candidates.md`](../manual-install-fan-candidates.md)
+- [`docs/manual-install-fan-candidates.md` (archived)](../archive-index.md)
   — FanPWM manual / no-WebFlash candidate posture.
-- [`docs/release-artifact-readiness-matrix.md`](../release-artifact-readiness-matrix.md)
+- [`docs/release-artifact-readiness-matrix.md` (archived)](../archive-index.md)
   — FanPWM release-artifact posture (blocked).
 - [`tests/test_native_fan_gpio_map.py`](../../tests/test_native_fan_gpio_map.py)
   — guards for this document (canonical GPIO map present, native

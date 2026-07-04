@@ -17,7 +17,9 @@ adding a new Sense360 product/config. It does NOT mutate any file:
     WebFlash imports.
   * It cannot scaffold a ``production`` entry. Production is reached via
     the promotion gates documented in
-    ``docs/preview-to-stable-promotion-gates.md`` — not by a scaffold.
+    ``docs/preview-to-stable-promotion-gates.md`` (archived under
+    DOCS-DISPOSITION-001; see ``docs/archive-index.md``) — not by a
+    scaffold.
 
 What it does, on a single invocation:
 
@@ -121,7 +123,8 @@ DO_NOT_CHANGE_GUARDRAILS = (
     "publish, and a market-placement act would reopen COMPLIANCE-001.",
     "No firmware build, no GitHub Release, no WebFlash import, no "
     "production promotion. Those are owned by the promotion gates in "
-    "`docs/preview-to-stable-promotion-gates.md`.",
+    "`docs/preview-to-stable-promotion-gates.md` (archived under "
+    "DOCS-DISPOSITION-001; see `docs/archive-index.md`).",
 )
 
 NEXT_PR_SEQUENCE = (
@@ -136,11 +139,13 @@ NEXT_PR_SEQUENCE = (
     "an artifact name produced by `scripts/product_name_mapper.py`. Run "
     "`tests/validate_webflash_builds.py` and "
     "`tests/test_webflash_artifact_naming.py`.",
-    "4. Record a build / release proof in `docs/webflash-release-proof.md` "
+    "4. Record a build / release proof following the archived pattern of "
+    "`docs/webflash-release-proof.md` (see `docs/archive-index.md`) "
     "after the corresponding GitHub Release exists. WebFlash import is a "
     "follow-up PR in the WebFlash repo.",
     "5. Production promotion is a separate process per "
-    "`docs/preview-to-stable-promotion-gates.md`. This scaffold cannot "
+    "`docs/preview-to-stable-promotion-gates.md` (archived; see "
+    "`docs/archive-index.md`). This scaffold cannot "
     "scaffold a production entry.",
 )
 
@@ -306,7 +311,8 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
             errors.append(
                 "status 'production' is not scaffoldable. Production is "
                 "reached via the promotion gates in "
-                "docs/preview-to-stable-promotion-gates.md, not by a "
+                "docs/preview-to-stable-promotion-gates.md (archived; see "
+                "docs/archive-index.md), not by a "
                 "scaffold."
             )
         else:
@@ -780,8 +786,9 @@ def build_report(args: argparse.Namespace) -> Tuple[str, int]:
             True,
             "Human reviewer must independently verify "
             "`docs/product-onboarding.md` and "
-            "`docs/preview-to-stable-promotion-gates.md` before merging "
-            "any follow-up PR.",
+            "`docs/preview-to-stable-promotion-gates.md` (both archived "
+            "under DOCS-DISPOSITION-001; see `docs/archive-index.md`) "
+            "before merging any follow-up PR.",
         )
     )
     checklist_lines = [

@@ -7,10 +7,10 @@ Complete instructions for setting up your Sense360 device with ESPHome.
 > is the manual/custom path for advanced users who want to inspect or
 > customize the ESPHome YAML.
 >
-> See [`release-one.md`](release-one.md) for the Release-One configuration
+> See [`release-one.md` (archived)](archive-index.md) for the Release-One configuration
 > (`Ceiling-POE-VentIQ-RoomIQ`). FanTRIAC is excluded from production
 > Release-One while HW-005 is open — see
-> [`release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution).
+> [`release-one-hardware-audit.md#fantriac-mapping-resolution` (archived)](archive-index.md).
 
 ## Before You Begin
 

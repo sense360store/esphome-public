@@ -56,7 +56,7 @@ Choose the configuration that matches your device and intended use.
 > production Release-One. FanTRIAC is blocked pending HW-005, and the
 > Sense360 LED is excluded from Release-One because the config string
 > `Ceiling-POE-VentIQ-RoomIQ` has no `LED` token. See
-> [`release-one.md`](release-one.md) for the full Release-One configuration.
+> [`release-one.md` (archived)](archive-index.md) for the full Release-One configuration.
 
 #### Release-One — Ceiling-POE-VentIQ-RoomIQ (Recommended)
 
@@ -358,7 +358,7 @@ interval:
 > production Release-One artifact does not bundle LED-driver behaviour. The
 > Mini LED / night-mode features below are **legacy-compatible** Mini-board
 > paths retained for custom builds. See
-> [`release-one.md`](release-one.md) for the LED exclusion policy.
+> [`release-one.md` (archived)](archive-index.md) for the LED exclusion policy.
 
 #### Mini Night Brightness — _legacy-compatible (Mini board only)_
 
@@ -598,7 +598,7 @@ api:
 Use specific version tags for production devices. This is the only supported
 configuration for any device a customer depends on. See
 [`webflash-contract.md`](webflash-contract.md) for the canonical artifact
-naming and [`release-one.md`](release-one.md) for the current release-one
+naming and [`release-one.md` (archived)](archive-index.md) for the current release-one
 tag.
 
 ```yaml

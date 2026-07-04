@@ -6,7 +6,7 @@
 > roadmap / blocker status** (preview vs stable, S360-410 PoE, LED preview,
 > FanPWM bench gates) the single source of truth remains
 > [`docs/sense360-roadmap-status.md`](sense360-roadmap-status.md). The older
-> path-classification audit [`docs/repo-structure-audit.md`](repo-structure-audit.md)
+> path-classification audit [`docs/repo-structure-audit.md` (archived)](archive-index.md)
 > (ESP-009 / ESP-010) is retained as historical provenance; this document
 > refreshes it for the current `products/` subfolder layout and the
 > bundle / shim / wrapper include chain.
@@ -52,13 +52,13 @@ esphome-public/
 
 `base/ → packages/base`, `features/ → packages/features`,
 `hardware/ → packages/hardware` are compatibility symlinks (classified in
-[`docs/repo-structure-audit.md`](repo-structure-audit.md); out of scope here).
+[`docs/repo-structure-audit.md` (archived)](archive-index.md); out of scope here).
 
 ## The build / release include chain
 
 The key to reading the `products/` reference map is the **3-layer include
 chain** introduced by `BUNDLE-LAYER-001`
-([`docs/arch-board-bundle-plan.md`](arch-board-bundle-plan.md) §3.2). A naive
+([`docs/arch-board-bundle-plan.md` (archived)](archive-index.md) §3.2). A naive
 "grep for the file path in config" understates how active the deeper layers are,
 because each layer reaches the next via `!include`, not a config string:
 

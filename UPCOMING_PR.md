@@ -95,8 +95,19 @@ by posture** per
    `tests/test_preview_publish_results.py`,
    `tests/test_relay_pinmap_reconcile.py`,
    `tests/test_preview_release_targets.py`) are updated in the same PR.
-   Remaining execution is one step per PR — Steps 3–8:
-   archive batch B, the S360-311/S360-312 duplicate merges, the five
+   Step 3 (archive batch B) is **EXECUTED**: the 33 `[code-ref]` ARCHIVE
+   rows are deleted with `docs/archive-index.md` rows, two more rule-8
+   cross-repo stubs are in place (`first-release-gates`,
+   `sense360-room-bundles`), every inbound markdown link from kept docs is
+   retargeted at the archive index, and the referencing scripts and tests
+   are updated in the same PR (doc-pinning assertions retired or
+   retargeted at archive-index rows per the batch-A pattern; the
+   `report_firmware_build_gaps.py` generator links updated and
+   `docs/firmware-build-gap-report.md` regenerated; config JSON citations
+   such as `bench_proof` are untouched — `config/` stays out of docs-only
+   scope, and the governance directories stay byte-identical per the
+   standing gates). Remaining execution is one step per PR — Steps 4–8:
+   the S360-311/S360-312 duplicate merges, the five
    KEEP-SLIM board docs, MOVE-PRIVATE, the `CLAUDE.md` sanitise +
    `UPCOMING_PR.md` retirement (with `docs/standing-invariants.md`), and the
    link sweep / Phase 2 WebFlash handoff — tracked in the manifest's
@@ -183,7 +194,7 @@ pre-commit), is **accepted** — no action queued.
 * **`PACKAGE-TRIAC-001` — COMPLETE and operator-attested.** The FanTRIAC
   operator bench protocol is finished and the signed operator attestation is
   committed to
-  [`docs/package-triac-001-operator-bench-proof.md`](docs/package-triac-001-operator-bench-proof.md):
+  [`docs/package-triac-001-operator-bench-proof.md` (archived)](docs/archive-index.md):
   Steps A–F PASS on the real Manrose fan-motor load (2026-06-08), the
   full-composition re-confirm PASS via closure path (a) (2026-06-10), and the
   six-cell operator attestation table is filled. This satisfied the
@@ -253,7 +264,7 @@ any of them.
   never stable / recommended / default / buyable / kit-exposed.**
   `TRIAC-COMMISSIONING-001` (human-review only) cleared the `PACKAGE-TRIAC-001`
   half of the former blocker (operator-attested bench proof
-  [`docs/package-triac-001-operator-bench-proof.md`](docs/package-triac-001-operator-bench-proof.md)),
+  [`docs/package-triac-001-operator-bench-proof.md` (archived)](docs/archive-index.md)),
   with `COMPLIANCE-001` closed by market posture
   ([`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`](docs/decisions/COMPLIANCE-001-RESOLUTION-001.md)),
   and moved `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` into the `experimental_lane`.
@@ -492,7 +503,7 @@ PRs.
   project overview, canonical SKU catalog, repo layout, ESPHome conventions,
   commands, the standing gates quoted from this file's invariants plus the
   human-review-only / attestation / ESP-007 rules, and this file's
-  maintenance rule). Downgraded [`docs/release-one.md`](docs/release-one.md)
+  maintenance rule). Downgraded [`docs/release-one.md` (archived)](docs/archive-index.md)
   from "source of truth" to an explicit historical record of the first
   release, pointing at `config/` as the live catalog (content otherwise
   preserved). Fixed the `tests/test_room_bundle_fan_variants.py` harness

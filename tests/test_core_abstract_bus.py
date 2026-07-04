@@ -5,7 +5,9 @@ These tests lock in the schematic-backed CORE-ABSTRACT-BUS-001C rebind plan
 recorded in
 ``docs/hardware/core-abstract-bus-001c-rebind-plan.md`` and the parent
 audit doc
-``docs/hardware/core-abstract-bus-reconciliation.md``. They are the
+``docs/hardware/core-abstract-bus-reconciliation.md`` (both archived
+under DOCS-DISPOSITION-001; see ``docs/archive-index.md``; every citation
+of them in this file refers to those archived records). They are the
 scaffold owed by precondition #5 of the 001C planning record (the
 ``tests/test_core_abstract_bus.py`` scaffold lands **with** the first
 implementation slice).
@@ -87,6 +89,9 @@ RELAY_REBIND_PACKAGES = [
 ]
 
 # Per-package substitutions affected by 001C.
+# docs/arch-board-bundle-plan.md is archived under DOCS-DISPOSITION-001
+# (see docs/archive-index.md); the PACKAGE-RENAME-* citations of its §5.5
+# throughout this file refer to that archived plan.
 # PACKAGE-RENAME-004 (docs/arch-board-bundle-plan.md §5.5): the authoritative,
 # self-contained ceiling RoomIQ climate/comfort definition (incl.
 # `comfort_ceiling_als_int_pin: GPIO47` and `comfort_ceiling_i2c_id: core_i2c`)
