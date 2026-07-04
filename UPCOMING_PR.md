@@ -15,10 +15,11 @@ merged PRs.
 
 ## Next queue (actionable)
 
-Two items are genuinely open — the per-device provisioning follow-up opened
-by `SEC-ESP-BUILD-GATES-001`, and `REBUILD-CLEAN-CREDENTIALS-001` (the
+Three items are genuinely open — the per-device provisioning follow-up opened
+by `SEC-ESP-BUILD-GATES-001`, `REBUILD-CLEAN-CREDENTIALS-001` (the
 field-distribution half of audit H1: re-cut the live cred-bearing releases
-clean on the post-#779 pipeline). The checksum-signing finding
+clean on the post-#779 pipeline), and `DOCS-DISPOSITION-001` (execute the
+docs disposition manifest). The checksum-signing finding
 (`SEC-ESP-CHECKSUM-SIGNING-001`, security.md §3 / audit M1) is **implemented
 on its review branch** (recorded in the closed items below the queue). The
 FanTRIAC bench gate (`PACKAGE-TRIAC-001`) is
@@ -72,6 +73,22 @@ by posture** per
    installer still serves the old cred-bearing binaries. Touches no FanTRIAC
    posture, no `release_one_required_configs`, no kit, and makes no
    hardware / bench / compliance claim.
+
+3. **`DOCS-DISPOSITION-001` (docs disposition execution).**
+   [`docs/docs-disposition-manifest.md`](docs/docs-disposition-manifest.md)
+   (added 2026-07-04) inventories every Markdown doc in this repo and
+   WebFlash with a proposed disposition (KEEP / KEEP-SLIM / MERGE / ARCHIVE /
+   REMOVE / DECIDE). The manifest is a proposal only — nothing has been
+   moved or deleted yet. Execution is follow-up work in disposition-sized
+   PRs, subject to the manifest's *Execution constraints* section: rows
+   referenced from `scripts/` / `tests/` / `.github/workflows/` must update
+   those references in the same PR (two ARCHIVE rows are CI-freshness-gated
+   generator output), the `UPCOMING_PR.md` REMOVE row cannot execute without
+   a `CLAUDE.md` rewrite and queue/invariant migration, and every DECIDE row
+   (including `docs/sense360-roadmap-status.md`, `CLAUDE.md`, and
+   `docs/shop-commercial-source-of-truth.md`) needs an explicit owner call
+   first. WebFlash rows execute in the WebFlash repo. Touches no product
+   YAML, no `config/`, no release posture.
 
 The remaining security-audit item, finding #6 (`check-yaml --unsafe` in
 pre-commit), is **accepted** — no action queued.
