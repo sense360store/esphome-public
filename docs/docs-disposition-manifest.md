@@ -1,20 +1,60 @@
 # Docs disposition manifest: esphome-public and webflash
 
 Generated 2026-07-04 from live clones (esphome-public @ HEAD, webflash @
-`7f00997`). This manifest is a **proposal inventory only** — no file has been
-moved, merged, slimmed, or removed by the PR that adds this document. Each
-disposition is executed in its own follow-up PR (queued as
-`DOCS-DISPOSITION-001` in [`UPCOMING_PR.md`](../UPCOMING_PR.md)), and every
-`DECIDE` row needs an explicit owner call before anything happens to it.
+`7f00997`).
+
+Status: **approved** (ratified 2026-07-04). Every former `DECIDE` row is
+resolved by the owner decisions of record below, and the ratified amendments
+have been applied to the affected rows. This file is the **sole disposition
+authority** and the **single canonical text** for the `DOCS-DISPOSITION-001`
+programme — it supersedes the copy of this manifest on WebFlash main (added
+there by WebFlash PR #569), whose guard-test execution notes are folded into
+the execution constraints below. Each disposition step is executed in its own
+follow-up PR (queued as `DOCS-DISPOSITION-001` in
+[`UPCOMING_PR.md`](../UPCOMING_PR.md)) and recorded in the
+[Execution log](#execution-log). No file was moved, merged, slimmed, or
+removed by the ratification PR itself.
 
 Actions:
 
 - **KEEP** — production doc, stays.
 - **KEEP-SLIM** — keep but strip embedded audit trail to archive.
+- **KEEP-SANITISE** — keep, but strip internal process and commercial
+  detail; retain repo conventions and gates.
 - **MERGE** — duplicate pair, consolidate.
-- **ARCHIVE** — move to `docs/archive/` or a private records repo.
+- **ARCHIVE** — delete from the tree plus an index row in
+  `docs/archive-index.md` (`| original path | last main SHA containing the
+  file | disposition | date |`), plus a three-line stub at the old path where
+  a cross-repo link requires one. Never rewrite then delete. The private
+  records repo is populated later from the indexed SHAs (owner decision 6).
+- **MOVE-PRIVATE** — delete from the public tree with an index row; content
+  remains recoverable from the indexed SHA for the private records repo.
 - **REMOVE** — working state, transfer to issues then delete.
-- **DECIDE** — needs an owner call.
+- **DECIDE** — needed an owner call; all `DECIDE` rows are now resolved (see
+  the owner decisions of record below and the per-repo `DECIDED` sections).
+
+## Owner decisions of record (ratified 2026-07-04)
+
+1. `docs/sense360-roadmap-status.md` → **KEEP** (remains the internal status
+   page).
+2. `CLAUDE.md` → **KEEP-SANITISE** (strip internal process and commercial
+   detail; retain repo conventions and gates). Executed at Step 7.
+3. `docs/shop-commercial-source-of-truth.md` → **MOVE-PRIVATE** (delete from
+   the public tree; retire `tests/test_shop_commercial_source_of_truth.py`
+   in the same PR; content remains recoverable from the indexed SHA).
+   Executed at Step 6.
+4. `include/README.md` → **KEEP**.
+5. WebFlash side, recorded here for the cross-repo picture:
+   `docs/sense360-webflash-status.md` → **KEEP**; `CLAUDE.md` →
+   **KEEP-SANITISE**. Executed in the WebFlash repo, Phase 2.
+6. Archive destination: private records repo populated later from the SHAs
+   in `docs/archive-index.md`. The in-tree result of ARCHIVE is deletion
+   plus index entry plus stub where a cross-repo link requires one.
+
+Ratified amendments: `docs/firmware-combination-matrix.md` and
+`docs/firmware-build-gap-report.md` → **KEEP** (CI-generated with freshness
+gates; generators stay). `docs/webflash-contract.md` → **KEEP** (inter-repo
+interface contract).
 
 ## Execution constraints (read before acting on any row)
 
@@ -27,9 +67,12 @@ move. Verified against the tree at generation time:
    `docs/firmware-build-gap-report.md` and
    `docs/firmware-combination-matrix.md` are **generated files with CI
    freshness gates** (`scripts/generate_firmware_matrix.py --check`,
-   `scripts/report_firmware_build_gaps.py --check`);
-   `docs/shop-commercial-source-of-truth.md` (a `DECIDE` row) is pinned by
-   `tests/test_shop_commercial_source_of_truth.py`;
+   `scripts/report_firmware_build_gaps.py --check`) — now `KEEP` by ratified
+   amendment, generators stay;
+   `docs/shop-commercial-source-of-truth.md` (a `MOVE-PRIVATE` row, owner
+   decision 3) is pinned by
+   `tests/test_shop_commercial_source_of_truth.py`, which is retired in the
+   same PR (Step 6);
    `docs/package-triac-001-operator-bench-proof.md` is pinned by
    `tests/test_package_triac_001_operator_bench_proof.py`; the `MERGE` pair
    members `docs/hardware/s360-311-r4-pwm.md` and
@@ -41,33 +84,60 @@ move. Verified against the tree at generation time:
    PR — CI (`validate.yml`) gates on them.
 2. **`UPCOMING_PR.md` is load-bearing.** It is declared the source-of-truth
    queue by `CLAUDE.md`, and the standing-invariant gates link to its
-   anchors. Its `REMOVE` disposition can only execute together with a
-   `CLAUDE.md` rewrite and a migration of the live queue + standing
-   invariants to their new home (issues/project + a durable invariants doc).
+   anchors. Its `REMOVE` disposition executes only at Step 7, together with
+   the `CLAUDE.md` KEEP-SANITISE rewrite (owner decision 2) and a migration
+   of the live queue + standing invariants to their new home (the queue
+   snapshot in the Step 7 PR description + a durable
+   `docs/standing-invariants.md` carrying the invariant content verbatim).
 3. **Standing rules still apply.** No disposition may weaken the standing
    gates: FanTRIAC posture changes stay human-review-only, operator
    attestation blocks are never machine-written (relevant when slimming or
    archiving bench-proof docs), and archiving a governance record must
-   preserve its content verbatim (move, don't rewrite).
+   preserve its content verbatim (move, don't rewrite). The governance
+   directories `docs/security/`, `docs/compliance/`, `docs/decisions/`, and
+   `docs/release-notes/` are KEEP in full — not moved or rewritten under
+   this programme.
 4. **webflash rows are recorded here for the cross-repo picture only.** They
-   are executed in the `sense360store/WebFlash` repo, not from this one.
+   are executed in the `sense360store/WebFlash` repo, not from this one
+   (Phase 2).
+
+### WebFlash guard-test execution notes
+
+Folded verbatim-in-substance from the copy of this manifest on WebFlash main
+(WebFlash PR #569), which this file supersedes as the single canonical text:
+
+- Several ARCHIVE rows on the webflash side are currently referenced as live
+  contracts by `CLAUDE.md` and the guard tests (for example
+  `docs/firmware-import.md`, `docs/product-import-readiness.md`,
+  `docs/webflash-import-readiness-matrix.md`, `docs/conventions-history.md`,
+  `docs/wizard-ux-roadmap.md`, `docs/led-preview-webflash-proof.md`).
+  Executing those rows requires updating every inbound reference
+  (`CLAUDE.md`, README, tests such as
+  `__tests__/product-import-readiness.test.js`) in the same change, or the
+  disposition must be downgraded to KEEP until the reference is retired.
+- `UPCOMING_PR.md` removal (webflash side) likewise requires retiring the
+  standing convention in `CLAUDE.md` that every queue-changing PR must
+  update it, and transferring live queue items to GitHub issues or a project
+  board first.
+- Dispositions are per-repo: esphome-public rows are executed in
+  `sense360store/esphome-public`, webflash rows in `sense360store/WebFlash`.
 
 ## esphome-public
 
-### DECIDE (4 files, 64 KB)
+### DECIDED (4 files, 64 KB — resolved by the owner decisions of record, 2026-07-04)
 
-| File | KB | Rationale |
+| File | KB | Disposition |
 |---|---:|---|
-| `docs/sense360-roadmap-status.md` | 34 | Canonical status doc from DOCS-CONSOLIDATION-ROADMAP-001. Either keep as the single internal status page or migrate to GitHub Projects and delete. |
-| `CLAUDE.md` | 14 | Agent instructions in a public production repo. Keep but sanitise, or move to .claude/ and strip internal process detail. |
-| `docs/shop-commercial-source-of-truth.md` | 11 | Commercial source of truth probably should not live in a public repo at all. Move to private repo. |
-| `include/README.md` | 5 | Needs a look. |
+| `docs/sense360-roadmap-status.md` | 34 | **KEEP** — remains the single internal status page (owner decision 1). |
+| `CLAUDE.md` | 14 | **KEEP-SANITISE** — strip internal process and commercial detail; retain repo conventions and gates; point standing rules at `docs/standing-invariants.md`. Executed at Step 7 (owner decision 2). |
+| `docs/shop-commercial-source-of-truth.md` | 11 | **MOVE-PRIVATE** — delete from the public tree; retire `tests/test_shop_commercial_source_of_truth.py` in the same PR; content remains recoverable from the indexed SHA. Executed at Step 6 (owner decision 3). |
+| `include/README.md` | 5 | **KEEP** (owner decision 4). |
 
 ### REMOVE (1 file, 38 KB)
 
 | File | KB | Rationale |
 |---|---:|---|
-| `UPCOMING_PR.md` | 38 | 38KB working queue at root. Transfer live items to GitHub issues/project, then delete. Git history retains it. See execution constraint 2 above. |
+| `UPCOMING_PR.md` | 38 | 38KB working queue at root. Snapshot the live queue into the Step 7 PR description, then delete with an index row. Git history retains it. Executed at Step 7; see execution constraint 2 above. |
 
 ### MERGE (4 files, 503 KB)
 
@@ -88,14 +158,18 @@ move. Verified against the tree at generation time:
 | `docs/hardware/s360-320-r4-triac.md` | 110 | Board reference with embedded audit trail. Keep a clean reference, move the trail to archive. |
 | `docs/hardware/s360-100-r4-core.md` | 65 | Board reference with embedded audit trail. Keep a clean reference, move the trail to archive. |
 
-### ARCHIVE (71 files, 4146 KB)
+### ARCHIVE (68 files, 4090 KB)
 
 Rationale for every row: process artifact (audit / proof / dryrun / matrix /
-plan / handoff). Move to `docs/archive/` with an index entry, or to a private
-records repo. Rows marked **[code-ref]** were referenced from `scripts/`,
-`tests/`, or `.github/workflows/` at generation time (see execution
-constraint 1); rows marked **[generated]** are CI-freshness-gated generator
-output and cannot move without changing the generator.
+plan / handoff). Delete plus index row in `docs/archive-index.md`, plus a
+stub where a cross-repo link requires one; the private records repo is
+populated later from the indexed SHAs (owner decision 6). Rows marked
+**[code-ref]** were referenced from `scripts/`, `tests/`, or
+`.github/workflows/` at generation time (see execution constraint 1) and are
+executed in archive batch B (Step 3); unmarked rows are batch A (Step 2).
+The two former **[generated]** rows (`docs/firmware-build-gap-report.md`,
+`docs/firmware-combination-matrix.md`) and `docs/webflash-contract.md` moved
+to KEEP by ratified amendment and no longer appear below.
 
 | File | KB | Notes |
 |---|---:|---|
@@ -143,10 +217,8 @@ output and cannot move without changing the generator.
 | `docs/pre-hardware-room-bundle-release-handoff.md` | 22 | [code-ref] |
 | `docs/compile-only-expansion-candidates.md` | 22 | [code-ref] |
 | `docs/webflash-release-proof.md` | 21 | [code-ref] |
-| `docs/webflash-contract.md` | 21 | [code-ref] |
 | `docs/webflash-release-handoff.md` | 21 | [code-ref] |
 | `docs/release-channel-policy.md` | 21 | [code-ref] |
-| `docs/firmware-build-gap-report.md` | 20 | [generated] |
 | `docs/board-combinations.md` | 19 | |
 | `docs/release-preview-publish-plan.md` | 19 | |
 | `docs/package-triac-001-operator-bench-proof.md` | 19 | [code-ref] |
@@ -157,7 +229,6 @@ output and cannot move without changing the generator.
 | `docs/repo-structure-audit.md` | 17 | [code-ref] |
 | `docs/workflow-audit-2026-06.md` | 16 | |
 | `docs/webflash-ci-alignment.md` | 16 | [code-ref] |
-| `docs/firmware-combination-matrix.md` | 15 | [generated] |
 | `docs/first-release-publish-readiness.md` | 15 | |
 | `docs/release-preview-compile-dryrun.md` | 15 | |
 | `docs/release-one.md` | 14 | [code-ref] |
@@ -171,7 +242,7 @@ output and cannot move without changing the generator.
 | `docs/room-bundle-fan-compile-results.md` | 5 | |
 | `docs/docs-consolidation-verify-001.md` | 5 | |
 
-### KEEP (66 files, 1018 KB)
+### KEEP (69 files, 1074 KB)
 
 | File | KB | Rationale |
 |---|---:|---|
@@ -193,11 +264,14 @@ output and cannot move without changing the generator.
 | `README.md` | 21 | Front door. Polish pass for production tone. |
 | `docs/hardware/artifacts/S360-200-R4.md` | 20 | Production user or developer doc. |
 | `docs/hardware/artifacts/S360-210-R4.md` | 20 | Production user or developer doc. |
+| `docs/webflash-contract.md` | 21 | Inter-repo interface contract (ratified amendment; was ARCHIVE [code-ref]). |
+| `docs/firmware-build-gap-report.md` | 20 | CI-generated with freshness gate (`scripts/report_firmware_build_gaps.py --check`); generator stays (ratified amendment; was ARCHIVE [generated]). |
 | `CHANGELOG.md` | 19 | Standard. |
 | `docs/hardware/s360-100-native-tach-pulse-strategy.md` | 18 | Production user or developer doc. |
 | `docs/configuration.md` | 17 | Production user or developer doc. |
 | `docs/hardware/s360-100-native-fan-gpio-map.md` | 17 | Production user or developer doc. |
 | `docs/security/rebuild-clean-credentials-001.md` | 15 | Governance record. Stays, structure already correct. |
+| `docs/firmware-combination-matrix.md` | 15 | CI-generated with freshness gate (`scripts/generate_firmware_matrix.py --check`); generator stays (ratified amendment; was ARCHIVE [generated]). |
 | `docs/hardware/s360-210-r4-airiq.md` | 15 | Board reference, reasonable size. |
 | `docs/hardware/s360-311-module-pinmap.md` | 14 | Production user or developer doc. |
 | `docs/repo-structure.md` | 14 | Production user or developer doc. |
@@ -247,12 +321,12 @@ output and cannot move without changing the generator.
 Recorded here for the cross-repo picture; executed in
 `sense360store/WebFlash` (see execution constraint 4).
 
-### DECIDE (2 files, 82 KB)
+### DECIDED (2 files, 82 KB — resolved by the owner decisions of record, 2026-07-04)
 
-| File | KB | Rationale |
+| File | KB | Disposition |
 |---|---:|---|
-| `docs/sense360-webflash-status.md` | 57 | Same question as the esphome-public roadmap-status doc, WebFlash side. |
-| `CLAUDE.md` | 25 | Same question as esphome-public. |
+| `docs/sense360-webflash-status.md` | 57 | **KEEP** — remains the internal status page, WebFlash side (owner decision 5). Executed in the WebFlash repo, Phase 2. |
+| `CLAUDE.md` | 25 | **KEEP-SANITISE** — same treatment as the esphome-public `CLAUDE.md` (owner decision 5). Executed in the WebFlash repo, Phase 2. |
 
 ### REMOVE (2 files, 138 KB)
 
@@ -324,3 +398,20 @@ index entry, or a private records repo.
 | `docs/adr/0001-webflash-2-view-over-engine.md` | 6 | Governance record. Stays, structure already correct. |
 | `TROUBLESHOOTING.md` | 5 | User doc. |
 | `FEATURES.md` | 2 | Small, already redirects to canonical status. |
+
+## Execution log
+
+One step per session, one PR per step, lowest-numbered non-EXECUTED step
+first. A step is marked EXECUTED (with its PR number) inside the same PR
+that performs it.
+
+| Step | Scope | PR | Date | Status |
+|---|---|---|---|---|
+| 1 | Ratify the manifest (owner decisions + amendments applied; WebFlash guard-test notes folded in; this log added) | #TBD | 2026-07-04 | EXECUTED |
+| 2 | Archive batch A (ARCHIVE rows without [code-ref]) | — | — | PENDING |
+| 3 | Archive batch B (ARCHIVE rows with [code-ref], reference updates in-PR) | — | — | PENDING |
+| 4 | Merge the duplicate pairs (S360-311, S360-312) | — | — | PENDING |
+| 5 | Slim the five KEEP-SLIM board docs | — | — | PENDING |
+| 6 | Execute MOVE-PRIVATE (`docs/shop-commercial-source-of-truth.md`) | — | — | PENDING |
+| 7 | `CLAUDE.md` sanitise + `UPCOMING_PR.md` retirement (+ `docs/standing-invariants.md`) | — | — | PENDING |
+| 8 | Link sweep + Phase 2 handoff section | — | — | PENDING |
