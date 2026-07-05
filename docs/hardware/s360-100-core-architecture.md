@@ -167,7 +167,7 @@ numbers shown to the right of each net). The table below records the
 **schematic-printed** native-GPIO terminations from the new
 [`S360-100-R4.pdf`](schematics/S360-100-R4.pdf) sheet. None of these
 GPIO terminations is **bench-verified** by this PR — the
-[`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md)
+[`docs/hardware/s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md)
 `schematic-evidence-pending` and `bench-evidence-pending` gates stay
 exactly as they were; firmware status and `rpm_supported` stay
 exactly as they were.
@@ -207,7 +207,7 @@ does **not**:
 Per-fan RPM / measured-tach claims require the separate
 `S360-311-CURRENT-THERMAL-001` / `COMPONENT-NATIVE-TACH-001` work
 and bench evidence under
-[`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md).
+[`docs/hardware/s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md).
 
 ## Bundle SKU ≠ firmware config string ≠ board SKU
 
@@ -331,7 +331,7 @@ This document and the tests added with it must not:
   PoE PSU).
 - [`docs/stable-target-expansion-plan.md` (archived)](../archive-index.md)
   — actionable expansion plan for non-Bathroom bundles.
-- [`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md) — FanPWM
+- [`docs/hardware/s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md) — FanPWM
   audit; PWM-drive-only scope and the SX1509 / `pulse_counter`
   compile-proof.
 - [`tests/test_sx1509_tach_pulse_counter_proof.py`](../../tests/test_sx1509_tach_pulse_counter_proof.py)

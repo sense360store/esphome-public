@@ -78,3 +78,5 @@ later from these SHAs (owner decision 6).
 | `docs/repo-structure-audit.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
 | `docs/webflash-ci-alignment.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
 | `docs/release-one.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/hardware/s360-311-r4-pwm.md` | `df0bd901d8a0fdd3aee04070db9ead4042204f90` | MERGE (folded into `docs/hardware/s360-311-r4-fanpwm.md`) | 2026-07-05 |
+| `docs/hardware/s360-312-r4-dac.md` | `df0bd901d8a0fdd3aee04070db9ead4042204f90` | MERGE (folded into `docs/hardware/s360-312-r4-fandac.md`) | 2026-07-05 |

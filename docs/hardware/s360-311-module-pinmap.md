@@ -85,7 +85,7 @@ place.
 | Module-side connector | `J3` (13-pin "From Core") on `S360-311-R4` |
 | Module-side fan-output connectors | `J1`, `J2`, `J4`, `J5` — 4-pin each (`+12V` / `GND` / `Pul_Cou*` / `TachPMW*`) |
 | Module-side display connector | `J6` (4-pin "NEXTION DISPLAY") |
-| Companion audit doc | [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) |
+| Companion audit doc | [`s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md) |
 
 ## Google Drive source evidence
 
@@ -125,14 +125,14 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 | Pin count | 13 |
 | Pin-1 orientation | TBD — needs silkscreen confirmation |
 | Module-side connector ref | `J3` (`S360-311-R4`) |
-| Module-side 1-to-13 pin order | Schematic-confirmed against the committed module PDF per [`s360-311-r4-pwm.md` § Schematic summary](s360-311-r4-pwm.md#schematic-summary) |
+| Module-side 1-to-13 pin order | Schematic-confirmed against the committed module PDF per [`s360-311-r4-fanpwm.md` § Schematic summary](s360-311-r4-fanpwm.md#schematic-summary) |
 
 ## Module-side pinmap (`J3` ↔ Core `J6`)
 
 The Core-side master table for `J6` is in
 [`s360-100-core-connector-pin-map.md` § J6 — 12 V PWM fan connector (13-pin)](s360-100-core-connector-pin-map.md#j6--12-v-pwm-fan-connector-13-pin).
 The module-side capture is taken from
-[`s360-311-r4-pwm.md` § Module-side `J3` ↔ Core-side `J6`](s360-311-r4-pwm.md#module-side-j3--core-side-j6-13-pin-harness).
+[`s360-311-r4-fanpwm.md` § Module-side `J3` ↔ Core-side `J6`](s360-311-r4-fanpwm.md#module-side-j3--core-side-j6-13-pin-harness).
 The pin-number column follows the **module-side** 1-to-13 order
 (schematic-confirmed) so Core-side and module-side rows can be
 lined up.
@@ -168,7 +168,7 @@ carrying `+12V`, `GND`, `Pul_Cou*`, `TachPMW*`. The per-fan-output
 drive topology (low-side N-channel MOSFET on the `TachPMW*` gate
 path with a 1 kΩ gate resistor; drain to shared `TachIO` net;
 source to `GND`) is recorded in
-[`s360-311-r4-pwm.md` § Per-fan-output drive topology](s360-311-r4-pwm.md#per-fan-output-drive-topology-module-side).
+[`s360-311-r4-fanpwm.md` § Module-side fan outputs `J1` / `J2` / `J4` / `J5`](s360-311-r4-fanpwm.md#module-side-fan-outputs-j1--j2--j4--j5-4-pin-each).
 Per-fan rated current, the MOSFET part number's actual ratings
 (symbol is `Q_NMOS_GSD`), and any thermal characterisation are
 **TBD**.
@@ -205,7 +205,7 @@ Per-fan rated current, the MOSFET part number's actual ratings
    `"NINE 4pin FANs"` but only four 4-pin fan output connectors
    are visible. Stale label / project code / undelivered intent
    is **unresolved** per
-   [`s360-311-r4-pwm.md` § Open documentation questions](s360-311-r4-pwm.md#open-documentation-questions).
+   [`s360-311-r4-fanpwm.md` § Open reconciliation questions (still owed)](s360-311-r4-fanpwm.md#open-reconciliation-questions-still-owed).
 5. **Bench / harness / waveform evidence.** `PWM-12` per
    [`docs/blocker-burndown.md` (archived)](../archive-index.md) stays
    NEEDS BENCH; no RPM / tach / PWM polarity / current / thermal
@@ -217,7 +217,7 @@ Per-fan rated current, the MOSFET part number's actual ratings
 - [`s360-100-r4-core.md`](s360-100-r4-core.md) — Core per-pin / per-net reference.
 - [`s360-100-native-fan-gpio-map.md`](s360-100-native-fan-gpio-map.md) — canonical FanPWM control + tach native ESP32-S3 GPIO map (S360-100-NATIVE-FAN-GPIO-MAP-001).
 - [`s360-100-native-tach-pulse-strategy.md`](s360-100-native-tach-pulse-strategy.md) — architectural rule for tach / pulse-counter native ESP32-S3 GPIO.
-- [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) — PWM board-side audit (HW-PINMAP-311).
+- [`s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md) — FanPWM board-side reference; also carries the merged HW-PINMAP-311 audit.
 - [`artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md) — curated artifact index (HW-ASSETS-003).
 - [`schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf) — committed module-side schematic PDF.
 - [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table (PWM-12).

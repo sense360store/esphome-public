@@ -41,7 +41,7 @@ It is **documentation only**. It does **not**:
 | Module-side connector | `J1` (6-pin "From Core") on `S360-312-R4` |
 | Module-side fan-output connectors | `J2`, `J3` — 3-pin each (Cloudlift-style outputs) |
 | Module-side display connector | `J6` (4-pin "NEXTION DISPLAY") |
-| Companion audit doc | [`s360-312-r4-dac.md`](s360-312-r4-dac.md) |
+| Companion audit doc | [`s360-312-r4-fandac.md`](s360-312-r4-fandac.md) |
 
 ## Google Drive source evidence
 
@@ -88,7 +88,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 The Core-side master table for `J7` is in
 [`s360-100-core-connector-pin-map.md` § J7 — DAC module connector (6-pin)](s360-100-core-connector-pin-map.md#j7--dac-module-connector-6-pin).
 The module-side capture is taken from
-[`s360-312-r4-dac.md` § Module-side `J1` ↔ Core-side `J7`](s360-312-r4-dac.md#module-side-j1--core-side-j7-6-pin-harness).
+[`s360-312-r4-fandac.md` § Module-side `J1` ↔ Core-side `J7`](s360-312-r4-fandac.md#module-side-j1--core-side-j7-6-pin).
 
 | Pin number | Module-side signal | Core net | ESP32 GPIO | Module-side signal type | Voltage / domain | Status |
 |---|---|---|---|---|---|---|
@@ -110,7 +110,7 @@ The module-side carries two GP8403-TC50-EW DACs (`IC1` / `IC2`)
 driving two Cloudlift-style 3-pin fan-output connectors `J2` and
 `J3`. Per-pin order on these load-side connectors is module-side
 content and is recorded in
-[`s360-312-r4-dac.md` § Schematic summary](s360-312-r4-dac.md#schematic-summary);
+[`s360-312-r4-fandac.md` § Schematic summary](s360-312-r4-fandac.md#schematic-summary);
 this pinmap does **not** restate or invent the per-pin assignments
 on `J2` / `J3`. The fan-output current / voltage envelope, fan
 compatibility, and analog-DAC firmware path are out of scope.
@@ -143,8 +143,7 @@ compatibility, and analog-DAC firmware path are out of scope.
 
 - [`s360-100-core-connector-pin-map.md`](s360-100-core-connector-pin-map.md) — canonical Core-to-module connector pin map (S360-100-CONNECTOR-PINMAP-001).
 - [`s360-100-r4-core.md`](s360-100-r4-core.md) — Core per-pin / per-net reference.
-- [`s360-312-r4-dac.md`](s360-312-r4-dac.md) — DAC board-side audit (HW-PINMAP-312).
-- [`s360-312-r4-fandac.md`](s360-312-r4-fandac.md) — FanDAC product reference.
+- [`s360-312-r4-fandac.md`](s360-312-r4-fandac.md) — FanDAC product reference; also carries the merged HW-PINMAP-312 board-side audit.
 - [`schematics/S360-312-R4.pdf`](schematics/S360-312-R4.pdf) — committed module-side schematic PDF.
 - [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table.
 

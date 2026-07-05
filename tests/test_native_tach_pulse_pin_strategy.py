@@ -223,7 +223,7 @@ class NoExpanderTachClaimsInDocsTests(unittest.TestCase):
     # this scan; the rule still holds for the kept board docs.
     DOC_TARGETS = [
         REPO_ROOT / "docs" / "hardware" / "s360-100-r4-core.md",
-        REPO_ROOT / "docs" / "hardware" / "s360-311-r4-pwm.md",
+        REPO_ROOT / "docs" / "hardware" / "s360-311-r4-fanpwm.md",
     ]
 
     def test_no_forbidden_expander_tach_claims(self) -> None:

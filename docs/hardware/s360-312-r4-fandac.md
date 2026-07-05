@@ -9,9 +9,11 @@ This document is the per-board hardware reference for the Sense360 DAC
 `HW-PINMAP-312-FOLLOWUP`. It follows the per-board reference pattern
 of [`s360-200-r4-roomiq.md`](s360-200-r4-roomiq.md),
 [`s360-211-r4-ventiq.md`](s360-211-r4-ventiq.md), and
-[`s360-300-r4-led.md`](s360-300-r4-led.md), and it complements the
-broader HW-PINMAP-312 reconciliation audit at
-[`s360-312-r4-dac.md`](s360-312-r4-dac.md).
+[`s360-300-r4-led.md`](s360-300-r4-led.md), and it subsumes the
+broader HW-PINMAP-312 reconciliation audit (the former standalone
+`docs/hardware/s360-312-r4-dac.md`, merged into this document under
+DOCS-DISPOSITION-001 Step 4; the original audit record is indexed by
+SHA in [`docs/archive-index.md`](../archive-index.md)).
 
 This doc consolidates two evidence sources:
 
@@ -33,6 +35,13 @@ The doc records what the schematic + BOM together prove, what they
 do **not** prove, and what specific evidence still gates the
 `PACKAGE-DAC-001` (alias: `PACKAGE-GAP-001` FanDAC slice) work. It
 is **documentation-only**.
+
+Follow-up PR naming crosswalk (carried from the HW-PINMAP-312
+audit): the FanDAC-lane follow-ups are named both ways in the
+tree — `PACKAGE-DAC-001` = `PACKAGE-GAP-001` (FanDAC slice),
+`PRODUCT-DAC-001` = `PRODUCT-GAP-001`, `WEBFLASH-DAC-001` =
+`WEBFLASH-GAP-001`, `RELEASE-DAC-001` = `RELEASE-GAP-001`, and
+`WF-IMPORT-DAC-001` = `WF-IMPORT-GAP-001`.
 
 ## Purpose and scope
 
@@ -122,9 +131,11 @@ source-of-truth document wins** and this reference must be
 updated. The authoritative artifact-side record for this board is
 [`docs/hardware/artifacts/S360-312-R4.md`](artifacts/S360-312-R4.md);
 the authoritative Core-side capture lives in
-[`docs/hardware/s360-100-r4-core.md`](s360-100-r4-core.md); the
-authoritative full pin-map reconciliation audit is
-[`docs/hardware/s360-312-r4-dac.md`](s360-312-r4-dac.md).
+[`docs/hardware/s360-100-r4-core.md`](s360-100-r4-core.md). This
+document is also the authoritative HW-PINMAP-312 pin-map
+reconciliation record (the former standalone audit
+`docs/hardware/s360-312-r4-dac.md` was merged into it; original
+indexed in [`docs/archive-index.md`](../archive-index.md)).
 
 ## Board identity
 
@@ -145,7 +156,7 @@ lines 82–91 without modification.
 | `schematic_file` | _(not set; unchanged by this PR)_ |
 | Curated artifact index | [`docs/hardware/artifacts/S360-312-R4.md`](artifacts/S360-312-R4.md) |
 | Committed schematic PDF | [`docs/hardware/schematics/S360-312-R4.pdf`](schematics/S360-312-R4.pdf) |
-| Per-board reconciliation audit | [`s360-312-r4-dac.md`](s360-312-r4-dac.md) (HW-PINMAP-312) |
+| Per-board reconciliation audit | This document (HW-PINMAP-312; the former standalone `s360-312-r4-dac.md` was merged here — original indexed in [`docs/archive-index.md`](../archive-index.md)) |
 | FanDAC package YAML | [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) (two GP8403 chips / four outputs; package-layer reconciled by `PACKAGE-DAC-001-IMPLEMENT-001`, 2026-05-23) |
 | FanDAC canonical alias | [`packages/expansions/fan_dac.yaml`](../../packages/expansions/fan_dac.yaml) (pure-wrapper alias) |
 
@@ -206,7 +217,7 @@ FanDAC-specific evidence enumerated in
 | Module-side schematic PDF | [`docs/hardware/schematics/S360-312-R4.pdf`](schematics/S360-312-R4.pdf) (HW-ASSETS-003; SHA256 `2888f626bfa0139d2190f154f9b02ecf4cb06f2522a5b5802eaf96e16de39e28`; 122,230 bytes) | **Committed.** Byte-identical to upload. Single sheet (`S360-312-R4.kicad_sch`, page 1 / 1). KiCad 10.0.3 export, A4. |
 | Module-side BOM spreadsheet | `Fan_GP8403.xlsx` (uploaded; SHA256 `1886ecad5b9dd1a683b8c0ccebb770e5c02894854650b5a5553b19875f7e3a20`; 12,744 bytes; single sheet `Fan_GP8403`; 19 rows incl. header) | **Not committed (raw spreadsheet form).** Content transcribed into [§BOM cross-check](#bom-cross-check) below. Treated under the [Hardware Artifact Policy (archived)](../archive-index.md) retained-but-not-committed rule for raw BOM spreadsheets. |
 | Curated artifact index | [`docs/hardware/artifacts/S360-312-R4.md`](artifacts/S360-312-R4.md) | **Committed.** Schematic-content capture + retained-but-not-committed inventory. |
-| HW-PINMAP-312 audit | [`s360-312-r4-dac.md`](s360-312-r4-dac.md) | **Committed.** Full reconciliation audit; this reference doc complements it. |
+| HW-PINMAP-312 audit | This document (the former standalone `s360-312-r4-dac.md` was merged here; original indexed in [`docs/archive-index.md`](../archive-index.md)) | **Merged.** The full reconciliation audit record now lives in this reference doc. |
 | Core-side `J7` capture | [`s360-100-r4-core.md` §J7](s360-100-r4-core.md#j7--gp8403-fan-connector-6-pin) | **Committed.** Net list `+5V`, `I2C_SDA`, `I2C_SCL`, `UART_RX`, `UART_TX`, `GND` (no `verify` flag on pin-1 rail value). |
 | Core-side shared I²C bus | [`s360-100-r4-core.md` §I2C bus](s360-100-r4-core.md#i2c-bus) | **Committed.** `I2C_SDA` on ESP32 `GPIO48` with `R22 10 kΩ` pull-up; `I2C_SCL` on `GPIO45` with `R21 10 kΩ` pull-up. Single shared bus after `CORE-ABSTRACT-BUS-001B`. |
 | Core-side UART0 path | [`s360-100-r4-core.md` §UART buses](s360-100-r4-core.md#uart-buses) line 349 | **Committed.** Records UART0 as the boot-log path on USB. |
@@ -346,7 +357,7 @@ CPL / Gerbers / drill / STEP / board images or bench evidence per
 
 | Pin | Module `J1` net (schematic) | Core `J7` net (per [s360-100-r4-core.md §J7](s360-100-r4-core.md#j7--gp8403-fan-connector-6-pin)) | Reconciliation |
 |---:|---|---|---|
-| 1 | `+3.3V` | `+5V` | **Voltage-rail discrepancy.** Owned by `S360-100-BENCH-001` + HW-PINMAP-312-FOLLOWUP evidence pass. See [`s360-312-r4-dac.md` §Voltage-rail discrepancy](s360-312-r4-dac.md#voltage-rail-discrepancy). |
+| 1 | `+3.3V` | `+5V` | **Voltage-rail discrepancy.** Owned by `S360-100-BENCH-001` + HW-PINMAP-312-FOLLOWUP evidence pass. See [§Voltage-rail discrepancy](#voltage-rail-discrepancy). |
 | 2 | `I2C_SDA` | `I2C_SDA` | Net-name agrees. Bus is the shared `core_i2c` after PR #569 (`GPIO48` SDA, 10 kΩ pull-up `R22` on Core; 4.7 kΩ pull-ups on this module routed through the GP8403 address-select tree). |
 | 3 | `I2C_SCL` | `I2C_SCL` | Net-name agrees. `core_i2c` (`GPIO45` SCL, 10 kΩ pull-up `R21` on Core). |
 | 4 | `UART_RX` | `UART_RX` | Net-name agrees. On Core, this routes to ESP32 `RXD0` (pin 36) — UART0, also the USB boot-log path. UART0-vs-Nextion arbitration question remains open; see [§UART0-vs-Nextion arbitration](#uart0-vs-nextion-arbitration). |
@@ -360,6 +371,39 @@ does not currently flag the pin order as `verify` (unlike Core
 `J6` for FanPWM, which is flagged), so the question is whether the
 Core `J7` capture's pin-1-as-`+5V` is correct or whether silkscreen
 inspection will reveal `+3.3V` matching the module side.
+
+### Voltage-rail discrepancy
+
+The single most important pin-map discrepancy carried by this
+audit. The Core-side `J7` capture in
+[`s360-100-r4-core.md` §J7](s360-100-r4-core.md#j7--gp8403-fan-connector-6-pin)
+records pin 1 as `+5V`. The module-side `J1` capture labels pin 1
+as `+3.3V`, and the on-module MT3608 boost converter's `IN` pin
+is also labelled `+3.3V`. Three schematic-internally-consistent
+possibilities exist:
+
+1. **The Core-side `J7` capture is incorrect** and the supply
+   delivered to the connector is actually `+3.3V`. In this case,
+   [`s360-100-r4-core.md` §J7](s360-100-r4-core.md#j7--gp8403-fan-connector-6-pin)
+   must be updated and the Core `J7` pin-1 row corrected against
+   silkscreen.
+2. **The module-side schematic mislabels the rail** and the board
+   actually accepts `+5V` (consistent with boosting to `+12V` via
+   MT3608 at a more comfortable voltage ratio). In this case, the
+   module schematic and the artifact-index re-restatement are both
+   wrong on the pin-1 label, and only the rail label needs
+   correcting (the on-board behaviour would already be a `+5V`-in
+   board).
+3. **The Core and module agree on connector position 1 only by
+   accident on the harness**, and the actual rail delivered to the
+   module differs from what either schematic claims. In this case
+   the harness conductor mapping needs separate verification.
+
+**This is a wiring-relevant flag and must be resolved against
+physical silkscreen evidence before any FanDAC-bearing config
+ships.** This audit records the discrepancy. It does **not** edit
+[`s360-100-r4-core.md`](s360-100-r4-core.md) and does **not**
+choose between the three possibilities.
 
 ### Module-side `J2` (CLOUDLIFT S12 FAN, driven by IC1)
 
@@ -641,7 +685,7 @@ spreadsheet)_` rather than fabricated.
   the Core side supplies `+5V` through the Module `J1` connector
   is **the same** Core `J7` pin-1 `+5V` vs Module `J1` pin-1
   `+3.3V` voltage-rail question recorded in
-  [`s360-312-r4-dac.md` §Voltage-rail discrepancy](s360-312-r4-dac.md#voltage-rail-discrepancy);
+  [§Voltage-rail discrepancy](#voltage-rail-discrepancy);
   see also [§Open evidence](#open-evidence-not-resolved-by-this-pr).
 
 **Items the BOM does NOT contain:**
@@ -756,6 +800,23 @@ They are not resolved by this PR or by `CORE-ABSTRACT-BUS-001B`.
     way `tests/test_core_abstract_bus.py` covers Core-side
     pin / bus identity). Adding such coverage belongs to
     `PACKAGE-DAC-001`.
+
+### Open documentation questions (carried from the HW-PINMAP-312 audit)
+
+- **Catalog description scope.** The hardware-catalog `description`
+  is singular ("0 to 10V analog fan driver, for example Cloudlift
+  S12"); the board carries **two** independent DAC channels (`IC1`
+  / `IC2`) each driving its own Cloudlift-style 3-pin output (`J2`
+  / `J3`). Whether to broaden the description, add a `channels` /
+  `outputs` field, or rename the friendly name is a separate
+  catalog PR. Owner: a future, separate JSON-only PR — **not** this
+  audit, **not** HW-PINMAP-312-FOLLOWUP.
+- **Date / Title / Rev fields blank.** The KiCad title-block date,
+  title, and revision fields are blank in the committed PDF — see
+  [`docs/hardware/artifacts/S360-312-R4.md` Uploaded artifact inventory](artifacts/S360-312-R4.md#uploaded-artifact-inventory).
+  Provenance is `S360-312-R4.kicad_sch` (per the title-block file
+  field), but no commit / revision metadata is recorded on the
+  sheet.
 
 ## Blockers remaining for PACKAGE-DAC-001
 
@@ -1362,14 +1423,16 @@ release surface (per
 [`pre-hardware-prep-plan.md` §1.2 / §1.4 (archived)](../archive-index.md)).
 A `design-complete` board stays `cataloged_unverified` until its bench
 session fills the D6 matrix below and a separate JSON-catalog PR makes
-the `cataloged_unverified -> verified` flip.
+the `cataloged_unverified -> verified` flip (that promotion PR also
+sets `schematic_file: docs/hardware/schematics/S360-312-R4.pdf` in
+[`config/hardware-catalog.json`](../../config/hardware-catalog.json)).
 
 Checklist against the four `design-complete` conditions
 ([`pre-hardware-prep-plan.md` §1.1 (archived)](../archive-index.md)):
 
 | # | Condition | State | Evidence |
 |---|---|---|---|
-| 1 | Firmware driver finalised to the current design artifacts | met | [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) — dual `GP8403` (`IC1`/`IC2`) on the shared `core_i2c` bus, four neutral package-layer outputs, per-chip address + per-chip `voltage:` substitutions; reconciled against the committed schematic in this doc and in [`s360-312-r4-dac.md`](s360-312-r4-dac.md). The stale `GPIO39`/`GPIO40` header comment was already corrected to the Core `IO48`/`IO45` bus by `CORE-ABSTRACT-BUS-001B`. |
+| 1 | Firmware driver finalised to the current design artifacts | met | [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) — dual `GP8403` (`IC1`/`IC2`) on the shared `core_i2c` bus, four neutral package-layer outputs, per-chip address + per-chip `voltage:` substitutions; reconciled against the committed schematic in this doc (including the merged HW-PINMAP-312 audit record). The stale `GPIO39`/`GPIO40` header comment was already corrected to the Core `IO48`/`IO45` bus by `CORE-ABSTRACT-BUS-001B`. |
 | 2 | Firmware compiles end-to-end in a compile-only CI target | met | Full ESPHome compile green in run [`26364679370`](https://github.com/sense360store/esphome-public/actions/runs/26364679370) (`workflow_dispatch` / `compile_mode=full`, 9 targets, conclusion `success`; FW-COMPILE-DAC-FULL-RESULT-001). Targets `ceiling-poe-fandac-compile-only` and `ceiling-poe-fandac-product-compile-only` in [`config/compile-only-targets.json`](../../config/compile-only-targets.json). |
 | 3 | Every binding traceable to a schematic-printed value (no invented GPIOs / addresses) | met (schematic-only values carried as such) | I²C bus is the abstract `${fan_dac_i2c_id}` -> `core_i2c`, which the Core schematic terminates at ESP32 `IO48`/`IO45`. The `0x58`/`0x59` addresses are the GP8403 base/next defaults and are **carried as owed-to-bench** (the `SW1`/`SW2` DIP->address mapping is not printed on the sheet — D6 item T2/T3). The `10V` range is the firmware default (GP8403 register `0x01`); the schematic shows no range jumper (D6 item T6). |
 | 4 | Release-note template + artifact-naming + pre-written bench test matrix exist | met | D5 template + artifact-naming scheme and the D6 bench / evidence test matrix below. |
@@ -1470,9 +1533,14 @@ resolves none of it. The `S360-312` board stays
 
 ## See also
 
-- [`docs/hardware/s360-312-r4-dac.md`](s360-312-r4-dac.md) — full
-  HW-PINMAP-312 reconciliation audit; the source-of-truth for the
-  open reconciliation flags.
+- The former standalone HW-PINMAP-312 reconciliation audit
+  (`docs/hardware/s360-312-r4-dac.md`) was merged into this
+  document under DOCS-DISPOSITION-001 Step 4; this document is now
+  the source-of-truth for the open reconciliation flags. The
+  original audit record is indexed by SHA in
+  [`docs/archive-index.md`](../archive-index.md).
+- [`docs/webflash-contract.md`](../webflash-contract.md) —
+  `FanDAC` config-string token mapping to `S360-312`.
 - [`docs/hardware/artifacts/S360-312-R4.md`](artifacts/S360-312-R4.md)
   — HW-ASSETS-003 curated artifact index.
 - [`docs/hardware/schematics/S360-312-R4.pdf`](schematics/S360-312-R4.pdf)
@@ -1518,10 +1586,9 @@ resolves none of it. The `S360-312` board stays
 This section is the dated investigation log for this standalone
 reference doc. Each row records the docs / evidence change
 recorded against the schematic + BOM. An audit-log entry **does
-not** by itself promote the top-line status of
-[`s360-312-r4-dac.md`](s360-312-r4-dac.md), close any
-reconciliation row in
-[`s360-312-r4-dac.md`](s360-312-r4-dac.md#known-unresolved-issues),
+not** by itself promote the top-line status of the HW-PINMAP-312
+audit record (the former `s360-312-r4-dac.md`, since merged into
+this document), close any of its reconciliation rows,
 change [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml)
 from `package-yaml-pending`, change the JSON `schematic_status` of
 `S360-312` from `cataloged_unverified`, set `schematic_file` for
@@ -1538,7 +1605,7 @@ mutex, or relax or change the fan-driver `max-one-of` rule.
 | Audit date | Scope | Files inspected | Outcome |
 |---|---|---|---|
 | 2026-05-31 | `PRE-HW-PREP-FW-312-001` — record `S360-312` **design-complete** (prose annotation; slice 2 of [`pre-hardware-prep-plan.md` (archived)](../archive-index.md)). Added the [§Design-complete status](#design-complete-status-pre-hw-prep-fw-312-001) checklist, the [§D5](#d5--release-note-template-and-artifact-naming-template-only) release-note template + artifact-naming scheme, and the [§D6](#d6--bench--evidence-test-matrix-pre-written-to-be-filled-at-the-bench) bench / evidence test matrix. | Already-committed dual-`GP8403` driver [`fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml), the `Ceiling-POE-FanDAC` bundle, and the committed full-compile run [`26364679370`](https://github.com/sense360store/esphome-public/actions/runs/26364679370). No new bench / hardware evidence. | Documentation-only; no YAML / config / test / workflow / firmware change. `design-complete` is prose, **not** `verified`: `S360-312` stays `cataloged_unverified`, lifecycle unchanged, no `schematic_file`, no WebFlash / release surface. Rail / DIP->address / Cloudlift pin-order / voltage-mode-jumper stay OWED. |
-| 2026-05-22 | HW-PINMAP-312-FOLLOWUP — consolidate schematic + BOM evidence in a standalone per-board reference doc after `CORE-ABSTRACT-BUS-001B-IMPLEMENT-001` (PR #569). The user supplied the same module-side schematic PDF (byte-identical to the already-committed schematic; SHA256 `2888f626bfa0139d2190f154f9b02ecf4cb06f2522a5b5802eaf96e16de39e28`) plus a **new** BOM spreadsheet (`Fan_GP8403.xlsx`; SHA256 `1886ecad5b9dd1a683b8c0ccebb770e5c02894854650b5a5553b19875f7e3a20`; 12,744 bytes; 19 rows incl. header) that had not previously been recorded in the repo. Decisions recorded: (i) target board `S360-312-R4`; (ii) FanDAC output behavior to be firmware/product-selectable (deferred to `PACKAGE-DAC-001`); (iii) supported ranges are GP8403's 0–5 V and 0–10 V; (iv) both GP8403 channels per chip are intended to be exposed at the connector; (v) no claim of simultaneous one-channel-0–5 V + one-channel-0–10 V on a single GP8403, because the schematic shows one `V5V` reference per chip wired to `+12V`. Inspected the schematic content already captured in [`docs/hardware/artifacts/S360-312-R4.md`](artifacts/S360-312-R4.md), the HW-PINMAP-312 audit at [`s360-312-r4-dac.md`](s360-312-r4-dac.md), the Core-side capture at [`s360-100-r4-core.md`](s360-100-r4-core.md), the `CORE-ABSTRACT-BUS-001B` landing at [`core-abstract-bus-reconciliation.md` (archived)](../archive-index.md), and the current FanDAC package YAML at [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml). | Schematic PDF byte-identical to upload (SHA256 `2888f626bfa0139d2190f154f9b02ecf4cb06f2522a5b5802eaf96e16de39e28`; 122,230 bytes); `Fan_GP8403.xlsx` BOM spreadsheet (SHA256 `1886ecad5b9dd1a683b8c0ccebb770e5c02894854650b5a5553b19875f7e3a20`; 12,744 bytes; 19 rows transcribed under [§BOM cross-check](#bom-cross-check)); [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) (dual-channel; `fan_dac_i2c_id: core_i2c` default line 27; `gp8403.i2c_id: ${fan_dac_i2c_id}` line 43; `gp8403.address: ${fan_dac_address}` default `0x58` line 28; `gp8403.voltage: ${fan_dac_voltage_mode}` default `10V` line 31; two `output.platform: gp8403` channels 0 and 1; two `fan.platform: speed` entities); [`packages/expansions/fan_dac.yaml`](../../packages/expansions/fan_dac.yaml) (pure-wrapper alias); [`s360-100-r4-core.md` §J7](s360-100-r4-core.md#j7--gp8403-fan-connector-6-pin), §[I2C bus](s360-100-r4-core.md#i2c-bus), §[UART buses](s360-100-r4-core.md#uart-buses); this document. | **New file landed.** Created `docs/hardware/s360-312-r4-fandac.md` as the standalone schematic-backed reference doc that the HW-PINMAP-312 audit at [`s360-312-r4-dac.md` open question (x)](s360-312-r4-dac.md#hw-pinmap-312-followup-audit-log) had explicitly anticipated. **No package / product / WebFlash / catalog / release / firmware / test / WebFlash-wrapper edit.** [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) byte-identical. [`packages/expansions/fan_dac.yaml`](../../packages/expansions/fan_dac.yaml) byte-identical. `S360-312` `schematic_status` stays `cataloged_unverified`. `schematic_file` for `S360-312` stays unset. The `fan_gp8403.yaml` row in [`docs/hardware/package-readiness-matrix.md` (archived)](../archive-index.md) stays `needs-package-reconciliation` + `bench-evidence-pending` (notes refreshed by this PR to point at this new reference doc). [`docs/hardware/firmware-package-mapping-audit.md` (archived)](../archive-index.md) notes for the FanDAC slice are refreshed to point at this new reference doc. `PACKAGE-DAC-001` (alias: `PACKAGE-GAP-001` FanDAC slice) is **no longer blocked at the shared-I²C-bus-naming layer** (carry-over from PR #569) but **stays blocked** on the 10 items enumerated in [§Blockers remaining for PACKAGE-DAC-001](#blockers-remaining-for-package-dac-001). `PRODUCT-DAC-001`, `WEBFLASH-DAC-001`, `RELEASE-DAC-001`, and `WF-IMPORT-DAC-001` stay blocked behind `PACKAGE-DAC-001`. No FanDAC-bearing entry exists in [`config/product-catalog.json`](../../config/product-catalog.json), [`config/webflash-builds.json`](../../config/webflash-builds.json), [`products/`](../../products/), or [`products/webflash/`](../../products/webflash/). `FanDAC` stays reserved in [`config/webflash-compatibility.json`](../../config/webflash-compatibility.json) `canonical_modules` subject to the fan-driver `max-one-of` rule and the explicit `FanDAC` ↔ `AirIQ` mutex (`rules.fandac_conflicts_with_airiq: true`). `S360-100-BENCH-001`, `HW-PINMAP-311-FOLLOWUP`, `HW-PINMAP-320-FOLLOWUP`, and `COMPLIANCE-001` are not closed by this PR. Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`. LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`. FanTRIAC stays `blocked` / `HW-005`. The WebFlash repository (`sense360store/WebFlash`) is untouched. |
+| 2026-05-22 | HW-PINMAP-312-FOLLOWUP — consolidate schematic + BOM evidence in a standalone per-board reference doc after `CORE-ABSTRACT-BUS-001B-IMPLEMENT-001` (PR #569). The user supplied the same module-side schematic PDF (byte-identical to the already-committed schematic; SHA256 `2888f626bfa0139d2190f154f9b02ecf4cb06f2522a5b5802eaf96e16de39e28`) plus a **new** BOM spreadsheet (`Fan_GP8403.xlsx`; SHA256 `1886ecad5b9dd1a683b8c0ccebb770e5c02894854650b5a5553b19875f7e3a20`; 12,744 bytes; 19 rows incl. header) that had not previously been recorded in the repo. Decisions recorded: (i) target board `S360-312-R4`; (ii) FanDAC output behavior to be firmware/product-selectable (deferred to `PACKAGE-DAC-001`); (iii) supported ranges are GP8403's 0–5 V and 0–10 V; (iv) both GP8403 channels per chip are intended to be exposed at the connector; (v) no claim of simultaneous one-channel-0–5 V + one-channel-0–10 V on a single GP8403, because the schematic shows one `V5V` reference per chip wired to `+12V`. Inspected the schematic content already captured in [`docs/hardware/artifacts/S360-312-R4.md`](artifacts/S360-312-R4.md), the HW-PINMAP-312 audit at `s360-312-r4-dac.md` (since merged into this document; original indexed in [`docs/archive-index.md`](../archive-index.md)), the Core-side capture at [`s360-100-r4-core.md`](s360-100-r4-core.md), the `CORE-ABSTRACT-BUS-001B` landing at [`core-abstract-bus-reconciliation.md` (archived)](../archive-index.md), and the current FanDAC package YAML at [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml). | Schematic PDF byte-identical to upload (SHA256 `2888f626bfa0139d2190f154f9b02ecf4cb06f2522a5b5802eaf96e16de39e28`; 122,230 bytes); `Fan_GP8403.xlsx` BOM spreadsheet (SHA256 `1886ecad5b9dd1a683b8c0ccebb770e5c02894854650b5a5553b19875f7e3a20`; 12,744 bytes; 19 rows transcribed under [§BOM cross-check](#bom-cross-check)); [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) (dual-channel; `fan_dac_i2c_id: core_i2c` default line 27; `gp8403.i2c_id: ${fan_dac_i2c_id}` line 43; `gp8403.address: ${fan_dac_address}` default `0x58` line 28; `gp8403.voltage: ${fan_dac_voltage_mode}` default `10V` line 31; two `output.platform: gp8403` channels 0 and 1; two `fan.platform: speed` entities); [`packages/expansions/fan_dac.yaml`](../../packages/expansions/fan_dac.yaml) (pure-wrapper alias); [`s360-100-r4-core.md` §J7](s360-100-r4-core.md#j7--gp8403-fan-connector-6-pin), §[I2C bus](s360-100-r4-core.md#i2c-bus), §[UART buses](s360-100-r4-core.md#uart-buses); this document. | **New file landed.** Created `docs/hardware/s360-312-r4-fandac.md` as the standalone schematic-backed reference doc that the HW-PINMAP-312 audit (the former `s360-312-r4-dac.md`, open question (x); since merged into this document) had explicitly anticipated. **No package / product / WebFlash / catalog / release / firmware / test / WebFlash-wrapper edit.** [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) byte-identical. [`packages/expansions/fan_dac.yaml`](../../packages/expansions/fan_dac.yaml) byte-identical. `S360-312` `schematic_status` stays `cataloged_unverified`. `schematic_file` for `S360-312` stays unset. The `fan_gp8403.yaml` row in [`docs/hardware/package-readiness-matrix.md` (archived)](../archive-index.md) stays `needs-package-reconciliation` + `bench-evidence-pending` (notes refreshed by this PR to point at this new reference doc). [`docs/hardware/firmware-package-mapping-audit.md` (archived)](../archive-index.md) notes for the FanDAC slice are refreshed to point at this new reference doc. `PACKAGE-DAC-001` (alias: `PACKAGE-GAP-001` FanDAC slice) is **no longer blocked at the shared-I²C-bus-naming layer** (carry-over from PR #569) but **stays blocked** on the 10 items enumerated in [§Blockers remaining for PACKAGE-DAC-001](#blockers-remaining-for-package-dac-001). `PRODUCT-DAC-001`, `WEBFLASH-DAC-001`, `RELEASE-DAC-001`, and `WF-IMPORT-DAC-001` stay blocked behind `PACKAGE-DAC-001`. No FanDAC-bearing entry exists in [`config/product-catalog.json`](../../config/product-catalog.json), [`config/webflash-builds.json`](../../config/webflash-builds.json), [`products/`](../../products/), or [`products/webflash/`](../../products/webflash/). `FanDAC` stays reserved in [`config/webflash-compatibility.json`](../../config/webflash-compatibility.json) `canonical_modules` subject to the fan-driver `max-one-of` rule and the explicit `FanDAC` ↔ `AirIQ` mutex (`rules.fandac_conflicts_with_airiq: true`). `S360-100-BENCH-001`, `HW-PINMAP-311-FOLLOWUP`, `HW-PINMAP-320-FOLLOWUP`, and `COMPLIANCE-001` are not closed by this PR. Release-One stays `Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`. LED preview stays `Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`. FanTRIAC stays `blocked` / `HW-005`. The WebFlash repository (`sense360store/WebFlash`) is untouched. |
 | 2026-05-22 | `PACKAGE-DAC-001-READINESS-REFRESH` — re-evaluate the 10 FanDAC-specific blockers enumerated in [§Blockers remaining for PACKAGE-DAC-001](#blockers-remaining-for-package-dac-001) after `CORE-ABSTRACT-BUS-001B-IMPLEMENT-001` (PR #569) and `HW-PINMAP-312-FOLLOWUP` (PR #570) both landed. Separate resolved evidence from remaining package-design decisions; record a clear next-action recommendation. **Docs / readiness only.** Inspected the post-PR-#570 state of this doc (the 10-row blocker table, the schematic + BOM evidence sections, the [§GP8403 output range capability](#gp8403-output-range-capability) finding, the [§Output-channel exposure](#output-channel-exposure) finding), the post-PR-#569 active YAML state in [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) (`${fan_dac_i2c_id}: core_i2c` default line 27, header comment block lines 13–18 already refreshed to reference `GPIO48` / `GPIO45`, stale "(jumper selectable on hardware)" comment at line 6 still present), the FanDAC alias [`packages/expansions/fan_dac.yaml`](../../packages/expansions/fan_dac.yaml) (byte-identical pure-wrapper `!include` of `fan_gp8403.yaml`), the post-PR-#569 [`tests/test_core_abstract_bus.py`](../../tests/test_core_abstract_bus.py) `SharedI2CBusTests` (13 cases) covering the canonical `core_i2c` bus on `GPIO48` / `GPIO45`, the [`tests/test_fandac_alias_packages.py`](../../tests/test_fandac_alias_packages.py) FanDAC alias regression scaffold (12 cases), the `fan_gp8403.yaml` row in [`docs/hardware/package-readiness-matrix.md` (archived)](../archive-index.md), the `Ceiling-POE-FanDAC` deferral row in [`config/compile-only-candidates.json`](../../config/compile-only-candidates.json) (rank 25, `defer`, blockers include `PACKAGE-DAC-001-deferred`), and the `PACKAGE-DAC-001` queue entry in [`UPCOMING_PR.md`](../../UPCOMING_PR.md). | This doc; [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) (byte-identical); [`packages/expansions/fan_dac.yaml`](../../packages/expansions/fan_dac.yaml) (byte-identical); [`tests/test_core_abstract_bus.py`](../../tests/test_core_abstract_bus.py); [`tests/test_fandac_alias_packages.py`](../../tests/test_fandac_alias_packages.py); [`docs/hardware/package-readiness-matrix.md` (archived)](../archive-index.md); [`config/compile-only-candidates.json`](../../config/compile-only-candidates.json) (byte-identical); [`UPCOMING_PR.md`](../../UPCOMING_PR.md). | **Readiness refresh recorded.** Added [§PACKAGE-DAC-001 readiness refresh](#package-dac-001-readiness-refresh) section with a 10-row readiness table (blocker × previous state × current state × evidence × still blocks `PACKAGE-DAC-001`? × what unblocks it), an explicit verdict (`PACKAGE-DAC-001` is **not implementation-plannable yet**), and a recommended next PR (a DAC address / range / silkscreen evidence PR — provisionally named `HW-PINMAP-312-FOLLOWUP-DAC-EVIDENCE-001`). Verdict basis: rows 1, 2 are resolved (shared-I²C-bus naming via PR #569; GP8403 BOM identity via PR #570); rows 5 and 7 are evidence-captured (firmware/register-driven range selection; per-channel range mixing on a single GP8403 is **not** a hardware capability); row 9 is deferred out of `PACKAGE-DAC-001` scope (Nextion / UART0 belongs to a future product slice). Rows 3, 6, 8, and 10 still block: row 3 (DIP-switch ↔ I²C address truth table) needs a GP8403 datasheet excerpt or a bench logic-analyser scan; row 6 (output-range policy) needs a recorded product / package design decision; row 8 (`J2` / `J3` silkscreen + harness) needs operator-attested silkscreen + harness trace; row 10 (package YAML correctness) is implementation-pending and gated on rows 3, 6, and 8. The recommended next PR is therefore the **DAC address/range evidence PR**, **not** `PACKAGE-DAC-001-IMPLEMENT-001`. **No edit** to [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) or [`packages/expansions/fan_dac.yaml`](../../packages/expansions/fan_dac.yaml) (both byte-identical). **No edit** to any product YAML / WebFlash wrapper / `config/**` / `firmware/**` / `manifest.json` / `firmware/sources.json` / `scripts/**` / `.github/workflows/**` / `components/**` / `include/**` / `tests/**` / release artifact / checksum / build-info manifest. **No** `webflash_build_matrix` flip; **no** `artifact_name` added; **no** compile-only target added; **no** WebFlash wrapper added; **no** DAC product YAML; **no** firmware artifact built or attached; **no** release artifact / tag created. **No** `schematic_status` / `schematic_file` promotion (`S360-312` stays `cataloged_unverified`; no `schematic_file` set). **No** COMPLIANCE-001 movement. **No** claim that `PACKAGE-DAC-001`, `PRODUCT-DAC-001`, `WEBFLASH-DAC-001`, `RELEASE-DAC-001`, or `WF-IMPORT-DAC-001` are unblocked beyond what PR #569 / PR #570 already established. **No** claim of simultaneous one-channel-0–5 V + one-channel-0–10 V on a single GP8403. **No** edit to the WebFlash repository (`sense360store/WebFlash`) — it is **read-only** for this PR. Refreshed cross-links in [`docs/hardware/package-readiness-matrix.md` (archived)](../archive-index.md) `fan_gp8403.yaml` row + §`fan_gp8403.yaml / S360-312` detail block; refreshed `PACKAGE-DAC-001` queue entry in [`UPCOMING_PR.md`](../../UPCOMING_PR.md). Release-One (`Ceiling-POE-VentIQ-RoomIQ` / `v1.0.0` / `stable`), LED preview (`Ceiling-POE-VentIQ-RoomIQ-LED` / `preview`), FanTRIAC (`blocked` / `HW-005`), the `FanDAC` ↔ `AirIQ` mutex, and the fan-driver `max-one-of` rule are unchanged. `S360-100-BENCH-001`, `HW-PINMAP-311-FOLLOWUP`, `HW-PINMAP-320-FOLLOWUP`, and `COMPLIANCE-001` are not closed. |
 | 2026-05-22 | `HW-PINMAP-312-FOLLOWUP-DAC-EVIDENCE-001` — close the still-blocking `PACKAGE-DAC-001` rows (3 / 6 / 8 / 10) using the GP8403 public datasheet and the `Fan_GP8403` (S360-312-R4) Google Drive layout assets, and record the operator design decisions. Inspected: the GP8403 datasheet (StanStrong translation + Guestgood `GP8403-TC50-EW`) for the `A0`/`A1`/`A2` address bit ordering (bits 0/1/2; base `0x58`; span `0x58`–`0x5F`) and the output-range register (`0x01`; `0x00`→0–5 V, `0x11`→0–10 V; chip-level); the Drive `Fan_GP8403.kicad_pcb` (id `1mXZ52Z2nDFqbtfSnmEdf5dDV_I2sTIW8`; SHA256 `db702f11…` of downloaded bytes) for `J2`/`J3`/`SW1`/`SW2` pad→net and silkscreen-text layers; the Drive board renders `Fan_GP8403.png` (top; id `1EcZCF3h89Ov90ETeGU6p_MuXCcgjqt81`), `Fan_GP84032.png` (bottom silkscreen; id `1eqjCPY2F4wSfx2suGjPzZ9qosaEwTxNM`), `Fan_GP84033.png` (front; id `1n_YRisJxBaynasJdS027GcseD-QGpHMB`); the front-silkscreen gerber `Fan_GP8403-F_Silkscreen.gto` (id `1iXiit8J9DWJe2fSeyBt6yCVcUCV7X0Pq`). | GP8403 datasheet (public); Drive `Fan_GP8403.kicad_pcb`, `Fan_GP8403.png`, `Fan_GP84032.png`, `Fan_GP84033.png`, `Fan_GP8403-F_Silkscreen.gto`; this doc; [`docs/hardware/package-readiness-matrix.md` (archived)](../archive-index.md); [`UPCOMING_PR.md`](../../UPCOMING_PR.md). KiCad/gerber/image binaries **not committed** (retained-but-not-committed per [`hardware-artifact-policy.md` (archived)](../archive-index.md)). | **Evidence section added** ([§2026-05-22 — HW-PINMAP-312-FOLLOWUP-DAC-EVIDENCE-001](#2026-05-22--hw-pinmap-312-followup-dac-evidence-001)) with tables for the DIP-switch ↔ I²C-address truth table, the output-range policy, the `J2`/`J3` connector mapping, and a refreshed remaining-blocker table. Outcome: **row 3 CLOSED** (DIP→7-bit-address truth table from datasheet bit ordering + `0x58` base + PCB pole→pin map); **row 6 CLOSED** (per-chip range policy decided + register `0x01` mechanism evidenced); **row 4 / 5 / 7 resolved/constrained**; **row 8 board-level CLOSED** (`J2`/`J3` pin order `VOUT0`/`GND`/`VOUT1`, silk labels, and the **`J3` `out0`/`out1` silkscreen transposition** vs `IC2` channel nets); **row 10 PLANNABLE**. Verdict: **`PACKAGE-DAC-001` is now implementation-plannable**; recommended next PR is **`PACKAGE-DAC-001-IMPLEMENT-001`** (bind two GP8403s; per-chip address + range substitutions; four outputs; correct the stale jumper comment). Residual product/bench items (non-blocking for the package): harness conductor trace to the physical Cloudlift S12 fan; operator/bench confirmation of the `J3` silk transposition; as-shipped DIP default; the `J1`/`J7` `+3.3 V`/`+5 V` rail discrepancy. **No edit** to [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) or [`packages/expansions/fan_dac.yaml`](../../packages/expansions/fan_dac.yaml) (both byte-identical). **No** product YAML / WebFlash wrapper / `config/**` / `firmware/**` / `manifest.json` / `firmware/sources.json` / `scripts/**` / `.github/workflows/**` / `components/**` / `include/**` / `tests/**` / release-artifact / checksum / build-info edit. **No** `webflash_build_matrix` flip, **no** `artifact_name`, **no** compile-only target, **no** DAC product YAML, **no** WebFlash wrapper, **no** firmware/release artifact. **No** `schematic_status` / `schematic_file` promotion (`S360-312` stays `cataloged_unverified`). **No** claim of simultaneous per-output 0–5 V + 0–10 V on a single GP8403. **No** DAC product / WebFlash / release readiness claim. The WebFlash repository (`sense360store/WebFlash`) is untouched. |
 | 2026-05-23 | `PACKAGE-DAC-001-IMPLEMENT-001` — implement the FanDAC package at the **package layer** after the rows-3/6/8 evidence closure, applying operator decisions D1–D6. Inspected this doc's [§2026-05-22 — HW-PINMAP-312-FOLLOWUP-DAC-EVIDENCE-001](#2026-05-22--hw-pinmap-312-followup-dac-evidence-001) verdict, [`docs/hardware/package-readiness-matrix.md` (archived)](../archive-index.md) `fan_gp8403.yaml` row / detail block, [`UPCOMING_PR.md`](../../UPCOMING_PR.md) queue entry 14, the legacy [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) (single-DAC / two-channel form with hard-coded `${friendly_name} Fan 1/2` entities + sensors + globals + scripts), the [`packages/expansions/fan_dac.yaml`](../../packages/expansions/fan_dac.yaml) alias, and the `fan_gp8403` regression cases in [`tests/test_core_abstract_bus.py`](../../tests/test_core_abstract_bus.py) / [`tests/test_fandac_alias_packages.py`](../../tests/test_fandac_alias_packages.py). | [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) (reconciled); [`packages/expansions/fan_dac.yaml`](../../packages/expansions/fan_dac.yaml) (unchanged pure-wrapper); [`tests/test_fandac_package.py`](../../tests/test_fandac_package.py) (new); this doc; [`docs/hardware/package-readiness-matrix.md` (archived)](../archive-index.md); [`docs/hardware/firmware-package-mapping-audit.md` (archived)](../archive-index.md); [`UPCOMING_PR.md`](../../UPCOMING_PR.md). | **Package-layer implementation landed.** [`packages/expansions/fan_gp8403.yaml`](../../packages/expansions/fan_gp8403.yaml) now binds **two** GP8403 chips (`fan_dac_1`/IC1, `fan_dac_2`/IC2) on the shared `${fan_dac_i2c_id}` (`core_i2c`) bus; exposes per-chip address substitutions `fan_dac_1_i2c_address` (`0x58`) / `fan_dac_2_i2c_address` (`0x59`); exposes per-chip output-range substitutions `fan_dac_1_output_range` / `fan_dac_2_output_range` (both default `0-10V`, independently overridable); exposes **four** neutral outputs `fan_dac_1_vout0` / `fan_dac_1_vout1` / `fan_dac_2_vout0` / `fan_dac_2_vout1`; corrects the stale "(jumper selectable on hardware)" comment to firmware/register-driven (register `0x01`, per chip); and records that a single GP8403 **cannot** mix 0–5 V / 0–10 V across its two outputs. The product-layer `fan:` / `sensor:` / `globals:` / `script:` blocks (hard-coded `${friendly_name}` fan names) were removed — they move to `PRODUCT-DAC-001`. [`packages/expansions/fan_dac.yaml`](../../packages/expansions/fan_dac.yaml) stays the canonical pure-wrapper `!include`. New regression test [`tests/test_fandac_package.py`](../../tests/test_fandac_package.py) (20 cases) pins the shape; [`tests/test_core_abstract_bus.py`](../../tests/test_core_abstract_bus.py) and [`tests/test_fandac_alias_packages.py`](../../tests/test_fandac_alias_packages.py) still pass. **Package layer only — product / WebFlash / release readiness remains blocked.** **No** DAC product YAML; **no** compile-only target; **no** WebFlash wrapper; **no** `webflash_build_matrix` flip; **no** `artifact_name`; **no** `config/**` / `firmware/**` / `scripts/**` / `.github/workflows/**` / `components/**` / `include/**` / `manifest.json` / `firmware/sources.json` / release-artifact / checksum / build-info edit; **no** `schematic_status` / `schematic_file` promotion (`S360-312` stays `cataloged_unverified`); **no** claim of simultaneous per-output 0–5 V + 0–10 V on a single GP8403; **no** DAC product / WebFlash / release / compliance readiness claim. Remaining product-level decisions move to `PRODUCT-DAC-001`. Release-One, LED preview, FanTRIAC (`blocked` / `HW-005`), the `FanDAC` ↔ `AirIQ` mutex, and the fan-driver `max-one-of` rule are unchanged. The WebFlash repository (`sense360store/WebFlash`) is untouched. |

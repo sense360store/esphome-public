@@ -28,7 +28,7 @@ from typing import Dict, Iterable, List, Tuple
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 CORE_HW_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-r4-core.md"
-PWM_HW_DOC = REPO_ROOT / "docs" / "hardware" / "s360-311-r4-pwm.md"
+PWM_HW_DOC = REPO_ROOT / "docs" / "hardware" / "s360-311-r4-fanpwm.md"
 STRATEGY_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-native-tach-pulse-strategy.md"
 ARCHITECTURE_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-core-architecture.md"
 # docs/blocker-burndown.md and docs/product-readiness-matrix.md were

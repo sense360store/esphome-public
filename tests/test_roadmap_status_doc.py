@@ -65,7 +65,7 @@ PRESERVED_DOCS = [
     "docs/webflash-contract.md",
     "docs/compliance/mains-voltage-uk-eu-assessment.md",
     "docs/hardware/s360-100-native-fan-gpio-map.md",
-    "docs/hardware/s360-311-r4-pwm.md",
+    "docs/hardware/s360-311-r4-fanpwm.md",
     "docs/hardware/s360-410-r4-poe.md",
     "docs/hardware/s360-410-module-pinmap.md",
     "docs/hardware/s360-300-r4-led.md",

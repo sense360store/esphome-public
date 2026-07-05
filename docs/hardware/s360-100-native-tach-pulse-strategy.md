@@ -18,7 +18,7 @@ or claim fan WebFlash / release readiness. Downstream gates
 (`PRODUCT-PWM-001` / `WEBFLASH-PWM-001` / `RELEASE-PWM-001` /
 `WF-IMPORT-PWM-001`, `S360-311-CURRENT-THERMAL-001`, FanTRIAC
 `HW-005`) remain exactly as recorded in
-[`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md),
+[`docs/hardware/s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md),
 [`docs/blocker-burndown.md` (archived)](../archive-index.md), and
 [`docs/product-readiness-matrix.md` (archived)](../archive-index.md).
 
@@ -113,7 +113,7 @@ limitation here.
 > recorded in
 > [`docs/hardware/s360-100-r4-core.md` § S360-100-TACH-GPIO-ALLOCATION-001](s360-100-r4-core.md#s360-100-tach-gpio-allocation-001--native-esp32-gpio-allocation-for-fanpwm-tach-inputs)
 > and (mirrored on the module-audit side) in
-> [`docs/hardware/s360-311-r4-pwm.md` § S360-100-TACH-GPIO-ALLOCATION-001](s360-311-r4-pwm.md#s360-100-tach-gpio-allocation-001--core-side-native-esp32-gpio-allocation-2026-05-28).
+> [`docs/hardware/s360-311-r4-fanpwm.md` § S360-100-TACH-GPIO-ALLOCATION-001](s360-311-r4-fanpwm.md#s360-100-tach-gpio-allocation-001--core-side-native-esp32-gpio-allocation-2026-05-28).
 > The table below remains the canonical strategy-doc view of the same
 > allocation. The **firmware-binding side** and the **bench-evidence
 > side** still stay pending — the architectural rule does not by
@@ -208,7 +208,7 @@ architectural rule and the corrections that follow from it.
   pin-family rule** by construction (no SX1509 tach), independent of
   whether the chosen pin numbers match any future S360-100-R4
   re-route.
-- **`docs/hardware/s360-311-r4-pwm.md`** — already records the
+- **`docs/hardware/s360-311-r4-fanpwm.md`** — already records the
   PWM-drive-only scope and the compile-proven SX1509 + `pulse_counter`
   rejection. **No status flip.** A cross-reference back here is added.
 - **`docs/blocker-burndown.md`** (archived under DOCS-DISPOSITION-001;
@@ -303,7 +303,7 @@ This document, and the tests added with it, must not:
   separation (S360-100-NATIVE-TACH-PULSE-001 — R4 refresh).
 - [`docs/hardware/s360-100-r4-core.md`](s360-100-r4-core.md) — Core
   schematic reference; source of truth for Core nets and connectors.
-- [`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md) — FanPWM
+- [`docs/hardware/s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md) — FanPWM
   audit; records PWM-drive-only scope and `PWM-SX1509-TACH-PROOF-001`.
 - [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml)
   — PWM-drive-only FanPWM package; no `pulse_counter`.
