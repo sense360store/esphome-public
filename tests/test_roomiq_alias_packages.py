@@ -6,7 +6,9 @@ This is the Phase 2 follow-up to PACKAGE-NAMING-AUDIT-001 (PR #550)
 and mirrors the sibling Phase 2 slice
 PACKAGE-NAMING-ALIASES-VENTIQ-001 (PR #552). The naming-audit
 Phase 2 contract (``docs/package-naming-audit.md`` §"Phase 2 — Add
-canonical aliases / wrapper packages") says each canonical alias
+canonical aliases / wrapper packages"; archived under
+DOCS-DISPOSITION-001, see ``docs/archive-index.md``; every citation of
+it in this file refers to that archived contract) says each canonical alias
 must be a thin wrapper that ``!include``s exactly the intended
 legacy file and adds nothing else, must not use any deprecated /
 forbidden WebFlash token in its filename, and must not rename,

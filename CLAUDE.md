@@ -51,7 +51,7 @@ or artifacts. Use `Ceiling`, never `Celling` (legacy typo).
 
 The YAML is a **board / bundle / alias / shim** layered composition (see
 [`docs/system-architecture.md`](docs/system-architecture.md) and
-[`docs/arch-board-bundle-plan.md`](docs/arch-board-bundle-plan.md)); the
+[`docs/arch-board-bundle-plan.md` (archived)](docs/archive-index.md)); the
 declaration layer that governs what ships lives in `config/`.
 
 - **`products/sense360-*.yaml`** — customer include paths. Thin compat
@@ -213,7 +213,7 @@ Three standing rules travel with the gates:
   bench-evidence blocks are completed by the human operator only; agents may
   scaffold an intentionally empty block but must never fill in attestation
   content, dates, signatures, or evidence claims (source:
-  [`docs/package-triac-001-operator-bench-proof.md`](docs/package-triac-001-operator-bench-proof.md)).
+  [`docs/package-triac-001-operator-bench-proof.md` (archived)](docs/archive-index.md)).
 - **The release matrix is declaration-driven (ESP-007).** Releases ship only
   what [`config/webflash-builds.json`](config/webflash-builds.json) declares;
   never reintroduce a broad `products/` scan in

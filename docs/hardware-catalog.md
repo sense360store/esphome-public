@@ -42,7 +42,7 @@ Each catalog SKU maps to a SKU-aligned **board package** under
 firmware definition of that board (chip / pin map / connector nets). The legacy
 functional package names are retained as thin `!include` **aliases** of the
 board package (path preserved; see
-[`arch-board-bundle-plan.md`](arch-board-bundle-plan.md) §3.3). Full layout:
+[`arch-board-bundle-plan.md` (archived)](archive-index.md) §3.3). Full layout:
 [`system-architecture.md`](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers).
 
 | SKU | Friendly name | Authoritative board package |
@@ -103,7 +103,7 @@ module-side schematics have not been pinned to this repo yet.
 > Firmware pin mappings must not be considered verified merely because a
 > board has a schematic-backed reference doc. Release-One YAML and package
 > pin maps remain subject to the separate firmware-audit follow-ups tracked
-> in [`release-one-hardware-audit.md`](release-one-hardware-audit.md).
+> in [`release-one-hardware-audit.md` (archived)](archive-index.md).
 
 ## Companion file
 

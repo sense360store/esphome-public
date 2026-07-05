@@ -37,11 +37,13 @@ VERIFICATION_REL = "docs/hardware/fandac-i2c-address-verification.md"
 VERIFICATION_DOC = REPO_ROOT / VERIFICATION_REL
 
 # Docs that must point at the verification gate.
+# docs/sense360-room-bundles.md, docs/first-release-gates.md, and
+# docs/pre-hardware-room-bundle-release-handoff.md were archived under
+# DOCS-DISPOSITION-001 (see docs/archive-index.md), so they dropped out
+# of this list; the FANDAC-I2C-ADDR-001 gate itself stays PENDING and
+# unchanged.
 LINKING_DOCS = [
     "docs/hardware/s360-312-r4-fandac.md",
-    "docs/sense360-room-bundles.md",
-    "docs/first-release-gates.md",
-    "docs/pre-hardware-room-bundle-release-handoff.md",
     "UPCOMING_PR.md",
 ]
 

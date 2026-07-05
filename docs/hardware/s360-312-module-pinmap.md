@@ -146,7 +146,7 @@ compatibility, and analog-DAC firmware path are out of scope.
 - [`s360-312-r4-dac.md`](s360-312-r4-dac.md) — DAC board-side audit (HW-PINMAP-312).
 - [`s360-312-r4-fandac.md`](s360-312-r4-fandac.md) — FanDAC product reference.
 - [`schematics/S360-312-R4.pdf`](schematics/S360-312-R4.pdf) — committed module-side schematic PDF.
-- [`docs/blocker-burndown.md`](../blocker-burndown.md) — blocker / scope-classification table.
+- [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table.
 
 ## Do-not-change guardrails
 

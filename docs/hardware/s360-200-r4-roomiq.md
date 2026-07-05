@@ -323,7 +323,7 @@ No claim is made here that any of those files are currently pin-correct for
   summary. **Does not** by itself resolve the Core J10 vs RoomIQ J6
   pin-order discrepancy or any item in
   [Open questions](#open-questions--verification-needed).
-- [Release-One Configuration](../release-one.md) — the
+- [Release-One Configuration (archived)](../archive-index.md) — the
   Ceiling-POE-VentIQ-FanTRIAC-RoomIQ shipping configuration that consumes the
   RoomIQ board.
 

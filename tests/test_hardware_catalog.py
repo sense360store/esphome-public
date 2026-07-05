@@ -270,7 +270,8 @@ class HW008StillUnverifiedSKUsTests(unittest.TestCase):
         """PACKAGE-POE-410-001 / 2026-05-28 evidence audit.
 
         Locks in the option-4 outcome of
-        docs/package-poe-410-001-audit.md: the S360-410 schematic PDF is
+        docs/package-poe-410-001-audit.md (archived under
+        DOCS-DISPOSITION-001; see docs/archive-index.md): the S360-410 schematic PDF is
         committed (HW-ASSETS-410) and the BOM is on file
         (HW-BOM-ASSETS-002), but silkscreen pin-1, PoE link-up,
         isolation / Hi-pot / leakage, J2-harness identity
@@ -283,7 +284,8 @@ class HW008StillUnverifiedSKUsTests(unittest.TestCase):
             entry.get("schematic_status"),
             "verified",
             "S360-410 must remain cataloged_unverified; PACKAGE-POE-410-001 "
-            "audit (docs/package-poe-410-001-audit.md) records that "
+            "audit (docs/package-poe-410-001-audit.md, archived; see "
+            "docs/archive-index.md) records that "
             "silkscreen / bench / isolation / J2-harness evidence is not "
             "yet on file. Promoting to 'verified' requires the separate "
             "S360-410-SCHEMATIC-STATUS-VERIFIED JSON-only PR after E2 + "

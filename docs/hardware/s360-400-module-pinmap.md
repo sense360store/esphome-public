@@ -159,7 +159,7 @@ evidence.
 - [`s360-410-module-pinmap.md`](s360-410-module-pinmap.md) — PoE PSU module-side pinmap (shared Core `J2` inlet semantics).
 - [`schematics/S360-400-R4.pdf`](schematics/S360-400-R4.pdf) — committed module-side schematic PDF.
 - [`docs/compliance/mains-voltage-uk-eu-assessment.md`](../compliance/mains-voltage-uk-eu-assessment.md) — COMPLIANCE-001 mains-voltage compliance tracker.
-- [`docs/blocker-burndown.md`](../blocker-burndown.md) — blocker / scope-classification table (PACKAGE-POWER-400-001).
+- [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table (PACKAGE-POWER-400-001).
 
 ## Do-not-change guardrails
 

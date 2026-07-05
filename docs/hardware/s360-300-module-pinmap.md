@@ -124,7 +124,7 @@ The module-side capture follows
 documentation surface and does **not** add WebFlash / release
 readiness to the LED slot. LED stable promotion is owned by
 `LED-STABLE-PROMOTION-001` per
-[`docs/preview-to-stable-promotion-gates.md`](../preview-to-stable-promotion-gates.md).
+[`docs/preview-to-stable-promotion-gates.md` (archived)](../archive-index.md).
 
 ## Cross references
 
@@ -132,7 +132,7 @@ readiness to the LED slot. LED stable promotion is owned by
 - [`s360-100-r4-core.md`](s360-100-r4-core.md) — Core per-pin / per-net reference.
 - [`s360-300-r4-led.md`](s360-300-r4-led.md) — LED board-side hardware reference (companion audit doc).
 - [`schematics/S360-300-R4.pdf`](schematics/S360-300-R4.pdf) — committed module-side schematic PDF.
-- [`docs/preview-to-stable-promotion-gates.md`](../preview-to-stable-promotion-gates.md) — LED preview-to-stable promotion gates.
+- [`docs/preview-to-stable-promotion-gates.md` (archived)](../archive-index.md) — LED preview-to-stable promotion gates.
 - [`docs/sense360-room-bundles.md`](../sense360-room-bundles.md) — PoE room bundle SKU matrix.
 
 ## Do-not-change guardrails

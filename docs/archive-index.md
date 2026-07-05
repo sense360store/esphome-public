@@ -45,3 +45,36 @@ later from these SHAs (owner decision 6).
 | `docs/hardware/s360-310-relay-pinmap-reconcile.md` | `1dfbc0b11d151a0bfe5d8827efe86befcf46b0ae` | ARCHIVE | 2026-07-04 |
 | `docs/room-bundle-fan-compile-results.md` | `1dfbc0b11d151a0bfe5d8827efe86befcf46b0ae` | ARCHIVE | 2026-07-04 |
 | `docs/docs-consolidation-verify-001.md` | `1dfbc0b11d151a0bfe5d8827efe86befcf46b0ae` | ARCHIVE | 2026-07-04 |
+| `docs/cleanup-audit.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/product-readiness-matrix.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/release-artifact-readiness-matrix.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/webflash-exposure-readiness-matrix.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/hardware/core-abstract-bus-reconciliation.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/hardware/package-readiness-matrix.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/blocker-burndown.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/package-naming-audit.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/compile-only-firmware-validation.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/arch-board-bundle-plan.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/release-one-hardware-audit.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/hardware/core-abstract-bus-001c-rebind-plan.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/package-poe-410-001-audit.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/preview-to-stable-promotion-gates.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/webflash-drift-audit.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/repo-freshness-roadmap-audit.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/webflash-compatibility-taxonomy-audit.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/sense360-room-bundles.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE (stub left in place) | 2026-07-04 |
+| `docs/product-onboarding.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/all-yaml-release-matrix.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/stable-target-expansion-plan.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/first-release-gates.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE (stub left in place) | 2026-07-04 |
+| `docs/stable-target-ventiq-001-gate-closure.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/pre-hardware-room-bundle-release-handoff.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/compile-only-expansion-candidates.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/webflash-release-proof.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/webflash-release-handoff.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/release-channel-policy.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/package-triac-001-operator-bench-proof.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/manual-install-fan-candidates.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/repo-structure-audit.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/webflash-ci-alignment.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
+| `docs/release-one.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |

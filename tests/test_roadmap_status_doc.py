@@ -42,9 +42,12 @@ CANONICAL_REL = "docs/sense360-roadmap-status.md"
 CANONICAL = REPO_ROOT / CANONICAL_REL
 WEBFLASH_BUILDS = REPO_ROOT / "config" / "webflash-builds.json"
 
-# Docs that were consolidated and must now redirect to the canonical doc
-# instead of duplicating current-state status.
-REDIRECTED_DOCS = [
+# Docs that the DOCS-CONSOLIDATION-ROADMAP-001 pass turned into redirects
+# to the canonical doc. All eight have since been ARCHIVED under
+# DOCS-DISPOSITION-001 (deleted with provenance rows; content recoverable
+# from the indexed SHAs), so the redirect contract is now an
+# archive-index-row contract.
+ARCHIVED_REDIRECTED_DOCS = [
     "docs/repo-freshness-roadmap-audit.md",
     "docs/repo-structure-audit.md",
     "docs/cleanup-audit.md",
@@ -56,17 +59,10 @@ REDIRECTED_DOCS = [
 ]
 
 # Source-of-truth / evidence / pinmap / catalog / policy docs that MUST be
-# preserved (must NOT be deleted or gutted by this consolidation).
+# preserved in the tree (must NOT be deleted or gutted).
 PRESERVED_DOCS = [
     "docs/hardware-catalog.md",
     "docs/webflash-contract.md",
-    "docs/release-one.md",
-    "docs/sense360-room-bundles.md",
-    "docs/preview-to-stable-promotion-gates.md",
-    "docs/blocker-burndown.md",
-    "docs/product-readiness-matrix.md",
-    "docs/manual-install-fan-candidates.md",
-    "docs/package-poe-410-001-audit.md",
     "docs/compliance/mains-voltage-uk-eu-assessment.md",
     "docs/hardware/s360-100-native-fan-gpio-map.md",
     "docs/hardware/s360-311-r4-pwm.md",
@@ -74,6 +70,21 @@ PRESERVED_DOCS = [
     "docs/hardware/s360-410-module-pinmap.md",
     "docs/hardware/s360-300-r4-led.md",
 ]
+
+# Formerly PRESERVED docs that DOCS-DISPOSITION-001 (the newer, ratified
+# disposition authority) archived: preservation now means an
+# archive-index row whose SHA the verbatim content stays recoverable from.
+ARCHIVED_PRESERVED_DOCS = [
+    "docs/release-one.md",
+    "docs/sense360-room-bundles.md",
+    "docs/preview-to-stable-promotion-gates.md",
+    "docs/blocker-burndown.md",
+    "docs/product-readiness-matrix.md",
+    "docs/manual-install-fan-candidates.md",
+    "docs/package-poe-410-001-audit.md",
+]
+
+ARCHIVE_INDEX = REPO_ROOT / "docs" / "archive-index.md"
 
 
 class CanonicalDocExistsTests(unittest.TestCase):
@@ -116,21 +127,16 @@ class CanonicalDocExistsTests(unittest.TestCase):
 
 
 class RedirectedDocsTests(unittest.TestCase):
-    def test_superseded_docs_redirect_to_canonical(self) -> None:
-        for rel in REDIRECTED_DOCS:
-            path = REPO_ROOT / rel
-            self.assertTrue(path.is_file(), f"Missing redirected doc: {rel}")
-            text = path.read_text(encoding="utf-8")
-            self.assertIn(
-                "sense360-roadmap-status.md",
-                text,
-                f"{rel} must point to the canonical roadmap/status doc.",
-            )
-            self.assertIn(
-                "Superseded for current-state status",
-                text,
-                f"{rel} must carry the redirect banner.",
-            )
+    def test_superseded_docs_recorded_in_archive_index(self) -> None:
+        archive_index = ARCHIVE_INDEX.read_text(encoding="utf-8")
+        for rel in ARCHIVED_REDIRECTED_DOCS:
+            with self.subTest(doc=rel):
+                self.assertIn(
+                    rel,
+                    archive_index,
+                    f"archived redirected doc must be recorded in "
+                    f"docs/archive-index.md: {rel}",
+                )
 
 
 class PreservedDocsTests(unittest.TestCase):
@@ -147,6 +153,17 @@ class PreservedDocsTests(unittest.TestCase):
                 400,
                 f"Preserved doc looks gutted (too short): {rel}",
             )
+
+    def test_archived_preserved_docs_recorded_in_archive_index(self) -> None:
+        archive_index = ARCHIVE_INDEX.read_text(encoding="utf-8")
+        for rel in ARCHIVED_PRESERVED_DOCS:
+            with self.subTest(doc=rel):
+                self.assertIn(
+                    rel,
+                    archive_index,
+                    f"archived formerly-preserved doc must be recorded in "
+                    f"docs/archive-index.md: {rel}",
+                )
 
 
 class FanPwmStatusTests(unittest.TestCase):

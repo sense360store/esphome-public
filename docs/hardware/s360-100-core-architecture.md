@@ -112,7 +112,7 @@ legacy module-name annotations next to the connectors.
 | Core connector | Pin count | Attached module SKU | Friendly name | Signal family | Intended use | Native MCU requirement? | Notes / caveats |
 |---|---:|---|---|---|---|---|---|
 | `J1` | 5 | `S360-211` | Sense360 VentIQ | `+5V`, `+3.3V`, `I2C_SCL`, `I2C_SDA`, `GND` | Bathroom ventilation IQ module (humidity / fan trigger logic) | I²C bus must originate at the ESP32-S3 (`IO48` / `IO45`). | Schematic legacy label: *"Formerly used as AirIQ Bathroom Module connector"*. |
-| `J2` | 2 | `S360-410` | Sense360 PoE PSU | `PoE_ACDC`, `GND` | Off-board PoE PSU power inlet (DC output from `S360-410` AC/DC) | None (power inlet). | `S360-410` blocker chain is **not** resolved by this document — see [`docs/blocker-burndown.md` § 1B](../blocker-burndown.md) and [`docs/package-poe-410-001-audit.md`](../package-poe-410-001-audit.md). |
+| `J2` | 2 | `S360-410` | Sense360 PoE PSU | `PoE_ACDC`, `GND` | Off-board PoE PSU power inlet (DC output from `S360-410` AC/DC) | None (power inlet). | `S360-410` blocker chain is **not** resolved by this document — see [`docs/blocker-burndown.md` § 1B (archived)](../archive-index.md) and [`docs/package-poe-410-001-audit.md` (archived)](../archive-index.md). |
 | `J3` | 3 | `S360-300` | Sense360 LED | `+3.3V`, `GND`, `LED_DATA_3V3` | WS2812B LED ring data | `LED_DATA` source must originate at native ESP32 `IO38` (then through `U2` `74LVC1G07SE-7` open-drain buffer and `R8` 330 Ω series). | LED stays `preview` (`Ceiling-POE-VentIQ-RoomIQ-LED`); this PR does not promote it. |
 | `J4` | 3 | `S360-310` | Sense360 Relay | `+5V`, `Relay`, `GND` | Relay drive | `Relay` drive line must originate at native ESP32 `IO3`. | Schematic legacy label: *"Formerly was Relay Module connector"*. |
 | `J6` | 13 | `S360-311` | Sense360 PWM (12 V PWM fan) | `+5V`, `GND`, `TachIO`, `TachPMW1..4`, `Pul_Cou1..4`, `UART_RX`, `UART_TX` | Up to four 12 V PWM-driven fans with per-fan tach lines plus the shared `TachIO` passthrough | **Yes** — `TachIO` and `Pul_Cou1..4` must terminate on native ESP32-S3 GPIO; `TachPMW1..4` are PWM-drive outputs from native ESP32-S3 GPIO. See [§ Pin allocation table — native ESP32-S3 GPIO termination](#pin-allocation-table--native-esp32-s3-gpio-termination). | Schematic legacy label: *"Formerly used as 12v PWM Fan connector"*. |
@@ -121,7 +121,7 @@ legacy module-name annotations next to the connectors.
 | `J9` | 7 | `S360-210` | Sense360 AirIQ | `+5V`, `+3.3V`, `I2C_SDA`, `I2C_SCL`, `AirQ_Status_Led`, `AirQ_Led`, `GND` | Air-quality module (SPS30 / SGP41 / SCD41 / BMP390 stack on the AirIQ board) | I²C bus must originate at the ESP32-S3 (`IO48` / `IO45`); `AirQ_Status_Led` / `AirQ_Led` originate at ESP32-S3 `IO7` / `IO8`. | Schematic legacy label: *"Formerly used as AirIQ Module connector"*. |
 | `J10` | 12 | `S360-200` | Sense360 RoomIQ | `+3.3V`, `+5V`, `SEN0609_RX`, `SEN0609_TX`, `out(gpio6)`, `Hi-Link_RX`, `Hi-Link_TX`, `PIR`, `ALS_INT`, `I2C_SDA`, `I2C_SCL`, `GND` | Presence / comfort module (mmWave radar, PIR, ALS) | All ESP32-side nets (`SEN0609_RX/TX`, `Hi-Link_RX/TX`, `PIR`, `ALS_INT`, `I2C_SDA/SCL`, `out(gpio6)`) originate at native ESP32-S3 GPIO. | Schematic legacy label: *"Formerly used as Presence Comfort Module Connector"*. |
 | `J13` | 2 | — | (Generic on-board fan output) | `+5V` / `FAN`, `GND` *(verify silkscreen pin order)* | Single on-board PWM fan drive (`FAN` net) | `FAN` net originates at native ESP32-S3 `IO21`. | Two-pin JST `B2B-XH-A` header in the new R4 BOM; not associated with any Sense360 module SKU. |
-| `J15` | 4 | `S360-320` | Sense360 TRIAC | `+3.3V`, `TRI_GPIO1`, `TRI_GPIO2`, `GND` | TRIAC fan-module gate / zero-cross control | `TRI_GPIO1` / `TRI_GPIO2` source ESP32 pins are recorded in the [`s360-100-r4-core.md` Open Questions](s360-100-r4-core.md#open-questions--verification-needed) and the [`docs/blocker-burndown.md` `HW-005`](../blocker-burndown.md) row; FanTRIAC `HW-005` remains **blocked** by this document. | Schematic legacy label: *"Formerly used as a TRIAC Fan Module connector"*. |
+| `J15` | 4 | `S360-320` | Sense360 TRIAC | `+3.3V`, `TRI_GPIO1`, `TRI_GPIO2`, `GND` | TRIAC fan-module gate / zero-cross control | `TRI_GPIO1` / `TRI_GPIO2` source ESP32 pins are recorded in the [`s360-100-r4-core.md` Open Questions](s360-100-r4-core.md#open-questions--verification-needed) and the [`docs/blocker-burndown.md` `HW-005` (archived)](../archive-index.md) row; FanTRIAC `HW-005` remains **blocked** by this document. | Schematic legacy label: *"Formerly used as a TRIAC Fan Module connector"*. |
 
 The Core also exposes `MTMS` (`TP10`), `MTDO` (`TP13`), and `MTCK`
 test pads (no dedicated JTAG connector on the visible sheet), the
@@ -228,7 +228,7 @@ modules**. The Release-One stable target
 `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`) is the
 bathroom-bundle firmware: Core + RoomIQ + VentIQ + PoE PSU. Other
 bundles still need their own promotion path through
-[`docs/stable-target-expansion-plan.md`](../stable-target-expansion-plan.md)
+[`docs/stable-target-expansion-plan.md` (archived)](../archive-index.md)
 and the per-bundle stable-target follow-up PRs.
 
 | Room bundle | Included boards | Firmware config string | Current release class |
@@ -242,7 +242,7 @@ and the per-bundle stable-target follow-up PRs.
 This table is the architectural framing only. Per-bundle stable-
 promotion gates are owned by
 [`docs/sense360-room-bundles.md`](../sense360-room-bundles.md) and
-[`docs/stable-target-expansion-plan.md`](../stable-target-expansion-plan.md);
+[`docs/stable-target-expansion-plan.md` (archived)](../archive-index.md);
 this PR does **not** promote any of the candidate rows.
 
 ## Caveats preserved by this PR
@@ -266,7 +266,7 @@ are **explicitly preserved** by this document:
   [`docs/hardware/s360-100-r4-core.md` Open Questions](s360-100-r4-core.md#open-questions--verification-needed)
   list remains in force.
 - **`S360-410` PoE PSU stays `cataloged_unverified`.** The
-  [`PACKAGE-POE-410-001`](../package-poe-410-001-audit.md) audit lane
+  [`PACKAGE-POE-410-001` (archived)](../archive-index.md) audit lane
   is unchanged.
 - **Sense360 LED stays `preview`** and remains excluded from the
   Release-One firmware.
@@ -329,7 +329,7 @@ This document and the tests added with it must not:
 - [`docs/sense360-room-bundles.md`](../sense360-room-bundles.md) —
   canonical PoE room bundle SKU matrix (Core + room modules +
   PoE PSU).
-- [`docs/stable-target-expansion-plan.md`](../stable-target-expansion-plan.md)
+- [`docs/stable-target-expansion-plan.md` (archived)](../archive-index.md)
   — actionable expansion plan for non-Bathroom bundles.
 - [`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md) — FanPWM
   audit; PWM-drive-only scope and the SX1509 / `pulse_counter`

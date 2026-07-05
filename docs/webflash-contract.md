@@ -168,7 +168,7 @@ The matching ESPHome product YAML is
 
 > **FanTRIAC excluded from production Release-One.** The Sense360 TRIAC
 > (`S360-320`) slot is blocked per HW-005 (see
-> [`docs/release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution)).
+> [`docs/release-one-hardware-audit.md#fantriac-mapping-resolution` (archived)](archive-index.md)).
 > The FanTRIAC token remains a valid WebFlash module (see §3) for future
 > use, and the FanTRIAC product YAML
 > ([`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml))
@@ -177,7 +177,7 @@ The matching ESPHome product YAML is
 > not be published as a production Release-One artifact while HW-005 is
 > open.
 
-See [`release-one.md`](release-one.md) for the full slot/file/binary mapping.
+See [`release-one.md` (archived)](archive-index.md) for the full slot/file/binary mapping.
 
 ---
 
@@ -238,7 +238,7 @@ YAML in this repo. The Release-One mapping is:
 | `Ceiling-POE-VentIQ-RoomIQ` | [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml) |
 
 The Release-One product YAML is composed from these package files (also
-documented in [`release-one.md`](release-one.md)):
+documented in [`release-one.md` (archived)](archive-index.md)):
 
 | Slot | Package |
 |------|---------|
@@ -495,10 +495,10 @@ file an upstream change in WebFlash first and update this contract afterward.
 - [`README.md`](../README.md) — repo overview and Release-One quick reference.
 - [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
   — machine-readable local snapshot of this contract for validators and CI.
-- [`docs/release-one.md`](release-one.md) — Release-One configuration with full
+- [`docs/release-one.md` (archived)](archive-index.md) — Release-One configuration with full
   slot/file/binary mapping.
-- [`docs/product-onboarding.md`](product-onboarding.md) — PRODUCT-004 ordered safe sequence for adding a new product / config.
-- [`docs/webflash-compatibility-taxonomy-audit.md`](webflash-compatibility-taxonomy-audit.md) — COMPAT-001 per-token audit of the WebFlash taxonomy against the product catalog, hardware evidence, and future-token policy.
+- [`docs/product-onboarding.md` (archived)](archive-index.md) — PRODUCT-004 ordered safe sequence for adding a new product / config.
+- [`docs/webflash-compatibility-taxonomy-audit.md` (archived)](archive-index.md) — COMPAT-001 per-token audit of the WebFlash taxonomy against the product catalog, hardware evidence, and future-token policy.
 - [`docs/product-matrix.md`](product-matrix.md) — full module/slot reference.
 - WebFlash `DEVELOPER.md → Via GitHub Releases` — upstream operator flow.
 - WebFlash `CLAUDE.md` — canonical SKU table and product taxonomy.

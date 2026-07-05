@@ -114,7 +114,7 @@ organized under per-type subfolders (`sch_pdf` / `bom` / `cpl` /
 | 3D render / STEP | Drive `step_file` (retained-but-not-committed) | TBD |
 | Board photographs | Drive `images` (retained-but-not-committed) | TBD |
 | BOM | Drive `bom / S360-311-R4_BOM.xlsx` (retained-but-not-committed) | partial |
-| Silkscreen / bench evidence | None committed; `PWM-12` per [`docs/blocker-burndown.md`](../blocker-burndown.md) stays NEEDS BENCH | TBD |
+| Silkscreen / bench evidence | None committed; `PWM-12` per [`docs/blocker-burndown.md` (archived)](../archive-index.md) stays NEEDS BENCH | TBD |
 
 ## Mating Core connector
 
@@ -207,7 +207,7 @@ Per-fan rated current, the MOSFET part number's actual ratings
    is **unresolved** per
    [`s360-311-r4-pwm.md` § Open documentation questions](s360-311-r4-pwm.md#open-documentation-questions).
 5. **Bench / harness / waveform evidence.** `PWM-12` per
-   [`docs/blocker-burndown.md`](../blocker-burndown.md) stays
+   [`docs/blocker-burndown.md` (archived)](../archive-index.md) stays
    NEEDS BENCH; no RPM / tach / PWM polarity / current / thermal
    measurement is in scope here.
 
@@ -220,7 +220,7 @@ Per-fan rated current, the MOSFET part number's actual ratings
 - [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) — PWM board-side audit (HW-PINMAP-311).
 - [`artifacts/S360-311-R4.md`](artifacts/S360-311-R4.md) — curated artifact index (HW-ASSETS-003).
 - [`schematics/S360-311-R4.pdf`](schematics/S360-311-R4.pdf) — committed module-side schematic PDF.
-- [`docs/blocker-burndown.md`](../blocker-burndown.md) — blocker / scope-classification table (PWM-12).
+- [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table (PWM-12).
 
 ## Do-not-change guardrails
 

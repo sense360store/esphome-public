@@ -84,7 +84,7 @@ All 168 lane-assigned rows must equal the 168 matrix combinations. The test [`te
 
 **Blocker summary.** None for these two rows specifically — they are the only combinations committed to `config/webflash-builds.json`. Release-One stable (`Ceiling-POE-VentIQ-RoomIQ`) and the LED preview (`Ceiling-POE-VentIQ-RoomIQ-LED`).
 
-**Recommended next PR type.** No new build PR for these two rows. Preserve both committed entries verbatim. Promotion of the LED preview to stable requires the full 17-row gauntlet in `docs/preview-to-stable-promotion-gates.md`, including `S360-300-BENCH-001` bench evidence and the WebFlash operator-proof container `WF-HW-TEST-001`.
+**Recommended next PR type.** No new build PR for these two rows. Preserve both committed entries verbatim. Promotion of the LED preview to stable requires the full 17-row gauntlet in `docs/preview-to-stable-promotion-gates.md` (archived under DOCS-DISPOSITION-001; see `docs/archive-index.md`), including `S360-300-BENCH-001` bench evidence and the WebFlash operator-proof container `WF-HW-TEST-001`.
 
 **Notes.** `Ceiling-POE-VentIQ-RoomIQ` is the only `stable`-channel build; `Ceiling-POE-VentIQ-RoomIQ-LED` is `preview` only. Stable LED promotion remains blocked by S360-300-BENCH-001 Open Questions (harness rail, LED count, harness identity) and the WebFlash operator-proof container `WF-HW-TEST-001`.
 
@@ -105,7 +105,7 @@ All 168 lane-assigned rows must equal the 168 matrix combinations. The test [`te
 
 **Blocker summary.** The FanTRIAC (S360-320) family combinations in this lane stay blocked from build / exposure. The single full-composition config `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is NOT in this lane any more: `TRIAC-COMMISSIONING-001` moved it into the experimental self-build mains lane (it now appears under `current-webflash` on the experimental channel). **HW-005** buildability and **HW-PINMAP-320-FOLLOWUP** are RESOLVED (TRIAC-PINMAP-CORRECT-001: schematic-verified gate GPIO14 / zero-cross GPIO13); for the full-composition config **PACKAGE-TRIAC-001** is satisfied (operator-attested bench proof) and **COMPLIANCE-001** is CLOSED by market posture (S360-320 is never placed on the market; see `docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`). The remaining family combinations here have no catalog entry and inherit the conservative blocked classification.
 
-**Recommended next PR type.** No FanTRIAC build, package, or product PR for these blocked family combinations. The full-composition config `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` was commissioned to the experimental self-build mains lane by `TRIAC-COMMISSIONING-001` (status preview, channel experimental); it stays NEVER stable / recommended / default / buyable / kit-exposed, and downstream WebFlash one-click import remains gated by `WF-IMPORT-TRIAC-001`. See `docs/decisions/COMPLIANCE-001-RESOLUTION-001.md` and `docs/release-one-hardware-audit.md#fantriac-mapping-resolution`.
+**Recommended next PR type.** No FanTRIAC build, package, or product PR for these blocked family combinations. The full-composition config `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` was commissioned to the experimental self-build mains lane by `TRIAC-COMMISSIONING-001` (status preview, channel experimental); it stays NEVER stable / recommended / default / buyable / kit-exposed, and downstream WebFlash one-click import remains gated by `WF-IMPORT-TRIAC-001`. See `docs/decisions/COMPLIANCE-001-RESOLUTION-001.md` and `docs/release-one-hardware-audit.md#fantriac-mapping-resolution` (archived under DOCS-DISPOSITION-001; see `docs/archive-index.md`).
 
 **Notes.** The FanTRIAC family combinations in this lane inherit the conservative blocked classification via the token-level inference in `scripts/generate_firmware_matrix.py`. The full-composition `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` has left this lane for `current-webflash` (experimental channel). Mains-voltage handling means the family combinations still need compliance sign-off before any non-experimental WebFlash exposure could be considered; the experimental lane is self-build-only and never stable.
 
@@ -303,9 +303,9 @@ Sum: **168**.
 ## See also
 
 - [`docs/firmware-combination-matrix.md`](firmware-combination-matrix.md) — FW-MATRIX-001, the source matrix this report consumes.
-- [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md) — the 17-row stable-promotion gauntlet that LED candidates must clear.
-- [`docs/product-readiness-matrix.md`](product-readiness-matrix.md) — PRODUCT-GAP-001, product-layer readiness.
-- [`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md) — WEBFLASH-GAP-001, WebFlash-exposure readiness.
-- [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md) — RELEASE-GAP-001, release-artifact readiness.
-- [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md) — PACKAGE-GAP-001, package-layer readiness.
-- [`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md) — Release-One hardware audit (HW-005 source-of-truth).
+- [`docs/preview-to-stable-promotion-gates.md` (archived)](archive-index.md) — the 17-row stable-promotion gauntlet that LED candidates must clear.
+- [`docs/product-readiness-matrix.md` (archived)](archive-index.md) — PRODUCT-GAP-001, product-layer readiness.
+- [`docs/webflash-exposure-readiness-matrix.md` (archived)](archive-index.md) — WEBFLASH-GAP-001, WebFlash-exposure readiness.
+- [`docs/release-artifact-readiness-matrix.md` (archived)](archive-index.md) — RELEASE-GAP-001, release-artifact readiness.
+- [`docs/hardware/package-readiness-matrix.md` (archived)](archive-index.md) — PACKAGE-GAP-001, package-layer readiness.
+- [`docs/release-one-hardware-audit.md` (archived)](archive-index.md) — Release-One hardware audit (HW-005 source-of-truth).

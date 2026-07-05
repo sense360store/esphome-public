@@ -59,7 +59,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# PACKAGE-RENAME-001 (docs/arch-board-bundle-plan.md §5.5): the authoritative,
+# PACKAGE-RENAME-001 (docs/arch-board-bundle-plan.md §5.5, archived under
+# DOCS-DISPOSITION-001 — see docs/archive-index.md): the authoritative,
 # self-contained ceiling LED definition moved from
 # `packages/hardware/led_ring_ceiling.yaml` (now a thin alias) into the
 # SKU-aligned board package below. The content-asserting checks travel with

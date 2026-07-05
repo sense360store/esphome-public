@@ -316,7 +316,8 @@ class BuildGapReportTests(unittest.TestCase):
 
         The two committed builds are stable (Release-One) and preview
         (LED). Stable-ready is a per-row gate per
-        docs/preview-to-stable-promotion-gates.md; the report never
+        docs/preview-to-stable-promotion-gates.md (archived; see
+        docs/archive-index.md); the report never
         asserts it across an entire lane. This guards against future
         accidental flips.
         """

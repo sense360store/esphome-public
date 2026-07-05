@@ -20,7 +20,7 @@ the existing repo sources of truth:
 | Layer | Source of truth |
 |---|---|
 | Room bundle SKUs (sellable kit identifiers) | [`config/room-bundle-skus.json`](../config/room-bundle-skus.json) · [`docs/sense360-room-bundles.md`](sense360-room-bundles.md) |
-| Product catalog (lifecycle) | [`config/product-catalog.json`](../config/product-catalog.json) · [`docs/release-one.md`](release-one.md) |
+| Product catalog (lifecycle) | [`config/product-catalog.json`](../config/product-catalog.json) · [`docs/release-one.md` (archived)](archive-index.md) |
 | Board / module catalog | [`config/hardware-catalog.json`](../config/hardware-catalog.json) · [`docs/hardware-catalog.md`](hardware-catalog.md) |
 | Shippable WebFlash builds | [`config/webflash-builds.json`](../config/webflash-builds.json) |
 | Kit-intent planning layer | [`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json) · [`docs/kit-intent-matrix.md`](kit-intent-matrix.md) |
@@ -162,13 +162,13 @@ or `firmware/sources.json`.
 - Fan-control products may be mentioned **only** as future / preview /
   installer / manual-candidate where already recorded
   ([`config/manual-firmware-artifacts.json`](../config/manual-firmware-artifacts.json),
-  [`docs/manual-install-fan-candidates.md`](manual-install-fan-candidates.md),
+  [`docs/manual-install-fan-candidates.md` (archived)](archive-index.md),
   [`config/room-bundle-fan-variants.json`](../config/room-bundle-fan-variants.json)).
 - **Do not** market fan control as part of the base Bathroom PoE kit — the base
   kit ships no fan driver.
 - **Do not** add TRIAC (`S360-320`) as recommended, default, stable, or
   customer-facing. TRIAC remains blocked by `HW-005` (see
-  [`docs/release-one.md`](release-one.md) and
+  [`docs/release-one.md` (archived)](archive-index.md) and
   [`docs/sense360-roadmap-status.md` §6](sense360-roadmap-status.md#6-hardware-blockers)).
 
 ---
@@ -221,7 +221,7 @@ The commercial source of truth is locked in by:
   [`config/room-bundle-skus.json`](../config/room-bundle-skus.json) —
   BUNDLE-SKU-MATRIX-001. Canonical room-bundle SKUs the shop draws from.
 - Release-One shipping configuration:
-  [`docs/release-one.md`](release-one.md). Pins the firmware config string,
+  [`docs/release-one.md` (archived)](archive-index.md). Pins the firmware config string,
   product YAML, and artifact name together.
 - Product catalog:
   [`config/product-catalog.json`](../config/product-catalog.json). Records the

@@ -51,9 +51,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 HARDWARE_DIR = REPO_ROOT / "docs" / "hardware"
 CORE_PINMAP_DOC = HARDWARE_DIR / "s360-100-core-connector-pin-map.md"
 CORE_REF_DOC = HARDWARE_DIR / "s360-100-r4-core.md"
-ROOM_BUNDLES_DOC = REPO_ROOT / "docs" / "sense360-room-bundles.md"
-BLOCKER_BURNDOWN_DOC = REPO_ROOT / "docs" / "blocker-burndown.md"
-PRODUCT_READINESS_DOC = REPO_ROOT / "docs" / "product-readiness-matrix.md"
+# docs/sense360-room-bundles.md, docs/blocker-burndown.md, and
+# docs/product-readiness-matrix.md were archived under DOCS-DISPOSITION-001
+# (see docs/archive-index.md); their cross-reference tests went with them.
 UPCOMING_PR_DOC = REPO_ROOT / "UPCOMING_PR.md"
 
 HARDWARE_CATALOG_JSON = REPO_ROOT / "config" / "hardware-catalog.json"
@@ -214,33 +214,6 @@ class CrossLinkingTests(unittest.TestCase):
                     f"{CORE_REF_DOC.name} must cross-reference "
                     f"{filename}.",
                 )
-
-    def test_room_bundles_doc_references_every_module_pinmap_doc(self) -> None:
-        text = ROOM_BUNDLES_DOC.read_text()
-        for sku, _, filename, _ in MODULE_PINMAP_DOCS:
-            with self.subTest(sku=sku):
-                self.assertIn(
-                    filename,
-                    text,
-                    f"{ROOM_BUNDLES_DOC.name} must cross-reference "
-                    f"{filename}.",
-                )
-
-    def test_module_pinmaps_identifier_in_blocker_burndown(self) -> None:
-        self.assertIn(
-            "MODULE-PINMAPS-GDRIVE-001",
-            BLOCKER_BURNDOWN_DOC.read_text(),
-            f"{BLOCKER_BURNDOWN_DOC.name} must record "
-            f"MODULE-PINMAPS-GDRIVE-001.",
-        )
-
-    def test_module_pinmaps_identifier_in_product_readiness_matrix(self) -> None:
-        self.assertIn(
-            "MODULE-PINMAPS-GDRIVE-001",
-            PRODUCT_READINESS_DOC.read_text(),
-            f"{PRODUCT_READINESS_DOC.name} must record "
-            f"MODULE-PINMAPS-GDRIVE-001.",
-        )
 
     def test_module_pinmaps_identifier_in_upcoming_pr(self) -> None:
         self.assertIn(

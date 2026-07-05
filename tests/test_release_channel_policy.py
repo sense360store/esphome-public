@@ -5,9 +5,11 @@ These guard the explicit channel-tier policy that opens *preview* eligibility
 to every buildable Sense360 firmware target while keeping *stable* promotion
 evidence-gated.
 
-The policy under test is config/release-channel-policy.json with the canonical
-narrative in docs/release-channel-policy.md. These are policy/eligibility
-guards: they assert nothing about firmware behaviour and publish no artifacts.
+The policy under test is config/release-channel-policy.json (the canonical
+narrative doc docs/release-channel-policy.md was archived under
+DOCS-DISPOSITION-001; see docs/archive-index.md). These are
+policy/eligibility guards: they assert nothing about firmware behaviour and
+publish no artifacts.
 
 Invariants asserted (matching the task contract):
   - preview is allowed without hardware proof
@@ -27,7 +29,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 POLICY_PATH = REPO_ROOT / "config" / "release-channel-policy.json"
-POLICY_DOC = REPO_ROOT / "docs" / "release-channel-policy.md"
+ARCHIVE_INDEX = REPO_ROOT / "docs" / "archive-index.md"
 WEBFLASH_COMPAT = REPO_ROOT / "config" / "webflash-compatibility.json"
 
 
@@ -47,11 +49,16 @@ class PolicyStructureTests(unittest.TestCase):
         self.assertEqual(self.policy["policy_id"], "RELEASE-PREVIEW-ALL-PRODUCTS-001")
         self.assertEqual(self.policy["schema_version"], 1)
 
-    def test_canonical_doc_present(self):
-        self.assertTrue(POLICY_DOC.is_file(), "docs/release-channel-policy.md must exist")
+    def test_canonical_doc_recorded_in_archive_index(self):
+        # The canonical narrative doc was archived under
+        # DOCS-DISPOSITION-001; the policy JSON's canonical_doc path must
+        # keep being recorded in docs/archive-index.md, from whose SHA the
+        # content stays recoverable.
         self.assertIn(
-            "RELEASE-PREVIEW-ALL-PRODUCTS-001",
-            POLICY_DOC.read_text(encoding="utf-8"),
+            self.policy.get("canonical_doc", "docs/release-channel-policy.md"),
+            ARCHIVE_INDEX.read_text(encoding="utf-8"),
+            "the archived canonical policy doc must be recorded in "
+            "docs/archive-index.md",
         )
 
     def test_three_channel_tiers_defined(self):

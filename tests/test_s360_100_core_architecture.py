@@ -55,8 +55,9 @@ ARCHITECTURE_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-core-architecture
 STRATEGY_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-native-tach-pulse-strategy.md"
 CORE_REF_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-r4-core.md"
 ARTIFACT_INDEX_DOC = REPO_ROOT / "docs" / "hardware" / "artifacts" / "S360-100-R4.md"
-ROOM_BUNDLES_DOC = REPO_ROOT / "docs" / "sense360-room-bundles.md"
-BLOCKER_BURNDOWN_DOC = REPO_ROOT / "docs" / "blocker-burndown.md"
+# docs/sense360-room-bundles.md and docs/blocker-burndown.md were archived
+# under DOCS-DISPOSITION-001 (see docs/archive-index.md) and dropped out of
+# the cross-link contract below.
 
 SCHEMATIC_PDF = REPO_ROOT / "docs" / "hardware" / "schematics" / "S360-100-R4.pdf"
 HARDWARE_CATALOG_JSON = REPO_ROOT / "config" / "hardware-catalog.json"
@@ -364,9 +365,9 @@ class DoNotChangeGuardrailsTests(unittest.TestCase):
 
 class CrossDocLinkingTests(unittest.TestCase):
     """Cross-doc linking: the architecture doc must be referenced from
-    the strategy doc, the Core hardware-reference doc, the artifact
-    index, the room-bundles doc, and the blocker-burndown row that
-    cites the architectural rule.
+    the strategy doc, the Core hardware-reference doc, and the artifact
+    index. (The room-bundles and blocker-burndown docs were archived
+    under DOCS-DISPOSITION-001 and left the contract.)
     """
 
     LINK_NEEDLE = "s360-100-core-architecture.md"
@@ -375,8 +376,6 @@ class CrossDocLinkingTests(unittest.TestCase):
         STRATEGY_DOC,
         CORE_REF_DOC,
         ARTIFACT_INDEX_DOC,
-        ROOM_BUNDLES_DOC,
-        BLOCKER_BURNDOWN_DOC,
     ]
 
     def test_architecture_doc_is_cross_linked(self) -> None:

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """STABLE-RELEASE-MATRIX-ALL-YAML-001 contract tests.
 
-Locks in the all-YAML release matrix defined by
-``docs/all-yaml-release-matrix.md`` and the classifier
-``scripts/classify_all_yaml_release_matrix.py`` so the broader release
-posture cannot silently regress into the prior "only RoomIQ is
-release-aware" state.
+Locks in the all-YAML release matrix defined by the classifier
+``scripts/classify_all_yaml_release_matrix.py`` (formerly documented in
+``docs/all-yaml-release-matrix.md``, archived under DOCS-DISPOSITION-001;
+see ``docs/archive-index.md``) so the broader release posture cannot
+silently regress into the prior "only RoomIQ is release-aware" state.
 
 The invariants enforced here:
 
@@ -58,7 +58,7 @@ GENERATOR_PATH = REPO_ROOT / "scripts" / "generate_webflash_release_notes.py"
 BUILDS_JSON = REPO_ROOT / "config" / "webflash-builds.json"
 CATALOG_JSON = REPO_ROOT / "config" / "product-catalog.json"
 MANUAL_JSON = REPO_ROOT / "config" / "manual-firmware-artifacts.json"
-DOC_PATH = REPO_ROOT / "docs" / "all-yaml-release-matrix.md"
+ARCHIVE_INDEX = REPO_ROOT / "docs" / "archive-index.md"
 
 STABLE_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
 LED_CONFIG = "Ceiling-POE-VentIQ-RoomIQ-LED"
@@ -525,28 +525,21 @@ class GeneratorWordingTests(unittest.TestCase):
         self.assertIn(LED_CONFIG, body)
 
 
-class DocCoversAllSixClassesTests(unittest.TestCase):
-    """The doc enumerates all six release classes."""
+class DocArchivedTests(unittest.TestCase):
+    """The matrix doc was archived under DOCS-DISPOSITION-001.
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.doc_text = (
-            DOC_PATH.read_text(encoding="utf-8") if DOC_PATH.is_file() else ""
+    ``docs/all-yaml-release-matrix.md`` was deleted with an index row
+    (its content stays recoverable from the indexed SHA); the doc-pinning
+    tests went with it. The classifier contract above remains the live
+    guard.
+    """
+
+    def test_doc_recorded_in_archive_index(self) -> None:
+        self.assertIn(
+            "docs/all-yaml-release-matrix.md",
+            ARCHIVE_INDEX.read_text(encoding="utf-8"),
+            "the archived matrix doc must be recorded in " "docs/archive-index.md",
         )
-
-    def test_doc_exists(self) -> None:
-        self.assertTrue(
-            DOC_PATH.is_file(),
-            f"docs/all-yaml-release-matrix.md must exist at {DOC_PATH}",
-        )
-
-    def test_doc_names_every_release_class(self) -> None:
-        for cls in ALL_CLASSES:
-            self.assertIn(
-                cls,
-                self.doc_text,
-                f"docs/all-yaml-release-matrix.md must name release class " f"{cls!r}",
-            )
 
 
 if __name__ == "__main__":

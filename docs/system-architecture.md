@@ -73,7 +73,7 @@ Every cross-repo reference pins to a **release tag**, never a moving branch:
 
 The `products/*.yaml (+ packages)` box on the left of the flow is itself a
 **four-tier composition** (the board/bundle refactor, planned in
-[`docs/arch-board-bundle-plan.md`](arch-board-bundle-plan.md) and proven for
+[`docs/arch-board-bundle-plan.md` (archived)](archive-index.md) and proven for
 CI/gate parity by [`docs/ci-pipeline.md`](ci-pipeline.md)). The tiers exist so
 the YAML names what the catalog names — physical board SKUs and WebFlash config
 strings — instead of only functional package names.
@@ -96,7 +96,7 @@ fold their whole driver into one board file. The mains-voltage driver boards
 (`S360-310` / `S360-320` / `S360-400`) and the SELV fan-driver SKUs
 (`S360-311` / `S360-312`) remain expansion packages behind their own evidence /
 compliance gates and are **not** in the board layer yet (see
-[`docs/arch-board-bundle-plan.md` §2.1](arch-board-bundle-plan.md)).
+[`docs/arch-board-bundle-plan.md` §2.1 (archived)](archive-index.md)).
 
 ### Cross-repo contract: this layering is invisible to WebFlash
 
@@ -135,8 +135,8 @@ underlying config files win.
 ## Related documentation
 
 - [Board / bundle / alias / shim layers](#inside-esphome-public-board--bundle--alias--shim-layers) — the four-tier firmware-YAML composition inside this repo and why it is invisible to WebFlash.
-- [Board-package & bundle-YAML architecture plan](arch-board-bundle-plan.md) — the target shape, rename/alias policy, and ordered PR sequence for the refactor.
+- [Board-package & bundle-YAML architecture plan (archived)](archive-index.md) — the target shape, rename/alias policy, and ordered PR sequence for the refactor.
 - [CI/CD Pipeline](ci-pipeline.md) — per-workflow gate-vs-manual map.
 - [Roadmap / Status](sense360-roadmap-status.md) — canonical lifecycle source of record.
 - [WebFlash Compatibility Contract](webflash-contract.md) — artifact naming + release-body format.
-- [WebFlash Release Handoff](webflash-release-handoff.md) — operational source-to-installer flow.
+- [WebFlash Release Handoff (archived)](archive-index.md) — operational source-to-installer flow.

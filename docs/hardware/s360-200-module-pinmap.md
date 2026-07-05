@@ -150,7 +150,7 @@ capture below follows the
 - [`s360-200-r4-roomiq.md`](s360-200-r4-roomiq.md) — RoomIQ board-side hardware reference (companion audit doc).
 - [`schematics/S360-200-R4.pdf`](schematics/S360-200-R4.pdf) — committed module-side schematic PDF.
 - [`docs/sense360-room-bundles.md`](../sense360-room-bundles.md) — PoE room bundle SKU matrix.
-- [`docs/blocker-burndown.md`](../blocker-burndown.md) — blocker / scope-classification table.
+- [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table.
 
 ## Do-not-change guardrails
 

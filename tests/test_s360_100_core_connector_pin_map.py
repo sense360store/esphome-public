@@ -49,7 +49,8 @@ PINMAP_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-core-connector-pin-map.
 CORE_REF_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-r4-core.md"
 ARCHITECTURE_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-core-architecture.md"
 PWM_AUDIT_DOC = REPO_ROOT / "docs" / "hardware" / "s360-311-r4-pwm.md"
-ROOM_BUNDLES_DOC = REPO_ROOT / "docs" / "sense360-room-bundles.md"
+# docs/sense360-room-bundles.md was archived under DOCS-DISPOSITION-001
+# (see docs/archive-index.md) and dropped out of the cross-link contract.
 UPCOMING_PR_DOC = REPO_ROOT / "UPCOMING_PR.md"
 
 HARDWARE_CATALOG_JSON = REPO_ROOT / "config" / "hardware-catalog.json"
@@ -558,7 +559,6 @@ class CrossDocLinkingTests(unittest.TestCase):
     DOCS_THAT_MUST_LINK_TO_PINMAP_DOC = [
         CORE_REF_DOC,
         PWM_AUDIT_DOC,
-        ROOM_BUNDLES_DOC,
         UPCOMING_PR_DOC,
     ]
 

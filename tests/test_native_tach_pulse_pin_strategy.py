@@ -217,12 +217,13 @@ class NoExpanderTachClaimsInDocsTests(unittest.TestCase):
     # the forbidden forms in order to define the rule and label them as
     # forbidden. Every other doc is scanned for the positive (claim)
     # form of the same phrasing.
+    # docs/product-readiness-matrix.md, docs/blocker-burndown.md, and
+    # docs/hardware/package-readiness-matrix.md were archived under
+    # DOCS-DISPOSITION-001 (see docs/archive-index.md) and dropped out of
+    # this scan; the rule still holds for the kept board docs.
     DOC_TARGETS = [
         REPO_ROOT / "docs" / "hardware" / "s360-100-r4-core.md",
         REPO_ROOT / "docs" / "hardware" / "s360-311-r4-pwm.md",
-        REPO_ROOT / "docs" / "product-readiness-matrix.md",
-        REPO_ROOT / "docs" / "blocker-burndown.md",
-        REPO_ROOT / "docs" / "hardware" / "package-readiness-matrix.md",
     ]
 
     def test_no_forbidden_expander_tach_claims(self) -> None:

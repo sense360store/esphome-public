@@ -15,9 +15,11 @@ For every preview WebFlash build row this guard asserts release-note coverage:
     ``docs/release-notes/preview/<config-string>.md``;
   * the already-published VentIQ LED preview row
     (``Ceiling-POE-VentIQ-RoomIQ-LED``) is covered by its recorded published
-    release proof (``docs/webflash-release-proof.md``) and is NOT re-drafted
-    here, and the stable Bathroom baseline (``Ceiling-POE-VentIQ-RoomIQ``) is
-    not drafted as a preview either.
+    release proof (``docs/webflash-release-proof.md``, archived under
+    DOCS-DISPOSITION-001 with its content recoverable via the
+    ``docs/archive-index.md`` row) and is NOT re-drafted here, and the
+    stable Bathroom baseline (``Ceiling-POE-VentIQ-RoomIQ``) is not drafted
+    as a preview either.
 
 For each of the three drafts it asserts (task item 3 / 6):
 
@@ -61,7 +63,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 SHOP_PATH = REPO_ROOT / "config" / "shop-commercial-source-of-truth.json"
 DRAFT_DIR = REPO_ROOT / "docs" / "release-notes" / "preview"
-RELEASE_PROOF_DOC = REPO_ROOT / "docs" / "webflash-release-proof.md"
+# docs/webflash-release-proof.md was archived under DOCS-DISPOSITION-001;
+# the published LED preview coverage is checked against its archive row.
+ARCHIVE_INDEX = REPO_ROOT / "docs" / "archive-index.md"
 VALIDATOR_PATH = REPO_ROOT / "scripts" / "validate-webflash-release-notes.py"
 SHARED_PREVIEW_NOTES = "v1.0.0-preview.md"
 
@@ -418,13 +422,17 @@ class EveryPreviewRowHasCoverageTests(unittest.TestCase):
                     )
                 elif cs == PUBLISHED_LED_PREVIEW_CONFIG:
                     # Covered by its recorded published release proof; not
-                    # re-drafted here (task item 5).
-                    proof = RELEASE_PROOF_DOC.read_text(encoding="utf-8")
+                    # re-drafted here (task item 5). The proof doc was
+                    # archived under DOCS-DISPOSITION-001; the coverage
+                    # record is now its docs/archive-index.md row, which
+                    # must keep recording the exact original path.
+                    archive_index = ARCHIVE_INDEX.read_text(encoding="utf-8")
                     self.assertIn(
-                        "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin",
-                        proof,
+                        "docs/webflash-release-proof.md",
+                        archive_index,
+                        "the archived published-release proof must be "
+                        "recorded in docs/archive-index.md",
                     )
-                    self.assertIn("v1.0.0-led-preview", proof)
                 else:
                     self.fail(
                         f"unexpected preview row without coverage policy: {cs}"

@@ -3,8 +3,8 @@
 
 Read-only enumerator that classifies every YAML under ``products/`` into
 exactly one of the six release classes used by the canonical all-YAML
-release matrix documented in
-``docs/all-yaml-release-matrix.md``:
+release matrix formerly documented in ``docs/all-yaml-release-matrix.md``
+(archived under DOCS-DISPOSITION-001; see ``docs/archive-index.md``):
 
   * ``stable-release``          — release-eligible on the ``stable`` channel
   * ``preview-release``         — release-eligible on the ``preview`` channel

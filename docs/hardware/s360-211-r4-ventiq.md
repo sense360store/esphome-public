@@ -16,8 +16,8 @@ The machine-readable `schematic_status` field for `S360-211` in
 changed by this PR — the status promotion from `cataloged_unverified` is
 deferred to HW-008. Similarly, the "schematic verification pending" caveat that
 appears in
-[`docs/release-one-hardware-audit.md`](../release-one-hardware-audit.md) and
-[`docs/webflash-compatibility-taxonomy-audit.md`](../webflash-compatibility-taxonomy-audit.md)
+[`docs/release-one-hardware-audit.md` (archived)](../archive-index.md) and
+[`docs/webflash-compatibility-taxonomy-audit.md` (archived)](../archive-index.md)
 is **retained** until HW-008 flips the JSON field — those docs gain a pointer
 to this new evidence but do not drop the caveat.
 
@@ -178,7 +178,7 @@ The package targets the abstract `expansion_i2c` bus and does not bind to
 specific ESP32-S3 GPIOs. Reconciliation between this package and the
 VentIQ schematic is **out of scope for HW-007** and is a HW-follow-up
 item tracked in
-[`docs/release-one-hardware-audit.md`](../release-one-hardware-audit.md).
+[`docs/release-one-hardware-audit.md` (archived)](../archive-index.md).
 
 ## HW-007 scope and non-scope
 
@@ -203,9 +203,9 @@ What this doc does **not** do:
   (`schematic_status` stays `cataloged_unverified`); the JSON status
   upgrade is deferred to HW-008.
 - It does **not** remove the "schematic verification pending" caveat in
-  [`docs/release-one-hardware-audit.md`](../release-one-hardware-audit.md)
+  [`docs/release-one-hardware-audit.md` (archived)](../archive-index.md)
   or
-  [`docs/webflash-compatibility-taxonomy-audit.md`](../webflash-compatibility-taxonomy-audit.md).
+  [`docs/webflash-compatibility-taxonomy-audit.md` (archived)](../archive-index.md).
   That caveat is tied to the JSON status field and will be dropped by
   HW-008, not here.
 - It does **not** rebind, audit, or rename `airiq_bathroom_base.yaml`.
@@ -229,9 +229,9 @@ What this doc does **not** do:
   exclusive with VentIQ.
 - [Remaining-board documentation audit (HW-004 / HW-006) (archived)](../archive-index.md)
   — classifies VentIQ's current documentation state.
-- [Release-One Hardware Audit](../release-one-hardware-audit.md) — VentIQ
+- [Release-One Hardware Audit (archived)](../archive-index.md) — VentIQ
   schematic-pending caveat retained until HW-008 flips the JSON status.
-- [Release-One Configuration](../release-one.md) — current Release-One
+- [Release-One Configuration (archived)](../archive-index.md) — current Release-One
   config string `Ceiling-POE-VentIQ-RoomIQ`.
 - [Mains-voltage UK / EU compliance assessment (COMPLIANCE-001)](../compliance/mains-voltage-uk-eu-assessment.md)
   — separate compliance tracker for any mains-switching hardware; HW-007

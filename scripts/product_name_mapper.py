@@ -35,6 +35,7 @@ PRODUCT_MAPPINGS = {
     # (the blocked/reference product YAML) still resolve correctly, but it is
     # NOT in the WebFlash build matrix at config/webflash-builds.json.
     # See docs/release-one-hardware-audit.md#fantriac-mapping-resolution
+    # (archived under DOCS-DISPOSITION-001; see docs/archive-index.md).
     # -------------------------------------------------------------------------
     "sense360-ceiling-poe-ventiq-roomiq": "Sense360-Ceiling-POE-VentIQ-RoomIQ",
     "ceiling-poe-ventiq-roomiq": "Sense360-Ceiling-POE-VentIQ-RoomIQ",

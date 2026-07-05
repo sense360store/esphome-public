@@ -171,8 +171,8 @@ voltage UK / EU scope. Mains-voltage COMPLIANCE-001 applies to
 - [`artifacts/S360-410-R4.md`](artifacts/S360-410-R4.md) — curated artifact index (HW-ASSETS-410).
 - [`s360-400-module-pinmap.md`](s360-400-module-pinmap.md) — 240V PSU module-side pinmap (shared Core `J2` inlet semantics).
 - [`schematics/S360-410-R4.pdf`](schematics/S360-410-R4.pdf) — committed module-side schematic PDF.
-- [`docs/blocker-burndown.md`](../blocker-burndown.md) — blocker / scope-classification table (`PACKAGE-POE-410-001`).
-- [`docs/package-poe-410-001-audit.md`](../package-poe-410-001-audit.md) — `PACKAGE-POE-410-001` audit.
+- [`docs/blocker-burndown.md` (archived)](../archive-index.md) — blocker / scope-classification table (`PACKAGE-POE-410-001`).
+- [`docs/package-poe-410-001-audit.md` (archived)](../archive-index.md) — `PACKAGE-POE-410-001` audit.
 
 ## Do-not-change guardrails
 

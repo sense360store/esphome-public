@@ -2,10 +2,10 @@
 
 Complete product hierarchy and configuration guide for the Sense360 modular sensor platform.
 
-> **WebFlash users:** see [`release-one.md`](release-one.md) for the
+> **WebFlash users:** see [`release-one.md` (archived)](archive-index.md) for the
 > Release-One configuration (`Ceiling-POE-VentIQ-RoomIQ`). FanTRIAC is
 > excluded from production Release-One while HW-005 is open — see
-> [`release-one-hardware-audit.md#fantriac-mapping-resolution`](release-one-hardware-audit.md#fantriac-mapping-resolution).
+> [`release-one-hardware-audit.md#fantriac-mapping-resolution` (archived)](archive-index.md).
 > This page is the long-form reference for slot/module selection. Some
 > legacy terminology (`Comfort`, `Presence`, `Bathroom`, generic `Fan`) is
 > still present below for hardware-level detail — see the mapping table.
@@ -602,7 +602,7 @@ Each core product is available with specific power configurations:
 > YAMLs were exercised together as the primary release. For current
 > Release-One WebFlash firmware, use `Ceiling-POE-VentIQ-RoomIQ` and
 > release [`v1.0.0`](https://github.com/sense360store/esphome-public/releases/tag/v1.0.0)
-> (see [`release-one.md`](release-one.md)). For custom / manual builds,
+> (see [`release-one.md` (archived)](archive-index.md)). For custom / manual builds,
 > pin to a release tag that is known to support the packages you
 > include; do not use `ref: main` for production.
 

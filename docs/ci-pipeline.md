@@ -45,7 +45,7 @@ What this pipeline ensures:
 
 The firmware YAML has been restructured into SKU-aligned **board packages**
 plus product-named **bundle YAMLs** (the
-[`ARCH-BOARD-BUNDLE-PLAN-001`](arch-board-bundle-plan.md) epic). This section
+[`ARCH-BOARD-BUNDLE-PLAN-001` (archived)](archive-index.md) epic). This section
 records the new directory layout and how each CI workflow handles it. The key
 property for CI is that **every glob, `find`, and `sed` keeps its existing
 semantics** — the refactor was designed to land under the unchanged sweeps, and

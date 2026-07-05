@@ -93,7 +93,8 @@ LANE_POLICIES: List[Dict[str, Any]] = [
             "No new build PR for these two rows. Preserve both committed "
             "entries verbatim. Promotion of the LED preview to stable "
             "requires the full 17-row gauntlet in "
-            "`docs/preview-to-stable-promotion-gates.md`, including "
+            "`docs/preview-to-stable-promotion-gates.md` (archived under "
+            "DOCS-DISPOSITION-001; see `docs/archive-index.md`), including "
             "`S360-300-BENCH-001` bench evidence and the WebFlash "
             "operator-proof container `WF-HW-TEST-001`."
         ),
@@ -137,7 +138,8 @@ LANE_POLICIES: List[Dict[str, Any]] = [
             "recommended / default / buyable / kit-exposed, and downstream "
             "WebFlash one-click import remains gated by `WF-IMPORT-TRIAC-001`. "
             "See `docs/decisions/COMPLIANCE-001-RESOLUTION-001.md` and "
-            "`docs/release-one-hardware-audit.md#fantriac-mapping-resolution`."
+            "`docs/release-one-hardware-audit.md#fantriac-mapping-resolution` "
+            "(archived under DOCS-DISPOSITION-001; see `docs/archive-index.md`)."
         ),
         "compile_only_safe_now": False,
         "webflash_exposure_allowed_now": False,
@@ -681,22 +683,28 @@ def render_report(
         "- [`docs/firmware-combination-matrix.md`](firmware-combination-matrix.md) — FW-MATRIX-001, the source matrix this report consumes."
     )
     lines.append(
-        "- [`docs/preview-to-stable-promotion-gates.md`](preview-to-stable-promotion-gates.md) — the 17-row stable-promotion gauntlet that LED candidates must clear."
+        "- [`docs/preview-to-stable-promotion-gates.md` (archived)](archive-index.md)"
+        " — the 17-row stable-promotion gauntlet that LED candidates must clear."
     )
     lines.append(
-        "- [`docs/product-readiness-matrix.md`](product-readiness-matrix.md) — PRODUCT-GAP-001, product-layer readiness."
+        "- [`docs/product-readiness-matrix.md` (archived)](archive-index.md)"
+        " — PRODUCT-GAP-001, product-layer readiness."
     )
     lines.append(
-        "- [`docs/webflash-exposure-readiness-matrix.md`](webflash-exposure-readiness-matrix.md) — WEBFLASH-GAP-001, WebFlash-exposure readiness."
+        "- [`docs/webflash-exposure-readiness-matrix.md` (archived)](archive-index.md)"
+        " — WEBFLASH-GAP-001, WebFlash-exposure readiness."
     )
     lines.append(
-        "- [`docs/release-artifact-readiness-matrix.md`](release-artifact-readiness-matrix.md) — RELEASE-GAP-001, release-artifact readiness."
+        "- [`docs/release-artifact-readiness-matrix.md` (archived)](archive-index.md)"
+        " — RELEASE-GAP-001, release-artifact readiness."
     )
     lines.append(
-        "- [`docs/hardware/package-readiness-matrix.md`](hardware/package-readiness-matrix.md) — PACKAGE-GAP-001, package-layer readiness."
+        "- [`docs/hardware/package-readiness-matrix.md` (archived)](archive-index.md)"
+        " — PACKAGE-GAP-001, package-layer readiness."
     )
     lines.append(
-        "- [`docs/release-one-hardware-audit.md`](release-one-hardware-audit.md) — Release-One hardware audit (HW-005 source-of-truth)."
+        "- [`docs/release-one-hardware-audit.md` (archived)](archive-index.md)"
+        " — Release-One hardware audit (HW-005 source-of-truth)."
     )
     lines.append("")
     return "\n".join(lines)

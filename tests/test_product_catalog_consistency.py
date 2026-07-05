@@ -164,7 +164,8 @@ class FanTriacExperimentalLaneTests(unittest.TestCase):
     status: blocked into the experimental self-build mains lane defined by
     docs/decisions/COMPLIANCE-001-RESOLUTION-001.md. The PACKAGE-TRIAC-001 half
     of the former blocker is CLEARED (operator bench complete + signed
-    attestation committed to docs/package-triac-001-operator-bench-proof.md) and
+    attestation committed to docs/package-triac-001-operator-bench-proof.md,
+    since archived under DOCS-DISPOSITION-001 — see docs/archive-index.md) and
     COMPLIANCE-001 is closed by market posture, so the entry is now status:
     preview on the experimental build channel with a config/webflash-builds.json
     row (artifact ...-v1.0.0-experimental.bin). The PERMANENT teeth are pinned
