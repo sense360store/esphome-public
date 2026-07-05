@@ -413,5 +413,5 @@ that performs it.
 | 4 | Merge the duplicate pairs (S360-311 → `s360-311-r4-fanpwm.md`, S360-312 → `s360-312-r4-fandac.md`; attestations moved verbatim; inbound doc/test references retargeted) | #789 | 2026-07-05 | EXECUTED |
 | 5 | Slim the five KEEP-SLIM board docs (process trail removed with archive-index rows; attestation records stay in place) | #790 | 2026-07-05 | EXECUTED |
 | 6 | Execute MOVE-PRIVATE (`docs/shop-commercial-source-of-truth.md` deleted with index row; guard test `tests/test_shop_commercial_source_of_truth.py` retired; inbound roadmap links retargeted at the config JSON) | #791 | 2026-07-05 | EXECUTED |
-| 7 | `CLAUDE.md` sanitise + `UPCOMING_PR.md` retirement (+ `docs/standing-invariants.md`) | — | — | PENDING |
+| 7 | `CLAUDE.md` sanitise + `UPCOMING_PR.md` retirement (queue snapshot in the PR description; standing invariants moved verbatim to `docs/standing-invariants.md`; inbound doc/test references retargeted) | #792 | 2026-07-05 | EXECUTED |
 | 8 | Link sweep + Phase 2 handoff section | — | — | PENDING |
