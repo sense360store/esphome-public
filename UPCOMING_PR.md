@@ -130,8 +130,18 @@ by posture** per
    trail-section headings stay as anchor stubs so every inbound link
    (including the compliance record's audit-log anchor) still resolves,
    operator attestation / bench-evidence records stay in place untouched,
-   and FanTRIAC posture is unchanged. Remaining execution is
-   one step per PR — Steps 6–8: MOVE-PRIVATE, the `CLAUDE.md` sanitise +
+   and FanTRIAC posture is unchanged. Step 6 (MOVE-PRIVATE, owner
+   decision 3) is **EXECUTED**: `docs/shop-commercial-source-of-truth.md`
+   is deleted from the public tree with a `docs/archive-index.md`
+   MOVE-PRIVATE row (content recoverable from the indexed SHA for the
+   private records repo), its guard test
+   `tests/test_shop_commercial_source_of_truth.py` is retired in the same
+   PR with its own index row, and the two inbound roadmap links are
+   retargeted at [`config/shop-commercial-source-of-truth.json`](config/shop-commercial-source-of-truth.json)
+   — which stays in the tree, untouched, as the machine-readable
+   commercial source of truth still pinned by the release-guard tests
+   (`config/` stays out of docs-only scope). Remaining execution is
+   one step per PR — Steps 7–8: the `CLAUDE.md` sanitise +
    `UPCOMING_PR.md` retirement (with `docs/standing-invariants.md`), and the
    link sweep / Phase 2 WebFlash handoff — tracked in the manifest's
    *Execution log*, subject to its *Execution constraints* (code-referenced

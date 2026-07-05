@@ -87,3 +87,5 @@ later from these SHAs (owner decision 6).
 | `docs/hardware/s360-320-r4-triac.md` | `94d4cdfcc8432d718f28a52a4add76903459a209` | KEEP-SLIM (HW-PINMAP-320-FOLLOWUP audit log, follow-up PR table, per-PR guardrail list removed; file kept) | 2026-07-05 |
 | `docs/hardware/s360-400-r4-power.md` | `94d4cdfcc8432d718f28a52a4add76903459a209` | KEEP-SLIM (HW-PINMAP-400-FOLLOWUP audit log incl. dated passes, follow-up PR table, per-PR guardrail list removed; file kept) | 2026-07-05 |
 | `docs/hardware/s360-410-r4-poe.md` | `94d4cdfcc8432d718f28a52a4add76903459a209` | KEEP-SLIM (HW-PINMAP-410-FOLLOWUP audit log incl. dated passes, follow-up PR table, per-PR guardrail list removed; file kept) | 2026-07-05 |
+| `docs/shop-commercial-source-of-truth.md` | `3a108c05e94fdffdbc375c0b3ca54513eea99125` | MOVE-PRIVATE (owner decision 3) | 2026-07-05 |
+| `tests/test_shop_commercial_source_of_truth.py` | `3a108c05e94fdffdbc375c0b3ca54513eea99125` | MOVE-PRIVATE companion (guard test retired with its doc, owner decision 3) | 2026-07-05 |
