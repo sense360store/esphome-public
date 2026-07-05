@@ -119,9 +119,19 @@ by posture** per
    `test_tach_gpio_allocation`, `test_module_pinmaps`,
    `test_native_tach_pulse_pin_strategy`,
    `test_s360_100_core_connector_pin_map`, `test_roadmap_status_doc`)
-   retargeted at the survivors in the same PR. Remaining execution is
-   one step per PR — Steps 5–8: the five
-   KEEP-SLIM board docs, MOVE-PRIVATE, the `CLAUDE.md` sanitise +
+   retargeted at the survivors in the same PR. Step 5 (the five KEEP-SLIM
+   board docs) is **EXECUTED**: `docs/hardware/s360-100-r4-core.md`,
+   `s360-310-r4-relay.md`, `s360-320-r4-triac.md`, `s360-400-r4-power.md`,
+   and `s360-410-r4-poe.md` keep every identity / pinout / connector-map /
+   package-mapping / current-status / open-question fact, while the
+   embedded process trail (the dated HW-PINMAP-FOLLOWUP / S360-100-BENCH-001
+   audit logs, follow-up PR planning tables, and per-PR guardrail lists)
+   departed via deletion with `docs/archive-index.md` KEEP-SLIM rows;
+   trail-section headings stay as anchor stubs so every inbound link
+   (including the compliance record's audit-log anchor) still resolves,
+   operator attestation / bench-evidence records stay in place untouched,
+   and FanTRIAC posture is unchanged. Remaining execution is
+   one step per PR — Steps 6–8: MOVE-PRIVATE, the `CLAUDE.md` sanitise +
    `UPCOMING_PR.md` retirement (with `docs/standing-invariants.md`), and the
    link sweep / Phase 2 WebFlash handoff — tracked in the manifest's
    *Execution log*, subject to its *Execution constraints* (code-referenced
