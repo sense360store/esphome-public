@@ -410,7 +410,7 @@ that performs it.
 | 1 | Ratify the manifest (owner decisions + amendments applied; WebFlash guard-test notes folded in; this log added) | #786 | 2026-07-04 | EXECUTED |
 | 2 | Archive batch A (ARCHIVE rows without [code-ref]) | #787 | 2026-07-04 | EXECUTED |
 | 3 | Archive batch B (ARCHIVE rows with [code-ref], reference updates in-PR) | #788 | 2026-07-04 | EXECUTED |
-| 4 | Merge the duplicate pairs (S360-311, S360-312) | — | — | PENDING |
+| 4 | Merge the duplicate pairs (S360-311 → `s360-311-r4-fanpwm.md`, S360-312 → `s360-312-r4-fandac.md`; attestations moved verbatim; inbound doc/test references retargeted) | #789 | 2026-07-05 | EXECUTED |
 | 5 | Slim the five KEEP-SLIM board docs | — | — | PENDING |
 | 6 | Execute MOVE-PRIVATE (`docs/shop-commercial-source-of-truth.md`) | — | — | PENDING |
 | 7 | `CLAUDE.md` sanitise + `UPCOMING_PR.md` retirement (+ `docs/standing-invariants.md`) | — | — | PENDING |
