@@ -414,4 +414,74 @@ that performs it.
 | 5 | Slim the five KEEP-SLIM board docs (process trail removed with archive-index rows; attestation records stay in place) | #790 | 2026-07-05 | EXECUTED |
 | 6 | Execute MOVE-PRIVATE (`docs/shop-commercial-source-of-truth.md` deleted with index row; guard test `tests/test_shop_commercial_source_of_truth.py` retired; inbound roadmap links retargeted at the config JSON) | #791 | 2026-07-05 | EXECUTED |
 | 7 | `CLAUDE.md` sanitise + `UPCOMING_PR.md` retirement (queue snapshot in the PR description; standing invariants moved verbatim to `docs/standing-invariants.md`; inbound doc/test references retargeted) | #792 | 2026-07-05 | EXECUTED |
-| 8 | Link sweep + Phase 2 handoff section | — | — | PENDING |
+| 8 | Link sweep + Phase 2 handoff section (kept-doc links verified by scripted sweep, sweep output in the PR; editable anchor/file-target breaks fixed; governance-record and `packages/` residuals reported, not rewritten; Phase 2 handoff map appended below) | #793 | 2026-07-05 | EXECUTED |
+
+## Phase 2 handoff
+
+Input to the Phase 2 WebFlash loop, executed in `sense360store/WebFlash`
+(execution constraint 4). Phase 1 changed the esphome-public paths below;
+Phase 2 must find every inbound WebFlash reference to them (grep WebFlash
+for `esphome-public` blob/raw/tree URLs and bare `docs/…` path strings) and
+retarget each hit per this map. Any esphome-public doc path that 404s at
+main and is not listed here resolves via
+[`docs/archive-index.md`](archive-index.md) (deleted with an index row;
+content recoverable from the indexed SHA).
+
+### Stubbed paths — old URL still resolves, content gone (retarget required)
+
+The five paths WebFlash is known to link (cross-repo stub rule) were
+archived with a three-line stub left at the old path, so existing WebFlash
+links do not 404. Each stub points at the archive index; Phase 2 should
+retarget WebFlash's links the same way.
+
+| Old path | New path or stub |
+|---|---|
+| `docs/first-release-dryrun-checklist.md` | Stub in place → `docs/archive-index.md` |
+| `docs/first-release-gates.md` | Stub in place → `docs/archive-index.md` |
+| `docs/release-matrix-webflash-alignment.md` | Stub in place → `docs/archive-index.md` |
+| `docs/kit-intent-matrix.md` | Stub in place → `docs/archive-index.md` |
+| `docs/sense360-room-bundles.md` | Stub in place → `docs/archive-index.md` |
+
+### Merged / replaced paths — old URL 404s, a live successor exists
+
+| Old path | New path |
+|---|---|
+| `docs/hardware/s360-311-r4-pwm.md` | `docs/hardware/s360-311-r4-fanpwm.md` (MERGE survivor, Step 4) |
+| `docs/hardware/s360-312-r4-dac.md` | `docs/hardware/s360-312-r4-fandac.md` (MERGE survivor, Step 4) |
+| `UPCOMING_PR.md` | `docs/standing-invariants.md` for the standing gates; queue history via `docs/archive-index.md` (Step 7) |
+| `docs/shop-commercial-source-of-truth.md` | `config/product-catalog.json` for lifecycle / status declarations; record via `docs/archive-index.md` (Step 6, owner decision 3) |
+| `docs/release-channel-policy.md` | `config/release-channel-policy.json` (declaration source of truth); record via `docs/archive-index.md` |
+| `docs/preview-release-targets.md` | `config/preview-release-targets.json` (declaration source of truth); record via `docs/archive-index.md` |
+
+### Deleted paths — old URL 404s, relink to `docs/archive-index.md`
+
+Every other ARCHIVE row in the esphome-public table above (61 files,
+Steps 2–3) was deleted with an index row and no stub. If WebFlash links
+any of them, retarget to `docs/archive-index.md`. The full path list is
+the ARCHIVE table above minus the five stubbed paths and minus the two
+rows moved to the merged/replaced table (`docs/release-channel-policy.md`,
+`docs/preview-release-targets.md`).
+
+### Kept paths with removed anchors — file resolves, deep links may not
+
+The five KEEP-SLIM board docs (`docs/hardware/s360-100-r4-core.md`,
+`s360-310-r4-relay.md`, `s360-320-r4-triac.md`, `s360-400-r4-power.md`,
+`s360-410-r4-poe.md`) kept their paths but lost their embedded audit-trail
+sections at Step 5. A WebFlash deep link to a removed `#…-audit-log` /
+follow-up-table anchor lands at the top of the doc; retarget such deep
+links at the doc itself or at `docs/archive-index.md` (pre-slim content
+recoverable from the indexed SHA).
+
+### Unchanged stable surfaces — no relink needed
+
+- `docs/webflash-contract.md` (KEEP by ratified amendment).
+- `docs/firmware-combination-matrix.md` and
+  `docs/firmware-build-gap-report.md` (KEEP, CI-generated with freshness
+  gates).
+- `docs/sense360-roadmap-status.md` (KEEP, owner decision 1).
+- `docs/hardware-catalog.md` and `config/hardware-catalog.json`.
+- `config/webflash-builds.json` and `config/webflash-compatibility.json`.
+- `docs/standing-invariants.md` (new at Step 7 — the standing-gate text
+  WebFlash-side docs may now cite).
+- The three cross-repo contract surfaces (release tags, config strings,
+  artifact names) were untouched by the whole programme.

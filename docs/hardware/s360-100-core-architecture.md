@@ -28,8 +28,8 @@ formally records:
 It is **documentation only**. It does not:
 
 - publish firmware, create release artifacts, change
-  [`firmware/sources.json`](../../firmware/sources.json), change
-  [`manifest.json`](../../manifest.json), or promote any release
+  `firmware/sources.json`, change
+  `manifest.json`, or promote any release
   target;
 - promote Sense360 LED from `preview` to `stable`;
 - promote `FanRelay` / `FanPWM` / `FanDAC` to release;
@@ -279,8 +279,8 @@ are **explicitly preserved** by this document:
 This document and the tests added with it must not:
 
 - publish firmware, create release artifacts, change
-  [`firmware/sources.json`](../../firmware/sources.json), change
-  [`manifest.json`](../../manifest.json), or promote any release
+  `firmware/sources.json`, change
+  `manifest.json`, or promote any release
   target;
 - change Release-One (`Ceiling-POE-VentIQ-RoomIQ` / stable /
   `v1.0.0`) or the LED preview entry
