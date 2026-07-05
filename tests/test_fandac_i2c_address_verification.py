@@ -40,11 +40,13 @@ VERIFICATION_DOC = REPO_ROOT / VERIFICATION_REL
 # docs/sense360-room-bundles.md, docs/first-release-gates.md, and
 # docs/pre-hardware-room-bundle-release-handoff.md were archived under
 # DOCS-DISPOSITION-001 (see docs/archive-index.md), so they dropped out
-# of this list; the FANDAC-I2C-ADDR-001 gate itself stays PENDING and
-# unchanged.
+# of this list; UPCOMING_PR.md was retired at DOCS-DISPOSITION-001 Step 7
+# and its standing-invariant link moved verbatim to
+# docs/standing-invariants.md. The FANDAC-I2C-ADDR-001 gate itself stays
+# PENDING and unchanged.
 LINKING_DOCS = [
     "docs/hardware/s360-312-r4-fandac.md",
-    "UPCOMING_PR.md",
+    "docs/standing-invariants.md",
 ]
 
 

@@ -16,10 +16,15 @@ NOTES_PATH = REPO_ROOT / "docs" / "release-notes" / "preview" / "v1.0.0-preview.
 VALIDATOR_PATH = REPO_ROOT / "scripts" / "validate-webflash-release-notes.py"
 WEBFLASH_BUILDS = REPO_ROOT / "config" / "webflash-builds.json"
 FAN_LEDGER = REPO_ROOT / "config" / "preview-fan-triac-build-rows.json"
-UPCOMING_PR = REPO_ROOT / "UPCOMING_PR.md"
+# UPCOMING_PR.md was retired at DOCS-DISPOSITION-001 Step 7 (see
+# docs/archive-index.md); its queue-bookkeeping guards (#708 /
+# RELEASE-PREVIEW-FAN-SHARED-TAG-001 marked DONE, the combined-notes item
+# marked DONE, the WEBFLASH-* fan imports queued separately) were retired
+# with it. The FanTRIAC posture guard retargets the standing-invariants doc,
+# which carries the invariant text verbatim.
+STANDING_INVARIANTS = REPO_ROOT / "docs" / "standing-invariants.md"
 
 RELEASE_ID = "RELEASE-PREVIEW-COMBINED-RELEASE-NOTES-001"
-SHARED_TAG_ID = "RELEASE-PREVIEW-FAN-SHARED-TAG-001"
 RELEASE_TAG = "v1.0.0-preview"
 VERSION = "1.0.0"
 CHANNEL = "preview"
@@ -215,36 +220,11 @@ class CombinedWarningCopyTests(unittest.TestCase):
         self.assertIn("no simple-install exposure is created", self.norm)
 
 
-class UpcomingPrQueueTests(unittest.TestCase):
+class StandingInvariantsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.text = UPCOMING_PR.read_text(encoding="utf-8")
+        cls.text = STANDING_INVARIANTS.read_text(encoding="utf-8")
         cls.norm = _normalise(cls.text)
-
-    def test_pr_708_shared_tag_is_marked_done(self) -> None:
-        self.assertIn("#708", self.text)
-        self.assertIn(SHARED_TAG_ID, self.text)
-        shared_tag_lines = [
-            line
-            for line in self.text.splitlines()
-            if SHARED_TAG_ID in line or "#708" in line
-        ]
-        self.assertTrue(
-            any("DONE" in line for line in shared_tag_lines),
-            f"{SHARED_TAG_ID} / #708 is not marked DONE",
-        )
-
-    def test_combined_release_notes_item_is_this_pr(self) -> None:
-        self.assertIn(RELEASE_ID, self.text)
-        self.assertIn("v1.0.0-preview.md", self.text)
-        self.assertIn("DONE (this PR)", self.text)
-
-    def test_webflash_fan_import_decisions_are_queued_separately(self) -> None:
-        for followup in ("WEBFLASH-RELAY-001", "WEBFLASH-PWM-001", "WEBFLASH-DAC-001"):
-            with self.subTest(followup=followup):
-                heading = re.compile(rf"^#### {followup}\b.*queued", re.MULTILINE)
-                self.assertRegex(self.text, heading)
-        self.assertIn("queued separately", self.norm)
 
     def test_triac_is_a_separate_experimental_track(self) -> None:
         # TRIAC-COMMISSIONING-001 moved FanTRIAC into the experimental self-build

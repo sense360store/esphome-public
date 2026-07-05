@@ -18,14 +18,16 @@ regress:
     subset relationship instead;
   * the hard guardrails hold — no ``manifest.json`` / ``firmware/sources.json`` /
     ``.bin`` is committed, and the unpromoted build row stays
-    ``release_state: metadata-ready-unpublished``; and
-  * ``UPCOMING_PR.md`` marks ``RELEASE-PREVIEW-PUBLISH-RUN-001`` done and queues
-    the WebFlash import ``WF-PREVIEW-IMPORT-FIRST-BATCH-001`` (task item 7).
+    ``release_state: metadata-ready-unpublished``.
 
 The results record doc (``docs/release-preview-publish-results.md``) was
 archived under DOCS-DISPOSITION-001 (see ``docs/archive-index.md``); the tests
-that pinned that doc's prose were retired with it. The live-ledger / queue
-guards above remain.
+that pinned that doc's prose were retired with it. ``UPCOMING_PR.md`` was
+retired at DOCS-DISPOSITION-001 Step 7, and the queue-bookkeeping guards
+(``RELEASE-PREVIEW-PUBLISH-RUN-001`` marked DONE, run ``26847702410``
+recorded, ``WF-PREVIEW-IMPORT-FIRST-BATCH-001`` queued) were retired with it —
+the queue text remains recoverable from the SHA indexed in
+``docs/archive-index.md``. The live-ledger guards above remain.
 
 Uses Python's stdlib unittest (matching the no-pytest convention the other
 validators in this repo use). Run with::
@@ -42,11 +44,7 @@ from typing import Any, Dict, List
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
-UPCOMING_PR = REPO_ROOT / "UPCOMING_PR.md"
 
-RUN_QUEUE_ID = "RELEASE-PREVIEW-PUBLISH-RUN-001"
-IMPORT_FOLLOWUP_ID = "WF-PREVIEW-IMPORT-FIRST-BATCH-001"
-RUN_ID = "26847702410"
 VERSION = "1.0.0"
 CHANNEL = "preview"
 
@@ -157,30 +155,6 @@ class GuardrailTests(unittest.TestCase):
         # Five customer (stable / preview) builds plus the experimental
         # self-build mains FanTRIAC build added by TRIAC-COMMISSIONING-001.
         self.assertEqual(len(_builds()), 6)
-
-
-class UpcomingPrTests(unittest.TestCase):
-    """Task item 7: the queue is updated."""
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.text = UPCOMING_PR.read_text(encoding="utf-8")
-
-    def test_publish_run_marked_done(self) -> None:
-        run_lines = [
-            ln for ln in self.text.splitlines() if RUN_QUEUE_ID in ln
-        ]
-        self.assertTrue(run_lines, f"{RUN_QUEUE_ID} not found in UPCOMING_PR.md")
-        self.assertTrue(
-            any("DONE" in ln for ln in run_lines),
-            f"{RUN_QUEUE_ID} is not marked DONE in any heading/line",
-        )
-
-    def test_webflash_import_first_batch_queued(self) -> None:
-        self.assertIn(IMPORT_FOLLOWUP_ID, self.text)
-
-    def test_run_id_recorded_in_queue(self) -> None:
-        self.assertIn(RUN_ID, self.text)
 
 
 if __name__ == "__main__":

@@ -30,7 +30,7 @@ disagree, **the source-of-truth file wins** and this doc is the one to fix.
 | Promotion gates | [`docs/preview-to-stable-promotion-gates.md` (archived)](archive-index.md) |
 | Per-board hardware evidence | `docs/hardware/**` (pinmaps, schematics, artifacts — **preserved, not consolidated**) |
 | Blocker burn-down detail | [`docs/blocker-burndown.md` (archived)](archive-index.md) |
-| Detailed PR working queue | [`UPCOMING_PR.md`](../UPCOMING_PR.md) |
+| Detailed PR working queue | [`UPCOMING_PR.md` (retired)](archive-index.md) · standing gates: [`docs/standing-invariants.md`](standing-invariants.md) |
 | Reconciled release-matrix / WebFlash / firmware-availability view | [`docs/release-matrix-webflash-alignment.md`](release-matrix-webflash-alignment.md) (WEBFLASH-RELEASE-MATRIX-ALIGNMENT-001) |
 | Consolidated first-release / expansion gate checklist | [`docs/first-release-gates.md`](first-release-gates.md) (PRE-HW-PREP-FIRST-RELEASE-GATES-001) |
 | Operator dry-run checklist for the first stable release | [`docs/first-release-dryrun-checklist.md`](first-release-dryrun-checklist.md) (FIRST-RELEASE-DRYRUN-CHECKLIST-001) |
@@ -385,8 +385,11 @@ LED stays preview until the preview→stable gauntlet closes
 
 ## 8. Next PR queue
 
-Working priority order is maintained in [`UPCOMING_PR.md`](../UPCOMING_PR.md)
-(the detailed queue). High-level near-term lanes:
+The detailed [`UPCOMING_PR.md` queue was retired](archive-index.md) under
+`DOCS-DISPOSITION-001` Step 7 (its final open-queue snapshot is preserved in
+the Step 7 PR description; the standing invariants moved verbatim to
+[`docs/standing-invariants.md`](standing-invariants.md)). High-level
+near-term lanes:
 
 1. **Power / PoE lane** — `PRODUCT-POWER-400-001` → `RELEASE-POWER-400-001`;
    `RELEASE-POE-410-001` gated behind the S360-410 evidence blocker (§6.1).
@@ -491,9 +494,10 @@ its own canonical docs:
 | Target shape, rename/alias policy, ordered PR sequence | [`docs/arch-board-bundle-plan.md` (archived)](archive-index.md) |
 | Whole-pipeline placement + cross-repo contract | [`docs/system-architecture.md`](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers) |
 | Per-workflow CI/gate parity across the refactor | [`docs/ci-pipeline.md`](ci-pipeline.md) |
-| Per-PR queue state for the epic | [`UPCOMING_PR.md`](../UPCOMING_PR.md) |
+| Per-PR queue state for the epic | [`UPCOMING_PR.md` (retired)](archive-index.md) |
 
-Epic status (ownership lives in the plan §7 / `UPCOMING_PR.md`, not here):
+Epic status (ownership lives in the plan §7 / the retired `UPCOMING_PR.md`,
+not here):
 `BOARD-PACKAGE-LAYER-001/002`, `BUNDLE-LAYER-001`,
 `PACKAGE-RENAME-001..005` (LED, AirIQ, VentIQ, RoomIQ, PoE-PSU source-of-truth
 flips), and `CI-REFACTOR-VERIFY-001` are landed; `DOCS-ARCH-REFRESH-001`

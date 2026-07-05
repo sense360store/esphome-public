@@ -11,7 +11,7 @@ programme — it supersedes the copy of this manifest on WebFlash main (added
 there by WebFlash PR #569), whose guard-test execution notes are folded into
 the execution constraints below. Each disposition step is executed in its own
 follow-up PR (queued as `DOCS-DISPOSITION-001` in
-[`UPCOMING_PR.md`](../UPCOMING_PR.md)) and recorded in the
+[`UPCOMING_PR.md` (retired at Step 7)](archive-index.md)) and recorded in the
 [Execution log](#execution-log). No file was moved, merged, slimmed, or
 removed by the ratification PR itself.
 
@@ -413,5 +413,5 @@ that performs it.
 | 4 | Merge the duplicate pairs (S360-311 → `s360-311-r4-fanpwm.md`, S360-312 → `s360-312-r4-fandac.md`; attestations moved verbatim; inbound doc/test references retargeted) | #789 | 2026-07-05 | EXECUTED |
 | 5 | Slim the five KEEP-SLIM board docs (process trail removed with archive-index rows; attestation records stay in place) | #790 | 2026-07-05 | EXECUTED |
 | 6 | Execute MOVE-PRIVATE (`docs/shop-commercial-source-of-truth.md` deleted with index row; guard test `tests/test_shop_commercial_source_of_truth.py` retired; inbound roadmap links retargeted at the config JSON) | #791 | 2026-07-05 | EXECUTED |
-| 7 | `CLAUDE.md` sanitise + `UPCOMING_PR.md` retirement (+ `docs/standing-invariants.md`) | — | — | PENDING |
+| 7 | `CLAUDE.md` sanitise + `UPCOMING_PR.md` retirement (queue snapshot in the PR description; standing invariants moved verbatim to `docs/standing-invariants.md`; inbound doc/test references retargeted) | #792 | 2026-07-05 | EXECUTED |
 | 8 | Link sweep + Phase 2 handoff section | — | — | PENDING |

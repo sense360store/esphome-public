@@ -27,8 +27,9 @@ The doc records, for every per-module connector on the Sense360 Core
    modules.
 
 5. Cross-doc linking: the new doc is referenced from the Core
-   reference doc, the PWM module audit, the room-bundles doc, and
-   ``UPCOMING_PR.md``.
+   reference doc and the PWM module audit (the room-bundles doc and
+   ``UPCOMING_PR.md`` cross-link targets were archived / retired
+   under DOCS-DISPOSITION-001).
 
 Run with::
 
@@ -50,8 +51,8 @@ CORE_REF_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-r4-core.md"
 ARCHITECTURE_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-core-architecture.md"
 PWM_AUDIT_DOC = REPO_ROOT / "docs" / "hardware" / "s360-311-r4-fanpwm.md"
 # docs/sense360-room-bundles.md was archived under DOCS-DISPOSITION-001
-# (see docs/archive-index.md) and dropped out of the cross-link contract.
-UPCOMING_PR_DOC = REPO_ROOT / "UPCOMING_PR.md"
+# (see docs/archive-index.md) and UPCOMING_PR.md was retired at
+# DOCS-DISPOSITION-001 Step 7; both dropped out of the cross-link contract.
 
 HARDWARE_CATALOG_JSON = REPO_ROOT / "config" / "hardware-catalog.json"
 PRODUCT_CATALOG_JSON = REPO_ROOT / "config" / "product-catalog.json"
@@ -559,7 +560,6 @@ class CrossDocLinkingTests(unittest.TestCase):
     DOCS_THAT_MUST_LINK_TO_PINMAP_DOC = [
         CORE_REF_DOC,
         PWM_AUDIT_DOC,
-        UPCOMING_PR_DOC,
     ]
 
     def test_pinmap_doc_is_cross_linked(self) -> None:
