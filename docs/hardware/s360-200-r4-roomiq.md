@@ -353,4 +353,5 @@ This PR does **not**: change `schematic_status`; set
 `presence_ceiling.yaml`, or any other package YAML; edit any
 product YAML or WebFlash wrapper; promote any Release-One
 shipping artefact; or commit the BOM `.xlsx`.
-- [Repository README](../../README.md) — entry point and documentation index.
+- [Repository README](../../README.md) — entry point; the full
+  [documentation index](../README.md) lives under `docs/`.

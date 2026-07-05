@@ -31,7 +31,7 @@ in WebFlash:
   (`Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin`), and attaches the `.bin`
   set + checksums + build-info `manifest.json` to a tagged GitHub Release. See
   [WebFlash Compatibility Contract](webflash-contract.md) and
-  [Build Output Contract](../README.md#build-output-contract).
+  [Build Output Contract](product-taxonomy.md#build-output-contract).
 - **WebFlash side:** `firmware/sources.json` lists each upstream source pinned
   to a **release tag** (`release_tag`, e.g. `v1.0.0`), the expected
   `asset_name`, and the required release-body sections. WebFlash imports the raw
@@ -44,7 +44,7 @@ Every cross-repo reference pins to a **release tag**, never a moving branch:
 - WebFlash's `firmware/sources.json` pins each source by `release_tag`.
 - Manual/custom users pin their `packages:` / `external_components:` `ref:` to a
   release tag (e.g. `ref: v1.0.0`) — **never** `ref: main`. `main` is a moving
-  target; see the [README pinning note](../README.md#which-path-should-i-use).
+  target; see the [pinning note](getting-started.md#which-path-should-i-use).
 
 ## Flow: product YAML → flashed device
 
