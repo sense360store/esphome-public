@@ -1,0 +1,70 @@
+name: Flashing problem
+description: A build or flash that fails, or a device that will not boot after flashing.
+title: "[Flashing] "
+labels: ["flashing"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If the **WebFlash website itself** is failing (browser errors, wrong firmware listed),
+        file on the [WebFlash repository](https://github.com/sense360store/WebFlash/issues) instead.
+        This template is for the manual / custom ESPHome path and firmware boot problems.
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware artifact or release tag
+      description: >-
+        The exact artifact name (Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin) or the
+        release tag + product YAML path you pinned (e.g. v1.0.4 +
+        products/sense360-ceiling-poe-ventiq-roomiq.yaml).
+      placeholder: Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.4-stable.bin
+    validations:
+      required: true
+  - type: dropdown
+    id: channel
+    attributes:
+      label: Release channel
+      description: See docs/release-channels.md if unsure.
+      options:
+        - stable
+        - preview
+        - experimental
+        - not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: method
+    attributes:
+      label: Flash method
+      options:
+        - WebFlash (browser)
+        - ESPHome Dashboard (USB)
+        - ESPHome Dashboard (OTA / wireless)
+        - esphome CLI
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what actually happened.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: >-
+        Compile output, flash output, or serial boot logs. Remove WiFi credentials and API keys
+        before pasting.
+      render: text
+    validations:
+      required: false
+  - type: input
+    id: esphome-version
+    attributes:
+      label: ESPHome version
+      placeholder: "2025.10.0"
+    validations:
+      required: false
