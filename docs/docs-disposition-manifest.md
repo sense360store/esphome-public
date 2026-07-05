@@ -152,11 +152,11 @@ Folded verbatim-in-substance from the copy of this manifest on WebFlash main
 
 | File | KB | Rationale |
 |---|---:|---|
-| `docs/hardware/s360-310-r4-relay.md` | 205 | Board reference with embedded audit trail. Keep a clean reference, move the trail to archive. |
-| `docs/hardware/s360-410-r4-poe.md` | 192 | Board reference with embedded audit trail. Keep a clean reference, move the trail to archive. |
-| `docs/hardware/s360-400-r4-power.md` | 171 | Board reference with embedded audit trail. Keep a clean reference, move the trail to archive. |
-| `docs/hardware/s360-320-r4-triac.md` | 110 | Board reference with embedded audit trail. Keep a clean reference, move the trail to archive. |
-| `docs/hardware/s360-100-r4-core.md` | 65 | Board reference with embedded audit trail. Keep a clean reference, move the trail to archive. |
+| `docs/hardware/s360-310-r4-relay.md` | 205 | Board reference with embedded audit trail. Keep a clean reference, move the trail to archive. **Executed at Step 5**: the HW-PINMAP-310-FOLLOWUP dated audit log, the follow-up PR planning table, the per-PR guardrail list, and the BLOCKER-BURNDOWN-001 consolidation note were removed (headings kept as anchor stubs; index row in `docs/archive-index.md`); the S360-310-BENCH-001 and S360-310-SAFETY-EVIDENCE-REQUEST-001 attestation records, the RELAY-BLOCKER-RECLASSIFY-001 decision record, and all pinout / package-mapping / status / open-question content stay in place. |
+| `docs/hardware/s360-410-r4-poe.md` | 192 | Board reference with embedded audit trail. Keep a clean reference, move the trail to archive. **Executed at Step 5**: the HW-PINMAP-410-FOLLOWUP dated audit log (incl. the 2026-05-20 / 2026-05-28 passes, whose current-state outcomes stay summarised on anchor stubs), the follow-up PR planning table, and the per-PR guardrail list were removed (index row in `docs/archive-index.md`); all findings / part-identity / status / open-question content stays in place. |
+| `docs/hardware/s360-400-r4-power.md` | 171 | Board reference with embedded audit trail. Keep a clean reference, move the trail to archive. **Executed at Step 5**: the HW-PINMAP-400-FOLLOWUP dated audit log (incl. the three 2026-05-19/20 passes, whose current-state outcomes stay summarised on anchor stubs), the follow-up PR planning table, and the per-PR guardrail list were removed (index row in `docs/archive-index.md`); all findings / part-identity / status / open-question content stays in place. |
+| `docs/hardware/s360-320-r4-triac.md` | 110 | Board reference with embedded audit trail. Keep a clean reference, move the trail to archive. **Executed at Step 5**: the HW-PINMAP-320-FOLLOWUP dated audit log, the follow-up PR planning table (TRIAC-QUEUE-001 downstream queue state kept verbatim), and the per-PR guardrail list were removed (headings kept as anchor stubs — the compliance record links to the audit-log anchor; index row in `docs/archive-index.md`); the FanTRIAC posture sections are untouched. |
+| `docs/hardware/s360-100-r4-core.md` | 65 | Board reference with embedded audit trail. Keep a clean reference, move the trail to archive. **Executed at Step 5**: the S360-100-BENCH-001 dated audit-log table was removed (index row in `docs/archive-index.md`); the bench-evidence scaffold, pin / connector / allocation tables, and open questions stay in place. |
 
 ### ARCHIVE (68 files, 4090 KB)
 
@@ -411,7 +411,7 @@ that performs it.
 | 2 | Archive batch A (ARCHIVE rows without [code-ref]) | #787 | 2026-07-04 | EXECUTED |
 | 3 | Archive batch B (ARCHIVE rows with [code-ref], reference updates in-PR) | #788 | 2026-07-04 | EXECUTED |
 | 4 | Merge the duplicate pairs (S360-311 → `s360-311-r4-fanpwm.md`, S360-312 → `s360-312-r4-fandac.md`; attestations moved verbatim; inbound doc/test references retargeted) | #789 | 2026-07-05 | EXECUTED |
-| 5 | Slim the five KEEP-SLIM board docs | — | — | PENDING |
+| 5 | Slim the five KEEP-SLIM board docs (process trail removed with archive-index rows; attestation records stay in place) | #790 | 2026-07-05 | EXECUTED |
 | 6 | Execute MOVE-PRIVATE (`docs/shop-commercial-source-of-truth.md`) | — | — | PENDING |
 | 7 | `CLAUDE.md` sanitise + `UPCOMING_PR.md` retirement (+ `docs/standing-invariants.md`) | — | — | PENDING |
 | 8 | Link sweep + Phase 2 handoff section | — | — | PENDING |

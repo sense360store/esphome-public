@@ -1,10 +1,12 @@
 # Archive index
 
 This index records every file removed from the public tree under the
-`DOCS-DISPOSITION-001` programme (see
+`DOCS-DISPOSITION-001` programme, plus every KEEP-SLIM file whose embedded
+process trail was removed in place (see
 [`docs/docs-disposition-manifest.md`](docs-disposition-manifest.md), the sole
 disposition authority). Nothing was rewritten before deletion: each file's
-full content remains recoverable from the indexed SHA
+full content — for KEEP-SLIM rows, the full pre-slim content including the
+removed audit trail — remains recoverable from the indexed SHA
 (`git show <SHA>:<original path>`). The private records repo is populated
 later from these SHAs (owner decision 6).
 
@@ -80,3 +82,8 @@ later from these SHAs (owner decision 6).
 | `docs/release-one.md` | `ed89a04463e23e97c5886c374196d17d0964a2a7` | ARCHIVE | 2026-07-04 |
 | `docs/hardware/s360-311-r4-pwm.md` | `df0bd901d8a0fdd3aee04070db9ead4042204f90` | MERGE (folded into `docs/hardware/s360-311-r4-fanpwm.md`) | 2026-07-05 |
 | `docs/hardware/s360-312-r4-dac.md` | `df0bd901d8a0fdd3aee04070db9ead4042204f90` | MERGE (folded into `docs/hardware/s360-312-r4-fandac.md`) | 2026-07-05 |
+| `docs/hardware/s360-100-r4-core.md` | `94d4cdfcc8432d718f28a52a4add76903459a209` | KEEP-SLIM (S360-100-BENCH-001 dated audit log removed; file kept) | 2026-07-05 |
+| `docs/hardware/s360-310-r4-relay.md` | `94d4cdfcc8432d718f28a52a4add76903459a209` | KEEP-SLIM (HW-PINMAP-310-FOLLOWUP audit log, follow-up PR table, per-PR guardrail list, BLOCKER-BURNDOWN-001 note removed; file kept) | 2026-07-05 |
+| `docs/hardware/s360-320-r4-triac.md` | `94d4cdfcc8432d718f28a52a4add76903459a209` | KEEP-SLIM (HW-PINMAP-320-FOLLOWUP audit log, follow-up PR table, per-PR guardrail list removed; file kept) | 2026-07-05 |
+| `docs/hardware/s360-400-r4-power.md` | `94d4cdfcc8432d718f28a52a4add76903459a209` | KEEP-SLIM (HW-PINMAP-400-FOLLOWUP audit log incl. dated passes, follow-up PR table, per-PR guardrail list removed; file kept) | 2026-07-05 |
+| `docs/hardware/s360-410-r4-poe.md` | `94d4cdfcc8432d718f28a52a4add76903459a209` | KEEP-SLIM (HW-PINMAP-410-FOLLOWUP audit log incl. dated passes, follow-up PR table, per-PR guardrail list removed; file kept) | 2026-07-05 |
