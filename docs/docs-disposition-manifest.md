@@ -11,7 +11,7 @@ programme — it supersedes the copy of this manifest on WebFlash main (added
 there by WebFlash PR #569), whose guard-test execution notes are folded into
 the execution constraints below. Each disposition step is executed in its own
 follow-up PR (queued as `DOCS-DISPOSITION-001` in
-[`UPCOMING_PR.md`](../UPCOMING_PR.md)) and recorded in the
+[`UPCOMING_PR.md` (retired at Step 7)](archive-index.md)) and recorded in the
 [Execution log](#execution-log). No file was moved, merged, slimmed, or
 removed by the ratification PR itself.
 

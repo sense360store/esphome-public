@@ -21,7 +21,8 @@ sign firmware. The production stable customer baseline is Release-One, config
 string `Ceiling-POE-VentIQ-RoomIQ`. The single canonical status / roadmap /
 blocker document is
 [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md); the
-detailed PR working queue is [`UPCOMING_PR.md`](UPCOMING_PR.md).
+standing gates live in
+[`docs/standing-invariants.md`](docs/standing-invariants.md).
 
 ## Sense360 hardware reference (canonical SKUs)
 
@@ -179,33 +180,34 @@ pre-commit run --all-files
 
 ## Standing gates (do not regress)
 
-[`UPCOMING_PR.md`](UPCOMING_PR.md) → *Standing invariants (do not regress)* is
-the **live, authoritative text** for every gate below — read it before
-touching anything a gate covers. The lines here are one-line operative
-summaries only; on any difference, `UPCOMING_PR.md` wins.
+[`docs/standing-invariants.md`](docs/standing-invariants.md) is the **live,
+authoritative text** for every gate below — read it before touching anything
+a gate covers. The lines here are one-line operative summaries only; on any
+difference, `docs/standing-invariants.md` wins.
 
 - **Release-One is the customer baseline** — production stable is
-  `Ceiling-POE-VentIQ-RoomIQ` (kit `S360-KIT-BATH-P`); Simple install resolves
+  `Ceiling-POE-VentIQ-RoomIQ`; Simple install resolves
   to it alone, and the waiver-promoted Bedroom / Kitchen bundles stay hidden /
   not buyable / never the customer default
-  ([live text](UPCOMING_PR.md#standing-invariants-do-not-regress)).
+  ([live text](docs/standing-invariants.md)).
 - **FanTRIAC is experimental-lane only** — never stable / recommended /
   default / buyable / kit-exposed / in `release_one_required_configs`; no
   electrical-safety / EMC / compliance claim
-  ([live text](UPCOMING_PR.md#standing-invariants-do-not-regress)).
+  ([live text](docs/standing-invariants.md)).
 - **Fans are preview-only** — FanRelay / FanPWM / FanDAC publish only on the
   shared `v1.0.0-preview` prerelease; **no fan row in
   `config/webflash-builds.json`** (the fan-token guardrail); stable release
-  stays blocked ([live text](UPCOMING_PR.md#standing-invariants-do-not-regress)).
+  stays blocked ([live text](docs/standing-invariants.md)).
 - **FanDAC I²C addressing is pending bench** — `FANDAC-I2C-ADDR-001` stays
   PENDING; `0x59` is forbidden when VentIQ/AirIQ is present
-  ([live text](UPCOMING_PR.md#standing-invariants-do-not-regress)).
+  ([live text](docs/standing-invariants.md)).
 - **No false proof** — preview / compile work is firmware-build proof only;
   never claim hardware / bench / compliance / safety /
   commercial-availability proof for a preview artifact
-  ([live text](UPCOMING_PR.md#standing-invariants-do-not-regress)).
+  ([live text](docs/standing-invariants.md)).
 
-Three standing rules travel with the gates:
+Three standing rules travel with the gates (live text:
+[`docs/standing-invariants.md`](docs/standing-invariants.md)):
 
 - **FanTRIAC changes are human-review only.** Do NOT auto-merge any FanTRIAC
   pin / blocker / status change.
@@ -218,15 +220,3 @@ Three standing rules travel with the gates:
   what [`config/webflash-builds.json`](config/webflash-builds.json) declares;
   never reintroduce a broad `products/` scan in
   [`.github/workflows/firmware-build-release.yml`](.github/workflows/firmware-build-release.yml).
-
-## UPCOMING_PR.md maintenance rule
-
-[`UPCOMING_PR.md`](UPCOMING_PR.md) is the source-of-truth queue for the next
-planned change set: the *Next queue (actionable)* section is the only
-genuinely open work, and everything below it is standing invariants plus the
-condensed record of merged PRs. **Every PR that changes queue state —
-completing, blocking, deferring, or queueing work — must update
-`UPCOMING_PR.md` in the same PR** (completed work moves to the one-line
-history, newest first). High-level status belongs in
-[`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md), which
-links here rather than duplicating queue detail.

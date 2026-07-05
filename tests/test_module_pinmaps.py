@@ -29,9 +29,10 @@ This test file pins:
    TRIAC-UNBLOCK-BUILD-001; FanPWM stays out of
    `config/webflash-builds.json`; FanPWM products keep
    `rpm_supported: false` and `webflash_build_matrix: false`).
-8. Cross-doc linking from the canonical Core-side pin map, the
-   Core reference doc, the room-bundles doc, the blocker-burndown
-   doc, the product-readiness-matrix doc, and ``UPCOMING_PR.md``.
+8. Cross-doc linking from the canonical Core-side pin map and the
+   Core reference doc (the room-bundles, blocker-burndown,
+   product-readiness-matrix, and ``UPCOMING_PR.md`` cross-reference
+   targets were archived / retired under DOCS-DISPOSITION-001).
 
 Run with::
 
@@ -54,7 +55,9 @@ CORE_REF_DOC = HARDWARE_DIR / "s360-100-r4-core.md"
 # docs/sense360-room-bundles.md, docs/blocker-burndown.md, and
 # docs/product-readiness-matrix.md were archived under DOCS-DISPOSITION-001
 # (see docs/archive-index.md); their cross-reference tests went with them.
-UPCOMING_PR_DOC = REPO_ROOT / "UPCOMING_PR.md"
+# UPCOMING_PR.md was retired at DOCS-DISPOSITION-001 Step 7; the
+# MODULE-PINMAPS-GDRIVE-001 ledger identifier is guarded via the canonical
+# Core-side pin map instead.
 
 HARDWARE_CATALOG_JSON = REPO_ROOT / "config" / "hardware-catalog.json"
 PRODUCT_CATALOG_JSON = REPO_ROOT / "config" / "product-catalog.json"
@@ -215,11 +218,11 @@ class CrossLinkingTests(unittest.TestCase):
                     f"{filename}.",
                 )
 
-    def test_module_pinmaps_identifier_in_upcoming_pr(self) -> None:
+    def test_module_pinmaps_identifier_in_core_pin_map(self) -> None:
         self.assertIn(
             "MODULE-PINMAPS-GDRIVE-001",
-            UPCOMING_PR_DOC.read_text(),
-            f"{UPCOMING_PR_DOC.name} must record "
+            CORE_PINMAP_DOC.read_text(),
+            f"{CORE_PINMAP_DOC.name} must record "
             f"MODULE-PINMAPS-GDRIVE-001.",
         )
 
