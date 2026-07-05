@@ -116,7 +116,7 @@ authoritative pending-silkscreen list is
 | `J2` | Sense360 PoE PSU | `S360-410` | 2-pin power inlet header (type — needs silkscreen confirmation) | 2 | TBD — needs silkscreen confirmation | Off-board PoE PSU DC inlet (`PoE_ACDC` from `S360-410`) — see [§ J2 — PoE PSU inlet (2-pin)](#j2--poe-psu-inlet-2-pin) | `S360-410` `schematic_status` stays `cataloged_unverified`; `PACKAGE-POE-410-001` lane is unchanged. J2 PoE harness identity is [`s360-100-r4-core.md` Open Question #6](s360-100-r4-core.md#open-questions--verification-needed). |
 | `J3` | Sense360 LED | `S360-300` | TBD (3-pin header — type not annotated on the visible sheet) | 3 | TBD — needs silkscreen confirmation | WS2812B LED ring data output — see [§ J3 — LED ring connector (3-pin)](#j3--led-ring-connector-3-pin) | LED stays `preview` (`Ceiling-POE-VentIQ-RoomIQ-LED`); this PR does not promote it. Schematic Core `J3` pin 2 rail identity (`+5V` vs `+3.3V`) carries an [open question](s360-300-r4-led.md#open-questions--verification-needed) on the module-side audit. |
 | `J4` | Sense360 Relay | `S360-310` | TBD (3-pin header — type not annotated on the visible sheet) | 3 | TBD — needs silkscreen confirmation | Relay-module drive (`Relay` gate from `IO3`) — see [§ J4 — Relay module connector (3-pin)](#j4--relay-module-connector-3-pin) | Schematic legacy label: *"Formerly was Relay Module connector"*. `S360-310` stays `cataloged_unverified`. |
-| `J6` | Sense360 PWM | `S360-311` | TBD (13-pin header — type not annotated on the visible sheet) | 13 | TBD — needs silkscreen confirmation | 12 V PWM-fan driver harness (up to 4 fans with per-fan `TachPMW1..4` PWM-drive outputs + per-fan `Pul_Cou1..4` tach inputs + shared `TachIO` passthrough + optional Nextion UART) — see [§ J6 — 12 V PWM fan connector (13-pin)](#j6--12-v-pwm-fan-connector-13-pin) | Schematic legacy label: *"Formerly used as 12v PWM Fan connector"*. Core-side 1-to-13 silkscreen pin order is `verify` per [`s360-100-r4-core.md` Open Question #9](s360-100-r4-core.md#open-questions--verification-needed). Module-side `J3` (S360-311) 1-to-13 pin order is schematic-confirmed ([`s360-311-r4-pwm.md` § Module-side `J3` ↔ Core-side `J6`](s360-311-r4-pwm.md#module-side-j3--core-side-j6-13-pin-harness)). Module-side `J3` carries `UART_RX` / `UART_TX` on pins 11 / 12; whether the Core-side `J6` also carries those is **TBD** — see [Open questions](#open-questions--verification-needed) #2. |
+| `J6` | Sense360 PWM | `S360-311` | TBD (13-pin header — type not annotated on the visible sheet) | 13 | TBD — needs silkscreen confirmation | 12 V PWM-fan driver harness (up to 4 fans with per-fan `TachPMW1..4` PWM-drive outputs + per-fan `Pul_Cou1..4` tach inputs + shared `TachIO` passthrough + optional Nextion UART) — see [§ J6 — 12 V PWM fan connector (13-pin)](#j6--12-v-pwm-fan-connector-13-pin) | Schematic legacy label: *"Formerly used as 12v PWM Fan connector"*. Core-side 1-to-13 silkscreen pin order is `verify` per [`s360-100-r4-core.md` Open Question #9](s360-100-r4-core.md#open-questions--verification-needed). Module-side `J3` (S360-311) 1-to-13 pin order is schematic-confirmed ([`s360-311-r4-fanpwm.md` § Module-side `J3` ↔ Core-side `J6`](s360-311-r4-fanpwm.md#module-side-j3--core-side-j6-13-pin-harness)). Module-side `J3` carries `UART_RX` / `UART_TX` on pins 11 / 12; whether the Core-side `J6` also carries those is **TBD** — see [Open questions](#open-questions--verification-needed) #2. |
 | `J7` | Sense360 DAC | `S360-312` | TBD (6-pin header — type not annotated on the visible sheet) | 6 | TBD — needs silkscreen confirmation | GP8403 DAC fan-controller driver (I²C + UART) — see [§ J7 — DAC module connector (6-pin)](#j7--dac-module-connector-6-pin) | Schematic legacy label: *"Formerly used as GP8403 Fan connector"*. `S360-312` stays `cataloged_unverified`. |
 | `J8` | (USB-C 2.0 receptacle) | N/A | USB-C 2.0 receptacle | — | N/A | USB-C power inlet + ESP32-S3 USB data (bench flashing / boot log) — see [§ J8 — USB-C receptacle](#j8--usb-c-receptacle) | Not a Sense360 module connector. Included for completeness. |
 | `J9` | Sense360 AirIQ | `S360-210` | TBD (7-pin header — type not annotated on the visible sheet) | 7 | TBD — needs silkscreen confirmation | Air-quality module (SPS30 / SGP41 / SCD41 / BMP390 stack on the AirIQ board) — see [§ J9 — AirIQ module connector (7-pin)](#j9--airiq-module-connector-7-pin) | Schematic legacy label: *"Formerly used as AirIQ Module connector"*. VentIQ (`S360-211`) audit ([`s360-211-r4-ventiq.md` § Module connector mating](s360-211-r4-ventiq.md#module-connector-mating)) also records VentIQ plugging into this connector — see [Open questions](#open-questions--verification-needed) #1. |
@@ -252,7 +252,7 @@ Every per-connector table below uses the following columns:
 Carries the Sense360 PWM (S360-311) FanPWM hardware path. The
 **module-side** 13-pin connector is `J3` on `S360-311-R4` and the
 1-to-13 net order on the module side is schematic-confirmed in
-[`s360-311-r4-pwm.md` § Module-side `J3` ↔ Core-side `J6`](s360-311-r4-pwm.md#module-side-j3--core-side-j6-13-pin-harness).
+[`s360-311-r4-fanpwm.md` § Module-side `J3` ↔ Core-side `J6`](s360-311-r4-fanpwm.md#module-side-j3--core-side-j6-13-pin-harness).
 The **Core-side** 1-to-13 silkscreen pin order is `verify` per
 [`s360-100-r4-core.md` Open Question #9](s360-100-r4-core.md#open-questions--verification-needed),
 so the Core-side rows below carry `needs silkscreen confirmation`
@@ -260,7 +260,7 @@ on the pin numbers themselves; the **net-to-GPIO** assignments are
 **schematic-backed** by the canonical R4 sheet.
 
 The pin-number column below follows the **module-side** `J3` 1-to-13
-order from [`s360-311-r4-pwm.md` § Schematic summary](s360-311-r4-pwm.md#schematic-summary)
+order from [`s360-311-r4-fanpwm.md` § Schematic summary](s360-311-r4-fanpwm.md#schematic-summary)
 (the only side where the order is schematic-confirmed) so the
 Core-side and module-side rows can be lined up 1-to-13.
 
@@ -448,11 +448,11 @@ This document is cross-referenced from / to:
 - [`s360-310-relay-pinmap-reconcile.md` (archived)](../archive-index.md)
   — Relay GPIO cross-layer reconcile record
   (S360-310-RELAY-PINMAP-RECONCILE-001; `Relay` = `IO3` = `GPIO3`).
-- [`s360-311-r4-pwm.md`](s360-311-r4-pwm.md) — PWM board-side audit
+- [`s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md) — PWM board-side audit
   (module-side `J3` ↔ Core-side `J6` reconciliation; UART pins on
   `J3` pins 11–12).
-- [`s360-312-r4-dac.md`](s360-312-r4-dac.md) — DAC board-side audit
-  (J7 mating).
+- [`s360-312-r4-fandac.md`](s360-312-r4-fandac.md) — FanDAC board-side
+  reference (J7 mating; carries the merged HW-PINMAP-312 audit).
 - [`s360-320-r4-triac.md`](s360-320-r4-triac.md) — TRIAC board-side
   audit (J15 mating; TRI_GPIO source-pin question).
 - [`s360-410-r4-poe.md`](s360-410-r4-poe.md) — PoE PSU board-side

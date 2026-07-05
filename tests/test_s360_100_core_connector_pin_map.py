@@ -48,7 +48,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 PINMAP_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-core-connector-pin-map.md"
 CORE_REF_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-r4-core.md"
 ARCHITECTURE_DOC = REPO_ROOT / "docs" / "hardware" / "s360-100-core-architecture.md"
-PWM_AUDIT_DOC = REPO_ROOT / "docs" / "hardware" / "s360-311-r4-pwm.md"
+PWM_AUDIT_DOC = REPO_ROOT / "docs" / "hardware" / "s360-311-r4-fanpwm.md"
 # docs/sense360-room-bundles.md was archived under DOCS-DISPOSITION-001
 # (see docs/archive-index.md) and dropped out of the cross-link contract.
 UPCOMING_PR_DOC = REPO_ROOT / "UPCOMING_PR.md"

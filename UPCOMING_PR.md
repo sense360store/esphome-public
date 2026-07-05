@@ -106,8 +106,21 @@ by posture** per
    `docs/firmware-build-gap-report.md` regenerated; config JSON citations
    such as `bench_proof` are untouched — `config/` stays out of docs-only
    scope, and the governance directories stay byte-identical per the
-   standing gates). Remaining execution is one step per PR — Steps 4–8:
-   the S360-311/S360-312 duplicate merges, the five
+   standing gates). Step 4 (the S360-311/S360-312 duplicate merges) is
+   **EXECUTED**: `docs/hardware/s360-311-r4-pwm.md` folded into
+   `docs/hardware/s360-311-r4-fanpwm.md` and
+   `docs/hardware/s360-312-r4-dac.md` folded into
+   `docs/hardware/s360-312-r4-fandac.md` (current-state pinouts, package
+   mappings, statuses, and open reconciliation questions retained;
+   operator attestation / bench-result blocks moved **verbatim**;
+   historical audit narrative departed via deletion with
+   `docs/archive-index.md` rows), with every inbound doc link and the
+   six referencing tests (`test_sx1509_tach_pulse_counter_proof`,
+   `test_tach_gpio_allocation`, `test_module_pinmaps`,
+   `test_native_tach_pulse_pin_strategy`,
+   `test_s360_100_core_connector_pin_map`, `test_roadmap_status_doc`)
+   retargeted at the survivors in the same PR. Remaining execution is
+   one step per PR — Steps 5–8: the five
    KEEP-SLIM board docs, MOVE-PRIVATE, the `CLAUDE.md` sanitise +
    `UPCOMING_PR.md` retirement (with `docs/standing-invariants.md`), and the
    link sweep / Phase 2 WebFlash handoff — tracked in the manifest's

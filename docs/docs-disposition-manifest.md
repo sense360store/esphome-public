@@ -143,10 +143,10 @@ Folded verbatim-in-substance from the copy of this manifest on WebFlash main
 
 | File | KB | Rationale |
 |---|---:|---|
-| `docs/hardware/s360-311-r4-pwm.md` | 225 | Duplicate pair with s360-311-r4-fanpwm.md (naming drift). Merge into one clean S360-311 reference per official naming, archive the audit trail. |
-| `docs/hardware/s360-312-r4-fandac.md` | 155 | See s360-312-r4-dac.md. |
-| `docs/hardware/s360-312-r4-dac.md` | 87 | Duplicate pair with s360-312-r4-fandac.md. Same treatment. |
-| `docs/hardware/s360-311-r4-fanpwm.md` | 35 | See s360-311-r4-pwm.md. |
+| `docs/hardware/s360-311-r4-pwm.md` | 225 | Duplicate pair with s360-311-r4-fanpwm.md (naming drift). Merge into one clean S360-311 reference per official naming, archive the audit trail. **Executed at Step 4**: current-state facts (TACH-GPIO allocation table, BOM cross-check, Drive/tracker provenance, SX1509/`pulse_counter` compile-proof, blocker reclassification, bench checklists) and the operator attestation blocks (moved verbatim) were folded into the survivor; the historical audit trail departed with the deletion (index row in `docs/archive-index.md`). |
+| `docs/hardware/s360-312-r4-fandac.md` | 155 | See s360-312-r4-dac.md. **Survivor** — carries the merged HW-PINMAP-312 audit after Step 4. |
+| `docs/hardware/s360-312-r4-dac.md` | 87 | Duplicate pair with s360-312-r4-fandac.md. Same treatment. **Executed at Step 4**: the voltage-rail discrepancy analysis, the carried open documentation questions, and the follow-up naming crosswalk moved into the survivor; historical audit narrative departed with the deletion (index row in `docs/archive-index.md`). |
+| `docs/hardware/s360-311-r4-fanpwm.md` | 35 | See s360-311-r4-pwm.md. **Survivor** — carries the merged HW-PINMAP-311 audit record and operator bench attestations after Step 4. |
 
 ### KEEP-SLIM (5 files, 742 KB)
 
@@ -410,7 +410,7 @@ that performs it.
 | 1 | Ratify the manifest (owner decisions + amendments applied; WebFlash guard-test notes folded in; this log added) | #786 | 2026-07-04 | EXECUTED |
 | 2 | Archive batch A (ARCHIVE rows without [code-ref]) | #787 | 2026-07-04 | EXECUTED |
 | 3 | Archive batch B (ARCHIVE rows with [code-ref], reference updates in-PR) | #788 | 2026-07-04 | EXECUTED |
-| 4 | Merge the duplicate pairs (S360-311, S360-312) | — | — | PENDING |
+| 4 | Merge the duplicate pairs (S360-311 → `s360-311-r4-fanpwm.md`, S360-312 → `s360-312-r4-fandac.md`; attestations moved verbatim; inbound doc/test references retargeted) | #789 | 2026-07-05 | EXECUTED |
 | 5 | Slim the five KEEP-SLIM board docs | — | — | PENDING |
 | 6 | Execute MOVE-PRIVATE (`docs/shop-commercial-source-of-truth.md`) | — | — | PENDING |
 | 7 | `CLAUDE.md` sanitise + `UPCOMING_PR.md` retirement (+ `docs/standing-invariants.md`) | — | — | PENDING |

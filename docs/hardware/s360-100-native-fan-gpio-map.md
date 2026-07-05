@@ -63,7 +63,7 @@ and replaces the stale SX1509 fan-path language.
 | SX1509 (`U3`) role in the FanPWM hardware path | Documented as PWM-drive source for the prior R4 snapshot | **Removed from the FanPWM hardware path** in the refreshed R4 sheet (the SX1509 block is no longer printed on the visible sheet) | [`s360-100-core-architecture.md`](s360-100-core-architecture.md); [`s360-100-r4-core.md` HW-007 refresh note](s360-100-r4-core.md) |
 | SX1509 references elsewhere | Used by historical compile-proof fixture and by the SX1509 binding-only package layer | **Allowed only as historical / superseded / non-fan signal context.** No current FanPWM release / WebFlash path uses the SX1509. | This document; [`s360-100-native-tach-pulse-strategy.md`](s360-100-native-tach-pulse-strategy.md) |
 | FanPWM firmware-binding side | SX1509 PWM-drive output, polled binary states only, `rpm_supported: false` | **Pending re-bind against the native ESP32-S3 GPIO map below.** This document does **not** perform that re-bind. | [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml); [`packages/expansions/fan_pwm_sx1509.yaml`](../../packages/expansions/fan_pwm_sx1509.yaml) (legacy / superseded header notes) |
-| Bench / measured PWM / tach / RPM evidence | Not on file | **Still not on file.** Required for any release / WebFlash / hardware-stable promotion. | Bench session record (future); [`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md) |
+| Bench / measured PWM / tach / RPM evidence | Not on file | **Still not on file.** Required for any release / WebFlash / hardware-stable promotion. | Bench session record (future); [`docs/hardware/s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md) |
 
 ## Canonical native ESP32-S3 GPIO map
 
@@ -90,7 +90,7 @@ by the schematic is marked **TBD** — values are not invented.
 - The connector identities (`J6` Core-side, `J3` module-side, 13-pin
   pair) and the module-side schematic-confirmed pin-to-net order are
   recorded in
-  [`docs/hardware/s360-311-r4-pwm.md` § Module-side `J3` ↔ Core-side `J6`](s360-311-r4-pwm.md#module-side-j3--core-side-j6-13-pin-harness).
+  [`docs/hardware/s360-311-r4-fanpwm.md` § Module-side `J3` ↔ Core-side `J6`](s360-311-r4-fanpwm.md#module-side-j3--core-side-j6-13-pin-harness).
   The 1-to-13 silkscreen pin order on the Core side stays **verify**
   per [`s360-100-r4-core.md` Open Question #9](s360-100-r4-core.md#open-questions--verification-needed)
   — this document does not close that bench-side flag.
@@ -225,7 +225,7 @@ This document and the tests added with it must not:
 - [`docs/hardware/s360-100-native-tach-pulse-strategy.md`](s360-100-native-tach-pulse-strategy.md)
   — canonical architectural rule: native ESP32 GPIO termination
   for tach / pulse-counter inputs, with the compile/config proof.
-- [`docs/hardware/s360-311-r4-pwm.md`](s360-311-r4-pwm.md) — FanPWM
+- [`docs/hardware/s360-311-r4-fanpwm.md`](s360-311-r4-fanpwm.md) — FanPWM
   audit; module-side schematic, connector reconciliation, and
   remaining bench gates.
 - [`docs/hardware/schematics/S360-100-R4.pdf`](schematics/S360-100-R4.pdf)
