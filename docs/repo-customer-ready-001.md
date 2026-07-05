@@ -48,7 +48,7 @@ stops.
 
 | Step | Status   | PR | Notes |
 |------|----------|----|-------|
-| S1   | EXECUTED | TBD | Additive bundle: tracking file, D6, SUPPORT.md, CONTRIBUTING.md, issue templates, PR template, `docs/release-channels.md` |
+| S1   | EXECUTED | [#794](https://github.com/sense360store/esphome-public/pull/794) | Additive bundle: tracking file, D6, SUPPORT.md, CONTRIBUTING.md, issue templates, PR template, `docs/release-channels.md` |
 | S3   | PENDING  | —  | |
 | S5   | PENDING  | —  | |
 
