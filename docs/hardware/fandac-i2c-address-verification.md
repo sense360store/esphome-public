@@ -79,7 +79,7 @@ AirIQ.**
 
 The DIP-position → 7-bit-address mapping derived from the GP8403 datasheet bit
 ordering plus the PCB pole→pin mapping is recorded in
-[`docs/hardware/s360-312-r4-fandac.md`](s360-312-r4-fandac.md#dip-switch--ic-address-truth-table--row-3-closed).
+[`docs/hardware/s360-312-r4-fandac.md`](s360-312-r4-fandac.md#dip-switch--i²c-address-truth-table--row-3-closed).
 From that table (pole **closed/ON** = logic 0, pole **open/OFF** = logic 1):
 
 | Target | DIP | Pole 1 (`A0`) | Pole 2 (`A1`) | Pole 3 (`A2`) | Address |

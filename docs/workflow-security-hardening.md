@@ -13,7 +13,7 @@ This document records the security posture of the workflows under
 immutable commit SHAs by `SECURITY-ACTION-PINNING-001`), the pinning
 policy decision, and the regression guard that locks these invariants in.
 It is **not** a clean bill of health — see
-[Explicitly not claimed](#explicitly-not-claimed).
+[Explicitly not claimed](#5-explicitly-not-claimed).
 
 ---
 

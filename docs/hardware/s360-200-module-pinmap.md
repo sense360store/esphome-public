@@ -12,8 +12,8 @@ reconciles every pin back to the mating Core connector `J10`.
 It is **documentation only**. It does **not**:
 
 - publish firmware, create release artifacts, change
-  [`firmware/sources.json`](../../firmware/sources.json), change
-  [`manifest.json`](../../manifest.json), or promote any release
+  `firmware/sources.json`, change
+  `manifest.json`, or promote any release
   target;
 - claim WebFlash / release readiness for `S360-200` beyond the
   current Release-One posture (`Ceiling-POE-VentIQ-RoomIQ` stable);
