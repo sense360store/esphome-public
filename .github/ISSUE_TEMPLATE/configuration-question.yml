@@ -1,0 +1,37 @@
+name: Configuration question
+description: The documentation or YAML seems wrong or unclear. For general "how do I…" questions, prefer GitHub Discussions.
+title: "[Config] "
+labels: ["question", "documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        General questions get faster community answers in
+        [GitHub Discussions](https://github.com/sense360store/esphome-public/discussions).
+        Use this template when you believe the documentation or a shipped YAML is wrong,
+        unclear, or contradicts actual behaviour.
+  - type: input
+    id: doc-or-yaml
+    attributes:
+      label: Document or YAML path
+      description: The file (and section) your question is about.
+      placeholder: products/sense360-ceiling-poe-ventiq-roomiq.yaml
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What you are trying to do and what is unclear or appears wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Your configuration
+      description: >-
+        The relevant part of your device YAML (packages block, substitutions, overrides).
+        Remove WiFi credentials and API keys before pasting.
+      render: yaml
+    validations:
+      required: false

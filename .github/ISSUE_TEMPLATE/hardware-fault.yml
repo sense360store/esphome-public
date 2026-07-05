@@ -1,0 +1,52 @@
+name: Hardware fault
+description: A sensor or board misbehaving on known-good firmware (wrong readings, missing entities, module not detected).
+title: "[Hardware] "
+labels: ["hardware"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For **order, replacement, or warranty** matters use the contact page at
+        [mysense360.com](https://mysense360.com) — GitHub issues cannot process warranty claims.
+        This template is for diagnosing hardware behaviour with the firmware team.
+  - type: input
+    id: board
+    attributes:
+      label: Board / module
+      description: Which board or module is affected (see docs/hardware-catalog.md).
+      placeholder: Sense360 RoomIQ (S360-200 R4)
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware artifact or release tag
+      placeholder: Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.4-stable.bin
+    validations:
+      required: true
+  - type: textarea
+    id: symptom
+    attributes:
+      label: Symptom
+      description: >-
+        What the hardware is doing — wrong readings, missing entities, module not detected,
+        intermittent dropouts. Include which specific sensors/entities are affected.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Device logs
+      description: >-
+        Serial or ESPHome logs covering the fault (boot log is often enough). Remove WiFi
+        credentials and API keys before pasting.
+      render: text
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Installation environment
+      description: Power path (USB / PoE / mains PSU), mounting, anything unusual about the install.
+    validations:
+      required: false

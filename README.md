@@ -512,4 +512,14 @@ going forward.
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+The firmware configurations and source code in this repository are licensed
+under the MIT License (© 2026 Sense360). See [LICENSE](LICENSE) for details.
+
+Sense360 **hardware designs** are published separately under
+**CERN-OHL-P** (the permissive CERN Open Hardware Licence); they are not part
+of this repository's MIT grant. Firmware for the **experimental lane**
+(self-build mains-voltage boards) follows the market posture recorded in
+[`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`](docs/decisions/COMPLIANCE-001-RESOLUTION-001.md):
+Sense360 never places those boards on the market, self-builders build and
+operate them entirely at their own risk, and open publication of the design
+files and firmware is not a safety, EMC, or compliance claim of any kind.

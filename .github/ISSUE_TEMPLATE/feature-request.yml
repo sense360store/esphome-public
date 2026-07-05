@@ -1,0 +1,40 @@
+name: Feature request
+description: Propose a new sensor, automation, behaviour profile, or product combination.
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Note: what ships on each release channel is declaration-driven and gated (see
+        docs/release-channels.md and docs/standing-invariants.md). A feature request here does
+        not by itself change release eligibility.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What you are trying to achieve and why the current firmware does not cover it.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What you would like to see — a new sensor, automation, package, or product combination.
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Target hardware
+      description: Which Sense360 board(s) or config string this applies to, if any.
+      placeholder: Ceiling-POE-VentIQ-RoomIQ
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds you tried (custom YAML overrides, Home Assistant automations, …).
+    validations:
+      required: false

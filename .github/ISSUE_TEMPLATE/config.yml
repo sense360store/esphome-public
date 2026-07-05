@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Community Q&A (GitHub Discussions)
+    url: https://github.com/sense360store/esphome-public/discussions
+    about: Configuration questions, Home Assistant integration, and community help.
+  - name: WebFlash site problems
+    url: https://github.com/sense360store/WebFlash/issues
+    about: Browser flashing site failures belong on the WebFlash repository.
+  - name: Orders, shipping, returns, and warranty
+    url: https://mysense360.com
+    about: Order and warranty matters are handled via the mysense360.com contact page, not GitHub.
