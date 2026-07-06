@@ -204,7 +204,7 @@ file (created at W1 from this plan of record).
 
 | Step | Repo | Description | Status | PR |
 |---|---|---|---|---|
-| R1 | esphome-public | Recon + plan of record (this file) | **EXECUTED** | _(this PR)_ |
+| R1 | esphome-public | Recon + plan of record (this file) | **EXECUTED** | [#797](https://github.com/sense360store/esphome-public/pull/797) |
 | Dispatch | esphome-public | Owner runs the dispatch runbook (4 rebuilds); credential gates must pass | OWNER ACTION — pending | — |
 | Bench | hardware | Owner bench-flashes one rebuilt stable; R-D4 checklist; owner-authored attestation | OWNER ACTION — pending | — |
 | W1 | WebFlash | De-list the five fan previews (R-D1) | pending | — |
