@@ -13,8 +13,8 @@
 > tombstones and the tag-pinned `v1.0.0` release still carries the Mini files
 > for existing field units. FanTRIAC is blocked pending
 > HW-005; the Sense360 LED is excluded from Release-One because the config
-> string has no `LED` token. For the Release-One source of truth see
-> [`docs/release-one.md`](../docs/release-one.md). For canonical SKU /
+> string has no `LED` token. For the Release-One record see
+> [`docs/release-one.md` (archived)](../docs/archive-index.md). For canonical SKU /
 > friendly-name mapping see [`docs/hardware-catalog.md`](../docs/hardware-catalog.md).
 
 ## Overview
@@ -29,7 +29,7 @@ The Sense360 platform is built on ESP32-S3-WROOM-1-N16R8 and supports modular ex
 > `packages/boards/`.** The functional package names listed further down this
 > document are, for the migrated families, **thin `!include` aliases** of a
 > SKU-aligned board package. See
-> [`docs/arch-board-bundle-plan.md`](../docs/arch-board-bundle-plan.md) for the
+> [`docs/arch-board-bundle-plan.md` (archived)](../docs/archive-index.md) for the
 > full target shape and
 > [`docs/system-architecture.md`](../docs/system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers)
 > for how the layers fit the whole pipeline.
@@ -98,7 +98,7 @@ their `legacy_config_id` strings.
 Existing Mini field units remain served by the tag-pinned `v1.0.0` release,
 which still contains the Mini files. There is no R4 replacement for the Mini
 form factor. See
-[`docs/product-deprecation-removal-policy.md`](../docs/product-deprecation-removal-policy.md)
+[`docs/product-deprecation-removal-policy.md` (archived)](../docs/archive-index.md)
 (PRODUCT-DEP-001) for the lifecycle policy.
 
 ---

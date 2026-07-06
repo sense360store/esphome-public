@@ -21,7 +21,9 @@ stops.
 - **D3:** Support routing: GitHub Issues for defects on both repos;
   community Q&A via GitHub Discussions on esphome-public (owner enables in
   console); order and warranty matters route to the mysense360.com contact
-  page.
+  page. The canonical flasher URL is
+  <https://sense360store.github.io/WebFlash/> and every reference to
+  "WebFlash" as a destination uses it, never the storefront.
 - **D4:** The default credential advisory is authored as an in-tree DRAFT
   only; publication is an owner action gated on WF-H1-REIMPORT-CLEAN-001
   landing.
@@ -50,7 +52,7 @@ stops.
 |------|----------|----|-------|
 | S1   | EXECUTED | [#794](https://github.com/sense360store/esphome-public/pull/794) | Additive bundle: tracking file, D6, SUPPORT.md, CONTRIBUTING.md, issue templates, PR template, `docs/release-channels.md` |
 | S3   | EXECUTED | [#795](https://github.com/sense360store/esphome-public/pull/795) | README front door per D5 (86 lines); displaced content → `docs/getting-started.md`, `docs/product-taxonomy.md`; new `docs/README.md` index; inbound references repointed |
-| S5   | PENDING  | —  | |
+| S5   | EXECUTED | [#796](https://github.com/sense360store/esphome-public/pull/796) | Flasher references in README.md / SUPPORT.md corrected to the canonical URL per D3; new workflow `.github/workflows/docs-link-check.yml` (markdown internal-link checker over kept docs, S5 ignore list); stale archived-doc links in `packages/README.md` / `packages/SENSE360_MODULES.md` repointed to the archive index so the checker passes on the tree |
 
 WebFlash steps (S2, S4, S6, S7) are tracked in the WebFlash repository's
 copy of this file.
