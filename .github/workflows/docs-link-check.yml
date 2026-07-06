@@ -1,0 +1,107 @@
+---
+# ============================================================================
+# DOCS LINK CHECK (REPO-CUSTOMER-READY-001 S5)
+# ============================================================================
+# Markdown link checker over the kept documentation set. Runs on every
+# push/PR alongside "CI: Quick Validation" and fails the build when a
+# tracked markdown file links to a repository path that does not exist.
+#
+# Scope — INTERNAL (relative-path) links only. External http(s) links are
+# deliberately not fetched: this repo's CI gates are deterministic and
+# fail-closed, and external checking is neither (rate limits, bot defenses,
+# and third-party outages would fail PRs that changed nothing). The gate
+# this workflow pins is reference integrity after the DOCS-DISPOSITION-001
+# consolidation: no kept document may point at a path that was archived,
+# moved, or renamed without being repointed in the same PR.
+#
+# Ignore list (REPO-CUSTOMER-READY-001 S5, ratified 2026-07-05):
+#   - Byte-stable evidence documents. These record evidence/decisions as
+#     they stood at signing time and are never edited (their directories
+#     are forbidden to the programme), so their links to since-archived
+#     paths are expected and must not fail the gate:
+#       docs/compliance/mains-voltage-uk-eu-assessment.md
+#       docs/decisions/COMPLIANCE-001-RESOLUTION-001.md
+#       docs/security/release-firmware-credential-posture.md
+#       docs/release-notes/*/README.md
+#   - Archive index paths: docs/archive-index.md deliberately catalogs
+#     every path removed from the tree, so it is skipped as a source file.
+#   Live kept docs that reference an archived document must instead link
+#   the archive index itself, annotated "(archived)" — the convention
+#   CLAUDE.md, packages/README.md, and packages/SENSE360_MODULES.md use.
+# ============================================================================
+
+name: "CI: Docs Link Check"
+
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: ["*"]
+
+# Least-privilege token scope: this workflow only reads the repo and runs a
+# link checker; it never writes contents, issues, PRs, or anything else.
+permissions:
+  contents: read
+
+jobs:
+  docs-link-check:
+    name: Markdown internal-link integrity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      # markdown-link-check is pinned to an exact version so the gate's
+      # behaviour only changes by an explicit PR to this file. The runner's
+      # preinstalled Node is sufficient — no setup-node action needed.
+      - name: Install markdown-link-check (pinned)
+        run: |
+          npm install --no-fund --no-audit markdown-link-check@3.14.2
+          ./node_modules/.bin/markdown-link-check --version
+
+      # The config restricts the checker to internal links: external
+      # http(s)/mailto URLs are ignored per the determinism rationale in
+      # the header comment. Written to RUNNER_TEMP so the checkout stays
+      # pristine and no config file needs to live in the tree.
+      - name: Generate link-check config (internal links only)
+        run: |
+          cat > "$RUNNER_TEMP/mlc-config.json" <<'EOF'
+          {
+            "ignorePatterns": [
+              { "pattern": "^https?://" },
+              { "pattern": "^mailto:" }
+            ],
+            "timeout": "20s"
+          }
+          EOF
+
+      - name: Check internal links in kept markdown docs
+        run: |
+          set -euo pipefail
+
+          # S5 ignore list — see the header comment for why each entry is
+          # exempt. Keep this grep in sync with that comment.
+          IGNORE_REGEX='^(docs/archive-index\.md|docs/compliance/mains-voltage-uk-eu-assessment\.md|docs/decisions/COMPLIANCE-001-RESOLUTION-001\.md|docs/security/release-firmware-credential-posture\.md|docs/release-notes/[^/]+/README\.md)$'
+
+          FAILED_FILES=()
+          CHECKED=0
+          while IFS= read -r f; do
+            CHECKED=$((CHECKED + 1))
+            if ! OUTPUT=$(./node_modules/.bin/markdown-link-check -q \
+                -c "$RUNNER_TEMP/mlc-config.json" "$f" 2>&1); then
+              FAILED_FILES+=("$f")
+              echo "$OUTPUT"
+            fi
+          done < <(git ls-files '*.md' | grep -v -E "$IGNORE_REGEX")
+
+          echo ""
+          echo "Checked $CHECKED markdown files (ignore list applied)."
+          if [ "${#FAILED_FILES[@]}" -ne 0 ]; then
+            echo "Dead internal links found in:"
+            printf '  %s\n' "${FAILED_FILES[@]}"
+            echo "Fix the link, or if the target was archived under"
+            echo "DOCS-DISPOSITION-001, repoint it to docs/archive-index.md"
+            echo "annotated '(archived)'."
+            exit 1
+          fi
+          echo "All internal links resolve."

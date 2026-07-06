@@ -5,13 +5,13 @@ This directory contains modular ESPHome configuration packages organized by cate
 > **Production Release-One ships `Ceiling-POE-VentIQ-RoomIQ`** — built from
 > [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
 > and published as `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`.
-> Most customers should use [WebFlash](https://mysense360.com); this README
+> Most customers should use [WebFlash](https://sense360store.github.io/WebFlash/); this README
 > documents the lower-level package surface used by both Release-One and
 > the remaining legacy products. (The legacy Mini board range was removed by
 > PRODUCT-DEP-MINI-001 — superseded by R4, of which it is not a part.)
 > FanTRIAC is blocked pending HW-005; the
 > Sense360 LED token is excluded from Release-One because the config string
-> has no `LED` slot. See [`docs/release-one.md`](../docs/release-one.md).
+> has no `LED` slot. See [`docs/release-one.md` (archived)](../docs/archive-index.md).
 
 > **WebFlash compatibility:** see [`docs/webflash-contract.md`](../docs/webflash-contract.md)
 > for the canonical token list (`AirIQ`, `VentIQ`, `RoomIQ`, `FanRelay`,
@@ -48,7 +48,7 @@ owns the board's chip / pin map / connector nets / I²C addresses:
 The legacy `packages/hardware/*` and `packages/expansions/*` functional names
 for these families are now **thin `!include` aliases** of their board package
 (path preserved, never deleted — see the alias-retention policy in
-[`docs/arch-board-bundle-plan.md`](../docs/arch-board-bundle-plan.md) §3.3).
+[`docs/arch-board-bundle-plan.md` (archived)](../docs/archive-index.md) §3.3).
 The generic base drivers `expansions/airiq.yaml`,
 `expansions/presence_ld2450.yaml`, `expansions/presence_ld2412.yaml`, and
 `features/ceiling_halo_leds.yaml` stay **authoritative and un-folded** —

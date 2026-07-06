@@ -4,8 +4,9 @@ ESPHome firmware **source** for [Sense360](https://mysense360.com) environmental
 monitoring devices (ESP32-S3 ceiling hubs plus sensor / driver / PSU modules).
 This repo holds the product YAML, builds and publishes the unsigned release
 `.bin` artifacts, and is the manual / custom firmware path for advanced users.
-**[WebFlash](https://mysense360.com) is the production path** most customers
-use — browser-based flashing of official **signed** firmware, no tooling, no YAML.
+**[WebFlash](https://sense360store.github.io/WebFlash/) is the production path**
+most customers use — browser-based flashing of official **signed** firmware, no
+tooling, no YAML.
 
 [![ESPHome](https://img.shields.io/badge/ESPHome-2025.10%2B-blue)](https://esphome.io/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -14,9 +15,10 @@ use — browser-based flashing of official **signed** firmware, no tooling, no Y
 
 ## Flash or adopt in three steps
 
-**Most customers:** use [WebFlash](https://mysense360.com) — flash signed
-stable firmware from the browser. Done. The steps below are the **manual /
-custom path** for advanced users who want to run the YAML through ESPHome:
+**Most customers:** use [WebFlash](https://sense360store.github.io/WebFlash/) —
+flash signed stable firmware from the browser. Done. The steps below are the
+**manual / custom path** for advanced users who want to run the YAML through
+ESPHome:
 
 1. **Pick a product YAML** from [`products/`](products/) — the production
    stable baseline is

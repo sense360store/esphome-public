@@ -34,5 +34,6 @@ page at [mysense360.com](https://mysense360.com) — include your order number.
 - Preview and experimental firmware is provided for testers and self-builders
   **at your own risk**; the stable channel is the supported customer
   baseline.
-- Most customers should flash via [WebFlash](https://mysense360.com); this
-  repository is the manual / custom firmware path for advanced users.
+- Most customers should flash via
+  [WebFlash](https://sense360store.github.io/WebFlash/); this repository is
+  the manual / custom firmware path for advanced users.
