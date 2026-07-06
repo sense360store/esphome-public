@@ -49,7 +49,7 @@ stops.
 | Step | Status   | PR | Notes |
 |------|----------|----|-------|
 | S1   | EXECUTED | [#794](https://github.com/sense360store/esphome-public/pull/794) | Additive bundle: tracking file, D6, SUPPORT.md, CONTRIBUTING.md, issue templates, PR template, `docs/release-channels.md` |
-| S3   | PENDING  | —  | |
+| S3   | EXECUTED | [#795](https://github.com/sense360store/esphome-public/pull/795) | README front door per D5 (86 lines); displaced content → `docs/getting-started.md`, `docs/product-taxonomy.md`; new `docs/README.md` index; inbound references repointed |
 | S5   | PENDING  | —  | |
 
 WebFlash steps (S2, S4, S6, S7) are tracked in the WebFlash repository's

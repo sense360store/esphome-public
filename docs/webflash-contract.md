@@ -492,7 +492,9 @@ file an upstream change in WebFlash first and update this contract afterward.
 
 ## See Also
 
-- [`README.md`](../README.md) — repo overview and Release-One quick reference.
+- [`README.md`](../README.md) — repo front door.
+- [`docs/product-taxonomy.md`](product-taxonomy.md) — Release-One quick
+  reference, taxonomy, and build output contract.
 - [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
   — machine-readable local snapshot of this contract for validators and CI.
 - [`docs/release-one.md` (archived)](archive-index.md) — Release-One configuration with full
