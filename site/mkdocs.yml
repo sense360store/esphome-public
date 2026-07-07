@@ -1,0 +1,82 @@
+# ============================================================================
+# Sense360 Product Guides — mkdocs configuration (PRODUCT-GUIDES-001 G1)
+# ============================================================================
+# Customer-facing docs site for the served Sense360 products, built with
+# mkdocs-material and deployed to GitHub Pages by
+# .github/workflows/docs-site.yml. Build from the REPOSITORY ROOT so the
+# generated entity-table snippets resolve:
+#
+#   python3 scripts/generate_product_entity_tables.py --check
+#   mkdocs build --strict -f site/mkdocs.yml
+#
+# D-G2: the nav is explicitly curated for customers. Engineer docs (board
+# references, governance, roadmap) stay OUT of the nav; the single
+# "Technical reference" page links to them on GitHub instead.
+# No external font or script requests: theme font loading is disabled and
+# brand styling is local (docs/assets/extra.css mirrors the WebFlash brand
+# tokens — brand green #00bf63, Murecho with system-stack fallback).
+# ============================================================================
+
+site_name: Sense360 Product Guides
+site_description: >-
+  Customer guides for Sense360 ceiling-mounted environmental monitoring
+  products: installation, Home Assistant entities, updating, and recovery.
+site_url: https://sense360store.github.io/esphome-public/
+repo_url: https://github.com/sense360store/esphome-public
+repo_name: sense360store/esphome-public
+edit_uri: ""
+
+docs_dir: docs
+site_dir: .site-build
+
+theme:
+  name: material
+  font: false  # no external font requests; Murecho + system stack via extra.css
+  icon:
+    logo: material/home-analytics
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.footer
+    - navigation.top
+    - content.code.copy
+
+extra_css:
+  - assets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.snippets:
+      # Resolved from the working directory: build from the repo root.
+      base_path:
+        - site/generated
+      check_paths: true
+
+nav:
+  - Home: index.md
+  - Product guides:
+      - Overview: products/index.md
+      - Room sensing (RoomIQ): products/ceiling-poe-roomiq.md
+      - Air quality + room sensing (AirIQ + RoomIQ): products/ceiling-poe-airiq-roomiq.md
+      - Bathroom (VentIQ + RoomIQ): products/ceiling-poe-ventiq-roomiq.md
+      - Bathroom + LED ring (VentIQ + RoomIQ + LED): products/ceiling-poe-ventiq-roomiq-led.md
+      - Compare products: products/compare.md
+  - Technical reference: reference.md

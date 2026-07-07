@@ -48,6 +48,7 @@ python3 tests/validate_webflash_builds.py                # build matrix vs contr
 python3 scripts/validate_product_catalog_consistency.py  # catalog cross-file consistency
 python3 scripts/generate_firmware_matrix.py --check      # generated-matrix freshness
 python3 scripts/report_firmware_build_gaps.py --check    # generated-gap-report freshness
+python3 scripts/generate_product_entity_tables.py --check  # docs-site entity-table freshness
 ```
 
 If you touched product or package YAML, also validate the resolved config

@@ -74,9 +74,11 @@ htmlcov/
 coverage.xml
 *.cover
 
-# Documentation build outputs
+# Documentation build outputs. site/ is the TRACKED mkdocs source tree for
+# the product-guides site (PRODUCT-GUIDES-001); only its build output
+# (site_dir: .site-build in site/mkdocs.yml) is ignored.
 docs/_build/
-site/
+site/.site-build/
 
 # Private overlays or factory configs
 private/

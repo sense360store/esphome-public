@@ -1,0 +1,3 @@
+# Docs-site build dependencies (PRODUCT-GUIDES-001). Pinned so the Pages
+# build only changes behaviour via an explicit PR to this file.
+mkdocs-material==9.6.14
