@@ -50,7 +50,7 @@ Choose the configuration that matches your device and intended use.
 > [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml)
 > and the firmware artifact is
 > `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`. Most customers
-> should use [WebFlash](https://mysense360.com) for that artifact. The
+> should use [WebFlash](https://sense360store.github.io/WebFlash/) for that artifact. The
 > Mini variants below are **legacy-compatible** customer/advanced paths
 > retained for older Mini-form-factor hardware; they are not part of
 > production Release-One. FanTRIAC is blocked pending HW-005, and the

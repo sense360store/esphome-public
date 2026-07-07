@@ -21,7 +21,7 @@ documentation map is in the [documentation index](README.md).
 
 ## Quick Start (Custom / Manual Flash)
 
-> Most customers should use [WebFlash](https://mysense360.com) instead.
+> Most customers should use [WebFlash](https://sense360store.github.io/WebFlash/) instead.
 > This section is for advanced users running the YAML directly through
 > ESPHome.
 

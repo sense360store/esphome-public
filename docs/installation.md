@@ -2,7 +2,7 @@
 
 Complete instructions for setting up your Sense360 device with ESPHome.
 
-> **Most customers should use [WebFlash](https://mysense360.com)** — the
+> **Most customers should use [WebFlash](https://sense360store.github.io/WebFlash/)** — the
 > browser-based flasher for official, signed Sense360 firmware. This guide
 > is the manual/custom path for advanced users who want to inspect or
 > customize the ESPHome YAML.
