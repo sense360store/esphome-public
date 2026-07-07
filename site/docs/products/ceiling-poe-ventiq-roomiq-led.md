@@ -49,7 +49,7 @@ See [Specifications](#specifications) for the sensor details.
 
 Firmware is installed from your browser — no software to download.
 
-1. Open the flasher at **[mysense360.com](https://mysense360.com)**.
+1. Open the flasher at **[sense360store.github.io/WebFlash](https://sense360store.github.io/WebFlash/)**.
 2. Connect the device to your computer with a USB-C **data** cable
    (some cables are charge-only).
 3. Select this product (config string `Ceiling-POE-VentIQ-RoomIQ-LED`)
@@ -118,7 +118,7 @@ Preview releases are announced on the
 [releases page](https://github.com/sense360store/esphome-public/releases)
 (preview builds carry `-preview` tags). To update — or to move back to
 the stable bathroom firmware — open
-[mysense360.com](https://mysense360.com), connect the device over USB,
+[sense360store.github.io/WebFlash](https://sense360store.github.io/WebFlash/), connect the device over USB,
 and install the build you want. If the device doesn't reappear in Home
 Assistant afterwards, repeat the [Wi-Fi step](#connect-to-wi-fi).
 
@@ -140,7 +140,7 @@ the entity table above):
 
 If the device is unresponsive or you want a truly clean start, use the
 **rescue flow** in the flasher: open
-[mysense360.com](https://mysense360.com), connect over USB, flash the
+[sense360store.github.io/WebFlash](https://sense360store.github.io/WebFlash/), connect over USB, flash the
 rescue firmware, then install the firmware you want — for this preview
 product, that usually means going back to the stable
 [Bathroom (VentIQ + RoomIQ)](ceiling-poe-ventiq-roomiq.md) build.

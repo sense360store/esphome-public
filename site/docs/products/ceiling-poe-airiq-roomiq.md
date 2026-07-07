@@ -41,7 +41,7 @@ See [Specifications](#specifications) for the sensor details.
 
 Firmware is installed from your browser — no software to download.
 
-1. Open the flasher at **[mysense360.com](https://mysense360.com)**.
+1. Open the flasher at **[sense360store.github.io/WebFlash](https://sense360store.github.io/WebFlash/)**.
 2. Connect the device to your computer with a USB-C **data** cable
    (some cables are charge-only).
 3. Select this product (config string `Ceiling-POE-AirIQ-RoomIQ`) and
@@ -104,7 +104,7 @@ integration:
 
 New firmware versions are announced on the
 [releases page](https://github.com/sense360store/esphome-public/releases).
-To update, open [mysense360.com](https://mysense360.com), connect the
+To update, open [sense360store.github.io/WebFlash](https://sense360store.github.io/WebFlash/), connect the
 device over USB, and install the latest stable build — the same steps as
 the first install. If the device doesn't reappear in Home Assistant
 afterwards, repeat the [Wi-Fi step](#connect-to-wi-fi).
@@ -128,7 +128,7 @@ the entity table above):
 
 If the device is unresponsive or you want a truly clean start, use the
 **rescue flow** in the flasher: open
-[mysense360.com](https://mysense360.com), connect over USB, flash the
+[sense360store.github.io/WebFlash](https://sense360store.github.io/WebFlash/), connect over USB, flash the
 rescue firmware, then install the product firmware again.
 
 ## Specifications
