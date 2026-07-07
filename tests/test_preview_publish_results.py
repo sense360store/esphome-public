@@ -72,6 +72,13 @@ PROMOTED_ROWS = {
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
 }
+# Rows that left the historical (version=1.0.0, channel=preview) set by being
+# re-released on the preview channel at a newer version (not promoted):
+# REBUILD-CLEAN-CREDENTIALS-001 re-cut the VentIQ LED preview as v1.0.1
+# (prerelease v1.0.1-led-preview, 2026-07-06).
+REROLLED_PREVIEW_ROWS = {
+    "Ceiling-POE-VentIQ-RoomIQ-LED",
+}
 STABLE_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
 
 
@@ -116,8 +123,10 @@ class PublishedArtifactTests(unittest.TestCase):
         self.assertTrue(EXPECTED_PUBLISHED_CONFIGS.issubset(ledger))
         self.assertEqual(
             EXPECTED_PUBLISHED_CONFIGS - got,
-            PROMOTED_ROWS,
-            "only the two promoted rows may have left the preview channel",
+            PROMOTED_ROWS | REROLLED_PREVIEW_ROWS,
+            "only the two promoted rows (stable) and the re-released VentIQ "
+            "LED preview (v1.0.1) may have left the historical v1.0.0 "
+            "preview set",
         )
 
     def test_stable_row_is_not_in_the_preview_publish_set(self) -> None:

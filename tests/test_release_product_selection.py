@@ -254,15 +254,16 @@ class GeneratorProductAwareLedTests(unittest.TestCase):
         self.assertIn("does not include LED", body)
 
     def test_changelog_placeholder_is_product_aware(self) -> None:
+        version = self._live_version("Ceiling-POE-VentIQ-RoomIQ-LED")
         body = self.gen.generate(
             config_string="Ceiling-POE-VentIQ-RoomIQ-LED",
-            version="1.0.0",
+            version=version,
             channel="preview",
         )
         # The placeholder must name the selected config + version so a
         # multi-product draft can't be mistaken for the wrong product.
         self.assertIn("Ceiling-POE-VentIQ-RoomIQ-LED", body)
-        self.assertIn("v1.0.0", body)
+        self.assertIn(f"v{version}", body)
         # It must be unmistakable as a placeholder requiring operator action.
         lowered = body.lower()
         self.assertIn("todo", lowered)
@@ -271,7 +272,7 @@ class GeneratorProductAwareLedTests(unittest.TestCase):
     def test_led_preview_body_mentions_led_and_preview(self) -> None:
         body = self.gen.generate(
             config_string="Ceiling-POE-VentIQ-RoomIQ-LED",
-            version="1.0.0",
+            version=self._live_version("Ceiling-POE-VentIQ-RoomIQ-LED"),
             channel="preview",
         )
         # For the LED preview, ## Features should call out the LED ring and
