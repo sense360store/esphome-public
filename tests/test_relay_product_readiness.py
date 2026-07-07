@@ -574,13 +574,15 @@ class ReleaseOneAndLedPreviewUnchangedTests(unittest.TestCase):
         self.assertEqual(entry["product_yaml"], RELEASE_ONE_PRODUCT_REL)
 
     def test_led_preview_catalog_entry_is_unchanged_preview(self) -> None:
+        # The version moves with release bumps (v1.0.1-led-preview,
+        # 2026-07-06), so assert the invariant shape instead of pinning it.
         entry = self._find(LED_PREVIEW_CONFIG_STRING)
         self.assertEqual(entry["status"], "preview")
         self.assertEqual(entry["channel"], "preview")
-        self.assertEqual(entry["version"], "1.0.0")
+        self.assertTrue(entry["version"])
         self.assertEqual(
             entry["artifact_name"],
-            "Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin",
+            f"Sense360-{LED_PREVIEW_CONFIG_STRING}-v{entry['version']}-preview.bin",
         )
         self.assertTrue(entry["webflash_build_matrix"])
         self.assertEqual(entry["product_yaml"], LED_PREVIEW_PRODUCT_REL)

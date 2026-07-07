@@ -47,15 +47,16 @@ builds — three stable, two preview, one experimental:
 
 | Config string | Channel | Version | Artifact | Notes |
 |---|---|---|---|---|
-| `Ceiling-POE-VentIQ-RoomIQ` | **stable** | 1.0.4 | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.4-stable.bin` | Release-One stable build (customer baseline / required config). |
-| `Ceiling-POE-VentIQ-RoomIQ-LED` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.0-preview.bin` | LED variant is **preview only** (see §7). |
-| `Ceiling-POE-AirIQ-RoomIQ` | **stable** | 1.0.6 | `Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.6-stable.bin` | Kitchen firmware (`S360-KIT-KITCHEN-P`). Promoted to stable v1.0.6 (2026-06-09) under owner risk-acceptance waiver `HW-AIRIQ-WAIVER-2026-06` (AirIQ sensor stack not bench-verified; owner waiver, not hardware verification). Bundle stays hidden / not buyable. |
-| `Ceiling-POE-RoomIQ` | **stable** | 1.0.5 | `Sense360-Ceiling-POE-RoomIQ-v1.0.5-stable.bin` | Bedroom firmware (`S360-KIT-BEDROOM-P`). Promoted to stable v1.0.5 (2026-06-08) under owner risk-acceptance waiver `HW-S360-410-WAIVER-2026-06` (S360-410 stays cataloged_unverified; owner waiver, not hardware verification). Bundle stays hidden / not buyable. |
+| `Ceiling-POE-VentIQ-RoomIQ` | **stable** | 1.0.7 | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.7-stable.bin` | Release-One stable build (customer baseline / required config). Rebuilt as v1.0.7 (GitHub Release `v1.0.7`, 2026-07-06) by the per-device-credentials security rebuild (`REBUILD-CLEAN-CREDENTIALS-001`); supersedes v1.0.4, no functional changes. |
+| `Ceiling-POE-VentIQ-RoomIQ-LED` | **preview** | 1.0.1 | `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.1-preview.bin` | LED variant is **preview only** (see §7). Rebuilt as v1.0.1 (prerelease `v1.0.1-led-preview`, 2026-07-06) by the security rebuild; supersedes `v1.0.0-led-preview`. |
+| `Ceiling-POE-AirIQ-RoomIQ` | **stable** | 1.0.9 | `Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-stable.bin` | Kitchen firmware (`S360-KIT-KITCHEN-P`). Promoted to stable v1.0.6 (2026-06-09) under owner risk-acceptance waiver `HW-AIRIQ-WAIVER-2026-06` (AirIQ sensor stack not bench-verified; owner waiver, not hardware verification); rebuilt as v1.0.9 (GitHub Release `v1.0.9`, 2026-07-06) by the security rebuild. Bundle stays hidden / not buyable. |
+| `Ceiling-POE-RoomIQ` | **stable** | 1.0.8 | `Sense360-Ceiling-POE-RoomIQ-v1.0.8-stable.bin` | Bedroom firmware (`S360-KIT-BEDROOM-P`). Promoted to stable v1.0.5 (2026-06-08) under owner risk-acceptance waiver `HW-S360-410-WAIVER-2026-06` (S360-410 stays cataloged_unverified; owner waiver, not hardware verification); rebuilt as v1.0.8 (GitHub Release `v1.0.8`, 2026-07-06) by the security rebuild. Bundle stays hidden / not buyable. |
 | `Ceiling-POE-RoomIQ-LED` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin` | Living / Corridor candidate firmware (`S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P`); LED stays preview. Build row added by `RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`; metadata-ready / unpublished, bundles hidden / not buyable. Distinct from the VentIQ LED preview above. |
 | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | **experimental** | 1.0.0 | `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin` | **Experimental self-build mains** firmware (S360-320 TRIAC). Commissioned by `TRIAC-COMMISSIONING-001` into the experimental lane (`COMPLIANCE-001-RESOLUTION-001`); PACKAGE-TRIAC-001 operator-attested bench proof. **Never stable / recommended / default / buyable / kit-exposed**; self-build CERN-OHL-P board Sense360 never places on the market. Metadata-ready / unpublished (no tag cut); one-click WebFlash import gated by `WF-IMPORT-TRIAC-001`. |
 
 The two LED preview rows remain preview: the VentIQ LED preview is published
-(release `v1.0.0-led-preview`); the Living/Corridor LED row is
+(rebuilt as prerelease `v1.0.1-led-preview` on 2026-07-06, superseding
+`v1.0.0-led-preview`); the Living/Corridor LED row is
 **release-eligibility metadata only** (no binary / GitHub Release published).
 The Kitchen and Bedroom stable promotions ride owner risk-acceptance waivers,
 not hardware verification: no hardware, bench, or compliance proof is claimed,
@@ -84,7 +85,7 @@ not set `webflash_build_matrix`.
 | Release status field | Value |
 |---|---|
 | First stable release | **published / live** |
-| Current release path | **`v1.0.0`** (GitHub Release, 2026-05-12; imported/live in WebFlash) |
+| Current release path | **`v1.0.7`** (GitHub Release, 2026-07-06; the 2026-07-06 `REBUILD-CLEAN-CREDENTIALS-001` security rebuild cut `v1.0.7` / `v1.0.8` / `v1.0.9` / `v1.0.1-led-preview`). First stable release was **`v1.0.0`** (GitHub Release, 2026-05-12; imported/live in WebFlash) |
 | Next publish action | **none** unless a new version is planned |
 | Next meaningful release task | maintenance-release planning (`FIRST-MAINTENANCE-RELEASE-PLAN-001`) or the next stable-bundle expansion gates (§6 / §8) |
 

@@ -83,7 +83,7 @@ class CanonicalTargetListTests(unittest.TestCase):
         self.assertEqual(by_cfg[STABLE_CONFIG]["channel"], "stable")
         self.assertTrue(by_cfg[STABLE_CONFIG]["version"])
         self.assertEqual(by_cfg[LED_CONFIG]["channel"], "preview")
-        self.assertEqual(by_cfg[LED_CONFIG]["version"], "1.0.0")
+        self.assertTrue(by_cfg[LED_CONFIG]["version"])
 
     def test_target_records_artifact_name(self) -> None:
         # The artifact name must agree with the target's own config string,
