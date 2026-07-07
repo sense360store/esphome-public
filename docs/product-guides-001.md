@@ -13,8 +13,8 @@ from the firmware YAML and gated for freshness.
 
 | Step | Repo | Scope | Status |
 |---|---|---|---|
-| G1 | esphome-public | Scaffold: `site/` mkdocs tree, derivation script, Pages deploy workflow, CONTRIBUTING gate line, this tracking file | **EXECUTED** (this PR) |
-| G2 | esphome-public | The four product guides + generated comparison matrix | PENDING |
+| G1 | esphome-public | Scaffold: `site/` mkdocs tree, derivation script, Pages deploy workflow, CONTRIBUTING gate line, this tracking file | **EXECUTED** (PR #802) |
+| G2 | esphome-public | The four product guides + generated comparison matrix | **EXECUTED** (this PR) |
 | G3 | WebFlash | Post-install "next steps" guide links, README/SUPPORT links, shell docs link | PENDING (runs in the WebFlash checkout; requires G2 EXECUTED on this file's main) |
 
 ## Decisions of record (ratified by merging G1)
@@ -57,6 +57,35 @@ from the firmware YAML and gated for freshness.
 - [`CONTRIBUTING.md`](../CONTRIBUTING.md) — the documented local gate now
   includes `python3 scripts/generate_product_entity_tables.py --check`.
 
+## What G2 created
+
+- **The four product guides** (`site/docs/products/*.md`), replacing the
+  G1 placeholders. Each covers: what the product does (plain language,
+  every claim traceable to the derived entity set, a catalog field, or a
+  board doc); hardware in the configuration; installation via the
+  canonical flasher at mysense360.com with the channel note (stable
+  support pointer / preview acknowledgement-gate warning per D-G5);
+  first-boot Wi-Fi (the `Sense360_Setup` setup network and the per-product
+  fallback-AP captive portal, per
+  `docs/security/release-firmware-credential-posture.md`); Home Assistant
+  adoption via ESPHome discovery (consistent with
+  `docs/getting-started.md` / `docs/installation.md`), including the
+  honest unprovisioned-firmware security note with the self-build
+  pointer; the derived entity table; updating; factory reset / recovery
+  (the firmware's Restart / Safe Mode / Factory Reset buttons plus the
+  flasher's rescue flow); and specifications linking the board reference
+  docs on GitHub (link, don't duplicate pinouts). D-G4 placement /
+  LED-meaning placeholder blocks retained.
+- **The comparison matrix** —
+  [`scripts/generate_product_entity_tables.py`](../scripts/generate_product_entity_tables.py)
+  now also generates `site/generated/compare-matrix.md`: module
+  composition + hardware SKUs from `config/product-catalog.json`,
+  channel + version from `config/webflash-builds.json`, and every
+  capability cell a mechanical membership test against the same derived
+  entity sets as the tables, under the same `--check` freshness gate (now
+  5 files). `site/docs/products/compare.md` embeds it. Tests extended in
+  [`tests/test_generate_product_entity_tables.py`](../tests/test_generate_product_entity_tables.py).
+
 ## Deviations / notes of record
 
 - **Guide file location.** The manifest sketches guides at
@@ -82,8 +111,24 @@ from the firmware YAML and gated for freshness.
   those entities would be a separate firmware slice outside this
   programme.
 
+- **G2 corrections of record.** (a) The G1 placeholder pages described
+  the PoE PSU as "IEEE 802.3af"; `docs/hardware/s360-410-r4-poe.md`
+  explicitly makes no 802.3af/at compliance claim, so the guides now say
+  "powered over Ethernet" without naming the standard. (b) The AirIQ
+  profile's `Air Quality State` text sensor is a placeholder that always
+  reads `unknown` (`packages/features/airiq_basic_profile.yaml`), so the
+  comparison matrix deliberately excludes it from the "Air-quality
+  summary" capability row and the AirIQ guide states plainly that the
+  module's air-quality measurements are not yet exposed as entities
+  (carrying forward the G1 observation; no firmware change made — out of
+  scope).
+
 ## Log
 
 - 2026-07-07 — G1 executed: scaffold, derivation script + tests, deploy
   workflow, CONTRIBUTING gate line, tracking file created. One held PR;
   HOLD FOR OWNER.
+- 2026-07-07 — G2 executed: the four product guides, the generated
+  comparison matrix (derivation-script extension + tests), compare page.
+  One held PR; HOLD FOR OWNER. G3 (WebFlash) unblocks once this merges to
+  main.

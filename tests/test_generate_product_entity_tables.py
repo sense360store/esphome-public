@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Tests for the product entity-table generator (PRODUCT-GUIDES-001 G1).
+"""Tests for the product entity-table generator (PRODUCT-GUIDES-001 G1+G2).
 
 Covers ``scripts/generate_product_entity_tables.py`` — the mechanical
 derivation of customer-facing Home Assistant entity tables from the served
-products' YAML composition — and the freshness of the committed tables
-under ``site/generated/``.
+products' YAML composition, plus (G2) the four-product comparison matrix —
+and the freshness of the committed tables under ``site/generated/``.
 
 Uses Python's stdlib unittest (matching this repo's no-pytest convention
 for Python validators). Run with::
@@ -77,11 +77,10 @@ class TestDerivedTables(unittest.TestCase):
             path.name: content for path, content in gpet.expected_outputs().items()
         }
 
-    def test_one_table_per_served_config(self):
-        self.assertEqual(
-            sorted(self.outputs),
-            sorted(f"{c.lower()}-entities.md" for c in EXPECTED_SERVED_CONFIGS),
-        )
+    def test_one_table_per_served_config_plus_compare_matrix(self):
+        expected = {f"{c.lower()}-entities.md" for c in EXPECTED_SERVED_CONFIGS}
+        expected.add(gpet.COMPARE_OUTPUT_NAME)
+        self.assertEqual(sorted(self.outputs), sorted(expected))
 
     def test_generation_is_deterministic(self):
         second = {
@@ -121,6 +120,80 @@ class TestDerivedTables(unittest.TestCase):
         roomiq = self.outputs["ceiling-poe-roomiq-entities.md"]
         self.assertIn("| WiFi Signal | Sensor | dBm |", roomiq)
         self.assertIn("| Internal Temperature | Sensor | °C |", roomiq)
+
+
+class TestCompareMatrix(unittest.TestCase):
+    """The G2 comparison matrix: derived from the catalog, the build
+    matrix, and the same entity sets the tables come from."""
+
+    @classmethod
+    def setUpClass(cls):
+        outputs = gpet.expected_outputs()
+        cls.matrix = outputs[gpet.OUTPUT_DIR / gpet.COMPARE_OUTPUT_NAME]
+        cls.rows = {
+            line.split(" | ")[0].lstrip("| "): line
+            for line in cls.matrix.splitlines()
+            if line.startswith("|")
+        }
+
+    def test_matrix_is_in_expected_outputs(self):
+        self.assertIn("AUTO-GENERATED — DO NOT EDIT", self.matrix)
+
+    def test_every_served_config_is_a_column(self):
+        for config_string in EXPECTED_SERVED_CONFIGS:
+            with self.subTest(config=config_string):
+                self.assertIn(f"`{config_string}`", self.matrix)
+                # Column headers link to the guide page for the product.
+                self.assertIn(f"({config_string.lower()}.md)", self.matrix)
+
+    def test_channel_row_matches_the_build_matrix(self):
+        build_rows = gpet.load_build_rows()
+        channel_row = self.rows["**Channel / version**"]
+        for config_string in EXPECTED_SERVED_CONFIGS:
+            build = build_rows[config_string]
+            with self.subTest(config=config_string):
+                self.assertIn(f"s360-badge--{build['channel']}", channel_row)
+                self.assertIn(f"v{build['version']}", channel_row)
+
+    def test_module_rows_come_from_the_catalog(self):
+        self.assertIn("VentIQ (S360-211)", self.rows["**Air-quality module**"])
+        self.assertIn("AirIQ (S360-210)", self.rows["**Air-quality module**"])
+        self.assertEqual(
+            self.rows["**Room-sensing module**"].count("RoomIQ (S360-200)"), 4
+        )
+        led_cells = self.rows["**LED module**"].split(" | ")[1:]
+        self.assertEqual(
+            [c.strip(" |") for c in led_cells],
+            ["—", "—", "—", "LED (S360-300)"],
+        )
+
+    def _cells(self, label):
+        return [c.strip(" |") for c in self.rows[label].split(" | ")[1:]]
+
+    def test_capability_cells_track_the_derived_entities(self):
+        # Column order is SERVED_CONFIG_STRINGS: RoomIQ, AirIQ+RoomIQ,
+        # VentIQ+RoomIQ, VentIQ+RoomIQ+LED.
+        self.assertEqual(
+            self._cells("Presence detection (radar)"), ["✓", "✓", "✓", "✓"]
+        )
+        self.assertEqual(self._cells("Shower detection"), ["—", "—", "✓", "✓"])
+        self.assertEqual(self._cells("LED ring light"), ["—", "—", "—", "✓"])
+
+    def test_airiq_placeholder_never_counts_as_air_quality(self):
+        # The AirIQ profile's "Air Quality State" text sensor is a
+        # placeholder that always reads "unknown"; the matrix must not
+        # present it as an air-quality summary capability.
+        self.assertEqual(self._cells("Air-quality summary"), ["—", "—", "✓", "✓"])
+
+    def test_entity_count_row_matches_the_tables(self):
+        outputs = {
+            path.name: content for path, content in gpet.expected_outputs().items()
+        }
+        counts = self._cells("**Home Assistant entities**")
+        for config_string, count in zip(EXPECTED_SERVED_CONFIGS, counts):
+            table = outputs[f"{config_string.lower()}-entities.md"]
+            with self.subTest(config=config_string):
+                self.assertIn(f"exposes **{count} entities**", table)
 
 
 class TestFreshnessGate(unittest.TestCase):
