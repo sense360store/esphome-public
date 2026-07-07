@@ -10,6 +10,14 @@ package composition — the ``products/webflash/`` wrapper declared in
 firmware exposes (name, type, unit, notes). One markdown include per config is
 written under ``site/generated/`` for the mkdocs product-guides site to embed.
 
+PRODUCT-GUIDES-001 (G2) extends the derivation with the four-product
+comparison matrix (``site/generated/compare-matrix.md``): module composition
+and hardware SKUs come from ``config/product-catalog.json``, the release
+channel and version from ``config/webflash-builds.json``, and every
+capability cell is a mechanical membership test against the same derived
+entity sets the tables are built from — so the matrix can never drift from
+the catalog or the firmware YAML.
+
 The tables are DERIVED, never hand-edited: every row traces to an entity
 definition in the resolved YAML. Entities marked ``internal: true`` are
 firmware-internal and never reach Home Assistant, so they are excluded.
@@ -36,7 +44,9 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
+CATALOG_PATH = REPO_ROOT / "config" / "product-catalog.json"
 OUTPUT_DIR = REPO_ROOT / "site" / "generated"
+COMPARE_OUTPUT_NAME = "compare-matrix.md"
 
 # The four customer-served configs in PRODUCT-GUIDES-001 scope. Each MUST have
 # a row in config/webflash-builds.json (the release-eligibility source of
@@ -81,6 +91,73 @@ PLATFORM_DEFAULT_UNITS = {
     "internal_temperature": "°C",
     "duty_time": "s",
 }
+
+# Column labels for the comparison matrix, mirroring the product-guide nav
+# titles in site/mkdocs.yml. Each column header links to the guide page,
+# whose filename is the lower-cased config string (compare.md lives in the
+# same site/docs/products/ directory).
+MATRIX_COLUMN_LABELS = {
+    "Ceiling-POE-RoomIQ": "RoomIQ",
+    "Ceiling-POE-AirIQ-RoomIQ": "AirIQ + RoomIQ",
+    "Ceiling-POE-VentIQ-RoomIQ": "VentIQ + RoomIQ",
+    "Ceiling-POE-VentIQ-RoomIQ-LED": "VentIQ + RoomIQ + LED",
+}
+
+# Comparison-matrix capability rows. The row LABELS are curated for
+# customers; every cell VALUE is a mechanical membership test — "✓" exactly
+# when the product's resolved firmware YAML exposes at least one of the
+# named entities (same derivation, same internal:true exclusion as the
+# entity tables). A capability never shows without a matching Home
+# Assistant entity, so the matrix cannot drift from the firmware source.
+# Row shape: (customer label, entity type label, candidate entity names).
+MATRIX_CAPABILITY_SECTIONS = (
+    (
+        "Room sensing",
+        (
+            ("Presence detection (radar)", "Binary sensor", ("Presence",)),
+            ("Presence score", "Sensor", ("Presence Score",)),
+            ("Temperature", "Sensor", ("RoomIQ Temperature",)),
+            ("Humidity", "Sensor", ("RoomIQ Humidity",)),
+            ("Feels-like temperature", "Sensor", ("RoomIQ Feels Like",)),
+            ("Ambient light level", "Sensor", ("RoomIQ Light Level",)),
+            ("Comfort score", "Sensor", ("RoomIQ Comfort Score",)),
+        ),
+    ),
+    (
+        "Air quality",
+        (
+            ("VOC index", "Sensor", ("VentIQ VOC Index",)),
+            ("NOx index", "Sensor", ("VentIQ NOx Index",)),
+            ("Barometric pressure", "Sensor", ("VentIQ Pressure",)),
+            ("Dew point", "Sensor", ("VentIQ Dew Point",)),
+            # NOTE: the AirIQ profile's "Air Quality State" text sensor is a
+            # placeholder that always reads "unknown" (see
+            # packages/features/airiq_basic_profile.yaml), so it deliberately
+            # does NOT count as an air-quality summary capability here.
+            ("Air-quality summary", "Text sensor", ("Air Quality",)),
+        ),
+    ),
+    (
+        "Bathroom intelligence",
+        (
+            ("Shower detection", "Binary sensor", ("Shower Active",)),
+            ("Mould-risk tracking", "Sensor", ("Mold Risk Level",)),
+            ("Mould-risk warning", "Binary sensor", ("Mold Risk Warning",)),
+            ("Odour detection", "Binary sensor", ("Odor Detected",)),
+            ("Ventilation-needed alert", "Binary sensor", ("Ventilation Needed",)),
+            ("Recommended fan speed", "Sensor", ("Recommended Fan Speed",)),
+        ),
+    ),
+    (
+        "Outputs and controls",
+        (
+            ("LED ring light", "Light", ("LED Ring",)),
+            ("LED night mode", "Switch", ("Night Mode",)),
+            ("Relay output", "Switch", ("Relay",)),
+            ("Auto-ventilation control", "Switch", ("Auto Ventilation",)),
+        ),
+    ),
+)
 
 SUBSTITUTION_RE = re.compile(r"\$\{(\w+)\}|\$(\w+)")
 
@@ -336,12 +413,112 @@ def render_table(config_string: str, collector: EntityCollector) -> str:
     return "\n".join(lines)
 
 
+def load_catalog_products() -> Dict[str, Dict[str, Any]]:
+    data = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
+    return {
+        product["config_string"]: product
+        for product in data.get("products", [])
+        if "config_string" in product
+    }
+
+
+def _module_cell(product: Dict[str, Any], module_key: str) -> str:
+    """Render a module cell from the catalog entry: the module token plus
+    its hardware SKU (matched by the lower-cased token), or an em dash when
+    the module slot is 'none'."""
+    token = product.get("modules", {}).get(module_key, "none")
+    if token in ("none", None):
+        return "—"
+    sku = product.get("hardware", {}).get(str(token).lower())
+    return f"{token} ({sku})" if sku else str(token)
+
+
+def render_compare_matrix(collectors: Dict[str, "EntityCollector"]) -> str:
+    build_rows = load_build_rows()
+    catalog = load_catalog_products()
+
+    entity_sets: Dict[str, set] = {}
+    entity_counts: Dict[str, int] = {}
+    for config_string, collector in collectors.items():
+        keys = {(e["type"], e["name"]) for e in collector.entities}
+        entity_sets[config_string] = keys
+        entity_counts[config_string] = len(keys)
+
+    def row(label: str, cells: List[str]) -> str:
+        return "| " + " | ".join([label] + cells) + " |"
+
+    lines: List[str] = [GENERATED_BANNER]
+    lines.append("<!-- Comparison matrix for the served products.")
+    lines.append(
+        "     Modules/hardware: config/product-catalog.json ·"
+        " channel/version: config/webflash-builds.json ·"
+    )
+    lines.append(
+        "     capability cells: membership tests against the derived"
+        " Home Assistant entity sets. -->"
+    )
+    lines.append("")
+    headers = [""]
+    for config_string in SERVED_CONFIG_STRINGS:
+        label = MATRIX_COLUMN_LABELS.get(config_string, config_string)
+        headers.append(f"[{label}]({config_string.lower()}.md)")
+    lines.append("| " + " | ".join(headers) + " |")
+    lines.append("|---" * len(headers) + "|")
+
+    lines.append(
+        row(
+            "**Config string**",
+            [f"`{c}`" for c in SERVED_CONFIG_STRINGS],
+        )
+    )
+    channel_cells = []
+    for config_string in SERVED_CONFIG_STRINGS:
+        build = build_rows[config_string]
+        channel = str(build["channel"])
+        badge = f'<span class="s360-badge s360-badge--{channel}">{channel}</span>'
+        channel_cells.append(f"{badge} v{build['version']}")
+    lines.append(row("**Channel / version**", channel_cells))
+
+    for module_label, module_key in (
+        ("**Power**", "power"),
+        ("**Air-quality module**", "air_quality"),
+        ("**Room-sensing module**", "room_sense"),
+        ("**LED module**", "led"),
+    ):
+        cells = [_module_cell(catalog[c], module_key) for c in SERVED_CONFIG_STRINGS]
+        lines.append(row(module_label, cells))
+
+    for section_title, capability_rows in MATRIX_CAPABILITY_SECTIONS:
+        lines.append(row(f"**{section_title}**", [""] * len(SERVED_CONFIG_STRINGS)))
+        for label, type_label, candidates in capability_rows:
+            cells = []
+            for config_string in SERVED_CONFIG_STRINGS:
+                exposed = any(
+                    (type_label, name) in entity_sets[config_string]
+                    for name in candidates
+                )
+                cells.append("✓" if exposed else "—")
+            lines.append(row(label, cells))
+
+    lines.append(
+        row(
+            "**Home Assistant entities**",
+            [str(entity_counts[c]) for c in SERVED_CONFIG_STRINGS],
+        )
+    )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def expected_outputs() -> Dict[Path, str]:
     outputs: Dict[Path, str] = {}
+    collectors: Dict[str, EntityCollector] = {}
     for config_string in SERVED_CONFIG_STRINGS:
         collector = collect_for_config(config_string)
+        collectors[config_string] = collector
         out_path = OUTPUT_DIR / f"{config_string.lower()}-entities.md"
         outputs[out_path] = render_table(config_string, collector)
+    outputs[OUTPUT_DIR / COMPARE_OUTPUT_NAME] = render_compare_matrix(collectors)
     return outputs
 
 
