@@ -66,8 +66,8 @@ WRITE_PERMISSION_ALLOWLIST: dict[tuple[str, str, str], str] = {
         "release job signs checksums-sha256.txt with keyless cosign "
         "(sign-blob), which exchanges the job's GitHub OIDC token for a "
         "short-lived Fulcio signing certificate bound to this workflow's "
-        "identity. Scoped to this job only; no other job or workflow in "
-        "this repo requests id-token."
+        "identity. Scoped to this job only; the only other id-token grant "
+        "in this repo is the docs-site.yml Pages deploy job below."
     ),
     (
         "bump-version.yml",
@@ -99,6 +99,25 @@ WRITE_PERMISSION_ALLOWLIST: dict[tuple[str, str, str], str] = {
         "dry_run defaults to true; the workflow never pushes a branch and "
         "never merges (it does not build, sign, attach, or deploy — that is "
         "Release 3, fired by the release event)."
+    ),
+    (
+        "docs-site.yml",
+        "deploy",
+        "pages",
+    ): (
+        "PRODUCT-GUIDES-001 G1: the deploy job publishes the built "
+        "product-guides site with actions/deploy-pages, which requires "
+        "pages: write. Scoped to this job only; it runs only on pushes to "
+        "main and deploys docs — no firmware, no release surface."
+    ),
+    (
+        "docs-site.yml",
+        "deploy",
+        "id-token",
+    ): (
+        "PRODUCT-GUIDES-001 G1: actions/deploy-pages authenticates the "
+        "Pages deployment via the job's GitHub OIDC token, which requires "
+        "id-token: write. Scoped to this job only."
     ),
 }
 
