@@ -7,11 +7,11 @@ sensing for presence, comfort, and air quality, designed for Home Assistant.
 ## Install firmware
 
 The recommended way to install or update firmware is the browser-based
-flasher at **[mysense360.com](https://mysense360.com)** — no tooling, no
+flasher at **[sense360store.github.io/WebFlash](https://sense360store.github.io/WebFlash/)** — no tooling, no
 YAML. These guides cover what each product does, the Home Assistant
 entities it provides, and how to keep it updated.
 
-[Open the flasher](https://mysense360.com){ .md-button .md-button--primary }
+[Open the flasher](https://sense360store.github.io/WebFlash/){ .md-button .md-button--primary }
 [Browse the product guides](products/index.md){ .md-button }
 
 ## The products
