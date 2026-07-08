@@ -72,8 +72,10 @@ class ReleaseEligibleBuildsTests(unittest.TestCase):
     def test_plan_has_exactly_the_release_eligible_builds(self) -> None:
         # RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added three room-bundle
         # preview build rows; TRIAC-COMMISSIONING-001 then added the experimental
-        # self-build mains FanTRIAC build (channel experimental). The plan now
-        # covers six release-eligible builds.
+        # self-build mains FanTRIAC build (channel experimental).
+        # CI-PIPELINE-CLARITY-001 P4a then DE-LISTED Ceiling-POE-RoomIQ-LED
+        # (never built or served), removing its build row. The plan now covers
+        # five release-eligible builds.
         builds = _plan()["builds"]
         configs = {b["config_string"] for b in builds}
         self.assertEqual(
@@ -83,7 +85,6 @@ class ReleaseEligibleBuildsTests(unittest.TestCase):
                 LED_CONFIG,
                 "Ceiling-POE-AirIQ-RoomIQ",
                 "Ceiling-POE-RoomIQ",
-                "Ceiling-POE-RoomIQ-LED",
                 "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
             },
         )

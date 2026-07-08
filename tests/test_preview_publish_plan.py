@@ -71,21 +71,23 @@ VERSION = "1.0.0"
 # Ceiling-POE-AirIQ-RoomIQ v1.0.6 on 2026-06-09, owner-waiver promotions), so
 # live-ledger assertions below distinguish the promoted rows from the one
 # still on the preview channel.
+# CI-PIPELINE-CLARITY-001 P4a DE-LISTED Ceiling-POE-RoomIQ-LED (never built or
+# served): its build row was removed from config/webflash-builds.json, so it is
+# no longer a publish config. The two room bundles that remain in the ledger
+# were both promoted to stable.
 PUBLISH_CONFIGS = (
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
-    "Ceiling-POE-RoomIQ-LED",
 )
 PROMOTED_CONFIGS = (
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
 )
-# The LED room bundle is the only PREVIEW-channel metadata-ready config (these
-# are pinned to the preview-channel contract: preview channel, -preview.bin,
-# preview warning). The FanTRIAC experimental self-build mains build
-# (TRIAC-COMMISSIONING-001) is also metadata-ready but on the EXPERIMENTAL
-# channel, so it is tracked separately.
-STILL_PREVIEW_CONFIGS = ("Ceiling-POE-RoomIQ-LED",)
+# No PREVIEW-channel metadata-ready room bundle remains after the two stable
+# promotions and the P4a de-listing of the LED room bundle. The FanTRIAC
+# experimental self-build mains build (TRIAC-COMMISSIONING-001) is metadata-ready
+# but on the EXPERIMENTAL channel, so it is tracked separately.
+STILL_PREVIEW_CONFIGS: tuple[str, ...] = ()
 EXPERIMENTAL_METADATA_READY_CONFIGS = ("Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",)
 
 # The stable Bathroom baseline + already-published VentIQ LED preview are

@@ -402,41 +402,43 @@ class WebflashCoverageTests(unittest.TestCase):
                 self.assertEqual(build["channel"], t["build_channel"])
                 self.assertEqual(build["artifact_name"], t["expected_artifact_name"])
 
-    def test_metadata_ready_targets_are_the_remaining_room_bundle_previews(self) -> None:
+    def test_no_metadata_ready_targets_remain_after_delisting(self) -> None:
         # RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 recorded three room-bundle
         # previews as webflash-preview-metadata-ready. STABLE-PROMOTION-
-        # RECONCILE-001: two of them have since been promoted and published
-        # stable (Ceiling-POE-RoomIQ v1.0.5 on 2026-06-08, Ceiling-POE-AirIQ-
-        # RoomIQ v1.0.6 on 2026-06-09, both owner-waiver promotions), so only
-        # the Living/Corridor LED bundle still sits metadata-ready on the
-        # preview channel (no binary published for it yet).
+        # RECONCILE-001 promoted and published two of them stable
+        # (Ceiling-POE-RoomIQ v1.0.5 on 2026-06-08, Ceiling-POE-AirIQ-RoomIQ
+        # v1.0.6 on 2026-06-09, both owner-waiver promotions).
+        # CI-PIPELINE-CLARITY-001 P4a then DE-LISTED the last one
+        # (Ceiling-POE-RoomIQ-LED — never built or served), moving it back to
+        # eligible-unpublished. So no target sits metadata-ready today.
         metadata_ready = {
             t["config_string"]
             for t in self.manifest["targets"]
             if t["publication_status"] == "webflash-preview-metadata-ready"
         }
-        self.assertEqual(
-            metadata_ready,
-            {
-                "Ceiling-POE-RoomIQ-LED",
-            },
-        )
+        self.assertEqual(metadata_ready, set())
+
+    def test_delisted_roomiq_led_is_eligible_unpublished(self) -> None:
+        # CI-PIPELINE-CLARITY-001 P4a: the de-listed LED room bundle keeps its
+        # preview-channel target (webflash lane) but is back to
+        # eligible-unpublished with a build_blocker and is absent from the ledger.
         by_cs = {t["config_string"]: t for t in self.manifest["targets"]}
-        for cs in metadata_ready:
-            with self.subTest(config_string=cs):
-                t = by_cs[cs]
-                self.assertEqual(t["channel_tier"], "preview")
-                self.assertEqual(t["delivery_lane"], "webflash")
-                self.assertIsNone(t["build_blocker"])
-                self.assertIn(cs, self.builds)
-                self.assertFalse(t["recommended"])
-                self.assertFalse(t["customer_default"])
-                self.assertFalse(t["required_config"])
-                self.assertFalse(t["customer_kit_default"])
-                # Stable stays gated; no evidence is claimed.
-                self.assertTrue(t["stable_blocker"])
-                self.assertFalse(t["bench_evidence_claimed"])
-                self.assertFalse(t["schematic_status_verified_claim"])
+        t = by_cs["Ceiling-POE-RoomIQ-LED"]
+        self.assertEqual(t["channel_tier"], "preview")
+        self.assertEqual(t["delivery_lane"], "webflash")
+        self.assertNotEqual(
+            t["publication_status"], "webflash-preview-metadata-ready"
+        )
+        self.assertTrue(t["build_blocker"])
+        self.assertNotIn("Ceiling-POE-RoomIQ-LED", self.builds)
+        self.assertFalse(t["recommended"])
+        self.assertFalse(t["customer_default"])
+        self.assertFalse(t["required_config"])
+        self.assertFalse(t["customer_kit_default"])
+        # Stable stays gated; no evidence is claimed.
+        self.assertTrue(t["stable_blocker"])
+        self.assertFalse(t["bench_evidence_claimed"])
+        self.assertFalse(t["schematic_status_verified_claim"])
 
     def test_published_targets_match_product_name_mapper(self) -> None:
         # The mapper is the authority the release workflow uses; published

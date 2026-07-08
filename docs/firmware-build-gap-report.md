@@ -40,10 +40,10 @@ python3 scripts/report_firmware_build_gaps.py --check    # CI-style freshness ch
 ## Source matrix totals
 
 - Total valid combinations: **168**
-- `blocked-hardware`: 42
+- `blocked-hardware`: 43
 - `compile-only-candidate`: 2
 - `missing-product-yaml`: 118
-- `webflash-preview`: 3
+- `webflash-preview`: 2
 - `webflash-shipping`: 3
 
 ## Currently committed WebFlash builds
@@ -52,7 +52,6 @@ These are the only combinations in [`config/webflash-builds.json`](../config/web
 
 - `Ceiling-POE-AirIQ-RoomIQ`
 - `Ceiling-POE-RoomIQ`
-- `Ceiling-POE-RoomIQ-LED`
 - `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
 - `Ceiling-POE-VentIQ-RoomIQ`
 - `Ceiling-POE-VentIQ-RoomIQ-LED`
@@ -61,13 +60,13 @@ These are the only combinations in [`config/webflash-builds.json`](../config/web
 
 | Lane | Rows | Compile-only safe now? | WebFlash exposure allowed now? | Stable-ready now? |
 |------|-----:|------------------------|--------------------------------|--------------------|
-| `current-webflash` | 6 | no | yes | no |
+| `current-webflash` | 5 | no | yes | no |
 | `fantriac-blocked-hardware-compliance` | 35 | no | no | no |
 | `fanrelay-blocked-package-or-core-bus` | 36 | no | no | no |
 | `fanpwm-blocked-package-or-core-bus` | 36 | no | no | no |
 | `fandac-blocked-package-or-core-bus` | 24 | no | no | no |
 | `pwr-blocked-compliance` | 12 | no | no | no |
-| `led-preview-and-stable-candidates` | 10 | no | no | no |
+| `led-preview-and-stable-candidates` | 11 | no | no | no |
 | `poe-non-fan-candidates` | 3 | no | no | no |
 | `usb-non-fan-candidates` | 6 | no | no | no |
 | `missing-product-yaml` | 0 | no | no | no |
@@ -76,7 +75,7 @@ All 168 lane-assigned rows must equal the 168 matrix combinations. The test [`te
 
 ## Lanes
 
-### `current-webflash` — Current WebFlash builds (6 rows)
+### `current-webflash` — Current WebFlash builds (5 rows)
 
 - **Compile-only coverage safe now:** no
 - **WebFlash exposure allowed now:** yes
@@ -92,10 +91,9 @@ All 168 lane-assigned rows must equal the 168 matrix combinations. The test [`te
 
 - `Ceiling-POE-AirIQ-RoomIQ`
 - `Ceiling-POE-RoomIQ`
-- `Ceiling-POE-RoomIQ-LED`
 - `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`
 - `Ceiling-POE-VentIQ-RoomIQ`
-- … and 1 more (see `config/firmware-combination-matrix.json` for the full list)
+- `Ceiling-POE-VentIQ-RoomIQ-LED`
 
 ### `fantriac-blocked-hardware-compliance` — FanTRIAC family — blocked on hardware + compliance (35 rows)
 
@@ -202,7 +200,7 @@ All 168 lane-assigned rows must equal the 168 matrix combinations. The test [`te
 - `Ceiling-PWR-AirIQ-RoomIQ-LED`
 - … and 7 more (see `config/firmware-combination-matrix.json` for the full list)
 
-### `led-preview-and-stable-candidates` — LED preview / stable candidates (non-fan, non-PWR) (10 rows)
+### `led-preview-and-stable-candidates` — LED preview / stable candidates (non-fan, non-PWR) (11 rows)
 
 - **Compile-only coverage safe now:** no
 - **WebFlash exposure allowed now:** no
@@ -219,9 +217,9 @@ All 168 lane-assigned rows must equal the 168 matrix combinations. The test [`te
 - `Ceiling-POE-AirIQ-LED`
 - `Ceiling-POE-AirIQ-RoomIQ-LED`
 - `Ceiling-POE-LED`
+- `Ceiling-POE-RoomIQ-LED`
 - `Ceiling-POE-VentIQ-LED`
-- `Ceiling-USB-AirIQ-LED`
-- … and 5 more (see `config/firmware-combination-matrix.json` for the full list)
+- … and 6 more (see `config/firmware-combination-matrix.json` for the full list)
 
 ### `poe-non-fan-candidates` — POE non-fan candidates (3 rows)
 
@@ -280,13 +278,13 @@ All 168 lane-assigned rows must equal the 168 matrix combinations. The test [`te
 
 All 168 matrix rows are accounted for by exactly one lane. Subtotals:
 
-- `current-webflash`: 6
+- `current-webflash`: 5
 - `fantriac-blocked-hardware-compliance`: 35
 - `fanrelay-blocked-package-or-core-bus`: 36
 - `fanpwm-blocked-package-or-core-bus`: 36
 - `fandac-blocked-package-or-core-bus`: 24
 - `pwr-blocked-compliance`: 12
-- `led-preview-and-stable-candidates`: 10
+- `led-preview-and-stable-candidates`: 11
 - `poe-non-fan-candidates`: 3
 - `usb-non-fan-candidates`: 6
 - `missing-product-yaml`: 0

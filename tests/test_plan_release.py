@@ -308,12 +308,15 @@ class RealCatalogIntegrationTests(unittest.TestCase):
         self.assertFalse(plan["prerelease"])
 
     def test_real_preview_config_resolves_to_prerelease(self) -> None:
-        entry = pr.find_entry(self.catalog, "Ceiling-POE-RoomIQ-LED")
+        # Ceiling-POE-VentIQ-RoomIQ-LED is the published LED preview (channel
+        # preview). Ceiling-POE-RoomIQ-LED is NOT used here: it was de-listed by
+        # CI-PIPELINE-CLARITY-001 P4a (now status hardware-pending, no channel).
+        entry = pr.find_entry(self.catalog, "Ceiling-POE-VentIQ-RoomIQ-LED")
         self.assertIsNotNone(entry, "preview LED config missing")
         self.assertEqual(entry["channel"], "preview")
         version = entry["version"]
         plan = pr.plan_release(
-            config_string="Ceiling-POE-RoomIQ-LED",
+            config_string="Ceiling-POE-VentIQ-RoomIQ-LED",
             version=version,
             catalog=self.catalog,
         )

@@ -535,6 +535,46 @@ class ProductCatalogTests(unittest.TestCase):
         )
         self.assertEqual(matches[0]["status"], "production")
 
+    def test_delisted_roomiq_led_is_not_release_eligible(self) -> None:
+        # CI-PIPELINE-CLARITY-001 P4a: Ceiling-POE-RoomIQ-LED was never built
+        # or served, so it was de-listed from the release-eligible set. The
+        # catalog entry is preserved (so it can be built later) but must stay
+        # in a non-releasable state: not a WebFlash-eligible status,
+        # webflash_build_matrix=false, no artifact_name, and absent from the
+        # build matrix. This prevents silent re-promotion.
+        cs = "Ceiling-POE-RoomIQ-LED"
+        matches = [e for e in self.products if e.get("config_string") == cs]
+        self.assertEqual(
+            len(matches), 1, f"expected exactly one catalog entry for {cs!r}"
+        )
+        entry = matches[0]
+        self.assertNotIn(
+            entry["status"],
+            WEBFLASH_ELIGIBLE_STATUSES,
+            f"{cs!r} was de-listed by CI-PIPELINE-CLARITY-001 P4a and must "
+            "not carry a WebFlash-eligible status until deliberately re-built "
+            "and re-listed",
+        )
+        self.assertFalse(
+            entry["webflash_build_matrix"],
+            f"{cs!r} must have webflash_build_matrix=false while de-listed",
+        )
+        self.assertNotIn(
+            "artifact_name",
+            entry,
+            f"{cs!r} must not advertise an artifact_name while de-listed "
+            "(it was never built or served)",
+        )
+        build_strings = {
+            b.get("config_string") for b in self.builds if isinstance(b, dict)
+        }
+        self.assertNotIn(
+            cs,
+            build_strings,
+            f"{cs!r} must not appear in config/webflash-builds.json while "
+            "de-listed",
+        )
+
     def test_fantriac_entry_when_present_is_not_production(self) -> None:
         matches = [
             e for e in self.products if e.get("config_string") == FANTRIAC_CONFIG_STRING

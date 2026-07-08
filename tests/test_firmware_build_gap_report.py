@@ -56,17 +56,22 @@ EXPECTED_LANE_IDS = [
 #   poe-non-fan-candidates 5 -> 3 (Ceiling-POE-RoomIQ, Ceiling-POE-AirIQ-RoomIQ
 #     are now shipping); led-preview-and-stable-candidates 11 -> 10
 #     (Ceiling-POE-RoomIQ-LED is now shipping). Total stays 168.
+# CI-PIPELINE-CLARITY-001 P4a then DE-LISTED Ceiling-POE-RoomIQ-LED (never built
+# or served): its build row was removed and its catalog entry demoted to
+# hardware-pending, so it moves back out of current-webflash into the
+# led-preview-and-stable-candidates lane (current-webflash 6 -> 5,
+# led-preview-and-stable-candidates 10 -> 11). Total stays 168.
 EXPECTED_LANE_COUNTS = {
     # TRIAC-COMMISSIONING-001 moved the full-composition FanTRIAC config into
-    # current-webflash (experimental channel), so current-webflash gains one
-    # row (5 -> 6) and the blocked FanTRIAC family lane loses it (36 -> 35).
-    "current-webflash": 6,
+    # current-webflash (experimental channel); CI-PIPELINE-CLARITY-001 P4a then
+    # de-listed Ceiling-POE-RoomIQ-LED, netting current-webflash to 5.
+    "current-webflash": 5,
     "fantriac-blocked-hardware-compliance": 35,
     "fanrelay-blocked-package-or-core-bus": 36,
     "fanpwm-blocked-package-or-core-bus": 36,
     "fandac-blocked-package-or-core-bus": 24,
     "pwr-blocked-compliance": 12,
-    "led-preview-and-stable-candidates": 10,
+    "led-preview-and-stable-candidates": 11,
     "poe-non-fan-candidates": 3,
     "usb-non-fan-candidates": 6,
     "missing-product-yaml": 0,

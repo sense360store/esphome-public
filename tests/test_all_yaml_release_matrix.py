@@ -69,14 +69,17 @@ FAN_TOKENS = ("FanRelay", "FanPWM", "FanDAC")
 # build rows alongside the published VentIQ LED preview. STABLE-PROMOTION-
 # RECONCILE-001: Ceiling-POE-RoomIQ (Bedroom, v1.0.5, 2026-06-08) and
 # Ceiling-POE-AirIQ-RoomIQ (Kitchen, v1.0.6, 2026-06-09) have since been
-# promoted to the stable channel under owner waivers, so today's channel split
-# is three stable targets and two preview targets.
+# promoted to the stable channel under owner waivers. CI-PIPELINE-CLARITY-001
+# P4a then DE-LISTED Ceiling-POE-RoomIQ-LED (never built or served): its build
+# row was removed and its catalog entry demoted to hardware-pending, so it is
+# no longer a preview target. Today's channel split is three stable targets and
+# one preview target (the published VentIQ LED preview).
 STABLE_CONFIGS_TODAY = {
     STABLE_CONFIG,
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
 }
-PREVIEW_CONFIGS_TODAY = {LED_CONFIG, "Ceiling-POE-RoomIQ-LED"}
+PREVIEW_CONFIGS_TODAY = {LED_CONFIG}
 
 ALL_CLASSES = {
     "stable-release",
@@ -197,14 +200,14 @@ class ReleaseSelectableTests(unittest.TestCase):
         )
 
     def test_preview_targets_today(self) -> None:
-        # The published VentIQ LED preview plus the remaining (unpromoted)
-        # room-bundle preview build row. Compared as a set so the YAML-sorted
+        # Only the published VentIQ LED preview remains: the two room bundles
+        # were promoted to stable and Ceiling-POE-RoomIQ-LED was de-listed by
+        # CI-PIPELINE-CLARITY-001 P4a. Compared as a set so the YAML-sorted
         # order of the classifier is not asserted.
         self.assertEqual(
             set(self.plan["preview_targets"]),
             PREVIEW_CONFIGS_TODAY,
-            "preview targets must be the VentIQ LED preview plus the "
-            "Ceiling-POE-RoomIQ-LED room-bundle preview build row",
+            "preview targets must be exactly the published VentIQ LED preview",
         )
         # The stable Release-One target must never appear on the preview list.
         self.assertNotIn(STABLE_CONFIG, self.plan["preview_targets"])

@@ -48,26 +48,23 @@ BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 VERSION = "1.0.0"
 CHANNEL = "preview"
 
-# The exact four config strings the v1.0.0-preview release published (the three
-# new room-bundle previews + the re-attached VentIQ LED preview). This is a
-# HISTORICAL record of that release run, pinned statically: the live ledger has
-# since legitimately moved on (STABLE-PROMOTION-RECONCILE-001 promoted
-# Ceiling-POE-RoomIQ to stable v1.0.5 on 2026-06-08 and Ceiling-POE-AirIQ-RoomIQ
-# to stable v1.0.6 on 2026-06-09), so the historical publish set can no longer
-# be derived from config/webflash-builds.json.
+# The config strings that remain reconciled with the live ledger. This is a
+# HISTORICAL record pinned statically: the live ledger has since legitimately
+# moved on. STABLE-PROMOTION-RECONCILE-001 promoted Ceiling-POE-RoomIQ to stable
+# v1.0.5 (2026-06-08) and Ceiling-POE-AirIQ-RoomIQ to stable v1.0.6
+# (2026-06-09); CI-PIPELINE-CLARITY-001 P4a then DE-LISTED Ceiling-POE-RoomIQ-LED
+# (never built or served) and removed its build row. The remaining rows still
+# resolve in the ledger.
 EXPECTED_PUBLISHED_CONFIGS = {
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
-    "Ceiling-POE-RoomIQ-LED",
     "Ceiling-POE-VentIQ-RoomIQ-LED",
 }
-# Of the three rows added by RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001, only the
-# unpromoted LED room bundle still carries release_state
-# metadata-ready-unpublished; the two promoted rows dropped the preview-only
-# release_state field on promotion.
-UNPROMOTED_METADATA_ROWS = {
-    "Ceiling-POE-RoomIQ-LED",
-}
+# No unpromoted room bundle still carries release_state
+# metadata-ready-unpublished: the two room bundles were promoted to stable (and
+# dropped the preview-only release_state field), and the LED room bundle was
+# de-listed by P4a (its row removed entirely).
+UNPROMOTED_METADATA_ROWS: set[str] = set()
 PROMOTED_ROWS = {
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
@@ -160,10 +157,12 @@ class GuardrailTests(unittest.TestCase):
             with self.subTest(config_string=cs):
                 self.assertNotIn("release_state", by_cs[cs])
 
-    def test_builds_ledger_has_six_entries(self) -> None:
-        # Five customer (stable / preview) builds plus the experimental
+    def test_builds_ledger_has_five_entries(self) -> None:
+        # Four customer (stable / preview) builds plus the experimental
         # self-build mains FanTRIAC build added by TRIAC-COMMISSIONING-001.
-        self.assertEqual(len(_builds()), 6)
+        # CI-PIPELINE-CLARITY-001 P4a de-listed Ceiling-POE-RoomIQ-LED, dropping
+        # the ledger from six to five entries.
+        self.assertEqual(len(_builds()), 5)
 
 
 if __name__ == "__main__":

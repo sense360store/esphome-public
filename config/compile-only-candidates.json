@@ -63,8 +63,7 @@
     "Ceiling-POE-VentIQ-RoomIQ",
     "Ceiling-POE-VentIQ-RoomIQ-LED",
     "Ceiling-POE-AirIQ-RoomIQ",
-    "Ceiling-POE-RoomIQ",
-    "Ceiling-POE-RoomIQ-LED"
+    "Ceiling-POE-RoomIQ"
   ],
   "currently_compile_only_config_strings": [
     "Ceiling-POE-VentIQ-RoomIQ",

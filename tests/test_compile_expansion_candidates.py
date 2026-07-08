@@ -40,13 +40,15 @@ ARCHIVE_INDEX = REPO_ROOT / "docs" / "archive-index.md"
 # RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added the three room-bundle preview
 # build rows (Ceiling-POE-AirIQ-RoomIQ, Ceiling-POE-RoomIQ,
 # Ceiling-POE-RoomIQ-LED) alongside the stable RoomIQ and the VentIQ LED preview.
+# CI-PIPELINE-CLARITY-001 P4a then DE-LISTED Ceiling-POE-RoomIQ-LED (never built
+# or served): its build row was removed from config/webflash-builds.json, so it
+# is no longer a shipping config.
 CURRENTLY_SHIPPING_CONFIG_STRINGS = frozenset(
     {
         "Ceiling-POE-VentIQ-RoomIQ",
         "Ceiling-POE-VentIQ-RoomIQ-LED",
         "Ceiling-POE-AirIQ-RoomIQ",
         "Ceiling-POE-RoomIQ",
-        "Ceiling-POE-RoomIQ-LED",
     }
 )
 

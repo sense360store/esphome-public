@@ -271,12 +271,12 @@
         "exposure_class": "acknowledgement-gated",
         "reason": "SELV RoomIQ + LED ring; preview-eligible per RELEASE-PREVIEW-ALL-PRODUCTS-001. Shared firmware for the Living-room and Corridor bundles."
       },
-      "publication_status": "webflash-preview-metadata-ready",
+      "publication_status": "eligible-unpublished",
       "warning_copy_required": true,
       "warning_copy_key": "preview",
       "release_note_warning": "PREVIEW FIRMWARE \u2014 buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
       "stable_blocker": "S360-410 PoE-PSU schematic verification + LED preview-to-stable gauntlet.",
-      "build_blocker": null,
+      "build_blocker": "CI-PIPELINE-CLARITY-001 P4a de-listed this target: it was never built or served (no upstream binary, not in the served set), so its reviewed config/webflash-builds.json preview build row was removed. Re-listing requires a fresh reviewed build row with recorded build proof.",
       "recommended": false,
       "customer_default": false,
       "required_config": false,
@@ -287,7 +287,7 @@
         "S360-KIT-LIVING-P",
         "S360-KIT-CORRIDOR-P"
       ],
-      "notes": "One buildable firmware (Ceiling-POE-RoomIQ-LED) consumed by both the Living-room and Corridor room bundles, and DISTINCT from the published VentIQ LED preview (Ceiling-POE-VentIQ-RoomIQ-LED), which is unchanged. RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added the reviewed config/webflash-builds.json preview build row (product_yaml products/webflash/ceiling-poe-roomiq-led.yaml, channel preview, artifact Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin) with hosted-compile evidence (run 26821900127) and flipped the config/product-catalog.json entry from blocked to preview (webflash_build_matrix true; target_channel preview-candidate, LED stays preview). publication_status is now webflash-preview-metadata-ready: the WebFlash release-eligibility row exists, but NO firmware binary / GitHub Release / tag / manifest.json / firmware/sources.json is published, and the S360-KIT-LIVING-P / S360-KIT-CORRIDOR-P candidate bundles stay hidden / not buyable. Not recommended, not customer-default, not stable; LED stays preview and stable stays gated by S360-410 (PRODUCT-POE-410-001) + the LED preview-to-stable gauntlet. The products/webflash wrapper (RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001) is recorded in webflash_wrapper; the compile dry-run is recorded GREEN by hosted run 26821900127 (validated-full-compile), firmware-build proof only."
+      "notes": "One buildable firmware (Ceiling-POE-RoomIQ-LED) consumed by both the Living-room and Corridor room bundles, and DISTINCT from the published VentIQ LED preview (Ceiling-POE-VentIQ-RoomIQ-LED), which is unchanged. CI-PIPELINE-CLARITY-001 P4a DE-LISTED this target from the release-eligible set: it was never built or served (no upstream binary, not in the served set). RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 had earlier added a reviewed config/webflash-builds.json preview build row and flipped the config/product-catalog.json entry to preview; P4a REVERSED both — the build row was removed from config/webflash-builds.json and the catalog entry demoted back to status hardware-pending with webflash_build_matrix false and no version/channel/artifact_name. publication_status is therefore back to eligible-unpublished with a build_blocker: the WebFlash release-eligibility row no longer exists, and NO firmware binary / GitHub Release / tag / manifest.json / firmware/sources.json is or was published. The catalog entry, product_yaml, and products/webflash wrapper are PRESERVED so the config can be built and re-listed properly later. Not recommended, not customer-default, not stable; LED stays preview and stable stays gated by S360-410 (PRODUCT-POE-410-001) + the LED preview-to-stable gauntlet. The compile dry-run recorded GREEN by hosted run 26821900127 (validated-full-compile) is firmware-build proof only, not a released artifact."
     },
     {
       "target_id": "ceiling-poe-ventiq-fanrelay-roomiq-preview",
