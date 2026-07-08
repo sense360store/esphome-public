@@ -27,8 +27,8 @@
 # failure modes. It MUST NOT be treated as a shippable build artifact.
 #
 # Modes:
-#   - push / pull_request: metadata-only validation. Safe to run without
-#     ESPHome installed. Asserts target list shape and cross-references.
+#   - pull_request (and pushes to main): metadata-only validation. Safe to run
+#     without ESPHome installed. Asserts target list shape and cross-references.
 #   - workflow_dispatch:    metadata-only validation by default, or full
 #     `esphome compile` pass when `compile_mode=full` is selected.
 # ============================================================================
@@ -36,8 +36,15 @@
 name: "CI: Compile-Only"
 
 on:
+  # CI-PIPELINE-CLARITY-001 P6 (audit finding F — redundant CI): scope the push
+  # trigger to `main` only. The metadata-only job still runs on every
+  # `pull_request` (`synchronize` covers each new PR-branch commit), so PR
+  # gating is UNCHANGED; narrowing push removes the duplicate run that fired on
+  # both the branch push AND the pull_request for every PR-branch commit, and
+  # still validates `main` after merge. The full `esphome compile` pass stays
+  # workflow_dispatch-only. Matches the `push: [main]` pattern in docs-site.yml.
   push:
-    branches: ["*"]
+    branches: [main]
   pull_request:
     branches: ["*"]
   workflow_dispatch:

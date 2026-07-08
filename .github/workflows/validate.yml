@@ -2,8 +2,9 @@
 # ============================================================================
 # QUICK VALIDATION (Pre-flight Check)
 # ============================================================================
-# Ultra-fast syntax validation that runs on every push/PR
-# Provides immediate feedback (~30 seconds) before the full CI suite runs.
+# Ultra-fast syntax validation that runs on every pull_request (and on pushes
+# to main). Provides immediate feedback (~30 seconds) before the full CI suite
+# runs.
 #
 # This catches:
 #   - YAML syntax errors
@@ -17,8 +18,16 @@
 name: "CI: Quick Validation"
 
 on:
+  # CI-PIPELINE-CLARITY-001 P6 (audit finding F — redundant CI): scope the push
+  # trigger to `main` only. This gate still runs on every `pull_request`
+  # (`synchronize` fires on each new commit to a PR branch, for PRs into any
+  # target branch), so PR gating is UNCHANGED. Narrowing push removes the
+  # duplicate run that previously fired on both the branch push AND the
+  # pull_request for every commit on a branch with an open PR, while still
+  # validating `main` after merge. Matches the `push: [main]` pattern already
+  # used by docs-site.yml.
   push:
-    branches: ["*"]
+    branches: [main]
   pull_request:
     branches: ["*"]
 
