@@ -70,8 +70,23 @@ on:
           led-preview). Leave blank to use the channel name. Rejected for
           stable configs.
         required: false
-        type: string
-        default: ''
+        # Dropdown (not free text) so an operator cannot mistype a suffix that
+        # derive_release_version_channel.py would later reject. The blank option
+        # is the default and means "use the channel name" (stable -> plain
+        # vX.Y.Z; preview -> -preview; experimental -> -experimental). The two
+        # explicit non-blank options are the recognised overrides on top of the
+        # channel name: led-preview (the LED preview tag, which must differ from
+        # a plain -preview tag of the same version) and experimental (the
+        # self-build mains lane). All non-blank options must stay a subset of
+        # PRERELEASE_SUFFIX_TO_CHANNEL in
+        # scripts/derive_release_version_channel.py; the contract is locked by
+        # tests/test_create_release_tag_suffix.py.
+        type: choice
+        options:
+          - ""
+          - led-preview
+          - experimental
+        default: ""
       dry_run:
         description: >-
           Dry run (default true): plan, validate, and print only; create
