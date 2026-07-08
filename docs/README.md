@@ -54,6 +54,9 @@ The documentation map for `sense360store/esphome-public`. The repository
 - [Development Guide](development.md) — contributing and testing.
 - [CI/CD Pipeline](ci-pipeline.md) — per-workflow gate-vs-manual
   classification for all workflows.
+- [Release Pipeline](RELEASE-PIPELINE.md) — the full cross-repo release
+  sequence (Bump → Create Release → Build & Release → WebFlash Add Source →
+  Import → Deploy), stage by stage.
 - Archived process documents (release handoff, Release-One configuration,
   product onboarding, manual-path walkthroughs) are indexed in
   [`archive-index.md`](archive-index.md).
