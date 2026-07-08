@@ -49,15 +49,16 @@ BUILDS_JSON = REPO_ROOT / "config" / "webflash-builds.json"
 
 FAN_TOKENS = ("FanRelay", "FanPWM", "FanDAC")
 
-# CI-PIPELINE-CLARITY-001 P2: config_string targets that are release-eligible
+# CI-PIPELINE-CLARITY-001 P3: config_string targets that are release-eligible
 # in the single source (config/webflash-builds.json) but intentionally NOT yet
-# offered by the Bump / Create pickers. This is a tracked, documented gap — not
-# silent drift. P3 (the FanTRIAC product-state change) wires FanTRIAC into the
-# Bump / Create / Add-Source pickers and empties this set in the same PR that
-# adds the options, so the two can never drift apart unnoticed.
-PENDING_BUMP_CREATE_PICKER_ADDITIONS = frozenset(
-    {"Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"}
-)
+# offered by the Bump / Create pickers. This set was the tracked, documented
+# gap for the experimental FanTRIAC target under P2; P3 (the FanTRIAC
+# product-state change) wired FanTRIAC into the Bump / Create pickers in the
+# same PR that empties this set, so Bump / Create now cover every
+# release-eligible target with no carve-out. It is kept (empty) as the single
+# place to re-document any future intentional picker/source divergence rather
+# than silent drift.
+PENDING_BUMP_CREATE_PICKER_ADDITIONS = frozenset()
 
 
 def _load_module(name: str, path: Path):
@@ -166,10 +167,11 @@ class ReleasePickerLockStepTests(unittest.TestCase):
     matching picker option — or listing a picker option that no longer maps to
     a build — fails here, so no dropdown can silently fall out of sync.
 
-    Membership of the individual pickers is deliberately NOT changed by P2.
-    Bump / Create currently omit the experimental FanTRIAC target; that gap is
-    the tracked, documented ``PENDING_BUMP_CREATE_PICKER_ADDITIONS`` set that
-    P3 closes.
+    As of CI-PIPELINE-CLARITY-001 P3 every picker offers the full
+    release-eligible set: FanTRIAC (``Ceiling-POE-VentIQ-FanTRIAC-RoomIQ``,
+    experimental channel) was wired into the Bump / Create pickers and the
+    ``PENDING_BUMP_CREATE_PICKER_ADDITIONS`` carve-out emptied in the same PR,
+    so no picker carries a documented gap today.
     """
 
     @classmethod
