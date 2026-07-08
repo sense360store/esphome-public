@@ -69,24 +69,33 @@ BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 CATALOG_PATH = REPO_ROOT / "config" / "product-catalog.json"
 MANUAL_PATH = REPO_ROOT / "config" / "manual-firmware-artifacts.json"
 
-# The three wrappers this PR adds, keyed by WebFlash config string.
+# The three wrapper files this slice added, keyed by WebFlash config string. All
+# three files remain on disk (CI-PIPELINE-CLARITY-001 P4a preserved the
+# Ceiling-POE-RoomIQ-LED wrapper so the config can be built and re-listed later).
 NEW_WRAPPERS = {
     "Ceiling-POE-AirIQ-RoomIQ": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
     "Ceiling-POE-RoomIQ": "products/webflash/ceiling-poe-roomiq.yaml",
     "Ceiling-POE-RoomIQ-LED": "products/webflash/ceiling-poe-roomiq-led.yaml",
 }
-# STABLE-PROMOTION-RECONCILE-001: two of the three wrapped bundles have since
-# been promoted to the stable channel (Bedroom v1.0.5 on 2026-06-08, Kitchen
-# v1.0.6 on 2026-06-09, both owner-waiver promotions; binaries are published).
-# Their wrappers are now STABLE wrappers; only the Living/Corridor LED bundle
-# remains a preview candidate.
+# STABLE-PROMOTION-RECONCILE-001: two of the three wrapped bundles were promoted
+# to the stable channel (Bedroom v1.0.5 on 2026-06-08, Kitchen v1.0.6 on
+# 2026-06-09, both owner-waiver promotions; binaries are published). Their
+# wrappers are now STABLE wrappers.
 PROMOTED_WRAPPERS = {
     "Ceiling-POE-AirIQ-RoomIQ": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
     "Ceiling-POE-RoomIQ": "products/webflash/ceiling-poe-roomiq.yaml",
 }
-PREVIEW_WRAPPERS = {
+# CI-PIPELINE-CLARITY-001 P4a DE-LISTED Ceiling-POE-RoomIQ-LED (never built or
+# served): its config/webflash-builds.json row was removed and its catalog entry
+# demoted to hardware-pending. The wrapper file is PRESERVED on disk. So no
+# wrapper is a live preview build row today.
+PREVIEW_WRAPPERS: dict[str, str] = {}
+DELISTED_WRAPPERS = {
     "Ceiling-POE-RoomIQ-LED": "products/webflash/ceiling-poe-roomiq-led.yaml",
 }
+# Wrappers whose config_string still resolves in the live config/webflash-builds
+# ledger (the promoted stable rows plus any live preview rows).
+LEDGER_WRAPPERS = {**PROMOTED_WRAPPERS, **PREVIEW_WRAPPERS}
 EXPECTED_SHIM = {
     "Ceiling-POE-AirIQ-RoomIQ": "products/sense360-ceiling-poe-airiq-roomiq.yaml",
     "Ceiling-POE-RoomIQ": "products/sense360-ceiling-poe-roomiq.yaml",
@@ -299,6 +308,28 @@ class ManifestReferencesWrappersTests(unittest.TestCase):
                 # Stable stays gated; no published binary is claimed.
                 self.assertTrue(t["stable_blocker"])
 
+    def test_delisted_wrapped_target_is_unpublished_with_build_blocker(self) -> None:
+        # CI-PIPELINE-CLARITY-001 P4a: the de-listed LED room bundle keeps its
+        # manifest target + webflash_wrapper (preserved for a future build) but
+        # is back to eligible-unpublished with a build_blocker, and is NOT in the
+        # live build ledger.
+        builds = {b["config_string"] for b in _load_json(BUILDS_PATH)["builds"]}
+        for cs, rel in DELISTED_WRAPPERS.items():
+            with self.subTest(config_string=cs):
+                t = self.by_cs[cs]
+                self.assertEqual(t["channel_tier"], "preview")
+                self.assertEqual(t["delivery_lane"], "webflash")
+                self.assertEqual(t.get("webflash_wrapper"), rel)
+                self.assertTrue((REPO_ROOT / rel).is_file())
+                self.assertNotEqual(
+                    t["publication_status"], "webflash-preview-metadata-ready"
+                )
+                self.assertTrue(
+                    t["build_blocker"],
+                    f"{cs}: de-listed target must record a build_blocker",
+                )
+                self.assertNotIn(cs, builds)
+
     def test_promoted_wrapped_targets_are_published_stable(self) -> None:
         # STABLE-PROMOTION-RECONCILE-001: Bedroom (v1.0.5) and Kitchen (v1.0.6)
         # were promoted and their stable binaries are published. Their targets
@@ -359,13 +390,13 @@ class StableAndLedPreviewUnchangedTests(unittest.TestCase):
         self.assertNotIn("webflash_wrapper", t)
 
     def test_new_roomiq_led_is_distinct_from_published_ventiq_led(self) -> None:
-        # The new RoomIQ+LED preview must not collide with the published
-        # VentIQ+RoomIQ+LED preview. RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001
-        # added the RoomIQ+LED row, so it is now IN the ledger as its own
-        # distinct config string.
-        self.assertIn("Ceiling-POE-RoomIQ-LED", self.by_cs)
+        # Ceiling-POE-RoomIQ-LED is a distinct config string from the published
+        # VentIQ+RoomIQ+LED preview. CI-PIPELINE-CLARITY-001 P4a DE-LISTED it
+        # (never built or served), so it is NOT in the build ledger, while the
+        # published VentIQ LED preview remains.
         self.assertNotEqual("Ceiling-POE-RoomIQ-LED", LED_PREVIEW_CONFIG)
-        self.assertIn("Ceiling-POE-RoomIQ-LED", self.builds)
+        self.assertNotIn("Ceiling-POE-RoomIQ-LED", self.builds)
+        self.assertIn(LED_PREVIEW_CONFIG, self.builds)
 
 
 class NoTriacWrapperTests(unittest.TestCase):
@@ -460,25 +491,27 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
             _load_json(COMPAT_PATH).get("release_one_required_configs", [])
         )
 
-    def test_build_ledger_is_the_six_live_builds(self) -> None:
-        # Stable RoomIQ + published VentIQ LED preview + the three room-bundle
-        # preview rows + the FanTRIAC experimental self-build mains build added
-        # by TRIAC-COMMISSIONING-001 (experimental channel). No standalone
-        # fan-driver rows.
+    def test_build_ledger_is_the_five_live_builds(self) -> None:
+        # Stable RoomIQ + published VentIQ LED preview + the two promoted
+        # room-bundle rows + the FanTRIAC experimental self-build mains build
+        # added by TRIAC-COMMISSIONING-001 (experimental channel). No standalone
+        # fan-driver rows. CI-PIPELINE-CLARITY-001 P4a de-listed
+        # Ceiling-POE-RoomIQ-LED, so it is no longer a ledger row.
         self.assertEqual(
             set(self.by_cs),
-            {STABLE_CONFIG, LED_PREVIEW_CONFIG, *NEW_WRAPPERS, FANTRIAC_CONFIG},
+            {STABLE_CONFIG, LED_PREVIEW_CONFIG, *LEDGER_WRAPPERS, FANTRIAC_CONFIG},
         )
+        self.assertNotIn("Ceiling-POE-RoomIQ-LED", self.by_cs)
         self.assertEqual(self.by_cs[FANTRIAC_CONFIG]["channel"], "experimental")
 
-    def test_new_config_strings_present_in_ledger(self) -> None:
-        for cs in NEW_WRAPPERS:
+    def test_ledger_config_strings_present_in_ledger(self) -> None:
+        for cs in LEDGER_WRAPPERS:
             with self.subTest(config_string=cs):
                 self.assertIn(cs, self.by_cs)
 
-    def test_new_rows_point_to_their_products_webflash_wrapper(self) -> None:
-        # Task item: new preview rows point to the existing wrappers.
-        for cs, rel in NEW_WRAPPERS.items():
+    def test_ledger_rows_point_to_their_products_webflash_wrapper(self) -> None:
+        # Task item: live ledger rows point to the existing wrappers.
+        for cs, rel in LEDGER_WRAPPERS.items():
             with self.subTest(config_string=cs):
                 self.assertEqual(self.by_cs[cs]["product_yaml"], rel)
                 self.assertTrue((REPO_ROOT / rel).is_file())
@@ -504,9 +537,9 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
             with self.subTest(config_string=cs):
                 self.assertNotIn(cs, self.required)
 
-    def test_new_rows_cite_hosted_compile_evidence(self) -> None:
-        # Task item: new preview rows cite compile evidence (run 26821900127).
-        for cs in NEW_WRAPPERS:
+    def test_ledger_rows_cite_hosted_compile_evidence(self) -> None:
+        # Task item: live ledger rows cite compile evidence (run 26821900127).
+        for cs in LEDGER_WRAPPERS:
             with self.subTest(config_string=cs):
                 evidence = self.by_cs[cs].get("compile_evidence")
                 self.assertIsInstance(evidence, dict)
@@ -531,9 +564,9 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
 
     def test_new_rows_commercial_posture_is_hidden_not_buyable(self) -> None:
         # Task items: candidate / hidden / not buyable; not recommended/default.
-        # posture.stable mirrors the channel: false for the preview row, true
-        # for the two promoted stable rows.
-        for cs in NEW_WRAPPERS:
+        # posture.stable mirrors the channel: false for a preview row, true for
+        # the two promoted stable rows.
+        for cs in LEDGER_WRAPPERS:
             with self.subTest(config_string=cs):
                 posture = self.by_cs[cs].get("commercial_posture", {})
                 self.assertEqual(posture.get("visibility"), "hidden")

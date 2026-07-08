@@ -35,17 +35,18 @@ CHANNEL = "preview"
 # (v1.0.5 on 2026-06-08 and v1.0.6 on 2026-06-09, owner-waiver promotions), and
 # Ceiling-POE-VentIQ-RoomIQ-LED was re-released on the preview channel as
 # v1.0.1 (REBUILD-CLEAN-CREDENTIALS-001, prerelease v1.0.1-led-preview,
-# 2026-07-06), so they are no longer (v1.0.0, preview) rows in the live ledger.
-# The historical notes doc still names them; the live-derivation check below
-# covers only the rows that remain at (v1.0.0, preview).
-EXPECTED_ROOM_PREVIEW_CONFIGS = {
-    "Ceiling-POE-RoomIQ-LED",
-}
+# 2026-07-06). CI-PIPELINE-CLARITY-001 P4a then DE-LISTED Ceiling-POE-RoomIQ-LED
+# (never built or served): its (v1.0.0, preview) build row was removed. So no
+# (v1.0.0, preview) room-bundle row remains in the live ledger. The historical
+# notes doc still names the configs; the live-derivation check below covers only
+# the rows that remain at (v1.0.0, preview) — now none.
+EXPECTED_ROOM_PREVIEW_CONFIGS: set[str] = set()
 
 # All room-bundle configs the historical v1.0.0-preview notes doc named; the
 # doc is a static record, so its text keeps naming these even after rows move
-# on in the ledger.
-HISTORICAL_ROOM_PREVIEW_CONFIGS = EXPECTED_ROOM_PREVIEW_CONFIGS | {
+# on in the ledger (or are de-listed).
+HISTORICAL_ROOM_PREVIEW_CONFIGS = {
+    "Ceiling-POE-RoomIQ-LED",
     "Ceiling-POE-VentIQ-RoomIQ-LED",
 }
 

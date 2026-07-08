@@ -54,7 +54,6 @@ from __future__ import annotations
 import importlib.util
 import json
 import re
-import sys
 import unittest
 from pathlib import Path
 from typing import Any, Dict, List
@@ -77,16 +76,26 @@ COMPILE_RUN_ID = 26821900127
 # the stable channel (Ceiling-POE-RoomIQ v1.0.5 on 2026-06-08,
 # Ceiling-POE-AirIQ-RoomIQ v1.0.6 on 2026-06-09, owner-waiver promotions), so
 # only the LED room bundle is still metadata-ready on the preview channel.
+# The three room bundles that had preview draft docs authored. This is a
+# HISTORICAL record: the draft .md files are static and still name all three.
 DRAFTED_CONFIGS = (
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
     "Ceiling-POE-RoomIQ-LED",
 )
-# The LED room bundle is the only PREVIEW-channel metadata-ready row (these
-# configs are pinned to the preview-channel contract below). The FanTRIAC
-# experimental self-build mains build (TRIAC-COMMISSIONING-001) is also
-# metadata-ready, but on the EXPERIMENTAL channel, so it is tracked separately.
-STILL_METADATA_READY_CONFIGS = ("Ceiling-POE-RoomIQ-LED",)
+# The drafted configs that still resolve in the live config/webflash-builds.json
+# ledger. CI-PIPELINE-CLARITY-001 P4a DE-LISTED Ceiling-POE-RoomIQ-LED (never
+# built or served) and removed its build row, so ledger-consistency assertions
+# below exclude it while the static draft-doc assertions still cover it.
+LEDGER_DRAFTED_CONFIGS = (
+    "Ceiling-POE-AirIQ-RoomIQ",
+    "Ceiling-POE-RoomIQ",
+)
+# No room bundle is still PREVIEW-channel metadata-ready: the two above were
+# promoted to stable and the LED room bundle was de-listed by P4a. The FanTRIAC
+# experimental self-build mains build (TRIAC-COMMISSIONING-001) is metadata-ready
+# but on the EXPERIMENTAL channel, so it is tracked separately.
+STILL_METADATA_READY_CONFIGS: tuple[str, ...] = ()
 EXPERIMENTAL_METADATA_READY_CONFIGS = ("Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",)
 PROMOTED_CONFIGS = (
     "Ceiling-POE-AirIQ-RoomIQ",
@@ -358,7 +367,7 @@ class MetadataReadyRowPostureTests(unittest.TestCase):
         cls.by_cs = _by_cs()
 
     def test_rows_cite_firmware_build_compile_evidence(self) -> None:
-        for cs in DRAFTED_CONFIGS:
+        for cs in LEDGER_DRAFTED_CONFIGS:
             with self.subTest(config_string=cs):
                 ev = self.by_cs[cs].get("compile_evidence")
                 self.assertIsInstance(ev, dict)
@@ -382,7 +391,7 @@ class MetadataReadyRowPostureTests(unittest.TestCase):
 
     def test_rows_are_hidden_not_buyable(self) -> None:
         # posture.stable mirrors the channel after the promotions.
-        for cs in DRAFTED_CONFIGS:
+        for cs in LEDGER_DRAFTED_CONFIGS:
             with self.subTest(config_string=cs):
                 posture = self.by_cs[cs].get("commercial_posture", {})
                 self.assertEqual(posture.get("visibility"), "hidden")

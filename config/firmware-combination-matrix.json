@@ -21,9 +21,9 @@
     "combinations": 168,
     "by_status": {
       "missing-product-yaml": 118,
-      "blocked-hardware": 42,
+      "blocked-hardware": 43,
       "webflash-shipping": 3,
-      "webflash-preview": 3,
+      "webflash-preview": 2,
       "compile-only-candidate": 2
     }
   },
@@ -679,11 +679,10 @@
       "room_sense": "RoomIQ",
       "fan": "none",
       "led": "LED",
-      "status": "webflash-preview",
-      "product_yaml": "products/webflash/ceiling-poe-roomiq-led.yaml",
-      "artifact_name": "Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin",
+      "status": "blocked-hardware",
+      "product_yaml": "products/sense360-ceiling-poe-roomiq-led.yaml",
       "webflash_wrapper": "products/webflash/ceiling-poe-roomiq-led.yaml",
-      "notes": "In config/webflash-builds.json on the preview channel."
+      "notes": "Catalog status=hardware-pending."
     },
     {
       "config_string": "Ceiling-POE-VentIQ",

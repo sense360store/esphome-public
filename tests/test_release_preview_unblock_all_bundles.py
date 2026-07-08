@@ -167,8 +167,13 @@ class MissingHardwareProofDoesNotBlockPreviewTests(unittest.TestCase):
 
     def test_non_buildability_blockers_marked_stable_only(self):
         # Every non-stable, non-TRIAC target records its stable_blocker as
-        # stable-only (does not gate preview). TRIAC is the sole exception
-        # because HW-005 is a genuine buildability blocker.
+        # stable-only (does not gate preview). TRIAC is the sole HARDWARE
+        # exception (HW-005 was a genuine buildability blocker). A DE-LISTED
+        # target (CI-PIPELINE-CLARITY-001 P4a: never built or served) is a
+        # second, distinct exception: it carries a release-PROVENANCE
+        # build_blocker (a reviewed build row must be re-cut before it can be
+        # released) — NOT a hardware-proof block. Its stable_blocker still gates
+        # stable only.
         for target in self.targets["targets"]:
             if target["channel_tier"] == "stable":
                 continue
@@ -178,6 +183,17 @@ class MissingHardwareProofDoesNotBlockPreviewTests(unittest.TestCase):
                 target["blocker_is_stable_only"],
                 f"{target['target_id']}: stable_blocker must be stable-only",
             )
+            if target["build_blocker"]:
+                # De-listed / never-built target: the build_blocker is a
+                # provenance gate, not a hardware-proof gate. It must still be
+                # preview_allowed (a re-cut preview is not forbidden) and absent
+                # from the live ledger.
+                self.assertTrue(
+                    target["preview_allowed"],
+                    f"{target['target_id']}: de-listed target stays "
+                    "preview_allowed",
+                )
+                continue
             self.assertIsNone(
                 target["build_blocker"],
                 f"{target['target_id']}: non-TRIAC preview must have no build blocker",

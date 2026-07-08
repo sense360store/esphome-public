@@ -59,7 +59,6 @@ on:
           - Ceiling-POE-VentIQ-RoomIQ-LED
           - Ceiling-POE-AirIQ-RoomIQ
           - Ceiling-POE-RoomIQ
-          - Ceiling-POE-RoomIQ-LED
           # CI-PIPELINE-CLARITY-001 P3: experimental self-build mains lane build
           # (channel experimental). Never stable / recommended / default /
           # buyable / kit-exposed; one-click WebFlash import stays gated by

@@ -60,6 +60,14 @@ FAN_TOKENS = ("FanRelay", "FanPWM", "FanDAC")
 # than silent drift.
 PENDING_BUMP_CREATE_PICKER_ADDITIONS = frozenset()
 
+# CI-PIPELINE-CLARITY-001 P4a: config_string values that were DE-LISTED from
+# the release-eligible set because they were never built or served (no upstream
+# binary, not in the served set). They must NOT reappear in the single source
+# (config/webflash-builds.json) or in any release picker until a real build row
+# is re-added deliberately. The catalog entry itself is preserved (status
+# hardware-pending) so the config can be built and re-listed later.
+DELISTED_RELEASE_CONFIGS = frozenset({"Ceiling-POE-RoomIQ-LED"})
+
 
 def _load_module(name: str, path: Path):
     spec = importlib.util.spec_from_file_location(name, path)
@@ -290,6 +298,37 @@ class ReleasePickerLockStepTests(unittest.TestCase):
             "config/webflash-builds.json config_strings; a pending picker "
             "addition that is not release-eligible is a contradiction",
         )
+
+    def test_delisted_configs_are_not_release_eligible(self) -> None:
+        # CI-PIPELINE-CLARITY-001 P4a: a de-listed config must not appear in
+        # the single release-eligibility source. Re-adding a build row for it
+        # without a deliberate re-list fails here.
+        leaked = DELISTED_RELEASE_CONFIGS & self.canonical
+        self.assertEqual(
+            leaked,
+            set(),
+            f"{sorted(leaked)!r} was de-listed by CI-PIPELINE-CLARITY-001 P4a "
+            "(never built or served) but is back in "
+            "config/webflash-builds.json; a de-listed config must not be "
+            "release-eligible until it is deliberately re-listed with a real "
+            "build row",
+        )
+
+    def test_delisted_configs_are_in_no_picker(self) -> None:
+        # A de-listed config must not be offered by any release picker.
+        for name, picker in (
+            ("bump-version.yml", self.bump),
+            ("create-release.yml", self.create),
+            ("release-notes-draft.yml", self.draft),
+        ):
+            leaked = DELISTED_RELEASE_CONFIGS & self._options(picker)
+            self.assertEqual(
+                leaked,
+                set(),
+                f"{name} config_string offers {sorted(leaked)!r}, which was "
+                "de-listed by CI-PIPELINE-CLARITY-001 P4a (never built or "
+                "served); remove it from the picker",
+            )
 
 
 class PlannerSelectionTests(unittest.TestCase):
