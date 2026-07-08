@@ -41,12 +41,23 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RELEASE_NOTES_WORKFLOW = (
-    REPO_ROOT / ".github" / "workflows" / "release-notes-draft.yml"
-)
+WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
+RELEASE_NOTES_WORKFLOW = WORKFLOWS_DIR / "release-notes-draft.yml"
+BUMP_WORKFLOW = WORKFLOWS_DIR / "bump-version.yml"
+CREATE_WORKFLOW = WORKFLOWS_DIR / "create-release.yml"
 BUILDS_JSON = REPO_ROOT / "config" / "webflash-builds.json"
 
 FAN_TOKENS = ("FanRelay", "FanPWM", "FanDAC")
+
+# CI-PIPELINE-CLARITY-001 P2: config_string targets that are release-eligible
+# in the single source (config/webflash-builds.json) but intentionally NOT yet
+# offered by the Bump / Create pickers. This is a tracked, documented gap — not
+# silent drift. P3 (the FanTRIAC product-state change) wires FanTRIAC into the
+# Bump / Create / Add-Source pickers and empties this set in the same PR that
+# adds the options, so the two can never drift apart unnoticed.
+PENDING_BUMP_CREATE_PICKER_ADDITIONS = frozenset(
+    {"Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"}
+)
 
 
 def _load_module(name: str, path: Path):
@@ -78,6 +89,14 @@ def _release_eligible_config_strings() -> list[str]:
         for e in doc.get("builds", [])
         if isinstance(e, dict) and isinstance(e.get("config_string"), str)
     ]
+
+
+def _picker(workflow_path: Path) -> dict:
+    """Return the ``config_string`` workflow_dispatch input for a workflow."""
+    data = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
+    wd = _triggers(data).get("workflow_dispatch") or {}
+    inputs = wd.get("inputs") or {}
+    return inputs.get("config_string") or {}
 
 
 class ReleaseNotesDraftPickerTests(unittest.TestCase):
@@ -131,6 +150,143 @@ class ReleaseNotesDraftPickerTests(unittest.TestCase):
             "`default:`; forcing operator selection prevents the workflow "
             "from silently scoping every dispatch to a single product "
             "(RELEASE-PRODUCT-SELECTION-001)",
+        )
+
+
+class ReleasePickerLockStepTests(unittest.TestCase):
+    """CI-PIPELINE-CLARITY-001 P2: single-source lock-step across the three
+    esphome-public release pickers.
+
+    The ``config_string`` dropdowns in the Bump (``bump-version.yml``),
+    Create (``create-release.yml``), and Draft-notes
+    (``release-notes-draft.yml``) workflows must all derive from the one
+    canonical release-eligibility source, ``config/webflash-builds.json``
+    (surfaced by ``scripts/list_release_targets.py``). This test makes any
+    drift LOUD: adding a release-eligible build to that file without adding a
+    matching picker option — or listing a picker option that no longer maps to
+    a build — fails here, so no dropdown can silently fall out of sync.
+
+    Membership of the individual pickers is deliberately NOT changed by P2.
+    Bump / Create currently omit the experimental FanTRIAC target; that gap is
+    the tracked, documented ``PENDING_BUMP_CREATE_PICKER_ADDITIONS`` set that
+    P3 closes.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.canonical = set(_release_eligible_config_strings())
+        cls.bump = _picker(BUMP_WORKFLOW)
+        cls.create = _picker(CREATE_WORKFLOW)
+        cls.draft = _picker(RELEASE_NOTES_WORKFLOW)
+
+    def _options(self, picker: dict) -> set[str]:
+        return {str(opt) for opt in (picker.get("options") or [])}
+
+    def test_single_source_list_release_targets_matches_builds(self) -> None:
+        # The canonical helper and the raw file must agree; the helper is the
+        # documented single source the workflow comments point operators to.
+        mod = _load_module(
+            "list_release_targets",
+            REPO_ROOT / "scripts" / "list_release_targets.py",
+        )
+        self.assertEqual(
+            set(mod.selectable_config_strings()),
+            self.canonical,
+            "scripts/list_release_targets.py must enumerate exactly the "
+            "config/webflash-builds.json config_strings (the single source of "
+            "truth the release pickers derive from)",
+        )
+
+    def test_all_pickers_are_type_choice(self) -> None:
+        for name, picker in (
+            ("bump-version.yml", self.bump),
+            ("create-release.yml", self.create),
+            ("release-notes-draft.yml", self.draft),
+        ):
+            self.assertEqual(
+                picker.get("type"),
+                "choice",
+                f"{name} config_string must be a `type: choice` picker so an "
+                "operator selects from the canonical release-eligible list "
+                "rather than typing a free-text product name",
+            )
+
+    def test_no_picker_lists_an_off_source_option(self) -> None:
+        # Forward-drift guard: nothing may appear in a picker that is not a
+        # real release-eligible config_string (catches typos and stale options
+        # left behind after a build is removed from the source).
+        for name, picker in (
+            ("bump-version.yml", self.bump),
+            ("create-release.yml", self.create),
+            ("release-notes-draft.yml", self.draft),
+        ):
+            extra = self._options(picker) - self.canonical
+            self.assertEqual(
+                extra,
+                set(),
+                f"{name} config_string lists {sorted(extra)!r} which is not a "
+                "config_string in config/webflash-builds.json; every option "
+                "must map to a release-eligible build (single source of "
+                "truth)",
+            )
+
+    def test_no_picker_lists_a_fan_family_token(self) -> None:
+        for name, picker in (
+            ("bump-version.yml", self.bump),
+            ("create-release.yml", self.create),
+            ("release-notes-draft.yml", self.draft),
+        ):
+            for token in FAN_TOKENS:
+                self.assertFalse(
+                    any(
+                        token.lower() in opt.lower()
+                        for opt in self._options(picker)
+                    ),
+                    f"{name} config_string must not list {token} "
+                    "(manual-candidate-only, never release-eligible)",
+                )
+
+    def test_draft_notes_covers_every_release_eligible_build(self) -> None:
+        # Draft-notes is the fully-wired picker: it must offer every
+        # release-eligible target so adding a build to the source and
+        # forgetting the picker fails here.
+        self.assertEqual(
+            self._options(self.draft),
+            self.canonical,
+            "release-notes-draft.yml config_string must equal the "
+            "config/webflash-builds.json config_strings (add the new "
+            "release-eligible target to BOTH the picker and the release "
+            "matrix)",
+        )
+
+    def test_bump_and_create_cover_all_but_pending_additions(self) -> None:
+        # Bump / Create must offer every release-eligible target EXCEPT the
+        # documented pending set (FanTRIAC, closed by P3). This still makes a
+        # forgotten NON-pending addition fail: a new build lands in the source
+        # but not in these pickers -> mismatch here.
+        expected = self.canonical - PENDING_BUMP_CREATE_PICKER_ADDITIONS
+        for name, picker in (
+            ("bump-version.yml", self.bump),
+            ("create-release.yml", self.create),
+        ):
+            self.assertEqual(
+                self._options(picker),
+                expected,
+                f"{name} config_string must equal the release-eligible "
+                "config_strings from config/webflash-builds.json minus the "
+                "documented PENDING_BUMP_CREATE_PICKER_ADDITIONS "
+                f"({sorted(PENDING_BUMP_CREATE_PICKER_ADDITIONS)!r}, wired in "
+                "by CI-PIPELINE-CLARITY-001 P3)",
+            )
+
+    def test_pending_additions_are_real_release_eligible_targets(self) -> None:
+        # The pending set is an exclusion carve-out, not a place to hide a
+        # bogus target: everything in it must be a real release-eligible build.
+        self.assertTrue(
+            PENDING_BUMP_CREATE_PICKER_ADDITIONS <= self.canonical,
+            "PENDING_BUMP_CREATE_PICKER_ADDITIONS must be a subset of the "
+            "config/webflash-builds.json config_strings; a pending picker "
+            "addition that is not release-eligible is a contradiction",
         )
 
 

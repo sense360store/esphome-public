@@ -38,11 +38,18 @@ name: "Release 1: Bump Version"
 on:
   workflow_dispatch:
     inputs:
-      # The choices mirror the release-eligible config_string values in
-      # config/webflash-builds.json so the operator picks from the canonical
-      # list rather than typing a free-text product name. When a new
-      # release-eligible build is added to config/webflash-builds.json, add a
-      # matching option here.
+      # RELEASE-PRODUCT-SELECTION-001 / CI-PIPELINE-CLARITY-001: single-source
+      # release-target picker. The choices mirror the release-eligible
+      # config_string values in config/webflash-builds.json (listed via
+      # `python3 scripts/list_release_targets.py`) so the operator picks from
+      # the canonical list rather than typing a free-text product name. When a
+      # new release-eligible build is added to config/webflash-builds.json, add
+      # a matching option here so this picker stays in lock-step with the
+      # release matrix and the sibling Create / Draft-notes pickers; the
+      # contract test tests/test_release_product_selection.py enforces that
+      # lock-step. The experimental Ceiling-POE-VentIQ-FanTRIAC-RoomIQ target is
+      # intentionally NOT yet listed here (wired in fully by CI-PIPELINE-
+      # CLARITY-001 P3, the FanTRIAC product-state change).
       config_string:
         description: >-
           Config to bump. Must match a config_string in
