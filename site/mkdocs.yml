@@ -74,9 +74,9 @@ nav:
   - Home: index.md
   - Product guides:
       - Overview: products/index.md
-      - Room sensing (RoomIQ): products/ceiling-poe-roomiq.md
-      - Air quality + room sensing (AirIQ + RoomIQ): products/ceiling-poe-airiq-roomiq.md
-      - Bathroom (VentIQ + RoomIQ): products/ceiling-poe-ventiq-roomiq.md
-      - Bathroom + LED ring (VentIQ + RoomIQ + LED): products/ceiling-poe-ventiq-roomiq-led.md
+      - Bedroom Bundle (RoomIQ): products/ceiling-poe-roomiq.md
+      - Kitchen Bundle (AirIQ + RoomIQ): products/ceiling-poe-airiq-roomiq.md
+      - Bathroom Bundle (VentIQ + RoomIQ): products/ceiling-poe-ventiq-roomiq.md
+      - Bathroom Bundle + LED ring (VentIQ + RoomIQ + LED): products/ceiling-poe-ventiq-roomiq-led.md
       - Compare products: products/compare.md
   - Technical reference: reference.md

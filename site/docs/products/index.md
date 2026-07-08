@@ -6,18 +6,18 @@ firmware source), installation via the flasher, updating, and recovery.
 
 ## Choose your product
 
-- **[Room sensing (RoomIQ)](ceiling-poe-roomiq.md)**
+- **[Bedroom Bundle (RoomIQ)](ceiling-poe-roomiq.md)**
   <span class="s360-badge s360-badge--stable">stable</span>
   — presence, temperature, humidity, and light sensing for living spaces
   and bedrooms.
-- **[Air quality + room sensing (AirIQ + RoomIQ)](ceiling-poe-airiq-roomiq.md)**
+- **[Kitchen Bundle (AirIQ + RoomIQ)](ceiling-poe-airiq-roomiq.md)**
   <span class="s360-badge s360-badge--stable">stable</span>
   — adds the AirIQ air-quality module, for kitchens and living areas.
-- **[Bathroom (VentIQ + RoomIQ)](ceiling-poe-ventiq-roomiq.md)**
+- **[Bathroom Bundle (VentIQ + RoomIQ)](ceiling-poe-ventiq-roomiq.md)**
   <span class="s360-badge s360-badge--stable">stable</span>
   — bathroom air-quality sensing with shower detection, mould-risk
   warnings, and ventilation advice.
-- **[Bathroom + LED ring (VentIQ + RoomIQ + LED)](ceiling-poe-ventiq-roomiq-led.md)**
+- **[Bathroom Bundle + LED ring (VentIQ + RoomIQ + LED)](ceiling-poe-ventiq-roomiq-led.md)**
   <span class="s360-badge s360-badge--preview">preview</span>
   — the bathroom product plus a 12-LED indicator ring. Preview firmware
   for testers.

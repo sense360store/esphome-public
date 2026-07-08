@@ -1,4 +1,4 @@
-# Bathroom (VentIQ + RoomIQ)
+# Bathroom Bundle (VentIQ + RoomIQ)
 
 <span class="s360-badge s360-badge--stable">stable</span>
 &nbsp; Config string: `Ceiling-POE-VentIQ-RoomIQ`
