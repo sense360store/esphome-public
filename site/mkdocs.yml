@@ -75,7 +75,7 @@ nav:
   - Product guides:
       - Overview: products/index.md
       - Bedroom Bundle (RoomIQ): products/ceiling-poe-roomiq.md
-      - Kitchen Bundle (AirIQ + RoomIQ): products/ceiling-poe-airiq-roomiq.md
+      - Air Quality Bundle (AirIQ + RoomIQ): products/ceiling-poe-airiq-roomiq.md
       - Bathroom Bundle (VentIQ + RoomIQ): products/ceiling-poe-ventiq-roomiq.md
       - Bathroom Bundle + LED ring (VentIQ + RoomIQ + LED): products/ceiling-poe-ventiq-roomiq-led.md
       - Compare products: products/compare.md
