@@ -63,7 +63,8 @@ from the firmware YAML and gated for freshness.
   G1 placeholders. Each covers: what the product does (plain language,
   every claim traceable to the derived entity set, a catalog field, or a
   board doc); hardware in the configuration; installation via the
-  canonical flasher at mysense360.com with the channel note (stable
+  canonical flasher at
+  <https://sense360store.github.io/WebFlash/> with the channel note (stable
   support pointer / preview acknowledgement-gate warning per D-G5);
   first-boot Wi-Fi (the `Sense360_Setup` setup network and the per-product
   fallback-AP captive portal, per
