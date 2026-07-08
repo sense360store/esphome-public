@@ -12,8 +12,8 @@ documentation map is in the [documentation index](README.md).
 | **WebFlash** (recommended) | Most customers | Browser-based flashing of official **signed** firmware. No tooling, no YAML. |
 | **`esphome-public`** (this repo) | Advanced users | Inspect, fork, and customize the ESPHome YAML used by official Sense360 firmware. |
 
-> **WebFlash is the production path.** It is what you get from the buy/install link on
-> [mysense360.com](https://mysense360.com). This repo is the manual/custom firmware path
+> **WebFlash is the production path.** It is the browser-based flasher at
+> [sense360store.github.io/WebFlash](https://sense360store.github.io/WebFlash/). This repo is the manual/custom firmware path
 > linked from WebFlash — use it only if you want to read or modify the YAML.
 >
 > **Production users must pin to a release tag** (e.g. `ref: v1.0.0`). Never use
