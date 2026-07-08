@@ -44,9 +44,6 @@ on:
       # pickers. When a new release-eligible build is added to
       # config/webflash-builds.json, add a matching option here; the contract
       # test tests/test_release_product_selection.py enforces that lock-step.
-      # The experimental Ceiling-POE-VentIQ-FanTRIAC-RoomIQ target is
-      # intentionally NOT yet listed here (wired in fully by CI-PIPELINE-
-      # CLARITY-001 P3, the FanTRIAC product-state change).
       config_string:
         description: >-
           Release target. Must match a config_string in
@@ -60,6 +57,11 @@ on:
           - Ceiling-POE-AirIQ-RoomIQ
           - Ceiling-POE-RoomIQ
           - Ceiling-POE-RoomIQ-LED
+          # CI-PIPELINE-CLARITY-001 P3: experimental self-build mains lane build
+          # (channel experimental). Never stable / recommended / default /
+          # buyable / kit-exposed; one-click WebFlash import stays gated by
+          # WF-IMPORT-TRIAC-001.
+          - Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
       version:
         description: >-
           Release version, leading 'v' optional (e.g. 1.0.1 or v1.0.1). Must
