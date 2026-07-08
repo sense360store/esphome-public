@@ -56,6 +56,9 @@ Everything lives under [`docs/`](docs/README.md) — start at the
   modules, Release-One, build output contract.
 - [Release Channels](docs/release-channels.md) — stable / preview / experimental
   and what support each receives.
+- [Release Pipeline](docs/RELEASE-PIPELINE.md) — the full cross-repo release
+  sequence (Bump → Create Release → Build & Release → WebFlash Add Source →
+  Import → Deploy) and which stages dispatch vs. auto-fire.
 - [Hardware Catalog](docs/hardware-catalog.md) — canonical board names, SKUs, revisions.
 - [Roadmap & Status](docs/sense360-roadmap-status.md) — the canonical status /
   roadmap / blocker document.

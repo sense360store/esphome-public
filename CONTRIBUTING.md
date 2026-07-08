@@ -103,3 +103,12 @@ Release-One baseline, the build matrix). Non-negotiables for contributors:
   [`docs/sense360-roadmap-status.md`](docs/sense360-roadmap-status.md);
   where a doc and a source-of-truth file disagree, the source-of-truth file
   wins and the doc is what gets fixed.
+
+## Releasing
+
+The end-to-end release sequence — how a version bump in this repo becomes a
+signed, browser-flashable build in WebFlash, and which stages dispatch vs.
+auto-fire — is documented in
+[`docs/RELEASE-PIPELINE.md`](docs/RELEASE-PIPELINE.md). Read it before cutting a
+release; it also covers the `GITHUB_TOKEN` recursion caveat that can silently
+stall the auto build.
