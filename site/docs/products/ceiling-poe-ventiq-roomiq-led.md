@@ -1,4 +1,4 @@
-# Bathroom + LED ring (VentIQ + RoomIQ + LED)
+# Bathroom Bundle + LED ring (VentIQ + RoomIQ + LED)
 
 <span class="s360-badge s360-badge--preview">preview</span>
 &nbsp; Config string: `Ceiling-POE-VentIQ-RoomIQ-LED`
@@ -8,11 +8,11 @@
     is buildable and installable for testers, but it is **not** the stable
     customer release: it is not hardware verified, it is not recommended,
     and you should expect changes. Be prepared to re-flash the stable
-    [Bathroom (VentIQ + RoomIQ)](ceiling-poe-ventiq-roomiq.md) firmware if
+    [Bathroom Bundle (VentIQ + RoomIQ)](ceiling-poe-ventiq-roomiq.md) firmware if
     you hit problems. If you are not deliberately testing the LED ring,
     use the stable bathroom product instead.
 
-The [Bathroom (VentIQ + RoomIQ)](ceiling-poe-ventiq-roomiq.md) product
+The [Bathroom Bundle (VentIQ + RoomIQ)](ceiling-poe-ventiq-roomiq.md) product
 plus the **Sense360 LED** ring — 12 addressable LEDs for ambient status
 feedback.
 
@@ -143,7 +143,7 @@ If the device is unresponsive or you want a truly clean start, use the
 [sense360store.github.io/WebFlash](https://sense360store.github.io/WebFlash/), connect over USB, flash the
 rescue firmware, then install the firmware you want — for this preview
 product, that usually means going back to the stable
-[Bathroom (VentIQ + RoomIQ)](ceiling-poe-ventiq-roomiq.md) build.
+[Bathroom Bundle (VentIQ + RoomIQ)](ceiling-poe-ventiq-roomiq.md) build.
 
 ## Specifications
 

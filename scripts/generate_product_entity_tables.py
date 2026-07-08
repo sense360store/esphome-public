@@ -92,10 +92,12 @@ PLATFORM_DEFAULT_UNITS = {
     "duty_time": "s",
 }
 
-# Column labels for the comparison matrix, mirroring the product-guide nav
-# titles in site/mkdocs.yml. Each column header links to the guide page,
-# whose filename is the lower-cased config string (compare.md lives in the
-# same site/docs/products/ directory).
+# Column labels for the comparison matrix: the module descriptor carried in
+# each product-guide title/nav entry in site/mkdocs.yml (the parenthetical
+# after the canonical bundle name — e.g. the "VentIQ + RoomIQ" of "Bathroom
+# Bundle (VentIQ + RoomIQ)"), kept compact for the matrix header. Each column
+# header links to the guide page, whose filename is the lower-cased config
+# string (compare.md lives in the same site/docs/products/ directory).
 MATRIX_COLUMN_LABELS = {
     "Ceiling-POE-RoomIQ": "RoomIQ",
     "Ceiling-POE-AirIQ-RoomIQ": "AirIQ + RoomIQ",

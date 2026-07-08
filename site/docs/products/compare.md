@@ -6,15 +6,15 @@ firmware channel they ship on.
 
 In one line each:
 
-- **[Room sensing (RoomIQ)](ceiling-poe-roomiq.md)** — presence +
+- **[Bedroom Bundle (RoomIQ)](ceiling-poe-roomiq.md)** — presence +
   comfort sensing only; the smallest configuration.
-- **[Air quality + room sensing (AirIQ + RoomIQ)](ceiling-poe-airiq-roomiq.md)**
+- **[Kitchen Bundle (AirIQ + RoomIQ)](ceiling-poe-airiq-roomiq.md)**
   — RoomIQ plus the AirIQ air-quality module (see that guide for what the
   current firmware exposes).
-- **[Bathroom (VentIQ + RoomIQ)](ceiling-poe-ventiq-roomiq.md)** — RoomIQ
+- **[Bathroom Bundle (VentIQ + RoomIQ)](ceiling-poe-ventiq-roomiq.md)** — RoomIQ
   plus bathroom air-quality sensing with shower detection and mould-risk
   warnings.
-- **[Bathroom + LED ring (VentIQ + RoomIQ + LED)](ceiling-poe-ventiq-roomiq-led.md)**
+- **[Bathroom Bundle + LED ring (VentIQ + RoomIQ + LED)](ceiling-poe-ventiq-roomiq-led.md)**
   — the bathroom product plus a 12-LED indicator ring (preview channel,
   for testers).
 
