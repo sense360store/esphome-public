@@ -3,8 +3,9 @@
 # DOCS LINK CHECK (REPO-CUSTOMER-READY-001 S5)
 # ============================================================================
 # Markdown link checker over the kept documentation set. Runs on every
-# push/PR alongside "CI: Quick Validation" and fails the build when a
-# tracked markdown file links to a repository path that does not exist.
+# pull_request (and on pushes to main) alongside "CI: Quick Validation" and
+# fails the build when a tracked markdown file links to a repository path that
+# does not exist.
 #
 # Scope — INTERNAL (relative-path) links only. External http(s) links are
 # deliberately not fetched: this repo's CI gates are deterministic and
@@ -33,8 +34,15 @@
 name: "CI: Docs Link Check"
 
 on:
+  # CI-PIPELINE-CLARITY-001 P6 (audit finding F — redundant CI): scope the push
+  # trigger to `main` only. This gate still runs on every `pull_request`
+  # (`synchronize` covers each new PR-branch commit, for PRs into any target
+  # branch), so PR gating is UNCHANGED; narrowing push removes the duplicate
+  # run that fired on both the branch push AND the pull_request for every
+  # PR-branch commit, and still checks `main` after merge. Matches the
+  # `push: [main]` pattern already used by docs-site.yml.
   push:
-    branches: ["*"]
+    branches: [main]
   pull_request:
     branches: ["*"]
 
