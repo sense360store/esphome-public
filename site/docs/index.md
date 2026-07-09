@@ -19,7 +19,7 @@ entities it provides, and how to keep it updated.
 | Product | What it senses | Channel |
 |---|---|---|
 | [Bedroom Bundle (RoomIQ)](products/ceiling-poe-roomiq.md) | Presence, temperature, humidity, light | <span class="s360-badge s360-badge--stable">stable</span> |
-| [Air Quality Bundle (AirIQ + RoomIQ)](products/ceiling-poe-airiq-roomiq.md) | Air quality plus room sensing | <span class="s360-badge s360-badge--stable">stable</span> |
+| [Kitchen Bundle (AirIQ + RoomIQ)](products/ceiling-poe-airiq-roomiq.md) | Air quality plus room sensing | <span class="s360-badge s360-badge--stable">stable</span> |
 | [Bathroom Bundle (VentIQ + RoomIQ)](products/ceiling-poe-ventiq-roomiq.md) | Bathroom air quality, shower and mould-risk detection, plus room sensing | <span class="s360-badge s360-badge--stable">stable</span> |
 | [Bathroom Bundle + LED ring (VentIQ + RoomIQ + LED)](products/ceiling-poe-ventiq-roomiq-led.md) | The bathroom product plus an LED indicator ring | <span class="s360-badge s360-badge--preview">preview</span> |
 

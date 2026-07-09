@@ -1,4 +1,4 @@
-# Air Quality Bundle (AirIQ + RoomIQ)
+# Kitchen Bundle (AirIQ + RoomIQ)
 
 <span class="s360-badge s360-badge--stable">stable</span>
 &nbsp; Config string: `Ceiling-POE-AirIQ-RoomIQ`

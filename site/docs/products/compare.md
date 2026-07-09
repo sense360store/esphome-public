@@ -8,7 +8,7 @@ In one line each:
 
 - **[Bedroom Bundle (RoomIQ)](ceiling-poe-roomiq.md)** — presence +
   comfort sensing only; the smallest configuration.
-- **[Air Quality Bundle (AirIQ + RoomIQ)](ceiling-poe-airiq-roomiq.md)**
+- **[Kitchen Bundle (AirIQ + RoomIQ)](ceiling-poe-airiq-roomiq.md)**
   — RoomIQ plus the AirIQ air-quality module (see that guide for what the
   current firmware exposes).
 - **[Bathroom Bundle (VentIQ + RoomIQ)](ceiling-poe-ventiq-roomiq.md)** — RoomIQ
