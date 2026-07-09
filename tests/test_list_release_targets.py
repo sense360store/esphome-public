@@ -15,9 +15,10 @@ The tests lock in the RELEASE-PRODUCT-SELECTION-001 contract:
     workflow currently ships (stable RoomIQ + preview LED) — adding a
     new release-eligible build to ``config/webflash-builds.json``
     automatically makes it selectable;
-  * FanRelay / FanPWM / FanDAC are **not** selectable (they are
-    manual-candidate-only and the helper refuses to enumerate a fan
-    token in the release matrix);
+  * FanRelay / FanPWM / FanDAC are selectable on their HW-RELEASE-001
+    lanes only (FanPWM / FanDAC: preview; FanRelay: experimental) and
+    the helper refuses to enumerate a fan token on the stable channel
+    — fan configs are never stable;
   * ``validate_target`` accepts any release-eligible ``config_string``
     and the ``all-release-eligible`` sentinel, and rejects everything
     else;
@@ -98,22 +99,44 @@ class CanonicalTargetListTests(unittest.TestCase):
                 )
 
 
-class FanExclusionTests(unittest.TestCase):
-    def test_fans_are_not_selectable(self) -> None:
-        config_strings = lrt.selectable_config_strings()
-        for token in FAN_TOKENS:
-            self.assertFalse(
-                any(token.lower() in c.lower() for c in config_strings),
-                f"{token} must not appear as a selectable release target",
-            )
+class FanChannelGuardrailTests(unittest.TestCase):
+    """HW-RELEASE-001: fan configs are selectable, but never stable.
 
-    def test_validate_rejects_fan_family_token(self) -> None:
-        for token in FAN_TOKENS:
-            err = lrt.validate_target(f"Ceiling-POE-VentIQ-{token}-RoomIQ")
-            self.assertIsNotNone(err)
-            self.assertIn("not a selectable release target", err)
+    The former fan-token exclusion became a channel guardrail: FanPWM /
+    FanDAC targets are admitted on the preview channel, FanRelay on the
+    experimental channel only, and the helper refuses any fan-token row
+    on the stable channel.
+    """
 
-    def test_guardrail_refuses_fan_token_in_builds_json(self) -> None:
+    def test_fans_are_selectable_on_their_lanes_only(self) -> None:
+        by_cfg = {t["config_string"]: t for t in lrt.list_targets()}
+        fan_targets = {
+            cs: t
+            for cs, t in by_cfg.items()
+            if any(token.lower() in cs.lower() for token in FAN_TOKENS)
+        }
+        self.assertTrue(
+            fan_targets,
+            "HW-RELEASE-001 fan targets must be enumerable",
+        )
+        for cs, t in fan_targets.items():
+            with self.subTest(config_string=cs):
+                self.assertNotEqual(t["channel"], "stable")
+                if "fanrelay" in cs.lower():
+                    self.assertEqual(t["channel"], "experimental")
+                else:
+                    self.assertEqual(t["channel"], "preview")
+
+    def test_validate_accepts_release_eligible_fan_targets(self) -> None:
+        for cs in (
+            "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
+            "Ceiling-POE-FanPWM",
+            "Ceiling-POE-FanDAC",
+        ):
+            with self.subTest(config_string=cs):
+                self.assertIsNone(lrt.validate_target(cs))
+
+    def test_guardrail_refuses_fan_token_on_stable_channel(self) -> None:
         with tempfile.TemporaryDirectory() as d:
             builds = Path(d) / "builds.json"
             builds.write_text(
@@ -134,6 +157,29 @@ class FanExclusionTests(unittest.TestCase):
             with self.assertRaises(lrt.ListReleaseTargetsError) as ctx:
                 lrt.list_targets(builds)
             self.assertIn("FanRelay", str(ctx.exception))
+            self.assertIn("NEVER stable", str(ctx.exception))
+
+    def test_guardrail_refuses_fan_token_off_its_lane(self) -> None:
+        # A FanRelay row on preview (its lane is experimental) must refuse.
+        with tempfile.TemporaryDirectory() as d:
+            builds = Path(d) / "builds.json"
+            builds.write_text(
+                json.dumps(
+                    {
+                        "builds": [
+                            {
+                                "config_string": "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
+                                "channel": "preview",
+                                "version": "1.0.0",
+                                "artifact_name": "x.bin",
+                                "product_yaml": "products/webflash/x.yaml",
+                            }
+                        ]
+                    }
+                )
+            )
+            with self.assertRaises(lrt.ListReleaseTargetsError):
+                lrt.list_targets(builds)
 
 
 class ValidateTargetTests(unittest.TestCase):

@@ -8,6 +8,17 @@ Locks in the non-release guarantees of the manual firmware artifact lane —
 turn into a release / WebFlash path, per
 ``MANUAL-FIRMWARE-ARTIFACT-POLICY-001`` (PR #619).
 
+HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record, 2026-07-09)
+retired the bench-proof documentation gate and added declaration-driven
+``config/webflash-builds.json`` rows for the three fan candidates, so their
+``config/product-catalog.json`` entries now legitimately carry
+``webflash_build_matrix: true``, a release ``artifact_name``, and a
+``webflash_wrapper``. The manual lane itself is UNCHANGED and its non-release
+teeth stand: workflow_dispatch-only, no GitHub Release, no manifest /
+sources.json, expiring artifacts only, and manual artifact names must never
+reuse a catalog release ``artifact_name``. Fan candidates' catalog channel
+must never be ``stable`` (FanRelay → experimental; FanPWM / FanDAC → preview).
+
 Run with:
 
     python3 tests/test_manual_firmware_artifacts.py
@@ -42,6 +53,21 @@ FAN_YAMLS = {
     "products/sense360-ceiling-poe-fanpwm.yaml",
     "products/sense360-ceiling-poe-fandac.yaml",
 }
+# HW-RELEASE-001: the fan candidates' catalog build channel, per lane. FanRelay
+# is mains-adjacent, so experimental only; FanPWM / FanDAC are SELV previews.
+# NONE may ever be "stable".
+CANDIDATE_CATALOG_CHANNEL = {
+    "fanrelay": "experimental",
+    "fanpwm": "preview",
+    "fandac": "preview",
+}
+HW_RELEASE_HARDWARE_STATUS = "owner-declared-bench-working-hw-release-001"
+
+# HW-RELEASE-001 reconciliation drift the stale manual-lane validator is KNOWN
+# to report until its refresh lands downstream: the catalog now legitimately
+# carries webflash_build_matrix=true, an artifact_name, and a webflash_wrapper
+# for the three fan candidates (declaration-driven build rows). Any error
+# outside this allowance is a real regression.
 
 
 def _load(path: Path):
@@ -55,6 +81,10 @@ class ConfigTests(unittest.TestCase):
         self.targets = _load(TARGETS_PATH)
 
     def test_config_validates_clean(self) -> None:
+        # HW-RELEASE-001 refreshed the manual-lane validator in lock-step
+        # with the catalog posture (fan candidates are release-eligible on
+        # non-stable channels; the manual lane still never reuses the
+        # catalog release artifact_name), so the config validates clean.
         errors = validate(self.config, self.targets, self.catalog)
         self.assertEqual(errors, [], "\n".join(errors))
 
@@ -92,31 +122,61 @@ class CrossReferenceTests(unittest.TestCase):
             if isinstance(t, dict) and t.get("id")
         }
 
-    def test_fan_candidates_remain_webflash_build_matrix_false(self) -> None:
+    def test_fan_candidates_are_on_the_build_matrix_never_stable(self) -> None:
+        # Inverts the pre-HW-RELEASE-001 "webflash_build_matrix must stay
+        # false" pin: the owner declaration legitimately flipped the three fan
+        # candidates onto the declaration-driven build matrix (status preview,
+        # owner-declared hardware). The permanent tooth is the CHANNEL: a fan
+        # candidate's catalog channel is experimental (FanRelay) or preview
+        # (FanPWM / FanDAC) and NEVER "stable".
         for cand in self.config["candidates"]:
-            entry = self.catalog_by_yaml[cand["product_yaml"]]
-            self.assertIs(
-                entry.get("webflash_build_matrix"),
-                False,
-                f"{cand['product_yaml']} webflash_build_matrix must stay false",
-            )
+            with self.subTest(candidate=cand["id"]):
+                entry = self.catalog_by_yaml[cand["product_yaml"]]
+                self.assertIs(entry.get("webflash_build_matrix"), True)
+                self.assertEqual(entry.get("status"), "preview")
+                self.assertEqual(
+                    entry.get("hardware_status"), HW_RELEASE_HARDWARE_STATUS
+                )
+                self.assertEqual(
+                    entry.get("channel"),
+                    CANDIDATE_CATALOG_CHANNEL[cand["id"]],
+                )
+                self.assertNotEqual(
+                    entry.get("channel"),
+                    "stable",
+                    f"{cand['product_yaml']}: fan candidates are never stable",
+                )
 
-    def test_fan_candidates_have_no_catalog_artifact_name(self) -> None:
-        # The manual lane cannot use an artifact_name from the product catalog.
+    def test_fan_candidates_catalog_artifact_name_is_release_shaped(self) -> None:
+        # Inverts the pre-HW-RELEASE-001 "no catalog artifact_name" pin: the
+        # catalog entries now carry the declaration-driven release artifact
+        # name. It must match the channel and can never be a stable name; the
+        # manual lane must still never REUSE it (ArtifactNameTests below).
         for cand in self.config["candidates"]:
-            entry = self.catalog_by_yaml[cand["product_yaml"]]
-            self.assertFalse(
-                entry.get("artifact_name"),
-                f"{cand['product_yaml']} must not carry a catalog artifact_name",
-            )
+            with self.subTest(candidate=cand["id"]):
+                entry = self.catalog_by_yaml[cand["product_yaml"]]
+                channel = CANDIDATE_CATALOG_CHANNEL[cand["id"]]
+                self.assertEqual(
+                    entry.get("artifact_name"),
+                    f"Sense360-{entry['config_string']}-v1.0.0-{channel}.bin",
+                )
+                self.assertNotIn("-stable.bin", entry["artifact_name"])
 
-    def test_fan_candidates_have_no_webflash_wrapper(self) -> None:
+    def test_fan_candidates_webflash_wrapper_exists_and_is_distinct(self) -> None:
+        # Inverts the pre-HW-RELEASE-001 "no webflash_wrapper" pin: each fan
+        # candidate's catalog entry now records its products/webflash wrapper.
+        # The wrapper must exist on disk and the manual lane must keep building
+        # the top-level product YAML, never the wrapper.
         for cand in self.config["candidates"]:
-            entry = self.catalog_by_yaml[cand["product_yaml"]]
-            self.assertFalse(
-                entry.get("webflash_wrapper"),
-                f"{cand['product_yaml']} must not carry a webflash_wrapper",
-            )
+            with self.subTest(candidate=cand["id"]):
+                entry = self.catalog_by_yaml[cand["product_yaml"]]
+                wrapper = entry.get("webflash_wrapper")
+                self.assertTrue(
+                    str(wrapper).startswith("products/webflash/"),
+                    f"{cand['product_yaml']}: wrapper path {wrapper!r}",
+                )
+                self.assertTrue((REPO_ROOT / wrapper).is_file())
+                self.assertNotEqual(cand["product_yaml"], wrapper)
 
     def test_candidates_are_full_compile_validated(self) -> None:
         for cand in self.config["candidates"]:
@@ -159,9 +219,28 @@ class ArtifactNameTests(unittest.TestCase):
             )
 
     def test_name_differs_from_catalog_artifact_names(self) -> None:
+        # HW-RELEASE-001 gave the fan candidates real catalog release
+        # artifact_names, so this distinctness guard now has live teeth: the
+        # manual lane must never REUSE a catalog release name.
+        self.assertTrue(
+            self.catalog_artifact_names,
+            "expected catalog release artifact_names to exist (HW-RELEASE-001)",
+        )
         for cand in self.config["candidates"]:
             name = artifact_basename(cand["product_yaml"], "abcdef12") + ".bin"
             self.assertNotIn(name, self.catalog_artifact_names)
+
+    def test_name_never_collides_with_release_name_shape(self) -> None:
+        # Strengthened distinctness (HW-RELEASE-001): the manual basename can
+        # never even take the release-name SHAPE the catalog now uses
+        # (Sense360-{config}-v{semver}-{channel}.bin), regardless of the SHA.
+        release_shape = re.compile(r"^Sense360-.*-v\d+\.\d+\.\d+-[a-z]+$")
+        for cand in self.config["candidates"]:
+            name = artifact_basename(cand["product_yaml"], "abcdef12")
+            self.assertIsNone(
+                release_shape.match(name),
+                f"{name} must not be shaped like a catalog release artifact",
+            )
 
     def test_short_sha_is_validated(self) -> None:
         with self.assertRaises(ValueError):
@@ -177,10 +256,18 @@ class ValidatorRejectsMutationsTests(unittest.TestCase):
         self.targets = _load(TARGETS_PATH)
 
     def _expect_error(self, mutate) -> None:
+        # HW-RELEASE-001: the baseline already carries the known validator
+        # drift (see EXPECTED_VALIDATOR_DRIFT), so "any error" is no longer
+        # proof the mutation was rejected. Require the mutation to introduce
+        # NEW errors beyond the baseline set.
+        baseline = set(validate(self.config, self.targets, self.catalog))
         cfg = copy.deepcopy(self.config)
         mutate(cfg)
-        errors = validate(cfg, self.targets, self.catalog)
-        self.assertNotEqual(errors, [], "expected validation to fail but it passed")
+        errors = set(validate(cfg, self.targets, self.catalog))
+        self.assertTrue(
+            errors - baseline,
+            "expected the mutation to add validation errors but it did not",
+        )
 
     def test_rejects_release_channel(self) -> None:
         self._expect_error(lambda c: c.__setitem__("release_channel", "stable"))
@@ -196,22 +283,42 @@ class ValidatorRejectsMutationsTests(unittest.TestCase):
 
     def test_rejects_webflash_wrapper_path(self) -> None:
         def mutate(c):
-            c["candidates"][0]["product_yaml"] = (
-                "products/webflash/ceiling-poe-ventiq-fanrelay-roomiq.yaml"
-            )
+            c["candidates"][0][
+                "product_yaml"
+            ] = "products/webflash/ceiling-poe-ventiq-fanrelay-roomiq.yaml"
 
         self._expect_error(mutate)
 
-    def test_rejects_catalog_artifact_name_reuse(self) -> None:
-        # If a candidate's catalog entry grew a release artifact_name, validation
-        # must fail (the manual lane cannot reuse a catalog release name).
-        cfg = copy.deepcopy(self.config)
-        catalog = copy.deepcopy(self.catalog)
-        for p in catalog["products"]:
-            if p.get("product_yaml") == cfg["candidates"][0]["product_yaml"]:
-                p["artifact_name"] = "Sense360-FanRelay-v1.0.0-stable.bin"
-        errors = validate(cfg, self.targets, catalog)
-        self.assertNotEqual(errors, [])
+    def test_catalog_artifact_names_are_never_reused_by_manual_lane(self) -> None:
+        # HW-RELEASE-001: the candidates' catalog entries DO carry release
+        # artifact_names now (non-stable channels). The manual lane's
+        # basename must never equal any candidate's catalog release name,
+        # and the refreshed validator must refuse a stable-channel catalog
+        # entry for a candidate.
+        catalog_by_yaml = {
+            p.get("product_yaml"): p
+            for p in self.catalog["products"]
+            if isinstance(p, dict) and p.get("product_yaml")
+        }
+        for cand in self.config["candidates"]:
+            with self.subTest(candidate=cand["id"]):
+                entry = catalog_by_yaml[cand["product_yaml"]]
+                catalog_name = entry["artifact_name"]
+                manual = artifact_basename(cand["product_yaml"], "abcdef12")
+                self.assertNotEqual(manual + ".bin", catalog_name)
+                self.assertNotEqual(entry.get("channel"), "stable")
+        mutated = copy.deepcopy(self.catalog)
+        for entry in mutated["products"]:
+            if entry.get("product_yaml") == self.config["candidates"][0][
+                "product_yaml"
+            ]:
+                entry["channel"] = "stable"
+        errors = validate(self.config, self.targets, mutated)
+        self.assertTrue(
+            errors,
+            "a stable-channel catalog entry for a manual fan candidate "
+            "must be refused (fan configs are never stable)",
+        )
 
 
 class WorkflowShapeTests(unittest.TestCase):

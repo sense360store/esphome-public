@@ -438,20 +438,37 @@ class DoNotChangeGuardrailsTests(unittest.TestCase):
             "chain is separate.",
         )
 
-    def test_no_fanpwm_in_webflash_builds(self) -> None:
+    def test_no_stable_fanpwm_in_webflash_builds(self) -> None:
+        # HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record,
+        # 2026-07-09) declared preview-channel FanPWM metadata build rows,
+        # so this guard pins the CHANNEL instead of absence: FanPWM rows
+        # may exist but are never channel "stable".
         data = self._load_json(WEBFLASH_BUILDS_JSON)
         builds = data.get("builds", []) if isinstance(data, dict) else []
         for row in builds:
             cfg = row.get("config_string", "")
+            if "FanPWM" not in cfg.split("-"):
+                continue
             with self.subTest(config_string=cfg):
-                self.assertNotIn(
-                    "FanPWM",
-                    cfg,
-                    "FanPWM must not appear in any WebFlash build across "
-                    "S360-100-CONNECTOR-PINMAP-001.",
+                self.assertNotEqual(
+                    row.get("channel"),
+                    "stable",
+                    f"{cfg}: FanPWM build rows are NEVER channel stable "
+                    "(S360-100-CONNECTOR-PINMAP-001 / HW-RELEASE-001).",
+                )
+                self.assertEqual(
+                    row.get("channel"),
+                    "preview",
+                    f"{cfg}: FanPWM build rows are preview-channel only "
+                    "(HW-RELEASE-001).",
                 )
 
     def test_fanpwm_products_keep_no_rpm_claim(self) -> None:
+        # The no-RPM invariant is unchanged by HW-RELEASE-001: RPM remains
+        # NOT supported (rpm_supported must never be True). The former
+        # webflash_build_matrix=false pin was retired by HW-RELEASE-001
+        # (owner-declared preview build rows); the replacement teeth are
+        # status preview / never production and never a stable channel.
         data = self._load_json(PRODUCT_CATALOG_JSON)
         for entry in data.get("products", []):
             cfg = entry.get("config_string") or entry.get("name") or ""
@@ -464,9 +481,16 @@ class DoNotChangeGuardrailsTests(unittest.TestCase):
                     f"{cfg}: rpm_supported must not be True across "
                     f"S360-100-CONNECTOR-PINMAP-001.",
                 )
-                self.assertFalse(
-                    bool(entry.get("webflash_build_matrix")),
-                    f"{cfg}: webflash_build_matrix must stay false.",
+                self.assertNotEqual(
+                    entry.get("status"),
+                    "production",
+                    f"{cfg}: FanPWM catalog entries are never production "
+                    "(HW-RELEASE-001 posture is preview).",
+                )
+                self.assertNotEqual(
+                    entry.get("channel"),
+                    "stable",
+                    f"{cfg}: FanPWM catalog channel is never stable.",
                 )
 
     def test_doc_does_not_claim_release_readiness(self) -> None:

@@ -22,12 +22,14 @@ This module pins the architectural correction recorded in
    tach implementation.
 
 3. **No current FanPWM release / WebFlash path uses SX1509 for PWM
-   or tach.** The ``FanPWM`` token must not appear in
-   ``config/webflash-builds.json``; the FanPWM catalog row must keep
-   ``webflash_build_matrix: false``, no ``artifact_name``, and a
-   non-release-eligible status. The historical SX1509 / pulse_counter
-   compile/config proof fixture and test stay in place as evidence
-   for the rule (not as the current hardware path).
+   or tach.** Amended by HW-RELEASE-001 (``docs/hw-release-001.md``,
+   2026-07-09): FanPWM now carries owner-declared PREVIEW-channel
+   metadata build rows in ``config/webflash-builds.json`` and matching
+   catalog release fields, so the guard is a channel / posture pin —
+   every FanPWM row / entry stays preview (never stable), status
+   ``preview`` (never ``production``). The historical SX1509 /
+   pulse_counter compile/config proof fixture and test stay in place
+   as evidence for the rule (not as the current hardware path).
 
 4. **The canonical map records the same native ESP32-S3 GPIOs as the
    S360-100 Core architecture doc** so a future drift cannot
@@ -334,60 +336,113 @@ class FanPwmYamlLegacySupersededLabellingTests(unittest.TestCase):
 
 
 class FanPwmStaysOutOfReleaseAndWebFlashTests(unittest.TestCase):
-    """Rule (3): no current FanPWM release / WebFlash path uses
-    SX1509 for PWM or tach. The catalog / build-matrix rows confirm
-    the FanPWM lane stays release-blocked and WebFlash-blocked.
+    """Rule (3), amended by HW-RELEASE-001 (docs/hw-release-001.md,
+    owner decision of record, 2026-07-09): the bench-proof documentation
+    gate is retired and FanPWM now carries owner-declared preview-channel
+    metadata build rows / catalog release fields. The remaining teeth of
+    this rule: every FanPWM build row and catalog entry stays on a
+    NON-STABLE channel (preview) with status "preview" (never
+    "production"), and no stable artifact is ever declared. Nothing
+    fan-flavored is ever stable.
     """
 
-    def test_webflash_builds_does_not_contain_fanpwm_token(self) -> None:
-        text = WEBFLASH_BUILDS_JSON.read_text()
-        self.assertNotIn(
-            "FanPWM",
-            text,
-            "config/webflash-builds.json must not contain the FanPWM "
-            "token — the current FanPWM hardware path is not WebFlash-"
-            "exposed and the legacy SX1509 composition must not be "
-            "presented as a current WebFlash-shippable build.",
+    def test_webflash_builds_fanpwm_rows_are_preview_never_stable(self) -> None:
+        # HW-RELEASE-001 channel guard (was: no FanPWM token in builds).
+        data = _load_json(WEBFLASH_BUILDS_JSON)
+        rows = [
+            row
+            for row in (data.get("builds", []) or [])
+            if "FanPWM" in (row.get("config_string") or "").split("-")
+        ]
+        self.assertTrue(
+            rows,
+            "expected FanPWM metadata build rows in "
+            "config/webflash-builds.json (declared by HW-RELEASE-001).",
         )
+        for row in rows:
+            cfg = row.get("config_string")
+            self.assertNotEqual(
+                row.get("channel"),
+                "stable",
+                f"{cfg!r}: FanPWM build rows are NEVER channel stable.",
+            )
+            self.assertEqual(
+                row.get("channel"),
+                "preview",
+                f"{cfg!r}: FanPWM build rows are preview-channel only "
+                "(HW-RELEASE-001).",
+            )
 
-    def test_fanpwm_catalog_entry_keeps_webflash_build_matrix_false(self) -> None:
+    def test_fanpwm_catalog_entry_build_matrix_flip_is_preview_gated(self) -> None:
+        # HW-RELEASE-001 flipped webflash_build_matrix to true by owner
+        # declaration (was: must stay false). The remaining guard: a true
+        # flip is only legitimate together with preview status / channel.
         entry = _fanpwm_catalog_entry()
-        self.assertEqual(
-            entry.get("webflash_build_matrix"),
-            False,
-            f"FanPWM catalog entry must keep "
-            f"webflash_build_matrix: false (legacy SX1509 composition "
-            f"is not release-eligible). Got "
-            f"{entry.get('webflash_build_matrix')!r}.",
-        )
+        if entry.get("webflash_build_matrix"):
+            self.assertEqual(
+                entry.get("status"),
+                "preview",
+                "FanPWM catalog entry with webflash_build_matrix: true "
+                "must be status preview (HW-RELEASE-001) — never "
+                f"production. Got status={entry.get('status')!r}.",
+            )
+            self.assertNotEqual(
+                entry.get("channel"),
+                "stable",
+                "FanPWM catalog entry channel is never stable.",
+            )
 
-    def test_fanpwm_catalog_entry_has_no_artifact_name(self) -> None:
+    def test_fanpwm_catalog_entry_artifact_name_is_preview_only(self) -> None:
+        # HW-RELEASE-001 declared an artifact_name (was: must be absent).
+        # The remaining guard: the artifact carries the -preview channel
+        # suffix and never claims the stable channel.
         entry = _fanpwm_catalog_entry()
-        self.assertNotIn(
-            "artifact_name",
-            entry,
-            "FanPWM catalog entry must not declare artifact_name — no "
-            "release artifact is built against the legacy SX1509 "
-            "composition.",
-        )
+        artifact = entry.get("artifact_name") or ""
+        if artifact:
+            self.assertTrue(
+                artifact.endswith("-preview.bin"),
+                f"FanPWM catalog artifact_name {artifact!r} must end with "
+                "-preview.bin (HW-RELEASE-001) — never -stable.bin.",
+            )
+            self.assertNotIn(
+                "-stable",
+                artifact,
+                "FanPWM catalog artifact_name must never claim stable.",
+            )
 
-    def test_fanpwm_catalog_entry_has_no_webflash_wrapper(self) -> None:
+    def test_fanpwm_catalog_entry_webflash_wrapper_is_declared_file(self) -> None:
+        # HW-RELEASE-001 declared a webflash_wrapper (was: must be absent).
+        # The remaining guard: any declared wrapper lives under
+        # products/webflash/ and exists on disk.
         entry = _fanpwm_catalog_entry()
-        self.assertNotIn(
-            "webflash_wrapper",
-            entry,
-            "FanPWM catalog entry must not declare a webflash_wrapper "
-            "— the legacy SX1509 composition is not WebFlash-exposed.",
-        )
+        wrapper = entry.get("webflash_wrapper")
+        if wrapper:
+            self.assertTrue(
+                wrapper.startswith("products/webflash/"),
+                f"FanPWM webflash_wrapper {wrapper!r} must live under "
+                "products/webflash/.",
+            )
+            self.assertTrue(
+                (REPO_ROOT / wrapper).is_file(),
+                f"declared FanPWM webflash_wrapper {wrapper!r} must exist.",
+            )
 
-    def test_fanpwm_catalog_entry_status_is_not_release_eligible(self) -> None:
+    def test_fanpwm_catalog_entry_status_is_never_production(self) -> None:
+        # HW-RELEASE-001 posture guard (was: status not in
+        # {production, preview}): status "preview" is now the owner-
+        # declared posture; "production" stays forbidden forever.
         entry = _fanpwm_catalog_entry()
-        self.assertNotIn(
+        self.assertNotEqual(
             entry.get("status"),
-            {"production", "preview"},
-            f"FanPWM catalog entry must not be production or preview "
-            f"— those statuses authorise WebFlash exposure. Got "
-            f"status={entry.get('status')!r}.",
+            "production",
+            "FanPWM catalog entry must never be production — fan "
+            f"configs are never stable. Got status={entry.get('status')!r}.",
+        )
+        self.assertEqual(
+            entry.get("status"),
+            "preview",
+            "FanPWM catalog entry is pinned to status preview per "
+            f"HW-RELEASE-001. Got status={entry.get('status')!r}.",
         )
 
     def test_fanpwm_catalog_entry_keeps_rpm_supported_false(self) -> None:

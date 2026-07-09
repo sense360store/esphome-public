@@ -40,6 +40,10 @@
       "sgp41": "0x59"
     },
     "webflash_one_click_posture": "Not exposed in WebFlash one-click: the one-click surface cannot set the DIP switch, so AirIQ+FanDAC stays out of the grammar (fandac_conflicts_with_airiq). The address-overridden AirIQ/VentIQ + FanDAC room-bundle configs are advanced/manual previews only (config/room-bundle-fan-variants.json fan_dac_i2c_address_policy).",
+    "address_overridden_exception_config_strings": [
+      "Ceiling-POE-AirIQ-FanDAC-RoomIQ"
+    ],
+    "address_overridden_exception_note": "HW-RELEASE-001 (docs/hw-release-001.md): the mutex boolean stays TRUE for the one-click WebFlash grammar, but the enumerated config strings above are admitted to the build matrix as the documented address-overridden exception (IC2 relocated 0x59 -> 0x5A via the bundle's fan_dac_2_i2c_address override plus the matching IC2 DIP switch). Acknowledgement-gated preview only; never one-click easy-mode; FANDAC-I2C-ADDR-001 stays pending.",
     "bench_verification_followup": "FANDAC-I2C-ADDR-001",
     "bench_verification_status": "pending"
   },

@@ -535,45 +535,33 @@ class ProductCatalogTests(unittest.TestCase):
         )
         self.assertEqual(matches[0]["status"], "production")
 
-    def test_delisted_roomiq_led_is_not_release_eligible(self) -> None:
-        # CI-PIPELINE-CLARITY-001 P4a: Ceiling-POE-RoomIQ-LED was never built
-        # or served, so it was de-listed from the release-eligible set. The
-        # catalog entry is preserved (so it can be built later) but must stay
-        # in a non-releasable state: not a WebFlash-eligible status,
-        # webflash_build_matrix=false, no artifact_name, and absent from the
-        # build matrix. This prevents silent re-promotion.
+    def test_relisted_roomiq_led_is_preview_eligible(self) -> None:
+        # CI-PIPELINE-CLARITY-001 P4a de-listed Ceiling-POE-RoomIQ-LED (never
+        # built or served). HW-RELEASE-001 (docs/hw-release-001.md, owner
+        # decision of record) deliberately RE-LISTED it: the catalog entry is
+        # back to preview / webflash_build_matrix=true with a reviewed
+        # preview-channel build row (release-eligibility metadata only). LED
+        # stays preview — never auto-stable.
         cs = "Ceiling-POE-RoomIQ-LED"
         matches = [e for e in self.products if e.get("config_string") == cs]
         self.assertEqual(
             len(matches), 1, f"expected exactly one catalog entry for {cs!r}"
         )
         entry = matches[0]
-        self.assertNotIn(
-            entry["status"],
-            WEBFLASH_ELIGIBLE_STATUSES,
-            f"{cs!r} was de-listed by CI-PIPELINE-CLARITY-001 P4a and must "
-            "not carry a WebFlash-eligible status until deliberately re-built "
-            "and re-listed",
+        self.assertEqual(entry["status"], "preview")
+        self.assertEqual(entry.get("channel"), "preview")
+        self.assertTrue(entry["webflash_build_matrix"])
+        self.assertEqual(
+            entry.get("artifact_name"),
+            "Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin",
         )
-        self.assertFalse(
-            entry["webflash_build_matrix"],
-            f"{cs!r} must have webflash_build_matrix=false while de-listed",
-        )
-        self.assertNotIn(
-            "artifact_name",
-            entry,
-            f"{cs!r} must not advertise an artifact_name while de-listed "
-            "(it was never built or served)",
-        )
-        build_strings = {
-            b.get("config_string") for b in self.builds if isinstance(b, dict)
+        builds_by_cs = {
+            b.get("config_string"): b
+            for b in self.builds
+            if isinstance(b, dict)
         }
-        self.assertNotIn(
-            cs,
-            build_strings,
-            f"{cs!r} must not appear in config/webflash-builds.json while "
-            "de-listed",
-        )
+        self.assertIn(cs, builds_by_cs)
+        self.assertEqual(builds_by_cs[cs].get("channel"), "preview")
 
     def test_fantriac_entry_when_present_is_not_production(self) -> None:
         matches = [
@@ -735,63 +723,61 @@ class ManualFirmwareCandidateCatalogTests(unittest.TestCase):
                     "validated-full-compile status as the compile evidence",
                 )
 
-    def test_status_stays_hardware_pending(self) -> None:
+    def test_status_is_preview_never_production(self) -> None:
+        # HW-RELEASE-001 (docs/hw-release-001.md): the fan candidates were
+        # promoted to status preview by owner declaration. They must never
+        # be production and their channel must never be stable.
         for cs in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS:
             with self.subTest(config_string=cs):
-                self.assertEqual(
-                    self._entry(cs).get("status"),
-                    "hardware-pending",
-                    f"{cs!r}: MANUAL-FIRMWARE-CANDIDATE-001 is notes-only — "
-                    "the lifecycle status enum must stay hardware-pending, "
-                    "not be promoted to a release-eligible status",
-                )
+                entry = self._entry(cs)
+                self.assertEqual(entry.get("status"), "preview")
+                self.assertNotEqual(entry.get("status"), "production")
+                self.assertNotEqual(entry.get("channel"), "stable")
 
-    def test_webflash_build_matrix_stays_false(self) -> None:
+    def test_webflash_build_matrix_true_on_non_stable_channel(self) -> None:
+        # HW-RELEASE-001: webflash_build_matrix flipped to true with a
+        # committed non-stable build row (FanPWM / FanDAC: preview; FanRelay:
+        # experimental). Fan configs are NEVER on the stable channel.
         for cs in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS:
             with self.subTest(config_string=cs):
                 entry = self._entry(cs)
                 self.assertIn("webflash_build_matrix", entry)
+                self.assertEqual(entry.get("webflash_build_matrix"), True)
+                expected_channel = (
+                    "experimental" if "FanRelay" in cs else "preview"
+                )
+                self.assertEqual(entry.get("channel"), expected_channel)
+
+    def test_artifact_name_matches_channel(self) -> None:
+        for cs in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS:
+            with self.subTest(config_string=cs):
+                entry = self._entry(cs)
+                channel = entry.get("channel")
+                version = entry.get("version")
                 self.assertEqual(
-                    entry.get("webflash_build_matrix"),
-                    False,
-                    f"{cs!r}: webflash_build_matrix must stay false — a "
-                    "manual / no-WebFlash candidate is not WebFlash-exposed",
+                    entry.get("artifact_name"),
+                    f"Sense360-{cs}-v{version}-{channel}.bin",
                 )
+                self.assertNotIn("-stable.bin", entry.get("artifact_name"))
 
-    def test_no_artifact_name(self) -> None:
+    def test_webflash_wrapper_field_matches_convention(self) -> None:
         for cs in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS:
             with self.subTest(config_string=cs):
-                self.assertNotIn(
-                    "artifact_name",
-                    self._entry(cs),
-                    f"{cs!r}: no artifact_name may be added — a manual "
-                    "candidate is not a release artifact",
+                entry = self._entry(cs)
+                self.assertEqual(
+                    entry.get("webflash_wrapper"),
+                    f"products/webflash/{cs.lower()}.yaml",
                 )
 
-    def test_no_webflash_wrapper_field(self) -> None:
+    def test_webflash_wrapper_files_exist_on_disk(self) -> None:
+        """HW-RELEASE-001 added the fan wrappers; each must exist."""
         for cs in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS:
             with self.subTest(config_string=cs):
-                self.assertNotIn(
-                    "webflash_wrapper",
-                    self._entry(cs),
-                    f"{cs!r}: no webflash_wrapper may be added",
+                wrapper = WEBFLASH_WRAPPER_DIR / f"{cs.lower()}.yaml"
+                self.assertTrue(
+                    wrapper.is_file(),
+                    f"{wrapper} must exist (HW-RELEASE-001 wrapper)",
                 )
-
-    def test_no_webflash_wrapper_file_on_disk(self) -> None:
-        """No products/webflash/ wrapper exists for any fan candidate."""
-        if not WEBFLASH_WRAPPER_DIR.is_dir():
-            return
-        offenders: List[str] = []
-        for path in WEBFLASH_WRAPPER_DIR.glob("*.yaml"):
-            name = path.name.lower()
-            if any(tok in name for tok in ("fanrelay", "fandac", "fanpwm")):
-                offenders.append(path.name)
-        self.assertEqual(
-            offenders,
-            [],
-            "MANUAL-FIRMWARE-CANDIDATE-001 adds no WebFlash wrapper; found "
-            f"{offenders!r} under products/webflash/",
-        )
 
     def test_notes_disclaim_release_and_webflash_readiness(self) -> None:
         for cs in MANUAL_FIRMWARE_CANDIDATE_FAN_CONFIGS:

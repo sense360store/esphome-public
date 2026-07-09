@@ -90,6 +90,33 @@ FORBIDDEN_FAN_TOKENS_FOR_THIS_PR = frozenset(
 )
 FORBIDDEN_POWER_TOKENS_FOR_THIS_PR = frozenset({"PWR"})
 
+# HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record,
+# 2026-07-09): the bench-proof documentation gate is retired and hardware
+# readiness is owner-declared, so the fan-token configs now carry committed
+# metadata build rows in config/webflash-builds.json plus wrappers under
+# products/webflash/. The fan guardrails below are therefore CHANNEL /
+# POSTURE guards, no longer absence guards: fan-token rows are allowed, but
+# only on a non-stable channel — FanPWM / FanDAC rows are channel "preview",
+# FanRelay / FanTRIAC rows are channel "experimental". Nothing fan-flavored
+# is EVER channel "stable", recommended, buyable, a customer default, or in
+# release_one_required_configs.
+FAN_TOKEN_ALLOWED_CHANNEL = {
+    "FanPWM": "preview",
+    "FanDAC": "preview",
+    "FanRelay": "experimental",
+    "FanTRIAC": "experimental",
+}
+
+
+def _fan_build_rows(builds, token):
+    """Committed build rows whose config_string carries the fan token."""
+    return [
+        row
+        for row in (builds.get("builds", []) or [])
+        if token in (row.get("config_string") or "").split("-")
+    ]
+
+
 # FW-COMPILE-RELAY-001: FanRelay compile-only target added in this PR.
 # The product YAML was landed by PRODUCT-RELAY-001 / PR #564 and lives at
 # the top level of products/ (not under products/webflash/ and not under
@@ -883,25 +910,60 @@ class FanRelayCompileOnlyCoverageTests(unittest.TestCase):
             "PWR / COMPLIANCE-001 blocked)",
         )
 
-    def test_fanrelay_compile_only_target_is_not_in_webflash_builds(self):
-        self.assertNotIn(
-            FANRELAY_COMPILE_ONLY_CONFIG_STRING,
-            self.committed_configs,
-            f"FanRelay compile-only target {FANRELAY_COMPILE_ONLY_CONFIG_STRING!r} "
-            "must NOT be present in config/webflash-builds.json — "
-            "compile-only targets do not add WebFlash builds",
-        )
+    def test_fanrelay_builds_rows_are_never_stable_channel(self):
+        """HW-RELEASE-001 channel guard (was: FanRelay absent from builds).
 
-    def test_no_fanrelay_token_in_webflash_builds(self):
-        text = BUILDS_PATH.read_text()
-        self.assertNotIn(
-            "FanRelay",
-            text,
-            "config/webflash-builds.json must not contain the FanRelay "
-            "token — FW-COMPILE-RELAY-001 does not add a FanRelay "
-            "WebFlash build entry. A FanRelay-bearing build entry is "
-            "owned by RELEASE-RELAY-001 (not landed).",
+        HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09) declared
+        FanRelay metadata build rows in config/webflash-builds.json, so
+        this guard pins CHANNEL POSTURE instead of absence: every
+        FanRelay-bearing row must be channel "experimental" — never
+        "stable".
+        """
+        rows = _fan_build_rows(self.builds, "FanRelay")
+        self.assertTrue(
+            rows,
+            "expected at least one FanRelay metadata build row in "
+            "config/webflash-builds.json (declared by HW-RELEASE-001)",
         )
+        for row in rows:
+            cfg = row.get("config_string")
+            self.assertNotEqual(
+                row.get("channel"),
+                "stable",
+                f"{cfg!r}: fan-token build rows are NEVER channel stable",
+            )
+            self.assertEqual(
+                row.get("channel"),
+                FAN_TOKEN_ALLOWED_CHANNEL["FanRelay"],
+                f"{cfg!r}: FanRelay build rows are experimental-channel "
+                "only (mains-adjacent, COMPLIANCE-001 lane posture; "
+                "HW-RELEASE-001)",
+            )
+
+    def test_fanrelay_rows_declare_experimental_artifacts_only(self):
+        """HW-RELEASE-001 artifact guard (was: no FanRelay token in builds).
+
+        FanRelay-bearing rows may exist, but every declared artifact_name
+        must carry the -experimental channel suffix — a -stable FanRelay
+        artifact name is a regression of the never-stable posture.
+        """
+        rows = _fan_build_rows(self.builds, "FanRelay")
+        self.assertTrue(rows, "expected FanRelay rows (HW-RELEASE-001)")
+        for row in rows:
+            cfg = row.get("config_string")
+            artifact = row.get("artifact_name") or ""
+            self.assertTrue(
+                artifact.endswith("-experimental.bin"),
+                f"{cfg!r}: FanRelay artifact_name {artifact!r} must end "
+                "with -experimental.bin (never -stable.bin) per "
+                "HW-RELEASE-001",
+            )
+            self.assertNotIn(
+                "-stable",
+                artifact,
+                f"{cfg!r}: FanRelay artifact_name must never claim the "
+                "stable channel",
+            )
 
     def test_fanrelay_compile_only_target_is_not_in_release_one_required_configs(
         self,
@@ -929,23 +991,40 @@ class FanRelayCompileOnlyCoverageTests(unittest.TestCase):
             "WebFlash wrapper",
         )
 
-    def test_no_fanrelay_webflash_wrapper_file_exists(self):
+    def test_fanrelay_webflash_wrappers_are_backed_by_experimental_rows(self):
+        """HW-RELEASE-001 wrapper guard (was: no FanRelay wrapper exists).
+
+        HW-RELEASE-001 landed FanRelay wrappers under products/webflash/.
+        Every FanRelay-named wrapper must be addressed by a committed
+        config/webflash-builds.json row on the experimental channel — an
+        undeclared wrapper, or one addressed by a stable row, is a
+        regression.
+        """
         webflash_dir = REPO_ROOT / "products" / "webflash"
         if not webflash_dir.is_dir():
             return
-        offenders = []
+        rows_by_yaml = {
+            row.get("product_yaml"): row
+            for row in (self.builds.get("builds", []) or [])
+        }
         for path in webflash_dir.glob("*.yaml"):
             name = path.name.lower()
             if "fanrelay" in name or "fan-relay" in name or "fan_relay" in name:
-                offenders.append(path.relative_to(REPO_ROOT).as_posix())
-        self.assertEqual(
-            offenders,
-            [],
-            f"FW-COMPILE-RELAY-001 must NOT add any FanRelay WebFlash "
-            f"wrapper under products/webflash/ — that work belongs to "
-            f"WEBFLASH-RELAY-001 (not landed). Offending paths: "
-            f"{offenders!r}",
-        )
+                rel = path.relative_to(REPO_ROOT).as_posix()
+                row = rows_by_yaml.get(rel)
+                self.assertIsNotNone(
+                    row,
+                    f"FanRelay wrapper {rel!r} must be declared as a "
+                    "product_yaml in config/webflash-builds.json "
+                    "(HW-RELEASE-001) — undeclared fan wrappers are "
+                    "forbidden",
+                )
+                self.assertEqual(
+                    row.get("channel"),
+                    "experimental",
+                    f"FanRelay wrapper {rel!r} must be addressed by an "
+                    "experimental-channel row only — never stable",
+                )
 
     def test_release_one_target_unchanged(self):
         """The Release-One compile-only target must remain unchanged."""
@@ -1142,22 +1221,56 @@ class FanDACCompileOnlyCoverageTests(unittest.TestCase):
             "FanDAC compile-only target must not declare webflash_wrapper",
         )
 
-    def test_fandac_target_is_not_in_webflash_builds(self):
-        self.assertNotIn(
-            FANDAC_COMPILE_ONLY_CONFIG_STRING,
-            self.committed_configs,
-            f"FanDAC compile-only target {FANDAC_COMPILE_ONLY_CONFIG_STRING!r} "
-            "must NOT be present in config/webflash-builds.json",
-        )
+    def test_fandac_builds_rows_are_never_stable_channel(self):
+        """HW-RELEASE-001 channel guard (was: FanDAC absent from builds).
 
-    def test_no_fandac_token_in_webflash_builds(self):
-        text = BUILDS_PATH.read_text()
-        self.assertNotIn(
-            "FanDAC",
-            text,
-            "config/webflash-builds.json must not contain the FanDAC token "
-            "— FW-COMPILE-DAC-001 adds no FanDAC WebFlash build entry",
+        HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09) declared
+        FanDAC metadata build rows in config/webflash-builds.json, so this
+        guard pins CHANNEL POSTURE instead of absence: every FanDAC-bearing
+        row must be channel "preview" — never "stable".
+        """
+        rows = _fan_build_rows(self.builds, "FanDAC")
+        self.assertTrue(
+            rows,
+            "expected at least one FanDAC metadata build row in "
+            "config/webflash-builds.json (declared by HW-RELEASE-001)",
         )
+        for row in rows:
+            cfg = row.get("config_string")
+            self.assertNotEqual(
+                row.get("channel"),
+                "stable",
+                f"{cfg!r}: fan-token build rows are NEVER channel stable",
+            )
+            self.assertEqual(
+                row.get("channel"),
+                FAN_TOKEN_ALLOWED_CHANNEL["FanDAC"],
+                f"{cfg!r}: FanDAC build rows are preview-channel only "
+                "(HW-RELEASE-001)",
+            )
+
+    def test_fandac_rows_declare_preview_artifacts_only(self):
+        """HW-RELEASE-001 artifact guard (was: no FanDAC token in builds).
+
+        FanDAC-bearing rows may exist, but every declared artifact_name
+        must carry the -preview channel suffix — a -stable FanDAC artifact
+        name is a regression of the never-stable posture.
+        """
+        rows = _fan_build_rows(self.builds, "FanDAC")
+        self.assertTrue(rows, "expected FanDAC rows (HW-RELEASE-001)")
+        for row in rows:
+            cfg = row.get("config_string")
+            artifact = row.get("artifact_name") or ""
+            self.assertTrue(
+                artifact.endswith("-preview.bin"),
+                f"{cfg!r}: FanDAC artifact_name {artifact!r} must end "
+                "with -preview.bin (never -stable.bin) per HW-RELEASE-001",
+            )
+            self.assertNotIn(
+                "-stable",
+                artifact,
+                f"{cfg!r}: FanDAC artifact_name must never claim the " "stable channel",
+            )
 
     def test_fandac_target_is_not_in_release_one_required_configs(self):
         compat_path = REPO_ROOT / "config" / "webflash-compatibility.json"
@@ -1178,21 +1291,40 @@ class FanDACCompileOnlyCoverageTests(unittest.TestCase):
             "products/webflash/ (the WebFlash wrapper namespace)",
         )
 
-    def test_no_fandac_webflash_wrapper_file_exists(self):
+    def test_fandac_webflash_wrappers_are_backed_by_preview_rows(self):
+        """HW-RELEASE-001 wrapper guard (was: no FanDAC wrapper exists).
+
+        HW-RELEASE-001 landed FanDAC wrappers under products/webflash/.
+        Every FanDAC-named wrapper must be addressed by a committed
+        config/webflash-builds.json row on the preview channel — an
+        undeclared wrapper, or one addressed by a stable row, is a
+        regression.
+        """
         webflash_dir = REPO_ROOT / "products" / "webflash"
         if not webflash_dir.is_dir():
             return
-        offenders = []
+        rows_by_yaml = {
+            row.get("product_yaml"): row
+            for row in (self.builds.get("builds", []) or [])
+        }
         for path in webflash_dir.glob("*.yaml"):
             name = path.name.lower()
             if "fandac" in name or "fan-dac" in name or "fan_dac" in name:
-                offenders.append(path.relative_to(REPO_ROOT).as_posix())
-        self.assertEqual(
-            offenders,
-            [],
-            f"FW-COMPILE-DAC-001 must NOT add any FanDAC WebFlash wrapper "
-            f"under products/webflash/. Offending paths: {offenders!r}",
-        )
+                rel = path.relative_to(REPO_ROOT).as_posix()
+                row = rows_by_yaml.get(rel)
+                self.assertIsNotNone(
+                    row,
+                    f"FanDAC wrapper {rel!r} must be declared as a "
+                    "product_yaml in config/webflash-builds.json "
+                    "(HW-RELEASE-001) — undeclared fan wrappers are "
+                    "forbidden",
+                )
+                self.assertEqual(
+                    row.get("channel"),
+                    "preview",
+                    f"FanDAC wrapper {rel!r} must be addressed by a "
+                    "preview-channel row only — never stable",
+                )
 
     def test_compile_only_skeleton_stays_separate_from_product_yaml(self):
         """The compile-only skeleton is not the top-level product YAML.
@@ -1240,27 +1372,64 @@ class FanDACCompileOnlyCoverageTests(unittest.TestCase):
             f"{FANDAC_PRODUCT_YAML}",
         )
 
-    def test_no_fandac_product_yaml_under_webflash_wrapper_dir(self):
-        """No FanDAC YAML may live under products/webflash/.
+    def test_fandac_catalog_entries_keep_preview_posture(self):
+        """FanDAC catalog posture guard (was: no wrapper under webflash/).
 
-        PRODUCT-DAC-001 is product-YAML-only / no-WebFlash-exposure: the
-        WebFlash wrapper namespace (products/webflash/) must carry no
-        FanDAC YAML. That work belongs to WEBFLASH-DAC-001 (not landed).
+        HW-RELEASE-001 flipped the FanDAC catalog entries to status
+        "preview" with a declared webflash_wrapper, so the guard is now a
+        POSTURE pin: every FanDAC catalog entry must be status "preview"
+        (never "production"), never recommended / buyable / a customer
+        default, and any declared webflash_wrapper must exist on disk
+        under products/webflash/.
         """
-        webflash_dir = REPO_ROOT / "products" / "webflash"
-        if not webflash_dir.is_dir():
-            return
-        offenders = []
-        for path in webflash_dir.glob("*.yaml"):
-            name = path.name.lower()
-            if "fandac" in name or "fan-dac" in name or "fan_dac" in name:
-                offenders.append(path.relative_to(REPO_ROOT).as_posix())
-        self.assertEqual(
-            offenders,
-            [],
-            "PRODUCT-DAC-001 must NOT add a FanDAC WebFlash wrapper under "
-            f"products/webflash/. Offending paths: {offenders!r}",
-        )
+        catalog = _load(CATALOG_PATH)
+        entries = [
+            entry
+            for entry in (catalog.get("products", []) or [])
+            if "FanDAC" in (entry.get("config_string") or "").split("-")
+        ]
+        self.assertTrue(entries, "expected FanDAC catalog entries")
+        for entry in entries:
+            cfg = entry.get("config_string")
+            self.assertNotEqual(
+                entry.get("status"),
+                "production",
+                f"{cfg!r}: FanDAC catalog entries are never production",
+            )
+            self.assertEqual(
+                entry.get("status"),
+                "preview",
+                f"{cfg!r}: HW-RELEASE-001 pins FanDAC catalog status " "to preview",
+            )
+            self.assertNotEqual(
+                entry.get("channel"),
+                "stable",
+                f"{cfg!r}: FanDAC catalog channel is never stable",
+            )
+            self.assertFalse(
+                entry.get("recommended", False),
+                f"{cfg!r}: FanDAC is never recommended",
+            )
+            self.assertFalse(
+                entry.get("buyable", False),
+                f"{cfg!r}: FanDAC is never buyable",
+            )
+            self.assertFalse(
+                entry.get("customer_default", False),
+                f"{cfg!r}: FanDAC is never a customer default",
+            )
+            wrapper = entry.get("webflash_wrapper")
+            if wrapper:
+                self.assertTrue(
+                    wrapper.startswith("products/webflash/"),
+                    f"{cfg!r}: webflash_wrapper {wrapper!r} must live "
+                    "under products/webflash/",
+                )
+                self.assertTrue(
+                    (REPO_ROOT / wrapper).is_file(),
+                    f"{cfg!r}: declared webflash_wrapper {wrapper!r} "
+                    "must exist on disk",
+                )
 
     def test_fandac_voltage_enum_concern_is_fixed(self):
         """The gp8403 voltage-enum concern must be resolved, not just tracked.
@@ -1489,22 +1658,56 @@ class FanPWMCompileOnlyCoverageTests(unittest.TestCase):
             "FanPWM compile-only target must not declare webflash_wrapper",
         )
 
-    def test_fanpwm_target_is_not_in_webflash_builds(self):
-        self.assertNotIn(
-            FANPWM_COMPILE_ONLY_CONFIG_STRING,
-            self.committed_configs,
-            f"FanPWM compile-only target {FANPWM_COMPILE_ONLY_CONFIG_STRING!r} "
-            "must NOT be present in config/webflash-builds.json",
-        )
+    def test_fanpwm_builds_rows_are_never_stable_channel(self):
+        """HW-RELEASE-001 channel guard (was: FanPWM absent from builds).
 
-    def test_no_fanpwm_token_in_webflash_builds(self):
-        text = BUILDS_PATH.read_text()
-        self.assertNotIn(
-            "FanPWM",
-            text,
-            "config/webflash-builds.json must not contain the FanPWM token "
-            "— FW-COMPILE-PWM-001 adds no FanPWM WebFlash build entry",
+        HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09) declared
+        FanPWM metadata build rows in config/webflash-builds.json, so this
+        guard pins CHANNEL POSTURE instead of absence: every FanPWM-bearing
+        row must be channel "preview" — never "stable".
+        """
+        rows = _fan_build_rows(self.builds, "FanPWM")
+        self.assertTrue(
+            rows,
+            "expected at least one FanPWM metadata build row in "
+            "config/webflash-builds.json (declared by HW-RELEASE-001)",
         )
+        for row in rows:
+            cfg = row.get("config_string")
+            self.assertNotEqual(
+                row.get("channel"),
+                "stable",
+                f"{cfg!r}: fan-token build rows are NEVER channel stable",
+            )
+            self.assertEqual(
+                row.get("channel"),
+                FAN_TOKEN_ALLOWED_CHANNEL["FanPWM"],
+                f"{cfg!r}: FanPWM build rows are preview-channel only "
+                "(HW-RELEASE-001)",
+            )
+
+    def test_fanpwm_rows_declare_preview_artifacts_only(self):
+        """HW-RELEASE-001 artifact guard (was: no FanPWM token in builds).
+
+        FanPWM-bearing rows may exist, but every declared artifact_name
+        must carry the -preview channel suffix — a -stable FanPWM artifact
+        name is a regression of the never-stable posture.
+        """
+        rows = _fan_build_rows(self.builds, "FanPWM")
+        self.assertTrue(rows, "expected FanPWM rows (HW-RELEASE-001)")
+        for row in rows:
+            cfg = row.get("config_string")
+            artifact = row.get("artifact_name") or ""
+            self.assertTrue(
+                artifact.endswith("-preview.bin"),
+                f"{cfg!r}: FanPWM artifact_name {artifact!r} must end "
+                "with -preview.bin (never -stable.bin) per HW-RELEASE-001",
+            )
+            self.assertNotIn(
+                "-stable",
+                artifact,
+                f"{cfg!r}: FanPWM artifact_name must never claim the " "stable channel",
+            )
 
     def test_fanpwm_target_is_not_in_release_one_required_configs(self):
         compat_path = REPO_ROOT / "config" / "webflash-compatibility.json"
@@ -1525,21 +1728,40 @@ class FanPWMCompileOnlyCoverageTests(unittest.TestCase):
             "products/webflash/ (the WebFlash wrapper namespace)",
         )
 
-    def test_no_fanpwm_webflash_wrapper_file_exists(self):
+    def test_fanpwm_webflash_wrappers_are_backed_by_preview_rows(self):
+        """HW-RELEASE-001 wrapper guard (was: no FanPWM wrapper exists).
+
+        HW-RELEASE-001 landed FanPWM wrappers under products/webflash/.
+        Every FanPWM-named wrapper must be addressed by a committed
+        config/webflash-builds.json row on the preview channel — an
+        undeclared wrapper, or one addressed by a stable row, is a
+        regression.
+        """
         webflash_dir = REPO_ROOT / "products" / "webflash"
         if not webflash_dir.is_dir():
             return
-        offenders = []
+        rows_by_yaml = {
+            row.get("product_yaml"): row
+            for row in (self.builds.get("builds", []) or [])
+        }
         for path in webflash_dir.glob("*.yaml"):
             name = path.name.lower()
             if "fanpwm" in name or "fan-pwm" in name or "fan_pwm" in name:
-                offenders.append(path.relative_to(REPO_ROOT).as_posix())
-        self.assertEqual(
-            offenders,
-            [],
-            f"FW-COMPILE-PWM-001 must NOT add any FanPWM WebFlash wrapper "
-            f"under products/webflash/. Offending paths: {offenders!r}",
-        )
+                rel = path.relative_to(REPO_ROOT).as_posix()
+                row = rows_by_yaml.get(rel)
+                self.assertIsNotNone(
+                    row,
+                    f"FanPWM wrapper {rel!r} must be declared as a "
+                    "product_yaml in config/webflash-builds.json "
+                    "(HW-RELEASE-001) — undeclared fan wrappers are "
+                    "forbidden",
+                )
+                self.assertEqual(
+                    row.get("channel"),
+                    "preview",
+                    f"FanPWM wrapper {rel!r} must be addressed by a "
+                    "preview-channel row only — never stable",
+                )
 
     def test_fanpwm_skeleton_stays_under_compile_only(self):
         """The compile-only skeleton is not the top-level product YAML.
@@ -1605,6 +1827,15 @@ class FanPWMCompileOnlyCoverageTests(unittest.TestCase):
             "products/bundles/ceiling-poe-ventiq-fanpwm-roomiq.yaml",
             "products/sense360-ceiling-poe-airiq-fanpwm-roomiq.yaml",
             "products/bundles/ceiling-poe-airiq-fanpwm-roomiq.yaml",
+            # HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09): the owner
+            # decision declared preview-channel FanPWM build rows, so the
+            # matching WebFlash wrappers now legitimately exist under
+            # products/webflash/. Their never-stable channel posture is
+            # pinned by test_fanpwm_webflash_wrappers_are_backed_by_
+            # preview_rows / test_fanpwm_builds_rows_are_never_stable_channel.
+            "products/webflash/ceiling-poe-fanpwm.yaml",
+            "products/webflash/ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+            "products/webflash/ceiling-poe-airiq-fanpwm-roomiq.yaml",
         }
         offenders = []
         for path in products_dir.rglob("*.yaml"):
@@ -1622,27 +1853,64 @@ class FanPWMCompileOnlyCoverageTests(unittest.TestCase):
             f"YAML may carry a FanPWM name; unexpected: {sorted(offenders)!r}",
         )
 
-    def test_no_fanpwm_product_yaml_under_webflash_wrapper_dir(self):
-        """No FanPWM YAML may live under products/webflash/.
+    def test_fanpwm_catalog_entries_keep_preview_posture(self):
+        """FanPWM catalog posture guard (was: no wrapper under webflash/).
 
-        PRODUCT-PWM-001 is product-YAML-only / no-WebFlash-exposure: the
-        WebFlash wrapper namespace (products/webflash/) must carry no
-        FanPWM YAML. That work belongs to WEBFLASH-PWM-001 (not landed).
+        HW-RELEASE-001 flipped the FanPWM catalog entries to status
+        "preview" with a declared webflash_wrapper, so the guard is now a
+        POSTURE pin: every FanPWM catalog entry must be status "preview"
+        (never "production"), never recommended / buyable / a customer
+        default, and any declared webflash_wrapper must exist on disk
+        under products/webflash/.
         """
-        webflash_dir = REPO_ROOT / "products" / "webflash"
-        if not webflash_dir.is_dir():
-            return
-        offenders = []
-        for path in webflash_dir.glob("*.yaml"):
-            name = path.name.lower()
-            if "fanpwm" in name or "fan-pwm" in name or "fan_pwm" in name:
-                offenders.append(path.relative_to(REPO_ROOT).as_posix())
-        self.assertEqual(
-            offenders,
-            [],
-            "PRODUCT-PWM-001 must NOT add a FanPWM WebFlash wrapper under "
-            f"products/webflash/. Offending paths: {offenders!r}",
-        )
+        catalog = _load(CATALOG_PATH)
+        entries = [
+            entry
+            for entry in (catalog.get("products", []) or [])
+            if "FanPWM" in (entry.get("config_string") or "").split("-")
+        ]
+        self.assertTrue(entries, "expected FanPWM catalog entries")
+        for entry in entries:
+            cfg = entry.get("config_string")
+            self.assertNotEqual(
+                entry.get("status"),
+                "production",
+                f"{cfg!r}: FanPWM catalog entries are never production",
+            )
+            self.assertEqual(
+                entry.get("status"),
+                "preview",
+                f"{cfg!r}: HW-RELEASE-001 pins FanPWM catalog status " "to preview",
+            )
+            self.assertNotEqual(
+                entry.get("channel"),
+                "stable",
+                f"{cfg!r}: FanPWM catalog channel is never stable",
+            )
+            self.assertFalse(
+                entry.get("recommended", False),
+                f"{cfg!r}: FanPWM is never recommended",
+            )
+            self.assertFalse(
+                entry.get("buyable", False),
+                f"{cfg!r}: FanPWM is never buyable",
+            )
+            self.assertFalse(
+                entry.get("customer_default", False),
+                f"{cfg!r}: FanPWM is never a customer default",
+            )
+            wrapper = entry.get("webflash_wrapper")
+            if wrapper:
+                self.assertTrue(
+                    wrapper.startswith("products/webflash/"),
+                    f"{cfg!r}: webflash_wrapper {wrapper!r} must live "
+                    "under products/webflash/",
+                )
+                self.assertTrue(
+                    (REPO_ROOT / wrapper).is_file(),
+                    f"{cfg!r}: declared webflash_wrapper {wrapper!r} "
+                    "must exist on disk",
+                )
 
     def test_fanpwm_target_makes_no_rpm_claim(self):
         self.assertIsNotNone(self.target)
@@ -1961,26 +2229,66 @@ class TopLevelFanProductCompileTargetTests(unittest.TestCase):
                 "by the recorded full-compile result",
             )
 
-    def test_top_level_targets_not_in_webflash_builds(self):
-        for tid, _, config_string, *_ in self.PARAMS:
-            self.assertNotIn(
-                config_string,
-                self.committed_configs,
-                f"target {tid!r}: config_string {config_string!r} must NOT "
-                "be in config/webflash-builds.json",
-            )
+    def test_top_level_config_strings_build_rows_are_preview_only(self):
+        """HW-RELEASE-001 channel guard (was: not in webflash-builds).
 
-    def test_no_fan_token_added_to_webflash_builds(self):
-        """No WebFlash build / release-artifact state change for either fan."""
-        text = BUILDS_PATH.read_text()
-        for token in ("FanPWM", "FanDAC"):
-            self.assertNotIn(
-                token,
-                text,
-                f"config/webflash-builds.json must not contain the {token!r} "
-                "token — TOPLEVEL-FAN-COMPILE-TARGETS-001 adds no WebFlash "
-                "build / release artifact",
+        HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09) declared
+        metadata build rows for the top-level FanPWM / FanDAC config
+        strings, so this guard pins CHANNEL POSTURE instead of absence:
+        each config string's rows must be channel "preview" — never
+        "stable".
+        """
+        rows_by_config = {}
+        for row in self.builds.get("builds", []) or []:
+            rows_by_config.setdefault(row.get("config_string"), []).append(row)
+        for tid, _, config_string, *_ in self.PARAMS:
+            rows = rows_by_config.get(config_string) or []
+            self.assertTrue(
+                rows,
+                f"target {tid!r}: expected a HW-RELEASE-001 metadata build "
+                f"row for {config_string!r} in config/webflash-builds.json",
             )
+            for row in rows:
+                self.assertNotEqual(
+                    row.get("channel"),
+                    "stable",
+                    f"target {tid!r}: {config_string!r} build rows are "
+                    "NEVER channel stable",
+                )
+                self.assertEqual(
+                    row.get("channel"),
+                    "preview",
+                    f"target {tid!r}: {config_string!r} build rows are "
+                    "preview-channel only (HW-RELEASE-001)",
+                )
+
+    def test_no_fan_token_row_is_stable_in_webflash_builds(self):
+        """HW-RELEASE-001 posture guard (was: no fan token in builds).
+
+        Fan-token rows now exist by owner declaration, but every
+        FanPWM / FanDAC-bearing row must stay on the preview channel and
+        never claim a stable artifact name.
+        """
+        for token in ("FanPWM", "FanDAC"):
+            rows = _fan_build_rows(self.builds, token)
+            self.assertTrue(
+                rows,
+                f"expected {token!r} metadata build rows (HW-RELEASE-001)",
+            )
+            for row in rows:
+                cfg = row.get("config_string")
+                self.assertEqual(
+                    row.get("channel"),
+                    FAN_TOKEN_ALLOWED_CHANNEL[token],
+                    f"{cfg!r}: {token} rows are preview-channel only — "
+                    "never stable (HW-RELEASE-001)",
+                )
+                self.assertNotIn(
+                    "-stable",
+                    row.get("artifact_name") or "",
+                    f"{cfg!r}: {token} artifact_name must never claim "
+                    "the stable channel",
+                )
 
     def test_top_level_targets_not_in_release_one_required_configs(self):
         compat_path = REPO_ROOT / "config" / "webflash-compatibility.json"
@@ -2044,8 +2352,17 @@ class TopLevelFanProductCompileTargetTests(unittest.TestCase):
             )
             self.assertNotEqual(tid, skeleton_id)
 
-    def test_catalog_webflash_build_matrix_not_flipped(self):
-        """No webflash_build_matrix flip / artifact_name add in the catalog."""
+    def test_catalog_entries_keep_preview_never_stable_posture(self):
+        """HW-RELEASE-001 catalog posture guard (was: no build-matrix flip).
+
+        HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09) flipped
+        webflash_build_matrix to true and declared artifact_name /
+        webflash_wrapper for the fan catalog entries by owner decision.
+        The remaining teeth: status "preview" (never "production"),
+        channel "preview" (never "stable"), artifact names carry the
+        -preview suffix, and the entries are never recommended / buyable /
+        customer-default.
+        """
         for _, _, config_string, *_ in self.PARAMS:
             entry = self.catalog_by_config.get(config_string)
             self.assertIsNotNone(
@@ -2054,22 +2371,34 @@ class TopLevelFanProductCompileTargetTests(unittest.TestCase):
                 "(landed by PRODUCT-PWM-001 / PRODUCT-DAC-001)",
             )
             self.assertEqual(
-                entry.get("webflash_build_matrix"),
-                False,
-                f"catalog entry for {config_string!r}: webflash_build_matrix "
-                "must stay false — this slice does not flip it",
+                entry.get("status"),
+                "preview",
+                f"catalog entry for {config_string!r}: status must be "
+                "preview (never production) per HW-RELEASE-001",
             )
-            self.assertNotIn(
-                "artifact_name",
-                entry,
-                f"catalog entry for {config_string!r}: no artifact_name may "
-                "be added",
+            self.assertNotEqual(
+                entry.get("channel"),
+                "stable",
+                f"catalog entry for {config_string!r}: channel is never "
+                "stable — nothing fan-flavored is ever stable",
             )
-            self.assertNotIn(
-                "webflash_wrapper",
-                entry,
-                f"catalog entry for {config_string!r}: no webflash_wrapper "
-                "may be added",
+            artifact = entry.get("artifact_name") or ""
+            self.assertTrue(
+                artifact.endswith("-preview.bin"),
+                f"catalog entry for {config_string!r}: artifact_name "
+                f"{artifact!r} must carry the -preview channel suffix",
+            )
+            self.assertFalse(
+                entry.get("recommended", False),
+                f"catalog entry for {config_string!r}: never recommended",
+            )
+            self.assertFalse(
+                entry.get("buyable", False),
+                f"catalog entry for {config_string!r}: never buyable",
+            )
+            self.assertFalse(
+                entry.get("customer_default", False),
+                f"catalog entry for {config_string!r}: never a customer " "default",
             )
 
     def test_totals_updated_for_two_new_top_level_targets(self):
@@ -2186,6 +2515,12 @@ class RoomBundleFanCompileResultsTests(unittest.TestCase):
                 self.assertIn(forbidden, ce.get("not_proof_of", []))
 
     def test_targets_stay_compile_only_and_unexposed(self):
+        # HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09): the five
+        # fan-bundle config strings now carry committed metadata build rows,
+        # but the compile-only TARGETS themselves stay compile-only and
+        # release-artifact-field-free; the build rows are pinned to a
+        # non-stable channel in
+        # test_fan_bundle_build_rows_are_never_stable_channel below.
         for tid in self.TARGET_IDS:
             target = self._target(tid)
             self.assertEqual(target.get("shipment_status"), "compile-only")
@@ -2193,23 +2528,47 @@ class RoomBundleFanCompileResultsTests(unittest.TestCase):
             self.assertFalse(target.get("blocked"))
             self.assertNotIn("webflash_build_matrix", target)
             self.assertNotIn("artifact_name", target)
-            # None of the five fan-bundle configs is a committed WebFlash build.
-            self.assertNotIn(
-                target.get("config_string"),
-                self.committed_configs,
-                f"{tid}: must NOT be a committed WebFlash build",
-            )
 
-    def test_no_webflash_import_implied_and_no_publish_metadata(self):
-        # No release artifact name or WebFlash build row is introduced for any
-        # of the five fan-bundle config strings.
-        builds_text = BUILDS_PATH.read_text()
+    def test_fan_bundle_build_rows_are_never_stable_channel(self):
+        """HW-RELEASE-001 channel guard (was: configs absent from builds).
+
+        The five fan-bundle config strings now have committed metadata
+        build rows by owner declaration; each row must stay on its
+        non-stable channel — FanPWM / FanDAC bundles on "preview",
+        FanRelay bundles on "experimental" — and never "stable".
+        """
+        rows_by_config = {}
+        for row in self.builds.get("builds", []) or []:
+            rows_by_config.setdefault(row.get("config_string"), []).append(row)
         for cfg in self.CONFIG_STRINGS.values():
-            self.assertNotIn(
-                cfg,
-                builds_text,
-                f"{cfg!r} must not appear in config/webflash-builds.json",
+            rows = rows_by_config.get(cfg) or []
+            self.assertTrue(
+                rows,
+                f"{cfg!r}: expected a HW-RELEASE-001 metadata build row "
+                "in config/webflash-builds.json",
             )
+            tokens = set(cfg.split("-"))
+            fan_tokens = tokens & set(FAN_TOKEN_ALLOWED_CHANNEL)
+            self.assertTrue(fan_tokens, f"{cfg!r}: expected a fan token")
+            for row in rows:
+                self.assertNotEqual(
+                    row.get("channel"),
+                    "stable",
+                    f"{cfg!r}: fan-token build rows are NEVER channel " "stable",
+                )
+                for token in fan_tokens:
+                    self.assertEqual(
+                        row.get("channel"),
+                        FAN_TOKEN_ALLOWED_CHANNEL[token],
+                        f"{cfg!r}: {token} rows must be channel "
+                        f"{FAN_TOKEN_ALLOWED_CHANNEL[token]!r} "
+                        "(HW-RELEASE-001)",
+                    )
+                self.assertNotIn(
+                    "-stable",
+                    row.get("artifact_name") or "",
+                    f"{cfg!r}: artifact_name must never claim the stable " "channel",
+                )
 
     def test_triac_room_bundle_config_is_never_compile_validated(self):
         # TRIAC-UNBLOCK-BUILD-001 compile-validated exactly ONE FanTRIAC config

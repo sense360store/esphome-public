@@ -42,8 +42,18 @@ disagree, **the source-of-truth file wins** and this doc is the one to fix.
 ## 1. Current release targets
 
 The shippable WebFlash build matrix is [`config/webflash-builds.json`](../config/webflash-builds.json)
-(validated by `tests/validate_webflash_builds.py`). There are exactly **five**
-builds — three stable, two preview, one experimental:
+(validated by `tests/validate_webflash_builds.py`). There are exactly
+**fourteen** builds — three stable, eight preview, three experimental.
+`HW-RELEASE-001` ([`docs/hw-release-001.md`](hw-release-001.md), owner
+decision of record, 2026-07-09) retired the bench-proof documentation
+requirement as a release gate (hardware readiness is declared by the owner
+directly) and added nine owner-declared rows as release-eligibility
+**metadata only** (`release_state: metadata-ready-unpublished` — no binary,
+GitHub Release, tag, or manifest cut): `Ceiling-POE-RoomIQ-LED` re-listed on
+preview (reversing the `CI-PIPELINE-CLARITY-001` P4a de-list), the six
+FanPWM / FanDAC configs on preview, and the two FanRelay room bundles on the
+experimental channel only (mains-adjacent lane per `COMPLIANCE-001`). Fan
+configs are **never stable**; kit / customer visibility is unchanged:
 
 | Config string | Channel | Version | Artifact | Notes |
 |---|---|---|---|---|
@@ -51,8 +61,16 @@ builds — three stable, two preview, one experimental:
 | `Ceiling-POE-VentIQ-RoomIQ-LED` | **preview** | 1.0.1 | `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.1-preview.bin` | LED variant is **preview only** (see §7). Rebuilt as v1.0.1 (prerelease `v1.0.1-led-preview`, 2026-07-06) by the security rebuild; supersedes `v1.0.0-led-preview`. |
 | `Ceiling-POE-AirIQ-RoomIQ` | **stable** | 1.0.9 | `Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-stable.bin` | Kitchen firmware (`S360-KIT-KITCHEN-P`). Promoted to stable v1.0.6 (2026-06-09) under owner risk-acceptance waiver `HW-AIRIQ-WAIVER-2026-06` (AirIQ sensor stack not bench-verified; owner waiver, not hardware verification); rebuilt as v1.0.9 (GitHub Release `v1.0.9`, 2026-07-06) by the security rebuild. Bundle stays hidden / not buyable. |
 | `Ceiling-POE-RoomIQ` | **stable** | 1.0.8 | `Sense360-Ceiling-POE-RoomIQ-v1.0.8-stable.bin` | Bedroom firmware (`S360-KIT-BEDROOM-P`). Promoted to stable v1.0.5 (2026-06-08) under owner risk-acceptance waiver `HW-S360-410-WAIVER-2026-06` (S360-410 stays cataloged_unverified; owner waiver, not hardware verification); rebuilt as v1.0.8 (GitHub Release `v1.0.8`, 2026-07-06) by the security rebuild. Bundle stays hidden / not buyable. |
-| `Ceiling-POE-RoomIQ-LED` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin` | Living / Corridor candidate firmware (`S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P`); LED stays preview. Build row added by `RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001`; metadata-ready / unpublished, bundles hidden / not buyable. Distinct from the VentIQ LED preview above. |
+| `Ceiling-POE-RoomIQ-LED` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin` | Living / Corridor candidate firmware (`S360-KIT-LIVING-P` / `S360-KIT-CORRIDOR-P`); LED stays preview. RE-LISTED by `HW-RELEASE-001` (owner declaration), reversing the `CI-PIPELINE-CLARITY-001` P4a de-list; metadata-ready / unpublished, bundles hidden / not buyable. Distinct from the VentIQ LED preview above. |
 | `Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` | **experimental** | 1.0.0 | `Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin` | **Experimental self-build mains** firmware (S360-320 TRIAC). Commissioned by `TRIAC-COMMISSIONING-001` into the experimental lane (`COMPLIANCE-001-RESOLUTION-001`); PACKAGE-TRIAC-001 operator-attested bench proof. **Never stable / recommended / default / buyable / kit-exposed**; self-build CERN-OHL-P board Sense360 never places on the market. Metadata-ready / unpublished (no tag cut); one-click WebFlash import gated by `WF-IMPORT-TRIAC-001`. |
+| `Ceiling-POE-FanPWM` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-FanPWM-v1.0.0-preview.bin` | FanPWM (S360-311, SELV). Owner-declared preview row (`HW-RELEASE-001`); metadata-ready / unpublished. `RELEASE-PWM-001` stays the stable blocker; RPM not supported. Never stable. |
+| `Ceiling-POE-AirIQ-FanPWM-RoomIQ` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-AirIQ-FanPWM-RoomIQ-v1.0.0-preview.bin` | Kitchen FanPWM room bundle. Owner-declared preview row (`HW-RELEASE-001`); metadata-ready / unpublished. Never stable. |
+| `Ceiling-POE-VentIQ-FanPWM-RoomIQ` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-VentIQ-FanPWM-RoomIQ-v1.0.0-preview.bin` | Bathroom FanPWM room bundle. Owner-declared preview row (`HW-RELEASE-001`); metadata-ready / unpublished. Never stable. |
+| `Ceiling-POE-FanDAC` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-FanDAC-v1.0.0-preview.bin` | FanDAC (S360-312, SELV). Owner-declared preview row (`HW-RELEASE-001`); metadata-ready / unpublished. `RELEASE-DAC-001` + `FANDAC-I2C-ADDR-001` (pending) stay the stable blockers. Never stable. |
+| `Ceiling-POE-AirIQ-FanDAC-RoomIQ` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-AirIQ-FanDAC-RoomIQ-v1.0.0-preview.bin` | Kitchen FanDAC room bundle — the documented **address-overridden exception** to the `fandac_conflicts_with_airiq` one-click mutex (IC2 relocated 0x59 → 0x5A; DIP switch SW2 must match). Owner-declared preview row (`HW-RELEASE-001`); metadata-ready / unpublished. `FANDAC-I2C-ADDR-001` stays pending. Never stable, never one-click. |
+| `Ceiling-POE-VentIQ-FanDAC-RoomIQ` | **preview** | 1.0.0 | `Sense360-Ceiling-POE-VentIQ-FanDAC-RoomIQ-v1.0.0-preview.bin` | Bathroom FanDAC room bundle (IC2 0x5A override; DIP switch SW2 must match). Owner-declared preview row (`HW-RELEASE-001`); metadata-ready / unpublished. `FANDAC-I2C-ADDR-001` stays pending. Never stable. |
+| `Ceiling-POE-AirIQ-FanRelay-RoomIQ` | **experimental** | 1.0.0 | `Sense360-Ceiling-POE-AirIQ-FanRelay-RoomIQ-v1.0.0-experimental.bin` | Kitchen FanRelay room bundle (S360-310, **mains-adjacent contact switching**). Owner-declared **experimental-only** row (`HW-RELEASE-001`; lane posture per `COMPLIANCE-001`); metadata-ready / unpublished. Competent-person installation where mains switching is in scope. **Never stable / recommended / default / buyable / kit-exposed.** |
+| `Ceiling-POE-VentIQ-FanRelay-RoomIQ` | **experimental** | 1.0.0 | `Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.0-experimental.bin` | Bathroom FanRelay room bundle (S360-310, **mains-adjacent contact switching**). Owner-declared **experimental-only** row (`HW-RELEASE-001`; lane posture per `COMPLIANCE-001`); metadata-ready / unpublished. Competent-person installation where mains switching is in scope. **Never stable / recommended / default / buyable / kit-exposed.** |
 
 The two LED preview rows remain preview: the VentIQ LED preview is published
 (rebuilt as prerelease `v1.0.1-led-preview` on 2026-07-06, superseding
@@ -64,23 +82,30 @@ and the consuming candidate bundles stay hidden / not buyable / not customer
 defaults. Firmware-build proof for the room-bundle rows is the hosted Preview
 Compile Dry-Run (run `26821900127`).
 
-The single **experimental** row (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`) is the
-self-build mains TRIAC firmware, commissioned by `TRIAC-COMMISSIONING-001` into
-the experimental lane defined by
+The three **experimental** rows are the mains-adjacent lane.
+`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ` is the self-build mains TRIAC firmware,
+commissioned by `TRIAC-COMMISSIONING-001` into the experimental lane defined by
 [`docs/decisions/COMPLIANCE-001-RESOLUTION-001.md`](decisions/COMPLIANCE-001-RESOLUTION-001.md).
 It is **release-eligibility metadata only** (no tag cut, no binary published),
 backed by the operator-attested `PACKAGE-TRIAC-001` bench proof, and stays
 **never stable / recommended / default / buyable / kit-exposed**: the S360-320
 is an open-source CERN-OHL-P board Sense360 never places on the market.
-One-click WebFlash import remains gated by `WF-IMPORT-TRIAC-001`.
+One-click WebFlash import remains gated by `WF-IMPORT-TRIAC-001`. The two
+FanRelay room bundles were promoted to the same experimental-only posture by
+the `HW-RELEASE-001` owner declaration (S360-310 mains-adjacent contact
+switching; `RELEASE-RELAY-001` stays the stable blocker; no
+electrical-safety / EMC / compliance claim).
 
 Release-One required configs (`config/webflash-compatibility.json` →
 `release_one_required_configs`): **`Ceiling-POE-VentIQ-RoomIQ`** only — the four
 preview rows are **not** Release-One required configs.
 
-No other config string is release-eligible today. FanRelay / FanPWM / FanDAC /
-FanTRIAC are **not** in `webflash-builds.json`, have no `artifact_name`, and do
-not set `webflash_build_matrix`.
+No other config string is release-eligible today. Under `HW-RELEASE-001` the
+FanRelay / FanPWM / FanDAC / FanTRIAC configs above ARE in
+`webflash-builds.json` on their non-stable lanes with `artifact_name` and
+`webflash_build_matrix: true` — but a fan config on the **stable** channel
+remains a guardrail violation (`scripts/list_release_targets.py`), and the
+catalog status for every fan config is `preview`, never `production`.
 
 | Release status field | Value |
 |---|---|
@@ -110,12 +135,15 @@ wrappers, builds, or releases.
 | Bundle SKU | Room | Boards | Likely firmware target | Status |
 |---|---|---|---|---|
 | `S360-KIT-BATH-P` | bathroom | S360-100/200/211/410 | `Ceiling-POE-VentIQ-RoomIQ` | **stable-release** |
-| `S360-KIT-KITCHEN-P` | kitchen | S360-100/200/210/410 | `Ceiling-POE-AirIQ-RoomIQ` | stable-candidate |
+| `S360-KIT-KITCHEN-P` | kitchen | S360-100/200/210/410 | `Ceiling-POE-AirIQ-RoomIQ` | **stable-release** (promoted by the `HW-RELEASE-001` owner declaration; G8 gates cleared by owner declaration, HW-RELEASE-001; still hidden / not buyable) |
 | `S360-KIT-LIVING-P` | living-room | S360-100/200/300/410 | `Ceiling-POE-RoomIQ-LED` | preview-candidate |
 | `S360-KIT-BEDROOM-P` | bedroom | S360-100/200/410 | `Ceiling-POE-RoomIQ` | stable-candidate |
 | `S360-KIT-CORRIDOR-P` | corridor | S360-100/200/300/410 | `Ceiling-POE-RoomIQ-LED` | preview-candidate |
 
-Only `S360-KIT-BATH-P` maps to a shipped stable build. All other bundles are
+`S360-KIT-BATH-P` and (per the `HW-RELEASE-001` owner declaration)
+`S360-KIT-KITCHEN-P` map to shipped stable builds; the Kitchen promotion is
+an owner decision, not hardware verification, and its kit / customer
+visibility is unchanged (hidden / not buyable). The remaining bundles are
 candidates gated behind their own promotion gates (LED gauntlet and/or the
 S360-410 PoE evidence gate — see §6 / §7). No bundle is promoted by this doc.
 

@@ -39,12 +39,20 @@ MANIFEST_PATH = REPO_ROOT / "config" / "preview-release-targets.json"
 # Ceiling-POE-AirIQ-RoomIQ (stable v1.0.6) were promoted off the preview tier,
 # so they left this preview-compile scope (stable targets are built by the
 # release workflow, not this dry-run lane).
+# HW-RELEASE-001 (docs/hw-release-001.md, owner declaration) added the five
+# promoted room-bundle fan configs to config/preview-release-targets.json as
+# manual-preview targets, so they joined this dry-run scope.
 EXPECTED_IN_SCOPE = [
     "Ceiling-POE-VentIQ-RoomIQ-LED",
     "Ceiling-POE-RoomIQ-LED",
     "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
     "Ceiling-POE-FanPWM",
     "Ceiling-POE-FanDAC",
+    "Ceiling-POE-AirIQ-FanPWM-RoomIQ",
+    "Ceiling-POE-VentIQ-FanPWM-RoomIQ",
+    "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
+    "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
+    "Ceiling-POE-AirIQ-FanRelay-RoomIQ",
 ]
 EXCLUDED_TRIAC = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
 STABLE_BASELINE = "Ceiling-POE-VentIQ-RoomIQ"

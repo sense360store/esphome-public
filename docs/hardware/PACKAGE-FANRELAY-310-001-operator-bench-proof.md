@@ -1,5 +1,10 @@
 # PACKAGE-FANRELAY-310-001 — Sense360 Relay Operator Bench Proof
 
+**RETIRED — informational only, superseded by owner declaration
+(HW-RELEASE-001, [`docs/hw-release-001.md`](../hw-release-001.md)). This
+template is no longer a release gate; its capture cells and attestation
+remain intentionally empty and no evidence was or will be recorded here.**
+
 **Programme:** `BENCH-VALIDATION-001` (tracking:
 [`docs/bench-validation-001.md`](../bench-validation-001.md))
 

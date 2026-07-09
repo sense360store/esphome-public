@@ -16,10 +16,15 @@ preflight only:
 Release-eligibility is driven **exclusively** by
 ``config/webflash-builds.json`` — the same single source of truth the
 release workflow (``.github/workflows/firmware-build-release.yml``) uses to
-generate its build matrix. The non-release manual fan candidates in
-``config/manual-firmware-artifacts.json`` (FanRelay / FanPWM / FanDAC) are
-explicitly excluded; the planner asserts none of them have leaked into the
-release matrix and records them under an "explicitly excluded" section.
+generate its build matrix. Per owner decision HW-RELEASE-001
+(``docs/hw-release-001.md``, 2026-07-09) the FanRelay / FanPWM / FanDAC
+families are release-eligible on **non-stable channels only**: a FanRelay
+row must be exactly ``experimental`` and a FanPWM / FanDAC row exactly
+``preview``. The planner refuses any fan-token build row on the ``stable``
+channel (or any channel other than the family's approved one). The manual
+candidates in ``config/manual-firmware-artifacts.json`` remain a parallel
+point-to-point handoff lane — no longer the only path for fan firmware —
+and are recorded under a "manual-lane candidates" section.
 
 For each release-eligible build the plan records:
 
@@ -46,8 +51,8 @@ Usage:
     python3 scripts/plan_room_release_notes.py --output release-notes-plan.md
     python3 scripts/plan_room_release_notes.py --commit "$GITHUB_SHA"
 
-Exits 0 on success, 2 on a planning error (e.g. a fan candidate found in the
-release matrix, or a build the generator refuses).
+Exits 0 on success, 2 on a planning error (e.g. a fan-token build row on the
+stable channel, or a build the generator refuses).
 """
 
 from __future__ import annotations
@@ -77,11 +82,21 @@ VALIDATOR_SCRIPT = REPO_ROOT / "scripts" / "validate-webflash-release-notes.py"
 
 DEFAULT_REPO_URL = "https://github.com/sense360store/esphome-public"
 
-# Fan families that are manual-candidate-only and must never appear as a
-# release artifact. Kept as a literal guardrail alongside the data-driven
-# check against config/manual-firmware-artifacts.json so the exclusion holds
-# even if that file is edited.
+# HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09) retired the blanket
+# "no fan row in the release matrix" guardrail and replaced it with channel
+# teeth: fan families are release-eligible on non-stable channels ONLY.
+# FanRelay rows must be exactly "experimental" (mains-adjacent lane per
+# COMPLIANCE-001) and FanPWM / FanDAC rows exactly "preview". Any fan-token
+# row on "stable" (or any other channel) is refused. Kept as a literal
+# guardrail alongside the data-driven product_yaml check against
+# config/manual-firmware-artifacts.json so the channel teeth hold even if
+# that file is edited.
 FAN_FAMILY_TOKENS = ("FanRelay", "FanPWM", "FanDAC")
+FAN_ALLOWED_CHANNELS = {
+    "FanRelay": ("experimental",),
+    "FanPWM": ("preview",),
+    "FanDAC": ("preview",),
+}
 
 
 class PlanError(Exception):
@@ -135,7 +150,16 @@ def _fan_candidates(manual_doc: Dict[str, Any]) -> List[Dict[str, Any]]:
 def _assert_no_fan_in_release(
     builds: List[Dict[str, Any]], fan_candidates: List[Dict[str, Any]]
 ) -> None:
-    """Guardrail: no manual fan candidate may appear in the release matrix."""
+    """Guardrail (HW-RELEASE-001): fan builds are never on the stable channel.
+
+    A FanRelay / FanPWM / FanDAC token in a release row is allowed only on
+    the family's owner-approved non-stable channel (FanRelay: exactly
+    ``experimental``; FanPWM / FanDAC: exactly ``preview``). A ``stable``
+    fan-token row — or any other channel — is refused. A manual candidate's
+    canonical ``product_yaml`` must still never double as a release row's
+    ``product_yaml`` (release rows use ``products/webflash/`` wrappers;
+    manual candidates use top-level ``products/sense360-*.yaml``).
+    """
     fan_yamls = {
         c.get("product_yaml")
         for c in fan_candidates
@@ -144,19 +168,26 @@ def _assert_no_fan_in_release(
     for build in builds:
         config_string = str(build.get("config_string", ""))
         product_yaml = str(build.get("product_yaml", ""))
+        channel = str(build.get("channel", "")).strip().lower()
         for token in FAN_FAMILY_TOKENS:
             if token.lower() in config_string.lower():
-                raise PlanError(
-                    f"guardrail violation: release build {config_string!r} "
-                    f"carries fan family token {token!r}; FanRelay/FanPWM/"
-                    "FanDAC are manual-candidate-only and must not be a "
-                    "release artifact"
-                )
+                allowed = FAN_ALLOWED_CHANNELS[token]
+                if channel not in allowed:
+                    raise PlanError(
+                        f"guardrail violation (HW-RELEASE-001): release "
+                        f"build {config_string!r} carries fan family token "
+                        f"{token!r} on channel {channel!r}; {token} builds "
+                        f"are allowed only on the "
+                        f"{' / '.join(allowed)} channel and are never a "
+                        "stable release artifact"
+                    )
         if product_yaml in fan_yamls:
             raise PlanError(
                 f"guardrail violation: release build product_yaml "
-                f"{product_yaml!r} matches a manual fan candidate; fan "
-                "candidates must not be a release artifact"
+                f"{product_yaml!r} matches a manual fan candidate's "
+                "canonical YAML; release rows must address fan builds via "
+                "their products/webflash/ wrappers, not the manual lane's "
+                "top-level product YAML"
             )
 
 
@@ -299,9 +330,10 @@ def build_plan(
     ``config/webflash-builds.json``. When ``config_string`` names a
     specific release target, the plan covers only that one build —
     operator-driven scoping for RELEASE-PRODUCT-SELECTION-001. The
-    fan-exclusion guardrail still runs across the full release matrix so
-    a fan token leaking into ``config/webflash-builds.json`` is caught
-    even when an operator scoped the plan to a single non-fan build.
+    fan channel guardrail (HW-RELEASE-001) still runs across the full
+    release matrix so a fan-token row on a forbidden channel (stable)
+    in ``config/webflash-builds.json`` is caught even when an operator
+    scoped the plan to a single non-fan build.
     """
     gen = _load_module("generate_webflash_release_notes", GENERATOR_SCRIPT)
     val = _load_module("validate_webflash_release_notes", VALIDATOR_SCRIPT)
@@ -461,7 +493,7 @@ def render_markdown(plan: Dict[str, Any]) -> str:
         "| Release matrix (sole release-eligibility source) | "
         "`config/webflash-builds.json` |",
         "| Lifecycle / hardware status | `config/product-catalog.json` |",
-        "| Excluded non-release fan candidates | "
+        "| Manual-lane fan candidates (parallel path) | "
         "`config/manual-firmware-artifacts.json` |",
         f"| ESPHome version | `{plan['esphome_version']}` "
         "(from `.github/workflows/firmware-build-release.yml`) |",
@@ -478,11 +510,14 @@ def render_markdown(plan: Dict[str, Any]) -> str:
 
     lines.extend(
         [
-            "## Explicitly excluded — not release artifacts",
+            "## Manual-lane candidates — parallel point-to-point path",
             "",
-            "The following are **manual-candidate-only** firmware "
-            "(`config/manual-firmware-artifacts.json`). They are deliberately "
-            "**absent** from the release matrix and this plan:",
+            "The following are also tracked as **manual-lane candidates** "
+            "(`config/manual-firmware-artifacts.json`). Per owner decision "
+            "HW-RELEASE-001 (`docs/hw-release-001.md`) the manual lane is "
+            "**no longer the only path** for fan firmware — fan configs are "
+            "release-eligible above on non-stable channels — but it remains "
+            "available for point-to-point handoff:",
             "",
         ]
     )
@@ -491,21 +526,25 @@ def render_markdown(plan: Dict[str, Any]) -> str:
         sku = cand.get("sku", "<unknown>")
         product_yaml = cand.get("product_yaml", "<unknown>")
         lines.append(
-            f"- **{family}** (`{sku}`, `{product_yaml}`) — not a release "
-            "artifact."
+            f"- **{family}** (`{sku}`, `{product_yaml}`) — manual-lane "
+            "candidate (point-to-point handoff)."
         )
     lines.extend(
         [
             "",
             "For FanRelay / FanPWM / FanDAC this plan explicitly asserts:",
             "",
-            "- they are **not** release artifacts (no entry in "
-            "`config/webflash-builds.json`);",
-            "- they have **no WebFlash exposure** (no wrapper, "
-            "`webflash_build_matrix: false`);",
-            "- this plan makes **no** hardware-stable / compliance / "
-            "release-ready claim for them beyond their existing "
-            "`hardware-pending` catalog state.",
+            "- they are release-eligible on **non-stable channels only** "
+            "(HW-RELEASE-001): FanRelay exactly `experimental`, FanPWM / "
+            "FanDAC exactly `preview`; a fan build is **never** a stable "
+            "release artifact;",
+            "- their release rows in `config/webflash-builds.json` are "
+            "acknowledgement-gated and not buyable / recommended / "
+            "customer-default / kit-exposed;",
+            "- this plan makes **no** hardware-stable / compliance / safety "
+            "claim for them beyond the catalog's recorded owner-declared "
+            "`hardware_status` (HW-RELEASE-001 owner declaration, not bench "
+            "proof).",
             "",
         ]
     )

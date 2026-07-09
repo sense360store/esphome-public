@@ -344,7 +344,11 @@ class RoomBundleGuardrailTests(unittest.TestCase):
             bundle["likely_firmware_config_target"],
             "Ceiling-POE-AirIQ-RoomIQ",
         )
-        self.assertEqual(bundle["current_release_status"], "stable-candidate")
+        # Promoted stable-candidate -> stable-release under owner declaration
+        # HW-RELEASE-001 (docs/hw-release-001.md); G8 gates cleared by owner
+        # declaration, kit/customer visibility unchanged.
+        self.assertEqual(bundle["current_release_status"], "stable-release")
+        self.assertEqual(bundle["missing_gates"], [])
         for sku in ("S360-100", "S360-200", "S360-210", "S360-410"):
             self.assertIn(
                 sku,

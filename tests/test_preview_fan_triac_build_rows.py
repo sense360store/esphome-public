@@ -310,15 +310,23 @@ class SimpleInstallUnchangedTests(unittest.TestCase):
         cls.builds = _load(BUILDS_PATH)
         cls.shop = _load(SHOP_PATH)
 
-    def test_no_fan_in_webflash_builds_triac_experimental_only(self) -> None:
-        # The three manual-preview fan drivers (FanRelay / FanPWM / FanDAC) stay
-        # entirely off the WebFlash build matrix. FanTRIAC is admitted only on
-        # the experimental self-build mains channel (TRIAC-COMMISSIONING-001),
-        # never on a customer (stable / preview) channel.
+    def test_fans_in_webflash_builds_on_their_lanes_never_stable(self) -> None:
+        # HW-RELEASE-001 (docs/hw-release-001.md): the fan drivers are
+        # admitted to the WebFlash build matrix on their non-stable lanes
+        # only — FanPWM / FanDAC on 'preview', FanRelay on 'experimental'
+        # (mains-adjacent lane per COMPLIANCE-001). FanTRIAC stays admitted
+        # only on the experimental self-build mains channel
+        # (TRIAC-COMMISSIONING-001). No fan/TRIAC row is ever stable.
         ledger_cs = {b["config_string"]: b for b in self.builds["builds"]}
         for cs in FAN_CONFIGS:
             with self.subTest(config_string=cs):
-                self.assertNotIn(cs, ledger_cs)
+                self.assertIn(cs, ledger_cs)
+                channel = ledger_cs[cs]["channel"]
+                self.assertNotEqual(channel, "stable")
+                if "FanRelay" in cs:
+                    self.assertEqual(channel, "experimental")
+                else:
+                    self.assertEqual(channel, "preview")
         self.assertIn(TRIAC_CONFIG, ledger_cs)
         self.assertEqual(ledger_cs[TRIAC_CONFIG]["channel"], "experimental")
 

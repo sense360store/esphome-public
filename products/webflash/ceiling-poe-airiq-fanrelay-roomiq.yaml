@@ -1,0 +1,35 @@
+# ============================================================================
+# Sense360 WebFlash wrapper — EXPERIMENTAL fan room bundle (AirIQ + FanRelay
+# + RoomIQ, HW-RELEASE-001; mains-adjacent lane per COMPLIANCE-001).
+# ============================================================================
+# HW-RELEASE-001 (docs/hw-release-001.md): promoted to the EXPERIMENTAL
+# channel only by owner declaration (bench-proof documentation requirement
+# retired as a release gate; hardware readiness declared by the owner
+# directly). FanRelay is mains-adjacent contact switching (S360-310), so it
+# takes the experimental lane posture mirroring COMPLIANCE-001
+# (docs/decisions/COMPLIANCE-001-RESOLUTION-001.md) — the same lane as
+# FanTRIAC, NEVER stable. This is the WebFlash-namespaced release-gate
+# wrapper so the declaration-driven release matrix
+# (config/webflash-builds.json, ESP-007) can address the build via the
+# products/webflash/ namespace; the release workflow compiles the canonical
+# products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml, not this wrapper.
+#
+# Canonical YAML (full substitutions, packages, board config — unchanged):
+#   products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml
+#
+#   WebFlash config string : Ceiling-POE-AirIQ-FanRelay-RoomIQ
+#   Build channel          : experimental
+#   Artifact name          : Sense360-Ceiling-POE-AirIQ-FanRelay-RoomIQ-v1.0.0-experimental.bin
+#   Owner declaration      : docs/hw-release-001.md (HW-RELEASE-001)
+#
+# EXPERIMENTAL — NEVER stable, NEVER recommended, NEVER a customer default,
+# NEVER buyable, NEVER in any kit or kit picker, NEVER in
+# release_one_required_configs. Where mains AC switching is in scope,
+# installation must be by a competent person. Firmware-build proof only,
+# released under owner declaration HW-RELEASE-001 — no electrical-safety /
+# EMC / compliance claim of any kind. Kit / customer visibility is unchanged
+# by this wrapper.
+# ============================================================================
+
+packages:
+  airiq_fanrelay_roomiq_experimental: !include ../sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml

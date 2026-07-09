@@ -80,7 +80,13 @@ def is_valid_combination(
     fan: Optional[str],
     rules: Dict[str, Any],
 ) -> bool:
-    """Apply the grammar rules from webflash-compatibility.json."""
+    """Apply the slot-level grammar rules from webflash-compatibility.json.
+
+    Config strings enumerated in the compatibility snapshot's
+    ``fandac_air_quality_address_policy.address_overridden_exception_config_strings``
+    are re-admitted by ``enumerate_combinations`` even when this returns
+    False (HW-RELEASE-001 documented address-overridden exception).
+    """
     if (
         rules.get("airiq_and_ventiq_mutually_exclusive", True)
         and air == "AirIQ"
@@ -123,6 +129,11 @@ def enumerate_combinations(compat: Dict[str, Any]) -> List[Dict[str, Any]]:
     rules = compat.get("rules", {})
     mountings = list(compat.get("canonical_mounting", []))
     powers = list(compat.get("canonical_power", []))
+    exceptions = set(
+        compat.get("fandac_air_quality_address_policy", {}).get(
+            "address_overridden_exception_config_strings", []
+        )
+    )
 
     air_slots: List[Optional[str]] = [None, "AirIQ", "VentIQ"]
     room_slots: List[Optional[str]] = [None, "RoomIQ"]
@@ -134,13 +145,14 @@ def enumerate_combinations(compat: Dict[str, Any]) -> List[Dict[str, Any]]:
         for power in powers:
             for air in air_slots:
                 for fan in fan_slots:
-                    if not is_valid_combination(air, fan, rules):
-                        continue
+                    slot_valid = is_valid_combination(air, fan, rules)
                     for room in room_slots:
                         for led in led_slots:
                             cs, tokens = build_config_string(
                                 mounting, power, air, fan, room, led
                             )
+                            if not slot_valid and cs not in exceptions:
+                                continue
                             out.append(
                                 {
                                     "config_string": cs,

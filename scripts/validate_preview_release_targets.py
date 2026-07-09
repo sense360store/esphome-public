@@ -27,9 +27,11 @@ Cross-references enforced (metadata only):
     carries a build blocker (HW-005 buildability, not a preview-policy block);
   * fan-driver targets are PREVIEW release targets delivered on the
     ``manual-preview`` lane (WebFlash import gated until the WebFlash warning UX
-    is ready), map to the manual lane in
-    ``config/manual-firmware-artifacts.json``, and keep
-    ``webflash_build_matrix=false`` in the catalog;
+    is ready); under owner declaration HW-RELEASE-001
+    (``docs/hw-release-001.md``) their configs may also carry a committed
+    ``config/webflash-builds.json`` row on a NON-STABLE channel, in which case
+    the catalog must have ``webflash_build_matrix=true`` (a fan config on the
+    stable channel stays forbidden);
   * ledger-present targets (``published-stable`` / ``published-preview`` /
     ``webflash-preview-metadata-ready``) agree with ``config/webflash-builds.json``
     on channel + artifact name, and unpublished targets are absent from it and
@@ -412,17 +414,25 @@ def validate(
                     f"target {tid!r}: fan-driver exposure_class must be "
                     "'acknowledgement-gated'"
                 )
-            if yaml_path not in manual_yamls:
+            if yaml_path not in manual_yamls and cs not in builds_by_cs:
                 terr.append(
                     f"target {tid!r}: fan-driver yaml_path {yaml_path!r} is not a "
-                    "candidate in config/manual-firmware-artifacts.json"
+                    "candidate in config/manual-firmware-artifacts.json and the "
+                    "config has no committed webflash-builds row"
                 )
+            # HW-RELEASE-001: a fan-driver config with a committed (non-stable)
+            # webflash-builds row must have webflash_build_matrix=true in the
+            # catalog; without a committed row it must stay false.
             cat = catalog_by_cs.get(cs)
-            if cat is not None and cat.get("webflash_build_matrix") is not False:
-                terr.append(
-                    f"target {tid!r}: catalog webflash_build_matrix must stay "
-                    "false for a fan-driver target"
-                )
+            if cat is not None:
+                expected_wbm = cs in builds_by_cs
+                if cat.get("webflash_build_matrix") is not expected_wbm:
+                    terr.append(
+                        f"target {tid!r}: catalog webflash_build_matrix must be "
+                        f"{expected_wbm} for this fan-driver target "
+                        "(HW-RELEASE-001: true only with a committed non-stable "
+                        "build row)"
+                    )
 
         # WebFlash lane: publication vs the build ledger.
         in_builds = cs in builds_by_cs
@@ -479,13 +489,20 @@ def validate(
             # channel only.
             if in_builds:
                 committed = builds_by_cs.get(cs) or {}
-                is_triac_target = "FanTRIAC" in cs.split("-")
-                if is_triac_target and committed.get("channel") == "experimental":
-                    pass  # experimental self-build commissioning (allowed)
+                committed_channel = committed.get("channel")
+                # HW-RELEASE-001 (docs/hw-release-001.md): manual-lane targets
+                # may carry a committed webflash-builds row on a NON-STABLE
+                # channel (FanPWM / FanDAC: preview; FanRelay / FanTRIAC:
+                # experimental). A stable-channel row for a manual-lane / fan
+                # target stays a violation — fan configs are never stable.
+                if committed_channel in ("preview", "experimental"):
+                    pass  # owner-declared non-stable release eligibility
                 else:
                     terr.append(
                         f"target {tid!r}: delivery_lane {lane!r} but config_string is "
-                        "in config/webflash-builds.json"
+                        f"in config/webflash-builds.json on channel "
+                        f"{committed_channel!r} (only non-stable channels are "
+                        "admitted under HW-RELEASE-001)"
                     )
 
         if terr:

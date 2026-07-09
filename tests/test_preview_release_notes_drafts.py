@@ -91,12 +91,37 @@ LEDGER_DRAFTED_CONFIGS = (
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
 )
-# No room bundle is still PREVIEW-channel metadata-ready: the two above were
-# promoted to stable and the LED room bundle was de-listed by P4a. The FanTRIAC
-# experimental self-build mains build (TRIAC-COMMISSIONING-001) is metadata-ready
-# but on the EXPERIMENTAL channel, so it is tracked separately.
-STILL_METADATA_READY_CONFIGS: tuple[str, ...] = ()
-EXPERIMENTAL_METADATA_READY_CONFIGS = ("Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",)
+# HW-RELEASE-001 (docs/hw-release-001.md, owner declaration) re-listed the
+# LED room bundle and added the six FanPWM / FanDAC preview rows, all
+# metadata-ready on the PREVIEW channel; each has a committed dry-run draft.
+# The FanTRIAC experimental self-build mains build (TRIAC-COMMISSIONING-001)
+# and the two owner-declared FanRelay room bundles are metadata-ready on the
+# EXPERIMENTAL channel, tracked separately.
+STILL_METADATA_READY_CONFIGS: tuple[str, ...] = (
+    "Ceiling-POE-RoomIQ-LED",
+    "Ceiling-POE-FanPWM",
+    "Ceiling-POE-AirIQ-FanPWM-RoomIQ",
+    "Ceiling-POE-VentIQ-FanPWM-RoomIQ",
+    "Ceiling-POE-FanDAC",
+    "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
+    "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
+)
+# The six fan preview drafts added under HW-RELEASE-001 (metadata-ready rows
+# each keep a committed dry-run draft; fan drafts are allowed now, TRIAC
+# drafts are still not).
+HW_RELEASE_001_FAN_DRAFT_CONFIGS = (
+    "Ceiling-POE-FanPWM",
+    "Ceiling-POE-AirIQ-FanPWM-RoomIQ",
+    "Ceiling-POE-VentIQ-FanPWM-RoomIQ",
+    "Ceiling-POE-FanDAC",
+    "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
+    "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
+)
+EXPERIMENTAL_METADATA_READY_CONFIGS = (
+    "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
+    "Ceiling-POE-AirIQ-FanRelay-RoomIQ",
+    "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
+)
 PROMOTED_CONFIGS = (
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
@@ -499,21 +524,25 @@ class GuardrailTests(unittest.TestCase):
         bins = list(DRAFT_DIR.rglob("*.bin")) if DRAFT_DIR.is_dir() else []
         self.assertEqual(bins, [], f"no .bin may be committed; found {bins}")
 
-    def test_draft_directory_holds_only_the_three_drafts_and_readme(self) -> None:
+    def test_draft_directory_holds_only_the_known_drafts_and_readme(self) -> None:
         present = sorted(p.name for p in DRAFT_DIR.glob("*.md"))
         expected = sorted(
             ["README.md", SHARED_PREVIEW_NOTES]
             + [f"{cs.lower()}.md" for cs in DRAFTED_CONFIGS]
+            + [f"{cs.lower()}.md" for cs in HW_RELEASE_001_FAN_DRAFT_CONFIGS]
         )
         self.assertEqual(present, expected)
 
-    def test_no_triac_or_fan_draft_present(self) -> None:
+    def test_no_triac_or_fanrelay_draft_present(self) -> None:
+        # HW-RELEASE-001 admits FanPWM / FanDAC preview drafts (the preview
+        # metadata-ready rows above). TRIAC and FanRelay stay experimental
+        # (mains-adjacent lane) and are never drafted on the preview lane.
         for p in DRAFT_DIR.glob("*.md"):
-            for token in FAN_DRIVER_TOKENS:
+            for token in ("FanTRIAC", "FanRelay", "TRIAC"):
                 self.assertNotIn(
                     token.lower(),
                     p.name.lower(),
-                    f"no TRIAC / fan draft may be added; found {p.name}",
+                    f"no TRIAC / FanRelay preview draft may be added; found {p.name}",
                 )
 
 

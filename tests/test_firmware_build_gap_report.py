@@ -65,13 +65,19 @@ EXPECTED_LANE_COUNTS = {
     # TRIAC-COMMISSIONING-001 moved the full-composition FanTRIAC config into
     # current-webflash (experimental channel); CI-PIPELINE-CLARITY-001 P4a then
     # de-listed Ceiling-POE-RoomIQ-LED, netting current-webflash to 5.
-    "current-webflash": 5,
+    # HW-RELEASE-001 (owner declaration, docs/hw-release-001.md) then added
+    # nine build rows — Ceiling-POE-RoomIQ-LED re-listed plus the six
+    # FanPWM/FanDAC previews and the two FanRelay experimental room bundles —
+    # moving each out of its candidate lane into current-webflash (5 -> 14),
+    # and admitted the documented address-overridden exception
+    # Ceiling-POE-AirIQ-FanDAC-RoomIQ into the grammar (total 168 -> 169).
+    "current-webflash": 14,
     "fantriac-blocked-hardware-compliance": 35,
-    "fanrelay-blocked-package-or-core-bus": 36,
-    "fanpwm-blocked-package-or-core-bus": 36,
-    "fandac-blocked-package-or-core-bus": 24,
+    "fanrelay-blocked-package-or-core-bus": 34,
+    "fanpwm-blocked-package-or-core-bus": 33,
+    "fandac-blocked-package-or-core-bus": 22,
     "pwr-blocked-compliance": 12,
-    "led-preview-and-stable-candidates": 11,
+    "led-preview-and-stable-candidates": 10,
     "poe-non-fan-candidates": 3,
     "usb-non-fan-candidates": 6,
     "missing-product-yaml": 0,
@@ -138,12 +144,13 @@ class BuildGapReportTests(unittest.TestCase):
             )
 
     # ------------------------------------------------------------------
-    # Coverage: 168 rows, exactly one lane each
+    # Coverage: 169 rows (168 grammar + the HW-RELEASE-001 documented
+    # AirIQ+FanDAC address-overridden exception), exactly one lane each
     # ------------------------------------------------------------------
 
-    def test_all_168_rows_accounted_for_by_exactly_one_lane(self):
+    def test_all_matrix_rows_accounted_for_by_exactly_one_lane(self):
         matrix_total = self.matrix["totals"]["combinations"]
-        self.assertEqual(matrix_total, 168)
+        self.assertEqual(matrix_total, 169)
         lane_total = sum(entry["count"] for entry in self.lane_entries)
         self.assertEqual(lane_total, matrix_total)
 

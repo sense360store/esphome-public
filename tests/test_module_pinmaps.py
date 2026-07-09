@@ -460,17 +460,22 @@ class CatalogGuardrailTests(unittest.TestCase):
                     f"MODULE-PINMAPS-GDRIVE-001.",
                 )
 
-    def test_no_fanpwm_in_webflash_builds(self) -> None:
+    def test_no_stable_fanpwm_in_webflash_builds(self) -> None:
+        # HW-RELEASE-001 (docs/hw-release-001.md, owner declaration) admits
+        # FanPWM build rows on the preview channel only; a FanPWM row on the
+        # stable channel stays a violation.
         data = self._load_json(WEBFLASH_BUILDS_JSON)
         builds = data.get("builds", []) if isinstance(data, dict) else []
         for row in builds:
             cfg = row.get("config_string", "")
+            if "FanPWM" not in cfg:
+                continue
             with self.subTest(config_string=cfg):
-                self.assertNotIn(
-                    "FanPWM",
-                    cfg,
-                    "FanPWM must not appear in any WebFlash build "
-                    "across MODULE-PINMAPS-GDRIVE-001.",
+                self.assertEqual(
+                    row.get("channel"),
+                    "preview",
+                    f"{cfg}: FanPWM builds are preview-only under "
+                    "HW-RELEASE-001 — never stable.",
                 )
 
     def test_fanpwm_products_keep_no_rpm_claim(self) -> None:
@@ -486,10 +491,11 @@ class CatalogGuardrailTests(unittest.TestCase):
                     f"{cfg}: rpm_supported must not be True across "
                     f"MODULE-PINMAPS-GDRIVE-001.",
                 )
-                self.assertFalse(
-                    bool(entry.get("webflash_build_matrix")),
-                    f"{cfg}: webflash_build_matrix must stay false.",
-                )
+                # HW-RELEASE-001 flipped webflash_build_matrix to true for
+                # the owner-declared preview promotion; the teeth that
+                # remain are never-production / never-stable.
+                self.assertNotEqual(entry.get("status"), "production")
+                self.assertNotEqual(entry.get("channel"), "stable")
 
 
 if __name__ == "__main__":

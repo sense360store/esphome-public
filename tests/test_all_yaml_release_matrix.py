@@ -14,27 +14,33 @@ The invariants enforced here:
     release classes (``stable-release``, ``preview-release``,
     ``manual-candidate-only``, ``compile-only``, ``blocked``,
     ``not-a-product-entrypoint``).
-  * The release-selectable set (``stable-release`` ∪ ``preview-release``)
-    equals the entries in ``config/webflash-builds.json`` — release
-    selection is derived from the source of truth, not hardcoded.
-  * Exactly one stable target today (``Ceiling-POE-VentIQ-RoomIQ``).
-  * The preview targets today are the published VentIQ LED preview plus the
-    three room-bundle preview build rows added by
-    RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 (``Ceiling-POE-AirIQ-RoomIQ``,
-    ``Ceiling-POE-RoomIQ``, ``Ceiling-POE-RoomIQ-LED``); LED stays preview-only
-    and is **not** selectable as stable.
-  * FanRelay / FanPWM / FanDAC are ``manual-candidate-only`` and are
-    **not** release-selectable (and never carry an ``artifact_name``).
-  * FanTRIAC is ``blocked``.
+  * The release-selectable set (``stable-release`` ∪ ``preview-release`` ∪
+    ``experimental-release``) equals the entries in
+    ``config/webflash-builds.json`` — release selection is derived from the
+    source of truth, not hardcoded.
+  * The stable set stays exactly Release-One plus the two owner-waiver
+    promotions (``Ceiling-POE-VentIQ-RoomIQ``, ``Ceiling-POE-AirIQ-RoomIQ``,
+    ``Ceiling-POE-RoomIQ``) — nothing fan-flavored is ever stable.
+  * The preview targets today are the two LED previews plus the six
+    FanPWM / FanDAC configs added by owner decision HW-RELEASE-001
+    (docs/hw-release-001.md, 2026-07-09); the experimental targets are
+    FanTRIAC plus the two FanRelay room bundles. LED stays preview-only and
+    is **not** selectable as stable.
+  * FanRelay / FanPWM / FanDAC are release-eligible on non-stable channels
+    only (HW-RELEASE-001 channel teeth: FanRelay exactly ``experimental``,
+    FanPWM / FanDAC exactly ``preview``). The three top-level fan YAMLs in
+    ``config/manual-firmware-artifacts.json`` are legitimately BOTH manual
+    candidates (``is_manual_candidate``) and release-selectable — the
+    manual lane persists as a parallel point-to-point path.
   * Every ``products/compile-only/*.yaml`` is classified ``compile-only``
     and is **not** release-selectable.
   * Helper / package YAMLs (``products/secrets.yaml``) and every WebFlash
     wrapper under ``products/webflash/`` are
     ``not-a-product-entrypoint`` and are **not** release-selectable.
-  * The fan exclusion guardrail in
-    ``scripts/plan_room_release_notes.py`` and
-    ``scripts/list_release_targets.py`` is mirrored by the classifier:
-    no fan family token may leak into ``config/webflash-builds.json``.
+  * The fan channel guardrail in ``scripts/plan_room_release_notes.py``
+    is mirrored by the classifier: a fan family token in
+    ``config/webflash-builds.json`` is refused on any channel other than
+    the family's approved non-stable one (never ``stable``).
   * The release-notes generator does not hardcode "Release-One" wording
     for every target (the wording is product-aware).
 
@@ -70,16 +76,41 @@ FAN_TOKENS = ("FanRelay", "FanPWM", "FanDAC")
 # RECONCILE-001: Ceiling-POE-RoomIQ (Bedroom, v1.0.5, 2026-06-08) and
 # Ceiling-POE-AirIQ-RoomIQ (Kitchen, v1.0.6, 2026-06-09) have since been
 # promoted to the stable channel under owner waivers. CI-PIPELINE-CLARITY-001
-# P4a then DE-LISTED Ceiling-POE-RoomIQ-LED (never built or served): its build
-# row was removed and its catalog entry demoted to hardware-pending, so it is
-# no longer a preview target. Today's channel split is three stable targets and
-# one preview target (the published VentIQ LED preview).
+# P4a then DE-LISTED Ceiling-POE-RoomIQ-LED (never built or served). Owner
+# decision HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09) then retired
+# the bench-proof gate, re-listed Ceiling-POE-RoomIQ-LED on the preview
+# channel, and added the six FanPWM / FanDAC preview rows and the two
+# FanRelay experimental rows. Today's channel split is three stable targets,
+# eight preview targets, and three experimental targets (FanTRIAC plus the
+# two FanRelay room bundles). The stable set never gains a fan-flavored
+# config.
 STABLE_CONFIGS_TODAY = {
     STABLE_CONFIG,
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
 }
-PREVIEW_CONFIGS_TODAY = {LED_CONFIG}
+PREVIEW_CONFIGS_TODAY = {
+    LED_CONFIG,
+    "Ceiling-POE-RoomIQ-LED",
+    "Ceiling-POE-FanPWM",
+    "Ceiling-POE-AirIQ-FanPWM-RoomIQ",
+    "Ceiling-POE-VentIQ-FanPWM-RoomIQ",
+    "Ceiling-POE-FanDAC",
+    "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
+    "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
+}
+EXPERIMENTAL_CONFIGS_TODAY = {
+    BLOCKED_CONFIG,
+    "Ceiling-POE-AirIQ-FanRelay-RoomIQ",
+    "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
+}
+# HW-RELEASE-001 channel teeth: the only channel each fan family may
+# release on. Never "stable".
+FAN_ALLOWED_CHANNELS = {
+    "FanRelay": "experimental",
+    "FanPWM": "preview",
+    "FanDAC": "preview",
+}
 
 ALL_CLASSES = {
     "stable-release",
@@ -200,125 +231,192 @@ class ReleaseSelectableTests(unittest.TestCase):
         )
 
     def test_preview_targets_today(self) -> None:
-        # Only the published VentIQ LED preview remains: the two room bundles
-        # were promoted to stable and Ceiling-POE-RoomIQ-LED was de-listed by
-        # CI-PIPELINE-CLARITY-001 P4a. Compared as a set so the YAML-sorted
-        # order of the classifier is not asserted.
+        # HW-RELEASE-001: the published VentIQ LED preview plus the re-listed
+        # Ceiling-POE-RoomIQ-LED and the six FanPWM / FanDAC configs.
+        # Compared as a set so the YAML-sorted order of the classifier is
+        # not asserted.
         self.assertEqual(
             set(self.plan["preview_targets"]),
             PREVIEW_CONFIGS_TODAY,
-            "preview targets must be exactly the published VentIQ LED preview",
+            "preview targets must be the two LED previews plus the six "
+            "HW-RELEASE-001 FanPWM / FanDAC configs",
         )
         # The stable Release-One target must never appear on the preview list.
         self.assertNotIn(STABLE_CONFIG, self.plan["preview_targets"])
 
+    def test_experimental_targets_today(self) -> None:
+        # FanTRIAC (TRIAC-COMMISSIONING-001) plus the two FanRelay room
+        # bundles added by HW-RELEASE-001 on the experimental channel only
+        # (mains-adjacent lane per COMPLIANCE-001; never stable).
+        self.assertEqual(
+            set(self.plan["experimental_targets"]),
+            EXPERIMENTAL_CONFIGS_TODAY,
+            "experimental targets must be FanTRIAC plus the two "
+            "HW-RELEASE-001 FanRelay room bundles",
+        )
+
 
 class LedPreviewOnlyTests(unittest.TestCase):
-    """LED is preview-only and cannot be selected as stable."""
+    """LED is preview-only and cannot be selected as stable.
+
+    HW-RELEASE-001 re-listed Ceiling-POE-RoomIQ-LED on the preview channel
+    (reversing the CI-PIPELINE-CLARITY-001 P4a de-list), so the LED preview
+    set now covers both LED configs.
+    """
+
+    LED_CONFIGS = (LED_CONFIG, "Ceiling-POE-RoomIQ-LED")
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.classifier = _load_module("classify_all_yaml", CLASSIFIER_PATH)
         cls.plan = cls.classifier.classify()
 
-    def _canonical_led(self) -> dict:
+    def _canonical_led(self, config_string: str) -> dict:
         canonical = [
             r
             for r in self.plan["records"]
-            if r["config_string"] == LED_CONFIG
+            if r["config_string"] == config_string
             and not r["yaml_path"].startswith("products/webflash/")
         ]
         self.assertEqual(
             len(canonical),
             1,
-            "exactly one canonical (non-wrapper) LED entry expected",
+            f"exactly one canonical (non-wrapper) entry expected for "
+            f"{config_string}",
         )
         return canonical[0]
 
     def test_led_is_classified_preview_release(self) -> None:
-        led = self._canonical_led()
-        self.assertEqual(led["release_class"], "preview-release")
-        self.assertEqual(led["channel"], "preview")
+        for config_string in self.LED_CONFIGS:
+            led = self._canonical_led(config_string)
+            self.assertEqual(led["release_class"], "preview-release")
+            self.assertEqual(led["channel"], "preview")
+
+    def test_led_is_in_preview_targets(self) -> None:
+        for config_string in self.LED_CONFIGS:
+            self.assertIn(config_string, self.plan["preview_targets"])
 
     def test_led_is_not_in_stable_targets(self) -> None:
-        self.assertNotIn(LED_CONFIG, self.plan["stable_targets"])
+        for config_string in self.LED_CONFIGS:
+            self.assertNotIn(config_string, self.plan["stable_targets"])
 
     def test_led_artifact_carries_preview_suffix_not_stable(self) -> None:
-        led = self._canonical_led()
-        artifact = (led["artifact_name"] or "").lower()
-        self.assertIn("preview", artifact)
-        self.assertNotIn("stable", artifact)
+        for config_string in self.LED_CONFIGS:
+            led = self._canonical_led(config_string)
+            artifact = (led["artifact_name"] or "").lower()
+            self.assertIn("preview", artifact)
+            self.assertNotIn("stable", artifact)
 
 
-class FanCandidatesNotReleaseSelectableTests(unittest.TestCase):
-    """FanRelay / FanPWM / FanDAC are manual-candidate-only, not releasable."""
+class FanChannelPostureTests(unittest.TestCase):
+    """HW-RELEASE-001: fan configs release on non-stable channels only.
+
+    The three top-level fan YAMLs tracked in
+    config/manual-firmware-artifacts.json are legitimately BOTH manual
+    candidates (parallel point-to-point lane) and release-selectable now;
+    what can never happen is a fan-flavored config in the stable class.
+    """
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.classifier = _load_module("classify_all_yaml", CLASSIFIER_PATH)
         cls.plan = cls.classifier.classify()
 
-    def test_three_manual_candidates(self) -> None:
-        manual = [
-            r
-            for r in self.plan["records"]
-            if r["release_class"] == "manual-candidate-only"
-        ]
-        self.assertEqual(len(manual), 3, f"expected 3 manual candidates, got {manual}")
+    def test_three_manual_candidate_flags(self) -> None:
+        # The manual lane still lists exactly three candidates; each now
+        # also has a builds row, so the record keeps is_manual_candidate
+        # True while classifying by its release channel.
+        manual_doc = json.loads(MANUAL_JSON.read_text(encoding="utf-8"))
+        manual_yamls = {c["product_yaml"] for c in manual_doc["candidates"]}
+        self.assertEqual(len(manual_yamls), 3)
+        flagged = [r for r in self.plan["records"] if r["is_manual_candidate"]]
+        self.assertEqual(
+            {r["yaml_path"] for r in flagged},
+            manual_yamls,
+            "exactly the three manual-lane YAMLs must carry is_manual_candidate",
+        )
 
-    def test_fan_candidates_are_manual_or_blocked_class(self) -> None:
-        # FanRelay / FanPWM / FanDAC product configs are never release-selectable.
-        # The published / manual-lane fan previews are manual-candidate-only; the
-        # ROOM-BUNDLE-FAN-CONFIGS-001 compile-pending room-bundle fan previews are
-        # catalog hardware-pending with no release path yet -> blocked. Neither is
-        # ever stable-release / preview-release.
+    def test_manual_candidates_dual_role(self) -> None:
+        # HW-RELEASE-001: each manual candidate is also release-selectable
+        # on its family's non-stable channel — the manual lane is no longer
+        # the only fan path.
+        for r in self.plan["records"]:
+            if not r["is_manual_candidate"]:
+                continue
+            self.assertTrue(
+                r["is_release_selectable"],
+                f"{r['yaml_path']} is a manual candidate and must also be "
+                "release-selectable per HW-RELEASE-001",
+            )
+            self.assertIn(
+                r["release_class"],
+                {"preview-release", "experimental-release"},
+                f"{r['yaml_path']} must classify preview/experimental, never stable",
+            )
+
+    def test_fan_configs_never_stable_class(self) -> None:
+        # Nothing fan-flavored is ever stable-release class.
         for r in self.plan["records"]:
             cs = r.get("config_string") or ""
             for token in FAN_TOKENS:
                 if token.lower() in cs.lower():
-                    self.assertIn(
+                    self.assertNotEqual(
                         r["release_class"],
-                        {"manual-candidate-only", "blocked"},
-                        f"{cs} carries {token}; must be manual-candidate-only or "
-                        "blocked (never release-selectable)",
+                        "stable-release",
+                        f"{cs} carries {token}; must never be stable-release",
                     )
 
-    def test_fan_candidates_are_not_release_selectable(self) -> None:
+    def test_release_selectable_fans_on_family_channel_only(self) -> None:
+        # A release-selectable fan record must sit exactly on its family's
+        # HW-RELEASE-001 channel (FanRelay: experimental; FanPWM / FanDAC:
+        # preview).
         for r in self.plan["records"]:
             cs = r.get("config_string") or ""
-            for token in FAN_TOKENS:
-                if token.lower() in cs.lower():
-                    self.assertFalse(
-                        r["is_release_selectable"],
-                        f"{cs} carries {token}; must not be release-selectable",
+            for token, allowed in FAN_ALLOWED_CHANNELS.items():
+                if token.lower() in cs.lower() and r["is_release_selectable"]:
+                    self.assertEqual(
+                        r["channel"],
+                        allowed,
+                        f"{cs} carries {token}; release channel must be "
+                        f"exactly {allowed!r}",
                     )
 
-    def test_fan_candidates_have_no_artifact_name(self) -> None:
+    def test_fan_artifact_names_never_stable(self) -> None:
+        # Fan configs now carry artifact names (HW-RELEASE-001), but the
+        # artifact suffix must match the non-stable channel.
         for r in self.plan["records"]:
             cs = r.get("config_string") or ""
+            artifact = (r["artifact_name"] or "").lower()
             for token in FAN_TOKENS:
-                if token.lower() in cs.lower():
-                    self.assertIsNone(
-                        r["artifact_name"],
-                        f"{cs} must not carry an artifact_name (manual-only)",
+                if token.lower() in cs.lower() and artifact:
+                    self.assertNotIn(
+                        "stable",
+                        artifact,
+                        f"{cs} artifact {artifact!r} must never be stable",
                     )
 
-    def test_fan_tokens_absent_from_release_matrix(self) -> None:
-        for cs in _release_eligible_config_strings():
+    def test_fan_rows_in_release_matrix_never_stable(self) -> None:
+        # Fan tokens are allowed in config/webflash-builds.json now, but
+        # only on the family's approved non-stable channel.
+        builds = json.loads(BUILDS_JSON.read_text(encoding="utf-8"))["builds"]
+        for b in builds:
+            cs = b.get("config_string", "")
+            for token, allowed in FAN_ALLOWED_CHANNELS.items():
+                if token.lower() in cs.lower():
+                    self.assertEqual(
+                        b.get("channel"),
+                        allowed,
+                        f"builds row {cs!r} carries {token}; channel must "
+                        f"be exactly {allowed!r} (never stable)",
+                    )
+
+    def test_fan_tokens_absent_from_stable_targets(self) -> None:
+        for cs in self.plan["stable_targets"]:
             for token in FAN_TOKENS:
                 self.assertNotIn(
                     token.lower(),
                     cs.lower(),
-                    f"release-matrix config {cs!r} carries fan token {token!r}",
-                )
-
-    def test_fan_tokens_absent_from_release_selectable_list(self) -> None:
-        for cs in self.plan["release_selectable"]:
-            for token in FAN_TOKENS:
-                self.assertNotIn(
-                    token.lower(),
-                    cs.lower(),
-                    f"release-selectable {cs!r} carries fan token {token!r}",
+                    f"stable target {cs!r} carries fan token {token!r}",
                 )
 
 
@@ -446,15 +544,18 @@ class HelperYamlsAreNotEntrypointsTests(unittest.TestCase):
 
 
 class FanGuardrailTests(unittest.TestCase):
-    """The fan-exclusion guardrail in the classifier matches the planner."""
+    """The HW-RELEASE-001 fan channel guardrail matches the planner's."""
 
     def setUp(self) -> None:
         self.classifier = _load_module("classify_all_yaml", CLASSIFIER_PATH)
 
-    def test_classifier_refuses_fan_in_release_matrix(self) -> None:
+    def test_classifier_refuses_fan_on_stable_channel(self) -> None:
         builds = json.loads(BUILDS_JSON.read_text(encoding="utf-8"))
         manual = json.loads(MANUAL_JSON.read_text(encoding="utf-8"))
-        # Inject a synthetic FanRelay row.
+        # Inject a synthetic FanRelay row on the FORBIDDEN stable channel.
+        # HW-RELEASE-001 allows fan rows on the family's non-stable channel
+        # only (FanRelay: experimental), so a stable fan row must still be
+        # refused.
         bad_builds = dict(builds)
         bad_builds["builds"] = list(builds.get("builds", [])) + [
             {

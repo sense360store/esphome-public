@@ -19,11 +19,20 @@ is deliberately NOT:
   * a stable / full / production release (those blockers remain),
   * a recommended / default / customer-kit selection,
   * a buyable / shop-visible product,
-  * a committed config/webflash-builds.json build row (the fan-token guardrail
-    and catalog webflash_build_matrix=false stand; the one-click import is the
-    separately queued downstream WF-IMPORT-FAN-BUNDLES-001),
   * a Simple / easy-mode exposure (webflash_easy_mode_eligible stays false until
     the downstream WebFlash import + warning gates land).
+
+HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record, 2026-07-09)
+then retired the bench-proof documentation requirement as a release gate and
+added declaration-driven config/webflash-builds.json release-eligibility
+metadata rows for the five configs (release_state metadata-ready-unpublished;
+no binary / Release / tag / manifest cut), flipping their catalog entries to
+status preview / webflash_build_matrix true. The former "no fan build row"
+guardrail was revised by the owner into CHANNEL teeth, guarded below: the
+FanPWM / FanDAC bundles sit on the preview channel, the FanRelay bundles on
+the experimental channel ONLY (mains-adjacent, COMPLIANCE-001 lane posture),
+and fan configs are NEVER on the stable channel. Every acknowledgement-gated,
+never-stable, never-kit, FANDAC-pending, and no-false-proof tooth stands.
 
 FanTRIAC stays excluded (not import eligible, no artifact; HW-005 buildability
 resolved by TRIAC-PINMAP-CORRECT-001 but advanced-manual-preview publish gated
@@ -90,6 +99,19 @@ EXPECTED: Dict[str, Dict[str, Any]] = {
     },
 }
 FIVE = tuple(EXPECTED)
+# HW-RELEASE-001 channel teeth: the only channel each config's builds row may
+# occupy. FanRelay is mains-adjacent → experimental only; PWM/DAC → preview.
+# NEVER "stable" for any fan config.
+EXPECTED_BUILD_CHANNEL = {
+    "Ceiling-POE-VentIQ-FanPWM-RoomIQ": "preview",
+    "Ceiling-POE-VentIQ-FanDAC-RoomIQ": "preview",
+    "Ceiling-POE-AirIQ-FanRelay-RoomIQ": "experimental",
+    "Ceiling-POE-AirIQ-FanDAC-RoomIQ": "preview",
+    "Ceiling-POE-AirIQ-FanPWM-RoomIQ": "preview",
+}
+HW_RELEASE_DECISION = "HW-RELEASE-001"
+HW_RELEASE_DOC = "docs/hw-release-001.md"
+HW_RELEASE_HARDWARE_STATUS = "owner-declared-bench-working-hw-release-001"
 FANDAC_CONFIGS = (
     "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
     "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
@@ -139,9 +161,7 @@ class FiveAreWebflashImportEligibleTests(unittest.TestCase):
                 self.assertEqual(elig["delivery_lane"], "manual-preview")
                 self.assertEqual(elig["authorised_by"], DECISION_ID)
                 self.assertEqual(elig["proof_scope"], "firmware-build-release-only")
-                self.assertEqual(
-                    elig["downstream_import_followup"], DOWNSTREAM_IMPORT
-                )
+                self.assertEqual(elig["downstream_import_followup"], DOWNSTREAM_IMPORT)
 
     def test_eligibility_records_release_asset_sha256_and_size(self) -> None:
         for cs, want in EXPECTED.items():
@@ -205,6 +225,11 @@ class FiveAreWebflashImportEligibleTests(unittest.TestCase):
         decision = doc["webflash_import_eligibility_decision"]
         self.assertEqual(decision["id"], DECISION_ID)
         self.assertEqual(sorted(decision["targets"]), sorted(FIVE))
+        # The guarantees below are the 2026-06-04 decision's OWN scope (that
+        # decision added no row / flipped no catalog field) and stay recorded
+        # as-is; the later HW-RELEASE-001 build-row / catalog flip is recorded
+        # separately in hw_release_001_posture_note.
+        self.assertIn("HW-RELEASE-001", decision["hw_release_001_posture_note"])
         g = decision["guarantees"]
         for flag in (
             "nothing_becomes_stable",
@@ -271,23 +296,53 @@ class FivePreviewOnlyPostureTests(unittest.TestCase):
                     True,
                 )
 
-    def test_catalog_status_and_build_matrix_unchanged(self) -> None:
-        for cs in FIVE:
+    def test_catalog_status_preview_on_build_matrix_never_stable(self) -> None:
+        # HW-RELEASE-001 inverted the old "hardware-pending / off-matrix" pin:
+        # the catalog entries are now status preview with
+        # webflash_build_matrix true under the owner declaration. The teeth
+        # that remain permanent: the channel matches the lane and is NEVER
+        # "stable", and hardware readiness is owner-declared, not proven.
+        for cs, channel in EXPECTED_BUILD_CHANNEL.items():
             entry = self.catalog[cs]
             with self.subTest(config_string=cs):
-                self.assertEqual(entry["status"], "hardware-pending")
-                self.assertIs(entry["webflash_build_matrix"], False)
+                self.assertEqual(entry["status"], "preview")
+                self.assertIs(entry["webflash_build_matrix"], True)
+                self.assertEqual(entry["channel"], channel)
+                self.assertNotEqual(entry["channel"], "stable")
+                self.assertEqual(entry["hardware_status"], HW_RELEASE_HARDWARE_STATUS)
+                self.assertEqual(
+                    entry["artifact_name"],
+                    f"Sense360-{cs}-v1.0.0-{channel}.bin",
+                )
+                wrapper = entry["webflash_wrapper"]
+                self.assertEqual(wrapper, f"products/webflash/{cs.lower()}.yaml")
+                self.assertTrue((REPO_ROOT / wrapper).is_file())
 
-    def test_no_committed_webflash_build_row(self) -> None:
-        builds = {b["config_string"] for b in _load(BUILDS_PATH)["builds"]}
-        for cs in FIVE:
+    def test_committed_build_row_matches_lane_channel(self) -> None:
+        # HW-RELEASE-001 inverted the old "no committed webflash build row"
+        # pin: each of the five now has a declaration-driven release-
+        # eligibility METADATA row (metadata-ready-unpublished; no binary /
+        # Release / tag cut) on its lane channel, never stable, hidden / not
+        # buyable. The variants file records the flip with the decision cited.
+        builds = {b["config_string"]: b for b in _load(BUILDS_PATH)["builds"]}
+        for cs, channel in EXPECTED_BUILD_CHANNEL.items():
             with self.subTest(config_string=cs):
-                self.assertNotIn(cs, builds)
-                self.assertIs(
-                    self.variants[cs]["webflash_import_eligibility"][
-                        "webflash_build_row_added"
-                    ],
-                    False,
+                self.assertIn(cs, builds)
+                row = builds[cs]
+                self.assertEqual(row["channel"], channel)
+                self.assertNotEqual(row["channel"], "stable")
+                self.assertEqual(row["release_state"], "metadata-ready-unpublished")
+                self.assertEqual(row["owner_declaration"], HW_RELEASE_DOC)
+                posture = row["commercial_posture"]
+                self.assertFalse(posture["stable"])
+                self.assertFalse(posture["buyable"])
+                self.assertFalse(posture["recommended"])
+                self.assertFalse(posture["customer_default"])
+                self.assertFalse(posture["release_one_required_config"])
+                elig = self.variants[cs]["webflash_import_eligibility"]
+                self.assertIs(elig["webflash_build_row_added"], True)
+                self.assertEqual(
+                    elig["webflash_build_row_added_by"], HW_RELEASE_DECISION
                 )
 
 
@@ -374,9 +429,7 @@ class TriacStaysExcludedTests(unittest.TestCase):
         # attested proof + the governing resolution record.
         gate = triac["advanced_preview_publish_gate"]
         self.assertEqual(gate["id"], "TRIAC-PUBLISH-ADVANCED-PREVIEW-001")
-        self.assertEqual(
-            set(gate["gated_by"]), {"PACKAGE-TRIAC-001", "COMPLIANCE-001"}
-        )
+        self.assertEqual(set(gate["gated_by"]), {"PACKAGE-TRIAC-001", "COMPLIANCE-001"})
         self.assertFalse(gate["is_acknowledgement_gate"])
         self.assertEqual(gate["status"], "executed-experimental-lane")
         self.assertEqual(
@@ -406,15 +459,19 @@ class TriacStaysExcludedTests(unittest.TestCase):
             )
 
 
-class WebflashRepoUntouchedTests(unittest.TestCase):
-    """No committed WebFlash build row / .bin / manifest; fan-token guardrail."""
+class WebflashLedgerChannelTeethTests(unittest.TestCase):
+    """HW-RELEASE-001 revised the fan-token guardrail into channel teeth:
+    fan rows exist but are NEVER stable; no .bin / manifest is committed."""
 
-    def test_five_absent_and_triac_experimental_only_in_webflash_builds(self) -> None:
+    def test_five_present_on_lane_channels_triac_experimental_only(self) -> None:
+        # Inverts the pre-HW-RELEASE-001 "five absent from the build matrix"
+        # pin: the five room-bundle fan previews are committed as
+        # release-eligibility metadata rows on their lane channels.
         builds = {b["config_string"]: b for b in _load(BUILDS_PATH)["builds"]}
-        # The five room-bundle fan previews stay entirely off the build matrix.
-        for cs in FIVE:
+        for cs, channel in EXPECTED_BUILD_CHANNEL.items():
             with self.subTest(config_string=cs):
-                self.assertNotIn(cs, builds)
+                self.assertIn(cs, builds)
+                self.assertEqual(builds[cs]["channel"], channel)
         # FanTRIAC: TRIAC-COMMISSIONING-001 committed it on the EXPERIMENTAL
         # channel only (the experimental self-build mains lane), never on a
         # customer (stable / preview) channel. One-click import stays gated by
@@ -422,14 +479,33 @@ class WebflashRepoUntouchedTests(unittest.TestCase):
         self.assertIn(TRIAC_CONFIG, builds)
         self.assertEqual(builds[TRIAC_CONFIG]["channel"], "experimental")
 
-    def test_no_manual_preview_fan_token_in_webflash_builds(self) -> None:
-        # The standalone manual-preview fan drivers stay entirely off the build
-        # matrix (the fan-token guardrail holds for them). FanTRIAC is the sole
-        # admitted token, and only via the experimental self-build mains lane.
-        raw = BUILDS_PATH.read_text(encoding="utf-8")
-        for token in ("FanRelay", "FanPWM", "FanDAC"):
-            with self.subTest(token=token):
-                self.assertNotIn(token, raw)
+    def test_fan_token_rows_never_stable_channel(self) -> None:
+        # The former raw fan-token scan ("no FanRelay/FanPWM/FanDAC token in
+        # config/webflash-builds.json") is inverted into the owner's channel
+        # teeth (HW-RELEASE-001): every ledger row carrying a fan-family token
+        # is on the experimental channel (FanRelay, FanTRIAC) or the preview
+        # channel (FanPWM, FanDAC) and NEVER on the stable channel.
+        builds = _load(BUILDS_PATH)["builds"]
+        seen_tokens = set()
+        for row in builds:
+            cs = row["config_string"]
+            tokens = set(cs.split("-")) & set(FAN_FAMILY_TOKENS)
+            if not tokens:
+                continue
+            seen_tokens |= tokens
+            with self.subTest(config_string=cs):
+                self.assertNotEqual(
+                    row["channel"],
+                    "stable",
+                    f"{cs}: fan configs are NEVER on the stable channel",
+                )
+                if tokens & {"FanRelay", "FanTRIAC"}:
+                    self.assertEqual(row["channel"], "experimental")
+                else:
+                    self.assertEqual(row["channel"], "preview")
+                self.assertNotIn("-stable.bin", row["artifact_name"])
+        # The teeth actually bit something (all four fan families are present).
+        self.assertEqual(seen_tokens, set(FAN_FAMILY_TOKENS))
 
     def test_no_manifest_sources_or_bin_committed(self) -> None:
         self.assertFalse((REPO_ROOT / "manifest.json").exists())
@@ -459,9 +535,7 @@ class StableBathroomPoeUnchangedTests(unittest.TestCase):
         self.assertEqual(shop["firmware_config"], STABLE_CONFIG)
 
     def test_stable_baseline_is_a_committed_webflash_build(self) -> None:
-        builds = {
-            b["config_string"]: b for b in _load(BUILDS_PATH)["builds"]
-        }
+        builds = {b["config_string"]: b for b in _load(BUILDS_PATH)["builds"]}
         self.assertIn(STABLE_CONFIG, builds)
 
 

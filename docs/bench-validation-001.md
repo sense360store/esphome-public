@@ -1,5 +1,13 @@
 # BENCH-VALIDATION-001 — bench proofs for the four pending boards
 
+**SUPERSEDED by HW-RELEASE-001 ([`docs/hw-release-001.md`](hw-release-001.md),
+owner decision of record, 2026-07-09):** the bench-proof documentation
+requirement is retired as a release gate; hardware readiness is declared by
+the owner directly, and the four proof templates are retained as RETIRED —
+informational only. Steps T2–T6 below do not run; the promotions they
+gated were executed under the owner declaration instead. This file is kept
+as the historical record of the programme.
+
 **Goal:** unlock all 9 `hardware-pending` configs the proper way — one bench
 proof per physical board, following the `PACKAGE-TRIAC-001` precedent
 ([archived](archive-index.md); guard tests live on in
@@ -52,11 +60,11 @@ I²C address bench evidence
 | Step | What | Status |
 |---|---|---|
 | T1 | Create the four proof templates (empty capture tables, empty attestations) + this tracking file. One held PR. | **EXECUTED** — this PR |
-| T2 | Promote S360-300 LED (proof complete → configs `hardware-pending` → release-ready, channel preview; contract tests + derived matrices updated; held PR) | PENDING — awaiting bench |
-| T3 | Promote S360-312 Fan DAC (as T2, channel preview; `FANDAC-I2C-ADDR-001` evidence also required for the room bundles) | PENDING — awaiting bench |
-| T4 | Promote S360-311 Fan PWM (as T2, channel preview) | PENDING — awaiting bench |
-| T5 | Promote S360-310 Fan Relay (as T2, channel **experimental** only) | PENDING — awaiting bench |
-| T6 | Closure — verify all four proofs + promotions, all gates green, mark programme COMPLETE | PENDING |
+| T2 | Promote S360-300 LED (proof complete → configs `hardware-pending` → release-ready, channel preview; contract tests + derived matrices updated; held PR) | **SUPERSEDED** — promoted by owner declaration HW-RELEASE-001 |
+| T3 | Promote S360-312 Fan DAC (as T2, channel preview; `FANDAC-I2C-ADDR-001` evidence also required for the room bundles) | **SUPERSEDED** — promoted by owner declaration HW-RELEASE-001 (`FANDAC-I2C-ADDR-001` stays PENDING) |
+| T4 | Promote S360-311 Fan PWM (as T2, channel preview) | **SUPERSEDED** — promoted by owner declaration HW-RELEASE-001 |
+| T5 | Promote S360-310 Fan Relay (as T2, channel **experimental** only) | **SUPERSEDED** — promoted by owner declaration HW-RELEASE-001 (experimental channel, as planned) |
+| T6 | Closure — verify all four proofs + promotions, all gates green, mark programme COMPLETE | **SUPERSEDED** — programme closed by HW-RELEASE-001 |
 
 T2–T5 run one board per session, in any order, only when that board's proof
 is ready (detection: every step A–E marked PASS + non-empty owner-authored

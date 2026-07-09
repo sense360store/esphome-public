@@ -258,6 +258,13 @@ class TachGpioAllocationDoesNotFlipProductStatusTests(unittest.TestCase):
         )
 
     def test_product_catalog_fanpwm_not_promoted(self) -> None:
+        # HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record,
+        # 2026-07-09) declared preview posture (status preview,
+        # webflash_build_matrix true, a -preview artifact_name) for the
+        # FanPWM catalog entries. The remaining not-promoted teeth: RPM is
+        # NOT supported (rpm_supported must never be True), status is
+        # never "production", channel is never "stable", and any declared
+        # artifact_name carries the -preview suffix only.
         data = self._load_json(PRODUCT_CATALOG_JSON)
         for entry in data.get("products", []):
             config = entry.get("config_string") or entry.get("name")
@@ -269,26 +276,47 @@ class TachGpioAllocationDoesNotFlipProductStatusTests(unittest.TestCase):
                     True,
                     f"{config}: rpm_supported must stay false.",
                 )
-                self.assertFalse(
-                    bool(entry.get("webflash_build_matrix")),
-                    f"{config}: webflash_build_matrix must stay false.",
+                self.assertNotEqual(
+                    entry.get("status"),
+                    "production",
+                    f"{config}: FanPWM catalog entries are never "
+                    "production (HW-RELEASE-001 posture is preview).",
                 )
-                self.assertIsNone(
-                    entry.get("artifact_name"),
-                    f"{config}: artifact_name must remain unset.",
+                self.assertNotEqual(
+                    entry.get("channel"),
+                    "stable",
+                    f"{config}: FanPWM catalog channel is never stable.",
                 )
+                artifact = entry.get("artifact_name") or ""
+                if artifact:
+                    self.assertTrue(
+                        artifact.endswith("-preview.bin"),
+                        f"{config}: artifact_name {artifact!r} must carry "
+                        "the -preview channel suffix (never -stable.bin).",
+                    )
 
-    def test_webflash_builds_has_no_fanpwm_entry(self) -> None:
+    def test_webflash_builds_fanpwm_rows_are_never_stable(self) -> None:
+        # HW-RELEASE-001 channel guard (was: no FanPWM entry at all).
+        # FanPWM metadata build rows now exist by owner declaration; each
+        # must stay on the preview channel — never stable.
         data = self._load_json(WEBFLASH_BUILDS_JSON)
         builds = data.get("builds", []) if isinstance(data, dict) else []
         for row in builds:
             cfg = row.get("config_string", "")
+            if "FanPWM" not in cfg.split("-"):
+                continue
             with self.subTest(config_string=cfg):
-                self.assertNotIn(
-                    "FanPWM",
-                    cfg,
-                    f"FanPWM must not appear in any WebFlash build "
-                    f"(`{cfg}`) after S360-100-TACH-GPIO-ALLOCATION-001.",
+                self.assertNotEqual(
+                    row.get("channel"),
+                    "stable",
+                    f"FanPWM build row `{cfg}` must never be channel "
+                    "stable (HW-RELEASE-001).",
+                )
+                self.assertEqual(
+                    row.get("channel"),
+                    "preview",
+                    f"FanPWM build row `{cfg}` is preview-channel only "
+                    "(HW-RELEASE-001).",
                 )
 
 

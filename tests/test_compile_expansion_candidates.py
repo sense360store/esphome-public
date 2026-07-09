@@ -347,20 +347,39 @@ class CandidatesCrossRefTests(unittest.TestCase):
             )
 
     def test_no_candidate_appears_in_webflash_builds_unless_already_shipping(self):
+        # HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record,
+        # 2026-07-09) retired the bench-proof documentation gate and
+        # declared additional metadata build rows (preview / experimental
+        # channel) for configs that also appear in this planning ledger
+        # (e.g. Ceiling-POE-RoomIQ-LED, Ceiling-POE-FanPWM,
+        # Ceiling-POE-FanDAC). The guard's remaining teeth: a
+        # would_be_webflash_exposed_now=false candidate may share a
+        # config_string with a committed build row ONLY if that row is
+        # either an already-shipping stable/preview build from the frozen
+        # list below, or a non-stable (preview / experimental) channel row
+        # — it must never silently shadow a NEW stable build.
+        rows_by_config = {}
+        for row in self.builds.get("builds", []) or []:
+            rows_by_config.setdefault(row.get("config_string"), []).append(row)
         for cand in self.candidates:
             cs = cand["config_string"]
             if cand["would_be_webflash_exposed_now"]:
                 continue
             if cs in self.committed_configs:
-                self.assertIn(
-                    cs,
-                    CURRENTLY_SHIPPING_CONFIG_STRINGS,
-                    f"candidate {cs!r}: would_be_webflash_exposed_now is "
-                    "false but the config_string is committed in "
-                    "config/webflash-builds.json AND is not one of the two "
-                    "currently shipping builds — this ledger must not "
-                    "shadow an existing WebFlash build",
-                )
+                if cs in CURRENTLY_SHIPPING_CONFIG_STRINGS:
+                    continue
+                for row in rows_by_config.get(cs, []):
+                    self.assertIn(
+                        row.get("channel"),
+                        {"preview", "experimental"},
+                        f"candidate {cs!r}: would_be_webflash_exposed_now "
+                        "is false and the config_string is committed in "
+                        "config/webflash-builds.json outside the frozen "
+                        "shipping list — that is only allowed for the "
+                        "non-stable (preview / experimental) metadata rows "
+                        "declared by HW-RELEASE-001, never for a stable "
+                        f"build (got channel {row.get('channel')!r})",
+                    )
 
     def test_currently_shipping_field_matches_actual_builds(self):
         declared = set(self.doc.get("currently_shipping_config_strings") or [])

@@ -288,32 +288,37 @@ class S360_311_DoesNotClaimTachReadinessTests(unittest.TestCase):
                     f"{config}: rpm_supported must not be True until "
                     f"native-GPIO per-fan tach evidence exists.",
                 )
-                # No webflash exposure.
-                self.assertFalse(
-                    bool(entry.get("webflash_build_matrix")),
-                    f"{config}: webflash_build_matrix must stay false "
-                    f"(WebFlash exposure is blocked).",
-                )
-                self.assertIn(
+                # HW-RELEASE-001 (docs/hw-release-001.md, owner
+                # declaration) promoted FanPWM configs to preview with
+                # webflash_build_matrix true; the teeth that remain are
+                # never-production / never-stable (RPM still unproven).
+                self.assertNotEqual(
                     entry.get("status"),
-                    {"hardware-pending", "design-pending", "blocked",
-                     "compile-only", "manual-candidate-only"},
-                    f"{config}: status must stay non-stable; got "
-                    f"{entry.get('status')!r}.",
+                    "production",
+                    f"{config}: status must never be production.",
+                )
+                self.assertNotEqual(
+                    entry.get("channel"),
+                    "stable",
+                    f"{config}: channel must never be stable.",
                 )
 
-    def test_webflash_builds_has_no_fanpwm_entry(self) -> None:
+    def test_webflash_builds_fanpwm_rows_never_stable(self) -> None:
+        # HW-RELEASE-001 admits FanPWM build rows on the preview channel
+        # only; measured native-GPIO tach evidence is still owed and a
+        # stable-channel FanPWM row stays a violation.
         data = self._load_json(WEBFLASH_BUILDS_JSON)
         builds: List[dict] = data.get("builds", []) if isinstance(data, dict) else []
         for row in builds:
             cfg = row.get("config_string", "")
+            if "FanPWM" not in cfg:
+                continue
             with self.subTest(config_string=cfg):
-                self.assertNotIn(
-                    "FanPWM",
-                    cfg,
-                    f"FanPWM must not appear in any WebFlash build "
-                    f"(`{cfg}`) until measured native-GPIO tach evidence + "
-                    f"WebFlash live-classification land.",
+                self.assertEqual(
+                    row.get("channel"),
+                    "preview",
+                    f"{cfg}: FanPWM builds are preview-only under "
+                    "HW-RELEASE-001 — never stable.",
                 )
 
 

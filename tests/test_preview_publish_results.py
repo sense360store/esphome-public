@@ -108,10 +108,19 @@ class PublishedArtifactTests(unittest.TestCase):
     live ledger (today's preview rows are a strict subset of it)."""
 
     def test_published_set_covers_todays_preview_rows(self) -> None:
-        # Today's preview rows are a strict subset of the historical publish
-        # set (two of the four were promoted to stable after the run), and
-        # every historically published config still exists in the ledger.
-        got = {b["config_string"] for b in _preview_rows_today()}
+        # This file records the HISTORICAL v1.0.0-preview publish. Two of its
+        # rows were promoted to stable and the VentIQ LED preview was
+        # re-rolled to v1.0.1, so none of the historical publish set sits at
+        # (v1.0.0, preview) today. HW-RELEASE-001 (docs/hw-release-001.md)
+        # later added NEW (v1.0.0, preview) rows (the re-listed RoomIQ-LED
+        # plus the six FanPWM / FanDAC configs); those are owner-declared
+        # metadata rows, not part of this recorded publish, so they are
+        # excluded from the historical reconciliation below.
+        got = {
+            b["config_string"]
+            for b in _preview_rows_today()
+            if b.get("release_state") != "metadata-ready-unpublished"
+        }
         self.assertTrue(
             got.issubset(EXPECTED_PUBLISHED_CONFIGS),
             f"unexpected preview rows: {sorted(got - EXPECTED_PUBLISHED_CONFIGS)}",
@@ -157,12 +166,14 @@ class GuardrailTests(unittest.TestCase):
             with self.subTest(config_string=cs):
                 self.assertNotIn("release_state", by_cs[cs])
 
-    def test_builds_ledger_has_five_entries(self) -> None:
+    def test_builds_ledger_has_fourteen_entries(self) -> None:
         # Four customer (stable / preview) builds plus the experimental
         # self-build mains FanTRIAC build added by TRIAC-COMMISSIONING-001.
-        # CI-PIPELINE-CLARITY-001 P4a de-listed Ceiling-POE-RoomIQ-LED, dropping
-        # the ledger from six to five entries.
-        self.assertEqual(len(_builds()), 5)
+        # CI-PIPELINE-CLARITY-001 P4a de-listed Ceiling-POE-RoomIQ-LED
+        # (six -> five); HW-RELEASE-001 (owner declaration) then re-listed it
+        # and added the six FanPWM / FanDAC preview rows plus the two
+        # FanRelay experimental rows (five -> fourteen).
+        self.assertEqual(len(_builds()), 14)
 
 
 if __name__ == "__main__":

@@ -61,6 +61,20 @@ on:
           # buyable / kit-exposed; one-click WebFlash import stays gated by
           # WF-IMPORT-TRIAC-001.
           - Ceiling-POE-VentIQ-FanTRIAC-RoomIQ
+          # HW-RELEASE-001 (docs/hw-release-001.md): owner-declared promotions.
+          # Ceiling-POE-RoomIQ-LED re-listed on preview; FanPWM / FanDAC
+          # configs on preview; FanRelay room bundles on experimental only
+          # (mains-adjacent lane per COMPLIANCE-001). Fan configs are NEVER
+          # stable / recommended / default / buyable / kit-exposed.
+          - Ceiling-POE-RoomIQ-LED
+          - Ceiling-POE-FanPWM
+          - Ceiling-POE-AirIQ-FanPWM-RoomIQ
+          - Ceiling-POE-VentIQ-FanPWM-RoomIQ
+          - Ceiling-POE-FanDAC
+          - Ceiling-POE-AirIQ-FanDAC-RoomIQ
+          - Ceiling-POE-VentIQ-FanDAC-RoomIQ
+          - Ceiling-POE-AirIQ-FanRelay-RoomIQ
+          - Ceiling-POE-VentIQ-FanRelay-RoomIQ
       version:
         description: >-
           Release version, leading 'v' optional (e.g. 1.0.1 or v1.0.1). Must

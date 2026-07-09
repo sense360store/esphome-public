@@ -83,12 +83,26 @@ PROMOTED_CONFIGS = (
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
 )
-# No PREVIEW-channel metadata-ready room bundle remains after the two stable
-# promotions and the P4a de-listing of the LED room bundle. The FanTRIAC
-# experimental self-build mains build (TRIAC-COMMISSIONING-001) is metadata-ready
-# but on the EXPERIMENTAL channel, so it is tracked separately.
-STILL_PREVIEW_CONFIGS: tuple[str, ...] = ()
-EXPERIMENTAL_METADATA_READY_CONFIGS = ("Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",)
+# HW-RELEASE-001 (docs/hw-release-001.md, owner declaration) re-listed the
+# LED room bundle and added the six FanPWM / FanDAC preview rows, all
+# metadata-ready on the PREVIEW channel. The FanTRIAC experimental self-build
+# mains build (TRIAC-COMMISSIONING-001) plus the two owner-declared FanRelay
+# room bundles are metadata-ready on the EXPERIMENTAL channel, tracked
+# separately.
+STILL_PREVIEW_CONFIGS: tuple[str, ...] = (
+    "Ceiling-POE-RoomIQ-LED",
+    "Ceiling-POE-FanPWM",
+    "Ceiling-POE-AirIQ-FanPWM-RoomIQ",
+    "Ceiling-POE-VentIQ-FanPWM-RoomIQ",
+    "Ceiling-POE-FanDAC",
+    "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
+    "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
+)
+EXPERIMENTAL_METADATA_READY_CONFIGS = (
+    "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
+    "Ceiling-POE-AirIQ-FanRelay-RoomIQ",
+    "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
+)
 
 # The stable Bathroom baseline + already-published VentIQ LED preview are
 # explicitly out of the publish set (the stable build is only built when
@@ -96,16 +110,19 @@ EXPERIMENTAL_METADATA_READY_CONFIGS = ("Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",)
 STABLE_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
 PUBLISHED_LED_PREVIEW_CONFIG = "Ceiling-POE-VentIQ-RoomIQ-LED"
 
-# Forbidden tokens that must never appear as a preview publish artifact.
+# Tokens that must never appear in the HISTORICAL v1.0.0-preview publish
+# set's artifact names (PUBLISH_CONFIGS above) — that publish predates
+# HW-RELEASE-001 and carried no fan/TRIAC artifact.
 FORBIDDEN_ARTIFACT_TOKENS = ("FanTRIAC", "FanRelay", "FanPWM", "FanDAC", "TRIAC")
 # Off-matrix configs that must be rejected by the release-target picker.
-# (FanTRIAC is no longer here: TRIAC-COMMISSIONING-001 made it a release target
-# on the experimental channel, so the picker accepts it. The standalone
-# manual-preview fan drivers stay off-matrix and rejected.)
+# (FanTRIAC was admitted by TRIAC-COMMISSIONING-001 on the experimental
+# channel; HW-RELEASE-001 then admitted the FanPWM / FanDAC configs on
+# preview and the FanRelay room bundles on experimental, so those are now
+# accepted. What stays rejected is anything without a build row.)
 FORBIDDEN_TARGETS = (
-    "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
-    "Ceiling-POE-FanPWM",
-    "Ceiling-POE-FanDAC",
+    "Ceiling-USB-FanPWM",
+    "Ceiling-POE-FanRelay",
+    "Not-A-Real-Config",
 )
 
 
@@ -322,13 +339,27 @@ class WorkflowPickerTests(unittest.TestCase):
             with self.subTest(config_string=cs):
                 self.assertIn(cs, options)
 
-    def test_release_notes_picker_carries_no_fan_token(self) -> None:
+    def test_release_notes_picker_fan_options_never_stable(self) -> None:
+        # HW-RELEASE-001: fan targets are pickable, but every fan option must
+        # map to a non-stable build row (FanRelay: experimental; FanPWM /
+        # FanDAC: preview). Fan configs are NEVER stable.
         inputs = _dispatch_inputs(RELEASE_NOTES_WORKFLOW)
         options = list((inputs.get("config_string") or {}).get("options") or [])
+        by_cs = _by_cs()
         for opt in options:
-            for token in ("FanRelay", "FanPWM", "FanDAC"):
-                with self.subTest(option=opt, token=token):
-                    self.assertNotIn(token.lower(), opt.lower())
+            if not any(
+                token.lower() in opt.lower()
+                for token in ("FanRelay", "FanPWM", "FanDAC")
+            ):
+                continue
+            with self.subTest(option=opt):
+                self.assertIn(opt, by_cs)
+                channel = by_cs[opt]["channel"]
+                self.assertNotEqual(channel, "stable")
+                if "fanrelay" in opt.lower():
+                    self.assertEqual(channel, "experimental")
+                else:
+                    self.assertEqual(channel, "preview")
 
     def test_list_release_targets_validates_each_publish_config(self) -> None:
         for cs in PUBLISH_CONFIGS:
@@ -370,14 +401,20 @@ class WorkflowMatrixScopeTests(unittest.TestCase):
                 got = _matrix(entry["version"], "stable")
                 self.assertEqual(got, [entry["config_string"]])
 
-    def test_no_fan_or_triac_token_in_any_build_row(self) -> None:
+    def test_fan_and_triac_build_rows_never_stable(self) -> None:
+        # HW-RELEASE-001 revised the fan-token guardrail to channel teeth:
+        # FanTRIAC / FanRelay rows only on 'experimental', FanPWM / FanDAC
+        # rows only on 'preview'. Fan / TRIAC rows are NEVER stable.
         for entry in _builds():
             cs = entry["config_string"]
-            # The FanTRIAC experimental self-build mains commissioning
-            # (TRIAC-COMMISSIONING-001) is the one allowed fan/TRIAC build row,
-            # and only on the experimental channel.
-            if "FanTRIAC" in cs.split("-"):
-                self.assertEqual(entry.get("channel"), "experimental")
+            tokens = cs.split("-")
+            if "FanTRIAC" in tokens or "FanRelay" in tokens:
+                with self.subTest(config_string=cs):
+                    self.assertEqual(entry.get("channel"), "experimental")
+                continue
+            if "FanPWM" in tokens or "FanDAC" in tokens:
+                with self.subTest(config_string=cs):
+                    self.assertEqual(entry.get("channel"), "preview")
                 continue
             for token in FORBIDDEN_ARTIFACT_TOKENS:
                 with self.subTest(config_string=cs, token=token):

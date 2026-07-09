@@ -406,15 +406,44 @@ class NativeCompileOnlyTargetTests(unittest.TestCase):
 
 
 class FanPwmStaysOutOfWebFlashTests(unittest.TestCase):
-    """Rule (5): FanPWM stays absent from config/webflash-builds.json."""
+    """Rule (5), amended by HW-RELEASE-001 (docs/hw-release-001.md,
+    owner decision of record, 2026-07-09): FanPWM metadata build rows now
+    exist by owner declaration, so the guard is a channel pin instead of
+    an absence pin — every FanPWM-bearing row stays on the preview
+    channel and is never stable.
+    """
 
-    def test_fanpwm_token_absent_from_webflash_builds(self) -> None:
-        self.assertNotIn(
-            "FanPWM",
-            WEBFLASH_BUILDS.read_text(),
-            "config/webflash-builds.json must not contain the FanPWM token "
-            "— the native candidate is non-release / no-WebFlash",
+    def test_fanpwm_builds_rows_are_preview_never_stable(self) -> None:
+        data = json.loads(WEBFLASH_BUILDS.read_text())
+        rows = [
+            row
+            for row in (data.get("builds", []) or [])
+            if "FanPWM" in (row.get("config_string") or "").split("-")
+        ]
+        self.assertTrue(
+            rows,
+            "expected FanPWM metadata build rows in "
+            "config/webflash-builds.json (declared by HW-RELEASE-001)",
         )
+        for row in rows:
+            cfg = row.get("config_string")
+            self.assertNotEqual(
+                row.get("channel"),
+                "stable",
+                f"{cfg!r}: FanPWM build rows are NEVER channel stable",
+            )
+            self.assertEqual(
+                row.get("channel"),
+                "preview",
+                f"{cfg!r}: FanPWM build rows are preview-channel only "
+                "(HW-RELEASE-001); the native candidate itself remains "
+                "non-release / compile-only",
+            )
+            self.assertNotIn(
+                "-stable",
+                row.get("artifact_name") or "",
+                f"{cfg!r}: FanPWM artifact_name must never claim stable",
+            )
 
 
 class LegacySx1509PreservedTests(unittest.TestCase):
