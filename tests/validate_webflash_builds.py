@@ -140,10 +140,16 @@ class WebflashBuildsValidator:
             )
             ok = False
 
+        fandac_exceptions = set(
+            compat.get("fandac_air_quality_address_policy", {}).get(
+                "address_overridden_exception_config_strings", []
+            )
+        )
         if (
             rules.get("fandac_conflicts_with_airiq")
             and "FanDAC" in tokens
             and "AirIQ" in tokens
+            and config_string not in fandac_exceptions
         ):
             self.errors.append(
                 f"FanDAC conflicts with AirIQ in '{config_string}'; "

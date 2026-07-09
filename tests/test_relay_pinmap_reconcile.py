@@ -292,17 +292,44 @@ class ReconcileGuardrailTests(unittest.TestCase):
             "across S360-310-RELAY-PINMAP-RECONCILE-001.",
         )
 
-    def test_no_fan_relay_token_in_webflash_builds(self) -> None:
-        text = WEBFLASH_BUILDS_JSON.read_text()
-        self.assertNotIn(
-            "FanRelay",
-            text,
-            "config/webflash-builds.json must not contain the FanRelay "
-            "token — the reconcile slice does not advance WebFlash / "
-            "release.",
+    def test_fan_relay_builds_rows_are_experimental_never_stable(self) -> None:
+        # HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record,
+        # 2026-07-09) declared FanRelay metadata build rows in
+        # config/webflash-builds.json, so this guard pins the CHANNEL
+        # instead of absence: every FanRelay-bearing row must be channel
+        # "experimental" — never "stable".
+        data = json.loads(WEBFLASH_BUILDS_JSON.read_text())
+        rows = [
+            row
+            for row in (data.get("builds", []) or [])
+            if "FanRelay" in (row.get("config_string") or "").split("-")
+        ]
+        self.assertTrue(
+            rows,
+            "expected FanRelay metadata build rows in "
+            "config/webflash-builds.json (declared by HW-RELEASE-001).",
         )
+        for row in rows:
+            cfg = row.get("config_string")
+            self.assertNotEqual(
+                row.get("channel"),
+                "stable",
+                f"{cfg!r}: FanRelay build rows are NEVER channel stable.",
+            )
+            self.assertEqual(
+                row.get("channel"),
+                "experimental",
+                f"{cfg!r}: FanRelay build rows are experimental-channel "
+                "only (mains-adjacent posture; HW-RELEASE-001).",
+            )
 
-    def test_relay_product_has_no_artifact_name_and_no_webflash(self) -> None:
+    def test_relay_product_keeps_experimental_never_stable_posture(self) -> None:
+        # HW-RELEASE-001 flipped webflash_build_matrix to true and declared
+        # an artifact_name for the FanRelay catalog entry by owner decision
+        # (was: no artifact_name / webflash_build_matrix false). The
+        # remaining teeth: status "preview" (never "production"), channel
+        # "experimental" (never "stable"), and any declared artifact_name
+        # carries the -experimental suffix only.
         data = json.loads(PRODUCT_CATALOG_JSON.read_text())
         entry = None
         for product in data.get("products", []):
@@ -315,19 +342,31 @@ class ReconcileGuardrailTests(unittest.TestCase):
             f"the product catalog.",
         )
         assert entry is not None
-        self.assertNotIn(
-            "artifact_name",
-            entry,
-            "FanRelay product catalog entry must not declare "
-            "artifact_name — the reconcile slice does not build a release "
-            "artifact.",
+        self.assertNotEqual(
+            entry.get("status"),
+            "production",
+            "FanRelay product catalog entry must never be production — "
+            "nothing fan-flavored is ever stable (HW-RELEASE-001 posture "
+            "is preview).",
+        )
+        self.assertNotEqual(
+            entry.get("channel"),
+            "stable",
+            "FanRelay product catalog channel must never be stable.",
         )
         self.assertEqual(
-            entry.get("webflash_build_matrix"),
-            False,
-            "FanRelay product catalog entry must keep "
-            "webflash_build_matrix: false.",
+            entry.get("channel"),
+            "experimental",
+            "FanRelay product catalog entry is experimental-channel only "
+            "(HW-RELEASE-001).",
         )
+        artifact = entry.get("artifact_name") or ""
+        if artifact:
+            self.assertTrue(
+                artifact.endswith("-experimental.bin"),
+                f"FanRelay artifact_name {artifact!r} must carry the "
+                "-experimental channel suffix (never -stable.bin).",
+            )
 
 
 if __name__ == "__main__":

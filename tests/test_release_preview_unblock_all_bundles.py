@@ -27,6 +27,14 @@ Invariants asserted (matching the task contract):
   - Simple install (stable Bathroom PoE) remains unchanged;
   - candidate bundles remain hidden / not buyable;
   - no stable / full release unblock happens.
+
+HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record, 2026-07-09)
+later retired the bench-proof documentation gate and added declaration-driven
+config/webflash-builds.json metadata rows for the fan configs, so the fan
+guards below are CHANNEL teeth rather than absence pins: fan ledger rows exist
+but sit on the experimental (FanRelay / FanTRIAC) or preview (FanPWM / FanDAC)
+channel and are NEVER stable; fan catalog entries are status preview /
+webflash_build_matrix true and their channel is never "stable".
 """
 
 import json
@@ -68,7 +76,12 @@ class DecisionRecordedTests(unittest.TestCase):
         # commercial; the only preview blocker class is buildability.
         self.assertEqual(
             set(decision["stable_only_blocker_classes"]),
-            {"hardware-proof", "bench-evidence", "compliance", "commercial-availability"},
+            {
+                "hardware-proof",
+                "bench-evidence",
+                "compliance",
+                "commercial-availability",
+            },
         )
         self.assertEqual(set(decision["preview_blocker_classes"]), {"buildability"})
 
@@ -190,8 +203,7 @@ class MissingHardwareProofDoesNotBlockPreviewTests(unittest.TestCase):
                 # from the live ledger.
                 self.assertTrue(
                     target["preview_allowed"],
-                    f"{target['target_id']}: de-listed target stays "
-                    "preview_allowed",
+                    f"{target['target_id']}: de-listed target stays " "preview_allowed",
                 )
                 continue
             self.assertIsNone(
@@ -240,9 +252,7 @@ class TriacAdvancedManualWarningOnlyTests(unittest.TestCase):
     def setUpClass(cls):
         cls.policy = _load(POLICY_PATH)
         cls.targets = _load(TARGETS_PATH)
-        cls.triac_targets = [
-            t for t in cls.targets["targets"] if t.get("is_triac")
-        ]
+        cls.triac_targets = [t for t in cls.targets["targets"] if t.get("is_triac")]
 
     def test_exactly_one_triac_target(self):
         self.assertEqual(len(self.triac_targets), 1)
@@ -324,12 +334,32 @@ class FanDriversManualPreviewOnlyTests(unittest.TestCase):
             )
             self.assertTrue(t["preview_allowed"])
 
-    def test_fans_absent_from_webflash_ledger(self):
-        ledger = {b["config_string"] for b in self.builds["builds"]}
+    def test_fan_ledger_rows_match_family_channel_never_stable(self):
+        # HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09) inverted the old
+        # "fans absent from the ledger" pin: every fan target's config now has
+        # a declaration-driven release-eligibility metadata row. The permanent
+        # tooth is the CHANNEL: FanRelay rows are experimental-only
+        # (mains-adjacent, COMPLIANCE-001 lane posture), FanPWM / FanDAC rows
+        # preview-only, and NO fan row is ever on the stable channel.
+        ledger = {b["config_string"]: b for b in self.builds["builds"]}
         for t in self.fan_targets:
-            self.assertNotIn(t["config_string"], ledger)
+            cs = t["config_string"]
+            with self.subTest(config_string=cs):
+                self.assertIn(cs, ledger)
+                row = ledger[cs]
+                expected = "experimental" if t["family"] == "FanRelay" else "preview"
+                self.assertEqual(row["channel"], expected)
+                self.assertNotEqual(
+                    row["channel"],
+                    "stable",
+                    f"{cs}: fan configs are NEVER on the stable channel",
+                )
+                self.assertEqual(row["release_state"], "metadata-ready-unpublished")
 
-    def test_fan_catalog_entries_stay_off_the_build_matrix(self):
+    def test_fan_catalog_entries_on_matrix_preview_never_stable(self):
+        # HW-RELEASE-001 inverted the old "off the build matrix" pin: fan
+        # catalog entries are now status preview / webflash_build_matrix true
+        # under the owner declaration, and their channel is never "stable".
         catalog = {
             p.get("config_string"): p
             for p in self.catalog["products"]
@@ -337,10 +367,14 @@ class FanDriversManualPreviewOnlyTests(unittest.TestCase):
         }
         for t in self.fan_targets:
             entry = catalog.get(t["config_string"])
-            if entry is not None:
-                self.assertFalse(
-                    entry.get("webflash_build_matrix", False),
-                    f"{t['config_string']} must stay off the WebFlash build matrix",
+            self.assertIsNotNone(entry, f"{t['config_string']}: catalog entry")
+            with self.subTest(config_string=t["config_string"]):
+                self.assertIs(entry.get("webflash_build_matrix"), True)
+                self.assertEqual(entry.get("status"), "preview")
+                self.assertNotEqual(entry.get("channel"), "stable")
+                self.assertEqual(
+                    entry.get("hardware_status"),
+                    "owner-declared-bench-working-hw-release-001",
                 )
 
     def test_fan_manual_lane_candidates_preserve_stable_blocker_and_caveat(self):
@@ -515,9 +549,7 @@ class NoStableOrFullReleaseUnblockTests(unittest.TestCase):
         # does not carry.
         builds = _load(BUILDS_PATH)
         ledger_stable = {
-            b["config_string"]
-            for b in builds["builds"]
-            if b.get("channel") == "stable"
+            b["config_string"] for b in builds["builds"] if b.get("channel") == "stable"
         }
         stable = [t for t in self.targets["targets"] if t["channel_tier"] == "stable"]
         self.assertEqual({t["config_string"] for t in stable}, ledger_stable)

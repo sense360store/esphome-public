@@ -13,27 +13,36 @@ independent SX1509 PWM-drive fan-speed controllers; composes the neutral
 binding ``packages/expansions/fan_pwm_sx1509.yaml``). The customer
 outcome is four-channel 12V PWM fan-speed control on the S360-311 board.
 
-The product intentionally has:
+HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record,
+2026-07-09) retired the bench-proof documentation requirement as a
+release gate; hardware readiness is declared by the owner directly.
+Under that decision the FanPWM product is now a release-eligible
+PREVIEW-channel config:
 
-  * no WebFlash wrapper under ``products/webflash/``;
-  * no ``webflash_build_matrix: true`` flip in
-    ``config/product-catalog.json``;
-  * no ``artifact_name`` declared;
-  * no entry in ``config/webflash-builds.json``;
-  * no entry in ``release_one_required_configs``;
-  * no release artifact / tag / checksum / build-info manifest;
-  * NO RPM support and NO ``pulse_counter`` (an SX1509 expander pin is
-    compile-proven unable to back an ESPHome ``pulse_counter``);
-  * ``TachIO`` / ``GPIO16`` reserved / pending;
-  * an explicit full-compile-validated caveat (run 26414398902 /
-    validated-full-compile), PWM-polarity, current / thermal-envelope,
-    no-RPM, and no-WebFlash / no-release / no-compliance /
-    not-hardware-stable caveat wording in the product YAML header.
+  * a thin packages-only WebFlash wrapper under ``products/webflash/``
+    re-exporting the canonical product YAML;
+  * ``status: preview`` + ``webflash_build_matrix: true`` +
+    ``artifact_name`` + ``webflash_wrapper`` in
+    ``config/product-catalog.json`` (hardware_status
+    ``owner-declared-bench-working-hw-release-001``);
+  * a ``config/webflash-builds.json`` row on the PREVIEW channel
+    (release_state metadata-ready-unpublished — metadata only, no
+    binary / Release / tag / manifest is cut).
 
-These tests pin the structural invariants so a future regression cannot
-silently promote the FanPWM product onto a WebFlash-shippable surface,
-add an RPM claim, or strip the required caveats without an explicit
-WEBFLASH-PWM-001 / RELEASE-PWM-001 slice.
+Unchanged truths these tests keep pinning:
+
+  * fan configs are NEVER on the stable channel — FanPWM / FanDAC rows
+    are ``preview``, FanRelay rows are ``experimental``, none ever
+    ``stable``; RELEASE-PWM-001 remains the STABLE blocker;
+  * still NO entry in ``release_one_required_configs``; the builds-row
+    ``commercial_posture`` keeps buyable / recommended /
+    customer_default / stable false;
+  * NO RPM support (``rpm_supported`` false; native tach inputs stay
+    internal diagnostic only) and ``TachIO`` / ``GPIO16`` stays
+    reserved / pending;
+  * promotion is firmware-build proof only under owner declaration —
+    no hardware / bench / compliance / safety /
+    commercial-availability claim.
 
 Run with::
 
@@ -60,6 +69,19 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 PWM_PRODUCT_YAML = REPO_ROOT / "products" / "sense360-ceiling-poe-fanpwm.yaml"
 PWM_PRODUCT_REL = "products/sense360-ceiling-poe-fanpwm.yaml"
 PWM_CONFIG_STRING = "Ceiling-POE-FanPWM"
+# HW-RELEASE-001: the release-gate WebFlash wrapper now exists.
+PWM_WRAPPER_REL = "products/webflash/ceiling-poe-fanpwm.yaml"
+# HW-RELEASE-001 owner declaration marker recorded in the catalog.
+OWNER_DECLARED_HW_STATUS = "owner-declared-bench-working-hw-release-001"
+# Fan channel policy (HW-RELEASE-001 revision of the former fan-token
+# guardrail): fan configs are NEVER stable; FanPWM / FanDAC ship preview,
+# FanRelay / FanTRIAC ship experimental only.
+FAN_TOKEN_EXPECTED_CHANNEL = {
+    "FanPWM": "preview",
+    "FanDAC": "preview",
+    "FanRelay": "experimental",
+    "FanTRIAC": "experimental",
+}
 # The product YAML is now a thin compat shim; its full composition/substitution
 # content lives in the bundle. Content reads must target the bundle.
 PWM_BUNDLE = REPO_ROOT / "products" / "bundles" / "ceiling-poe-fanpwm.yaml"
@@ -156,6 +178,30 @@ def _catalog_entry_for(rel_path: str) -> Dict[str, Any]:
         f"config/product-catalog.json (PRODUCT-PWM-001 requires a "
         f"non-WebFlash row)"
     )
+
+
+def _builds_row_for(config_string: str) -> Dict[str, Any]:
+    doc = _load_json(WEBFLASH_BUILDS)
+    for row in doc.get("builds", []) or []:
+        if row.get("config_string") == config_string:
+            return row
+    raise AssertionError(
+        f"no config/webflash-builds.json row for {config_string!r} — "
+        f"HW-RELEASE-001 declares this config release-eligible"
+    )
+
+
+def _fan_rows() -> List[Dict[str, Any]]:
+    """All builds rows whose config_string carries a fan-driver token."""
+    doc = _load_json(WEBFLASH_BUILDS)
+    return [
+        row
+        for row in doc.get("builds", []) or []
+        if any(
+            token in row.get("config_string", "")
+            for token in FAN_TOKEN_EXPECTED_CHANNEL
+        )
+    ]
 
 
 def _package_include_map(yaml_path: Path) -> Dict[str, str]:
@@ -386,12 +432,20 @@ class PwmProductNoRpmNoPulseCounterTests(unittest.TestCase):
             )
 
 
-class PwmProductWebFlashExposureGuardsTests(unittest.TestCase):
-    """The FanPWM product is NOT WebFlash-exposed.
+class PwmProductWebFlashReleaseSurfaceTests(unittest.TestCase):
+    """HW-RELEASE-001: FanPWM IS release-eligible — on the PREVIEW channel.
 
-    PRODUCT-PWM-001 explicitly does not add a WebFlash wrapper, a catalog
-    ``webflash_build_matrix: true`` flip, an ``artifact_name``, a
-    ``config/webflash-builds.json`` entry, or a release artifact.
+    Rewritten from the former ``PwmProductWebFlashExposureGuardsTests``
+    (which pinned the pre-HW-RELEASE-001 "no WebFlash exposure" posture).
+    HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09) retired the
+    bench-proof documentation requirement as a release gate; the owner
+    declares hardware readiness directly. The inverted invariants: the
+    catalog entry is status preview with webflash_build_matrix true, an
+    artifact_name, and an existing thin webflash wrapper; the builds row
+    exists on the PREVIEW channel. The preserved invariants: fan configs
+    are NEVER stable, RELEASE-PWM-001 remains the STABLE blocker, the
+    commercial posture stays non-customer, promotion is firmware-build
+    proof only, and FanPWM stays out of release_one_required_configs.
     """
 
     @classmethod
@@ -399,86 +453,149 @@ class PwmProductWebFlashExposureGuardsTests(unittest.TestCase):
         cls.entry = _catalog_entry_for(PWM_PRODUCT_REL)
         cls.builds_doc = _load_json(WEBFLASH_BUILDS)
         cls.compat = _load_json(WEBFLASH_COMPATIBILITY)
+        cls.row = _builds_row_for(PWM_CONFIG_STRING)
 
-    def test_catalog_entry_webflash_build_matrix_is_false(self) -> None:
+    def test_catalog_entry_webflash_build_matrix_is_true(self) -> None:
         self.assertEqual(
             self.entry.get("webflash_build_matrix"),
-            False,
+            True,
             "FanPWM product catalog entry must set "
-            "webflash_build_matrix: false — PRODUCT-PWM-001 does not "
-            "advance WEBFLASH-PWM-001 or RELEASE-PWM-001.",
+            "webflash_build_matrix: true — HW-RELEASE-001 promoted the "
+            "config into the declaration-driven release matrix.",
         )
 
-    def test_catalog_entry_has_no_artifact_name(self) -> None:
-        self.assertNotIn(
-            "artifact_name",
-            self.entry,
-            "FanPWM product catalog entry must NOT declare artifact_name "
-            "— no release artifact is built by PRODUCT-PWM-001.",
-        )
-
-    def test_catalog_entry_has_no_webflash_wrapper(self) -> None:
-        self.assertNotIn(
-            "webflash_wrapper",
-            self.entry,
-            "FanPWM product catalog entry must NOT declare "
-            "webflash_wrapper — PRODUCT-PWM-001 does not add a WebFlash "
-            "wrapper under products/webflash/.",
-        )
-
-    def test_catalog_entry_status_is_not_release_eligible(self) -> None:
-        self.assertNotIn(
-            self.entry.get("status"),
-            {"production", "preview"},
-            f"FanPWM product catalog entry must not be production or "
-            f"preview — those statuses authorise WebFlash exposure. "
-            f"Got status={self.entry.get('status')!r}.",
-        )
-
-    def test_catalog_entry_status_is_hardware_pending(self) -> None:
+    def test_catalog_entry_status_is_preview(self) -> None:
         self.assertEqual(
             self.entry.get("status"),
-            "hardware-pending",
-            "FanPWM product catalog entry must be status: hardware-pending "
-            "(bench gates open; matches the FanDAC / FanRelay precedent).",
+            "preview",
+            "FanPWM product catalog entry must be status: preview (a "
+            "release-eligible status) per owner decision HW-RELEASE-001.",
         )
 
-    def test_no_fanpwm_webflash_wrapper_file(self) -> None:
-        if not WEBFLASH_WRAPPER_DIR.is_dir():
-            return
-        offenders = []
-        for path in WEBFLASH_WRAPPER_DIR.glob("*.yaml"):
-            name = path.name.lower()
-            if "fanpwm" in name or "fan-pwm" in name or "fan_pwm" in name:
-                offenders.append(path.relative_to(REPO_ROOT).as_posix())
+    def test_catalog_entry_channel_is_preview_never_stable(self) -> None:
         self.assertEqual(
-            offenders,
-            [],
-            f"PRODUCT-PWM-001 must NOT add any FanPWM WebFlash wrapper "
-            f"under products/webflash/ — that work belongs to "
-            f"WEBFLASH-PWM-001 (not landed). Offending paths: {offenders!r}",
+            self.entry.get("channel"),
+            "preview",
+            "FanPWM catalog channel must be exactly 'preview' — fan "
+            "configs are NEVER on the stable channel (HW-RELEASE-001 "
+            "channel-teeth revision of the fan-token guardrail).",
         )
 
-    def test_pwm_config_string_not_in_webflash_builds(self) -> None:
-        for entry in self.builds_doc.get("builds", []) or []:
-            self.assertNotEqual(
-                entry.get("config_string"),
-                PWM_CONFIG_STRING,
-                f"config/webflash-builds.json must not contain "
-                f"{PWM_CONFIG_STRING!r} — PRODUCT-PWM-001 does not add a "
-                f"build-matrix entry. RELEASE-PWM-001 owns the FanPWM "
-                f"build entry.",
+    def test_catalog_entry_artifact_name_matches_contract(self) -> None:
+        version = self.entry.get("version")
+        channel = self.entry.get("channel")
+        self.assertEqual(version, "1.0.0")
+        self.assertEqual(
+            self.entry.get("artifact_name"),
+            f"Sense360-{PWM_CONFIG_STRING}-v{version}-{channel}.bin",
+            "FanPWM artifact_name must follow the "
+            "Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin contract.",
+        )
+
+    def test_catalog_entry_hardware_status_is_owner_declared(self) -> None:
+        self.assertEqual(
+            self.entry.get("hardware_status"),
+            OWNER_DECLARED_HW_STATUS,
+            "FanPWM hardware_status must record the HW-RELEASE-001 owner "
+            "declaration (owner-declared, not measured/bench-proven).",
+        )
+
+    def test_catalog_entry_declares_existing_webflash_wrapper(self) -> None:
+        self.assertEqual(
+            self.entry.get("webflash_wrapper"),
+            PWM_WRAPPER_REL,
+            "FanPWM catalog entry must declare the products/webflash "
+            "wrapper HW-RELEASE-001 added.",
+        )
+        self.assertTrue(
+            (REPO_ROOT / PWM_WRAPPER_REL).is_file(),
+            f"declared webflash_wrapper {PWM_WRAPPER_REL!r} must exist",
+        )
+
+    def test_webflash_wrapper_is_thin_packages_only_reexport(self) -> None:
+        wrapper = REPO_ROOT / PWM_WRAPPER_REL
+        data = _load_yaml(wrapper)
+        self.assertEqual(
+            set(data.keys()),
+            {"packages"},
+            "the FanPWM WebFlash wrapper must be a thin packages-only "
+            "re-export (no substitutions / esphome / component blocks).",
+        )
+        includes = list((data.get("packages") or {}).values())
+        self.assertEqual(
+            includes,
+            ["../sense360-ceiling-poe-fanpwm.yaml"],
+            "the wrapper must !include exactly the canonical "
+            "products/sense360-ceiling-poe-fanpwm.yaml (as ../sense360-*).",
+        )
+
+    def test_pwm_builds_row_is_preview_channel(self) -> None:
+        self.assertEqual(
+            self.row.get("channel"),
+            "preview",
+            "the FanPWM config/webflash-builds.json row must be on the "
+            "preview channel — never stable (HW-RELEASE-001).",
+        )
+        self.assertEqual(self.row.get("product_yaml"), PWM_WRAPPER_REL)
+        self.assertEqual(
+            self.row.get("artifact_name"),
+            self.entry.get("artifact_name"),
+            "builds-row artifact_name must match the catalog entry",
+        )
+
+    def test_pwm_builds_row_stable_blocker_cites_release_pwm_001(self) -> None:
+        self.assertIn(
+            "RELEASE-PWM-001",
+            self.row.get("stable_blocker", ""),
+            "RELEASE-PWM-001 remains the STABLE blocker for FanPWM — "
+            "HW-RELEASE-001 promoted preview only, not stable.",
+        )
+
+    def test_pwm_builds_row_commercial_posture_stays_non_customer(self) -> None:
+        posture = self.row.get("commercial_posture") or {}
+        for key in ("buyable", "recommended", "customer_default", "stable"):
+            self.assertIs(
+                posture.get(key),
+                False,
+                f"FanPWM builds-row commercial_posture.{key} must stay "
+                f"false — HW-RELEASE-001 changes no customer visibility.",
             )
 
-    def test_fanpwm_token_not_in_webflash_builds_json(self) -> None:
-        text = WEBFLASH_BUILDS.read_text()
-        self.assertNotIn(
-            "FanPWM",
-            text,
-            "config/webflash-builds.json must not contain the FanPWM "
-            "token at all — PRODUCT-PWM-001 does not advance "
-            "WEBFLASH-PWM-001 or RELEASE-PWM-001.",
+    def test_pwm_builds_row_claims_firmware_build_proof_only(self) -> None:
+        notes = self.row.get("notes", "").lower()
+        self.assertIn(
+            "firmware-build proof only",
+            notes,
+            "the FanPWM builds row must state promotion is firmware-build "
+            "proof only (no false proof claims under HW-RELEASE-001).",
         )
+        self.assertIn(
+            "no hardware / bench / compliance",
+            notes,
+            "the FanPWM builds row must disclaim hardware / bench / "
+            "compliance proof.",
+        )
+
+    def test_no_fan_config_row_is_ever_stable(self) -> None:
+        rows = _fan_rows()
+        self.assertTrue(rows, "expected fan-config rows post HW-RELEASE-001")
+        for row in rows:
+            cs = row.get("config_string", "")
+            with self.subTest(config_string=cs):
+                self.assertNotEqual(
+                    row.get("channel"),
+                    "stable",
+                    f"fan config {cs!r} must NEVER be on the stable "
+                    f"channel (HW-RELEASE-001 channel-teeth guardrail).",
+                )
+                for token, channel in FAN_TOKEN_EXPECTED_CHANNEL.items():
+                    if token in cs:
+                        self.assertEqual(
+                            row.get("channel"),
+                            channel,
+                            f"{token} config {cs!r} must be on the "
+                            f"{channel!r} channel exactly.",
+                        )
 
     def test_pwm_config_string_not_in_release_one_required_configs(
         self,
@@ -833,12 +950,13 @@ class PwmProductMatchesValidatedCompileOnlyCompositionTests(unittest.TestCase):
         )
 
 
-class ReleaseOneRelayDacAndLedUnchangedTests(unittest.TestCase):
-    """Release-One, LED preview, FanRelay, FanDAC, and FanTRIAC unchanged.
+class ReleaseOneRelayDacAndLedPostureTests(unittest.TestCase):
+    """Release-One, LED preview, FanRelay, FanDAC, and FanTRIAC posture.
 
-    PRODUCT-PWM-001 must not touch the Release-One canonical YAML, the LED
-    preview canonical YAML, the FanRelay / FanDAC siblings, or their
-    catalog entries.
+    Release-One and the LED preview stay untouched. The FanRelay / FanDAC
+    siblings are pinned at their HW-RELEASE-001 posture (release-eligible
+    preview status; experimental / preview channels; never stable), and
+    FanTRIAC keeps its experimental-only lane.
     """
 
     @classmethod
@@ -883,19 +1001,36 @@ class ReleaseOneRelayDacAndLedUnchangedTests(unittest.TestCase):
         self.assertTrue(entry["webflash_build_matrix"])
         self.assertEqual(entry["product_yaml"], LED_PREVIEW_PRODUCT_REL)
 
-    def test_relay_catalog_entry_remains_hardware_pending(self) -> None:
+    def test_relay_catalog_entry_is_experimental_preview(self) -> None:
+        # HW-RELEASE-001 promoted the FanRelay sibling by owner declaration:
+        # status preview, release-eligible, but on the EXPERIMENTAL channel
+        # only (mains-adjacent lane per COMPLIANCE-001; never stable).
         entry = self._find(RELAY_CONFIG_STRING)
-        self.assertEqual(entry["status"], "hardware-pending")
-        self.assertFalse(entry["webflash_build_matrix"])
-        self.assertNotIn("artifact_name", entry)
+        self.assertEqual(entry["status"], "preview")
+        self.assertEqual(entry["channel"], "experimental")
+        self.assertTrue(entry["webflash_build_matrix"])
+        self.assertEqual(
+            entry["artifact_name"],
+            f"Sense360-{RELAY_CONFIG_STRING}-v{entry['version']}"
+            "-experimental.bin",
+        )
         self.assertEqual(entry["product_yaml"], RELAY_PRODUCT_REL)
+        self.assertEqual(entry["hardware_status"], OWNER_DECLARED_HW_STATUS)
 
-    def test_dac_catalog_entry_remains_hardware_pending(self) -> None:
+    def test_dac_catalog_entry_is_preview_channel(self) -> None:
+        # HW-RELEASE-001 promoted the FanDAC sibling by owner declaration:
+        # status preview on the PREVIEW channel (never stable;
+        # RELEASE-DAC-001 / FANDAC-I2C-ADDR-001 stay the stable blockers).
         entry = self._find(DAC_CONFIG_STRING)
-        self.assertEqual(entry["status"], "hardware-pending")
-        self.assertFalse(entry["webflash_build_matrix"])
-        self.assertNotIn("artifact_name", entry)
+        self.assertEqual(entry["status"], "preview")
+        self.assertEqual(entry["channel"], "preview")
+        self.assertTrue(entry["webflash_build_matrix"])
+        self.assertEqual(
+            entry["artifact_name"],
+            f"Sense360-{DAC_CONFIG_STRING}-v{entry['version']}-preview.bin",
+        )
         self.assertEqual(entry["product_yaml"], DAC_PRODUCT_REL)
+        self.assertEqual(entry["hardware_status"], OWNER_DECLARED_HW_STATUS)
 
     def test_fantriac_catalog_entry_is_experimental_self_build(self) -> None:
         # TRIAC-COMMISSIONING-001 moved FanTRIAC into the experimental
@@ -927,16 +1062,16 @@ FANPWM_PRODUCT_COMPILE_ONLY_TARGET_ID = "ceiling-poe-fanpwm-product-compile-only
 
 
 class FanPwmManualFirmwareCandidateTests(unittest.TestCase):
-    """MANUAL-FIRMWARE-CANDIDATE-001: FanPWM is a manual / no-WebFlash
-    firmware candidate — present, structurally validated, full-compile
-    validated — but no more than that.
+    """MANUAL-FIRMWARE-CANDIDATE-001 evidence + HW-RELEASE-001 promotion.
 
-    Pins: the top-level product compile-only target is
-    ``validated-full-compile``; the catalog notes record the candidate
-    status and disclaim release / WebFlash / hardware-stable / compliance /
-    RPM readiness; ``webflash_build_matrix`` stays false; no
-    ``artifact_name`` / ``webflash_wrapper`` / WebFlash wrapper file / build
-    entry is added.
+    The full-compile evidence trail stands: the top-level product
+    compile-only target is ``validated-full-compile`` with
+    ``rpm_supported`` false, and the catalog notes keep the candidate
+    record and its no-false-proof disclaimers. The former "no more than
+    a manual candidate" pins (status hardware-pending, no wrapper, no
+    artifact, no build row) were inverted by owner decision HW-RELEASE-001:
+    the entry is now a release-eligible preview-channel config, still
+    firmware-build proof only and never stable.
     """
 
     @classmethod
@@ -991,36 +1126,47 @@ class FanPwmManualFirmwareCandidateTests(unittest.TestCase):
                 marker, notes, f"FanPWM notes must disclaim {marker!r}"
             )
 
-    def test_catalog_status_stays_hardware_pending(self) -> None:
-        self.assertEqual(self.entry.get("status"), "hardware-pending")
+    def test_catalog_status_is_preview_per_hw_release_001(self) -> None:
+        # Inverted from "stays hardware-pending" by HW-RELEASE-001.
+        self.assertEqual(self.entry.get("status"), "preview")
 
-    def test_catalog_webflash_build_matrix_stays_false(self) -> None:
-        self.assertEqual(self.entry.get("webflash_build_matrix"), False)
+    def test_catalog_webflash_build_matrix_is_true(self) -> None:
+        # Inverted from "stays false" by HW-RELEASE-001.
+        self.assertEqual(self.entry.get("webflash_build_matrix"), True)
 
-    def test_catalog_has_no_artifact_name(self) -> None:
-        self.assertNotIn("artifact_name", self.entry)
-
-    def test_catalog_has_no_webflash_wrapper(self) -> None:
-        self.assertNotIn("webflash_wrapper", self.entry)
-
-    def test_no_webflash_wrapper_file(self) -> None:
-        offenders = (
-            [
-                p.name
-                for p in WEBFLASH_WRAPPER_DIR.glob("*.yaml")
-                if "fanpwm" in p.name.lower()
-            ]
-            if WEBFLASH_WRAPPER_DIR.is_dir()
-            else []
+    def test_catalog_declares_contract_artifact_name(self) -> None:
+        # Inverted from "no artifact_name" by HW-RELEASE-001.
+        self.assertEqual(
+            self.entry.get("artifact_name"),
+            f"Sense360-{PWM_CONFIG_STRING}-v{self.entry.get('version')}"
+            f"-{self.entry.get('channel')}.bin",
         )
-        self.assertEqual(offenders, [])
 
-    def test_config_string_not_in_webflash_builds(self) -> None:
-        builds = _load_json(WEBFLASH_BUILDS)
-        configs = {
-            b.get("config_string") for b in builds.get("builds", []) or []
-        }
-        self.assertNotIn(PWM_CONFIG_STRING, configs)
+    def test_catalog_declares_webflash_wrapper(self) -> None:
+        # Inverted from "no webflash_wrapper" by HW-RELEASE-001.
+        self.assertEqual(self.entry.get("webflash_wrapper"), PWM_WRAPPER_REL)
+
+    def test_webflash_wrapper_file_exists_and_is_thin(self) -> None:
+        # Inverted from "no wrapper file" by HW-RELEASE-001: the wrapper
+        # exists and is a thin packages-only re-export of the canonical
+        # product YAML.
+        wrapper = REPO_ROOT / PWM_WRAPPER_REL
+        self.assertTrue(wrapper.is_file())
+        data = _load_yaml(wrapper)
+        self.assertEqual(set(data.keys()), {"packages"})
+        self.assertIn(
+            "../sense360-ceiling-poe-fanpwm.yaml",
+            list((data.get("packages") or {}).values()),
+        )
+
+    def test_config_string_in_webflash_builds_preview_never_stable(
+        self,
+    ) -> None:
+        # Inverted from "not in webflash-builds" by HW-RELEASE-001; the
+        # preserved half is channel teeth: preview only, never stable.
+        row = _builds_row_for(PWM_CONFIG_STRING)
+        self.assertEqual(row.get("channel"), "preview")
+        self.assertNotEqual(row.get("channel"), "stable")
 
     def test_config_string_not_in_release_one_required(self) -> None:
         compat = _load_json(WEBFLASH_COMPATIBILITY)

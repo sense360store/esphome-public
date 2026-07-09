@@ -47,9 +47,11 @@ What this file checks:
   * The four non-voice Core abstract packages bind
     ``relay_pin: GPIO3`` (cross-check against the schematic-correct
     value pinned by ``tests/test_core_abstract_bus.py``).
-  * No WebFlash / product / release / firmware / catalog file is
-    touched by PACKAGE-RELAY-001 (the YAML package layer is the only
-    place where the FanRelay reconciliation is allowed).
+  * The FanRelay product surface stays enumerated (shims + bundles + the
+    HW-RELEASE-001 products/webflash wrappers, docs/hw-release-001.md,
+    2026-07-09) and every FanRelay ``config/webflash-builds.json`` row is
+    on the experimental channel exactly — fan configs are NEVER on the
+    stable channel.
 
 These are deliberately file-content / structural checks — they do not
 require an ESPHome compile.
@@ -429,36 +431,33 @@ class CoreAbstractRelayPinCrossCheckTests(unittest.TestCase):
 
 
 class PackageRelayDoesNotTouchWebFlashOrProductTests(unittest.TestCase):
-    """PACKAGE-RELAY-001 does not introduce a WebFlash build / wrapper.
+    """FanRelay product / build-matrix surface stays enumerated + gated.
 
-    PACKAGE-RELAY-001 is a package-layer reconciliation only and stays
-    out of the WebFlash / release layers. PRODUCT-RELAY-001 has since
-    landed a single canonical FanRelay product YAML
-    (``products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml``) as
-    an advanced / manual-warning-only sibling without any WebFlash
-    exposure — that one allowed product YAML is enumerated below.
+    PACKAGE-RELAY-001 is a package-layer reconciliation only.
+    PRODUCT-RELAY-001 / ROOM-BUNDLE-FAN-CONFIGS-001 landed the canonical
+    FanRelay shims + bundles, and owner decision HW-RELEASE-001
+    (docs/hw-release-001.md, 2026-07-09) added the products/webflash
+    wrappers plus experimental-channel build rows — all enumerated
+    below.
 
-    What this class still guards:
+    What this class guards:
 
-    * No additional FanRelay product YAML may be added outside the
-      single PRODUCT-RELAY-001 canonical product
-      (``products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml``).
-      A FanRelay WebFlash wrapper under ``products/webflash/`` is
-      explicitly forbidden until ``WEBFLASH-RELAY-001`` lands.
-    * No ``FanRelay`` token may appear in
-      ``config/webflash-builds.json`` — PRODUCT-RELAY-001 does not add
-      a build-matrix entry, and PACKAGE-RELAY-001 likewise must not.
-      A ``FanRelay``-bearing build entry is owned by
-      ``RELEASE-RELAY-001``.
+    * No FanRelay product YAML may exist outside the enumerated set
+      (shims + bundles + the HW-RELEASE-001 WebFlash wrappers).
+    * Every ``FanRelay`` row in ``config/webflash-builds.json`` is on
+      the experimental channel exactly — fan configs are NEVER on the
+      stable channel; a stable FanRelay entry stays owned by
+      ``RELEASE-RELAY-001`` (mains-safety / installation /
+      competent-person evidence), which HW-RELEASE-001 did NOT unblock.
 
-    These tests pin both guardrails so neither slice accidentally
-    crosses into the WebFlash / release layers.
+    These tests pin both guardrails so no slice accidentally widens the
+    FanRelay surface or promotes it toward stable.
     """
 
-    # Single FanRelay product YAML allowed under products/. Anything else
-    # is a guardrail violation. PRODUCT-RELAY-001 introduces exactly this
-    # path; WEBFLASH-RELAY-001 (not landed) would later add a wrapper
-    # under products/webflash/.
+    # FanRelay product YAMLs allowed under products/. Anything else is a
+    # guardrail violation. PRODUCT-RELAY-001 introduced the canonical
+    # shim; the bundles and room-bundle previews followed; HW-RELEASE-001
+    # added the products/webflash wrappers.
     ALLOWED_FAN_RELAY_PRODUCT_YAMLS = frozenset(
         {
             "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
@@ -470,6 +469,12 @@ class PackageRelayDoesNotTouchWebFlashOrProductTests(unittest.TestCase):
             # preview (shim + bundle); compile-pending, not WebFlash-exposed.
             "products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml",
             "products/bundles/ceiling-poe-airiq-fanrelay-roomiq.yaml",
+            # HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09): the
+            # release-gate WebFlash wrappers now exist — thin packages-only
+            # re-exports so config/webflash-builds.json can address the
+            # experimental-channel FanRelay builds via products/webflash/.
+            "products/webflash/ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+            "products/webflash/ceiling-poe-airiq-fanrelay-roomiq.yaml",
         }
     )
 
@@ -487,26 +492,47 @@ class PackageRelayDoesNotTouchWebFlashOrProductTests(unittest.TestCase):
         self.assertEqual(
             offenders,
             [],
-            f"Only the PRODUCT-RELAY-001 canonical FanRelay product YAMLs "
+            f"Only the enumerated FanRelay product YAMLs "
             f"{sorted(self.ALLOWED_FAN_RELAY_PRODUCT_YAMLS)!r} are allowed "
-            f"under products/. A FanRelay WebFlash wrapper under "
-            f"products/webflash/ requires WEBFLASH-RELAY-001 (not landed). "
-            f"Offending paths: {offenders!r}",
+            f"under products/ (shims + bundles plus the HW-RELEASE-001 "
+            f"WebFlash wrappers). Offending paths: {offenders!r}",
         )
 
-    def test_no_fan_relay_token_in_webflash_builds(self) -> None:
+    def test_fan_relay_builds_rows_experimental_never_stable(self) -> None:
+        # Rewritten for HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09):
+        # the former "no FanRelay token in config/webflash-builds.json"
+        # guardrail was revised by the owner to channel teeth — FanRelay
+        # rows now exist, but every one must sit on the experimental
+        # channel exactly (mains-adjacent lane per COMPLIANCE-001) and may
+        # NEVER be stable (RELEASE-RELAY-001 stays the stable blocker).
+        import json
+
         builds = REPO_ROOT / "config" / "webflash-builds.json"
         if not builds.is_file():
             self.skipTest("config/webflash-builds.json not present in repo")
-        text = builds.read_text()
-        self.assertNotIn(
-            "FanRelay",
-            text,
-            "config/webflash-builds.json must not contain the FanRelay "
-            "token — neither PACKAGE-RELAY-001 nor PRODUCT-RELAY-001 "
-            "advances WEBFLASH-RELAY-001 or RELEASE-RELAY-001. A "
-            "FanRelay-bearing build entry belongs to RELEASE-RELAY-001.",
+        doc = json.loads(builds.read_text())
+        rows = [
+            row
+            for row in doc.get("builds", []) or []
+            if "FanRelay" in row.get("config_string", "")
+        ]
+        self.assertTrue(
+            rows,
+            "expected FanRelay rows in config/webflash-builds.json after "
+            "HW-RELEASE-001 promoted the FanRelay configs to the "
+            "experimental channel.",
         )
+        for row in rows:
+            cs = row.get("config_string")
+            with self.subTest(config_string=cs):
+                self.assertEqual(
+                    row.get("channel"),
+                    "experimental",
+                    f"FanRelay build row {cs!r} must be on the "
+                    f"experimental channel exactly — fan configs are "
+                    f"NEVER on the stable channel (HW-RELEASE-001 "
+                    f"channel-teeth guardrail).",
+                )
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "WebFlash-compatible firmware build matrix and the sole release-eligibility source of truth. Each entry is validated by tests/validate_webflash_builds.py against config/webflash-compatibility.json. Concrete preview / advanced-preview release targets for every buildable product (including the fan-driver and TRIAC targets that are NOT WebFlash-importable) are enumerated in config/preview-release-targets.json (RELEASE-PREVIEW-TARGETS-ALL-PRODUCTS-001); a row is added here only with recorded build proof. RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added the three preview rows for the compile-validated room-bundle preview targets (Ceiling-POE-AirIQ-RoomIQ, Ceiling-POE-RoomIQ, Ceiling-POE-RoomIQ-LED), each addressed via its products/webflash wrapper, on the preview (non-stable) channel with hosted-compile evidence (run 26821900127); those rows are release-eligibility METADATA only (release_state: metadata-ready-unpublished) — no firmware binary, GitHub Release, tag, manifest.json, or firmware/sources.json is produced, and the consuming candidate bundles stay hidden / not buyable. The stable Release-One row (Ceiling-POE-VentIQ-RoomIQ) and the published VentIQ LED preview row are unchanged. CI-PIPELINE-CLARITY-001 P4a de-listed the Ceiling-POE-RoomIQ-LED row (it was never built or served — no upstream binary, not in the served set): its build row was removed here and its config/product-catalog.json entry demoted from preview to hardware-pending (webflash_build_matrix false), so the release matrix no longer advertises a product that has no artifact; the catalog entry is preserved so it can be built properly later. The distinct published VentIQ LED preview (Ceiling-POE-VentIQ-RoomIQ-LED) is unaffected.",
+  "description": "WebFlash-compatible firmware build matrix and the sole release-eligibility source of truth. Each entry is validated by tests/validate_webflash_builds.py against config/webflash-compatibility.json. Concrete preview / advanced-preview release targets for every buildable product (including the fan-driver and TRIAC targets that are NOT WebFlash-importable) are enumerated in config/preview-release-targets.json (RELEASE-PREVIEW-TARGETS-ALL-PRODUCTS-001); a row is added here only with recorded build proof. RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added the three preview rows for the compile-validated room-bundle preview targets (Ceiling-POE-AirIQ-RoomIQ, Ceiling-POE-RoomIQ, Ceiling-POE-RoomIQ-LED), each addressed via its products/webflash wrapper, on the preview (non-stable) channel with hosted-compile evidence (run 26821900127); those rows are release-eligibility METADATA only (release_state: metadata-ready-unpublished) — no firmware binary, GitHub Release, tag, manifest.json, or firmware/sources.json is produced, and the consuming candidate bundles stay hidden / not buyable. The stable Release-One row (Ceiling-POE-VentIQ-RoomIQ) and the published VentIQ LED preview row are unchanged. CI-PIPELINE-CLARITY-001 P4a de-listed the Ceiling-POE-RoomIQ-LED row (it was never built or served — no upstream binary, not in the served set): its build row was removed here and its config/product-catalog.json entry demoted from preview to hardware-pending (webflash_build_matrix false), so the release matrix no longer advertises a product that has no artifact; the catalog entry is preserved so it can be built properly later. The distinct published VentIQ LED preview (Ceiling-POE-VentIQ-RoomIQ-LED) is unaffected. HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record, 2026-07-09) retired the bench-proof documentation requirement as a release gate and, per owner declaration that all boards are bench-working, added nine release-eligibility-metadata rows (release_state metadata-ready-unpublished; no binary / Release / tag / manifest cut): Ceiling-POE-RoomIQ-LED (re-listed, reversing the CI-PIPELINE-CLARITY-001 P4a de-list), the six FanPWM / FanDAC configs on the preview channel, and the two FanRelay room bundles on the experimental channel only (mains-adjacent lane per COMPLIANCE-001; never stable). The former fan-token guardrail ('no fan row in this file') was revised by the owner to channel teeth: fan configs are NEVER on the stable channel.",
   "preview_release_targets": "config/preview-release-targets.json",
   "builds": [
     {
@@ -214,6 +214,353 @@
         ]
       },
       "notes": "TRIAC-COMMISSIONING-001 experimental self-build mains build row for the S360-320 Sense360 TRIAC, published on the experimental channel (build channel 'experimental'; artifact suffix -experimental) via the experimental lane defined by COMPLIANCE-001-RESOLUTION-001 (config/release-channel-policy.json experimental_lane). It compiles the canonical product YAML products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml via the products/webflash wrapper (no YAML functional change). The PACKAGE-TRIAC-001 half of the former blocker is cleared (operator-attested bench proof docs/package-triac-001-operator-bench-proof.md); COMPLIANCE-001 is closed by market posture. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this PR adds the row but does NOT cut a release tag, build a .bin, or write a manifest. NEVER stable, NEVER recommended, NEVER a customer default, NEVER buyable, NEVER in any kit or kit picker, NEVER in release_one_required_configs. The S360-320 is an open-source CERN-OHL-P design Sense360 never places on the market; builders self-source and self-build at their own risk. Functional bench completion is firmware-build + bench proof only and is NOT an electrical-safety, EMC, or compliance certification. Downstream WebFlash one-click import stays gated by WF-IMPORT-TRIAC-001 (webflash_one_click_import_eligible false), unblocked only once the experimental release is cut. TRIAC blocker/status changes are human-review only, never auto-merged."
+    },
+    {
+      "config_string": "Ceiling-POE-RoomIQ-LED",
+      "product_yaml": "products/webflash/ceiling-poe-roomiq-led.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin",
+      "channel": "preview",
+      "channel_tier": "preview",
+      "webflash_exposure_class": "acknowledgement-gated",
+      "warning_copy_key": "preview",
+      "release_note_warning": "PREVIEW FIRMWARE — buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
+      "release_state": "metadata-ready-unpublished",
+      "owner_declaration": "docs/hw-release-001.md",
+      "stable_blocker": "S360-410 PoE-PSU evidence (owner-waived for stable siblings, not re-proven) + the LED preview-to-stable gauntlet. LED stays preview; never auto-stable.",
+      "version": "1.0.0",
+      "chip_family": "ESP32-S3",
+      "hardware_requirements": [
+        "Sense360 Core R4 or newer",
+        "Sense360 PoE PSU",
+        "Sense360 RoomIQ module",
+        "Sense360 LED ring (S360-300)"
+      ],
+      "features": [
+        "PoE-powered Sense360 Core configuration",
+        "RoomIQ room sensing",
+        "Sense360 LED ring status halo (preview)"
+      ],
+      "commercial_posture": {
+        "visibility": "hidden",
+        "lifecycle": "preview",
+        "buyable": false,
+        "recommended": false,
+        "customer_default": false,
+        "stable": false,
+        "release_one_required_config": false,
+        "in_kit_or_kit_picker": false
+      },
+      "notes": "Promoted by owner declaration HW-RELEASE-001 (docs/hw-release-001.md): the bench-proof documentation requirement is retired as a release gate and hardware readiness is declared by the owner directly. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this row cuts NO release tag, builds NO .bin, and writes NO manifest.json or firmware/sources.json here. Firmware-build proof only — no hardware / bench / compliance / safety / commercial-availability proof is claimed. NOT recommended, NOT a customer default, NOT buyable, NOT in any kit or kit picker, NOT in release_one_required_configs; kit / customer visibility is unchanged. Re-listed on the preview channel by HW-RELEASE-001, deliberately reversing the CI-PIPELINE-CLARITY-001 P4a de-list now that the owner declaration makes the S360-300 LED board releasable; the previously recorded hosted full-compile proof (run 26821900127) stands. The shared S360-KIT-LIVING-P / S360-KIT-CORRIDOR-P room bundles stay hidden / not buyable."
+    },
+    {
+      "config_string": "Ceiling-POE-FanPWM",
+      "product_yaml": "products/webflash/ceiling-poe-fanpwm.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-FanPWM-v1.0.0-preview.bin",
+      "channel": "preview",
+      "channel_tier": "preview",
+      "webflash_exposure_class": "acknowledgement-gated",
+      "warning_copy_key": "preview",
+      "release_note_warning": "PREVIEW FIRMWARE — buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
+      "release_state": "metadata-ready-unpublished",
+      "owner_declaration": "docs/hw-release-001.md",
+      "stable_blocker": "RELEASE-PWM-001: stable / full release stays blocked on measured current / thermal / bench evidence. Fan configs never ship on the stable channel.",
+      "version": "1.0.0",
+      "chip_family": "ESP32-S3",
+      "hardware_requirements": [
+        "Sense360 Core R4 or newer",
+        "Sense360 PoE PSU",
+        "Sense360 PWM module (S360-311, 12V PWM fan driver, SELV)"
+      ],
+      "features": [
+        "PoE-powered Sense360 Core configuration",
+        "Four-channel 12V native PWM fan-speed control on the S360-311 (preview; no RPM)"
+      ],
+      "commercial_posture": {
+        "visibility": "hidden",
+        "lifecycle": "preview",
+        "buyable": false,
+        "recommended": false,
+        "customer_default": false,
+        "stable": false,
+        "release_one_required_config": false,
+        "in_kit_or_kit_picker": false
+      },
+      "notes": "Promoted by owner declaration HW-RELEASE-001 (docs/hw-release-001.md): the bench-proof documentation requirement is retired as a release gate and hardware readiness is declared by the owner directly. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this row cuts NO release tag, builds NO .bin, and writes NO manifest.json or firmware/sources.json here. Firmware-build proof only — no hardware / bench / compliance / safety / commercial-availability proof is claimed. NOT recommended, NOT a customer default, NOT buyable, NOT in any kit or kit picker, NOT in release_one_required_configs; kit / customer visibility is unchanged. S360-311 is SELV (no mains; COMPLIANCE-001 does not gate FanPWM). RPM is NOT supported (rpm_supported false)."
+    },
+    {
+      "config_string": "Ceiling-POE-AirIQ-FanPWM-RoomIQ",
+      "product_yaml": "products/webflash/ceiling-poe-airiq-fanpwm-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-AirIQ-FanPWM-RoomIQ-v1.0.0-preview.bin",
+      "channel": "preview",
+      "channel_tier": "preview",
+      "webflash_exposure_class": "acknowledgement-gated",
+      "warning_copy_key": "preview",
+      "release_note_warning": "PREVIEW FIRMWARE — buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
+      "release_state": "metadata-ready-unpublished",
+      "owner_declaration": "docs/hw-release-001.md",
+      "stable_blocker": "RELEASE-PWM-001 + the AirIQ sensor-stack posture (owner risk-acceptance HW-AIRIQ-WAIVER-2026-06, not hardware verification). Fan configs never ship on the stable channel.",
+      "version": "1.0.0",
+      "chip_family": "ESP32-S3",
+      "hardware_requirements": [
+        "Sense360 Core R4 or newer",
+        "Sense360 PoE PSU",
+        "Sense360 AirIQ module",
+        "Sense360 RoomIQ module",
+        "Sense360 PWM module (S360-311, 12V PWM fan driver, SELV)"
+      ],
+      "features": [
+        "PoE-powered Sense360 Core configuration",
+        "AirIQ air-quality sensing",
+        "RoomIQ room sensing",
+        "Four-channel 12V native PWM fan-speed control on the S360-311 (preview; no RPM)"
+      ],
+      "commercial_posture": {
+        "visibility": "hidden",
+        "lifecycle": "preview",
+        "buyable": false,
+        "recommended": false,
+        "customer_default": false,
+        "stable": false,
+        "release_one_required_config": false,
+        "in_kit_or_kit_picker": false
+      },
+      "notes": "Promoted by owner declaration HW-RELEASE-001 (docs/hw-release-001.md): the bench-proof documentation requirement is retired as a release gate and hardware readiness is declared by the owner directly. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this row cuts NO release tag, builds NO .bin, and writes NO manifest.json or firmware/sources.json here. Firmware-build proof only — no hardware / bench / compliance / safety / commercial-availability proof is claimed. NOT recommended, NOT a customer default, NOT buyable, NOT in any kit or kit picker, NOT in release_one_required_configs; kit / customer visibility is unchanged. S360-311 is SELV (no mains)."
+    },
+    {
+      "config_string": "Ceiling-POE-VentIQ-FanPWM-RoomIQ",
+      "product_yaml": "products/webflash/ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanPWM-RoomIQ-v1.0.0-preview.bin",
+      "channel": "preview",
+      "channel_tier": "preview",
+      "webflash_exposure_class": "acknowledgement-gated",
+      "warning_copy_key": "preview",
+      "release_note_warning": "PREVIEW FIRMWARE — buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
+      "release_state": "metadata-ready-unpublished",
+      "owner_declaration": "docs/hw-release-001.md",
+      "stable_blocker": "RELEASE-PWM-001: stable / full release stays blocked on measured current / thermal / bench evidence. Fan configs never ship on the stable channel.",
+      "version": "1.0.0",
+      "chip_family": "ESP32-S3",
+      "hardware_requirements": [
+        "Sense360 Core R4 or newer",
+        "Sense360 PoE PSU",
+        "Sense360 VentIQ module",
+        "Sense360 RoomIQ module",
+        "Sense360 PWM module (S360-311, 12V PWM fan driver, SELV)"
+      ],
+      "features": [
+        "PoE-powered Sense360 Core configuration",
+        "VentIQ bathroom air-quality sensing",
+        "RoomIQ room sensing",
+        "Four-channel 12V native PWM fan-speed control on the S360-311 (preview; no RPM)"
+      ],
+      "commercial_posture": {
+        "visibility": "hidden",
+        "lifecycle": "preview",
+        "buyable": false,
+        "recommended": false,
+        "customer_default": false,
+        "stable": false,
+        "release_one_required_config": false,
+        "in_kit_or_kit_picker": false
+      },
+      "notes": "Promoted by owner declaration HW-RELEASE-001 (docs/hw-release-001.md): the bench-proof documentation requirement is retired as a release gate and hardware readiness is declared by the owner directly. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this row cuts NO release tag, builds NO .bin, and writes NO manifest.json or firmware/sources.json here. Firmware-build proof only — no hardware / bench / compliance / safety / commercial-availability proof is claimed. NOT recommended, NOT a customer default, NOT buyable, NOT in any kit or kit picker, NOT in release_one_required_configs; kit / customer visibility is unchanged. S360-311 is SELV (no mains)."
+    },
+    {
+      "config_string": "Ceiling-POE-FanDAC",
+      "product_yaml": "products/webflash/ceiling-poe-fandac.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-FanDAC-v1.0.0-preview.bin",
+      "channel": "preview",
+      "channel_tier": "preview",
+      "webflash_exposure_class": "acknowledgement-gated",
+      "warning_copy_key": "preview",
+      "release_note_warning": "PREVIEW FIRMWARE — buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
+      "release_state": "metadata-ready-unpublished",
+      "owner_declaration": "docs/hw-release-001.md",
+      "stable_blocker": "RELEASE-DAC-001: stable / full release stays blocked on Cloudlift / J3 harness / product-bench / S360-312 schematic evidence AND FANDAC-I2C-ADDR-001. Fan configs never ship on the stable channel.",
+      "version": "1.0.0",
+      "chip_family": "ESP32-S3",
+      "hardware_requirements": [
+        "Sense360 Core R4 or newer",
+        "Sense360 PoE PSU",
+        "Sense360 DAC module (S360-312, 0-10V analog fan driver, SELV)"
+      ],
+      "features": [
+        "PoE-powered Sense360 Core configuration",
+        "0-10V analog fan drive on the S360-312 twin GP8403 DACs (preview)"
+      ],
+      "commercial_posture": {
+        "visibility": "hidden",
+        "lifecycle": "preview",
+        "buyable": false,
+        "recommended": false,
+        "customer_default": false,
+        "stable": false,
+        "release_one_required_config": false,
+        "in_kit_or_kit_picker": false
+      },
+      "notes": "Promoted by owner declaration HW-RELEASE-001 (docs/hw-release-001.md): the bench-proof documentation requirement is retired as a release gate and hardware readiness is declared by the owner directly. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this row cuts NO release tag, builds NO .bin, and writes NO manifest.json or firmware/sources.json here. Firmware-build proof only — no hardware / bench / compliance / safety / commercial-availability proof is claimed. NOT recommended, NOT a customer default, NOT buyable, NOT in any kit or kit picker, NOT in release_one_required_configs; kit / customer visibility is unchanged. S360-312 is SELV (no mains). Standalone FanDAC (no air-quality module) uses the package-default GP8403 addresses."
+    },
+    {
+      "config_string": "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
+      "product_yaml": "products/webflash/ceiling-poe-airiq-fandac-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-AirIQ-FanDAC-RoomIQ-v1.0.0-preview.bin",
+      "channel": "preview",
+      "channel_tier": "preview",
+      "webflash_exposure_class": "acknowledgement-gated",
+      "warning_copy_key": "preview",
+      "release_note_warning": "PREVIEW FIRMWARE — buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
+      "release_state": "metadata-ready-unpublished",
+      "owner_declaration": "docs/hw-release-001.md",
+      "stable_blocker": "RELEASE-DAC-001 + FANDAC-I2C-ADDR-001 (pending bench). Fan configs never ship on the stable channel.",
+      "version": "1.0.0",
+      "chip_family": "ESP32-S3",
+      "hardware_requirements": [
+        "Sense360 Core R4 or newer",
+        "Sense360 PoE PSU",
+        "Sense360 AirIQ module",
+        "Sense360 RoomIQ module",
+        "Sense360 DAC module (S360-312, 0-10V analog fan driver, SELV)"
+      ],
+      "features": [
+        "PoE-powered Sense360 Core configuration",
+        "AirIQ air-quality sensing",
+        "RoomIQ room sensing",
+        "0-10V analog fan drive on the S360-312 twin GP8403 DACs (preview)"
+      ],
+      "commercial_posture": {
+        "visibility": "hidden",
+        "lifecycle": "preview",
+        "buyable": false,
+        "recommended": false,
+        "customer_default": false,
+        "stable": false,
+        "release_one_required_config": false,
+        "in_kit_or_kit_picker": false
+      },
+      "notes": "Promoted by owner declaration HW-RELEASE-001 (docs/hw-release-001.md): the bench-proof documentation requirement is retired as a release gate and hardware readiness is declared by the owner directly. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this row cuts NO release tag, builds NO .bin, and writes NO manifest.json or firmware/sources.json here. Firmware-build proof only — no hardware / bench / compliance / safety / commercial-availability proof is claimed. NOT recommended, NOT a customer default, NOT buyable, NOT in any kit or kit picker, NOT in release_one_required_configs; kit / customer visibility is unchanged. REQUIRED FanDAC I2C address switch setting: the second GP8403 (IC2) is relocated from its 0x59 package default to 0x5A (fan_dac_2_i2c_address override in the bundle) so it cannot collide with the air-quality module SGP41 at 0x59 on the shared core_i2c bus; the installer must set the IC2 DIP switch (SW2) to 0x5A to match. FANDAC-I2C-ADDR-001 stays PENDING (docs/hardware/fandac-i2c-address-verification.md). This config is the documented address-overridden EXCEPTION to the fandac_conflicts_with_airiq one-click grammar mutex (config/webflash-compatibility.json address_overridden_exception_config_strings): the mutex stays TRUE for WebFlash one-click easy-mode, which cannot encode the DIP-switch override; this row is acknowledgement-gated advanced/manual preview only."
+    },
+    {
+      "config_string": "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
+      "product_yaml": "products/webflash/ceiling-poe-ventiq-fandac-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanDAC-RoomIQ-v1.0.0-preview.bin",
+      "channel": "preview",
+      "channel_tier": "preview",
+      "webflash_exposure_class": "acknowledgement-gated",
+      "warning_copy_key": "preview",
+      "release_note_warning": "PREVIEW FIRMWARE — buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
+      "release_state": "metadata-ready-unpublished",
+      "owner_declaration": "docs/hw-release-001.md",
+      "stable_blocker": "RELEASE-DAC-001 + FANDAC-I2C-ADDR-001 (pending bench). Fan configs never ship on the stable channel.",
+      "version": "1.0.0",
+      "chip_family": "ESP32-S3",
+      "hardware_requirements": [
+        "Sense360 Core R4 or newer",
+        "Sense360 PoE PSU",
+        "Sense360 VentIQ module",
+        "Sense360 RoomIQ module",
+        "Sense360 DAC module (S360-312, 0-10V analog fan driver, SELV)"
+      ],
+      "features": [
+        "PoE-powered Sense360 Core configuration",
+        "VentIQ bathroom air-quality sensing",
+        "RoomIQ room sensing",
+        "0-10V analog fan drive on the S360-312 twin GP8403 DACs (preview)"
+      ],
+      "commercial_posture": {
+        "visibility": "hidden",
+        "lifecycle": "preview",
+        "buyable": false,
+        "recommended": false,
+        "customer_default": false,
+        "stable": false,
+        "release_one_required_config": false,
+        "in_kit_or_kit_picker": false
+      },
+      "notes": "Promoted by owner declaration HW-RELEASE-001 (docs/hw-release-001.md): the bench-proof documentation requirement is retired as a release gate and hardware readiness is declared by the owner directly. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this row cuts NO release tag, builds NO .bin, and writes NO manifest.json or firmware/sources.json here. Firmware-build proof only — no hardware / bench / compliance / safety / commercial-availability proof is claimed. NOT recommended, NOT a customer default, NOT buyable, NOT in any kit or kit picker, NOT in release_one_required_configs; kit / customer visibility is unchanged. REQUIRED FanDAC I2C address switch setting: the second GP8403 (IC2) is relocated from its 0x59 package default to 0x5A (fan_dac_2_i2c_address override in the bundle) so it cannot collide with the air-quality module SGP41 at 0x59 on the shared core_i2c bus; the installer must set the IC2 DIP switch (SW2) to 0x5A to match. FANDAC-I2C-ADDR-001 stays PENDING (docs/hardware/fandac-i2c-address-verification.md)."
+    },
+    {
+      "config_string": "Ceiling-POE-AirIQ-FanRelay-RoomIQ",
+      "product_yaml": "products/webflash/ceiling-poe-airiq-fanrelay-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-AirIQ-FanRelay-RoomIQ-v1.0.0-experimental.bin",
+      "channel": "experimental",
+      "channel_tier": "advanced-preview",
+      "experimental_lane": "EXPERIMENTAL-SELF-BUILD-MAINS-LANE",
+      "governing_decision": "docs/decisions/COMPLIANCE-001-RESOLUTION-001.md",
+      "webflash_exposure_class": "acknowledgement-gated-advanced",
+      "warning_copy_key": "experimental",
+      "release_note_warning": "EXPERIMENTAL — MAINS-ADJACENT FAN RELAY. The S360-310 Sense360 Relay switches fan loads that may be mains-connected. Where mains AC switching is in scope, installation must only be performed by a competent person. This firmware is released under owner declaration HW-RELEASE-001 and carries NO electrical-safety, EMC, or compliance certification. Incorrect installation can cause fire, electric shock, or death.",
+      "release_state": "metadata-ready-unpublished",
+      "owner_declaration": "docs/hw-release-001.md",
+      "stable_blocker": "NEVER stable from this lane: FanRelay is mains-adjacent contact switching, promoted to the experimental channel only per the COMPLIANCE-001 lane posture (docs/decisions/COMPLIANCE-001-RESOLUTION-001.md); a stable customer release stays gated by RELEASE-RELAY-001 (mains-safety / installation / competent-person evidence) and is NOT unblocked by HW-RELEASE-001.",
+      "version": "1.0.0",
+      "chip_family": "ESP32-S3",
+      "hardware_requirements": [
+        "Sense360 Core R4 or newer",
+        "Sense360 PoE PSU",
+        "Sense360 AirIQ module",
+        "Sense360 RoomIQ module",
+        "Sense360 Relay module (S360-310, mains-adjacent contact switching)"
+      ],
+      "features": [
+        "PoE-powered Sense360 Core configuration",
+        "AirIQ air-quality sensing",
+        "RoomIQ room sensing",
+        "On/off extract-fan relay switching on the S360-310 (experimental; where mains AC switching is in scope, competent-person installation only)"
+      ],
+      "commercial_posture": {
+        "visibility": "hidden",
+        "lifecycle": "experimental",
+        "buyable": false,
+        "recommended": false,
+        "customer_default": false,
+        "stable": false,
+        "release_one_required_config": false,
+        "in_kit_or_kit_picker": false,
+        "webflash_one_click_import_eligible": false
+      },
+      "notes": "Promoted by owner declaration HW-RELEASE-001 (docs/hw-release-001.md): the bench-proof documentation requirement is retired as a release gate and hardware readiness is declared by the owner directly. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this row cuts NO release tag, builds NO .bin, and writes NO manifest.json or firmware/sources.json here. Firmware-build proof only — no hardware / bench / compliance / safety / commercial-availability proof is claimed. NOT recommended, NOT a customer default, NOT buyable, NOT in any kit or kit picker, NOT in release_one_required_configs; kit / customer visibility is unchanged. Kitchen extract / boost via on-board relay K1 (S360-310)."
+    },
+    {
+      "config_string": "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
+      "product_yaml": "products/webflash/ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.0-experimental.bin",
+      "channel": "experimental",
+      "channel_tier": "advanced-preview",
+      "experimental_lane": "EXPERIMENTAL-SELF-BUILD-MAINS-LANE",
+      "governing_decision": "docs/decisions/COMPLIANCE-001-RESOLUTION-001.md",
+      "webflash_exposure_class": "acknowledgement-gated-advanced",
+      "warning_copy_key": "experimental",
+      "release_note_warning": "EXPERIMENTAL — MAINS-ADJACENT FAN RELAY. The S360-310 Sense360 Relay switches fan loads that may be mains-connected. Where mains AC switching is in scope, installation must only be performed by a competent person. This firmware is released under owner declaration HW-RELEASE-001 and carries NO electrical-safety, EMC, or compliance certification. Incorrect installation can cause fire, electric shock, or death.",
+      "release_state": "metadata-ready-unpublished",
+      "owner_declaration": "docs/hw-release-001.md",
+      "stable_blocker": "NEVER stable from this lane: FanRelay is mains-adjacent contact switching, promoted to the experimental channel only per the COMPLIANCE-001 lane posture (docs/decisions/COMPLIANCE-001-RESOLUTION-001.md); a stable customer release stays gated by RELEASE-RELAY-001 (mains-safety / installation / competent-person evidence) and is NOT unblocked by HW-RELEASE-001.",
+      "version": "1.0.0",
+      "chip_family": "ESP32-S3",
+      "hardware_requirements": [
+        "Sense360 Core R4 or newer",
+        "Sense360 PoE PSU",
+        "Sense360 VentIQ module",
+        "Sense360 RoomIQ module",
+        "Sense360 Relay module (S360-310, mains-adjacent contact switching)"
+      ],
+      "features": [
+        "PoE-powered Sense360 Core configuration",
+        "VentIQ bathroom air-quality sensing",
+        "RoomIQ room sensing",
+        "On/off extract-fan relay switching on the S360-310 (experimental; where mains AC switching is in scope, competent-person installation only)"
+      ],
+      "commercial_posture": {
+        "visibility": "hidden",
+        "lifecycle": "experimental",
+        "buyable": false,
+        "recommended": false,
+        "customer_default": false,
+        "stable": false,
+        "release_one_required_config": false,
+        "in_kit_or_kit_picker": false,
+        "webflash_one_click_import_eligible": false
+      },
+      "notes": "Promoted by owner declaration HW-RELEASE-001 (docs/hw-release-001.md): the bench-proof documentation requirement is retired as a release gate and hardware readiness is declared by the owner directly. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this row cuts NO release tag, builds NO .bin, and writes NO manifest.json or firmware/sources.json here. Firmware-build proof only — no hardware / bench / compliance / safety / commercial-availability proof is claimed. NOT recommended, NOT a customer default, NOT buyable, NOT in any kit or kit picker, NOT in release_one_required_configs; kit / customer visibility is unchanged. Bathroom extract-fan on/off control via on-board relay K1 (S360-310)."
     }
   ]
 }

@@ -116,9 +116,7 @@ EXPECTED_COMPILE_VALIDATED_SKUS = frozenset(
 COMPILE_RESULTS_RUN_ID = 26913592989
 # The two FanDAC room-bundle variants require the GP8403 IC2 address override
 # (0x5A) so it does not collide with the air-quality SGP41 at 0x59.
-EXPECTED_DAC_VARIANT_SKUS = frozenset(
-    {"S360-KIT-BATH-P-DAC", "S360-KIT-KITCHEN-P-DAC"}
-)
+EXPECTED_DAC_VARIANT_SKUS = frozenset({"S360-KIT-BATH-P-DAC", "S360-KIT-KITCHEN-P-DAC"})
 # Bare fan-only config strings that must NEVER be mapped to a room-bundle SKU
 # (they omit the bundle's room-sensing modules).
 FAN_ONLY_CONFIGS = frozenset(
@@ -300,9 +298,7 @@ class RoomBundleFanVariantsTests(unittest.TestCase):
             self.assertFalse(
                 v["bench_evidence_claimed"], f"{v['sku']} claims bench evidence"
             )
-            self.assertFalse(
-                v["compliance_claimed"], f"{v['sku']} claims compliance"
-            )
+            self.assertFalse(v["compliance_claimed"], f"{v['sku']} claims compliance")
         # The one published preview (Bathroom Relay) is preview-eligible despite
         # carrying only stable-only (hardware/evidence) blockers.
         relay = next(v for v in self.variants if v["sku"] == "S360-KIT-BATH-P-REL")
@@ -428,10 +424,26 @@ class RoomBundleFanVariantsTests(unittest.TestCase):
                 "release-artifact",
             ):
                 self.assertIn(forbidden, ce["not_proof_of"])
-            # Still absent from the committed release sources.
+            # HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09) inverted the
+            # old "absent from the committed release sources" pin: the owner
+            # declaration added a release-eligibility METADATA row for each
+            # compile-validated variant (release_state
+            # metadata-ready-unpublished; no binary / Release / tag cut), on
+            # its lane channel and NEVER stable, and the reconciled
+            # preview-release-targets manifest now enumerates the config as a
+            # manual-preview target. One-click exposure teeth are unchanged
+            # (webflash_exposed / easy-mode asserted above).
             cfg = v["intended_firmware_config_string"]
-            self.assertNotIn(cfg, self.webflash_config_strings)
-            self.assertNotIn(cfg, self.preview_config_strings)
+            self.assertIn(cfg, self.webflash_config_strings)
+            row = self.webflash_builds_by_cs[cfg]
+            self.assertNotEqual(row["channel"], "stable")
+            self.assertEqual(row["release_state"], "metadata-ready-unpublished")
+            self.assertIn(cfg, self.preview_config_strings)
+            # The variant record mirrors the flip (webflash_build_row_added
+            # true, citing HW-RELEASE-001), without weakening exposure teeth.
+            elig = v["webflash_import_eligibility"]
+            self.assertIs(elig["webflash_build_row_added"], True)
+            self.assertEqual(elig["webflash_build_row_added_by"], "HW-RELEASE-001")
 
     def test_compile_results_record_is_consistent(self):
         # ROOM-BUNDLE-FAN-COMPILE-RESULTS-001 records the hosted compile result
@@ -561,34 +573,49 @@ class RoomBundleFanVariantsTests(unittest.TestCase):
 
     # -- no committed WebFlash exposure / no firmware release -------------
 
-    def test_no_variant_is_a_committed_customer_webflash_build(self):
-        # No fan room-bundle variant is one-click WebFlash exposed
-        # (webflash_exposed stays False for every variant) and none is a
-        # committed CUSTOMER (stable / preview) WebFlash build. The single
-        # exception is FanTRIAC: TRIAC-COMMISSIONING-001 added its config to
-        # config/webflash-builds.json on the EXPERIMENTAL channel only (the
-        # experimental self-build mains lane). It is still never one-click
-        # exposed (gated by WF-IMPORT-TRIAC-001) and never on a customer channel.
+    def test_every_variant_build_row_matches_its_lane_channel_never_stable(self):
+        # HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09) inverted the old
+        # "no variant is a committed WebFlash build" pin: every fan room-bundle
+        # variant's config now has a config/webflash-builds.json row (TRIAC via
+        # TRIAC-COMMISSIONING-001; the rest via the owner declaration). The
+        # guard is now CHANNEL POSTURE: each row's channel must match the
+        # variant's lane — relay → experimental (mains-adjacent, COMPLIANCE-001
+        # lane posture), pwm / 0-10V (dac) → preview, triac → experimental —
+        # and is NEVER "stable". One-click exposure teeth are unchanged:
+        # webflash_exposed stays False for every variant.
+        lane_channel = {
+            "relay": "experimental",
+            "pwm": "preview",
+            "0-10V": "preview",
+            "triac": "experimental",
+        }
         for v in self.variants:
             self.assertFalse(
                 v["webflash_exposed"], f"{v['sku']}: webflash_exposed must be False"
             )
             cfg = v["intended_firmware_config_string"]
-            if v["control_type"] == "triac":
-                # FanTRIAC: committed only on the experimental build channel.
-                self.assertIn(cfg, self.webflash_config_strings)
-                self.assertEqual(
-                    self.webflash_builds_by_cs[cfg]["channel"],
-                    "experimental",
-                    f"{v['sku']}: FanTRIAC must be committed only on the "
-                    "experimental channel, never stable/preview",
-                )
-            else:
-                self.assertNotIn(
-                    cfg,
-                    self.webflash_config_strings,
-                    f"{v['sku']}: intended config must not be a committed WebFlash build",
-                )
+            self.assertIn(
+                cfg,
+                self.webflash_config_strings,
+                f"{v['sku']}: expected a committed build row (HW-RELEASE-001)",
+            )
+            row = self.webflash_builds_by_cs[cfg]
+            self.assertEqual(
+                row["channel"],
+                lane_channel[v["control_type"]],
+                f"{v['sku']}: builds-row channel must match the "
+                f"{v['control_type']!r} lane",
+            )
+            self.assertNotEqual(
+                row["channel"],
+                "stable",
+                f"{v['sku']}: fan configs are NEVER on the stable channel",
+            )
+            posture = row.get("commercial_posture", {})
+            self.assertFalse(posture.get("stable"))
+            self.assertFalse(posture.get("buyable"))
+            self.assertFalse(posture.get("recommended"))
+            self.assertFalse(posture.get("customer_default"))
 
     def test_no_variant_is_buyable(self):
         for v in self.variants:

@@ -1,0 +1,30 @@
+# ============================================================================
+# Sense360 WebFlash wrapper — PREVIEW fan build (FanPWM, HW-RELEASE-001).
+# ============================================================================
+# HW-RELEASE-001 (docs/hw-release-001.md): promoted to the preview channel by
+# owner declaration (bench-proof documentation requirement retired as a
+# release gate; hardware readiness declared by the owner directly). This is
+# the WebFlash-namespaced release-gate wrapper so the declaration-driven
+# release matrix (config/webflash-builds.json, ESP-007) can address the build
+# via the products/webflash/ namespace; the release workflow compiles the
+# canonical products/sense360-ceiling-poe-fanpwm.yaml, not this wrapper.
+#
+# Canonical YAML (full substitutions, packages, board config — unchanged):
+#   products/sense360-ceiling-poe-fanpwm.yaml
+#
+#   WebFlash config string : Ceiling-POE-FanPWM
+#   Build channel          : preview
+#   Artifact name          : Sense360-Ceiling-POE-FanPWM-v1.0.0-preview.bin
+#   Owner declaration      : docs/hw-release-001.md (HW-RELEASE-001)
+#
+# PREVIEW — NOT stable, NOT recommended, NOT a customer default, NOT buyable,
+# NOT in any kit or kit picker, NOT in release_one_required_configs. Fan
+# configs never ship on the stable channel (RELEASE-PWM-001 stays the stable
+# blocker). Firmware-build proof only, released under owner declaration
+# HW-RELEASE-001 — no hardware / bench / compliance / safety claim. The
+# S360-311 board is SELV (no mains). RPM is not supported (rpm_supported
+# false). Kit / customer visibility is unchanged by this wrapper.
+# ============================================================================
+
+packages:
+  fanpwm_preview: !include ../sense360-ceiling-poe-fanpwm.yaml

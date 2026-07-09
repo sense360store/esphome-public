@@ -52,20 +52,9 @@
         "S360-410"
       ],
       "likely_firmware_config_target": "Ceiling-POE-AirIQ-RoomIQ",
-      "current_release_status": "stable-candidate",
-      "missing_gates": [
-        "G1-top-level-canonical-product-yaml",
-        "G2-product-catalog-row",
-        "G3-top-level-full-compile",
-        "G4-webflash-wrapper",
-        "G5-artifact-name",
-        "G6-webflash-builds-row",
-        "G7-release-notes-generation",
-        "G8-AirIQ-stack-hardware-evidence-SPS30-SGP41-SCD41-BMP390",
-        "G8-PRODUCT-POE-410-001",
-        "G8-S360-410-schematic-status-verified"
-      ],
-      "notes": "Kitchen bundle pairs the AirIQ air-quality module (S360-210) with RoomIQ. The compile-only skeleton products/compile-only/ceiling-poe-airiq-roomiq.yaml validates the combination today but no top-level product YAML, catalog row, WebFlash wrapper, or builds row exists. Promotion to stable is owned by STABLE-TARGET-AIRIQ-001 / STABLE-TARGET-AIRIQ-ROOMIQ-001 (see docs/stable-target-expansion-plan.md). Not promoted by this PR."
+      "current_release_status": "stable-release",
+      "missing_gates": [],
+      "notes": "Kitchen bundle pairs the AirIQ air-quality module (S360-210) with RoomIQ. Promoted stable-candidate -> stable-release under owner declaration HW-RELEASE-001 (docs/hw-release-001.md), superseding KITCHEN-BUNDLE-PROMOTE-001 step K2's bench-proof precondition. The three G8 evidence gates (G8-AirIQ-stack-hardware-evidence-SPS30-SGP41-SCD41-BMP390, G8-PRODUCT-POE-410-001, G8-S360-410-schematic-status-verified) were cleared by owner declaration, HW-RELEASE-001 — an owner decision, not hardware verification; the prior owner waivers HW-AIRIQ-WAIVER-2026-06 and HW-S360-410-WAIVER-2026-06 remain the recorded risk-acceptance for the stable build. The stale G1-G7 gates were cleared as already satisfied by the shipped Ceiling-POE-AirIQ-RoomIQ stable build (top-level product YAML, catalog row, full compile, WebFlash wrapper, artifact name, config/webflash-builds.json stable row v1.0.9, release notes). Kit / customer visibility is UNCHANGED by this promotion: the bundle stays hidden / not buyable in config/shop-commercial-source-of-truth.json; kit exposure remains a separate owner decision (KITCHEN-BUNDLE-PROMOTE-001 K4, WebFlash repo)."
     },
     {
       "bundle_sku": "S360-KIT-LIVING-P",

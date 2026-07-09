@@ -33,8 +33,11 @@ What this file checks (PWM-drive-only contract):
     not named or treated as RPM.
   * No direct ESP32 GPIO mapping (no ``ledc`` / raw ``GPIO``) is reintroduced
     for the four PWM/tach expander channels.
-  * No FanPWM product YAML, WebFlash wrapper, release artifact, or
-    ``config/webflash-builds.json`` row is added by this package slice.
+  * Only the enumerated FanPWM product YAMLs / bundles / WebFlash wrappers
+    exist (the wrappers were added by owner decision HW-RELEASE-001,
+    docs/hw-release-001.md, 2026-07-09), and every FanPWM
+    ``config/webflash-builds.json`` row is on the preview channel exactly —
+    fan configs are NEVER on the stable channel.
   * FanRelay and FanDAC remain unchanged.
 
 These are deliberately file-content / structural checks — they do not require
@@ -51,10 +54,10 @@ or::
 
 from __future__ import annotations
 
+import json
 import re
 import unittest
 from pathlib import Path
-from typing import Optional
 
 import yaml
 
@@ -380,7 +383,12 @@ class FanPwmNoDirectEsp32MappingTests(unittest.TestCase):
 
 
 class FanPwmNoProductOrWebFlashSurfaceTests(unittest.TestCase):
-    """PACKAGE-PWM-001-IMPLEMENT-001 adds no product / WebFlash / release surface."""
+    """The FanPWM package layer itself stays surface-free.
+
+    The package YAML declares no product / release fields; the FanPWM
+    product / WebFlash surface lives in the enumerated products/ YAMLs and
+    the HW-RELEASE-001 preview-channel build rows, never in this package.
+    """
 
     def test_package_is_not_a_product(self) -> None:
         # A package layer artifact: no esphome: block, no artifact_name, no
@@ -439,6 +447,13 @@ class FanPwmNoProductOrWebFlashSurfaceTests(unittest.TestCase):
             "products/bundles/ceiling-poe-ventiq-fanpwm-roomiq.yaml",
             "products/sense360-ceiling-poe-airiq-fanpwm-roomiq.yaml",
             "products/bundles/ceiling-poe-airiq-fanpwm-roomiq.yaml",
+            # HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09): the
+            # release-gate WebFlash wrappers now exist — thin packages-only
+            # re-exports so config/webflash-builds.json can address the
+            # preview-channel FanPWM builds via products/webflash/.
+            "products/webflash/ceiling-poe-fanpwm.yaml",
+            "products/webflash/ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+            "products/webflash/ceiling-poe-airiq-fanpwm-roomiq.yaml",
         }
         unexpected = sorted(set(offenders) - allowed)
         self.assertEqual(
@@ -448,18 +463,38 @@ class FanPwmNoProductOrWebFlashSurfaceTests(unittest.TestCase):
             f"new FanPWM product YAML; unexpected: {unexpected!r}.",
         )
 
-    def test_no_fan_pwm_token_in_webflash_builds(self) -> None:
+    def test_fan_pwm_builds_rows_preview_channel_never_stable(self) -> None:
+        # Rewritten for HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09):
+        # the former "no FanPWM token in config/webflash-builds.json"
+        # guardrail was revised by the owner to channel teeth — FanPWM rows
+        # now exist, but every one must sit on the preview channel exactly
+        # and may NEVER be stable (RELEASE-PWM-001 stays the stable
+        # blocker).
         builds = REPO_ROOT / "config" / "webflash-builds.json"
         if not builds.is_file():
             self.skipTest("config/webflash-builds.json not present in repo")
-        text = builds.read_text()
-        self.assertNotIn(
-            "FanPWM",
-            text,
-            "config/webflash-builds.json must not contain a FanPWM token — "
-            "PACKAGE-PWM-001-IMPLEMENT-001 does not advance WEBFLASH-PWM-001 "
-            "or RELEASE-PWM-001.",
+        doc = json.loads(builds.read_text())
+        rows = [
+            row
+            for row in doc.get("builds", []) or []
+            if "FanPWM" in row.get("config_string", "")
+        ]
+        self.assertTrue(
+            rows,
+            "expected FanPWM rows in config/webflash-builds.json after "
+            "HW-RELEASE-001 promoted the FanPWM configs to preview.",
         )
+        for row in rows:
+            cs = row.get("config_string")
+            with self.subTest(config_string=cs):
+                self.assertEqual(
+                    row.get("channel"),
+                    "preview",
+                    f"FanPWM build row {cs!r} must be on the preview "
+                    f"channel exactly — fan configs are NEVER on the "
+                    f"stable channel (HW-RELEASE-001 channel-teeth "
+                    f"guardrail).",
+                )
 
 
 class FanRelayAndFanDacUnchangedTests(unittest.TestCase):

@@ -194,10 +194,12 @@ difference, `docs/standing-invariants.md` wins.
   default / buyable / kit-exposed / in `release_one_required_configs`; no
   electrical-safety / EMC / compliance claim
   ([live text](docs/standing-invariants.md)).
-- **Fans are preview-only** — FanRelay / FanPWM / FanDAC publish only on the
-  shared `v1.0.0-preview` prerelease; **no fan row in
-  `config/webflash-builds.json`** (the fan-token guardrail); stable release
-  stays blocked ([live text](docs/standing-invariants.md)).
+- **Fans are never stable** — under owner declaration `HW-RELEASE-001`
+  ([`docs/hw-release-001.md`](docs/hw-release-001.md)) FanPWM / FanDAC configs
+  carry `config/webflash-builds.json` rows on the **preview** channel and
+  FanRelay configs on the **experimental** channel only; **no fan config ever
+  ships on the stable channel** and fan stable release stays blocked
+  ([live text](docs/standing-invariants.md)).
 - **FanDAC I²C addressing is pending bench** — `FANDAC-I2C-ADDR-001` stays
   PENDING; `0x59` is forbidden when VentIQ/AirIQ is present
   ([live text](docs/standing-invariants.md)).

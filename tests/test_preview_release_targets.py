@@ -290,10 +290,13 @@ class FanTargetTests(unittest.TestCase):
 
     def test_fans_are_manual_preview_lane(self) -> None:
         # Fan drivers are real PREVIEW release targets delivered on the
-        # manual-preview lane. The preview / manual-preview WebFlash import is now
+        # manual-preview lane. The preview / manual-preview WebFlash import is
         # ELIGIBLE (RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001) as an
-        # Advanced-install-only, acknowledgement-gated preview import; the lane
-        # stays manual-preview and no committed webflash-builds.json row is added.
+        # Advanced-install-only, acknowledgement-gated preview import. Under
+        # HW-RELEASE-001 each fan config also carries a committed non-stable
+        # config/webflash-builds.json row, so a fan yaml_path is either a
+        # manual candidate or backed by that committed row.
+        builds = {b["config_string"] for b in _load(BUILDS_PATH)["builds"]}
         for t in self.fans:
             with self.subTest(target=t["target_id"]):
                 self.assertEqual(t["delivery_lane"], "manual-preview")
@@ -303,7 +306,13 @@ class FanTargetTests(unittest.TestCase):
                     t["webflash_import_eligibility"]["exposure_class"],
                     "acknowledgement-gated",
                 )
-                self.assertIn(t["yaml_path"], self.manual_yamls)
+                self.assertTrue(
+                    t["yaml_path"] in self.manual_yamls
+                    or t["config_string"] in builds,
+                    f"{t['target_id']}: yaml_path must be a manual candidate "
+                    "or the config must carry a committed build row "
+                    "(HW-RELEASE-001)",
+                )
                 self.assertNotEqual(t["channel_tier"], "stable")
 
     def test_fans_are_preview_release_targets_not_passive_candidates(self) -> None:
@@ -315,18 +324,34 @@ class FanTargetTests(unittest.TestCase):
                 self.assertTrue(t["is_preview_target"])
                 self.assertEqual(t["publication_status"], "preview-import-eligible")
 
-    def test_fan_catalog_entries_stay_off_the_build_matrix(self) -> None:
+    def test_fan_catalog_entries_are_preview_on_the_build_matrix(self) -> None:
+        # HW-RELEASE-001 (docs/hw-release-001.md): fan configs joined the
+        # build matrix as owner-declared preview entries. They are on the
+        # matrix (webflash_build_matrix true) with status preview — never
+        # production, never a stable channel.
         for t in self.fans:
             with self.subTest(target=t["target_id"]):
                 entry = self.catalog_by_cs.get(t["config_string"])
                 self.assertIsNotNone(entry)
-                self.assertIs(entry["webflash_build_matrix"], False)
+                self.assertIs(entry["webflash_build_matrix"], True)
+                self.assertEqual(entry["status"], "preview")
+                self.assertNotEqual(entry.get("channel"), "stable")
 
-    def test_fans_are_not_in_webflash_builds(self) -> None:
-        builds = {b["config_string"] for b in _load(BUILDS_PATH)["builds"]}
+    def test_fans_are_in_webflash_builds_on_their_lanes_only(self) -> None:
+        # HW-RELEASE-001: every fan config has a committed build row on its
+        # lane — FanRelay on experimental, FanPWM / FanDAC on preview — and
+        # fan configs are NEVER on the stable channel.
+        builds = {b["config_string"]: b for b in _load(BUILDS_PATH)["builds"]}
         for t in self.fans:
             with self.subTest(target=t["target_id"]):
-                self.assertNotIn(t["config_string"], builds)
+                cs = t["config_string"]
+                self.assertIn(cs, builds)
+                channel = builds[cs]["channel"]
+                self.assertNotEqual(channel, "stable")
+                if "FanRelay" in cs:
+                    self.assertEqual(channel, "experimental")
+                else:
+                    self.assertEqual(channel, "preview")
 
 
 class WebflashCoverageTests(unittest.TestCase):
@@ -342,13 +367,17 @@ class WebflashCoverageTests(unittest.TestCase):
                 self.assertIn(cs, self.by_cs)
                 target = self.by_cs[cs]
                 if build.get("channel") == "experimental":
-                    # FanTRIAC experimental self-build commissioning
-                    # (TRIAC-COMMISSIONING-001): the committed build is on the
-                    # experimental lane, intentionally a SEPARATE lane from this
-                    # advanced-manual-preview eligibility target, so its channel /
-                    # artifact differ from the target. It is still represented
-                    # (its config has a target) and committed only on experimental.
-                    self.assertTrue(target.get("is_triac"))
+                    # Experimental-channel builds are the mains-adjacent lane:
+                    # FanTRIAC (TRIAC-COMMISSIONING-001) plus the FanRelay
+                    # room bundles (HW-RELEASE-001). The committed build is a
+                    # SEPARATE lane from the eligibility target, so channel /
+                    # artifact may differ from the target's manual-preview
+                    # record. It is still represented (its config has a
+                    # target) and committed only on experimental.
+                    self.assertTrue(
+                        target.get("is_triac") or "FanRelay" in cs,
+                        f"{cs}: experimental builds are TRIAC or FanRelay only",
+                    )
                     continue
                 self.assertEqual(target["build_channel"], build["channel"])
                 self.assertEqual(
@@ -411,26 +440,34 @@ class WebflashCoverageTests(unittest.TestCase):
         # CI-PIPELINE-CLARITY-001 P4a then DE-LISTED the last one
         # (Ceiling-POE-RoomIQ-LED — never built or served), moving it back to
         # eligible-unpublished. So no target sits metadata-ready today.
+        # HW-RELEASE-001 then RE-LISTED Ceiling-POE-RoomIQ-LED with a
+        # reviewed preview build row (metadata only, no binary published),
+        # so it is the one metadata-ready target today.
         metadata_ready = {
             t["config_string"]
             for t in self.manifest["targets"]
             if t["publication_status"] == "webflash-preview-metadata-ready"
         }
-        self.assertEqual(metadata_ready, set())
+        self.assertEqual(metadata_ready, {"Ceiling-POE-RoomIQ-LED"})
 
-    def test_delisted_roomiq_led_is_eligible_unpublished(self) -> None:
-        # CI-PIPELINE-CLARITY-001 P4a: the de-listed LED room bundle keeps its
-        # preview-channel target (webflash lane) but is back to
-        # eligible-unpublished with a build_blocker and is absent from the ledger.
+    def test_relisted_roomiq_led_is_metadata_ready(self) -> None:
+        # HW-RELEASE-001 (docs/hw-release-001.md) deliberately RE-LISTED the
+        # LED room bundle, reversing the CI-PIPELINE-CLARITY-001 P4a de-list:
+        # the preview-channel webflash target is back to
+        # webflash-preview-metadata-ready with a reviewed build row in the
+        # ledger and no build_blocker. Metadata only — no binary published.
         by_cs = {t["config_string"]: t for t in self.manifest["targets"]}
         t = by_cs["Ceiling-POE-RoomIQ-LED"]
         self.assertEqual(t["channel_tier"], "preview")
         self.assertEqual(t["delivery_lane"], "webflash")
-        self.assertNotEqual(
+        self.assertEqual(
             t["publication_status"], "webflash-preview-metadata-ready"
         )
-        self.assertTrue(t["build_blocker"])
-        self.assertNotIn("Ceiling-POE-RoomIQ-LED", self.builds)
+        self.assertIsNone(t["build_blocker"])
+        self.assertIn("Ceiling-POE-RoomIQ-LED", self.builds)
+        self.assertEqual(
+            self.builds["Ceiling-POE-RoomIQ-LED"]["channel"], "preview"
+        )
         self.assertFalse(t["recommended"])
         self.assertFalse(t["customer_default"])
         self.assertFalse(t["required_config"])

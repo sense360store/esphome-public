@@ -13,24 +13,36 @@ the canonical FanDAC package alias
 analog outputs). The customer outcome is 0-10V fan control (for example
 Cloudlift S12 fan control).
 
-The product intentionally has:
+HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record,
+2026-07-09) retired the bench-proof documentation requirement as a
+release gate; hardware readiness is declared by the owner directly.
+Under that decision the FanDAC product is now a release-eligible
+PREVIEW-channel config:
 
-  * no WebFlash wrapper under ``products/webflash/``;
-  * no ``webflash_build_matrix: true`` flip in
-    ``config/product-catalog.json``;
-  * no ``artifact_name`` declared;
-  * no entry in ``config/webflash-builds.json``;
-  * no entry in ``release_one_required_configs``;
-  * no release artifact / tag / checksum / build-info manifest;
-  * an explicit full-compile-validated caveat (run 26364679370 /
-    validated-full-compile; CONFIG-FRESHNESS-001), a J3 silkscreen
-    transposition caveat, and a Cloudlift S12 harness / product-bench
-    caveat in the product YAML header.
+  * a thin packages-only WebFlash wrapper under ``products/webflash/``
+    re-exporting the canonical product YAML;
+  * ``status: preview`` + ``webflash_build_matrix: true`` +
+    ``artifact_name`` + ``webflash_wrapper`` in
+    ``config/product-catalog.json`` (hardware_status
+    ``owner-declared-bench-working-hw-release-001``);
+  * a ``config/webflash-builds.json`` row on the PREVIEW channel
+    (release_state metadata-ready-unpublished — metadata only, no
+    binary / Release / tag / manifest is cut).
 
-These tests pin the structural invariants so a future regression cannot
-silently promote the FanDAC product onto a WebFlash-shippable surface or
-strip the required caveats without an explicit WEBFLASH-DAC-001 /
-RELEASE-DAC-001 slice.
+Unchanged truths these tests keep pinning:
+
+  * fan configs are NEVER on the stable channel — FanDAC rows are
+    ``preview``, never ``stable``; RELEASE-DAC-001 remains the STABLE
+    blocker and FANDAC-I2C-ADDR-001 stays PENDING;
+  * still NO entry in ``release_one_required_configs``; the builds-row
+    ``commercial_posture`` keeps buyable / recommended /
+    customer_default / stable false;
+  * the J3 silkscreen transposition, Cloudlift S12 harness /
+    product-bench, and full-compile-validated (run 26364679370 /
+    CONFIG-FRESHNESS-001) caveats stay in the product YAML;
+  * promotion is firmware-build proof only under owner declaration —
+    no hardware / bench / compliance / safety /
+    commercial-availability claim.
 
 Run with::
 
@@ -60,6 +72,17 @@ DAC_PRODUCT_REL = "products/sense360-ceiling-poe-fandac.yaml"
 # content lives in the bundle. Content reads must target the bundle.
 DAC_BUNDLE = REPO_ROOT / "products" / "bundles" / "ceiling-poe-fandac.yaml"
 DAC_CONFIG_STRING = "Ceiling-POE-FanDAC"
+# HW-RELEASE-001: the release-gate WebFlash wrapper now exists.
+DAC_WRAPPER_REL = "products/webflash/ceiling-poe-fandac.yaml"
+# HW-RELEASE-001 owner declaration marker recorded in the catalog.
+OWNER_DECLARED_HW_STATUS = "owner-declared-bench-working-hw-release-001"
+# The two air-quality + FanDAC room-bundle configs that require the IC2
+# 0x5A address override (0x59 is forbidden when VentIQ / AirIQ shares the
+# core_i2c bus; FANDAC-I2C-ADDR-001 stays PENDING).
+DAC_AIR_QUALITY_CONFIG_STRINGS = (
+    "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
+    "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
+)
 
 # Existing siblings that PRODUCT-DAC-001 must not disturb.
 RELEASE_ONE_PRODUCT_REL = "products/sense360-ceiling-poe-ventiq-roomiq.yaml"
@@ -129,6 +152,17 @@ def _catalog_entry_for(rel_path: str) -> Dict[str, Any]:
         f"no catalog entry for product_yaml={rel_path!r} in "
         f"config/product-catalog.json (PRODUCT-DAC-001 requires a "
         f"non-WebFlash row)"
+    )
+
+
+def _builds_row_for(config_string: str) -> Dict[str, Any]:
+    doc = _load_json(WEBFLASH_BUILDS)
+    for row in doc.get("builds", []) or []:
+        if row.get("config_string") == config_string:
+            return row
+    raise AssertionError(
+        f"no config/webflash-builds.json row for {config_string!r} — "
+        f"HW-RELEASE-001 declares this config release-eligible"
     )
 
 
@@ -274,12 +308,22 @@ class DacProductDoesNotLeakChipJargonTests(unittest.TestCase):
                 )
 
 
-class DacProductWebFlashExposureGuardsTests(unittest.TestCase):
-    """The FanDAC product is NOT WebFlash-exposed.
+class DacProductWebFlashReleaseSurfaceTests(unittest.TestCase):
+    """HW-RELEASE-001: FanDAC IS release-eligible — on the PREVIEW channel.
 
-    PRODUCT-DAC-001 explicitly does not add a WebFlash wrapper, a catalog
-    ``webflash_build_matrix: true`` flip, an ``artifact_name``, a
-    ``config/webflash-builds.json`` entry, or a release artifact.
+    Rewritten from the former ``DacProductWebFlashExposureGuardsTests``
+    (which pinned the pre-HW-RELEASE-001 "no WebFlash exposure" posture).
+    HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09) retired the
+    bench-proof documentation requirement as a release gate; the owner
+    declares hardware readiness directly. The inverted invariants: the
+    catalog entry is status preview with webflash_build_matrix true, an
+    artifact_name, and an existing thin webflash wrapper; the builds row
+    exists on the PREVIEW channel. The preserved invariants: fan configs
+    are NEVER stable, RELEASE-DAC-001 remains the STABLE blocker,
+    FANDAC-I2C-ADDR-001 stays PENDING (0x59 forbidden next to VentIQ /
+    AirIQ), the commercial posture stays non-customer, promotion is
+    firmware-build proof only, and FanDAC stays out of
+    release_one_required_configs.
     """
 
     @classmethod
@@ -287,80 +331,158 @@ class DacProductWebFlashExposureGuardsTests(unittest.TestCase):
         cls.entry = _catalog_entry_for(DAC_PRODUCT_REL)
         cls.builds_doc = _load_json(WEBFLASH_BUILDS)
         cls.compat = _load_json(WEBFLASH_COMPATIBILITY)
+        cls.row = _builds_row_for(DAC_CONFIG_STRING)
 
-    def test_catalog_entry_webflash_build_matrix_is_false(self) -> None:
+    def test_catalog_entry_webflash_build_matrix_is_true(self) -> None:
         self.assertEqual(
             self.entry.get("webflash_build_matrix"),
-            False,
+            True,
             "FanDAC product catalog entry must set "
-            "webflash_build_matrix: false — PRODUCT-DAC-001 does not "
-            "advance WEBFLASH-DAC-001 or RELEASE-DAC-001.",
+            "webflash_build_matrix: true — HW-RELEASE-001 promoted the "
+            "config into the declaration-driven release matrix.",
         )
 
-    def test_catalog_entry_has_no_artifact_name(self) -> None:
-        self.assertNotIn(
-            "artifact_name",
-            self.entry,
-            "FanDAC product catalog entry must NOT declare artifact_name "
-            "— no release artifact is built by PRODUCT-DAC-001.",
-        )
-
-    def test_catalog_entry_has_no_webflash_wrapper(self) -> None:
-        self.assertNotIn(
-            "webflash_wrapper",
-            self.entry,
-            "FanDAC product catalog entry must NOT declare "
-            "webflash_wrapper — PRODUCT-DAC-001 does not add a WebFlash "
-            "wrapper under products/webflash/.",
-        )
-
-    def test_catalog_entry_status_is_not_release_eligible(self) -> None:
-        # production / preview entries are WebFlash-eligible; the FanDAC
-        # entry must stay outside that set so the product remains
-        # WebFlash-blocked.
-        self.assertNotIn(
-            self.entry.get("status"),
-            {"production", "preview"},
-            f"FanDAC product catalog entry must not be production or "
-            f"preview — those statuses authorise WebFlash exposure. "
-            f"Got status={self.entry.get('status')!r}.",
-        )
-
-    def test_no_fandac_webflash_wrapper_file(self) -> None:
-        if not WEBFLASH_WRAPPER_DIR.is_dir():
-            return
-        offenders = []
-        for path in WEBFLASH_WRAPPER_DIR.glob("*.yaml"):
-            name = path.name.lower()
-            if "fandac" in name or "fan-dac" in name or "fan_dac" in name:
-                offenders.append(path.relative_to(REPO_ROOT).as_posix())
+    def test_catalog_entry_status_is_preview(self) -> None:
         self.assertEqual(
-            offenders,
-            [],
-            f"PRODUCT-DAC-001 must NOT add any FanDAC WebFlash wrapper "
-            f"under products/webflash/ — that work belongs to "
-            f"WEBFLASH-DAC-001 (not landed). Offending paths: {offenders!r}",
+            self.entry.get("status"),
+            "preview",
+            "FanDAC product catalog entry must be status: preview (a "
+            "release-eligible status) per owner decision HW-RELEASE-001.",
         )
 
-    def test_dac_config_string_not_in_webflash_builds(self) -> None:
-        for entry in self.builds_doc.get("builds", []) or []:
-            self.assertNotEqual(
-                entry.get("config_string"),
-                DAC_CONFIG_STRING,
-                f"config/webflash-builds.json must not contain "
-                f"{DAC_CONFIG_STRING!r} — PRODUCT-DAC-001 does not add a "
-                f"build-matrix entry. RELEASE-DAC-001 owns the FanDAC "
-                f"build entry.",
+    def test_catalog_entry_channel_is_preview_never_stable(self) -> None:
+        self.assertEqual(
+            self.entry.get("channel"),
+            "preview",
+            "FanDAC catalog channel must be exactly 'preview' — fan "
+            "configs are NEVER on the stable channel (HW-RELEASE-001 "
+            "channel-teeth revision of the fan-token guardrail).",
+        )
+
+    def test_catalog_entry_artifact_name_matches_contract(self) -> None:
+        version = self.entry.get("version")
+        channel = self.entry.get("channel")
+        self.assertEqual(version, "1.0.0")
+        self.assertEqual(
+            self.entry.get("artifact_name"),
+            f"Sense360-{DAC_CONFIG_STRING}-v{version}-{channel}.bin",
+            "FanDAC artifact_name must follow the "
+            "Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin contract.",
+        )
+
+    def test_catalog_entry_hardware_status_is_owner_declared(self) -> None:
+        self.assertEqual(
+            self.entry.get("hardware_status"),
+            OWNER_DECLARED_HW_STATUS,
+            "FanDAC hardware_status must record the HW-RELEASE-001 owner "
+            "declaration (owner-declared, not measured/bench-proven).",
+        )
+
+    def test_catalog_entry_declares_existing_webflash_wrapper(self) -> None:
+        self.assertEqual(
+            self.entry.get("webflash_wrapper"),
+            DAC_WRAPPER_REL,
+            "FanDAC catalog entry must declare the products/webflash "
+            "wrapper HW-RELEASE-001 added.",
+        )
+        self.assertTrue(
+            (REPO_ROOT / DAC_WRAPPER_REL).is_file(),
+            f"declared webflash_wrapper {DAC_WRAPPER_REL!r} must exist",
+        )
+
+    def test_webflash_wrapper_is_thin_packages_only_reexport(self) -> None:
+        wrapper = REPO_ROOT / DAC_WRAPPER_REL
+        data = _load_yaml(wrapper)
+        self.assertEqual(
+            set(data.keys()),
+            {"packages"},
+            "the FanDAC WebFlash wrapper must be a thin packages-only "
+            "re-export (no substitutions / esphome / component blocks).",
+        )
+        includes = list((data.get("packages") or {}).values())
+        self.assertEqual(
+            includes,
+            ["../sense360-ceiling-poe-fandac.yaml"],
+            "the wrapper must !include exactly the canonical "
+            "products/sense360-ceiling-poe-fandac.yaml (as ../sense360-*).",
+        )
+
+    def test_dac_builds_row_is_preview_channel(self) -> None:
+        self.assertEqual(
+            self.row.get("channel"),
+            "preview",
+            "the FanDAC config/webflash-builds.json row must be on the "
+            "preview channel — never stable (HW-RELEASE-001).",
+        )
+        self.assertEqual(self.row.get("product_yaml"), DAC_WRAPPER_REL)
+        self.assertEqual(
+            self.row.get("artifact_name"),
+            self.entry.get("artifact_name"),
+            "builds-row artifact_name must match the catalog entry",
+        )
+
+    def test_all_fandac_rows_preview_never_stable(self) -> None:
+        rows = [
+            row
+            for row in self.builds_doc.get("builds", []) or []
+            if "FanDAC" in row.get("config_string", "")
+        ]
+        self.assertTrue(rows, "expected FanDAC rows post HW-RELEASE-001")
+        for row in rows:
+            with self.subTest(config_string=row.get("config_string")):
+                self.assertEqual(
+                    row.get("channel"),
+                    "preview",
+                    "every FanDAC builds row must be on the preview "
+                    "channel exactly — fan configs are NEVER stable.",
+                )
+
+    def test_fandac_rows_keep_release_dac_and_i2c_addr_blockers(self) -> None:
+        # RELEASE-DAC-001 remains the STABLE blocker and FANDAC-I2C-ADDR-001
+        # stays PENDING; HW-RELEASE-001 promoted preview only, not stable.
+        for row in self.builds_doc.get("builds", []) or []:
+            if "FanDAC" not in row.get("config_string", ""):
+                continue
+            with self.subTest(config_string=row.get("config_string")):
+                blocker = row.get("stable_blocker", "")
+                self.assertIn("RELEASE-DAC-001", blocker)
+                self.assertIn("FANDAC-I2C-ADDR-001", blocker)
+
+    def test_air_quality_fandac_rows_carry_0x5a_override(self) -> None:
+        # 0x59 is forbidden when VentIQ / AirIQ shares the core_i2c bus:
+        # the air-quality FanDAC rows must document the IC2 0x5A relocation
+        # away from the 0x59 package default (FANDAC-I2C-ADDR-001 pending).
+        for cs in DAC_AIR_QUALITY_CONFIG_STRINGS:
+            with self.subTest(config_string=cs):
+                notes = _builds_row_for(cs).get("notes", "")
+                self.assertIn("0x5A", notes)
+                self.assertIn("0x59", notes)
+
+    def test_dac_builds_row_commercial_posture_stays_non_customer(
+        self,
+    ) -> None:
+        posture = self.row.get("commercial_posture") or {}
+        for key in ("buyable", "recommended", "customer_default", "stable"):
+            self.assertIs(
+                posture.get(key),
+                False,
+                f"FanDAC builds-row commercial_posture.{key} must stay "
+                f"false — HW-RELEASE-001 changes no customer visibility.",
             )
 
-    def test_fandac_token_not_in_webflash_builds_json(self) -> None:
-        text = WEBFLASH_BUILDS.read_text()
-        self.assertNotIn(
-            "FanDAC",
-            text,
-            "config/webflash-builds.json must not contain the FanDAC "
-            "token at all — PRODUCT-DAC-001 does not advance "
-            "WEBFLASH-DAC-001 or RELEASE-DAC-001.",
+    def test_dac_builds_row_claims_firmware_build_proof_only(self) -> None:
+        notes = self.row.get("notes", "").lower()
+        self.assertIn(
+            "firmware-build proof only",
+            notes,
+            "the FanDAC builds row must state promotion is firmware-build "
+            "proof only (no false proof claims under HW-RELEASE-001).",
+        )
+        self.assertIn(
+            "no hardware / bench / compliance",
+            notes,
+            "the FanDAC builds row must disclaim hardware / bench / "
+            "compliance proof.",
         )
 
     def test_dac_config_string_not_in_release_one_required_configs(
@@ -576,12 +698,13 @@ class DacProductCompileOnlyTargetUnchangedTests(unittest.TestCase):
         )
 
 
-class ReleaseOneRelayAndLedUnchangedTests(unittest.TestCase):
-    """Release-One, LED preview, FanRelay, and FanTRIAC entries are unchanged.
+class ReleaseOneRelayAndLedPostureTests(unittest.TestCase):
+    """Release-One, LED preview, FanRelay, and FanTRIAC posture.
 
-    PRODUCT-DAC-001 must not touch the Release-One canonical YAML, the LED
-    preview canonical YAML, the FanRelay sibling, or their catalog
-    entries.
+    Release-One and the LED preview stay untouched. The FanRelay sibling
+    is pinned at its HW-RELEASE-001 posture (release-eligible preview
+    status; experimental channel only; never stable), and FanTRIAC keeps
+    its experimental-only lane.
     """
 
     @classmethod
@@ -626,12 +749,21 @@ class ReleaseOneRelayAndLedUnchangedTests(unittest.TestCase):
         self.assertTrue(entry["webflash_build_matrix"])
         self.assertEqual(entry["product_yaml"], LED_PREVIEW_PRODUCT_REL)
 
-    def test_relay_catalog_entry_remains_hardware_pending(self) -> None:
+    def test_relay_catalog_entry_is_experimental_preview(self) -> None:
+        # HW-RELEASE-001 promoted the FanRelay sibling by owner declaration:
+        # status preview, release-eligible, but on the EXPERIMENTAL channel
+        # only (mains-adjacent lane per COMPLIANCE-001; never stable).
         entry = self._find(RELAY_CONFIG_STRING)
-        self.assertEqual(entry["status"], "hardware-pending")
-        self.assertFalse(entry["webflash_build_matrix"])
-        self.assertNotIn("artifact_name", entry)
+        self.assertEqual(entry["status"], "preview")
+        self.assertEqual(entry["channel"], "experimental")
+        self.assertTrue(entry["webflash_build_matrix"])
+        self.assertEqual(
+            entry["artifact_name"],
+            f"Sense360-{RELAY_CONFIG_STRING}-v{entry['version']}"
+            "-experimental.bin",
+        )
         self.assertEqual(entry["product_yaml"], RELAY_PRODUCT_REL)
+        self.assertEqual(entry["hardware_status"], OWNER_DECLARED_HW_STATUS)
 
     def test_fantriac_catalog_entry_is_experimental_self_build(self) -> None:
         # TRIAC-COMMISSIONING-001 moved FanTRIAC into the experimental
@@ -663,16 +795,16 @@ FANDAC_PRODUCT_COMPILE_ONLY_TARGET_ID = "ceiling-poe-fandac-product-compile-only
 
 
 class FanDacManualFirmwareCandidateTests(unittest.TestCase):
-    """MANUAL-FIRMWARE-CANDIDATE-001: FanDAC is a manual / no-WebFlash
-    firmware candidate — present, structurally validated, full-compile
-    validated — but no more than that.
+    """MANUAL-FIRMWARE-CANDIDATE-001 evidence + HW-RELEASE-001 promotion.
 
-    Pins: the top-level product compile-only target is
-    ``validated-full-compile``; the catalog notes record the candidate
-    status and disclaim release / WebFlash / hardware-stable / compliance /
-    Cloudlift readiness; ``webflash_build_matrix`` stays false; no
-    ``artifact_name`` / ``webflash_wrapper`` / WebFlash wrapper file / build
-    entry is added.
+    The full-compile evidence trail stands: the top-level product
+    compile-only target is ``validated-full-compile``, and the catalog
+    notes keep the candidate record and its no-false-proof disclaimers.
+    The former "no more than a manual candidate" pins (status
+    hardware-pending, no wrapper, no artifact, no build row) were
+    inverted by owner decision HW-RELEASE-001: the entry is now a
+    release-eligible preview-channel config, still firmware-build proof
+    only and never stable.
     """
 
     @classmethod
@@ -721,36 +853,47 @@ class FanDacManualFirmwareCandidateTests(unittest.TestCase):
                 marker, notes, f"FanDAC notes must disclaim {marker!r}"
             )
 
-    def test_catalog_status_stays_hardware_pending(self) -> None:
-        self.assertEqual(self.entry.get("status"), "hardware-pending")
+    def test_catalog_status_is_preview_per_hw_release_001(self) -> None:
+        # Inverted from "stays hardware-pending" by HW-RELEASE-001.
+        self.assertEqual(self.entry.get("status"), "preview")
 
-    def test_catalog_webflash_build_matrix_stays_false(self) -> None:
-        self.assertEqual(self.entry.get("webflash_build_matrix"), False)
+    def test_catalog_webflash_build_matrix_is_true(self) -> None:
+        # Inverted from "stays false" by HW-RELEASE-001.
+        self.assertEqual(self.entry.get("webflash_build_matrix"), True)
 
-    def test_catalog_has_no_artifact_name(self) -> None:
-        self.assertNotIn("artifact_name", self.entry)
-
-    def test_catalog_has_no_webflash_wrapper(self) -> None:
-        self.assertNotIn("webflash_wrapper", self.entry)
-
-    def test_no_webflash_wrapper_file(self) -> None:
-        offenders = (
-            [
-                p.name
-                for p in WEBFLASH_WRAPPER_DIR.glob("*.yaml")
-                if "fandac" in p.name.lower()
-            ]
-            if WEBFLASH_WRAPPER_DIR.is_dir()
-            else []
+    def test_catalog_declares_contract_artifact_name(self) -> None:
+        # Inverted from "no artifact_name" by HW-RELEASE-001.
+        self.assertEqual(
+            self.entry.get("artifact_name"),
+            f"Sense360-{DAC_CONFIG_STRING}-v{self.entry.get('version')}"
+            f"-{self.entry.get('channel')}.bin",
         )
-        self.assertEqual(offenders, [])
 
-    def test_config_string_not_in_webflash_builds(self) -> None:
-        builds = _load_json(WEBFLASH_BUILDS)
-        configs = {
-            b.get("config_string") for b in builds.get("builds", []) or []
-        }
-        self.assertNotIn(DAC_CONFIG_STRING, configs)
+    def test_catalog_declares_webflash_wrapper(self) -> None:
+        # Inverted from "no webflash_wrapper" by HW-RELEASE-001.
+        self.assertEqual(self.entry.get("webflash_wrapper"), DAC_WRAPPER_REL)
+
+    def test_webflash_wrapper_file_exists_and_is_thin(self) -> None:
+        # Inverted from "no wrapper file" by HW-RELEASE-001: the wrapper
+        # exists and is a thin packages-only re-export of the canonical
+        # product YAML.
+        wrapper = REPO_ROOT / DAC_WRAPPER_REL
+        self.assertTrue(wrapper.is_file())
+        data = _load_yaml(wrapper)
+        self.assertEqual(set(data.keys()), {"packages"})
+        self.assertIn(
+            "../sense360-ceiling-poe-fandac.yaml",
+            list((data.get("packages") or {}).values()),
+        )
+
+    def test_config_string_in_webflash_builds_preview_never_stable(
+        self,
+    ) -> None:
+        # Inverted from "not in webflash-builds" by HW-RELEASE-001; the
+        # preserved half is channel teeth: preview only, never stable.
+        row = _builds_row_for(DAC_CONFIG_STRING)
+        self.assertEqual(row.get("channel"), "preview")
+        self.assertNotEqual(row.get("channel"), "stable")
 
     def test_config_string_not_in_release_one_required(self) -> None:
         compat = _load_json(WEBFLASH_COMPATIBILITY)

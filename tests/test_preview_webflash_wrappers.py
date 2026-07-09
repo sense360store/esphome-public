@@ -11,33 +11,38 @@ the compile-validated webflash-lane preview candidates
   * the three wrapper files exist;
   * each wrapper resolves to a valid ``products/sense360-*.yaml`` product shim
     (which in turn re-includes its ``products/bundles`` composition);
-  * each wrapper is preview-only — it declares only a ``packages:`` block with
-    no ``version`` / ``channel`` / ``artifact_name`` publication metadata and
-    makes no stable / hardware-verification claim;
+  * each wrapper is a thin re-export — it declares only a ``packages:`` block
+    with no ``version`` / ``channel`` / ``artifact_name`` publication metadata;
   * the preview target manifest (``config/preview-release-targets.json``)
-    records each wrapper in a ``webflash_wrapper`` field and keeps the target
-    ``preview`` / ``webflash``-lane / not recommended / not default;
+    records each wrapper in a ``webflash_wrapper`` field;
   * the stable baseline (``Ceiling-POE-VentIQ-RoomIQ``) and the published LED
-    preview (``Ceiling-POE-VentIQ-RoomIQ-LED``) target rows are unchanged;
-  * NO TRIAC wrapper was added (FanTRIAC stays advanced-manual-preview, blocked
-    by HW-005, with no ``webflash_wrapper``);
-  * NO fan manual-preview wrapper was added (FanRelay / FanPWM / FanDAC stay on
-    the manual-preview lane, off the WebFlash lane, with no wrapper on disk).
+    preview (``Ceiling-POE-VentIQ-RoomIQ-LED``) target rows are unchanged.
 
-RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 has since cut the reviewed
+RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 cut the reviewed
 ``config/webflash-builds.json`` PREVIEW build rows for the three wrapped
-candidates (each addressed via its ``products/webflash`` wrapper, on the preview
-channel, citing hosted-compile run ``26821900127``) and flipped their
-``config/product-catalog.json`` rows ``blocked`` -> ``preview``.
+candidates; STABLE-PROMOTION-RECONCILE-001 then promoted Bedroom
+(``Ceiling-POE-RoomIQ``, v1.0.5, 2026-06-08) and Kitchen
+(``Ceiling-POE-AirIQ-RoomIQ``, v1.0.6, 2026-06-09) to the stable channel under
+owner risk-acceptance waivers. CI-PIPELINE-CLARITY-001 P4a then de-listed the
+never-built ``Ceiling-POE-RoomIQ-LED`` row.
 
-STABLE-PROMOTION-RECONCILE-001: Bedroom (``Ceiling-POE-RoomIQ``, v1.0.5,
-2026-06-08) and Kitchen (``Ceiling-POE-AirIQ-RoomIQ``, v1.0.6, 2026-06-09) have
-since been promoted to the stable channel under owner risk-acceptance waivers
-and their stable binaries are published. This guard therefore distinguishes the
-PROMOTED wrappers (stable, waiver-based, still never recommended / default /
-``release_one_required_config``) from the remaining PREVIEW wrapper
-(``Ceiling-POE-RoomIQ-LED``) — while still keeping the TRIAC and fan-driver
-lanes off the WebFlash build matrix.
+HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record, 2026-07-09)
+retired the bench-proof documentation requirement as a release gate; hardware
+readiness is now owner-declared. Under that declaration the build ledger grew
+nine release-eligibility-metadata rows (release_state
+``metadata-ready-unpublished``; no binary / Release / tag / manifest cut):
+
+  * ``Ceiling-POE-RoomIQ-LED`` was RE-LISTED on the preview channel,
+    deliberately reversing the CI-PIPELINE-CLARITY-001 P4a de-list;
+  * six FanPWM / FanDAC configs landed on the preview channel and two FanRelay
+    room bundles landed on the experimental channel only, each addressed via a
+    NEW thin ``products/webflash`` fan wrapper.
+
+The former "no fan row in config/webflash-builds.json" guardrail was therefore
+revised by the owner into CHANNEL teeth, guarded below: fan configs are NEVER
+on the stable channel (FanRelay/FanTRIAC → experimental; FanPWM/FanDAC →
+preview), never in release_one_required_configs, and their commercial posture
+keeps buyable / recommended / customer_default / stable false.
 
 Uses Python's stdlib unittest (matching the no-pytest convention the other
 validators in this repo use). Run with::
@@ -69,9 +74,11 @@ BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 CATALOG_PATH = REPO_ROOT / "config" / "product-catalog.json"
 MANUAL_PATH = REPO_ROOT / "config" / "manual-firmware-artifacts.json"
 
-# The three wrapper files this slice added, keyed by WebFlash config string. All
-# three files remain on disk (CI-PIPELINE-CLARITY-001 P4a preserved the
-# Ceiling-POE-RoomIQ-LED wrapper so the config can be built and re-listed later).
+HW_RELEASE_DECISION = "HW-RELEASE-001"
+HW_RELEASE_DOC = "docs/hw-release-001.md"
+
+# The three wrapper files RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001 added, keyed by
+# WebFlash config string.
 NEW_WRAPPERS = {
     "Ceiling-POE-AirIQ-RoomIQ": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
     "Ceiling-POE-RoomIQ": "products/webflash/ceiling-poe-roomiq.yaml",
@@ -85,16 +92,14 @@ PROMOTED_WRAPPERS = {
     "Ceiling-POE-AirIQ-RoomIQ": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
     "Ceiling-POE-RoomIQ": "products/webflash/ceiling-poe-roomiq.yaml",
 }
-# CI-PIPELINE-CLARITY-001 P4a DE-LISTED Ceiling-POE-RoomIQ-LED (never built or
-# served): its config/webflash-builds.json row was removed and its catalog entry
-# demoted to hardware-pending. The wrapper file is PRESERVED on disk. So no
-# wrapper is a live preview build row today.
-PREVIEW_WRAPPERS: dict[str, str] = {}
-DELISTED_WRAPPERS = {
+# HW-RELEASE-001 RE-LISTED Ceiling-POE-RoomIQ-LED on the preview channel
+# (release-eligibility metadata only), deliberately reversing the
+# CI-PIPELINE-CLARITY-001 P4a de-list. Its preserved wrapper is live again.
+PREVIEW_WRAPPERS = {
     "Ceiling-POE-RoomIQ-LED": "products/webflash/ceiling-poe-roomiq-led.yaml",
 }
-# Wrappers whose config_string still resolves in the live config/webflash-builds
-# ledger (the promoted stable rows plus any live preview rows).
+# Wrappers whose config_string resolves in the live config/webflash-builds
+# ledger (the promoted stable rows plus the re-listed preview row).
 LEDGER_WRAPPERS = {**PROMOTED_WRAPPERS, **PREVIEW_WRAPPERS}
 EXPECTED_SHIM = {
     "Ceiling-POE-AirIQ-RoomIQ": "products/sense360-ceiling-poe-airiq-roomiq.yaml",
@@ -104,11 +109,32 @@ EXPECTED_SHIM = {
 
 STABLE_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
 LED_PREVIEW_CONFIG = "Ceiling-POE-VentIQ-RoomIQ-LED"
+RELISTED_LED_CONFIG = "Ceiling-POE-RoomIQ-LED"
 FANTRIAC_CONFIG = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
 FAN_DRIVER_TOKENS = ("FanRelay", "FanPWM", "FanDAC")
 TRIAC_TOKEN = "FanTRIAC"
 
-# Artifact-publication metadata that must never appear in a preview wrapper.
+# HW-RELEASE-001: the eight NEW fan wrappers, keyed by config string, mapped to
+# the ONLY channel each may occupy (FanPWM / FanDAC → preview; the FanRelay
+# room bundles → experimental only, mirroring the COMPLIANCE-001 lane posture).
+FAN_WRAPPER_CHANNELS = {
+    "Ceiling-POE-FanPWM": "preview",
+    "Ceiling-POE-AirIQ-FanPWM-RoomIQ": "preview",
+    "Ceiling-POE-VentIQ-FanPWM-RoomIQ": "preview",
+    "Ceiling-POE-FanDAC": "preview",
+    "Ceiling-POE-AirIQ-FanDAC-RoomIQ": "preview",
+    "Ceiling-POE-VentIQ-FanDAC-RoomIQ": "preview",
+    "Ceiling-POE-AirIQ-FanRelay-RoomIQ": "experimental",
+    "Ceiling-POE-VentIQ-FanRelay-RoomIQ": "experimental",
+}
+FAN_WRAPPERS = {
+    cs: f"products/webflash/{cs.lower()}.yaml" for cs in FAN_WRAPPER_CHANNELS
+}
+# All HW-RELEASE-001 metadata rows (the re-listed LED preview + the eight fan
+# rows) and the only channel each may occupy.
+HW_RELEASE_ROW_CHANNELS = {RELISTED_LED_CONFIG: "preview", **FAN_WRAPPER_CHANNELS}
+
+# Artifact-publication metadata that must never appear in a wrapper.
 ARTIFACT_METADATA_KEYS = ("version", "channel", "artifact_name", "substitutions")
 
 
@@ -207,7 +233,7 @@ class WrapperFilesExistTests(unittest.TestCase):
 
 
 class WrapperContentTests(unittest.TestCase):
-    """Task item: preview-only, no artifact metadata, no stable/hardware claim."""
+    """Task item: thin re-exports, no artifact metadata, no stable claim."""
 
     def test_wrappers_carry_only_a_packages_block(self) -> None:
         for cs, rel in NEW_WRAPPERS.items():
@@ -287,16 +313,22 @@ class ManifestReferencesWrappersTests(unittest.TestCase):
                     f"{cs}: webflash_wrapper path does not exist",
                 )
 
-    def test_preview_wrapped_target_stays_metadata_ready(self) -> None:
-        for cs in PREVIEW_WRAPPERS:
+    def test_relisted_led_target_is_preview_and_back_in_the_ledger(self) -> None:
+        # HW-RELEASE-001 RE-LISTED Ceiling-POE-RoomIQ-LED (inverting the
+        # CI-PIPELINE-CLARITY-001 P4a de-list guard this test used to be): the
+        # ledger row exists again, on the preview channel, addressed via the
+        # preserved wrapper, and the reconciled manifest target is back to
+        # metadata-ready with its build_blocker resolved. No published binary
+        # is claimed (release_state stays metadata-ready-unpublished; no .bin /
+        # Release / tag was cut).
+        builds = {b["config_string"]: b for b in _load_json(BUILDS_PATH)["builds"]}
+        for cs, rel in PREVIEW_WRAPPERS.items():
             with self.subTest(config_string=cs):
                 t = self.by_cs[cs]
                 self.assertEqual(t["channel_tier"], "preview")
-                self.assertTrue(t["is_preview_target"])
                 self.assertEqual(t["delivery_lane"], "webflash")
-                # RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001: the reviewed build row
-                # now exists, so the target is metadata-ready (not the prior
-                # eligible-unpublished) and its build_blocker is resolved.
+                self.assertEqual(t.get("webflash_wrapper"), rel)
+                self.assertTrue((REPO_ROOT / rel).is_file())
                 self.assertEqual(
                     t["publication_status"], "webflash-preview-metadata-ready"
                 )
@@ -307,28 +339,17 @@ class ManifestReferencesWrappersTests(unittest.TestCase):
                 self.assertFalse(t["customer_kit_default"])
                 # Stable stays gated; no published binary is claimed.
                 self.assertTrue(t["stable_blocker"])
-
-    def test_delisted_wrapped_target_is_unpublished_with_build_blocker(self) -> None:
-        # CI-PIPELINE-CLARITY-001 P4a: the de-listed LED room bundle keeps its
-        # manifest target + webflash_wrapper (preserved for a future build) but
-        # is back to eligible-unpublished with a build_blocker, and is NOT in the
-        # live build ledger.
-        builds = {b["config_string"] for b in _load_json(BUILDS_PATH)["builds"]}
-        for cs, rel in DELISTED_WRAPPERS.items():
-            with self.subTest(config_string=cs):
-                t = self.by_cs[cs]
-                self.assertEqual(t["channel_tier"], "preview")
-                self.assertEqual(t["delivery_lane"], "webflash")
-                self.assertEqual(t.get("webflash_wrapper"), rel)
-                self.assertTrue((REPO_ROOT / rel).is_file())
-                self.assertNotEqual(
-                    t["publication_status"], "webflash-preview-metadata-ready"
+                self.assertFalse(
+                    str(t["publication_status"]).startswith("published"),
+                    f"{cs}: no publication may be claimed for a metadata row",
                 )
-                self.assertTrue(
-                    t["build_blocker"],
-                    f"{cs}: de-listed target must record a build_blocker",
-                )
-                self.assertNotIn(cs, builds)
+                # The ledger row is live again (HW-RELEASE-001).
+                self.assertIn(cs, builds)
+                row = builds[cs]
+                self.assertEqual(row["channel"], "preview")
+                self.assertEqual(row["product_yaml"], rel)
+                self.assertEqual(row["release_state"], "metadata-ready-unpublished")
+                self.assertEqual(row["owner_declaration"], HW_RELEASE_DOC)
 
     def test_promoted_wrapped_targets_are_published_stable(self) -> None:
         # STABLE-PROMOTION-RECONCILE-001: Bedroom (v1.0.5) and Kitchen (v1.0.6)
@@ -351,6 +372,8 @@ class ManifestReferencesWrappersTests(unittest.TestCase):
                 self.assertTrue(t["expected_artifact_name"].endswith("-stable.bin"))
 
     def test_manifest_still_validates_clean(self) -> None:
+        # The manifest / validator were reconciled to the HW-RELEASE-001
+        # posture, so validation is clean again against the 14-row ledger.
         errors = validate(
             self.manifest,
             _load_json(POLICY_PATH),
@@ -369,7 +392,7 @@ class StableAndLedPreviewUnchangedTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.manifest = _load_json(MANIFEST_PATH)
         cls.by_cs = {t["config_string"]: t for t in cls.manifest["targets"]}
-        cls.builds = {b["config_string"] for b in _load_json(BUILDS_PATH)["builds"]}
+        cls.builds = {b["config_string"]: b for b in _load_json(BUILDS_PATH)["builds"]}
 
     def test_stable_baseline_unchanged(self) -> None:
         t = self.by_cs[STABLE_CONFIG]
@@ -378,7 +401,7 @@ class StableAndLedPreviewUnchangedTests(unittest.TestCase):
         self.assertEqual(t["publication_status"], "published-stable")
         self.assertTrue(t["required_config"])
         self.assertIn(STABLE_CONFIG, self.builds)
-        # This PR adds no wrapper reference to the stable baseline row.
+        # No wrapper reference was ever added to the stable baseline row.
         self.assertNotIn("webflash_wrapper", t)
 
     def test_led_preview_unchanged(self) -> None:
@@ -386,21 +409,30 @@ class StableAndLedPreviewUnchangedTests(unittest.TestCase):
         self.assertEqual(t["channel_tier"], "preview")
         self.assertEqual(t["publication_status"], "published-preview")
         self.assertIn(LED_PREVIEW_CONFIG, self.builds)
-        # The published VentIQ LED preview row is not touched by this PR.
+        # The published VentIQ LED preview row is not touched.
         self.assertNotIn("webflash_wrapper", t)
 
-    def test_new_roomiq_led_is_distinct_from_published_ventiq_led(self) -> None:
+    def test_relisted_roomiq_led_is_distinct_from_published_ventiq_led(self) -> None:
         # Ceiling-POE-RoomIQ-LED is a distinct config string from the published
-        # VentIQ+RoomIQ+LED preview. CI-PIPELINE-CLARITY-001 P4a DE-LISTED it
-        # (never built or served), so it is NOT in the build ledger, while the
-        # published VentIQ LED preview remains.
-        self.assertNotEqual("Ceiling-POE-RoomIQ-LED", LED_PREVIEW_CONFIG)
-        self.assertNotIn("Ceiling-POE-RoomIQ-LED", self.builds)
+        # VentIQ+RoomIQ+LED preview. HW-RELEASE-001 RE-LISTED it on the preview
+        # channel (v1.0.0, metadata-ready-unpublished), reversing the
+        # CI-PIPELINE-CLARITY-001 P4a de-list, while the published VentIQ LED
+        # preview stays exactly the unchanged v1.0.1 preview row.
+        self.assertNotEqual(RELISTED_LED_CONFIG, LED_PREVIEW_CONFIG)
+        self.assertIn(RELISTED_LED_CONFIG, self.builds)
+        relisted = self.builds[RELISTED_LED_CONFIG]
+        self.assertEqual(relisted["channel"], "preview")
+        self.assertEqual(relisted["version"], "1.0.0")
+        self.assertEqual(relisted["release_state"], "metadata-ready-unpublished")
         self.assertIn(LED_PREVIEW_CONFIG, self.builds)
+        ventiq_led = self.builds[LED_PREVIEW_CONFIG]
+        self.assertEqual(ventiq_led["channel"], "preview")
+        self.assertEqual(ventiq_led["version"], "1.0.1")
+        self.assertNotEqual(relisted["artifact_name"], ventiq_led["artifact_name"])
 
 
 class NoTriacWrapperTests(unittest.TestCase):
-    """Hard guardrail: no TRIAC wrapper added."""
+    """Hard guardrail: no NEW TRIAC wrapper added."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -408,12 +440,12 @@ class NoTriacWrapperTests(unittest.TestCase):
         cls.builds = {b["config_string"] for b in _load_json(BUILDS_PATH)["builds"]}
 
     def test_no_new_wrapper_carries_a_triac_token(self) -> None:
-        for cs in NEW_WRAPPERS:
+        for cs in list(NEW_WRAPPERS) + list(FAN_WRAPPERS):
             self.assertNotIn(TRIAC_TOKEN, cs.split("-"))
 
     def test_no_triac_wrapper_file_added(self) -> None:
-        # The only fantriac wrapper on disk is the pre-existing BLOCKED/REFERENCE
-        # file; this PR adds no new TRIAC wrapper.
+        # The only fantriac wrapper on disk is the pre-existing experimental
+        # self-build wrapper; HW-RELEASE-001 added no new TRIAC wrapper.
         triac_wrappers = [n for n in _wrapper_files() if "fantriac" in n.lower()]
         self.assertEqual(
             triac_wrappers,
@@ -441,26 +473,74 @@ class NoTriacWrapperTests(unittest.TestCase):
         self.assertEqual(builds_by_cs[FANTRIAC_CONFIG]["channel"], "experimental")
 
 
-class NoFanWrapperTests(unittest.TestCase):
-    """Hard guardrail: no fan manual-preview wrapper added (policy unchanged)."""
+class FanWrapperTests(unittest.TestCase):
+    """HW-RELEASE-001 inverted the old NoFanWrapperTests guard: the eight fan
+    wrappers now EXIST and must be thin packages-only re-exports that never
+    claim a stable channel."""
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.manifest = _load_json(MANIFEST_PATH)
 
-    def test_no_fan_wrapper_file_on_disk(self) -> None:
-        offenders = [
+    def test_exactly_the_eight_fan_wrapper_files_on_disk(self) -> None:
+        # Inverts the pre-HW-RELEASE-001 "no fan wrapper on disk" guard: the
+        # eight owner-declared fan wrappers exist, and ONLY those eight (any
+        # extra fan wrapper is unreviewed drift).
+        fan_files = sorted(
             n
             for n in _wrapper_files()
             if any(tok.lower() in n.lower() for tok in FAN_DRIVER_TOKENS)
-        ]
+        )
         self.assertEqual(
-            offenders,
-            [],
-            f"no fan manual-preview wrapper may be added; found {offenders!r}",
+            fan_files,
+            sorted(Path(rel).name for rel in FAN_WRAPPERS.values()),
+            "the fan wrappers on disk must be exactly the eight HW-RELEASE-001 "
+            f"wrappers; found {fan_files!r}",
         )
 
-    def test_fan_targets_have_no_wrapper_and_stay_manual_preview(self) -> None:
+    def test_fan_wrappers_are_thin_packages_only_reexports(self) -> None:
+        # Each fan wrapper is a thin re-export: a single !include of the
+        # canonical ../sense360-<cs>.yaml shim, no artifact metadata keys.
+        for cs, rel in FAN_WRAPPERS.items():
+            with self.subTest(config_string=cs):
+                wrapper = REPO_ROOT / rel
+                self.assertTrue(wrapper.is_file(), f"missing fan wrapper {rel}")
+                cfg = _load_yaml(wrapper)
+                self.assertEqual(
+                    sorted(cfg.keys()),
+                    ["packages"],
+                    f"{cs}: fan wrapper must declare ONLY a packages block",
+                )
+                include = _single_include(cfg["packages"])
+                resolved = (wrapper.parent / include).resolve()
+                expected_shim = REPO_ROOT / f"products/sense360-{cs.lower()}.yaml"
+                self.assertEqual(resolved, expected_shim.resolve())
+                self.assertTrue(resolved.is_file(), f"shim missing: {resolved}")
+                for key in ARTIFACT_METADATA_KEYS:
+                    self.assertNotIn(
+                        key, cfg, f"{cs}: fan wrapper must not declare {key!r}"
+                    )
+
+    def test_fan_wrapper_headers_cite_owner_declaration_never_stable(self) -> None:
+        # Every fan wrapper must cite HW-RELEASE-001 and disclaim the stable
+        # channel; none may reference a stable artifact.
+        for cs, rel in FAN_WRAPPERS.items():
+            with self.subTest(config_string=cs):
+                lower = (REPO_ROOT / rel).read_text(encoding="utf-8").lower()
+                self.assertIn("hw-release-001", lower)
+                self.assertTrue(
+                    "never stable" in lower or "not stable" in lower,
+                    f"{cs}: fan wrapper must disclaim the stable channel",
+                )
+                self.assertNotIn("-stable.bin", lower)
+
+    def test_fan_targets_stay_manual_preview_and_never_stable(self) -> None:
+        # The reconciled manifest enumerates the fan targets (standalone
+        # drivers + HW-RELEASE-001 room bundles) on the manual-preview lane;
+        # the wrapper reference lives in the ledger row (product_yaml), not in
+        # the manifest fan rows. The import-eligibility tooth
+        # (RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001 / ROOM-BUNDLE-FAN-
+        # WEBFLASH-ELIGIBILITY-001) and the never-stable tier stand.
         fans = [
             t
             for t in self.manifest["targets"]
@@ -471,14 +551,16 @@ class NoFanWrapperTests(unittest.TestCase):
             with self.subTest(config_string=t["config_string"]):
                 self.assertNotIn("webflash_wrapper", t)
                 self.assertEqual(t["delivery_lane"], "manual-preview")
-                # RELEASE-PREVIEW-FAN-WEBFLASH-ELIGIBILITY-001: import-eligible now,
-                # but still no committed webflash wrapper / build row (manual-preview).
                 self.assertTrue(t["webflash_import_eligibility"]["eligible"])
+                self.assertNotEqual(t["channel_tier"], "stable")
+                self.assertFalse(t["recommended"])
+                self.assertFalse(t["customer_default"])
+                self.assertFalse(t["required_config"])
 
 
 class WebflashBuildRowsPresentTests(unittest.TestCase):
-    """RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001: the reviewed preview build rows
-    are present, evidence-bearing, preview-only, and never stable."""
+    """The build ledger rows are present, evidence- or declaration-bearing,
+    on their governed channels, and never stable for fan configs."""
 
     COMPILE_RUN_ID = 26821900127
 
@@ -491,34 +573,39 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
             _load_json(COMPAT_PATH).get("release_one_required_configs", [])
         )
 
-    def test_build_ledger_is_the_five_live_builds(self) -> None:
+    def test_build_ledger_is_the_fourteen_declared_builds(self) -> None:
         # Stable RoomIQ + published VentIQ LED preview + the two promoted
-        # room-bundle rows + the FanTRIAC experimental self-build mains build
-        # added by TRIAC-COMMISSIONING-001 (experimental channel). No standalone
-        # fan-driver rows. CI-PIPELINE-CLARITY-001 P4a de-listed
-        # Ceiling-POE-RoomIQ-LED, so it is no longer a ledger row.
+        # room-bundle rows + the FanTRIAC experimental self-build row
+        # (TRIAC-COMMISSIONING-001) + the nine HW-RELEASE-001 metadata rows
+        # (the re-listed Ceiling-POE-RoomIQ-LED preview + eight fan rows).
         self.assertEqual(
             set(self.by_cs),
-            {STABLE_CONFIG, LED_PREVIEW_CONFIG, *LEDGER_WRAPPERS, FANTRIAC_CONFIG},
+            {
+                STABLE_CONFIG,
+                LED_PREVIEW_CONFIG,
+                *LEDGER_WRAPPERS,
+                FANTRIAC_CONFIG,
+                *FAN_WRAPPERS,
+            },
         )
-        self.assertNotIn("Ceiling-POE-RoomIQ-LED", self.by_cs)
         self.assertEqual(self.by_cs[FANTRIAC_CONFIG]["channel"], "experimental")
 
     def test_ledger_config_strings_present_in_ledger(self) -> None:
-        for cs in LEDGER_WRAPPERS:
+        for cs in list(LEDGER_WRAPPERS) + list(FAN_WRAPPERS):
             with self.subTest(config_string=cs):
                 self.assertIn(cs, self.by_cs)
 
     def test_ledger_rows_point_to_their_products_webflash_wrapper(self) -> None:
         # Task item: live ledger rows point to the existing wrappers.
-        for cs, rel in LEDGER_WRAPPERS.items():
+        for cs, rel in {**LEDGER_WRAPPERS, **FAN_WRAPPERS}.items():
             with self.subTest(config_string=cs):
                 self.assertEqual(self.by_cs[cs]["product_yaml"], rel)
                 self.assertTrue((REPO_ROOT / rel).is_file())
 
     def test_row_channels_match_their_promotion_state(self) -> None:
-        # STABLE-PROMOTION-RECONCILE-001: the LED row stays preview; the two
-        # promoted rows are stable with stable artifact names.
+        # STABLE-PROMOTION-RECONCILE-001: the two promoted rows are stable with
+        # stable artifact names. HW-RELEASE-001: the re-listed LED row is
+        # preview with a preview artifact name.
         for cs in PREVIEW_WRAPPERS:
             with self.subTest(config_string=cs):
                 row = self.by_cs[cs]
@@ -532,29 +619,47 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
                 self.assertTrue(row["artifact_name"].endswith("-stable.bin"))
 
     def test_new_rows_are_not_release_one_required(self) -> None:
-        # Task item: not REQUIRED_CONFIGS.
-        for cs in NEW_WRAPPERS:
+        # Task item: neither the wrapped candidates nor any HW-RELEASE-001 row
+        # may enter release_one_required_configs.
+        for cs in set(NEW_WRAPPERS) | set(HW_RELEASE_ROW_CHANNELS):
             with self.subTest(config_string=cs):
                 self.assertNotIn(cs, self.required)
 
-    def test_ledger_rows_cite_hosted_compile_evidence(self) -> None:
-        # Task item: live ledger rows cite compile evidence (run 26821900127).
-        for cs in LEDGER_WRAPPERS:
+    def test_promoted_rows_cite_hosted_compile_evidence(self) -> None:
+        # The promoted stable rows keep their compile evidence citation
+        # (run 26821900127).
+        for cs in PROMOTED_WRAPPERS:
             with self.subTest(config_string=cs):
                 evidence = self.by_cs[cs].get("compile_evidence")
                 self.assertIsInstance(evidence, dict)
                 self.assertEqual(evidence.get("run_id"), self.COMPILE_RUN_ID)
                 self.assertEqual(evidence.get("proof_class"), "firmware-build-only")
 
-    def test_preview_rows_carry_release_note_warning(self) -> None:
-        # Task item: preview rows include release-note warning text. The
-        # promoted stable rows had their preview-only warning fields stripped
-        # by the promotions (matching the stable Release-One row shape).
-        for cs in PREVIEW_WRAPPERS:
+    def test_hw_release_rows_are_owner_declared_metadata_only(self) -> None:
+        # HW-RELEASE-001 rows are release-eligibility metadata: unpublished,
+        # owner-declared, on their governed channel, and no-false-proof (the
+        # declaration is risk acceptance, not hardware / bench / compliance
+        # proof — the notes must say so).
+        for cs, channel in HW_RELEASE_ROW_CHANNELS.items():
             with self.subTest(config_string=cs):
                 row = self.by_cs[cs]
-                self.assertEqual(row.get("warning_copy_key"), "preview")
-                self.assertIn("PREVIEW FIRMWARE", row.get("release_note_warning", ""))
+                self.assertEqual(row["channel"], channel)
+                self.assertEqual(row["release_state"], "metadata-ready-unpublished")
+                self.assertEqual(row["owner_declaration"], HW_RELEASE_DOC)
+                self.assertEqual(
+                    row["artifact_name"],
+                    f"Sense360-{cs}-v1.0.0-{channel}.bin",
+                )
+                self.assertTrue(row["stable_blocker"])
+                self.assertIn(HW_RELEASE_DECISION, row.get("notes", ""))
+
+    def test_preview_rows_carry_release_note_warning(self) -> None:
+        # Preview rows carry the preview warning key; the promoted stable rows
+        # had their preview-only warning fields stripped by the promotions
+        # (matching the stable Release-One row shape).
+        for cs in PREVIEW_WRAPPERS:
+            with self.subTest(config_string=cs):
+                self.assertEqual(self.by_cs[cs].get("warning_copy_key"), "preview")
         for cs in PROMOTED_WRAPPERS:
             with self.subTest(config_string=cs):
                 row = self.by_cs[cs]
@@ -562,11 +667,24 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
                 self.assertNotIn("release_note_warning", row)
                 self.assertNotIn("release_state", row)
 
-    def test_new_rows_commercial_posture_is_hidden_not_buyable(self) -> None:
-        # Task items: candidate / hidden / not buyable; not recommended/default.
-        # posture.stable mirrors the channel: false for a preview row, true for
-        # the two promoted stable rows.
-        for cs in LEDGER_WRAPPERS:
+    def test_fan_rows_carry_lane_matched_warning_copy(self) -> None:
+        # FanPWM / FanDAC preview rows use the preview warning key; the
+        # FanRelay experimental rows use the experimental key AND an explicit
+        # mains-adjacent release-note warning (COMPLIANCE-001 lane posture).
+        for cs, channel in FAN_WRAPPER_CHANNELS.items():
+            with self.subTest(config_string=cs):
+                row = self.by_cs[cs]
+                if channel == "preview":
+                    self.assertEqual(row.get("warning_copy_key"), "preview")
+                else:
+                    self.assertEqual(row.get("warning_copy_key"), "experimental")
+                    self.assertIn("EXPERIMENTAL", row.get("release_note_warning", ""))
+
+    def test_row_commercial_posture_is_hidden_not_buyable(self) -> None:
+        # Candidate / hidden / not buyable; not recommended / default.
+        # posture.stable mirrors the channel: false everywhere except the two
+        # promoted stable rows.
+        for cs in {**LEDGER_WRAPPERS, **FAN_WRAPPERS}:
             with self.subTest(config_string=cs):
                 posture = self.by_cs[cs].get("commercial_posture", {})
                 self.assertEqual(posture.get("visibility"), "hidden")
@@ -575,25 +693,49 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
                 self.assertFalse(posture.get("customer_default"))
                 self.assertEqual(posture.get("stable"), cs in PROMOTED_WRAPPERS)
 
-    def test_no_standalone_fan_row_triac_experimental_only(self) -> None:
-        # Hard guardrail: the standalone manual-preview fan drivers (FanRelay /
-        # FanPWM / FanDAC) never appear in the WebFlash build ledger. The single
-        # exception is the FanTRIAC experimental self-build mains build
-        # (TRIAC-COMMISSIONING-001), admitted on the experimental channel only.
+    def test_fan_rows_channel_teeth_never_stable(self) -> None:
+        # HW-RELEASE-001 revised the former "no fan row" guardrail into CHANNEL
+        # teeth, guarded here: any ledger row carrying a fan-driver token is
+        # experimental (FanRelay, FanTRIAC) or preview (FanPWM, FanDAC), NEVER
+        # stable, never Release-One-required, and its commercial posture keeps
+        # buyable / recommended / customer_default / stable false.
         for cs, build in self.by_cs.items():
-            for token in FAN_DRIVER_TOKENS:
-                self.assertNotIn(token, cs.split("-"), f"{token} leaked into ledger")
-            if TRIAC_TOKEN in cs.split("-"):
-                self.assertEqual(
+            tokens = cs.split("-")
+            is_fan = any(tok in tokens for tok in FAN_DRIVER_TOKENS) or (
+                TRIAC_TOKEN in tokens
+            )
+            if not is_fan:
+                continue
+            with self.subTest(config_string=cs):
+                self.assertNotEqual(
                     build["channel"],
-                    "experimental",
-                    "FanTRIAC may only be committed on the experimental channel",
+                    "stable",
+                    f"{cs}: fan configs are NEVER on the stable channel",
                 )
+                if "FanRelay" in tokens or TRIAC_TOKEN in tokens:
+                    self.assertEqual(
+                        build["channel"],
+                        "experimental",
+                        f"{cs}: FanRelay / FanTRIAC rows are experimental-only",
+                    )
+                else:
+                    self.assertEqual(
+                        build["channel"],
+                        "preview",
+                        f"{cs}: FanPWM / FanDAC rows are preview-only",
+                    )
+                self.assertNotIn(cs, self.required)
+                self.assertNotIn("-stable.bin", build["artifact_name"])
+                posture = build.get("commercial_posture", {})
+                self.assertFalse(posture.get("buyable"))
+                self.assertFalse(posture.get("recommended"))
+                self.assertFalse(posture.get("customer_default"))
+                self.assertFalse(posture.get("stable"))
 
     def test_no_firmware_publish_side_effects_committed(self) -> None:
-        # Hard guardrail: no firmware publish files changed (this PR is
-        # metadata only). manifest.json / firmware/sources.json must not exist
-        # and no .bin may be committed under config/ or products/.
+        # Hard guardrail: no firmware publish files changed (metadata only).
+        # manifest.json / firmware/sources.json must not exist and no .bin may
+        # be committed under config/ or products/.
         self.assertFalse((REPO_ROOT / "manifest.json").exists())
         self.assertFalse((REPO_ROOT / "firmware" / "sources.json").exists())
         bins = list((REPO_ROOT / "config").rglob("*.bin")) + list(

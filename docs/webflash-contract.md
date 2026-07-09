@@ -204,8 +204,18 @@ published from this repo. They mirror the rules enforced in WebFlash's
    correctly and may damage the fan or wiring. Always pick the driver that
    matches the physical hardware.
 6. **`FanDAC` conflicts with `AirIQ`.** Both contend for the shared DAC bus
-   in WebFlash's module-requirements matrix. Do not publish a config string
-   that contains both.
+   in WebFlash's module-requirements matrix (the second GP8403's `0x59`
+   package default collides with the AirIQ SGP41 at `0x59`). Do not publish
+   a config string that contains both in the one-click grammar. The single
+   documented exception is `Ceiling-POE-AirIQ-FanDAC-RoomIQ`
+   (`HW-RELEASE-001`, [`docs/hw-release-001.md`](hw-release-001.md)):
+   admitted to the build matrix as an acknowledgement-gated advanced/manual
+   **preview** only, because its bundle relocates the second GP8403 to
+   `0x5A` (`fan_dac_2_i2c_address` override; the installer must set the IC2
+   DIP switch SW2 to match). The mutex stays in force for one-click
+   easy-mode, which cannot encode the DIP-switch override; see
+   `config/webflash-compatibility.json`
+   `fandac_air_quality_address_policy.address_overridden_exception_config_strings`.
 7. **Module order in a config string is fixed.** Use this order so the same
    physical configuration always produces the same `config_string`:
 

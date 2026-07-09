@@ -11,6 +11,14 @@ release matrix formerly documented in ``docs/all-yaml-release-matrix.md``
   * ``manual-candidate-only``   — tracked in
                                   ``config/manual-firmware-artifacts.json``
                                   for the workflow_dispatch-only manual lane
+                                  and carrying **no** release-matrix row.
+                                  Per HW-RELEASE-001 a manual candidate that
+                                  also has a ``config/webflash-builds.json``
+                                  row classifies by that row's channel (the
+                                  manual lane is a parallel point-to-point
+                                  path, no longer the only fan path); its
+                                  dual role is recorded via the
+                                  ``is_manual_candidate`` flag.
   * ``compile-only``            — CI validation skeleton under
                                   ``products/compile-only/``
   * ``blocked``                 — catalog ``status: blocked``
@@ -36,9 +44,12 @@ The script is read-only:
   * it never invents a YAML/product combo that does not exist on disk
     and in the source-of-truth files;
   * it refuses any FanRelay / FanPWM / FanDAC token in the release matrix
-    (the same guardrail enforced by
-    ``scripts/plan_room_release_notes.py`` and
-    ``scripts/list_release_targets.py``).
+    on a forbidden channel — per owner decision HW-RELEASE-001
+    (``docs/hw-release-001.md``, 2026-07-09) fan configs are
+    release-eligible on non-stable channels only (FanRelay exactly
+    ``experimental``; FanPWM / FanDAC exactly ``preview``; never
+    ``stable``) — the same channel guardrail enforced by
+    ``scripts/plan_room_release_notes.py``.
 
 Usage::
 
@@ -92,10 +103,17 @@ ALL_CLASSES = (
 
 RELEASE_SELECTABLE_CLASSES = (CLASS_STABLE, CLASS_PREVIEW, CLASS_EXPERIMENTAL)
 
-# Fan family tokens that are manual-candidate-only and must never appear
-# in the release matrix (mirrors plan_room_release_notes.py and
-# list_release_targets.py).
+# HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09) channel teeth for the
+# fan families: release-eligible on non-stable channels ONLY. FanRelay rows
+# must be exactly "experimental" (mains-adjacent lane per COMPLIANCE-001);
+# FanPWM / FanDAC rows exactly "preview". Any fan-token row on "stable" (or
+# any other channel) is refused (mirrors plan_room_release_notes.py).
 FAN_FAMILY_TOKENS = ("FanRelay", "FanPWM", "FanDAC")
+FAN_ALLOWED_CHANNELS = {
+    "FanRelay": ("experimental",),
+    "FanPWM": ("preview",),
+    "FanDAC": ("preview",),
+}
 
 
 class ClassifyError(Exception):
@@ -191,25 +209,41 @@ def _index_compile(compile_doc: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
 def _assert_no_fan_in_release(
     builds_doc: Dict[str, Any], manual_idx: Dict[str, Dict[str, Any]]
 ) -> None:
+    """Guardrail (HW-RELEASE-001): fan builds are never on the stable channel.
+
+    A FanRelay / FanPWM / FanDAC token in a release row is allowed only on
+    the family's owner-approved non-stable channel (FanRelay: exactly
+    ``experimental``; FanPWM / FanDAC: exactly ``preview``). A manual
+    candidate's canonical ``product_yaml`` must still never double as a
+    release row's ``product_yaml`` (release rows use ``products/webflash/``
+    wrappers; manual candidates use top-level ``products/sense360-*.yaml``).
+    """
     fan_yamls = set(manual_idx.keys())
     for entry in builds_doc.get("builds", []) or []:
         if not isinstance(entry, dict):
             continue
         config_string = str(entry.get("config_string", ""))
         product_yaml = str(entry.get("product_yaml", ""))
+        channel = str(entry.get("channel", "")).strip().lower()
         for token in FAN_FAMILY_TOKENS:
             if token.lower() in config_string.lower():
-                raise ClassifyError(
-                    f"guardrail violation: release build {config_string!r} "
-                    f"carries fan family token {token!r}; FanRelay / FanPWM / "
-                    "FanDAC are manual-candidate-only and must never be "
-                    "release-eligible"
-                )
+                allowed = FAN_ALLOWED_CHANNELS[token]
+                if channel not in allowed:
+                    raise ClassifyError(
+                        f"guardrail violation (HW-RELEASE-001): release "
+                        f"build {config_string!r} carries fan family token "
+                        f"{token!r} on channel {channel!r}; {token} builds "
+                        f"are allowed only on the "
+                        f"{' / '.join(allowed)} channel and are never a "
+                        "stable release artifact"
+                    )
         if product_yaml in fan_yamls:
             raise ClassifyError(
                 f"guardrail violation: release build product_yaml "
-                f"{product_yaml!r} matches a manual fan candidate; fan "
-                "candidates must not be a release artifact"
+                f"{product_yaml!r} matches a manual fan candidate's "
+                "canonical YAML; release rows must address fan builds via "
+                "their products/webflash/ wrappers, not the manual lane's "
+                "top-level product YAML"
             )
 
 
@@ -234,9 +268,13 @@ def classify_yaml(
       3. Helper YAML directly under ``products/`` with no catalog row →
          not-a-product-entrypoint.
       4. In ``config/webflash-builds.json`` (the release-matrix source of
-         truth) → stable-release or preview-release per ``channel``.
-      5. In ``config/manual-firmware-artifacts.json`` candidates →
-         manual-candidate-only.
+         truth) → stable-release / preview-release / experimental-release
+         per ``channel``. Per HW-RELEASE-001 this step wins even for a
+         manual candidate: a fan YAML with a builds row classifies by its
+         (non-stable) channel and keeps ``is_manual_candidate`` true — the
+         manual lane is a parallel path, no longer the only fan path.
+      5. In ``config/manual-firmware-artifacts.json`` candidates with no
+         release-matrix row → manual-candidate-only.
       6. Catalog ``status: blocked`` → blocked.
       7. Catalog ``status: legacy-compatible`` → not-a-product-entrypoint.
       8. Catalog ``status: hardware-pending`` (no manual / no blocked
@@ -295,6 +333,12 @@ def classify_yaml(
             "compile_validation_status"
         )
 
+    # HW-RELEASE-001: manual candidacy is a lane flag, not a class. A YAML
+    # can be BOTH a manual candidate and release-selectable; record the
+    # flag before the class decision so the dual role stays visible.
+    if manual_entry is not None:
+        record["is_manual_candidate"] = True
+
     # 1. WebFlash wrapper — not a standalone entry point.
     if yaml_path.startswith("products/webflash/"):
         record["is_webflash_wrapper"] = True
@@ -344,9 +388,10 @@ def classify_yaml(
             )
         return record
 
-    # 5. Manual-candidate-only per config/manual-firmware-artifacts.json.
+    # 5. Manual-candidate-only per config/manual-firmware-artifacts.json —
+    #    only when there is NO release-matrix row (HW-RELEASE-001: a manual
+    #    candidate with a builds row already classified by channel above).
     if manual_entry is not None:
-        record["is_manual_candidate"] = True
         record["release_class"] = CLASS_MANUAL
         return record
 
@@ -525,7 +570,7 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help=(
             "Restrict output to release-selectable YAMLs "
-            "(stable-release or preview-release)."
+            "(stable-release, preview-release, or experimental-release)."
         ),
     )
     parser.add_argument(
@@ -590,6 +635,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             "release_selectable": plan["release_selectable"],
             "stable_targets": plan["stable_targets"],
             "preview_targets": plan["preview_targets"],
+            "experimental_targets": plan["experimental_targets"],
             "records": records,
         }
         print(json.dumps(out, indent=2))

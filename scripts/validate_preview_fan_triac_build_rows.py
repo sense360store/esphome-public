@@ -275,12 +275,34 @@ def validate(
             rerr.append(f"row {rid!r}: webflash_importable must be false")
         if cs in builds_cs:
             if not is_triac:
-                # The standalone manual-preview fan drivers (FanRelay / FanPWM /
-                # FanDAC) stay off the WebFlash build matrix (fan-token guardrail).
-                rerr.append(
-                    f"row {rid!r}: config_string is in config/webflash-builds.json; "
-                    "fan tokens must stay off the WebFlash build matrix"
+                # HW-RELEASE-001 (docs/hw-release-001.md): the standalone
+                # manual-preview fan drivers (FanRelay / FanPWM / FanDAC) may
+                # be committed to config/webflash-builds.json on their
+                # non-stable lanes only — FanPWM / FanDAC on 'preview',
+                # FanRelay on 'experimental'. A stable-channel fan row stays
+                # a violation: fan configs are NEVER stable.
+                fan_builds = [
+                    b
+                    for b in builds_doc.get("builds", []) or []
+                    if isinstance(b, dict) and b.get("config_string") == cs
+                ]
+                allowed = (
+                    ("experimental",) if "FanRelay" in cs else ("preview",)
                 )
+                off_lane = [
+                    b for b in fan_builds if b.get("channel") not in allowed
+                ]
+                if off_lane:
+                    bad_channels = sorted(
+                        {str(b.get("channel")) for b in off_lane}
+                    )
+                    rerr.append(
+                        f"row {rid!r}: fan config committed to "
+                        "config/webflash-builds.json on channel(s) "
+                        f"{bad_channels}; HW-RELEASE-001 admits this config "
+                        f"only on {list(allowed)} (fan configs are NEVER "
+                        "stable)"
+                    )
             else:
                 # FanTRIAC: TRIAC-COMMISSIONING-001 admitted it via the
                 # experimental self-build mains lane (the experimental_lane in

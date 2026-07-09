@@ -29,10 +29,11 @@ The ``--validate`` flag exits ``0`` when the given identifier is a
 release-eligible target (matching a ``config_string`` in
 ``config/webflash-builds.json``) **or** the special sentinel
 ``all-release-eligible``; otherwise it exits ``2`` with a
-human-readable error message. FanRelay / FanPWM / FanDAC are not
-release-eligible (they are manual-candidate-only, tracked in
-``config/manual-firmware-artifacts.json``) and therefore are not
-selectable here.
+human-readable error message. Under owner declaration HW-RELEASE-001
+(``docs/hw-release-001.md``) FanRelay / FanPWM / FanDAC configs are
+release-eligible on non-stable channels only (FanPWM / FanDAC:
+``preview``; FanRelay: ``experimental``); a fan-token row on the
+``stable`` channel is a guardrail violation.
 """
 
 from __future__ import annotations
@@ -51,11 +52,21 @@ DEFAULT_BUILDS_PATH = REPO_ROOT / "config" / "webflash-builds.json"
 # manual dispatch to a single target or to every release-eligible target.
 ALL_TARGETS_SENTINEL = "all-release-eligible"
 
-# Fan families that are manual-candidate-only (config/manual-firmware-
-# artifacts.json) and must never appear as a release target. Mirrored from
-# scripts/plan_room_release_notes.py so the exclusion holds even if a future
-# edit accidentally adds a fan token to config/webflash-builds.json.
+# Fan families that must never appear as a STABLE release target. Under
+# owner declaration HW-RELEASE-001 (docs/hw-release-001.md) fan configs are
+# release-eligible on non-stable channels only: FanPWM / FanDAC on
+# ``preview``, FanRelay on ``experimental`` (mains-adjacent lane per
+# COMPLIANCE-001). Mirrored by scripts/plan_room_release_notes.py so the
+# never-stable teeth hold even if a future edit puts a fan token on the
+# stable channel in config/webflash-builds.json.
 FAN_FAMILY_TOKENS = ("FanRelay", "FanPWM", "FanDAC")
+
+# Per-family allowed build channels (never "stable").
+FAN_FAMILY_ALLOWED_CHANNELS = {
+    "FanRelay": ("experimental",),
+    "FanPWM": ("preview",),
+    "FanDAC": ("preview",),
+}
 
 
 class ListReleaseTargetsError(Exception):
@@ -78,8 +89,9 @@ def list_targets(builds_path: Path = DEFAULT_BUILDS_PATH) -> List[Dict[str, Any]
 
     Each entry has ``config_string``, ``channel``, ``version``,
     ``artifact_name``, and ``product_yaml``. Raises
-    ``ListReleaseTargetsError`` if a fan family token leaks into the
-    release matrix (a guardrail violation).
+    ``ListReleaseTargetsError`` if a fan family token appears on a
+    channel outside its HW-RELEASE-001 lane (FanPWM / FanDAC: preview;
+    FanRelay: experimental; never stable) — a guardrail violation.
     """
     builds_doc = _load_builds(builds_path)
     builds = builds_doc.get("builds", [])
@@ -95,14 +107,18 @@ def list_targets(builds_path: Path = DEFAULT_BUILDS_PATH) -> List[Dict[str, Any]
         config_string = str(entry.get("config_string", ""))
         if not config_string:
             continue
+        channel = str(entry.get("channel", ""))
         for token in FAN_FAMILY_TOKENS:
             if token.lower() in config_string.lower():
-                raise ListReleaseTargetsError(
-                    f"guardrail violation: release target {config_string!r} "
-                    f"carries fan family token {token!r}; FanRelay / FanPWM / "
-                    "FanDAC are manual-candidate-only and must never be "
-                    "release-eligible"
-                )
+                allowed = FAN_FAMILY_ALLOWED_CHANNELS[token]
+                if channel not in allowed:
+                    raise ListReleaseTargetsError(
+                        f"guardrail violation: release target "
+                        f"{config_string!r} carries fan family token "
+                        f"{token!r} on channel {channel!r}; HW-RELEASE-001 "
+                        f"admits {token} only on {allowed} — fan configs are "
+                        "NEVER stable"
+                    )
         out.append(
             {
                 "config_string": config_string,

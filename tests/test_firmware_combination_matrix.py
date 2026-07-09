@@ -194,8 +194,21 @@ class FirmwareMatrixGeneratorTests(unittest.TestCase):
             )
 
     def test_no_fandac_plus_airiq_combinations(self):
+        # HW-RELEASE-001: config strings enumerated in the compat snapshot's
+        # fandac_air_quality_address_policy.address_overridden_exception_
+        # config_strings are the documented address-overridden exceptions
+        # (IC2 relocated 0x59 -> 0x5A); every other AirIQ+FanDAC combo stays
+        # forbidden by the one-click grammar mutex.
+        exceptions = set(
+            self.compat.get("fandac_air_quality_address_policy", {}).get(
+                "address_overridden_exception_config_strings", []
+            )
+        )
+        self.assertEqual(exceptions, {"Ceiling-POE-AirIQ-FanDAC-RoomIQ"})
         for row in self.rows:
             tokens = row["tokens"]
+            if row["config_string"] in exceptions:
+                continue
             self.assertFalse(
                 "AirIQ" in tokens and "FanDAC" in tokens,
                 f"matrix emitted forbidden FanDAC+AirIQ combo {row['config_string']!r}",
@@ -302,8 +315,10 @@ class FirmwareMatrixGeneratorTests(unittest.TestCase):
         # 1 mounting * 3 powers * 3 air (none/AirIQ/VentIQ) * 5 fan
         # (none + 4 drivers) * 2 room * 2 led = 180.
         # Minus AirIQ+FanDAC combinations: 1 * 3 * 1 * 1 * 2 * 2 = 12.
-        # Net = 168.
-        self.assertEqual(len(self.rows), 168)
+        # Plus the HW-RELEASE-001 documented address-overridden exception
+        # (Ceiling-POE-AirIQ-FanDAC-RoomIQ) re-admitted to the grammar = 1.
+        # Net = 169.
+        self.assertEqual(len(self.rows), 169)
 
     def test_config_strings_are_unique(self):
         seen = [row["config_string"] for row in self.rows]

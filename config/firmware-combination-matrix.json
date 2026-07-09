@@ -18,12 +18,12 @@
     "webflash-shipping"
   ],
   "totals": {
-    "combinations": 168,
+    "combinations": 169,
     "by_status": {
       "missing-product-yaml": 118,
-      "blocked-hardware": 43,
+      "webflash-preview": 11,
+      "blocked-hardware": 35,
       "webflash-shipping": 3,
-      "webflash-preview": 2,
       "compile-only-candidate": 2
     }
   },
@@ -58,6 +58,27 @@
       "led": "none",
       "status": "missing-product-yaml",
       "notes": "No product YAML in config/product-catalog.json and no entry in config/webflash-builds.json."
+    },
+    {
+      "config_string": "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
+      "tokens": [
+        "Ceiling",
+        "POE",
+        "AirIQ",
+        "FanDAC",
+        "RoomIQ"
+      ],
+      "mounting": "Ceiling",
+      "power": "POE",
+      "air_quality": "AirIQ",
+      "room_sense": "RoomIQ",
+      "fan": "FanDAC",
+      "led": "none",
+      "status": "webflash-preview",
+      "product_yaml": "products/webflash/ceiling-poe-airiq-fandac-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-AirIQ-FanDAC-RoomIQ-v1.0.0-preview.bin",
+      "webflash_wrapper": "products/webflash/ceiling-poe-airiq-fandac-roomiq.yaml",
+      "notes": "In config/webflash-builds.json on the preview channel."
     },
     {
       "config_string": "Ceiling-POE-AirIQ-FanPWM",
@@ -109,9 +130,11 @@
       "room_sense": "RoomIQ",
       "fan": "FanPWM",
       "led": "none",
-      "status": "blocked-hardware",
-      "product_yaml": "products/sense360-ceiling-poe-airiq-fanpwm-roomiq.yaml",
-      "notes": "Catalog status=hardware-pending."
+      "status": "webflash-preview",
+      "product_yaml": "products/webflash/ceiling-poe-airiq-fanpwm-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-AirIQ-FanPWM-RoomIQ-v1.0.0-preview.bin",
+      "webflash_wrapper": "products/webflash/ceiling-poe-airiq-fanpwm-roomiq.yaml",
+      "notes": "In config/webflash-builds.json on the preview channel."
     },
     {
       "config_string": "Ceiling-POE-AirIQ-FanPWM-RoomIQ-LED",
@@ -182,9 +205,11 @@
       "room_sense": "RoomIQ",
       "fan": "FanRelay",
       "led": "none",
-      "status": "blocked-hardware",
-      "product_yaml": "products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml",
-      "notes": "Catalog status=hardware-pending."
+      "status": "webflash-preview",
+      "product_yaml": "products/webflash/ceiling-poe-airiq-fanrelay-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-AirIQ-FanRelay-RoomIQ-v1.0.0-experimental.bin",
+      "webflash_wrapper": "products/webflash/ceiling-poe-airiq-fanrelay-roomiq.yaml",
+      "notes": "In config/webflash-builds.json on the experimental channel."
     },
     {
       "config_string": "Ceiling-POE-AirIQ-FanRelay-RoomIQ-LED",
@@ -357,9 +382,11 @@
       "room_sense": "none",
       "fan": "FanDAC",
       "led": "none",
-      "status": "blocked-hardware",
-      "product_yaml": "products/sense360-ceiling-poe-fandac.yaml",
-      "notes": "Catalog status=hardware-pending."
+      "status": "webflash-preview",
+      "product_yaml": "products/webflash/ceiling-poe-fandac.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-FanDAC-v1.0.0-preview.bin",
+      "webflash_wrapper": "products/webflash/ceiling-poe-fandac.yaml",
+      "notes": "In config/webflash-builds.json on the preview channel."
     },
     {
       "config_string": "Ceiling-POE-FanDAC-LED",
@@ -426,9 +453,11 @@
       "room_sense": "none",
       "fan": "FanPWM",
       "led": "none",
-      "status": "blocked-hardware",
-      "product_yaml": "products/sense360-ceiling-poe-fanpwm.yaml",
-      "notes": "Catalog status=hardware-pending."
+      "status": "webflash-preview",
+      "product_yaml": "products/webflash/ceiling-poe-fanpwm.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-FanPWM-v1.0.0-preview.bin",
+      "webflash_wrapper": "products/webflash/ceiling-poe-fanpwm.yaml",
+      "notes": "In config/webflash-builds.json on the preview channel."
     },
     {
       "config_string": "Ceiling-POE-FanPWM-LED",
@@ -679,10 +708,11 @@
       "room_sense": "RoomIQ",
       "fan": "none",
       "led": "LED",
-      "status": "blocked-hardware",
-      "product_yaml": "products/sense360-ceiling-poe-roomiq-led.yaml",
+      "status": "webflash-preview",
+      "product_yaml": "products/webflash/ceiling-poe-roomiq-led.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-RoomIQ-LED-v1.0.0-preview.bin",
       "webflash_wrapper": "products/webflash/ceiling-poe-roomiq-led.yaml",
-      "notes": "Catalog status=hardware-pending."
+      "notes": "In config/webflash-builds.json on the preview channel."
     },
     {
       "config_string": "Ceiling-POE-VentIQ",
@@ -750,9 +780,11 @@
       "room_sense": "RoomIQ",
       "fan": "FanDAC",
       "led": "none",
-      "status": "blocked-hardware",
-      "product_yaml": "products/sense360-ceiling-poe-ventiq-fandac-roomiq.yaml",
-      "notes": "Catalog status=hardware-pending."
+      "status": "webflash-preview",
+      "product_yaml": "products/webflash/ceiling-poe-ventiq-fandac-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanDAC-RoomIQ-v1.0.0-preview.bin",
+      "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-fandac-roomiq.yaml",
+      "notes": "In config/webflash-builds.json on the preview channel."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanDAC-RoomIQ-LED",
@@ -823,9 +855,11 @@
       "room_sense": "RoomIQ",
       "fan": "FanPWM",
       "led": "none",
-      "status": "blocked-hardware",
-      "product_yaml": "products/sense360-ceiling-poe-ventiq-fanpwm-roomiq.yaml",
-      "notes": "Catalog status=hardware-pending."
+      "status": "webflash-preview",
+      "product_yaml": "products/webflash/ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanPWM-RoomIQ-v1.0.0-preview.bin",
+      "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+      "notes": "In config/webflash-builds.json on the preview channel."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanPWM-RoomIQ-LED",
@@ -896,9 +930,11 @@
       "room_sense": "RoomIQ",
       "fan": "FanRelay",
       "led": "none",
-      "status": "blocked-hardware",
-      "product_yaml": "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
-      "notes": "Catalog status=hardware-pending."
+      "status": "webflash-preview",
+      "product_yaml": "products/webflash/ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.0-experimental.bin",
+      "webflash_wrapper": "products/webflash/ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+      "notes": "In config/webflash-builds.json on the experimental channel."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanRelay-RoomIQ-LED",

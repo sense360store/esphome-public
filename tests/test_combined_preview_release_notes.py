@@ -37,10 +37,21 @@ CHANNEL = "preview"
 # v1.0.1 (REBUILD-CLEAN-CREDENTIALS-001, prerelease v1.0.1-led-preview,
 # 2026-07-06). CI-PIPELINE-CLARITY-001 P4a then DE-LISTED Ceiling-POE-RoomIQ-LED
 # (never built or served): its (v1.0.0, preview) build row was removed. So no
-# (v1.0.0, preview) room-bundle row remains in the live ledger. The historical
-# notes doc still names the configs; the live-derivation check below covers only
-# the rows that remain at (v1.0.0, preview) — now none.
-EXPECTED_ROOM_PREVIEW_CONFIGS: set[str] = set()
+# (v1.0.0, preview) room-bundle row remained in the live ledger — until
+# HW-RELEASE-001 (docs/hw-release-001.md, owner declaration) re-listed
+# Ceiling-POE-RoomIQ-LED and added the six FanPWM / FanDAC preview rows, all
+# at (v1.0.0, preview). The historical notes doc still names only the configs
+# it originally covered; the live-derivation check below tracks the rows now
+# at (v1.0.0, preview).
+EXPECTED_ROOM_PREVIEW_CONFIGS: set[str] = {
+    "Ceiling-POE-RoomIQ-LED",
+    "Ceiling-POE-FanPWM",
+    "Ceiling-POE-AirIQ-FanPWM-RoomIQ",
+    "Ceiling-POE-VentIQ-FanPWM-RoomIQ",
+    "Ceiling-POE-FanDAC",
+    "Ceiling-POE-AirIQ-FanDAC-RoomIQ",
+    "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
+}
 
 # All room-bundle configs the historical v1.0.0-preview notes doc named; the
 # doc is a static record, so its text keeps naming these even after rows move

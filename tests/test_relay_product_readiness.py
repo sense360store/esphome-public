@@ -1,24 +1,40 @@
 #!/usr/bin/env python3
 """PRODUCT-RELAY-001 invariants for the FanRelay product YAML.
 
-PRODUCT-RELAY-001 adds a single canonical FanRelay product YAML
+PRODUCT-RELAY-001 added a single canonical FanRelay product YAML
 (``products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml``) as an
-**advanced / manual-warning-only** sibling of Release-One. The product
-intentionally has:
+**advanced / manual-warning-only** sibling of Release-One.
 
-  * no WebFlash wrapper under ``products/webflash/``;
-  * no ``webflash_build_matrix: true`` flip in
-    ``config/product-catalog.json``;
-  * no ``artifact_name`` declared;
-  * no entry in ``config/webflash-builds.json``;
-  * no entry in ``release_one_required_configs``;
-  * no release artifact / tag / checksum / build-info manifest;
-  * explicit advanced / manual-warning + installation / safety +
-    competent-person caveat wording in the product YAML header.
+HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record,
+2026-07-09) retired the bench-proof documentation requirement as a
+release gate; hardware readiness is declared by the owner directly.
+Under that decision the FanRelay product is now a release-eligible
+config on the EXPERIMENTAL channel only (mains-adjacent contact
+switching, COMPLIANCE-001 lane posture):
 
-These tests pin the structural invariants so a future regression cannot
-silently promote the FanRelay product onto a WebFlash-shippable surface
-without an explicit WEBFLASH-RELAY-001 / RELEASE-RELAY-001 slice.
+  * a thin packages-only WebFlash wrapper under ``products/webflash/``
+    re-exporting the canonical product YAML;
+  * ``status: preview`` + ``webflash_build_matrix: true`` +
+    ``artifact_name`` + ``webflash_wrapper`` in
+    ``config/product-catalog.json`` (hardware_status
+    ``owner-declared-bench-working-hw-release-001``);
+  * a ``config/webflash-builds.json`` row on the EXPERIMENTAL channel
+    (release_state metadata-ready-unpublished — metadata only, no
+    binary / Release / tag / manifest is cut).
+
+Unchanged truths these tests keep pinning:
+
+  * fan configs are NEVER on the stable channel — FanRelay rows are
+    ``experimental`` exactly, never ``stable``; RELEASE-RELAY-001
+    remains the STABLE blocker;
+  * still NO entry in ``release_one_required_configs``; the builds-row
+    ``commercial_posture`` keeps buyable / recommended /
+    customer_default / stable false;
+  * the advanced / manual-warning + installation / safety +
+    competent-person caveat wording stays in the product YAML;
+  * promotion is firmware-build proof only under owner declaration —
+    no hardware / bench / compliance / safety /
+    commercial-availability claim.
 
 Run with::
 
@@ -35,7 +51,7 @@ import json
 import re
 import unittest
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, List
 
 import yaml
 
@@ -55,6 +71,10 @@ RELAY_BUNDLE = (
     / "ceiling-poe-ventiq-fanrelay-roomiq.yaml"
 )
 RELAY_CONFIG_STRING = "Ceiling-POE-VentIQ-FanRelay-RoomIQ"
+# HW-RELEASE-001: the release-gate WebFlash wrapper now exists.
+RELAY_WRAPPER_REL = "products/webflash/ceiling-poe-ventiq-fanrelay-roomiq.yaml"
+# HW-RELEASE-001 owner declaration marker recorded in the catalog.
+OWNER_DECLARED_HW_STATUS = "owner-declared-bench-working-hw-release-001"
 
 RELEASE_ONE_PRODUCT_REL = "products/sense360-ceiling-poe-ventiq-roomiq.yaml"
 RELEASE_ONE_CONFIG_STRING = "Ceiling-POE-VentIQ-RoomIQ"
@@ -116,6 +136,17 @@ def _catalog_entry_for(rel_path: str) -> Dict[str, Any]:
         f"no catalog entry for product_yaml={rel_path!r} in "
         f"config/product-catalog.json (PRODUCT-RELAY-001 requires a "
         f"non-WebFlash row)"
+    )
+
+
+def _builds_row_for(config_string: str) -> Dict[str, Any]:
+    catalog = _load_json(WEBFLASH_BUILDS)
+    for row in catalog.get("builds", []) or []:
+        if row.get("config_string") == config_string:
+            return row
+    raise AssertionError(
+        f"no config/webflash-builds.json row for {config_string!r} — "
+        f"HW-RELEASE-001 declares this config release-eligible"
     )
 
 
@@ -281,12 +312,22 @@ class RelayProductGpio3Tests(unittest.TestCase):
             )
 
 
-class RelayProductWebFlashExposureGuardsTests(unittest.TestCase):
-    """The FanRelay product is NOT WebFlash-exposed.
+class RelayProductWebFlashReleaseSurfaceTests(unittest.TestCase):
+    """HW-RELEASE-001: FanRelay IS release-eligible — EXPERIMENTAL only.
 
-    PRODUCT-RELAY-001 explicitly does not add a WebFlash wrapper, a
-    catalog ``webflash_build_matrix: true`` flip, an ``artifact_name``,
-    a ``config/webflash-builds.json`` entry, or a release artifact.
+    Rewritten from the former ``RelayProductWebFlashExposureGuardsTests``
+    (which pinned the pre-HW-RELEASE-001 "no WebFlash exposure" posture).
+    HW-RELEASE-001 (docs/hw-release-001.md, 2026-07-09) retired the
+    bench-proof documentation requirement as a release gate; the owner
+    declares hardware readiness directly. The inverted invariants: the
+    catalog entry is status preview with webflash_build_matrix true, an
+    artifact_name, and an existing thin webflash wrapper; the builds row
+    exists — on the EXPERIMENTAL channel exactly (mains-adjacent contact
+    switching per the COMPLIANCE-001 lane posture). The preserved
+    invariants: FanRelay is NEVER stable, RELEASE-RELAY-001 remains the
+    STABLE blocker, the commercial posture stays non-customer, promotion
+    is firmware-build proof only, and FanRelay stays out of
+    release_one_required_configs.
     """
 
     @classmethod
@@ -294,70 +335,152 @@ class RelayProductWebFlashExposureGuardsTests(unittest.TestCase):
         cls.entry = _catalog_entry_for(RELAY_PRODUCT_REL)
         cls.builds_doc = _load_json(WEBFLASH_BUILDS)
         cls.compat = _load_json(WEBFLASH_COMPATIBILITY)
+        cls.row = _builds_row_for(RELAY_CONFIG_STRING)
 
-    def test_catalog_entry_webflash_build_matrix_is_false(self) -> None:
+    def test_catalog_entry_webflash_build_matrix_is_true(self) -> None:
         self.assertEqual(
             self.entry.get("webflash_build_matrix"),
-            False,
+            True,
             "FanRelay product catalog entry must set "
-            "webflash_build_matrix: false — PRODUCT-RELAY-001 does not "
-            "advance WEBFLASH-RELAY-001 or RELEASE-RELAY-001.",
+            "webflash_build_matrix: true — HW-RELEASE-001 promoted the "
+            "config into the declaration-driven release matrix.",
         )
 
-    def test_catalog_entry_has_no_artifact_name(self) -> None:
-        self.assertNotIn(
-            "artifact_name",
-            self.entry,
-            "FanRelay product catalog entry must NOT declare "
-            "artifact_name — no release artifact is built by "
-            "PRODUCT-RELAY-001.",
-        )
-
-    def test_catalog_entry_has_no_webflash_wrapper(self) -> None:
-        self.assertNotIn(
-            "webflash_wrapper",
-            self.entry,
-            "FanRelay product catalog entry must NOT declare "
-            "webflash_wrapper — PRODUCT-RELAY-001 does not add a "
-            "WebFlash wrapper under products/webflash/.",
-        )
-
-    def test_no_fan_relay_webflash_wrapper_file(self) -> None:
-        if not WEBFLASH_WRAPPER_DIR.is_dir():
-            return
-        offenders = []
-        for path in WEBFLASH_WRAPPER_DIR.glob("*.yaml"):
-            name = path.name.lower()
-            if "fanrelay" in name or "fan-relay" in name or "fan_relay" in name:
-                offenders.append(path.relative_to(REPO_ROOT).as_posix())
+    def test_catalog_entry_status_is_preview(self) -> None:
         self.assertEqual(
-            offenders,
-            [],
-            f"PRODUCT-RELAY-001 must NOT add any FanRelay WebFlash "
-            f"wrapper under products/webflash/ — that work belongs to "
-            f"WEBFLASH-RELAY-001 (not landed). Offending paths: "
-            f"{offenders!r}",
+            self.entry.get("status"),
+            "preview",
+            "FanRelay product catalog entry must be status: preview (a "
+            "release-eligible status) per owner decision HW-RELEASE-001.",
         )
 
-    def test_relay_config_string_not_in_webflash_builds(self) -> None:
-        for entry in self.builds_doc.get("builds", []) or []:
-            self.assertNotEqual(
-                entry.get("config_string"),
-                RELAY_CONFIG_STRING,
-                f"config/webflash-builds.json must not contain "
-                f"{RELAY_CONFIG_STRING!r} — PRODUCT-RELAY-001 does not "
-                f"add a build-matrix entry. RELEASE-RELAY-001 owns the "
-                f"FanRelay build entry.",
+    def test_catalog_entry_channel_is_experimental_exactly(self) -> None:
+        self.assertEqual(
+            self.entry.get("channel"),
+            "experimental",
+            "FanRelay catalog channel must be exactly 'experimental' — "
+            "mains-adjacent contact switching takes the COMPLIANCE-001 "
+            "lane posture; fan configs are NEVER on the stable channel.",
+        )
+
+    def test_catalog_entry_artifact_name_matches_contract(self) -> None:
+        version = self.entry.get("version")
+        self.assertEqual(version, "1.0.0")
+        self.assertEqual(
+            self.entry.get("artifact_name"),
+            f"Sense360-{RELAY_CONFIG_STRING}-v{version}-experimental.bin",
+            "FanRelay artifact_name must follow the "
+            "Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin contract "
+            "on the experimental channel.",
+        )
+
+    def test_catalog_entry_hardware_status_is_owner_declared(self) -> None:
+        self.assertEqual(
+            self.entry.get("hardware_status"),
+            OWNER_DECLARED_HW_STATUS,
+            "FanRelay hardware_status must record the HW-RELEASE-001 "
+            "owner declaration (owner-declared, not measured/bench-proven).",
+        )
+
+    def test_catalog_entry_declares_existing_webflash_wrapper(self) -> None:
+        self.assertEqual(
+            self.entry.get("webflash_wrapper"),
+            RELAY_WRAPPER_REL,
+            "FanRelay catalog entry must declare the products/webflash "
+            "wrapper HW-RELEASE-001 added.",
+        )
+        self.assertTrue(
+            (REPO_ROOT / RELAY_WRAPPER_REL).is_file(),
+            f"declared webflash_wrapper {RELAY_WRAPPER_REL!r} must exist",
+        )
+
+    def test_webflash_wrapper_is_thin_packages_only_reexport(self) -> None:
+        wrapper = REPO_ROOT / RELAY_WRAPPER_REL
+        data = _load_yaml(wrapper)
+        self.assertEqual(
+            set(data.keys()),
+            {"packages"},
+            "the FanRelay WebFlash wrapper must be a thin packages-only "
+            "re-export (no substitutions / esphome / component blocks).",
+        )
+        includes = list((data.get("packages") or {}).values())
+        self.assertEqual(
+            includes,
+            ["../sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml"],
+            "the wrapper must !include exactly the canonical "
+            "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml "
+            "(as ../sense360-*).",
+        )
+
+    def test_relay_builds_row_is_experimental_channel(self) -> None:
+        self.assertEqual(
+            self.row.get("channel"),
+            "experimental",
+            "the FanRelay config/webflash-builds.json row must be on the "
+            "experimental channel exactly — never stable (HW-RELEASE-001 "
+            "/ COMPLIANCE-001 lane posture).",
+        )
+        self.assertEqual(self.row.get("product_yaml"), RELAY_WRAPPER_REL)
+        self.assertEqual(
+            self.row.get("artifact_name"),
+            self.entry.get("artifact_name"),
+            "builds-row artifact_name must match the catalog entry",
+        )
+
+    def test_all_fanrelay_rows_experimental_never_stable(self) -> None:
+        rows = [
+            row
+            for row in self.builds_doc.get("builds", []) or []
+            if "FanRelay" in row.get("config_string", "")
+        ]
+        self.assertTrue(rows, "expected FanRelay rows post HW-RELEASE-001")
+        for row in rows:
+            with self.subTest(config_string=row.get("config_string")):
+                self.assertEqual(
+                    row.get("channel"),
+                    "experimental",
+                    "every FanRelay builds row must be on the "
+                    "experimental channel exactly — fan configs are "
+                    "NEVER stable.",
+                )
+
+    def test_relay_builds_row_stable_blocker_cites_release_relay_001(
+        self,
+    ) -> None:
+        self.assertIn(
+            "RELEASE-RELAY-001",
+            self.row.get("stable_blocker", ""),
+            "RELEASE-RELAY-001 remains the STABLE blocker for FanRelay — "
+            "HW-RELEASE-001 promoted the experimental lane only, not "
+            "stable.",
+        )
+
+    def test_relay_builds_row_commercial_posture_stays_non_customer(
+        self,
+    ) -> None:
+        posture = self.row.get("commercial_posture") or {}
+        for key in ("buyable", "recommended", "customer_default", "stable"):
+            self.assertIs(
+                posture.get(key),
+                False,
+                f"FanRelay builds-row commercial_posture.{key} must stay "
+                f"false — HW-RELEASE-001 changes no customer visibility.",
             )
 
-    def test_fan_relay_token_not_in_webflash_builds_json(self) -> None:
-        text = WEBFLASH_BUILDS.read_text()
-        self.assertNotIn(
-            "FanRelay",
-            text,
-            "config/webflash-builds.json must not contain the FanRelay "
-            "token at all — PRODUCT-RELAY-001 does not advance "
-            "WEBFLASH-RELAY-001 or RELEASE-RELAY-001.",
+    def test_relay_builds_row_claims_firmware_build_proof_only(self) -> None:
+        notes = self.row.get("notes", "").lower()
+        self.assertIn(
+            "firmware-build proof only",
+            notes,
+            "the FanRelay builds row must state promotion is "
+            "firmware-build proof only (no false proof claims under "
+            "HW-RELEASE-001).",
+        )
+        self.assertIn(
+            "no hardware / bench / compliance",
+            notes,
+            "the FanRelay builds row must disclaim hardware / bench / "
+            "compliance proof.",
         )
 
     def test_relay_config_string_not_in_release_one_required_configs(
@@ -398,16 +521,17 @@ class RelayProductWebFlashExposureGuardsTests(unittest.TestCase):
                 f"by PRODUCT-RELAY-001. Offending line: {line!r}",
             )
 
-    def test_catalog_entry_status_is_not_release_eligible(self) -> None:
-        # Production / preview entries are WebFlash-eligible (flipped on
-        # in tests/test_product_catalog.py WEBFLASH_ELIGIBLE_STATUSES);
-        # the FanRelay entry must stay outside that set so the product
-        # remains WebFlash-blocked.
-        self.assertNotIn(
+    def test_catalog_entry_status_is_never_production(self) -> None:
+        # HW-RELEASE-001 authorises preview-status / experimental-channel
+        # release eligibility only. FanRelay must never reach production
+        # status (the stable customer surface) while RELEASE-RELAY-001
+        # (mains-safety / installation / competent-person evidence) is
+        # open.
+        self.assertNotEqual(
             self.entry.get("status"),
-            {"production", "preview"},
-            f"FanRelay product catalog entry must not be production or "
-            f"preview — those statuses authorise WebFlash exposure. "
+            "production",
+            f"FanRelay product catalog entry must never be production — "
+            f"RELEASE-RELAY-001 remains the stable blocker. "
             f"Got status={self.entry.get('status')!r}.",
         )
 
@@ -624,10 +748,11 @@ class RelayProductCompileOnlyTargetTests(unittest.TestCase):
     carries the advanced / manual-warning-only posture. FW-COMPILE-RELAY-001
     adds a single compile-only validation target pointing at that same
     YAML so YAML / package / ESPHome compile drift surfaces in CI. The
-    compile-only target does **not** change the WebFlash exposure or
-    release surface: no WebFlash wrapper, no
-    ``config/webflash-builds.json`` row, no ``webflash_build_matrix``
-    flip, no ``artifact_name``, no release artifact, no proof row.
+    compile-only target itself carries **no** release-surface fields
+    (no ``webflash_build_matrix`` / ``artifact_name`` /
+    ``webflash_wrapper`` / ``expected_channel``): the release surface
+    HW-RELEASE-001 added lives in the catalog + build matrix and is
+    addressed via the products/webflash wrapper, never this lane.
     """
 
     COMPILE_ONLY_TARGETS_PATH = (
@@ -763,18 +888,17 @@ class RelayProductCompileOnlyTargetTests(unittest.TestCase):
             "WebFlash channel",
         )
 
-    def test_relay_compile_only_config_string_not_in_webflash_builds(
+    def test_relay_builds_row_addresses_wrapper_not_compile_only(
         self,
     ) -> None:
-        builds = _load_json(WEBFLASH_BUILDS)
-        for entry in builds.get("builds", []) or []:
-            self.assertNotEqual(
-                entry.get("config_string"),
-                RELAY_CONFIG_STRING,
-                f"config/webflash-builds.json must not contain "
-                f"{RELAY_CONFIG_STRING!r} — FW-COMPILE-RELAY-001 does "
-                "not add a build-matrix entry",
-            )
+        # Rewritten for HW-RELEASE-001: the FanRelay build-matrix row now
+        # exists, but it must address the products/webflash wrapper (the
+        # release-gate namespace), never this compile-only lane, and it
+        # stays on the experimental channel only.
+        row = _builds_row_for(RELAY_CONFIG_STRING)
+        self.assertEqual(row.get("product_yaml"), RELAY_WRAPPER_REL)
+        self.assertNotIn("compile-only", row.get("product_yaml", ""))
+        self.assertEqual(row.get("channel"), "experimental")
 
     def test_relay_compile_only_config_string_not_in_required_configs(
         self,
@@ -879,18 +1003,18 @@ class RelayProductCustomerUsageExampleTests(unittest.TestCase):
 
 
 class RelayManualFirmwareCandidateTests(unittest.TestCase):
-    """MANUAL-FIRMWARE-CANDIDATE-001: FanRelay is a manual / no-WebFlash
-    firmware candidate — present, structurally validated, full-compile
-    validated — but no more than that.
+    """MANUAL-FIRMWARE-CANDIDATE-001 evidence + HW-RELEASE-001 promotion.
 
-    Pins: the FanRelay compile-only target (which registers the top-level
-    product YAML directly) now records ``compile_validation_status:
-    validated-full-compile`` from the committed
-    FW-FULL-COMPILE-TOPLEVEL-FANS-001 / PR #616 run; the catalog notes record
-    the candidate status and disclaim release / WebFlash / hardware-stable /
-    compliance / kit-default readiness; ``webflash_build_matrix`` stays
-    false; no ``artifact_name`` / ``webflash_wrapper`` / WebFlash wrapper
-    file / build entry is added.
+    The full-compile evidence trail stands: the FanRelay compile-only
+    target (which registers the top-level product YAML directly) records
+    ``compile_validation_status: validated-full-compile`` from the
+    committed FW-FULL-COMPILE-TOPLEVEL-FANS-001 / PR #616 run, and the
+    catalog notes keep the candidate record and its no-false-proof
+    disclaimers. The former "no more than a manual candidate" pins
+    (status hardware-pending, no wrapper, no artifact, no build row)
+    were inverted by owner decision HW-RELEASE-001: the entry is now a
+    release-eligible experimental-channel config, still firmware-build
+    proof only and never stable.
     """
 
     COMPILE_ONLY_TARGETS_PATH = (
@@ -947,36 +1071,49 @@ class RelayManualFirmwareCandidateTests(unittest.TestCase):
                 marker, notes, f"FanRelay notes must disclaim {marker!r}"
             )
 
-    def test_catalog_status_stays_hardware_pending(self) -> None:
-        self.assertEqual(self.entry.get("status"), "hardware-pending")
+    def test_catalog_status_is_preview_per_hw_release_001(self) -> None:
+        # Inverted from "stays hardware-pending" by HW-RELEASE-001.
+        self.assertEqual(self.entry.get("status"), "preview")
 
-    def test_catalog_webflash_build_matrix_stays_false(self) -> None:
-        self.assertEqual(self.entry.get("webflash_build_matrix"), False)
+    def test_catalog_webflash_build_matrix_is_true(self) -> None:
+        # Inverted from "stays false" by HW-RELEASE-001.
+        self.assertEqual(self.entry.get("webflash_build_matrix"), True)
 
-    def test_catalog_has_no_artifact_name(self) -> None:
-        self.assertNotIn("artifact_name", self.entry)
-
-    def test_catalog_has_no_webflash_wrapper(self) -> None:
-        self.assertNotIn("webflash_wrapper", self.entry)
-
-    def test_no_webflash_wrapper_file(self) -> None:
-        offenders = (
-            [
-                p.name
-                for p in WEBFLASH_WRAPPER_DIR.glob("*.yaml")
-                if "fanrelay" in p.name.lower()
-            ]
-            if WEBFLASH_WRAPPER_DIR.is_dir()
-            else []
+    def test_catalog_declares_contract_artifact_name(self) -> None:
+        # Inverted from "no artifact_name" by HW-RELEASE-001.
+        self.assertEqual(
+            self.entry.get("artifact_name"),
+            f"Sense360-{RELAY_CONFIG_STRING}-v{self.entry.get('version')}"
+            f"-{self.entry.get('channel')}.bin",
         )
-        self.assertEqual(offenders, [])
 
-    def test_config_string_not_in_webflash_builds(self) -> None:
-        builds = _load_json(WEBFLASH_BUILDS)
-        configs = {
-            b.get("config_string") for b in builds.get("builds", []) or []
-        }
-        self.assertNotIn(RELAY_CONFIG_STRING, configs)
+    def test_catalog_declares_webflash_wrapper(self) -> None:
+        # Inverted from "no webflash_wrapper" by HW-RELEASE-001.
+        self.assertEqual(
+            self.entry.get("webflash_wrapper"), RELAY_WRAPPER_REL
+        )
+
+    def test_webflash_wrapper_file_exists_and_is_thin(self) -> None:
+        # Inverted from "no wrapper file" by HW-RELEASE-001: the wrapper
+        # exists and is a thin packages-only re-export of the canonical
+        # product YAML.
+        wrapper = REPO_ROOT / RELAY_WRAPPER_REL
+        self.assertTrue(wrapper.is_file())
+        data = _load_yaml(wrapper)
+        self.assertEqual(set(data.keys()), {"packages"})
+        self.assertIn(
+            "../sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+            list((data.get("packages") or {}).values()),
+        )
+
+    def test_config_string_in_webflash_builds_experimental_never_stable(
+        self,
+    ) -> None:
+        # Inverted from "not in webflash-builds" by HW-RELEASE-001; the
+        # preserved half is channel teeth: experimental only, never stable.
+        row = _builds_row_for(RELAY_CONFIG_STRING)
+        self.assertEqual(row.get("channel"), "experimental")
+        self.assertNotEqual(row.get("channel"), "stable")
 
     def test_config_string_not_in_release_one_required(self) -> None:
         compat = _load_json(WEBFLASH_COMPATIBILITY)

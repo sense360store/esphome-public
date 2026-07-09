@@ -14,11 +14,13 @@ The invariants:
     release-eligible ``config_string`` values in
     ``config/webflash-builds.json`` — no free-text default that
     silently scopes to one product.
-  * The ``config_string`` picker lists no FanRelay / FanPWM / FanDAC
-    token (those are manual-candidate-only).
+  * Every FanRelay / FanPWM / FanDAC option a picker lists maps to a
+    non-stable build row (HW-RELEASE-001: FanPWM / FanDAC on preview,
+    FanRelay on experimental; fan configs are NEVER stable).
   * The release-note planner (``scripts/plan_room_release_notes.py``)
-    scopes correctly by ``config_string`` and refuses any fan-family
-    token.
+    scopes correctly by ``config_string``, accepts the release-eligible
+    fan targets on their lanes, and refuses any fan-family config that
+    is not release-eligible.
 
 ``firmware-build-release.yml`` no longer carries a ``workflow_dispatch``
 lane (it fires only on the published ``release`` event), so its former
@@ -64,9 +66,11 @@ PENDING_BUMP_CREATE_PICKER_ADDITIONS = frozenset()
 # the release-eligible set because they were never built or served (no upstream
 # binary, not in the served set). They must NOT reappear in the single source
 # (config/webflash-builds.json) or in any release picker until a real build row
-# is re-added deliberately. The catalog entry itself is preserved (status
-# hardware-pending) so the config can be built and re-listed later.
-DELISTED_RELEASE_CONFIGS = frozenset({"Ceiling-POE-RoomIQ-LED"})
+# is re-added deliberately. HW-RELEASE-001 (docs/hw-release-001.md, owner
+# decision of record) deliberately RE-LISTED Ceiling-POE-RoomIQ-LED with a
+# real preview build row, emptying this set; it stays as the single place to
+# document any future de-list.
+DELISTED_RELEASE_CONFIGS = frozenset()
 
 
 def _load_module(name: str, path: Path):
@@ -98,6 +102,15 @@ def _release_eligible_config_strings() -> list[str]:
         for e in doc.get("builds", [])
         if isinstance(e, dict) and isinstance(e.get("config_string"), str)
     ]
+
+
+def _release_channels_by_config() -> dict[str, str]:
+    doc = json.loads(BUILDS_JSON.read_text(encoding="utf-8"))
+    return {
+        e["config_string"]: str(e.get("channel", ""))
+        for e in doc.get("builds", [])
+        if isinstance(e, dict) and isinstance(e.get("config_string"), str)
+    }
 
 
 def _picker(workflow_path: Path) -> dict:
@@ -139,14 +152,29 @@ class ReleaseNotesDraftPickerTests(unittest.TestCase):
             "the workflow picker and the release matrix)",
         )
 
-    def test_config_string_options_exclude_fan_tokens(self) -> None:
+    def test_config_string_fan_options_are_never_stable(self) -> None:
+        # HW-RELEASE-001: fan targets are pickable, but every fan option must
+        # map to a non-stable build row (FanRelay: experimental; FanPWM /
+        # FanDAC: preview). A fan option whose build row is stable — or that
+        # has no build row — fails here.
         options = list((self.inputs.get("config_string") or {}).get("options") or [])
-        for token in FAN_TOKENS:
-            self.assertFalse(
-                any(token.lower() in str(opt).lower() for opt in options),
-                f"release-notes-draft.yml config_string options must not "
-                f"include {token} (manual-candidate-only)",
+        channels = _release_channels_by_config()
+        for opt in options:
+            opt = str(opt)
+            if not any(token.lower() in opt.lower() for token in FAN_TOKENS):
+                continue
+            self.assertIn(opt, channels)
+            self.assertNotEqual(
+                channels[opt],
+                "stable",
+                f"release-notes-draft.yml offers fan target {opt!r} on the "
+                "stable channel; fan configs are NEVER stable "
+                "(HW-RELEASE-001)",
             )
+            if "fanrelay" in opt.lower():
+                self.assertEqual(channels[opt], "experimental")
+            else:
+                self.assertEqual(channels[opt], "preview")
 
     def test_config_string_does_not_silently_default_to_one_product(self) -> None:
         # The picker has no `default:` — operator must select. This prevents
@@ -240,21 +268,33 @@ class ReleasePickerLockStepTests(unittest.TestCase):
                 "truth)",
             )
 
-    def test_no_picker_lists_a_fan_family_token(self) -> None:
+    def test_fan_picker_options_are_never_stable(self) -> None:
+        # HW-RELEASE-001: fan targets are pickable, but only on their lanes —
+        # FanPWM / FanDAC on preview, FanRelay on experimental. A picker
+        # option carrying a fan token whose build row is stable (or missing)
+        # fails here; fan configs are NEVER stable.
+        channels = _release_channels_by_config()
         for name, picker in (
             ("bump-version.yml", self.bump),
             ("create-release.yml", self.create),
             ("release-notes-draft.yml", self.draft),
         ):
-            for token in FAN_TOKENS:
-                self.assertFalse(
-                    any(
-                        token.lower() in opt.lower()
-                        for opt in self._options(picker)
-                    ),
-                    f"{name} config_string must not list {token} "
-                    "(manual-candidate-only, never release-eligible)",
+            for opt in self._options(picker):
+                if not any(
+                    token.lower() in opt.lower() for token in FAN_TOKENS
+                ):
+                    continue
+                self.assertIn(opt, channels, f"{name}: {opt!r} has no build row")
+                self.assertNotEqual(
+                    channels[opt],
+                    "stable",
+                    f"{name} offers fan target {opt!r} on the stable "
+                    "channel; fan configs are NEVER stable (HW-RELEASE-001)",
                 )
+                if "fanrelay" in opt.lower():
+                    self.assertEqual(channels[opt], "experimental")
+                else:
+                    self.assertEqual(channels[opt], "preview")
 
     def test_draft_notes_covers_every_release_eligible_build(self) -> None:
         # Draft-notes is the fully-wired picker: it must offer every
@@ -387,13 +427,23 @@ class PlannerSelectionTests(unittest.TestCase):
         for cfg in _release_eligible_config_strings():
             self.assertIn(cfg, msg)
 
-    def test_planner_rejects_fan_family_token(self) -> None:
+    def test_planner_accepts_release_eligible_fan_targets(self) -> None:
+        # HW-RELEASE-001: the three VentIQ fan room bundles are now
+        # release-eligible on their lanes, so the planner must scope to them.
         for token in FAN_TOKENS:
-            with self.assertRaises(self.plan.PlanError):
-                self.plan.build_plan(
-                    commit="deadbeef",
-                    config_string=f"Ceiling-POE-VentIQ-{token}-RoomIQ",
-                )
+            target = f"Ceiling-POE-VentIQ-{token}-RoomIQ"
+            builds = self.plan.build_plan(
+                commit="deadbeef", config_string=target
+            )["builds"]
+            self.assertEqual({b["config_string"] for b in builds}, {target})
+
+    def test_planner_rejects_non_eligible_fan_config(self) -> None:
+        # A fan config with no build row stays rejected.
+        with self.assertRaises(self.plan.PlanError):
+            self.plan.build_plan(
+                commit="deadbeef",
+                config_string="Ceiling-USB-FanPWM",
+            )
 
 
 class GeneratorProductAwareLedTests(unittest.TestCase):

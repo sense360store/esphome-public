@@ -24,10 +24,12 @@ that the config can never quietly turn into a release lane:
   * every candidate's ``product_yaml`` exists and is registered as a
     ``compile-only`` target carrying ``compile_validation_status:
     validated-full-compile`` with ``webflash_exposure_allowed_now=false``;
-  * every candidate is present in ``config/product-catalog.json`` with
-    ``webflash_build_matrix=false``, no ``artifact_name``, and no
-    ``webflash_wrapper`` (the lane cannot reuse a catalog release name, flip
-    the WebFlash build matrix, or add a wrapper).
+  * every candidate is present in ``config/product-catalog.json``; under
+    owner declaration HW-RELEASE-001 (``docs/hw-release-001.md``) the catalog
+    entry may carry ``webflash_build_matrix=true`` with an ``artifact_name``
+    and ``webflash_wrapper`` on a NON-STABLE channel (FanPWM / FanDAC:
+    preview; FanRelay: experimental) — the manual lane itself never reuses
+    the catalog release name, and a stable-channel fan entry is refused.
 
 Modes::
 
@@ -237,8 +239,13 @@ def validate(
                         "must have webflash_exposure_allowed_now=false"
                     )
 
-        # Product-catalog cross-reference: webflash_build_matrix stays false,
-        # no artifact_name, no webflash_wrapper.
+        # Product-catalog cross-reference. HW-RELEASE-001
+        # (docs/hw-release-001.md): the fan candidates are release-eligible
+        # catalog entries on their non-stable channels now, so the checks
+        # here are channel teeth (never stable, never production) plus the
+        # unchanged rule that the manual lane never reuses the catalog
+        # release artifact_name (enforced by the -manual-candidate- name
+        # shape asserted elsewhere in this validator).
         if product_yaml:
             entry = catalog_by_yaml.get(product_yaml)
             if entry is None:
@@ -247,21 +254,23 @@ def validate(
                     "found in config/product-catalog.json"
                 )
             else:
-                if entry.get("webflash_build_matrix") is not False:
+                if entry.get("status") == "production":
                     errors.append(
-                        f"candidate {cid!r}: catalog webflash_build_matrix must "
-                        "stay false; the manual lane never flips it"
+                        f"candidate {cid!r}: catalog status must never be "
+                        "'production' (fan configs are never stable)"
                     )
-                if entry.get("artifact_name"):
+                if entry.get("channel") == "stable":
                     errors.append(
-                        f"candidate {cid!r}: catalog entry must not carry an "
-                        "artifact_name; the manual lane never reuses a catalog "
-                        "release artifact_name"
+                        f"candidate {cid!r}: catalog channel must never be "
+                        "'stable' (HW-RELEASE-001 admits fans on preview / "
+                        "experimental only)"
                     )
-                if entry.get("webflash_wrapper"):
+                artifact = entry.get("artifact_name") or ""
+                if artifact.endswith("-stable.bin"):
                     errors.append(
-                        f"candidate {cid!r}: catalog entry must not carry a "
-                        "webflash_wrapper; no WebFlash wrapper is added"
+                        f"candidate {cid!r}: catalog artifact_name "
+                        f"{artifact!r} must never carry the -stable channel "
+                        "suffix"
                     )
 
     # The lane must cover exactly the three fan candidates.

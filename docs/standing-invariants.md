@@ -44,13 +44,20 @@ These hold across every PR.
   (`WF-IMPORT-TRIAC-001`) stays gated, unblocked only once the experimental
   release is cut. Any further FanTRIAC blocker / status change is **human-review
   only — do NOT auto-merge.**
-* **Fans are preview-only.** FanRelay / FanPWM / FanDAC (and the five
-  full-composition fan room-bundle configs) are `manual-preview`, published only
-  on the shared `v1.0.0-preview` prerelease, and are preview WebFlash-import
-  eligible (Advanced-install-only, acknowledgement-gated). **No fan row is added
-  to `config/webflash-builds.json`** — the fan-token guardrail stays intact.
-  Stable / full release stays blocked (`RELEASE-RELAY-001` / `RELEASE-PWM-001` /
-  `RELEASE-DAC-001`); catalog `status` stays `hardware-pending`.
+* **Fans are never stable.** Under owner declaration `HW-RELEASE-001`
+  ([`docs/hw-release-001.md`](hw-release-001.md), 2026-07-09) the former
+  fan-token guardrail ("no fan row in `config/webflash-builds.json`") was
+  revised by the owner: FanPWM / FanDAC configs (and their room-bundle
+  compositions) are promoted to the **preview** channel with
+  `config/webflash-builds.json` rows, and FanRelay configs are promoted to
+  the **experimental** channel only (mains-adjacent lane per
+  `COMPLIANCE-001`; same posture as FanTRIAC — never stable / recommended /
+  default / buyable / kit-exposed). The teeth that remain: **no fan config
+  ever ships on the stable channel** (`RELEASE-RELAY-001` /
+  `RELEASE-PWM-001` / `RELEASE-DAC-001` stay the stable blockers), no fan
+  config enters `release_one_required_configs`, and promotion is
+  release-eligibility metadata under the owner declaration — firmware-build
+  proof only, no hardware / bench / compliance claim.
 * **FanDAC I²C address requirement is pending bench.** GP8403 IC1 `0x58` /
   IC2 `0x5A`; `0x59` is forbidden when VentIQ/AirIQ is present (SGP41 collision).
   The DIP-switch mapping is compile-time only — `FANDAC-I2C-ADDR-001` stays
@@ -69,6 +76,9 @@ These hold across every PR.
   scaffold an intentionally empty block but must never fill in attestation
   content, dates, signatures, or evidence claims (source:
   [`docs/package-triac-001-operator-bench-proof.md` (archived)](archive-index.md)).
+  `HW-RELEASE-001` retired the bench-proof *documents* as a release gate
+  (hardware readiness is declared by the owner directly); it did NOT relax
+  this rule — the retired templates stay intentionally empty.
 - **The release matrix is declaration-driven (ESP-007).** Releases ship only
   what [`config/webflash-builds.json`](../config/webflash-builds.json) declares;
   never reintroduce a broad `products/` scan in
