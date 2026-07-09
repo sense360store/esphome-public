@@ -10,7 +10,7 @@ firmware source), installation via the flasher, updating, and recovery.
   <span class="s360-badge s360-badge--stable">stable</span>
   — presence, temperature, humidity, and light sensing for living spaces
   and bedrooms.
-- **[Air Quality Bundle (AirIQ + RoomIQ)](ceiling-poe-airiq-roomiq.md)**
+- **[Kitchen Bundle (AirIQ + RoomIQ)](ceiling-poe-airiq-roomiq.md)**
   <span class="s360-badge s360-badge--stable">stable</span>
   — adds the AirIQ air-quality module, for kitchens and living areas.
 - **[Bathroom Bundle (VentIQ + RoomIQ)](ceiling-poe-ventiq-roomiq.md)**
