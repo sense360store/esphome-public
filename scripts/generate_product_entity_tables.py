@@ -48,6 +48,17 @@ CATALOG_PATH = REPO_ROOT / "config" / "product-catalog.json"
 OUTPUT_DIR = REPO_ROOT / "site" / "generated"
 COMPARE_OUTPUT_NAME = "compare-matrix.md"
 
+# Deployed docs-site base URL (mirrors ``site_url`` in ``site/mkdocs.yml``).
+# The compare matrix is a pymdownx snippet inlined into
+# ``site/docs/products/compare.md``, but the committed snippet file lives in
+# ``site/generated/`` where the docs internal-link gate
+# (``docs-link-check.yml``) checks it standalone: a page-relative link like
+# ``ceiling-poe-roomiq.md`` resolves after snippet inclusion yet is a dead
+# path from ``site/generated/``. Absolute site URLs resolve identically on
+# the rendered page and are outside the internal-link gate's scope (it
+# checks internal links only, by design).
+SITE_BASE_URL = "https://sense360store.github.io/esphome-public/"
+
 # The four customer-served configs in PRODUCT-GUIDES-001 scope. Each MUST have
 # a row in config/webflash-builds.json (the release-eligibility source of
 # truth), which supplies the product YAML the derivation starts from.
@@ -463,7 +474,7 @@ def render_compare_matrix(collectors: Dict[str, "EntityCollector"]) -> str:
     headers = [""]
     for config_string in SERVED_CONFIG_STRINGS:
         label = MATRIX_COLUMN_LABELS.get(config_string, config_string)
-        headers.append(f"[{label}]({config_string.lower()}.md)")
+        headers.append(f"[{label}]({SITE_BASE_URL}products/{config_string.lower()}/)")
     lines.append("| " + " | ".join(headers) + " |")
     lines.append("|---" * len(headers) + "|")
 

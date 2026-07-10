@@ -191,7 +191,7 @@ and carried into the WebFlash re-import (W2).
 | R-D1 | Fan preview users | De-list the five previews; one line each in the advisory's affected section; de-list reason recorded in WebFlash sources data. **Adopted.** |
 | R-D2 | Version numbers | Patch increment per product: `1.0.7` / `1.0.8` / `1.0.9` stable, `1.0.1` LED preview (tags verified free). **Proposed here; ratified by merging this PR.** |
 | R-D3 | Old release assets | Left in place, release notes annotated (owner runbook step 9), never deleted. **Adopted.** |
-| R-D4 | Bench acceptance | Owner flashes one rebuilt stable; four-point checklist (boot + sensors, unique AP fallback password, unique API key present, OTA succeeds); attestation is owner-authored only and pasted on the W2 PR. **Adopted; never agent-authored.** |
+| R-D4 | Bench acceptance | Owner flashes one rebuilt stable; six-point checklist testing the **actual shipped (unprovisioned) posture**: (1) boot + sensors OK; (2) old shared default credential material **absent** (deny-list scanner `scripts/check_firmware_default_credentials.py` passes against the flashed binary); (3) native API **unencrypted** (Home Assistant adopts the device without an encryption key); (4) OTA **unauthenticated** (an `esphome upload` / OTA push needs no password); (5) web interface (`:80`) **unauthenticated**; (6) fallback/setup AP **open** (joins with no password). The checklist makes **no claim of unique credential generation** — the rebuilt binary is unprovisioned per [`docs/security/release-firmware-credential-posture.md`](security/release-firmware-credential-posture.md); per-device provisioning stays the unimplemented `SEC-ESP-PROVISIONING-001` follow-up. Attestation is owner-authored only and pasted on the W2 PR. **Adopted; checklist corrected by `RECON-UPSTREAM-CRED-CLAIMS-001` (the original four-point list wrongly assumed unique per-device credentials); never agent-authored.** |
 | R-D5 | Rescue build | Confirmed clean per the deny list on 2026-07-06 (scanner PASS, checksum matched served manifest); no rebuild. **Confirmed.** |
 
 ---
@@ -205,10 +205,98 @@ file (created at W1 from this plan of record).
 | Step | Repo | Description | Status | PR |
 |---|---|---|---|---|
 | R1 | esphome-public | Recon + plan of record (this file) | **EXECUTED** | [#797](https://github.com/sense360store/esphome-public/pull/797) |
-| Dispatch | esphome-public | Owner runs the dispatch runbook (4 rebuilds); credential gates must pass | OWNER ACTION — pending | — |
-| Bench | hardware | Owner bench-flashes one rebuilt stable; R-D4 checklist; owner-authored attestation | OWNER ACTION — pending | — |
-| W1 | WebFlash | De-list the five fan previews (R-D1) | pending | — |
-| W2 | WebFlash | Clean re-import of the four rebuilt releases; backstop assertions; merge gated on owner attestation (R-D4) | pending | — |
-| W3 | WebFlash | Scanner verification of every served binary; resolve advisory DRAFT markers; mark programme COMPLETE | pending | — |
+| Dispatch | esphome-public | Owner runs the dispatch runbook (4 rebuilds); credential gates must pass | **EXECUTED** (2026-07-06: `v1.0.7`, `v1.0.8`, `v1.0.9`, `v1.0.1-led-preview` published with assets + cosign-signed checksums). **Defect:** the release bodies were published with a false "provisioned uniquely per device" changelog claim — see *Release-body correction* below | — |
+| R2 | esphome-public | `RECON-UPSTREAM-CRED-CLAIMS-001`: correct false per-device-credential claims in maintained docs/metadata; R-D4 checklist corrected to the shipped unprovisioned posture; owner instructions for release-body correction (below) | **EXECUTED** | this PR |
+| Release-body fix | esphome-public | Owner replaces the `## Changelog` bullets of the four release bodies with the corrected wording below (release-note **text only** — no asset, tag, hash, or binary change) | OWNER ACTION — pending | — |
+| Bench | hardware | Owner bench-flashes one rebuilt stable; **corrected** R-D4 checklist (unprovisioned-posture tests); owner-authored attestation | OWNER ACTION — pending | — |
+| W1 | WebFlash | De-list the five fan previews (R-D1) | **EXECUTED** | WebFlash [#582](https://github.com/sense360store/WebFlash/pull/582) |
+| W2 | WebFlash | Clean re-import of the four rebuilt releases; backstop assertions. The R-D4 owner bench attestation this step was to be gated on remains **pending** (see Bench row) | **EXECUTED** | WebFlash [#584](https://github.com/sense360store/WebFlash/pull/584), [#585](https://github.com/sense360store/WebFlash/pull/585), [#586](https://github.com/sense360store/WebFlash/pull/586), [#587](https://github.com/sense360store/WebFlash/pull/587) |
+| W3 | WebFlash | Scanner verification of every served binary; resolve advisory DRAFT markers; mark the **automated / WebFlash execution** complete (see completion-scope note below) | **EXECUTED** | WebFlash [#592](https://github.com/sense360store/WebFlash/pull/592) (completion / correction) |
 | Publish | WebFlash | Owner publishes the GitHub Security Advisory + user notice | OWNER ACTION — pending | — |
 | Annotate | esphome-public | Owner annotates superseded release notes with the advisory link (R-D3) | OWNER ACTION — pending | — |
+
+**Programme-completion scope.** The "COMPLETE" marker set at W3 covers the
+**automated / WebFlash execution only** — the rebuilds, the fan-preview
+de-listing, the clean re-import, and the served-binary scanner
+verification. It does **not** cover, and must not be read as closing, the
+still-open items above: the owner **release-body corrections** (the four
+published release bodies still carry the false per-device-credential claim
+until the owner applies the wording below), the owner **bench attestation**
+(corrected R-D4 checklist; never agent-authored), the owner **advisory
+publication** and superseded-release **annotation** (R-D3), and the
+separate `SEC-ESP-PROVISIONING-001` follow-up, which remains planned and
+**not implemented** — served firmware still ships unprovisioned per
+[`docs/security/release-firmware-credential-posture.md`](security/release-firmware-credential-posture.md).
+
+---
+
+## Release-body correction (RECON-UPSTREAM-CRED-CLAIMS-001)
+
+The four rebuilt releases were published on 2026-07-06 with a changelog
+line stating "device credentials are now provisioned uniquely per device".
+**That claim is false.** The rebuilt binaries ship **unprovisioned** per
+[`docs/security/release-firmware-credential-posture.md`](security/release-firmware-credential-posture.md):
+no credentials are generated or embedded, the native API is unencrypted,
+OTA and the web interface are unauthenticated, and the fallback/setup AP is
+open. Per-device provisioning is the planned, **not implemented**
+`SEC-ESP-PROVISIONING-001` follow-up.
+
+No repository workflow supports editing an already-published release body
+(`create-release.yml` only creates new tags; `release-notes-draft.yml` only
+uploads a preview artifact), so this correction is a **manual owner
+action**. The W1–W3 WebFlash execution has since landed (see the execution
+log above) without copying the false claim; until the bodies are
+corrected, any **future** WebFlash import, refresh, or notes sync must
+likewise **not** copy changelog / description text from the published
+release bodies.
+
+### Owner instructions (per release)
+
+For each of the four releases, on
+`https://github.com/sense360store/esphome-public/releases`:
+
+1. Open the release (`v1.0.7`, `v1.0.8`, `v1.0.9`, `v1.0.1-led-preview`)
+   and click **Edit release** (pencil icon).
+2. In the body, replace **only the two bullets under `## Changelog`** with
+   the corrected bullets for that release from the table below. Leave the
+   HTML comment preamble and the `## Known Issues` / `## Features` /
+   `## Hardware Requirements` sections exactly as they are.
+3. Do **not** change the tag, the target commit, the pre-release flag, or
+   any attached asset. Click **Update release**.
+
+Equivalent CLI (uses a body file to avoid quoting mistakes; edit only the
+Changelog bullets in the downloaded body):
+`gh release view <tag> --repo sense360store/esphome-public --json body -q .body > body.md`,
+edit `body.md`, then
+`gh release edit <tag> --repo sense360store/esphome-public --notes-file body.md`.
+
+### Exact replacement `## Changelog` bullets
+
+**`v1.0.7`** (`Ceiling-POE-VentIQ-RoomIQ`):
+
+```markdown
+- Security rebuild: the shared published default credentials (API encryption key, OTA password, web username/password, fallback-AP password) baked into earlier releases were removed. This build ships unprovisioned: no credentials are generated or embedded — the native API is unencrypted, OTA and the web interface are unauthenticated, and the fallback/setup AP is open. Treat a device on this firmware as LAN-trusted only (see docs/security/release-firmware-credential-posture.md).
+- Users requiring an encrypted API, an OTA password, web authentication, or a protected fallback AP must currently self-build with unique secrets (copy secrets.example.yaml to a private secrets.yaml). Per-device provisioning (SEC-ESP-PROVISIONING-001) is planned but not implemented.
+- Supersedes v1.0.4. No functional changes. A security advisory will follow.
+```
+
+**`v1.0.8`** (`Ceiling-POE-RoomIQ`): same first two bullets as `v1.0.7`,
+with the final bullet:
+
+```markdown
+- Supersedes v1.0.5. No functional changes. A security advisory will follow.
+```
+
+**`v1.0.9`** (`Ceiling-POE-AirIQ-RoomIQ`): same first two bullets as
+`v1.0.7`, with the final bullet:
+
+```markdown
+- Supersedes v1.0.6. No functional changes. A security advisory will follow.
+```
+
+**`v1.0.1-led-preview`** (`Ceiling-POE-VentIQ-RoomIQ-LED`): same first two
+bullets as `v1.0.7`, with the final bullet:
+
+```markdown
+- Supersedes v1.0.0-led-preview. No functional changes. Preview channel: not hardware verified. A security advisory will follow.
+```
