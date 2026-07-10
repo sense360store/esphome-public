@@ -57,7 +57,7 @@ configs are **never stable**; kit / customer visibility is unchanged:
 
 | Config string | Channel | Version | Artifact | Notes |
 |---|---|---|---|---|
-| `Ceiling-POE-VentIQ-RoomIQ` | **stable** | 1.0.7 | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.7-stable.bin` | Release-One stable build (customer baseline / required config). Rebuilt as v1.0.7 (GitHub Release `v1.0.7`, 2026-07-06) by the per-device-credentials security rebuild (`REBUILD-CLEAN-CREDENTIALS-001`); supersedes v1.0.4, no functional changes. |
+| `Ceiling-POE-VentIQ-RoomIQ` | **stable** | 1.0.7 | `Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.7-stable.bin` | Release-One stable build (customer baseline / required config). Rebuilt as v1.0.7 (GitHub Release `v1.0.7`, 2026-07-06) by the shared-default-credential **removal** security rebuild (`REBUILD-CLEAN-CREDENTIALS-001`) — the rebuilt binary ships **unprovisioned** (no per-device credentials are generated; see [`docs/security/release-firmware-credential-posture.md`](security/release-firmware-credential-posture.md)); supersedes v1.0.4, no functional changes. |
 | `Ceiling-POE-VentIQ-RoomIQ-LED` | **preview** | 1.0.1 | `Sense360-Ceiling-POE-VentIQ-RoomIQ-LED-v1.0.1-preview.bin` | LED variant is **preview only** (see §7). Rebuilt as v1.0.1 (prerelease `v1.0.1-led-preview`, 2026-07-06) by the security rebuild; supersedes `v1.0.0-led-preview`. |
 | `Ceiling-POE-AirIQ-RoomIQ` | **stable** | 1.0.9 | `Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-stable.bin` | Kitchen firmware (`S360-KIT-KITCHEN-P`). Promoted to stable v1.0.6 (2026-06-09) under owner risk-acceptance waiver `HW-AIRIQ-WAIVER-2026-06` (AirIQ sensor stack not bench-verified; owner waiver, not hardware verification); rebuilt as v1.0.9 (GitHub Release `v1.0.9`, 2026-07-06) by the security rebuild. Bundle stays hidden / not buyable. |
 | `Ceiling-POE-RoomIQ` | **stable** | 1.0.8 | `Sense360-Ceiling-POE-RoomIQ-v1.0.8-stable.bin` | Bedroom firmware (`S360-KIT-BEDROOM-P`). Promoted to stable v1.0.5 (2026-06-08) under owner risk-acceptance waiver `HW-S360-410-WAIVER-2026-06` (S360-410 stays cataloged_unverified; owner waiver, not hardware verification); rebuilt as v1.0.8 (GitHub Release `v1.0.8`, 2026-07-06) by the security rebuild. Bundle stays hidden / not buyable. |
@@ -121,6 +121,33 @@ as GitHub Release **`v1.0.0`** and is imported/live in WebFlash — see
 [`docs/webflash-release-proof.md` (archived)](archive-index.md) (ESP-006/ESP-007).
 Any future publish must use a **new version** (e.g. `1.0.1` / `1.1.0`); `v1.0.0`
 is not re-published or re-tagged.
+
+### 1.1 Rebuilt-release credential posture — release-body correction pending (RECON-UPSTREAM-CRED-CLAIMS-001)
+
+The four `REBUILD-CLEAN-CREDENTIALS-001` releases (`v1.0.7` / `v1.0.8` /
+`v1.0.9` / `v1.0.1-led-preview`, all cut 2026-07-06) were published with a
+**factually wrong changelog line** — "device credentials are now provisioned
+uniquely per device". That claim is false. The accurate posture (source of
+truth: [`docs/security/release-firmware-credential-posture.md`](security/release-firmware-credential-posture.md)) is:
+
+- the shared published default credentials were **removed**;
+- the released prebuilt firmware ships **unprovisioned** — it does not
+  generate an API encryption key or any OTA / web / fallback-AP password;
+- the native API is **unencrypted**, OTA and the web interface are
+  **unauthenticated**, and the fallback AP is **open**;
+- users requiring authentication must currently **self-build** with unique
+  secrets (`secrets.example.yaml` → private `secrets.yaml`);
+- per-device provisioning is the planned, **not implemented**
+  `SEC-ESP-PROVISIONING-001` follow-up.
+
+No repository workflow supports editing an already-published release body,
+so correcting the four release bodies is an **owner action** (exact
+replacement wording and step-by-step instructions:
+[`docs/rebuild-clean-credentials-001.md` §Release-body correction](rebuild-clean-credentials-001.md#release-body-correction-recon-upstream-cred-claims-001)).
+Until the bodies are corrected, the downstream WebFlash re-import
+(`WF-H1-REIMPORT-CLEAN-001` W2) must **not** copy changelog / description
+text from those release bodies. No firmware binary, hash, tag, or release
+asset changes under this correction — it is release-note text only.
 
 ---
 
