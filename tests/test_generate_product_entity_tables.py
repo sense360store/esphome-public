@@ -143,8 +143,15 @@ class TestCompareMatrix(unittest.TestCase):
         for config_string in EXPECTED_SERVED_CONFIGS:
             with self.subTest(config=config_string):
                 self.assertIn(f"`{config_string}`", self.matrix)
-                # Column headers link to the guide page for the product.
-                self.assertIn(f"({config_string.lower()}.md)", self.matrix)
+                # Column headers link to the guide page for the product, as
+                # an absolute deployed-site URL: the committed snippet is
+                # link-checked standalone from site/generated/, where a
+                # page-relative link would be a dead path (see SITE_BASE_URL
+                # in the generator).
+                self.assertIn(
+                    f"({gpet.SITE_BASE_URL}products/{config_string.lower()}/)",
+                    self.matrix,
+                )
 
     def test_channel_row_matches_the_build_matrix(self):
         build_rows = gpet.load_build_rows()

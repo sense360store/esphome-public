@@ -10,7 +10,7 @@
      Modules/hardware: config/product-catalog.json · channel/version: config/webflash-builds.json ·
      capability cells: membership tests against the derived Home Assistant entity sets. -->
 
-|  | [RoomIQ](ceiling-poe-roomiq.md) | [AirIQ + RoomIQ](ceiling-poe-airiq-roomiq.md) | [VentIQ + RoomIQ](ceiling-poe-ventiq-roomiq.md) | [VentIQ + RoomIQ + LED](ceiling-poe-ventiq-roomiq-led.md) |
+|  | [RoomIQ](https://sense360store.github.io/esphome-public/products/ceiling-poe-roomiq/) | [AirIQ + RoomIQ](https://sense360store.github.io/esphome-public/products/ceiling-poe-airiq-roomiq/) | [VentIQ + RoomIQ](https://sense360store.github.io/esphome-public/products/ceiling-poe-ventiq-roomiq/) | [VentIQ + RoomIQ + LED](https://sense360store.github.io/esphome-public/products/ceiling-poe-ventiq-roomiq-led/) |
 |---|---|---|---|---|
 | **Config string** | `Ceiling-POE-RoomIQ` | `Ceiling-POE-AirIQ-RoomIQ` | `Ceiling-POE-VentIQ-RoomIQ` | `Ceiling-POE-VentIQ-RoomIQ-LED` |
 | **Channel / version** | <span class="s360-badge s360-badge--stable">stable</span> v1.0.8 | <span class="s360-badge s360-badge--stable">stable</span> v1.0.9 | <span class="s360-badge s360-badge--stable">stable</span> v1.0.7 | <span class="s360-badge s360-badge--preview">preview</span> v1.0.1 |

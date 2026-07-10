@@ -209,11 +209,24 @@ file (created at W1 from this plan of record).
 | R2 | esphome-public | `RECON-UPSTREAM-CRED-CLAIMS-001`: correct false per-device-credential claims in maintained docs/metadata; R-D4 checklist corrected to the shipped unprovisioned posture; owner instructions for release-body correction (below) | **EXECUTED** | this PR |
 | Release-body fix | esphome-public | Owner replaces the `## Changelog` bullets of the four release bodies with the corrected wording below (release-note **text only** — no asset, tag, hash, or binary change) | OWNER ACTION — pending | — |
 | Bench | hardware | Owner bench-flashes one rebuilt stable; **corrected** R-D4 checklist (unprovisioned-posture tests); owner-authored attestation | OWNER ACTION — pending | — |
-| W1 | WebFlash | De-list the five fan previews (R-D1) | pending | — |
-| W2 | WebFlash | Clean re-import of the four rebuilt releases; backstop assertions; merge gated on owner attestation (R-D4) | pending | — |
-| W3 | WebFlash | Scanner verification of every served binary; resolve advisory DRAFT markers; mark programme COMPLETE | pending | — |
+| W1 | WebFlash | De-list the five fan previews (R-D1) | **EXECUTED** | WebFlash [#582](https://github.com/sense360store/WebFlash/pull/582) |
+| W2 | WebFlash | Clean re-import of the four rebuilt releases; backstop assertions. The R-D4 owner bench attestation this step was to be gated on remains **pending** (see Bench row) | **EXECUTED** | WebFlash [#584](https://github.com/sense360store/WebFlash/pull/584), [#585](https://github.com/sense360store/WebFlash/pull/585), [#586](https://github.com/sense360store/WebFlash/pull/586), [#587](https://github.com/sense360store/WebFlash/pull/587) |
+| W3 | WebFlash | Scanner verification of every served binary; resolve advisory DRAFT markers; mark the **automated / WebFlash execution** complete (see completion-scope note below) | **EXECUTED** | WebFlash [#592](https://github.com/sense360store/WebFlash/pull/592) (completion / correction) |
 | Publish | WebFlash | Owner publishes the GitHub Security Advisory + user notice | OWNER ACTION — pending | — |
 | Annotate | esphome-public | Owner annotates superseded release notes with the advisory link (R-D3) | OWNER ACTION — pending | — |
+
+**Programme-completion scope.** The "COMPLETE" marker set at W3 covers the
+**automated / WebFlash execution only** — the rebuilds, the fan-preview
+de-listing, the clean re-import, and the served-binary scanner
+verification. It does **not** cover, and must not be read as closing, the
+still-open items above: the owner **release-body corrections** (the four
+published release bodies still carry the false per-device-credential claim
+until the owner applies the wording below), the owner **bench attestation**
+(corrected R-D4 checklist; never agent-authored), the owner **advisory
+publication** and superseded-release **annotation** (R-D3), and the
+separate `SEC-ESP-PROVISIONING-001` follow-up, which remains planned and
+**not implemented** — served firmware still ships unprovisioned per
+[`docs/security/release-firmware-credential-posture.md`](security/release-firmware-credential-posture.md).
 
 ---
 
@@ -231,8 +244,11 @@ open. Per-device provisioning is the planned, **not implemented**
 No repository workflow supports editing an already-published release body
 (`create-release.yml` only creates new tags; `release-notes-draft.yml` only
 uploads a preview artifact), so this correction is a **manual owner
-action**. Until it is done, the WebFlash re-import (W2) must **not** copy
-changelog / description text from the published release bodies.
+action**. The W1–W3 WebFlash execution has since landed (see the execution
+log above) without copying the false claim; until the bodies are
+corrected, any **future** WebFlash import, refresh, or notes sync must
+likewise **not** copy changelog / description text from the published
+release bodies.
 
 ### Owner instructions (per release)
 

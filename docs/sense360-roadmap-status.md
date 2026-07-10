@@ -144,10 +144,18 @@ No repository workflow supports editing an already-published release body,
 so correcting the four release bodies is an **owner action** (exact
 replacement wording and step-by-step instructions:
 [`docs/rebuild-clean-credentials-001.md` §Release-body correction](rebuild-clean-credentials-001.md#release-body-correction-recon-upstream-cred-claims-001)).
-Until the bodies are corrected, the downstream WebFlash re-import
-(`WF-H1-REIMPORT-CLEAN-001` W2) must **not** copy changelog / description
-text from those release bodies. No firmware binary, hash, tag, or release
-asset changes under this correction — it is release-note text only.
+The `WF-H1-REIMPORT-CLEAN-001` WebFlash execution (W1–W3) has landed
+(WebFlash PRs [#582](https://github.com/sense360store/WebFlash/pull/582),
+[#584](https://github.com/sense360store/WebFlash/pull/584)–[#587](https://github.com/sense360store/WebFlash/pull/587),
+[#592](https://github.com/sense360store/WebFlash/pull/592)) without copying
+the false claim; that completion covers the **automated / WebFlash
+execution only** — the owner release-body corrections, the R-D4 bench
+attestation, the advisory publication, the superseded-release annotation,
+and `SEC-ESP-PROVISIONING-001` all remain **open**. Until the bodies are
+corrected, any future WebFlash import or notes sync must **not** copy
+changelog / description text from those release bodies. No firmware
+binary, hash, tag, or release asset changes under this correction — it is
+release-note text only.
 
 ---
 
