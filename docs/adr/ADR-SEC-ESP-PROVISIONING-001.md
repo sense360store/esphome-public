@@ -9,20 +9,20 @@
 | **Programme authority** | [`sense360store/SOT`](https://github.com/sense360store/SOT) (`roadmap.yaml` → `sec-esp-provisioning-001`, status **planned**) |
 | **Implementation repo** | `sense360store/esphome-public` (this repo) |
 | **Distribution repo** | [`sense360store/WebFlash`](https://github.com/sense360store/WebFlash) |
-| **Drafted / revised** | 2026-07-11 (v1 broad proposal; v2 decision-ready revision same day) |
+| **Drafted / revised** | 2026-07-11 (v1 broad proposal; v2 decision-ready revision; v3 owner decision pack resolved — same day) |
+| **Owner policy decisions** | **Complete.** The ten-decision pack (§9) was answered by the owner on 2026-07-11; the answers are recorded in §9 as accepted decisions of record, together with four additional accepted architecture decisions (AD-01…AD-04). |
 | **Scope** | Architecture analysis and documentation **only**. No implementation, no runtime code, no credentials, no firmware-behaviour change, no WebFlash change, no SOT change, no release-metadata change. |
 
-**How to approve this document.** The decision path is §2 → §8 → §9 → §10:
-verify the starting posture, review the preferred direction and its
-robustness matrix, answer the ten decisions in the **Owner decision pack**
-(§9), and note the four narrow technical spikes (§10) that remain before
-acceptance. Everything else is supporting specification. Appendix A
-classifies every owner question from the v1 draft into: decidable now (A),
-blocked by technical evidence (B), implementation-time detail (C), or
-already constrained by existing policy (D). Feasibility statements in this
-revision are backed by primary-source inspection of ESPHome **2026.6.5**
-and aioesphomeapi **45.6.0** (evidence quotes and file references:
-Appendix D); the repo pins `esphome>=2026.4.5`
+**Path to acceptance.** The owner policy decisions are complete (§9). The
+**only remaining acceptance blockers are the four technical spikes in
+§10** (SPIKE-P1, SPIKE-P2, SPIKE-W1, SPIKE-P6). The document remains
+**Proposed** until those spikes complete consistently with the direction
+and the owner records acceptance in SOT (§18). Appendix A preserves the
+classification of every v1 owner question (decidable-now / evidence-
+blocked / implementation-detail / policy-constrained) that produced the
+pack. Feasibility statements are backed by primary-source inspection of
+ESPHome **2026.6.5** and aioesphomeapi **45.6.0** (evidence quotes and
+file references: Appendix D); the repo pins `esphome>=2026.4.5`
 ([`requirements-dev.txt`](../../requirements-dev.txt)), and pinned-build
 confirmation on real hardware is exactly what the remaining spikes cover.
 
@@ -243,12 +243,16 @@ Proposed shape:
    boot-button press and/or power-cycle pattern — SPIKE-P6 fixes which)
    opens a time-boxed `BOOTSTRAP_AVAILABLE` window; only inside it does
    the device accept the API set-key exchange / claim flow.
-3. **Unique credentials at claim.** API key set via the stock runtime
-   set-key mechanism (claimant-generated) or device-generated and
-   displayed by the local claim page — OD-05 decides the v1 stance; OTA
-   password and AP password are **device-generated** (hardware RNG) at
-   claim and applied via the verified runtime setters; web server is
-   disabled (OD-06).
+3. **Unique credentials at claim.** The API key is established through
+   the stock runtime set-key mechanism and presented to the owner as
+   copyable text and a QR code for manual Home Assistant entry (accepted
+   OD-05 / AD-02; whether the value is device-generated-and-displayed or
+   claim-flow-generated-and-set is an implementation choice settled with
+   SPIKE-P1). OTA and fallback-AP passwords are **device-generated**
+   (hardware RNG) at claim and applied via the verified runtime setters;
+   the web server is disabled on owned devices (accepted OD-06). A
+   persistent device UUID is generated at first successful claim and
+   remains stable until factory reset (accepted AD-01).
 4. **One-way transition** to `OWNED`, committed atomically in NVS;
    bootstrap access invalidated before the claim response completes.
 5. **Physical-only reversal.** Factory reset (stock `factory_reset`
@@ -265,12 +269,12 @@ depend on any single optimistic outcome:
 | Capability result | Architectural consequence | Status |
 |---|---|---|
 | Dynamic API key supported | Continue: runtime set-key is the claim mechanism | **Verified in source (E-1…E-3); bench confirmation = SPIKE-P1** |
-| Dynamic API key requires custom component | Would need owner sign-off on security-critical custom crypto path | Not required — stock mechanism exists; custom code is gating-only (OD-09) |
+| Dynamic API key requires custom component | Would need owner sign-off on security-critical custom crypto path | Not required — stock mechanism exists; custom code is gating-only (accepted OD-09 limits it to exactly that) |
 | Dynamic API key requires upstream ESPHome change | Programme phased behind upstream work | Not the case per source evidence |
-| Dynamic OTA password unsupported | Disable network OTA until owned; recovery via serial only | Not the case — runtime setter is deliberate upstream API (E-4/E-5); boot-ordering proof = SPIKE-P2; contingency stands if SPIKE-P2 fails (OD-08) |
-| Dynamic web auth unsupported | **Disable web after ownership** | Confirmed unusable for us (auth literals must be non-empty YAML values, E-8) → web disabled is the proposed default (OD-06) |
-| Dynamic fallback-AP password unsupported | Disable fallback AP after ownership or reset-only setup mode | Not the case — public runtime setter (E-8); boot-ordering proof folds into SPIKE-P2; contingency stands (OD-07) |
-| Stock HA claim unsupported | Explicit local setup flow + manual key entry for v1; HA-driven claim phases in when upstream lands | **Confirmed: stock HA = manual entry today** (E-9); OD-05 asks the owner to accept this for v1 |
+| Dynamic OTA password unsupported | Disable network OTA until owned; recovery via serial only | Not the case — runtime setter is deliberate upstream API (E-4/E-5); boot-ordering proof = SPIKE-P2; fail-closed contingency is now accepted policy (OD-08) |
+| Dynamic web auth unsupported | **Disable web after ownership** | Confirmed unusable for us (auth literals must be non-empty YAML values, E-8) → web disabled is accepted policy (OD-06) |
+| Dynamic fallback-AP password unsupported | Disable fallback AP after ownership or reset-only setup mode | Not the case — public runtime setter (E-8); boot-ordering proof folds into SPIKE-P2; disable-if-unprovable contingency is accepted policy (OD-07) |
+| Stock HA claim unsupported | Explicit local setup flow + manual key entry for v1; HA-driven claim phases in when upstream lands | **Confirmed: stock HA = manual entry today** (E-9); accepted for v1 (OD-05) |
 | No suitable physical-presence mechanism | Manufacturing bootstrap code, USB claim, or hardware revision required | Unlikely to bind: SW3/SW4 exist on S360-100 R4 and the stock power-cycle-count reset needs no button (E-6/E-10); enclosure accessibility = SPIKE-P6 |
 
 If SPIKE-P1 or SPIKE-P2 fails on real hardware, the fallbacks above keep
@@ -279,201 +283,97 @@ combined failure of the set-key mechanism *and* all presence mechanisms
 would force reconsideration toward Option A bootstrap codes — no current
 evidence points there.
 
-## 9. Owner decision pack
+## 9. Accepted owner decisions (decision pack — resolved)
 
-Ten decisions. Each is a policy choice the owner can make now; none
-requires implementation first. Where a decision consumes spike evidence,
-that evidence is already gathered at source level and the residual bench
-confirmation is noted. (Category B/C/D questions from the v1 draft are
-deliberately *not* in this pack — see Appendix A.)
+The ten-decision pack presented in v2 of this ADR was **answered by the
+owner on 2026-07-11**. The decisions below are **accepted owner decisions
+of record** for this programme. They are no longer open questions; the
+remaining acceptance blockers are the four technical spikes in §10. The
+ADR itself remains **Proposed** until those spikes complete and the owner
+records final acceptance in SOT (§18).
 
----
+**OD-01 — Offline / local-first requirement — ACCEPTED.**
+Provisioning and normal device operation must not require internet access
+or any Sense360 cloud service. WebFlash may require internet to download
+firmware, but once firmware is installed, claiming, provisioning,
+ownership, recovery, and normal operation must function entirely on the
+local network.
 
-**Decision OD-01 — Offline / local-first requirement**
+**OD-02 — Physical presence — ACCEPTED.**
+Physical presence is mandatory for: first claim; recovery; re-key; and
+returning a device to the unowned state. There shall be no network-only
+ownership path.
 
-**Recommendation:** Provisioning must work with no internet and no
-Sense360 cloud dependency; internet may enhance but never gate the flow.
+**OD-03 — No credential escrow — ACCEPTED.**
+Sense360 will never store, escrow, recover, or know permanent owner
+credentials. Recovery is only via the physical recovery/reset process.
 
-**Owner choice:** Accept / Reject / Amend
+**OD-04 — Home Assistant primary, not exclusive — ACCEPTED.**
+Home Assistant is the officially supported owner platform. The
+provisioning architecture must not depend exclusively on Home Assistant.
+Other ecosystems may implement their own integrations using documented
+public interfaces, but these are outside Sense360 support.
 
-**Why this matters:** Fixes the architecture class — every option that
-phones home is excluded permanently; support and documentation can promise
-local-first onboarding.
+**OD-05 — Manual API-key entry for v1 — ACCEPTED.**
+Manual API encryption-key entry into Home Assistant is accepted for v1.
+Automatic key exchange may be adopted later if supported upstream. No
+custom Home Assistant integration is planned for v1.
 
-**Blocked by spike:** No.
+**OD-06 — Web interface disabled on owned devices — ACCEPTED.**
+Disable the ESPHome web interface on owned devices. Self-build firmware
+may continue supporting authenticated web access using user-provided
+secrets.
 
----
+**OD-07 — Fallback AP protected after ownership — ACCEPTED.**
+After ownership, the fallback AP should be protected using a unique
+device-generated password. If SPIKE-P2 proves this cannot be enforced
+before the AP becomes available, disable the fallback AP entirely on
+owned devices.
 
-**Decision OD-02 — Physical presence required for claim and recovery**
+**OD-08 — Network OTA fail-closed — ACCEPTED.**
+Network OTA remains enabled only when protected by the unique
+runtime-generated OTA password. If any unauthenticated OTA window exists
+during boot, fail closed by disabling network OTA until ownership is
+established.
 
-**Recommendation:** A physical action on the unit is mandatory both to
-open the claim window and to perform recovery/reset. No network-only path
-may claim, re-key, or unown a device.
+**OD-09 — Sense360-maintained gating component — ACCEPTED.**
+A small Sense360-maintained external ESPHome component is accepted. Its
+responsibilities are limited to: ownership state; physical-presence
+gating; claim window; bootstrap invalidation; atomic ownership
+persistence. It must not implement custom cryptography, transport
+protocols, or encryption algorithms.
 
-**Owner choice:** Accept / Reject / Amend
+**OD-10 — Factory reset and recovery baseline — ACCEPTED.**
+Factory reset shall erase: WiFi credentials; ownership; API encryption
+keys; OTA credentials; fallback-AP credentials; room/user configuration;
+calibration and provisioning state — returning the device to
+`FACTORY_UNOWNED`. Recovery requires physical presence. Power-cycle reset
+remains the universal baseline.
 
-**Why this matters:** This is the mitigation for the claim race and for
-recovery abuse — the two attacks stock mechanisms do not stop. Rejecting
-it means accepting first-come-first-served claiming on the LAN.
+### Additional accepted architecture decisions
 
-**Blocked by spike:** No (the policy). Which physical mechanism ships is
-SPIKE-P6 (implementation detail, not policy).
+Recorded by the owner alongside the pack (2026-07-11):
 
----
+**AD-01 — Device identity.**
+Generate a persistent device UUID during the first successful claim. The
+UUID remains stable until factory reset.
 
-**Decision OD-03 — No escrow of permanent owner credentials**
+**AD-02 — API key presentation.**
+During claim, present the API encryption key both as copyable text and as
+a QR code, supporting desktop and mobile onboarding (consistent with
+OD-04/OD-05: manual entry into Home Assistant from either form).
 
-**Recommendation:** Sense360 never stores, receives, or can recover any
-permanent owner credential. Lost credentials are recovered only by the
-physical re-key/reset path. (If bootstrap codes are ever adopted, they are
-single-use and dead after claim; that separate question stays out of v1 —
-Appendix A Q1/Q3/Q17.)
+**AD-03 — Lost credentials.**
+If the owner loses Home Assistant configuration, the API key, the OTA
+password, or the fallback-AP password, the only supported recovery path
+is: **physical reset → `FACTORY_UNOWNED` → reprovision**. No hidden
+recovery mechanism or credential escrow shall exist.
 
-**Owner choice:** Accept / Reject / Amend
-
-**Why this matters:** Hard trust boundary; shapes support ("we cannot
-unlock your device — by design"), privacy posture, and breach blast
-radius. Aligns with the operating model's owner-secret discipline; owner
-ratification makes it programme policy of record.
-
-**Blocked by spike:** No.
-
----
-
-**Decision OD-04 — Home Assistant primary, but not sole, owner surface**
-
-**Recommendation:** HA is the primary owner experience; a generic local
-claim/recovery flow (phone-browser reachable, no HA required) must also
-exist. Claim and recovery must work from a mobile browser; only *flashing*
-is desktop-bound (Web Serial platform fact).
-
-**Owner choice:** Accept / Reject / Amend
-
-**Why this matters:** Determines whether non-HA users are supported and
-guarantees a recovery path when HA itself is what was lost. Mobile-capable
-claim keeps the ceiling-mounted install workflow realistic.
-
-**Blocked by spike:** No.
-
----
-
-**Decision OD-05 — Manual API-key entry is acceptable for v1**
-
-**Recommendation:** Accept manual key entry into HA for v1 (the key is
-presented once by the local claim flow, or generated by the claimant and
-set to the device). Adopt HA-driven automatic key handover when the
-documented upstream HA feature ships ("Support for configuring the
-encryption key on-the-fly will be implemented in a future release of Home
-Assistant" — official ESPHome docs, Appendix D E-9). Do not build a custom
-HA integration for v1.
-
-**Owner choice:** Accept / Reject / Amend
-
-**Why this matters:** Removes the only unbounded external dependency from
-v1 scope. Rejecting means either building/maintaining a custom HA
-integration or blocking the programme on upstream HA timing.
-
-**Blocked by spike:** No (stock-HA behaviour verified from official docs;
-nothing further to learn before deciding).
-
----
-
-**Decision OD-06 — Web server disabled on owned devices**
-
-**Recommendation:** Disable the web interface in provisioning-capable
-releases (at minimum in OWNED state; recommended entirely). Runtime web
-auth is not viable without baking shared literals (verified, Appendix D
-E-8), and an unauthenticated web UI on an owned device violates Goal 3.
-
-**Owner choice:** Accept / Reject / Amend
-
-**Why this matters:** Removes a whole credential class and its lifecycle;
-customers lose the local web page (HA remains the interface). The
-self-build path keeps web auth via `!secret` regardless.
-
-**Blocked by spike:** No.
-
----
-
-**Decision OD-07 — Fallback AP protected after ownership**
-
-**Recommendation:** After claim, the fallback AP is protected with a
-device-generated password delivered to the owner during claim (recovery
-value); contingency if boot-ordering proof fails (SPIKE-P2): disable the
-fallback AP on owned devices and make recovery reset-based only.
-
-**Owner choice:** Accept / Reject / Amend
-
-**Why this matters:** The open AP + captive portal is today's
-WiFi-credential-harvesting surface (audit H2 class). Protecting it
-preserves "fix my WiFi without a ladder"; disabling it is safer but makes
-network changes require physical reset.
-
-**Blocked by spike:** Partially — SPIKE-P2 confirms the AP password is
-applied before the AP can start; the *policy* (protect vs disable) is
-decidable now.
-
----
-
-**Decision OD-08 — Network OTA posture on owned devices**
-
-**Recommendation:** Keep network OTA enabled with the device-generated
-runtime password (upstream-supported mechanism, Appendix D E-4/E-5),
-subject to SPIKE-P2 proving the password is enforced before the OTA
-endpoint accepts connections. Contingency if that proof fails: network
-OTA is disabled until owned (serial-only recovery), which is accepted as
-a v1 posture rather than shipping an unauthenticated OTA window.
-
-**Owner choice:** Accept / Reject / Amend
-
-**Why this matters:** OTA is the persistent-compromise surface (audit H1
-exploitation path). This decision sets the fail-safe: no capability is
-worth an unauthenticated OTA window on an owned device.
-
-**Blocked by spike:** Partially — SPIKE-P2 (boot-ordering enforcement);
-the policy and its contingency are decidable now.
-
----
-
-**Decision OD-09 — Custom security-critical ESPHome component is acceptable**
-
-**Recommendation:** Accept that Sense360 maintains a small external
-component in this repo implementing the state machine and claim gating
-(window control, presence input, atomic NVS ownership record, bootstrap
-invalidation). It gates *when* stock mechanisms are reachable; it does
-**not** implement cryptography, key exchange, or transport (those remain
-stock ESPHome). Contract tests (§16) pin its behaviour.
-
-**Owner choice:** Accept / Reject / Amend
-
-**Why this matters:** This is a standing maintenance and review burden on
-every ESPHome version bump. Rejecting it means stock-only behaviour — and
-stock behaviour cannot close the claim race (first plaintext client wins).
-
-**Blocked by spike:** No.
-
----
-
-**Decision OD-10 — Recovery/reset UX baseline**
-
-**Recommendation:** Factory reset = stock `factory_reset` semantics (full
-NVS erase → FACTORY_UNOWNED), triggered by a deliberate physical action
-with an accidental-trigger guard; the power-cycle-count mechanism (stock,
-works on ceiling-mounted units without touching the board) is the
-universal baseline, with the SW3 button variant added if SPIKE-P6 finds it
-enclosure-accessible. Recovery (re-key without full reset) uses the same
-presence gate as claim. Full flash erase over USB is documented as
-equivalent to factory reset.
-
-**Owner choice:** Accept / Reject / Amend
-
-**Why this matters:** Fixes deterministic reset semantics (Goal 9), the
-ownership-transfer story (Goal 10), and what support may advise. The
-power-cycle baseline means no hardware change and no enclosure dependency.
-
-**Blocked by spike:** Partially — SPIKE-P6 settles the button variant and
-the exact guard values (implementation detail); the semantics are
-decidable now.
+**AD-04 — Factory reset scope.**
+Factory reset intentionally removes **all owner-specific state**. Nothing
+related to ownership, security, networking, or calibration survives.
+(Consistent with the verified stock semantics — full NVS-partition erase,
+Appendix D E-6/E-7.)
 
 ---
 
@@ -490,10 +390,12 @@ record (results and citations: Appendix D). The evaluation:
 | SPIKE-P2 runtime OTA authentication | **Supported today**: empty compiled `password:` exists expressly so `set_auth_password()` can be called at runtime; rotation is the documented use; enforcement occurs whenever the stored password is non-empty (E-4/E-5). OTA state survives OTA (NVS). | **Yes — narrowed to boot-ordering proof** (credential applied before any network endpoint accepts) — also covers the AP password path |
 | SPIKE-P3 web + fallback AP | **Resolved at source level**: runtime web auth not viable without non-empty YAML literals → web disabled (OD-06); AP password has a public runtime setter; captive portal / WiFi provisioning unaffected (E-8). | **No** (AP boot-ordering folds into SPIKE-P2) |
 | SPIKE-P4 persistence & reset | **Resolved at source level**: NVS survives OTA and normal serial app reflash; full erase wipes it; stock `factory_reset` erases the entire NVS partition deterministically; single-blob ownership record gives atomic commit; interrupted claim rolls back by never persisting partial state (E-6/E-7). NVS/flash encryption practical-but-irreversible → deferred decision (Appendix A Q15). | **Partially — WebFlash/ESP Web Tools erase semantics** remain to verify (which installer paths erase NVS) → SPIKE-W1 |
-| SPIKE-P5 HA claim & key handover | **Resolved from primary docs/source**: protocol + client library support exists (`noise_encryption_set_key`, aioesphomeapi 45.6.0); stock HA cannot yet drive it — manual key entry is the stock path today; Improv (serial/BLE) sets WiFi only; the BLE `esp32_improv` `authorizer` is upstream precedent for button-gated provisioning (E-9/E-10). No custom HA integration required if OD-05 accepted. | **No** (upstream HA feature is a watch item, not a blocker) |
+| SPIKE-P5 HA claim & key handover | **Resolved from primary docs/source**: protocol + client library support exists (`noise_encryption_set_key`, aioesphomeapi 45.6.0); stock HA cannot yet drive it — manual key entry is the stock path today; Improv (serial/BLE) sets WiFi only; the BLE `esp32_improv` `authorizer` is upstream precedent for button-gated provisioning (E-9/E-10). No custom HA integration required under accepted OD-05. | **No** (upstream HA feature is a watch item, not a blocker) |
 | SPIKE-P6 physical-presence mechanism | **Partially resolved**: S360-100 R4 carries SW3 (boot/IO0) and SW4 (reset/EN) tactile switches per [`docs/hardware/s360-100-r4-core.md`](../hardware/s360-100-r4-core.md); the stock power-cycle-count factory-reset mechanism requires no button access at all. No user-accessible button is *assumed* — enclosure accessibility is unverified. | **Yes — bench item**: confirm mechanism ergonomics/accessibility on assembled hardware |
 
-**Final reduced pre-acceptance spike list (4, down from 6):**
+**Final reduced pre-acceptance spike list (4, down from 6).** With the
+owner policy decisions accepted (§9), these four spikes are the **only
+remaining acceptance blockers** for this ADR:
 
 | ID | Question | Type |
 |---|---|---|
@@ -514,11 +416,12 @@ v1; the mechanisms are now the verified ones):
 
 | Credential | Origin | Storage | Invalidated by | Notes |
 |---|---|---|---|---|
-| **API key (Noise PSK)** | Set at claim via stock runtime set-key (claimant-generated) or device-generated + displayed by claim flow — OD-05 | Device NVS (stock `SavedNoisePsk` preference) + HA config entry | Factory reset; authenticated re-key (rotation) | Stock semantics: once set, plaintext disabled; only factory reset removes |
-| **OTA password** | Device-generated at claim (hardware RNG) | Device NVS + owner records | Factory reset; rotation via authenticated session | Applied at boot via runtime setter; enforcement-before-network = SPIKE-P2; contingency OD-08 |
-| **Web credential** | **None — web disabled** (OD-06) | — | — | Self-build path keeps `!secret` web auth |
-| **Fallback-AP password** | Device-generated at claim | Device NVS | Factory reset | Delivered to owner at claim as the recovery value; contingency OD-07 |
+| **API key (Noise PSK)** | Established at claim via stock runtime set-key; presented as copyable text + QR for manual HA entry (accepted OD-05 / AD-02) | Device NVS (stock `SavedNoisePsk` preference) + HA config entry | Factory reset; authenticated re-key (rotation) | Stock semantics: once set, plaintext disabled; only factory reset removes |
+| **OTA password** | Device-generated at claim (hardware RNG) | Device NVS + owner records | Factory reset; rotation via authenticated session | Applied at boot via runtime setter; enforcement-before-network = SPIKE-P2; accepted fail-closed rule (OD-08): any unauthenticated boot window → network OTA disabled until owned |
+| **Web credential** | **None — web disabled on owned devices** (accepted OD-06) | — | — | Self-build path keeps `!secret` web auth |
+| **Fallback-AP password** | Device-generated at claim | Device NVS | Factory reset | Delivered to owner at claim as the recovery value; accepted contingency (OD-07): disable AP on owned devices if SPIKE-P2 cannot prove pre-AP enforcement |
 | **Bootstrap material** | Physical action (baseline); optional code channels not in v1 | RAM window state only | Single use; window timeout; claim commit | Never persisted, never a permanent credential |
+| **Device UUID** (identity, not a secret) | Generated at first successful claim (accepted AD-01) | Device NVS (ownership record) | Factory reset | Stable across OTA / capable reflash until factory reset |
 
 Lifecycle rules: generation on-device from the hardware RNG (recipe pinned
 by CT-15); ≥128-bit effective entropy; nothing derived from MAC, serial,
@@ -526,10 +429,13 @@ or time. Rotation is owner-initiated from an authenticated session only.
 OTA updates and normal serial reflash preserve all of the above (NVS);
 full erase and factory reset destroy all of it. Ownership transfer = reset
 then re-claim (credentials are destroyed, never handed over). Support/RMA
-never receives or recovers credentials. Decommissioning = factory reset
-(wipes stored WiFi too). Loss scenarios: HA config lost → re-enter key or
-physical re-key; all owner credentials lost → physical recovery generates
-new ones — values are never *revealed*, only replaced.
+never receives or recovers credentials (accepted OD-03). Decommissioning =
+factory reset (wipes stored WiFi too). Loss scenarios (accepted AD-03): if
+the owner loses the HA configuration but retains the key → re-enter it;
+if the owner loses HA configuration, API key, OTA password, or fallback-AP
+password beyond re-entry → the only supported path is **physical reset →
+`FACTORY_UNOWNED` → reprovision**; a physical RECOVERY re-key replaces
+values — they are never *revealed*. No hidden recovery mechanism exists.
 
 ## 12. State machine
 
@@ -556,7 +462,9 @@ States: `FACTORY_UNOWNED` · `BOOTSTRAP_AVAILABLE` · `CLAIM_IN_PROGRESS` ·
 Per-state rules: in `FACTORY_UNOWNED` the device claims no security,
 exposes setup surfaces only (API set-key **not** reachable — that is the
 gating component), and constrains actuators where feasible (Appendix A
-Q18); in `OWNED` every surface is authenticated or disabled; a boot with a
+Q18); in `OWNED` every surface is authenticated or disabled, and the
+persisted ownership record carries the device UUID generated at first
+claim (accepted AD-01 — stable until factory reset); a boot with a
 corrupt credential record fails **closed** into a recovery-safe halt,
 never silently open (contract test). Exact timeout/hold values are
 implementation-time details (Appendix A, Category C).
@@ -572,10 +480,21 @@ implementation-time details (Appendix A, Category C).
 | Full flash erase | No | No → FACTORY_UNOWNED |
 | Factory reset (in-band physical action) | No | No → FACTORY_UNOWNED |
 
+**Factory-reset scope (accepted OD-10 / AD-04).** Factory reset erases:
+WiFi credentials; ownership (including the device UUID); API encryption
+keys; OTA credentials; fallback-AP credentials; room/user configuration;
+calibration and provisioning state — returning the device to
+`FACTORY_UNOWNED`. Nothing related to ownership, security, networking, or
+calibration survives. This matches the verified stock semantics (full
+NVS-partition erase, Appendix D E-6/E-7). Power-cycle reset remains the
+universal baseline mechanism; recovery requires physical presence.
+
 Ownership transfer: reset (departing owner, or new owner with physical
 access) then fresh claim. Recovery after HA loss: re-enter retained key,
 else physical re-key (RECOVERY state) — new credentials generated, old
-invalidated, nothing revealed. Return to unowned: physical paths only.
+invalidated, nothing revealed (accepted AD-03: total credential loss is
+recovered only by physical reset → `FACTORY_UNOWNED` → reprovision).
+Return to unowned: physical paths only.
 Accidental-reset guard: deliberate gesture + confirmation window
 (`FACTORY_RESET_PENDING`); a bare reboot or power blip never resets —
 note the stock power-cycle-count trigger requires N deliberate cycles
@@ -653,7 +572,8 @@ confirmations; **release gates**: G-P1…G-P4 with pinned tests.
 
 ## 17. Rollout
 
-1. Owner resolves the decision pack (§9); ADR accepted (SOT records it).
+1. Owner resolves the decision pack — **done 2026-07-11** (§9); ADR
+   acceptance itself follows the spikes (SOT records it).
 2. Spikes SPIKE-P1, SPIKE-P2, SPIKE-W1, SPIKE-P6 (§10); ADR amended if
    any result contradicts the direction (back to owner if so).
 3. Failing contract tests CT-01…15 land (red).
@@ -685,15 +605,28 @@ are later claimed switch to an encrypted API — the HA config entry must be
 updated (documented; desync covered by integration tests); replacement/RMA
 units ship unowned; preview users get the capability first.
 
-**This ADR moves from Proposed to Accepted only when:** every OD in §9 is
-resolved and recorded; SPIKE-P1/P2/W1/P6 are complete and consistent with
-the direction; the security review of the concrete design (threat model
-§6/Appendix C revisited) is complete; recovery (§13) and downgrade (§14)
-semantics are final and contract-covered; the test plan (§16) is agreed;
-WebFlash responsibilities (§15) are agreed; no false security claim exists
-anywhere in the proposal or metadata plan; and SOT records the acceptance
-— the SOT update *is* the acceptance. Implementation must not begin before
-that (operating-model rule).
+**Acceptance criteria.** The owner policy decisions are **complete**:
+OD-01…OD-10 and AD-01…AD-04 were accepted 2026-07-11 and are recorded in
+§9; with them, the recovery (§13) and downgrade (§14) semantics, the test
+plan (§16), and the WebFlash responsibilities (§15) stand as written in
+this document. **The only remaining acceptance blockers are the four
+technical spikes:**
+
+1. **SPIKE-P1** — bench confirmation of the empty-key API claim flow on
+   the pinned build/board;
+2. **SPIKE-P2** — boot-ordering enforcement proof for the runtime OTA and
+   fallback-AP credentials (with the accepted OD-07/OD-08 fail-closed
+   contingencies applying if it fails);
+3. **SPIKE-W1** — WebFlash / ESP Web Tools erase-semantics verification;
+4. **SPIKE-P6** — physical-presence mechanism ergonomics on assembled
+   hardware.
+
+When all four complete consistently with the direction (with the §6 /
+Appendix C threat model re-checked against the concrete results, and no
+false security claim anywhere in the proposal or metadata plan), the
+owner may accept — **SOT records the acceptance; the SOT update *is* the
+acceptance.** Until then this ADR remains **Proposed**, and implementation
+must not begin (operating-model rule).
 
 ---
 
@@ -703,10 +636,12 @@ that (operating-model rule).
 
 The v1 draft posed 19 owner questions (Q1–Q19). Classification: **A** =
 owner-decidable now (policy; no implementation evidence needed) — these
-feed the §9 pack; **B** = blocked by technical evidence (named spike);
-**C** = implementation-time detail (removed from ADR-acceptance blockers);
-**D** = already constrained by existing policy or platform fact (not put
-to the owner as an open choice).
+fed the §9 pack, **which the owner has since answered (all ten decisions
+accepted 2026-07-11; see §9)**; **B** = blocked by technical evidence
+(named spike); **C** = implementation-time detail (removed from
+ADR-acceptance blockers); **D** = already constrained by existing policy
+or platform fact (not put to the owner as an open choice). This appendix
+is preserved as the derivation record for the pack.
 
 | v1 Q | Question | Cat. | Disposition |
 |---|---|---|---|
@@ -732,8 +667,11 @@ to the owner as an open choice).
 
 Count: **A = 11** (Q1–Q5, Q9, Q11–Q13, Q18, Q19), **B = 2** (Q15, Q16),
 **C = 3** (Q8, Q14, Q17), **D = 3** (Q6, Q7, Q10). The 19 open questions
-reduce to **10 packaged decisions** (§9) plus 2 explicitly deferred
-evidence-blocked items and implementation-stage detail.
+reduced to **10 packaged decisions** (§9) plus 2 explicitly deferred
+evidence-blocked items and implementation-stage detail. The 10 packaged
+decisions are now **accepted** (§9); the deferred items (Q15 flash/NVS
+encryption; Q16 downgrade-refusal mechanism) remain deferred exactly as
+classified and are not acceptance blockers.
 
 ### Appendix B — Option scoring detail
 
@@ -859,7 +797,7 @@ is SPIKE-P1/P2.
 - **E-8 — Web auth vs AP password.** `components/web_server/__init__.py`:
   the `auth:` schema requires non-empty (`Length(min=1)`) YAML strings and
   only then compiles `USE_WEBSERVER_AUTH` — runtime population without
-  baked literals is not available, so OD-06 proposes disabling web.
+  baked literals is not available — hence accepted OD-06 (web disabled).
   `components/wifi/wifi_component.h`: `void set_ap(const WiFiAP &ap)` is
   public — the fallback-AP password is runtime-settable before the AP
   starts; captive portal and WiFi provisioning are unaffected.

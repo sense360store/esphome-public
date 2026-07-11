@@ -160,12 +160,13 @@ release-note text only.
 A proposed architecture for `SEC-ESP-PROVISIONING-001` (secure per-device
 credential provisioning) is drafted in
 [`docs/adr/ADR-SEC-ESP-PROVISIONING-001.md`](adr/ADR-SEC-ESP-PROVISIONING-001.md).
-The ADR status is **Proposed — not accepted** (owner acceptance required;
-the open owner decisions are the ADR §9 decision pack). Implementation has
-**not started**, and the technical feasibility spikes listed in the ADR
-§10 (SPIKE-P1 / SPIKE-P2 / SPIKE-W1 / SPIKE-P6) remain **pending**. The
-programme status remains **planned** as recorded by its authority, the
-SOT programme entry (`sense360store/SOT` `roadmap.yaml` →
+The ADR status is **Proposed — not accepted**. The owner decision pack is
+**resolved** (OD-01…OD-10 and AD-01…AD-04 accepted 2026-07-11, recorded in
+ADR §9); the remaining acceptance blockers are the four technical
+feasibility spikes in ADR §10 (SPIKE-P1 / SPIKE-P2 / SPIKE-W1 /
+SPIKE-P6), which remain **pending**. Implementation has **not started**.
+The programme status remains **planned** as recorded by its authority,
+the SOT programme entry (`sense360store/SOT` `roadmap.yaml` →
 `sec-esp-provisioning-001`); this doc references that status and does not
 redefine it.
 
