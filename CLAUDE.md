@@ -24,6 +24,24 @@ blocker document is
 standing gates live in
 [`docs/standing-invariants.md`](docs/standing-invariants.md).
 
+## Cross-repository operating model
+
+Before any cross-repository work, Claude Code must read
+[`sense360store/SOT/CLAUDE-OPERATING-MODEL.md`](https://github.com/sense360store/SOT/blob/main/CLAUDE-OPERATING-MODEL.md).
+
+- **SOT owns programme-level truth**: accepted cross-repository decisions,
+  programme IDs, cross-repository status, and owner actions.
+- **This repository owns** firmware architecture, implementation, ADRs,
+  tests, validation, hardware-facing behaviour, release mechanics, and
+  detailed technical execution records.
+- This repository must reference SOT programme IDs but must not
+  independently redefine programme-level status.
+- When implementation evidence materially changes programme state, the SOT
+  update must be made in a separate PR.
+- Repository-local `CLAUDE.md` and
+  [`docs/standing-invariants.md`](docs/standing-invariants.md) remain
+  authoritative for repository-internal engineering rules.
+
 ## Sense360 hardware reference (canonical SKUs)
 
 The naming source of truth is
