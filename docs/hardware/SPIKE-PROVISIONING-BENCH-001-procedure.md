@@ -14,10 +14,10 @@ empty.**
 
 | Field | Value |
 |---|---|
-| Covers | **SPIKE-P1** (full bench scope) · **SPIKE-P2** (full bench scope) · **SPIKE-W1** (remaining **bench** portion only — the desk/source portion is treated as complete per ADR §10) |
+| Covers | **SPIKE-P1** (full bench scope) · **SPIKE-P2** (full bench scope) · **SPIKE-W1** (**bench evidence only** — the empirical on-hardware half: which real installer paths erase NVS on a real unit. ADR §10 types SPIKE-W1 as a desk item in the WebFlash repo; that desk/documentation half — installer / ESP Web Tools source and manifest semantics, and the "can/should the installer offer reflash preserving ownership" recommendation — is **not** covered here, has **not** been performed anywhere yet, and is owned by the WebFlash repo (ADR §15). SPIKE-W1 closes only when both halves exist.) |
 | Does NOT cover | **SPIKE-P6** (enclosure ergonomics on assembled hardware, PoE and 240 V PSU power-cycle reliability) — remains a separate pending spike. Check V-10 below touches bare-board presence mechanisms only and closes nothing of SPIKE-P6. |
 | Device under test | Sense360 Core, SKU **S360-100**, rev R4 ([`s360-100-r4-core.md`](s360-100-r4-core.md)); PoE via S360-410 |
-| Bench firmware | Locally compiled **bench spike image** (defined below) at a recorded repo SHA and pinned ESPHome version ([`requirements-dev.txt`](../../requirements-dev.txt)) — plus, for the SPIKE-W1 checks, the current published release artifacts flashed through production WebFlash |
+| Bench firmware | Locally compiled **bench spike image** (defined below) at a recorded repo SHA, compiled with **exactly the ESPHome version the ADR desk evidence inspected — 2026.6.5 at ADR v3** (note [`requirements-dev.txt`](../../requirements-dev.txt) pins only a floor, `esphome>=2026.4.5`; the bench must record the exact version used) — plus, for the SPIKE-W1 checks, the current published release artifacts flashed through production WebFlash |
 | Attestation rule | The record's attestation section is **owner-authored only**. Agents never author, edit, complete, or summarise attestation content or any capture-table measurement ([`docs/standing-invariants.md`](../standing-invariants.md)). |
 | Execution rule | Bench checks are **owner-run or owner-observed** (ADR §10, SPIKE-P1 row). |
 
@@ -64,13 +64,40 @@ Claim-to-check map:
 | Fail-closed OTA behaviour | V-09 | Boot-window measurement for the OD-08 decision: does any unauthenticated OTA acceptance window exist at boot, and how large. |
 | Physical-presence requirement | V-10 | Bare-board presence mechanisms (SW3, stock power-cycle-count factory reset) work and are deliberate-action-guarded. SPIKE-P6 stays open. |
 
+**Not executable at this bench — no implementation exists.** The following
+behaviours belong to the future gating component (or to accepted policy the
+component will enforce). They **cannot be executed today** because the
+implementation does not exist, they are deliberately absent from every
+check above, and they are proven only at implementation stage (after ADR
+acceptance, per the operating-model rule):
+
+| Future behaviour (not testable today) | Where it will be proven |
+|---|---|
+| Claim window / physical-presence claim *gating* (§8.2, §12 `BOOTSTRAP_AVAILABLE`) — stock ESPHome accepts set-key from any plaintext client at any time; V-01 exercises exactly that stock behaviour | Implementation stage; CT-06 / CT-11 |
+| Bootstrap invalidation + atomic one-way `OWNED` commit (§8.4, §12) | Implementation stage; CT-06 / CT-07 |
+| Device-UUID *generation logic* (AD-01) — V-03 proves the persistence substrate only | Implementation stage; contract tests §16 |
+| On-device RNG credential *generation* recipe (§11) — the bench applies host-generated throwaway values via harness lambdas | Implementation stage; CT-15 |
+| Fail-closed OTA *policy enforcement* (OD-08) — V-09 only measures the boot window that informs the owner's apply/waive decision | Implementation stage; CT-03 / CT-13 |
+| Fallback-AP-disable / web-disable *enforcement* on owned devices (OD-06 / OD-07) — policy outcomes with no runtime to test today | Implementation stage; CT-04 / CT-05 |
+| `RECOVERY` re-key flow (§12 / §13) | Implementation stage; CT-14 |
+| OTA downgrade refusal while `OWNED` (§14.2) | Implementation stage; CT-13 |
+
+None of the ten checks below depends on any of these: every V-check runs
+on **stock ESPHome mechanisms** (current released or bench-compiled
+behaviour) plus the throwaway bench harness only. Where a record cell or
+result could be misread as component proof, the check text names the stock
+mechanism it actually exercises.
+
 ## 2. Result routing
 
 - **All checks PASS consistently with the ADR direction** → the owner may
-  record SPIKE-P1, SPIKE-P2, and the SPIKE-W1 bench remainder as complete
-  in the validation record; ADR acceptance then follows the ADR §18 path
-  (owner accepts; **SOT records the acceptance**; SPIKE-P6 must still
-  complete first). This repo never independently updates programme status.
+  record SPIKE-P1 and SPIKE-P2 as complete and the SPIKE-W1 **bench
+  evidence** as captured in the validation record. SPIKE-W1 itself closes
+  only together with its WebFlash-repo desk/documentation half (ADR
+  §10/§15) — this bench cannot close it alone. ADR acceptance then follows
+  the ADR §18 path (owner accepts; **SOT records the acceptance**;
+  SPIKE-P6 and the SPIKE-W1 desk half must still complete first). This
+  repo never independently updates programme status.
 - **V-05 fails (AP password not enforceable before the AP accepts)** →
   accepted contingency **OD-07** applies: fallback AP is disabled on owned
   devices. Not an ADR-direction failure; record the evidence.
@@ -95,9 +122,18 @@ Claim-to-check map:
   OD-01 posture) and a second client device with WiFi (phone or laptop)
   for AP-join checks.
 - Bench host: Chromium-based desktop browser (Web Serial, for the
-  WebFlash checks), Python 3, `esptool`, ESPHome CLI at the pinned
-  version, `aioesphomeapi` 45.6.0 (the version the ADR's desk evidence
-  inspected), Home Assistant test instance.
+  WebFlash checks), Python 3, `esptool`, ESPHome CLI at the exact bench
+  version (2026.6.5 — see the Bench firmware row), `aioesphomeapi` 45.6.0
+  (the version the ADR's desk evidence inspected).
+- Home Assistant test instance — **optional; no check V-01…V-10 requires
+  Home Assistant.** Keep one available only if the owner additionally
+  wants to exercise manual API-key entry into HA at the bench (OD-05 /
+  Appendix D E-9). Version assumption if used: any current HA release
+  with the ESPHome integration's manual noise-key entry (present in all
+  modern releases); the future HA "on-the-fly key configuration" feature
+  (E-9) is **not** assumed and **not** required by any check. HA adoption
+  proper is an implementation-stage integration-tier test (ADR §16), not
+  a spike input.
 
 **Bench spike image (local, throwaway — never committed, never released)**
 
@@ -138,8 +174,16 @@ production credentials), and both units' serials.
 
 The WebFlash-path checks (V-06 W1 legs, V-07 W1 legs) run against the
 current published release artifacts through the production WebFlash site,
-because SPIKE-W1's question is about the real installer paths. Note the
-released binaries carry the unprovisioned posture
+because SPIKE-W1's question is about the real installer paths. Use the
+Release-One stable artifact (config string `Ceiling-POE-VentIQ-RoomIQ`;
+v1.0.7 at the time of writing — record the actual version flashed). On a
+bare Core + PoE PSU the sensor modules are absent, so sensor-init errors
+in the serial log are expected and irrelevant to the NVS/WiFi
+observation. Record the **production WebFlash deployment version /
+commit** (and the ESP Web Tools version if the page reveals it) —
+SPIKE-W1 findings attach to that specific deployment and must be
+re-checked if the installer changes. Note the released binaries carry the
+unprovisioned posture
 ([`docs/security/release-firmware-credential-posture.md`](../security/release-firmware-credential-posture.md)):
 no API encryption block, no OTA auth. On those legs the NVS marker is the
 **saved WiFi credentials** (entered via captive portal), which the ADR's
@@ -428,13 +472,18 @@ state with nothing surviving.
 
 **Steps**
 
-*Leg 1 — esptool full erase, bench spike image (unit A, full marker set
-present).*
+*Leg 1 — esptool full erase, bench spike image (unit A **or** unit B,
+full marker set present — running this leg on unit B immediately after
+its V-02 step 5 / V-04 step 6 sequence, with the NVS marker also set on
+unit B, avoids one full re-establishment on unit A; see §5).*
 
 1. `esptool erase_flash`, then flash the bench spike image.
 2. Boot. Verify: plaintext API accepted (PSK gone); OTA accepts the
    empty-password state per the image's pre-harness baseline (record
-   exactly what is enforced); NVS marker at default; no saved WiFi.
+   exactly what is enforced); NVS marker at default. (The bench image
+   reconnects via its **compiled YAML WiFi credentials** by design —
+   NVS-saved-WiFi destruction is observable only on the released-artifact
+   leg 2.)
 
 *Leg 2 — WebFlash erase-install path, released artifact (unit B, saved
 WiFi credentials present).*
@@ -452,12 +501,15 @@ re-running V-01/V-03/V-04 quickly).*
 6. Boot. Verify all markers gone as in step 2.
 
 **Expected result.** All three erase paths return the device to the
-unowned-equivalent state: no PSK, no OTA password, no marker, no saved
-WiFi.
+unowned-equivalent state: no PSK, no OTA password, no marker, and (leg 2)
+no NVS-saved WiFi.
 
-**Pass criteria.** After each leg: plaintext API accepted, NVS marker at
-default, no automatic WiFi rejoin. Leg 2 additionally: the erase-path
-behaviour recorded unambiguously.
+**Pass criteria.** After each leg: plaintext API accepted and NVS marker
+at default. Leg 2 additionally: no automatic WiFi rejoin (the released
+artifact has no compiled credentials), and the erase-path behaviour
+recorded unambiguously. On legs 1 and 3 the bench image rejoins via its
+compiled YAML credentials **by design** — that rejoin is not a FAIL and
+proves nothing about NVS-saved WiFi.
 
 **Fail criteria.** Any marker surviving any erase path (an ownership
 remnant after "erase" contradicts OD-10/AD-04 semantics — route to
@@ -602,7 +654,87 @@ note in the record that SPIKE-P6 remains open.
 
 ---
 
-## 5. Completion
+## 5. Recommended execution order (shortest non-repeating sequence)
+
+Check numbering (V-01…V-10) is definitional, not an execution order. The
+runsheet below is the shortest ordering that establishes each hardware
+state **once** and reuses every boot for every check able to observe it.
+Check definitions, pass/fail criteria, and evidence requirements are
+unchanged; where one physical step serves several checks, the evidence is
+filed under **each** check it serves (cite the shared log/cycle
+explicitly in the record).
+
+**Legitimate merges used by the runsheet:**
+
+- **M1** — the V-03 marker is set immediately after V-01 (V-02 step 6,
+  the factory reset, is deferred to phase 4), so no mid-sequence
+  re-claim is needed.
+- **M2** — every unit-A power cycle doubles as a V-03 marker read and,
+  while a key is set, a V-02 plaintext-refusal probe.
+- **M3** — the V-04 step-4 correct-password upload and the V-08 update
+  are **one OTA** (the trivially modified image); the post-update
+  repeat (V-04 step 5: no-password, wrong-password, then one further
+  correct-password upload) doubles as V-08's post-update probes.
+- **M4** — the V-09 probe block's ≥ 20 power cycles provide V-03's
+  remaining marker-read boots and V-02's persistence-durability probes.
+- **M5** — V-10 steps 3–4 (single cycle / spaced blips → no reset) are
+  evidenced from the single power cycles already accumulated in
+  V-02/V-03/V-05/V-09 with markers intact — cite the specific cycles in
+  the record; perform the two spaced blips deliberately only if no
+  ≥ 1-minute-spaced pair exists in the logs.
+- **M6** — V-07 leg 3 and V-10 step 5 are the same reset event (already
+  stated in those checks).
+- **M7** — V-07 leg 1 (esptool erase) runs on **unit B** immediately
+  after its claim/OTA steps (marker also set on B), so unit A needs only
+  **one** re-establishment in the whole session.
+
+**Runsheet** (durations are planning estimates only — they claim
+nothing about outcomes):
+
+| # | Phase / step | Checks served | Est. |
+|---|---|---|---|
+| 0 | Desk setup: compose + compile `bench-spike.yaml` (recorded repo SHA, ESPHome 2026.6.5); prepare probe script, static leases, camera; verify released artifact reachable via production WebFlash; record identity table incl. WebFlash deployment version | §3 prerequisites | 2–3 h |
+| 1 | Unit A: `esptool erase_flash`; flash bench image; plaintext connect; set key; noise reconnect | V-01 | 0.5 h |
+| 2 | Unit A: set NVS marker (M1) | V-03 | 5 min |
+| 3 | Unit A: two power cycles — plaintext refused, wrong key refused, correct key works; marker read each boot (M2) | V-02 steps 1–4 · V-03 boots 1–2 | 0.5 h |
+| 4 | Unit A: OTA attempts — no password, wrong password (harness-applied bench password confirmed in serial first) | V-04 steps 1–3 | 0.5 h |
+| 5 | Unit A: **one OTA** of the modified image with the correct password; post-update probe loops (plaintext / unauth-OTA); marker verified; repeat no/wrong/correct attempts once; one further power cycle (M3) | V-04 steps 4–5 · V-08 | 1 h |
+| 6 | Unit A: V-09 probe block — ≥ 20 power cycles, tight-loop unauthenticated OTA probe, marker read each boot (M4); classify every attempt; compute worst-case window | V-09 · V-03 boots 3+ · V-02 durability | 1.5–2 h |
+| 7 | Unit A: no-erase serial app reflash; verify PSK + OTA password + marker survive | V-06 leg 1 | 0.5 h |
+| 8 | Unit A: bench SSID down; ≥ 5 power cycles of AP checks (open join, wrong password, correct password, captive portal); restore SSID; station reconnect | V-05 | 1–1.5 h |
+| 9 | Unit A: SW3 press/release events; boot-time SW3 hold behaviour recorded | V-10 steps 1–2 | 0.5 h |
+| 10 | Verify V-10 steps 3–4 from accumulated cycle logs (M5); run the two spaced blips only if not already evidenced | V-10 steps 3–4 | 0–0.5 h |
+| 11 | Unit A: SW3-bound factory reset; verify plaintext accepted again — completes SPIKE-P1 evidence | V-02 step 6 | 0.5 h |
+| 12 | Unit A: re-establish once — repeat V-01 mechanics + re-set marker (OTA password re-applies via harness at boot); the session's **only** re-establishment | precondition for step 13 | 15 min |
+| 13 | Unit A: deliberate power-cycle-count pattern → factory reset fires; verify clean state (M6) | V-07 leg 3 · V-10 step 5 | 0.5 h |
+| 14 | Unit B: erase + flash bench image; claim with **fresh** key; lockout checks; confirm key ≠ unit A's | V-02 step 5 (incl. V-01 mechanics) | 0.75 h |
+| 15 | Unit B: OTA attempts with a **different** bench password; confirm ≠ unit A's; set NVS marker on B | V-04 step 6 | 0.5 h |
+| 16 | Unit B: `esptool erase_flash` (full marker set present, M7); reflash bench image; verify clean | V-07 leg 1 | 0.5 h |
+| 17 | Unit B: deliberate power-cycle-count pattern → reset fires | V-10 step 6 | 15 min |
+| 18 | Unit B: production WebFlash **full/erase install** of the released artifact — record every dialog, erase-option state and verbatim wording | SPIKE-W1 installer observation (feeds V-06/V-07 leg-2 evidence) | 0.5 h |
+| 19 | Unit B: captive-portal provision bench WiFi (NVS-saved credentials now exist) | precondition for steps 20–21 | 15 min |
+| 20 | Unit B: WebFlash **non-erase / update** reflash — WiFi survives? (or record verbatim that no non-erase path exists) | V-06 leg 2 | 0.5 h |
+| 21 | Unit B: WebFlash **erase** install — no rejoin; setup surface up | V-07 leg 2 | 0.5 h |
+| 22 | Evidence packaging; operator fills record Sections A–F; Section G owner-only | §6 | 1 h |
+
+Steps 14–17 may interleave with unit A's long cycle blocks (steps 6, 8)
+if a second serial port is available. Total single-operator estimate:
+**≈ 10–14 bench hours — plan two bench days.**
+
+**Check → spike → ADR dependency map** (each check's header lists its
+full ADR-section set; this is the acceptance-level summary):
+
+| Check | Feeds | Decides / evidences | ADR §18 blocker |
+|---|---|---|---|
+| V-01, V-02 | **SPIKE-P1** | §8.2–8.3 claim mechanism; §11 API-key row; §12 OWNED semantics; E-1…E-3 bench confirmation | Item 1 |
+| V-04, V-09 | **SPIKE-P2** (OTA leg) | §11 OTA row; E-4/E-5 bench confirmation; V-09 measurement → owner applies or waives **OD-08** | Item 2 |
+| V-05 | **SPIKE-P2** (AP leg) | §11 fallback-AP row; E-8 bench confirmation; outcome → owner applies or waives **OD-07** | Item 2 |
+| V-06, V-07 | **SPIKE-W1** (bench half) | §13 reflash/erase matrix on real hardware; §15 WebFlash erase-semantics documentation input | Item 3 — closes only with the WebFlash-repo desk half |
+| V-03 | supporting | AD-01 / §12 ownership-record persistence **substrate** (attached to the SPIKE-P1 disposition) | — |
+| V-08 | supporting | §13 row 2 / CT-09 precursor (attached to the SPIKE-P2 and SPIKE-W1 dispositions) | — |
+| V-10 | partial input | OD-02 / OD-10 bare-board baseline; **partial SPIKE-P6 input only — SPIKE-P6 stays open** | Item 4 — NOT closed here |
+
+## 6. Completion
 
 A check is complete only when its result line in the validation record is
 recorded PASS or FAIL **by the operator** with the listed evidence

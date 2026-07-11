@@ -43,8 +43,9 @@ and the procedure):**
 | aioesphomeapi version | |
 | esptool version | |
 | Browser + version (WebFlash checks) | |
+| Production WebFlash deployment version / commit (+ ESP Web Tools version if shown) | |
 | Released artifact + version flashed for W1 legs | |
-| Home Assistant version (test instance) | |
+| Home Assistant version (optional — no check requires HA; fill only if used) | |
 | `bench-spike.yaml` attached as evidence (path/hash) | |
 | Evidence archive location | |
 
@@ -141,7 +142,7 @@ UNDETERMINED for leg 2 per procedure)._
 
 | Capture | Observed |
 |---|---|
-| Leg 1 (esptool erase): plaintext accepted, marker default, no saved WiFi | |
+| Leg 1 (esptool erase; unit used): plaintext accepted, marker default (bench-image YAML-WiFi rejoin is by design, not a FAIL) | |
 | Leg 2: WebFlash erase path used + exact dialog wording / erase-option state | |
 | Leg 2: WiFi credentials destroyed (no rejoin; setup surface up) | |
 | Leg 3: power-cycle factory reset fired | |
@@ -203,10 +204,10 @@ file.
 
 | Spike | Fed by | Bench outcome | Notes |
 |---|---|---|---|
-| SPIKE-P1 | V-01, V-02 | | |
-| SPIKE-P2 | V-04, V-05, V-09 | | |
-| SPIKE-W1 (bench remainder) | V-06, V-07 | | |
-| SPIKE-P6 | — not covered — | **remains OPEN** | Pre-marked: nothing in this record may close it. |
+| SPIKE-P1 | V-01, V-02 (supporting: V-03) | | |
+| SPIKE-P2 | V-04, V-05, V-09 (supporting: V-08) | | |
+| SPIKE-W1 (bench evidence only) | V-06, V-07 (supporting: V-08) | | Bench half only: SPIKE-W1 closes only together with its WebFlash-repo desk/documentation half (ADR §10/§15), which this record cannot supply. |
+| SPIKE-P6 | — not covered — (V-10 is partial input only) | **remains OPEN** | Pre-marked: nothing in this record may close it. |
 
 ## D. Contingency outcomes (only if invoked)
 
