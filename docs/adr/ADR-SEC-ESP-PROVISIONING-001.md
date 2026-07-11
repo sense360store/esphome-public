@@ -1,1075 +1,900 @@
 # ADR-SEC-ESP-PROVISIONING-001 — Secure per-device credential provisioning
 
+## 1. Status and authority
+
 | Field | Value |
 |---|---|
 | **Status** | **Proposed** — NOT accepted. Final ADR acceptance is an owner-only action per the [SOT operating model](https://github.com/sense360store/SOT/blob/main/CLAUDE-OPERATING-MODEL.md). |
 | **Programme ID** | `SEC-ESP-PROVISIONING-001` |
-| **Programme authority** | [`sense360store/SOT`](https://github.com/sense360store/SOT) (`roadmap.yaml`, entry `sec-esp-provisioning-001`, status **planned**) |
+| **Programme authority** | [`sense360store/SOT`](https://github.com/sense360store/SOT) (`roadmap.yaml` → `sec-esp-provisioning-001`, status **planned**) |
 | **Implementation repo** | `sense360store/esphome-public` (this repo) |
 | **Distribution repo** | [`sense360store/WebFlash`](https://github.com/sense360store/WebFlash) |
-| **Date drafted** | 2026-07-11 |
-| **Scope of this document** | Architecture and test planning **only**. No implementation, no runtime code, no credentials, no firmware-behaviour change, no WebFlash change, no SOT change, no release-metadata change. |
+| **Drafted / revised** | 2026-07-11 (v1 broad proposal; v2 decision-ready revision same day) |
+| **Scope** | Architecture analysis and documentation **only**. No implementation, no runtime code, no credentials, no firmware-behaviour change, no WebFlash change, no SOT change, no release-metadata change. |
 
-This ADR proposes an architecture for establishing **device-unique
-credentials** on Sense360 devices that are flashed with prebuilt release
-firmware, without publishing shared secrets. It follows the ADR section
-requirements of the SOT operating model (context, problem, goals,
-non-goals, constraints, options, decision, rejected alternatives, security
-and operational implications, recovery, migration, testing, rollout, open
-questions).
+**How to approve this document.** The decision path is §2 → §8 → §9 → §10:
+verify the starting posture, review the preferred direction and its
+robustness matrix, answer the ten decisions in the **Owner decision pack**
+(§9), and note the four narrow technical spikes (§10) that remain before
+acceptance. Everything else is supporting specification. Appendix A
+classifies every owner question from the v1 draft into: decidable now (A),
+blocked by technical evidence (B), implementation-time detail (C), or
+already constrained by existing policy (D). Feasibility statements in this
+revision are backed by primary-source inspection of ESPHome **2026.6.5**
+and aioesphomeapi **45.6.0** (evidence quotes and file references:
+Appendix D); the repo pins `esphome>=2026.4.5`
+([`requirements-dev.txt`](../../requirements-dev.txt)), and pinned-build
+confirmation on real hardware is exactly what the remaining spikes cover.
 
----
+## 2. Verified current posture (starting point — do not reinterpret)
 
-## 0. Verified current posture (starting point — do not reinterpret)
-
-This ADR starts from the verified current state recorded in
+Recorded in
 [`docs/security/release-firmware-credential-posture.md`](../security/release-firmware-credential-posture.md)
-(the authoritative posture statement),
+(authoritative posture statement),
 [`docs/rebuild-clean-credentials-001.md`](../rebuild-clean-credentials-001.md)
-(programme plan of record and execution log), the
+(programme plan of record), the
 [`docs/security/SECURITY-AUDIT-2026-06.md`](../security/SECURITY-AUDIT-2026-06.md)
-audit (findings H1/H2), and the SOT programme entry
-(`roadmap.yaml` → `sec-esp-provisioning-001`, verified 2026-07-10 in SOT):
+audit (H1/H2), and the SOT programme entry (verified 2026-07-10 in SOT):
 
 - **Shared published default credentials were removed** from the rebuilt
   releases (`v1.0.7` / `v1.0.8` / `v1.0.9` / `v1.0.1-led-preview`,
-  2026-07-06), enforced by the deny-list scanner gate
-  ([`scripts/check_firmware_default_credentials.py`](../../scripts/check_firmware_default_credentials.py))
-  on every produced binary.
-- **Released prebuilt firmware ships unprovisioned.** The release lane
+  2026-07-06), enforced by the deny-list scanner
+  ([`scripts/check_firmware_default_credentials.py`](../../scripts/check_firmware_default_credentials.py)).
+- **Released prebuilt firmware ships unprovisioned** — the release lane
   strips the credential surfaces before compile
-  ([`scripts/apply_release_secret_posture.py`](../../scripts/apply_release_secret_posture.py));
-  no credentials are generated or embedded.
-- **The native API is unencrypted** (no key configured; Home Assistant
-  adopts the device and shows it as unencrypted).
-- **OTA is unauthenticated.**
-- **The web interface (`:80`) is unauthenticated.**
-- **The fallback/setup AP is open** (no password), with the captive portal
-  enabled.
-- **Users requiring authentication must currently self-build** with unique
-  secrets ([`secrets.example.yaml`](../../secrets.example.yaml) → private
-  `secrets.yaml`); the committed packages keep their `!secret` references
-  so the self-build path produces fully secured firmware.
+  ([`scripts/apply_release_secret_posture.py`](../../scripts/apply_release_secret_posture.py)).
+- **The native API is unencrypted. OTA is unauthenticated. The web
+  interface (`:80`) is unauthenticated. The fallback/setup AP is open**
+  (captive portal enabled).
+- **Users requiring authentication must self-build** with unique secrets
+  ([`secrets.example.yaml`](../../secrets.example.yaml) → private
+  `secrets.yaml`).
 - **`SEC-ESP-PROVISIONING-001` is planned and not implemented.** No
-  first-boot or provisioning flow exists in this tree; there is no Improv
-  component, no first-boot credential generator, and no factory-reset
-  component in any product composition.
-- **R-D4 physical bench attestation** of the current *unprovisioned*
-  posture remains a separate, pending, owner-authored action
+  first-boot flow, Improv component, or factory-reset component exists in
+  any product composition in this tree.
+- **R-D4 physical bench attestation** of the current unprovisioned posture
+  remains a separate, pending, owner-authored action
   ([`docs/rebuild-clean-credentials-001.md`](../rebuild-clean-credentials-001.md),
-  decision R-D4). This ADR does not perform, claim, or substitute for it.
+  R-D4). This ADR does not perform, claim, or substitute for it.
 
 A build with no credentials is **unprovisioned, not secure** (SOT evidence
-rule). Nothing in this ADR weakens that statement; the whole point of the
-programme is to replace "unprovisioned" with "provisioned uniquely per
-device" — with evidence — before any security claim is made.
+rule). Nothing here weakens that.
 
-### Current in-tree credential surfaces (behaviour evidence)
+Current in-tree credential surfaces (self-build path keeps `!secret`
+wiring; release builds strip it):
+[`packages/base/api_encrypted.yaml`](../../packages/base/api_encrypted.yaml)
+(Noise PSK), [`packages/base/ota.yaml`](../../packages/base/ota.yaml)
+(OTA password), [`packages/base/logging.yaml`](../../packages/base/logging.yaml)
+(web auth), [`packages/base/wifi.yaml`](../../packages/base/wifi.yaml)
+(fallback-AP password + captive portal). The setup-network pair
+`Sense360_Setup` / `sense360setup` is intentionally public setup-only UX
+(documented in the posture doc) and is out of scope here.
 
-| Surface | Committed source (self-build path) | Release-binary posture today |
-|---|---|---|
-| Native API (tcp/6053) | [`packages/base/api_encrypted.yaml`](../../packages/base/api_encrypted.yaml) — Noise PSK via `!secret api_encryption_key` | Encryption block stripped; API unencrypted |
-| OTA (`esphome` platform) | [`packages/base/ota.yaml`](../../packages/base/ota.yaml) — `password: !secret ota_password` | Password stripped; OTA unauthenticated |
-| Web UI (`:80`) | [`packages/base/logging.yaml`](../../packages/base/logging.yaml) — `web_server.auth` via `!secret web_username` / `web_password` | Auth block stripped; web unauthenticated |
-| Fallback/setup AP + captive portal | [`packages/base/wifi.yaml`](../../packages/base/wifi.yaml) — `ap.password: !secret fallback_ap_password`, `captive_portal:` | Password stripped; open AP |
-| Setup-network join | `wifi_ssid` / `wifi_password` secrets = `Sense360_Setup` / `sense360setup` — **intentionally public setup-only UX**, documented in the posture doc | Unchanged (deliberate; the only deny-list exclusions) |
-
----
-
-## 1. Context
-
-### 1.1 Why shared defaults were unsafe
-
-Audit finding **H1**
-([`SECURITY-AUDIT-2026-06.md`](../security/SECURITY-AUDIT-2026-06.md))
-showed the release pipeline compiled a fixed, world-readable credential
-set into every published binary: a placeholder API encryption key, one
-shared OTA password, one shared web login, and one shared fallback-AP
-password. One public-repo read yielded control of **every** device still
-on defaults — including OTA overwrite (persistent compromise) and, in
-fan-driver configurations, mains-adjacent switching. Finding **H2** added
-that historical fallback-AP literals are burned into public git history
-forever. Shared credentials convert a single disclosure into a fleet-wide
-compromise; that class must never return.
-
-### 1.2 Why "no credentials" is unprovisioned, not provisioned
-
-The remediation (`SEC-ESP-BUILD-GATES-001`, then
-`REBUILD-CLEAN-CREDENTIALS-001`) removed the false assurance, it did not
-add protection: a freshly flashed device is open on every control surface
-to anyone on the LAN or in RF range. That is an honest posture — the
-firmware no longer claims security it does not have — but it is a
-temporary one. The SOT evidence rules are explicit: *"a build with no
-credentials is unprovisioned, not secure."* This programme exists to close
-that gap correctly rather than by re-introducing baked secrets.
-
-### 1.3 Why prebuilt firmware needs a first-use / ownership process
-
-A prebuilt `.bin` is immutable and identical for every downloader —
-per-device secrets **cannot** be compiled into it without either a
-per-device build (Option B) or an injection step outside the binary. The
-only ways a fleet of identical binaries can end up with unique credentials
-are: inject at manufacturing, inject at flash time, generate at first
-boot, or establish during an owner-driven claim. Every one of those is an
-*ownership-establishment* process: the device must learn, exactly once and
-verifiably, who its owner is, and derive or receive credentials only that
-owner holds.
-
-### 1.4 Why all the journeys must be designed together
-
-Provisioning is not a single flow; it is a lifecycle that must stay
-coherent across:
-
-- **Browser flashing** (WebFlash / Web Serial): the production install
-  path; whatever the architecture is, it must work when the user's only
-  tool is a browser.
-- **Home Assistant adoption**: the primary (possibly only) consumer of the
-  native API; the credential the device holds must reach HA without being
-  published.
-- **Recovery**: owners lose HA databases, phones, and printed cards; a
-  device that cannot be recovered locally becomes e-waste or a support
-  burden.
-- **Replacement boards / RMA**: a replacement Core must be claimable by
-  the same owner without Sense360 holding the owner's secrets.
-- **Factory reset**: must exist, must be deterministic, and must not be a
-  remote-attack primitive.
-- **Offline use**: local-first is a product value; provisioning that
-  requires a cloud round-trip contradicts it.
-
-Designing any one flow in isolation (e.g. flash-time injection with no
-recovery story) produces either lockout or a silent security hole
-(e.g. "factory reset reopens everything forever with no owner
-notification"). This ADR therefore specifies the state machine and
-lifecycle before any implementation.
-
-### 1.5 Repository responsibilities
-
-Per the [SOT operating model](https://github.com/sense360store/SOT/blob/main/CLAUDE-OPERATING-MODEL.md)
-and [`docs/system-architecture.md`](../system-architecture.md):
-
-- **esphome-public** (this repo) owns the firmware architecture, this ADR,
-  the device state machine, persistence, firmware tests, release
-  mechanics, and hardware-facing behaviour.
-- **WebFlash** owns browser flashing, manifests, installer UX and
-  truthfulness, distribution gates, and any browser-side provisioning
-  surface.
-- **SOT** owns programme status, the accepted decision record, open gates,
-  and owner decisions. Programme status changes land in SOT first.
-
-The cross-repo contract remains exactly three stable surfaces: release
-tags, config strings, artifact names. Provisioning must not add hidden
-coupling beyond an explicitly versioned provisioning capability flag (see
-§12, §13).
-
----
-
-## 2. Problem statement
+## 3. Problem
 
 > **Each physical device must establish device-unique credentials without
 > publishing shared secrets, while preserving a workable onboarding,
 > recovery, reflashing, and ownership-transfer path.**
 
-Precisely: given an immutable public binary served to anyone, produce, per
-physical unit, (a) a unique API encryption key, (b) unique OTA
-authentication material, (c) an authenticated-or-disabled web interface,
-and (d) a protected-or-time-limited setup surface — such that only the
-person with legitimate ownership of the physical unit ever holds those
-credentials, and such that losing any single artefact (HA config, printed
-card, browser session) does not permanently brick or permanently expose
-the device.
+A prebuilt `.bin` is immutable and identical for every downloader, so
+unique material can only enter a unit at one of five distinct times —
+**manufacturing-time** (injected before sale), **build-time** (unique
+image per unit), **flash-time** (injected during the flashing session,
+outside the binary), **first-boot** (device self-establishes in a
+constrained setup state), or **owner-driven post-boot** (an owner tool
+claims the device on the network). The architecture must pick a
+composition of these that survives onboarding, recovery, reflash,
+ownership transfer, RMA, and offline use — designed together, not per-flow
+(a flash-time-only design with no recovery story produces lockout; a
+first-boot design with no presence proof produces a claim race).
 
-The problem decomposes by **when** unique material can enter the device.
-These five provisioning times are distinct and are used throughout this
-document:
+## 4. Goals and non-goals
 
-| Provisioning time | Definition | Who acts |
-|---|---|---|
-| **Manufacturing-time** | Secrets injected into the unit (flash/eFuse/label) before sale | Sense360 / assembler |
-| **Build-time** | A unique firmware image compiled per unit | Release pipeline |
-| **Flash-time** | Secrets generated/injected during the flashing session, outside the binary | WebFlash (browser) or CLI tool |
-| **First-boot** | Device self-generates or accepts secrets in a constrained setup state on first power-up | Firmware |
-| **Owner-driven post-boot** | An owner tool (HA, browser, app) claims the device after it is on a network | Owner + firmware |
+**Goals** (each maps to a contract test, §16):
 
-These are not mutually exclusive; the preferred direction (§8) composes
-first-boot self-generation with an owner-driven claim, optionally
-bootstrapped by flash-time or manufacturing-time material.
+1. Unique API encryption material per physical device.
+2. Unique OTA authentication material per physical device.
+3. Authenticated **or disabled** web interface on owned devices.
+4. Protected fallback/setup AP after ownership; open setup surfaces exist
+   only in explicitly unowned/bootstrap states.
+5. No shared production credential across devices, ever.
+6. No credential exposure via public repos, release assets, manifests,
+   logs, URLs, browser storage/history, analytics, or support bundles.
+7. Compatible with normal Home Assistant onboarding.
+8. Recoverable owner experience (defined local recovery for every loss
+   scenario, §13).
+9. Deterministic factory-reset semantics.
+10. Clear device-ownership transfer (new owner gets fresh credentials;
+    old owner keeps nothing).
+11. Offline-capable provisioning.
+12. Testable and auditable behaviour.
+13. Production WebFlash delivery without false security claims.
 
----
-
-## 3. Goals
-
-1. **Unique API encryption material per physical device** — no two units
-   ever share a native-API key.
-2. **Unique OTA authentication material per physical device.**
-3. **Authenticated or disabled web interface** — never an open control
-   surface on an owned device.
-4. **Protected fallback/setup AP** — open setup surfaces exist only in
-   explicitly unowned/bootstrap states, time-boxed where feasible.
-5. **No shared production credential across devices**, ever, of any class.
-6. **No credential exposure** through public repositories, release assets,
-   manifests, build logs, device logs, URLs, browser history/storage,
-   analytics, or support bundles.
-7. **Compatible with normal Home Assistant onboarding** — the happy path
-   must remain "flash, power, adopt in HA" with at most one extra
-   claim step.
-8. **Recoverable owner experience** — a defined, local, physical-presence
-   recovery path for every credential-loss scenario in §9.
-9. **Deterministic factory-reset semantics** — one defined physical
-   action, one defined result, no ambiguity about what survives.
-10. **Clear device-ownership transfer** — sale/gift/RMA results in the new
-    owner holding fresh credentials and the old owner holding nothing.
-11. **Offline-capable provisioning where practical** — no cloud or
-    internet dependency for the core flow.
-12. **Testable and auditable behaviour** — every security property in this
-    list maps to a contract test in §14 before implementation.
-13. **Production WebFlash delivery without false security claims** — the
-    installer and manifests state exactly what the firmware provides, per
-    the SOT security-claims rules; no claim ships before its evidence.
-
-## 4. Non-goals
-
-1. **A cloud account platform.** No Sense360 accounts, no cloud broker.
-2. **Full public-key infrastructure** (per-device certificates, CA
-   hierarchy, attestation chains) — not unless a spike proves a concrete
-   need the simpler design cannot meet; ESPHome's native surfaces are
-   symmetric-key/password shaped today.
-3. **Remote fleet management.** Out of scope entirely.
-4. **Automatic secret escrow by Sense360.** Sense360 must not silently
-   hold customers' device credentials. (Whether *manufacturing bootstrap*
-   material may be retained in order records is an explicit owner
-   decision, §20 Q1/Q17 — retention of *permanent owner credentials* is a
-   non-goal regardless.)
-5. **Silently recovering lost owner secrets.** If an owner loses
-   everything, recovery goes through the explicit, physical-presence
-   recovery mechanism (§11) — never a hidden backdoor.
-6. **Changing unrelated sensor behaviour.** Provisioning must be additive;
-   sensor/automation behaviour is untouched.
-7. **Solving Shopify or commercial workflows.** Order-record delivery of
-   bootstrap material (if chosen) is a commercial-surface follow-up owned
-   elsewhere; this ADR only defines what the firmware would consume.
-8. **Immediate implementation.** This PR contains no implementation; the
-   TDD sequence in §14/§15 governs when code lands.
+**Non-goals:** a cloud account platform; full PKI (no consumer among
+ESPHome's symmetric-key/password surfaces today; re-enter only if a spike
+proves need); remote fleet management; automatic secret escrow by Sense360
+(permanent owner credentials never cross to Sense360); silent recovery of
+lost owner secrets (recovery is the explicit physical mechanism in §13,
+never a backdoor); changing unrelated sensor behaviour; Shopify/commercial
+workflows; immediate implementation in this PR.
 
 ## 5. Constraints
 
-1. **ESP32-S3 / ESPHome platform.** Sense360 Core is an ESP32-S3 running
-   ESPHome (pinned per `requirements-dev.txt`). Provisioning logic beyond
-   stock ESPHome must land as an external component under `components/`
-   (the repo already maintains C++ components there) — forking ESPHome is
-   not on the table.
-2. **ESPHome credential surfaces are compile-time configured today.** In
-   the current tree, `api.encryption.key`, `ota.password`,
-   `web_server.auth`, and `wifi.ap.password` are static YAML values baked
-   at compile. Whether each can be sourced at runtime from NVS (via lambda,
-   component patch, or upstream feature) is **Spike S1** (§8.3) — the
-   single most decision-relevant unknown. No option in §7 may be selected
-   as final until S1 answers this per credential class.
-3. **Browser Web Serial limitations.** Web Serial is available in
-   Chromium-desktop browsers only; **not on iOS Safari and not in most
-   mobile browsers**. Flash-time-only provisioning therefore excludes
-   mobile-only users; any flash-time step needs a device-side fallback.
-4. **Home Assistant API expectations.** HA's ESPHome integration supports
-   unencrypted and Noise-PSK-encrypted connections; the key is entered (or
-   discovered) at adoption time. A key that changes after adoption
-   requires the user to update the HA config entry — credential
-   desynchronisation is a real failure mode (§6, §9.15).
-5. **ESPHome OTA capabilities.** The `esphome` OTA platform supports a
-   password (challenge-based). There is no bearer-token or
-   per-session-credential OTA mechanism in stock ESPHome; anything
-   stronger is custom work (Q6 in §20).
-6. **Persistence / NVS behaviour.** ESPHome preferences and WiFi
-   credentials persist in NVS on the ESP32. NVS survives OTA and normal
-   app reflash; it is destroyed by full flash erase (`esptool
-   erase_flash`, or an installer's "erase device" path). Any
-   credential-persistence design inherits exactly these semantics — and
-   the NVS partition is **readable by anyone with physical USB access**
-   unless flash encryption is enabled (an eFuse-burning, effectively
-   irreversible step — Spike S4).
-7. **Flash erase and factory reset.** There is currently **no factory-reset
-   component in any product composition** — today "factory reset" means
-   "full flash erase over USB". The ADR must define reset semantics
-   (§10, §11) that do not depend on hidden behaviour.
-8. **Power-loss resilience.** First-boot generation and claim flows must
-   be atomic-or-retryable: a unit power-cycled mid-provisioning must come
-   back in a defined state (never half-owned, never credential-less but
-   marked owned).
-9. **No-internet assumption.** The core flow must complete on an isolated
-   LAN (local-first onboarding). Internet may enhance (e.g. fetching a
-   nicer UI) but never gate provisioning.
-10. **Prebuilt binary immutability.** Release artifacts are
-    content-hashed, cosign-signed (checksums), and pinned by WebFlash
-    `expected_sha256`. Nothing may mutate a published binary; per-device
-    material must live outside the signed image (NVS, separate flash
-    region, or generated on-device).
-11. **No per-device rebuild requirement** unless explicitly chosen and
-    justified (Option B is assessed and currently disfavoured, §7/§19).
-12. **SOT visibility versus public docs.** SOT's programme entry is
-    `visibility: internal` until the security advisory publishes. This
-    public ADR must not disclose SOT-internal commercial details; it
-    contains architecture only.
-13. **Support and RMA implications.** Support must be able to guide
-    recovery **without** the ability to remotely unlock devices (no
-    support backdoor), and RMA units must be returnable to a clean unowned
-    state (§11, §18).
-14. **Standing invariants are untouched.** Nothing here changes release
-    channels, fan-lane posture, FanTRIAC rules, or the declaration-driven
-    release matrix ([`docs/standing-invariants.md`](../standing-invariants.md)).
+1. **ESP32-S3 / ESPHome.** Provisioning logic beyond stock ESPHome lands
+   as an external component under `components/` (existing repo pattern);
+   no ESPHome fork.
+2. **Verified platform capabilities (2026.6.5; Appendix D).** The native
+   API supports shipping **noise-capable with no key** and accepting a
+   key at runtime, persisted to NVS, with plaintext disabled thereafter
+   and only factory reset removing it. OTA supports an **empty compiled
+   password deliberately enabling runtime `set_auth_password()`**. Web
+   auth requires non-empty YAML literals (unusable for us — literals would
+   be shared); disabling web is fully supported. The fallback-AP password
+   has a public runtime setter. These replace the v1 draft's "unknown —
+   Spike S1" posture.
+3. **Browser Web Serial is Chromium-desktop only** — not iOS Safari, not
+   most mobile browsers. Flashing is desktop-bound; claim/recovery must
+   not be.
+4. **Home Assistant expectations.** HA adopts unencrypted or
+   Noise-PSK-encrypted devices; the key is entered at adoption. Official
+   ESPHome docs state HA-side *on-the-fly key configuration* is a future
+   HA release — today the stock path is manual key entry (Appendix D,
+   E-9). Key changes after adoption require updating the HA config entry.
+5. **Persistence.** ESPHome preferences, the saved noise PSK, and saved
+   WiFi credentials live in NVS: survive OTA and normal serial app
+   reflash; destroyed by full flash erase; NVS is readable over USB unless
+   flash encryption is enabled (an eFuse-irreversible step — deferred
+   decision, Appendix A Q15).
+6. **Factory reset.** Stock ESPHome provides a `factory_reset` component
+   (button/switch platforms **and** a power-cycle-count trigger) whose
+   action erases the entire NVS partition and reboots (Appendix D, E-6/E-7)
+   — a deterministic return-to-unowned exists upstream.
+7. **Power-loss resilience.** Claim must be atomic-or-retryable; a unit
+   power-cycled mid-claim returns to a defined pre-claim state.
+8. **No-internet assumption.** The core flow completes on an isolated LAN.
+9. **Prebuilt binary immutability.** Artifacts are hash-pinned and
+   cosign-signed (checksums); per-device material lives in NVS or is
+   generated on-device — never in the image.
+10. **No per-device rebuild requirement** (Option B rejected for
+    production, §7).
+11. **SOT visibility.** The SOT programme entry is internal until the
+    advisory publishes; this public ADR carries architecture only.
+12. **Support/RMA.** Support guides but cannot unlock; no master key
+    class exists. RMA returns to clean unowned state.
+13. **Standing invariants untouched**
+    ([`docs/standing-invariants.md`](../standing-invariants.md)).
 
 ## 6. Threat model
 
-### 6.1 Assets
+**Assets:** A1 API key (full device control) · A2 OTA credential
+(persistent compromise via firmware replacement) · A3 web credential ·
+A4 setup/fallback-AP surface (WiFi-credential harvesting) · A5 owner's
+home WiFi credentials (in NVS) · A6 bootstrap/claim material · A7
+ownership state itself.
 
-- **A1** — API encryption key (full device control via native API).
-- **A2** — OTA credential (arbitrary firmware replacement → persistent
-  compromise).
-- **A3** — Web UI credential (device control + config visibility).
-- **A4** — Fallback-AP/setup surface (LAN credential harvesting via
-  captive portal; device reconfiguration).
-- **A5** — Owner's home WiFi credentials (entered during setup; stored in
-  device NVS).
-- **A6** — Bootstrap/claim material (whatever proves the right to become
-  owner).
-- **A7** — Ownership state itself (who the device obeys).
+**Actors:** legitimate owner/household · LAN-resident or RF-range
+attacker · opportunistic first-claimer · physical-access attacker ·
+second-hand buyer / RMA recipient · support/Sense360 (trusted for
+firmware, **untrusted for owner secrets**) · public observer of
+repos/assets/manifests.
 
-### 6.2 Actors
+**Trust boundaries (explicit):**
 
-- **Legitimate owner** (and household members).
-- **LAN-resident attacker** — malware on a laptop/phone/IoT device on the
-  same network; RF-range attacker for AP surfaces.
-- **Opportunistic first-claimer** — a neighbour/guest racing the owner to
-  claim an unowned device.
-- **Physical-access attacker** — has the unit in hand (burglar, buyer of a
-  stolen unit, malicious housemate).
-- **Second-hand buyer / RMA recipient** — legitimate future owner of a
-  previously owned unit.
-- **Support/Sense360** — must be *unable* to access owner credentials
-  (trusted for firmware authorship, untrusted for owner secrets).
-- **Public observer** — anyone reading the repo, release assets,
-  manifests, WebFlash JS, or network captures of public surfaces.
+1. Public internet/repo/release assets ↔ everything: nothing secret on
+   the public side (deny-list gate enforces; provisioning keeps it true).
+2. LAN ↔ device: untrusted in OWNED state; conditionally trusted in
+   bootstrap states only (time-boxed, physical-presence-anchored).
+3. Browser flashing session ↔ device: trusted for the USB session only;
+   anything it learns must be transient.
+4. Home Assistant ↔ device: trusted after key handover; HA holds A1.
+5. Physical possession ↔ device: the root of trust for claim, recovery,
+   reset. Without flash encryption, physical USB access also reads NVS —
+   stated honestly; see Appendix A Q15.
+6. Sense360 ↔ owner secrets: hard boundary; permanent owner credentials
+   never cross it.
 
-### 6.3 Trust boundaries (explicit)
-
-1. **Public internet / repo / release assets ↔ everything** — nothing
-   secret may exist on the public side. (Enforced today by the deny-list
-   gate; provisioning must keep it true.)
-2. **LAN ↔ device** — the LAN is **untrusted** in OWNED state (all
-   surfaces authenticated) and only *conditionally* trusted in
-   bootstrap states (time-boxed, physical-presence-anchored).
-3. **Browser flashing session ↔ device** — trusted only for the duration
-   of the physical USB session; anything it learns must be transient
-   (§13 WebFlash rules).
-4. **Home Assistant ↔ device** — trusted after key exchange during claim;
-   HA holds A1 thereafter.
-5. **Physical possession ↔ device** — physical access is the ultimate
-   root of trust for claim, recovery, and reset. Without flash encryption
-   (Spike S4) physical access also means NVS read access; the model must
-   be honest that a physical attacker with USB tools defeats stored-secret
-   confidentiality on the current hardware posture.
-6. **Sense360 ↔ owner secrets** — a hard boundary: permanent owner
-   credentials never cross to Sense360 (non-goal 4).
-
-### 6.4 Attack surfaces and failure modes (each maps to §14 tests)
-
-| # | Threat | Notes / required property |
-|---|---|---|
-| T1 | Reuse of one device's credentials on another device | Impossible by construction: credentials generated per unit, never shared. Two-device uniqueness test. |
-| T2 | Credentials embedded in public binaries | Deny-list gate stays; provisioning adds no baked secret. Binary-scan test. |
-| T3 | Credentials in WebFlash metadata or JavaScript | WebFlash must never persist or transmit generated material; manifests carry no secrets. Browser test + WebFlash review gate. |
-| T4 | Credentials visible in URLs, logs, browser storage, clipboard, screenshots, analytics | No secret ever appears in a URL/query string, device log line, or persisted browser state; display of a secret (if UX requires it) is explicit, one-time, and user-acknowledged. Log/URL-scan tests. |
-| T5 | Malicious LAN user during first boot | Unowned device is a race window (T6) and an open surface; mitigations: constrained setup state (no relay/actuator control pre-claim where feasible — Q18), time-boxed bootstrap window, physical-presence proof for claim. |
-| T6 | Claim race — attacker claims before owner | Physical-presence proof (button press / power-cycle pattern / label secret) required to enter CLAIM_IN_PROGRESS; claim without it must be impossible, not just unlikely. |
-| T7 | Downgrade/reflash to unprovisioned firmware | An attacker with OTA credentials can flash anything (that is ownership); an attacker *without* credentials must not be able to push an older unprovisioned image OTA. Serial reflash = physical access = legitimate reset path. §12 policy. |
-| T8 | Factory-reset abuse | Reset must require the defined physical action; a reset device returns to FACTORY_UNOWNED with **all owner secrets erased** (safe default: attacker gains a blank device, not the owner's WiFi/API keys). |
-| T9 | Stolen or resold device | Same as T8: reset wipes A1–A6; prior owner's credentials never recoverable from the unit post-reset (subject to the flash-encryption caveat, boundary 5). |
-| T10 | Support/RMA access | No support credential, no master key, no serial-number-derived secret. RMA = factory reset by owner or documented physical procedure. |
-| T11 | Weak randomness | Device-generated secrets must use the ESP32 hardware RNG with entropy adequacy verified (Spike S3); no time-seeded or serial-derived material. Entropy contract test. |
-| T12 | Interrupted provisioning | Power loss mid-claim → state machine re-enters a defined pre-claim state; partial credentials are discarded, never half-applied. Fault-injection test. |
-| T13 | Credential desynchronisation with HA | Key rotation/reset while HA holds the old key must fail visibly and recoverably (re-adopt path), not brick the integration silently. Integration test. |
-| T14 | Rollback/recovery abuse | The recovery path must not be a cheaper attack than the front door: recovery requires the same physical-presence proof as claim, and always destroys existing credentials rather than revealing them. |
+**Principal threats** (full enumeration T1–T14 with required properties:
+Appendix C): credential reuse across devices; secrets in public
+binaries/metadata/logs/URLs/browser state; malicious LAN user during the
+unowned window; **claim race** (someone claims before the owner — the
+decisive threat that stock ESPHome's set-key flow does *not* mitigate,
+because any plaintext client may set the key first; closing it is the
+custom-gating work at the heart of this design); OTA downgrade to
+unprovisioned firmware; factory-reset abuse; stolen/resold devices; weak
+randomness; interrupted provisioning; HA key desynchronisation;
+recovery-path abuse.
 
 ## 7. Options considered
 
-Assessment key: each option is scored against the thirteen criteria
-required by the programme (security; operational complexity;
-manufacturing complexity; user experience; offline support; recovery;
-RMA/support; WebFlash compatibility; Home Assistant compatibility; secret
-exposure risk; scalability; testability; downgrade behaviour).
+Six options were scored against thirteen criteria (security, operational
+complexity, manufacturing complexity, UX, offline, recovery, RMA/support,
+WebFlash compatibility, HA compatibility, secret-exposure risk,
+scalability, testability, downgrade behaviour). Full scoring: Appendix B.
 
-### Option A — Manufacturing-time injection
-
-Unique secrets injected per unit before sale (NVS pre-write or
-label/QR/secure card/order record delivering the values to the owner).
-
-- **Security:** strong uniqueness; secrets exist before the device ever
-  meets a network. But the full permanent credential set exists *outside*
-  the owner's control (label, order system) — a lost/photographed card is
-  full compromise until reset.
-- **Operational/manufacturing complexity:** highest of all options —
-  requires a per-unit flashing/labelling step, secure handling in
-  assembly, and label↔unit integrity. Sense360's current model ships
-  boards without a per-unit firmware personalisation step.
-- **UX:** good (credentials on a card) until the card is lost.
-- **Offline:** excellent.
-- **Recovery:** re-read the card; lost card ⇒ needs a reset path anyway.
-- **RMA/support:** replacement unit ⇒ new card; straightforward but
-  logistics-heavy.
-- **WebFlash compatibility:** poor fit — a user reflashing via WebFlash
-  gets a binary that knows nothing of the label secrets unless firmware
-  reads them from a preserved NVS region; a full erase (§5.6) destroys
-  injected material and the label becomes a dead artefact.
-- **HA compatibility:** fine (user types the key from the card).
-- **Secret exposure risk:** manufacturing records + physical label are new
-  long-lived exposure surfaces (§17).
-- **Scalability:** linear cost per unit; acceptable at Sense360 volume but
-  a standing process burden.
-- **Testability:** hard to test end-to-end in CI (needs manufacturing
-  simulation).
-- **Downgrade:** reflash/erase destroys injected secrets → device falls
-  back to whatever the binary's unowned behaviour is; the label can no
-  longer be trusted to match the device.
-- **Verdict:** viable *only* as a delivery channel for **bootstrap**
-  material (a claim code), not for permanent credentials. Kept as an
-  optional input to Option F; rejected as the standalone answer (§19).
-
-### Option B — Per-device build-time firmware
-
-The pipeline compiles a unique image (or secret overlay) per unit.
-
-- **Security:** unique, but the pipeline (and its logs/artifacts) becomes
-  a custodian of every customer's credentials — directly violating
-  non-goal 4 and trust boundary 6.
-- **Operational complexity:** breaks the entire release model: immutable
-  tagged artifacts, `expected_sha256` pinning, cosign signing, the
-  declaration-driven matrix (ESP-007), and WebFlash's static manifest all
-  assume *one* artifact per config string. Per-device builds are
-  incompatible with "browser downloads a published release asset".
-- **Manufacturing:** none, but replaced by build-infrastructure burden.
-- **UX:** terrible for WebFlash (per-user build queue), fine for
-  self-builders (this **is** today's self-build path, and it remains
-  supported).
-- **Offline:** poor (build service required).
-- **Recovery/RMA:** requires re-issuing builds; Sense360 again holds
-  secrets.
-- **WebFlash compatibility:** fundamentally incompatible as production
-  path.
-- **Testability:** the *mechanism* is testable, but the artifact-integrity
-  contract (same hash for all) is destroyed.
-- **Downgrade:** each unit's image is unique; version management explodes.
-- **Verdict:** rejected as the production path; explicitly retained as the
-  **self-build** path users already have (§0, §16).
-
-### Option C — Browser/WebFlash-generated credentials at flash time
-
-The browser generates secrets during the Web Serial session and injects
-them (e.g. writing an NVS blob after flashing, as ESPHome's own web
-installer does for WiFi via Improv Serial).
-
-- **Security:** unique per flash; secrets born in the session. But they
-  exist in browser memory, and any bug (analytics, logging, extension
-  access) exposes them — T3/T4 concentrate here. The user must also be
-  shown/handed the API key for HA, creating clipboard/screenshot surface.
-- **Operational complexity:** moderate; needs a WebFlash NVS-writing
-  capability and a firmware NVS-consuming capability (Spike S1/S2).
-- **Manufacturing:** none.
-- **UX:** good on desktop Chromium; **unavailable on iOS/mobile** (§5.3) —
-  cannot be the only path.
-- **Offline:** WebFlash itself is a web page; a cached/PWA session can
-  work, but this is not truly offline-first.
-- **Recovery:** re-flash regenerates; but losing the displayed key with no
-  device-side recovery = re-flash dependency on a desktop browser.
-- **RMA/support:** clean (reflash = new credentials).
-- **WebFlash compatibility:** by definition; but it moves security-critical
-  code into WebFlash, raising that repo's assurance burden (§13).
-- **HA compatibility:** user copies the key from browser to HA — workable,
-  fiddly, exposure-prone.
-- **Secret exposure risk:** the highest browser-side risk of all options.
-- **Scalability/testability:** good; browser tests possible (Playwright).
-- **Downgrade:** flashing an older image leaves the NVS blob unread —
-  device silently unprovisioned unless §12 gates apply.
-- **Verdict:** not the backbone. Retained as a *possible accelerator*
-  (pre-seeding bootstrap material at flash time) inside Option F, decided
-  by Q3/Q11.
-
-### Option D — First-boot local provisioning
-
-The device boots unowned in a constrained setup state and establishes
-credentials through a local flow (captive portal / setup web page):
-device **self-generates** permanent secrets on first boot, then hands
-them to the owner over the setup channel.
-
-- **Security:** permanent secrets are device-generated (T11 hardware RNG),
-  never exist off-device until the owner retrieves them. The weak point is
-  the *unauthenticated setup window*: whoever reaches the setup surface
-  first is treated as owner (T5/T6) unless a physical-presence proof is
-  added — which is exactly what Option F adds.
-- **Operational/manufacturing complexity:** none off-device; firmware-only.
-- **UX:** matches the existing flow (open AP + captive portal today);
-  adds "note down / accept the API key" during setup.
-- **Offline:** excellent — fully local.
-- **Recovery:** natural: physical reset returns to first-boot state.
-- **RMA/support:** clean — reset = new identity.
-- **WebFlash compatibility:** perfect — binary stays immutable and
-  identical; WebFlash changes nothing (or merely documents the flow).
-- **HA compatibility:** good; key displayed at setup, entered at adoption
-  (or delivered via the claim channel in Option E/F).
-- **Secret exposure risk:** low off-device; on-device NVS caveat
-  (boundary 5).
-- **Scalability:** perfect (nothing per-unit off-device).
-- **Testability:** strong — host-simulated state machine tests + bench.
-- **Downgrade:** older binaries simply lack the flow; §12 policy governs
-  claims.
-- **Verdict:** the strongest single foundation, but incomplete against
-  T5/T6 without a presence proof → folded into Option F.
-
-### Option E — Home Assistant-driven claim
-
-HA discovers an unowned device and claims it over a temporary local
-bootstrap channel (e.g. unencrypted API used exactly once to negotiate a
-key, or an mDNS-advertised claim endpoint).
-
-- **Security:** as D, plus the credential lands directly in HA config
-  (no human copying — T4 shrinks). Race window identical to D without
-  presence proof.
-- **Operational complexity:** depends on HA-side behaviour we do not
-  control; whether stock HA can drive any claim handshake without a
-  custom integration is **Spike S5**.
-- **UX:** the best possible ("device appears in HA, click Configure,
-  press the device button").
-- **Offline:** excellent (HA is local).
-- **Recovery:** needs a non-HA fallback anyway (HA lost = §9.15).
-- **WebFlash compatibility:** unaffected.
-- **HA compatibility:** by definition — but *only* HA (Q12: is HA the only
-  supported owner? If yes this is acceptable as primary, still not sole,
-  channel).
-- **Secret exposure risk:** low.
-- **Testability:** integration tests against the ESPHome/HA protocols;
-  more moving parts than D.
-- **Downgrade:** as D.
-- **Verdict:** highly desirable **claim transport** layered on D/F, not a
-  standalone architecture (a non-HA local path must exist regardless).
-
-### Option F — Hybrid bootstrap model
-
-A short-lived bootstrap secret or **physical-presence proof** gates entry
-to a claim flow; the device **generates** permanent credentials
-(hardware RNG) at claim time; bootstrap access is invalidated immediately
-and irreversibly on successful claim; recovery = physical factory reset
-back to the bootstrap-capable state.
-
-- **Security:** best composite: unique device-generated permanent secrets
-  (T1/T2/T11), no permanent secret ever off-device before the owner holds
-  it, claim gated on physical presence (T5/T6), bootstrap one-way
-  invalidation (T14), reset-to-blank semantics (T8/T9).
-- **Operational complexity:** firmware state machine + claim endpoint;
-  optional label/flash-time bootstrap inputs can be added later without
-  rearchitecting.
-- **Manufacturing:** zero *required* (presence-proof variant); optional QR
-  bootstrap variant adds label logistics (owner decision Q1/Q3).
-- **UX:** "flash → power → join setup surface or wait for HA discovery →
-  press the device button when asked → done." One physical action added
-  to today's flow.
-- **Offline:** fully local.
-- **Recovery:** defined and local (§11).
-- **RMA/support:** reset-to-unowned covers it (§18).
-- **WebFlash compatibility:** binary immutable; WebFlash optionally gains
-  a *documentation* role only (or a flash-time bootstrap seeding role if
-  Q3 says yes).
-- **HA compatibility:** claim via captive-portal/web flow always works;
-  HA-driven claim (Option E transport) added if Spike S5 succeeds.
-- **Secret exposure risk:** lowest overall; residual = NVS physical-read
-  (Spike S4) and the one-time key handover to HA.
-- **Scalability:** perfect.
-- **Testability:** state machine is host-testable; uniqueness, one-way
-  transition, and reset semantics all contract-testable; bench tests for
-  the physical action.
-- **Downgrade:** unowned/owned state lives in NVS; an older binary that
-  ignores it reverts the *behaviour* to unprovisioned — §12 policy defines
-  the required gates and honest claims.
-- **Verdict:** **preferred direction** (§8), pending owner decisions and
-  spikes.
-
-## 8. Proposed decision (direction, not acceptance)
-
-The repository evidence supports a clear *direction* but not a final
-selection: the decisive unknowns (runtime credential sourcing in ESPHome —
-Spike S1; HA claim transport — S5; flash-encryption posture — S4) are
-unresolved, and several choices are owner decisions (§20). **This ADR
-therefore selects no final architecture.** Status remains **Proposed**.
-
-### 8.1 Preferred direction
-
-**Option F (hybrid bootstrap), built on Option D's first-boot foundation,
-with Option E as a preferred claim transport where feasible:**
-
-1. **Explicit unowned/bootstrap state.** A device flashed with a
-   provisioning-capable release boots into `FACTORY_UNOWNED`; its
-   behaviour there is constrained and honest (it claims no security).
-2. **Physical-presence proof or one-time bootstrap material** gates the
-   claim. Baseline proposal: a physical action on the unit (boot-button
-   press / defined power-cycle pattern — hardware-confirmed in Spike S2).
-   Optional additive channels (owner decisions): QR/label one-time claim
-   code (Q3), flash-time-seeded bootstrap token (Q11).
-3. **Device-generated, cryptographically strong permanent credentials**
-   (ESP32 hardware RNG; entropy verified in Spike S3): API key, OTA
-   secret, web credential, AP password — generated on-device at claim,
-   delivered once over the claim channel to the owner/HA.
-4. **One-way transition** `FACTORY_UNOWNED → OWNED` through
-   `CLAIM_IN_PROGRESS`; the only reverse path is the physical factory
-   reset (§10/§11).
-5. **Immediate bootstrap invalidation:** on claim success, all bootstrap
-   access (open AP, claim endpoint, any bootstrap token) is invalidated
-   before the claim response completes, atomically with the ownership
-   commit (T12: commit is all-or-nothing in NVS).
-6. **Clear local recovery / factory-reset path:** one defined physical
-   action wipes all credentials and ownership and returns the unit to
-   `FACTORY_UNOWNED` (§11).
-7. **No permanent secrets in public firmware or WebFlash metadata** —
-   preserved by construction; the existing deny-list artifact gate remains
-   as the enforcement backstop.
-
-### 8.2 Required owner decisions before final ADR
-
-The full table is §20. The blocking subset: Q1 (manufacturing injection
-acceptable?), Q2 (zero-internet mandatory? — recommended yes), Q3
-(printed/QR bootstrap acceptable?), Q4 (device-generated permanent
-credentials mandatory? — recommended yes), Q5 (web server authenticated
-vs disabled default), Q7 (what survives normal reflash), Q8 (exact
-factory-reset action), Q9 (physical presence mandatory for claim —
-recommended yes), Q12 (is HA the only supported owner surface).
-
-### 8.3 Unresolved technical spikes (pre-implementation)
-
-| Spike | Question | Blocks |
+| Option | Summary | Verdict |
 |---|---|---|
-| **S1** | Can `api.encryption.key`, `ota.password`, `web_server.auth`, and `wifi.ap.password` each be sourced at runtime from NVS in the pinned ESPHome version (lambda/component/upstream patch)? Per-class answer required. | Everything — the architecture's core mechanism |
-| **S2** | Which physical-presence signal is available and reliable on S360-100 R4 (boot button exposure in ceiling mount? power-cycle pattern? touch of an existing sensor?) | Claim UX; §10 physical-presence column |
-| **S3** | Entropy adequacy of the ESP32-S3 hardware RNG at first-boot time (RF calibration state), and the generation recipe (key sizes, encoding) | Credential generation (T11) |
-| **S4** | Cost/benefit of ESP32 flash encryption + secure boot for NVS confidentiality (eFuse irreversibility, OTA implications, WebFlash erase implications) | Physical-attacker posture claim (boundary 5) |
-| **S5** | Can stock Home Assistant drive a claim handshake (adopt-then-encrypt, or a custom-integration-free flow)? | Option E transport |
-| **S6** | ESP Web Tools / WebFlash erase semantics: which install paths erase NVS, and can WebFlash offer "reflash preserving ownership" safely? | §11/§12 reflash matrix |
+| **A — Manufacturing-time injection** | Unique secrets injected per unit before sale (label/QR/order record) | Rejected as primary (permanent secrets in third-party artefacts; heavy process; dies on erase); optional **bootstrap-code delivery channel** inside F, owner decision |
+| **B — Per-device build-time firmware** | Unique image per unit | Rejected for production (breaks immutable signed artifacts, hash pinning, declaration-driven matrix; makes Sense360 a credential custodian); **remains the supported self-build path** |
+| **C — Flash-time browser-generated credentials** | Browser generates and injects during Web Serial session | Rejected as backbone (desktop-only, §5.3; highest browser exposure; no device-side recovery); optional bootstrap seeding inside F, owner decision |
+| **D — First-boot local provisioning** | Device boots unowned, self-establishes via local flow | Strongest foundation but leaves the claim race open → folded into F |
+| **E — Home Assistant-driven claim** | HA claims via temporary local bootstrap channel | Preferred *transport* on top of D/F; **stock HA cannot drive it today** (§5.4) — phases in when upstream lands; a non-HA local path is required regardless |
+| **F — Hybrid bootstrap model** | Presence-proof-gated claim; device-held unique credentials; one-way transition; physical reset to unowned | **Preferred direction** (§8) |
 
-### 8.4 Acceptance criteria before this ADR can move to Accepted
+## 8. Preferred direction (direction, not acceptance)
 
-Listed in §21; in short — owner decisions resolved, S1–S6 answered,
-security review done, recovery and downgrade semantics final, test plan
-agreed, WebFlash responsibilities agreed, no false claim anywhere, SOT
-records the acceptance.
+**Option F — hybrid bootstrap on the first-boot foundation — is retained
+and strengthened by the feasibility evidence.** What the v1 draft treated
+as its riskiest unknown (runtime credential activation) is the documented,
+intended upstream mechanism: ESPHome's own codegen comment describes
+shipping with `encryption:` and no key so "a plaintext client [can]
+provide a noise key, send it to the device, and then switch to noise. The
+key will be saved in flash … and plaintext disabled. Only a factory reset
+can remove it" (Appendix D, E-1). The custom work is therefore **not**
+credential mechanics — it is the **claim gating**: stock behaviour accepts
+a key from *any* plaintext client at *any* time, which is exactly the
+claim race (§6). The Sense360 component constrains *when* that stock
+mechanism is reachable.
 
-## 9. Credential lifecycle
+Proposed shape:
 
-### 9.1 Lifecycle phases (applies per credential class; deviations noted)
+1. **Explicit unowned state.** Provisioning-capable releases boot into
+   `FACTORY_UNOWNED`, honestly labelled, behaviour-constrained (§12).
+2. **Physical-presence-gated claim window.** A physical action (SW3
+   boot-button press and/or power-cycle pattern — SPIKE-P6 fixes which)
+   opens a time-boxed `BOOTSTRAP_AVAILABLE` window; only inside it does
+   the device accept the API set-key exchange / claim flow.
+3. **Unique credentials at claim.** API key set via the stock runtime
+   set-key mechanism (claimant-generated) or device-generated and
+   displayed by the local claim page — OD-05 decides the v1 stance; OTA
+   password and AP password are **device-generated** (hardware RNG) at
+   claim and applied via the verified runtime setters; web server is
+   disabled (OD-06).
+4. **One-way transition** to `OWNED`, committed atomically in NVS;
+   bootstrap access invalidated before the claim response completes.
+5. **Physical-only reversal.** Factory reset (stock `factory_reset`
+   semantics: full NVS erase) is the only path back to unowned.
+6. **No permanent secrets in public firmware or WebFlash metadata** — by
+   construction; the deny-list artifact gate remains as backstop.
 
-| Phase | Proposed behaviour |
-|---|---|
-| **Generation** | On-device, at claim time (not at first boot of the flash — avoids generating secrets nobody will ever retrieve), from the ESP32 hardware RNG (S3 recipe). Never derived from MAC/serial/time. |
-| **Entropy requirements** | ≥128-bit effective entropy per secret; API key = 32-byte Noise PSK (base64); passwords generated to ESPHome-accepted charset/length (S3 fixes exact recipe). |
-| **Temporary bootstrap** | Whatever gates the claim (physical press, one-time code). Never reusable, never a permanent credential, invalidated at claim commit. |
-| **Owner claim** | The one-time handover: device transmits generated credentials over the claim channel (captive-portal page / claim endpoint / HA transport per S5) exactly once, then marks them delivered. |
-| **Storage** | Device: NVS, under a dedicated namespace, atomically committed with the ownership flag (T12). Owner: HA config entry (API key), user's password manager (others) — documented guidance, §18. |
-| **Use** | Standard ESPHome surfaces: Noise-encrypted API, password-checked OTA, authenticated web, protected AP. |
-| **Rotation** | Owner-initiated only, from an authenticated session; device generates the replacement, old value invalid on commit. Rotation of the API key requires HA re-entry (T13 warning in UX). Not part of MVP unless owner requires (Q6). |
-| **OTA update** | Credentials and ownership persist (NVS untouched by OTA). Contract test: post-OTA, same credentials work. |
-| **Normal reflash (serial, no erase)** | NVS persists → ownership persists **if** the new image is provisioning-capable. Owner decision Q7 confirms this is the desired semantic. |
-| **Full flash erase** | NVS destroyed → device returns to `FACTORY_UNOWNED` with no credentials. This **is** the out-of-band factory reset (physical access by definition). |
-| **Factory reset (in-band)** | The defined physical action (Q8) wipes the credential namespace + ownership flag and reboots into `FACTORY_UNOWNED`. Deterministic; §11. |
-| **Ownership transfer** | Factory reset by the departing owner (or by the new owner with physical access), then a fresh claim by the new owner. Old credentials are destroyed, not handed over. |
-| **Support/RMA** | Support instructs reset; Sense360 never receives or recovers owner credentials. RMA outbound replacements ship unowned. |
-| **Device replacement** | New unit = new claim = new credentials; HA re-adoption required (documented). No credential cloning between units — ever (T1). |
-| **Loss of HA configuration** | Device still owned + owner still has credentials → re-enter key in HA. Owner lost credentials too → §9 "lost owner credentials". |
-| **Lost owner credentials** | No recovery of the *values* (non-goal 5). Recovery = physical factory reset → re-claim → new credentials (§11). |
-| **Decommissioning** | Factory reset (wipes A1–A6 including stored WiFi) before disposal/sale; documented as the required step. |
+### Robustness under each possible spike outcome
 
-### 9.2 Per-credential-type ownership and lifecycle
+The direction was re-challenged against every capability result the
+spikes could return. Verified results are marked; Option F does not
+depend on any single optimistic outcome:
 
-| Credential | Holder(s) | Generated | Invalidated by | Notes |
+| Capability result | Architectural consequence | Status |
+|---|---|---|
+| Dynamic API key supported | Continue: runtime set-key is the claim mechanism | **Verified in source (E-1…E-3); bench confirmation = SPIKE-P1** |
+| Dynamic API key requires custom component | Would need owner sign-off on security-critical custom crypto path | Not required — stock mechanism exists; custom code is gating-only (OD-09) |
+| Dynamic API key requires upstream ESPHome change | Programme phased behind upstream work | Not the case per source evidence |
+| Dynamic OTA password unsupported | Disable network OTA until owned; recovery via serial only | Not the case — runtime setter is deliberate upstream API (E-4/E-5); boot-ordering proof = SPIKE-P2; contingency stands if SPIKE-P2 fails (OD-08) |
+| Dynamic web auth unsupported | **Disable web after ownership** | Confirmed unusable for us (auth literals must be non-empty YAML values, E-8) → web disabled is the proposed default (OD-06) |
+| Dynamic fallback-AP password unsupported | Disable fallback AP after ownership or reset-only setup mode | Not the case — public runtime setter (E-8); boot-ordering proof folds into SPIKE-P2; contingency stands (OD-07) |
+| Stock HA claim unsupported | Explicit local setup flow + manual key entry for v1; HA-driven claim phases in when upstream lands | **Confirmed: stock HA = manual entry today** (E-9); OD-05 asks the owner to accept this for v1 |
+| No suitable physical-presence mechanism | Manufacturing bootstrap code, USB claim, or hardware revision required | Unlikely to bind: SW3/SW4 exist on S360-100 R4 and the stock power-cycle-count reset needs no button (E-6/E-10); enclosure accessibility = SPIKE-P6 |
+
+If SPIKE-P1 or SPIKE-P2 fails on real hardware, the fallbacks above keep
+Option F viable in reduced form (e.g. OTA disabled until owned). Only a
+combined failure of the set-key mechanism *and* all presence mechanisms
+would force reconsideration toward Option A bootstrap codes — no current
+evidence points there.
+
+## 9. Owner decision pack
+
+Ten decisions. Each is a policy choice the owner can make now; none
+requires implementation first. Where a decision consumes spike evidence,
+that evidence is already gathered at source level and the residual bench
+confirmation is noted. (Category B/C/D questions from the v1 draft are
+deliberately *not* in this pack — see Appendix A.)
+
+---
+
+**Decision OD-01 — Offline / local-first requirement**
+
+**Recommendation:** Provisioning must work with no internet and no
+Sense360 cloud dependency; internet may enhance but never gate the flow.
+
+**Owner choice:** Accept / Reject / Amend
+
+**Why this matters:** Fixes the architecture class — every option that
+phones home is excluded permanently; support and documentation can promise
+local-first onboarding.
+
+**Blocked by spike:** No.
+
+---
+
+**Decision OD-02 — Physical presence required for claim and recovery**
+
+**Recommendation:** A physical action on the unit is mandatory both to
+open the claim window and to perform recovery/reset. No network-only path
+may claim, re-key, or unown a device.
+
+**Owner choice:** Accept / Reject / Amend
+
+**Why this matters:** This is the mitigation for the claim race and for
+recovery abuse — the two attacks stock mechanisms do not stop. Rejecting
+it means accepting first-come-first-served claiming on the LAN.
+
+**Blocked by spike:** No (the policy). Which physical mechanism ships is
+SPIKE-P6 (implementation detail, not policy).
+
+---
+
+**Decision OD-03 — No escrow of permanent owner credentials**
+
+**Recommendation:** Sense360 never stores, receives, or can recover any
+permanent owner credential. Lost credentials are recovered only by the
+physical re-key/reset path. (If bootstrap codes are ever adopted, they are
+single-use and dead after claim; that separate question stays out of v1 —
+Appendix A Q1/Q3/Q17.)
+
+**Owner choice:** Accept / Reject / Amend
+
+**Why this matters:** Hard trust boundary; shapes support ("we cannot
+unlock your device — by design"), privacy posture, and breach blast
+radius. Aligns with the operating model's owner-secret discipline; owner
+ratification makes it programme policy of record.
+
+**Blocked by spike:** No.
+
+---
+
+**Decision OD-04 — Home Assistant primary, but not sole, owner surface**
+
+**Recommendation:** HA is the primary owner experience; a generic local
+claim/recovery flow (phone-browser reachable, no HA required) must also
+exist. Claim and recovery must work from a mobile browser; only *flashing*
+is desktop-bound (Web Serial platform fact).
+
+**Owner choice:** Accept / Reject / Amend
+
+**Why this matters:** Determines whether non-HA users are supported and
+guarantees a recovery path when HA itself is what was lost. Mobile-capable
+claim keeps the ceiling-mounted install workflow realistic.
+
+**Blocked by spike:** No.
+
+---
+
+**Decision OD-05 — Manual API-key entry is acceptable for v1**
+
+**Recommendation:** Accept manual key entry into HA for v1 (the key is
+presented once by the local claim flow, or generated by the claimant and
+set to the device). Adopt HA-driven automatic key handover when the
+documented upstream HA feature ships ("Support for configuring the
+encryption key on-the-fly will be implemented in a future release of Home
+Assistant" — official ESPHome docs, Appendix D E-9). Do not build a custom
+HA integration for v1.
+
+**Owner choice:** Accept / Reject / Amend
+
+**Why this matters:** Removes the only unbounded external dependency from
+v1 scope. Rejecting means either building/maintaining a custom HA
+integration or blocking the programme on upstream HA timing.
+
+**Blocked by spike:** No (stock-HA behaviour verified from official docs;
+nothing further to learn before deciding).
+
+---
+
+**Decision OD-06 — Web server disabled on owned devices**
+
+**Recommendation:** Disable the web interface in provisioning-capable
+releases (at minimum in OWNED state; recommended entirely). Runtime web
+auth is not viable without baking shared literals (verified, Appendix D
+E-8), and an unauthenticated web UI on an owned device violates Goal 3.
+
+**Owner choice:** Accept / Reject / Amend
+
+**Why this matters:** Removes a whole credential class and its lifecycle;
+customers lose the local web page (HA remains the interface). The
+self-build path keeps web auth via `!secret` regardless.
+
+**Blocked by spike:** No.
+
+---
+
+**Decision OD-07 — Fallback AP protected after ownership**
+
+**Recommendation:** After claim, the fallback AP is protected with a
+device-generated password delivered to the owner during claim (recovery
+value); contingency if boot-ordering proof fails (SPIKE-P2): disable the
+fallback AP on owned devices and make recovery reset-based only.
+
+**Owner choice:** Accept / Reject / Amend
+
+**Why this matters:** The open AP + captive portal is today's
+WiFi-credential-harvesting surface (audit H2 class). Protecting it
+preserves "fix my WiFi without a ladder"; disabling it is safer but makes
+network changes require physical reset.
+
+**Blocked by spike:** Partially — SPIKE-P2 confirms the AP password is
+applied before the AP can start; the *policy* (protect vs disable) is
+decidable now.
+
+---
+
+**Decision OD-08 — Network OTA posture on owned devices**
+
+**Recommendation:** Keep network OTA enabled with the device-generated
+runtime password (upstream-supported mechanism, Appendix D E-4/E-5),
+subject to SPIKE-P2 proving the password is enforced before the OTA
+endpoint accepts connections. Contingency if that proof fails: network
+OTA is disabled until owned (serial-only recovery), which is accepted as
+a v1 posture rather than shipping an unauthenticated OTA window.
+
+**Owner choice:** Accept / Reject / Amend
+
+**Why this matters:** OTA is the persistent-compromise surface (audit H1
+exploitation path). This decision sets the fail-safe: no capability is
+worth an unauthenticated OTA window on an owned device.
+
+**Blocked by spike:** Partially — SPIKE-P2 (boot-ordering enforcement);
+the policy and its contingency are decidable now.
+
+---
+
+**Decision OD-09 — Custom security-critical ESPHome component is acceptable**
+
+**Recommendation:** Accept that Sense360 maintains a small external
+component in this repo implementing the state machine and claim gating
+(window control, presence input, atomic NVS ownership record, bootstrap
+invalidation). It gates *when* stock mechanisms are reachable; it does
+**not** implement cryptography, key exchange, or transport (those remain
+stock ESPHome). Contract tests (§16) pin its behaviour.
+
+**Owner choice:** Accept / Reject / Amend
+
+**Why this matters:** This is a standing maintenance and review burden on
+every ESPHome version bump. Rejecting it means stock-only behaviour — and
+stock behaviour cannot close the claim race (first plaintext client wins).
+
+**Blocked by spike:** No.
+
+---
+
+**Decision OD-10 — Recovery/reset UX baseline**
+
+**Recommendation:** Factory reset = stock `factory_reset` semantics (full
+NVS erase → FACTORY_UNOWNED), triggered by a deliberate physical action
+with an accidental-trigger guard; the power-cycle-count mechanism (stock,
+works on ceiling-mounted units without touching the board) is the
+universal baseline, with the SW3 button variant added if SPIKE-P6 finds it
+enclosure-accessible. Recovery (re-key without full reset) uses the same
+presence gate as claim. Full flash erase over USB is documented as
+equivalent to factory reset.
+
+**Owner choice:** Accept / Reject / Amend
+
+**Why this matters:** Fixes deterministic reset semantics (Goal 9), the
+ownership-transfer story (Goal 10), and what support may advise. The
+power-cycle baseline means no hardware change and no enclosure dependency.
+
+**Blocked by spike:** Partially — SPIKE-P6 settles the button variant and
+the exact guard values (implementation detail); the semantics are
+decidable now.
+
+---
+
+## 10. Required technical spikes
+
+The v1 draft listed six spikes (S1–S6). This revision executed the
+desk/source phase of all six against ESPHome 2026.6.5, aioesphomeapi
+45.6.0, official ESPHome documentation, and the S360-100 R4 hardware
+record (results and citations: Appendix D). The evaluation:
+
+| v1 spike | Desk result | Remaining before acceptance? |
+|---|---|---|
+| SPIKE-P1 runtime API encryption | **Supported today** in stock ESPHome: ship `encryption:` with no key → runtime set-key, NVS-persisted, plaintext then disabled, factory reset clears (E-1…E-3). Requires no custom component, upstream change, or fork for the mechanism itself. | **Yes — narrowed to bench confirmation** on the pinned build/board |
+| SPIKE-P2 runtime OTA authentication | **Supported today**: empty compiled `password:` exists expressly so `set_auth_password()` can be called at runtime; rotation is the documented use; enforcement occurs whenever the stored password is non-empty (E-4/E-5). OTA state survives OTA (NVS). | **Yes — narrowed to boot-ordering proof** (credential applied before any network endpoint accepts) — also covers the AP password path |
+| SPIKE-P3 web + fallback AP | **Resolved at source level**: runtime web auth not viable without non-empty YAML literals → web disabled (OD-06); AP password has a public runtime setter; captive portal / WiFi provisioning unaffected (E-8). | **No** (AP boot-ordering folds into SPIKE-P2) |
+| SPIKE-P4 persistence & reset | **Resolved at source level**: NVS survives OTA and normal serial app reflash; full erase wipes it; stock `factory_reset` erases the entire NVS partition deterministically; single-blob ownership record gives atomic commit; interrupted claim rolls back by never persisting partial state (E-6/E-7). NVS/flash encryption practical-but-irreversible → deferred decision (Appendix A Q15). | **Partially — WebFlash/ESP Web Tools erase semantics** remain to verify (which installer paths erase NVS) → SPIKE-W1 |
+| SPIKE-P5 HA claim & key handover | **Resolved from primary docs/source**: protocol + client library support exists (`noise_encryption_set_key`, aioesphomeapi 45.6.0); stock HA cannot yet drive it — manual key entry is the stock path today; Improv (serial/BLE) sets WiFi only; the BLE `esp32_improv` `authorizer` is upstream precedent for button-gated provisioning (E-9/E-10). No custom HA integration required if OD-05 accepted. | **No** (upstream HA feature is a watch item, not a blocker) |
+| SPIKE-P6 physical-presence mechanism | **Partially resolved**: S360-100 R4 carries SW3 (boot/IO0) and SW4 (reset/EN) tactile switches per [`docs/hardware/s360-100-r4-core.md`](../hardware/s360-100-r4-core.md); the stock power-cycle-count factory-reset mechanism requires no button access at all. No user-accessible button is *assumed* — enclosure accessibility is unverified. | **Yes — bench item**: confirm mechanism ergonomics/accessibility on assembled hardware |
+
+**Final reduced pre-acceptance spike list (4, down from 6):**
+
+| ID | Question | Type |
+|---|---|---|
+| **SPIKE-P1** | On the pinned release build/board: empty-key noise flow end-to-end — set key from plaintext client, verify persistence across reboot, verify plaintext refused after key set, verify factory reset clears | Bench (owner-run or owner-observed; results recorded, attestation owner-authored only) |
+| **SPIKE-P2** | Boot-ordering enforcement: NVS-loaded OTA and AP passwords are active before the OTA endpoint / fallback AP accept any connection; measure the window if any | Bench + source trace |
+| **SPIKE-W1** | WebFlash / ESP Web Tools install paths: which erase NVS (full install vs update), and can/should the installer offer "reflash preserving ownership" | Desk, WebFlash repo (documentation-level; no WebFlash change in this programme phase) |
+| **SPIKE-P6** | Physical-presence ergonomics on assembled S360-100 R4: SW3 accessibility in the enclosure; power-cycle-pattern reliability on PoE and 240 V PSUs | Bench |
+
+Dropped as acceptance blockers: entropy verification (ESP32-S3 TRNG with
+RF active is the documented platform RNG; the generation recipe is pinned
+by contract test CT-15 at implementation time); flash/NVS encryption
+(deferred decision, Appendix A Q15); HA auto-claim (upstream watch item).
+
+## 11. Credential lifecycle
+
+Per-class summary (full phase-by-phase table unchanged in substance from
+v1; the mechanisms are now the verified ones):
+
+| Credential | Origin | Storage | Invalidated by | Notes |
 |---|---|---|---|---|
-| **HA API encryption key (Noise PSK)** | Device NVS + HA config entry | At claim, on-device | Factory reset; rotation | The only credential that must be *shared with* another system routinely; claim channel should deliver it to HA directly where S5 allows (minimises T4). |
-| **OTA password/token** | Device NVS + owner records | At claim, on-device | Factory reset; rotation | Owner needs it only for manual `esphome upload`; HA OTA via the device's update mechanism is out of MVP scope. Q6 covers stronger-than-password mechanisms. |
-| **Web authentication** | Device NVS + owner records | At claim, on-device | Factory reset; rotation | Or web server disabled by default in OWNED state (owner decision Q5) — disabling removes the credential class entirely. |
-| **Fallback/setup AP protection** | Device NVS | At claim, on-device | Factory reset | In `FACTORY_UNOWNED` the AP is open **by definition** (it is the setup surface) but constrained + time-boxed; in OWNED it is password-protected with the generated value (or disabled — Q5 companion decision). |
-| **Bootstrap/claim secret (if Q3/Q11 adopt one)** | Label/QR/order record or flash-session, + device | Pre-claim (manufacturing or flash time) | Single use; claim commit; expiry timer | Never grants control by itself — only the right to *start* a claim. Its delivery channel privacy is §17. |
+| **API key (Noise PSK)** | Set at claim via stock runtime set-key (claimant-generated) or device-generated + displayed by claim flow — OD-05 | Device NVS (stock `SavedNoisePsk` preference) + HA config entry | Factory reset; authenticated re-key (rotation) | Stock semantics: once set, plaintext disabled; only factory reset removes |
+| **OTA password** | Device-generated at claim (hardware RNG) | Device NVS + owner records | Factory reset; rotation via authenticated session | Applied at boot via runtime setter; enforcement-before-network = SPIKE-P2; contingency OD-08 |
+| **Web credential** | **None — web disabled** (OD-06) | — | — | Self-build path keeps `!secret` web auth |
+| **Fallback-AP password** | Device-generated at claim | Device NVS | Factory reset | Delivered to owner at claim as the recovery value; contingency OD-07 |
+| **Bootstrap material** | Physical action (baseline); optional code channels not in v1 | RAM window state only | Single use; window timeout; claim commit | Never persisted, never a permanent credential |
 
-## 10. Device state machine
+Lifecycle rules: generation on-device from the hardware RNG (recipe pinned
+by CT-15); ≥128-bit effective entropy; nothing derived from MAC, serial,
+or time. Rotation is owner-initiated from an authenticated session only.
+OTA updates and normal serial reflash preserve all of the above (NVS);
+full erase and factory reset destroy all of it. Ownership transfer = reset
+then re-claim (credentials are destroyed, never handed over). Support/RMA
+never receives or recovers credentials. Decommissioning = factory reset
+(wipes stored WiFi too). Loss scenarios: HA config lost → re-enter key or
+physical re-key; all owner credentials lost → physical recovery generates
+new ones — values are never *revealed*, only replaced.
 
-States (proposal — names become contract-test vocabulary):
+## 12. State machine
 
-- **`FACTORY_UNOWNED`** — no credentials, no owner. Setup surfaces
-  available; control surfaces constrained.
-- **`BOOTSTRAP_AVAILABLE`** — sub-state of unowned where a claim window is
-  open (after physical trigger, or always-on while unowned — owner
-  decision Q9 nuance; time-boxed if triggered).
-- **`CLAIM_IN_PROGRESS`** — a claimant passed the bootstrap gate; device
-  is generating/handing over credentials. Single claimant; short timeout.
-- **`OWNED`** — credentials active on all surfaces; setup surfaces closed
-  or authenticated.
-- **`RECOVERY`** — owner-initiated recovery window (physical action) on an
-  owned device; allows re-delivery of *new* credentials without full
-  reset if the owner chooses (§11.4), else exits back to OWNED.
-- **`FACTORY_RESET_PENDING`** — the defined reset action has been armed
-  (e.g. button held; confirmation window running) but not yet executed —
-  the accidental-reset guard (§11.6).
-
-### State-transition table
+States: `FACTORY_UNOWNED` · `BOOTSTRAP_AVAILABLE` · `CLAIM_IN_PROGRESS` ·
+`OWNED` · `RECOVERY` · `FACTORY_RESET_PENDING`.
 
 | From | Event | To | Guard |
 |---|---|---|---|
 | *(fresh flash / post-erase boot)* | boot, no ownership record | FACTORY_UNOWNED | — |
-| FACTORY_UNOWNED | physical presence proof (or valid one-time bootstrap code) | BOOTSTRAP_AVAILABLE | Q9; window timer starts |
-| BOOTSTRAP_AVAILABLE | window timeout / reboot | FACTORY_UNOWNED | discard nothing (no secrets exist yet) |
-| BOOTSTRAP_AVAILABLE | claimant opens claim channel | CLAIM_IN_PROGRESS | one claimant; others rejected |
-| CLAIM_IN_PROGRESS | claim completes: credentials generated, delivered, acknowledged | OWNED | atomic NVS commit (ownership flag + credentials together); bootstrap invalidated pre-ack (T12, §8.1.5) |
-| CLAIM_IN_PROGRESS | timeout / power loss / claimant abandons | FACTORY_UNOWNED | partial material discarded; nothing persisted (T12) |
-| OWNED | boot / OTA / normal reflash (capable image) | OWNED | credentials verified present in NVS |
-| OWNED | physical recovery action | RECOVERY | physical presence required (T14) |
-| RECOVERY | timeout / cancel | OWNED | no change |
+| FACTORY_UNOWNED | physical presence proof | BOOTSTRAP_AVAILABLE | window timer starts |
+| BOOTSTRAP_AVAILABLE | window timeout / reboot | FACTORY_UNOWNED | nothing persisted |
+| BOOTSTRAP_AVAILABLE | claimant opens claim channel | CLAIM_IN_PROGRESS | single claimant; others rejected |
+| CLAIM_IN_PROGRESS | credentials established, delivered, acknowledged | OWNED | atomic single-blob NVS commit; bootstrap invalidated before ack |
+| CLAIM_IN_PROGRESS | timeout / power loss / abandon | FACTORY_UNOWNED | partial material discarded |
+| OWNED | boot / OTA / capable reflash | OWNED | credentials verified present |
+| OWNED | physical recovery action | RECOVERY | presence required |
+| RECOVERY | timeout / cancel | OWNED | unchanged |
 | RECOVERY | owner completes re-key | OWNED | new credentials committed atomically; old invalidated |
-| OWNED | physical reset action armed | FACTORY_RESET_PENDING | §11.6 guard (hold time / confirmation) |
-| FACTORY_RESET_PENDING | confirmation window expires unconfirmed | OWNED | no change |
-| FACTORY_RESET_PENDING | reset confirmed | FACTORY_UNOWNED | credential namespace wiped before reboot |
-| *(any)* | full flash erase (external, USB) | FACTORY_UNOWNED | physical access by definition |
+| OWNED | reset action armed | FACTORY_RESET_PENDING | deliberate-action guard |
+| FACTORY_RESET_PENDING | confirmation window expires | OWNED | unchanged |
+| FACTORY_RESET_PENDING | reset confirmed | FACTORY_UNOWNED | full NVS erase (stock semantics) before reboot |
+| *(any)* | full flash erase (USB) | FACTORY_UNOWNED | physical access by definition |
 
-### Per-state specification
+Per-state rules: in `FACTORY_UNOWNED` the device claims no security,
+exposes setup surfaces only (API set-key **not** reachable — that is the
+gating component), and constrains actuators where feasible (Appendix A
+Q18); in `OWNED` every surface is authenticated or disabled; a boot with a
+corrupt credential record fails **closed** into a recovery-safe halt,
+never silently open (contract test). Exact timeout/hold values are
+implementation-time details (Appendix A, Category C).
 
-| State | Interfaces available | Auth required | Time limit | Persisted data | Failure behaviour | Physical presence |
-|---|---|---|---|---|---|---|
-| FACTORY_UNOWNED | WiFi setup (open AP + captive portal, setup-network join); claim trigger; **no actuator control where feasible (Q18)**; API/web/OTA per Q19 (recommend: disabled or read-only until owned) | None (honest: no security claimed) | None (persistent state) | None (plus non-secret state flag) | Reboot → same state | Not required to *be* in state |
-| BOOTSTRAP_AVAILABLE | As above + claim endpoint advertised (mDNS/portal) | Bootstrap gate already passed | **Yes** — short window (e.g. minutes; S2/UX fixes value) | Window state (RAM only) | Timeout → FACTORY_UNOWNED | **Yes** (the gate) |
-| CLAIM_IN_PROGRESS | Claim channel only; other setup surfaces frozen | Claim-session binding | Yes — short | Nothing until final commit | Any failure → FACTORY_UNOWNED, material discarded | Already proven |
-| OWNED | Encrypted API, authenticated OTA, authenticated-or-disabled web, protected-or-disabled fallback AP | **All surfaces authenticated** | None | Credentials + ownership + WiFi (NVS) | Boot with corrupt credential record → RECOVERY-equivalent safe halt, never silent-open (fail closed; exact behaviour a §14 contract test) | For state changes only |
-| RECOVERY | Recovery channel (local, constrained) | Physical action + (existing credential where available) | Yes — short | Unchanged until commit | Timeout → OWNED unchanged | **Yes** |
-| FACTORY_RESET_PENDING | Confirmation surface only | Physical action | Yes — short confirmation window | Unchanged until confirmed | Expire → OWNED unchanged | **Yes** |
+## 13. Recovery and reset policy
 
-## 11. Recovery and reset semantics
+| Action | Credentials survive? | Ownership survives? |
+|---|---|---|
+| Reboot / power cycle | Yes | Yes |
+| OTA update | Yes | Yes |
+| Normal serial reflash (no erase), provisioning-capable image | Yes | Yes |
+| Normal serial reflash, older non-capable image | Record persists in NVS but is not honoured (device behaves unprovisioned); restored by flashing a capable image | Latent |
+| Full flash erase | No | No → FACTORY_UNOWNED |
+| Factory reset (in-band physical action) | No | No → FACTORY_UNOWNED |
 
-### 11.1 Action → effect matrix (proposed; Q7/Q8 finalise)
+Ownership transfer: reset (departing owner, or new owner with physical
+access) then fresh claim. Recovery after HA loss: re-enter retained key,
+else physical re-key (RECOVERY state) — new credentials generated, old
+invalidated, nothing revealed. Return to unowned: physical paths only.
+Accidental-reset guard: deliberate gesture + confirmation window
+(`FACTORY_RESET_PENDING`); a bare reboot or power blip never resets —
+note the stock power-cycle-count trigger requires N deliberate cycles
+within a bounded interval, which is the guard. Support advises reset only
+after confirming possession, observable device state, and that re-key
+recovery does not apply; support has no override capability by design.
 
-| Action | What it is | Credentials survive? | Ownership survives? |
-|---|---|---|---|
-| **Reboot / power cycle** | Normal restart | Yes | Yes |
-| **OTA update** | New app image over authenticated OTA | Yes (NVS untouched) | Yes |
-| **Normal reflash** (serial, app write, no erase) | New image over USB without flash erase | Yes, **if** the new image is provisioning-capable (Q7); older image → §12 | Record survives in NVS; honoured only by capable firmware |
-| **Full flash erase** (`esptool erase_flash`, installer "erase device") | All flash including NVS wiped | **No** | **No** → FACTORY_UNOWNED |
-| **Factory reset** (in-band, the defined physical action) | Firmware wipes credential namespace + ownership | **No** | **No** → FACTORY_UNOWNED |
+## 14. Downgrade and release policy
 
-### 11.2 Ownership transfer
+1. **Owned device + older unprovisioned image over serial:** legitimate
+   (physical access); behaviour per §13 row 4.
+2. **OTA downgrade to a non-capable image while OWNED: refused** by a
+   version/capability floor (mechanism scoped at implementation;
+   Appendix A Q16). OTA is authenticated in OWNED, so this defends
+   against a compromised-but-not-owner client, not the owner.
+3. **A release without provisioning support never claims it.** Claims are
+   per-release facts.
+4. **WebFlash stable vs preview:** capability lands preview-first (§17);
+   WebFlash presents capability from declared upstream metadata only.
+5. **Self-builds:** unaffected; static-`!secret` builds remain supported
+   and documented as distinct.
 
-Departing owner performs factory reset (or new owner does, having
-physical access). Device returns to FACTORY_UNOWNED; new owner claims
-normally. **Transfer never copies credentials**; previous owner's access
-is destroyed by the reset (contract test §14).
+**Release gates** (extending the existing deny-list pattern):
+**G-P1** — release metadata may declare `provisioning: true` only when the
+contract tests (§16) ran against that artifact lineage in CI; fails
+closed. **G-P2** — the existing deny-list artifact scan, extended with any
+new placeholder/bootstrap literals. **G-P3** — WebFlash imports the
+capability flag only from signed upstream release metadata (defined in the
+WebFlash repo when that separate PR happens). **G-P4** — no
+**stable**-channel release carries `provisioning: true` before the
+multi-device physical bench pass; preview may, with compile/emulation
+evidence, labelled per the no-false-proof invariant.
 
-### 11.3 Owner lost Home Assistant configuration
-
-Device is OWNED and healthy. If the owner still holds the API key
-(password manager, printed record): re-add in HA — no device action. If
-not: physical **RECOVERY** action → device re-keys (generates *new*
-credentials, delivers over the recovery channel, invalidates old) →
-re-adopt in HA. No values are ever *revealed* — only replaced (T14).
-
-### 11.4 Whether recovery requires physical access
-
-**Yes — recommended and assumed throughout (Q9).** Remote recovery is
-indistinguishable from attack (T14).
-
-### 11.5 Returning to unowned
-
-Only via factory reset or full flash erase — both physical. No network
-path may reach FACTORY_UNOWNED (contract test).
-
-### 11.6 Accidental-reset prevention
-
-The reset action must be deliberate: long-hold plus confirmation window
-(FACTORY_RESET_PENDING), with the exact gesture fixed by S2 hardware
-findings. A bare reboot, power blip, or short press must never reset.
-
-### 11.7 Evidence before support advises a reset
-
-Support asks the owner to confirm: (a) physical possession, (b) the
-device's observable state (LED pattern / AP name / HA status), (c) that
-recovery (11.3) does not apply. Reset advice destroys credentials, so it
-is the last resort, and the checklist becomes a support document (§18).
-Support has no override capability by design (T10).
-
-## 12. Downgrade and release policy
-
-1. **Owned device flashed with an older unprovisioned binary** (serial):
-   the old image ignores the NVS ownership record → device behaves
-   unprovisioned (open surfaces). This is physical-access reflash =
-   legitimate. The record persists; reflashing a capable image restores
-   OWNED. **OTA downgrade to an unprovisioned image must be refused**
-   while OWNED (version/capability floor — contract test; exact mechanism
-   is part of Spike S1/S6 scope).
-2. **User erases flash:** clean FACTORY_UNOWNED; documented as equivalent
-   to factory reset.
-3. **A release lacks provisioning support:** it must never *claim*
-   provisioning. Claims are per-release facts, gated in-release-pipeline
-   (see gate below).
-4. **WebFlash stable vs preview:** provisioning capability lands per
-   §15 staging (preview first). WebFlash must present per-build
-   capability truthfully from declared metadata, never inferring it
-   (operating-model rule: no claiming firmware behaviour not proven
-   upstream).
-5. **Self-build users:** unaffected; the `!secret` path remains. A
-   self-build with static secrets and the provisioning flow disabled
-   remains a supported configuration; docs must state the difference
-   plainly.
-
-**Proposed release gates (extending the existing pattern of
-[`check_firmware_default_credentials.py`](../../scripts/check_firmware_default_credentials.py)):**
-
-- **G-P1 — no-claim-without-capability:** release metadata may declare
-  `provisioning: true` for a build only when the provisioning contract
-  tests (§14) ran against that artifact lineage in CI; the release
-  workflow fails closed otherwise.
-- **G-P2 — no-shared-secret backstop (existing, retained):** deny-list
-  scan of every artifact; extended with any new placeholder/bootstrap
-  literals the implementation introduces.
-- **G-P3 — capability honesty downstream:** WebFlash imports the
-  capability flag only from signed upstream release metadata (WebFlash
-  repo work, §13; gate defined there when that PR happens).
-- **G-P4 — bench evidence before stable:** the multi-device physical
-  bench pass (§14, §15) is required before any **stable**-channel release
-  carries `provisioning: true`. Preview may carry it with
-  compile+emulation evidence only if labelled per the no-false-proof
-  invariant.
-
-## 13. Cross-repository responsibilities
+## 15. Cross-repository responsibilities
 
 | Repo | Owns |
 |---|---|
-| **esphome-public** | This architecture and ADR; the firmware implementation (state machine, generation, claim, recovery, reset); NVS persistence layout; unit/contract/integration tests; release-gate scripts and their tests; release evidence; hardware bench evidence records (owner-attested). |
-| **WebFlash** | Any browser-side provisioning UX (only if Q3/Q11 adopt flash-time seeding); safe handling of transient material (in-memory only, no persistence, no transmission); **no credential logging or analytics**; manifest and installer truthfulness (capability flags from upstream metadata only); distribution gates (G-P3); erase-vs-preserve install semantics (S6). |
-| **SOT** | Programme status (`planned` today — unchanged by this PR); recording the accepted architecture decision when the owner accepts; open gates; owner decisions of record; cross-repo evidence links. |
+| **esphome-public** | This ADR; the gating component, state machine, persistence record; unit/contract/integration tests; release gates G-P1/G-P2/G-P4 and their pinned tests; release evidence; bench-evidence records (owner-attested only) |
+| **WebFlash** | Installer/manifest truthfulness (capability flags from upstream metadata only); erase-semantics documentation (SPIKE-W1); **no credential logging or analytics**; safe transient handling if any browser-side role is ever adopted (not in v1); distribution gate G-P3 |
+| **SOT** | Programme status (**planned** today — unchanged by this PR); the accepted-decision record when the owner accepts; open gates; owner decisions of record; cross-repo evidence links |
 
-**Sequencing rule (operating model):** this ADR PR is architecture only.
-Implementation (esphome-public), distribution changes (WebFlash), and the
-SOT status/decision updates are each **separate PRs** in their owning
-repositories, in the §15 order. Nothing in this PR changes WebFlash or
-SOT.
+Sequencing (operating model): architecture (this PR) → spikes → failing
+contract tests → firmware implementation → WebFlash (if any) → SOT status
+reconciliation — each in its owning repo, each a separate PR.
 
-## 14. Test-driven delivery plan
+## 16. Test strategy
 
-Failing **contract tests are written before implementation** (SOT TDD
-sequence). Contract vocabulary = the state names in §10. No
-implementation tests are added in this ADR PR — the repo has no
-ADR-schema test convention, and adding runtime tests now would violate
-the architecture-only scope.
+Failing contract tests land **before** implementation. Vocabulary = §12
+state names. No implementation tests are added in this ADR PR (no ADR
+schema/test convention exists in-tree).
 
-### 14.1 Contract tests to write first (all failing until implementation)
+Contract tests CT-01…CT-15 (unchanged in substance from v1):
+uniqueness across devices (CT-01); API encryption required after claim
+(CT-02); OTA auth required after claim (CT-03); web authenticated-or-
+absent (CT-04); fallback AP protected-or-unavailable after ownership
+(CT-05); bootstrap single-use (CT-06); interrupted claim persists nothing
+(CT-07); no secret in tracked files, build logs, manifests, metadata,
+URLs, or browser persistence (CT-08); OTA preserves ownership (CT-09);
+reflash matrix per §13 (CT-10); factory reset requires the defined
+physical action, no network path (CT-11); transfer invalidates prior owner
+(CT-12); downgrade policy per §14 (CT-13); recovery completes with
+physical presence and existing hardware only (CT-14); generated-credential
+entropy/format recipe (CT-15).
 
-| ID | Contract |
-|---|---|
-| CT-01 | Two devices (or two simulated provisioning runs) never receive the same permanent credentials — any class, any pair. |
-| CT-02 | After successful claim, the native API requires the generated Noise key (unencrypted connection refused). |
-| CT-03 | After successful claim, OTA without the generated credential is refused. |
-| CT-04 | After successful claim, the web interface is authenticated (or absent, per Q5) — never open. |
-| CT-05 | After ownership, the fallback AP is protected or unavailable — never open. |
-| CT-06 | Bootstrap material cannot be reused after claim (replay of the claim exchange fails; second claimant fails). |
-| CT-07 | Interrupted provisioning (power loss at any injected point in CLAIM_IN_PROGRESS) yields FACTORY_UNOWNED with zero persisted partial secrets. |
-| CT-08 | No secret appears in tracked files, build logs, release manifests/metadata, URLs, or (browser tests) browser persistence — automated scans, extending the existing deny-list approach. |
-| CT-09 | Normal OTA preserves ownership and credentials (same key works after update). |
-| CT-10 | Reflash modes preserve/reset ownership exactly per the §11.1 matrix. |
-| CT-11 | Factory reset requires the defined physical action; no network-only path reaches FACTORY_UNOWNED. |
-| CT-12 | Ownership transfer (reset + re-claim) invalidates all previous-owner credentials. |
-| CT-13 | Downgrade behaviour matches §12 (incl. OTA downgrade refusal while OWNED). |
-| CT-14 | Recovery path completes with physical presence and existing hardware only — no support/backdoor access exists to fabricate. |
-| CT-15 | Generated credentials meet the S3 entropy/format recipe (statistical + format checks). |
+Tier mapping — **unit** (host, stdlib `unittest`, mirroring the existing
+`scripts/ ↔ tests/` pattern): state machine, NVS record codec, gate
+scripts; **contract**: CT-01…15 against a host-simulated core, the merge
+gate for implementation PRs; **integration**: compiled firmware — HA
+adoption with the set key, OTA flows, desync recovery; **browser**
+(WebFlash repo, only if a browser role is ever adopted): no-persistence /
+no-analytics assertions; **two-device uniqueness**: CT-01 on ≥2 physical
+units within the bench plan; **physical bench** (owner-attested, never
+machine-written): claim UX, reset gesture, RF surfaces, SPIKE-P1/P2/P6
+confirmations; **release gates**: G-P1…G-P4 with pinned tests.
 
-### 14.2 Test-tier mapping
+## 17. Rollout
 
-- **Unit tests** (host, stdlib `unittest` per repo convention): state
-  machine transitions, NVS-record encoding, generation recipe (CT-15
-  format half), gate scripts (G-P1/G-P2) — mirroring the existing
-  `scripts/ ↔ tests/test_*.py` pattern.
-- **Contract tests**: CT-01…CT-15 against a host-simulated device core
-  where possible; these are the merge gate for implementation PRs.
-- **Integration tests**: ESPHome-compiled firmware in emulation/on-bench:
-  HA adoption with generated key (CT-02, T13 desync), OTA flows
-  (CT-03/09/13).
-- **Browser tests** (WebFlash repo, only if flash-time seeding is
-  adopted): no-persistence/no-analytics assertions (CT-08 browser half).
-- **Two-device uniqueness tests**: CT-01 on ≥2 physical units — part of
-  the bench plan.
-- **Physical bench tests** (owner-attested, never agent-authored, per the
-  standing attestation rule): claim UX on real hardware, reset gesture,
-  RF surfaces (open-AP window, protected AP), multi-device uniqueness.
-- **Release gates**: G-P1…G-P4 wired into the release workflow with their
-  own pinned tests.
+1. Owner resolves the decision pack (§9); ADR accepted (SOT records it).
+2. Spikes SPIKE-P1, SPIKE-P2, SPIKE-W1, SPIKE-P6 (§10); ADR amended if
+   any result contradicts the direction (back to owner if so).
+3. Failing contract tests CT-01…15 land (red).
+4. Firmware implementation to green, staged: state machine → generation →
+   claim → recovery/reset.
+5. WebFlash documentation/gate work if required (separate repo/PR).
+6. Multi-device bench verification (owner-attested).
+7. Preview release with `provisioning: true` under G-P1/G-P2 labelling.
+8. Stable release after bench evidence (G-P4) and preview soak.
+9. Advisory/update messaging (owner publishes); migration guidance (§18).
+10. SOT reconciliation at each material change (planned → active →
+    implemented → verified), evidence-linked, separate PRs.
 
-## 15. Rollout plan (staged; each stage its own PR/evidence)
+**Rollback criteria:** contract-test regression, any CT-08-class exposure
+in a shipped artifact, unrecoverable-lockout reports from preview, or
+bench failure of reset/recovery gestures → halt promotions, pull the
+capability flag from channel metadata (append-only supersede, never mutate
+binaries), publish honest notes, return to stage 4.
 
-1. **Architecture approval** — owner resolves §20, accepts this ADR
-   (SOT records it).
-2. **Technical spikes S1–S6** — findings recorded in-repo; ADR updated if
-   any spike invalidates the direction (back to owner if so).
-3. **Failing contract tests** (CT-01…CT-15) land — red.
-4. **Firmware implementation** — smallest change to green, staged
-   (state machine → generation → claim → recovery/reset).
-5. **WebFlash implementation if required** (Q3/Q11) — separate repo/PR,
-   after firmware contract is stable.
-6. **Multi-device bench verification** — owner-attested; includes CT-01
-   physical run.
-7. **Preview release** carrying `provisioning: true` under G-P1/G-P2
-   (+G-P4 labelling rules) — preview channel only.
-8. **Stable release** — only after bench evidence (G-P4) and soak on
-   preview.
-9. **Advisory/update messaging** — owner publishes; existing-device
-   guidance (§16).
-10. **SOT status reconciliation** — separate SOT PRs at each material
-    change (planned → active → implemented → verified), evidence-linked.
+## 18. Migration impact and acceptance criteria
 
-**Rollback criteria:** any contract-test regression, any credential
-exposure (CT-08 class) in a shipped artifact, unrecoverable-lockout
-reports from preview, or bench failure of the reset/recovery gestures →
-halt promotions, pull the capability flag from affected channel metadata
-(never mutate binaries; supersede per the append-only release policy),
-publish honest notes, return to stage 4.
+**Migration:** current unprovisioned rebuilt devices (v1.0.7/8/9,
+v1.0.1-led-preview) are unchanged until reflashed with a capable release,
+then claimable; self-builders keep the `!secret` path untouched; users on
+old shared-credential releases remain covered by the (pending) advisory —
+provisioning does not retroactively protect un-reflashed units and no
+claim may imply it does; devices already adopted unencrypted in HA that
+are later claimed switch to an encrypted API — the HA config entry must be
+updated (documented; desync covered by integration tests); replacement/RMA
+units ship unowned; preview users get the capability first.
 
-## 16. Migration impact
-
-| Population | Impact |
-|---|---|
-| **Currently unprovisioned rebuilt devices** (v1.0.7/8/9, v1.0.1-led-preview) | Unchanged until reflashed with a provisioning-capable release; then they boot FACTORY_UNOWNED and can be claimed. Messaging (§15.9) invites the upgrade. |
-| **Self-built devices with unique secrets** | Zero forced change; `!secret` path remains first-class. They may later opt in by flashing release firmware and claiming. |
-| **Devices on old shared-credential releases** | Already urged to reflash by the (pending) advisory; the provisioning release becomes the recommended target. Their burned credentials stay burned (H2) — provisioning does not retroactively protect un-reflashed units and no claim may imply it does. |
-| **New devices** | Flash → claim → done; the intended primary path. |
-| **Existing HA integrations** | An unprovisioned device later claimed changes from unencrypted to encrypted API — HA config entry must be updated (documented; T13 test). |
-| **Preview firmware users** | Get the capability first (§15.7) with honest preview labelling. |
-| **Replacement / RMA devices** | Ship unowned; standard claim; old unit reset per §11 before return. |
-
-## 17. Security and privacy implications
-
-- **No cloud dependency by default** — the core flow is local; nothing
-  phones home.
-- **No secret telemetry** — firmware and WebFlash transmit no credential
-  material anywhere, ever; there is no analytics channel for it to leak
-  into (WebFlash must keep it that way — §13).
-- **Support boundaries** — support can guide but never access; no
-  master-key class exists to steal or subpoena.
-- **Logging rules** — generated secrets never appear in device logs at
-  any log level, in claim-channel server logs, or in CI logs (CT-08);
-  logger redaction is part of the implementation contract.
-- **Data retention** — Sense360 retains no permanent owner credentials
-  (non-goal 4); if Q1/Q3 adopt bootstrap codes via order records, those
-  are single-use, claim-invalidated, with retention defined by the owner
-  decision (Q17 impact column).
-- **Browser storage** — no credential in localStorage/IndexedDB/history;
-  transient memory only, if WebFlash participates at all.
-- **QR/label privacy (if adopted)** — a label on the device ceiling-mount
-  is readable by anyone with physical access; acceptable only because the
-  bootstrap code grants a *claim attempt*, not control, and dies at first
-  use; labels must never carry permanent credentials.
-- **Manufacturing records (if adopted)** — bootstrap-code ↔ unit mappings
-  are sensitive-but-not-credential data; scope, storage, and retention go
-  to the owner (Q1) before any adoption.
-- **Residual risks stated honestly:** physical NVS read without flash
-  encryption (S4); the open setup surface while FACTORY_UNOWNED (bounded
-  by constrained-state design and claim gating); RF-range attacker
-  hosting the public setup network name (unchanged, documented in the
-  posture doc).
-
-## 18. Operational implications
-
-- **Manufacturing:** none for the baseline presence-proof design;
-  label/QR variant adds a per-unit print step (owner decision).
-- **Support:** new runbooks — claim walkthrough, recovery (11.3), reset
-  evidence checklist (11.7); support cannot unlock devices and docs must
-  say so plainly.
-- **Documentation:** getting-started and first-boot docs
-  (currently describing the open, unprovisioned flow in
-  [`release-firmware-credential-posture.md`](../security/release-firmware-credential-posture.md))
-  gain the claim step; self-build docs state the two supported postures.
-- **Customer onboarding:** one added physical action; measured against Q13
-  (mobile UX) since captive-portal claim must work from a phone.
-- **Lost credentials:** deterministic answer (11.3/§9); no case-by-case
-  support archaeology.
-- **Returns:** reset-before-return instruction; inbound RMA verification
-  = device boots FACTORY_UNOWNED.
-- **Replacement boards:** claim-again semantics; HA re-adoption note.
-- **QA:** bench checklist grows the claim/reset/recovery gestures and the
-  two-device uniqueness run (owner-attested).
-- **Release management:** new gates G-P1–G-P4 in the release workflow;
-  capability flag in release metadata; channel staging per §15.
-
-## 19. Rejected alternatives (at this stage)
-
-| Option | Disposition | Reason |
-|---|---|---|
-| **A — manufacturing-time injection as the primary mechanism** | Rejected as primary; **retained** as optional bootstrap-delivery channel inside F (owner decision Q1/Q3) | Permanent secrets born outside owner control; label/record exposure surface; heaviest ongoing process cost; dies on full erase; hostile to WebFlash reflash. Not rejected for complexity — rejected because even executed perfectly it still leaves permanent credentials in third-party artefacts. |
-| **B — per-device build-time firmware as the production path** | Rejected for production; **retained** as the existing self-build path | Incompatible with immutable signed artifacts, hash-pinned WebFlash distribution, and the declaration-driven release matrix; makes Sense360 infrastructure a credential custodian (non-goal 4). |
-| **C — browser-generated credentials as the sole/backbone mechanism** | Rejected as backbone; **unresolved** as optional flash-time bootstrap seeding (Q11) — not rejected outright | Excludes iOS/mobile users entirely (§5.3); concentrates highest secret-exposure risk in the browser; leaves no device-side recovery. These are structural, not complexity, objections to it being the *only* path. |
-| **D standalone (first-boot, no presence proof)** | Superseded by F | Leaves the T5/T6 first-claimer race open; F is D plus the missing gate. |
-| **E standalone (HA-only claim)** | Superseded by F transport option | Requires a non-HA local path regardless (recovery, non-HA owners — Q12); feasibility unproven (S5). Remains a candidate transport, not an architecture. |
-| **Full PKI / per-device certificates** | Not pursued now (non-goal 2) | No consumer among ESPHome's surfaces today; revisit only if a spike shows Noise-PSK + passwords cannot meet a goal. Not rejected forever — parked with a named re-entry condition. |
-
-Options with open owner decisions (A-as-bootstrap, C-as-seeding, E-as-
-transport) are **not** rejected merely for complexity; they are held open
-in §20 with recommendations.
-
-## 20. Open questions and owner decisions
-
-| # | Question | Options | Recommendation | Owner decision required | Impact if deferred |
-|---|---|---|---|---|---|
-| Q1 | Is manufacturing-time secret injection acceptable at all? | (a) never; (b) bootstrap-code only; (c) full injection | **(b)** at most — bootstrap only, if ever | Yes | F baseline (presence-proof) proceeds; label channel stays closed |
-| Q2 | Must provisioning work with zero internet access? | yes / no | **Yes** (local-first is a product value) | Yes | Design assumes yes; deferring risks rework if no |
-| Q3 | Is a printed/QR bootstrap secret acceptable? | yes / no / later | **Later** — ship presence-proof first, add QR if UX data demands | Yes | None immediately; UX fallback options narrow |
-| Q4 | Must permanent credentials be device-generated? | device-generated / externally supplied / either | **Device-generated** (T11, non-goal 4) | Yes | Blocks final ADR — core property |
-| Q5 | Web server: authenticated or disabled by default in OWNED? | authenticated / disabled / owner-toggle | **Disabled by default, owner-enableable with auth** (smallest surface) | Yes | Blocks CT-04 final wording |
-| Q6 | Must OTA remain password-based, or consider another mechanism? | stock password / custom stronger mechanism | **Stock password for MVP**; revisit after S1 | Yes | MVP proceeds on password; stronger scheme becomes 002 follow-up |
-| Q7 | What must survive normal (no-erase) reflash? | ownership+credentials / nothing / configurable | **Ownership + credentials survive** (matches NVS reality; least surprise) | Yes | Blocks §11.1 finalisation and CT-10 |
-| Q8 | What exactly constitutes factory reset? | button-hold gesture / power-cycle pattern / erase-only | **Button-hold + confirmation** pending S2 hardware findings | Yes | Blocks CT-11 and bench checklist |
-| Q9 | Is physical presence mandatory for claim and recovery? | yes / claim-only / no | **Yes, both** (T6, T14) | Yes | Blocks state machine finalisation |
-| Q10 | How should RMA/support work? | reset-based, no support access (as §11/§18) / some support capability | **Reset-based, zero support access** | Yes | Support docs blocked; design default stands |
-| Q11 | Is browser-based secret display acceptable (and flash-time seeding at all)? | yes / no / bootstrap-token-only | **Bootstrap-token-only at most**; never display permanent secrets in-browser if the claim channel can deliver directly | Yes | WebFlash scope unknown → its PR blocked (firmware path unaffected) |
-| Q12 | Is Home Assistant the only supported owner? | HA-only / HA-primary + generic local flow | **HA-primary + generic local claim flow** (recovery needs it anyway) | Yes | S5 priority unclear if deferred |
-| Q13 | What UX is acceptable on mobile, given Web Serial limits? | desktop-only flashing with device-side claim on any phone / require desktop for everything | **Flashing desktop-only (status quo); claim/recovery must work from any phone browser** | Yes | Blocks claim-channel UI design |
-| Q14 | Bootstrap window: always-open-while-unowned vs physical-trigger-opened? | always / triggered | **Triggered** (shrinks T5 exposure) | Yes | State table nuance (§10) |
-| Q15 | Flash encryption / secure boot (S4) in scope for this programme? | in / out / later | **Later** — separate decision after S4 evidence (eFuse irreversibility) | Yes | Posture claims must keep the §6.3(5) caveat |
-| Q16 | OTA downgrade refusal while OWNED (§12.1) — required for MVP? | yes / advisory-only | **Yes** (closes T7 remotely) | Yes | CT-13 scope |
-| Q17 | If Q1(b)/Q3 adopt codes: retention and storage of code↔unit records? | none post-claim / bounded / indefinite | **None post-claim** | Yes (only if Q1/Q3 adopt) | §17 manufacturing-records section stays hypothetical |
-| Q18 | Constrain actuators (relay/fan outputs) while unowned? | yes / no | **Yes where feasible** (limits T5 blast radius; needs per-board feasibility check) | Yes | §10 FACTORY_UNOWNED row stays provisional |
-| Q19 | API/web/OTA availability while FACTORY_UNOWNED? | all off until claim / current open behaviour | **Off (or read-only) until claim** — the claim channel is the only setup surface | Yes | Determines whether the unowned posture improves on today's; blocks CT-02..05 preconditions |
-
-## 21. Acceptance criteria for moving this ADR to Accepted
-
-All of the following, none waivable silently:
-
-1. Every owner decision in §20 is resolved and recorded (SOT owner
-   decisions of record).
-2. Spikes S1–S6 are complete and the chosen architecture is demonstrated
-   technically feasible on the pinned ESPHome/ESP32-S3 stack (S1
-   especially).
-3. Security review of the final design (threat model §6 revisited against
-   the concrete mechanism) is complete.
-4. Recovery semantics (§11) are explicit, final, and covered by CT tests.
-5. Downgrade policy (§12) is explicit, final, and covered by CT tests.
-6. The test plan (§14) is agreed, with contract tests enumerated and the
-   bench checklist scoped (owner-attested execution reserved to the
-   owner).
-7. WebFlash responsibilities (§13) are agreed with that repo's plan
-   (even if the agreed answer is "WebFlash changes nothing").
-8. No false security claim exists anywhere in the proposal, docs, or
-   metadata plan (no-false-proof invariant).
-9. SOT records the accepted decision — the SOT update **is** the
-   acceptance; this document then flips to Accepted referencing it.
-
-Until then: **Status: Proposed.** Implementation must not begin
-(operating-model rule: no implementation while required architecture
-decisions remain unresolved).
+**This ADR moves from Proposed to Accepted only when:** every OD in §9 is
+resolved and recorded; SPIKE-P1/P2/W1/P6 are complete and consistent with
+the direction; the security review of the concrete design (threat model
+§6/Appendix C revisited) is complete; recovery (§13) and downgrade (§14)
+semantics are final and contract-covered; the test plan (§16) is agreed;
+WebFlash responsibilities (§15) are agreed; no false security claim exists
+anywhere in the proposal or metadata plan; and SOT records the acceptance
+— the SOT update *is* the acceptance. Implementation must not begin before
+that (operating-model rule).
 
 ---
 
-## References
+## 19. Appendices
 
-- [`docs/security/release-firmware-credential-posture.md`](../security/release-firmware-credential-posture.md) — authoritative shipped-posture statement (SEC-ESP-BUILD-GATES-001)
-- [`docs/security/SECURITY-AUDIT-2026-06.md`](../security/SECURITY-AUDIT-2026-06.md) — audit findings H1/H2 (origin of the programme)
-- [`docs/rebuild-clean-credentials-001.md`](../rebuild-clean-credentials-001.md) — rebuild programme plan of record; R-D4 owner bench attestation (pending)
-- [`docs/sense360-roadmap-status.md`](../sense360-roadmap-status.md) — canonical repo status doc (§1.1 credential posture)
-- [`docs/standing-invariants.md`](../standing-invariants.md) — standing gates (unchanged by this ADR)
-- [`docs/system-architecture.md`](../system-architecture.md) — two-repo pipeline and cross-repo contract
-- [SOT `CLAUDE-OPERATING-MODEL.md`](https://github.com/sense360store/SOT/blob/main/CLAUDE-OPERATING-MODEL.md) — authority model, ADR requirements, evidence rules
-- SOT `roadmap.yaml` → `sec-esp-provisioning-001` — programme entry (status: **planned**; authority: SOT)
-- [`packages/base/api_encrypted.yaml`](../../packages/base/api_encrypted.yaml), [`packages/base/ota.yaml`](../../packages/base/ota.yaml), [`packages/base/logging.yaml`](../../packages/base/logging.yaml), [`packages/base/wifi.yaml`](../../packages/base/wifi.yaml) — current credential surfaces
-- [`scripts/apply_release_secret_posture.py`](../../scripts/apply_release_secret_posture.py), [`scripts/check_firmware_default_credentials.py`](../../scripts/check_firmware_default_credentials.py) — release posture strip + deny-list artifact gate
+### Appendix A — Classification of all v1 owner questions
+
+The v1 draft posed 19 owner questions (Q1–Q19). Classification: **A** =
+owner-decidable now (policy; no implementation evidence needed) — these
+feed the §9 pack; **B** = blocked by technical evidence (named spike);
+**C** = implementation-time detail (removed from ADR-acceptance blockers);
+**D** = already constrained by existing policy or platform fact (not put
+to the owner as an open choice).
+
+| v1 Q | Question | Cat. | Disposition |
+|---|---|---|---|
+| Q1 | Manufacturing-time secret injection acceptable? | A | Not needed for v1 baseline (presence proof requires no injection). Policy stance folded into OD-03's no-escrow boundary; revisit only if SPIKE-P6 fails on all mechanisms. No pack slot. |
+| Q2 | Zero-internet provisioning mandatory? | A | **OD-01.** |
+| Q3 | Printed/QR bootstrap acceptable? | A | Deferred out of v1 (same rationale as Q1); not an acceptance blocker; no pack slot. |
+| Q4 | Permanent credentials device-generated? | A | Evidence-informed nuance: the stock API set-key flow is **claimant**-generated; OTA/AP values are device-generated. **OD-05** carries the API-key stance; device-generation for OTA/AP is design baseline (§11). |
+| Q5 | Web authenticated or disabled? | A | **OD-06** (evidence: runtime web auth unusable without shared literals). |
+| Q6 | OTA password vs another mechanism? | D | Platform-constrained: the stock `esphome` OTA platform offers challenge-based password auth only; runtime rotation is supported (E-4). Stock password for v1; stronger schemes = future programme. |
+| Q7 | What survives normal reflash? | D | Platform fact: NVS survives app reflash and OTA; full erase wipes. Policy simply adopts the platform semantics (§13); no owner choice remains. |
+| Q8 | What exactly constitutes factory reset? | C | Semantics fixed by **OD-10** (full NVS erase, physical, guarded); the exact gesture/hold/counts are implementation details after SPIKE-P6. |
+| Q9 | Physical presence mandatory for claim and recovery? | A | **OD-02.** |
+| Q10 | How should RMA/support work? | D | Already governed by no-escrow + owner-only attestation rules (operating model) and OD-03/OD-10; support runbooks are implementation-stage documents. |
+| Q11 | Browser-based secret display / flash-time seeding acceptable? | A | Not in v1 (Option C rejected as backbone; no browser role adopted). If a browser role is ever proposed, it returns as its own owner decision with WebFlash scope. No pack slot. |
+| Q12 | Is HA the only supported owner? | A | **OD-04.** |
+| Q13 | Acceptable mobile UX given Web Serial limits? | A/D | Web Serial desktop-only is a platform fact (D); the policy half (claim/recovery must be phone-browser-capable) is folded into **OD-04**. |
+| Q14 | Bootstrap window always-open vs triggered? | C | Principle settled by OD-02 (presence-triggered, time-boxed); exact windowing = implementation. |
+| Q15 | Flash/NVS encryption in scope? | B | Blocked by a dedicated evidence item (eFuse irreversibility, OTA/erase interplay, support cost). **Deferred decision — explicitly NOT an acceptance blocker**; until decided, all posture claims carry the physical-USB-reads-NVS caveat (§6 boundary 5). |
+| Q16 | OTA downgrade refusal while OWNED required for MVP? | B | Policy recommended yes (§14.2); the *mechanism* needs implementation-time evidence (no stock version floor in the OTA protocol). Scoped with the implementation PR; contract test CT-13 pins the behaviour. |
+| Q17 | Retention of bootstrap code↔unit records? | C | Conditional on Q1/Q3 adoption, which is out of v1. If ever adopted: none-post-claim is the standing recommendation. |
+| Q18 | Constrain actuators while unowned? | A | Policy yes-where-feasible (design baseline, §12); per-board feasibility is implementation detail. Not a pack slot — no meaningful owner alternative exists (leaving actuators open while unowned contradicts Goal 4's spirit). |
+| Q19 | API/web/OTA availability while FACTORY_UNOWNED? | A | Superseded by the concrete design: the gating component keeps the API set-key unreachable outside the claim window (§8.2), web is disabled (OD-06), OTA posture is OD-08. No separate pack slot. |
+
+Count: **A = 11** (Q1–Q5, Q9, Q11–Q13, Q18, Q19), **B = 2** (Q15, Q16),
+**C = 3** (Q8, Q14, Q17), **D = 3** (Q6, Q7, Q10). The 19 open questions
+reduce to **10 packaged decisions** (§9) plus 2 explicitly deferred
+evidence-blocked items and implementation-stage detail.
+
+### Appendix B — Option scoring detail
+
+Criteria: security / operational complexity / manufacturing complexity /
+UX / offline / recovery / RMA-support / WebFlash compatibility / HA
+compatibility / secret-exposure risk / scalability / testability /
+downgrade behaviour.
+
+**A — Manufacturing-time injection.** Strong uniqueness; secrets predate
+network exposure. But permanent credentials exist outside owner control
+(label/order record = long-lived exposure surface; a photographed card is
+full compromise until reset); heaviest ongoing per-unit process (secure
+injection + label↔unit integrity in assembly); full flash erase orphans
+the label (dead artefact, support trap); hostile to WebFlash reflash;
+hard to CI-test end-to-end. Not rejected for complexity — rejected because
+even executed perfectly it leaves permanent credentials in third-party
+artefacts. Viable only as an optional single-use *bootstrap-code* channel.
+
+**B — Per-device builds.** Unique by construction, but the pipeline
+becomes custodian of every customer's credentials (violates the no-escrow
+boundary); destroys the one-artifact-per-config contract (immutable tagged
+assets, `expected_sha256` pinning, cosign signing, ESP-007
+declaration-driven matrix); requires an online build service (fails
+offline goal); version management per unit. Retained solely as the
+existing self-build path under the user's own control.
+
+**C — Flash-time browser generation.** Unique per flash; born in-session.
+Concentrates the highest browser-side exposure (memory, extensions,
+clipboard, screenshots — the CT-08 class); excludes iOS/mobile entirely
+(Web Serial); no device-side recovery (lost key ⇒ desktop reflash
+dependency); moves security-critical code into WebFlash, raising that
+repo's assurance burden. Structural objections, not complexity ones.
+Possible future bootstrap-seeding accelerator only.
+
+**D — First-boot local provisioning.** Firmware-only; fully offline;
+binary stays immutable; natural reset-to-unowned recovery; host-testable.
+Sole weakness: the unauthenticated setup window — whoever reaches the
+setup surface first becomes owner (the claim race). Exactly what F's
+presence gate fixes.
+
+**E — HA-driven claim.** Best possible UX; key lands directly in HA
+config (shrinks human-copy exposure). Verified limitation: stock HA
+cannot yet drive the set-key flow (E-9) — the transport exists in
+aioesphomeapi but the config-flow feature is documented as future. Also
+requires a non-HA path regardless (recovery; non-HA owners). Layered
+transport, not a standalone architecture.
+
+**F — Hybrid bootstrap.** Composite of D's mechanics + presence gating +
+one-way ownership + physical-only reversal. Scores strongest on every
+security criterion; its only structural costs are the small gating
+component (OD-09) and one added physical action in onboarding UX.
+Downgrade behaviour identical to D (NVS record latent under non-capable
+images, §13). Preferred.
+
+### Appendix C — Extended threat enumeration
+
+| # | Threat | Required property (test) |
+|---|---|---|
+| T1 | Credential reuse across devices | Per-unit generation; no shared value possible by construction (CT-01) |
+| T2 | Credentials embedded in public binaries | No baked secret; deny-list gate G-P2 (CT-08) |
+| T3 | Credentials in WebFlash metadata/JS | No browser role in v1; manifests carry capability flags only, never material (CT-08, G-P3) |
+| T4 | Secrets in URLs, logs, browser storage, clipboard, screenshots, analytics | No secret in any URL/log at any level; one-time explicit display only where OD-05 path requires it (CT-08) |
+| T5 | Malicious LAN user during unowned window | Constrained FACTORY_UNOWNED (actuators limited, set-key unreachable outside window); time-boxed bootstrap; presence gate (CT-06/CT-11 preconditions) |
+| T6 | Claim race — attacker claims first | **The decisive threat.** Stock set-key accepts any plaintext client; the gating component makes claim impossible—not just unlikely—without the physical action (OD-02, CT-06) |
+| T7 | Downgrade/reflash to unprovisioned firmware | OTA downgrade refused while OWNED (CT-13); serial reflash = physical access = legitimate (§13) |
+| T8 | Factory-reset abuse | Reset requires the deliberate guarded physical action; result is a blank device, never the owner's secrets (CT-11) |
+| T9 | Stolen or resold device | As T8: reset wipes A1–A6; nothing recoverable post-reset (subject to the flash-encryption caveat, Q15) (CT-12) |
+| T10 | Support/RMA access abuse | No support credential, master key, or serial-derived secret exists (CT-14) |
+| T11 | Weak randomness | Hardware RNG only; recipe pinned (CT-15); nothing MAC/serial/time-derived |
+| T12 | Interrupted provisioning | Atomic single-blob commit; partials never persisted (CT-07) |
+| T13 | HA key desynchronisation | Rotation/reset fails visibly and recoverably (re-adopt path); integration-tested |
+| T14 | Rollback/recovery abuse | Recovery needs the same presence gate as claim; always replaces, never reveals (CT-14) |
+
+### Appendix D — Feasibility evidence (primary sources)
+
+Inspected: **ESPHome 2026.6.5** (installed package source; repo pins
+`esphome>=2026.4.5`), **aioesphomeapi 45.6.0**, official ESPHome
+documentation (esphome.io), and this repo's hardware records. Paths are
+relative to the ESPHome package root. Pinned-build/on-device confirmation
+is SPIKE-P1/P2.
+
+- **E-1 — API: ship noise-capable with no key; client sets it; flash-
+  persisted; plaintext then disabled; factory reset clears.**
+  `components/api/__init__.py` codegen: an `encryption:` block without a
+  key adds `USE_API_NOISE` + `USE_API_PLAINTEXT` with the comment: *"No
+  key provided, but encryption desired. This will allow a plaintext client
+  to provide a noise key, send it to the device, and then switch to noise.
+  The key will be saved in flash and used for future connections and
+  plaintext disabled. Only a factory reset can remove it."* A YAML-set key
+  instead defines `USE_API_NOISE_PSK_FROM_YAML`, under which runtime
+  changes are rejected (self-build static path unaffected).
+- **E-2 — Runtime set/clear/persist/activate.**
+  `components/api/api_server.cpp`: `APIServer::save_noise_psk(psk,
+  make_active)` and `clear_noise_psk()` persist via a `SavedNoisePsk`
+  preference with an immediate `global_preferences->sync()`, then reload
+  and apply the PSK and disconnect all clients; the saved PSK is loaded
+  and applied in `setup()`.
+- **E-3 — Protocol message.** `components/api/api_connection.cpp`:
+  `NoiseEncryptionSetKeyRequest` handler decodes a base64 32-byte PSK,
+  saves-and-activates; `key_len == 0` clears (reachable only over an
+  established session — post-claim that means an encrypted, authenticated
+  one).
+- **E-4 — OTA runtime password is a deliberate upstream API.**
+  `components/esphome/ota/__init__.py`: *"Compile the auth path whenever
+  `password:` is present in YAML, even if empty. An empty password opts in
+  to the auth code path so `set_auth_password()` can be called at runtime
+  (e.g. to rotate the password from a lambda)."*
+- **E-5 — OTA enforcement condition.**
+  `components/esphome/ota/ota_esphome.cpp`: the auth phase runs whenever
+  the stored password is non-empty — hence the SPIKE-P2 boot-ordering
+  proof (value must be applied before the endpoint accepts connections),
+  and the OD-08 contingency if that proof fails.
+- **E-6 — Deterministic full wipe.** `components/esp32/preferences.cpp`:
+  `ESP32Preferences::reset()` calls `nvs_flash_erase()` — the entire
+  default NVS partition (saved PSK, saved WiFi credentials, all
+  preferences), invalidating the handle until restart.
+- **E-7 — Stock factory-reset component with a buttonless physical
+  trigger.** `components/factory_reset/`: button and switch platforms plus
+  a power-cycle counter (N power-on resets within a bounded interval →
+  `global_preferences->reset()` + safe reboot; counter self-clears after
+  the interval). Physical-presence-anchored reset with no enclosure
+  dependency.
+- **E-8 — Web auth vs AP password.** `components/web_server/__init__.py`:
+  the `auth:` schema requires non-empty (`Length(min=1)`) YAML strings and
+  only then compiles `USE_WEBSERVER_AUTH` — runtime population without
+  baked literals is not available, so OD-06 proposes disabling web.
+  `components/wifi/wifi_component.h`: `void set_ap(const WiFiAP &ap)` is
+  public — the fallback-AP password is runtime-settable before the AP
+  starts; captive portal and WiFi provisioning are unaffected.
+- **E-9 — Home Assistant / client library.** aioesphomeapi 45.6.0
+  `client.py` exposes `noise_encryption_set_key()`. Official ESPHome API
+  documentation (esphome.io, fetched 2026-07-11): the encryption key *"If
+  not provided … may be set at runtime, but encryption will not be used
+  until it is set"*, and *"Support for configuring the encryption key
+  on-the-fly will be implemented in a future release of Home Assistant"*
+  — stock HA today = manual key entry; the ESPHome Device Builder
+  (dashboard) is the existing consumer of the set-key flow.
+- **E-10 — Improv and presence precedent.** `components/improv_serial/`
+  and `components/esp32_improv/` exist upstream and provision **WiFi
+  only** (consistent with the audit's H1 note); `esp32_improv` supports a
+  required `authorizer` (e.g. a physical button) gating BLE provisioning —
+  upstream precedent for presence-gated setup.
+- **E-11 — Sense360 hardware presence mechanisms.**
+  [`docs/hardware/s360-100-r4-core.md`](../hardware/s360-100-r4-core.md):
+  SW3 = Boot/IO0 tactile switch, SW4 = Reset (EN) tactile switch on
+  S360-100 R4; enclosure accessibility unverified (no bench claim) —
+  SPIKE-P6. USB (UART0) presence is desktop-bound. The E-7 power-cycle
+  mechanism needs no board access.
+
+### Appendix E — References
+
+- [`docs/security/release-firmware-credential-posture.md`](../security/release-firmware-credential-posture.md) — authoritative shipped-posture statement
+- [`docs/security/SECURITY-AUDIT-2026-06.md`](../security/SECURITY-AUDIT-2026-06.md) — audit findings H1/H2
+- [`docs/rebuild-clean-credentials-001.md`](../rebuild-clean-credentials-001.md) — rebuild programme plan of record; R-D4 (pending, owner-authored only)
+- [`docs/sense360-roadmap-status.md`](../sense360-roadmap-status.md) — canonical repo status doc
+- [`docs/standing-invariants.md`](../standing-invariants.md) — standing gates (unchanged)
+- [`docs/system-architecture.md`](../system-architecture.md) — two-repo pipeline / cross-repo contract
+- [SOT `CLAUDE-OPERATING-MODEL.md`](https://github.com/sense360store/SOT/blob/main/CLAUDE-OPERATING-MODEL.md) — authority model, ADR rules, evidence rules
+- SOT `roadmap.yaml` → `sec-esp-provisioning-001` — programme entry (**planned**)
+- [`packages/base/api_encrypted.yaml`](../../packages/base/api_encrypted.yaml) · [`packages/base/ota.yaml`](../../packages/base/ota.yaml) · [`packages/base/logging.yaml`](../../packages/base/logging.yaml) · [`packages/base/wifi.yaml`](../../packages/base/wifi.yaml) — current credential surfaces
+- [`scripts/apply_release_secret_posture.py`](../../scripts/apply_release_secret_posture.py) · [`scripts/check_firmware_default_credentials.py`](../../scripts/check_firmware_default_credentials.py) — posture strip + deny-list gate
 - [`config/webflash-builds.json`](../../config/webflash-builds.json) — declaration-driven release matrix (ESP-007)
-- [`secrets.example.yaml`](../../secrets.example.yaml) — self-build secret template
+- [`secrets.example.yaml`](../../secrets.example.yaml) — self-build template
+- [`docs/hardware/s360-100-r4-core.md`](../hardware/s360-100-r4-core.md) — S360-100 R4 hardware record (SW3/SW4)
