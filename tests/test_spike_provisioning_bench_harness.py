@@ -17,7 +17,10 @@ Two test families:
    from every production discovery path — product compositions, package
    layers, the declaration-driven release matrix (`config/*.json`,
    ESP-007), WebFlash build declarations, and the firmware publication
-   workflows.
+   workflows. The single allow-listed exception is the dedicated TEST-ONLY
+   compile-proof workflow (`.github/workflows/bench-harness-compile.yml`),
+   whose isolation shape (no artifact upload, no workflow_call, read-only
+   token, not referenced by any other workflow) is itself pinned below.
 
 2. **Harness shape checks**: the committed harness matches the substrate
    shapes the procedure requires (empty-key API encryption, empty compiled
@@ -55,6 +58,24 @@ HARNESS_PATH_TOKENS = (
     "tests/bench/sec_esp_provisioning_001",
     "bench-spike",
     "sec_esp_provisioning_001",
+)
+
+# The single workflow allowed to reference the harness: the dedicated
+# TEST-ONLY compile-proof lane. Its isolation shape is pinned by
+# TestBenchCompileWorkflowIsolation so the allow-list cannot silently
+# become a publication or artifact-retention surface.
+BENCH_COMPILE_WORKFLOW = "bench-harness-compile.yml"
+
+# Publication / release-surface workflows that must NEVER reference the
+# harness or the bench compile workflow (belt-and-braces on top of the
+# repo-wide scan).
+PUBLICATION_WORKFLOWS = (
+    "firmware-build-release.yml",
+    "create-release.yml",
+    "manual-firmware-artifacts.yml",
+    "release-notes-draft.yml",
+    "docs-site.yml",
+    "bump-version.yml",
 )
 
 # Persisted bench globals the stock factory reset (full NVS erase, ADR E-6)
@@ -146,16 +167,36 @@ class TestProductionDiscoveryExclusion(unittest.TestCase):
 
     def test_no_workflow_references_the_harness(self):
         """No CI or release workflow (including firmware-build-release.yml,
-        the publication workflow) may address the harness."""
+        the publication workflow) may address the harness — except the
+        allow-listed TEST-ONLY compile-proof workflow, whose isolation
+        shape is pinned by TestBenchCompileWorkflowIsolation."""
         offenders = []
         for wf in sorted(WORKFLOWS_DIR.glob("*.yml")) + sorted(
             WORKFLOWS_DIR.glob("*.yaml")
         ):
+            if wf.name == BENCH_COMPILE_WORKFLOW:
+                continue
             text = _read(wf)
             for token in HARNESS_PATH_TOKENS:
                 if token in text:
                     offenders.append(f"{wf.name}: {token}")
         self.assertEqual(offenders, [], f"workflow references harness: {offenders}")
+
+    def test_publication_workflows_never_touch_harness_or_bench_workflow(self):
+        """Belt-and-braces on the publication lanes: none may reference the
+        harness OR the bench compile workflow (so the compile proof can
+        never become a step of any release / publication path)."""
+        offenders = []
+        for name in PUBLICATION_WORKFLOWS:
+            wf = WORKFLOWS_DIR / name
+            self.assertTrue(wf.is_file(), f"expected publication workflow {name}")
+            text = _read(wf)
+            for token in (*HARNESS_PATH_TOKENS, BENCH_COMPILE_WORKFLOW):
+                if token in text:
+                    offenders.append(f"{name}: {token}")
+        self.assertEqual(
+            offenders, [], f"publication workflow references bench surface: {offenders}"
+        )
 
     def test_no_product_or_package_yaml_includes_the_harness(self):
         """No customer product shim, bundle, webflash wrapper, compile-only
@@ -194,6 +235,140 @@ class TestProductionDiscoveryExclusion(unittest.TestCase):
                 text = _read(path)
                 for token in HARNESS_PATH_TOKENS:
                     self.assertNotIn(token, text, f"{name} references {token}")
+
+
+class TestBenchCompileWorkflowIsolation(unittest.TestCase):
+    """The TEST-ONLY compile-proof workflow is the single allowed workflow
+    reference to the harness. Pin its shape so it stays a compile proof:
+    narrowly triggered, read-only, never uploading/publishing a binary,
+    and never callable from (or referenced by) any other workflow."""
+
+    WORKFLOW_PATH = WORKFLOWS_DIR / BENCH_COMPILE_WORKFLOW
+
+    # Triggers that would let the compiled image escape CI-proof scope or
+    # attach the job to a release/publication event.
+    FORBIDDEN_TRIGGERS = ("workflow_call", "release", "push", "schedule", "create")
+
+    # Steps/actions that would retain or publish the binary.
+    FORBIDDEN_STEP_TOKENS = (
+        "upload-artifact",
+        "gh release",
+        "softprops",
+        "deploy-pages",
+        "upload-pages-artifact",
+        "retention-days",
+    )
+
+    def _text(self) -> str:
+        return _read(self.WORKFLOW_PATH)
+
+    def _doc(self) -> dict:
+        import yaml
+
+        return yaml.safe_load(self._text())
+
+    def _triggers(self) -> dict:
+        doc = self._doc()
+        # PyYAML 1.1 parses the bare `on` key as boolean True.
+        return doc.get("on", doc.get(True))
+
+    def test_workflow_exists_and_is_marked_test_only(self):
+        self.assertTrue(self.WORKFLOW_PATH.is_file(), f"missing {self.WORKFLOW_PATH}")
+        text = self._text()
+        self.assertIn(TEST_ONLY_MARKER, text)
+        self.assertIn("TEST-ONLY", self._doc().get("name", ""))
+
+    def test_triggers_are_pull_request_paths_and_dispatch_only(self):
+        triggers = self._triggers()
+        self.assertIsInstance(triggers, dict, "on: block must be a mapping")
+        self.assertEqual(set(triggers), {"pull_request", "workflow_dispatch"}, triggers)
+        for forbidden in self.FORBIDDEN_TRIGGERS:
+            self.assertNotIn(forbidden, triggers)
+
+    def test_pull_request_trigger_is_scoped_to_the_bench_surfaces(self):
+        paths = self._triggers()["pull_request"]["paths"]
+        self.assertEqual(
+            sorted(paths),
+            sorted(
+                [
+                    "tests/bench/sec_esp_provisioning_001/**",
+                    "tests/test_spike_provisioning_bench_harness.py",
+                    f".github/workflows/{BENCH_COMPILE_WORKFLOW}",
+                ]
+            ),
+        )
+
+    def test_token_is_read_only(self):
+        self.assertEqual(self._doc().get("permissions"), {"contents": "read"})
+
+    def test_no_artifact_upload_or_publication_step(self):
+        """Scan functional lines only — the header comment is allowed to
+        NAME the banned mechanisms while stating they are absent."""
+        functional = "\n".join(
+            line
+            for line in self._text().splitlines()
+            if not line.lstrip().startswith("#")
+        )
+        for token in self.FORBIDDEN_STEP_TOKENS:
+            with self.subTest(token=token):
+                self.assertNotIn(token, functional)
+
+    def test_esphome_version_is_the_pinned_harness_toolchain(self):
+        """The harness README pins ESPHome 2026.6.5 (the exact version the
+        ADR desk evidence inspected); the compile proof must use it."""
+        self.assertIn('esphome-version: "2026.6.5"', self._text())
+
+    def test_compile_targets_only_the_harness_yaml(self):
+        """Every esphome invocation addresses the harness YAML only —
+        never a products/ or packages/ path."""
+        text = self._text()
+        self.assertIn(
+            "esphome config tests/bench/sec_esp_provisioning_001/bench-spike.yaml",
+            text,
+        )
+        self.assertIn(
+            "compile tests/bench/sec_esp_provisioning_001/bench-spike.yaml", text
+        )
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            if "esphome" not in line or "products/" not in line:
+                continue
+            # products/secrets.yaml clean-up is the one legitimate mention.
+            if "products/secrets.yaml" in line:
+                continue
+            self.fail(f"line {lineno} points esphome at a products/ path: {line!r}")
+
+    def test_runs_the_guard_tests_and_secret_guard(self):
+        text = self._text()
+        self.assertIn("tests/test_spike_provisioning_bench_harness.py", text)
+        self.assertIn("scripts/check-no-tracked-secrets.py", text)
+
+    def test_cleans_up_temporary_secrets_even_on_failure(self):
+        """The clean-up step must run unconditionally (if: always()) and
+        remove every provisioned secrets.yaml plus the local build tree."""
+        doc = self._doc()
+        steps = doc["jobs"]["bench-compile"]["steps"]
+        cleanup = [s for s in steps if s.get("if") == "always()"]
+        self.assertEqual(len(cleanup), 1, "exactly one always() clean-up step")
+        run = cleanup[0]["run"]
+        for needle in (
+            "tests/bench/sec_esp_provisioning_001/secrets.yaml",
+            "tests/bench/sec_esp_provisioning_001/.esphome",
+            "products/secrets.yaml",
+        ):
+            self.assertIn(needle, run)
+
+    def test_no_other_workflow_references_the_bench_workflow(self):
+        """No workflow may call, chain, or reference the bench compile
+        workflow — it must never become a dependency of any lane."""
+        offenders = []
+        for wf in sorted(WORKFLOWS_DIR.glob("*.yml")) + sorted(
+            WORKFLOWS_DIR.glob("*.yaml")
+        ):
+            if wf.name == BENCH_COMPILE_WORKFLOW:
+                continue
+            if BENCH_COMPILE_WORKFLOW in _read(wf):
+                offenders.append(wf.name)
+        self.assertEqual(offenders, [], offenders)
 
 
 class TestNoCommittedCredentialLiterals(unittest.TestCase):
