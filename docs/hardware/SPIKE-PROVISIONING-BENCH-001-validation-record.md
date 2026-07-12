@@ -44,6 +44,7 @@ and the procedure):**
 | esptool version | |
 | Browser + version (WebFlash checks) | |
 | Production WebFlash deployment version / commit (+ ESP Web Tools version if shown) | |
+| SPIKE-W1 desk evidence revision consulted ([WebFlash PR #594](https://github.com/sense360store/WebFlash/pull/594) commit/state at bench time) | |
 | Released artifact + version flashed for W1 legs | |
 | Home Assistant version (optional — no check requires HA; fill only if used) | |
 | `bench-spike.yaml` attached as evidence (path/hash) | |
@@ -131,24 +132,42 @@ a FAIL here routes to the OD-07 contingency per procedure §2)._
 | Leg 1: PSK still enforced after reflash | |
 | Leg 1: OTA password still enforced after reflash | |
 | Leg 1: NVS marker intact after reflash | |
-| Leg 2: WebFlash path used + exact dialog wording / erase-option state | |
-| Leg 2: saved WiFi credentials survived (rejoined without re-provisioning?) | |
-| Leg 2: non-erase path exists at all? (verbatim finding) | |
+| Leg 2: exact dialog wording / "Erase device" state (unchecked) | |
+| Leg 2: device boots successfully after unchecked install? | |
+| Leg 2: partition table valid (no ROM-loader errors / boot loop)? | |
+| Leg 2: API key survived (read-back via bench image: plaintext refused / key accepted) | |
+| Leg 2: OTA password global survived (read-back) | |
+| Leg 2: fallback-AP password global survived (read-back) | |
+| Leg 2: UUID/ownership-record test value (marker) survived (read-back) | |
+| Leg 3: exact dialog wording / "Erase device" state (unchecked) | |
+| Leg 3: device boots successfully after unchecked install? | |
+| Leg 3: partition table valid? | |
+| Leg 3: WiFi configuration survived (rejoined without re-provisioning?) | |
+| Unchecked/non-erase path exists at all? (verbatim finding) | |
 
 **V-06 result:** _PENDING — to be recorded by the operator (PASS / FAIL /
-UNDETERMINED for leg 2 per procedure)._
+UNDETERMINED per procedure). A non-booting device, invalid partition
+table, or boot loop on an unchecked install is a **FAIL** with the
+hard stop of procedure §2 — NVS-sector preservation must not be
+reinterpreted as a pass; the evidence routes to
+[WebFlash PR #594](https://github.com/sense360store/WebFlash/pull/594)._
 
 ### V-07 — Ownership removal after erase
 
 | Capture | Observed |
 |---|---|
 | Leg 1 (esptool erase; unit used): plaintext accepted, marker default (bench-image YAML-WiFi rejoin is by design, not a FAIL) | |
-| Leg 2: WebFlash erase path used + exact dialog wording / erase-option state | |
-| Leg 2: WiFi credentials destroyed (no rejoin; setup surface up) | |
+| Leg 2: exact dialog wording / "Erase device" state (checked) | |
+| Leg 2: all NVS-backed state removed — no WiFi rejoin; setup surface up; blank/unowned substrate | |
 | Leg 3: power-cycle factory reset fired | |
-| Leg 3: post-reset state clean (plaintext accepted, marker default, no saved WiFi) | |
+| Leg 3: post-reset state clean (plaintext accepted, marker default) | |
+| Leg 4 (rescue): exact dialog wording / default behaviour | |
+| Leg 4 (rescue): full erase performed? NVS removed (no WiFi rejoin; setup surface up)? — verbatim either way | |
 
-**V-07 result:** _PENDING — to be recorded by the operator (PASS / FAIL)._
+**V-07 result:** _PENDING — to be recorded by the operator (PASS / FAIL).
+A rescue path that does not fully erase is a recordable SPIKE-W1 answer
+routed to [WebFlash PR #594](https://github.com/sense360store/WebFlash/pull/594),
+not a bench failure._
 
 ### V-08 — Boot behaviour after update
 
@@ -206,7 +225,7 @@ file.
 |---|---|---|---|
 | SPIKE-P1 | V-01, V-02 (supporting: V-03) | | |
 | SPIKE-P2 | V-04, V-05, V-09 (supporting: V-08) | | |
-| SPIKE-W1 (bench evidence only) | V-06, V-07 (supporting: V-08) | | Bench half only: SPIKE-W1 closes only together with its WebFlash-repo desk/documentation half (ADR §10/§15), which this record cannot supply. |
+| SPIKE-W1 (remaining empirical hardware/browser evidence) | V-06, V-07 (supporting: V-08) | | Desk/source half **complete** in [WebFlash PR #594](https://github.com/sense360store/WebFlash/pull/594), current outcome **UNPROVEN**. This record supplies only the bench half; SPIKE-W1 moves to PASS / CONDITIONAL PASS — or FAIL — only in PR #594, after it records this bench outcome and merges. |
 | SPIKE-P6 | — not covered — (V-10 is partial input only) | **remains OPEN** | Pre-marked: nothing in this record may close it. |
 
 ## D. Contingency outcomes (only if invoked)

@@ -14,7 +14,7 @@ empty.**
 
 | Field | Value |
 |---|---|
-| Covers | **SPIKE-P1** (full bench scope) · **SPIKE-P2** (full bench scope) · **SPIKE-W1** (**bench evidence only** — the empirical on-hardware half: which real installer paths erase NVS on a real unit. ADR §10 types SPIKE-W1 as a desk item in the WebFlash repo; that desk/documentation half — installer / ESP Web Tools source and manifest semantics, and the "can/should the installer offer reflash preserving ownership" recommendation — is **not** covered here, has **not** been performed anywhere yet, and is owned by the WebFlash repo (ADR §15). SPIKE-W1 closes only when both halves exist.) |
+| Covers | **SPIKE-P1** (full bench scope) · **SPIKE-P2** (full bench scope) · **SPIKE-W1** (**remaining empirical hardware/browser evidence only** — the desk/source investigation is **complete** in [WebFlash PR #594](https://github.com/sense360store/WebFlash/pull/594) (spike document `docs/spikes/SPIKE-W1-webflash-erase-semantics.md` on that PR's branch; on WebFlash `main` once merged) with current outcome **UNPROVEN**: source evidence alone cannot prove the device remains bootable and continues to honour preserved NVS after an ordinary no-erase install, because the current production wizard binaries appear to be application-format images written at offset 0 (§3 desk findings). This bench supplies the hardware/browser confirmation; **SPIKE-W1 closes only after PR #594 is updated with the bench outcome and merged.**) |
 | Does NOT cover | **SPIKE-P6** (enclosure ergonomics on assembled hardware, PoE and 240 V PSU power-cycle reliability) — remains a separate pending spike. Check V-10 below touches bare-board presence mechanisms only and closes nothing of SPIKE-P6. |
 | Device under test | Sense360 Core, SKU **S360-100**, rev R4 ([`s360-100-r4-core.md`](s360-100-r4-core.md)); PoE via S360-410 |
 | Bench firmware | Locally compiled **bench spike image** (defined below) at a recorded repo SHA, compiled with **exactly the ESPHome version the ADR desk evidence inspected — 2026.6.5 at ADR v3** (note [`requirements-dev.txt`](../../requirements-dev.txt) pins only a floor, `esphome>=2026.4.5`; the bench must record the exact version used) — plus, for the SPIKE-W1 checks, the current published release artifacts flashed through production WebFlash |
@@ -58,8 +58,8 @@ Claim-to-check map:
 | UUID generation | V-03 | NVS persistence substrate for the AD-01 ownership record/UUID. UUID *generation logic* = implementation stage. |
 | OTA password generation | V-04 | Runtime `set_auth_password()` path, enforcement, persistence (SPIKE-P2). On-device RNG generation recipe = implementation stage (CT-15). |
 | Fallback AP behaviour | V-05 | Runtime AP password applied before AP starts; protected join semantics (SPIKE-P2 AP fold-in, OD-07 evidence). |
-| Ownership persistence after normal reflash | V-06 | NVS survival across serial app-reflash and WebFlash non-erase paths (SPIKE-W1 bench + §13 matrix). |
-| Ownership removal after erase | V-07 | NVS destruction by full erase and by WebFlash erase paths (SPIKE-W1 bench + §13 matrix). |
+| Ownership persistence after normal reflash | V-06 | NVS survival across serial app-reflash and the WebFlash ordinary install with "Erase device" unchecked, **including bootability and partition-table validity** (SPIKE-W1 bench + §13 matrix; resolves [PR #594](https://github.com/sense360store/WebFlash/pull/594) findings 1–2, the UNPROVEN core). |
+| Ownership removal after erase | V-07 | NVS destruction by full `esptool` erase, WebFlash "Erase device" checked, the WebFlash rescue path, and stock factory reset (SPIKE-W1 bench + §13 matrix; confirms [PR #594](https://github.com/sense360store/WebFlash/pull/594) findings 3–4 on hardware). |
 | Boot behaviour after update | V-08 | Credential + record survival and enforcement across an OTA update (§12/§13, CT-09 precursor). |
 | Fail-closed OTA behaviour | V-09 | Boot-window measurement for the OD-08 decision: does any unauthenticated OTA acceptance window exist at boot, and how large. |
 | Physical-presence requirement | V-10 | Bare-board presence mechanisms (SW3, stock power-cycle-count factory reset) work and are deliberate-action-guarded. SPIKE-P6 stays open. |
@@ -92,12 +92,14 @@ mechanism it actually exercises.
 
 - **All checks PASS consistently with the ADR direction** → the owner may
   record SPIKE-P1 and SPIKE-P2 as complete and the SPIKE-W1 **bench
-  evidence** as captured in the validation record. SPIKE-W1 itself closes
-  only together with its WebFlash-repo desk/documentation half (ADR
-  §10/§15) — this bench cannot close it alone. ADR acceptance then follows
-  the ADR §18 path (owner accepts; **SOT records the acceptance**;
-  SPIKE-P6 and the SPIKE-W1 desk half must still complete first). This
-  repo never independently updates programme status.
+  evidence** as captured in the validation record. SPIKE-W1 itself moves
+  from **UNPROVEN** to PASS / CONDITIONAL PASS only in
+  [WebFlash PR #594](https://github.com/sense360store/WebFlash/pull/594),
+  once that PR is updated with this bench outcome and merged — this bench
+  cannot close it alone. ADR acceptance then follows the ADR §18 path
+  (owner accepts; **SOT records the acceptance**; SPIKE-P6 and the
+  PR #594 update/merge must still complete first). This repo never
+  independently updates programme status.
 - **V-05 fails (AP password not enforceable before the AP accepts)** →
   accepted contingency **OD-07** applies: fallback AP is disabled on owned
   devices. Not an ADR-direction failure; record the evidence.
@@ -107,6 +109,18 @@ mechanism it actually exercises.
 - **V-01/V-02 fail (set-key mechanism does not work on the pinned
   build/board)** → STOP; ADR §17 step 2 applies (ADR amended, back to the
   owner). Do not improvise an alternative mechanism at the bench.
+- **V-06 W1 leg: the ordinary install with "Erase device" unchecked
+  yields a non-booting device** (boot loop, invalid partition table,
+  otherwise unusable firmware) → **record V-06 as FAIL and stop the
+  affected flow.** Do **not** reinterpret physical NVS-sector
+  preservation as a pass — a device that cannot boot does not "preserve
+  ownership". Recover the unit via the erase-install or rescue path, then
+  route the result back to
+  [WebFlash PR #594](https://github.com/sense360store/WebFlash/pull/594)
+  as evidence that the current WebFlash artifact/offset contract is
+  unsafe or invalid. This outcome keeps SPIKE-W1 UNPROVEN (or fails it)
+  in that PR; it is WebFlash-repo work to resolve, never bench
+  improvisation.
 - Any other FAIL → record it, stop the affected check, and route to the
   owner. Never reinterpret a FAIL as a qualified pass.
 
@@ -138,10 +152,23 @@ mechanism it actually exercises.
 **Bench spike image (local, throwaway — never committed, never released)**
 
 The operator composes a local `bench-spike.yaml` for the S360-100 R4
-(ESP32-S3), compiled with the pinned ESPHome version. It is bench harness
-material, not product firmware: it must not be added to `products/`,
-`packages/`, the build matrix, or any release, and it is deleted after the
-bench. Required surfaces:
+(ESP32-S3), compiled with the pinned ESPHome version. Its boundary is
+strict — it is bench harness material, not product firmware:
+
+- it exists **solely** to exercise stock ESPHome runtime setters and NVS
+  persistence; it is **not** production provisioning implementation and
+  must never be cited as implementation evidence;
+- it is **not committed in this PR**; if the owner wants a harness
+  in-tree, that is a separate owner-approved test-harness PR, reviewed on
+  its own — any harness code the bench requires is reviewed separately by
+  the owner **before** it is run;
+- it contains **throwaway bench values only**, never production
+  credentials;
+- it must not be added to `products/`, `packages/`, the build matrix, or
+  any release, must never be distributed through WebFlash, and is deleted
+  after the bench.
+
+Required surfaces:
 
 1. `api:` with an `encryption:` block and **no key** — the exact
    noise-capable-no-key shape the ADR's desk evidence verified (E-1).
@@ -157,7 +184,15 @@ bench. Required surfaces:
 5. A persisted NVS marker for V-03/V-06/V-07/V-08: a `globals` entry with
    `restore_value: true` holding a bench-chosen value (the
    ownership-record/UUID persistence surrogate), plus a service or
-   template control to set it at the bench.
+   template control to set it at the bench. The bench OTA and AP password
+   values applied by the harness lambdas (items 3–4) are likewise held in
+   `restore_value: true` globals seeded at first boot, so their NVS
+   survival across the V-06/V-07 reflash paths is directly observable
+   alongside the marker. (The stock runtime setters apply values in RAM
+   each boot and persist nothing themselves — persisting these values is
+   the future component's duty; the bench observes only the NVS
+   substrate. The API key is the exception: stock ESPHome persists it
+   natively as the `SavedNoisePsk` preference, E-2.)
 6. `factory_reset` components per the pinned ESPHome version's
    documentation: the button/switch platform bound to **SW3 (Boot/IO0)**
    and the stock power-cycle-count trigger (E-6/E-7). Configure the
@@ -169,6 +204,34 @@ Record in the validation record: the repo SHA the composition was based
 on, the exact ESPHome version, the full `bench-spike.yaml` (as an evidence
 attachment — it contains only bench-network and throwaway values, never
 production credentials), and both units' serials.
+
+**SPIKE-W1 desk findings this bench must confirm or refute**
+
+The SPIKE-W1 desk/source investigation is **complete** in
+[WebFlash PR #594](https://github.com/sense360store/WebFlash/pull/594)
+(spike document `docs/spikes/SPIKE-W1-webflash-erase-semantics.md` on
+that PR's branch — cite the PR, not WebFlash `main`, until it merges).
+Its current outcome is **UNPROVEN**. Its verified findings define exactly
+what the V-06/V-07 W1 legs must observe on real hardware:
+
+1. An ordinary ESP Web Tools install with "Erase device" **unchecked**
+   performs no full-chip erase; at the flash-transport level, NVS sectors
+   appear to be preserved.
+2. However, the current production wizard binaries appear to be
+   **application-format images written at offset 0** rather than
+   factory-format images — writing them at offset 0 may overwrite the
+   bootloader and partition-table regions, so source evidence alone
+   cannot prove the device remains bootable and continues to honour
+   preserved NVS. This is the UNPROVEN core, and the reason the V-06 W1
+   leg carries a hard stop (§2).
+3. "Erase device" **checked** performs a full erase and removes NVS.
+4. The rescue path also performs a full erase under the current
+   manifest/default behaviour.
+
+V-06 resolves findings 1–2 (bootable + NVS honoured, or FAIL); V-07
+confirms findings 3–4 on hardware. Hardware/browser confirmation is what
+moves SPIKE-W1 from UNPROVEN to PASS or CONDITIONAL PASS — recorded in
+PR #594, never here.
 
 **Release artifacts for SPIKE-W1 checks**
 
@@ -412,9 +475,14 @@ SPIKE-W1 row, §13 rows 1–3 (survive matrix), §15 WebFlash row
 (erase-semantics documentation input), §16 CT-10 vocabulary.
 
 **Objective.** Prove which reflash paths **preserve** NVS (ownership
-record, PSK, WiFi) on real hardware: serial app-reflash without erase,
-and the WebFlash/ESP Web Tools non-erase path. This is the "reflash
-preserving ownership" half of SPIKE-W1's bench remainder.
+record, PSK, WiFi) on real hardware — serial app-reflash without erase,
+and the production WebFlash / ESP Web Tools **ordinary install with
+"Erase device" unchecked**. The WebFlash legs resolve
+[PR #594](https://github.com/sense360store/WebFlash/pull/594) findings
+1–2 (the UNPROVEN core): NVS sectors appear preserved at the transport
+level, but the wizard binaries appear to be application-format images
+written at offset 0, so bootability and honoured-NVS must be proven on
+hardware — preserved sectors on a bricked device are not preservation.
 
 **Steps**
 
@@ -428,36 +496,67 @@ unit A).*
 2. Boot. Verify: plaintext API still refused / key still accepted; OTA
    password still enforced; NVS marker still present.
 
-*Leg 2 — WebFlash / ESP Web Tools non-erase path, released artifact
-(marker: saved WiFi credentials).*
+*Leg 2 — WebFlash ordinary install, "Erase device" unchecked, over the
+full bench-image substrate (unit B in owned-equivalent state: PSK set,
+OTA/AP password globals seeded, NVS marker set).*
 
-3. Flash unit B with the current published release via production
-   WebFlash **with the erase option unticked / the update path** (record
-   the exact UI state and installer dialog wording — this observed
-   wording is SPIKE-W1 evidence).
-4. Before flashing: provision bench WiFi via captive portal so saved
-   credentials exist in NVS. After flashing: observe whether the device
-   rejoins bench WiFi without re-provisioning.
+3. Via production WebFlash, run the **ordinary install with "Erase
+   device" unchecked**, flashing the released artifact over unit B's
+   bench state. Record the exact UI state and every installer dialog
+   verbatim — this observed wording is SPIKE-W1 evidence.
+4. Capture the first ≥ 30 s of serial output from power-on. Record:
+   **does the device boot successfully** (clean bootloader + app start),
+   and **does the partition table remain valid** (no ROM-loader "invalid
+   header"/partition errors, no boot loop)? **Hard stop applies (§2):**
+   a non-booting device, invalid partition table, boot loop, or
+   otherwise unusable firmware = V-06 FAIL — stop this flow, do not
+   reinterpret preserved NVS sectors as a pass, recover via the
+   erase-install or rescue path, and route the evidence to PR #594.
+5. Only if the device boots: reflash the bench spike image over serial
+   (no-erase app upload, as leg 1) and read back what survived the
+   WebFlash write: **API key** (plaintext still refused / set key still
+   accepted — `SavedNoisePsk`), **OTA password global**, **fallback-AP
+   password global**, **UUID/ownership-record test value** (the V-03
+   marker). (The released artifact cannot surface these itself — it has
+   no API encryption or OTA auth compiled in; NVS content is read back
+   through the bench image. A latent-but-present record matches ADR §13
+   row 4.)
 
-**Expected result.** Leg 1: all three markers survive. Leg 2: saved WiFi
-credentials survive the non-erase installer path (or the installer
-demonstrably offers no non-erase path — itself a recordable SPIKE-W1
-answer).
+*Leg 3 — WebFlash ordinary install, "Erase device" unchecked, released
+artifact over released artifact (marker: NVS-saved WiFi credentials).*
+
+6. With the released artifact installed and bench WiFi provisioned via
+   the captive portal (saved credentials in NVS — established in the §5
+   runsheet before this leg), repeat the ordinary unchecked install.
+7. Record boot success / partition validity as in step 4 (hard stop
+   applies), and whether the device **rejoins bench WiFi without
+   re-provisioning** (WiFi configuration survives).
+
+**Expected result.** Leg 1: all three markers survive. Legs 2–3: the
+device boots with a valid partition table, and the NVS-backed state
+(API key, OTA password global, AP password global, marker, saved WiFi)
+survives — or the installer demonstrably offers no unchecked/non-erase
+path (itself a recordable SPIKE-W1 answer).
 
 **Pass criteria.** Leg 1: PSK enforced, OTA password enforced, NVS
-marker intact after reflash. Leg 2: the installer's non-erase behaviour
-is determined unambiguously (credentials survived, or no such path
-exists) and recorded verbatim.
+marker intact after reflash. Legs 2–3: boot success **and** valid
+partition table **and** each listed survival question answered
+unambiguously, recorded verbatim per item.
 
 **Fail criteria.** Leg 1: any marker lost after a no-erase app reflash
-(contradicts §5.5/§13 — direction-relevant, route to owner). Leg 2 has
-no fail state for the device — only an undetermined outcome (installer
-behaviour could not be established), which blocks SPIKE-W1 closure.
+(contradicts §5.5/§13 — direction-relevant, route to owner). Legs 2–3:
+non-booting device / invalid partition table / boot loop / unusable
+firmware (**FAIL — hard stop per §2, evidence routed to PR #594**; NVS
+sector preservation must not be reinterpreted as a pass); or any listed
+NVS-backed item lost despite a successful boot. An undetermined
+installer behaviour (path could not be established) is recorded as
+UNDETERMINED and blocks SPIKE-W1 closure.
 
-**Evidence to capture.** `V-06-serial.log` (both legs);
-`V-06-shell.txt` (exact flash commands); screenshots of every WebFlash
-dialog step including erase-option state and wording; post-boot serial
-evidence of marker survival/loss.
+**Evidence to capture.** `V-06-serial.log` (all legs, including the full
+first-boot output after each WebFlash write); `V-06-shell.txt` (exact
+flash commands); screenshots of every WebFlash dialog step including
+erase-option state and wording; per-item survival read-back evidence
+(step 5); post-boot serial evidence of marker survival/loss.
 
 ### V-07 — Ownership removal after erase (SPIKE-W1 bench + §13 matrix)
 
@@ -466,16 +565,21 @@ erase → FACTORY_UNOWNED), §13 rows 4–5 and factory-reset scope, §10
 SPIKE-W1 row, Appendix D E-6.
 
 **Objective.** Prove which paths **destroy** NVS on real hardware: full
-`esptool` erase, the WebFlash/ESP Web Tools erase-install path, and the
-stock factory reset — returning the device to the unowned-equivalent
-state with nothing surviving.
+`esptool` erase, the WebFlash/ESP Web Tools install with **"Erase
+device" checked**, the WebFlash **rescue path**, and the stock factory
+reset — returning the device to the unowned-equivalent (blank) substrate
+state with nothing surviving. The WebFlash legs confirm
+[PR #594](https://github.com/sense360store/WebFlash/pull/594) findings
+3–4 on hardware ("Erase device" checked performs a full erase and
+removes NVS; rescue also performs a full erase under the current
+manifest/default behaviour).
 
 **Steps**
 
 *Leg 1 — esptool full erase, bench spike image (unit A **or** unit B,
-full marker set present — running this leg on unit B immediately after
-its V-02 step 5 / V-04 step 6 sequence, with the NVS marker also set on
-unit B, avoids one full re-establishment on unit A; see §5).*
+full marker set present — running this leg on unit B after its V-02
+step 5 / V-04 step 6 / V-06 leg 2 sequence, with the NVS marker also set
+on unit B, avoids one full re-establishment on unit A; see §5).*
 
 1. `esptool erase_flash`, then flash the bench spike image.
 2. Boot. Verify: plaintext API accepted (PSK gone); OTA accepts the
@@ -485,13 +589,15 @@ unit B, avoids one full re-establishment on unit A; see §5).*
    NVS-saved-WiFi destruction is observable only on the released-artifact
    leg 2.)
 
-*Leg 2 — WebFlash erase-install path, released artifact (unit B, saved
-WiFi credentials present).*
+*Leg 2 — WebFlash install with "Erase device" checked, released artifact
+(unit B, NVS-saved WiFi credentials present).*
 
-3. Flash via production WebFlash **with the erase option ticked / the
-   full-install path** (record exact UI state and wording).
-4. Boot. Verify the device does **not** rejoin bench WiFi (credentials
-   destroyed) and starts its setup surface.
+3. Flash via production WebFlash with **"Erase device" checked** (record
+   exact UI state and dialog wording).
+4. Boot. Verify all NVS-backed state is removed and the device returns
+   to the expected blank/unowned substrate state: it does **not** rejoin
+   bench WiFi (saved credentials destroyed) and starts its setup surface
+   (PR #594 finding 3 confirmed on hardware).
 
 *Leg 3 — stock factory reset (unit A, re-establish markers first by
 re-running V-01/V-03/V-04 quickly).*
@@ -500,25 +606,38 @@ re-running V-01/V-03/V-04 quickly).*
    pinned ESPHome documentation, as configured in the bench image).
 6. Boot. Verify all markers gone as in step 2.
 
-**Expected result.** All three erase paths return the device to the
-unowned-equivalent state: no PSK, no OTA password, no marker, and (leg 2)
-no NVS-saved WiFi.
+*Leg 4 — WebFlash rescue path, released artifact (unit B, NVS-saved WiFi
+credentials re-provisioned via captive portal first).*
 
-**Pass criteria.** After each leg: plaintext API accepted and NVS marker
-at default. Leg 2 additionally: no automatic WiFi rejoin (the released
-artifact has no compiled credentials), and the erase-path behaviour
-recorded unambiguously. On legs 1 and 3 the bench image rejoins via its
-compiled YAML credentials **by design** — that rejoin is not a FAIL and
-proves nothing about NVS-saved WiFi.
+7. Run the WebFlash **rescue** flow under its current manifest/default
+   behaviour (record exact UI state and dialog wording).
+8. Boot. Record whether rescue performed a full erase and removed NVS:
+   no bench-WiFi rejoin, setup surface up, blank substrate state
+   (PR #594 finding 4 confirmed — or refuted, verbatim either way).
 
-**Fail criteria.** Any marker surviving any erase path (an ownership
-remnant after "erase" contradicts OD-10/AD-04 semantics — route to
-owner); factory reset failing to erase (contradicts E-6/E-7).
+**Expected result.** All four erase paths return the device to the
+unowned-equivalent blank substrate state: no PSK, no OTA/AP password
+globals, no marker, and (legs 2/4) no NVS-saved WiFi.
+
+**Pass criteria.** After each leg the destruction question is answered
+unambiguously: legs 1/3 — plaintext API accepted and NVS marker at
+default; legs 2/4 — no automatic WiFi rejoin (the released artifact has
+no compiled credentials), setup surface up, and the path's erase
+behaviour recorded verbatim. On legs 1 and 3 the bench image rejoins via
+its compiled YAML credentials **by design** — that rejoin is not a FAIL
+and proves nothing about NVS-saved WiFi. If leg 4's rescue path turns
+out **not** to fully erase, that is a recordable SPIKE-W1 answer (it
+refutes PR #594 finding 4), not a bench failure — record it verbatim and
+route it to PR #594.
+
+**Fail criteria.** Any marker surviving legs 1–3 (an ownership remnant
+after "erase" contradicts OD-10/AD-04 semantics — route to owner);
+factory reset failing to erase (contradicts E-6/E-7).
 
 **Evidence to capture.** `V-07-serial.log` (all legs);
-`V-07-shell.txt`; WebFlash dialog screenshots (erase state + wording);
-photo/video of the power-cycle reset sequence; first-boot serial output
-after each erase showing the clean state.
+`V-07-shell.txt`; WebFlash dialog screenshots for legs 2 and 4 (erase
+state + wording); photo/video of the power-cycle reset sequence;
+first-boot serial output after each erase showing the clean state.
 
 ### V-08 — Boot behaviour after update (OTA update while owned-equivalent)
 
@@ -684,9 +803,11 @@ explicitly in the record).
   ≥ 1-minute-spaced pair exists in the logs.
 - **M6** — V-07 leg 3 and V-10 step 5 are the same reset event (already
   stated in those checks).
-- **M7** — V-07 leg 1 (esptool erase) runs on **unit B** immediately
-  after its claim/OTA steps (marker also set on B), so unit A needs only
-  **one** re-establishment in the whole session.
+- **M7** — V-07 leg 1 (esptool erase) runs on **unit B** after its
+  claim/OTA steps and V-06 leg 2 (marker also set on B; the full marker
+  set is expected to have survived the leg-2 unchecked install), so
+  unit A needs only **one** re-establishment in the whole session. If
+  V-06 leg 2 hard-stops, re-establish B's markers once before this leg.
 
 **Runsheet** (durations are planning estimates only — they claim
 nothing about outcomes):
@@ -708,18 +829,19 @@ nothing about outcomes):
 | 12 | Unit A: re-establish once — repeat V-01 mechanics + re-set marker (OTA password re-applies via harness at boot); the session's **only** re-establishment | precondition for step 13 | 15 min |
 | 13 | Unit A: deliberate power-cycle-count pattern → factory reset fires; verify clean state (M6) | V-07 leg 3 · V-10 step 5 | 0.5 h |
 | 14 | Unit B: erase + flash bench image; claim with **fresh** key; lockout checks; confirm key ≠ unit A's | V-02 step 5 (incl. V-01 mechanics) | 0.75 h |
-| 15 | Unit B: OTA attempts with a **different** bench password; confirm ≠ unit A's; set NVS marker on B | V-04 step 6 | 0.5 h |
-| 16 | Unit B: `esptool erase_flash` (full marker set present, M7); reflash bench image; verify clean | V-07 leg 1 | 0.5 h |
-| 17 | Unit B: deliberate power-cycle-count pattern → reset fires | V-10 step 6 | 15 min |
-| 18 | Unit B: production WebFlash **full/erase install** of the released artifact — record every dialog, erase-option state and verbatim wording | SPIKE-W1 installer observation (feeds V-06/V-07 leg-2 evidence) | 0.5 h |
-| 19 | Unit B: captive-portal provision bench WiFi (NVS-saved credentials now exist) | precondition for steps 20–21 | 15 min |
-| 20 | Unit B: WebFlash **non-erase / update** reflash — WiFi survives? (or record verbatim that no non-erase path exists) | V-06 leg 2 | 0.5 h |
-| 21 | Unit B: WebFlash **erase** install — no rejoin; setup surface up | V-07 leg 2 | 0.5 h |
-| 22 | Evidence packaging; operator fills record Sections A–F; Section G owner-only | §6 | 1 h |
+| 15 | Unit B: OTA attempts with a **different** bench password; confirm ≠ unit A's; set NVS marker on B (OTA/AP password globals seed at first boot) | V-04 step 6 | 0.5 h |
+| 16 | Unit B: production WebFlash **ordinary install, "Erase device" unchecked**, released artifact over the full bench substrate — record dialogs; ≥ 30 s first-boot serial: boots? partition table valid? (**hard stop per §2 on non-boot** — recover via erase-install/rescue, route to PR #594); if booted: no-erase serial reflash of bench image, read back PSK / OTA global / AP global / marker survival | V-06 leg 2 | 0.75 h |
+| 17 | Unit B: `esptool erase_flash` (full marker set present — survived step 16, M7); reflash bench image; verify clean. (If step 16 hard-stopped, re-establish B's markers once before this step.) | V-07 leg 1 | 0.5 h |
+| 18 | Unit B: deliberate power-cycle-count pattern → reset fires | V-10 step 6 | 15 min |
+| 19 | Unit B: production WebFlash install of the released artifact with **"Erase device" checked** (baseline install; record dialogs) → captive-portal provision bench WiFi (NVS-saved credentials now exist) | precondition for steps 20–22 | 0.5 h |
+| 20 | Unit B: WebFlash **ordinary install, "Erase device" unchecked**, release over release — boots? partition valid? WiFi rejoin without re-provisioning? (hard stop per §2 on non-boot) | V-06 leg 3 | 0.5 h |
+| 21 | Unit B: WebFlash install, **"Erase device" checked** — no rejoin; setup surface up; blank substrate | V-07 leg 2 | 0.5 h |
+| 22 | Unit B: captive-portal provision bench WiFi again → WebFlash **rescue path** — full erase? NVS removed? (record verbatim either way) | V-07 leg 4 | 0.5 h |
+| 23 | Evidence packaging; operator fills record Sections A–F; Section G owner-only | §6 | 1 h |
 
-Steps 14–17 may interleave with unit A's long cycle blocks (steps 6, 8)
+Steps 14–18 may interleave with unit A's long cycle blocks (steps 6, 8)
 if a second serial port is available. Total single-operator estimate:
-**≈ 10–14 bench hours — plan two bench days.**
+**≈ 11–15 bench hours — plan two bench days.**
 
 **Check → spike → ADR dependency map** (each check's header lists its
 full ADR-section set; this is the acceptance-level summary):
@@ -729,7 +851,7 @@ full ADR-section set; this is the acceptance-level summary):
 | V-01, V-02 | **SPIKE-P1** | §8.2–8.3 claim mechanism; §11 API-key row; §12 OWNED semantics; E-1…E-3 bench confirmation | Item 1 |
 | V-04, V-09 | **SPIKE-P2** (OTA leg) | §11 OTA row; E-4/E-5 bench confirmation; V-09 measurement → owner applies or waives **OD-08** | Item 2 |
 | V-05 | **SPIKE-P2** (AP leg) | §11 fallback-AP row; E-8 bench confirmation; outcome → owner applies or waives **OD-07** | Item 2 |
-| V-06, V-07 | **SPIKE-W1** (bench half) | §13 reflash/erase matrix on real hardware; §15 WebFlash erase-semantics documentation input | Item 3 — closes only with the WebFlash-repo desk half |
+| V-06, V-07 | **SPIKE-W1** (empirical hardware/browser half; desk half complete in [WebFlash PR #594](https://github.com/sense360store/WebFlash/pull/594), outcome UNPROVEN) | §13 reflash/erase matrix on real hardware; resolves PR #594 findings 1–2 (V-06) and confirms findings 3–4 (V-07); §15 WebFlash erase-semantics documentation input | Item 3 — closes only after PR #594 records the bench outcome and merges |
 | V-03 | supporting | AD-01 / §12 ownership-record persistence **substrate** (attached to the SPIKE-P1 disposition) | — |
 | V-08 | supporting | §13 row 2 / CT-09 precursor (attached to the SPIKE-P2 and SPIKE-W1 dispositions) | — |
 | V-10 | partial input | OD-02 / OD-10 bare-board baseline; **partial SPIKE-P6 input only — SPIKE-P6 stays open** | Item 4 — NOT closed here |
