@@ -62,6 +62,18 @@ esphome -s bench_git_sha "$(git rev-parse --short=12 HEAD)" \
 The built image stays local (`.esphome/` is gitignored). **Never publish,
 release, or WebFlash-distribute this image.**
 
+### CI compile proof
+
+`.github/workflows/bench-harness-compile.yml` ("CI: Bench Harness Compile
+(TEST-ONLY)") runs the same `esphome config` + `esphome compile` on the
+pinned ESPHome 2026.6.5 with synthetic CI-only secrets, plus the guard
+tests, whenever this directory / the guard tests / that workflow change on
+a PR (and on manual dispatch). It is a **firmware-build (compile) proof
+only** — never hardware or bench evidence — and it uploads, publishes, and
+retains **no** binary; the compiled image never leaves the ephemeral
+runner. Its isolation shape is pinned by
+`tests/test_spike_provisioning_bench_harness.py`.
+
 ## Flash
 
 First flash on a blank board, over USB, after the full erase the procedure

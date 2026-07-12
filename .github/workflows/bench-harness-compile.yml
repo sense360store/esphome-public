@@ -1,0 +1,136 @@
+---
+# ============================================================================
+# BENCH HARNESS COMPILE PROOF — TEST-ONLY (SEC-ESP-PROVISIONING-001)
+# ============================================================================
+# TEST-ONLY — NOT FOR RELEASE OR CUSTOMER USE
+#
+# Compiles the SPIKE-PROVISIONING-BENCH-001 bench harness
+# (tests/bench/sec_esp_provisioning_001/bench-spike.yaml, PR #823) for its
+# bench target (S360-100 R4 / ESP32-S3) on the pinned harness toolchain
+# (ESPHome 2026.6.5 — the exact version the ADR desk evidence inspected),
+# and runs the harness guard tests.
+#
+# This is a **firmware-build (compile) proof only** for the TEST-ONLY
+# harness. Per docs/standing-invariants.md ("No false proof") it is NOT:
+#   - hardware evidence or a bench result (the procedure of record stays
+#     draft PR #822; its validation record stays owner-authored only —
+#     attestations are never machine-written),
+#   - provisioning implementation (ADR draft PR #821 stays Proposed),
+#   - release approval, promotion, or any change to product / release /
+#     WebFlash / programme state.
+#
+# Artifact policy (shape-pinned fail-closed by
+# tests/test_spike_provisioning_bench_harness.py):
+#   - the compiled binary is NEVER uploaded (no actions/upload-artifact),
+#     NEVER attached to a release or the PR, NEVER copied to WebFlash;
+#     it exists only inside this ephemeral runner and is deleted in the
+#     clean-up step;
+#   - the log may report compile success, binary size, target board,
+#     ESPHome version, and source commit SHA — never any credential value;
+#   - this workflow exposes no workflow_call trigger and is referenced by
+#     no other workflow, so the publication lanes (firmware-build-release
+#     .yml, create-release.yml, manual-firmware-artifacts.yml,
+#     release-notes-draft.yml, docs-site.yml, bump-version.yml) can never
+#     depend on it or on the harness.
+#
+# The harness stays excluded from every production discovery path
+# (products/, packages/, config/*.json declarations, ESP-007 release
+# matrix). This workflow is the single, deliberate, allow-listed exception
+# to "no workflow references the harness" — the guard tests pin both the
+# allow-list and this file's isolation shape.
+#
+# Deliberately NOT part of the compile-only lane (compile-only.yml): that
+# lane is declaration-driven from config/compile-only-targets.json, which
+# enumerates PRODUCT YAMLs only. Adding the harness there would put it in
+# a production declaration file — exactly what the guards forbid.
+# ============================================================================
+
+name: "CI: Bench Harness Compile (TEST-ONLY)"
+
+on:
+  pull_request:
+    paths:
+      - "tests/bench/sec_esp_provisioning_001/**"
+      - "tests/test_spike_provisioning_bench_harness.py"
+      - ".github/workflows/bench-harness-compile.yml"
+  workflow_dispatch:
+
+# SECURITY-AUDIT-FIX-001: least-privilege token scope. This workflow only
+# reads the repo, compiles a local-only image, and runs tests; it never
+# writes contents or any other resource, so it is pinned to read-only.
+permissions:
+  contents: read
+
+jobs:
+  bench-compile:
+    name: Bench Harness — TEST-ONLY Compile Proof (no artifact)
+    runs-on: ubuntu-latest
+    # ESP32-S3 / ESP-IDF cold-cache builds are slow; the PlatformIO cache
+    # (restored by setup-esphome-build) keeps warm runs far below this.
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up ESPHome build environment (pinned harness toolchain)
+        uses: ./.github/actions/setup-esphome-build
+        with:
+          # The harness pins ESPHome 2026.6.5 (tests/bench/
+          # sec_esp_provisioning_001/README.md) — deliberately NOT the
+          # composite's product-lane default. This job does not patch
+          # external_components (the harness includes none).
+          esphome-version: "2026.6.5"
+
+      - name: Provision synthetic bench secrets from the committed example
+        run: |
+          set -euo pipefail
+          # Derive the harness-local secrets.yaml from the committed
+          # template, replacing the REPLACE_WITH_* placeholders with
+          # clearly synthetic CI-only values (no real network exists in
+          # this runner; nothing is echoed). Untracked; removed in
+          # clean-up.
+          sed -e 's/REPLACE_WITH_ISOLATED_BENCH_SSID/ci-synthetic-bench-ssid/' \
+              -e 's/REPLACE_WITH_ISOLATED_BENCH_WIFI_PASSWORD/ci-synthetic-bench-wifi-value/' \
+              tests/bench/sec_esp_provisioning_001/secrets.example.yaml \
+              > tests/bench/sec_esp_provisioning_001/secrets.yaml
+          if grep -q "REPLACE_WITH_" tests/bench/sec_esp_provisioning_001/secrets.yaml; then
+            echo "::error::unreplaced placeholder left in bench secrets.yaml"
+            exit 1
+          fi
+
+      - name: Run harness guard tests (production/publication exclusion + shape)
+        run: |
+          pip install pytest
+          python3 -m pytest tests/test_spike_provisioning_bench_harness.py -q
+
+      - name: No-tracked-secrets guard (SEC-ESP-SECRET-GUARD-001)
+        run: |
+          python3 scripts/check-no-tracked-secrets.py
+
+      - name: Validate harness config (esphome config)
+        run: |
+          esphome version
+          esphome config tests/bench/sec_esp_provisioning_001/bench-spike.yaml
+
+      - name: Compile harness (compile proof only — S360-100 R4 / ESP32-S3)
+        run: |
+          esphome -s bench_git_sha "$(git rev-parse --short=12 HEAD)" \
+            compile tests/bench/sec_esp_provisioning_001/bench-spike.yaml
+
+      - name: Report compile facts (log only — binary is NOT uploaded)
+        run: |
+          set -euo pipefail
+          echo "Compile proof only — NOT hardware evidence, NOT a bench result."
+          echo "ESPHome version: $(esphome version)"
+          echo "Source commit:   $(git rev-parse HEAD)"
+          echo "Target:          S360-100 R4 / ESP32-S3 (sense360-bench-spike)"
+          echo "Compiled binary sizes (bytes; retained only inside this ephemeral runner):"
+          find tests/bench/sec_esp_provisioning_001/.esphome -name '*.bin' -exec ls -l {} +
+          echo "Artifact policy: no upload, no release, no WebFlash copy, no PR attachment."
+
+      - name: Clean up temporary secrets and local build output
+        if: always()
+        run: |
+          rm -f secrets.yaml products/secrets.yaml \
+            tests/bench/sec_esp_provisioning_001/secrets.yaml
+          rm -rf tests/bench/sec_esp_provisioning_001/.esphome
