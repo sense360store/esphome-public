@@ -150,6 +150,22 @@ substitutions:
   # FANDAC-I2C-ADDR-001.
   fan_dac_2_i2c_address: "0x5A"
 
+  # === Sense360 Core framework (CORE-FRAMEWORK-001) ===
+  # Compile-time capability declaration for the shared device framework
+  # (packages/base/device_framework.yaml). Values must match this config
+  # string's entry in config/core-framework.json — enforced by
+  # tests/test_core_framework.py. These are compile-time composition
+  # facts only; no runtime hardware autodetection is claimed.
+  s360_config_string: "Ceiling-POE-AirIQ-FanDAC-RoomIQ"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,power_poe,airiq,fan_dac,roomiq,presence"
+  s360_capabilities_human: "Core, PoE power, AirIQ, Fan (0-10V), RoomIQ, Presence"
+  s360_module_airiq: "Included"
+  s360_module_fan_control: "Included"
+  s360_module_roomiq: "Included"
+  s360_module_presence: "Included"
+
 # ============================================================================
 # PACKAGE INCLUDES (board layer + base + profiles)
 # ============================================================================
@@ -200,6 +216,10 @@ packages:
 
   # === Device Health & Diagnostics ===
   health: !include ../../packages/features/device_health.yaml
+
+  # === Sense360 Core framework (CORE-FRAMEWORK-001) ===
+  # Shared identity / capability / module-status / health entities.
+  framework: !include ../../packages/base/device_framework.yaml
 
 # ============================================================================
 # PRODUCT IDENTIFICATION

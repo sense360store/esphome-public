@@ -10,6 +10,7 @@
 <!-- Derived from: products/webflash/ceiling-poe-ventiq-roomiq-led.yaml -->
 <!-- Resolved package composition:
        packages/base/api_encrypted.yaml
+       packages/base/device_framework.yaml
        packages/base/external_components.yaml
        packages/base/logging.yaml
        packages/base/ota.yaml
@@ -33,7 +34,7 @@
        products/webflash/ceiling-poe-ventiq-roomiq-led.yaml
 -->
 
-The `Ceiling-POE-VentIQ-RoomIQ-LED` firmware exposes **63 entities** to Home Assistant.
+The `Ceiling-POE-VentIQ-RoomIQ-LED` firmware exposes **78 entities** to Home Assistant.
 
 Entity names below appear in Home Assistant prefixed with the device's friendly name, which you choose during setup (firmware default: `Sense360 Ceiling Bathroom LED`). Firmware-internal measurements (marked `internal` in the YAML) never reach Home Assistant and are not listed.
 
@@ -69,12 +70,23 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Ventilation Needed | Binary sensor | — | device class: opening |
 | Air Quality | Text sensor | — | — |
 | AirIQ Module SKU | Text sensor | — | diagnostic entity |
+| AirIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
 | Bathroom Status | Text sensor | — | — |
+| Capability IDs | Text sensor | — | diagnostic entity; disabled by default |
 | Comfort Status | Text sensor | — | — |
+| Device Health | Text sensor | — | diagnostic entity |
 | ESPHome Version | Text sensor | — | — |
+| Fan Control Module Status | Text sensor | — | diagnostic entity; disabled by default |
+| Firmware Channel | Text sensor | — | diagnostic entity; disabled by default |
+| Firmware Source | Text sensor | — | diagnostic entity; disabled by default |
 | Firmware Version | Text sensor | — | diagnostic entity |
+| Hardware Model | Text sensor | — | diagnostic entity |
+| Hardware Revision | Text sensor | — | diagnostic entity |
 | Humidity Advice | Text sensor | — | — |
+| Installed Capabilities | Text sensor | — | diagnostic entity |
 | IP Address | Text sensor | — | — |
+| Last Restart Reason | Text sensor | — | diagnostic entity; disabled by default |
+| LED Module Status | Text sensor | — | diagnostic entity; disabled by default |
 | LED Ring SKU | Text sensor | — | diagnostic entity |
 | Light Status | Text sensor | — | — |
 | MAC Address | Text sensor | — | — |
@@ -82,10 +94,14 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Power Configuration | Text sensor | — | diagnostic entity |
 | Power Source | Text sensor | — | — |
 | Presence Module SKU | Text sensor | — | diagnostic entity |
+| Presence Module Status | Text sensor | — | diagnostic entity; disabled by default |
+| Product Configuration | Text sensor | — | diagnostic entity |
 | Product SKU | Text sensor | — | diagnostic entity |
+| RoomIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
 | SSID | Text sensor | — | — |
 | Temperature Advice | Text sensor | — | — |
 | Ventilation Advice | Text sensor | — | — |
+| VentIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
 | WebFlash Config | Text sensor | — | diagnostic entity |
 | Auto Ventilation | Switch | — | — |
 | Night Mode | Switch | — | — |

@@ -574,6 +574,49 @@ rename touches `config/webflash-builds.json`, `manifest.json`, or
 
 ---
 
+## 12. Shared firmware framework (CORE-FRAMEWORK-001)
+
+**Status: framework PR proposed** (structural foundation; draft PR, not
+merged). `CORE-FRAMEWORK-001` adds the shared Sense360 device framework —
+consistent Home Assistant naming, device/firmware information, compile-time
+capability reporting, module presence/status, diagnostics policy, and a
+device-health summary — as one reusable package
+([`packages/base/device_framework.yaml`](../packages/base/device_framework.yaml))
+composed exactly once by every bundle under `products/bundles/`. The
+machine-readable contract is
+[`config/core-framework.json`](../config/core-framework.json); the canonical
+description is
+[`docs/architecture/sense360-core-framework.md`](architecture/sense360-core-framework.md);
+tests are `tests/test_core_framework.py` / `tests/test_core_framework_doc.py`
+(TDD: contract tests landed failing-first, then the implementation).
+
+Scope facts (do not overclaim):
+
+* **Hardware verification is not required and not claimed** for this
+  structural framework — firmware-composition / compile proof only (standing
+  invariant: no false proof). Capability and module-status values are
+  compile-time composition facts; **no runtime hardware autodetection** is
+  performed or claimed.
+* **Module-specific runtime health remains future work.** The runtime status
+  vocabulary (Initialising / Available / Degraded / Unavailable / Fault) and
+  the richer Device Health values (Degraded / Fault / Safe mode) are
+  documented as **reserved**; Presence / LED / RoomIQ / AirIQ / VentIQ
+  feature and health work lands in separate module PRs.
+* **This is a repository-local engineering foundation. SOT programme state
+  is unchanged** — no SOT programme entry is created, moved or redefined by
+  this work item, and no product lifecycle, commercial, WebFlash, release,
+  tag, manifest or provisioning state changes. `config/webflash-builds.json`
+  is untouched (fourteen builds, §1).
+* **One declared gap:** `Ceiling-POE-FanPWM` defers the framework include
+  (`framework_included: false` in the contract) because its bundle is
+  pinned package-identical to the native full-compile-validated
+  compile-only skeleton (`S360-311-NATIVE-FANPWM-COMPILE-001`); wiring it
+  would invalidate that recorded compile evidence. It follows up once the
+  native compile lane re-records. The other 15 bundles compose the
+  framework now.
+
+---
+
 ## Channel-tier policy (RELEASE-PREVIEW-ALL-PRODUCTS-001)
 
 Preview eligibility is now open to **every buildable target**. The channel-tier

@@ -106,6 +106,22 @@ substitutions:
   poe_class: "0"
   poe_standard: "802.3af"
 
+  # === Sense360 Core framework (CORE-FRAMEWORK-001) ===
+  # Compile-time capability declaration for the shared device framework
+  # (packages/base/device_framework.yaml). Values must match this config
+  # string's entry in config/core-framework.json — enforced by
+  # tests/test_core_framework.py. These are compile-time composition
+  # facts only; no runtime hardware autodetection is claimed.
+  s360_config_string: "Ceiling-POE-AirIQ-FanRelay-RoomIQ"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,power_poe,airiq,fan_relay,roomiq,presence"
+  s360_capabilities_human: "Core, PoE power, AirIQ, Fan (relay), RoomIQ, Presence"
+  s360_module_airiq: "Included"
+  s360_module_fan_control: "Included"
+  s360_module_roomiq: "Included"
+  s360_module_presence: "Included"
+
   # === FanRelay binding ===
   # The relay GPIO output is owned by the Core abstract package (the
   # `main_relay` `switch.gpio` on `${relay_pin}` -> GPIO3 per S360-100-R4 IO3).
@@ -161,6 +177,10 @@ packages:
 
   # === Device Health & Diagnostics ===
   health: !include ../../packages/features/device_health.yaml
+
+  # === Sense360 Core framework (CORE-FRAMEWORK-001) ===
+  # Shared identity / capability / module-status / health entities.
+  framework: !include ../../packages/base/device_framework.yaml
 
 # ============================================================================
 # PRODUCT IDENTIFICATION

@@ -504,16 +504,31 @@ class FrameworkPackageTests(unittest.TestCase):
         for needle in ("password", "api_encryption", "token"):
             self.assertNotIn(needle, lowered)
 
+    def _emission_surface(self) -> str:
+        """Everything the framework can actually publish: substitution
+        defaults plus entity names and lambda bodies (comments excluded)."""
+        parts: List[str] = []
+        subs = self.doc.get("substitutions") or {}
+        parts.extend(str(v) for v in subs.values())
+        for entry in self.sensors.values():
+            parts.append(str(entry.get("name", "")))
+            parts.append(str(entry.get("lambda", "")))
+        return "\n".join(parts)
+
     def test_health_entity_uses_documented_values_only(self) -> None:
         health = self.sensors["s360_device_health"]
         lambda_body = str(health.get("lambda", ""))
         for value in HEALTH_VALUES_TODAY:
             self.assertIn(value, lambda_body)
-        # Reserved runtime values must not be fabricated by the framework.
+        # Reserved runtime values must not be fabricated by the framework:
+        # nothing the framework can publish (substitution defaults, entity
+        # names, lambda bodies) may carry them. Comments documenting the
+        # reservation are allowed.
+        emission = self._emission_surface()
         for value in RESERVED_MODULE_STATUS_VALUES | HEALTH_VALUES_RESERVED:
             self.assertNotIn(
                 value,
-                self.raw,
+                emission,
                 f"framework must not emit reserved runtime value {value!r} "
                 "before a real signal exists",
             )
@@ -535,7 +550,9 @@ class FrameworkPackageTests(unittest.TestCase):
         )
 
     def test_no_runtime_detection_claim_in_static_entities(self) -> None:
-        lowered = self.raw.lower()
+        # Compile-time facts must never be labelled as runtime detection in
+        # anything the framework publishes (names / lambdas / defaults).
+        lowered = self._emission_surface().lower()
         self.assertNotIn("detected", lowered)
         self.assertNotIn("autodetect", lowered)
 
@@ -562,17 +579,39 @@ class BundleWiringTests(unittest.TestCase):
         for config_string, entry in self.configs.items():
             bundle, _ = self._bundle_doc(entry)
             occurrences = bundle.read_text().count(
-                "packages/base/device_framework.yaml"
+                "!include ../../packages/base/device_framework.yaml"
             )
+            expected = 1 if entry.get("framework_included", True) else 0
             self.assertEqual(
                 occurrences,
-                1,
+                expected,
                 f"{config_string}: bundle must include the framework package "
-                f"exactly once (found {occurrences})",
+                f"exactly {expected} time(s) (found {occurrences})",
             )
+
+    def test_deferred_configs_document_why(self) -> None:
+        # A config may only opt out of the framework with an explicit,
+        # documented deferral (currently: the FanPWM native-compile
+        # identity gate, tests/test_pwm_product_readiness.py).
+        deferred = {
+            cs: entry
+            for cs, entry in self.configs.items()
+            if not entry.get("framework_included", True)
+        }
+        self.assertEqual(set(deferred), {"Ceiling-POE-FanPWM"})
+        for config_string, entry in deferred.items():
+            reason = entry.get("deferral_reason", "")
+            self.assertGreater(
+                len(reason),
+                40,
+                f"{config_string}: deferral requires a documented reason",
+            )
+            self.assertIn("identical", reason.lower())
 
     def test_bundle_substitutions_match_contract(self) -> None:
         for config_string, entry in self.configs.items():
+            if not entry.get("framework_included", True):
+                continue
             _, doc = self._bundle_doc(entry)
             subs = doc.get("substitutions") or {}
             caps: List[str] = entry.get("capabilities") or []
@@ -590,6 +629,8 @@ class BundleWiringTests(unittest.TestCase):
 
     def test_bundle_module_flags_match_capabilities(self) -> None:
         for config_string, entry in self.configs.items():
+            if not entry.get("framework_included", True):
+                continue
             _, doc = self._bundle_doc(entry)
             subs = doc.get("substitutions") or {}
             caps = set(entry.get("capabilities") or [])
@@ -693,7 +734,15 @@ class CompositionRegressionTests(unittest.TestCase):
             self.assertEqual(duplicates, {}, f"duplicate entity ids in {bundle.name}")
 
     def test_framework_entities_reach_every_bundle(self) -> None:
+        contract = load_contract()
+        deferred_bundles = {
+            (REPO_ROOT / entry["bundle"]).resolve()
+            for entry in (contract.get("configs") or {}).values()
+            if not entry.get("framework_included", True)
+        }
         for bundle in bundle_paths():
+            if bundle.resolve() in deferred_bundles:
+                continue
             walker = self._walk(bundle)
             resolved = {p for p in walker.visited}
             self.assertIn(

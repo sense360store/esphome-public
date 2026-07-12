@@ -1,0 +1,415 @@
+{
+  "schema_version": 1,
+  "work_item": "CORE-FRAMEWORK-001",
+  "description": "Shared Sense360 firmware / entity framework contract: the stable capability registry, the module-status and device-health value contracts, and the per-config-string compile-time capability declarations that products/bundles/*.yaml implement via s360_* substitutions and packages/base/device_framework.yaml. Docs describe; this file decides. Validated by tests/test_core_framework.py.",
+  "framework_package": "packages/base/device_framework.yaml",
+  "documentation": "docs/architecture/sense360-core-framework.md",
+  "sources": [
+    "config/product-catalog.json",
+    "config/hardware-catalog.json",
+    "config/webflash-builds.json"
+  ],
+  "guardrails": [
+    "All capability and module-status values in this contract are compile-time composition facts only: no runtime hardware autodetection is performed or claimed by the framework.",
+    "Module status 'Included' is compile-time presence, never a health, availability, bench or hardware claim.",
+    "The reserved runtime status values (Initialising / Available / Degraded / Unavailable / Fault) may only be introduced by a module-specific PR that wires a real supported runtime signal.",
+    "This contract changes no release declaration: config/webflash-builds.json rows, channels, versions, artifact names, product lifecycle and commercial state are untouched.",
+    "Compile-only skeletons (products/compile-only/) and the provisioning bench harness (tests/bench/) never include the framework package, so they cannot be mistaken for customer products.",
+    "Firmware-build proof only: nothing in this contract claims hardware, bench, compliance, safety or commercial-availability proof.",
+    "Ceiling-POE-FanPWM is the one declared framework gap (framework_included: false): its bundle is pinned package-identical to the native full-compile-validated skeleton, so the framework include is deferred until that lane re-records. All other configs compose the framework exactly once."
+  ],
+  "capabilities": {
+    "core": {
+      "display_name": "Core",
+      "kind": "platform",
+      "hardware_sku": "S360-100",
+      "description": "Sense360 Core hub board (ESP32-S3). Present in every composition; owns WiFi/API/OTA base infrastructure."
+    },
+    "power_poe": {
+      "display_name": "PoE power",
+      "kind": "power",
+      "hardware_sku": "S360-410",
+      "description": "Powered through the S360-410 PoE PSU module."
+    },
+    "power_usb": {
+      "display_name": "USB power",
+      "kind": "power",
+      "hardware_sku": null,
+      "description": "USB-powered composition (no PSU module board; power is supplied over the Core USB input)."
+    },
+    "roomiq": {
+      "display_name": "RoomIQ",
+      "kind": "module",
+      "hardware_sku": "S360-200",
+      "description": "RoomIQ comfort sensing (SHT4x, BMP581, LTR-303ALS) on the S360-200 board."
+    },
+    "airiq": {
+      "display_name": "AirIQ",
+      "kind": "module",
+      "hardware_sku": "S360-210",
+      "description": "AirIQ air-quality module (SCD41 CO2, SGP41 VOC, MICS-4514)."
+    },
+    "ventiq": {
+      "display_name": "VentIQ",
+      "kind": "module",
+      "hardware_sku": "S360-211",
+      "description": "VentIQ bathroom air-quality module (SGP41 plus IR temp / SPS30 connectors)."
+    },
+    "presence": {
+      "display_name": "Presence",
+      "kind": "module",
+      "hardware_sku": "S360-200",
+      "description": "Presence sensing (PIR, LD2450 radar, SEN0609 radar) carried by the S360-200 RoomIQ board."
+    },
+    "led": {
+      "display_name": "LED",
+      "kind": "module",
+      "hardware_sku": "S360-300",
+      "description": "S360-300 WS2812B LED ring indicator module."
+    },
+    "fan_relay": {
+      "display_name": "Fan (relay)",
+      "kind": "module",
+      "hardware_sku": "S360-310",
+      "description": "S360-310 on/off relay fan driver (experimental lane)."
+    },
+    "fan_pwm": {
+      "display_name": "Fan (PWM)",
+      "kind": "module",
+      "hardware_sku": "S360-311",
+      "description": "S360-311 12V PWM fan driver with tach feedback."
+    },
+    "fan_dac": {
+      "display_name": "Fan (0-10V)",
+      "kind": "module",
+      "hardware_sku": "S360-312",
+      "description": "S360-312 GP8403 0-10V analog fan driver."
+    },
+    "fan_triac": {
+      "display_name": "Fan (TRIAC)",
+      "kind": "module",
+      "hardware_sku": "S360-320",
+      "description": "S360-320 TRIAC phase dimmer (experimental self-build mains lane; never stable / buyable)."
+    }
+  },
+  "module_status": {
+    "modules": [
+      "roomiq",
+      "airiq",
+      "ventiq",
+      "presence",
+      "led",
+      "fan_control"
+    ],
+    "values": {
+      "Not included": "The module's packages are not part of this configuration's compiled composition. This is the normal state for an optional module that was not ordered \u2014 it is never a fault.",
+      "Included": "Compile-time presence only: the module's packages are compiled into this firmware. It does not mean the module was detected, is healthy, or is available \u2014 runtime health signals arrive with the module-specific PRs."
+    },
+    "reserved_values": {
+      "Initialising": "Reserved: module is present and inside its startup warm-up window; must not be reported as Unavailable during warm-up.",
+      "Available": "Reserved: module is present and a real supported runtime signal (successful sensor update, component status, or communication success) confirms it is working. Never derived from compilation alone.",
+      "Degraded": "Reserved: module responds but part of its function is impaired (e.g. one of several sensors failing or stale). Must not mark unrelated modules unavailable.",
+      "Unavailable": "Reserved: module is expected (compiled in) but a real runtime signal shows it is not responding after warm-up.",
+      "Fault": "Reserved: module reports an explicit error condition. Never used for a module that is simply absent."
+    }
+  },
+  "device_health": {
+    "values": {
+      "Starting": "Device is inside the boot warm-up window (s360_health_warmup_seconds, default 120 s). Startup must not be reported as a fault.",
+      "Healthy": "Warm-up has completed and no negative signal exists. Today this means only that the firmware is up and running; module health aggregation is reserved for the module-specific PRs."
+    },
+    "reserved_values": {
+      "Degraded": "Reserved: at least one included module is Degraded or Unavailable while the rest of the device works.",
+      "Fault": "Reserved: a critical module or the device itself reports an explicit fault.",
+      "Safe mode": "Reserved: the device booted into ESPHome safe mode / recovery. Requires a supported runtime signal before it can be reported."
+    },
+    "inputs_today": [
+      "boot warm-up window (millis() vs s360_health_warmup_seconds)"
+    ],
+    "reserved_inputs": [
+      "per-module runtime health (module-specific PRs)",
+      "safe-mode / recovery state",
+      "stale-sensor-data detection (distinguished from a missing module)"
+    ]
+  },
+  "configs": {
+    "Ceiling-POE-VentIQ-RoomIQ": {
+      "bundle": "products/bundles/ceiling-poe-ventiq-roomiq.yaml",
+      "capabilities": [
+        "core",
+        "power_poe",
+        "ventiq",
+        "roomiq",
+        "presence"
+      ],
+      "modules_included": [
+        "presence",
+        "roomiq",
+        "ventiq"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    },
+    "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ": {
+      "bundle": "products/bundles/ceiling-poe-ventiq-fantriac-roomiq.yaml",
+      "capabilities": [
+        "core",
+        "power_poe",
+        "ventiq",
+        "fan_triac",
+        "roomiq",
+        "presence"
+      ],
+      "modules_included": [
+        "fan_control",
+        "presence",
+        "roomiq",
+        "ventiq"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    },
+    "Ceiling-POE-VentIQ-FanRelay-RoomIQ": {
+      "bundle": "products/bundles/ceiling-poe-ventiq-fanrelay-roomiq.yaml",
+      "capabilities": [
+        "core",
+        "power_poe",
+        "ventiq",
+        "fan_relay",
+        "roomiq",
+        "presence"
+      ],
+      "modules_included": [
+        "fan_control",
+        "presence",
+        "roomiq",
+        "ventiq"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    },
+    "Ceiling-POE-VentIQ-FanPWM-RoomIQ": {
+      "bundle": "products/bundles/ceiling-poe-ventiq-fanpwm-roomiq.yaml",
+      "capabilities": [
+        "core",
+        "power_poe",
+        "ventiq",
+        "fan_pwm",
+        "roomiq",
+        "presence"
+      ],
+      "modules_included": [
+        "fan_control",
+        "presence",
+        "roomiq",
+        "ventiq"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    },
+    "Ceiling-POE-VentIQ-FanDAC-RoomIQ": {
+      "bundle": "products/bundles/ceiling-poe-ventiq-fandac-roomiq.yaml",
+      "capabilities": [
+        "core",
+        "power_poe",
+        "ventiq",
+        "fan_dac",
+        "roomiq",
+        "presence"
+      ],
+      "modules_included": [
+        "fan_control",
+        "presence",
+        "roomiq",
+        "ventiq"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    },
+    "Ceiling-POE-AirIQ-FanRelay-RoomIQ": {
+      "bundle": "products/bundles/ceiling-poe-airiq-fanrelay-roomiq.yaml",
+      "capabilities": [
+        "core",
+        "power_poe",
+        "airiq",
+        "fan_relay",
+        "roomiq",
+        "presence"
+      ],
+      "modules_included": [
+        "airiq",
+        "fan_control",
+        "presence",
+        "roomiq"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    },
+    "Ceiling-POE-AirIQ-FanDAC-RoomIQ": {
+      "bundle": "products/bundles/ceiling-poe-airiq-fandac-roomiq.yaml",
+      "capabilities": [
+        "core",
+        "power_poe",
+        "airiq",
+        "fan_dac",
+        "roomiq",
+        "presence"
+      ],
+      "modules_included": [
+        "airiq",
+        "fan_control",
+        "presence",
+        "roomiq"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    },
+    "Ceiling-POE-AirIQ-FanPWM-RoomIQ": {
+      "bundle": "products/bundles/ceiling-poe-airiq-fanpwm-roomiq.yaml",
+      "capabilities": [
+        "core",
+        "power_poe",
+        "airiq",
+        "fan_pwm",
+        "roomiq",
+        "presence"
+      ],
+      "modules_included": [
+        "airiq",
+        "fan_control",
+        "presence",
+        "roomiq"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    },
+    "Ceiling-POE-FanDAC": {
+      "bundle": "products/bundles/ceiling-poe-fandac.yaml",
+      "capabilities": [
+        "core",
+        "power_poe",
+        "fan_dac"
+      ],
+      "modules_included": [
+        "fan_control"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    },
+    "Ceiling-POE-FanPWM": {
+      "bundle": "products/bundles/ceiling-poe-fanpwm.yaml",
+      "capabilities": [
+        "core",
+        "power_poe",
+        "fan_pwm"
+      ],
+      "modules_included": [
+        "fan_control"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4",
+      "framework_included": false,
+      "deferral_reason": "Deferred: products/bundles/ceiling-poe-fanpwm.yaml must compose the IDENTICAL package set as the native full-compile-validated compile-only skeleton products/compile-only/ceiling-poe-fanpwm-native.yaml (S360-311-NATIVE-FANPWM-COMPILE-001, tests/test_pwm_product_readiness.py). Adding the framework package would break that identity and silently invalidate the recorded native full-compile evidence. The framework include lands for this config in a follow-up once the native compile-only lane re-records a framework-bearing composition."
+    },
+    "Ceiling-POE-VentIQ-RoomIQ-LED": {
+      "bundle": "products/bundles/ceiling-poe-ventiq-roomiq-led.yaml",
+      "capabilities": [
+        "core",
+        "power_poe",
+        "ventiq",
+        "roomiq",
+        "presence",
+        "led"
+      ],
+      "modules_included": [
+        "led",
+        "presence",
+        "roomiq",
+        "ventiq"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    },
+    "Ceiling-POE-RoomIQ": {
+      "bundle": "products/bundles/ceiling-poe-roomiq.yaml",
+      "capabilities": [
+        "core",
+        "power_poe",
+        "roomiq",
+        "presence"
+      ],
+      "modules_included": [
+        "presence",
+        "roomiq"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    },
+    "Ceiling-POE-AirIQ-RoomIQ": {
+      "bundle": "products/bundles/ceiling-poe-airiq-roomiq.yaml",
+      "capabilities": [
+        "core",
+        "power_poe",
+        "airiq",
+        "roomiq",
+        "presence"
+      ],
+      "modules_included": [
+        "airiq",
+        "presence",
+        "roomiq"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    },
+    "Ceiling-POE-RoomIQ-LED": {
+      "bundle": "products/bundles/ceiling-poe-roomiq-led.yaml",
+      "capabilities": [
+        "core",
+        "power_poe",
+        "roomiq",
+        "presence",
+        "led"
+      ],
+      "modules_included": [
+        "led",
+        "presence",
+        "roomiq"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    },
+    "Ceiling-USB-VentIQ-RoomIQ": {
+      "bundle": "products/bundles/ceiling-usb-ventiq-roomiq.yaml",
+      "capabilities": [
+        "core",
+        "power_usb",
+        "ventiq",
+        "roomiq",
+        "presence"
+      ],
+      "modules_included": [
+        "presence",
+        "roomiq",
+        "ventiq"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    },
+    "Ceiling-USB-RoomIQ": {
+      "bundle": "products/bundles/ceiling-usb-roomiq.yaml",
+      "capabilities": [
+        "core",
+        "power_usb",
+        "roomiq",
+        "presence"
+      ],
+      "modules_included": [
+        "presence",
+        "roomiq"
+      ],
+      "hardware_model": "S360-100",
+      "hardware_revision": "R4"
+    }
+  }
+}
