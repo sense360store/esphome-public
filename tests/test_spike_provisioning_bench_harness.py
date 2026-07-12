@@ -169,9 +169,7 @@ class TestProductionDiscoveryExclusion(unittest.TestCase):
                 text = _read(yaml_path)
                 for token in HARNESS_PATH_TOKENS:
                     if token in text:
-                        offenders.append(
-                            f"{yaml_path.relative_to(REPO_ROOT)}: {token}"
-                        )
+                        offenders.append(f"{yaml_path.relative_to(REPO_ROOT)}: {token}")
         self.assertEqual(
             offenders, [], f"production YAML references harness: {offenders}"
         )
@@ -368,7 +366,8 @@ class TestPersistenceRecordShape(unittest.TestCase):
             text,
         )
         self.assertIsNotNone(match)
-        self.assertRegex(match.group(0), r"initial_value:\s*['\"]1['\"]")
+        # std::string globals take a C++ expression: initial_value: '"1"'
+        self.assertRegex(match.group(0), r"initial_value:\s*'\"1\"'")
 
     def test_record_has_a_checksum_field_and_validation(self):
         text = self._text()

@@ -1,0 +1,475 @@
+# ============================================================================
+# SPIKE-PROVISIONING-BENCH-001 — bench spike harness (S360-100 R4, ESP32-S3)
+# ============================================================================
+# TEST-ONLY — NOT FOR RELEASE OR CUSTOMER USE
+#
+# Programme: SEC-ESP-PROVISIONING-001 (ADR draft PR #821 — status Proposed).
+# Procedure of record: docs/hardware/SPIKE-PROVISIONING-BENCH-001-procedure.md
+# (draft PR #822). This file is the committed form of the "bench spike image"
+# that procedure §3 defines: it exists SOLELY so the owner can exercise stock
+# ESPHome runtime setters and NVS persistence on the bench target and record
+# the evidence for SPIKE-P1 / SPIKE-P2 / SPIKE-W1 (bench half) / V-10
+# bare-board mechanism checks.
+#
+# It is NOT the production provisioning architecture and must never be cited
+# as implementation evidence. It implements NO ownership state machine, NO
+# claim-window gating, NO bootstrap invalidation, NO production UUID or
+# credential generation, and NO recovery/transfer flow — those belong to the
+# implementation stage after ADR acceptance (ADR §16). Every mechanism used
+# here is stock ESPHome (ADR Appendix D, E-1…E-8):
+#
+#   H-01  api: encryption: with NO key    -> runtime set-key claim substrate
+#   H-02  ota: password: ""               -> runtime set_auth_password()
+#   H-03  wifi: ap: with NO password      -> runtime WiFiComponent::set_ap()
+#   H-04  restore_value globals           -> synthetic NVS persistence record
+#   H-05  template/debug/version sensors  -> non-secret diagnostics only
+#   H-06  factory_reset button (SW3)      -> stock full-NVS erase
+#   H-07  factory_reset resets_required   -> stock power-cycle-count reset,
+#         GPIO46 fan-status LED           -> visible bench confirmation
+#
+# Guards: tests/test_spike_provisioning_bench_harness.py proves this file is
+# excluded from every production discovery path (products/, packages/,
+# config/*.json declarations, release/WebFlash workflows), commits no
+# credential literal, and never logs credential values.
+#
+# All credential values used at the bench are THROWAWAY values supplied at
+# execution time (see README.md and bench_host.py). This file is deleted
+# from no path by the bench; clean-up steps are in the README.
+# ============================================================================
+
+substitutions:
+  device_name: sense360-bench-spike
+  friendly_name: "Sense360 Bench Spike (TEST-ONLY)"
+  # Harness identity, exposed at runtime (H-05). Bump on any change.
+  bench_harness_version: "0.1.0"
+  # Git commit the image was built from. Pass at build time:
+  #   esphome -s bench_git_sha "$(git rev-parse --short=12 HEAD)" ...
+  bench_git_sha: "unknown"
+  # Stock power-cycle-count factory reset parameters (H-07 / V-10 step 5).
+  # N power-on resets, each boot shorter than max_delay, trigger the reset.
+  # Record these exact values in the validation record.
+  bench_resets_required: "5"
+  bench_reset_max_delay: 10s
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  project:
+    name: sense360.spike_provisioning_bench_001
+    version: ${bench_harness_version}
+  # Boot-time application of the persisted throwaway credentials. This
+  # simulates ONLY the "NVS-loaded value applied at boot" duty the future
+  # gating component will own (procedure §3 items 3-4); it is not that
+  # component. Priority 800 is the earliest practical on_boot stage — the
+  # V-09 boot-window measurement records whether any endpoint accepts
+  # traffic before these setters take effect. Record the priority used.
+  on_boot:
+    - priority: 800
+      then:
+        - lambda: |-
+            static const char *const TAG = "bench";
+            // H-05: boot counter (persisted; cleared only by NVS erase).
+            id(bench_boot_count) += 1;
+            // H-02: apply the stored throwaway OTA password, if one was
+            // set via the bench action. Empty -> unauthenticated baseline
+            // stays observable (V-04 step 2 precondition).
+            const bool ota_set = !id(bench_ota_password).empty();
+            if (ota_set) {
+              id(bench_ota)->set_auth_password(id(bench_ota_password));
+            }
+            id(bench_ota_auth_state) = ota_set;
+            ESP_LOGI(TAG, "H-02 OTA auth at boot: %s",
+                     ota_set ? "stored bench password applied (value not logged)"
+                             : "UNSET (unauthenticated baseline)");
+            // H-03: apply the stored throwaway fallback-AP password, if
+            // set, through the stock public setter (ADR E-8) before the
+            // fallback AP would activate. V-05 measures whether any open
+            // window exists despite this.
+            const bool ap_set = !id(bench_ap_password).empty();
+            if (ap_set) {
+              esphome::wifi::WiFiAP ap;
+              ap.set_ssid("${device_name} FB");
+              ap.set_password(id(bench_ap_password));
+              id(bench_wifi)->set_ap(ap);
+            }
+            id(bench_ap_auth_state) = ap_set;
+            ESP_LOGI(TAG, "H-03 fallback-AP auth at boot: %s",
+                     ap_set ? "stored bench password applied (value not logged)"
+                            : "UNSET (open-AP baseline)");
+            // H-04: validate the synthetic persistence record (FNV-1a over
+            // uuid|state|schema, hex). Synthetic substrate only — NOT the
+            // production ownership record or UUID implementation.
+            {
+              uint32_t h = 2166136261UL;
+              auto mix = [&h](const std::string &s) {
+                for (unsigned char c : s) { h ^= c; h *= 16777619UL; }
+                h ^= (unsigned char) '|'; h *= 16777619UL;
+              };
+              mix(id(bench_record_uuid));
+              mix(id(bench_record_state));
+              mix(id(bench_record_schema_version));
+              char buf[9];
+              snprintf(buf, sizeof(buf), "%08lx", (unsigned long) h);
+              const bool present = !id(bench_record_uuid).empty();
+              const bool valid = present && id(bench_record_checksum) == buf;
+              id(bench_record_present_state) = present;
+              id(bench_record_valid_state) = valid;
+              ESP_LOGI(TAG, "H-04 synthetic record: %s",
+                       !present ? "ABSENT (default/erased)"
+                                : (valid ? "present and checksum-valid"
+                                         : "PRESENT BUT CHECKSUM-INVALID"));
+            }
+            ESP_LOGI(TAG, "H-05 identity: harness=%s git=%s boot_count=%d",
+                     "${bench_harness_version}", "${bench_git_sha}",
+                     id(bench_boot_count));
+
+# Bench target: Sense360 Core S360-100 R4 — ESP32-S3-WROOM-1-N16R8
+# (chip block per the canonical board package packages/boards/s360-100-core.yaml;
+# NOT included from it, so no product layer is coupled to this harness).
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+# Bench network credentials come from a LOCAL secrets.yaml (copy
+# secrets.example.yaml in this directory). Never committed.
+wifi:
+  id: bench_wifi
+  networks:
+    - ssid: !secret bench_wifi_ssid
+      password: !secret bench_wifi_password
+  # H-03 substrate: the fallback AP is compiled with NO password. The
+  # throwaway AP password is applied at runtime (on_boot lambda above /
+  # bench_set_ap_password action below) via the stock set_ap() setter.
+  # Whether an unauthenticated AP window exists is exactly what check
+  # V-05 measures — do not "fix" this by committing a password here.
+  ap:
+    ssid: "${device_name} FB"
+
+captive_portal:
+
+logger:
+  level: DEBUG
+  baud_rate: 115200
+
+# H-01 substrate (ADR E-1/E-2/E-3): noise-capable with NO key. A plaintext
+# client may set a key at runtime (stock NoiseEncryptionSetKeyRequest);
+# ESPHome persists it natively (SavedNoisePsk preference), disables
+# plaintext, and only a factory reset removes it. Do NOT add a key here.
+api:
+  id: bench_api
+  encryption:
+  reboot_timeout: 0s
+  # Bench-time test actions (stock user-defined API services — no custom
+  # protocol). Values are throwaway, supplied at execution time by the
+  # operator via bench_host.py; they are persisted into the restore_value
+  # globals below so NVS survival/erasure is observable (V-03/V-06/V-07).
+  actions:
+    - action: bench_set_ota_password
+      variables:
+        value: string
+      then:
+        - lambda: |-
+            static const char *const TAG = "bench";
+            id(bench_ota_password) = value;
+            const bool ota_set = !id(bench_ota_password).empty();
+            if (ota_set) {
+              id(bench_ota)->set_auth_password(id(bench_ota_password));
+            } else {
+              id(bench_ota)->set_auth_password("");
+            }
+            id(bench_ota_auth_state) = ota_set;
+            ESP_LOGI(TAG, "H-02 bench action: OTA password %s (value not logged)",
+                     ota_set ? "stored and applied" : "cleared");
+    - action: bench_set_ap_password
+      variables:
+        value: string
+      then:
+        - lambda: |-
+            static const char *const TAG = "bench";
+            id(bench_ap_password) = value;
+            const bool ap_set = !id(bench_ap_password).empty();
+            esphome::wifi::WiFiAP ap;
+            ap.set_ssid("${device_name} FB");
+            if (ap_set) {
+              ap.set_password(id(bench_ap_password));
+            }
+            id(bench_wifi)->set_ap(ap);
+            id(bench_ap_auth_state) = ap_set;
+            ESP_LOGI(TAG, "H-03 bench action: AP password %s (value not logged)",
+                     ap_set ? "stored and applied" : "cleared");
+    - action: bench_set_synthetic_record
+      variables:
+        uuid: string
+        state: string
+      then:
+        - lambda: |-
+            static const char *const TAG = "bench";
+            // Synthetic persistence substrate ONLY (H-04). The values are
+            // bench-chosen throwaways; this is not UUID generation and not
+            // the production ownership record.
+            id(bench_record_uuid) = uuid;
+            id(bench_record_state) = state;
+            id(bench_record_schema_version) = "1";
+            uint32_t h = 2166136261UL;
+            auto mix = [&h](const std::string &s) {
+              for (unsigned char c : s) { h ^= c; h *= 16777619UL; }
+              h ^= (unsigned char) '|'; h *= 16777619UL;
+            };
+            mix(id(bench_record_uuid));
+            mix(id(bench_record_state));
+            mix(id(bench_record_schema_version));
+            char buf[9];
+            snprintf(buf, sizeof(buf), "%08lx", (unsigned long) h);
+            id(bench_record_checksum) = buf;
+            id(bench_record_present_state) = true;
+            id(bench_record_valid_state) = true;
+            ESP_LOGI(TAG, "H-04 bench action: synthetic record written "
+                          "(uuid=%s state=%s schema=1 checksum=%s)",
+                     uuid.c_str(), state.c_str(), buf);
+    - action: bench_clear_synthetic_record
+      then:
+        - lambda: |-
+            static const char *const TAG = "bench";
+            id(bench_record_uuid) = "";
+            id(bench_record_state) = "";
+            id(bench_record_checksum) = "";
+            id(bench_record_present_state) = false;
+            id(bench_record_valid_state) = false;
+            ESP_LOGI(TAG, "H-04 bench action: synthetic record cleared");
+
+# H-02 substrate (ADR E-4/E-5): `password: ""` deliberately compiles the
+# stock auth path with an EMPTY password so set_auth_password() is callable
+# at runtime and the unauthenticated baseline is observable first. Do NOT
+# put a value here.
+ota:
+  - platform: esphome
+    id: bench_ota
+    password: ""
+
+# H-06/H-07: stock factory reset. The power-cycle-count trigger is the
+# buttonless physical-presence mechanism (ADR E-7); parameters are recorded
+# substitutions above. V-10 verifies single cycles / spaced blips never
+# trigger it and the deliberate pattern always does.
+factory_reset:
+  max_delay: ${bench_reset_max_delay}
+  resets_required: ${bench_resets_required}
+  on_increment:
+    - lambda: |-
+        ESP_LOGW("bench", "H-07 power-cycle reset counter: %u of %u", x, target);
+
+# ----------------------------------------------------------------------------
+# Persisted bench state (H-04 substrate + throwaway credential storage).
+# ALL bench_* persisted globals set restore_value: true so they live in the
+# same NVS store the stock factory reset erases (ADR E-6). That full erase
+# is a bench assertion (V-07) — recorded at the bench, never claimed here.
+# ----------------------------------------------------------------------------
+globals:
+  - id: bench_boot_count
+    type: int
+    restore_value: true
+    initial_value: "0"
+  # Throwaway OTA password (H-02). Value arrives only via the bench action;
+  # never committed, never logged.
+  - id: bench_ota_password
+    type: std::string
+    restore_value: true
+    max_restore_data_length: 63
+    initial_value: '""'
+  # Throwaway fallback-AP password (H-03). Same rules as above.
+  - id: bench_ap_password
+    type: std::string
+    restore_value: true
+    max_restore_data_length: 63
+    initial_value: '""'
+  # Synthetic persistence record (H-04): clearly-synthetic UUID value,
+  # ownership-state marker, schema version, checksum. A persistence
+  # substrate ONLY — not the production ownership record, and not UUID
+  # generation. Values are set by bench actions, never hard-coded.
+  - id: bench_record_uuid
+    type: std::string
+    restore_value: true
+    max_restore_data_length: 63
+    initial_value: '""'
+  - id: bench_record_state
+    type: std::string
+    restore_value: true
+    max_restore_data_length: 31
+    initial_value: '""'
+  - id: bench_record_schema_version
+    type: std::string
+    restore_value: true
+    max_restore_data_length: 7
+    initial_value: '"1"'
+  - id: bench_record_checksum
+    type: std::string
+    restore_value: true
+    max_restore_data_length: 15
+    initial_value: '""'
+  # Derived, NON-persisted, NON-secret state flags (H-05). Diagnostics read
+  # these booleans; they never touch the credential globals directly.
+  - id: bench_ota_auth_state
+    type: bool
+    restore_value: false
+    initial_value: "false"
+  - id: bench_ap_auth_state
+    type: bool
+    restore_value: false
+    initial_value: "false"
+  - id: bench_record_present_state
+    type: bool
+    restore_value: false
+    initial_value: "false"
+  - id: bench_record_valid_state
+    type: bool
+    restore_value: false
+    initial_value: "false"
+
+# ----------------------------------------------------------------------------
+# H-05 — observable, NON-SECRET diagnostics. No entity below may expose a
+# credential value; guarded by tests/test_spike_provisioning_bench_harness.py.
+# ----------------------------------------------------------------------------
+debug:
+  update_interval: 30s
+
+text_sensor:
+  - platform: version
+    name: "Bench ESPHome Version"
+    icon: mdi:information-outline
+  - platform: wifi_info
+    mac_address:
+      name: "Bench Device MAC"
+  - platform: debug
+    reset_reason:
+      name: "Bench Reset Reason"
+  - platform: template
+    name: "Bench Harness Identity"
+    id: bench_identity
+    entity_category: diagnostic
+    update_interval: 60s
+    lambda: |-
+      return {"v${bench_harness_version} @ ${bench_git_sha}"};
+  - platform: template
+    name: "Bench API Key State"
+    id: api_key_state
+    entity_category: diagnostic
+    update_interval: 10s
+    lambda: |-
+      // Non-secret: reports only whether a noise PSK is active (H-01/H-05).
+      return {id(bench_api)->get_noise_ctx().has_psk() ? "SET" : "UNSET"};
+  - platform: template
+    name: "Bench OTA Password State"
+    id: ota_password_state
+    entity_category: diagnostic
+    update_interval: 10s
+    lambda: |-
+      return {id(bench_ota_auth_state) ? "SET" : "UNSET"};
+  - platform: template
+    name: "Bench AP Password State"
+    id: ap_password_state
+    entity_category: diagnostic
+    update_interval: 10s
+    lambda: |-
+      return {id(bench_ap_auth_state) ? "SET" : "UNSET"};
+  - platform: template
+    name: "Bench Persistence State"
+    id: bench_persistence_state
+    entity_category: diagnostic
+    update_interval: 10s
+    lambda: |-
+      // Factory-reset detection heuristic (H-05): after a full NVS erase
+      // (or a fresh flash — indistinguishable by design) every persisted
+      // value is back at its default on the first boot.
+      if (id(bench_boot_count) <= 1 && id(bench_record_uuid).empty()) {
+        return {"VIRGIN (fresh flash or post-factory-reset)"};
+      }
+      return {"ESTABLISHED"};
+
+binary_sensor:
+  - platform: template
+    name: "Bench Record Valid"
+    id: bench_record_valid
+    entity_category: diagnostic
+    lambda: |-
+      return id(bench_record_valid_state);
+  - platform: template
+    name: "Bench Record Present"
+    id: bench_record_present
+    entity_category: diagnostic
+    lambda: |-
+      return id(bench_record_present_state);
+  # V-10 step 1: SW3 (Boot / IO0, pulled up per S360-100-R4) must be
+  # firmware-readable as a distinct user action, and a NORMAL press must
+  # never reset the device. IO0 is the strapping/boot pin: boot-time hold
+  # behaviour is recorded at the bench (V-10 step 2), not assumed here.
+  - platform: gpio
+    name: "Bench SW3 (Boot Button)"
+    id: bench_sw3
+    pin:
+      number: GPIO0
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    on_press:
+      - logger.log:
+          format: "V-10 SW3 pressed"
+          tag: bench
+    on_release:
+      - logger.log:
+          format: "V-10 SW3 released"
+          tag: bench
+    # Deliberate-action guard: only a long hold (5-15 s) triggers the stock
+    # factory reset (H-06 / V-02 step 6). Short presses only log.
+    on_click:
+      - min_length: 5s
+        max_length: 15s
+        then:
+          - logger.log:
+              format: "H-06 SW3 long-hold -> stock factory reset"
+              tag: bench
+              level: WARN
+          - button.press: bench_factory_reset_button
+
+sensor:
+  - platform: template
+    name: "Bench Boot Count"
+    id: bench_boot_count_sensor
+    entity_category: diagnostic
+    accuracy_decimals: 0
+    update_interval: 10s
+    lambda: |-
+      return id(bench_boot_count);
+  - platform: uptime
+    name: "Bench Uptime"
+    entity_category: diagnostic
+
+button:
+  # H-06: stock factory reset (full NVS erase, ADR E-6) as an explicit
+  # test action. bench_host.py requires typed confirmation before pressing.
+  - platform: factory_reset
+    name: "Bench Factory Reset (erases ALL NVS state)"
+    id: bench_factory_reset_button
+    entity_category: diagnostic
+  - platform: restart
+    name: "Bench Restart"
+    id: bench_restart_button
+    entity_category: diagnostic
+
+# H-07: visible confirmation on an existing safe output — the Core-side
+# fan-status LED (GPIO46, GP_Fan_Status_Led per the S360-100-R4 schematic;
+# see packages/hardware/sense360_core.yaml pin notes). Slow blink = running;
+# the bench uses it to confirm liveness around reset/power-cycle checks.
+output:
+  - platform: gpio
+    pin: GPIO46
+    id: bench_status_led_output
+
+interval:
+  - interval: 1s
+    then:
+      - output.turn_on: bench_status_led_output
+      - delay: 100ms
+      - output.turn_off: bench_status_led_output
