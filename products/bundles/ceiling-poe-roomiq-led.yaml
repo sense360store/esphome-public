@@ -149,9 +149,16 @@ packages:
 
   # === Sense360 LED (S360-300, ceiling halo, WS2812B) ===
   # Included for this LED-bearing preview sibling. Board package binds
-  # `led_data_pin: GPIO38` per HW-010 (Core IO38 = LED_DATA). LED stays
-  # PREVIEW; it is never promoted to stable here.
+  # `led_data_pin: GPIO38` per HW-010 (Core IO38 = LED_DATA) and defines
+  # the customer Room Light. LED stays PREVIEW; it is never promoted to
+  # stable here.
   led_board: !include ../../packages/boards/s360-300-led.yaml
+  # === Sense360 LED framework (LED-FRAMEWORK-001) ===
+  # Customer light / Night Mode / status experience layered on the LED
+  # board: Night Mode + behaviour automation (fused Occupancy + RoomIQ lux),
+  # Status Indicator, Identify Device, priority arbitration and the restore
+  # contract (docs/architecture/sense360-led-framework.md).
+  led_framework: !include ../../packages/features/led_framework.yaml
 
   # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
   # Board package wraps packages/expansions/comfort_ceiling.yaml +

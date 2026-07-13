@@ -1,58 +1,98 @@
 # ============================================================================
 # Sense360 LED — Canonical Board Package (S360-300-R4)
 # ============================================================================
-# PACKAGE-RENAME-001 (docs/arch-board-bundle-plan.md §7 item 4) — the LED
-# family is the first source-of-truth flip. This board package is now the
-# AUTHORITATIVE, self-contained definition of the Sense360 LED indicator board
-# (SKU `S360-300`, revision R4, friendly name "Sense360 LED";
+# PACKAGE-RENAME-001 (docs/arch-board-bundle-plan.md §7 item 4) — this board
+# package is the AUTHORITATIVE, self-contained definition of the Sense360 LED
+# indicator board (SKU `S360-300`, revision R4, friendly name "Sense360 LED";
 # `schematic_status: verified` per config/hardware-catalog.json). LED is the
-# WS2812B addressable RGB halo-ring indicator board
-# (docs/arch-board-bundle-plan.md §2.1), driven over the Core LED_DATA line.
+# WS2812B addressable RGB halo-ring board (docs/arch-board-bundle-plan.md
+# §2.1), driven over the Core LED_DATA line.
 #
 # This canonical base IS the representative **ceiling standard** LED ring:
 #
 #   - 12-LED WS2812B halo ring; HW-010 binds `led_data_pin: GPIO38` — Core
 #     IO38 = LED_DATA per the verified S360-100-R4 and S360-300-R4 schematics,
 #     buffered through U2A 74LVC1G07 + R8 330 Ω to Core J3 → S360-300 J1.
+#   - LED count (12) is firmware-asserted, not silkscreen-verified, and the
+#     module supply rail identity (+5V vs +3.3V at J1 pin 2) is an open
+#     schematic question — both tracked in docs/hardware/s360-300-r4-led.md
+#     (S360-300-BENCH-001).
 #
-# Source-of-truth inversion (docs/arch-board-bundle-plan.md §3.3, §5.5): the
-# content below previously lived in `packages/hardware/led_ring_ceiling.yaml`
-# and this package was a thin `!include` wrapper over it. That is now inverted
-# — the definition lives here and `packages/hardware/led_ring_ceiling.yaml` is
-# a thin alias that `!include`s this package, so the resolved behaviour is
-# byte-identical to the legacy path. The wall-mount and voice (LED+MIC)
-# variants are the thin overlays `s360-300-led-wall.yaml`,
-# `s360-300-led-mic-ceiling.yaml`, and `s360-300-led-mic-wall.yaml`.
+# ----------------------------------------------------------------------------
+# LED-FRAMEWORK-001 — hardware driver adapter + customer Room Light
+# ----------------------------------------------------------------------------
+# This package is the HARDWARE layer of the customer LED framework
+# (docs/architecture/sense360-led-framework.md): it defines the physical
+# WS2812B driver and the single customer "Room Light" entity. The behaviour
+# layers (Night Mode, Night Mode Behaviour, Status Indicator, Identify
+# Device, Darkness Threshold, priority arbitration, restore contract) live
+# in `packages/features/led_framework.yaml`, composed by the LED-bearing
+# bundles. This package deliberately contains no behaviour logic so legacy
+# compositions that pin it (or the `packages/hardware/led_ring_ceiling.yaml`
+# alias) keep a plain working light.
+#
+#   * The pre-framework board-level "LED Brightness" number and "Night Mode"
+#     switch were replaced by the framework's customer surface (LED is
+#     preview-gated; no stable customer ever shipped with them). Brightness
+#     is the Room Light's native Home Assistant control; Night Mode is the
+#     framework switch.
+#   * `restore_mode: ALWAYS_OFF` — boot restore is OWNED by the framework's
+#     persisted customer-state globals (re-applied on boot), so an
+#     interrupted transient overlay (identify/status pulse) can never flash
+#     back after a restart. In a composition without the framework package
+#     the ring simply boots off.
+#   * Effects are exactly the approved customer set (LED-10): "Gentle Pulse"
+#     and "Night Glow". No strobe / rainbow / novelty effects ship by
+#     default (accessibility + product decision); the pre-framework
+#     Alert/Random/Rainbow/Scan/Color Wipe effects were removed with the
+#     legacy controls above.
+#
+# ----------------------------------------------------------------------------
+# Brightness ceiling — provisional, software-defined (LED-09)
+# ----------------------------------------------------------------------------
+# `led_max_brightness_pct` is a PROVISIONAL software maximum. There is no
+# electrical / thermal / current ceiling recorded anywhere in this repository
+# for the S360-300 (the full-load thermal bench template was retired
+# unexecuted), so this substitution preserves the pre-existing 100% software
+# limit rather than inventing a safety conclusion. It is NOT a claim that
+# 100% is physically safe: maximum safe brightness, thermal behaviour and
+# power draw are on the operator bench checklist
+# (docs/hardware/led-framework-bench-checklist.md) — physical validation
+# pending. The framework engine clamps every layer (customer light, night
+# profile, identify, status) to this value; the "Gentle Pulse" effect binds
+# its max_brightness to it below.
+#
+# ----------------------------------------------------------------------------
+# Colour model — RGB only (no colour-temperature claim)
+# ----------------------------------------------------------------------------
+# WS2812B is a 3-channel RGB device: there is no white or CCT channel, so no
+# colour-temperature control is exposed (it would be an unsupported hardware
+# claim). Colour order GRB per the pre-existing firmware binding; physical
+# colour/channel-order verification is on the bench checklist.
 #
 # ----------------------------------------------------------------------------
 # Variant map (docs/arch-board-bundle-plan.md §2.1)
 # ----------------------------------------------------------------------------
 #   ceiling standard : THIS file                    (12 LEDs, GPIO38)
-#   wall standard    : s360-300-led-wall.yaml        (8 LEDs, GPIO48)
 #   ceiling voice    : s360-300-led-mic-ceiling.yaml (12 LEDs + I2S mic, GPIO9)
-#   wall voice       : s360-300-led-mic-wall.yaml    (8 LEDs + I2S mic, GPIO48)
 #
 # Legacy aliases (paths preserved, retained while live binders exist; §3.3):
 #   led_ring_ceiling.yaml      -> !include this file
-#   led_ring_wall.yaml         -> !include s360-300-led-wall.yaml
 #   led_ring_mic_ceiling.yaml  -> !include s360-300-led-mic-ceiling.yaml
-#   led_ring_mic_wall.yaml     -> !include s360-300-led-mic-wall.yaml
 #
 # Cross-reference (NOT folded): `packages/features/ceiling_halo_leds.yaml`
-# stays a FEATURE (docs/arch-board-bundle-plan.md §2.3) — it is the air-quality
-# halo behaviour layered on top of the LED hardware (PCA9685-driven halo on the
-# shared core_i2c bus), not a board-hardware definition. This board package
-# cross-references it; it does not absorb it.
+# stays a FEATURE (docs/arch-board-bundle-plan.md §2.3) — it is the
+# PCA9685-driven air-quality halo on the shared core_i2c bus, not this
+# board's WS2812B hardware.
 #
 # ----------------------------------------------------------------------------
-# Status — preview-gated (unchanged by this slice)
+# Status — preview-gated (unchanged by LED-FRAMEWORK-001)
 # ----------------------------------------------------------------------------
 # S360-300 LED is preview-gated for WebFlash, NOT a stable build: the
-# Release-One config string `Ceiling-POE-VentIQ-RoomIQ` carries no `LED` token,
-# and `tests/test_led_package_mapping.py` locks in that the Release-One YAML
-# must NOT `!include` the LED ring package. This inversion is behaviour-neutral
-# and changes nothing about that gating — it does not mark LED stable, add any
-# WebFlash build, or alter the preview status.
+# Release-One config string `Ceiling-POE-VentIQ-RoomIQ` carries no `LED`
+# element, and `tests/test_led_package_mapping.py` locks in that the
+# Release-One YAML must NOT `!include` the LED ring package. The framework
+# changes no release declaration, no channel and no WebFlash surface.
 # ============================================================================
 
 substitutions:
@@ -63,114 +103,46 @@ substitutions:
   led_count: "12"
   led_chipset: WS2812
   led_rgb_order: GRB
+  # Provisional software brightness ceiling (percent). Preserves the
+  # pre-framework 100% software limit; no electrical/thermal evidence exists
+  # to justify a different value — physical validation pending (see the
+  # header note). Never a physical-safety claim.
+  led_max_brightness_pct: "100"
   # Note: rmt_channel removed - ESP-IDF 5+ auto-selects RMT channel
 
 light:
+  # The single customer light (LED-01): one "Room Light", never one entity
+  # per physical channel. Brightness + RGB colour only — see the colour
+  # model note above.
   - platform: esp32_rmt_led_strip
     id: led_ring
     rgb_order: ${led_rgb_order}
     chipset: ${led_chipset}
     pin: ${led_data_pin}
     num_leds: ${led_count}
-    name: "${friendly_name} LED Ring"
+    name: "Room Light"
     default_transition_length: 300ms
+    # Framework-owned restore (see header): the framework re-applies the
+    # persisted stable customer state on boot; the light itself never
+    # replays flash state, so a transient overlay interrupted by a restart
+    # cannot reappear.
+    restore_mode: ALWAYS_OFF
     effects:
-      # Status effects
+      # Approved customer effects only (LED-10). "None" is provided
+      # natively. Both are slow, gentle pulses — no strobe, no rapid
+      # flashing, no novelty patterns (accessibility decision).
       - pulse:
-          name: "Pulse"
-          transition_length: 1s
-          update_interval: 1s
-      - strobe:
-          name: "Alert"
-          colors:
-            - state: true
-              brightness: 100%
-              red: 100%
-              green: 0%
-              blue: 0%
-              duration: 500ms
-            - state: false
-              duration: 500ms
-      # Ambient effects
-      - random:
-          name: "Random"
-          transition_length: 2s
+          name: "Gentle Pulse"
+          transition_length: 1.5s
           update_interval: 3s
-      - addressable_rainbow:
-          name: "Rainbow"
-          speed: 10
-          width: 50
-      - addressable_scan:
-          name: "Scan"
-          move_interval: 100ms
-      # Air quality indicator
-      - addressable_color_wipe:
-          name: "Color Wipe"
-          colors:
-            - red: 0%
-              green: 100%
-              blue: 0%
-              num_leds: 4
-            - red: 100%
-              green: 100%
-              blue: 0%
-              num_leds: 4
-            - red: 100%
-              green: 0%
-              blue: 0%
-              num_leds: 4
-          add_led_interval: 100ms
-          reverse: false
-
-# Globals for LED control
-globals:
-  - id: led_ring_brightness
-    type: float
-    restore_value: true
-    initial_value: '0.5'
-
-  - id: led_ring_night_mode
-    type: bool
-    restore_value: true
-    initial_value: 'false'
-
-# LED controls
-number:
-  - platform: template
-    name: "${friendly_name} LED Brightness"
-    id: led_brightness_control
-    icon: mdi:brightness-6
-    min_value: 0
-    max_value: 100
-    step: 5
-    initial_value: 50
-    optimistic: true
-    restore_value: true
-    unit_of_measurement: "%"
-    on_value:
-      then:
-        - lambda: |-
-            id(led_ring_brightness) = x / 100.0;
-
-switch:
-  - platform: template
-    name: "${friendly_name} Night Mode"
-    id: led_night_mode_switch
-    icon: mdi:weather-night
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      - lambda: |-
-          id(led_ring_night_mode) = true;
-      - light.turn_on:
-          id: led_ring
-          brightness: 10%
-    on_turn_off:
-      - lambda: |-
-          id(led_ring_night_mode) = false;
-      - light.turn_on:
-          id: led_ring
-          brightness: !lambda 'return id(led_ring_brightness);'
+          min_brightness: 20%
+          max_brightness: ${led_max_brightness_pct}%
+      - pulse:
+          name: "Night Glow"
+          transition_length: 3s
+          update_interval: 6s
+          min_brightness: 3%
+          max_brightness: 10%
 
 text_sensor:
   - platform: template

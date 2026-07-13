@@ -112,9 +112,9 @@ class TestDerivedTables(unittest.TestCase):
     def test_led_variant_adds_the_led_entities(self):
         led = self.outputs["ceiling-poe-ventiq-roomiq-led-entities.md"]
         base = self.outputs["ceiling-poe-ventiq-roomiq-entities.md"]
-        self.assertIn("| LED Ring | Light |", led)
+        self.assertIn("| Room Light | Light |", led)
         self.assertIn("| Night Mode | Switch |", led)
-        self.assertNotIn("| LED Ring | Light |", base)
+        self.assertNotIn("| Room Light | Light |", base)
 
     def test_default_units_applied_for_known_platforms(self):
         roomiq = self.outputs["ceiling-poe-roomiq-entities.md"]

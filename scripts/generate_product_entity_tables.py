@@ -164,7 +164,7 @@ MATRIX_CAPABILITY_SECTIONS = (
     (
         "Outputs and controls",
         (
-            ("LED ring light", "Light", ("LED Ring",)),
+            ("LED ring light", "Light", ("Room Light",)),
             ("LED night mode", "Switch", ("Night Mode",)),
             ("Relay output", "Switch", ("Relay",)),
             ("Auto-ventilation control", "Switch", ("Auto Ventilation",)),

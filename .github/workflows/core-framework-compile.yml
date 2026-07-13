@@ -18,7 +18,7 @@
 #     workflow_call-able, so no production release lane can reuse it.
 #   - read-only token; SHA-pinned actions; standard setup-esphome-build
 #     composite action with the repo's single-sourced ESPHome pin.
-#   - compiles ONLY the six audited, pre-existing framework-bearing
+#   - compiles ONLY the seven audited, pre-existing framework-bearing
 #     representative products below. The one config that defers the
 #     framework (framework_included: false in config/core-framework.json,
 #     pinned package-identical to its full-compile-validated skeleton) is
@@ -51,6 +51,10 @@ on:
       - "tests/test_core_framework_doc.py"
       - "tests/test_core_framework_compile_workflow.py"
       - "tests/test_presence_framework.py"
+      # LED-FRAMEWORK-001: the customer LED framework lives in the same
+      # board / feature / shared-header layers; its contract test rides the
+      # same lane.
+      - "tests/test_led_framework.py"
       - ".github/workflows/core-framework-compile.yml"
       - ".github/actions/setup-esphome-build/**"
   workflow_dispatch: {}
@@ -89,12 +93,14 @@ jobs:
           python3 tests/test_core_framework_doc.py
           python3 tests/test_core_framework_compile_workflow.py
           python3 tests/test_presence_framework.py
+          python3 tests/test_led_framework.py
 
-      - name: Presence fusion simulation tests (C++ logic proof only)
-        # PRESENCE-FRAMEWORK-001: deterministic simulation of the fusion
-        # state machine (tests/unit/test_presence_fusion.cpp) against the
-        # same header the products compile. Logic proof only — NEVER
-        # hardware validation.
+      - name: Simulation tests (C++ logic proof only)
+        # PRESENCE-FRAMEWORK-001 / LED-FRAMEWORK-001: deterministic
+        # simulation of the fusion and LED-controller state machines
+        # (tests/unit/test_presence_fusion.cpp,
+        # tests/unit/test_led_controller.cpp) against the same headers the
+        # products compile. Logic proof only — NEVER hardware validation.
         run: make -C tests test
 
       - name: No-tracked-secrets guard
@@ -113,6 +119,11 @@ jobs:
   #   Presence-bearing (LD2450)  -> every RoomIQ target compiles the LD2450
   #                                 radar half; canonical: Ceiling-POE-RoomIQ
   #   LED-bearing preview        -> Ceiling-POE-VentIQ-RoomIQ-LED
+  #   LED+RoomIQ PoE preview     -> Ceiling-POE-RoomIQ-LED (LED-FRAMEWORK-001:
+  #                                 the second authoritative LED-bearing
+  #                                 bundle; Presence + LED composition)
+  # The LED-less targets double as the regression check that the LED
+  # framework is not accidentally composed outside the LED-bearing bundles.
   # --------------------------------------------------------------------------
   compile:
     name: "Compile: ${{ matrix.config_string }}"
@@ -134,6 +145,8 @@ jobs:
             product_yaml: products/sense360-ceiling-usb-ventiq-roomiq.yaml
           - config_string: Ceiling-POE-VentIQ-RoomIQ-LED
             product_yaml: products/sense360-ceiling-poe-ventiq-roomiq-led.yaml
+          - config_string: Ceiling-POE-RoomIQ-LED
+            product_yaml: products/sense360-ceiling-poe-roomiq-led.yaml
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1

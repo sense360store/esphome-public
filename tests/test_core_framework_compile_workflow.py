@@ -57,6 +57,11 @@ EXPECTED_WORKFLOW_NAME = "CI: Core Framework Representative Compile"
 #   6. Presence-bearing (LD2450)  -> every RoomIQ target above compiles the
 #      LD2450 radar half; canonical representative: Ceiling-POE-RoomIQ.
 #   7. LED-bearing preview        -> Ceiling-POE-VentIQ-RoomIQ-LED
+#   8. LED+RoomIQ (PoE) preview   -> Ceiling-POE-RoomIQ-LED
+#      (LED-FRAMEWORK-001: the second authoritative LED-bearing bundle —
+#      Presence + LED composition; the LED-less targets double as the
+#      regression check that the LED framework never leaks outside the
+#      LED-bearing bundles.)
 EXPECTED_MATRIX = {
     "Ceiling-POE-RoomIQ": "products/sense360-ceiling-poe-roomiq.yaml",
     "Ceiling-POE-AirIQ-RoomIQ": ("products/sense360-ceiling-poe-airiq-roomiq.yaml"),
@@ -66,6 +71,7 @@ EXPECTED_MATRIX = {
     "Ceiling-POE-VentIQ-RoomIQ-LED": (
         "products/sense360-ceiling-poe-ventiq-roomiq-led.yaml"
     ),
+    "Ceiling-POE-RoomIQ-LED": ("products/sense360-ceiling-poe-roomiq-led.yaml"),
 }
 
 FORBIDDEN_TRIGGERS = {

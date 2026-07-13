@@ -65,7 +65,7 @@
       "display_name": "LED",
       "kind": "module",
       "hardware_sku": "S360-300",
-      "description": "S360-300 LED ring firmware: WS2812 RMT LED-strip driver and effects."
+      "description": "S360-300 LED ring firmware: WS2812 RMT LED-strip driver with the LED-FRAMEWORK-001 customer experience (Room Light, Night Mode, status/identify overlays; packages/features/led_framework.yaml). Describes compiled firmware only; the one-way WS2812B data line carries no runtime health signal, so LED module status stays compile-time."
     },
     "fan_relay": {
       "display_name": "Fan (relay)",
