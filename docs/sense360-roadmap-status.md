@@ -611,9 +611,25 @@ Scope facts (do not overclaim):
   (`framework_included: false` in the contract) because its bundle is
   pinned package-identical to the native full-compile-validated
   compile-only skeleton (`S360-311-NATIVE-FANPWM-COMPILE-001`); wiring it
-  would invalidate that recorded compile evidence. It follows up once the
-  native compile lane re-records. The other 15 bundles compose the
-  framework now.
+  would invalidate that recorded compile evidence. The other 15 bundles
+  compose the framework now. The exact follow-up (wire bundle + skeleton
+  together, re-record via a green hosted `CI: Compile-Only` full run cited
+  in `config/compile-only-targets.json`, then flip `framework_included`)
+  is specified in
+  [`docs/architecture/sense360-core-framework.md`](architecture/sense360-core-framework.md).
+* **Compile status — exactly what is and is not proven.** All 16
+  bundle-backed products pass `esphome config` (ESPHome 2026.6.5) with the
+  framework composed, and the per-push CI gates (`CI: Quick Validation`,
+  docs link check, entity-table freshness, compile-only metadata) are
+  green on the PR branch. **No full `esphome compile` of a
+  framework-bearing configuration has been run yet** — config validation
+  is not compile proof, and the hosted full-compile lane could not be
+  dispatched by the PR automation (its GitHub token lacks
+  `actions: write`). Owner action to record representative compile proof:
+  GitHub → Actions → "CI: Preview Compile Dry-Run" → Run workflow →
+  branch `claude/sense360-core-framework-gczvqz`, `compile_mode: full`
+  (CLI: `gh workflow run preview-compile-dryrun.yml
+  --ref claude/sense360-core-framework-gczvqz -f compile_mode=full`).
 
 ---
 

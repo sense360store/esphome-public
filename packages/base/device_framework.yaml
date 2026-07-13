@@ -26,9 +26,12 @@
 #     Available / Degraded / Unavailable / Fault) is reserved for
 #     module-specific PRs that wire a real supported signal.
 #   * Device Health today derives only from the boot warm-up window:
-#     "Starting" until s360_health_warmup_seconds, then "Healthy". The
-#     richer values (Degraded / Fault / Safe mode) are reserved until real
-#     signals exist. Health is never fabricated.
+#     "Starting" until s360_health_warmup_seconds, then "Running" — meaning
+#     only that the base firmware finished its startup window with no
+#     framework-level fault signal. It does NOT imply any module or
+#     physical sensor has been verified. The richer values (Healthy /
+#     Degraded / Fault / Safe mode) are reserved until real signals exist.
+#     Health is never fabricated.
 #   * No secret or provisioning material may ever be exposed here.
 #
 # Entity conventions (all entities in this package):
@@ -72,7 +75,7 @@ substitutions:
   s360_module_presence: "Not included"
   s360_module_led: "Not included"
   s360_module_fan_control: "Not included"
-  # Boot warm-up window before Device Health may report "Healthy".
+  # Boot warm-up window before Device Health may report "Running".
   s360_health_warmup_seconds: "120"
 
 # Debug component: powers the Last Restart Reason text sensor below. The
@@ -84,8 +87,10 @@ debug:
 text_sensor:
   # --- Overall device health -------------------------------------------------
   # Values today: "Starting" (inside the boot warm-up window) then
-  # "Healthy". Degraded / Fault / Safe mode are reserved until real runtime
-  # signals exist (see config/core-framework.json device_health).
+  # "Running" — base firmware completed startup with no framework-level
+  # fault signal; no statement about modules or sensors. Healthy /
+  # Degraded / Fault / Safe mode are reserved until real runtime signals
+  # exist (see config/core-framework.json device_health).
   - platform: template
     id: s360_device_health
     name: "Device Health"
@@ -96,7 +101,7 @@ text_sensor:
       if ((millis() / 1000) < ${s360_health_warmup_seconds}) {
         return {"Starting"};
       }
-      return {"Healthy"};
+      return {"Running"};
 
   # --- Device identity ---------------------------------------------------------
   - platform: template

@@ -29,43 +29,43 @@
       "display_name": "PoE power",
       "kind": "power",
       "hardware_sku": "S360-410",
-      "description": "Powered through the S360-410 PoE PSU module."
+      "description": "PoE power composition: the S360-410 PoE PSU package is compiled in (power-source, supply-voltage and PoE-status entities)."
     },
     "power_usb": {
       "display_name": "USB power",
       "kind": "power",
       "hardware_sku": null,
-      "description": "USB-powered composition (no PSU module board; power is supplied over the Core USB input)."
+      "description": "USB power composition: the USB power package (packages/hardware/power_usb.yaml) is compiled in (power-source and supply-voltage entities); no PSU module package is composed."
     },
     "roomiq": {
       "display_name": "RoomIQ",
       "kind": "module",
       "hardware_sku": "S360-200",
-      "description": "RoomIQ comfort sensing (SHT4x, BMP581, LTR-303ALS) on the S360-200 board."
+      "description": "RoomIQ comfort-sensing firmware compiled from the RoomIQ climate half (SHT4x temperature/humidity + VEML7700 ambient light) on the S360-200 board. Describes compiled firmware only, not the board BOM."
     },
     "airiq": {
       "display_name": "AirIQ",
       "kind": "module",
       "hardware_sku": "S360-210",
-      "description": "AirIQ air-quality module (SCD41 CO2, SGP41 VOC, MICS-4514)."
+      "description": "AirIQ air-quality firmware (SCD4x CO2, SGP4x VOC/NOx, SPS30 particulate, BMP3xx pressure) on the S360-210 board. The MICS-4514 gas stage exists on the hardware but is not compiled in any current configuration and is NOT part of this capability."
     },
     "ventiq": {
       "display_name": "VentIQ",
       "kind": "module",
       "hardware_sku": "S360-211",
-      "description": "VentIQ bathroom air-quality module (SGP41 plus IR temp / SPS30 connectors)."
+      "description": "VentIQ bathroom air-quality firmware (SGP4x VOC/NOx, SHT4x temperature/humidity, BMP3xx pressure) on the S360-211 board. Describes compiled firmware only."
     },
     "presence": {
       "display_name": "Presence",
       "kind": "module",
       "hardware_sku": "S360-200",
-      "description": "Presence sensing (PIR, LD2450 radar, SEN0609 radar) carried by the S360-200 RoomIQ board."
+      "description": "Presence firmware compiled from the RoomIQ radar half: HLK-LD2450 mmWave occupancy/target tracking on the S360-200 board's radar UART. PIR and SEN0609 inputs exist on the hardware but are not compiled in any current configuration and are NOT part of this capability."
     },
     "led": {
       "display_name": "LED",
       "kind": "module",
       "hardware_sku": "S360-300",
-      "description": "S360-300 WS2812B LED ring indicator module."
+      "description": "S360-300 LED ring firmware: WS2812 RMT LED-strip driver and effects."
     },
     "fan_relay": {
       "display_name": "Fan (relay)",
@@ -116,9 +116,10 @@
   "device_health": {
     "values": {
       "Starting": "Device is inside the boot warm-up window (s360_health_warmup_seconds, default 120 s). Startup must not be reported as a fault.",
-      "Healthy": "Warm-up has completed and no negative signal exists. Today this means only that the firmware is up and running; module health aggregation is reserved for the module-specific PRs."
+      "Running": "Base firmware completed its startup window and no framework-level fault signal exists. This states nothing about modules or sensors: no module runtime-health signal is connected yet, and no physical sensor has been verified."
     },
     "reserved_values": {
+      "Healthy": "Reserved: every included module reports real runtime health (module-specific PRs). Never derived from the warm-up window or from compilation alone.",
       "Degraded": "Reserved: at least one included module is Degraded or Unavailable while the rest of the device works.",
       "Fault": "Reserved: a critical module or the device itself reports an explicit fault.",
       "Safe mode": "Reserved: the device booted into ESPHome safe mode / recovery. Requires a supported runtime signal before it can be reported."

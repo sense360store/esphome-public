@@ -34,9 +34,16 @@ substitutions.
 package-identical to the native full-compile-validated compile-only
 skeleton (`S360-311-NATIVE-FANPWM-COMPILE-001`,
 `tests/test_pwm_product_readiness.py`); adding the framework would break
-that identity and silently invalidate the recorded compile evidence. The
-include lands in a follow-up once that lane re-records. Every other bundle
-(15 of 16) composes the framework now. Nothing is copy/pasted per product; the design supports
+that identity and silently invalidate the recorded compile evidence. Every
+other bundle (15 of 16) composes the framework now. **Exact follow-up
+required** (one PR, human-reviewed): (1) add the framework include and
+`s360_*` substitutions to both `products/bundles/ceiling-poe-fanpwm.yaml`
+and `products/compile-only/ceiling-poe-fanpwm-native.yaml` so the identity
+gate holds; (2) dispatch the hosted `CI: Compile-Only` lane
+(`compile_mode: full`) and cite the new green run in
+`config/compile-only-targets.json` per that lane's re-record process;
+(3) flip `framework_included` to `true` and drop the deferral from
+`config/core-framework.json` (tests then enforce the wiring). Nothing is copy/pasted per product; the design supports
 ceiling compositions today and any future authoritative mount, and it works
 for USB, PoE and AC-powered compositions because power is just a declared
 capability.
@@ -128,21 +135,31 @@ extend by addition only — registry in
 | `core` | platform | S360-100 | Core hub board; present in every composition |
 | `power_poe` | power | S360-410 | PoE PSU composition |
 | `power_usb` | power | — | USB-powered composition (no PSU module board) |
-| `roomiq` | module | S360-200 | RoomIQ comfort sensing |
-| `airiq` | module | S360-210 | AirIQ air quality |
-| `ventiq` | module | S360-211 | VentIQ bathroom air quality |
-| `presence` | module | S360-200 | Presence sensing carried by the RoomIQ board |
-| `led` | module | S360-300 | LED ring indicator |
+| `roomiq` | module | S360-200 | RoomIQ comfort firmware (SHT4x + VEML7700, the climate half) |
+| `airiq` | module | S360-210 | AirIQ air-quality firmware (SCD4x, SGP4x, SPS30, BMP3xx; MICS-4514 not compiled) |
+| `ventiq` | module | S360-211 | VentIQ air-quality firmware (SGP4x, SHT4x, BMP3xx) |
+| `presence` | module | S360-200 | Presence firmware: HLK-LD2450 radar (the radar half); PIR / SEN0609 not compiled |
+| `led` | module | S360-300 | LED ring firmware (WS2812 RMT LED-strip driver + effects) |
 | `fan_relay` | module | S360-310 | Relay fan driver (experimental lane) |
 | `fan_pwm` | module | S360-311 | PWM fan driver |
 | `fan_dac` | module | S360-312 | 0–10 V fan driver |
 | `fan_triac` | module | S360-320 | TRIAC fan driver (experimental self-build mains lane) |
 
+A capability means exactly one thing: **the backing firmware package is
+compiled into that configuration.** It never means that the PCB supports
+the module, that a connector exists, that a customer may fit it later, that
+a physical module was detected, or that a commercial bundle includes it.
+Components that exist on the hardware but are not compiled anywhere today —
+PIR, SEN0609, MICS-4514, BMP581, LTR-303ALS — are explicitly outside every
+capability until a PR compiles them in and updates the contract.
+
 Each bundle declares `s360_capabilities` (comma-separated IDs) and
 `s360_capabilities_human` (display list). Tests enforce that the declaration
 matches the config-string tokens, the entry in `config/core-framework.json`,
-and the module declarations in `config/product-catalog.json` — a
-configuration without a module can never report that module as installed.
+the module declarations in `config/product-catalog.json`, **and the resolved
+package composition in both directions** (declared ⇒ backing package
+compiled; backing package compiled ⇒ declared) — a configuration without a
+module can never report that module as installed.
 Future expansion capability is handled by adding new IDs to the registry
 when (and only when) authoritative hardware exists; no speculative hardware
 is invented.
@@ -193,17 +210,24 @@ wires a real signal — enforced by test.
 
 * **Starting** — inside the boot warm-up window
   (`s360_health_warmup_seconds`, default 120 s).
-* **Healthy** — warm-up complete and no negative signal exists.
+* **Running** — the base firmware completed its startup window and no
+  framework-level fault signal exists. **This states nothing about modules
+  or sensors**: no module runtime-health signal is connected yet, and no
+  physical sensor has been verified. (`Running` was chosen over `Healthy`
+  precisely because the current evidence supports only a base-firmware
+  statement.)
 
 Inputs that currently drive the summary: **the boot warm-up window only.**
-Reserved values — **Degraded**, **Fault**, **Safe mode** — and reserved
-inputs (per-module runtime health, safe-mode/recovery state, stale-data
-detection) are documented in the contract file and arrive with later module
-PRs. Health is never fabricated: the summary only ever reflects signals that
+Reserved values — **Healthy** (all included modules report real runtime
+health), **Degraded**, **Fault**, **Safe mode** — and reserved inputs
+(per-module runtime health, safe-mode/recovery state, stale-data detection)
+are documented in the contract file and arrive with later module PRs.
+Health is never fabricated: the summary only ever reflects signals that
 genuinely exist.
 
 Aggregation rules for later module PRs (documented now, implemented then):
-one Degraded/Unavailable included module ⇒ device **Degraded**; an explicit
+all included modules report real health ⇒ **Healthy**; one
+Degraded/Unavailable included module ⇒ device **Degraded**; an explicit
 critical fault ⇒ **Fault**; absent optional modules never affect the
 summary; warm-up suppresses negative transitions.
 
@@ -248,10 +272,16 @@ removed or recategorised.
   the bundles, plus the board-package system sensors) keep their exact names
   and IDs. Customers' existing Home Assistant entity IDs do not change.
 * The framework's `Firmware Version` intentionally coexists with the legacy
-  `${friendly_name} Firmware Version` text sensor (different entity name and
-  object ID); both report `device_version`. A future deprecation of the
-  legacy entity would be a separate, explicitly-documented breaking change —
-  not part of this PR.
+  `${friendly_name} Firmware Version` text sensor. The two are distinct
+  entities (different ESPHome entity names, therefore different object IDs
+  and Home Assistant entity IDs; the legacy one renders with a doubled
+  device-name prefix in HA). Both report `device_version`, so the
+  duplication is deliberate and temporary. **Migration path:** once the
+  framework entity has shipped in a release, a follow-up PR may mark the
+  legacy prefixed entity `disabled_by_default: true` (non-breaking), and
+  only a later explicitly-documented breaking-change PR may remove it, with
+  migration notes for users who reference the old entity ID. Neither step
+  is part of this PR; nothing is silently removed.
 * Compile-only skeletons (`products/compile-only/`) and the provisioning
   bench harness (`tests/bench/`) do **not** include the framework, so they
   cannot be mistaken for (or promoted to) customer products.
