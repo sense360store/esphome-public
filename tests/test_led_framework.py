@@ -148,9 +148,7 @@ class PackageFilesExistTests(unittest.TestCase):
             DOC,
             CHECKLIST,
         ):
-            self.assertTrue(
-                path.is_file(), f"missing LED-FRAMEWORK-001 file: {path}"
-            )
+            self.assertTrue(path.is_file(), f"missing LED-FRAMEWORK-001 file: {path}")
 
     def test_no_secret_material_in_led_packages(self) -> None:
         for path in (BOARD_PACKAGE, FRAMEWORK_PACKAGE):
@@ -364,9 +362,7 @@ class CustomerEntityContractTests(unittest.TestCase):
         ):
             entity = self._entity(entity_id)
             self.assertEqual(entity.get("name"), expected_name, entity_id)
-            self.assertEqual(
-                entity.get("entity_category"), "diagnostic", entity_id
-            )
+            self.assertEqual(entity.get("entity_category"), "diagnostic", entity_id)
             self.assertTrue(entity.get("disabled_by_default"), entity_id)
 
     def test_output_verification_states_one_way_limit(self) -> None:
@@ -590,13 +586,9 @@ class CompileLaneTests(unittest.TestCase):
     def _matrix_configs(self) -> Dict[str, str]:
         jobs = self.doc.get("jobs") or {}
         for job in jobs.values():
-            include = ((job.get("strategy") or {}).get("matrix") or {}).get(
-                "include"
-            )
+            include = ((job.get("strategy") or {}).get("matrix") or {}).get("include")
             if include:
-                return {
-                    row["config_string"]: row["product_yaml"] for row in include
-                }
+                return {row["config_string"]: row["product_yaml"] for row in include}
         return {}
 
     def test_matrix_covers_the_required_led_compositions(self) -> None:

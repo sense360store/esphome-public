@@ -445,6 +445,10 @@ LED stays preview until the preview→stable gauntlet closes
 `S360-300-BENCH-001`, `WF-HW-TEST-001`, `WF-HW-TEST-003`, `RELEASE-007`.
 **No LED-stable claim is made anywhere in this repo.**
 
+The customer LED firmware experience (Room Light, Night Mode, status /
+identify overlays) is the LED framework — see **§14**. It is software
+foundation only and changes none of the preview gating above.
+
 ---
 
 ## 8. Next PR queue
@@ -485,6 +489,7 @@ yet**, so all of its bench evidence stays owed.
 |---|---|---|---|
 | `S360-312-DAC-BENCH-001` | S360-312 R4 (DAC / dual GP8403) | No physical S360-312 board in hand (pre-hardware) | Measured 0–10 V output per channel; GP8403 detection + I²C address (SW1/SW2); output range/calibration; fan/controller response; current; thermal; harness/silkscreen confirmation |
 | `PRESENCE-BENCH-001` | S360-200 R4 (RoomIQ tri-sensor Presence, §13) | Bench session with assembled S360-100 + S360-200 required | Operator checklist [`docs/hardware/presence-framework-bench-checklist.md`](hardware/presence-framework-bench-checklist.md): PIR latency/false triggers, LD2450 moving/still/count/coordinates, SEN0609 static presence, fusion scenarios, disconnect/recovery, startup/clear-delay/mode timing |
+| `LED-FRAMEWORK-BENCH-001` | S360-300 R4 (LED framework, §14) | Bench session with assembled S360-100 + S360-300 + S360-200 required | Operator checklist [`docs/hardware/led-framework-bench-checklist.md`](hardware/led-framework-bench-checklist.md): colour/channel order, LED count, supply-rail identity (+5V vs +3.3V), min/max safe brightness, thermal, power draw, night-mode comfort, diffuser/flicker, restore after restart, identify/status visibility, Presence/lux automation, HA latency, failure/recovery |
 
 ## Evidence & Bench Logs
 
@@ -742,6 +747,69 @@ Scope facts (do not overclaim):
   `config/product-catalog.json` module declarations are unchanged — this
   work compiles firmware for sensors the board already carries; it does
   not alter commercial bundle contents.
+
+---
+
+## 14. LED framework (LED-FRAMEWORK-001)
+
+**Status: software foundation implemented via the LED-FRAMEWORK-001 PR —
+compile and simulation proof only; physical LED validation pending
+(`LED-FRAMEWORK-BENCH-001`); safe brightness / colour / night-profile
+tuning pending; no SOT or commercial state change.**
+
+Customer-focused LED experience for the S360-300 WS2812B halo ring: one
+**Room Light**, **Night Mode** (provisional low/warm profile),
+**Night Mode Behaviour** (Manual / When dark / When dark and occupied),
+**Status Indicator** (Off / Essential / Detailed), **Identify Device**,
+and **Darkness Threshold** — arbitrated by one priority model
+(Fault > Identify > Night Mode > Room Light > transient Status). Canonical
+doc: [`docs/architecture/sense360-led-framework.md`](architecture/sense360-led-framework.md);
+contract tests: [`tests/test_led_framework.py`](../tests/test_led_framework.py);
+deterministic simulation: [`tests/unit/test_led_controller.cpp`](../tests/unit/test_led_controller.cpp)
+over the shared engine
+[`include/sense360/led_controller.h`](../include/sense360/led_controller.h)
+(the same header production YAML compiles — no drift-prone second
+implementation).
+
+Scope facts (do not overclaim):
+
+* **Customer surface** — default-enabled set is exactly: Room Light,
+  Night Mode, Night Mode Behaviour, Status Indicator, Identify Device,
+  Darkness Threshold. Everything else is diagnostic and disabled by
+  default; no raw channels, no colour-temperature control (no CCT
+  hardware), no customer Maximum Brightness control.
+* **Brightness ceiling** — no verified electrical/thermal ceiling exists
+  anywhere in this repository; the pre-existing 100% software limit is
+  preserved as the documented provisional `led_max_brightness_pct`
+  substitution, clamped by the engine on every layer. No brightness value
+  is claimed physically safe.
+* **Module status honesty** — the WS2812B data line is one-way; no
+  runtime LED health is fabricated. "LED Module Status" stays the
+  compile-time `Included`, and the `LED Output Verification` diagnostic
+  states the limit on-device. The engine's fault layer has no production
+  producer until a real signal exists.
+* **Automation inputs** — the fused Presence Occupancy contract (never
+  raw sensors) and the compiled RoomIQ lux path (VEML7700 at 0x10). Known
+  unresolved mismatch: the hardware catalog documents LTR-303ALS for the
+  S360-200 light sensor while firmware compiles VEML7700 — if the board
+  carries the LTR-303ALS, lux reads nothing and darkness automation fails
+  safe (reports Unknown, never toggles). Resolution is bench/catalog work
+  (`LED-FRAMEWORK-BENCH-001` setup item).
+* **Bundle authority** — only the two catalog-declared LED-bearing
+  preview configs compose the framework (`Ceiling-POE-VentIQ-RoomIQ-LED`,
+  `Ceiling-POE-RoomIQ-LED`); non-LED bundles gain nothing
+  (test-enforced). SOT lists the S360-300 module as production, but no
+  SOT bundle carries LED and both firmware configs stay preview — the
+  module-status/firmware-channel reconciliation remains owner work; this
+  repository changed no SOT, WebFlash, release or commercial state.
+* **"Scheduled" night behaviour deferred** — only SNTP/HA time sources
+  exist; neither is a reliable local-first scheduler.
+* **Compile/simulation proof recorded separately from hardware proof** —
+  the representative compile lane (§12) now covers both LED-bearing
+  bundles plus LED-less regression targets; 47 deterministic simulation
+  scenarios cover customer state, night mode, automation, hysteresis,
+  overlays, priority and restore. None of this is hardware, bench,
+  compliance or commercial proof.
 
 ---
 

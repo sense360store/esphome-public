@@ -1,0 +1,525 @@
+# ============================================================================
+# SENSE360 LED FRAMEWORK — customer light, night mode and status experience
+# ============================================================================
+# LED-FRAMEWORK-001 (docs/architecture/sense360-led-framework.md).
+#
+# One polished, simple customer LED experience for the S360-300 WS2812B halo
+# ring — the customer never needs to know about LED channels, GPIOs, RMT
+# drivers or internal effects:
+#
+#   * Room Light          — the single customer light (defined by the board
+#                           package packages/boards/s360-300-led.yaml).
+#   * Night Mode          — low, warm, non-disruptive profile; never
+#                           overwrites the customer's previous state.
+#   * Night Mode Behaviour— Manual / When dark / When dark and occupied.
+#                           ("Scheduled" is deferred: only SNTP/internet and
+#                           Home Assistant time sources exist — neither is a
+#                           reliable local-first scheduler.)
+#   * Status Indicator    — Off / Essential / Detailed. Brief, discreet
+#                           indications from REAL signals only (startup, API
+#                           connect/disconnect, WiFi events); subordinate to
+#                           the Room Light; no constant animations.
+#   * Identify Device     — short, recognisable, non-disruptive pulse that
+#                           restores the previous state automatically.
+#   * Darkness Threshold  — customer-adjustable lux threshold with
+#                           hysteresis; stale/missing lux is UNKNOWN and
+#                           fails safe (never interpreted as dark).
+#
+# Priority (LED-07): Fault > Identify > Night Mode > Room Light > Status.
+# State ownership, fail-safe rules and the restore contract are implemented
+# in the header-only engine include/sense360/led_controller.h — the SAME
+# implementation exercised by the deterministic simulation tests
+# (tests/unit/test_led_controller.cpp), so tested logic and shipped logic
+# cannot drift. The contract is pinned by tests/test_led_framework.py.
+#
+# Composition contract: bundles compose this package together with
+#   * the LED board package (packages/boards/s360-300-led.yaml — owns the
+#     Room Light entity `led_ring` and the provisional software brightness
+#     ceiling `led_max_brightness_pct`),
+#   * the Presence framework (packages/features/presence_framework.yaml —
+#     owns the fused Occupancy entity `s360_occupancy` and the Presence
+#     module runtime status; LED-04 consumes ONLY the fused contract, never
+#     raw PIR/radar/SEN0609 states),
+#   * the RoomIQ board package (packages/boards/s360-200-roomiq.yaml — owns
+#     the compiled VEML7700 lux sensor `comfort_ceiling_illuminance`), and
+#   * the shared Core Framework package under packages/base/ (owner of the
+#     LED Module Status entity; this file deliberately does NOT include it —
+#     bundles compose it exactly once, per the CORE-FRAMEWORK-001 isolation
+#     rule).
+# Only the catalog-declared LED-bearing bundles compose this package
+# (bundle-authority gate in tests/test_led_framework.py).
+#
+# Module-status honesty: the WS2812B data line is one-way — the firmware can
+# never verify that light was actually emitted, so this package does NOT
+# drive the Core-Framework "LED Module Status" entity with the reserved
+# runtime vocabulary. "Included" stays a compile-time fact, and the
+# "LED Output Verification" diagnostic states the limit on-device. The
+# engine's fault layer is a tested contract with NO production producer
+# (no composed component exposes a supported LED fault signal today).
+#
+# Every brightness, colour and timing value below is a PROVISIONAL,
+# software-defined engineering default pending bench validation
+# (docs/hardware/led-framework-bench-checklist.md). NO hardware, bench,
+# compliance or commercial claim is made by this package.
+# ============================================================================
+
+substitutions:
+  # Night profile (LED-02) — provisional: low (5%) and warm (red-dominant,
+  # low blue). The perceived colour through the diffuser is bench work.
+  led_night_brightness_pct: "5"
+  led_night_red: "1.0"
+  led_night_green: "0.58"
+  led_night_blue: "0.16"
+
+  # Darkness decision (LED-05) — provisional: dark below the customer
+  # threshold (default 20 lx), not-dark above threshold * 1.5 (hysteresis
+  # prevents flicker near the threshold). Lux samples older than the stale
+  # window are UNKNOWN (the VEML7700 publishes every 10 s).
+  led_darkness_hysteresis: "1.5"
+  led_lux_stale_ms: "60000"
+
+  # Presence-driven auto-off delay (LED-04) — provisional. The fused
+  # Occupancy entity already carries the Presence clear delay; this second
+  # window only smooths automation-owned night-light behaviour.
+  led_night_auto_off_ms: "60000"
+
+  # Transient overlay durations (LED-07/LED-08) — provisional.
+  led_identify_ms: "4000"
+  led_status_ms: "1500"
+
+  # Input sources — overridable for future compositions. Defaults are the
+  # authoritative entities composed by every current LED-bearing bundle.
+  led_lux_source_id: comfort_ceiling_illuminance
+  led_occupancy_source_id: s360_occupancy
+  led_presence_health_id: s360_module_status_presence
+
+# The controller engine is compiled from the shared header (single
+# implementation; see tests/unit/test_led_controller.cpp). Path is relative
+# to the products/ config dir — the same pattern as
+# packages/features/presence_framework.yaml.
+esphome:
+  includes:
+    - ../include/sense360/led_controller.h
+  on_boot:
+    # Late boot hook (after components are set up and restored globals are
+    # loaded): re-apply the persisted stable customer state (LED-11). The
+    # light itself boots ALWAYS_OFF, so an interrupted transient overlay is
+    # never replayed; safe-mode boots run a minimal config without this
+    # package, leaving the ring off.
+    priority: -100
+    then:
+      - lambda: |-
+          using namespace sense360::ledfw;
+          auto &controller = global_controller();
+          sense360::ledfw::LightState saved;
+          saved.on = id(s360_led_saved_on);
+          saved.brightness = id(s360_led_saved_brightness);
+          saved.red = id(s360_led_saved_r);
+          saved.green = id(s360_led_saved_g);
+          saved.blue = id(s360_led_saved_b);
+          saved.effect = (uint8_t) id(s360_led_saved_effect);
+          controller.restore(saved, id(s360_led_night_on),
+                             id(s360_led_night_auto));
+          // Brief startup indication (Essential level, LED-06) — shown only
+          // when nothing higher-priority owns the ring.
+          controller.notify_status(millis(), EVENT_STARTUP);
+          id(s360_led_booted) = true;
+      - script.execute: s360_led_evaluate
+
+# Status events come from REAL supported signals only (LED-06): the Home
+# Assistant API connection (Essential) and WiFi connectivity (Detailed).
+# These trigger blocks merge with the base packages' api:/wifi: config.
+api:
+  on_client_connected:
+    - lambda: |-
+        sense360::ledfw::global_controller().notify_status(
+            millis(), sense360::ledfw::EVENT_CONNECTED);
+    - script.execute: s360_led_evaluate
+  on_client_disconnected:
+    - lambda: |-
+        sense360::ledfw::global_controller().notify_status(
+            millis(), sense360::ledfw::EVENT_WARNING);
+    - script.execute: s360_led_evaluate
+
+wifi:
+  on_connect:
+    - lambda: |-
+        sense360::ledfw::global_controller().notify_status(
+            millis(), sense360::ledfw::EVENT_DETAIL_INFO);
+    - script.execute: s360_led_evaluate
+  on_disconnect:
+    - lambda: |-
+        sense360::ledfw::global_controller().notify_status(
+            millis(), sense360::ledfw::EVENT_DETAIL_WARNING);
+    - script.execute: s360_led_evaluate
+
+globals:
+  # Restore contract (LED-11): ONLY the stable customer state and Night Mode
+  # ownership persist across restart. Transient overlays (identify/status)
+  # are RAM-only by design and can never survive a reboot.
+  - id: s360_led_saved_on
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+  - id: s360_led_saved_brightness
+    type: float
+    restore_value: true
+    initial_value: '0.5'
+  - id: s360_led_saved_r
+    type: float
+    restore_value: true
+    initial_value: '1.0'
+  - id: s360_led_saved_g
+    type: float
+    restore_value: true
+    initial_value: '1.0'
+  - id: s360_led_saved_b
+    type: float
+    restore_value: true
+    initial_value: '1.0'
+  - id: s360_led_saved_effect
+    type: int
+    restore_value: true
+    initial_value: '0'
+  - id: s360_led_night_on
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+  - id: s360_led_night_auto
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+  # Evaluation gate: no output is produced before the boot restore ran.
+  - id: s360_led_booted
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+# ----------------------------------------------------------------------------
+# Lux input (LED-05): a real update-callback freshness signal. The copy
+# sensor republishes every VEML7700 update (throttled to 10 s upstream), so
+# the engine can distinguish live lux from stale/missing data — stale lux is
+# UNKNOWN and never interpreted as darkness.
+# ----------------------------------------------------------------------------
+sensor:
+  - platform: copy
+    source_id: ${led_lux_source_id}
+    id: s360_led_lux_sample
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            sense360::ledfw::global_controller().input_lux(millis(), x);
+
+# ----------------------------------------------------------------------------
+# Evaluation — periodic tick plus immediate re-evaluation on customer
+# actions and status events. One script owns every input/output exchange
+# with the engine, so scripts and automations cannot race each other.
+# ----------------------------------------------------------------------------
+script:
+  - id: s360_led_evaluate
+    then:
+      - lambda: |-
+          using namespace sense360::ledfw;
+          auto &controller = global_controller();
+          if (!id(s360_led_booted)) return;
+          const uint32_t now = millis();
+
+          // Runtime configuration (customer controls + substitutions; no
+          // recompilation needed for the customer-facing values).
+          controller.set_max_brightness(${led_max_brightness_pct} / 100.0f);
+          controller.set_night_profile(${led_night_brightness_pct} / 100.0f,
+                                       ${led_night_red}, ${led_night_green},
+                                       ${led_night_blue});
+          controller.set_night_behaviour(night_behaviour_from_string(
+              id(s360_led_night_behaviour).current_option().c_str()));
+          controller.set_status_level(status_level_from_string(
+              id(s360_led_status_indicator).current_option().c_str()));
+          float threshold = id(s360_led_darkness_threshold).state;
+          if (!std::isnan(threshold) && threshold > 0.0f) {
+            controller.set_darkness_threshold(threshold);
+          }
+          controller.set_darkness_hysteresis(${led_darkness_hysteresis});
+          controller.set_lux_stale_ms(${led_lux_stale_ms});
+          controller.set_night_auto_off_ms(${led_night_auto_off_ms});
+          controller.set_identify_duration_ms(${led_identify_ms});
+          controller.set_status_duration_ms(${led_status_ms});
+
+          // Occupancy input (LED-04): the fused Occupancy contract with
+          // validity from the Presence module runtime status. Invalid
+          // occupancy freezes the automation (no flashing, no toggles).
+          {
+            const std::string &health = id(${led_presence_health_id}).state;
+            const bool valid = (health == "Available" || health == "Degraded");
+            const bool occupied = id(${led_occupancy_source_id}).has_state() &&
+                                  id(${led_occupancy_source_id}).state;
+            controller.input_occupancy(now, occupied, valid);
+          }
+
+          // Ownership detection: the light's current target vs the engine's
+          // last arbitrated output. A difference the engine did not command
+          // is customer/manual intent — customer intent always wins (it
+          // cancels overlays and disengages Night Mode).
+          auto read_light = [&]() {
+            sense360::ledfw::LightState seen;
+            auto values = id(led_ring).remote_values;
+            seen.on = values.is_on();
+            seen.brightness = values.get_brightness();
+            seen.red = values.get_red();
+            seen.green = values.get_green();
+            seen.blue = values.get_blue();
+            seen.effect = 0;
+            const std::string &effect = id(led_ring).get_effect_name();
+            if (effect == "Gentle Pulse") seen.effect = 1;
+            else if (effect == "Night Glow") seen.effect = 2;
+            return seen;
+          };
+          auto differs = [](float a, float b) {
+            return std::fabs(a - b) > 0.02f;
+          };
+          {
+            const sense360::ledfw::LightState seen = read_light();
+            const sense360::ledfw::LightState &expected = controller.output();
+            // While an approved effect the engine commanded is running, the
+            // effect owns brightness/colour — only on/effect changes count.
+            const bool effect_running =
+                expected.effect != 0 && seen.effect == expected.effect;
+            bool customer_change =
+                seen.on != expected.on || seen.effect != expected.effect;
+            if (!customer_change && seen.on && !effect_running) {
+              customer_change = differs(seen.brightness, expected.brightness) ||
+                                differs(seen.red, expected.red) ||
+                                differs(seen.green, expected.green) ||
+                                differs(seen.blue, expected.blue);
+            }
+            if (customer_change) {
+              controller.input_customer_command(now, seen);
+            }
+          }
+
+          controller.evaluate(now);
+
+          // Apply the arbitrated output when the light differs from it.
+          {
+            const sense360::ledfw::LightState &out = controller.output();
+            const sense360::ledfw::LightState seen = read_light();
+            const bool effect_running =
+                out.effect != 0 && seen.effect == out.effect;
+            bool apply = seen.on != out.on || seen.effect != out.effect;
+            if (!apply && out.on && !effect_running) {
+              apply = differs(seen.brightness, out.brightness) ||
+                      differs(seen.red, out.red) ||
+                      differs(seen.green, out.green) ||
+                      differs(seen.blue, out.blue);
+            }
+            if (apply) {
+              auto call = id(led_ring).make_call();
+              call.set_state(out.on);
+              bool effect_set = false;
+              if (out.on) {
+                call.set_brightness(out.brightness);
+                call.set_rgb(out.red, out.green, out.blue);
+                if (out.effect == 1) {
+                  call.set_effect("Gentle Pulse");
+                  effect_set = true;
+                } else if (out.effect == 2) {
+                  call.set_effect("Night Glow");
+                  effect_set = true;
+                } else if (seen.effect != 0) {
+                  call.set_effect("none");
+                  effect_set = true;
+                }
+              }
+              // A light call cannot carry an effect AND a transition.
+              if (!effect_set) call.set_transition_length(250);
+              call.perform();
+            }
+          }
+
+          // Persist the stable customer state (LED-11). Transients are
+          // never written here.
+          {
+            const sense360::ledfw::LightState &customer = controller.customer_state();
+            id(s360_led_saved_on) = customer.on;
+            id(s360_led_saved_brightness) = customer.brightness;
+            id(s360_led_saved_r) = customer.red;
+            id(s360_led_saved_g) = customer.green;
+            id(s360_led_saved_b) = customer.blue;
+            id(s360_led_saved_effect) = (int) customer.effect;
+            id(s360_led_night_on) = controller.night_mode();
+            id(s360_led_night_auto) = controller.night_automation_owned();
+          }
+
+          // Diagnostics (publish on change only).
+          {
+            std::string layer = layer_to_string(controller.active_layer());
+            if (id(s360_led_active_layer).state != layer) {
+              id(s360_led_active_layer).publish_state(layer);
+            }
+            std::string darkness = darkness_to_string(controller.darkness());
+            if (id(s360_led_darkness_state).state != darkness) {
+              id(s360_led_darkness_state).publish_state(darkness);
+            }
+            if (controller.has_status_event()) {
+              std::string event =
+                  event_to_string(controller.last_status_event());
+              if (controller.last_status_suppressed()) {
+                event += " (suppressed)";
+              }
+              if (id(s360_led_last_status_event).state != event) {
+                id(s360_led_last_status_event).publish_state(event);
+              }
+            }
+          }
+
+interval:
+  - interval: 250ms
+    then:
+      - script.execute: s360_led_evaluate
+
+# ----------------------------------------------------------------------------
+# Customer entities (the default-enabled set, LED-12). The Room Light itself
+# is defined by the board package.
+# ----------------------------------------------------------------------------
+switch:
+  # LED-02 — Night Mode. State is engine truth (lambda-polled), so
+  # customer-, automation- and restore-driven changes stay in sync without
+  # publish races. Turning it off restores the previous customer light
+  # state; the customer's normal settings are never overwritten.
+  - platform: template
+    id: s360_led_night_mode
+    name: "Night Mode"
+    icon: mdi:weather-night
+    lambda: |-
+      return sense360::ledfw::global_controller().night_mode();
+    turn_on_action:
+      - lambda: |-
+          sense360::ledfw::global_controller().set_night_mode(
+              millis(), true, false);
+      - script.execute: s360_led_evaluate
+    turn_off_action:
+      - lambda: |-
+          sense360::ledfw::global_controller().set_night_mode(
+              millis(), false, false);
+      - script.execute: s360_led_evaluate
+
+select:
+  # LED-03 — Night Mode Behaviour. Default Manual (automation is opt-in).
+  # "Scheduled" is deferred until a genuinely reliable local time source
+  # exists (see the package header).
+  - platform: template
+    id: s360_led_night_behaviour
+    name: "Night Mode Behaviour"
+    icon: mdi:tune-variant
+    entity_category: config
+    options:
+      - "Manual"
+      - "When dark"
+      - "When dark and occupied"
+    initial_option: "Manual"
+    optimistic: true
+    restore_value: true
+    on_value:
+      then:
+        - script.execute: s360_led_evaluate
+
+  # LED-06 — Status Indicator. Essential by default: brief startup,
+  # Home Assistant connection and recoverable-warning indications only.
+  # Detailed adds network-level events. Off silences all indications
+  # (Identify remains available — it is owner-requested, not a status).
+  - platform: template
+    id: s360_led_status_indicator
+    name: "Status Indicator"
+    icon: mdi:information-outline
+    entity_category: config
+    options:
+      - "Off"
+      - "Essential"
+      - "Detailed"
+    initial_option: "Essential"
+    optimistic: true
+    restore_value: true
+    on_value:
+      then:
+        - script.execute: s360_led_evaluate
+
+number:
+  # LED-05 — Darkness Threshold (lux). Below this the room counts as dark
+  # (hysteresis: not-dark above threshold * 1.5). Values are provisional
+  # pending bench validation of the lux path.
+  - platform: template
+    id: s360_led_darkness_threshold
+    name: "Darkness Threshold"
+    icon: mdi:brightness-4
+    entity_category: config
+    unit_of_measurement: "lx"
+    mode: box
+    min_value: 1
+    max_value: 200
+    step: 1
+    initial_value: 20
+    optimistic: true
+    restore_value: true
+    on_value:
+      then:
+        - script.execute: s360_led_evaluate
+
+button:
+  # LED-08 — Identify Device: a short, recognisable, non-disruptive pulse
+  # that automatically restores the previous state. Local-only; useful for
+  # installers and homes with several devices.
+  - platform: template
+    id: s360_led_identify
+    name: "Identify Device"
+    icon: mdi:crosshairs-gps
+    on_press:
+      then:
+        - lambda: |-
+            sense360::ledfw::global_controller().request_identify(millis());
+        - script.execute: s360_led_evaluate
+
+# ----------------------------------------------------------------------------
+# Diagnostics (diagnostic + disabled by default — LED-12)
+# ----------------------------------------------------------------------------
+text_sensor:
+  # Which priority layer currently owns the ring (Fault / Identify /
+  # Night Mode / Room Light / Status).
+  - platform: template
+    id: s360_led_active_layer
+    name: "LED Active Layer"
+    icon: mdi:layers-triple-outline
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+
+  # Last status event the engine saw, with "(suppressed)" when the priority
+  # rules or the Status Indicator level kept it off the ring.
+  - platform: template
+    id: s360_led_last_status_event
+    name: "LED Last Status Event"
+    icon: mdi:message-alert-outline
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+
+  # Raw darkness decision (Dark / Not dark / Unknown). Unknown means
+  # missing, invalid or stale lux — deliberately distinct from darkness.
+  - platform: template
+    id: s360_led_darkness_state
+    name: "LED Darkness State"
+    icon: mdi:theme-light-dark
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+
+  # Honesty companion: states on-device why no runtime LED health is
+  # reported — the module status "Included" is compile-time presence only.
+  - platform: template
+    id: s360_led_output_verification
+    name: "LED Output Verification"
+    icon: mdi:shield-search
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      return {"WS2812B data line is one-way; firmware cannot verify emitted light"};

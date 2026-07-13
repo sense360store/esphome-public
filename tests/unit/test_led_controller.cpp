@@ -17,13 +17,13 @@
 //
 // Compile via tests/Makefile (auto-discovered):  cd tests && make test
 
-#include "../../include/sense360/led_controller.h"
-
 #include <cassert>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <exception>
+
+#include "../../include/sense360/led_controller.h"
 
 using namespace sense360::ledfw;
 
@@ -137,8 +137,10 @@ TEST_CASE(invalid_customer_values_are_sanitised) {
   controller.evaluate(T0);
   // NaN brightness falls back to a safe mid value, never full brightness.
   ASSERT_NEAR(controller.output().brightness, 0.5f, 0.001f);
-  ASSERT_TRUE(controller.output().red >= 0.0f && controller.output().red <= 1.0f);
-  ASSERT_TRUE(controller.output().blue >= 0.0f && controller.output().blue <= 1.0f);
+  ASSERT_TRUE(controller.output().red >= 0.0f &&
+              controller.output().red <= 1.0f);
+  ASSERT_TRUE(controller.output().blue >= 0.0f &&
+              controller.output().blue <= 1.0f);
 }
 
 // ---------------------------------------------------------------------------
@@ -329,13 +331,18 @@ TEST_CASE(occupancy_clear_reverses_only_automation_after_delay) {
   controller.input_occupancy(T0, true, true);
   controller.evaluate(T0);
   ASSERT_TRUE(controller.night_mode());
-  // Occupancy clears: night mode holds during the auto-off delay...
+  // Occupancy clears: night mode holds during the auto-off delay... (the
+  // lux sensor keeps updating, as the real VEML7700 does every 10 s — a
+  // stale lux would fail safe and freeze the automation instead)
   controller.input_occupancy(T0 + 1000, false, true);
+  controller.input_lux(T0 + 1000, 5.0f);
   controller.evaluate(T0 + 1000);
   ASSERT_TRUE(controller.night_mode());
+  controller.input_lux(T0 + 1000 + AUTO_OFF_MS / 2, 5.0f);
   controller.evaluate(T0 + 1000 + AUTO_OFF_MS / 2);
   ASSERT_TRUE(controller.night_mode());
   // ...then turns off.
+  controller.input_lux(T0 + 1000 + AUTO_OFF_MS + 1000, 5.0f);
   controller.evaluate(T0 + 1000 + AUTO_OFF_MS + 1000);
   ASSERT_FALSE(controller.night_mode());
 }
@@ -346,6 +353,8 @@ TEST_CASE(manual_night_mode_is_never_cleared_by_occupancy) {
   controller.set_night_mode(T0, true, false);  // manual
   controller.input_lux(T0, 5.0f);
   controller.input_occupancy(T0, false, true);
+  controller.evaluate(T0);
+  controller.input_lux(T0 + AUTO_OFF_MS + 5000, 5.0f);
   controller.evaluate(T0 + AUTO_OFF_MS + 5000);
   ASSERT_TRUE(controller.night_mode());
 }
@@ -357,12 +366,15 @@ TEST_CASE(fresh_occupancy_cancels_pending_auto_off) {
   controller.input_occupancy(T0, true, true);
   controller.evaluate(T0);
   controller.input_occupancy(T0 + 1000, false, true);
+  controller.input_lux(T0 + 1000, 5.0f);
   controller.evaluate(T0 + 1000);
   // Reoccupied before the auto-off delay expires: the pending off is
   // cancelled...
   controller.input_occupancy(T0 + 5000, true, true);
+  controller.input_lux(T0 + 5000, 5.0f);
   controller.evaluate(T0 + 5000);
-  // ...even long past the original deadline.
+  // ...even long past the original deadline (with live inputs throughout).
+  controller.input_lux(T0 + 1000 + AUTO_OFF_MS + 5000, 5.0f);
   controller.evaluate(T0 + 1000 + AUTO_OFF_MS + 5000);
   ASSERT_TRUE(controller.night_mode());
 }
@@ -635,9 +647,13 @@ TEST_CASE(restore_reapplies_night_mode_and_ownership) {
   ASSERT_TRUE(controller.night_automation_owned());
   ASSERT_EQ(controller.active_layer(), LAYER_NIGHT);
   // Ownership survived the restart, so a later valid clear still reverses
-  // the automation's own activation.
+  // the automation's own activation (after the auto-off delay, with live
+  // inputs throughout).
   controller.input_lux(T0 + 1000, 5.0f);
   controller.input_occupancy(T0 + 1000, false, true);
+  controller.evaluate(T0 + 1000);
+  ASSERT_TRUE(controller.night_mode());
+  controller.input_lux(T0 + 1000 + AUTO_OFF_MS + 1000, 5.0f);
   controller.evaluate(T0 + 1000 + AUTO_OFF_MS + 1000);
   ASSERT_FALSE(controller.night_mode());
 }
@@ -652,7 +668,8 @@ TEST_CASE(restore_sanitises_invalid_stored_state) {
   // Safe fallback: mid brightness, in-range colour — never an unexpected
   // full-brightness boot.
   ASSERT_TRUE(controller.output().brightness <= 0.5f + 0.001f);
-  ASSERT_TRUE(controller.output().red >= 0.0f && controller.output().red <= 1.0f);
+  ASSERT_TRUE(controller.output().red >= 0.0f &&
+              controller.output().red <= 1.0f);
   ASSERT_TRUE(controller.output().green >= 0.0f &&
               controller.output().green <= 1.0f);
 }
@@ -757,7 +774,8 @@ int main() {
 
   run_test(test_manual_behaviour_ignores_occupancy_and_lux,
            "manual_behaviour_ignores_occupancy_and_lux");
-  run_test(test_when_dark_activates_night_mode, "when_dark_activates_night_mode");
+  run_test(test_when_dark_activates_night_mode,
+           "when_dark_activates_night_mode");
   run_test(test_when_dark_deactivates_only_automation_owned,
            "when_dark_deactivates_only_automation_owned");
   run_test(test_darkness_hysteresis_prevents_oscillation,
@@ -767,7 +785,8 @@ int main() {
   run_test(test_stale_lux_holds_active_night_mode_without_toggling,
            "stale_lux_holds_active_night_mode_without_toggling");
   run_test(test_nan_lux_is_unknown, "nan_lux_is_unknown");
-  run_test(test_dark_and_occupied_requires_both, "dark_and_occupied_requires_both");
+  run_test(test_dark_and_occupied_requires_both,
+           "dark_and_occupied_requires_both");
   run_test(test_occupancy_clear_reverses_only_automation_after_delay,
            "occupancy_clear_reverses_only_automation_after_delay");
   run_test(test_manual_night_mode_is_never_cleared_by_occupancy,
@@ -785,7 +804,8 @@ int main() {
            "identify_overrides_and_restores_customer_state");
   run_test(test_identify_respects_max_brightness,
            "identify_respects_max_brightness");
-  run_test(test_identify_returns_to_night_mode, "identify_returns_to_night_mode");
+  run_test(test_identify_returns_to_night_mode,
+           "identify_returns_to_night_mode");
   run_test(test_repeated_identify_requests_do_not_stick,
            "repeated_identify_requests_do_not_stick");
   run_test(test_customer_command_cancels_identify,
@@ -803,13 +823,15 @@ int main() {
            "status_suppressed_during_night_mode");
   run_test(test_repeated_status_events_do_not_stick,
            "repeated_status_events_do_not_stick");
-  run_test(test_status_respects_max_brightness, "status_respects_max_brightness");
+  run_test(test_status_respects_max_brightness,
+           "status_respects_max_brightness");
 
   run_test(test_fault_overrides_everything_and_persists,
            "fault_overrides_everything_and_persists");
   run_test(test_fault_clear_restores_customer_state,
            "fault_clear_restores_customer_state");
-  run_test(test_identify_does_not_preempt_fault, "identify_does_not_preempt_fault");
+  run_test(test_identify_does_not_preempt_fault,
+           "identify_does_not_preempt_fault");
 
   run_test(test_restore_reapplies_stable_customer_state,
            "restore_reapplies_stable_customer_state");
@@ -822,7 +844,8 @@ int main() {
 
   run_test(test_customer_effect_is_preserved_across_overlays,
            "customer_effect_is_preserved_across_overlays");
-  run_test(test_night_mode_runs_without_effects, "night_mode_runs_without_effects");
+  run_test(test_night_mode_runs_without_effects,
+           "night_mode_runs_without_effects");
 
   run_test(test_string_tables_are_single_sourced,
            "string_tables_are_single_sourced");

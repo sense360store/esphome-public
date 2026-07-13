@@ -29,6 +29,7 @@
        packages/features/comfort_basic_profile.yaml
        packages/features/device_health.yaml
        packages/features/diagnostics.yaml
+       packages/features/led_framework.yaml
        packages/features/presence_framework.yaml
        packages/hardware/sense360_core_ceiling.yaml
        products/bundles/ceiling-poe-ventiq-roomiq-led.yaml
@@ -36,7 +37,7 @@
        products/webflash/ceiling-poe-ventiq-roomiq-led.yaml
 -->
 
-The `Ceiling-POE-VentIQ-RoomIQ-LED` firmware exposes **107 entities** to Home Assistant.
+The `Ceiling-POE-VentIQ-RoomIQ-LED` firmware exposes **114 entities** to Home Assistant.
 
 Entity names below appear in Home Assistant prefixed with the device's friendly name, which you choose during setup (firmware default: `Sense360 Ceiling Bathroom LED`). Firmware-internal measurements (marked `internal` in the YAML) never reach Home Assistant and are not listed.
 
@@ -113,7 +114,11 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Installed Capabilities | Text sensor | — | diagnostic entity |
 | IP Address | Text sensor | — | — |
 | Last Restart Reason | Text sensor | — | diagnostic entity; disabled by default |
+| LED Active Layer | Text sensor | — | diagnostic entity; disabled by default |
+| LED Darkness State | Text sensor | — | diagnostic entity; disabled by default |
+| LED Last Status Event | Text sensor | — | diagnostic entity; disabled by default |
 | LED Module Status | Text sensor | — | diagnostic entity; disabled by default |
+| LED Output Verification | Text sensor | — | diagnostic entity; disabled by default |
 | LED Ring SKU | Text sensor | — | diagnostic entity |
 | Light Status | Text sensor | — | — |
 | MAC Address | Text sensor | — | — |
@@ -137,15 +142,18 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Relay | Switch | — | — |
 | Shower Detection | Switch | — | — |
 | Clear Delay | Number | s | config entity |
-| LED Brightness | Number | % | — |
+| Darkness Threshold | Number | lx | config entity |
 | Mold Risk Threshold | Number | % | — |
 | Post-Shower Ventilation Duration | Number | min | — |
 | Shower Detection Threshold | Number | % | — |
+| Night Mode Behaviour | Select | — | config entity |
 | Presence Mode | Select | — | config entity |
+| Status Indicator | Select | — | config entity |
 | Factory Reset | Button | — | disabled by default |
 | Force Ventilation | Button | — | — |
+| Identify Device | Button | — | — |
 | Reset Mold Risk | Button | — | config entity |
 | Reset Shower Detection | Button | — | config entity |
 | Restart | Button | — | — |
 | Safe Mode | Button | — | — |
-| LED Ring | Light | — | — |
+| Room Light | Light | — | — |
