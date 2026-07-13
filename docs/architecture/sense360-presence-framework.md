@@ -65,8 +65,18 @@ verified people.
 ## Presence Status values and precedence (PD-02)
 
 `Presence Status` publishes exactly one of: **Initialising**, **Clear**,
-**Movement detected**, **Still presence**, **Multiple people**,
+**Movement detected**, **Still presence**, **Multiple targets**,
 **Sensor degraded**, **Unavailable**.
+
+**Wording decision ("Multiple targets", not "Multiple people"):** the
+accepted product decision offered "Multiple people" as customer wording,
+but the LD2450 reports radar targets and no physical validation exists yet.
+Shipping "Multiple people" before bench evidence would present an
+unverified people-claim as fact, so the entity uses the factual
+**Multiple targets** first. Promoting the wording to "Multiple people" is
+an explicit owner decision reserved until the bench checklist's
+multi-occupant counting evidence exists; the trade-off (slightly more
+technical wording now vs. an unsupportable people-claim) is accepted.
 
 Factual precedence, evaluated top-down (single-sourced in
 `status_to_string` / the engine; tested deterministically):
@@ -77,10 +87,10 @@ Factual precedence, evaluated top-down (single-sourced in
    higher-priority fault exists. Occupancy may already assert from valid
    data (e.g. an early radar frame) while the status still reads
    Initialising; Initialising is never falsely shown as Unavailable.
-3. **Multiple people** — occupied and fresh LD2450 data reports ≥ 2 valid
-   radar targets. This is accepted customer wording, but the value is
-   **radar-derived** — radar targets, not confirmed people — and remains
-   subject to physical validation (bench checklist).
+3. **Multiple targets** — occupied and fresh LD2450 data reports ≥ 2 valid
+   radar targets. The value is **radar-derived** — radar targets, not
+   confirmed people — and remains subject to physical validation (bench
+   checklist; see the wording decision above).
 4. **Movement detected** — occupied with an active movement signal (PIR
    within its hold window, or LD2450 moving target).
 5. **Still presence** — occupied without movement (SEN0609 static presence
@@ -145,14 +155,24 @@ Each adapter feeds the engine's internal per-channel contract
 * **PIR** (non-verifiable): immediate movement assertion with 100 ms input
   debounce; movement retention (`pir_hold`) is mode-controlled fusion
   state, not a filter on the raw diagnostic.
-* **SEN0609** (non-verifiable): static presence from the documented digital
-  output line. ESPHome 2026.4.5 carries **no supported C4001/SEN0609 UART
-  component** (only `dfrobot_sen0395`, a different sensor), and this
-  repository approves no external component for it — so no UART protocol
-  parser is invented, no target count / distance / speed detail is
-  fabricated, and no runtime sensitivity command is claimed. The
-  authoritative `roomiq_sen0609_uart` bus stays Core-owned and reserved
-  for a future supported component.
+* **SEN0609** (non-verifiable) — **GPIO-presence integration, phase 1, not
+  a complete SEN0609 integration**: static presence from the documented
+  digital output line only. ESPHome 2026.4.5 carries **no supported
+  C4001/SEN0609 UART component** (only `dfrobot_sen0395`, a different
+  sensor), and this repository approves no external component for it — so
+  no UART protocol parser is invented, no target count / distance / speed
+  detail is fabricated, and no runtime sensitivity command is claimed. The
+  authoritative `roomiq_sen0609_uart` bus stays Core-owned and reserved.
+  UART-based health / configuration / diagnostics is the tracked follow-up
+  work item **PRESENCE-SEN0609-UART-001** (roadmap §13) — it requires a
+  supported component, primary protocol documentation, and its own review.
+  *Evaluated alternatives:* excluding SEN0609 from production fusion until
+  UART support exists was rejected because the digital output is the
+  sensor's documented primary detection interface and provides the
+  still-occupant value the tri-sensor product intent exists for; marking
+  it preview/experimental was rejected because channels are release-lane
+  concepts, not per-entity flags — the phase-1 label plus unverifiable
+  health modelling is the honest per-entity statement.
 
 **Honest limitation (PIR and SEN0609):** a bare GPIO level cannot prove
 communication health — a permanently low input may be a physically healthy
@@ -166,9 +186,10 @@ and emit false triggers meanwhile).
 
 ## Startup and warm-up
 
-Sensor-specific windows (engineering defaults pending bench validation —
-deliberately not one arbitrary shared value; substitutions in the fusion
-package): PIR 30 s, LD2450 10 s, SEN0609 15 s.
+Sensor-specific windows (**provisional** engineering defaults pending bench
+validation — deliberately not one arbitrary shared value; substitutions in
+the fusion package): PIR 30 s, LD2450 10 s, SEN0609 15 s. The 100 ms GPIO
+debounce and the 5 s radar stale window are provisional in the same sense.
 
 During startup: Presence Status and the module status read **Initialising**;
 occupancy may assert if a valid sensor reports presence; missing data inside
@@ -185,10 +206,19 @@ reserved runtime vocabulary, from a real supported signal (LD2450
 frame-driven freshness):
 
 * **Initialising** — expected sensors inside their startup windows.
-* **Available** — every expected *verifiable* sensor (today: the LD2450) is
-  operating with fresh valid data after warm-up. Honesty note: the PIR and
-  SEN0609 GPIO channels cannot be runtime-verified, so Available attests
-  the verifiable sensor set only — this is documented, not hidden.
+* **Available** — defined **strictly** (health-contract audit, Option A):
+  the verifiable Presence transport — currently the LD2450 UART, whose
+  frame-driven updates are the only real health signal — is fresh after
+  warm-up and the fusion service is operational. This is **service
+  availability, not full tri-sensor hardware health**: the PIR and SEN0609
+  GPIO channels remain unverifiable (a low GPIO can mean clear,
+  disconnected or failed) and are never claimed healthy. The diagnostic
+  entity `s360_presence_verification_limits` ("Presence Sensor
+  Verification") states this coverage limit on-device, and the contract
+  wording is test-enforced. *Rejected alternative (Option B):* reporting
+  permanent Degraded because GPIO sensors cannot be verified would make
+  every healthy device look faulty forever, normalising Degraded and
+  masking real radar failures — worse for customers and no more honest.
 * **Degraded** — one or more expected sensors have failed or gone stale,
   but at least one usable sensor remains (a GPIO trigger channel keeps the
   module usable — it can never be proven dead).
@@ -220,6 +250,17 @@ header) — no unsupported dynamic sensor commands are issued:
 | Stable | 120 s | 20 s | 300 s |
 | Custom | user's Clear Delay value | 10 s | 60 s |
 
+**Every value in this table — plus the warm-up windows, the radar stale
+window and the GPIO debounce — is a provisional engineering default
+pending hardware validation.** None of them is customer-tested; presets
+may change after bench evidence and such changes will be documented. All
+four modes ship now (rather than only Balanced + Custom) because presets
+differ solely in these deterministic, simulation-tested timing parameters
+— the fail-safe fusion invariants are identical in every mode — and a
+"Stable vs Responsive" choice is exactly the control still-occupant vs
+quick-clear customers need; the provisional labelling, not a reduced
+option list, is what keeps the claim honest.
+
 Selecting Balanced/Responsive/Stable applies the preset to the Clear Delay
 control (the number always shows and controls the live value); manually
 editing Clear Delay away from the active preset switches the mode to
@@ -247,6 +288,7 @@ Individual-sensor and technical detail stays out of the default view:
 | `ld2450_moving_target_count` / `ld2450_still_target_count` | Radar Moving/Still Target Count | radar adapter |
 | `ld2450_t{1..3}_{x,y,speed,distance,angle}` | Radar Target N X/Y/Speed/Distance/Angle | radar adapter |
 | `s360_radar_data_age` | Radar Data Age (stale-data timer) | fusion layer |
+| `s360_presence_verification_limits` | Presence Sensor Verification (which sensors carry a real health signal) | fusion layer |
 | `s360_module_status_presence` | Presence Module Status | core framework, driven by fusion |
 
 Legacy compatibility entities `presence_binary`
@@ -274,6 +316,38 @@ rename, remove, or reduce resolution):
   `s360_radar_frame_seen` globals.
 
 No cross-repository Zones change is part of this work item.
+
+## Board vs kit authority (reconciliation status)
+
+Six distinct layers must never be conflated:
+
+1. **Board BOM / schematic** (verified `S360-200-R4.pdf`,
+   `config/hardware-catalog.json`): the **PIR (EKMC1601111, U3) is a
+   soldered on-board component**; the **LD2450 (J2) and SEN0609 (J3) are
+   connector-attached modules**, not board-soldered parts.
+2. **Connector/pin capability** (Core board package): `pir_sensor_pin`
+   GPIO15, `roomiq_hi_link_uart`, `roomiq_sen0609_uart` +
+   `roomiq_sen0609_output_pin` GPIO6 — wiring capability only.
+3. **Firmware compiled** (this framework): tri-sensor adapters composed in
+   every presence-bearing bundle.
+4. **Physical sensor fitted**: provable from this repository **only for
+   the soldered PIR**; whether production S360-200 assemblies / kits ship
+   with the J2 (LD2450) and J3 (SEN0609) modules fitted is **not encoded
+   in this repository** and remains an owner confirmation.
+5. **Commercial bundle sold** (`config/room-bundle-skus.json`,
+   `config/shop-commercial-source-of-truth.json`): kits list board SKUs
+   (every kit includes S360-200), not module-level fitment.
+6. **Runtime detected/healthy**: only the LD2450 UART produces a real
+   runtime signal (see the health contract above).
+
+**Fail-safe posture for the unresolved layer 4:** if a J3 SEN0609 module
+is absent, its pulled-down GPIO reads clear — it can neither assert false
+occupancy, nor block clearing, nor affect health (unverifiable channel);
+if a J2 LD2450 module is absent, the module status honestly reports
+Degraded after warm-up. Firmware misbehaviour is therefore bounded, but
+**SOT / kit-level reconciliation stays explicitly unresolved** until the
+owner confirms module fitment per sold kit (direct SOT inspection was not
+possible from this session; see the PR audit report).
 
 ## Compile-time inclusion vs runtime health
 
@@ -312,15 +386,16 @@ a fault. All current presence-bearing bundles are tri-sensor.
 ## Limitations and hardware verification still required
 
 * **No hardware validation is claimed.** All timing values (warm-ups,
-  stale window, mode presets) are engineering defaults pending bench
-  measurement; the operator bench checklist is
+  stale window, mode presets, debounce) are provisional engineering
+  defaults pending bench measurement; the operator bench checklist is
   [`docs/hardware/presence-framework-bench-checklist.md`](../hardware/presence-framework-bench-checklist.md)
   (results and attestation are operator-only, never machine-written).
 * PIR/SEN0609 health cannot be runtime-verified (GPIO levels); Available
   attests the verifiable sensor set only.
 * SEN0609 UART features (sensitivity, distance, explicit errors) require a
   supported component that does not exist in ESPHome 2026.4.5.
-* "Multiple people" is radar-derived target counting, not verified people
-  counting.
+* "Multiple targets" is radar-derived target counting, not verified people
+  counting; the "Multiple people" wording stays reserved for an owner
+  decision after bench evidence.
 * Sensitivity and timing tuning remains pending; presets may change after
   bench evidence, and such changes will be documented.

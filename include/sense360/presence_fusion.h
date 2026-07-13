@@ -81,7 +81,11 @@ inline const char *status_to_string(Status status) {
     case STATUS_STILL:
       return "Still presence";
     case STATUS_MULTIPLE:
-      return "Multiple people";
+      // Factual wording: the LD2450 reports radar targets, not verified
+      // people. Promoting this customer wording to a people-claim is an
+      // explicit owner decision reserved until bench evidence exists
+      // (PRESENCE-FRAMEWORK-001 audit).
+      return "Multiple targets";
     case STATUS_DEGRADED:
       return "Sensor degraded";
     case STATUS_UNAVAILABLE:

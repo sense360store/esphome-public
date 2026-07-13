@@ -34,7 +34,7 @@
        products/webflash/ceiling-poe-airiq-roomiq.yaml
 -->
 
-The `Ceiling-POE-AirIQ-RoomIQ` firmware exposes **76 entities** to Home Assistant.
+The `Ceiling-POE-AirIQ-RoomIQ` firmware exposes **77 entities** to Home Assistant.
 
 Entity names below appear in Home Assistant prefixed with the device's friendly name, which you choose during setup (firmware default: `Sense360 Ceiling AirIQ RoomIQ`). Firmware-internal measurements (marked `internal` in the YAML) never reach Home Assistant and are not listed.
 
@@ -102,6 +102,7 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Power Source | Text sensor | — | — |
 | Presence Module SKU | Text sensor | — | diagnostic entity |
 | Presence Module Status | Text sensor | — | diagnostic entity; disabled by default |
+| Presence Sensor Verification | Text sensor | — | diagnostic entity; disabled by default |
 | Presence Status | Text sensor | — | — |
 | Product Configuration | Text sensor | — | diagnostic entity |
 | Product SKU | Text sensor | — | diagnostic entity |

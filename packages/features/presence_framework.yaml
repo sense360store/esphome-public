@@ -201,9 +201,23 @@ binary_sensor:
       return id(s360_occupancy).state;
 
 text_sensor:
+  # Health-contract honesty (audit Option A): states in plain words which
+  # sensors carry a real health signal, so the module status "Available"
+  # can never silently be read as "all three sensors physically healthy".
+  # Compile-time composition fact; diagnostic, disabled by default.
+  - platform: template
+    id: s360_presence_verification_limits
+    name: "Presence Sensor Verification"
+    icon: mdi:shield-search
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      return {"Radar (LD2450) UART verifiable; PIR and SEN0609 GPIO carry no health signal"};
+
   # PD-02 — customer presence story in one value. Precedence (documented in
   # the architecture doc, tested in tests/unit/test_presence_fusion.cpp):
-  # Unavailable > Initialising > Multiple people > Movement detected >
+  # Unavailable > Initialising > Multiple targets > Movement detected >
   # Still presence > Sensor degraded > Clear. Customer-clarity decision:
   # while the room is occupied the status keeps showing activity and the
   # (diagnostic) Presence Module Status carries any degradation.

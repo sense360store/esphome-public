@@ -118,6 +118,7 @@
       "work_item": "PRESENCE-FRAMEWORK-001",
       "entity_id": "s360_module_status_presence",
       "package": "packages/features/presence_framework.yaml",
+      "available_definition": "Available means STRICTLY: the verifiable Presence transport (the LD2450 UART, whose frame-driven updates are the only real health signal) is fresh after warm-up and the fusion service is operational. It is service availability, NOT full tri-sensor hardware health: the PIR and SEN0609 GPIO channels remain unverifiable and are never claimed healthy. The diagnostic entity s360_presence_verification_limits ('Presence Sensor Verification') states this coverage limit on-device.",
       "values": [
         "Initialising",
         "Available",

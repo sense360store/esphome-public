@@ -304,7 +304,9 @@ TEST_CASE(multiple_people_outranks_movement_and_still) {
   engine.input_radar_frame(T_READY + 100, 2, 1, 1);
   engine.evaluate(T_READY + 100);
   ASSERT_EQ(engine.status(), STATUS_MULTIPLE);
-  ASSERT_STREQ(status_to_string(engine.status()), "Multiple people");
+  // "Multiple targets": radar targets, not verified people (promotion to
+  // "Multiple people" wording is an owner decision after bench evidence).
+  ASSERT_STREQ(status_to_string(engine.status()), "Multiple targets");
 }
 
 TEST_CASE(movement_outranks_still_presence) {

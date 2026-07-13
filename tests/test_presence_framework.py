@@ -64,12 +64,16 @@ MATRIX = REPO_ROOT / "config" / "feature-entity-matrix.json"
 ROADMAP = REPO_ROOT / "docs" / "sense360-roadmap-status.md"
 BUNDLES_DIR = REPO_ROOT / "products" / "bundles"
 
+# Customer status values. "Multiple targets" (not "Multiple people"): the
+# LD2450 reports radar targets, not verified people — promotion of the
+# wording to "Multiple people" is an explicit owner decision reserved until
+# bench evidence exists (PRESENCE-FRAMEWORK-001 audit decision).
 CUSTOMER_STATUS_VALUES = (
     "Initialising",
     "Clear",
     "Movement detected",
     "Still presence",
-    "Multiple people",
+    "Multiple targets",
     "Sensor degraded",
     "Unavailable",
 )
@@ -270,6 +274,21 @@ class CustomerEntityContractTests(unittest.TestCase):
         self.assertEqual(entity.get("entity_category"), "diagnostic")
         self.assertTrue(entity.get("disabled_by_default"))
 
+    def test_verification_coverage_diagnostic_exists(self) -> None:
+        # Option A companion: a diagnostic entity states, in plain words,
+        # which sensors carry a real health signal — so "Available" cannot
+        # silently be read as tri-sensor hardware health.
+        entity = self._entity("s360_presence_verification_limits")
+        self.assertEqual(entity["_platform"], "text_sensor")
+        self.assertEqual(entity.get("name"), "Presence Sensor Verification")
+        self.assertEqual(entity.get("entity_category"), "diagnostic")
+        self.assertTrue(entity.get("disabled_by_default"))
+        value = str(entity.get("lambda", ""))
+        self.assertIn("LD2450", value)
+        self.assertIn("PIR", value)
+        self.assertIn("SEN0609", value)
+        self.assertIn("no health signal", value)
+
     def test_module_status_is_published_from_a_real_signal(self) -> None:
         # The fusion layer drives the framework's Presence Module Status
         # entity (reserved runtime vocabulary) — CORE-FRAMEWORK-001
@@ -343,6 +362,13 @@ class Sen0609AdapterTests(unittest.TestCase):
         self.assertEqual(entity.get("device_class"), "occupancy")
         self.assertEqual(entity.get("entity_category"), "diagnostic")
         self.assertTrue(entity.get("disabled_by_default"))
+
+    def test_sen0609_recorded_as_phase_one(self) -> None:
+        # Audit decision: the GPIO-output integration is explicitly
+        # "phase 1" — never described as a complete SEN0609 integration.
+        # The UART follow-up is a tracked work item.
+        self.assertIn("phase 1", self.raw.lower())
+        self.assertIn("PRESENCE-SEN0609-UART-001", self.raw)
 
     def test_sen0609_invents_no_detail(self) -> None:
         # SEN0609 via its digital output provides presence only: no target
@@ -459,6 +485,12 @@ class FusionHeaderTests(unittest.TestCase):
         for value in CUSTOMER_STATUS_VALUES:
             self.assertIn(f'"{value}"', self.raw, value)
 
+    def test_no_people_claim_before_bench_evidence(self) -> None:
+        # Radar targets are not verified people; the customer wording may
+        # only be promoted to "Multiple people" by an explicit owner
+        # decision after bench evidence.
+        self.assertNotIn('"Multiple people"', self.raw)
+
     def test_module_health_strings_are_single_sourced(self) -> None:
         for value in MODULE_HEALTH_VALUES:
             self.assertIn(f'"{value}"', self.raw, value)
@@ -508,6 +540,19 @@ class CoreFrameworkContractTests(unittest.TestCase):
         notes = str(entry.get("notes", "")).lower()
         self.assertIn("pir", notes)
         self.assertIn("cannot", notes)
+
+    def test_available_is_defined_as_verifiable_service_only(self) -> None:
+        # Option A of the health-contract audit: "Available" is strictly the
+        # verifiable Presence transport (LD2450 UART) fresh + fusion service
+        # operational. It must never be interpretable as "all three sensors
+        # physically healthy".
+        entry = (self.contract.get("module_runtime_status") or {})["presence"]
+        definition = str(entry.get("available_definition", "")).lower()
+        self.assertIn("verifiable", definition)
+        self.assertIn("ld2450", definition)
+        self.assertIn("unverifiable", definition)
+        self.assertIn("not", definition)
+        self.assertIn("tri-sensor", definition)
 
 
 # --- Feature-entity matrix -------------------------------------------------------
@@ -577,6 +622,8 @@ class DocumentationTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.text = DOC.read_text() if DOC.is_file() else ""
         cls.lowered = cls.text.lower()
+        # Markdown wraps prose lines; phrase checks use space-normalised text.
+        cls.normalised = " ".join(cls.lowered.split())
 
     def test_doc_exists_and_names_the_work_item(self) -> None:
         self.assertTrue(DOC.is_file(), f"missing {DOC}")
@@ -613,6 +660,27 @@ class DocumentationTests(unittest.TestCase):
         self.assertIn("cannot", self.lowered)
         for forbidden in ("hardware verified", "bench verified", "hardware-proven"):
             self.assertNotIn(forbidden, self.lowered)
+
+    def test_available_documented_as_service_availability(self) -> None:
+        # Option A wording: Available is service availability of the
+        # verifiable transport, not full tri-sensor hardware health.
+        self.assertIn("service availability", self.normalised)
+        self.assertIn("not full tri-sensor hardware health", self.normalised)
+
+    def test_tuning_documented_as_provisional(self) -> None:
+        # Mode presets, warm-ups, stale windows, fallback timings and
+        # debounce are provisional engineering defaults — never presented
+        # as customer-tested or optimised behaviour.
+        self.assertIn("provisional", self.normalised)
+        for forbidden in ("optimised for", "optimized for"):
+            self.assertNotIn(forbidden, self.normalised)
+        # "customer-tested" may appear only as a negated claim.
+        if "customer-tested" in self.normalised:
+            self.assertIn("none of them is customer-tested", self.normalised)
+
+    def test_sen0609_phase_documented(self) -> None:
+        self.assertIn("phase 1", self.lowered)
+        self.assertIn("presence-sen0609-uart-001", self.lowered)
 
     def test_radar_targets_not_claimed_as_people(self) -> None:
         # "Multiple people" is accepted customer wording, but the doc must
@@ -655,11 +723,22 @@ class RoadmapTests(unittest.TestCase):
     def test_roadmap_records_presence_framework(self) -> None:
         text = ROADMAP.read_text()
         self.assertIn("PRESENCE-FRAMEWORK-001", text)
-        section = text[text.index("PRESENCE-FRAMEWORK-001") :][:5000]
+        section = text[text.index("PRESENCE-FRAMEWORK-001") :][:6000]
         lowered = section.lower()
         self.assertIn("SOT", section)
         self.assertIn("hardware", lowered)
         self.assertIn("pending", lowered)
+
+    def test_roadmap_records_reconciliation_and_uart_follow_up(self) -> None:
+        text = ROADMAP.read_text()
+        section = text[text.index("## 13.") :][:8000]
+        lowered = section.lower()
+        # Bundle/SOT reconciliation is explicitly unresolved (module-level
+        # fitment of the J2/J3 radar modules is an owner confirmation), and
+        # the SEN0609 UART follow-up is a tracked work item.
+        self.assertIn("reconciliation", lowered)
+        self.assertIn("PRESENCE-SEN0609-UART-001", section)
+        self.assertIn("software foundation", lowered)
 
 
 if __name__ == "__main__":

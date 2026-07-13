@@ -1,11 +1,18 @@
 # ============================================================================
-# Sense360 RoomIQ — SEN0609 static-presence adapter, ceiling (S360-200-R4)
+# Sense360 RoomIQ — SEN0609 GPIO-presence integration — phase 1 (S360-200-R4)
 # ============================================================================
 # PRESENCE-FRAMEWORK-001. DFRobot SEN0609 (C4001) 24 GHz mmWave adapter of
 # the tri-sensor Presence framework (see
 # docs/architecture/sense360-presence-framework.md). The SEN0609 provides
 # the STATIC-PRESENCE role: it maintains occupancy for seated, sleeping or
 # otherwise very still occupants that PIR cannot see.
+#
+# THIS IS PHASE 1, NOT a complete SEN0609 integration: only the sensor's
+# documented digital presence output is consumed. UART-based health,
+# configuration and diagnostics are the tracked follow-up work item
+# PRESENCE-SEN0609-UART-001 (docs/sense360-roadmap-status.md §13) — it
+# requires a supported ESPHome component (none exists in 2026.4.5) plus
+# primary protocol documentation and its own review.
 #
 # Integration mode — documented digital output, not UART parsing:
 #   * ESPHome 2026.4.5 (the repo's pinned build) carries NO supported

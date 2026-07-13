@@ -642,8 +642,10 @@ Scope facts (do not overclaim):
 
 ## 13. Presence framework (PRESENCE-FRAMEWORK-001)
 
-**Status: implemented through the PRESENCE-FRAMEWORK-001 PR (draft) —
-compile/simulation proof only; all hardware evidence pending.**
+**Status: software foundation implemented through the PRESENCE-FRAMEWORK-001
+PR (draft) — compile/simulation proof only; physical tri-sensor validation
+pending; customer tuning pending; SOT / kit-level bundle reconciliation
+explicitly pending owner confirmation.**
 
 The tri-sensor customer Presence experience for the S360-200 RoomIQ board:
 PIR (immediate movement, IO15) + HLK-LD2450 (movement / target tracking /
@@ -665,16 +667,42 @@ Scope facts (do not overclaim):
   Custom), Clear Delay (5–600 s, default 30 s, persisted, runtime-applied).
   No "Presence Sensitivity" (no honest common runtime sensitivity contract
   across the three sensors — mode-based tuning first) and no "People
-  Count" (radar targets are not verified people). All per-sensor detail is
-  diagnostic and/or disabled by default; the LD2450 per-target coordinate
-  IDs stay a stable surface for future Sense360Zones work (no
-  cross-repository Zones change in this work item).
+  Count" (radar targets are not verified people); the multi-occupant
+  status value is the factual **"Multiple targets"** — promotion to
+  "Multiple people" wording is an explicit owner decision reserved until
+  bench evidence exists. All mode presets, warm-up windows, stale windows
+  and debounce values are **provisional engineering defaults** pending
+  hardware validation. All per-sensor detail is diagnostic and/or disabled
+  by default; the LD2450 per-target coordinate IDs stay a stable surface
+  for future Sense360Zones work (no cross-repository Zones change in this
+  work item).
 * **Presence Module Status is the first runtime module status**: it uses
   the Core-Framework reserved vocabulary from a real LD2450
-  frame-freshness signal. Honesty limits recorded in the contract: PIR /
-  SEN0609 GPIO levels cannot prove communication health; Available attests
-  the verifiable (UART) sensor set only; Fault is never derived from
+  frame-freshness signal. Honesty limits recorded in the contract
+  (`available_definition`): **Available is service availability of the
+  verifiable transport (LD2450 UART) only, not full tri-sensor hardware
+  health** — PIR / SEN0609 GPIO levels cannot prove communication health
+  and are never claimed healthy (on-device coverage statement: the
+  "Presence Sensor Verification" diagnostic); Fault is never derived from
   ordinary stale data.
+* **SEN0609 is GPIO-presence integration, phase 1** — not a complete
+  SEN0609 integration. UART-based health/configuration/diagnostics is the
+  tracked follow-up work item **`PRESENCE-SEN0609-UART-001`** (blocked on
+  a supported ESPHome C4001 component + primary protocol documentation;
+  ESPHome 2026.4.5 has none). Until it lands, the authoritative
+  `roomiq_sen0609_uart` bus stays reserved and no UART parsing is invented.
+* **Board vs kit reconciliation (explicitly unresolved):** the verified
+  S360-200-R4 schematic shows the **PIR (EKMC1601111) soldered on-board**,
+  while the **LD2450 (J2) and SEN0609 (J3) are connector-attached
+  modules**. Kit definitions (`config/room-bundle-skus.json`,
+  `config/shop-commercial-source-of-truth.json`) list board SKUs only —
+  module-level fitment per sold kit is not encoded in this repository, and
+  direct SOT inspection was not possible from the implementing session.
+  **Owner action:** confirm (in SOT / assembly documentation) that
+  production S360-200 assemblies ship with the J2 and J3 radar modules
+  fitted for each sold kit. Fail-safe until then: an absent J3 module
+  reads clear and cannot assert occupancy, block clearing, or fake health;
+  an absent J2 module reports honest Degraded.
 * **Fail-safe fusion rules** (simulation-tested): stale/unavailable data is
   unknown, never clear; any valid sensor asserts occupancy; clear needs
   unanimity of the usable sensor set plus the clear delay; a sensor failure

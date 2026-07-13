@@ -53,7 +53,9 @@ result, or add dates/signatures here.
 - [ ] Sleeping / very still occupant: extended hold in Stable mode
 - [ ] Walking entry: immediate assertion (which sensor fired first)
 - [ ] Rapid room exit: clear after configured Clear Delay (measure actual)
-- [ ] Multiple occupants: Multiple people wording; count plausibility
+- [ ] Multiple occupants: "Multiple targets" status appears; count
+      plausibility (bench evidence here is the prerequisite for any owner
+      decision to promote the wording to "Multiple people")
 - [ ] Clear delay: verify 5 s / 30 s / 600 s settings honoured; persistence
       across reboot
 - [ ] Mode comparison: Balanced vs Responsive vs Stable side-by-side
