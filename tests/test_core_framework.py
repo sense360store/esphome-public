@@ -130,8 +130,13 @@ RESERVED_MODULE_STATUS_VALUES = {
 }
 
 # Device-health values live today vs reserved for later module PRs.
-HEALTH_VALUES_TODAY = {"Starting", "Healthy"}
-HEALTH_VALUES_RESERVED = {"Degraded", "Fault", "Safe mode"}
+# "Running" (not "Healthy") is the live post-warm-up value: it states only
+# that the base firmware completed its startup window with no
+# framework-level fault signal. "Healthy" is reserved for the future
+# aggregated state where included modules report real runtime health —
+# the current framework has no such signal and must not imply one.
+HEALTH_VALUES_TODAY = {"Starting", "Running"}
+HEALTH_VALUES_RESERVED = {"Healthy", "Degraded", "Fault", "Safe mode"}
 
 # Shared text-sensor contract: id -> (user-facing name, enabled by default).
 EXPECTED_TEXT_SENSORS = {
@@ -377,6 +382,37 @@ class ContractFileTests(unittest.TestCase):
         self.assertIn("compile-time", guardrails)
         self.assertIn("no runtime", guardrails)
         self.assertIn("release", guardrails)
+
+    def test_capability_descriptions_claim_only_compiled_firmware(self) -> None:
+        # A capability description is a statement about the FIRMWARE that is
+        # compiled, never about what the PCB could carry. Components that
+        # exist on the hardware but are not compiled anywhere (PIR, SEN0609,
+        # MICS-4514, BMP581, LTR-303ALS) may only be mentioned if explicitly
+        # marked as not compiled; connectors are hardware possibilities and
+        # never capability evidence.
+        capabilities = self.contract.get("capabilities") or {}
+        non_compiled_components = {
+            "presence": ["PIR", "SEN0609"],
+            "airiq": ["MICS"],
+            "roomiq": ["BMP581", "LTR-303"],
+        }
+        for cap_id, terms in non_compiled_components.items():
+            description = capabilities[cap_id]["description"]
+            for term in terms:
+                if term.lower() in description.lower():
+                    self.assertIn(
+                        "not compiled",
+                        description.lower(),
+                        f"{cap_id}: description names {term} (not compiled "
+                        "in any configuration) without marking it as such",
+                    )
+        for cap_id, cap in capabilities.items():
+            self.assertNotIn(
+                "connector",
+                str(cap.get("description", "")).lower(),
+                f"{cap_id}: a connector is a hardware possibility, not "
+                "compiled firmware — describe the compiled composition only",
+            )
 
     def test_every_bundle_has_a_config_entry(self) -> None:
         configs = self.contract.get("configs") or {}
@@ -675,6 +711,79 @@ class BundleWiringTests(unittest.TestCase):
                 f"{config_string}: hardware_model {model!r} not in catalog",
             )
             self.assertEqual(entry.get("hardware_revision"), by_sku[model]["rev"])
+
+
+class CapabilityCompositionEvidenceTests(unittest.TestCase):
+    """A declared capability means the backing firmware package is actually
+    compiled into that configuration — never that the PCB supports it, a
+    connector exists, or a module might be fitted later.
+
+    Evidence = the capability's authoritative package file resolves in the
+    bundle's composition (board package or its preserved legacy alias). Both
+    directions are enforced: declared => compiled, and compiled => declared.
+    """
+
+    # capability id -> filename fragments that prove the firmware is composed
+    CAPABILITY_EVIDENCE = {
+        "roomiq": ("s360-200-roomiq-climate",),
+        "presence": ("s360-200-roomiq-radar",),
+        "airiq": ("s360-210-airiq", "airiq_ceiling"),
+        "ventiq": ("s360-211-ventiq", "airiq_bathroom_base"),
+        "led": ("s360-300-led", "led_ring", "halo"),
+        "fan_relay": ("fan_relay",),
+        "fan_pwm": ("fan_pwm",),
+        "fan_dac": ("fan_dac", "fan_gp8403"),
+        "fan_triac": ("fan_triac", "triac"),
+        "power_poe": ("s360-410-poe-psu", "power_poe"),
+        "power_usb": ("power_usb",),
+    }
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.contract = load_contract()
+        cls.resolved: Dict[str, str] = {}
+        for config_string, entry in cls.contract.get("configs", {}).items():
+            walker = CompositionWalker()
+            walker.walk(REPO_ROOT / entry["bundle"])
+            cls.resolved[config_string] = " ".join(str(p) for p in walker.visited)
+
+    def test_declared_capability_has_compiled_evidence(self) -> None:
+        for config_string, entry in self.contract["configs"].items():
+            files = self.resolved[config_string]
+            for cap in entry.get("capabilities") or []:
+                if cap == "core":
+                    continue
+                fragments = self.CAPABILITY_EVIDENCE[cap]
+                self.assertTrue(
+                    any(f in files for f in fragments),
+                    f"{config_string}: declares capability {cap!r} but none "
+                    f"of its backing packages {fragments} resolve in the "
+                    "bundle composition — a capability must mean the "
+                    "firmware is compiled in, not that hardware could be "
+                    "fitted",
+                )
+
+    def test_compiled_firmware_is_declared_as_capability(self) -> None:
+        for config_string, entry in self.contract["configs"].items():
+            files = self.resolved[config_string]
+            declared = set(entry.get("capabilities") or [])
+            for cap, fragments in self.CAPABILITY_EVIDENCE.items():
+                if any(f in files for f in fragments):
+                    self.assertIn(
+                        cap,
+                        declared,
+                        f"{config_string}: composes {cap!r} firmware "
+                        f"({fragments}) but does not declare the capability",
+                    )
+
+    def test_presence_evidence_is_ld2450_only_today(self) -> None:
+        # Presence firmware today is the HLK-LD2450 radar half. PIR and
+        # SEN0609 hardware inputs exist on the boards but are NOT compiled
+        # in any current configuration; a PR that adds them must update the
+        # presence capability description and this guard deliberately.
+        for config_string in self.contract["configs"]:
+            files = self.resolved[config_string]
+            self.assertNotIn("presence_dfrobot_c4001", files, config_string)
 
 
 class IsolationTests(unittest.TestCase):
