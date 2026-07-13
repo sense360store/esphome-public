@@ -576,8 +576,9 @@ rename touches `config/webflash-builds.json`, `manifest.json`, or
 
 ## 12. Shared firmware framework (CORE-FRAMEWORK-001)
 
-**Status: framework PR proposed** (structural foundation; draft PR, not
-merged). `CORE-FRAMEWORK-001` adds the shared Sense360 device framework —
+**Status: framework implemented** (structural foundation; landed on `main`
+via PR [#825](https://github.com/sense360store/esphome-public/pull/825)).
+`CORE-FRAMEWORK-001` adds the shared Sense360 device framework —
 consistent Home Assistant naming, device/firmware information, compile-time
 capability reporting, module presence/status, diagnostics policy, and a
 device-health summary — as one reusable package
@@ -617,19 +618,21 @@ Scope facts (do not overclaim):
   in `config/compile-only-targets.json`, then flip `framework_included`)
   is specified in
   [`docs/architecture/sense360-core-framework.md`](architecture/sense360-core-framework.md).
-* **Compile status — exactly what is and is not proven.** All 16
-  bundle-backed products pass `esphome config` (ESPHome 2026.6.5) with the
-  framework composed, and the per-push CI gates (`CI: Quick Validation`,
-  docs link check, entity-table freshness, compile-only metadata) are
-  green on the PR branch. **No full `esphome compile` of a
-  framework-bearing configuration has been run yet** — config validation
-  is not compile proof, and the hosted full-compile lane could not be
-  dispatched by the PR automation (its GitHub token lacks
-  `actions: write`). Owner action to record representative compile proof:
-  GitHub → Actions → "CI: Preview Compile Dry-Run" → Run workflow →
-  branch `claude/sense360-core-framework-gczvqz`, `compile_mode: full`
-  (CLI: `gh workflow run preview-compile-dryrun.yml
-  --ref claude/sense360-core-framework-gczvqz -f compile_mode=full`).
+* **Compile status — recorded evidence.** All 16 bundle-backed products
+  pass `esphome config` with the framework composed (config validation is
+  not compile proof), and **six representative configurations have hosted
+  `esphome compile` proof** (ESPHome 2026.4.5) from the targeted lane
+  "CI: Core Framework Representative Compile"
+  (`.github/workflows/core-framework-compile.yml`), hosted run
+  `29237693726` at source head `cf7f95066a30abbf801dbc61671d1016d4b8c684`:
+  `Ceiling-POE-RoomIQ`, `Ceiling-POE-AirIQ-RoomIQ`,
+  `Ceiling-POE-VentIQ-RoomIQ`, `Ceiling-USB-RoomIQ`,
+  `Ceiling-USB-VentIQ-RoomIQ`, `Ceiling-POE-VentIQ-RoomIQ-LED` — all six
+  compiled successfully; zero artifacts uploaded, nothing published (no
+  binary, release, tag, checksum, manifest or WebFlash asset).
+  Firmware-build proof only — no hardware evidence is claimed. The
+  deferred `Ceiling-POE-FanPWM` was deliberately not compiled by this
+  lane (the framework gap above stands).
 
 ---
 
