@@ -303,6 +303,15 @@ removed or recategorised.
   — this document and the roadmap entry stay in sync with the contract.
 * `esphome config` (and the hosted compile lanes) remain the compile-time
   source of truth for the representative product matrix.
+* Representative **compile evidence** for the framework comes from the
+  targeted lane `.github/workflows/core-framework-compile.yml`
+  ("CI: Core Framework Representative Compile", shape-pinned by
+  `tests/test_core_framework_compile_workflow.py`): a real hosted
+  `esphome compile` of six audited framework-bearing products (PoE/USB ×
+  RoomIQ/AirIQ/VentIQ plus the LED preview). A green run is
+  firmware-build proof only — no artifact is uploaded and nothing is
+  published; the deferred FanPWM config is deliberately not compiled by
+  this lane.
 
 No hardware validation is claimed by any of these tests; simulation of the
 runtime health contract beyond compile-time facts is deliberately deferred
