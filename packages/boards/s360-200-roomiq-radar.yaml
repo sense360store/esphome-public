@@ -21,6 +21,26 @@
 # board package holds their content); they stay AUTHORITATIVE and are NOT
 # aliased, mirroring how `airiq.yaml` / `ceiling_halo_leds.yaml` stayed
 # authoritative in RENAME-001/002.
+#
+# PRESENCE-FRAMEWORK-001 changes (see
+# docs/architecture/sense360-presence-framework.md):
+#   * This file is now the LD2450 ADAPTER of the tri-sensor Presence
+#     framework. Radar target detail (per-target X/Y/speed/distance/angle,
+#     moving/still counts, has-target flags) is exposed as diagnostic,
+#     disabled-by-default entities — available to advanced users and to
+#     Sense360Zones (the ld2450_t{1..3}_{x,y,speed,distance,angle} IDs are a
+#     stable API surface) without cluttering the default customer view.
+#   * Real freshness signal: every LD2450 frame publishes the target-count
+#     sensor (frame-driven, throttled inside the component), and its
+#     on_value hook timestamps s360_radar_last_frame_ms. The fusion engine
+#     treats missing frames as STALE (unknown), never as "clear".
+#   * The former synthetic confidence tiers (0.95 / 0.7 / 0.6) had no
+#     evidence basis and were removed. presence_confidence remains ONLY as
+#     a legacy compatibility signal for the pre-framework profiles
+#     (packages/features/presence_basic*.yaml, still used by legacy
+#     products and compile-only skeletons): 1.0 while the radar reports a
+#     target, 0.0 otherwise — a binary radar-presence indicator, NOT a
+#     probability or confidence claim.
 # ============================================================================
 substitutions:
   module_sku: S360-PRES-C
@@ -44,114 +64,150 @@ ld2450:
   uart_id: ${ld2450_uart_id}
 
 # ============================================================================
-# Binary Sensors - Presence Detection
+# Binary Sensors - Presence Detection (diagnostic, disabled by default)
 # ============================================================================
 binary_sensor:
   - platform: ld2450
     ld2450_id: ld2450_radar
     has_target:
       id: ld2450_occupancy
-      name: "${friendly_name} Radar Presence"
-      internal: true
+      name: "Radar Presence"
       device_class: occupancy
+      entity_category: diagnostic
+      disabled_by_default: true
     has_moving_target:
       id: ld2450_has_moving
-      name: "${friendly_name} Moving Target"
-      internal: true
+      name: "Radar Moving Target"
+      entity_category: diagnostic
+      disabled_by_default: true
     has_still_target:
       id: ld2450_has_still
-      name: "${friendly_name} Still Target"
-      internal: true
+      name: "Radar Still Target"
+      entity_category: diagnostic
+      disabled_by_default: true
 
 # ============================================================================
-# Sensors - Target Tracking
+# Sensors - Target Tracking (diagnostic / internal)
 # ============================================================================
+# The per-target coordinate stream keeps its stable IDs
+# (ld2450_t{1..3}_{x,y,speed,distance,angle}) — the Sense360Zones data
+# contract — and full component resolution. Entities are diagnostic and
+# disabled by default: the customer surface is the fusion layer
+# (packages/features/presence_framework.yaml).
 sensor:
   - platform: ld2450
     ld2450_id: ld2450_radar
     target_count:
       id: ld2450_target_count
-      name: "${friendly_name} Target Count"
       internal: true
+      # PRESENCE-FRAMEWORK-001 freshness signal: the LD2450 component
+      # publishes this sensor from every processed radar frame (throttled
+      # in the component), so this callback timestamps real UART data.
+      # Missing frames -> stale -> the fusion engine treats the radar as
+      # UNKNOWN (never as clear).
+      on_value:
+        then:
+          - lambda: |-
+              id(s360_radar_last_frame_ms) = millis();
+              id(s360_radar_frame_seen) = true;
     still_target_count:
       id: ld2450_still_target_count
-      name: "${friendly_name} Still Target Count"
-      internal: true
+      name: "Radar Still Target Count"
+      entity_category: diagnostic
+      disabled_by_default: true
     moving_target_count:
       id: ld2450_moving_target_count
-      name: "${friendly_name} Moving Target Count"
-      internal: true
+      name: "Radar Moving Target Count"
+      entity_category: diagnostic
+      disabled_by_default: true
     # Target 1
     target_1:
       x:
         id: ld2450_t1_x
-        name: "${friendly_name} Target 1 X"
-        internal: true
+        name: "Radar Target 1 X"
+        entity_category: diagnostic
+        disabled_by_default: true
       y:
         id: ld2450_t1_y
-        name: "${friendly_name} Target 1 Y"
-        internal: true
+        name: "Radar Target 1 Y"
+        entity_category: diagnostic
+        disabled_by_default: true
       speed:
         id: ld2450_t1_speed
-        name: "${friendly_name} Target 1 Speed"
-        internal: true
+        name: "Radar Target 1 Speed"
+        entity_category: diagnostic
+        disabled_by_default: true
       distance:
         id: ld2450_t1_distance
-        name: "${friendly_name} Target 1 Distance"
-        internal: true
+        name: "Radar Target 1 Distance"
+        entity_category: diagnostic
+        disabled_by_default: true
       angle:
         id: ld2450_t1_angle
-        name: "${friendly_name} Target 1 Angle"
-        internal: true
+        name: "Radar Target 1 Angle"
+        entity_category: diagnostic
+        disabled_by_default: true
     # Target 2
     target_2:
       x:
         id: ld2450_t2_x
-        name: "${friendly_name} Target 2 X"
-        internal: true
+        name: "Radar Target 2 X"
+        entity_category: diagnostic
+        disabled_by_default: true
       y:
         id: ld2450_t2_y
-        name: "${friendly_name} Target 2 Y"
-        internal: true
+        name: "Radar Target 2 Y"
+        entity_category: diagnostic
+        disabled_by_default: true
       speed:
         id: ld2450_t2_speed
-        name: "${friendly_name} Target 2 Speed"
-        internal: true
+        name: "Radar Target 2 Speed"
+        entity_category: diagnostic
+        disabled_by_default: true
       distance:
         id: ld2450_t2_distance
-        name: "${friendly_name} Target 2 Distance"
-        internal: true
+        name: "Radar Target 2 Distance"
+        entity_category: diagnostic
+        disabled_by_default: true
       angle:
         id: ld2450_t2_angle
-        name: "${friendly_name} Target 2 Angle"
-        internal: true
+        name: "Radar Target 2 Angle"
+        entity_category: diagnostic
+        disabled_by_default: true
     # Target 3
     target_3:
       x:
         id: ld2450_t3_x
-        name: "${friendly_name} Target 3 X"
-        internal: true
+        name: "Radar Target 3 X"
+        entity_category: diagnostic
+        disabled_by_default: true
       y:
         id: ld2450_t3_y
-        name: "${friendly_name} Target 3 Y"
-        internal: true
+        name: "Radar Target 3 Y"
+        entity_category: diagnostic
+        disabled_by_default: true
       speed:
         id: ld2450_t3_speed
-        name: "${friendly_name} Target 3 Speed"
-        internal: true
+        name: "Radar Target 3 Speed"
+        entity_category: diagnostic
+        disabled_by_default: true
       distance:
         id: ld2450_t3_distance
-        name: "${friendly_name} Target 3 Distance"
-        internal: true
+        name: "Radar Target 3 Distance"
+        entity_category: diagnostic
+        disabled_by_default: true
       angle:
         id: ld2450_t3_angle
-        name: "${friendly_name} Target 3 Angle"
-        internal: true
+        name: "Radar Target 3 Angle"
+        entity_category: diagnostic
+        disabled_by_default: true
 
 # ============================================================================
 # Globals for Presence Detection
 # ============================================================================
 globals:
+  # Legacy compatibility signal (see header note): 1.0 while the radar
+  # reports any target, 0.0 otherwise. NOT a probability.
   - id: presence_confidence
     type: float
     restore_value: false
@@ -162,6 +218,9 @@ globals:
     restore_value: false
     initial_value: '0.0'
 
+  # Radar target count mirror (internal). Named for backwards compatibility
+  # only — radar targets are NOT verified people (PD-09); no entity exposes
+  # this as a people count.
   - id: presence_people_count
     type: int
     restore_value: false
@@ -177,27 +236,41 @@ globals:
     restore_value: false
     initial_value: '0'
 
-# Update presence data
+  # PRESENCE-FRAMEWORK-001 freshness evidence: timestamp of the last real
+  # LD2450 frame (see the target_count on_value hook above).
+  - id: s360_radar_last_frame_ms
+    type: uint32_t
+    restore_value: false
+    initial_value: '0'
+
+  - id: s360_radar_frame_seen
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+# Update legacy presence data (compatibility signal for the pre-framework
+# profiles; the tri-sensor fusion lives in
+# packages/features/presence_framework.yaml).
 interval:
   - interval: 1s
     then:
       - lambda: |-
-          int targets = id(ld2450_target_count).state;
-          int moving = id(ld2450_moving_target_count).state;
-          int still = id(ld2450_still_target_count).state;
+          float tc = id(ld2450_target_count).state;
+          float mc = id(ld2450_moving_target_count).state;
+          float sc = id(ld2450_still_target_count).state;
+          int targets = std::isnan(tc) ? 0 : (int) tc;
+          int moving = std::isnan(mc) ? 0 : (int) mc;
+          int still = std::isnan(sc) ? 0 : (int) sc;
 
           id(ld2450_still_count) = still;
           id(ld2450_moving_count) = moving;
           id(presence_people_count) = targets;
 
           if (targets > 0) {
-            if (moving > 0) {
-              id(presence_confidence) = 0.95f;
-            } else if (still > 0) {
-              id(presence_confidence) = 0.7f;
-            } else {
-              id(presence_confidence) = 0.6f;
-            }
+            // Binary radar-presence indicator (documented compatibility
+            // signal). The former 0.95/0.7/0.6 tiers had no evidence basis
+            // and were removed by PRESENCE-FRAMEWORK-001.
+            id(presence_confidence) = 1.0f;
 
             float min_dist = 9999.0f;
             float d1 = id(ld2450_t1_distance).state;
@@ -212,7 +285,7 @@ interval:
               id(presence_closest_distance) = min_dist;
             }
           } else {
-            id(presence_confidence) = 0.1f;
+            id(presence_confidence) = 0.0f;
             id(presence_closest_distance) = 0.0f;
           }
 

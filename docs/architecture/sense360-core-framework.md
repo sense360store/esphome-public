@@ -138,7 +138,7 @@ extend by addition only — registry in
 | `roomiq` | module | S360-200 | RoomIQ comfort firmware (SHT4x + VEML7700, the climate half) |
 | `airiq` | module | S360-210 | AirIQ air-quality firmware (SCD4x, SGP4x, SPS30, BMP3xx; MICS-4514 not compiled) |
 | `ventiq` | module | S360-211 | VentIQ air-quality firmware (SGP4x, SHT4x, BMP3xx) |
-| `presence` | module | S360-200 | Presence firmware: HLK-LD2450 radar (the radar half); PIR / SEN0609 not compiled |
+| `presence` | module | S360-200 | Tri-sensor Presence firmware: HLK-LD2450 radar + PIR + SEN0609 fused by the Presence framework ([`docs/architecture/sense360-presence-framework.md`](sense360-presence-framework.md), PRESENCE-FRAMEWORK-001) |
 | `led` | module | S360-300 | LED ring firmware (WS2812 RMT LED-strip driver + effects) |
 | `fan_relay` | module | S360-310 | Relay fan driver (experimental lane) |
 | `fan_pwm` | module | S360-311 | PWM fan driver |
@@ -150,8 +150,10 @@ compiled into that configuration.** It never means that the PCB supports
 the module, that a connector exists, that a customer may fit it later, that
 a physical module was detected, or that a commercial bundle includes it.
 Components that exist on the hardware but are not compiled anywhere today —
-PIR, SEN0609, MICS-4514, BMP581, LTR-303ALS — are explicitly outside every
-capability until a PR compiles them in and updates the contract.
+MICS-4514, BMP581, LTR-303ALS — are explicitly outside every capability
+until a PR compiles them in and updates the contract. (PIR and SEN0609 left
+this list when PRESENCE-FRAMEWORK-001 compiled them into the `presence`
+capability.)
 
 Each bundle declares `s360_capabilities` (comma-separated IDs) and
 `s360_capabilities_human` (display list). Tests enforce that the declaration
@@ -201,8 +203,15 @@ vocabulary (meanings in
 * **Fault** — explicit error condition; never used for a merely absent
   module.
 
-The framework must not emit any reserved value until a module-specific PR
-wires a real signal — enforced by test.
+The framework package itself must not emit any reserved value until a
+module-specific PR wires a real signal — enforced by test. **Presence is
+the first wired module**: PRESENCE-FRAMEWORK-001 drives
+`s360_module_status_presence` with the runtime vocabulary from a real
+LD2450 frame-freshness signal (contract:
+`module_runtime_status.presence` in
+[`config/core-framework.json`](../../config/core-framework.json); design:
+[`docs/architecture/sense360-presence-framework.md`](sense360-presence-framework.md)).
+All other module slots still emit compile-time values only.
 
 ## Overall device health
 

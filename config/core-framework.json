@@ -12,7 +12,7 @@
   "guardrails": [
     "All capability and module-status values in this contract are compile-time composition facts only: no runtime hardware autodetection is performed or claimed by the framework.",
     "Module status 'Included' is compile-time presence, never a health, availability, bench or hardware claim.",
-    "The reserved runtime status values (Initialising / Available / Degraded / Unavailable / Fault) may only be introduced by a module-specific PR that wires a real supported runtime signal.",
+    "The reserved runtime status values (Initialising / Available / Degraded / Unavailable / Fault) may only be introduced by a module-specific PR that wires a real supported runtime signal. Presence is the first wired module (PRESENCE-FRAMEWORK-001, see module_runtime_status); all other module slots still emit compile-time values only.",
     "This contract changes no release declaration: config/webflash-builds.json rows, channels, versions, artifact names, product lifecycle and commercial state are untouched.",
     "Compile-only skeletons (products/compile-only/) and the provisioning bench harness (tests/bench/) never include the framework package, so they cannot be mistaken for customer products.",
     "Firmware-build proof only: nothing in this contract claims hardware, bench, compliance, safety or commercial-availability proof.",
@@ -59,7 +59,7 @@
       "display_name": "Presence",
       "kind": "module",
       "hardware_sku": "S360-200",
-      "description": "Presence firmware compiled from the RoomIQ radar half: HLK-LD2450 mmWave occupancy/target tracking on the S360-200 board's radar UART. PIR and SEN0609 inputs exist on the hardware but are not compiled in any current configuration and are NOT part of this capability."
+      "description": "Tri-sensor Presence firmware on the S360-200 board (PRESENCE-FRAMEWORK-001): HLK-LD2450 mmWave occupancy/target tracking on the radar UART, the PIR motion input (schematic IO15) and the SEN0609 static-presence digital output (schematic IO6), fused into one customer occupancy capability by packages/features/presence_framework.yaml. Describes compiled firmware only; no hardware/bench proof is claimed."
     },
     "led": {
       "display_name": "LED",
@@ -111,6 +111,27 @@
       "Degraded": "Reserved: module responds but part of its function is impaired (e.g. one of several sensors failing or stale). Must not mark unrelated modules unavailable.",
       "Unavailable": "Reserved: module is expected (compiled in) but a real runtime signal shows it is not responding after warm-up.",
       "Fault": "Reserved: module reports an explicit error condition. Never used for a module that is simply absent."
+    }
+  },
+  "module_runtime_status": {
+    "presence": {
+      "work_item": "PRESENCE-FRAMEWORK-001",
+      "entity_id": "s360_module_status_presence",
+      "package": "packages/features/presence_framework.yaml",
+      "available_definition": "Available means STRICTLY: the verifiable Presence transport (the LD2450 UART, whose frame-driven updates are the only real health signal) is fresh after warm-up and the fusion service is operational. It is service availability, NOT full tri-sensor hardware health: the PIR and SEN0609 GPIO channels remain unverifiable and are never claimed healthy. The diagnostic entity s360_presence_verification_limits ('Presence Sensor Verification') states this coverage limit on-device.",
+      "values": [
+        "Initialising",
+        "Available",
+        "Degraded",
+        "Unavailable",
+        "Fault"
+      ],
+      "signals": [
+        "LD2450 frame-driven update timestamps (target-count sensor on_value callback on the radar UART) provide real data-freshness evidence; no frame past the stale window means UNKNOWN, never clear.",
+        "Per-sensor startup windows (PIR / LD2450 / SEN0609) gate Initialising; a real LD2450 frame ends its initialisation early.",
+        "Explicit module-fault input is reserved: no composed sensor exposes a supported fault signal today, so Fault is never emitted from ordinary stale data."
+      ],
+      "notes": "Honesty limits: the PIR and SEN0609 digital-output channels are bare GPIO levels and cannot prove communication health — a permanently low line may be a healthy sensor in an empty room or a disconnected one, so these channels never qualify the module as fully Available on their own and never drive it Unavailable. Available therefore attests the verifiable (UART) sensor set only; runtime status never claims hardware/bench proof. Expected-sensor membership is configuration-driven (presence_*_expected substitutions): an intentionally absent sensor in a future composition is never a fault."
     }
   },
   "device_health": {

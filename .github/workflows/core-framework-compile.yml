@@ -40,9 +40,17 @@ on:
       - "config/core-framework.json"
       - "products/bundles/**"
       - "packages/base/**"
+      # PRESENCE-FRAMEWORK-001: the tri-sensor Presence framework lives in
+      # the board-adapter / feature / shared-header layers, so changes there
+      # need the same representative compile evidence.
+      - "packages/boards/**"
+      - "packages/features/**"
+      - "include/sense360/**"
+      - "tests/unit/**"
       - "tests/test_core_framework.py"
       - "tests/test_core_framework_doc.py"
       - "tests/test_core_framework_compile_workflow.py"
+      - "tests/test_presence_framework.py"
       - ".github/workflows/core-framework-compile.yml"
       - ".github/actions/setup-esphome-build/**"
   workflow_dispatch: {}
@@ -80,6 +88,14 @@ jobs:
           python3 tests/test_core_framework.py
           python3 tests/test_core_framework_doc.py
           python3 tests/test_core_framework_compile_workflow.py
+          python3 tests/test_presence_framework.py
+
+      - name: Presence fusion simulation tests (C++ logic proof only)
+        # PRESENCE-FRAMEWORK-001: deterministic simulation of the fusion
+        # state machine (tests/unit/test_presence_fusion.cpp) against the
+        # same header the products compile. Logic proof only — NEVER
+        # hardware validation.
+        run: make -C tests test
 
       - name: No-tracked-secrets guard
         run: python3 scripts/check-no-tracked-secrets.py

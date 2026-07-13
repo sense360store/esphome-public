@@ -156,7 +156,14 @@ packages:
   # presence_ceiling.yaml. The RoomIQ display sensors stay in the profiles.
   roomiq_board: !include ../../packages/boards/s360-200-roomiq.yaml
   roomiq_comfort_profile: !include ../../packages/features/comfort_basic_profile.yaml
-  roomiq_presence_profile: !include ../../packages/features/presence_basic_profile.yaml
+  # === Sense360 Presence framework (PRESENCE-FRAMEWORK-001) ===
+  # Tri-sensor customer Presence experience: PIR (immediate movement) +
+  # LD2450 (radar half above) + SEN0609 (static presence), fused by
+  # packages/features/presence_framework.yaml (supersedes the legacy
+  # presence_basic_profile in bundles; legacy products keep the profile).
+  roomiq_pir_board: !include ../../packages/boards/s360-200-roomiq-pir.yaml
+  roomiq_sen0609_board: !include ../../packages/boards/s360-200-roomiq-sen0609.yaml
+  roomiq_presence_framework: !include ../../packages/features/presence_framework.yaml
 
   # === Device Health & Diagnostics ===
   health: !include ../../packages/features/device_health.yaml

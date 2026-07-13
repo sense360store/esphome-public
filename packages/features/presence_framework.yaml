@@ -1,0 +1,338 @@
+# ============================================================================
+# SENSE360 PRESENCE FRAMEWORK — fusion + customer entity + module-health layer
+# ============================================================================
+# PRESENCE-FRAMEWORK-001 (docs/architecture/sense360-presence-framework.md).
+#
+# One coherent customer occupancy capability fused from the three RoomIQ
+# presence sensors — the customer never needs to know which sensor produced
+# the result:
+#   * PIR      — immediate movement response (adapter:
+#                packages/boards/s360-200-roomiq-pir.yaml)
+#   * LD2450   — movement, target tracking, radar target count (adapter:
+#                packages/boards/s360-200-roomiq-radar.yaml)
+#   * SEN0609  — static presence for still occupants (adapter:
+#                packages/boards/s360-200-roomiq-sen0609.yaml)
+#
+# Customer entities (enabled by default — the ONLY default-enabled set):
+#   Occupancy · Presence Status · Radar Target Count · Presence Mode ·
+#   Clear Delay
+# Everything sensor-specific stays diagnostic and/or disabled by default.
+# There is deliberately NO "Presence Sensitivity" (no honest common runtime
+# sensitivity contract exists across the three sensors — modes first) and
+# NO "People Count" (radar targets are not verified people, PD-09).
+#
+# The fusion state machine is the header-only engine
+# include/sense360/presence_fusion.h — the SAME implementation exercised by
+# the deterministic simulation tests (tests/unit/test_presence_fusion.cpp),
+# so tested logic and shipped logic cannot drift. Fail-safe rules, status
+# precedence, health rules and mode behaviour are documented in the
+# architecture doc and pinned by tests/test_presence_framework.py.
+#
+# Module health: this package drives the Core-Framework "Presence Module
+# Status" entity (s360_module_status_presence) with the reserved runtime
+# vocabulary (Initialising / Available / Degraded / Unavailable / Fault)
+# from a real supported signal — LD2450 frame-driven freshness — per the
+# CORE-FRAMEWORK-001 extension rules (config/core-framework.json
+# module_runtime_status.presence). GPIO-level sensors (PIR, SEN0609 digital
+# out) cannot prove communication health and never fabricate it.
+#
+# Composition contract: bundles compose this package together with the
+# three adapters above AND the shared Core Framework package under
+# packages/base/ (owner of the Presence Module Status entity; this file
+# deliberately does NOT include it — bundles compose it exactly once, per
+# the CORE-FRAMEWORK-001 isolation rule). Expected-sensor membership is
+# configuration-driven (PD-08): a future composition without a sensor
+# overrides the presence_*_expected substitution — an intentionally absent
+# sensor is never a fault.
+#
+# Timing values are engineering defaults pending bench validation
+# (docs/hardware/presence-framework-bench-checklist.md). NO hardware,
+# bench, compliance or commercial claim is made by this package.
+# ============================================================================
+
+substitutions:
+  # Expected-sensor membership (PD-08) — configuration-driven; override per
+  # composition. "true"/"false" literals injected into the fusion engine.
+  presence_pir_expected: "true"
+  presence_radar_expected: "true"
+  presence_sen0609_expected: "true"
+
+  # Sensor-specific startup windows (ms) — engineering defaults pending
+  # bench validation (deliberately NOT one arbitrary shared value):
+  #   * PIR: passive-infrared modules need tens of seconds to stabilise
+  #     after power-on and emit false triggers meanwhile; edges inside the
+  #     window are ignored.
+  #   * LD2450: frames appear within seconds of boot; its first real frame
+  #     ends its initialisation early.
+  #   * SEN0609: mmWave self-check after power-on; levels inside the
+  #     window are ignored.
+  presence_pir_warmup_ms: "30000"
+  presence_radar_warmup_ms: "10000"
+  presence_sen0609_warmup_ms: "15000"
+
+  # LD2450 frames arrive ~1/s (component throttle); no frame for this long
+  # means the radar data is STALE (unknown — never interpreted as clear).
+  presence_radar_stale_ms: "5000"
+
+# The fusion engine is compiled from the shared header (single
+# implementation; see tests/unit/test_presence_fusion.cpp). Path is
+# relative to the products/ config dir — the same pattern as
+# packages/features/ceiling_led_ring_air_quality.yaml.
+esphome:
+  includes:
+    - ../include/sense360/presence_fusion.h
+
+# The engine instance is the function-local static
+# sense360::presence::global_engine() from the shared header (an ESPHome
+# `globals:` entry cannot carry a custom class type: the generated main.cpp
+# declares globals storage before it emits `esphome: includes:` headers).
+globals:
+  # Guard so mode presets applying the Clear Delay preset do not bounce the
+  # mode select to Custom.
+  - id: s360_presence_applying_mode
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+
+# ----------------------------------------------------------------------------
+# Fusion evaluation — periodic tick plus immediate re-evaluation on PIR /
+# SEN0609 edges (the adapters execute this script from on_press/on_release).
+# ----------------------------------------------------------------------------
+script:
+  - id: s360_presence_evaluate
+    then:
+      - lambda: |-
+          using namespace sense360::presence;
+          auto &engine = global_engine();
+          const uint32_t now = millis();
+
+          // Configuration-driven expected-sensor membership (PD-08) and
+          // per-sensor warm-up windows. GPIO-level channels (PIR, SEN0609
+          // digital out) are non-verifiable: they can never be proven
+          // fresh nor proven failed (documented limitation).
+          engine.configure_pir(ChannelConfig{
+              ${presence_pir_expected}, false, ${presence_pir_warmup_ms}, 0});
+          engine.configure_radar(ChannelConfig{
+              ${presence_radar_expected}, true, ${presence_radar_warmup_ms},
+              ${presence_radar_stale_ms}});
+          engine.configure_static(ChannelConfig{
+              ${presence_sen0609_expected}, false,
+              ${presence_sen0609_warmup_ms}, 0});
+
+          // Runtime controls (no recompilation needed, PD-04/PD-10).
+          engine.set_mode(
+              mode_from_string(id(s360_presence_mode).current_option().c_str()));
+          float delay_s = id(s360_presence_clear_delay).state;
+          if (!std::isnan(delay_s) && delay_s > 0.0f) {
+            engine.set_clear_delay_ms((uint32_t) (delay_s * 1000.0f));
+          }
+
+          // Sensor inputs. The radar input carries the timestamp of the
+          // last REAL frame (s360-200-roomiq-radar.yaml on_value hook) —
+          // stale frames age out inside the engine.
+          if (id(s360_radar_frame_seen)) {
+            float tc = id(ld2450_target_count).state;
+            float mc = id(ld2450_moving_target_count).state;
+            float sc = id(ld2450_still_target_count).state;
+            engine.input_radar_frame(
+                id(s360_radar_last_frame_ms),
+                std::isnan(tc) ? 0 : (int) tc,
+                std::isnan(mc) ? 0 : (int) mc,
+                std::isnan(sc) ? 0 : (int) sc);
+          }
+          engine.input_pir(now, id(s360_pir_motion).state);
+          engine.input_static(now, id(s360_sen0609_presence).state);
+
+          engine.evaluate(now);
+
+          // Publish outputs on change only.
+          bool occ = engine.occupancy();
+          if (!id(s360_occupancy).has_state() || id(s360_occupancy).state != occ) {
+            id(s360_occupancy).publish_state(occ);
+          }
+
+          std::string status = status_to_string(engine.status());
+          if (id(s360_presence_status).state != status) {
+            id(s360_presence_status).publish_state(status);
+          }
+
+          std::string health = health_to_string(engine.health());
+          if (id(s360_module_status_presence).state != health) {
+            id(s360_module_status_presence).publish_state(health);
+          }
+
+          // Radar Target Count is honest about freshness: while radar data
+          // is stale/unavailable the value is unknown (NAN), never a fake 0.
+          float count = engine.radar_fresh() ? (float) engine.radar_target_count() : NAN;
+          float prev = id(s360_radar_target_count).state;
+          bool both_nan = std::isnan(count) && std::isnan(prev);
+          if (!id(s360_radar_target_count).has_state() || (!both_nan && count != prev)) {
+            id(s360_radar_target_count).publish_state(count);
+          }
+
+interval:
+  - interval: 500ms
+    then:
+      - script.execute: s360_presence_evaluate
+
+# ----------------------------------------------------------------------------
+# Customer entities (the default-enabled set)
+# ----------------------------------------------------------------------------
+binary_sensor:
+  # PD-01 — unified occupancy: any valid sensor asserts it; it clears only
+  # when every currently usable sensor agrees the room is clear and the
+  # clear delay has expired. Fail-safe: stale/unavailable data is unknown.
+  - platform: template
+    id: s360_occupancy
+    name: "Occupancy"
+    device_class: occupancy
+    icon: mdi:home-account
+
+  # Legacy compatibility entity (pre-framework customers automated on it).
+  # Exact ID and name preserved so existing Home Assistant entity IDs keep
+  # working; now driven by the fused occupancy result; disabled by default
+  # for new installs (the customer surface above replaces it).
+  - platform: template
+    id: presence_binary
+    name: "${friendly_name} Presence"
+    device_class: occupancy
+    disabled_by_default: true
+    lambda: |-
+      return id(s360_occupancy).state;
+
+text_sensor:
+  # Health-contract honesty (audit Option A): states in plain words which
+  # sensors carry a real health signal, so the module status "Available"
+  # can never silently be read as "all three sensors physically healthy".
+  # Compile-time composition fact; diagnostic, disabled by default.
+  - platform: template
+    id: s360_presence_verification_limits
+    name: "Presence Sensor Verification"
+    icon: mdi:shield-search
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      return {"Radar (LD2450) UART verifiable; PIR and SEN0609 GPIO carry no health signal"};
+
+  # PD-02 — customer presence story in one value. Precedence (documented in
+  # the architecture doc, tested in tests/unit/test_presence_fusion.cpp):
+  # Unavailable > Initialising > Multiple targets > Movement detected >
+  # Still presence > Sensor degraded > Clear. Customer-clarity decision:
+  # while the room is occupied the status keeps showing activity and the
+  # (diagnostic) Presence Module Status carries any degradation.
+  - platform: template
+    id: s360_presence_status
+    name: "Presence Status"
+    icon: mdi:motion-sensor
+
+sensor:
+  # PD-09 — "Radar Target Count", never "People Count": radar targets are
+  # not verified people. Dimensionless instantaneous count (no unit that
+  # could imply cumulative measurement); unknown (NAN) while radar data is
+  # stale rather than a fake 0.
+  - platform: template
+    id: s360_radar_target_count
+    name: "Radar Target Count"
+    icon: mdi:radar
+    state_class: measurement
+    accuracy_decimals: 0
+
+  # Legacy compatibility entity (pre-framework "Presence Score"). Driven by
+  # the fused result with documented values: 100 while occupied, 0 while
+  # clear — a state indicator, NOT a probability (the old synthetic
+  # confidence tiers were removed). Disabled by default for new installs.
+  - platform: template
+    id: presence_score
+    name: "${friendly_name} Presence Score"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    disabled_by_default: true
+    update_interval: 5s
+    lambda: |-
+      return id(s360_occupancy).state ? 100.0f : 0.0f;
+
+  # Technical stale-data timer — diagnostic, disabled by default.
+  - platform: template
+    id: s360_radar_data_age
+    name: "Radar Data Age"
+    icon: mdi:timer-alert-outline
+    unit_of_measurement: "s"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: 5s
+    lambda: |-
+      if (!id(s360_radar_frame_seen)) return NAN;
+      return (millis() - id(s360_radar_last_frame_ms)) / 1000.0f;
+
+# PD-10 — customer modes. Presets change ONLY documented, genuinely
+# runtime-configurable fusion settings (clear-delay preset, PIR movement
+# hold, degraded fallback — see mode_params() in the shared header). No
+# unsupported dynamic sensor commands are issued; per-sensor thresholds
+# remain future tuning (documented).
+select:
+  - platform: template
+    id: s360_presence_mode
+    name: "Presence Mode"
+    icon: mdi:tune-variant
+    entity_category: config
+    options:
+      - "Balanced"
+      - "Responsive"
+      - "Stable"
+      - "Custom"
+    initial_option: "Balanced"
+    optimistic: true
+    restore_value: true
+    on_value:
+      then:
+        - lambda: |-
+            using namespace sense360::presence;
+            Mode mode = mode_from_string(x.c_str());
+            if (mode != MODE_CUSTOM) {
+              // Apply the mode's clear-delay preset to the customer
+              // control (guarded so this does not bounce the mode to
+              // Custom). Custom never overwrites the user's value.
+              id(s360_presence_applying_mode) = true;
+              auto call = id(s360_presence_clear_delay).make_call();
+              call.set_value(mode_params(mode).clear_delay_ms / 1000.0f);
+              call.perform();
+              id(s360_presence_applying_mode) = false;
+            }
+        - script.execute: s360_presence_evaluate
+
+# PD-04 — Home-Assistant-adjustable clear delay: safe customer bounds,
+# persisted across reboot (restore_value), applied at runtime by the next
+# fusion evaluation — changing it never requires recompilation.
+number:
+  - platform: template
+    id: s360_presence_clear_delay
+    name: "Clear Delay"
+    icon: mdi:timer-sand
+    entity_category: config
+    unit_of_measurement: "s"
+    mode: box
+    min_value: 5
+    max_value: 600
+    step: 5
+    initial_value: 30
+    optimistic: true
+    restore_value: true
+    on_value:
+      then:
+        - lambda: |-
+            using namespace sense360::presence;
+            // A manual edit away from the active preset switches the mode
+            // to Custom (which preserves user values, PD-10).
+            if (!id(s360_presence_applying_mode)) {
+              Mode mode =
+                  mode_from_string(id(s360_presence_mode).current_option().c_str());
+              if (mode != MODE_CUSTOM &&
+                  (uint32_t) (x * 1000.0f) != mode_params(mode).clear_delay_ms) {
+                auto call = id(s360_presence_mode).make_call();
+                call.set_option("Custom");
+                call.perform();
+              }
+            }
+        - script.execute: s360_presence_evaluate
