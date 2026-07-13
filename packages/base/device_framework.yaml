@@ -1,0 +1,251 @@
+# ============================================================================
+# SENSE360 DEVICE FRAMEWORK (CORE-FRAMEWORK-001)
+# ============================================================================
+# Shared firmware / entity foundation composed by every production bundle
+# (products/bundles/*.yaml include it exactly once). Contract source of
+# truth: config/core-framework.json, enforced by tests/test_core_framework.py
+# and documented in docs/architecture/sense360-core-framework.md.
+#
+# What this package provides:
+#   * Device identity  — Product Configuration, Hardware Model / Revision,
+#     Firmware Version / Channel / Source.
+#   * Capability report — Installed Capabilities (human-readable) and
+#     Capability IDs (stable machine-readable list).
+#   * Module status     — one text sensor per module slot (RoomIQ, AirIQ,
+#     VentIQ, Presence, LED, Fan Control).
+#   * Device health     — a single "Device Health" summary text sensor.
+#   * Last Restart Reason via the ESPHome debug component.
+#
+# Honesty rules (do not regress — see config/core-framework.json guardrails):
+#   * Every value here is a COMPILE-TIME composition fact declared by the
+#     bundle's s360_* substitutions. No runtime hardware autodetection is
+#     performed or claimed.
+#   * Module status uses only "Not included" / "Included". "Included" means
+#     the module's packages are compiled into this firmware — it is NOT a
+#     health, availability or hardware claim. The runtime set (Initialising /
+#     Available / Degraded / Unavailable / Fault) is reserved for
+#     module-specific PRs that wire a real supported signal.
+#   * Device Health today derives only from the boot warm-up window:
+#     "Starting" until s360_health_warmup_seconds, then "Running" — meaning
+#     only that the base firmware finished its startup window with no
+#     framework-level fault signal. It does NOT imply any module or
+#     physical sensor has been verified. The richer values (Healthy /
+#     Degraded / Fault / Safe mode) are reserved until real signals exist.
+#     Health is never fabricated.
+#   * No secret or provisioning material may ever be exposed here.
+#
+# Entity conventions (all entities in this package):
+#   * entity_category: diagnostic;
+#   * product-facing names WITHOUT the "${friendly_name}" prefix (ESPHome /
+#     Home Assistant already prefix the device name — see
+#     docs/architecture/sense360-core-framework.md#entity-naming);
+#   * stable s360_* internal IDs, independent of display text;
+#   * technical entities are disabled by default.
+#
+# Uptime, WiFi signal, IP address, SSID, MAC address, ESPHome version,
+# internal temperature and the restart / safe-mode buttons are provided by
+# the Core board package (packages/hardware/sense360_core_ceiling.yaml via
+# packages/boards/s360-100-core-*.yaml) and are intentionally NOT duplicated
+# here.
+# ============================================================================
+
+substitutions:
+  # Compile-time capability declaration — overridden per bundle; the values
+  # must match the bundle's entry in config/core-framework.json.
+  s360_config_string: "Unknown"
+  s360_hardware_model: "Unknown"
+  s360_hardware_revision: "Unknown"
+  # Defaults to the bundle's declared firmware version.
+  s360_firmware_version: "${device_version}"
+  # The build channel is derived from the release tag by the release
+  # workflow, not by the YAML, so it is "unknown" unless injected at build
+  # time (esphome compile -s s360_firmware_channel <channel>). Reported by a
+  # disabled-by-default diagnostic entity until that injection lands.
+  s360_firmware_channel: "unknown"
+  s360_firmware_source: "github.com/sense360store/esphome-public"
+  # Stable machine-readable capability ids (comma-separated, no spaces) and
+  # the matching human-readable list. See config/core-framework.json.
+  s360_capabilities: "core"
+  s360_capabilities_human: "Core"
+  # Module slots: "Not included" (default) or "Included" (compile-time
+  # presence only). An absent optional module is never a fault.
+  s360_module_roomiq: "Not included"
+  s360_module_airiq: "Not included"
+  s360_module_ventiq: "Not included"
+  s360_module_presence: "Not included"
+  s360_module_led: "Not included"
+  s360_module_fan_control: "Not included"
+  # Boot warm-up window before Device Health may report "Running".
+  s360_health_warmup_seconds: "120"
+
+# Debug component: powers the Last Restart Reason text sensor below. The
+# update interval matches packages/features/diagnostics.yaml so compositions
+# that also include the diagnostics profile merge cleanly.
+debug:
+  update_interval: 30s
+
+text_sensor:
+  # --- Overall device health -------------------------------------------------
+  # Values today: "Starting" (inside the boot warm-up window) then
+  # "Running" — base firmware completed startup with no framework-level
+  # fault signal; no statement about modules or sensors. Healthy /
+  # Degraded / Fault / Safe mode are reserved until real runtime signals
+  # exist (see config/core-framework.json device_health).
+  - platform: template
+    id: s360_device_health
+    name: "Device Health"
+    icon: mdi:heart-pulse
+    entity_category: diagnostic
+    update_interval: 30s
+    lambda: |-
+      if ((millis() / 1000) < ${s360_health_warmup_seconds}) {
+        return {"Starting"};
+      }
+      return {"Running"};
+
+  # --- Device identity ---------------------------------------------------------
+  - platform: template
+    id: s360_product_configuration
+    name: "Product Configuration"
+    icon: mdi:package-variant-closed
+    entity_category: diagnostic
+    update_interval: never
+    lambda: |-
+      return {"${s360_config_string}"};
+
+  - platform: template
+    id: s360_hardware_model
+    name: "Hardware Model"
+    icon: mdi:chip
+    entity_category: diagnostic
+    update_interval: never
+    lambda: |-
+      return {"${s360_hardware_model}"};
+
+  - platform: template
+    id: s360_hardware_revision
+    name: "Hardware Revision"
+    icon: mdi:tag-outline
+    entity_category: diagnostic
+    update_interval: never
+    lambda: |-
+      return {"${s360_hardware_revision}"};
+
+  - platform: template
+    id: s360_firmware_version
+    name: "Firmware Version"
+    icon: mdi:package-up
+    entity_category: diagnostic
+    update_interval: never
+    lambda: |-
+      return {"${s360_firmware_version}"};
+
+  - platform: template
+    id: s360_firmware_channel
+    name: "Firmware Channel"
+    icon: mdi:source-branch
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      return {"${s360_firmware_channel}"};
+
+  - platform: template
+    id: s360_firmware_source
+    name: "Firmware Source"
+    icon: mdi:github
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      return {"${s360_firmware_source}"};
+
+  # --- Capability report -------------------------------------------------------
+  - platform: template
+    id: s360_installed_capabilities
+    name: "Installed Capabilities"
+    icon: mdi:puzzle-check
+    entity_category: diagnostic
+    update_interval: never
+    lambda: |-
+      return {"${s360_capabilities_human}"};
+
+  - platform: template
+    id: s360_capability_ids
+    name: "Capability IDs"
+    icon: mdi:identifier
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      return {"${s360_capabilities}"};
+
+  # --- Module status (compile-time presence only) ------------------------------
+  - platform: template
+    id: s360_module_status_roomiq
+    name: "RoomIQ Module Status"
+    icon: mdi:thermometer-lines
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      return {"${s360_module_roomiq}"};
+
+  - platform: template
+    id: s360_module_status_airiq
+    name: "AirIQ Module Status"
+    icon: mdi:air-filter
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      return {"${s360_module_airiq}"};
+
+  - platform: template
+    id: s360_module_status_ventiq
+    name: "VentIQ Module Status"
+    icon: mdi:shower-head
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      return {"${s360_module_ventiq}"};
+
+  - platform: template
+    id: s360_module_status_presence
+    name: "Presence Module Status"
+    icon: mdi:motion-sensor
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      return {"${s360_module_presence}"};
+
+  - platform: template
+    id: s360_module_status_led
+    name: "LED Module Status"
+    icon: mdi:led-strip-variant
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      return {"${s360_module_led}"};
+
+  - platform: template
+    id: s360_module_status_fan_control
+    name: "Fan Control Module Status"
+    icon: mdi:fan
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      return {"${s360_module_fan_control}"};
+
+  # --- Restart diagnostics -------------------------------------------------------
+  - platform: debug
+    reset_reason:
+      id: s360_last_restart_reason
+      name: "Last Restart Reason"
+      icon: mdi:restart-alert
+      entity_category: diagnostic
+      disabled_by_default: true

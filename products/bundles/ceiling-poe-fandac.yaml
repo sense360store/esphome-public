@@ -180,6 +180,19 @@ substitutions:
   poe_class: "0"
   poe_standard: "802.3af"
 
+  # === Sense360 Core framework (CORE-FRAMEWORK-001) ===
+  # Compile-time capability declaration for the shared device framework
+  # (packages/base/device_framework.yaml). Values must match this config
+  # string's entry in config/core-framework.json — enforced by
+  # tests/test_core_framework.py. These are compile-time composition
+  # facts only; no runtime hardware autodetection is claimed.
+  s360_config_string: "Ceiling-POE-FanDAC"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,power_poe,fan_dac"
+  s360_capabilities_human: "Core, PoE power, Fan (0-10V)"
+  s360_module_fan_control: "Included"
+
   # === FanDAC binding ===
   # The FanDAC package (packages/expansions/fan_dac.yaml ->
   # fan_gp8403.yaml) binds both GP8403 DACs to the shared `core_i2c`
@@ -229,6 +242,10 @@ packages:
 
   # === Device Health & Diagnostics ===
   health: !include ../../packages/features/device_health.yaml
+
+  # === Sense360 Core framework (CORE-FRAMEWORK-001) ===
+  # Shared identity / capability / module-status / health entities.
+  framework: !include ../../packages/base/device_framework.yaml
 
 # ============================================================================
 # PRODUCT IDENTIFICATION

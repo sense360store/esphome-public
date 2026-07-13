@@ -574,6 +574,68 @@ rename touches `config/webflash-builds.json`, `manifest.json`, or
 
 ---
 
+## 12. Shared firmware framework (CORE-FRAMEWORK-001)
+
+**Status: framework implemented** (structural foundation; landed on `main`
+via PR [#825](https://github.com/sense360store/esphome-public/pull/825)).
+`CORE-FRAMEWORK-001` adds the shared Sense360 device framework —
+consistent Home Assistant naming, device/firmware information, compile-time
+capability reporting, module presence/status, diagnostics policy, and a
+device-health summary — as one reusable package
+([`packages/base/device_framework.yaml`](../packages/base/device_framework.yaml))
+composed exactly once by every bundle under `products/bundles/`. The
+machine-readable contract is
+[`config/core-framework.json`](../config/core-framework.json); the canonical
+description is
+[`docs/architecture/sense360-core-framework.md`](architecture/sense360-core-framework.md);
+tests are `tests/test_core_framework.py` / `tests/test_core_framework_doc.py`
+(TDD: contract tests landed failing-first, then the implementation).
+
+Scope facts (do not overclaim):
+
+* **Hardware verification is not required and not claimed** for this
+  structural framework — firmware-composition / compile proof only (standing
+  invariant: no false proof). Capability and module-status values are
+  compile-time composition facts; **no runtime hardware autodetection** is
+  performed or claimed.
+* **Module-specific runtime health remains future work.** The runtime status
+  vocabulary (Initialising / Available / Degraded / Unavailable / Fault) and
+  the richer Device Health values (Degraded / Fault / Safe mode) are
+  documented as **reserved**; Presence / LED / RoomIQ / AirIQ / VentIQ
+  feature and health work lands in separate module PRs.
+* **This is a repository-local engineering foundation. SOT programme state
+  is unchanged** — no SOT programme entry is created, moved or redefined by
+  this work item, and no product lifecycle, commercial, WebFlash, release,
+  tag, manifest or provisioning state changes. `config/webflash-builds.json`
+  is untouched (fourteen builds, §1).
+* **One declared gap:** `Ceiling-POE-FanPWM` defers the framework include
+  (`framework_included: false` in the contract) because its bundle is
+  pinned package-identical to the native full-compile-validated
+  compile-only skeleton (`S360-311-NATIVE-FANPWM-COMPILE-001`); wiring it
+  would invalidate that recorded compile evidence. The other 15 bundles
+  compose the framework now. The exact follow-up (wire bundle + skeleton
+  together, re-record via a green hosted `CI: Compile-Only` full run cited
+  in `config/compile-only-targets.json`, then flip `framework_included`)
+  is specified in
+  [`docs/architecture/sense360-core-framework.md`](architecture/sense360-core-framework.md).
+* **Compile status — recorded evidence.** All 16 bundle-backed products
+  pass `esphome config` with the framework composed (config validation is
+  not compile proof), and **six representative configurations have hosted
+  `esphome compile` proof** (ESPHome 2026.4.5) from the targeted lane
+  "CI: Core Framework Representative Compile"
+  (`.github/workflows/core-framework-compile.yml`), hosted run
+  `29237693726` at source head `cf7f95066a30abbf801dbc61671d1016d4b8c684`:
+  `Ceiling-POE-RoomIQ`, `Ceiling-POE-AirIQ-RoomIQ`,
+  `Ceiling-POE-VentIQ-RoomIQ`, `Ceiling-USB-RoomIQ`,
+  `Ceiling-USB-VentIQ-RoomIQ`, `Ceiling-POE-VentIQ-RoomIQ-LED` — all six
+  compiled successfully; zero artifacts uploaded, nothing published (no
+  binary, release, tag, checksum, manifest or WebFlash asset).
+  Firmware-build proof only — no hardware evidence is claimed. The
+  deferred `Ceiling-POE-FanPWM` was deliberately not compiled by this
+  lane (the framework gap above stands).
+
+---
+
 ## Channel-tier policy (RELEASE-PREVIEW-ALL-PRODUCTS-001)
 
 Preview eligibility is now open to **every buildable target**. The channel-tier

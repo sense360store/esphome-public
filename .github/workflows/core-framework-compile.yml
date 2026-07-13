@@ -1,0 +1,191 @@
+# ============================================================================
+# CI: CORE FRAMEWORK REPRESENTATIVE COMPILE (CORE-FRAMEWORK-001)
+# ============================================================================
+# Narrowly scoped hosted lane providing REAL `esphome compile` evidence that
+# the shared Sense360 device framework (packages/base/device_framework.yaml,
+# PR #825) compiles in representative production compositions.
+#
+# This lane is COMPILE PROOF ONLY. It is NOT:
+#   - hardware proof, bench evidence, or a compliance claim;
+#   - module runtime-health proof;
+#   - a release, a firmware publication, or a promotion gate.
+#
+# Guarantees (pinned by tests/test_core_framework_compile_workflow.py):
+#   - triggers: pull_request (path-filtered; deliberately NO base-branch
+#     filter, so the lane runs on stacked PRs whose base branch contains
+#     '/', e.g. a PR based on claude/sense360-core-framework-gczvqz) and
+#     workflow_dispatch. Never push / release / schedule / tag; not
+#     workflow_call-able, so no production release lane can reuse it.
+#   - read-only token; SHA-pinned actions; standard setup-esphome-build
+#     composite action with the repo's single-sourced ESPHome pin.
+#   - compiles ONLY the six audited, pre-existing framework-bearing
+#     representative products below. The one config that defers the
+#     framework (framework_included: false in config/core-framework.json,
+#     pinned package-identical to its full-compile-validated skeleton) is
+#     deliberately NOT compiled here.
+#   - uploads NO artifact of any kind and publishes NOTHING: no firmware
+#     upload, no GitHub Release, no tag, no checksum, no release
+#     declaration or WebFlash surface is read or written. Compiled .bin
+#     files stay in the ephemeral build tree; only sizes are logged.
+#   - throwaway secrets come from setup-esphome-build, are never printed,
+#     and are removed with an if: always() cleanup step.
+# ============================================================================
+
+name: "CI: Core Framework Representative Compile"
+
+on:
+  pull_request:
+    paths:
+      - "packages/base/device_framework.yaml"
+      - "config/core-framework.json"
+      - "products/bundles/**"
+      - "packages/base/**"
+      - "tests/test_core_framework.py"
+      - "tests/test_core_framework_doc.py"
+      - "tests/test_core_framework_compile_workflow.py"
+      - ".github/workflows/core-framework-compile.yml"
+      - ".github/actions/setup-esphome-build/**"
+  workflow_dispatch: {}
+
+# Least-privilege, read-only token: this lane only reads the repo and logs.
+permissions:
+  contents: read
+
+concurrency:
+  group: core-framework-compile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # --------------------------------------------------------------------------
+  # JOB 1: framework contract tests + secret guards (cheap, no ESPHome)
+  # --------------------------------------------------------------------------
+  contract-gate:
+    name: Framework contract tests + secret guards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: pip install pyyaml
+
+      - name: Framework contract tests
+        run: |
+          set -euo pipefail
+          python3 tests/test_core_framework.py
+          python3 tests/test_core_framework_doc.py
+          python3 tests/test_core_framework_compile_workflow.py
+
+      - name: No-tracked-secrets guard
+        run: python3 scripts/check-no-tracked-secrets.py
+
+  # --------------------------------------------------------------------------
+  # JOB 2: representative compile matrix (real hosted `esphome compile`)
+  # --------------------------------------------------------------------------
+  # Category mapping (documented in tests/test_core_framework_compile_workflow.py;
+  # no duplicate compiles for categories already covered):
+  #   Core+RoomIQ PoE            -> Ceiling-POE-RoomIQ
+  #   Core+RoomIQ+AirIQ PoE      -> Ceiling-POE-AirIQ-RoomIQ
+  #   Core+RoomIQ+VentIQ PoE     -> Ceiling-POE-VentIQ-RoomIQ (Release-One)
+  #   Core+RoomIQ USB            -> Ceiling-USB-RoomIQ
+  #   Core+RoomIQ+VentIQ USB     -> Ceiling-USB-VentIQ-RoomIQ
+  #   Presence-bearing (LD2450)  -> every RoomIQ target compiles the LD2450
+  #                                 radar half; canonical: Ceiling-POE-RoomIQ
+  #   LED-bearing preview        -> Ceiling-POE-VentIQ-RoomIQ-LED
+  # --------------------------------------------------------------------------
+  compile:
+    name: "Compile: ${{ matrix.config_string }}"
+    needs: contract-gate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - config_string: Ceiling-POE-RoomIQ
+            product_yaml: products/sense360-ceiling-poe-roomiq.yaml
+          - config_string: Ceiling-POE-AirIQ-RoomIQ
+            product_yaml: products/sense360-ceiling-poe-airiq-roomiq.yaml
+          - config_string: Ceiling-POE-VentIQ-RoomIQ
+            product_yaml: products/sense360-ceiling-poe-ventiq-roomiq.yaml
+          - config_string: Ceiling-USB-RoomIQ
+            product_yaml: products/sense360-ceiling-usb-roomiq.yaml
+          - config_string: Ceiling-USB-VentIQ-RoomIQ
+            product_yaml: products/sense360-ceiling-usb-ventiq-roomiq.yaml
+          - config_string: Ceiling-POE-VentIQ-RoomIQ-LED
+            product_yaml: products/sense360-ceiling-poe-ventiq-roomiq-led.yaml
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up ESPHome build environment
+        # ESPHome version is single-sourced in the composite action (repo
+        # policy); this lane deliberately does not override it. Throwaway
+        # secrets are provisioned by the action and never printed.
+        uses: ./.github/actions/setup-esphome-build
+        with:
+          patch-external-components: "true"
+
+      - name: Build identity (no secrets)
+        run: |
+          set -euo pipefail
+          echo "Config     : ${{ matrix.config_string }}"
+          echo "Product    : ${{ matrix.product_yaml }}"
+          echo "Source SHA : ${{ github.sha }}"
+          echo "ESPHome    : $(esphome version)"
+
+      - name: ESPHome config check
+        run: |
+          set -euo pipefail
+          esphome config "${{ matrix.product_yaml }}" > /dev/null
+          echo "esphome config OK for ${{ matrix.config_string }}"
+
+      - name: ESPHome compile (firmware-build proof only)
+        run: |
+          set -euo pipefail
+          echo "Compile proof only — NOT hardware proof, NOT a release."
+          esphome compile "${{ matrix.product_yaml }}"
+
+      - name: Report firmware size (not uploaded)
+        run: |
+          set -euo pipefail
+          # The .bin stays in the ephemeral build tree and is intentionally
+          # NOT uploaded anywhere; only board + size are logged as evidence.
+          find products/.esphome/build -name "*.bin" -exec ls -l {} + \
+            | awk '{print "firmware:", $NF, "bytes:", $5}'
+
+      - name: Clean temporary secrets and build outputs
+        if: always()
+        run: |
+          rm -f secrets.yaml products/secrets.yaml
+          rm -rf products/.esphome
+
+  # --------------------------------------------------------------------------
+  # JOB 3: summary — fails when any representative target failed to compile
+  # --------------------------------------------------------------------------
+  summary:
+    name: Representative Compile — Summary
+    needs: [contract-gate, compile]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary
+        run: |
+          echo "=================================================="
+          echo "CORE FRAMEWORK REPRESENTATIVE COMPILE"
+          echo "=================================================="
+          echo "Contract gate : ${{ needs.contract-gate.result }}"
+          echo "Compile matrix: ${{ needs.compile.result }}"
+          echo ""
+          echo "A green run is FIRMWARE-BUILD proof only: NOT hardware"
+          echo "proof, NOT bench evidence, NOT a compliance claim, NOT a"
+          echo "release. No artifact was uploaded; nothing was published."
+          if [ "${{ needs.contract-gate.result }}" != "success" ] || \
+             [ "${{ needs.compile.result }}" != "success" ]; then
+            echo "FAIL: at least one representative target did not compile."
+            exit 1
+          fi
