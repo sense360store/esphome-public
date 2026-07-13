@@ -408,5 +408,16 @@ class FusionEngine {
   bool radar_fresh_out_ = false;
 };
 
+// Accessor for the firmware's single fusion-engine instance. ESPHome
+// 2026.4.5 emits `esphome: includes:` headers AFTER the globals storage
+// declarations in the generated main.cpp, so a custom-class `globals:`
+// entry cannot name this type; production lambdas share this
+// function-local static instead (constructed on first use). Tests may
+// still instantiate their own FusionEngine objects directly.
+inline FusionEngine &global_engine() {
+  static FusionEngine engine;
+  return engine;
+}
+
 }  // namespace presence
 }  // namespace sense360

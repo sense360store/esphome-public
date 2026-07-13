@@ -82,11 +82,11 @@ esphome:
   includes:
     - ../include/sense360/presence_fusion.h
 
+# The engine instance is the function-local static
+# sense360::presence::global_engine() from the shared header (an ESPHome
+# `globals:` entry cannot carry a custom class type: the generated main.cpp
+# declares globals storage before it emits `esphome: includes:` headers).
 globals:
-  - id: s360_presence_engine
-    type: 'sense360::presence::FusionEngine'
-    restore_value: false
-
   # Guard so mode presets applying the Clear Delay preset do not bounce the
   # mode select to Custom.
   - id: s360_presence_applying_mode
@@ -103,7 +103,7 @@ script:
     then:
       - lambda: |-
           using namespace sense360::presence;
-          auto &engine = id(s360_presence_engine);
+          auto &engine = global_engine();
           const uint32_t now = millis();
 
           // Configuration-driven expected-sensor membership (PD-08) and
@@ -120,7 +120,8 @@ script:
               ${presence_sen0609_warmup_ms}, 0});
 
           // Runtime controls (no recompilation needed, PD-04/PD-10).
-          engine.set_mode(mode_from_string(id(s360_presence_mode).state.c_str()));
+          engine.set_mode(
+              mode_from_string(id(s360_presence_mode).current_option().c_str()));
           float delay_s = id(s360_presence_clear_delay).state;
           if (!std::isnan(delay_s) && delay_s > 0.0f) {
             engine.set_clear_delay_ms((uint32_t) (delay_s * 1000.0f));
@@ -311,7 +312,8 @@ number:
             // A manual edit away from the active preset switches the mode
             // to Custom (which preserves user values, PD-10).
             if (!id(s360_presence_applying_mode)) {
-              Mode mode = mode_from_string(id(s360_presence_mode).state.c_str());
+              Mode mode =
+                  mode_from_string(id(s360_presence_mode).current_option().c_str());
               if (mode != MODE_CUSTOM &&
                   (uint32_t) (x * 1000.0f) != mode_params(mode).clear_delay_ms) {
                 auto call = id(s360_presence_mode).make_call();

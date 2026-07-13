@@ -549,6 +549,16 @@ TEST_CASE(radar_target_count_is_valid_only_when_fresh) {
   ASSERT_FALSE(engine.radar_fresh());
 }
 
+TEST_CASE(global_engine_is_a_single_shared_instance) {
+  // The production YAML shares one engine via this accessor (an ESPHome
+  // globals: entry cannot carry a custom class type in 2026.4.5).
+  FusionEngine &a = global_engine();
+  FusionEngine &b = global_engine();
+  ASSERT_TRUE(&a == &b);
+  a.set_clear_delay_ms(45000);
+  ASSERT_EQ(b.clear_delay_ms(), 45000u);
+}
+
 TEST_CASE(pir_hold_keeps_movement_after_edge) {
   FusionEngine engine = tri_engine();
   settle_clear(engine);
@@ -633,6 +643,8 @@ int main() {
   run_test(test_mode_strings_round_trip, "mode_strings_round_trip");
   run_test(test_radar_target_count_is_valid_only_when_fresh,
            "radar_target_count_is_valid_only_when_fresh");
+  run_test(test_global_engine_is_a_single_shared_instance,
+           "global_engine_is_a_single_shared_instance");
   run_test(test_pir_hold_keeps_movement_after_edge,
            "pir_hold_keeps_movement_after_edge");
 
