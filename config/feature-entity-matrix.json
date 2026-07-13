@@ -137,24 +137,24 @@
           "kind": "sensor-entity",
           "derivation": "design-derived",
           "required": true,
-          "status": "missing",
-          "present_as": null,
-          "defined_in": null,
+          "status": "present",
+          "present_as": "binary_sensor s360_sen0609_presence (diagnostic, disabled by default) feeding the fused Occupancy / Presence Status entities",
+          "defined_in": "packages/boards/s360-200-roomiq-sen0609.yaml",
           "confirm": "none",
-          "queued_fill_slice": "ENTITY-FILL-200-SEN0609-001",
-          "notes": "BOM lists SEN0609 on RoomIQ J3; Core declares roomiq_sen0609_uart and roomiq_sen0609_output_pin (GPIO6) but no sensor/binary_sensor entity is exposed."
+          "queued_fill_slice": null,
+          "notes": "Filled by PRESENCE-FRAMEWORK-001 (executed ENTITY-FILL-200-SEN0609-001): digital presence output on roomiq_sen0609_output_pin (GPIO6); the roomiq_sen0609_uart bus (115200) stays Core-owned and reserved — ESPHome 2026.4.5 has no supported C4001/SEN0609 UART component. Compile/simulation proof only; no hardware verification claimed."
         },
         {
           "row": "PIR motion (EKMC1601111, IO15)",
           "kind": "sensor-entity",
           "derivation": "design-derived",
           "required": true,
-          "status": "missing",
-          "present_as": null,
-          "defined_in": null,
+          "status": "present",
+          "present_as": "binary_sensor s360_pir_motion (diagnostic, disabled by default) feeding the fused Occupancy / Presence Status entities",
+          "defined_in": "packages/boards/s360-200-roomiq-pir.yaml",
           "confirm": "none",
-          "queued_fill_slice": "ENTITY-FILL-200-PIR-001",
-          "notes": "BOM lists EKMC1601111 PIR; pir_sensor_pin GPIO15 is declared as a substitution only, the binary_sensor is not exposed in any canonical board package."
+          "queued_fill_slice": null,
+          "notes": "Filled by PRESENCE-FRAMEWORK-001 (executed ENTITY-FILL-200-PIR-001): GPIO binary_sensor on pir_sensor_pin (GPIO15, schematic PIR net). A bare GPIO level cannot prove sensor health (documented limitation). Compile/simulation proof only; no hardware verification claimed."
         },
         {
           "row": "Barometric pressure (BMP581, U4)",

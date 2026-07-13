@@ -62,6 +62,10 @@ jobs:
         run: |
           python3 tests/test_product_substitutions.py
 
+      - name: Presence framework contract (PRESENCE-FRAMEWORK-001)
+        run: |
+          python3 tests/test_presence_framework.py
+
       - name: Reject known fallback-AP password literals (SEC-ESP-FALLBACK-AP-001)
         run: |
           python3 scripts/check_fallback_ap_password.py

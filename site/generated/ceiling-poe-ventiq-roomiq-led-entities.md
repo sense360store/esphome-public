@@ -18,7 +18,9 @@
        packages/base/wifi.yaml
        packages/boards/s360-100-core-ceiling.yaml
        packages/boards/s360-200-roomiq-climate.yaml
+       packages/boards/s360-200-roomiq-pir.yaml
        packages/boards/s360-200-roomiq-radar.yaml
+       packages/boards/s360-200-roomiq-sen0609.yaml
        packages/boards/s360-200-roomiq.yaml
        packages/boards/s360-211-ventiq.yaml
        packages/boards/s360-300-led.yaml
@@ -27,14 +29,14 @@
        packages/features/comfort_basic_profile.yaml
        packages/features/device_health.yaml
        packages/features/diagnostics.yaml
-       packages/features/presence_basic_profile.yaml
+       packages/features/presence_framework.yaml
        packages/hardware/sense360_core_ceiling.yaml
        products/bundles/ceiling-poe-ventiq-roomiq-led.yaml
        products/sense360-ceiling-poe-ventiq-roomiq-led.yaml
        products/webflash/ceiling-poe-ventiq-roomiq-led.yaml
 -->
 
-The `Ceiling-POE-VentIQ-RoomIQ-LED` firmware exposes **78 entities** to Home Assistant.
+The `Ceiling-POE-VentIQ-RoomIQ-LED` firmware exposes **106 entities** to Home Assistant.
 
 Entity names below appear in Home Assistant prefixed with the device's friendly name, which you choose during setup (firmware default: `Sense360 Ceiling Bathroom LED`). Firmware-internal measurements (marked `internal` in the YAML) never reach Home Assistant and are not listed.
 
@@ -44,7 +46,26 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Internal Temperature | Sensor | °C | — |
 | Mold Risk Level | Sensor | — | — |
 | Post-Shower Timer | Sensor | min | — |
-| Presence Score | Sensor | % | — |
+| Presence Score | Sensor | % | disabled by default |
+| Radar Data Age | Sensor | s | diagnostic entity; disabled by default |
+| Radar Moving Target Count | Sensor | — | diagnostic entity; disabled by default |
+| Radar Still Target Count | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 1 Angle | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 1 Distance | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 1 Speed | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 1 X | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 1 Y | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 2 Angle | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 2 Distance | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 2 Speed | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 2 X | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 2 Y | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 3 Angle | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 3 Distance | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 3 Speed | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 3 X | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 3 Y | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target Count | Sensor | — | — |
 | Recommended Fan Speed | Sensor | % | — |
 | RoomIQ Comfort Score | Sensor | % | — |
 | RoomIQ Feels Like | Sensor | °C | device class: temperature |
@@ -62,9 +83,15 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | VentIQ VOC Index | Sensor | — | — |
 | WiFi Signal | Sensor | dBm | — |
 | Mold Risk Warning | Binary sensor | — | device class: problem |
+| Occupancy | Binary sensor | — | device class: occupancy |
 | Odor Detected | Binary sensor | — | device class: gas |
+| PIR Motion | Binary sensor | — | device class: motion; diagnostic entity; disabled by default |
 | PoE Power Connected | Binary sensor | — | device class: power |
-| Presence | Binary sensor | — | device class: occupancy |
+| Presence | Binary sensor | — | device class: occupancy; disabled by default |
+| Radar Moving Target | Binary sensor | — | diagnostic entity; disabled by default |
+| Radar Presence | Binary sensor | — | device class: occupancy; diagnostic entity; disabled by default |
+| Radar Still Target | Binary sensor | — | diagnostic entity; disabled by default |
+| SEN0609 Static Presence | Binary sensor | — | device class: occupancy; diagnostic entity; disabled by default |
 | Shower Active | Binary sensor | — | device class: moisture |
 | Status | Binary sensor | — | — |
 | Ventilation Needed | Binary sensor | — | device class: opening |
@@ -95,6 +122,7 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Power Source | Text sensor | — | — |
 | Presence Module SKU | Text sensor | — | diagnostic entity |
 | Presence Module Status | Text sensor | — | diagnostic entity; disabled by default |
+| Presence Status | Text sensor | — | — |
 | Product Configuration | Text sensor | — | diagnostic entity |
 | Product SKU | Text sensor | — | diagnostic entity |
 | RoomIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
@@ -107,10 +135,12 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Night Mode | Switch | — | — |
 | Relay | Switch | — | — |
 | Shower Detection | Switch | — | — |
+| Clear Delay | Number | s | config entity |
 | LED Brightness | Number | % | — |
 | Mold Risk Threshold | Number | % | — |
 | Post-Shower Ventilation Duration | Number | min | — |
 | Shower Detection Threshold | Number | % | — |
+| Presence Mode | Select | — | config entity |
 | Factory Reset | Button | — | disabled by default |
 | Force Ventilation | Button | — | — |
 | Reset Mold Risk | Button | — | config entity |

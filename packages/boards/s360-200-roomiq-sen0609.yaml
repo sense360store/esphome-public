@@ -1,0 +1,63 @@
+# ============================================================================
+# Sense360 RoomIQ — SEN0609 static-presence adapter, ceiling (S360-200-R4)
+# ============================================================================
+# PRESENCE-FRAMEWORK-001. DFRobot SEN0609 (C4001) 24 GHz mmWave adapter of
+# the tri-sensor Presence framework (see
+# docs/architecture/sense360-presence-framework.md). The SEN0609 provides
+# the STATIC-PRESENCE role: it maintains occupancy for seated, sleeping or
+# otherwise very still occupants that PIR cannot see.
+#
+# Integration mode — documented digital output, not UART parsing:
+#   * ESPHome 2026.4.5 (the repo's pinned build) carries NO supported
+#     C4001/SEN0609 UART component (only dfrobot_sen0395, a different
+#     sensor), and this repository approves no external component for it.
+#     Inventing a UART protocol parser here would be fabrication, so this
+#     adapter uses the sensor's documented digital presence output line.
+#   * Authoritative wiring (CORE-ABSTRACT-BUS-001C, Core board package):
+#     the presence output is schematic IO6 = out(gpio6), declared as
+#     `roomiq_sen0609_output_pin`; the sensor's UART
+#     (`roomiq_sen0609_uart`, TX=GPIO5 / RX=GPIO4, 115200 baud) is owned by
+#     the Core board package and stays reserved for a future supported
+#     component. This adapter deliberately defines NO uart: block.
+#   * The digital output exposes presence only. No target count, distance,
+#     speed or movement detail is invented for this sensor.
+#
+# HONEST LIMITATION (do not regress): like the PIR, a bare GPIO level
+# cannot prove communication health — a permanently low line may be a
+# healthy sensor in an empty room or a disconnected module. The fusion
+# engine models the SEN0609 as a non-verifiable channel: it asserts
+# presence and votes clear, but it cannot qualify the module as fully
+# Available, and it is ignored during its warm-up window. Runtime
+# sensitivity/threshold configuration would require the UART command
+# channel and therefore stays future work (PD-05: no fabricated
+# sensitivity control).
+#
+# Composition contract: composed by presence-bearing bundles TOGETHER WITH
+# packages/features/presence_framework.yaml (owner of the
+# s360_presence_evaluate script referenced below).
+# ============================================================================
+
+binary_sensor:
+  # Raw SEN0609 state — individual-sensor diagnostic (disabled by default).
+  # The customer-facing occupancy result is the fused "Occupancy" entity.
+  - platform: gpio
+    id: s360_sen0609_presence
+    name: "SEN0609 Static Presence"
+    device_class: occupancy
+    entity_category: diagnostic
+    disabled_by_default: true
+    pin:
+      number: ${roomiq_sen0609_output_pin}
+      mode:
+        input: true
+        pulldown: true
+    filters:
+      # Input debounce only — retention behaviour lives in the fusion
+      # engine (mode-controlled), not in the raw diagnostic signal.
+      - delayed_on: 100ms
+    on_press:
+      then:
+        - script.execute: s360_presence_evaluate
+    on_release:
+      then:
+        - script.execute: s360_presence_evaluate

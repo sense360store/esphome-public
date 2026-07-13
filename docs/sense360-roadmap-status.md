@@ -484,6 +484,7 @@ yet**, so all of its bench evidence stays owed.
 | Task | Board | Blocking | Evidence Owed |
 |---|---|---|---|
 | `S360-312-DAC-BENCH-001` | S360-312 R4 (DAC / dual GP8403) | No physical S360-312 board in hand (pre-hardware) | Measured 0–10 V output per channel; GP8403 detection + I²C address (SW1/SW2); output range/calibration; fan/controller response; current; thermal; harness/silkscreen confirmation |
+| `PRESENCE-BENCH-001` | S360-200 R4 (RoomIQ tri-sensor Presence, §13) | Bench session with assembled S360-100 + S360-200 required | Operator checklist [`docs/hardware/presence-framework-bench-checklist.md`](hardware/presence-framework-bench-checklist.md): PIR latency/false triggers, LD2450 moving/still/count/coordinates, SEN0609 static presence, fusion scenarios, disconnect/recovery, startup/clear-delay/mode timing |
 
 ## Evidence & Bench Logs
 
@@ -598,11 +599,14 @@ Scope facts (do not overclaim):
   invariant: no false proof). Capability and module-status values are
   compile-time composition facts; **no runtime hardware autodetection** is
   performed or claimed.
-* **Module-specific runtime health remains future work.** The runtime status
+* **Module-specific runtime health lands per module.** The runtime status
   vocabulary (Initialising / Available / Degraded / Unavailable / Fault) and
   the richer Device Health values (Degraded / Fault / Safe mode) are
-  documented as **reserved**; Presence / LED / RoomIQ / AirIQ / VentIQ
-  feature and health work lands in separate module PRs.
+  documented as **reserved**; LED / RoomIQ / AirIQ / VentIQ feature and
+  health work lands in separate module PRs. **Presence is the first wired
+  module** (`PRESENCE-FRAMEWORK-001`, §13): its module-status entity now
+  carries the runtime vocabulary from a real LD2450 frame-freshness signal;
+  Device Health aggregation itself is still unchanged.
 * **This is a repository-local engineering foundation. SOT programme state
   is unchanged** — no SOT programme entry is created, moved or redefined by
   this work item, and no product lifecycle, commercial, WebFlash, release,
@@ -633,6 +637,69 @@ Scope facts (do not overclaim):
   Firmware-build proof only — no hardware evidence is claimed. The
   deferred `Ceiling-POE-FanPWM` was deliberately not compiled by this
   lane (the framework gap above stands).
+
+---
+
+## 13. Presence framework (PRESENCE-FRAMEWORK-001)
+
+**Status: implemented through the PRESENCE-FRAMEWORK-001 PR (draft) —
+compile/simulation proof only; all hardware evidence pending.**
+
+The tri-sensor customer Presence experience for the S360-200 RoomIQ board:
+PIR (immediate movement, IO15) + HLK-LD2450 (movement / target tracking /
+radar target count, `roomiq_hi_link_uart` @ 256000) + DFRobot SEN0609
+(static presence, digital output IO6), fused into one customer occupancy
+capability. Canonical description:
+[`docs/architecture/sense360-presence-framework.md`](architecture/sense360-presence-framework.md);
+machine-readable runtime-status wiring:
+[`config/core-framework.json`](../config/core-framework.json)
+(`module_runtime_status.presence`); contract tests:
+`tests/test_presence_framework.py`; deterministic fusion simulation:
+`tests/unit/test_presence_fusion.cpp` against the single shared engine
+`include/sense360/presence_fusion.h`.
+
+Scope facts (do not overclaim):
+
+* **Customer surface (default-enabled):** Occupancy, Presence Status,
+  Radar Target Count, Presence Mode (Balanced / Responsive / Stable /
+  Custom), Clear Delay (5–600 s, default 30 s, persisted, runtime-applied).
+  No "Presence Sensitivity" (no honest common runtime sensitivity contract
+  across the three sensors — mode-based tuning first) and no "People
+  Count" (radar targets are not verified people). All per-sensor detail is
+  diagnostic and/or disabled by default; the LD2450 per-target coordinate
+  IDs stay a stable surface for future Sense360Zones work (no
+  cross-repository Zones change in this work item).
+* **Presence Module Status is the first runtime module status**: it uses
+  the Core-Framework reserved vocabulary from a real LD2450
+  frame-freshness signal. Honesty limits recorded in the contract: PIR /
+  SEN0609 GPIO levels cannot prove communication health; Available attests
+  the verifiable (UART) sensor set only; Fault is never derived from
+  ordinary stale data.
+* **Fail-safe fusion rules** (simulation-tested): stale/unavailable data is
+  unknown, never clear; any valid sensor asserts occupancy; clear needs
+  unanimity of the usable sensor set plus the clear delay; a sensor failure
+  never instantly clears an occupied room; degraded compositions fall back
+  to a documented conservative timeout. The former synthetic radar
+  confidence tiers (0.95/0.7/0.6) were removed.
+* **Compile / simulation proof recorded separately from hardware proof:**
+  the deterministic C++ simulation suite and the Python contract tests are
+  logic proof; representative hosted compile evidence comes from the
+  existing "CI: Core Framework Representative Compile" lane (path triggers
+  extended to the presence surfaces; matrix, zero-artifact/no-publication
+  guarantees and read-only permissions unchanged). **Hardware evidence is
+  not claimed**: PIR, LD2450 and SEN0609 physical validation, sensitivity
+  and timing tuning all remain pending — operator checklist:
+  [`docs/hardware/presence-framework-bench-checklist.md`](hardware/presence-framework-bench-checklist.md)
+  (see `PRESENCE-BENCH-001` in *Next Hardware Tasks*).
+* **This is repository-local firmware engineering. SOT programme state is
+  unchanged** — no SOT programme entry is created, moved or redefined; no
+  product lifecycle, commercial, Shopify, WebFlash, release, tag, manifest
+  or provisioning state changes; `config/webflash-builds.json` is untouched
+  (fourteen builds, §1). Bundle/product authority note: the S360-200
+  hardware catalog BOM already lists all three sensors, and
+  `config/product-catalog.json` module declarations are unchanged — this
+  work compiles firmware for sensors the board already carries; it does
+  not alter commercial bundle contents.
 
 ---
 

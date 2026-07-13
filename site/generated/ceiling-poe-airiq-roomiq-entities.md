@@ -18,28 +18,49 @@
        packages/base/wifi.yaml
        packages/boards/s360-100-core-ceiling.yaml
        packages/boards/s360-200-roomiq-climate.yaml
+       packages/boards/s360-200-roomiq-pir.yaml
        packages/boards/s360-200-roomiq-radar.yaml
+       packages/boards/s360-200-roomiq-sen0609.yaml
        packages/boards/s360-200-roomiq.yaml
        packages/boards/s360-210-airiq.yaml
        packages/boards/s360-410-poe-psu.yaml
        packages/features/airiq_basic_profile.yaml
        packages/features/comfort_basic_profile.yaml
        packages/features/device_health.yaml
-       packages/features/presence_basic_profile.yaml
+       packages/features/presence_framework.yaml
        packages/hardware/sense360_core_ceiling.yaml
        products/bundles/ceiling-poe-airiq-roomiq.yaml
        products/sense360-ceiling-poe-airiq-roomiq.yaml
        products/webflash/ceiling-poe-airiq-roomiq.yaml
 -->
 
-The `Ceiling-POE-AirIQ-RoomIQ` firmware exposes **48 entities** to Home Assistant.
+The `Ceiling-POE-AirIQ-RoomIQ` firmware exposes **76 entities** to Home Assistant.
 
 Entity names below appear in Home Assistant prefixed with the device's friendly name, which you choose during setup (firmware default: `Sense360 Ceiling AirIQ RoomIQ`). Firmware-internal measurements (marked `internal` in the YAML) never reach Home Assistant and are not listed.
 
 | Entity | Type | Unit | Notes |
 |---|---|---|---|
 | Internal Temperature | Sensor | °C | — |
-| Presence Score | Sensor | % | — |
+| Presence Score | Sensor | % | disabled by default |
+| Radar Data Age | Sensor | s | diagnostic entity; disabled by default |
+| Radar Moving Target Count | Sensor | — | diagnostic entity; disabled by default |
+| Radar Still Target Count | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 1 Angle | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 1 Distance | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 1 Speed | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 1 X | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 1 Y | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 2 Angle | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 2 Distance | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 2 Speed | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 2 X | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 2 Y | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 3 Angle | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 3 Distance | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 3 Speed | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 3 X | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target 3 Y | Sensor | — | diagnostic entity; disabled by default |
+| Radar Target Count | Sensor | — | — |
 | RoomIQ Comfort Score | Sensor | % | — |
 | RoomIQ Feels Like | Sensor | °C | device class: temperature |
 | RoomIQ Humidity | Sensor | % | device class: humidity |
@@ -48,8 +69,14 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Supply Voltage | Sensor | V | device class: voltage |
 | Uptime | Sensor | s | — |
 | WiFi Signal | Sensor | dBm | — |
+| Occupancy | Binary sensor | — | device class: occupancy |
+| PIR Motion | Binary sensor | — | device class: motion; diagnostic entity; disabled by default |
 | PoE Power Connected | Binary sensor | — | device class: power |
-| Presence | Binary sensor | — | device class: occupancy |
+| Presence | Binary sensor | — | device class: occupancy; disabled by default |
+| Radar Moving Target | Binary sensor | — | diagnostic entity; disabled by default |
+| Radar Presence | Binary sensor | — | device class: occupancy; diagnostic entity; disabled by default |
+| Radar Still Target | Binary sensor | — | diagnostic entity; disabled by default |
+| SEN0609 Static Presence | Binary sensor | — | device class: occupancy; diagnostic entity; disabled by default |
 | Status | Binary sensor | — | — |
 | Air Quality State | Text sensor | — | — |
 | AirIQ Module SKU | Text sensor | — | diagnostic entity |
@@ -75,6 +102,7 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Power Source | Text sensor | — | — |
 | Presence Module SKU | Text sensor | — | diagnostic entity |
 | Presence Module Status | Text sensor | — | diagnostic entity; disabled by default |
+| Presence Status | Text sensor | — | — |
 | Product Configuration | Text sensor | — | diagnostic entity |
 | Product SKU | Text sensor | — | diagnostic entity |
 | RoomIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
@@ -83,6 +111,8 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | VentIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
 | WebFlash Config | Text sensor | — | diagnostic entity |
 | Relay | Switch | — | — |
+| Clear Delay | Number | s | config entity |
+| Presence Mode | Select | — | config entity |
 | Factory Reset | Button | — | disabled by default |
 | Restart | Button | — | — |
 | Safe Mode | Button | — | — |

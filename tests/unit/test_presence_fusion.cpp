@@ -342,10 +342,11 @@ TEST_CASE(clear_appears_only_after_the_clear_delay) {
   uint32_t t0 = T_READY + 1000;
   engine.input_static(t0, false);
   // During the pending-clear window the room is still reported occupied.
-  uint32_t t_mid = t0 + 15000;
-  engine.input_radar_frame(t_mid, 0, 0, 0);
-  engine.evaluate(t_mid);
-  ASSERT_EQ(engine.status(), STATUS_STILL);
+  for (uint32_t t = t0; t < t0 + 30000; t += 1000) {
+    engine.input_radar_frame(t, 0, 0, 0);
+    engine.evaluate(t);
+    ASSERT_EQ(engine.status(), STATUS_STILL);
+  }
   uint32_t t_done = t0 + 31000;
   engine.input_radar_frame(t_done, 0, 0, 0);
   engine.evaluate(t_done);

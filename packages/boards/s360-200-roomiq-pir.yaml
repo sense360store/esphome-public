@@ -1,0 +1,55 @@
+# ============================================================================
+# Sense360 RoomIQ — PIR motion adapter, ceiling  (S360-200-R4)  [AUTHORITATIVE]
+# ============================================================================
+# PRESENCE-FRAMEWORK-001. PIR adapter of the tri-sensor Presence framework
+# (see docs/architecture/sense360-presence-framework.md). The PIR provides
+# the IMMEDIATE movement-trigger role: a rising edge re-evaluates the fusion
+# engine at once instead of waiting for the periodic tick.
+#
+# Authoritative pin: schematic IO15 = PIR (RoomIQ J10 motion input),
+# declared by the Core board package as `pir_sensor_pin: GPIO15`
+# (packages/hardware/sense360_core_ceiling.yaml, CORE-ABSTRACT-BUS-001C).
+# This adapter consumes that substitution and never hard-codes a pin.
+#
+# HONEST LIMITATION (do not regress): a PIR is a bare GPIO level. It cannot
+# prove communication health the way a UART sensor can — a permanently low
+# input may be a physically healthy PIR in an empty room OR a disconnected
+# sensor; the hardware provides no separate diagnostic signal to tell them
+# apart. This adapter therefore fabricates NO health detection: the PIR
+# contributes presence assertions and clear votes to the fusion engine, but
+# it can never independently qualify the Presence module as fully Available
+# (the fusion engine models it as a non-verifiable channel). PIR outputs
+# are also ignored during the sensor's warm-up window (stabilisation after
+# power-on produces false triggers).
+#
+# Composition contract: this adapter is composed by presence-bearing bundles
+# TOGETHER WITH packages/features/presence_framework.yaml (which owns the
+# s360_presence_evaluate script referenced below) — the same layering rule
+# the presence profiles already use for the presence_confidence global.
+# ============================================================================
+
+binary_sensor:
+  # Raw PIR state — individual-sensor diagnostic (disabled by default).
+  # The customer-facing occupancy result is the fused "Occupancy" entity.
+  - platform: gpio
+    id: s360_pir_motion
+    name: "PIR Motion"
+    device_class: motion
+    entity_category: diagnostic
+    disabled_by_default: true
+    pin:
+      number: ${pir_sensor_pin}
+      mode:
+        input: true
+        pulldown: true
+    filters:
+      # Input debounce only — presence hold/retention lives in the fusion
+      # engine (mode-controlled), not in the raw diagnostic signal.
+      - delayed_on: 100ms
+    on_press:
+      then:
+        # Immediate movement response: evaluate the fusion engine now.
+        - script.execute: s360_presence_evaluate
+    on_release:
+      then:
+        - script.execute: s360_presence_evaluate

@@ -385,7 +385,9 @@ class RadarAdapterTests(unittest.TestCase):
                 continue
             nested: List[Dict[str, Any]] = []
             for key, value in entry.items():
-                if key.startswith("target_") and isinstance(value, dict):
+                if key in ("target_1", "target_2", "target_3") and isinstance(
+                    value, dict
+                ):
                     nested.extend(v for v in value.values() if isinstance(v, dict))
                 elif key.endswith("_count") and isinstance(value, dict):
                     nested.append(value)
@@ -496,7 +498,9 @@ class CoreFrameworkContractTests(unittest.TestCase):
         entry = runtime["presence"]
         self.assertEqual(entry.get("work_item"), "PRESENCE-FRAMEWORK-001")
         self.assertEqual(entry.get("entity_id"), "s360_module_status_presence")
-        self.assertEqual(sorted(entry.get("values") or []), sorted(MODULE_HEALTH_VALUES))
+        self.assertEqual(
+            sorted(entry.get("values") or []), sorted(MODULE_HEALTH_VALUES)
+        )
         signals = " ".join(entry.get("signals") or []).lower()
         self.assertIn("ld2450", signals)
         # Honesty: the GPIO-only sensors (PIR / SEN0609 digital output)
@@ -562,9 +566,7 @@ class CompileLaneTests(unittest.TestCase):
         self.assertNotIn("upload-artifact", self.raw)
 
     def test_quick_validation_gate_runs_presence_contract(self) -> None:
-        self.assertIn(
-            "tests/test_presence_framework.py", VALIDATE_WORKFLOW.read_text()
-        )
+        self.assertIn("tests/test_presence_framework.py", VALIDATE_WORKFLOW.read_text())
 
 
 # --- Documentation ------------------------------------------------------------------
@@ -653,7 +655,7 @@ class RoadmapTests(unittest.TestCase):
     def test_roadmap_records_presence_framework(self) -> None:
         text = ROADMAP.read_text()
         self.assertIn("PRESENCE-FRAMEWORK-001", text)
-        section = text[text.index("PRESENCE-FRAMEWORK-001"):][:5000]
+        section = text[text.index("PRESENCE-FRAMEWORK-001") :][:5000]
         lowered = section.lower()
         self.assertIn("SOT", section)
         self.assertIn("hardware", lowered)

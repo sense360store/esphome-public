@@ -386,13 +386,14 @@ class ContractFileTests(unittest.TestCase):
     def test_capability_descriptions_claim_only_compiled_firmware(self) -> None:
         # A capability description is a statement about the FIRMWARE that is
         # compiled, never about what the PCB could carry. Components that
-        # exist on the hardware but are not compiled anywhere (PIR, SEN0609,
-        # MICS-4514, BMP581, LTR-303ALS) may only be mentioned if explicitly
-        # marked as not compiled; connectors are hardware possibilities and
-        # never capability evidence.
+        # exist on the hardware but are not compiled anywhere (MICS-4514,
+        # BMP581, LTR-303ALS) may only be mentioned if explicitly marked as
+        # not compiled; connectors are hardware possibilities and never
+        # capability evidence. (PIR and SEN0609 left this list when
+        # PRESENCE-FRAMEWORK-001 compiled them into the presence capability
+        # — see test_presence_capability_composes_all_three_sensors.)
         capabilities = self.contract.get("capabilities") or {}
         non_compiled_components = {
-            "presence": ["PIR", "SEN0609"],
             "airiq": ["MICS"],
             "roomiq": ["BMP581", "LTR-303"],
         }
@@ -776,14 +777,30 @@ class CapabilityCompositionEvidenceTests(unittest.TestCase):
                         f"({fragments}) but does not declare the capability",
                     )
 
-    def test_presence_evidence_is_ld2450_only_today(self) -> None:
-        # Presence firmware today is the HLK-LD2450 radar half. PIR and
-        # SEN0609 hardware inputs exist on the boards but are NOT compiled
-        # in any current configuration; a PR that adds them must update the
-        # presence capability description and this guard deliberately.
-        for config_string in self.contract["configs"]:
+    def test_presence_capability_composes_all_three_sensors(self) -> None:
+        # PRESENCE-FRAMEWORK-001 (deliberate update of the former
+        # ld2450-only guard): the presence capability is the tri-sensor
+        # composition — LD2450 radar half + PIR adapter + SEN0609 adapter +
+        # the fusion framework. The legacy dual-definition C4001 package
+        # stays out of every composition (its GPIO map predates
+        # CORE-ABSTRACT-BUS-001C and conflicts with the schematic).
+        for config_string, entry in self.contract["configs"].items():
             files = self.resolved[config_string]
             self.assertNotIn("presence_dfrobot_c4001", files, config_string)
+            if "presence" not in (entry.get("capabilities") or []):
+                continue
+            for fragment in (
+                "s360-200-roomiq-radar",
+                "s360-200-roomiq-pir",
+                "s360-200-roomiq-sen0609",
+                "presence_framework",
+            ):
+                self.assertIn(
+                    fragment,
+                    files,
+                    f"{config_string}: presence capability requires the "
+                    f"tri-sensor composition ({fragment} missing)",
+                )
 
 
 class IsolationTests(unittest.TestCase):
