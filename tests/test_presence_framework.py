@@ -733,12 +733,39 @@ class RoadmapTests(unittest.TestCase):
         text = ROADMAP.read_text()
         section = text[text.index("## 13.") :][:8000]
         lowered = section.lower()
-        # Bundle/SOT reconciliation is explicitly unresolved (module-level
-        # fitment of the J2/J3 radar modules is an owner confirmation), and
-        # the SEN0609 UART follow-up is a tracked work item.
+        # Bundle/SOT reconciliation is RESOLVED by product authority: the
+        # SOT catalog defines S360-200 RoomIQ as a single product that
+        # includes the J2/J3 radar modules (no radar-less variant exists),
+        # so every RoomIQ-bearing bundle includes LD2450 and SEN0609. The
+        # record must cite the SOT sources, must not claim the question is
+        # still an open owner confirmation, and must keep physical bench
+        # validation (PRESENCE-BENCH-001) explicitly pending — product
+        # authority is not hardware proof.
         self.assertIn("reconciliation", lowered)
+        self.assertIn("resolved by product authority", lowered)
+        self.assertIn("products.yaml", section)
+        self.assertIn("bundles.yaml", section)
+        self.assertNotIn("pending owner confirmation", lowered)
+        self.assertNotIn("direct SOT inspection was not possible", section)
+        self.assertIn("PRESENCE-BENCH-001", section)
         self.assertIn("PRESENCE-SEN0609-UART-001", section)
         self.assertIn("software foundation", lowered)
+
+    def test_architecture_doc_records_resolved_kit_authority(self) -> None:
+        text = DOC.read_text()
+        section = text[text.index("## Board vs kit authority") :][:5000]
+        lowered = section.lower()
+        # The architecture doc's six-layer reconciliation must record the
+        # same resolution with SOT citations, keep the six layers distinct,
+        # and keep the fail-safe posture as defence-in-depth rather than a
+        # stand-in for unresolved product truth.
+        self.assertIn("resolved by product authority", lowered)
+        self.assertIn("products.yaml", section)
+        self.assertIn("bundles.yaml", section)
+        self.assertIn("roadmap.yaml", section)
+        self.assertNotIn("stays explicitly unresolved", lowered)
+        self.assertIn("PRESENCE-BENCH-001", section)
+        self.assertIn("fail-safe", lowered)
 
 
 if __name__ == "__main__":

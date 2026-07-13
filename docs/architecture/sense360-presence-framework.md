@@ -331,23 +331,52 @@ Six distinct layers must never be conflated:
 3. **Firmware compiled** (this framework): tri-sensor adapters composed in
    every presence-bearing bundle.
 4. **Physical sensor fitted**: provable from this repository **only for
-   the soldered PIR**; whether production S360-200 assemblies / kits ship
-   with the J2 (LD2450) and J3 (SEN0609) modules fitted is **not encoded
-   in this repository** and remains an owner confirmation.
-5. **Commercial bundle sold** (`config/room-bundle-skus.json`,
-   `config/shop-commercial-source-of-truth.json`): kits list board SKUs
-   (every kit includes S360-200), not module-level fitment.
+   the soldered PIR**; for the J2 (LD2450) and J3 (SEN0609) modules, SOT
+   product authority (layer 5) defines them as included in every S360-200,
+   while per-unit physical verification remains bench evidence
+   (`PRESENCE-BENCH-001`).
+5. **Commercial bundle sold** (SOT `products.yaml` / `bundles.yaml`,
+   mirrored by `config/room-bundle-skus.json`,
+   `config/shop-commercial-source-of-truth.json`): kits list board SKUs;
+   every RoomIQ kit includes the complete S360-200 product.
 6. **Runtime detected/healthy**: only the LD2450 UART produces a real
    runtime signal (see the health contract above).
 
-**Fail-safe posture for the unresolved layer 4:** if a J3 SEN0609 module
-is absent, its pulled-down GPIO reads clear — it can neither assert false
-occupancy, nor block clearing, nor affect health (unverifiable channel);
-if a J2 LD2450 module is absent, the module status honestly reports
-Degraded after warm-up. Firmware misbehaviour is therefore bounded, but
-**SOT / kit-level reconciliation stays explicitly unresolved** until the
-owner confirms module fitment per sold kit (direct SOT inspection was not
-possible from this session; see the PR audit report).
+**Layers 4–5 are resolved by product authority** (direct SOT inspection,
+performed after the original audit which could not reach SOT):
+
+* SOT `products.yaml` defines S360-200 RoomIQ as a **single product with
+  no variant axis** whose defining capability is presence detection
+  (legacy names *Comfort, Presence* — the Presence board carried the
+  radars).
+* SOT `bundles.yaml` composes every bundle from whole board SKUs; no
+  bundle carves modules out of a board SKU.
+* SOT `roadmap.yaml` ships Zone Studio publicly as "LD2450 and SEN0609
+  radar zone configuration for Home Assistant" — an owner-authored
+  statement that the customer RoomIQ product carries both radars.
+* The canonical hardware catalog (`docs/hardware-catalog.md` /
+  `config/hardware-catalog.json`) lists PIR, LD2450 and SEN0609 as
+  S360-200 components, in deliberate contrast to its "Connectors for …"
+  phrasing reserved for genuinely optional attachments (AirIQ: SPS30,
+  SFA40; VentIQ: IR temp, SPS30). WebFlash's constraint matrix
+  (`scripts/data/module-requirements.js`) mirrors the same sensor list.
+
+**Conclusion: every RoomIQ-bearing bundle includes the LD2450 and SEN0609
+modules by product definition; no radar-less RoomIQ variant exists in
+SOT, this repository, or WebFlash.** Connector attachment at J2/J3 is an
+assembly detail of the S360-200 product, not a per-kit option. This is
+product authority, **not hardware proof** — per-unit fitment and sensor
+behaviour stay on the operator bench checklist (`PRESENCE-BENCH-001`).
+
+**Fail-safe posture (retained as defence-in-depth against assembly
+defects):** if a J3 SEN0609 module is absent, its pulled-down GPIO reads
+clear — it can neither assert false occupancy, nor block clearing, nor
+affect health (unverifiable channel); if a J2 LD2450 module is absent,
+the module status honestly reports Degraded after warm-up. Firmware
+misbehaviour is bounded either way; the
+`presence_sen0609_expected` / `presence_radar_expected` substitutions
+remain available for any future composition that deliberately omits a
+sensor.
 
 ## Compile-time inclusion vs runtime health
 
