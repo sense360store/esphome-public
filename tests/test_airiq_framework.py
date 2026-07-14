@@ -20,9 +20,18 @@ driver-compiled / customer-functionality are recorded SEPARATELY):
   membership is configuration-driven by substitutions, never by an
   invented Base/Pro flag.
 * Compiled customer stack: SCD41 (CO2 ppm; PCB-mounted U3) + SGP41
-  (VOC/NOx relative indices — NEVER concentrations; PCB-mounted U1) +
-  SPS30 (PM µg/m³; EXTERNAL connector-attached via J2, compiled as part
-  of the standard stack).
+  (VOC/NOx relative indices — NEVER concentrations; PCB-mounted U1).
+* SPS30 (PM µg/m³) is a SUPPORTED EXTERNAL ATTACHMENT (J2): the driver is
+  compiled, but no authoritative kit/SOT/product record declares the
+  module as supplied (kit records enumerate board SKUs only; no SPS30
+  SKU exists; SOT never names SPS30; WebFlash lists the SPS30 as
+  "optional"; the roadmap doctrine reserves the catalog's "Connectors
+  for ..." phrasing for genuinely optional attachments). Commercial
+  inclusion is therefore UNPROVEN: SPS30 is expected=false by default,
+  its absence never degrades AirIQ health, and PM entities ship disabled
+  by default — a future SPS30-declared composition opts in explicitly
+  (airiq_expected_pm + enabling the PM entities). Firmware inference
+  never creates a commercial decision.
 * MICS-4514 (U4) + STM8 (U5) are PCB-MOUNTED (schematic + BOM + catalog
   agree) but have NO firmware driver and an unverified readout interface
   (ENTITY-FILL-210-MICS-001): the engine carries diagnostic-only MiCS
@@ -149,20 +158,24 @@ ENTITY_PLATFORM_KEYS = (
     "light",
 )
 
-# The exact default-enabled customer set (accepted owner decisions 1-4):
-# useful pollutant measurements + one headline + one recommendation.
+# The exact default-enabled customer set: pollutant measurements from the
+# PCB-mounted compiled sensors + one headline + one recommendation. PM is
+# NOT default-enabled anywhere: the SPS30 is an external attachment whose
+# commercial inclusion is unproven.
 DEFAULT_ENABLED_IDS = {
     "s360_co2",
     "s360_voc",
     "s360_nox",
-    "s360_pm2_5",
     "s360_air_quality",
     "s360_recommendation",
 }
 
-# Additional standard (non-diagnostic) sensors that stay disabled by
-# default: extra PM fractions add little default customer value.
+# Standard (non-diagnostic) sensors that stay disabled by default: every
+# PM entity (SPS30 external-attachment inclusion unproven; a declared
+# composition opts in) — PM2.5 first among them, then the secondary
+# fractions.
 DISABLED_STANDARD_SENSOR_IDS = {
+    "s360_pm2_5",
     "s360_pm1",
     "s360_pm4",
     "s360_pm10",
@@ -261,11 +274,14 @@ class AuthorityTests(unittest.TestCase):
         # formaldehyde and ozone slots exist for future authoritative
         # compositions but default OFF everywhere today (no driver, no
         # resolved fitment) — they must not leak into current products.
+        # PCB-mounted compiled sensors are expected; EXTERNAL attachments
+        # (SPS30 PM, SEN0321/ZE27-O3 ozone) and unfitted stages default
+        # OFF — a composition that declares an attachment opts in.
         expectations = {
             "airiq_expected_co2": "true",
             "airiq_expected_voc": "true",
             "airiq_expected_nox": "true",
-            "airiq_expected_pm": "true",
+            "airiq_expected_pm": "false",
             "airiq_expected_hcho": "false",
             "airiq_expected_o3": "false",
         }
@@ -299,6 +315,34 @@ class AuthorityTests(unittest.TestCase):
             self.assertNotIn("carbon monoxide", name, entity_id)
             self.assertNotIn("nitrogen dioxide", name, entity_id)
             self.assertNotIn("mics", name, entity_id)
+
+    def test_sps30_external_attachment_never_assumed_included(self) -> None:
+        # A connector and a compiled driver do not prove an external
+        # module is physically supplied. No authoritative kit / SOT /
+        # product record declares SPS30 inclusion, so the framework must
+        # state the opt-in posture and every AirIQ bundle must list the
+        # SPS30 as an external attachment separate from the S360-210
+        # board SKU — and must not describe AirIQ as a "full ... stack".
+        raw = FRAMEWORK_PACKAGE.read_text().lower()
+        self.assertIn("opt-in", raw)
+        self.assertIn("external attachment", raw)
+        for bundle in airiq_bundles():
+            text = bundle.read_text()
+            self.assertIn("SPS30", text, bundle.name)
+            self.assertIn("external", text.lower(), bundle.name)
+            for phrase in (
+                "full indoor air-quality stack",
+                "full ceiling air-quality stack",
+                "full air-quality stack",
+            ):
+                self.assertNotIn(phrase, text, f"{bundle.name}: {phrase}")
+
+    def test_board_package_separates_pcb_from_external(self) -> None:
+        # The board package must not present the SPS30 as part of the
+        # S360-210 PCB: it is an external J2 attachment.
+        raw = BOARD_PACKAGE.read_text()
+        self.assertIn("J2", raw)
+        self.assertIn("external", raw.lower())
 
     def test_board_package_raw_sensors_unchanged_and_internal(self) -> None:
         # The board layer stays the owner of the raw sensors; this work item
@@ -418,6 +462,19 @@ class CustomerEntityContractTests(unittest.TestCase):
             self.assertEqual(entity.get("device_class"), device_class)
         pm4 = self._entity("s360_pm4")
         self.assertEqual(pm4.get("unit_of_measurement"), "µg/m³")
+
+    def test_pm_entities_are_opt_in_for_declared_compositions(self) -> None:
+        # PM2.5 exists (the driver is compiled and a customer with an
+        # attached SPS30 can enable it), but it ships disabled by default
+        # and the framework documents the explicit opt-in contract for a
+        # future composition with a declared SPS30 attachment.
+        entity = self._entity("s360_pm2_5")
+        self.assertTrue(entity.get("disabled_by_default"))
+        raw = FRAMEWORK_PACKAGE.read_text()
+        self.assertIn("airiq_expected_pm", raw)
+        lowered = raw.lower()
+        self.assertIn("opt-in", lowered)
+        self.assertIn("declared", lowered)
 
     def test_no_pressure_customer_surface_firmware_drift(self) -> None:
         # Pressure is NOT S360-210 product hardware: absent from the
@@ -785,8 +842,32 @@ class CoreFrameworkContractTests(unittest.TestCase):
         for honest in ("accuracy", "hardware"):
             self.assertIn(honest, definition)
         notes = entry.get("notes", "")
-        for needle in ("SPS30", "BMP390", "MICS-4514", "drift"):
+        for needle in ("SPS30", "BMP390", "MICS-4514", "drift", "opt"):
             self.assertIn(needle, notes + definition, needle)
+
+    def test_airiq_contract_separates_pcb_from_external_attachments(self) -> None:
+        # Machine-readable separation: PCB-mounted sensors and external
+        # attachments are distinct fields, and external-attachment
+        # membership (SPS30, SEN0321/ZE27-O3) is opt-in per composition.
+        runtime = self.contract.get("module_runtime_status") or {}
+        entry = runtime.get("airiq") or {}
+        pcb = entry.get("pcb_mounted_sensors") or []
+        self.assertTrue(any("SCD41" in item for item in pcb))
+        self.assertTrue(any("SGP41" in item for item in pcb))
+        self.assertTrue(any("MICS-4514" in item for item in pcb))
+        external = entry.get("external_attachments") or {}
+        self.assertIn("SPS30", external)
+        self.assertTrue(any("SEN0321" in key for key in external))
+        sps30 = external["SPS30"]
+        for needle in ("J2", "not declared", "expected=false", "opt"):
+            self.assertIn(needle, sps30, needle)
+        # No sensor may appear on both sides of the separation.
+        for key in external:
+            token = key.split()[0]
+            self.assertFalse(
+                any(token in item for item in pcb),
+                f"{token} listed both PCB-mounted and external",
+            )
 
     def test_presence_and_roomiq_runtime_entries_unchanged(self) -> None:
         runtime = self.contract.get("module_runtime_status") or {}
@@ -900,6 +981,15 @@ class DocumentationTests(unittest.TestCase):
         # per the verified schematic.
         self.assertIn("J2", self.text)
         self.assertIn("SEN0321", self.text)
+
+    def test_sps30_inclusion_audit_documented(self) -> None:
+        # The SPS30 commercial-inclusion audit and its outcome (unproven
+        # -> safe opt-in model) must be documented, including the exact
+        # SOT/product follow-up needed to declare a fitted attachment.
+        self.assertIn("opt-in", self.lowered)
+        self.assertIn("unproven", self.lowered)
+        self.assertIn("kit", self.lowered)
+        self.assertIn("optional", self.lowered)
 
     def test_state_vocabularies_documented(self) -> None:
         for value in SEVERITY_STRINGS + RECOMMENDATION_STRINGS:
@@ -1017,6 +1107,9 @@ class RoadmapTests(unittest.TestCase):
         self.assertIn("drift", lowered)
         self.assertIn("SEN0321", section)
         self.assertIn("HW-PINMAP-210-FOLLOWUP", section)
+        # SPS30 posture: external attachment, inclusion unproven, opt-in.
+        self.assertIn("SPS30", section)
+        self.assertIn("opt-in", lowered)
         self.assertGreater(section_start, start)
 
 

@@ -64,7 +64,10 @@ void run_test(void (*test_func)(), const char *test_name) {
 static const uint32_t T0 = 1000;
 static const uint32_t AFTER_ALL_WARMUPS = T0 + 200000;  // beyond every window
 
-// Feed one good sample on every expected default channel at time t.
+// Feed one good sample on every PCB-mounted default channel plus the
+// external PM attachment at time t. PM participates in headline/health
+// only in tests that explicitly opt in (set_expected(POLLUTANT_PM25)) —
+// the default composition does not expect the external SPS30.
 static void feed_all_good(AirIQEngine &e, uint32_t t) {
   e.input_co2(t, 600.0f);  // Good (< 800 ppm)
   e.input_voc(t, 80.0f);   // Good (< 150 index)
@@ -213,6 +216,7 @@ TEST_CASE(worst_pollutant_wins_never_averaged_away) {
   // One severe pollutant against three good ones: the headline is the
   // worst severity, never a blended average.
   AirIQEngine e = started_engine();
+  e.set_expected(POLLUTANT_PM25, true);  // declared external SPS30
   const uint32_t t = T0 + 5000;
   feed_all_good(e, t);
   e.input_pm2_5(t, 80.0f);  // Very poor
@@ -226,6 +230,7 @@ TEST_CASE(worst_pollutant_tie_break_is_deterministic) {
   // Two pollutants at the same worst severity: the driver is chosen by
   // fixed priority order (CO2, VOC, NOx, PM2.5, Formaldehyde, Ozone).
   AirIQEngine e = started_engine();
+  e.set_expected(POLLUTANT_PM25, true);  // declared external SPS30
   const uint32_t t = T0 + 5000;
   feed_all_good(e, t);
   e.input_co2(t, 1200.0f);  // Poor
@@ -257,6 +262,7 @@ TEST_CASE(stale_values_do_not_count_as_good) {
 
 TEST_CASE(one_stale_expected_sensor_degrades_but_service_remains) {
   AirIQEngine e = started_engine();
+  e.set_expected(POLLUTANT_PM25, true);  // declared external SPS30
   uint32_t t = T0 + 5000;
   feed_all_good(e, t);
   // Keep everything except PM fresh for 4 more minutes.
@@ -480,6 +486,7 @@ TEST_CASE(particulate_pollution_gives_conservative_source_check) {
   // help or worsen conditions, so PM drives "Check pollution source",
   // never an unconditional ventilation instruction.
   AirIQEngine e = started_engine();
+  e.set_expected(POLLUTANT_PM25, true);  // declared external SPS30
   const uint32_t t = T0 + 5000;
   feed_all_good(e, t);
   e.input_pm2_5(t, 80.0f);  // Very poor
@@ -494,6 +501,7 @@ TEST_CASE(ventilation_pollutant_outranks_pm_at_equal_severity) {
   // deterministic rule prefers the ventilation recommendation and the
   // reason names CO2 (fixed priority order).
   AirIQEngine e = started_engine();
+  e.set_expected(POLLUTANT_PM25, true);  // declared external SPS30
   const uint32_t t = T0 + 5000;
   feed_all_good(e, t);
   e.input_co2(t, 1200.0f);
@@ -506,6 +514,7 @@ TEST_CASE(pm_very_poor_outranks_co2_poor) {
   // The recommendation follows the WORST pollutant, not the pollutant
   // class: PM Very poor vs CO2 Poor → source check.
   AirIQEngine e = started_engine();
+  e.set_expected(POLLUTANT_PM25, true);  // declared external SPS30
   const uint32_t t = T0 + 5000;
   feed_all_good(e, t);
   e.input_co2(t, 1200.0f);  // Poor
@@ -606,6 +615,53 @@ TEST_CASE(pm_fractions_share_the_pm_freshness_channel) {
 }
 
 // ---------------------------------------------------------------------------
+// External-attachment composition (SPS30 inclusion unproven -> opt-in)
+// ---------------------------------------------------------------------------
+
+TEST_CASE(default_composition_does_not_expect_external_pm) {
+  // The SPS30 is an external attachment whose commercial inclusion is
+  // unproven: by default its absence must never degrade AirIQ health and
+  // the headline is served by the PCB-mounted pollutants alone.
+  AirIQEngine e = started_engine();
+  const uint32_t t = T0 + 130000;  // beyond every warm-up window
+  e.input_co2(t, 600.0f);
+  e.input_voc(t, 80.0f);
+  e.input_nox(t, 10.0f);
+  // No PM sample ever arrives.
+  e.evaluate(t + 1000);
+  ASSERT_EQ(e.health(), HEALTH_AVAILABLE);
+  ASSERT_EQ(e.air_quality(), AIR_QUALITY_GOOD);
+  ASSERT_EQ(e.severity(POLLUTANT_PM25), SEVERITY_UNAVAILABLE);
+}
+
+TEST_CASE(unexpected_pm_data_never_drives_the_headline) {
+  // Even if a customer attaches an SPS30 without a declared composition,
+  // its data classifies for diagnostics but never drives headline or
+  // health until the composition opts in.
+  AirIQEngine e = started_engine();
+  const uint32_t t = T0 + 5000;
+  feed_all_good(e, t);
+  e.input_pm2_5(t, 80.0f);  // Very poor, but PM is not expected
+  e.evaluate(t + 1000);
+  ASSERT_EQ(e.severity(POLLUTANT_PM25), SEVERITY_VERY_POOR);
+  ASSERT_EQ(e.air_quality(), AIR_QUALITY_GOOD);
+}
+
+TEST_CASE(declared_external_pm_missing_degrades_honestly) {
+  // A composition that DECLARES the SPS30 attachment expects it: a
+  // missing/stale module degrades honestly while useful service remains.
+  AirIQEngine e = started_engine();
+  e.set_expected(POLLUTANT_PM25, true);  // declared external SPS30
+  const uint32_t t = T0 + 130000;
+  e.input_co2(t, 600.0f);
+  e.input_voc(t, 80.0f);
+  e.input_nox(t, 10.0f);
+  e.evaluate(t + 1000);  // PM warm-up long expired, no data
+  ASSERT_EQ(e.health(), HEALTH_DEGRADED);
+  ASSERT_EQ(e.air_quality(), AIR_QUALITY_GOOD);  // honest partial headline
+}
+
+// ---------------------------------------------------------------------------
 // Vocabulary single-sourcing
 // ---------------------------------------------------------------------------
 
@@ -700,6 +756,12 @@ int main() {
            "data_age_diagnostics_report_seconds");
   run_test(test_pm_fractions_share_the_pm_freshness_channel,
            "pm_fractions_share_the_pm_freshness_channel");
+  run_test(test_default_composition_does_not_expect_external_pm,
+           "default_composition_does_not_expect_external_pm");
+  run_test(test_unexpected_pm_data_never_drives_the_headline,
+           "unexpected_pm_data_never_drives_the_headline");
+  run_test(test_declared_external_pm_missing_degrades_honestly,
+           "declared_external_pm_missing_degrades_honestly");
   run_test(test_state_strings_match_the_customer_contract,
            "state_strings_match_the_customer_contract");
 
