@@ -39,11 +39,6 @@ substitutions:
   comfort_ceiling_veml7700_update: 10s
   comfort_ceiling_sht4x_update: 30s
 
-  # Light level thresholds (lux)
-  comfort_ceiling_lux_dark: "10"
-  comfort_ceiling_lux_dim: "100"
-  comfort_ceiling_lux_bright: "500"
-
 # ============================================================================
 # SENSORS
 # ============================================================================
@@ -169,38 +164,21 @@ binary_sensor:
             format: "VEML7700 interrupt triggered - light level threshold crossed"
 
 # ============================================================================
-# GLOBALS FOR COMFORT CEILING CALCULATIONS
+# GLOBALS FOR COMFORT CEILING MODULE TRACKING
 # ============================================================================
+# ROOMIQ-FRAMEWORK-001: the legacy comfort-calculation block (comfort index /
+# dew point / heat index / light-level globals plus the 30 s calculation
+# interval) moved to packages/features/comfort_basic_profile.yaml — the only
+# consumer of those values. Every composition that displays them includes
+# that profile, so legacy products resolve identically, while
+# framework-bearing bundles compile exactly ONE environmental engine
+# (include/sense360/roomiq_engine.h) with no duplicate threshold logic.
 globals:
   # Comfort ceiling module presence flag
   - id: module_comfort_ceiling_present
     type: bool
     restore_value: false
     initial_value: 'false'
-
-  # Comfort index (0-100 scale)
-  - id: comfort_ceiling_index_value
-    type: float
-    restore_value: false
-    initial_value: '50.0'
-
-  # Dew point temperature (calculated)
-  - id: comfort_ceiling_dew_point
-    type: float
-    restore_value: false
-    initial_value: '10.0'
-
-  # Heat index / feels-like temperature
-  - id: comfort_ceiling_heat_index
-    type: float
-    restore_value: false
-    initial_value: '20.0'
-
-  # Light level category (0=dark, 1=dim, 2=normal, 3=bright)
-  - id: comfort_ceiling_light_level
-    type: int
-    restore_value: false
-    initial_value: '2'
 
   # Power consumption tracking (mA)
   - id: power_comfort_ceiling_ma
@@ -226,85 +204,5 @@ esphome:
             ESP_LOGI("comfort_ceiling", "  - VEML7700 ALS at 0x10");
             ESP_LOGI("comfort_ceiling", "  - SHT4x Temp/Humidity at 0x44");
 
-# ============================================================================
-# INTERVAL FOR COMFORT CALCULATIONS
-# ============================================================================
-interval:
-  - interval: 30s
-    then:
-      - lambda: |-
-          float temp = id(comfort_ceiling_temperature).state;
-          float humidity = id(comfort_ceiling_humidity).state;
-          float lux = id(comfort_ceiling_illuminance).state;
-
-          if (std::isnan(temp) || std::isnan(humidity)) {
-            return;
-          }
-
-          // ================================================================
-          // Calculate dew point (Magnus formula approximation)
-          // ================================================================
-          float alpha = ((17.27f * temp) / (237.7f + temp)) + log(humidity / 100.0f);
-          float dew_point = (237.7f * alpha) / (17.27f - alpha);
-          id(comfort_ceiling_dew_point) = dew_point;
-
-          // ================================================================
-          // Calculate heat index (simplified Rothfusz regression)
-          // Only valid when temp > 26.7C and humidity > 40%
-          // ================================================================
-          float heat_index = temp;
-          if (temp >= 26.7f && humidity >= 40.0f) {
-            float t = temp;
-            float h = humidity;
-            heat_index = -8.784695f + 1.61139411f * t + 2.338549f * h
-                         - 0.14611605f * t * h - 0.012308094f * t * t
-                         - 0.016424828f * h * h + 0.002211732f * t * t * h
-                         + 0.00072546f * t * h * h - 0.000003582f * t * t * h * h;
-          }
-          id(comfort_ceiling_heat_index) = heat_index;
-
-          // ================================================================
-          // Calculate comfort index (0-100)
-          // Based on temperature (ideal 20-24C) and humidity (ideal 40-60%)
-          // ================================================================
-          float temp_score = 100.0f;
-          if (temp < 18.0f) {
-            temp_score = 100.0f - (18.0f - temp) * 10.0f;
-          } else if (temp > 26.0f) {
-            temp_score = 100.0f - (temp - 26.0f) * 10.0f;
-          } else if (temp < 20.0f || temp > 24.0f) {
-            temp_score = 90.0f;  // Slightly outside ideal range
-          }
-          if (temp_score < 0.0f) temp_score = 0.0f;
-
-          float hum_score = 100.0f;
-          if (humidity < 30.0f) {
-            hum_score = 100.0f - (30.0f - humidity) * 2.0f;
-          } else if (humidity > 70.0f) {
-            hum_score = 100.0f - (humidity - 70.0f) * 2.0f;
-          } else if (humidity < 40.0f || humidity > 60.0f) {
-            hum_score = 90.0f;  // Slightly outside ideal range
-          }
-          if (hum_score < 0.0f) hum_score = 0.0f;
-
-          // Combined comfort index (weighted average)
-          float comfort = (temp_score * 0.5f) + (hum_score * 0.5f);
-          id(comfort_ceiling_index_value) = comfort;
-
-          // ================================================================
-          // Light level categorization
-          // ================================================================
-          if (!std::isnan(lux)) {
-            if (lux < ${comfort_ceiling_lux_dark}) {
-              id(comfort_ceiling_light_level) = 0;  // Dark
-            } else if (lux < ${comfort_ceiling_lux_dim}) {
-              id(comfort_ceiling_light_level) = 1;  // Dim
-            } else if (lux < ${comfort_ceiling_lux_bright}) {
-              id(comfort_ceiling_light_level) = 2;  // Normal
-            } else {
-              id(comfort_ceiling_light_level) = 3;  // Bright
-            }
-          }
-
-          ESP_LOGD("comfort_ceiling", "Comfort: %.1f%%, Temp: %.2f°C, Humidity: %.1f%%, Dew: %.1f°C, Lux: %.0f",
-                   comfort, temp, humidity, dew_point, lux);
+# The legacy 30 s comfort-calculation interval now lives in
+# packages/features/comfort_basic_profile.yaml (see the globals note above).

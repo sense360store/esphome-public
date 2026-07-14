@@ -12,7 +12,7 @@
   "guardrails": [
     "All capability and module-status values in this contract are compile-time composition facts only: no runtime hardware autodetection is performed or claimed by the framework.",
     "Module status 'Included' is compile-time presence, never a health, availability, bench or hardware claim.",
-    "The reserved runtime status values (Initialising / Available / Degraded / Unavailable / Fault) may only be introduced by a module-specific PR that wires a real supported runtime signal. Presence is the first wired module (PRESENCE-FRAMEWORK-001, see module_runtime_status); all other module slots still emit compile-time values only.",
+    "The reserved runtime status values (Initialising / Available / Degraded / Unavailable / Fault) may only be introduced by a module-specific PR that wires a real supported runtime signal. Presence is the first wired module (PRESENCE-FRAMEWORK-001) and RoomIQ is the second (ROOMIQ-FRAMEWORK-001) — see module_runtime_status; all other module slots still emit compile-time values only.",
     "This contract changes no release declaration: config/webflash-builds.json rows, channels, versions, artifact names, product lifecycle and commercial state are untouched.",
     "Compile-only skeletons (products/compile-only/) and the provisioning bench harness (tests/bench/) never include the framework package, so they cannot be mistaken for customer products.",
     "Firmware-build proof only: nothing in this contract claims hardware, bench, compliance, safety or commercial-availability proof.",
@@ -41,7 +41,7 @@
       "display_name": "RoomIQ",
       "kind": "module",
       "hardware_sku": "S360-200",
-      "description": "RoomIQ comfort-sensing firmware compiled from the RoomIQ climate half (SHT4x temperature/humidity + VEML7700 ambient light) on the S360-200 board. Describes compiled firmware only, not the board BOM."
+      "description": "RoomIQ environmental-service firmware compiled from the RoomIQ climate half (SHT4x temperature/humidity + VEML7700 ambient light) on the S360-200 board, with the ROOMIQ-FRAMEWORK-001 customer experience (calibrated Temperature/Humidity/Illuminance, Comfort, Environment State, Brightness and the canonical darkness service consumed by LED; packages/features/roomiq_framework.yaml). Describes compiled firmware only, not the board BOM (the board's LTR-303ALS light-sensor identity is not compiled and remains a pending bench reconciliation)."
     },
     "airiq": {
       "display_name": "AirIQ",
@@ -132,6 +132,26 @@
         "Explicit module-fault input is reserved: no composed sensor exposes a supported fault signal today, so Fault is never emitted from ordinary stale data."
       ],
       "notes": "Honesty limits: the PIR and SEN0609 digital-output channels are bare GPIO levels and cannot prove communication health — a permanently low line may be a healthy sensor in an empty room or a disconnected one, so these channels never qualify the module as fully Available on their own and never drive it Unavailable. Available therefore attests the verifiable (UART) sensor set only; runtime status never claims hardware/bench proof. Expected-sensor membership is configuration-driven (presence_*_expected substitutions): an intentionally absent sensor in a future composition is never a fault."
+    },
+    "roomiq": {
+      "work_item": "ROOMIQ-FRAMEWORK-001",
+      "entity_id": "s360_module_status_roomiq",
+      "package": "packages/features/roomiq_framework.yaml",
+      "available_definition": "Available means STRICTLY: every required environmental channel (temperature, humidity, illuminance) delivered a valid value-update inside its stale window — real data-freshness evidence from the I2C sensor update callbacks, evaluated by the shared engine include/sense360/roomiq_engine.h. It is data-service availability, NOT sensor accuracy, calibration correctness or hardware health, and it does not resolve the ambient-light part identity (catalog/BOM LTR-303ALS-01 vs compiled VEML7700, pending bench). The diagnostic entity s360_roomiq_sensor_verification ('RoomIQ Sensor Verification') states this coverage limit on-device.",
+      "values": [
+        "Initialising",
+        "Available",
+        "Degraded",
+        "Unavailable",
+        "Fault"
+      ],
+      "signals": [
+        "Per-channel valid (non-NaN) value-update timestamps for temperature, humidity and illuminance provide real data-freshness evidence; a channel past its stale window is unusable and its values go unknown, never frozen.",
+        "Per-channel warm-up windows gate Initialising; the first valid sample ends a channel's initialisation early. Startup is never reported as a fault or an outage.",
+        "Degraded means at least one channel is fresh while another is stale/missing (e.g. illuminance failed but the SHT4x climate path still updates — Comfort stays available, Brightness goes unavailable).",
+        "Explicit module-fault input is reserved: no composed sensor exposes a supported fault signal today, so Fault is never emitted from ordinary stale data."
+      ],
+      "notes": "Honesty limits: temperature and humidity share one physical sensor (SHT4x @ 0x44), so their shared failure appears as both channels going stale together; the engine still tracks them independently. Freshness attests data delivery only — all comfort/brightness thresholds are provisional heuristics and no hardware/bench proof is claimed. The customer-facing entity names never carry a sensor model name while the light-sensor identity stays unresolved."
     }
   },
   "device_health": {

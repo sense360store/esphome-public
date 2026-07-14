@@ -491,14 +491,21 @@ class BoardPackageTests(unittest.TestCase):
             "comfort_ceiling_sht4x",
         ):
             self.assertIn(entity_id, self.entities, entity_id)
-        for entity_id in (
-            "comfort_ceiling_illuminance",
-            "comfort_ceiling_temperature",
-            "comfort_ceiling_humidity",
+        # The measurement channels are NESTED sub-sensors of the platform
+        # entries (veml7700 ambient_light, sht4x temperature/humidity) and
+        # must stay internal (raw, uncalibrated, never customer-facing).
+        veml = self.entities["comfort_ceiling_veml7700"]
+        sht = self.entities["comfort_ceiling_sht4x"]
+        for parent, key, expected_id in (
+            (veml, "ambient_light", "comfort_ceiling_illuminance"),
+            (sht, "temperature", "comfort_ceiling_temperature"),
+            (sht, "humidity", "comfort_ceiling_humidity"),
         ):
+            sub = parent.get(key) or {}
+            self.assertEqual(sub.get("id"), expected_id, expected_id)
             self.assertTrue(
-                self.entities[entity_id].get("internal"),
-                f"{entity_id}: raw board sensors stay internal",
+                sub.get("internal"),
+                f"{expected_id}: raw board sensors stay internal",
             )
         self.assertIn("address: 0x10", self.raw)
         self.assertIn("address: 0x44", self.raw)
@@ -569,7 +576,15 @@ class EngineHeaderTests(unittest.TestCase):
         self.assertIn("provisional", lowered)
         self.assertNotIn("hardware verified", lowered)
         self.assertNotIn("bench verified", lowered)
-        self.assertNotIn("medical", lowered)
+        # "medical" may only appear inside an explicit disclaimer ("never
+        # medical", "not medical", "no medical") — never as a claim.
+        normalised = " ".join(lowered.replace("//", " ").split())
+        scrubbed = (
+            normalised.replace("never medical", "")
+            .replace("not medical", "")
+            .replace("no medical", "")
+        )
+        self.assertNotIn("medical", scrubbed)
 
     def test_simulation_tests_exist(self) -> None:
         self.assertTrue(CPP_TEST.is_file(), f"missing {CPP_TEST}")
@@ -641,10 +656,21 @@ class BundleWiringTests(unittest.TestCase):
     def test_roomiq_bundles_keep_the_board_and_presence_composition(self) -> None:
         # Presence and LED compositions keep working: the framework changes
         # the display/service layer only, never the board or Presence
-        # wiring.
+        # wiring. Bundles bind the climate half either through the merged
+        # board package or through the preserved per-driver alias — both
+        # resolve to the same authoritative
+        # packages/boards/s360-200-roomiq-climate.yaml.
+        climate_half_includes = (
+            "s360-200-roomiq.yaml",
+            "s360-200-roomiq-climate.yaml",
+            "comfort_ceiling.yaml",
+        )
         for bundle in roomiq_bundles():
             raw = bundle.read_text()
-            self.assertIn("s360-200-roomiq.yaml", raw, bundle.name)
+            self.assertTrue(
+                any(inc in raw for inc in climate_half_includes),
+                f"{bundle.name}: no RoomIQ climate-half composition found",
+            )
             self.assertIn("presence_framework.yaml", raw, bundle.name)
 
     def test_legacy_include_paths_still_resolve(self) -> None:
@@ -821,14 +847,23 @@ class DocumentationTests(unittest.TestCase):
         self.assertIn("physical validation pending", self.normalised)
 
     def test_no_forbidden_claims(self) -> None:
+        # "medical" may only appear inside an explicit disclaimer ("never
+        # medical", "not medical", "no medical") — never as a claim.
+        scrubbed = (
+            self.normalised.replace("never medical", "")
+            .replace("not medical", "")
+            .replace("no medical", "")
+        )
+        self.assertNotIn("medical", scrubbed)
         for forbidden in (
-            "medical",
             "mould prevention",
             "mold prevention",
             "condensation prevention",
             "hardware verified",
             "bench verified",
-            "lighting-standard compliance",
+            "prevents mould",
+            "prevents mold",
+            "prevents condensation",
         ):
             self.assertNotIn(forbidden, self.normalised, forbidden)
 

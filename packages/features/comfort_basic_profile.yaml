@@ -1,8 +1,20 @@
 # ============================================================================
-# SENSE360 COMFORT MODULE - BASIC FEATURE PROFILE (CEILING)
+# SENSE360 COMFORT MODULE - BASIC FEATURE PROFILE (CEILING)  [LEGACY]
 # ============================================================================
 # User-friendly environmental comfort monitoring entities.
 # Provides simplified, actionable information for end users.
+#
+# ROOMIQ-FRAMEWORK-001: this profile is the LEGACY display path. Production
+# bundles (products/bundles/*.yaml) compose the canonical framework
+# packages/features/roomiq_framework.yaml instead — never both (the
+# framework preserves every entity id below as a disabled-by-default
+# compatibility entity). This file remains for pinned legacy include paths
+# (products/sense360-core-ceiling.yaml, compile-only skeletons and customer
+# configs pinned at release tags) and keeps its exact pre-framework
+# behaviour. The comfort-calculation globals + interval that used to live
+# in the board climate package moved HERE (their only consumer), so legacy
+# compositions resolve identically while framework bundles compile exactly
+# one environmental engine.
 #
 # Prerequisites:
 #   - packages/expansions/comfort_ceiling.yaml (hardware driver)
@@ -14,8 +26,126 @@
 #   - Light Level (simple text status)
 # ============================================================================
 
+substitutions:
+  # Light level thresholds (lux) — legacy display categorisation.
+  comfort_ceiling_lux_dark: "10"
+  comfort_ceiling_lux_dim: "100"
+  comfort_ceiling_lux_bright: "500"
+
 packages:
   health: !include device_health.yaml
+
+# ============================================================================
+# Legacy comfort-calculation state (moved from
+# packages/boards/s360-200-roomiq-climate.yaml — see header note)
+# ============================================================================
+globals:
+  # Comfort index (0-100 scale)
+  - id: comfort_ceiling_index_value
+    type: float
+    restore_value: false
+    initial_value: '50.0'
+
+  # Dew point temperature (calculated)
+  - id: comfort_ceiling_dew_point
+    type: float
+    restore_value: false
+    initial_value: '10.0'
+
+  # Heat index / feels-like temperature
+  - id: comfort_ceiling_heat_index
+    type: float
+    restore_value: false
+    initial_value: '20.0'
+
+  # Light level category (0=dark, 1=dim, 2=normal, 3=bright)
+  - id: comfort_ceiling_light_level
+    type: int
+    restore_value: false
+    initial_value: '2'
+
+# ============================================================================
+# Legacy comfort-calculation interval (moved verbatim from the board layer)
+# ============================================================================
+interval:
+  - interval: 30s
+    then:
+      - lambda: |-
+          float temp = id(comfort_ceiling_temperature).state;
+          float humidity = id(comfort_ceiling_humidity).state;
+          float lux = id(comfort_ceiling_illuminance).state;
+
+          if (std::isnan(temp) || std::isnan(humidity)) {
+            return;
+          }
+
+          // ================================================================
+          // Calculate dew point (Magnus formula approximation)
+          // ================================================================
+          float alpha = ((17.27f * temp) / (237.7f + temp)) + log(humidity / 100.0f);
+          float dew_point = (237.7f * alpha) / (17.27f - alpha);
+          id(comfort_ceiling_dew_point) = dew_point;
+
+          // ================================================================
+          // Calculate heat index (simplified Rothfusz regression)
+          // Only valid when temp > 26.7C and humidity > 40%
+          // ================================================================
+          float heat_index = temp;
+          if (temp >= 26.7f && humidity >= 40.0f) {
+            float t = temp;
+            float h = humidity;
+            heat_index = -8.784695f + 1.61139411f * t + 2.338549f * h
+                         - 0.14611605f * t * h - 0.012308094f * t * t
+                         - 0.016424828f * h * h + 0.002211732f * t * t * h
+                         + 0.00072546f * t * h * h - 0.000003582f * t * t * h * h;
+          }
+          id(comfort_ceiling_heat_index) = heat_index;
+
+          // ================================================================
+          // Calculate comfort index (0-100)
+          // Based on temperature (ideal 20-24C) and humidity (ideal 40-60%)
+          // ================================================================
+          float temp_score = 100.0f;
+          if (temp < 18.0f) {
+            temp_score = 100.0f - (18.0f - temp) * 10.0f;
+          } else if (temp > 26.0f) {
+            temp_score = 100.0f - (temp - 26.0f) * 10.0f;
+          } else if (temp < 20.0f || temp > 24.0f) {
+            temp_score = 90.0f;  // Slightly outside ideal range
+          }
+          if (temp_score < 0.0f) temp_score = 0.0f;
+
+          float hum_score = 100.0f;
+          if (humidity < 30.0f) {
+            hum_score = 100.0f - (30.0f - humidity) * 2.0f;
+          } else if (humidity > 70.0f) {
+            hum_score = 100.0f - (humidity - 70.0f) * 2.0f;
+          } else if (humidity < 40.0f || humidity > 60.0f) {
+            hum_score = 90.0f;  // Slightly outside ideal range
+          }
+          if (hum_score < 0.0f) hum_score = 0.0f;
+
+          // Combined comfort index (weighted average)
+          float comfort = (temp_score * 0.5f) + (hum_score * 0.5f);
+          id(comfort_ceiling_index_value) = comfort;
+
+          // ================================================================
+          // Light level categorization
+          // ================================================================
+          if (!std::isnan(lux)) {
+            if (lux < ${comfort_ceiling_lux_dark}) {
+              id(comfort_ceiling_light_level) = 0;  // Dark
+            } else if (lux < ${comfort_ceiling_lux_dim}) {
+              id(comfort_ceiling_light_level) = 1;  // Dim
+            } else if (lux < ${comfort_ceiling_lux_bright}) {
+              id(comfort_ceiling_light_level) = 2;  // Normal
+            } else {
+              id(comfort_ceiling_light_level) = 3;  // Bright
+            }
+          }
+
+          ESP_LOGD("comfort_ceiling", "Comfort: %.1f%%, Temp: %.2f°C, Humidity: %.1f%%, Dew: %.1f°C, Lux: %.0f",
+                   comfort, temp, humidity, dew_point, lux);
 
 # ============================================================================
 # User-Facing Sensors (Using Native ESPHome Components)

@@ -159,7 +159,14 @@ packages:
   # Board package wraps packages/expansions/comfort_ceiling.yaml +
   # presence_ceiling.yaml. The RoomIQ display sensors stay in the profiles.
   roomiq_board: !include ../../packages/boards/s360-200-roomiq.yaml
-  roomiq_comfort_profile: !include ../../packages/features/comfort_basic_profile.yaml
+  # === Sense360 RoomIQ framework (ROOMIQ-FRAMEWORK-001) ===
+  # Canonical comfort and environmental service: calibrated Temperature /
+  # Humidity / Illuminance, Comfort, Environment State, Brightness and the
+  # RoomIQ module runtime status (supersedes the legacy
+  # comfort_basic_profile display path in bundles; legacy products keep
+  # the profile and every pre-framework entity id remains available as a
+  # disabled-by-default compatibility entity inside the framework).
+  roomiq_framework: !include ../../packages/features/roomiq_framework.yaml
   # === Sense360 Presence framework (PRESENCE-FRAMEWORK-001) ===
   # Tri-sensor customer Presence experience: PIR (immediate movement) +
   # LD2450 (radar half above) + SEN0609 (static presence), fused by

@@ -261,7 +261,14 @@ packages:
   # retain the legacy split-board naming and are kept for backwards
   # compatibility (see docs/webflash-contract.md §6 footnote).
   roomiq_comfort: !include ../../packages/expansions/comfort_ceiling.yaml
-  roomiq_comfort_profile: !include ../../packages/features/comfort_basic_profile.yaml
+  # === Sense360 RoomIQ framework (ROOMIQ-FRAMEWORK-001) ===
+  # Canonical comfort and environmental service: calibrated Temperature /
+  # Humidity / Illuminance, Comfort, Environment State, Brightness and the
+  # RoomIQ module runtime status (supersedes the legacy
+  # comfort_basic_profile display path in bundles; legacy products keep
+  # the profile and every pre-framework entity id remains available as a
+  # disabled-by-default compatibility entity inside the framework).
+  roomiq_framework: !include ../../packages/features/roomiq_framework.yaml
   roomiq_presence: !include ../../packages/expansions/presence_ceiling.yaml
   # === Sense360 Presence framework (PRESENCE-FRAMEWORK-001) ===
   # Tri-sensor customer Presence experience: PIR (immediate movement) +

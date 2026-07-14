@@ -142,8 +142,11 @@ inline const char *event_to_string(StatusEvent event) {
   return "Warning";
 }
 
-// Darkness decision (LED-05). UNKNOWN (missing/stale/NaN lux) is a
-// first-class state distinct from darkness — it never activates anything.
+// Darkness decision (LED-05). Computed by the canonical RoomIQ
+// environmental engine (include/sense360/roomiq_engine.h — the single
+// lux-threshold implementation, ROOMIQ-FRAMEWORK-001) and injected here via
+// input_darkness(). UNKNOWN (missing/stale/NaN lux) is a first-class state
+// distinct from darkness — it never activates anything.
 enum Darkness {
   DARKNESS_UNKNOWN = 0,
   DARKNESS_DARK = 1,
@@ -193,14 +196,6 @@ class LedController {
 
   void set_night_behaviour(NightBehaviour behaviour) { behaviour_ = behaviour; }
   void set_status_level(StatusLevel level) { status_level_ = level; }
-
-  // Darkness threshold (lux): dark below the threshold, not-dark above
-  // threshold * hysteresis factor; in between the previous decision holds.
-  void set_darkness_threshold(float lux) { darkness_threshold_ = lux; }
-  void set_darkness_hysteresis(float factor) {
-    darkness_hysteresis_ = factor < 1.0f ? 1.0f : factor;
-  }
-  void set_lux_stale_ms(uint32_t stale_ms) { lux_stale_ms_ = stale_ms; }
 
   void set_night_auto_off_ms(uint32_t delay_ms) { auto_off_ms_ = delay_ms; }
   void set_identify_duration_ms(uint32_t duration_ms) {
@@ -260,12 +255,13 @@ class LedController {
     occupancy_valid_ = valid;
   }
 
-  // Lux sample from a real sensor update callback. NaN marks an invalid
-  // sample; missing updates go stale — both are UNKNOWN, never "dark".
-  void input_lux(uint32_t now_ms, float lux) {
-    lux_value_ = lux;
-    lux_seen_ = true;
-    lux_last_ms_ = now_ms;
+  // Darkness decision from the canonical RoomIQ environmental engine
+  // (ROOMIQ-FRAMEWORK-001): threshold, hysteresis and lux staleness are
+  // computed there — ONE implementation. UNKNOWN never activates anything
+  // and never toggles an active automation (fail-safe holds).
+  void input_darkness(uint32_t now_ms, Darkness darkness) {
+    (void)now_ms;
+    darkness_ = darkness;
   }
 
   void request_identify(uint32_t now_ms) {
@@ -315,8 +311,6 @@ class LedController {
   // --- evaluation
   // --------------------------------------------------------------
   void evaluate(uint32_t now_ms) {
-    update_darkness(now_ms);
-
     // Expire transient overlays.
     if (identify_active_ &&
         elapsed(identify_started_ms_, now_ms) >= identify_ms_) {
@@ -407,27 +401,6 @@ class LedController {
         return true;
     }
     return false;
-  }
-
-  void update_darkness(uint32_t now_ms) {
-    if (!lux_seen_ || std::isnan(lux_value_) ||
-        elapsed(lux_last_ms_, now_ms) > lux_stale_ms_) {
-      darkness_ = DARKNESS_UNKNOWN;
-      return;
-    }
-    const float dark_below = darkness_threshold_;
-    const float clear_above = darkness_threshold_ * darkness_hysteresis_;
-    switch (darkness_) {
-      case DARKNESS_DARK:
-        if (lux_value_ >= clear_above) darkness_ = DARKNESS_NOT_DARK;
-        break;
-      case DARKNESS_NOT_DARK:
-        if (lux_value_ < dark_below) darkness_ = DARKNESS_DARK;
-        break;
-      case DARKNESS_UNKNOWN:
-        darkness_ = lux_value_ < dark_below ? DARKNESS_DARK : DARKNESS_NOT_DARK;
-        break;
-    }
   }
 
   void run_night_automation(uint32_t now_ms) {
@@ -579,9 +552,6 @@ class LedController {
   float night_blue_ = 0.16f;
   NightBehaviour behaviour_ = NIGHT_MANUAL;
   StatusLevel status_level_ = STATUS_LEVEL_ESSENTIAL;
-  float darkness_threshold_ = 20.0f;
-  float darkness_hysteresis_ = 1.5f;
-  uint32_t lux_stale_ms_ = 60000;
   uint32_t auto_off_ms_ = 60000;
   uint32_t identify_ms_ = 4000;
   uint32_t status_ms_ = 1500;
@@ -599,9 +569,6 @@ class LedController {
   // automation inputs
   bool occupied_ = false;
   bool occupancy_valid_ = false;
-  float lux_value_ = NAN;
-  bool lux_seen_ = false;
-  uint32_t lux_last_ms_ = 0;
   Darkness darkness_ = DARKNESS_UNKNOWN;
 
   // transient overlays
