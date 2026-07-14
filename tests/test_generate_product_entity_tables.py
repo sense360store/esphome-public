@@ -110,9 +110,14 @@ class TestDerivedTables(unittest.TestCase):
         self.assertNotIn("| ALS Counts |", ventiq)
         self.assertNotIn("| Full Spectrum |", ventiq)
         self.assertNotIn("| ALS Interrupt |", ventiq)
+        # (AIRIQ-FRAMEWORK-001: "CO2" / "PM2.5" are now the canonical
+        # customer entities, so the internal-leak canaries are the
+        # driver-internal SCD41/BMP390/SPS30 channels instead.)
         airiq = self.outputs["ceiling-poe-airiq-roomiq-entities.md"]
-        self.assertNotIn("| CO2 |", airiq)
-        self.assertNotIn("| PM2.5 |", airiq)
+        self.assertNotIn("| SCD41 Temperature |", airiq)
+        self.assertNotIn("| BMP390 Temperature |", airiq)
+        self.assertNotIn("| Typical Particle Size |", airiq)
+        self.assertNotIn("| PMC 0.5 |", airiq)
 
     def test_led_variant_adds_the_led_entities(self):
         led = self.outputs["ceiling-poe-ventiq-roomiq-led-entities.md"]
@@ -192,10 +197,23 @@ class TestCompareMatrix(unittest.TestCase):
         self.assertEqual(self._cells("LED ring light"), ["—", "—", "—", "✓"])
 
     def test_airiq_placeholder_never_counts_as_air_quality(self):
-        # The AirIQ profile's "Air Quality State" text sensor is a
-        # placeholder that always reads "unknown"; the matrix must not
-        # present it as an air-quality summary capability.
-        self.assertEqual(self._cells("Air-quality summary"), ["—", "—", "✓", "✓"])
+        # The legacy AirIQ profile's "Air Quality State" text sensor was a
+        # placeholder that always read "unknown" and never counted here.
+        # AIRIQ-FRAMEWORK-001 gives the AirIQ product a REAL "Air Quality"
+        # headline (worst-pollutant model), so the AirIQ column is now a
+        # genuine ✓ — driven by the canonical entity, not the placeholder
+        # (which survives only as a disabled-by-default compatibility
+        # entity named "Air Quality State").
+        self.assertEqual(self._cells("Air-quality summary"), ["—", "✓", "✓", "✓"])
+        self.assertEqual(self._cells("CO2"), ["—", "✓", "—", "—"])
+        # PM row: the label carries the external-SPS30 caveat because the
+        # module's commercial inclusion is not declared — the ✓ states
+        # firmware support only (entity ships disabled by default).
+        self.assertEqual(
+            self._cells("Particulate matter (PM2.5, needs external SPS30 module)"),
+            ["—", "✓", "—", "—"],
+        )
+        self.assertEqual(self._cells("VOC index"), ["—", "✓", "✓", "✓"])
 
     def test_entity_count_row_matches_the_tables(self):
         outputs = {

@@ -47,7 +47,8 @@
 # Bundle configuration (this YAML):
 # - Mount       : Ceiling
 # - Power       : POE  (IEEE 802.3af)
-# - Air Quality : AirIQ (full indoor air-quality stack)
+# - Air Quality : AirIQ (PCB sensors: SCD41 CO2, SGP41 VOC/NOx; SPS30 PM
+#                 is an external J2 attachment, not separately declared)
 # - Room Sense  : RoomIQ (comfort + presence)
 # - Fan Driver  : FanPWM (S360-311, four native ESP32-S3 ledc PWM-drive outputs)
 # - LED         : not included
@@ -62,7 +63,12 @@
 # - Core         : Sense360 Core    (S360-100-R4, ESP32-S3, ceiling mount)
 # - Power        : Sense360 PoE PSU (S360-410, IEEE 802.3af) — schematic
 #                  verification pending (PRODUCT-POE-410-001).
-# - Air Quality  : Sense360 AirIQ   (S360-210-R4, full ceiling air-quality stack)
+# - Air Quality  : Sense360 AirIQ   (S360-210-R4 board: SCD41 CO2 + SGP41
+#                  VOC/NOx PCB-mounted; the SPS30 PM module is an EXTERNAL
+#                  J2 attachment with a compiled driver — not separately
+#                  declared in this bundle's contents, so PM entities ship
+#                  disabled by default and SPS30 is not expected by module
+#                  health)
 # - Room Sense   : Sense360 RoomIQ  (S360-200-R4, comfort + presence)
 # - Fan Driver   : Sense360 PWM     (S360-311, four native ledc PWM outputs)
 # - LED          : not included
@@ -151,10 +157,18 @@ packages:
   # === Sense360 LED (S360-300) ===
   # Intentionally NOT included.
 
-  # === Sense360 AirIQ (S360-210, full indoor air-quality stack) ===
+  # === Sense360 AirIQ (S360-210 board + supported external attachments) ===
   # AirIQ and VentIQ are mutually exclusive; this bundle ships AirIQ.
   airiq_board: !include ../../packages/boards/s360-210-airiq.yaml
-  airiq_profile: !include ../../packages/features/airiq_basic_profile.yaml
+  # === Sense360 AirIQ framework (AIRIQ-FRAMEWORK-001) ===
+  # Canonical indoor-air-quality service: CO2 / VOC / NOx / PM2.5, one
+  # headline Air Quality state, one Recommendation and the AirIQ module
+  # runtime status (supersedes the legacy airiq_basic_profile MQTT/
+  # placeholder path in bundles; the profile's published surface — the
+  # air_quality_state compatibility entity and the MQTT block — is
+  # preserved inside the framework package; legacy shim products keep
+  # the profile).
+  airiq_framework: !include ../../packages/features/airiq_framework.yaml
 
   # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
   roomiq_board: !include ../../packages/boards/s360-200-roomiq.yaml

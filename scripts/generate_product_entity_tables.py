@@ -139,15 +139,31 @@ MATRIX_CAPABILITY_SECTIONS = (
     (
         "Air quality",
         (
-            ("VOC index", "Sensor", ("VentIQ VOC Index",)),
-            ("NOx index", "Sensor", ("VentIQ NOx Index",)),
+            # AIRIQ-FRAMEWORK-001: AirIQ products expose the canonical
+            # customer entities CO2 / VOC / NOx / PM2.5 (see
+            # packages/features/airiq_framework.yaml).
+            ("CO2", "Sensor", ("CO2",)),
+            ("VOC index", "Sensor", ("VentIQ VOC Index", "VOC")),
+            ("NOx index", "Sensor", ("VentIQ NOx Index", "NOx")),
+            # The SPS30 is an external attachment whose commercial
+            # inclusion is not declared (AIRIQ-FRAMEWORK-001 §1.5): the
+            # PM entity exists but ships disabled by default, so the row
+            # label carries the hardware caveat — a ✓ means firmware
+            # support for an attached module, never supplied PM hardware.
+            (
+                "Particulate matter (PM2.5, needs external SPS30 module)",
+                "Sensor",
+                ("PM2.5",),
+            ),
             ("Barometric pressure", "Sensor", ("VentIQ Pressure",)),
             ("Dew point", "Sensor", ("VentIQ Dew Point",)),
-            # NOTE: the AirIQ profile's "Air Quality State" text sensor is a
-            # placeholder that always reads "unknown" (see
-            # packages/features/airiq_basic_profile.yaml), so it deliberately
-            # does NOT count as an air-quality summary capability here.
+            # The AirIQ "Air Quality" headline (worst-pollutant model,
+            # AIRIQ-FRAMEWORK-001) and the VentIQ bathroom "Air Quality"
+            # both count as a real air-quality summary. (The legacy
+            # airiq_basic_profile placeholder "Air Quality State" never
+            # counted and remains excluded.)
             ("Air-quality summary", "Text sensor", ("Air Quality",)),
+            ("Air-quality recommendation", "Text sensor", ("Recommendation",)),
         ),
     ),
     (

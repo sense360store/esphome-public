@@ -6,15 +6,23 @@
 # now the AUTHORITATIVE, self-contained definition of the Sense360 AirIQ
 # air-quality board (SKU `S360-210`, revision R4, friendly name
 # "Sense360 AirIQ"; `schematic_status: verified` per
-# config/hardware-catalog.json). AirIQ is the comprehensive indoor-air-quality
-# sensor board (docs/arch-board-bundle-plan.md §2.1): particulate matter, CO2,
-# VOC/NOx, and (ceiling variant) barometric pressure on the shared core_i2c
-# bus (CORE-ABSTRACT-BUS-001B).
+# config/hardware-catalog.json). AirIQ is the indoor-air-quality sensor board
+# (docs/arch-board-bundle-plan.md §2.1) on the shared core_i2c bus
+# (CORE-ABSTRACT-BUS-001B).
 #
-# This canonical base IS the representative **ceiling-mount** AirIQ stack:
+# This canonical base compiles the representative **ceiling-mount** AirIQ
+# composition — with the hardware layers kept distinct (AIRIQ-FRAMEWORK-001):
 #
-#   - SPS30 PM @ 0x69, SGP41 VOC/NOx @ 0x59, SCD41 CO2 @ 0x62, BMP390
-#     pressure @ 0x77 — all on `airiq_i2c_id: core_i2c`.
+#   - PCB-mounted sensors: SGP41 VOC/NOx @ 0x59 (U1), SCD41 CO2 @ 0x62 (U3).
+#   - EXTERNAL attachment: SPS30 PM @ 0x69 — an off-board module on the J2
+#     connector (verified schematic). The driver below is compiled, but the
+#     module is not part of the S360-210 PCB and its commercial inclusion is
+#     not declared by any kit/SOT record; PM exposure is opt-in at the
+#     framework layer.
+#   - FIRMWARE/CATALOG DRIFT: BMP390 pressure @ 0x77 — compiled below, but
+#     no pressure part exists on the verified S360-210 schematic/BOM/catalog.
+#     Readings stay internal; reconciliation is a tracked follow-up.
+#   - All on `airiq_i2c_id: core_i2c`.
 #
 # Source-of-truth inversion (docs/arch-board-bundle-plan.md §3.3, §5.5): the
 # content below previously lived in `packages/expansions/airiq_ceiling.yaml`

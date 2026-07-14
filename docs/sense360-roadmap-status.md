@@ -903,6 +903,109 @@ is an owner action in SOT, in a separate PR — never bundled here.
 
 ---
 
+## 16. AirIQ framework (AIRIQ-FRAMEWORK-001)
+
+**Status: software foundation implemented via the AIRIQ-FRAMEWORK-001 PR —
+compile and simulation proof only; physical sensor validation pending
+(`AIRIQ-FRAMEWORK-BENCH-001`, checklist at
+[`docs/hardware/airiq-framework-bench-checklist.md`](hardware/airiq-framework-bench-checklist.md));
+MICS-4514 calibration/promotion pending; the compiled BMP390 pressure
+driver is recorded as firmware/catalog drift (pressure is not S360-210
+product hardware) and SFA40 production population stays an unresolved
+conflict (`HW-PINMAP-210-FOLLOWUP`); no SOT, release or commercial state
+change.**
+
+Canonical local indoor-air-quality service for the S360-210 AirIQ board:
+honest pollutant measurements (**CO2** ppm, **VOC** and **NOx** as relative
+indices — never concentrations, **PM2.5** µg/m³), ONE headline **Air
+Quality** state (transparent worst-pollutant model — never a blended score,
+never an AQI claim), ONE deterministic customer **Recommendation**,
+independent per-sensor warm-up/freshness, and the AirIQ module runtime
+status (the third wired module after Presence and RoomIQ). Canonical doc:
+[`docs/architecture/sense360-airiq-framework.md`](architecture/sense360-airiq-framework.md);
+contract tests: [`tests/test_airiq_framework.py`](../tests/test_airiq_framework.py);
+deterministic simulation: [`tests/unit/test_airiq_engine.cpp`](../tests/unit/test_airiq_engine.cpp)
+over the shared engine
+[`include/sense360/airiq_engine.h`](../include/sense360/airiq_engine.h)
+(the same header production YAML compiles — no drift-prone second
+implementation).
+
+Scope facts (do not overclaim):
+
+* **Customer surface** — default-enabled set is exactly: CO2, VOC, NOx,
+  Air Quality, Recommendation (the PCB-mounted compiled sensors). ALL PM
+  entities (PM2.5/PM1/PM4/PM10) exist but ship disabled by default: the
+  SPS30 is an external attachment whose commercial inclusion is unproven
+  (see next bullet). There is NO pressure entity: pressure is absent
+  from the verified S360-210 schematic, the R4 BOM and the hardware
+  catalog, so the still-compiled BMP390 board driver is firmware/catalog
+  drift — excluded from customer entities, severity, health and product
+  claims pending reconciliation. All thresholds are provisional
+  indoor-air-quality heuristics — never medical, health or regulatory
+  claims; the PM2.5 bands derive from published US EPA breakpoints used
+  as heuristics only, explicitly not a regulatory AQI.
+* **No Base/Pro axis; layered fitment recorded** — the taxonomy is flat
+  (one SKU, S360-210); expected-sensor membership is configuration-driven
+  substitutions, with PCB-mounted sensors and external attachments kept
+  separate in the machine-readable contract
+  (`config/core-framework.json` `module_runtime_status.airiq`
+  `pcb_mounted_sensors` / `external_attachments`). Per the verified
+  schematic: SCD41/SGP41 and the not-compiled MICS-4514 + STM8 stage are
+  PCB-mounted; the SPS30 is an external attachment (J2) whose kit/SOT
+  inclusion is **unproven** (kit records enumerate board SKUs only, no
+  SPS30 SKU exists, SOT never names it, WebFlash calls it optional), so
+  it is `expected=false` by default, its absence never degrades health,
+  and PM exposure is an explicit per-bundle opt-in
+  (`AIRIQ-SPS30-INCLUSION-001` is the product/SOT declaration follow-up);
+  formaldehyde (SFA40 — footprint present, production population an
+  unresolved conflict, `HW-PINMAP-210-FOLLOWUP` /
+  `ENTITY-FILL-210-HCHO-001`) and ozone (an external SEN0321 / ZE27-O3
+  input into the STM8 stage, no driver) are inactive engine contract
+  slots: no entity, no claim, never expected in any current composition.
+* **MICS-4514 included honestly** — PCB-mounted with its STM8
+  co-processor (verified schematic U4/U5 + BOM), but no driver exists
+  and the readout interface is unverified (`ENTITY-FILL-210-MICS-001`),
+  so the engine carries diagnostic-only MiCS channels, no customer
+  CO/NO2 concentration is claimed anywhere, and promotion is gated on
+  documented calibration evidence (recommended as a separate programme).
+* **Backwards compatibility** — the placeholder `air_quality_state`
+  entity keeps its id/name (semantic upgrade documented: real headline
+  vocabulary instead of a hardcoded "unknown", disabled by default); the
+  legacy MQTT block moved verbatim into the framework; legacy include
+  paths keep resolving; board sensor ids unchanged; nothing removed.
+* **Bundle authority** — all four catalog-declared AirIQ-bearing configs
+  compose the framework exactly once and drop the legacy profile;
+  non-AirIQ configs gain nothing (test-enforced plus the non-AirIQ
+  regression compile target). No `config/webflash-builds.json` row,
+  channel, version or artifact name changed.
+* **Compile/simulation proof recorded separately from hardware proof** —
+  the representative compile lane covers AirIQ+RoomIQ, Release-One
+  VentIQ+RoomIQ, both LED-bearing bundles and the non-AirIQ regression
+  target; 37 deterministic simulation scenarios cover startup, per-sensor
+  warm-up, partial readiness, staleness, recovery, worst-pollutant
+  selection, recommendations, boundary values, optional-sensor absence,
+  MiCS diagnostics and invalid values. None of this is hardware, bench,
+  compliance or commercial proof.
+
+Follow-ups created by this work item (tracked, not started):
+`AIRIQ-FRAMEWORK-BENCH-001` physical validation; the MICS-4514
+calibration/promotion programme; `AIRIQ-SPS30-INCLUSION-001` (product/SOT
+declaration of the external SPS30 attachment as an explicit kit/SOT line
+item for any composition that ships it, then that bundle's opt-in flip —
+PM2.5 default exposure returns only with that authority); the BMP390
+firmware/catalog drift reconciliation (remove the drifted driver or
+revise the hardware — owner decision); `HW-PINMAP-210-FOLLOWUP` (SFA40 population evidence, `J*`
+connector mapping, SEN0321 attach path, and the directly evidenced
+correction of the stale catalog/reference-doc SFA40 "connector" wording —
+deliberately not edited in this PR); SFA40 driver work after fitment
+resolves (`ENTITY-FILL-210-HCHO-001`); ozone (SEN0321 / ZE27-O3)
+identity/unit confirmation before any productisation; customer threshold
+tuning; VentIQ consumption of the canonical engine; Pure consumption. SOT
+programme-status propagation (AirIQ software foundation implemented) is an
+owner action in SOT, in a separate PR — never bundled here.
+
+---
+
 ## Channel-tier policy (RELEASE-PREVIEW-ALL-PRODUCTS-001)
 
 Preview eligibility is now open to **every buildable target**. The channel-tier

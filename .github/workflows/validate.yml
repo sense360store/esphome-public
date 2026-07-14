@@ -74,6 +74,10 @@ jobs:
         run: |
           python3 tests/test_roomiq_framework.py
 
+      - name: AirIQ framework contract (AIRIQ-FRAMEWORK-001)
+        run: |
+          python3 tests/test_airiq_framework.py
+
       - name: Reject known fallback-AP password literals (SEC-ESP-FALLBACK-AP-001)
         run: |
           python3 scripts/check_fallback_ap_password.py

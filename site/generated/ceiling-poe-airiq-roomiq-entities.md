@@ -24,7 +24,7 @@
        packages/boards/s360-200-roomiq.yaml
        packages/boards/s360-210-airiq.yaml
        packages/boards/s360-410-poe-psu.yaml
-       packages/features/airiq_basic_profile.yaml
+       packages/features/airiq_framework.yaml
        packages/features/device_health.yaml
        packages/features/presence_framework.yaml
        packages/features/roomiq_framework.yaml
@@ -34,17 +34,25 @@
        products/webflash/ceiling-poe-airiq-roomiq.yaml
 -->
 
-The `Ceiling-POE-AirIQ-RoomIQ` firmware exposes **94 entities** to Home Assistant.
+The `Ceiling-POE-AirIQ-RoomIQ` firmware exposes **110 entities** to Home Assistant.
 
 Entity names below appear in Home Assistant prefixed with the device's friendly name, which you choose during setup (firmware default: `Sense360 Ceiling AirIQ RoomIQ`). Firmware-internal measurements (marked `internal` in the YAML) never reach Home Assistant and are not listed.
 
 | Entity | Type | Unit | Notes |
 |---|---|---|---|
 | Climate Data Age | Sensor | s | diagnostic entity; disabled by default |
+| CO2 | Sensor | ppm | device class: carbon_dioxide |
+| CO2 Data Age | Sensor | s | diagnostic entity; disabled by default |
 | Humidity | Sensor | % | device class: humidity |
 | Illuminance | Sensor | lx | device class: illuminance |
 | Illuminance Data Age | Sensor | s | diagnostic entity; disabled by default |
 | Internal Temperature | Sensor | °C | — |
+| NOx | Sensor | — | — |
+| Particulate Data Age | Sensor | s | diagnostic entity; disabled by default |
+| PM1 | Sensor | µg/m³ | device class: pm1; disabled by default |
+| PM10 | Sensor | µg/m³ | device class: pm10; disabled by default |
+| PM2.5 | Sensor | µg/m³ | device class: pm25; disabled by default |
+| PM4 | Sensor | µg/m³ | disabled by default |
 | Presence Score | Sensor | % | disabled by default |
 | Radar Data Age | Sensor | s | diagnostic entity; disabled by default |
 | Radar Moving Target Count | Sensor | — | diagnostic entity; disabled by default |
@@ -76,6 +84,8 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Supply Voltage | Sensor | V | device class: voltage |
 | Temperature | Sensor | °C | device class: temperature |
 | Uptime | Sensor | s | — |
+| VOC | Sensor | — | — |
+| VOC Data Age | Sensor | s | diagnostic entity; disabled by default |
 | WiFi Signal | Sensor | dBm | — |
 | Occupancy | Binary sensor | — | device class: occupancy |
 | PIR Motion | Binary sensor | — | device class: motion; diagnostic entity; disabled by default |
@@ -86,9 +96,14 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Radar Still Target | Binary sensor | — | diagnostic entity; disabled by default |
 | SEN0609 Static Presence | Binary sensor | — | device class: occupancy; diagnostic entity; disabled by default |
 | Status | Binary sensor | — | — |
-| Air Quality State | Text sensor | — | — |
+| Air Quality | Text sensor | — | — |
+| Air Quality State | Text sensor | — | disabled by default |
+| AirIQ Expected Sensors | Text sensor | — | diagnostic entity; disabled by default |
 | AirIQ Module SKU | Text sensor | — | diagnostic entity |
 | AirIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
+| AirIQ Recommendation Reason | Text sensor | — | diagnostic entity; disabled by default |
+| AirIQ Sensor Verification | Text sensor | — | diagnostic entity; disabled by default |
+| AirIQ State Detail | Text sensor | — | diagnostic entity; disabled by default |
 | Brightness | Text sensor | — | — |
 | Capability IDs | Text sensor | — | diagnostic entity; disabled by default |
 | Comfort | Text sensor | — | — |
@@ -117,6 +132,7 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Presence Status | Text sensor | — | — |
 | Product Configuration | Text sensor | — | diagnostic entity |
 | Product SKU | Text sensor | — | diagnostic entity |
+| Recommendation | Text sensor | — | — |
 | RoomIQ Calibration State | Text sensor | — | diagnostic entity; disabled by default |
 | RoomIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
 | RoomIQ Sensor Verification | Text sensor | — | diagnostic entity; disabled by default |
