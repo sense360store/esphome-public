@@ -9,29 +9,39 @@ freshness, and the AirIQ module runtime status — all produced by ONE
 shared engine that downstream consumers (VentIQ / Pure / Zones / Home
 Assistant) reuse instead of duplicating pollutant threshold logic.
 
-Authority facts this contract encodes (established from the tree before
-implementation — see docs/architecture/sense360-airiq-framework.md):
+Authority facts this contract encodes (re-audited against the verified
+S360-210-R4 schematic, the R4 BOM artifact record, the hardware catalog
+and SOT — see docs/architecture/sense360-airiq-framework.md; the five
+layers PCB-footprint / production-population / external-connector /
+driver-compiled / customer-functionality are recorded SEPARATELY):
 
 * There is NO authoritative "AirIQ Base" vs "AirIQ Pro" product axis: the
   taxonomy is flat (one SKU per product, S360-210). Expected-sensor
   membership is configuration-driven by substitutions, never by an
   invented Base/Pro flag.
-* The compiled AirIQ stack is SCD41 (CO2, ppm) + SGP41 (VOC/NOx, relative
-  indices — NEVER concentrations) + SPS30 (PM, µg/m³, connector-attached
-  but compiled as part of the standard stack) + BMP390 (pressure —
-  compiled, but its presence on the S360-210 BOM is an UNRESOLVED
-  identity conflict, so pressure stays out of the default customer set).
-* MICS-4514 + STM8 are on the BOM but have NO firmware driver and an
-  unverified readout interface (ENTITY-FILL-210-MICS-001): the engine
-  carries diagnostic-only MiCS channels so the architecture includes
-  MiCS, but no customer CO / NO2 concentration is ever claimed and no
+* Compiled customer stack: SCD41 (CO2 ppm; PCB-mounted U3) + SGP41
+  (VOC/NOx relative indices — NEVER concentrations; PCB-mounted U1) +
+  SPS30 (PM µg/m³; EXTERNAL connector-attached via J2, compiled as part
+  of the standard stack).
+* MICS-4514 (U4) + STM8 (U5) are PCB-MOUNTED (schematic + BOM + catalog
+  agree) but have NO firmware driver and an unverified readout interface
+  (ENTITY-FILL-210-MICS-001): the engine carries diagnostic-only MiCS
+  channels, no customer CO / NO2 concentration is ever claimed, and no
   production input exists yet.
-* SFA40 (formaldehyde) fitment is conflicted (BOM on-board vs reference
-  doc connector-only) and has no driver; ZE07 / ZE27-O3 have no
-  authoritative hardware record at all. Formaldehyde / ozone exist only
-  as engine contract slots (expected=false everywhere today) and are
-  never exposed by any current composition.
-* Pressure NEVER participates in Air Quality severity.
+* SFA40 (formaldehyde): PCB footprint U2 is PRESENT on the verified
+  schematic (which shows no SFA40 connector) and the BOM lists it
+  populated, while the hardware catalog / reference doc describe a
+  connector-attached off-board module — production-assembly population
+  is an UNRESOLVED conflict (HW-PINMAP-210-FOLLOWUP). No driver is
+  compiled; no Formaldehyde entity may exist until BOTH fitment and a
+  compiled supported driver are proven.
+* SEN0321 (ZE27-O3 ozone): an EXTERNAL sensor/interface — the verified
+  schematic's STM8 stage is titled for "SEN0321(ZE27-O3) and MICS-4514";
+  no on-board ozone part, no driver, no entity. ZE07 has no record.
+* Pressure is NOT S360-210 product hardware: no pressure part exists on
+  the verified schematic, the BOM, or the hardware catalog. The compiled
+  BMP390 @0x77 in the board package is FIRMWARE/CATALOG DRIFT: it stays
+  excluded from customer entities, severity, health and product claims.
 * The headline uses a transparent worst-pollutant model: one severe
   pollutant is never averaged away; stale data is never treated as good.
 
@@ -151,13 +161,11 @@ DEFAULT_ENABLED_IDS = {
 }
 
 # Additional standard (non-diagnostic) sensors that stay disabled by
-# default: extra PM fractions add little default customer value, and the
-# pressure part identity on S360-210 is an unresolved BOM conflict.
+# default: extra PM fractions add little default customer value.
 DISABLED_STANDARD_SENSOR_IDS = {
     "s360_pm1",
     "s360_pm4",
     "s360_pm10",
-    "s360_pressure",
 }
 
 
@@ -392,7 +400,7 @@ class CustomerEntityContractTests(unittest.TestCase):
             "default-enabled customer set must be exactly the accepted set",
         )
 
-    def test_extra_pm_fractions_and_pressure_disabled_by_default(self) -> None:
+    def test_extra_pm_fractions_disabled_by_default(self) -> None:
         for entity_id in DISABLED_STANDARD_SENSOR_IDS:
             entity = self._entity(entity_id)
             self.assertTrue(
@@ -411,14 +419,25 @@ class CustomerEntityContractTests(unittest.TestCase):
         pm4 = self._entity("s360_pm4")
         self.assertEqual(pm4.get("unit_of_measurement"), "µg/m³")
 
-    def test_pressure_unit_and_identity_honesty(self) -> None:
-        entity = self._entity("s360_pressure")
-        self.assertEqual(entity["name"], "Pressure")
-        self.assertEqual(entity.get("unit_of_measurement"), "hPa")
-        self.assertEqual(entity.get("device_class"), "atmospheric_pressure")
-        # Identity conflict (compiled BMP390 vs BOM showing no pressure
-        # part) means it must not be default-enabled.
-        self.assertTrue(entity.get("disabled_by_default"))
+    def test_no_pressure_customer_surface_firmware_drift(self) -> None:
+        # Pressure is NOT S360-210 product hardware: absent from the
+        # verified schematic, the R4 BOM and the hardware catalog. The
+        # compiled BMP390 @0x77 is firmware/catalog drift — the framework
+        # must expose NO pressure entity of any kind and wire nothing.
+        self.assertNotIn("s360_pressure", self.entities)
+        self.assertNotIn("s360_airiq_pressure_data_age", self.entities)
+        for entity_id, entry in self.entities.items():
+            name = str(entry.get("name", "")).lower()
+            self.assertNotIn("pressure", name, entity_id)
+        raw = FRAMEWORK_PACKAGE.read_text()
+        self.assertNotIn("airiq_pressure_source_id", raw)
+        self.assertNotIn("input_pressure", raw)
+        # The drift itself must be stated on-device (sensor verification)
+        # and the board package stays untouched (its BMP390 remains
+        # internal-only until the drift reconciliation lands).
+        self.assertIn("drift", raw.lower())
+        board_raw = BOARD_PACKAGE.read_text()
+        self.assertIn("platform: bmp3xx_i2c", board_raw)
 
     def test_no_engineering_jargon_in_customer_entity_names(self) -> None:
         for entity_id, entry in self.entities.items():
@@ -449,7 +468,6 @@ class CustomerEntityContractTests(unittest.TestCase):
             "s360_airiq_co2_data_age",
             "s360_airiq_voc_data_age",
             "s360_airiq_pm_data_age",
-            "s360_airiq_pressure_data_age",
         ):
             entity = self._entity(entity_id)
             self.assertEqual(entity.get("entity_category"), "diagnostic", entity_id)
@@ -458,8 +476,9 @@ class CustomerEntityContractTests(unittest.TestCase):
     def test_sensor_verification_diagnostic_states_limits(self) -> None:
         entity = self._entity("s360_airiq_sensor_verification")
         raw = FRAMEWORK_PACKAGE.read_text()
-        # The on-device honesty companion must state the unresolved
-        # pressure identity and the not-compiled MiCS / SFA40 stages.
+        # The on-device honesty companion must state the BMP390
+        # firmware/catalog drift, the not-compiled PCB-mounted MiCS stage
+        # and the fitment-unresolved SFA40 stage.
         self.assertIn("BMP390", raw)
         self.assertIn("MICS-4514", raw)
         self.assertIn("SFA40", raw)
@@ -560,14 +579,16 @@ class FrameworkMechanicsTests(unittest.TestCase):
             "airiq_voc_warmup_ms",
             "airiq_nox_warmup_ms",
             "airiq_pm_warmup_ms",
-            "airiq_pressure_warmup_ms",
             "airiq_co2_stale_ms",
             "airiq_voc_stale_ms",
             "airiq_nox_stale_ms",
             "airiq_pm_stale_ms",
-            "airiq_pressure_stale_ms",
         ):
             self.assertIn(key, self.raw, key)
+        # Pressure has no production wiring (firmware/catalog drift): no
+        # pressure freshness substitutions may exist.
+        self.assertNotIn("airiq_pressure_warmup_ms", self.raw)
+        self.assertNotIn("airiq_pressure_stale_ms", self.raw)
 
     def test_no_roomiq_raw_sensor_reads(self) -> None:
         # RoomIQ integration honesty: AirIQ never re-reads raw RoomIQ
@@ -764,7 +785,7 @@ class CoreFrameworkContractTests(unittest.TestCase):
         for honest in ("accuracy", "hardware"):
             self.assertIn(honest, definition)
         notes = entry.get("notes", "")
-        for needle in ("SPS30", "BMP390", "MICS-4514"):
+        for needle in ("SPS30", "BMP390", "MICS-4514", "drift"):
             self.assertIn(needle, notes + definition, needle)
 
     def test_presence_and_roomiq_runtime_entries_unchanged(self) -> None:
@@ -849,12 +870,36 @@ class DocumentationTests(unittest.TestCase):
         self.assertIn("pro", self.lowered)
 
     def test_sensor_identity_conflicts_reported(self) -> None:
-        # BMP390 compiled at 0x77 vs a BOM with no pressure part; SFA40
-        # on-board vs connector conflict; MiCS STM8 interface unverified.
+        # BMP390 compiled at 0x77 = firmware/catalog drift (no pressure
+        # part on the verified schematic / BOM / catalog); SFA40 footprint
+        # vs population conflict; MiCS STM8 interface unverified.
         self.assertIn("0x77", self.text)
         self.assertIn("BOM", self.text)
+        self.assertIn("drift", self.lowered)
         self.assertIn("ENTITY-FILL-210-MICS-001", self.text)
         self.assertIn("ENTITY-FILL-210-HCHO-001", self.text)
+        self.assertIn("HW-PINMAP-210-FOLLOWUP", self.text)
+
+    def test_five_fitment_layers_recorded_separately(self) -> None:
+        # The audit layers must never be conflated: PCB footprint present,
+        # component populated in the production assembly, external
+        # connector-supported, firmware driver compiled, and customer
+        # functionality are recorded separately per sensor.
+        for needle in (
+            "footprint",
+            "populated",
+            "connector",
+            "compiled",
+            "customer",
+        ):
+            self.assertIn(needle, self.lowered, needle)
+
+    def test_external_interfaces_recorded(self) -> None:
+        # SPS30 is external connector-attached (J2); the SEN0321 (ZE27-O3)
+        # ozone input is an external sensor/interface into the STM8 stage
+        # per the verified schematic.
+        self.assertIn("J2", self.text)
+        self.assertIn("SEN0321", self.text)
 
     def test_state_vocabularies_documented(self) -> None:
         for value in SEVERITY_STRINGS + RECOMMENDATION_STRINGS:
@@ -964,9 +1009,14 @@ class RoadmapTests(unittest.TestCase):
         self.assertIn("pending", lowered)
         self.assertIn("SOT", section)
         self.assertIn("AIRIQ-FRAMEWORK-BENCH-001", section)
-        # Unresolved reconciliations stay tracked.
+        # Unresolved reconciliations stay tracked, and the BMP390 pressure
+        # driver is recorded as firmware/catalog drift, never product
+        # hardware.
         self.assertIn("MICS-4514", section)
         self.assertIn("BMP390", section)
+        self.assertIn("drift", lowered)
+        self.assertIn("SEN0321", section)
+        self.assertIn("HW-PINMAP-210-FOLLOWUP", section)
         self.assertGreater(section_start, start)
 
 
