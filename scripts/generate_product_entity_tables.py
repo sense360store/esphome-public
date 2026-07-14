@@ -145,7 +145,16 @@ MATRIX_CAPABILITY_SECTIONS = (
             ("CO2", "Sensor", ("CO2",)),
             ("VOC index", "Sensor", ("VentIQ VOC Index", "VOC")),
             ("NOx index", "Sensor", ("VentIQ NOx Index", "NOx")),
-            ("Particulate matter (PM2.5)", "Sensor", ("PM2.5",)),
+            # The SPS30 is an external attachment whose commercial
+            # inclusion is not declared (AIRIQ-FRAMEWORK-001 §1.5): the
+            # PM entity exists but ships disabled by default, so the row
+            # label carries the hardware caveat — a ✓ means firmware
+            # support for an attached module, never supplied PM hardware.
+            (
+                "Particulate matter (PM2.5, needs external SPS30 module)",
+                "Sensor",
+                ("PM2.5",),
+            ),
             ("Barometric pressure", "Sensor", ("VentIQ Pressure",)),
             ("Dew point", "Sensor", ("VentIQ Dew Point",)),
             # The AirIQ "Air Quality" headline (worst-pollutant model,

@@ -933,8 +933,10 @@ implementation).
 Scope facts (do not overclaim):
 
 * **Customer surface** — default-enabled set is exactly: CO2, VOC, NOx,
-  PM2.5, Air Quality, Recommendation. PM1/PM4/PM10 exist but ship
-  disabled by default. There is NO pressure entity: pressure is absent
+  Air Quality, Recommendation (the PCB-mounted compiled sensors). ALL PM
+  entities (PM2.5/PM1/PM4/PM10) exist but ship disabled by default: the
+  SPS30 is an external attachment whose commercial inclusion is unproven
+  (see next bullet). There is NO pressure entity: pressure is absent
   from the verified S360-210 schematic, the R4 BOM and the hardware
   catalog, so the still-compiled BMP390 board driver is firmware/catalog
   drift — excluded from customer entities, severity, health and product
@@ -944,14 +946,22 @@ Scope facts (do not overclaim):
   as heuristics only, explicitly not a regulatory AQI.
 * **No Base/Pro axis; layered fitment recorded** — the taxonomy is flat
   (one SKU, S360-210); expected-sensor membership is configuration-driven
-  substitutions. Per the verified schematic: SCD41/SGP41 and the
-  not-compiled MICS-4514 + STM8 stage are PCB-mounted; the SPS30 is
-  external connector-attached (J2); formaldehyde (SFA40 — footprint
-  present, production population an unresolved conflict,
-  `HW-PINMAP-210-FOLLOWUP` / `ENTITY-FILL-210-HCHO-001`) and ozone (an
-  external SEN0321 / ZE27-O3 input into the STM8 stage, no driver) are
-  inactive engine contract slots: no entity, no claim, never expected in
-  any current composition.
+  substitutions, with PCB-mounted sensors and external attachments kept
+  separate in the machine-readable contract
+  (`config/core-framework.json` `module_runtime_status.airiq`
+  `pcb_mounted_sensors` / `external_attachments`). Per the verified
+  schematic: SCD41/SGP41 and the not-compiled MICS-4514 + STM8 stage are
+  PCB-mounted; the SPS30 is an external attachment (J2) whose kit/SOT
+  inclusion is **unproven** (kit records enumerate board SKUs only, no
+  SPS30 SKU exists, SOT never names it, WebFlash calls it optional), so
+  it is `expected=false` by default, its absence never degrades health,
+  and PM exposure is an explicit per-bundle opt-in
+  (`AIRIQ-SPS30-INCLUSION-001` is the product/SOT declaration follow-up);
+  formaldehyde (SFA40 — footprint present, production population an
+  unresolved conflict, `HW-PINMAP-210-FOLLOWUP` /
+  `ENTITY-FILL-210-HCHO-001`) and ozone (an external SEN0321 / ZE27-O3
+  input into the STM8 stage, no driver) are inactive engine contract
+  slots: no entity, no claim, never expected in any current composition.
 * **MICS-4514 included honestly** — PCB-mounted with its STM8
   co-processor (verified schematic U4/U5 + BOM), but no driver exists
   and the readout interface is unverified (`ENTITY-FILL-210-MICS-001`),
@@ -979,9 +989,12 @@ Scope facts (do not overclaim):
 
 Follow-ups created by this work item (tracked, not started):
 `AIRIQ-FRAMEWORK-BENCH-001` physical validation; the MICS-4514
-calibration/promotion programme; the BMP390 firmware/catalog drift
-reconciliation (remove the drifted driver or revise the hardware — owner
-decision); `HW-PINMAP-210-FOLLOWUP` (SFA40 population evidence, `J*`
+calibration/promotion programme; `AIRIQ-SPS30-INCLUSION-001` (product/SOT
+declaration of the external SPS30 attachment as an explicit kit/SOT line
+item for any composition that ships it, then that bundle's opt-in flip —
+PM2.5 default exposure returns only with that authority); the BMP390
+firmware/catalog drift reconciliation (remove the drifted driver or
+revise the hardware — owner decision); `HW-PINMAP-210-FOLLOWUP` (SFA40 population evidence, `J*`
 connector mapping, SEN0321 attach path, and the directly evidenced
 correction of the stale catalog/reference-doc SFA40 "connector" wording —
 deliberately not edited in this PR); SFA40 driver work after fitment

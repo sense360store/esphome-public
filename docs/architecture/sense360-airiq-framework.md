@@ -63,7 +63,7 @@ functionality available.
 |---|---|---|---|---|---|---|
 | SCD41 (CO2) | Yes — `U3` | Yes (BOM; all sources agree) | n/a | Yes — `scd4x` @0x62, 30 s | **CO2** (ppm, default) | Expected pollutant |
 | SGP41 (VOC/NOx) | Yes — `U1` | Yes (BOM; all sources agree) | n/a | Yes — `sgp4x` @0x59, 30 s | **VOC**, **NOx** (relative indices, default; never concentrations) | Expected pollutants |
-| SPS30 (PM1/2.5/4/10) | No (external Sensirion module) | No (off-board) | **Yes — `J2`** (5-pin JST SH; schematic sheet "SPS30") | Yes — `sps30` @0x69, 30 s | **PM2.5** (µg/m³, default); PM1/PM4/PM10 disabled by default | Expected pollutant (PM2.5); external connector-attached, compiled as part of the standard stack and named in the `HW-AIRIQ-WAIVER-2026-06` stable waiver |
+| SPS30 (PM1/2.5/4/10) | No (external Sensirion module) | No (off-board) | **Yes — `J2`** (5-pin JST SH; schematic sheet "SPS30") | Yes — `sps30` @0x69, 30 s | **None by default** — every PM entity (PM2.5/PM1/PM4/PM10, µg/m³) ships disabled by default; a declared composition opts in | Supported external attachment; commercial inclusion UNPROVEN (§1.5), so `expected=false` by default — an absent module never degrades health; opt-in contract for declared compositions |
 | MICS-4514 + STM8 | Yes — `U4` (+ `U5` STM8S003F3U, `U6` LMV358 front-end on the MICS_SEN0321 sub-sheet) | Yes (BOM) — **PCB-mounted** | n/a | **No** — no driver; STM8 readout interface unverified (`ENTITY-FILL-210-MICS-001`) | None | Diagnostic-only engine channels; promotion gated on calibration evidence (§7) |
 | SFA40 (formaldehyde) | **Yes — `U2`** with local decoupling on the shared I2C bus; the verified schematic shows **no SFA40 connector** | **Unresolved conflict**: the BOM lists `U2 = SFA40-D-R` as a populated line item, while `docs/hardware-catalog.md` and the reference doc describe a connector-attached off-board module; no CPL / silkscreen / assembly evidence exists (`HW-PINMAP-210-FOLLOWUP`) | Catalog claims a connector; none exists on the verified R4 schematic | **No** — no driver; interface unverified (`ENTITY-FILL-210-HCHO-001`) | None — no Formaldehyde entity until BOTH population and a compiled supported driver are proven | Engine contract slot, `expected=false` everywhere |
 | SEN0321 (ZE27-O3 ozone) | No (external DFRobot module) | No | **Designed external input into the STM8 stage** — the verified schematic's sub-sheet and STM8 block are titled "STM8 MCU for SEN0321(ZE27-O3) and MICS-4514 to I2C"; the physical attach path is not identified on the sheet (`J4` carries the SWIM programming signals; connector mapping owed to `HW-PINMAP-210-FOLLOWUP`) | No | None | Engine contract slot only (`expected=false`); no entity, no claim |
@@ -109,6 +109,46 @@ SFA40 as footprint-present / population-unresolved / driver-absent, and
 no Formaldehyde entity may appear until both population and a compiled
 supported driver are proven.
 
+### 1.5 SPS30 inclusion audit — is the external module actually supplied?
+
+A `J2` connector and a compiled driver do not prove that an external
+module is physically supplied. Six layers audited separately for SPS30:
+
+1. **S360-210 connector capability** — yes (`J2`, verified schematic).
+2. **Driver compiled** — yes (`sps30` @0x69 in the board package).
+3. **Physically fitted to the PCB** — no (external module by design).
+4. **Supplied in a commercial kit** — **UNPROVEN.** The kit records
+   (`config/room-bundle-skus.json` `included_board_skus`,
+   `config/kit-intent-matrix.json`) enumerate **board SKUs only**
+   (S360-100/200/210/410) with no SPS30 line item; **no SPS30 SKU exists
+   anywhere in the hardware catalog**; SOT `products.yaml` /
+   `bundles.yaml` never name SPS30 (their PM-monitoring prose is
+   CONFIRM-flagged and self-contradictory — e.g. "CO2 optional at
+   checkout" despite the PCB-mounted SCD41); the WebFlash
+   module-requirements matrix explicitly lists "SPS30 connector
+   (particulate matter, **optional**)"; and this repository's roadmap
+   doctrine reserves the catalog's "Connectors for …" phrasing "for
+   genuinely optional attachments (AirIQ: SPS30, SFA40)". The
+   `HW-AIRIQ-WAIVER-2026-06` text naming SPS30 in the "sensor-stack" is
+   a compiled-firmware statement, not fitment proof — the same sentence
+   names the drifted BMP390.
+5. **Expected by firmware health** — therefore **opt-in**:
+   `airiq_expected_pm` defaults `"false"`; an absent SPS30 never
+   degrades AirIQ health; a composition that declares the attachment
+   sets it `"true"`, after which a missing/stale module degrades
+   honestly while useful service remains (simulation-tested).
+6. **PM entities customer-visible** — therefore **disabled by default**
+   everywhere; the opt-in for a declared composition is
+   `airiq_expected_pm: "true"` plus re-enabling the PM entities
+   (`!extend s360_pm2_5` → `disabled_by_default: false`) in that bundle.
+
+**Product/SOT follow-up required to declare a fitted attachment**
+(`AIRIQ-SPS30-INCLUSION-001`, recorded in the roadmap): add an explicit
+SPS30 attachment line item (its own SKU or kit content entry) to the
+kit/SOT records for any composition that ships the module, then flip
+that bundle's opt-in contract. A firmware driver never creates a
+commercial decision.
+
 ### 1.3 Pre-framework customer surface (compatibility baseline)
 
 The shipped AirIQ bundles exposed **no pollutant measurements at all**:
@@ -129,13 +169,16 @@ Default-enabled entities (the ONLY default-enabled set):
 | CO2 | `s360_co2` | ppm |
 | VOC | `s360_voc` | relative index (unitless by design) |
 | NOx | `s360_nox` | relative index (unitless by design) |
-| PM2.5 | `s360_pm2_5` | µg/m³ |
 | Air Quality | `s360_air_quality` | Initialising / Good / Fair / Poor / Very poor / Unavailable |
 | Recommendation | `s360_recommendation` | Sensor initialising / No action needed / Ventilate soon / Ventilate now / Check pollution source / Unavailable |
 
 Available but disabled by default (standard sensors, not diagnostics):
-**PM1** (`s360_pm1`), **PM4** (`s360_pm4`), **PM10** (`s360_pm10`) — real
-measurements with low default customer value.
+**PM2.5** (`s360_pm2_5`), **PM1** (`s360_pm1`), **PM4** (`s360_pm4`),
+**PM10** (`s360_pm10`) — the SPS30 is an external attachment whose
+commercial inclusion is unproven (§1.5), so no PM entity is
+default-enabled anywhere; a customer with an attached module can enable
+PM2.5 manually, and a future SPS30-declared composition enables it (and
+expects the sensor) via the documented opt-in contract.
 
 There is deliberately **no pressure entity of any kind**: pressure is not
 S360-210 product hardware (§1.2), and the compiled BMP390 is
@@ -181,9 +224,11 @@ the *expected, fresh* pollutants:
   Degraded if an expected channel goes missing after warm-up);
 * if no usable pollutant data exists: **Unavailable**.
 
-Participants: CO2, VOC, NOx, PM2.5 (plus the formaldehyde / ozone contract
-slots when a future composition expects them). **Pressure never
-participates.** RoomIQ temperature / humidity / illuminance are never mixed
+Participants by default: CO2, VOC, NOx (the PCB-mounted compiled
+sensors). PM2.5 participates only in a composition that declares the
+external SPS30 attachment (§1.5) — none does today — and the
+formaldehyde / ozone contract slots only when a future composition
+expects them. **Pressure never participates.** RoomIQ temperature / humidity / illuminance are never mixed
 into pollutant severity (Comfort is not Air Quality and the two are never
 merged).
 
@@ -263,7 +308,10 @@ sample is an invalid update and never refreshes a channel.
 
 Uses the Core-Framework reserved vocabulary
 (`config/core-framework.json module_runtime_status.airiq` — the third wired
-module after Presence and RoomIQ), over the **expected** channels only:
+module after Presence and RoomIQ), over the **expected** channels only —
+by default the PCB-mounted compiled sensors (CO2, VOC, NOx); a declared
+external attachment (e.g. SPS30 in a future opted-in composition, §1.5)
+joins the expected set and then degrades honestly when missing:
 
 * **Initialising** — expected channels inside valid warm-up windows;
 * **Available** — every expected channel fresh after warm-up (data-service
@@ -382,6 +430,9 @@ Follow-ups created by this work item (tracked, not started):
   bench checklist;
 * MiCS-4514 calibration / promotion programme (§7) — separate programme
   recommended;
+* `AIRIQ-SPS30-INCLUSION-001` — the product/SOT declaration follow-up for
+  the external SPS30 attachment (§1.5): an explicit kit/SOT line item for
+  any composition that ships the module, then that bundle's opt-in flip;
 * BMP390 firmware/catalog drift reconciliation — decide (with owner
   sign-off) whether the drifted `bmp3xx_i2c` driver leaves the board
   package or a pressure part is added to a future hardware revision;

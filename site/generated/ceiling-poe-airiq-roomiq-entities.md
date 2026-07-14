@@ -51,7 +51,7 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Particulate Data Age | Sensor | s | diagnostic entity; disabled by default |
 | PM1 | Sensor | µg/m³ | device class: pm1; disabled by default |
 | PM10 | Sensor | µg/m³ | device class: pm10; disabled by default |
-| PM2.5 | Sensor | µg/m³ | device class: pm25 |
+| PM2.5 | Sensor | µg/m³ | device class: pm25; disabled by default |
 | PM4 | Sensor | µg/m³ | disabled by default |
 | Presence Score | Sensor | % | disabled by default |
 | Radar Data Age | Sensor | s | diagnostic entity; disabled by default |

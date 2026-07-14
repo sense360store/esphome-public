@@ -19,7 +19,7 @@
 #
 # Status — what this YAML IS:
 #   The full Kitchen-class AirIQ + RoomIQ POE ceiling product: Core ceiling +
-#   PoE PSU + AirIQ (full indoor air-quality stack) + RoomIQ (comfort +
+#   PoE PSU + AirIQ (PCB air-quality sensors) + RoomIQ (comfort +
 #   presence). The package composition is the production
 #   `Ceiling-POE-VentIQ-RoomIQ` build with the VentIQ air-quality module
 #   swapped for the full AirIQ module; the identical AirIQ + comfort + presence
@@ -47,7 +47,12 @@
 #     authoring environment (ESPHome CLI unavailable); none is faked.
 #
 # Board assembly (docs/arch-board-bundle-plan.md §2.2):
-#   S360-100 Core (ceiling) + S360-410 PoE PSU + S360-210 AirIQ + S360-200 RoomIQ
+#   Boards: S360-100 Core (ceiling) + S360-410 PoE PSU + S360-210 AirIQ +
+#   S360-200 RoomIQ.
+#   External sensor attachments: none separately declared. (The S360-210
+#   supports an external SPS30 PM module on J2; its driver is compiled,
+#   but no kit/SOT record declares the module as supplied, so PM entities
+#   ship disabled by default and SPS30 is not expected by module health.)
 #
 # Mapping (board package / feature this bundle uses):
 #   core_hardware  (sense360_core_ceiling)    -> packages/boards/s360-100-core-ceiling.yaml
@@ -68,7 +73,12 @@
 # - Core         : Sense360 Core    (S360-100-R4, ESP32-S3, ceiling mount)
 # - Power        : Sense360 PoE PSU (S360-410, IEEE 802.3af) — schematic
 #                  verification pending (PRODUCT-POE-410-001).
-# - Air Quality  : Sense360 AirIQ   (S360-210-R4, full ceiling air-quality stack)
+# - Air Quality  : Sense360 AirIQ   (S360-210-R4 board: SCD41 CO2 + SGP41
+#                  VOC/NOx PCB-mounted; the SPS30 PM module is an EXTERNAL
+#                  J2 attachment with a compiled driver — not separately
+#                  declared in this bundle's contents, so PM entities ship
+#                  disabled by default and SPS30 is not expected by module
+#                  health)
 # - Room Sense   : Sense360 RoomIQ  (S360-200-R4, comfort + presence)
 # - Fan Driver   : not included     (no fan token in config string)
 # - LED          : not included     (no LED token in config string)
@@ -148,9 +158,12 @@ packages:
   # Intentionally NOT included. The config string `Ceiling-POE-AirIQ-RoomIQ`
   # carries no `LED` token.
 
-  # === Sense360 AirIQ (S360-210, full indoor air-quality stack) ===
-  # Board package wraps packages/expansions/airiq_ceiling.yaml (SPS30 PM +
-  # SGP41 VOC/NOx + SCD41 CO2 + BMP390 pressure on the shared core_i2c bus).
+  # === Sense360 AirIQ (S360-210 board + supported external attachments) ===
+  # Board package wraps packages/expansions/airiq_ceiling.yaml: SGP41
+  # VOC/NOx + SCD41 CO2 PCB-mounted on the shared core_i2c bus, plus the
+  # compiled driver for the external SPS30 PM attachment (J2, not
+  # separately declared) and the drifted internal BMP390 (firmware/catalog
+  # drift; no pressure part on the verified schematic/BOM).
   # AirIQ and VentIQ are mutually exclusive; this build ships AirIQ.
   airiq_board: !include ../../packages/boards/s360-210-airiq.yaml
   # === Sense360 AirIQ framework (AIRIQ-FRAMEWORK-001) ===

@@ -10,9 +10,11 @@
 # re-reading raw sensors or duplicating pollutant threshold logic.
 #
 # Customer entities (enabled by default — the ONLY default-enabled set):
-#   CO2 · VOC · NOx · PM2.5 · Air Quality · Recommendation
-# PM1 / PM4 / PM10 remain available but disabled by default (extra PM
-# fractions add little default customer value).
+#   CO2 · VOC · NOx · Air Quality · Recommendation
+# ALL PM entities (PM2.5 / PM1 / PM4 / PM10) remain available but ship
+# disabled by default: the SPS30 is an EXTERNAL ATTACHMENT (J2) whose
+# commercial inclusion is not declared by any kit / SOT / product record
+# (see the opt-in contract below).
 # Everything else stays diagnostic and/or disabled by default. There is
 # deliberately NO customer-facing AQI (no recognised AQI standard is
 # implemented, so no AQI is claimed) and NO blended proprietary score:
@@ -27,8 +29,8 @@
 #
 # Unit honesty: CO2 is ppm (SCD41, PCB-mounted); VOC and NOx are RELATIVE
 # indices (SGP41, PCB-mounted) and are never presented as ppm/ppb
-# concentrations; PM values are µg/m³ (SPS30, EXTERNAL connector-attached
-# via J2 and compiled as part of the standard stack). No MiCS-derived
+# concentrations; PM values are µg/m³ (SPS30, EXTERNAL attachment via
+# J2 with a compiled driver). No MiCS-derived
 # CO / NO2 concentration exists anywhere: the MiCS-4514 + STM8 gas stage
 # is PCB-MOUNTED (verified schematic U4/U5 + BOM) but has NO compiled
 # driver and an unverified readout interface (ENTITY-FILL-210-MICS-001) —
@@ -64,6 +66,19 @@
 # (flat taxonomy, one SKU per product). Expected-sensor membership is
 # configuration-driven by the airiq_expected_* substitutions; an
 # intentionally absent optional sensor never degrades anything.
+#
+# External-attachment honesty (SPS30 opt-in contract): a J2 connector and
+# a compiled driver do NOT prove that an external module is physically
+# supplied. No authoritative kit / SOT / product record declares the
+# SPS30 as included (kit records enumerate board SKUs only; no SPS30 SKU
+# exists; WebFlash lists it as optional), so by default the SPS30 is a
+# SUPPORTED external attachment only: airiq_expected_pm defaults "false"
+# (an absent SPS30 never degrades module health) and every PM entity
+# ships disabled by default. A future composition with a DECLARED SPS30
+# attachment opts in explicitly: set airiq_expected_pm: "true" and
+# re-enable the PM entities (ESPHome `!extend s360_pm2_5` with
+# disabled_by_default: false) in that bundle — never by firmware
+# inference, always from an authoritative product declaration.
 #
 # RoomIQ reuse: AirIQ never re-reads raw RoomIQ sensors. The SGP41
 # temperature/humidity compensation stays SCD41-sourced at the board
@@ -104,14 +119,16 @@ substitutions:
   airiq_pm10_source_id: airiq_pm10_0
 
   # Expected-sensor membership (configuration-driven; NO Base/Pro axis).
-  # The compiled S360-210 stack expects CO2 + VOC + NOx + PM. The
-  # formaldehyde and ozone slots exist for future authoritative
-  # compositions only: no driver is compiled, fitment is unresolved, and
-  # they must never leak into current products.
+  # PCB-mounted compiled sensors (SCD41 CO2, SGP41 VOC/NOx) are expected.
+  # EXTERNAL attachments are opt-in per composition: SPS30 PM (driver
+  # compiled, commercial inclusion not declared — see the opt-in contract
+  # above), formaldehyde (SFA40 — no driver, fitment unresolved) and
+  # ozone (SEN0321 / ZE27-O3 — external input, no driver) default OFF and
+  # must never leak into current products.
   airiq_expected_co2: "true"
   airiq_expected_voc: "true"
   airiq_expected_nox: "true"
-  airiq_expected_pm: "true"
+  airiq_expected_pm: "false"
   airiq_expected_hcho: "false"
   airiq_expected_o3: "false"
 
@@ -479,6 +496,12 @@ sensor:
     accuracy_decimals: 0
     icon: mdi:smog
 
+  # --- PM sensors (disabled by default — SPS30 external attachment) ------------
+  # The SPS30 driver is compiled and a customer with an attached module
+  # can enable these, but no authoritative record declares the module as
+  # supplied, so every PM entity ships disabled by default. A future
+  # SPS30-declared composition opts in (see the opt-in contract in the
+  # header: airiq_expected_pm + !extend to re-enable).
   - platform: template
     id: s360_pm2_5
     name: "PM2.5"
@@ -487,10 +510,7 @@ sensor:
     state_class: measurement
     accuracy_decimals: 1
     icon: mdi:blur
-
-  # --- additional standard sensors (disabled by default) -----------------------
-  # Extra PM fractions: real measurements, low default customer value —
-  # enable in Home Assistant when needed.
+    disabled_by_default: true
   - platform: template
     id: s360_pm1
     name: "PM1"
@@ -627,10 +647,12 @@ text_sensor:
       return out;
 
   # Honesty companion: states on-device what the module status can and
-  # cannot attest — freshness-only evidence, the compiled BMP390 pressure
-  # driver being firmware/catalog drift (no pressure part on the verified
-  # schematic / BOM), the not-compiled PCB-mounted MICS-4514 + STM8 gas
-  # stage and the fitment-unresolved SFA40 formaldehyde stage.
+  # cannot attest — freshness-only evidence, the SPS30 being an external
+  # attachment that is expected only when a composition declares it, the
+  # compiled BMP390 pressure driver being firmware/catalog drift (no
+  # pressure part on the verified schematic / BOM), the not-compiled
+  # PCB-mounted MICS-4514 + STM8 gas stage and the fitment-unresolved
+  # SFA40 formaldehyde stage.
   - platform: template
     id: s360_airiq_sensor_verification
     name: "AirIQ Sensor Verification"
@@ -639,10 +661,12 @@ text_sensor:
     disabled_by_default: true
     update_interval: never
     lambda: |-
-      return {"Freshness from I2C data updates only; compiled BMP390 pressure "
-              "driver is firmware/catalog drift (no pressure part on the "
-              "verified schematic/BOM; not a product surface); MICS-4514 and "
-              "SFA40 stages not compiled (interfaces/fitment unverified)"};
+      return {"Freshness from I2C data updates only; SPS30 PM is an external "
+              "attachment (expected only when declared; PM entities disabled "
+              "by default); compiled BMP390 pressure driver is firmware/"
+              "catalog drift (no pressure part on the verified schematic/BOM; "
+              "not a product surface); MICS-4514 and SFA40 stages not "
+              "compiled (interfaces/fitment unverified)"};
 
   # --- legacy compatibility (pre-framework published entity) -------------------
   # Exact id and name preserved so existing Home Assistant entity ids and

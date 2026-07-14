@@ -226,14 +226,17 @@ inline const char *health_to_string(Health health) {
 class AirIQEngine {
  public:
   AirIQEngine() {
-    // Expected-channel defaults mirror the compiled S360-210 stack:
-    // SCD41 CO2 + SGP41 VOC/NOx + SPS30 PM. Formaldehyde and ozone are
-    // contract slots only (no driver, unresolved fitment) — never
-    // expected unless a future authoritative composition turns them on.
+    // Expected-channel defaults mirror the PCB-MOUNTED compiled S360-210
+    // sensors only: SCD41 CO2 + SGP41 VOC/NOx. EXTERNAL attachments are
+    // opt-in per composition: the SPS30 PM module (J2) has a compiled
+    // driver but NO authoritative kit/SOT record declares it as supplied
+    // — an undeclared absent module must never degrade health — and the
+    // formaldehyde / ozone slots have no driver and unresolved fitment.
+    // A composition that declares an attachment calls set_expected().
     expected_[POLLUTANT_CO2] = true;
     expected_[POLLUTANT_VOC] = true;
     expected_[POLLUTANT_NOX] = true;
-    expected_[POLLUTANT_PM25] = true;
+    expected_[POLLUTANT_PM25] = false;
     expected_[POLLUTANT_HCHO] = false;
     expected_[POLLUTANT_O3] = false;
 

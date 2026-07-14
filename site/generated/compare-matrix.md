@@ -30,7 +30,7 @@
 | CO2 | — | ✓ | — | — |
 | VOC index | — | ✓ | ✓ | ✓ |
 | NOx index | — | ✓ | ✓ | ✓ |
-| Particulate matter (PM2.5) | — | ✓ | — | — |
+| Particulate matter (PM2.5, needs external SPS30 module) | — | ✓ | — | — |
 | Barometric pressure | — | — | ✓ | ✓ |
 | Dew point | — | — | ✓ | ✓ |
 | Air-quality summary | — | ✓ | ✓ | ✓ |

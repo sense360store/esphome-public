@@ -206,8 +206,12 @@ class TestCompareMatrix(unittest.TestCase):
         # entity named "Air Quality State").
         self.assertEqual(self._cells("Air-quality summary"), ["—", "✓", "✓", "✓"])
         self.assertEqual(self._cells("CO2"), ["—", "✓", "—", "—"])
+        # PM row: the label carries the external-SPS30 caveat because the
+        # module's commercial inclusion is not declared — the ✓ states
+        # firmware support only (entity ships disabled by default).
         self.assertEqual(
-            self._cells("Particulate matter (PM2.5)"), ["—", "✓", "—", "—"]
+            self._cells("Particulate matter (PM2.5, needs external SPS30 module)"),
+            ["—", "✓", "—", "—"],
         )
         self.assertEqual(self._cells("VOC index"), ["—", "✓", "✓", "✓"])
 

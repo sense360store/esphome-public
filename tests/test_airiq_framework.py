@@ -859,8 +859,8 @@ class CoreFrameworkContractTests(unittest.TestCase):
         self.assertIn("SPS30", external)
         self.assertTrue(any("SEN0321" in key for key in external))
         sps30 = external["SPS30"]
-        for needle in ("J2", "not declared", "expected=false", "opt"):
-            self.assertIn(needle, sps30, needle)
+        for needle in ("j2", "not declared", "expected=false", "opt"):
+            self.assertIn(needle, sps30.lower(), needle)
         # No sensor may appear on both sides of the separation.
         for key in external:
             token = key.split()[0]
