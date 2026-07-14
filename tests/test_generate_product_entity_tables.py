@@ -103,8 +103,13 @@ class TestDerivedTables(unittest.TestCase):
 
     def test_internal_entities_are_excluded(self):
         # The raw board measurements are internal: true — never HA-exposed.
+        # (ROOMIQ-FRAMEWORK-001: "Illuminance" is now the CALIBRATED
+        # canonical customer entity, so the internal-leak canaries are the
+        # driver-internal VEML7700 channels instead.)
         ventiq = self.outputs["ceiling-poe-ventiq-roomiq-entities.md"]
-        self.assertNotIn("| Illuminance |", ventiq)
+        self.assertNotIn("| ALS Counts |", ventiq)
+        self.assertNotIn("| Full Spectrum |", ventiq)
+        self.assertNotIn("| ALS Interrupt |", ventiq)
         airiq = self.outputs["ceiling-poe-airiq-roomiq-entities.md"]
         self.assertNotIn("| CO2 |", airiq)
         self.assertNotIn("| PM2.5 |", airiq)

@@ -140,10 +140,15 @@ Presence integration rules (LED-04):
 
 Darkness decision (LED-05):
 
-* Source: the compiled RoomIQ lux sensor (`comfort_ceiling_illuminance`,
-  VEML7700 at I²C 0x10, publishing every 10 s). Freshness comes from real
-  update callbacks (a `copy` sensor's `on_value`), never from re-reading a
-  cached value.
+* Source (ROOMIQ-FRAMEWORK-001): the **canonical RoomIQ darkness
+  service** (`include/sense360/roomiq_engine.h`) — computed from the
+  CALIBRATED illuminance path over the compiled lux driver
+  (`comfort_ceiling_illuminance`, VEML7700 at I²C 0x10, publishing every
+  10 s), with freshness from real update callbacks. The LED framework
+  passes the customer threshold into that service and consumes the
+  decision (`input_darkness`); it no longer implements any lux threshold
+  logic of its own (regression-tested), and the customer's Illuminance
+  Calibration therefore also corrects night-mode behaviour.
 * Dark below the customer threshold (default **20 lx**, range 1–200 lx);
   not-dark above threshold × 1.5 (hysteresis factor, provisional). In
   between, the previous decision holds.
