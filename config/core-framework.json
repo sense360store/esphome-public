@@ -12,7 +12,7 @@
   "guardrails": [
     "All capability and module-status values in this contract are compile-time composition facts only: no runtime hardware autodetection is performed or claimed by the framework.",
     "Module status 'Included' is compile-time presence, never a health, availability, bench or hardware claim.",
-    "The reserved runtime status values (Initialising / Available / Degraded / Unavailable / Fault) may only be introduced by a module-specific PR that wires a real supported runtime signal. Presence is the first wired module (PRESENCE-FRAMEWORK-001) and RoomIQ is the second (ROOMIQ-FRAMEWORK-001) — see module_runtime_status; all other module slots still emit compile-time values only.",
+    "The reserved runtime status values (Initialising / Available / Degraded / Unavailable / Fault) may only be introduced by a module-specific PR that wires a real supported runtime signal. Presence is the first wired module (PRESENCE-FRAMEWORK-001), RoomIQ is the second (ROOMIQ-FRAMEWORK-001) and AirIQ is the third (AIRIQ-FRAMEWORK-001) — see module_runtime_status; all other module slots still emit compile-time values only.",
     "This contract changes no release declaration: config/webflash-builds.json rows, channels, versions, artifact names, product lifecycle and commercial state are untouched.",
     "Compile-only skeletons (products/compile-only/) and the provisioning bench harness (tests/bench/) never include the framework package, so they cannot be mistaken for customer products.",
     "Firmware-build proof only: nothing in this contract claims hardware, bench, compliance, safety or commercial-availability proof.",
@@ -47,7 +47,7 @@
       "display_name": "AirIQ",
       "kind": "module",
       "hardware_sku": "S360-210",
-      "description": "AirIQ air-quality firmware (SCD4x CO2, SGP4x VOC/NOx, SPS30 particulate, BMP3xx pressure) on the S360-210 board. The MICS-4514 gas stage exists on the hardware but is not compiled in any current configuration and is NOT part of this capability."
+      "description": "AirIQ air-quality firmware (SCD4x CO2, SGP4x VOC/NOx, SPS30 particulate, BMP3xx pressure) on the S360-210 board, with the AIRIQ-FRAMEWORK-001 customer experience (canonical CO2 / VOC / NOx / PM2.5, one worst-pollutant Air Quality headline, one Recommendation and the AirIQ module runtime status; packages/features/airiq_framework.yaml). Describes compiled firmware only. The MICS-4514 gas stage exists on the hardware but is not compiled in any current configuration and is NOT part of this capability (diagnostic-only engine channels exist pending ENTITY-FILL-210-MICS-001 calibration evidence)."
     },
     "ventiq": {
       "display_name": "VentIQ",
@@ -152,6 +152,26 @@
         "Explicit module-fault input is reserved: no composed sensor exposes a supported fault signal today, so Fault is never emitted from ordinary stale data."
       ],
       "notes": "Honesty limits: temperature and humidity share one physical sensor (SHT4x @ 0x44), so their shared failure appears as both channels going stale together; the engine still tracks them independently. Freshness attests data delivery only — all comfort/brightness thresholds are provisional heuristics and no hardware/bench proof is claimed. The customer-facing entity names never carry a sensor model name while the light-sensor identity stays unresolved."
+    },
+    "airiq": {
+      "work_item": "AIRIQ-FRAMEWORK-001",
+      "entity_id": "s360_module_status_airiq",
+      "package": "packages/features/airiq_framework.yaml",
+      "available_definition": "Available means STRICTLY: every EXPECTED pollutant channel of this composition (CO2, VOC, NOx, PM2.5 by default — configuration-driven via the airiq_expected_* substitutions, never an invented Base/Pro axis) delivered a valid value-update inside its per-sensor stale window — real data-freshness evidence from the I2C sensor update callbacks, evaluated by the shared engine include/sense360/airiq_engine.h. It is data-service availability, NOT sensor accuracy, calibration correctness or hardware health, and it does not resolve the S360-210 pressure part identity (compiled BMP390 @0x77 vs a BOM listing no pressure part — pressure is therefore excluded from health while the reconciliation is open). The diagnostic entity s360_airiq_sensor_verification ('AirIQ Sensor Verification') states this coverage limit on-device.",
+      "values": [
+        "Initialising",
+        "Available",
+        "Degraded",
+        "Unavailable",
+        "Fault"
+      ],
+      "signals": [
+        "Per-channel valid value-update timestamps for CO2, VOC, NOx and PM2.5 provide real data-freshness evidence; a channel past its stale window is unusable and its values go unknown, never frozen — stale data never counts as good air.",
+        "Independent per-sensor warm-up windows gate Initialising (SCD41/SPS30 60 s, SGP41 120 s — provisional data-availability windows, never accuracy claims); the first valid sample ends a channel's initialisation early. Startup is never reported as a fault or an outage.",
+        "Degraded means at least one EXPECTED channel is stale/missing while another stays fresh (e.g. the connector-attached SPS30 goes silent but the SCD41/SGP41 path still updates — an honest partial Air Quality headline remains).",
+        "Explicit module-fault input is reserved: no composed sensor exposes a supported fault signal today, so Fault is never emitted from ordinary stale data."
+      ],
+      "notes": "Honesty limits: the SPS30 is connector-attached but compiled as part of the standard stack (and named in the HW-AIRIQ-WAIVER-2026-06 stable waiver), so it is expected by default; the MICS-4514 + STM8 gas stage and the SFA40 formaldehyde stage are NOT compiled (interfaces unverified — ENTITY-FILL-210-MICS-001 / ENTITY-FILL-210-HCHO-001) and never affect health; the compiled BMP390 pressure path is freshness-tracked but excluded from health and from Air Quality severity while its BOM identity conflict is unresolved. Formaldehyde/ozone are engine contract slots with expected=false in every current composition. Runtime status never claims hardware/bench proof; an intentionally absent optional sensor is never a fault."
     }
   },
   "device_health": {

@@ -20,13 +20,13 @@
 //
 // Compile via tests/Makefile (auto-discovered):  cd tests && make test
 
-#include "../../include/sense360/airiq_engine.h"
-
 #include <cassert>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <exception>
+
+#include "../../include/sense360/airiq_engine.h"
 
 using namespace sense360::airiq;
 
@@ -66,10 +66,10 @@ static const uint32_t AFTER_ALL_WARMUPS = T0 + 200000;  // beyond every window
 
 // Feed one good sample on every expected default channel at time t.
 static void feed_all_good(AirIQEngine &e, uint32_t t) {
-  e.input_co2(t, 600.0f);      // Good (< 800 ppm)
-  e.input_voc(t, 80.0f);       // Good (< 150 index)
-  e.input_nox(t, 10.0f);       // Good (< 100 index)
-  e.input_pm2_5(t, 5.0f);      // Good (< 12 µg/m³)
+  e.input_co2(t, 600.0f);  // Good (< 800 ppm)
+  e.input_voc(t, 80.0f);   // Good (< 150 index)
+  e.input_nox(t, 10.0f);   // Good (< 100 index)
+  e.input_pm2_5(t, 5.0f);  // Good (< 12 µg/m³)
 }
 
 // A default engine that has begun at T0.
@@ -228,8 +228,8 @@ TEST_CASE(worst_pollutant_tie_break_is_deterministic) {
   AirIQEngine e = started_engine();
   const uint32_t t = T0 + 5000;
   feed_all_good(e, t);
-  e.input_co2(t, 1200.0f);   // Poor
-  e.input_pm2_5(t, 40.0f);   // Poor
+  e.input_co2(t, 1200.0f);  // Poor
+  e.input_pm2_5(t, 40.0f);  // Poor
   e.evaluate(t);
   ASSERT_EQ(e.air_quality(), AIR_QUALITY_POOR);
   ASSERT_EQ(e.worst_pollutant(), POLLUTANT_CO2);
@@ -409,7 +409,7 @@ TEST_CASE(mics_channels_are_diagnostic_only) {
   AirIQEngine e = started_engine();
   const uint32_t t = T0 + 5000;
   feed_all_good(e, t);
-  e.input_mics_reducing(t, 123456.0f);   // raw/derived units unverified
+  e.input_mics_reducing(t, 123456.0f);  // raw/derived units unverified
   e.input_mics_oxidising(t, 6543.0f);
   e.evaluate(t);
   ASSERT_NEAR(e.mics_reducing(), 123456.0f, 0.01f);
@@ -507,8 +507,8 @@ TEST_CASE(pm_very_poor_outranks_co2_poor) {
   AirIQEngine e = started_engine();
   const uint32_t t = T0 + 5000;
   feed_all_good(e, t);
-  e.input_co2(t, 1200.0f);   // Poor
-  e.input_pm2_5(t, 80.0f);   // Very poor
+  e.input_co2(t, 1200.0f);  // Poor
+  e.input_pm2_5(t, 80.0f);  // Very poor
   e.evaluate(t);
   ASSERT_EQ(e.air_quality(), AIR_QUALITY_VERY_POOR);
   ASSERT_EQ(e.recommendation(), RECOMMENDATION_CHECK_SOURCE);
@@ -538,8 +538,8 @@ TEST_CASE(unavailable_data_gives_unavailable_recommendation) {
 TEST_CASE(invalid_samples_never_refresh_or_classify) {
   AirIQEngine e = started_engine();
   const uint32_t t = T0 + 5000;
-  e.input_co2(t, NAN);        // invalid: not an update
-  e.input_pm2_5(t, -4.0f);    // invalid: negative concentration
+  e.input_co2(t, NAN);      // invalid: not an update
+  e.input_pm2_5(t, -4.0f);  // invalid: negative concentration
   e.input_voc(t, NAN);
   e.evaluate(t + 1000);
   ASSERT_NAN(e.co2());

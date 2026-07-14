@@ -153,7 +153,15 @@ packages:
   # SGP41 VOC/NOx + SCD41 CO2 + BMP390 pressure on the shared core_i2c bus).
   # AirIQ and VentIQ are mutually exclusive; this build ships AirIQ.
   airiq_board: !include ../../packages/boards/s360-210-airiq.yaml
-  airiq_profile: !include ../../packages/features/airiq_basic_profile.yaml
+  # === Sense360 AirIQ framework (AIRIQ-FRAMEWORK-001) ===
+  # Canonical indoor-air-quality service: CO2 / VOC / NOx / PM2.5, one
+  # headline Air Quality state, one Recommendation and the AirIQ module
+  # runtime status (supersedes the legacy airiq_basic_profile MQTT/
+  # placeholder path in bundles; the profile's published surface — the
+  # air_quality_state compatibility entity and the MQTT block — is
+  # preserved inside the framework package; legacy shim products keep
+  # the profile).
+  airiq_framework: !include ../../packages/features/airiq_framework.yaml
 
   # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
   # Board package wraps packages/expansions/comfort_ceiling.yaml +

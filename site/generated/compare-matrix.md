@@ -27,11 +27,14 @@
 | Ambient light level | ✓ | ✓ | ✓ | ✓ |
 | Comfort score | ✓ | ✓ | ✓ | ✓ |
 | **Air quality** |  |  |  |  |
-| VOC index | — | — | ✓ | ✓ |
-| NOx index | — | — | ✓ | ✓ |
+| CO2 | — | ✓ | — | — |
+| VOC index | — | ✓ | ✓ | ✓ |
+| NOx index | — | ✓ | ✓ | ✓ |
+| Particulate matter (PM2.5) | — | ✓ | — | — |
 | Barometric pressure | — | — | ✓ | ✓ |
 | Dew point | — | — | ✓ | ✓ |
-| Air-quality summary | — | — | ✓ | ✓ |
+| Air-quality summary | — | ✓ | ✓ | ✓ |
+| Air-quality recommendation | — | ✓ | — | — |
 | **Bathroom intelligence** |  |  |  |  |
 | Shower detection | — | — | ✓ | ✓ |
 | Mould-risk tracking | — | — | ✓ | ✓ |
@@ -44,4 +47,4 @@
 | LED night mode | — | — | — | ✓ |
 | Relay output | ✓ | ✓ | ✓ | ✓ |
 | Auto-ventilation control | — | — | ✓ | ✓ |
-| **Home Assistant entities** | 92 | 94 | 120 | 131 |
+| **Home Assistant entities** | 92 | 112 | 120 | 131 |

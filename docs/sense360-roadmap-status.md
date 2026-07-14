@@ -903,6 +903,83 @@ is an owner action in SOT, in a separate PR — never bundled here.
 
 ---
 
+## 16. AirIQ framework (AIRIQ-FRAMEWORK-001)
+
+**Status: software foundation implemented via the AIRIQ-FRAMEWORK-001 PR —
+compile and simulation proof only; physical sensor validation pending
+(`AIRIQ-FRAMEWORK-BENCH-001`, checklist at
+[`docs/hardware/airiq-framework-bench-checklist.md`](hardware/airiq-framework-bench-checklist.md));
+MICS-4514 calibration/promotion pending; the pressure-sensor identity
+(compiled BMP390 vs a BOM listing no pressure part) and the SFA40 fitment
+stay unresolved reconciliations; no SOT, release or commercial state
+change.**
+
+Canonical local indoor-air-quality service for the S360-210 AirIQ board:
+honest pollutant measurements (**CO2** ppm, **VOC** and **NOx** as relative
+indices — never concentrations, **PM2.5** µg/m³), ONE headline **Air
+Quality** state (transparent worst-pollutant model — never a blended score,
+never an AQI claim), ONE deterministic customer **Recommendation**,
+independent per-sensor warm-up/freshness, and the AirIQ module runtime
+status (the third wired module after Presence and RoomIQ). Canonical doc:
+[`docs/architecture/sense360-airiq-framework.md`](architecture/sense360-airiq-framework.md);
+contract tests: [`tests/test_airiq_framework.py`](../tests/test_airiq_framework.py);
+deterministic simulation: [`tests/unit/test_airiq_engine.cpp`](../tests/unit/test_airiq_engine.cpp)
+over the shared engine
+[`include/sense360/airiq_engine.h`](../include/sense360/airiq_engine.h)
+(the same header production YAML compiles — no drift-prone second
+implementation).
+
+Scope facts (do not overclaim):
+
+* **Customer surface** — default-enabled set is exactly: CO2, VOC, NOx,
+  PM2.5, Air Quality, Recommendation. PM1/PM4/PM10 and Pressure exist but
+  ship disabled by default (pressure additionally pending its identity
+  reconciliation and excluded from severity and health). All thresholds
+  are provisional indoor-air-quality heuristics — never medical, health
+  or regulatory claims; the PM2.5 bands derive from published US EPA
+  breakpoints used as heuristics only, explicitly not a regulatory AQI.
+* **No Base/Pro axis** — the taxonomy is flat (one SKU, S360-210);
+  expected-sensor membership is configuration-driven substitutions.
+  Formaldehyde (SFA40, fitment conflicted, `ENTITY-FILL-210-HCHO-001`)
+  and ozone (no authoritative hardware record) are inactive engine
+  contract slots: no entity, no claim, never expected in any current
+  composition.
+* **MICS-4514 included honestly** — on the BOM with an STM8 co-processor,
+  but no driver exists and the readout interface is unverified
+  (`ENTITY-FILL-210-MICS-001`), so the engine carries diagnostic-only
+  MiCS channels, no customer CO/NO2 concentration is claimed anywhere,
+  and promotion is gated on documented calibration evidence (recommended
+  as a separate programme).
+* **Backwards compatibility** — the placeholder `air_quality_state`
+  entity keeps its id/name (semantic upgrade documented: real headline
+  vocabulary instead of a hardcoded "unknown", disabled by default); the
+  legacy MQTT block moved verbatim into the framework; legacy include
+  paths keep resolving; board sensor ids unchanged; nothing removed.
+* **Bundle authority** — all four catalog-declared AirIQ-bearing configs
+  compose the framework exactly once and drop the legacy profile;
+  non-AirIQ configs gain nothing (test-enforced plus the non-AirIQ
+  regression compile target). No `config/webflash-builds.json` row,
+  channel, version or artifact name changed.
+* **Compile/simulation proof recorded separately from hardware proof** —
+  the representative compile lane covers AirIQ+RoomIQ, Release-One
+  VentIQ+RoomIQ, both LED-bearing bundles and the non-AirIQ regression
+  target; 37 deterministic simulation scenarios cover startup, per-sensor
+  warm-up, partial readiness, staleness, recovery, worst-pollutant
+  selection, recommendations, boundary values, optional-sensor absence,
+  MiCS diagnostics and invalid values. None of this is hardware, bench,
+  compliance or commercial proof.
+
+Follow-ups created by this work item (tracked, not started):
+`AIRIQ-FRAMEWORK-BENCH-001` physical validation; the MICS-4514
+calibration/promotion programme; pressure-sensor identity reconciliation;
+SFA40 fitment/interface reconciliation; electrochemical / ozone module
+identity reconciliation (ZE07 / ZE27-O3); customer threshold tuning;
+VentIQ consumption of the canonical engine; Pure consumption. SOT
+programme-status propagation (AirIQ software foundation implemented) is an
+owner action in SOT, in a separate PR — never bundled here.
+
+---
+
 ## Channel-tier policy (RELEASE-PREVIEW-ALL-PRODUCTS-001)
 
 Preview eligibility is now open to **every buildable target**. The channel-tier

@@ -154,7 +154,15 @@ packages:
   # === Sense360 AirIQ (S360-210, full indoor air-quality stack) ===
   # AirIQ and VentIQ are mutually exclusive; this bundle ships AirIQ.
   airiq_board: !include ../../packages/boards/s360-210-airiq.yaml
-  airiq_profile: !include ../../packages/features/airiq_basic_profile.yaml
+  # === Sense360 AirIQ framework (AIRIQ-FRAMEWORK-001) ===
+  # Canonical indoor-air-quality service: CO2 / VOC / NOx / PM2.5, one
+  # headline Air Quality state, one Recommendation and the AirIQ module
+  # runtime status (supersedes the legacy airiq_basic_profile MQTT/
+  # placeholder path in bundles; the profile's published surface — the
+  # air_quality_state compatibility entity and the MQTT block — is
+  # preserved inside the framework package; legacy shim products keep
+  # the profile).
+  airiq_framework: !include ../../packages/features/airiq_framework.yaml
 
   # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
   roomiq_board: !include ../../packages/boards/s360-200-roomiq.yaml

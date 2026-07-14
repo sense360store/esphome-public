@@ -219,9 +219,7 @@ def non_airiq_bundles() -> List[Path]:
 class PackageFilesExistTests(unittest.TestCase):
     def test_new_files_exist(self) -> None:
         for path in (FRAMEWORK_PACKAGE, HEADER, CPP_TEST, DOC, CHECKLIST):
-            self.assertTrue(
-                path.is_file(), f"missing AIRIQ-FRAMEWORK-001 file: {path}"
-            )
+            self.assertTrue(path.is_file(), f"missing AIRIQ-FRAMEWORK-001 file: {path}")
 
     def test_no_secret_material_in_airiq_packages(self) -> None:
         for path in (FRAMEWORK_PACKAGE, BOARD_PACKAGE):
@@ -472,9 +470,7 @@ class CustomerEntityContractTests(unittest.TestCase):
         # NOT one customer entity per threshold and NOT a single opaque
         # "sensitivity" control.
         numbers = [
-            entry
-            for entry in (self.doc.get("number") or [])
-            if isinstance(entry, dict)
+            entry for entry in (self.doc.get("number") or []) if isinstance(entry, dict)
         ]
         self.assertEqual(
             numbers, [], "no customer threshold controls in the first slice"
@@ -625,9 +621,7 @@ class EngineHeaderTests(unittest.TestCase):
         self.assertNotIn("POLLUTANT_MICS", self.raw)
 
     def test_no_hardware_validation_claim(self) -> None:
-        self.assertIn(
-            "Nothing in this header claims hardware validation", self.raw
-        )
+        self.assertIn("Nothing in this header claims hardware validation", self.raw)
 
     def test_index_outputs_documented_as_relative(self) -> None:
         lowered = self.raw.lower()
@@ -792,9 +786,7 @@ class CompileLaneTests(unittest.TestCase):
 
     def test_matrix_covers_the_required_airiq_composition(self) -> None:
         self.assertIn("Ceiling-POE-AirIQ-RoomIQ", self.raw)
-        self.assertIn(
-            "products/sense360-ceiling-poe-airiq-roomiq.yaml", self.raw
-        )
+        self.assertIn("products/sense360-ceiling-poe-airiq-roomiq.yaml", self.raw)
 
     def test_matrix_keeps_release_one_and_led_regressions(self) -> None:
         self.assertIn("Ceiling-POE-VentIQ-RoomIQ", self.raw)
