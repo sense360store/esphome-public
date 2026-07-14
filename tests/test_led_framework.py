@@ -384,11 +384,25 @@ class CustomerEntityContractTests(unittest.TestCase):
         for forbidden in ("s360_pir_motion", "s360_sen0609_presence", "ld2450_"):
             self.assertNotIn(forbidden, self.raw)
 
-    def test_lux_freshness_comes_from_update_callbacks(self) -> None:
-        # LED-05: stale lux must be detectable — freshness comes from real
-        # sensor update callbacks, never from re-reading a cached value.
-        self.assertIn("on_value", self.raw)
-        self.assertIn("input_lux", self.raw)
+    def test_darkness_comes_from_the_canonical_roomiq_service(self) -> None:
+        # ROOMIQ-FRAMEWORK-001: the darkness decision (threshold,
+        # hysteresis, lux staleness) is the canonical RoomIQ engine's
+        # service. LED passes its customer threshold into that service and
+        # consumes the decision — it never re-implements lux threshold
+        # logic and never reads the raw board lux sensor.
+        self.assertIn("sense360::roomiq", self.raw)
+        self.assertIn("set_darkness_threshold", self.raw)
+        self.assertIn("input_darkness", self.raw)
+        self.assertNotIn("input_lux", self.raw)
+        self.assertNotIn("comfort_ceiling_illuminance", self.raw)
+
+    def test_no_duplicate_darkness_engine_in_led_controller(self) -> None:
+        # Regression guard: exactly one lux-threshold implementation exists
+        # (include/sense360/roomiq_engine.h). The LED controller consumes
+        # the injected decision only.
+        header_raw = HEADER.read_text() if HEADER.is_file() else ""
+        self.assertNotIn("input_lux", header_raw)
+        self.assertIn("input_darkness", header_raw)
 
     def test_restore_contract_uses_persisted_customer_state(self) -> None:
         # LED-11: the framework persists the stable customer state and
@@ -493,12 +507,15 @@ class BundleWiringTests(unittest.TestCase):
             self.assertNotIn("s360-300-led", raw, bundle.name)
 
     def test_led_bundles_have_the_framework_inputs(self) -> None:
-        # The framework consumes the fused Occupancy entity and the RoomIQ
-        # lux sensor; every LED bundle must compose both sources.
+        # The framework consumes the fused Occupancy entity and the
+        # canonical RoomIQ darkness service; every LED bundle must compose
+        # all three sources (Presence, the RoomIQ board and the RoomIQ
+        # environmental framework).
         for bundle in led_bundles():
             raw = bundle.read_text()
             self.assertIn("presence_framework.yaml", raw, bundle.name)
             self.assertIn("s360-200-roomiq.yaml", raw, bundle.name)
+            self.assertIn("roomiq_framework.yaml", raw, bundle.name)
 
     def test_legacy_alias_paths_still_resolve(self) -> None:
         # Customers pin legacy paths; they must keep existing.

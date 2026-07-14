@@ -62,6 +62,11 @@ EXPECTED_WORKFLOW_NAME = "CI: Core Framework Representative Compile"
 #      Presence + LED composition; the LED-less targets double as the
 #      regression check that the LED framework never leaks outside the
 #      LED-bearing bundles.)
+#   9. Non-RoomIQ regression      -> Ceiling-POE-FanDAC
+#      (ROOMIQ-FRAMEWORK-001: a framework-bearing product WITHOUT the
+#      RoomIQ capability compiles as the regression proof that the RoomIQ
+#      environmental framework never leaks outside the RoomIQ-bearing
+#      bundles.)
 EXPECTED_MATRIX = {
     "Ceiling-POE-RoomIQ": "products/sense360-ceiling-poe-roomiq.yaml",
     "Ceiling-POE-AirIQ-RoomIQ": ("products/sense360-ceiling-poe-airiq-roomiq.yaml"),
@@ -72,6 +77,7 @@ EXPECTED_MATRIX = {
         "products/sense360-ceiling-poe-ventiq-roomiq-led.yaml"
     ),
     "Ceiling-POE-RoomIQ-LED": ("products/sense360-ceiling-poe-roomiq-led.yaml"),
+    "Ceiling-POE-FanDAC": "products/sense360-ceiling-poe-fandac.yaml",
 }
 
 FORBIDDEN_TRIGGERS = {
