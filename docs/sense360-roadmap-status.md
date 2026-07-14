@@ -1006,6 +1006,123 @@ owner action in SOT, in a separate PR — never bundled here.
 
 ---
 
+## 17. VentIQ framework (VENTIQ-FRAMEWORK-001)
+
+**Status: software foundation implemented via the VENTIQ-FRAMEWORK-001 PR —
+compile and simulation proof only; physical validation pending
+(`VENTIQ-FRAMEWORK-BENCH-001`, checklist at
+[`docs/hardware/ventiq-framework-bench-checklist.md`](hardware/ventiq-framework-bench-checklist.md));
+the compiled SHT4x/BMP390 board drivers are recorded as firmware/schematic
+drift (`VENTIQ-HW-DRIFT-001` — no such part on the verified S360-211
+schematic, no BOM committed); the fan-relay stage population stays
+unproven (`VENTIQ-RELAY-POPULATION-001` — components drawn crossed-out /
+do-not-populate on the verified schematic); no SOT, release or commercial
+state change.**
+
+Canonical bathroom ventilation service for the S360-211 VentIQ board:
+ONE deterministic customer **Recommendation** (Ventilate soon/now) with a
+plain-language **Ventilation Reason** (shower, clearing moisture, damp too
+long, odour, poor air, high humidity), **Ventilation Needed**, **Shower
+Active**, **Mould Risk**, honest **VOC/NOx** indices and ONE **Air
+Quality** headline, plus the VentIQ module runtime status — the fourth
+wired module after Presence, RoomIQ and AirIQ. Canonical doc:
+[`docs/architecture/sense360-ventiq-framework.md`](architecture/sense360-ventiq-framework.md);
+contract tests: [`tests/test_ventiq_framework.py`](../tests/test_ventiq_framework.py);
+deterministic simulation: [`tests/unit/test_ventiq_engine.cpp`](../tests/unit/test_ventiq_engine.cpp)
+over the shared engine
+[`include/sense360/ventiq_engine.h`](../include/sense360/ventiq_engine.h)
+(the same header production YAML compiles — no drift-prone second
+implementation).
+
+Scope facts (do not overclaim):
+
+* **Reuse, not duplication** — pollutant severity comes from an embedded
+  canonical AirIQ engine (VOC/NOx expected; no band value re-declared —
+  the odour signal is the canonical Fair boundary, which equals the
+  legacy odour threshold); humidity/temperature come from the RoomIQ
+  canonical calibrated service (`s360_humidity` / `s360_temperature`) —
+  raw board sensors are never re-read and RoomIQ comfort thresholds are
+  not duplicated (shower/damp values are ventilation dynamics RoomIQ
+  does not own). "Is the ventilation hardware available?" stays with the
+  Core framework's compile-time Fan Control Module Status entity.
+* **Hardware authority recorded** — the verified S360-211-R4 schematic
+  (single sheet) shows the SGP41 as the ONLY on-board sensor, the SPS30
+  (J4) and IR-temperature (J3) connectors as genuinely optional external
+  attachments (no compiled driver, no entity), and the inline fan-relay
+  stage with its components crossed out (do-not-populate convention;
+  population unproven, no driver, no runtime health — none invented).
+  The compiled SHT4x @0x44 / BMP390 @0x77 are firmware/schematic drift
+  (feature-entity-matrix CONFIRM flags already recorded it; no S360-211
+  BOM artifact exists in-repo); in every current VentIQ composition the
+  RoomIQ board's SHT4x shares address 0x44 on the same bus. The board
+  package stays byte-compatible; reconciliation is `VENTIQ-HW-DRIFT-001`
+  (owner decision with BOM/CPL evidence). The `S360-BATH-B` module-SKU
+  diagnostic label (not a catalog SKU) is tracked as
+  `VENTIQ-SKU-LABEL-001`.
+* **Customer surface** — default-enabled set is exactly: VOC, NOx, Air
+  Quality, Recommendation, Ventilation Reason, Ventilation Needed,
+  Shower Active, Mould Risk, plus the three preserved threshold controls
+  and the shower-detection switch / force-reset buttons. Pre-framework
+  the three threshold Numbers were PLACEBO controls no logic read and
+  "Auto Ventilation" only wrote a log line — the numbers are now
+  genuinely wired into the engine (ids/names/ranges preserved) and the
+  do-nothing switch left the default surface (id preserved, disabled by
+  default). All ventilation thresholds are provisional heuristics —
+  never medical, health, building-standard or regulatory claims.
+* **Module health is honest and separable** — VentIQ module status
+  attests SGP41 VOC/NOx data freshness ONLY; the RoomIQ-owned humidity
+  input never participates (losing it quiets the shower/damp features
+  honestly while advice continues on air quality alone — and vice
+  versa). No runtime fan/ventilation-hardware health exists anywhere.
+* **Backwards compatibility** — every pre-framework published entity id
+  remains as a disabled-by-default compatibility entity (exact ids and
+  names); climate displays now source the RoomIQ canonical calibrated
+  values; derived/state displays now source the engine (documented
+  semantic upgrades; the legacy "Excellent" band and ad-hoc formulas are
+  retired); `bathroom_pressure_display` is the one documented exception
+  that keeps its drifted pre-framework source pending
+  `VENTIQ-HW-DRIFT-001`; `diagnostics.yaml` (previously nested in the
+  profile) is now included directly by the bundles so the CPU Duty
+  surface does not shrink; legacy include paths keep resolving and the
+  legacy shim product keeps the profile unchanged.
+* **Bundle authority** — all seven catalog-declared VentIQ-bearing
+  configs compose the framework exactly once and drop the legacy
+  profile; non-VentIQ configs gain nothing (test-enforced plus the
+  non-VentIQ regression compile targets). No
+  `config/webflash-builds.json` row, channel, version or artifact name
+  changed; nothing in SOT, WebFlash, Shopify, provisioning or
+  commercial state is touched.
+* **Compile/simulation proof recorded separately from hardware proof** —
+  the representative compile lane covers Release-One VentIQ+RoomIQ, the
+  USB VentIQ bundle, the VentIQ LED preview bundle and the non-VentIQ
+  regression targets; 40 deterministic simulation scenarios cover
+  startup, warm-up, shower start/end/timeout, clearing, damp/mould
+  accumulation and freezing, odour, air-quality escalation, priority
+  ordering, manual actions, staleness, degraded service, recovery and
+  invalid values. None of this is hardware, bench, compliance or
+  commercial proof.
+
+Follow-ups created by this work item (tracked, not started):
+`VENTIQ-FRAMEWORK-BENCH-001` physical validation via the results-free
+checklist; `VENTIQ-HW-DRIFT-001` (land the S360-211 BOM/CPL/board-photo
+evidence, then decide with owner sign-off whether the drifted SHT4x/BMP390
+drivers leave the board package — and what happens to the pressure
+compatibility entity — or a hardware revision adds the parts; also owns
+the matching feature-entity-matrix CONFIRM-flag closures);
+`VENTIQ-RELAY-POPULATION-001` (fan-relay stage population/DNP evidence,
+drive-signal source, COMPLIANCE-001 linkage for anything mains-facing);
+`VENTIQ-SKU-LABEL-001` (the `S360-BATH-B` "AirIQ Module SKU" diagnostic
+label vs the canonical S360-211 SKU — a board-layer published-entity
+change needing its own compatibility decision); customer threshold tuning
+from bench + customer feedback; a possible presence-aware ventilation
+refinement (deliberately not consumed in this slice). The `J1`/`J9`
+connector identity stays with S360-100-BENCH-001; the HW-007 doc's stale
+schematic-status caveat stays with the hardware-doc chain. SOT
+programme-status propagation (VentIQ software foundation implemented) is
+an owner action in SOT, in a separate PR — never bundled here.
+
+---
+
 ## Channel-tier policy (RELEASE-PREVIEW-ALL-PRODUCTS-001)
 
 Preview eligibility is now open to **every buildable target**. The channel-tier

@@ -46,6 +46,8 @@ FEATURES_DIR = REPO_ROOT / "packages" / "features"
 VENTIQ_PROFILE = FEATURES_DIR / "bathroom_profile.yaml"
 ROOMIQ_PROFILE = FEATURES_DIR / "comfort_basic_profile.yaml"
 ROOMIQ_FRAMEWORK = FEATURES_DIR / "roomiq_framework.yaml"
+VENTIQ_FRAMEWORK = FEATURES_DIR / "ventiq_framework.yaml"
+PRESENCE_FRAMEWORK = FEATURES_DIR / "presence_framework.yaml"
 
 ENTITY_PLATFORM_KEYS = (
     "sensor",
@@ -139,6 +141,31 @@ class ReleaseOneEntityNameTests(unittest.TestCase):
                 f"entities with names: {collisions}."
             ),
         )
+
+    def test_release_one_ventiq_framework_names_are_disjoint(self) -> None:
+        # VENTIQ-FRAMEWORK-001: Release-One bundles now compose
+        # ventiq_framework.yaml instead of bathroom_profile.yaml, so the
+        # collision guard covers the framework pair (and the presence
+        # framework composed alongside them).
+        self.assertTrue(
+            VENTIQ_FRAMEWORK.is_file(),
+            f"missing VentIQ framework at {VENTIQ_FRAMEWORK}",
+        )
+        ventiq_names = _user_facing_names(VENTIQ_FRAMEWORK)
+        self.assertGreater(len(ventiq_names), 0)
+        for other in (ROOMIQ_FRAMEWORK, PRESENCE_FRAMEWORK):
+            other_names = _user_facing_names(other)
+            self.assertGreater(len(other_names), 0)
+            collisions = sorted(ventiq_names & other_names)
+            self.assertEqual(
+                collisions,
+                [],
+                (
+                    "Release-One framework collision: the VentIQ framework "
+                    f"({VENTIQ_FRAMEWORK.name}) and {other.name} both "
+                    f"expose user-facing entities with names: {collisions}."
+                ),
+            )
 
     def test_release_one_profile_names_are_disjoint(self) -> None:
         ventiq_names = _user_facing_names(VENTIQ_PROFILE)

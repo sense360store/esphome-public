@@ -258,9 +258,19 @@ TEST_CASE(shower_threshold_is_runtime_adjustable) {
   uint32_t t = T0 + 300000;
   VentIQEngine e = calm_engine(t);
   e.set_shower_threshold_pct(90.0f);
+  // Suppress the (independent) rate trigger so this test isolates the
+  // absolute-threshold control the customer number adjusts.
+  e.set_shower_rate_threshold(500.0f);
   e.input_humidity(t + 30000, 85.0f);  // below the raised threshold
   e.evaluate(t + 30000);
   ASSERT_FALSE(e.shower_active());
+  // At the default threshold (75) the same humidity WOULD have started
+  // a shower via the absolute trigger.
+  VentIQEngine e2 = calm_engine(t);
+  e2.set_shower_rate_threshold(500.0f);
+  e2.input_humidity(t + 30000, 85.0f);
+  e2.evaluate(t + 30000);
+  ASSERT_TRUE(e2.shower_active());
 }
 
 // ---------------------------------------------------------------------------
@@ -353,11 +363,24 @@ TEST_CASE(mould_reset_action) {
 // Humidity-high advice and hysteresis
 // ---------------------------------------------------------------------------
 
+// Raise humidity slowly (2 %RH per minute — below the 5 %/min shower
+// rate trigger) so these tests isolate the high-humidity tier.
+static uint32_t feed_slow_rise(VentIQEngine &e, uint32_t t, float from,
+                               float to) {
+  uint32_t now = t;
+  for (float h = from; h <= to; h += 2.0f) {
+    now += MIN;
+    e.input_humidity(now, h);
+    e.evaluate(now);
+  }
+  return now;
+}
+
 TEST_CASE(high_humidity_recommends_ventilating_soon) {
   uint32_t t = T0 + 300000;
   VentIQEngine e = calm_engine(t);
-  e.input_humidity(t + 30000, 62.0f);  // >= 60 default
-  e.evaluate(t + 30000);
+  uint32_t now = feed_slow_rise(e, t, 47.0f, 62.0f);  // ends >= 60 default
+  e.evaluate(now);
   ASSERT_EQ(e.demand(), DEMAND_SOON);
   ASSERT_EQ(e.reason(), REASON_HUMIDITY);
   ASSERT_STREQ(reason_to_string(e.reason()), "High humidity");
@@ -367,16 +390,15 @@ TEST_CASE(high_humidity_recommends_ventilating_soon) {
 TEST_CASE(humidity_hysteresis_prevents_flapping) {
   uint32_t t = T0 + 300000;
   VentIQEngine e = calm_engine(t);
-  e.input_humidity(t + 30000, 62.0f);
-  e.evaluate(t + 30000);
+  uint32_t now = feed_slow_rise(e, t, 47.0f, 62.0f);
   ASSERT_EQ(e.reason(), REASON_HUMIDITY);
   // 59.5 is below 60 but NOT below 60 - 2: state holds.
-  e.input_humidity(t + 60000, 59.5f);
-  e.evaluate(t + 60000);
+  e.input_humidity(now + MIN, 59.5f);
+  e.evaluate(now + MIN);
   ASSERT_EQ(e.reason(), REASON_HUMIDITY);
   // Clearing the hysteresis margin releases it.
-  e.input_humidity(t + 90000, 57.0f);
-  e.evaluate(t + 90000);
+  e.input_humidity(now + 2 * MIN, 57.0f);
+  e.evaluate(now + 2 * MIN);
   ASSERT_EQ(e.demand(), DEMAND_NONE);
 }
 
@@ -604,9 +626,12 @@ TEST_CASE(dew_point_from_canonical_inputs) {
 TEST_CASE(humidity_rate_is_computed_from_timestamps) {
   uint32_t t = T0 + 300000;
   VentIQEngine e = calm_engine(t);
-  e.input_humidity(t + 60000, 51.0f);  // +6 %RH over 60 s = 6 %/min
+  // Samples: 45 @ t-30 s, 45 @ t, 51 @ t+60 s. The rate uses the oldest
+  // retained sample inside the 3-minute window: +6 %RH over 90 s
+  // = 4 %/min (deliberately smoothed against cadence jitter).
+  e.input_humidity(t + 60000, 51.0f);
   e.evaluate(t + 60000);
-  ASSERT_NEAR(e.humidity_rate(), 6.0f, 0.5f);
+  ASSERT_NEAR(e.humidity_rate(), 4.0f, 0.2f);
 }
 
 TEST_CASE(fan_percent_mapping_preserves_legacy_semantics) {
@@ -621,9 +646,8 @@ TEST_CASE(fan_percent_mapping_preserves_legacy_semantics) {
   e2.evaluate(t + 30000);
   ASSERT_EQ(e2.fan_percent(), 50);  // odour
   VentIQEngine e3 = calm_engine(t);
-  e3.input_humidity(t + 30000, 62.0f);
-  e3.evaluate(t + 30000);
-  ASSERT_EQ(e3.fan_percent(), 30);  // elevated humidity
+  feed_slow_rise(e3, t, 47.0f, 62.0f);  // below the shower rate trigger
+  ASSERT_EQ(e3.fan_percent(), 30);      // elevated humidity
 }
 
 // ---------------------------------------------------------------------------
@@ -668,7 +692,9 @@ TEST_CASE(legacy_air_quality_status_uses_canonical_severity) {
 // ---------------------------------------------------------------------------
 
 int main() {
-  printf("\n=== VENTIQ-FRAMEWORK-001 engine simulation (logic proof only) ===\n\n");
+  printf(
+      "\n=== VENTIQ-FRAMEWORK-001 engine simulation (logic proof only) "
+      "===\n\n");
 
 #define RUN(name) run_test(test_##name, #name)
   RUN(startup_is_initialising_never_a_fault);

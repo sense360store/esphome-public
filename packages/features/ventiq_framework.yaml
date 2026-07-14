@@ -1,0 +1,786 @@
+# ============================================================================
+# SENSE360 VENTIQ FRAMEWORK — canonical bathroom ventilation service
+# ============================================================================
+# VENTIQ-FRAMEWORK-001 (docs/architecture/sense360-ventiq-framework.md).
+#
+# One polished, honest bathroom ventilation experience for the S360-211
+# VentIQ board, built by CONSUMING the platform's canonical services:
+#
+#   * Pollutant truth — an embedded canonical AirIQ engine
+#     (include/sense360/airiq_engine.h) classifies the board's SGP41
+#     VOC/NOx indices. NO pollutant threshold is duplicated here: the
+#     AirIQ engine defaults ARE the values, and the odour signal is the
+#     canonical Fair boundary (VOC index 150 — exactly the legacy VentIQ
+#     odour threshold).
+#   * Environmental truth — humidity and temperature are consumed from
+#     the RoomIQ canonical calibrated entities (s360_humidity /
+#     s360_temperature, ROOMIQ-FRAMEWORK-001). Raw board sensors are
+#     never re-read; comfort classification stays RoomIQ's. Every
+#     VentIQ-bearing catalog composition also composes RoomIQ, so the
+#     canonical source is always present.
+#   * Core runtime framework — VentIQ module health publishes into the
+#     Core-Framework "VentIQ Module Status" entity as the FOURTH wired
+#     runtime module (config/core-framework.json
+#     module_runtime_status.ventiq).
+#
+# Customer entities (enabled by default — the ONLY default-enabled set):
+#   VOC · NOx · Air Quality · Recommendation · Ventilation Reason ·
+#   Ventilation Needed · Shower Active · Mould Risk
+# plus the three preserved customer controls (shower threshold,
+# post-shower duration, mould threshold — pre-framework these were
+# PLACEBO controls no logic read; they are now genuinely wired into the
+# engine) and the preserved Force Ventilation / reset buttons and Shower
+# Detection switch. Everything else is diagnostic and/or disabled by
+# default.
+#
+# The ventilation model is the header-only engine
+# include/sense360/ventiq_engine.h — the SAME implementation exercised by
+# the deterministic simulation tests (tests/unit/test_ventiq_engine.cpp),
+# so tested logic and shipped logic cannot drift. The contract is pinned
+# by tests/test_ventiq_framework.py.
+#
+# Hardware honesty (verified schematic S360-211-R4.pdf, single sheet):
+#   * The board's ONLY on-board sensor is the SGP41 (U3). Module health
+#     therefore attests SGP41 VOC/NOx data freshness ONLY — never
+#     accuracy, calibration or hardware health.
+#   * The compiled SHT4x @0x44 and BMP390 @0x77 in the board package are
+#     FIRMWARE/SCHEMATIC DRIFT (no such part on the verified schematic;
+#     no BOM committed; reconciliation tracked as VENTIQ-HW-DRIFT-001).
+#     This framework takes NO input from them. The RoomIQ-owned humidity
+#     input degrades the ventilation SERVICE when lost (shower/damp
+#     features go quiet honestly) but NEVER the VentIQ module status.
+#   * The IR-temperature (J3) and SPS30 (J4) connectors are genuinely
+#     optional external attachments with no compiled driver: no entity
+#     pretends them.
+#   * The on-board fan-relay stage is drawn crossed-out (do-not-populate
+#     convention) on the verified schematic, has no bound driver and no
+#     feedback path: NO runtime fan/ventilation-hardware health exists
+#     and none is invented. "Is the ventilation hardware available?" is
+#     answered by the Core framework's compile-time Fan Control Module
+#     Status entity — deliberately not duplicated here.
+#
+# Freshness honesty: a value is usable only after a real, valid update
+# callback inside its per-channel stale window; each channel has its own
+# warm-up window. Stale channels publish unknown, never a frozen reading.
+# Startup is Initialising, never a fault; Fault is a reserved contract
+# with NO production producer today.
+#
+# Composition contract: bundles compose this package together with the
+# VentIQ board package (packages/boards/s360-211-ventiq.yaml — owner of
+# the raw internal sensors, unchanged), the RoomIQ framework (owner of
+# the canonical humidity/temperature), AND the shared Core Framework
+# package under packages/base/ (owner of the VentIQ Module Status entity;
+# this file deliberately does NOT include it — bundles compose it exactly
+# once, per the CORE-FRAMEWORK-001 isolation rule). This package
+# supersedes the legacy packages/features/bathroom_profile.yaml in
+# bundles (composing both would duplicate the preserved entity ids);
+# legacy shim products keep the profile and its exact pre-framework
+# behaviour. Every pre-framework published entity id is preserved below
+# as a disabled-by-default compatibility entity (semantic upgrades
+# documented in the architecture doc).
+#
+# Every threshold below is a PROVISIONAL ventilation heuristic pending
+# customer and bench validation
+# (docs/hardware/ventiq-framework-bench-checklist.md). They are never
+# medical, health, building-standard or regulatory claims. NO hardware,
+# bench, compliance or commercial claim is made by this package.
+# ============================================================================
+
+substitutions:
+  # Canonical input sources — overridable for future compositions.
+  # Humidity/temperature are the RoomIQ CANONICAL calibrated entities
+  # (never raw board sensors); VOC/NOx are the board's own SGP41 raw
+  # internal ids (the framework owns their canonical publication).
+  ventiq_humidity_source_id: s360_humidity
+  ventiq_temperature_source_id: s360_temperature
+  ventiq_voc_source_id: bathroom_voc_index
+  ventiq_nox_source_id: bathroom_nox_index
+
+  # Expected-sensor membership (configuration-driven; NO Base/Pro axis).
+  # The SGP41 VOC/NOx channels are the board's only schematic-proven
+  # sensors and the only expected channels.
+  ventiq_expected_voc: "true"
+  ventiq_expected_nox: "true"
+
+  # Per-channel freshness windows (ms) — PROVISIONAL engineering
+  # defaults pending bench validation. The RoomIQ canonical climate
+  # values arrive roughly every 30 s (stale = three missed updates); the
+  # VentIQ SGP41 updates every 10 s (stale = six missed updates) with
+  # the SGP41's 120 s conditioning warm-up documented, not hidden.
+  ventiq_humidity_warmup_ms: "90000"
+  ventiq_humidity_stale_ms: "90000"
+  ventiq_temperature_warmup_ms: "90000"
+  ventiq_temperature_stale_ms: "90000"
+  ventiq_voc_warmup_ms: "120000"
+  ventiq_voc_stale_ms: "60000"
+  ventiq_nox_warmup_ms: "120000"
+  ventiq_nox_stale_ms: "60000"
+
+  # Ventilation heuristics — PROVISIONAL defaults (legacy-compatible
+  # values), centralised HERE; the three customer numbers below adjust
+  # the shower/clearing/mould values at runtime. NOTE: VOC/NOx severity
+  # thresholds are deliberately ABSENT — the canonical AirIQ engine
+  # owns pollutant truth for the whole platform.
+  ventiq_shower_humidity_threshold: "75"
+  ventiq_shower_rate_threshold: "5"
+  ventiq_shower_end_delta: "10"
+  ventiq_shower_max_minutes: "60"
+  ventiq_clearing_minutes: "15"
+  ventiq_force_minutes: "15"
+  ventiq_mould_humidity_threshold: "65"
+  ventiq_mould_duration_minutes: "30"
+  ventiq_humidity_high_threshold: "60"
+  ventiq_humidity_hysteresis: "2"
+
+# The ventilation engine is compiled from the shared header (single
+# implementation; see tests/unit/test_ventiq_engine.cpp). Path is
+# relative to the products/ config dir — the same pattern as
+# packages/features/roomiq_framework.yaml.
+esphome:
+  includes:
+    - ../include/sense360/ventiq_engine.h
+  on_boot:
+    - priority: 250
+      then:
+        - lambda: |-
+            sense360::ventiq::global_engine().begin(millis());
+        - script.execute: s360_ventiq_evaluate
+
+# ----------------------------------------------------------------------------
+# Evaluation — periodic tick plus immediate re-evaluation on every real
+# sensor update, control change and button press. One script owns every
+# input/output exchange with the engine, so automations cannot race.
+# ----------------------------------------------------------------------------
+script:
+  - id: s360_ventiq_evaluate
+    then:
+      - lambda: |-
+          using namespace sense360::ventiq;
+          auto &engine = global_engine();
+          const uint32_t now = millis();
+
+          // Composition (expected-channel membership; NO Base/Pro axis).
+          engine.set_pollutant_expected(sense360::airiq::POLLUTANT_VOC,
+                                        ${ventiq_expected_voc});
+          engine.set_pollutant_expected(sense360::airiq::POLLUTANT_NOX,
+                                        ${ventiq_expected_nox});
+
+          // Per-channel freshness windows (substitutions; provisional).
+          engine.set_humidity_warmup_ms(${ventiq_humidity_warmup_ms});
+          engine.set_humidity_stale_ms(${ventiq_humidity_stale_ms});
+          engine.set_temperature_warmup_ms(${ventiq_temperature_warmup_ms});
+          engine.set_temperature_stale_ms(${ventiq_temperature_stale_ms});
+          engine.set_voc_warmup_ms(${ventiq_voc_warmup_ms});
+          engine.set_voc_stale_ms(${ventiq_voc_stale_ms});
+          engine.set_nox_warmup_ms(${ventiq_nox_warmup_ms});
+          engine.set_nox_stale_ms(${ventiq_nox_stale_ms});
+
+          // Ventilation heuristics: the preserved customer controls are
+          // genuinely applied (pre-framework they were placebo controls
+          // no logic read). Invalid/unrestored number states are ignored
+          // by the engine's setters (defaults hold).
+          engine.set_shower_threshold_pct(id(bathroom_shower_threshold).state);
+          engine.set_clearing_minutes(id(bathroom_post_shower_duration).state);
+          engine.set_mould_threshold_pct(id(bathroom_mold_threshold).state);
+          engine.set_shower_rate_threshold(${ventiq_shower_rate_threshold});
+          engine.set_shower_end_delta_pct(${ventiq_shower_end_delta});
+          engine.set_shower_max_minutes(${ventiq_shower_max_minutes});
+          engine.set_mould_duration_minutes(${ventiq_mould_duration_minutes});
+          engine.set_humidity_high_pct(${ventiq_humidity_high_threshold});
+          engine.set_humidity_hysteresis_pct(${ventiq_humidity_hysteresis});
+          engine.set_shower_detection_enabled(
+              id(bathroom_shower_detection_enabled).state);
+
+          engine.evaluate(now);
+
+          // Honest numeric outputs: when a channel is no longer fresh its
+          // canonical entity goes unknown — a stale reading is never left
+          // standing as if it were live.
+          if (!engine.voc_fresh() && !std::isnan(id(s360_ventiq_voc).state)) {
+            id(s360_ventiq_voc).publish_state(NAN);
+          }
+          if (!engine.nox_fresh() && !std::isnan(id(s360_ventiq_nox).state)) {
+            id(s360_ventiq_nox).publish_state(NAN);
+          }
+
+          // Customer state outputs (publish on change only).
+          {
+            std::string value =
+                sense360::airiq::air_quality_to_string(engine.air_quality());
+            if (id(s360_ventiq_air_quality).state != value) {
+              id(s360_ventiq_air_quality).publish_state(value);
+            }
+          }
+          {
+            std::string value = demand_to_string(engine.demand());
+            if (id(s360_ventiq_recommendation).state != value) {
+              id(s360_ventiq_recommendation).publish_state(value);
+            }
+          }
+          {
+            std::string value = reason_to_string(engine.reason());
+            if (id(s360_ventiq_reason).state != value) {
+              id(s360_ventiq_reason).publish_state(value);
+            }
+          }
+          if (!id(s360_ventilation_needed).has_state() ||
+              id(s360_ventilation_needed).state != engine.ventilation_needed()) {
+            id(s360_ventilation_needed).publish_state(
+                engine.ventilation_needed());
+          }
+          if (!id(s360_ventiq_shower).has_state() ||
+              id(s360_ventiq_shower).state != engine.shower_active()) {
+            id(s360_ventiq_shower).publish_state(engine.shower_active());
+          }
+          if (!id(s360_ventiq_mould_risk).has_state() ||
+              id(s360_ventiq_mould_risk).state != engine.mould_warning()) {
+            id(s360_ventiq_mould_risk).publish_state(engine.mould_warning());
+          }
+
+          // Module health — real SGP41 freshness evidence driving the
+          // Core-Framework reserved runtime vocabulary (the fourth wired
+          // module after Presence, RoomIQ and AirIQ). The RoomIQ-owned
+          // humidity input NEVER participates.
+          {
+            std::string health =
+                sense360::airiq::health_to_string(engine.health());
+            if (id(s360_module_status_ventiq).state != health) {
+              id(s360_module_status_ventiq).publish_state(health);
+            }
+          }
+
+          // Diagnostics (publish on change only).
+          {
+            char buffer[200];
+            snprintf(buffer, sizeof(buffer),
+                     "demand=%s reason=%s shower=%s clearing=%.1fmin "
+                     "mould=%d humidity=%s voc=%s nox=%s",
+                     demand_to_string(engine.demand()),
+                     reason_to_string(engine.reason()),
+                     engine.shower_active() ? "yes" : "no",
+                     engine.clearing_minutes_remaining(), engine.mould_risk(),
+                     engine.humidity_fresh() ? "fresh" : "not-fresh",
+                     engine.voc_fresh() ? "fresh" : "not-fresh",
+                     engine.nox_fresh() ? "fresh" : "not-fresh");
+            std::string detail = buffer;
+            if (id(s360_ventiq_state_detail).state != detail) {
+              id(s360_ventiq_state_detail).publish_state(detail);
+            }
+          }
+
+interval:
+  - interval: 10s
+    then:
+      - script.execute: s360_ventiq_evaluate
+
+# ----------------------------------------------------------------------------
+# Sensor inputs (real update callbacks — the freshness signal) and the
+# canonical customer sensors.
+# ----------------------------------------------------------------------------
+sensor:
+  # --- input samples (internal) ---------------------------------------------
+  # Canonical RoomIQ humidity (calibrated; goes unknown upstream when the
+  # RoomIQ climate channel is stale — an invalid sample never refreshes
+  # this engine's channel either).
+  - platform: copy
+    source_id: ${ventiq_humidity_source_id}
+    id: s360_ventiq_humidity_sample
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            sense360::ventiq::global_engine().input_humidity(millis(), x);
+        - script.execute: s360_ventiq_evaluate
+
+  - platform: copy
+    source_id: ${ventiq_temperature_source_id}
+    id: s360_ventiq_temperature_sample
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            sense360::ventiq::global_engine().input_temperature(millis(), x);
+        - script.execute: s360_ventiq_evaluate
+
+  - platform: copy
+    source_id: ${ventiq_voc_source_id}
+    id: s360_ventiq_voc_sample
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            sense360::ventiq::global_engine().input_voc(millis(), x);
+        - script.execute: s360_ventiq_evaluate
+        - lambda: |-
+            if (!std::isnan(x)) {
+              id(s360_ventiq_voc).publish_state(
+                  sense360::ventiq::global_engine().voc());
+            }
+
+  - platform: copy
+    source_id: ${ventiq_nox_source_id}
+    id: s360_ventiq_nox_sample
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            sense360::ventiq::global_engine().input_nox(millis(), x);
+        - script.execute: s360_ventiq_evaluate
+        - lambda: |-
+            if (!std::isnan(x)) {
+              id(s360_ventiq_nox).publish_state(
+                  sense360::ventiq::global_engine().nox());
+            }
+
+  # --- canonical customer sensors ----------------------------------------------
+  # RELATIVE indices (SGP41), deliberately unitless — never presented as
+  # concentrations. Higher = more activity vs the sensor's baseline.
+  - platform: template
+    id: s360_ventiq_voc
+    name: "VOC"
+    state_class: measurement
+    accuracy_decimals: 0
+    icon: mdi:air-filter
+
+  - platform: template
+    id: s360_ventiq_nox
+    name: "NOx"
+    state_class: measurement
+    accuracy_decimals: 0
+    icon: mdi:smog
+
+  # --- diagnostics (diagnostic + disabled by default) --------------------------
+  - platform: template
+    id: s360_ventiq_voc_data_age
+    name: "VOC Data Age"
+    icon: mdi:timer-alert-outline
+    unit_of_measurement: "s"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: 15s
+    lambda: |-
+      return sense360::ventiq::global_engine().voc_data_age_s(millis());
+
+  - platform: template
+    id: s360_ventiq_humidity_data_age
+    name: "Humidity Input Data Age"
+    icon: mdi:timer-alert-outline
+    unit_of_measurement: "s"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: 15s
+    lambda: |-
+      return sense360::ventiq::global_engine().humidity_data_age_s(millis());
+
+  # --- legacy compatibility (pre-framework published entities) -----------------
+  # Exact ids and names preserved so existing Home Assistant entity ids
+  # and automations keep working. Disabled by default for new installs
+  # (the canonical surface above replaces them). Semantic upgrades
+  # (documented in the architecture doc): the climate displays are driven
+  # by the RoomIQ CANONICAL calibrated values — never by the drifted
+  # on-board SHT4x driver — and the derived values come from the engine.
+  - platform: copy
+    source_id: s360_temperature
+    id: bathroom_temp_display
+    name: "${friendly_name} VentIQ Temperature"
+    disabled_by_default: true
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+
+  - platform: copy
+    source_id: s360_humidity
+    id: bathroom_humidity_display
+    name: "${friendly_name} VentIQ Humidity"
+    disabled_by_default: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: humidity
+    state_class: measurement
+
+  # Compatibility EXCEPTION (documented drift surface): pressure is not
+  # S360-211 product hardware (no pressure part on the verified
+  # schematic), so no canonical pressure entity exists. This preserved
+  # legacy id keeps reading the board package's drifted BMP390 driver
+  # exactly as it did pre-framework (on real VentIQ+RoomIQ hardware no
+  # device answers at 0x77, so it reads unknown). Its disposition belongs
+  # to the VENTIQ-HW-DRIFT-001 reconciliation, not this framework.
+  - platform: copy
+    source_id: bathroom_pressure
+    id: bathroom_pressure_display
+    name: "${friendly_name} VentIQ Pressure"
+    disabled_by_default: true
+    unit_of_measurement: "hPa"
+    accuracy_decimals: 1
+    device_class: atmospheric_pressure
+    state_class: measurement
+
+  - platform: copy
+    source_id: s360_ventiq_voc
+    id: bathroom_voc_display
+    name: "${friendly_name} VentIQ VOC Index"
+    disabled_by_default: true
+    accuracy_decimals: 0
+    icon: "mdi:air-filter"
+
+  - platform: copy
+    source_id: s360_ventiq_nox
+    id: bathroom_nox_display
+    name: "${friendly_name} VentIQ NOx Index"
+    disabled_by_default: true
+    accuracy_decimals: 0
+    icon: "mdi:smog"
+
+  - platform: template
+    id: bathroom_dew_point_display
+    name: "${friendly_name} VentIQ Dew Point"
+    disabled_by_default: true
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    icon: "mdi:water-thermometer"
+    update_interval: 30s
+    lambda: |-
+      return sense360::ventiq::global_engine().dew_point();
+
+  - platform: template
+    id: bathroom_humidity_rate_display
+    name: "${friendly_name} VentIQ Humidity Rate"
+    disabled_by_default: true
+    unit_of_measurement: "%/min"
+    accuracy_decimals: 1
+    icon: "mdi:trending-up"
+    update_interval: 10s
+    lambda: |-
+      return sense360::ventiq::global_engine().humidity_rate();
+
+  - platform: template
+    id: bathroom_post_shower_timer_display
+    name: "${friendly_name} Post-Shower Timer"
+    disabled_by_default: true
+    unit_of_measurement: "min"
+    accuracy_decimals: 0
+    icon: "mdi:timer"
+    update_interval: 60s
+    lambda: |-
+      return sense360::ventiq::global_engine().clearing_minutes_remaining();
+
+  - platform: template
+    id: bathroom_fan_recommendation_display
+    name: "${friendly_name} Recommended Fan Speed"
+    disabled_by_default: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: "mdi:fan"
+    update_interval: 10s
+    lambda: |-
+      return sense360::ventiq::global_engine().fan_percent();
+
+  - platform: template
+    id: bathroom_mold_risk_display
+    name: "${friendly_name} Mold Risk Level"
+    disabled_by_default: true
+    accuracy_decimals: 0
+    icon: "mdi:mushroom"
+    update_interval: 60s
+    lambda: |-
+      return sense360::ventiq::global_engine().mould_risk();
+
+# ----------------------------------------------------------------------------
+# Customer state entities
+# ----------------------------------------------------------------------------
+binary_sensor:
+  # Is ventilation required right now? (true for Ventilate soon/now.)
+  - platform: template
+    id: s360_ventilation_needed
+    name: "Ventilation Needed"
+    device_class: problem
+    icon: mdi:fan-alert
+
+  # Shower currently detected (humidity dynamics from the RoomIQ
+  # canonical humidity — see the architecture doc for the state machine).
+  - platform: template
+    id: s360_ventiq_shower
+    name: "Shower Active"
+    device_class: moisture
+    icon: mdi:shower-head
+
+  # Sustained damp warning (medium or high accumulated damp time).
+  - platform: template
+    id: s360_ventiq_mould_risk
+    name: "Mould Risk"
+    device_class: problem
+    icon: mdi:mushroom
+
+  # --- legacy compatibility binaries (disabled by default) ---------------------
+  - platform: template
+    id: bathroom_shower_display
+    name: "${friendly_name} Shower Active"
+    disabled_by_default: true
+    device_class: moisture
+    icon: "mdi:shower-head"
+    lambda: |-
+      return sense360::ventiq::global_engine().shower_active();
+
+  - platform: template
+    id: bathroom_mold_warning_display
+    name: "${friendly_name} Mold Risk Warning"
+    disabled_by_default: true
+    device_class: problem
+    lambda: |-
+      return sense360::ventiq::global_engine().mould_warning();
+
+  - platform: template
+    id: bathroom_odor_display
+    name: "${friendly_name} Odor Detected"
+    disabled_by_default: true
+    device_class: gas
+    icon: "mdi:scent"
+    lambda: |-
+      return sense360::ventiq::global_engine().odour();
+
+  - platform: template
+    id: bathroom_ventilation_needed
+    name: "${friendly_name} Ventilation Needed"
+    disabled_by_default: true
+    device_class: opening
+    icon: "mdi:fan-alert"
+    lambda: |-
+      return sense360::ventiq::global_engine().ventilation_needed();
+
+text_sensor:
+  # ONE headline for the bathroom air: the worst valid pollutant severity
+  # from the embedded canonical AirIQ engine (VOC/NOx). Values:
+  # Initialising / Good / Fair / Poor / Very poor / Unavailable.
+  - platform: template
+    id: s360_ventiq_air_quality
+    name: "Air Quality"
+    icon: mdi:air-purifier
+    update_interval: never
+
+  # ONE deterministic, explainable, local ventilation recommendation.
+  # Values: Sensor initialising / No action needed / Ventilate soon /
+  # Ventilate now / Unavailable.
+  - platform: template
+    id: s360_ventiq_recommendation
+    name: "Recommendation"
+    icon: mdi:lightbulb-outline
+    update_interval: never
+
+  # The plain-language driver behind the recommendation (the customer
+  # "why"): No ventilation needed / Ventilation requested / Shower in
+  # progress / Clearing shower moisture / Poor air quality / Damp for a
+  # long time / Odour detected / High humidity / Sensor initialising /
+  # Unavailable.
+  - platform: template
+    id: s360_ventiq_reason
+    name: "Ventilation Reason"
+    icon: mdi:head-question-outline
+    update_interval: never
+
+  # --- diagnostics (diagnostic + disabled by default) --------------------------
+  # Why the current states are what they are (support / tuning aid).
+  - platform: template
+    id: s360_ventiq_state_detail
+    name: "VentIQ State Detail"
+    icon: mdi:text-search
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+
+  # Which channels this composition expects (configuration-driven).
+  - platform: template
+    id: s360_ventiq_expected_sensors
+    name: "VentIQ Expected Sensors"
+    icon: mdi:format-list-checks
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      std::string out;
+      if (${ventiq_expected_voc}) out += "VOC, ";
+      if (${ventiq_expected_nox}) out += "NOx, ";
+      if (out.size() >= 2) out.resize(out.size() - 2);
+      return out;
+
+  # Honesty companion: states on-device what the module status can and
+  # cannot attest.
+  - platform: template
+    id: s360_ventiq_sensor_verification
+    name: "VentIQ Sensor Verification"
+    icon: mdi:shield-search
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      return {"Freshness from the on-board SGP41 I2C data updates only; "
+              "humidity/temperature come from the RoomIQ module's canonical "
+              "service (the compiled VentIQ SHT4x/BMP390 drivers are "
+              "firmware/schematic drift — no such part on the verified "
+              "S360-211 schematic); IR-temp and SPS30 connectors are "
+              "optional external attachments with no compiled driver; the "
+              "fan-relay stage is drawn do-not-populate, has no driver and "
+              "no runtime health signal"};
+
+  # --- legacy compatibility text entities (disabled by default) ----------------
+  # Driven by the canonical model (semantic upgrade documented in the
+  # architecture doc — the duplicated ad-hoc formulas are retired).
+  - platform: template
+    id: bathroom_status
+    name: "${friendly_name} Bathroom Status"
+    disabled_by_default: true
+    icon: "mdi:shower"
+    update_interval: 10s
+    lambda: |-
+      return {sense360::ventiq::global_engine().legacy_status()};
+
+  - platform: template
+    id: bathroom_mold_risk_status
+    name: "${friendly_name} Mold Risk Status"
+    disabled_by_default: true
+    icon: "mdi:mushroom"
+    update_interval: 60s
+    lambda: |-
+      return {sense360::ventiq::global_engine().legacy_mould_status()};
+
+  - platform: template
+    id: bathroom_ventilation_advice
+    name: "${friendly_name} Ventilation Advice"
+    disabled_by_default: true
+    icon: "mdi:fan"
+    update_interval: 10s
+    lambda: |-
+      return {sense360::ventiq::global_engine().legacy_ventilation_advice()};
+
+  - platform: template
+    id: bathroom_air_quality_status
+    name: "${friendly_name} Air Quality"
+    disabled_by_default: true
+    icon: "mdi:air-filter"
+    update_interval: 30s
+    lambda: |-
+      return {sense360::ventiq::global_engine().legacy_air_quality_status()};
+
+# ----------------------------------------------------------------------------
+# Customer controls (preserved legacy ids — now genuinely wired)
+# ----------------------------------------------------------------------------
+number:
+  # Pre-framework these three numbers were PLACEBO controls: the
+  # detection logic read compile-time substitutions and never the number
+  # state (a recorded customer-experience defect). The ids, names and
+  # ranges are preserved exactly; their values are now applied through
+  # the evaluate script above.
+  - platform: template
+    id: bathroom_shower_threshold
+    name: "${friendly_name} Shower Detection Threshold"
+    icon: "mdi:water-percent"
+    unit_of_measurement: "%"
+    min_value: 60
+    max_value: 90
+    step: 5
+    optimistic: true
+    restore_value: true
+    initial_value: ${ventiq_shower_humidity_threshold}
+    on_value:
+      then:
+        - script.execute: s360_ventiq_evaluate
+
+  - platform: template
+    id: bathroom_post_shower_duration
+    name: "${friendly_name} Post-Shower Ventilation Duration"
+    icon: "mdi:timer"
+    unit_of_measurement: "min"
+    min_value: 5
+    max_value: 60
+    step: 5
+    optimistic: true
+    restore_value: true
+    initial_value: ${ventiq_clearing_minutes}
+    on_value:
+      then:
+        - script.execute: s360_ventiq_evaluate
+
+  - platform: template
+    id: bathroom_mold_threshold
+    name: "${friendly_name} Mold Risk Threshold"
+    icon: "mdi:mushroom"
+    unit_of_measurement: "%"
+    min_value: 50
+    max_value: 80
+    step: 5
+    optimistic: true
+    restore_value: true
+    initial_value: ${ventiq_mould_humidity_threshold}
+    on_value:
+      then:
+        - script.execute: s360_ventiq_evaluate
+
+switch:
+  # Preserved customer control, now genuinely wired: turning it off
+  # pauses shower detection in the engine (the humidity/damp/air-quality
+  # advice keeps working).
+  - platform: template
+    id: bathroom_shower_detection_enabled
+    name: "${friendly_name} Shower Detection"
+    icon: "mdi:shower-head"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_on:
+      then:
+        - script.execute: s360_ventiq_evaluate
+    on_turn_off:
+      then:
+        - script.execute: s360_ventiq_evaluate
+
+  # Legacy compatibility ONLY (disabled by default): no fan driver is
+  # bound to VentIQ in any current composition, so this switch controls
+  # nothing physical — it is preserved as a state flag for existing
+  # automations/registrations. An honest framework does not present dead
+  # controls on the default surface. A future fan-bearing slice may bind
+  # it to a real driver.
+  - platform: template
+    id: bathroom_auto_ventilation
+    name: "${friendly_name} Auto Ventilation"
+    disabled_by_default: true
+    icon: "mdi:fan-auto"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+# ----------------------------------------------------------------------------
+# Manual actions (preserved legacy ids — now engine-backed)
+# ----------------------------------------------------------------------------
+button:
+  # Run the ventilation recommendation at maximum for a fixed window
+  # (customer request — honoured regardless of sensor state).
+  - platform: template
+    id: bathroom_force_ventilation
+    name: "${friendly_name} Force Ventilation"
+    icon: "mdi:fan-plus"
+    on_press:
+      - lambda: |-
+          sense360::ventiq::global_engine().force_ventilation(
+              millis(), ${ventiq_force_minutes});
+      - script.execute: s360_ventiq_evaluate
+
+  - platform: template
+    id: bathroom_reset_shower
+    name: "${friendly_name} Reset Shower Detection"
+    icon: "mdi:refresh"
+    entity_category: config
+    on_press:
+      - lambda: |-
+          sense360::ventiq::global_engine().reset_shower(millis());
+      - script.execute: s360_ventiq_evaluate
+
+  - platform: template
+    id: bathroom_reset_mold
+    name: "${friendly_name} Reset Mold Risk"
+    icon: "mdi:mushroom-off"
+    entity_category: config
+    on_press:
+      - lambda: |-
+          sense360::ventiq::global_engine().reset_mould();
+      - script.execute: s360_ventiq_evaluate

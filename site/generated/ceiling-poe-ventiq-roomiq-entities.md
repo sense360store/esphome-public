@@ -24,18 +24,18 @@
        packages/boards/s360-200-roomiq.yaml
        packages/boards/s360-211-ventiq.yaml
        packages/boards/s360-410-poe-psu.yaml
-       packages/features/bathroom_profile.yaml
        packages/features/device_health.yaml
        packages/features/diagnostics.yaml
        packages/features/presence_framework.yaml
        packages/features/roomiq_framework.yaml
+       packages/features/ventiq_framework.yaml
        packages/hardware/sense360_core_ceiling.yaml
        products/bundles/ceiling-poe-ventiq-roomiq.yaml
        products/sense360-ceiling-poe-ventiq-roomiq.yaml
        products/webflash/ceiling-poe-ventiq-roomiq.yaml
 -->
 
-The `Ceiling-POE-VentIQ-RoomIQ` firmware exposes **120 entities** to Home Assistant.
+The `Ceiling-POE-VentIQ-RoomIQ` firmware exposes **130 entities** to Home Assistant.
 
 Entity names below appear in Home Assistant prefixed with the device's friendly name, which you choose during setup (firmware default: `Sense360 Ceiling Bathroom`). Firmware-internal measurements (marked `internal` in the YAML) never reach Home Assistant and are not listed.
 
@@ -44,11 +44,13 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Climate Data Age | Sensor | s | diagnostic entity; disabled by default |
 | CPU Duty | Sensor | s | — |
 | Humidity | Sensor | % | device class: humidity |
+| Humidity Input Data Age | Sensor | s | diagnostic entity; disabled by default |
 | Illuminance | Sensor | lx | device class: illuminance |
 | Illuminance Data Age | Sensor | s | diagnostic entity; disabled by default |
 | Internal Temperature | Sensor | °C | — |
-| Mold Risk Level | Sensor | — | — |
-| Post-Shower Timer | Sensor | min | — |
+| Mold Risk Level | Sensor | — | disabled by default |
+| NOx | Sensor | — | — |
+| Post-Shower Timer | Sensor | min | disabled by default |
 | Presence Score | Sensor | % | disabled by default |
 | Radar Data Age | Sensor | s | diagnostic entity; disabled by default |
 | Radar Moving Target Count | Sensor | — | diagnostic entity; disabled by default |
@@ -72,7 +74,7 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Raw Humidity | Sensor | % | device class: humidity; diagnostic entity; disabled by default |
 | Raw Illuminance | Sensor | lx | device class: illuminance; diagnostic entity; disabled by default |
 | Raw Temperature | Sensor | °C | device class: temperature; diagnostic entity; disabled by default |
-| Recommended Fan Speed | Sensor | % | — |
+| Recommended Fan Speed | Sensor | % | disabled by default |
 | RoomIQ Comfort Score | Sensor | % | disabled by default |
 | RoomIQ Feels Like | Sensor | °C | device class: temperature; disabled by default |
 | RoomIQ Humidity | Sensor | % | device class: humidity; disabled by default |
@@ -81,17 +83,20 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Supply Voltage | Sensor | V | device class: voltage |
 | Temperature | Sensor | °C | device class: temperature |
 | Uptime | Sensor | s | — |
-| VentIQ Dew Point | Sensor | °C | device class: temperature |
-| VentIQ Humidity | Sensor | % | device class: humidity |
-| VentIQ Humidity Rate | Sensor | %/min | — |
-| VentIQ NOx Index | Sensor | — | — |
-| VentIQ Pressure | Sensor | hPa | device class: atmospheric_pressure |
-| VentIQ Temperature | Sensor | °C | device class: temperature |
-| VentIQ VOC Index | Sensor | — | — |
+| VentIQ Dew Point | Sensor | °C | device class: temperature; disabled by default |
+| VentIQ Humidity | Sensor | % | device class: humidity; disabled by default |
+| VentIQ Humidity Rate | Sensor | %/min | disabled by default |
+| VentIQ NOx Index | Sensor | — | disabled by default |
+| VentIQ Pressure | Sensor | hPa | device class: atmospheric_pressure; disabled by default |
+| VentIQ Temperature | Sensor | °C | device class: temperature; disabled by default |
+| VentIQ VOC Index | Sensor | — | disabled by default |
+| VOC | Sensor | — | — |
+| VOC Data Age | Sensor | s | diagnostic entity; disabled by default |
 | WiFi Signal | Sensor | dBm | — |
-| Mold Risk Warning | Binary sensor | — | device class: problem |
+| Mold Risk Warning | Binary sensor | — | device class: problem; disabled by default |
+| Mould Risk | Binary sensor | — | device class: problem |
 | Occupancy | Binary sensor | — | device class: occupancy |
-| Odor Detected | Binary sensor | — | device class: gas |
+| Odor Detected | Binary sensor | — | device class: gas; disabled by default |
 | PIR Motion | Binary sensor | — | device class: motion; diagnostic entity; disabled by default |
 | PoE Power Connected | Binary sensor | — | device class: power |
 | Presence | Binary sensor | — | device class: occupancy; disabled by default |
@@ -101,11 +106,11 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | SEN0609 Static Presence | Binary sensor | — | device class: occupancy; diagnostic entity; disabled by default |
 | Shower Active | Binary sensor | — | device class: moisture |
 | Status | Binary sensor | — | — |
-| Ventilation Needed | Binary sensor | — | device class: opening |
+| Ventilation Needed | Binary sensor | — | device class: problem |
 | Air Quality | Text sensor | — | — |
 | AirIQ Module SKU | Text sensor | — | diagnostic entity |
 | AirIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
-| Bathroom Status | Text sensor | — | — |
+| Bathroom Status | Text sensor | — | disabled by default |
 | Brightness | Text sensor | — | — |
 | Capability IDs | Text sensor | — | diagnostic entity; disabled by default |
 | Comfort | Text sensor | — | — |
@@ -126,7 +131,7 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | LED Module Status | Text sensor | — | diagnostic entity; disabled by default |
 | Light Status | Text sensor | — | disabled by default |
 | MAC Address | Text sensor | — | — |
-| Mold Risk Status | Text sensor | — | — |
+| Mold Risk Status | Text sensor | — | disabled by default |
 | Power Configuration | Text sensor | — | diagnostic entity |
 | Power Source | Text sensor | — | — |
 | Presence Module SKU | Text sensor | — | diagnostic entity |
@@ -135,16 +140,21 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Presence Status | Text sensor | — | — |
 | Product Configuration | Text sensor | — | diagnostic entity |
 | Product SKU | Text sensor | — | diagnostic entity |
+| Recommendation | Text sensor | — | — |
 | RoomIQ Calibration State | Text sensor | — | diagnostic entity; disabled by default |
 | RoomIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
 | RoomIQ Sensor Verification | Text sensor | — | diagnostic entity; disabled by default |
 | RoomIQ State Detail | Text sensor | — | diagnostic entity; disabled by default |
 | SSID | Text sensor | — | — |
 | Temperature Advice | Text sensor | — | disabled by default |
-| Ventilation Advice | Text sensor | — | — |
+| Ventilation Advice | Text sensor | — | disabled by default |
+| Ventilation Reason | Text sensor | — | — |
+| VentIQ Expected Sensors | Text sensor | — | diagnostic entity; disabled by default |
 | VentIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
+| VentIQ Sensor Verification | Text sensor | — | diagnostic entity; disabled by default |
+| VentIQ State Detail | Text sensor | — | diagnostic entity; disabled by default |
 | WebFlash Config | Text sensor | — | diagnostic entity |
-| Auto Ventilation | Switch | — | — |
+| Auto Ventilation | Switch | — | disabled by default |
 | Relay | Switch | — | — |
 | Shower Detection | Switch | — | — |
 | Clear Delay | Number | s | config entity |

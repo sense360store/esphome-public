@@ -299,22 +299,51 @@ class AuthorityTests(unittest.TestCase):
         self.assertEqual(subs.get("ventiq_temperature_source_id"), "s360_temperature")
 
     def test_no_raw_environmental_sensor_reads(self) -> None:
-        # The framework must never re-read the drifted VentIQ SHT4x/BMP390
-        # ids or the raw RoomIQ board sensors.
-        for forbidden in (
-            "bathroom_temperature",
-            "bathroom_humidity",
-            "bathroom_pressure",
-            "bathroom_dew_point",
-            "bathroom_humidity_rate",
-            "comfort_ceiling_temperature",
-            "comfort_ceiling_humidity",
-            "comfort_ceiling_illuminance",
+        # The framework must never re-read the drifted VentIQ SHT4x
+        # (bathroom_temperature / bathroom_humidity), the board's derived
+        # legacy templates, or the raw RoomIQ board sensors — via copy
+        # sources OR lambda id() references. The ONE documented exception
+        # is the preserved legacy pressure compatibility entity, which
+        # keeps its pre-framework source (bathroom_pressure, the drifted
+        # BMP390 driver) pending the VENTIQ-HW-DRIFT-001 reconciliation.
+        allowed_copy_sources = {
+            "${ventiq_humidity_source_id}",
+            "${ventiq_temperature_source_id}",
+            "${ventiq_voc_source_id}",
+            "${ventiq_nox_source_id}",
+            "s360_temperature",
+            "s360_humidity",
+            "s360_ventiq_voc",
+            "s360_ventiq_nox",
+            "bathroom_pressure",  # documented compatibility exception
+        }
+        for entity_id, entity in self.entities.items():
+            source = entity.get("source_id")
+            if source is not None:
+                self.assertIn(
+                    source,
+                    allowed_copy_sources,
+                    f"{entity_id} copies from a non-canonical source {source}",
+                )
+        for forbidden_ref in (
+            "id(bathroom_temperature)",
+            "id(bathroom_humidity)",
+            "id(bathroom_pressure)",
+            "id(bathroom_dew_point)",
+            "id(bathroom_humidity_rate)",
+            "id(comfort_ceiling_temperature)",
+            "id(comfort_ceiling_humidity)",
+            "id(comfort_ceiling_illuminance)",
+            "id(bathroom_shower_active)",
+            "id(bathroom_mold_risk)",
+            "id(bathroom_fan_recommendation)",
+            "id(bathroom_post_shower_timer)",
+            "id(bathroom_odor_detected)",
         ):
             self.assertNotIn(
-                forbidden,
+                forbidden_ref,
                 self.framework_raw,
-                f"framework re-reads raw sensor {forbidden}",
+                f"framework re-reads raw board state {forbidden_ref}",
             )
 
     def test_voc_nox_come_from_the_board_sgp41(self) -> None:
@@ -378,13 +407,13 @@ class AuthorityTests(unittest.TestCase):
         # The fan-relay stage population is unproven and no driver is
         # bound: the framework must not expose any fan/ventilation-hardware
         # runtime health entity, and must not duplicate the Core
-        # framework's compile-time Fan Control Module Status.
-        raw = self.framework_raw.lower()
-        self.assertNotIn("fan control module", raw)
+        # framework's compile-time Fan Control Module Status entity.
         for entity_id, entity in self.entities.items():
             name = str(entity.get("name") or "").lower()
             self.assertNotIn("fan status", name)
             self.assertNotIn("fan health", name)
+            self.assertNotIn("fan control module", name)
+            self.assertNotIn("hardware status", name)
 
 
 # --- Customer entity contract --------------------------------------------------
@@ -588,9 +617,7 @@ class CustomerEntityContractTests(unittest.TestCase):
             self.assertIn(phrase, blob)
 
     def test_no_threshold_control_farm(self) -> None:
-        numbers = [
-            e for e in self.entities.values() if e["_platform"] == "number"
-        ]
+        numbers = [e for e in self.entities.values() if e["_platform"] == "number"]
         self.assertLessEqual(
             len(numbers),
             3,
@@ -788,9 +815,18 @@ class BundleWiringTests(unittest.TestCase):
                     )
 
     def test_ventiq_bundles_keep_the_board_composition(self) -> None:
+        # The board layer stays composed. The fan bundles bind it through
+        # the preserved legacy alias (packages/expansions/
+        # airiq_bathroom_base.yaml -> the board package, byte-identical
+        # resolution per the alias-retention policy); the others bind the
+        # canonical board package directly.
         for bundle in ventiq_bundles():
             raw = bundle.read_text()
-            self.assertIn("packages/boards/s360-211-ventiq.yaml", raw)
+            self.assertTrue(
+                "packages/boards/s360-211-ventiq.yaml" in raw
+                or "packages/expansions/airiq_bathroom_base.yaml" in raw,
+                f"{bundle.name} lost the VentIQ board composition",
+            )
 
     def test_ventiq_bundles_keep_the_diagnostics_surface(self) -> None:
         # The superseded bathroom_profile nested diagnostics.yaml; the
@@ -844,9 +880,7 @@ class CoreFrameworkContractTests(unittest.TestCase):
         runtime = self.contract["module_runtime_status"]["ventiq"]
         self.assertEqual(runtime["work_item"], "VENTIQ-FRAMEWORK-001")
         self.assertEqual(runtime["entity_id"], "s360_module_status_ventiq")
-        self.assertEqual(
-            runtime["package"], "packages/features/ventiq_framework.yaml"
-        )
+        self.assertEqual(runtime["package"], "packages/features/ventiq_framework.yaml")
         self.assertEqual(tuple(runtime["values"]), HEALTH_STRINGS)
         definition = runtime["available_definition"]
         self.assertIn("SGP41", definition)
