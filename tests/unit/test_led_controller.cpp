@@ -60,7 +60,6 @@ void run_test(void (*test_func)(), const char *test_name) {
 static const uint32_t IDENTIFY_MS = 4000;
 static const uint32_t STATUS_MS = 1500;
 static const uint32_t AUTO_OFF_MS = 60000;
-static const uint32_t LUX_STALE_MS = 60000;
 
 static const uint32_t T0 = 100000;  // an arbitrary steady-state time
 
@@ -69,9 +68,6 @@ LedController fresh_controller() {
   controller.set_identify_duration_ms(IDENTIFY_MS);
   controller.set_status_duration_ms(STATUS_MS);
   controller.set_night_auto_off_ms(AUTO_OFF_MS);
-  controller.set_lux_stale_ms(LUX_STALE_MS);
-  controller.set_darkness_threshold(20.0f);
-  controller.set_darkness_hysteresis(1.5f);
   controller.evaluate(T0);
   return controller;
 }
@@ -228,7 +224,7 @@ TEST_CASE(night_mode_never_forces_full_brightness) {
 TEST_CASE(manual_behaviour_ignores_occupancy_and_lux) {
   LedController controller = fresh_controller();
   controller.set_night_behaviour(NIGHT_MANUAL);
-  controller.input_lux(T0, 2.0f);
+  controller.input_darkness(T0, DARKNESS_DARK);
   controller.input_occupancy(T0, true, true);
   controller.evaluate(T0);
   ASSERT_FALSE(controller.night_mode());
@@ -237,7 +233,7 @@ TEST_CASE(manual_behaviour_ignores_occupancy_and_lux) {
 TEST_CASE(when_dark_activates_night_mode) {
   LedController controller = fresh_controller();
   controller.set_night_behaviour(NIGHT_WHEN_DARK);
-  controller.input_lux(T0, 5.0f);
+  controller.input_darkness(T0, DARKNESS_DARK);
   controller.evaluate(T0);
   ASSERT_TRUE(controller.night_mode());
   ASSERT_TRUE(controller.night_automation_owned());
@@ -246,75 +242,56 @@ TEST_CASE(when_dark_activates_night_mode) {
 TEST_CASE(when_dark_deactivates_only_automation_owned) {
   LedController controller = fresh_controller();
   controller.set_night_behaviour(NIGHT_WHEN_DARK);
-  controller.input_lux(T0, 5.0f);
+  controller.input_darkness(T0, DARKNESS_DARK);
   controller.evaluate(T0);
   ASSERT_TRUE(controller.night_mode());
-  controller.input_lux(T0 + 1000, 100.0f);
+  controller.input_darkness(T0 + 1000, DARKNESS_NOT_DARK);
   controller.evaluate(T0 + 1000);
   ASSERT_FALSE(controller.night_mode());
 
   // A manually enabled Night Mode is never reversed by brightness.
   controller.set_night_mode(T0 + 2000, true, false);
-  controller.input_lux(T0 + 3000, 100.0f);
+  controller.input_darkness(T0 + 3000, DARKNESS_NOT_DARK);
   controller.evaluate(T0 + 3000);
   ASSERT_TRUE(controller.night_mode());
 }
 
-TEST_CASE(darkness_hysteresis_prevents_oscillation) {
-  LedController controller = fresh_controller();
-  // Threshold 20 lx, hysteresis factor 1.5 -> not-dark above 30 lx.
-  controller.input_lux(T0, 19.0f);
-  controller.evaluate(T0);
-  ASSERT_EQ(controller.darkness(), DARKNESS_DARK);
-  controller.input_lux(T0 + 1000, 25.0f);  // between 20 and 30: hold dark
-  controller.evaluate(T0 + 1000);
-  ASSERT_EQ(controller.darkness(), DARKNESS_DARK);
-  controller.input_lux(T0 + 2000, 31.0f);
-  controller.evaluate(T0 + 2000);
-  ASSERT_EQ(controller.darkness(), DARKNESS_NOT_DARK);
-  controller.input_lux(T0 + 3000, 25.0f);  // between: hold not-dark
-  controller.evaluate(T0 + 3000);
-  ASSERT_EQ(controller.darkness(), DARKNESS_NOT_DARK);
-}
+// The darkness threshold / hysteresis / lux-staleness computation moved to
+// the canonical RoomIQ environmental engine (ROOMIQ-FRAMEWORK-001) and is
+// exercised in tests/unit/test_roomiq_engine.cpp — ONE implementation, no
+// drift-prone duplicate. The controller consumes the injected decision; the
+// tests below pin the fail-safe consumption behaviour.
 
-TEST_CASE(stale_lux_is_unknown_never_dark) {
+TEST_CASE(unknown_darkness_never_activates_night_mode) {
   LedController controller = fresh_controller();
   controller.set_night_behaviour(NIGHT_WHEN_DARK);
-  controller.input_lux(T0, 100.0f);
+  // Stale / missing / NaN lux is injected as UNKNOWN by the RoomIQ engine:
+  // unknown darkness never activates Night Mode.
+  controller.input_darkness(T0, DARKNESS_UNKNOWN);
   controller.evaluate(T0);
-  ASSERT_EQ(controller.darkness(), DARKNESS_NOT_DARK);
-  // No lux updates past the stale window: darkness is UNKNOWN, and unknown
-  // darkness never activates Night Mode.
-  controller.evaluate(T0 + LUX_STALE_MS + 1000);
   ASSERT_EQ(controller.darkness(), DARKNESS_UNKNOWN);
   ASSERT_FALSE(controller.night_mode());
 }
 
-TEST_CASE(stale_lux_holds_active_night_mode_without_toggling) {
+TEST_CASE(unknown_darkness_holds_active_night_mode_without_toggling) {
   LedController controller = fresh_controller();
   controller.set_night_behaviour(NIGHT_WHEN_DARK);
-  controller.input_lux(T0, 5.0f);
+  controller.input_darkness(T0, DARKNESS_DARK);
   controller.evaluate(T0);
   ASSERT_TRUE(controller.night_mode());
-  // Lux goes stale: fail safe — hold the current state, never flap.
-  for (uint32_t t = T0 + LUX_STALE_MS + 1000; t < T0 + LUX_STALE_MS + 20000;
-       t += 1000) {
+  // Lux goes stale (UNKNOWN): fail safe — hold the current state, never
+  // flap.
+  for (uint32_t t = T0 + 1000; t < T0 + 20000; t += 1000) {
+    controller.input_darkness(t, DARKNESS_UNKNOWN);
     controller.evaluate(t);
     ASSERT_TRUE(controller.night_mode());
   }
 }
 
-TEST_CASE(nan_lux_is_unknown) {
-  LedController controller = fresh_controller();
-  controller.input_lux(T0, NAN);
-  controller.evaluate(T0);
-  ASSERT_EQ(controller.darkness(), DARKNESS_UNKNOWN);
-}
-
 TEST_CASE(dark_and_occupied_requires_both) {
   LedController controller = fresh_controller();
   controller.set_night_behaviour(NIGHT_WHEN_DARK_AND_OCCUPIED);
-  controller.input_lux(T0, 5.0f);
+  controller.input_darkness(T0, DARKNESS_DARK);
   controller.input_occupancy(T0, false, true);
   controller.evaluate(T0);
   ASSERT_FALSE(controller.night_mode());
@@ -327,7 +304,7 @@ TEST_CASE(dark_and_occupied_requires_both) {
 TEST_CASE(occupancy_clear_reverses_only_automation_after_delay) {
   LedController controller = fresh_controller();
   controller.set_night_behaviour(NIGHT_WHEN_DARK_AND_OCCUPIED);
-  controller.input_lux(T0, 5.0f);
+  controller.input_darkness(T0, DARKNESS_DARK);
   controller.input_occupancy(T0, true, true);
   controller.evaluate(T0);
   ASSERT_TRUE(controller.night_mode());
@@ -335,14 +312,14 @@ TEST_CASE(occupancy_clear_reverses_only_automation_after_delay) {
   // lux sensor keeps updating, as the real VEML7700 does every 10 s — a
   // stale lux would fail safe and freeze the automation instead)
   controller.input_occupancy(T0 + 1000, false, true);
-  controller.input_lux(T0 + 1000, 5.0f);
+  controller.input_darkness(T0 + 1000, DARKNESS_DARK);
   controller.evaluate(T0 + 1000);
   ASSERT_TRUE(controller.night_mode());
-  controller.input_lux(T0 + 1000 + AUTO_OFF_MS / 2, 5.0f);
+  controller.input_darkness(T0 + 1000 + AUTO_OFF_MS / 2, DARKNESS_DARK);
   controller.evaluate(T0 + 1000 + AUTO_OFF_MS / 2);
   ASSERT_TRUE(controller.night_mode());
   // ...then turns off.
-  controller.input_lux(T0 + 1000 + AUTO_OFF_MS + 1000, 5.0f);
+  controller.input_darkness(T0 + 1000 + AUTO_OFF_MS + 1000, DARKNESS_DARK);
   controller.evaluate(T0 + 1000 + AUTO_OFF_MS + 1000);
   ASSERT_FALSE(controller.night_mode());
 }
@@ -351,10 +328,10 @@ TEST_CASE(manual_night_mode_is_never_cleared_by_occupancy) {
   LedController controller = fresh_controller();
   controller.set_night_behaviour(NIGHT_WHEN_DARK_AND_OCCUPIED);
   controller.set_night_mode(T0, true, false);  // manual
-  controller.input_lux(T0, 5.0f);
+  controller.input_darkness(T0, DARKNESS_DARK);
   controller.input_occupancy(T0, false, true);
   controller.evaluate(T0);
-  controller.input_lux(T0 + AUTO_OFF_MS + 5000, 5.0f);
+  controller.input_darkness(T0 + AUTO_OFF_MS + 5000, DARKNESS_DARK);
   controller.evaluate(T0 + AUTO_OFF_MS + 5000);
   ASSERT_TRUE(controller.night_mode());
 }
@@ -362,19 +339,19 @@ TEST_CASE(manual_night_mode_is_never_cleared_by_occupancy) {
 TEST_CASE(fresh_occupancy_cancels_pending_auto_off) {
   LedController controller = fresh_controller();
   controller.set_night_behaviour(NIGHT_WHEN_DARK_AND_OCCUPIED);
-  controller.input_lux(T0, 5.0f);
+  controller.input_darkness(T0, DARKNESS_DARK);
   controller.input_occupancy(T0, true, true);
   controller.evaluate(T0);
   controller.input_occupancy(T0 + 1000, false, true);
-  controller.input_lux(T0 + 1000, 5.0f);
+  controller.input_darkness(T0 + 1000, DARKNESS_DARK);
   controller.evaluate(T0 + 1000);
   // Reoccupied before the auto-off delay expires: the pending off is
   // cancelled...
   controller.input_occupancy(T0 + 5000, true, true);
-  controller.input_lux(T0 + 5000, 5.0f);
+  controller.input_darkness(T0 + 5000, DARKNESS_DARK);
   controller.evaluate(T0 + 5000);
   // ...even long past the original deadline (with live inputs throughout).
-  controller.input_lux(T0 + 1000 + AUTO_OFF_MS + 5000, 5.0f);
+  controller.input_darkness(T0 + 1000 + AUTO_OFF_MS + 5000, DARKNESS_DARK);
   controller.evaluate(T0 + 1000 + AUTO_OFF_MS + 5000);
   ASSERT_TRUE(controller.night_mode());
 }
@@ -382,7 +359,7 @@ TEST_CASE(fresh_occupancy_cancels_pending_auto_off) {
 TEST_CASE(invalid_occupancy_freezes_automation) {
   LedController controller = fresh_controller();
   controller.set_night_behaviour(NIGHT_WHEN_DARK_AND_OCCUPIED);
-  controller.input_lux(T0, 5.0f);
+  controller.input_darkness(T0, DARKNESS_DARK);
   controller.input_occupancy(T0, true, true);
   controller.evaluate(T0);
   ASSERT_TRUE(controller.night_mode());
@@ -390,14 +367,14 @@ TEST_CASE(invalid_occupancy_freezes_automation) {
   // repeated toggles, no auto-off from unknown data.
   for (uint32_t t = T0 + 1000; t < T0 + 2 * AUTO_OFF_MS; t += 5000) {
     controller.input_occupancy(t, false, false);
-    controller.input_lux(t, 5.0f);
+    controller.input_darkness(t, DARKNESS_DARK);
     controller.evaluate(t);
     ASSERT_TRUE(controller.night_mode());
   }
   // And invalid occupancy never activates Night Mode either.
   LedController other = fresh_controller();
   other.set_night_behaviour(NIGHT_WHEN_DARK_AND_OCCUPIED);
-  other.input_lux(T0, 5.0f);
+  other.input_darkness(T0, DARKNESS_DARK);
   other.input_occupancy(T0, true, false);
   other.evaluate(T0);
   ASSERT_FALSE(other.night_mode());
@@ -407,7 +384,7 @@ TEST_CASE(automation_never_dims_an_in_use_room_light) {
   LedController controller = fresh_controller();
   controller.set_night_behaviour(NIGHT_WHEN_DARK);
   controller.input_customer_command(T0, customer_on(0.8f));
-  controller.input_lux(T0 + 1000, 5.0f);
+  controller.input_darkness(T0 + 1000, DARKNESS_DARK);
   controller.evaluate(T0 + 1000);
   // The room light is in use: automation must not pre-empt it (Presence /
   // darkness never turns the normal Room Light output down unexpectedly).
@@ -418,20 +395,20 @@ TEST_CASE(automation_never_dims_an_in_use_room_light) {
 TEST_CASE(manual_night_off_suppresses_reactivation_until_rearm) {
   LedController controller = fresh_controller();
   controller.set_night_behaviour(NIGHT_WHEN_DARK);
-  controller.input_lux(T0, 5.0f);
+  controller.input_darkness(T0, DARKNESS_DARK);
   controller.evaluate(T0);
   ASSERT_TRUE(controller.night_mode());
   // Customer turns Night Mode off while it is still dark: automation must
   // not fight the customer.
   controller.set_night_mode(T0 + 1000, false, false);
-  controller.input_lux(T0 + 2000, 5.0f);
+  controller.input_darkness(T0 + 2000, DARKNESS_DARK);
   controller.evaluate(T0 + 2000);
   ASSERT_FALSE(controller.night_mode());
   // The trigger re-arms only after the condition resets (bright again)...
-  controller.input_lux(T0 + 3000, 100.0f);
+  controller.input_darkness(T0 + 3000, DARKNESS_NOT_DARK);
   controller.evaluate(T0 + 3000);
   // ...so the next darkness re-activates.
-  controller.input_lux(T0 + 4000, 5.0f);
+  controller.input_darkness(T0 + 4000, DARKNESS_DARK);
   controller.evaluate(T0 + 4000);
   ASSERT_TRUE(controller.night_mode());
 }
@@ -649,11 +626,11 @@ TEST_CASE(restore_reapplies_night_mode_and_ownership) {
   // Ownership survived the restart, so a later valid clear still reverses
   // the automation's own activation (after the auto-off delay, with live
   // inputs throughout).
-  controller.input_lux(T0 + 1000, 5.0f);
+  controller.input_darkness(T0 + 1000, DARKNESS_DARK);
   controller.input_occupancy(T0 + 1000, false, true);
   controller.evaluate(T0 + 1000);
   ASSERT_TRUE(controller.night_mode());
-  controller.input_lux(T0 + 1000 + AUTO_OFF_MS + 1000, 5.0f);
+  controller.input_darkness(T0 + 1000 + AUTO_OFF_MS + 1000, DARKNESS_DARK);
   controller.evaluate(T0 + 1000 + AUTO_OFF_MS + 1000);
   ASSERT_FALSE(controller.night_mode());
 }
@@ -778,13 +755,10 @@ int main() {
            "when_dark_activates_night_mode");
   run_test(test_when_dark_deactivates_only_automation_owned,
            "when_dark_deactivates_only_automation_owned");
-  run_test(test_darkness_hysteresis_prevents_oscillation,
-           "darkness_hysteresis_prevents_oscillation");
-  run_test(test_stale_lux_is_unknown_never_dark,
-           "stale_lux_is_unknown_never_dark");
-  run_test(test_stale_lux_holds_active_night_mode_without_toggling,
-           "stale_lux_holds_active_night_mode_without_toggling");
-  run_test(test_nan_lux_is_unknown, "nan_lux_is_unknown");
+  run_test(test_unknown_darkness_never_activates_night_mode,
+           "unknown_darkness_never_activates_night_mode");
+  run_test(test_unknown_darkness_holds_active_night_mode_without_toggling,
+           "unknown_darkness_holds_active_night_mode_without_toggling");
   run_test(test_dark_and_occupied_requires_both,
            "dark_and_occupied_requires_both");
   run_test(test_occupancy_clear_reverses_only_automation_after_delay,

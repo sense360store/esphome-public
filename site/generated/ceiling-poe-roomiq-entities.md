@@ -23,9 +23,9 @@
        packages/boards/s360-410-poe-psu.yaml
        packages/expansions/comfort_ceiling.yaml
        packages/expansions/presence_ceiling.yaml
-       packages/features/comfort_basic_profile.yaml
        packages/features/device_health.yaml
        packages/features/presence_framework.yaml
+       packages/features/roomiq_framework.yaml
        packages/hardware/power_poe.yaml
        packages/hardware/sense360_core_ceiling.yaml
        products/bundles/ceiling-poe-roomiq.yaml
@@ -33,12 +33,16 @@
        products/webflash/ceiling-poe-roomiq.yaml
 -->
 
-The `Ceiling-POE-RoomIQ` firmware exposes **75 entities** to Home Assistant.
+The `Ceiling-POE-RoomIQ` firmware exposes **92 entities** to Home Assistant.
 
 Entity names below appear in Home Assistant prefixed with the device's friendly name, which you choose during setup (firmware default: `Sense360 Ceiling RoomIQ`). Firmware-internal measurements (marked `internal` in the YAML) never reach Home Assistant and are not listed.
 
 | Entity | Type | Unit | Notes |
 |---|---|---|---|
+| Climate Data Age | Sensor | s | diagnostic entity; disabled by default |
+| Humidity | Sensor | % | device class: humidity |
+| Illuminance | Sensor | lx | device class: illuminance |
+| Illuminance Data Age | Sensor | s | diagnostic entity; disabled by default |
 | Internal Temperature | Sensor | °C | — |
 | Presence Score | Sensor | % | disabled by default |
 | Radar Data Age | Sensor | s | diagnostic entity; disabled by default |
@@ -60,12 +64,16 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Radar Target 3 X | Sensor | — | diagnostic entity; disabled by default |
 | Radar Target 3 Y | Sensor | — | diagnostic entity; disabled by default |
 | Radar Target Count | Sensor | — | — |
-| RoomIQ Comfort Score | Sensor | % | — |
-| RoomIQ Feels Like | Sensor | °C | device class: temperature |
-| RoomIQ Humidity | Sensor | % | device class: humidity |
-| RoomIQ Light Level | Sensor | lx | device class: illuminance |
-| RoomIQ Temperature | Sensor | °C | device class: temperature |
+| Raw Humidity | Sensor | % | device class: humidity; diagnostic entity; disabled by default |
+| Raw Illuminance | Sensor | lx | device class: illuminance; diagnostic entity; disabled by default |
+| Raw Temperature | Sensor | °C | device class: temperature; diagnostic entity; disabled by default |
+| RoomIQ Comfort Score | Sensor | % | disabled by default |
+| RoomIQ Feels Like | Sensor | °C | device class: temperature; disabled by default |
+| RoomIQ Humidity | Sensor | % | device class: humidity; disabled by default |
+| RoomIQ Light Level | Sensor | lx | device class: illuminance; disabled by default |
+| RoomIQ Temperature | Sensor | °C | device class: temperature; disabled by default |
 | Supply Voltage | Sensor | V | device class: voltage |
+| Temperature | Sensor | °C | device class: temperature |
 | Uptime | Sensor | s | — |
 | WiFi Signal | Sensor | dBm | — |
 | Occupancy | Binary sensor | — | device class: occupancy |
@@ -78,9 +86,12 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | SEN0609 Static Presence | Binary sensor | — | device class: occupancy; diagnostic entity; disabled by default |
 | Status | Binary sensor | — | — |
 | AirIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
+| Brightness | Text sensor | — | — |
 | Capability IDs | Text sensor | — | diagnostic entity; disabled by default |
-| Comfort Status | Text sensor | — | — |
+| Comfort | Text sensor | — | — |
+| Comfort Status | Text sensor | — | disabled by default |
 | Device Health | Text sensor | — | diagnostic entity |
+| Environment State | Text sensor | — | — |
 | ESPHome Version | Text sensor | — | — |
 | Fan Control Module Status | Text sensor | — | diagnostic entity; disabled by default |
 | Firmware Channel | Text sensor | — | diagnostic entity; disabled by default |
@@ -88,12 +99,12 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Firmware Version | Text sensor | — | diagnostic entity |
 | Hardware Model | Text sensor | — | diagnostic entity |
 | Hardware Revision | Text sensor | — | diagnostic entity |
-| Humidity Advice | Text sensor | — | — |
+| Humidity Advice | Text sensor | — | disabled by default |
 | Installed Capabilities | Text sensor | — | diagnostic entity |
 | IP Address | Text sensor | — | — |
 | Last Restart Reason | Text sensor | — | diagnostic entity; disabled by default |
 | LED Module Status | Text sensor | — | diagnostic entity; disabled by default |
-| Light Status | Text sensor | — | — |
+| Light Status | Text sensor | — | disabled by default |
 | MAC Address | Text sensor | — | — |
 | Power Configuration | Text sensor | — | diagnostic entity |
 | Power Source | Text sensor | — | — |
@@ -103,13 +114,19 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Presence Status | Text sensor | — | — |
 | Product Configuration | Text sensor | — | diagnostic entity |
 | Product SKU | Text sensor | — | diagnostic entity |
+| RoomIQ Calibration State | Text sensor | — | diagnostic entity; disabled by default |
 | RoomIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
+| RoomIQ Sensor Verification | Text sensor | — | diagnostic entity; disabled by default |
+| RoomIQ State Detail | Text sensor | — | diagnostic entity; disabled by default |
 | SSID | Text sensor | — | — |
-| Temperature Advice | Text sensor | — | — |
+| Temperature Advice | Text sensor | — | disabled by default |
 | VentIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
 | WebFlash Config | Text sensor | — | diagnostic entity |
 | Relay | Switch | — | — |
 | Clear Delay | Number | s | config entity |
+| Humidity Offset | Number | % | config entity |
+| Illuminance Calibration | Number | — | config entity |
+| Temperature Offset | Number | °C | config entity |
 | Presence Mode | Select | — | config entity |
 | Factory Reset | Button | — | disabled by default |
 | Restart | Button | — | — |

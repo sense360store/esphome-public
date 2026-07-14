@@ -813,6 +813,96 @@ Scope facts (do not overclaim):
 
 ---
 
+## 15. RoomIQ framework (ROOMIQ-FRAMEWORK-001)
+
+**Status: software foundation implemented via the ROOMIQ-FRAMEWORK-001 PR —
+compile and simulation proof only; physical sensor validation pending
+(`ROOMIQ-FRAMEWORK-BENCH-001`, checklist at
+[`docs/hardware/roomiq-framework-bench-checklist.md`](hardware/roomiq-framework-bench-checklist.md));
+calibration and comfort/brightness threshold tuning pending; the
+ambient-light sensor identity stays an unresolved reconciliation; no SOT
+or commercial state change.**
+
+Canonical local environmental service for the S360-200 RoomIQ climate
+half: calibrated **Temperature / Humidity / Illuminance** with customer
+calibration controls (Temperature Offset, Humidity Offset, Illuminance
+Calibration multiplier — applied exactly once, persisted, clamped),
+human-friendly **Comfort** (temperature + humidity only), one headline
+**Environment State**, a **Brightness** category with hysteresis, honest
+per-channel freshness, and the RoomIQ module runtime status (the second
+wired module after Presence). Canonical doc:
+[`docs/architecture/sense360-roomiq-framework.md`](architecture/sense360-roomiq-framework.md);
+contract tests: [`tests/test_roomiq_framework.py`](../tests/test_roomiq_framework.py);
+deterministic simulation: [`tests/unit/test_roomiq_engine.cpp`](../tests/unit/test_roomiq_engine.cpp)
+over the shared engine
+[`include/sense360/roomiq_engine.h`](../include/sense360/roomiq_engine.h)
+(the same header production YAML compiles — no drift-prone second
+implementation).
+
+Scope facts (do not overclaim):
+
+* **Customer surface** — default-enabled set is exactly: Temperature,
+  Humidity, Illuminance, Comfort, Environment State, Brightness plus the
+  three calibration controls. No customer-facing numeric comfort score
+  (accepted owner decision); no sensor model name in any customer entity.
+  All thresholds are provisional comfort heuristics — never medical,
+  health, lighting-standard or regulatory claims.
+* **Backwards compatibility** — every pre-framework published entity id
+  (RoomIQ Temperature / Humidity / Light Level / Feels Like / Comfort
+  Score, Comfort Status, Light Status, Temperature / Humidity Advice)
+  remains available as a disabled-by-default compatibility entity driven
+  by calibrated canonical values; legacy include paths
+  (`comfort_basic_profile.yaml`, `roomiq_profile.yaml`,
+  `comfort_ceiling.yaml`) keep resolving with pre-framework behaviour.
+* **Platform reuse** — RoomIQ is the single environmental source: the LED
+  framework now consumes the canonical darkness service (calibrated
+  illuminance + staleness + hysteresis computed in the RoomIQ engine; LED
+  keeps its customer Darkness Threshold control) and the duplicate
+  lux-threshold engine in `led_controller.h` was removed (regression
+  tested). Future VentIQ / AirIQ / Zones consumption is documented as a
+  stable internal contract, not implemented.
+* **Sensor identity (unresolved, tracked)** — schematic + BOM say the
+  S360-200 light sensor is **LTR-303ALS-01**; the compiled firmware
+  drives a **VEML7700** at 0x10; runtime identity is unverified. This
+  work item changed NO compiled sensor and did not choose: the customer
+  entity is named "Illuminance", the limit is stated on-device (RoomIQ
+  Sensor Verification diagnostic), the failure mode is honest (unknown /
+  Degraded, LED darkness fails safe), and resolution stays owner/bench
+  work (`ENTITY-RECONCILE-200-ALS-001` + the bench checklist's sensor
+  identity section: read the U1 part marking, probe 0x10 vs 0x29, then
+  align firmware and catalog in a follow-up).
+* **Module-status honesty** — RoomIQ "Available" means strictly that
+  every environmental channel delivered a valid update inside its stale
+  window (`config/core-framework.json module_runtime_status.roomiq`);
+  never accuracy, calibration correctness or hardware health. Fault has
+  no production producer. Temperature and humidity share the SHT4x, so
+  their shared failure is modelled honestly.
+* **Bundle authority** — all 14 catalog-declared RoomIQ-bearing configs
+  compose the framework exactly once and drop the legacy display profile;
+  non-RoomIQ configs gain nothing (test-enforced plus the
+  `Ceiling-POE-FanDAC` non-RoomIQ regression compile). No
+  `config/webflash-builds.json` row, channel, version or artifact name
+  changed.
+* **Compile/simulation proof recorded separately from hardware proof** —
+  the representative compile lane covers PoE/USB RoomIQ, AirIQ+RoomIQ,
+  VentIQ+RoomIQ (Release-One), both LED-bearing bundles and the
+  non-RoomIQ regression target; 50 deterministic simulation scenarios
+  cover startup, calibration, comfort/brightness hysteresis, environment
+  precedence, partial degradation, recovery and invalid values. None of
+  this is hardware, bench, compliance or commercial proof.
+
+Follow-ups created by this work item (tracked, not started): illuminance
+sensor-identity reconciliation (bench + firmware/catalog alignment),
+`ROOMIQ-FRAMEWORK-BENCH-001` physical validation, comfort/customer
+threshold tuning from bench + customer feedback, future adaptive
+brightness (needs bench lux data), future VentIQ environmental
+consumption, future AirIQ combined environment state, and the
+still-unexposed BMP581 pressure path (`ENTITY-FILL-200-PRESSURE-001`).
+SOT programme-status propagation (RoomIQ software foundation implemented)
+is an owner action in SOT, in a separate PR — never bundled here.
+
+---
+
 ## Channel-tier policy (RELEASE-PREVIEW-ALL-PRODUCTS-001)
 
 Preview eligibility is now open to **every buildable target**. The channel-tier

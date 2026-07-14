@@ -70,6 +70,10 @@ jobs:
         run: |
           python3 tests/test_led_framework.py
 
+      - name: RoomIQ framework contract (ROOMIQ-FRAMEWORK-001)
+        run: |
+          python3 tests/test_roomiq_framework.py
+
       - name: Reject known fallback-AP password literals (SEC-ESP-FALLBACK-AP-001)
         run: |
           python3 scripts/check_fallback_ap_password.py

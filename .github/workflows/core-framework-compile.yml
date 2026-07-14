@@ -55,6 +55,9 @@ on:
       # board / feature / shared-header layers; its contract test rides the
       # same lane.
       - "tests/test_led_framework.py"
+      # ROOMIQ-FRAMEWORK-001: the canonical RoomIQ environmental framework
+      # lives in the same layers; its contract test rides the same lane.
+      - "tests/test_roomiq_framework.py"
       - ".github/workflows/core-framework-compile.yml"
       - ".github/actions/setup-esphome-build/**"
   workflow_dispatch: {}
@@ -94,12 +97,14 @@ jobs:
           python3 tests/test_core_framework_compile_workflow.py
           python3 tests/test_presence_framework.py
           python3 tests/test_led_framework.py
+          python3 tests/test_roomiq_framework.py
 
       - name: Simulation tests (C++ logic proof only)
-        # PRESENCE-FRAMEWORK-001 / LED-FRAMEWORK-001: deterministic
-        # simulation of the fusion and LED-controller state machines
-        # (tests/unit/test_presence_fusion.cpp,
-        # tests/unit/test_led_controller.cpp) against the same headers the
+        # PRESENCE-FRAMEWORK-001 / LED-FRAMEWORK-001 / ROOMIQ-FRAMEWORK-001:
+        # deterministic simulation of the fusion, LED-controller and RoomIQ
+        # environmental state machines (tests/unit/test_presence_fusion.cpp,
+        # tests/unit/test_led_controller.cpp,
+        # tests/unit/test_roomiq_engine.cpp) against the same headers the
         # products compile. Logic proof only — NEVER hardware validation.
         run: make -C tests test
 
@@ -122,6 +127,11 @@ jobs:
   #   LED+RoomIQ PoE preview     -> Ceiling-POE-RoomIQ-LED (LED-FRAMEWORK-001:
   #                                 the second authoritative LED-bearing
   #                                 bundle; Presence + LED composition)
+  #   Non-RoomIQ regression      -> Ceiling-POE-FanDAC (ROOMIQ-FRAMEWORK-001:
+  #                                 a framework-bearing product WITHOUT the
+  #                                 RoomIQ capability proves the RoomIQ
+  #                                 environmental framework never leaks
+  #                                 outside the RoomIQ-bearing bundles)
   # The LED-less targets double as the regression check that the LED
   # framework is not accidentally composed outside the LED-bearing bundles.
   # --------------------------------------------------------------------------
@@ -147,6 +157,8 @@ jobs:
             product_yaml: products/sense360-ceiling-poe-ventiq-roomiq-led.yaml
           - config_string: Ceiling-POE-RoomIQ-LED
             product_yaml: products/sense360-ceiling-poe-roomiq-led.yaml
+          - config_string: Ceiling-POE-FanDAC
+            product_yaml: products/sense360-ceiling-poe-fandac.yaml
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1

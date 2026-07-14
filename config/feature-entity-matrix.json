@@ -90,11 +90,11 @@
           "derivation": "design-derived",
           "required": true,
           "status": "present",
-          "present_as": "sensor comfort_ceiling_temperature (\"${friendly_name} Temperature\")",
-          "defined_in": "packages/boards/s360-200-roomiq-climate.yaml",
+          "present_as": "sensor s360_temperature (\"Temperature\", calibrated canonical output; raw comfort_ceiling_temperature stays internal, legacy comfort_temperature_display preserved disabled-by-default)",
+          "defined_in": "packages/features/roomiq_framework.yaml",
           "confirm": "none",
           "queued_fill_slice": null,
-          "notes": ""
+          "notes": "ROOMIQ-FRAMEWORK-001: customer Temperature Offset calibration applied once inside include/sense360/roomiq_engine.h; stale data goes unknown, never frozen."
         },
         {
           "row": "Humidity (SHT4x @0x44)",
@@ -102,11 +102,11 @@
           "derivation": "design-derived",
           "required": true,
           "status": "present",
-          "present_as": "sensor comfort_ceiling_humidity (\"${friendly_name} Humidity\")",
-          "defined_in": "packages/boards/s360-200-roomiq-climate.yaml",
+          "present_as": "sensor s360_humidity (\"Humidity\", calibrated canonical output; raw comfort_ceiling_humidity stays internal, legacy comfort_humidity_display preserved disabled-by-default)",
+          "defined_in": "packages/features/roomiq_framework.yaml",
           "confirm": "none",
           "queued_fill_slice": null,
-          "notes": ""
+          "notes": "ROOMIQ-FRAMEWORK-001: customer Humidity Offset calibration applied once inside include/sense360/roomiq_engine.h; stale data goes unknown, never frozen."
         },
         {
           "row": "Ambient light / illuminance",
@@ -114,11 +114,11 @@
           "derivation": "design-derived",
           "required": true,
           "status": "partial",
-          "present_as": "sensor comfort_ceiling_illuminance + ALS counts / full spectrum (via VEML7700 @0x10)",
-          "defined_in": "packages/boards/s360-200-roomiq-climate.yaml",
+          "present_as": "sensor s360_illuminance (\"Illuminance\", calibrated canonical output via the RoomIQ framework) over the compiled driver comfort_ceiling_illuminance (VEML7700 @0x10, internal)",
+          "defined_in": "packages/features/roomiq_framework.yaml",
           "confirm": "needs-schematic-reconcile",
           "queued_fill_slice": "ENTITY-RECONCILE-200-ALS-001",
-          "notes": "An illuminance entity exists, but the live driver (VEML7700 @0x10) differs from the catalog BOM part (LTR-303ALS-01). Reconcile the part against the landed schematic/BOM before locking."
+          "notes": "An illuminance entity exists, but the live driver (VEML7700 @0x10) differs from the catalog BOM part (LTR-303ALS-01). ROOMIQ-FRAMEWORK-001 deliberately changed no compiled sensor, names the customer entity \"Illuminance\" (never a part name) and tracks the identity in the bench checklist; reconcile against the landed schematic/BOM before locking."
         },
         {
           "row": "mmWave presence / occupancy (LD2450)",
@@ -173,12 +173,12 @@
           "kind": "ha-feature",
           "derivation": "product-intent",
           "required": null,
-          "status": "missing",
-          "present_as": "globals only (comfort_ceiling_dew_point, comfort_ceiling_heat_index, comfort_ceiling_index_value)",
-          "defined_in": "packages/boards/s360-200-roomiq-climate.yaml",
-          "confirm": "needs-operator-confirm",
-          "queued_fill_slice": "FEATURE-CONFIRM-200-COMFORT-INDICES-001",
-          "notes": "Dew point / heat index / comfort index are computed into globals but not surfaced as HA sensor entities. Whether they should be exposed is product intent \u2014 operator must confirm."
+          "status": "present",
+          "present_as": "text_sensor s360_comfort (\"Comfort\") + s360_environment_state (\"Environment State\") + s360_brightness (\"Brightness\"); heat index via comfort_feels_like and the legacy 0-100 index via comfort_score_display (both disabled-by-default compatibility entities)",
+          "defined_in": "packages/features/roomiq_framework.yaml",
+          "confirm": "none",
+          "queued_fill_slice": null,
+          "notes": "Resolved by the accepted ROOMIQ-FRAMEWORK-001 owner decisions (executed FEATURE-CONFIRM-200-COMFORT-INDICES-001): human-friendly comfort states instead of a customer-facing numeric score. Dew point remains an internal legacy global only (no owner ask to expose it); all thresholds are provisional comfort heuristics, compile/simulation proof only."
         }
       ]
     },

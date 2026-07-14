@@ -23,7 +23,12 @@
 #                           restores the previous state automatically.
 #   * Darkness Threshold  — customer-adjustable lux threshold with
 #                           hysteresis; stale/missing lux is UNKNOWN and
-#                           fails safe (never interpreted as dark).
+#                           fails safe (never interpreted as dark). The
+#                           decision itself is computed by the canonical
+#                           RoomIQ environmental engine
+#                           (ROOMIQ-FRAMEWORK-001): this package passes the
+#                           customer threshold into that service and
+#                           consumes the result — no duplicate lux logic.
 #
 # Priority (LED-07): Fault > Identify > Night Mode > Room Light > Status.
 # State ownership, fail-safe rules and the restore contract are implemented
@@ -40,8 +45,11 @@
 #     owns the fused Occupancy entity `s360_occupancy` and the Presence
 #     module runtime status; LED-04 consumes ONLY the fused contract, never
 #     raw PIR/radar/SEN0609 states),
-#   * the RoomIQ board package (packages/boards/s360-200-roomiq.yaml — owns
-#     the compiled VEML7700 lux sensor `comfort_ceiling_illuminance`), and
+#   * the RoomIQ environmental framework
+#     (packages/features/roomiq_framework.yaml — owns the calibrated
+#     canonical illuminance path and the darkness decision this package
+#     consumes; ROOMIQ-FRAMEWORK-001) together with the RoomIQ board
+#     package (packages/boards/s360-200-roomiq.yaml), and
 #   * the shared Core Framework package under packages/base/ (owner of the
 #     LED Module Status entity; this file deliberately does NOT include it —
 #     bundles compose it exactly once, per the CORE-FRAMEWORK-001 isolation
@@ -73,10 +81,10 @@ substitutions:
 
   # Darkness decision (LED-05) — provisional: dark below the customer
   # threshold (default 20 lx), not-dark above threshold * 1.5 (hysteresis
-  # prevents flicker near the threshold). Lux samples older than the stale
-  # window are UNKNOWN (the VEML7700 publishes every 10 s).
+  # prevents flicker near the threshold). The decision is computed by the
+  # canonical RoomIQ engine from the CALIBRATED illuminance path with its
+  # lux staleness window; this factor parameterises that service.
   led_darkness_hysteresis: "1.5"
-  led_lux_stale_ms: "60000"
 
   # Presence-driven auto-off delay (LED-04) — provisional. The fused
   # Occupancy entity already carries the Presence clear delay; this second
@@ -89,7 +97,8 @@ substitutions:
 
   # Input sources — overridable for future compositions. Defaults are the
   # authoritative entities composed by every current LED-bearing bundle.
-  led_lux_source_id: comfort_ceiling_illuminance
+  # (The lux/darkness input is the canonical RoomIQ engine itself — see
+  # the evaluation script below.)
   led_occupancy_source_id: s360_occupancy
   led_presence_health_id: s360_module_status_presence
 
@@ -196,22 +205,6 @@ globals:
     initial_value: 'false'
 
 # ----------------------------------------------------------------------------
-# Lux input (LED-05): a real update-callback freshness signal. The copy
-# sensor republishes every VEML7700 update (throttled to 10 s upstream), so
-# the engine can distinguish live lux from stale/missing data — stale lux is
-# UNKNOWN and never interpreted as darkness.
-# ----------------------------------------------------------------------------
-sensor:
-  - platform: copy
-    source_id: ${led_lux_source_id}
-    id: s360_led_lux_sample
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            sense360::ledfw::global_controller().input_lux(millis(), x);
-
-# ----------------------------------------------------------------------------
 # Evaluation — periodic tick plus immediate re-evaluation on customer
 # actions and status events. One script owns every input/output exchange
 # with the engine, so scripts and automations cannot race each other.
@@ -235,15 +228,32 @@ script:
               id(s360_led_night_behaviour).current_option().c_str()));
           controller.set_status_level(status_level_from_string(
               id(s360_led_status_indicator).current_option().c_str()));
-          float threshold = id(s360_led_darkness_threshold).state;
-          if (!std::isnan(threshold) && threshold > 0.0f) {
-            controller.set_darkness_threshold(threshold);
-          }
-          controller.set_darkness_hysteresis(${led_darkness_hysteresis});
-          controller.set_lux_stale_ms(${led_lux_stale_ms});
           controller.set_night_auto_off_ms(${led_night_auto_off_ms});
           controller.set_identify_duration_ms(${led_identify_ms});
           controller.set_status_duration_ms(${led_status_ms});
+
+          // Darkness input (LED-05, ROOMIQ-FRAMEWORK-001): the canonical
+          // RoomIQ darkness service computes the decision (calibrated
+          // illuminance, staleness, hysteresis — ONE implementation). The
+          // LED customer Darkness Threshold parameterises it; UNKNOWN
+          // (missing/stale/invalid lux) fails safe downstream.
+          {
+            auto &environment = sense360::roomiq::global_engine();
+            float threshold = id(s360_led_darkness_threshold).state;
+            if (!std::isnan(threshold) && threshold > 0.0f) {
+              environment.set_darkness_threshold(threshold);
+            }
+            environment.set_darkness_hysteresis(${led_darkness_hysteresis});
+            environment.evaluate(now);
+            Darkness darkness = DARKNESS_UNKNOWN;
+            if (environment.darkness() == sense360::roomiq::DARKNESS_DARK) {
+              darkness = DARKNESS_DARK;
+            } else if (environment.darkness() ==
+                       sense360::roomiq::DARKNESS_NOT_DARK) {
+              darkness = DARKNESS_NOT_DARK;
+            }
+            controller.input_darkness(now, darkness);
+          }
 
           // Occupancy input (LED-04): the fused Occupancy contract with
           // validity from the Presence module runtime status. Invalid

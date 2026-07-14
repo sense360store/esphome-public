@@ -1,0 +1,637 @@
+# ============================================================================
+# SENSE360 ROOMIQ FRAMEWORK — canonical comfort and environmental service
+# ============================================================================
+# ROOMIQ-FRAMEWORK-001 (docs/architecture/sense360-roomiq-framework.md).
+#
+# One polished, simple customer environmental experience for the S360-200
+# RoomIQ climate half — and the platform's single source of environmental
+# truth. Other frameworks (LED today; VentIQ / AirIQ / Zones later) consume
+# the canonical outputs below instead of re-reading raw sensors.
+#
+# Customer entities (enabled by default — the ONLY default-enabled set):
+#   Temperature · Humidity · Illuminance · Comfort · Environment State ·
+#   Brightness · Temperature Offset · Humidity Offset · Illuminance
+#   Calibration
+# Everything else stays diagnostic and/or disabled by default. There is
+# deliberately NO customer-facing numeric comfort score (accepted owner
+# decision: human-friendly states only; the legacy score entity remains as
+# a disabled-by-default compatibility entity).
+#
+# The environmental model is the header-only engine
+# include/sense360/roomiq_engine.h — the SAME implementation exercised by
+# the deterministic simulation tests (tests/unit/test_roomiq_engine.cpp),
+# so tested logic and shipped logic cannot drift. The contract is pinned by
+# tests/test_roomiq_framework.py.
+#
+# Calibration honesty: the customer offsets (temperature, humidity) and
+# multiplier (illuminance) are applied EXACTLY ONCE, inside the engine.
+# Raw board sensors stay internal/uncalibrated; every canonical output and
+# every legacy compatibility entity carries the calibrated value; no
+# downstream framework applies its own offset. Values persist across
+# restart via the number entities' restore_value; invalid stored values
+# recover to neutral inside the engine.
+#
+# Freshness honesty: a value is usable only after a real, valid (non-NaN)
+# update callback inside the stale window. Stale channels publish unknown,
+# never a frozen reading. Temperature and humidity share one physical
+# sensor (SHT4x @ 0x44): their shared failure shows honestly as both
+# channels going stale together. Module health (Initialising / Available /
+# Degraded / Unavailable) is driven from this real freshness evidence into
+# the Core-Framework "RoomIQ Module Status" entity — the second wired
+# module after Presence (config/core-framework.json
+# module_runtime_status.roomiq). Fault is an engine contract with NO
+# production producer (no composed component exposes a supported explicit
+# fault signal today).
+#
+# Sensor-identity honesty: the hardware catalog / schematic / BOM document
+# the S360-200 ambient-light sensor as LTR-303ALS-01, while the compiled
+# firmware drives a VEML7700 at I2C 0x10. The identity is UNRESOLVED until
+# the bench checklist runs; this framework changes NO compiled sensor,
+# names the customer entity "Illuminance" (never a sensor model), and
+# states the limit in the RoomIQ Sensor Verification diagnostic.
+#
+# Composition contract: bundles compose this package together with the
+# RoomIQ board package (packages/boards/s360-200-roomiq.yaml — owner of
+# the raw internal sensors) AND the shared Core Framework package under
+# packages/base/ (owner of the RoomIQ Module Status entity; this file
+# deliberately does NOT include it — bundles compose it exactly once, per
+# the CORE-FRAMEWORK-001 isolation rule). This package supersedes the
+# legacy display profile packages/features/comfort_basic_profile.yaml in
+# bundles (composing both would duplicate entities); legacy products keep
+# the profile and its exact pre-framework behaviour.
+#
+# Every threshold below is a PROVISIONAL engineering default / comfort
+# heuristic pending customer and bench validation
+# (docs/hardware/roomiq-framework-bench-checklist.md). They are never
+# medical, health, lighting-standard or regulatory claims. NO hardware,
+# bench, compliance or commercial claim is made by this package.
+# ============================================================================
+
+substitutions:
+  # Canonical input sources — overridable for future compositions.
+  # Defaults are the authoritative raw sensors composed by every current
+  # RoomIQ-bearing bundle (packages/boards/s360-200-roomiq-climate.yaml).
+  roomiq_temperature_source_id: comfort_ceiling_temperature
+  roomiq_humidity_source_id: comfort_ceiling_humidity
+  roomiq_illuminance_source_id: comfort_ceiling_illuminance
+
+  # Freshness windows (ms) — provisional engineering defaults pending
+  # bench validation:
+  #   * climate: the SHT4x publishes every 30 s; three missed updates
+  #     (90 s) mean the data is stale. First data is expected within the
+  #     60 s warm-up window.
+  #   * illuminance: the compiled light path publishes every 10 s; 60 s
+  #     without an update is stale (matches the pre-framework LED window).
+  roomiq_climate_warmup_ms: "60000"
+  roomiq_climate_stale_ms: "90000"
+  roomiq_illuminance_warmup_ms: "30000"
+  roomiq_illuminance_stale_ms: "60000"
+
+  # Comfort thresholds (°C / %RH) — PROVISIONAL comfort heuristics, not
+  # medical/health thresholds. Advanced tuning is by substitution override
+  # (documented), deliberately NOT one customer entity per threshold.
+  roomiq_temp_cold_c: "16"
+  roomiq_temp_cool_c: "18"
+  roomiq_temp_warm_c: "24"
+  roomiq_temp_hot_c: "27"
+  roomiq_temp_hysteresis_c: "0.3"
+  roomiq_humidity_dry_pct: "30"
+  roomiq_humidity_humid_pct: "60"
+  roomiq_humidity_hysteresis_pct: "2"
+
+  # Brightness bands (lx) — PROVISIONAL room-ambience categories, not
+  # lighting-standard compliance values. Falling transitions use a 20%
+  # hysteresis margin so categories never flap at a boundary.
+  roomiq_lux_dim_lx: "10"
+  roomiq_lux_normal_lx: "50"
+  roomiq_lux_bright_lx: "300"
+  roomiq_lux_very_bright_lx: "1000"
+  roomiq_brightness_hysteresis_pct: "20"
+
+# The environmental engine is compiled from the shared header (single
+# implementation; see tests/unit/test_roomiq_engine.cpp). Path is relative
+# to the products/ config dir — the same pattern as
+# packages/features/presence_framework.yaml.
+esphome:
+  includes:
+    - ../include/sense360/roomiq_engine.h
+  on_boot:
+    - priority: 250
+      then:
+        - lambda: |-
+            sense360::roomiq::global_engine().begin(millis());
+        - script.execute: s360_roomiq_evaluate
+
+# ----------------------------------------------------------------------------
+# Evaluation — periodic tick plus immediate re-evaluation on every real
+# sensor update and every calibration change. One script owns every
+# input/output exchange with the engine, so automations cannot race.
+# ----------------------------------------------------------------------------
+script:
+  - id: s360_roomiq_evaluate
+    then:
+      - lambda: |-
+          using namespace sense360::roomiq;
+          auto &engine = global_engine();
+          const uint32_t now = millis();
+
+          // Freshness windows and provisional thresholds (substitutions).
+          engine.set_climate_warmup_ms(${roomiq_climate_warmup_ms});
+          engine.set_climate_stale_ms(${roomiq_climate_stale_ms});
+          engine.set_lux_warmup_ms(${roomiq_illuminance_warmup_ms});
+          engine.set_lux_stale_ms(${roomiq_illuminance_stale_ms});
+          engine.set_temperature_bands(${roomiq_temp_cold_c},
+                                       ${roomiq_temp_cool_c},
+                                       ${roomiq_temp_warm_c},
+                                       ${roomiq_temp_hot_c});
+          engine.set_temperature_hysteresis(${roomiq_temp_hysteresis_c});
+          engine.set_humidity_bands(${roomiq_humidity_dry_pct},
+                                    ${roomiq_humidity_humid_pct});
+          engine.set_humidity_hysteresis(${roomiq_humidity_hysteresis_pct});
+          engine.set_brightness_bands(${roomiq_lux_dim_lx},
+                                      ${roomiq_lux_normal_lx},
+                                      ${roomiq_lux_bright_lx},
+                                      ${roomiq_lux_very_bright_lx});
+          engine.set_brightness_hysteresis_pct(
+              ${roomiq_brightness_hysteresis_pct});
+
+          // Customer calibration (runtime-adjustable; persisted by the
+          // number entities; the engine clamps to safe bounds and treats
+          // invalid values as neutral — calibration is applied EXACTLY
+          // ONCE, here).
+          engine.set_temperature_offset(id(s360_temperature_offset).state);
+          engine.set_humidity_offset(id(s360_humidity_offset).state);
+          engine.set_illuminance_scale(id(s360_illuminance_scale).state);
+
+          engine.evaluate(now);
+
+          // Honest numeric outputs: when a channel is no longer fresh its
+          // canonical entity goes unknown — a stale reading is never left
+          // standing as if it were live.
+          if (!engine.temperature_fresh() &&
+              !std::isnan(id(s360_temperature).state)) {
+            id(s360_temperature).publish_state(NAN);
+          }
+          if (!engine.humidity_fresh() &&
+              !std::isnan(id(s360_humidity).state)) {
+            id(s360_humidity).publish_state(NAN);
+          }
+          if (!engine.illuminance_fresh() &&
+              !std::isnan(id(s360_illuminance).state)) {
+            id(s360_illuminance).publish_state(NAN);
+          }
+
+          // Customer state outputs (publish on change only).
+          {
+            std::string value = comfort_to_string(engine.comfort());
+            if (id(s360_comfort).state != value) {
+              id(s360_comfort).publish_state(value);
+            }
+          }
+          {
+            std::string value = brightness_to_string(engine.brightness());
+            if (id(s360_brightness).state != value) {
+              id(s360_brightness).publish_state(value);
+            }
+          }
+          {
+            std::string value = environment_to_string(engine.environment());
+            if (id(s360_environment_state).state != value) {
+              id(s360_environment_state).publish_state(value);
+            }
+          }
+
+          // Module health — real freshness evidence driving the
+          // Core-Framework reserved runtime vocabulary (the second wired
+          // module after Presence).
+          {
+            std::string health = health_to_string(engine.health());
+            if (id(s360_module_status_roomiq).state != health) {
+              id(s360_module_status_roomiq).publish_state(health);
+            }
+          }
+
+          // Diagnostics (publish on change only).
+          {
+            char buffer[120];
+            snprintf(buffer, sizeof(buffer),
+                     "comfort=%s brightness=%s climate_fresh=%s light_fresh=%s",
+                     comfort_to_string(engine.comfort()),
+                     brightness_to_string(engine.brightness()),
+                     (engine.temperature_fresh() && engine.humidity_fresh())
+                         ? "yes"
+                         : "no",
+                     engine.illuminance_fresh() ? "yes" : "no");
+            std::string detail = buffer;
+            if (id(s360_roomiq_environment_detail).state != detail) {
+              id(s360_roomiq_environment_detail).publish_state(detail);
+            }
+          }
+          {
+            char buffer[120];
+            snprintf(buffer, sizeof(buffer),
+                     "temperature %+.1f °C, humidity %+.1f %%, "
+                     "illuminance x%.2f",
+                     engine.temperature_offset(), engine.humidity_offset(),
+                     engine.illuminance_scale());
+            std::string calibration = buffer;
+            if (id(s360_roomiq_calibration_state).state != calibration) {
+              id(s360_roomiq_calibration_state).publish_state(calibration);
+            }
+          }
+
+interval:
+  - interval: 5s
+    then:
+      - script.execute: s360_roomiq_evaluate
+
+# ----------------------------------------------------------------------------
+# Sensor inputs (real update callbacks — the freshness signal) and the
+# canonical calibrated customer sensors.
+# ----------------------------------------------------------------------------
+sensor:
+  # --- input samples (internal) ---------------------------------------------
+  - platform: copy
+    source_id: ${roomiq_temperature_source_id}
+    id: s360_roomiq_temperature_sample
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            sense360::roomiq::global_engine().input_temperature(millis(), x);
+        - script.execute: s360_roomiq_evaluate
+        - lambda: |-
+            if (!std::isnan(x)) {
+              id(s360_temperature).publish_state(
+                  sense360::roomiq::global_engine().temperature());
+            }
+
+  - platform: copy
+    source_id: ${roomiq_humidity_source_id}
+    id: s360_roomiq_humidity_sample
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            sense360::roomiq::global_engine().input_humidity(millis(), x);
+        - script.execute: s360_roomiq_evaluate
+        - lambda: |-
+            if (!std::isnan(x)) {
+              id(s360_humidity).publish_state(
+                  sense360::roomiq::global_engine().humidity());
+            }
+
+  # Illuminance is the noisiest channel: a short median window rejects
+  # single-sample outliers with at most ~2 samples (~20 s) of added lag.
+  # PROVISIONAL filter pending bench validation — deliberately small so
+  # real light changes are not smoothed away.
+  - platform: copy
+    source_id: ${roomiq_illuminance_source_id}
+    id: s360_roomiq_illuminance_sample
+    internal: true
+    filters:
+      - median:
+          window_size: 3
+          send_every: 1
+          send_first_at: 1
+    on_value:
+      then:
+        - lambda: |-
+            sense360::roomiq::global_engine().input_lux(millis(), x);
+        - script.execute: s360_roomiq_evaluate
+        - lambda: |-
+            if (!std::isnan(x)) {
+              id(s360_illuminance).publish_state(
+                  sense360::roomiq::global_engine().illuminance());
+            }
+
+  # --- canonical calibrated customer sensors ----------------------------------
+  # Published from the engine on every valid update (and set unknown when
+  # a channel goes stale). These are THE platform temperature / humidity /
+  # illuminance values: every other framework consumes these, never the
+  # raw board sensors.
+  - platform: template
+    id: s360_temperature
+    name: "Temperature"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:thermometer
+
+  - platform: template
+    id: s360_humidity
+    name: "Humidity"
+    unit_of_measurement: "%"
+    device_class: humidity
+    state_class: measurement
+    accuracy_decimals: 0
+    icon: mdi:water-percent
+
+  - platform: template
+    id: s360_illuminance
+    name: "Illuminance"
+    unit_of_measurement: "lx"
+    device_class: illuminance
+    state_class: measurement
+    accuracy_decimals: 0
+    icon: mdi:brightness-5
+
+  # --- diagnostics (diagnostic + disabled by default) --------------------------
+  # Raw (uncalibrated) readings for support / calibration work.
+  - platform: copy
+    source_id: ${roomiq_temperature_source_id}
+    id: s360_roomiq_raw_temperature
+    name: "Raw Temperature"
+    entity_category: diagnostic
+    disabled_by_default: true
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 2
+
+  - platform: copy
+    source_id: ${roomiq_humidity_source_id}
+    id: s360_roomiq_raw_humidity
+    name: "Raw Humidity"
+    entity_category: diagnostic
+    disabled_by_default: true
+    unit_of_measurement: "%"
+    device_class: humidity
+    state_class: measurement
+    accuracy_decimals: 1
+
+  - platform: copy
+    source_id: ${roomiq_illuminance_source_id}
+    id: s360_roomiq_raw_illuminance
+    name: "Raw Illuminance"
+    entity_category: diagnostic
+    disabled_by_default: true
+    unit_of_measurement: "lx"
+    device_class: illuminance
+    state_class: measurement
+    accuracy_decimals: 1
+
+  # Seconds since the last valid update per channel (stale-data debugging).
+  - platform: template
+    id: s360_roomiq_climate_data_age
+    name: "Climate Data Age"
+    icon: mdi:timer-alert-outline
+    unit_of_measurement: "s"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: 15s
+    lambda: |-
+      return sense360::roomiq::global_engine().climate_data_age_s(millis());
+
+  - platform: template
+    id: s360_roomiq_illuminance_data_age
+    name: "Illuminance Data Age"
+    icon: mdi:timer-alert-outline
+    unit_of_measurement: "s"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: 15s
+    lambda: |-
+      return sense360::roomiq::global_engine().illuminance_data_age_s(millis());
+
+  # --- legacy compatibility (pre-framework published entities) -----------------
+  # Exact ids and names preserved so existing Home Assistant entity ids and
+  # automations keep working. Disabled by default for new installs (the
+  # canonical surface above replaces them); now driven by the CALIBRATED
+  # canonical outputs and honest about missing data (documented semantic
+  # upgrade — see the architecture doc's compatibility section).
+  - platform: copy
+    source_id: s360_temperature
+    id: comfort_temperature_display
+    name: "${friendly_name} RoomIQ Temperature"
+    disabled_by_default: true
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+
+  - platform: copy
+    source_id: s360_humidity
+    id: comfort_humidity_display
+    name: "${friendly_name} RoomIQ Humidity"
+    disabled_by_default: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: humidity
+    state_class: measurement
+
+  - platform: copy
+    source_id: s360_illuminance
+    id: comfort_light_display
+    name: "${friendly_name} RoomIQ Light Level"
+    disabled_by_default: true
+    unit_of_measurement: "lx"
+    accuracy_decimals: 0
+    device_class: illuminance
+    state_class: measurement
+
+  - platform: template
+    id: comfort_feels_like
+    name: "${friendly_name} RoomIQ Feels Like"
+    disabled_by_default: true
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    update_interval: 30s
+    lambda: |-
+      return sense360::roomiq::global_engine().heat_index();
+
+  # Legacy numeric score — compatibility only; never the customer surface
+  # (accepted owner decision: human-friendly comfort states instead).
+  - platform: template
+    id: comfort_score_display
+    name: "${friendly_name} RoomIQ Comfort Score"
+    disabled_by_default: true
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: "mdi:emoticon-happy-outline"
+    update_interval: 30s
+    lambda: |-
+      return sense360::roomiq::global_engine().legacy_comfort_score();
+
+# ----------------------------------------------------------------------------
+# Customer state entities
+# ----------------------------------------------------------------------------
+text_sensor:
+  # Concise comfort assessment from calibrated temperature and humidity
+  # only (accepted owner decision). Values: Initialising / Comfortable /
+  # Cool / Cold / Warm / Hot / Dry / Humid / Warm and humid / Unavailable.
+  - platform: template
+    id: s360_comfort
+    name: "Comfort"
+    icon: mdi:home-thermometer
+    update_interval: never
+
+  # ONE headline for the room. Never contradicts Comfort: climate
+  # discomfort IS the headline; notable light conditions (Dark, or Bright
+  # for the very-bright band) surface only when the climate is
+  # comfortable — so it adds information instead of duplicating Comfort.
+  - platform: template
+    id: s360_environment_state
+    name: "Environment State"
+    icon: mdi:home-analytics
+    update_interval: never
+
+  # Human-friendly room-ambience category from calibrated illuminance:
+  # Dark / Dim / Normal / Bright / Very bright (+ Initialising /
+  # Unavailable), with hysteresis so it never flaps at a boundary.
+  - platform: template
+    id: s360_brightness
+    name: "Brightness"
+    icon: mdi:brightness-6
+    update_interval: never
+
+  # --- diagnostics (diagnostic + disabled by default) --------------------------
+  # Why the current states are what they are (support / tuning aid).
+  - platform: template
+    id: s360_roomiq_environment_detail
+    name: "RoomIQ State Detail"
+    icon: mdi:text-search
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+
+  # Active calibration values in one line (support / bench aid).
+  - platform: template
+    id: s360_roomiq_calibration_state
+    name: "RoomIQ Calibration State"
+    icon: mdi:tune-vertical
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+
+  # Honesty companion: states on-device what the module status can and
+  # cannot attest — including the unresolved ambient-light sensor identity
+  # (catalog/BOM: LTR-303ALS-01; compiled firmware: VEML7700 at 0x10).
+  - platform: template
+    id: s360_roomiq_sensor_verification
+    name: "RoomIQ Sensor Verification"
+    icon: mdi:shield-search
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      return {"Freshness from I2C data updates only; light-sensor part identity "
+              "pending bench (catalog LTR-303ALS-01 vs compiled VEML7700)"};
+
+  # --- legacy compatibility text entities ---------------------------------------
+  - platform: template
+    id: comfort_status
+    name: "${friendly_name} Comfort Status"
+    icon: "mdi:home-thermometer"
+    disabled_by_default: true
+    update_interval: 30s
+    lambda: |-
+      return {sense360::roomiq::global_engine().legacy_comfort_status()};
+
+  - platform: template
+    id: comfort_light_status
+    name: "${friendly_name} Light Status"
+    icon: "mdi:brightness-6"
+    disabled_by_default: true
+    update_interval: 10s
+    lambda: |-
+      return {sense360::roomiq::global_engine().legacy_light_status()};
+
+  - platform: template
+    id: comfort_temp_advice
+    name: "${friendly_name} Temperature Advice"
+    icon: "mdi:thermometer-lines"
+    disabled_by_default: true
+    update_interval: 60s
+    lambda: |-
+      return {sense360::roomiq::global_engine().legacy_temperature_advice()};
+
+  - platform: template
+    id: comfort_humidity_advice
+    name: "${friendly_name} Humidity Advice"
+    icon: "mdi:water-percent"
+    disabled_by_default: true
+    update_interval: 60s
+    lambda: |-
+      return {sense360::roomiq::global_engine().legacy_humidity_advice()};
+
+# ----------------------------------------------------------------------------
+# Customer calibration controls (runtime, persisted, safe bounds)
+# ----------------------------------------------------------------------------
+number:
+  # Local single-point temperature calibration against a trusted reference
+  # thermometer. Applied once, inside the engine; bounds are deliberately
+  # narrow (a larger disagreement indicates a hardware problem, not a
+  # calibration need).
+  - platform: template
+    id: s360_temperature_offset
+    name: "Temperature Offset"
+    icon: mdi:thermometer-plus
+    entity_category: config
+    unit_of_measurement: "°C"
+    mode: box
+    min_value: -5
+    max_value: 5
+    step: 0.1
+    initial_value: 0
+    optimistic: true
+    restore_value: true
+    on_value:
+      then:
+        - script.execute: s360_roomiq_evaluate
+        - lambda: |-
+            auto &engine = sense360::roomiq::global_engine();
+            if (engine.temperature_fresh()) {
+              id(s360_temperature).publish_state(engine.temperature());
+            }
+
+  - platform: template
+    id: s360_humidity_offset
+    name: "Humidity Offset"
+    icon: mdi:water-plus
+    entity_category: config
+    unit_of_measurement: "%"
+    mode: box
+    min_value: -10
+    max_value: 10
+    step: 0.5
+    initial_value: 0
+    optimistic: true
+    restore_value: true
+    on_value:
+      then:
+        - script.execute: s360_roomiq_evaluate
+        - lambda: |-
+            auto &engine = sense360::roomiq::global_engine();
+            if (engine.humidity_fresh()) {
+              id(s360_humidity).publish_state(engine.humidity());
+            }
+
+  # A multiplier, not an offset: ambient-light error is dominated by
+  # multiplicative effects (gain, diffuser attenuation, mounting position),
+  # so a scale factor is the least misleading calibration model. 1.0 is
+  # neutral.
+  - platform: template
+    id: s360_illuminance_scale
+    name: "Illuminance Calibration"
+    icon: mdi:brightness-percent
+    entity_category: config
+    mode: box
+    min_value: 0.2
+    max_value: 5.0
+    step: 0.05
+    initial_value: 1.0
+    optimistic: true
+    restore_value: true
+    on_value:
+      then:
+        - script.execute: s360_roomiq_evaluate
+        - lambda: |-
+            auto &engine = sense360::roomiq::global_engine();
+            if (engine.illuminance_fresh()) {
+              id(s360_illuminance).publish_state(engine.illuminance());
+            }
