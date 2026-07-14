@@ -47,4 +47,4 @@
 | LED night mode | — | — | — | ✓ |
 | Relay output | ✓ | ✓ | ✓ | ✓ |
 | Auto-ventilation control | — | — | ✓ | ✓ |
-| **Home Assistant entities** | 92 | 112 | 120 | 131 |
+| **Home Assistant entities** | 92 | 110 | 120 | 131 |

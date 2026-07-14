@@ -12,7 +12,7 @@
 // invalid values and threshold boundaries.
 //
 // IMPORTANT: a green run here is LOGIC/SIMULATION proof only. It is never
-// hardware validation — the SCD41 / SGP41 / SPS30 / BMP390 paths remain
+// hardware validation — the SCD41 / SGP41 / SPS30 paths remain
 // physically unverified until the bench checklist
 // (docs/hardware/airiq-framework-bench-checklist.md) is executed by the
 // operator. All thresholds are provisional indoor-air-quality heuristics,
@@ -373,8 +373,9 @@ TEST_CASE(pressure_is_excluded_from_severity_and_health) {
   AirIQEngine e = started_engine();
   const uint32_t t = T0 + 5000;
   feed_all_good(e, t);
-  // No pressure sample ever arrives (the BMP390-vs-BOM identity conflict
-  // means the part may genuinely be absent): headline and health must be
+  // No pressure sample ever arrives (pressure is not S360-210 product
+  // hardware; the compiled BMP390 is firmware/catalog drift and nothing
+  // wires this channel in production): headline and health must be
   // completely unaffected.
   e.evaluate(t + 1000);
   ASSERT_EQ(e.air_quality(), AIR_QUALITY_GOOD);

@@ -11,9 +11,8 @@
 #
 # Customer entities (enabled by default — the ONLY default-enabled set):
 #   CO2 · VOC · NOx · PM2.5 · Air Quality · Recommendation
-# PM1 / PM4 / PM10 and Pressure remain available but disabled by default
-# (extra PM fractions add little default customer value; the S360-210
-# pressure part identity is an unresolved BOM reconciliation — see below).
+# PM1 / PM4 / PM10 remain available but disabled by default (extra PM
+# fractions add little default customer value).
 # Everything else stays diagnostic and/or disabled by default. There is
 # deliberately NO customer-facing AQI (no recognised AQI standard is
 # implemented, so no AQI is claimed) and NO blended proprietary score:
@@ -26,18 +25,29 @@
 # so tested logic and shipped logic cannot drift. The contract is pinned
 # by tests/test_airiq_framework.py.
 #
-# Unit honesty: CO2 is ppm (SCD41); VOC and NOx are RELATIVE indices
-# (SGP41) and are never presented as ppm/ppb concentrations; PM values are
-# µg/m³ (SPS30); pressure is hPa. No MiCS-derived CO / NO2 concentration
-# exists anywhere: the MiCS-4514 + STM8 gas stage is on the S360-210 BOM
-# but has NO compiled driver and an unverified readout interface
-# (ENTITY-FILL-210-MICS-001) — the engine carries diagnostic-only MiCS
-# channels so the architecture includes MiCS, and promotion to a customer
-# pollutant is gated on the calibration evidence documented in the
-# architecture doc. The SFA40 formaldehyde stage (fitment conflicted,
-# ENTITY-FILL-210-HCHO-001) and any ozone module (no authoritative
-# hardware record) are engine contract slots only: expected=false in
-# every current composition, no customer entity, nothing pretended.
+# Unit honesty: CO2 is ppm (SCD41, PCB-mounted); VOC and NOx are RELATIVE
+# indices (SGP41, PCB-mounted) and are never presented as ppm/ppb
+# concentrations; PM values are µg/m³ (SPS30, EXTERNAL connector-attached
+# via J2 and compiled as part of the standard stack). No MiCS-derived
+# CO / NO2 concentration exists anywhere: the MiCS-4514 + STM8 gas stage
+# is PCB-MOUNTED (verified schematic U4/U5 + BOM) but has NO compiled
+# driver and an unverified readout interface (ENTITY-FILL-210-MICS-001) —
+# the engine carries diagnostic-only MiCS channels so the architecture
+# includes MiCS, and promotion to a customer pollutant is gated on the
+# calibration evidence documented in the architecture doc. The SFA40
+# formaldehyde stage (footprint present on the verified schematic;
+# production population an unresolved conflict — HW-PINMAP-210-FOLLOWUP /
+# ENTITY-FILL-210-HCHO-001) and the SEN0321 (ZE27-O3) ozone input (an
+# EXTERNAL sensor/interface into the STM8 stage per the verified
+# schematic) are engine contract slots only: expected=false in every
+# current composition, no customer entity, nothing pretended.
+#
+# Pressure honesty: pressure is NOT S360-210 product hardware — no
+# pressure part exists on the verified schematic, the R4 BOM or the
+# hardware catalog. The BMP390 @0x77 still compiled by the board package
+# is FIRMWARE/CATALOG DRIFT (reconciliation pending): this framework
+# exposes NO pressure entity, wires NO pressure input, and pressure never
+# participates in Air Quality severity, recommendation or module health.
 #
 # Freshness honesty: a value is usable only after a real, valid update
 # callback inside its per-sensor stale window; each sensor has its OWN
@@ -53,11 +63,7 @@
 # Composition honesty: there is NO Base / Pro product axis for this module
 # (flat taxonomy, one SKU per product). Expected-sensor membership is
 # configuration-driven by the airiq_expected_* substitutions; an
-# intentionally absent optional sensor never degrades anything. Pressure
-# NEVER participates in Air Quality severity or module health: the
-# compiled BMP390 @0x77 conflicts with the S360-210 BOM (which lists no
-# pressure part), so the pressure entity ships disabled by default and
-# excluded from health until the identity reconciliation lands.
+# intentionally absent optional sensor never degrades anything.
 #
 # RoomIQ reuse: AirIQ never re-reads raw RoomIQ sensors. The SGP41
 # temperature/humidity compensation stays SCD41-sourced at the board
@@ -96,7 +102,6 @@ substitutions:
   airiq_pm1_source_id: airiq_pm1_0
   airiq_pm4_source_id: airiq_pm4_0
   airiq_pm10_source_id: airiq_pm10_0
-  airiq_pressure_source_id: airiq_pressure
 
   # Expected-sensor membership (configuration-driven; NO Base/Pro axis).
   # The compiled S360-210 stack expects CO2 + VOC + NOx + PM. The
@@ -123,8 +128,6 @@ substitutions:
   airiq_nox_stale_ms: "90000"
   airiq_pm_warmup_ms: "60000"
   airiq_pm_stale_ms: "90000"
-  airiq_pressure_warmup_ms: "90000"
-  airiq_pressure_stale_ms: "180000"
 
   # Pollutant severity thresholds (fair / poor / very-poor lower bounds)
   # — PROVISIONAL indoor-air-quality heuristics, centralised HERE (and in
@@ -214,8 +217,6 @@ script:
           engine.set_stale_ms(POLLUTANT_NOX, ${airiq_nox_stale_ms});
           engine.set_warmup_ms(POLLUTANT_PM25, ${airiq_pm_warmup_ms});
           engine.set_stale_ms(POLLUTANT_PM25, ${airiq_pm_stale_ms});
-          engine.set_pressure_warmup_ms(${airiq_pressure_warmup_ms});
-          engine.set_pressure_stale_ms(${airiq_pressure_stale_ms});
 
           // Provisional severity thresholds (centralised contract).
           engine.set_thresholds(POLLUTANT_CO2, ${airiq_co2_fair_ppm},
@@ -267,11 +268,6 @@ script:
               id(s360_pm10).publish_state(NAN);
             }
           }
-          if (!engine.pressure_fresh() &&
-              !std::isnan(id(s360_pressure).state)) {
-            id(s360_pressure).publish_state(NAN);
-          }
-
           // Customer state outputs (publish on change only).
           {
             std::string value = air_quality_to_string(engine.air_quality());
@@ -446,20 +442,11 @@ sensor:
               id(s360_pm10).publish_state(engine.pm10());
             }
 
-  - platform: copy
-    source_id: ${airiq_pressure_source_id}
-    id: s360_airiq_pressure_sample
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            sense360::airiq::global_engine().input_pressure(millis(), x);
-        - script.execute: s360_airiq_evaluate
-        - lambda: |-
-            if (!std::isnan(x)) {
-              id(s360_pressure).publish_state(
-                  sense360::airiq::global_engine().pressure());
-            }
+  # NOTE: deliberately NO pressure input and NO pressure entity. The
+  # BMP390 @0x77 compiled by the board package is firmware/catalog drift
+  # (no pressure part on the verified S360-210 schematic / BOM / hardware
+  # catalog); its readings stay internal at the board layer and are not a
+  # product surface.
 
   # --- canonical customer sensors ----------------------------------------------
   # Published from the engine on every valid update (and set unknown when
@@ -533,20 +520,6 @@ sensor:
     icon: mdi:blur
     disabled_by_default: true
 
-  # Pressure: freshness-gated value, disabled by default while the
-  # S360-210 pressure part identity (compiled BMP390 @0x77 vs a BOM with
-  # no pressure part) stays an unresolved reconciliation. NEVER a
-  # pollutant; never drives Air Quality or module health.
-  - platform: template
-    id: s360_pressure
-    name: "Pressure"
-    unit_of_measurement: "hPa"
-    device_class: atmospheric_pressure
-    state_class: measurement
-    accuracy_decimals: 1
-    icon: mdi:gauge
-    disabled_by_default: true
-
   # --- diagnostics (diagnostic + disabled by default) --------------------------
   # Seconds since the last valid update per physical sensor (stale-data
   # debugging).
@@ -588,18 +561,6 @@ sensor:
     lambda: |-
       using namespace sense360::airiq;
       return global_engine().pollutant_data_age_s(POLLUTANT_PM25, millis());
-
-  - platform: template
-    id: s360_airiq_pressure_data_age
-    name: "Pressure Data Age"
-    icon: mdi:timer-alert-outline
-    unit_of_measurement: "s"
-    accuracy_decimals: 0
-    entity_category: diagnostic
-    disabled_by_default: true
-    update_interval: 15s
-    lambda: |-
-      return sense360::airiq::global_engine().pressure_data_age_s(millis());
 
 # ----------------------------------------------------------------------------
 # Customer state entities
@@ -666,9 +627,10 @@ text_sensor:
       return out;
 
   # Honesty companion: states on-device what the module status can and
-  # cannot attest — freshness-only evidence, the unresolved BMP390
-  # pressure identity (compiled @0x77; BOM lists no pressure part), the
-  # not-compiled MICS-4514 + STM8 gas stage and SFA40 formaldehyde stage.
+  # cannot attest — freshness-only evidence, the compiled BMP390 pressure
+  # driver being firmware/catalog drift (no pressure part on the verified
+  # schematic / BOM), the not-compiled PCB-mounted MICS-4514 + STM8 gas
+  # stage and the fitment-unresolved SFA40 formaldehyde stage.
   - platform: template
     id: s360_airiq_sensor_verification
     name: "AirIQ Sensor Verification"
@@ -677,9 +639,10 @@ text_sensor:
     disabled_by_default: true
     update_interval: never
     lambda: |-
-      return {"Freshness from I2C data updates only; pressure part identity "
-              "pending reconciliation (compiled BMP390 vs BOM); MICS-4514 and "
-              "SFA40 stages not compiled (interfaces unverified)"};
+      return {"Freshness from I2C data updates only; compiled BMP390 pressure "
+              "driver is firmware/catalog drift (no pressure part on the "
+              "verified schematic/BOM; not a product surface); MICS-4514 and "
+              "SFA40 stages not compiled (interfaces/fitment unverified)"};
 
   # --- legacy compatibility (pre-framework published entity) -------------------
   # Exact id and name preserved so existing Home Assistant entity ids and

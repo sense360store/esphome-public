@@ -42,21 +42,27 @@
 //   * There is NO "AirIQ Base" / "AirIQ Pro" product axis (the taxonomy is
 //     flat, one SKU per product). Expected-channel membership comes from
 //     set_expected(), driven by composition substitutions.
-//   * Pressure is tracked as a freshness-gated value but NEVER
-//     participates in Air Quality severity, recommendation or health —
-//     the S360-210 pressure part identity (compiled BMP390 @0x77 vs a BOM
-//     that lists no pressure part) is an unresolved reconciliation.
-//   * The MiCS-4514 reducing / oxidising channels are part of the
-//     architecture as DIAGNOSTIC-ONLY inputs: they never classify, never
-//     drive the headline, never affect health, and no CO / NO2
-//     concentration is ever claimed. Promotion to a customer pollutant
-//     requires the calibration evidence documented in
+//   * Pressure is NOT S360-210 product hardware: no pressure part exists
+//     on the verified R4 schematic, the BOM or the hardware catalog. The
+//     BMP390 @0x77 still compiled by the board package is FIRMWARE /
+//     CATALOG drift, so the pressure channel here is an UNWIRED contract
+//     only — no production input, no customer entity, and NEVER a
+//     participant in Air Quality severity, recommendation or health.
+//   * The MiCS-4514 (PCB-mounted, schematic U4 with its STM8 bridge U5)
+//     reducing / oxidising channels are part of the architecture as
+//     DIAGNOSTIC-ONLY inputs: they never classify, never drive the
+//     headline, never affect health, and no CO / NO2 concentration is
+//     ever claimed. Promotion to a customer pollutant requires the
+//     calibration evidence documented in
 //     docs/architecture/sense360-airiq-framework.md; no confidence value
 //     is fabricated here.
-//   * The formaldehyde (SFA40, fitment conflicted) and ozone (no
-//     authoritative hardware record) slots exist as contract channels
-//     with expected=false everywhere today: a composition that never
-//     fitted them can never be degraded — or alarmed — by them.
+//   * The formaldehyde slot (SFA40 — footprint present on the verified
+//     schematic as U2; production population an unresolved conflict,
+//     HW-PINMAP-210-FOLLOWUP) and the ozone slot (SEN0321 / ZE27-O3 — an
+//     EXTERNAL sensor/interface into the STM8 stage per the verified
+//     schematic; no driver) exist as contract channels with
+//     expected=false everywhere today: a composition that never fitted
+//     them can never be degraded — or alarmed — by them.
 //   * All thresholds are PROVISIONAL engineering heuristics pending bench
 //     and customer validation. They are never medical, health or
 //     regulatory claims; the PM2.5 bands are derived from published US
@@ -370,7 +376,9 @@ class AirIQEngine {
     pm10_seen_ = true;
   }
 
-  // Pressure: a freshness-gated value only — NEVER a pollutant.
+  // Pressure: an UNWIRED contract channel — NEVER a pollutant, never in
+  // health, and no production YAML feeds it today (the compiled BMP390 is
+  // firmware/catalog drift; see the header notes above).
   void input_pressure(uint32_t now_ms, float hpa) {
     ensure_started(now_ms);
     if (std::isnan(hpa) || hpa <= 0.0f) return;

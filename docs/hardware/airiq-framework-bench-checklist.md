@@ -23,12 +23,14 @@ competent operator.
 - [ ] Resolve the SFA40 fitment conflict: is U2 populated on production
       boards, or is formaldehyde connector-only (`ENTITY-FILL-210-HCHO-001`,
       `HW-PINMAP-210-FOLLOWUP`)?
-- [ ] Resolve the pressure sensor identity: probe I2C 0x77 — is a BMP390
-      (or any pressure part) physically present? Reconcile firmware,
-      catalog and BOM afterwards in a follow-up.
-- [ ] Record whether any electrochemical module (ZE07 family) or ozone
-      module (ZE27-O3) exists on any connector of the shipped kit; record
-      exact module identity and output interface if so.
+- [ ] Confirm the BMP390 firmware/catalog drift on hardware: probe I2C
+      0x77 — no pressure part is expected (absent from the verified
+      schematic, BOM and catalog); record what, if anything, responds so
+      the drifted driver can be reconciled in a follow-up.
+- [ ] Record whether a SEN0321 (ZE27-O3) ozone module is attached to the
+      STM8 stage (the schematic names it; the attach path is unmapped)
+      and whether any ZE07-family electrochemical module exists anywhere;
+      record exact module identity and output interface if so.
 - [ ] Confirm the SPS30 connector wiring (J2/J3/J4 mapping) and that the
       shipped kit includes the SPS30.
 
@@ -92,8 +94,8 @@ competent operator.
 
 - [ ] SFA40: verify interface and unit; record warm-up and a response
       test against a known source.
-- [ ] Ozone module: verify identity, interface and unit; record warm-up
-      and response.
+- [ ] Ozone module (SEN0321 / ZE27-O3 via the STM8 stage): verify
+      identity, interface and unit; record warm-up and response.
 
 ## 8. Pressure
 

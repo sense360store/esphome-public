@@ -22,10 +22,21 @@ tracked as `AIRIQ-FRAMEWORK-BENCH-001`).
 
 ## 1. Sensor authority — what the S360-210 actually is
 
-Established from the tree before implementation (hardware catalog,
-`docs/hardware/s360-210-r4-airiq.md`, the R4 BOM
-`docs/hardware/artifacts/S360-210-R4.md`, `config/feature-entity-matrix.json`,
-`config/webflash-builds.json`, and SOT product records).
+Established by direct audit of the primary sources: the **verified R4
+schematic** `docs/hardware/schematics/S360-210-R4.pdf`
+(`schematic_status: verified`, HW-008), the R4 BOM artifact record
+`docs/hardware/artifacts/S360-210-R4.md`, `docs/hardware-catalog.md` +
+`config/hardware-catalog.json`, `docs/hardware/s360-210-r4-airiq.md`,
+`packages/boards/s360-210-airiq.yaml`, `config/feature-entity-matrix.json`,
+`config/webflash-builds.json`, and SOT `products.yaml` / `bundles.yaml`.
+
+Five layers are recorded **separately** and never conflated: (a) PCB
+footprint present on the design, (b) component populated in the
+production assembly, (c) external connector-supported, (d) firmware
+driver compiled, (e) customer functionality available. A schematic
+footprint is not population proof; a connector is not fitted hardware;
+a compiled driver is not product hardware; transport liveness is not
+accuracy.
 
 ### 1.1 There is no Base / Pro axis
 
@@ -41,23 +52,62 @@ so a future authoritative composition can widen the expected set without a
 taxonomy change. No current composition pretends optional sensors are
 present.
 
-### 1.2 Sensor matrix (authority vs firmware)
+### 1.2 Sensor matrix — five layers recorded separately
 
-| Sensor | Hardware authority | Compiled today | Unit | Customer-visible | Framework treatment |
-|---|---|---|---|---|---|
-| SCD41 (CO2) | On-board (`U3`, all sources agree) | Yes — `scd4x` @0x62, 30 s | ppm | **CO2** (default) | Expected pollutant |
-| SGP41 (VOC/NOx) | On-board (`U1`, all sources agree) | Yes — `sgp4x` @0x59, 30 s | **relative index** (dimensionless) | **VOC**, **NOx** (default) | Expected pollutants; an index is never presented as a concentration |
-| SPS30 (PM1/2.5/4/10) | Connector-attached (off-board; catalog "Connectors for SPS30 PM") | Yes — `sps30` @0x69, 30 s | µg/m³ | **PM2.5** (default); PM1/PM4/PM10 disabled by default | Expected pollutant (PM2.5); compiled as part of the standard stack and named in the `HW-AIRIQ-WAIVER-2026-06` stable waiver |
-| MICS-4514 + STM8 | On-board per BOM (`U4`/`U5`); STM8 readout interface **unverified** | **No** — no driver, no entity (`ENTITY-FILL-210-MICS-001`) | unverified | No | Diagnostic-only engine channels; promotion gated on calibration evidence (§7) |
-| SFA40 (formaldehyde) | **Conflicted**: BOM shows `U2` populated; reference doc says connector-only, sensor off-board (`HW-PINMAP-210-FOLLOWUP`); interface/address unverified (`ENTITY-FILL-210-HCHO-001`). SOT: "Uses SFA40, not SFA30" | **No** — no driver, no entity | expected ppb (unverified) | No | Engine contract slot, `expected=false` everywhere; no entity until fitment + interface resolve |
-| BMP390 (pressure) | **Conflicted**: firmware compiles `bmp3xx_i2c` @**0x77**, and pin-map / waiver text name BMP390 — but the hardware catalog row, schematic reference doc and the 23-line R4 **BOM list no pressure part at all** | Yes — @0x77, 60 s | hPa | **Pressure** (disabled by default) | Freshness-gated value only; **never** a pollutant; excluded from module health while the identity reconciliation is open |
-| BMP581 | RoomIQ (S360-200) only — never attributed to AirIQ | No (nowhere) | — | No | Not an AirIQ sensor; listed to close the BMP390-vs-BMP581 question from the product side: the compiled AirIQ driver is BMP390 and this PR does not change any compiled driver |
-| ZE07 (electrochemical) | **No authoritative hardware record in any repo or SOT product/hardware source** | No | unknown | No | Not modelled; identity reconciliation required before anything can honestly exist (§9) |
-| ZE27-O3 (ozone) | **No authoritative hardware record**; the only ozone mention anywhere is a commercial SOT bundle option ("via Qwiic", no part number) | No | unknown | No | Engine contract slot only (`expected=false`); no entity, no claim |
+Layers: **F** = PCB footprint present (verified schematic) · **P** =
+populated in the production assembly · **X** = external
+connector-supported · **D** = firmware driver compiled · **C** = customer
+functionality available.
+
+| Sensor | F (footprint) | P (populated) | X (external connector) | D (driver compiled) | C (customer functionality) | Framework treatment |
+|---|---|---|---|---|---|---|
+| SCD41 (CO2) | Yes — `U3` | Yes (BOM; all sources agree) | n/a | Yes — `scd4x` @0x62, 30 s | **CO2** (ppm, default) | Expected pollutant |
+| SGP41 (VOC/NOx) | Yes — `U1` | Yes (BOM; all sources agree) | n/a | Yes — `sgp4x` @0x59, 30 s | **VOC**, **NOx** (relative indices, default; never concentrations) | Expected pollutants |
+| SPS30 (PM1/2.5/4/10) | No (external Sensirion module) | No (off-board) | **Yes — `J2`** (5-pin JST SH; schematic sheet "SPS30") | Yes — `sps30` @0x69, 30 s | **PM2.5** (µg/m³, default); PM1/PM4/PM10 disabled by default | Expected pollutant (PM2.5); external connector-attached, compiled as part of the standard stack and named in the `HW-AIRIQ-WAIVER-2026-06` stable waiver |
+| MICS-4514 + STM8 | Yes — `U4` (+ `U5` STM8S003F3U, `U6` LMV358 front-end on the MICS_SEN0321 sub-sheet) | Yes (BOM) — **PCB-mounted** | n/a | **No** — no driver; STM8 readout interface unverified (`ENTITY-FILL-210-MICS-001`) | None | Diagnostic-only engine channels; promotion gated on calibration evidence (§7) |
+| SFA40 (formaldehyde) | **Yes — `U2`** with local decoupling on the shared I2C bus; the verified schematic shows **no SFA40 connector** | **Unresolved conflict**: the BOM lists `U2 = SFA40-D-R` as a populated line item, while `docs/hardware-catalog.md` and the reference doc describe a connector-attached off-board module; no CPL / silkscreen / assembly evidence exists (`HW-PINMAP-210-FOLLOWUP`) | Catalog claims a connector; none exists on the verified R4 schematic | **No** — no driver; interface unverified (`ENTITY-FILL-210-HCHO-001`) | None — no Formaldehyde entity until BOTH population and a compiled supported driver are proven | Engine contract slot, `expected=false` everywhere |
+| SEN0321 (ZE27-O3 ozone) | No (external DFRobot module) | No | **Designed external input into the STM8 stage** — the verified schematic's sub-sheet and STM8 block are titled "STM8 MCU for SEN0321(ZE27-O3) and MICS-4514 to I2C"; the physical attach path is not identified on the sheet (`J4` carries the SWIM programming signals; connector mapping owed to `HW-PINMAP-210-FOLLOWUP`) | No | None | Engine contract slot only (`expected=false`); no entity, no claim |
+| ZE07 (electrochemical) | No | No | No record | No | None | Not modelled; no authoritative record anywhere |
+| Pressure (any part) | **No — absent from the verified schematic** (both sheets) | No — absent from the BOM and from `docs/hardware-catalog.md` | No | **Yes — `bmp3xx_i2c` @0x77, 60 s: FIRMWARE/CATALOG DRIFT** (pin-map prose and waiver text repeat the drift) | **None — pressure is not S360-210 product hardware** and is excluded from customer entities, severity, recommendation, health and product claims | Unwired engine contract channel only; the board package's internal BMP390 stays untouched pending the drift reconciliation |
+| BMP581 | RoomIQ (S360-200) only — never attributed to AirIQ | — | — | No (nowhere) | None | Not an AirIQ sensor; closes the BMP390-vs-BMP581 question: the drifted compiled driver is BMP390 |
 
 The framework changes **no compiled sensor, address or update interval**:
 the board package `packages/boards/s360-210-airiq.yaml` stays the owner of
-the raw (internal) sensors exactly as shipped.
+the raw (internal) sensors exactly as shipped, including the drifted
+BMP390 (removing it is the drift reconciliation's decision, not this
+framework's).
+
+### 1.3 SFA40 fitment — conflict analysis (not silently resolved)
+
+Is `docs/hardware-catalog.md` stale, is the schematic using an optional
+footprint convention, or does another record resolve it?
+
+* The **verified R4 schematic** draws `U2 = SFA40-D-Rx` as an on-board
+  part with its own decoupling network on the shared I2C bus, and
+  contains **no SFA40 connector at all** (the only connectors are `J2`
+  SPS30, `J3` From-Core, `J4` SWIM programming). Nothing on the sheet
+  marks `U2` as do-not-populate or optional.
+* The **BOM** lists `U2 = SFA40-D-R` (qty 1, dedicated footprint) as an
+  ordinary populated line item — and the BOM artifact record itself
+  flags this as "a clarification against the standalone reference doc"
+  with reconciliation owed.
+* The **catalog and reference doc** ("Connectors for SPS30 PM and SFA40
+  HCHO"; "sensor lives off-board") predate the schematic/BOM ingest and
+  are contradicted by the connector-less verified schematic — they are
+  therefore **very likely stale for SFA40**.
+* **What is missing to close it**: no CPL, silkscreen, board photos or
+  assembly evidence exists in the tree, so *production population* is
+  still unproven. The repository has already assigned exactly this
+  reconciliation to **`HW-PINMAP-210-FOLLOWUP`** (silkscreen +
+  populated-board evidence, then the doc-text fix).
+
+Consequence for this PR: the catalog is **not** edited here (governance:
+the catalog is the canonical naming source and the artifact record
+explicitly routes the fitment/doc correction through
+`HW-PINMAP-210-FOLLOWUP` with physical evidence). The framework treats
+SFA40 as footprint-present / population-unresolved / driver-absent, and
+no Formaldehyde entity may appear until both population and a compiled
+supported driver are proven.
 
 ### 1.3 Pre-framework customer surface (compatibility baseline)
 
@@ -85,9 +135,11 @@ Default-enabled entities (the ONLY default-enabled set):
 
 Available but disabled by default (standard sensors, not diagnostics):
 **PM1** (`s360_pm1`), **PM4** (`s360_pm4`), **PM10** (`s360_pm10`) — real
-measurements with low default customer value — and **Pressure**
-(`s360_pressure`, hPa), disabled while the S360-210 pressure part identity
-stays unresolved (§1.2).
+measurements with low default customer value.
+
+There is deliberately **no pressure entity of any kind**: pressure is not
+S360-210 product hardware (§1.2), and the compiled BMP390 is
+firmware/catalog drift whose readings stay internal at the board layer.
 
 There is deliberately **no AQI entity**: no recognised jurisdictional AQI
 standard is implemented, so none is claimed. There is no blended score, no
@@ -197,7 +249,7 @@ arbitrary warm-up period:
 | VOC (SGP41) | 120 s | 90 s | the SGP41 runs conditioning and its index keeps adapting its baseline for much longer; that is documented, not hidden |
 | NOx (SGP41) | 120 s | 90 s | as VOC |
 | PM (SPS30) | 60 s | 90 s | fan spin-up / first measurement |
-| Pressure (BMP390) | 90 s | 180 s (3 × 60 s updates) | value only; never severity/health |
+| Pressure | n/a (no producer — unwired drift contract) | 180 s (engine default) | never severity/health; no entity, no production wiring |
 | MiCS channels | n/a (no producer) | 90 s | diagnostic contract only |
 
 A channel is Initialising until its first valid sample (or its warm-up
@@ -305,13 +357,15 @@ for this PR.
   temperature/humidity would consume `s360_temperature` / `s360_humidity`
   (the canonical ids), never the raw board sensors.
 * Nothing unrelated (fan control, light, occupancy) is centralised here.
-* **Sensor identity reconciliations stay open and tracked**: BMP390-vs-BOM
-  pressure identity, SFA40 fitment (BOM vs reference doc), the STM8
-  readout path, and the ZE07 / ZE27-O3 modules (no authoritative hardware
-  record — nothing was modelled for them beyond the inactive ozone
-  contract slot; if such a module becomes real, its exact gas and unit
-  must come from authoritative sources first, never guessed from the
-  module family name).
+* **Sensor reconciliations stay open and tracked**: the BMP390
+  firmware/catalog drift (compiled driver for hardware the verified
+  schematic / BOM / catalog do not contain), SFA40 population
+  (`HW-PINMAP-210-FOLLOWUP`, §1.3), the STM8 readout path, and the
+  SEN0321 (ZE27-O3) external ozone input (named on the verified schematic
+  but with no identified attach connector and no driver; ZE07 has no
+  record anywhere). If an ozone module ships, its exact gas and unit must
+  come from authoritative sources first, never guessed from the module
+  family name.
 
 ---
 
@@ -328,10 +382,22 @@ Follow-ups created by this work item (tracked, not started):
   bench checklist;
 * MiCS-4514 calibration / promotion programme (§7) — separate programme
   recommended;
-* pressure-sensor identity reconciliation (compiled BMP390 @0x77 vs BOM);
-* SFA40 fitment + interface reconciliation (`ENTITY-FILL-210-HCHO-001`);
-* electrochemical / ozone module identity reconciliation (ZE07 / ZE27-O3
-  have no authoritative record today);
+* BMP390 firmware/catalog drift reconciliation — decide (with owner
+  sign-off) whether the drifted `bmp3xx_i2c` driver leaves the board
+  package or a pressure part is added to a future hardware revision;
+  until then no pressure product claim exists;
+* `HW-PINMAP-210-FOLLOWUP` — SFA40 population evidence (silkscreen /
+  CPL / board photos), the `J*` connector-to-sensor mapping and the
+  SEN0321 attach path; **it also owns the directly evidenced correction
+  of the stale `docs/hardware-catalog.md` / reference-doc SFA40
+  "connector" wording** (deliberately not edited in this PR — the
+  catalog is the canonical naming source and repository governance
+  routes fitment corrections through that follow-up with physical
+  evidence);
+* SFA40 interface + driver work after fitment resolves
+  (`ENTITY-FILL-210-HCHO-001`);
+* ozone module productisation, if ever, via the schematic's SEN0321
+  (ZE27-O3) external input — identity/unit confirmation first;
 * customer threshold tuning from bench + customer feedback;
 * VentIQ consumption of the canonical engine; Pure consumption when that
   product programme starts.

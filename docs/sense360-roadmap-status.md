@@ -909,9 +909,10 @@ is an owner action in SOT, in a separate PR — never bundled here.
 compile and simulation proof only; physical sensor validation pending
 (`AIRIQ-FRAMEWORK-BENCH-001`, checklist at
 [`docs/hardware/airiq-framework-bench-checklist.md`](hardware/airiq-framework-bench-checklist.md));
-MICS-4514 calibration/promotion pending; the pressure-sensor identity
-(compiled BMP390 vs a BOM listing no pressure part) and the SFA40 fitment
-stay unresolved reconciliations; no SOT, release or commercial state
+MICS-4514 calibration/promotion pending; the compiled BMP390 pressure
+driver is recorded as firmware/catalog drift (pressure is not S360-210
+product hardware) and SFA40 production population stays an unresolved
+conflict (`HW-PINMAP-210-FOLLOWUP`); no SOT, release or commercial state
 change.**
 
 Canonical local indoor-air-quality service for the S360-210 AirIQ board:
@@ -932,24 +933,31 @@ implementation).
 Scope facts (do not overclaim):
 
 * **Customer surface** — default-enabled set is exactly: CO2, VOC, NOx,
-  PM2.5, Air Quality, Recommendation. PM1/PM4/PM10 and Pressure exist but
-  ship disabled by default (pressure additionally pending its identity
-  reconciliation and excluded from severity and health). All thresholds
-  are provisional indoor-air-quality heuristics — never medical, health
-  or regulatory claims; the PM2.5 bands derive from published US EPA
-  breakpoints used as heuristics only, explicitly not a regulatory AQI.
-* **No Base/Pro axis** — the taxonomy is flat (one SKU, S360-210);
-  expected-sensor membership is configuration-driven substitutions.
-  Formaldehyde (SFA40, fitment conflicted, `ENTITY-FILL-210-HCHO-001`)
-  and ozone (no authoritative hardware record) are inactive engine
-  contract slots: no entity, no claim, never expected in any current
-  composition.
-* **MICS-4514 included honestly** — on the BOM with an STM8 co-processor,
-  but no driver exists and the readout interface is unverified
-  (`ENTITY-FILL-210-MICS-001`), so the engine carries diagnostic-only
-  MiCS channels, no customer CO/NO2 concentration is claimed anywhere,
-  and promotion is gated on documented calibration evidence (recommended
-  as a separate programme).
+  PM2.5, Air Quality, Recommendation. PM1/PM4/PM10 exist but ship
+  disabled by default. There is NO pressure entity: pressure is absent
+  from the verified S360-210 schematic, the R4 BOM and the hardware
+  catalog, so the still-compiled BMP390 board driver is firmware/catalog
+  drift — excluded from customer entities, severity, health and product
+  claims pending reconciliation. All thresholds are provisional
+  indoor-air-quality heuristics — never medical, health or regulatory
+  claims; the PM2.5 bands derive from published US EPA breakpoints used
+  as heuristics only, explicitly not a regulatory AQI.
+* **No Base/Pro axis; layered fitment recorded** — the taxonomy is flat
+  (one SKU, S360-210); expected-sensor membership is configuration-driven
+  substitutions. Per the verified schematic: SCD41/SGP41 and the
+  not-compiled MICS-4514 + STM8 stage are PCB-mounted; the SPS30 is
+  external connector-attached (J2); formaldehyde (SFA40 — footprint
+  present, production population an unresolved conflict,
+  `HW-PINMAP-210-FOLLOWUP` / `ENTITY-FILL-210-HCHO-001`) and ozone (an
+  external SEN0321 / ZE27-O3 input into the STM8 stage, no driver) are
+  inactive engine contract slots: no entity, no claim, never expected in
+  any current composition.
+* **MICS-4514 included honestly** — PCB-mounted with its STM8
+  co-processor (verified schematic U4/U5 + BOM), but no driver exists
+  and the readout interface is unverified (`ENTITY-FILL-210-MICS-001`),
+  so the engine carries diagnostic-only MiCS channels, no customer
+  CO/NO2 concentration is claimed anywhere, and promotion is gated on
+  documented calibration evidence (recommended as a separate programme).
 * **Backwards compatibility** — the placeholder `air_quality_state`
   entity keeps its id/name (semantic upgrade documented: real headline
   vocabulary instead of a hardcoded "unknown", disabled by default); the
@@ -971,10 +979,15 @@ Scope facts (do not overclaim):
 
 Follow-ups created by this work item (tracked, not started):
 `AIRIQ-FRAMEWORK-BENCH-001` physical validation; the MICS-4514
-calibration/promotion programme; pressure-sensor identity reconciliation;
-SFA40 fitment/interface reconciliation; electrochemical / ozone module
-identity reconciliation (ZE07 / ZE27-O3); customer threshold tuning;
-VentIQ consumption of the canonical engine; Pure consumption. SOT
+calibration/promotion programme; the BMP390 firmware/catalog drift
+reconciliation (remove the drifted driver or revise the hardware — owner
+decision); `HW-PINMAP-210-FOLLOWUP` (SFA40 population evidence, `J*`
+connector mapping, SEN0321 attach path, and the directly evidenced
+correction of the stale catalog/reference-doc SFA40 "connector" wording —
+deliberately not edited in this PR); SFA40 driver work after fitment
+resolves (`ENTITY-FILL-210-HCHO-001`); ozone (SEN0321 / ZE27-O3)
+identity/unit confirmation before any productisation; customer threshold
+tuning; VentIQ consumption of the canonical engine; Pure consumption. SOT
 programme-status propagation (AirIQ software foundation implemented) is an
 owner action in SOT, in a separate PR — never bundled here.
 
