@@ -31,7 +31,10 @@
 #   ventiq_module  (airiq_bathroom_base)      -> packages/boards/s360-211-ventiq.yaml
 #   roomiq_comfort + roomiq_presence
 #       (comfort_ceiling + presence_ceiling)  -> packages/boards/s360-200-roomiq.yaml
-#   profiles (bathroom / comfort / presence)  -> packages/features/* (unchanged)
+#   customer behaviour (ventiq / roomiq / presence) -> the framework
+#       packages under packages/features/ (VENTIQ-FRAMEWORK-001 /
+#       ROOMIQ-FRAMEWORK-001 / PRESENCE-FRAMEWORK-001; the legacy
+#       bathroom / comfort / presence profiles remain for legacy shims)
 #
 # FanTRIAC is intentionally OMITTED (blocked per HW-005). LED is intentionally
 # OMITTED — the config string `Ceiling-POE-VentIQ-RoomIQ` carries no `LED`

@@ -39,9 +39,11 @@
 # are folded here / into the Pro overlay. There is therefore no VentIQ
 # equivalent of a cross-referenced base driver to keep authoritative.
 #
-# The VentIQ user-facing sensors / automations live in the feature profile
-# `packages/features/bathroom_profile.yaml`, which stays a FEATURE (layered on
-# top of this board, not absorbed — docs/arch-board-bundle-plan.md §2.3). VentIQ
+# The VentIQ user-facing experience lives in the feature layer (layered on
+# top of this board, not absorbed — docs/arch-board-bundle-plan.md §2.3):
+# bundles compose `packages/features/ventiq_framework.yaml`
+# (VENTIQ-FRAMEWORK-001) while legacy shim products keep the legacy
+# `packages/features/bathroom_profile.yaml` profile unchanged. VentIQ
 # has no Core-driven LED line (CORE-ABSTRACT-BUS-001C operator decision #12) —
 # this board package adds none. AirIQ (S360-210) and VentIQ are mutually
 # exclusive air-quality modules per docs/release-one.md.
