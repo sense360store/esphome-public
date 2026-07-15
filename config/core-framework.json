@@ -12,7 +12,7 @@
   "guardrails": [
     "All capability and module-status values in this contract are compile-time composition facts only: no runtime hardware autodetection is performed or claimed by the framework.",
     "Module status 'Included' is compile-time presence, never a health, availability, bench or hardware claim.",
-    "The reserved runtime status values (Initialising / Available / Degraded / Unavailable / Fault) may only be introduced by a module-specific PR that wires a real supported runtime signal. Presence is the first wired module (PRESENCE-FRAMEWORK-001), RoomIQ is the second (ROOMIQ-FRAMEWORK-001) and AirIQ is the third (AIRIQ-FRAMEWORK-001) — see module_runtime_status; all other module slots still emit compile-time values only.",
+    "The reserved runtime status values (Initialising / Available / Degraded / Unavailable / Fault) may only be introduced by a module-specific PR that wires a real supported runtime signal. Presence is the first wired module (PRESENCE-FRAMEWORK-001), RoomIQ is the second (ROOMIQ-FRAMEWORK-001), AirIQ is the third (AIRIQ-FRAMEWORK-001) and VentIQ is the fourth (VENTIQ-FRAMEWORK-001) — see module_runtime_status; all other module slots still emit compile-time values only.",
     "This contract changes no release declaration: config/webflash-builds.json rows, channels, versions, artifact names, product lifecycle and commercial state are untouched.",
     "Compile-only skeletons (products/compile-only/) and the provisioning bench harness (tests/bench/) never include the framework package, so they cannot be mistaken for customer products.",
     "Firmware-build proof only: nothing in this contract claims hardware, bench, compliance, safety or commercial-availability proof.",
@@ -53,7 +53,7 @@
       "display_name": "VentIQ",
       "kind": "module",
       "hardware_sku": "S360-211",
-      "description": "VentIQ bathroom air-quality firmware (SGP4x VOC/NOx, SHT4x temperature/humidity, BMP3xx pressure) on the S360-211 board. Describes compiled firmware only."
+      "description": "VentIQ bathroom ventilation firmware on the S360-211 board, with the VENTIQ-FRAMEWORK-001 customer experience (canonical VOC / NOx from the board's SGP4x — the only sensor on the verified S360-211 schematic — one Air Quality headline from the embedded canonical AirIQ engine, one ventilation Recommendation with a plain-language Ventilation Reason, Shower Active / Mould Risk, and the VentIQ module runtime status; packages/features/ventiq_framework.yaml). Humidity/temperature for the shower/damp logic are consumed from the RoomIQ canonical environmental service — every VentIQ-bearing composition also carries RoomIQ. Describes compiled firmware only. The SHT4x and BMP3xx pressure drivers still compiled at the board layer are firmware/schematic drift (no such part on the verified schematic; no BOM committed; reconciliation VENTIQ-HW-DRIFT-001): they expose no canonical entity and are NOT part of this capability. The optional external IR-temperature and SPS30 modules have no compiled driver in this composition (nothing is pretended); the on-board fan-relay stage is drawn do-not-populate on the verified schematic, has no bound driver and no runtime health signal."
     },
     "presence": {
       "display_name": "Presence",
@@ -184,6 +184,26 @@
         "Explicit module-fault input is reserved: no composed sensor exposes a supported fault signal today, so Fault is never emitted from ordinary stale data."
       ],
       "notes": "Honesty limits: the SPS30 is an EXTERNAL attachment (schematic J2) with a compiled driver, opt-in per composition — no kit/SOT/product record declares it as supplied, so it is expected=false by default and its absence never degrades health (the HW-AIRIQ-WAIVER-2026-06 waiver text names SPS30 as part of the compiled firmware stack, which is a firmware statement, not fitment proof — it also names the drifted BMP390); the PCB-mounted MICS-4514 + STM8 gas stage and the fitment-unresolved SFA40 stage (HW-PINMAP-210-FOLLOWUP) are NOT compiled (ENTITY-FILL-210-MICS-001 / ENTITY-FILL-210-HCHO-001) and never affect health; the compiled BMP390 pressure driver is firmware/catalog drift (pressure is not S360-210 product hardware) with no entity and no health or severity participation; the ozone slot corresponds to an external SEN0321 (ZE27-O3) input into the STM8 stage with no driver. PM/formaldehyde/ozone are opt-in contract slots with expected=false in every current composition. Runtime status never claims hardware/bench proof; an intentionally absent optional sensor is never a fault."
+    },
+    "ventiq": {
+      "work_item": "VENTIQ-FRAMEWORK-001",
+      "entity_id": "s360_module_status_ventiq",
+      "package": "packages/features/ventiq_framework.yaml",
+      "available_definition": "Available means STRICTLY: the S360-211's own verifiable channel set — the on-board SGP41 VOC/NOx indices (the ONLY sensor on the verified S360-211-R4 schematic), whose I2C value-update callbacks are the real data-freshness evidence — is fresh after warm-up, evaluated by the shared engine include/sense360/ventiq_engine.h through its embedded canonical AirIQ engine. It is data-service availability, NOT sensor accuracy, calibration correctness or hardware health. The humidity/temperature inputs are the RoomIQ module's canonical calibrated values and NEVER participate in VentIQ module health: losing them degrades the ventilation SERVICE honestly (shower/damp features go quiet; advice continues on air quality alone) while the RoomIQ module status reports its own outage — a healthy VentIQ board is never blamed for a RoomIQ failure, and vice versa. The compiled SHT4x/BMP390 drivers at the board layer are firmware/schematic drift with no framework input and no health participation (VENTIQ-HW-DRIFT-001). The diagnostic entity s360_ventiq_sensor_verification ('VentIQ Sensor Verification') states this coverage limit on-device.",
+      "values": [
+        "Initialising",
+        "Available",
+        "Degraded",
+        "Unavailable",
+        "Fault"
+      ],
+      "signals": [
+        "Per-channel valid value-update timestamps for the SGP41 VOC and NOx indices provide real data-freshness evidence; a channel past its stale window is unusable and its values go unknown, never frozen — stale data never counts as fresh air.",
+        "Independent warm-up windows gate Initialising (SGP41 conditioning 120 s — a provisional data-availability window, never an accuracy claim); the first valid sample ends a channel's initialisation early. Startup is never reported as a fault or an outage.",
+        "Degraded means one of the two expected SGP41 channels is stale/missing while the other stays fresh; Unavailable means both are gone (the humidity-driven ventilation service may still be operating from the RoomIQ canonical input).",
+        "Explicit module-fault input is reserved: no composed component exposes a supported fault signal today, so Fault is never emitted from ordinary stale data."
+      ],
+      "notes": "Honesty limits: module health attests SGP41 data delivery only. The RoomIQ-owned humidity/temperature inputs, the drifted SHT4x/BMP390 board-layer drivers (VENTIQ-HW-DRIFT-001), the optional IR-temperature (J3) and SPS30 (J4) external connectors (no compiled driver) and the do-not-populate fan-relay stage (no driver, no feedback path, COMPLIANCE-001 / VENTIQ-RELAY-POPULATION-001) never participate. No runtime fan/ventilation-hardware health exists and none is invented — compile-time fan-module presence stays with the Core framework's Fan Control Module Status entity. All ventilation thresholds are provisional heuristics; runtime status never claims hardware/bench proof."
     }
   },
   "device_health": {

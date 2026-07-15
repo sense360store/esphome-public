@@ -62,6 +62,10 @@ on:
       # framework lives in the same layers; its contract test rides the
       # same lane.
       - "tests/test_airiq_framework.py"
+      # VENTIQ-FRAMEWORK-001: the canonical VentIQ bathroom ventilation
+      # framework lives in the same layers; its contract test rides the
+      # same lane.
+      - "tests/test_ventiq_framework.py"
       - ".github/workflows/core-framework-compile.yml"
       - ".github/actions/setup-esphome-build/**"
   workflow_dispatch: {}
@@ -103,15 +107,18 @@ jobs:
           python3 tests/test_led_framework.py
           python3 tests/test_roomiq_framework.py
           python3 tests/test_airiq_framework.py
+          python3 tests/test_ventiq_framework.py
 
       - name: Simulation tests (C++ logic proof only)
         # PRESENCE-FRAMEWORK-001 / LED-FRAMEWORK-001 / ROOMIQ-FRAMEWORK-001 /
-        # AIRIQ-FRAMEWORK-001: deterministic simulation of the fusion,
-        # LED-controller, RoomIQ environmental and AirIQ air-quality state
-        # machines (tests/unit/test_presence_fusion.cpp,
+        # AIRIQ-FRAMEWORK-001 / VENTIQ-FRAMEWORK-001: deterministic
+        # simulation of the fusion, LED-controller, RoomIQ environmental,
+        # AirIQ air-quality and VentIQ ventilation state machines
+        # (tests/unit/test_presence_fusion.cpp,
         # tests/unit/test_led_controller.cpp,
         # tests/unit/test_roomiq_engine.cpp,
-        # tests/unit/test_airiq_engine.cpp) against the same headers the
+        # tests/unit/test_airiq_engine.cpp,
+        # tests/unit/test_ventiq_engine.cpp) against the same headers the
         # products compile. Logic proof only — NEVER hardware validation.
         run: make -C tests test
 

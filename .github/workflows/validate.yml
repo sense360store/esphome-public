@@ -78,6 +78,10 @@ jobs:
         run: |
           python3 tests/test_airiq_framework.py
 
+      - name: VentIQ framework contract (VENTIQ-FRAMEWORK-001)
+        run: |
+          python3 tests/test_ventiq_framework.py
+
       - name: Reject known fallback-AP password literals (SEC-ESP-FALLBACK-AP-001)
         run: |
           python3 scripts/check_fallback_ap_password.py

@@ -31,7 +31,10 @@
 #   ventiq_module  (airiq_bathroom_base)      -> packages/boards/s360-211-ventiq.yaml
 #   roomiq_comfort + roomiq_presence
 #       (comfort_ceiling + presence_ceiling)  -> packages/boards/s360-200-roomiq.yaml
-#   profiles (bathroom / comfort / presence)  -> packages/features/* (unchanged)
+#   customer behaviour (ventiq / roomiq / presence) -> the framework
+#       packages under packages/features/ (VENTIQ-FRAMEWORK-001 /
+#       ROOMIQ-FRAMEWORK-001 / PRESENCE-FRAMEWORK-001; the legacy
+#       bathroom / comfort / presence profiles remain for legacy shims)
 #
 # FanTRIAC is intentionally OMITTED (blocked per HW-005). LED is intentionally
 # OMITTED — the config string `Ceiling-POE-VentIQ-RoomIQ` carries no `LED`
@@ -124,9 +127,24 @@ packages:
 
   # === Sense360 VentIQ (S360-211, bathroom-focused air quality) ===
   # Board package wraps packages/expansions/airiq_bathroom_base.yaml. The
-  # VentIQ display sensors / automations stay in the feature profile.
+  # VentIQ customer entities live in the VentIQ framework below.
   ventiq_board: !include ../../packages/boards/s360-211-ventiq.yaml
-  ventiq_profile: !include ../../packages/features/bathroom_profile.yaml
+  # === Sense360 VentIQ framework (VENTIQ-FRAMEWORK-001) ===
+  # Canonical bathroom ventilation service: VOC / NOx (the board's only
+  # schematic-proven sensor), one Air Quality headline from the embedded
+  # canonical AirIQ engine, one ventilation Recommendation with a
+  # plain-language Ventilation Reason, Shower Active / Mould Risk, and
+  # the VentIQ module runtime status (fourth wired module). Humidity /
+  # temperature are consumed from the RoomIQ canonical service —
+  # never the drifted on-board SHT4x/BMP390 drivers (VENTIQ-HW-DRIFT-001).
+  # Supersedes the legacy bathroom_profile display path in bundles;
+  # legacy shim products keep the profile, and every pre-framework
+  # entity id remains available as a disabled-by-default compatibility
+  # entity inside the framework.
+  ventiq_framework: !include ../../packages/features/ventiq_framework.yaml
+  # diagnostics.yaml was previously nested inside bathroom_profile; the
+  # direct include keeps that shipped surface (CPU Duty) unchanged.
+  diagnostics: !include ../../packages/features/diagnostics.yaml
 
   # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
   # Board package wraps packages/expansions/comfort_ceiling.yaml +

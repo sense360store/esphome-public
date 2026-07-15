@@ -34,7 +34,7 @@
 | Barometric pressure | — | — | ✓ | ✓ |
 | Dew point | — | — | ✓ | ✓ |
 | Air-quality summary | — | ✓ | ✓ | ✓ |
-| Air-quality recommendation | — | ✓ | — | — |
+| Air-quality recommendation | — | ✓ | ✓ | ✓ |
 | **Bathroom intelligence** |  |  |  |  |
 | Shower detection | — | — | ✓ | ✓ |
 | Mould-risk tracking | — | — | ✓ | ✓ |
@@ -47,4 +47,4 @@
 | LED night mode | — | — | — | ✓ |
 | Relay output | ✓ | ✓ | ✓ | ✓ |
 | Auto-ventilation control | — | — | ✓ | ✓ |
-| **Home Assistant entities** | 92 | 110 | 120 | 131 |
+| **Home Assistant entities** | 92 | 110 | 130 | 141 |

@@ -39,9 +39,11 @@
 # are folded here / into the Pro overlay. There is therefore no VentIQ
 # equivalent of a cross-referenced base driver to keep authoritative.
 #
-# The VentIQ user-facing sensors / automations live in the feature profile
-# `packages/features/bathroom_profile.yaml`, which stays a FEATURE (layered on
-# top of this board, not absorbed — docs/arch-board-bundle-plan.md §2.3). VentIQ
+# The VentIQ user-facing experience lives in the feature layer (layered on
+# top of this board, not absorbed — docs/arch-board-bundle-plan.md §2.3):
+# bundles compose `packages/features/ventiq_framework.yaml`
+# (VENTIQ-FRAMEWORK-001) while legacy shim products keep the legacy
+# `packages/features/bathroom_profile.yaml` profile unchanged. VentIQ
 # has no Core-driven LED line (CORE-ABSTRACT-BUS-001C operator decision #12) —
 # this board package adds none. AirIQ (S360-210) and VentIQ are mutually
 # exclusive air-quality modules per docs/release-one.md.
@@ -67,6 +69,32 @@
 #   Pin 4 (SDA) -> GPIO48   Pin 5 (SCL) -> GPIO45
 #   Pin 2 (3.3V) -> Power    Pin 1 (GND) -> Ground
 # Power Requirements: 3.3V / 200mA max
+#
+# ----------------------------------------------------------------------------
+# Hardware-authority note (VENTIQ-FRAMEWORK-001 audit — behaviour unchanged)
+# ----------------------------------------------------------------------------
+# The verified schematic docs/hardware/schematics/S360-211-R4.pdf (single
+# sheet, Id 1/1; `schematic_status: verified` in config/hardware-catalog.json)
+# shows exactly ONE on-board sensor: the SGP41 (U3). It shows NO SHT4x and
+# NO BMP390 anywhere, and no S360-211 BOM artifact record is committed
+# (docs/hardware/artifacts/ has no S360-211 entry). The SHT4x @0x44 and
+# BMP390 @0x77 drivers compiled below are therefore FIRMWARE/SCHEMATIC
+# DRIFT — already CONFIRM-flagged in config/feature-entity-matrix.json. In
+# every current VentIQ composition the S360-200 RoomIQ board's SHT4x sits at
+# the same address (0x44) on the same shared core_i2c bus, so the two
+# compiled sht4x components poll one physical device; no plausible device
+# answers the bmp3xx driver at 0x77 in a VentIQ+RoomIQ composition. This
+# package deliberately stays byte-compatible (raw ids internal, addresses
+# and intervals unchanged) — removing or rebinding the drifted drivers is
+# the VENTIQ-HW-DRIFT-001 reconciliation's decision (owner sign-off, BOM /
+# CPL evidence), never this framework's. The `module_sku: S360-BATH-B`
+# substitution below is a legacy identifier that is NOT in the hardware
+# catalog (canonical SKU: S360-211) — tracked as VENTIQ-SKU-LABEL-001. The
+# schematic also shows the SPS30 (J4) and IR-temperature (J3) connectors
+# (optional external attachments, no compiled driver) and an inline
+# fan-relay stage whose components are drawn crossed-out (KiCad
+# do-not-populate convention; population unproven, no bound driver, no
+# compliance claim — COMPLIANCE-001 / VENTIQ-RELAY-POPULATION-001).
 # ============================================================================
 
 substitutions:
