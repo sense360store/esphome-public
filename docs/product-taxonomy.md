@@ -26,19 +26,19 @@ revisions, old names, and schematic status). There is **no Base/Pro,
 Basic/Advanced, or Model/Variant axis** — each SKU is one product, and
 optional capability comes from connector attachments, not product variants.
 
-| SKU | Friendly name | Config-string token | PCB-mounted (committed schematic/BOM evidence) | Connector-attached |
-|-----|---------------|---------------------|------------------------------------------------|---------------------|
-| S360-100 | Sense360 Core | `Ceiling` (mount) | ESP32-S3 hub; connectors for all modules | — |
-| S360-200 | Sense360 RoomIQ | `RoomIQ` | PIR (EKMC1601111), LTR-303ALS light, SHT4x temp/humidity, BMP581 pressure | LD2450 mmWave radar (connector J2), SEN0609/C4001 radar (connector J3) — see note ¹ |
-| S360-210 | Sense360 AirIQ | `AirIQ` | SCD41 CO₂, SGP41 VOC/NOx, MICS-4514 gas with STM8 | SPS30 PM (connector); SFA40 HCHO — fitment unresolved, see note ² |
-| S360-211 | Sense360 VentIQ | `VentIQ` | SGP41 VOC/NOx | IR surface temperature, SPS30 PM (connectors only) |
-| S360-300 | Sense360 LED | `LED` | WS2812B LED ring | — |
-| S360-310 | Sense360 Relay | `FanRelay` | On/off relay for bathroom fans | — |
-| S360-311 | Sense360 PWM | `FanPWM` | 12 V PWM fan driver, up to 4 fans with tach | — |
-| S360-312 | Sense360 DAC | `FanDAC` | 0–10 V analog fan driver (GP8403) | — |
-| S360-320 | Sense360 TRIAC | `FanTRIAC` | Phase dimmer for mains fan or lamp | — |
-| S360-400 | Sense360 240v PSU | `PWR` (power) | Mains to 5 V (HLK-5M05) | — |
-| S360-410 | Sense360 PoE PSU | `POE` (power) | PoE to 5 V | — |
+| SKU | Friendly name | Config-string token | PCB-mounted (committed schematic/BOM evidence) | Connector-attached (confirmed) | Unresolved fitment (evidence conflict) |
+|-----|---------------|---------------------|------------------------------------------------|--------------------------------|----------------------------------------|
+| S360-100 | Sense360 Core | `Ceiling` (mount) | ESP32-S3 hub; connectors for all modules | — | — |
+| S360-200 | Sense360 RoomIQ | `RoomIQ` | PIR (EKMC1601111), LTR-303ALS light, SHT4x temp/humidity, BMP581 pressure | LD2450 mmWave radar (connector J2), SEN0609/C4001 radar (connector J3) — see note ¹ | — |
+| S360-210 | Sense360 AirIQ | `AirIQ` | SCD41 CO₂, SGP41 VOC/NOx, MICS-4514 gas with STM8 | SPS30 PM (connector; off-board module) | SFA40 HCHO — fitment unresolved, see note ² |
+| S360-211 | Sense360 VentIQ | `VentIQ` | SGP41 VOC/NOx | IR surface temperature, SPS30 PM (connectors only) | — |
+| S360-300 | Sense360 LED | `LED` | WS2812B LED ring | — | — |
+| S360-310 | Sense360 Relay | `FanRelay` | On/off relay for bathroom fans | — | — |
+| S360-311 | Sense360 PWM | `FanPWM` | 12 V PWM fan driver, up to 4 fans with tach | — | — |
+| S360-312 | Sense360 DAC | `FanDAC` | 0–10 V analog fan driver (GP8403) | — | — |
+| S360-320 | Sense360 TRIAC | `FanTRIAC` | Phase dimmer for mains fan or lamp | — | — |
+| S360-400 | Sense360 240v PSU | `PWR` (power) | Mains to 5 V (HLK-5M05) | — | — |
+| S360-410 | Sense360 PoE PSU | `POE` (power) | PoE to 5 V | — | — |
 
 `USB` (power token) is USB-C power direct to the Core; it is not a separate
 board SKU.

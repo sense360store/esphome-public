@@ -339,6 +339,36 @@ class TestTaxonomyDocAlignment(unittest.TestCase):
             "docs/product-taxonomy.md:\n" + "\n".join(violations),
         )
 
+    def test_sfa40_sits_in_unresolved_table_column(self):
+        """The board table carries SFA40 in a dedicated unresolved-fitment
+        column — never inside the confirmed PCB-mounted or confirmed
+        connector-attached columns."""
+        header_row = next(
+            (l for l in self.doc_lines if "Unresolved fitment" in l and l.startswith("|")),
+            None,
+        )
+        self.assertIsNotNone(
+            header_row,
+            "board table needs an 'Unresolved fitment' column",
+        )
+        headers = [c.strip() for c in header_row.strip("|").split("|")]
+        unresolved_idx = next(
+            i for i, h in enumerate(headers) if "Unresolved fitment" in h
+        )
+        airiq_row = next(
+            l for l in self.doc_lines if l.startswith("| S360-210 ")
+        )
+        cells = [c.strip() for c in airiq_row.strip("|").split("|")]
+        for i, cell in enumerate(cells):
+            if "SFA40" in cell:
+                self.assertEqual(
+                    i,
+                    unresolved_idx,
+                    "SFA40 must appear only in the 'Unresolved fitment' "
+                    f"column, found in column {headers[i]!r}",
+                )
+        self.assertIn("SFA40", cells[unresolved_idx])
+
 
 class TestBundleNamesMatchCatalog(unittest.TestCase):
     """products/bundles/ filenames follow the config-string grammar and
