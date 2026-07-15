@@ -638,6 +638,17 @@ class FrameworkMechanicsTests(unittest.TestCase):
         self.assertIn("ventiq_engine.h", self.raw)
         self.assertIn("sense360::ventiq", self.raw)
 
+    def test_framework_ships_both_engine_headers(self) -> None:
+        # ESPHome copies only the files listed under `esphome: includes:`
+        # into the build tree; ventiq_engine.h transitively includes the
+        # canonical airiq_engine.h, and VentIQ compositions never compose
+        # the AirIQ framework package — so BOTH headers must be listed or
+        # `esphome compile` fails (config validation alone cannot catch
+        # this; proven by the first hosted compile round of this PR).
+        includes = (self.framework.get("esphome") or {}).get("includes") or []
+        self.assertIn("../include/sense360/airiq_engine.h", includes)
+        self.assertIn("../include/sense360/ventiq_engine.h", includes)
+
     def test_freshness_comes_from_update_callbacks(self) -> None:
         self.assertIn("on_value", self.raw)
         self.assertIn("input_humidity", self.raw)

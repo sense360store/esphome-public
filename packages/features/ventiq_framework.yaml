@@ -136,8 +136,14 @@ substitutions:
 # implementation; see tests/unit/test_ventiq_engine.cpp). Path is
 # relative to the products/ config dir — the same pattern as
 # packages/features/roomiq_framework.yaml.
+# Both headers must be listed: ESPHome copies each listed file into the
+# build tree, and ventiq_engine.h's `#include "airiq_engine.h"` resolves
+# against that copy (VentIQ compositions never compose the AirIQ
+# framework package, so nothing else provides the canonical pollutant
+# engine header).
 esphome:
   includes:
+    - ../include/sense360/airiq_engine.h
     - ../include/sense360/ventiq_engine.h
   on_boot:
     - priority: 250
