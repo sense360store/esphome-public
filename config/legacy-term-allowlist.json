@@ -51,7 +51,7 @@
       "pattern": "AirIQ[ -]?(Base|Pro|Prov)\\b",
       "label": "AirIQ Base/Pro variant",
       "replacement": "Sense360 AirIQ (S360-210) with connector attachments named explicitly",
-      "reason": "There is no AirIQ Base/Pro product axis. S360-210 is one board (SCD41, SGP41, MICS-4514+STM8 on board; connectors for SPS30 and SFA40)."
+      "reason": "There is no AirIQ Base/Pro product axis. S360-210 is one board (SCD41, SGP41, MICS-4514+STM8 on board; SPS30 via connector; SFA40 fitment unresolved under HW-PINMAP-210-FOLLOWUP)."
     },
     {
       "pattern": "Bathroom[ -]?(Base|Pro)\\b",

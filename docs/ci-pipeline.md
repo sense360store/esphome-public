@@ -6,7 +6,7 @@ This document explains how the Continuous Integration (CI) pipeline validates fi
 
 - [Overview](#overview)
 - [Refactored YAML layout: boards, bundles, aliases, and shims](#refactored-yaml-layout-boards-bundles-aliases-and-shims)
-- [Mini Board Product Configurations](#mini-board-product-configurations)
+- [Mini Board Product Configurations (historical)](#mini-board-product-configurations-historical)
 - [CI Workflows](#ci-workflows)
 - [Validation Process](#validation-process)
 - [Running Validation Locally](#running-validation-locally)
@@ -130,7 +130,7 @@ contexts must be updated from the old names to the new ones, or they report as
 
 ---
 
-## Mini Board Product Configurations (historical — range retired)
+## Mini Board Product Configurations (historical)
 
 > **Retired.** The Sense360 Mini range was removed under
 > `PRODUCT-DEP-MINI-001`; the `sense360-mini-*.yaml` product files no longer

@@ -26,11 +26,11 @@ revisions, old names, and schematic status). There is **no Base/Pro,
 Basic/Advanced, or Model/Variant axis** — each SKU is one product, and
 optional capability comes from connector attachments, not product variants.
 
-| SKU | Friendly name | Config-string token | On-board today | Connector-supported (external attachment) |
-|-----|---------------|---------------------|----------------|--------------------------------------------|
+| SKU | Friendly name | Config-string token | PCB-mounted (committed schematic/BOM evidence) | Connector-attached |
+|-----|---------------|---------------------|------------------------------------------------|---------------------|
 | S360-100 | Sense360 Core | `Ceiling` (mount) | ESP32-S3 hub; connectors for all modules | — |
-| S360-200 | Sense360 RoomIQ | `RoomIQ` | PIR, LD2450, SEN0609, LTR-303ALS light, SHT4x temp/humidity, BMP581 pressure | — |
-| S360-210 | Sense360 AirIQ | `AirIQ` | SCD41 CO₂, SGP41 VOC/NOx, MICS-4514 gas with STM8 | SPS30 PM, SFA40 HCHO (connectors only) |
+| S360-200 | Sense360 RoomIQ | `RoomIQ` | PIR (EKMC1601111), LTR-303ALS light, SHT4x temp/humidity, BMP581 pressure | LD2450 mmWave radar (connector J2), SEN0609/C4001 radar (connector J3) — see note ¹ |
+| S360-210 | Sense360 AirIQ | `AirIQ` | SCD41 CO₂, SGP41 VOC/NOx, MICS-4514 gas with STM8 | SPS30 PM (connector); SFA40 HCHO — fitment unresolved, see note ² |
 | S360-211 | Sense360 VentIQ | `VentIQ` | SGP41 VOC/NOx | IR surface temperature, SPS30 PM (connectors only) |
 | S360-300 | Sense360 LED | `LED` | WS2812B LED ring | — |
 | S360-310 | Sense360 Relay | `FanRelay` | On/off relay for bathroom fans | — |
@@ -42,6 +42,27 @@ optional capability comes from connector attachments, not product variants.
 
 `USB` (power token) is USB-C power direct to the Core; it is not a separate
 board SKU.
+
+¹ **RoomIQ radar modules are connector-attached, not PCB-mounted.** The
+committed S360-200 R4 evidence
+([`docs/hardware/s360-200-r4-roomiq.md`](hardware/s360-200-r4-roomiq.md))
+places the LD2450 on connector `J2` and the SEN0609/C4001 on connector `J3`;
+the PCB-mounted parts are U1 LTR-303ALS, U2 SHT4x, U3 EKMC1601111 PIR, and
+U4 BMP581. Authoritative RoomIQ product bundles may **include** the radar
+modules (the full tri-presence system) — commercial inclusion is a bundle
+decision (owned by SOT) and never converts a connector-attached module into
+a PCB-mounted component. Which radar connectors are populated in shipped
+units is itself an open verify item in that evidence record.
+
+² **SFA40 fitment on S360-210 is unresolved — do not read it as either
+column.** Layered posture: PCB design evidence — the R4 schematic/BOM list
+`U2 = SFA40-D-Rx` as populated on the board (population still unverified)
+([`docs/hardware/artifacts/S360-210-R4.md`](hardware/artifacts/S360-210-R4.md));
+production population — not physically/CPL verified; catalog/reference
+wording — conflicting/stale (describes an SFA40 connector); firmware /
+customer entities — not currently exposed. `HW-PINMAP-210-FOLLOWUP` owns the
+reconciliation; until it lands, current docs must carry this conflict
+rather than a definitive on-board or connector-only claim.
 
 When reading or writing anything about a board, keep these layers distinct
 and never collapse them:
@@ -108,9 +129,11 @@ and [`tests/test_taxonomy_terminology.py`](../tests/test_taxonomy_terminology.py
    documented advanced/manual exception.
 5. **External attachments are not inherent board components.** A config
    string names boards, not attachments. Connector-supported parts —
-   SPS30 (connector), SFA40 (connector), IR temperature (connector) —
-   are present only when explicitly declared for a bundle or fitted by
-   the user.
+   SPS30 (connector), IR temperature (connector), and the RoomIQ radar
+   modules (LD2450/SEN0609 on connectors J2/J3) — are present only when
+   explicitly declared for a bundle or fitted by the user. (The SFA40 fitment
+   stays unresolved under `HW-PINMAP-210-FOLLOWUP` and is excluded from this
+   rule — see note ² above.)
 
 ## Boards vs bundles vs YAML layers
 
@@ -233,8 +256,13 @@ validated by [`tests/validate_webflash_builds.py`](../tests/validate_webflash_bu
 and consumed by
 [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml).
 This repo does **not** sign firmware; WebFlash is the production signing /
-manifest / flash authority and the authority for config-string grammar and
-artifact naming (see [`docs/webflash-contract.md`](webflash-contract.md)).
+manifest / flash authority and the **upstream authority for the distribution
+naming surfaces** — config-string grammar and release-artifact filename
+grammar — which this repo mirrors and enforces locally via
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+(see [`docs/webflash-contract.md`](webflash-contract.md)). That authority is
+distribution-scoped only: physical board identity stays with the hardware
+catalog in this repo, and commercial product/bundle truth stays with SOT.
 
 ## See also
 

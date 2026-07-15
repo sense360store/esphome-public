@@ -38,12 +38,27 @@ BUNDLES_DIR = REPO_ROOT / "products" / "bundles"
 FAN_TOKENS = {"FanRelay", "FanPWM", "FanDAC", "FanTRIAC"}
 AIR_QUALITY_TOKENS = {"AirIQ", "VentIQ"}
 
-# Sensors that config/hardware-catalog.json declares as connector-supported
-# external attachments (not board-populated). Current docs may mention them
-# only in lines that make the attachment relationship explicit.
-CONNECTOR_ONLY_PARTS = ("SPS30", "SFA40", "MLX90614")
+# Parts that the committed hardware evidence declares as connector-attached
+# (not PCB-mounted). Current docs may mention them only in lines that make
+# the attachment relationship explicit.
+# - SPS30 / MLX90614(IR temp): connector-supported external attachments.
+# - LD2450 / SEN0609 / C4001: RoomIQ radar modules on connectors J2 / J3
+#   (docs/hardware/s360-200-r4-roomiq.md). Commercial bundles may include
+#   them, but that never makes them PCB-mounted components.
+CONNECTOR_ONLY_PARTS = ("SPS30", "MLX90614", "LD2450", "SEN0609", "C4001")
 ATTACHMENT_CONTEXT = re.compile(
     r"connector|attach|external|optional|plug|drift|legacy|not fitted|not populated",
+    re.IGNORECASE,
+)
+
+# SFA40 (S360-210 U2) is an UNRESOLVED fitment: the R4 schematic/BOM show a
+# populated U2 = SFA40-D-Rx, older catalog/reference wording says connector,
+# production population is not physically verified, and no customer entity
+# is exposed. HW-PINMAP-210-FOLLOWUP owns reconciliation. Current docs must
+# present that layered posture, not a definitive on-board or connector-only
+# claim.
+SFA40_UNRESOLVED_CONTEXT = re.compile(
+    r"unresolved|conflict|reconcil|unverified|pending|fitment|drift|HW-PINMAP-210",
     re.IGNORECASE,
 )
 
@@ -278,9 +293,50 @@ class TestTaxonomyDocAlignment(unittest.TestCase):
         self.assertEqual(
             violations,
             [],
-            "Connector-supported parts (SPS30/SFA40/MLX90614) must not read "
-            "as board-fitted hardware in docs/product-taxonomy.md:\n"
+            "Connector-attached parts (SPS30/MLX90614 attachments; "
+            "LD2450/SEN0609/C4001 radar modules) must not read as "
+            "PCB-mounted hardware in docs/product-taxonomy.md:\n"
             + "\n".join(violations),
+        )
+
+    def test_radar_modules_never_pcb_mounted(self):
+        """LD2450 and SEN0609/C4001 attach via RoomIQ connectors J2/J3;
+        no current-doc line may list them as PCB-mounted/on-board parts."""
+        pcb_claim = re.compile(r"PCB-mounted|on-?board", re.IGNORECASE)
+        violations = []
+        for lineno, line in enumerate(self.doc_lines, start=1):
+            if any(part in line for part in ("LD2450", "SEN0609", "C4001")):
+                if pcb_claim.search(line) and not ATTACHMENT_CONTEXT.search(
+                    line
+                ):
+                    violations.append(f"line {lineno}: {line.strip()[:120]}")
+        self.assertEqual(
+            violations,
+            [],
+            "Radar modules classified as PCB-mounted in "
+            "docs/product-taxonomy.md:\n" + "\n".join(violations),
+        )
+
+    def test_sfa40_posture_stays_unresolved(self):
+        """SFA40 must be presented as an unresolved layered posture (BOM
+        U2 on-board vs catalog connector wording; population unverified;
+        no customer entity), never as definitively on-board or
+        connector-only, until HW-PINMAP-210-FOLLOWUP resolves it."""
+        self.assertIn(
+            "HW-PINMAP-210",
+            self.doc,
+            "docs/product-taxonomy.md must name HW-PINMAP-210-FOLLOWUP as "
+            "the owner of the SFA40 fitment reconciliation",
+        )
+        violations = []
+        for lineno, line in enumerate(self.doc_lines, start=1):
+            if "SFA40" in line and not SFA40_UNRESOLVED_CONTEXT.search(line):
+                violations.append(f"line {lineno}: {line.strip()[:120]}")
+        self.assertEqual(
+            violations,
+            [],
+            "SFA40 mentioned without its unresolved-fitment context in "
+            "docs/product-taxonomy.md:\n" + "\n".join(violations),
         )
 
 

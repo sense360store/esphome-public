@@ -42,7 +42,7 @@ found):
 | Commercial product / bundle truth, public naming & messaging, programme status | **SOT** (`products.yaml`, `bundles.yaml`, `messaging.yaml`) |
 | Physical board identity (SKU, friendly name, sensors, connectors) | **esphome-public** (`config/hardware-catalog.json` / `docs/hardware-catalog.md`) |
 | Firmware implementation, product YAML, lifecycle catalog, release matrix | **esphome-public** (`config/product-catalog.json`, `config/webflash-builds.json`) |
-| Config-string grammar, artifact naming, signing, distribution | **WebFlash** (mirrored locally in `config/webflash-compatibility.json` / `docs/webflash-contract.md`) |
+| Distribution naming surfaces (config-string grammar, release-artifact filename grammar), signing, manifests, flashing | **WebFlash** — upstream authority per `docs/webflash-contract.md`, which declares "WebFlash wins" on drift; esphome-public keeps a **local enforced mirror** (`config/webflash-compatibility.json`, validated by `tests/validate_webflash_builds.py`) so CI here enforces the same rules without fetching WebFlash. This authority is **distribution-scoped only** — it does not extend to physical board identity (hardware catalog, this repo) or commercial product/bundle truth (SOT) |
 | Zone configuration tooling | **sense360zones** (no product-taxonomy footprint) |
 | Website / Shopify | Presentation surface only — never a source of truth |
 
@@ -61,6 +61,26 @@ S360-312 DAC (`FanDAC`) · S360-320 TRIAC (`FanTRIAC`) · S360-400 240v PSU
 catalog; no missing or extra SKUs found. There is **no Base/Pro,
 Basic/Advanced, Mini, Wall, or Model/Variant axis** in the current line.
 
+Two board-level layerings verified directly against the committed hardware
+evidence (not just the flat catalog descriptions):
+
+- **S360-200 RoomIQ** (`docs/hardware/s360-200-r4-roomiq.md`):
+  **PCB-mounted** — U3 EKMC1601111 PIR, U1 LTR-303ALS, U2 SHT4x, U4 BMP581.
+  **Connector-attached** — LD2450 mmWave radar (J2), SEN0609/C4001 radar
+  (J3). The catalog `description` flat-lists all six sensors without
+  distinguishing these layers; the taxonomy doc now layers them. RoomIQ
+  product bundles may include the full tri-presence radar system —
+  commercial inclusion (a SOT decision) never converts a connector module
+  into a PCB-mounted component. Which radar connectors are populated in
+  shipped units is an open verify item in the evidence record.
+- **S360-210 AirIQ SFA40** (`docs/hardware/artifacts/S360-210-R4.md`):
+  **unresolved fitment**, presented as a layered posture — PCB design
+  evidence: BOM/schematic list `U2 = SFA40-D-Rx` populated; production
+  population: not physically/CPL verified; catalog/reference wording:
+  conflicting/stale (connector-supported); firmware/customer entities: not
+  exposed. `HW-PINMAP-210-FOLLOWUP` owns reconciliation. Current docs must
+  not place SFA40 definitively on either side; a test now pins this.
+
 ## Key decisions applied in this PR
 
 - **Release-One** = the name of the initial release programme and its
@@ -74,9 +94,13 @@ Basic/Advanced, Mini, Wall, or Model/Variant axis** in the current line.
   authoritative/customer text is forbidden from using the axis (enforced by
   `tests/test_taxonomy_terminology.py` +
   `config/legacy-term-allowlist.json`).
-- **Connector vs fitted**: SPS30 / SFA40 / MLX90614(IR temp) are
-  connector-supported external attachments, never described as fitted
-  board hardware in current docs (enforced).
+- **Connector vs fitted**: SPS30 / MLX90614(IR temp) are connector-supported
+  external attachments, and the RoomIQ radars (LD2450, SEN0609/C4001) are
+  connector-attached modules — none may be described as PCB-mounted board
+  hardware in current docs (enforced). **SFA40 is deliberately neither**:
+  its fitment is an unresolved conflict (BOM U2 on-board vs catalog
+  connector wording) owned by `HW-PINMAP-210-FOLLOWUP`, and a test pins the
+  unresolved posture.
 - **Compiled-driver drift** (BMP390, VEML7700) is documented as tracked
   drift only, never as physical hardware (enforced; firmware itself
   unchanged — dispositions are owner-only items
@@ -86,8 +110,35 @@ Basic/Advanced, Mini, Wall, or Model/Variant axis** in the current line.
 
 ## Findings: esphome-public (corrected in this PR)
 
-Inventory sweep counts (raw occurrences): Release-One ≈867 across 162 files
-(class A — programme name; no misuse found); Comfort/Presence ≈607 across
+### Release-One occurrence classification (methodology and totals)
+
+Method: automated case-insensitive scan (`release[- ]one`), followed by
+**per-occurrence review only of the live current-documentation set** (the
+`scanned_files` list in `config/legacy-term-allowlist.json`, plus the five
+docs corrected by this PR) and **path-level classification** of everything
+else. This is *not* an exhaustive per-occurrence semantic classification of
+all matches; the residual per-occurrence audit of the historical tail is
+recorded as follow-up below.
+
+Scan totals at this head: **929 raw occurrences across 196 files**, bucketed
+by path:
+
+| Bucket | Occurrences | Classification (level) | Basis |
+|--------|-------------|------------------------|-------|
+| Historical/archive/evidence records (`docs/release-notes/`, `docs/decisions/`, `docs/hardware/`, `docs/compliance/`, `docs/security/`, `CHANGELOG.md`, archive/disposition indexes) | 418 | **B** (path-level) | Historical records; not individually reviewed, deliberately never rewritten |
+| Live current-doc set (README, CLAUDE.md, top-level current docs incl. the five corrected here, standing invariants) | 80 | **A** (per-occurrence) | Individually reviewed in this PR: programme-name / baseline-gate references; the one structural misuse found (taxonomy-doc framing) was fixed and is now test-guarded |
+| Customer YAML + examples (`examples/`, `products/`, `packages/`) | 145 | **C** (path-level, spot-checked) | Tag-pinned examples and customer-pinned package comments referencing the v1.0.0 programme |
+| Code/config/CI (`config/`, `scripts/`, `tests/`, `.github/`) | 243 | **A/C functional** (path-level, spot-checked) | Functional identifiers (`release_one_required_configs`, validator strings, catalog notes) — behaviour-bearing, not prose |
+| Roadmap + architecture records | 17 | **A** (path-level) | Programme references in drift-tracking records |
+| Other live technical docs (DEV_WORKFLOW, development, hw-release-001, generated matrices, scaffold-generator) | 26 | **A/C** (path-level, spot-checked) | Gate/programme references; generated files derive from config |
+
+No **D/E/F stale current-architecture usage** of Release-One was found in
+the per-occurrence-reviewed live set beyond the taxonomy-doc framing fixed
+by this PR. **Residual follow-up:** per-occurrence semantic review of the
+418 historical-bucket and 243 code/config-bucket matches was not performed
+and is not claimed; it can ride the follow-up PRs if the owner wants it.
+
+Other sweep counts (raw occurrences): Comfort/Presence ≈607 across
 124 files (overwhelmingly C alias filenames/entity ids + A prose); Base/Pro
 variant text, BMP390, VEML7700, HLK-PM01 concentrated in five live docs
 (D/E) and three board packages (F, tracked drift annotations in-file).
@@ -153,6 +204,30 @@ programme states `implemented` not `verified`). Items:
 | S-4 | `bundles.yaml` L36, roadmap "on sale" | `shipped` bundles with placeholder `shop_url` (CONFIRM) | Resolve CONFIRM before "shipped/on sale" stands | G | No | **Yes** |
 | S-5 | `messaging.yaml` L79 | "Wall Core" banned-term CONFIRM still open | Close the CONFIRM | G | No | **Yes** |
 
+### Commercial bundle scope (explicit non-claims)
+
+- **This PR does not establish, choose, or change canonical commercial
+  bundle contents.** It audits and reports; firmware evidence is never used
+  to decide commercial truth.
+- **SOT remains the commercial bundle authority** (`bundles.yaml`,
+  `products.yaml`, per `CLAUDE-OPERATING-MODEL.md`).
+- **Current SOT bundle records conflict with esphome-public planning
+  records.** Concretely: SOT sells the AirIQ configuration as
+  **"Air Quality Starter"** (`bundles.yaml`, `status: shipped`, declaring
+  `webflash_config: Ceiling-POE-AirIQ`, which exists in no build matrix),
+  while esphome-public's standing invariants describe the AirIQ stable
+  config `Ceiling-POE-AirIQ-RoomIQ` as the waiver-promoted **"Kitchen"
+  bundle** that stays *hidden / not buyable / never the customer default*.
+  Name, config string, and buyability posture all disagree. The analogous
+  Bedroom (`Ceiling-POE-RoomIQ`) naming is also SOT-vs-invariants
+  inconsistent (SOT `room-kit-poe`, internal).
+- **The Air Quality Starter vs Kitchen Bundle conflict is unresolved** and
+  is owner-level: it cannot be settled from this repo's evidence.
+- **A separate SOT taxonomy/bundle reconciliation PR (follow-up PR 1) is
+  required before anyone claims a single canonical sellable bundle list.**
+  Until then, no document should present either repo's bundle list as the
+  reconciled commercial truth.
+
 ## Findings: WebFlash (follow-up PR 2 — no changes made here)
 
 No Base/Pro, BMP390, VEML7700, or HLK-PM01 anywhere; alias/migration
@@ -195,9 +270,14 @@ the Bathroom Bundle. These belong to follow-up PR 4 / owner web tasks.
    with drift notes either way.
 4. **G-4 Voice axis** (WebFlash `voice`/"Core Type"/microphone copy) — real
    future product or retired concept?
-5. **G-5 SOT CONFIRM backlog**: Air Quality Starter config string /
-   `firmware_release`, shipped-bundle shop URLs, "Wall Core", S360-211 SKU
-   carry-over note.
+5. **G-5 SOT CONFIRM backlog and bundle reconciliation**: the Air Quality
+   Starter vs Kitchen-bundle conflict (name, config string, buyability
+   posture — see *Commercial bundle scope* above), Air Quality Starter
+   `webflash_config` / `firmware_release`, shipped-bundle shop URLs,
+   "Wall Core", S360-211 SKU carry-over note.
+6. **G-6 Release-One residual audit**: per-occurrence semantic review of
+   the historical (418) and code/config (243) Release-One buckets was not
+   performed in this PR (path-level classification only).
 
 ## Recommended follow-up PR sequence
 

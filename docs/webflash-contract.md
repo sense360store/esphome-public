@@ -175,7 +175,10 @@ The matching ESPHome product YAML is
 > never a customer default / never buyable / never kit-exposed / never in
 > `release_one_required_configs`, with no electrical-safety / EMC /
 > compliance claim — see the live gate text in
-> [`docs/standing-invariants.md`](standing-invariants.md). The historical
+> [`docs/standing-invariants.md`](standing-invariants.md). Downstream
+> WebFlash one-click import stays separately gated (`WF-IMPORT-TRIAC-001`);
+> this note records existing release-eligibility metadata and broadens no
+> distribution surface. The historical
 > HW-005 block record is archived
 > ([`docs/release-one-hardware-audit.md#fantriac-mapping-resolution` (archived)](archive-index.md)).
 
