@@ -6,7 +6,7 @@ This document explains how the Continuous Integration (CI) pipeline validates fi
 
 - [Overview](#overview)
 - [Refactored YAML layout: boards, bundles, aliases, and shims](#refactored-yaml-layout-boards-bundles-aliases-and-shims)
-- [Mini Board Product Configurations](#mini-board-product-configurations)
+- [Mini Board Product Configurations (historical)](#mini-board-product-configurations-historical)
 - [CI Workflows](#ci-workflows)
 - [Validation Process](#validation-process)
 - [Running Validation Locally](#running-validation-locally)
@@ -130,11 +130,16 @@ contexts must be updated from the old names to the new ones, or they report as
 
 ---
 
-## Mini Board Product Configurations
+## Mini Board Product Configurations (historical)
 
-The Sense360 Mini is a compact board with integrated sensors. The following product configurations are validated by CI:
+> **Retired.** The Sense360 Mini range was removed under
+> `PRODUCT-DEP-MINI-001`; the `sense360-mini-*.yaml` product files no longer
+> exist in the tree and are **not** validated by CI. Existing Mini units are
+> served by the tag-pinned `v1.0.0` release, which still contains these
+> files. This section is retained as a historical record of what that
+> release validated.
 
-### Current Mini Board Configs
+### Mini Board Configs (as of the v1.0.0 tag)
 
 | Config File | Description | Presence Sensor | LED Type |
 |-------------|-------------|-----------------|----------|
@@ -560,26 +565,21 @@ Common causes:
 
 ---
 
-## Adding New Mini Board Configs
+## Adding New Product Configs
 
-When adding a new mini board product configuration:
+> The former "Adding New Mini Board Configs" walkthrough is retired with the
+> Mini range (`PRODUCT-DEP-MINI-001`), and its "CI automatically includes
+> it" claim no longer holds: the release matrix is **declaration-driven**
+> (ESP-007) — releases ship only what
+> [`config/webflash-builds.json`](../config/webflash-builds.json) declares.
 
-1. **Create the config file** in `products/`:
-   ```bash
-   touch products/sense360-mini-new-variant.yaml
-   ```
+To add a new product configuration today, declare it in
+[`config/product-catalog.json`](../config/product-catalog.json) first, then
+follow the checklist validator:
 
-2. **CI automatically includes it** - No workflow changes needed!
-
-3. **Verify locally** before pushing:
-   ```bash
-   esphome config products/sense360-mini-new-variant.yaml
-   ```
-
-4. **Push and check CI** - The new product will appear in the test matrix.
-
-5. **Update product name mapper** (if needed for releases):
-   Edit `scripts/product_name_mapper.py` to add WebFlash naming.
+```bash
+python3 scripts/validate_product_catalog_consistency.py --checklist <Config-String>
+```
 
 ---
 

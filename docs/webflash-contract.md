@@ -166,16 +166,21 @@ Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
 The matching ESPHome product YAML is
 [`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml).
 
-> **FanTRIAC excluded from production Release-One.** The Sense360 TRIAC
-> (`S360-320`) slot is blocked per HW-005 (see
-> [`docs/release-one-hardware-audit.md#fantriac-mapping-resolution` (archived)](archive-index.md)).
-> The FanTRIAC token remains a valid WebFlash module (see §3) for future
-> use, and the FanTRIAC product YAML
-> ([`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml))
-> is retained as a blocked / reference file, but it is NOT in
-> [`config/webflash-builds.json`](../config/webflash-builds.json) and must
-> not be published as a production Release-One artifact while HW-005 is
-> open.
+> **FanTRIAC never ships stable.** The Sense360 TRIAC (`S360-320`) was
+> commissioned to the **experimental self-build mains lane** by
+> `TRIAC-COMMISSIONING-001` (human-review only): the FanTRIAC config
+> (`Ceiling-POE-VentIQ-FanTRIAC-RoomIQ`) now carries a
+> [`config/webflash-builds.json`](../config/webflash-builds.json) row on the
+> **experimental** channel only. It stays never stable / never recommended /
+> never a customer default / never buyable / never kit-exposed / never in
+> `release_one_required_configs`, with no electrical-safety / EMC /
+> compliance claim — see the live gate text in
+> [`docs/standing-invariants.md`](standing-invariants.md). Downstream
+> WebFlash one-click import stays separately gated (`WF-IMPORT-TRIAC-001`);
+> this note records existing release-eligibility metadata and broadens no
+> distribution surface. The historical
+> HW-005 block record is archived
+> ([`docs/release-one-hardware-audit.md#fantriac-mapping-resolution` (archived)](archive-index.md)).
 
 See [`release-one.md` (archived)](archive-index.md) for the full slot/file/binary mapping.
 
@@ -503,8 +508,8 @@ file an upstream change in WebFlash first and update this contract afterward.
 ## See Also
 
 - [`README.md`](../README.md) — repo front door.
-- [`docs/product-taxonomy.md`](product-taxonomy.md) — Release-One quick
-  reference, taxonomy, and build output contract.
+- [`docs/product-taxonomy.md`](product-taxonomy.md) — board/SKU taxonomy,
+  compatibility rules, lifecycle vs release state, legacy-name policy.
 - [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
   — machine-readable local snapshot of this contract for validators and CI.
 - [`docs/release-one.md` (archived)](archive-index.md) — Release-One configuration with full

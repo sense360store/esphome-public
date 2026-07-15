@@ -128,7 +128,7 @@ packages:
       - packages/base/api_encrypted.yaml
       - packages/hardware/sense360_core_ceiling.yaml
       - packages/hardware/power_poe.yaml
-      - packages/expansions/airiq_bathroom_base.yaml  # VentIQ Base
+      - packages/expansions/airiq_bathroom_base.yaml  # VentIQ (legacy alias filename)
       - packages/expansions/comfort_ceiling.yaml      # RoomIQ comfort
       - packages/expansions/presence_ceiling.yaml     # RoomIQ presence
       # FanTRIAC (packages/expansions/fan_triac.yaml +
@@ -169,8 +169,8 @@ external_components:
 | | `packages/hardware/power_poe.yaml` | PoE power |
 | | `packages/hardware/power_240v.yaml` | AC mains power |
 | **AirIQ** | `packages/expansions/airiq_ceiling.yaml` | Air-quality sensor pack |
-| **VentIQ** | `packages/expansions/airiq_bathroom_base.yaml` | VentIQ Base |
-| | `packages/expansions/airiq_bathroom_pro.yaml` | VentIQ Pro |
+| **VentIQ** | `packages/expansions/airiq_bathroom_base.yaml` | VentIQ on-board sensors (legacy alias filename) |
+| | `packages/expansions/airiq_bathroom_pro.yaml` | VentIQ + connector attachments (IR temp, SPS30; legacy alias filename) |
 | **RoomIQ** | `packages/expansions/comfort_ceiling.yaml` | Climate + light |
 | | `packages/expansions/presence_ceiling.yaml` | LD2450 presence |
 | **Fan drivers** | `packages/expansions/fan_relay.yaml` | FanRelay (ON/OFF) |
@@ -193,8 +193,8 @@ configuration in detail.
 
 ## See Also
 
-- [Product taxonomy & compatibility rules](product-taxonomy.md) — config
-  strings, modules, Release-One, build output contract.
+- [Product taxonomy & compatibility rules](product-taxonomy.md) — board/SKU
+  taxonomy, config strings, compatibility rules, lifecycle vs release state.
 - [Installation Guide](installation.md) — step-by-step setup.
 - [Configuration Reference](configuration.md) — customization options.
 - [Release channels](release-channels.md) — stable / preview / experimental
