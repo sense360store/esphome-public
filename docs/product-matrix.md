@@ -2,13 +2,25 @@
 
 Complete product hierarchy and configuration guide for the Sense360 modular sensor platform.
 
-> **WebFlash users:** see [`release-one.md` (archived)](archive-index.md) for the
-> Release-One configuration (`Ceiling-POE-VentIQ-RoomIQ`). FanTRIAC is
-> excluded from production Release-One while HW-005 is open — see
-> [`release-one-hardware-audit.md#fantriac-mapping-resolution` (archived)](archive-index.md).
-> This page is the long-form reference for slot/module selection. Some
-> legacy terminology (`Comfort`, `Presence`, `Bathroom`, generic `Fan`) is
-> still present below for hardware-level detail — see the mapping table.
+> **Status: legacy reference (PRODUCT-TAXONOMY-AUDIT-001).** This page is a
+> long-form hardware-level archive that predates the current taxonomy. It
+> still describes **retired products and axes** — the Mini / Wall / Desk
+> form factors (removed under `PRODUCT-DEP-MINI-001`; Wall/Desk are not in
+> the current product line), the split `Comfort` / `Presence` boards (merged
+> into RoomIQ, S360-200), `Bathroom` Base/Pro module tables (VentIQ,
+> S360-211, is one board — no Base/Pro axis), `Basic`/`Advanced` tiers, the
+> generic `Fan` token, and drifted part identities (BMP390, VEML7700). Do
+> **not** treat those sections as current products.
+>
+> For current truth use [`product-taxonomy.md`](product-taxonomy.md) (the
+> navigation document), [`hardware-catalog.md`](hardware-catalog.md) /
+> [`config/hardware-catalog.json`](../config/hardware-catalog.json) (board
+> identity), [`config/product-catalog.json`](../config/product-catalog.json)
+> (lifecycle), and
+> [`config/webflash-builds.json`](../config/webflash-builds.json) (what
+> ships). The current production stable configuration is
+> `Ceiling-POE-VentIQ-RoomIQ`; FanTRIAC is experimental-lane only (see
+> [`standing-invariants.md`](standing-invariants.md)).
 
 > **Board + bundle layout.** Each module/SKU below now has a SKU-aligned
 > **board package** under [`../packages/boards/`](../packages/boards/) as its

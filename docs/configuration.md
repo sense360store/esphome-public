@@ -75,8 +75,9 @@ packages:
 
 **Includes:**
 
-- VentIQ air-quality module (bathroom-focused: SHT4x, BMP390, SGP41,
-  optionally MLX90614 + SPS30)
+- VentIQ air-quality module (bathroom-focused: SGP41 on board; connectors
+  for IR surface temperature and SPS30 PM — external attachments, not
+  fitted parts)
 - RoomIQ room sensing (climate + light + LD2450 presence)
 - PoE power (IEEE 802.3af)
 - Wi-Fi, Home Assistant API, OTA, time, and logging are wired up by the

@@ -52,8 +52,8 @@ Everything lives under [`docs/`](docs/README.md) — start at the
 [documentation index](docs/README.md). Key entries:
 
 - [Getting Started](docs/getting-started.md) — WebFlash vs manual path, quick start.
-- [Product Taxonomy & Compatibility](docs/product-taxonomy.md) — config strings,
-  modules, Release-One, build output contract.
+- [Product Taxonomy & Compatibility](docs/product-taxonomy.md) — board/SKU
+  taxonomy, config strings, compatibility rules, lifecycle vs release state.
 - [Release Channels](docs/release-channels.md) — stable / preview / experimental
   and what support each receives.
 - [Release Pipeline](docs/RELEASE-PIPELINE.md) — the full cross-repo release

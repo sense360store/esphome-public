@@ -32,9 +32,9 @@ The documentation map for `sense360store/esphome-public`. The repository
 
 ## Configuration
 
-- [Product Taxonomy & Compatibility](product-taxonomy.md) — WebFlash config
-  strings, Release-One, sensor / driver modules, compatibility rules, build
-  output contract, legacy terminology.
+- [Product Taxonomy & Compatibility](product-taxonomy.md) — board/SKU
+  taxonomy, config-string grammar, compatibility rules, lifecycle vs
+  release state, legacy-terminology policy.
 - [Product Matrix](product-matrix.md) — complete slot/module reference.
 - [Configuration Reference](configuration.md) — customization options.
 - [WebFlash Compatibility Contract](webflash-contract.md) — artifact naming,

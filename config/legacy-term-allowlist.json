@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "programme": "PRODUCT-TAXONOMY-AUDIT-001",
+  "description": "Legacy-terminology policy for current authoritative / customer-facing files. Enforced by tests/test_taxonomy_terminology.py. Forbidden terms must not appear in the scanned files except on lines explicitly marked as legacy/alias/drift context (legacy_marker_tokens) or via an explicit per-file exception below. This file is a policy declaration, NOT a second product catalog: board/SKU truth stays in config/hardware-catalog.json, lifecycle truth in config/product-catalog.json, the build matrix in config/webflash-builds.json, and the config-string contract in config/webflash-compatibility.json.",
+  "source_of_truth": [
+    "config/hardware-catalog.json",
+    "config/product-catalog.json",
+    "config/webflash-builds.json",
+    "config/webflash-compatibility.json"
+  ],
+  "scanned_files": [
+    "README.md",
+    "CLAUDE.md",
+    "docs/product-taxonomy.md",
+    "docs/getting-started.md",
+    "docs/installation.md",
+    "docs/configuration.md",
+    "docs/hardware-catalog.md",
+    "docs/webflash-contract.md",
+    "docs/system-architecture.md",
+    "examples/customer-basic.yaml",
+    "examples/custom-with-remote-headers.yaml"
+  ],
+  "legacy_marker_tokens": [
+    "legacy",
+    "deprecated",
+    "forbidden",
+    "old name",
+    "old_name",
+    "alias",
+    "banned",
+    "renamed",
+    "drift",
+    "archived",
+    "retired",
+    "removed",
+    "historical",
+    "superseded",
+    "formerly",
+    "use instead",
+    "→"
+  ],
+  "forbidden_terms": [
+    {
+      "pattern": "VentIQ[ -]?(Base|Pro)\\b",
+      "label": "VentIQ Base/Pro variant",
+      "replacement": "Sense360 VentIQ (S360-211) with connector attachments named explicitly",
+      "reason": "There is no VentIQ Base/Pro product axis. S360-211 is one board (SGP41 on board; connectors for IR surface temperature and SPS30). Optional connector attachments are not product variants."
+    },
+    {
+      "pattern": "AirIQ[ -]?(Base|Pro|Prov)\\b",
+      "label": "AirIQ Base/Pro variant",
+      "replacement": "Sense360 AirIQ (S360-210) with connector attachments named explicitly",
+      "reason": "There is no AirIQ Base/Pro product axis. S360-210 is one board (SCD41, SGP41, MICS-4514+STM8 on board; connectors for SPS30 and SFA40)."
+    },
+    {
+      "pattern": "Bathroom[ -]?(Base|Pro)\\b",
+      "label": "Bathroom Base/Pro legacy product name",
+      "replacement": "Sense360 VentIQ (S360-211)",
+      "reason": "Bathroom Pro is the retired old name of the VentIQ board; a Base/Pro axis must not be reintroduced."
+    },
+    {
+      "pattern": "BathroomAirIQ",
+      "label": "BathroomAirIQ legacy token",
+      "replacement": "VentIQ",
+      "reason": "Retired config-string token; read-time alias only."
+    },
+    {
+      "pattern": "\\bBMP390\\b",
+      "label": "BMP390 sensor-identity drift",
+      "replacement": "BMP581 (RoomIQ S360-200 pressure sensor); AirIQ/VentIQ have no catalog pressure part",
+      "reason": "config/hardware-catalog.json lists BMP581 on RoomIQ and no pressure sensor on AirIQ/VentIQ. BMP390 exists only as tracked compiled-firmware drift; current docs may reference it solely in explicitly marked drift/legacy context."
+    },
+    {
+      "pattern": "\\bVEML7700\\b",
+      "label": "VEML7700 sensor-identity drift",
+      "replacement": "LTR-303ALS (RoomIQ S360-200 ambient light sensor)",
+      "reason": "config/hardware-catalog.json lists LTR-303ALS. VEML7700 is the tracked compiled-firmware drift (ENTITY-RECONCILE-200-ALS-001); current docs may reference it solely in explicitly marked drift/legacy context."
+    },
+    {
+      "pattern": "HLK-PM01",
+      "label": "HLK-PM01 part-identity drift",
+      "replacement": "HLK-5M05 (S360-400 240v PSU per config/hardware-catalog.json)",
+      "reason": "The catalog part is HLK-5M05. The HLK-PM01/HLK-10M05 disagreement is a tracked hardware-evidence record, not a current-doc fact."
+    },
+    {
+      "pattern": "\\|\\s*Variant\\s*\\|\\s*Sensors\\s*\\|",
+      "label": "Model/Variant sensor table",
+      "replacement": "single-SKU sensor table with connector attachments listed separately",
+      "reason": "The product taxonomy is flat (one SKU per product); Variant-axis sensor tables must not appear in current docs."
+    }
+  ],
+  "exceptions": [
+    {
+      "file": "CLAUDE.md",
+      "pattern": "Bathroom[ -]?(Base|Pro)\\b",
+      "reason": "Canonical SKU table 'Old name' column (category C: legacy-name reference)."
+    },
+    {
+      "file": "docs/hardware-catalog.md",
+      "pattern": "Bathroom[ -]?(Base|Pro)\\b",
+      "reason": "Canonical SKU table 'Old name' column (category C: legacy-name reference)."
+    },
+    {
+      "file": "docs/webflash-contract.md",
+      "pattern": "BathroomAirIQ",
+      "reason": "Section 3 deprecated/forbidden-token mapping table (category C: required alias mapping)."
+    },
+    {
+      "file": "docs/webflash-contract.md",
+      "pattern": "AirIQ[ -]?(Base|Pro|Prov)\\b",
+      "reason": "Section 3 deprecated/forbidden-token mapping table (category C: required alias mapping)."
+    }
+  ],
+  "classified_legacy_locations": {
+    "description": "Paths where legacy terminology legitimately remains, with classification. A=current-correct, B=historical-archive-only, C=compatibility-alias-required, F=tracked code/config drift. These paths are deliberately NOT scanned by the forbidden-term test.",
+    "paths": [
+      {
+        "path": "packages/expansions/",
+        "classification": "C",
+        "reason": "Legacy alias filenames (airiq_bathroom_*.yaml, comfort_*.yaml, presence_*.yaml, ventiq.yaml, bathroom.yaml) are customer-pinned include paths and must keep resolving. Never rename."
+      },
+      {
+        "path": "packages/hardware/",
+        "classification": "C",
+        "reason": "Legacy functional include paths retained as aliases of the board packages; customer-pinned."
+      },
+      {
+        "path": "packages/boards/s360-210-airiq.yaml",
+        "classification": "F",
+        "reason": "Compiles BMP390 with an in-file FIRMWARE/CATALOG DRIFT annotation. Firmware behaviour change is out of audit scope; tracked by the roadmap drift records."
+      },
+      {
+        "path": "packages/boards/s360-211-ventiq.yaml",
+        "classification": "F",
+        "reason": "Compiles BMP390 with an in-file FIRMWARE/SCHEMATIC drift annotation; module_variant tokens retained for compatibility."
+      },
+      {
+        "path": "packages/boards/s360-200-roomiq-climate.yaml",
+        "classification": "F",
+        "reason": "Compiles the VEML7700 driver; catalog/BOM part is LTR-303ALS. Disposition is owner-only (ENTITY-RECONCILE-200-ALS-001)."
+      },
+      {
+        "path": "docs/product-matrix.md",
+        "classification": "B",
+        "reason": "Long-form legacy hardware reference (Mini/Wall/Desk lines, Comfort/Presence split boards, Bathroom Base/Pro tables). Demoted to legacy-reference status by PRODUCT-TAXONOMY-AUDIT-001; retained as historical hardware-level detail."
+      },
+      {
+        "path": "docs/ci-pipeline.md",
+        "classification": "B",
+        "reason": "Mini board sections retained as historical CI records, explicitly marked retired (PRODUCT-DEP-MINI-001)."
+      },
+      {
+        "path": "docs/sense360-roadmap-status.md",
+        "classification": "A",
+        "reason": "Drift-tracking record; names BMP390/VEML7700/SFA40 deliberately as tracked reconciliation items."
+      },
+      {
+        "path": "docs/architecture/",
+        "classification": "A",
+        "reason": "Framework architecture docs document the drift correctly (no Base/Pro axis; BMP390/VEML7700 flagged as drift)."
+      },
+      {
+        "path": "docs/hardware/",
+        "classification": "B",
+        "reason": "Hardware evidence records quote stale part identities (HLK-PM01 or similar, BMP390 footprints) verbatim as evidence. Never rewrite evidence."
+      },
+      {
+        "path": "docs/release-notes/",
+        "classification": "B",
+        "reason": "Historical release notes."
+      },
+      {
+        "path": "docs/decisions/",
+        "classification": "B",
+        "reason": "Decision records are historical evidence."
+      },
+      {
+        "path": "CHANGELOG.md",
+        "classification": "B",
+        "reason": "Historical changelog (Mini/Wall/legacy vocabulary entries)."
+      },
+      {
+        "path": "config/product-catalog.json",
+        "classification": "A",
+        "reason": "Mini/Wall tombstone entries record retirement (removal_reason); they are current lifecycle truth, not stale text."
+      },
+      {
+        "path": "config/feature-entity-matrix.json",
+        "classification": "A",
+        "reason": "Documents the compiled (drifted) parts deliberately, with catalog conflicts annotated."
+      },
+      {
+        "path": "scripts/product_name_mapper.py",
+        "classification": "C",
+        "reason": "Mini/Wall/Basic/Advanced name mappings serve tag-pinned legacy releases; read-time compatibility."
+      },
+      {
+        "path": "tests/",
+        "classification": "C",
+        "reason": "Tests pin legacy tokens and aliases on purpose (forbidden-token guards, alias fixtures)."
+      },
+      {
+        "path": "packages/features/",
+        "classification": "C",
+        "reason": "basic/advanced profile filenames are behaviour-profile names, not product tiers; customer-pinned include paths."
+      }
+    ]
+  }
+}

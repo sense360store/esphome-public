@@ -1,211 +1,251 @@
 # Product Taxonomy & Compatibility
 
-The WebFlash config-string taxonomy, the sensor / driver modules behind each
-slot, the compatibility rules, and the build output contract. This page was
-split out of the repository README front door; the authoritative cross-repo
-contract text is [`webflash-contract.md`](webflash-contract.md) and the
-machine-readable declarations live under [`config/`](../config/).
+The current Sense360 product taxonomy: board/SKU identity, the WebFlash
+config-string grammar, module-slot compatibility, the board/bundle
+distinction, the external-attachment model, and how capability differs from
+release state. This page is a **navigation document** — it summarises and
+links the machine-readable authorities instead of duplicating their detail:
 
-## Release-One Configuration
+| Question | Authority |
+|----------|-----------|
+| What boards exist (names, SKUs, sensors, connectors)? | [`config/hardware-catalog.json`](../config/hardware-catalog.json) / [`docs/hardware-catalog.md`](hardware-catalog.md) |
+| What lifecycle state is each product configuration in? | [`config/product-catalog.json`](../config/product-catalog.json) |
+| What does release publishing actually ship? | [`config/webflash-builds.json`](../config/webflash-builds.json) |
+| What config strings / tokens are legal? | [`config/webflash-compatibility.json`](../config/webflash-compatibility.json) / [`docs/webflash-contract.md`](webflash-contract.md) |
+| What are the standing release gates? | [`docs/standing-invariants.md`](standing-invariants.md) |
 
-The **Release-One** shipping configuration is:
+Docs describe; `config/` decides. If this page and a `config/` file ever
+disagree, the `config/` file wins and this page is the one to fix.
+
+## Board / SKU taxonomy
+
+The physical product boundary is the **board SKU**. Friendly names are
+canonical; old names are legacy reference only (see
+[`docs/hardware-catalog.md`](hardware-catalog.md) for the full table with
+revisions, old names, and schematic status). There is **no Base/Pro,
+Basic/Advanced, or Model/Variant axis** — each SKU is one product, and
+optional capability comes from connector attachments, not product variants.
+
+| SKU | Friendly name | Config-string token | On-board today | Connector-supported (external attachment) |
+|-----|---------------|---------------------|----------------|--------------------------------------------|
+| S360-100 | Sense360 Core | `Ceiling` (mount) | ESP32-S3 hub; connectors for all modules | — |
+| S360-200 | Sense360 RoomIQ | `RoomIQ` | PIR, LD2450, SEN0609, LTR-303ALS light, SHT4x temp/humidity, BMP581 pressure | — |
+| S360-210 | Sense360 AirIQ | `AirIQ` | SCD41 CO₂, SGP41 VOC/NOx, MICS-4514 gas with STM8 | SPS30 PM, SFA40 HCHO (connectors only) |
+| S360-211 | Sense360 VentIQ | `VentIQ` | SGP41 VOC/NOx | IR surface temperature, SPS30 PM (connectors only) |
+| S360-300 | Sense360 LED | `LED` | WS2812B LED ring | — |
+| S360-310 | Sense360 Relay | `FanRelay` | On/off relay for bathroom fans | — |
+| S360-311 | Sense360 PWM | `FanPWM` | 12 V PWM fan driver, up to 4 fans with tach | — |
+| S360-312 | Sense360 DAC | `FanDAC` | 0–10 V analog fan driver (GP8403) | — |
+| S360-320 | Sense360 TRIAC | `FanTRIAC` | Phase dimmer for mains fan or lamp | — |
+| S360-400 | Sense360 240v PSU | `PWR` (power) | Mains to 5 V (HLK-5M05) | — |
+| S360-410 | Sense360 PoE PSU | `POE` (power) | PoE to 5 V | — |
+
+`USB` (power token) is USB-C power direct to the Core; it is not a separate
+board SKU.
+
+When reading or writing anything about a board, keep these layers distinct
+and never collapse them:
+
+1. **Board/SKU identity** — the row above.
+2. **Production population** — what is actually fitted on the PCB
+   (per-board evidence lives under `docs/hardware/`).
+3. **Connector capability** — what the board *can* accept externally.
+   A connector is not a fitted part.
+4. **Bundle contents** — what a commercial bundle actually includes
+   (owned by SOT, not this repo).
+5. **Firmware driver compiled** — what the firmware builds in. Compiled
+   drivers can drift from the catalog (see *Known firmware/catalog drift*
+   below); a compiled driver is not proof of physical hardware.
+6. **Customer functionality exposed** — entities actually surfaced
+   (see [`config/feature-entity-matrix.json`](../config/feature-entity-matrix.json)).
+7. **Lifecycle / release state** — see *Lifecycle and release state* below.
+8. **Hardware-validation status** — `schematic_status` per catalog entry
+   and the evidence records under `docs/hardware/`; a build or release is
+   not hardware verification.
+
+## Config-string grammar
+
+WebFlash describes a device by chaining slot tokens
+(full contract: [`docs/webflash-contract.md`](webflash-contract.md) §2–§3,
+snapshot: [`config/webflash-compatibility.json`](../config/webflash-compatibility.json)):
 
 ```text
-Ceiling-POE-VentIQ-RoomIQ
+{Mount}-{Power}-[AirIQ|VentIQ]-[FanRelay|FanPWM|FanDAC|FanTRIAC]-[RoomIQ]-[LED]
 ```
 
-| Slot | Value | Meaning |
-|------|-------|---------|
-| Mount | `Ceiling` | Flush ceiling-mount Core board |
-| Power | `POE` | IEEE 802.3af Power-over-Ethernet |
-| Air Quality | `VentIQ` | Vent/bathroom-focused air-quality module |
-| Room Sense | `RoomIQ` | Comfort + presence sensing |
-
-The matching ESPHome product YAML is
-[`products/sense360-ceiling-poe-ventiq-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-roomiq.yaml).
-
-The matching firmware artifact published by CI is:
-
-```text
-Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
-```
-
-> **FanTRIAC excluded from production Release-One** while HW-005 is open.
-> The Sense360 TRIAC (`S360-320`) slot is blocked because the schematic is
-> not committed, the placeholder GPIO5/GPIO6 substitutions collide with
-> RoomIQ J10 nets, and ESPHome's `ac_dimmer` requires direct
-> interrupt-capable ESP32 GPIOs that the SX1509 expander cannot provide.
-> The FanTRIAC product YAML
-> ([`products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml`](../products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml))
-> remains in the repo as a blocked / reference file but is NOT in the
-> WebFlash build matrix. See
-> [`docs/release-one-hardware-audit.md#fantriac-mapping-resolution` (archived)](archive-index.md).
-
-See [Build Output Contract](#build-output-contract) below.
-
-## WebFlash Taxonomy
-
-WebFlash describes a device by chaining slot values into a config string:
-
-```text
-{Mount}-{Power}-{AirQuality}-{Fan}-{Room}
-```
-
-| Slot | Allowed Values |
+| Slot | Allowed values |
 |------|----------------|
 | Mount | `Ceiling` |
 | Power | `USB`, `POE`, `PWR` |
-| Air Quality | `AirIQ`, `VentIQ` (mutually exclusive) |
-| Fan Driver | `FanRelay`, `FanPWM`, `FanDAC`, `FanTRIAC` (firmware-distinct, not interchangeable) |
-| Room Sense | `RoomIQ` |
+| Air quality | `AirIQ`, `VentIQ` (mutually exclusive — same module slot) |
+| Fan driver | `FanRelay`, `FanPWM`, `FanDAC`, `FanTRIAC` (max one; firmware-distinct) |
+| Room sense | `RoomIQ` |
+| Indicator | `LED` |
 
-Any config string from WebFlash maps 1:1 to a product YAML in
-[`products/`](../products/) and a published `.bin` asset on the matching GitHub Release.
+Module order is fixed; skip slots that do not apply. Token capitalization is
+case-sensitive and the ordering is canonical — do not reorder, abbreviate, or
+invent tokens.
 
-## Sensor & Driver Modules
+## Compatibility rules
 
-### RoomIQ — Room Sensing (Comfort + Presence)
+Machine-readable in
+[`config/webflash-compatibility.json`](../config/webflash-compatibility.json)
+and enforced by [`tests/validate_webflash_builds.py`](../tests/validate_webflash_builds.py)
+and [`tests/test_taxonomy_terminology.py`](../tests/test_taxonomy_terminology.py):
 
-Combines climate, light, and presence detection used to drive room-level
-automations (lighting, HVAC, occupancy).
+1. **`AirIQ` and `VentIQ` are mutually exclusive.** They occupy the same
+   air-quality module slot; a device runs one or the other, never both.
+2. **`RoomIQ` is independent.** It may accompany either air-quality module
+   or ship without one.
+3. **Fan driver variants are distinct products and distinct firmware.**
+   `FanRelay`, `FanPWM`, `FanDAC`, and `FanTRIAC` each produce a separate
+   binary; they are not interchangeable at runtime, and the generic `Fan`
+   token is forbidden.
+4. **`FanDAC` conflicts with `AirIQ`/`VentIQ` at I²C `0x59`.** The GP8403
+   IC2 default collides with the SGP41; `0x59` is forbidden when an
+   air-quality module is present (`FANDAC-I2C-ADDR-001`, pending bench).
+   See the address policy in the compatibility snapshot for the single
+   documented advanced/manual exception.
+5. **External attachments are not inherent board components.** A config
+   string names boards, not attachments. Connector-supported parts —
+   SPS30 (connector), SFA40 (connector), IR temperature (connector) —
+   are present only when explicitly declared for a bundle or fitted by
+   the user.
 
-| Sensor | Measurements |
-|--------|--------------|
-| SHT4x | Temperature, Humidity |
-| VEML7700 / LTR-303 | Ambient Light (lux) |
-| HLK-LD2450 | mmWave presence, multi-target tracking, zone sensing |
+## Boards vs bundles vs YAML layers
 
-**Best for:** Living rooms, bedrooms, offices — any room needing climate, light, and occupancy.
+- **Board package** (`packages/boards/`) — authoritative firmware definition
+  for one SKU.
+- **Bundle** (`products/bundles/`) — one YAML per WebFlash config string,
+  assembling boards + base infrastructure + feature profiles. Bundle
+  filenames are the lowercase config string.
+- **Shim** (`products/sense360-*.yaml`) — thin customer include paths that
+  `!include` the bundle. Customers pin these at release tags; they are never
+  renamed or deleted.
+- **WebFlash wrapper** (`products/webflash/`) — thin re-exports the release
+  workflow consumes.
+- **Commercial bundles** (what a customer buys in a kit) are a different
+  thing from YAML bundles: commercial bundle/kit truth is owned by
+  [`sense360store/SOT`](https://github.com/sense360store/SOT), with the
+  repo-local kit declarations in
+  [`config/room-bundle-skus.json`](../config/room-bundle-skus.json) and
+  [`config/kit-intent-matrix.json`](../config/kit-intent-matrix.json).
 
-### AirIQ — General Air Quality
+See [`docs/system-architecture.md`](system-architecture.md) for the full
+board / bundle / alias / shim layering.
 
-Comprehensive air quality monitoring for living spaces.
+## Lifecycle and release state
 
-| Sensor | Measurements |
-|--------|--------------|
-| SPS30 | PM1.0, PM2.5, PM4.0, PM10 |
-| SGP41 | VOC Index, NOx Index |
-| SCD41 | CO2, Temperature, Humidity |
-| BMP390 | Barometric Pressure |
+**A valid config string is not a released product.** Capability (a YAML that
+composes and compiles) and release state are different layers:
 
-**Best for:** Living rooms, bedrooms, home offices, workshops.
+- [`config/product-catalog.json`](../config/product-catalog.json) records
+  lifecycle status per configuration (`production`, `preview`,
+  `compile-only`, `hardware-pending`, `blocked`, `legacy-compatible`,
+  `deprecated`, `removed`).
+- [`config/webflash-builds.json`](../config/webflash-builds.json) is the
+  declaration-driven release matrix (ESP-007): releases ship **only** what
+  it declares, on the channel it declares (`stable`, `preview`, `beta`,
+  `experimental`). Many product YAMLs in this repo have **no** published
+  artifact at the current tag, and preview/experimental artifacts are
+  firmware-build proof only — never hardware, bench, compliance, or
+  commercial-availability proof.
+- The production stable customer baseline is config string
+  `Ceiling-POE-VentIQ-RoomIQ` (the configuration shipped by the
+  **Release-One** programme — see *Naming history* below). The standing
+  gates in [`docs/standing-invariants.md`](standing-invariants.md) govern
+  what may ever change channel: fan configs never ship stable, and FanTRIAC
+  lives in the experimental self-build lane only (never stable, recommended,
+  default, buyable, or kit-exposed; `TRIAC-COMMISSIONING-001` — any FanTRIAC
+  status change is human-review only).
 
-> **AirIQ and VentIQ are mutually exclusive** — pick one per device.
+## Known firmware/catalog drift (tracked, do not restate as fact)
 
-### VentIQ — Vent / Bathroom Air Quality
+Compiled firmware currently drifts from the hardware catalog in three
+places. These are open reconciliation items — current docs must present the
+catalog identity as truth and may mention the drifted part only as drift:
 
-Vent-and-humidity-focused air-quality module. Optimized for bathrooms, laundry
-rooms, and other high-humidity zones with shower/odor/mold detection.
+| Catalog truth | Compiled today (drift) | Tracking |
+|---------------|------------------------|----------|
+| RoomIQ light sensor LTR-303ALS | VEML7700 driver (legacy) | `ENTITY-RECONCILE-200-ALS-001` (owner decision pending) |
+| No pressure part on AirIQ/VentIQ (BMP581 is RoomIQ hardware) | BMP390 driver (legacy) compiled in AirIQ/VentIQ packages | roadmap drift records; disposition owner-only |
+| AirIQ SFA40 fitment (connector per catalog; on-board U2 per schematic/BOM) | — | `HW-PINMAP-210-FOLLOWUP` (owner decision pending) |
 
-| Variant | Sensors | Features |
-|---------|---------|----------|
-| Base | SHT4x, BMP390, SGP41 | Shower detection, mold-risk tracking, odor detection |
-| Pro | + MLX90614, SPS30 | + IR surface temperature, condensation risk, PM monitoring |
+See [`docs/sense360-roadmap-status.md`](sense360-roadmap-status.md) for the
+live drift records.
 
-**Best for:** Bathrooms, laundry rooms, shower rooms.
+## Current customer-facing names
 
-> **VentIQ replaces AirIQ** in the bathroom-focused taxonomy. They share the I2C
-> bus and overlap in sensors — only one can be active per device.
+Use the **friendly names** from the table above, verbatim, in all new
+customer-facing text: `Sense360 Core`, `Sense360 RoomIQ`, `Sense360 AirIQ`,
+`Sense360 VentIQ`, `Sense360 LED`, `Sense360 Relay`, `Sense360 PWM`,
+`Sense360 DAC`, `Sense360 TRIAC`, `Sense360 240v PSU`, `Sense360 PoE PSU`.
+Use `Ceiling`, never `Celling` (legacy typo, quoted only in evidence
+records).
 
-### Fan Driver Modules
+## Naming history and legacy-name compatibility policy
 
-Fan output is **firmware-distinct** — the driver variants are not
-interchangeable at runtime. You pick one when you flash:
+**Release-One** is the name of the **initial release programme** — the
+programme that shipped the first production stable configuration
+(`Ceiling-POE-VentIQ-RoomIQ`, first artifact
+`Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin`). The name remains
+correct in historical records, release evidence, and the standing
+invariants that reference that baseline. It is **not** the name of the
+product taxonomy or platform architecture: current wording should say
+"the current production stable configuration" (per
+[`config/product-catalog.json`](../config/product-catalog.json) /
+[`config/webflash-builds.json`](../config/webflash-builds.json)) rather than
+treating "Release-One" as a permanent product model.
 
-| Module | Output | Typical Use |
-|--------|--------|-------------|
-| `FanRelay` | Mechanical/SSR relay (ON/OFF) | Single-speed extractor fans |
-| `FanPWM` | 25 kHz PWM duty cycle | 4-pin PC fans, EC motors with PWM input |
-| `FanDAC` | 0–10 V analog (GP8403) | Commercial HVAC, EC motors with 0–10 V input |
-| `FanTRIAC` | Phase-cut TRIAC (AC dimming) | Standard AC ceiling/extractor fans |
+Earlier vocabularies map to the current taxonomy as follows. These legacy
+terms are **read-time compatibility only** — they must not drive new
+product design, new filenames, new artifacts, or new customer copy:
 
-> **TRIAC is not interchangeable with Relay/PWM/DAC.** Each variant produces a
-> separate firmware binary because the GPIO + driver code differ.
+| Legacy term | Current term | Where the legacy form legitimately survives |
+|-------------|--------------|----------------------------------------------|
+| Comfort | **RoomIQ** (climate + light half) | `packages/expansions/comfort_*.yaml` alias filenames, ESPHome entity ids |
+| Presence | **RoomIQ** (mmWave half) | `packages/expansions/presence_*.yaml` alias filenames, entity ids |
+| Bathroom / Bathroom Pro / BathroomAirIQ | **VentIQ** | `packages/expansions/airiq_bathroom_*.yaml` alias filenames; catalog `old_name` |
+| AirIQ Base / AirIQ Pro / AirIQProv | **AirIQ** (single SKU) | forbidden-token mapping tables, read-time aliases |
+| VentIQ Base / VentIQ Pro | **VentIQ** (single SKU; attachments named explicitly) | legacy alias filenames only |
+| Fan (generic) | **FanRelay / FanPWM / FanDAC / FanTRIAC** | forbidden-token mapping tables |
+| FanAnalog | **FanDAC** | forbidden-token mapping tables |
+| Mini / Wall / Desk variants | *retired* — not in the current product line | tag-pinned legacy releases (`PRODUCT-DEP-MINI-001`); historical docs |
 
-## Mount and Power
+The enforcement policy — which terms are forbidden where, and which paths
+legitimately keep legacy vocabulary — is machine-readable in
+[`config/legacy-term-allowlist.json`](../config/legacy-term-allowlist.json)
+and enforced by
+[`tests/test_taxonomy_terminology.py`](../tests/test_taxonomy_terminology.py).
 
-| Slot | Value | Notes |
-|------|-------|-------|
-| Mount | `Ceiling` | Release-one ships ceiling mount only |
-| Power | `USB` | 5 V USB-C, dev/portable |
-| Power | `POE` | IEEE 802.3af, single-cable installs |
-| Power | `PWR` | 100–240 V AC mains (HLK-PM01) |
+## Build output contract
 
-## Compatibility Rules
-
-These rules apply to every WebFlash config string and every product YAML:
-
-1. **`AirIQ` and `VentIQ` are mutually exclusive.** A device runs one or the
-   other, never both.
-2. **`VentIQ` is the bathroom-focused air-quality module.** Use it for
-   bathroom/laundry/shower environments.
-3. **`RoomIQ` can be combined with either `AirIQ` or `VentIQ`.** It carries
-   comfort and presence sensing and is independent of the air-quality slot.
-4. **Fan driver variants are firmware-distinct.** `FanRelay`, `FanPWM`,
-   `FanDAC`, and `FanTRIAC` each produce a separate firmware binary.
-5. **`FanTRIAC` is not interchangeable with `FanRelay`, `FanPWM`, or `FanDAC`.**
-   The GPIO routing and driver code differ; flashing the wrong driver will not
-   control the fan correctly and may damage the load.
-
-## Build Output Contract
-
-CI in this repo publishes WebFlash-compatible `.bin` assets named:
+CI publishes unsigned WebFlash-compatible `.bin` assets named:
 
 ```text
 Sense360-{CONFIG_STRING}-v{VERSION}-{CHANNEL}.bin
 ```
 
-Where:
+The mapping from product YAML to artifact name is implemented in
+[`scripts/product_name_mapper.py`](../scripts/product_name_mapper.py),
+declared in [`config/webflash-builds.json`](../config/webflash-builds.json),
+validated by [`tests/validate_webflash_builds.py`](../tests/validate_webflash_builds.py),
+and consumed by
+[`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml).
+This repo does **not** sign firmware; WebFlash is the production signing /
+manifest / flash authority and the authority for config-string grammar and
+artifact naming (see [`docs/webflash-contract.md`](webflash-contract.md)).
 
-| Field | Source | Example |
-|-------|--------|---------|
-| `CONFIG_STRING` | WebFlash slot chain | `Ceiling-POE-VentIQ-RoomIQ` |
-| `VERSION` | Release tag (`v` stripped) | `1.0.0` |
-| `CHANNEL` | `stable`, `preview`, or `beta` | `stable` |
+## See also
 
-Example for Release-One:
-
-```text
-Sense360-Ceiling-POE-VentIQ-RoomIQ-v1.0.0-stable.bin
-```
-
-The mapping from product YAML → WebFlash filename is implemented in
-[`scripts/product_name_mapper.py`](../scripts/product_name_mapper.py) and exercised
-by [`.github/workflows/firmware-build-release.yml`](../.github/workflows/firmware-build-release.yml).
-
-The same mapping is published as machine-readable JSON in
-[`config/webflash-builds.json`](../config/webflash-builds.json), validated against
-the contract snapshot at
-[`config/webflash-compatibility.json`](../config/webflash-compatibility.json) by
-[`tests/validate_webflash_builds.py`](../tests/validate_webflash_builds.py).
-
-> **Signing:** This repo does **not** sign firmware. WebFlash remains the
-> production signing/deployment authority and consumes the unsigned `.bin`
-> assets attached to GitHub releases.
-
-## Legacy Terminology
-
-Earlier versions of this repo used a different vocabulary. The mapping to the
-current WebFlash taxonomy is:
-
-| Legacy term | Current term | Notes |
-|-------------|--------------|-------|
-| Comfort | **RoomIQ** (climate + light half) | Folded into RoomIQ |
-| Presence | **RoomIQ** (mmWave half) | Folded into RoomIQ |
-| Bathroom | **VentIQ** | Same module, renamed |
-| Fan (generic) | **FanRelay / FanPWM / FanDAC / FanTRIAC** | Split into firmware-distinct drivers |
-| Mini / Wall variants | _Not in Release-One_ | Older form factors not part of release one |
-
-Files under `packages/expansions/` still carry legacy filenames
-(`comfort_*.yaml`, `airiq_bathroom_*.yaml`) for backwards compatibility — the
-product YAML, WebFlash taxonomy, and this document are the source of truth for
-naming going forward.
-
-## See Also
-
-- [WebFlash Compatibility Contract](webflash-contract.md) — artifact naming,
-  config-string grammar, release-body format (authoritative contract text).
-- [Product Matrix](product-matrix.md) — complete slot/module reference.
-- [Hardware Catalog](hardware-catalog.md) — canonical board names, SKUs,
-  revisions, legacy names.
-- [Getting Started](getting-started.md) — flash or adopt the firmware.
+- [`docs/webflash-contract.md`](webflash-contract.md) — the cross-repo
+  contract (artifact naming, grammar, release-body format).
+- [`docs/hardware-catalog.md`](hardware-catalog.md) — canonical board
+  names, SKUs, revisions, legacy names, schematic status.
+- [`docs/standing-invariants.md`](standing-invariants.md) — standing
+  release gates.
+- [`docs/system-architecture.md`](system-architecture.md) — YAML layering.
+- [`docs/product-matrix.md`](product-matrix.md) — legacy long-form hardware
+  reference (contains retired products; see its status banner).
+- [`docs/getting-started.md`](getting-started.md) — flash or adopt the
+  firmware.
