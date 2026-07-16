@@ -34,7 +34,16 @@ repos:
       - id: yamllint
         args:
           - --format=parsable
-          - --config-data={extends: default, rules: {line-length: {max: 120}, comments: {min-spaces-from-content: 1}, document-start: disable, truthy: {check-keys: false}}}
+          # Quoted: the scalar contains ": " pairs, which PyYAML otherwise
+          # rejects ("mapping values are not allowed here") — unquoted it
+          # breaks `pre-commit validate-config` and every pre-commit run.
+          # The single-quoted scalar is folded across lines; each line break
+          # folds to exactly one space, so the argument string is unchanged.
+          - '--config-data={extends: default,
+            rules: {line-length: {max: 120},
+            comments: {min-spaces-from-content: 1},
+            document-start: disable,
+            truthy: {check-keys: false}}}'
         files: \.(yaml|yml)$
 
   # Python code formatting

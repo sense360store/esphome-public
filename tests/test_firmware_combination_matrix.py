@@ -136,18 +136,31 @@ class FirmwareMatrixGeneratorTests(unittest.TestCase):
         )
         self.assertTrue(row.get("artifact_name", "").endswith("-preview.bin"))
 
-    def test_promoted_room_bundles_are_webflash_shipping(self):
-        # STABLE-PROMOTION-RECONCILE-001: Bedroom (v1.0.5) and Kitchen (v1.0.6)
-        # were promoted to the stable channel under owner waivers, so the
-        # matrix must classify both webflash-shipping with stable artifacts.
-        for cs in ("Ceiling-POE-AirIQ-RoomIQ", "Ceiling-POE-RoomIQ"):
-            with self.subTest(config_string=cs):
-                row = self.by_config[cs]
-                self.assertEqual(row["status"], "webflash-shipping")
-                self.assertEqual(
-                    row.get("artifact_name"), self._builds_artifact(cs)
-                )
-                self.assertTrue(row.get("artifact_name", "").endswith("-stable.bin"))
+    def test_promoted_room_bundles_match_declared_channels(self):
+        # STABLE-PROMOTION-RECONCILE-001 promoted Bedroom (v1.0.5) to the
+        # stable channel under an owner waiver, so the matrix must classify
+        # it webflash-shipping with a stable artifact. Kitchen
+        # (Ceiling-POE-AirIQ-RoomIQ) was subsequently kept on the preview
+        # channel (PR #834, "Keep AirIQ RoomIQ build on preview channel":
+        # the owner waiver is not hardware verification and must not cut a
+        # stable build), so the matrix must classify it webflash-preview
+        # with a preview artifact. Both rows mirror the authoritative
+        # channel in config/webflash-builds.json.
+        bedroom = self.by_config["Ceiling-POE-RoomIQ"]
+        self.assertEqual(bedroom["status"], "webflash-shipping")
+        self.assertEqual(
+            bedroom.get("artifact_name"),
+            self._builds_artifact("Ceiling-POE-RoomIQ"),
+        )
+        self.assertTrue(bedroom.get("artifact_name", "").endswith("-stable.bin"))
+
+        kitchen = self.by_config["Ceiling-POE-AirIQ-RoomIQ"]
+        self.assertEqual(kitchen["status"], "webflash-preview")
+        self.assertEqual(
+            kitchen.get("artifact_name"),
+            self._builds_artifact("Ceiling-POE-AirIQ-RoomIQ"),
+        )
+        self.assertTrue(kitchen.get("artifact_name", "").endswith("-preview.bin"))
 
     def test_every_webflash_build_appears_in_matrix(self):
         builds = self.builds.get("builds", []) or []
