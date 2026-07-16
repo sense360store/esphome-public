@@ -178,24 +178,24 @@
       "config_string": "Ceiling-POE-AirIQ-RoomIQ",
       "yaml_path": "products/sense360-ceiling-poe-airiq-roomiq.yaml",
       "webflash_wrapper": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
-      "channel_tier": "stable",
-      "build_channel": "stable",
+      "channel_tier": "preview",
+      "build_channel": "preview",
       "version": "1.0.9",
-      "expected_artifact_name": "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-stable.bin",
-      "is_preview_target": false,
+      "expected_artifact_name": "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-preview.bin",
+      "is_preview_target": true,
       "is_fan": false,
       "is_triac": false,
       "delivery_lane": "webflash",
       "webflash_import_eligibility": {
         "eligible": true,
         "exposure_class": "acknowledgement-gated",
-        "reason": "SELV AirIQ + RoomIQ combination; promoted to stable v1.0.6 (2026-06-09) under owner risk-acceptance waiver HW-AIRIQ-WAIVER-2026-06. AirIQ/VentIQ remain mutually exclusive."
+        "reason": "SELV AirIQ + RoomIQ combination; kept on the preview channel because owner risk-acceptance waiver HW-AIRIQ-WAIVER-2026-06. AirIQ/VentIQ remain mutually exclusive."
       },
-      "publication_status": "published-stable",
-      "warning_copy_required": false,
-      "warning_copy_key": null,
-      "release_note_warning": null,
-      "stable_blocker": null,
+      "publication_status": "webflash-preview-metadata-ready",
+      "warning_copy_required": true,
+      "warning_copy_key": "preview",
+      "release_note_warning": "PREVIEW FIRMWARE — buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
+      "stable_blocker": "Released under owner risk-acceptance HW-AIRIQ-WAIVER-2026-06. AirIQ sensor-stack bench accuracy (SPS30, SGP41, SCD41, BMP390) not verified. Owner risk-acceptance, not hardware verification. S360-410 PoE PSU covered by HW-S360-410-WAIVER-2026-06.",
       "build_blocker": null,
       "recommended": false,
       "customer_default": false,
@@ -206,7 +206,7 @@
       "consuming_bundles": [
         "S360-KIT-KITCHEN-P"
       ],
-      "notes": "Promoted to stable v1.0.6 (GitHub Release v1.0.6, 2026-06-09) under owner risk-acceptance waiver HW-AIRIQ-WAIVER-2026-06: AirIQ sensor-stack bench accuracy (SPS30, SGP41, SCD41, BMP390) is NOT verified and the S360-410 PoE PSU is covered by HW-S360-410-WAIVER-2026-06. Owner waiver, not hardware verification. The catalog entry is status production / channel stable and the config/webflash-builds.json row is channel stable, artifact Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-stable.bin. The S360-KIT-KITCHEN-P bundle stays hidden / not buyable / not recommended / not a customer default. History: RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added the original preview build row with hosted-compile evidence (run 26821900127); the products/webflash wrapper (RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001) is recorded in webflash_wrapper."
+      "notes": "Kept on the preview channel under owner risk-acceptance waiver HW-AIRIQ-WAIVER-2026-06: AirIQ sensor-stack bench accuracy (SPS30, SGP41, SCD41, BMP390) is NOT verified and the S360-410 PoE PSU is covered by HW-S360-410-WAIVER-2026-06. Owner waiver, not hardware verification. The catalog entry is status preview / channel preview and the config/webflash-builds.json row is channel preview, artifact Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-preview.bin. The S360-KIT-KITCHEN-P bundle stays hidden / not buyable / not recommended / not a customer default. History: RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added the original preview build row with hosted-compile evidence (run 26821900127); the products/webflash wrapper (RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001) is recorded in webflash_wrapper."
     },
     {
       "target_id": "ceiling-poe-roomiq-preview",

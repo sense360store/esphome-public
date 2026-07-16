@@ -50,9 +50,13 @@
     {
       "config_string": "Ceiling-POE-AirIQ-RoomIQ",
       "product_yaml": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
-      "artifact_name": "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-stable.bin",
-      "channel": "stable",
-      "channel_tier": "stable",
+      "artifact_name": "Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-preview.bin",
+      "channel": "preview",
+      "channel_tier": "preview",
+      "webflash_exposure_class": "acknowledgement-gated",
+      "warning_copy_key": "preview",
+      "release_note_warning": "PREVIEW FIRMWARE — buildable and installable for testers only. This build is NOT hardware verified, NOT stable, NOT recommended, and NOT a customer default. No bench evidence and no compliance is claimed. Flash at your own risk and expect to recover with the rescue/stable firmware.",
+      "release_state": "metadata-ready-unpublished",
       "stable_blocker": "Released under owner risk-acceptance HW-AIRIQ-WAIVER-2026-06. AirIQ sensor-stack bench accuracy (SPS30, SGP41, SCD41, BMP390) not verified. Owner risk-acceptance, not hardware verification. S360-410 PoE PSU covered by HW-S360-410-WAIVER-2026-06.",
       "version": "1.0.9",
       "chip_family": "ESP32-S3",
@@ -76,7 +80,7 @@
         "buyable": false,
         "recommended": false,
         "customer_default": false,
-        "stable": true,
+        "stable": false,
         "release_one_required_config": false
       },
       "compile_evidence": {
@@ -100,7 +104,7 @@
           "customer-availability"
         ]
       },
-      "notes": "Kitchen PoE AirIQ + RoomIQ build row, added on the preview channel by RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 and now promoted to the stable channel at version 1.0.6 so Create Release can cut a stable build. Stable promotion is authorised by owner waiver HW-AIRIQ-WAIVER-2026-06 (owner risk-acceptance, NOT hardware verification): AirIQ sensor-stack bench accuracy (SPS30, SGP41, SCD41, BMP390) is not verified, and the S360-410 PoE PSU stays covered by HW-S360-410-WAIVER-2026-06. The S360-KIT-KITCHEN-P bundle stays hidden / not buyable; NOT recommended, NOT a customer default, NOT in release_one_required_configs; commercial_posture buyable / recommended / customer_default / visibility stay owner-decided and were not flipped here. No hardware / bench / compliance proof is claimed."
+      "notes": "Kitchen PoE AirIQ + RoomIQ build row, added on the preview channel by RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 and kept on the preview channel at version 1.0.9 because the owner waiver is not hardware verification and must not cut a stable build. Stable promotion remains blocked by HW-AIRIQ-WAIVER-2026-06 (owner risk-acceptance, NOT hardware verification): AirIQ sensor-stack bench accuracy (SPS30, SGP41, SCD41, BMP390) is not verified, and the S360-410 PoE PSU stays covered by HW-S360-410-WAIVER-2026-06. The S360-KIT-KITCHEN-P bundle stays hidden / not buyable; NOT recommended, NOT a customer default, NOT in release_one_required_configs; commercial_posture buyable / recommended / customer_default / visibility stay owner-decided and were not flipped here. No hardware / bench / compliance proof is claimed."
     },
     {
       "config_string": "Ceiling-POE-RoomIQ",

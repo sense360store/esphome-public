@@ -1,5 +1,5 @@
 # ============================================================================
-# Sense360 WebFlash wrapper — Kitchen PoE AirIQ + RoomIQ (STABLE, owner waiver).
+# Sense360 WebFlash wrapper — Kitchen PoE AirIQ + RoomIQ (PREVIEW, stable-blocked).
 # ============================================================================
 # This file is the WebFlash-namespaced wrapper for the Kitchen PoE AirIQ +
 # RoomIQ bundle. It is a thin wrapper that re-exports the canonical product
@@ -11,18 +11,18 @@
 #   (a compat shim over products/bundles/ceiling-poe-airiq-roomiq.yaml)
 #
 # WebFlash config string : Ceiling-POE-AirIQ-RoomIQ
-# Channel / version      : stable; the live version + artifact name are
+# Channel / version      : preview; the live version + artifact name are
 #                          declared in config/webflash-builds.json (the sole
 #                          release-eligibility source of truth).
 #
 # ============================================================================
 # STATUS
 # ============================================================================
-#   * STABLE under an owner risk-acceptance waiver (HW-AIRIQ-WAIVER-2026-06),
-#     promoted from preview at v1.0.6 (2026-06-09). The waiver records risk
-#     acceptance, NOT hardware verification: AirIQ sensor-stack bench accuracy
-#     (SPS30, SGP41, SCD41, BMP390) is not verified, and the S360-410 PoE PSU
-#     is covered by HW-S360-410-WAIVER-2026-06.
+#   * PREVIEW only and NOT stable. Owner risk-acceptance waiver
+#     HW-AIRIQ-WAIVER-2026-06 records risk acceptance, NOT hardware
+#     verification: AirIQ sensor-stack bench accuracy (SPS30, SGP41, SCD41,
+#     BMP390) is not verified, and the S360-410 PoE PSU is covered by
+#     HW-S360-410-WAIVER-2026-06.
 #   * NOT recommended, NOT a customer default, NOT buyable. The Release-One
 #     customer baseline stays Ceiling-POE-VentIQ-RoomIQ; the S360-KIT-KITCHEN-P
 #     bundle stays hidden / not buyable.
@@ -33,8 +33,9 @@
 # History: authored as a preview candidate by
 # RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001 (hosted compile proof: run
 # 26821900127); the reviewed preview build row was added by
-# RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001; promoted to stable v1.0.6 under the
-# owner waiver (see config/product-catalog.json stable_blocker text).
+# RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001; kept on the preview channel because
+# the owner waiver is not hardware verification (see config/product-catalog.json
+# stable_blocker text).
 # See docs/webflash-contract.md for the WebFlash artifact / grammar / token
 # contract this wrapper satisfies.
 # ============================================================================

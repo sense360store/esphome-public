@@ -86,11 +86,11 @@ FAN_TOKENS = ("FanRelay", "FanPWM", "FanDAC")
 # config.
 STABLE_CONFIGS_TODAY = {
     STABLE_CONFIG,
-    "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
 }
 PREVIEW_CONFIGS_TODAY = {
     LED_CONFIG,
+    "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ-LED",
     "Ceiling-POE-FanPWM",
     "Ceiling-POE-AirIQ-FanPWM-RoomIQ",
