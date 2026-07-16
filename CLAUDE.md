@@ -42,6 +42,98 @@ Before any cross-repository work, Claude Code must read
   [`docs/standing-invariants.md`](docs/standing-invariants.md) remain
   authoritative for repository-internal engineering rules.
 
+### Bounded agent autonomy (AGENT-BOUNDED-AUTONOMY-001)
+
+This repository **adopts AGENT-BOUNDED-AUTONOMY-001**, the bounded agent
+autonomy contract defined in the *AGENT-BOUNDED-AUTONOMY-001: bounded
+autonomy* section of
+[`sense360store/SOT/CLAUDE-OPERATING-MODEL.md`](https://github.com/sense360store/SOT/blob/main/CLAUDE-OPERATING-MODEL.md).
+SOT owns the contract and all programme-level authority. Adoption
+provenance: verified against SOT `main` commit
+[`387cabf44a79dfe03d6c7959ec4e3d012c295647`](https://github.com/sense360store/SOT/commit/387cabf44a79dfe03d6c7959ec4e3d012c295647)
+(contract present; `programme_status: implemented`; esphome-public recorded
+as not yet adopted pending this adoption). The canonical link stays pointed
+at SOT `main`; the contract text is **not duplicated here**, and future
+tasks invoke it with the **canonical SOT invocation block** rather than
+restating its rules.
+
+This `CLAUDE.md` and
+[`docs/standing-invariants.md`](docs/standing-invariants.md) provide
+**repository-local tightening** on top of the SOT contract. Local rules may
+**tighten but never loosen** the SOT contract; where rules differ, the
+**stricter safety rule wins**; an authority conflict the SOT precedence
+rules cannot resolve ends the run as `BLOCKED_AUTHORITY_CONFLICT`, never a
+judgement call. Within an explicitly authorised task, agents **continue
+autonomously through routine repository-local engineering** until exactly
+one of the five named SOT terminal states is reached.
+
+**Autonomous within an authorised task** (the firmware-scoped instantiation
+of the SOT autonomous permissions): inspect source, configuration
+declarations, history, PRs, and CI; add or update source, documentation,
+and tests inside this repository's authority; run static validation, unit
+and contract tests; run deterministic simulation where authorised; run
+local compilation where authorised and available; inspect hosted compile
+results and existing release / distribution evidence; remediate every
+branch-caused test or CI failure; create and maintain one draft PR; and
+prepare a separate SOT reconciliation recommendation when implementation
+evidence materially changes programme state.
+
+**Never autonomous in this repository** (firmware tightening — each line
+restates or narrows, never widens, the SOT owner reservations; the standing
+gates below and `docs/standing-invariants.md` apply unchanged, and in
+particular Release-One (`Ceiling-POE-VentIQ-RoomIQ`) remains the production
+stable customer baseline):
+
+- merge any PR (including the agent's own draft PR);
+- create or publish a tag or GitHub Release;
+- dispatch any workflow that can publish, release, attach, or deploy
+  firmware — in particular `Release 3: Build & Release`
+  (`firmware-build-release.yml`) and the create-release workflow
+  (`create-release.yml`);
+- alter production release / channel / lifecycle posture merely because a
+  build compiles;
+- weaken or bypass provenance, checksum, secret, credential, signing,
+  compatibility, release, or install gates;
+- broaden firmware release discovery beyond the declaration-driven
+  [`config/webflash-builds.json`](config/webflash-builds.json) model
+  (ESP-007);
+- make Kitchen or Bedroom customer-default, buyable, or commercially
+  available;
+- make any fan configuration stable;
+- expose FanTRIAC as stable, recommended, default, buyable, or one-click;
+- author or amend operator attestations, dates, signatures, or physical
+  bench claims;
+- infer hardware population, sensor identity, pin correctness, supplied
+  attachments, or accuracy without the required evidence;
+- treat source inspection, simulation, or compilation as physical hardware,
+  customer, compliance, safety, or commercial proof;
+- change SOT programme status in this repository.
+
+**Read-only observation stays allowed**: agents may verify existing
+releases, tags, artifacts, served binaries, owner-authored decisions, and
+bench records. Observation never authorises mutation and never raises the
+evidence level; when reporting existing external evidence, cite its
+provenance and name the exact evidence level it proves.
+
+**Workflow distinction**: routine PR CI and validation inspection is
+autonomous; branch-caused CI remediation is autonomous; a non-publishing
+compile validation workflow may be dispatched only when the task explicitly
+authorises it and the workflow has no release or deployment side effect;
+any publishing or release-capable workflow remains owner-reserved.
+
+**Terminal states**: the five SOT terminal states apply exactly as defined
+in the SOT contract — `READY_FOR_OWNER_REVIEW`, `BLOCKED_OWNER_DECISION`,
+`BLOCKED_EXTERNAL_ACCESS`, `BLOCKED_AUTHORITY_CONFLICT`,
+`UNSAFE_TO_PROCEED` — and this repository defines no sixth local state. The
+conjunctive escalation rule is preserved unchanged: the owner may be
+interrupted only when **all four** SOT threshold conditions hold
+simultaneously.
+
+This adoption is governance text and its regression tests only: it changes
+no firmware, product YAML, configuration declaration, release workflow,
+version, manifest, binary, hardware record, product status, or commercial
+state.
+
 ## Sense360 hardware reference (canonical SKUs)
 
 The naming source of truth is
