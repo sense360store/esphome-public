@@ -246,6 +246,34 @@ class WorkflowPermissionTests(unittest.TestCase):
                 f"{name}: references 'pull_request_target' in workflow body.",
             )
 
+    def test_create_release_dispatch_is_default_branch_guarded(self) -> None:
+        data = self.parsed["create-release.yml"]
+        job = (data.get("jobs") or {}).get("create-release")
+        self.assertIsInstance(
+            job, dict, "create-release.yml: missing create-release job"
+        )
+
+        condition = str(job.get("if", ""))
+        self.assertIn(
+            "github.ref",
+            condition,
+            "create-release.yml: create-release job must guard workflow_dispatch "
+            "runs to the selected ref before any checkout or local script runs.",
+        )
+        self.assertIn(
+            "github.event.repository.default_branch",
+            condition,
+            "create-release.yml: create-release job must compare the selected "
+            "workflow_dispatch ref to the repository default branch, not a "
+            "hard-coded branch name.",
+        )
+        self.assertIn(
+            "refs/heads/{0}",
+            condition,
+            "create-release.yml: create-release job must compare against a full "
+            "refs/heads/<default_branch> ref so tag or PR refs cannot pass.",
+        )
+
     def test_no_write_all_permissions(self) -> None:
         for name, data in self.parsed.items():
             # Top-level
