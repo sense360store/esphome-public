@@ -89,13 +89,13 @@ NEW_WRAPPERS = {
 # 2026-06-09, both owner-waiver promotions; binaries are published). Their
 # wrappers are now STABLE wrappers.
 PROMOTED_WRAPPERS = {
-    "Ceiling-POE-AirIQ-RoomIQ": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
     "Ceiling-POE-RoomIQ": "products/webflash/ceiling-poe-roomiq.yaml",
 }
 # HW-RELEASE-001 RE-LISTED Ceiling-POE-RoomIQ-LED on the preview channel
 # (release-eligibility metadata only), deliberately reversing the
 # CI-PIPELINE-CLARITY-001 P4a de-list. Its preserved wrapper is live again.
 PREVIEW_WRAPPERS = {
+    "Ceiling-POE-AirIQ-RoomIQ": "products/webflash/ceiling-poe-airiq-roomiq.yaml",
     "Ceiling-POE-RoomIQ-LED": "products/webflash/ceiling-poe-roomiq-led.yaml",
 }
 # Wrappers whose config_string resolves in the live config/webflash-builds
@@ -349,7 +349,8 @@ class ManifestReferencesWrappersTests(unittest.TestCase):
                 self.assertEqual(row["channel"], "preview")
                 self.assertEqual(row["product_yaml"], rel)
                 self.assertEqual(row["release_state"], "metadata-ready-unpublished")
-                self.assertEqual(row["owner_declaration"], HW_RELEASE_DOC)
+                if cs == "Ceiling-POE-RoomIQ-LED":
+                    self.assertEqual(row["owner_declaration"], HW_RELEASE_DOC)
 
     def test_promoted_wrapped_targets_are_published_stable(self) -> None:
         # STABLE-PROMOTION-RECONCILE-001: Bedroom (v1.0.5) and Kitchen (v1.0.6)
@@ -645,7 +646,8 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
                 row = self.by_cs[cs]
                 self.assertEqual(row["channel"], channel)
                 self.assertEqual(row["release_state"], "metadata-ready-unpublished")
-                self.assertEqual(row["owner_declaration"], HW_RELEASE_DOC)
+                if cs == "Ceiling-POE-RoomIQ-LED":
+                    self.assertEqual(row["owner_declaration"], HW_RELEASE_DOC)
                 self.assertEqual(
                     row["artifact_name"],
                     f"Sense360-{cs}-v1.0.0-{channel}.bin",

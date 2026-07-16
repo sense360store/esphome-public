@@ -44,6 +44,7 @@ MANIFEST_PATH = REPO_ROOT / "config" / "preview-release-targets.json"
 # manual-preview targets, so they joined this dry-run scope.
 EXPECTED_IN_SCOPE = [
     "Ceiling-POE-VentIQ-RoomIQ-LED",
+    "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ-LED",
     "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
     "Ceiling-POE-FanPWM",
@@ -56,7 +57,7 @@ EXPECTED_IN_SCOPE = [
 ]
 EXCLUDED_TRIAC = "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
 STABLE_BASELINE = "Ceiling-POE-VentIQ-RoomIQ"
-PROMOTED_STABLE = ("Ceiling-POE-AirIQ-RoomIQ", "Ceiling-POE-RoomIQ")
+PROMOTED_STABLE = ("Ceiling-POE-RoomIQ",)
 
 
 def _load_script():

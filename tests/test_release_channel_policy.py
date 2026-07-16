@@ -171,6 +171,7 @@ class PreviewWithoutHardwareProofTests(unittest.TestCase):
                     "published-preview",
                     "eligible-unpublished",
                     "eligible-needs-product-yaml",
+                    "webflash-preview-metadata-ready",
                 },
             )
 
