@@ -148,5 +148,90 @@ class CoreBenchRuntimeEvidenceTests(unittest.TestCase):
             self.assertIn(check, self.text, f"missing bench check: {check!r}")
 
 
+class LedFunctionalEvidenceTests(unittest.TestCase):
+    """Guards for the attached S360-300 LED functional-evidence section."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        assert DOC_PATH.is_file(), f"missing {DOC_PATH}"
+        cls.text = DOC_PATH.read_text(encoding="utf-8")
+        cls.flat = re.sub(r"\s+", " ", cls.text)
+        marker = "## Attached S360-300 LED functional evidence"
+        assert marker in cls.text, "missing LED functional evidence section"
+        cls.led = cls.text.split(marker, 1)[1]
+        cls.led_flat = re.sub(r"\s+", " ", cls.led)
+
+    def test_identifies_led_board_package(self) -> None:
+        self.assertIn("packages/boards/s360-300-led.yaml", self.led)
+
+    def test_records_gpio38_data_pin(self) -> None:
+        self.assertIn("GPIO38", self.led)
+
+    def test_records_twelve_leds(self) -> None:
+        self.assertIn("12 LEDs", self.led)
+
+    def test_records_grb_as_configured_firmware_order(self) -> None:
+        self.assertIn("GRB", self.led)
+        self.assertIn("GRB is the configured firmware order", self.led_flat)
+
+    def test_records_room_light_entity(self) -> None:
+        self.assertIn("Room Light", self.led)
+
+    def test_records_logged_on_off_command_cycles(self) -> None:
+        self.assertIn("two successful logged ON/OFF command cycles", self.led_flat)
+
+    def test_records_owner_observed_physical_operation(self) -> None:
+        self.assertIn("owner-supplied observation", self.led)
+        self.assertIn("physical LED ring illuminated", self.led_flat)
+        self.assertIn('the owner reports the LED as "fully working"', self.led_flat)
+        self.assertIn("owner reports RGB colour control worked", self.led_flat)
+
+    def test_led_functional_evidence_pass(self) -> None:
+        self.assertIn(
+            "PASS — canonical S360-300 LED package physical functional "
+            "operation observed",
+            self.led_flat,
+        )
+
+    def test_full_brightness_not_a_thermal_or_safety_claim(self) -> None:
+        self.assertIn(
+            "It is not a thermal or electrical-safety conclusion", self.led_flat
+        )
+        # Safety wording may appear only inside the explicit not-proven
+        # disclaimers, never as an affirmative claim.
+        self.assertIn(
+            "that 100% brightness is thermally or electrically safe",
+            self.led_flat,
+        )
+        self.assertIn("does not establish a maximum safe brightness", self.led_flat)
+        lower = self.led_flat.lower()
+        for phrase in ("proven safe", "confirmed safe", "is safe to run"):
+            self.assertNotIn(phrase, lower, f"forbidden safety claim: {phrase!r}")
+
+    def test_open_items_stay_open(self) -> None:
+        for item in (
+            "LED supply-rail identity",
+            "electrical current draw",
+            "thermal performance",
+            "soak reliability",
+            "EMC, safety, or compliance",
+            "complete Core hardware verification",
+        ):
+            self.assertIn(item, self.led_flat, f"missing open item: {item!r}")
+        self.assertIn("PARTIAL / OPEN", self.text)
+
+    def test_no_network_identifiers_in_led_section(self) -> None:
+        self.assertIsNone(
+            re.search(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", self.led),
+            "LED evidence must not contain an IP address",
+        )
+        self.assertIsNone(
+            re.search(r"\b(?:[0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}\b", self.led),
+            "LED evidence must not contain a MAC/BSSID",
+        )
+        for banned in ("ssid:", "bssid:", "password:", "psk:", "key:"):
+            self.assertNotIn(banned, self.led.lower())
+
+
 if __name__ == "__main__":
     unittest.main()

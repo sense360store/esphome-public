@@ -123,11 +123,90 @@ The following remain open and are **not** addressed by this record:
 7. PoE test (separately, with the S360-410 PSU).
 8. Soak and reboot monitoring.
 
+## Attached S360-300 LED functional evidence
+
+**Evidence class: machine-recorded runtime facts plus owner-observed
+physical behaviour**, captured 2026-07-20 on the same physical Core bench
+unit, after the owner extended the Home Assistant ESPHome bench YAML with
+the canonical LED board package
+[`packages/boards/s360-300-led.yaml`](../../packages/boards/s360-300-led.yaml)
+(Sense360 LED, SKU `S360-300`, rev `R4`). The evidence source is a second
+owner-supplied ESPHome runtime log; as with the Core log, the raw log is
+**not committed** (it contains local network identifiers) and no SSID,
+BSSID, MAC address, IP address, key, or password value is recorded here.
+
+### Machine-visible runtime facts (from the ESPHome log)
+
+1. ESPHome 2026.7.0, project `sense360.ceiling` version `1.0.0`, compiled
+   2026-07-20; the physical Core remained connected through the encrypted
+   ESPHome API throughout.
+2. The canonical LED Ring SKU diagnostic entity was created.
+3. The ESP32 RMT LED strip driver initialised with data pin **GPIO38**,
+   RGB order **GRB**, **12 LEDs**, 192 RMT symbols — matching the
+   `s360-300-led.yaml` package declarations (`led_data_pin: GPIO38`,
+   `led_count: 12`, `led_rgb_order: GRB`).
+4. The Home Assistant light entity **Room Light** was created.
+5. Room Light accepted ON and OFF commands; the log records ON at
+   brightness 100%, red 100%, green 100%, blue 100%, no effect, and
+   contains **two successful logged ON/OFF command cycles**.
+6. No reboot, exception, watchdog, RMT, LED, or API error was observed in
+   the supplied log during the test.
+7. PSRAM remained available at 8192 KB; Wi-Fi, OTA, and the encrypted API
+   remained operational.
+
+The 100% brightness command in the log proves only that the command was
+accepted and the owner observed operation. **It is not a thermal or
+electrical-safety conclusion**, and it does not establish a maximum safe
+brightness.
+
+### Owner-observed physical behaviour (owner-supplied observation)
+
+Recorded verbatim as owner-supplied observation, not machine evidence:
+
+- the attached physical LED ring illuminated;
+- all LEDs appeared operational;
+- Home Assistant on/off control worked;
+- brightness control worked;
+- owner reports RGB colour control worked;
+- the owner reports the LED as "fully working".
+
+No per-channel (red-only / green-only / blue-only) observations were
+supplied, and none is claimed.
+
+### LED facts still not proven
+
+This evidence does **not** prove:
+
+- LED supply-rail identity;
+- full connector pin-order proof;
+- electrical current draw (not measured);
+- that 100% brightness is thermally or electrically safe;
+- long-duration full-brightness safety;
+- instrument-verified RGB channel order (GRB is the configured firmware
+  order; the owner observation is visual only);
+- colour accuracy (not measured);
+- an established maximum safe brightness;
+- thermal performance;
+- soak reliability;
+- EMC, safety, or compliance;
+- release readiness or stable-channel eligibility;
+- commercial availability;
+- complete Core hardware verification.
+
+### LED evidence result
+
+**PASS — canonical S360-300 LED package physical functional operation
+observed.**
+
 ## Result
 
 - **Evidence result: PASS — Core package physical runtime initialisation.**
+- **S360-300 LED package physical functional operation: PASS** (see
+  [Attached S360-300 LED functional evidence](#attached-s360-300-led-functional-evidence)).
 - **Overall hardware result: PARTIAL / OPEN — physical functions and
-  interfaces not yet proven.**
+  interfaces not yet proven** (overall Core hardware verification remains
+  partial / open; supply rail, current, thermal, soak, connector,
+  compliance, and all other Core checks stay open).
 
 This record raises the Core evidence level to *runtime initialisation
 evidence* only. The `S360-100-BENCH-001` record in
