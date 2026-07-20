@@ -1,0 +1,60 @@
+# ============================================================================
+# SENSE360 SHARED ENGINES — remote-consumer header delivery
+# (REMOTE-PACKAGE-HEADER-RESOLUTION-001)
+# ============================================================================
+# Include this package from a Home Assistant ESPHome device configuration that
+# consumes a Sense360 *framework* (AirIQ / RoomIQ / VentIQ / LED / Presence)
+# through git packages. It delivers the canonical header-only logic engines
+# (include/sense360/*.h) to the build via the `sense360` external component and
+# removes the framework packages' repository-local `esphome: includes:` entry,
+# so the shared C++ source resolves for ANY consumer config directory — no
+# `/config/include` setup, no manual header download.
+#
+# Why this is needed
+# ------------------
+# A framework package compiles its engine from `../include/sense360/<engine>.h`
+# via `esphome: includes:`. ESPHome resolves that path against the *consumer's*
+# config directory, which does not contain the header when the framework is
+# pulled as a git package (it resolves to e.g. /config/include/...). This
+# package replaces that delivery with an ESPHome external component — the same
+# mechanism the repository already uses for its radar C++ components
+# (packages/base/external_components.yaml) — which travels with the git package
+# and lands on the build include path regardless of the consumer's layout.
+#
+# Single source of truth: the `sense360` component IS the repository's
+# include/sense360/ directory (see include/sense360/__init__.py). It ships the
+# exact headers proven by the native C++ unit tests; nothing is duplicated and
+# no algorithm is re-implemented in YAML.
+#
+# Pinning: override `sense360_remote_ref` to a release tag for reproducible
+# builds (recommended for production, e.g. `sense360_remote_ref: v1.0.0`),
+# matching the `ref:` your `packages:` entries pin. `sense360_remote_url` exists
+# so automated tests can point the delivery at a local fixture repository; leave
+# it at the default for real use.
+# ============================================================================
+
+substitutions:
+  sense360_remote_url: https://github.com/sense360store/esphome-public
+  sense360_remote_ref: main
+
+external_components:
+  - source:
+      type: git
+      url: ${sense360_remote_url}
+      ref: ${sense360_remote_ref}
+      # The component lives at include/sense360/; `path: include` narrows the
+      # external-components search directory to include/ so ESPHome finds the
+      # `sense360` component (include/sense360/__init__.py).
+      path: include
+    components: [sense360]
+    refresh: 1d
+
+# Load the delivery component so its to_code runs and #includes the shared
+# headers into the build.
+sense360:
+
+# Neutralise the framework packages' repository-local include path
+# (`../include/sense360/*.h`), which cannot resolve for a remote consumer. The
+# headers are now delivered by the `sense360` external component above.
+esphome:
+  includes: !remove

@@ -1,0 +1,70 @@
+# ============================================================================
+# SENSE360 REMOTE WRAPPER — Ceiling AirIQ board + framework
+# (REMOTE-PACKAGE-HEADER-RESOLUTION-001)
+# ============================================================================
+# Remote-consumer entrypoint for the canonical Sense360 AirIQ air-quality
+# service (S360-210 AirIQ board + AIRIQ-FRAMEWORK-001). A Home Assistant
+# ESPHome user pulls THIS single file through a git package to add AirIQ to a
+# Sense360 device — the shared C++ engine (include/sense360/airiq_engine.h) is
+# delivered automatically via the `sense360` external component, with no
+# `/config/include` setup and no manual header download.
+#
+# It composes, relative to itself inside the fetched repository:
+#   * packages/boards/s360-210-airiq.yaml   — the AirIQ board (raw sensors)
+#   * packages/features/airiq_framework.yaml — the canonical AirIQ service
+# and delivers their shared engine header through the `sense360` external
+# component while removing the framework's repository-local `esphome: includes:`
+# entry (which resolves only for a repository-local build). Exactly one copy of
+# the engine header is compiled — the same file the native C++ unit tests
+# exercise — so nothing is duplicated and no algorithm is re-implemented.
+#
+# This wrapper changes NO firmware behaviour, sensor, threshold, entity name,
+# product, release, channel or commercial state. It is a packaging/delivery
+# convenience only.
+#
+# Compose alongside the Core board + Core Framework packages (which own the
+# "AirIQ Module Status" entity this framework publishes). See
+# docs/remote-package-consumption.md for complete copy-paste device examples.
+#
+# Pinning: for reproducible production builds set `sense360_remote_ref` to a
+# release tag (e.g. v1.0.0) to match the `ref:` your `packages:` entries pin.
+# `sense360_remote_url` exists so automated tests can retarget the engine
+# delivery at a local fixture repository; leave it at the default for real use.
+# ============================================================================
+
+substitutions:
+  sense360_remote_url: https://github.com/sense360store/esphome-public
+  sense360_remote_ref: main
+  # Declare the AirIQ module for the Core Framework "AirIQ Module Status"
+  # entity (compile-time presence only; overridable by the consumer).
+  s360_module_airiq: "Included"
+
+external_components:
+  - source:
+      type: git
+      url: ${sense360_remote_url}
+      ref: ${sense360_remote_ref}
+      path: include
+    components: [sense360]
+    refresh: 1d
+
+# Load the shared-engine delivery component (its to_code #includes the headers).
+sense360:
+
+packages:
+  airiq_board: !include ../boards/s360-210-airiq.yaml
+  airiq_framework: !include ../features/airiq_framework.yaml
+
+# Remove the framework's repository-local include path; the header is now
+# delivered by the `sense360` external component above.
+esphome:
+  includes: !remove
+
+# Drop the framework's legacy MQTT compatibility block (empty broker, inert
+# unless a broker substitution is set). A remote consumer reaches Home
+# Assistant through the native encrypted API and controls MQTT itself — add a
+# top-level `mqtt:` block to opt in, or leave it out (a bare `mqtt: null` in the
+# device config is then a harmless no-op). This keeps MQTT fully consumer-owned
+# for remote installs and changes no repository-local build (the framework file
+# is untouched).
+mqtt: !remove
