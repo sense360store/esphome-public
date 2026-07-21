@@ -16,9 +16,10 @@
 # alias removal is a separate later slice gated on the binder count reaching
 # zero.
 #
-# Sensors / pin assignment (SPS30 PM @ 0x69, SGP41 VOC/NOx @ 0x59, SCD41 CO2 @
-# 0x62, BMP390 pressure @ 0x77, all on `airiq_i2c_id: core_i2c`) are documented
-# in the board package this file aliases.
+# Sensors / pin assignment (SGP41 VOC/NOx @ 0x59, SCD41 CO2 @ 0x62, SFA40 HCHO
+# @ 0x5D, MICS-4514/STM8 @ 0x60, all on `airiq_i2c_id: core_i2c`; external
+# SPS30 PM @ 0x69 via the opt-in overlay; no BMP390 — AIRIQ-HW-RECONCILE-001)
+# are documented in the board package this file aliases.
 # ============================================================================
 
 packages:
