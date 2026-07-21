@@ -18,6 +18,34 @@ physical validation is pending
 ([`docs/hardware/airiq-framework-bench-checklist.md`](../hardware/airiq-framework-bench-checklist.md),
 tracked as `AIRIQ-FRAMEWORK-BENCH-001`).
 
+> **AIRIQ-HW-RECONCILE-001 update (supersedes the "was" state below).** The
+> canonical board package has been reconciled against the verified R4
+> schematic + BOM. The historical status recorded throughout §1 — SFA40
+> fitment *unresolved*, MICS-4514/STM8 *not compiled*, and a *compiled*
+> BMP390 pressure driver — has been resolved:
+>
+> * **SFA40 (U2, formaldehyde @ 0x5D)** is taken as **fitted** (R4 BOM +
+>   verified schematic + owner direction) and is now driven by the scoped
+>   `sfa40` external component; Formaldehyde is an expected customer
+>   pollutant. `ENTITY-FILL-210-HCHO-001` is closed by this driver.
+> * **MICS-4514 + STM8 (U4/U5 @ 0x60)** is now driven by the scoped
+>   `mics_stm8` external component as a **diagnostic reducing/oxidising
+>   ratio surface only** (no CO/NO2 concentration claimed).
+>   `ENTITY-FILL-210-MICS-001` is closed at the transport level; pollutant
+>   promotion still needs the calibration evidence in §7.
+> * The **BMP390 @ 0x77** firmware/catalog drift is **removed** — no
+>   pressure part exists on the S360-210-R4, and no pressure surface exists
+>   anywhere.
+> * The **SPS30** PM driver moves to the opt-in overlay
+>   `packages/boards/s360-210-airiq-sps30.yaml`; the base never probes 0x69.
+>
+> Evidence level is unchanged: **source + datasheet-derived protocol +
+> compile proof only.** The STM8 register map / address (0x60) / firmware
+> (0x24) are per the owner-provided STM8 firmware spec; on-hardware bench
+> verification of the fitted MICS/STM8 + SFA40 stages and physical
+> CPL/silkscreen population evidence (`HW-PINMAP-210-FOLLOWUP`) remain
+> **pending** — never a bench, compliance or commercial claim.
+
 ---
 
 ## 1. Sensor authority — what the S360-210 actually is
@@ -71,11 +99,15 @@ functionality available.
 | Pressure (any part) | **No — absent from the verified schematic** (both sheets) | No — absent from the BOM and from `docs/hardware-catalog.md` | No | **Yes — `bmp3xx_i2c` @0x77, 60 s: FIRMWARE/CATALOG DRIFT** (pin-map prose and waiver text repeat the drift) | **None — pressure is not S360-210 product hardware** and is excluded from customer entities, severity, recommendation, health and product claims | Unwired engine contract channel only; the board package's internal BMP390 stays untouched pending the drift reconciliation |
 | BMP581 | RoomIQ (S360-200) only — never attributed to AirIQ | — | — | No (nowhere) | None | Not an AirIQ sensor; closes the BMP390-vs-BMP581 question: the drifted compiled driver is BMP390 |
 
-The framework changes **no compiled sensor, address or update interval**:
-the board package `packages/boards/s360-210-airiq.yaml` stays the owner of
-the raw (internal) sensors exactly as shipped, including the drifted
-BMP390 (removing it is the drift reconciliation's decision, not this
-framework's).
+The table above records the audit **as of AIRIQ-FRAMEWORK-001**; the
+AIRIQ-HW-RECONCILE-001 banner at the top of this document supersedes its
+SFA40 / MICS / BMP390 rows. Under that reconciliation the board package
+`packages/boards/s360-210-airiq.yaml` now: drives the fitted **SFA40**
+(`sfa40` @ 0x5D) and **MICS-4514/STM8** (`mics_stm8` @ 0x60), **removes**
+the drifted BMP390, and moves the external **SPS30** driver to the opt-in
+overlay. The board layer remains the owner of the raw (internal) pollutant
+sensors; the framework re-exposes the canonical customer surface (now
+including Formaldehyde).
 
 ### 1.3 SFA40 fitment — conflict analysis (not silently resolved)
 
@@ -169,41 +201,50 @@ Default-enabled entities (the ONLY default-enabled set):
 | CO2 | `s360_co2` | ppm |
 | VOC | `s360_voc` | relative index (unitless by design) |
 | NOx | `s360_nox` | relative index (unitless by design) |
+| Formaldehyde | `s360_hcho` | ppb (fitted SFA40 — factory-calibrated) |
 | Air Quality | `s360_air_quality` | Initialising / Good / Fair / Poor / Very poor / Unavailable |
 | Recommendation | `s360_recommendation` | Sensor initialising / No action needed / Ventilate soon / Ventilate now / Check pollution source / Unavailable |
+
+Formaldehyde joins the default set under AIRIQ-HW-RECONCILE-001 because the
+SFA40 (U2) is a fitted, factory-calibrated Sensirion sensor with a real ppb
+output; it reports unavailable during its own not-ready window (first minute
+after power-up). Its severity bands stay **provisional** (§3.1).
 
 Available but disabled by default (standard sensors, not diagnostics):
 **PM2.5** (`s360_pm2_5`), **PM1** (`s360_pm1`), **PM4** (`s360_pm4`),
 **PM10** (`s360_pm10`) — the SPS30 is an external attachment whose
 commercial inclusion is unproven (§1.5), so no PM entity is
-default-enabled anywhere; a customer with an attached module can enable
-PM2.5 manually, and a future SPS30-declared composition enables it (and
-expects the sensor) via the documented opt-in contract.
+default-enabled anywhere; a device with the SPS30 opt-in overlay enables
+them (and expects the sensor) via the documented opt-in contract. The
+MICS-4514/STM8 reducing/oxidising ratios and their raw ADC/status fields
+are exposed as **diagnostic** entities in the board package.
 
 There is deliberately **no pressure entity of any kind**: pressure is not
-S360-210 product hardware (§1.2), and the compiled BMP390 is
-firmware/catalog drift whose readings stay internal at the board layer.
+S360-210 product hardware (§1.2), and the drifted BMP390 has been removed
+(AIRIQ-HW-RECONCILE-001).
 
 There is deliberately **no AQI entity**: no recognised jurisdictional AQI
 standard is implemented, so none is claimed. There is no blended score, no
 per-pollutant threshold control farm, and no single opaque "sensitivity"
-control. Formaldehyde and ozone entities do not exist in any current
-composition (owner decision 7: optional sensors are never pretended
-present).
+control. An **ozone** entity does not exist in any current composition
+(owner decision 7: optional/unfitted sensors are never pretended present);
+no MiCS-derived CO / NO2 concentration is claimed either.
 
 ### 2.1 The strongest simpler alternative (adopted)
 
-The evaluated alternative — expose formaldehyde, ozone and MiCS-derived CO /
-NO2 immediately — was rejected in favour of the smaller surface above:
-CO2 + VOC + NOx + PM2.5 + headline + recommendation delivers most of the
-customer value with none of the unresolved calibration burden, no
-Base-style/Pro-style leakage risk (nothing unfitted is shown), a small
-entity count, lower support burden and trivial rollback. The wider set
-stays available through engine contract slots that activate only with
-authoritative evidence, so reducing the default surface now costs nothing
-later. Strongest counterargument: shipping the gas slots immediately would
-surface more of the BOM's sensors — but with an unverified STM8 interface
-and conflicted SFA40 fitment that would be false precision, not value.
+Under AIRIQ-HW-RECONCILE-001 the customer surface now includes the fitted
+SFA40 **Formaldehyde** (a real factory-calibrated ppb reading), while the
+MiCS-derived CO / NO2 concentrations and ozone remain **out** of the
+customer set: CO2 + VOC + NOx + Formaldehyde + PM2.5 (opt-in) + headline +
+recommendation delivers the customer value without the unresolved MiCS
+calibration burden, with no Base-style/Pro-style leakage risk (nothing
+unfitted is shown), a small entity count, lower support burden and trivial
+rollback. MiCS stays available as a diagnostic ratio surface (promotion to
+a customer pollutant is gated on the §7 calibration evidence), and ozone
+stays an engine contract slot that activates only with authoritative
+evidence. Exposing a MiCS CO/NO2 concentration now — with the STM8
+transport verified in firmware but the gas calibration unverified — would
+be false precision, not value.
 
 ---
 
@@ -333,11 +374,19 @@ channels are excluded from health while their reconciliations are open.
 ## 7. MiCS-4514 treatment and promotion gate
 
 MiCS-4514 (+ its STM8 co-processor) is on the S360-210 BOM and is part of
-this architecture — it is deliberately not ignored. Facts: no ESPHome
-driver exists in the tree, the STM8 readout interface (I2C address,
-register map, heater control) is unverified, and no calibration evidence
-exists (`ENTITY-FILL-210-MICS-001`; the PACKAGE-AIRIQ-001 operator bench
-proof container is retired/empty).
+this architecture — it is deliberately not ignored. Under
+AIRIQ-HW-RECONCILE-001 the STM8 **transport** is now implemented: the
+scoped `mics_stm8` external component reads the STM8's 24-byte I2C register
+block at `0x60` and exposes reducing/oxidising ratios plus raw ADC / status
+diagnostics, gating the ratios on the STM8 readiness contract (identity
+"M4", supported protocol, warm-up complete, calibrated, heater on, non-zero
+baselines, zero fault flags). This closes `ENTITY-FILL-210-MICS-001` at the
+transport level. **What is still open:** the I2C address (`0x60`), register
+map and firmware (`0x24`) come from the owner-provided STM8 firmware spec
+and are **not yet bench-verified on hardware**; there is still no gas
+calibration evidence (the PACKAGE-AIRIQ-001 operator bench proof container
+is retired/empty). No customer CO / NO2 concentration is claimed — MiCS
+stays a diagnostic ratio surface until the promotion gate below is met.
 
 Posture in this slice:
 
@@ -405,15 +454,17 @@ for this PR.
   temperature/humidity would consume `s360_temperature` / `s360_humidity`
   (the canonical ids), never the raw board sensors.
 * Nothing unrelated (fan control, light, occupancy) is centralised here.
-* **Sensor reconciliations stay open and tracked**: the BMP390
-  firmware/catalog drift (compiled driver for hardware the verified
-  schematic / BOM / catalog do not contain), SFA40 population
-  (`HW-PINMAP-210-FOLLOWUP`, §1.3), the STM8 readout path, and the
-  SEN0321 (ZE27-O3) external ozone input (named on the verified schematic
-  but with no identified attach connector and no driver; ZE07 has no
-  record anywhere). If an ozone module ships, its exact gas and unit must
-  come from authoritative sources first, never guessed from the module
-  family name.
+* **Sensor reconciliations (AIRIQ-HW-RECONCILE-001)**: the BMP390
+  firmware/catalog drift is **resolved by removal** (no pressure part on
+  the verified schematic / BOM / catalog); the STM8 readout path is
+  **implemented** by `mics_stm8` (transport only — bench verification
+  pending); SFA40 is **taken as fitted** and driven (`sfa40`), with
+  physical CPL/silkscreen population evidence still owed to
+  `HW-PINMAP-210-FOLLOWUP`. Still open: the SEN0321 (ZE27-O3) external
+  ozone input (named on the verified schematic but with no identified
+  attach connector and no driver; ZE07 has no record anywhere). If an
+  ozone module ships, its exact gas and unit must come from authoritative
+  sources first, never guessed from the module family name.
 
 ---
 
@@ -428,15 +479,17 @@ Follow-ups created by this work item (tracked, not started):
 
 * `AIRIQ-FRAMEWORK-BENCH-001` — physical validation via the results-free
   bench checklist;
-* MiCS-4514 calibration / promotion programme (§7) — separate programme
-  recommended;
+* MiCS-4514 **gas calibration / promotion** programme (§7) — the transport
+  driver now exists; promotion of a MiCS-derived pollutant still needs
+  bench + reference calibration (separate programme recommended);
+* STM8/MICS + SFA40 **on-hardware bench verification** — confirm the STM8
+  register map / address (`0x60`) / firmware (`0x24`) and the SFA40
+  readings against real hardware (`AIRIQ-FRAMEWORK-BENCH-001`);
 * `AIRIQ-SPS30-INCLUSION-001` — the product/SOT declaration follow-up for
   the external SPS30 attachment (§1.5): an explicit kit/SOT line item for
   any composition that ships the module, then that bundle's opt-in flip;
-* BMP390 firmware/catalog drift reconciliation — decide (with owner
-  sign-off) whether the drifted `bmp3xx_i2c` driver leaves the board
-  package or a pressure part is added to a future hardware revision;
-  until then no pressure product claim exists;
+* BMP390 firmware/catalog drift — **resolved by removal** under
+  AIRIQ-HW-RECONCILE-001; no pressure product claim exists;
 * `HW-PINMAP-210-FOLLOWUP` — SFA40 population evidence (silkscreen /
   CPL / board photos), the `J*` connector-to-sensor mapping and the
   SEN0321 attach path; **it also owns the directly evidenced correction
