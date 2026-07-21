@@ -1261,11 +1261,29 @@ class ExternalComponentStructureTests(unittest.TestCase):
         for name in ("__init__.py", "mics_stm8.h", "mics_stm8.cpp"):
             self.assertTrue((MICS_COMPONENT / name).is_file(), name)
 
-    def test_board_loads_local_external_components(self) -> None:
+    def test_board_loads_external_components_via_git(self) -> None:
+        # The scoped SFA40 + MICS/STM8 components must load via a git
+        # self-reference so a REMOTE consumer (e.g. via the remote wrapper)
+        # can fetch them. A `type: local` path resolves against the
+        # consumer's config dir, not this package, and would break remote
+        # consumption — guard against reintroducing it.
         raw = BOARD_PACKAGE.read_text()
+        doc = load_yaml(BOARD_PACKAGE)
+        ext = doc.get("external_components") or []
+        entry = next(
+            (e for e in ext if "sfa40" in (e.get("components") or [])), None
+        )
+        self.assertIsNotNone(entry, "board must declare sfa40/mics_stm8 external_components")
+        self.assertEqual(sorted(entry["components"]), ["mics_stm8", "sfa40"])
+        self.assertEqual(entry["source"].get("type"), "git")
+        # No external-components source may be `type: local` (would break
+        # remote consumption); a comment may still mention it when explaining
+        # the fix, so check the parsed sources, not the raw text.
+        for e in ext:
+            self.assertNotEqual(
+                (e.get("source") or {}).get("type"), "local", "no local external_components source"
+            )
         self.assertIn("external_components:", raw)
-        self.assertIn("type: local", raw)
-        self.assertIn("[sfa40, mics_stm8]", raw)
 
 
 class SPS30OverlayTests(unittest.TestCase):

@@ -82,18 +82,32 @@ substitutions:
   # CO2 calibration settings
   co2_auto_calibration: "true"
 
+  # Remote-consumable source for the scoped SFA40 + MICS/STM8 components
+  # (see external_components below). A remote consumer that pins its
+  # `packages:` entry to a release tag should override airiq_components_ref
+  # to the same tag (packages/remote/ceiling-airiq.yaml wires this to
+  # ${sense360_remote_ref} automatically).
+  airiq_components_url: https://github.com/sense360store/esphome-public
+  airiq_components_ref: main
+
 # ----------------------------------------------------------------------------
 # External components — the scoped SFA40 and MICS/STM8 drivers vendored under
-# components/. A `local` source (relative to this file inside the fetched
-# repository) is used so a device that pulls THIS board package directly, and
-# an in-repo CI compile of a feature branch, both resolve the components from
-# the working tree rather than a not-yet-merged git ref.
+# components/. Loaded via a GIT self-reference (the same pattern as
+# packages/base/external_components.yaml) so a Home Assistant device that
+# pulls THIS board package remotely — e.g. through
+# packages/remote/ceiling-airiq.yaml — fetches the components from the
+# repository. A `type: local` path is NOT usable here: ESPHome resolves a
+# local external-component path against the CONSUMER's main config directory,
+# not this file, so a remote consumer could never find `../../components`
+# (the regression this fix corrects).
 # ----------------------------------------------------------------------------
 external_components:
   - source:
-      type: local
-      path: ../../components
+      type: git
+      url: ${airiq_components_url}
+      ref: ${airiq_components_ref}
     components: [sfa40, mics_stm8]
+    refresh: 1d
 
 # I2C Bus Configuration
 # The bus itself is declared by the core hardware package; the module only
