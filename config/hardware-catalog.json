@@ -33,7 +33,7 @@
       "sku": "S360-210",
       "rev": "R4",
       "old_name": "AirIQ Ceiling",
-      "description": "Air quality board. CO2 SCD41, VOC SGP41, gas MICS-4514 with STM8. Connectors for SPS30 PM and SFA40 HCHO.",
+      "description": "Air quality board. CO2 SCD41, VOC SGP41, HCHO SFA40, gas MICS-4514 with STM8 (all PCB-mounted). Connector for external SPS30 PM.",
       "schematic_status": "verified",
       "schematic_file": "docs/hardware/schematics/S360-210-R4.pdf"
     },
