@@ -10,7 +10,7 @@
 # re-reading raw sensors or duplicating pollutant threshold logic.
 #
 # Customer entities (enabled by default — the ONLY default-enabled set):
-#   CO2 · VOC · NOx · Air Quality · Recommendation
+#   CO2 · VOC · NOx · Formaldehyde · Air Quality · Recommendation
 # ALL PM entities (PM2.5 / PM1 / PM4 / PM10) remain available but ship
 # disabled by default: the SPS30 is an EXTERNAL ATTACHMENT (J2) whose
 # commercial inclusion is not declared by any kit / SOT / product record
@@ -27,29 +27,26 @@
 # so tested logic and shipped logic cannot drift. The contract is pinned
 # by tests/test_airiq_framework.py.
 #
-# Unit honesty: CO2 is ppm (SCD41, PCB-mounted); VOC and NOx are RELATIVE
-# indices (SGP41, PCB-mounted) and are never presented as ppm/ppb
-# concentrations; PM values are µg/m³ (SPS30, EXTERNAL attachment via
-# J2 with a compiled driver). No MiCS-derived
-# CO / NO2 concentration exists anywhere: the MiCS-4514 + STM8 gas stage
-# is PCB-MOUNTED (verified schematic U4/U5 + BOM) but has NO compiled
-# driver and an unverified readout interface (ENTITY-FILL-210-MICS-001) —
-# the engine carries diagnostic-only MiCS channels so the architecture
-# includes MiCS, and promotion to a customer pollutant is gated on the
-# calibration evidence documented in the architecture doc. The SFA40
-# formaldehyde stage (footprint present on the verified schematic;
-# production population an unresolved conflict — HW-PINMAP-210-FOLLOWUP /
-# ENTITY-FILL-210-HCHO-001) and the SEN0321 (ZE27-O3) ozone input (an
-# EXTERNAL sensor/interface into the STM8 stage per the verified
-# schematic) are engine contract slots only: expected=false in every
-# current composition, no customer entity, nothing pretended.
+# Unit honesty: CO2 is ppm (SCD41, PCB-mounted U3); VOC and NOx are
+# RELATIVE indices (SGP41, PCB-mounted U1) and are never presented as
+# ppm/ppb concentrations; Formaldehyde is ppb (SFA40, PCB-mounted U2 —
+# factory-calibrated Sensirion output via the scoped `sfa40` driver); PM
+# values are µg/m³ (SPS30, EXTERNAL J2 attachment — opt-in overlay only).
+# No MiCS-derived CO / NO2 concentration exists anywhere: the MiCS-4514 +
+# STM8 gas stage is PCB-MOUNTED (verified schematic U4/U5 + BOM) and is now
+# driven by the scoped `mics_stm8` bridge driver, but is exposed as a
+# DIAGNOSTIC reducing/oxidising RATIO surface only (board package) — no CO /
+# NO2 concentration is claimed and MiCS never drives the customer headline.
+# The SEN0321 (ZE27-O3) ozone input (an EXTERNAL sensor/interface into the
+# STM8 stage per the verified schematic) is an engine contract slot only:
+# expected=false, no customer entity, nothing pretended.
 #
-# Pressure honesty: pressure is NOT S360-210 product hardware — no
-# pressure part exists on the verified schematic, the R4 BOM or the
-# hardware catalog. The BMP390 @0x77 still compiled by the board package
-# is FIRMWARE/CATALOG DRIFT (reconciliation pending): this framework
-# exposes NO pressure entity, wires NO pressure input, and pressure never
-# participates in Air Quality severity, recommendation or module health.
+# Pressure honesty: pressure is NOT S360-210 product hardware — no pressure
+# part exists on the verified R4 schematic, the R4 BOM or the hardware
+# catalog. The previously-compiled BMP390 @0x77 was FIRMWARE/CATALOG DRIFT
+# and has been REMOVED from the board package (AIRIQ-HW-RECONCILE-001): this
+# framework exposes NO pressure entity, wires NO pressure input, and no
+# pressure surface exists anywhere.
 #
 # Freshness honesty: a value is usable only after a real, valid update
 # callback inside its per-sensor stale window; each sensor has its OWN
@@ -67,18 +64,19 @@
 # configuration-driven by the airiq_expected_* substitutions; an
 # intentionally absent optional sensor never degrades anything.
 #
-# External-attachment honesty (SPS30 opt-in contract): a J2 connector and
-# a compiled driver do NOT prove that an external module is physically
-# supplied. No authoritative kit / SOT / product record declares the
-# SPS30 as included (kit records enumerate board SKUs only; no SPS30 SKU
-# exists; WebFlash lists it as optional), so by default the SPS30 is a
-# SUPPORTED external attachment only: airiq_expected_pm defaults "false"
-# (an absent SPS30 never degrades module health) and every PM entity
-# ships disabled by default. A future composition with a DECLARED SPS30
-# attachment opts in explicitly: set airiq_expected_pm: "true" and
-# re-enable the PM entities (ESPHome `!extend s360_pm2_5` with
-# disabled_by_default: false) in that bundle — never by firmware
-# inference, always from an authoritative product declaration.
+# External-attachment honesty (SPS30 opt-in contract): the SPS30 PM module
+# is an off-board J2 attachment, NOT part of the S360-210 PCB, and no
+# authoritative kit / SOT / product record declares it as supplied (kit
+# records enumerate board SKUs only; no SPS30 SKU exists; WebFlash lists it
+# as optional). The canonical board package therefore does NOT probe the
+# SPS30 at all: airiq_expected_pm defaults "false" (an absent SPS30 never
+# degrades module health) and the PM customer entities below ship disabled
+# by default and unfed. A device that DECLARES an attached SPS30 composes
+# the opt-in overlay packages/boards/s360-210-airiq-sps30.yaml, which adds
+# the sps30 driver, feeds the engine's PM channels, sets airiq_expected_pm:
+# "true" and re-enables the PM entities (`!extend s360_pm2_5` with
+# disabled_by_default: false) — never by firmware inference, always from an
+# authoritative product declaration.
 #
 # RoomIQ reuse: AirIQ never re-reads raw RoomIQ sensors. The SGP41
 # temperature/humidity compensation stays SCD41-sourced at the board
@@ -113,30 +111,35 @@ substitutions:
   airiq_co2_source_id: airiq_co2
   airiq_voc_source_id: airiq_voc_index
   airiq_nox_source_id: airiq_nox_index
+  airiq_hcho_source_id: airiq_hcho
+  # PM source ids are consumed by the SPS30 opt-in overlay
+  # (packages/boards/s360-210-airiq-sps30.yaml), not by this base package.
   airiq_pm2_5_source_id: airiq_pm2_5
   airiq_pm1_source_id: airiq_pm1_0
   airiq_pm4_source_id: airiq_pm4_0
   airiq_pm10_source_id: airiq_pm10_0
 
   # Expected-sensor membership (configuration-driven; NO Base/Pro axis).
-  # PCB-mounted compiled sensors (SCD41 CO2, SGP41 VOC/NOx) are expected.
-  # EXTERNAL attachments are opt-in per composition: SPS30 PM (driver
-  # compiled, commercial inclusion not declared — see the opt-in contract
-  # above), formaldehyde (SFA40 — no driver, fitment unresolved) and
-  # ozone (SEN0321 / ZE27-O3 — external input, no driver) default OFF and
-  # must never leak into current products.
+  # PCB-mounted compiled sensors — SCD41 CO2, SGP41 VOC/NOx and the fitted
+  # SFA40 formaldehyde (U2) — are expected on every S360-210-R4. The SPS30
+  # PM module is an EXTERNAL J2 attachment: expected only when a device
+  # composes the opt-in overlay packages/boards/s360-210-airiq-sps30.yaml
+  # (which sets airiq_expected_pm: "true"). Ozone (SEN0321 / ZE27-O3 —
+  # external input, no driver) stays OFF and must never leak into products.
   airiq_expected_co2: "true"
   airiq_expected_voc: "true"
   airiq_expected_nox: "true"
   airiq_expected_pm: "false"
-  airiq_expected_hcho: "false"
+  airiq_expected_hcho: "true"
   airiq_expected_o3: "false"
 
   # Per-sensor freshness windows (ms) — PROVISIONAL engineering defaults
   # pending bench validation. Warm-up covers first-data availability only
   # (never an accuracy claim; the SGP41 index keeps adapting its baseline
   # for much longer — documented, not hidden). Stale = three missed
-  # updates of the compiled 30 s sensors (90 s); the 60 s BMP390 gets 180 s.
+  # updates of the 30 s sensors (90 s). The SFA40 (HCHO) uses the engine's
+  # default 60 s warm-up / 90 s stale window; it reports unavailable during
+  # its own not-ready window (first minute after power-up).
   airiq_co2_warmup_ms: "60000"
   airiq_co2_stale_ms: "90000"
   airiq_voc_warmup_ms: "120000"
@@ -271,6 +274,10 @@ script:
               !std::isnan(id(s360_nox).state)) {
             id(s360_nox).publish_state(NAN);
           }
+          if (!engine.pollutant_fresh(POLLUTANT_HCHO) &&
+              !std::isnan(id(s360_hcho).state)) {
+            id(s360_hcho).publish_state(NAN);
+          }
           if (!engine.pollutant_fresh(POLLUTANT_PM25)) {
             if (!std::isnan(id(s360_pm2_5).state)) {
               id(s360_pm2_5).publish_state(NAN);
@@ -318,12 +325,13 @@ script:
 
           // Diagnostics (publish on change only).
           {
-            char buffer[160];
+            char buffer[192];
             snprintf(buffer, sizeof(buffer),
-                     "co2=%s voc=%s nox=%s pm2.5=%s",
+                     "co2=%s voc=%s nox=%s hcho=%s pm2.5=%s",
                      severity_to_string(engine.severity(POLLUTANT_CO2)),
                      severity_to_string(engine.severity(POLLUTANT_VOC)),
                      severity_to_string(engine.severity(POLLUTANT_NOX)),
+                     severity_to_string(engine.severity(POLLUTANT_HCHO)),
                      severity_to_string(engine.severity(POLLUTANT_PM25)));
             std::string detail = buffer;
             if (id(s360_airiq_state_detail).state != detail) {
@@ -405,65 +413,33 @@ sensor:
                   sense360::airiq::global_engine().nox());
             }
 
+  # Formaldehyde (SFA40, PCB-mounted U2 @ 0x5D) — a fitted base sensor, so
+  # its update callback is the freshness signal exactly like CO2/VOC/NOx.
   - platform: copy
-    source_id: ${airiq_pm2_5_source_id}
-    id: s360_airiq_pm2_5_sample
+    source_id: ${airiq_hcho_source_id}
+    id: s360_airiq_hcho_sample
     internal: true
     on_value:
       then:
         - lambda: |-
-            sense360::airiq::global_engine().input_pm2_5(millis(), x);
+            sense360::airiq::global_engine().input_hcho(millis(), x);
         - script.execute: s360_airiq_evaluate
         - lambda: |-
             if (!std::isnan(x)) {
-              id(s360_pm2_5).publish_state(
-                  sense360::airiq::global_engine().pm2_5());
+              id(s360_hcho).publish_state(
+                  sense360::airiq::global_engine().hcho());
             }
 
-  - platform: copy
-    source_id: ${airiq_pm1_source_id}
-    id: s360_airiq_pm1_sample
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            auto &engine = sense360::airiq::global_engine();
-            engine.input_pm1(millis(), x);
-            if (!std::isnan(engine.pm1())) {
-              id(s360_pm1).publish_state(engine.pm1());
-            }
-
-  - platform: copy
-    source_id: ${airiq_pm4_source_id}
-    id: s360_airiq_pm4_sample
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            auto &engine = sense360::airiq::global_engine();
-            engine.input_pm4(millis(), x);
-            if (!std::isnan(engine.pm4())) {
-              id(s360_pm4).publish_state(engine.pm4());
-            }
-
-  - platform: copy
-    source_id: ${airiq_pm10_source_id}
-    id: s360_airiq_pm10_sample
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            auto &engine = sense360::airiq::global_engine();
-            engine.input_pm10(millis(), x);
-            if (!std::isnan(engine.pm10())) {
-              id(s360_pm10).publish_state(engine.pm10());
-            }
-
-  # NOTE: deliberately NO pressure input and NO pressure entity. The
-  # BMP390 @0x77 compiled by the board package is firmware/catalog drift
-  # (no pressure part on the verified S360-210 schematic / BOM / hardware
-  # catalog); its readings stay internal at the board layer and are not a
-  # product surface.
+  # NOTE: the PM (SPS30) engine inputs and the SPS30 clean button live in
+  # the opt-in overlay packages/boards/s360-210-airiq-sps30.yaml. The
+  # canonical base NEVER references the SPS30 (airiq_pm*) source ids, so an
+  # absent SPS30 can never produce a broken reference. When composed, the
+  # overlay feeds s360_pm2_5 / s360_pm1 / s360_pm4 / s360_pm10 (below) and
+  # sets airiq_expected_pm: "true".
+  #
+  # NOTE: deliberately NO pressure input and NO pressure entity — no
+  # pressure part exists on the verified S360-210-R4 schematic / BOM /
+  # catalog (the drifted BMP390 was removed under AIRIQ-HW-RECONCILE-001).
 
   # --- canonical customer sensors ----------------------------------------------
   # Published from the engine on every valid update (and set unknown when
@@ -496,12 +472,25 @@ sensor:
     accuracy_decimals: 0
     icon: mdi:smog
 
-  # --- PM sensors (disabled by default — SPS30 external attachment) ------------
-  # The SPS30 driver is compiled and a customer with an attached module
-  # can enable these, but no authoritative record declares the module as
-  # supplied, so every PM entity ships disabled by default. A future
-  # SPS30-declared composition opts in (see the opt-in contract in the
-  # header: airiq_expected_pm + !extend to re-enable).
+  # Formaldehyde concentration in ppb — a real, factory-calibrated Sensirion
+  # SFA40 measurement (PCB-mounted U2). Reports unavailable during the
+  # sensor's own not-ready window (first minute after power-up) and until a
+  # valid post-warm-up sample arrives; never a frozen value.
+  - platform: template
+    id: s360_hcho
+    name: "Formaldehyde"
+    unit_of_measurement: "ppb"
+    state_class: measurement
+    accuracy_decimals: 1
+    icon: mdi:molecule
+
+  # --- PM sensors (disabled by default and unfed — SPS30 external attachment) --
+  # The canonical base does NOT probe the SPS30 (0x69). These customer PM
+  # entities exist so the opt-in overlay
+  # packages/boards/s360-210-airiq-sps30.yaml can feed and re-enable them
+  # (airiq_expected_pm: "true" + `!extend` to clear disabled_by_default).
+  # Without the overlay they stay disabled and unavailable — never a
+  # firmware-invented commercial claim.
   - platform: template
     id: s360_pm2_5
     name: "PM2.5"
@@ -647,12 +636,12 @@ text_sensor:
       return out;
 
   # Honesty companion: states on-device what the module status can and
-  # cannot attest — freshness-only evidence, the SPS30 being an external
-  # attachment that is expected only when a composition declares it, the
-  # compiled BMP390 pressure driver being firmware/catalog drift (no
-  # pressure part on the verified schematic / BOM), the not-compiled
-  # PCB-mounted MICS-4514 + STM8 gas stage and the fitment-unresolved
-  # SFA40 formaldehyde stage.
+  # cannot attest — freshness-only evidence (transport liveness, not
+  # accuracy); the PCB-mounted base sensors (SGP41, SCD41, SFA40); the
+  # MICS-4514 + STM8 stage as a diagnostic reducing/oxidising ratio surface
+  # only (no CO/NO2 concentration claimed); the SPS30 being an external
+  # opt-in attachment; and the removal of the drifted BMP390 (no pressure
+  # part on the S360-210-R4).
   - platform: template
     id: s360_airiq_sensor_verification
     name: "AirIQ Sensor Verification"
@@ -661,12 +650,12 @@ text_sensor:
     disabled_by_default: true
     update_interval: never
     lambda: |-
-      return {"Freshness from I2C data updates only; SPS30 PM is an external "
-              "attachment (expected only when declared; PM entities disabled "
-              "by default); compiled BMP390 pressure driver is firmware/"
-              "catalog drift (no pressure part on the verified schematic/BOM; "
-              "not a product surface); MICS-4514 and SFA40 stages not "
-              "compiled (interfaces/fitment unverified)"};
+      return {"Freshness from I2C data updates only (transport liveness, not "
+              "accuracy); SGP41/SCD41/SFA40 are PCB-mounted base sensors; "
+              "MICS-4514 via STM8 is a diagnostic reducing/oxidising ratio "
+              "surface only (no CO/NO2 concentration claimed); SPS30 PM is an "
+              "external J2 attachment (opt-in overlay; PM disabled by "
+              "default); no BMP390 and no pressure part on the S360-210-R4"};
 
   # --- legacy compatibility (pre-framework published entity) -------------------
   # Exact id and name preserved so existing Home Assistant entity ids and
