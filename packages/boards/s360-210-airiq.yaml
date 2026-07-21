@@ -1,60 +1,63 @@
 # ============================================================================
 # Sense360 AirIQ — Canonical Board Package (S360-210-R4)
 # ============================================================================
-# PACKAGE-RENAME-002 (docs/arch-board-bundle-plan.md §7 item 4) — the AirIQ
-# family is the second source-of-truth flip (after LED). This board package is
-# now the AUTHORITATIVE, self-contained definition of the Sense360 AirIQ
-# air-quality board (SKU `S360-210`, revision R4, friendly name
-# "Sense360 AirIQ"; `schematic_status: verified` per
-# config/hardware-catalog.json). AirIQ is the indoor-air-quality sensor board
-# (docs/arch-board-bundle-plan.md §2.1) on the shared core_i2c bus
-# (CORE-ABSTRACT-BUS-001B).
+# AIRIQ-HW-RECONCILE-001 — this board package is the AUTHORITATIVE, self-
+# contained definition of the Sense360 AirIQ air-quality board (SKU `S360-210`,
+# revision R4, friendly name "Sense360 AirIQ"; `schematic_status: verified` per
+# config/hardware-catalog.json), reconciled against the verified R4 schematic
+# (docs/hardware/schematics/S360-210-R4.pdf) and the R4 BOM artifact record
+# (docs/hardware/artifacts/S360-210-R4.md). AirIQ is the indoor-air-quality
+# sensor board on the shared core_i2c bus (CORE-ABSTRACT-BUS-001B).
 #
-# This canonical base compiles the representative **ceiling-mount** AirIQ
-# composition — with the hardware layers kept distinct (AIRIQ-FRAMEWORK-001):
+# FITTED HARDWARE (populated on EVERY S360-210-R4 per the R4 BOM):
+#   - SGP41  VOC/NOx  @ 0x59 (U1)  — sgp4x, PCB-mounted.
+#   - SFA40  HCHO     @ 0x5D (U2)  — Sensirion formaldehyde, PCB-mounted. Driven
+#            by the scoped `sfa40` external component (native `sfa30` uses a
+#            different command set and cannot read the SFA40).
+#   - SCD41  CO2/T/RH @ 0x62 (U3)  — scd4x, PCB-mounted.
+#   - MICS-4514 gas   via STM8     @ 0x60 (U4 sensor + U5 STM8S003F3U bridge +
+#            U6 LMV358 analog front end) — the STM8 co-processor digitises the
+#            MICS analog stage and exposes a 24-byte I2C register block; driven
+#            by the scoped `mics_stm8` external component. Diagnostic reducing/
+#            oxidising RATIO surface only — NO CO/NO2 concentration is claimed.
+#   All on `airiq_i2c_id: core_i2c`.
 #
-#   - PCB-mounted sensors: SGP41 VOC/NOx @ 0x59 (U1), SCD41 CO2 @ 0x62 (U3).
-#   - EXTERNAL attachment: SPS30 PM @ 0x69 — an off-board module on the J2
-#     connector (verified schematic). The driver below is compiled, but the
-#     module is not part of the S360-210 PCB and its commercial inclusion is
-#     not declared by any kit/SOT record; PM exposure is opt-in at the
-#     framework layer.
-#   - FIRMWARE/CATALOG DRIFT: BMP390 pressure @ 0x77 — compiled below, but
-#     no pressure part exists on the verified S360-210 schematic/BOM/catalog.
-#     Readings stay internal; reconciliation is a tracked follow-up.
-#   - All on `airiq_i2c_id: core_i2c`.
+# EXTERNAL ATTACHMENT (NOT on the S360-210 PCB; opt-in only):
+#   - SPS30  PM  @ 0x69 — an off-board module on the J2 (5-pin JST SH)
+#     connector. The canonical base does NOT probe 0x69: a device with an
+#     attached SPS30 composes the opt-in overlay
+#     `packages/boards/s360-210-airiq-sps30.yaml` (which adds the sps30 driver
+#     plus the framework PM wiring). An absent SPS30 never appears as a failure.
 #
-# Source-of-truth inversion (docs/arch-board-bundle-plan.md §3.3, §5.5): the
-# content below previously lived in `packages/expansions/airiq_ceiling.yaml`
-# and this package was a thin `!include` wrapper over it. That is now inverted
-# — the definition lives here and `packages/expansions/airiq_ceiling.yaml` is a
-# thin alias that `!include`s this package, so the resolved behaviour is
-# byte-identical to the legacy path. The wall-mount and S3-lineage variants are
-# the thin overlays `s360-210-airiq-wall.yaml` and
-# `s360-210-airiq-ceiling-s3.yaml`.
+# NOT PRESENT (removed under AIRIQ-HW-RECONCILE-001):
+#   - BMP390 / any pressure part — absent from the verified R4 schematic, the R4
+#     BOM and the hardware catalog. The previously-compiled `bmp3xx_i2c` @0x77
+#     was firmware/catalog drift and is REMOVED: no probe, no entity, no
+#     pressure surface anywhere.
+#
+# Evidence level: source + datasheet-derived-protocol + compile proof only. The
+# STM8 register map / address (0x60) / firmware (0x24) are per the owner-provided
+# STM8 firmware specification; SFA40 protocol is per the Sensirion SFA40
+# datasheet. NO hardware, bench, calibration, compliance, safety or commercial
+# claim is made here; on-hardware validation of the fitted stack remains pending
+# (docs/hardware/airiq-framework-bench-checklist.md, AIRIQ-FRAMEWORK-BENCH-001).
 #
 # ----------------------------------------------------------------------------
-# Variant map (docs/arch-board-bundle-plan.md §2.1)
+# Composition contract
 # ----------------------------------------------------------------------------
-#   ceiling AirIQ : THIS file                     (full ceiling suite, core_i2c)
-#   wall AirIQ    : s360-210-airiq-wall.yaml       (wall form factor, core_i2c)
-#   S3 lineage    : s360-210-airiq-ceiling-s3.yaml (distinct pre-001B lineage,
-#                                                    i2c_primary + status LED)
+# Bundles compose this board package (raw internal pollutant sensors + the
+# MICS/STM8 diagnostic surface) together with the AirIQ framework
+# (packages/features/airiq_framework.yaml — the canonical customer pollutant
+# surface) and, only when a device declares an attached SPS30, the opt-in
+# overlay packages/boards/s360-210-airiq-sps30.yaml.
 #
-# Base driver (NOT folded): `packages/expansions/airiq.yaml` stays the generic
-# SPS30 + SGP41 + SCD41 base hardware driver (ceiling adds BMP390 on top). It is
-# cross-referenced by features (airiq_advanced, fan_dac,
-# ceiling_led_ring_air_quality) and has no board package — it is NOT one of the
-# variant board packages and is left authoritative, mirroring how
-# `ceiling_halo_leds.yaml` stayed a feature in PACKAGE-RENAME-001.
-#
-# Legacy aliases (paths preserved, retained while live binders exist; §3.3):
-#   airiq_ceiling.yaml      -> !include this file
-#   airiq_wall.yaml         -> !include s360-210-airiq-wall.yaml
-#   airiq_ceiling_s3.yaml   -> !include s360-210-airiq-ceiling-s3.yaml
+# The S3-lineage variant is the thin overlay s360-210-airiq-ceiling-s3.yaml.
+# The legacy alias packages/expansions/airiq_ceiling.yaml `!include`s this
+# package.
 #
 # AirIQ and VentIQ (S360-211) are mutually exclusive air-quality modules per
-# docs/release-one.md — see the S360-211 VentIQ board package.
+# docs/release-one.md — see the S360-211 VentIQ board package. This package
+# changes NO WebFlash taxonomy, Release-One posture or AirIQ/VentIQ mutex.
 # ============================================================================
 
 substitutions:
@@ -71,117 +74,47 @@ substitutions:
   airiq_i2c_id: core_i2c
 
   # Sensor update intervals
-  airiq_sps30_update: 30s
   airiq_scd41_update: 30s
   airiq_sgp41_update: 30s
-  airiq_bmp390_update: 60s
-
-  # SPS30 auto-cleaning interval (7 days default)
-  airiq_sps30_cleaning_interval: "604800s"
+  airiq_sfa40_update: 30s
+  airiq_mics_update: 30s
 
   # CO2 calibration settings
   co2_auto_calibration: "true"
 
+# ----------------------------------------------------------------------------
+# External components — the scoped SFA40 and MICS/STM8 drivers vendored under
+# components/. A `local` source (relative to this file inside the fetched
+# repository) is used so a device that pulls THIS board package directly, and
+# an in-repo CI compile of a feature branch, both resolve the components from
+# the working tree rather than a not-yet-merged git ref.
+# ----------------------------------------------------------------------------
+external_components:
+  - source:
+      type: local
+      path: ../../components
+    components: [sfa40, mics_stm8]
+
 # I2C Bus Configuration
 # The bus itself is declared by the core hardware package; the module only
 # references it to prevent duplicate I2C definitions when combined with other
-# expansions (e.g., LED ring, comfort, presence).
+# expansions (e.g., LED ring, RoomIQ).
 
 # ============================================================================
-# SENSORS
+# MICS-4514 + STM8 bridge (U4/U5) — 24-byte I2C register block @ 0x60
+# ============================================================================
+mics_stm8:
+  id: airiq_mics
+  i2c_id: ${airiq_i2c_id}
+  address: 0x60
+  update_interval: ${airiq_mics_update}
+
+# ============================================================================
+# SENSORS (PCB-mounted, raw/internal — the framework re-exposes the canonical
+# customer pollutant entities; MICS diagnostic entities are declared below)
 # ============================================================================
 sensor:
-  # SPS30 - Particulate Matter Sensor
-  - platform: sps30
-    id: sps30_sensor
-    i2c_id: ${airiq_i2c_id}
-    address: 0x69
-
-    pm_1_0:
-      id: airiq_pm1_0
-      name: "${friendly_name} PM1.0"
-      internal: true
-      accuracy_decimals: 1
-      filters:
-        - throttle: ${airiq_sps30_update}
-
-    pm_2_5:
-      id: airiq_pm2_5
-      name: "${friendly_name} PM2.5"
-      internal: true
-      accuracy_decimals: 1
-      filters:
-        - throttle: ${airiq_sps30_update}
-
-    pm_4_0:
-      id: airiq_pm4_0
-      name: "${friendly_name} PM4.0"
-      internal: true
-      accuracy_decimals: 1
-      filters:
-        - throttle: ${airiq_sps30_update}
-
-    pm_10_0:
-      id: airiq_pm10_0
-      name: "${friendly_name} PM10"
-      internal: true
-      accuracy_decimals: 1
-      filters:
-        - throttle: ${airiq_sps30_update}
-
-    # Particle counts (number concentration)
-    pmc_0_5:
-      id: airiq_pmc0_5
-      name: "${friendly_name} PMC 0.5"
-      internal: true
-      accuracy_decimals: 0
-      filters:
-        - throttle: ${airiq_sps30_update}
-
-    pmc_1_0:
-      id: airiq_pmc1_0
-      name: "${friendly_name} PMC 1.0"
-      internal: true
-      accuracy_decimals: 0
-      filters:
-        - throttle: ${airiq_sps30_update}
-
-    pmc_2_5:
-      id: airiq_pmc2_5
-      name: "${friendly_name} PMC 2.5"
-      internal: true
-      accuracy_decimals: 0
-      filters:
-        - throttle: ${airiq_sps30_update}
-
-    pmc_4_0:
-      id: airiq_pmc4_0
-      name: "${friendly_name} PMC 4.0"
-      internal: true
-      accuracy_decimals: 0
-      filters:
-        - throttle: ${airiq_sps30_update}
-
-    pmc_10_0:
-      id: airiq_pmc10_0
-      name: "${friendly_name} PMC 10"
-      internal: true
-      accuracy_decimals: 0
-      filters:
-        - throttle: ${airiq_sps30_update}
-
-    pm_size:
-      id: airiq_pm_size
-      name: "${friendly_name} Typical Particle Size"
-      internal: true
-      accuracy_decimals: 2
-      filters:
-        - throttle: ${airiq_sps30_update}
-
-    auto_cleaning_interval: ${airiq_sps30_cleaning_interval}
-    update_interval: ${airiq_sps30_update}
-
-  # SGP41 - VOC/NOx Sensor
+  # SGP41 - VOC/NOx Sensor (U1 @ 0x59)
   - platform: sgp4x
     id: sgp41_sensor
     i2c_id: ${airiq_i2c_id}
@@ -210,7 +143,7 @@ sensor:
     store_baseline: true
     update_interval: ${airiq_sgp41_update}
 
-  # SCD41 - CO2 Sensor
+  # SCD41 - CO2 Sensor (U3 @ 0x62)
   - platform: scd4x
     id: scd41_sensor
     i2c_id: ${airiq_i2c_id}
@@ -244,99 +177,200 @@ sensor:
     measurement_mode: periodic
     update_interval: ${airiq_scd41_update}
 
-  # BMP390 - Barometric Pressure
-  - platform: bmp3xx_i2c
-    id: bmp390_sensor
+  # SFA40 - Formaldehyde Sensor (U2 @ 0x5D), scoped external component.
+  # Raw/internal — the framework re-exposes the canonical "Formaldehyde"
+  # customer entity (freshness-gated) from airiq_hcho.
+  - platform: sfa40
+    id: sfa40_sensor
     i2c_id: ${airiq_i2c_id}
-    address: 0x77
+    address: 0x5D
+    update_interval: ${airiq_sfa40_update}
+
+    formaldehyde:
+      id: airiq_hcho
+      name: "${friendly_name} SFA40 Formaldehyde"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sfa40_update}
+
+    humidity:
+      id: airiq_sfa40_humidity
+      name: "${friendly_name} SFA40 Humidity"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sfa40_update}
 
     temperature:
-      id: airiq_bmp390_temperature
-      name: "${friendly_name} BMP390 Temperature"
+      id: airiq_sfa40_temperature
+      name: "${friendly_name} SFA40 Temperature"
       internal: true
-      oversampling: 2x
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sfa40_update}
 
-    pressure:
-      id: airiq_pressure
-      name: "${friendly_name} Pressure"
-      internal: true
-      oversampling: 2x
-
-    update_interval: ${airiq_bmp390_update}
-
-# ============================================================================
-# Globals for Air Quality Calculations
-# ============================================================================
-globals:
-  - id: airiq_aqi_value
-    type: int
-    restore_value: false
-    initial_value: '0'
-
-  - id: airiq_temperature_value
-    type: float
-    restore_value: false
-    initial_value: '20.0'
-
-  - id: airiq_humidity_value
-    type: float
-    restore_value: false
-    initial_value: '50.0'
-
-# ============================================================================
-# Interval for Sensor Data Processing
-# ============================================================================
-interval:
-  - interval: 30s
-    then:
-      - lambda: |-
-          // Temperature from SCD41 (SPS30 doesn't provide temperature)
-          float temp_scd41 = id(airiq_scd41_temperature).state;
-          if (!std::isnan(temp_scd41)) {
-            id(airiq_temperature_value) = temp_scd41;
-          }
-
-          // Humidity from SCD41 (SPS30 doesn't provide humidity)
-          float hum_scd41 = id(airiq_scd41_humidity).state;
-          if (!std::isnan(hum_scd41)) {
-            id(airiq_humidity_value) = hum_scd41;
-          }
-
-          // Calculate AQI based on PM2.5
-          float pm25 = id(airiq_pm2_5).state;
-          int aqi = 0;
-
-          if (!std::isnan(pm25)) {
-            if (pm25 <= 12.0f) {
-              aqi = (int)((50.0f / 12.0f) * pm25);
-            } else if (pm25 <= 35.4f) {
-              aqi = (int)(((100.0f - 51.0f) / (35.4f - 12.1f)) * (pm25 - 12.1f) + 51.0f);
-            } else if (pm25 <= 55.4f) {
-              aqi = (int)(((150.0f - 101.0f) / (55.4f - 35.5f)) * (pm25 - 35.5f) + 101.0f);
-            } else if (pm25 <= 150.4f) {
-              aqi = (int)(((200.0f - 151.0f) / (150.4f - 55.5f)) * (pm25 - 55.5f) + 151.0f);
-            } else {
-              aqi = (int)(((300.0f - 201.0f) / (250.4f - 150.5f)) * (pm25 - 150.5f) + 201.0f);
-            }
-          }
-
-          id(airiq_aqi_value) = aqi;
-
-# ============================================================================
-# Button for Manual SPS30 Fan Cleaning
-# ============================================================================
-button:
+  # --- MICS-4514 / STM8 diagnostic surface (reads the airiq_mics hub) ---------
+  # Reducing/oxidising RAW ADC and baselines are published whenever the bridge
+  # is online (including during warm-up). The reducing/oxidising RATIOS are
+  # validity-gated inside the component and read unavailable until the STM8
+  # reports online + identity M4 + supported protocol + warm-up complete +
+  # calibrated + heater on + non-zero baselines + zero fault flags. No CO/NO2
+  # concentration is derived or claimed.
   - platform: template
-    name: "${friendly_name} SPS30 Clean Fan"
-    id: airiq_sps30_clean_button
-    icon: mdi:fan
-    internal: true
-    on_press:
-      then:
-        - sps30.start_fan_autoclean: sps30_sensor
-        - logger.log:
-            level: INFO
-            format: "AirIQ: SPS30 fan cleaning started"
+    id: airiq_mics_red_ratio
+    name: "${friendly_name} MICS Reducing Ratio"
+    icon: mdi:molecule
+    accuracy_decimals: 3
+    entity_category: diagnostic
+    update_interval: ${airiq_mics_update}
+    lambda: "return id(airiq_mics).red_ratio();"
+
+  - platform: template
+    id: airiq_mics_ox_ratio
+    name: "${friendly_name} MICS Oxidising Ratio"
+    icon: mdi:molecule
+    accuracy_decimals: 3
+    entity_category: diagnostic
+    update_interval: ${airiq_mics_update}
+    lambda: "return id(airiq_mics).ox_ratio();"
+
+  - platform: template
+    id: airiq_mics_red_adc
+    name: "${friendly_name} MICS Reducing ADC"
+    icon: mdi:sine-wave
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: ${airiq_mics_update}
+    lambda: "return id(airiq_mics).red_adc();"
+
+  - platform: template
+    id: airiq_mics_ox_adc
+    name: "${friendly_name} MICS Oxidising ADC"
+    icon: mdi:sine-wave
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: ${airiq_mics_update}
+    lambda: "return id(airiq_mics).ox_adc();"
+
+  - platform: template
+    id: airiq_mics_red_baseline
+    name: "${friendly_name} MICS Reducing Baseline"
+    icon: mdi:chart-line
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: ${airiq_mics_update}
+    lambda: "return id(airiq_mics).red_baseline();"
+
+  - platform: template
+    id: airiq_mics_ox_baseline
+    name: "${friendly_name} MICS Oxidising Baseline"
+    icon: mdi:chart-line
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: ${airiq_mics_update}
+    lambda: "return id(airiq_mics).ox_baseline();"
+
+  - platform: template
+    id: airiq_mics_firmware
+    name: "${friendly_name} MICS STM8 Firmware"
+    icon: mdi:chip
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: ${airiq_mics_update}
+    lambda: "return id(airiq_mics).firmware_version();"
+
+  - platform: template
+    id: airiq_mics_fault_flags
+    name: "${friendly_name} MICS Fault Flags"
+    icon: mdi:alert-circle-outline
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: ${airiq_mics_update}
+    lambda: "return id(airiq_mics).fault_flags();"
+
+  - platform: template
+    id: airiq_mics_adc_error_count
+    name: "${friendly_name} MICS ADC Error Count"
+    icon: mdi:counter
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: ${airiq_mics_update}
+    lambda: "return id(airiq_mics).adc_error_count();"
+
+  - platform: template
+    id: airiq_mics_i2c_error_count
+    name: "${friendly_name} MICS I2C Error Count"
+    icon: mdi:counter
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: ${airiq_mics_update}
+    lambda: "return id(airiq_mics).i2c_error_count();"
+
+  - platform: template
+    id: airiq_mics_calibration_samples
+    name: "${friendly_name} MICS Calibration Samples"
+    icon: mdi:counter
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: ${airiq_mics_update}
+    lambda: "return id(airiq_mics).calibration_samples();"
+
+  - platform: template
+    id: airiq_mics_red_cal_spread
+    name: "${friendly_name} MICS Reducing Calibration Spread"
+    icon: mdi:arrow-expand-vertical
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: ${airiq_mics_update}
+    lambda: "return id(airiq_mics).red_calibration_spread();"
+
+  - platform: template
+    id: airiq_mics_ox_cal_spread
+    name: "${friendly_name} MICS Oxidising Calibration Spread"
+    icon: mdi:arrow-expand-vertical
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: ${airiq_mics_update}
+    lambda: "return id(airiq_mics).ox_calibration_spread();"
+
+# ============================================================================
+# MICS-4514 / STM8 diagnostic binary sensors, text sensors and button
+# ============================================================================
+binary_sensor:
+  - platform: template
+    id: airiq_mics_online
+    name: "${friendly_name} MICS Online"
+    icon: mdi:lan-connect
+    entity_category: diagnostic
+    lambda: "return id(airiq_mics).online();"
+
+  - platform: template
+    id: airiq_mics_warming
+    name: "${friendly_name} MICS Warming Up"
+    icon: mdi:fire
+    entity_category: diagnostic
+    lambda: "return id(airiq_mics).warming();"
+
+  - platform: template
+    id: airiq_mics_calibrated
+    name: "${friendly_name} MICS Calibrated"
+    icon: mdi:check-decagram
+    entity_category: diagnostic
+    lambda: "return id(airiq_mics).calibrated();"
+
+  - platform: template
+    id: airiq_mics_heater_on
+    name: "${friendly_name} MICS Heater On"
+    icon: mdi:radiator
+    entity_category: diagnostic
+    lambda: "return id(airiq_mics).heater_on_state();"
 
 text_sensor:
   - platform: template
@@ -345,3 +379,58 @@ text_sensor:
       return {"${module_sku}"};
     update_interval: never
     entity_category: diagnostic
+
+  - platform: template
+    id: airiq_mics_identity
+    name: "${friendly_name} MICS Identity"
+    icon: mdi:identifier
+    entity_category: diagnostic
+    update_interval: ${airiq_mics_update}
+    lambda: "return {id(airiq_mics).identity_string()};"
+
+  - platform: template
+    id: airiq_mics_protocol_status
+    name: "${friendly_name} MICS Protocol Status"
+    icon: mdi:protocol
+    entity_category: diagnostic
+    update_interval: ${airiq_mics_update}
+    lambda: "return {id(airiq_mics).protocol_status()};"
+
+  - platform: template
+    id: airiq_mics_fault_detail
+    name: "${friendly_name} MICS Fault Detail"
+    icon: mdi:alert-circle-outline
+    entity_category: diagnostic
+    update_interval: ${airiq_mics_update}
+    lambda: "return {id(airiq_mics).fault_detail()};"
+
+  - platform: template
+    id: airiq_mics_last_command_result
+    name: "${friendly_name} MICS Last Command Result"
+    icon: mdi:console
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: ${airiq_mics_update}
+    lambda: "return {id(airiq_mics).last_command_result()};"
+
+  - platform: template
+    id: airiq_mics_reset_reason
+    name: "${friendly_name} MICS Reset Reason"
+    icon: mdi:restart-alert
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: ${airiq_mics_update}
+    lambda: "return {id(airiq_mics).reset_reason()};"
+
+button:
+  - platform: template
+    id: airiq_mics_recalibrate
+    name: "${friendly_name} MICS Recalibrate"
+    icon: mdi:tune
+    entity_category: config
+    on_press:
+      then:
+        - lambda: "id(airiq_mics).recalibrate();"
+        - logger.log:
+            level: INFO
+            format: "AirIQ: MICS/STM8 recalibration requested"

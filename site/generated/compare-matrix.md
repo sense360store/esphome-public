@@ -13,7 +13,7 @@
 |  | [RoomIQ](https://sense360store.github.io/esphome-public/products/ceiling-poe-roomiq/) | [AirIQ + RoomIQ](https://sense360store.github.io/esphome-public/products/ceiling-poe-airiq-roomiq/) | [VentIQ + RoomIQ](https://sense360store.github.io/esphome-public/products/ceiling-poe-ventiq-roomiq/) | [VentIQ + RoomIQ + LED](https://sense360store.github.io/esphome-public/products/ceiling-poe-ventiq-roomiq-led/) |
 |---|---|---|---|---|
 | **Config string** | `Ceiling-POE-RoomIQ` | `Ceiling-POE-AirIQ-RoomIQ` | `Ceiling-POE-VentIQ-RoomIQ` | `Ceiling-POE-VentIQ-RoomIQ-LED` |
-| **Channel / version** | <span class="s360-badge s360-badge--stable">stable</span> v1.0.8 | <span class="s360-badge s360-badge--stable">stable</span> v1.0.9 | <span class="s360-badge s360-badge--stable">stable</span> v1.0.7 | <span class="s360-badge s360-badge--preview">preview</span> v1.0.1 |
+| **Channel / version** | <span class="s360-badge s360-badge--stable">stable</span> v1.0.8 | <span class="s360-badge s360-badge--preview">preview</span> v1.0.9 | <span class="s360-badge s360-badge--stable">stable</span> v1.0.7 | <span class="s360-badge s360-badge--preview">preview</span> v1.0.1 |
 | **Power** | POE (S360-410) | POE (S360-410) | POE (S360-410) | POE (S360-410) |
 | **Air-quality module** | — | AirIQ (S360-210) | VentIQ (S360-211) | VentIQ (S360-211) |
 | **Room-sensing module** | RoomIQ (S360-200) | RoomIQ (S360-200) | RoomIQ (S360-200) | RoomIQ (S360-200) |
@@ -47,4 +47,4 @@
 | LED night mode | — | — | — | ✓ |
 | Relay output | ✓ | ✓ | ✓ | ✓ |
 | Auto-ventilation control | — | — | ✓ | ✓ |
-| **Home Assistant entities** | 92 | 110 | 130 | 141 |
+| **Home Assistant entities** | 92 | 134 | 130 | 141 |

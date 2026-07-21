@@ -34,7 +34,7 @@
        products/webflash/ceiling-poe-airiq-roomiq.yaml
 -->
 
-The `Ceiling-POE-AirIQ-RoomIQ` firmware exposes **110 entities** to Home Assistant.
+The `Ceiling-POE-AirIQ-RoomIQ` firmware exposes **134 entities** to Home Assistant.
 
 Entity names below appear in Home Assistant prefixed with the device's friendly name, which you choose during setup (firmware default: `Sense360 Ceiling AirIQ RoomIQ`). Firmware-internal measurements (marked `internal` in the YAML) never reach Home Assistant and are not listed.
 
@@ -43,10 +43,24 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Climate Data Age | Sensor | s | diagnostic entity; disabled by default |
 | CO2 | Sensor | ppm | device class: carbon_dioxide |
 | CO2 Data Age | Sensor | s | diagnostic entity; disabled by default |
+| Formaldehyde | Sensor | ppb | — |
 | Humidity | Sensor | % | device class: humidity |
 | Illuminance | Sensor | lx | device class: illuminance |
 | Illuminance Data Age | Sensor | s | diagnostic entity; disabled by default |
 | Internal Temperature | Sensor | °C | — |
+| MICS ADC Error Count | Sensor | — | diagnostic entity; disabled by default |
+| MICS Calibration Samples | Sensor | — | diagnostic entity; disabled by default |
+| MICS Fault Flags | Sensor | — | diagnostic entity; disabled by default |
+| MICS I2C Error Count | Sensor | — | diagnostic entity; disabled by default |
+| MICS Oxidising ADC | Sensor | — | diagnostic entity |
+| MICS Oxidising Baseline | Sensor | — | diagnostic entity |
+| MICS Oxidising Calibration Spread | Sensor | — | diagnostic entity; disabled by default |
+| MICS Oxidising Ratio | Sensor | — | diagnostic entity |
+| MICS Reducing ADC | Sensor | — | diagnostic entity |
+| MICS Reducing Baseline | Sensor | — | diagnostic entity |
+| MICS Reducing Calibration Spread | Sensor | — | diagnostic entity; disabled by default |
+| MICS Reducing Ratio | Sensor | — | diagnostic entity |
+| MICS STM8 Firmware | Sensor | — | diagnostic entity |
 | NOx | Sensor | — | — |
 | Particulate Data Age | Sensor | s | diagnostic entity; disabled by default |
 | PM1 | Sensor | µg/m³ | device class: pm1; disabled by default |
@@ -87,6 +101,10 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | VOC | Sensor | — | — |
 | VOC Data Age | Sensor | s | diagnostic entity; disabled by default |
 | WiFi Signal | Sensor | dBm | — |
+| MICS Calibrated | Binary sensor | — | diagnostic entity |
+| MICS Heater On | Binary sensor | — | diagnostic entity |
+| MICS Online | Binary sensor | — | diagnostic entity |
+| MICS Warming Up | Binary sensor | — | diagnostic entity |
 | Occupancy | Binary sensor | — | device class: occupancy |
 | PIR Motion | Binary sensor | — | device class: motion; diagnostic entity; disabled by default |
 | PoE Power Connected | Binary sensor | — | device class: power |
@@ -124,6 +142,11 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | LED Module Status | Text sensor | — | diagnostic entity; disabled by default |
 | Light Status | Text sensor | — | disabled by default |
 | MAC Address | Text sensor | — | — |
+| MICS Fault Detail | Text sensor | — | diagnostic entity |
+| MICS Identity | Text sensor | — | diagnostic entity |
+| MICS Last Command Result | Text sensor | — | diagnostic entity; disabled by default |
+| MICS Protocol Status | Text sensor | — | diagnostic entity |
+| MICS Reset Reason | Text sensor | — | diagnostic entity; disabled by default |
 | Power Configuration | Text sensor | — | diagnostic entity |
 | Power Source | Text sensor | — | — |
 | Presence Module SKU | Text sensor | — | diagnostic entity |
@@ -148,5 +171,6 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Temperature Offset | Number | °C | config entity |
 | Presence Mode | Select | — | config entity |
 | Factory Reset | Button | — | disabled by default |
+| MICS Recalibrate | Button | — | config entity |
 | Restart | Button | — | — |
 | Safe Mode | Button | — | — |

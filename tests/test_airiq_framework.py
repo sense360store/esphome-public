@@ -166,6 +166,7 @@ DEFAULT_ENABLED_IDS = {
     "s360_co2",
     "s360_voc",
     "s360_nox",
+    "s360_hcho",
     "s360_air_quality",
     "s360_recommendation",
 }
@@ -282,7 +283,7 @@ class AuthorityTests(unittest.TestCase):
             "airiq_expected_voc": "true",
             "airiq_expected_nox": "true",
             "airiq_expected_pm": "false",
-            "airiq_expected_hcho": "false",
+            "airiq_expected_hcho": "true",
             "airiq_expected_o3": "false",
         }
         for key, value in expectations.items():
@@ -297,13 +298,16 @@ class AuthorityTests(unittest.TestCase):
         self.assertNotIn("airiq pro", raw)
         self.assertNotIn("base_pro", raw)
 
-    def test_no_formaldehyde_or_ozone_entity_in_current_surface(self) -> None:
-        # No current composition has an authoritative formaldehyde or ozone
-        # sensor: the framework must not expose customer entities for them.
+    def test_formaldehyde_exposed_but_no_ozone_entity(self) -> None:
+        # AIRIQ-HW-RECONCILE-001: the fitted SFA40 (U2) gives a real,
+        # factory-calibrated ppb formaldehyde reading, so a customer
+        # Formaldehyde entity now exists. Ozone (no fitted part, no driver)
+        # still must not be exposed anywhere.
         entities = entities_by_id(self.doc)
+        self.assertIn("s360_hcho", entities)
+        self.assertEqual(entities["s360_hcho"]["name"], "Formaldehyde")
         for entity_id, entry in entities.items():
             name = str(entry.get("name", "")).lower()
-            self.assertNotIn("formaldehyde", name, entity_id)
             self.assertNotIn("ozone", name, entity_id)
 
     def test_no_mics_pollutant_entity(self) -> None:
@@ -344,28 +348,39 @@ class AuthorityTests(unittest.TestCase):
         self.assertIn("J2", raw)
         self.assertIn("external", raw.lower())
 
-    def test_board_package_raw_sensors_unchanged_and_internal(self) -> None:
-        # The board layer stays the owner of the raw sensors; this work item
-        # changes NO compiled sensor, address or interval.
+    def test_board_package_probes_fitted_hardware_only(self) -> None:
+        # AIRIQ-HW-RECONCILE-001: the board package probes the FITTED R4
+        # hardware — SGP41 (0x59), SCD41 (0x62), SFA40 (0x5D) and the
+        # MICS/STM8 bridge (0x60) — and NOT the drifted BMP390 or the
+        # external SPS30.
         raw = BOARD_PACKAGE.read_text()
         for needle in (
-            "platform: sps30",
             "platform: sgp4x",
             "platform: scd4x",
-            "platform: bmp3xx_i2c",
-            "address: 0x69",
+            "platform: sfa40",
+            "mics_stm8:",
             "address: 0x59",
             "address: 0x62",
-            "address: 0x77",
+            "address: 0x5D",
+            "address: 0x60",
         ):
             self.assertIn(needle, raw, needle)
+        for absent in (
+            "platform: sps30",
+            "platform: bmp3xx_i2c",
+            "address: 0x69",
+            "address: 0x77",
+        ):
+            self.assertNotIn(absent, raw, absent)
+        # The raw pollutant sub-sensors (SGP41/SCD41/SFA40) stay internal;
+        # the framework re-exposes the canonical customer surface.
         doc = load_yaml(BOARD_PACKAGE)
         for entry in doc.get("sensor") or []:
             for sub in entry.values():
                 if isinstance(sub, dict) and "id" in sub and "name" in sub:
                     self.assertTrue(
                         sub.get("internal"),
-                        f"board sensor {sub.get('id')} must stay internal",
+                        f"raw pollutant sensor {sub.get('id')} must stay internal",
                     )
 
 
@@ -476,11 +491,12 @@ class CustomerEntityContractTests(unittest.TestCase):
         self.assertIn("opt-in", lowered)
         self.assertIn("declared", lowered)
 
-    def test_no_pressure_customer_surface_firmware_drift(self) -> None:
+    def test_no_pressure_customer_surface_bmp390_removed(self) -> None:
         # Pressure is NOT S360-210 product hardware: absent from the
-        # verified schematic, the R4 BOM and the hardware catalog. The
-        # compiled BMP390 @0x77 is firmware/catalog drift — the framework
-        # must expose NO pressure entity of any kind and wire nothing.
+        # verified schematic, the R4 BOM and the hardware catalog. Under
+        # AIRIQ-HW-RECONCILE-001 the drifted BMP390 @0x77 is REMOVED — the
+        # framework exposes NO pressure entity and the board package no
+        # longer probes it.
         self.assertNotIn("s360_pressure", self.entities)
         self.assertNotIn("s360_airiq_pressure_data_age", self.entities)
         for entity_id, entry in self.entities.items():
@@ -489,12 +505,12 @@ class CustomerEntityContractTests(unittest.TestCase):
         raw = FRAMEWORK_PACKAGE.read_text()
         self.assertNotIn("airiq_pressure_source_id", raw)
         self.assertNotIn("input_pressure", raw)
-        # The drift itself must be stated on-device (sensor verification)
-        # and the board package stays untouched (its BMP390 remains
-        # internal-only until the drift reconciliation lands).
+        # The removal is stated on-device (sensor verification) and the
+        # board package no longer instantiates the BMP390 driver.
         self.assertIn("drift", raw.lower())
         board_raw = BOARD_PACKAGE.read_text()
-        self.assertIn("platform: bmp3xx_i2c", board_raw)
+        self.assertNotIn("platform: bmp3xx_i2c", board_raw)
+        self.assertNotIn("address: 0x77", board_raw)
 
     def test_no_engineering_jargon_in_customer_entity_names(self) -> None:
         for entity_id, entry in self.entities.items():
@@ -592,12 +608,15 @@ class FrameworkMechanicsTests(unittest.TestCase):
         self.assertIn("../include/sense360/airiq_engine.h", self.raw)
 
     def test_freshness_comes_from_update_callbacks(self) -> None:
-        # Real value-update callbacks are the freshness signal.
+        # Real value-update callbacks are the freshness signal. The PCB
+        # sensors (CO2/VOC/NOx/HCHO) are wired here; the external SPS30 PM
+        # input lives in the opt-in overlay (see SPS30OverlayTests).
         self.assertIn("on_value", self.raw)
         self.assertIn("input_co2", self.raw)
         self.assertIn("input_voc", self.raw)
         self.assertIn("input_nox", self.raw)
-        self.assertIn("input_pm2_5", self.raw)
+        self.assertIn("input_hcho", self.raw)
+        self.assertNotIn("input_pm2_5", self.raw)
 
     def test_stale_values_are_never_left_standing(self) -> None:
         self.assertIn("publish_state(NAN)", self.raw)

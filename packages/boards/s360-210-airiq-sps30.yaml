@@ -1,0 +1,213 @@
+# ============================================================================
+# Sense360 AirIQ — SPS30 particulate-matter opt-in overlay (S360-210-R4)
+# ============================================================================
+# AIRIQ-HW-RECONCILE-001. The SPS30 PM sensor is an EXTERNAL, off-board module
+# on the AirIQ J2 connector (5-pin JST SH) — it is NOT populated on the
+# S360-210 PCB and no authoritative kit / SOT / product record declares it as
+# supplied. The canonical board package therefore does NOT probe it. A device
+# that DECLARES an attached SPS30 composes THIS overlay (in addition to the
+# board package and the AirIQ framework); it:
+#
+#   * instantiates the sps30 driver at 0x69 on the shared Core I2C bus
+#     (airiq_pm* raw internal sensors);
+#   * feeds the framework engine's PM channels (input_pm2_5 / pm1 / pm4 / pm10)
+#     and publishes the canonical customer PM entities (s360_pm2_5 / s360_pm1 /
+#     s360_pm4 / s360_pm10, re-enabled via `!extend`);
+#   * sets airiq_expected_pm: "true" so PM participates in the Air Quality
+#     headline and a missing/stale SPS30 degrades module health honestly.
+#
+# Composition order: list this overlay AFTER packages/features/airiq_framework
+# .yaml so its `airiq_expected_pm: "true"` substitution overrides the base
+# default; a device may also set airiq_expected_pm: "true" in its own top-level
+# substitutions to be explicit. This overlay depends on the framework (it
+# references s360_pm* and the s360_airiq_evaluate script) and the board package
+# (shared core_i2c bus) being composed.
+#
+# This overlay reuses the existing airiq_pm* / s360_pm* ids — it introduces NO
+# duplicate id and NO duplicate I2C bus declaration (i2c_id: ${airiq_i2c_id}).
+#
+# Evidence level: source + compile proof only. NO hardware, bench, compliance
+# or commercial claim is made; declaring an SPS30 attachment as commercially
+# supplied is a separate product/SOT decision (AIRIQ-SPS30-INCLUSION-001).
+# ============================================================================
+
+substitutions:
+  # Opt in: PM now participates in the headline and module health.
+  airiq_expected_pm: "true"
+
+  airiq_sps30_update: 30s
+  # SPS30 auto-cleaning interval (7 days default).
+  airiq_sps30_cleaning_interval: "604800s"
+
+# ============================================================================
+# SPS30 - Particulate Matter Sensor (external module on J2 @ 0x69)
+# ============================================================================
+sensor:
+  - platform: sps30
+    id: sps30_sensor
+    i2c_id: ${airiq_i2c_id}
+    address: 0x69
+
+    pm_1_0:
+      id: airiq_pm1_0
+      name: "${friendly_name} PM1.0"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pm_2_5:
+      id: airiq_pm2_5
+      name: "${friendly_name} PM2.5"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pm_4_0:
+      id: airiq_pm4_0
+      name: "${friendly_name} PM4.0"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pm_10_0:
+      id: airiq_pm10_0
+      name: "${friendly_name} PM10"
+      internal: true
+      accuracy_decimals: 1
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pmc_0_5:
+      id: airiq_pmc0_5
+      name: "${friendly_name} PMC 0.5"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pmc_1_0:
+      id: airiq_pmc1_0
+      name: "${friendly_name} PMC 1.0"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pmc_2_5:
+      id: airiq_pmc2_5
+      name: "${friendly_name} PMC 2.5"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pmc_4_0:
+      id: airiq_pmc4_0
+      name: "${friendly_name} PMC 4.0"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pmc_10_0:
+      id: airiq_pmc10_0
+      name: "${friendly_name} PMC 10"
+      internal: true
+      accuracy_decimals: 0
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    pm_size:
+      id: airiq_pm_size
+      name: "${friendly_name} Typical Particle Size"
+      internal: true
+      accuracy_decimals: 2
+      filters:
+        - throttle: ${airiq_sps30_update}
+
+    auto_cleaning_interval: ${airiq_sps30_cleaning_interval}
+    update_interval: ${airiq_sps30_update}
+
+  # --- feed the framework engine's PM channels (freshness signal) -------------
+  - platform: copy
+    source_id: airiq_pm2_5
+    id: s360_airiq_pm2_5_sample
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            sense360::airiq::global_engine().input_pm2_5(millis(), x);
+        - script.execute: s360_airiq_evaluate
+        - lambda: |-
+            if (!std::isnan(x)) {
+              id(s360_pm2_5).publish_state(
+                  sense360::airiq::global_engine().pm2_5());
+            }
+
+  - platform: copy
+    source_id: airiq_pm1_0
+    id: s360_airiq_pm1_sample
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            auto &engine = sense360::airiq::global_engine();
+            engine.input_pm1(millis(), x);
+            if (!std::isnan(engine.pm1())) {
+              id(s360_pm1).publish_state(engine.pm1());
+            }
+
+  - platform: copy
+    source_id: airiq_pm4_0
+    id: s360_airiq_pm4_sample
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            auto &engine = sense360::airiq::global_engine();
+            engine.input_pm4(millis(), x);
+            if (!std::isnan(engine.pm4())) {
+              id(s360_pm4).publish_state(engine.pm4());
+            }
+
+  - platform: copy
+    source_id: airiq_pm10_0
+    id: s360_airiq_pm10_sample
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            auto &engine = sense360::airiq::global_engine();
+            engine.input_pm10(millis(), x);
+            if (!std::isnan(engine.pm10())) {
+              id(s360_pm10).publish_state(engine.pm10());
+            }
+
+  # --- re-enable the canonical customer PM entities defined by the framework --
+  - id: !extend s360_pm2_5
+    disabled_by_default: false
+  - id: !extend s360_pm1
+    disabled_by_default: false
+  - id: !extend s360_pm4
+    disabled_by_default: false
+  - id: !extend s360_pm10
+    disabled_by_default: false
+
+# ============================================================================
+# Manual SPS30 fan-cleaning button
+# ============================================================================
+button:
+  - platform: template
+    name: "${friendly_name} SPS30 Clean Fan"
+    id: airiq_sps30_clean_button
+    icon: mdi:fan
+    entity_category: config
+    on_press:
+      then:
+        - sps30.start_fan_autoclean: sps30_sensor
+        - logger.log:
+            level: INFO
+            format: "AirIQ: SPS30 fan cleaning started"
