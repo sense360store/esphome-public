@@ -73,6 +73,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 FRAMEWORK_PACKAGE = REPO_ROOT / "packages" / "features" / "airiq_framework.yaml"
 LEGACY_PROFILE = REPO_ROOT / "packages" / "features" / "airiq_basic_profile.yaml"
 BOARD_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-210-airiq.yaml"
+SPS30_OVERLAY = REPO_ROOT / "packages" / "boards" / "s360-210-airiq-sps30.yaml"
+SFA40_COMPONENT = REPO_ROOT / "components" / "sfa40"
+MICS_COMPONENT = REPO_ROOT / "components" / "mics_stm8"
 HEADER = REPO_ROOT / "include" / "sense360" / "airiq_engine.h"
 ROOMIQ_HEADER = REPO_ROOT / "include" / "sense360" / "roomiq_engine.h"
 CPP_TEST = REPO_ROOT / "tests" / "unit" / "test_airiq_engine.cpp"
@@ -1130,6 +1133,159 @@ class RoadmapTests(unittest.TestCase):
         self.assertIn("SPS30", section)
         self.assertIn("opt-in", lowered)
         self.assertGreater(section_start, start)
+
+
+# --- AIRIQ-HW-RECONCILE-001 hardware-reconciliation proofs ------------------
+
+
+class HardwareReconcileProofTests(unittest.TestCase):
+    """The explicit proofs for AIRIQ-HW-RECONCILE-001: the canonical board
+    package matches the fitted S360-210-R4 hardware."""
+
+    def setUp(self) -> None:
+        self.board_raw = BOARD_PACKAGE.read_text()
+        self.board = load_yaml(BOARD_PACKAGE)
+
+    def _all_ids(self, doc: Dict[str, Any]) -> List[str]:
+        ids: List[str] = []
+        for platform in ENTITY_PLATFORM_KEYS + ("mics_stm8",):
+            block = doc.get(platform)
+            if isinstance(block, dict):
+                if isinstance(block.get("id"), str):
+                    ids.append(block["id"])
+                continue
+            for entry in block or []:
+                if isinstance(entry, dict):
+                    if isinstance(entry.get("id"), str):
+                        ids.append(entry["id"])
+                    for sub in entry.values():
+                        if isinstance(sub, dict) and isinstance(sub.get("id"), str):
+                            ids.append(sub["id"])
+        return ids
+
+    # 1 + 2: no BMP390 driver / ids / substitutions in the canonical base.
+    def test_no_bmp3xx_and_no_bmp390_ids_or_subs(self) -> None:
+        # The driver is not instantiated (a comment may still explain the
+        # removal), and no BMP390/pressure id or substitution survives.
+        self.assertNotIn("platform: bmp3xx_i2c", self.board_raw)
+        self.assertNotIn("address: 0x77", self.board_raw)
+        lowered = self.board_raw.lower()
+        self.assertNotIn("bmp390_sensor", lowered)
+        self.assertNotIn("airiq_bmp390", lowered)
+        self.assertNotIn("airiq_pressure", lowered)
+        subs = self.board.get("substitutions") or {}
+        for key in subs:
+            self.assertNotIn("bmp390", key.lower())
+            self.assertNotIn("pressure", key.lower())
+
+    # 3: no SPS30 instantiation in the canonical base.
+    def test_canonical_base_does_not_instantiate_sps30(self) -> None:
+        self.assertNotIn("platform: sps30", self.board_raw)
+        self.assertNotIn("address: 0x69", self.board_raw)
+
+    # 4: SPS30 remains available through an explicit opt-in package.
+    def test_sps30_available_through_opt_in_overlay(self) -> None:
+        self.assertTrue(SPS30_OVERLAY.is_file())
+        overlay = SPS30_OVERLAY.read_text()
+        self.assertIn("platform: sps30", overlay)
+        self.assertIn("address: 0x69", overlay)
+        self.assertIn('airiq_expected_pm: "true"', overlay)
+
+    # 5: SGP41 + SCD41 present.
+    def test_canonical_includes_sgp41_and_scd41(self) -> None:
+        self.assertIn("platform: sgp4x", self.board_raw)
+        self.assertIn("address: 0x59", self.board_raw)
+        self.assertIn("platform: scd4x", self.board_raw)
+        self.assertIn("address: 0x62", self.board_raw)
+
+    # 6: SFA40 support.
+    def test_canonical_includes_sfa40(self) -> None:
+        self.assertIn("platform: sfa40", self.board_raw)
+        self.assertIn("address: 0x5D", self.board_raw)
+        self.assertIn("formaldehyde:", self.board_raw)
+
+    # 7: MICS/STM8 bridge at 0x60.
+    def test_canonical_includes_mics_stm8_bridge_at_0x60(self) -> None:
+        self.assertIn("mics_stm8:", self.board_raw)
+        self.assertIn("address: 0x60", self.board_raw)
+
+    # 8: STM8 extended protocol identity/register handling present.
+    def test_stm8_protocol_identity_and_registers_present(self) -> None:
+        header = (MICS_COMPONENT / "mics_stm8.h").read_text()
+        source = (MICS_COMPONENT / "mics_stm8.cpp").read_text()
+        self.assertIn("'M'", header)
+        self.assertIn("'4'", header)
+        self.assertIn("MICS_STM8_PROTOCOL_VERSION", header)
+        self.assertIn("0x24", header)  # firmware
+        self.assertIn("0xFE", header)  # command register
+        self.assertIn("MICS_STM8_REG_BLOCK_LEN = 24", header)
+        for token in ("WARMING", "CALIBRATED", "HEATER_ON", "baseline", "fault_flags"):
+            self.assertIn(token, source)
+
+    # 9: a missing optional SPS30 never marks base AirIQ hardware failed.
+    def test_missing_sps30_does_not_degrade_base(self) -> None:
+        subs = load_yaml(FRAMEWORK_PACKAGE).get("substitutions") or {}
+        self.assertEqual(str(subs.get("airiq_expected_pm")).lower(), "false")
+        self.assertNotIn("input_pm2_5", FRAMEWORK_PACKAGE.read_text())
+
+    # 11: legacy aliases resolve to the corrected implementation.
+    def test_legacy_alias_resolves_to_corrected_board(self) -> None:
+        alias = REPO_ROOT / "packages" / "expansions" / "airiq_ceiling.yaml"
+        raw = alias.read_text()
+        self.assertIn("boards/s360-210-airiq.yaml", raw)
+        self.assertNotIn("platform: bmp3xx_i2c", raw)
+        self.assertNotIn("platform: sps30", raw)
+
+    # 12: no duplicate ids, no duplicate I2C bus declaration.
+    def test_no_duplicate_ids_or_i2c_bus(self) -> None:
+        ids = self._all_ids(self.board)
+        self.assertEqual(len(ids), len(set(ids)), f"duplicate id in board: {ids}")
+        self.assertNotIn("i2c:", self.board_raw)  # references the shared Core bus
+        overlay = SPS30_OVERLAY.read_text()
+        self.assertNotIn("i2c:", overlay)
+        # existing PM ids are preserved via !extend, never redefined.
+        self.assertIn("!extend s360_pm2_5", overlay)
+
+
+class ExternalComponentStructureTests(unittest.TestCase):
+    def test_sfa40_component_files_exist(self) -> None:
+        for name in ("__init__.py", "sensor.py", "sfa40.h", "sfa40.cpp"):
+            self.assertTrue((SFA40_COMPONENT / name).is_file(), name)
+
+    def test_sfa40_uses_datasheet_commands(self) -> None:
+        cpp = (SFA40_COMPONENT / "sfa40.cpp").read_text()
+        self.assertIn("0x00AC", cpp)  # start_continuous_measurement
+        self.assertIn("0xC0EB", cpp)  # read_measurement
+
+    def test_mics_component_files_exist(self) -> None:
+        for name in ("__init__.py", "mics_stm8.h", "mics_stm8.cpp"):
+            self.assertTrue((MICS_COMPONENT / name).is_file(), name)
+
+    def test_board_loads_local_external_components(self) -> None:
+        raw = BOARD_PACKAGE.read_text()
+        self.assertIn("external_components:", raw)
+        self.assertIn("type: local", raw)
+        self.assertIn("[sfa40, mics_stm8]", raw)
+
+
+class SPS30OverlayTests(unittest.TestCase):
+    def setUp(self) -> None:
+        if not SPS30_OVERLAY.is_file():
+            self.skipTest("SPS30 overlay not implemented yet")
+        self.raw = SPS30_OVERLAY.read_text()
+        self.doc = load_yaml(SPS30_OVERLAY)
+
+    def test_overlay_feeds_engine_pm_channels(self) -> None:
+        for needle in ("input_pm2_5", "input_pm1", "input_pm4", "input_pm10"):
+            self.assertIn(needle, self.raw, needle)
+
+    def test_overlay_reenables_pm_customer_entities(self) -> None:
+        for pm in ("s360_pm2_5", "s360_pm1", "s360_pm4", "s360_pm10"):
+            self.assertIn(f"!extend {pm}", self.raw)
+
+    def test_overlay_opts_in_expected_pm(self) -> None:
+        subs = self.doc.get("substitutions") or {}
+        self.assertEqual(str(subs.get("airiq_expected_pm")).lower(), "true")
 
 
 if __name__ == "__main__":
