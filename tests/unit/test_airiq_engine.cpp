@@ -380,9 +380,9 @@ TEST_CASE(pressure_is_excluded_from_severity_and_health) {
   const uint32_t t = T0 + 5000;
   feed_all_good(e, t);
   // No pressure sample ever arrives (pressure is not S360-210 product
-  // hardware; the compiled BMP390 is firmware/catalog drift and nothing
-  // wires this channel in production): headline and health must be
-  // completely unaffected.
+  // hardware; no pressure part exists on the R4 schematic/BOM and nothing
+  // wires this channel in production — the drifted BMP390 was removed):
+  // headline and health must be completely unaffected.
   e.evaluate(t + 1000);
   ASSERT_EQ(e.air_quality(), AIR_QUALITY_GOOD);
   ASSERT_EQ(e.health(), HEALTH_AVAILABLE);
