@@ -30,6 +30,21 @@
 #                           customer threshold into that service and
 #                           consumes the result — no duplicate lux logic.
 #
+# Optional inputs (LED-FRAMEWORK-002). RoomIQ and Presence are NOT hard
+# dependencies. The full framework composes and degrades cleanly across
+# Core+LED, Core+AirIQ+LED, Core+RoomIQ+LED, Core+Presence+LED and
+# Core+RoomIQ+Presence+LED. Two compile-time flags declare what is present:
+#   * led_has_roomiq   — RoomIQ (darkness) composed? enables "When dark".
+#   * led_has_presence — Presence (occupancy) composed? together with RoomIQ
+#                        enables "When dark and occupied".
+# Both default "false". An automatic Night Mode Behaviour whose required input
+# is absent is honestly downgraded to Manual (the engine, not this YAML, is the
+# single source of truth); the "LED Night Mode Behaviour" diagnostic states
+# which framework is missing. Manual Night Mode, Room Light, Status, Identify
+# and restore work in EVERY composition. Missing lux is never read as dark and
+# missing occupancy is never read as occupied — nothing is invented and no
+# placeholder sensor is fabricated.
+#
 # Priority (LED-07): Fault > Identify > Night Mode > Room Light > Status.
 # State ownership, fail-safe rules and the restore contract are implemented
 # in the header-only engine include/sense360/led_controller.h — the SAME
@@ -41,15 +56,21 @@
 #   * the LED board package (packages/boards/s360-300-led.yaml — owns the
 #     Room Light entity `led_ring` and the provisional software brightness
 #     ceiling `led_max_brightness_pct`),
-#   * the Presence framework (packages/features/presence_framework.yaml —
-#     owns the fused Occupancy entity `s360_occupancy` and the Presence
-#     module runtime status; LED-04 consumes ONLY the fused contract, never
-#     raw PIR/radar/SEN0609 states),
-#   * the RoomIQ environmental framework
+#   * OPTIONALLY the Presence framework (packages/features/presence_framework.yaml
+#     — owns the fused Occupancy entity `s360_occupancy` and the Presence
+#     module runtime status). LED-04 consumes ONLY the fused contract, never
+#     raw PIR/radar/SEN0609 states, and never references the Presence id
+#     directly: packages/features/led_presence_bridge.yaml (composed only when
+#     Presence is present) copies the fused Occupancy + validity into the LED
+#     framework's occupancy globals, so a Presence-less device still composes,
+#   * OPTIONALLY the RoomIQ environmental framework
 #     (packages/features/roomiq_framework.yaml — owns the calibrated
 #     canonical illuminance path and the darkness decision this package
 #     consumes; ROOMIQ-FRAMEWORK-001) together with the RoomIQ board
-#     package (packages/boards/s360-200-roomiq.yaml), and
+#     package (packages/boards/s360-200-roomiq.yaml). The shared RoomIQ
+#     engine header is compiled by this package unconditionally, so on a
+#     RoomIQ-less device the darkness decision is simply UNKNOWN (never
+#     invented), and
 #   * the shared Core Framework package under packages/base/ (owner of the
 #     LED Module Status entity; this file deliberately does NOT include it —
 #     bundles compose it exactly once, per the CORE-FRAMEWORK-001 isolation
@@ -95,12 +116,25 @@ substitutions:
   led_identify_ms: "4000"
   led_status_ms: "1500"
 
-  # Input sources — overridable for future compositions. Defaults are the
-  # authoritative entities composed by every current LED-bearing bundle.
-  # (The lux/darkness input is the canonical RoomIQ engine itself — see
-  # the evaluation script below.)
-  led_occupancy_source_id: s360_occupancy
-  led_presence_health_id: s360_module_status_presence
+  # Optional-input capability flags (LED-FRAMEWORK-002). Compile-time facts:
+  # is the RoomIQ (darkness) framework composed? the Presence (occupancy)
+  # framework? They default FALSE so the LED framework composes and degrades
+  # cleanly on a Core+LED (or Core+AirIQ+LED) device with no RoomIQ and no
+  # Presence — the automatic Night Mode Behaviours that need those inputs are
+  # honestly downgraded to Manual rather than inventing darkness/occupancy.
+  # A composition that actually includes RoomIQ / Presence overrides the
+  # matching flag to "true":
+  #   * RoomIQ  → set led_has_roomiq: "true" (the darkness decision below then
+  #               reflects the real calibrated illuminance path).
+  #   * Presence→ set led_has_presence: "true" AND compose
+  #               packages/features/led_presence_bridge.yaml (the ONLY place
+  #               the fused Occupancy entity is referenced — so the LED
+  #               framework itself never hard-references a Presence id that a
+  #               Presence-less device would not define).
+  # These are substituted straight into the engine as C++ bool literals, so
+  # no reference to a missing RoomIQ/Presence id is ever compiled.
+  led_has_roomiq: "false"
+  led_has_presence: "false"
 
 # The controller engine is compiled from the shared header (single
 # implementation; see tests/unit/test_led_controller.cpp). Path is relative
@@ -109,6 +143,13 @@ substitutions:
 esphome:
   includes:
     - ../include/sense360/led_controller.h
+    # The canonical RoomIQ environmental engine is compiled here too so the
+    # darkness service (below) resolves whether or not the RoomIQ framework is
+    # composed (LED-FRAMEWORK-002). With no lux input the engine reports
+    # DARKNESS_UNKNOWN — it never invents darkness. When RoomIQ IS composed the
+    # roomiq framework feeds the SAME shared static instance its calibrated lux;
+    # there is still exactly one implementation and no duplicate lux logic.
+    - ../include/sense360/roomiq_engine.h
   on_boot:
     # Late boot hook (after components are set up and restored globals are
     # loaded): re-apply the persisted stable customer state (LED-11). The
@@ -203,6 +244,22 @@ globals:
     type: bool
     restore_value: false
     initial_value: 'false'
+  # Fused-occupancy inputs (LED-04, LED-FRAMEWORK-002). The LED framework reads
+  # ONLY these globals — never a Presence entity id directly — so a device
+  # without the Presence framework still composes cleanly. They default to
+  # "not occupied / not valid", which freezes any occupancy-gated automation
+  # (a missing input is never read as occupied). When Presence IS composed,
+  # packages/features/led_presence_bridge.yaml populates them from the fused
+  # Occupancy contract and the Presence module runtime status. RAM-only: a
+  # stale occupancy reading must never survive a reboot as "occupied".
+  - id: s360_led_occupied
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+  - id: s360_led_occupancy_valid
+    type: bool
+    restore_value: false
+    initial_value: 'false'
 
 # ----------------------------------------------------------------------------
 # Evaluation — periodic tick plus immediate re-evaluation on customer
@@ -224,6 +281,13 @@ script:
           controller.set_night_profile(${led_night_brightness_pct} / 100.0f,
                                        ${led_night_red}, ${led_night_green},
                                        ${led_night_blue});
+          // Compile-time composition capabilities (LED-FRAMEWORK-002): the
+          // flags substitute in as C++ bool literals, so no reference to an
+          // absent RoomIQ/Presence id is ever compiled. An automatic
+          // behaviour whose input is not composed is downgraded to Manual
+          // inside the engine (single source of truth for the honest select
+          // fallback below).
+          controller.set_capabilities(${led_has_roomiq}, ${led_has_presence});
           controller.set_night_behaviour(night_behaviour_from_string(
               id(s360_led_night_behaviour).current_option().c_str()));
           controller.set_status_level(status_level_from_string(
@@ -255,16 +319,15 @@ script:
             controller.input_darkness(now, darkness);
           }
 
-          // Occupancy input (LED-04): the fused Occupancy contract with
-          // validity from the Presence module runtime status. Invalid
-          // occupancy freezes the automation (no flashing, no toggles).
-          {
-            const std::string &health = id(${led_presence_health_id}).state;
-            const bool valid = (health == "Available" || health == "Degraded");
-            const bool occupied = id(${led_occupancy_source_id}).has_state() &&
-                                  id(${led_occupancy_source_id}).state;
-            controller.input_occupancy(now, occupied, valid);
-          }
+          // Occupancy input (LED-04, LED-FRAMEWORK-002): read the fused
+          // Occupancy from the framework globals — never a Presence id
+          // directly, so a Presence-less device still composes. On such a
+          // device these stay false/false and invalid occupancy freezes the
+          // automation (no flashing, no toggles). When Presence is composed,
+          // packages/features/led_presence_bridge.yaml keeps them current from
+          // the fused Occupancy contract and the Presence module status.
+          controller.input_occupancy(now, id(s360_led_occupied),
+                                     id(s360_led_occupancy_valid));
 
           // Ownership detection: the light's current target vs the engine's
           // last arbitrated output. A difference the engine did not command
@@ -370,6 +433,17 @@ script:
             if (id(s360_led_darkness_state).state != darkness) {
               id(s360_led_darkness_state).publish_state(darkness);
             }
+            // Honest Night Mode Behaviour fallback (LED-FRAMEWORK-002): when
+            // the customer selects an automatic mode this composition cannot
+            // support (no RoomIQ / no Presence), the engine has already
+            // downgraded it to Manual. State that plainly and persistently
+            // here (with which absent framework caused it) — the selection is
+            // kept, but the mode is never silently pretended active: the LED
+            // Active Layer stays "Room Light" and Night Mode never engages.
+            std::string behaviour_status = controller.behaviour_status();
+            if (id(s360_led_night_behaviour_status).state != behaviour_status) {
+              id(s360_led_night_behaviour_status).publish_state(behaviour_status);
+            }
             if (controller.has_status_event()) {
               std::string event =
                   event_to_string(controller.last_status_event());
@@ -417,6 +491,18 @@ select:
   # LED-03 — Night Mode Behaviour. Default Manual (automation is opt-in).
   # "Scheduled" is deferred until a genuinely reliable local time source
   # exists (see the package header).
+  #
+  # The full option list is always offered (ESPHome select options cannot be
+  # made conditional per composition without a customer-visible compromise —
+  # reworking the entity id per build would break restore and Home Assistant
+  # history). Honesty is enforced downstream instead (LED-FRAMEWORK-002): the
+  # engine downgrades any mode whose required framework is absent to Manual,
+  # the "LED Night Mode Behaviour" diagnostic states which input is missing,
+  # and Night Mode never engages — so an unsupported mode is never silently
+  # pretended active. Available per composition:
+  #   * Core+LED / Core+AirIQ+LED     : Manual
+  #   * Core+RoomIQ+LED               : Manual, When dark
+  #   * Core+RoomIQ+Presence+LED      : Manual, When dark, When dark and occupied
   - platform: template
     id: s360_led_night_behaviour
     name: "Night Mode Behaviour"
@@ -514,10 +600,24 @@ text_sensor:
 
   # Raw darkness decision (Dark / Not dark / Unknown). Unknown means
   # missing, invalid or stale lux — deliberately distinct from darkness.
+  # On a device without RoomIQ this stays "Unknown" (no lux is ever fed to the
+  # shared engine); darkness is never invented.
   - platform: template
     id: s360_led_darkness_state
     name: "LED Darkness State"
     icon: mdi:theme-light-dark
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+
+  # Honest Night Mode Behaviour status (LED-FRAMEWORK-002): "OK" when the
+  # selected mode is supported by this composition, otherwise which absent
+  # framework (RoomIQ / Presence) forced the Manual fallback. States on-device
+  # that an automatic mode is not active — never silently pretended.
+  - platform: template
+    id: s360_led_night_behaviour_status
+    name: "LED Night Mode Behaviour"
+    icon: mdi:tune-variant
     entity_category: diagnostic
     disabled_by_default: true
     update_interval: never

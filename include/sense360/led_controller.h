@@ -197,6 +197,54 @@ class LedController {
   void set_night_behaviour(NightBehaviour behaviour) { behaviour_ = behaviour; }
   void set_status_level(StatusLevel level) { status_level_ = level; }
 
+  // Compile-time composition capabilities (LED-FRAMEWORK-002): whether the
+  // optional RoomIQ (darkness) and Presence (occupancy) frameworks are
+  // actually composed alongside the LED framework. The LED framework works on
+  // its own (Core + LED) and degrades cleanly: an automatic Night Mode
+  // Behaviour whose required input is absent is downgraded to Manual, so the
+  // engine never runs — or claims — an automation it has no honest input for.
+  // Defaults false: a dependency is treated as absent unless a composition
+  // proves it present, so a missing input can never be read as dark/occupied.
+  void set_capabilities(bool has_roomiq, bool has_presence) {
+    has_roomiq_ = has_roomiq;
+    has_presence_ = has_presence;
+  }
+  bool has_roomiq() const { return has_roomiq_; }
+  bool has_presence() const { return has_presence_; }
+
+  // The behaviour actually in force after the capability downgrade. "When
+  // dark" needs RoomIQ; "When dark and occupied" needs RoomIQ AND Presence. A
+  // request the composition cannot support collapses to Manual — the single
+  // source of truth for both the automation and the honest select fallback.
+  NightBehaviour effective_behaviour() const {
+    if (behaviour_ == NIGHT_WHEN_DARK && !has_roomiq_) return NIGHT_MANUAL;
+    if (behaviour_ == NIGHT_WHEN_DARK_AND_OCCUPIED &&
+        !(has_roomiq_ && has_presence_))
+      return NIGHT_MANUAL;
+    return behaviour_;
+  }
+
+  // True when the customer-selected behaviour is unsupported by this
+  // composition and has been downgraded (drives the visible select fallback
+  // to Manual and the on-device diagnostic — the mode is never silently
+  // pretended to be active).
+  bool behaviour_unsupported() const {
+    return effective_behaviour() != behaviour_;
+  }
+
+  // Honest on-device explanation of the current behaviour: "OK" when the
+  // selected mode is supported, otherwise which absent framework forced the
+  // Manual fallback.
+  const char *behaviour_status() const {
+    if (behaviour_ == NIGHT_WHEN_DARK && !has_roomiq_)
+      return "When dark needs RoomIQ (not composed) — using Manual";
+    if (behaviour_ == NIGHT_WHEN_DARK_AND_OCCUPIED && !has_roomiq_)
+      return "When dark and occupied needs RoomIQ (not composed) — using Manual";
+    if (behaviour_ == NIGHT_WHEN_DARK_AND_OCCUPIED && !has_presence_)
+      return "When dark and occupied needs Presence (not composed) — using Manual";
+    return "OK";
+  }
+
   void set_night_auto_off_ms(uint32_t delay_ms) { auto_off_ms_ = delay_ms; }
   void set_identify_duration_ms(uint32_t duration_ms) {
     identify_ms_ = duration_ms;
@@ -404,7 +452,11 @@ class LedController {
   }
 
   void run_night_automation(uint32_t now_ms) {
-    if (behaviour_ == NIGHT_MANUAL) {
+    // Capability downgrade (LED-FRAMEWORK-002): an automatic behaviour whose
+    // required framework is not composed collapses to Manual, so automation
+    // never runs off an absent input.
+    const NightBehaviour behaviour = effective_behaviour();
+    if (behaviour == NIGHT_MANUAL) {
       auto_off_pending_ = false;
       return;
     }
@@ -412,7 +464,7 @@ class LedController {
     // Decide whether the trigger condition is knowable and wanted.
     bool known = false;
     bool want = false;
-    if (behaviour_ == NIGHT_WHEN_DARK) {
+    if (behaviour == NIGHT_WHEN_DARK) {
       known = darkness_ != DARKNESS_UNKNOWN;
       want = darkness_ == DARKNESS_DARK;
     } else {  // NIGHT_WHEN_DARK_AND_OCCUPIED
@@ -445,7 +497,7 @@ class LedController {
         auto_off_pending_ = false;
         return;
       }
-      if (behaviour_ == NIGHT_WHEN_DARK_AND_OCCUPIED &&
+      if (behaviour == NIGHT_WHEN_DARK_AND_OCCUPIED &&
           darkness_ == DARKNESS_DARK) {
         // Occupancy-clear path: delayed off so brief absences do not flap
         // the light; a fresh occupancy event cancels the pending off.
@@ -552,6 +604,11 @@ class LedController {
   float night_blue_ = 0.16f;
   NightBehaviour behaviour_ = NIGHT_MANUAL;
   StatusLevel status_level_ = STATUS_LEVEL_ESSENTIAL;
+  // Compile-time composition capabilities (LED-FRAMEWORK-002). Default false:
+  // the optional RoomIQ / Presence inputs are absent unless a composition
+  // proves them present.
+  bool has_roomiq_ = false;
+  bool has_presence_ = false;
   uint32_t auto_off_ms_ = 60000;
   uint32_t identify_ms_ = 4000;
   uint32_t status_ms_ = 1500;

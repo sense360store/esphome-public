@@ -21,7 +21,7 @@
     "compile-only"
   ],
   "totals": {
-    "targets": 24
+    "targets": 25
   },
   "targets": [
     {
@@ -620,6 +620,35 @@
         ]
       },
       "notes": "FanTRIAC product YAML lives at products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml (top-level; NOT under products/webflash/ or products/compile-only/). blocked: true marks that the FanTRIAC token stays OFF the WebFlash build matrix and out of one-click exposure (the FanTRIAC guardrail in scripts/validate_compile_targets.py + tests/test_compile_targets.py); it does NOT mean the YAML is unbuildable. TRIAC-UNBLOCK-BUILD-001 proves it compiles after the SX1509-free Core respin routes TRI_GPIO1/TRI_GPIO2 direct to IO14/IO13 (gate IO14 -> MOC3023M, zero-cross IO13 -> EL814 -- the schematic-verified mapping; TRIAC-PINMAP-CORRECT-001 corrected the earlier transposition and resolves HW-005 BUILDABILITY + HW-PINMAP-320-FOLLOWUP). The matching catalog row in config/product-catalog.json (config_string: Ceiling-POE-VentIQ-FanTRIAC-RoomIQ) is status: blocked with the HW-005 buildability blocker cleared and blocker = PACKAGE-TRIAC-001 + the COMPLIANCE-001-RESOLUTION-001 experimental-lane preconditions (COMPLIANCE-001 closed by market posture; this compile-only target validates buildability only; the product stays blocked pending the committed signed attestation and the commissioning PR's experimental-lane move). No config/webflash-builds.json row, no webflash_build_matrix flip, no artifact_name, no webflash_wrapper exposure. FanTRIAC stays not stable, not recommended, not default, not buyable, not auto-imported; WF-IMPORT-TRIAC-001 (downstream WebFlash import behind the advanced acknowledgement) stays a separate follow-up. The FanTRIAC bundle does NOT layer fan_control_profile.yaml (its id(comfort_temperature) binding is unsatisfiable with the RoomIQ comfort_ceiling package, matching the sibling FanRelay/FanPWM/FanDAC bundles), which is what makes the composition buildable. compile_validation_status: validated-full-compile records a fresh local full esphome compile of that corrected, buildable composition (ESPHome 2026.5.3; success; RAM 58208 B / Flash 1004019 B); no hosted CI run id is claimed."
+    },
+    {
+      "id": "ceiling-core-led-airiq-compile-only",
+      "product_yaml": "products/sense360-core-ceiling-led-airiq.yaml",
+      "reason": "LED-FRAMEWORK-002 Core + AirIQ + LED compile-only validation target. Validates that the FULL customer LED framework composes / substitutes / includes / generates code cleanly on an AirIQ-only ceiling device WITHOUT RoomIQ and WITHOUT Presence (led_has_roomiq: false, led_has_presence: false), proving the optional-input capability model degrades cleanly. Compile success is firmware-build proof of BUILDABILITY ONLY: NOT bench verification, NOT WebFlash exposure, NOT a release artifact, NOT stable/preview promotion, NOT hardware/compliance/safety evidence. LED stays preview-gated; Release-One is unchanged.",
+      "shipment_status": "compile-only",
+      "hardware_required_for_validation": true,
+      "webflash_exposure_allowed_now": false,
+      "blocked": false,
+      "compile_validation_status": "pending-ci",
+      "compile_evidence": {
+        "method": "local-config-and-codegen",
+        "tool": "esphome config (all five LED compositions) + esphome compile (C++ source generation)",
+        "command": "esphome config products/sense360-core-ceiling-led-airiq.yaml",
+        "result": "config valid; C++ source generation succeeded",
+        "evidence_type": "config-and-codegen-only",
+        "proof_class": "firmware-build-only",
+        "ci_run_id": null,
+        "ci_dispatch_note": "The offline authoring environment's egress policy blocks the pioarduino ESP32 platform-espressif32 toolchain download (proxy 403), so the final embedded link could not run locally; esphome config validates and C++ source generation succeeds for the fixture, the shared led_controller.h + roomiq_engine.h coexistence/cross-namespace bridge is proven by the native C++ suite (tests/unit/test_led_roomiq_coexist.cpp), and a hosted CI --compile run (compile-only.yml) is owed to complete the embedded link. No compile is fabricated.",
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "compliance",
+          "stable-promotion",
+          "webflash-exposure",
+          "release-artifact"
+        ]
+      },
+      "notes": "Product YAML lives at products/sense360-core-ceiling-led-airiq.yaml (top-level, self-contained one-deep so its esphome includes resolve; NOT under products/webflash/ or products/compile-only/). Matching catalog row config/product-catalog.json config_string: Ceiling-Core-LED-AirIQ is status: compile-only. No config_string is declared on this target (it is not in config/webflash-builds.json or the firmware combination matrix). No webflash_build_matrix flip, no artifact_name, no webflash_wrapper, no release artifact. LED stays preview-gated; Release-One (Ceiling-POE-VentIQ-RoomIQ) is unchanged."
     }
   ]
 }

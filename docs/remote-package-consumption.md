@@ -208,12 +208,100 @@ mqtt: null
 `esphome config` validates this, and `esphome compile` builds it, on a clean
 Home Assistant ESPHome install — no `/config/include`, no manual header copy.
 
+## Example 4 — Core + AirIQ + LED with the full LED framework
+
+Example 3 gives a plain Room Light. To add the full customer LED **experience**
+— Night Mode, Night Mode Behaviour, Status Indicator, Identify Device, priority
+arbitration and the restore contract — pull the **LED framework wrapper**
+(`packages/remote/led-framework.yaml`) alongside the LED board.
+
+This device has **no RoomIQ and no Presence**, so it declares
+`led_has_roomiq: "false"` and `led_has_presence: "false"` (LED-FRAMEWORK-002):
+the automatic Night Mode Behaviours (*When dark*, *When dark and occupied*) are
+honestly downgraded to Manual, and no darkness or occupancy is invented. Manual
+Night Mode and everything else work. (To enable the automatic modes, also
+compose the RoomIQ / Presence packages and flip the matching flag to `"true"`;
+for Presence additionally pull `packages/features/led_presence_bridge.yaml`.)
+
+```yaml
+substitutions:
+  device_name: sense360-core
+  friendly_name: "Sense360 Core"
+  timezone: "Europe/London"
+  device_version: "custom-remote"
+
+  s360_config_string: "Ceiling-Core-LED-AirIQ"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,airiq,led"
+  s360_capabilities_human: "Core, AirIQ, LED"
+  s360_module_airiq: "Included"
+  s360_module_led: "Included"
+
+  # Optional-input capability flags (LED-FRAMEWORK-002). This AirIQ-only
+  # device has neither RoomIQ nor Presence.
+  led_has_roomiq: "false"
+  led_has_presence: "false"
+
+packages:
+  airiq:
+    url: https://github.com/sense360store/esphome-public
+    ref: main
+    files: [packages/remote/ceiling-airiq.yaml]
+    refresh: 1d
+  core:
+    url: https://github.com/sense360store/esphome-public
+    ref: main
+    files: [packages/hardware/sense360_core_ceiling.yaml]
+    refresh: 1d
+  core_framework:
+    url: https://github.com/sense360store/esphome-public
+    ref: main
+    files: [packages/base/device_framework.yaml]
+    refresh: 1d
+  led_board:
+    url: https://github.com/sense360store/esphome-public
+    ref: main
+    files: [packages/boards/s360-300-led.yaml]
+    refresh: 1d
+  led_framework:
+    url: https://github.com/sense360store/esphome-public
+    ref: main
+    files: [packages/remote/led-framework.yaml]
+    refresh: 1d
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+logger:
+  level: INFO
+
+mqtt: null
+```
+
+The LED framework wrapper delivers `led_controller.h` **and**
+`roomiq_engine.h` via the `sense360` component (the darkness engine is compiled
+even without RoomIQ so the decision is a first-class *Unknown*, never invented).
+Both the AirIQ and LED wrappers declaring the component is fine — ESPHome
+composes the single `sense360` component once.
+
 ## Other frameworks (RoomIQ / VentIQ / LED / Presence)
 
 Every framework shares the same engine-delivery mechanism. AirIQ ships a
-dedicated wrapper (`packages/remote/ceiling-airiq.yaml`); for any other framework
-consumed through git packages, add the shared-engines delivery package **as the
-last entry** in your `packages:` map (declaring it last lets it neutralise the
+dedicated board+framework wrapper (`packages/remote/ceiling-airiq.yaml`) and the
+LED behaviour framework ships a dedicated wrapper
+(`packages/remote/led-framework.yaml`, Example 4 above). For any framework
+without its own wrapper, add the shared-engines delivery package **as the last
+entry** in your `packages:` map (declaring it last lets it neutralise the
 frameworks' repository-local include):
 
 ```yaml

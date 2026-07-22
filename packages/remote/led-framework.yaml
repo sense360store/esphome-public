@@ -1,0 +1,73 @@
+# ============================================================================
+# SENSE360 REMOTE WRAPPER — LED framework (LED-FRAMEWORK-002)
+# ============================================================================
+# Remote-consumer entrypoint for the Sense360 customer LED experience
+# (LED-FRAMEWORK-001): Room Light behaviour, Night Mode + Night Mode
+# Behaviour, Status Indicator, Identify Device, priority arbitration and the
+# restore contract, layered on the S360-300 WS2812B halo ring.
+#
+# A Home Assistant ESPHome user pulls THIS single file through a git package
+# to add the LED behaviour framework to a device. The shared C++ engines
+# (include/sense360/led_controller.h and roomiq_engine.h) are delivered
+# automatically via the `sense360` external component — no `/config/include`
+# setup and no manual header download, and NO `type: local` package (which
+# would break remote consumers). Exactly one copy of each engine header is
+# compiled — the same file the native C++ unit tests exercise.
+#
+# This wrapper composes the BEHAVIOUR framework only. Compose it alongside:
+#   * the LED board (packages/boards/s360-300-led.yaml — owns the Room Light
+#     entity `led_ring`), pulled as its own git package, AND
+#   * the Core board + Core Framework packages (which own the "LED Module
+#     Status" entity and s360_module_status_presence).
+# See docs/remote-package-consumption.md for a complete copy-paste example.
+#
+# Optional inputs (LED-FRAMEWORK-002). RoomIQ and Presence are NOT required.
+# The framework works on Core+LED (or Core+AirIQ+LED) and degrades cleanly:
+#   * led_has_roomiq   defaults "false" — set "true" when a RoomIQ framework
+#                      is also composed (enables "When dark").
+#   * led_has_presence defaults "false" — set "true" AND compose
+#                      packages/features/led_presence_bridge.yaml when a
+#                      Presence framework is also composed (enables "When dark
+#                      and occupied").
+# With both false the automatic behaviours are honestly downgraded to Manual;
+# no darkness or occupancy is ever invented.
+#
+# This wrapper changes NO firmware behaviour, entity, product, release,
+# channel or commercial state. It is a packaging/delivery convenience only.
+#
+# Pinning: for reproducible production builds set `sense360_remote_ref` to a
+# release tag (e.g. v1.0.0) matching the `ref:` your `packages:` entries pin.
+# `sense360_remote_url` exists so automated tests can retarget the engine
+# delivery at a local fixture repository; leave it at the default for real use.
+# ============================================================================
+
+substitutions:
+  sense360_remote_url: https://github.com/sense360store/esphome-public
+  sense360_remote_ref: main
+  # Optional-input capability flags (default absent — see header). A composition
+  # that also pulls RoomIQ / Presence overrides these to "true".
+  led_has_roomiq: "false"
+  led_has_presence: "false"
+  # Declare the LED module for the Core Framework "LED Module Status" entity
+  # (compile-time presence only; overridable by the consumer).
+  s360_module_led: "Included"
+
+external_components:
+  - source:
+      type: git
+      url: ${sense360_remote_url}
+      ref: ${sense360_remote_ref}
+      path: include
+    components: [sense360]
+    refresh: 1d
+
+# Load the shared-engine delivery component (its to_code #includes the headers).
+sense360:
+
+packages:
+  led_framework: !include ../features/led_framework.yaml
+
+# Remove the framework's repository-local include paths; the headers are now
+# delivered by the `sense360` external component above.
+esphome:
+  includes: !remove

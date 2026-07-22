@@ -122,6 +122,15 @@ substitutions:
   s360_module_presence: "Included"
   s360_module_led: "Included"
 
+  # === LED framework optional-input capabilities (LED-FRAMEWORK-002) ===
+  # This bundle composes RoomIQ (darkness) and Presence (occupancy), so both
+  # LED automatic Night Mode Behaviours are available and the customer
+  # experience is unchanged. Declared at the top level so they authoritatively
+  # override the framework defaults; the Presence occupancy wiring is composed
+  # via packages/features/led_presence_bridge.yaml below.
+  led_has_roomiq: "true"
+  led_has_presence: "true"
+
 # ============================================================================
 # PACKAGE INCLUDES (board layer + base + profiles)
 # ============================================================================
@@ -159,6 +168,11 @@ packages:
   # Status Indicator, Identify Device, priority arbitration and the restore
   # contract (docs/architecture/sense360-led-framework.md).
   led_framework: !include ../../packages/features/led_framework.yaml
+  # === LED Presence bridge (LED-FRAMEWORK-002) ===
+  # Copies the fused Occupancy contract into the LED framework's occupancy
+  # globals (the single place s360_occupancy is referenced by the LED feature
+  # layer). Composed here because this bundle includes the Presence framework.
+  led_presence_bridge: !include ../../packages/features/led_presence_bridge.yaml
 
   # === Sense360 RoomIQ (S360-200-R4, comfort + presence) ===
   # Board package wraps packages/expansions/comfort_ceiling.yaml +

@@ -1,0 +1,44 @@
+# ============================================================================
+# SENSE360 LED PRESENCE BRIDGE (LED-FRAMEWORK-002)
+# ============================================================================
+# Optional glue composed ONLY when BOTH the LED framework
+# (packages/features/led_framework.yaml) and the Presence framework
+# (packages/features/presence_framework.yaml) are present. It is the SINGLE
+# place the fused Occupancy entity `s360_occupancy` is referenced by the LED
+# feature layer, so the LED framework itself never hard-references a Presence
+# id — a Core+LED (or Core+AirIQ+LED) device with no Presence still composes
+# cleanly.
+#
+# What it does: copy the fused Occupancy contract (LED-04) — the merged
+# PIR + LD2450 + SEN0609 decision, never raw sensors — plus its validity (the
+# Presence module runtime status) into the LED framework's occupancy globals
+# every tick. The LED engine reads ONLY those globals. Invalid occupancy
+# (module Initialising / Unavailable) freezes the automation; a missing
+# Presence framework leaves the globals false/false (never "occupied").
+#
+# It does NOT re-implement any Presence logic, define any sensor, or invent
+# occupancy: it is a pure contract copy. `s360_module_status_presence` is
+# owned by the Core Framework and always exists; `s360_occupancy` is owned by
+# the Presence framework and only exists in Presence compositions — which is
+# exactly when this bridge is composed.
+#
+# Pairing: a composition that includes this bridge MUST also declare
+# `led_has_presence: "true"` (the compile-time capability flag the LED engine
+# uses to offer / downgrade "When dark and occupied"). The flag is set at the
+# composition's top level so it authoritatively overrides the framework
+# default regardless of package order.
+# ============================================================================
+
+interval:
+  - interval: 250ms
+    then:
+      - lambda: |-
+          // Validity from the Presence module runtime status (Core Framework
+          // entity, always present). Only Available / Degraded count as a
+          // usable occupancy signal; anything else freezes the automation.
+          const std::string &health = id(s360_module_status_presence).state;
+          id(s360_led_occupancy_valid) =
+              (health == "Available" || health == "Degraded");
+          // Fused Occupancy contract (never raw PIR/radar/SEN0609 states).
+          id(s360_led_occupied) =
+              id(s360_occupancy).has_state() && id(s360_occupancy).state;

@@ -28,6 +28,7 @@
        packages/features/device_health.yaml
        packages/features/diagnostics.yaml
        packages/features/led_framework.yaml
+       packages/features/led_presence_bridge.yaml
        packages/features/presence_framework.yaml
        packages/features/roomiq_framework.yaml
        packages/features/ventiq_framework.yaml
@@ -37,7 +38,7 @@
        products/webflash/ceiling-poe-ventiq-roomiq-led.yaml
 -->
 
-The `Ceiling-POE-VentIQ-RoomIQ-LED` firmware exposes **141 entities** to Home Assistant.
+The `Ceiling-POE-VentIQ-RoomIQ-LED` firmware exposes **142 entities** to Home Assistant.
 
 Entity names below appear in Home Assistant prefixed with the device's friendly name, which you choose during setup (firmware default: `Sense360 Ceiling Bathroom LED`). Firmware-internal measurements (marked `internal` in the YAML) never reach Home Assistant and are not listed.
 
@@ -134,6 +135,7 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | LED Darkness State | Text sensor | — | diagnostic entity; disabled by default |
 | LED Last Status Event | Text sensor | — | diagnostic entity; disabled by default |
 | LED Module Status | Text sensor | — | diagnostic entity; disabled by default |
+| LED Night Mode Behaviour | Text sensor | — | diagnostic entity; disabled by default |
 | LED Output Verification | Text sensor | — | diagnostic entity; disabled by default |
 | LED Ring SKU | Text sensor | — | diagnostic entity |
 | Light Status | Text sensor | — | disabled by default |

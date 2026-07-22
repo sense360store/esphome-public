@@ -165,6 +165,86 @@ and stay inactive (fail-safe). Resolving the sensor identity is bench/
 catalog work and is on the checklist; this framework neither hides nor
 papers over the conflict.
 
+## Optional inputs — RoomIQ and Presence are not required (LED-FRAMEWORK-002)
+
+RoomIQ (darkness) and Presence (occupancy) are **optional** inputs, not hard
+dependencies. The full customer LED framework composes and degrades cleanly
+across every supported composition. Two compile-time substitution flags
+declare what a composition actually includes:
+
+| Flag | Default | Set `"true"` when… |
+|---|---|---|
+| `led_has_roomiq` | `"false"` | a RoomIQ framework is composed (enables **When dark**) |
+| `led_has_presence` | `"false"` | a Presence framework is composed **and** `packages/features/led_presence_bridge.yaml` is included (enables **When dark and occupied**) |
+
+The flags substitute into the engine as C++ bool literals
+(`controller.set_capabilities(${led_has_roomiq}, ${led_has_presence})`), so
+**no reference to an absent RoomIQ / Presence id is ever compiled**. The
+capability model itself lives in the shared, deterministically-tested engine
+(`include/sense360/led_controller.h`), not in YAML.
+
+### Supported composition matrix
+
+| Composition | `led_has_roomiq` / `led_has_presence` | Night Mode Behaviour available | Always available |
+|---|---|---|---|
+| Core + LED | false / false | Manual | Room Light, Manual Night Mode, Status Indicator, Identify, effects, restore, priority |
+| Core + AirIQ + LED | false / false | Manual | (as above) |
+| Core + RoomIQ + LED | true / false | Manual, When dark | (as above) |
+| Core + Presence + LED | false / true | Manual | (as above) |
+| Core + RoomIQ + Presence + LED | true / true | Manual, When dark, When dark and occupied | (as above) — **existing behaviour, unchanged** |
+
+Presence **alone** never enables an automatic mode: without a valid RoomIQ
+darkness input there is nothing to trigger on, so a Presence-only device
+offers Manual only.
+
+### How the inputs flow
+
+* **Darkness** — the LED framework compiles the canonical RoomIQ engine
+  header unconditionally and always consults it. When RoomIQ is not composed
+  the engine simply never receives lux, so its darkness decision is
+  **Unknown** (never invented). There is still exactly one lux-threshold
+  implementation and no duplicate darkness logic.
+* **Occupancy** — the LED framework reads occupancy from its own globals
+  (`s360_led_occupied` / `s360_led_occupancy_valid`), which default to
+  *not occupied / not valid*. The optional `led_presence_bridge.yaml` — the
+  **only** place the fused Occupancy entity `s360_occupancy` is referenced by
+  the LED feature layer — copies the fused Occupancy contract and its
+  validity into those globals. A Presence-less device never references a
+  Presence id and never fabricates a placeholder occupancy sensor.
+
+### Fallback rules and fail-safe semantics
+
+The Night Mode Behaviour select always offers the full option list (ESPHome
+cannot make an option list conditional without a customer-visible compromise
+such as reworking the entity id, which would break restore and Home Assistant
+history). Honesty is enforced downstream instead:
+
+* the engine **downgrades** any behaviour whose required framework is absent
+  to Manual (`effective_behaviour()`), so the automation never runs off an
+  input it does not have;
+* the disabled-by-default **LED Night Mode Behaviour** diagnostic states
+  which absent framework caused the fallback (e.g. *"When dark needs RoomIQ
+  (not composed) — using Manual"*), so an unsupported mode is **never
+  silently pretended active** — the LED Active Layer stays *Room Light*;
+* **Unknown darkness never means dark** and **invalid occupancy never means
+  occupied** — belt-and-suspenders with the capability downgrade.
+
+### How bundles / consumers set the flags
+
+* Repo-local bundles that compose RoomIQ + Presence
+  (`Ceiling-POE-VentIQ-RoomIQ-LED`, `Ceiling-POE-RoomIQ-LED`) declare
+  `led_has_roomiq: "true"` and `led_has_presence: "true"` at the bundle top
+  level and compose `packages/features/led_presence_bridge.yaml`.
+* The `Ceiling-Core-LED-AirIQ` compile-only fixture
+  (`products/sense360-core-ceiling-led-airiq.yaml`) leaves both `"false"` and
+  composes no bridge — the representative AirIQ-only device.
+* Remote consumers pull `packages/remote/led-framework.yaml` (see
+  [remote-package consumption](../remote-package-consumption.md)); the wrapper
+  defaults both flags `"false"`.
+
+No fake darkness and no fake occupancy is ever created; a missing input is a
+first-class *unavailable* state, not a fabricated zero.
+
 ## Status indication (LED-06)
 
 Status feedback is short, discreet and subordinate to the Room Light.

@@ -825,6 +825,28 @@
       "status": "legacy-compatible",
       "webflash_build_matrix": false,
       "notes": "Legacy single-purpose PoE network-controller YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "config_string": "Ceiling-Core-LED-AirIQ",
+      "status": "compile-only",
+      "product_yaml": "products/sense360-core-ceiling-led-airiq.yaml",
+      "webflash_build_matrix": false,
+      "target_channel": "manual-custom",
+      "modules": {
+        "mount": "Ceiling",
+        "power": "none",
+        "air_quality": "AirIQ",
+        "room_sense": "none",
+        "fan": "none",
+        "led": "LED"
+      },
+      "hardware": {
+        "core": "S360-100",
+        "airiq": "S360-210",
+        "led": "S360-300"
+      },
+      "hardware_status": "authored-compile-validation-pending",
+      "notes": "LED-FRAMEWORK-002 Core + AirIQ + LED compile-only validation fixture. Self-contained one-deep product products/sense360-core-ceiling-led-airiq.yaml composing Core ceiling (S360-100 board) + AirIQ (S360-210 board + AIRIQ-FRAMEWORK-001) + LED (S360-300 board + the FULL LED-FRAMEWORK-001/002 behaviour framework) with NO RoomIQ and NO Presence, proving the LED framework composes and degrades cleanly on an AirIQ-only ceiling device (led_has_roomiq: false, led_has_presence: false; the automatic Night Mode Behaviours downgrade honestly to Manual). It is the representative device that motivated LED-FRAMEWORK-002. It carries no PoE/USB PSU board and no fan token (a buildability fixture, not a powered product build). status: compile-only, target_channel: manual-custom. NOT production, NOT preview, NOT verified, NOT release-ready, NOT WebFlash-exposed: webflash_build_matrix is false; no artifact_name; no webflash_wrapper; no config/webflash-builds.json entry; no kit preset; no release artifact; not in release_one_required_configs. No board schematic_status is changed; Release-One (Ceiling-POE-VentIQ-RoomIQ) and the LED preview are unchanged. See docs/architecture/sense360-led-framework.md."
     }
   ]
 }
