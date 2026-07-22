@@ -35,6 +35,11 @@
 substitutions:
   sense360_remote_url: https://github.com/sense360store/esphome-public
   sense360_remote_ref: main
+  # The AirIQ board package fetches its scoped SFA40 + MICS/STM8 components
+  # via git; track the same repo/ref the consumer pins for the engine so a
+  # pinned remote build is fully reproducible.
+  airiq_components_url: ${sense360_remote_url}
+  airiq_components_ref: ${sense360_remote_ref}
   # Declare the AirIQ module for the Core Framework "AirIQ Module Status"
   # entity (compile-time presence only; overridable by the consumer).
   s360_module_airiq: "Included"

@@ -394,7 +394,6 @@ class ContractFileTests(unittest.TestCase):
         # — see test_presence_capability_composes_all_three_sensors.)
         capabilities = self.contract.get("capabilities") or {}
         non_compiled_components = {
-            "airiq": ["MICS"],
             "roomiq": ["BMP581", "LTR-303"],
         }
         for cap_id, terms in non_compiled_components.items():
