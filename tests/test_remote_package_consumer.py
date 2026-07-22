@@ -157,6 +157,76 @@ mqtt: null
 """
 
 
+# LED-FRAMEWORK-002 external consumer: Core + AirIQ + LED board + the LED
+# behaviour framework, ALL pulled through git packages, with NO RoomIQ and NO
+# Presence. Proves the full LED framework composes remotely on an AirIQ-only
+# device and that the shared led_controller.h / roomiq_engine.h headers resolve
+# via the sense360 component (no /config/include, no type:local). The LED
+# framework wrapper carries led_has_roomiq/led_has_presence "false" defaults.
+CONSUMER_CORE_AIRIQ_LED_FRAMEWORK = """\
+substitutions:
+  device_name: sense360-core-airiq-led
+  friendly_name: Sense360 Core AirIQ LED
+  timezone: "Europe/London"
+  device_version: "0.0.0-remote-consumer-test"
+  sense360_remote_url: file://__REMOTE__
+  sense360_remote_ref: main
+  s360_config_string: "Ceiling-Core-LED-AirIQ-Bench"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,airiq,led"
+  s360_capabilities_human: "Core, AirIQ, LED"
+  s360_module_airiq: "Included"
+  s360_module_led: "Included"
+  led_has_roomiq: "false"
+  led_has_presence: "false"
+
+packages:
+  airiq:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/remote/ceiling-airiq.yaml]
+    refresh: 0s
+  core:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/hardware/sense360_core_ceiling.yaml]
+    refresh: 0s
+  core_framework:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/base/device_framework.yaml]
+    refresh: 0s
+  led_board:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/boards/s360-300-led.yaml]
+    refresh: 0s
+  led_framework:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/remote/led-framework.yaml]
+    refresh: 0s
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+logger:
+  level: DEBUG
+
+mqtt: null
+"""
+
+
 def _esphome_cli() -> str | None:
     return shutil.which("esphome")
 
@@ -398,6 +468,45 @@ class RemoteConfigValidationTests(unittest.TestCase):
         self.assertIsNone(
             re.search(r"(?m)^mqtt:", proc.stdout),
             "a top-level mqtt component must not survive `mqtt: null`",
+        )
+
+
+@unittest.skipIf(_esphome_cli() is None, "esphome CLI not installed")
+class LedFrameworkRemoteConfigTests(unittest.TestCase):
+    """LED-FRAMEWORK-002: the FULL LED framework composes remotely on an
+    AirIQ-only device (no RoomIQ, no Presence), with the shared headers
+    resolved via the sense360 component (no /config/include, no type:local)."""
+
+    def setUp(self) -> None:
+        self.fixture = _RemoteFixture(CONSUMER_CORE_AIRIQ_LED_FRAMEWORK)
+
+    def tearDown(self) -> None:
+        self.fixture.cleanup()
+
+    def test_config_validates_with_headers_resolved(self) -> None:
+        proc = self.fixture.run("config")
+        out = proc.stdout
+        # No repository-local header path may appear as an unresolved include.
+        for header in ("led_controller.h", "roomiq_engine.h"):
+            self.assertNotIn(
+                f"include/sense360/{header}'",
+                out,
+                f"{header} must not appear as an unresolved local include",
+            )
+        self.assertNotIn("Could not find file", out, out[-2000:])
+        # The Presence-less defect (a missing occupancy id) must be gone.
+        self.assertNotIn("Couldn't find ID", out, out[-2000:])
+        self.assertEqual(proc.returncode, 0, out[-3000:])
+        self.assertIn("Configuration is valid", out)
+        # The optional-input flags reached the engine as bool literals: this
+        # AirIQ-only device honestly declares no RoomIQ and no Presence.
+        self.assertIn("set_capabilities(false, false)", out)
+
+    def test_consumer_dir_has_no_local_include_tree(self) -> None:
+        self.fixture.run("config")
+        self.assertFalse(
+            (self.fixture.consumer / "include").exists(),
+            "consumer must not need a local include/ directory",
         )
 
 

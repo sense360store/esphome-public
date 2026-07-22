@@ -48,6 +48,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 BOARD_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-300-led.yaml"
 FRAMEWORK_PACKAGE = REPO_ROOT / "packages" / "features" / "led_framework.yaml"
+PRESENCE_BRIDGE = REPO_ROOT / "packages" / "features" / "led_presence_bridge.yaml"
+REMOTE_WRAPPER = REPO_ROOT / "packages" / "remote" / "led-framework.yaml"
+FIXTURE = REPO_ROOT / "products" / "sense360-core-ceiling-led-airiq.yaml"
 HEADER = REPO_ROOT / "include" / "sense360" / "led_controller.h"
 CPP_TEST = REPO_ROOT / "tests" / "unit" / "test_led_controller.cpp"
 DOC = REPO_ROOT / "docs" / "architecture" / "sense360-led-framework.md"
@@ -380,9 +383,18 @@ class CustomerEntityContractTests(unittest.TestCase):
     def test_framework_consumes_fused_occupancy_not_raw_sensors(self) -> None:
         # LED-04: the merged unified Occupancy contract is the input — never
         # raw PIR / radar / SEN0609 states.
-        self.assertIn("s360_occupancy", self.raw)
         for forbidden in ("s360_pir_motion", "s360_sen0609_presence", "ld2450_"):
             self.assertNotIn(forbidden, self.raw)
+
+    def test_framework_reads_occupancy_from_globals_not_presence_id(self) -> None:
+        # LED-FRAMEWORK-002: the framework reads occupancy from its own globals
+        # so a Presence-less device still composes. It must NOT contain a
+        # code-level id(s360_occupancy) reference (that lives ONLY in the
+        # optional Presence bridge); the reference here would fail to resolve
+        # on a Core+AirIQ+LED device.
+        self.assertIn("s360_led_occupied", self.raw)
+        self.assertIn("s360_led_occupancy_valid", self.raw)
+        self.assertNotIn("id(s360_occupancy)", self.raw)
 
     def test_darkness_comes_from_the_canonical_roomiq_service(self) -> None:
         # ROOMIQ-FRAMEWORK-001: the darkness decision (threshold,
@@ -524,6 +536,169 @@ class BundleWiringTests(unittest.TestCase):
             "packages/hardware/led_ring_mic_ceiling.yaml",
         ):
             self.assertTrue((REPO_ROOT / rel).is_file(), rel)
+
+
+# --- Optional-input capability model (LED-FRAMEWORK-002) ---------------------
+
+
+class OptionalInputCapabilityTests(unittest.TestCase):
+    """RoomIQ and Presence are optional; the framework degrades cleanly."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.doc = load_yaml(FRAMEWORK_PACKAGE)
+        cls.raw = FRAMEWORK_PACKAGE.read_text()
+        cls.entities = entities_by_id(cls.doc)
+        cls.board_raw = BOARD_PACKAGE.read_text()
+
+    def test_capability_flags_default_absent(self) -> None:
+        # The framework composes on Core+LED with no RoomIQ / Presence: both
+        # flags default "false" so a missing input is never read as present.
+        subs = self.doc.get("substitutions") or {}
+        self.assertEqual(str(subs.get("led_has_roomiq")), "false")
+        self.assertEqual(str(subs.get("led_has_presence")), "false")
+
+    def test_flags_are_passed_to_the_engine_as_capabilities(self) -> None:
+        # The flags substitute into the engine as compile-time bool literals,
+        # so no reference to a missing RoomIQ/Presence id is ever compiled.
+        self.assertIn(
+            "set_capabilities(${led_has_roomiq}, ${led_has_presence})", self.raw
+        )
+
+    def test_no_fake_placeholder_occupancy_or_lux_entities(self) -> None:
+        # The framework must NOT fabricate a placeholder occupancy/lux sensor
+        # merely to satisfy compilation on a Presence/RoomIQ-less device.
+        for entity in self.entities.values():
+            if entity["_platform"] not in ("binary_sensor", "sensor"):
+                continue
+            name = str(entity.get("name", "")).lower()
+            for forbidden in ("occupan", "presence", "lux", "illuminance"):
+                self.assertNotIn(forbidden, name, name)
+
+    def test_no_duplicate_darkness_or_occupancy_logic(self) -> None:
+        # Darkness stays the canonical RoomIQ engine's service; occupancy stays
+        # the fused Presence contract. The framework re-implements neither.
+        self.assertNotIn("input_lux", self.raw)
+        self.assertNotIn("comfort_ceiling_illuminance", self.raw)
+        # The shared header carries the capability model, not a second engine.
+        header = HEADER.read_text()
+        for needed in (
+            "set_capabilities",
+            "effective_behaviour",
+            "behaviour_unsupported",
+            "behaviour_status",
+        ):
+            self.assertIn(needed, header, needed)
+        self.assertNotIn("input_lux", header)
+
+    def test_night_behaviour_status_diagnostic_is_honest(self) -> None:
+        # The honest fallback surface: a diagnostic that states which absent
+        # framework forced Manual (never silently pretends a mode is active).
+        entity = self.entities.get("s360_led_night_behaviour_status")
+        self.assertIsNotNone(entity, "missing s360_led_night_behaviour_status")
+        self.assertEqual(entity.get("entity_category"), "diagnostic")
+        self.assertTrue(entity.get("disabled_by_default"))
+        self.assertIn("behaviour_status()", self.raw)
+
+    def test_night_behaviour_select_keeps_full_option_list(self) -> None:
+        # ESPHome cannot make the option list conditional without a
+        # customer-visible compromise, so the full list stays and honesty is
+        # enforced by the engine downgrade + diagnostic.
+        select = self.entities["s360_led_night_behaviour"]
+        self.assertEqual(select.get("options"), NIGHT_BEHAVIOUR_OPTIONS)
+
+    def test_board_stays_hardware_only(self) -> None:
+        # The board owns hardware; capability flags and behaviour are the
+        # framework's. The board must not carry the optional-input flags.
+        self.assertNotIn("led_has_roomiq", self.board_raw)
+        self.assertNotIn("led_has_presence", self.board_raw)
+        self.assertNotIn("set_capabilities", self.board_raw)
+
+
+class PresenceBridgeTests(unittest.TestCase):
+    """The optional Presence bridge is the SOLE occupancy-id reference."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.raw = PRESENCE_BRIDGE.read_text()
+
+    def test_bridge_exists(self) -> None:
+        self.assertTrue(PRESENCE_BRIDGE.is_file(), f"missing {PRESENCE_BRIDGE}")
+
+    def test_bridge_copies_fused_occupancy_into_framework_globals(self) -> None:
+        # It references the fused Occupancy contract + module status and writes
+        # ONLY the framework's occupancy globals — a pure contract copy.
+        self.assertIn("id(s360_occupancy)", self.raw)
+        self.assertIn("s360_module_status_presence", self.raw)
+        self.assertIn("s360_led_occupied", self.raw)
+        self.assertIn("s360_led_occupancy_valid", self.raw)
+
+    def test_bridge_uses_only_the_fused_contract_not_raw_sensors(self) -> None:
+        for forbidden in ("s360_pir_motion", "s360_sen0609_presence", "ld2450_"):
+            self.assertNotIn(forbidden, self.raw)
+
+    def test_bridge_defines_no_sensor_entity(self) -> None:
+        # It is glue, not a placeholder sensor factory.
+        doc = load_yaml(PRESENCE_BRIDGE)
+        for platform in ("binary_sensor", "sensor", "text_sensor"):
+            self.assertNotIn(platform, doc, f"bridge must not define {platform}")
+
+
+class RemoteWrapperTests(unittest.TestCase):
+    """The remote LED-framework wrapper delivers headers cleanly."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.raw = REMOTE_WRAPPER.read_text()
+        cls.doc = load_yaml(REMOTE_WRAPPER)
+
+    def test_wrapper_exists(self) -> None:
+        self.assertTrue(REMOTE_WRAPPER.is_file(), f"missing {REMOTE_WRAPPER}")
+
+    def test_wrapper_delivers_headers_via_component_not_local_include(self) -> None:
+        ext = self.doc.get("external_components")
+        self.assertTrue(ext, "wrapper must declare external_components")
+        self.assertIn("sense360", ext[0]["components"])
+        # Git-delivered component (NOT type: local, which regressed remote
+        # consumers), narrowed to include/.
+        self.assertEqual(ext[0]["source"]["type"], "git")
+        self.assertEqual(ext[0]["source"]["path"], "include")
+        self.assertIn("sense360", self.doc)
+        # Removes the framework's repository-local include — headers come from
+        # the git-delivered component instead.
+        self.assertIn("includes: !remove", self.raw)
+
+    def test_wrapper_composes_framework_only_not_the_board(self) -> None:
+        # The consumer pulls the board separately; the wrapper must not
+        # re-define led_ring (double-definition). Check the parsed packages,
+        # not the header comment (which legitimately names the board file).
+        packages = self.doc.get("packages") or {}
+        joined = " ".join(str(v) for v in packages.values())
+        self.assertIn("led_framework.yaml", joined)
+        self.assertNotIn("s360-300-led", joined)
+
+    def test_wrapper_defaults_optional_inputs_absent(self) -> None:
+        subs = self.doc.get("substitutions") or {}
+        self.assertEqual(str(subs.get("led_has_roomiq")), "false")
+        self.assertEqual(str(subs.get("led_has_presence")), "false")
+
+    def test_frameworks_keep_repo_local_include(self) -> None:
+        # Repo-local bundle builds are unchanged: the framework file keeps its
+        # local include (the wrapper removes it only for remote consumers).
+        self.assertIn(
+            "../include/sense360/led_controller.h", FRAMEWORK_PACKAGE.read_text()
+        )
+
+
+class Led002BundleWiringTests(unittest.TestCase):
+    """The full-capability LED bundles declare the flags and compose the bridge."""
+
+    def test_full_bundles_enable_both_capabilities_and_bridge(self) -> None:
+        for bundle in led_bundles():
+            raw = bundle.read_text()
+            self.assertIn('led_has_roomiq: "true"', raw, bundle.name)
+            self.assertIn('led_has_presence: "true"', raw, bundle.name)
+            self.assertIn("led_presence_bridge.yaml", raw, bundle.name)
 
 
 # --- Core framework contract ------------------------------------------------------

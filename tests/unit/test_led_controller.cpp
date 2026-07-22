@@ -68,6 +68,23 @@ LedController fresh_controller() {
   controller.set_identify_duration_ms(IDENTIFY_MS);
   controller.set_status_duration_ms(STATUS_MS);
   controller.set_night_auto_off_ms(AUTO_OFF_MS);
+  // Default fixture is a fully-composed device (RoomIQ + Presence present), so
+  // the historical automation behaviour is exercised unchanged. The
+  // LED-FRAMEWORK-002 capability-downgrade tests below build controllers with
+  // the optional inputs deliberately absent.
+  controller.set_capabilities(true, true);
+  controller.evaluate(T0);
+  return controller;
+}
+
+// A controller for the degraded compositions (LED-FRAMEWORK-002): choose
+// exactly which optional inputs are composed.
+LedController capable_controller(bool has_roomiq, bool has_presence) {
+  LedController controller;
+  controller.set_identify_duration_ms(IDENTIFY_MS);
+  controller.set_status_duration_ms(STATUS_MS);
+  controller.set_night_auto_off_ms(AUTO_OFF_MS);
+  controller.set_capabilities(has_roomiq, has_presence);
   controller.evaluate(T0);
   return controller;
 }
@@ -411,6 +428,136 @@ TEST_CASE(manual_night_off_suppresses_reactivation_until_rearm) {
   controller.input_darkness(T0 + 4000, DARKNESS_DARK);
   controller.evaluate(T0 + 4000);
   ASSERT_TRUE(controller.night_mode());
+}
+
+// ---------------------------------------------------------------------------
+// Optional-input capability model (LED-FRAMEWORK-002)
+// ---------------------------------------------------------------------------
+
+// Manual Night Mode is fully available with NO optional inputs (Core+LED /
+// Core+AirIQ+LED): it never depends on RoomIQ or Presence.
+TEST_CASE(manual_night_mode_works_without_optional_inputs) {
+  LedController controller = capable_controller(false, false);
+  controller.set_night_behaviour(NIGHT_MANUAL);
+  controller.set_night_mode(T0, true, false);
+  controller.evaluate(T0);
+  ASSERT_TRUE(controller.night_mode());
+  ASSERT_EQ(controller.active_layer(), LAYER_NIGHT);
+  ASSERT_FALSE(controller.behaviour_unsupported());
+  ASSERT_STREQ(controller.behaviour_status(), "OK");
+}
+
+// Without RoomIQ, "When dark" is unsupported: it downgrades to Manual, never
+// activates automation, and says so honestly — even when "dark" is injected.
+TEST_CASE(when_dark_downgrades_to_manual_without_roomiq) {
+  LedController controller = capable_controller(false, false);
+  controller.set_night_behaviour(NIGHT_WHEN_DARK);
+  controller.input_darkness(T0, DARKNESS_DARK);
+  controller.evaluate(T0);
+  ASSERT_FALSE(controller.night_mode());
+  ASSERT_EQ(controller.effective_behaviour(), NIGHT_MANUAL);
+  ASSERT_TRUE(controller.behaviour_unsupported());
+  ASSERT_STREQ(controller.behaviour_status(),
+               "When dark needs RoomIQ (not composed) — using Manual");
+}
+
+// "When dark" is available with RoomIQ alone (Presence not required).
+TEST_CASE(when_dark_available_with_roomiq_only) {
+  LedController controller = capable_controller(true, false);
+  controller.set_night_behaviour(NIGHT_WHEN_DARK);
+  controller.input_darkness(T0, DARKNESS_DARK);
+  controller.evaluate(T0);
+  ASSERT_TRUE(controller.night_mode());
+  ASSERT_TRUE(controller.night_automation_owned());
+  ASSERT_FALSE(controller.behaviour_unsupported());
+  ASSERT_STREQ(controller.behaviour_status(), "OK");
+}
+
+// "When dark and occupied" needs BOTH: with RoomIQ but no Presence it
+// downgrades to Manual and names the missing framework.
+TEST_CASE(dark_and_occupied_downgrades_without_presence) {
+  LedController controller = capable_controller(true, false);
+  controller.set_night_behaviour(NIGHT_WHEN_DARK_AND_OCCUPIED);
+  controller.input_darkness(T0, DARKNESS_DARK);
+  controller.input_occupancy(T0, true, true);
+  controller.evaluate(T0);
+  ASSERT_FALSE(controller.night_mode());
+  ASSERT_EQ(controller.effective_behaviour(), NIGHT_MANUAL);
+  ASSERT_TRUE(controller.behaviour_unsupported());
+  ASSERT_STREQ(
+      controller.behaviour_status(),
+      "When dark and occupied needs Presence (not composed) — using Manual");
+}
+
+// With Presence but no RoomIQ, "When dark and occupied" downgrades and blames
+// the absent RoomIQ first (there is no valid darkness input at all).
+TEST_CASE(dark_and_occupied_downgrades_without_roomiq) {
+  LedController controller = capable_controller(false, true);
+  controller.set_night_behaviour(NIGHT_WHEN_DARK_AND_OCCUPIED);
+  controller.input_occupancy(T0, true, true);
+  controller.evaluate(T0);
+  ASSERT_FALSE(controller.night_mode());
+  ASSERT_TRUE(controller.behaviour_unsupported());
+  ASSERT_STREQ(controller.behaviour_status(),
+               "When dark and occupied needs RoomIQ (not composed) — using "
+               "Manual");
+}
+
+// Presence alone must never drive automatic night mode: without a valid
+// darkness input, no automatic behaviour can activate.
+TEST_CASE(presence_alone_never_activates_automatic_night_mode) {
+  LedController controller = capable_controller(false, true);
+  controller.set_night_behaviour(NIGHT_WHEN_DARK_AND_OCCUPIED);
+  controller.input_occupancy(T0, true, true);
+  controller.input_darkness(T0, DARKNESS_UNKNOWN);
+  controller.evaluate(T0);
+  ASSERT_FALSE(controller.night_mode());
+}
+
+// A supported automatic mode still fails safe on UNKNOWN darkness even when
+// fully capable (belt-and-suspenders with the capability downgrade).
+TEST_CASE(supported_when_dark_failsafe_on_unknown) {
+  LedController controller = capable_controller(true, true);
+  controller.set_night_behaviour(NIGHT_WHEN_DARK);
+  controller.input_darkness(T0, DARKNESS_UNKNOWN);
+  controller.evaluate(T0);
+  ASSERT_FALSE(controller.night_mode());
+  ASSERT_FALSE(controller.behaviour_unsupported());
+}
+
+// Missing Presence does not block Manual OR When dark: a RoomIQ-only device
+// keeps both, and a customer manual toggle keeps working.
+TEST_CASE(missing_presence_does_not_block_manual_or_when_dark) {
+  LedController controller = capable_controller(true, false);
+  controller.set_night_behaviour(NIGHT_WHEN_DARK);
+  controller.set_night_mode(T0, true, false);  // manual
+  controller.evaluate(T0);
+  ASSERT_TRUE(controller.night_mode());
+  controller.input_customer_command(T0 + 1000, customer_on(0.7f));
+  controller.evaluate(T0 + 1000);
+  ASSERT_FALSE(controller.night_mode());  // customer intent wins
+  controller.input_darkness(T0 + 2000, DARKNESS_DARK);
+  controller.input_customer_command(T0 + 3000, customer_off());
+  controller.evaluate(T0 + 3000);
+  controller.input_darkness(T0 + 4000, DARKNESS_DARK);
+  controller.evaluate(T0 + 4000);
+  ASSERT_TRUE(controller.night_mode());  // When dark still works
+}
+
+// Priority order is unchanged under the capability model:
+// Fault > Identify > Night Mode > Room Light > Status, even degraded.
+TEST_CASE(priority_order_holds_when_degraded) {
+  LedController controller = capable_controller(false, false);
+  controller.input_customer_command(T0, customer_on(0.8f));
+  controller.set_night_mode(T0, true, false);  // manual night still works
+  controller.evaluate(T0);
+  ASSERT_EQ(controller.active_layer(), LAYER_NIGHT);
+  controller.request_identify(T0 + 100);
+  controller.evaluate(T0 + 100);
+  ASSERT_EQ(controller.active_layer(), LAYER_IDENTIFY);
+  controller.set_fault(true);
+  controller.evaluate(T0 + 200);
+  ASSERT_EQ(controller.active_layer(), LAYER_FAULT);
 }
 
 // ---------------------------------------------------------------------------
@@ -773,6 +920,25 @@ int main() {
            "automation_never_dims_an_in_use_room_light");
   run_test(test_manual_night_off_suppresses_reactivation_until_rearm,
            "manual_night_off_suppresses_reactivation_until_rearm");
+
+  run_test(test_manual_night_mode_works_without_optional_inputs,
+           "manual_night_mode_works_without_optional_inputs");
+  run_test(test_when_dark_downgrades_to_manual_without_roomiq,
+           "when_dark_downgrades_to_manual_without_roomiq");
+  run_test(test_when_dark_available_with_roomiq_only,
+           "when_dark_available_with_roomiq_only");
+  run_test(test_dark_and_occupied_downgrades_without_presence,
+           "dark_and_occupied_downgrades_without_presence");
+  run_test(test_dark_and_occupied_downgrades_without_roomiq,
+           "dark_and_occupied_downgrades_without_roomiq");
+  run_test(test_presence_alone_never_activates_automatic_night_mode,
+           "presence_alone_never_activates_automatic_night_mode");
+  run_test(test_supported_when_dark_failsafe_on_unknown,
+           "supported_when_dark_failsafe_on_unknown");
+  run_test(test_missing_presence_does_not_block_manual_or_when_dark,
+           "missing_presence_does_not_block_manual_or_when_dark");
+  run_test(test_priority_order_holds_when_degraded,
+           "priority_order_holds_when_degraded");
 
   run_test(test_identify_overrides_and_restores_customer_state,
            "identify_overrides_and_restores_customer_state");

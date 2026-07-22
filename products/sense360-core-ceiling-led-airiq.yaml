@@ -1,0 +1,122 @@
+# ============================================================================
+# SENSE360 PRODUCT — Ceiling-Core-LED-AirIQ (compile-only validation fixture)
+# ============================================================================
+# LED-FRAMEWORK-002 (docs/architecture/sense360-led-framework.md). The
+# representative Core + AirIQ + LED device that motivated LED-FRAMEWORK-002:
+# it composes the FULL customer LED framework WITHOUT RoomIQ and WITHOUT
+# Presence, proving the framework degrades cleanly on an AirIQ-only ceiling
+# device. Self-contained one-deep product (its `esphome: includes:` resolve
+# against products/, unlike the two-deep compile-only skeletons) so a hosted
+# `esphome compile` can build it directly.
+#
+# Optional-input capability model (LED-FRAMEWORK-002):
+#   * led_has_roomiq:   "false" — no RoomIQ, so darkness is always UNKNOWN and
+#                       "When dark" is honestly downgraded to Manual.
+#   * led_has_presence: "false" — no Presence, so occupancy is never valid and
+#                       "When dark and occupied" is downgraded to Manual.
+#   * No packages/features/led_presence_bridge.yaml is composed (there is no
+#     Presence framework to bridge), so the LED framework never references a
+#     Presence id that this device does not define.
+# Manual Night Mode, Room Light, Status Indicator, Identify Device, the
+# approved effects, priority arbitration and the restore contract all work.
+#
+# Status — what this YAML is NOT (identical guarantees to the compile-only
+# skeletons in products/compile-only/):
+#   * NOT a WebFlash exposed build (webflash_build_matrix: false; no
+#     config/webflash-builds.json row; no products/webflash/ wrapper; no
+#     artifact_name).
+#   * NOT a release artifact, NOT stable, NOT preview, NOT a customer default,
+#     NOT hardware/bench/compliance proof. Compile success is buildability
+#     evidence only. LED stays preview-gated; Release-One
+#     (Ceiling-POE-VentIQ-RoomIQ) and the LED preview are unchanged.
+#
+# Board assembly: S360-100 Core (ceiling) + S360-210 AirIQ + S360-300 LED.
+# No PoE/USB PSU board and no fan driver (the config string carries no power
+# or fan token — this is a buildability fixture, not a powered product build).
+# ============================================================================
+
+substitutions:
+  device_name: sense360-core
+  friendly_name: "Sense360 Core"
+  device_sku: S360-CORE-C
+  device_version: "0.0.0-compile-only"
+  timezone: "UTC"
+
+  log_level: INFO
+  wifi_fast_connect: "false"
+  fallback_ssid: "S360 Core LED AirIQ"
+
+  # === Sense360 Core framework (CORE-FRAMEWORK-001) ===
+  s360_config_string: "Ceiling-Core-LED-AirIQ"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,airiq,led"
+  s360_capabilities_human: "Core, AirIQ, LED"
+  s360_module_airiq: "Included"
+  s360_module_led: "Included"
+  s360_module_roomiq: "Not included"
+  s360_module_presence: "Not included"
+
+  # === LED framework optional-input capabilities (LED-FRAMEWORK-002) ===
+  # No RoomIQ and no Presence composed: both flags stay false, so the
+  # automatic Night Mode Behaviours are honestly downgraded to Manual.
+  led_has_roomiq: "false"
+  led_has_presence: "false"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === External Components (radar firmware / AirIQ scoped components) ===
+  external_components: !include ../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+
+  # === Sense360 Core (Ceiling, S360-100-R4) ===
+  core_board: !include ../packages/boards/s360-100-core-ceiling.yaml
+
+  # === Sense360 AirIQ (S360-210 board + AIRIQ-FRAMEWORK-001) ===
+  airiq_board: !include ../packages/boards/s360-210-airiq.yaml
+  airiq_framework: !include ../packages/features/airiq_framework.yaml
+
+  # === Sense360 LED (S360-300 board + LED-FRAMEWORK-001/002) ===
+  # Board (Room Light hardware) + the FULL behaviour framework, with NO
+  # RoomIQ and NO Presence. The framework composes and degrades cleanly.
+  led_board: !include ../packages/boards/s360-300-led.yaml
+  led_framework: !include ../packages/features/led_framework.yaml
+
+  # === Device Health & Diagnostics ===
+  health: !include ../packages/features/device_health.yaml
+
+  # === Sense360 Core framework (CORE-FRAMEWORK-001) ===
+  framework: !include ../packages/base/device_framework.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} WebFlash Config"
+    lambda: |-
+      return {"Ceiling-Core-LED-AirIQ"};
+    update_interval: never
+    entity_category: diagnostic
