@@ -58,6 +58,21 @@ These hold across every PR.
   config enters `release_one_required_configs`, and promotion is
   release-eligibility metadata under the owner declaration — firmware-build
   proof only, no hardware / bench / compliance claim.
+* **The on-board Blower (J13 FAN net) is compile-only and never stable.**
+  `BLOWER-FRAMEWORK-001`
+  ([`docs/architecture/sense360-blower-framework.md`](architecture/sense360-blower-framework.md))
+  drives the Core's dedicated `FAN` net (schematic `IO21` → `Q4` SI2302S →
+  `J13`, a two-wire binary 5 V blower output) as a customer ventilation
+  actuator, optionally following the canonical AirIQ demand contract. It is a
+  fan output, so the *Fans are never stable* gate above applies unchanged: the
+  framework ships **compile-only** — no `config/webflash-builds.json` row, no
+  artifact, never stable / preview / customer-default / buyable / kit-exposed,
+  not in `release_one_required_configs`. J13 exposes **no** tach / speed-PWM /
+  current / airflow / rotation feedback, so the framework claims none; `GPIO46`
+  (`GP_Fan_Status_Led`) is a Core-side indicator and is **never** treated as
+  rotation feedback; the generic `GPIO3` relay (`J4`) stays a separate control
+  and is never driven by the blower path. Firmware-build proof only — no
+  hardware / bench / airflow / compliance claim.
 * **FanDAC I²C address requirement is pending bench.** GP8403 IC1 `0x58` /
   IC2 `0x5A`; `0x59` is forbidden when VentIQ/AirIQ is present (SGP41 collision).
   The DIP-switch mapping is compile-time only — `FANDAC-I2C-ADDR-001` stays

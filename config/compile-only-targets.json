@@ -21,7 +21,7 @@
     "compile-only"
   ],
   "totals": {
-    "targets": 25
+    "targets": 26
   },
   "targets": [
     {
@@ -649,6 +649,36 @@
         ]
       },
       "notes": "Product YAML lives at products/sense360-core-ceiling-led-airiq.yaml (top-level, self-contained one-deep so its esphome includes resolve; NOT under products/webflash/ or products/compile-only/). Matching catalog row config/product-catalog.json config_string: Ceiling-Core-LED-AirIQ is status: compile-only. No config_string is declared on this target (it is not in config/webflash-builds.json or the firmware combination matrix). No webflash_build_matrix flip, no artifact_name, no webflash_wrapper, no release artifact. LED stays preview-gated; Release-One (Ceiling-POE-VentIQ-RoomIQ) is unchanged."
+    },
+    {
+      "id": "ceiling-core-airiq-blower-compile-only",
+      "product_yaml": "products/sense360-core-ceiling-airiq-blower.yaml",
+      "reason": "BLOWER-FRAMEWORK-001 Core + AirIQ + Blower compile-only validation target. Validates that the FULL customer blower framework composes / substitutes / includes / generates code cleanly on a Core + AirIQ ceiling device driving the Core's on-board FAN net (schematic IO21 -> Q4 SI2302S -> J13), with the Auto behaviour reading the canonical AirIQ ventilation demand (blower_has_airiq: true). Compile success is firmware-build proof of BUILDABILITY ONLY: NOT bench verification, NOT WebFlash exposure, NOT a release artifact, NOT stable/preview promotion, NOT hardware/airflow/compliance/safety evidence. The blower is a fan output and stays compile-only under the 'Fans are never stable' standing gate; Release-One is unchanged.",
+      "shipment_status": "compile-only",
+      "hardware_required_for_validation": true,
+      "webflash_exposure_allowed_now": false,
+      "blocked": false,
+      "compile_validation_status": "pending-ci",
+      "compile_evidence": {
+        "method": "local-config-and-native-cpp",
+        "tool": "tests/validate_configs.py (YAML structure) + native C++ engine suite (cd tests && make test)",
+        "command": "esphome config products/sense360-core-ceiling-airiq-blower.yaml",
+        "result": "not run locally (esphome CLI not installed in the authoring environment); YAML structure validated and engine logic proven natively",
+        "evidence_type": "config-structure-and-native-cpp-only",
+        "proof_class": "firmware-build-only",
+        "ci_run_id": null,
+        "ci_dispatch_note": "esphome is not installed in the authoring environment, so no esphome config / compile was run for this target and none is fabricated. The blower controller logic and the blower_controller.h + airiq_engine.h coexistence/demand bridge are proven by the native C++ suite (tests/unit/test_blower_controller.cpp, tests/unit/test_blower_airiq_coexist.cpp), and tests/validate_configs.py passes on the fixture and packages. A hosted CI --compile run (compile-only.yml) is owed to complete the ESPHome config + embedded link.",
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "airflow",
+          "compliance",
+          "stable-promotion",
+          "webflash-exposure",
+          "release-artifact"
+        ]
+      },
+      "notes": "Product YAML lives at products/sense360-core-ceiling-airiq-blower.yaml (top-level, self-contained one-deep so its esphome includes resolve; NOT under products/webflash/ or products/compile-only/). Matching catalog row config/product-catalog.json config_string: Ceiling-Core-AirIQ-Blower is status: compile-only. No config_string is declared on this target (it is not in config/webflash-builds.json or the firmware combination matrix). The blower is the Core's on-board FAN net (IO21 -> Q4 SI2302S -> J13), NOT a fan-driver module. No webflash_build_matrix flip, no artifact_name, no webflash_wrapper, no release artifact, not in release_one_required_configs. The blower is a fan output and stays compile-only under the 'Fans are never stable' standing gate; Release-One (Ceiling-POE-VentIQ-RoomIQ) is unchanged."
     }
   ]
 }

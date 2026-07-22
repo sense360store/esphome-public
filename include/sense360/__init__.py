@@ -54,6 +54,7 @@ SHARED_HEADERS = (
     "presence_fusion.h",
     "led_controller.h",
     "led_logic.h",
+    "blower_controller.h",
     "thresholds.h",
     "calibration.h",
     "time_utils.h",

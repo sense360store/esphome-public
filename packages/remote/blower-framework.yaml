@@ -1,0 +1,72 @@
+# ============================================================================
+# SENSE360 REMOTE WRAPPER — Blower framework (BLOWER-FRAMEWORK-001)
+# ============================================================================
+# Remote-consumer entrypoint for the Sense360 customer blower experience
+# (BLOWER-FRAMEWORK-001): the single Blower control, Blower Mode (Manual / Auto)
+# and Blower Auto Trigger, layered on the Core's dedicated on-board FAN net
+# (schematic IO21 -> Q4 SI2302S -> J13, a two-wire binary 5 V blower output).
+#
+# A Home Assistant ESPHome user pulls THIS single file through a git package to
+# add the blower behaviour framework to a device. The shared C++ engines
+# (include/sense360/blower_controller.h and airiq_engine.h) are delivered
+# automatically via the `sense360` external component — no `/config/include`
+# setup and no manual header download, and NO `type: local` package (which
+# would break remote consumers). Exactly one copy of each engine header is
+# compiled — the same file the native C++ unit tests exercise.
+#
+# This wrapper composes the BEHAVIOUR framework only. Compose it alongside the
+# Core board + Core Framework packages (which own the ESP32 board definition and
+# the FAN-net GPIO), pulled as their own git packages. See
+# docs/remote-package-consumption.md for a complete copy-paste example.
+#
+# Optional input (BLOWER-FRAMEWORK-001). AirIQ is NOT required. The framework
+# works with or without AirIQ and degrades cleanly:
+#   * blower_has_airiq defaults "false" — set "true" when the AirIQ framework
+#     (packages/remote/ceiling-airiq.yaml) is also composed (enables the Auto
+#     behaviour). With it false, Auto is honestly downgraded to Manual; no
+#     ventilation demand is ever invented, and a missing / unavailable demand
+#     never starts the blower.
+#
+# Honesty: J13 exposes NO tach / speed-PWM / current / airflow / rotation
+# feedback, so this framework commands only on/off and claims no speed / airflow
+# / rotation. It never touches the Core `GPIO46` status LED (not rotation
+# feedback) or the separate `GPIO3` relay.
+#
+# This wrapper changes NO firmware behaviour, entity, product, release, channel
+# or commercial state. It is a packaging/delivery convenience only. The blower
+# is a fan output and stays compile-only under the "Fans are never stable"
+# standing gate (docs/standing-invariants.md) — never stable / preview /
+# customer-default / buyable / kit-exposed / in release_one_required_configs.
+#
+# Pinning: for reproducible production builds set `sense360_remote_ref` to a
+# release tag (e.g. v1.0.0) matching the `ref:` your `packages:` entries pin.
+# `sense360_remote_url` exists so automated tests can retarget the engine
+# delivery at a local fixture repository; leave it at the default for real use.
+# ============================================================================
+
+substitutions:
+  sense360_remote_url: https://github.com/sense360store/esphome-public
+  sense360_remote_ref: main
+  # Optional-input capability flag (default absent — see header). A composition
+  # that also pulls AirIQ overrides this to "true".
+  blower_has_airiq: "false"
+
+external_components:
+  - source:
+      type: git
+      url: ${sense360_remote_url}
+      ref: ${sense360_remote_ref}
+      path: include
+    components: [sense360]
+    refresh: 1d
+
+# Load the shared-engine delivery component (its to_code #includes the headers).
+sense360:
+
+packages:
+  blower_framework: !include ../features/blower_framework.yaml
+
+# Remove the framework's repository-local include paths; the headers are now
+# delivered by the `sense360` external component above.
+esphome:
+  includes: !remove
