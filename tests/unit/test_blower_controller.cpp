@@ -3,10 +3,10 @@
 //
 // This is the test-only simulation layer: it feeds synthetic, timestamped mode
 // / demand inputs into the SAME header-only controller the production YAML
-// compiles (no second implementation that can drift) and asserts deterministic
-// mode arbitration, the AirIQ demand mapping, the fail-safe on UNKNOWN demand,
-// the Auto->Manual honest downgrade when AirIQ is absent, and the
-// anti-short-cycle min-on / min-off dwell windows.
+// compiles (no second implementation that can drift) and asserts the Off / Auto
+// / On mode surface, the AirIQ demand mapping, the fail-safe on UNKNOWN demand,
+// and the Auto timing state machine (minimum on, post-demand PURGE, minimum-off
+// restart lockout, stale-data wind-down, and millis rollover).
 //
 // IMPORTANT: a green run here is LOGIC/SIMULATION proof only. It is NEVER
 // hardware validation. The J13 FAN net exposes no tach / speed / current /
@@ -49,16 +49,18 @@ void run_test(void (*test_func)(), const char *test_name) {
 }
 
 // ---------------------------------------------------------------------------
-// Fixture helpers — mirror packages/features/blower_framework.yaml provisional
-// defaults but with short dwell windows so the anti-short-cycle behaviour is
-// exercised deterministically.
+// Fixtures — mirror packages/features/blower_framework.yaml but with short,
+// distinct dwell windows so the timing state machine is exercised
+// deterministically. PURGE (20 s) > MIN_ON (10 s) here so purge normally
+// dominates the wind-down.
 // ---------------------------------------------------------------------------
 
 static const uint32_t T0 = 100000;
 static const uint32_t MIN_ON = 10000;
 static const uint32_t MIN_OFF = 10000;
+static const uint32_t PURGE = 20000;
 
-// AirIQ present, Auto mode, TRIGGER_NOW by default.
+// AirIQ present, Auto mode, TRIGGER_NOW.
 static BlowerController make_controller() {
   BlowerController c;
   c.set_has_airiq(true);
@@ -66,20 +68,32 @@ static BlowerController make_controller() {
   c.set_trigger(TRIGGER_NOW);
   c.set_min_on_ms(MIN_ON);
   c.set_min_off_ms(MIN_OFF);
+  c.set_purge_ms(PURGE);
   c.begin(T0);
   return c;
 }
 
-// Feed a demand and evaluate at t.
+// Variant with a SHORT purge (< MIN_ON) so the minimum-on requirement dominates
+// the wind-down — used to prove min-on completion outlasts a finished purge.
+static BlowerController make_controller_short_purge(uint32_t start) {
+  BlowerController c;
+  c.set_has_airiq(true);
+  c.set_mode(MODE_AUTO);
+  c.set_trigger(TRIGGER_NOW);
+  c.set_min_on_ms(MIN_ON);
+  c.set_min_off_ms(MIN_OFF);
+  c.set_purge_ms(2000);
+  c.begin(start);
+  return c;
+}
+
 static void drive(BlowerController &c, uint32_t t, Demand demand) {
   c.input_demand(t, demand);
   c.evaluate(t);
 }
 
 // ---------------------------------------------------------------------------
-// Demand mapping — the single interpretation of the AirIQ recommendation
-// contract (pinned against the AirIQ enum values in
-// test_blower_airiq_coexist.cpp).
+// Demand mapping (pinned against the AirIQ enum in test_blower_airiq_coexist).
 // ---------------------------------------------------------------------------
 
 TEST_CASE(demand_mapping_matches_airiq_recommendation) {
@@ -89,66 +103,63 @@ TEST_CASE(demand_mapping_matches_airiq_recommendation) {
   ASSERT_EQ(demand_from_airiq_recommendation(3), DEMAND_HIGH);      // VENTILATE_NOW
   ASSERT_EQ(demand_from_airiq_recommendation(4), DEMAND_NONE);      // CHECK_SOURCE
   ASSERT_EQ(demand_from_airiq_recommendation(5), DEMAND_UNKNOWN);   // UNAVAILABLE
-  // An out-of-range value is treated conservatively as UNKNOWN.
   ASSERT_EQ(demand_from_airiq_recommendation(99), DEMAND_UNKNOWN);
 }
 
 // ---------------------------------------------------------------------------
-// Mode arbitration
+// Mode surface: Off / Auto / On, default Auto
 // ---------------------------------------------------------------------------
 
-TEST_CASE(manual_mode_never_owns_the_output) {
-  BlowerController c = make_controller();
-  c.set_mode(MODE_MANUAL);
-  drive(c, T0 + 1000, DEMAND_HIGH);  // even a HIGH demand does not drive Manual
-  ASSERT_FALSE(c.auto_owns());
-  ASSERT_EQ(c.effective_mode(), MODE_MANUAL);
-  ASSERT_EQ(c.state(), STATE_MANUAL);
+TEST_CASE(default_mode_is_auto) {
+  BlowerController c;
+  ASSERT_EQ(c.mode(), MODE_AUTO);
 }
 
-TEST_CASE(auto_without_airiq_downgrades_to_manual) {
+TEST_CASE(off_mode_always_commands_off) {
   BlowerController c = make_controller();
-  c.set_has_airiq(false);          // AirIQ demand contract not composed
+  c.set_mode(MODE_OFF);
+  drive(c, T0 + 1000, DEMAND_HIGH);  // even a HIGH demand cannot start it
+  ASSERT_FALSE(c.output_on());
+  ASSERT_EQ(c.state(), STATE_OFF);
+}
+
+TEST_CASE(on_mode_always_commands_on) {
+  BlowerController c = make_controller();
+  c.set_mode(MODE_ON);
+  drive(c, T0 + 1000, DEMAND_NONE);  // even No-demand keeps it on
+  ASSERT_TRUE(c.output_on());
+  ASSERT_EQ(c.state(), STATE_ON);
+}
+
+TEST_CASE(auto_without_airiq_stays_off) {
+  BlowerController c = make_controller();
+  c.set_has_airiq(false);
   drive(c, T0 + 1000, DEMAND_HIGH);
-  ASSERT_FALSE(c.auto_owns());      // engine does not own the output
-  ASSERT_TRUE(c.auto_unsupported());
-  ASSERT_EQ(c.effective_mode(), MODE_MANUAL);
-  ASSERT_EQ(c.state(), STATE_AUTO_UNSUPPORTED);
-  ASSERT_STREQ(c.status_string(), "Auto needs AirIQ (not composed) — using Manual");
+  ASSERT_FALSE(c.output_on());
+  ASSERT_EQ(c.state(), STATE_AUTO_NO_AIRIQ);
 }
 
-// ---------------------------------------------------------------------------
-// Fail-safe — UNKNOWN demand never starts the blower
-// ---------------------------------------------------------------------------
-
-TEST_CASE(unknown_demand_never_starts_blower) {
+TEST_CASE(auto_unknown_demand_never_starts) {
   BlowerController c = make_controller();
   drive(c, T0 + 1000, DEMAND_UNKNOWN);
-  ASSERT_TRUE(c.auto_owns());
   ASSERT_FALSE(c.output_on());
-  ASSERT_EQ(c.state(), STATE_AUTO_UNKNOWN);
+  ASSERT_EQ(c.state(), STATE_AUTO_OFF_UNKNOWN);
 }
 
-TEST_CASE(no_demand_keeps_blower_off) {
+TEST_CASE(auto_no_demand_off) {
   BlowerController c = make_controller();
   drive(c, T0 + 1000, DEMAND_NONE);
-  ASSERT_TRUE(c.auto_owns());
   ASSERT_FALSE(c.output_on());
-  ASSERT_EQ(c.state(), STATE_AUTO_OFF);
+  ASSERT_EQ(c.state(), STATE_AUTO_OFF_OK);
 }
 
-// ---------------------------------------------------------------------------
-// Trigger threshold
-// ---------------------------------------------------------------------------
-
 TEST_CASE(trigger_now_starts_only_on_ventilate_now) {
-  BlowerController c = make_controller();  // TRIGGER_NOW
-  drive(c, T0 + 1000, DEMAND_ELEVATED);    // "Ventilate soon" is below the trigger
+  BlowerController c = make_controller();
+  drive(c, T0 + 1000, DEMAND_ELEVATED);
   ASSERT_FALSE(c.output_on());
-  ASSERT_EQ(c.state(), STATE_AUTO_OFF);
-  drive(c, T0 + 2000, DEMAND_HIGH);        // "Ventilate now" starts it
+  drive(c, T0 + 2000, DEMAND_HIGH);
   ASSERT_TRUE(c.output_on());
-  ASSERT_EQ(c.state(), STATE_AUTO_ON);
+  ASSERT_EQ(c.state(), STATE_AUTO_VENTILATING);
 }
 
 TEST_CASE(trigger_soon_starts_on_ventilate_soon) {
@@ -156,92 +167,153 @@ TEST_CASE(trigger_soon_starts_on_ventilate_soon) {
   c.set_trigger(TRIGGER_SOON);
   drive(c, T0 + 1000, DEMAND_ELEVATED);
   ASSERT_TRUE(c.output_on());
-  ASSERT_EQ(c.state(), STATE_AUTO_ON);
-  drive(c, T0 + 2000, DEMAND_HIGH);        // still on
+  ASSERT_EQ(c.state(), STATE_AUTO_VENTILATING);
+}
+
+TEST_CASE(first_auto_start_not_delayed_by_min_off) {
+  BlowerController c = make_controller();
+  drive(c, T0, DEMAND_HIGH);  // no prior run -> immediate start
   ASSERT_TRUE(c.output_on());
 }
 
 // ---------------------------------------------------------------------------
-// Anti-short-cycle dwell windows
+// Post-demand purge
 // ---------------------------------------------------------------------------
 
-TEST_CASE(min_on_holds_blower_on_after_demand_clears) {
+TEST_CASE(purge_begins_after_demand_clears) {
   BlowerController c = make_controller();
-  drive(c, T0 + 1000, DEMAND_HIGH);         // ON at t=1000
-  ASSERT_TRUE(c.output_on());
-  // Demand clears well before MIN_ON elapses -> held ON.
-  drive(c, T0 + 1000 + MIN_ON - 1, DEMAND_NONE);
-  ASSERT_TRUE(c.output_on());
-  ASSERT_EQ(c.state(), STATE_AUTO_MIN_ON);
-  // After MIN_ON elapses the blower is finally allowed off.
-  drive(c, T0 + 1000 + MIN_ON + 1, DEMAND_NONE);
-  ASSERT_FALSE(c.output_on());
-  ASSERT_EQ(c.state(), STATE_AUTO_OFF);
-}
-
-TEST_CASE(first_start_is_never_delayed_by_min_off) {
-  BlowerController c = make_controller();
-  // Boot OFF, then demand rises: the very first start is immediate (there is no
-  // prior run to short-cycle against).
-  drive(c, T0, DEMAND_NONE);
-  ASSERT_FALSE(c.output_on());
-  drive(c, T0 + 100, DEMAND_HIGH);
-  ASSERT_TRUE(c.output_on());
-  ASSERT_EQ(c.state(), STATE_AUTO_ON);
-}
-
-TEST_CASE(min_off_blocks_a_quick_restart_after_a_real_run) {
-  BlowerController c = make_controller();
-  // A real run: ON, then (after min-on) OFF.
   drive(c, T0, DEMAND_HIGH);
   ASSERT_TRUE(c.output_on());
-  const uint32_t off_t = T0 + MIN_ON + 1;
-  drive(c, off_t, DEMAND_NONE);
+  // Demand clears after min-on has elapsed: enter purge, keep running.
+  drive(c, T0 + 12000, DEMAND_NONE);
+  ASSERT_TRUE(c.output_on());
+  ASSERT_TRUE(c.purging());
+  ASSERT_EQ(c.state(), STATE_AUTO_PURGE);
+}
+
+TEST_CASE(purge_runs_for_the_configured_duration_then_stops) {
+  BlowerController c = make_controller();
+  drive(c, T0, DEMAND_HIGH);
+  const uint32_t clear = T0 + 12000;  // min-on (10s) already satisfied
+  drive(c, clear, DEMAND_NONE);
+  // Still purging just before the purge window elapses.
+  drive(c, clear + PURGE - 1, DEMAND_NONE);
+  ASSERT_TRUE(c.output_on());
+  ASSERT_EQ(c.state(), STATE_AUTO_PURGE);
+  // Stops once the purge window elapses (min-on already done).
+  drive(c, clear + PURGE + 1, DEMAND_NONE);
   ASSERT_FALSE(c.output_on());
-  ASSERT_EQ(c.state(), STATE_AUTO_OFF);
-  // Demand returns before MIN_OFF elapses -> the restart is held off.
-  drive(c, off_t + MIN_OFF - 1, DEMAND_HIGH);
+  ASSERT_EQ(c.state(), STATE_AUTO_OFF_OK);
+}
+
+TEST_CASE(demand_clears_before_min_on_completes_holds_on_through_min_on) {
+  // Short purge (< min-on) so completing min-on outlasts a finished purge.
+  BlowerController c = make_controller_short_purge(T0);
+  drive(c, T0, DEMAND_HIGH);
+  drive(c, T0 + 3000, DEMAND_NONE);  // clears before min-on (10s)
+  // Purge (2s) elapses but min-on has NOT — the blower must stay on.
+  drive(c, T0 + 3000 + 2000 + 1, DEMAND_NONE);
+  ASSERT_TRUE(c.output_on());
+  ASSERT_EQ(c.state(), STATE_AUTO_PURGE);
+  // Once min-on completes, it stops.
+  drive(c, T0 + MIN_ON + 1, DEMAND_NONE);
+  ASSERT_FALSE(c.output_on());
+}
+
+TEST_CASE(demand_returns_during_purge_resumes_ventilating) {
+  BlowerController c = make_controller();
+  drive(c, T0, DEMAND_HIGH);
+  drive(c, T0 + 12000, DEMAND_NONE);  // purge
+  ASSERT_TRUE(c.purging());
+  drive(c, T0 + 13000, DEMAND_HIGH);  // demand returns
+  ASSERT_TRUE(c.output_on());
+  ASSERT_FALSE(c.purging());
+  ASSERT_EQ(c.state(), STATE_AUTO_VENTILATING);
+}
+
+TEST_CASE(stale_demand_while_running_winds_down_and_stops) {
+  BlowerController c = make_controller();
+  drive(c, T0, DEMAND_HIGH);
+  // Demand goes UNKNOWN (stale/unavailable) while running: purge, do not run
+  // forever, complete min-on + purge, then stop.
+  drive(c, T0 + 12000, DEMAND_UNKNOWN);
+  ASSERT_TRUE(c.output_on());
+  ASSERT_EQ(c.state(), STATE_AUTO_PURGE);
+  drive(c, T0 + 12000 + PURGE + 1, DEMAND_UNKNOWN);
+  ASSERT_FALSE(c.output_on());
+  ASSERT_EQ(c.state(), STATE_AUTO_OFF_UNKNOWN);
+  // And it stays off far into the future on stale data (never forever).
+  drive(c, T0 + 500000, DEMAND_UNKNOWN);
+  ASSERT_FALSE(c.output_on());
+}
+
+TEST_CASE(off_during_purge_stops_immediately) {
+  BlowerController c = make_controller();
+  drive(c, T0, DEMAND_HIGH);
+  drive(c, T0 + 12000, DEMAND_NONE);  // purge
+  ASSERT_TRUE(c.output_on());
+  c.set_mode(MODE_OFF);
+  c.evaluate(T0 + 13000);
+  ASSERT_FALSE(c.output_on());
+  ASSERT_EQ(c.state(), STATE_OFF);
+}
+
+TEST_CASE(on_during_purge_keeps_running) {
+  BlowerController c = make_controller();
+  drive(c, T0, DEMAND_HIGH);
+  drive(c, T0 + 12000, DEMAND_NONE);  // purge
+  c.set_mode(MODE_ON);
+  c.evaluate(T0 + 13000);
+  ASSERT_TRUE(c.output_on());
+  ASSERT_EQ(c.state(), STATE_ON);
+}
+
+TEST_CASE(restart_inhibited_by_min_off_after_purge) {
+  BlowerController c = make_controller();
+  drive(c, T0, DEMAND_HIGH);
+  drive(c, T0 + 12000, DEMAND_NONE);
+  const uint32_t stop = T0 + 12000 + PURGE + 1;
+  drive(c, stop, DEMAND_NONE);
+  ASSERT_FALSE(c.output_on());
+  // Demand returns before min-off elapses -> restart held off.
+  drive(c, stop + MIN_OFF - 1, DEMAND_HIGH);
   ASSERT_FALSE(c.output_on());
   ASSERT_EQ(c.state(), STATE_AUTO_MIN_OFF);
-  // After MIN_OFF elapses the blower may restart.
-  drive(c, off_t + MIN_OFF + 1, DEMAND_HIGH);
+  // After min-off, it may restart.
+  drive(c, stop + MIN_OFF + 1, DEMAND_HIGH);
   ASSERT_TRUE(c.output_on());
-  ASSERT_EQ(c.state(), STATE_AUTO_ON);
+  ASSERT_EQ(c.state(), STATE_AUTO_VENTILATING);
 }
 
-TEST_CASE(unknown_demand_during_min_on_finishes_run_then_off) {
+TEST_CASE(on_mode_then_auto_winds_down_via_purge) {
   BlowerController c = make_controller();
-  drive(c, T0 + 1000, DEMAND_HIGH);  // ON
+  c.set_mode(MODE_ON);
+  c.evaluate(T0);  // forced on
   ASSERT_TRUE(c.output_on());
-  // Demand becomes UNKNOWN mid-run: fail-safe never turns ON from unknown, but
-  // the minimum run time is still honoured (motor-friendly) before turning off.
-  drive(c, T0 + 1000 + MIN_ON - 1, DEMAND_UNKNOWN);
-  ASSERT_TRUE(c.output_on());
-  ASSERT_EQ(c.state(), STATE_AUTO_MIN_ON);
-  drive(c, T0 + 1000 + MIN_ON + 1, DEMAND_UNKNOWN);
-  ASSERT_FALSE(c.output_on());
-  ASSERT_EQ(c.state(), STATE_AUTO_UNKNOWN);
-}
-
-// ---------------------------------------------------------------------------
-// Ownership transitions
-// ---------------------------------------------------------------------------
-
-TEST_CASE(switching_auto_to_manual_releases_ownership) {
-  BlowerController c = make_controller();
-  drive(c, T0 + 1000, DEMAND_HIGH);
-  ASSERT_TRUE(c.auto_owns());
-  ASSERT_TRUE(c.output_on());
-  // Customer switches to Manual: the engine stops owning the output.
-  c.set_mode(MODE_MANUAL);
-  c.evaluate(T0 + 2000);
-  ASSERT_FALSE(c.auto_owns());
-  ASSERT_EQ(c.state(), STATE_MANUAL);
-  // Re-engaging Auto starts fresh (min-off does not spuriously block the first
-  // real transition because commit tracking was reset on the Manual pass).
+  // Switch to Auto with no demand: the running blower winds down via purge
+  // (it has "run", so it does not just snap off).
   c.set_mode(MODE_AUTO);
-  drive(c, T0 + 3000, DEMAND_HIGH);
+  drive(c, T0 + 1000, DEMAND_NONE);
   ASSERT_TRUE(c.output_on());
+  ASSERT_EQ(c.state(), STATE_AUTO_PURGE);
+  drive(c, T0 + 1000 + PURGE + 1, DEMAND_NONE);
+  ASSERT_FALSE(c.output_on());
+}
+
+TEST_CASE(millis_rollover_timing_is_correct) {
+  // Start near the uint32 wrap so elapsed() crosses the boundary.
+  const uint32_t start = 0xFFFFFF00u;  // 256 ms before wrap
+  BlowerController c = make_controller_short_purge(start);
+  drive(c, start, DEMAND_HIGH);
+  ASSERT_TRUE(c.output_on());
+  const uint32_t wrapped = 0x00000100u;  // elapsed since start = 512 ms
+  drive(c, wrapped, DEMAND_NONE);        // purge begins (min-on not yet done)
+  ASSERT_TRUE(c.output_on());
+  ASSERT_EQ(c.state(), STATE_AUTO_PURGE);
+  // min-on (10 s) elapses across the wrap -> stops.
+  const uint32_t later = wrapped + 12000u;
+  drive(c, later, DEMAND_NONE);
+  ASSERT_FALSE(c.output_on());
 }
 
 // ---------------------------------------------------------------------------
@@ -249,16 +321,17 @@ TEST_CASE(switching_auto_to_manual_releases_ownership) {
 // ---------------------------------------------------------------------------
 
 TEST_CASE(string_helpers_are_customer_wording) {
-  ASSERT_STREQ(mode_to_string(MODE_MANUAL), "Manual");
+  ASSERT_STREQ(mode_to_string(MODE_OFF), "Off");
   ASSERT_STREQ(mode_to_string(MODE_AUTO), "Auto");
+  ASSERT_STREQ(mode_to_string(MODE_ON), "On");
+  ASSERT_EQ(mode_from_string("Off"), MODE_OFF);
+  ASSERT_EQ(mode_from_string("On"), MODE_ON);
   ASSERT_EQ(mode_from_string("Auto"), MODE_AUTO);
-  ASSERT_EQ(mode_from_string("Manual"), MODE_MANUAL);
-  ASSERT_EQ(mode_from_string(nullptr), MODE_MANUAL);
+  ASSERT_EQ(mode_from_string(nullptr), MODE_AUTO);  // default
 
   ASSERT_STREQ(trigger_to_string(TRIGGER_NOW), "Ventilate now");
   ASSERT_STREQ(trigger_to_string(TRIGGER_SOON), "Ventilate soon");
   ASSERT_EQ(trigger_from_string("Ventilate soon"), TRIGGER_SOON);
-  ASSERT_EQ(trigger_from_string("Ventilate now"), TRIGGER_NOW);
 
   ASSERT_STREQ(demand_to_string(DEMAND_UNKNOWN), "Unknown");
   ASSERT_STREQ(demand_to_string(DEMAND_HIGH), "Ventilate now");
@@ -269,27 +342,38 @@ int main() {
 
   run_test(test_demand_mapping_matches_airiq_recommendation,
            "demand_mapping_matches_airiq_recommendation");
-  run_test(test_manual_mode_never_owns_the_output,
-           "manual_mode_never_owns_the_output");
-  run_test(test_auto_without_airiq_downgrades_to_manual,
-           "auto_without_airiq_downgrades_to_manual");
-  run_test(test_unknown_demand_never_starts_blower,
-           "unknown_demand_never_starts_blower");
-  run_test(test_no_demand_keeps_blower_off, "no_demand_keeps_blower_off");
+  run_test(test_default_mode_is_auto, "default_mode_is_auto");
+  run_test(test_off_mode_always_commands_off, "off_mode_always_commands_off");
+  run_test(test_on_mode_always_commands_on, "on_mode_always_commands_on");
+  run_test(test_auto_without_airiq_stays_off, "auto_without_airiq_stays_off");
+  run_test(test_auto_unknown_demand_never_starts,
+           "auto_unknown_demand_never_starts");
+  run_test(test_auto_no_demand_off, "auto_no_demand_off");
   run_test(test_trigger_now_starts_only_on_ventilate_now,
            "trigger_now_starts_only_on_ventilate_now");
   run_test(test_trigger_soon_starts_on_ventilate_soon,
            "trigger_soon_starts_on_ventilate_soon");
-  run_test(test_min_on_holds_blower_on_after_demand_clears,
-           "min_on_holds_blower_on_after_demand_clears");
-  run_test(test_first_start_is_never_delayed_by_min_off,
-           "first_start_is_never_delayed_by_min_off");
-  run_test(test_min_off_blocks_a_quick_restart_after_a_real_run,
-           "min_off_blocks_a_quick_restart_after_a_real_run");
-  run_test(test_unknown_demand_during_min_on_finishes_run_then_off,
-           "unknown_demand_during_min_on_finishes_run_then_off");
-  run_test(test_switching_auto_to_manual_releases_ownership,
-           "switching_auto_to_manual_releases_ownership");
+  run_test(test_first_auto_start_not_delayed_by_min_off,
+           "first_auto_start_not_delayed_by_min_off");
+  run_test(test_purge_begins_after_demand_clears,
+           "purge_begins_after_demand_clears");
+  run_test(test_purge_runs_for_the_configured_duration_then_stops,
+           "purge_runs_for_the_configured_duration_then_stops");
+  run_test(test_demand_clears_before_min_on_completes_holds_on_through_min_on,
+           "demand_clears_before_min_on_completes_holds_on_through_min_on");
+  run_test(test_demand_returns_during_purge_resumes_ventilating,
+           "demand_returns_during_purge_resumes_ventilating");
+  run_test(test_stale_demand_while_running_winds_down_and_stops,
+           "stale_demand_while_running_winds_down_and_stops");
+  run_test(test_off_during_purge_stops_immediately,
+           "off_during_purge_stops_immediately");
+  run_test(test_on_during_purge_keeps_running, "on_during_purge_keeps_running");
+  run_test(test_restart_inhibited_by_min_off_after_purge,
+           "restart_inhibited_by_min_off_after_purge");
+  run_test(test_on_mode_then_auto_winds_down_via_purge,
+           "on_mode_then_auto_winds_down_via_purge");
+  run_test(test_millis_rollover_timing_is_correct,
+           "millis_rollover_timing_is_correct");
   run_test(test_string_helpers_are_customer_wording,
            "string_helpers_are_customer_wording");
 

@@ -31,11 +31,16 @@ fill in results, measurements, dates or attestation.
 - [ ] The `GPIO46` Core status LED is **not** wired to, and does not indicate,
       blower rotation (it is a Core-side status indicator only).
 
-## Blower control basics (Manual)
+## Mode surface (Off / Auto / On)
 
-- [ ] Blower Mode = Manual. The Blower entity turns the fan on and off.
-- [ ] There is no speed / preset control; on/off is the only behaviour.
-- [ ] Boot state is OFF; an interrupted run is not replayed after restart.
+- [ ] Blower Mode = **On**: the blower is commanded on regardless of demand.
+- [ ] Blower Mode = **Off**: the blower is commanded off regardless of demand.
+- [ ] Blower Mode = **Auto** is the default and first-boot mode.
+- [ ] The selected mode persists across restart.
+- [ ] Boot state is OFF before the restored mode is evaluated; an interrupted
+      run is not replayed.
+- [ ] The read-only "Blower" state matches the actual commanded output; there is
+      no customer toggle that contradicts the selected mode.
 
 ## Auto behaviour (with AirIQ)
 
@@ -44,15 +49,22 @@ fill in results, measurements, dates or attestation.
       *Ventilate now* the blower starts.
 - [ ] With Blower Auto Trigger = *Ventilate soon*, a *Ventilate soon*
       recommendation also starts the blower.
-- [ ] When the air quality returns to Good/No action, the blower stops (after
-      the minimum run time).
+
+## Post-demand purge
+
+- [ ] When the air quality returns to Good/No action, the blower completes its
+      minimum run time, then continues for the **purge** period, then stops.
+- [ ] A demand returning during purge resumes ventilation.
+- [ ] Tune `blower_purge_ms` to the room / duct clearing time.
 
 ## Fail-safe
 
 - [ ] Remove / disable AirIQ inputs so the AirIQ recommendation is
-      *Sensor initialising* / *Unavailable*: in Auto the blower stays **off**
-      (Blower Air-Quality Demand shows *Unknown*).
-- [ ] On a build without AirIQ composed, Auto is downgraded to Manual and the
+      *Sensor initialising* / *Unavailable*: in Auto a **stopped** blower stays
+      off (Blower Air-Quality Demand shows *Unknown*).
+- [ ] A blower **running** when the demand goes stale completes min-on + purge
+      and then stops (it does not run forever on stale data).
+- [ ] On a build without AirIQ composed, Auto keeps the blower off and the
       *Blower Control Status* diagnostic states that AirIQ is not composed.
 
 ## Anti-short-cycle

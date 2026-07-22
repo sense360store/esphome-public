@@ -16,13 +16,20 @@ compliance or commercial validation.
 One polished, simple customer experience for the Core's on-board blower — the
 customer never needs to know about GPIOs, MOSFETs or the AirIQ engine:
 
-* **Blower** — the single customer control: a binary (on/off) fan. There is
-  deliberately **no** speed / preset / oscillation / direction control.
-* **Blower Mode** — *Manual* (the customer owns the blower) or *Auto* (the
-  blower follows the canonical AirIQ ventilation demand).
+* **Blower Mode** — the single **authoritative** control: *Off* / *Auto* / *On*,
+  default **Auto** (the blower operates automatically out of the box). *Off*
+  always commands the blower off; *On* always commands it on; *Auto* follows the
+  canonical AirIQ ventilation demand through the timing state machine. The mode
+  is persisted across restart.
 * **Blower Auto Trigger** — *Ventilate now* / *Ventilate soon*: the AirIQ demand
   level at which Auto starts the blower (conservative default: only *Ventilate
   now*).
+* **Blower** — a **read-only** commanded-state representation (on/off). There is
+  deliberately **no** customer on/off toggle and **no** speed control: because
+  the mode is the only control, nothing can transiently contradict the selected
+  mode (no "toggle that Auto silently reverses"). Interface choice **A** —
+  Blower Mode is authoritative; the `Blower` binary sensor is the read-only
+  commanded state ESPHome permits.
 
 ## Hardware contract (verified S360-100-R4)
 
@@ -48,12 +55,17 @@ therefore makes **no** speed / airflow / current / rotation claim, and the
 
 | Entity | Platform | Default | Purpose |
 |---|---|---|---|
-| Blower | `fan` (binary) | enabled | The single on/off blower control (no speed). |
-| Blower Mode | `select` | enabled (config) | Manual / Auto. |
+| Blower Mode | `select` | enabled (config), default **Auto**, persisted | The authoritative control: Off / Auto / On. |
 | Blower Auto Trigger | `select` | enabled (config) | Ventilate now / Ventilate soon. |
-| Blower Control Status | `text_sensor` | diagnostic, disabled | What the blower is doing and why (incl. honest downgrade / fail-safe). |
+| Blower | `binary_sensor` (read-only) | enabled | The commanded blower state (on/off) — not a toggle. |
+| Blower Purging | `binary_sensor` | diagnostic, disabled | Distinct post-demand purge indication. |
+| Blower Control Status | `text_sensor` | diagnostic, disabled | What the blower is doing and why (incl. purge / fail-safe / no-AirIQ). |
 | Blower Air-Quality Demand | `text_sensor` | diagnostic, disabled | The AirIQ demand the blower is reading. |
 | Blower Output Verification | `text_sensor` | diagnostic, disabled | On-device statement of the one-way, no-feedback limit. |
+
+Boot safety: the FAN-net GPIO output boots **off**; the persisted mode is
+restored during setup and applied by the late (`priority: -100`) `on_boot`
+evaluation, so the output is safely off until the restored mode is evaluated.
 
 ## Behaviour engine
 
@@ -71,13 +83,15 @@ so tested logic and shipped logic cannot drift. The contract is pinned by
 
 The engine owns:
 
-* **Mode arbitration** — Auto requires the AirIQ demand contract; without it the
-  engine honestly downgrades to Manual (the engine, not the YAML, is the single
-  source of that fallback).
+* **Mode arbitration** — Off / Auto / On. Off and On command the output
+  directly; Auto runs the timing state machine. The engine owns the output in
+  every mode, so a customer toggle can never contradict the selected mode.
 * **Demand mapping** — the one interpretation of the canonical AirIQ
   recommendation as a ventilation `Demand`.
-* **Fail-safe** — an `UNKNOWN` demand never starts the blower.
-* **Anti-short-cycle** — minimum on-time / off-time dwell windows.
+* **Fail-safe** — an `UNKNOWN` demand (AirIQ initialising / unavailable / not
+  composed) never starts a stopped blower.
+* **Auto timing state machine** — minimum run time, a **post-demand purge**, and
+  a minimum-off restart lockout (see below).
 
 ## Optional input — AirIQ is not required (the canonical demand contract)
 
@@ -120,21 +134,35 @@ pinned against the AirIQ enum by `test_blower_airiq_coexist.cpp`.
 
 | Composition | Blower Mode = Auto |
 |---|---|
-| No AirIQ (`blower_has_airiq: "false"`) | honestly downgraded to Manual; *Blower Control Status* says so |
-| AirIQ present, demand Unknown / Initialising / Unavailable | blower **off** — missing air-quality data never ventilates |
-| AirIQ present, demand at/above the trigger | blower on (subject to anti-short-cycle) |
+| No AirIQ (`blower_has_airiq: "false"`) | no actionable demand — blower **off**; *Blower Control Status* names the missing input |
+| AirIQ present, demand Unknown / Initialising / Unavailable | a **stopped** blower never starts; a **running** blower completes min-on + purge and stops (never runs forever on stale data) |
+| AirIQ present, demand at/above the trigger | blower on (subject to the min-off restart lockout) |
 
-Manual mode, the Blower Mode select and the Blower Auto Trigger work in **every**
-composition. In Manual (or Auto downgraded to Manual) the customer's Blower
-control is authoritative and is never overridden.
+`Off` and `On` always command the output directly, in every composition. `Auto`
+is the default. The mode is the single control, so there is no separate toggle
+that can transiently contradict it.
 
-## Anti-short-cycle
+## Auto timing state machine
 
 Provisional engineering defaults (pending the bench checklist), substitution-
-tunable: `blower_min_on_ms` (60 s) and `blower_min_off_ms` (60 s). Minimum run
-time protects the blower motor once started; minimum off time prevents a rapid
-restart. Neither delays the first-ever start (there is no prior run to
-short-cycle against at boot).
+tunable: `blower_min_on_ms` (60 s), `blower_purge_ms` (120 s),
+`blower_min_off_ms` (60 s). In Auto:
+
+1. A demand at/above the trigger starts the blower (subject to the min-off
+   restart lockout, which never delays the first start of an Auto session).
+2. When a valid demand **clears** (or goes stale/unavailable) while running, the
+   blower does **not** stop immediately — it completes its **minimum run time**
+   *and* a **post-demand purge** period, then stops. A demand returning during
+   purge resumes ventilation.
+3. After stopping, a **minimum off time** must elapse before it may restart.
+
+Fail-safe: an `UNKNOWN` demand never starts a stopped blower; a blower already
+running from a previously valid demand winds down through purge and stops rather
+than running forever on stale data. All transitions use rollover-safe unsigned
+timing. These rules are pinned by the deterministic C++ suite
+(`tests/unit/test_blower_controller.cpp`): demand clears before min-on, purge
+begin / duration, demand returns during purge, stale-while-running, Off/On during
+purge, restart inhibition, and millis rollover.
 
 ## Remote consumption
 

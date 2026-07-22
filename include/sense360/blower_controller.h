@@ -10,35 +10,41 @@
 // so the tested logic and the shipped logic can never drift.
 //
 // Hardware contract (verified against docs/hardware/s360-100-r4-core.md and the
-// owner-provided S360-100-R4 schematic — this engine encodes NO more than the
+// owner-provided S360-100-R4 schematic — this engine encodes no more than the
 // contract proves):
 //   * The blower is the Core's dedicated `FAN` net: schematic `IO21` (ESP32-S3
 //     GPIO21) drives Q4 (SI2302S low-side MOSFET) which switches the 5 V blower
 //     on the J13 connector. J13 is a two-wire binary 5 V blower output.
 //   * There is NO J13 tach, speed-PWM, current, airflow or physical-rotation
-//     feedback of any kind. This engine therefore commands only ON / OFF and
+//     feedback of any kind. This engine therefore commands only on / off and
 //     NEVER reports, infers or claims blower speed, airflow or rotation.
 //   * `GPIO46` (`GP_Fan_Status_Led`) is a Core-side status indicator and is
 //     NEVER treated as rotation feedback; the generic `GPIO3` relay (J4) is a
 //     SEPARATE control and is never part of the blower path. This engine
 //     touches neither.
 //
-// What it owns (the platform's single source of blower-command truth):
-//   * Mode arbitration — Manual (the customer owns the blower) vs Auto
-//     (ventilation-driven). Auto is honestly downgraded to Manual when its
-//     required input (the canonical AirIQ demand contract) is not composed;
-//     the engine, not the YAML, is the single source of that fallback.
-//   * Demand mapping — the ONE interpretation of the canonical AirIQ
-//     recommendation contract (AIRIQ-FRAMEWORK-001,
-//     sense360::airiq::Recommendation) as a ventilation Demand. Pollutant
-//     thresholds are NOT duplicated here — the AirIQ engine owns pollutant
-//     truth; this engine consumes its published demand only.
-//   * Fail-safe — an UNKNOWN demand (AirIQ initialising / unavailable / not
-//     composed) NEVER starts the blower. Missing air-quality data is never a
-//     reason to ventilate.
-//   * Anti-short-cycle — minimum on-time and minimum off-time dwell windows so
-//     a demand hovering at the trigger cannot chatter the blower motor. These
-//     are PROVISIONAL engineering defaults pending bench validation.
+// Customer mode surface (owner decision): `Off / Auto / On`, default Auto.
+//   * Off  — always command the blower output OFF.
+//   * On   — always command the blower output ON.
+//   * Auto — follow the canonical AirIQ ventilation demand through the timing
+//            state machine (min-on, post-demand purge, min-off restart lockout).
+// The mode is the authoritative control; the engine owns the output in every
+// mode, so there is no separate toggle that can transiently contradict the
+// selected mode.
+//
+// Auto timing state machine (all windows PROVISIONAL engineering defaults
+// pending bench validation):
+//   * A ventilation demand at/above the trigger starts the blower (subject to
+//     the min-off restart lockout, which never delays the first start of an
+//     Auto session).
+//   * When a valid demand clears (or goes stale/unavailable) while running, the
+//     blower does NOT stop immediately: it completes its minimum run time AND a
+//     post-demand PURGE period, then stops.
+//   * After stopping it enforces a minimum off time before it may restart.
+//   * FAIL-SAFE: an UNKNOWN demand (AirIQ initialising / unavailable / not
+//     composed) NEVER starts a stopped blower. A blower already running from a
+//     previously valid demand completes min-on + purge and then stops — it
+//     never runs forever on stale data.
 //
 // Honesty rules baked into this engine:
 //   * The FAN net is a one-way binary drive: firmware commands ON/OFF but can
@@ -58,25 +64,30 @@
 namespace sense360 {
 namespace blower {
 
-// Blower operating mode (customer select vocabulary; strings single-sourced).
+// Customer mode (select vocabulary; strings single-sourced). Default Auto.
 enum Mode {
-  MODE_MANUAL = 0,
+  MODE_OFF = 0,
   MODE_AUTO = 1,
+  MODE_ON = 2,
 };
 
 inline const char *mode_to_string(Mode mode) {
   switch (mode) {
-    case MODE_MANUAL:
-      return "Manual";
+    case MODE_OFF:
+      return "Off";
     case MODE_AUTO:
       return "Auto";
+    case MODE_ON:
+      return "On";
   }
-  return "Manual";
+  return "Auto";
 }
 
+// Unknown / unspecified selections resolve to the default Auto.
 inline Mode mode_from_string(const char *s) {
-  if (s != nullptr && std::strcmp(s, "Auto") == 0) return MODE_AUTO;
-  return MODE_MANUAL;
+  if (s != nullptr && std::strcmp(s, "Off") == 0) return MODE_OFF;
+  if (s != nullptr && std::strcmp(s, "On") == 0) return MODE_ON;
+  return MODE_AUTO;
 }
 
 // Canonical ventilation demand, derived from the AirIQ recommendation
@@ -157,41 +168,44 @@ inline Trigger trigger_from_string(const char *s) {
 // What the blower control is doing (diagnostics; single-sourced vocabulary and
 // honest human-readable status strings).
 enum State {
-  STATE_MANUAL = 0,            // Manual mode — the customer owns the blower
-  STATE_AUTO_OFF = 1,          // Auto — demand below trigger, blower off
-  STATE_AUTO_ON = 2,           // Auto — demand at/above trigger, blower on
-  STATE_AUTO_MIN_ON = 3,       // Auto — demand cleared but min-on-time holding blower on
-  STATE_AUTO_MIN_OFF = 4,      // Auto — demand present but min-off-time holding blower off
-  STATE_AUTO_UNKNOWN = 5,      // Auto — demand unavailable, blower off (fail-safe)
-  STATE_AUTO_UNSUPPORTED = 6,  // Auto selected but AirIQ not composed — using Manual
+  STATE_OFF = 0,               // Off mode — blower commanded off
+  STATE_ON = 1,                // On mode — blower commanded on
+  STATE_AUTO_NO_AIRIQ = 2,     // Auto, but AirIQ is not composed — blower off
+  STATE_AUTO_OFF_OK = 3,       // Auto, off, air quality OK (demand None)
+  STATE_AUTO_OFF_UNKNOWN = 4,  // Auto, off, demand unavailable (fail-safe)
+  STATE_AUTO_MIN_OFF = 5,      // Auto, off, restart inhibited by min-off
+  STATE_AUTO_VENTILATING = 6,  // Auto, on, active ventilation demand
+  STATE_AUTO_PURGE = 7,        // Auto, on, purging after demand cleared/stale
 };
 
 inline const char *state_to_string(State state) {
   switch (state) {
-    case STATE_MANUAL:
-      return "Manual — blower controlled directly";
-    case STATE_AUTO_OFF:
+    case STATE_OFF:
+      return "Off — blower commanded off";
+    case STATE_ON:
+      return "On — blower commanded on";
+    case STATE_AUTO_NO_AIRIQ:
+      return "Auto: AirIQ not composed — blower off";
+    case STATE_AUTO_OFF_OK:
       return "Auto: air quality OK — blower off";
-    case STATE_AUTO_ON:
-      return "Auto: ventilating (air-quality demand)";
-    case STATE_AUTO_MIN_ON:
-      return "Auto: minimum run time — blower held on";
+    case STATE_AUTO_OFF_UNKNOWN:
+      return "Auto: air-quality demand unavailable — blower off";
     case STATE_AUTO_MIN_OFF:
       return "Auto: minimum off time — blower held off";
-    case STATE_AUTO_UNKNOWN:
-      return "Auto: air-quality demand unavailable — blower off";
-    case STATE_AUTO_UNSUPPORTED:
-      return "Auto needs AirIQ (not composed) — using Manual";
+    case STATE_AUTO_VENTILATING:
+      return "Auto: ventilating (air-quality demand)";
+    case STATE_AUTO_PURGE:
+      return "Auto: purging after demand cleared — blower running";
   }
-  return "Manual — blower controlled directly";
+  return "Off — blower commanded off";
 }
 
 class BlowerController {
  public:
   // --- composition capability (compile-time fact; substitution-driven) -------
   // Is the canonical AirIQ demand contract composed on this device? Without it
-  // the Auto behaviour is honestly downgraded to Manual (the engine is the
-  // single source of that fallback), never inventing a demand.
+  // Auto never has a real ventilation demand, so the blower stays off
+  // (fail-safe) and the status names the missing input.
   void set_has_airiq(bool has) { has_airiq_ = has; }
   bool has_airiq() const { return has_airiq_; }
 
@@ -202,15 +216,16 @@ class BlowerController {
   void set_trigger(Trigger trigger) { trigger_ = trigger; }
   Trigger trigger() const { return trigger_; }
 
-  // --- anti-short-cycle windows (provisional engineering defaults) -----------
+  // --- timing windows (provisional engineering defaults, ms) -----------------
   void set_min_on_ms(uint32_t ms) { min_on_ms_ = ms; }
   void set_min_off_ms(uint32_t ms) { min_off_ms_ = ms; }
+  void set_purge_ms(uint32_t ms) { purge_ms_ = ms; }
 
   // --- lifecycle -------------------------------------------------------------
   void begin(uint32_t now_ms) {
     started_ = true;
     start_ms_ = now_ms;
-    last_change_ms_ = now_ms;
+    off_since_ = now_ms;
   }
 
   // --- inputs ----------------------------------------------------------------
@@ -224,83 +239,97 @@ class BlowerController {
   void evaluate(uint32_t now_ms) {
     ensure_started(now_ms);
 
-    // Effective mode: Auto requires the AirIQ demand contract; otherwise the
-    // engine honestly downgrades to Manual and does NOT own the output.
-    const bool auto_supported = (mode_ == MODE_AUTO && has_airiq_);
-    if (!auto_supported) {
-      auto_owns_ = false;
-      output_on_ = false;
-      state_ = (mode_ == MODE_AUTO && !has_airiq_) ? STATE_AUTO_UNSUPPORTED
-                                                   : STATE_MANUAL;
-      // Reset commit tracking so a later Auto engagement starts fresh.
-      committed_valid_ = false;
+    // Forced modes own the output directly and bypass the Auto timing machine.
+    if (mode_ == MODE_OFF) {
+      set_output(false, now_ms);
+      purging_ = false;
+      state_ = STATE_OFF;
+      prev_mode_ = mode_;
+      return;
+    }
+    if (mode_ == MODE_ON) {
+      set_output(true, now_ms);
+      purging_ = false;
+      state_ = STATE_ON;
+      prev_mode_ = mode_;
       return;
     }
 
-    auto_owns_ = true;
-
-    // Raw desired state from demand vs trigger. UNKNOWN never turns on.
-    bool want_on;
-    if (demand_ == DEMAND_UNKNOWN) {
-      want_on = false;
-    } else if (trigger_ == TRIGGER_SOON) {
-      want_on = (demand_ == DEMAND_ELEVATED || demand_ == DEMAND_HIGH);
-    } else {  // TRIGGER_NOW
-      want_on = (demand_ == DEMAND_HIGH);
+    // --- MODE_AUTO ---
+    // On entry into Auto, seed the cycle bookkeeping from the current output:
+    // a blower already on (e.g. from On mode) has "run" (so min-off applies to a
+    // later restart); a blower off starts a fresh session (first start is not
+    // delayed by min-off).
+    if (mode_ != prev_mode_) {
+      ever_on_ = out_on_;
+      purging_ = false;
     }
+    prev_mode_ = mode_;
 
-    // Initialise committed state on the first Auto evaluation.
-    if (!committed_valid_) {
-      committed_on_ = want_on;
-      committed_valid_ = true;
-      last_change_ms_ = now_ms;
-    }
-
-    // Anti-short-cycle: a transition is blocked until the minimum dwell in the
-    // current state has elapsed (protects the blower motor; avoids chatter when
-    // the air-quality demand hovers at the trigger). The min-off dwell only
-    // gates a RESTART — it never delays the first-ever start, because there is
-    // no prior run to short-cycle against at boot.
-    bool blocked = false;
-    if (want_on != committed_on_) {
-      const uint32_t held = elapsed(last_change_ms_, now_ms);
-      if (committed_on_ && held < min_on_ms_) {
-        blocked = true;  // ON, want OFF, min-on not elapsed -> hold ON
-      } else if (!committed_on_ && ever_on_ && held < min_off_ms_) {
-        blocked = true;  // OFF (after a real run), want ON, min-off not elapsed
-      }
-      if (!blocked) {
-        committed_on_ = want_on;
-        last_change_ms_ = now_ms;
+    // A real, actionable ventilation demand (UNKNOWN is never actionable, and
+    // without AirIQ composed there is never an actionable demand).
+    bool active = false;
+    if (has_airiq_) {
+      if (demand_ == DEMAND_HIGH) {
+        active = true;
+      } else if (demand_ == DEMAND_ELEVATED && trigger_ == TRIGGER_SOON) {
+        active = true;
       }
     }
 
-    if (committed_on_) ever_on_ = true;
-    output_on_ = committed_on_;
+    if (out_on_) {
+      if (active) {
+        // Active demand: keep ventilating.
+        purging_ = false;
+        state_ = STATE_AUTO_VENTILATING;
+      } else {
+        // Demand cleared or went stale/unavailable while running: purge.
+        if (!purging_) {
+          purging_ = true;
+          purge_since_ = now_ms;
+        }
+        const bool min_on_done = elapsed(on_since_, now_ms) >= min_on_ms_;
+        const bool purge_done = elapsed(purge_since_, now_ms) >= purge_ms_;
+        if (min_on_done && purge_done) {
+          set_output(false, now_ms);  // stop; off-state resolved below
+          purging_ = false;
+        } else {
+          state_ = STATE_AUTO_PURGE;
+        }
+      }
+    }
 
-    // Deterministic diagnostic classification.
-    if (blocked) {
-      state_ = committed_on_ ? STATE_AUTO_MIN_ON : STATE_AUTO_MIN_OFF;
-    } else if (demand_ == DEMAND_UNKNOWN) {
-      state_ = STATE_AUTO_UNKNOWN;
-    } else if (output_on_) {
-      state_ = STATE_AUTO_ON;
-    } else {
-      state_ = STATE_AUTO_OFF;
+    if (!out_on_) {
+      if (active) {
+        // Start only after the min-off restart lockout (which never delays the
+        // first start of an Auto session, tracked by ever_on_).
+        const bool min_off_done =
+            !ever_on_ || elapsed(off_since_, now_ms) >= min_off_ms_;
+        if (min_off_done) {
+          set_output(true, now_ms);
+          purging_ = false;
+          state_ = STATE_AUTO_VENTILATING;
+        } else {
+          state_ = STATE_AUTO_MIN_OFF;
+        }
+      } else {
+        // Off with no actionable demand.
+        if (!has_airiq_) {
+          state_ = STATE_AUTO_NO_AIRIQ;
+        } else if (demand_ == DEMAND_UNKNOWN) {
+          state_ = STATE_AUTO_OFF_UNKNOWN;
+        } else {
+          state_ = STATE_AUTO_OFF_OK;
+        }
+      }
     }
   }
 
   // --- outputs ---------------------------------------------------------------
-  // True when Auto actively owns the blower output; the framework applies
-  // output_on() ONLY then. In Manual (or Auto downgraded to Manual) the
-  // customer's Blower control is authoritative and is never overridden.
-  bool auto_owns() const { return auto_owns_; }
-  bool output_on() const { return output_on_; }
-
-  Mode effective_mode() const {
-    return (mode_ == MODE_AUTO && has_airiq_) ? MODE_AUTO : MODE_MANUAL;
-  }
-  bool auto_unsupported() const { return mode_ == MODE_AUTO && !has_airiq_; }
+  // The commanded blower state. The framework applies this to the FAN-net GPIO
+  // and publishes it as the read-only "Blower" state in every mode.
+  bool output_on() const { return out_on_; }
+  bool purging() const { return purging_; }
 
   Demand demand() const { return demand_; }
   State state() const { return state_; }
@@ -315,16 +344,30 @@ class BlowerController {
     if (!started_) begin(now_ms);
   }
 
+  // Commit an output state, stamping the on/off transition time (used by the
+  // min-on / min-off / purge windows). A no-op when the state is unchanged.
+  void set_output(bool on, uint32_t now_ms) {
+    if (on == out_on_) return;
+    out_on_ = on;
+    if (on) {
+      on_since_ = now_ms;
+      ever_on_ = true;
+    } else {
+      off_since_ = now_ms;
+    }
+  }
+
   // customer controls
-  Mode mode_ = MODE_MANUAL;
+  Mode mode_ = MODE_AUTO;
   Trigger trigger_ = TRIGGER_NOW;
 
   // composition capability
   bool has_airiq_ = false;
 
-  // anti-short-cycle windows (provisional engineering defaults, ms)
+  // timing windows (provisional engineering defaults, ms)
   uint32_t min_on_ms_ = 60000;
   uint32_t min_off_ms_ = 60000;
+  uint32_t purge_ms_ = 120000;
 
   // lifecycle
   bool started_ = false;
@@ -333,16 +376,19 @@ class BlowerController {
   // input
   Demand demand_ = DEMAND_UNKNOWN;
 
-  // committed output state + dwell tracking
-  bool committed_on_ = false;
-  bool committed_valid_ = false;
-  bool ever_on_ = false;  // has the blower actually run? (gates the min-off restart dwell)
-  uint32_t last_change_ms_ = 0;
+  // committed output + timers
+  bool out_on_ = false;
+  bool ever_on_ = false;  // has the blower run? (gates the min-off restart lockout)
+  bool purging_ = false;  // Auto: running out the post-demand purge
+  uint32_t on_since_ = 0;
+  uint32_t off_since_ = 0;
+  uint32_t purge_since_ = 0;
 
-  // outputs
-  bool auto_owns_ = false;
-  bool output_on_ = false;
-  State state_ = STATE_MANUAL;
+  // mode-transition detection
+  Mode prev_mode_ = MODE_AUTO;
+
+  // output
+  State state_ = STATE_AUTO_OFF_UNKNOWN;
 };
 
 // Accessor for the firmware's single controller instance. ESPHome emits

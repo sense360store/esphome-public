@@ -1136,10 +1136,12 @@ stable* standing gate applies (no stable claim).**
 
 Customer-focused blower experience for the Sense360 Core's dedicated on-board
 FAN net (schematic `IO21` → `Q4` SI2302S → `J13`, a two-wire binary 5 V blower
-output): one **Blower** control (binary on/off — no speed), **Blower Mode**
-(Manual / Auto) and **Blower Auto Trigger** (Ventilate now / Ventilate soon).
+output): **Blower Mode** (Off / Auto / On, **default Auto**) as the authoritative
+control, **Blower Auto Trigger** (Ventilate now / Ventilate soon), and a
+read-only **Blower** state (no customer toggle — nothing contradicts the mode).
 In Auto the blower follows the canonical AirIQ ventilation demand
-(AIRIQ-FRAMEWORK-001). Canonical doc:
+(AIRIQ-FRAMEWORK-001) through a timing state machine (minimum-on, post-demand
+purge, minimum-off restart lockout). Canonical doc:
 [`docs/architecture/sense360-blower-framework.md`](architecture/sense360-blower-framework.md);
 contract tests: [`tests/test_blower_framework.py`](../tests/test_blower_framework.py);
 deterministic simulation:
@@ -1161,14 +1163,16 @@ Scope facts (do not overclaim):
   blower never drives.
 * **Optional AirIQ input** — the AirIQ air-quality service is the demand
   producer but not a hard dependency. `blower_has_airiq` (default `"false"`)
-  gates the Auto behaviour, read through the shared engine singleton
+  is read through the shared engine singleton
   `sense360::airiq::global_engine().recommendation()` (never a hard `id()`; no
-  duplicated pollutant thresholds). Without AirIQ, Auto is honestly downgraded
-  to Manual; a missing / initialising / unavailable demand is UNKNOWN and never
-  starts the blower (fail-safe).
-* **Anti-short-cycle** — provisional `blower_min_on_ms` / `blower_min_off_ms`
-  (60 s each) protect the motor and prevent rapid restart; neither delays the
-  first-ever start. Values are software placeholders pending bench validation.
+  duplicated pollutant thresholds). Without AirIQ, Auto has no actionable demand
+  and the blower stays off; a missing / initialising / unavailable demand is
+  UNKNOWN and never starts a stopped blower (fail-safe).
+* **Auto timing state machine** — provisional `blower_min_on_ms` (60 s),
+  `blower_purge_ms` (120 s), `blower_min_off_ms` (60 s): a cleared/stale demand
+  triggers minimum-run completion + a post-demand purge before stopping, then a
+  minimum-off restart lockout; the first start is never delayed. Rollover-safe
+  timing. Values are software placeholders pending bench validation.
 * **Gate posture** — the blower is a fan output and stays **compile-only** under
   the *Fans are never stable* gate: no `config/webflash-builds.json` row, no
   artifact, never stable / preview / customer-default / buyable / kit-exposed,
@@ -1182,10 +1186,10 @@ Scope facts (do not overclaim):
   `--compile` run is owed and no compile is fabricated).
 * **Proof recorded separately from hardware proof** — the blower controller
   logic and the `blower_controller.h` + `airiq_engine.h` demand bridge are
-  proven by the native C++ suite (13 controller scenarios + the coexistence /
-  enum-contract pin); `tests/validate_configs.py` passes on the fixture and
-  packages. None of this is hardware, bench, airflow, compliance or commercial
-  proof.
+  proven by the native C++ suite (21 controller scenarios incl. the full purge /
+  timing state machine + millis rollover, plus the coexistence / enum-contract
+  pin); `tests/validate_configs.py` passes on the fixture and packages. None of
+  this is hardware, bench, airflow, compliance or commercial proof.
 
 ---
 

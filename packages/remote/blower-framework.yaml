@@ -2,8 +2,8 @@
 # SENSE360 REMOTE WRAPPER — Blower framework (BLOWER-FRAMEWORK-001)
 # ============================================================================
 # Remote-consumer entrypoint for the Sense360 customer blower experience
-# (BLOWER-FRAMEWORK-001): the single Blower control, Blower Mode (Manual / Auto)
-# and Blower Auto Trigger, layered on the Core's dedicated on-board FAN net
+# (BLOWER-FRAMEWORK-001): the Blower Mode control (Off / Auto / On, default
+# Auto) and Blower Auto Trigger, driving the Core's dedicated on-board FAN net
 # (schematic IO21 -> Q4 SI2302S -> J13, a two-wire binary 5 V blower output).
 #
 # A Home Assistant ESPHome user pulls THIS single file through a git package to

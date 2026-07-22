@@ -12,10 +12,12 @@
 # it directly.
 #
 # Optional-input capability model (BLOWER-FRAMEWORK-001):
-#   * blower_has_airiq: "true" — AirIQ IS composed here, so the Auto behaviour is
-#     supported and follows the canonical AirIQ ventilation demand. A missing /
-#     initialising / unavailable demand is UNKNOWN and never starts the blower.
-# Manual control, the Blower Mode select and the Blower Auto Trigger all work.
+#   * blower_has_airiq: "true" — AirIQ IS composed here, so the Auto behaviour
+#     follows the canonical AirIQ ventilation demand (with the min-on / purge /
+#     min-off timing state machine). A missing / initialising / unavailable
+#     demand is UNKNOWN and never starts the blower.
+# The Blower Mode select (Off / Auto / On, default Auto), the Blower Auto Trigger
+# and the read-only Blower state all work.
 #
 # Hardware honesty (verified S360-100-R4 contract):
 #   * The blower is the Core's dedicated FAN net (IO21 -> Q4 SI2302S -> J13), a

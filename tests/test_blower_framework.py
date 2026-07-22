@@ -132,26 +132,36 @@ class EngineHeaderTests(unittest.TestCase):
     def test_defines_customer_vocabulary_and_api(self) -> None:
         for token in (
             "namespace blower",
-            "MODE_MANUAL",
+            "MODE_OFF",
             "MODE_AUTO",
+            "MODE_ON",
             "DEMAND_UNKNOWN",
             "DEMAND_ELEVATED",
             "DEMAND_HIGH",
             "TRIGGER_NOW",
             "TRIGGER_SOON",
+            "STATE_AUTO_PURGE",
             "demand_from_airiq_recommendation",
             "set_has_airiq",
-            "auto_owns",
+            "set_min_on_ms",
+            "set_min_off_ms",
+            "set_purge_ms",
+            "purging",
             "output_on",
             "global_controller",
         ):
             self.assertIn(token, self.raw, f"header must define {token}")
 
+    def test_default_mode_is_auto(self) -> None:
+        # Auto is the default/first-boot mode (owner decision).
+        self.assertIn("Mode mode_ = MODE_AUTO", self.raw)
+
     def test_fail_safe_unknown_demand_never_starts_blower(self) -> None:
-        # The engine treats an UNKNOWN demand as "never on" — encoded as
-        # want_on = false when demand is UNKNOWN.
-        self.assertIn("DEMAND_UNKNOWN", self.raw)
-        self.assertIn("want_on = false", self.raw)
+        # A start requires an actionable demand (HIGH, or ELEVATED under the
+        # SOON trigger); UNKNOWN is never actionable, so a stopped blower never
+        # starts on unknown/stale data, and the honest off-state names it.
+        self.assertIn("demand_ == DEMAND_HIGH", self.raw)
+        self.assertIn("STATE_AUTO_OFF_UNKNOWN", self.raw)
 
     def test_no_speed_or_rotation_surface(self) -> None:
         # Honesty: the engine commands binary on/off only. Its CODE (comments
@@ -207,6 +217,11 @@ class FrameworkPackageTests(unittest.TestCase):
             "blower_has_airiq must default false so the framework degrades cleanly",
         )
 
+    def test_timing_substitutions_present(self) -> None:
+        subs = self.doc.get("substitutions") or {}
+        for sub in ("blower_min_on_ms", "blower_min_off_ms", "blower_purge_ms"):
+            self.assertIn(sub, subs, f"framework must expose {sub}")
+
     def test_compiles_both_engine_headers(self) -> None:
         includes = (self.doc.get("esphome") or {}).get("includes") or []
         joined = " ".join(str(i) for i in includes)
@@ -224,26 +239,42 @@ class FrameworkPackageTests(unittest.TestCase):
         self.assertIn("sense360::airiq::global_engine().recommendation()", self.raw)
         self.assertIn("demand_from_airiq_recommendation", self.raw)
 
-    def test_blower_output_and_binary_fan(self) -> None:
+    def test_blower_output_and_readonly_state(self) -> None:
         outputs = entries(self.doc, "output")
         blower_out = [o for o in outputs if o.get("id") == "blower_output"]
         self.assertEqual(len(blower_out), 1, "exactly one blower_output")
         self.assertEqual(blower_out[0].get("pin"), "${blower_fan_pin}")
 
-        fans = entries(self.doc, "fan")
-        blower = [f for f in fans if f.get("id") == "blower_fan"]
-        self.assertEqual(len(blower), 1, "exactly one Blower fan entity")
-        fan = blower[0]
-        self.assertEqual(fan.get("platform"), "binary", "binary (on/off) fan only")
-        self.assertEqual(fan.get("output"), "blower_output")
-        # Honesty: no speed / preset / oscillation / direction is offered.
-        for banned in ("speed_count", "preset_modes", "oscillation_output", "direction_output"):
-            self.assertNotIn(banned, fan, f"binary blower must not declare {banned}")
+        # Option A: no controllable fan/switch toggle that could contradict the
+        # selected mode — the mode is the authoritative control.
+        self.assertEqual(entries(self.doc, "fan"), [], "no controllable fan entity")
+        self.assertEqual(entries(self.doc, "switch"), [], "no controllable switch entity")
+
+        # The "Blower" is a read-only commanded-state binary_sensor (a lambda
+        # representation), never a customer toggle.
+        bsensors = {b.get("id"): b for b in entries(self.doc, "binary_sensor")}
+        self.assertIn("blower_state", bsensors)
+        blower = bsensors["blower_state"]
+        self.assertEqual(blower.get("name"), "Blower")
+        self.assertIn("lambda", blower, "Blower state is a read-only lambda sensor")
+        self.assertNotIn("on_press", blower)
 
     def test_customer_config_entities(self) -> None:
         selects = {s.get("id"): s for s in entries(self.doc, "select")}
+        # Owner decision: explicit Off / Auto / On, default Auto.
         self.assertIn("s360_blower_mode", selects)
-        self.assertEqual(selects["s360_blower_mode"].get("options"), ["Manual", "Auto"])
+        self.assertEqual(
+            selects["s360_blower_mode"].get("options"), ["Off", "Auto", "On"]
+        )
+        self.assertEqual(
+            selects["s360_blower_mode"].get("initial_option"),
+            "Auto",
+            "the blower must default to Auto (operate automatically out of the box)",
+        )
+        self.assertTrue(
+            selects["s360_blower_mode"].get("restore_value"),
+            "the selected mode must persist across restart",
+        )
         self.assertIn("s360_blower_auto_trigger", selects)
         self.assertEqual(
             selects["s360_blower_auto_trigger"].get("options"),

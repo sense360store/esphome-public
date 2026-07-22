@@ -75,7 +75,7 @@ int main() {
     blower.evaluate(t + 1000);
     assert(blower.demand() == DEMAND_UNKNOWN);
     assert(!blower.output_on());
-    assert(blower.state() == STATE_AUTO_UNKNOWN);
+    assert(blower.state() == STATE_AUTO_OFF_UNKNOWN);
   }
 
   // 3) A real "Ventilate now" from the AirIQ engine (CO2 in the very-poor band)
@@ -97,7 +97,7 @@ int main() {
     blower.evaluate(t);
     assert(blower.demand() == DEMAND_HIGH);
     assert(blower.output_on());
-    assert(blower.state() == STATE_AUTO_ON);
+    assert(blower.state() == STATE_AUTO_VENTILATING);
   }
 
   printf("[PASS] blower_controller.h + airiq_engine.h coexist and cooperate\n");
