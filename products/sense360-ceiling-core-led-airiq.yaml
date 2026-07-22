@@ -1,0 +1,27 @@
+# ============================================================================
+# SENSE360 PRODUCT (compile-only entry point) — Ceiling-Core-LED-AirIQ
+# ============================================================================
+# LED-FRAMEWORK-002. Thin top-level entry point over the compile-only skeleton
+# `products/compile-only/ceiling-core-led-airiq.yaml`. It exists so the FULL
+# customer LED framework (packages/features/led_framework.yaml) can be
+# config-validated and compiled on the representative RoomIQ-less / Presence-less
+# target: a top-level product directory (`products/`) is the layer at which the
+# frameworks' repository-local `esphome: includes: ../include/sense360/*.h`
+# path resolves. Registered in config/compile-only-targets.json for the hosted
+# compile lane.
+#
+# Status — what this YAML is NOT (identical restrictions to the skeleton it
+# includes; see that file's header for the full text):
+#   * NOT a WebFlash exposed build, NOT a release artifact, NOT hardware proof,
+#     NOT stable / preview / recommended / buyable / a customer default. LED
+#     stays PREVIEW-gated. config/product-catalog.json carries it as
+#     status: compile-only with webflash_build_matrix: false, NO version, NO
+#     channel and NO artifact_name.
+#
+# Composition, substitutions and the LED-FRAMEWORK-002 optional-input capability
+# declaration (led_has_roomiq / led_has_presence = "false"):
+#   products/compile-only/ceiling-core-led-airiq.yaml
+# ============================================================================
+
+packages:
+  skeleton: !include compile-only/ceiling-core-led-airiq.yaml

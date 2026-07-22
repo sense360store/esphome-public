@@ -84,7 +84,8 @@
     "Ceiling-POE-AirIQ-FanRelay-RoomIQ",
     "Ceiling-POE-VentIQ-FanDAC-RoomIQ",
     "Ceiling-POE-VentIQ-FanPWM-RoomIQ",
-    "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ"
+    "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
+    "Ceiling-Core-LED-AirIQ"
   ],
   "totals": {
     "candidates": 26,

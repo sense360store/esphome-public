@@ -811,6 +811,28 @@ Scope facts (do not overclaim):
   overlays, priority and restore. None of this is hardware, bench,
   compliance or commercial proof.
 
+### LED-FRAMEWORK-002 — RoomIQ / Presence made optional
+
+**Status: software-only follow-up implemented; compile-lane and remote
+git-package validation only; no SOT, WebFlash, release or commercial state
+change; LED stays preview-gated (`LED-FRAMEWORK-BENCH-001` still owed).**
+
+The behaviour framework no longer assumes RoomIQ and Presence are composed.
+Darkness and occupancy are read from the **shared engine singletons**
+(`sense360::roomiq::global_engine()` / `sense360::presence::global_engine()`),
+never from hard ESPHome `id(...)` references to those packages' entities, so
+the full LED experience compiles with or without them. Two truthful
+compile-time capability substitutions (`led_has_roomiq` / `led_has_presence`,
+default `"false"`) drive runtime rejection of unsupported Night Mode
+Behaviour options (visible fall back to Manual + `LED Capability Notice`
+diagnostic). New surfaces: the representative RoomIQ-less / Presence-less
+fixture `Ceiling-Core-LED-AirIQ`
+(`products/sense360-ceiling-core-led-airiq.yaml` over
+`products/compile-only/ceiling-core-led-airiq.yaml`, compile-lane registered)
+and the remote LED wrapper `packages/remote/ceiling-led.yaml`. Missing/stale
+lux is never read as dark; missing occupancy is never read as occupied; no
+fake input entity is invented; darkness / fusion logic is not duplicated.
+
 ---
 
 ## 15. RoomIQ framework (ROOMIQ-FRAMEWORK-001)

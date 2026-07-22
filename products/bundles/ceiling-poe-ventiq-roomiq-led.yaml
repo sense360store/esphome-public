@@ -84,6 +84,13 @@ substitutions:
   s360_module_presence: "Included"
   s360_module_led: "Included"
 
+  # LED-FRAMEWORK-002 — optional-input truth for packages/features/led_framework.yaml.
+  # This bundle composes both the canonical RoomIQ darkness engine and the
+  # fused Presence occupancy contract, so the full Night Mode Behaviour set
+  # ("Manual" / "When dark" / "When dark and occupied") is supported.
+  led_has_roomiq: "true"
+  led_has_presence: "true"
+
 # ============================================================================
 # PACKAGE INCLUDES (board layer + base + profiles)
 # ============================================================================

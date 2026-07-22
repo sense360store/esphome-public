@@ -378,11 +378,30 @@ class CustomerEntityContractTests(unittest.TestCase):
         self.assertIn("include/sense360/led_controller.h", self.raw)
 
     def test_framework_consumes_fused_occupancy_not_raw_sensors(self) -> None:
-        # LED-04: the merged unified Occupancy contract is the input — never
-        # raw PIR / radar / SEN0609 states.
-        self.assertIn("s360_occupancy", self.raw)
+        # LED-04 / LED-FRAMEWORK-002: the merged unified Occupancy contract is
+        # the input, read from the canonical Presence fusion engine singleton
+        # (the SAME shared static the Presence framework feeds when composed) —
+        # never raw PIR / radar / SEN0609 states, and never a hard `id()`
+        # reference to a Presence entity that is absent without the framework.
+        self.assertIn("sense360::presence::global_engine()", self.raw)
+        self.assertIn(".occupancy()", self.raw)
         for forbidden in ("s360_pir_motion", "s360_sen0609_presence", "ld2450_"):
             self.assertNotIn(forbidden, self.raw)
+
+    def test_no_hard_id_reference_to_optional_module_entities(self) -> None:
+        # LED-FRAMEWORK-002 core proof: with RoomIQ / Presence OPTIONAL, the
+        # framework must not compile an `id(...)` reference to an entity those
+        # packages own (occupancy / Presence module status). An `id()` to an
+        # absent entity is an undefined-id compile error — the exact failure
+        # the optional-input model removes. Reads flow through the shared C++
+        # engine singletons instead.
+        for forbidden in (
+            "id(s360_occupancy)",
+            "id(s360_module_status_presence)",
+            "id(${led_occupancy_source_id})",
+            "id(${led_presence_health_id})",
+        ):
+            self.assertNotIn(forbidden, self.raw, forbidden)
 
     def test_darkness_comes_from_the_canonical_roomiq_service(self) -> None:
         # ROOMIQ-FRAMEWORK-001: the darkness decision (threshold,
@@ -762,6 +781,238 @@ class RoadmapTests(unittest.TestCase):
         self.assertIn("pending", lowered)
         self.assertIn("SOT", section)
         self.assertIn("LED-FRAMEWORK-BENCH-001", section)
+
+
+# --- LED-FRAMEWORK-002: optional RoomIQ / Presence inputs -------------------
+
+REMOTE_WRAPPER = REPO_ROOT / "packages" / "remote" / "ceiling-led.yaml"
+FIXTURE_SKELETON = REPO_ROOT / "products" / "compile-only" / "ceiling-core-led-airiq.yaml"
+FIXTURE_PRODUCT = REPO_ROOT / "products" / "sense360-ceiling-core-led-airiq.yaml"
+COMPILE_TARGETS = REPO_ROOT / "config" / "compile-only-targets.json"
+ROOMIQ_ENGINE = REPO_ROOT / "include" / "sense360" / "roomiq_engine.h"
+PRESENCE_ENGINE = REPO_ROOT / "include" / "sense360" / "presence_fusion.h"
+
+
+class OptionalInputCapabilityTests(unittest.TestCase):
+    """The LED framework treats RoomIQ (darkness) and Presence (occupancy) as
+    OPTIONAL inputs declared by compile-time capability substitutions."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.doc = load_yaml(FRAMEWORK_PACKAGE)
+        cls.raw = FRAMEWORK_PACKAGE.read_text()
+        cls.subs = cls.doc.get("substitutions") or {}
+
+    def test_capability_substitutions_default_false(self) -> None:
+        # Safe default: with an input absent the mode needing it is refused.
+        self.assertEqual(str(self.subs.get("led_has_roomiq")), "false")
+        self.assertEqual(str(self.subs.get("led_has_presence")), "false")
+
+    def test_capabilities_used_as_compile_time_bools(self) -> None:
+        # "true"/"false" literals double as C++ bool literals in the lambdas.
+        self.assertIn("const bool has_roomiq = ${led_has_roomiq};", self.raw)
+        self.assertIn("const bool has_presence = ${led_has_presence};", self.raw)
+
+    def test_framework_includes_optional_engine_headers(self) -> None:
+        # The shared RoomIQ / Presence engine headers are compiled in so the
+        # behaviour resolves with OR without those frameworks (single source;
+        # #pragma once makes co-composition idempotent).
+        self.assertIn("../include/sense360/roomiq_engine.h", self.raw)
+        self.assertIn("../include/sense360/presence_fusion.h", self.raw)
+
+    def test_no_duplicate_darkness_or_fusion_logic(self) -> None:
+        # LED reads engine OUTPUTS; it never re-implements lux thresholding or
+        # sensor fusion (single implementation lives in the engine headers).
+        self.assertNotIn("input_lux", self.raw)
+        self.assertNotIn("input_pir", self.raw)
+        self.assertNotIn("input_radar", self.raw)
+        self.assertNotIn("configure_pir", self.raw)
+
+    def test_darkness_gated_on_roomiq_capability(self) -> None:
+        # No RoomIQ -> darkness is explicitly UNKNOWN; the engine is not even
+        # touched, and a missing lux path is never read as dark.
+        self.assertIn("Darkness darkness = DARKNESS_UNKNOWN;", self.raw)
+        self.assertIn("if (has_roomiq) {", self.raw)
+
+    def test_occupancy_gated_on_presence_capability(self) -> None:
+        # No Presence -> occupancy invalid (frozen); missing occupancy is never
+        # read as occupied.
+        self.assertIn("if (has_presence) {", self.raw)
+        self.assertIn("HEALTH_AVAILABLE", self.raw)
+
+    def test_behaviour_effective_capped_by_capability(self) -> None:
+        # The evaluate loop degrades an unsupported selection to Manual so an
+        # unsupported mode can never drive automation or be reported active.
+        self.assertIn("NightBehaviour effective", self.raw)
+        self.assertIn("effective = NIGHT_MANUAL;", self.raw)
+
+    def test_behaviour_select_rejects_unsupported_and_falls_back(self) -> None:
+        # ESPHome cannot conditionally generate the option list, so an
+        # unsupported pick snaps visibly back to Manual and publishes a reason.
+        entity = None
+        for entry in self.doc.get("select") or []:
+            if isinstance(entry, dict) and entry.get("id") == "s360_led_night_behaviour":
+                entity = entry
+        self.assertIsNotNone(entity)
+        # Full list retained (no conditional generation).
+        self.assertEqual(entity.get("options"), NIGHT_BEHAVIOUR_OPTIONS)
+        self.assertIn('call.set_option("Manual");', self.raw)
+        self.assertIn("s360_led_capability_notice", self.raw)
+
+    def test_capability_diagnostics_exist(self) -> None:
+        entities = entities_by_id(self.doc)
+        for entity_id, name in (
+            ("s360_led_optional_inputs", "LED Optional Inputs"),
+            ("s360_led_capability_notice", "LED Capability Notice"),
+        ):
+            self.assertIn(entity_id, entities, entity_id)
+            self.assertEqual(entities[entity_id].get("name"), name)
+            self.assertEqual(
+                entities[entity_id].get("entity_category"), "diagnostic", entity_id
+            )
+            self.assertTrue(entities[entity_id].get("disabled_by_default"), entity_id)
+
+    def test_no_fake_input_entities(self) -> None:
+        # No fabricated lux / occupancy entity is invented to stand in for an
+        # absent optional module.
+        entities = entities_by_id(self.doc)
+        for entity_id, entry in entities.items():
+            name = str(entry.get("name", "")).lower()
+            if entry.get("_platform") in ("sensor", "binary_sensor"):
+                self.assertNotIn("occupancy", name, entity_id)
+                self.assertNotIn("lux", name, entity_id)
+                self.assertNotIn("illuminance", name, entity_id)
+
+
+class LedBundleCapabilityDeclarationTests(unittest.TestCase):
+    """Every LED-bearing bundle declares the optional-input capabilities
+    truthfully; the two authoritative bundles compose RoomIQ + Presence."""
+
+    def test_led_bundles_declare_capabilities_truthfully(self) -> None:
+        for bundle in led_bundles():
+            subs = (load_yaml(bundle).get("substitutions")) or {}
+            raw = bundle.read_text()
+            # These bundles compose both inputs, so both flags must be "true".
+            self.assertEqual(
+                str(subs.get("led_has_roomiq")), "true", bundle.name
+            )
+            self.assertEqual(
+                str(subs.get("led_has_presence")), "true", bundle.name
+            )
+            # And the composition backing the declaration is present.
+            self.assertIn("roomiq_framework.yaml", raw, bundle.name)
+            self.assertIn("presence_framework.yaml", raw, bundle.name)
+
+
+class RemoteLedWrapperTests(unittest.TestCase):
+    """The remote LED wrapper delivers the full feature through a git package
+    without any repository-local include path (remote-safe)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.raw = REMOTE_WRAPPER.read_text() if REMOTE_WRAPPER.is_file() else ""
+        cls.doc = load_yaml(REMOTE_WRAPPER) if REMOTE_WRAPPER.is_file() else {}
+
+    def test_wrapper_exists(self) -> None:
+        self.assertTrue(REMOTE_WRAPPER.is_file(), f"missing {REMOTE_WRAPPER}")
+
+    def test_wrapper_composes_board_and_framework(self) -> None:
+        self.assertIn("../boards/s360-300-led.yaml", self.raw)
+        self.assertIn("../features/led_framework.yaml", self.raw)
+
+    def test_wrapper_uses_shared_component_not_local_path(self) -> None:
+        ext = self.doc.get("external_components")
+        self.assertTrue(ext, "remote wrapper must declare external_components")
+        self.assertIn("sense360", ext[0]["components"])
+        self.assertEqual(ext[0]["source"]["type"], "git")
+        self.assertEqual(ext[0]["source"]["path"], "include")
+        # Loads the delivery component and removes the framework's local include.
+        self.assertIn("sense360", self.doc)
+        self.assertIn("includes: !remove", self.raw)
+        # A remotely consumed package must NOT use a type: local component
+        # source (it would resolve only on the authoring machine).
+        self.assertNotIn("type: local", self.raw)
+
+    def test_wrapper_declares_capabilities_false_by_default(self) -> None:
+        subs = self.doc.get("substitutions") or {}
+        self.assertEqual(str(subs.get("led_has_roomiq")), "false")
+        self.assertEqual(str(subs.get("led_has_presence")), "false")
+
+    def test_wrapper_changes_no_release_declaration(self) -> None:
+        for forbidden in (
+            "webflash-builds",
+            "product-catalog",
+            "artifact_name",
+            "webflash_build_matrix",
+        ):
+            self.assertNotIn(forbidden, self.raw, forbidden)
+
+
+class RoomiqPresenceLessFixtureTests(unittest.TestCase):
+    """The representative Ceiling-Core-LED-AirIQ fixture composes the full LED
+    framework with NO RoomIQ and NO Presence, and is compile-lane registered."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.skeleton_raw = FIXTURE_SKELETON.read_text() if FIXTURE_SKELETON.is_file() else ""
+        cls.skeleton = load_yaml(FIXTURE_SKELETON) if FIXTURE_SKELETON.is_file() else {}
+        cls.product_raw = FIXTURE_PRODUCT.read_text() if FIXTURE_PRODUCT.is_file() else ""
+
+    def test_fixture_files_exist(self) -> None:
+        self.assertTrue(FIXTURE_SKELETON.is_file(), f"missing {FIXTURE_SKELETON}")
+        self.assertTrue(FIXTURE_PRODUCT.is_file(), f"missing {FIXTURE_PRODUCT}")
+
+    def test_fixture_composes_led_board_and_framework(self) -> None:
+        self.assertIn("packages/boards/s360-300-led.yaml", self.skeleton_raw)
+        self.assertIn("packages/features/led_framework.yaml", self.skeleton_raw)
+
+    def test_fixture_has_no_roomiq_or_presence_package(self) -> None:
+        for forbidden in (
+            "roomiq_framework.yaml",
+            "presence_framework.yaml",
+            "s360-200-roomiq",
+            "presence_ceiling",
+            "comfort_ceiling",
+        ):
+            self.assertNotIn(forbidden, self.skeleton_raw, forbidden)
+
+    def test_fixture_declares_capabilities_false(self) -> None:
+        subs = self.skeleton.get("substitutions") or {}
+        self.assertEqual(str(subs.get("led_has_roomiq")), "false")
+        self.assertEqual(str(subs.get("led_has_presence")), "false")
+        self.assertEqual(str(subs.get("s360_config_string")), "Ceiling-Core-LED-AirIQ")
+
+    def test_fixture_entry_point_is_top_level_product(self) -> None:
+        # A top-level products/ entry point is required for the framework's
+        # repository-local ../include/sense360 path to resolve.
+        self.assertIn("compile-only/ceiling-core-led-airiq.yaml", self.product_raw)
+
+    def test_fixture_registered_in_compile_lane(self) -> None:
+        targets = json.loads(COMPILE_TARGETS.read_text())["targets"]
+        rows = [
+            t
+            for t in targets
+            if t.get("product_yaml")
+            == "products/sense360-ceiling-core-led-airiq.yaml"
+        ]
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["shipment_status"], "compile-only")
+        self.assertFalse(rows[0]["webflash_exposure_allowed_now"])
+
+
+class OptionalEngineHeadersDeliveredTests(unittest.TestCase):
+    """The shared engine headers the framework references remain single-source
+    and remotely deliverable."""
+
+    def test_optional_engine_headers_exist_once(self) -> None:
+        self.assertTrue(ROOMIQ_ENGINE.is_file())
+        self.assertTrue(PRESENCE_ENGINE.is_file())
+
+    def test_presence_engine_exposes_read_only_contract(self) -> None:
+        raw = PRESENCE_ENGINE.read_text()
+        self.assertIn("global_engine()", raw)
+        self.assertIn("occupancy()", raw)
+        self.assertIn("Health health()", raw)
 
 
 if __name__ == "__main__":

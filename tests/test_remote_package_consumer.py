@@ -71,6 +71,7 @@ COMPONENT_INIT = REPO_ROOT / "include" / "sense360" / "__init__.py"
 CANONICAL_HEADER = REPO_ROOT / "include" / "sense360" / "airiq_engine.h"
 SHARED_ENGINES_PKG = REPO_ROOT / "packages" / "remote" / "sense360-shared-engines.yaml"
 AIRIQ_WRAPPER = REPO_ROOT / "packages" / "remote" / "ceiling-airiq.yaml"
+LED_WRAPPER = REPO_ROOT / "packages" / "remote" / "ceiling-led.yaml"
 
 # Every shared header the sense360 component must deliver (one physical copy of
 # each lives in include/sense360/ — the same files the native C++ unit tests
@@ -154,6 +155,61 @@ logger:
   level: DEBUG
 
 mqtt: null
+"""
+
+
+# A LED-FRAMEWORK-002 consumer: Core board + Core Framework + the FULL LED
+# framework (board + behaviour) pulled through the remote LED wrapper, with NO
+# RoomIQ and NO Presence. Proves the complete customer LED experience builds
+# remotely on a RoomIQ-less / Presence-less device and that the shared RoomIQ /
+# Presence engine headers the framework references are delivered by the
+# `sense360` component (not a missing local include).
+CONSUMER_CORE_LED_NO_ROOMIQ = """\
+substitutions:
+  device_name: sense360-core-led
+  friendly_name: Sense360 Core LED
+  timezone: "Europe/London"
+  device_version: "0.0.0-remote-consumer-test"
+  sense360_remote_url: file://__REMOTE__
+  sense360_remote_ref: main
+  s360_config_string: "Ceiling-Core-LED"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,led"
+  s360_capabilities_human: "Core, LED"
+  s360_module_led: "Included"
+
+packages:
+  led:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/remote/ceiling-led.yaml]
+    refresh: 0s
+  core:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/hardware/sense360_core_ceiling.yaml]
+    refresh: 0s
+  core_framework:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/base/device_framework.yaml]
+    refresh: 0s
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+logger:
+  level: DEBUG
 """
 
 
@@ -333,6 +389,52 @@ class DeliveryPackageStructureTests(unittest.TestCase):
                 )
 
 
+class LedWrapperStructureTests(unittest.TestCase):
+    """LED-FRAMEWORK-002 — the remote LED wrapper delivers the FULL customer
+    LED framework (board + behaviour) through a git package, remote-safe."""
+
+    def setUp(self) -> None:
+        self.wrapper = _load(LED_WRAPPER)
+        self.raw = LED_WRAPPER.read_text() if LED_WRAPPER.is_file() else ""
+
+    def test_led_wrapper_exists(self) -> None:
+        self.assertTrue(LED_WRAPPER.is_file(), f"missing {LED_WRAPPER}")
+
+    def test_led_wrapper_shape(self) -> None:
+        ext = self.wrapper.get("external_components")
+        self.assertTrue(ext, "LED wrapper must declare external_components")
+        self.assertIn("sense360", ext[0]["components"])
+        self.assertEqual(ext[0]["source"]["type"], "git")
+        self.assertEqual(ext[0]["source"]["path"], "include")
+        # Loads the delivery component and removes the framework's local include.
+        self.assertIn("sense360", self.wrapper)
+        self.assertIn("includes: !remove", self.raw)
+        # Composes the board + framework relative to itself in the repo.
+        self.assertIn("../boards/s360-300-led.yaml", self.raw)
+        self.assertIn("../features/led_framework.yaml", self.raw)
+
+    def test_led_wrapper_is_remote_safe(self) -> None:
+        # A remotely consumed package must never pin a type: local component
+        # source (resolves only on the authoring machine).
+        self.assertNotIn("type: local", self.raw)
+
+    def test_led_wrapper_declares_optional_inputs_false(self) -> None:
+        # LED-only remote consumer: RoomIQ / Presence not composed by default.
+        subs = self.wrapper.get("substitutions") or {}
+        self.assertEqual(str(subs.get("led_has_roomiq")), "false")
+        self.assertEqual(str(subs.get("led_has_presence")), "false")
+
+    def test_led_wrapper_changes_no_commercial_or_release_declaration(self) -> None:
+        for forbidden in (
+            "webflash-builds",
+            "product-catalog",
+            "release-channel-policy",
+            "artifact_name",
+            "webflash_build_matrix",
+        ):
+            self.assertNotIn(forbidden, self.raw, forbidden)
+
+
 class RepoLocalBuildsUnchangedTests(unittest.TestCase):
     """The repository-local include delivery must be preserved so repo-local
     bundle builds are byte-for-byte unchanged (and release builds stay
@@ -402,6 +504,32 @@ class RemoteConfigValidationTests(unittest.TestCase):
 
 
 # --- source resolution / compile (opt-in: runs a real esphome compile) ------
+
+
+@unittest.skipIf(_esphome_cli() is None, "esphome CLI not installed")
+class RemoteLedFrameworkValidationTests(unittest.TestCase):
+    """LED-FRAMEWORK-002 — the FULL LED framework validates as a remote git
+    package on a device with NO RoomIQ and NO Presence."""
+
+    def setUp(self) -> None:
+        self.fixture = _RemoteFixture(CONSUMER_CORE_LED_NO_ROOMIQ)
+
+    def tearDown(self) -> None:
+        self.fixture.cleanup()
+
+    def test_led_framework_config_validates_without_roomiq_or_presence(self) -> None:
+        proc = self.fixture.run("config")
+        out = proc.stdout
+        # The remote-include defect must be gone for every delivered header.
+        self.assertNotIn("Could not find file", out, out[-2000:])
+        for header in ("led_controller.h", "roomiq_engine.h", "presence_fusion.h"):
+            self.assertNotIn(
+                f"include/sense360/{header}",
+                out,
+                f"{header} must not appear as an unresolved local include",
+            )
+        self.assertEqual(proc.returncode, 0, out[-3000:])
+        self.assertIn("Configuration is valid", out)
 
 
 @unittest.skipUnless(

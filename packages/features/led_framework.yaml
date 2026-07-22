@@ -41,21 +41,37 @@
 #   * the LED board package (packages/boards/s360-300-led.yaml — owns the
 #     Room Light entity `led_ring` and the provisional software brightness
 #     ceiling `led_max_brightness_pct`),
-#   * the Presence framework (packages/features/presence_framework.yaml —
-#     owns the fused Occupancy entity `s360_occupancy` and the Presence
-#     module runtime status; LED-04 consumes ONLY the fused contract, never
-#     raw PIR/radar/SEN0609 states),
-#   * the RoomIQ environmental framework
+#   * OPTIONALLY the Presence framework (packages/features/presence_framework.yaml
+#     — owns the fused Occupancy contract and the Presence module runtime
+#     status; LED-04 consumes ONLY the fused contract, never raw
+#     PIR/radar/SEN0609 states),
+#   * OPTIONALLY the RoomIQ environmental framework
 #     (packages/features/roomiq_framework.yaml — owns the calibrated
 #     canonical illuminance path and the darkness decision this package
 #     consumes; ROOMIQ-FRAMEWORK-001) together with the RoomIQ board
 #     package (packages/boards/s360-200-roomiq.yaml), and
-#   * the shared Core Framework package under packages/base/ (owner of the
-#     LED Module Status entity; this file deliberately does NOT include it —
-#     bundles compose it exactly once, per the CORE-FRAMEWORK-001 isolation
-#     rule).
-# Only the catalog-declared LED-bearing bundles compose this package
-# (bundle-authority gate in tests/test_led_framework.py).
+#   * OPTIONALLY the shared Core Framework package under packages/base/ (owner
+#     of the LED Module Status entity; this file deliberately does NOT include
+#     it — bundles compose it exactly once, per the CORE-FRAMEWORK-001
+#     isolation rule; the LED behaviour compiles without it).
+#
+# LED-FRAMEWORK-002 — RoomIQ (darkness) and Presence (occupancy) are OPTIONAL
+# inputs, not hard dependencies. This package reads their OUTPUTS from the
+# shared header-only engine singletons (sense360::roomiq::global_engine() and
+# sense360::presence::global_engine()) — the SAME statics those frameworks
+# feed when composed — so it never holds a hard ESPHome id(...) reference to a
+# RoomIQ/Presence entity (an undefined-id compile error when absent) and never
+# duplicates darkness or fusion logic. The composing bundle / remote wrapper
+# declares which inputs exist via the compile-time substitutions
+# led_has_roomiq / led_has_presence (default "false", safe-fail). When an input
+# is absent its engine is unfed, so darkness stays UNKNOWN and Presence health
+# stays Initialising (invalid) — missing lux is never dark, missing occupancy
+# is never occupied. The full customer experience (Room Light, Manual Night
+# Mode, Identify, Status, restore, effects, diagnostics) works with neither
+# input; the automation modes that need an absent input are refused at runtime
+# (visible fall back to Manual + LED Capability Notice). Representative
+# RoomIQ-less / Presence-less target: Ceiling-Core-LED-AirIQ; remote wrapper:
+# packages/remote/ceiling-led.yaml.
 #
 # Module-status honesty: the WS2812B data line is one-way — the firmware can
 # never verify that light was actually emitted, so this package does NOT
@@ -95,12 +111,25 @@ substitutions:
   led_identify_ms: "4000"
   led_status_ms: "1500"
 
-  # Input sources — overridable for future compositions. Defaults are the
-  # authoritative entities composed by every current LED-bearing bundle.
-  # (The lux/darkness input is the canonical RoomIQ engine itself — see
-  # the evaluation script below.)
-  led_occupancy_source_id: s360_occupancy
-  led_presence_health_id: s360_module_status_presence
+  # Optional-input capability declaration (LED-FRAMEWORK-002). Compile-time
+  # truth the composing bundle / remote wrapper MUST set honestly: whether
+  # the canonical RoomIQ environmental engine (the darkness decision) and the
+  # fused Presence occupancy contract are composed alongside this framework.
+  # RoomIQ and Presence are OPTIONAL inputs, never hard dependencies — the
+  # full customer LED experience (Room Light, Manual Night Mode, Identify,
+  # Status Indicator, restore, effects, diagnostics) works with neither.
+  #
+  # Safe default "false": with an optional input absent the automation mode
+  # that needs it is refused at runtime (visible fall back to Manual) and the
+  # darkness / occupancy input is forced to its fail-safe UNKNOWN / invalid
+  # value — a missing input is NEVER read as dark or occupied. A bundle that
+  # composes the input flips the matching flag to "true".
+  #
+  # These are ASCII "true"/"false" literals so they double as valid C++ bool
+  # literals inside the evaluation lambdas below (`const bool has_roomiq =
+  # ${led_has_roomiq};`).
+  led_has_roomiq: "false"
+  led_has_presence: "false"
 
 # The controller engine is compiled from the shared header (single
 # implementation; see tests/unit/test_led_controller.cpp). Path is relative
@@ -109,6 +138,21 @@ substitutions:
 esphome:
   includes:
     - ../include/sense360/led_controller.h
+    # Optional-input engines (LED-FRAMEWORK-002). The canonical RoomIQ
+    # darkness engine and the fused Presence occupancy engine are shared,
+    # header-only singletons. This framework READS their outputs through the
+    # SAME function-local static the RoomIQ / Presence frameworks feed when
+    # those frameworks are composed — it never re-implements darkness or
+    # fusion logic. When a framework is absent nothing feeds its singleton, so
+    # darkness stays UNKNOWN and Presence health stays Initialising (invalid)
+    # — the fail-safe values. Including the headers here (idempotent under
+    # `#pragma once`, even when the RoomIQ / Presence frameworks include the
+    # same file) is what lets the LED behaviour COMPILE with or without those
+    # frameworks: RoomIQ and Presence are optional inputs, not dependencies.
+    # (Remote consumers deliver all three headers via the `sense360` external
+    # component instead — see packages/remote/ceiling-led.yaml.)
+    - ../include/sense360/roomiq_engine.h
+    - ../include/sense360/presence_fusion.h
   on_boot:
     # Late boot hook (after components are set up and restored globals are
     # loaded): re-apply the persisted stable customer state (LED-11). The
@@ -218,14 +262,35 @@ script:
           if (!id(s360_led_booted)) return;
           const uint32_t now = millis();
 
+          // Optional-input capabilities (LED-FRAMEWORK-002): compile-time
+          // truth from the composition. "true"/"false" substitution literals
+          // double as C++ bool literals. RoomIQ and Presence are OPTIONAL.
+          const bool has_roomiq = ${led_has_roomiq};
+          const bool has_presence = ${led_has_presence};
+
           // Runtime configuration (customer controls + substitutions; no
           // recompilation needed for the customer-facing values).
           controller.set_max_brightness(${led_max_brightness_pct} / 100.0f);
           controller.set_night_profile(${led_night_brightness_pct} / 100.0f,
                                        ${led_night_red}, ${led_night_green},
                                        ${led_night_blue});
-          controller.set_night_behaviour(night_behaviour_from_string(
-              id(s360_led_night_behaviour).current_option().c_str()));
+          // Behaviour is capped by the composition (LED-FRAMEWORK-002): a mode
+          // whose input is not composed is degraded to Manual here, so an
+          // unsupported selection can NEVER drive automation or be reported
+          // active — even if a stale/restored value survives. "When dark"
+          // needs RoomIQ; "When dark and occupied" needs RoomIQ AND Presence.
+          {
+            NightBehaviour requested = night_behaviour_from_string(
+                id(s360_led_night_behaviour).current_option().c_str());
+            NightBehaviour effective = requested;
+            if (requested == NIGHT_WHEN_DARK && !has_roomiq) {
+              effective = NIGHT_MANUAL;
+            } else if (requested == NIGHT_WHEN_DARK_AND_OCCUPIED &&
+                       (!has_roomiq || !has_presence)) {
+              effective = NIGHT_MANUAL;
+            }
+            controller.set_night_behaviour(effective);
+          }
           controller.set_status_level(status_level_from_string(
               id(s360_led_status_indicator).current_option().c_str()));
           controller.set_night_auto_off_ms(${led_night_auto_off_ms});
@@ -236,33 +301,49 @@ script:
           // RoomIQ darkness service computes the decision (calibrated
           // illuminance, staleness, hysteresis — ONE implementation). The
           // LED customer Darkness Threshold parameterises it; UNKNOWN
-          // (missing/stale/invalid lux) fails safe downstream.
+          // (missing/stale/invalid lux) fails safe downstream. When RoomIQ is
+          // NOT composed (has_roomiq false) the engine is never touched and
+          // darkness is explicitly UNKNOWN — a missing lux path is never read
+          // as dark, and no fake lux entity is invented.
           {
-            auto &environment = sense360::roomiq::global_engine();
-            float threshold = id(s360_led_darkness_threshold).state;
-            if (!std::isnan(threshold) && threshold > 0.0f) {
-              environment.set_darkness_threshold(threshold);
-            }
-            environment.set_darkness_hysteresis(${led_darkness_hysteresis});
-            environment.evaluate(now);
             Darkness darkness = DARKNESS_UNKNOWN;
-            if (environment.darkness() == sense360::roomiq::DARKNESS_DARK) {
-              darkness = DARKNESS_DARK;
-            } else if (environment.darkness() ==
-                       sense360::roomiq::DARKNESS_NOT_DARK) {
-              darkness = DARKNESS_NOT_DARK;
+            if (has_roomiq) {
+              auto &environment = sense360::roomiq::global_engine();
+              float threshold = id(s360_led_darkness_threshold).state;
+              if (!std::isnan(threshold) && threshold > 0.0f) {
+                environment.set_darkness_threshold(threshold);
+              }
+              environment.set_darkness_hysteresis(${led_darkness_hysteresis});
+              environment.evaluate(now);
+              if (environment.darkness() == sense360::roomiq::DARKNESS_DARK) {
+                darkness = DARKNESS_DARK;
+              } else if (environment.darkness() ==
+                         sense360::roomiq::DARKNESS_NOT_DARK) {
+                darkness = DARKNESS_NOT_DARK;
+              }
             }
             controller.input_darkness(now, darkness);
           }
 
-          // Occupancy input (LED-04): the fused Occupancy contract with
-          // validity from the Presence module runtime status. Invalid
-          // occupancy freezes the automation (no flashing, no toggles).
+          // Occupancy input (LED-04): the fused Occupancy contract read from
+          // the canonical Presence fusion engine — the SAME shared singleton
+          // the Presence framework feeds when composed (never a raw PIR /
+          // radar / SEN0609 state, never a duplicated fusion). Presence is
+          // OPTIONAL: when it is NOT composed (has_presence false) nothing
+          // feeds the engine, so its health stays Initialising (invalid) and
+          // the automation is frozen. Invalid occupancy freezes automation (no
+          // flashing, no toggles); a missing occupancy is never read as
+          // occupied, and no fake occupancy entity is invented.
           {
-            const std::string &health = id(${led_presence_health_id}).state;
-            const bool valid = (health == "Available" || health == "Degraded");
-            const bool occupied = id(${led_occupancy_source_id}).has_state() &&
-                                  id(${led_occupancy_source_id}).state;
+            bool valid = false;
+            bool occupied = false;
+            if (has_presence) {
+              auto &presence = sense360::presence::global_engine();
+              const sense360::presence::Health health = presence.health();
+              valid = (health == sense360::presence::HEALTH_AVAILABLE ||
+                       health == sense360::presence::HEALTH_DEGRADED);
+              occupied = valid && presence.occupancy();
+            }
             controller.input_occupancy(now, occupied, valid);
           }
 
@@ -417,6 +498,14 @@ select:
   # LED-03 — Night Mode Behaviour. Default Manual (automation is opt-in).
   # "Scheduled" is deferred until a genuinely reliable local time source
   # exists (see the package header).
+  #
+  # LED-FRAMEWORK-002 — dependency-aware options. ESPHome cannot conditionally
+  # generate a select's option list, so the full list is always offered but a
+  # selection whose optional input is not composed is REJECTED here: it snaps
+  # visibly back to "Manual" and the reason is published to the LED Capability
+  # Notice diagnostic. The unsupported mode is never left selected and never
+  # reported active. On a full RoomIQ + Presence device every option is
+  # accepted, exactly as before.
   - platform: template
     id: s360_led_night_behaviour
     name: "Night Mode Behaviour"
@@ -431,6 +520,33 @@ select:
     restore_value: true
     on_value:
       then:
+        - lambda: |-
+            const bool has_roomiq = ${led_has_roomiq};
+            const bool has_presence = ${led_has_presence};
+            const std::string picked = x;
+            const char *reason = nullptr;
+            if (picked == "When dark" && !has_roomiq) {
+              reason = "\"When dark\" needs RoomIQ (not composed) — using Manual";
+            } else if (picked == "When dark and occupied" &&
+                       (!has_roomiq || !has_presence)) {
+              reason = !has_roomiq
+                  ? "\"When dark and occupied\" needs RoomIQ (not composed) "
+                    "— using Manual"
+                  : "\"When dark and occupied\" needs Presence (not composed) "
+                    "— using Manual";
+            }
+            if (reason != nullptr) {
+              // Visible fall back: snap the selection to Manual (Manual is
+              // always supported, so the re-fired on_value publishes the OK
+              // notice below and does not loop).
+              auto call = id(s360_led_night_behaviour).make_call();
+              call.set_option("Manual");
+              call.perform();
+              id(s360_led_capability_notice).publish_state(reason);
+            } else {
+              id(s360_led_capability_notice).publish_state(
+                  std::string("Behaviour \"") + picked + "\" accepted");
+            }
         - script.execute: s360_led_evaluate
 
   # LED-06 — Status Indicator. Essential by default: brief startup,
@@ -533,3 +649,34 @@ text_sensor:
     update_interval: never
     lambda: |-
       return {"WS2812B data line is one-way; firmware cannot verify emitted light"};
+
+  # LED-FRAMEWORK-002 — which optional inputs this firmware was composed with.
+  # Compile-time truth (the led_has_* substitutions), so the customer / installer
+  # can see why an automation mode is unavailable. Never a hardware claim.
+  - platform: template
+    id: s360_led_optional_inputs
+    name: "LED Optional Inputs"
+    icon: mdi:puzzle-check-outline
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+    lambda: |-
+      const bool has_roomiq = ${led_has_roomiq};
+      const bool has_presence = ${led_has_presence};
+      std::string s = "RoomIQ darkness: ";
+      s += has_roomiq ? "composed" : "not composed";
+      s += ", Presence occupancy: ";
+      s += has_presence ? "composed" : "not composed";
+      return {s};
+
+  # LED-FRAMEWORK-002 — last Night Mode Behaviour capability decision: the
+  # reason an unsupported selection was refused and fell back to Manual, or
+  # confirmation that a selection was accepted. Honesty companion so the
+  # framework never silently claims an unsupported mode is active.
+  - platform: template
+    id: s360_led_capability_notice
+    name: "LED Capability Notice"
+    icon: mdi:message-alert-outline
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never

@@ -352,7 +352,7 @@
       "schematic_status": "verified",
       "canonical_board_package": "packages/boards/s360-300-led.yaml",
       "composed_of": [],
-      "notes": "WS2812B addressable halo-ring indicator board (preview-gated for WebFlash). LED-FRAMEWORK-001: the board package defines the customer Room Light (hardware driver layer); the behaviour layers (Night Mode, Night Mode Behaviour, Status Indicator, Identify Device, Darkness Threshold, priority arbitration, restore contract) live in packages/features/led_framework.yaml, composed only by the LED-bearing bundles.",
+      "notes": "WS2812B addressable halo-ring indicator board (preview-gated for WebFlash). LED-FRAMEWORK-001: the board package defines the customer Room Light (hardware driver layer); the behaviour layers (Night Mode, Night Mode Behaviour, Status Indicator, Identify Device, Darkness Threshold, priority arbitration, restore contract) live in packages/features/led_framework.yaml, composed only by the LED-bearing bundles. LED-FRAMEWORK-002: RoomIQ (darkness) and Presence (occupancy) are OPTIONAL inputs (led_has_roomiq / led_has_presence, default false) read from the shared engine singletons; the full framework compiles with neither, and unsupported Night Mode Behaviour options fall back to Manual with a published capability notice.",
       "rows": [
         {
           "row": "LED ring room light + approved effects (Gentle Pulse/Night Glow)",

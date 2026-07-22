@@ -286,6 +286,74 @@ layer:
 * Compile-time capability (`s360_module_led: "Included"`) remains distinct
   from runtime status (below) and from physical fitment (bench).
 
+## Optional RoomIQ / Presence inputs (LED-FRAMEWORK-002)
+
+RoomIQ (the darkness decision) and Presence (fused occupancy) are **optional
+inputs**, not hard dependencies. The full customer LED experience — Room
+Light, **Manual** Night Mode, the warm low-brightness night profile, saved
+Room Light / Night Mode state, Identify Device, Status Indicator, the
+startup / API / Wi-Fi status overlays, priority arbitration, transient
+overlay restoration, the approved *Gentle Pulse* / *Night Glow* effects, the
+LED Output Verification diagnostic and local operation without Home Assistant
+— works with **neither** input composed.
+
+How it stays compile-safe with an input absent:
+
+* The framework reads each input from the **shared, header-only engine
+  singleton** the owning framework feeds when composed — the canonical RoomIQ
+  darkness engine (`sense360::roomiq::global_engine()`,
+  `include/sense360/roomiq_engine.h`) and the canonical Presence fusion
+  engine (`sense360::presence::global_engine()`,
+  `include/sense360/presence_fusion.h`). It reads their **outputs**; it never
+  re-implements lux thresholding or sensor fusion, and it never holds a hard
+  ESPHome `id(...)` reference to a RoomIQ / Presence *entity* (which would be
+  an undefined-id compile error when that package is absent). Including those
+  two headers (idempotent under `#pragma once`) is what lets the behaviour
+  compile with or without the frameworks.
+* When a framework is **not** composed, nothing feeds its singleton, so
+  darkness stays `UNKNOWN` and Presence health stays `Initialising` (invalid).
+  Fail-safe holds: missing/stale lux is never read as dark, and missing
+  occupancy is never read as occupied. No fake lux or occupancy entity is
+  invented.
+
+**Capability declaration.** Each composing bundle / remote wrapper sets two
+compile-time substitutions truthfully (safe default `"false"`; they double as
+C++ bool literals):
+
+| Substitution | Meaning |
+|---|---|
+| `led_has_roomiq` | the canonical RoomIQ darkness engine is composed |
+| `led_has_presence` | the fused Presence occupancy contract is composed |
+
+**Night Mode Behaviour by composition.** ESPHome cannot conditionally
+generate a select's option list, so the full list is always offered and an
+unsupported pick is **refused at runtime**: it snaps visibly back to
+**Manual** and the reason is published to the diagnostic **LED Capability
+Notice**. The unsupported mode is never left selected and never reported
+active (the evaluate loop also caps the effective behaviour to Manual, so a
+restored value cannot drive automation either).
+
+| Composition | Supported Night Mode Behaviour options |
+|---|---|
+| LED only (no RoomIQ, no Presence) | Manual |
+| LED + RoomIQ (no Presence) | Manual, When dark |
+| LED + Presence (no RoomIQ) | Manual *(Presence alone never activates Night Mode)* |
+| LED + RoomIQ + Presence | Manual, When dark, When dark and occupied |
+
+**Representative target.** `Ceiling-Core-LED-AirIQ` (Core + AirIQ + LED, **no
+RoomIQ, no Presence**; `led_has_roomiq: "false"`, `led_has_presence:
+"false"`) is the compile fixture for this model — the top-level entry point
+`products/sense360-ceiling-core-led-airiq.yaml` over the skeleton
+`products/compile-only/ceiling-core-led-airiq.yaml`, registered in the
+compile-only lane. It changes no release, channel or commercial state; LED
+stays preview-gated.
+
+**Remote consumption.** `packages/remote/ceiling-led.yaml` delivers the whole
+feature through a git package (both engine headers arrive via the `sense360`
+external component; no `type: local` source, no `/config/include` setup),
+defaulting `led_has_roomiq` / `led_has_presence` to `"false"` — see
+[Remote package consumption](../remote-package-consumption.md).
+
 ## Module status and diagnostics — honesty limits
 
 The WS2812B data line is **one-way**: the firmware can never verify that
@@ -312,6 +380,8 @@ Diagnostic entities (all `diagnostic`, disabled by default):
 | `s360_led_last_status_event` | LED Last Status Event | Last engine status event, with "(suppressed)" when priority/level kept it off the ring |
 | `s360_led_darkness_state` | LED Darkness State | Raw darkness decision: Dark / Not dark / Unknown |
 | `s360_led_output_verification` | LED Output Verification | The one-way output limitation statement |
+| `s360_led_optional_inputs` | LED Optional Inputs | Which optional inputs were composed (RoomIQ darkness / Presence occupancy) — LED-FRAMEWORK-002 |
+| `s360_led_capability_notice` | LED Capability Notice | Last Night Mode Behaviour capability decision (refused → Manual, or accepted) — LED-FRAMEWORK-002 |
 | (board) LED Ring SKU | — | existing SKU identity sensor |
 
 Raw channels, driver frequency, internal automation ownership flags,

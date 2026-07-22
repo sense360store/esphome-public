@@ -1,0 +1,146 @@
+# ============================================================================
+# COMPILE-ONLY SKELETON — Ceiling-Core-LED-AirIQ (LED-FRAMEWORK-002)
+# ============================================================================
+# WebFlash config string : Ceiling-Core-LED-AirIQ
+#
+# Purpose:
+#
+#   Prove that the FULL customer LED behaviour framework
+#   (packages/features/led_framework.yaml) composes, validates and compiles on
+#   a device that includes the LED board and AirIQ but does NOT include RoomIQ
+#   or Presence. This is the representative LED-FRAMEWORK-002 target: RoomIQ
+#   (darkness) and Presence (occupancy) are OPTIONAL inputs, not hard
+#   dependencies. With neither composed the framework ships the always-available
+#   experience — Room Light, Manual Night Mode, warm night profile, saved Room
+#   Light / Night Mode state, Identify Device, Status Indicator, startup / API /
+#   Wi-Fi status overlays, priority arbitration, transient overlay restoration,
+#   the approved Gentle Pulse / Night Glow effects, the LED Output Verification
+#   diagnostic and local operation without Home Assistant — and refuses the
+#   automation modes that need an absent input (visible fall back to Manual, a
+#   published capability notice), never compiling a reference to an entity that
+#   is not present and never inventing a fake lux or occupancy entity.
+#
+#   The optional-input capabilities are declared truthfully:
+#     led_has_roomiq: "false"   — no canonical RoomIQ darkness engine composed
+#     led_has_presence: "false" — no fused Presence occupancy contract composed
+#
+# Status — what this YAML is NOT:
+#
+#   * NOT a WebFlash exposed build. No entry is added to
+#     `config/webflash-builds.json`; no `webflash_build_matrix: true` flip; no
+#     `webflash_wrapper` under `products/webflash/`; no `artifact_name`.
+#   * NOT a release artifact. No `.bin`, version, channel, checksum, GitHub
+#     Release tag or proof row is created for `Ceiling-Core-LED-AirIQ`.
+#   * NOT hardware proof. Compile success says nothing about bench / harness /
+#     silkscreen / schematic / pinmap evidence. The S360-300 LED ring stays on
+#     its open bench checklist (S360-300-BENCH-001); LED stays PREVIEW-gated and
+#     is NOT promoted to stable / recommended / buyable by this target.
+#   * NOT product-catalog promotion. No entry is added to
+#     `config/product-catalog.json`. Top-level catalog scanning is intentionally
+#     avoided by placing this YAML under `products/compile-only/`.
+#   * NOT a shared Core Framework composition. Per the compile-only skeleton
+#     convention this target composes only the functional packages under test;
+#     it does not include the shared identity / module-status package. The
+#     s360_* identity substitutions below document the representative target and
+#     are inert without that package (they change no behaviour here).
+#
+# Compatibility rules (see docs/release-one.md):
+# - AirIQ and VentIQ are mutually exclusive; this skeleton uses AirIQ.
+# - No RoomIQ / Presence / fan token in the config string; none is composed.
+#
+# Hardware (canonical friendly names; see docs/hardware-catalog.md):
+# - Core         : Sense360 Core   (S360-100-R4, ESP32-S3, ceiling mount)
+# - Air Quality  : Sense360 AirIQ  (S360-AIR-C, ceiling-mount full air-quality stack)
+# - Room Sense   : not included    (no RoomIQ token in config string)
+# - Presence     : not included    (no Presence composition)
+# - Fan Driver   : not included    (no fan token in config string)
+# - LED          : Sense360 LED    (S360-300-R4, WS2812B ceiling halo, GPIO38)
+#
+# See: docs/compile-only-firmware-validation.md
+# ============================================================================
+
+substitutions:
+  # === Device Configuration ===
+  device_name: sense360-core
+  friendly_name: "Sense360 Core"
+  device_sku: S360-CORE-C
+  device_version: "0.0.0-compile-only"
+  timezone: "UTC"
+
+  # === Logging ===
+  log_level: INFO
+
+  # === WiFi Behavior ===
+  wifi_fast_connect: "false"
+  fallback_ssid: "S360 Core LED AirIQ"
+
+  # === Representative target identity (documentation only here) ===
+  s360_config_string: "Ceiling-Core-LED-AirIQ"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,airiq,led"
+  s360_capabilities_human: "Core, AirIQ, LED"
+  s360_module_airiq: "Included"
+  s360_module_led: "Included"
+  s360_module_roomiq: "Not included"
+  s360_module_presence: "Not included"
+
+  # === LED-FRAMEWORK-002 — optional-input capabilities (truthful) ===
+  led_has_roomiq: "false"
+  led_has_presence: "false"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === External Components (radar / air-quality firmware) ===
+  external_components: !include ../../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../../packages/base/wifi.yaml
+  base_logging: !include ../../packages/base/logging.yaml
+  base_api: !include ../../packages/base/api_encrypted.yaml
+  base_ota: !include ../../packages/base/ota.yaml
+  base_time: !include ../../packages/base/time.yaml
+
+  # === Sense360 Core (Ceiling, S360-100-R4) — defines the shared core_i2c bus ===
+  core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
+
+  # === Sense360 AirIQ (S360-AIR-C, ceiling-mount air quality) ===
+  airiq_module: !include ../../packages/expansions/airiq_ceiling.yaml
+  airiq_profile: !include ../../packages/features/airiq_basic_profile.yaml
+
+  # === Sense360 LED (S360-300, ceiling halo, WS2812B, GPIO38) ===
+  led_board: !include ../../packages/boards/s360-300-led.yaml
+  # === Sense360 LED framework (LED-FRAMEWORK-001/002) ===
+  # Full customer LED experience with RoomIQ / Presence as OPTIONAL inputs
+  # (both declared "false" above). Proves the framework compiles with neither.
+  led_framework: !include ../../packages/features/led_framework.yaml
+
+  # === Device Health & Diagnostics ===
+  health: !include ../../packages/features/device_health.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} WebFlash Config"
+    lambda: |-
+      return {"Ceiling-Core-LED-AirIQ"};
+    update_interval: never
+    entity_category: diagnostic

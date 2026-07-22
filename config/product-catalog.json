@@ -825,6 +825,28 @@
       "status": "legacy-compatible",
       "webflash_build_matrix": false,
       "notes": "Legacy single-purpose PoE network-controller YAML; retained for manual/custom users. Not Release-One WebFlash firmware."
+    },
+    {
+      "config_string": "Ceiling-Core-LED-AirIQ",
+      "status": "compile-only",
+      "product_yaml": "products/sense360-ceiling-core-led-airiq.yaml",
+      "webflash_build_matrix": false,
+      "target_channel": "manual-custom",
+      "modules": {
+        "mount": "Ceiling",
+        "power": "none",
+        "air_quality": "AirIQ",
+        "room_sense": "none",
+        "fan": "none",
+        "led": "LED"
+      },
+      "hardware": {
+        "core": "S360-100",
+        "airiq": "S360-210",
+        "led": "S360-300"
+      },
+      "hardware_status": "authored-compile-validation-pending",
+      "notes": "Ceiling-Core-LED-AirIQ R4 representative target authored by LED-FRAMEWORK-002 as the RoomIQ-less / Presence-less LED fixture. The top-level product YAML products/sense360-ceiling-core-led-airiq.yaml is a thin entry point over the compile-only skeleton products/compile-only/ceiling-core-led-airiq.yaml, which composes Core ceiling (S360-100) + AirIQ (airiq_ceiling + airiq_basic_profile) + LED (S360-300 board + the full packages/features/led_framework.yaml customer behaviour framework) + base/health, with NO RoomIQ and NO Presence. It proves the LED framework is dependency-aware: RoomIQ (darkness) and Presence (occupancy) are OPTIONAL inputs (led_has_roomiq / led_has_presence = false), not hard dependencies. status: compile-only — authored; a CI --compile run is owed (compile_validation_status: pending-ci on the registered target). Local evidence to date (firmware-build proof only): esphome config is valid and esphome compile generated C++ source and began app compilation; the final ESP32 binary link was blocked only by the sandbox proxy 403 on the PlatformIO platform download, so no full binary compile is claimed and none is fabricated. LED stays PREVIEW-gated (S360-300-BENCH-001 open). NOT production, NOT preview, NOT verified, NOT release-ready, NOT recommended, NOT a customer default, NOT buyable, NOT in any kit or kit picker, NOT in release_one_required_configs, NOT WebFlash-exposed: webflash_build_matrix is false; no version; no channel; no artifact_name; no webflash_wrapper; no config/webflash-builds.json entry. No board schematic_status is changed; Release-One (Ceiling-POE-VentIQ-RoomIQ) and the existing LED preview are unchanged. See docs/architecture/sense360-led-framework.md (LED-FRAMEWORK-002) and docs/compile-only-firmware-validation.md."
     }
   ]
 }
