@@ -69,8 +69,13 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 COMPONENT_INIT = REPO_ROOT / "include" / "sense360" / "__init__.py"
 CANONICAL_HEADER = REPO_ROOT / "include" / "sense360" / "airiq_engine.h"
+ROOMIQ_ENGINE_HEADER = REPO_ROOT / "include" / "sense360" / "roomiq_engine.h"
+PRESENCE_FUSION_HEADER = REPO_ROOT / "include" / "sense360" / "presence_fusion.h"
 SHARED_ENGINES_PKG = REPO_ROOT / "packages" / "remote" / "sense360-shared-engines.yaml"
 AIRIQ_WRAPPER = REPO_ROOT / "packages" / "remote" / "ceiling-airiq.yaml"
+ROOMIQ_PRESENCE_WRAPPER = (
+    REPO_ROOT / "packages" / "remote" / "ceiling-roomiq-presence.yaml"
+)
 
 # Every shared header the sense360 component must deliver (one physical copy of
 # each lives in include/sense360/ — the same files the native C++ unit tests
@@ -206,6 +211,90 @@ packages:
     url: file://__REMOTE__
     ref: main
     files: [packages/remote/led-framework.yaml]
+    refresh: 0s
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+logger:
+  level: DEBUG
+
+mqtt: null
+"""
+
+
+# REMOTE-ROOMIQ-PRESENCE-001 external consumer: the FULL S360-200 RoomIQ +
+# tri-sensor Presence composition plus Core + AirIQ + LED and the full LED
+# behaviour framework — ALL pulled through git packages, with NO manually
+# declared external_components, NO `sense360:`, NO local header files, and NO
+# `esphome: includes: !remove` in the device YAML. Proves a remote consumer can
+# compose the RoomIQ + Presence wrapper and resolve the shared roomiq_engine.h
+# and presence_fusion.h headers via the sense360 component. The LED framework
+# runs with led_has_roomiq/led_has_presence "true" (RoomIQ + Presence are
+# genuinely composed here) and the presence bridge, so the automatic Night Mode
+# Behaviours are honestly enabled rather than downgraded.
+CONSUMER_FULL_ROOMIQ_PRESENCE = """\
+substitutions:
+  device_name: sense360-roomiq-presence
+  friendly_name: Sense360 RoomIQ Presence
+  timezone: "Europe/London"
+  device_version: "0.0.0-remote-consumer-test"
+  sense360_remote_url: file://__REMOTE__
+  sense360_remote_ref: main
+  s360_config_string: "Ceiling-Core-LED-AirIQ-RoomIQ-Presence-Bench"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,airiq,led,roomiq,presence"
+  s360_capabilities_human: "Core, AirIQ, LED, RoomIQ, Presence"
+  s360_module_airiq: "Included"
+  s360_module_led: "Included"
+  led_has_roomiq: "true"
+  led_has_presence: "true"
+
+packages:
+  core:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/hardware/sense360_core_ceiling.yaml]
+    refresh: 0s
+  core_framework:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/base/device_framework.yaml]
+    refresh: 0s
+  airiq:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/remote/ceiling-airiq.yaml]
+    refresh: 0s
+  led_board:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/boards/s360-300-led.yaml]
+    refresh: 0s
+  roomiq_presence:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/remote/ceiling-roomiq-presence.yaml]
+    refresh: 0s
+  led_framework:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/remote/led-framework.yaml]
+    refresh: 0s
+  led_presence_bridge:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/features/led_presence_bridge.yaml]
     refresh: 0s
 
 wifi:
@@ -387,9 +476,50 @@ class DeliveryPackageStructureTests(unittest.TestCase):
         self.assertIn("../boards/s360-210-airiq.yaml", raw)
         self.assertIn("../features/airiq_framework.yaml", raw)
 
+    def test_roomiq_presence_wrapper_shape(self) -> None:
+        wrapper = _load(ROOMIQ_PRESENCE_WRAPPER)
+        ext = wrapper.get("external_components")
+        self.assertTrue(
+            ext, "RoomIQ+Presence wrapper must declare external_components"
+        )
+        self.assertIn("sense360", ext[0]["components"])
+        self.assertEqual(ext[0]["source"]["path"], "include")
+        # Loads the delivery component so the shared engines are #included.
+        self.assertIn("sense360", wrapper)
+        # Declares the RoomIQ + Presence module slots for the Core Framework
+        # module-status entities.
+        subs = wrapper.get("substitutions", {})
+        self.assertEqual(subs.get("s360_module_roomiq"), "Included")
+        self.assertEqual(subs.get("s360_module_presence"), "Included")
+        raw = ROOMIQ_PRESENCE_WRAPPER.read_text()
+        # Removes the frameworks' repository-local includes; no MQTT block here
+        # (neither the RoomIQ nor Presence framework carries a legacy mqtt: block).
+        self.assertIn("includes: !remove", raw)
+        self.assertNotIn("mqtt: !remove", raw)
+        # It composes the RoomIQ board (climate + LD2450 radar), the PIR and
+        # SEN0609 presence adapters, and both frameworks relative to itself.
+        self.assertIn("../boards/s360-200-roomiq.yaml", raw)
+        self.assertIn("../boards/s360-200-roomiq-pir.yaml", raw)
+        self.assertIn("../boards/s360-200-roomiq-sen0609.yaml", raw)
+        self.assertIn("../features/roomiq_framework.yaml", raw)
+        self.assertIn("../features/presence_framework.yaml", raw)
+        # It must deliver engines via the git external component, never a
+        # `type: local` package (which would break remote consumers), and never
+        # bind a pin itself (pins come from the Core board package by
+        # substitution) — no `pin:`/`number:` mapping and no `type: local`.
+        self.assertEqual(ext[0]["source"]["type"], "git")
+        self.assertNotIn("type: local", raw)
+        self.assertNotIn("number: GPIO", raw)
+        self.assertNotIn("pin:", raw)
+
     def test_wrapper_changes_no_commercial_or_release_declaration(self) -> None:
         # The packaging fix must not touch product / release / channel config.
-        for path in (SHARED_ENGINES_PKG, AIRIQ_WRAPPER, COMPONENT_INIT):
+        for path in (
+            SHARED_ENGINES_PKG,
+            AIRIQ_WRAPPER,
+            ROOMIQ_PRESENCE_WRAPPER,
+            COMPONENT_INIT,
+        ):
             raw = path.read_text()
             for forbidden in (
                 "webflash-builds",
@@ -510,6 +640,50 @@ class LedFrameworkRemoteConfigTests(unittest.TestCase):
         )
 
 
+@unittest.skipIf(_esphome_cli() is None, "esphome CLI not installed")
+class RoomIqPresenceRemoteConfigTests(unittest.TestCase):
+    """REMOTE-ROOMIQ-PRESENCE-001: the FULL S360-200 RoomIQ + tri-sensor
+    Presence composition composes remotely from a single wrapper, with the
+    shared roomiq_engine.h and presence_fusion.h headers resolved via the
+    sense360 component — no /config/include, no manual external_components,
+    no `sense360:`, no `esphome: includes: !remove` in the device YAML."""
+
+    def setUp(self) -> None:
+        self.fixture = _RemoteFixture(CONSUMER_FULL_ROOMIQ_PRESENCE)
+
+    def tearDown(self) -> None:
+        self.fixture.cleanup()
+
+    def test_config_validates_with_engines_resolved(self) -> None:
+        proc = self.fixture.run("config")
+        out = proc.stdout
+        # Neither shared engine may appear as an unresolved repository-local
+        # include path — this is the exact defect the wrapper fixes.
+        for header in ("roomiq_engine.h", "presence_fusion.h"):
+            self.assertNotIn(
+                f"include/sense360/{header}'",
+                out,
+                f"{header} must not appear as an unresolved local include",
+            )
+        self.assertNotIn("Could not find file", out, out[-2000:])
+        # The Presence framework references the fused-occupancy id; a broken
+        # composition would fail to resolve it.
+        self.assertNotIn("Couldn't find ID", out, out[-2000:])
+        self.assertEqual(proc.returncode, 0, out[-3000:])
+        self.assertIn("Configuration is valid", out)
+        # RoomIQ + Presence are genuinely composed, so the LED engine received
+        # both capability flags as true bool literals.
+        self.assertIn("set_capabilities(true, true)", out)
+
+    def test_consumer_dir_has_no_local_include_tree(self) -> None:
+        # Proves the engines are NOT satisfied by a local /config/include copy.
+        self.fixture.run("config")
+        self.assertFalse(
+            (self.fixture.consumer / "include").exists(),
+            "consumer must not need a local include/ directory",
+        )
+
+
 # --- source resolution / compile (opt-in: runs a real esphome compile) ------
 
 
@@ -551,6 +725,54 @@ class RemoteSourceResolutionTests(unittest.TestCase):
             "esphome/components/sense360/airiq_engine.h",
             esphome_h[0].read_text(),
         )
+
+
+@unittest.skipUnless(
+    _esphome_cli() is not None and os.environ.get("RUN_REMOTE_COMPILE") == "1",
+    "set RUN_REMOTE_COMPILE=1 (and install esphome) to run the compile source-resolution check",
+)
+class RoomIqPresenceSourceResolutionTests(unittest.TestCase):
+    """REMOTE-ROOMIQ-PRESENCE-001 compile source-resolution: a real
+    `esphome compile` of the full RoomIQ + Presence remote composition delivers
+    roomiq_engine.h AND presence_fusion.h into the build byte-identically to the
+    canonical single source, and #includes both."""
+
+    def setUp(self) -> None:
+        self.fixture = _RemoteFixture(CONSUMER_FULL_ROOMIQ_PRESENCE)
+
+    def tearDown(self) -> None:
+        self.fixture.cleanup()
+
+    def test_delivered_engines_match_canonical(self) -> None:
+        # esphome compile generates C++ source (copying the sense360 component
+        # into the build) before it downloads the toolchain, so the delivered
+        # header artifacts exist regardless of toolchain network access.
+        self.fixture.run("compile")
+        for header, canonical in (
+            ("roomiq_engine.h", ROOMIQ_ENGINE_HEADER),
+            ("presence_fusion.h", PRESENCE_FUSION_HEADER),
+        ):
+            delivered = None
+            for cand in self.fixture.cache.rglob(
+                f"src/esphome/components/sense360/{header}"
+            ):
+                delivered = cand
+                break
+            self.assertIsNotNone(
+                delivered,
+                f"{header} was not delivered into the build via the package mechanism",
+            )
+            self.assertEqual(
+                delivered.read_bytes(),
+                canonical.read_bytes(),
+                f"delivered {header} must be byte-identical to the canonical source",
+            )
+        # And both engines must be #included by the generated build.
+        esphome_h = list(self.fixture.cache.rglob("src/esphome.h"))
+        self.assertTrue(esphome_h)
+        generated = esphome_h[0].read_text()
+        self.assertIn("esphome/components/sense360/roomiq_engine.h", generated)
+        self.assertIn("esphome/components/sense360/presence_fusion.h", generated)
 
 
 @unittest.skipUnless(
