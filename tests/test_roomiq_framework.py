@@ -525,11 +525,53 @@ class BoardPackageTests(unittest.TestCase):
         self.assertIn("address: 0x44", self.raw)
 
     def test_no_raw_calibration_filters(self) -> None:
-        # Calibration lives in the engine only — never on the raw sensors
-        # (that would double-apply offsets).
+        # Calibration lives in the engine only — never on the raw signals the
+        # RoomIQ engine consumes (illuminance / temperature / humidity), because
+        # a board-layer offset/scale there would DOUBLE-APPLY against the engine
+        # calibration over the same preserved id. `calibrate_linear` / offset
+        # are banned file-wide; the multiply/offset ban is enforced on the
+        # engine-consumed raw sub-sensors specifically.
         self.assertNotIn("calibrate_linear", self.raw)
         self.assertNotIn("- offset:", self.raw)
-        self.assertNotIn("- multiply:", self.raw)
+
+        ltr = self.entities["comfort_ceiling_ltr303"]
+        sht = self.entities["comfort_ceiling_sht4x"]
+        for parent, key in (
+            (ltr, "ambient_light"),
+            (sht, "temperature"),
+            (sht, "humidity"),
+        ):
+            filters = (parent.get(key) or {}).get("filters") or []
+            for f in filters:
+                if isinstance(f, dict):
+                    for cal in ("multiply", "offset", "calibrate_linear", "lambda"):
+                        self.assertNotIn(
+                            cal, f,
+                            f"engine-consumed raw {key} must carry no {cal} "
+                            f"calibration (double-apply risk)",
+                        )
+
+        # S360-200-R4-BMP581-001: the BMP581 pressure entity is a STANDALONE
+        # customer sensor with no engine consumer, so it carries no double-apply
+        # risk. Its only board-layer filter is a documented Pa -> hPa unit
+        # conversion (multiply: 0.01) — a presentation conversion, not a
+        # calibration offset — which is permitted precisely because nothing
+        # downstream re-scales it.
+        press = (self.entities.get("comfort_ceiling_bmp581") or {}).get("pressure") or {}
+        press_filters = press.get("filters") or []
+        multipliers = [
+            f["multiply"] for f in press_filters
+            if isinstance(f, dict) and "multiply" in f
+        ]
+        self.assertEqual(
+            multipliers, [0.01],
+            "BMP581 pressure should carry exactly the Pa->hPa unit conversion",
+        )
+        # No offset / linear calibration is applied even on the pressure entity.
+        for f in press_filters:
+            if isinstance(f, dict):
+                self.assertNotIn("offset", f)
+                self.assertNotIn("calibrate_linear", f)
 
     def test_legacy_comfort_engine_moved_out_of_board_layer(self) -> None:
         # The pre-framework comfort/dew-point/heat-index/light-level

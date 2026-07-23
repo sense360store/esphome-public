@@ -155,7 +155,10 @@ MATRIX_CAPABILITY_SECTIONS = (
                 "Sensor",
                 ("PM2.5",),
             ),
-            ("Barometric pressure", "Sensor", ("VentIQ Pressure",)),
+            # RoomIQ exposes the fitted BMP581 pressure as "Pressure"
+            # (S360-200-R4-BMP581-001); VentIQ's disabled bathroom copy is
+            # "VentIQ Pressure". Either satisfies the barometric-pressure row.
+            ("Barometric pressure", "Sensor", ("Pressure", "VentIQ Pressure")),
             ("Dew point", "Sensor", ("VentIQ Dew Point",)),
             # The AirIQ "Air Quality" headline (worst-pollutant model,
             # AIRIQ-FRAMEWORK-001) and the VentIQ bathroom "Air Quality"
