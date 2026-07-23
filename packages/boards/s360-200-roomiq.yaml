@@ -22,7 +22,8 @@
 # authoritative content lives PER DRIVER in the board layer:
 #
 #   ceiling climate (comfort) : packages/boards/s360-200-roomiq-climate.yaml
-#                               (VEML7700 ALS @ 0x10 + SHT4x @ 0x44 on core_i2c)
+#                               (LTR-303ALS-01 ALS @ 0x29 + SHT45 @ 0x44 on
+#                               core_i2c; S360-200-R4-HARDWARE-RECONCILIATION-001)
 #   ceiling radar (presence)  : packages/boards/s360-200-roomiq-radar.yaml
 #                               (HLK-LD2450 on roomiq_hi_link_uart @ 256000)
 #

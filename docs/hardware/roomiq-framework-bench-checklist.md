@@ -29,15 +29,24 @@ result, or add dates/signatures here.
 
 ## Sensor identity (ENTITY-RECONCILE-200-ALS-001)
 
-- [ ] Read the fitted ambient-light sensor part marking on `U1`
-      (catalog/BOM says LTR-303ALS-01; compiled firmware drives a
-      VEML7700 at I²C 0x10)
-- [ ] Probe / scan the I²C bus: does a device answer at 0x10 (VEML7700)
-      or 0x29 (LTR-303ALS)?
-- [ ] Record whether the compiled lux path produces live Illuminance
-      data on this board
-- [ ] Record the required follow-up: align firmware component and
-      hardware catalog to the verified part (separate work item)
+Firmware is now reconciled to the schematic/BOM part: the compiled driver is
+LTR-303ALS-01 @ 0x29 via the built-in `ltr_als_ps` platform (ALS-only), and
+SHT45 (`SHT45-AD1B-R3`) @ 0x44 via `sht4x`
+(S360-200-R4-HARDWARE-RECONCILIATION-001). This checklist now confirms the
+parts **respond on hardware** — the board under test currently lists only
+0x59/0x60/0x62 (AirIQ) on its I²C scan and does not yet show 0x29 or 0x44.
+
+- [ ] Read the fitted ambient-light sensor part marking on `U1` (expect
+      LTR-303ALS-01) and the temp/humidity part on `U2` (expect SHT45)
+- [ ] Probe / scan the I²C bus: does a device answer at **0x29**
+      (LTR-303ALS-01) and at **0x44** (SHT45)?
+- [ ] If absent, investigate the physical population / J6 connector seating /
+      +3.3 V rail to U1/U2 (the bus is proven live if AirIQ answers at
+      0x59/0x60/0x62)
+- [ ] Record whether the reconciled `ltr_als_ps` lux path and `sht4x`
+      temperature/humidity path produce live data on this board
+- [ ] Record the ALS_INT line behaviour on GPIO47 (open-drain, active-low,
+      raw diagnostic only — `ltr_als_ps` does not arm the LTR thresholds)
 
 ## Temperature
 

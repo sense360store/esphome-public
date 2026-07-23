@@ -75,7 +75,7 @@
       "pattern": "\\bVEML7700\\b",
       "label": "VEML7700 sensor-identity drift",
       "replacement": "LTR-303ALS (RoomIQ S360-200 ambient light sensor)",
-      "reason": "config/hardware-catalog.json lists LTR-303ALS. VEML7700 is the tracked compiled-firmware drift (ENTITY-RECONCILE-200-ALS-001); current docs may reference it solely in explicitly marked drift/legacy context."
+      "reason": "config/hardware-catalog.json lists LTR-303ALS. The VEML7700 compiled-firmware drift was corrected to LTR-303ALS-01 @ 0x29 via ltr_als_ps under S360-200-R4-HARDWARE-RECONCILIATION-001; the term may still appear in current docs solely in explicitly marked drift/removed/historical context."
     },
     {
       "pattern": "HLK-PM01",
@@ -138,7 +138,7 @@
       {
         "path": "packages/boards/s360-200-roomiq-climate.yaml",
         "classification": "F",
-        "reason": "Compiles the VEML7700 driver; catalog/BOM part is LTR-303ALS. Disposition is owner-only (ENTITY-RECONCILE-200-ALS-001)."
+        "reason": "Historically compiled the VEML7700 driver; corrected to LTR-303ALS-01 @ 0x29 via ltr_als_ps under S360-200-R4-HARDWARE-RECONCILIATION-001. The file now names VEML7700 only in an explicit drift/removed annotation."
       },
       {
         "path": "docs/product-matrix.md",

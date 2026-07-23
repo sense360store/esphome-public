@@ -387,14 +387,16 @@ class ContractFileTests(unittest.TestCase):
         # A capability description is a statement about the FIRMWARE that is
         # compiled, never about what the PCB could carry. Components that
         # exist on the hardware but are not compiled anywhere (MICS-4514,
-        # BMP581, LTR-303ALS) may only be mentioned if explicitly marked as
-        # not compiled; connectors are hardware possibilities and never
-        # capability evidence. (PIR and SEN0609 left this list when
-        # PRESENCE-FRAMEWORK-001 compiled them into the presence capability
-        # — see test_presence_capability_composes_all_three_sensors.)
+        # BMP581) may only be mentioned if explicitly marked as not compiled;
+        # connectors are hardware possibilities and never capability evidence.
+        # (PIR and SEN0609 left this list when PRESENCE-FRAMEWORK-001 compiled
+        # them into the presence capability; LTR-303ALS left it when
+        # S360-200-R4-HARDWARE-RECONCILIATION-001 compiled it as the RoomIQ
+        # ambient-light driver — see test_presence_capability_composes_all_
+        # three_sensors and tests/test_roomiq_r4_hardware_reconciliation.py.)
         capabilities = self.contract.get("capabilities") or {}
         non_compiled_components = {
-            "roomiq": ["BMP581", "LTR-303"],
+            "roomiq": ["BMP581"],
         }
         for cap_id, terms in non_compiled_components.items():
             description = capabilities[cap_id]["description"]

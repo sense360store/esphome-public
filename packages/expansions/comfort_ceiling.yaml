@@ -14,8 +14,9 @@
 # policy (§3.3), no alias is dropped while a live binder exists; alias removal
 # is a separate later slice gated on the binder count reaching zero.
 #
-# Sensors / pin assignment (VEML7700 ALS @ 0x10 + SHT4x temp/humidity @ 0x44 on
-# core_i2c) are documented in the board package this file aliases.
+# Sensors / pin assignment (LTR-303ALS-01 ALS @ 0x29 + SHT45 temp/humidity @
+# 0x44 on core_i2c; corrected under S360-200-R4-HARDWARE-RECONCILIATION-001) are
+# documented in the board package this file aliases.
 # ============================================================================
 
 packages:

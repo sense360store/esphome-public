@@ -789,12 +789,14 @@ Scope facts (do not overclaim):
   states the limit on-device. The engine's fault layer has no production
   producer until a real signal exists.
 * **Automation inputs** — the fused Presence Occupancy contract (never
-  raw sensors) and the compiled RoomIQ lux path (VEML7700 at 0x10). Known
-  unresolved mismatch: the hardware catalog documents LTR-303ALS for the
-  S360-200 light sensor while firmware compiles VEML7700 — if the board
-  carries the LTR-303ALS, lux reads nothing and darkness automation fails
-  safe (reports Unknown, never toggles). Resolution is bench/catalog work
-  (`LED-FRAMEWORK-BENCH-001` setup item).
+  raw sensors) and the compiled RoomIQ lux path (LTR-303ALS-01 at 0x29 via
+  the built-in `ltr_als_ps` platform). The lux-driver identity is now
+  reconciled to the schematic/BOM part under
+  `S360-200-R4-HARDWARE-RECONCILIATION-001` (the earlier VEML7700 @ 0x10 drift
+  is removed); on-hardware sensor response is still pending bench — the board
+  under test does not yet answer at 0x29, so lux reads nothing and darkness
+  automation fails safe (reports Unknown, never toggles). Runtime confirmation
+  is bench work (`LED-FRAMEWORK-BENCH-001` setup item).
 * **Bundle authority** — only the two catalog-declared LED-bearing
   preview configs compose the framework (`Ceiling-POE-VentIQ-RoomIQ-LED`,
   `Ceiling-POE-RoomIQ-LED`); non-LED bundles gain nothing
@@ -820,8 +822,10 @@ compile and simulation proof only; physical sensor validation pending
 (`ROOMIQ-FRAMEWORK-BENCH-001`, checklist at
 [`docs/hardware/roomiq-framework-bench-checklist.md`](hardware/roomiq-framework-bench-checklist.md));
 calibration and comfort/brightness threshold tuning pending; the
-ambient-light sensor identity stays an unresolved reconciliation; no SOT
-or commercial state change.**
+ambient-light driver identity is reconciled to the schematic/BOM part
+(LTR-303ALS-01 @ 0x29 via `ltr_als_ps`) under
+`S360-200-R4-HARDWARE-RECONCILIATION-001`, with on-hardware sensor response
+still pending bench; no SOT or commercial state change.**
 
 Canonical local environmental service for the S360-200 RoomIQ climate
 half: calibrated **Temperature / Humidity / Illuminance** with customer
@@ -861,16 +865,21 @@ Scope facts (do not overclaim):
   lux-threshold engine in `led_controller.h` was removed (regression
   tested). Future VentIQ / AirIQ / Zones consumption is documented as a
   stable internal contract, not implemented.
-* **Sensor identity (unresolved, tracked)** — schematic + BOM say the
-  S360-200 light sensor is **LTR-303ALS-01**; the compiled firmware
-  drives a **VEML7700** at 0x10; runtime identity is unverified. This
-  work item changed NO compiled sensor and did not choose: the customer
-  entity is named "Illuminance", the limit is stated on-device (RoomIQ
-  Sensor Verification diagnostic), the failure mode is honest (unknown /
-  Degraded, LED darkness fails safe), and resolution stays owner/bench
-  work (`ENTITY-RECONCILE-200-ALS-001` + the bench checklist's sensor
-  identity section: read the U1 part marking, probe 0x10 vs 0x29, then
-  align firmware and catalog in a follow-up).
+* **Sensor identity (driver reconciled, runtime pending)** — schematic +
+  BOM say the S360-200 light sensor is **LTR-303ALS-01** and the temp/humidity
+  part is **SHT45** (`SHT45-AD1B-R3`, 0x44). `S360-200-R4-HARDWARE-RECONCILIATION-001`
+  corrected the compiled firmware to drive LTR-303ALS-01 at its fixed 0x29
+  via the built-in `ltr_als_ps` platform (ALS-only) — the earlier VEML7700 @
+  0x10 drift is removed — so the driver identity now matches the schematic/BOM.
+  On-hardware sensor response is **still unverified**: the board under test
+  lists only the AirIQ sensors (0x59/0x60/0x62) on its I²C scan and does not
+  yet answer at 0x29 or 0x44 (a physical population / connector / +3.3 V-rail
+  question, not a firmware address error). The customer entity is named
+  "Illuminance", the limit is stated on-device (RoomIQ Sensor Verification
+  diagnostic), the failure mode is honest (unknown / Degraded, LED darkness
+  fails safe), and runtime confirmation stays owner/bench work
+  (`ENTITY-RECONCILE-200-ALS-001` + the bench checklist's sensor-identity
+  section: confirm U1/U2 answer at 0x29 / 0x44 on real hardware).
 * **Module-status honesty** — RoomIQ "Available" means strictly that
   every environmental channel delivered a valid update inside its stale
   window (`config/core-framework.json module_runtime_status.roomiq`);

@@ -886,12 +886,16 @@ class DocumentationTests(unittest.TestCase):
         self.assertIn("Ceiling-POE-VentIQ-RoomIQ-LED", self.text)
         self.assertIn("Ceiling-POE-RoomIQ-LED", self.text)
 
-    def test_lux_sensor_conflict_reported(self) -> None:
-        # The hardware catalog documents LTR-303ALS for RoomIQ while the
-        # compiled firmware uses VEML7700 — the doc must surface this
-        # unresolved documentation-vs-firmware mismatch, not hide it.
-        self.assertIn("VEML7700", self.text)
+    def test_lux_sensor_identity_reconciled_reported(self) -> None:
+        # S360-200-R4-HARDWARE-RECONCILIATION-001 reconciled the RoomIQ lux
+        # driver to the schematic/BOM part (LTR-303ALS-01 @ 0x29 via
+        # ltr_als_ps); the doc must surface the reconciled driver and that
+        # on-hardware response is still pending (darkness fails safe until
+        # confirmed), not claim runtime success.
         self.assertIn("LTR-303", self.text)
+        self.assertIn("0x29", self.text)
+        lowered = self.text.lower()
+        self.assertIn("pending", lowered)
 
 
 class BenchChecklistTests(unittest.TestCase):

@@ -1,0 +1,58 @@
+# ============================================================================
+# Sense360 AirIQ — SFA40 opt-out overlay for custom no-SFA40 assemblies
+# (S360-200-R4-HARDWARE-RECONCILIATION-001)
+# ============================================================================
+# The canonical AirIQ board package (packages/boards/s360-210-airiq.yaml) fits
+# the Sensirion SFA40 formaldehyde sensor (U2 @ 0x5D) on EVERY production
+# S360-210-R4, so it is populated by default and every shipping AirIQ product
+# is UNCHANGED. Some custom assemblies, however, deliberately do NOT fit the
+# SFA40 (e.g. the S360-200-R4-HARDWARE-RECONCILIATION-001 bench board, whose
+# I2C scan shows SGP41 0x59 / MICS-STM8 0x60 / SCD41 0x62 but no 0x5D). For
+# those boards ONLY, composing this overlay (AFTER the AirIQ board package and
+# the AirIQ framework) cleanly omits the SFA40:
+#
+#   * removes the raw SFA40 driver instance (`sfa40_sensor`, incl. its
+#     airiq_hcho / airiq_sfa40_* sub-sensors) so no `platform: sfa40` is
+#     compiled and the unfitted sensor NEVER probes 0x5D or logs a repeated
+#     communication failure;
+#   * removes the AirIQ framework's HCHO engine-input copy sensor
+#     (`s360_airiq_hcho_sample`), which references the now-absent `airiq_hcho`
+#     — so a no-SFA40 composition validates with no dangling reference;
+#   * sets `airiq_expected_hcho: "false"` so formaldehyde is NOT an expected
+#     channel: a deliberately-omitted SFA40 does NOT degrade AirIQ module
+#     health, and the capability / expected-sensor surface reflects the real
+#     custom composition.
+#
+# The canonical "Formaldehyde" customer entity (`s360_hcho`, declared by the
+# framework) is left in place but unfed on a no-SFA40 device, so it honestly
+# reports unavailable rather than a fabricated value.
+#
+# This overlay is the deliberate INVERSE of the SPS30 opt-in overlay
+# (packages/boards/s360-210-airiq-sps30.yaml): SPS30 is an external attachment
+# that is opted IN, SFA40 is a normally-fitted part that a custom assembly opts
+# OUT of. It changes NOTHING for any product that does not compose it, so the
+# default (SFA40-fitted) behaviour of every shipping AirIQ product is
+# preserved — SFA40 is NOT silently made optional for production.
+#
+# Composition order: list this overlay AFTER packages/features/airiq_framework
+# .yaml (and after the AirIQ board package) so its `!remove` entries see the
+# ids they remove and its `airiq_expected_hcho: "false"` substitution overrides
+# the framework default. A device may also set airiq_expected_hcho: "false" in
+# its own top-level substitutions to be explicit and order-independent.
+#
+# Evidence level: source + config-validation proof only. Declaring an SFA40 as
+# unfitted on a given assembly is a per-board hardware fact; this overlay makes
+# NO hardware, bench, compliance or commercial claim and changes no product,
+# release, channel, WebFlash or catalog state.
+# ============================================================================
+
+substitutions:
+  # Opt out: formaldehyde is no longer an expected AirIQ channel, so a
+  # deliberately-omitted SFA40 does not mark the module Degraded/Unavailable.
+  airiq_expected_hcho: "false"
+
+# Remove the raw SFA40 driver (board package) and the framework's HCHO
+# engine-input copy sensor (which references the now-absent airiq_hcho).
+sensor:
+  - id: !remove sfa40_sensor
+  - id: !remove s360_airiq_hcho_sample

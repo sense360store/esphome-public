@@ -346,9 +346,9 @@ globals:
 # ============================================================================
 # Address | Device           | Module          | Notes
 # --------|------------------|-----------------|-----------------------------
-# 0x10    | VEML7700         | Comfort Ceiling | Ambient light sensor (lux)
-# 0x23    | BH1750           | Comfort         | Light sensor
-# 0x44    | SHT40/SHT30      | Comfort/AirIQ   | Temp/Humidity (conflict!)
+# 0x29    | LTR-303ALS-01    | RoomIQ Ceiling  | Ambient light (lux, ltr_als_ps)
+# 0x23    | BH1750           | Comfort         | Light sensor (legacy ref)
+# 0x44    | SHT45 (SHT4x)    | RoomIQ/AirIQ    | Temp/Humidity (RoomIQ U2 = SHT45)
 # 0x58    | GP8403           | Fan DAC         | Channel 0x58 or 0x59
 # 0x59    | GP8403 alt/SGP40 | Fan DAC/Bath    | Address conflict possible
 # 0x62    | SCD41            | AirIQ           | CO2 sensor

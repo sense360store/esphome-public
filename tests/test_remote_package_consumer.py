@@ -316,6 +316,97 @@ mqtt: null
 """
 
 
+# S360-200-R4-HARDWARE-RECONCILIATION-001 external consumer: the SAME full
+# Core + AirIQ + LED + RoomIQ + Presence + LED-framework + LED-presence-bridge
+# stack as CONSUMER_FULL_ROOMIQ_PRESENCE, but for a CUSTOM assembly whose AirIQ
+# board deliberately does NOT fit the SFA40 formaldehyde sensor. The device
+# composes the SFA40 opt-out overlay (packages/boards/s360-210-airiq-no-sfa40
+# .yaml) AFTER the AirIQ wrapper, so the raw SFA40 driver and the framework's
+# HCHO engine-input are removed and formaldehyde stops being an expected
+# channel — proving a no-SFA40 composition validates with no dangling SFA40
+# reference and no repeated component failure. RoomIQ still carries the
+# reconciled LTR-303ALS-01 @ 0x29 (ltr_als_ps) + SHT45 climate half.
+CONSUMER_FULL_NOSFA40 = """\
+substitutions:
+  device_name: sense360-airiq-nosfa40
+  friendly_name: Sense360 AirIQ NoSFA40 RoomIQ LED
+  timezone: "Europe/London"
+  device_version: "0.0.0-remote-consumer-test"
+  sense360_remote_url: file://__REMOTE__
+  sense360_remote_ref: main
+  s360_config_string: "Ceiling-Core-AirIQ-RoomIQ-LED-NoSFA40-Bench"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,airiq,led,roomiq,presence"
+  s360_capabilities_human: "Core, AirIQ (no SFA40), LED, RoomIQ, Presence"
+  s360_module_airiq: "Included"
+  s360_module_led: "Included"
+  led_has_roomiq: "true"
+  led_has_presence: "true"
+  # Custom assembly: SFA40 intentionally unfitted (order-independent override).
+  airiq_expected_hcho: "false"
+
+packages:
+  core:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/hardware/sense360_core_ceiling.yaml]
+    refresh: 0s
+  core_framework:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/base/device_framework.yaml]
+    refresh: 0s
+  airiq:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/remote/ceiling-airiq.yaml]
+    refresh: 0s
+  airiq_no_sfa40:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/boards/s360-210-airiq-no-sfa40.yaml]
+    refresh: 0s
+  led_board:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/boards/s360-300-led.yaml]
+    refresh: 0s
+  roomiq_presence:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/remote/ceiling-roomiq-presence.yaml]
+    refresh: 0s
+  led_framework:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/remote/led-framework.yaml]
+    refresh: 0s
+  led_presence_bridge:
+    url: file://__REMOTE__
+    ref: main
+    files: [packages/features/led_presence_bridge.yaml]
+    refresh: 0s
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+logger:
+  level: DEBUG
+
+mqtt: null
+"""
+
+
 def _esphome_cli() -> str | None:
     return shutil.which("esphome")
 
@@ -677,6 +768,51 @@ class RoomIqPresenceRemoteConfigTests(unittest.TestCase):
 
     def test_consumer_dir_has_no_local_include_tree(self) -> None:
         # Proves the engines are NOT satisfied by a local /config/include copy.
+        self.fixture.run("config")
+        self.assertFalse(
+            (self.fixture.consumer / "include").exists(),
+            "consumer must not need a local include/ directory",
+        )
+
+
+@unittest.skipIf(_esphome_cli() is None, "esphome CLI not installed")
+class NoSfa40RemoteConfigTests(unittest.TestCase):
+    """S360-200-R4-HARDWARE-RECONCILIATION-001: the full custom stack (Core +
+    AirIQ + LED + RoomIQ + Presence + LED framework + LED-presence bridge)
+    composes remotely when the AirIQ board deliberately OMITS the SFA40 via the
+    opt-out overlay — no SFA40 driver is declared or initialised, no dangling
+    airiq_hcho reference remains, and the reconciled RoomIQ climate driver
+    (LTR-303ALS-01 @ 0x29) composes alongside."""
+
+    def setUp(self) -> None:
+        self.fixture = _RemoteFixture(CONSUMER_FULL_NOSFA40)
+
+    def tearDown(self) -> None:
+        self.fixture.cleanup()
+
+    def test_config_validates_without_sfa40(self) -> None:
+        proc = self.fixture.run("config")
+        out = proc.stdout
+        self.assertNotIn("Could not find file", out, out[-2000:])
+        # No dangling reference to the removed SFA40 raw sensor (airiq_hcho).
+        self.assertNotIn("Couldn't find ID", out, out[-2000:])
+        self.assertEqual(proc.returncode, 0, out[-3000:])
+        self.assertIn("Configuration is valid", out)
+        # Requirement 12: the SFA40 component is neither declared nor
+        # initialised in the resolved config.
+        self.assertNotIn("platform: sfa40", out)
+        self.assertNotIn("sfa40_sensor", out)
+        self.assertNotIn("s360_airiq_hcho_sample", out)
+        # The other AirIQ sensors (fitted on this custom board) remain.
+        self.assertIn("platform: sgp4x", out)
+        self.assertIn("platform: scd4x", out)
+        # RoomIQ climate is the reconciled LTR-303ALS-01 @ 0x29 (ltr_als_ps),
+        # never the removed VEML7700.
+        self.assertIn("platform: ltr_als_ps", out)
+        self.assertIn("address: 0x29", out)
+        self.assertNotIn("platform: veml7700", out)
+
+    def test_consumer_dir_has_no_local_include_tree(self) -> None:
         self.fixture.run("config")
         self.assertFalse(
             (self.fixture.consumer / "include").exists(),

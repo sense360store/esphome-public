@@ -93,7 +93,7 @@ Headline gaps per module:
 | Module | SKU | Canonical board pkg | Notable `missing` / `partial` rows |
 |--------|-----|---------------------|------------------------------------|
 | Core | S360-100 | ✅ `s360-100-core.yaml` | — (relay + health entities present) |
-| RoomIQ | S360-200 | ✅ `s360-200-roomiq.yaml` | **missing**: SEN0609 2nd radar, EKMC PIR, BMP581 pressure; **partial**: ALS part (VEML7700 in YAML vs LTR-303ALS in BOM); comfort indices are globals not entities |
+| RoomIQ | S360-200 | ✅ `s360-200-roomiq.yaml` | **missing**: BMP581 pressure; **reconciled**: ALS part now LTR-303ALS-01 @0x29 via `ltr_als_ps` matching the BOM (the earlier VEML7700 drift is removed, S360-200-R4-HARDWARE-RECONCILIATION-001; on-hardware response pending bench); PIR and SEN0609 provided by the roomiq-pir / roomiq-sen0609 adapters; comfort indices are globals not entities |
 | AirIQ | S360-210 | ✅ `s360-210-airiq.yaml` | **missing**: MICS-4514 gas, SFA40 HCHO (SFA40 is the newer Sensirion HCHO module superseding the SFA30; connector interface/address verify-pending) |
 | VentIQ | S360-211 | ✅ `s360-211-ventiq.yaml` | **partial**: IR temp (MLX90614) and PM (SPS30) live only in the `-pro` overlay, not the base |
 | LED | S360-300 | ✅ `s360-300-led.yaml` | **missing**: dedicated HA night-light light entity (worked example, C3); AQ halo is a layered feature |

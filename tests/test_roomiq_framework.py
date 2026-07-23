@@ -399,16 +399,17 @@ class CustomerEntityContractTests(unittest.TestCase):
             self.assertTrue(entity.get("disabled_by_default"))
 
     def test_sensor_verification_diagnostic_states_identity_limit(self) -> None:
-        # Honesty companion: the light-sensor part identity is unresolved
-        # (catalog/BOM: LTR-303ALS-01; compiled firmware: VEML7700). The
-        # diagnostic states the limit on-device; customer entities never
-        # carry a sensor model name.
+        # Honesty companion: the light-sensor driver is reconciled to the
+        # schematic/BOM part (LTR-303ALS-01 @ 0x29); the diagnostic states the
+        # on-device limit (freshness only, on-hardware response pending bench)
+        # and customer entities never carry a sensor model name.
         entity = self._entity("s360_roomiq_sensor_verification")
         self.assertEqual(entity.get("entity_category"), "diagnostic")
         self.assertTrue(entity.get("disabled_by_default"))
         value = str(entity.get("lambda", ""))
         self.assertIn("LTR-303", value)
-        self.assertIn("VEML7700", value)
+        self.assertIn("0x29", value)
+        self.assertIn("pending bench", value.lower())
 
     def test_legacy_compat_entities_preserved_and_disabled(self) -> None:
         for entity_id, expected_name in LEGACY_COMPAT_ENTITIES.items():
@@ -482,22 +483,29 @@ class BoardPackageTests(unittest.TestCase):
         cls.raw = CLIMATE_BOARD.read_text()
         cls.entities = entities_by_id(cls.doc)
 
-    def test_raw_sensors_unchanged_and_internal(self) -> None:
-        # Firmware behaviour gate: the unresolved sensor-identity conflict
-        # (catalog LTR-303ALS vs compiled VEML7700) means the compiled
-        # sensor set must NOT change in this work item.
+    def test_raw_sensors_reconciled_and_internal(self) -> None:
+        # S360-200-R4-HARDWARE-RECONCILIATION-001: the compiled climate driver
+        # is reconciled to the schematic/BOM parts — LTR-303ALS-01 (ltr_als_ps)
+        # ambient light @ 0x29 and SHT45 (sht4x) temp/humidity @ 0x44. The
+        # earlier VEML7700 @ 0x10 drift is removed.
         for entity_id in (
-            "comfort_ceiling_veml7700",
+            "comfort_ceiling_ltr303",
             "comfort_ceiling_sht4x",
         ):
             self.assertIn(entity_id, self.entities, entity_id)
+        self.assertNotIn(
+            "comfort_ceiling_veml7700",
+            self.entities,
+            "the VEML7700 driver must be gone",
+        )
         # The measurement channels are NESTED sub-sensors of the platform
-        # entries (veml7700 ambient_light, sht4x temperature/humidity) and
-        # must stay internal (raw, uncalibrated, never customer-facing).
-        veml = self.entities["comfort_ceiling_veml7700"]
+        # entries (ltr_als_ps ambient_light, sht4x temperature/humidity) and
+        # must stay internal (raw, uncalibrated, never customer-facing). The
+        # framework-facing ids are preserved so the RoomIQ contract is intact.
+        ltr = self.entities["comfort_ceiling_ltr303"]
         sht = self.entities["comfort_ceiling_sht4x"]
         for parent, key, expected_id in (
-            (veml, "ambient_light", "comfort_ceiling_illuminance"),
+            (ltr, "ambient_light", "comfort_ceiling_illuminance"),
             (sht, "temperature", "comfort_ceiling_temperature"),
             (sht, "humidity", "comfort_ceiling_humidity"),
         ):
@@ -507,7 +515,13 @@ class BoardPackageTests(unittest.TestCase):
                 sub.get("internal"),
                 f"{expected_id}: raw board sensors stay internal",
             )
-        self.assertIn("address: 0x10", self.raw)
+        # The light sensor is ALS-only (no proximity entities exposed).
+        self.assertEqual(ltr.get("type"), "ALS")
+        for proximity_key in ("ps_high_threshold", "ps_low_threshold", "proximity"):
+            self.assertNotIn(proximity_key, ltr, proximity_key)
+        self.assertIn("platform: ltr_als_ps", self.raw)
+        self.assertNotIn("platform: veml7700", self.raw)
+        self.assertIn("address: 0x29", self.raw)
         self.assertIn("address: 0x44", self.raw)
 
     def test_no_raw_calibration_filters(self) -> None:
@@ -867,13 +881,18 @@ class DocumentationTests(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, self.normalised, forbidden)
 
-    def test_sensor_identity_conflict_reported(self) -> None:
-        # Designed hardware (schematic/BOM): LTR-303ALS-01. Compiled
-        # firmware: VEML7700 at 0x10. Runtime identity unresolved until the
-        # bench checklist runs — the doc must state all layers.
+    def test_sensor_identity_reconciled_reported(self) -> None:
+        # S360-200-R4-HARDWARE-RECONCILIATION-001: the compiled driver is
+        # reconciled to the schematic/BOM part (LTR-303ALS-01 @ 0x29 via
+        # ltr_als_ps); the doc must state the reconciled part and address and
+        # that on-hardware response remains a pending bench item (no false
+        # runtime-success claim).
         self.assertIn("LTR-303", self.text)
-        self.assertIn("VEML7700", self.text)
-        self.assertIn("0x10", self.text)
+        self.assertIn("0x29", self.text)
+        self.assertIn("ltr_als_ps", self.text)
+        lowered = self.text.lower()
+        self.assertIn("pending", lowered)
+        self.assertIn("bench", lowered)
 
     def test_internal_reuse_contract_documented(self) -> None:
         for needle in (

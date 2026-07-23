@@ -2,8 +2,9 @@
 # SENSE360 ROOMIQ MODULE - CANONICAL ALIAS (Phase 2)
 # ============================================================================
 # Canonical RoomIQ alias for the room sensing comfort hardware driver
-# (S360-200 — ceiling variant; SHT4x temperature/humidity + VEML7700
-# ambient light on the expansion I2C bus).
+# (S360-200 — ceiling variant; SHT45 temperature/humidity + LTR-303ALS-01
+# ambient light on the shared core I2C bus; corrected under
+# S360-200-R4-HARDWARE-RECONCILIATION-001).
 #
 # This file is a thin `!include` wrapper introduced by
 # PACKAGE-NAMING-ALIASES-ROOMIQ-001 as the Phase 2 follow-up to

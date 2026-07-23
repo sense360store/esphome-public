@@ -135,7 +135,7 @@ extend by addition only — registry in
 | `core` | platform | S360-100 | Core hub board; present in every composition |
 | `power_poe` | power | S360-410 | PoE PSU composition |
 | `power_usb` | power | — | USB-powered composition (no PSU module board) |
-| `roomiq` | module | S360-200 | RoomIQ comfort firmware (SHT4x + VEML7700, the climate half) |
+| `roomiq` | module | S360-200 | RoomIQ comfort firmware (SHT45 @ 0x44 + LTR-303ALS-01 @ 0x29 via ltr_als_ps, the climate half) |
 | `airiq` | module | S360-210 | AirIQ air-quality firmware (SCD4x, SGP4x, SPS30, BMP3xx; MICS-4514 not compiled) |
 | `ventiq` | module | S360-211 | VentIQ air-quality firmware (SGP4x, SHT4x, BMP3xx) |
 | `presence` | module | S360-200 | Tri-sensor Presence firmware: HLK-LD2450 radar + PIR + SEN0609 fused by the Presence framework ([`docs/architecture/sense360-presence-framework.md`](sense360-presence-framework.md), PRESENCE-FRAMEWORK-001) |

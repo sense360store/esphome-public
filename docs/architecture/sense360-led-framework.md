@@ -143,8 +143,9 @@ Darkness decision (LED-05):
 * Source (ROOMIQ-FRAMEWORK-001): the **canonical RoomIQ darkness
   service** (`include/sense360/roomiq_engine.h`) — computed from the
   CALIBRATED illuminance path over the compiled lux driver
-  (`comfort_ceiling_illuminance`, VEML7700 at I²C 0x10, publishing every
-  10 s), with freshness from real update callbacks. The LED framework
+  (`comfort_ceiling_illuminance`, LTR-303ALS-01 at I²C 0x29 via the built-in
+  `ltr_als_ps` platform, publishing every 10 s), with freshness from real
+  update callbacks. The LED framework
   passes the customer threshold into that service and consumes the
   decision (`input_darkness`); it no longer implements any lux threshold
   logic of its own (regression-tested), and the customer's Illuminance
@@ -156,14 +157,16 @@ Darkness decision (LED-05):
   distinct from darkness. Unknown never activates Night Mode and never
   toggles an active one; the automation holds and fails safe.
 
-**Known documentation-vs-firmware mismatch (reported, unresolved):** the
-hardware catalog documents the S360-200 RoomIQ light sensor as
-**LTR-303ALS**, while the compiled firmware drives a **VEML7700** at 0x10.
-If the physical board actually carries an LTR-303ALS, the lux path will
-never produce data and darkness automation will honestly report Unknown
-and stay inactive (fail-safe). Resolving the sensor identity is bench/
-catalog work and is on the checklist; this framework neither hides nor
-papers over the conflict.
+**Lux-sensor identity (driver reconciled, runtime pending):** the S360-200
+RoomIQ light sensor is **LTR-303ALS-01** per the schematic/BOM, and
+`S360-200-R4-HARDWARE-RECONCILIATION-001` corrected the compiled firmware to
+drive that exact part at its fixed I²C address **0x29** via the built-in
+`ltr_als_ps` platform (the earlier **VEML7700** @ 0x10 driver drift is removed).
+On-hardware response is still pending bench: the board under test does not yet
+list 0x29 on its I²C scan. Until the sensor answers on the bus the lux path
+produces no data and darkness automation honestly reports Unknown and stays
+inactive (fail-safe); this framework neither hides nor papers over that
+remaining runtime gap.
 
 ## Optional inputs — RoomIQ and Presence are not required (LED-FRAMEWORK-002)
 
@@ -460,9 +463,10 @@ window (60 s), auto-off delay (60 s), identify pattern/duration (4 s,
   quality, and the supply-rail question are all bench checklist items
   ([`docs/hardware/led-framework-bench-checklist.md`](../hardware/led-framework-bench-checklist.md);
   results and attestation are operator-only, never machine-written).
-* The lux path depends on the unresolved VEML7700-vs-LTR-303ALS sensor
-  identity (above); until bench confirmation, darkness automation is
-  compile/simulation-proven logic over an unverified sensor.
+* The lux path uses the reconciled LTR-303ALS-01 @ 0x29 driver (above), but
+  the sensor is not yet proven to respond on the board under test; until bench
+  confirmation, darkness automation is compile/simulation-proven logic over an
+  as-yet unconfirmed sensor.
 * Emitted light is unverifiable from firmware (one-way data line); the
   fault layer has no producer until a real signal exists.
 * "Scheduled" night behaviour is deferred (no reliable local time source).
