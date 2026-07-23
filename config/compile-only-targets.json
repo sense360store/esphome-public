@@ -21,7 +21,7 @@
     "compile-only"
   ],
   "totals": {
-    "targets": 25
+    "targets": 26
   },
   "targets": [
     {
@@ -649,6 +649,56 @@
         ]
       },
       "notes": "Product YAML lives at products/sense360-core-ceiling-led-airiq.yaml (top-level, self-contained one-deep so its esphome includes resolve; NOT under products/webflash/ or products/compile-only/). Matching catalog row config/product-catalog.json config_string: Ceiling-Core-LED-AirIQ is status: compile-only. No config_string is declared on this target (it is not in config/webflash-builds.json or the firmware combination matrix). No webflash_build_matrix flip, no artifact_name, no webflash_wrapper, no release artifact. LED stays preview-gated; Release-One (Ceiling-POE-VentIQ-RoomIQ) is unchanged."
+    },
+    {
+      "id": "ceiling-core-airiq-blower-compile-only",
+      "product_yaml": "products/sense360-core-ceiling-airiq-blower.yaml",
+      "reason": "BLOWER-FRAMEWORK-001 Core + AirIQ + Blower compile-only validation target. Validates that the FULL customer blower framework composes / substitutes / includes / generates code cleanly on a Core + AirIQ ceiling device driving the Core's on-board FAN net (schematic IO21 -> Q4 SI2302S -> J13), with the Auto behaviour reading the canonical AirIQ ventilation demand (blower_has_airiq: true). Compile success is firmware-build proof of BUILDABILITY ONLY: NOT bench verification, NOT WebFlash exposure, NOT a release artifact, NOT stable/preview promotion, NOT hardware/airflow/compliance/safety evidence. The blower is a fan output and stays compile-only under the 'Fans are never stable' standing gate; Release-One is unchanged.",
+      "shipment_status": "compile-only",
+      "hardware_required_for_validation": true,
+      "webflash_exposure_allowed_now": false,
+      "blocked": false,
+      "compile_validation_status": "validated-full-compile",
+      "compile_evidence": {
+        "method": "hosted-full-compile",
+        "workflow": "CI: Compile-Only",
+        "workflow_file": ".github/workflows/compile-only.yml",
+        "command": "python3 scripts/validate_compile_targets.py --compile",
+        "compile_mode": "full",
+        "event": "workflow_dispatch",
+        "date": "2026-07-22",
+        "run_id": 29962257302,
+        "run_url": "https://github.com/sense360store/esphome-public/actions/runs/29962257302",
+        "validated_at_head_sha": "e8f755c1a12bcacfe34907ab701fd8097cd7fd85",
+        "post_validation_delta": "After this run, a diagnostics-only fix landed on the branch: the 'Blower Output Verification' text sensor (update_interval: never) is now published once at boot via a `component.update` action in on_boot, so an enabled user sees the hardware-limitation string instead of Unknown. It adds only that boot action and changes no composition, pins, thresholds or behaviour. A re-dispatch of the full-compile lane on the new HEAD is recommended for completeness (the agent environment cannot dispatch it \u2014 HTTP 403, lacks actions:write).",
+        "job": "Compile-only Targets \u2014 Full ESPHome Compile",
+        "job_id": 89065797144,
+        "job_url": "https://github.com/sense360store/esphome-public/actions/runs/29962257302/job/89065797144",
+        "target_result": "PASS",
+        "target_position": "26/26",
+        "target_duration_seconds": 191.1,
+        "result": "success",
+        "evidence_type": "hosted-full-compile",
+        "proof_class": "firmware-build-only",
+        "role": "primary-hosted-compile-proof",
+        "target_scope_note": "TARGET-LEVEL full embedded ESPHome compile pass for THIS product YAML only (products/sense360-core-ceiling-airiq-blower.yaml). The validator logged: [26/26] PASS ceiling-core-airiq-blower-compile-only (191.1s). This proves the new blower target links as ESP32 firmware; it does NOT claim the whole 26-target workflow passed.",
+        "workflow_conclusion": "failure",
+        "workflow_summary": "26 targets: 24 passed, 2 failed, 0 timed out, 0 skipped (~75.5 min total). The overall workflow_dispatch run was RED (conclusion: failure).",
+        "unrelated_failures": [
+          "ceiling-poe-ventiq-roomiq-webflash (Ceiling-POE-VentIQ-RoomIQ) [products/webflash/ceiling-poe-ventiq-roomiq.yaml] \u2014 esphome compile rc=2 after 2.1s: a pre-existing WebFlash-wrapper relative-include path-resolution failure, unrelated to BLOWER-FRAMEWORK-001 and NOT modified by this PR.",
+          "ceiling-poe-ventiq-roomiq-led-webflash (Ceiling-POE-VentIQ-RoomIQ-LED) [products/webflash/ceiling-poe-ventiq-roomiq-led.yaml] \u2014 esphome compile rc=2 after 0.7s: a pre-existing WebFlash-wrapper relative-include path-resolution failure, unrelated to BLOWER-FRAMEWORK-001 and NOT modified by this PR."
+        ],
+        "not_proof_of": [
+          "hardware",
+          "bench-evidence",
+          "airflow",
+          "compliance",
+          "stable-promotion",
+          "webflash-exposure",
+          "release-artifact"
+        ]
+      },
+      "notes": "Product YAML lives at products/sense360-core-ceiling-airiq-blower.yaml (top-level, self-contained one-deep so its esphome includes resolve; NOT under products/webflash/ or products/compile-only/). Matching catalog row config/product-catalog.json config_string: Ceiling-Core-AirIQ-Blower is status: compile-only. No config_string is declared on this target (it is not in config/webflash-builds.json or the firmware combination matrix). The blower is the Core's on-board FAN net (IO21 -> Q4 SI2302S -> J13), NOT a fan-driver module. No webflash_build_matrix flip, no artifact_name, no webflash_wrapper, no release artifact, not in release_one_required_configs. The blower is a fan output and stays compile-only under the 'Fans are never stable' standing gate; Release-One (Ceiling-POE-VentIQ-RoomIQ) is unchanged."
     }
   ]
 }

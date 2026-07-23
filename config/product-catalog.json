@@ -847,6 +847,27 @@
       },
       "hardware_status": "authored-compile-validation-pending",
       "notes": "LED-FRAMEWORK-002 Core + AirIQ + LED compile-only validation fixture. Self-contained one-deep product products/sense360-core-ceiling-led-airiq.yaml composing Core ceiling (S360-100 board) + AirIQ (S360-210 board + AIRIQ-FRAMEWORK-001) + LED (S360-300 board + the FULL LED-FRAMEWORK-001/002 behaviour framework) with NO RoomIQ and NO Presence, proving the LED framework composes and degrades cleanly on an AirIQ-only ceiling device (led_has_roomiq: false, led_has_presence: false; the automatic Night Mode Behaviours downgrade honestly to Manual). It is the representative device that motivated LED-FRAMEWORK-002. It carries no PoE/USB PSU board and no fan token (a buildability fixture, not a powered product build). status: compile-only, target_channel: manual-custom. NOT production, NOT preview, NOT verified, NOT release-ready, NOT WebFlash-exposed: webflash_build_matrix is false; no artifact_name; no webflash_wrapper; no config/webflash-builds.json entry; no kit preset; no release artifact; not in release_one_required_configs. No board schematic_status is changed; Release-One (Ceiling-POE-VentIQ-RoomIQ) and the LED preview are unchanged. See docs/architecture/sense360-led-framework.md."
+    },
+    {
+      "config_string": "Ceiling-Core-AirIQ-Blower",
+      "status": "compile-only",
+      "product_yaml": "products/sense360-core-ceiling-airiq-blower.yaml",
+      "webflash_build_matrix": false,
+      "target_channel": "manual-custom",
+      "modules": {
+        "mount": "Ceiling",
+        "power": "none",
+        "air_quality": "AirIQ",
+        "room_sense": "none",
+        "fan": "none",
+        "led": "none"
+      },
+      "hardware": {
+        "core": "S360-100",
+        "airiq": "S360-210"
+      },
+      "hardware_status": "authored-compile-validation-pending",
+      "notes": "BLOWER-FRAMEWORK-001 Core + AirIQ + Blower compile-only validation fixture. Self-contained one-deep product products/sense360-core-ceiling-airiq-blower.yaml composing Core ceiling (S360-100 board) + AirIQ (S360-210 board + AIRIQ-FRAMEWORK-001) + the FULL blower behaviour framework (packages/features/blower_framework.yaml, blower_has_airiq: true), proving the blower framework's Auto behaviour reads the canonical AirIQ ventilation demand and composes cleanly. The blower is the Core's own on-board FAN net (schematic IO21 -> Q4 SI2302S -> J13, a two-wire binary 5V output); it is NOT a separate fan-driver module (no S360-311/312/310/320 SKU) so modules.fan stays 'none' and there is no separate blower SKU in hardware. J13 exposes NO tach / speed-PWM / current / airflow / rotation feedback, so this build claims none; GPIO46 (Core status LED) is never rotation feedback and the GPIO3 relay is a separate control the blower never drives. It carries no PoE/USB PSU board and no fan-driver token (a buildability fixture, not a powered product build). status: compile-only, target_channel: manual-custom. The blower is a fan output, so the 'Fans are never stable' standing gate (docs/standing-invariants.md) applies unchanged: NOT production, NOT preview, NOT verified, NOT release-ready, NOT WebFlash-exposed: webflash_build_matrix is false; no artifact_name; no webflash_wrapper; no config/webflash-builds.json entry; no kit preset; no release artifact; not in release_one_required_configs; never customer-default or buyable. NOT hardware/bench/airflow/compliance proof. No board schematic_status is changed; Release-One (Ceiling-POE-VentIQ-RoomIQ) is unchanged. See docs/architecture/sense360-blower-framework.md."
     }
   ]
 }

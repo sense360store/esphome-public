@@ -1,0 +1,321 @@
+# ============================================================================
+# SENSE360 BLOWER FRAMEWORK — customer on-board blower experience
+# ============================================================================
+# BLOWER-FRAMEWORK-001 (docs/architecture/sense360-blower-framework.md).
+#
+# One polished, simple customer experience for the Sense360 Core's dedicated
+# on-board FAN net — the two-wire binary 5 V blower on J13. The customer never
+# needs to know about GPIOs, MOSFETs or the AirIQ engine:
+#
+#   * Blower Mode         — Off / Auto / On (default Auto). This is the
+#                           AUTHORITATIVE customer control:
+#                             - Off  : always command the blower off.
+#                             - Auto : follow the canonical AirIQ ventilation
+#                                      demand through the timing state machine.
+#                             - On   : always command the blower on.
+#   * Blower Auto Trigger — Ventilate now / Ventilate soon: the AirIQ demand
+#                           level at which Auto starts the blower (conservative
+#                           default: only "Ventilate now").
+#   * Blower              — a READ-ONLY binary sensor showing the commanded
+#                           blower state (on/off). There is deliberately NO
+#                           customer on/off toggle and NO speed control: the
+#                           mode is the single control, so nothing can transiently
+#                           contradict the selected mode.
+#
+# Hardware contract (verified against docs/hardware/s360-100-r4-core.md and the
+# owner-provided S360-100-R4 schematic; this framework encodes NO more than the
+# contract proves):
+#   * The blower is the Core's dedicated `FAN` net: schematic `IO21` (GPIO21)
+#     drives Q4 (SI2302S low-side MOSFET) switching the 5 V blower on J13.
+#     J13 is a two-wire binary 5 V blower output (pins: +5V, FAN, GND).
+#   * There is NO J13 tach, speed-PWM, current, airflow or physical-rotation
+#     feedback. This framework commands ONLY on/off and NEVER reports, infers or
+#     claims blower speed, airflow, current or rotation. The FAN net is a
+#     one-way drive — firmware can never verify the blower physically spun (the
+#     "Blower Output Verification" diagnostic states this on-device).
+#   * `GPIO46` (`GP_Fan_Status_Led`) is a Core-side status indicator owned by
+#     the Core board package and is NEVER treated as rotation feedback — this
+#     framework does not touch it. The generic `GPIO3` relay (J4) is a SEPARATE
+#     control owned by the Core board package (`main_relay`) and is likewise
+#     never part of the blower path — this framework does not touch it.
+#
+# Boot safety: the FAN-net GPIO output boots OFF (gpio output default). The
+# persisted Blower Mode is restored during component setup and applied by the
+# late (priority -100) on_boot evaluation, so the output is safely off until the
+# restored mode is evaluated. Mode is persisted (restore_value) and defaults to
+# Auto on first boot.
+#
+# Optional input (AirIQ). The canonical AirIQ air-quality service is NOT a hard
+# dependency. When AirIQ is not composed, Auto has no actionable demand and the
+# blower stays off (fail-safe); the "Blower Control Status" diagnostic names the
+# missing input. A missing / initialising / unavailable AirIQ demand is UNKNOWN
+# and NEVER starts the blower — missing air-quality data is never a reason to
+# ventilate. One compile-time flag declares what is present:
+#   * blower_has_airiq — is the AirIQ framework (AIRIQ-FRAMEWORK-001) composed?
+#                        Default "false".
+#
+# Auto timing state machine (all windows PROVISIONAL, substitution-tunable):
+#   * A demand at/above the trigger starts the blower (subject to the min-off
+#     restart lockout, which never delays the first start of an Auto session).
+#   * When a valid demand clears (or goes stale/unavailable) while running, the
+#     blower completes its minimum run time AND a post-demand PURGE period, then
+#     stops; a demand returning during purge resumes ventilation.
+#   * After stopping it enforces a minimum off time before it may restart.
+#
+# Demand contract: this framework reads the canonical AirIQ demand contract
+# through the SHARED header-only engine singleton
+# `sense360::airiq::global_engine().recommendation()` — never a hard `id()` to
+# an AirIQ entity, and it NEVER duplicates pollutant thresholds (the AirIQ
+# engine owns pollutant truth). The AirIQ engine header is compiled here
+# unconditionally (idempotent under `#pragma once`) so the demand read compiles
+# with or without the AirIQ framework; when absent the engine is simply unfed,
+# so its recommendation stays "Sensor initialising" -> UNKNOWN demand.
+#
+# The blower behaviour is implemented in the header-only engine
+# include/sense360/blower_controller.h — the SAME implementation exercised by
+# the deterministic simulation tests (tests/unit/test_blower_controller.cpp and
+# tests/unit/test_blower_airiq_coexist.cpp), so tested logic and shipped logic
+# cannot drift. The contract is pinned by tests/test_blower_framework.py.
+#
+# Composition contract: only a device that explicitly composes this package
+# gets a blower output. It is NEVER part of Release-One or any stable build —
+# the blower is a fan output and the "Fans are never stable" standing gate
+# (docs/standing-invariants.md) applies unchanged: this framework ships
+# compile-only, with no config/webflash-builds.json row and no artifact.
+#
+# Every timing/threshold value below is a PROVISIONAL, software-defined
+# engineering default pending bench validation
+# (docs/hardware/blower-framework-bench-checklist.md). NO hardware, bench,
+# airflow, electrical-safety, thermal, compliance or commercial claim is made
+# by this package.
+# ============================================================================
+
+substitutions:
+  # The Core's dedicated FAN net: schematic IO21 -> Q4 SI2302S -> J13
+  # (S360-100-R4). Overridable only for a future board revision; the default is
+  # the verified R4 pin.
+  blower_fan_pin: GPIO21
+
+  # Compile-time composition capability (BLOWER-FRAMEWORK-001): is the canonical
+  # AirIQ air-quality service composed? It defaults FALSE so the blower framework
+  # composes cleanly on a device with no AirIQ — Auto then has no actionable
+  # demand and the blower stays off (fail-safe) rather than inventing a demand.
+  # A composition that includes AIRIQ-FRAMEWORK-001 overrides this to "true". It
+  # substitutes straight into the engine as a C++ bool literal, so no reference
+  # to a missing AirIQ id is ever compiled.
+  blower_has_airiq: "false"
+
+  # Auto timing windows (ms) — PROVISIONAL engineering defaults pending bench
+  # validation. Minimum run time protects the blower motor once started; the
+  # post-demand purge keeps clearing the space after the air-quality demand
+  # clears; minimum off time prevents a rapid restart. None delay the first-ever
+  # start.
+  blower_min_on_ms: "60000"
+  blower_min_off_ms: "60000"
+  blower_purge_ms: "120000"
+
+# The blower controller engine is compiled from the shared header (single
+# implementation; see tests/unit/test_blower_controller.cpp). The canonical
+# AirIQ engine is compiled here too so the demand read below resolves whether or
+# not the AirIQ framework is composed (with no AirIQ input the engine reports
+# "Sensor initialising" -> UNKNOWN demand — it never invents demand). Paths are
+# relative to the products/ config dir — the same pattern as
+# packages/features/led_framework.yaml.
+esphome:
+  includes:
+    - ../include/sense360/blower_controller.h
+    - ../include/sense360/airiq_engine.h
+  on_boot:
+    # Late boot hook (after components are set up and the persisted Blower Mode
+    # is restored): initialise the controller clock and apply the restored mode.
+    # The FAN-net GPIO output boots OFF, so it is safely off until this runs.
+    - priority: -100
+      then:
+        - lambda: |-
+            sense360::blower::global_controller().begin(millis());
+        # Publish the static "Blower Output Verification" string once at boot
+        # (that text sensor uses update_interval: never, so it is not polled).
+        - component.update: s360_blower_output_verification
+        - script.execute: s360_blower_evaluate
+
+# ----------------------------------------------------------------------------
+# Blower output (the FAN net). Binary GPIO drive of schematic IO21 -> Q4
+# SI2302S -> J13. Boots OFF; driven only by the engine via s360_blower_evaluate.
+# ----------------------------------------------------------------------------
+output:
+  - platform: gpio
+    id: blower_output
+    pin: ${blower_fan_pin}
+
+# ----------------------------------------------------------------------------
+# Evaluation — periodic tick plus immediate re-evaluation on customer actions.
+# One script owns every input/output exchange with the engine, so scripts and
+# automations cannot race each other.
+# ----------------------------------------------------------------------------
+script:
+  - id: s360_blower_evaluate
+    then:
+      - lambda: |-
+          using namespace sense360::blower;
+          auto &controller = global_controller();
+          const uint32_t now = millis();
+
+          // Compile-time composition capability (BLOWER-FRAMEWORK-001): the flag
+          // substitutes in as a C++ bool literal, so no reference to an absent
+          // AirIQ id is ever compiled. Without AirIQ, Auto has no actionable
+          // demand and the blower stays off (fail-safe).
+          controller.set_has_airiq(${blower_has_airiq});
+
+          // Customer controls (no recompilation needed for these values).
+          controller.set_mode(mode_from_string(
+              id(s360_blower_mode).current_option().c_str()));
+          controller.set_trigger(trigger_from_string(
+              id(s360_blower_auto_trigger).current_option().c_str()));
+          controller.set_min_on_ms(${blower_min_on_ms});
+          controller.set_min_off_ms(${blower_min_off_ms});
+          controller.set_purge_ms(${blower_purge_ms});
+
+          // Canonical AirIQ ventilation demand (AIRIQ-FRAMEWORK-001). The AirIQ
+          // engine singleton always resolves (its header is compiled here); when
+          // the AirIQ framework is NOT composed it is simply unfed, so its
+          // recommendation stays "Sensor initialising" -> UNKNOWN demand and the
+          // blower is never started from missing data. No pollutant threshold is
+          // duplicated here — the AirIQ engine owns pollutant truth.
+          Demand demand = demand_from_airiq_recommendation(
+              (int) sense360::airiq::global_engine().recommendation());
+          controller.input_demand(now, demand);
+
+          controller.evaluate(now);
+
+          // Apply the engine's commanded output to the FAN-net GPIO. The engine
+          // owns the output in every mode, so there is no customer toggle that
+          // can contradict the selected Blower Mode.
+          if (controller.output_on()) {
+            id(blower_output).turn_on();
+          } else {
+            id(blower_output).turn_off();
+          }
+
+          // Diagnostics (publish on change only).
+          {
+            std::string status = controller.status_string();
+            if (id(s360_blower_status).state != status) {
+              id(s360_blower_status).publish_state(status);
+            }
+            std::string demand_text = demand_to_string(controller.demand());
+            if (id(s360_blower_demand).state != demand_text) {
+              id(s360_blower_demand).publish_state(demand_text);
+            }
+          }
+
+interval:
+  - interval: 1s
+    then:
+      - script.execute: s360_blower_evaluate
+
+# ----------------------------------------------------------------------------
+# Customer configuration entities.
+# ----------------------------------------------------------------------------
+select:
+  # Blower Mode — the authoritative customer control. Default Auto (the blower
+  # operates automatically out of the box); persisted across restart.
+  - platform: template
+    id: s360_blower_mode
+    name: "Blower Mode"
+    icon: mdi:fan-auto
+    entity_category: config
+    options:
+      - "Off"
+      - "Auto"
+      - "On"
+    initial_option: "Auto"
+    optimistic: true
+    restore_value: true
+    on_value:
+      then:
+        - script.execute: s360_blower_evaluate
+
+  # Blower Auto Trigger. The AirIQ demand level at which Auto starts the blower.
+  # Conservative default: only "Ventilate now" (the AirIQ Very-poor headline);
+  # "Ventilate soon" also runs it from the Poor headline.
+  - platform: template
+    id: s360_blower_auto_trigger
+    name: "Blower Auto Trigger"
+    icon: mdi:air-filter
+    entity_category: config
+    options:
+      - "Ventilate now"
+      - "Ventilate soon"
+    initial_option: "Ventilate now"
+    optimistic: true
+    restore_value: true
+    on_value:
+      then:
+        - script.execute: s360_blower_evaluate
+
+# ----------------------------------------------------------------------------
+# Customer state (read-only) + diagnostics.
+# ----------------------------------------------------------------------------
+binary_sensor:
+  # Read-only commanded blower state (on/off). This is a representation of what
+  # the engine commanded in the selected mode, NOT a controllable switch —
+  # the customer controls the blower through Blower Mode.
+  - platform: template
+    id: blower_state
+    name: "Blower"
+    icon: mdi:fan
+    lambda: |-
+      return sense360::blower::global_controller().output_on();
+
+  # Distinct post-demand purge indication (diagnostic).
+  - platform: template
+    id: s360_blower_purging
+    name: "Blower Purging"
+    icon: mdi:weather-windy
+    entity_category: diagnostic
+    disabled_by_default: true
+    lambda: |-
+      return sense360::blower::global_controller().purging();
+
+text_sensor:
+  # What the blower control is doing, and why — including the fail-safe message
+  # when the air-quality demand is unavailable, the "AirIQ not composed" message,
+  # and the purge / minimum-off states.
+  - platform: template
+    id: s360_blower_status
+    name: "Blower Control Status"
+    icon: mdi:fan-alert
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+
+  # The canonical AirIQ ventilation demand the blower is reading (Unknown / None
+  # / Ventilate soon / Ventilate now). Unknown means missing / initialising /
+  # AirIQ not composed — deliberately distinct from None and never a demand.
+  - platform: template
+    id: s360_blower_demand
+    name: "Blower Air-Quality Demand"
+    icon: mdi:weather-windy
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+
+  # Honesty companion: states on-device why no runtime blower health / airflow /
+  # speed is reported — the J13 FAN net is a one-way binary drive with no
+  # feedback, so the blower's physical state is never verified.
+  - platform: template
+    id: s360_blower_output_verification
+    name: "Blower Output Verification"
+    icon: mdi:shield-search
+    entity_category: diagnostic
+    disabled_by_default: true
+    # Static string, so it is not polled (update_interval: never); it is
+    # published once at boot via `component.update` in the on_boot handler
+    # above. Without that boot publish this lambda-only text sensor would never
+    # run and would read "Unknown" when a user enables the entity.
+    update_interval: never
+    lambda: |-
+      return {"J13 FAN net is a one-way binary 5V drive; no tach/speed/current/"
+              "airflow/rotation feedback exists, so blower rotation is never "
+              "verified. GPIO46 is a Core status LED, not rotation feedback; the "
+              "GPIO3 relay is a separate control the blower never drives"};

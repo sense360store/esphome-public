@@ -1,0 +1,131 @@
+# ============================================================================
+# SENSE360 PRODUCT — Ceiling-Core-AirIQ-Blower (compile-only validation fixture)
+# ============================================================================
+# BLOWER-FRAMEWORK-001 (docs/architecture/sense360-blower-framework.md). The
+# representative Core + AirIQ + Blower device that motivated
+# BLOWER-FRAMEWORK-001: it composes the FULL customer blower framework driving
+# the Core's on-board FAN net (schematic IO21 -> Q4 SI2302S -> J13) together with
+# the canonical AirIQ air-quality service, proving the blower framework's Auto
+# behaviour reads the AirIQ demand contract and composes cleanly. Self-contained
+# one-deep product (its `esphome: includes:` resolve against products/, unlike
+# the two-deep compile-only skeletons) so a hosted `esphome compile` can build
+# it directly.
+#
+# Optional-input capability model (BLOWER-FRAMEWORK-001):
+#   * blower_has_airiq: "true" — AirIQ IS composed here, so the Auto behaviour
+#     follows the canonical AirIQ ventilation demand (with the min-on / purge /
+#     min-off timing state machine). A missing / initialising / unavailable
+#     demand is UNKNOWN and never starts the blower.
+# The Blower Mode select (Off / Auto / On, default Auto), the Blower Auto Trigger
+# and the read-only Blower state all work.
+#
+# Hardware honesty (verified S360-100-R4 contract):
+#   * The blower is the Core's dedicated FAN net (IO21 -> Q4 SI2302S -> J13), a
+#     two-wire binary 5 V output. NO tach / speed-PWM / current / airflow /
+#     rotation feedback exists, so this build claims none. GPIO46 (Core status
+#     LED) is never rotation feedback; the GPIO3 relay is a separate control the
+#     blower never drives.
+#
+# Status — what this YAML is NOT (identical guarantees to the compile-only
+# skeletons in products/compile-only/):
+#   * NOT a WebFlash exposed build (webflash_build_matrix: false; no
+#     config/webflash-builds.json row; no products/webflash/ wrapper; no
+#     artifact_name).
+#   * NOT a release artifact, NOT stable, NOT preview, NOT a customer default,
+#     NOT hardware/bench/airflow/compliance proof. Compile success is
+#     buildability evidence only. The blower is a fan output and stays
+#     compile-only under the "Fans are never stable" standing gate
+#     (docs/standing-invariants.md); Release-One (Ceiling-POE-VentIQ-RoomIQ) is
+#     unchanged.
+#
+# Board assembly: S360-100 Core (ceiling) + S360-210 AirIQ + the Core's on-board
+# blower on J13. No PoE/USB PSU board and no fan-driver module (the config
+# string carries no power token and no fan-driver token — this is a buildability
+# fixture, not a powered product build).
+# ============================================================================
+
+substitutions:
+  device_name: sense360-core
+  friendly_name: "Sense360 Core"
+  device_sku: S360-CORE-C
+  device_version: "0.0.0-compile-only"
+  timezone: "UTC"
+
+  log_level: INFO
+  wifi_fast_connect: "false"
+  fallback_ssid: "S360 Core AirIQ Blower"
+
+  # === Sense360 Core framework (CORE-FRAMEWORK-001) ===
+  s360_config_string: "Ceiling-Core-AirIQ-Blower"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,airiq,blower"
+  s360_capabilities_human: "Core, AirIQ, Blower"
+  s360_module_airiq: "Included"
+  s360_module_roomiq: "Not included"
+  s360_module_presence: "Not included"
+  s360_module_led: "Not included"
+
+  # === Blower framework optional-input capability (BLOWER-FRAMEWORK-001) ===
+  # AirIQ IS composed below, so the Auto behaviour is supported and follows the
+  # canonical AirIQ ventilation demand.
+  blower_has_airiq: "true"
+
+# ============================================================================
+# PACKAGE INCLUDES
+# ============================================================================
+packages:
+  # === External Components (radar firmware / AirIQ scoped components) ===
+  external_components: !include ../packages/base/external_components.yaml
+
+  # === Base System Components ===
+  base_wifi: !include ../packages/base/wifi.yaml
+  base_logging: !include ../packages/base/logging.yaml
+  base_api: !include ../packages/base/api_encrypted.yaml
+  base_ota: !include ../packages/base/ota.yaml
+  base_time: !include ../packages/base/time.yaml
+
+  # === Sense360 Core (Ceiling, S360-100-R4) ===
+  # Owns the ESP32-S3 board definition and the FAN-net GPIO (IO21).
+  core_board: !include ../packages/boards/s360-100-core-ceiling.yaml
+
+  # === Sense360 AirIQ (S360-210 board + AIRIQ-FRAMEWORK-001) ===
+  # The canonical air-quality service whose demand contract the blower reads.
+  airiq_board: !include ../packages/boards/s360-210-airiq.yaml
+  airiq_framework: !include ../packages/features/airiq_framework.yaml
+
+  # === Sense360 Blower (on-board FAN net J13 + BLOWER-FRAMEWORK-001) ===
+  # The FULL blower behaviour framework, with AirIQ composed (blower_has_airiq
+  # true). Owns the blower output on IO21 and the customer Blower controls.
+  blower_framework: !include ../packages/features/blower_framework.yaml
+
+  # === Device Health & Diagnostics ===
+  health: !include ../packages/features/device_health.yaml
+
+  # === Sense360 Core framework (CORE-FRAMEWORK-001) ===
+  framework: !include ../packages/base/device_framework.yaml
+
+# ============================================================================
+# PRODUCT IDENTIFICATION
+# ============================================================================
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Product SKU"
+    lambda: |-
+      return {"${device_sku}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} Firmware Version"
+    lambda: |-
+      return {"${device_version}"};
+    update_interval: never
+    entity_category: diagnostic
+
+  - platform: template
+    name: "${friendly_name} WebFlash Config"
+    lambda: |-
+      return {"Ceiling-Core-AirIQ-Blower"};
+    update_interval: never
+    entity_category: diagnostic

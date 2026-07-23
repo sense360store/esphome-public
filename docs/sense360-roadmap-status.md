@@ -490,6 +490,7 @@ yet**, so all of its bench evidence stays owed.
 | `S360-312-DAC-BENCH-001` | S360-312 R4 (DAC / dual GP8403) | No physical S360-312 board in hand (pre-hardware) | Measured 0–10 V output per channel; GP8403 detection + I²C address (SW1/SW2); output range/calibration; fan/controller response; current; thermal; harness/silkscreen confirmation |
 | `PRESENCE-BENCH-001` | S360-200 R4 (RoomIQ tri-sensor Presence, §13) | Bench session with assembled S360-100 + S360-200 required | Operator checklist [`docs/hardware/presence-framework-bench-checklist.md`](hardware/presence-framework-bench-checklist.md): PIR latency/false triggers, LD2450 moving/still/count/coordinates, SEN0609 static presence, fusion scenarios, disconnect/recovery, startup/clear-delay/mode timing |
 | `LED-FRAMEWORK-BENCH-001` | S360-300 R4 (LED framework, §14) | Bench session with assembled S360-100 + S360-300 + S360-200 required | Operator checklist [`docs/hardware/led-framework-bench-checklist.md`](hardware/led-framework-bench-checklist.md): colour/channel order, LED count, supply-rail identity (+5V vs +3.3V), min/max safe brightness, thermal, power draw, night-mode comfort, diffuser/flicker, restore after restart, identify/status visibility, Presence/lux automation, HA latency, failure/recovery |
+| `BLOWER-FRAMEWORK-BENCH-001` | S360-100 R4 (on-board FAN net / J13, §18) | Bench session with an assembled S360-100 and a 5 V blower on J13 required | Operator checklist [`docs/hardware/blower-framework-bench-checklist.md`](hardware/blower-framework-bench-checklist.md): FAN-net drive vs relay/status-LED separation, Manual on/off, AirIQ-driven Auto, fail-safe on unknown demand, anti-short-cycle dwell, blower current draw vs Q4 rating, thermal |
 
 ## Evidence & Bench Logs
 
@@ -1129,6 +1130,75 @@ connector identity stays with S360-100-BENCH-001; the HW-007 doc's stale
 schematic-status caveat stays with the hardware-doc chain. SOT
 programme-status propagation (VentIQ software foundation implemented) is
 an owner action in SOT, in a separate PR — never bundled here.
+
+---
+
+## 18. Blower framework (BLOWER-FRAMEWORK-001)
+
+**Status: software foundation implemented via the BLOWER-FRAMEWORK-001 PR —
+config-structure and native-simulation proof only; physical blower validation
+pending (`BLOWER-FRAMEWORK-BENCH-001`, checklist at
+[`docs/hardware/blower-framework-bench-checklist.md`](hardware/blower-framework-bench-checklist.md));
+anti-short-cycle tuning pending; no SOT, WebFlash, release or commercial state
+change. The blower is a fan output and ships COMPILE-ONLY — the *Fans are never
+stable* standing gate applies (no stable claim).**
+
+Customer-focused blower experience for the Sense360 Core's dedicated on-board
+FAN net (schematic `IO21` → `Q4` SI2302S → `J13`, a two-wire binary 5 V blower
+output): **Blower Mode** (Off / Auto / On, **default Auto**) as the authoritative
+control, **Blower Auto Trigger** (Ventilate now / Ventilate soon), and a
+read-only **Blower** state (no customer toggle — nothing contradicts the mode).
+In Auto the blower follows the canonical AirIQ ventilation demand
+(AIRIQ-FRAMEWORK-001) through a timing state machine (minimum-on, post-demand
+purge, minimum-off restart lockout). Canonical doc:
+[`docs/architecture/sense360-blower-framework.md`](architecture/sense360-blower-framework.md);
+contract tests: [`tests/test_blower_framework.py`](../tests/test_blower_framework.py);
+deterministic simulation:
+[`tests/unit/test_blower_controller.cpp`](../tests/unit/test_blower_controller.cpp)
++ [`tests/unit/test_blower_airiq_coexist.cpp`](../tests/unit/test_blower_airiq_coexist.cpp)
+over the shared engine
+[`include/sense360/blower_controller.h`](../include/sense360/blower_controller.h)
+(the same header production YAML compiles — no drift-prone second
+implementation).
+
+Scope facts (do not overclaim):
+
+* **Hardware contract** — the blower is the Core's own `FAN` net (`IO21` → `Q4`
+  SI2302S → `J13`), NOT a fan-driver module (no S360-311/312/310/320 SKU). J13
+  is a two-wire binary 5 V output with **no** tach / speed-PWM / current /
+  airflow / rotation feedback, so the framework commands only on/off and claims
+  none. `GPIO46` (`GP_Fan_Status_Led`) is a Core status indicator and is never
+  rotation feedback; the generic `GPIO3` relay (`J4`) is a separate control the
+  blower never drives.
+* **Optional AirIQ input** — the AirIQ air-quality service is the demand
+  producer but not a hard dependency. `blower_has_airiq` (default `"false"`)
+  is read through the shared engine singleton
+  `sense360::airiq::global_engine().recommendation()` (never a hard `id()`; no
+  duplicated pollutant thresholds). Without AirIQ, Auto has no actionable demand
+  and the blower stays off; a missing / initialising / unavailable demand is
+  UNKNOWN and never starts a stopped blower (fail-safe).
+* **Auto timing state machine** — provisional `blower_min_on_ms` (60 s),
+  `blower_purge_ms` (120 s), `blower_min_off_ms` (60 s): a cleared/stale demand
+  triggers minimum-run completion + a post-demand purge before stopping, then a
+  minimum-off restart lockout; the first start is never delayed. Rollover-safe
+  timing. Values are software placeholders pending bench validation.
+* **Gate posture** — the blower is a fan output and stays **compile-only** under
+  the *Fans are never stable* gate: no `config/webflash-builds.json` row, no
+  artifact, never stable / preview / customer-default / buyable / kit-exposed,
+  not in `release_one_required_configs`. Release-One (`Ceiling-POE-VentIQ-RoomIQ`)
+  is unchanged. Representative compile-only fixture:
+  `products/sense360-core-ceiling-airiq-blower.yaml` (config string
+  `Ceiling-Core-AirIQ-Blower`), cataloged `status: compile-only`,
+  `webflash_build_matrix: false`, registered in
+  `config/compile-only-targets.json` (`compile_validation_status: pending-ci`;
+  esphome is not installed in the authoring environment, so a hosted CI
+  `--compile` run is owed and no compile is fabricated).
+* **Proof recorded separately from hardware proof** — the blower controller
+  logic and the `blower_controller.h` + `airiq_engine.h` demand bridge are
+  proven by the native C++ suite (21 controller scenarios incl. the full purge /
+  timing state machine + millis rollover, plus the coexistence / enum-contract
+  pin); `tests/validate_configs.py` passes on the fixture and packages. None of
+  this is hardware, bench, airflow, compliance or commercial proof.
 
 ---
 
