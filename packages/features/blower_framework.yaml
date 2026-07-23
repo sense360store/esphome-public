@@ -133,6 +133,9 @@ esphome:
       then:
         - lambda: |-
             sense360::blower::global_controller().begin(millis());
+        # Publish the static "Blower Output Verification" string once at boot
+        # (that text sensor uses update_interval: never, so it is not polled).
+        - component.update: s360_blower_output_verification
         - script.execute: s360_blower_evaluate
 
 # ----------------------------------------------------------------------------
@@ -306,6 +309,10 @@ text_sensor:
     icon: mdi:shield-search
     entity_category: diagnostic
     disabled_by_default: true
+    # Static string, so it is not polled (update_interval: never); it is
+    # published once at boot via `component.update` in the on_boot handler
+    # above. Without that boot publish this lambda-only text sensor would never
+    # run and would read "Unknown" when a user enables the entity.
     update_interval: never
     lambda: |-
       return {"J13 FAN net is a one-way binary 5V drive; no tach/speed/current/"

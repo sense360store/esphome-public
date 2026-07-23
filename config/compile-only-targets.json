@@ -669,6 +669,8 @@
         "date": "2026-07-22",
         "run_id": 29962257302,
         "run_url": "https://github.com/sense360store/esphome-public/actions/runs/29962257302",
+        "validated_at_head_sha": "e8f755c1a12bcacfe34907ab701fd8097cd7fd85",
+        "post_validation_delta": "After this run, a diagnostics-only fix landed on the branch: the 'Blower Output Verification' text sensor (update_interval: never) is now published once at boot via a `component.update` action in on_boot, so an enabled user sees the hardware-limitation string instead of Unknown. It adds only that boot action and changes no composition, pins, thresholds or behaviour. A re-dispatch of the full-compile lane on the new HEAD is recommended for completeness (the agent environment cannot dispatch it \u2014 HTTP 403, lacks actions:write).",
         "job": "Compile-only Targets \u2014 Full ESPHome Compile",
         "job_id": 89065797144,
         "job_url": "https://github.com/sense360store/esphome-public/actions/runs/29962257302/job/89065797144",

@@ -302,6 +302,19 @@ class FrameworkPackageTests(unittest.TestCase):
         # (the string is split across C++ literals, so check the words, not a phrase)
         self.assertIn("one-way", lam)
         self.assertIn("verified", lam)
+        # It must actually publish its constant string, or an enabled user would
+        # only ever see "Unknown". A lambda-only text sensor is not published
+        # unless it is polled (update_interval != "never") or explicitly updated
+        # once at boot (component.update in on_boot).
+        polled = str(verify.get("update_interval", "never")) != "never"
+        boot_published = (
+            "component.update: s360_blower_output_verification" in self.raw
+        )
+        self.assertTrue(
+            polled or boot_published,
+            "Blower Output Verification must be polled or published at boot, else "
+            "it reads Unknown when the disabled-by-default entity is enabled",
+        )
 
     def test_never_touches_gpio46_or_gpio3_or_relay(self) -> None:
         # The Core status LED (GPIO46) is NEVER rotation feedback and the generic
