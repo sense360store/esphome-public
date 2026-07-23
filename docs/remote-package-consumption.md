@@ -294,11 +294,126 @@ even without RoomIQ so the decision is a first-class *Unknown*, never invented).
 Both the AirIQ and LED wrappers declaring the component is fine — ESPHome
 composes the single `sense360` component once.
 
+## Example 5 — Core + AirIQ + LED + RoomIQ + Presence (the full ceiling)
+
+The complete Sense360 ceiling: Core, the AirIQ air-quality service, the S360-300
+LED ring, and the S360-200 **RoomIQ** environmental service **plus the
+tri-sensor Presence** occupancy service (PIR + LD2450 radar + SEN0609), with the
+full LED framework whose automatic Night Mode Behaviours (*When dark*, *When
+dark and occupied*) are now genuinely enabled.
+
+RoomIQ + Presence ship as **one** remote wrapper —
+`packages/remote/ceiling-roomiq-presence.yaml` — that composes the RoomIQ board
+(climate + LD2450 radar), the PIR and SEN0609 presence adapters, and both the
+RoomIQ and Presence frameworks, delivering `roomiq_engine.h` and
+`presence_fusion.h` via the `sense360` external component. You do **not** create
+any `/config/include` file, declare `external_components` or `sense360:`
+yourself, copy a header, or add `esphome: includes: !remove` — the wrapper does
+all of it.
+
+Because RoomIQ and Presence are genuinely composed here, the LED framework
+declares `led_has_roomiq: "true"` and `led_has_presence: "true"`, and the
+composition additionally pulls `packages/features/led_presence_bridge.yaml` (the
+single place the fused Occupancy contract feeds the LED engine). The whole device
+therefore needs only remote `packages:` entries.
+
+```yaml
+substitutions:
+  device_name: sense360-ceiling
+  friendly_name: "Sense360 Ceiling"
+  timezone: "Europe/London"
+  device_version: "custom-remote"
+
+  # Core Framework identity (compile-time facts; adjust freely).
+  s360_config_string: "Ceiling-Core-LED-AirIQ-RoomIQ-Presence"
+  s360_hardware_model: "S360-100"
+  s360_hardware_revision: "R4"
+  s360_capabilities: "core,airiq,led,roomiq,presence"
+  s360_capabilities_human: "Core, AirIQ, LED, RoomIQ, Presence"
+  s360_module_airiq: "Included"
+  s360_module_led: "Included"
+
+  # RoomIQ + Presence are composed, so the LED framework's automatic Night Mode
+  # Behaviours are enabled (LED-FRAMEWORK-002). The RoomIQ + Presence module
+  # slots are declared by the ceiling-roomiq-presence wrapper.
+  led_has_roomiq: "true"
+  led_has_presence: "true"
+
+packages:
+  core:
+    url: https://github.com/sense360store/esphome-public
+    ref: main
+    files: [packages/hardware/sense360_core_ceiling.yaml]
+    refresh: 1d
+  core_framework:
+    url: https://github.com/sense360store/esphome-public
+    ref: main
+    files: [packages/base/device_framework.yaml]
+    refresh: 1d
+  airiq:
+    url: https://github.com/sense360store/esphome-public
+    ref: main
+    files: [packages/remote/ceiling-airiq.yaml]
+    refresh: 1d
+  led_board:
+    url: https://github.com/sense360store/esphome-public
+    ref: main
+    files: [packages/boards/s360-300-led.yaml]
+    refresh: 1d
+  roomiq_presence:
+    url: https://github.com/sense360store/esphome-public
+    ref: main
+    files: [packages/remote/ceiling-roomiq-presence.yaml]
+    refresh: 1d
+  led_framework:
+    url: https://github.com/sense360store/esphome-public
+    ref: main
+    files: [packages/remote/led-framework.yaml]
+    refresh: 1d
+  led_presence_bridge:
+    url: https://github.com/sense360store/esphome-public
+    ref: main
+    files: [packages/features/led_presence_bridge.yaml]
+    refresh: 1d
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+logger:
+  level: INFO
+
+mqtt: null
+```
+
+`esphome config` validates this, and `esphome compile` builds it, on a clean
+Home Assistant ESPHome install — no `/config/include`, no manual header copy, no
+`external_components` / `sense360:` / `esphome: includes: !remove` in this device
+YAML. The RoomIQ + Presence wrapper delivers `roomiq_engine.h` **and**
+`presence_fusion.h`; the AirIQ and LED wrappers each declare the same `sense360`
+component, which ESPHome composes once.
+
+> **The Core board is required.** The RoomIQ climate/radar sensors, the PIR and
+> the SEN0609 bind their pins by substitution from the Core board package
+> (`packages/hardware/sense360_core_ceiling.yaml`, CORE-ABSTRACT-BUS-001C). The
+> wrapper hard-codes no GPIO; always compose it alongside Core (and the Core
+> Framework, which owns the RoomIQ / Presence Module Status entities).
+
 ## Other frameworks (RoomIQ / VentIQ / LED / Presence)
 
 Every framework shares the same engine-delivery mechanism. AirIQ ships a
-dedicated board+framework wrapper (`packages/remote/ceiling-airiq.yaml`) and the
-LED behaviour framework ships a dedicated wrapper
+dedicated board+framework wrapper (`packages/remote/ceiling-airiq.yaml`), the
+RoomIQ environmental **and** tri-sensor Presence services ship together as one
+wrapper (`packages/remote/ceiling-roomiq-presence.yaml`, Example 5 above), and
+the LED behaviour framework ships a dedicated wrapper
 (`packages/remote/led-framework.yaml`, Example 4 above). For any framework
 without its own wrapper, add the shared-engines delivery package **as the last
 entry** in your `packages:` map (declaring it last lets it neutralise the

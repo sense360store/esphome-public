@@ -1,0 +1,91 @@
+# ============================================================================
+# SENSE360 REMOTE WRAPPER — Ceiling RoomIQ board + tri-sensor Presence
+# (REMOTE-ROOMIQ-PRESENCE-001)
+# ============================================================================
+# Remote-consumer entrypoint for the canonical Sense360 RoomIQ environmental
+# service (ROOMIQ-FRAMEWORK-001) AND the tri-sensor Presence occupancy service
+# (PRESENCE-FRAMEWORK-001) on the S360-200 RoomIQ board. A Home Assistant
+# ESPHome user pulls THIS single file through a git package to add the full
+# RoomIQ + Presence experience to a Sense360 device — the shared C++ engines
+# (include/sense360/roomiq_engine.h and presence_fusion.h) are delivered
+# automatically via the `sense360` external component, with no `/config/include`
+# setup, no manual header download, and no top-level
+# `esphome: includes: !remove` workaround in the consumer's device YAML.
+#
+# It composes, relative to itself inside the fetched repository:
+#   * packages/boards/s360-200-roomiq.yaml         — the RoomIQ board: the
+#       climate half (ALS + SHT4x comfort sensors) AND the radar half
+#       (HLK-LD2450 24 GHz presence radar — the LD2450 Presence channel)
+#   * packages/boards/s360-200-roomiq-pir.yaml     — the PIR movement adapter
+#       (immediate-trigger Presence channel)
+#   * packages/boards/s360-200-roomiq-sen0609.yaml — the SEN0609 static-presence
+#       adapter (still-occupant Presence channel)
+#   * packages/features/roomiq_framework.yaml      — the canonical RoomIQ
+#       environmental service (roomiq_engine.h)
+#   * packages/features/presence_framework.yaml    — the tri-sensor fusion
+#       occupancy service (presence_fusion.h)
+# and delivers their shared engine headers through the `sense360` external
+# component while removing the frameworks' repository-local `esphome: includes:`
+# entries (which resolve only for a repository-local build). Exactly one copy of
+# each engine header is compiled — the same files the native C++ unit tests
+# exercise — so nothing is duplicated and no algorithm is re-implemented.
+#
+# The frameworks bind their sensor inputs and pins by substitution only; the
+# authoritative pins (PIR IO15, SEN0609 output IO6, the Hi-Link radar UART) are
+# declared by the Core board package (CORE-ABSTRACT-BUS-001C). This wrapper
+# hard-codes no pin number and never redefines a pin.
+#
+# This wrapper changes NO firmware behaviour, sensor, threshold, entity name,
+# product, release, channel or commercial state. It is a packaging/delivery
+# convenience only.
+#
+# Composition contract — compose this wrapper alongside:
+#   * the Core board package (packages/hardware/sense360_core_ceiling.yaml —
+#     owns the RoomIQ / Presence pin declarations and the core I2C bus), AND
+#   * the Core Framework package (packages/base/device_framework.yaml — owns
+#     the "RoomIQ Module Status" and "Presence Module Status" entities these
+#     frameworks publish; per CORE-FRAMEWORK-001 it is composed exactly once by
+#     the consumer, never by this wrapper).
+# See docs/remote-package-consumption.md for a complete copy-paste device
+# example.
+#
+# Pinning: for reproducible production builds set `sense360_remote_ref` to a
+# release tag (e.g. v1.0.0) to match the `ref:` your `packages:` entries pin.
+# `sense360_remote_url` exists so automated tests can retarget the engine
+# delivery at a local fixture repository; leave it at the default for real use.
+# ============================================================================
+
+substitutions:
+  sense360_remote_url: https://github.com/sense360store/esphome-public
+  sense360_remote_ref: main
+  # Declare the RoomIQ and Presence modules for the Core Framework "RoomIQ
+  # Module Status" / "Presence Module Status" entities (compile-time presence
+  # only; overridable by the consumer).
+  s360_module_roomiq: "Included"
+  s360_module_presence: "Included"
+
+external_components:
+  - source:
+      type: git
+      url: ${sense360_remote_url}
+      ref: ${sense360_remote_ref}
+      path: include
+    components: [sense360]
+    refresh: 1d
+
+# Load the shared-engine delivery component (its to_code #includes the headers).
+sense360:
+
+packages:
+  roomiq_board: !include ../boards/s360-200-roomiq.yaml
+  roomiq_pir: !include ../boards/s360-200-roomiq-pir.yaml
+  roomiq_sen0609: !include ../boards/s360-200-roomiq-sen0609.yaml
+  roomiq_framework: !include ../features/roomiq_framework.yaml
+  presence_framework: !include ../features/presence_framework.yaml
+
+# Remove the frameworks' repository-local include paths (roomiq_engine.h and
+# presence_fusion.h); the headers are now delivered by the `sense360` external
+# component above. The frameworks' other `esphome:` keys (e.g. the RoomIQ
+# on_boot engine-init hook) are preserved — only `includes` is removed.
+esphome:
+  includes: !remove
