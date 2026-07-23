@@ -33,18 +33,20 @@
        products/webflash/ceiling-poe-roomiq.yaml
 -->
 
-The `Ceiling-POE-RoomIQ` firmware exposes **92 entities** to Home Assistant.
+The `Ceiling-POE-RoomIQ` firmware exposes **94 entities** to Home Assistant.
 
 Entity names below appear in Home Assistant prefixed with the device's friendly name, which you choose during setup (firmware default: `Sense360 Ceiling RoomIQ`). Firmware-internal measurements (marked `internal` in the YAML) never reach Home Assistant and are not listed.
 
 | Entity | Type | Unit | Notes |
 |---|---|---|---|
+| BMP581 Temperature | Sensor | °C | device class: temperature; diagnostic entity; disabled by default |
 | Climate Data Age | Sensor | s | diagnostic entity; disabled by default |
 | Humidity | Sensor | % | device class: humidity |
 | Illuminance | Sensor | lx | device class: illuminance |
 | Illuminance Data Age | Sensor | s | diagnostic entity; disabled by default |
 | Internal Temperature | Sensor | °C | — |
 | Presence Score | Sensor | % | disabled by default |
+| Pressure | Sensor | hPa | device class: atmospheric_pressure |
 | Radar Data Age | Sensor | s | diagnostic entity; disabled by default |
 | Radar Moving Target Count | Sensor | — | diagnostic entity; disabled by default |
 | Radar Still Target Count | Sensor | — | diagnostic entity; disabled by default |

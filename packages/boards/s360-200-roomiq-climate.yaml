@@ -51,15 +51,17 @@
 # firmware representation is exactly "both sensors on core_i2c, no enable
 # sequence"; there is no power/enable step to add.
 #
-# RUNTIME CAVEAT (no false proof): on the physical S360-200-R4 board currently
-# under test the I2C scan reports only the AirIQ sensors (0x59 / 0x60 / 0x62)
-# and does NOT list 0x29 (LTR) or 0x44 (SHT45). The bus itself is proven live
-# (AirIQ answers on it), so the non-appearance of the RoomIQ climate sensors is
-# a PHYSICAL population / connector-seating / +3.3 V-rail question on that
-# specific assembly — NOT a firmware bus/address error (both are schematic-
-# proven above). This package therefore represents the schematic-correct driver;
-# it makes NO claim that the sensors currently respond or produce valid
-# measurements. On-hardware confirmation remains pending bench
+# RUNTIME UPDATE (S360-200-R4-BMP581-001): the physical S360-200-R4 board now
+# under test reports an I2C scan of 0x29 (LTR-303ALS-01), 0x44 (SHT45), 0x47
+# (fitted device), 0x59 (SGP41), 0x60 (STM8/MICS) and 0x62 (SCD41), with the
+# LTR-303ALS-01 and SHT45 both initialising successfully — superseding the
+# earlier assembly where the RoomIQ climate sensors did not appear. The 0x47
+# device is the fitted BMP581 pressure sensor (U4, JP1 default VDD strap ->
+# 0x47; see the BMP581 block below), previously unclaimed because this package
+# had no BMP driver. This package now drives it. The driver is schematic/BOM-
+# correct; runtime presence on the scan proves the parts ACK on the bus, but
+# this package still makes NO claim of measurement accuracy or calibration —
+# on-hardware validation remains pending bench
 # (docs/hardware/roomiq-framework-bench-checklist.md).
 #
 # Source-of-truth inversion: the body below previously lived in
@@ -88,6 +90,9 @@ substitutions:
   # (roomiq_illuminance_stale_ms: 60000).
   comfort_ceiling_ltr_update: 10s
   comfort_ceiling_sht4x_update: 30s
+  # Barometric-pressure cadence (BMP581, U4). 30 s matches the SHT4x comfort
+  # cadence; atmospheric pressure changes slowly so no faster cadence is needed.
+  comfort_ceiling_bmp581_update: 30s
 
 # ============================================================================
 # SENSORS
@@ -174,6 +179,84 @@ sensor:
     precision: High
     heater_power: "Low"
 
+  # ============================================================================
+  # BMP581 - Barometric Pressure Sensor (Bosch Sensortec, U4)
+  # BOM MFR#: BMP581  ·  I2C Address: 0x47 (JP1 default `VDD` strap)
+  # ============================================================================
+  # S360-200-R4-BMP581-001 — the fitted RoomIQ pressure part.
+  #
+  # Verified against the primary sources:
+  #   * Schematic (docs/hardware/schematics/S360-200-R4.pdf, sheet "Pressure
+  #     Sensor BMP581"): U4 is a Bosch BMP581 with CS tied to +3.3 V (I2C mode),
+  #     SCK/SCL (pin 2) + SDI/SDO/SDA (pin 4) on the SHARED I2C bus — the same
+  #     `I2C_SCL`/`I2C_SDA` nets as U1/U2 (so it sits on `core_i2c`, not a
+  #     private bus). Powered from +3.3 V via VDD/VDDIO (J6 pin 7); no I2C mux,
+  #     no enable line — identical power/enable posture to U1/U2.
+  #   * Address strap: the `add` net (SDO/SA0, U4 pin 5) runs to the 3-pin JP1
+  #     jumper with R3 10 k pull-up to +3.3 V. The on-sheet legend reads
+  #     GND -> 0x46, VDD (Default) -> 0x47, Open -> SPI. The board ships the
+  #     default VDD strap, so the fitted 7-bit address is 0x47 — which is
+  #     exactly the previously-unclaimed device the runtime I2C scan reports at
+  #     0x47 (the other scanned addresses map to LTR 0x29, SHT45 0x44, SGP41
+  #     0x59, STM8/MICS 0x60, SCD41 0x62).
+  #   * BOM (docs/hardware/artifacts/S360-200-R4.md, U4): MFR# `BMP581`, Bosch
+  #     Sensortec. The KiCad footprint library reuses a `BMP390` symbol name,
+  #     but the manufacturer part number is authoritative — the fitted part is
+  #     the BMP581, NOT a BMP390/BMP3xx/BMP280. The bmp581 driver is therefore
+  #     the correct (and only compatible) ESPHome driver for this part.
+  #
+  # ESPHome platform: `bmp581_i2c` — the BMP581 driver was split into
+  # `bmp581_i2c` / `bmp581_spi` (the bare `bmp581` platform name is retired and
+  # now errors with a rename notice). This board uses the I2C variant.
+  #
+  # Entity policy (S360-200-R4-BMP581-001): atmospheric pressure is the
+  # customer-facing output. The BMP581's own temperature channel is exposed
+  # only as a disabled-by-default DIAGNOSTIC entity — SHT45 (U2) remains the
+  # canonical RoomIQ temperature source, and this driver does NOT touch the
+  # SHT45 temperature/humidity inputs above. Pressure is an independent entity:
+  # it is NOT wired into RoomIQ framework availability in this slice.
+  # ============================================================================
+  - platform: bmp581_i2c
+    id: comfort_ceiling_bmp581
+    i2c_id: ${comfort_ceiling_i2c_id}
+    address: 0x47
+    update_interval: ${comfort_ceiling_bmp581_update}
+
+    # Customer-facing atmospheric pressure. The BMP581 driver reports pressure
+    # in pascals; convert to hPa (the conventional atmospheric-pressure unit)
+    # for the customer entity. Oversampling + IIR filter follow the driver
+    # defaults appropriate for slow-moving barometric pressure.
+    pressure:
+      id: comfort_ceiling_pressure
+      name: "${friendly_name} Pressure"
+      device_class: atmospheric_pressure
+      state_class: measurement
+      unit_of_measurement: "hPa"
+      accuracy_decimals: 1
+      icon: mdi:gauge
+      oversampling: 16X
+      iir_filter: 4X
+      filters:
+        - multiply: 0.01  # Pa -> hPa
+        - throttle: ${comfort_ceiling_bmp581_update}
+
+    # BMP581 die temperature — DIAGNOSTIC ONLY, disabled by default. SHT45 (U2)
+    # is the canonical RoomIQ temperature; this channel is exposed purely for
+    # advanced diagnostics and must never be treated as the room temperature.
+    temperature:
+      id: comfort_ceiling_bmp_temperature
+      name: "${friendly_name} BMP581 Temperature"
+      entity_category: diagnostic
+      disabled_by_default: true
+      accuracy_decimals: 2
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      icon: mdi:thermometer
+      oversampling: 2X
+      filters:
+        - throttle: ${comfort_ceiling_bmp581_update}
+
 # ============================================================================
 # AMBIENT LIGHT INTERRUPT (raw diagnostic line — schematic ALS_INT net)
 # ============================================================================
@@ -244,6 +327,7 @@ esphome:
             ESP_LOGI("comfort_ceiling", "Comfort Ceiling module initialized");
             ESP_LOGI("comfort_ceiling", "  - LTR-303ALS-01 ALS at 0x29");
             ESP_LOGI("comfort_ceiling", "  - SHT45 Temp/Humidity at 0x44");
+            ESP_LOGI("comfort_ceiling", "  - BMP581 Pressure at 0x47");
 
 # The legacy 30 s comfort-calculation interval now lives in
 # packages/features/comfort_basic_profile.yaml (see the globals note above).

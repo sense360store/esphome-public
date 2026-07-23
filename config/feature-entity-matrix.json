@@ -82,7 +82,7 @@
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml"
       ],
-      "notes": "Merged comfort + presence room-sensor board. Catalog BOM (config/hardware-catalog.json): PIR (EKMC1601111), LD2450, SEN0609/C4001, LTR-303ALS light, SHT4x temp/humidity, BMP581 pressure. The canonical YAML composes an LTR-303ALS-01 ALS (@0x29 via ltr_als_ps) + SHT45 climate half and an LD2450 radar half; S360-200-R4-HARDWARE-RECONCILIATION-001 reconciled the ambient-light driver to the catalog BOM part (the earlier VEML7700 drift is removed). BMP581 pressure still surfaces NO entity today; the PIR and SEN0609 channels are provided by the separate roomiq-pir / roomiq-sen0609 board adapters when composed.",
+      "notes": "Merged comfort + presence room-sensor board. Catalog BOM (config/hardware-catalog.json): PIR (EKMC1601111), LD2450, SEN0609/C4001, LTR-303ALS light, SHT4x temp/humidity, BMP581 pressure. The canonical YAML composes an LTR-303ALS-01 ALS (@0x29 via ltr_als_ps) + SHT45 climate half and an LD2450 radar half; S360-200-R4-HARDWARE-RECONCILIATION-001 reconciled the ambient-light driver to the catalog BOM part (the earlier VEML7700 drift is removed). S360-200-R4-BMP581-001 added the fitted BMP581 pressure driver (bmp581_i2c @0x47, JP1 default VDD strap) so barometric pressure now surfaces as a customer-facing entity; the PIR and SEN0609 channels are provided by the separate roomiq-pir / roomiq-sen0609 board adapters when composed.",
       "rows": [
         {
           "row": "Temperature (SHT4x @0x44)",
@@ -161,12 +161,12 @@
           "kind": "sensor-entity",
           "derivation": "design-derived",
           "required": true,
-          "status": "missing",
-          "present_as": null,
-          "defined_in": null,
+          "status": "present",
+          "present_as": "sensor comfort_ceiling_pressure (\"<friendly_name> Pressure\", customer-facing, hPa, device_class atmospheric_pressure) via platform bmp581_i2c @0x47 on core_i2c; BMP581 die temperature exposed only as the disabled-by-default diagnostic sensor comfort_ceiling_bmp_temperature (SHT45 remains the canonical RoomIQ temperature)",
+          "defined_in": "packages/boards/s360-200-roomiq-climate.yaml",
           "confirm": "none",
-          "queued_fill_slice": "ENTITY-FILL-200-PRESSURE-001",
-          "notes": "BOM lists BMP581 pressure on the RoomIQ +3.3V rail; no pressure entity exists in the RoomIQ YAML today."
+          "queued_fill_slice": null,
+          "notes": "Filled by S360-200-R4-BMP581-001 (executed ENTITY-FILL-200-PRESSURE-001): BMP581 (U4) driven by ESPHome bmp581_i2c at the JP1-default VDD-strap address 0x47 on the shared core_i2c bus, verified against the S360-200-R4 schematic + BOM and the runtime I2C scan (0x47 ACKs). Pressure is a standalone customer entity and is NOT wired into RoomIQ framework availability. Runtime presence proves the part ACKs on the bus; measurement accuracy/calibration remains pending bench."
         },
         {
           "row": "Comfort indices exposed as HA entities (dew point, heat index, comfort index)",

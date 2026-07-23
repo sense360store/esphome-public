@@ -266,11 +266,42 @@ to the later Release-One YAML audit PR.
    schematic but the sheet does not state whether the names are from the
    Core's perspective or the radar module's perspective. Confirm before any
    firmware UART configuration relies on the directionality.
+
+   **LD2450 inspection (S360-200-R4-BMP581-001, no firmware change).** Runtime
+   evidence from the physical board shows the LD2450 reporting firmware version
+   `0.00.00000000`, MAC unknown, and no radar frames — the classic signature of
+   the ESP RX line not receiving the radar's TX output. The current firmware
+   binds the Hi-Link UART as **ESP TX = `IO2` (`Hi-Link_TX` net), ESP RX = `IO1`
+   (`Hi-Link_RX` net)** at 256000 baud (the LD2450 default), which is
+   self-consistent with the Core schematic's own labelling
+   ([`s360-100-r4-core.md`](./s360-100-r4-core.md): `IO2` = "Hi-Link radar UART
+   TX", `IO1` = "Hi-Link radar UART RX") — i.e. correct **only if** the net
+   names are from the Core/ESP perspective. If the names are instead from the
+   radar-module perspective (`Hi-Link_TX` = the wire on the module's TX pad),
+   `IO1`/`IO2` are swapped and the ESP never hears the radar — which matches the
+   observed symptom. The primary schematic **cannot** disambiguate this on its
+   own, because the module-side pin identity at `J2` is itself unverified (open
+   question 7) and the sheet routes the two nets passively from `J6` straight to
+   `J2` without a direction annotation. Per the standing rule, **pins are NOT
+   swapped in firmware without primary-schematic or continuity evidence.** The
+   bench must, in order: (a) confirm `+5V`/`GND` are present at `J2` and the
+   LD2450 is populated and seated; (b) probe continuity from `IO1`/`IO2`
+   (through `J10`→`J6`→`J2`) to the physical LD2450 `TX`/`RX` pads — `IO2` must
+   land on the module `RX` pad and `IO1` on the module `TX` pad; (c) scope
+   `IO1` for ~256000-baud radar chatter. Only if continuity/scope prove the
+   lines are crossed should `tx_pin`/`rx_pin` be swapped — in a **separate**
+   change from this BMP581 PR.
 5. **`JP1` BMP581 address strap** position used in production. The schematic
    shows the four possible states (`GND` → 0x46, `VDD` → 0x47 default, `Open`
    → SPI, `Both` → undefined) but does not commit to one. Confirm which
    position is actually fitted on the Release-One assembly so the firmware I²C
    address (`0x46` vs `0x47`) can be set correctly.
+   **Firmware status (S360-200-R4-BMP581-001):** firmware now drives the
+   BMP581 at the schematic-default **0x47** (`VDD` strap) via the `bmp581_i2c`
+   platform, corroborated by the runtime I²C scan answering at 0x47. Bench
+   confirmation of the physically-fitted strap remains owed; if a board is
+   fitted `GND` (0x46) the firmware address must be reconciled. See
+   [`packages/boards/s360-200-roomiq-climate.yaml`](../../packages/boards/s360-200-roomiq-climate.yaml).
 6. **LD2450 / SEN0609 population in Release-One.** Confirm whether both `J2`
    (Hi-Link LD2450) and `J3` (DFRobot SEN0609 / C4001) are populated on the
    Release-One RoomIQ build, or whether one of them is optional / DNP. This
