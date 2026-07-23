@@ -82,7 +82,7 @@
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml"
       ],
-      "notes": "Merged comfort + presence room-sensor board. Catalog BOM (config/hardware-catalog.json): PIR (EKMC1601111), LD2450, SEN0609/C4001, LTR-303ALS light, SHT4x temp/humidity, BMP581 pressure. The current canonical YAML composes a VEML7700 ALS + SHT4x climate half and an LD2450 radar half only \u2014 three BOM sensors (SEN0609 second radar, EKMC PIR, BMP581 pressure) surface NO entity today, and the ambient-light part in YAML (VEML7700) differs from the catalog BOM part (LTR-303ALS-01).",
+      "notes": "Merged comfort + presence room-sensor board. Catalog BOM (config/hardware-catalog.json): PIR (EKMC1601111), LD2450, SEN0609/C4001, LTR-303ALS light, SHT4x temp/humidity, BMP581 pressure. The canonical YAML composes an LTR-303ALS-01 ALS (@0x29 via ltr_als_ps) + SHT45 climate half and an LD2450 radar half; S360-200-R4-HARDWARE-RECONCILIATION-001 reconciled the ambient-light driver to the catalog BOM part (the earlier VEML7700 drift is removed). BMP581 pressure still surfaces NO entity today; the PIR and SEN0609 channels are provided by the separate roomiq-pir / roomiq-sen0609 board adapters when composed.",
       "rows": [
         {
           "row": "Temperature (SHT4x @0x44)",
@@ -114,11 +114,11 @@
           "derivation": "design-derived",
           "required": true,
           "status": "partial",
-          "present_as": "sensor s360_illuminance (\"Illuminance\", calibrated canonical output via the RoomIQ framework) over the compiled driver comfort_ceiling_illuminance (VEML7700 @0x10, internal)",
+          "present_as": "sensor s360_illuminance (\"Illuminance\", calibrated canonical output via the RoomIQ framework) over the compiled driver comfort_ceiling_illuminance (LTR-303ALS-01 @0x29 via ltr_als_ps, internal)",
           "defined_in": "packages/features/roomiq_framework.yaml",
           "confirm": "needs-schematic-reconcile",
           "queued_fill_slice": "ENTITY-RECONCILE-200-ALS-001",
-          "notes": "An illuminance entity exists, but the live driver (VEML7700 @0x10) differs from the catalog BOM part (LTR-303ALS-01). ROOMIQ-FRAMEWORK-001 deliberately changed no compiled sensor, names the customer entity \"Illuminance\" (never a part name) and tracks the identity in the bench checklist; reconcile against the landed schematic/BOM before locking."
+          "notes": "An illuminance entity exists. S360-200-R4-HARDWARE-RECONCILIATION-001 corrected the compiled driver to the schematic/BOM part (LTR-303ALS-01 @0x29 via the built-in ltr_als_ps platform; the earlier VEML7700 @0x10 drift is removed), so the driver identity now matches the catalog BOM. The customer entity stays named \"Illuminance\" (never a part name); on-hardware sensor response remains a pending bench item (the board under test does not yet list 0x29 on its I2C scan)."
         },
         {
           "row": "mmWave presence / occupancy (LD2450)",

@@ -9,10 +9,58 @@
 # radar presence on the RoomIQ J10 Hi-Link UART), each bound separately by the
 # legacy core-ceiling product family. So the RoomIQ board layer is authoritative
 # PER DRIVER: this file is the authoritative, self-contained definition of the
-# ceiling climate/comfort half (VEML7700 ALS @ 0x10 + SHT4x temp/humidity @ 0x44
-# on `comfort_ceiling_i2c_id: core_i2c`, CORE-ABSTRACT-BUS-001B), and the
+# ceiling climate/comfort half (LTR-303ALS-01 ALS @ 0x29 + SHT45 temp/humidity
+# @ 0x44 on `comfort_ceiling_i2c_id: core_i2c`, CORE-ABSTRACT-BUS-001B), and the
 # production-facing merged board `s360-200-roomiq.yaml` composes this half with
 # the radar half `s360-200-roomiq-radar.yaml`.
+#
+# ----------------------------------------------------------------------------
+# S360-200-R4-HARDWARE-RECONCILIATION-001 — climate driver corrected to the
+# verified R4 schematic + BOM.
+# ----------------------------------------------------------------------------
+# Reconciled against the verified S360-200-R4 schematic
+# (docs/hardware/schematics/S360-200-R4.pdf) and the R4 BOM artifact record
+# (docs/hardware/artifacts/S360-200-R4.md, HW-BOM-ASSETS-001):
+#
+#   FITTED AMBIENT-LIGHT SENSOR (U1): Lite-On LTR-303ALS-01 (BOM MFR#
+#     `LTR-303ALS-01`). I2C, fixed 7-bit address 0x29 (datasheet-fixed for the
+#     LTR-303/329 family; ESPHome ltr_als_ps default), with an `ALS_INT`
+#     interrupt output (U1 pin 5 → J6 pin 9). Powered directly from +3.3 V
+#     (J6 pin 7). Driven here by ESPHome's official built-in `ltr_als_ps`
+#     platform in ALS-only (`type: ALS`) mode.
+#
+#     The previously-compiled `veml7700` @ 0x10 was firmware drift: no VEML7700
+#     appears on the R4 schematic, the R4 BOM, or the hardware catalog, and the
+#     physical board under test does NOT respond at 0x10. It is REMOVED. This
+#     resolves the ROOMIQ-FRAMEWORK-001 ambient-light identity conflict:
+#     firmware now drives the schematic/BOM part (LTR-303ALS-01 @ 0x29).
+#
+#   FITTED TEMPERATURE/HUMIDITY SENSOR (U2): Sensirion SHT45 (BOM MFR#
+#     `SHT45-AD1B-R3`; SHT4x family). I2C only, no interrupt routed. The
+#     `AD1B` variant is the 0x44 I2C-address part (`A` = 0x44; the `B` variant
+#     would be 0x45) — so the compiled 0x44 is schematic/BOM-correct and is
+#     UNCHANGED. Powered directly from +3.3 V (J6 pin 7). Driven by ESPHome's
+#     built-in `sht4x` platform (the correct platform for the SHT45).
+#
+# Shared-bus / power honesty (schematic-proven): U1 and U2 sit on the SINGLE
+# shared Core I2C bus (`core_i2c`, J6 pins 10 SDA / 11 SCL). Both are powered
+# directly from the +3.3 V rail (J6 pin 7) — there is NO on-board I2C mux, no
+# analog switch, no regulator-enable line and no module power-control pin on the
+# S360-200-R4 for either sensor (verified: the R4 schematic routes +3.3 V
+# straight to U1/U2 with only local decoupling — C5/C6/C7). So the correct
+# firmware representation is exactly "both sensors on core_i2c, no enable
+# sequence"; there is no power/enable step to add.
+#
+# RUNTIME CAVEAT (no false proof): on the physical S360-200-R4 board currently
+# under test the I2C scan reports only the AirIQ sensors (0x59 / 0x60 / 0x62)
+# and does NOT list 0x29 (LTR) or 0x44 (SHT45). The bus itself is proven live
+# (AirIQ answers on it), so the non-appearance of the RoomIQ climate sensors is
+# a PHYSICAL population / connector-seating / +3.3 V-rail question on that
+# specific assembly — NOT a firmware bus/address error (both are schematic-
+# proven above). This package therefore represents the schematic-correct driver;
+# it makes NO claim that the sensors currently respond or produce valid
+# measurements. On-hardware confirmation remains pending bench
+# (docs/hardware/roomiq-framework-bench-checklist.md).
 #
 # Source-of-truth inversion: the body below previously lived in
 # `packages/expansions/comfort_ceiling.yaml` and the board package was a thin
@@ -30,13 +78,15 @@ substitutions:
 
   # ALS Interrupt pin (directly to core GPIO)
   # CORE-ABSTRACT-BUS-001C: rebound from GPIO3 to GPIO47 (the schematic-correct
-  # ALS_INT net per S360-100-R4 IO47 = ALS_INT, RoomIQ J10 pin 9). The previous
-  # GPIO3 binding collided with the schematic-correct relay_pin: GPIO3 and is
-  # freed for the relay slice (CORE-ABSTRACT-BUS-001A).
+  # ALS_INT net per S360-100-R4 IO47 = ALS_INT, RoomIQ J6 pin 9 = U1 pin 5). The
+  # previous GPIO3 binding collided with the schematic-correct relay_pin: GPIO3
+  # and is freed for the relay slice (CORE-ABSTRACT-BUS-001A).
   comfort_ceiling_als_int_pin: GPIO47
 
-  # Sensor update intervals
-  comfort_ceiling_veml7700_update: 10s
+  # Sensor update intervals. The illuminance cadence is kept at 10 s to match
+  # the RoomIQ framework's illuminance freshness window
+  # (roomiq_illuminance_stale_ms: 60000).
+  comfort_ceiling_ltr_update: 10s
   comfort_ceiling_sht4x_update: 30s
 
 # ============================================================================
@@ -44,22 +94,30 @@ substitutions:
 # ============================================================================
 sensor:
   # ============================================================================
-  # VEML7700 - High-Resolution Ambient Light Sensor (Vishay)
-  # I2C Address: 0x10
+  # LTR-303ALS-01 - Ambient Light Sensor (Lite-On, U1)
+  # I2C Address: 0x29 (fixed by the part; ESPHome ltr_als_ps default)
   # ============================================================================
-  # Features:
-  # - 16-bit resolution
-  # - Wide dynamic range: 0.0036 to 220,000+ lux
-  # - White channel for color-neutral light measurement
-  # - Configurable interrupt thresholds
+  # ESPHome official built-in component: ltr_als_ps
+  #   https://esphome.io/components/sensor/ltr_als_ps/
+  # Configured as an ALS-ONLY device (type: ALS) — the S360-200-R4 fits this
+  # part purely for ambient-light sensing; there is NO proximity emitter, so NO
+  # proximity entities / behaviour are configured. `auto_mode: true` lets the
+  # driver pick gain + integration time automatically across the room's dynamic
+  # range. No glass_attenuation_factor is set (default 1.0): the R4 schematic /
+  # BOM prove no specific lens/diffuser attenuation, so a scaling factor is not
+  # asserted.
   # ============================================================================
-  - platform: veml7700
-    id: comfort_ceiling_veml7700
+  - platform: ltr_als_ps
+    id: comfort_ceiling_ltr303
     i2c_id: ${comfort_ceiling_i2c_id}
-    address: 0x10
-    update_interval: ${comfort_ceiling_veml7700_update}
+    address: 0x29
+    type: ALS
+    auto_mode: true
+    update_interval: ${comfort_ceiling_ltr_update}
 
-    # Auto-adjusting lux measurement (compensated)
+    # Framework-facing illuminance source (contract preserved):
+    # id `comfort_ceiling_illuminance` is the raw internal lux the RoomIQ
+    # framework consumes via roomiq_illuminance_source_id.
     ambient_light:
       id: comfort_ceiling_illuminance
       name: "${friendly_name} Illuminance"
@@ -68,43 +126,19 @@ sensor:
       unit_of_measurement: "lx"
       icon: mdi:brightness-5
       filters:
-        - throttle: ${comfort_ceiling_veml7700_update}
-
-    # Raw ambient light (for calibration/debugging)
-    ambient_light_counts:
-      id: comfort_ceiling_als_counts
-      name: "${friendly_name} ALS Counts"
-      internal: true
-      accuracy_decimals: 0
-
-    # Full spectrum (white channel) measurement
-    full_spectrum:
-      id: comfort_ceiling_full_spectrum
-      name: "${friendly_name} Full Spectrum"
-      internal: true
-      accuracy_decimals: 1
-      unit_of_measurement: "lx"
-
-    # Full spectrum raw counts
-    full_spectrum_counts:
-      id: comfort_ceiling_fs_counts
-      name: "${friendly_name} FS Counts"
-      internal: true
-      accuracy_decimals: 0
-
-    # Sensor configuration
-    auto_mode: true
-    gain: 1X
-    integration_time: 100ms
+        - throttle: ${comfort_ceiling_ltr_update}
 
   # ============================================================================
-  # SHT4x - High-Accuracy Temperature/Humidity Sensor (Sensirion)
-  # I2C Address: 0x44
+  # SHT45 - High-Accuracy Temperature/Humidity Sensor (Sensirion, U2)
+  # BOM MFR#: SHT45-AD1B-R3  ·  I2C Address: 0x44 (the AD1B address variant)
   # ============================================================================
-  # Specifications:
-  # - Temperature accuracy: +/- 0.2°C (typical)
-  # - Humidity accuracy: +/- 1.8% RH (typical)
-  # - Response time: 5.8s (humidity 63% step)
+  # Specifications (SHT45):
+  # - Temperature accuracy: +/- 0.1°C (typical)
+  # - Humidity accuracy: +/- 1.0% RH (typical)
+  # Powered directly from +3.3 V (J6 pin 7); no enable/power-control line and no
+  # I2C mux/switch on the S360-200-R4 — the sht4x platform talks to it directly
+  # on the shared core_i2c bus. `platform: sht4x` is the correct ESPHome
+  # platform for the SHT45.
   # ============================================================================
   - platform: sht4x
     id: comfort_ceiling_sht4x
@@ -141,8 +175,15 @@ sensor:
     heater_power: "Low"
 
 # ============================================================================
-# AMBIENT LIGHT INTERRUPT (Optional - for threshold-based triggers)
+# AMBIENT LIGHT INTERRUPT (raw diagnostic line — schematic ALS_INT net)
 # ============================================================================
+# The LTR-303ALS-01 INT output (U1 pin 5) is an open-drain, active-low line
+# pulled to +3.3 V by one of R1/R2 (10 k) and routed to J6 pin 9 → Core GPIO47
+# (S360-100-R4 IO47 = ALS_INT). ESPHome's ltr_als_ps ALS-only path does not
+# arm the LTR interrupt thresholds, so this GPIO binary_sensor is a raw,
+# internal diagnostic reflection of the physical net only (it stays at its
+# pulled-up inactive level in normal operation); it exposes NO customer entity
+# and NO proximity behaviour.
 binary_sensor:
   - platform: gpio
     id: comfort_ceiling_als_interrupt
@@ -153,7 +194,7 @@ binary_sensor:
       mode:
         input: true
         pullup: true
-      inverted: true  # VEML7700 interrupt is active-low
+      inverted: true  # LTR-303ALS-01 INT is open-drain, active-low
     filters:
       - delayed_on: 10ms
       - delayed_off: 10ms
@@ -161,7 +202,7 @@ binary_sensor:
       then:
         - logger.log:
             level: DEBUG
-            format: "VEML7700 interrupt triggered - light level threshold crossed"
+            format: "LTR-303ALS-01 ALS_INT asserted (raw diagnostic line)"
 
 # ============================================================================
 # GLOBALS FOR COMFORT CEILING MODULE TRACKING
@@ -201,8 +242,8 @@ esphome:
             id(power_comfort_ceiling_ma) = 50.0f;
 
             ESP_LOGI("comfort_ceiling", "Comfort Ceiling module initialized");
-            ESP_LOGI("comfort_ceiling", "  - VEML7700 ALS at 0x10");
-            ESP_LOGI("comfort_ceiling", "  - SHT4x Temp/Humidity at 0x44");
+            ESP_LOGI("comfort_ceiling", "  - LTR-303ALS-01 ALS at 0x29");
+            ESP_LOGI("comfort_ceiling", "  - SHT45 Temp/Humidity at 0x44");
 
 # The legacy 30 s comfort-calculation interval now lives in
 # packages/features/comfort_basic_profile.yaml (see the globals note above).

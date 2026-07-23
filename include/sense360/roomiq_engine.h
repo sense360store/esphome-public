@@ -47,10 +47,11 @@
 //   * Temperature and humidity share one physical sensor (SHT4x): their
 //     shared failure shows honestly as both channels going stale together;
 //     the engine still tracks them independently.
-//   * The ambient-light part identity is UNRESOLVED (catalog/BOM:
-//     LTR-303ALS-01; compiled firmware: VEML7700 at 0x10). This engine
-//     consumes lux samples without claiming a sensor model; identity
-//     resolution is bench/catalog work.
+//   * The ambient-light driver is reconciled to the schematic/BOM part
+//     (LTR-303ALS-01 @ 0x29 via ltr_als_ps;
+//     S360-200-R4-HARDWARE-RECONCILIATION-001). This engine consumes lux
+//     samples without claiming a sensor model; on-hardware measurement
+//     validity remains bench work.
 //
 // Nothing in this header claims hardware validation.
 // ============================================================================

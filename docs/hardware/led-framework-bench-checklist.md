@@ -25,9 +25,11 @@ but must never fill in results or evidence claims.
       `docs/hardware/s360-300-r4-led.md`, S360-300-BENCH-001).
 - [ ] Confirm the physical LED count against the silkscreen (firmware
       asserts 12 for the ceiling ring — not yet silkscreen-verified).
-- [ ] Confirm which ambient-light sensor the S360-200 actually carries
-      (hardware catalog says LTR-303ALS; compiled firmware drives a
-      VEML7700 at 0x10 — documentation-vs-firmware mismatch to resolve).
+- [ ] Confirm the S360-200 ambient-light sensor responds on hardware:
+      firmware is now reconciled to LTR-303ALS-01 @ 0x29 (built-in
+      `ltr_als_ps`, S360-200-R4-HARDWARE-RECONCILIATION-001); the board under
+      test does not yet answer at 0x29, so darkness automation stays Unknown /
+      fail-safe until the sensor is confirmed live on the I²C bus.
 
 ## Room Light basics
 

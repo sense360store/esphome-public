@@ -41,7 +41,7 @@
       "display_name": "RoomIQ",
       "kind": "module",
       "hardware_sku": "S360-200",
-      "description": "RoomIQ environmental-service firmware compiled from the RoomIQ climate half (SHT4x temperature/humidity + VEML7700 ambient light) on the S360-200 board, with the ROOMIQ-FRAMEWORK-001 customer experience (calibrated Temperature/Humidity/Illuminance, Comfort, Environment State, Brightness and the canonical darkness service consumed by LED; packages/features/roomiq_framework.yaml). Describes compiled firmware only, not the board BOM (the board's LTR-303ALS light-sensor identity is not compiled and remains a pending bench reconciliation)."
+      "description": "RoomIQ environmental-service firmware compiled from the RoomIQ climate half (SHT45 temperature/humidity @ 0x44 + LTR-303ALS-01 ambient light @ 0x29 via the built-in ltr_als_ps platform) on the S360-200 board, with the ROOMIQ-FRAMEWORK-001 customer experience (calibrated Temperature/Humidity/Illuminance, Comfort, Environment State, Brightness and the canonical darkness service consumed by LED; packages/features/roomiq_framework.yaml). The compiled light-sensor driver is reconciled to the schematic/BOM part under S360-200-R4-HARDWARE-RECONCILIATION-001; on-hardware sensor response remains a pending bench item."
     },
     "airiq": {
       "display_name": "AirIQ",
@@ -137,7 +137,7 @@
       "work_item": "ROOMIQ-FRAMEWORK-001",
       "entity_id": "s360_module_status_roomiq",
       "package": "packages/features/roomiq_framework.yaml",
-      "available_definition": "Available means STRICTLY: every required environmental channel (temperature, humidity, illuminance) delivered a valid value-update inside its stale window — real data-freshness evidence from the I2C sensor update callbacks, evaluated by the shared engine include/sense360/roomiq_engine.h. It is data-service availability, NOT sensor accuracy, calibration correctness or hardware health, and it does not resolve the ambient-light part identity (catalog/BOM LTR-303ALS-01 vs compiled VEML7700, pending bench). The diagnostic entity s360_roomiq_sensor_verification ('RoomIQ Sensor Verification') states this coverage limit on-device.",
+      "available_definition": "Available means STRICTLY: every required environmental channel (temperature, humidity, illuminance) delivered a valid value-update inside its stale window — real data-freshness evidence from the I2C sensor update callbacks, evaluated by the shared engine include/sense360/roomiq_engine.h. It is data-service availability, NOT sensor accuracy, calibration correctness or hardware health, and it does not by itself prove the ambient-light sensor responds on hardware (the driver is reconciled to the schematic/BOM part LTR-303ALS-01 @ 0x29 under S360-200-R4-HARDWARE-RECONCILIATION-001; on-hardware response remains pending bench). The diagnostic entity s360_roomiq_sensor_verification ('RoomIQ Sensor Verification') states this coverage limit on-device.",
       "values": [
         "Initialising",
         "Available",

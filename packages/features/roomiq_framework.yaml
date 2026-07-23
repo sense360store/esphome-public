@@ -44,11 +44,16 @@
 # fault signal today).
 #
 # Sensor-identity honesty: the hardware catalog / schematic / BOM document
-# the S360-200 ambient-light sensor as LTR-303ALS-01, while the compiled
-# firmware drives a VEML7700 at I2C 0x10. The identity is UNRESOLVED until
-# the bench checklist runs; this framework changes NO compiled sensor,
-# names the customer entity "Illuminance" (never a sensor model), and
-# states the limit in the RoomIQ Sensor Verification diagnostic.
+# the S360-200 ambient-light sensor as LTR-303ALS-01. Under
+# S360-200-R4-HARDWARE-RECONCILIATION-001 the compiled firmware now drives
+# that exact part via ESPHome's built-in ltr_als_ps platform at its fixed
+# I2C address 0x29 (the earlier VEML7700 @ 0x10 driver drift is removed), so
+# the driver identity is RECONCILED to the schematic/BOM. Runtime confirmation
+# that the sensor responds and produces valid lux on the board under test is
+# still pending bench (the current I2C scan does not yet list 0x29 — a physical
+# population/wiring question, not a firmware address error). This framework
+# names the customer entity "Illuminance" (never a sensor model) and states the
+# remaining limit in the RoomIQ Sensor Verification diagnostic.
 #
 # Composition contract: bundles compose this package together with the
 # RoomIQ board package (packages/boards/s360-200-roomiq.yaml — owner of
@@ -509,8 +514,9 @@ text_sensor:
     update_interval: never
 
   # Honesty companion: states on-device what the module status can and
-  # cannot attest — including the unresolved ambient-light sensor identity
-  # (catalog/BOM: LTR-303ALS-01; compiled firmware: VEML7700 at 0x10).
+  # cannot attest. The ambient-light driver identity is reconciled to the
+  # schematic/BOM part (LTR-303ALS-01 @ 0x29 via ltr_als_ps); on-hardware
+  # presence and measurement validity remain a bench item.
   - platform: template
     id: s360_roomiq_sensor_verification
     name: "RoomIQ Sensor Verification"
@@ -519,8 +525,9 @@ text_sensor:
     disabled_by_default: true
     update_interval: never
     lambda: |-
-      return {"Freshness from I2C data updates only; light-sensor part identity "
-              "pending bench (catalog LTR-303ALS-01 vs compiled VEML7700)"};
+      return {"Freshness from I2C data updates only; light sensor is "
+              "LTR-303ALS-01 @ 0x29 (schematic/BOM-matched) - on-hardware "
+              "response pending bench"};
 
   # --- legacy compatibility text entities ---------------------------------------
   - platform: template

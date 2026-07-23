@@ -49,9 +49,10 @@ owner decision: human-friendly states). No customer entity name carries a
 sensor model (`VEML7700`, `LTR-303ALS`, `SHT4x`), `raw`, `filtered`, or other
 technical jargon — technical identity lives in diagnostics and this document.
 
-Wording rule: the light entity is called **Illuminance** because the
-ambient-light sensor part identity is unresolved (§8) — a model-name claim
-would be unverified.
+Wording rule: the light entity is called **Illuminance** (never a model name)
+as a matter of customer-surface style. The compiled driver is reconciled to the
+schematic/BOM part LTR-303ALS-01 @ 0x29 (§8); on-hardware sensor response is
+still pending bench.
 
 ### Diagnostics (diagnostic category, disabled by default)
 
@@ -59,7 +60,7 @@ Raw Temperature / Raw Humidity / Raw Illuminance (uncalibrated), Climate Data
 Age, Illuminance Data Age, RoomIQ State Detail (why the current states are
 what they are), RoomIQ Calibration State (active offsets/multiplier), and
 RoomIQ Sensor Verification (the on-device honesty note about freshness
-coverage and the unresolved light-sensor identity).
+coverage and the light-sensor driver identity / pending on-hardware response).
 
 ### Legacy compatibility entities (disabled by default)
 
@@ -250,32 +251,39 @@ LED behaviour was otherwise deliberately not redesigned.
 
 ---
 
-## 8. Sensor identity evidence (unresolved — tracked)
+## 8. Sensor identity evidence (driver reconciled — runtime pending)
 
-The evidence layers for the ambient-light sensor **disagree**:
+The evidence layers for the ambient-light sensor now **agree** on the part;
+`S360-200-R4-HARDWARE-RECONCILIATION-001` corrected the firmware to match:
 
 | Layer | Evidence | Says |
 |---|---|---|
 | Designed hardware | S360-200-R4 schematic (`docs/hardware/s360-200-r4-roomiq.md`) | `U1` = LTR-303ALS-01 |
 | Fitted production component | BOM capture (`docs/hardware/artifacts/S360-200-R4.md`) | LTR-303ALS-01 (Lite-On) |
-| Firmware component compiled | `packages/boards/s360-200-roomiq-climate.yaml` | VEML7700 at I²C 0x10 |
-| Runtime communication | no recorded bench evidence | unknown |
+| Firmware component compiled | `packages/boards/s360-200-roomiq-climate.yaml` | LTR-303ALS-01 at I²C 0x29 (built-in `ltr_als_ps`, ALS-only) |
+| Runtime communication | board under test: I²C scan lists 0x59/0x60/0x62 only (AirIQ); no 0x29 yet | pending bench |
 | Customer-facing claim | this framework | "Illuminance" — no model name |
 
-This work item **did not resolve the conflict and deliberately did not
-choose**: the compiled sensor set is unchanged (changing it without bench
-evidence could break a working lux path or paper over a broken one). If the
-board truly carries an LTR-303ALS-01, the compiled VEML7700 never produces
-data and the framework fails honestly: Illuminance unknown, Brightness
-Unavailable, darkness Unknown (LED night automation freezes safe), module
-status Degraded, Comfort still available.
+The earlier compiled `veml7700` @ 0x10 was firmware drift (no VEML7700 on the
+schematic/BOM/catalog, and the board under test does not answer at 0x10). It is
+removed; the firmware now drives the schematic/BOM part LTR-303ALS-01 at its
+fixed address 0x29 via ESPHome's built-in `ltr_als_ps` platform, configured
+ALS-only (`type: ALS`, no proximity entities). The `0x29` address is
+datasheet-fixed for the LTR-303/329 family — it is not a board strap and is not
+guessed.
 
-Resolution is owner/bench work, tracked as the existing
-`ENTITY-RECONCILE-200-ALS-001` matrix row and the bench checklist's sensor
-identity section: read the fitted part marking / probe the I²C address (0x10
-VEML7700 vs 0x29 LTR-303ALS) on real hardware, then align firmware and
-catalog in a follow-up. The SHT4x climate identity is consistent across all
-layers (schematic U2, BOM, firmware @ 0x44).
+**Runtime is not yet proven.** The physical board under test currently lists
+only the AirIQ sensors (0x59/0x60/0x62) on its I²C scan and does **not** yet
+show 0x29 (LTR) or 0x44 (SHT45). The bus is proven live (AirIQ answers on it),
+so the RoomIQ climate sensors' non-appearance is a **physical population /
+connector-seating / +3.3 V-rail question on that assembly**, not a firmware
+address error. Until the sensor answers on the bus the framework fails honestly:
+Illuminance unknown, Brightness Unavailable, darkness Unknown (LED night
+automation freezes safe), module status Degraded, Comfort still available.
+On-hardware confirmation is tracked as the `ENTITY-RECONCILE-200-ALS-001` matrix
+row and the bench checklist's sensor-identity section. The SHT45 climate
+identity is consistent across all layers (schematic U2, BOM `SHT45-AD1B-R3`,
+firmware `sht4x` @ 0x44 — the `AD1B` variant is the 0x44 address part).
 
 ---
 

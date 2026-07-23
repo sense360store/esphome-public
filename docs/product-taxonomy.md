@@ -190,7 +190,7 @@ catalog identity as truth and may mention the drifted part only as drift:
 
 | Catalog truth | Compiled today (drift) | Tracking |
 |---------------|------------------------|----------|
-| RoomIQ light sensor LTR-303ALS | VEML7700 driver (legacy) | `ENTITY-RECONCILE-200-ALS-001` (owner decision pending) |
+| RoomIQ light sensor LTR-303ALS | Reconciled to LTR-303ALS-01 @ 0x29 via `ltr_als_ps` (the legacy VEML7700 drift is removed) | `S360-200-R4-HARDWARE-RECONCILIATION-001` (driver reconciled; on-hardware response pending bench) |
 | No pressure part on AirIQ/VentIQ (BMP581 is RoomIQ hardware) | BMP390 driver (legacy) compiled in AirIQ/VentIQ packages | roadmap drift records; disposition owner-only |
 | AirIQ SFA40 fitment (connector per catalog; on-board U2 per schematic/BOM) | — | `HW-PINMAP-210-FOLLOWUP` (owner decision pending) |
 
