@@ -26,25 +26,24 @@
 #                               core_i2c; S360-200-R4-HARDWARE-RECONCILIATION-001)
 #   ceiling radar (presence)  : packages/boards/s360-200-roomiq-radar.yaml
 #                               (HLK-LD2450 on roomiq_hi_link_uart @ 256000)
+#   UART binding              : packages/boards/s360-200-roomiq-uart.yaml
+#                               (verified GPIO1 TX / GPIO2 RX with RX pull-up)
 #
 # and the legacy `comfort_ceiling.yaml` / `presence_ceiling.yaml` paths are now
 # thin aliases that `!include` the matching authoritative half (§3.3, §5.5).
 #
 # THIS file is the production-facing ceiling RoomIQ board: it COMPOSES the two
-# authoritative ceiling halves, exactly the pair the Release-One product
-# (`products/sense360-ceiling-poe-ventiq-roomiq.yaml`) binds today. The merge
-# of the two halves is byte-identical to the previous
-# comfort_ceiling + presence_ceiling composition, so the production product
-# resolves unchanged. The wall-mount variant is `s360-200-roomiq-wall.yaml`.
+# authoritative ceiling halves plus the board-specific UART binding.
 #
 # ----------------------------------------------------------------------------
 # Family map (docs/arch-board-bundle-plan.md §2.1)
 # ----------------------------------------------------------------------------
 #   ceiling climate : s360-200-roomiq-climate.yaml      (authoritative)
 #   ceiling radar   : s360-200-roomiq-radar.yaml        (authoritative)
+#   ceiling UART    : s360-200-roomiq-uart.yaml         (authoritative)
 #   wall climate    : s360-200-roomiq-climate-wall.yaml (authoritative)
 #   wall radar      : s360-200-roomiq-radar-wall.yaml   (authoritative)
-#   ceiling board   : THIS file        (composes the two ceiling halves)
+#   ceiling board   : THIS file        (composes the ceiling parts)
 #   wall board      : s360-200-roomiq-wall.yaml (composes the two wall halves)
 #
 # Legacy aliases (paths preserved while live binders exist; §3.3):
@@ -68,5 +67,6 @@
 # ============================================================================
 
 packages:
+  board_roomiq_uart: !include s360-200-roomiq-uart.yaml
   board_roomiq_comfort: !include s360-200-roomiq-climate.yaml
   board_roomiq_radar: !include s360-200-roomiq-radar.yaml
