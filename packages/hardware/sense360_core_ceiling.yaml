@@ -19,7 +19,7 @@
 #
 # Pin Assignments (ESP32-S3):
 # - Core I2C (shared): SDA=GPIO48, SCL=GPIO45, 400kHz
-# - UART (Hi-Link):   TX=GPIO2, RX=GPIO1, baud 256000  (RoomIQ J10 LD2450 radar)
+# - UART (Hi-Link):   TX=GPIO1, RX=GPIO2, baud 256000  (RoomIQ J10 LD2450 radar)
 # - UART (SEN0609):   TX=GPIO5, RX=GPIO4, baud 115200  (RoomIQ J10 DFRobot radar)
 # - Relay:            GPIO3 (10A AC/DC for ceiling fan/light; schematic Relay
 #                     net per S360-100-R4. CORE-ABSTRACT-BUS-001A rebound
@@ -63,8 +63,8 @@
 # 3. 5V (1A max)
 # 4. Core I2C SDA (GPIO48) - shared Core I²C bus per CORE-ABSTRACT-BUS-001B
 # 5. Core I2C SCL (GPIO45) - shared Core I²C bus per CORE-ABSTRACT-BUS-001B
-# 6. Hi-Link UART RX (GPIO1) — ESP receives from Hi-Link radar
-# 7. Hi-Link UART TX (GPIO2) — ESP transmits to Hi-Link radar
+# 6. Hi-Link UART RX (GPIO1) — ESP transmits to the Hi-Link radar RX net
+# 7. Hi-Link UART TX (GPIO2) — ESP receives from the Hi-Link radar TX net
 # 8. SEN0609 UART RX (GPIO4) — ESP receives from DFRobot radar
 # 9. SEN0609 UART TX (GPIO5) — ESP transmits to DFRobot radar
 # 10. SEN0609 out (GPIO6) — DFRobot auxiliary line
@@ -145,11 +145,24 @@ i2c:
 # CORE-ABSTRACT-BUS-001C: split single uart_bus into two named RoomIQ UARTs
 # matching the schematic-correct ESP-perspective direction and baud rates.
 uart:
-  # RoomIQ J10 Hi-Link radar UART — Hi-Link LD2450 default baud 256000.
+  # RoomIQ J10 Hi-Link LD2450 UART.
+  # Schematic net labels are from the radar perspective:
+  #   GPIO1 -> Hi-Link_RX (ESP TX drives radar RX)
+  #   GPIO2 <- Hi-Link_TX (ESP RX reads radar TX)
+  # The receive line uses an internal pull-up because this board/module pairing
+  # was only reliable when the idle UART line was explicitly biased high.
   - id: roomiq_hi_link_uart
-    tx_pin: GPIO2
-    rx_pin: GPIO1
+    tx_pin: GPIO1
+    rx_pin:
+      number: GPIO2
+      mode:
+        input: true
+        pullup: true
     baud_rate: 256000
+    data_bits: 8
+    parity: NONE
+    stop_bits: 1
+    rx_buffer_size: 1024
 
   # RoomIQ J10 DFRobot SEN0609 radar UART — SEN0609/C4001 default baud 115200.
   - id: roomiq_sen0609_uart
