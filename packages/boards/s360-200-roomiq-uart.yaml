@@ -1,0 +1,29 @@
+# ============================================================================
+# Sense360 RoomIQ — LD2450 UART binding (S360-200-R4)
+# ============================================================================
+# Board-specific correction for the S360-200 RoomIQ Hi-Link LD2450 connection.
+# The Core package owns the named UART bus; this board package extends only that
+# bus with the verified S360-200 wiring and electrical receive configuration.
+#
+# Verified ESP32 perspective:
+#   GPIO1 -> Hi-Link_RX  (ESP TX drives radar RX)
+#   GPIO2 <- Hi-Link_TX  (ESP RX reads radar TX)
+#
+# The receive line is explicitly configured as an input with an internal pull-up
+# because bench testing found this board/module pairing reliable with the idle
+# UART line biased high.
+# ============================================================================
+
+uart:
+  - id: !extend roomiq_hi_link_uart
+    tx_pin: GPIO1
+    rx_pin:
+      number: GPIO2
+      mode:
+        input: true
+        pullup: true
+    baud_rate: 256000
+    data_bits: 8
+    parity: NONE
+    stop_bits: 1
+    rx_buffer_size: 1024
