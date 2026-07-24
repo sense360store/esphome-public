@@ -16,8 +16,6 @@
 #   * packages/boards/s360-200-roomiq.yaml         — the RoomIQ board: the
 #       climate half (ALS + SHT4x comfort sensors) AND the radar half
 #       (HLK-LD2450 24 GHz presence radar — the LD2450 Presence channel)
-#   * packages/boards/s360-200-roomiq-uart.yaml    — verified S360-200 LD2450
-#       UART direction and RX pull-up binding on the Core-owned named bus
 #   * packages/boards/s360-200-roomiq-pir.yaml     — the PIR movement adapter
 #       (immediate-trigger Presence channel)
 #   * packages/boards/s360-200-roomiq-sen0609.yaml — the SEN0609 static-presence
@@ -32,19 +30,18 @@
 # each engine header is compiled — the same files the native C++ unit tests
 # exercise — so nothing is duplicated and no algorithm is re-implemented.
 #
-# The frameworks bind their sensor inputs and pins by substitution only. The
-# S360-200-specific LD2450 direction/electrical binding is composed by this
-# wrapper; the remaining shared pins and named buses are declared by the Core
-# board package. The wrapper itself hard-codes no pin number.
+# The frameworks bind their sensor inputs and pins by substitution only; the
+# authoritative pins (PIR IO15, SEN0609 output IO6, the Hi-Link radar UART) are
+# declared by the Core board package (CORE-ABSTRACT-BUS-001C). This wrapper
+# hard-codes no pin number and never redefines a pin.
 #
-# This wrapper changes NO fusion behaviour, threshold, entity name, product,
-# release, channel or commercial state. It only composes the verified S360-200
-# UART binding alongside the existing RoomIQ/Presence implementation.
+# This wrapper changes NO firmware behaviour, sensor, threshold, entity name,
+# product, release, channel or commercial state. It is a packaging/delivery
+# convenience only.
 #
 # Composition contract — compose this wrapper alongside:
 #   * the Core board package (packages/hardware/sense360_core_ceiling.yaml —
-#     owns the named RoomIQ UART bus, shared pin declarations and core I2C bus),
-#     AND
+#     owns the RoomIQ / Presence pin declarations and the core I2C bus), AND
 #   * the Core Framework package (packages/base/device_framework.yaml — owns
 #     the "RoomIQ Module Status" and "Presence Module Status" entities these
 #     frameworks publish; per CORE-FRAMEWORK-001 it is composed exactly once by
@@ -81,7 +78,6 @@ sense360:
 
 packages:
   roomiq_board: !include ../boards/s360-200-roomiq.yaml
-  roomiq_uart: !include ../boards/s360-200-roomiq-uart.yaml
   roomiq_pir: !include ../boards/s360-200-roomiq-pir.yaml
   roomiq_sen0609: !include ../boards/s360-200-roomiq-sen0609.yaml
   roomiq_framework: !include ../features/roomiq_framework.yaml
