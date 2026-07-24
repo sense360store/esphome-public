@@ -21,6 +21,7 @@
        packages/boards/s360-200-roomiq-pir.yaml
        packages/boards/s360-200-roomiq-radar.yaml
        packages/boards/s360-200-roomiq-sen0609.yaml
+       packages/boards/s360-200-roomiq-uart.yaml
        packages/boards/s360-200-roomiq.yaml
        packages/boards/s360-211-ventiq.yaml
        packages/boards/s360-300-led.yaml
