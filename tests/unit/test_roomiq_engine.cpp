@@ -166,11 +166,50 @@ TEST_CASE(illuminance_scale_applies_once) {
 
 TEST_CASE(offsets_are_clamped_to_safe_bounds) {
   RoomIQEngine engine = make_engine();
-  engine.set_temperature_offset(50.0f);   // clamped to +5
-  engine.set_humidity_offset(-80.0f);     // clamped to -10
+  engine.set_temperature_offset(50.0f);   // clamped to +15
+  engine.set_humidity_offset(-80.0f);     // clamped to -30
   feed_all(engine, T0 + 1000, 20.0f, 50.0f, 100.0f);
-  ASSERT_NEAR(engine.temperature(), 25.0f, 0.001f);
-  ASSERT_NEAR(engine.humidity(), 40.0f, 0.001f);
+  ASSERT_NEAR(engine.temperature(), 35.0f, 0.001f);
+  ASSERT_NEAR(engine.humidity(), 20.0f, 0.001f);
+}
+
+// The calibration range must reach the S360-200-R4 provisional bench values
+// (temperature ~-7.7 °C, humidity ~+17.0/+17.5 %RH). These are per-device
+// prototype corrections applied through the runtime controls, never shared
+// defaults. The engine clamp must not truncate them, and must agree with the
+// UI number-control limits in packages/features/roomiq_framework.yaml
+// (±15 °C, ±30 %RH), which tests/test_roomiq_framework.py pins.
+TEST_CASE(calibration_range_reaches_bench_values) {
+  RoomIQEngine engine = make_engine();
+  engine.set_temperature_offset(-7.7f);
+  engine.set_humidity_offset(17.5f);
+  feed_all(engine, T0 + 1000, 36.0f, 25.0f, 100.0f);
+  ASSERT_NEAR(engine.temperature(), 28.3f, 0.001f);   // 36.0 - 7.7
+  ASSERT_NEAR(engine.humidity(), 42.5f, 0.001f);      // 25.0 + 17.5
+}
+
+// The UI limits (±15 °C, ±30 %RH) are exactly reachable — the clamp uses the
+// same bounds, so a value at the edge passes through unchanged.
+TEST_CASE(calibration_clamp_matches_ui_limits) {
+  RoomIQEngine warm = make_engine();
+  warm.set_temperature_offset(15.0f);
+  warm.set_humidity_offset(30.0f);
+  feed_all(warm, T0 + 1000, 10.0f, 5.0f, 100.0f);
+  ASSERT_NEAR(warm.temperature(), 25.0f, 0.001f);     // 10 + 15
+  ASSERT_NEAR(warm.humidity(), 35.0f, 0.001f);        // 5 + 30
+
+  RoomIQEngine cool = make_engine();
+  cool.set_temperature_offset(-15.0f);
+  cool.set_humidity_offset(-30.0f);
+  feed_all(cool, T0 + 1000, 30.0f, 60.0f, 100.0f);
+  ASSERT_NEAR(cool.temperature(), 15.0f, 0.001f);     // 30 - 15
+  ASSERT_NEAR(cool.humidity(), 30.0f, 0.001f);        // 60 - 30
+
+  // Neutral defaults remain neutral (no calibration applied by default).
+  RoomIQEngine neutral = make_engine();
+  feed_all(neutral, T0 + 1000, 22.0f, 48.0f, 100.0f);
+  ASSERT_NEAR(neutral.temperature(), 22.0f, 0.001f);
+  ASSERT_NEAR(neutral.humidity(), 48.0f, 0.001f);
 }
 
 TEST_CASE(invalid_calibration_values_recover_safely) {
@@ -713,6 +752,10 @@ int main() {
            "illuminance_scale_applies_once");
   run_test(test_offsets_are_clamped_to_safe_bounds,
            "offsets_are_clamped_to_safe_bounds");
+  run_test(test_calibration_range_reaches_bench_values,
+           "calibration_range_reaches_bench_values");
+  run_test(test_calibration_clamp_matches_ui_limits,
+           "calibration_clamp_matches_ui_limits");
   run_test(test_invalid_calibration_values_recover_safely,
            "invalid_calibration_values_recover_safely");
   run_test(test_zero_or_negative_scale_recovers_to_neutral,

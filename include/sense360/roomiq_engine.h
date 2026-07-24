@@ -237,14 +237,21 @@ class RoomIQEngine {
  public:
   // --- calibration (applied exactly once, inside this engine) --------------
   // Customer temperature offset in °C. Clamped to a safe band; NaN (an
-  // invalid stored value) recovers to neutral 0.
+  // invalid stored value) recovers to neutral 0. The band (+/-15 °C) matches
+  // the Temperature Offset UI control in roomiq_framework.yaml; it is wide
+  // enough for a prototype board with significant thermal self-heating (the
+  // S360-200-R4 bench needed ~-7.7 °C), NOT an accuracy claim about the
+  // sensor.
   void set_temperature_offset(float offset_c) {
-    temperature_offset_ = sanitise_offset(offset_c, 5.0f);
+    temperature_offset_ = sanitise_offset(offset_c, 15.0f);
   }
 
-  // Customer humidity offset in %RH. Clamped; NaN recovers to neutral 0.
+  // Customer humidity offset in %RH. Clamped; NaN recovers to neutral 0. The
+  // band (+/-30 %RH) matches the Humidity Offset UI control in
+  // roomiq_framework.yaml (the S360-200-R4 bench needed ~+17 %RH); it is a
+  // per-device correction bound, not a sensor-accuracy claim.
   void set_humidity_offset(float offset_pct) {
-    humidity_offset_ = sanitise_offset(offset_pct, 10.0f);
+    humidity_offset_ = sanitise_offset(offset_pct, 30.0f);
   }
 
   // Customer illuminance multiplier. Ambient-light error is dominated by

@@ -40,8 +40,8 @@ Default-enabled set (the ONLY default-enabled RoomIQ surface):
 | Comfort | text | Initialising · Comfortable · Cool · Cold · Warm · Hot · Dry · Humid · Warm and humid · Unavailable | Concise comfort assessment (temperature + humidity only) |
 | Environment State | text | the Comfort values plus Dark · Bright | ONE headline description of the room |
 | Brightness | text | Initialising · Dark · Dim · Normal · Bright · Very bright · Unavailable | Human-friendly light category |
-| Temperature Offset | number (config) | −5…+5 °C, 0.1 steps | Local calibration |
-| Humidity Offset | number (config) | −10…+10 %, 0.5 steps | Local calibration |
+| Temperature Offset | number (config) | −15…+15 °C, 0.1 steps | Local calibration |
+| Humidity Offset | number (config) | −30…+30 %, 0.5 steps | Local calibration |
 | Illuminance Calibration | number (config) | ×0.2…×5.0, 0.05 steps | Local calibration multiplier |
 
 There is deliberately **no customer-facing numeric comfort score** (accepted
@@ -127,7 +127,7 @@ context. Those integrations are separate work items.
   internal and uncalibrated; canonical and legacy entities all carry the
   calibrated value; the LED darkness decision uses the calibrated
   illuminance, so one customer calibration corrects the whole platform.
-* Offsets for temperature (±5 °C) and humidity (±10 %) — additive errors
+* Offsets for temperature (±15 °C) and humidity (±30 %) — additive errors
   dominate the climate path. A **multiplier** (×0.2…×5.0) for illuminance —
   ambient-light error is dominated by multiplicative effects (gain, diffuser
   attenuation, mounting), so a scale factor is the least misleading model.
@@ -135,9 +135,18 @@ context. Those integrations are separate work items.
   republish) and **persist across restart** (`restore_value: true`).
 * Safety: the engine clamps every calibration value to its safe band and
   recovers invalid stored values (NaN, non-positive scale) to neutral;
-  calibrated humidity is clamped to the physical 0–100 % range. Bounds are
-  deliberately narrow — a larger disagreement indicates a hardware problem,
-  not a calibration need.
+  calibrated humidity is clamped to the physical 0–100 % range. The UI
+  control limits and the engine clamps are kept in agreement (test-guarded).
+* Bounds context: the ranges were widened from ±5 °C / ±10 % to ±15 °C /
+  ±30 % after the S360-200-R4 bench found the prototype board needed roughly
+  −7.7 °C and +17 %RH corrections — beyond the former limits. A correction
+  this large is **not** a normal calibration need: it indicates a
+  board/enclosure thermal-placement problem (SHT45 self-heating / heat bias)
+  that requires hardware investigation. Software calibration makes the
+  current prototype usable but is **not** proof that the production thermal
+  design is acceptable. Neutral defaults remain 0 / 0 / ×1.0 — the large
+  values are per-device bench corrections entered through the persisted
+  runtime controls, never shared framework defaults.
 * "Calibrated" means **calibrated locally by the customer against their own
   reference** — no factory accuracy claim is made before calibration.
 

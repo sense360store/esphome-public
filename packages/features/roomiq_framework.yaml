@@ -571,9 +571,13 @@ text_sensor:
 # ----------------------------------------------------------------------------
 number:
   # Local single-point temperature calibration against a trusted reference
-  # thermometer. Applied once, inside the engine; bounds are deliberately
-  # narrow (a larger disagreement indicates a hardware problem, not a
-  # calibration need).
+  # thermometer. Applied once, inside the engine. The range is wide enough to
+  # correct a prototype board with significant thermal self-heating
+  # (S360-200-R4 bench needed ~-7.7 °C, beyond the former ±5 °C limit). An
+  # offset this large is a signal that the board/enclosure thermal placement
+  # needs hardware investigation — software calibration makes the prototype
+  # usable but is NOT proof the production thermal design is acceptable (see
+  # docs/hardware/s360-200-r4-presence-runtime.md). Neutral default stays 0.
   - platform: template
     id: s360_temperature_offset
     name: "Temperature Offset"
@@ -581,8 +585,8 @@ number:
     entity_category: config
     unit_of_measurement: "°C"
     mode: box
-    min_value: -5
-    max_value: 5
+    min_value: -15
+    max_value: 15
     step: 0.1
     initial_value: 0
     optimistic: true
@@ -596,6 +600,11 @@ number:
               id(s360_temperature).publish_state(engine.temperature());
             }
 
+  # Local single-point humidity calibration against a trusted reference
+  # hygrometer. Applied once, inside the engine. The range is wide enough to
+  # correct the prototype board offset seen on the bench (S360-200-R4 needed
+  # ~+17 %RH, beyond the former ±10 %RH limit). A per-device correction, not
+  # a sensor-accuracy claim. Neutral default stays 0.
   - platform: template
     id: s360_humidity_offset
     name: "Humidity Offset"
@@ -603,8 +612,8 @@ number:
     entity_category: config
     unit_of_measurement: "%"
     mode: box
-    min_value: -10
-    max_value: 10
+    min_value: -30
+    max_value: 30
     step: 0.5
     initial_value: 0
     optimistic: true

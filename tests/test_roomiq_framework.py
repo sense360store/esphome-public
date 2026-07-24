@@ -293,9 +293,14 @@ class CustomerEntityContractTests(unittest.TestCase):
         self.assertEqual(entity.get("name"), "Temperature Offset")
         self.assertEqual(entity.get("entity_category"), "config")
         self.assertEqual(entity.get("unit_of_measurement"), "°C")
-        self.assertEqual(float(entity.get("min_value")), -5.0)
-        self.assertEqual(float(entity.get("max_value")), 5.0)
+        # Range widened for prototype thermal self-heating (S360-200-R4 bench
+        # needed ~-7.7 °C). Neutral default stays 0. Engine clamp must agree.
+        self.assertEqual(float(entity.get("min_value")), -15.0)
+        self.assertEqual(float(entity.get("max_value")), 15.0)
+        self.assertEqual(float(entity.get("step")), 0.1)
         self.assertEqual(float(entity.get("initial_value")), 0.0)
+        # The bench-required temperature offset must be enterable.
+        self.assertLessEqual(float(entity.get("min_value")), -7.7)
         self.assertTrue(entity.get("restore_value"))
         self.assertFalse(entity.get("disabled_by_default", False))
 
@@ -305,9 +310,14 @@ class CustomerEntityContractTests(unittest.TestCase):
         self.assertEqual(entity.get("name"), "Humidity Offset")
         self.assertEqual(entity.get("entity_category"), "config")
         self.assertEqual(entity.get("unit_of_measurement"), "%")
-        self.assertEqual(float(entity.get("min_value")), -10.0)
-        self.assertEqual(float(entity.get("max_value")), 10.0)
+        # Range widened for the prototype board humidity offset (S360-200-R4
+        # bench needed ~+17 %RH). Neutral default stays 0. Engine clamp agrees.
+        self.assertEqual(float(entity.get("min_value")), -30.0)
+        self.assertEqual(float(entity.get("max_value")), 30.0)
+        self.assertEqual(float(entity.get("step")), 0.5)
         self.assertEqual(float(entity.get("initial_value")), 0.0)
+        # The bench-required humidity offset must be enterable.
+        self.assertGreaterEqual(float(entity.get("max_value")), 17.5)
         self.assertTrue(entity.get("restore_value"))
 
     def test_illuminance_calibration_control(self) -> None:
