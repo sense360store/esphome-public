@@ -30,10 +30,24 @@
 #     disabled-by-default entities — available to advanced users and to
 #     Sense360Zones (the ld2450_t{1..3}_{x,y,speed,distance,angle} IDs are a
 #     stable API surface) without cluttering the default customer view.
-#   * Real freshness signal: every LD2450 frame publishes the target-count
-#     sensor (frame-driven, throttled inside the component), and its
-#     on_value hook timestamps s360_radar_last_frame_ms. The fusion engine
-#     treats missing frames as STALE (unknown), never as "clear".
+#   * Real freshness signal: the LD2450 component republishes its
+#     target-count, moving-target-count and still-target-count sensors as it
+#     processes radar frames, and the on_value hook of EACH of those three
+#     sensors calls the board-local s360_radar_mark_frame script, which
+#     timestamps s360_radar_last_frame_ms. The fusion engine treats missing
+#     frames as STALE (unknown), never as "clear".
+#     Freshness evidence limitation (S360-200-R4 bench, firmware
+#     2.14.25112412): ESPHome's ld2450 platform exposes no single callback
+#     guaranteed to fire on every received frame. The native target-count
+#     sensor does NOT necessarily republish when the count is unchanged, so a
+#     stationary occupant held at target count 1 while coordinates, speed and
+#     moving/still state keep changing would previously age the radar out to
+#     STALE even though live frames were arriving. Using the union of the
+#     target-count, moving-count and still-count callbacks is the strongest
+#     evidence-backed combination available: at least one of them updates on
+#     the frame transitions the bench proves continue. This is a supported
+#     component-callback signal, NOT an exact per-frame guarantee, and it is
+#     not claimed as one.
 #   * The former synthetic confidence tiers (0.95 / 0.7 / 0.6) had no
 #     evidence basis and were removed. presence_confidence remains ONLY as
 #     a legacy compatibility signal for the pre-framework profiles
@@ -100,26 +114,36 @@ sensor:
     target_count:
       id: ld2450_target_count
       internal: true
-      # PRESENCE-FRAMEWORK-001 freshness signal: the LD2450 component
-      # publishes this sensor from every processed radar frame (throttled
-      # in the component), so this callback timestamps real UART data.
-      # Missing frames -> stale -> the fusion engine treats the radar as
-      # UNKNOWN (never as clear).
+      # PRESENCE-FRAMEWORK-001 freshness signal. This is ONE of the three
+      # LD2450 frame-driven callbacks that record radar activity via the
+      # board-local s360_radar_mark_frame script. target_count alone is not
+      # a valid proxy for every frame: the bench proves it does not
+      # necessarily republish while the count is unchanged (a person held at
+      # target count 1 while still moving). The moving- and still-count
+      # callbacks below cover those unchanged-count frames.
       on_value:
         then:
-          - lambda: |-
-              id(s360_radar_last_frame_ms) = millis();
-              id(s360_radar_frame_seen) = true;
+          - script.execute: s360_radar_mark_frame
     still_target_count:
       id: ld2450_still_target_count
       name: "Radar Still Target Count"
       entity_category: diagnostic
       disabled_by_default: true
+      # Frame-freshness callback (see s360_radar_mark_frame): the bench
+      # proves this updates while target_count is unchanged.
+      on_value:
+        then:
+          - script.execute: s360_radar_mark_frame
     moving_target_count:
       id: ld2450_moving_target_count
       name: "Radar Moving Target Count"
       entity_category: diagnostic
       disabled_by_default: true
+      # Frame-freshness callback (see s360_radar_mark_frame): the bench
+      # proves this updates while target_count is unchanged.
+      on_value:
+        then:
+          - script.execute: s360_radar_mark_frame
     # Target 1
     target_1:
       x:
@@ -237,7 +261,12 @@ globals:
     initial_value: '0'
 
   # PRESENCE-FRAMEWORK-001 freshness evidence: timestamp of the last real
-  # LD2450 frame (see the target_count on_value hook above).
+  # LD2450 frame. Written ONLY by the s360_radar_mark_frame script below,
+  # which is executed from the on_value hooks of the target-count,
+  # moving-target-count and still-target-count sensors — real LD2450
+  # component update callbacks. It is deliberately NOT written by the 1 s
+  # compatibility interval below (which only re-reads cached sensor states);
+  # refreshing it there would falsely mark a disconnected radar as healthy.
   - id: s360_radar_last_frame_ms
     type: uint32_t
     restore_value: false
@@ -248,9 +277,31 @@ globals:
     restore_value: false
     initial_value: 'false'
 
+# ============================================================================
+# Board-local radar frame-freshness recorder
+# ============================================================================
+# One helper so the freshness logic is not duplicated across the three
+# LD2450 frame-driven callbacks. Every real LD2450 component update (target
+# count, moving-target count, still-target count) executes this to stamp the
+# freshness evidence the Presence framework consumes. It must be called only
+# from genuine component update callbacks — never from the periodic
+# compatibility interval, and never merely because an old sensor state can
+# be read — so a disconnected/stopped UART correctly ages out to STALE.
+script:
+  - id: s360_radar_mark_frame
+    then:
+      - lambda: |-
+          id(s360_radar_last_frame_ms) = millis();
+          id(s360_radar_frame_seen) = true;
+
 # Update legacy presence data (compatibility signal for the pre-framework
 # profiles; the tri-sensor fusion lives in
 # packages/features/presence_framework.yaml).
+# IMPORTANT: this periodic interval re-reads cached sensor states only. It
+# must NEVER touch s360_radar_last_frame_ms / s360_radar_frame_seen —
+# doing so would keep marking a disconnected radar "fresh". Frame freshness
+# is recorded exclusively by s360_radar_mark_frame from real component
+# update callbacks.
 interval:
   - interval: 1s
     then:

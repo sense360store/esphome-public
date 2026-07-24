@@ -128,8 +128,10 @@ script:
           }
 
           // Sensor inputs. The radar input carries the timestamp of the
-          // last REAL frame (s360-200-roomiq-radar.yaml on_value hook) —
-          // stale frames age out inside the engine.
+          // last REAL frame (s360-200-roomiq-radar.yaml records it via
+          // s360_radar_mark_frame from the target-count, moving-count and
+          // still-count component callbacks) — stale frames age out inside
+          // the engine.
           if (id(s360_radar_frame_seen)) {
             float tc = id(ld2450_target_count).state;
             float mc = id(ld2450_moving_target_count).state;

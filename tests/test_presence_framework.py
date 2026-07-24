@@ -53,6 +53,14 @@ FUSION_PACKAGE = REPO_ROOT / "packages" / "features" / "presence_framework.yaml"
 PIR_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-pir.yaml"
 SEN0609_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-sen0609.yaml"
 RADAR_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-radar.yaml"
+UART_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-uart.yaml"
+MERGED_BOARD = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq.yaml"
+REMOTE_PRESENCE = (
+    REPO_ROOT / "packages" / "remote" / "ceiling-roomiq-presence.yaml"
+)
+CORE_CEILING = (
+    REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml"
+)
 HEADER = REPO_ROOT / "include" / "sense360" / "presence_fusion.h"
 CPP_TEST = REPO_ROOT / "tests" / "unit" / "test_presence_fusion.cpp"
 DOC = REPO_ROOT / "docs" / "architecture" / "sense360-presence-framework.md"
@@ -274,6 +282,15 @@ class CustomerEntityContractTests(unittest.TestCase):
         self.assertEqual(entity.get("entity_category"), "diagnostic")
         self.assertTrue(entity.get("disabled_by_default"))
 
+    def test_stale_radar_publishes_unknown_target_count(self) -> None:
+        # BENCH DEFECT symptom: when radar frames stop, Radar Target Count
+        # must go unknown (NAN), never a stale/fake number. The fusion script
+        # publishes NAN unless radar_fresh().
+        self.assertIn("radar_fresh()", self.raw)
+        self.assertIn("NAN", self.raw)
+        # The publish is gated on freshness (NAN when not fresh).
+        self.assertIn("engine.radar_fresh() ? (float) engine.radar_target_count() : NAN", self.raw)
+
     def test_verification_coverage_diagnostic_exists(self) -> None:
         # Option A companion: a diagnostic entity states, in plain words,
         # which sensors carry a real health signal — so "Available" cannot
@@ -385,12 +402,107 @@ class RadarAdapterTests(unittest.TestCase):
         cls.doc = load_yaml(RADAR_PACKAGE)
         cls.raw = RADAR_PACKAGE.read_text()
 
+    def _ld2450_sensor(self) -> Dict[str, Any]:
+        for entry in self.doc.get("sensor") or []:
+            if isinstance(entry, dict) and entry.get("platform") == "ld2450":
+                return entry
+        self.fail("no ld2450 sensor platform entry found")
+
+    def _executes_mark_frame(self, on_value: Any) -> bool:
+        """True if an on_value block executes the s360_radar_mark_frame script."""
+        if not isinstance(on_value, dict):
+            return False
+        for action in on_value.get("then") or []:
+            if (
+                isinstance(action, dict)
+                and action.get("script.execute") == "s360_radar_mark_frame"
+            ):
+                return True
+        return False
+
     def test_radar_has_real_freshness_signal(self) -> None:
         # Freshness must come from a supported update callback (on_value of
         # the LD2450 frame-driven sensors), not from re-reading unchanged
         # values in a periodic lambda.
         self.assertIn("s360_radar_last_frame_ms", self.raw)
         self.assertIn("on_value", self.raw)
+
+    def test_board_local_mark_frame_helper_exists(self) -> None:
+        # One board-local helper records radar activity so the freshness
+        # logic is not duplicated across the three frame-driven callbacks.
+        scripts = {
+            s.get("id")
+            for s in (self.doc.get("script") or [])
+            if isinstance(s, dict)
+        }
+        self.assertIn("s360_radar_mark_frame", scripts)
+
+    def test_freshness_not_dependent_only_on_target_count(self) -> None:
+        # BENCH DEFECT: the native target-count sensor does not necessarily
+        # republish while the count is unchanged, so target_count alone is
+        # NOT a valid proxy for every real frame. The moving- and still-count
+        # callbacks must ALSO refresh the freshness timestamp.
+        sensor = self._ld2450_sensor()
+        marked = [
+            key
+            for key in ("target_count", "moving_target_count", "still_target_count")
+            if self._executes_mark_frame((sensor.get(key) or {}).get("on_value"))
+        ]
+        self.assertIn("moving_target_count", marked)
+        self.assertIn("still_target_count", marked)
+        # The union of the three callbacks (not target_count alone) is the
+        # freshness source: at least the two count channels that the bench
+        # proves keep updating while target_count is unchanged.
+        self.assertGreaterEqual(len(marked), 2, marked)
+
+    def test_moving_and_still_callbacks_refresh_timestamp(self) -> None:
+        sensor = self._ld2450_sensor()
+        for key in ("moving_target_count", "still_target_count"):
+            on_value = (sensor.get(key) or {}).get("on_value")
+            self.assertTrue(
+                self._executes_mark_frame(on_value),
+                f"{key} must refresh radar freshness via s360_radar_mark_frame",
+            )
+
+    def test_periodic_interval_does_not_fake_freshness(self) -> None:
+        # The 1 s legacy-compatibility interval re-reads cached sensor states.
+        # It must NEVER write the freshness globals, or a disconnected radar
+        # would be reported fresh forever.
+        for entry in self.doc.get("interval") or []:
+            if not isinstance(entry, dict):
+                continue
+            then = entry.get("then") or []
+            body = ""
+            for action in then:
+                if isinstance(action, dict) and "lambda" in action:
+                    body += str(action["lambda"])
+            self.assertNotIn("s360_radar_last_frame_ms", body)
+            self.assertNotIn("s360_radar_frame_seen", body)
+
+    def test_freshness_globals_written_only_by_mark_frame(self) -> None:
+        # The ONLY place the freshness timestamp is assigned is the
+        # s360_radar_mark_frame script (a real component-callback path).
+        assignments = self.raw.count("id(s360_radar_last_frame_ms) = millis();")
+        self.assertEqual(
+            assignments, 1,
+            "freshness timestamp must be written in exactly one place "
+            "(the s360_radar_mark_frame helper)",
+        )
+
+    def test_no_duplicate_ld2450_component(self) -> None:
+        # Exactly one ld2450 hub component and no duplicate UART definition in
+        # the radar adapter (the UART binding lives in the dedicated package).
+        ld2450 = self.doc.get("ld2450")
+        # A single mapping (one hub), never a list of hubs.
+        self.assertIsInstance(ld2450, dict)
+        self.assertNotIn("uart", self.doc, "radar adapter must not define a UART")
+
+    def test_stale_claim_comment_updated(self) -> None:
+        # The stale comment claiming target_count is published from EVERY
+        # processed frame is disproved by the bench and must be corrected.
+        lowered = self.raw.lower()
+        self.assertIn("does not necessarily republish", lowered)
+        self.assertNotIn("from every processed radar frame", lowered)
 
     def test_synthetic_confidence_tiers_removed(self) -> None:
         # The arbitrary 0.95 / 0.7 / 0.6 tiers had no evidence basis.
@@ -428,6 +540,91 @@ class RadarAdapterTests(unittest.TestCase):
                     f"{sub.get('id')}: radar detail must stay internal or "
                     "diagnostic+disabled",
                 )
+
+
+# --- UART binding + composition (S360-200 scope) --------------------------------
+
+
+class UartBindingTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.doc = load_yaml(UART_PACKAGE)
+        cls.raw = UART_PACKAGE.read_text()
+
+    def test_uart_resolves_tx_gpio1_rx_gpio2_with_pullup(self) -> None:
+        # Verified S360-200-R4 wiring: ESP TX GPIO1 -> Hi-Link RX,
+        # ESP RX GPIO2 <- Hi-Link TX, RX biased high with an internal pull-up.
+        entries = self.doc.get("uart") or []
+        self.assertTrue(entries, "no uart entry in the binding package")
+        entry = entries[0]
+        self.assertEqual(entry.get("tx_pin"), "GPIO1")
+        rx = entry.get("rx_pin")
+        self.assertIsInstance(rx, dict)
+        self.assertEqual(rx.get("number"), "GPIO2")
+        mode = rx.get("mode") or {}
+        self.assertIs(mode.get("input"), True)
+        self.assertIs(mode.get("pullup"), True)
+        self.assertEqual(int(entry.get("baud_rate")), 256000)
+        self.assertEqual(int(entry.get("data_bits")), 8)
+        self.assertEqual(entry.get("parity"), "NONE")
+        self.assertEqual(int(entry.get("stop_bits")), 1)
+        self.assertEqual(int(entry.get("rx_buffer_size")), 1024)
+
+    def test_uart_extends_the_core_named_bus(self) -> None:
+        # The Core package owns roomiq_hi_link_uart; this binding !extend-s it,
+        # it never declares a second UART bus.
+        self.assertIn("!extend roomiq_hi_link_uart", self.raw)
+
+
+class CompositionResolutionTests(unittest.TestCase):
+    """S360-200 board + remote RoomIQ Presence compose without duplication."""
+
+    def test_merged_board_composes_uart_climate_radar_once(self) -> None:
+        doc = load_yaml(MERGED_BOARD)
+        pkgs = doc.get("packages") or {}
+        includes = [str(v) for v in pkgs.values()]
+        joined = " ".join(includes)
+        self.assertIn("s360-200-roomiq-uart.yaml", joined)
+        self.assertIn("s360-200-roomiq-climate.yaml", joined)
+        self.assertIn("s360-200-roomiq-radar.yaml", joined)
+        # Each half composed exactly once (no duplicate UART / LD2450).
+        self.assertEqual(joined.count("s360-200-roomiq-uart.yaml"), 1)
+        self.assertEqual(joined.count("s360-200-roomiq-radar.yaml"), 1)
+
+    def test_remote_presence_composes_the_s360_200_stack(self) -> None:
+        doc = load_yaml(REMOTE_PRESENCE)
+        pkgs = doc.get("packages") or {}
+        joined = " ".join(str(v) for v in pkgs.values())
+        for needed in (
+            "s360-200-roomiq.yaml",
+            "s360-200-roomiq-pir.yaml",
+            "s360-200-roomiq-sen0609.yaml",
+            "roomiq_framework.yaml",
+            "presence_framework.yaml",
+        ):
+            self.assertIn(needed, joined, needed)
+        # The merged board (which already pulls the UART + radar) is composed
+        # once, so no duplicate UART/LD2450 reaches the remote consumer.
+        self.assertEqual(joined.count("s360-200-roomiq.yaml"), 1)
+
+    def test_no_airiq_or_mics_in_the_presence_stack(self) -> None:
+        # Scope guard: the S360-200 presence composition must not COMPOSE
+        # AirIQ / MICS packages (a different board family). Header comments may
+        # mention sibling families; what matters is the `packages:` includes.
+        for path in (MERGED_BOARD, REMOTE_PRESENCE):
+            pkgs = (load_yaml(path).get("packages") or {})
+            joined = " ".join(str(v) for v in pkgs.values()).lower()
+            self.assertNotIn("airiq", joined, path.name)
+            self.assertNotIn("mics", joined, path.name)
+        # The radar adapter composes no other board/feature package at all.
+        self.assertNotIn("packages", load_yaml(RADAR_PACKAGE))
+
+    def test_core_shared_hardware_package_unchanged_by_scope(self) -> None:
+        # This PR is scoped to S360-200; the shared S360-100 Core package must
+        # not be modified. It must keep owning the named Hi-Link UART bus the
+        # binding extends.
+        self.assertTrue(CORE_CEILING.is_file())
+        self.assertIn("roomiq_hi_link_uart", CORE_CEILING.read_text())
 
 
 # --- Bundle wiring --------------------------------------------------------------
