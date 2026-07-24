@@ -157,6 +157,19 @@ changelog / description text from those release bodies. No firmware
 binary, hash, tag, or release asset changes under this correction — it is
 release-note text only.
 
+A proposed architecture for `SEC-ESP-PROVISIONING-001` (secure per-device
+credential provisioning) is drafted in
+[`docs/adr/ADR-SEC-ESP-PROVISIONING-001.md`](adr/ADR-SEC-ESP-PROVISIONING-001.md).
+The ADR status is **Proposed — not accepted**. The owner decision pack is
+**resolved** (OD-01…OD-10 and AD-01…AD-04 accepted 2026-07-11, recorded in
+ADR §9); the remaining acceptance blockers are the four technical
+feasibility spikes in ADR §10 (SPIKE-P1 / SPIKE-P2 / SPIKE-W1 /
+SPIKE-P6), which remain **pending**. Implementation has **not started**.
+The programme status remains **planned** as recorded by its authority,
+the SOT programme entry (`sense360store/SOT` `roadmap.yaml` →
+`sec-esp-provisioning-001`); this doc references that status and does not
+redefine it.
+
 ---
 
 ## 2. Bundle SKUs
