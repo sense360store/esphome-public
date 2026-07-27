@@ -150,31 +150,43 @@ esphome:
     # roomiq framework feeds the SAME shared static instance its calibrated lux;
     # there is still exactly one implementation and no duplicate lux logic.
     - ../include/sense360/roomiq_engine.h
+  # LIST FORM IS LOAD-BEARING (STATIC-DIAGNOSTIC-PUBLISH-001). This block was
+  # previously written as a MAPPING (`on_boot:` -> `priority:` / `then:`).
+  # ESPHome's package merging uses esphome.config_helpers.merge_config, which
+  # REPLACES rather than merges when a mapping meets a list — so in every
+  # composition where another package declares a list-form `on_boot:` this
+  # hook was silently deleted and the persisted-state restore below never ran.
+  # Written as a list, boot hooks concatenate across packages as intended.
   on_boot:
+    # Compile-time honesty companion: never polled, so it is published once at
+    # boot. Independent of the restore hook below.
+    - priority: 500
+      then:
+        - component.update: s360_led_output_verification
     # Late boot hook (after components are set up and restored globals are
     # loaded): re-apply the persisted stable customer state (LED-11). The
     # light itself boots ALWAYS_OFF, so an interrupted transient overlay is
     # never replayed; safe-mode boots run a minimal config without this
     # package, leaving the ring off.
-    priority: -100
-    then:
-      - lambda: |-
-          using namespace sense360::ledfw;
-          auto &controller = global_controller();
-          sense360::ledfw::LightState saved;
-          saved.on = id(s360_led_saved_on);
-          saved.brightness = id(s360_led_saved_brightness);
-          saved.red = id(s360_led_saved_r);
-          saved.green = id(s360_led_saved_g);
-          saved.blue = id(s360_led_saved_b);
-          saved.effect = (uint8_t) id(s360_led_saved_effect);
-          controller.restore(saved, id(s360_led_night_on),
-                             id(s360_led_night_auto));
-          // Brief startup indication (Essential level, LED-06) — shown only
-          // when nothing higher-priority owns the ring.
-          controller.notify_status(millis(), EVENT_STARTUP);
-          id(s360_led_booted) = true;
-      - script.execute: s360_led_evaluate
+    - priority: -100
+      then:
+        - lambda: |-
+            using namespace sense360::ledfw;
+            auto &controller = global_controller();
+            sense360::ledfw::LightState saved;
+            saved.on = id(s360_led_saved_on);
+            saved.brightness = id(s360_led_saved_brightness);
+            saved.red = id(s360_led_saved_r);
+            saved.green = id(s360_led_saved_g);
+            saved.blue = id(s360_led_saved_b);
+            saved.effect = (uint8_t) id(s360_led_saved_effect);
+            controller.restore(saved, id(s360_led_night_on),
+                               id(s360_led_night_auto));
+            // Brief startup indication (Essential level, LED-06) — shown only
+            // when nothing higher-priority owns the ring.
+            controller.notify_status(millis(), EVENT_STARTUP);
+            id(s360_led_booted) = true;
+        - script.execute: s360_led_evaluate
 
 # Status events come from REAL supported signals only (LED-06): the Home
 # Assistant API connection (Essential) and WiFi connectivity (Detailed).

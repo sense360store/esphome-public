@@ -98,8 +98,15 @@
 # ============================================================================
 
 substitutions:
-  module_sku: S360-BATH-B
-  module_variant: bathroom_base
+  # Board-specific identity keys (STATIC-DIAGNOSTIC-PUBLISH-001). The generic
+  # `module_sku` / `module_variant` names previously collided with the RoomIQ
+  # (S360-200) and AirIQ (S360-210) board packages in ESPHome's single flat
+  # substitution namespace — and EVERY VentIQ composition also carries RoomIQ,
+  # so this entity rendered the RoomIQ presence SKU. Values (the legacy
+  # `S360-BATH-B` label tracked as VENTIQ-SKU-LABEL-001) and the
+  # customer-facing entity name are unchanged.
+  ventiq_module_sku: S360-BATH-B
+  ventiq_module_variant: bathroom_base
 
   # I2C Configuration
   # Uses the shared core_i2c bus defined by the parent Core abstract package
@@ -434,9 +441,18 @@ interval:
           }
 
 text_sensor:
+  # Compile-time board identity: never polled, published once at boot
+  # (STATIC-DIAGNOSTIC-PUBLISH-001).
   - platform: template
+    id: s360_ventiq_module_sku
     name: "${friendly_name} AirIQ Module SKU"
     lambda: |-
-      return {"${module_sku}"};
+      return {"${ventiq_module_sku}"};
     update_interval: never
     entity_category: diagnostic
+
+esphome:
+  on_boot:
+    - priority: 500
+      then:
+        - component.update: s360_ventiq_module_sku

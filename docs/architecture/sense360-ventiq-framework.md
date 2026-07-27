@@ -79,11 +79,15 @@ bench evidence.
   follow-up with owner sign-off. The framework itself takes **no input**
   from the drifted drivers.
 * **C2 — `S360-BATH-B` module-SKU label.** The board package publishes a
-  diagnostic text sensor "AirIQ Module SKU" with `module_sku: S360-BATH-B` —
-  an identifier that exists in **no** hardware catalog (canonical SKU:
-  `S360-211`), under a stale "AirIQ" label. Changing it alters the published
-  legacy surface, so it is preserved byte-identically here and tracked as
-  **`VENTIQ-SKU-LABEL-001`**.
+  diagnostic text sensor "AirIQ Module SKU" with
+  `ventiq_module_sku: S360-BATH-B` — an identifier that exists in **no**
+  hardware catalog (canonical SKU: `S360-211`), under a stale "AirIQ" label.
+  Changing it alters the published legacy surface, so the entity name and the
+  value are preserved here and tracked as **`VENTIQ-SKU-LABEL-001`**. (The
+  substitution *key* was renamed from the generic `module_sku` under
+  `STATIC-DIAGNOSTIC-PUBLISH-001`: every VentIQ composition also carries
+  RoomIQ, which declared the same generic key, so the entity previously
+  rendered the RoomIQ presence SKU instead of this one.)
 * **C3 — Core connector identity `J1` (5-pin) vs `J9` (7-pin).** The
   module-side verified schematic draws a 5-pin `J1 FROM CORE` (supporting
   pinmap candidate A), while the HW-007 board audit recorded mating with the

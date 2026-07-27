@@ -81,6 +81,14 @@ substitutions:
 esphome:
   includes:
     - ../include/sense360/presence_fusion.h
+  # Compile-time health-contract honesty companion: never polled, so it is
+  # published once at boot (STATIC-DIAGNOSTIC-PUBLISH-001). This package's
+  # runtime module status is owned by the 500 ms `interval:` below, which
+  # only ticks after setup completes — the seed can never overwrite it.
+  on_boot:
+    - priority: 500
+      then:
+        - component.update: s360_presence_verification_limits
 
 # The engine instance is the function-local static
 # sense360::presence::global_engine() from the shared header (an ESPHome

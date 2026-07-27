@@ -16,7 +16,8 @@
     "This contract changes no release declaration: config/webflash-builds.json rows, channels, versions, artifact names, product lifecycle and commercial state are untouched.",
     "Compile-only skeletons (products/compile-only/) and the provisioning bench harness (tests/bench/) never include the framework package, so they cannot be mistaken for customer products.",
     "Firmware-build proof only: nothing in this contract claims hardware, bench, compliance, safety or commercial-availability proof.",
-    "Ceiling-POE-FanPWM is the one declared framework gap (framework_included: false): its bundle is pinned package-identical to the native full-compile-validated skeleton, so the framework include is deferred until that lane re-records. All other configs compose the framework exactly once."
+    "Ceiling-POE-FanPWM is the one declared framework gap (framework_included: false): its bundle is pinned package-identical to the native full-compile-validated skeleton, so the framework include is deferred until that lane re-records. All other configs compose the framework exactly once.",
+    "Every compile-time entity in this framework is declared `update_interval: never` and published exactly once at boot (component.update, on_boot priority 500) \u2014 never polled on a timer. The compile-time module-status value is a SEED, not an owner: the runtime module frameworks publish later (on_boot priority 250, or a post-setup interval tick), so a real runtime status always replaces the seed and is never reset back to 'Included' (STATIC-DIAGNOSTIC-PUBLISH-001)."
   ],
   "capabilities": {
     "core": {

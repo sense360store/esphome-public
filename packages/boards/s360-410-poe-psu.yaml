@@ -172,6 +172,11 @@ logger:
 # Automation: Log PoE status on boot
 esphome:
   on_boot:
+    # Compile-time "Power Configuration" string: never polled, so it is
+    # published once at boot (STATIC-DIAGNOSTIC-PUBLISH-001).
+    - priority: 500
+      then:
+        - component.update: power_config_info
     - priority: -100
       then:
         - logger.log:

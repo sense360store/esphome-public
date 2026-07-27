@@ -78,6 +78,49 @@ substitutions:
   # Boot warm-up window before Device Health may report "Running".
   s360_health_warmup_seconds: "120"
 
+# ----------------------------------------------------------------------------
+# Static diagnostic publication (STATIC-DIAGNOSTIC-PUBLISH-001)
+# ----------------------------------------------------------------------------
+# Every identity / capability / module-status entity below is a compile-time
+# constant, so it is declared `update_interval: never` — ESPHome must not poll
+# an immutable string on a timer. But a template text sensor that is never
+# polled also never evaluates its lambda, so without an explicit publication
+# each entity stayed "Unknown" for the whole life of the device.
+#
+# Each one is therefore published exactly ONCE at boot with `component.update`.
+# Boot priority 500 is chosen deliberately:
+#   * text-sensor components are set up at ESPHome's `setup_priority::DATA`
+#     (600), so every id below already exists when this hook fires;
+#   * the runtime module frameworks (RoomIQ / AirIQ / VentIQ) seed their own
+#     module status from `on_boot` priority 250, and Presence publishes from a
+#     500 ms `interval:` that only ticks after `App.setup()` completes — both
+#     are strictly LATER than 500, so a real runtime status
+#     (Initialising / Available / Degraded / Unavailable / Fault) always
+#     replaces the compile-time "Included" seed and is never reset back to it.
+# One publication, no polling: the compile-time value is a seed, not an owner.
+# Pinned by tests/test_static_diagnostic_publish.py.
+esphome:
+  on_boot:
+    - priority: 500
+      then:
+        # Device identity.
+        - component.update: s360_product_configuration
+        - component.update: s360_hardware_model
+        - component.update: s360_hardware_revision
+        - component.update: s360_firmware_version
+        - component.update: s360_firmware_channel
+        - component.update: s360_firmware_source
+        # Capability report.
+        - component.update: s360_installed_capabilities
+        - component.update: s360_capability_ids
+        # Module-status seeds (replaced by a runtime owner where one exists).
+        - component.update: s360_module_status_roomiq
+        - component.update: s360_module_status_airiq
+        - component.update: s360_module_status_ventiq
+        - component.update: s360_module_status_presence
+        - component.update: s360_module_status_led
+        - component.update: s360_module_status_fan_control
+
 # Debug component: powers the Last Restart Reason text sensor below. The
 # update interval matches packages/features/diagnostics.yaml so compositions
 # that also include the diagnostics profile merge cleanly.

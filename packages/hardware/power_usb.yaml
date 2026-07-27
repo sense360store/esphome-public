@@ -142,6 +142,12 @@ logger:
 # Automation: Log USB power status and warnings on boot
 esphome:
   on_boot:
+    # Compile-time strings: never polled, so they are published once at boot
+    # (STATIC-DIAGNOSTIC-PUBLISH-001).
+    - priority: 500
+      then:
+        - component.update: power_config_info
+        - component.update: usb_power_notes
     - priority: -100
       then:
         - logger.log:

@@ -61,8 +61,14 @@
 # ============================================================================
 
 substitutions:
-  module_sku: S360-AIR-C
-  module_variant: ceiling
+  # Board-specific identity keys (STATIC-DIAGNOSTIC-PUBLISH-001). The generic
+  # `module_sku` / `module_variant` names previously collided with the RoomIQ
+  # (S360-200) and VentIQ (S360-211) board packages in ESPHome's single flat
+  # substitution namespace, so a combined AirIQ + RoomIQ composition rendered
+  # one board's SKU on the other board's entity. Values and the
+  # customer-facing entity name are unchanged.
+  airiq_module_sku: S360-AIR-C
+  airiq_module_variant: ceiling
 
   # I2C Configuration (Ceiling reuses the shared core_i2c bus per
   # CORE-ABSTRACT-BUS-001B).
@@ -387,10 +393,13 @@ binary_sensor:
     lambda: "return id(airiq_mics).heater_on_state();"
 
 text_sensor:
+  # Compile-time board identity: never polled, published once at boot
+  # (STATIC-DIAGNOSTIC-PUBLISH-001).
   - platform: template
+    id: s360_airiq_module_sku
     name: "${friendly_name} AirIQ Module SKU"
     lambda: |-
-      return {"${module_sku}"};
+      return {"${airiq_module_sku}"};
     update_interval: never
     entity_category: diagnostic
 
@@ -448,3 +457,9 @@ button:
         - logger.log:
             level: INFO
             format: "AirIQ: MICS/STM8 recalibration requested"
+
+esphome:
+  on_boot:
+    - priority: 500
+      then:
+        - component.update: s360_airiq_module_sku

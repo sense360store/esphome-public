@@ -145,9 +145,19 @@ light:
           max_brightness: 10%
 
 text_sensor:
+  # Compile-time board identity: never polled, published once at boot
+  # (STATIC-DIAGNOSTIC-PUBLISH-001) — without that publish this lambda never
+  # runs and the entity reads "Unknown" forever.
   - platform: template
+    id: s360_led_ring_sku
     name: "${friendly_name} LED Ring SKU"
     lambda: |-
       return {"${led_ring_sku}"};
     update_interval: never
     entity_category: diagnostic
+
+esphome:
+  on_boot:
+    - priority: 500
+      then:
+        - component.update: s360_led_ring_sku
