@@ -89,8 +89,10 @@ substitutions:
 #
 # Each one is therefore published exactly ONCE at boot with `component.update`.
 # Boot priority 500 is chosen deliberately:
-#   * text-sensor components are set up at ESPHome's `setup_priority::DATA`
-#     (600), so every id below already exists when this hook fires;
+#   * template text sensors are set up at ESPHome's
+#     `setup_priority::HARDWARE` (800), so every id below is already set up
+#     and `is_ready()` when this hook fires (an update on a not-yet-ready
+#     component is dropped);
 #   * the runtime module frameworks (RoomIQ / AirIQ / VentIQ) seed their own
 #     module status from `on_boot` priority 250, and Presence publishes from a
 #     500 ms `interval:` that only ticks after `App.setup()` completes — both

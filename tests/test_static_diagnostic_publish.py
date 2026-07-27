@@ -25,7 +25,7 @@ The contract pinned here
   that declares it** (so a partial composition can never lose the publish).
 * The publication runs at boot priority ``500``
   (:data:`STATIC_PUBLISH_BOOT_PRIORITY`) — after the text-sensor components
-  are set up (ESPHome ``setup_priority::DATA`` = 600) and *before* every
+  are set up (ESPHome ``setup_priority::HARDWARE`` = 800) and *before* every
   runtime framework boot hook (priority 250) and before any ``interval:``
   tick (which only runs once ``App.setup()`` has completed). A runtime owner
   therefore always wins over the compile-time seed value, and the seed value
@@ -76,7 +76,7 @@ PRODUCTS_DIR = REPO_ROOT / "products"
 DEVICE_FRAMEWORK = REPO_ROOT / "packages" / "base" / "device_framework.yaml"
 
 # The single documented boot priority for publishing compile-time constants.
-# 600 (setup_priority::DATA) is when template text sensors are set up; the
+# 800 (setup_priority::HARDWARE) is when template text sensors are set up; the
 # runtime frameworks seed their own state from on_boot priority 250 and keep
 # it current from `interval:` ticks that only run after setup completes.
 STATIC_PUBLISH_BOOT_PRIORITY = 500
@@ -441,7 +441,7 @@ class StaticPublicationContractTests(unittest.TestCase):
             [],
             wrong,
             f"Static diagnostics publish at boot priority "
-            f"{STATIC_PUBLISH_BOOT_PRIORITY}: after text-sensor setup (600) "
+            f"{STATIC_PUBLISH_BOOT_PRIORITY}: after text-sensor setup (800) "
             f"and before every runtime framework hook "
             f"({RUNTIME_FRAMEWORK_BOOT_PRIORITY}):\n  " + "\n  ".join(wrong),
         )

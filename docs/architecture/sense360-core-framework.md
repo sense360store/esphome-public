@@ -194,8 +194,9 @@ though the value was baked into the firmware.
 The framework therefore publishes each one **exactly once** at boot with
 `component.update`, from an `esphome: on_boot:` hook at **priority 500**:
 
-* text-sensor components are set up at ESPHome's `setup_priority::DATA`
-  (600), so every id already exists when the hook fires;
+* template text sensors are set up at ESPHome's `setup_priority::HARDWARE`
+  (800), so every id is already set up and `is_ready()` when the hook fires
+  (`UpdateComponentAction` drops an update on a component that is not ready);
 * the runtime module frameworks seed their own module status from `on_boot`
   priority 250 (RoomIQ / AirIQ / VentIQ) or from an `interval:` tick that
   only runs once `App.setup()` has completed (Presence). Both are strictly

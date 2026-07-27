@@ -149,7 +149,7 @@ text_sensor:
 # be polled on a timer. A never-polled template text sensor also never
 # evaluates its lambda, so each one is published exactly ONCE at boot.
 # Priority 500 runs after the text-sensor components are set up (ESPHome
-# `setup_priority::DATA` = 600) and before every runtime framework boot hook
+# `setup_priority::HARDWARE` = 800) and before every runtime framework boot hook
 # (priority 250), so no runtime publisher is ever overwritten.
 esphome:
   on_boot:
