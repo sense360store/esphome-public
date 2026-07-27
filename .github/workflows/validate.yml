@@ -74,6 +74,10 @@ jobs:
         run: |
           python3 tests/test_roomiq_framework.py
 
+      - name: RoomIQ climate compensation contract (S360-200-R4-CLIMATE-COMPENSATION-001)
+        run: |
+          python3 tests/test_roomiq_climate_compensation.py
+
       - name: AirIQ framework contract (AIRIQ-FRAMEWORK-001)
         run: |
           python3 tests/test_airiq_framework.py

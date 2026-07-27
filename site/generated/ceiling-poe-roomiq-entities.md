@@ -33,7 +33,7 @@
        products/webflash/ceiling-poe-roomiq.yaml
 -->
 
-The `Ceiling-POE-RoomIQ` firmware exposes **94 entities** to Home Assistant.
+The `Ceiling-POE-RoomIQ` firmware exposes **98 entities** to Home Assistant.
 
 Entity names below appear in Home Assistant prefixed with the device's friendly name, which you choose during setup (firmware default: `Sense360 Ceiling RoomIQ`). Firmware-internal measurements (marked `internal` in the YAML) never reach Home Assistant and are not listed.
 
@@ -41,6 +41,8 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 |---|---|---|---|
 | BMP581 Temperature | Sensor | °C | device class: temperature; diagnostic entity; disabled by default |
 | Climate Data Age | Sensor | s | diagnostic entity; disabled by default |
+| Factory Compensated Humidity | Sensor | % | device class: humidity; diagnostic entity; disabled by default |
+| Factory Compensated Temperature | Sensor | °C | device class: temperature; diagnostic entity; disabled by default |
 | Humidity | Sensor | % | device class: humidity |
 | Illuminance | Sensor | lx | device class: illuminance |
 | Illuminance Data Age | Sensor | s | diagnostic entity; disabled by default |
@@ -116,7 +118,9 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Presence Status | Text sensor | — | — |
 | Product Configuration | Text sensor | — | diagnostic entity |
 | Product SKU | Text sensor | — | diagnostic entity |
+| RoomIQ Calibration Schema | Text sensor | — | diagnostic entity; disabled by default |
 | RoomIQ Calibration State | Text sensor | — | diagnostic entity; disabled by default |
+| RoomIQ Climate Profile | Text sensor | — | diagnostic entity; disabled by default |
 | RoomIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
 | RoomIQ Sensor Verification | Text sensor | — | diagnostic entity; disabled by default |
 | RoomIQ State Detail | Text sensor | — | diagnostic entity; disabled by default |
