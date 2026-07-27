@@ -318,6 +318,7 @@ def resolve_substitutions(path: Path) -> Dict[str, str]:
     substitutions are claimed before any package's.
     """
     resolved: Dict[str, str] = {}
+    visited: set = set()
 
     def claim(subs: Any) -> None:
         if not isinstance(subs, dict):
@@ -326,6 +327,9 @@ def resolve_substitutions(path: Path) -> Dict[str, str]:
             resolved.setdefault(str(key), str(value))
 
     def walk(current: Path) -> None:
+        if current in visited:
+            return
+        visited.add(current)
         doc = load_yaml(current)
         claim(doc.get("substitutions"))
         for package in reversed(_package_paths(doc, current.parent)):
