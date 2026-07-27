@@ -126,6 +126,14 @@ esphome:
     - ../include/sense360/blower_controller.h
     - ../include/sense360/airiq_engine.h
   on_boot:
+    # Publish the static "Blower Output Verification" string once at boot
+    # (that text sensor uses update_interval: never, so it is not polled).
+    # Priority 500 is the repository-wide static-diagnostic publication point
+    # (STATIC-DIAGNOSTIC-PUBLISH-001); the string is immutable, so moving it
+    # off the late hook below changes nothing except when it appears.
+    - priority: 500
+      then:
+        - component.update: s360_blower_output_verification
     # Late boot hook (after components are set up and the persisted Blower Mode
     # is restored): initialise the controller clock and apply the restored mode.
     # The FAN-net GPIO output boots OFF, so it is safely off until this runs.
@@ -133,9 +141,6 @@ esphome:
       then:
         - lambda: |-
             sense360::blower::global_controller().begin(millis());
-        # Publish the static "Blower Output Verification" string once at boot
-        # (that text sensor uses update_interval: never, so it is not polled).
-        - component.update: s360_blower_output_verification
         - script.execute: s360_blower_evaluate
 
 # ----------------------------------------------------------------------------

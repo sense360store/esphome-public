@@ -158,6 +158,11 @@ esphome:
     - ../include/sense360/roomiq_engine.h
     - ../include/sense360/roomiq_climate_compensation.h
   on_boot:
+    # Compile-time honesty companion: never polled, so it is published once at
+    # boot (STATIC-DIAGNOSTIC-PUBLISH-001). Runs before the engine hook below.
+    - priority: 500
+      then:
+        - component.update: s360_roomiq_sensor_verification
     - priority: 250
       then:
         - lambda: |-

@@ -181,6 +181,41 @@ The framework distinguishes three layers and implements only the first:
    communication success, explicit availability state). Arrives with the
    module-specific PRs.
 
+## Static diagnostic publication (STATIC-DIAGNOSTIC-PUBLISH-001)
+
+Every framework identity / capability / module-status entity is a template
+text sensor whose value is a compile-time constant, so it is declared
+`update_interval: never` — an immutable string must never be polled on a
+timer. ESPHome, however, only evaluates a template lambda when the component
+is polled, so a never-polled lambda-backed text sensor is never published at
+all: the entity stayed **Unknown** for the whole life of the device even
+though the value was baked into the firmware.
+
+The framework therefore publishes each one **exactly once** at boot with
+`component.update`, from an `esphome: on_boot:` hook at **priority 500**:
+
+* template text sensors are set up at ESPHome's `setup_priority::HARDWARE`
+  (800), so every id is already set up and `is_ready()` when the hook fires
+  (`UpdateComponentAction` drops an update on a component that is not ready);
+* the runtime module frameworks seed their own module status from `on_boot`
+  priority 250 (RoomIQ / AirIQ / VentIQ) or from an `interval:` tick that
+  only runs once `App.setup()` has completed (Presence). Both are strictly
+  later than 500.
+
+The compile-time module-status value is therefore a **seed, not an owner**: a
+real runtime status (Initialising / Available / Degraded / Unavailable /
+Fault) always replaces it and is never reset back to `Included`. Board
+packages publish their own compile-time identity the same way, from the same
+priority, in the file that declares the entity — so a partial composition can
+never lose a publish. Pinned by
+[`tests/test_static_diagnostic_publish.py`](../../tests/test_static_diagnostic_publish.py).
+
+Board identity substitutions are **board-specific** for the same reason
+ESPHome merges every package's `substitutions:` into one flat namespace where
+the later-declared package wins: the previous generic `module_sku` /
+`module_variant` names let AirIQ, VentIQ and RoomIQ overwrite each other's
+SKU entity in a combined composition.
+
 ## Module status contract
 
 Module status entities publish exactly one of:

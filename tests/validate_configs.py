@@ -103,7 +103,11 @@ class ConfigValidator:
                     self.errors.append(f"{file_path}: 'esphome' must be a dictionary")
                     return False
 
-                if "name" not in esphome:
+                # A package-composing config legitimately declares an
+                # `esphome:` block for composition-level keys only (on_boot
+                # hooks, includes); the device name comes from the composed
+                # board package, so it is not missing here.
+                if "name" not in esphome and not uses_packages:
                     self.warnings.append(
                         f"{file_path}: 'esphome.name' should be specified"
                     )

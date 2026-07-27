@@ -57,8 +57,15 @@
 #     probability or confidence claim.
 # ============================================================================
 substitutions:
-  module_sku: S360-PRES-C
-  module_variant: ceiling
+  # Board-specific identity keys (STATIC-DIAGNOSTIC-PUBLISH-001). ESPHome
+  # merges every package's `substitutions:` into ONE flat namespace, so the
+  # previous generic `module_sku` / `module_variant` names collided with the
+  # AirIQ (S360-210) and VentIQ (S360-211) board packages: in a combined
+  # composition the later-declared package won and its SKU was rendered on
+  # the OTHER board's entity. The values and the customer-facing entity name
+  # are unchanged.
+  roomiq_presence_module_sku: S360-PRES-C
+  roomiq_presence_module_variant: ceiling
 
   # UART Configuration — RoomIQ J10 Hi-Link radar UART.
   # CORE-ABSTRACT-BUS-001C: was `uart_bus` (single, schematic-conflicting); now
@@ -341,9 +348,19 @@ interval:
           }
 
 text_sensor:
+  # Compile-time board identity: never polled, published once at boot
+  # (STATIC-DIAGNOSTIC-PUBLISH-001) — without that publish this lambda never
+  # runs and the entity reads "Unknown" forever.
   - platform: template
+    id: s360_presence_module_sku
     name: "${friendly_name} Presence Module SKU"
     lambda: |-
-      return {"${module_sku}"};
+      return {"${roomiq_presence_module_sku}"};
     update_interval: never
     entity_category: diagnostic
+
+esphome:
+  on_boot:
+    - priority: 500
+      then:
+        - component.update: s360_presence_module_sku

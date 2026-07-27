@@ -191,6 +191,13 @@ esphome:
   includes:
     - ../include/sense360/airiq_engine.h
   on_boot:
+    # Compile-time strings (expected-sensor membership and the honesty
+    # companion): never polled, so they are published once at boot
+    # (STATIC-DIAGNOSTIC-PUBLISH-001). Runs before the engine hook below.
+    - priority: 500
+      then:
+        - component.update: s360_airiq_expected_sensors
+        - component.update: s360_airiq_sensor_verification
     - priority: 250
       then:
         - lambda: |-

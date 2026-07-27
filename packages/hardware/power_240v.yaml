@@ -97,6 +97,14 @@ binary_sensor:
       // If you have a power detection circuit, implement it here
       return true;
 
+# Compile-time "Power Configuration" string: never polled, so it is published
+# once at boot (STATIC-DIAGNOSTIC-PUBLISH-001).
+esphome:
+  on_boot:
+    - priority: 500
+      then:
+        - component.update: power_config_info
+
 # Debug logging for power configuration
 logger:
   logs:

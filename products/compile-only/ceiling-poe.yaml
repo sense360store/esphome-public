@@ -92,6 +92,7 @@ packages:
 # ============================================================================
 text_sensor:
   - platform: template
+    id: s360_product_sku
     name: "${friendly_name} Product SKU"
     lambda: |-
       return {"${device_sku}"};
@@ -99,6 +100,7 @@ text_sensor:
     entity_category: diagnostic
 
   - platform: template
+    id: s360_product_firmware_version
     name: "${friendly_name} Firmware Version"
     lambda: |-
       return {"${device_version}"};
@@ -106,8 +108,27 @@ text_sensor:
     entity_category: diagnostic
 
   - platform: template
+    id: s360_product_config_string
     name: "${friendly_name} WebFlash Config"
     lambda: |-
       return {"Ceiling-POE"};
     update_interval: never
     entity_category: diagnostic
+
+# ============================================================================
+# STATIC DIAGNOSTIC PUBLICATION (STATIC-DIAGNOSTIC-PUBLISH-001)
+# ============================================================================
+# The product-identification text sensors above hold compile-time constants,
+# so they are declared `update_interval: never` — an immutable string must not
+# be polled on a timer. A never-polled template text sensor also never
+# evaluates its lambda, so each one is published exactly ONCE at boot.
+# Priority 500 runs after the text-sensor components are set up (ESPHome
+# `setup_priority::HARDWARE` = 800) and before every runtime framework boot hook
+# (priority 250), so no runtime publisher is ever overwritten.
+esphome:
+  on_boot:
+    - priority: 500
+      then:
+        - component.update: s360_product_sku
+        - component.update: s360_product_firmware_version
+        - component.update: s360_product_config_string
