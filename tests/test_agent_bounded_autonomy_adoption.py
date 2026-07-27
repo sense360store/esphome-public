@@ -245,8 +245,21 @@ class AdoptionContractTests(unittest.TestCase):
     # -- owner-reserved actions (firmware tightening) ------------------------
 
     def test_prohibits_merge_and_release_publication(self) -> None:
+        """Merge is owner-reserved except under the adopted delegation.
+
+        Amended 2026-07-27: the owner adopted the SOT conditional merge
+        delegation here. The prohibition still leads the list; what
+        changed is that a narrow, four-condition exception now exists,
+        and it never covers the agent's own PR. Release publication is
+        untouched and still absolute.
+        """
         flat = " ".join(self.section.split())
-        self.assertIn("merge any PR (including the agent's own draft PR)", flat)
+        self.assertIn(
+            "merge any PR, **except** exactly as permitted by the conditional "
+            "merge delegation adopted below",
+            flat,
+        )
+        self.assertIn("which never covers the agent's own PR", flat)
         self.assertIn("create or publish a tag or GitHub Release", flat)
 
     def test_prohibits_release_capable_workflow_dispatch(self) -> None:
@@ -355,6 +368,78 @@ class AdoptionContractTests(unittest.TestCase):
             "product status, or commercial state",
             flat,
         )
+
+
+class ConditionalMergeDelegationAdoptionTests(unittest.TestCase):
+    """The conditional merge delegation adopted 2026-07-27.
+
+    The SOT delegation does not transfer by implication; this section is
+    what makes it apply here. These guards pin every condition, the
+    head-binding and repository-qualification rules, the never-permitted
+    list, and that nothing else in the owner-reserved list moved.
+    """
+
+    def setUp(self) -> None:
+        self.section = _adoption_section(_read_claude_md())
+        self.flat = " ".join(self.section.split())
+
+    def test_delegation_subsection_exists_inside_the_adoption(self) -> None:
+        self.assertIn(
+            "#### Conditional merge delegation (adopted 2026-07-27)", self.section
+        )
+
+    def test_it_states_the_delegation_did_not_transfer_by_implication(self) -> None:
+        self.assertIn("did **not** transfer by implication", self.flat)
+
+    def test_all_four_conditions_are_present(self) -> None:
+        for fragment in (
+            "reached `READY_FOR_OWNER_REVIEW`",
+            "explicitly names that PR as accepted",
+            "CI is green on the exact head being merged",
+            "merges occur in programme dependency order",
+        ):
+            self.assertIn(fragment, self.flat, fragment)
+        self.assertIn("if and only if all four", self.flat.lower())
+
+    def test_head_binding_is_adopted(self) -> None:
+        self.assertIn("lapses immediately", self.flat)
+        self.assertIn("requests fresh acceptance", self.flat)
+        self.assertIn("never merges a head the owner has not named", self.flat)
+
+    def test_repository_qualification_is_mandatory_here(self) -> None:
+        self.assertIn("does not name the repository is invalid here", self.flat)
+        self.assertIn("confers no merge authority", self.flat)
+        self.assertIn("PR numbers collide across Sense360 repositories", self.flat)
+
+    def test_never_permitted_list_is_adopted(self) -> None:
+        for fragment in (
+            "no owner message names as accepted",
+            "merging a head SHA no owner message names",
+            "self-accepting a PR the agent authored",
+            "widen the agent's own authority",
+            "owner silence as acceptance",
+        ):
+            self.assertIn(fragment, self.flat, fragment)
+
+    def test_release_reservations_are_restated_as_unchanged(self) -> None:
+        """Merging a PR is not releasing."""
+        self.assertIn("Merging a PR is not releasing", self.flat)
+        for fragment in (
+            "never creates or publishes a tag or GitHub Release",
+            "never dispatches a publishing or release-capable workflow",
+            "never authors an attestation",
+            "cuts no binary, tag or manifest",
+        ):
+            self.assertIn(fragment, self.flat, fragment)
+
+    def test_the_tighten_only_rule_is_addressed_not_reinterpreted(self) -> None:
+        self.assertIn("does not force a repository up to that cap", self.flat)
+        self.assertIn("No permission exceeds the SOT contract", self.flat)
+
+    def test_the_authorising_instruction_is_quoted(self) -> None:
+        self.assertIn("owner message of 2026-07-27, quoted", self.flat)
+        self.assertIn("It does not transfer by implication.", self.flat)
+        self.assertIn("no merge in\nesphome-public is delegated", self.section)
 
 
 if __name__ == "__main__":
