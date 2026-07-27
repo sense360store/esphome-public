@@ -84,7 +84,8 @@ gates below and `docs/standing-invariants.md` apply unchanged, and in
 particular Release-One (`Ceiling-POE-VentIQ-RoomIQ`) remains the production
 stable customer baseline):
 
-- merge any PR (including the agent's own draft PR);
+- merge any PR, **except** exactly as permitted by the conditional merge
+  delegation adopted below — which never covers the agent's own PR;
 - create or publish a tag or GitHub Release;
 - dispatch any workflow that can publish, release, attach, or deploy
   firmware — in particular `Release 3: Build & Release`
@@ -128,6 +129,76 @@ in the SOT contract — `READY_FOR_OWNER_REVIEW`, `BLOCKED_OWNER_DECISION`,
 conjunctive escalation rule is preserved unchanged: the owner may be
 interrupted only when **all four** SOT threshold conditions hold
 simultaneously.
+
+#### Conditional merge delegation (adopted 2026-07-27)
+
+This repository **adopts the conditional merge delegation** defined in the
+*Conditional merge delegation* section of
+[`sense360store/SOT/CLAUDE-OPERATING-MODEL.md`](https://github.com/sense360store/SOT/blob/main/CLAUDE-OPERATING-MODEL.md),
+on the owner's explicit instruction of 2026-07-27, quoted in full below.
+Before this adoption, merging was never autonomous here; the SOT
+delegation did **not** transfer by implication and this section is what
+makes it apply.
+
+An agent may merge a PR in this repository **if and only if all four**
+hold:
+
+1. the PR reached `READY_FOR_OWNER_REVIEW`;
+2. an owner message explicitly names that PR as accepted, **naming the
+   repository, the PR number and the exact head SHA it accepts**;
+3. CI is green on the exact head being merged;
+4. merges occur in programme dependency order.
+
+**Head-binding.** Acceptance binds a PR and a head SHA together. If the
+head moves after acceptance for any reason, merge authority for that PR
+lapses immediately: the agent reports the new head and requests fresh
+acceptance, and never merges a head the owner has not named.
+
+**Repository qualification.** An acceptance that does not name the
+repository is invalid here and confers no merge authority. PR numbers
+collide across Sense360 repositories, so a bare number could authorise a
+merge in the wrong repository; the agent reports the ambiguity rather
+than resolving it.
+
+**Delegated mechanics:** marking a draft PR ready for review; merging
+accepted PRs in dependency order; retargeting a stacked PR's base to
+`main` after its parent merged, and confirming the retarget; verifying
+`main` by commit inspection afterwards.
+
+**Never permitted:** merging a PR no owner message names as accepted,
+regardless of state; merging a head SHA no owner message names;
+self-accepting a PR the agent authored, including a governance amendment
+that would create or widen the agent's own authority; treating CI green,
+a clean mergeable state or owner silence as acceptance.
+
+**Nothing else moved.** Every other line of the *Never autonomous in this
+repository* list above stands unchanged. In particular the agent still
+never creates or publishes a tag or GitHub Release, never dispatches a
+publishing or release-capable workflow, never alters release, channel or
+lifecycle posture, never weakens a provenance, checksum, signing,
+compatibility or install gate, and never authors an attestation. Merging
+a PR is not releasing: the release-capable workflows remain owner-only,
+and a merged PR still cuts no binary, tag or manifest.
+
+**Why the tighten-only inheritance rule accommodates this.** The SOT
+inheritance rule caps a repository at the SOT contract — a repository may
+never widen *beyond* it. It does not force a repository up to that cap,
+and it does not freeze a repository's self-imposed tightening in place.
+This adoption moves this repository from stricter-than-the-contract to
+exactly-the-contract, adopting the same four conditions verbatim with two
+local tightenings retained (repository qualification is mandatory here,
+and the agent's own PRs are never covered). No permission exceeds the SOT
+contract, so no owner-side change to the contract itself is required.
+
+Authorising instruction, owner message of 2026-07-27, quoted:
+"The merge delegation exists only in SOT's charter and operating model.
+It does not transfer by implication. Before PR 05 implementation, open a
+draft PR in esphome-public adopting the conditional merge delegation into
+its CLAUDE.md and bounded-autonomy adoption section, same four
+conditions, head-binding, and never-permitted list, quoting this message
+as authorising text. That PR is held for my acceptance and I will merge
+it manually, mirroring the SOT bootstrap. Until it lands, no merge in
+esphome-public is delegated."
 
 This adoption is governance text and its regression tests only: it changes
 no firmware, product YAML, configuration declaration, release workflow,
