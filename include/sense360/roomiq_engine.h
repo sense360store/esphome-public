@@ -10,13 +10,20 @@
 // and the shipped logic can never drift.
 //
 // What it owns (the platform's single source of environmental truth):
-//   * Calibrated temperature / humidity / illuminance — customer offsets
-//     (temperature, humidity) and a multiplier (illuminance), applied
-//     EXACTLY ONCE, clamped to safe bounds; invalid calibration values
-//     recover to neutral.
+//   * Compensated temperature / humidity / illuminance — the built-in
+//     S360-200 R4 board climate profile (see
+//     include/sense360/roomiq_climate_compensation.h, which owns the
+//     constants, the Magnus/psychrometric model and the SHT45 sample-pairing
+//     rule; this engine never re-implements the formula) followed by the
+//     customer offsets (temperature, humidity) and multiplier (illuminance),
+//     each applied EXACTLY ONCE and clamped to safe bounds; invalid
+//     calibration values recover to neutral.
 //   * Per-channel freshness — a value is usable only after a real, valid
 //     (non-NaN) update inside the stale window; stale or missing data is
-//     never interpreted as a real value.
+//     never interpreted as a real value. Humidity additionally requires a
+//     COHERENT raw temperature/humidity pair: an unpaired humidity sample
+//     never marks the humidity channel fresh, because the humidity model is
+//     only meaningful on one physical SHT45 conversion.
 //   * Comfort — human-friendly comfort states from calibrated temperature
 //     and humidity only (accepted owner decision), with hysteresis.
 //   * Brightness — human-friendly room-ambience category from calibrated
@@ -44,9 +51,15 @@
 //     medical, health, lighting-standard or regulatory claims.
 //   * Freshness comes from real update callbacks; a NaN sample is not a
 //     valid update. Startup is Initialising, never a fault.
-//   * Temperature and humidity share one physical sensor (SHT4x): their
-//     shared failure shows honestly as both channels going stale together;
-//     the engine still tracks them independently.
+//   * Temperature and humidity share one physical sensor (SHT45 @ 0x44):
+//     their shared failure shows honestly as both channels going stale
+//     together; the engine still tracks them independently. The BMP581 die
+//     temperature is a diagnostic entity only and is NEVER an input to this
+//     engine or to the compensation model.
+//   * The built-in board profile is a VALIDATED PROVISIONAL profile for the
+//     tested S360-200 R4 board — not multi-unit, production, compliance or
+//     safety evidence (posture and numbers:
+//     include/sense360/roomiq_climate_compensation.h).
 //   * The ambient-light driver is reconciled to the schematic/BOM part
 //     (LTR-303ALS-01 @ 0x29 via ltr_als_ps;
 //     S360-200-R4-HARDWARE-RECONCILIATION-001). This engine consumes lux
@@ -59,6 +72,8 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+
+#include "roomiq_climate_compensation.h"
 
 namespace sense360 {
 namespace roomiq {
@@ -235,21 +250,46 @@ inline const char *darkness_to_string(Darkness darkness) {
 
 class RoomIQEngine {
  public:
+  // --- built-in board climate profile ---------------------------------------
+  // S360-200-R4-CLIMATE-COMPENSATION-001. RoomIQ IS the S360-200 board, so the
+  // S360-200 R4 profile is the engine default and EVERY composition that
+  // carries this engine gets the same compensation with no product-level
+  // configuration. The setter exists so the native tests can prove that the
+  // profile constants — not hidden literals in this file — drive the result,
+  // and so a future revision can carry its own profile.
+  void set_climate_profile(const ClimateProfile &profile) {
+    climate_profile_ = &profile;
+  }
+  const ClimateProfile &climate_profile() const { return *climate_profile_; }
+
+  // Maximum accepted skew between the two halves of one SHT45 conversion.
+  void set_climate_pair_skew_ms(uint32_t ms) {
+    climate_pair_.set_max_pair_skew_ms(ms);
+  }
+  uint32_t climate_pair_skew_ms() const {
+    return climate_pair_.max_pair_skew_ms();
+  }
+
   // --- calibration (applied exactly once, inside this engine) --------------
-  // Customer temperature offset in °C. Clamped to a safe band; NaN (an
-  // invalid stored value) recovers to neutral 0. The band (+/-15 °C) matches
-  // the Temperature Offset UI control in roomiq_framework.yaml; it is wide
-  // enough for a prototype board with significant thermal self-heating (the
-  // S360-200-R4 bench needed ~-7.7 °C), NOT an accuracy claim about the
-  // sensor.
+  // Customer temperature offset in °C — ADDITIONAL fine calibration on top of
+  // the built-in board profile, neutral at 0. Clamped to a safe band; NaN (an
+  // invalid stored value) recovers to neutral 0.
+  //
+  // The band (+/-15 °C) matches the Temperature Offset UI control in
+  // roomiq_framework.yaml and is retained as a protected compatibility range,
+  // NOT as an expectation: with the factory profile applied, normal customer
+  // calibration against a trusted reference should be SMALL (well under a
+  // degree). A large value now means either an unusual installation or a
+  // hardware question — never a routine setting.
   void set_temperature_offset(float offset_c) {
     temperature_offset_ = sanitise_offset(offset_c, 15.0f);
   }
 
-  // Customer humidity offset in %RH. Clamped; NaN recovers to neutral 0. The
-  // band (+/-30 %RH) matches the Humidity Offset UI control in
-  // roomiq_framework.yaml (the S360-200-R4 bench needed ~+17 %RH); it is a
-  // per-device correction bound, not a sensor-accuracy claim.
+  // Customer humidity offset in %RH — ADDITIONAL fine calibration applied
+  // once, at the very END of the model (after the psychrometric recalculation
+  // and the factory residual). Clamped; NaN recovers to neutral 0. The band
+  // (+/-30 %RH) matches the Humidity Offset UI control and is likewise a
+  // retained compatibility range, not an expected magnitude.
   void set_humidity_offset(float offset_pct) {
     humidity_offset_ = sanitise_offset(offset_pct, 30.0f);
   }
@@ -340,20 +380,31 @@ class RoomIQEngine {
   // --- inputs (real sensor update callbacks) ---------------------------------
   // A NaN sample is an INVALID update: it never refreshes the channel and
   // never becomes a value.
+  //
+  // Temperature and humidity arrive as two separate callbacks from ONE SHT45
+  // conversion, in either order. The temperature channel refreshes on its own
+  // valid sample; the humidity channel refreshes ONLY when a coherent
+  // temperature/humidity pair is formed (ClimateSamplePairer), because the
+  // humidity model needs both halves of the same physical measurement. So a
+  // humidity sample may complete a pair, and so may the temperature sample
+  // that follows a humidity-first callback order.
   void input_temperature(uint32_t now_ms, float celsius) {
     ensure_started(now_ms);
-    if (std::isnan(celsius)) return;
-    temp_raw_ = celsius;
+    if (!std::isfinite(celsius)) return;  // invalid sample: never a refresh
+    const bool paired = climate_pair_.input_temperature(now_ms, celsius);
     temp_seen_ = true;
     temp_last_ms_ = now_ms;
+    if (paired) {
+      humidity_seen_ = true;
+      humidity_last_ms_ = climate_pair_.pair_ms();
+    }
   }
 
   void input_humidity(uint32_t now_ms, float percent) {
     ensure_started(now_ms);
-    if (std::isnan(percent)) return;
-    humidity_raw_ = percent;
+    if (!climate_pair_.input_humidity(now_ms, percent)) return;
     humidity_seen_ = true;
-    humidity_last_ms_ = now_ms;
+    humidity_last_ms_ = climate_pair_.pair_ms();
   }
 
   void input_lux(uint32_t now_ms, float lux) {
@@ -382,20 +433,20 @@ class RoomIQEngine {
     update_health();
   }
 
-  // --- calibrated value outputs ------------------------------------------------
+  // --- compensated value outputs ------------------------------------------------
   // NAN unless the channel is fresh: a stale value is never reported as a
-  // real value.
+  // real value. The board profile and the customer calibration are applied
+  // here, exactly once, by the shared compensation helper.
   float temperature() const {
     if (temp_state_ != CHANNEL_FRESH) return NAN;
-    return temp_raw_ + temperature_offset_;
+    return compensate_temperature_c(*climate_profile_,
+                                    climate_pair_.raw_temperature(),
+                                    temperature_offset_);
   }
 
   float humidity() const {
     if (humidity_state_ != CHANNEL_FRESH) return NAN;
-    float value = humidity_raw_ + humidity_offset_;
-    if (value < 0.0f) value = 0.0f;
-    if (value > 100.0f) value = 100.0f;
-    return value;
+    return climate_result_().humidity_pct;
   }
 
   float illuminance() const {
@@ -404,9 +455,25 @@ class RoomIQEngine {
     return value < 0.0f ? 0.0f : value;
   }
 
-  // Raw (uncalibrated) values for diagnostics only.
-  float raw_temperature() const { return temp_seen_ ? temp_raw_ : NAN; }
-  float raw_humidity() const { return humidity_seen_ ? humidity_raw_ : NAN; }
+  // --- factory-only values (support diagnostics) ---------------------------
+  // The built-in board profile applied WITHOUT customer calibration — the
+  // support view that separates "what the built-in profile did" from "what
+  // the customer added". Never a customer-facing default entity.
+  float factory_temperature() const {
+    if (temp_state_ != CHANNEL_FRESH) return NAN;
+    return compensate_temperature_c(*climate_profile_,
+                                    climate_pair_.raw_temperature(), 0.0f);
+  }
+
+  float factory_humidity() const {
+    if (humidity_state_ != CHANNEL_FRESH) return NAN;
+    return climate_result_().factory_humidity_pct;
+  }
+
+  // Raw (uncompensated, uncalibrated) values for diagnostics only — these
+  // stay exactly what the SHT45 / light driver reported.
+  float raw_temperature() const { return climate_pair_.raw_temperature(); }
+  float raw_humidity() const { return climate_pair_.raw_humidity(); }
   float raw_illuminance() const { return lux_seen_ ? lux_raw_ : NAN; }
 
   bool temperature_fresh() const { return temp_state_ == CHANNEL_FRESH; }
@@ -545,6 +612,14 @@ class RoomIQEngine {
 
   static uint32_t elapsed(uint32_t since_ms, uint32_t now_ms) {
     return now_ms - since_ms;  // unsigned arithmetic handles wrap-around
+  }
+
+  // The shared compensation model, evaluated on the latest COHERENT raw pair.
+  // Callers must already have checked humidity freshness.
+  ClimateResult climate_result_() const {
+    return compensate_climate(*climate_profile_, climate_pair_.pair_temperature(),
+                              climate_pair_.pair_humidity(), temperature_offset_,
+                              humidity_offset_);
   }
 
   static float sanitise_offset(float offset, float bound) {
@@ -864,6 +939,12 @@ class RoomIQEngine {
     health_ = HEALTH_UNAVAILABLE;
   }
 
+  // built-in board climate profile (default = the S360-200 R4 profile,
+  // because RoomIQ IS the S360-200 board) and the SHT45 sample pairer that
+  // guarantees the humidity model only ever sees one physical conversion.
+  const ClimateProfile *climate_profile_ = &S360_200_R4_CLIMATE_PROFILE_V1();
+  ClimateSamplePairer climate_pair_;
+
   // calibration (customer-adjustable at runtime; persisted by the YAML
   // number entities, re-applied on every evaluation)
   float temperature_offset_ = 0.0f;
@@ -901,11 +982,10 @@ class RoomIQEngine {
   bool started_ = false;
   uint32_t start_ms_ = 0;
 
-  // channel data
-  float temp_raw_ = NAN;
+  // channel data (the raw temperature/humidity samples themselves live in
+  // climate_pair_, the single owner of the coherence rule)
   bool temp_seen_ = false;
   uint32_t temp_last_ms_ = 0;
-  float humidity_raw_ = NAN;
   bool humidity_seen_ = false;
   uint32_t humidity_last_ms_ = 0;
   float lux_raw_ = NAN;

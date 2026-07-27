@@ -23,20 +23,40 @@
 # so tested logic and shipped logic cannot drift. The contract is pinned by
 # tests/test_roomiq_framework.py.
 #
+# Climate compensation (S360-200-R4-CLIMATE-COMPENSATION-001): the canonical
+# Temperature and Humidity entities are FULLY COMPENSATED. The built-in,
+# named board profile S360_200_R4_CLIMATE_PROFILE_V1 and the
+# vapour-pressure-preserving psychrometric humidity model live in
+# include/sense360/roomiq_climate_compensation.h — ONE implementation,
+# consumed by the engine and by the native tests. Its constants and evidence
+# posture are stated THERE and nowhere else: no constant and no formula is
+# duplicated in this file, in a bundle, or in customer YAML, and the runtime
+# diagnostics below read them from the compiled profile rather than restating
+# them. The profile is a VALIDATED PROVISIONAL profile for the tested
+# S360-200 R4 board: strong evidence for that board / enclosure /
+# arrangement, never multi-unit, production, compliance or safety evidence.
+#
 # Calibration honesty: the customer offsets (temperature, humidity) and
-# multiplier (illuminance) are applied EXACTLY ONCE, inside the engine.
-# Raw board sensors stay internal/uncalibrated; every canonical output and
-# every legacy compatibility entity carries the calibrated value; no
-# downstream framework applies its own offset. Values persist across
-# restart via the number entities' restore_value; invalid stored values
-# recover to neutral inside the engine.
+# multiplier (illuminance) are ADDITIONAL fine calibration on top of the
+# built-in factory profile, neutral at 0 / 0 / x1.0 and applied EXACTLY ONCE,
+# inside the engine. Raw board sensors stay internal and uncompensated; every
+# canonical output and every legacy compatibility entity carries the
+# compensated value; no downstream framework applies its own offset. Values
+# persist across restart via the number entities' restore_value; invalid
+# stored values recover to neutral inside the engine. Because the humidity
+# model recalculates relative humidity AT the corrected temperature, the
+# customer temperature offset also moves humidity by a small, scientifically
+# correct amount — that is the model working, not a double correction.
 #
 # Freshness honesty: a value is usable only after a real, valid (non-NaN)
 # update callback inside the stale window. Stale channels publish unknown,
-# never a frozen reading. Temperature and humidity share one physical
-# sensor (SHT4x @ 0x44): their shared failure shows honestly as both
-# channels going stale together. Module health (Initialising / Available /
-# Degraded / Unavailable) is driven from this real freshness evidence into
+# never a frozen reading. Temperature and humidity come from one physical
+# conversion of one physical sensor (SHT45 @ 0x44) surfaced through two
+# ESPHome callbacks: humidity is marked fresh ONLY from a coherent pair
+# (either callback order, bounded skew), and their shared failure shows
+# honestly as both channels going stale together. Module health
+# (Initialising / Available / Degraded / Unavailable) is driven from this
+# real freshness evidence into
 # the Core-Framework "RoomIQ Module Status" entity — the second wired
 # module after Presence (config/core-framework.json
 # module_runtime_status.roomiq). Fault is an engine contract with NO
@@ -92,6 +112,22 @@ substitutions:
   roomiq_illuminance_warmup_ms: "30000"
   roomiq_illuminance_stale_ms: "60000"
 
+  # Maximum accepted skew (ms) between the raw temperature and raw humidity
+  # halves of ONE SHT45 conversion (S360-200-R4-CLIMATE-COMPENSATION-001).
+  # ESPHome emits the two callbacks microseconds apart inside a single sht4x
+  # poll, so 5 s is generous for a real pair while staying far below the 30 s
+  # S360-200 R4 polling cycle — an old sample can never pair with the next
+  # cycle's counterpart. Humidity is only marked fresh from a coherent pair.
+  roomiq_climate_pair_skew_ms: "5000"
+
+  # Persisted customer-calibration schema version. Bump ONLY when the meaning
+  # of the stored customer offsets changes; see the migration block below.
+  #   1 = pre-compensation raw offsets (customer corrected the whole board
+  #       error by hand, e.g. -7.7 °C / +17 %RH)
+  #   2 = additional fine calibration on top of the built-in
+  #       S360_200_R4_CLIMATE_PROFILE_V1 factory compensation (neutral at 0)
+  roomiq_calibration_schema_version: "2"
+
   # Comfort thresholds (°C / %RH) — PROVISIONAL comfort heuristics, not
   # medical/health thresholds. Advanced tuning is by substitution override
   # (documented), deliberately NOT one customer entity per threshold.
@@ -120,12 +156,97 @@ substitutions:
 esphome:
   includes:
     - ../include/sense360/roomiq_engine.h
+    - ../include/sense360/roomiq_climate_compensation.h
   on_boot:
     - priority: 250
       then:
         - lambda: |-
             sense360::roomiq::global_engine().begin(millis());
         - script.execute: s360_roomiq_evaluate
+        - lambda: |-
+            // Static support diagnostic: which built-in board climate
+            // profile is compiled in, and exactly what it proves.
+            const auto &profile =
+                sense360::roomiq::global_engine().climate_profile();
+            char buffer[200];
+            snprintf(buffer, sizeof(buffer),
+                     "%s (%s %s): temperature %+.2f C, humidity residual "
+                     "%+.2f %%RH, evidence %s (one tested board; multi-unit "
+                     "validation outstanding)",
+                     profile.id, profile.board_sku, profile.board_revision,
+                     profile.temperature_correction_c,
+                     profile.humidity_residual_pct,
+                     sense360::roomiq::climate_evidence_to_string(
+                         profile.evidence));
+            id(s360_roomiq_climate_profile).publish_state(buffer);
+
+    # ------------------------------------------------------------------------
+    # Persisted customer-calibration schema migration
+    # (S360-200-R4-CLIMATE-COMPENSATION-001)
+    # ------------------------------------------------------------------------
+    # Firmware before the built-in compensation asked operators to correct the
+    # WHOLE board error by hand through these controls (the S360-200 R4 bench
+    # sheet said -7.7 °C and +17 %RH). Those persisted values would now
+    # DOUBLE-CORRECT on top of the factory profile, so an upgrade must reset
+    # customer calibration to neutral exactly once.
+    #
+    # The trigger is an explicit persisted schema marker, never a guess from
+    # the stored numbers themselves (a legitimate -7.7 °C is indistinguishable
+    # from a legacy one). Devices that have never stored the marker — an
+    # upgrade from the old schema, or a clean install — read 0, get reset to
+    # 0 / 0, and are stamped with the current version. Clean installs are
+    # already 0 / 0, so the reset is a no-op for them. From then on the marker
+    # matches, the migration never runs again, and customer values persist
+    # normally. No factory reset is required.
+    #
+    # Priority 200 runs AFTER every HARDWARE-priority component has set up, so
+    # the number entities have already restored their persisted values and
+    # this really does overwrite the old ones.
+    - priority: 200
+      then:
+        - if:
+            condition:
+              lambda: |-
+                return id(s360_roomiq_calibration_schema) !=
+                       ${roomiq_calibration_schema_version};
+            then:
+              - logger.log:
+                  level: WARN
+                  format: >-
+                    RoomIQ calibration schema %d -> %d: resetting customer
+                    Temperature/Humidity Offset to 0 once (built-in S360-200 R4
+                    compensation now applies; pre-compensation manual offsets
+                    would double-correct)
+                  args:
+                    - 'id(s360_roomiq_calibration_schema)'
+                    - '${roomiq_calibration_schema_version}'
+              - number.set:
+                  id: s360_temperature_offset
+                  value: 0
+              - number.set:
+                  id: s360_humidity_offset
+                  value: 0
+              - lambda: |-
+                  id(s360_roomiq_calibration_schema) =
+                      ${roomiq_calibration_schema_version};
+                  id(s360_roomiq_calibration_schema_state).publish_state(
+                      "v${roomiq_calibration_schema_version}: customer "
+                      "calibration reset to 0/0 once for built-in "
+                      "S360_200_R4_CLIMATE_PROFILE_V1 compensation");
+            else:
+              - lambda: |-
+                  id(s360_roomiq_calibration_schema_state).publish_state(
+                      "v${roomiq_calibration_schema_version}: no migration "
+                      "needed; customer calibration persisted");
+
+# ----------------------------------------------------------------------------
+# Persisted calibration-schema marker (see the migration block above).
+# ----------------------------------------------------------------------------
+globals:
+  - id: s360_roomiq_calibration_schema
+    type: int
+    restore_value: true
+    initial_value: '0'
 
 # ----------------------------------------------------------------------------
 # Evaluation — periodic tick plus immediate re-evaluation on every real
@@ -160,31 +281,45 @@ script:
           engine.set_brightness_hysteresis_pct(
               ${roomiq_brightness_hysteresis_pct});
 
+          // Sample coherence: the SHT45 temperature/humidity pair must come
+          // from ONE physical conversion for the psychrometric humidity model
+          // to mean anything.
+          engine.set_climate_pair_skew_ms(${roomiq_climate_pair_skew_ms});
+
           // Customer calibration (runtime-adjustable; persisted by the
           // number entities; the engine clamps to safe bounds and treats
           // invalid values as neutral — calibration is applied EXACTLY
-          // ONCE, here).
+          // ONCE, here, on top of the built-in board profile).
           engine.set_temperature_offset(id(s360_temperature_offset).state);
           engine.set_humidity_offset(id(s360_humidity_offset).state);
           engine.set_illuminance_scale(id(s360_illuminance_scale).state);
 
           engine.evaluate(now);
 
-          // Honest numeric outputs: when a channel is no longer fresh its
-          // canonical entity goes unknown — a stale reading is never left
-          // standing as if it were live.
-          if (!engine.temperature_fresh() &&
-              !std::isnan(id(s360_temperature).state)) {
-            id(s360_temperature).publish_state(NAN);
-          }
-          if (!engine.humidity_fresh() &&
-              !std::isnan(id(s360_humidity).state)) {
-            id(s360_humidity).publish_state(NAN);
-          }
-          if (!engine.illuminance_fresh() &&
-              !std::isnan(id(s360_illuminance).state)) {
-            id(s360_illuminance).publish_state(NAN);
-          }
+          // Canonical numeric outputs — published from ONE place, on change
+          // only. This single owner covers every trigger: a new sample, the
+          // temperature callback that completes a humidity pair, a customer
+          // calibration change while the raw pair is still fresh, and a
+          // channel going stale (which publishes unknown, so a stale reading
+          // is never left standing as if it were live).
+          auto publish_changed = [](esphome::sensor::Sensor *target,
+                                    float value) {
+            const float current = target->state;
+            const bool unchanged =
+                (std::isnan(current) && std::isnan(value)) || current == value;
+            if (!unchanged) target->publish_state(value);
+          };
+          publish_changed(id(s360_temperature), engine.temperature());
+          publish_changed(id(s360_humidity), engine.humidity());
+          publish_changed(id(s360_illuminance), engine.illuminance());
+
+          // Factory-only support diagnostics: the built-in board profile
+          // applied WITHOUT customer calibration, so support can separate
+          // the two contributions without exposing formula internals.
+          publish_changed(id(s360_roomiq_factory_temperature),
+                          engine.factory_temperature());
+          publish_changed(id(s360_roomiq_factory_humidity),
+                          engine.factory_humidity());
 
           // Customer state outputs (publish on change only).
           {
@@ -232,13 +367,20 @@ script:
               id(s360_roomiq_environment_detail).publish_state(detail);
             }
           }
+          // Calibration diagnostic — states the FOUR contributions
+          // separately so nobody has to guess which layer moved a reading:
+          // the built-in factory profile, the customer temperature
+          // calibration, the customer humidity calibration and the
+          // illuminance calibration.
           {
-            char buffer[120];
+            const auto &profile = engine.climate_profile();
+            char buffer[220];
             snprintf(buffer, sizeof(buffer),
-                     "temperature %+.1f °C, humidity %+.1f %%, "
-                     "illuminance x%.2f",
-                     engine.temperature_offset(), engine.humidity_offset(),
-                     engine.illuminance_scale());
+                     "factory %s %+.2f °C / %+.2f %%; customer temperature "
+                     "%+.1f °C, customer humidity %+.1f %%, illuminance x%.2f",
+                     profile.id, profile.temperature_correction_c,
+                     profile.humidity_residual_pct, engine.temperature_offset(),
+                     engine.humidity_offset(), engine.illuminance_scale());
             std::string calibration = buffer;
             if (id(s360_roomiq_calibration_state).state != calibration) {
               id(s360_roomiq_calibration_state).publish_state(calibration);
@@ -256,6 +398,11 @@ interval:
 # ----------------------------------------------------------------------------
 sensor:
   # --- input samples (internal) ---------------------------------------------
+  # The freshness signal is the real update callback. Each handler feeds the
+  # engine and re-evaluates; the evaluate script above is the SINGLE owner of
+  # canonical publishing, so either SHT45 callback order publishes the right
+  # values (a temperature sample that completes a humidity pair publishes
+  # humidity too) with no duplicated publish logic here.
   - platform: copy
     source_id: ${roomiq_temperature_source_id}
     id: s360_roomiq_temperature_sample
@@ -265,11 +412,6 @@ sensor:
         - lambda: |-
             sense360::roomiq::global_engine().input_temperature(millis(), x);
         - script.execute: s360_roomiq_evaluate
-        - lambda: |-
-            if (!std::isnan(x)) {
-              id(s360_temperature).publish_state(
-                  sense360::roomiq::global_engine().temperature());
-            }
 
   - platform: copy
     source_id: ${roomiq_humidity_source_id}
@@ -280,11 +422,6 @@ sensor:
         - lambda: |-
             sense360::roomiq::global_engine().input_humidity(millis(), x);
         - script.execute: s360_roomiq_evaluate
-        - lambda: |-
-            if (!std::isnan(x)) {
-              id(s360_humidity).publish_state(
-                  sense360::roomiq::global_engine().humidity());
-            }
 
   # Illuminance is the noisiest channel: a short median window rejects
   # single-sample outliers with at most ~2 samples (~20 s) of added lag.
@@ -304,16 +441,12 @@ sensor:
         - lambda: |-
             sense360::roomiq::global_engine().input_lux(millis(), x);
         - script.execute: s360_roomiq_evaluate
-        - lambda: |-
-            if (!std::isnan(x)) {
-              id(s360_illuminance).publish_state(
-                  sense360::roomiq::global_engine().illuminance());
-            }
 
-  # --- canonical calibrated customer sensors ----------------------------------
-  # Published from the engine on every valid update (and set unknown when
+  # --- canonical compensated customer sensors ---------------------------------
+  # Published from the engine whenever the value changes (and set unknown when
   # a channel goes stale). These are THE platform temperature / humidity /
-  # illuminance values: every other framework consumes these, never the
+  # illuminance values — fully compensated (built-in S360-200 R4 board profile
+  # plus customer calibration): every other framework consumes these, never the
   # raw board sensors.
   - platform: template
     id: s360_temperature
@@ -330,7 +463,7 @@ sensor:
     unit_of_measurement: "%"
     device_class: humidity
     state_class: measurement
-    accuracy_decimals: 0
+    accuracy_decimals: 1
     icon: mdi:water-percent
 
   - platform: template
@@ -343,7 +476,36 @@ sensor:
     icon: mdi:brightness-5
 
   # --- diagnostics (diagnostic + disabled by default) --------------------------
-  # Raw (uncalibrated) readings for support / calibration work.
+  # Factory-compensated values: the built-in S360-200 R4 board profile applied
+  # WITHOUT customer calibration. Support can subtract these from the canonical
+  # entities to see exactly what the customer's own calibration contributed —
+  # without exposing the intermediate stages of the formula as entities.
+  - platform: template
+    id: s360_roomiq_factory_temperature
+    name: "Factory Compensated Temperature"
+    entity_category: diagnostic
+    disabled_by_default: true
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 2
+    icon: mdi:thermometer-check
+    update_interval: never
+
+  - platform: template
+    id: s360_roomiq_factory_humidity
+    name: "Factory Compensated Humidity"
+    entity_category: diagnostic
+    disabled_by_default: true
+    unit_of_measurement: "%"
+    device_class: humidity
+    state_class: measurement
+    accuracy_decimals: 2
+    icon: mdi:water-check
+    update_interval: never
+
+  # Raw (uncompensated, uncalibrated) readings for support / calibration work.
+  # These copy the board sensors directly and must never carry compensation.
   - platform: copy
     source_id: ${roomiq_temperature_source_id}
     id: s360_roomiq_raw_temperature
@@ -504,11 +666,33 @@ text_sensor:
     disabled_by_default: true
     update_interval: never
 
-  # Active calibration values in one line (support / bench aid).
+  # Active calibration values in one line (support / bench aid). Distinguishes
+  # the built-in factory profile from each customer calibration control.
   - platform: template
     id: s360_roomiq_calibration_state
     name: "RoomIQ Calibration State"
     icon: mdi:tune-vertical
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+
+  # Which built-in board climate profile is compiled in, with its constants
+  # and — inseparably — the evidence level those constants actually reached.
+  # Published once at boot (the profile is compile-time constant).
+  - platform: template
+    id: s360_roomiq_climate_profile
+    name: "RoomIQ Climate Profile"
+    icon: mdi:tune-variant
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: never
+
+  # Persisted customer-calibration schema version and whether this boot ran
+  # the one-time reset (see the migration block at the top of this file).
+  - platform: template
+    id: s360_roomiq_calibration_schema_state
+    name: "RoomIQ Calibration Schema"
+    icon: mdi:database-sync
     entity_category: diagnostic
     disabled_by_default: true
     update_interval: never
@@ -570,14 +754,16 @@ text_sensor:
 # Customer calibration controls (runtime, persisted, safe bounds)
 # ----------------------------------------------------------------------------
 number:
-  # Local single-point temperature calibration against a trusted reference
-  # thermometer. Applied once, inside the engine. The range is wide enough to
-  # correct a prototype board with significant thermal self-heating
-  # (S360-200-R4 bench needed ~-7.7 °C, beyond the former ±5 °C limit). An
-  # offset this large is a signal that the board/enclosure thermal placement
-  # needs hardware investigation — software calibration makes the prototype
-  # usable but is NOT proof the production thermal design is acceptable (see
-  # docs/hardware/s360-200-r4-presence-runtime.md). Neutral default stays 0.
+  # ADDITIONAL fine calibration against a trusted reference thermometer, on
+  # top of the built-in S360_200_R4_CLIMATE_PROFILE_V1 factory compensation.
+  # Applied once, inside the engine. Neutral default stays 0, and with the
+  # factory profile in place a normal customer correction should be SMALL —
+  # well under a degree. The ±15 °C range is retained as a protected
+  # compatibility contract (it predates the built-in compensation and existing
+  # installs pin it), NOT as an expected magnitude: a large value now means an
+  # unusual installation or a hardware question, never routine calibration.
+  # Restoring a pre-compensation manual offset would double-correct, which is
+  # what the persisted schema migration at the top of this file prevents.
   - platform: template
     id: s360_temperature_offset
     name: "Temperature Offset"
@@ -591,20 +777,20 @@ number:
     initial_value: 0
     optimistic: true
     restore_value: true
+    # Re-evaluating recalculates immediately from the latest raw pair while it
+    # is still fresh, and the evaluate script republishes. The temperature
+    # offset legitimately moves HUMIDITY too: relative humidity is recomputed
+    # at the corrected temperature, preserving the measured vapour pressure.
     on_value:
       then:
         - script.execute: s360_roomiq_evaluate
-        - lambda: |-
-            auto &engine = sense360::roomiq::global_engine();
-            if (engine.temperature_fresh()) {
-              id(s360_temperature).publish_state(engine.temperature());
-            }
 
-  # Local single-point humidity calibration against a trusted reference
-  # hygrometer. Applied once, inside the engine. The range is wide enough to
-  # correct the prototype board offset seen on the bench (S360-200-R4 needed
-  # ~+17 %RH, beyond the former ±10 %RH limit). A per-device correction, not
-  # a sensor-accuracy claim. Neutral default stays 0.
+  # ADDITIONAL fine calibration against a trusted reference hygrometer,
+  # applied once at the very END of the model (after the psychrometric
+  # recalculation and the built-in factory residual). A per-device
+  # correction, never a sensor-accuracy claim. Neutral default stays 0 and a
+  # normal customer correction should be small; the ±30 %RH range is likewise
+  # a retained compatibility contract, not an expected magnitude.
   - platform: template
     id: s360_humidity_offset
     name: "Humidity Offset"
@@ -621,11 +807,6 @@ number:
     on_value:
       then:
         - script.execute: s360_roomiq_evaluate
-        - lambda: |-
-            auto &engine = sense360::roomiq::global_engine();
-            if (engine.humidity_fresh()) {
-              id(s360_humidity).publish_state(engine.humidity());
-            }
 
   # A multiplier, not an offset: ambient-light error is dominated by
   # multiplicative effects (gain, diffuser attenuation, mounting position),
@@ -646,8 +827,3 @@ number:
     on_value:
       then:
         - script.execute: s360_roomiq_evaluate
-        - lambda: |-
-            auto &engine = sense360::roomiq::global_engine();
-            if (engine.illuminance_fresh()) {
-              id(s360_illuminance).publish_state(engine.illuminance());
-            }

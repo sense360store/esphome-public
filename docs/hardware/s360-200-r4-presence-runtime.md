@@ -28,12 +28,17 @@ Bench reference: room ≈ 28.3 °C / ≈ 42 %RH. S360-200-R4 readings:
 
 The public temperature sitting at exactly 31.0 °C showed the former Temperature Offset had hit its −5 °C lower limit. The raw SHT45 reads ≈ 7.7 °C high and humidity ≈ 17 points low versus the reference — a significant **prototype thermal self-heating bias**, not a normal calibration gap. The BMP581 die temperature is a diagnostic, heat-biased reading and is **not** used as the customer temperature source.
 
-Provisional initial bench corrections (per-device, entered through the persisted runtime controls — never shared defaults):
+> **Superseded (S360-200-R4-CLIMATE-COMPENSATION-001).** The hand-entered bench corrections recorded here — Temperature Offset −7.7 °C and Humidity Offset +17.0/+17.5 % — are **no longer to be entered**. They were a temporary manual workaround for exactly the board error that firmware now corrects **built in**, so entering them today would double-correct the device. The historical numbers are retained above only as the observation that motivated the built-in profile.
 
-- **Temperature Offset: −7.7 °C**
-- **Humidity Offset: +17.0 or +17.5 %** (the control step is 0.5 %; use +17.0 or +17.5 for the first test and record which is closer to the reference)
+The compensation is now a named, versioned board profile applied inside the RoomIQ engine, with all customer calibration controls neutral at zero:
 
-To make these enterable the runtime calibration ranges were widened (see "Calibration range" below). **This is not proof the production thermal design is acceptable.** An offset this large indicates a board/enclosure thermal-placement problem requiring hardware investigation; software calibration only makes the current prototype usable. Calibration remains applied exactly once, inside the RoomIQ engine — no second correction layer or filter is added to the raw SHT45 sensors.
+- built-in temperature compensation: **−5.80 °C**
+- built-in humidity residual: **+4.52 %RH**, applied after a vapour-pressure-preserving psychrometric recalculation at the corrected temperature
+- customer **Temperature Offset** and **Humidity Offset**: **leave at 0** unless a trusted reference disagrees, and then only by a small amount
+
+The full model, its worked vectors and its evidence level live in [`docs/architecture/sense360-roomiq-framework.md` §3](../architecture/sense360-roomiq-framework.md). Upgrading a device that stored the old manual offsets resets customer Temperature/Humidity calibration to 0/0 exactly once (persisted schema migration; no factory reset needed).
+
+**This is still not proof the production thermal design is acceptable.** A board that needs a correction this large has a thermal-placement characteristic that remains a hardware item; the built-in profile makes the product usable and is validated on **one** tested board only. Compensation and calibration remain applied exactly once, inside the RoomIQ engine — no second correction layer or filter is added to the raw SHT45 sensors, which stay raw for diagnostics.
 
 ### MQTT
 
@@ -100,14 +105,14 @@ Only the LD2450 can prove live communication. PIR and SEN0609 are bare GPIO chan
 
 ### Calibration range
 
-The RoomIQ runtime calibration ranges were widened for prototype bench use so the required corrections above are enterable:
+The RoomIQ runtime calibration ranges were widened for prototype bench use, back when the whole board error had to be entered by hand:
 
 | Control | Range | Step |
 | --- | --- | --- |
 | Temperature Offset | −15 … +15 °C | 0.1 |
 | Humidity Offset | −30 … +30 %RH | 0.5 |
 
-The UI control limits and the `roomiq_engine.h` clamps are kept in agreement (test-guarded). Neutral defaults remain 0 / 0; the large bench values are per-device corrections, not framework defaults, and are **not** universal SHT45 accuracy claims.
+These ranges are **retained as a compatibility contract, not narrowed** — but they are no longer an expected magnitude. With the built-in S360-200 R4 compensation applied (S360-200-R4-CLIMATE-COMPENSATION-001), normal customer calibration against a trusted reference should be **small**; a large value now indicates an unusual installation or a hardware question. The UI control limits and the `roomiq_engine.h` clamps are kept in agreement (test-guarded). Neutral defaults remain 0 / 0, and are **not** universal SHT45 accuracy claims.
 
 ## Customer-facing entities
 
@@ -143,8 +148,9 @@ Before release, verify at minimum:
 
 ### Climate calibration bench
 
-11. Enter Temperature Offset −7.7 °C and Humidity Offset +17.0 (or +17.5) %; confirm public temperature/humidity track the reference and that the value is applied once (raw diagnostics stay uncalibrated). Record which humidity step (+17.0 or +17.5) is closer to the reference.
-12. Confirm the public temperature is no longer clamped at 31.0 °C (i.e. the widened range is in effect) and that the BMP581 die temperature is not used as the customer temperature.
+11. With Temperature Offset and Humidity Offset left at **0**, confirm the public Temperature and Humidity track the reference within the profile's expected error (the built-in −5.80 °C / +4.52 %RH compensation is applied by the firmware). Confirm the correction is applied exactly once and that the Raw Temperature / Raw Humidity diagnostics stay **uncompensated**. Record the reference-versus-public deviation for each unit tested — this is the multi-unit evidence the profile still lacks.
+12. Confirm the BMP581 die temperature is not used as the customer temperature, and that the Factory Compensated Temperature / Factory Compensated Humidity diagnostics equal the public values while customer calibration is 0/0.
+13. On a device upgraded from firmware that stored the old manual offsets, confirm Temperature Offset and Humidity Offset are reset to 0/0 once on the first boot after the upgrade (the RoomIQ Calibration Schema diagnostic and the boot log record it), that no factory reset was needed, and that a value entered afterwards persists across a restart.
 
 The temperature bias itself remains a **hardware** item: the SHT45 thermal self-heating / placement problem is unresolved and software calibration is not a substitute for a production thermal-design fix.
 
@@ -213,4 +219,4 @@ logger:
 mqtt: !remove
 ```
 
-After flashing, apply the provisional bench calibration through the RoomIQ controls: **Temperature Offset −7.7 °C** and **Humidity Offset +17.0 or +17.5 %** (record which is closer to the reference).
+After flashing, leave the RoomIQ calibration controls at their neutral defaults: **Temperature Offset 0 °C** and **Humidity Offset 0 %**. The board correction is built into the firmware (S360-200-R4-CLIMATE-COMPENSATION-001); the earlier instruction to enter −7.7 °C / +17 % is superseded and would double-correct. Only add a small offset if a trusted reference disagrees with the compensated reading, and record what you entered and why.

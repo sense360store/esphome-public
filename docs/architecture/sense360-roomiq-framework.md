@@ -15,7 +15,11 @@ Related contracts:
 
 * Entity / behaviour contract test: `tests/test_roomiq_framework.py`
 * Shared engine (single implementation): `include/sense360/roomiq_engine.h`
-* Deterministic simulation: `tests/unit/test_roomiq_engine.cpp`
+* Climate compensation model (single implementation):
+  `include/sense360/roomiq_climate_compensation.h`
+* Deterministic simulation: `tests/unit/test_roomiq_engine.cpp`,
+  `tests/unit/test_roomiq_climate_compensation.cpp`
+* Compensation contract test: `tests/test_roomiq_climate_compensation.py`
 * Production package: `packages/features/roomiq_framework.yaml`
 * Module-status contract: `config/core-framework.json`
   (`module_runtime_status.roomiq`)
@@ -34,8 +38,8 @@ Default-enabled set (the ONLY default-enabled RoomIQ surface):
 
 | Entity | Type | Values / range | Meaning |
 |---|---|---|---|
-| Temperature | sensor (°C) | calibrated | Canonical room temperature |
-| Humidity | sensor (%) | calibrated | Canonical relative humidity |
+| Temperature | sensor (°C, 1 dp) | compensated | Canonical room temperature |
+| Humidity | sensor (%, 1 dp) | compensated | Canonical relative humidity |
 | Illuminance | sensor (lx) | calibrated | Canonical light level |
 | Comfort | text | Initialising · Comfortable · Cool · Cold · Warm · Hot · Dry · Humid · Warm and humid · Unavailable | Concise comfort assessment (temperature + humidity only) |
 | Environment State | text | the Comfort values plus Dark · Bright | ONE headline description of the room |
@@ -56,11 +60,21 @@ still pending bench.
 
 ### Diagnostics (diagnostic category, disabled by default)
 
-Raw Temperature / Raw Humidity / Raw Illuminance (uncalibrated), Climate Data
-Age, Illuminance Data Age, RoomIQ State Detail (why the current states are
-what they are), RoomIQ Calibration State (active offsets/multiplier), and
-RoomIQ Sensor Verification (the on-device honesty note about freshness
-coverage and the light-sensor driver identity / pending on-hardware response).
+Raw Temperature / Raw Humidity / Raw Illuminance (uncompensated,
+uncalibrated), Factory Compensated Temperature / Factory Compensated Humidity
+(the built-in board profile applied WITHOUT customer calibration — subtract
+from the canonical entities to see exactly what the customer's own calibration
+contributed), Climate Data Age, Illuminance Data Age, RoomIQ State Detail (why
+the current states are what they are), RoomIQ Calibration State (the built-in
+factory profile and each customer calibration, stated separately), RoomIQ
+Climate Profile (which board profile is compiled in, its constants and its
+evidence level), RoomIQ Calibration Schema (the persisted calibration schema
+version and whether this boot ran the one-time migration), and RoomIQ Sensor
+Verification (the on-device honesty note about freshness coverage and the
+light-sensor driver identity / pending on-hardware response).
+
+The intermediate stages of the compensation model (vapour pressure,
+psychrometric humidity before the residual) are deliberately **not** entities.
 
 ### Legacy compatibility entities (disabled by default)
 
@@ -97,8 +111,10 @@ internal contract other frameworks consume:
 
 | Output | Where | Contract |
 |---|---|---|
-| Calibrated temperature | sensor `s360_temperature` / `engine.temperature()` | °C; unknown (NAN) unless fresh |
-| Calibrated humidity | sensor `s360_humidity` / `engine.humidity()` | %, clamped 0–100; unknown unless fresh |
+| Compensated temperature | sensor `s360_temperature` / `engine.temperature()` | °C; board profile + customer calibration; unknown (NAN) unless fresh |
+| Compensated humidity | sensor `s360_humidity` / `engine.humidity()` | %, clamped 0–100; unknown unless fresh (needs a coherent raw pair) |
+| Factory-only values | `engine.factory_temperature()` / `engine.factory_humidity()` | board profile WITHOUT customer calibration; diagnostics only |
+| Board climate profile | `engine.climate_profile()` | id / SKU / revision / constants / evidence level (§3) |
 | Calibrated illuminance | sensor `s360_illuminance` / `engine.illuminance()` | lx; unknown unless fresh |
 | Freshness | `engine.temperature_fresh()` etc. | valid-update-driven, per channel |
 | Comfort | text `s360_comfort` / `engine.comfort()` | see §4 |
@@ -121,34 +137,151 @@ context. Those integrations are separate work items.
 
 ---
 
-## 3. Calibration model
+## 3. Climate compensation and calibration model
 
-* **Applied exactly once**, inside the shared engine. Raw sensors stay
-  internal and uncalibrated; canonical and legacy entities all carry the
-  calibrated value; the LED darkness decision uses the calibrated
-  illuminance, so one customer calibration corrects the whole platform.
-* Offsets for temperature (±15 °C) and humidity (±30 %) — additive errors
-  dominate the climate path. A **multiplier** (×0.2…×5.0) for illuminance —
-  ambient-light error is dominated by multiplicative effects (gain, diffuser
-  attenuation, mounting), so a scale factor is the least misleading model.
-* Changes apply at runtime (next evaluation, with an immediate canonical
-  republish) and **persist across restart** (`restore_value: true`).
+This section is the **authoritative description** of the S360-200 R4
+temperature / humidity model (S360-200-R4-CLIMATE-COMPENSATION-001). It is not
+restated in `CLAUDE.md`, in the standing invariants, or in any product YAML;
+the executable single source is
+`include/sense360/roomiq_climate_compensation.h`.
+
+### 3.1 Built-in board compensation
+
+The S360-200 R4 board reads hot (SHT45 self-heating / placement) and, as a
+consequence, dry. That correction is **built in** to every S360-200 R4
+composition as a named, versioned board profile —
+`S360_200_R4_CLIMATE_PROFILE_V1` — so customers get correct Temperature and
+Humidity out of the box with all calibration controls neutral at zero.
+
+Inputs are the raw SHT45 (@ 0x44) temperature/humidity pair only. The BMP581
+die temperature (@ 0x47) is a diagnostic entity and is **never** an input.
+
+```
+final_temperature_c = raw_temperature_c - 5.80 + customer_temperature_offset_c
+
+svp(T)              = 6.112 * exp((17.62 * T) / (243.12 + T))        [Magnus]
+actual_vapour_pressure = (raw_relative_humidity / 100) * svp(raw_temperature_c)
+psychrometric_humidity = 100 * actual_vapour_pressure / svp(final_temperature_c)
+
+final_humidity      = psychrometric_humidity + 4.52
+                      + customer_humidity_offset_pct        (clamped 0-100 %)
+```
+
+Humidity is therefore **not** a fixed additive correction: the raw
+measurement's vapour pressure is preserved and relative humidity is
+recalculated at the corrected temperature. That is why the customer
+**Temperature Offset also moves relative humidity** by a small, scientifically
+correct amount — the model working, never a second correction. The customer
+**Humidity Offset** is applied once, at the very end, after the psychrometric
+recalculation and the factory residual.
+
+Deliberately **not** modelled: no dynamic SHT45/BMP581 delta, no ambient
+response curve, no startup-correction curve, no runtime external reference,
+and no smoothing added to flatter a comparison metric.
+
+Worked vectors (zero customer calibration), which the native tests pin:
+
+| Raw | Final temperature | Final humidity |
+|---|---|---|
+| 30.0 °C / 40.0 %RH | 24.2 °C | ≈ 60.7351 %RH |
+| 36.0 °C / 24.8 %RH | 30.2 °C | ≈ 38.8673 %RH |
+
+### 3.2 Sample coherence
+
+The SHT45 produces temperature and humidity from **one** physical conversion,
+but ESPHome surfaces them through two separate callbacks. The humidity model
+is only meaningful on a coherent pair, so:
+
+* either callback order forms the pair — whichever sample completes it;
+* the two sample timestamps must be within a documented maximum skew
+  (`roomiq_climate_pair_skew_ms`, 5 s — generous for one conversion, far below
+  the 30 s polling cycle, so a stale counterpart can never pair with the next
+  cycle);
+* an unpaired humidity value **never** marks humidity fresh, while a valid
+  temperature sample stays independently usable;
+* a given sample combination pairs at most once, so a repeated callback cannot
+  fabricate freshness;
+* all timestamp arithmetic is millisecond-rollover safe.
+
+### 3.3 Evidence level
+
+`S360_200_R4_CLIMATE_PROFILE_V1` is a **validated provisional** profile. It
+comes from an owner-supplied multi-day comparison run against a reference
+instrument on **one** physical S360-200 R4 board (~42 h; reference 21.0–26.9 °C
+and 45.3–52.6 %RH; daytime warming, overnight cooling, restart and settling
+behaviour included). On that board the compensated readings showed a
+temperature mean error of about +0.025 °C (MAE ≈ 0.112 °C, 95th-percentile
+absolute error ≈ 0.294 °C) and a humidity mean error of about −0.014 %RH
+(MAE ≈ 0.237 %RH, 95th-percentile absolute error ≈ 0.670 %RH).
+
+That is strong evidence for the tested board, enclosure and operating
+arrangement. It is **not** proof of unit-to-unit production variation, **not**
+a universal SHT45 correction, and **not** manufacturing, compliance,
+certification, safety or commercial evidence. **Multi-unit validation across
+several production boards remains outstanding.**
+
+### 3.4 Customer calibration
+
+* **Applied exactly once**, inside the shared engine, as *additional fine
+  calibration on top of* the built-in profile. Raw sensors stay internal and
+  uncompensated; canonical and legacy entities all carry the compensated
+  value; the LED darkness decision uses the calibrated illuminance, so one
+  customer calibration corrects the whole platform.
+* Offsets for temperature and humidity; a **multiplier** (×0.2…×5.0) for
+  illuminance — ambient-light error is dominated by multiplicative effects
+  (gain, diffuser attenuation, mounting), so a scale factor is the least
+  misleading model there.
+* Neutral defaults are 0 / 0 / ×1.0, and with the factory profile applied a
+  normal customer correction against a trusted reference **should be small**
+  — well under a degree, and well under a percentage point of RH.
+* Bounds context: the control ranges stay at ±15 °C and ±30 %RH. They were
+  widened before the built-in compensation existed, customers' installs pin
+  them, and they are **retained as a compatibility contract, not narrowed** —
+  but they are no longer an expected magnitude. A large value now indicates an
+  unusual installation or a hardware question, never routine calibration.
+* Changes apply at runtime (immediate recalculation from the latest raw pair
+  while it is still fresh, with an immediate canonical republish) and
+  **persist across restart** (`restore_value: true`).
 * Safety: the engine clamps every calibration value to its safe band and
-  recovers invalid stored values (NaN, non-positive scale) to neutral;
-  calibrated humidity is clamped to the physical 0–100 % range. The UI
-  control limits and the engine clamps are kept in agreement (test-guarded).
-* Bounds context: the ranges were widened from ±5 °C / ±10 % to ±15 °C /
-  ±30 % after the S360-200-R4 bench found the prototype board needed roughly
-  −7.7 °C and +17 %RH corrections — beyond the former limits. A correction
-  this large is **not** a normal calibration need: it indicates a
-  board/enclosure thermal-placement problem (SHT45 self-heating / heat bias)
-  that requires hardware investigation. Software calibration makes the
-  current prototype usable but is **not** proof that the production thermal
-  design is acceptable. Neutral defaults remain 0 / 0 / ×1.0 — the large
-  values are per-device bench corrections entered through the persisted
-  runtime controls, never shared framework defaults.
+  recovers invalid stored values (NaN, non-positive scale) to neutral; final
+  humidity is clamped to the physical 0–100 % range. The UI control limits and
+  the engine clamps are kept in agreement (test-guarded).
 * "Calibrated" means **calibrated locally by the customer against their own
-  reference** — no factory accuracy claim is made before calibration.
+  reference** — the built-in profile is a board-design correction, not a
+  per-unit factory accuracy claim.
+
+### 3.5 Persisted calibration-schema migration
+
+Firmware before the built-in compensation asked operators to correct the whole
+board error by hand through these controls (the S360-200 R4 bench sheet said
+−7.7 °C and +17 %RH). **Those instructions are superseded**: restoring such a
+value on top of the factory profile would double-correct.
+
+Upgrades are handled by an explicit persisted **schema marker**
+(`s360_roomiq_calibration_schema`), never by guessing from the stored numbers
+(a legitimate −7.7 °C is indistinguishable from a legacy one):
+
+* a device whose marker does not match the current schema — an upgrade from
+  the old raw-offset schema, or a clean install — has customer Temperature and
+  Humidity Offset reset to 0 / 0 **once**, and is then stamped with the
+  current version;
+* clean installs are already 0 / 0, so the reset is a no-op for them;
+* from then on the marker matches, the migration never runs again, and
+  customer values persist normally;
+* **no factory reset is required**, illuminance calibration is untouched, and
+  the migration is visible in the log and in the RoomIQ Calibration Schema
+  diagnostic.
+
+### 3.6 SHT45 heater
+
+The SHT45 heater is **explicitly off** in normal RoomIQ operation
+(`heater_max_duty: 0.0`, the supported explicit-disabled configuration for the
+pinned ESPHome `sht4x` driver). The previous bare `heater_power: "Low"` was
+misleading configuration: it selected which heater command *would* be sent
+while the default 0.0 duty meant none ever was. Since the heater self-heats
+the die — the exact error the profile corrects — the normal state is now
+stated explicitly. Enabling periodic heater operation (condensation recovery)
+is deliberately out of scope.
 
 ---
 

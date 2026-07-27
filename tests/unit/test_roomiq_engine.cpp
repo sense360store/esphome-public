@@ -10,12 +10,21 @@
 // degradation, recovery and invalid values.
 //
 // IMPORTANT: a green run here is LOGIC/SIMULATION proof only. It is never
-// hardware validation — the SHT4x climate path and the ambient-light path
-// (compiled VEML7700 vs catalog LTR-303ALS, identity unresolved) remain
-// physically unverified until the bench checklist
+// hardware validation — the SHT45 climate path and the ambient-light path
+// (LTR-303ALS-01 @ 0x29, on-hardware response pending) remain physically
+// unverified until the bench checklist
 // (docs/hardware/roomiq-framework-bench-checklist.md) is executed by the
 // operator. All thresholds are provisional comfort heuristics, never
 // medical, health or regulatory claims.
+//
+// S360-200-R4-CLIMATE-COMPENSATION-001: the engine now applies the built-in
+// S360_200_R4_CLIMATE_PROFILE_V1 board profile, so a raw SHT45 number and a
+// customer-visible number are no longer the same thing. The pure model itself
+// is tested in tests/unit/test_roomiq_climate_compensation.cpp; this file
+// tests the ENGINE integration — that the canonical outputs are compensated,
+// that raw diagnostics stay raw, that humidity needs a coherent pair, and that
+// every band / hysteresis / freshness / health behaviour still holds on the
+// customer-visible values.
 //
 // Compile via tests/Makefile (auto-discovered):  cd tests && make test
 
@@ -83,11 +92,48 @@ static RoomIQEngine make_engine() {
   return engine;
 }
 
-// Feed a full set of fresh, valid samples at `t`.
-static void feed_all(RoomIQEngine &engine, uint32_t t, float temp, float hum,
-                     float lux) {
-  engine.input_temperature(t, temp);
-  engine.input_humidity(t, hum);
+// --- raw <-> customer-visible helpers ---------------------------------------
+// Comfort bands, hysteresis, health and every customer contract are defined on
+// the CUSTOMER-VISIBLE value, so the fixtures below let a test say what the
+// customer should see and derive the raw SHT45 samples that produce it by
+// inverting the board profile (with neutral customer calibration). Test intent
+// stays readable after S360-200-R4-CLIMATE-COMPENSATION-001, and the inverse
+// is itself round-trip asserted by
+// test_fixture_inverse_round_trips_through_the_board_profile.
+static float raw_temperature_for(float final_temp) {
+  return final_temp - S360_200_R4_CLIMATE_PROFILE_V1().temperature_correction_c;
+}
+
+static float raw_humidity_for(float final_temp, float final_hum) {
+  const float psychrometric =
+      final_hum - S360_200_R4_CLIMATE_PROFILE_V1().humidity_residual_pct;
+  return psychrometric * saturation_vapour_pressure_hpa(final_temp) /
+         saturation_vapour_pressure_hpa(raw_temperature_for(final_temp));
+}
+
+// Feed a coherent climate pair that RESOLVES to the given customer-visible
+// values (no evaluate).
+static void feed_climate(RoomIQEngine &engine, uint32_t t, float final_temp,
+                         float final_hum) {
+  engine.input_temperature(t, raw_temperature_for(final_temp));
+  engine.input_humidity(t, raw_humidity_for(final_temp, final_hum));
+}
+
+// Feed a full set of fresh, valid samples at `t`, expressed as the
+// customer-visible temperature / humidity they must resolve to.
+static void feed_all(RoomIQEngine &engine, uint32_t t, float final_temp,
+                     float final_hum, float lux) {
+  feed_climate(engine, t, final_temp, final_hum);
+  engine.input_lux(t, lux);
+  engine.evaluate(t);
+}
+
+// Feed RAW SHT45 samples exactly as the driver reports them (used by the
+// compensation tests, which assert on the compensated result).
+static void feed_raw(RoomIQEngine &engine, uint32_t t, float raw_temp,
+                     float raw_hum, float lux) {
+  engine.input_temperature(t, raw_temp);
+  engine.input_humidity(t, raw_hum);
   engine.input_lux(t, lux);
   engine.evaluate(t);
 }
@@ -137,10 +183,102 @@ TEST_CASE(partial_startup_lux_first_stays_initialising) {
 }
 
 // ---------------------------------------------------------------------------
-// Calibrated values
+// Built-in board compensation (S360-200-R4-CLIMATE-COMPENSATION-001)
+//
+// The canonical outputs are FULLY compensated; the raw diagnostics stay raw.
+// The pure model is proved in tests/unit/test_roomiq_climate_compensation.cpp
+// — these cases prove the ENGINE consumes it, once, on the right values.
 // ---------------------------------------------------------------------------
 
-TEST_CASE(zero_offsets_pass_values_through) {
+TEST_CASE(engine_ships_the_s360_200_r4_profile_by_default) {
+  RoomIQEngine engine = make_engine();
+  ASSERT_STREQ(engine.climate_profile().id, "S360_200_R4_CLIMATE_PROFILE_V1");
+  ASSERT_STREQ(engine.climate_profile().board_sku, "S360-200");
+  ASSERT_STREQ(engine.climate_profile().board_revision, "R4");
+  ASSERT_NEAR(engine.climate_profile().temperature_correction_c, -5.80f, 1e-6f);
+  ASSERT_NEAR(engine.climate_profile().humidity_residual_pct, 4.52f, 1e-6f);
+  ASSERT_EQ(engine.climate_profile().evidence,
+            CLIMATE_EVIDENCE_VALIDATED_PROVISIONAL);
+}
+
+TEST_CASE(canonical_values_are_compensated_and_raw_stays_raw) {
+  RoomIQEngine engine = make_engine();
+  feed_raw(engine, T0 + 1000, 30.0f, 40.0f, 200.0f);
+  // Documented reference vector: 30.0 C / 40.0 %RH raw, zero customer
+  // calibration.
+  ASSERT_NEAR(engine.temperature(), 24.2f, 0.001f);
+  ASSERT_NEAR(engine.humidity(), 60.7351f, 0.001f);
+  ASSERT_NEAR(engine.illuminance(), 200.0f, 0.001f);
+  // The raw diagnostics are NOT compensated — support must still see exactly
+  // what the SHT45 reported.
+  ASSERT_NEAR(engine.raw_temperature(), 30.0f, 0.001f);
+  ASSERT_NEAR(engine.raw_humidity(), 40.0f, 0.001f);
+  ASSERT_NEAR(engine.raw_illuminance(), 200.0f, 0.001f);
+}
+
+TEST_CASE(second_reference_vector_is_reproduced_end_to_end) {
+  RoomIQEngine engine = make_engine();
+  feed_raw(engine, T0 + 1000, 36.0f, 24.8f, 100.0f);
+  ASSERT_NEAR(engine.temperature(), 30.2f, 0.001f);
+  ASSERT_NEAR(engine.humidity(), 38.8673f, 0.001f);
+}
+
+TEST_CASE(factory_values_exclude_customer_calibration) {
+  RoomIQEngine engine = make_engine();
+  engine.set_temperature_offset(1.0f);
+  engine.set_humidity_offset(5.0f);
+  feed_raw(engine, T0 + 1000, 30.0f, 40.0f, 100.0f);
+  // Customer-visible values carry both layers...
+  ASSERT_NEAR(engine.temperature(), 25.2f, 0.001f);
+  ASSERT_NEAR(engine.humidity(), 62.4761f, 0.001f);
+  // ...while the factory diagnostics show the built-in profile alone.
+  ASSERT_NEAR(engine.factory_temperature(), 24.2f, 0.001f);
+  ASSERT_NEAR(engine.factory_humidity(), 60.7351f, 0.001f);
+}
+
+TEST_CASE(customer_temperature_calibration_also_moves_humidity) {
+  // Relative humidity is recalculated AT the calibrated temperature from the
+  // preserved raw vapour pressure, so a temperature correction legitimately
+  // moves humidity a little. This is the model, not a double correction.
+  RoomIQEngine warmer = make_engine();
+  warmer.set_temperature_offset(1.0f);
+  feed_raw(warmer, T0 + 1000, 30.0f, 40.0f, 100.0f);
+  ASSERT_NEAR(warmer.temperature(), 25.2f, 0.001f);
+  ASSERT_NEAR(warmer.humidity(), 57.4761f, 0.001f);
+
+  RoomIQEngine cooler = make_engine();
+  cooler.set_temperature_offset(-1.0f);
+  feed_raw(cooler, T0 + 1000, 30.0f, 40.0f, 100.0f);
+  ASSERT_NEAR(cooler.temperature(), 23.2f, 0.001f);
+  ASSERT_NEAR(cooler.humidity(), 64.2215f, 0.001f);
+}
+
+TEST_CASE(customer_humidity_calibration_applies_once_at_the_end) {
+  RoomIQEngine engine = make_engine();
+  engine.set_humidity_offset(5.0f);
+  feed_raw(engine, T0 + 1000, 30.0f, 40.0f, 100.0f);
+  ASSERT_NEAR(engine.temperature(), 24.2f, 0.001f);  // unaffected
+  ASSERT_NEAR(engine.humidity(), 65.7351f, 0.001f);  // exactly +5.00, once
+}
+
+TEST_CASE(fixture_inverse_round_trips_through_the_board_profile) {
+  // Guards the customer-visible fixture used by every band / hysteresis test
+  // below: samples derived from a target must resolve back to that target.
+  const float targets[][2] = {{21.0f, 45.0f}, {14.0f, 45.0f}, {29.0f, 75.0f},
+                              {22.0f, 50.0f}, {16.0f, 50.0f}};
+  for (const auto &target : targets) {
+    RoomIQEngine engine = make_engine();
+    feed_all(engine, T0 + 1000, target[0], target[1], 100.0f);
+    ASSERT_NEAR(engine.temperature(), target[0], 0.001f);
+    ASSERT_NEAR(engine.humidity(), target[1], 0.001f);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Customer calibration (additional fine calibration after the board profile)
+// ---------------------------------------------------------------------------
+
+TEST_CASE(zero_offsets_pass_customer_values_through) {
   RoomIQEngine engine = make_engine();
   feed_all(engine, T0 + 1000, 21.5f, 47.0f, 200.0f);
   ASSERT_NEAR(engine.temperature(), 21.5f, 0.001f);
@@ -152,9 +290,16 @@ TEST_CASE(positive_and_negative_offsets_apply_once) {
   RoomIQEngine engine = make_engine();
   engine.set_temperature_offset(1.5f);
   engine.set_humidity_offset(-4.0f);
-  feed_all(engine, T0 + 1000, 20.0f, 50.0f, 100.0f);
+  feed_raw(engine, T0 + 1000, 25.8f, 35.0f, 100.0f);
+  // 25.8 - 5.80 + 1.5 = 21.5, applied exactly once.
   ASSERT_NEAR(engine.temperature(), 21.5f, 0.001f);
-  ASSERT_NEAR(engine.humidity(), 46.0f, 0.001f);
+  // The humidity offset lands exactly once, on top of the psychrometric
+  // result: with no customer humidity offset the same sample resolves 4.0
+  // %RH higher.
+  RoomIQEngine reference = make_engine();
+  reference.set_temperature_offset(1.5f);
+  feed_raw(reference, T0 + 1000, 25.8f, 35.0f, 100.0f);
+  ASSERT_NEAR(reference.humidity() - engine.humidity(), 4.0f, 0.001f);
 }
 
 TEST_CASE(illuminance_scale_applies_once) {
@@ -168,48 +313,46 @@ TEST_CASE(offsets_are_clamped_to_safe_bounds) {
   RoomIQEngine engine = make_engine();
   engine.set_temperature_offset(50.0f);   // clamped to +15
   engine.set_humidity_offset(-80.0f);     // clamped to -30
-  feed_all(engine, T0 + 1000, 20.0f, 50.0f, 100.0f);
-  ASSERT_NEAR(engine.temperature(), 35.0f, 0.001f);
-  ASSERT_NEAR(engine.humidity(), 20.0f, 0.001f);
+  feed_raw(engine, T0 + 1000, 20.0f, 50.0f, 100.0f);
+  // 20.0 - 5.80 + 15 = 29.2 (the clamped +15, not +50).
+  ASSERT_NEAR(engine.temperature(), 29.2f, 0.001f);
+  // The humidity offset is clamped to -30, which drives this sample onto the
+  // physical lower bound rather than negative relative humidity.
+  ASSERT_NEAR(engine.humidity(), 3.3668f, 0.001f);
+  ASSERT_TRUE(engine.humidity() >= 0.0f);
 }
 
-// The calibration range must reach the S360-200-R4 provisional bench values
-// (temperature ~-7.7 °C, humidity ~+17.0/+17.5 %RH). These are per-device
-// prototype corrections applied through the runtime controls, never shared
-// defaults. The engine clamp must not truncate them, and must agree with the
-// UI number-control limits in packages/features/roomiq_framework.yaml
-// (±15 °C, ±30 %RH), which tests/test_roomiq_framework.py pins.
-TEST_CASE(calibration_range_reaches_bench_values) {
-  RoomIQEngine engine = make_engine();
-  engine.set_temperature_offset(-7.7f);
-  engine.set_humidity_offset(17.5f);
-  feed_all(engine, T0 + 1000, 36.0f, 25.0f, 100.0f);
-  ASSERT_NEAR(engine.temperature(), 28.3f, 0.001f);   // 36.0 - 7.7
-  ASSERT_NEAR(engine.humidity(), 42.5f, 0.001f);      // 25.0 + 17.5
-}
-
-// The UI limits (±15 °C, ±30 %RH) are exactly reachable — the clamp uses the
-// same bounds, so a value at the edge passes through unchanged.
+// The calibration ranges (±15 °C, ±30 %RH) are RETAINED compatibility bounds,
+// not expected magnitudes: with the built-in profile applied, normal customer
+// calibration should be small. The engine clamp must still agree exactly with
+// the UI number-control limits in packages/features/roomiq_framework.yaml,
+// which tests/test_roomiq_framework.py pins.
 TEST_CASE(calibration_clamp_matches_ui_limits) {
   RoomIQEngine warm = make_engine();
   warm.set_temperature_offset(15.0f);
-  warm.set_humidity_offset(30.0f);
-  feed_all(warm, T0 + 1000, 10.0f, 5.0f, 100.0f);
-  ASSERT_NEAR(warm.temperature(), 25.0f, 0.001f);     // 10 + 15
-  ASSERT_NEAR(warm.humidity(), 35.0f, 0.001f);        // 5 + 30
+  feed_raw(warm, T0 + 1000, 10.0f, 50.0f, 100.0f);
+  ASSERT_NEAR(warm.temperature(), 19.2f, 0.001f);   // 10 - 5.80 + 15
 
   RoomIQEngine cool = make_engine();
   cool.set_temperature_offset(-15.0f);
-  cool.set_humidity_offset(-30.0f);
-  feed_all(cool, T0 + 1000, 30.0f, 60.0f, 100.0f);
-  ASSERT_NEAR(cool.temperature(), 15.0f, 0.001f);     // 30 - 15
-  ASSERT_NEAR(cool.humidity(), 30.0f, 0.001f);        // 60 - 30
+  feed_raw(cool, T0 + 1000, 30.0f, 50.0f, 100.0f);
+  ASSERT_NEAR(cool.temperature(), 9.2f, 0.001f);    // 30 - 5.80 - 15
 
-  // Neutral defaults remain neutral (no calibration applied by default).
+  // A ±30 %RH customer humidity offset lands in full (one application).
+  RoomIQEngine damp = make_engine();
+  damp.set_humidity_offset(30.0f);
+  feed_raw(damp, T0 + 1000, 30.0f, 5.0f, 100.0f);
+  RoomIQEngine neutral_humidity = make_engine();
+  feed_raw(neutral_humidity, T0 + 1000, 30.0f, 5.0f, 100.0f);
+  ASSERT_NEAR(damp.humidity() - neutral_humidity.humidity(), 30.0f, 0.001f);
+
+  // Neutral defaults remain neutral: the built-in profile alone.
   RoomIQEngine neutral = make_engine();
-  feed_all(neutral, T0 + 1000, 22.0f, 48.0f, 100.0f);
-  ASSERT_NEAR(neutral.temperature(), 22.0f, 0.001f);
-  ASSERT_NEAR(neutral.humidity(), 48.0f, 0.001f);
+  feed_raw(neutral, T0 + 1000, 30.0f, 40.0f, 100.0f);
+  ASSERT_NEAR(neutral.temperature(), 24.2f, 0.001f);
+  ASSERT_NEAR(neutral.humidity(), 60.7351f, 0.001f);
+  ASSERT_NEAR(neutral.temperature_offset(), 0.0f, 0.001f);
+  ASSERT_NEAR(neutral.humidity_offset(), 0.0f, 0.001f);
 }
 
 TEST_CASE(invalid_calibration_values_recover_safely) {
@@ -217,10 +360,142 @@ TEST_CASE(invalid_calibration_values_recover_safely) {
   engine.set_temperature_offset(NAN);      // invalid -> neutral 0
   engine.set_humidity_offset(NAN);         // invalid -> neutral 0
   engine.set_illuminance_scale(NAN);       // invalid -> neutral 1
-  feed_all(engine, T0 + 1000, 20.0f, 50.0f, 100.0f);
-  ASSERT_NEAR(engine.temperature(), 20.0f, 0.001f);
-  ASSERT_NEAR(engine.humidity(), 50.0f, 0.001f);
+  feed_raw(engine, T0 + 1000, 30.0f, 40.0f, 100.0f);
+  ASSERT_NEAR(engine.temperature(), 24.2f, 0.001f);
+  ASSERT_NEAR(engine.humidity(), 60.7351f, 0.001f);
   ASSERT_NEAR(engine.illuminance(), 100.0f, 0.001f);
+}
+
+TEST_CASE(calibration_change_recalculates_from_the_fresh_raw_pair) {
+  // The customer changes calibration between samples: the engine must
+  // recompute immediately from the latest raw pair, not wait for new data.
+  RoomIQEngine engine = make_engine();
+  feed_raw(engine, T0 + 1000, 30.0f, 40.0f, 100.0f);
+  ASSERT_NEAR(engine.temperature(), 24.2f, 0.001f);
+  ASSERT_NEAR(engine.humidity(), 60.7351f, 0.001f);
+
+  engine.set_temperature_offset(1.0f);
+  engine.evaluate(T0 + 2000);
+  ASSERT_NEAR(engine.temperature(), 25.2f, 0.001f);
+  ASSERT_NEAR(engine.humidity(), 57.4761f, 0.001f);
+
+  engine.set_temperature_offset(0.0f);
+  engine.set_humidity_offset(5.0f);
+  engine.evaluate(T0 + 3000);
+  ASSERT_NEAR(engine.temperature(), 24.2f, 0.001f);
+  ASSERT_NEAR(engine.humidity(), 65.7351f, 0.001f);
+
+  // Once the pair goes stale, calibration changes cannot resurrect a value.
+  engine.evaluate(T0 + 1000 + CLIMATE_STALE + 5000);
+  engine.set_humidity_offset(0.0f);
+  engine.evaluate(T0 + 1000 + CLIMATE_STALE + 6000);
+  ASSERT_NAN(engine.temperature());
+  ASSERT_NAN(engine.humidity());
+  ASSERT_NAN(engine.factory_temperature());
+  ASSERT_NAN(engine.factory_humidity());
+}
+
+// ---------------------------------------------------------------------------
+// Sample coherence in the engine (one SHT45 conversion, two callbacks)
+// ---------------------------------------------------------------------------
+
+TEST_CASE(either_callback_order_produces_the_same_result) {
+  RoomIQEngine temp_first = make_engine();
+  temp_first.input_temperature(T0 + 1000, 30.0f);
+  temp_first.input_humidity(T0 + 1002, 40.0f);
+  temp_first.evaluate(T0 + 1002);
+
+  RoomIQEngine humidity_first = make_engine();
+  humidity_first.input_humidity(T0 + 1000, 40.0f);
+  humidity_first.input_temperature(T0 + 1002, 30.0f);
+  humidity_first.evaluate(T0 + 1002);
+
+  ASSERT_TRUE(temp_first.humidity_fresh());
+  ASSERT_TRUE(humidity_first.humidity_fresh());
+  ASSERT_NEAR(temp_first.temperature(), humidity_first.temperature(), 0.001f);
+  ASSERT_NEAR(temp_first.humidity(), humidity_first.humidity(), 0.001f);
+  ASSERT_NEAR(humidity_first.humidity(), 60.7351f, 0.001f);
+}
+
+TEST_CASE(unpaired_humidity_never_marks_humidity_fresh) {
+  RoomIQEngine engine = make_engine();
+  engine.input_humidity(T0 + 1000, 40.0f);
+  engine.evaluate(T0 + 2000);
+  ASSERT_FALSE(engine.humidity_fresh());
+  ASSERT_NAN(engine.humidity());
+  // The raw diagnostic is still honestly available — only the modelled value
+  // is withheld.
+  ASSERT_NEAR(engine.raw_humidity(), 40.0f, 0.001f);
+  ASSERT_EQ(engine.comfort(), COMFORT_INITIALISING);
+}
+
+TEST_CASE(temperature_stays_independently_usable_without_humidity) {
+  RoomIQEngine engine = make_engine();
+  engine.input_temperature(T0 + 1000, 30.0f);
+  engine.evaluate(T0 + 2000);
+  ASSERT_TRUE(engine.temperature_fresh());
+  ASSERT_NEAR(engine.temperature(), 24.2f, 0.001f);
+  ASSERT_FALSE(engine.humidity_fresh());
+  ASSERT_NAN(engine.humidity());
+}
+
+TEST_CASE(excessive_pair_skew_leaves_humidity_stale) {
+  RoomIQEngine engine = make_engine();
+  engine.set_climate_pair_skew_ms(5000);
+  engine.input_temperature(T0 + 1000, 30.0f);
+  engine.input_humidity(T0 + 7000, 40.0f);  // 6 s apart: not one conversion
+  engine.evaluate(T0 + 7000);
+  ASSERT_TRUE(engine.temperature_fresh());
+  ASSERT_FALSE(engine.humidity_fresh());
+  ASSERT_NAN(engine.humidity());
+  ASSERT_EQ(engine.comfort(), COMFORT_INITIALISING);
+
+  // A properly coherent pair immediately restores the humidity channel.
+  engine.input_temperature(T0 + 8000, 30.0f);
+  engine.input_humidity(T0 + 8001, 40.0f);
+  engine.evaluate(T0 + 8001);
+  ASSERT_TRUE(engine.humidity_fresh());
+  ASSERT_NEAR(engine.humidity(), 60.7351f, 0.001f);
+}
+
+TEST_CASE(engine_pair_skew_default_is_the_documented_window) {
+  RoomIQEngine engine;
+  ASSERT_EQ(engine.climate_pair_skew_ms(), DEFAULT_CLIMATE_PAIR_SKEW_MS);
+}
+
+TEST_CASE(pairing_survives_millisecond_rollover) {
+  RoomIQEngine engine;
+  engine.set_climate_warmup_ms(CLIMATE_WARMUP);
+  engine.set_climate_stale_ms(CLIMATE_STALE);
+  const uint32_t before_wrap = 0xFFFFFFF0u;  // 16 ms before rollover
+  engine.begin(before_wrap - 1000u);
+  engine.input_temperature(before_wrap, 30.0f);
+  engine.input_humidity(10u, 40.0f);  // 26 ms later, across the wrap
+  engine.evaluate(20u);
+  ASSERT_TRUE(engine.temperature_fresh());
+  ASSERT_TRUE(engine.humidity_fresh());
+  ASSERT_NEAR(engine.temperature(), 24.2f, 0.001f);
+  ASSERT_NEAR(engine.humidity(), 60.7351f, 0.001f);
+  // Freshness still expires correctly on the far side of the wrap.
+  engine.evaluate(10u + CLIMATE_STALE + 5000u);
+  ASSERT_FALSE(engine.temperature_fresh());
+  ASSERT_FALSE(engine.humidity_fresh());
+}
+
+TEST_CASE(bmp581_die_temperature_is_not_an_engine_input) {
+  // The engine exposes NO input for a second temperature source: the BMP581
+  // die temperature is a diagnostic entity only and can never reach the
+  // compensation model. Feeding the SHT45 pair alone must fully determine the
+  // result, and a wildly different second reading has nowhere to go.
+  RoomIQEngine engine = make_engine();
+  feed_raw(engine, T0 + 1000, 30.0f, 40.0f, 100.0f);
+  const float temperature = engine.temperature();
+  const float humidity = engine.humidity();
+  // Re-evaluating with no new SHT45 data cannot change the answer.
+  engine.evaluate(T0 + 2000);
+  ASSERT_NEAR(engine.temperature(), temperature, 0.0f);
+  ASSERT_NEAR(engine.humidity(), humidity, 0.0f);
+  ASSERT_NEAR(engine.temperature(), 24.2f, 0.001f);
 }
 
 TEST_CASE(zero_or_negative_scale_recovers_to_neutral) {
@@ -361,10 +636,11 @@ TEST_CASE(comfort_humidity_hysteresis_prevents_flapping) {
 TEST_CASE(comfort_requires_both_climate_channels) {
   RoomIQEngine engine = make_engine();
   feed_all(engine, T0 + 1000, 21.0f, 45.0f, 100.0f);
-  // Humidity goes stale (temperature keeps updating): comfort is honest
-  // about the missing input instead of computing from stale data.
+  // Humidity goes stale (temperature keeps updating, but with no humidity
+  // counterpart it can never re-pair): comfort is honest about the missing
+  // input instead of computing from stale data.
   uint32_t t = T0 + 1000 + CLIMATE_STALE + 5000;
-  engine.input_temperature(t, 21.0f);
+  engine.input_temperature(t, raw_temperature_for(21.0f));
   engine.input_lux(t, 100.0f);
   engine.evaluate(t);
   ASSERT_EQ(engine.comfort(), COMFORT_UNAVAILABLE);
@@ -410,8 +686,7 @@ TEST_CASE(stale_lux_is_unavailable_never_dark) {
   RoomIQEngine engine = make_engine();
   feed_all(engine, T0 + 1000, 21.0f, 45.0f, 100.0f);
   uint32_t t = T0 + 1000 + LUX_STALE + 5000;
-  engine.input_temperature(t, 21.0f);
-  engine.input_humidity(t, 45.0f);
+  feed_climate(engine, t, 21.0f, 45.0f);
   engine.evaluate(t);
   ASSERT_EQ(engine.brightness(), BRIGHTNESS_UNAVAILABLE);
   ASSERT_EQ(engine.darkness(), DARKNESS_UNKNOWN);
@@ -573,8 +848,7 @@ TEST_CASE(health_lux_stale_climate_fresh_is_degraded) {
   RoomIQEngine engine = make_engine();
   feed_all(engine, T0 + 1000, 21.0f, 45.0f, 100.0f);
   uint32_t t = T0 + 1000 + LUX_STALE + 5000;
-  engine.input_temperature(t, 21.0f);
-  engine.input_humidity(t, 45.0f);
+  feed_climate(engine, t, 21.0f, 45.0f);
   engine.evaluate(t);
   ASSERT_EQ(engine.health(), HEALTH_DEGRADED);
   ASSERT_EQ(engine.comfort(), COMFORT_COMFORTABLE);
@@ -744,20 +1018,48 @@ int main() {
            "warmup_expiry_without_data_is_unavailable");
   run_test(test_partial_startup_lux_first_stays_initialising,
            "partial_startup_lux_first_stays_initialising");
-  run_test(test_zero_offsets_pass_values_through,
-           "zero_offsets_pass_values_through");
+  run_test(test_engine_ships_the_s360_200_r4_profile_by_default,
+           "engine_ships_the_s360_200_r4_profile_by_default");
+  run_test(test_canonical_values_are_compensated_and_raw_stays_raw,
+           "canonical_values_are_compensated_and_raw_stays_raw");
+  run_test(test_second_reference_vector_is_reproduced_end_to_end,
+           "second_reference_vector_is_reproduced_end_to_end");
+  run_test(test_factory_values_exclude_customer_calibration,
+           "factory_values_exclude_customer_calibration");
+  run_test(test_customer_temperature_calibration_also_moves_humidity,
+           "customer_temperature_calibration_also_moves_humidity");
+  run_test(test_customer_humidity_calibration_applies_once_at_the_end,
+           "customer_humidity_calibration_applies_once_at_the_end");
+  run_test(test_fixture_inverse_round_trips_through_the_board_profile,
+           "fixture_inverse_round_trips_through_the_board_profile");
+  run_test(test_zero_offsets_pass_customer_values_through,
+           "zero_offsets_pass_customer_values_through");
   run_test(test_positive_and_negative_offsets_apply_once,
            "positive_and_negative_offsets_apply_once");
   run_test(test_illuminance_scale_applies_once,
            "illuminance_scale_applies_once");
   run_test(test_offsets_are_clamped_to_safe_bounds,
            "offsets_are_clamped_to_safe_bounds");
-  run_test(test_calibration_range_reaches_bench_values,
-           "calibration_range_reaches_bench_values");
   run_test(test_calibration_clamp_matches_ui_limits,
            "calibration_clamp_matches_ui_limits");
   run_test(test_invalid_calibration_values_recover_safely,
            "invalid_calibration_values_recover_safely");
+  run_test(test_calibration_change_recalculates_from_the_fresh_raw_pair,
+           "calibration_change_recalculates_from_the_fresh_raw_pair");
+  run_test(test_either_callback_order_produces_the_same_result,
+           "either_callback_order_produces_the_same_result");
+  run_test(test_unpaired_humidity_never_marks_humidity_fresh,
+           "unpaired_humidity_never_marks_humidity_fresh");
+  run_test(test_temperature_stays_independently_usable_without_humidity,
+           "temperature_stays_independently_usable_without_humidity");
+  run_test(test_excessive_pair_skew_leaves_humidity_stale,
+           "excessive_pair_skew_leaves_humidity_stale");
+  run_test(test_engine_pair_skew_default_is_the_documented_window,
+           "engine_pair_skew_default_is_the_documented_window");
+  run_test(test_pairing_survives_millisecond_rollover,
+           "pairing_survives_millisecond_rollover");
+  run_test(test_bmp581_die_temperature_is_not_an_engine_input,
+           "bmp581_die_temperature_is_not_an_engine_input");
   run_test(test_zero_or_negative_scale_recovers_to_neutral,
            "zero_or_negative_scale_recovers_to_neutral");
   run_test(test_scale_is_clamped_to_safe_bounds,

@@ -19,7 +19,10 @@ Contract highlights enforced here:
   in any customer entity name.
 * Calibration is applied exactly once (inside the shared engine); raw board
   sensors stay internal/diagnostic; downstream consumers (LED darkness,
-  legacy compatibility entities) receive calibrated canonical values.
+  legacy compatibility entities) receive the canonical values. The
+  S360-200 R4 built-in climate compensation that now sits underneath those
+  canonical values has its own contract test
+  (``tests/test_roomiq_climate_compensation.py``).
 * The behaviour logic is a single header-only implementation
   (``include/sense360/roomiq_engine.h``) shared by production YAML and the
   deterministic simulation tests (``tests/unit/test_roomiq_engine.cpp``) —
@@ -293,13 +296,18 @@ class CustomerEntityContractTests(unittest.TestCase):
         self.assertEqual(entity.get("name"), "Temperature Offset")
         self.assertEqual(entity.get("entity_category"), "config")
         self.assertEqual(entity.get("unit_of_measurement"), "°C")
-        # Range widened for prototype thermal self-heating (S360-200-R4 bench
-        # needed ~-7.7 °C). Neutral default stays 0. Engine clamp must agree.
+        # The +/-15 C range is a RETAINED compatibility contract: it was
+        # widened before the built-in S360-200 R4 compensation existed
+        # (S360-200-R4-CLIMATE-COMPENSATION-001) and existing installs pin it,
+        # so it is deliberately not narrowed. It is no longer an EXPECTED
+        # magnitude — with the factory profile applied a normal customer
+        # correction should be small. Neutral default stays 0 and the engine
+        # clamp must agree with these limits exactly.
         self.assertEqual(float(entity.get("min_value")), -15.0)
         self.assertEqual(float(entity.get("max_value")), 15.0)
         self.assertEqual(float(entity.get("step")), 0.1)
         self.assertEqual(float(entity.get("initial_value")), 0.0)
-        # The bench-required temperature offset must be enterable.
+        # The historically-required range must not be silently shrunk.
         self.assertLessEqual(float(entity.get("min_value")), -7.7)
         self.assertTrue(entity.get("restore_value"))
         self.assertFalse(entity.get("disabled_by_default", False))
@@ -310,13 +318,13 @@ class CustomerEntityContractTests(unittest.TestCase):
         self.assertEqual(entity.get("name"), "Humidity Offset")
         self.assertEqual(entity.get("entity_category"), "config")
         self.assertEqual(entity.get("unit_of_measurement"), "%")
-        # Range widened for the prototype board humidity offset (S360-200-R4
-        # bench needed ~+17 %RH). Neutral default stays 0. Engine clamp agrees.
+        # As above: a RETAINED compatibility range, not an expected magnitude.
+        # Neutral default stays 0 and the engine clamp agrees.
         self.assertEqual(float(entity.get("min_value")), -30.0)
         self.assertEqual(float(entity.get("max_value")), 30.0)
         self.assertEqual(float(entity.get("step")), 0.5)
         self.assertEqual(float(entity.get("initial_value")), 0.0)
-        # The bench-required humidity offset must be enterable.
+        # The historically-required range must not be silently shrunk.
         self.assertGreaterEqual(float(entity.get("max_value")), 17.5)
         self.assertTrue(entity.get("restore_value"))
 

@@ -21,6 +21,7 @@
        packages/boards/s360-200-roomiq-pir.yaml
        packages/boards/s360-200-roomiq-radar.yaml
        packages/boards/s360-200-roomiq-sen0609.yaml
+       packages/boards/s360-200-roomiq-uart.yaml
        packages/boards/s360-200-roomiq.yaml
        packages/boards/s360-211-ventiq.yaml
        packages/boards/s360-300-led.yaml
@@ -38,7 +39,7 @@
        products/webflash/ceiling-poe-ventiq-roomiq-led.yaml
 -->
 
-The `Ceiling-POE-VentIQ-RoomIQ-LED` firmware exposes **144 entities** to Home Assistant.
+The `Ceiling-POE-VentIQ-RoomIQ-LED` firmware exposes **148 entities** to Home Assistant.
 
 Entity names below appear in Home Assistant prefixed with the device's friendly name, which you choose during setup (firmware default: `Sense360 Ceiling Bathroom LED`). Firmware-internal measurements (marked `internal` in the YAML) never reach Home Assistant and are not listed.
 
@@ -47,6 +48,8 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | BMP581 Temperature | Sensor | °C | device class: temperature; diagnostic entity; disabled by default |
 | Climate Data Age | Sensor | s | diagnostic entity; disabled by default |
 | CPU Duty | Sensor | s | — |
+| Factory Compensated Humidity | Sensor | % | device class: humidity; diagnostic entity; disabled by default |
+| Factory Compensated Temperature | Sensor | °C | device class: temperature; diagnostic entity; disabled by default |
 | Humidity | Sensor | % | device class: humidity |
 | Humidity Input Data Age | Sensor | s | diagnostic entity; disabled by default |
 | Illuminance | Sensor | lx | device class: illuminance |
@@ -152,7 +155,9 @@ Entity names below appear in Home Assistant prefixed with the device's friendly 
 | Product Configuration | Text sensor | — | diagnostic entity |
 | Product SKU | Text sensor | — | diagnostic entity |
 | Recommendation | Text sensor | — | — |
+| RoomIQ Calibration Schema | Text sensor | — | diagnostic entity; disabled by default |
 | RoomIQ Calibration State | Text sensor | — | diagnostic entity; disabled by default |
+| RoomIQ Climate Profile | Text sensor | — | diagnostic entity; disabled by default |
 | RoomIQ Module Status | Text sensor | — | diagnostic entity; disabled by default |
 | RoomIQ Sensor Verification | Text sensor | — | diagnostic entity; disabled by default |
 | RoomIQ State Detail | Text sensor | — | diagnostic entity; disabled by default |

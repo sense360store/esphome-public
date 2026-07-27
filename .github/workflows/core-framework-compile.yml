@@ -58,6 +58,10 @@ on:
       # ROOMIQ-FRAMEWORK-001: the canonical RoomIQ environmental framework
       # lives in the same layers; its contract test rides the same lane.
       - "tests/test_roomiq_framework.py"
+      # S360-200-R4-CLIMATE-COMPENSATION-001: the built-in S360-200 R4
+      # temperature/humidity compensation lives in the same shared-header and
+      # feature layers; its contract test rides the same lane.
+      - "tests/test_roomiq_climate_compensation.py"
       # AIRIQ-FRAMEWORK-001: the canonical AirIQ indoor-air-quality
       # framework lives in the same layers; its contract test rides the
       # same lane.
@@ -106,6 +110,7 @@ jobs:
           python3 tests/test_presence_framework.py
           python3 tests/test_led_framework.py
           python3 tests/test_roomiq_framework.py
+          python3 tests/test_roomiq_climate_compensation.py
           python3 tests/test_airiq_framework.py
           python3 tests/test_ventiq_framework.py
 

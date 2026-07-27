@@ -175,9 +175,26 @@ sensor:
       filters:
         - throttle: ${comfort_ceiling_sht4x_update}
 
-    # High precision mode for best accuracy
+    # High precision mode for best accuracy.
     precision: High
-    heater_power: "Low"
+
+    # HEATER EXPLICITLY OFF for normal RoomIQ operation
+    # (S360-200-R4-CLIMATE-COMPENSATION-001).
+    #
+    # `heater_max_duty: 0.0` is the supported explicit-disabled configuration
+    # in the pinned ESPHome sht4x driver: the driver only computes a heater
+    # interval and only ever issues a heater command when the duty cycle is
+    # greater than zero, so a 0.0 duty means no heater cycle at all.
+    #
+    # This replaces a bare `heater_power: "Low"`, which was misleading config:
+    # heater power selects WHICH heater command would be sent, but with the
+    # default 0.0 duty no heater command is ever sent — it read like an
+    # enabled low-power heater while doing nothing. Since the SHT45 heater
+    # self-heats the die (the exact error the built-in climate profile
+    # corrects), the normal state must be stated explicitly rather than
+    # implied. Enabling periodic heater operation (condensation recovery) is
+    # deliberately NOT part of this work item.
+    heater_max_duty: 0.0
 
   # ============================================================================
   # BMP581 - Barometric Pressure Sensor (Bosch Sensortec, U4)
