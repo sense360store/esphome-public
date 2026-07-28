@@ -166,14 +166,18 @@ purge, restart inhibition, and millis rollover.
 
 ## Remote consumption
 
-A Home Assistant ESPHome user pulls
-[`packages/remote/blower-framework.yaml`](../../packages/remote/blower-framework.yaml)
-through a git package; the shared engines
-(`include/sense360/blower_controller.h` and `airiq_engine.h`) are delivered via
-the `sense360` external component (registered in
-[`include/sense360/__init__.py`](../../include/sense360/__init__.py)), with no
-`/config/include` setup and no `type: local` package. See
-[`docs/remote-package-consumption.md`](../remote-package-consumption.md).
+There is no remote wrapper for the blower framework. The former
+`packages/remote/blower-framework.yaml` was deleted under the owner decision
+of 2026-07-28 (SENSE360-CANONICALISATION-001 PR 07): the customer
+remote-consumption guide
+([`docs/remote-package-consumption.md`](../remote-package-consumption.md))
+never documented a blower entrypoint, so the wrapper was the unpublished
+remainder of `packages/remote/` — internal and removable. Migration note: no
+consumer existed to migrate; a remote consumer wanting the blower surface
+composes `packages/features/blower_framework.yaml` directly with the
+`sense360` external component
+([`include/sense360/__init__.py`](../../include/sense360/__init__.py)),
+until PR 12 decides the Blower surface as a whole.
 
 ## Gate posture and honesty limits
 

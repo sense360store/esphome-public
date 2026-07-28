@@ -15,7 +15,7 @@ tests, config, docs and workflows. Evidence level: static inspection only.
 
 ## Totals
 
-- **decide**: 5
+- **decide**: 0 (resolved 2026-07-28: 4 keep-protected, 1 deleted)
 - **delete**: 12
 - **delete-and-repoint**: 8
 - **delete-if-orphan**: 21
@@ -45,9 +45,23 @@ Total paths: 169.
   `packages/boards/s360-100-core*` and the legacy path goes.
 - **fold** — the `S360-LED-V-C` pair: one surviving path, decided in
   execution with the PR 06 status proof carried forward.
-- **decide** — `packages/remote/` wrappers: a documented consumption surface
-  that exists only on `main`, so deletion is visible to remote consumers;
-  held for an explicit call rather than swept.
+- **decide** — `packages/remote/`: RESOLVED by the owner decision of
+  2026-07-28. The evidence test ("was any path ever documented, advertised
+  or published as a customer or third-party entrypoint?") selected the SPLIT
+  branch: `docs/remote-package-consumption.md` at HEAD is an explicitly
+  customer-facing guide ("the supported way to build Sense360 firmware
+  remotely… the manual / custom path for advanced users") in a public
+  repository, and it documents exactly four entrypoints —
+  `ceiling-airiq.yaml`, `ceiling-roomiq-presence.yaml`,
+  `led-framework.yaml`, `sense360-shared-engines.yaml` — which are therefore
+  **protected canonical entrypoints** and KEPT with this recorded reason.
+  `blower-framework.yaml` appears in no customer documentation (only an
+  internal architecture doc), no tag, no generated Pages nav, no WebFlash
+  file and no release note: it is the unpublished remainder and is DELETED
+  in this PR with a migration note in
+  `docs/architecture/sense360-blower-framework.md`. The same evidence test
+  resolves every delete-if-orphan / delete-if-undeclared candidate during
+  execution.
 
 Three standing inputs from PR 06 are in scope and marked above: the
 `S360-LED-V-C` fold, the dangling wall/voice documentation references, and
@@ -190,11 +204,11 @@ publishes, promotes or changes any channel.
 
 | Path | Role | Tags | Consumers | Reach | Disposition | Basis |
 |---|---|---|---|---|---|---|
-| `blower-framework.yaml` | authoritative-with-includes | 0 | 0 | — | **decide** | Remote-consumption wrapper (docs/remote-package-consumption.md): absent from every tag, so consumers can only pin @main; deleting breaks a documented surface. Needs an owner-visible call or fold into the documented canonical paths. |
-| `ceiling-airiq.yaml` | authoritative-with-includes | 0 | 0 | — | **decide** | Remote-consumption wrapper (docs/remote-package-consumption.md): absent from every tag, so consumers can only pin @main; deleting breaks a documented surface. Needs an owner-visible call or fold into the documented canonical paths. |
-| `ceiling-roomiq-presence.yaml` | authoritative-with-includes | 0 | 0 | — | **decide** | Remote-consumption wrapper (docs/remote-package-consumption.md): absent from every tag, so consumers can only pin @main; deleting breaks a documented surface. Needs an owner-visible call or fold into the documented canonical paths. |
-| `led-framework.yaml` | authoritative-with-includes | 0 | 0 | — | **decide** | Remote-consumption wrapper (docs/remote-package-consumption.md): absent from every tag, so consumers can only pin @main; deleting breaks a documented surface. Needs an owner-visible call or fold into the documented canonical paths. |
-| `sense360-shared-engines.yaml` | authoritative | 0 | 0 | — | **decide** | Remote-consumption wrapper (docs/remote-package-consumption.md): absent from every tag, so consumers can only pin @main; deleting breaks a documented surface. Needs an owner-visible call or fold into the documented canonical paths. |
+| `blower-framework.yaml` | authoritative-with-includes | 0 | 0 | — | **deleted** | Remote-consumption wrapper (docs/remote-package-consumption.md): absent from every tag, so consumers can only pin @main; deleting breaks a documented surface. Needs an owner-visible call or fold into the documented canonical paths. |
+| `ceiling-airiq.yaml` | authoritative-with-includes | 0 | 0 | — | **keep-protected** | Remote-consumption wrapper (docs/remote-package-consumption.md): absent from every tag, so consumers can only pin @main; deleting breaks a documented surface. Needs an owner-visible call or fold into the documented canonical paths. |
+| `ceiling-roomiq-presence.yaml` | authoritative-with-includes | 0 | 0 | — | **keep-protected** | Remote-consumption wrapper (docs/remote-package-consumption.md): absent from every tag, so consumers can only pin @main; deleting breaks a documented surface. Needs an owner-visible call or fold into the documented canonical paths. |
+| `led-framework.yaml` | authoritative-with-includes | 0 | 0 | — | **keep-protected** | Remote-consumption wrapper (docs/remote-package-consumption.md): absent from every tag, so consumers can only pin @main; deleting breaks a documented surface. Needs an owner-visible call or fold into the documented canonical paths. |
+| `sense360-shared-engines.yaml` | authoritative | 0 | 0 | — | **keep-protected** | Remote-consumption wrapper (docs/remote-package-consumption.md): absent from every tag, so consumers can only pin @main; deleting breaks a documented surface. Needs an owner-visible call or fold into the documented canonical paths. |
 
 ### `products/bundles/`
 
