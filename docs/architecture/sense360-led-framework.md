@@ -238,9 +238,13 @@ history). Honesty is enforced downstream instead:
   (`Ceiling-POE-VentIQ-RoomIQ-LED`, `Ceiling-POE-RoomIQ-LED`) declare
   `led_has_roomiq: "true"` and `led_has_presence: "true"` at the bundle top
   level and compose `packages/features/led_presence_bridge.yaml`.
-* The `Ceiling-Core-LED-AirIQ` compile-only fixture
-  (`products/sense360-core-ceiling-led-airiq.yaml`) leaves both `"false"` and
-  composes no bridge — the representative AirIQ-only device.
+* The AirIQ-only device — LED composed with neither RoomIQ nor Presence —
+  leaves both `"false"` and composes no bridge. That degradation is pinned by
+  the `core_airiq_led` composition in `tests/test_led_composition.py`. It was
+  previously also carried by the compile-only fixture
+  `Ceiling-Core-LED-AirIQ`, removed under SENSE360-CANONICALISATION-001 PR 06
+  as an impossible config string (`Core` is outside the canonical grammar in
+  `config/webflash-compatibility.json`).
 * Remote consumers pull `packages/remote/led-framework.yaml` (see
   [remote-package consumption](../remote-package-consumption.md)); the wrapper
   defaults both flags `"false"`.

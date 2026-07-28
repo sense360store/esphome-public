@@ -1,0 +1,398 @@
+{
+  "schema_version": 1,
+  "work_item": "SENSE360-CANONICALISATION-001 PR 06",
+  "description": "Exhaustive binding from every hardware-layer package to the board SKU whose firmware it holds, or to null when it holds none. This is the single declaration of which package IS which board; config/config-string-contract.json derives every config string's board composition from it by walking the ESPHome include graph. Exhaustiveness is enforced by tests/test_config_string_contract.py: every YAML under the listed directories must appear exactly once, and no entry may name a file that does not exist, so a new package cannot enter the tree unclassified.",
+  "sources": {
+    "hardware_catalog": "config/hardware-catalog.json",
+    "feature_entity_matrix": "config/feature-entity-matrix.json"
+  },
+  "rules": {
+    "a_binding_is_not_hardware_evidence": "A binding records which board a package's firmware implements. It never upgrades that board's schematic_status, never claims a sensor is fitted, and never claims a connector-attached attachment is supplied.",
+    "aliases_bind_to_null": "An alias contributes no SKU of its own. Removing an alias in PR 07 must therefore leave every resolved composition byte-identical.",
+    "null_is_a_decision_not_a_gap": "board_sku null is an explicit classification with a recorded reason, never an omission.",
+    "board_sku_must_exist_upstream": "Every non-null board_sku must be a real SKU in config/hardware-catalog.json. This file never mints a board identity."
+  },
+  "bases": {
+    "authoritative-board-firmware": "This file holds the board's own firmware content, so it contributes the SKU.",
+    "alias": "A legacy or naming alias. The SKU is contributed by whatever the alias resolves to, so the resolved composition is unchanged when the alias is removed.",
+    "composer": "Composes other packages and holds no board content of its own.",
+    "connector-attached-sensor-driver": "A driver for a connector-attached sensor option. The host board contributes the SKU; binding the driver would assert an inclusion the hardware catalogue does not declare.",
+    "legacy-pre-r4-driver": "A pre-R4 legacy driver whose sensor set matches no R4 board SKU.",
+    "not-board-bearing": "Shared or superseded infrastructure that implements no board."
+  },
+  "hardware_layer_directories": [
+    "packages/boards",
+    "packages/hardware",
+    "packages/expansions"
+  ],
+  "totals": {
+    "packages": 57,
+    "bound": 28,
+    "unbound": 29
+  },
+  "bindings": [
+    {
+      "package": "packages/boards/s360-100-core-ceiling.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Ceiling mount overlay. Wraps packages/hardware/sense360_core_ceiling.yaml, which holds the content until the Core source-of-truth flip; the SKU is contributed there."
+    },
+    {
+      "package": "packages/boards/s360-100-core.yaml",
+      "board_sku": "S360-100",
+      "basis": "authoritative-board-firmware",
+      "reason": "Base Core board firmware: ESP32-S3 platform, abstract bus and board_sku declaration."
+    },
+    {
+      "package": "packages/boards/s360-200-roomiq-climate.yaml",
+      "board_sku": "S360-200",
+      "basis": "authoritative-board-firmware",
+      "reason": "Authoritative RoomIQ climate half: LTR-303ALS ambient light and SHT4x temperature/humidity."
+    },
+    {
+      "package": "packages/boards/s360-200-roomiq-pir.yaml",
+      "board_sku": "S360-200",
+      "basis": "authoritative-board-firmware",
+      "reason": "Authoritative RoomIQ PCB-mounted PIR half (EKMC1601111)."
+    },
+    {
+      "package": "packages/boards/s360-200-roomiq-radar.yaml",
+      "board_sku": "S360-200",
+      "basis": "authoritative-board-firmware",
+      "reason": "Authoritative RoomIQ radar half. Binds the connector-attached LD2450 to the RoomIQ board; the SKU is the host board, never a claim that the radar is supplied (OD-SOT-004 stays open)."
+    },
+    {
+      "package": "packages/boards/s360-200-roomiq-sen0609.yaml",
+      "board_sku": "S360-200",
+      "basis": "authoritative-board-firmware",
+      "reason": "Authoritative RoomIQ SEN0609/C4001 half. Same host-board-only reading as the LD2450 half."
+    },
+    {
+      "package": "packages/boards/s360-200-roomiq-uart.yaml",
+      "board_sku": "S360-200",
+      "basis": "authoritative-board-firmware",
+      "reason": "Authoritative RoomIQ board UART binding for the Hi-Link radar connector."
+    },
+    {
+      "package": "packages/boards/s360-200-roomiq.yaml",
+      "board_sku": null,
+      "basis": "composer",
+      "reason": "Composes the three authoritative ceiling RoomIQ halves; holds no driver content of its own."
+    },
+    {
+      "package": "packages/boards/s360-210-airiq-ceiling-s3.yaml",
+      "board_sku": "S360-210",
+      "basis": "authoritative-board-firmware",
+      "reason": "AirIQ S3-lineage overlay; adds board-specific bus deltas on top of the canonical AirIQ board."
+    },
+    {
+      "package": "packages/boards/s360-210-airiq-no-sfa40.yaml",
+      "board_sku": "S360-210",
+      "basis": "authoritative-board-firmware",
+      "reason": "AirIQ SFA40 opt-out overlay. Retained while OD-SOT-008 (SFA40 fitment) is open; the overlay decides nothing about fitment either way."
+    },
+    {
+      "package": "packages/boards/s360-210-airiq-sps30.yaml",
+      "board_sku": "S360-210",
+      "basis": "authoritative-board-firmware",
+      "reason": "AirIQ opt-in SPS30 overlay for the external particulate module. Opting in composes the attachment; it never makes the module supplied."
+    },
+    {
+      "package": "packages/boards/s360-210-airiq.yaml",
+      "board_sku": "S360-210",
+      "basis": "authoritative-board-firmware",
+      "reason": "Authoritative AirIQ board firmware."
+    },
+    {
+      "package": "packages/boards/s360-211-ventiq.yaml",
+      "board_sku": "S360-211",
+      "basis": "authoritative-board-firmware",
+      "reason": "Authoritative VentIQ board firmware."
+    },
+    {
+      "package": "packages/boards/s360-300-led-mic-ceiling.yaml",
+      "board_sku": "S360-300",
+      "basis": "authoritative-board-firmware",
+      "reason": "LED voice/mic ceiling variant. No config string, catalogue entry or product reaches it; recorded as an unowned composition in docs/sense360-canonicalisation-001-pr06-contract.md."
+    },
+    {
+      "package": "packages/boards/s360-300-led.yaml",
+      "board_sku": "S360-300",
+      "basis": "authoritative-board-firmware",
+      "reason": "Authoritative LED board firmware (WS2812B ceiling halo)."
+    },
+    {
+      "package": "packages/boards/s360-410-poe-psu.yaml",
+      "board_sku": "S360-410",
+      "basis": "authoritative-board-firmware",
+      "reason": "Authoritative PoE PSU board firmware."
+    },
+    {
+      "package": "packages/expansions/airiq.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Legacy functional path; resolves to packages/boards/s360-210-airiq.yaml."
+    },
+    {
+      "package": "packages/expansions/airiq_bathroom_base.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Legacy functional path; resolves to packages/boards/s360-211-ventiq.yaml."
+    },
+    {
+      "package": "packages/expansions/airiq_ceiling.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Legacy functional path; resolves to packages/boards/s360-210-airiq.yaml."
+    },
+    {
+      "package": "packages/expansions/airiq_ceiling_s3.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Legacy functional path; resolves to packages/boards/s360-210-airiq-ceiling-s3.yaml."
+    },
+    {
+      "package": "packages/expansions/bathroom.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Legacy functional path; resolves to packages/boards/s360-211-ventiq.yaml plus the legacy bathroom feature profile."
+    },
+    {
+      "package": "packages/expansions/comfort.yaml",
+      "board_sku": null,
+      "basis": "legacy-pre-r4-driver",
+      "reason": "Pre-R4 generic comfort expansion driver (SHT40 / BH1750 / optional BME680). That sensor set is not S360-200-R4, which carries LTR-303ALS, SHT4x and BMP581, so it binds to no R4 board SKU."
+    },
+    {
+      "package": "packages/expansions/comfort_ceiling.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Legacy functional path; resolves to packages/boards/s360-200-roomiq-climate.yaml."
+    },
+    {
+      "package": "packages/expansions/comfort_ceiling_s3.yaml",
+      "board_sku": null,
+      "basis": "legacy-pre-r4-driver",
+      "reason": "Pre-R4 S3-lineage comfort driver (VEML7700 / SHT4x); binds to no R4 board SKU."
+    },
+    {
+      "package": "packages/expansions/fan_12v_pwm.yaml",
+      "board_sku": "S360-311",
+      "basis": "authoritative-board-firmware",
+      "reason": "12V PWM fan driver firmware for the Sense360 PWM board. No packages/boards entry exists for S360-311; the board is schematic_status cataloged_unverified and no fan config ships stable."
+    },
+    {
+      "package": "packages/expansions/fan_dac.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Legacy functional path; resolves to packages/expansions/fan_gp8403.yaml."
+    },
+    {
+      "package": "packages/expansions/fan_gp8403.yaml",
+      "board_sku": "S360-312",
+      "basis": "authoritative-board-firmware",
+      "reason": "GP8403 0-10V analog fan driver firmware for the Sense360 DAC board. No packages/boards entry exists for S360-312; the board is schematic_status cataloged_unverified."
+    },
+    {
+      "package": "packages/expansions/fan_pwm.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Legacy functional path; resolves to packages/expansions/fan_pwm_sx1509.yaml."
+    },
+    {
+      "package": "packages/expansions/fan_pwm_native.yaml",
+      "board_sku": "S360-311",
+      "basis": "authoritative-board-firmware",
+      "reason": "Native-GPIO PWM fan driver firmware, the current S360-311 implementation."
+    },
+    {
+      "package": "packages/expansions/fan_pwm_sx1509.yaml",
+      "board_sku": "S360-311",
+      "basis": "authoritative-board-firmware",
+      "reason": "SX1509-expander PWM fan driver firmware; superseded by the native path but still composed."
+    },
+    {
+      "package": "packages/expansions/fan_relay.yaml",
+      "board_sku": "S360-310",
+      "basis": "authoritative-board-firmware",
+      "reason": "Relay fan driver firmware for the Sense360 Relay board. No packages/boards entry exists for S360-310; the board is schematic_status cataloged_unverified."
+    },
+    {
+      "package": "packages/expansions/fan_triac.yaml",
+      "board_sku": "S360-320",
+      "basis": "authoritative-board-firmware",
+      "reason": "TRIAC phase-dimmer firmware for the Sense360 TRIAC board. Experimental / advanced-manual lane only; no electrical-safety, EMC or compliance claim is made or implied."
+    },
+    {
+      "package": "packages/expansions/gpio_expander_sx1509.yaml",
+      "board_sku": null,
+      "basis": "not-board-bearing",
+      "reason": "Legacy / superseded SX1509 expander path (SX1509-RECONCILE-001). Retained with reason for the CORE-ABSTRACT-BUS-001C interrupt-pin guard; implements no board."
+    },
+    {
+      "package": "packages/expansions/presence_ceiling.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Legacy functional path; resolves to packages/boards/s360-200-roomiq-radar.yaml."
+    },
+    {
+      "package": "packages/expansions/presence_ceiling_s3.yaml",
+      "board_sku": null,
+      "basis": "composer",
+      "reason": "Composes the S3-lineage radar drivers; holds no board content of its own."
+    },
+    {
+      "package": "packages/expansions/presence_ld2412.yaml",
+      "board_sku": null,
+      "basis": "connector-attached-sensor-driver",
+      "reason": "LD2412 radar driver for a connector-attached option; host-board-only reading."
+    },
+    {
+      "package": "packages/expansions/presence_ld2450.yaml",
+      "board_sku": null,
+      "basis": "connector-attached-sensor-driver",
+      "reason": "LD2450 radar driver for a connector-attached option; host-board-only reading."
+    },
+    {
+      "package": "packages/expansions/presence_module_ceiling.yaml",
+      "board_sku": null,
+      "basis": "legacy-pre-r4-driver",
+      "reason": "Pre-merge standalone Presence expansion module mapping. Presence merged into S360-200 RoomIQ at R4, so this file binds to no R4 board SKU."
+    },
+    {
+      "package": "packages/expansions/roomiq.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Phase-2 naming alias; resolves through comfort_ceiling.yaml to the RoomIQ climate board half."
+    },
+    {
+      "package": "packages/expansions/roomiq_radar.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Phase-2 naming alias; resolves through presence_ceiling.yaml to the RoomIQ radar board half."
+    },
+    {
+      "package": "packages/expansions/sense360_fan_pwm.yaml",
+      "board_sku": "S360-311",
+      "basis": "authoritative-board-firmware",
+      "reason": "Standalone PWM fan-driver composition consumed by the published legacy product products/sense360-fan-pwm.yaml."
+    },
+    {
+      "package": "packages/expansions/ventiq.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Naming alias; resolves through airiq_bathroom_base.yaml to packages/boards/s360-211-ventiq.yaml."
+    },
+    {
+      "package": "packages/hardware/led_ring_ceiling.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Legacy functional path; resolves to packages/boards/s360-300-led.yaml."
+    },
+    {
+      "package": "packages/hardware/led_ring_mic_ceiling.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Legacy functional path; resolves to packages/boards/s360-300-led-mic-ceiling.yaml."
+    },
+    {
+      "package": "packages/hardware/power_240v.yaml",
+      "board_sku": "S360-400",
+      "basis": "authoritative-board-firmware",
+      "reason": "Authoritative 240V mains PSU firmware. No packages/boards entry exists for S360-400; the board is schematic_status cataloged_unverified and the PWR power token is compliance-blocked."
+    },
+    {
+      "package": "packages/hardware/power_management.yaml",
+      "board_sku": null,
+      "basis": "not-board-bearing",
+      "reason": "Per-rail power budget accounting shared across boards; implements no board."
+    },
+    {
+      "package": "packages/hardware/power_poe.yaml",
+      "board_sku": null,
+      "basis": "alias",
+      "reason": "Legacy functional path; resolves to packages/boards/s360-410-poe-psu.yaml."
+    },
+    {
+      "package": "packages/hardware/power_usb.yaml",
+      "board_sku": null,
+      "basis": "not-board-bearing",
+      "reason": "USB-C input configuration on the Core itself. There is no USB PSU board SKU: USB power is a Core input, not a separate module."
+    },
+    {
+      "package": "packages/hardware/presence_dfrobot_c4001.yaml",
+      "board_sku": null,
+      "basis": "connector-attached-sensor-driver",
+      "reason": "SEN0609/C4001 radar driver for a connector-attached option. The host board SKU is contributed by whichever board package binds it, so this file claims no board inclusion (OD-SOT-004 open)."
+    },
+    {
+      "package": "packages/hardware/presence_ld2412.yaml",
+      "board_sku": null,
+      "basis": "connector-attached-sensor-driver",
+      "reason": "LD2412 radar driver for a connector-attached option; same host-board-only reading."
+    },
+    {
+      "package": "packages/hardware/presence_ld2450.yaml",
+      "board_sku": null,
+      "basis": "connector-attached-sensor-driver",
+      "reason": "LD2450 radar driver for a connector-attached option; same host-board-only reading."
+    },
+    {
+      "package": "packages/hardware/sense360_core.yaml",
+      "board_sku": "S360-100",
+      "basis": "authoritative-board-firmware",
+      "reason": "Core board firmware, legacy functional path still holding content."
+    },
+    {
+      "package": "packages/hardware/sense360_core_ceiling.yaml",
+      "board_sku": "S360-100",
+      "basis": "authoritative-board-firmware",
+      "reason": "Core ceiling-mount firmware; still the source of truth wrapped by the board overlay."
+    },
+    {
+      "package": "packages/hardware/sense360_core_ceiling_s3.yaml",
+      "board_sku": "S360-100",
+      "basis": "authoritative-board-firmware",
+      "reason": "Core ceiling S3-lineage firmware. Also composes AirIQ and RoomIQ paths, which contribute their own SKUs through the include graph."
+    },
+    {
+      "package": "packages/hardware/sense360_core_mapping.yaml",
+      "board_sku": "S360-100",
+      "basis": "authoritative-board-firmware",
+      "reason": "Core connector pin map."
+    },
+    {
+      "package": "packages/hardware/sense360_core_poe.yaml",
+      "board_sku": "S360-100",
+      "basis": "authoritative-board-firmware",
+      "reason": "Core PoE-variant firmware. The PSU board itself is S360-410 and is composed separately."
+    },
+    {
+      "package": "packages/hardware/sense360_core_voice.yaml",
+      "board_sku": "S360-100",
+      "basis": "authoritative-board-firmware",
+      "reason": "Core voice-variant firmware; consumed by the published legacy product products/sense360-fan-pwm.yaml."
+    }
+  ],
+  "capability_board_map": {
+    "description": "Which board each config/core-framework.json capability token requires. This is the canonical link between the declared capability set and the resolved board composition; tests/test_config_string_contract.py asserts the two agree for every configuration. A capability is a compile-time composition fact, never a runtime health or hardware claim.",
+    "map": {
+      "core": "S360-100",
+      "power_poe": "S360-410",
+      "power_usb": null,
+      "roomiq": "S360-200",
+      "presence": "S360-200",
+      "airiq": "S360-210",
+      "ventiq": "S360-211",
+      "led": "S360-300",
+      "fan_relay": "S360-310",
+      "fan_pwm": "S360-311",
+      "fan_dac": "S360-312",
+      "fan_triac": "S360-320"
+    },
+    "notes": {
+      "power_usb": "USB-C is a Core input, not a separate PSU board: there is no USB PSU SKU, so the capability maps to no board.",
+      "presence": "Presence is delivered by the connector-attached radars on the S360-200 RoomIQ board. The map names the host board only; OD-SOT-004 (radar evidence) stays open and nothing here decides it."
+    }
+  }
+}

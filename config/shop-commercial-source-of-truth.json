@@ -81,11 +81,10 @@
     ],
     "candidate_bundles": [
       "S360-KIT-KITCHEN-P",
-      "S360-KIT-LIVING-P",
       "S360-KIT-BEDROOM-P",
       "S360-KIT-CORRIDOR-P"
     ],
-    "notes": "Candidate room bundles are planning / preview / stable-candidate records in config/room-bundle-skus.json, not public sale commitments. Hidden from normal shop navigation by default. Optional waitlist / coming-soon pages may exist only if explicitly labelled as above; never with a buy button."
+    "notes": "Candidate room bundles are planning / preview / stable-candidate records in config/room-bundle-skus.json, not public sale commitments. Hidden from normal shop navigation by default. Optional waitlist / coming-soon pages may exist only if explicitly labelled as above; never with a buy button. S360-KIT-LIVING-P was consolidated into S360-KIT-CORRIDOR-P under SENSE360-CANONICALISATION-001 PR 06 (OD-SOT-006); no bundle's visibility or buyability changed."
   },
   "claims": {
     "allowed": [

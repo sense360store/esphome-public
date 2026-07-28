@@ -12,8 +12,10 @@
 # dry-run can build. The customer-facing product path
 # `products/sense360-ceiling-poe-roomiq-led.yaml` is a thin compat shim that
 # does nothing but `!include` this bundle (§3.2). One buildable firmware
-# (`Ceiling-POE-RoomIQ-LED`) is consumed by both the Living-room and Corridor
-# room bundles (S360-KIT-LIVING-P, S360-KIT-CORRIDOR-P).
+# (`Ceiling-POE-RoomIQ-LED`) is consumed by the Hallway / Landing room bundle
+# (S360-KIT-CORRIDOR-P), which lists living room among its recommended rooms
+# after SENSE360-CANONICALISATION-001 PR 06 consolidated the duplicate
+# S360-KIT-LIVING-P record (OD-SOT-006).
 #
 # WebFlash config string : Ceiling-POE-RoomIQ-LED
 # WebFlash artifact name  : Sense360-Ceiling-POE-RoomIQ-LED-vX.Y.Z-{channel}.bin

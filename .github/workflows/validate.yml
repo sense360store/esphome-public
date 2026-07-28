@@ -192,6 +192,19 @@ jobs:
         run: |
           python3 scripts/report_firmware_build_gaps.py --check
 
+      # The config-string contract is derived from the package include graph,
+      # so any composition change — a new board package, a retargeted alias, a
+      # bundle that starts or stops including a board — silently changes what
+      # a config string means unless the contract is regenerated with it.
+      # SENSE360-CANONICALISATION-001 PR 06.
+      - name: Config-string contract freshness (SENSE360-CANONICALISATION-001)
+        run: |
+          python3 scripts/generate_config_string_contract.py --check
+
+      - name: Config-string contract enforcement
+        run: |
+          python3 tests/test_config_string_contract.py
+
       # The preview/stable release-target manifest must track the live build
       # ledger (channel + artifact per target). The Kitchen / Bedroom stable
       # promotions left it stale, which broke the manual Preview Compile

@@ -284,7 +284,6 @@
       "bench_evidence_claimed": false,
       "schematic_status_verified_claim": false,
       "consuming_bundles": [
-        "S360-KIT-LIVING-P",
         "S360-KIT-CORRIDOR-P"
       ],
       "notes": "One buildable firmware (Ceiling-POE-RoomIQ-LED) consumed by both the Living-room and Corridor room bundles, and DISTINCT from the published VentIQ LED preview (Ceiling-POE-VentIQ-RoomIQ-LED), which is unchanged. HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record, 2026-07-09): the bench-proof documentation requirement is retired as a release gate; hardware readiness is declared by the owner directly. This target was RE-LISTED with a reviewed config/webflash-builds.json preview build row (release_state metadata-ready-unpublished), deliberately reversing the CI-PIPELINE-CLARITY-001 P4a de-list; the catalog entry is back to status preview / webflash_build_matrix true. NO firmware binary / GitHub Release / tag / manifest.json / firmware/sources.json is published by the re-list itself. Not recommended, not customer-default, not stable; LED stays preview and stable stays gated by S360-410 (PRODUCT-POE-410-001) + the LED preview-to-stable gauntlet. The compile dry-run recorded GREEN by hosted run 26821900127 (validated-full-compile) is firmware-build proof only."

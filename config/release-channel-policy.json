@@ -264,12 +264,12 @@
       "notes": "Promoted to stable v1.0.5 under owner risk-acceptance waiver HW-S360-410-WAIVER-2026-06 (S360-410 PoE PSU cataloged_unverified; on-device flash verification not yet performed). Owner waiver, not hardware verification. Bundle stays hidden / not buyable / not a customer default."
     },
     {
-      "product": "Living PoE / LED (RoomIQ + LED)",
+      "product": "Hallway / Landing PoE / LED (RoomIQ + LED)",
       "preview_allowed": true,
       "preview_warning_required": true,
       "blocker_is_stable_only": true,
-      "family": "Living",
-      "bundle": "S360-KIT-LIVING-P",
+      "family": "Hallway-Landing",
+      "bundle": "S360-KIT-CORRIDOR-P",
       "config_string": "Ceiling-POE-RoomIQ-LED",
       "yaml_path": "products/compile-only/ceiling-poe-roomiq.yaml",
       "intended_channel": "preview",
@@ -284,7 +284,7 @@
       "bench_evidence_claimed": false,
       "schematic_status_verified_claim": false,
       "required_config": false,
-      "notes": "Living-room target. RoomIQ + LED ring (SELV). A dedicated product/wrapper YAML is still required before a preview artifact can be cut. Preview-eligible once that exists; not hardware verified."
+      "notes": "Hallway / landing target, living room retained as a recommended room. SENSE360-CANONICALISATION-001 PR 06 (OD-SOT-006): consolidated with the former S360-KIT-LIVING-P, which declared the identical board set and the identical firmware target. SOT owns commercial bundle identity and holds one record for this hardware (bundle id hallway-landing-poe, SKU S360-KIT-CORRIDOR-P, name 'Sense360 Hallway / Landing Bundle — PoE'); the SOT freeze baseline records S360-KIT-LIVING-P as deliberately absent. Living room is retained as a recommended room, never as a second product. Living-room target. RoomIQ + LED ring (SELV). A dedicated product/wrapper YAML is still required before a preview artifact can be cut. Preview-eligible once that exists; not hardware verified."
     },
     {
       "product": "Corridor PoE / LED (RoomIQ + LED)",

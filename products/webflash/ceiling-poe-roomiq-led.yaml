@@ -2,9 +2,11 @@
 # Sense360 WebFlash wrapper — compile-validated PREVIEW CANDIDATE (LED-bearing).
 # ============================================================================
 # RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001. This file is the WebFlash-namespaced
-# wrapper for the Living-room / Corridor PoE RoomIQ + LED preview candidate
-# (one buildable firmware shared by the S360-KIT-LIVING-P and
-# S360-KIT-CORRIDOR-P room bundles). It mirrors the pattern of the existing LED
+# wrapper for the Hallway / Landing PoE RoomIQ + LED preview candidate (one
+# buildable firmware consumed by the S360-KIT-CORRIDOR-P room bundle, which
+# lists living room among its recommended rooms after
+# SENSE360-CANONICALISATION-001 PR 06 consolidated the duplicate
+# S360-KIT-LIVING-P record). It mirrors the pattern of the existing LED
 # preview wrapper
 #   products/webflash/ceiling-poe-ventiq-roomiq-led.yaml
 # so that, when a later reviewed build-row PR adds this preview build to
