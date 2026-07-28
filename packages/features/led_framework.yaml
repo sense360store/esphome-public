@@ -150,6 +150,14 @@ esphome:
     # roomiq framework feeds the SAME shared static instance its calibrated lux;
     # there is still exactly one implementation and no duplicate lux logic.
     - ../components/sense360/roomiq_engine.h
+    # roomiq_engine.h quote-includes its compensation sibling; the copy this
+    # block lands in the build root needs the sibling co-located (the RoomIQ
+    # framework's own includes, which used to provide it by co-location,
+    # moved to component delivery under SENSE360-CANONICALISATION-001 PR 09).
+    # Same single implementation; the sense360 component ships the identical
+    # file for component-delivered consumers. PR 12 owns replacing this LED
+    # includes mechanism wholesale.
+    - ../components/sense360/roomiq_climate_compensation.h
   # LIST FORM IS LOAD-BEARING (STATIC-DIAGNOSTIC-PUBLISH-001). This block was
   # previously written as a MAPPING (`on_boot:` -> `priority:` / `then:`).
   # ESPHome's package merging uses esphome.config_helpers.merge_config, which

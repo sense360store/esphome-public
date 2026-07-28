@@ -84,9 +84,32 @@ component with the superseded glue deleted in the same commit.
 ## Slices
 
 1. Radar retirement (built-in flip) with hosted compile proof.
-2. Component skeleton + platforms.
+   **Executed 2026-07-28.** Compile-lane result on the retirement head:
+   six of the seven representatives — including Release-One and every
+   radar-bearing config — compiled green against the built-in drivers,
+   proving the retirement itself. The one failure
+   (`Ceiling-POE-RoomIQ-LED`) was PR 09 fallout surfacing, not a radar
+   issue: the LED framework root-copies `roomiq_engine.h` via
+   `esphome: includes:`, and its quote-included compensation sibling had
+   been co-located by the RoomIQ framework's former includes. Fixed by
+   restoring the sibling to the LED includes list (single implementation
+   unchanged; PR 12 owns replacing the LED includes mechanism wholesale).
+2. Component skeleton + platforms. **Executed 2026-07-28** — hub +
+   binary_sensor / sensor / text_sensor platforms; the transient
+   applying-mode YAML global internalised (never customer-visible, never
+   persisted); radar frame bookkeeping moved from adapter globals to the
+   component's own radar-sensor callbacks (same physical signal; the
+   adapter and its globals, still read by the Radar Data Age diagnostic,
+   are untouched).
 3. Framework rewrite + equivalence proof + guard retargeting.
-4. Docs, execution notes here, final suite / validator pass, PR.
+   **Executed 2026-07-28.** Entity ids/names preserved; the mode /
+   clear-delay select+number stay persisted template entities with the
+   PD-10 interplay moved into component callbacks; the adapters'
+   `s360_presence_evaluate` bridge script kept live. Equivalence:
+   composition contract and entity tables byte-identical; every
+   presence-bearing product validates locally against the pinned ESPHome.
+4. Docs, execution notes here, final suite / validator pass, PR. The
+   hosted compile lane is the remaining proof gate for the C++ glue.
 
 ## Honesty limits
 

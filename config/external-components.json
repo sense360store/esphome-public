@@ -41,6 +41,13 @@
       "provenance": "Introduced by SENSE360-CANONICALISATION-001 PR 09 (docs/architecture/sense360-roomiq-component-plan.md). Glue over the canonical RoomIQ engine singleton in components/sense360/ - input feeding, configuration, the single-owner publish-on-change switchboard. No model logic, no raw hardware I/O (sources are ordinary ESPHome sensors composed by the board package).",
       "disposition_owner": "SENSE360-CANONICALISATION-001 PR-09 (Migrate RoomIQ)",
       "delivery": "base"
+    },
+    "sense360_presence": {
+      "role": "domain-component",
+      "origin": "sense360-original",
+      "provenance": "Introduced by SENSE360-CANONICALISATION-001 PR 10 (docs/architecture/sense360-presence-component-plan.md). Glue over the canonical presence fusion singleton in components/sense360/ - input feeding, runtime mode/clear-delay control interplay, the publish switchboard. No model logic, no raw hardware I/O; the OD-SOT-004 PIR-vs-radar evidence distinction is unchanged.",
+      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-10 (Migrate Presence)",
+      "delivery": "base"
     }
   }
 }

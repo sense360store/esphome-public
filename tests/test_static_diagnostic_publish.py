@@ -759,17 +759,19 @@ class RuntimeModuleStatusTests(unittest.TestCase):
         )
 
     def test_presence_module_status_has_a_runtime_publisher(self) -> None:
+        # SENSE360-CANONICALISATION-001 PR 10: the runtime publisher and the
+        # 500 ms tick moved into the sense360_presence component glue; the
+        # framework binds the Core-Framework-owned entity to it by id.
         text = (REPO_ROOT / "packages/features/presence_framework.yaml").read_text()
         self.assertIn(
-            "id(s360_module_status_presence).publish_state(health)",
+            "module_status_id: s360_module_status_presence",
             text,
-            "the presence framework must still own the runtime status",
+            "the presence framework must bind the runtime status to the "
+            "sense360_presence component",
         )
-        self.assertIn(
-            "interval: 500ms",
-            text,
-            "the presence framework keeps its runtime evaluation tick",
-        )
+        cpp = (REPO_ROOT / "components/sense360_presence/sense360_presence.cpp").read_text()
+        self.assertIn("publish_state(health)", cpp)
+        self.assertIn("EVALUATE_INTERVAL_MS = 500", cpp)
 
     def test_presence_runtime_vocabulary_can_replace_the_seed(self) -> None:
         """Available / Degraded / Unavailable / Fault stay reachable."""
