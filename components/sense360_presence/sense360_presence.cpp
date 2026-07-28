@@ -43,8 +43,12 @@ void Sense360Presence::setup() {
   // Runtime control interplay (PD-04 / PD-10): preset application and the
   // switch-to-Custom rule, formerly the select/number on_value lambdas.
   if (this->mode_select_ != nullptr) {
-    this->mode_select_->add_on_state_callback(
-        [this](const std::string &value, size_t) { this->on_mode_changed_(value); });
+    // The pinned ESPHome's select state callback carries the option INDEX
+    // (LazyCallbackManager<void(size_t)>); the option string is read back
+    // from the select, which has already committed the new state.
+    this->mode_select_->add_on_state_callback([this](size_t) {
+      this->on_mode_changed_(this->mode_select_->current_option().c_str());
+    });
   }
   if (this->clear_delay_number_ != nullptr) {
     this->clear_delay_number_->add_on_state_callback(
