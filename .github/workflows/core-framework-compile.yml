@@ -46,6 +46,7 @@ on:
       - "packages/boards/**"
       - "packages/features/**"
       - "components/sense360/**"
+      - "components/sense360_roomiq/**"
       - "tests/unit/**"
       - "tests/test_core_framework.py"
       - "tests/test_core_framework_doc.py"

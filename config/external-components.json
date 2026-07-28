@@ -47,6 +47,12 @@
       "origin": "sense360-original",
       "provenance": "Sensirion SFA40 HCHO module driver. The SFA40 fitment question stays owner-reserved (OD-SOT-008) and is not resolved by this manifest.",
       "disposition_owner": "SENSE360-CANONICALISATION-001 PR-11 (Migrate AirIQ and VentIQ); OD-SOT-008 stays open"
+    },
+    "sense360_roomiq": {
+      "role": "domain-component",
+      "origin": "sense360-original",
+      "provenance": "Introduced by SENSE360-CANONICALISATION-001 PR 09 (docs/architecture/sense360-roomiq-component-plan.md). Glue over the canonical RoomIQ engine singleton in components/sense360/ - input feeding, configuration, the single-owner publish-on-change switchboard. No model logic, no raw hardware I/O (sources are ordinary ESPHome sensors composed by the board package).",
+      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-09 (Migrate RoomIQ)"
     }
   }
 }
