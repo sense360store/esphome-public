@@ -26,9 +26,9 @@
     "packages/expansions"
   ],
   "totals": {
-    "packages": 42,
-    "bound": 28,
-    "unbound": 14
+    "packages": 33,
+    "bound": 27,
+    "unbound": 6
   },
   "bindings": [
     {
@@ -122,24 +122,6 @@
       "reason": "Authoritative PoE PSU board firmware."
     },
     {
-      "package": "packages/expansions/comfort.yaml",
-      "board_sku": null,
-      "basis": "legacy-pre-r4-driver",
-      "reason": "Pre-R4 generic comfort expansion driver (SHT40 / BH1750 / optional BME680). That sensor set is not S360-200-R4, which carries LTR-303ALS, SHT4x and BMP581, so it binds to no R4 board SKU."
-    },
-    {
-      "package": "packages/expansions/comfort_ceiling_s3.yaml",
-      "board_sku": null,
-      "basis": "legacy-pre-r4-driver",
-      "reason": "Pre-R4 S3-lineage comfort driver (VEML7700 / SHT4x); binds to no R4 board SKU."
-    },
-    {
-      "package": "packages/expansions/fan_12v_pwm.yaml",
-      "board_sku": "S360-311",
-      "basis": "authoritative-board-firmware",
-      "reason": "12V PWM fan driver firmware for the Sense360 PWM board. No packages/boards entry exists for S360-311; the board is schematic_status cataloged_unverified and no fan config ships stable."
-    },
-    {
       "package": "packages/expansions/fan_gp8403.yaml",
       "board_sku": "S360-312",
       "basis": "authoritative-board-firmware",
@@ -182,28 +164,10 @@
       "reason": "Legacy / superseded SX1509 expander path (SX1509-RECONCILE-001). Retained with reason for the CORE-ABSTRACT-BUS-001C interrupt-pin guard; implements no board."
     },
     {
-      "package": "packages/expansions/presence_ceiling_s3.yaml",
-      "board_sku": null,
-      "basis": "composer",
-      "reason": "Composes the S3-lineage radar drivers; holds no board content of its own."
-    },
-    {
       "package": "packages/expansions/presence_ld2412.yaml",
       "board_sku": null,
       "basis": "connector-attached-sensor-driver",
       "reason": "LD2412 radar driver for a connector-attached option; host-board-only reading."
-    },
-    {
-      "package": "packages/expansions/presence_ld2450.yaml",
-      "board_sku": null,
-      "basis": "connector-attached-sensor-driver",
-      "reason": "LD2450 radar driver for a connector-attached option; host-board-only reading."
-    },
-    {
-      "package": "packages/expansions/presence_module_ceiling.yaml",
-      "board_sku": null,
-      "basis": "legacy-pre-r4-driver",
-      "reason": "Pre-merge standalone Presence expansion module mapping. Presence merged into S360-200 RoomIQ at R4, so this file binds to no R4 board SKU."
     },
     {
       "package": "packages/expansions/sense360_fan_pwm.yaml",
@@ -218,34 +182,16 @@
       "reason": "Authoritative 240V mains PSU firmware. No packages/boards entry exists for S360-400; the board is schematic_status cataloged_unverified and the PWR power token is compliance-blocked."
     },
     {
-      "package": "packages/hardware/power_management.yaml",
-      "board_sku": null,
-      "basis": "not-board-bearing",
-      "reason": "Per-rail power budget accounting shared across boards; implements no board."
-    },
-    {
       "package": "packages/hardware/power_usb.yaml",
       "board_sku": null,
       "basis": "not-board-bearing",
       "reason": "USB-C input configuration on the Core itself. There is no USB PSU board SKU: USB power is a Core input, not a separate module."
     },
     {
-      "package": "packages/hardware/presence_dfrobot_c4001.yaml",
-      "board_sku": null,
-      "basis": "connector-attached-sensor-driver",
-      "reason": "SEN0609/C4001 radar driver for a connector-attached option. The host board SKU is contributed by whichever board package binds it, so this file claims no board inclusion (OD-SOT-004 open)."
-    },
-    {
       "package": "packages/hardware/presence_ld2412.yaml",
       "board_sku": null,
       "basis": "connector-attached-sensor-driver",
       "reason": "LD2412 radar driver for a connector-attached option; same host-board-only reading."
-    },
-    {
-      "package": "packages/hardware/presence_ld2450.yaml",
-      "board_sku": null,
-      "basis": "connector-attached-sensor-driver",
-      "reason": "LD2450 radar driver for a connector-attached option; same host-board-only reading."
     },
     {
       "package": "packages/hardware/sense360_core.yaml",

@@ -41,6 +41,22 @@ Total paths: 169.
   alias-pinning test modules were replaced by the inverted ledger guard
   `tests/test_zero_alias.py`; CLAUDE.md's alias-retention rule was corrected
   (the tree is the source of truth it must follow).
+- **2026-07-28, slice 3 — orphan sweep under the evidence test.** 16 more
+  paths deleted: six pre-R4 expansion drivers/composers (`comfort`,
+  `comfort_ceiling_s3`, `presence_ceiling_s3`, `presence_module_ceiling`,
+  the superseded `presence_ld2450` radar primitive, `fan_12v_pwm`), three
+  hardware orphans (`presence_dfrobot_c4001`, `presence_ld2450`,
+  `power_management`), and seven orphan feature profiles (the advanced
+  presence/comfort/fan set, `ceiling_led_ring_air_quality`, and the LD2412
+  advanced cascade). Each had no live consumer and no publication as a
+  customer entrypoint. Kept against the same test, with reasons:
+  `gpio_expander_sx1509` (recorded SX1509-RECONCILE-001 retention),
+  `power_240v` (sole S360-400 implementation, documented),
+  the LD2412 set (`expansions/presence_ld2412`, `hardware/presence_ld2412`,
+  `features/presence_basic_profile_ld2412` — documented in
+  docs/product-matrix.md / docs/configuration.md), and the
+  `sense360_core_*` family plus `power_usb` (deferred to the Core flip
+  slice). Compositions again byte-identical; suite green.
 - **Correction recorded:** `packages/expansions/fan_pwm.yaml` was initially
   misclassified `delete-and-repoint`. It composes the sx1509 binding layer
   AND declares the four fan speed controllers, so it is authoritative, not

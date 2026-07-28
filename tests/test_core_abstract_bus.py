@@ -709,7 +709,11 @@ SHARED_I2C_CONSUMER_DEFAULTS = [
     # generic base driver (no VentIQ `airiq.yaml` equivalent) to keep
     # authoritative here.
     (REPO_ROOT / "packages" / "boards" / "s360-211-ventiq.yaml", "bathroom_i2c_id"),
-    (REPO_ROOT / "packages" / "expansions" / "comfort.yaml", "comfort_i2c_id"),
+    # packages/expansions/comfort.yaml (pre-R4 generic comfort driver: SHT40 /
+    # BH1750 / optional BME680 — not the S360-200-R4 sensor set) was deleted
+    # as an unconsumed legacy orphan under SENSE360-CANONICALISATION-001
+    # PR 07; tests/test_zero_alias.py pins the deletion. The R4 climate
+    # default lives in the RoomIQ board half below.
     # PACKAGE-RENAME-004 (docs/arch-board-bundle-plan.md §5.5): the authoritative
     # ceiling RoomIQ climate (comfort) definition (incl. its
     # `comfort_*_i2c_id: core_i2c` default) moved from

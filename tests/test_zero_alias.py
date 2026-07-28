@@ -62,6 +62,25 @@ DELETED_PATHS = {
     "packages/features/airiq_auto_ventilation_profile.yaml": "alias of the auto-ventilation profile",
     "packages/features/airiq_extended_profile.yaml": "alias of the extended profile",
     "packages/features/airiq_mqtt_profile.yaml": "alias of the mqtt profile",
+    # Orphan pre-R4 drivers and profiles (owner evidence test of 2026-07-28:
+    # no live consumer, not documented as a customer entrypoint anywhere
+    # published; the R4 content lives in the board packages).
+    "packages/expansions/comfort.yaml": "pre-R4 generic comfort driver, superseded by the RoomIQ board half",
+    "packages/expansions/comfort_ceiling_s3.yaml": "pre-R4 S3 comfort driver, no consumer",
+    "packages/expansions/presence_ceiling_s3.yaml": "pre-R4 S3 presence composer, no consumer",
+    "packages/expansions/presence_module_ceiling.yaml": "pre-merge standalone presence module, no consumer",
+    "packages/expansions/presence_ld2450.yaml": "superseded radar primitive; the radar board half owns it",
+    "packages/expansions/fan_12v_pwm.yaml": "superseded 12V PWM driver; native and SX1509 paths remain",
+    "packages/hardware/presence_dfrobot_c4001.yaml": "superseded radar primitive; the SEN0609 board half owns it",
+    "packages/hardware/presence_ld2450.yaml": "superseded radar primitive duplicate",
+    "packages/hardware/power_management.yaml": "orphan power-budget accounting, no consumer",
+    "packages/features/ceiling_led_ring_air_quality.yaml": "orphan LED/AQ profile, superseded by the LED framework",
+    "packages/features/comfort_advanced_profile.yaml": "orphan advanced comfort profile, no consumer",
+    "packages/features/fan_control_advanced_profile.yaml": "orphan advanced fan profile, no consumer",
+    "packages/features/presence_advanced.yaml": "orphan advanced presence entities, no consumer",
+    "packages/features/presence_advanced_profile.yaml": "orphan advanced presence profile, no consumer",
+    "packages/features/presence_advanced_profile_ld2412.yaml": "orphan LD2412 advanced profile, no consumer",
+    "packages/features/presence_advanced_ld2412.yaml": "orphan LD2412 advanced entities (cascade of the profile above)",
     # PR 07 packages/remote resolution (owner evidence test).
     "packages/remote/blower-framework.yaml": "unpublished remainder of packages/remote/",
 }
@@ -101,7 +120,7 @@ class ZeroAliasLedgerTests(unittest.TestCase):
 
     def test_the_ledger_is_not_silently_shrunk(self):
         """Removing an entry here needs the same deliberateness as a revert."""
-        self.assertGreaterEqual(len(DELETED_PATHS), 23)
+        self.assertGreaterEqual(len(DELETED_PATHS), 39)
 
 
 if __name__ == "__main__":
