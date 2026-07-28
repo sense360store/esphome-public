@@ -37,7 +37,7 @@ It is **documentation only**. It does **not**:
 
 The Core schematic records `IO3 → Relay (J4 Relay module gate)`;
 the historical Core abstract package
-[`packages/hardware/sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml)
+``packages/hardware/sense360_core_ceiling.yaml``
 bound `relay_pin: GPIO4` against the same connector, which on
 the canonical `S360-100-R4` schematic is `SEN0609_RX` (RoomIQ
 radar UART). The generic Core abstract package

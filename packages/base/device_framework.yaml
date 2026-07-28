@@ -44,8 +44,8 @@
 #
 # Uptime, WiFi signal, IP address, SSID, MAC address, ESPHome version,
 # internal temperature and the restart / safe-mode buttons are provided by
-# the Core board package (packages/hardware/sense360_core_ceiling.yaml via
-# packages/boards/s360-100-core-*.yaml) and are intentionally NOT duplicated
+# the Core board package (packages/boards/s360-100-core-ceiling.yaml,
+# which holds the S360-100 ceiling Core content) and are intentionally NOT duplicated
 # here.
 # ============================================================================
 

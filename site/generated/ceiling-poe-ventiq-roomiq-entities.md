@@ -30,7 +30,6 @@
        packages/features/presence_framework.yaml
        packages/features/roomiq_framework.yaml
        packages/features/ventiq_framework.yaml
-       packages/hardware/sense360_core_ceiling.yaml
        products/bundles/ceiling-poe-ventiq-roomiq.yaml
        products/sense360-ceiling-poe-ventiq-roomiq.yaml
        products/webflash/ceiling-poe-ventiq-roomiq.yaml

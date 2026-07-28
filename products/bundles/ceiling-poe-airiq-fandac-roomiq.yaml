@@ -128,7 +128,10 @@ substitutions:
   # === Device Configuration ===
   device_name: s360-ceil-poe-airiq-rm-dac
   friendly_name: Sense360 Ceiling Kitchen 0-10V
-  device_sku: S360-CORE-C-POE
+  # Canonical board SKU of the flashable hub (SENSE360-CANONICALISATION-001
+  # PR 07): the legacy pre-catalog S360-CORE-C* scheme is retired; power /
+  # mount facts stay published via the config string.
+  device_sku: S360-100
   device_version: "1.0.0"
   timezone: "America/New_York"
 
@@ -187,7 +190,7 @@ packages:
   base_time: !include ../../packages/base/time.yaml
 
   # === Sense360 Core (Ceiling, S360-100-R4) ===
-  # Board package wraps packages/hardware/sense360_core_ceiling.yaml; defines
+  # Board package holds the S360-100 ceiling Core content (PR 07 flip); defines
   # the shared `core_i2c` bus AirIQ + RoomIQ + the GP8403 DACs bind.
   core_board: !include ../../packages/boards/s360-100-core-ceiling.yaml
 
@@ -237,7 +240,7 @@ packages:
   # not collide with the AirIQ SGP41 @ 0x59. PACKAGE-DAC-001 implemented the
   # package; this room-bundle product adds NO WebFlash exposure / release
   # artifact / build-matrix row.
-  fan_dac_module: !include ../../packages/expansions/fan_dac.yaml
+  fan_dac_module: !include ../../packages/expansions/fan_gp8403.yaml
 
   # === Sense360 TRIAC (S360-320, AC phase-cut fan driver) ===
   # NOT included. The FanTRIAC slot remains blocked per HW-005.

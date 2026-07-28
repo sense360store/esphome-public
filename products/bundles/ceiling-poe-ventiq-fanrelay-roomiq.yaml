@@ -159,7 +159,10 @@ substitutions:
   # outcome-first ("Relay fan control") rather than loose board naming.
   device_name: s360-ceil-poe-ventiq-rm-fr
   friendly_name: Sense360 Ceiling Bathroom Relay
-  device_sku: S360-CORE-C-POE
+  # Canonical board SKU of the flashable hub (SENSE360-CANONICALISATION-001
+  # PR 07): the legacy pre-catalog S360-CORE-C* scheme is retired; power /
+  # mount facts stay published via the config string.
+  device_sku: S360-100
   device_version: "1.0.0"
   timezone: "America/New_York"
 
@@ -206,8 +209,8 @@ substitutions:
   s360_module_presence: "Included"
 
   # === FanRelay binding ===
-  # The relay GPIO output is owned by the parent Core abstract package
-  # `packages/hardware/sense360_core_ceiling.yaml`, which declares the
+  # The relay GPIO output is owned by the parent Core board package
+  # `packages/boards/s360-100-core-ceiling.yaml`, which declares the
   # `main_relay` `switch.gpio` on `pin: ${relay_pin}` and binds
   # `relay_pin: GPIO3` (schematic-correct Relay net per S360-100-R4 IO3
   # after `CORE-ABSTRACT-BUS-001A` / PR #558). The FanRelay package
@@ -237,10 +240,10 @@ packages:
   base_time: !include ../../packages/base/time.yaml
 
   # === Sense360 Core (Ceiling, S360-100-R4) ===
-  core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
+  core_hardware: !include ../../packages/boards/s360-100-core-ceiling.yaml
 
   # === Sense360 PoE PSU (S360-410) ===
-  power_config: !include ../../packages/hardware/power_poe.yaml
+  power_config: !include ../../packages/boards/s360-410-poe-psu.yaml
 
   # === Sense360 LED (S360-300) ===
   # Intentionally NOT included for this sibling. The LED-bearing sibling
@@ -253,7 +256,7 @@ packages:
   # Package-level expected; schematic verification pending — no committed
   # S360-211 schematic in this repo. See docs/release-one-hardware-audit.md.
   # AirIQ and VentIQ are mutually exclusive; this sibling uses VentIQ.
-  ventiq_module: !include ../../packages/expansions/airiq_bathroom_base.yaml
+  ventiq_module: !include ../../packages/boards/s360-211-ventiq.yaml
   # === Sense360 VentIQ framework (VENTIQ-FRAMEWORK-001) ===
   # Canonical bathroom ventilation service: VOC / NOx (the board's only
   # schematic-proven sensor), one Air Quality headline from the embedded
@@ -275,7 +278,7 @@ packages:
   # The package filenames (`comfort_ceiling.yaml`, `presence_ceiling.yaml`)
   # retain the legacy split-board naming and are kept for backwards
   # compatibility (see docs/webflash-contract.md §6 footnote).
-  roomiq_comfort: !include ../../packages/expansions/comfort_ceiling.yaml
+  roomiq_comfort: !include ../../packages/boards/s360-200-roomiq-climate.yaml
   # === Sense360 RoomIQ framework (ROOMIQ-FRAMEWORK-001) ===
   # Canonical comfort and environmental service: calibrated Temperature /
   # Humidity / Illuminance, Comfort, Environment State, Brightness and the
@@ -284,7 +287,7 @@ packages:
   # the profile and every pre-framework entity id remains available as a
   # disabled-by-default compatibility entity inside the framework).
   roomiq_framework: !include ../../packages/features/roomiq_framework.yaml
-  roomiq_presence: !include ../../packages/expansions/presence_ceiling.yaml
+  roomiq_presence: !include ../../packages/boards/s360-200-roomiq-radar.yaml
   # === Sense360 Presence framework (PRESENCE-FRAMEWORK-001) ===
   # Tri-sensor customer Presence experience: PIR (immediate movement) +
   # LD2450 (radar half above) + SEN0609 (static presence), fused by

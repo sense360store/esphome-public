@@ -1,5 +1,17 @@
 # ESPHome Packages Structure
 
+> **Zero-alias note (SENSE360-CANONICALISATION-001 PR 07, 2026-07-28).**
+> The legacy alias layer this document describes was removed: the thin
+> `!include` alias files under `hardware/` and `expansions/` are gone,
+> every live consumer composes the authoritative board package
+> directly, and `tests/test_zero_alias.py` pins the deleted paths.
+> The same PR landed the Core source-of-truth flip: the S360-100 ceiling
+> Core content now lives in `boards/s360-100-core-ceiling.yaml` and the
+> legacy `hardware/sense360_core_ceiling.yaml` path (plus the never-wired
+> `boards/s360-100-core.yaml` prototype) is deleted.
+> Alias references below are historical description, not live paths;
+> the table rewrite lands with the PR 16 documentation regeneration.
+
 This directory contains modular ESPHome configuration packages organized by category.
 
 > **Production Release-One ships `Ceiling-POE-VentIQ-RoomIQ`** — built from
@@ -38,7 +50,7 @@ owns the board's chip / pin map / connector nets / I²C addresses:
 
 | Board SKU | Authoritative board package | Authoritative by |
 |-----------|-----------------------------|------------------|
-| `S360-100` Core | `boards/s360-100-core.yaml` (+ mount/power/voice overlays) | 1:1 fold |
+| `S360-100` Core | `boards/s360-100-core-ceiling.yaml` (ceiling mount; the legacy voice / PoE / generic variants remain under `hardware/` as implementations of catalogued legacy products) | content flip (PR 07) |
 | `S360-200` RoomIQ | `boards/s360-200-roomiq.yaml` (`…-climate` + `…-radar` halves, ceiling & wall) | **composition** (two independently-bound drivers) |
 | `S360-210` AirIQ | `boards/s360-210-airiq.yaml` (+ `-wall`, `-ceiling-s3`) | 1:1 fold |
 | `S360-211` VentIQ | `boards/s360-211-ventiq.yaml` (+ `-pro`) | 1:1 fold |
@@ -46,13 +58,13 @@ owns the board's chip / pin map / connector nets / I²C addresses:
 | `S360-410` PoE PSU | `boards/s360-410-poe-psu.yaml` | 1:1 fold |
 
 The legacy `packages/hardware/*` and `packages/expansions/*` functional names
-for these families are now **thin `!include` aliases** of their board package
-(path preserved, never deleted — see the alias-retention policy in
-[`docs/arch-board-bundle-plan.md` (archived)](../docs/archive-index.md) §3.3).
-The generic base drivers `expansions/airiq.yaml`,
-`expansions/presence_ld2450.yaml`, `expansions/presence_ld2412.yaml`, and
-`features/ceiling_halo_leds.yaml` stay **authoritative and un-folded** —
-cross-referenced from the board layer, not aliased. The mains driver boards
+for these families were **thin `!include` aliases** of their board package
+until SENSE360-CANONICALISATION-001 PR 07 deleted them (zero-alias;
+`tests/test_zero_alias.py` is the ledger, release tags keep every historical
+path for tag-pinned users). The surviving generic base drivers
+`expansions/presence_ld2412.yaml` and `features/ceiling_halo_leds.yaml` stay
+**authoritative and un-folded** — cross-referenced from the board layer,
+not aliased. The mains driver boards
 (`S360-310/320/400`) and the SELV fan-driver SKUs (`S360-311/312`) remain
 expansion packages behind their evidence/compliance gates and are not in the
 board layer yet. Full layout and rationale:

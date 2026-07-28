@@ -66,23 +66,23 @@ packages:
   base_time: !include ../packages/base/time.yaml
 
   # === Core Hardware (Ceiling Board) ===
-  core_hardware: !include ../packages/hardware/sense360_core_ceiling.yaml
+  core_hardware: !include ../packages/boards/s360-100-core-ceiling.yaml
 
   # === LED Ring ===
-  led_ring: !include ../packages/hardware/led_ring_ceiling.yaml
+  led_ring: !include ../packages/boards/s360-300-led.yaml
   led_effects: !include ../packages/features/ceiling_halo_leds.yaml
 
   # === Expansion Modules ===
   # AirIQ Module (air quality sensors)
-  airiq_module: !include ../packages/expansions/airiq_ceiling.yaml
+  airiq_module: !include ../packages/boards/s360-210-airiq.yaml
   airiq_profile: !include ../packages/features/airiq_basic_profile.yaml
 
   # Comfort Module (temperature, humidity, light)
-  comfort_module: !include ../packages/expansions/comfort_ceiling.yaml
+  comfort_module: !include ../packages/boards/s360-200-roomiq-climate.yaml
   comfort_profile: !include ../packages/features/comfort_basic_profile.yaml
 
   # Presence Module (mmWave radar)
-  presence_module: !include ../packages/expansions/presence_ceiling.yaml
+  presence_module: !include ../packages/boards/s360-200-roomiq-radar.yaml
   presence_profile: !include ../packages/features/presence_basic_profile.yaml
 
   # === Device Health & Diagnostics ===

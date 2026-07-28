@@ -202,19 +202,21 @@ class RelayProductPackageCompositionTests(unittest.TestCase):
         )
 
     def test_includes_core_ceiling_package(self) -> None:
+        # SENSE360-CANONICALISATION-001 PR 07 Core flip: the ceiling Core
+        # content lives in the SKU-aligned board package.
         text = RELAY_BUNDLE.read_text()
         self.assertIn(
-            "packages/hardware/sense360_core_ceiling.yaml",
+            "packages/boards/s360-100-core-ceiling.yaml",
             text,
             "FanRelay product YAML must !include the Core ceiling "
-            "abstract package so `${relay_pin}` resolves to the "
+            "board package so `${relay_pin}` resolves to the "
             "schematic-correct GPIO3 bound by CORE-ABSTRACT-BUS-001A.",
         )
 
     def test_includes_poe_power_package(self) -> None:
         text = RELAY_BUNDLE.read_text()
         self.assertIn(
-            "packages/hardware/power_poe.yaml",
+            "packages/boards/s360-410-poe-psu.yaml",
             text,
             "FanRelay product YAML must !include the PoE power package "
             "to match the Release-One PoE base stack.",
@@ -223,7 +225,7 @@ class RelayProductPackageCompositionTests(unittest.TestCase):
     def test_includes_ventiq_module(self) -> None:
         text = RELAY_BUNDLE.read_text()
         self.assertIn(
-            "packages/expansions/airiq_bathroom_base.yaml",
+            "packages/boards/s360-211-ventiq.yaml",
             text,
             "FanRelay product YAML must !include the VentIQ "
             "(airiq_bathroom_base) module to match the Release-One base "
@@ -233,8 +235,8 @@ class RelayProductPackageCompositionTests(unittest.TestCase):
     def test_includes_roomiq_packages(self) -> None:
         text = RELAY_BUNDLE.read_text()
         for required in (
-            "packages/expansions/comfort_ceiling.yaml",
-            "packages/expansions/presence_ceiling.yaml",
+            "packages/boards/s360-200-roomiq-climate.yaml",
+            "packages/boards/s360-200-roomiq-radar.yaml",
         ):
             self.assertIn(
                 required,

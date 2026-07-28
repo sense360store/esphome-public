@@ -127,10 +127,10 @@
         "S360-210"
       ],
       "board_packages": [
-        "packages/boards/s360-210-airiq.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/boards/s360-100-core-ceiling.yaml",
+        "packages/boards/s360-210-airiq.yaml"
       ],
-      "resolved_yaml_count": 14,
+      "resolved_yaml_count": 13,
       "unresolved_includes": []
     },
     {
@@ -159,10 +159,10 @@
         "S360-410"
       ],
       "board_packages": [
-        "packages/boards/s360-410-poe-psu.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/boards/s360-100-core-ceiling.yaml",
+        "packages/boards/s360-410-poe-psu.yaml"
       ],
-      "resolved_yaml_count": 11,
+      "resolved_yaml_count": 10,
       "unresolved_includes": []
     },
     {
@@ -193,11 +193,11 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-210-airiq.yaml",
-        "packages/boards/s360-410-poe-psu.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/boards/s360-410-poe-psu.yaml"
       ],
-      "resolved_yaml_count": 14,
+      "resolved_yaml_count": 12,
       "unresolved_includes": []
     },
     {
@@ -235,6 +235,7 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-pir.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml",
@@ -242,10 +243,9 @@
         "packages/boards/s360-200-roomiq-uart.yaml",
         "packages/boards/s360-210-airiq.yaml",
         "packages/boards/s360-410-poe-psu.yaml",
-        "packages/expansions/fan_gp8403.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/expansions/fan_gp8403.yaml"
       ],
-      "resolved_yaml_count": 25,
+      "resolved_yaml_count": 23,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -290,6 +290,7 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-pir.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml",
@@ -297,10 +298,9 @@
         "packages/boards/s360-200-roomiq-uart.yaml",
         "packages/boards/s360-210-airiq.yaml",
         "packages/boards/s360-410-poe-psu.yaml",
-        "packages/expansions/fan_pwm_native.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/expansions/fan_pwm_native.yaml"
       ],
-      "resolved_yaml_count": 24,
+      "resolved_yaml_count": 23,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -345,6 +345,7 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-pir.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml",
@@ -352,10 +353,9 @@
         "packages/boards/s360-200-roomiq-uart.yaml",
         "packages/boards/s360-210-airiq.yaml",
         "packages/boards/s360-410-poe-psu.yaml",
-        "packages/expansions/fan_relay.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/expansions/fan_relay.yaml"
       ],
-      "resolved_yaml_count": 24,
+      "resolved_yaml_count": 23,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -400,16 +400,16 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-pir.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml",
         "packages/boards/s360-200-roomiq-sen0609.yaml",
         "packages/boards/s360-200-roomiq-uart.yaml",
         "packages/boards/s360-210-airiq.yaml",
-        "packages/boards/s360-410-poe-psu.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/boards/s360-410-poe-psu.yaml"
       ],
-      "resolved_yaml_count": 23,
+      "resolved_yaml_count": 22,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -449,11 +449,11 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-410-poe-psu.yaml",
-        "packages/expansions/fan_gp8403.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/expansions/fan_gp8403.yaml"
       ],
-      "resolved_yaml_count": 15,
+      "resolved_yaml_count": 13,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -492,11 +492,11 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-410-poe-psu.yaml",
-        "packages/expansions/fan_pwm_native.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/expansions/fan_pwm_native.yaml"
       ],
-      "resolved_yaml_count": 13,
+      "resolved_yaml_count": 12,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -537,14 +537,14 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-pir.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml",
         "packages/boards/s360-200-roomiq-sen0609.yaml",
-        "packages/boards/s360-410-poe-psu.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/boards/s360-410-poe-psu.yaml"
       ],
-      "resolved_yaml_count": 21,
+      "resolved_yaml_count": 18,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -587,16 +587,16 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-pir.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml",
         "packages/boards/s360-200-roomiq-sen0609.yaml",
         "packages/boards/s360-200-roomiq-uart.yaml",
         "packages/boards/s360-300-led.yaml",
-        "packages/boards/s360-410-poe-psu.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/boards/s360-410-poe-psu.yaml"
       ],
-      "resolved_yaml_count": 24,
+      "resolved_yaml_count": 23,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -633,11 +633,11 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-211-ventiq.yaml",
-        "packages/boards/s360-410-poe-psu.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/boards/s360-410-poe-psu.yaml"
       ],
-      "resolved_yaml_count": 15,
+      "resolved_yaml_count": 13,
       "unresolved_includes": []
     },
     {
@@ -675,16 +675,16 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-pir.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml",
         "packages/boards/s360-200-roomiq-sen0609.yaml",
         "packages/boards/s360-211-ventiq.yaml",
         "packages/boards/s360-410-poe-psu.yaml",
-        "packages/expansions/fan_gp8403.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/expansions/fan_gp8403.yaml"
       ],
-      "resolved_yaml_count": 27,
+      "resolved_yaml_count": 22,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -729,16 +729,16 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-pir.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml",
         "packages/boards/s360-200-roomiq-sen0609.yaml",
         "packages/boards/s360-211-ventiq.yaml",
         "packages/boards/s360-410-poe-psu.yaml",
-        "packages/expansions/fan_pwm_native.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/expansions/fan_pwm_native.yaml"
       ],
-      "resolved_yaml_count": 26,
+      "resolved_yaml_count": 22,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -783,16 +783,16 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-pir.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml",
         "packages/boards/s360-200-roomiq-sen0609.yaml",
         "packages/boards/s360-211-ventiq.yaml",
         "packages/boards/s360-410-poe-psu.yaml",
-        "packages/expansions/fan_relay.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/expansions/fan_relay.yaml"
       ],
-      "resolved_yaml_count": 26,
+      "resolved_yaml_count": 22,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -837,16 +837,16 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-pir.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml",
         "packages/boards/s360-200-roomiq-sen0609.yaml",
         "packages/boards/s360-211-ventiq.yaml",
         "packages/boards/s360-410-poe-psu.yaml",
-        "packages/expansions/fan_triac.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/expansions/fan_triac.yaml"
       ],
-      "resolved_yaml_count": 26,
+      "resolved_yaml_count": 22,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -891,16 +891,16 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-pir.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml",
         "packages/boards/s360-200-roomiq-sen0609.yaml",
         "packages/boards/s360-200-roomiq-uart.yaml",
         "packages/boards/s360-211-ventiq.yaml",
-        "packages/boards/s360-410-poe-psu.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/boards/s360-410-poe-psu.yaml"
       ],
-      "resolved_yaml_count": 24,
+      "resolved_yaml_count": 23,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -944,6 +944,7 @@
         "S360-410"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-pir.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml",
@@ -951,10 +952,9 @@
         "packages/boards/s360-200-roomiq-uart.yaml",
         "packages/boards/s360-211-ventiq.yaml",
         "packages/boards/s360-300-led.yaml",
-        "packages/boards/s360-410-poe-psu.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/boards/s360-410-poe-psu.yaml"
       ],
-      "resolved_yaml_count": 27,
+      "resolved_yaml_count": 26,
       "unresolved_includes": [],
       "declared_hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -992,14 +992,14 @@
         "S360-200"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-pir.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml",
         "packages/boards/s360-200-roomiq-sen0609.yaml",
-        "packages/boards/s360-200-roomiq-uart.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/boards/s360-200-roomiq-uart.yaml"
       ],
-      "resolved_yaml_count": 21,
+      "resolved_yaml_count": 20,
       "unresolved_includes": []
     },
     {
@@ -1032,15 +1032,15 @@
         "S360-211"
       ],
       "board_packages": [
+        "packages/boards/s360-100-core-ceiling.yaml",
         "packages/boards/s360-200-roomiq-climate.yaml",
         "packages/boards/s360-200-roomiq-pir.yaml",
         "packages/boards/s360-200-roomiq-radar.yaml",
         "packages/boards/s360-200-roomiq-sen0609.yaml",
         "packages/boards/s360-200-roomiq-uart.yaml",
-        "packages/boards/s360-211-ventiq.yaml",
-        "packages/hardware/sense360_core_ceiling.yaml"
+        "packages/boards/s360-211-ventiq.yaml"
       ],
-      "resolved_yaml_count": 24,
+      "resolved_yaml_count": 23,
       "unresolved_includes": []
     }
   ],

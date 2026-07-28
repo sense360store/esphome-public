@@ -400,8 +400,7 @@ class CustomerEntityContractTests(unittest.TestCase):
             if category == "diagnostic":
                 self.assertTrue(
                     entity.get("disabled_by_default"),
-                    f"{entity_id}: diagnostic entities ship disabled by "
-                    "default",
+                    f"{entity_id}: diagnostic entities ship disabled by " "default",
                 )
 
     def test_raw_sensor_diagnostics_exist(self) -> None:
@@ -564,7 +563,8 @@ class BoardPackageTests(unittest.TestCase):
                 if isinstance(f, dict):
                     for cal in ("multiply", "offset", "calibrate_linear", "lambda"):
                         self.assertNotIn(
-                            cal, f,
+                            cal,
+                            f,
                             f"engine-consumed raw {key} must carry no {cal} "
                             f"calibration (double-apply risk)",
                         )
@@ -575,14 +575,18 @@ class BoardPackageTests(unittest.TestCase):
         # conversion (multiply: 0.01) — a presentation conversion, not a
         # calibration offset — which is permitted precisely because nothing
         # downstream re-scales it.
-        press = (self.entities.get("comfort_ceiling_bmp581") or {}).get("pressure") or {}
+        press = (self.entities.get("comfort_ceiling_bmp581") or {}).get(
+            "pressure"
+        ) or {}
         press_filters = press.get("filters") or []
         multipliers = [
-            f["multiply"] for f in press_filters
+            f["multiply"]
+            for f in press_filters
             if isinstance(f, dict) and "multiply" in f
         ]
         self.assertEqual(
-            multipliers, [0.01],
+            multipliers,
+            [0.01],
             "BMP581 pressure should carry exactly the Pa->hPa unit conversion",
         )
         # No offset / linear calibration is applied even on the pressure entity.
@@ -630,8 +634,8 @@ class EngineHeaderTests(unittest.TestCase):
         self.assertIn("class RoomIQEngine", self.raw)
 
     def test_state_strings_are_single_sourced(self) -> None:
-        for value in set(COMFORT_STRINGS) | set(BRIGHTNESS_STRINGS) | set(
-            HEALTH_STRINGS
+        for value in (
+            set(COMFORT_STRINGS) | set(BRIGHTNESS_STRINGS) | set(HEALTH_STRINGS)
         ):
             self.assertIn(f'"{value}"', self.raw, value)
 
@@ -747,18 +751,10 @@ class BundleWiringTests(unittest.TestCase):
             )
             self.assertIn("presence_framework.yaml", raw, bundle.name)
 
-    def test_legacy_include_paths_still_resolve(self) -> None:
-        # Customers pin these paths at release tags; they must keep
-        # existing and resolving.
-        for rel in (
-            "packages/features/comfort_basic_profile.yaml",
-            "packages/features/roomiq_profile.yaml",
-            "packages/expansions/comfort_ceiling.yaml",
-        ):
-            self.assertTrue((REPO_ROOT / rel).is_file(), rel)
-
-
-# --- Core framework contract ------------------------------------------------------
+    # The "legacy paths still resolve" guard was removed under
+    # SENSE360-CANONICALISATION-001 PR 07 (zero-alias): the alias paths it
+    # pinned were deleted after re-pointing every live consumer, and
+    # tests/test_zero_alias.py now pins the INVERSE - they must stay deleted.
 
 
 class CoreFrameworkContractTests(unittest.TestCase):
@@ -792,9 +788,7 @@ class CoreFrameworkContractTests(unittest.TestCase):
     def test_presence_runtime_status_unchanged(self) -> None:
         runtime = self.contract.get("module_runtime_status") or {}
         self.assertIn("presence", runtime)
-        self.assertEqual(
-            runtime["presence"].get("work_item"), "PRESENCE-FRAMEWORK-001"
-        )
+        self.assertEqual(runtime["presence"].get("work_item"), "PRESENCE-FRAMEWORK-001")
 
 
 # --- Compile lane / CI wiring ------------------------------------------------------
@@ -858,9 +852,7 @@ class CompileLaneTests(unittest.TestCase):
         self.assertNotIn("upload-artifact", self.raw)
 
     def test_quick_validation_gate_runs_roomiq_contract(self) -> None:
-        self.assertIn(
-            "tests/test_roomiq_framework.py", VALIDATE_WORKFLOW.read_text()
-        )
+        self.assertIn("tests/test_roomiq_framework.py", VALIDATE_WORKFLOW.read_text())
 
 
 # --- Feature-entity matrix -----------------------------------------------------
@@ -873,9 +865,7 @@ class FeatureEntityMatrixTests(unittest.TestCase):
         cls.board = next(b for b in matrix["boards"] if b["sku"] == "S360-200")
 
     def test_comfort_indices_row_points_at_the_framework(self) -> None:
-        rows = [
-            r for r in self.board["rows"] if "Comfort indices" in r["row"]
-        ]
+        rows = [r for r in self.board["rows"] if "Comfort indices" in r["row"]]
         self.assertEqual(len(rows), 1)
         row = rows[0]
         self.assertEqual(row["status"], "present")

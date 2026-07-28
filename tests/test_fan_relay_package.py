@@ -81,10 +81,12 @@ FAN_RELAY_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_relay.yaml"
 
 # Four non-voice Core abstract packages rebound by CORE-ABSTRACT-BUS-001A
 # to the schematic-correct ``relay_pin: GPIO3`` (per ``S360-100-R4``
-# ``IO3 = Relay``).
+# ``IO3 = Relay``). The ceiling entry is the SKU-aligned board package
+# since the SENSE360-CANONICALISATION-001 PR 07 Core source-of-truth flip
+# (content moved verbatim from hardware/sense360_core_ceiling.yaml).
 NON_VOICE_CORE_PACKAGES = [
     REPO_ROOT / "packages" / "hardware" / "sense360_core.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml",
+    REPO_ROOT / "packages" / "boards" / "s360-100-core-ceiling.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_poe.yaml",
 ]
@@ -310,7 +312,7 @@ class FanRelaySingleRelayGpioOwnerTests(unittest.TestCase):
     """
 
     CORE_CEILING_PACKAGE = (
-        REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml"
+        REPO_ROOT / "packages" / "boards" / "s360-100-core-ceiling.yaml"
     )
 
     def test_core_ceiling_main_relay_is_sole_relay_pin_gpio_owner(self) -> None:
@@ -326,7 +328,7 @@ class FanRelaySingleRelayGpioOwnerTests(unittest.TestCase):
         self.assertEqual(
             len(gpio_relay_pin_owners),
             1,
-            "sense360_core_ceiling.yaml must declare exactly one "
+            "boards/s360-100-core-ceiling.yaml must declare exactly one "
             "`switch.gpio` on `pin: ${relay_pin}` (the `main_relay` relay "
             f"owner); found {len(gpio_relay_pin_owners)}.",
         )
@@ -334,7 +336,7 @@ class FanRelaySingleRelayGpioOwnerTests(unittest.TestCase):
             gpio_relay_pin_owners[0].get("id"),
             "main_relay",
             "the sole `switch.gpio` on `${relay_pin}` in "
-            "sense360_core_ceiling.yaml must be `id: main_relay`.",
+            "boards/s360-100-core-ceiling.yaml must be `id: main_relay`.",
         )
 
     def test_fan_relay_package_adds_no_relay_pin_gpio_owner(self) -> None:

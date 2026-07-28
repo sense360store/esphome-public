@@ -257,11 +257,11 @@ documented in [`release-one.md` (archived)](archive-index.md)):
 
 | Slot | Package |
 |------|---------|
-| Core (mount) | [`packages/hardware/sense360_core_ceiling.yaml`](../packages/hardware/sense360_core_ceiling.yaml) |
-| Power (POE) | [`packages/hardware/power_poe.yaml`](../packages/hardware/power_poe.yaml) |
-| Air Quality (VentIQ) | [`packages/expansions/airiq_bathroom_base.yaml`](../packages/expansions/airiq_bathroom_base.yaml) |
-| Room Sense (RoomIQ comfort) | [`packages/expansions/comfort_ceiling.yaml`](../packages/expansions/comfort_ceiling.yaml) |
-| Room Sense (RoomIQ presence) | [`packages/expansions/presence_ceiling.yaml`](../packages/expansions/presence_ceiling.yaml) |
+| Core (mount) | ``packages/hardware/sense360_core_ceiling.yaml`` |
+| Power (POE) | ``packages/hardware/power_poe.yaml`` |
+| Air Quality (VentIQ) | ``packages/expansions/airiq_bathroom_base.yaml`` |
+| Room Sense (RoomIQ comfort) | ``packages/expansions/comfort_ceiling.yaml`` |
+| Room Sense (RoomIQ presence) | ``packages/expansions/presence_ceiling.yaml`` |
 
 > The FanTRIAC slot ([`packages/expansions/fan_triac.yaml`](../packages/expansions/fan_triac.yaml)
 > and [`packages/features/fan_control_profile.yaml`](../packages/features/fan_control_profile.yaml))

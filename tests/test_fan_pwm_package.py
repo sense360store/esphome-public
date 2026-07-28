@@ -61,7 +61,6 @@ from pathlib import Path
 
 import yaml
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 FAN_PWM_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_pwm.yaml"
@@ -192,9 +191,7 @@ class FanPwmFourIndependentDriveChannelsTests(unittest.TestCase):
     def _fan_entries(self) -> list[dict]:
         data = _load(FAN_PWM_PACKAGE)
         fans = data.get("fan", [])
-        self.assertIsInstance(
-            fans, list, "fan_pwm.yaml `fan:` block must be a list."
-        )
+        self.assertIsInstance(fans, list, "fan_pwm.yaml `fan:` block must be a list.")
         return [f for f in fans if isinstance(f, dict)]
 
     def test_exactly_four_fan_controllers(self) -> None:
@@ -297,8 +294,7 @@ class FanPwmNoRpmNoPulseCounterTests(unittest.TestCase):
             self.assertNotEqual(
                 str(sensor.get("unit_of_measurement", "")).upper(),
                 "RPM",
-                f"fan_pwm.yaml sensor {sensor.get('id')!r} must not report "
-                "RPM.",
+                f"fan_pwm.yaml sensor {sensor.get('id')!r} must not report " "RPM.",
             )
 
 
@@ -405,8 +401,7 @@ class FanPwmNoProductOrWebFlashSurfaceTests(unittest.TestCase):
         self.assertNotIn(
             "webflash",
             active,
-            "fan_pwm.yaml must not reference a WebFlash surface on an active "
-            "line.",
+            "fan_pwm.yaml must not reference a WebFlash surface on an active " "line.",
         )
 
     def test_no_fan_pwm_product_yaml_added(self) -> None:
@@ -508,12 +503,10 @@ class FanRelayAndFanDacUnchangedTests(unittest.TestCase):
             "SX1509 implementation must not leak into FanRelay).",
         )
 
-    def test_fan_dac_remains_thin_gp8403_include(self) -> None:
-        self.assertIn(
-            "!include fan_gp8403.yaml",
-            FAN_DAC_PACKAGE.read_text(),
-            "fan_dac.yaml must remain a thin !include of fan_gp8403.yaml.",
-        )
+    # Removed under SENSE360-CANONICALISATION-001 PR 07 (zero-alias): the
+    # fan_dac.yaml alias was deleted after re-pointing its consumers to
+    # fan_gp8403.yaml directly; tests/test_zero_alias.py pins that it stays
+    # deleted, which is the inverse of the thin-include pin that lived here.
 
     def test_fan_gp8403_uses_dac_not_sx1509(self) -> None:
         text = FAN_GP8403_PACKAGE.read_text()
@@ -521,8 +514,7 @@ class FanRelayAndFanDacUnchangedTests(unittest.TestCase):
         self.assertNotIn(
             "sx1509",
             text,
-            "fan_gp8403.yaml (FanDAC) must not route through the SX1509 "
-            "expander.",
+            "fan_gp8403.yaml (FanDAC) must not route through the SX1509 " "expander.",
         )
 
 

@@ -63,7 +63,6 @@ from typing import Any, Dict, List
 
 import yaml
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 PWM_PRODUCT_YAML = REPO_ROOT / "products" / "sense360-ceiling-poe-fanpwm.yaml"
@@ -308,16 +307,18 @@ class PwmProductPackageCompositionTests(unittest.TestCase):
             )
 
     def test_includes_core_ceiling_package(self) -> None:
+        # SENSE360-CANONICALISATION-001 PR 07 Core flip: the ceiling Core
+        # content lives in the SKU-aligned board package.
         self.assertIn(
-            "packages/hardware/sense360_core_ceiling.yaml",
+            "packages/boards/s360-100-core-ceiling.yaml",
             self.text,
-            "FanPWM product YAML must !include the Core ceiling abstract "
+            "FanPWM product YAML must !include the Core ceiling board "
             "package so the SX1509 expander binds to the shared core_i2c bus.",
         )
 
     def test_includes_poe_power_package(self) -> None:
         self.assertIn(
-            "packages/hardware/power_poe.yaml",
+            "packages/boards/s360-410-poe-psu.yaml",
             self.text,
             "FanPWM product YAML must !include the PoE power package.",
         )
@@ -410,9 +411,7 @@ class PwmProductNoRpmNoPulseCounterTests(unittest.TestCase):
         pkg = REPO_ROOT / "packages" / "expansions" / "fan_pwm_native.yaml"
         data = _load_yaml(pkg)
         sensors = [s for s in (data.get("sensor") or []) if isinstance(s, dict)]
-        pulse_counters = [
-            s for s in sensors if s.get("platform") == "pulse_counter"
-        ]
+        pulse_counters = [s for s in sensors if s.get("platform") == "pulse_counter"]
         self.assertTrue(
             pulse_counters,
             "fan_pwm_native.yaml is expected to declare native pulse_counter "
@@ -801,9 +800,7 @@ class PwmProductCompileOnlyTargetUnchangedTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.doc = _load_json(COMPILE_ONLY_TARGETS)
-        cls.by_id = {
-            t.get("id"): t for t in cls.doc.get("targets", []) if t.get("id")
-        }
+        cls.by_id = {t.get("id"): t for t in cls.doc.get("targets", []) if t.get("id")}
         cls.target = cls.by_id.get(FANPWM_COMPILE_ONLY_TARGET_ID)
 
     def test_compile_only_target_exists(self) -> None:
@@ -1011,8 +1008,7 @@ class ReleaseOneRelayDacAndLedPostureTests(unittest.TestCase):
         self.assertTrue(entry["webflash_build_matrix"])
         self.assertEqual(
             entry["artifact_name"],
-            f"Sense360-{RELAY_CONFIG_STRING}-v{entry['version']}"
-            "-experimental.bin",
+            f"Sense360-{RELAY_CONFIG_STRING}-v{entry['version']}" "-experimental.bin",
         )
         self.assertEqual(entry["product_yaml"], RELAY_PRODUCT_REL)
         self.assertEqual(entry["hardware_status"], OWNER_DECLARED_HW_STATUS)
@@ -1122,9 +1118,7 @@ class FanPwmManualFirmwareCandidateTests(unittest.TestCase):
             "not compliance",
             "not rpm support",
         ):
-            self.assertIn(
-                marker, notes, f"FanPWM notes must disclaim {marker!r}"
-            )
+            self.assertIn(marker, notes, f"FanPWM notes must disclaim {marker!r}")
 
     def test_catalog_status_is_preview_per_hw_release_001(self) -> None:
         # Inverted from "stays hardware-pending" by HW-RELEASE-001.

@@ -157,7 +157,10 @@ substitutions:
   # board naming.
   device_name: s360-ceil-poe-fandac
   friendly_name: Sense360 Ceiling 0-10V Fan
-  device_sku: S360-CORE-C-POE
+  # Canonical board SKU of the flashable hub (SENSE360-CANONICALISATION-001
+  # PR 07): the legacy pre-catalog S360-CORE-C* scheme is retired; power /
+  # mount facts stay published via the config string.
+  device_sku: S360-100
   device_version: "1.0.0"
   timezone: "America/New_York"
 
@@ -219,10 +222,10 @@ packages:
 
   # === Sense360 Core (Ceiling, S360-100-R4) ===
   # Provides the shared `core_i2c` bus the GP8403 DACs bind to.
-  core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
+  core_hardware: !include ../../packages/boards/s360-100-core-ceiling.yaml
 
   # === Sense360 PoE PSU (S360-410) ===
-  power_config: !include ../../packages/hardware/power_poe.yaml
+  power_config: !include ../../packages/boards/s360-410-poe-psu.yaml
 
   # === Sense360 LED (S360-300) ===
   # Intentionally NOT included. A LED-bearing variant would be a separate
@@ -238,7 +241,7 @@ packages:
   # artifact / build-matrix row. The full ESPHome compile of this
   # composition is validated by run 26364679370 (see header
   # full-compile-validated caveat).
-  fan_dac_module: !include ../../packages/expansions/fan_dac.yaml
+  fan_dac_module: !include ../../packages/expansions/fan_gp8403.yaml
 
   # === Device Health & Diagnostics ===
   health: !include ../../packages/features/device_health.yaml

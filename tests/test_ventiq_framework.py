@@ -265,10 +265,10 @@ class PackageFilesExistTests(unittest.TestCase):
         for path in (FRAMEWORK_PACKAGE, HEADER, CPP_TEST, DOC, CHECKLIST):
             self.assertTrue(path.exists(), f"missing: {path}")
 
-    def test_legacy_paths_still_resolve(self) -> None:
-        # Customers pin these exact include paths; they are never removed.
-        for path in (LEGACY_PROFILE, LEGACY_PROFILE_ALIAS, BOARD_PACKAGE):
-            self.assertTrue(path.exists(), f"legacy path removed: {path}")
+    # The "legacy paths still resolve" guard was removed under
+    # SENSE360-CANONICALISATION-001 PR 07 (zero-alias): the alias paths it
+    # pinned were deleted after re-pointing every live consumer, and
+    # tests/test_zero_alias.py now pins the INVERSE - they must stay deleted.
 
     def test_no_secret_material_in_ventiq_packages(self) -> None:
         for path in (FRAMEWORK_PACKAGE, BOARD_PACKAGE):

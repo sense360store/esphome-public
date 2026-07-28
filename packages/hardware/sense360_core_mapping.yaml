@@ -25,7 +25,7 @@
 #                  TachIO = IO16) owned by packages/expansions/fan_pwm_native.yaml
 #                  per docs/hardware/s360-100-native-fan-gpio-map.md. GPIO4/GPIO5
 #                  are the RoomIQ SEN0609 radar UART pins on the production Core
-#                  board package (packages/boards/s360-100-core.yaml §4.2); this
+#                  board package (packages/boards/s360-100-core-ceiling.yaml); this
 #                  single-channel GPIO4/5 fan placeholder MUST NOT be revived.
 #   Relay:         GPIO3 (schematic Relay net; CORE-ABSTRACT-BUS-001A)
 #   Fan Status LED: GPIO46 (GP_Fan_Status_Led per Core schematic IO46)
@@ -53,7 +53,7 @@ substitutions:
   # docs/hardware/s360-100-native-fan-gpio-map.md. It contradicts the native map
   # AND collides with the RoomIQ SEN0609 radar UART (`roomiq_sen0609_uart` below
   # binds GPIO5/GPIO4): the production Core board package
-  # packages/boards/s360-100-core.yaml binds GPIO4/GPIO5 to the radar UART and
+  # packages/boards/s360-100-core-ceiling.yaml binds GPIO4/GPIO5 to the radar UART and
   # does NOT expose native fan PWM/tach on those pins (its §4.2 reconciliation).
   # The GPIO4/5 values are retained ONLY as the legacy alias these substitutions
   # historically carried so existing reads resolve unchanged; they MUST NOT be

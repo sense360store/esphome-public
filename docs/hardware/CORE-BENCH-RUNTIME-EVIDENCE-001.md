@@ -30,7 +30,7 @@ The overall Core hardware evidence state after this record remains
 | Chip (from runtime log) | ESP32-S3 rev0.2, two cores | runtime log |
 | PSRAM (from runtime log) | available, **8192 KB** | runtime log |
 | Flash capacity | not independently visible in the supplied evidence — **not recorded** | evidence ceiling |
-| Firmware source package | [`packages/hardware/sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml) (which the board layer wraps via [`packages/boards/s360-100-core.yaml`](../../packages/boards/s360-100-core.yaml)) | owner statement |
+| Firmware source package | ``packages/hardware/sense360_core_ceiling.yaml`` (which the board layer wraps via ``packages/boards/s360-100-core.yaml``) | owner statement |
 | ESPHome version | 2026.7.0 | runtime log |
 | Compile timestamp | 2026-07-19 (capture date) | runtime log |
 | Project identity | `sense360.ceiling` version `1.0.0` | runtime log |
@@ -73,7 +73,7 @@ and API encryption key were *configured*, not their values).
     reset.
 
 These runtime pin values match the canonical package declarations in
-[`packages/hardware/sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml).
+``packages/hardware/sense360_core_ceiling.yaml``.
 
 ## Proven by this evidence
 

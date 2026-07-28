@@ -49,7 +49,10 @@ substitutions:
   # `Sense360-Ceiling-POE-VentIQ-RoomIQ`.
   device_name: s360-ceil-poe-ventiq-roomiq
   friendly_name: Sense360 Ceiling Bathroom
-  device_sku: S360-CORE-C-POE
+  # Canonical board SKU of the flashable hub (SENSE360-CANONICALISATION-001
+  # PR 07): the legacy pre-catalog S360-CORE-C* scheme is retired; power /
+  # mount facts stay published via the config string.
+  device_sku: S360-100
   device_version: "1.0.0"
   timezone: "America/New_York"
 
@@ -112,7 +115,7 @@ packages:
   base_time: !include ../../packages/base/time.yaml
 
   # === Sense360 Core (Ceiling, S360-100-R4) ===
-  # Board package wraps packages/hardware/sense360_core_ceiling.yaml.
+  # Board package holds the S360-100 ceiling Core content (PR 07 flip).
   core_board: !include ../../packages/boards/s360-100-core-ceiling.yaml
 
   # === Sense360 PoE PSU (S360-410) ===

@@ -40,14 +40,15 @@ quoting a legacy old-name field that contained the typo.
 Each catalog SKU maps to a SKU-aligned **board package** under
 [`../packages/boards/`](../packages/boards/) — the authoritative, self-contained
 firmware definition of that board (chip / pin map / connector nets). The legacy
-functional package names are retained as thin `!include` **aliases** of the
-board package (path preserved; see
-[`arch-board-bundle-plan.md` (archived)](archive-index.md) §3.3). Full layout:
+functional package names were thin `!include` **aliases** of the board package
+until SENSE360-CANONICALISATION-001 PR 07 removed them (zero-alias;
+`tests/test_zero_alias.py` is the ledger, release tags keep every historical
+path for tag-pinned users). Full layout:
 [`system-architecture.md`](system-architecture.md#inside-esphome-public-board--bundle--alias--shim-layers).
 
 | SKU | Friendly name | Authoritative board package |
 |-----|---------------|-----------------------------|
-| S360-100 | Sense360 Core | [`packages/boards/s360-100-core.yaml`](../packages/boards/s360-100-core.yaml) (+ mount/power/voice overlays; Core mount paths still wrap the legacy `hardware/sense360_core_*.yaml` source until its flip lands) |
+| S360-100 | Sense360 Core | [`packages/boards/s360-100-core-ceiling.yaml`](../packages/boards/s360-100-core-ceiling.yaml) (ceiling hub; the source-of-truth flip landed in SENSE360-CANONICALISATION-001 PR 07 — the legacy voice / PoE / generic `hardware/sense360_core*.yaml` variants remain only as implementations of catalogued legacy products) |
 | S360-200 | Sense360 RoomIQ | [`packages/boards/s360-200-roomiq.yaml`](../packages/boards/s360-200-roomiq.yaml) (authoritative per driver: `…-climate` + `…-radar`, ceiling & wall) |
 | S360-210 | Sense360 AirIQ | [`packages/boards/s360-210-airiq.yaml`](../packages/boards/s360-210-airiq.yaml) (+ `-wall`, `-ceiling-s3`) |
 | S360-211 | Sense360 VentIQ | [`packages/boards/s360-211-ventiq.yaml`](../packages/boards/s360-211-ventiq.yaml) (+ `-pro`) |

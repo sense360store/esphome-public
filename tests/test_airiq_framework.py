@@ -826,18 +826,10 @@ class BundleWiringTests(unittest.TestCase):
             raw = bundle.read_text()
             self.assertIn("packages/boards/s360-210-airiq.yaml", raw, bundle.name)
 
-    def test_legacy_include_paths_still_resolve(self) -> None:
-        # Legacy shim products (products/sense360-core-ceiling.yaml,
-        # compile-only skeletons) pin the legacy profile paths; they must
-        # keep resolving with pre-framework behaviour (MQTT + placeholder).
-        self.assertTrue(LEGACY_PROFILE.is_file())
-        raw = LEGACY_PROFILE.read_text()
-        self.assertIn("air_quality_state", raw)
-        alias = REPO_ROOT / "packages" / "features" / "airiq_mqtt_profile.yaml"
-        self.assertTrue(alias.is_file())
-
-
-# --- Core framework contract ----------------------------------------------------------
+    # The "legacy paths still resolve" guard was removed under
+    # SENSE360-CANONICALISATION-001 PR 07 (zero-alias): the alias paths it
+    # pinned were deleted after re-pointing every live consumer, and
+    # tests/test_zero_alias.py now pins the INVERSE - they must stay deleted.
 
 
 class CoreFrameworkContractTests(unittest.TestCase):
@@ -1229,14 +1221,11 @@ class HardwareReconcileProofTests(unittest.TestCase):
         self.assertNotIn("input_pm2_5", FRAMEWORK_PACKAGE.read_text())
 
     # 11: legacy aliases resolve to the corrected implementation.
-    def test_legacy_alias_resolves_to_corrected_board(self) -> None:
-        alias = REPO_ROOT / "packages" / "expansions" / "airiq_ceiling.yaml"
-        raw = alias.read_text()
-        self.assertIn("boards/s360-210-airiq.yaml", raw)
-        self.assertNotIn("platform: bmp3xx_i2c", raw)
-        self.assertNotIn("platform: sps30", raw)
+    # The "legacy paths still resolve" guard was removed under
+    # SENSE360-CANONICALISATION-001 PR 07 (zero-alias): the alias paths it
+    # pinned were deleted after re-pointing every live consumer, and
+    # tests/test_zero_alias.py now pins the INVERSE - they must stay deleted.
 
-    # 12: no duplicate ids, no duplicate I2C bus declaration.
     def test_no_duplicate_ids_or_i2c_bus(self) -> None:
         ids = self._all_ids(self.board)
         self.assertEqual(len(ids), len(set(ids)), f"duplicate id in board: {ids}")
@@ -1270,10 +1259,10 @@ class ExternalComponentStructureTests(unittest.TestCase):
         raw = BOARD_PACKAGE.read_text()
         doc = load_yaml(BOARD_PACKAGE)
         ext = doc.get("external_components") or []
-        entry = next(
-            (e for e in ext if "sfa40" in (e.get("components") or [])), None
+        entry = next((e for e in ext if "sfa40" in (e.get("components") or [])), None)
+        self.assertIsNotNone(
+            entry, "board must declare sfa40/mics_stm8 external_components"
         )
-        self.assertIsNotNone(entry, "board must declare sfa40/mics_stm8 external_components")
         self.assertEqual(sorted(entry["components"]), ["mics_stm8", "sfa40"])
         self.assertEqual(entry["source"].get("type"), "git")
         # No external-components source may be `type: local` (would break
@@ -1281,7 +1270,9 @@ class ExternalComponentStructureTests(unittest.TestCase):
         # the fix, so check the parsed sources, not the raw text.
         for e in ext:
             self.assertNotEqual(
-                (e.get("source") or {}).get("type"), "local", "no local external_components source"
+                (e.get("source") or {}).get("type"),
+                "local",
+                "no local external_components source",
             )
         self.assertIn("external_components:", raw)
 

@@ -46,7 +46,7 @@
 > unbound rather than invented: `Pul_Cou3` (`IO46`) is **disabled / TBD**
 > because `IO46` collides with the Core `fan_status_led_pin` (`GPIO46`)
 > bound by
-> [`packages/hardware/sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml),
+> ``packages/hardware/sense360_core_ceiling.yaml``,
 > and the shared `TachIO` net (`IO16`) stays **reserved / pending**
 > (its shared-passthrough role is ambiguous per the per-fan-output drive
 > topology section below). The candidate is exercised by the compile-only
@@ -123,7 +123,7 @@ This reference does **not**:
   [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml),
   [`packages/expansions/sense360_fan_pwm.yaml`](../../packages/expansions/sense360_fan_pwm.yaml),
   [`packages/expansions/gpio_expander_sx1509.yaml`](../../packages/expansions/gpio_expander_sx1509.yaml),
-  [`packages/hardware/sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml),
+  ``packages/hardware/sense360_core_ceiling.yaml``,
   and [`packages/hardware/sense360_core.yaml`](../../packages/hardware/sense360_core.yaml)
   all stay unchanged,
 - mark [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml)
@@ -352,7 +352,7 @@ gates and name the specific evidence that would close each one.
 ### 1. SX1509-expander-vs-direct-ESP32-GPIO mapping disagreement — STILL OWED
 
 The Core abstract packages bind FanPWM to direct ESP32 expansion GPIOs:
-[`packages/hardware/sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml)
+``packages/hardware/sense360_core_ceiling.yaml``
 binds `fan_pwm_pin: ${expansion_gpio1}` (= `GPIO5`) /
 `fan_tach_pin: ${expansion_gpio2}` (= `GPIO6`), and
 [`packages/hardware/sense360_core.yaml`](../../packages/hardware/sense360_core.yaml)
@@ -1715,7 +1715,7 @@ This PR does **not** edit:
   [`packages/expansions/fan_pwm.yaml`](../../packages/expansions/fan_pwm.yaml),
   [`packages/expansions/sense360_fan_pwm.yaml`](../../packages/expansions/sense360_fan_pwm.yaml),
   [`packages/expansions/gpio_expander_sx1509.yaml`](../../packages/expansions/gpio_expander_sx1509.yaml),
-  [`packages/hardware/sense360_core_ceiling.yaml`](../../packages/hardware/sense360_core_ceiling.yaml),
+  ``packages/hardware/sense360_core_ceiling.yaml``,
   and [`packages/hardware/sense360_core.yaml`](../../packages/hardware/sense360_core.yaml)
 - any script under `scripts/`
 - any test under `tests/`

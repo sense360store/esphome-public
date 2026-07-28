@@ -8,7 +8,7 @@
 #
 # Authoritative pin: schematic IO15 = PIR (RoomIQ J10 motion input),
 # declared by the Core board package as `pir_sensor_pin: GPIO15`
-# (packages/hardware/sense360_core_ceiling.yaml, CORE-ABSTRACT-BUS-001C).
+# (packages/boards/s360-100-core-ceiling.yaml, CORE-ABSTRACT-BUS-001C).
 # This adapter consumes that substitution and never hard-codes a pin.
 #
 # HONEST LIMITATION (do not regress): a PIR is a bare GPIO level. It cannot

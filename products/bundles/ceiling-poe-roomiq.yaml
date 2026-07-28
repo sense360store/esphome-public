@@ -71,7 +71,10 @@ substitutions:
   # `Ceiling-POE-RoomIQ`.
   device_name: s360-ceil-poe-roomiq
   friendly_name: Sense360 Ceiling RoomIQ
-  device_sku: S360-CORE-C-POE
+  # Canonical board SKU of the flashable hub (SENSE360-CANONICALISATION-001
+  # PR 07): the legacy pre-catalog S360-CORE-C* scheme is retired; power /
+  # mount facts stay published via the config string.
+  device_sku: S360-100
   device_version: "0.0.0-blocked-s360-410"
   timezone: "America/New_York"
 
@@ -123,12 +126,12 @@ packages:
   # === Sense360 Core (Ceiling, S360-100-R4) ===
   # Defines the canonical single shared Core I²C bus `core_i2c` that the
   # RoomIQ peripherals bind.
-  core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
+  core_hardware: !include ../../packages/boards/s360-100-core-ceiling.yaml
 
   # === Sense360 PoE PSU (S360-410) ===
   # Package-level expected; schematic verification pending — S360-410 stays
   # schematic_status: cataloged_unverified. See docs/hardware/s360-410-r4-poe.md.
-  power_config: !include ../../packages/hardware/power_poe.yaml
+  power_config: !include ../../packages/boards/s360-410-poe-psu.yaml
 
   # === Sense360 LED (S360-300) ===
   # Intentionally NOT included. The config string `Ceiling-POE-RoomIQ` does
@@ -141,7 +144,7 @@ packages:
   # The package filenames (`comfort_ceiling.yaml`, `presence_ceiling.yaml`)
   # retain the legacy split-board naming and are kept for backwards
   # compatibility (see docs/webflash-contract.md §6 footnote).
-  roomiq_comfort: !include ../../packages/expansions/comfort_ceiling.yaml
+  roomiq_comfort: !include ../../packages/boards/s360-200-roomiq-climate.yaml
   # === Sense360 RoomIQ framework (ROOMIQ-FRAMEWORK-001) ===
   # Canonical comfort and environmental service: calibrated Temperature /
   # Humidity / Illuminance, Comfort, Environment State, Brightness and the
@@ -150,7 +153,7 @@ packages:
   # the profile and every pre-framework entity id remains available as a
   # disabled-by-default compatibility entity inside the framework).
   roomiq_framework: !include ../../packages/features/roomiq_framework.yaml
-  roomiq_presence: !include ../../packages/expansions/presence_ceiling.yaml
+  roomiq_presence: !include ../../packages/boards/s360-200-roomiq-radar.yaml
   # === Sense360 Presence framework (PRESENCE-FRAMEWORK-001) ===
   # Tri-sensor customer Presence experience: PIR (immediate movement) +
   # LD2450 (radar half above) + SEN0609 (static presence), fused by

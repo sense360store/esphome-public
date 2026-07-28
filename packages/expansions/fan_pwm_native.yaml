@@ -71,7 +71,7 @@
 #     evidence exists (PWM-6 / PWM-13 in docs/blocker-burndown.md §2A).
 #   * Pul_Cou3 (IO46) is DISABLED / TBD on this candidate: the canonical map
 #     assigns Pul_Cou3 to native IO46, but the Core ceiling abstract package
-#     (packages/hardware/sense360_core_ceiling.yaml) already binds IO46 as the
+#     (packages/boards/s360-100-core-ceiling.yaml) already binds IO46 as the
 #     Core-side `fan_status_led_pin` (schematic GP_Fan_Status_Led). That
 #     IO46 reconciliation is unresolved, so this candidate keeps Pul_Cou3
 #     disabled rather than inventing a conflicting binding.

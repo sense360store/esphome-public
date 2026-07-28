@@ -56,7 +56,13 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 FRAMEWORK_PACKAGE = REPO_ROOT / "packages" / "features" / "blower_framework.yaml"
-REMOTE_WRAPPER = REPO_ROOT / "packages" / "remote" / "blower-framework.yaml"
+# packages/remote/blower-framework.yaml was DELETED under the owner decision
+# of 2026-07-28 (SENSE360-CANONICALISATION-001 PR 07, packages/remote
+# resolution): the customer remote-consumption guide
+# docs/remote-package-consumption.md never documented a blower wrapper, so it
+# was the unpublished remainder — internal per Section 7 and the recorded
+# no-external-customers fact. The blower FRAMEWORK package itself stays until
+# PR 12 decides the Blower surface.
 FIXTURE = REPO_ROOT / "products" / "sense360-core-ceiling-airiq-blower.yaml"
 HEADER = REPO_ROOT / "include" / "sense360" / "blower_controller.h"
 AIRIQ_HEADER = REPO_ROOT / "include" / "sense360" / "airiq_engine.h"
@@ -248,7 +254,9 @@ class FrameworkPackageTests(unittest.TestCase):
         # Option A: no controllable fan/switch toggle that could contradict the
         # selected mode — the mode is the authoritative control.
         self.assertEqual(entries(self.doc, "fan"), [], "no controllable fan entity")
-        self.assertEqual(entries(self.doc, "switch"), [], "no controllable switch entity")
+        self.assertEqual(
+            entries(self.doc, "switch"), [], "no controllable switch entity"
+        )
 
         # The "Blower" is a read-only commanded-state binary_sensor (a lambda
         # representation), never a customer toggle.
@@ -307,9 +315,7 @@ class FrameworkPackageTests(unittest.TestCase):
         # unless it is polled (update_interval != "never") or explicitly updated
         # once at boot (component.update in on_boot).
         polled = str(verify.get("update_interval", "never")) != "never"
-        boot_published = (
-            "component.update: s360_blower_output_verification" in self.raw
-        )
+        boot_published = "component.update: s360_blower_output_verification" in self.raw
         self.assertTrue(
             polled or boot_published,
             "Blower Output Verification must be polled or published at boot, else "
@@ -337,28 +343,17 @@ class FrameworkPackageTests(unittest.TestCase):
         self.assertNotIn("rpm", self.raw.lower())
 
 
-class RemoteWrapperTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.raw = REMOTE_WRAPPER.read_text()
-        cls.doc = load_yaml(REMOTE_WRAPPER)
+class RemoteWrapperRemovedTests(unittest.TestCase):
+    """The unpublished remote wrapper stays deleted (PR 07 record above)."""
 
-    def test_delivers_engine_via_external_component(self) -> None:
-        ext = self.doc.get("external_components") or []
-        self.assertTrue(ext, "remote wrapper must declare the sense360 external component")
-        source = ext[0].get("source") or {}
-        # git delivery, NOT type: local (which would break remote consumers).
-        self.assertEqual(source.get("type"), "git")
-        self.assertIn("sense360", ext[0].get("components") or [])
-        # No repository-local include path survives for a remote consumer.
-        self.assertIn("includes: !remove", self.raw)
-
-    def test_includes_the_framework_and_defaults_airiq_false(self) -> None:
-        pkgs = self.doc.get("packages") or {}
-        joined = " ".join(str(v) for v in pkgs.values())
-        self.assertIn("../features/blower_framework.yaml", joined)
-        subs = self.doc.get("substitutions") or {}
-        self.assertEqual(str(subs.get("blower_has_airiq")).lower(), "false")
+    def test_the_unpublished_remote_wrapper_stays_deleted(self) -> None:
+        self.assertFalse(
+            (REPO_ROOT / "packages" / "remote" / "blower-framework.yaml").exists(),
+            "the blower remote wrapper was deleted as the unpublished "
+            "remainder of packages/remote/ and must not return; the four "
+            "wrappers documented by docs/remote-package-consumption.md are "
+            "the protected remote entrypoints",
+        )
 
 
 class FixtureTests(unittest.TestCase):

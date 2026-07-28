@@ -29,7 +29,7 @@
 #   This package requires a parent Core package that declares `main_relay`
 #   (every packages/hardware/sense360_core*.yaml does). It is composed only by
 #   products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml, which includes
-#   packages/hardware/sense360_core_ceiling.yaml.
+#   packages/boards/s360-100-core-ceiling.yaml (the ceiling Core board).
 #
 # IMPORTANT:
 #   - This module is NOT compatible with fan_pwm.yaml, fan_gp8403.yaml, or

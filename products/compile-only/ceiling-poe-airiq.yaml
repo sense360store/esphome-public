@@ -56,7 +56,10 @@
 substitutions:
   device_name: s360-co-ceil-poe-airq
   friendly_name: Sense360 Ceiling POE AirIQ (compile-only)
-  device_sku: S360-CORE-C-POE
+  # Canonical board SKU of the flashable hub (SENSE360-CANONICALISATION-001
+  # PR 07): the legacy pre-catalog S360-CORE-C* scheme is retired; power /
+  # mount facts stay published via the config string.
+  device_sku: S360-100
   device_version: "0.0.0-compile-only"
   timezone: "UTC"
 
@@ -84,13 +87,13 @@ packages:
   base_time: !include ../../packages/base/time.yaml
 
   # === Sense360 Core (Ceiling, S360-100-R4) ===
-  core_hardware: !include ../../packages/hardware/sense360_core_ceiling.yaml
+  core_hardware: !include ../../packages/boards/s360-100-core-ceiling.yaml
 
   # === Sense360 PoE PSU (S360-410) ===
-  power_config: !include ../../packages/hardware/power_poe.yaml
+  power_config: !include ../../packages/boards/s360-410-poe-psu.yaml
 
   # === Sense360 AirIQ (S360-AIR-C, ceiling-mount air quality) ===
-  airiq_module: !include ../../packages/expansions/airiq_ceiling.yaml
+  airiq_module: !include ../../packages/boards/s360-210-airiq.yaml
   airiq_profile: !include ../../packages/features/airiq_basic_profile.yaml
 
   # === Device Health & Diagnostics ===

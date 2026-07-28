@@ -47,7 +47,10 @@
 substitutions:
   device_name: sense360-ceiling
   friendly_name: Sense360 Ceiling
-  device_sku: S360-CORE-C-USB
+  # Canonical board SKU of the flashable hub (SENSE360-CANONICALISATION-001
+  # PR 07): the legacy pre-catalog S360-CORE-C* scheme is retired; power /
+  # mount facts stay published via the config string.
+  device_sku: S360-100
   device_version: "3.0.0"
   timezone: "America/New_York"
 
@@ -74,7 +77,7 @@ packages:
   base_time: !include ../packages/base/time.yaml
 
   # === Core Hardware ===
-  core_hardware: !include ../packages/hardware/sense360_core_ceiling.yaml
+  core_hardware: !include ../packages/boards/s360-100-core-ceiling.yaml
 
   # === Power ===
   power_usb: !include ../packages/hardware/power_usb.yaml

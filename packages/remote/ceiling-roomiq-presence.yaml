@@ -40,7 +40,7 @@
 # convenience only.
 #
 # Composition contract — compose this wrapper alongside:
-#   * the Core board package (packages/hardware/sense360_core_ceiling.yaml —
+#   * the Core board package (packages/boards/s360-100-core-ceiling.yaml —
 #     owns the RoomIQ / Presence pin declarations and the core I2C bus), AND
 #   * the Core Framework package (packages/base/device_framework.yaml — owns
 #     the "RoomIQ Module Status" and "Presence Module Status" entities these

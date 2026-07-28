@@ -255,13 +255,16 @@ declaration layer that governs what ships lives in `config/`.
 - **`packages/`** — composition layers: `packages/boards/` (SKU-aligned
   **authoritative** board packages, e.g. `s360-211-ventiq.yaml`),
   `packages/base/` (WiFi, encrypted API, OTA, logging, time, external
-  components), `packages/hardware/` and `packages/expansions/` (legacy
-  functional paths retained as thin `!include` **aliases** of the board
-  packages, plus drivers not yet flipped into the board layer),
-  `packages/features/` (behaviour profiles / automations). The S360-100 Core
-  mount paths are the inverse today: the board overlay still wraps the legacy
-  `packages/hardware/sense360_core_*.yaml` source until Core's
-  source-of-truth flip lands.
+  components), `packages/hardware/` and `packages/expansions/` (the drivers not
+  yet flipped into the board layer — the thin alias layer was removed by
+  SENSE360-CANONICALISATION-001 PR 07 and must not return;
+  `tests/test_zero_alias.py` is the ledger),
+  `packages/features/` (behaviour profiles / automations). The Core
+  source-of-truth flip landed in SENSE360-CANONICALISATION-001 PR 07:
+  `packages/boards/s360-100-core-ceiling.yaml` holds the S360-100 ceiling
+  Core content directly, and the legacy `hardware/sense360_core_ceiling.yaml`
+  path is deleted (the voice / PoE / generic legacy variants remain only as
+  implementations of catalogued legacy-compatible products).
 - **`config/`** — the **catalog source of truth** (machine-readable
   declarations; JSON, validated by `scripts/` + `tests/`):
   [`product-catalog.json`](config/product-catalog.json) (product lifecycle /
@@ -300,9 +303,12 @@ declaration layer that governs what ships lives in `config/`.
   packages by concatenating lists — map-form blocks would collide across
   packages.
 - **Composition via `packages:` + `!include`.** Products never duplicate
-  package wiring; they include it. Legacy `packages/hardware/*` and
-  `packages/expansions/*` paths must keep resolving (alias files), since
-  customers pin them.
+  package wiring; they include it. The legacy `packages/hardware/*` /
+  `packages/expansions/*` alias layer was REMOVED under
+  SENSE360-CANONICALISATION-001 PR 07 (zero-alias): every live consumer was
+  re-pointed to the authoritative board package, the deleted paths are
+  pinned deleted by `tests/test_zero_alias.py`, and release tags keep every
+  historical path for tag-pinned users. Do not add new alias paths.
 - **Secrets only via `!secret`.** Copy
   [`secrets.example.yaml`](secrets.example.yaml) to `secrets.yaml` (gitignored
   — never commit it; `scripts/check-no-tracked-secrets.py` and the fallback-AP

@@ -60,17 +60,20 @@ MODULE_PINMAP_DOC = HARDWARE_DIR / "s360-310-module-pinmap.md"
 # went with it. The cross-layer drift guards below remain live.
 
 # Four non-voice Core abstract packages rebound by CORE-ABSTRACT-BUS-001A
-# to the schematic-correct ``relay_pin: GPIO3``.
+# to the schematic-correct ``relay_pin: GPIO3``. The ceiling entry is the
+# SKU-aligned board package since the SENSE360-CANONICALISATION-001 PR 07
+# Core source-of-truth flip (content moved verbatim from
+# hardware/sense360_core_ceiling.yaml).
 NON_VOICE_CORE_PACKAGES = [
     REPO_ROOT / "packages" / "hardware" / "sense360_core.yaml",
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml",
+    REPO_ROOT / "packages" / "boards" / "s360-100-core-ceiling.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_mapping.yaml",
     REPO_ROOT / "packages" / "hardware" / "sense360_core_poe.yaml",
 ]
 
 FAN_RELAY_PACKAGE = REPO_ROOT / "packages" / "expansions" / "fan_relay.yaml"
 CORE_CEILING_PACKAGE = (
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling.yaml"
+    REPO_ROOT / "packages" / "boards" / "s360-100-core-ceiling.yaml"
 )
 
 HARDWARE_CATALOG_JSON = REPO_ROOT / "config" / "hardware-catalog.json"
@@ -250,7 +253,7 @@ class FanRelayPackageStaysAbstractTests(unittest.TestCase):
         match = pattern.search(text)
         self.assertIsNotNone(
             match,
-            "sense360_core_ceiling.yaml must declare a `main_relay` "
+            "boards/s360-100-core-ceiling.yaml must declare a `main_relay` "
             "switch.gpio with a `pin:` line.",
         )
         assert match is not None
