@@ -307,8 +307,7 @@ class FanTargetTests(unittest.TestCase):
                     "acknowledgement-gated",
                 )
                 self.assertTrue(
-                    t["yaml_path"] in self.manual_yamls
-                    or t["config_string"] in builds,
+                    t["yaml_path"] in self.manual_yamls or t["config_string"] in builds,
                     f"{t['target_id']}: yaml_path must be a manual candidate "
                     "or the config must carry a committed build row "
                     "(HW-RELEASE-001)",
@@ -441,14 +440,22 @@ class WebflashCoverageTests(unittest.TestCase):
         # (Ceiling-POE-RoomIQ-LED — never built or served), moving it back to
         # eligible-unpublished. So no target sits metadata-ready today.
         # HW-RELEASE-001 then RE-LISTED Ceiling-POE-RoomIQ-LED with a
-        # reviewed preview build row (metadata only, no binary published),
-        # so it is the one metadata-ready target today.
+        # reviewed preview build row (metadata only, no binary published).
+        # The owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001)
+        # upheld PR #834's demotion of Ceiling-POE-AirIQ-RoomIQ and withdrew
+        # the same-day promotion decision as founded on a false premise, so
+        # that config sits metadata-ready on the preview channel as well —
+        # promotion to production is gated on the bench attestation #834
+        # requires (owner-authored, never machine-written).
         metadata_ready = {
             t["config_string"]
             for t in self.manifest["targets"]
             if t["publication_status"] == "webflash-preview-metadata-ready"
         }
-        self.assertEqual(metadata_ready, {"Ceiling-POE-RoomIQ-LED"})
+        self.assertEqual(
+            metadata_ready,
+            {"Ceiling-POE-RoomIQ-LED", "Ceiling-POE-AirIQ-RoomIQ"},
+        )
 
     def test_relisted_roomiq_led_is_metadata_ready(self) -> None:
         # HW-RELEASE-001 (docs/hw-release-001.md) deliberately RE-LISTED the
@@ -460,14 +467,10 @@ class WebflashCoverageTests(unittest.TestCase):
         t = by_cs["Ceiling-POE-RoomIQ-LED"]
         self.assertEqual(t["channel_tier"], "preview")
         self.assertEqual(t["delivery_lane"], "webflash")
-        self.assertEqual(
-            t["publication_status"], "webflash-preview-metadata-ready"
-        )
+        self.assertEqual(t["publication_status"], "webflash-preview-metadata-ready")
         self.assertIsNone(t["build_blocker"])
         self.assertIn("Ceiling-POE-RoomIQ-LED", self.builds)
-        self.assertEqual(
-            self.builds["Ceiling-POE-RoomIQ-LED"]["channel"], "preview"
-        )
+        self.assertEqual(self.builds["Ceiling-POE-RoomIQ-LED"]["channel"], "preview")
         self.assertFalse(t["recommended"])
         self.assertFalse(t["customer_default"])
         self.assertFalse(t["required_config"])

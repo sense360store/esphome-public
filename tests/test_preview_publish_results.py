@@ -64,9 +64,17 @@ EXPECTED_PUBLISHED_CONFIGS = {
 # metadata-ready-unpublished: the two room bundles were promoted to stable (and
 # dropped the preview-only release_state field), and the LED room bundle was
 # de-listed by P4a (its row removed entirely).
-UNPROMOTED_METADATA_ROWS: set[str] = set()
-PROMOTED_ROWS = {
+# Owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001): PR #834 is
+# upheld and the same-day promotion decision is withdrawn as founded on a
+# false premise; the catalogue stays preview, and this file's expectations
+# move to the preview posture so main stops being internally split between
+# the five #834-updated test files and these.
+# The AirIQ row keeps release_state metadata-ready-unpublished on the preview
+# channel; only the Bedroom promotion stands.
+UNPROMOTED_METADATA_ROWS: set[str] = {
     "Ceiling-POE-AirIQ-RoomIQ",
+}
+PROMOTED_ROWS = {
     "Ceiling-POE-RoomIQ",
 }
 # Rows that left the historical (version=1.0.0, channel=preview) set by being
@@ -75,6 +83,13 @@ PROMOTED_ROWS = {
 # (prerelease v1.0.1-led-preview, 2026-07-06).
 REROLLED_PREVIEW_ROWS = {
     "Ceiling-POE-VentIQ-RoomIQ-LED",
+    # Re-cut at v1.0.9 by the same rebuild (published as a stable asset, which
+    # remains immutable), then its RECORD was demoted back to preview by
+    # PR #834 — upheld by the owner decision of 2026-07-28, which withdrew the
+    # same-day promotion decision as founded on a false premise. The row sits
+    # metadata-ready on the preview channel at v1.0.9, outside this historical
+    # v1.0.0 set either way.
+    "Ceiling-POE-AirIQ-RoomIQ",
 }
 STABLE_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
 

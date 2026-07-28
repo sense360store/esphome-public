@@ -172,7 +172,7 @@
       "target_id": "ceiling-poe-airiq-roomiq-preview",
       "preview_allowed": true,
       "preview_warning_required": true,
-      "blocker_is_stable_only": false,
+      "blocker_is_stable_only": true,
       "product": "Kitchen PoE / AirIQ (AirIQ + RoomIQ)",
       "family": "Kitchen",
       "config_string": "Ceiling-POE-AirIQ-RoomIQ",
@@ -206,7 +206,7 @@
       "consuming_bundles": [
         "S360-KIT-KITCHEN-P"
       ],
-      "notes": "Kept on the preview channel under owner risk-acceptance waiver HW-AIRIQ-WAIVER-2026-06: AirIQ sensor-stack bench accuracy (SPS30, SGP41, SCD41, BMP390) is NOT verified and the S360-410 PoE PSU is covered by HW-S360-410-WAIVER-2026-06. Owner waiver, not hardware verification. The catalog entry is status preview / channel preview and the config/webflash-builds.json row is channel preview, artifact Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-preview.bin. The S360-KIT-KITCHEN-P bundle stays hidden / not buyable / not recommended / not a customer default. History: RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added the original preview build row with hosted-compile evidence (run 26821900127); the products/webflash wrapper (RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001) is recorded in webflash_wrapper."
+      "notes": "Owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001): PR #834's demotion to preview is upheld and the same-day promotion decision is withdrawn as founded on a false premise. blocker_is_stable_only corrected to true: the recorded stable_blocker (HW-AIRIQ-WAIVER-2026-06 risk-acceptance, bench accuracy unmeasured) gates STABLE only and never gated preview — the preview posture is the recorded channel, and promotion to production is gated on the bench attestation #834 requires (owner-authored, never machine-written). Kept on the preview channel under owner risk-acceptance waiver HW-AIRIQ-WAIVER-2026-06: AirIQ sensor-stack bench accuracy (SPS30, SGP41, SCD41, BMP390) is NOT verified and the S360-410 PoE PSU is covered by HW-S360-410-WAIVER-2026-06. Owner waiver, not hardware verification. The catalog entry is status preview / channel preview and the config/webflash-builds.json row is channel preview, artifact Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-preview.bin. The S360-KIT-KITCHEN-P bundle stays hidden / not buyable / not recommended / not a customer default. History: RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added the original preview build row with hosted-compile evidence (run 26821900127); the products/webflash wrapper (RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001) is recorded in webflash_wrapper."
     },
     {
       "target_id": "ceiling-poe-roomiq-preview",

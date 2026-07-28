@@ -57,9 +57,7 @@ DRAFT_DIR = REPO_ROOT / "docs" / "release-notes" / "preview"
 VALIDATOR_PATH = REPO_ROOT / "scripts" / "validate-webflash-release-notes.py"
 MAPPER_PATH = REPO_ROOT / "scripts" / "product_name_mapper.py"
 LIST_TARGETS_PATH = REPO_ROOT / "scripts" / "list_release_targets.py"
-RELEASE_NOTES_WORKFLOW = (
-    REPO_ROOT / ".github" / "workflows" / "release-notes-draft.yml"
-)
+RELEASE_NOTES_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "release-notes-draft.yml"
 
 COMPILE_RUN_ID = 26821900127
 VERSION = "1.0.0"
@@ -79,10 +77,14 @@ PUBLISH_CONFIGS = (
     "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ",
 )
-PROMOTED_CONFIGS = (
-    "Ceiling-POE-AirIQ-RoomIQ",
-    "Ceiling-POE-RoomIQ",
-)
+# Owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001): PR #834 is
+# upheld and the same-day promotion decision is withdrawn as founded on a
+# false premise; the catalogue stays preview, and this file's expectations
+# move to the preview posture so main stops being internally split between
+# the five #834-updated test files and these.
+# Ceiling-POE-AirIQ-RoomIQ therefore sits in the metadata-ready preview set,
+# not the promoted set, until the #834 bench-attestation gate clears.
+PROMOTED_CONFIGS = ("Ceiling-POE-RoomIQ",)
 # HW-RELEASE-001 (docs/hw-release-001.md, owner declaration) re-listed the
 # LED room bundle and added the six FanPWM / FanDAC preview rows, all
 # metadata-ready on the PREVIEW channel. The FanTRIAC experimental self-build
@@ -103,6 +105,14 @@ EXPERIMENTAL_METADATA_READY_CONFIGS = (
     "Ceiling-POE-AirIQ-FanRelay-RoomIQ",
     "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
 )
+# Metadata-ready preview rows that left the historical v1.0.0 set: the AirIQ
+# room bundle was re-cut at v1.0.9 by the security rebuild, then its record
+# was demoted back to preview by PR #834, upheld by the owner decision of
+# 2026-07-28 — so it is metadata-ready on the preview channel at its own
+# version, not at the v1.0.0 the STILL_PREVIEW_CONFIGS group pins.
+DEMOTED_METADATA_READY = {
+    "Ceiling-POE-AirIQ-RoomIQ": "1.0.9",
+}
 
 # The stable Bathroom baseline + already-published VentIQ LED preview are
 # explicitly out of the publish set (the stable build is only built when
@@ -152,9 +162,7 @@ def _by_cs() -> Dict[str, Dict[str, Any]]:
 
 def _metadata_ready_rows() -> List[Dict[str, Any]]:
     return [
-        b
-        for b in _builds()
-        if b.get("release_state") == "metadata-ready-unpublished"
+        b for b in _builds() if b.get("release_state") == "metadata-ready-unpublished"
     ]
 
 
@@ -205,7 +213,11 @@ class PublishScopeTests(unittest.TestCase):
         got = sorted(b["config_string"] for b in _metadata_ready_rows())
         self.assertEqual(
             got,
-            sorted(STILL_PREVIEW_CONFIGS + EXPERIMENTAL_METADATA_READY_CONFIGS),
+            sorted(
+                STILL_PREVIEW_CONFIGS
+                + EXPERIMENTAL_METADATA_READY_CONFIGS
+                + tuple(DEMOTED_METADATA_READY)
+            ),
         )
 
     def test_publish_rows_match_their_promotion_state(self) -> None:
@@ -215,9 +227,13 @@ class PublishScopeTests(unittest.TestCase):
                 row = by_cs[cs]
                 self.assertEqual(row["channel"], "preview")
                 self.assertEqual(row["version"], VERSION)
-                self.assertEqual(
-                    row.get("release_state"), "metadata-ready-unpublished"
-                )
+                self.assertEqual(row.get("release_state"), "metadata-ready-unpublished")
+        for cs, version in DEMOTED_METADATA_READY.items():
+            with self.subTest(config_string=cs):
+                row = by_cs[cs]
+                self.assertEqual(row["channel"], "preview")
+                self.assertEqual(row["version"], version)
+                self.assertEqual(row.get("release_state"), "metadata-ready-unpublished")
         for cs in PROMOTED_CONFIGS:
             with self.subTest(config_string=cs):
                 row = by_cs[cs]
@@ -241,6 +257,10 @@ class ArtifactNameContractTests(unittest.TestCase):
         for cs in STILL_PREVIEW_CONFIGS:
             with self.subTest(config_string=cs):
                 expected = f"Sense360-{cs}-v{VERSION}-preview.bin"
+                self.assertEqual(by_cs[cs]["artifact_name"], expected)
+        for cs, version in DEMOTED_METADATA_READY.items():
+            with self.subTest(config_string=cs):
+                expected = f"Sense360-{cs}-v{version}-preview.bin"
                 self.assertEqual(by_cs[cs]["artifact_name"], expected)
         for cs in PROMOTED_CONFIGS:
             with self.subTest(config_string=cs):
@@ -364,9 +384,7 @@ class WorkflowPickerTests(unittest.TestCase):
     def test_list_release_targets_validates_each_publish_config(self) -> None:
         for cs in PUBLISH_CONFIGS:
             with self.subTest(config_string=cs):
-                self.assertIsNone(
-                    _LIST_TARGETS.validate_target(cs, BUILDS_PATH)
-                )
+                self.assertIsNone(_LIST_TARGETS.validate_target(cs, BUILDS_PATH))
 
     def test_list_release_targets_rejects_forbidden_targets(self) -> None:
         for bad in FORBIDDEN_TARGETS:
@@ -429,11 +447,7 @@ class GuardrailTests(unittest.TestCase):
         self.assertFalse((REPO_ROOT / "firmware" / "sources.json").exists())
 
     def test_no_bin_committed_anywhere_in_repo(self) -> None:
-        bins = [
-            p
-            for p in REPO_ROOT.rglob("*.bin")
-            if ".git" not in p.parts
-        ]
+        bins = [p for p in REPO_ROOT.rglob("*.bin") if ".git" not in p.parts]
         self.assertEqual(bins, [], f"no .bin may be committed; found {bins}")
 
     def test_catalog_publish_rows_match_promotion_state(self) -> None:
