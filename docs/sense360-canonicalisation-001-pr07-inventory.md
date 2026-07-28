@@ -57,6 +57,14 @@ Total paths: 169.
   docs/product-matrix.md / docs/configuration.md), and the
   `sense360_core_*` family plus `power_usb` (deferred to the Core flip
   slice). Compositions again byte-identical; suite green.
+- **2026-07-28, slice 3b — wrapper candidates resolved.** All eight
+  `delete-if-undeclared` `products/webflash/` rows resolve to **keep**:
+  every one of the fourteen wrapper files is the `product_yaml` address of a
+  committed `config/webflash-builds.json` row (verified 14/14), so each is
+  declared release-gate infrastructure under ESP-007, not an orphan.
+  Remaining execution: the Core source-of-truth flip (`sense360_core_*`,
+  `power_usb`, `s360-100-core*`), the `device_sku` identifier, and the
+  final full-suite / validator pass before the acceptance request.
 - **Correction recorded:** `packages/expansions/fan_pwm.yaml` was initially
   misclassified `delete-and-repoint`. It composes the sx1509 binding layer
   AND declares the four fan speed controllers, so it is authoritative, not
@@ -436,17 +444,17 @@ publishes, promotes or changes any channel.
 
 | Path | Role | Tags | Consumers | Reach | Disposition | Basis |
 |---|---|---|---|---|---|---|
-| `ceiling-poe-airiq-fandac-roomiq.yaml` | alias | 0 | 0 | — | **delete-if-undeclared** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
-| `ceiling-poe-airiq-fanpwm-roomiq.yaml` | alias | 0 | 0 | — | **delete-if-undeclared** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
-| `ceiling-poe-airiq-fanrelay-roomiq.yaml` | alias | 0 | 0 | — | **delete-if-undeclared** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
+| `ceiling-poe-airiq-fandac-roomiq.yaml` | alias | 0 | 0 | — | **keep (declared build address)** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
+| `ceiling-poe-airiq-fanpwm-roomiq.yaml` | alias | 0 | 0 | — | **keep (declared build address)** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
+| `ceiling-poe-airiq-fanrelay-roomiq.yaml` | alias | 0 | 0 | — | **keep (declared build address)** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
 | `ceiling-poe-airiq-roomiq.yaml` | alias | 12 | 0 | — | **keep** | Release-gate wrapper addressed by the declaration layer. |
-| `ceiling-poe-fandac.yaml` | alias | 0 | 0 | — | **delete-if-undeclared** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
-| `ceiling-poe-fanpwm.yaml` | alias | 0 | 0 | — | **delete-if-undeclared** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
+| `ceiling-poe-fandac.yaml` | alias | 0 | 0 | — | **keep (declared build address)** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
+| `ceiling-poe-fanpwm.yaml` | alias | 0 | 0 | — | **keep (declared build address)** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
 | `ceiling-poe-roomiq-led.yaml` | alias | 12 | 0 | — | **keep** | Release-gate wrapper addressed by the declaration layer. |
 | `ceiling-poe-roomiq.yaml` | alias | 12 | 0 | — | **keep** | Release-gate wrapper addressed by the declaration layer. |
-| `ceiling-poe-ventiq-fandac-roomiq.yaml` | alias | 0 | 0 | — | **delete-if-undeclared** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
-| `ceiling-poe-ventiq-fanpwm-roomiq.yaml` | alias | 0 | 0 | — | **delete-if-undeclared** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
-| `ceiling-poe-ventiq-fanrelay-roomiq.yaml` | alias | 0 | 0 | — | **delete-if-undeclared** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
+| `ceiling-poe-ventiq-fandac-roomiq.yaml` | alias | 0 | 0 | — | **keep (declared build address)** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
+| `ceiling-poe-ventiq-fanpwm-roomiq.yaml` | alias | 0 | 0 | — | **keep (declared build address)** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
+| `ceiling-poe-ventiq-fanrelay-roomiq.yaml` | alias | 0 | 0 | — | **keep (declared build address)** | Release-gate wrapper never published at any tag; keep only if a config declaration (webflash-builds / preview-release-targets / catalog webflash_wrapper) addresses it, else delete. |
 | `ceiling-poe-ventiq-fantriac-roomiq.yaml` | alias | 14 | 0 | — | **keep** | Release-gate wrapper addressed by the declaration layer. |
 | `ceiling-poe-ventiq-roomiq-led.yaml` | alias | 13 | 0 | — | **keep** | Release-gate wrapper addressed by the declaration layer. |
 | `ceiling-poe-ventiq-roomiq.yaml` | alias | 14 | 0 | — | **keep** | Release-gate wrapper addressed by the declaration layer. |
