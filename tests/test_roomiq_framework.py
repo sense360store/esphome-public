@@ -456,17 +456,34 @@ class CustomerEntityContractTests(unittest.TestCase):
 
     def test_freshness_comes_from_update_callbacks(self) -> None:
         # Freshness must come from real sensor update callbacks, never from
-        # re-reading a cached value.
-        self.assertIn("on_value", self.raw)
+        # re-reading a cached value. Since SENSE360-CANONICALISATION-001
+        # PR 09 the feeding lives in the sense360_roomiq component
+        # (add_on_state_callback in the glue .cpp); the YAML's part of the
+        # contract is binding the three sources to the component.
+        for binding in (
+            "temperature_source:",
+            "humidity_source:",
+            "illuminance_source:",
+        ):
+            self.assertIn(binding, self.raw, binding)
+        component_cpp = (
+            REPO_ROOT / "components" / "sense360_roomiq" / "sense360_roomiq.cpp"
+        ).read_text()
+        self.assertIn("add_on_state_callback", component_cpp)
         for hook in ("input_temperature", "input_humidity", "input_lux"):
-            self.assertIn(hook, self.raw, hook)
+            self.assertIn(hook, component_cpp, hook)
 
     def test_module_status_driven_with_reserved_vocabulary(self) -> None:
         # The framework drives the Core-Framework RoomIQ module status
         # entity with the reserved runtime vocabulary from real freshness
-        # signals (the second wired module after Presence).
-        self.assertIn("s360_module_status_roomiq", self.raw)
-        self.assertIn("health_to_string", self.raw)
+        # signals (the second wired module after Presence). PR 09 moved the
+        # publish into the sense360_roomiq component; the YAML binds the
+        # Core-Framework-owned entity to it by id.
+        self.assertIn("module_status_id: s360_module_status_roomiq", self.raw)
+        component_cpp = (
+            REPO_ROOT / "components" / "sense360_roomiq" / "sense360_roomiq.cpp"
+        ).read_text()
+        self.assertIn("health_to_string", component_cpp)
 
     def test_no_fabricated_fault_producer(self) -> None:
         # Fault is an engine contract with no production producer: no

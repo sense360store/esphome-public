@@ -151,6 +151,87 @@ class FoundationBoundaryTests(unittest.TestCase):
         )
 
 
+class CiOverrideCompletenessTests(unittest.TestCase):
+    """The CI-only external_components override must deliver every component.
+
+    The build lanes rewrite packages/base/external_components.yaml at runtime
+    to a local checked-out source (setup-esphome-build action, plus the
+    duplicate heredoc in manual-firmware-artifacts.yml). A component missing
+    from those static lists compiles locally but fails every hosted lane —
+    exactly how the PR 09 sense360_roomiq introduction first failed CI. Pin
+    both lists to the manifest so a new component can never silently miss
+    the override.
+    """
+
+    OVERRIDE_FILES = (
+        REPO_ROOT / ".github" / "actions" / "setup-esphome-build" / "action.yml",
+        REPO_ROOT / ".github" / "workflows" / "manual-firmware-artifacts.yml",
+    )
+
+    def test_every_row_declares_its_delivery(self) -> None:
+        for name, row in _manifest()["components"].items():
+            with self.subTest(component=name):
+                self.assertIn(
+                    row.get("delivery"),
+                    ("base", "inline-board"),
+                    f"{name} must declare delivery: base | inline-board "
+                    "(see the delivery_axis rule).",
+                )
+
+    def test_base_delivered_components_fill_every_ci_override(self) -> None:
+        manifest = _manifest()["components"]
+        base_set = {n for n, row in manifest.items() if row.get("delivery") == "base"}
+        pattern = re.compile(r"components:\s*\[([^\]]+)\]")
+        for path in self.OVERRIDE_FILES:
+            text = path.read_text(encoding="utf-8")
+            matches = [
+                m
+                for m in pattern.finditer(text)
+                if "type: local" in text[max(0, m.start() - 400) : m.start()]
+            ]
+            self.assertTrue(
+                matches,
+                f"{path.name}: expected a local external_components override "
+                "with a components list",
+            )
+            for m in matches:
+                listed = {item.strip() for item in m.group(1).split(",")}
+                self.assertEqual(
+                    listed,
+                    base_set,
+                    f"{path.name}: the CI override components list must "
+                    "equal the delivery:'base' set in "
+                    "config/external-components.json (a missing base "
+                    "component fails every hosted compile lane; an "
+                    "inline-board component here would resolve from two "
+                    "sources).",
+                )
+
+    def test_base_yaml_declares_exactly_the_base_set(self) -> None:
+        base_yaml = (
+            REPO_ROOT / "packages" / "base" / "external_components.yaml"
+        ).read_text(encoding="utf-8")
+        manifest = _manifest()["components"]
+        for name, row in manifest.items():
+            with self.subTest(component=name):
+                declared = re.search(
+                    rf"components:\s*\[[^\]]*\b{re.escape(name)}\b[^\]]*\]",
+                    base_yaml,
+                )
+                if row.get("delivery") == "base":
+                    self.assertIsNotNone(
+                        declared,
+                        f"{name} is delivery:'base' but missing from "
+                        "packages/base/external_components.yaml",
+                    )
+                else:
+                    self.assertIsNone(
+                        declared,
+                        f"{name} is delivery:'inline-board' and must not "
+                        "also appear in packages/base/external_components.yaml",
+                    )
+
+
 class LegacyDeliveryPathTests(unittest.TestCase):
     def test_include_tree_stays_deleted(self) -> None:
         legacy = REPO_ROOT / "include"

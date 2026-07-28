@@ -45,6 +45,10 @@ def _catalog_skus() -> set:
 def _device_sku_declarations() -> list:
     found = []
     for path in sorted((REPO_ROOT / "products").rglob("*.yaml")):
+        # Skip build caches (e.g. products/.esphome/ from a local
+        # `esphome config/compile` run) - only tracked tree content counts.
+        if any(part.startswith(".") for part in path.parts):
+            continue
         for match in DEVICE_SKU_LINE.finditer(path.read_text(encoding="utf-8")):
             value = match.group("value").strip("\"'")
             found.append((path.relative_to(REPO_ROOT), value))
