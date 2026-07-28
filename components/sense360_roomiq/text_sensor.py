@@ -56,10 +56,12 @@ TYPES = {
 
 
 def _base_schema(type_key):
+    # NOTE: cv.typed_schema POPS the `type` key before validating against
+    # the selected inner schema (and re-adds it afterwards), so the inner
+    # schema must NOT declare `type` itself.
     return TYPES[type_key]["schema"].extend(
         {
             cv.GenerateID(CONF_SENSE360_ROOMIQ_ID): cv.use_id(Sense360RoomIQ),
-            cv.Required(CONF_TYPE): cv.one_of(type_key, lower=True),
         }
     )
 
