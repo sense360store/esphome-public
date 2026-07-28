@@ -483,7 +483,14 @@ class StaticPublicationContractTests(unittest.TestCase):
                 entry_id = entry.get("id")
                 if not entry_id:
                     orphaned.append(f"{rel(path)}: unnamed action-published sensor")
-                elif f"id({entry_id}).publish_state" not in corpus:
+                elif (
+                    f"id({entry_id}).publish_state" not in corpus
+                    # A sense360 domain component bound by id is a publish
+                    # owner too (SENSE360-CANONICALISATION-001 PR 09..11:
+                    # e.g. `legacy_air_quality_id: air_quality_state` feeds
+                    # the entity from component glue).
+                    and not re.search(rf"\w+_id: {re.escape(entry_id)}\b", corpus)
+                ):
                     orphaned.append(f"{rel(path)}: {entry_id}")
         self.assertEqual(
             [],

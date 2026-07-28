@@ -48,6 +48,13 @@
       "provenance": "Introduced by SENSE360-CANONICALISATION-001 PR 10 (docs/architecture/sense360-presence-component-plan.md). Glue over the canonical presence fusion singleton in components/sense360/ - input feeding, runtime mode/clear-delay control interplay, the publish switchboard. No model logic, no raw hardware I/O; the OD-SOT-004 PIR-vs-radar evidence distinction is unchanged.",
       "disposition_owner": "SENSE360-CANONICALISATION-001 PR-10 (Migrate Presence)",
       "delivery": "base"
+    },
+    "sense360_airiq": {
+      "role": "domain-component",
+      "origin": "sense360-original",
+      "provenance": "Introduced by SENSE360-CANONICALISATION-001 PR 11 (docs/architecture/sense360-airiq-ventiq-component-plan.md). Glue over the canonical AirIQ engine singleton in components/sense360/ - the same instance the blower framework reads for ventilation demand and the VentIQ engine embeds for pollutant truth. No model logic, no raw hardware I/O.",
+      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-11 (Migrate AirIQ and VentIQ)",
+      "delivery": "base"
     }
   }
 }

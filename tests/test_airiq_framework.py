@@ -608,25 +608,46 @@ class FrameworkMechanicsTests(unittest.TestCase):
         self.raw = FRAMEWORK_PACKAGE.read_text()
 
     def test_framework_uses_the_shared_header(self) -> None:
-        self.assertIn("../components/sense360/airiq_engine.h", self.raw)
+        # SENSE360-CANONICALISATION-001 PR 11: the engine is delivered by
+        # the sense360 foundation component (auto-loaded by the
+        # sense360_airiq domain component); the glue compiles the same
+        # shared header from the component tree.
+        self.assertIn("sense360_airiq:", self.raw)
+        cpp = (REPO_ROOT / "components" / "sense360_airiq"
+               / "sense360_airiq.h").read_text()
+        self.assertIn("esphome/components/sense360/airiq_engine.h", cpp)
 
     def test_freshness_comes_from_update_callbacks(self) -> None:
-        # Real value-update callbacks are the freshness signal. The PCB
-        # sensors (CO2/VOC/NOx/HCHO) are wired here; the external SPS30 PM
-        # input lives in the opt-in overlay (see SPS30OverlayTests).
-        self.assertIn("on_value", self.raw)
-        self.assertIn("input_co2", self.raw)
-        self.assertIn("input_voc", self.raw)
-        self.assertIn("input_nox", self.raw)
-        self.assertIn("input_hcho", self.raw)
+        # Real value-update callbacks are the freshness signal. Since PR 11
+        # the PCB-sensor feeding (CO2/VOC/NOx/HCHO) lives in the
+        # sense360_airiq component glue; the YAML's part of the contract is
+        # binding the four sources. The external SPS30 PM input stays in
+        # the opt-in overlay (see SPS30OverlayTests) and must never enter
+        # the base composition.
+        for binding in ("co2_source:", "voc_source:", "nox_source:", "hcho_source:"):
+            self.assertIn(binding, self.raw, binding)
+        cpp = (REPO_ROOT / "components" / "sense360_airiq"
+               / "sense360_airiq.cpp").read_text()
+        self.assertIn("add_on_state_callback", cpp)
+        for hook in ("input_co2", "input_voc", "input_nox", "input_hcho"):
+            self.assertIn(hook, cpp, hook)
         self.assertNotIn("input_pm2_5", self.raw)
+        self.assertNotIn("input_pm2_5", cpp)
 
     def test_stale_values_are_never_left_standing(self) -> None:
-        self.assertIn("publish_state(NAN)", self.raw)
+        # The NAN-on-stale switchboard moved into the component glue (PR 11).
+        cpp = (REPO_ROOT / "components" / "sense360_airiq"
+               / "sense360_airiq.cpp").read_text()
+        self.assertIn("publish_state(NAN)", cpp)
+        self.assertIn("publish_nan_if_stale_", cpp)
 
     def test_module_status_driven_with_reserved_vocabulary(self) -> None:
-        self.assertIn("s360_module_status_airiq", self.raw)
-        self.assertIn("health_to_string", self.raw)
+        # The publish moved into the component glue (PR 11); the YAML binds
+        # the Core-Framework-owned entity to the component by id.
+        self.assertIn("module_status_id: s360_module_status_airiq", self.raw)
+        cpp = (REPO_ROOT / "components" / "sense360_airiq"
+               / "sense360_airiq.cpp").read_text()
+        self.assertIn("health_to_string", cpp)
 
     def test_no_fabricated_fault_producer(self) -> None:
         # Fault is an engine contract with no production producer today:

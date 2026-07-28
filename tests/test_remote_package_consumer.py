@@ -638,7 +638,6 @@ class RepoLocalBuildsUnchangedTests(unittest.TestCase):
         # no local include (the component compositions below are the
         # replacement contracts).
         for framework in (
-            "airiq_framework.yaml",
             "ventiq_framework.yaml",
             "led_framework.yaml",
         ):
@@ -657,6 +656,10 @@ class RepoLocalBuildsUnchangedTests(unittest.TestCase):
             REPO_ROOT / "packages" / "features" / "presence_framework.yaml"
         ).read_text()
         self.assertIn("sense360_presence:", presence_raw)
+        airiq_raw = (
+            REPO_ROOT / "packages" / "features" / "airiq_framework.yaml"
+        ).read_text()
+        self.assertIn("sense360_airiq:", airiq_raw)
         self.assertNotIn("esphome:\n  includes:", presence_raw)
 
 
