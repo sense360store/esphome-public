@@ -497,13 +497,20 @@ class CandidateBundlesHiddenNotBuyableTests(unittest.TestCase):
         self.assertFalse(vis["buy_button_allowed"])
         self.assertFalse(self.shop["guardrails"]["candidate_bundles_buyable"])
 
-    def test_candidate_bundle_list_is_the_four_room_bundles(self):
+    def test_candidate_bundle_list_is_the_three_candidate_room_bundles(self):
+        """S360-KIT-LIVING-P was consolidated into S360-KIT-CORRIDOR-P.
+
+        SENSE360-CANONICALISATION-001 PR 06 (OD-SOT-006): the two records
+        declared the identical board set and firmware target, so they are one
+        bundle with several recommended rooms. The consolidation removes a
+        duplicate candidate; it changes no bundle's visibility or buyability,
+        which the surrounding tests in this class still pin.
+        """
         vis = self.shop["candidate_bundle_visibility"]
         self.assertEqual(
             set(vis["candidate_bundles"]),
             {
                 "S360-KIT-KITCHEN-P",
-                "S360-KIT-LIVING-P",
                 "S360-KIT-BEDROOM-P",
                 "S360-KIT-CORRIDOR-P",
             },

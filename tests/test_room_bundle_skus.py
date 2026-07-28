@@ -73,7 +73,9 @@ class RoomBundleShapeTests(unittest.TestCase):
 
     def test_sources_point_to_canonical_files(self):
         sources = self.doc.get("sources", {})
-        self.assertEqual(sources.get("hardware_catalog"), "config/hardware-catalog.json")
+        self.assertEqual(
+            sources.get("hardware_catalog"), "config/hardware-catalog.json"
+        )
         self.assertEqual(
             sources.get("firmware_matrix"), "config/firmware-combination-matrix.json"
         )
@@ -370,36 +372,58 @@ class RoomBundleGuardrailTests(unittest.TestCase):
             "contain exactly Core + RoomIQ + PoE PSU",
         )
 
-    def test_living_and_corridor_share_board_set(self):
-        living = self.by_sku["S360-KIT-LIVING-P"]
-        corridor = self.by_sku["S360-KIT-CORRIDOR-P"]
+    def test_identical_hardware_is_never_two_bundle_skus(self):
+        """OD-SOT-006: same boards plus same firmware target is ONE bundle.
+
+        This replaces the former pair of living-room / corridor tests, which
+        asserted that two bundle SKUs shared a board set — the duplicate the
+        consolidation removed. Asserting the duplicate is legal is exactly what
+        let it persist, so the guard is inverted rather than deleted.
+        """
+        seen = {}
+        for bundle in self.bundles:
+            key = (
+                tuple(sorted(bundle["included_board_skus"])),
+                bundle["likely_firmware_config_target"],
+            )
+            self.assertNotIn(
+                key,
+                seen,
+                f"{bundle['bundle_sku']} and {seen.get(key)} declare the identical "
+                "board set and firmware target; identical supplied hardware is one "
+                "physical bundle SKU with several recommended_rooms",
+            )
+            seen[key] = bundle["bundle_sku"]
+
+    def test_hallway_landing_bundle_is_preview_candidate_with_led(self):
+        bundle = self.by_sku["S360-KIT-CORRIDOR-P"]
+        self.assertIn(
+            LED_BOARD_SKU,
+            bundle["included_board_skus"],
+            f"S360-KIT-CORRIDOR-P must include the LED board ({LED_BOARD_SKU})",
+        )
         self.assertEqual(
-            set(living["included_board_skus"]),
-            set(corridor["included_board_skus"]),
-            "S360-KIT-LIVING-P and S360-KIT-CORRIDOR-P currently share the same "
-            "included board set; a future room-specific firmware would "
-            "differentiate them",
+            bundle["current_release_status"],
+            "preview-candidate",
+            "S360-KIT-CORRIDOR-P must be preview-candidate while LED remains preview",
         )
 
-    def test_living_and_corridor_bundles_are_preview_candidate_with_led(self):
-        for sku in ("S360-KIT-LIVING-P", "S360-KIT-CORRIDOR-P"):
-            bundle = self.by_sku[sku]
-            self.assertIn(
-                LED_BOARD_SKU,
-                bundle["included_board_skus"],
-                f"{sku} must include the LED board ({LED_BOARD_SKU})",
-            )
-            self.assertEqual(
-                bundle["current_release_status"],
-                "preview-candidate",
-                f"{sku} must be preview-candidate while LED remains preview",
-            )
+    def test_hallway_landing_bundle_mirrors_the_sot_name_and_rooms(self):
+        """SOT owns commercial identity; this record mirrors it, never mints it."""
+        bundle = self.by_sku["S360-KIT-CORRIDOR-P"]
+        self.assertEqual(
+            bundle["bundle_name"], "Sense360 Hallway / Landing Bundle — PoE"
+        )
+        self.assertIn(
+            "living room",
+            bundle["recommended_rooms"],
+            "living room is retained as a recommended room, never as a product",
+        )
 
     def test_expected_bundle_skus_present(self):
         expected = {
             "S360-KIT-BATH-P",
             "S360-KIT-KITCHEN-P",
-            "S360-KIT-LIVING-P",
             "S360-KIT-BEDROOM-P",
             "S360-KIT-CORRIDOR-P",
         }
@@ -408,7 +432,9 @@ class RoomBundleGuardrailTests(unittest.TestCase):
             expected,
             actual,
             f"BUNDLE-SKU-MATRIX-001 defines exactly the bundle set {sorted(expected)}; "
-            f"found {sorted(actual)}",
+            f"found {sorted(actual)}. S360-KIT-LIVING-P was consolidated into "
+            "S360-KIT-CORRIDOR-P under SENSE360-CANONICALISATION-001 PR 06 "
+            "(OD-SOT-006) and must not return.",
         )
 
 
