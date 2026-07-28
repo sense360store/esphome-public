@@ -28,7 +28,13 @@ substitutions:
   # S360-300 halo board, so the two can never overwrite each other in
   # ESPHome's single flat substitution namespace. Value and the
   # customer-facing entity name are unchanged.
-  led_voice_ring_sku: S360-LED-V-C
+  # SENSE360-CANONICALISATION-001 PR 05: canonical board SKU per
+  # config/hardware-catalog.json. S360-LED-V-C named a board that has
+  # NO catalog entry; this file is SKU-aligned to S360-300, so the
+  # board identity is S360-300. Whether a distinct voice/mic ring
+  # board should exist at all is an unowned-configuration question
+  # recorded for PR 06 classification, not decided here.
+  led_voice_ring_sku: S360-300
   led_data_pin: GPIO9
   led_count: "12"
   led_chipset: WS2812

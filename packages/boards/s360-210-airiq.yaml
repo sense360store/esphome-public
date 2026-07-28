@@ -67,7 +67,9 @@ substitutions:
   # substitution namespace, so a combined AirIQ + RoomIQ composition rendered
   # one board's SKU on the other board's entity. Values and the
   # customer-facing entity name are unchanged.
-  airiq_module_sku: S360-AIR-C
+  # SENSE360-CANONICALISATION-001 PR 05: canonical board SKU per
+  # config/hardware-catalog.json (was S360-AIR-C).
+  airiq_module_sku: S360-210
   airiq_module_variant: ceiling
 
   # I2C Configuration (Ceiling reuses the shared core_i2c bus per

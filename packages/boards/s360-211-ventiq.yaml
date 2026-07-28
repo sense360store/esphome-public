@@ -105,7 +105,10 @@ substitutions:
   # so this entity rendered the RoomIQ presence SKU. Values (the legacy
   # `S360-BATH-B` label tracked as VENTIQ-SKU-LABEL-001) and the
   # customer-facing entity name are unchanged.
-  ventiq_module_sku: S360-BATH-B
+  # SENSE360-CANONICALISATION-001 PR 05: canonical board SKU per
+  # config/hardware-catalog.json. S360-BATH-B carried banned Base/Pro
+  # tier terminology ('BATH-B'); the board is S360-211 VentIQ.
+  ventiq_module_sku: S360-211
   ventiq_module_variant: bathroom_base
 
   # I2C Configuration

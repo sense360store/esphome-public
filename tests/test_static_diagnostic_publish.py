@@ -138,36 +138,43 @@ MODULE_STATUS_ENTITIES: Dict[str, Tuple[str, str, Optional[str]]] = {
 # Board identity entities: file -> (id, customer-facing name, board-specific
 # substitution key, its declared value). Names are pinned; the substitution
 # names are board-specific so a combined composition cannot cross-contaminate.
+#
+# SENSE360-CANONICALISATION-001 PR 05: the declared VALUES are now the
+# canonical board SKUs from config/hardware-catalog.json. They were legacy
+# variant terminology (S360-LED-C, S360-LED-V-C, S360-PRES-C, S360-AIR-C,
+# S360-BATH-B) which the SOT identity schema does not admit as board SKUs
+# (^S360-[0-9]{3}$). Updated in the same commit as the substitutions they
+# govern, so no window exists in which the guard does not cover them.
 BOARD_SKU_ENTITIES: Dict[str, Tuple[str, str, str, str]] = {
     "packages/boards/s360-300-led.yaml": (
         "s360_led_ring_sku",
         "${friendly_name} LED Ring SKU",
         "led_ring_sku",
-        "S360-LED-C",
+        "S360-300",
     ),
     "packages/boards/s360-300-led-mic-ceiling.yaml": (
         "s360_led_voice_ring_sku",
         "${friendly_name} LED Ring SKU",
         "led_voice_ring_sku",
-        "S360-LED-V-C",
+        "S360-300",
     ),
     "packages/boards/s360-200-roomiq-radar.yaml": (
         "s360_presence_module_sku",
         "${friendly_name} Presence Module SKU",
         "roomiq_presence_module_sku",
-        "S360-PRES-C",
+        "S360-200",
     ),
     "packages/boards/s360-210-airiq.yaml": (
         "s360_airiq_module_sku",
         "${friendly_name} AirIQ Module SKU",
         "airiq_module_sku",
-        "S360-AIR-C",
+        "S360-210",
     ),
     "packages/boards/s360-211-ventiq.yaml": (
         "s360_ventiq_module_sku",
         "${friendly_name} AirIQ Module SKU",
         "ventiq_module_sku",
-        "S360-BATH-B",
+        "S360-211",
     ),
 }
 

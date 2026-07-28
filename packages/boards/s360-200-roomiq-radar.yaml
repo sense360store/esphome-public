@@ -64,7 +64,10 @@ substitutions:
   # composition the later-declared package won and its SKU was rendered on
   # the OTHER board's entity. The values and the customer-facing entity name
   # are unchanged.
-  roomiq_presence_module_sku: S360-PRES-C
+  # SENSE360-CANONICALISATION-001 PR 05: canonical board SKU per
+  # config/hardware-catalog.json. S360-PRES-C was legacy variant
+  # terminology and is not a valid board SKU (^S360-[0-9]{3}$).
+  roomiq_presence_module_sku: S360-200
   roomiq_presence_module_variant: ceiling
 
   # UART Configuration — RoomIQ J10 Hi-Link radar UART.
