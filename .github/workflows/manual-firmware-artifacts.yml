@@ -162,7 +162,7 @@ jobs:
             - source:
                 type: local
                 path: ../components
-              components: [ld2412, ld2450, ld24xx]
+              components: [ld2412, ld2450, ld24xx, sense360, sense360_roomiq]
           EOF
           echo "Patched packages/base/external_components.yaml to local source."
 
