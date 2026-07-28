@@ -16,7 +16,7 @@ Contract sources: this doc describes; the contract is enforced by
 [`tests/test_led_framework.py`](../../tests/test_led_framework.py) and
 [`tests/unit/test_led_controller.cpp`](../../tests/unit/test_led_controller.cpp).
 Implementation:
-[`include/sense360/led_controller.h`](../../include/sense360/led_controller.h)
+[`components/sense360/led_controller.h`](../../components/sense360/led_controller.h)
 (controller engine, single implementation),
 [`packages/features/led_framework.yaml`](../../packages/features/led_framework.yaml)
 (customer/behaviour layer) and
@@ -141,7 +141,7 @@ Presence integration rules (LED-04):
 Darkness decision (LED-05):
 
 * Source (ROOMIQ-FRAMEWORK-001): the **canonical RoomIQ darkness
-  service** (`include/sense360/roomiq_engine.h`) — computed from the
+  service** (`components/sense360/roomiq_engine.h`) — computed from the
   CALIBRATED illuminance path over the compiled lux driver
   (`comfort_ceiling_illuminance`, LTR-303ALS-01 at I²C 0x29 via the built-in
   `ltr_als_ps` platform, publishing every 10 s), with freshness from real
@@ -184,7 +184,7 @@ The flags substitute into the engine as C++ bool literals
 (`controller.set_capabilities(${led_has_roomiq}, ${led_has_presence})`), so
 **no reference to an absent RoomIQ / Presence id is ever compiled**. The
 capability model itself lives in the shared, deterministically-tested engine
-(`include/sense360/led_controller.h`), not in YAML.
+(`components/sense360/led_controller.h`), not in YAML.
 
 ### Supported composition matrix
 

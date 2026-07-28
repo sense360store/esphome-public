@@ -1,5 +1,5 @@
 // PRESENCE-FRAMEWORK-001 — deterministic simulation tests for the tri-sensor
-// Presence fusion engine (include/sense360/presence_fusion.h).
+// Presence fusion engine (components/sense360/presence_fusion.h).
 //
 // This is the test-only simulation layer required by the accepted product
 // decisions: it feeds synthetic, timestamped sensor events into the SAME
@@ -16,7 +16,7 @@
 //
 // Compile via tests/Makefile (auto-discovered):  cd tests && make test
 
-#include "../../include/sense360/presence_fusion.h"
+#include "../../components/sense360/presence_fusion.h"
 
 #include <cassert>
 #include <cstdio>

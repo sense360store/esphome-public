@@ -3,19 +3,19 @@
 
 Proves that a clean Home Assistant-style ESPHome device configuration can
 consume the canonical Sense360 AirIQ board and framework through git packages
-and resolve the shared C++ engine header (``include/sense360/airiq_engine.h``)
+and resolve the shared C++ engine header (``components/sense360/airiq_engine.h``)
 *without* any ``/config/include`` setup, manual header download, or local copy.
 
 The defect
 ----------
 The framework packages compile their engine via ``esphome: includes:`` with a
 path relative to the ``products/`` config directory
-(``../include/sense360/<engine>.h``). ESPHome resolves that path against the
+(``../components/sense360/<engine>.h``). ESPHome resolves that path against the
 *consumer's* config directory, so a git-package consumer looks for
-``<config>/../include/sense360/...`` — a file the package never delivers — and
+``<config>/../components/sense360/...`` — a file the package never delivers — and
 validation fails with "Could not find file". The fix delivers the shared
 headers through the ``sense360`` external component
-(``include/sense360/__init__.py``) and removes the local include via the
+(``components/sense360/__init__.py``) and removes the local include via the
 remote-consumer wrapper packages under ``packages/remote/``.
 
 How this test avoids a false pass
@@ -67,10 +67,10 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-COMPONENT_INIT = REPO_ROOT / "include" / "sense360" / "__init__.py"
-CANONICAL_HEADER = REPO_ROOT / "include" / "sense360" / "airiq_engine.h"
-ROOMIQ_ENGINE_HEADER = REPO_ROOT / "include" / "sense360" / "roomiq_engine.h"
-PRESENCE_FUSION_HEADER = REPO_ROOT / "include" / "sense360" / "presence_fusion.h"
+COMPONENT_INIT = REPO_ROOT / "components" / "sense360" / "__init__.py"
+CANONICAL_HEADER = REPO_ROOT / "components" / "sense360" / "airiq_engine.h"
+ROOMIQ_ENGINE_HEADER = REPO_ROOT / "components" / "sense360" / "roomiq_engine.h"
+PRESENCE_FUSION_HEADER = REPO_ROOT / "components" / "sense360" / "presence_fusion.h"
 SHARED_ENGINES_PKG = REPO_ROOT / "packages" / "remote" / "sense360-shared-engines.yaml"
 AIRIQ_WRAPPER = REPO_ROOT / "packages" / "remote" / "ceiling-airiq.yaml"
 ROOMIQ_PRESENCE_WRAPPER = (
@@ -78,7 +78,7 @@ ROOMIQ_PRESENCE_WRAPPER = (
 )
 
 # Every shared header the sense360 component must deliver (one physical copy of
-# each lives in include/sense360/ — the same files the native C++ unit tests
+# each lives in components/sense360/ — the same files the native C++ unit tests
 # compile).
 EXPECTED_SHARED_HEADERS = {
     "airiq_engine.h",
@@ -512,7 +512,7 @@ class ExternalComponentStructureTests(unittest.TestCase):
     def test_component_init_exists(self) -> None:
         self.assertTrue(
             COMPONENT_INIT.is_file(),
-            "sense360 external component (include/sense360/__init__.py) missing",
+            "sense360 external component (components/sense360/__init__.py) missing",
         )
 
     def test_component_delivers_every_shared_header(self) -> None:
@@ -522,8 +522,8 @@ class ExternalComponentStructureTests(unittest.TestCase):
                 header, raw, f"{header} must be delivered by the sense360 component"
             )
             self.assertTrue(
-                (REPO_ROOT / "include" / "sense360" / header).is_file(),
-                f"canonical {header} must exist exactly once in include/sense360/",
+                (REPO_ROOT / "components" / "sense360" / header).is_file(),
+                f"canonical {header} must exist exactly once in components/sense360/",
             )
 
     def test_component_defines_config_only_schema(self) -> None:
@@ -545,7 +545,7 @@ class DeliveryPackageStructureTests(unittest.TestCase):
         self.assertTrue(ext, "shared-engines package must declare external_components")
         components = ext[0]["components"]
         self.assertIn("sense360", components)
-        self.assertEqual(ext[0]["source"]["path"], "include")
+        self.assertEqual(ext[0]["source"]["path"], "components")
         # Loads the delivery component and removes the local include.
         self.assertIn("sense360", self.shared)
         self.assertIn(
@@ -574,7 +574,7 @@ class DeliveryPackageStructureTests(unittest.TestCase):
             ext, "RoomIQ+Presence wrapper must declare external_components"
         )
         self.assertIn("sense360", ext[0]["components"])
-        self.assertEqual(ext[0]["source"]["path"], "include")
+        self.assertEqual(ext[0]["source"]["path"], "components")
         # Loads the delivery component so the shared engines are #included.
         self.assertIn("sense360", wrapper)
         # Declares the RoomIQ + Presence module slots for the Core Framework
@@ -639,7 +639,7 @@ class RepoLocalBuildsUnchangedTests(unittest.TestCase):
         ):
             raw = (REPO_ROOT / "packages" / "features" / framework).read_text()
             self.assertIn(
-                "../include/sense360/",
+                "../components/sense360/",
                 raw,
                 f"{framework} must keep its repository-local esphome.includes",
             )
@@ -661,7 +661,7 @@ class RemoteConfigValidationTests(unittest.TestCase):
         out = proc.stdout
         # The exact defect this programme fixes must be gone.
         self.assertNotIn(
-            "include/sense360/airiq_engine.h",
+            "components/sense360/airiq_engine.h",
             out,
             "the repository-local header path must not appear as an unresolved include",
         )
@@ -710,7 +710,7 @@ class LedFrameworkRemoteConfigTests(unittest.TestCase):
         # No repository-local header path may appear as an unresolved include.
         for header in ("led_controller.h", "roomiq_engine.h"):
             self.assertNotIn(
-                f"include/sense360/{header}'",
+                f"components/sense360/{header}'",
                 out,
                 f"{header} must not appear as an unresolved local include",
             )
@@ -752,7 +752,7 @@ class RoomIqPresenceRemoteConfigTests(unittest.TestCase):
         # include path — this is the exact defect the wrapper fixes.
         for header in ("roomiq_engine.h", "presence_fusion.h"):
             self.assertNotIn(
-                f"include/sense360/{header}'",
+                f"components/sense360/{header}'",
                 out,
                 f"{header} must not appear as an unresolved local include",
             )

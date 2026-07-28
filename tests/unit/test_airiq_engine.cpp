@@ -1,5 +1,5 @@
 // AIRIQ-FRAMEWORK-001 — deterministic simulation tests for the canonical
-// AirIQ indoor-air-quality engine (include/sense360/airiq_engine.h).
+// AirIQ indoor-air-quality engine (components/sense360/airiq_engine.h).
 //
 // This is the test-only simulation layer required by the accepted product
 // decisions: it feeds synthetic, timestamped pollutant samples into the SAME
@@ -26,7 +26,7 @@
 #include <cstring>
 #include <exception>
 
-#include "../../include/sense360/airiq_engine.h"
+#include "../../components/sense360/airiq_engine.h"
 
 using namespace sense360::airiq;
 

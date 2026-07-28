@@ -70,7 +70,7 @@ evaluation, so the output is safely off until the restored mode is evaluated.
 ## Behaviour engine
 
 The behaviour logic lives in the header-only engine
-[`include/sense360/blower_controller.h`](../../include/sense360/blower_controller.h)
+[`components/sense360/blower_controller.h`](../../components/sense360/blower_controller.h)
 — the **same** implementation compiled into production firmware (via
 `esphome: includes:` in
 [`packages/features/blower_framework.yaml`](../../packages/features/blower_framework.yaml))
@@ -113,7 +113,7 @@ is simply unfed and its recommendation stays *Sensor initialising* →
 ### Demand mapping
 
 The AirIQ `Recommendation` (a stable enum, single-sourced in
-[`include/sense360/airiq_engine.h`](../../include/sense360/airiq_engine.h)) maps
+[`components/sense360/airiq_engine.h`](../../components/sense360/airiq_engine.h)) maps
 to a blower `Demand`:
 
 | AirIQ recommendation | Blower demand | Auto (Trigger = now) | Auto (Trigger = soon) |
@@ -176,7 +176,7 @@ remainder of `packages/remote/` — internal and removable. Migration note: no
 consumer existed to migrate; a remote consumer wanting the blower surface
 composes `packages/features/blower_framework.yaml` directly with the
 `sense360` external component
-([`include/sense360/__init__.py`](../../include/sense360/__init__.py)),
+([`components/sense360/__init__.py`](../../components/sense360/__init__.py)),
 until PR 12 decides the Blower surface as a whole.
 
 ## Gate posture and honesty limits

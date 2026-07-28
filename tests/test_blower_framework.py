@@ -11,11 +11,11 @@ tach / current / airflow / rotation feedback.
 Contract highlights enforced here:
 
 * The behaviour logic is a single header-only implementation
-  (``include/sense360/blower_controller.h``) shared by production YAML and the
+  (``components/sense360/blower_controller.h``) shared by production YAML and the
   deterministic simulation tests (``tests/unit/test_blower_controller.cpp`` and
   ``tests/unit/test_blower_airiq_coexist.cpp``) — no second implementation that
   can drift. It is delivered to remote consumers via the ``sense360`` external
-  component (registered in ``include/sense360/__init__.py``).
+  component (registered in ``components/sense360/__init__.py``).
 * AirIQ is an OPTIONAL input read through the shared engine singleton
   ``sense360::airiq::global_engine().recommendation()`` — never a hard ``id()``
   to an AirIQ entity, and pollutant thresholds are never duplicated. The
@@ -64,13 +64,13 @@ FRAMEWORK_PACKAGE = REPO_ROOT / "packages" / "features" / "blower_framework.yaml
 # no-external-customers fact. The blower FRAMEWORK package itself stays until
 # PR 12 decides the Blower surface.
 FIXTURE = REPO_ROOT / "products" / "sense360-core-ceiling-airiq-blower.yaml"
-HEADER = REPO_ROOT / "include" / "sense360" / "blower_controller.h"
-AIRIQ_HEADER = REPO_ROOT / "include" / "sense360" / "airiq_engine.h"
+HEADER = REPO_ROOT / "components" / "sense360" / "blower_controller.h"
+AIRIQ_HEADER = REPO_ROOT / "components" / "sense360" / "airiq_engine.h"
 CPP_TEST = REPO_ROOT / "tests" / "unit" / "test_blower_controller.cpp"
 CPP_COEXIST = REPO_ROOT / "tests" / "unit" / "test_blower_airiq_coexist.cpp"
 DOC = REPO_ROOT / "docs" / "architecture" / "sense360-blower-framework.md"
 CHECKLIST = REPO_ROOT / "docs" / "hardware" / "blower-framework-bench-checklist.md"
-INIT_PY = REPO_ROOT / "include" / "sense360" / "__init__.py"
+INIT_PY = REPO_ROOT / "components" / "sense360" / "__init__.py"
 
 PRODUCT_CATALOG = REPO_ROOT / "config" / "product-catalog.json"
 COMPILE_ONLY_TARGETS = REPO_ROOT / "config" / "compile-only-targets.json"
@@ -182,7 +182,7 @@ class EngineHeaderTests(unittest.TestCase):
         self.assertIn(
             '"blower_controller.h"',
             init,
-            "blower_controller.h must be registered in include/sense360/__init__.py "
+            "blower_controller.h must be registered in components/sense360/__init__.py "
             "SHARED_HEADERS so remote consumers receive it",
         )
 

@@ -7,7 +7,7 @@
 # VentIQ board, built by CONSUMING the platform's canonical services:
 #
 #   * Pollutant truth — an embedded canonical AirIQ engine
-#     (include/sense360/airiq_engine.h) classifies the board's SGP41
+#     (components/sense360/airiq_engine.h) classifies the board's SGP41
 #     VOC/NOx indices. NO pollutant threshold is duplicated here: the
 #     AirIQ engine defaults ARE the values, and the odour signal is the
 #     canonical Fair boundary (VOC index 150 — exactly the legacy VentIQ
@@ -34,7 +34,7 @@
 # default.
 #
 # The ventilation model is the header-only engine
-# include/sense360/ventiq_engine.h — the SAME implementation exercised by
+# components/sense360/ventiq_engine.h — the SAME implementation exercised by
 # the deterministic simulation tests (tests/unit/test_ventiq_engine.cpp),
 # so tested logic and shipped logic cannot drift. The contract is pinned
 # by tests/test_ventiq_framework.py.
@@ -143,8 +143,8 @@ substitutions:
 # engine header).
 esphome:
   includes:
-    - ../include/sense360/airiq_engine.h
-    - ../include/sense360/ventiq_engine.h
+    - ../components/sense360/airiq_engine.h
+    - ../components/sense360/ventiq_engine.h
   on_boot:
     # Compile-time strings (expected-channel membership and the honesty
     # companion): never polled, so they are published once at boot

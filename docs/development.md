@@ -246,7 +246,7 @@ substitutions:
 esphome:
   name: ${device_name}
   includes:
-    - ../../include/sense360/new_feature.h
+    - ../../components/sense360/new_feature.h
 
 esp32:
   board: esp32-s3-devkitc-1

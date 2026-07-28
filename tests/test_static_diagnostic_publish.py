@@ -773,7 +773,7 @@ class RuntimeModuleStatusTests(unittest.TestCase):
 
     def test_presence_runtime_vocabulary_can_replace_the_seed(self) -> None:
         """Available / Degraded / Unavailable / Fault stay reachable."""
-        fusion = (REPO_ROOT / "include/sense360/presence_fusion.h").read_text()
+        fusion = (REPO_ROOT / "components/sense360/presence_fusion.h").read_text()
         for value in ("Available", "Degraded", "Unavailable", "Fault"):
             self.assertIn(f'"{value}"', fusion, f"{value} is not reachable")
 

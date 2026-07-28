@@ -58,7 +58,7 @@ If you touched product or package YAML, also validate the resolved config
 esphome config products/sense360-ceiling-poe-ventiq-roomiq.yaml
 ```
 
-If you touched the extracted C++ headers under `include/sense360/`:
+If you touched the extracted C++ headers under `components/sense360/`:
 
 ```bash
 cd tests && make test

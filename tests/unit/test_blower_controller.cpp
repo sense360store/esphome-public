@@ -1,5 +1,5 @@
 // BLOWER-FRAMEWORK-001 — deterministic simulation tests for the canonical
-// blower controller (include/sense360/blower_controller.h).
+// blower controller (components/sense360/blower_controller.h).
 //
 // This is the test-only simulation layer: it feeds synthetic, timestamped mode
 // / demand inputs into the SAME header-only controller the production YAML
@@ -16,7 +16,7 @@
 //
 // Compile via tests/Makefile (auto-discovered):  cd tests && make test
 
-#include "../../include/sense360/blower_controller.h"
+#include "../../components/sense360/blower_controller.h"
 
 #include <cassert>
 #include <cstdio>

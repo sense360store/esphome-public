@@ -1,4 +1,4 @@
-#include "../../include/sense360/calibration.h"
+#include "../../components/sense360/calibration.h"
 #include <cassert>
 #include <cmath>
 #include <iostream>

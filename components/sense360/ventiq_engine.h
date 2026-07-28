@@ -26,7 +26,7 @@
 //
 // What it deliberately does NOT own (consumed, never duplicated):
 //   * Pollutant severity. VOC/NOx classification comes from an EMBEDDED
-//     canonical AirIQ engine (include/sense360/airiq_engine.h — the
+//     canonical AirIQ engine (components/sense360/airiq_engine.h — the
 //     platform's single source of pollutant truth). No VOC/NOx band
 //     value is re-declared here; the AirIQ defaults are the values.
 //     The odour signal is defined as "VOC or NOx at Fair or worse" —

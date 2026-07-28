@@ -76,8 +76,8 @@ BOARD_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-210-airiq.yaml"
 SPS30_OVERLAY = REPO_ROOT / "packages" / "boards" / "s360-210-airiq-sps30.yaml"
 SFA40_COMPONENT = REPO_ROOT / "components" / "sfa40"
 MICS_COMPONENT = REPO_ROOT / "components" / "mics_stm8"
-HEADER = REPO_ROOT / "include" / "sense360" / "airiq_engine.h"
-ROOMIQ_HEADER = REPO_ROOT / "include" / "sense360" / "roomiq_engine.h"
+HEADER = REPO_ROOT / "components" / "sense360" / "airiq_engine.h"
+ROOMIQ_HEADER = REPO_ROOT / "components" / "sense360" / "roomiq_engine.h"
 CPP_TEST = REPO_ROOT / "tests" / "unit" / "test_airiq_engine.cpp"
 DOC = REPO_ROOT / "docs" / "architecture" / "sense360-airiq-framework.md"
 CHECKLIST = REPO_ROOT / "docs" / "hardware" / "airiq-framework-bench-checklist.md"
@@ -608,7 +608,7 @@ class FrameworkMechanicsTests(unittest.TestCase):
         self.raw = FRAMEWORK_PACKAGE.read_text()
 
     def test_framework_uses_the_shared_header(self) -> None:
-        self.assertIn("../include/sense360/airiq_engine.h", self.raw)
+        self.assertIn("../components/sense360/airiq_engine.h", self.raw)
 
     def test_freshness_comes_from_update_callbacks(self) -> None:
         # Real value-update callbacks are the freshness signal. The PCB
@@ -770,7 +770,7 @@ class SimulationTests(unittest.TestCase):
         if not CPP_TEST.is_file():
             self.skipTest("cpp test not implemented yet")
         raw = CPP_TEST.read_text()
-        self.assertIn('#include "../../include/sense360/airiq_engine.h"', raw)
+        self.assertIn('#include "../../components/sense360/airiq_engine.h"', raw)
 
 
 # --- Bundle wiring -------------------------------------------------------------------

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "description": "Canonical manifest of the ESPHome external components vendored in components/ (SENSE360-CANONICALISATION-001 PR 08). Every directory under components/ must have a row here and every row must have a directory; tests/test_external_components.py enforces both directions plus the rules block. Provenance records what the tree and its recorded comments prove - nothing here is hardware, bench or compliance evidence.",
+  "source_of_truth": {
+    "board_skus": "config/hardware-catalog.json",
+    "radar_provenance_comments": "packages/base/external_components.yaml",
+    "architecture": "docs/architecture/sense360-external-components.md"
+  },
+  "rules": {
+    "never_fork_upstream_for_product_behaviour": "Sense360 product behaviour lives in the sense360 component's shared engines and the PR 09..12 domain components, never in a forked copy of an upstream sensor driver. Raw sensor communication uses built-in ESPHome drivers wherever one exists; a vendored driver directory is permitted only with a provenance row here and a named disposition_owner.",
+    "foundation_declares_no_hardware_io": "The sense360 component is logic-and-schema only: no I2C/UART/SPI device driver code, no entities, no pins, no buses, no platforms. Enforced by tests/test_external_components.py.",
+    "delivery_path_is_components_only": "The former include/sense360/ delivery-only component (REMOTE-PACKAGE-HEADER-RESOLUTION-001) was replaced by components/sense360/ in PR 08 and must not return."
+  },
+  "components": {
+    "sense360": {
+      "role": "foundation",
+      "origin": "sense360-original",
+      "provenance": "Introduced by SENSE360-CANONICALISATION-001 PR 08; subsumes the include/sense360/ delivery hack. Ships the canonical header-only logic engines exercised by tests/unit/ and the identity schema foundation.",
+      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-08 (this manifest)"
+    },
+    "ld2412": {
+      "role": "radar-driver",
+      "origin": "vendored-upstream",
+      "provenance": "Recorded in packages/base/external_components.yaml: modified for ESPHome 2025.3.0 compatibility. HLK-LD2412 24GHz mmWave radar.",
+      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-10 (Migrate Presence)"
+    },
+    "ld2450": {
+      "role": "radar-driver",
+      "origin": "vendored-upstream",
+      "provenance": "Recorded in packages/base/external_components.yaml: sourced from the ESPHome 2025.3.0 release. HLK-LD2450 24GHz mmWave radar.",
+      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-10 (Migrate Presence)"
+    },
+    "ld24xx": {
+      "role": "radar-driver-base",
+      "origin": "vendored-upstream",
+      "provenance": "Shared base for the LD24xx radar family, vendored alongside ld2412/ld2450 (packages/base/external_components.yaml).",
+      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-10 (Migrate Presence)"
+    },
+    "mics_stm8": {
+      "role": "sensor-driver",
+      "origin": "sense360-original",
+      "provenance": "MiCS-4514 gas sensor read through the on-board STM8 bridge (S360-210 AirIQ). No built-in ESPHome driver exists for this bridge path.",
+      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-11 (Migrate AirIQ and VentIQ)"
+    },
+    "sfa40": {
+      "role": "sensor-driver",
+      "origin": "sense360-original",
+      "provenance": "Sensirion SFA40 HCHO module driver. The SFA40 fitment question stays owner-reserved (OD-SOT-008) and is not resolved by this manifest.",
+      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-11 (Migrate AirIQ and VentIQ); OD-SOT-008 stays open"
+    }
+  }
+}

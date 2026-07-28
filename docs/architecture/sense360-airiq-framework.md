@@ -4,7 +4,7 @@ Canonical local indoor-air-quality service for the S360-210 AirIQ board:
 honest individual pollutant measurements, ONE headline **Air Quality**
 state, ONE customer **Recommendation**, independent per-sensor warm-up and
 freshness, and the AirIQ module runtime status — produced by one shared
-engine ([`include/sense360/airiq_engine.h`](../../include/sense360/airiq_engine.h))
+engine ([`components/sense360/airiq_engine.h`](../../components/sense360/airiq_engine.h))
 that is compiled into production firmware
 ([`packages/features/airiq_framework.yaml`](../../packages/features/airiq_framework.yaml))
 and into the deterministic simulation tests

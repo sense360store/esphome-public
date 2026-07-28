@@ -20,7 +20,7 @@ Contract highlights enforced here:
   default; LD2450 per-target coordinates keep stable IDs for future
   Sense360Zones consumption.
 * The fusion logic is a single header-only implementation
-  (``include/sense360/presence_fusion.h``) shared by production YAML and the
+  (``components/sense360/presence_fusion.h``) shared by production YAML and the
   deterministic simulation tests (``tests/unit/test_presence_fusion.cpp``) —
   no second implementation that can drift.
 * Fail-safe clear rules: stale/unavailable data is unknown (never clear);
@@ -60,7 +60,7 @@ REMOTE_PRESENCE = REPO_ROOT / "packages" / "remote" / "ceiling-roomiq-presence.y
 # lives in the SKU-aligned board package (moved verbatim from
 # packages/hardware/sense360_core_ceiling.yaml).
 CORE_CEILING = REPO_ROOT / "packages" / "boards" / "s360-100-core-ceiling.yaml"
-HEADER = REPO_ROOT / "include" / "sense360" / "presence_fusion.h"
+HEADER = REPO_ROOT / "components" / "sense360" / "presence_fusion.h"
 CPP_TEST = REPO_ROOT / "tests" / "unit" / "test_presence_fusion.cpp"
 DOC = REPO_ROOT / "docs" / "architecture" / "sense360-presence-framework.md"
 CHECKLIST = REPO_ROOT / "docs" / "hardware" / "presence-framework-bench-checklist.md"
@@ -317,7 +317,7 @@ class CustomerEntityContractTests(unittest.TestCase):
     def test_fusion_uses_the_shared_header(self) -> None:
         # Single implementation: the production YAML includes the same
         # header the simulation tests exercise.
-        self.assertIn("include/sense360/presence_fusion.h", self.raw)
+        self.assertIn("components/sense360/presence_fusion.h", self.raw)
 
 
 # --- Sensor adapters -----------------------------------------------------------
@@ -784,7 +784,7 @@ class CompileLaneTests(unittest.TestCase):
         for needed in (
             "packages/boards/**",
             "packages/features/**",
-            "include/sense360/**",
+            "components/sense360/**",
             "tests/unit/**",
             "tests/test_presence_framework.py",
         ):

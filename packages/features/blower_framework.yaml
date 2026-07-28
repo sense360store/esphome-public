@@ -72,7 +72,7 @@
 # so its recommendation stays "Sensor initialising" -> UNKNOWN demand.
 #
 # The blower behaviour is implemented in the header-only engine
-# include/sense360/blower_controller.h — the SAME implementation exercised by
+# components/sense360/blower_controller.h — the SAME implementation exercised by
 # the deterministic simulation tests (tests/unit/test_blower_controller.cpp and
 # tests/unit/test_blower_airiq_coexist.cpp), so tested logic and shipped logic
 # cannot drift. The contract is pinned by tests/test_blower_framework.py.
@@ -123,8 +123,8 @@ substitutions:
 # packages/features/led_framework.yaml.
 esphome:
   includes:
-    - ../include/sense360/blower_controller.h
-    - ../include/sense360/airiq_engine.h
+    - ../components/sense360/blower_controller.h
+    - ../components/sense360/airiq_engine.h
   on_boot:
     # Publish the static "Blower Output Verification" string once at boot
     # (that text sensor uses update_interval: never, so it is not polled).

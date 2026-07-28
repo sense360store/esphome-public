@@ -14,9 +14,9 @@ AirIQ / Zones later) consume.
 Related contracts:
 
 * Entity / behaviour contract test: `tests/test_roomiq_framework.py`
-* Shared engine (single implementation): `include/sense360/roomiq_engine.h`
+* Shared engine (single implementation): `components/sense360/roomiq_engine.h`
 * Climate compensation model (single implementation):
-  `include/sense360/roomiq_climate_compensation.h`
+  `components/sense360/roomiq_climate_compensation.h`
 * Deterministic simulation: `tests/unit/test_roomiq_engine.cpp`,
   `tests/unit/test_roomiq_climate_compensation.cpp`
 * Compensation contract test: `tests/test_roomiq_climate_compensation.py`
@@ -143,7 +143,7 @@ This section is the **authoritative description** of the S360-200 R4
 temperature / humidity model (S360-200-R4-CLIMATE-COMPENSATION-001). It is not
 restated in `CLAUDE.md`, in the standing invariants, or in any product YAML;
 the executable single source is
-`include/sense360/roomiq_climate_compensation.h`.
+`components/sense360/roomiq_climate_compensation.h`.
 
 ### 3.1 Built-in board compensation
 

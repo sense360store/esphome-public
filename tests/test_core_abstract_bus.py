@@ -125,18 +125,17 @@ SENSE360_CORE_MAPPING = (
 # `packages/hardware/led_ring_ceiling.yaml` (now a thin alias) into the
 # SKU-aligned board package; the GPIO38 content-assertion travels with it.
 LED_RING_CEILING_PACKAGE = REPO_ROOT / "packages" / "boards" / "s360-300-led.yaml"
-# PACKAGE-RENAME-002 (docs/arch-board-bundle-plan.md §5.5): the authoritative,
-# self-contained AirIQ Ceiling-S3 definition (incl. `airiq_status_led_pin:
-# GPIO7` and the `i2c_primary` bus binding) moved from
-# `packages/expansions/airiq_ceiling_s3.yaml` (now a thin alias) into the
-# SKU-aligned board overlay below; the GPIO7 / GPIO8 content-assertions travel
-# with it.
-AIRIQ_CEILING_S3_PACKAGE = (
-    REPO_ROOT / "packages" / "boards" / "s360-210-airiq-ceiling-s3.yaml"
-)
-SENSE360_CORE_CEILING_S3 = (
-    REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling_s3.yaml"
-)
+# SENSE360-CANONICALISATION-001 PR 08 retired the S3 lineage wholesale, as
+# the PR 07 binding row recorded: packages/boards/s360-210-airiq-ceiling-s3.yaml
+# (the PACKAGE-RENAME-002 overlay carrying `airiq_status_led_pin: GPIO7` and
+# the out-of-scope `i2c_primary` binding) and
+# packages/hardware/sense360_core_ceiling_s3.yaml are deleted with zero live
+# composers (tests/test_zero_alias.py pins the deletion). The former
+# AIRIQ_CEILING_S3_PACKAGE / SENSE360_CORE_CEILING_S3 constants and their
+# S3-only content guards (GPIO7 / GPIO8 where-defined, i2c_primary retention
+# per operator decision #10) are dropped because the files they asserted on
+# no longer exist; the operator-decision-#10 scope protection is moot once
+# the protected lineage is gone.
 
 PACKAGES_DIR = REPO_ROOT / "packages"
 
@@ -432,41 +431,30 @@ class FanStatusLedPinTests(unittest.TestCase):
 
 
 class AirIQLedClassificationTests(unittest.TestCase):
-    """AirIQ LED lines (GPIO7, GPIO8) stay AirIQ-only."""
+    """AirIQ LED lines (GPIO7, GPIO8) stay AirIQ-only.
 
-    def test_airiq_status_led_pin_is_gpio7_where_defined(self) -> None:
-        for path in [AIRIQ_CEILING_S3_PACKAGE, SENSE360_CORE_CEILING_S3]:
-            if not path.is_file():
-                continue
-            value = _substitution_value(path.read_text(), "airiq_status_led_pin")
-            if value is None:
-                continue
-            with self.subTest(package=path.name):
-                self.assertEqual(
-                    value,
-                    "GPIO7",
-                    f"airiq_status_led_pin must be GPIO7 (schematic "
-                    f"IO7 = AirQ_Status_Led, AirIQ J9 indicator) in "
-                    f"{path.name}.",
-                )
+    The where-defined value guards over the S3 lineage were dropped with
+    the PR 08 S3 retirement (see the constants tombstone above). What
+    remains enforceable without the S3 files is the classification rule
+    itself: no surviving package may bind the AirIQ J9 indicator lines to
+    anything but their schematic values.
+    """
 
-    def test_airiq_led_pin_is_gpio8_if_defined(self) -> None:
-        # airiq_led_pin is currently only present as a commented hint in
-        # sense360_core_ceiling_s3.yaml. If any package activates it,
-        # the value must be GPIO8 (schematic IO8 = AirQ_Led).
-        for path in [AIRIQ_CEILING_S3_PACKAGE, SENSE360_CORE_CEILING_S3]:
-            if not path.is_file():
-                continue
-            value = _substitution_value(path.read_text(), "airiq_led_pin")
-            if value is None:
-                continue
-            with self.subTest(package=path.name):
-                self.assertEqual(
-                    value,
-                    "GPIO8",
-                    f"airiq_led_pin must be GPIO8 (schematic IO8 = "
-                    f"AirQ_Led, AirIQ J9 indicator) in {path.name}.",
-                )
+    def test_airiq_led_pins_keep_schematic_values_everywhere(self) -> None:
+        expected = {"airiq_status_led_pin": "GPIO7", "airiq_led_pin": "GPIO8"}
+        for yaml_path in PACKAGES_DIR.rglob("*.yaml"):
+            text = yaml_path.read_text()
+            for name, pin in expected.items():
+                value = _substitution_value(text, name)
+                if value is None:
+                    continue
+                with self.subTest(package=yaml_path.name, substitution=name):
+                    self.assertEqual(
+                        value,
+                        pin,
+                        f"{name} must stay {pin} (schematic AirQ LED nets "
+                        f"per S360-100-R4) in {yaml_path.name}.",
+                    )
 
 
 class VentIQNoCoreDrivenLedTests(unittest.TestCase):
@@ -683,8 +671,9 @@ SHARED_I2C_BUS_PACKAGES = [
 # Expansion-package consumers whose ``*_i2c_id`` substitution default is
 # rebound to ``core_i2c`` by CORE-ABSTRACT-BUS-001B. Each tuple records the
 # package path and the substitution name. The two S3-variant consumers
-# (``airiq_ceiling_s3.yaml``, ``comfort_ceiling_s3.yaml``) are deliberately
-# out of scope. (The Mini helper was removed by PRODUCT-DEP-MINI-001.)
+# (``airiq_ceiling_s3.yaml``, ``comfort_ceiling_s3.yaml``) were deliberately
+# out of scope and are now deleted (PR 07 zero-alias / PR 08 S3 retirement).
+# (The Mini helper was removed by PRODUCT-DEP-MINI-001.)
 SHARED_I2C_CONSUMER_DEFAULTS = [
     # PACKAGE-RENAME-002 (docs/arch-board-bundle-plan.md §5.5): the
     # authoritative ceiling AirIQ definition (incl. its
@@ -1030,43 +1019,27 @@ class SharedI2CBusTests(unittest.TestCase):
             "CORE-ABSTRACT-BUS-001B.",
         )
 
-    def test_out_of_scope_ceiling_s3_keeps_i2c_primary(self) -> None:
-        # The S3 ceiling Core variant has a different board lineage and
-        # keeps `i2c_primary` on GPIO17/GPIO18. A future 001B sweep must
-        # not silently fold it into the Core namespace.
-        text = SENSE360_CORE_CEILING_S3.read_text()
-        fields = _find_i2c_bus_block(text, "i2c_primary")
-        self.assertIsNotNone(
-            fields,
-            "sense360_core_ceiling_s3.yaml must retain its `i2c_primary` "
-            "bus definition (out-of-scope for CORE-ABSTRACT-BUS-001B per "
-            "operator decision #10).",
-        )
-
     # PRODUCT-DEP-MINI-001 removed the Mini product range and its Mini-only
     # packages (sense360_core_mini.yaml, mini_onboard_sensors.yaml). The
     # former ``test_out_of_scope_mini_keeps_i2c0`` guard is dropped because
-    # the file it asserted on no longer exists.
+    # the file it asserted on no longer exists. Likewise the former
+    # ``test_out_of_scope_ceiling_s3_keeps_i2c_primary`` guard: the S3
+    # lineage it protected (operator decision #10 scope exclusion) was
+    # retired wholesale by SENSE360-CANONICALISATION-001 PR 08, so the
+    # retention it asserted has no subject; the legacy-bus sweep below now
+    # runs with an EMPTY allow-list, which is strictly stronger.
 
     def test_no_legacy_bus_id_in_any_active_consumer_line(self) -> None:
         # Sweep every package YAML under `packages/` for active
-        # ``i2c_id: <legacy>`` lines. The two out-of-scope S3 expansion
-        # packages (airiq_ceiling_s3.yaml, comfort_ceiling_s3.yaml) are
-        # allowed to keep ``i2c_primary``. (The Mini-family helpers were
-        # removed by PRODUCT-DEP-MINI-001 and are no longer on disk.) Every
-        # other active reference to a legacy id is a regression.
-        #
-        # PACKAGE-RENAME-002 (§3.3/§5.5): the AirIQ Ceiling-S3 source of truth
-        # moved into `packages/boards/s360-210-airiq-ceiling-s3.yaml` (the
-        # legacy `airiq_ceiling_s3.yaml` is now a thin alias). The board overlay
-        # carries the same out-of-scope `i2c_primary` binding, so it joins the
-        # allow-list alongside the alias.
-        out_of_scope_paths = {
-            REPO_ROOT / "packages" / "expansions" / "airiq_ceiling_s3.yaml",
-            REPO_ROOT / "packages" / "boards" / "s360-210-airiq-ceiling-s3.yaml",
-            REPO_ROOT / "packages" / "expansions" / "comfort_ceiling_s3.yaml",
-            REPO_ROOT / "packages" / "hardware" / "sense360_core_ceiling_s3.yaml",
-        }
+        # ``i2c_id: <legacy>`` lines. Every active reference to a legacy id
+        # is a regression. The allow-list is EMPTY since
+        # SENSE360-CANONICALISATION-001 PR 07/08: the formerly out-of-scope
+        # S3 lineage (airiq_ceiling_s3.yaml / comfort_ceiling_s3.yaml
+        # aliases, the s360-210-airiq-ceiling-s3.yaml overlay and
+        # sense360_core_ceiling_s3.yaml) is deleted, so no package may bind
+        # ``i2c_primary`` at all. (The Mini-family helpers were removed by
+        # PRODUCT-DEP-MINI-001.)
+        out_of_scope_paths = set()
         for yaml_path in PACKAGES_DIR.rglob("*.yaml"):
             if yaml_path in out_of_scope_paths:
                 continue

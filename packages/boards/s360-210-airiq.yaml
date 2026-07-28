@@ -51,7 +51,8 @@
 # surface) and, only when a device declares an attached SPS30, the opt-in
 # overlay packages/boards/s360-210-airiq-sps30.yaml.
 #
-# The S3-lineage variant is the thin overlay s360-210-airiq-ceiling-s3.yaml.
+# The S3-lineage overlay (s360-210-airiq-ceiling-s3.yaml) was retired
+# wholesale by SENSE360-CANONICALISATION-001 PR 08 (zero live composers).
 # The legacy alias packages/expansions/airiq_ceiling.yaml `!include`s this
 # package.
 #

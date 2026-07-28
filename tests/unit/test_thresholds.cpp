@@ -1,4 +1,4 @@
-#include "../../include/sense360/thresholds.h"
+#include "../../components/sense360/thresholds.h"
 #include <cassert>
 #include <cmath>
 #include <iostream>

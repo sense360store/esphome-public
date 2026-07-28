@@ -11,7 +11,7 @@ The test suite extracts complex lambda functions into reusable C++ header files 
 
 ## Header Files
 
-Located in `include/sense360/`:
+Located in `components/sense360/`:
 - `led_logic.h` - LED color mapping, brightness scaling, level computation
 - `calibration.h` - SHT30 calibration logic
 - `thresholds.h` - Air quality threshold classification
@@ -29,8 +29,8 @@ When using remote packages, include headers directly from GitHub:
 esphome:
   name: my-device
   includes:
-    - github://sense360store/esphome-public/include/sense360/led_logic.h@v2.0.0
-    - github://sense360store/esphome-public/include/sense360/thresholds.h@v2.0.0
+    - github://sense360store/esphome-public/components/sense360/led_logic.h@v2.0.0
+    - github://sense360store/esphome-public/components/sense360/thresholds.h@v2.0.0
 
 packages:
   sense360_firmware:
@@ -57,8 +57,8 @@ For local development or testing, use relative paths:
 esphome:
   name: my-device
   includes:
-    - include/sense360/led_logic.h
-    - include/sense360/thresholds.h
+    - components/sense360/led_logic.h
+    - components/sense360/thresholds.h
 ```
 
 ### 2. Use Functions in Lambda Expressions

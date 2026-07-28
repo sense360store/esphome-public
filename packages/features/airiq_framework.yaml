@@ -22,7 +22,7 @@
 # decision) — one severe pollutant is never averaged away.
 #
 # The air-quality model is the header-only engine
-# include/sense360/airiq_engine.h — the SAME implementation exercised by
+# components/sense360/airiq_engine.h — the SAME implementation exercised by
 # the deterministic simulation tests (tests/unit/test_airiq_engine.cpp),
 # so tested logic and shipped logic cannot drift. The contract is pinned
 # by tests/test_airiq_framework.py.
@@ -189,7 +189,7 @@ substitutions:
 # packages/features/roomiq_framework.yaml.
 esphome:
   includes:
-    - ../include/sense360/airiq_engine.h
+    - ../components/sense360/airiq_engine.h
   on_boot:
     # Compile-time strings (expected-sensor membership and the honesty
     # companion): never polled, so they are published once at boot

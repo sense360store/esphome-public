@@ -17,7 +17,7 @@ Contract sources: this doc describes; the machine-readable wiring lives in
 [`tests/test_presence_framework.py`](../../tests/test_presence_framework.py)
 and [`tests/unit/test_presence_fusion.cpp`](../../tests/unit/test_presence_fusion.cpp).
 Implementation:
-[`include/sense360/presence_fusion.h`](../../include/sense360/presence_fusion.h)
+[`components/sense360/presence_fusion.h`](../../components/sense360/presence_fusion.h)
 (fusion engine, single implementation),
 [`packages/features/presence_framework.yaml`](../../packages/features/presence_framework.yaml)
 (fusion/customer/health layer) and the three sensor adapters
@@ -114,7 +114,7 @@ customer-clarity alternative is chosen and documented here.
 ## Fusion behaviour (PD-01 / PD-03) — fail-safe rules
 
 Implemented in
-[`include/sense360/presence_fusion.h`](../../include/sense360/presence_fusion.h)
+[`components/sense360/presence_fusion.h`](../../components/sense360/presence_fusion.h)
 (the same code the simulation tests exercise; no second implementation):
 
 * **Any valid sensor asserts occupancy**: a PIR edge (after PIR warm-up), a

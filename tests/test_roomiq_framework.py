@@ -24,7 +24,7 @@ Contract highlights enforced here:
   canonical values has its own contract test
   (``tests/test_roomiq_climate_compensation.py``).
 * The behaviour logic is a single header-only implementation
-  (``include/sense360/roomiq_engine.h``) shared by production YAML and the
+  (``components/sense360/roomiq_engine.h``) shared by production YAML and the
   deterministic simulation tests (``tests/unit/test_roomiq_engine.cpp``) —
   no second implementation that can drift.
 * Honesty: stale or missing sensor data is never interpreted as a real
@@ -58,8 +58,8 @@ FRAMEWORK_PACKAGE = REPO_ROOT / "packages" / "features" / "roomiq_framework.yaml
 LEGACY_PROFILE = REPO_ROOT / "packages" / "features" / "comfort_basic_profile.yaml"
 CLIMATE_BOARD = REPO_ROOT / "packages" / "boards" / "s360-200-roomiq-climate.yaml"
 LED_FRAMEWORK = REPO_ROOT / "packages" / "features" / "led_framework.yaml"
-HEADER = REPO_ROOT / "include" / "sense360" / "roomiq_engine.h"
-LED_HEADER = REPO_ROOT / "include" / "sense360" / "led_controller.h"
+HEADER = REPO_ROOT / "components" / "sense360" / "roomiq_engine.h"
+LED_HEADER = REPO_ROOT / "components" / "sense360" / "led_controller.h"
 CPP_TEST = REPO_ROOT / "tests" / "unit" / "test_roomiq_engine.cpp"
 DOC = REPO_ROOT / "docs" / "architecture" / "sense360-roomiq-framework.md"
 CHECKLIST = REPO_ROOT / "docs" / "hardware" / "roomiq-framework-bench-checklist.md"
@@ -452,7 +452,7 @@ class CustomerEntityContractTests(unittest.TestCase):
             self.assertEqual(entity.get("source_id"), source, entity_id)
 
     def test_framework_uses_the_shared_header(self) -> None:
-        self.assertIn("include/sense360/roomiq_engine.h", self.raw)
+        self.assertIn("components/sense360/roomiq_engine.h", self.raw)
 
     def test_freshness_comes_from_update_callbacks(self) -> None:
         # Freshness must come from real sensor update callbacks, never from
@@ -839,7 +839,7 @@ class CompileLaneTests(unittest.TestCase):
         for needed in (
             "packages/boards/**",
             "packages/features/**",
-            "include/sense360/**",
+            "components/sense360/**",
             "tests/unit/**",
             "tests/test_roomiq_framework.py",
         ):

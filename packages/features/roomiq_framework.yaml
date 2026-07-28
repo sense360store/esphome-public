@@ -18,7 +18,7 @@
 # a disabled-by-default compatibility entity).
 #
 # The environmental model is the header-only engine
-# include/sense360/roomiq_engine.h — the SAME implementation exercised by
+# components/sense360/roomiq_engine.h — the SAME implementation exercised by
 # the deterministic simulation tests (tests/unit/test_roomiq_engine.cpp),
 # so tested logic and shipped logic cannot drift. The contract is pinned by
 # tests/test_roomiq_framework.py.
@@ -27,7 +27,7 @@
 # Temperature and Humidity entities are FULLY COMPENSATED. The built-in,
 # named board profile S360_200_R4_CLIMATE_PROFILE_V1 and the
 # vapour-pressure-preserving psychrometric humidity model live in
-# include/sense360/roomiq_climate_compensation.h — ONE implementation,
+# components/sense360/roomiq_climate_compensation.h — ONE implementation,
 # consumed by the engine and by the native tests. Its constants and evidence
 # posture are stated THERE and nowhere else: no constant and no formula is
 # duplicated in this file, in a bundle, or in customer YAML, and the runtime
@@ -155,8 +155,8 @@ substitutions:
 # packages/features/presence_framework.yaml.
 esphome:
   includes:
-    - ../include/sense360/roomiq_engine.h
-    - ../include/sense360/roomiq_climate_compensation.h
+    - ../components/sense360/roomiq_engine.h
+    - ../components/sense360/roomiq_climate_compensation.h
   on_boot:
     # Compile-time honesty companion: never polled, so it is published once at
     # boot (STATIC-DIAGNOSTIC-PUBLISH-001). Runs before the engine hook below.

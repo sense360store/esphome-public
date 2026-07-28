@@ -1,5 +1,5 @@
 // VENTIQ-FRAMEWORK-001 — deterministic simulation tests for the canonical
-// VentIQ bathroom ventilation engine (include/sense360/ventiq_engine.h).
+// VentIQ bathroom ventilation engine (components/sense360/ventiq_engine.h).
 //
 // This is the test-only simulation layer required by the accepted product
 // decisions: it feeds synthetic, timestamped samples into the SAME
@@ -27,7 +27,7 @@
 #include <cstring>
 #include <exception>
 
-#include "../../include/sense360/ventiq_engine.h"
+#include "../../components/sense360/ventiq_engine.h"
 
 using namespace sense360::ventiq;
 using sense360::airiq::AIR_QUALITY_GOOD;

@@ -18,6 +18,16 @@
 # building against a different release, replace `v1.0.0` with the release
 # tag you are pinning to. Production firmware should always come from
 # WebFlash or from a pinned Release-One product YAML.
+#
+# NOTE (SENSE360-CANONICALISATION-001 PR 08): on `main` and on release tags
+# cut after PR 08, the canonical delivery for these headers is the `sense360`
+# external component (`components/sense360/`), consumed exactly as
+# `packages/remote/sense360-shared-engines.yaml` shows — declare the
+# repository under `external_components:` with `components: [sense360]` and a
+# bare `sense360:` block, and drop the `includes:` lines. The per-file
+# `github://.../include/sense360/*.h@v1.0.0` fetches below stay valid at the
+# v1.0.0 tag forever (release tags keep every historical path), which is why
+# this v1.0.0-pinned example keeps them.
 # ============================================================================
 
 # Example: Custom Device Config Using Remote Headers

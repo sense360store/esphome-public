@@ -143,7 +143,7 @@ inline const char *event_to_string(StatusEvent event) {
 }
 
 // Darkness decision (LED-05). Computed by the canonical RoomIQ
-// environmental engine (include/sense360/roomiq_engine.h — the single
+// environmental engine (components/sense360/roomiq_engine.h — the single
 // lux-threshold implementation, ROOMIQ-FRAMEWORK-001) and injected here via
 // input_darkness(). UNKNOWN (missing/stale/NaN lux) is a first-class state
 // distinct from darkness — it never activates anything.

@@ -1,4 +1,4 @@
-#include "../../include/sense360/led_logic.h"
+#include "../../components/sense360/led_logic.h"
 #include <cassert>
 #include <cmath>
 #include <iostream>

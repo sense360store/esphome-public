@@ -278,10 +278,18 @@ declaration layer that governs what ships lives in `config/`.
   [`room-bundle-fan-variants.json`](config/room-bundle-fan-variants.json),
   [`compile-only-targets.json`](config/compile-only-targets.json), and
   companions. Docs describe; `config/` decides.
-- **`components/`** — external ESPHome C++ components (`ld2412`, `ld2450`,
-  `ld24xx`). **`include/sense360/`** — extracted C++ logic headers
-  (`led_logic.h`, `calibration.h`, `thresholds.h`, `time_utils.h`) unit-tested
-  natively from `tests/unit/`.
+- **`components/`** — external ESPHome components, all declared with
+  provenance in [`config/external-components.json`](config/external-components.json)
+  (guard: `tests/test_external_components.py`; the manifest carries the
+  no-fork rule — raw sensor communication uses built-in ESPHome drivers,
+  never a forked upstream driver). The vendored drivers: `ld2412`, `ld2450`,
+  `ld24xx` (radar), `mics_stm8`, `sfa40`. **`components/sense360/`** — the
+  foundation component (SENSE360-CANONICALISATION-001 PR 08): the canonical
+  header-only logic engines (unit-tested natively from `tests/unit/`), the
+  shared runtime contract (`sense360_runtime.h`), and the identity schema;
+  it replaced the former `include/sense360/` delivery-only path (deleted).
+  Architecture record:
+  [`docs/architecture/sense360-external-components.md`](docs/architecture/sense360-external-components.md).
 - **`scripts/`** — release / validation / planning tooling (each with a
   `tests/test_*.py` counterpart). **`tests/`** — Python test suite +
   validators + C++ test Makefile. **`docs/`** — reference docs; canonical

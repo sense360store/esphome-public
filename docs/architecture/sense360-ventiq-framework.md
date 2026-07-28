@@ -7,7 +7,7 @@ consuming the platform's existing canonical services (the AirIQ
 pollutant engine, the RoomIQ environmental service and the Core runtime
 framework) plus the VentIQ-owned ventilation logic (shower detection,
 moisture clearing, damp/mould tracking, odour), produced by one shared
-engine ([`include/sense360/ventiq_engine.h`](../../include/sense360/ventiq_engine.h))
+engine ([`components/sense360/ventiq_engine.h`](../../components/sense360/ventiq_engine.h))
 that is compiled into production firmware
 ([`packages/features/ventiq_framework.yaml`](../../packages/features/ventiq_framework.yaml))
 and into the deterministic simulation tests
@@ -130,7 +130,7 @@ and owns only VentIQ behaviour.
 
 * **Pollutant truth = the canonical AirIQ engine.** The VentIQ engine
   embeds `sense360::airiq::AirIQEngine`
-  ([`include/sense360/airiq_engine.h`](../../include/sense360/airiq_engine.h))
+  ([`components/sense360/airiq_engine.h`](../../components/sense360/airiq_engine.h))
   with expected channels VOC + NOx (the AirIQ default of an expected CO2
   channel is composition configuration for the S360-210 board, overridden
   for S360-211 which has no CO2 sensor). **No VOC/NOx band value is
