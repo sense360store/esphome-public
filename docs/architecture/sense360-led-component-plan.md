@@ -65,6 +65,33 @@ forbidden with VentIQ/AirIQ present — unchanged.
   canonical grammar cannot express the fixture, the tokens are recorded as
   compile-only-lane-only with a guard, never silently left as drift.
 
+## Component boundary (settled against the pinned APIs, 2026-07-28)
+
+The pinned light API (`remote_values` / `make_call` / `get_effect_name`)
+supports full component ownership of the customer-intent arbitration and
+the arbitrated apply. The engine's `input_occupancy` stores state without
+timestamps, so event-driven feeding is semantically identical to the old
+per-tick global reads. Therefore:
+
+- **Component owns**: the 250 ms tick; engine configuration from the bound
+  night-behaviour / status-indicator selects and darkness-threshold number
+  plus config scalars; the darkness service (RoomIQ singleton read,
+  unchanged semantics); customer-intent arbitration and the arbitrated
+  light apply (light bound by id; effect names unchanged); the diagnostics
+  switchboard; a `mark_booted()` gate the YAML restore hook calls.
+- **YAML keeps**: every persisted global and the boot-restore hook (NVS
+  identity protected; it calls `mark_booted()` then the bridge script);
+  the api/wifi notify hooks and the identify button (engine-action
+  one-liners); the night-mode switch (engine-truth lambda); a 1 s
+  stable-state persistence lambda mirroring `customer_state()` into the
+  saved globals (idempotent; replaces the in-evaluate writes with the same
+  values and the same NVS cadence).
+- **`led_presence_bridge.yaml` feeds the controller directly** on its
+  Occupancy callbacks (`input_occupancy`), retiring the two transient
+  `s360_led_occupied` / `s360_led_occupancy_valid` globals nothing else
+  reads — same physical signal, one hop earlier, no globals binding
+  machinery needed.
+
 ## Slices
 
 1. `sense360_led` component + `led_framework.yaml` rewrite (includes
