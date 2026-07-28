@@ -632,15 +632,15 @@ class RepoLocalBuildsUnchangedTests(unittest.TestCase):
     def test_frameworks_keep_local_include(self) -> None:
         # The not-yet-migrated frameworks keep their repository-local
         # esphome.includes. RoomIQ left this list under
-        # SENSE360-CANONICALISATION-001 PR 09: its engine delivery now comes
-        # from the sense360 foundation component auto-loaded by the
-        # sense360_roomiq domain component, so it declares no local include
-        # (the component composition below is its replacement contract).
+        # SENSE360-CANONICALISATION-001 PR 09 and Presence under PR 10:
+        # their engine delivery now comes from the sense360 foundation
+        # component auto-loaded by their domain components, so they declare
+        # no local include (the component compositions below are the
+        # replacement contracts).
         for framework in (
             "airiq_framework.yaml",
             "ventiq_framework.yaml",
             "led_framework.yaml",
-            "presence_framework.yaml",
         ):
             raw = (REPO_ROOT / "packages" / "features" / framework).read_text()
             self.assertIn(
@@ -653,6 +653,11 @@ class RepoLocalBuildsUnchangedTests(unittest.TestCase):
         ).read_text()
         self.assertIn("sense360_roomiq:", roomiq_raw)
         self.assertNotIn("includes:", roomiq_raw.split("sense360_roomiq:")[1][:2000])
+        presence_raw = (
+            REPO_ROOT / "packages" / "features" / "presence_framework.yaml"
+        ).read_text()
+        self.assertIn("sense360_presence:", presence_raw)
+        self.assertNotIn("esphome:\n  includes:", presence_raw)
 
 
 # --- esphome config validation (skipped without the CLI) --------------------

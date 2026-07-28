@@ -10,7 +10,8 @@
     "never_fork_upstream_for_product_behaviour": "Sense360 product behaviour lives in the sense360 component's shared engines and the PR 09..12 domain components, never in a forked copy of an upstream sensor driver. Raw sensor communication uses built-in ESPHome drivers wherever one exists; a vendored driver directory is permitted only with a provenance row here and a named disposition_owner.",
     "foundation_declares_no_hardware_io": "The sense360 component is logic-and-schema only: no I2C/UART/SPI device driver code, no entities, no pins, no buses, no platforms. Enforced by tests/test_external_components.py.",
     "delivery_path_is_components_only": "The former include/sense360/ delivery-only component (REMOTE-PACKAGE-HEADER-RESOLUTION-001) was replaced by components/sense360/ in PR 08 and must not return.",
-    "delivery_axis": "delivery: 'base' means the component is declared by packages/base/external_components.yaml AND by the CI override heredocs (setup-esphome-build action, manual-firmware-artifacts.yml) - the two lists are pinned equal to the base set by tests/test_external_components.py. delivery: 'inline-board' means a board package declares its own git-source external_components block (today: sfa40 and mics_stm8 in packages/boards/s360-210-airiq.yaml, kept git-sourced for remote consumers); such a component must NOT also enter the base lists, or the same component would resolve from two sources."
+    "delivery_axis": "delivery: 'base' means the component is declared by packages/base/external_components.yaml AND by the CI override heredocs (setup-esphome-build action, manual-firmware-artifacts.yml) - the two lists are pinned equal to the base set by tests/test_external_components.py. delivery: 'inline-board' means a board package declares its own git-source external_components block (today: sfa40 and mics_stm8 in packages/boards/s360-210-airiq.yaml, kept git-sourced for remote consumers); such a component must NOT also enter the base lists, or the same component would resolve from two sources.",
+    "radar_drivers_are_built_in": "The LD2412 / LD2450 / LD24xx drivers come from built-in ESPHome (>= the requirements-dev.txt pin, which ships all three) since SENSE360-CANONICALISATION-001 PR 10 retired the vendored copies under the no-fork rule. Re-vendoring an upstream driver requires a new manifest row with provenance and a named disposition owner."
   },
   "components": {
     "sense360": {
@@ -18,27 +19,6 @@
       "origin": "sense360-original",
       "provenance": "Introduced by SENSE360-CANONICALISATION-001 PR 08; subsumes the include/sense360/ delivery hack. Ships the canonical header-only logic engines exercised by tests/unit/ and the identity schema foundation.",
       "disposition_owner": "SENSE360-CANONICALISATION-001 PR-08 (this manifest)",
-      "delivery": "base"
-    },
-    "ld2412": {
-      "role": "radar-driver",
-      "origin": "vendored-upstream",
-      "provenance": "Recorded in packages/base/external_components.yaml: modified for ESPHome 2025.3.0 compatibility. HLK-LD2412 24GHz mmWave radar.",
-      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-10 (Migrate Presence)",
-      "delivery": "base"
-    },
-    "ld2450": {
-      "role": "radar-driver",
-      "origin": "vendored-upstream",
-      "provenance": "Recorded in packages/base/external_components.yaml: sourced from the ESPHome 2025.3.0 release. HLK-LD2450 24GHz mmWave radar.",
-      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-10 (Migrate Presence)",
-      "delivery": "base"
-    },
-    "ld24xx": {
-      "role": "radar-driver-base",
-      "origin": "vendored-upstream",
-      "provenance": "Shared base for the LD24xx radar family, vendored alongside ld2412/ld2450 (packages/base/external_components.yaml).",
-      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-10 (Migrate Presence)",
       "delivery": "base"
     },
     "mics_stm8": {
@@ -60,6 +40,13 @@
       "origin": "sense360-original",
       "provenance": "Introduced by SENSE360-CANONICALISATION-001 PR 09 (docs/architecture/sense360-roomiq-component-plan.md). Glue over the canonical RoomIQ engine singleton in components/sense360/ - input feeding, configuration, the single-owner publish-on-change switchboard. No model logic, no raw hardware I/O (sources are ordinary ESPHome sensors composed by the board package).",
       "disposition_owner": "SENSE360-CANONICALISATION-001 PR-09 (Migrate RoomIQ)",
+      "delivery": "base"
+    },
+    "sense360_presence": {
+      "role": "domain-component",
+      "origin": "sense360-original",
+      "provenance": "Introduced by SENSE360-CANONICALISATION-001 PR 10 (docs/architecture/sense360-presence-component-plan.md). Glue over the canonical presence fusion singleton in components/sense360/ - input feeding, runtime mode/clear-delay control interplay, the publish switchboard. No model logic, no raw hardware I/O; the OD-SOT-004 PIR-vs-radar evidence distinction is unchanged.",
+      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-10 (Migrate Presence)",
       "delivery": "base"
     }
   }

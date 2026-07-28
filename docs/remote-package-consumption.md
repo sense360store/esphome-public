@@ -448,3 +448,10 @@ compositions also pull this repository's radar external component, unchanged.)
 See also: [`docs/getting-started.md`](getting-started.md),
 [`examples/custom-with-remote-headers.yaml`](../examples/custom-with-remote-headers.yaml)
 (fully custom device using individual pinned headers).
+
+> **Radar drivers (SENSE360-CANONICALISATION-001 PR 10).** The LD2412 /
+> LD2450 / LD24xx radar drivers come from **built-in ESPHome** — pin
+> ESPHome `>= 2026.4.5` (the repository's `requirements-dev.txt` pin,
+> which ships all three). The formerly vendored copies were retired
+> under the no-fork rule; release tags keep them for tag-pinned
+> consumers on older ESPHome versions.

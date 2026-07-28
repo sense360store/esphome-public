@@ -282,8 +282,9 @@ declaration layer that governs what ships lives in `config/`.
   provenance in [`config/external-components.json`](config/external-components.json)
   (guard: `tests/test_external_components.py`; the manifest carries the
   no-fork rule — raw sensor communication uses built-in ESPHome drivers,
-  never a forked upstream driver). The vendored drivers: `ld2412`, `ld2450`,
-  `ld24xx` (radar), `mics_stm8`, `sfa40`. **`components/sense360/`** — the
+  never a forked upstream driver). The vendored drivers: `mics_stm8`,
+  `sfa40` (the radar trio retired to built-in ESPHome drivers under
+  SENSE360-CANONICALISATION-001 PR 10). **`components/sense360/`** — the
   foundation component (SENSE360-CANONICALISATION-001 PR 08): the canonical
   header-only logic engines (unit-tested natively from `tests/unit/`), the
   shared runtime contract (`sense360_runtime.h`), and the identity schema;

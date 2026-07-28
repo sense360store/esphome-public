@@ -132,29 +132,10 @@ class TestConfig:
         # `fan_dac_i2c_id` in `packages/expansions/fan_gp8403.yaml`. No
         # ceiling-vs-wall override is required.
 
-        # Check if presence module is included (requires ld2412/ld24xx local components)
-        has_presence = any(mod.category == "presence" for mod in self.modules)
-
-        # Add external_components if presence module is used (requires ld2412/ld24xx)
-        # NOTE: We inline external_components here instead of using !include because
-        # ESPHome resolves relative paths from the main config file's directory.
-        # Test configs are 2 levels deep (tests/generated/), so ../../components is correct.
-        # IMPORTANT: external_components must come BEFORE packages for valid YAML
-        # NOTE: ld2450 is native to ESPHome 2025.3.0+, no external component needed
-        if has_presence:
-            lines.extend(
-                [
-                    "",
-                    "# External components (ld2412/ld24xx radar)",
-                    "# NOTE: ld2450 is native to ESPHome 2025.3.0+, no external component needed",
-                    "external_components:",
-                    "  # LD2412/LD24xx from local components",
-                    "  - source:",
-                    "      type: local",
-                    "      path: ../../components",
-                    "    components: [ld2412, ld24xx]",
-                ]
-            )
+        # SENSE360-CANONICALISATION-001 PR 10: the vendored ld2412 / ld24xx
+        # components were retired under the no-fork rule - the pinned ESPHome
+        # (>= 2026.4.5) ships all three radar drivers built in, so generated
+        # presence configs need no external_components block at all.
 
         lines.extend(
             [

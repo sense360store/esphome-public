@@ -283,13 +283,14 @@ class CustomerEntityContractTests(unittest.TestCase):
 
     def test_stale_radar_publishes_unknown_target_count(self) -> None:
         # BENCH DEFECT symptom: when radar frames stop, Radar Target Count
-        # must go unknown (NAN), never a stale/fake number. The fusion script
-        # publishes NAN unless radar_fresh().
-        self.assertIn("radar_fresh()", self.raw)
-        self.assertIn("NAN", self.raw)
-        # The publish is gated on freshness (NAN when not fresh).
+        # must go unknown (NAN), never a stale/fake number. The switchboard
+        # moved into the sense360_presence component glue in PR 10; the
+        # freshness-gated NAN publish is asserted there.
+        cpp = (REPO_ROOT / "components" / "sense360_presence"
+               / "sense360_presence.cpp").read_text()
+        self.assertIn("radar_fresh()", cpp)
         self.assertIn(
-            "engine.radar_fresh() ? (float) engine.radar_target_count() : NAN", self.raw
+            "engine.radar_fresh() ? (float) engine.radar_target_count() : NAN", cpp
         )
 
     def test_verification_coverage_diagnostic_exists(self) -> None:
@@ -310,9 +311,14 @@ class CustomerEntityContractTests(unittest.TestCase):
     def test_module_status_is_published_from_a_real_signal(self) -> None:
         # The fusion layer drives the framework's Presence Module Status
         # entity (reserved runtime vocabulary) — CORE-FRAMEWORK-001
-        # extension rule 2.
-        self.assertIn("s360_module_status_presence", self.raw)
-        self.assertIn("health_to_string", self.raw)
+        # extension rule 2. Since SENSE360-CANONICALISATION-001 PR 10 the
+        # publish lives in the sense360_presence component glue; the YAML's
+        # part of the contract is binding the Core-Framework-owned entity
+        # to the component by id.
+        self.assertIn("module_status_id: s360_module_status_presence", self.raw)
+        cpp = (REPO_ROOT / "components" / "sense360_presence"
+               / "sense360_presence.cpp").read_text()
+        self.assertIn("health_to_string", cpp)
 
     def test_fusion_uses_the_shared_header(self) -> None:
         # Single implementation: the production YAML includes the same
