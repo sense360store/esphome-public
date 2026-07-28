@@ -697,8 +697,14 @@ class LedIntegrationTests(unittest.TestCase):
         cls.led_header_raw = LED_HEADER.read_text()
 
     def test_led_consumes_canonical_darkness(self) -> None:
-        self.assertIn("sense360::roomiq", self.led_raw)
-        self.assertIn("input_darkness", self.led_raw)
+        # The LED glue moved into the sense360_led component under
+        # SENSE360-CANONICALISATION-001 PR 12; the darkness service read
+        # (the canonical RoomIQ singleton) moved with it.
+        led_cpp = (
+            REPO_ROOT / "components" / "sense360_led" / "sense360_led.cpp"
+        ).read_text()
+        self.assertIn("sense360::roomiq", led_cpp)
+        self.assertIn("input_darkness", led_cpp)
 
     def test_led_does_not_read_raw_lux(self) -> None:
         # LED must consume the canonical RoomIQ outputs, never the raw
@@ -718,7 +724,10 @@ class LedIntegrationTests(unittest.TestCase):
         doc = load_yaml(LED_FRAMEWORK)
         entities = entities_by_id(doc)
         self.assertIn("s360_led_darkness_threshold", entities)
-        self.assertIn("set_darkness_threshold", self.led_raw)
+        led_cpp = (
+            REPO_ROOT / "components" / "sense360_led" / "sense360_led.cpp"
+        ).read_text()
+        self.assertIn("set_darkness_threshold", led_cpp)
 
 
 # --- Bundle wiring --------------------------------------------------------------

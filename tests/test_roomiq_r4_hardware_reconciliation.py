@@ -95,8 +95,13 @@ class ClimateDriverReconciledTests(unittest.TestCase):
     # 4. No proximity entities are exposed.
     def test_no_proximity(self) -> None:
         ltr = self.sensors["comfort_ceiling_ltr303"]
-        for key in ("proximity", "proximity_counts", "ps_cooldown",
-                    "ps_high_threshold", "ps_low_threshold"):
+        for key in (
+            "proximity",
+            "proximity_counts",
+            "ps_cooldown",
+            "ps_high_threshold",
+            "ps_low_threshold",
+        ):
             self.assertNotIn(key, ltr, key)
         self.assertNotIn("type: ALS_PS", self.raw)
         self.assertNotIn("type: PS", self.raw)
@@ -133,10 +138,12 @@ class ClimateDriverReconciledTests(unittest.TestCase):
     # 8. Existing RoomIQ raw temperature and humidity IDs are preserved.
     def test_temp_humidity_ids_preserved(self) -> None:
         sht = self.sensors["comfort_ceiling_sht4x"]
-        self.assertEqual((sht.get("temperature") or {}).get("id"),
-                         "comfort_ceiling_temperature")
-        self.assertEqual((sht.get("humidity") or {}).get("id"),
-                         "comfort_ceiling_humidity")
+        self.assertEqual(
+            (sht.get("temperature") or {}).get("id"), "comfort_ceiling_temperature"
+        )
+        self.assertEqual(
+            (sht.get("humidity") or {}).get("id"), "comfort_ceiling_humidity"
+        )
 
     # 13a. Board comments / logs name the corrected physical assembly.
     def test_comments_name_corrected_parts(self) -> None:
@@ -156,12 +163,15 @@ class FrameworkContractPreservedTests(unittest.TestCase):
     # 6/8. The framework still binds the preserved raw source ids.
     def test_framework_source_ids_unchanged(self) -> None:
         subs = self.fw.get("substitutions") or {}
-        self.assertEqual(subs.get("roomiq_illuminance_source_id"),
-                         "comfort_ceiling_illuminance")
-        self.assertEqual(subs.get("roomiq_temperature_source_id"),
-                         "comfort_ceiling_temperature")
-        self.assertEqual(subs.get("roomiq_humidity_source_id"),
-                         "comfort_ceiling_humidity")
+        self.assertEqual(
+            subs.get("roomiq_illuminance_source_id"), "comfort_ceiling_illuminance"
+        )
+        self.assertEqual(
+            subs.get("roomiq_temperature_source_id"), "comfort_ceiling_temperature"
+        )
+        self.assertEqual(
+            subs.get("roomiq_humidity_source_id"), "comfort_ceiling_humidity"
+        )
 
     # 13b. The framework identity note reflects the reconciliation (not a
     # stale VEML7700 conflict) and makes no runtime-success claim.
@@ -191,15 +201,21 @@ class LedAutomationContractTests(unittest.TestCase):
     # preserved illuminance id) and fused Presence occupancy — the reconciled
     # driver keeps feeding the same canonical darkness service.
     def test_led_darkness_source_preserved(self) -> None:
-        led_raw = LED_FRAMEWORK.read_text()
         # LED consumes the RoomIQ canonical darkness service (roomiq_engine.h)
-        # and the fused Presence occupancy; the reconciliation changes neither.
-        self.assertIn("roomiq_engine.h", led_raw)
+        # and the fused Presence occupancy; the reconciliation changes
+        # neither. Since SENSE360-CANONICALISATION-001 PR 12 the LED glue is
+        # the sense360_led component, so the service read lives in its hub.
+        led_cpp = (
+            REPO_ROOT / "components" / "sense360_led" / "sense360_led.cpp"
+        ).read_text()
+        self.assertIn("roomiq_engine.h", led_cpp)
         # The RoomIQ engine darkness is computed from the calibrated illuminance
         # path over the preserved raw id.
         fw = _load(ROOMIQ_FRAMEWORK)
-        self.assertEqual((fw.get("substitutions") or {}).get(
-            "roomiq_illuminance_source_id"), "comfort_ceiling_illuminance")
+        self.assertEqual(
+            (fw.get("substitutions") or {}).get("roomiq_illuminance_source_id"),
+            "comfort_ceiling_illuminance",
+        )
 
 
 class Sfa40OptOutTests(unittest.TestCase):
@@ -228,11 +244,11 @@ class Sfa40OptOutTests(unittest.TestCase):
         # touch release / catalog state.
         for entry in self.overlay.get("sensor") or []:
             self.assertNotEqual(
-                (entry or {}).get("platform"), "sfa40",
+                (entry or {}).get("platform"),
+                "sfa40",
                 "opt-out overlay must not declare an sfa40 driver",
             )
-        for forbidden in ("webflash_build_matrix", "artifact_name",
-                          "product-catalog"):
+        for forbidden in ("webflash_build_matrix", "artifact_name", "product-catalog"):
             self.assertNotIn(forbidden, self.overlay_raw)
 
 

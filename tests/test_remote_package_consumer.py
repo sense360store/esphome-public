@@ -570,9 +570,7 @@ class DeliveryPackageStructureTests(unittest.TestCase):
     def test_roomiq_presence_wrapper_shape(self) -> None:
         wrapper = _load(ROOMIQ_PRESENCE_WRAPPER)
         ext = wrapper.get("external_components")
-        self.assertTrue(
-            ext, "RoomIQ+Presence wrapper must declare external_components"
-        )
+        self.assertTrue(ext, "RoomIQ+Presence wrapper must declare external_components")
         self.assertIn("sense360", ext[0]["components"])
         self.assertEqual(ext[0]["source"]["path"], "components")
         # Loads the delivery component so the shared engines are #included.
@@ -630,22 +628,18 @@ class RepoLocalBuildsUnchangedTests(unittest.TestCase):
     reproducible from the checked-out tree, not a moving git ref)."""
 
     def test_frameworks_keep_local_include(self) -> None:
-        # The not-yet-migrated frameworks keep their repository-local
-        # esphome.includes. RoomIQ left this list under
-        # SENSE360-CANONICALISATION-001 PR 09 and Presence under PR 10:
-        # their engine delivery now comes from the sense360 foundation
-        # component auto-loaded by their domain components, so they declare
-        # no local include (the component compositions below are the
-        # replacement contracts).
-        for framework in (
-            "led_framework.yaml",
-        ):
-            raw = (REPO_ROOT / "packages" / "features" / framework).read_text()
-            self.assertIn(
-                "../components/sense360/",
-                raw,
-                f"{framework} must keep its repository-local esphome.includes",
-            )
+        # Every framework has now migrated off the repository-local
+        # esphome.includes mechanism: RoomIQ under
+        # SENSE360-CANONICALISATION-001 PR 09, Presence under PR 10, AirIQ /
+        # VentIQ under PR 11 and LED under PR 12. Engine delivery comes from
+        # the sense360 foundation component auto-loaded by the domain
+        # components, so no framework declares a local include (the
+        # component compositions below are the replacement contracts).
+        led_raw = (
+            REPO_ROOT / "packages" / "features" / "led_framework.yaml"
+        ).read_text()
+        self.assertIn("sense360_led:", led_raw)
+        self.assertNotIn("../components/sense360/", led_raw)
         roomiq_raw = (
             REPO_ROOT / "packages" / "features" / "roomiq_framework.yaml"
         ).read_text()

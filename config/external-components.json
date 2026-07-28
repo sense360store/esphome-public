@@ -62,6 +62,13 @@
       "provenance": "Introduced by SENSE360-CANONICALISATION-001 PR 11 (docs/architecture/sense360-airiq-ventiq-component-plan.md). Glue over the canonical VentIQ ventilation engine singleton in components/sense360/ (which embeds the canonical AirIQ engine for pollutant truth). No model logic, no raw hardware I/O; S360-211 stays its own board and component.",
       "disposition_owner": "SENSE360-CANONICALISATION-001 PR-11 (Migrate AirIQ and VentIQ)",
       "delivery": "base"
+    },
+    "sense360_led": {
+      "role": "domain-component",
+      "origin": "sense360-original",
+      "provenance": "Introduced by SENSE360-CANONICALISATION-001 PR 12 (docs/architecture/sense360-led-component-plan.md). Glue over the canonical LED customer-experience controller singleton in components/sense360/ (led_controller.h), with the darkness decision read from the canonical RoomIQ environmental engine singleton \u2014 one lux implementation, never duplicated. No model logic, no raw hardware I/O; the Room Light stays owned by the S360-300 board package and LED stays preview.",
+      "disposition_owner": "SENSE360-CANONICALISATION-001 PR-12 (Introduce sense360_led)",
+      "delivery": "base"
     }
   }
 }

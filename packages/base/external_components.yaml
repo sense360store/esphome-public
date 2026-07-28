@@ -30,4 +30,4 @@ external_components:
   - source:
       type: local
       path: ../components
-    components: [sense360, sense360_roomiq, sense360_presence, sense360_airiq, sense360_ventiq]
+    components: [sense360, sense360_roomiq, sense360_presence, sense360_airiq, sense360_ventiq, sense360_led]
