@@ -158,7 +158,10 @@ class ValidatorTests(unittest.TestCase):
         builds = _load(BUILDS_PATH)
         builds["builds"].append({"config_string": TRIAC_CONFIG, "channel": "preview"})
         errors = _VALIDATOR.validate(
-            _load(LEDGER_PATH), _load(TARGETS_PATH), _load(POLICY_PATH), builds,
+            _load(LEDGER_PATH),
+            _load(TARGETS_PATH),
+            _load(POLICY_PATH),
+            builds,
             _load(MANUAL_PATH),
         )
         self.assertNotEqual(errors, [])
@@ -172,7 +175,10 @@ class ValidatorTests(unittest.TestCase):
             if row["config_string"] == TRIAC_CONFIG:
                 row["compile_evidence"] = {"run_id": COMPILE_RUN_ID}
         errors = _VALIDATOR.validate(
-            ledger, _load(TARGETS_PATH), _load(POLICY_PATH), _load(BUILDS_PATH),
+            ledger,
+            _load(TARGETS_PATH),
+            _load(POLICY_PATH),
+            _load(BUILDS_PATH),
             _load(MANUAL_PATH),
         )
         self.assertNotEqual(errors, [])
@@ -184,7 +190,10 @@ class ValidatorTests(unittest.TestCase):
             if row["config_string"] == TRIAC_CONFIG:
                 row["build_blocker"] = "HW-005 (reintroduced)"
         errors = _VALIDATOR.validate(
-            ledger, _load(TARGETS_PATH), _load(POLICY_PATH), _load(BUILDS_PATH),
+            ledger,
+            _load(TARGETS_PATH),
+            _load(POLICY_PATH),
+            _load(BUILDS_PATH),
             _load(MANUAL_PATH),
         )
         self.assertNotEqual(errors, [])
@@ -200,19 +209,40 @@ class PreviewEligibilityTests(unittest.TestCase):
     def test_all_four_configs_present(self) -> None:
         self.assertEqual(set(self.rows), set(ALL_CONFIGS))
 
-    def test_every_row_is_preview_channel(self) -> None:
+    def test_every_row_channel_follows_the_build_ledger(self) -> None:
+        # ESP-007 (owner decision of 2026-07-28,
+        # SENSE360-CANONICALISATION-001): a row whose config has a
+        # config/webflash-builds.json row takes that row's channel — the
+        # FanRelay / FanTRIAC rows are experimental — and 'preview' stays the
+        # default for rows with no build row. The expected artifact suffix
+        # follows the same channel, so this ledger can never declare a second
+        # artifact name for a config the build ledger already names.
+        builds = {
+            b["config_string"]: b
+            for b in _load(REPO_ROOT / "config" / "webflash-builds.json")["builds"]
+        }
         for cs, row in self.rows.items():
             with self.subTest(config_string=cs):
-                self.assertEqual(row["build_channel"], "preview")
+                build_row = builds.get(cs)
+                expected_channel = (
+                    build_row["channel"] if build_row is not None else "preview"
+                )
+                self.assertEqual(row["build_channel"], expected_channel)
                 self.assertIn(row["channel_tier"], ("preview", "advanced-preview"))
-                self.assertTrue(row["expected_preview_artifact_name"].endswith("-preview.bin"))
+                self.assertTrue(
+                    row["expected_preview_artifact_name"].endswith(
+                        f"-{expected_channel}.bin"
+                    )
+                )
 
     def test_every_row_requires_warning_copy(self) -> None:
         policy_warn = _load(POLICY_PATH)["warning_copy"]
         for cs, row in self.rows.items():
             with self.subTest(config_string=cs):
                 self.assertIn(row["warning_copy_key"], policy_warn)
-                self.assertEqual(row["release_note_warning"], policy_warn[row["warning_copy_key"]])
+                self.assertEqual(
+                    row["release_note_warning"], policy_warn[row["warning_copy_key"]]
+                )
 
 
 class StableBlockersRemainTests(unittest.TestCase):
@@ -436,12 +466,17 @@ class ReleaseNoteDraftsTests(unittest.TestCase):
                     self.assertNotIn(bad, norm, f"{cs}: must not claim {bad!r}")
 
     def test_draft_self_artifact_is_preview_and_one_stable_crossref(self) -> None:
-        rows = _rows_by_cs()
         for cs in ALL_CONFIGS:
             with self.subTest(config_string=cs):
                 norm = _normalise(_draft_path(cs).read_text(encoding="utf-8"))
-                own = rows[cs]["expected_preview_artifact_name"].lower()
-                self.assertTrue(own.endswith("-preview.bin"))
+                # The committed drafts are the HISTORICAL v1.0.0-preview
+                # drafting records. The FanRelay / FanTRIAC rows' forward
+                # declarations moved to the experimental channel (owner
+                # decision of 2026-07-28, SENSE360-CANONICALISATION-001), but
+                # the drafts themselves are unchanged history, so the
+                # assertion pins the drafted name rather than the row's
+                # current forward-looking field.
+                own = f"sense360-{cs}-v1.0.0-preview.bin".lower()
                 self.assertIn(own, norm)
                 self.assertEqual(
                     norm.count("-stable.bin"),
@@ -479,7 +514,9 @@ class BuildRowsPointToExistingYamlTests(unittest.TestCase):
             cand_id = row["manual_lane_candidate_id"]
             with self.subTest(config_string=cs):
                 self.assertIn(cand_id, self.manual)
-                self.assertEqual(self.manual[cand_id]["product_yaml"], row["product_yaml"])
+                self.assertEqual(
+                    self.manual[cand_id]["product_yaml"], row["product_yaml"]
+                )
 
 
 class NoFullReleaseGateWeakenedTests(unittest.TestCase):

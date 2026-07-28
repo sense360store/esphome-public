@@ -244,11 +244,25 @@ def validate(
                 f"target {tid!r}: channel_tier {tier!r} is not a known policy tier"
             )
         else:
-            expected_build_channel = policy_mapping.get(tier)
+            # ESP-007: config/webflash-builds.json is the sole
+            # release-eligibility source of truth, so when a build row exists
+            # for this config its channel governs the target's build_channel.
+            # The per-tier policy mapping is the default for targets with no
+            # build row. Owner decision of 2026-07-28
+            # (SENSE360-CANONICALISATION-001): this rule replaced the strict
+            # tier mapping so a declared artifact name can never disagree
+            # with the build ledger again.
+            build_row = builds_by_cs.get(cs)
+            if build_row is not None:
+                expected_build_channel = build_row.get("channel")
+                source = "config/webflash-builds.json (ESP-007)"
+            else:
+                expected_build_channel = policy_mapping.get(tier)
+                source = f"policy mapping for tier {tier!r}"
             if build_channel != expected_build_channel:
                 terr.append(
                     f"target {tid!r}: build_channel {build_channel!r} must be "
-                    f"{expected_build_channel!r} for tier {tier!r}"
+                    f"{expected_build_channel!r} per {source}"
                 )
         if build_channel not in allowed_channels:
             terr.append(

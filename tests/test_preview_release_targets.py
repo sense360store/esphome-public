@@ -155,12 +155,24 @@ class ChannelAndArtifactTests(unittest.TestCase):
             with self.subTest(target=t["target_id"]):
                 self.assertIn(t["build_channel"], allowed)
 
-    def test_advanced_preview_builds_on_preview_channel(self) -> None:
+    def test_build_channel_follows_the_build_ledger_then_the_tier_mapping(self) -> None:
+        # ESP-007: config/webflash-builds.json is the sole release-eligibility
+        # source of truth, so a target whose config has a build row takes that
+        # row's channel; the per-tier mapping is the default for targets with
+        # no build row. Owner decision of 2026-07-28
+        # (SENSE360-CANONICALISATION-001): this replaced the strict tier
+        # mapping so a declared artifact name can never disagree with the
+        # build ledger again (the FanRelay / FanTRIAC rows are experimental).
         mapping = self.manifest["build_channel_mapping"]
         self.assertEqual(mapping["advanced-preview"], "preview")
+        builds = {b["config_string"]: b for b in _load(BUILDS_PATH)["builds"]}
         for t in self.targets:
             with self.subTest(target=t["target_id"]):
-                self.assertEqual(t["build_channel"], mapping[t["channel_tier"]])
+                build_row = builds.get(t["config_string"])
+                if build_row is not None:
+                    self.assertEqual(t["build_channel"], build_row["channel"])
+                else:
+                    self.assertEqual(t["build_channel"], mapping[t["channel_tier"]])
 
     def test_artifact_name_matches_config_and_channel(self) -> None:
         for t in self.targets:
@@ -307,8 +319,7 @@ class FanTargetTests(unittest.TestCase):
                     "acknowledgement-gated",
                 )
                 self.assertTrue(
-                    t["yaml_path"] in self.manual_yamls
-                    or t["config_string"] in builds,
+                    t["yaml_path"] in self.manual_yamls or t["config_string"] in builds,
                     f"{t['target_id']}: yaml_path must be a manual candidate "
                     "or the config must carry a committed build row "
                     "(HW-RELEASE-001)",
@@ -441,14 +452,22 @@ class WebflashCoverageTests(unittest.TestCase):
         # (Ceiling-POE-RoomIQ-LED — never built or served), moving it back to
         # eligible-unpublished. So no target sits metadata-ready today.
         # HW-RELEASE-001 then RE-LISTED Ceiling-POE-RoomIQ-LED with a
-        # reviewed preview build row (metadata only, no binary published),
-        # so it is the one metadata-ready target today.
+        # reviewed preview build row (metadata only, no binary published).
+        # The owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001)
+        # upheld PR #834's demotion of Ceiling-POE-AirIQ-RoomIQ and withdrew
+        # the same-day promotion decision as founded on a false premise, so
+        # that config sits metadata-ready on the preview channel as well —
+        # promotion to production is gated on the bench attestation #834
+        # requires (owner-authored, never machine-written).
         metadata_ready = {
             t["config_string"]
             for t in self.manifest["targets"]
             if t["publication_status"] == "webflash-preview-metadata-ready"
         }
-        self.assertEqual(metadata_ready, {"Ceiling-POE-RoomIQ-LED"})
+        self.assertEqual(
+            metadata_ready,
+            {"Ceiling-POE-RoomIQ-LED", "Ceiling-POE-AirIQ-RoomIQ"},
+        )
 
     def test_relisted_roomiq_led_is_metadata_ready(self) -> None:
         # HW-RELEASE-001 (docs/hw-release-001.md) deliberately RE-LISTED the
@@ -460,14 +479,10 @@ class WebflashCoverageTests(unittest.TestCase):
         t = by_cs["Ceiling-POE-RoomIQ-LED"]
         self.assertEqual(t["channel_tier"], "preview")
         self.assertEqual(t["delivery_lane"], "webflash")
-        self.assertEqual(
-            t["publication_status"], "webflash-preview-metadata-ready"
-        )
+        self.assertEqual(t["publication_status"], "webflash-preview-metadata-ready")
         self.assertIsNone(t["build_blocker"])
         self.assertIn("Ceiling-POE-RoomIQ-LED", self.builds)
-        self.assertEqual(
-            self.builds["Ceiling-POE-RoomIQ-LED"]["channel"], "preview"
-        )
+        self.assertEqual(self.builds["Ceiling-POE-RoomIQ-LED"]["channel"], "preview")
         self.assertFalse(t["recommended"])
         self.assertFalse(t["customer_default"])
         self.assertFalse(t["required_config"])

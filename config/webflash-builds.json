@@ -485,7 +485,7 @@
     {
       "config_string": "Ceiling-POE-AirIQ-FanRelay-RoomIQ",
       "product_yaml": "products/webflash/ceiling-poe-airiq-fanrelay-roomiq.yaml",
-      "artifact_name": "Sense360-Ceiling-POE-AirIQ-FanRelay-RoomIQ-v1.0.0-experimental.bin",
+      "artifact_name": "Sense360-Ceiling-POE-AirIQ-FanRelay-RoomIQ-v1.0.1-experimental.bin",
       "channel": "experimental",
       "channel_tier": "advanced-preview",
       "experimental_lane": "EXPERIMENTAL-SELF-BUILD-MAINS-LANE",
@@ -496,7 +496,7 @@
       "release_state": "metadata-ready-unpublished",
       "owner_declaration": "docs/hw-release-001.md",
       "stable_blocker": "NEVER stable from this lane: FanRelay is mains-adjacent contact switching, promoted to the experimental channel only per the COMPLIANCE-001 lane posture (docs/decisions/COMPLIANCE-001-RESOLUTION-001.md); a stable customer release stays gated by RELEASE-RELAY-001 (mains-safety / installation / competent-person evidence) and is NOT unblocked by HW-RELEASE-001.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "chip_family": "ESP32-S3",
       "hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -522,12 +522,12 @@
         "in_kit_or_kit_picker": false,
         "webflash_one_click_import_eligible": false
       },
-      "notes": "Promoted by owner declaration HW-RELEASE-001 (docs/hw-release-001.md): the bench-proof documentation requirement is retired as a release gate and hardware readiness is declared by the owner directly. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this row cuts NO release tag, builds NO .bin, and writes NO manifest.json or firmware/sources.json here. Firmware-build proof only — no hardware / bench / compliance / safety / commercial-availability proof is claimed. NOT recommended, NOT a customer default, NOT buyable, NOT in any kit or kit picker, NOT in release_one_required_configs; kit / customer visibility is unchanged. Kitchen extract / boost via on-board relay K1 (S360-310)."
+      "notes": "Owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001), artifact-name split: 'FanTRIAC aligns to webflash-builds naming as originally approved. The FanRelay pair's published -preview.bin artifacts on v1.0.0-preview are immutable facts; their next artifact is version v1.0.1 - that version name is decided here - under the experimental channel's canonical naming. No second name for v1.0.0 ever.' Declaration reconciliation only: nothing is published, promoted or built, and every publish_evidence record stays untouched. Promoted by owner declaration HW-RELEASE-001 (docs/hw-release-001.md): the bench-proof documentation requirement is retired as a release gate and hardware readiness is declared by the owner directly. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this row cuts NO release tag, builds NO .bin, and writes NO manifest.json or firmware/sources.json here. Firmware-build proof only — no hardware / bench / compliance / safety / commercial-availability proof is claimed. NOT recommended, NOT a customer default, NOT buyable, NOT in any kit or kit picker, NOT in release_one_required_configs; kit / customer visibility is unchanged. Kitchen extract / boost via on-board relay K1 (S360-310)."
     },
     {
       "config_string": "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
       "product_yaml": "products/webflash/ceiling-poe-ventiq-fanrelay-roomiq.yaml",
-      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.0-experimental.bin",
+      "artifact_name": "Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.1-experimental.bin",
       "channel": "experimental",
       "channel_tier": "advanced-preview",
       "experimental_lane": "EXPERIMENTAL-SELF-BUILD-MAINS-LANE",
@@ -538,7 +538,7 @@
       "release_state": "metadata-ready-unpublished",
       "owner_declaration": "docs/hw-release-001.md",
       "stable_blocker": "NEVER stable from this lane: FanRelay is mains-adjacent contact switching, promoted to the experimental channel only per the COMPLIANCE-001 lane posture (docs/decisions/COMPLIANCE-001-RESOLUTION-001.md); a stable customer release stays gated by RELEASE-RELAY-001 (mains-safety / installation / competent-person evidence) and is NOT unblocked by HW-RELEASE-001.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "chip_family": "ESP32-S3",
       "hardware_requirements": [
         "Sense360 Core R4 or newer",
@@ -564,7 +564,7 @@
         "in_kit_or_kit_picker": false,
         "webflash_one_click_import_eligible": false
       },
-      "notes": "Promoted by owner declaration HW-RELEASE-001 (docs/hw-release-001.md): the bench-proof documentation requirement is retired as a release gate and hardware readiness is declared by the owner directly. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this row cuts NO release tag, builds NO .bin, and writes NO manifest.json or firmware/sources.json here. Firmware-build proof only — no hardware / bench / compliance / safety / commercial-availability proof is claimed. NOT recommended, NOT a customer default, NOT buyable, NOT in any kit or kit picker, NOT in release_one_required_configs; kit / customer visibility is unchanged. Bathroom extract-fan on/off control via on-board relay K1 (S360-310)."
+      "notes": "Owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001), artifact-name split: 'FanTRIAC aligns to webflash-builds naming as originally approved. The FanRelay pair's published -preview.bin artifacts on v1.0.0-preview are immutable facts; their next artifact is version v1.0.1 - that version name is decided here - under the experimental channel's canonical naming. No second name for v1.0.0 ever.' Declaration reconciliation only: nothing is published, promoted or built, and every publish_evidence record stays untouched. Promoted by owner declaration HW-RELEASE-001 (docs/hw-release-001.md): the bench-proof documentation requirement is retired as a release gate and hardware readiness is declared by the owner directly. Release-eligibility METADATA only (release_state metadata-ready-unpublished): this row cuts NO release tag, builds NO .bin, and writes NO manifest.json or firmware/sources.json here. Firmware-build proof only — no hardware / bench / compliance / safety / commercial-availability proof is claimed. NOT recommended, NOT a customer default, NOT buyable, NOT in any kit or kit picker, NOT in release_one_required_configs; kit / customer visibility is unchanged. Bathroom extract-fan on/off control via on-board relay K1 (S360-310)."
     }
   ]
 }

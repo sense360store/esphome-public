@@ -172,7 +172,7 @@
       "target_id": "ceiling-poe-airiq-roomiq-preview",
       "preview_allowed": true,
       "preview_warning_required": true,
-      "blocker_is_stable_only": false,
+      "blocker_is_stable_only": true,
       "product": "Kitchen PoE / AirIQ (AirIQ + RoomIQ)",
       "family": "Kitchen",
       "config_string": "Ceiling-POE-AirIQ-RoomIQ",
@@ -206,7 +206,7 @@
       "consuming_bundles": [
         "S360-KIT-KITCHEN-P"
       ],
-      "notes": "Kept on the preview channel under owner risk-acceptance waiver HW-AIRIQ-WAIVER-2026-06: AirIQ sensor-stack bench accuracy (SPS30, SGP41, SCD41, BMP390) is NOT verified and the S360-410 PoE PSU is covered by HW-S360-410-WAIVER-2026-06. Owner waiver, not hardware verification. The catalog entry is status preview / channel preview and the config/webflash-builds.json row is channel preview, artifact Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-preview.bin. The S360-KIT-KITCHEN-P bundle stays hidden / not buyable / not recommended / not a customer default. History: RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added the original preview build row with hosted-compile evidence (run 26821900127); the products/webflash wrapper (RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001) is recorded in webflash_wrapper."
+      "notes": "Owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001): PR #834's demotion to preview is upheld and the same-day promotion decision is withdrawn as founded on a false premise. blocker_is_stable_only corrected to true: the recorded stable_blocker (HW-AIRIQ-WAIVER-2026-06 risk-acceptance, bench accuracy unmeasured) gates STABLE only and never gated preview — the preview posture is the recorded channel, and promotion to production is gated on the bench attestation #834 requires (owner-authored, never machine-written). Kept on the preview channel under owner risk-acceptance waiver HW-AIRIQ-WAIVER-2026-06: AirIQ sensor-stack bench accuracy (SPS30, SGP41, SCD41, BMP390) is NOT verified and the S360-410 PoE PSU is covered by HW-S360-410-WAIVER-2026-06. Owner waiver, not hardware verification. The catalog entry is status preview / channel preview and the config/webflash-builds.json row is channel preview, artifact Sense360-Ceiling-POE-AirIQ-RoomIQ-v1.0.9-preview.bin. The S360-KIT-KITCHEN-P bundle stays hidden / not buyable / not recommended / not a customer default. History: RELEASE-PREVIEW-WEBFLASH-BUILD-ROWS-001 added the original preview build row with hosted-compile evidence (run 26821900127); the products/webflash wrapper (RELEASE-PREVIEW-WEBFLASH-WRAPPERS-001) is recorded in webflash_wrapper."
     },
     {
       "target_id": "ceiling-poe-roomiq-preview",
@@ -298,9 +298,9 @@
       "config_string": "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
       "yaml_path": "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml",
       "channel_tier": "preview",
-      "build_channel": "preview",
-      "version": "1.0.0",
-      "expected_artifact_name": "Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.0-preview.bin",
+      "build_channel": "experimental",
+      "version": "1.0.1",
+      "expected_artifact_name": "Sense360-Ceiling-POE-VentIQ-FanRelay-RoomIQ-v1.0.1-experimental.bin",
       "is_preview_target": true,
       "is_fan": true,
       "is_triac": false,
@@ -324,7 +324,7 @@
       "bench_evidence_claimed": false,
       "schematic_status_verified_claim": false,
       "consuming_bundles": [],
-      "notes": "Relay-switched fan. Buildable (validated-full-compile) and now a PREVIEW release target (no longer 'manual-candidate-only / not releasable'). Preview artifact delivered via the manual-preview lane (config/manual-firmware-artifacts.json); WebFlash import stays gated by the fan-token guardrail (catalog webflash_build_matrix stays false) until the WebFlash warning UX is ready. Not stable, not recommended, not default. HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record, 2026-07-09): the bench-proof documentation requirement is retired as a release gate; hardware readiness is declared by the owner directly. This config now ALSO carries a committed config/webflash-builds.json row on the non-stable 'experimental' channel (release_state metadata-ready-unpublished; catalog webflash_build_matrix now true) — the former fan-token guardrail was revised by the owner to channel teeth: fan configs are NEVER on the stable channel. The manual-preview lane record above is unchanged and the published v1.0.0-preview manual asset remains valid."
+      "notes": "Owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001), artifact-name split: 'FanTRIAC aligns to webflash-builds naming as originally approved. The FanRelay pair's published -preview.bin artifacts on v1.0.0-preview are immutable facts; their next artifact is version v1.0.1 - that version name is decided here - under the experimental channel's canonical naming. No second name for v1.0.0 ever.' Declaration reconciliation only: nothing is published, promoted or built, and every publish_evidence record stays untouched. Relay-switched fan. Buildable (validated-full-compile) and now a PREVIEW release target (no longer 'manual-candidate-only / not releasable'). Preview artifact delivered via the manual-preview lane (config/manual-firmware-artifacts.json); WebFlash import stays gated by the fan-token guardrail (catalog webflash_build_matrix stays false) until the WebFlash warning UX is ready. Not stable, not recommended, not default. HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record, 2026-07-09): the bench-proof documentation requirement is retired as a release gate; hardware readiness is declared by the owner directly. This config now ALSO carries a committed config/webflash-builds.json row on the non-stable 'experimental' channel (release_state metadata-ready-unpublished; catalog webflash_build_matrix now true) — the former fan-token guardrail was revised by the owner to channel teeth: fan configs are NEVER on the stable channel. The manual-preview lane record above is unchanged and the published v1.0.0-preview manual asset remains valid."
     },
     {
       "target_id": "ceiling-poe-fanpwm-preview",
@@ -564,9 +564,9 @@
       "config_string": "Ceiling-POE-AirIQ-FanRelay-RoomIQ",
       "yaml_path": "products/sense360-ceiling-poe-airiq-fanrelay-roomiq.yaml",
       "channel_tier": "preview",
-      "build_channel": "preview",
-      "version": "1.0.0",
-      "expected_artifact_name": "Sense360-Ceiling-POE-AirIQ-FanRelay-RoomIQ-v1.0.0-preview.bin",
+      "build_channel": "experimental",
+      "version": "1.0.1",
+      "expected_artifact_name": "Sense360-Ceiling-POE-AirIQ-FanRelay-RoomIQ-v1.0.1-experimental.bin",
       "is_preview_target": true,
       "is_fan": true,
       "is_triac": false,
@@ -590,7 +590,7 @@
       "bench_evidence_claimed": false,
       "schematic_status_verified_claim": false,
       "consuming_bundles": [],
-      "notes": "Full-composition room-bundle fan config. HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record, 2026-07-09): the bench-proof documentation requirement is retired as a release gate; hardware readiness is declared by the owner directly. Added to this manifest because the config now carries a committed config/webflash-builds.json row on the non-stable 'experimental' channel (release_state metadata-ready-unpublished; catalog webflash_build_matrix true), so the committed-build coverage check requires a representing target. The manual-preview lane record and published v1.0.0-preview manual asset stand. Fan configs are NEVER on the stable channel; not recommended, not default, not buyable, not in any kit."
+      "notes": "Owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001), artifact-name split: 'FanTRIAC aligns to webflash-builds naming as originally approved. The FanRelay pair's published -preview.bin artifacts on v1.0.0-preview are immutable facts; their next artifact is version v1.0.1 - that version name is decided here - under the experimental channel's canonical naming. No second name for v1.0.0 ever.' Declaration reconciliation only: nothing is published, promoted or built, and every publish_evidence record stays untouched. Full-composition room-bundle fan config. HW-RELEASE-001 (docs/hw-release-001.md, owner decision of record, 2026-07-09): the bench-proof documentation requirement is retired as a release gate; hardware readiness is declared by the owner directly. Added to this manifest because the config now carries a committed config/webflash-builds.json row on the non-stable 'experimental' channel (release_state metadata-ready-unpublished; catalog webflash_build_matrix true), so the committed-build coverage check requires a representing target. The manual-preview lane record and published v1.0.0-preview manual asset stand. Fan configs are NEVER on the stable channel; not recommended, not default, not buyable, not in any kit."
     },
     {
       "target_id": "ceiling-poe-ventiq-fantriac-roomiq-advanced-preview",
@@ -604,9 +604,9 @@
       "config_string": "Ceiling-POE-VentIQ-FanTRIAC-RoomIQ",
       "yaml_path": "products/sense360-ceiling-poe-ventiq-fantriac-roomiq.yaml",
       "channel_tier": "advanced-preview",
-      "build_channel": "preview",
+      "build_channel": "experimental",
       "version": "1.0.0",
-      "expected_artifact_name": "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-preview.bin",
+      "expected_artifact_name": "Sense360-Ceiling-POE-VentIQ-FanTRIAC-RoomIQ-v1.0.0-experimental.bin",
       "is_preview_target": true,
       "is_fan": true,
       "is_triac": true,
@@ -629,7 +629,7 @@
       "bench_evidence_claimed": false,
       "schematic_status_verified_claim": false,
       "consuming_bundles": [],
-      "notes": "Mains-voltage TRIAC. Advanced-preview ONLY, with mandatory mains-risk warning copy, delivered via the advanced-manual-preview lane. TRIAC-UNBLOCK-BUILD-001 resolved the HW-005 BUILDABILITY blocker (SX1509-free Core respin routes TRI_GPIO1/TRI_GPIO2 direct to IO14/IO13; build_blocker cleared; local full compile recorded in config/preview-fan-triac-build-rows.json). The artifact is buildable but is NOT published here: publishing the advanced-manual-preview .bin is the follow-up TRIAC-PUBLISH-ADVANCED-PREVIEW-001, now owned by the commissioning PR under COMPLIANCE-001-RESOLUTION-001 (COMPLIANCE-001 closed by posture; publish gated by PACKAGE-TRIAC-001 with signed attestation + the experimental-lane preconditions). Never stable, recommended, default, REQUIRED_CONFIG, or WebFlash-exposed in this PR."
+      "notes": "Owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001), artifact-name split: 'FanTRIAC aligns to webflash-builds naming as originally approved. The FanRelay pair's published -preview.bin artifacts on v1.0.0-preview are immutable facts; their next artifact is version v1.0.1 - that version name is decided here - under the experimental channel's canonical naming. No second name for v1.0.0 ever.' Declaration reconciliation only: nothing is published, promoted or built, and every publish_evidence record stays untouched. Mains-voltage TRIAC. Advanced-preview ONLY, with mandatory mains-risk warning copy, delivered via the advanced-manual-preview lane. TRIAC-UNBLOCK-BUILD-001 resolved the HW-005 BUILDABILITY blocker (SX1509-free Core respin routes TRI_GPIO1/TRI_GPIO2 direct to IO14/IO13; build_blocker cleared; local full compile recorded in config/preview-fan-triac-build-rows.json). The artifact is buildable but is NOT published here: publishing the advanced-manual-preview .bin is the follow-up TRIAC-PUBLISH-ADVANCED-PREVIEW-001, now owned by the commissioning PR under COMPLIANCE-001-RESOLUTION-001 (COMPLIANCE-001 closed by posture; publish gated by PACKAGE-TRIAC-001 with signed attestation + the experimental-lane preconditions). Never stable, recommended, default, REQUIRED_CONFIG, or WebFlash-exposed in this PR."
     }
   ]
 }

@@ -132,6 +132,14 @@ FAN_WRAPPERS = {
 }
 # All HW-RELEASE-001 metadata rows (the re-listed LED preview + the eight fan
 # rows) and the only channel each may occupy.
+# Per-config declared artifact version. The FanRelay pair moved to v1.0.1
+# under the owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001):
+# their published v1.0.0-preview artifacts are immutable, so the next
+# declared artifact must be a NEW version — never a second name for v1.0.0.
+HW_RELEASE_ROW_VERSIONS = {
+    "Ceiling-POE-VentIQ-FanRelay-RoomIQ": "1.0.1",
+    "Ceiling-POE-AirIQ-FanRelay-RoomIQ": "1.0.1",
+}
 HW_RELEASE_ROW_CHANNELS = {RELISTED_LED_CONFIG: "preview", **FAN_WRAPPER_CHANNELS}
 
 # Artifact-publication metadata that must never appear in a wrapper.
@@ -648,9 +656,10 @@ class WebflashBuildRowsPresentTests(unittest.TestCase):
                 self.assertEqual(row["release_state"], "metadata-ready-unpublished")
                 if cs == "Ceiling-POE-RoomIQ-LED":
                     self.assertEqual(row["owner_declaration"], HW_RELEASE_DOC)
+                version = HW_RELEASE_ROW_VERSIONS.get(cs, "1.0.0")
                 self.assertEqual(
                     row["artifact_name"],
-                    f"Sense360-{cs}-v1.0.0-{channel}.bin",
+                    f"Sense360-{cs}-v{version}-{channel}.bin",
                 )
                 self.assertTrue(row["stable_blocker"])
                 self.assertIn(HW_RELEASE_DECISION, row.get("notes", ""))

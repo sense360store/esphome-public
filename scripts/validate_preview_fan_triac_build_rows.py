@@ -156,9 +156,7 @@ def validate(
     errors: List[str] = []
 
     if ledger.get("schema_version") != 1:
-        errors.append(
-            f"schema_version must be 1; got {ledger.get('schema_version')!r}"
-        )
+        errors.append(f"schema_version must be 1; got {ledger.get('schema_version')!r}")
     if ledger.get("id") != LEDGER_ID:
         errors.append(f"id must be {LEDGER_ID!r}; got {ledger.get('id')!r}")
 
@@ -176,7 +174,9 @@ def validate(
     if simple.get("config_string") != SIMPLE_INSTALL_CONFIG:
         errors.append("simple_install.config_string must be the stable Bathroom config")
     if simple.get("artifact_name") != SIMPLE_INSTALL_ARTIFACT:
-        errors.append("simple_install.artifact_name must be the stable Bathroom artifact")
+        errors.append(
+            "simple_install.artifact_name must be the stable Bathroom artifact"
+        )
     if simple.get("launch_sku") != LAUNCH_SKU:
         errors.append(f"simple_install.launch_sku must be {LAUNCH_SKU!r}")
     if simple.get("channel") != "stable":
@@ -229,7 +229,9 @@ def validate(
         if cs not in EXPECTED_CONFIGS:
             rerr.append(f"row {rid!r}: unexpected config_string {cs!r}")
         if cs in seen_cs:
-            rerr.append(f"row {rid!r}: duplicate config_string (also at #{seen_cs[cs]})")
+            rerr.append(
+                f"row {rid!r}: duplicate config_string (also at #{seen_cs[cs]})"
+            )
         else:
             seen_cs[cs] = idx
 
@@ -256,14 +258,29 @@ def validate(
                 f"{row.get('expected_preview_artifact_name')!r} must be "
                 f"{expected_artifact!r}"
             )
-        if build_channel != "preview":
+        # ESP-007: when the config has a committed config/webflash-builds.json
+        # row, that row's channel governs; 'preview' stays the default for
+        # rows with no build row. Owner decision of 2026-07-28
+        # (SENSE360-CANONICALISATION-001): the FanRelay / FanTRIAC rows follow
+        # their experimental build rows so this ledger can never declare a
+        # second artifact name for a config the build ledger already names.
+        build_row_channel = None
+        for b in builds_doc.get("builds", []) or []:
+            if b.get("config_string") == cs:
+                build_row_channel = b.get("channel")
+                break
+        expected_channel = build_row_channel or "preview"
+        if build_channel != expected_channel:
             rerr.append(
-                f"row {rid!r}: build_channel must be 'preview' (got {build_channel!r})"
+                f"row {rid!r}: build_channel must be {expected_channel!r} "
+                f"(got {build_channel!r})"
             )
 
         # Warning copy matches the policy verbatim.
         if key not in warning_copy:
-            rerr.append(f"row {rid!r}: warning_copy_key {key!r} not in policy warning_copy")
+            rerr.append(
+                f"row {rid!r}: warning_copy_key {key!r} not in policy warning_copy"
+            )
         elif row.get("release_note_warning") != warning_copy[key]:
             rerr.append(
                 f"row {rid!r}: release_note_warning must equal policy "
@@ -286,16 +303,10 @@ def validate(
                     for b in builds_doc.get("builds", []) or []
                     if isinstance(b, dict) and b.get("config_string") == cs
                 ]
-                allowed = (
-                    ("experimental",) if "FanRelay" in cs else ("preview",)
-                )
-                off_lane = [
-                    b for b in fan_builds if b.get("channel") not in allowed
-                ]
+                allowed = ("experimental",) if "FanRelay" in cs else ("preview",)
+                off_lane = [b for b in fan_builds if b.get("channel") not in allowed]
                 if off_lane:
-                    bad_channels = sorted(
-                        {str(b.get("channel")) for b in off_lane}
-                    )
+                    bad_channels = sorted({str(b.get("channel")) for b in off_lane})
                     rerr.append(
                         f"row {rid!r}: fan config committed to "
                         "config/webflash-builds.json on channel(s) "
@@ -408,11 +419,15 @@ def validate(
         # Lane-specific rules.
         if is_triac:
             if lane != "advanced-manual-preview":
-                rerr.append(f"row {rid!r}: TRIAC delivery_lane must be advanced-manual-preview")
+                rerr.append(
+                    f"row {rid!r}: TRIAC delivery_lane must be advanced-manual-preview"
+                )
             if row.get("channel_tier") != "advanced-preview":
                 rerr.append(f"row {rid!r}: TRIAC channel_tier must be advanced-preview")
             if key != "advanced-preview":
-                rerr.append(f"row {rid!r}: TRIAC warning_copy_key must be advanced-preview")
+                rerr.append(
+                    f"row {rid!r}: TRIAC warning_copy_key must be advanced-preview"
+                )
             if row.get("webflash_exposure_class") != "acknowledgement-gated-advanced":
                 rerr.append(
                     f"row {rid!r}: TRIAC webflash_exposure_class must be "
@@ -461,13 +476,17 @@ def validate(
                 )
         else:
             if lane != "manual-preview":
-                rerr.append(f"row {rid!r}: fan-driver delivery_lane must be manual-preview")
+                rerr.append(
+                    f"row {rid!r}: fan-driver delivery_lane must be manual-preview"
+                )
             if row.get("channel_tier") != "preview":
                 rerr.append(f"row {rid!r}: fan-driver channel_tier must be preview")
             if key != "preview":
                 rerr.append(f"row {rid!r}: fan-driver warning_copy_key must be preview")
             if row.get("webflash_exposure_class") is not None:
-                rerr.append(f"row {rid!r}: fan-driver webflash_exposure_class must be null")
+                rerr.append(
+                    f"row {rid!r}: fan-driver webflash_exposure_class must be null"
+                )
             if row.get("build_blocker") is not None:
                 rerr.append(f"row {rid!r}: fan-driver build_blocker must be null")
             if row.get("buildable_now") is not True:
@@ -495,7 +514,9 @@ def validate(
             # Firmware-build compile evidence.
             ev = row.get("compile_evidence")
             if not isinstance(ev, dict):
-                rerr.append(f"row {rid!r}: fan-driver must carry a compile_evidence object")
+                rerr.append(
+                    f"row {rid!r}: fan-driver must carry a compile_evidence object"
+                )
             else:
                 if ev.get("run_id") != COMPILE_RUN_ID:
                     rerr.append(

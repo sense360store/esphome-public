@@ -55,20 +55,16 @@ from typing import Any, Dict, List
 
 import yaml
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 RELAY_PRODUCT_YAML = (
-    REPO_ROOT
-    / "products"
-    / "sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml"
+    REPO_ROOT / "products" / "sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml"
 )
 RELAY_PRODUCT_REL = "products/sense360-ceiling-poe-ventiq-fanrelay-roomiq.yaml"
 # The product YAML is now a thin compat shim; its full composition/substitution
 # content lives in the bundle. Content reads must target the bundle.
 RELAY_BUNDLE = (
-    REPO_ROOT / "products" / "bundles"
-    / "ceiling-poe-ventiq-fanrelay-roomiq.yaml"
+    REPO_ROOT / "products" / "bundles" / "ceiling-poe-ventiq-fanrelay-roomiq.yaml"
 )
 RELAY_CONFIG_STRING = "Ceiling-POE-VentIQ-FanRelay-RoomIQ"
 # HW-RELEASE-001: the release-gate WebFlash wrapper now exists.
@@ -172,8 +168,7 @@ class RelayProductYamlExistsTests(unittest.TestCase):
             self.assertIn(
                 key,
                 data,
-                f"FanRelay product YAML must declare a top-level "
-                f"`{key}:` block",
+                f"FanRelay product YAML must declare a top-level " f"`{key}:` block",
             )
 
     def test_product_yaml_is_enumerated_in_catalog(self) -> None:
@@ -365,7 +360,11 @@ class RelayProductWebFlashReleaseSurfaceTests(unittest.TestCase):
 
     def test_catalog_entry_artifact_name_matches_contract(self) -> None:
         version = self.entry.get("version")
-        self.assertEqual(version, "1.0.0")
+        # v1.0.1 per the owner decision of 2026-07-28
+        # (SENSE360-CANONICALISATION-001): the FanRelay pair's next artifact
+        # is v1.0.1-experimental — the published v1.0.0-preview artifact is
+        # immutable and no second name for v1.0.0 may ever be declared.
+        self.assertEqual(version, "1.0.1")
         self.assertEqual(
             self.entry.get("artifact_name"),
             f"Sense360-{RELAY_CONFIG_STRING}-v{version}-experimental.bin",
@@ -755,9 +754,7 @@ class RelayProductCompileOnlyTargetTests(unittest.TestCase):
     addressed via the products/webflash wrapper, never this lane.
     """
 
-    COMPILE_ONLY_TARGETS_PATH = (
-        REPO_ROOT / "config" / "compile-only-targets.json"
-    )
+    COMPILE_ONLY_TARGETS_PATH = REPO_ROOT / "config" / "compile-only-targets.json"
     EXPECTED_TARGET_ID = "ceiling-poe-ventiq-fanrelay-roomiq-compile-only"
 
     @classmethod
@@ -780,8 +777,7 @@ class RelayProductCompileOnlyTargetTests(unittest.TestCase):
         self.assertEqual(
             self.target.get("product_yaml"),
             RELAY_PRODUCT_REL,
-            f"FanRelay compile-only target must point at "
-            f"{RELAY_PRODUCT_REL!r}",
+            f"FanRelay compile-only target must point at " f"{RELAY_PRODUCT_REL!r}",
         )
 
     def test_relay_compile_only_target_config_string(self) -> None:
@@ -1017,16 +1013,12 @@ class RelayManualFirmwareCandidateTests(unittest.TestCase):
     proof only and never stable.
     """
 
-    COMPILE_ONLY_TARGETS_PATH = (
-        REPO_ROOT / "config" / "compile-only-targets.json"
-    )
+    COMPILE_ONLY_TARGETS_PATH = REPO_ROOT / "config" / "compile-only-targets.json"
     TARGET_ID = "ceiling-poe-ventiq-fanrelay-roomiq-compile-only"
 
     @classmethod
     def setUpClass(cls) -> None:
-        targets = (
-            _load_json(cls.COMPILE_ONLY_TARGETS_PATH).get("targets") or []
-        )
+        targets = _load_json(cls.COMPILE_ONLY_TARGETS_PATH).get("targets") or []
         cls.by_id = {t.get("id"): t for t in targets if t.get("id")}
         cls.entry = _catalog_entry_for(RELAY_PRODUCT_REL)
 
@@ -1067,9 +1059,7 @@ class RelayManualFirmwareCandidateTests(unittest.TestCase):
             "not compliance",
             "not kit-default",
         ):
-            self.assertIn(
-                marker, notes, f"FanRelay notes must disclaim {marker!r}"
-            )
+            self.assertIn(marker, notes, f"FanRelay notes must disclaim {marker!r}")
 
     def test_catalog_status_is_preview_per_hw_release_001(self) -> None:
         # Inverted from "stays hardware-pending" by HW-RELEASE-001.
@@ -1089,9 +1079,7 @@ class RelayManualFirmwareCandidateTests(unittest.TestCase):
 
     def test_catalog_declares_webflash_wrapper(self) -> None:
         # Inverted from "no webflash_wrapper" by HW-RELEASE-001.
-        self.assertEqual(
-            self.entry.get("webflash_wrapper"), RELAY_WRAPPER_REL
-        )
+        self.assertEqual(self.entry.get("webflash_wrapper"), RELAY_WRAPPER_REL)
 
     def test_webflash_wrapper_file_exists_and_is_thin(self) -> None:
         # Inverted from "no wrapper file" by HW-RELEASE-001: the wrapper

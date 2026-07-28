@@ -35,7 +35,6 @@ import json
 import unittest
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 CANONICAL_REL = "docs/sense360-roadmap-status.md"
@@ -241,15 +240,18 @@ class ReleaseTargetsMatchConfigTests(unittest.TestCase):
         doc_artifacts = {b["artifact_name"] for b in self.builds}
         for art in doc_artifacts:
             self.assertIn(art, self.text)
-        # The stable channel carries Release-One plus the two owner-waiver
-        # promotions (STABLE-PROMOTION-RECONCILE-001: Bedroom v1.0.5,
-        # Kitchen v1.0.6); Release-One stays the required customer baseline.
+        # The stable channel carries Release-One plus the Bedroom owner-waiver
+        # promotion (STABLE-PROMOTION-RECONCILE-001, v1.0.5). Kitchen
+        # (Ceiling-POE-AirIQ-RoomIQ) was demoted back to preview by PR #834
+        # (2026-07-16), upheld by the owner decision of 2026-07-28
+        # (SENSE360-CANONICALISATION-001): promotion to production is gated on
+        # the bench attestation #834 requires. Release-One stays the required
+        # customer baseline.
         stable = {b["config_string"] for b in self.builds if b["channel"] == "stable"}
         self.assertEqual(
             stable,
             {
                 "Ceiling-POE-VentIQ-RoomIQ",
-                "Ceiling-POE-AirIQ-RoomIQ",
                 "Ceiling-POE-RoomIQ",
             },
             "Stable release targets drifted from config/webflash-builds.json.",
@@ -270,7 +272,7 @@ class NextHardwareTaskTests(unittest.TestCase):
 
     def _section(self, heading_substr: str, text: str) -> str:
         idx = text.index(heading_substr)
-        rest = text[idx + len(heading_substr):]
+        rest = text[idx + len(heading_substr) :]
         nxt = rest.find("\n## ")
         return rest if nxt == -1 else rest[:nxt]
 

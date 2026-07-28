@@ -98,6 +98,9 @@ LEDGER_DRAFTED_CONFIGS = (
 # and the two owner-declared FanRelay room bundles are metadata-ready on the
 # EXPERIMENTAL channel, tracked separately.
 STILL_METADATA_READY_CONFIGS: tuple[str, ...] = (
+    # Demoted back to preview by PR #834, upheld by the owner decision of
+    # 2026-07-28; metadata-ready at v1.0.9 on the preview channel.
+    "Ceiling-POE-AirIQ-RoomIQ",
     "Ceiling-POE-RoomIQ-LED",
     "Ceiling-POE-FanPWM",
     "Ceiling-POE-AirIQ-FanPWM-RoomIQ",
@@ -122,14 +125,14 @@ EXPERIMENTAL_METADATA_READY_CONFIGS = (
     "Ceiling-POE-AirIQ-FanRelay-RoomIQ",
     "Ceiling-POE-VentIQ-FanRelay-RoomIQ",
 )
-PROMOTED_CONFIGS = (
-    "Ceiling-POE-AirIQ-RoomIQ",
-    "Ceiling-POE-RoomIQ",
-)
+# Owner decision of 2026-07-28 (SENSE360-CANONICALISATION-001): PR #834 is
+# upheld and the same-day promotion decision is withdrawn as founded on a
+# false premise; the catalogue stays preview, and this file's expectations
+# move to the preview posture so main stops being internally split between
+# the five #834-updated test files and these.
+PROMOTED_CONFIGS = ("Ceiling-POE-RoomIQ",)
 # The preview artifact each draft named at drafting time (historical, static).
-DRAFTED_ARTIFACTS = {
-    cs: f"Sense360-{cs}-v1.0.0-preview.bin" for cs in DRAFTED_CONFIGS
-}
+DRAFTED_ARTIFACTS = {cs: f"Sense360-{cs}-v1.0.0-preview.bin" for cs in DRAFTED_CONFIGS}
 STABLE_CONFIG = "Ceiling-POE-VentIQ-RoomIQ"
 PUBLISHED_LED_PREVIEW_CONFIG = "Ceiling-POE-VentIQ-RoomIQ-LED"
 # The stable Bathroom artifact the drafts cross-referenced at drafting time
@@ -213,9 +216,7 @@ def _preview_rows() -> List[Dict[str, Any]]:
 
 def _metadata_ready_rows() -> List[Dict[str, Any]]:
     return [
-        b
-        for b in _builds()
-        if b.get("release_state") == "metadata-ready-unpublished"
+        b for b in _builds() if b.get("release_state") == "metadata-ready-unpublished"
     ]
 
 
@@ -405,9 +406,7 @@ class MetadataReadyRowPostureTests(unittest.TestCase):
             with self.subTest(config_string=cs):
                 row = self.by_cs[cs]
                 self.assertEqual(row.get("warning_copy_key"), "preview")
-                self.assertIn(
-                    "PREVIEW FIRMWARE", row.get("release_note_warning", "")
-                )
+                self.assertIn("PREVIEW FIRMWARE", row.get("release_note_warning", ""))
         for cs in PROMOTED_CONFIGS:
             with self.subTest(config_string=cs):
                 row = self.by_cs[cs]
@@ -430,9 +429,7 @@ class MetadataReadyRowPostureTests(unittest.TestCase):
             with self.subTest(config_string=cs):
                 row = self.by_cs[cs]
                 self.assertEqual(row["channel"], "preview")
-                self.assertEqual(
-                    row.get("release_state"), "metadata-ready-unpublished"
-                )
+                self.assertEqual(row.get("release_state"), "metadata-ready-unpublished")
                 self.assertTrue(row["artifact_name"].endswith("-preview.bin"))
         for cs in PROMOTED_CONFIGS:
             with self.subTest(config_string=cs):
@@ -468,9 +465,7 @@ class EveryPreviewRowHasCoverageTests(unittest.TestCase):
                         "recorded in docs/archive-index.md",
                     )
                 else:
-                    self.fail(
-                        f"unexpected preview row without coverage policy: {cs}"
-                    )
+                    self.fail(f"unexpected preview row without coverage policy: {cs}")
 
 
 class PublishedAndStableNotDraftedTests(unittest.TestCase):
